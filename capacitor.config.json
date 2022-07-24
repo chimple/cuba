@@ -1,0 +1,11 @@
+{
+  "appId": "org.chimple.cuba",
+  "appName": "cuba",
+  "bundledWebRuntime": false,
+  "webDir": "dist",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  }
+}
