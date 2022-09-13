@@ -1,0 +1,7 @@
+{
+  "name": "cuba",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react"
+}

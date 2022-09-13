@@ -1,10 +1,26 @@
 [
 	{
-		"pkg": "@capacitor/camera",
-		"classpath": "com.capacitorjs.plugins.camera.CameraPlugin"
+		"pkg": "@capacitor-community/http",
+		"classpath": "com.getcapacitor.plugin.http.Http"
 	},
 	{
-		"pkg": "@capacitor/splash-screen",
-		"classpath": "com.capacitorjs.plugins.splashscreen.SplashScreenPlugin"
+		"pkg": "@capacitor/app",
+		"classpath": "com.capacitorjs.plugins.app.AppPlugin"
+	},
+	{
+		"pkg": "@capacitor/filesystem",
+		"classpath": "com.capacitorjs.plugins.filesystem.FilesystemPlugin"
+	},
+	{
+		"pkg": "@capacitor/haptics",
+		"classpath": "com.capacitorjs.plugins.haptics.HapticsPlugin"
+	},
+	{
+		"pkg": "@capacitor/keyboard",
+		"classpath": "com.capacitorjs.plugins.keyboard.KeyboardPlugin"
+	},
+	{
+		"pkg": "@capacitor/status-bar",
+		"classpath": "com.capacitorjs.plugins.statusbar.StatusBarPlugin"
 	}
 ]
