@@ -46,6 +46,8 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          process.env.CI: false
 
       - name: deploy web
         uses: peaceiris/actions-gh-pages@v3
