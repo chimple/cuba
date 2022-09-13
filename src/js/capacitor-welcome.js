@@ -1,5 +1,6 @@
 import { SplashScreen } from '@capacitor/splash-screen';
-import { Camera } from '@capacitor/camera';
+import { AccountManager } from 'account-manager';
+import { AccountManagerWeb } from 'account-manager/dist/esm/web';
 
 window.customElements.define(
   'capacitor-welcome',
@@ -35,6 +36,8 @@ window.customElements.define(
       }
       main {
         padding: 15px;
+        display: grid;
+        justify-content: center;
       }
       main hr { height: 1px; background-color: #eee; border: 0; }
       main h1 {
@@ -54,36 +57,21 @@ window.customElements.define(
       main pre {
         white-space: pre-line;
       }
+      capacitor-welcome-titlebar {
+        display: grid;
+        justify-content: center;
+      }
     </style>
     <div>
       <capacitor-welcome-titlebar>
-        <h1>Capacitor</h1>
+        <h1>Account Manager Plugin Demo</h1>
       </capacitor-welcome-titlebar>
       <main>
-        <p>
-          Capacitor makes it easy to build powerful apps for the app stores, mobile web (Progressive Web Apps), and desktop, all
-          with a single code base.
-        </p>
-        <h2>Getting Started</h2>
-        <p>
-          You'll probably need a UI framework to build a full-featured app. Might we recommend
-          <a target="_blank" href="http://ionicframework.com/">Ionic</a>?
-        </p>
-        <p>
-          Visit <a href="https://capacitorjs.com">capacitorjs.com</a> for information
-          on using native features, building plugins, and more.
-        </p>
-        <a href="https://capacitorjs.com" target="_blank" class="button">Read more</a>
-        <h2>Tiny Demo</h2>
-        <p>
-          This demo shows how to call Capacitor plugins. Say cheese!
-        </p>
-        <p>
-          <button class="button" id="take-photo">Take Photo</button>
-        </p>
-        <p>
-          <img id="image" style="max-width: 100%">
-        </p>
+          <h2>Methods</h2>
+          <p><button class="button" id="account-picker">Account Authenticator</button></p>
+          <p><button class="button" style="display:none" id="get-accounts">Get Accounts</button></p>
+          <p><button class="button" style="display:none" id="add-new-accounts">Add New Accounts</button></p>
+          <p><button class="button" style="display:none" id="account-authentication">Account Authentication</button></p>
       </main>
     </div>
     `;
@@ -92,51 +80,60 @@ window.customElements.define(
     connectedCallback() {
       const self = this;
 
-      self.shadowRoot.querySelector('#take-photo').addEventListener('click', async function (e) {
-        try {
-          const photo = await Camera.getPhoto({
-            resultType: 'uri',
-          });
+      self.shadowRoot.querySelector('#get-accounts').addEventListener('click', async function (e) {
+        // try {
 
-          const image = self.shadowRoot.querySelector('#image');
-          if (!image) {
-            return;
-          }
-
-          image.src = photo.webPath;
-        } catch (e) {
-          console.warn('User cancelled', e);
+        let account = {
+          "name": "name",
+          "type": "type"
         }
-      });
-    }
-  }
-);
 
-window.customElements.define(
-  'capacitor-welcome-titlebar',
-  class extends HTMLElement {
-    constructor() {
-      super();
-      const root = this.attachShadow({ mode: 'open' });
-      root.innerHTML = `
-    <style>
-      :host {
-        position: relative;
-        display: block;
-        padding: 15px 15px 15px 15px;
-        text-align: center;
-        background-color: #73B5F6;
-      }
-      ::slotted(h1) {
-        margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-        font-size: 0.9em;
-        font-weight: 600;
-        color: #fff;
-      }
-    </style>
-    <slot></slot>
-    `;
+        console.log('take-phote entred', AccountManager);
+        let result = await AccountManager.getAccount();
+        // let result = await AccountManager.showAccountPicker();
+        console.log('result', result);
+        // alert("Result " + result);
+
+        // } catch (e) {
+        //   console.log('User cancelled', e);
+        // }
+      });
+
+      self.shadowRoot.querySelector('#add-new-accounts').addEventListener('click', async function (e) {
+        // try {
+
+        console.log('add-new-accounts');
+        let result = await AccountManager.addNewAccount();
+        console.log('result', result);
+        
+        // } catch (e) {
+        //   console.log('User cancelled', e);
+        // }
+      });
+
+      self.shadowRoot.querySelector('#account-picker').addEventListener('click', async function (e) {
+        // try {
+
+        console.log('account-picker');
+        let result = await AccountManager.getExistingAccountAuthToken();
+        console.log('result', result);
+        
+        // } catch (e) {
+        //   console.log('User cancelled', e);
+        // }
+      });
+
+      self.shadowRoot.querySelector('#account-authentication').addEventListener('click', async function (e) {
+        // try {
+
+        console.log('account-authentication');
+        let result = await AccountManager.authenticator();
+        console.log('result', result);
+        
+        // } catch (e) {
+        //   console.log('User cancelled', e);
+        // }
+      });
     }
   }
 );
