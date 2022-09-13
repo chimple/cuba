@@ -1,0 +1,3 @@
+[submodule "public/chimple-lib"]
+	path = public/chimple-lib
+	url = https://github.com/chimple/chimple-lib.git
