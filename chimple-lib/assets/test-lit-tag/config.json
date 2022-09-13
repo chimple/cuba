@@ -1,0 +1,98 @@
+{
+    "paths": {
+        "03VA3ozlZN+Zy3ee5ctAcw": [
+            "res/back",
+            "cc.AudioClip"
+        ],
+        "ecchKMGtdCUagHbW1X2qju": [
+            "res/ear",
+            "cc.AudioClip"
+        ],
+        "1cE0NZ5T9KApqO+vv0Dgya": [
+            "res/elephant",
+            "cc.AudioClip"
+        ],
+        "a9/hD3WixNHoPSpOwyHNaS": [
+            "res/finger",
+            "cc.AudioClip"
+        ],
+        "bfY7K+a0lBWK48w8PAuYac": [
+            "res/hands",
+            "cc.AudioClip"
+        ],
+        "10FJK8j4NI0aOgPTqTcoFi": [
+            "res/image_22_4",
+            "cc.Texture2D"
+        ],
+        "7e6b96SItMSIQlCTuBjX2u": [
+            "res/image_22_4",
+            "cc.SpriteFrame",
+            1
+        ],
+        "1anP0kyMhHurAQDlojncwx": [
+            "res/image_9_4",
+            "cc.Texture2D"
+        ],
+        "807vz5ZwZINoSytm4AQr9R": [
+            "res/image_9_4",
+            "cc.SpriteFrame",
+            1
+        ],
+        "80DSrvhTZF/bj+/KUwl0Nu": [
+            "res/nail",
+            "cc.AudioClip"
+        ],
+        "c2MYWoQ/5NjIMYdlB+6iSh": [
+            "res/palm",
+            "cc.AudioClip"
+        ],
+        "d6a0c0Bp9GnLsesevMsIra": [
+            "res/test-lit-tag",
+            "cc.JsonAsset"
+        ],
+        "31OCacyV1H+rss7x+T44dh": [
+            "res/trunk",
+            "cc.AudioClip"
+        ],
+        "35dT7l32pG/5SG8Ig+PXCs": [
+            "res/tusk",
+            "cc.AudioClip"
+        ],
+        "eampm8a4hGgJama15vgpp9": [
+            "res/wrist",
+            "cc.AudioClip"
+        ]
+    },
+    "uuids": [
+        "03VA3ozlZN+Zy3ee5ctAcw",
+        "10FJK8j4NI0aOgPTqTcoFi",
+        "1anP0kyMhHurAQDlojncwx",
+        "1cE0NZ5T9KApqO+vv0Dgya",
+        "31OCacyV1H+rss7x+T44dh",
+        "35dT7l32pG/5SG8Ig+PXCs",
+        "7e6b96SItMSIQlCTuBjX2u",
+        "80DSrvhTZF/bj+/KUwl0Nu",
+        "807vz5ZwZINoSytm4AQr9R",
+        "a9/hD3WixNHoPSpOwyHNaS",
+        "bfY7K+a0lBWK48w8PAuYac",
+        "c2MYWoQ/5NjIMYdlB+6iSh",
+        "d6a0c0Bp9GnLsesevMsIra",
+        "eampm8a4hGgJama15vgpp9",
+        "ecchKMGtdCUagHbW1X2qju"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {
+        "0d8537906": [
+            "10FJK8j4NI0aOgPTqTcoFi",
+            "1anP0kyMhHurAQDlojncwx"
+        ]
+    },
+    "name": "test-lit-tag",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

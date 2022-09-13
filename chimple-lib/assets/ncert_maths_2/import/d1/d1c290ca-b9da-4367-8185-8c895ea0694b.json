@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "1eYwTN9jtNwb+VFNL8T8j5"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "gold_rewards",
+      "rect": [
+        1,
+        22,
+        94,
+        61
+      ],
+      "offset": [
+        0,
+        -4.5
+      ],
+      "originalSize": [
+        96,
+        96
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

@@ -1,0 +1,21 @@
+{
+    "paths": {
+        "60bJ52IOdN2aYmRoybB6Lj": [
+            "res/test-lit-letterboard",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "60bJ52IOdN2aYmRoybB6Lj"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-lit-letterboard",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

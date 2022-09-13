@@ -1,0 +1,58 @@
+{
+    "paths": {
+        "426LMgCYVGOrYbrTbTCzVp": [
+            "res/hit",
+            "cc.Texture2D"
+        ],
+        "60IrV3QB5A7J0DtU31TCk0": [
+            "res/hit",
+            "cc.AudioClip"
+        ],
+        "71GgWhaptBU6nhBT76y7Ip": [
+            "res/hit",
+            "cc.SpriteFrame",
+            1
+        ],
+        "5aYC1FHipAqL9X4JLY1kJN": [
+            "res/hungry",
+            "cc.Texture2D"
+        ],
+        "92ZfDF+vVN8rC05+LRAQFF": [
+            "res/hungry",
+            "cc.SpriteFrame",
+            1
+        ],
+        "ae03bRYmlM74sMZ2afEvSy": [
+            "res/hungry",
+            "cc.AudioClip"
+        ],
+        "117Wv793dE34AMvJQ5mgs5": [
+            "res/test-lit-rocket",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "117Wv793dE34AMvJQ5mgs5",
+        "426LMgCYVGOrYbrTbTCzVp",
+        "5aYC1FHipAqL9X4JLY1kJN",
+        "60IrV3QB5A7J0DtU31TCk0",
+        "71GgWhaptBU6nhBT76y7Ip",
+        "92ZfDF+vVN8rC05+LRAQFF",
+        "ae03bRYmlM74sMZ2afEvSy"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {
+        "03fb4ec85": [
+            "426LMgCYVGOrYbrTbTCzVp",
+            "5aYC1FHipAqL9X4JLY1kJN"
+        ]
+    },
+    "name": "test-lit-rocket",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

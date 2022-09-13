@@ -1,0 +1,129 @@
+{
+    "paths": {
+        "1465BuJFpKw4m+izmBn/ud": [
+            "res/frock_part1",
+            "cc.Texture2D"
+        ],
+        "2dxG0DuzdKOqMEH/3whzIn": [
+            "res/frock_part1",
+            "cc.SpriteFrame",
+            1
+        ],
+        "2f8OHONVJGWID5/SBC+9jF": [
+            "res/frock_part2",
+            "cc.Texture2D"
+        ],
+        "4dFA6puYRNxrmGVpcApAN9": [
+            "res/frock_part2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "08VUqWHeNPg4ZUm5PQ/CQC": [
+            "res/frock_part3",
+            "cc.SpriteFrame",
+            1
+        ],
+        "c2PpcEhZJF/K6MefDxSBlT": [
+            "res/frock_part3",
+            "cc.Texture2D"
+        ],
+        "d9K6M3r71Nnr+cwETG42km": [
+            "res/frock_part4",
+            "cc.SpriteFrame",
+            1
+        ],
+        "deXsvpcTlLeb38YQ9eXdr1": [
+            "res/frock_part4",
+            "cc.Texture2D"
+        ],
+        "13qWRxuHNEh4hf/Rs8+ISu": [
+            "res/frock_part5",
+            "cc.Texture2D"
+        ],
+        "20SaTEjc5DhKzd0UtI2MQs": [
+            "res/frock_part5",
+            "cc.SpriteFrame",
+            1
+        ],
+        "cfGOOxiXxKGaKJHQf9eUFA": [
+            "res/frock_part6",
+            "cc.Texture2D"
+        ],
+        "e7Lo9Y1bhPbr7XijVqWdu3": [
+            "res/frock_part6",
+            "cc.SpriteFrame",
+            1
+        ],
+        "26hn9NCfxEyJPS1uB+Jv4l": [
+            "res/frock_thumbnail",
+            "cc.SpriteFrame",
+            1
+        ],
+        "a0uihTm3xPz7a2Gdfqija2": [
+            "res/frock_thumbnail",
+            "cc.Texture2D"
+        ],
+        "8d6FVyGahIF453745G02QL": [
+            "res/rewardsticker0006",
+            "cc.JsonAsset"
+        ],
+        "18CLqu5cxPcb16SHozRa/v": [
+            "res/sticker-rewardsticker0006",
+            "cc.SpriteFrame",
+            1
+        ],
+        "41KC0CB+RGe5CnDtmkPI/G": [
+            "res/sticker-rewardsticker0006",
+            "cc.Texture2D"
+        ]
+    },
+    "uuids": [
+        "08VUqWHeNPg4ZUm5PQ/CQC",
+        "13qWRxuHNEh4hf/Rs8+ISu",
+        "1465BuJFpKw4m+izmBn/ud",
+        "18CLqu5cxPcb16SHozRa/v",
+        "20SaTEjc5DhKzd0UtI2MQs",
+        "26hn9NCfxEyJPS1uB+Jv4l",
+        "2dxG0DuzdKOqMEH/3whzIn",
+        "2f8OHONVJGWID5/SBC+9jF",
+        "41KC0CB+RGe5CnDtmkPI/G",
+        "4dFA6puYRNxrmGVpcApAN9",
+        "8d6FVyGahIF453745G02QL",
+        "a0uihTm3xPz7a2Gdfqija2",
+        "c2PpcEhZJF/K6MefDxSBlT",
+        "cfGOOxiXxKGaKJHQf9eUFA",
+        "d9K6M3r71Nnr+cwETG42km",
+        "deXsvpcTlLeb38YQ9eXdr1",
+        "e7Lo9Y1bhPbr7XijVqWdu3"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {
+        "09bfa4d9b": [
+            "08VUqWHeNPg4ZUm5PQ/CQC",
+            "13qWRxuHNEh4hf/Rs8+ISu",
+            "1465BuJFpKw4m+izmBn/ud",
+            "18CLqu5cxPcb16SHozRa/v",
+            "20SaTEjc5DhKzd0UtI2MQs",
+            "26hn9NCfxEyJPS1uB+Jv4l",
+            "2dxG0DuzdKOqMEH/3whzIn",
+            "2f8OHONVJGWID5/SBC+9jF",
+            "41KC0CB+RGe5CnDtmkPI/G",
+            "4dFA6puYRNxrmGVpcApAN9",
+            "8d6FVyGahIF453745G02QL",
+            "a0uihTm3xPz7a2Gdfqija2",
+            "c2PpcEhZJF/K6MefDxSBlT",
+            "cfGOOxiXxKGaKJHQf9eUFA",
+            "d9K6M3r71Nnr+cwETG42km",
+            "deXsvpcTlLeb38YQ9eXdr1",
+            "e7Lo9Y1bhPbr7XijVqWdu3"
+        ]
+    },
+    "name": "rewardsticker0006",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

@@ -1,0 +1,58 @@
+{
+    "paths": {
+        "83vLwBy6pLn5ck8GgzIccO": [
+            "res/river",
+            "cc.AudioClip"
+        ],
+        "bdMAOo0dpNL4dec5gWzkba": [
+            "res/spelling_river",
+            "cc.SpriteFrame",
+            1
+        ],
+        "de2h1vPntGFZafgHdyRY5g": [
+            "res/spelling_river",
+            "cc.Texture2D"
+        ],
+        "51+e+DGR5Ax6vkRWbm465H": [
+            "res/spelling_stick",
+            "cc.SpriteFrame",
+            1
+        ],
+        "636croujxGWaIHGm1L5XRm": [
+            "res/spelling_stick",
+            "cc.Texture2D"
+        ],
+        "b574BMFAtPd65hejvupvt+": [
+            "res/stick",
+            "cc.AudioClip"
+        ],
+        "c3bn6m8HRG0JEutH1cdxfW": [
+            "res/test-lit-spelldoor",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "51+e+DGR5Ax6vkRWbm465H",
+        "636croujxGWaIHGm1L5XRm",
+        "83vLwBy6pLn5ck8GgzIccO",
+        "b574BMFAtPd65hejvupvt+",
+        "bdMAOo0dpNL4dec5gWzkba",
+        "c3bn6m8HRG0JEutH1cdxfW",
+        "de2h1vPntGFZafgHdyRY5g"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {
+        "0b30ef5a5": [
+            "636croujxGWaIHGm1L5XRm",
+            "de2h1vPntGFZafgHdyRY5g"
+        ]
+    },
+    "name": "test-lit-spelldoor",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

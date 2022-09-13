@@ -1,0 +1,21 @@
+{
+    "paths": {
+        "e1zOMNvARPtLGfom8Qx33J": [
+            "res/test-maths-shapetractor",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "e1zOMNvARPtLGfom8Qx33J"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-maths-shapetractor",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

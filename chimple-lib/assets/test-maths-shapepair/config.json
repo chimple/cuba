@@ -1,0 +1,160 @@
+{
+    "paths": {
+        "628hPoMWlKVZEjkrc/NGAA": [
+            "res/circle",
+            "cc.AudioClip"
+        ],
+        "d4IoMU1ZJG/po3xH3oCXcZ": [
+            "res/cone",
+            "cc.AudioClip"
+        ],
+        "bfM2HnKudDW6xjwiYWy5Eu": [
+            "res/cube",
+            "cc.AudioClip"
+        ],
+        "ceCerEJGBKGK4OD6bVv5GM": [
+            "res/cylinder",
+            "cc.AudioClip"
+        ],
+        "87AWJORWxMK5p+ZWJYw/EY": [
+            "res/matchinggame_circle_1_large",
+            "cc.Texture2D"
+        ],
+        "aeVbiWAcVDDZncErCOL3x+": [
+            "res/matchinggame_circle_1_large",
+            "cc.SpriteFrame",
+            1
+        ],
+        "5dU7X7RlhA76rcsRShCpeb": [
+            "res/matchinggame_cone_object",
+            "cc.SpriteFrame",
+            1
+        ],
+        "68MApTm4FFuI2u/uuiZfpx": [
+            "res/matchinggame_cone_object",
+            "cc.Texture2D"
+        ],
+        "4eLkekfCNCILw9XgY0OHJN": [
+            "res/matchinggame_cube_object",
+            "cc.SpriteFrame",
+            1
+        ],
+        "b9KdioITdFd6JLFUacv//i": [
+            "res/matchinggame_cube_object",
+            "cc.Texture2D"
+        ],
+        "8flC54UENCXb+NGd3BPs5m": [
+            "res/matchinggame_cylinder_object",
+            "cc.SpriteFrame",
+            1
+        ],
+        "c78LI5uxJLeocUiCNYk8Ts": [
+            "res/matchinggame_cylinder_object",
+            "cc.Texture2D"
+        ],
+        "6dl4DGg4tICJfBlGY0O8Mc": [
+            "res/matchinggame_rectangle_1_large",
+            "cc.SpriteFrame",
+            1
+        ],
+        "a8WXIMGChIGo3l5gzvF2ig": [
+            "res/matchinggame_rectangle_1_large",
+            "cc.Texture2D"
+        ],
+        "07khLuOjpFMrNVxBZdAM8e": [
+            "res/matchinggame_sphere_object",
+            "cc.Texture2D"
+        ],
+        "16GIyFZoFO+5NJZKZzORcT": [
+            "res/matchinggame_sphere_object",
+            "cc.SpriteFrame",
+            1
+        ],
+        "01sKiVusdJzodqWjNT6CWm": [
+            "res/matchinggame_square_1_large",
+            "cc.SpriteFrame",
+            1
+        ],
+        "7fZ3e20S5LfqsW3+mGNm+a": [
+            "res/matchinggame_square_1_large",
+            "cc.Texture2D"
+        ],
+        "0fl0tij+FDEZaIx8TLwS1j": [
+            "res/matchinggame_triangle_1_large",
+            "cc.SpriteFrame",
+            1
+        ],
+        "66g6cus69PhoiE9IJVWfKh": [
+            "res/matchinggame_triangle_1_large",
+            "cc.Texture2D"
+        ],
+        "91mf9ZIf9BrKVALLChNHv/": [
+            "res/rectangle",
+            "cc.AudioClip"
+        ],
+        "47Gi96xyZPu6eSWH/533MX": [
+            "res/sphere",
+            "cc.AudioClip"
+        ],
+        "4eT16OtmdCm5G5+L5fW8v+": [
+            "res/square",
+            "cc.AudioClip"
+        ],
+        "04eGG8eJRHhLqZYLuRvFDd": [
+            "res/test-maths-shapepair",
+            "cc.JsonAsset"
+        ],
+        "e8GfRSKR1Of5dXQ+xrFH+2": [
+            "res/triangle",
+            "cc.AudioClip"
+        ]
+    },
+    "uuids": [
+        "01sKiVusdJzodqWjNT6CWm",
+        "04eGG8eJRHhLqZYLuRvFDd",
+        "07khLuOjpFMrNVxBZdAM8e",
+        "0fl0tij+FDEZaIx8TLwS1j",
+        "16GIyFZoFO+5NJZKZzORcT",
+        "47Gi96xyZPu6eSWH/533MX",
+        "4eLkekfCNCILw9XgY0OHJN",
+        "4eT16OtmdCm5G5+L5fW8v+",
+        "5dU7X7RlhA76rcsRShCpeb",
+        "628hPoMWlKVZEjkrc/NGAA",
+        "66g6cus69PhoiE9IJVWfKh",
+        "68MApTm4FFuI2u/uuiZfpx",
+        "6dl4DGg4tICJfBlGY0O8Mc",
+        "7fZ3e20S5LfqsW3+mGNm+a",
+        "87AWJORWxMK5p+ZWJYw/EY",
+        "8flC54UENCXb+NGd3BPs5m",
+        "91mf9ZIf9BrKVALLChNHv/",
+        "a8WXIMGChIGo3l5gzvF2ig",
+        "aeVbiWAcVDDZncErCOL3x+",
+        "b9KdioITdFd6JLFUacv//i",
+        "bfM2HnKudDW6xjwiYWy5Eu",
+        "c78LI5uxJLeocUiCNYk8Ts",
+        "ceCerEJGBKGK4OD6bVv5GM",
+        "d4IoMU1ZJG/po3xH3oCXcZ",
+        "e8GfRSKR1Of5dXQ+xrFH+2"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {
+        "05634c28a": [
+            "07khLuOjpFMrNVxBZdAM8e",
+            "66g6cus69PhoiE9IJVWfKh",
+            "68MApTm4FFuI2u/uuiZfpx",
+            "7fZ3e20S5LfqsW3+mGNm+a",
+            "87AWJORWxMK5p+ZWJYw/EY",
+            "a8WXIMGChIGo3l5gzvF2ig",
+            "b9KdioITdFd6JLFUacv//i",
+            "c78LI5uxJLeocUiCNYk8Ts"
+        ]
+    },
+    "name": "test-maths-shapepair",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

@@ -1,0 +1,31 @@
+{
+    "paths": {
+        "e5O0byviZBw6HtzCzIlxuO": [
+            "res/It_is_hot",
+            "cc.AudioClip"
+        ],
+        "aai+vlSHJHpYpYyafETdKO": [
+            "res/You_are_tall",
+            "cc.AudioClip"
+        ],
+        "a5Y2T9uRVC3JjYP79HEwtk": [
+            "res/test-lit-jumpsentence",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "a5Y2T9uRVC3JjYP79HEwtk",
+        "aai+vlSHJHpYpYyafETdKO",
+        "e5O0byviZBw6HtzCzIlxuO"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-lit-jumpsentence",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

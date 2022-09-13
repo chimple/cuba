@@ -1,0 +1,741 @@
+[
+  1,
+  [
+    "0du7EeVaZF97A10r7CcGM6"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_headgear_6",
+          "rect": [
+            174,
+            1,
+            77,
+            55
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            77,
+            55
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_mouth_h_normal",
+          "rect": [
+            70,
+            465,
+            67,
+            29
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            67,
+            29
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_mouth_f_normal",
+          "rect": [
+            1,
+            855,
+            56,
+            40
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            56,
+            40
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_mouth_c_normal",
+          "rect": [
+            1,
+            797,
+            57,
+            14
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            57,
+            14
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_headgear_9",
+          "rect": [
+            1,
+            1,
+            90,
+            58
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            90,
+            58
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_headgear_5",
+          "rect": [
+            1,
+            61,
+            71,
+            76
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            71,
+            76
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_headgear_7",
+          "rect": [
+            1,
+            259,
+            75,
+            57
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            75,
+            57
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_mouth_i_normal",
+          "rect": [
+            169,
+            760,
+            57,
+            13
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            57,
+            13
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_mouth_e_normal",
+          "rect": [
+            78,
+            230,
+            75,
+            58
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            75,
+            58
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_headgear_2",
+          "rect": [
+            125,
+            681,
+            44,
+            53
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            44,
+            53
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_headgear_4",
+          "rect": [
+            69,
+            549,
+            40,
+            64
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            40,
+            64
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_mouth_a_normal",
+          "rect": [
+            242,
+            473,
+            61,
+            9
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            61,
+            9
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_headgear_8",
+          "rect": [
+            76,
+            350,
+            46,
+            70
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            46,
+            70
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_mouth_b_normal",
+          "rect": [
+            117,
+            943,
+            56,
+            12
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            56,
+            12
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_headgear_1",
+          "rect": [
+            174,
+            283,
+            44,
+            72
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            44,
+            72
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_mouth_d_normal",
+          "rect": [
+            54,
+            1039,
+            52,
+            20
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            52,
+            20
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_mouth_g_normal",
+          "rect": [
+            71,
+            398,
+            68,
+            16
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            68,
+            16
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_headgear_3",
+          "rect": [
+            118,
+            807,
+            30,
+            49
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            30,
+            49
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ]
+  ]
+]

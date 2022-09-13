@@ -1,0 +1,21 @@
+{
+    "paths": {
+        "5dFNHruBNFopULeHZkLObI": [
+            "res/test-maths-multiplybeads",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "5dFNHruBNFopULeHZkLObI"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-maths-multiplybeads",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

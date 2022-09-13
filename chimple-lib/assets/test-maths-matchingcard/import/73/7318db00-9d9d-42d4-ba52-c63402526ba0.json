@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "69spuJpw9KRKk4Jm5Ce29j"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "findthematch_lv5_30",
+      "rect": [
+        16,
+        29,
+        125,
+        167
+      ],
+      "offset": [
+        -5.5,
+        -0.5
+      ],
+      "originalSize": [
+        168,
+        224
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

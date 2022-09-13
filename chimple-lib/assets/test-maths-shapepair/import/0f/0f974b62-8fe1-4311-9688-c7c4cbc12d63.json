@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "66g6cus69PhoiE9IJVWfKh"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "matchinggame_triangle_1_large",
+      "rect": [
+        41,
+        26,
+        109,
+        94
+      ],
+      "offset": [
+        0.5,
+        2
+      ],
+      "originalSize": [
+        190,
+        150
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

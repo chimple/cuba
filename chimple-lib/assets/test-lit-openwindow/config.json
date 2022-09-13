@@ -1,0 +1,82 @@
+{
+    "paths": {
+        "38xTP/PIhCZ41BFBX5r3jA": [
+            "res/ball",
+            "cc.SpriteFrame",
+            1
+        ],
+        "bemuK1BkpNUa9kNMJSUJaZ": [
+            "res/ball",
+            "cc.Texture2D"
+        ],
+        "2aVvjlZ65Mm6WEShxx59aQ": [
+            "res/city",
+            "cc.AudioClip"
+        ],
+        "2fFO9R6LNF4bs11vBwo+Ta": [
+            "res/city",
+            "cc.Texture2D"
+        ],
+        "a9Az62xfZNEqStikVtZ7w/": [
+            "res/city",
+            "cc.SpriteFrame",
+            1
+        ],
+        "825KDsVVpK1pdvfGpOTwbW": [
+            "res/mom",
+            "cc.AudioClip"
+        ],
+        "aax5tKEvBE/I/6kHelfiXN": [
+            "res/mom",
+            "cc.SpriteFrame",
+            1
+        ],
+        "e0MpjD/75IW6IsIjoRok3/": [
+            "res/mom",
+            "cc.Texture2D"
+        ],
+        "92vfwhkEhKhpiek3kAx7FS": [
+            "res/sun",
+            "cc.Texture2D"
+        ],
+        "aa7Yp1u6RCgYD4lKVA8ZaH": [
+            "res/sun",
+            "cc.SpriteFrame",
+            1
+        ],
+        "85nVviLp9L869V/Bvfqz6a": [
+            "res/test-lit-openwindow",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "2aVvjlZ65Mm6WEShxx59aQ",
+        "2fFO9R6LNF4bs11vBwo+Ta",
+        "38xTP/PIhCZ41BFBX5r3jA",
+        "825KDsVVpK1pdvfGpOTwbW",
+        "85nVviLp9L869V/Bvfqz6a",
+        "92vfwhkEhKhpiek3kAx7FS",
+        "a9Az62xfZNEqStikVtZ7w/",
+        "aax5tKEvBE/I/6kHelfiXN",
+        "aa7Yp1u6RCgYD4lKVA8ZaH",
+        "bemuK1BkpNUa9kNMJSUJaZ",
+        "e0MpjD/75IW6IsIjoRok3/"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {
+        "0712bb421": [
+            "2fFO9R6LNF4bs11vBwo+Ta",
+            "92vfwhkEhKhpiek3kAx7FS",
+            "bemuK1BkpNUa9kNMJSUJaZ",
+            "e0MpjD/75IW6IsIjoRok3/"
+        ]
+    },
+    "name": "test-lit-openwindow",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

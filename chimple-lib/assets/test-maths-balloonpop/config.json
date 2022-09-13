@@ -1,0 +1,21 @@
+{
+    "paths": {
+        "a0j9+VnfpHvKSkZ3XwwLMq": [
+            "res/test-maths-balloonpop",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "a0j9+VnfpHvKSkZ3XwwLMq"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-maths-balloonpop",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

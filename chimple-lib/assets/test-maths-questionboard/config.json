@@ -1,0 +1,31 @@
+{
+    "paths": {
+        "ddF2YKGgtK1bPzcHgU82/f": [
+            "res/en_uk_d3_06",
+            "cc.AudioClip"
+        ],
+        "ad9VS+xbNGTaLXWkXvEdnF": [
+            "res/en_uk_f1_03",
+            "cc.AudioClip"
+        ],
+        "e2Kd/b/kxIdaLYFPjcsRl/": [
+            "res/test-maths-questionboard",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "ad9VS+xbNGTaLXWkXvEdnF",
+        "ddF2YKGgtK1bPzcHgU82/f",
+        "e2Kd/b/kxIdaLYFPjcsRl/"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-maths-questionboard",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

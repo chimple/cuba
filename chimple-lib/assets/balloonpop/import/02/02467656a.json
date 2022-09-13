@@ -1,0 +1,219 @@
+[
+  1,
+  [
+    "82Ao2CX81LqZyb+tlqaZAB",
+    "ffbDmy7u9OialUcnTM/cBW",
+    "1aaTnD2I9G+oZ1A+EXEKkX",
+    "89yaGjHQVOD7TPTwOotyBq",
+    "1dUJ6elIlNDpQSeEblzUlC"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    [
+      [
+        {
+          "name": "balloonpop_ref_border",
+          "rect": [
+            1,
+            0,
+            142,
+            134
+          ],
+          "offset": [
+            0.5,
+            0.5
+          ],
+          "originalSize": [
+            143,
+            135
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "balloonpop_ref_base",
+          "rect": [
+            0,
+            0,
+            138,
+            130
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            138,
+            130
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        1
+      ]
+    ],
+    [
+      [
+        {
+          "name": "balloonpop_bar_border",
+          "rect": [
+            0,
+            0,
+            72,
+            337
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            72,
+            337
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        2
+      ]
+    ],
+    [
+      [
+        {
+          "name": "balloonpop_bar_fill",
+          "rect": [
+            0,
+            0,
+            66,
+            362
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            66,
+            362
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        3
+      ]
+    ],
+    [
+      [
+        {
+          "name": "balloonpop_bar_base",
+          "rect": [
+            0,
+            0,
+            66,
+            362
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            66,
+            362
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        4
+      ]
+    ]
+  ]
+]

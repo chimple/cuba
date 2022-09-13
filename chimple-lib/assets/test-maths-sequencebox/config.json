@@ -1,0 +1,21 @@
+{
+    "paths": {
+        "4ag3NiYwpOHrqjabWFm2uL": [
+            "res/test-maths-sequencebox",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "4ag3NiYwpOHrqjabWFm2uL"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-maths-sequencebox",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

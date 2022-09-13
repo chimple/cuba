@@ -1,0 +1,21 @@
+{
+    "paths": {
+        "36VqtAkj5NfpKhRcDdhuGJ": [
+            "res/test-maths-writenumber",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "36VqtAkj5NfpKhRcDdhuGJ"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-maths-writenumber",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

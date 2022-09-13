@@ -1,0 +1,21 @@
+{
+    "paths": {
+        "85DaiuMcpOxLyMcOhUrzUl": [
+            "res/test-lit-bubbletype",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "85DaiuMcpOxLyMcOhUrzUl"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-lit-bubbletype",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

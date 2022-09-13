@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "2fSG+2hAdEwLz28Fvo5Xia"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "flower-outline",
+      "rect": [
+        195,
+        10,
+        626,
+        596
+      ],
+      "offset": [
+        8,
+        -2
+      ],
+      "originalSize": [
+        1000,
+        612
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

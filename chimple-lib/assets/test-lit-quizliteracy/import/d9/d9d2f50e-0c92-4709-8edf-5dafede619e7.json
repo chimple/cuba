@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "ffWXwocwpO3pOfO/60X0Zv"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "egg",
+      "rect": [
+        36,
+        36,
+        846,
+        594
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "originalSize": [
+        918,
+        666
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

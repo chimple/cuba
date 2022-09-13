@@ -1,0 +1,137 @@
+[
+  1,
+  [
+    "51U+foJsRAoqiumqF168z6",
+    "8fqLkj9aFFFJ1MTv1m3PWW",
+    "edVxRYyqlJG7bF++4Eh6jV"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    [
+      [
+        {
+          "name": "lessoncircle_icon",
+          "rect": [
+            0,
+            0,
+            128,
+            129
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            128,
+            129
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "whiteborder_icon",
+          "rect": [
+            0,
+            0,
+            129,
+            129
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            129,
+            129
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        1
+      ]
+    ],
+    [
+      [
+        {
+          "name": "prequiz",
+          "rect": [
+            22,
+            22,
+            85,
+            84
+          ],
+          "offset": [
+            0.5,
+            0
+          ],
+          "originalSize": [
+            128,
+            128
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        2
+      ]
+    ]
+  ]
+]

@@ -1,0 +1,196 @@
+{
+    "paths": {
+        "0dTC2lXLJJQq5Efsx/hwB8": [
+            "res/ablackbear",
+            "cc.AudioClip"
+        ],
+        "946PGtc5pOsJJwYiu+zgiN": [
+            "res/acatisonthechair",
+            "cc.AudioClip"
+        ],
+        "4cUCDPAWZPY4WbthZ+si7X": [
+            "res/book_en_404_page_2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "ae9JuaxctHoblz3i2an3Xc": [
+            "res/book_en_404_page_2",
+            "cc.Texture2D"
+        ],
+        "20Raa2VLZJPqkNTp27ehuK": [
+            "res/book_en_404_page_5",
+            "cc.SpriteFrame",
+            1
+        ],
+        "43ucs3KWdJlZDt5Rh/pxpk": [
+            "res/book_en_404_page_5",
+            "cc.Texture2D"
+        ],
+        "eaM7AbRthHGa1pDe5s6nXf": [
+            "res/book_en_404_page_567",
+            "cc.AudioClip"
+        ],
+        "27RPnqBGpBcar6/v5Dts67": [
+            "res/book_en_404_page_6",
+            "cc.SpriteFrame",
+            1
+        ],
+        "31b/6xwStMJK8HmVLU3h28": [
+            "res/book_en_404_page_6",
+            "cc.Texture2D"
+        ],
+        "02cch0nY1OeotXZvVdkykR": [
+            "res/book_en_404_page_7",
+            "cc.SpriteFrame",
+            1
+        ],
+        "944WLf+elA5LQ34RTugpcB": [
+            "res/book_en_404_page_7",
+            "cc.Texture2D"
+        ],
+        "44JtY8JtlM86A8l6OKXqp5": [
+            "res/book_en_404_page_9",
+            "cc.Texture2D"
+        ],
+        "cbrB5gn/JHVJ6y88lCh+5j": [
+            "res/book_en_404_page_9",
+            "cc.SpriteFrame",
+            1
+        ],
+        "01PIjJ3oRF0I3qFU2Xspz5": [
+            "res/book_en_407_page_1",
+            "cc.Texture2D"
+        ],
+        "41iHa7TEhAlLuNApHbZKeK": [
+            "res/book_en_407_page_1",
+            "cc.SpriteFrame",
+            1
+        ],
+        "7d6ChyEGVKupKHfCqWE2hM": [
+            "res/book_en_407_page_7",
+            "cc.Texture2D"
+        ],
+        "873HoNUkdMSIHp/iJVoZpK": [
+            "res/book_en_407_page_7",
+            "cc.SpriteFrame",
+            1
+        ],
+        "72PI5fk5BLM51cf/jqLnep": [
+            "res/choosetherightone",
+            "cc.AudioClip"
+        ],
+        "d90vUODJJHCY7fXa/t5hnn": [
+            "res/egg",
+            "cc.SpriteFrame",
+            1
+        ],
+        "ffWXwocwpO3pOfO/60X0Zv": [
+            "res/egg",
+            "cc.Texture2D"
+        ],
+        "0c4Vq0tyBDl5IS701CWq39": [
+            "res/en_uk_lc_1_10_story",
+            "cc.AudioClip"
+        ],
+        "b5/AkBQ7pNNrH8Rx4NGyHi": [
+            "res/en_uk_lc_2_4_story",
+            "cc.AudioClip"
+        ],
+        "9emnYne4xMb6bqY0VdFgSH": [
+            "res/eng_a",
+            "cc.AudioClip"
+        ],
+        "ca5+rI8JpEqLTRdCD7R1f2": [
+            "res/hat",
+            "cc.SpriteFrame",
+            1
+        ],
+        "e4mtzpADZA+7cCg3axc1M/": [
+            "res/hat",
+            "cc.Texture2D"
+        ],
+        "ccjGHH2etGoZc2Lhd9U0RT": [
+            "res/l2_blackbear",
+            "cc.Texture2D"
+        ],
+        "e7dHSsSYZHNI2VBI2uGtRS": [
+            "res/l2_blackbear",
+            "cc.SpriteFrame",
+            1
+        ],
+        "b0basl0W9JuJuiTgVgOMgt": [
+            "res/test-lit-quizliteracy",
+            "cc.JsonAsset"
+        ],
+        "7fPwu6jqNA7bXOkhLd9bEp": [
+            "res/water",
+            "cc.Texture2D"
+        ],
+        "9dlwFfRepLrp4BZrft9yLP": [
+            "res/water",
+            "cc.SpriteFrame",
+            1
+        ],
+        "2edR250ztETa+EJHx72F/h": [
+            "res/water_sound",
+            "cc.AudioClip"
+        ]
+    },
+    "uuids": [
+        "01PIjJ3oRF0I3qFU2Xspz5",
+        "02cch0nY1OeotXZvVdkykR",
+        "0c4Vq0tyBDl5IS701CWq39",
+        "0dTC2lXLJJQq5Efsx/hwB8",
+        "20Raa2VLZJPqkNTp27ehuK",
+        "27RPnqBGpBcar6/v5Dts67",
+        "2edR250ztETa+EJHx72F/h",
+        "31b/6xwStMJK8HmVLU3h28",
+        "41iHa7TEhAlLuNApHbZKeK",
+        "43ucs3KWdJlZDt5Rh/pxpk",
+        "44JtY8JtlM86A8l6OKXqp5",
+        "4cUCDPAWZPY4WbthZ+si7X",
+        "72PI5fk5BLM51cf/jqLnep",
+        "7d6ChyEGVKupKHfCqWE2hM",
+        "7fPwu6jqNA7bXOkhLd9bEp",
+        "873HoNUkdMSIHp/iJVoZpK",
+        "944WLf+elA5LQ34RTugpcB",
+        "946PGtc5pOsJJwYiu+zgiN",
+        "9dlwFfRepLrp4BZrft9yLP",
+        "9emnYne4xMb6bqY0VdFgSH",
+        "ae9JuaxctHoblz3i2an3Xc",
+        "b0basl0W9JuJuiTgVgOMgt",
+        "b5/AkBQ7pNNrH8Rx4NGyHi",
+        "ca5+rI8JpEqLTRdCD7R1f2",
+        "cbrB5gn/JHVJ6y88lCh+5j",
+        "ccjGHH2etGoZc2Lhd9U0RT",
+        "d90vUODJJHCY7fXa/t5hnn",
+        "e4mtzpADZA+7cCg3axc1M/",
+        "e7dHSsSYZHNI2VBI2uGtRS",
+        "eaM7AbRthHGa1pDe5s6nXf",
+        "ffWXwocwpO3pOfO/60X0Zv"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {
+        "027b26139": [
+            "01PIjJ3oRF0I3qFU2Xspz5",
+            "31b/6xwStMJK8HmVLU3h28",
+            "43ucs3KWdJlZDt5Rh/pxpk",
+            "44JtY8JtlM86A8l6OKXqp5",
+            "7d6ChyEGVKupKHfCqWE2hM",
+            "7fPwu6jqNA7bXOkhLd9bEp",
+            "944WLf+elA5LQ34RTugpcB",
+            "ae9JuaxctHoblz3i2an3Xc",
+            "ccjGHH2etGoZc2Lhd9U0RT",
+            "e4mtzpADZA+7cCg3axc1M/",
+            "ffWXwocwpO3pOfO/60X0Zv"
+        ]
+    },
+    "name": "test-lit-quizliteracy",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

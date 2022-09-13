@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "17Fhy+OMdMZbV/g1ey7tTF"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "pictureboard0017",
+      "rect": [
+        18,
+        16,
+        91,
+        91
+      ],
+      "offset": [
+        -0.5,
+        3
+      ],
+      "originalSize": [
+        128,
+        129
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

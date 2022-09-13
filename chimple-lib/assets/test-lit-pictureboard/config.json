@@ -1,0 +1,142 @@
+{
+    "paths": {
+        "32QBxQKVhC4Zxd7FK47b/1": [
+            "res/ap2_puzzle7_background",
+            "cc.Texture2D"
+        ],
+        "f61d9I2UBKjKtqJXPvhPDC": [
+            "res/ap2_puzzle7_background",
+            "cc.SpriteFrame",
+            1
+        ],
+        "81kGbWEIhEka5KWJgQhRRQ": [
+            "res/ap2_puzzle7_butterfly_puzzle",
+            "cc.SpriteFrame",
+            1
+        ],
+        "bf7nxO86JBu7KTP8mpNEAL": [
+            "res/ap2_puzzle7_butterfly_puzzle",
+            "cc.Texture2D"
+        ],
+        "66qKq57p9OypXwAnQtoB+e": [
+            "res/ap2_puzzle7_cat_puzzle",
+            "cc.Texture2D"
+        ],
+        "9b6eawv9lGpodmCaBjiSia": [
+            "res/ap2_puzzle7_cat_puzzle",
+            "cc.SpriteFrame",
+            1
+        ],
+        "26zG7wbptPGofc9baiKejE": [
+            "res/ap_puzzle10_background",
+            "cc.SpriteFrame",
+            1
+        ],
+        "d80ybT2RZJn5u8E27dXWr3": [
+            "res/ap_puzzle10_background",
+            "cc.Texture2D"
+        ],
+        "2auUAQbgpLkpj1SDMjJxDu": [
+            "res/ap_puzzle10_bush1_puzzle",
+            "cc.SpriteFrame",
+            1
+        ],
+        "57LwR6kgRB6Yh4bHF56geX": [
+            "res/ap_puzzle10_bush1_puzzle",
+            "cc.Texture2D"
+        ],
+        "cfe1vzj5pIB6Y5MUseN4LP": [
+            "res/ap_puzzle10_bush2_puzzle",
+            "cc.SpriteFrame",
+            1
+        ],
+        "d0Ta8+ctNKxpSa6O69WB3g": [
+            "res/ap_puzzle10_bush2_puzzle",
+            "cc.Texture2D"
+        ],
+        "2doi/c8uFHUoPyBxycUSqV": [
+            "res/ap_puzzle10_bush3_puzzle",
+            "cc.SpriteFrame",
+            1
+        ],
+        "67jLRcZ4VJt5zwvxrufOIz": [
+            "res/ap_puzzle10_bush3_puzzle",
+            "cc.Texture2D"
+        ],
+        "8dDjybNPpLTb+Ll/Q8Ggag": [
+            "res/ap_puzzle10_camel1_puzzle",
+            "cc.Texture2D"
+        ],
+        "abju5FF3BPeKbL/aGYtISz": [
+            "res/ap_puzzle10_camel1_puzzle",
+            "cc.SpriteFrame",
+            1
+        ],
+        "26d+4tUVtI6q7rba4+tQZ5": [
+            "res/ap_puzzle10_camel2_puzzle",
+            "cc.Texture2D"
+        ],
+        "7fm5a3DkdB3ZQFScFwCivc": [
+            "res/ap_puzzle10_camel2_puzzle",
+            "cc.SpriteFrame",
+            1
+        ],
+        "14ygypzg5Lh6dCWMZqFRDr": [
+            "res/cacti_and_camels",
+            "cc.AudioClip"
+        ],
+        "15P1dQTO1CwaCWj3njkxuy": [
+            "res/cat_and_butterfly",
+            "cc.AudioClip"
+        ],
+        "16vg/+7AZH/p9JTOtBl85q": [
+            "res/test-lit-pictureboard",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "14ygypzg5Lh6dCWMZqFRDr",
+        "15P1dQTO1CwaCWj3njkxuy",
+        "16vg/+7AZH/p9JTOtBl85q",
+        "26d+4tUVtI6q7rba4+tQZ5",
+        "26zG7wbptPGofc9baiKejE",
+        "2auUAQbgpLkpj1SDMjJxDu",
+        "2doi/c8uFHUoPyBxycUSqV",
+        "32QBxQKVhC4Zxd7FK47b/1",
+        "57LwR6kgRB6Yh4bHF56geX",
+        "66qKq57p9OypXwAnQtoB+e",
+        "67jLRcZ4VJt5zwvxrufOIz",
+        "7fm5a3DkdB3ZQFScFwCivc",
+        "81kGbWEIhEka5KWJgQhRRQ",
+        "8dDjybNPpLTb+Ll/Q8Ggag",
+        "9b6eawv9lGpodmCaBjiSia",
+        "abju5FF3BPeKbL/aGYtISz",
+        "bf7nxO86JBu7KTP8mpNEAL",
+        "cfe1vzj5pIB6Y5MUseN4LP",
+        "d0Ta8+ctNKxpSa6O69WB3g",
+        "d80ybT2RZJn5u8E27dXWr3",
+        "f61d9I2UBKjKtqJXPvhPDC"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {
+        "01e458972": [
+            "26d+4tUVtI6q7rba4+tQZ5",
+            "32QBxQKVhC4Zxd7FK47b/1",
+            "57LwR6kgRB6Yh4bHF56geX",
+            "66qKq57p9OypXwAnQtoB+e",
+            "67jLRcZ4VJt5zwvxrufOIz",
+            "8dDjybNPpLTb+Ll/Q8Ggag",
+            "bf7nxO86JBu7KTP8mpNEAL",
+            "d0Ta8+ctNKxpSa6O69WB3g",
+            "d80ybT2RZJn5u8E27dXWr3"
+        ]
+    },
+    "name": "test-lit-pictureboard",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

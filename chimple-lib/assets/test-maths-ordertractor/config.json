@@ -1,0 +1,21 @@
+{
+    "paths": {
+        "8d7pcVxKZBqLQlJ7U2zmMo": [
+            "res/test-maths-ordertractor",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "8d7pcVxKZBqLQlJ7U2zmMo"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-maths-ordertractor",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

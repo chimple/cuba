@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "c4yCKH6WdI86m+JqNbwsQz"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "Ranireadsmanybooks",
+      "rect": [
+        0,
+        0,
+        1073,
+        514
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "originalSize": [
+        1073,
+        514
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

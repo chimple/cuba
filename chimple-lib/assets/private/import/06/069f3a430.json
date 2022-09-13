@@ -1,0 +1,219 @@
+[
+  1,
+  [
+    "31pf/ckhlJGYmj8wL+S5nB",
+    "bfNW/FvFJM34nkoagNVieG",
+    "e39hGBx21NCo1mFMIAwt2E",
+    "c8uMZv7JRD36+aF2yCgnZ3",
+    "28sHD2FF5P+KAooHByuFqA"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    [
+      [
+        {
+          "name": "pilotpenguin",
+          "rect": [
+            3,
+            4,
+            153,
+            153
+          ],
+          "offset": [
+            -0.5,
+            -0.5
+          ],
+          "originalSize": [
+            160,
+            160
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "armydog",
+          "rect": [
+            4,
+            3,
+            152,
+            153
+          ],
+          "offset": [
+            0.5,
+            0
+          ],
+          "originalSize": [
+            159,
+            159
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        1
+      ]
+    ],
+    [
+      [
+        {
+          "name": "policecat",
+          "rect": [
+            4,
+            3,
+            152,
+            153
+          ],
+          "offset": [
+            0.5,
+            0
+          ],
+          "originalSize": [
+            159,
+            159
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        2
+      ]
+    ],
+    [
+      [
+        {
+          "name": "teacherbird",
+          "rect": [
+            3,
+            3,
+            153,
+            153
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            159,
+            159
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        3
+      ]
+    ],
+    [
+      [
+        {
+          "name": "doctorrabbit",
+          "rect": [
+            4,
+            3,
+            152,
+            153
+          ],
+          "offset": [
+            0.5,
+            0
+          ],
+          "originalSize": [
+            159,
+            159
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        4
+      ]
+    ]
+  ]
+]

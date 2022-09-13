@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "47YL/T8MlAsquNluoPYwIs"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "book_en_305_page_8",
+      "rect": [
+        0,
+        0,
+        771,
+        517
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "originalSize": [
+        771,
+        517
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

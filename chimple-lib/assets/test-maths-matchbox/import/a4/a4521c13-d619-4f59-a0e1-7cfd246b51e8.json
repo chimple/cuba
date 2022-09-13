@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "92/3PimB5A5JP4KDpx2Xiz"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "dotpattern_6",
+      "rect": [
+        40,
+        48,
+        298,
+        298
+      ],
+      "offset": [
+        0,
+        -2
+      ],
+      "originalSize": [
+        378,
+        390
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

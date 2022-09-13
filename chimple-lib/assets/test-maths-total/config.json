@@ -1,0 +1,21 @@
+{
+    "paths": {
+        "4dnaTL679PMYz8gMFI95T3": [
+            "res/test-maths-total",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "4dnaTL679PMYz8gMFI95T3"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-maths-total",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

@@ -1,0 +1,176 @@
+{
+    "paths": {
+        "26EU59h0RNgZAt7p0bB0r5": [
+            "res/circle",
+            "cc.Texture2D"
+        ],
+        "3b8vBN8NpMa68rSmaNmzoF": [
+            "res/circle",
+            "cc.SpriteFrame",
+            1
+        ],
+        "80YrjXAPBOK7ID66FDEbyA": [
+            "res/cone",
+            "cc.Texture2D"
+        ],
+        "feuS4ypsZL1pS4OrENuuKq": [
+            "res/cone",
+            "cc.SpriteFrame",
+            1
+        ],
+        "0eF7QXQLtPca7vkPzR61LV": [
+            "res/cylinder",
+            "cc.Texture2D"
+        ],
+        "1dKLD+y71C6KPSUVJ3Mn78": [
+            "res/cylinder",
+            "cc.SpriteFrame",
+            1
+        ],
+        "a1vd0oLgJAc72yDIVJ0lcX": [
+            "res/en_uk_b1_07",
+            "cc.AudioClip"
+        ],
+        "cbgSX6VGZAxY9Yw9GdO752": [
+            "res/hexagon",
+            "cc.Texture2D"
+        ],
+        "d0UkUcGtJM5qCqvfM6I0Ee": [
+            "res/hexagon",
+            "cc.SpriteFrame",
+            1
+        ],
+        "44he5771dNWISefU/zElNs": [
+            "res/order_the_numbers_from_smallest_to_largest",
+            "cc.AudioClip"
+        ],
+        "49JNwIlAJJwKxrnRv6Gfyo": [
+            "res/parallelogram",
+            "cc.Texture2D"
+        ],
+        "f4eMG8e05EpZ0y0nwL8f4s": [
+            "res/parallelogram",
+            "cc.SpriteFrame",
+            1
+        ],
+        "48E/Hne0REybxGS+Adl/Si": [
+            "res/pentagon",
+            "cc.SpriteFrame",
+            1
+        ],
+        "744/T3x5tE+5Rxzibxb/wC": [
+            "res/pentagon",
+            "cc.Texture2D"
+        ],
+        "10xOZoNBZC64nG4uRYDI83": [
+            "res/rectangle",
+            "cc.SpriteFrame",
+            1
+        ],
+        "6accVP/GdDRYu1Rss5Yvp8": [
+            "res/rectangle",
+            "cc.Texture2D"
+        ],
+        "caVn79lNdOGprU69eaMwGh": [
+            "res/sphere",
+            "cc.SpriteFrame",
+            1
+        ],
+        "e3fkh9KqJM3429e6lSgaBV": [
+            "res/sphere",
+            "cc.Texture2D"
+        ],
+        "0bP0tb3OVHFqN5Vt52JUwu": [
+            "res/square",
+            "cc.SpriteFrame",
+            1
+        ],
+        "39DeCNdcREKILwWrS1/pRx": [
+            "res/square",
+            "cc.Texture2D"
+        ],
+        "ebPasqNahJaZWRFSvZEDlo": [
+            "res/test-maths-quizmaths",
+            "cc.JsonAsset"
+        ],
+        "6eJCbYc1dND6pL65QUj4pl": [
+            "res/trapezoid",
+            "cc.SpriteFrame",
+            1
+        ],
+        "f6C2JyqsdJKqYdf6zGKXpF": [
+            "res/trapezoid",
+            "cc.Texture2D"
+        ],
+        "376+h0695KwbeHrVl9pe8k": [
+            "res/triangle",
+            "cc.SpriteFrame",
+            1
+        ],
+        "6cotBms2pEUIJ+4e4WjWWr": [
+            "res/triangle",
+            "cc.Texture2D"
+        ],
+        "cfM7EjsOBNY4ptlav5HNa8": [
+            "res/which_group_is_bigger",
+            "cc.AudioClip"
+        ],
+        "02Cd1biWBAXpejeCdUQjsg": [
+            "res/which_is_the_biggest",
+            "cc.AudioClip"
+        ]
+    },
+    "uuids": [
+        "02Cd1biWBAXpejeCdUQjsg",
+        "0bP0tb3OVHFqN5Vt52JUwu",
+        "0eF7QXQLtPca7vkPzR61LV",
+        "10xOZoNBZC64nG4uRYDI83",
+        "1dKLD+y71C6KPSUVJ3Mn78",
+        "26EU59h0RNgZAt7p0bB0r5",
+        "376+h0695KwbeHrVl9pe8k",
+        "39DeCNdcREKILwWrS1/pRx",
+        "3b8vBN8NpMa68rSmaNmzoF",
+        "44he5771dNWISefU/zElNs",
+        "48E/Hne0REybxGS+Adl/Si",
+        "49JNwIlAJJwKxrnRv6Gfyo",
+        "6accVP/GdDRYu1Rss5Yvp8",
+        "6cotBms2pEUIJ+4e4WjWWr",
+        "6eJCbYc1dND6pL65QUj4pl",
+        "744/T3x5tE+5Rxzibxb/wC",
+        "80YrjXAPBOK7ID66FDEbyA",
+        "a1vd0oLgJAc72yDIVJ0lcX",
+        "caVn79lNdOGprU69eaMwGh",
+        "cbgSX6VGZAxY9Yw9GdO752",
+        "cfM7EjsOBNY4ptlav5HNa8",
+        "d0UkUcGtJM5qCqvfM6I0Ee",
+        "e3fkh9KqJM3429e6lSgaBV",
+        "ebPasqNahJaZWRFSvZEDlo",
+        "f4eMG8e05EpZ0y0nwL8f4s",
+        "f6C2JyqsdJKqYdf6zGKXpF",
+        "feuS4ypsZL1pS4OrENuuKq"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {
+        "0b1f5f8f3": [
+            "0eF7QXQLtPca7vkPzR61LV",
+            "26EU59h0RNgZAt7p0bB0r5",
+            "39DeCNdcREKILwWrS1/pRx",
+            "49JNwIlAJJwKxrnRv6Gfyo",
+            "6accVP/GdDRYu1Rss5Yvp8",
+            "6cotBms2pEUIJ+4e4WjWWr",
+            "744/T3x5tE+5Rxzibxb/wC",
+            "80YrjXAPBOK7ID66FDEbyA",
+            "cbgSX6VGZAxY9Yw9GdO752",
+            "e3fkh9KqJM3429e6lSgaBV",
+            "f6C2JyqsdJKqYdf6zGKXpF"
+        ]
+    },
+    "name": "test-maths-quizmaths",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

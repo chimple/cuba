@@ -1,0 +1,58 @@
+{
+    "paths": {
+        "3fWCkjilpJd4WP+9A5K70F": [
+            "res/Ranireadsmanybooks",
+            "cc.SpriteFrame",
+            1
+        ],
+        "c4yCKH6WdI86m+JqNbwsQz": [
+            "res/Ranireadsmanybooks",
+            "cc.Texture2D"
+        ],
+        "2exSrD2T1HJqkxQbsbezZe": [
+            "res/Ranireadstenbooks",
+            "cc.AudioClip"
+        ],
+        "80HisPVZpP/ImfnoR6HSbd": [
+            "res/Theroostercrowsevery_morning",
+            "cc.Texture2D"
+        ],
+        "c9sQrnfBpCZJEASgcuOrOZ": [
+            "res/Theroostercrowsevery_morning",
+            "cc.SpriteFrame",
+            1
+        ],
+        "42P6DmVR9MrJ8ZvxthXsot": [
+            "res/test-lit-createsentence",
+            "cc.JsonAsset"
+        ],
+        "a1ttxnhO9AR4dGm87YyCac": [
+            "res/theroostercrowseverymorning",
+            "cc.AudioClip"
+        ]
+    },
+    "uuids": [
+        "2exSrD2T1HJqkxQbsbezZe",
+        "3fWCkjilpJd4WP+9A5K70F",
+        "42P6DmVR9MrJ8ZvxthXsot",
+        "80HisPVZpP/ImfnoR6HSbd",
+        "a1ttxnhO9AR4dGm87YyCac",
+        "c4yCKH6WdI86m+JqNbwsQz",
+        "c9sQrnfBpCZJEASgcuOrOZ"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {
+        "0bf2dd457": [
+            "80HisPVZpP/ImfnoR6HSbd",
+            "c4yCKH6WdI86m+JqNbwsQz"
+        ]
+    },
+    "name": "test-lit-createsentence",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

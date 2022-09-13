@@ -1,0 +1,2845 @@
+[
+  1,
+  [
+    "85t1b7gdFCrYKsMXVuEQfZ",
+    "1a4NZobrpEfart8BSc1xGQ",
+    "2aQZunuOlLyYVYUzLgn4Et",
+    "59A8DhlWlPLqypsu8nLO21",
+    "c9Sy1WhuZKXp9gx8P3Kfur",
+    "dcKYOWpSlDgbANzyegK0s+",
+    "362rPscONDT4G3mopHzei2",
+    "b0kGT3l7FFVbK5w9QN8L67",
+    "dbdFWfT3FMuYSIwosRtqk6",
+    "94mam/+qtGVIgJnKWIINLP",
+    "1efRgDIgZOa5K0RZmzpl6q",
+    "d3ePqoU09Nl6pbVVe4f+l8",
+    "02Sa1pmyxFmI4WJNlu6BCW",
+    "21V/ZZVTJIKYi2BwRxk5jC",
+    "c7UPAU5uVFoKg+AsGq931H",
+    "82nuxdhLhMcaKG6wVRnxFx",
+    "10kS6hUExGVpoY4vHbBoXN",
+    "50HCLhYBdKLqnvXTEqH2cw",
+    "05VtwbWxFFf5qDdSeNOPiy",
+    "cejKQCmKZM0K3ci1GZbMNb",
+    "75brW+9PFNs70KiRf+lDVz",
+    "32nWtsVkNPeqpF46vCNmKC",
+    "3e2oebtGZB0YVjEPVZWg/P",
+    "60gRyP+FBBra5ElD4VhDkt",
+    "b4SuZOFWVGoInt+ipb/zme",
+    "c7+tjN0PNLFYTjPwyGA8rM",
+    "7dnAblqfZEr77/Pn/9Dj2B",
+    "ddPG80/9dMFqgejR5u5YNz",
+    "65WsmifB9NIJS70EX6C2XZ",
+    "19dL1m+s1C8IrTh5HRgNLL",
+    "00535DLw9EVqc5g7M1oDrf",
+    "fadkXgj4dL8KqpwaxO52sd",
+    "19JMGMTrdCQIIT0BAzrI/d",
+    "51QE4PRxVDIKhw6+DxlSwB",
+    "36f5hiFGRHVL5gLfxh5XAk",
+    "dbdB08+2pKMo1MfLtGesyt",
+    "80c6yCmYpFDa/m+q4rmhrW",
+    "afurvrRMpC0oz+QRv/eN8T",
+    "dcFUPKcVJF8J+7u2mD1hW5",
+    "bfSx+s4fpEF7BkKknNZZn0",
+    "11AfW+fSBJLZldSBqVLmd4",
+    "abdgQuas1MpKlpjZAENBSp",
+    "ebIBNzGKZJFLIx4wKJN8D/",
+    "f1/yCQdrJAqpcmBVzwTesj",
+    "bbG0pox01EwafLiou0Lvf5",
+    "b8uuZPH2pLhKQFOPxIKQcT",
+    "61/u6P4ZdEVbGZvN1Mr/Yq",
+    "b83hT7roFJMIxeRcpwS6gK",
+    "dcZQPcYOlG3ra+vKOa8VtC",
+    "ffzzpPKQxHFJT6ypyv8dmW",
+    "47SGbkMQxB04RDnb3gQIkH",
+    "7799kP9ZlEIblA8lQdy0kh",
+    "ad7MrM/ThK8qHW48/9pgIH",
+    "21THT+D+pM77sUCZCAynFi",
+    "0bSrhwbnVIJ6XtmjF0Zr1a",
+    "197YrMMe5BUY/7tb4UudWf",
+    "fflV/4Hh9L/YOIzNIyyiip",
+    "53I0UemDdDYb9QtWiFvaBb",
+    "4dwgWsPwNAIrBrzO7SZdWl"
+  ],
+  [
+    "_textureSetter",
+    "decomon-decomon3-decomon_backgroundicon",
+    "decomon-decomon3-decomon_edge",
+    "decomon-decomon3-decomon_hair_1",
+    "decomon-decomon3-decomon_hair_2",
+    "decomon-decomon3-decomon_hair_3",
+    "decomon-decomon3-decomon_hair_4",
+    "decomon-decomon3-decomon_hair_5",
+    "decomon-decomon3-decomon_hair_6",
+    "decomon-decomon3-decomon_hair_7",
+    "decomon-decomon3-decomon_hair_8",
+    "decomon-decomon3-decomon_hair_9",
+    "decomon-decomon3-decomon_icon_camera",
+    "decomon-decomon3-decomon_icon_eye",
+    "decomon-decomon3-decomon_icon_gallery",
+    "decomon-decomon3-decomon_icon_gear",
+    "decomon-decomon3-decomon_icon_headgear",
+    "decomon-decomon3-decomon_icon_mouth",
+    "decomon-decomon3-decomon_icon_mustache",
+    "decomon-decomon3-decomon_icon_nose",
+    "decomon-decomon3-decomon_icon_paintbrush",
+    "decomon-decomon3-decomon_icon_skate",
+    "decomon-decomon3-decomon_nose_1",
+    "decomon-decomon3-decomon_nose_2",
+    "decomon-decomon3-decomon_nose_3",
+    "decomon-decomon3-decomon_nose_4",
+    "decomon-decomon3-decomon_nose_5",
+    "decomon-decomon3-decomon_nose_6",
+    "decomon-decomon3-decomon_nose_7",
+    "decomon-decomon3-decomon_nose_8",
+    "decomon-decomon3-decomon_nose_9",
+    "decomon-decomon3-decomon_paintbucket_1",
+    "decomon-decomon3-decomon_paintbucket_10",
+    "decomon-decomon3-decomon_paintbucket_11",
+    "decomon-decomon3-decomon_paintbucket_12",
+    "decomon-decomon3-decomon_paintbucket_2",
+    "decomon-decomon3-decomon_paintbucket_3",
+    "decomon-decomon3-decomon_paintbucket_4",
+    "decomon-decomon3-decomon_paintbucket_5",
+    "decomon-decomon3-decomon_paintbucket_6",
+    "decomon-decomon3-decomon_paintbucket_7",
+    "decomon-decomon3-decomon_paintbucket_8",
+    "decomon-decomon3-decomon_paintbucket_9",
+    "decomon-decomon3-decomon_skate_a",
+    "decomon-decomon3-decomon_skate_b",
+    "decomon-decomon3-decomon_skate_c",
+    "decomon-decomon3-decomon_skate_d",
+    "decomon-decomon3-decomon_skate_e",
+    "decomon-decomon3-decomon_skate_f",
+    "decomon-decomon3-decomon_skate_g",
+    "decomon-decomon3-decomon_skate_h",
+    "decomon-decomon3-decomon_skatetyre_a",
+    "decomon-decomon3-decomon_skatetyre_b",
+    "decomon-decomon3-decomon_skatetyre_c",
+    "decomon-decomon3-decomon_skatetyre_d",
+    "decomon-decomon3-decomon_skatetyre_e",
+    "decomon-decomon3-decomon_skatetyre_f",
+    "decomon-decomon3-decomon_skatetyre_g",
+    "decomon-decomon3-decomon_skatetyre_h"
+  ],
+  [
+    "cc.SpriteFrame",
+    [
+      "cc.SpriteAtlas",
+      [
+        "_name",
+        "_spriteFrames"
+      ],
+      2,
+      11
+    ]
+  ],
+  [
+    [
+      1,
+      0,
+      1,
+      2
+    ]
+  ],
+  [
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_nose_9",
+          "rect": [
+            71,
+            481,
+            53,
+            56
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            53,
+            56
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_icon_camera",
+          "rect": [
+            1,
+            294,
+            79,
+            56
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            79,
+            56
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_icon_mustache",
+          "rect": [
+            1,
+            436,
+            70,
+            22
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            70,
+            22
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_skatetyre_d",
+          "rect": [
+            103,
+            835,
+            19,
+            19
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            19,
+            19
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_icon_headgear",
+          "rect": [
+            64,
+            600,
+            34,
+            56
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            34,
+            56
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_7",
+          "rect": [
+            52,
+            907,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_10",
+          "rect": [
+            1,
+            728,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_nose_8",
+          "rect": [
+            52,
+            703,
+            40,
+            7
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            40,
+            7
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_skatetyre_e",
+          "rect": [
+            103,
+            856,
+            19,
+            19
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            19,
+            19
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_backgroundicon",
+          "rect": [
+            79,
+            417,
+            62,
+            44
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            62,
+            44
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_hair_8",
+          "rect": [
+            97,
+            72,
+            86,
+            27
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            86,
+            27
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_skatetyre_c",
+          "rect": [
+            103,
+            814,
+            19,
+            19
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            19,
+            19
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_icon_eye",
+          "rect": [
+            1,
+            953,
+            47,
+            47
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            47,
+            47
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_edge",
+          "rect": [
+            1,
+            191,
+            85,
+            41
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            85,
+            41
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_icon_skate",
+          "rect": [
+            1,
+            266,
+            80,
+            26
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            80,
+            26
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_12",
+          "rect": [
+            52,
+            772,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_hair_4",
+          "rect": [
+            97,
+            952,
+            26,
+            28
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            26,
+            28
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_nose_1",
+          "rect": [
+            1,
+            460,
+            68,
+            37
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            68,
+            37
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_skate_h",
+          "rect": [
+            91,
+            134,
+            3,
+            16
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            3,
+            16
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_skatetyre_h",
+          "rect": [
+            97,
+            982,
+            19,
+            19
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            19,
+            19
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_icon_mouth",
+          "rect": [
+            1,
+            526,
+            67,
+            37
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            67,
+            37
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_11",
+          "rect": [
+            61,
+            727,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_skatetyre_g",
+          "rect": [
+            103,
+            898,
+            19,
+            19
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            19,
+            19
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        [
+          0,
+          "decomon3.plist",
+          [
+            {},
+            "decomon-decomon3-decomon_backgroundicon",
+            6,
+            0,
+            "decomon-decomon3-decomon_edge",
+            6,
+            1,
+            "decomon-decomon3-decomon_hair_1",
+            6,
+            2,
+            "decomon-decomon3-decomon_hair_2",
+            6,
+            3,
+            "decomon-decomon3-decomon_hair_3",
+            6,
+            4,
+            "decomon-decomon3-decomon_hair_4",
+            6,
+            5,
+            "decomon-decomon3-decomon_hair_5",
+            6,
+            6,
+            "decomon-decomon3-decomon_hair_6",
+            6,
+            7,
+            "decomon-decomon3-decomon_hair_7",
+            6,
+            8,
+            "decomon-decomon3-decomon_hair_8",
+            6,
+            9,
+            "decomon-decomon3-decomon_hair_9",
+            6,
+            10,
+            "decomon-decomon3-decomon_icon_camera",
+            6,
+            11,
+            "decomon-decomon3-decomon_icon_eye",
+            6,
+            12,
+            "decomon-decomon3-decomon_icon_gallery",
+            6,
+            13,
+            "decomon-decomon3-decomon_icon_gear",
+            6,
+            14,
+            "decomon-decomon3-decomon_icon_headgear",
+            6,
+            15,
+            "decomon-decomon3-decomon_icon_mouth",
+            6,
+            16,
+            "decomon-decomon3-decomon_icon_mustache",
+            6,
+            17,
+            "decomon-decomon3-decomon_icon_nose",
+            6,
+            18,
+            "decomon-decomon3-decomon_icon_paintbrush",
+            6,
+            19,
+            "decomon-decomon3-decomon_icon_skate",
+            6,
+            20,
+            "decomon-decomon3-decomon_nose_1",
+            6,
+            21,
+            "decomon-decomon3-decomon_nose_2",
+            6,
+            22,
+            "decomon-decomon3-decomon_nose_3",
+            6,
+            23,
+            "decomon-decomon3-decomon_nose_4",
+            6,
+            24,
+            "decomon-decomon3-decomon_nose_5",
+            6,
+            25,
+            "decomon-decomon3-decomon_nose_6",
+            6,
+            26,
+            "decomon-decomon3-decomon_nose_7",
+            6,
+            27,
+            "decomon-decomon3-decomon_nose_8",
+            6,
+            28,
+            "decomon-decomon3-decomon_nose_9",
+            6,
+            29,
+            "decomon-decomon3-decomon_paintbucket_1",
+            6,
+            30,
+            "decomon-decomon3-decomon_paintbucket_10",
+            6,
+            31,
+            "decomon-decomon3-decomon_paintbucket_11",
+            6,
+            32,
+            "decomon-decomon3-decomon_paintbucket_12",
+            6,
+            33,
+            "decomon-decomon3-decomon_paintbucket_2",
+            6,
+            34,
+            "decomon-decomon3-decomon_paintbucket_3",
+            6,
+            35,
+            "decomon-decomon3-decomon_paintbucket_4",
+            6,
+            36,
+            "decomon-decomon3-decomon_paintbucket_5",
+            6,
+            37,
+            "decomon-decomon3-decomon_paintbucket_6",
+            6,
+            38,
+            "decomon-decomon3-decomon_paintbucket_7",
+            6,
+            39,
+            "decomon-decomon3-decomon_paintbucket_8",
+            6,
+            40,
+            "decomon-decomon3-decomon_paintbucket_9",
+            6,
+            41,
+            "decomon-decomon3-decomon_skate_a",
+            6,
+            42,
+            "decomon-decomon3-decomon_skate_b",
+            6,
+            43,
+            "decomon-decomon3-decomon_skate_c",
+            6,
+            44,
+            "decomon-decomon3-decomon_skate_d",
+            6,
+            45,
+            "decomon-decomon3-decomon_skate_e",
+            6,
+            46,
+            "decomon-decomon3-decomon_skate_f",
+            6,
+            47,
+            "decomon-decomon3-decomon_skate_g",
+            6,
+            48,
+            "decomon-decomon3-decomon_skate_h",
+            6,
+            49,
+            "decomon-decomon3-decomon_skatetyre_a",
+            6,
+            50,
+            "decomon-decomon3-decomon_skatetyre_b",
+            6,
+            51,
+            "decomon-decomon3-decomon_skatetyre_c",
+            6,
+            52,
+            "decomon-decomon3-decomon_skatetyre_d",
+            6,
+            53,
+            "decomon-decomon3-decomon_skatetyre_e",
+            6,
+            54,
+            "decomon-decomon3-decomon_skatetyre_f",
+            6,
+            55,
+            "decomon-decomon3-decomon_skatetyre_g",
+            6,
+            56,
+            "decomon-decomon3-decomon_skatetyre_h",
+            6,
+            57
+          ]
+        ]
+      ],
+      0,
+      0,
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58
+      ],
+      [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_hair_1",
+          "rect": [
+            88,
+            229,
+            79,
+            34
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            79,
+            34
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_nose_2",
+          "rect": [
+            1,
+            565,
+            62,
+            29
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            62,
+            29
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_skate_d",
+          "rect": [
+            1,
+            117,
+            94,
+            15
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            94,
+            15
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_nose_7",
+          "rect": [
+            82,
+            310,
+            40,
+            60
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            40,
+            60
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_icon_paintbrush",
+          "rect": [
+            70,
+            539,
+            54,
+            59
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            54,
+            59
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_skatetyre_a",
+          "rect": [
+            103,
+            772,
+            19,
+            19
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            19,
+            19
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_nose_5",
+          "rect": [
+            82,
+            372,
+            43,
+            40
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            43,
+            40
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_3",
+          "rect": [
+            52,
+            817,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_icon_gear",
+          "rect": [
+            91,
+            160,
+            67,
+            32
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            67,
+            32
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_hair_7",
+          "rect": [
+            1,
+            410,
+            76,
+            24
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            76,
+            24
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_8",
+          "rect": [
+            1,
+            908,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_skatetyre_b",
+          "rect": [
+            103,
+            793,
+            19,
+            19
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            19,
+            19
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_4",
+          "rect": [
+            1,
+            818,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_hair_5",
+          "rect": [
+            1,
+            649,
+            26,
+            50
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            26,
+            50
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_nose_3",
+          "rect": [
+            1,
+            677,
+            49,
+            49
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            49
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_skate_c",
+          "rect": [
+            1,
+            1,
+            96,
+            19
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            96,
+            19
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_skate_e",
+          "rect": [
+            1,
+            77,
+            94,
+            21
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            94,
+            21
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_skate_b",
+          "rect": [
+            53,
+            649,
+            8,
+            16
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            8,
+            16
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_6",
+          "rect": [
+            1,
+            863,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_icon_gallery",
+          "rect": [
+            1,
+            352,
+            79,
+            56
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            79,
+            56
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_nose_4",
+          "rect": [
+            1,
+            499,
+            68,
+            25
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            68,
+            25
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_hair_2",
+          "rect": [
+            1,
+            22,
+            94,
+            53
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            94,
+            53
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_icon_nose",
+          "rect": [
+            99,
+            1,
+            69,
+            25
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            69,
+            25
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_hair_9",
+          "rect": [
+            1,
+            234,
+            83,
+            30
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            83,
+            30
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_2",
+          "rect": [
+            1,
+            773,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_hair_6",
+          "rect": [
+            1,
+            134,
+            88,
+            55
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            88,
+            55
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_5",
+          "rect": [
+            52,
+            862,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_hair_3",
+          "rect": [
+            1,
+            596,
+            51,
+            61
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            51,
+            61
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_skate_f",
+          "rect": [
+            53,
+            667,
+            8,
+            16
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            8,
+            16
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_nose_6",
+          "rect": [
+            64,
+            636,
+            52,
+            44
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            52,
+            44
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_9",
+          "rect": [
+            52,
+            952,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_skate_a",
+          "rect": [
+            1,
+            100,
+            94,
+            15
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            94,
+            15
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_1",
+          "rect": [
+            63,
+            682,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_skatetyre_f",
+          "rect": [
+            103,
+            877,
+            19,
+            19
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            19,
+            19
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_skate_g",
+          "rect": [
+            52,
+            685,
+            8,
+            16
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            8,
+            16
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ]
+  ]
+]

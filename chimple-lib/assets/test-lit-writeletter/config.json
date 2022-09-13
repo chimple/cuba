@@ -1,0 +1,21 @@
+{
+    "paths": {
+        "d9R7FXfqBDWKlBWE4TGRgx": [
+            "res/test-lit-writeletter",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "d9R7FXfqBDWKlBWE4TGRgx"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-lit-writeletter",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

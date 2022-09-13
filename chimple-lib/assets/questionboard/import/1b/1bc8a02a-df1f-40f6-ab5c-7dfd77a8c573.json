@@ -1,0 +1,52 @@
+[
+  1,
+  [
+    "14ce69a9e"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "wordwindow-btn-speaker-normal",
+      "rect": [
+        769,
+        188,
+        90,
+        95
+      ],
+      "offset": [
+        0,
+        -4.5
+      ],
+      "originalSize": [
+        112,
+        112
+      ],
+      "rotated": 1,
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

@@ -1,0 +1,21 @@
+{
+    "paths": {
+        "b91JeTYXBMKZy18V6YUfh3": [
+            "res/test-maths-numberboard",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "b91JeTYXBMKZy18V6YUfh3"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-maths-numberboard",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

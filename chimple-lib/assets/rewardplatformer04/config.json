@@ -1,0 +1,21 @@
+{
+    "paths": {
+        "a4QlrYslxF36/ghJTIeQsg": [
+            "res/rewardplatformer04",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "a4QlrYslxF36/ghJTIeQsg"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "rewardplatformer04",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

@@ -1,0 +1,82 @@
+{
+    "paths": {
+        "b4jJ9bbp5P9awMRwDQ9s4i": [
+            "res/arrow-outline",
+            "cc.Texture2D"
+        ],
+        "ccChA1wRVAArZudNVoT8O1": [
+            "res/arrow-outline",
+            "cc.SpriteFrame",
+            1
+        ],
+        "c8KZCRj5JKIa6c2bxqI2ZJ": [
+            "res/arrow-outline-tutorial",
+            "cc.SpriteFrame",
+            1
+        ],
+        "ff0XFDIyRJL6lMlnlyGpJX": [
+            "res/arrow-outline-tutorial",
+            "cc.Texture2D"
+        ],
+        "bbwQ9qofRNz5In3uKPyLz8": [
+            "res/arrow-outline-tutorial-json",
+            "cc.JsonAsset"
+        ],
+        "e3Iym2uYRB25pUYDmblUpy": [
+            "res/test-lit-drawshape",
+            "cc.JsonAsset"
+        ],
+        "28gH1UsvtFga7f6u0DSdxc": [
+            "res/watermelon-outline",
+            "cc.Texture2D"
+        ],
+        "6btXuZDE5F5rSVT4hxJUdI": [
+            "res/watermelon-outline",
+            "cc.SpriteFrame",
+            1
+        ],
+        "64rCFylktG4qh/zWrb0ppb": [
+            "res/watermelon-outline-tutorial",
+            "cc.Texture2D"
+        ],
+        "94TglpikZIY53JAT6G1SKp": [
+            "res/watermelon-outline-tutorial",
+            "cc.SpriteFrame",
+            1
+        ],
+        "9ch49pV51EKLdr2C+rSVZO": [
+            "res/watermelon-outline-tutorial-json",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "28gH1UsvtFga7f6u0DSdxc",
+        "64rCFylktG4qh/zWrb0ppb",
+        "6btXuZDE5F5rSVT4hxJUdI",
+        "94TglpikZIY53JAT6G1SKp",
+        "9ch49pV51EKLdr2C+rSVZO",
+        "b4jJ9bbp5P9awMRwDQ9s4i",
+        "bbwQ9qofRNz5In3uKPyLz8",
+        "c8KZCRj5JKIa6c2bxqI2ZJ",
+        "ccChA1wRVAArZudNVoT8O1",
+        "e3Iym2uYRB25pUYDmblUpy",
+        "ff0XFDIyRJL6lMlnlyGpJX"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {
+        "0354e60e1": [
+            "28gH1UsvtFga7f6u0DSdxc",
+            "64rCFylktG4qh/zWrb0ppb",
+            "b4jJ9bbp5P9awMRwDQ9s4i",
+            "ff0XFDIyRJL6lMlnlyGpJX"
+        ]
+    },
+    "name": "test-lit-drawshape",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

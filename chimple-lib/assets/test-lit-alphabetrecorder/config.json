@@ -1,0 +1,21 @@
+{
+    "paths": {
+        "a5FQ0lWBhHN4eyXUjiO9H8": [
+            "res/test-lit-alphabetrecorder",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "a5FQ0lWBhHN4eyXUjiO9H8"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-lit-alphabetrecorder",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

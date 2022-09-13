@@ -1,0 +1,21 @@
+{
+    "paths": {
+        "2fE0GiXs9BtZM3Y/LMovfb": [
+            "res/test-maths-fillanswer",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "2fE0GiXs9BtZM3Y/LMovfb"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-maths-fillanswer",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

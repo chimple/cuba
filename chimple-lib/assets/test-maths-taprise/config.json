@@ -1,0 +1,21 @@
+{
+    "paths": {
+        "12HaELO8dKX5Xz/S1xPFSI": [
+            "res/test-maths-taprise",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "12HaELO8dKX5Xz/S1xPFSI"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-maths-taprise",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

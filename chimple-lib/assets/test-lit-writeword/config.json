@@ -1,0 +1,58 @@
+{
+    "paths": {
+        "37An2vppBMxJLNxDpbiQ1j": [
+            "res/bug",
+            "cc.Texture2D"
+        ],
+        "84Fsg8IXVJoqUQsotRGEgD": [
+            "res/bug",
+            "cc.AudioClip"
+        ],
+        "b7LjhU8FBJJqcw/5OlpcIu": [
+            "res/bug",
+            "cc.SpriteFrame",
+            1
+        ],
+        "181GrumO5M46Riza2mYctN": [
+            "res/desert",
+            "cc.SpriteFrame",
+            1
+        ],
+        "43PmgJVx9Jc7liuf6RTzO5": [
+            "res/desert",
+            "cc.AudioClip"
+        ],
+        "e43vQFva5CQpHLe/ldE0HX": [
+            "res/desert",
+            "cc.Texture2D"
+        ],
+        "ea1YLHWrJP7rIj6H0DqfBe": [
+            "res/test-lit-writeword",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "181GrumO5M46Riza2mYctN",
+        "37An2vppBMxJLNxDpbiQ1j",
+        "43PmgJVx9Jc7liuf6RTzO5",
+        "84Fsg8IXVJoqUQsotRGEgD",
+        "b7LjhU8FBJJqcw/5OlpcIu",
+        "e43vQFva5CQpHLe/ldE0HX",
+        "ea1YLHWrJP7rIj6H0DqfBe"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {
+        "0dc93c2d1": [
+            "37An2vppBMxJLNxDpbiQ1j",
+            "e43vQFva5CQpHLe/ldE0HX"
+        ]
+    },
+    "name": "test-lit-writeword",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

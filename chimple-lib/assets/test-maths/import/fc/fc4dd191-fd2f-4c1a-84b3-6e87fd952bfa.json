@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "51kD+0rdpOiLURsaLdwSsq"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "matchingcard",
+      "rect": [
+        3,
+        8,
+        62,
+        65
+      ],
+      "offset": [
+        0,
+        0.5
+      ],
+      "originalSize": [
+        68,
+        82
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

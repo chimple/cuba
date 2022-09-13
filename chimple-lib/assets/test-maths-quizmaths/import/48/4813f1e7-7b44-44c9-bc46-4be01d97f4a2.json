@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "744/T3x5tE+5Rxzibxb/wC"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "pentagon",
+      "rect": [
+        131,
+        79,
+        308,
+        293
+      ],
+      "offset": [
+        0,
+        -0.5
+      ],
+      "originalSize": [
+        570,
+        450
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

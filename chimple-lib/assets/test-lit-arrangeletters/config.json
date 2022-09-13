@@ -1,0 +1,58 @@
+{
+    "paths": {
+        "54JKZd+HNNPrKr1riAdUQU": [
+            "res/bang",
+            "cc.AudioClip"
+        ],
+        "63g07Wk4dImbej2CQhkrrs": [
+            "res/bangimg",
+            "cc.Texture2D"
+        ],
+        "9dUwPZuGZBDpWwJw1QZUQD": [
+            "res/bangimg",
+            "cc.SpriteFrame",
+            1
+        ],
+        "b8qpqkWIFLR6JMF6l9R6eS": [
+            "res/cat",
+            "cc.AudioClip"
+        ],
+        "09XTtDSa1OSYZjz78e4Wb1": [
+            "res/catimg",
+            "cc.SpriteFrame",
+            1
+        ],
+        "70he15hbFMIIxQNU6hduJe": [
+            "res/catimg",
+            "cc.Texture2D"
+        ],
+        "61GpPOh+tAQqeJRHszXPkk": [
+            "res/test-lit-arrangeletters",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "09XTtDSa1OSYZjz78e4Wb1",
+        "54JKZd+HNNPrKr1riAdUQU",
+        "61GpPOh+tAQqeJRHszXPkk",
+        "63g07Wk4dImbej2CQhkrrs",
+        "70he15hbFMIIxQNU6hduJe",
+        "9dUwPZuGZBDpWwJw1QZUQD",
+        "b8qpqkWIFLR6JMF6l9R6eS"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {
+        "0e116c084": [
+            "63g07Wk4dImbej2CQhkrrs",
+            "70he15hbFMIIxQNU6hduJe"
+        ]
+    },
+    "name": "test-lit-arrangeletters",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

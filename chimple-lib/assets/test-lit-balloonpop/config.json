@@ -1,0 +1,21 @@
+{
+    "paths": {
+        "1eIPoJJldIGbleusvC0/ts": [
+            "res/test-lit-balloonpop",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "1eIPoJJldIGbleusvC0/ts"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-lit-balloonpop",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

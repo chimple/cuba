@@ -1,0 +1,21 @@
+{
+    "paths": {
+        "f3+IIuR3lC2adDbrV9tAZD": [
+            "res/test-maths-groupsum",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "f3+IIuR3lC2adDbrV9tAZD"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-maths-groupsum",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "26Ljku4SxK05iQdctKUXzh"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "puzzle00",
+      "rect": [
+        20,
+        50,
+        88,
+        30
+      ],
+      "offset": [
+        0,
+        -1
+      ],
+      "originalSize": [
+        128,
+        128
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

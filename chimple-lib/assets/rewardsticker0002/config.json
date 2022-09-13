@@ -1,0 +1,129 @@
+{
+    "paths": {
+        "075rnYyTBCl7ASi2hVGb1o": [
+            "res/astronaut_part1",
+            "cc.Texture2D"
+        ],
+        "9corNOSGNA1L1tlgLtNQbf": [
+            "res/astronaut_part1",
+            "cc.SpriteFrame",
+            1
+        ],
+        "90yk6VmEZMgKBOXZ9P3opc": [
+            "res/astronaut_part2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "aefDz5pD9CloA5erJMRgh7": [
+            "res/astronaut_part2",
+            "cc.Texture2D"
+        ],
+        "5fS05WqTJCqZmj9yooPFdk": [
+            "res/astronaut_part3",
+            "cc.SpriteFrame",
+            1
+        ],
+        "82p1E0ZnZIYpumhuU0I8L6": [
+            "res/astronaut_part3",
+            "cc.Texture2D"
+        ],
+        "2051N1TwBO7YPPH8X3zWsh": [
+            "res/astronaut_part4",
+            "cc.SpriteFrame",
+            1
+        ],
+        "9cVCu+Ny5GxYDymRQDVU8M": [
+            "res/astronaut_part4",
+            "cc.Texture2D"
+        ],
+        "c6V3URCLlGx5gglYG0VfBS": [
+            "res/astronaut_part5",
+            "cc.Texture2D"
+        ],
+        "ebr3w1dRBCGL/2/vwBfbBO": [
+            "res/astronaut_part5",
+            "cc.SpriteFrame",
+            1
+        ],
+        "c76khK/y9M1KluwxTeZEbA": [
+            "res/astronaut_part6",
+            "cc.SpriteFrame",
+            1
+        ],
+        "eazwktd2hDp5c3UJxe2Fs6": [
+            "res/astronaut_part6",
+            "cc.Texture2D"
+        ],
+        "2bP6wlY3lB458WNQpgBIkQ": [
+            "res/astronaut_thumbnail",
+            "cc.Texture2D"
+        ],
+        "98eCQz4nVE6L9eKS/P0nqJ": [
+            "res/astronaut_thumbnail",
+            "cc.SpriteFrame",
+            1
+        ],
+        "fexj7J8sxLmqXkDGJP8c5T": [
+            "res/rewardsticker0002",
+            "cc.JsonAsset"
+        ],
+        "04yCE7w5VGqrTtNKoPQmvT": [
+            "res/sticker-rewardsticker0002",
+            "cc.Texture2D"
+        ],
+        "b8JR+WloVNrboEDevQx4my": [
+            "res/sticker-rewardsticker0002",
+            "cc.SpriteFrame",
+            1
+        ]
+    },
+    "uuids": [
+        "04yCE7w5VGqrTtNKoPQmvT",
+        "075rnYyTBCl7ASi2hVGb1o",
+        "2051N1TwBO7YPPH8X3zWsh",
+        "2bP6wlY3lB458WNQpgBIkQ",
+        "5fS05WqTJCqZmj9yooPFdk",
+        "82p1E0ZnZIYpumhuU0I8L6",
+        "90yk6VmEZMgKBOXZ9P3opc",
+        "98eCQz4nVE6L9eKS/P0nqJ",
+        "9cVCu+Ny5GxYDymRQDVU8M",
+        "9corNOSGNA1L1tlgLtNQbf",
+        "aefDz5pD9CloA5erJMRgh7",
+        "b8JR+WloVNrboEDevQx4my",
+        "c6V3URCLlGx5gglYG0VfBS",
+        "c76khK/y9M1KluwxTeZEbA",
+        "eazwktd2hDp5c3UJxe2Fs6",
+        "ebr3w1dRBCGL/2/vwBfbBO",
+        "fexj7J8sxLmqXkDGJP8c5T"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {
+        "0ac1118f5": [
+            "04yCE7w5VGqrTtNKoPQmvT",
+            "075rnYyTBCl7ASi2hVGb1o",
+            "2051N1TwBO7YPPH8X3zWsh",
+            "2bP6wlY3lB458WNQpgBIkQ",
+            "5fS05WqTJCqZmj9yooPFdk",
+            "82p1E0ZnZIYpumhuU0I8L6",
+            "90yk6VmEZMgKBOXZ9P3opc",
+            "98eCQz4nVE6L9eKS/P0nqJ",
+            "9cVCu+Ny5GxYDymRQDVU8M",
+            "9corNOSGNA1L1tlgLtNQbf",
+            "aefDz5pD9CloA5erJMRgh7",
+            "b8JR+WloVNrboEDevQx4my",
+            "c6V3URCLlGx5gglYG0VfBS",
+            "c76khK/y9M1KluwxTeZEbA",
+            "eazwktd2hDp5c3UJxe2Fs6",
+            "ebr3w1dRBCGL/2/vwBfbBO",
+            "fexj7J8sxLmqXkDGJP8c5T"
+        ]
+    },
+    "name": "rewardsticker0002",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

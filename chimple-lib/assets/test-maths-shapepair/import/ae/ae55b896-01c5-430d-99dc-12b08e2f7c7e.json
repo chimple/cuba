@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "87AWJORWxMK5p+ZWJYw/EY"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "matchinggame_circle_1_large",
+      "rect": [
+        45,
+        26,
+        101,
+        101
+      ],
+      "offset": [
+        0.5,
+        -1.5
+      ],
+      "originalSize": [
+        190,
+        150
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

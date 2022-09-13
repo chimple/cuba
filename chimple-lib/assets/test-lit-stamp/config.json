@@ -1,0 +1,142 @@
+{
+    "paths": {
+        "596FdYrrxAioiAKIafJW2f": [
+            "res/ap2_puzzle7_background",
+            "cc.Texture2D"
+        ],
+        "86/Gb1M69A6YNCHtChMiYx": [
+            "res/ap2_puzzle7_background",
+            "cc.SpriteFrame",
+            1
+        ],
+        "8eNf4s8OJK5a/fIo3W5spR": [
+            "res/ap2_puzzle7_butterfly_puzzle",
+            "cc.Texture2D"
+        ],
+        "d8IbUt5zhK1pIVi5G/TSJ5": [
+            "res/ap2_puzzle7_butterfly_puzzle",
+            "cc.SpriteFrame",
+            1
+        ],
+        "c91MyzTftETrgLQ4rd4Of1": [
+            "res/ap2_puzzle7_cat_puzzle",
+            "cc.Texture2D"
+        ],
+        "f8kXAtmEBBErcrg8iypNR8": [
+            "res/ap2_puzzle7_cat_puzzle",
+            "cc.SpriteFrame",
+            1
+        ],
+        "13KiG2/2NKqpe/sbavyTlp": [
+            "res/ap_puzzle10_background",
+            "cc.Texture2D"
+        ],
+        "48keVwvEFPM7Zk0B11dxz0": [
+            "res/ap_puzzle10_background",
+            "cc.SpriteFrame",
+            1
+        ],
+        "e7QXsHdfRNdrSIRxRirUAz": [
+            "res/ap_puzzle10_bush1_puzzle",
+            "cc.SpriteFrame",
+            1
+        ],
+        "fdTfdyYLRBC4w50az3srJC": [
+            "res/ap_puzzle10_bush1_puzzle",
+            "cc.Texture2D"
+        ],
+        "43WI94V2VKXq3utxkf1nfv": [
+            "res/ap_puzzle10_bush2_puzzle",
+            "cc.Texture2D"
+        ],
+        "eajn7J0M1Pc654GWkgUJcK": [
+            "res/ap_puzzle10_bush2_puzzle",
+            "cc.SpriteFrame",
+            1
+        ],
+        "21eFCwzXlO7qEVmXAOFmZb": [
+            "res/ap_puzzle10_bush3_puzzle",
+            "cc.Texture2D"
+        ],
+        "8bkmQi2kJBVr0wg8/aWi6d": [
+            "res/ap_puzzle10_bush3_puzzle",
+            "cc.SpriteFrame",
+            1
+        ],
+        "1ahtYiWdJC7IXsHY1vFNJL": [
+            "res/ap_puzzle10_camel1_puzzle",
+            "cc.Texture2D"
+        ],
+        "9bZnOJVlVF5ICt1kcsO8ZJ": [
+            "res/ap_puzzle10_camel1_puzzle",
+            "cc.SpriteFrame",
+            1
+        ],
+        "3azUidJpNL9I4nVaYNH8zN": [
+            "res/ap_puzzle10_camel2_puzzle",
+            "cc.SpriteFrame",
+            1
+        ],
+        "f4AmHuRS1EurJcBwammdHQ": [
+            "res/ap_puzzle10_camel2_puzzle",
+            "cc.Texture2D"
+        ],
+        "76+WV5ttNJ2JPq4lNC/iGf": [
+            "res/cacti_and_camels",
+            "cc.AudioClip"
+        ],
+        "74VGCAZ4VFjpvYSLRPk2Hs": [
+            "res/cat_and_butterfly",
+            "cc.AudioClip"
+        ],
+        "8134xJRFFBi4BUhKtc4Xs2": [
+            "res/test-lit-stamp",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "13KiG2/2NKqpe/sbavyTlp",
+        "1ahtYiWdJC7IXsHY1vFNJL",
+        "21eFCwzXlO7qEVmXAOFmZb",
+        "3azUidJpNL9I4nVaYNH8zN",
+        "43WI94V2VKXq3utxkf1nfv",
+        "48keVwvEFPM7Zk0B11dxz0",
+        "596FdYrrxAioiAKIafJW2f",
+        "74VGCAZ4VFjpvYSLRPk2Hs",
+        "76+WV5ttNJ2JPq4lNC/iGf",
+        "8134xJRFFBi4BUhKtc4Xs2",
+        "86/Gb1M69A6YNCHtChMiYx",
+        "8bkmQi2kJBVr0wg8/aWi6d",
+        "8eNf4s8OJK5a/fIo3W5spR",
+        "9bZnOJVlVF5ICt1kcsO8ZJ",
+        "c91MyzTftETrgLQ4rd4Of1",
+        "d8IbUt5zhK1pIVi5G/TSJ5",
+        "e7QXsHdfRNdrSIRxRirUAz",
+        "eajn7J0M1Pc654GWkgUJcK",
+        "f4AmHuRS1EurJcBwammdHQ",
+        "f8kXAtmEBBErcrg8iypNR8",
+        "fdTfdyYLRBC4w50az3srJC"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {
+        "0c5ec0153": [
+            "13KiG2/2NKqpe/sbavyTlp",
+            "1ahtYiWdJC7IXsHY1vFNJL",
+            "21eFCwzXlO7qEVmXAOFmZb",
+            "43WI94V2VKXq3utxkf1nfv",
+            "596FdYrrxAioiAKIafJW2f",
+            "8eNf4s8OJK5a/fIo3W5spR",
+            "c91MyzTftETrgLQ4rd4Of1",
+            "f4AmHuRS1EurJcBwammdHQ",
+            "fdTfdyYLRBC4w50az3srJC"
+        ]
+    },
+    "name": "test-lit-stamp",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

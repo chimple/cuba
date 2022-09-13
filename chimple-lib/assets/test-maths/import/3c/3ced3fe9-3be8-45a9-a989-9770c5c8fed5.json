@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "8bwBucM+ZPgaUxF5J0bTQA"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "writenumber",
+      "rect": [
+        3,
+        8,
+        62,
+        65
+      ],
+      "offset": [
+        0,
+        0.5
+      ],
+      "originalSize": [
+        68,
+        82
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

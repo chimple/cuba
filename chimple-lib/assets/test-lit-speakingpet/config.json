@@ -1,0 +1,76 @@
+{
+    "paths": {
+        "5coHDmuAZJD5uqebT930mC": [
+            "res/boat",
+            "cc.AudioClip"
+        ],
+        "1dWDLgc59FXICOAdFZeZdp": [
+            "res/d_sound",
+            "cc.AudioClip"
+        ],
+        "29iVQnKFxIUJHv9QBHKcU3": [
+            "res/ea",
+            "cc.AudioClip"
+        ],
+        "90Um1/ck5IuKXwVO/jXIMT": [
+            "res/goat",
+            "cc.AudioClip"
+        ],
+        "dbCoESsexFZ4A4VQBGoiSn": [
+            "res/kid",
+            "cc.AudioClip"
+        ],
+        "4d12GgYatIabi6Rui5O1gR": [
+            "res/loud",
+            "cc.AudioClip"
+        ],
+        "0cbiPHUB1CQ5nnlv+1Q39l": [
+            "res/meal",
+            "cc.AudioClip"
+        ],
+        "f8VsYkpc9J4ZosuJ3sqqbY": [
+            "res/oa",
+            "cc.AudioClip"
+        ],
+        "fbbn+qVEVKw694xTr+7zOM": [
+            "res/pet",
+            "cc.AudioClip"
+        ],
+        "0d/agPUh9EioXQFmoKE5ST": [
+            "res/read",
+            "cc.AudioClip"
+        ],
+        "9fK9zWxWxHlpGujGB4kWQd": [
+            "res/t_sound",
+            "cc.AudioClip"
+        ],
+        "1eB28TwWpPnYO404/5CPPI": [
+            "res/test-lit-speakingpet",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "0cbiPHUB1CQ5nnlv+1Q39l",
+        "0d/agPUh9EioXQFmoKE5ST",
+        "1dWDLgc59FXICOAdFZeZdp",
+        "1eB28TwWpPnYO404/5CPPI",
+        "29iVQnKFxIUJHv9QBHKcU3",
+        "4d12GgYatIabi6Rui5O1gR",
+        "5coHDmuAZJD5uqebT930mC",
+        "90Um1/ck5IuKXwVO/jXIMT",
+        "9fK9zWxWxHlpGujGB4kWQd",
+        "dbCoESsexFZ4A4VQBGoiSn",
+        "f8VsYkpc9J4ZosuJ3sqqbY",
+        "fbbn+qVEVKw694xTr+7zOM"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-lit-speakingpet",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

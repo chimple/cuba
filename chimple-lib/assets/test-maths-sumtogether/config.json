@@ -1,0 +1,21 @@
+{
+    "paths": {
+        "4dvrAcC+5B9JdE6+cnRKhy": [
+            "res/test-maths-sumtogether",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "4dvrAcC+5B9JdE6+cnRKhy"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-maths-sumtogether",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

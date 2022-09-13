@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "21Mb57H0JNYLU/0w+KvpXb"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "book_en_311_page_2_cropped",
+      "rect": [
+        0,
+        0,
+        293,
+        206
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "originalSize": [
+        293,
+        206
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

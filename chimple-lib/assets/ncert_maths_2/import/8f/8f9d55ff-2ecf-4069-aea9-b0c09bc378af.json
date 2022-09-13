@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "45iKHNduxKlJD48nFJetZk"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "maths15",
+      "rect": [
+        34,
+        40,
+        54,
+        42
+      ],
+      "offset": [
+        -3,
+        3
+      ],
+      "originalSize": [
+        128,
+        128
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

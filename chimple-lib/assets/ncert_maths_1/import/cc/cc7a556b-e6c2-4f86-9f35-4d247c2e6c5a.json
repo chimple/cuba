@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "18KwRgZ2tBt6AONqPY1i6p"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "platformer07",
+      "rect": [
+        17,
+        15,
+        96,
+        69
+      ],
+      "offset": [
+        1,
+        15
+      ],
+      "originalSize": [
+        128,
+        129
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

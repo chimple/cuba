@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "30/hNWFKNOJbva68NRs7v2"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "hi0200",
+      "rect": [
+        13,
+        36,
+        100,
+        48
+      ],
+      "offset": [
+        -1,
+        4
+      ],
+      "originalSize": [
+        128,
+        128
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "f2w19ooOBMKJk6voOHIiYA"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "ap2_puzzle7_cat_puzzle",
+      "rect": [
+        2,
+        1,
+        238,
+        257
+      ],
+      "offset": [
+        0.5,
+        3
+      ],
+      "originalSize": [
+        241,
+        265
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

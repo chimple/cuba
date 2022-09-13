@@ -1,0 +1,26 @@
+{
+    "paths": {
+        "91V/fgpClBEa0tvEDWcvxD": [
+            "res/pick",
+            "cc.AudioClip"
+        ],
+        "acBQCzM7lAn5bf1YouR/eK": [
+            "res/test-lit-dragthealphabet",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "91V/fgpClBEa0tvEDWcvxD",
+        "acBQCzM7lAn5bf1YouR/eK"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "test-lit-dragthealphabet",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}
