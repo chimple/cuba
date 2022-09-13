@@ -2,7 +2,7 @@
   "name": "cuba",
   "version": "0.0.1",
   "private": true,
-  "homepage": "https://chimple.github.io/cuba",
+  "homepage": ".",
   "dependencies": {
     "@capacitor-community/http": "^1.4.1",
     "@capacitor/android": "4.2.0",
