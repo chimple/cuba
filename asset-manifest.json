@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/cuba/static/css/main.4aefb92b.css",
-    "main.js": "/cuba/static/js/main.24dde473.js",
+    "main.js": "/cuba/static/js/main.86f318d0.js",
     "static/js/443.570143d6.chunk.js": "/cuba/static/js/443.570143d6.chunk.js",
     "static/js/738.c1b3cf06.chunk.js": "/cuba/static/js/738.c1b3cf06.chunk.js",
     "static/js/372.31ca7889.chunk.js": "/cuba/static/js/372.31ca7889.chunk.js",
@@ -17,7 +17,7 @@
     "service-worker.js": "/cuba/service-worker.js",
     "index.html": "/cuba/index.html",
     "main.4aefb92b.css.map": "/cuba/static/css/main.4aefb92b.css.map",
-    "main.24dde473.js.map": "/cuba/static/js/main.24dde473.js.map",
+    "main.86f318d0.js.map": "/cuba/static/js/main.86f318d0.js.map",
     "443.570143d6.chunk.js.map": "/cuba/static/js/443.570143d6.chunk.js.map",
     "738.c1b3cf06.chunk.js.map": "/cuba/static/js/738.c1b3cf06.chunk.js.map",
     "372.31ca7889.chunk.js.map": "/cuba/static/js/372.31ca7889.chunk.js.map",
@@ -33,6 +33,6 @@
   },
   "entrypoints": [
     "static/css/main.4aefb92b.css",
-    "static/js/main.24dde473.js"
+    "static/js/main.86f318d0.js"
   ]
 }
