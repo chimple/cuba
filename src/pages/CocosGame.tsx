@@ -1,7 +1,7 @@
 import { IonContent, IonLoading, IonPage } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router";
-import { downloadFile } from "../utility/gameDownload";
+import { Util } from "../utility/util";
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -17,7 +17,7 @@ const CocosGame: React.FC = () => {
 
   async function init() {
     setIsLoading(true);
-    const dow = await downloadFile(state.lessonId).catch((er) => {
+    const dow = await Util.downloadZipBundle(state.lessonId).catch((er) => {
       console.log(" err donwloaded ", er);
     });
     console.log("donwloaded ", dow);
