@@ -1,4 +1,4 @@
-export interface OneRosterSrcObject {
+export interface OneRosterGUIDRef {
     href: string,
     sourcedId: string,
     type: string
