@@ -1,12 +1,10 @@
 import { ClassType, OneRosterSrcObject, OneRosterStatus } from "../interface/modelInterfaces";
 import { Util } from "../utility/util";
+import { BaseObject } from "./baseObject";
 
-export class Class {
+export class Class extends BaseObject {
 
-    private _sourcedId: string;
-    private _status: OneRosterStatus;
-    private _dateLastModified: string;
-    private _metadata: object;
+
     private _title: string;
     private _classCode: string;
     private _classType: ClassType;
@@ -38,6 +36,7 @@ export class Class {
         dateLastModified: string,
         metadata: object,
     ) {
+        super(sourcedId, status, dateLastModified, metadata);
         this._title = title
         this._classCode = classCode
         this._classType = classType
@@ -50,36 +49,9 @@ export class Class {
         this._subjectCodes = subjectCodes
         this._periods = periods
         this._resources = resources
-        this._sourcedId = sourcedId
-        this._status = status
-        this._dateLastModified = dateLastModified
-        this._metadata = metadata
     }
 
-    get sourcedId(): string {
-        return this._sourcedId;
-    }
-    set sourcedId(value: string) {
-        this._sourcedId = value;
-    }
-    get status(): OneRosterStatus {
-        return this._status;
-    }
-    set status(value: OneRosterStatus) {
-        this._status = value;
-    }
-    get dateLastModified(): string {
-        return this._dateLastModified;
-    }
-    set dateLastModified(value: string) {
-        this._dateLastModified = value;
-    }
-    get metadata(): object {
-        return this._metadata;
-    }
-    set metadata(value: object) {
-        this._metadata = value;
-    }
+
     get title(): string {
         return this._title;
     }
