@@ -1,7 +1,6 @@
 import { Redirect, Route } from "react-router-dom";
 import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
-import Home from "./pages/Home";
 import ViewMessage from "./pages/ViewMessage";
 
 /* Core CSS required for Ionic components to work properly */
@@ -22,12 +21,14 @@ import "@ionic/react/css/display.css";
 
 /* Theme variables */
 import "./theme/variables.css";
+import Home from "./pages/Home";
 import Slider from "./pages/Slider";
 import CocosGame from "./pages/CocosGame";
 import { End } from "./pages/End";
 import { useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
+// import Assignments from "./pages/Assignments";
 
 setupIonicReact();
 
@@ -57,7 +58,7 @@ const App: React.FC = () => {
       <IonReactRouter>
         <IonRouterOutlet>
           <Route path="/" exact={true}>
-            <Slider />
+            <Home />
           </Route>
           <Route path="/slider" exact={true}>
             <Slider />
@@ -68,9 +69,9 @@ const App: React.FC = () => {
           <Route path="/end" exact={true}>
             <End />
           </Route>
-          <Route path="/home" exact={true}>
-            <Home />
-          </Route>
+          {/* <Route path="/assignments" exact={true}>
+            <Assignments />
+          </Route> */}
           <Route path="/message/:id">
             <ViewMessage />
           </Route>

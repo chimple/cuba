@@ -10,6 +10,7 @@ import "swiper/css/free-mode";
 import "swiper/css/mousewheel";
 
 const CustomSlider: React.FC<any> = ({ lessonData }) => {
+  console.log("CustomSlider LessonData", lessonData);
   return (
     <IonContent className="content">
       <div className="vertical-center">

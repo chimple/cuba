@@ -1,0 +1,21 @@
+#home-header {
+    display: inline-flex !important;
+    position: initial !important;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.home-page-buttons {
+    font-size: 25px;
+    background: white;
+}
+
+#assignment-button {
+    margin-left: 30%;
+    margin-top: 5%;
+}
+
+#leaderboard-button {
+    margin-left: 10%;
+    margin-top: 5%;
+}
