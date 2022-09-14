@@ -28,7 +28,7 @@ import { End } from "./pages/End";
 import { useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
-import Assignments from "./pages/Assignments";
+// import Assignments from "./pages/Assignments";
 
 setupIonicReact();
 
@@ -69,9 +69,9 @@ const App: React.FC = () => {
           <Route path="/end" exact={true}>
             <End />
           </Route>
-          <Route path="/assignments" exact={true}>
+          {/* <Route path="/assignments" exact={true}>
             <Assignments />
-          </Route>
+          </Route> */}
           <Route path="/message/:id">
             <ViewMessage />
           </Route>
