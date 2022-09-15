@@ -4,13 +4,13 @@ export class BaseObject {
     private _sourcedId: string;
     private _status: OneRosterStatus;
     private _dateLastModified: string;
-    private _metadata: object;
+    private _metadata: any;
 
     constructor(
         sourcedId: string,
         status: OneRosterStatus,
         dateLastModified: string,
-        metadata: object,
+        metadata: any,
 
     ) {
         this._sourcedId = sourcedId
@@ -37,10 +37,10 @@ export class BaseObject {
     set dateLastModified(value: string) {
         this._dateLastModified = value;
     }
-    get metadata(): object {
+    get metadata(): any {
         return this._metadata;
     }
-    set metadata(value: object) {
+    set metadata(value: any) {
         this._metadata = value;
     }
 }
