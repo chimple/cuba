@@ -1,4 +1,5 @@
 import { Class } from "../models/class";
+import { Result } from "../models/result";
 import { ServiceApi } from "./ServiceApi";
 
 export class OneRosterApi implements ServiceApi {
@@ -99,6 +100,7 @@ export class OneRosterApi implements ServiceApi {
                 },
             ]
         }
+        // const req=await Http.get({url:`http://users/${userId}/classes`})
         await new Promise(r => setTimeout(r, 1000));
         const classes: Class[] = []
         for (let i of result.classes) {
@@ -106,4 +108,121 @@ export class OneRosterApi implements ServiceApi {
         }
         return classes;
     }
+
+    async getResultsForStudentForClass(classId: string, studentId: string): Promise<Result[]> {
+        const response = {
+            "results": [
+                {
+                    "sourcedId": "..String..",
+                    "status": "active",
+                    "dateLastModified": "..Date/Time..",
+                    "metadata": {
+                        "lessonId": "en000"
+                    },
+                    "lineItem": {
+                        "href": "..URI..",
+                        "sourcedId": "..String..",
+                        "type": "lineItem"
+                    },
+                    "student": {
+                        "href": "..URI..",
+                        "sourcedId": "..String..",
+                        "type": "user"
+                    },
+                    "class": {
+                        "href": "..URI..",
+                        "sourcedId": "..String..",
+                        "type": "class"
+                    },
+                    "scoreScale": {
+                        "href": "..URI..",
+                        "sourcedId": "..String..",
+                        "type": "scoreScale"
+                    },
+                    "scoreStatus": "submitted",
+                    "score": 60,
+                    "textScore": "..NormalizedString..",
+                    "scoreDate": "..String(Date)..",
+                    "comment": "..String..",
+                    "learningObjectiveSet": [
+                        {
+                            "source": "..select from Union..",
+                            "learningObjectiveResults": [
+                                {
+                                    "learningObjectiveId": "..NormalizedString..",
+                                    "score": 20,
+                                    "textScore": "..NormalizedString.."
+                                },
+
+                            ]
+                        },
+
+                    ]
+                },
+                {
+                    "sourcedId": "..String..",
+                    "status": "active",
+                    "dateLastModified": "..Date/Time..",
+                    "metadata": {
+                        "lessonId": "en_PreQuiz"
+                    },
+                    "lineItem": {
+                        "href": "..URI..",
+                        "sourcedId": "..String..",
+                        "type": "lineItem"
+                    },
+                    "student": {
+                        "href": "..URI..",
+                        "sourcedId": "..String..",
+                        "type": "user"
+                    },
+                    "class": {
+                        "href": "..URI..",
+                        "sourcedId": "..String..",
+                        "type": "class"
+                    },
+                    "scoreScale": {
+                        "href": "..URI..",
+                        "sourcedId": "..String..",
+                        "type": "scoreScale"
+                    },
+                    "scoreStatus": "submitted",
+                    "score": 60,
+                    "textScore": "..NormalizedString..",
+                    "scoreDate": "..String(Date)..",
+                    "comment": "..String..",
+                    "learningObjectiveSet": [
+                        {
+                            "source": "..select from Union..",
+                            "learningObjectiveResults": [
+                                {
+                                    "learningObjectiveId": "..NormalizedString..",
+                                    "score": 20,
+                                    "textScore": "..NormalizedString.."
+                                },
+
+                            ]
+                        },
+
+                    ]
+                },
+            ]
+        }
+        // const req = await Http.get({ url: `/classes/${classId}/students/${studentId}/results` })
+        await new Promise(r => setTimeout(r, 1000));
+        const results: Result[] = []
+        for (let i of response.results) {
+            results.push(Result.fromJson(i))
+        }
+        return results;
+    }
+
+    async isPreQuizDone(subjectCode: string, classId: string, studentId: string): Promise<boolean> {
+        const results = await this.getResultsForStudentForClass(classId, studentId);
+        for (let result of results)
+            if (result.metadata?.lessonId === subjectCode + "_PreQuiz") return true;
+
+        return false;
+    }
+
 }
