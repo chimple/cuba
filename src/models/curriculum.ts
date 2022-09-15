@@ -76,24 +76,26 @@ export default class Curriculum {
     //To load single course Json
     async loadSingleCourseJson(courseId: string): Promise<Map<string, Course>> {
         console.log('loadSingleCourseJson() method called')
-        // let jsonFile = fs.readFileSync("courses/" + courseId + "/" + courseId + "/res/course.json", 'utf-8');
-        let jsonFile = await Http.get({ url: "courses/" + courseId + "/" + courseId + "/res/course.json", responseType: "json" })
-        console.log("course Json ", courseId)
-        let course = Util.toCourse(jsonFile.data);
-
-        course.chapters.forEach((chapter) => {
-            chapter.course = course;
-            chapter.lessons.forEach((lesson) => {
-                lesson.chapter = chapter;
-                // if (User.getCurrentUser() && User.getCurrentUser().debug) {
-                //     lesson.open = true
-                // } else {
-                lesson.open = false
-                // }
-                this.allLessons.set(lesson.id, lesson)
+        // let course: Course;
+        let jsonFile = fetch("courses/" + courseId + "/" + courseId + "/res/course.json")
+            .then((res) => res.json())
+            .then((data) => {
+                // console.log('data:', data);
+                let course = Util.toCourse(data)
+                course.chapters.forEach((chapter) => {
+                    chapter.course = course;
+                    chapter.lessons.forEach((lesson) => {
+                        lesson.chapter = chapter;
+                        // if (User.getCurrentUser() && User.getCurrentUser().debug) {
+                        //     lesson.open = true
+                        // } else {
+                        lesson.open = false
+                        // }
+                        this.allLessons.set(lesson.id, lesson)
+                    });
+                });
+                this.curriculum.set(courseId, course);
             });
-        });
-        this.curriculum.set(courseId, course);
 
         console.log(this.curriculum, this.allLessons)
 
