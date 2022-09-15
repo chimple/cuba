@@ -1,24 +1,22 @@
-import { ClassType, OneRosterSrcObject, OneRosterStatus } from "../interface/modelInterfaces";
+import { ClassType, GUIDRef, OneRosterStatus } from "../interface/modelInterfaces";
 import { Util } from "../utility/util";
+import { BaseObject } from "./baseObject";
 
-export class Class {
+export class Class extends BaseObject {
 
-    private _sourcedId: string;
-    private _status: OneRosterStatus;
-    private _dateLastModified: string;
-    private _metadata: object;
+
     private _title: string;
     private _classCode: string;
     private _classType: ClassType;
     private _location: string;
     private _grades: string[];
     private _subjects: string[];
-    private _course: OneRosterSrcObject;
-    private _school: OneRosterSrcObject;
-    private _terms: OneRosterSrcObject[];
+    private _course: GUIDRef;
+    private _school: GUIDRef;
+    private _terms: GUIDRef[];
     private _subjectCodes: string[];
     private _periods: string[];
-    private _resources: OneRosterSrcObject[];
+    private _resources: GUIDRef[];
 
     constructor(
         title: string,
@@ -27,17 +25,18 @@ export class Class {
         location: string,
         grades: string[],
         subjects: string[],
-        course: OneRosterSrcObject,
-        school: OneRosterSrcObject,
-        terms: OneRosterSrcObject[],
+        course: GUIDRef,
+        school: GUIDRef,
+        terms: GUIDRef[],
         subjectCodes: string[],
         periods: string[],
-        resources: OneRosterSrcObject[],
+        resources: GUIDRef[],
         sourcedId: string,
         status: OneRosterStatus,
         dateLastModified: string,
         metadata: object,
     ) {
+        super(sourcedId, status, dateLastModified, metadata);
         this._title = title
         this._classCode = classCode
         this._classType = classType
@@ -50,36 +49,9 @@ export class Class {
         this._subjectCodes = subjectCodes
         this._periods = periods
         this._resources = resources
-        this._sourcedId = sourcedId
-        this._status = status
-        this._dateLastModified = dateLastModified
-        this._metadata = metadata
     }
 
-    get sourcedId(): string {
-        return this._sourcedId;
-    }
-    set sourcedId(value: string) {
-        this._sourcedId = value;
-    }
-    get status(): OneRosterStatus {
-        return this._status;
-    }
-    set status(value: OneRosterStatus) {
-        this._status = value;
-    }
-    get dateLastModified(): string {
-        return this._dateLastModified;
-    }
-    set dateLastModified(value: string) {
-        this._dateLastModified = value;
-    }
-    get metadata(): object {
-        return this._metadata;
-    }
-    set metadata(value: object) {
-        this._metadata = value;
-    }
+
     get title(): string {
         return this._title;
     }
@@ -116,22 +88,22 @@ export class Class {
     set subjects(value: string[]) {
         this._subjects = value;
     }
-    get course(): OneRosterSrcObject {
+    get course(): GUIDRef {
         return this._course;
     }
-    set course(value: OneRosterSrcObject) {
+    set course(value: GUIDRef) {
         this._course = value;
     }
-    get school(): OneRosterSrcObject {
+    get school(): GUIDRef {
         return this._school;
     }
-    set school(value: OneRosterSrcObject) {
+    set school(value: GUIDRef) {
         this._school = value;
     }
-    get terms(): OneRosterSrcObject[] {
+    get terms(): GUIDRef[] {
         return this._terms;
     }
-    set terms(value: OneRosterSrcObject[]) {
+    set terms(value: GUIDRef[]) {
         this._terms = value;
     }
     get subjectCodes(): string[] {
@@ -146,18 +118,18 @@ export class Class {
     set periods(value: string[]) {
         this._periods = value;
     }
-    get resources(): OneRosterSrcObject[] {
+    get resources(): GUIDRef[] {
         return this._resources;
     }
-    set resources(value: OneRosterSrcObject[]) {
+    set resources(value: GUIDRef[]) {
         this._resources = value;
     }
     static fromJson(jsonObj: any): Class {
-        const terms: OneRosterSrcObject[] = [];
+        const terms: GUIDRef[] = [];
         for (let i of jsonObj?.terms) {
             terms.push(Util.getOneRosterObject(i))
         }
-        const resources: OneRosterSrcObject[] = [];
+        const resources: GUIDRef[] = [];
         for (let i of jsonObj?.resources) {
             resources.push(Util.getOneRosterObject(i))
         }

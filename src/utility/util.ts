@@ -2,11 +2,11 @@ import { Http } from "@capacitor-community/http";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
-import { OneRosterSrcObject } from "../interface/modelInterfaces";
+import { GUIDRef } from "../interface/modelInterfaces";
 
 export class Util {
 
-    public static getOneRosterObject(map: any): OneRosterSrcObject {
+    public static getOneRosterObject(map: any): GUIDRef {
         return { href: map?.href, sourcedId: map?.sourcedId, type: map?.type }
     }
 
