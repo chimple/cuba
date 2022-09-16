@@ -1,37 +1,51 @@
-import { IonContent } from "@ionic/react";
 import "./CustomSlider.css";
-import "swiper/css";
-import "swiper/css/free-mode";
-import { Swiper, SwiperSlide } from "swiper/react";
 import SlideCard from "./SlideCard";
-import { FreeMode, Mousewheel } from "swiper";
+import { Splide, SplideSlide } from "@splidejs/react-splide";
+import { Lesson } from "../interface/curriculumInterfaces";
 
-import "swiper/css/free-mode";
-import "swiper/css/mousewheel";
-
-const CustomSlider: React.FC<any> = ({ lessonData }) => {
-  console.log("CustomSlider LessonData", lessonData);
+const CustomSlider: React.FC<{
+  lessonData: Lesson[];
+  onSwiper: any;
+  onSlideChange: Function;
+  isPreQuizPlayed: boolean;
+  subjectCode: string;
+}> = ({
+  lessonData,
+  onSwiper,
+  onSlideChange,
+  isPreQuizPlayed,
+  subjectCode,
+}) => {
   return (
-    <IonContent className="content">
-      <div className="vertical-center">
-        <Swiper
-          modules={[FreeMode, Mousewheel]}
-          direction={"horizontal"}
-          spaceBetween={20}
-          slidesPerView={"auto"}
-          mousewheel={true}
-          freeMode={true}
-          onSlideChange={() => console.log("slide change")}
-          onSwiper={(swiper) => console.log(swiper)}
-        >
-          {lessonData.map((m: any, i: number) => (
-            <SwiperSlide className="slide" key={i}>
-              <SlideCard lesson={m} />
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </div>
-    </IonContent>
+    <div className="content">
+      <Splide
+        ref={onSwiper}
+        key="slpider1"
+        hasTrack={true}
+        options={{
+          arrows: false,
+          wheel: true,
+          direction: "ltr",
+          pagination: false,
+        }}
+        onMove={(slider: any) => {
+          onSlideChange(slider.index);
+        }}
+      >
+        {lessonData.map((m: any, i: number) => {
+          const isUnlocked = !isPreQuizPlayed ? i === 0 : true;
+          return (
+            <SplideSlide className="slide" key={i}>
+              <SlideCard
+                subjectCode={subjectCode}
+                isUnlocked={isUnlocked}
+                lesson={m}
+              />
+            </SplideSlide>
+          );
+        })}
+      </Splide>
+    </div>
   );
 };
 

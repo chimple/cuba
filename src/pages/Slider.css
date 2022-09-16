@@ -1,0 +1,17 @@
+.slider-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.fullheight {
+  height: 100%;
+}
+
+.xc {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

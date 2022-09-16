@@ -4,7 +4,7 @@ import { ServiceApi } from "./ServiceApi";
 
 export class OneRosterApi implements ServiceApi {
     public static i: OneRosterApi;
-
+    private preQuizMap: any = {}
     private constructor() {
     }
 
@@ -164,7 +164,7 @@ export class OneRosterApi implements ServiceApi {
                     "status": "active",
                     "dateLastModified": "..Date/Time..",
                     "metadata": {
-                        "lessonId": "en_PreQuiz"
+                        "lessonId": "en-sl_PreQuiz"
                     },
                     "lineItem": {
                         "href": "..URI..",
@@ -218,9 +218,17 @@ export class OneRosterApi implements ServiceApi {
     }
 
     async isPreQuizDone(subjectCode: string, classId: string, studentId: string): Promise<boolean> {
+        if (this.preQuizMap[subjectCode]) {
+            return true;
+        }
         const results = await this.getResultsForStudentForClass(classId, studentId);
         for (let result of results)
-            if (result.metadata?.lessonId === subjectCode + "_PreQuiz") return true;
+            if (result.metadata?.lessonId === subjectCode + "_PreQuiz") {
+                this.preQuizMap[subjectCode] = true
+                return true;
+            }
+
+        this.preQuizMap[subjectCode] = false
 
         return false;
     }

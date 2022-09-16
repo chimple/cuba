@@ -58,7 +58,8 @@ const App: React.FC = () => {
       <IonReactRouter>
         <IonRouterOutlet>
           <Route path="/" exact={true}>
-            <Home />
+            {/* <Home /> */}
+            <Redirect to={"/slider"} />
           </Route>
           <Route path="/slider" exact={true}>
             <Slider />

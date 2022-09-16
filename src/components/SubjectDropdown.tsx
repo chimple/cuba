@@ -1,4 +1,5 @@
 import { IonItem, IonList, IonSelect, IonSelectOption } from "@ionic/react";
+import { ALL_COURSES } from "../common/constants";
 const SubjectDropdown: React.FC<{ onChange: Function; value: string }> = ({
   onChange,
   value,
@@ -15,8 +16,11 @@ const SubjectDropdown: React.FC<{ onChange: Function; value: string }> = ({
           value={value}
           placeholder="Select fruit"
         >
-          <IonSelectOption value="en">English</IonSelectOption>
-          <IonSelectOption value="hi">Hindi</IonSelectOption>
+          {ALL_COURSES.map((m: any, i: number) => (
+            <IonSelectOption key={i} value={m}>
+              {m}
+            </IonSelectOption>
+          ))}
         </IonSelect>
       </IonItem>
     </IonList>

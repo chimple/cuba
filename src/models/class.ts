@@ -127,11 +127,11 @@ export class Class extends BaseObject {
     static fromJson(jsonObj: any): Class {
         const terms: GUIDRef[] = [];
         for (let i of jsonObj?.terms) {
-            terms.push(Util.getOneRosterObject(i))
+            terms.push(Util.getGUIDRef(i))
         }
         const resources: GUIDRef[] = [];
         for (let i of jsonObj?.resources) {
-            resources.push(Util.getOneRosterObject(i))
+            resources.push(Util.getGUIDRef(i))
         }
         const status: OneRosterStatus = (OneRosterStatus[jsonObj?.status] as unknown as OneRosterStatus) ?? OneRosterStatus.active;
 
@@ -142,8 +142,8 @@ export class Class extends BaseObject {
             jsonObj?.location,
             jsonObj?.grades ?? [],
             jsonObj?.subjects ?? [],
-            Util.getOneRosterObject(jsonObj?.course),
-            Util.getOneRosterObject(jsonObj?.school),
+            Util.getGUIDRef(jsonObj?.course),
+            Util.getGUIDRef(jsonObj?.school),
             terms,
             jsonObj?.subjectCodes,
             jsonObj?.periods,
