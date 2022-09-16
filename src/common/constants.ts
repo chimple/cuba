@@ -1,0 +1,6 @@
+export enum COURSES {
+    SIERRA_LEONE_ENGLISH = 'en-sl',
+    SIERRA_LEONE_MATHS = 'maths-sl',
+}
+
+export const ALL_COURSES = [COURSES.SIERRA_LEONE_ENGLISH, COURSES.SIERRA_LEONE_MATHS];

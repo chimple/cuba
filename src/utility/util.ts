@@ -2,6 +2,7 @@ import { Http } from "@capacitor-community/http";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
+import { Course } from "../interface/curriculumInterfaces";
 import { GUIDRef } from "../interface/modelInterfaces";
 
 export class Util {
@@ -50,6 +51,18 @@ export class Util {
             console.log("errpor", error)
             return false;
         }
+    }
+
+
+    // To parse this data:
+    //   const course = Convert.toCourse(json);
+
+    public static toCourse(json: string): Course {
+        return JSON.parse(JSON.stringify(json));
+    }
+
+    public static courseToJson(value: Course): string {
+        return JSON.stringify(value);
     }
 
 }
