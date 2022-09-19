@@ -24,7 +24,7 @@ const ChapterSlider: React.FC<{
         hasTrack={true}
         options={{
           arrows: false,
-          gap: "1.5em",
+          gap: "0em",
           wheel: true,
           direction: "ltr",
           pagination: false,
@@ -36,6 +36,7 @@ const ChapterSlider: React.FC<{
               chapter={chap}
               isActive={chap.id === currentChapterId}
               onChapterClick={onChapterClick}
+              isLastChapter={chapterData.length - 1 === i}
             />
           </SplideSlide>
         ))}
