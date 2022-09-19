@@ -121,10 +121,10 @@ export class Result extends BaseObject {
         }
 
         const newResult = new Result(
-            Util.getOneRosterObject(jsonObj?.lineItem),
-            Util.getOneRosterObject(jsonObj?.student),
-            Util.getOneRosterObject(jsonObj?.class),
-            Util.getOneRosterObject(jsonObj?.scoreScale),
+            Util.getGUIDRef(jsonObj?.lineItem),
+            Util.getGUIDRef(jsonObj?.student),
+            Util.getGUIDRef(jsonObj?.class),
+            Util.getGUIDRef(jsonObj?.scoreScale),
             classCode,
             jsonObj.score,
             jsonObj.textScore,

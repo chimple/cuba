@@ -7,7 +7,7 @@ import { GUIDRef } from "../interface/modelInterfaces";
 
 export class Util {
 
-    public static getOneRosterObject(map: any): GUIDRef {
+    public static getGUIDRef(map: any): GUIDRef {
         return { href: map?.href, sourcedId: map?.sourcedId, type: map?.type }
     }
 

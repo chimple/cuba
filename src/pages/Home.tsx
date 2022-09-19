@@ -324,7 +324,7 @@ const Home: React.FC = () => {
             </button>
           </div>
         ) : null}
-        {!isLoading ? <CustomSlider lessonData={dataList} /> : null}
+        {/* {!isLoading ? <CustomSlider lessonData={dataList} /> : null} */}
       </IonContent>
     </IonPage>
   );
