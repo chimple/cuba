@@ -34,6 +34,7 @@ const Home: React.FC = () => {
   const [currentChapterId, setCurrentChapterId] = useState("");
   const [chaptersMap, setChaptersMap] = useState<any>();
   const [currentHeader, setCurrentHeader] = useState<any>("");
+  const [lessonsScoreMap, setLessonsScoreMap] = useState<any>();
 
   useEffect(() => {
     setCurrentHeader(HEADERLIST.ENGLISH);
@@ -55,6 +56,10 @@ const Home: React.FC = () => {
     for (let i = 0; i < chapters.length; i++) {
       tempChapterMap[chapters[i].id] = i;
     }
+    if (!lessonsScoreMap) {
+      const tempLessonMap = await getResultsWithLesson("", "");
+      setLessonsScoreMap(tempLessonMap);
+    }
     setSubject(subjectCode);
     setChaptersMap(tempChapterMap);
     setDataCourse({ lessons: lessons, chapters: chapters });
@@ -62,6 +67,25 @@ const Home: React.FC = () => {
     setIsPreQuizPlayed(_isPreQuizPlayed);
     setIsLoading(false);
   }
+
+  async function getResultsWithLesson(classId: string, studentId: string) {
+    const apiInstance = OneRosterApi.getInstance();
+    const results = await apiInstance.getResultsForStudentForClass(
+      classId,
+      studentId
+    );
+    const lessonMap: any = {};
+    for (let result of results) {
+      if (
+        !lessonMap[result.metadata.lessonId] ||
+        lessonMap[result.metadata.lessonId] < result.score
+      ) {
+        lessonMap[result.metadata.lessonId] = result.score;
+      }
+    }
+    return lessonMap;
+  }
+
   function onChapterClick(e: any) {
     const firstLessonId = e.lessons[0].id;
     const lessonIndex = dataCourse.lessons.findIndex(
@@ -139,6 +163,7 @@ const Home: React.FC = () => {
                   onSlideChange={onCustomSlideChange}
                   subjectCode={subject ?? COURSES.SIERRA_LEONE_ENGLISH}
                   isPreQuizPlayed={isPreQuizPlayed}
+                  lessonsScoreMap={lessonsScoreMap}
                 />
               </IonCol>
             </div>

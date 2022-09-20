@@ -1,3 +1,4 @@
+import { TEMP_LESSONS_STORE } from "../common/constants";
 import { Class } from "../models/class";
 import { Result } from "../models/result";
 import { ServiceApi } from "./ServiceApi";
@@ -117,7 +118,7 @@ export class OneRosterApi implements ServiceApi {
                     "status": "active",
                     "dateLastModified": "..Date/Time..",
                     "metadata": {
-                        "lessonId": "en000"
+                        "lessonId": "en0000"
                     },
                     "lineItem": {
                         "href": "..URI..",
@@ -164,7 +165,7 @@ export class OneRosterApi implements ServiceApi {
                     "status": "active",
                     "dateLastModified": "..Date/Time..",
                     "metadata": {
-                        "lessonId": "en-sl_PreQuiz"
+                        "lessonId": "en_PreQuiz"
                     },
                     "lineItem": {
                         "href": "..URI..",
@@ -208,6 +209,67 @@ export class OneRosterApi implements ServiceApi {
                 },
             ]
         }
+        const addTempResult = (lessonId: string, score: number) => {
+            const result = {
+                "sourcedId": "..String..",
+                "status": "active",
+                "dateLastModified": "..Date/Time..",
+                "metadata": {
+                    "lessonId": lessonId
+                },
+                "lineItem": {
+                    "href": "..URI..",
+                    "sourcedId": "..String..",
+                    "type": "lineItem"
+                },
+                "student": {
+                    "href": "..URI..",
+                    "sourcedId": "..String..",
+                    "type": "user"
+                },
+                "class": {
+                    "href": "..URI..",
+                    "sourcedId": "..String..",
+                    "type": "class"
+                },
+                "scoreScale": {
+                    "href": "..URI..",
+                    "sourcedId": "..String..",
+                    "type": "scoreScale"
+                },
+                "scoreStatus": "submitted",
+                "score": score,
+                "textScore": "..NormalizedString..",
+                "scoreDate": "..String(Date)..",
+                "comment": "..String..",
+                "learningObjectiveSet": [
+                    {
+                        "source": "..select from Union..",
+                        "learningObjectiveResults": [
+                            {
+                                "learningObjectiveId": "..NormalizedString..",
+                                "score": 20,
+                                "textScore": "..NormalizedString.."
+                            },
+
+                        ]
+                    },
+
+                ]
+            };
+            return result;
+        }
+        const json = localStorage.getItem(TEMP_LESSONS_STORE);
+        let lessons: any = {};
+        if (json) {
+            lessons = JSON.parse(json);
+        }
+        console.log('kessins', lessons, typeof lessons)
+        for (let i of Object.keys(lessons)) {
+            console.log('Object.keys', i, lessons)
+            response.results.push(addTempResult(i, lessons[i]))
+        }
+        console.log("response getResultsForStudentForClass", response)
         // const req = await Http.get({ url: `/classes/${classId}/students/${studentId}/results` })
         await new Promise(r => setTimeout(r, 1000));
         const results: Result[] = []
@@ -218,17 +280,19 @@ export class OneRosterApi implements ServiceApi {
     }
 
     async isPreQuizDone(subjectCode: string, classId: string, studentId: string): Promise<boolean> {
-        if (this.preQuizMap[subjectCode]) {
+        return true;
+        const tempSubjectCode = subjectCode.replace("-sl", "");
+        if (this.preQuizMap[tempSubjectCode]) {
             return true;
         }
         const results = await this.getResultsForStudentForClass(classId, studentId);
         for (let result of results)
-            if (result.metadata?.lessonId === subjectCode + "_PreQuiz") {
-                this.preQuizMap[subjectCode] = true
+            if (result.metadata?.lessonId === tempSubjectCode + "_PreQuiz") {
+                this.preQuizMap[tempSubjectCode] = true
                 return true;
             }
 
-        this.preQuizMap[subjectCode] = false
+        this.preQuizMap[tempSubjectCode] = false
 
         return false;
     }

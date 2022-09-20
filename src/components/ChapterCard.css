@@ -1,5 +1,5 @@
 .chapter-button {
-  margin: 0;
+  margin: 1% 0%;
   --padding-start: 1em;
   --padding-end: 0.4em;
   --ion-color-success: white;
@@ -25,4 +25,5 @@
 
 .chapter-name {
   padding-right: 1em;
+  align-self: center;
 }
