@@ -77,7 +77,7 @@ export default class Curriculum {
     async loadSingleCourseJson(courseId: string): Promise<Map<string, Course>> {
         console.log('loadSingleCourseJson() method called')
         // let course: Course;
-        let res = await fetch("courses/" + courseId + "/" + courseId + "/res/course.json")
+        let res = await fetch("courses/" + courseId + "/course.json")
         const data = await res.json();
         let course = Util.toCourse(data)
         course.chapters.forEach((chapter) => {

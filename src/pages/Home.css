@@ -19,3 +19,16 @@
     margin-left: 10%;
     margin-top: 5%;
 }
+
+#home-header div {
+    margin-right: 30px;
+}
+
+img {
+    height: 44px;
+    width: 44px;
+}
+
+div p {
+    margin: 0px;
+}

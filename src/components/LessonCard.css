@@ -1,0 +1,21 @@
+#lesson-card {
+    cursor: pointer;
+    box-shadow: none !important;
+    margin: 10px 15px 10px 0px;
+}
+
+#lesson-card p {
+    font-size: x-large;
+    margin: 0px !important;
+}
+
+/* #lesson-card div {
+    background: #73AD21;
+    border-radius: 25px;
+    width: 200px;
+    height: 200px;
+} */
+
+#lesson-header {
+    padding: 10px 0px 0px 0px;
+}
