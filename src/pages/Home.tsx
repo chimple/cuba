@@ -5,326 +5,146 @@ import {
   IonTitle,
   IonContent,
   useIonViewWillEnter,
+  IonCol,
+  IonRow,
 } from "@ionic/react";
-import { useState } from "react";
-import { Route } from "react-router";
-import CustomSlider from "../components/CustomSlider";
-import SubjectDropdown from "../components/SubjectDropdown";
+import { useEffect, useState } from "react";
+import { ALL_COURSES, COURSES, HEADERLIST } from "../common/constants";
+import Curriculum from "../models/curriculum";
 import "./Home.css";
+import CustomSlider from "../components/CustomSlider";
+import Loading from "../components/Loading";
+import ChapterSlider from "../components/ChapterSlider";
+import { Chapter, Lesson } from "../interface/curriculumInterfaces";
+import { Splide } from "@splidejs/react-splide";
+import { OneRosterApi } from "../services/OneRosterApi";
 
 const Home: React.FC = () => {
-  const data: any = {
-    en: [
-      {
-        name: "English Pre-Quiz",
-        lessonid: "en_PreQuiz",
-        chapterid: "en_quiz",
-        courseid: "en",
-      },
-      {
-        name: "Alphabet A",
-        lessonid: "en0000",
-        chapterid: "en00",
-        courseid: "en",
-      },
-      {
-        name: "Alphabet B",
-        lessonid: "en0001",
-        chapterid: "en00",
-        courseid: "en",
-      },
-      {
-        name: "Alphabet C",
-        lessonid: "en0002",
-        chapterid: "en00",
-        courseid: "en",
-      },
-      {
-        name: "English Pre-Quiz",
-        lessonid: "en_PreQuiz",
-        chapterid: "en_quiz",
-        courseid: "en",
-      },
-      {
-        name: "Alphabet A",
-        lessonid: "en0000",
-        chapterid: "en00",
-        courseid: "en",
-      },
-      {
-        name: "Alphabet B",
-        lessonid: "en0001",
-        chapterid: "en00",
-        courseid: "en",
-      },
-      {
-        name: "Alphabet C",
-        lessonid: "en0002",
-        chapterid: "en00",
-        courseid: "en",
-      },
-      {
-        name: "English Pre-Quiz",
-        lessonid: "en_PreQuiz",
-        chapterid: "en_quiz",
-        courseid: "en",
-      },
-      {
-        name: "Alphabet A",
-        lessonid: "en0000",
-        chapterid: "en00",
-        courseid: "en",
-      },
-      {
-        name: "Alphabet B",
-        lessonid: "en0001",
-        chapterid: "en00",
-        courseid: "en",
-      },
-      {
-        name: "Alphabet C",
-        lessonid: "en0002",
-        chapterid: "en00",
-        courseid: "en",
-      },
-    ],
-    hi: [
-      {
-        name: "प्रश्नोत्तरी",
-        lessonid: "hi_PreQuiz",
-        chapterid: "hi_quiz",
-        courseid: "hi",
-      },
-      {
-        name: "अ",
-        lessonid: "hi0000",
-        chapterid: "hi00",
-        courseid: "hi",
-      },
-      {
-        name: "आ",
-        lessonid: "hi0001",
-        chapterid: "hi00",
-        courseid: "hi",
-      },
-      {
-        name: "इ ",
-        lessonid: "hi0002",
-        chapterid: "hi00",
-        courseid: "hi",
-      },
-      {
-        name: "ई ",
-        lessonid: "hi0003",
-        chapterid: "hi00",
-        courseid: "hi",
-      },
-      {
-        name: "उ ",
-        lessonid: "hi0004",
-        chapterid: "hi00",
-        courseid: "hi",
-      },
-      {
-        name: "ऊ ",
-        lessonid: "hi0005",
-        chapterid: "hi00",
-        courseid: "hi",
-      },
-      {
-        name: "ऋ",
-        lessonid: "hi0006",
-        chapterid: "hi00",
-        courseid: "hi",
-      },
-      {
-        name: "प्रश्नोत्तरी",
-        lessonid: "hi_PreQuiz",
-        chapterid: "hi_quiz",
-        courseid: "hi",
-      },
-      {
-        name: "अ",
-        lessonid: "hi0000",
-        chapterid: "hi00",
-        courseid: "hi",
-      },
-      {
-        name: "आ",
-        lessonid: "hi0001",
-        chapterid: "hi00",
-        courseid: "hi",
-      },
-      {
-        name: "इ ",
-        lessonid: "hi0002",
-        chapterid: "hi00",
-        courseid: "hi",
-      },
-      {
-        name: "ई ",
-        lessonid: "hi0003",
-        chapterid: "hi00",
-        courseid: "hi",
-      },
-      {
-        name: "उ ",
-        lessonid: "hi0004",
-        chapterid: "hi00",
-        courseid: "hi",
-      },
-      {
-        name: "ऊ ",
-        lessonid: "hi0005",
-        chapterid: "hi00",
-        courseid: "hi",
-      },
-      {
-        name: "ऋ",
-        lessonid: "hi0006",
-        chapterid: "hi00",
-        courseid: "hi",
-      },
-    ],
-    assignments: [
-      {
-        name: "प्रश्नोत्तरी",
-        lessonid: "hi_PreQuiz",
-        chapterid: "hi_quiz",
-        courseid: "hi",
-      },
-      {
-        name: "Assignments Pre-Quiz",
-        lessonid: "en_PreQuiz",
-        chapterid: "en_quiz",
-        courseid: "en",
-      },
-      {
-        name: "इ ",
-        lessonid: "hi0002",
-        chapterid: "hi00",
-        courseid: "hi",
-      },
-      {
-        name: "Alphabet C",
-        lessonid: "en0002",
-        chapterid: "en00",
-        courseid: "en",
-      },
-      {
-        name: "English Pre-Quiz",
-        lessonid: "en_PreQuiz",
-        chapterid: "en_quiz",
-        courseid: "en",
-      },
-    ],
-  };
-
-  const [dataList, setDataList] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [subject, setSubject] = useState();
-  const [assignmentsButtonFlag, setAssignmentsButtonFlag] = useState(false);
-  const [assignmentsCount, setAssignmentsCount] = useState(0);
-
-  console.log("in Home start");
-  useIonViewWillEnter(() => {
-    console.log("on Home");
-    setDataList(data.en);
-    setAssignmentsCount(0);
+  const [dataCourse, setDataCourse] = useState<{
+    lessons: Lesson[];
+    chapters: Chapter[];
+  }>({
+    lessons: [],
+    chapters: [],
   });
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [subject, setSubject] = useState<string>();
+  const [customSwiperRef, setCustomSwiperRef] = useState<Splide>();
+  const [isPreQuizPlayed, setIsPreQuizPlayed] = useState(false);
+  const [currentChapterId, setCurrentChapterId] = useState("");
+  const [chaptersMap, setChaptersMap] = useState<any>();
+  const [currentHeader, setCurrentHeader] = useState<any>("");
+
+  useEffect(() => {
+    setCurrentHeader(HEADERLIST.ENGLISH);
+    setCourse(COURSES.SIERRA_LEONE_ENGLISH);
+  }, []);
+  async function setCourse(subjectCode: string) {
+    setIsLoading(true);
+    const curInstanse = Curriculum.getInstance();
+    const lessons = await curInstanse.allLessonforSubject(subjectCode);
+    const chapters = await curInstanse.allChapterforSubject(subjectCode);
+    await new Promise((r) => setTimeout(r, 100));
+    const apiInstance = OneRosterApi.getInstance();
+    const _isPreQuizPlayed = await apiInstance.isPreQuizDone(
+      subjectCode,
+      "",
+      ""
+    );
+    const tempChapterMap: any = {};
+    for (let i = 0; i < chapters.length; i++) {
+      tempChapterMap[chapters[i].id] = i;
+    }
+    setSubject(subjectCode);
+    setChaptersMap(tempChapterMap);
+    setDataCourse({ lessons: lessons, chapters: chapters });
+    setCurrentChapterId(chapters[0].id);
+    setIsPreQuizPlayed(_isPreQuizPlayed);
+    setIsLoading(false);
+  }
+  function onChapterClick(e: any) {
+    const firstLessonId = e.lessons[0].id;
+    const lessonIndex = dataCourse.lessons.findIndex(
+      (lesson: any) => lesson.id === firstLessonId
+    );
+    customSwiperRef?.go(lessonIndex);
+    setCurrentChapterId(e.id);
+  }
+  function onCustomSlideChange(lessonIndex: number) {
+    const chapter = dataCourse.lessons[lessonIndex].chapter;
+    if (chapter.id === currentChapterId) return;
+    const chapterIndex = chaptersMap[chapter.id];
+    setCurrentChapterId(dataCourse.chapters[chapterIndex].id);
+  }
   return (
     <IonPage id="home-page">
       <IonHeader id={"home-header"}>
-        <button
-          type="button"
-          className="home-page-buttons"
-          id="Feature-button"
+        <div
           onClick={() => {
-            console.log("Feature button clicked");
+            if (currentHeader != HEADERLIST.ENGLISH) {
+              setCurrentHeader(HEADERLIST.ENGLISH);
+              setCourse(COURSES.SIERRA_LEONE_ENGLISH);
+              console.log("English button clicked", currentHeader, subject);
+            }
           }}
         >
-          Feature
-        </button>
-        <button
-          type="button"
-          className="home-page-buttons"
-          id="language-button"
+          <img alt="EnglishIcon" src="/assets/icon/EnglishIcon.svg" />
+          <p>English</p>
+        </div>
+        <div
           onClick={() => {
-            console.log("Language button clicked");
+            if (currentHeader != HEADERLIST.MATHS) {
+              setCurrentHeader(HEADERLIST.MATHS);
+              setCourse(COURSES.SIERRA_LEONE_MATHS);
+              console.log("Maths button clicked", currentHeader, subject);
+            }
           }}
         >
-          Language
-        </button>
-        <button
-          type="button"
-          className="home-page-buttons"
-          id="math-button"
+          <img alt="MathsIcon" src="/assets/icon/MathsIcon.svg" />
+          <p>Maths</p>
+        </div>
+        <div
+          // style={{ width: "64px" }}
           onClick={() => {
-            console.log("Math button clicked");
+            if (currentHeader != HEADERLIST.PUZZLE) {
+              setCurrentHeader(HEADERLIST.PUZZLE);
+              setCourse(COURSES.PUZZLE);
+              console.log("Puzzle button clicked", currentHeader, subject);
+            }
           }}
         >
-          Math
-        </button>
-        <button
-          type="button"
-          className="home-page-buttons"
-          id="other-button"
-          onClick={() => {
-            console.log("other button clicked");
-          }}
-        >
-          other
-        </button>
-        <button
-          type="button"
-          className="home-page-buttons"
-          id="school-button"
-          onClick={() => {
-            console.log("school button clicked");
-            setAssignmentsButtonFlag(true);
-          }}
-        >
-          school
-        </button>
+          <img
+            alt="DigitalSkillsIcon"
+            src="/assets/icon/DigitalSkillsIcon.svg"
+          />
+          <p>Digital Skills</p>
+        </div>
       </IonHeader>
       <IonContent fullscreen>
-        <IonHeader collapse="condense">
-          <IonToolbar>
-            <IonTitle size="large">Inbox</IonTitle>
-          </IonToolbar>
-        </IonHeader>
-        {assignmentsButtonFlag ? (
-          <div>
-            <button
-              type="button"
-              className="home-page-buttons"
-              id="assignment-button"
-              onClick={() => {
-                setDataList(data.assignments);
-                setAssignmentsCount(data.assignments.length);
-                console.log(
-                  "Assignments flag",
-                  assignmentsCount,
-                  data.assignments.length
-                );
-              }}
-            >
-              Assignments {assignmentsCount != 0 ? assignmentsCount : ""}
-            </button>
-            <button
-              type="button"
-              className="home-page-buttons"
-              id="leaderboard-button"
-              onClick={() => {
-                console.log("Leaderboard Clicked");
-                setDataList([]);
-              }}
-            >
-              LeaderBoard
-            </button>
-          </div>
-        ) : null}
-        {/* {!isLoading ? <CustomSlider lessonData={dataList} /> : null} */}
+        <IonContent className="slider-content">
+          {isLoading === false ? (
+            <div className="fullheight xc">
+              <IonCol className="cloumn">
+                <IonRow>
+                  <ChapterSlider
+                    chapterData={dataCourse.chapters}
+                    onChapterClick={onChapterClick}
+                    currentChapterId={currentChapterId}
+                    chaptersIndex={chaptersMap[currentChapterId] ?? 0}
+                  />
+                </IonRow>
+                <CustomSlider
+                  lessonData={dataCourse.lessons}
+                  onSwiper={setCustomSwiperRef}
+                  onSlideChange={onCustomSlideChange}
+                  subjectCode={subject ?? COURSES.SIERRA_LEONE_ENGLISH}
+                  isPreQuizPlayed={isPreQuizPlayed}
+                />
+              </IonCol>
+            </div>
+          ) : null}
+          <Loading isLoading={isLoading} />
+        </IonContent>
       </IonContent>
     </IonPage>
   );

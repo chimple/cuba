@@ -1,5 +1,5 @@
 import "./CustomSlider.css";
-import SlideCard from "./SlideCard";
+import LessonCard from "./LessonCard";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import { Lesson } from "../interface/curriculumInterfaces";
 
@@ -36,7 +36,7 @@ const CustomSlider: React.FC<{
           const isUnlocked = !isPreQuizPlayed ? i === 0 : true;
           return (
             <SplideSlide className="slide" key={i}>
-              <SlideCard
+              <LessonCard
                 subjectCode={subjectCode}
                 isUnlocked={isUnlocked}
                 lesson={m}
