@@ -1,0 +1,28 @@
+.chapter-button {
+  margin: 0;
+  --padding-start: 1em;
+  --padding-end: 0.4em;
+  --ion-color-success: white;
+  opacity: 0.7;
+}
+.hr {
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  align-self: center;
+  width: 50px;
+  overflow: hidden;
+  opacity: 0.8;
+  z-index: -1;
+}
+.active-button {
+  opacity: 1;
+}
+.active-line {
+  border: 1px solid rgba(255, 255, 255);
+}
+.star {
+  width: 26px;
+}
+
+.chapter-name {
+  padding-right: 1em;
+}

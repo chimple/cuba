@@ -98,21 +98,13 @@ const Slider: React.FC = () => {
       <IonContent className="slider-content">
         {isLoading === false ? (
           <div className="fullheight xc">
-            <IonCol className="cloumn">
-              <IonRow>
-                <SubjectDropdown
-                  onChange={async (value: any) => {
-                    await setCourse(value);
-                  }}
-                  value={subject ?? COURSES.SIERRA_LEONE_ENGLISH}
-                />
-                <ChapterSlider
-                  chapterData={dataCourse.chapters}
-                  onChapterClick={onChapterClick}
-                  currentChapterId={currentChapterId}
-                  chaptersIndex={chaptersMap[currentChapterId] ?? 0}
-                />
-              </IonRow>
+            <IonCol className="cloumn1">
+              <ChapterSlider
+                chapterData={dataCourse.chapters}
+                onChapterClick={onChapterClick}
+                currentChapterId={currentChapterId}
+                chaptersIndex={chaptersMap[currentChapterId] ?? 0}
+              />
               <CustomSlider
                 lessonData={dataCourse.lessons}
                 onSwiper={setCustomSwiperRef}
