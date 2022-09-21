@@ -68,13 +68,18 @@ export default class Curriculum {
 
     // To load Course Jsons
     async loadCourseJsons(courseIds: Array<string>) {
-        courseIds.forEach(courseId => {
-            this.loadSingleCourseJson(courseId)
-        });
+        for (let i = 0; i < courseIds.length; i++) {
+            await this.loadSingleCourseJson(courseIds[i])
+        }
     }
 
     //To load single course Json
     async loadSingleCourseJson(courseId: string): Promise<Map<string, Course>> {
+
+        if (this.curriculum.get(courseId)) {
+            return this.curriculum;
+        }
+
         console.log('loadSingleCourseJson() method called')
         // let course: Course;
         let res = await fetch("courses/" + courseId + "/course.json")

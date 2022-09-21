@@ -1,4 +1,5 @@
 import { IonCard, IonCardHeader, IonCardTitle } from "@ionic/react";
+import { useState } from "react";
 import { useHistory } from "react-router-dom";
 import { LESSON_CARD_COLORS } from "../common/constants";
 import { Lesson } from "../interface/curriculumInterfaces";
@@ -10,10 +11,19 @@ const LessonCard: React.FC<{
   subjectCode: string;
 }> = ({ lesson, isUnlocked, subjectCode }) => {
   const history = useHistory();
+  const [showImage, setShowImage] = useState(true);
+
+  const hideImg = (event: any) => {
+    setShowImage(false);
+  };
 
   const lessonCardColor = lesson?.color
     ? lesson.color
     : LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
+
+  // console.log("isUnlocked ", !isUnlocked);
+
+  const iconMargin = !isUnlocked ? "0px 0px 0px 40px" : "0px 0px 0px 0px";
   return (
     <IonCard
       id="lesson-card"
@@ -35,11 +45,31 @@ const LessonCard: React.FC<{
         }}
         color={lesson?.color}
       >
-        <img
-          style={{ height: "124px", width: "124px" }}
-          alt={"/courses/" + subjectCode + "/icons/" + lesson.image}
-          src={"/courses/" + subjectCode + "/icons/" + lesson.image}
-        />
+        {showImage ? (
+          <img
+            loading="lazy"
+            style={{
+              height: "124px",
+              width: "124px",
+              margin: iconMargin,
+            }}
+            alt={"/courses/" + subjectCode + "/icons/" + lesson.image}
+            src={"/courses/" + subjectCode + "/icons/" + lesson.image}
+            onError={hideImg}
+          />
+        ) : (
+          <div style={{ margin: "0px 0px 150px 165px" }} /> // we can show Default LessonCard text or image
+        )}
+        {!isUnlocked ? (
+          <img
+            loading="lazy"
+            style={{ margin: "0px 0px 150px -5px" }}
+            src="assets/icons/Lockicon.svg"
+            alt=""
+          />
+        ) : (
+          <div />
+        )}
       </div>
 
       <IonCardHeader id="lesson-header">

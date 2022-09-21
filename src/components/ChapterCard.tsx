@@ -23,7 +23,7 @@ const ChapterCard: React.FC<{
           <IonRow>
             <p className="chapter-name">{chapter.name}</p>
             {isActive ? (
-              <img className="star" src="assets/icon/star.svg" />
+              <img className="star" src="assets/icons/star.svg" />
             ) : (
               <div className="stat" />
             )}

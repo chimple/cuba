@@ -2,14 +2,18 @@ export enum COURSES {
     SIERRA_LEONE_ENGLISH = 'en-sl',
     SIERRA_LEONE_MATHS = 'maths-sl',
     PUZZLE = 'puzzle',
+    ENGLISH = 'en',
+    MATHS = 'maths'
 }
 
 export const ALL_COURSES = [COURSES.SIERRA_LEONE_ENGLISH, COURSES.SIERRA_LEONE_MATHS, COURSES.PUZZLE];
 
 export enum HEADERLIST {
+    HOME = 'HOME',
     ENGLISH = 'ENGLISH',
     MATHS = 'MATHS',
-    PUZZLE = 'PUZZLE'
+    PUZZLE = 'PUZZLE',
+    PROFILE = 'PROFILE'
 }
 
 export const LESSON_CARD_COLORS = [
