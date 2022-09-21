@@ -11252,7 +11252,7 @@ window.__require = function e(t, n, r) {
               isNaN(score) && (score = 0);
               isIframe = !(window === window.parent);
               if (isIframe) {
-                event = new CustomEvent("gameEnd", {
+                event = new CustomEvent("lessonEnd", {
                   detail: {
                     chapterName: config.chapter.name,
                     chapterId: config.chapter.id,
@@ -11266,7 +11266,6 @@ window.__require = function e(t, n, r) {
                 });
                 window.parent.document.body.dispatchEvent(event);
                 console.log("event dispatched", event);
-                return [ 2 ];
               }
               user = profile_1.User.getCurrentUser();
               if (user) {
@@ -11377,7 +11376,7 @@ window.__require = function e(t, n, r) {
               scorecardComp.score = score;
               scorecardComp.text = config.lesson.name;
               scorecardComp.reward = reward;
-              config_1.default.isMicroLink && !cc.sys.isNative && (scorecardComp.continueButton.active = false);
+              !config_1.default.isMicroLink || cc.sys.isNative || isIframe || (scorecardComp.continueButton.active = false);
               LessonController_1.friend.node.removeFromParent();
               this.node.addChild(scorecard);
               gameConfig = gameConfigs_1.GAME_CONFIGS[config.game];
@@ -15175,11 +15174,12 @@ window.__require = function e(t, n, r) {
         _this.rewardPos = null;
         _this.score = 0;
         _this.text = "Lesson";
+        _this.isIframe = !(window === window.parent);
         return _this;
       }
       Scorecard.prototype.onLoad = function() {
         var _this = this;
-        if (!cc.sys.isNative && config_1.default.isMicroLink) {
+        if (!cc.sys.isNative && config_1.default.isMicroLink && !this.isIframe) {
           this.continueButton.active = false;
           if (config_1.default.i.microLinkData.end != constants_1.MICROLINK_END_BLANK) {
             this.downloadButton.active = true;
@@ -15219,6 +15219,14 @@ window.__require = function e(t, n, r) {
       };
       Scorecard.prototype.onContinueClick = function() {
         this.continueButton.getComponent(cc.Button).interactable = false;
+        if (this.isIframe) {
+          var customEvent = new CustomEvent("gameEnd", {
+            detail: {}
+          });
+          window.parent.document.body.dispatchEvent(customEvent);
+          console.log("gameEnd event dispatched", customEvent);
+          return;
+        }
         if (cc.sys.isNative && config_1.default.isMicroLink) {
           config_1.default.isMicroLink = false;
           config_1.default.i.pushScene("menu/start/scenes/start", "menu", null, true);
