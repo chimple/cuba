@@ -111,6 +111,7 @@ const Slider: React.FC = () => {
                 onSlideChange={onCustomSlideChange}
                 subjectCode={subject ?? COURSES.SIERRA_LEONE_ENGLISH}
                 isPreQuizPlayed={isPreQuizPlayed}
+                lessonsScoreMap={{}}
               />
             </IonCol>
           </div>
