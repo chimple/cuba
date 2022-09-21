@@ -1,13 +1,4 @@
-import {
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonContent,
-  useIonViewWillEnter,
-  IonCol,
-  IonRow,
-} from "@ionic/react";
+import { IonPage, IonHeader, IonContent, IonCol, IonRow } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { ALL_COURSES, COURSES, HEADERLIST } from "../common/constants";
 import Curriculum from "../models/curriculum";
@@ -38,7 +29,7 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     setCurrentHeader(HEADERLIST.ENGLISH);
-    setCourse(COURSES.SIERRA_LEONE_ENGLISH);
+    setCourse(COURSES.ENGLISH);
   }, []);
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
@@ -104,27 +95,38 @@ const Home: React.FC = () => {
     <IonPage id="home-page">
       <IonHeader id={"home-header"}>
         <div
+          id="home-icon"
+          onClick={() => {
+            if (currentHeader != HEADERLIST.HOME) {
+              console.log("Home button clicked", HEADERLIST.HOME);
+            }
+          }}
+        >
+          <img alt="HomeIcon" src="/assets/icons/HomeIcon.svg" />
+          <p>Home</p>
+        </div>
+        <div
           onClick={() => {
             if (currentHeader != HEADERLIST.ENGLISH) {
               setCurrentHeader(HEADERLIST.ENGLISH);
-              setCourse(COURSES.SIERRA_LEONE_ENGLISH);
+              setCourse(COURSES.ENGLISH);
               console.log("English button clicked", currentHeader, subject);
             }
           }}
         >
-          <img alt="EnglishIcon" src="/assets/icon/EnglishIcon.svg" />
+          <img alt="EnglishIcon" src="/assets/icons/EnglishIcon.svg" />
           <p>English</p>
         </div>
         <div
           onClick={() => {
             if (currentHeader != HEADERLIST.MATHS) {
               setCurrentHeader(HEADERLIST.MATHS);
-              setCourse(COURSES.SIERRA_LEONE_MATHS);
+              setCourse(COURSES.MATHS);
               console.log("Maths button clicked", currentHeader, subject);
             }
           }}
         >
-          <img alt="MathsIcon" src="/assets/icon/MathsIcon.svg" />
+          <img alt="MathsIcon" src="/assets/icons/MathsIcon.svg" />
           <p>Maths</p>
         </div>
         <div
@@ -139,9 +141,20 @@ const Home: React.FC = () => {
         >
           <img
             alt="DigitalSkillsIcon"
-            src="/assets/icon/DigitalSkillsIcon.svg"
+            src="/assets/icons/DigitalSkillsIcon.svg"
           />
           <p>Digital Skills</p>
+        </div>
+        <div
+          id="profile-icon"
+          onClick={() => {
+            if (currentHeader != HEADERLIST.PROFILE) {
+              console.log("Profile button clicked", HEADERLIST.PROFILE);
+            }
+          }}
+        >
+          <img alt="HomeIcon" src="/assets/icons/profile.png" />
+          <p>Profile</p>
         </div>
       </IonHeader>
       <IonContent fullscreen>
@@ -161,7 +174,7 @@ const Home: React.FC = () => {
                   lessonData={dataCourse.lessons}
                   onSwiper={setCustomSwiperRef}
                   onSlideChange={onCustomSlideChange}
-                  subjectCode={subject ?? COURSES.SIERRA_LEONE_ENGLISH}
+                  subjectCode={subject ?? COURSES.ENGLISH}
                   isPreQuizPlayed={isPreQuizPlayed}
                   lessonsScoreMap={lessonsScoreMap}
                 />
