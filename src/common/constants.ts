@@ -25,6 +25,9 @@ export const LESSON_CARD_COLORS = [
     "#AC82CF"
 ]
 
+export const SCREEN_WIDTH = window.innerWidth;
+export const SCREEN_HEIGHT = window.innerHeight;
+
 export const LESSON_END = "lessonEnd"
 export const PROBLEM_END = "problemEnd"
 export const GAME_END = "gameEnd"

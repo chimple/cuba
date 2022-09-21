@@ -1,0 +1,31 @@
+#home-header {
+    display: flex;
+    margin: 5px 0px 0px 10px;
+    justify-content: space-around
+}
+
+#home-header-middle-icons div {
+    margin-right: 30px;
+}
+
+#home-header-home-icon {
+    position: absolute;
+    left: 0;
+    margin-left: 10px;
+}
+
+#home-header-middle-icons {
+    display: flex;
+    text-align: center;
+}
+
+#home-header-profile-icon {
+    position: absolute;
+    right: 0;
+    margin-right: 10px;
+}
+
+#home-header p {
+    color: white;
+    font-weight: bold;
+}

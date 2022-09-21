@@ -1,67 +1,30 @@
 #home-header {
-    display: inline-flex !important;
     position: initial !important;
-    /* justify-content: center; */
-    margin-top: 10px;
-}
-
-.home-page-buttons {
-  font-size: 25px;
-  background: white;
-}
-
-#home-icon {
-    flex: 1;
-    display: initial;
-    justify-content: flex-start;
-    align-items: center;
-    margin-left: 20px;
-}
-
-#profile-icon {
-    flex: 1;
-    display: inline-grid;
-    justify-content: flex-end;
-    align-items: center,
-}
-
-#assignment-button {
-  margin-left: 30%;
-  margin-top: 5%;
-}
-
-#leaderboard-button {
-  margin-left: 10%;
-  margin-top: 5%;
-}
-
-#home-header div {
-  margin-right: 30px;
 }
 
 img {
-  height: 44px;
-  width: 44px;
+    height: 44px;
+    width: 44px;
 }
 
 div p {
-  margin: 0px;
+    margin: 0px;
 }
 
 .slider-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
 }
 
 .fullheight {
-  height: 100%;
+    height: 100%;
 }
 
 .xc {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

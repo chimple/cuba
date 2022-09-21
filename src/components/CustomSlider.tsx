@@ -41,8 +41,11 @@ const CustomSlider: React.FC<{
           return (
             <SplideSlide className="slide" key={i}>
               <LessonCard
+                width="200"
+                height="200"
                 subjectCode={subjectCode}
-                isUnlocked={isUnlocked}
+                isPlayed={isPlayed}
+                isUnlocked={isPlayed ?? false}
                 lesson={m}
               />
             </SplideSlide>
