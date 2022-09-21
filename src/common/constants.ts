@@ -20,3 +20,8 @@ export const LESSON_CARD_COLORS = [
     "#FF94B5",
     "#AC82CF"
 ]
+
+export const LESSON_END = "lessonEnd"
+export const PROBLEM_END = "problemEnd"
+export const GAME_END = "gameEnd"
+export const TEMP_LESSONS_STORE = "tempLessonsStore"

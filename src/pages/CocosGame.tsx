@@ -1,6 +1,7 @@
 import { IonContent, IonLoading, IonPage } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router";
+import { GAME_END, LESSON_END, TEMP_LESSONS_STORE } from "../common/constants";
 import { Util } from "../utility/util";
 
 const CocosGame: React.FC = () => {
@@ -24,10 +25,24 @@ const CocosGame: React.FC = () => {
     setIsLoading(false);
     document.getElementById("iframe")?.focus();
     const push = (e: any) => {
-      history.replace("/end", e.detail);
+      history.goBack();
     };
-    document.body.addEventListener("gameEnd", push);
-    let prevPercentage = 0;
+    
+    //Just fot Testing
+    const saveTempData = (e: any) => {
+      const json = localStorage.getItem(TEMP_LESSONS_STORE);
+      let lessons: any = {};
+      if (json) {
+        lessons = JSON.parse(json);
+      }
+      lessons[e.detail.lessonId] = e.detail.score;
+      localStorage.setItem(TEMP_LESSONS_STORE, JSON.stringify(lessons));
+    };
+
+    document.body.addEventListener(LESSON_END, saveTempData);
+    document.body.addEventListener(GAME_END, push);
+
+    // let prevPercentage = 0;
     // document.body.addEventListener("problemEnd", onProblemEnd);
   }
   return (
