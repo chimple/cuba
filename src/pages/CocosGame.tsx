@@ -8,7 +8,7 @@ const CocosGame: React.FC = () => {
   const history = useHistory();
   console.log("cocos game", history.location.state);
   const state = history.location.state as any;
-  const iFrameUrl = state.url;
+  const iFrameUrl = state?.url;
   console.log("iFrameUrl", iFrameUrl);
   const [isLoading, setIsLoading] = useState<any>();
 

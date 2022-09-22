@@ -1,0 +1,11 @@
+.icon-button {
+  cursor: pointer;
+  color: var(--text-color);
+  font-size: var(--text-size);
+  text-align: center;
+}
+.img {
+  height: min(44px, 7vh);
+  width: auto;
+  min-height: 30px;
+}
