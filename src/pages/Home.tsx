@@ -1,6 +1,12 @@
 import { IonPage, IonHeader, IonContent, IonCol, IonRow } from "@ionic/react";
 import { useEffect, useState } from "react";
-import { ALL_COURSES, COURSES, HEADERLIST } from "../common/constants";
+import {
+  ALL_COURSES,
+  COURSES,
+  HEADERLIST,
+  SCREEN_WIDTH,
+  SCREEN_HEIGHT,
+} from "../common/constants";
 import Curriculum from "../models/curriculum";
 import "./Home.css";
 import CustomSlider from "../components/CustomSlider";
@@ -9,6 +15,7 @@ import ChapterSlider from "../components/ChapterSlider";
 import { Chapter, Lesson } from "../interface/curriculumInterfaces";
 import { Splide } from "@splidejs/react-splide";
 import { OneRosterApi } from "../services/OneRosterApi";
+import HomeHeader from "../components/HomeHeader";
 import { useHistory } from "react-router";
 
 const Home: React.FC = () => {
@@ -37,6 +44,9 @@ const Home: React.FC = () => {
       if (action === "POP" && location.pathname === "/") refreshScore();
     });
   }, []);
+
+  // console.log("SCREEN_WIDTH", SCREEN_WIDTH, "SCREEN_HEIGHT", SCREEN_HEIGHT);
+
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
     const curInstanse = Curriculum.getInstance();
@@ -97,6 +107,41 @@ const Home: React.FC = () => {
     const chapterIndex = chaptersMap[chapter.id];
     setCurrentChapterId(dataCourse.chapters[chapterIndex].id);
   }
+
+  function onHeaderIconClick(selectedHeader: any) {
+    // console.log("onHeaderIconClick called", selectedHeader);
+
+    switch (selectedHeader) {
+      case HEADERLIST.HOME:
+        setCurrentHeader(HEADERLIST.HOME);
+        console.log("Home Icons is selected");
+        break;
+
+      case HEADERLIST.ENGLISH:
+        setCurrentHeader(HEADERLIST.ENGLISH);
+        setCourse(COURSES.ENGLISH);
+        break;
+
+      case HEADERLIST.MATHS:
+        setCurrentHeader(HEADERLIST.MATHS);
+        setCourse(COURSES.MATHS);
+        break;
+
+      case HEADERLIST.PUZZLE:
+        setCurrentHeader(HEADERLIST.PUZZLE);
+        setCourse(COURSES.PUZZLE);
+        break;
+
+      case HEADERLIST.PROFILE:
+        setCurrentHeader(HEADERLIST.PROFILE);
+        console.log("Profile Icons is selected");
+        history.push("/profile");
+        break;
+
+      default:
+        break;
+    }
+  }
   async function refreshScore() {
     setIsLoading(true);
     const tempLessonMap = await getResultsWithLesson("", "");
@@ -105,70 +150,11 @@ const Home: React.FC = () => {
   }
   return (
     <IonPage id="home-page">
-      <IonHeader id={"home-header"}>
-        <div
-          id="home-icon"
-          onClick={() => {
-            if (currentHeader != HEADERLIST.HOME) {
-              console.log("Home button clicked", HEADERLIST.HOME);
-            }
-          }}
-        >
-          <img alt="HomeIcon" src="/assets/icons/HomeIcon.svg" />
-          <p>Home</p>
-        </div>
-        <div
-          onClick={() => {
-            if (currentHeader != HEADERLIST.ENGLISH) {
-              setCurrentHeader(HEADERLIST.ENGLISH);
-              setCourse(COURSES.ENGLISH);
-              console.log("English button clicked", currentHeader, subject);
-            }
-          }}
-        >
-          <img alt="EnglishIcon" src="/assets/icons/EnglishIcon.svg" />
-          <p>English</p>
-        </div>
-        <div
-          onClick={() => {
-            if (currentHeader != HEADERLIST.MATHS) {
-              setCurrentHeader(HEADERLIST.MATHS);
-              setCourse(COURSES.MATHS);
-              console.log("Maths button clicked", currentHeader, subject);
-            }
-          }}
-        >
-          <img alt="MathsIcon" src="/assets/icons/MathsIcon.svg" />
-          <p>Maths</p>
-        </div>
-        <div
-          // style={{ width: "64px" }}
-          onClick={() => {
-            if (currentHeader != HEADERLIST.PUZZLE) {
-              setCurrentHeader(HEADERLIST.PUZZLE);
-              setCourse(COURSES.PUZZLE);
-              console.log("Puzzle button clicked", currentHeader, subject);
-            }
-          }}
-        >
-          <img
-            alt="DigitalSkillsIcon"
-            src="/assets/icons/DigitalSkillsIcon.svg"
-          />
-          <p>Digital Skills</p>
-        </div>
-        <div
-          id="profile-icon"
-          onClick={() => {
-            if (currentHeader != HEADERLIST.PROFILE) {
-              console.log("Profile button clicked", HEADERLIST.PROFILE);
-              history.push("/profile");
-            }
-          }}
-        >
-          <img alt="HomeIcon" src="/assets/icons/profile.png" />
-          <p>Profile</p>
-        </div>
+      <IonHeader id="home-header">
+        <HomeHeader
+          currentHeader={currentHeader}
+          onHeaderIconClick={onHeaderIconClick}
+        ></HomeHeader>
       </IonHeader>
       <IonContent fullscreen>
         <IonContent className="slider-content">

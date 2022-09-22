@@ -6,10 +6,13 @@ import { Lesson } from "../interface/curriculumInterfaces";
 import "./LessonCard.css";
 
 const LessonCard: React.FC<{
+  width: string;
+  height: string;
   lesson: Lesson;
+  isPlayed: boolean;
   isUnlocked: boolean;
   subjectCode: string;
-}> = ({ lesson, isUnlocked, subjectCode }) => {
+}> = ({ width, height, lesson, isPlayed, isUnlocked, subjectCode }) => {
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
 
@@ -21,12 +24,16 @@ const LessonCard: React.FC<{
     ? lesson.color
     : LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
 
-  // console.log("isUnlocked ", !isUnlocked);
-
-  const iconMargin = !isUnlocked ? "0px 0px 0px 40px" : "0px 0px 0px 0px";
+  // console.log("isUnlocked ", !isUnlocked, "isPlayed ", isPlayed);
   return (
     <IonCard
       id="lesson-card"
+      style={{
+        cursor: "pointer",
+        boxshadow: "none !important",
+        width: width + "px",
+        height: Number(height) + 20 + "px",
+      }}
       onClick={() => {
         const url = `chimple-lib/index.html?courseid=${subjectCode}&chapterid=${lesson.chapter.id}&lessonid=${lesson.id}`;
         history.push("/game", { url: url, lessonId: lesson.id });
@@ -37,8 +44,8 @@ const LessonCard: React.FC<{
         style={{
           background: lessonCardColor,
           borderRadius: "25px",
-          height: "200px",
-          width: "200px",
+          width: width + "px",
+          height: height + "px",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
@@ -47,36 +54,39 @@ const LessonCard: React.FC<{
       >
         {showImage ? (
           <img
+            id="lesson-card-image"
             loading="lazy"
-            style={{
-              height: "124px",
-              width: "124px",
-              margin: iconMargin,
-            }}
             alt={"/courses/" + subjectCode + "/icons/" + lesson.image}
             src={"/courses/" + subjectCode + "/icons/" + lesson.image}
             onError={hideImg}
           />
         ) : (
-          <div style={{ margin: "0px 0px 150px 165px" }} /> // we can show Default LessonCard text or image
+          <div /> // we can show Default LessonCard text or image
         )}
         {!isUnlocked ? (
           <img
+            id="lesson-card-status-icon"
             loading="lazy"
-            style={{ margin: "0px 0px 150px -5px" }}
             src="assets/icons/Lockicon.svg"
-            alt=""
+            alt="LockIcon"
+          />
+        ) : isPlayed ? (
+          <img
+            id="lesson-card-status-icon"
+            loading="lazy"
+            src="assets/icons/Doneicon.svg"
+            alt="DoneIcon"
           />
         ) : (
           <div />
         )}
       </div>
 
-      <IonCardHeader id="lesson-header">
-        {/* <IonCardSubtitle>Card Subtitle</IonCardSubtitle> */}
-        {/* <IonCardTitle> {lesson?.name}</IonCardTitle> */}
-        <p>{lesson?.name}</p>
-      </IonCardHeader>
+      {/* <IonCardHeader id="lesson-header"> */}
+      {/* <IonCardSubtitle>Card Subtitle</IonCardSubtitle> */}
+      {/* <IonCardTitle> {lesson?.name}</IonCardTitle> */}
+      <p id="lesson-card-name">{lesson?.name}</p>
+      {/* </IonCardHeader> */}
       {/* <IonCardContent> Keep close to Nature's heart... </IonCardContent> */}
     </IonCard>
   );
