@@ -16,6 +16,7 @@ import { Chapter, Lesson } from "../interface/curriculumInterfaces";
 import { Splide } from "@splidejs/react-splide";
 import { OneRosterApi } from "../services/OneRosterApi";
 import HomeHeader from "../components/HomeHeader";
+import { useHistory } from "react-router";
 
 const Home: React.FC = () => {
   const [dataCourse, setDataCourse] = useState<{
@@ -34,9 +35,14 @@ const Home: React.FC = () => {
   const [currentHeader, setCurrentHeader] = useState<any>("");
   const [lessonsScoreMap, setLessonsScoreMap] = useState<any>();
 
+  const history = useHistory();
+
   useEffect(() => {
     setCurrentHeader(HEADERLIST.ENGLISH);
     setCourse(COURSES.ENGLISH);
+    history.listen((location, action) => {
+      if (action === "POP" && location.pathname === "/") refreshScore();
+    });
   }, []);
 
   // console.log("SCREEN_WIDTH", SCREEN_WIDTH, "SCREEN_HEIGHT", SCREEN_HEIGHT);
@@ -129,13 +135,19 @@ const Home: React.FC = () => {
       case HEADERLIST.PROFILE:
         setCurrentHeader(HEADERLIST.PROFILE);
         console.log("Profile Icons is selected");
+        history.push("/profile");
         break;
 
       default:
         break;
     }
   }
-
+  async function refreshScore() {
+    setIsLoading(true);
+    const tempLessonMap = await getResultsWithLesson("", "");
+    setLessonsScoreMap(tempLessonMap);
+    setIsLoading(false);
+  }
   return (
     <IonPage id="home-page">
       <IonHeader id="home-header">

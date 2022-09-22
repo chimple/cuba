@@ -1,9 +1,13 @@
 .chapter-button {
   margin: 1% 0%;
   --padding-start: 1em;
-  --padding-end: 0.4em;
+  --padding-end: 0.3em;
   --ion-color-success: white;
   opacity: 0.7;
+  height: min(5vh, 40px);
+  min-height: 25px;
+  /* font-size: var(--text-size); */
+  font-size: clamp(10px, 3vh, 20px);
 }
 .hr {
   border: 1px solid rgba(255, 255, 255, 0.6);
@@ -20,10 +24,12 @@
   border: 1px solid rgba(255, 255, 255);
 }
 .star {
-  width: 26px;
+  width: min(3vh, 26px);
+  min-width: 15px;
 }
 
 .chapter-name {
   padding-right: 1em;
   align-self: center;
+  text-transform: none;
 }

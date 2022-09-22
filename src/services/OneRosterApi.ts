@@ -1,4 +1,4 @@
-import { TEMP_LESSONS_STORE } from "../common/constants";
+import { COURSES, TEMP_LESSONS_STORE } from "../common/constants";
 import { Class } from "../models/class";
 import { Result } from "../models/result";
 import { ServiceApi } from "./ServiceApi";
@@ -280,19 +280,16 @@ export class OneRosterApi implements ServiceApi {
     }
 
     async isPreQuizDone(subjectCode: string, classId: string, studentId: string): Promise<boolean> {
-        return true;
-        const tempSubjectCode = subjectCode.replace("-sl", "");
-        if (this.preQuizMap[tempSubjectCode]) {
+        if (COURSES.PUZZLE === subjectCode || this.preQuizMap[subjectCode])
             return true;
-        }
         const results = await this.getResultsForStudentForClass(classId, studentId);
         for (let result of results)
-            if (result.metadata?.lessonId === tempSubjectCode + "_PreQuiz") {
-                this.preQuizMap[tempSubjectCode] = true
+            if (result.metadata?.lessonId === subjectCode + "_PreQuiz") {
+                this.preQuizMap[subjectCode] = true
                 return true;
             }
 
-        this.preQuizMap[tempSubjectCode] = false
+        this.preQuizMap[subjectCode] = false
 
         return false;
     }
