@@ -55,9 +55,12 @@ const Profile: React.FC = () => {
               const isUnlocked = !!rewards[lesson.id] && rewards[lesson.id] > 0;
               return (
                 <LessonCard
-                  key={index}
-                  isUnlocked={isUnlocked}
+                  width="200"
+                  height="200"
                   lesson={lesson}
+                  key={index}
+                  isPlayed={false}
+                  isUnlocked={isUnlocked}
                   subjectCode={lesson.chapter.course.id}
                 />
               );
