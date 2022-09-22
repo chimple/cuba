@@ -1,0 +1,13 @@
+.wrapper {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  margin: 2%;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+/* ion-content {
+  width: calc(100% + 22px);
+}
+ion-content::part(scroll) {
+  padding-right: 22px;
+} */
