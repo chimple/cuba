@@ -43,6 +43,7 @@ const HomeHeader: React.FC<{
           <p>Maths</p>
         </div>
         <div
+          id="home-header-puzzle-icon"
           onClick={() => {
             if (currentHeader != HEADERLIST.PUZZLE) {
               onHeaderIconClick(HEADERLIST.PUZZLE);

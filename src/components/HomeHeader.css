@@ -5,7 +5,7 @@
 }
 
 #home-header-middle-icons div {
-    margin-right: 30px;
+    margin-right: 29px;
 }
 
 #home-header-home-icon {
@@ -26,6 +26,9 @@
 }
 
 #home-header p {
-    color: white;
-    font-weight: bold;
+    color: var(--text-color);
+}
+
+#home-header-puzzle-icon {
+    margin-left: -15px
 }

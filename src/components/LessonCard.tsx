@@ -30,10 +30,8 @@ const LessonCard: React.FC<{
     <IonCard
       id="lesson-card"
       style={{
-        cursor: "pointer",
-        boxshadow: "none !important",
-        width: width + "px",
-        height: Number(height) + 20 + "px",
+        width: width,
+        height: "min(60vh)",
       }}
       onClick={() => {
         const url = `chimple-lib/index.html?courseid=${subjectCode}&chapterid=${lesson.chapter.id}&lessonid=${lesson.id}`;
@@ -45,8 +43,8 @@ const LessonCard: React.FC<{
         style={{
           background: lessonCardColor,
           borderRadius: "25px",
-          width: width + "px",
-          height: height + "px",
+          width: width,
+          height: height,
           display: "flex",
           justifyContent: "center",
           alignItems: "center",

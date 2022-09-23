@@ -10,7 +10,9 @@
 
 #lesson-card-status-icon {
     position: absolute;
-    margin: 0px 0px 75% 75%;
+    right: 0;
+    top: 0;
+    padding: max(1.5vh, min(10px, 0.5vh));
 }
 
 #lesson-card-image {
@@ -20,10 +22,8 @@
 
 #lesson-card-name {
     margin: 0px !important;
-    color: white;
+    color: var(--text-color);
     font-size: 20px;
-    font-weight: bold;
-    width: 200px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;

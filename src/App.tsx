@@ -29,6 +29,7 @@ import { useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import Profile from "./pages/Profile";
+import Login from "./pages/Login";
 // import Assignments from "./pages/Assignments";
 
 setupIonicReact();
@@ -60,8 +61,11 @@ const App: React.FC = () => {
         <IonRouterOutlet>
           <Switch>
             <Route path="/" exact={true}>
-              <Home />
+              <Login />
               {/* <Redirect to={"/slider"} /> */}
+            </Route>
+            <Route path="/Home" exact={true}>
+              <Home />
             </Route>
             <Route path="/slider" exact={true}>
               <Slider />
