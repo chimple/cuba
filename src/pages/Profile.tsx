@@ -1,6 +1,6 @@
-import { IonContent, IonPage } from "@ionic/react";
+import { IonButton, IonContent, IonPage, IonRow } from "@ionic/react";
 import { useEffect, useState } from "react";
-import { ALL_COURSES } from "../common/constants";
+import { COURSES } from "../common/constants";
 import LessonCard from "../components/LessonCard";
 import Loading from "../components/Loading";
 import ProfileHeader from "../components/ProfileHeader";
@@ -13,62 +13,105 @@ const Profile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [rewards, setRewards] = useState<any>();
   const [allLessons, setAllLessons] = useState<any>();
+  const [currentCourseId, setCurrentCourseId] = useState(COURSES.ENGLISH);
+  const [unlockUpTo, setUnlockUpTo] = useState(-1);
 
   useEffect(() => {
     init();
   }, []);
 
-  async function init() {
+  async function init(subjectCode = COURSES.ENGLISH) {
     setIsLoading(true);
     const results =
       await OneRosterApi.getInstance().getResultsForStudentForClass("", "");
-    if (results.length === 0) {
-      setIsLoading(false);
-      return;
-    }
     const curriculum = Curriculum.getInstance();
-    await curriculum.loadCourseJsons(ALL_COURSES);
-    const allLessons = new Map(curriculum.allLessons);
-    const tempLessonsPlayed = [];
-    const tempLessonMap: any = {};
-    for (const result of results) {
-      const lesson = allLessons.get(result.metadata?.lessonId);
-      if (lesson?.type === "exam" && !tempLessonMap[lesson.id]) {
-        tempLessonsPlayed.push(lesson);
-        tempLessonMap[lesson.id] = result.score;
-        allLessons.delete(lesson.id);
+    const tempLessons = await curriculum.allLessonforSubject(subjectCode);
+    let lessonMap = rewards;
+    if (!rewards) {
+      const tempLessonMap: any = {};
+      for (const result of results) {
+        if (!tempLessonMap[result.metadata?.lessonId]) {
+          tempLessonMap[result.metadata?.lessonId] = result.score;
+        }
+      }
+      setRewards(tempLessonMap);
+      lessonMap = tempLessonMap;
+    }
+    const lessons: Lesson[] = [];
+    let tempUnlockUpTo = -1;
+
+    for (let i = 0; i < tempLessons.length; i++) {
+      const lesson = tempLessons[i];
+      if (lesson.type === "exam") {
+        lessons.push(lesson);
+        const isUnlocked = !!lessonMap[lesson.id] && lessonMap[lesson.id] > 0;
+        if (isUnlocked) {
+          tempUnlockUpTo = lessons.length - 1;
+        }
       }
     }
-    setRewards(tempLessonMap);
-    setAllLessons(tempLessonsPlayed.concat(Array.from(allLessons.values())));
+    setUnlockUpTo(tempUnlockUpTo);
+    setCurrentCourseId(subjectCode);
+    setAllLessons(lessons);
     setIsLoading(false);
   }
-
   return (
     <IonPage>
       <ProfileHeader />
+      <div className="tabs">
+        <IonButton
+          className={
+            "tab " + (currentCourseId === COURSES.ENGLISH ? " active" : "")
+          }
+          color={"success"}
+          fill={currentCourseId === COURSES.ENGLISH ? "solid" : "outline"}
+          onClick={async () => {
+            if (currentCourseId === COURSES.ENGLISH) return;
+            await init(COURSES.ENGLISH);
+          }}
+          shape="round"
+        >
+          English
+        </IonButton>
+        <IonButton
+          className={
+            "tab " + (currentCourseId === COURSES.MATHS ? " active" : "")
+          }
+          color={"success"}
+          fill={currentCourseId === COURSES.MATHS ? "solid" : "outline"}
+          onClick={async () => {
+            if (currentCourseId === COURSES.MATHS) return;
+
+            await init(COURSES.MATHS);
+          }}
+          shape="round"
+        >
+          Maths
+        </IonButton>
+      </div>
       <IonContent>
         {!isLoading ? (
           <div className="wrapper">
             {allLessons?.map((lesson: Lesson, index: number) => {
-              if (lesson.type !== "exam") return null;
-              const isUnlocked = !!rewards[lesson.id] && rewards[lesson.id] > 0;
+              const isUnlocked = index <= unlockUpTo;
+              const isPLayed = !!rewards[lesson.id] && rewards[lesson.id] > 0;
               return (
                 <LessonCard
-                  width="200"
-                  height="200"
+                  width="150"
+                  height="150"
                   lesson={lesson}
                   key={index}
-                  isPlayed={false}
+                  isPlayed={isPLayed}
                   isUnlocked={isUnlocked}
                   subjectCode={lesson.chapter.course.id}
+                  showText={false}
                 />
               );
             })}
           </div>
         ) : null}
+        <Loading isLoading={isLoading} />
       </IonContent>
-      <Loading isLoading={isLoading} />
     </IonPage>
   );
 };

@@ -1,4 +1,4 @@
-import { Redirect, Route } from "react-router-dom";
+import { Route, Switch } from "react-router-dom";
 import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 import ViewMessage from "./pages/ViewMessage";
@@ -59,31 +59,33 @@ const App: React.FC = () => {
     <IonApp>
       <IonReactRouter>
         <IonRouterOutlet>
-          <Route path="/" exact={true}>
-            <Login />
-            {/* <Redirect to={"/slider"} /> */}
-          </Route>
-          <Route path="/Home" exact={true}>
-            <Home />
-          </Route>
-          <Route path="/slider" exact={true}>
-            <Slider />
-          </Route>
-          <Route path="/game" exact={true}>
-            <CocosGame />
-          </Route>
-          <Route path="/end" exact={true}>
-            <End />
-          </Route>
-          <Route path="/profile" exact={true}>
-            <Profile />
-          </Route>
-          {/* <Route path="/assignments" exact={true}>
+          <Switch>
+            <Route path="/" exact={true}>
+              <Login />
+              {/* <Redirect to={"/slider"} /> */}
+            </Route>
+            <Route path="/Home" exact={true}>
+              <Home />
+            </Route>
+            <Route path="/slider" exact={true}>
+              <Slider />
+            </Route>
+            <Route path="/game" exact={true}>
+              <CocosGame />
+            </Route>
+            <Route path="/end" exact={true}>
+              <End />
+            </Route>
+            <Route path="/profile" exact={true}>
+              <Profile />
+            </Route>
+            {/* <Route path="/assignments" exact={true}>
             <Assignments />
           </Route> */}
-          <Route path="/message/:id">
-            <ViewMessage />
-          </Route>
+            <Route path="/message/:id">
+              <ViewMessage />
+            </Route>
+          </Switch>
         </IonRouterOutlet>
       </IonReactRouter>
     </IonApp>

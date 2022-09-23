@@ -45,7 +45,7 @@ const CustomSlider: React.FC<{
                 height="45vh"
                 subjectCode={subjectCode}
                 isPlayed={isPlayed}
-                isUnlocked={isPlayed ?? false}
+                isUnlocked={isUnlocked}
                 lesson={m}
               />
             </SplideSlide>

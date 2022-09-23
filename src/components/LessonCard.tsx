@@ -12,7 +12,8 @@ const LessonCard: React.FC<{
   isPlayed: boolean;
   isUnlocked: boolean;
   subjectCode: string;
-}> = ({ width, height, lesson, isPlayed, isUnlocked, subjectCode }) => {
+  showText?:boolean
+}> = ({ width, height, lesson, isPlayed, isUnlocked, subjectCode, showText = true }) => {
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
 
@@ -83,7 +84,7 @@ const LessonCard: React.FC<{
       {/* <IonCardHeader id="lesson-header"> */}
       {/* <IonCardSubtitle>Card Subtitle</IonCardSubtitle> */}
       {/* <IonCardTitle> {lesson?.name}</IonCardTitle> */}
-      <p id="lesson-card-name">{lesson?.name}</p>
+      {showText ? <p id="lesson-card-name">{lesson?.name}</p> : null}
       {/* </IonCardHeader> */}
       {/* <IonCardContent> Keep close to Nature's heart... </IonCardContent> */}
     </IonCard>
