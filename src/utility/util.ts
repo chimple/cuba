@@ -1,4 +1,5 @@
 import { Http } from "@capacitor-community/http";
+import { Capacitor } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
@@ -13,6 +14,7 @@ export class Util {
 
     public static async downloadZipBundle(lessonId = "en_PreQuiz"): Promise<boolean> {
         try {
+            if (!Capacitor.isNativePlatform()) return true;
             console.log("downloading Directory.Data", Directory.Data, "Directory.Library",)
             const fs = createFilesystem(Filesystem, {
                 rootDir: "/",
