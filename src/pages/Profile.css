@@ -3,8 +3,30 @@
   gap: 10px;
   justify-items: center;
   margin: 2%;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
 }
+.tabs {
+  align-self: center;
+  display: flex;
+  margin-bottom: 1%;
+  margin-top: 2%;
+}
+.tab {
+  --padding-start: 3em;
+  --padding-end: 3em;
+  --ion-color-success: white;
+  margin: 0em 4em;
+  text-transform: none;
+  font-size: var(--text-size);
+  height: clamp(25px, 5vh, 40px);
+  opacity: 0.8;
+}
+.active {
+  --ion-color-success-contrast: #2daae1;
+  opacity: 1;
+
+}
+
 /* ion-content {
   width: calc(100% + 22px);
 }

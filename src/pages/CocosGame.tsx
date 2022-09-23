@@ -1,4 +1,4 @@
-import { IonContent, IonLoading, IonPage } from "@ionic/react";
+import { IonContent, IonLoading, IonPage, useIonToast } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import { GAME_END, LESSON_END, TEMP_LESSONS_STORE } from "../common/constants";
@@ -11,6 +11,22 @@ const CocosGame: React.FC = () => {
   const iFrameUrl = state?.url;
   console.log("iFrameUrl", iFrameUrl);
   const [isLoading, setIsLoading] = useState<any>();
+  const [present] = useIonToast();
+
+  const presentToast = async () => {
+    await present({
+      message: "Something went wrong!",
+      color: "danger",
+      duration: 3000,
+      position: "bottom",
+      buttons: [
+        {
+          text: "Dismiss",
+          role: "cancel",
+        },
+      ],
+    });
+  };
 
   useEffect(() => {
     init();
@@ -18,16 +34,19 @@ const CocosGame: React.FC = () => {
 
   async function init() {
     setIsLoading(true);
-    const dow = await Util.downloadZipBundle(state.lessonId).catch((er) => {
-      console.log(" err donwloaded ", er);
-    });
+    const dow = await Util.downloadZipBundle(state.lessonId);
+    if (!dow) {
+      presentToast();
+      history.goBack();
+      return;
+    }
     console.log("donwloaded ", dow);
     setIsLoading(false);
     document.getElementById("iframe")?.focus();
     const push = (e: any) => {
       history.goBack();
     };
-    
+
     //Just fot Testing
     const saveTempData = (e: any) => {
       const json = localStorage.getItem(TEMP_LESSONS_STORE);

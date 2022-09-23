@@ -10,7 +10,7 @@ const ProfileHeader: React.FC = () => {
         name="Back"
         iconSrc="/assets/icons/BackIcon.svg"
         onClick={() => {
-          history.goBack();
+          history.replace("/");
         }}
       />
       <IconButton name="Chimp" iconSrc="/assets/icons/profile.png" />
@@ -18,7 +18,7 @@ const ProfileHeader: React.FC = () => {
         name="Sign Out"
         iconSrc="/assets/icons/SignOutIcon.svg"
         onClick={() => {
-          history.goBack();
+          history.replace("/");
         }}
       />
     </div>
