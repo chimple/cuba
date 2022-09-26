@@ -12,8 +12,16 @@ const LessonCard: React.FC<{
   isPlayed: boolean;
   isUnlocked: boolean;
   subjectCode: string;
-  showText?:boolean
-}> = ({ width, height, lesson, isPlayed, isUnlocked, subjectCode, showText = true }) => {
+  showText?: boolean;
+}> = ({
+  width,
+  height,
+  lesson,
+  isPlayed,
+  isUnlocked,
+  subjectCode,
+  showText = true,
+}) => {
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
 
@@ -31,7 +39,7 @@ const LessonCard: React.FC<{
       id="lesson-card"
       style={{
         width: width,
-        height: "min(60vh)",
+        height: "auto",
       }}
       onClick={() => {
         const url = `chimple-lib/index.html?courseid=${subjectCode}&chapterid=${lesson.chapter.id}&lessonid=${lesson.id}`;

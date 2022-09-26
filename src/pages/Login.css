@@ -1,7 +1,26 @@
+p {
+    font-family: unset;
+}
+
+#login-chimple-logo {
+    height: min(200px, 60vh);
+    margin-left: calc(33vw);
+    margin-top: 2%;
+}
+
 #login-button {
-    width: 100px;
-    height: 50px;
+    width: min(350px, 100vh);
+    height: min(50px, 70vh);
     font-size: 20px;
-    margin-top: calc(48vh);
-    margin-left: calc(44vw);
+    margin-top: calc(8vh);
+    margin-left: calc(28vw);
+    background: white;
+    border-radius: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2%;
+    color: #2DAAE1;
+    font-family: 'BalooExtraBold';
+    font-weight: bolder;
 }
