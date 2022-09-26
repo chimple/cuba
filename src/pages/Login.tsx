@@ -1,7 +1,7 @@
 import { IonContent, IonPage } from "@ionic/react";
 import { useEffect, useState } from "react";
 import Loading from "../components/Loading";
-// import { AccountManager } from "account-manager";
+import { AccountManager } from "account-manager";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
 
@@ -27,14 +27,28 @@ const Login: React.FC = () => {
             //   AccountType: "com.google",
             // });
             console.log("login-button entred");
-            // let result: any;
-            // try {
-            //   result = await AccountManager.accountPicker();
-            // } catch (error) {
-            //   console.log("error", error);
-            // }
-            // console.log("login-button-result", result.result);
-            history.push("/home");
+            let responce: any;
+            try {
+              responce = await AccountManager.accountPicker();
+              console.log("login-button-result", responce.result);
+              let result: boolean = responce.result;
+              console.log(
+                "login-button-result result.result",
+                result,
+                responce.result
+              );
+              if (result) {
+                console.log("login-button result true", result);
+                localStorage.setItem("isUserLogedIn", "true");
+                history.push("/home");
+              } else {
+                console.log("login-button result false", result);
+                localStorage.setItem("isUserLogedIn", "false");
+              }
+            } catch (error) {
+              console.log("got exception error", error);
+              localStorage.setItem("isUserLogedIn", "false");
+            }
           }}
         >
           <img alt="VSO Icon" src="/assets/icons/VSOLogo.svg" />

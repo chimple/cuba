@@ -30,6 +30,7 @@ import { Capacitor } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
+import ProtectedRoute from "./ProtectedRoute";
 // import Assignments from "./pages/Assignments";
 
 setupIonicReact();
@@ -61,8 +62,10 @@ const App: React.FC = () => {
         <IonRouterOutlet>
           <Switch>
             <Route path="/" exact={true}>
+              <ProtectedRoute></ProtectedRoute>
+            </Route>
+            <Route path="/login" exact={true}>
               <Login />
-              {/* <Redirect to={"/slider"} /> */}
             </Route>
             <Route path="/Home" exact={true}>
               <Home />
