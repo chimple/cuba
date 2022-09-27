@@ -4,6 +4,7 @@
   "private": true,
   "homepage": ".",
   "dependencies": {
+    "@awesome-cordova-plugins/background-mode": "^5.45.0",
     "@capacitor-community/http": "^1.4.1",
     "@capacitor/android": "4.2.0",
     "@capacitor/app": "4.0.1",
@@ -24,7 +25,10 @@
     "@types/react-dom": "^18.0.6",
     "@types/react-router": "^5.1.11",
     "@types/react-router-dom": "^5.1.7",
+    "account-manager": "github:chimple/account-manager",
     "capacitor-fs": "^0.0.41-b5",
+    "cordova-plugin-background-mode": "^0.7.3",
+    "cordova-plugin-device": "^2.1.0",
     "ionicons": "^6.0.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

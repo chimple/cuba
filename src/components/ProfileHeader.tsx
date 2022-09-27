@@ -10,7 +10,7 @@ const ProfileHeader: React.FC = () => {
         name="Back"
         iconSrc="/assets/icons/BackIcon.svg"
         onClick={() => {
-          history.replace("/home");
+          history.replace("/");
         }}
       />
       <IconButton name="Chimp" iconSrc="/assets/icons/profile.png" />
@@ -19,6 +19,7 @@ const ProfileHeader: React.FC = () => {
         iconSrc="/assets/icons/SignOutIcon.svg"
         onClick={() => {
           history.push("/login");
+          localStorage.setItem("isUserLogedIn", "false");
         }}
       />
     </div>

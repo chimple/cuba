@@ -74,14 +74,14 @@ const LessonCard: React.FC<{
           <img
             id="lesson-card-status-icon"
             loading="lazy"
-            src="assets/icons/Lockicon.svg"
+            src="assets/icons/LockIcon.svg"
             alt="LockIcon"
           />
         ) : isPlayed ? (
           <img
             id="lesson-card-status-icon"
             loading="lazy"
-            src="assets/icons/Doneicon.svg"
+            src="assets/icons/DoneIcon.svg"
             alt="DoneIcon"
           />
         ) : (
