@@ -1,75 +1,68 @@
 import { HEADERLIST } from "../common/constants";
 import "./HomeHeader.css";
+import IconButton from "./IconButton";
 
 const HomeHeader: React.FC<{
   currentHeader: string;
   onHeaderIconClick: Function;
 }> = ({ currentHeader, onHeaderIconClick }) => {
   return (
-    <div id="home-header">
-      <div
-        id="home-header-home-icon"
+    <div id="home-header-icons">
+      <IconButton
+        name="Home"
+        iconSrc="/assets/icons/HomeIcon.svg"
         onClick={() => {
           if (currentHeader != HEADERLIST.HOME) {
             onHeaderIconClick(HEADERLIST.HOME);
             console.log("Home button clicked", HEADERLIST.HOME);
           }
         }}
-      >
-        <img alt="HomeIcon" src="/assets/icons/HomeIcon.svg" />
-        <p>Home</p>
-      </div>
+      ></IconButton>
+
       <div id="home-header-middle-icons">
-        <div
+        <IconButton
+          name="English"
+          iconSrc="/assets/icons/EnglishIcon.svg"
           onClick={() => {
             if (currentHeader != HEADERLIST.ENGLISH) {
               onHeaderIconClick(HEADERLIST.ENGLISH);
               console.log("English button clicked", currentHeader);
             }
           }}
-        >
-          <img alt="EnglishIcon" src="/assets/icons/EnglishIcon.svg" />
-          <p>English</p>
-        </div>
-        <div
+        ></IconButton>
+        <IconButton
+          name="Maths"
+          iconSrc="/assets/icons/MathsIcon.svg"
           onClick={() => {
             if (currentHeader != HEADERLIST.MATHS) {
               onHeaderIconClick(HEADERLIST.MATHS);
               console.log("Maths button clicked", currentHeader);
             }
           }}
-        >
-          <img alt="MathsIcon" src="/assets/icons/MathsIcon.svg" />
-          <p>Maths</p>
-        </div>
-        <div
-          id="home-header-puzzle-icon"
-          onClick={() => {
-            if (currentHeader != HEADERLIST.PUZZLE) {
-              onHeaderIconClick(HEADERLIST.PUZZLE);
-              console.log("Puzzle button clicked", currentHeader);
-            }
-          }}
-        >
-          <img
-            alt="DigitalSkillsIcon"
-            src="/assets/icons/DigitalSkillsIcon.svg"
-          />
-          <p>Digital Skills</p>
+        ></IconButton>
+        <div id="home-header-puzzle-icon">
+          <IconButton
+            name="Digital Skills"
+            iconSrc="/assets/icons/DigitalSkillsIcon.svg"
+            onClick={() => {
+              if (currentHeader != HEADERLIST.PUZZLE) {
+                onHeaderIconClick(HEADERLIST.PUZZLE);
+                console.log("PUZZLE button clicked", HEADERLIST.PROFILE);
+              }
+            }}
+          ></IconButton>
         </div>
       </div>
-      <div
-        id="home-header-profile-icon"
+      <IconButton
+        name="Profile"
+        iconSrc="/assets/icons/profile.png"
         onClick={() => {
           if (currentHeader != HEADERLIST.PROFILE) {
             onHeaderIconClick(HEADERLIST.PROFILE);
             console.log("Profile button clicked", HEADERLIST.PROFILE);
           }
         }}
-      >
-        <img alt="HomeIcon" src="/assets/icons/profile.png" />
-        <p>Profile</p>
-      </div>
+      ></IconButton>
     </div>
   );
 };

@@ -58,9 +58,17 @@ const Login: React.FC = () => {
             }
           }}
         >
-          <img alt="VSO Icon" src="/assets/icons/VSOLogo.svg" />
+          <img
+            id="login-button-img"
+            alt="VSO Icon"
+            src="/assets/icons/VSOLogo.svg"
+          />
           <p>Login with VSO</p>
-          <img alt="Arrow Icon" src="/assets/icons/ArrowIcon.svg" />
+          <img
+            id="login-button-img"
+            alt="Arrow Icon"
+            src="/assets/icons/ArrowIcon.svg"
+          />
         </div>
         {/* <Loading isLoading={isLoading} /> */}
       </IonContent>

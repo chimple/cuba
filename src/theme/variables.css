@@ -78,7 +78,7 @@ http://ionicframework.com/docs/theming/ */
   /** custom **/
   --ion-background-color: #76bdd6;
   --text-color: white;
-  --text-size: clamp(10px, 3vh, 20px);
+  --text-size: clamp(10px, 3.5vh, 20px);
 }
 
 @media (prefers-color-scheme: light) {

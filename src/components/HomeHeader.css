@@ -1,34 +1,17 @@
-#home-header {
+#home-header-icons {
     display: flex;
-    margin: 5px 0px 0px 10px;
-    justify-content: space-around
-}
-
-#home-header-middle-icons div {
-    margin-right: 29px;
-}
-
-#home-header-home-icon {
-    position: absolute;
-    left: 0;
-    margin-left: 10px;
+    margin: 1.5%;
+    justify-content: space-between;
+    align-items: center;
 }
 
 #home-header-middle-icons {
     display: flex;
-    text-align: center;
-}
-
-#home-header-profile-icon {
-    position: absolute;
-    right: 0;
-    margin-right: 10px;
-}
-
-#home-header p {
-    color: var(--text-color);
+    justify-content: space-between;
+    width: 25%;
+    margin: 0 auto
 }
 
 #home-header-puzzle-icon {
-    margin-left: -15px
+    margin-left: -10px;
 }

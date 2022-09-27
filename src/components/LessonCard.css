@@ -9,6 +9,8 @@
 }
 
 #lesson-card-status-icon {
+    height: 38px;
+    width: auto;
     position: absolute;
     right: 0;
     top: 0;
@@ -16,8 +18,8 @@
 }
 
 #lesson-card-image {
-    height: 124px;
-    width: 124px;
+    height: auto;
+    width: min(124px, 100vh);
 }
 
 #lesson-card-name {

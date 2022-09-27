@@ -5,7 +5,7 @@
   text-align: center;
 }
 .img {
-  height: min(44px, 7vh);
+  height: min(44px, 12vh);
   width: auto;
   min-height: 30px;
 }
