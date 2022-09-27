@@ -4,9 +4,9 @@ import Loading from "../components/Loading";
 import { AccountManager } from "account-manager";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
+import { BackgroundMode } from "@awesome-cordova-plugins/background-mode";
 
 const Login: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(true);
   const history = useHistory();
 
   useEffect(() => {}, []);
@@ -22,6 +22,10 @@ const Login: React.FC = () => {
         <div
           id="login-button"
           onClick={async () => {
+            if (!BackgroundMode.isActive()) {
+              BackgroundMode.setEnabled(true);
+            }
+
             // let result = await AccountManager.authenticator({
             //   userName: "skandakumar97@gmail.com",
             //   AccountType: "com.google",
@@ -48,6 +52,9 @@ const Login: React.FC = () => {
             } catch (error) {
               console.log("got exception error", error);
               localStorage.setItem("isUserLogedIn", "false");
+            }
+            if (BackgroundMode.isActive()) {
+              BackgroundMode.setEnabled(false);
             }
           }}
         >
