@@ -97,8 +97,8 @@ const Profile: React.FC = () => {
               const isPLayed = !!rewards[lesson.id] && rewards[lesson.id] > 0;
               return (
                 <LessonCard
-                  width="40vh"
-                  height="45vh"
+                  width="clamp(150px,40vh,200px)"
+                  height="clamp(150px,40vh,200px)"
                   lesson={lesson}
                   key={index}
                   isPlayed={isPLayed}
