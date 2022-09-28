@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { Redirect } from "react-router-dom";
-import Home from "./pages/Home";
+import { Redirect, Route } from "react-router-dom";
 
-export default function ProtectedRoute() {
+export default function ProtectedRoute({ children, ...rest }) {
   const [isAuth, setIsAuth] = useState<Boolean | null>(null); // initially undefined
   useEffect(() => {
     const isUserLogedIn = localStorage.getItem("isUserLogedIn");
@@ -11,5 +10,17 @@ export default function ProtectedRoute() {
 
   if (isAuth == null) return null;
 
-  return isAuth ? <Home /> : <Redirect to={"/login"} />;
+  return (
+    <Route {...rest}>
+      {isAuth === true ? (
+        children
+      ) : (
+        <Redirect
+          to={{
+            pathname: "/login",
+          }}
+        />
+      )}
+    </Route>
+  );
 }
