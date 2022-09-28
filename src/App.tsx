@@ -57,7 +57,7 @@ const App: React.FC = () => {
   }, []);
   return (
     <IonApp>
-      <IonReactRouter>
+      <IonReactRouter basename="/cuba">
         <IonRouterOutlet>
           <Switch>
             <ProtectedRoute path="/" exact={true}>
