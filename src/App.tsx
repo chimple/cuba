@@ -1,7 +1,6 @@
 import { Route, Switch } from "react-router-dom";
 import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
-import ViewMessage from "./pages/ViewMessage";
 
 /* Core CSS required for Ionic components to work properly */
 import "@ionic/react/css/core.css";
@@ -22,7 +21,6 @@ import "@ionic/react/css/display.css";
 /* Theme variables */
 import "./theme/variables.css";
 import Home from "./pages/Home";
-import Slider from "./pages/Slider";
 import CocosGame from "./pages/CocosGame";
 import { End } from "./pages/End";
 import { useEffect } from "react";
@@ -31,6 +29,7 @@ import { Filesystem, Directory } from "@capacitor/filesystem";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
+import Slider from "./pages/Slider";
 // import Assignments from "./pages/Assignments";
 
 setupIonicReact();
@@ -62,32 +61,29 @@ const App: React.FC = () => {
         <IonRouterOutlet>
           <Switch>
             <Route path="/" exact={true}>
-              <ProtectedRoute></ProtectedRoute>
+              <Home />
             </Route>
             <Route path="/login" exact={true}>
               <Login />
             </Route>
-            <Route path="/Home" exact={true}>
+            <ProtectedRoute path="/Home" exact={true}>
               <Home />
-            </Route>
+            </ProtectedRoute>
             <Route path="/slider" exact={true}>
               <Slider />
             </Route>
-            <Route path="/game" exact={true}>
+            <ProtectedRoute path="/game" exact={true}>
               <CocosGame />
-            </Route>
-            <Route path="/end" exact={true}>
+            </ProtectedRoute>
+            <ProtectedRoute path="/end" exact={true}>
               <End />
-            </Route>
-            <Route path="/profile" exact={true}>
+            </ProtectedRoute>
+            <ProtectedRoute path="/profile" exact={true}>
               <Profile />
-            </Route>
+            </ProtectedRoute>
             {/* <Route path="/assignments" exact={true}>
             <Assignments />
           </Route> */}
-            <Route path="/message/:id">
-              <ViewMessage />
-            </Route>
           </Switch>
         </IonRouterOutlet>
       </IonReactRouter>
