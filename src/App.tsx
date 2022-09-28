@@ -55,9 +55,18 @@ const App: React.FC = () => {
         });
     }
   }, []);
+  console.log("process.env.BASE_URL", process.env);
   return (
     <IonApp>
-      <IonReactRouter basename="/cuba">
+      <IonReactRouter
+        basename={
+          Capacitor.isNativePlatform()
+            ? ""
+            : process.env.NODE_ENV === "production"
+            ? "/cuba"
+            : ""
+        }
+      >
         <IonRouterOutlet>
           <Switch>
             <ProtectedRoute path="/" exact={true}>
