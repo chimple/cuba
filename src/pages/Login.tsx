@@ -9,7 +9,12 @@ import { BackgroundMode } from "@awesome-cordova-plugins/background-mode";
 const Login: React.FC = () => {
   const history = useHistory();
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    const isUserLogedIn = localStorage.getItem("isUserLogedIn");
+    if (isUserLogedIn == "true") {
+      history.replace("/");
+    }
+  }, []);
   console.log("Login page");
   return (
     <IonPage>
@@ -44,7 +49,7 @@ const Login: React.FC = () => {
               if (result) {
                 console.log("login-button result true", result);
                 localStorage.setItem("isUserLogedIn", "true");
-                history.push("/home");
+                history.replace("/");
               } else {
                 console.log("login-button result false", result);
                 localStorage.setItem("isUserLogedIn", "false");
