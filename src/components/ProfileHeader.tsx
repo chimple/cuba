@@ -8,15 +8,15 @@ const ProfileHeader: React.FC = () => {
     <div className="header">
       <IconButton
         name="Back"
-        iconSrc="/assets/icons/BackIcon.svg"
+        iconSrc="assets/icons/BackIcon.svg"
         onClick={() => {
           history.replace("/");
         }}
       />
-      <IconButton name="Chimp" iconSrc="/assets/icons/profile.png" />
+      <IconButton name="Chimp" iconSrc="assets/icons/profile.png" />
       <IconButton
         name="Sign Out"
-        iconSrc="/assets/icons/SignOutIcon.svg"
+        iconSrc="assets/icons/SignOutIcon.svg"
         onClick={() => {
           history.push("/login");
           localStorage.setItem("isUserLogedIn", "false");

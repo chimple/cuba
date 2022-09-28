@@ -22,7 +22,7 @@ const Login: React.FC = () => {
         <img
           id="login-chimple-logo"
           alt="Chimple Brand Logo"
-          src="/assets/icons/ChimpleBrandLogo.svg"
+          src="assets/icons/ChimpleBrandLogo.svg"
         />
         <div
           id="login-button"
@@ -66,13 +66,13 @@ const Login: React.FC = () => {
           <img
             id="login-button-img"
             alt="VSO Icon"
-            src="/assets/icons/VSOLogo.svg"
+            src="assets/icons/VSOLogo.svg"
           />
           <p>Login with VSO</p>
           <img
             id="login-button-img"
             alt="Arrow Icon"
-            src="/assets/icons/ArrowIcon.svg"
+            src="assets/icons/ArrowIcon.svg"
           />
         </div>
         {/* <Loading isLoading={isLoading} /> */}

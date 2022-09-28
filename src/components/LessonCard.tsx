@@ -63,8 +63,8 @@ const LessonCard: React.FC<{
           <img
             id="lesson-card-image"
             loading="lazy"
-            alt={"/courses/" + subjectCode + "/icons/" + lesson.image}
-            src={"/courses/" + subjectCode + "/icons/" + lesson.image}
+            alt={"courses/" + subjectCode + "/icons/" + lesson.image}
+            src={"courses/" + subjectCode + "/icons/" + lesson.image}
             onError={hideImg}
           />
         ) : (

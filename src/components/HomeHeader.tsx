@@ -10,7 +10,7 @@ const HomeHeader: React.FC<{
     <div id="home-header-icons">
       <IconButton
         name="Home"
-        iconSrc="/assets/icons/HomeIcon.svg"
+        iconSrc="assets/icons/HomeIcon.svg"
         onClick={() => {
           if (currentHeader != HEADERLIST.HOME) {
             onHeaderIconClick(HEADERLIST.HOME);
@@ -22,7 +22,7 @@ const HomeHeader: React.FC<{
       <div id="home-header-middle-icons">
         <IconButton
           name="English"
-          iconSrc="/assets/icons/EnglishIcon.svg"
+          iconSrc="assets/icons/EnglishIcon.svg"
           onClick={() => {
             if (currentHeader != HEADERLIST.ENGLISH) {
               onHeaderIconClick(HEADERLIST.ENGLISH);
@@ -32,7 +32,7 @@ const HomeHeader: React.FC<{
         ></IconButton>
         <IconButton
           name="Maths"
-          iconSrc="/assets/icons/MathsIcon.svg"
+          iconSrc="assets/icons/MathsIcon.svg"
           onClick={() => {
             if (currentHeader != HEADERLIST.MATHS) {
               onHeaderIconClick(HEADERLIST.MATHS);
@@ -43,7 +43,7 @@ const HomeHeader: React.FC<{
         <div id="home-header-puzzle-icon">
           <IconButton
             name="Digital Skills"
-            iconSrc="/assets/icons/DigitalSkillsIcon.svg"
+            iconSrc="assets/icons/DigitalSkillsIcon.svg"
             onClick={() => {
               if (currentHeader != HEADERLIST.PUZZLE) {
                 onHeaderIconClick(HEADERLIST.PUZZLE);
@@ -55,7 +55,7 @@ const HomeHeader: React.FC<{
       </div>
       <IconButton
         name="Profile"
-        iconSrc="/assets/icons/profile.png"
+        iconSrc="assets/icons/profile.png"
         onClick={() => {
           if (currentHeader != HEADERLIST.PROFILE) {
             onHeaderIconClick(HEADERLIST.PROFILE);
