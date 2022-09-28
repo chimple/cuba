@@ -55,7 +55,6 @@ const App: React.FC = () => {
         });
     }
   }, []);
-  console.log("process.env.BASE_URL", process.env);
   return (
     <IonApp>
       <IonReactRouter
