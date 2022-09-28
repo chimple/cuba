@@ -60,9 +60,9 @@ const App: React.FC = () => {
       <IonReactRouter>
         <IonRouterOutlet>
           <Switch>
-            <Route path="/" exact={true}>
+            <ProtectedRoute path="/" exact={true}>
               <Home />
-            </Route>
+            </ProtectedRoute>
             <Route path="/login" exact={true}>
               <Login />
             </Route>
