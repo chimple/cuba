@@ -24,3 +24,8 @@ p {
     font-family: 'BalooExtraBold';
     font-weight: bolder;
 }
+
+#login-button-img {
+    height: 38px;
+    width: auto;
+}
