@@ -161,14 +161,14 @@ const Home: React.FC = () => {
           {isLoading === false ? (
             <div className="fullheight xc">
               <IonCol className="cloumn">
-                <IonRow>
+                {/* <IonRow> */}
                   <ChapterSlider
                     chapterData={dataCourse.chapters}
                     onChapterClick={onChapterClick}
                     currentChapterId={currentChapterId}
                     chaptersIndex={chaptersMap[currentChapterId] ?? 0}
                   />
-                </IonRow>
+                {/* </IonRow> */}
                 <CustomSlider
                   lessonData={dataCourse.lessons}
                   onSwiper={setCustomSwiperRef}
