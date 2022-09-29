@@ -5,6 +5,7 @@ import { AccountManager } from "account-manager";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
 import { BackgroundMode } from "@awesome-cordova-plugins/background-mode";
+import { Capacitor } from "@capacitor/core";
 
 const Login: React.FC = () => {
   const history = useHistory();
@@ -54,9 +55,17 @@ const Login: React.FC = () => {
                 console.log("login-button result false", result);
                 localStorage.setItem("isUserLogedIn", "false");
               }
-            } catch (error) {
-              console.log("got exception error", error);
+            } catch (error: any) {
               localStorage.setItem("isUserLogedIn", "false");
+
+              if (
+                error.message === "Method not implemented." &&
+                !Capacitor.isNativePlatform()
+              ) {
+                console.log("login-button result true");
+                localStorage.setItem("isUserLogedIn", "true");
+                history.replace("/");
+              }
             }
             if (BackgroundMode.isActive()) {
               BackgroundMode.setEnabled(false);
