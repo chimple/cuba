@@ -34,6 +34,7 @@ const Home: React.FC = () => {
   const [chaptersMap, setChaptersMap] = useState<any>();
   const [currentHeader, setCurrentHeader] = useState<any>("");
   const [lessonsScoreMap, setLessonsScoreMap] = useState<any>();
+  const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
 
   const history = useHistory();
 
@@ -44,8 +45,6 @@ const Home: React.FC = () => {
       if (action === "POP" && location.pathname === "/") refreshScore();
     });
   }, []);
-
-  // console.log("SCREEN_WIDTH", SCREEN_WIDTH, "SCREEN_HEIGHT", SCREEN_HEIGHT);
 
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
@@ -73,6 +72,30 @@ const Home: React.FC = () => {
     setCurrentChapterId(chapters[0].id);
     setIsPreQuizPlayed(_isPreQuizPlayed);
     setIsLoading(false);
+    setCurrentLevel(subjectCode, chapters, lessons);
+  }
+
+  function setCurrentLevel(subjectCode, chapters, lessons) {
+    const currentLessonLevel = {
+      en: "en0500",
+      maths: "maths0901",
+      puzzle: "puzzle0102",
+    };
+    if (!localStorage.getItem("currentLessonLevel")) {
+      localStorage.setItem(
+        "currentLessonLevel",
+        JSON.stringify(currentLessonLevel)
+      );
+    }
+    const currentLessonId = currentLessonLevel[subjectCode];
+    if (currentLessonId.length > 0 || currentLessonId != undefined) {
+      const lessonIndex: number = lessons.findIndex(
+        (lesson: any) => lesson.id === currentLessonId
+      );
+      setCurrentLessonIndex(lessonIndex <= 0 ? 0 : lessonIndex);
+    } else {
+      setCurrentChapterId(chapters[0].id);
+    }
   }
 
   async function getResultsWithLesson(classId: string, studentId: string) {
@@ -176,7 +199,7 @@ const Home: React.FC = () => {
                   subjectCode={subject ?? COURSES.ENGLISH}
                   isPreQuizPlayed={isPreQuizPlayed}
                   lessonsScoreMap={lessonsScoreMap}
-                  startIndex={0}
+                  startIndex={currentLessonIndex}
                 />
               </IonCol>
             </div>
