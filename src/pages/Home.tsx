@@ -162,12 +162,12 @@ const Home: React.FC = () => {
             <div className="fullheight xc">
               <IonCol className="cloumn">
                 {/* <IonRow> */}
-                  <ChapterSlider
-                    chapterData={dataCourse.chapters}
-                    onChapterClick={onChapterClick}
-                    currentChapterId={currentChapterId}
-                    chaptersIndex={chaptersMap[currentChapterId] ?? 0}
-                  />
+                <ChapterSlider
+                  chapterData={dataCourse.chapters}
+                  onChapterClick={onChapterClick}
+                  currentChapterId={currentChapterId}
+                  chaptersIndex={chaptersMap[currentChapterId] ?? 0}
+                />
                 {/* </IonRow> */}
                 <CustomSlider
                   lessonData={dataCourse.lessons}
@@ -176,6 +176,7 @@ const Home: React.FC = () => {
                   subjectCode={subject ?? COURSES.ENGLISH}
                   isPreQuizPlayed={isPreQuizPlayed}
                   lessonsScoreMap={lessonsScoreMap}
+                  startIndex={0}
                 />
               </IonCol>
             </div>

@@ -10,6 +10,7 @@ const CustomSlider: React.FC<{
   isPreQuizPlayed: boolean;
   subjectCode: string;
   lessonsScoreMap: any;
+  startIndex: number;
 }> = ({
   lessonData,
   onSwiper,
@@ -17,6 +18,7 @@ const CustomSlider: React.FC<{
   isPreQuizPlayed,
   subjectCode,
   lessonsScoreMap,
+  startIndex,
 }) => {
   return (
     <div className="content">
@@ -24,6 +26,11 @@ const CustomSlider: React.FC<{
         ref={onSwiper}
         key="slpider1"
         hasTrack={true}
+        onReady={(slider: any) => {
+          setTimeout(() => {
+            slider.go(startIndex);
+          }, 100);
+        }}
         options={{
           arrows: false,
           wheel: true,
