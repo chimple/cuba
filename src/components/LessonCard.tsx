@@ -43,7 +43,11 @@ const LessonCard: React.FC<{
       }}
       onClick={() => {
         const url = `chimple-lib/index.html?courseid=${subjectCode}&chapterid=${lesson.chapter.id}&lessonid=${lesson.id}`;
-        history.push("/game", { url: url, lessonId: lesson.id });
+        history.push("/game", {
+          url: url,
+          lessonId: lesson.id,
+          lesson: lesson,
+        });
       }}
       disabled={!isUnlocked}
     >

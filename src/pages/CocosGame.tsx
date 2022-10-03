@@ -2,6 +2,7 @@ import { IonContent, IonLoading, IonPage, useIonToast } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import { GAME_END, LESSON_END, TEMP_LESSONS_STORE } from "../common/constants";
+import { Lesson } from "../interface/curriculumInterfaces";
 import { Util } from "../utility/util";
 
 const CocosGame: React.FC = () => {
@@ -34,7 +35,23 @@ const CocosGame: React.FC = () => {
 
   async function init() {
     setIsLoading(true);
-    const dow = await Util.downloadZipBundle(state.lessonId);
+    const lesson: Lesson = state.lesson;
+    const lessonIds: string[] = [];
+    if (lesson.type === "exam" && !lesson.id.endsWith("PreQuiz")) {
+      const lessonsInChapter = lesson.chapter.lessons;
+      let foundLesson = false;
+      for (let i = lessonsInChapter.length - 1; i >= 0; i--) {
+        if (foundLesson) {
+          if (lessonsInChapter[i].type === "exam") break;
+          lessonIds.push(lessonsInChapter[i].id);
+        } else if (lessonsInChapter[i].id === lesson.id) {
+          foundLesson = true;
+        }
+      }
+    } else {
+      lessonIds.push(lesson.id);
+    }
+    const dow = await Util.downloadZipBundle(lessonIds);
     if (!dow) {
       presentToast();
       history.goBack();

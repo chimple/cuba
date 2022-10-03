@@ -112,6 +112,7 @@ const Slider: React.FC = () => {
                 subjectCode={subject ?? COURSES.SIERRA_LEONE_ENGLISH}
                 isPreQuizPlayed={isPreQuizPlayed}
                 lessonsScoreMap={{}}
+                startIndex={0}
               />
             </IonCol>
           </div>
