@@ -6,6 +6,8 @@ import {
   HEADERLIST,
   SCREEN_WIDTH,
   SCREEN_HEIGHT,
+  TEMP_LESSONS_STORE,
+  CURRENT_LESSON_LEVEL,
 } from "../common/constants";
 import Curriculum from "../models/curriculum";
 import "./Home.css";
@@ -34,6 +36,7 @@ const Home: React.FC = () => {
   const [chaptersMap, setChaptersMap] = useState<any>();
   const [currentHeader, setCurrentHeader] = useState<any>("");
   const [lessonsScoreMap, setLessonsScoreMap] = useState<any>();
+  const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
 
   const history = useHistory();
 
@@ -48,8 +51,6 @@ const Home: React.FC = () => {
         refreshScore();
     });
   }, []);
-
-  // console.log("SCREEN_WIDTH", SCREEN_WIDTH, "SCREEN_HEIGHT", SCREEN_HEIGHT);
 
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
@@ -77,6 +78,26 @@ const Home: React.FC = () => {
     setCurrentChapterId(chapters[0].id);
     setIsPreQuizPlayed(_isPreQuizPlayed);
     setIsLoading(false);
+    setCurrentLevel(subjectCode, chapters, lessons);
+  }
+
+  function setCurrentLevel(subjectCode, chapters, lessons) {
+    const currentLessonJson = localStorage.getItem(CURRENT_LESSON_LEVEL);
+    let currentLessonLevel: any = {};
+    if (currentLessonJson) {
+      currentLessonLevel = JSON.parse(currentLessonJson);
+    }
+    
+    const currentLessonId = currentLessonLevel[subjectCode];
+    console.log("currentChapterId", currentChapterId, currentLessonLevel);
+    if (currentLessonId != undefined) {
+      const lessonIndex: number = lessons.findIndex(
+        (lesson: any) => lesson.id === currentLessonId
+      );
+      setCurrentLessonIndex(lessonIndex <= 0 ? 0 : lessonIndex);
+    } else {
+      setCurrentChapterId(chapters[0].id);
+    }
   }
 
   async function getResultsWithLesson(classId: string, studentId: string) {
@@ -180,7 +201,7 @@ const Home: React.FC = () => {
                   subjectCode={subject ?? COURSES.ENGLISH}
                   isPreQuizPlayed={isPreQuizPlayed}
                   lessonsScoreMap={lessonsScoreMap}
-                  startIndex={0}
+                  startIndex={currentLessonIndex}
                 />
               </IonCol>
             </div>

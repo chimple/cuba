@@ -1,7 +1,12 @@
 import { IonContent, IonLoading, IonPage, useIonToast } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router";
-import { GAME_END, LESSON_END, TEMP_LESSONS_STORE } from "../common/constants";
+import {
+  CURRENT_LESSON_LEVEL,
+  GAME_END,
+  LESSON_END,
+  TEMP_LESSONS_STORE,
+} from "../common/constants";
 import { Lesson } from "../interface/curriculumInterfaces";
 import { Util } from "../utility/util";
 
@@ -73,6 +78,17 @@ const CocosGame: React.FC = () => {
       }
       lessons[e.detail.lessonId] = e.detail.score;
       localStorage.setItem(TEMP_LESSONS_STORE, JSON.stringify(lessons));
+
+      const levelJson = localStorage.getItem(CURRENT_LESSON_LEVEL);
+      let currentLessonLevel: any = {};
+      if (levelJson) {
+        currentLessonLevel = JSON.parse(levelJson);
+      }
+      currentLessonLevel[e.detail.courseName] = e.detail.lessonId;
+      localStorage.setItem(
+        CURRENT_LESSON_LEVEL,
+        JSON.stringify(currentLessonLevel)
+      );
     };
 
     document.body.addEventListener(LESSON_END, saveTempData);
