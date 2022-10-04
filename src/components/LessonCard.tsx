@@ -47,6 +47,7 @@ const LessonCard: React.FC<{
           url: url,
           lessonId: lesson.id,
           lesson: lesson,
+          from: history.location.pathname,
         });
       }}
       disabled={!isUnlocked}
