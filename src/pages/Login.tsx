@@ -6,12 +6,13 @@ import "./Login.css";
 import { useHistory } from "react-router-dom";
 import { BackgroundMode } from "@awesome-cordova-plugins/background-mode";
 import { Capacitor } from "@capacitor/core";
+import { IS_USER_LOGED_IN } from "../common/constants";
 
 const Login: React.FC = () => {
   const history = useHistory();
 
   useEffect(() => {
-    const isUserLogedIn = localStorage.getItem("isUserLogedIn");
+    const isUserLogedIn = localStorage.getItem(IS_USER_LOGED_IN);
     if (isUserLogedIn == "true") {
       history.replace("/");
     }
@@ -49,21 +50,21 @@ const Login: React.FC = () => {
               );
               if (result) {
                 console.log("login-button result true", result);
-                localStorage.setItem("isUserLogedIn", "true");
+                localStorage.setItem(IS_USER_LOGED_IN, "true");
                 history.replace("/");
               } else {
                 console.log("login-button result false", result);
-                localStorage.setItem("isUserLogedIn", "false");
+                localStorage.setItem(IS_USER_LOGED_IN, "false");
               }
             } catch (error: any) {
-              localStorage.setItem("isUserLogedIn", "false");
+              localStorage.setItem(IS_USER_LOGED_IN, "false");
 
               if (
                 error.message === "Method not implemented." &&
                 !Capacitor.isNativePlatform()
               ) {
                 console.log("login-button result true");
-                localStorage.setItem("isUserLogedIn", "true");
+                localStorage.setItem(IS_USER_LOGED_IN, "true");
                 history.replace("/");
               }
             }

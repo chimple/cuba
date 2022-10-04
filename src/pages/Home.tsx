@@ -6,6 +6,8 @@ import {
   HEADERLIST,
   SCREEN_WIDTH,
   SCREEN_HEIGHT,
+  TEMP_LESSONS_STORE,
+  CURRENT_LESSON_LEVEL,
 } from "../common/constants";
 import Curriculum from "../models/curriculum";
 import "./Home.css";
@@ -76,19 +78,15 @@ const Home: React.FC = () => {
   }
 
   function setCurrentLevel(subjectCode, chapters, lessons) {
-    const currentLessonLevel = {
-      en: "en0500",
-      maths: "maths0901",
-      puzzle: "puzzle0102",
-    };
-    if (!localStorage.getItem("currentLessonLevel")) {
-      localStorage.setItem(
-        "currentLessonLevel",
-        JSON.stringify(currentLessonLevel)
-      );
+    const currentLessonJson = localStorage.getItem(CURRENT_LESSON_LEVEL);
+    let currentLessonLevel: any = {};
+    if (currentLessonJson) {
+      currentLessonLevel = JSON.parse(currentLessonJson);
     }
+    
     const currentLessonId = currentLessonLevel[subjectCode];
-    if (currentLessonId.length > 0 || currentLessonId != undefined) {
+    console.log("currentChapterId", currentChapterId, currentLessonLevel);
+    if (currentLessonId != undefined) {
       const lessonIndex: number = lessons.findIndex(
         (lesson: any) => lesson.id === currentLessonId
       );
