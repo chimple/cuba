@@ -44,7 +44,11 @@ const Home: React.FC = () => {
     setCurrentHeader(HEADERLIST.ENGLISH);
     setCourse(COURSES.ENGLISH);
     history.listen((location, action) => {
-      if (action === "POP" && location.pathname === "/") refreshScore();
+      if (
+        (action === "POP" || action === "REPLACE") &&
+        location.pathname === "/"
+      )
+        refreshScore();
     });
   }, []);
 

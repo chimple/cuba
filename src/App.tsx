@@ -30,6 +30,7 @@ import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
 import Slider from "./pages/Slider";
+import { LANGUAGE } from "./common/constants";
 // import Assignments from "./pages/Assignments";
 
 setupIonicReact();
@@ -37,6 +38,7 @@ setupIonicReact();
 const App: React.FC = () => {
   useEffect(() => {
     console.log("fetching...");
+    localStorage.setItem(LANGUAGE, "en");
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({
         directory: Directory.Data,
@@ -47,6 +49,7 @@ const App: React.FC = () => {
         })
         .then((path) => {
           console.log("path ", path, "uri", path?.uri);
+
           if (path instanceof Object) {
             const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.cuba/files
             console.log("uri", uri); //http://localhost/_capacitor_file_/data/user/0/org.chimple.cuba/files
