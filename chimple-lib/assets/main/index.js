@@ -7603,21 +7603,17 @@ window.__require = function e(t, n, r) {
         });
       };
       Config.loadBundle = function(lessonId, callback, errCallback) {
-        cc.assetManager.loadBundle(lessonId, function(err, bundle) {
-          var _a;
-          if (err) if ("android" === core_1.Capacitor.getPlatform()) {
-            var gameUrl = null !== (_a = cc.sys.localStorage.getItem("gameUrl")) && void 0 !== _a ? _a : "http://localhost/_capacitor_file_/data/user/0/org.chimple.cuba/files/";
-            console.log("gameUrl", gameUrl, cc.sys.localStorage.getItem("gameUrl"));
-            var path_1 = gameUrl + lessonId;
-            cc.assetManager.loadBundle(path_1, function(err2, bundle2) {
-              cc.log("loaded bundle with path ", path_1, "err", err2, "bundle", bundle2);
-              err2 ? cc.assetManager.loadBundle(constants_1.BUNDLE_URL + lessonId, function(err2, bundle2) {
-                err2 ? errCallback(err2) : callback(bundle2);
-              }) : callback(bundle2);
-            });
-          } else cc.assetManager.loadBundle(constants_1.BUNDLE_URL + lessonId, function(err2, bundle2) {
+        var _a;
+        console.log("loading bundle for ", lessonId, core_1.Capacitor.getPlatform());
+        var isIframe = !(window === window.parent);
+        var isAndroid = "android" === core_1.Capacitor.getPlatform();
+        var gameUrl = null !== (_a = cc.sys.localStorage.getItem("gameUrl")) && void 0 !== _a ? _a : "http://localhost/_capacitor_file_/data/user/0/org.chimple.cuba/files/";
+        var firstPath = isIframe && isAndroid && gameUrl ? gameUrl + lessonId : lessonId;
+        console.log("gameUrl", gameUrl, "isIframe", isIframe, cc.sys.localStorage.getItem("gameUrl"), "firstPath", firstPath);
+        cc.assetManager.loadBundle(firstPath, function(err, bundle) {
+          err ? cc.assetManager.loadBundle(constants_1.BUNDLE_URL + lessonId, function(err2, bundle2) {
             err2 ? errCallback(err2) : callback(bundle2);
-          }); else callback(bundle);
+          }) : callback(bundle);
         });
       };
       Object.defineProperty(Config.prototype, "friend", {
