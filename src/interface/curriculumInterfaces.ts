@@ -21,8 +21,8 @@ export interface Lesson {
     id: string;
     image: string;
     name: string;
-    open?: boolean;
-    type?: string;
+    isUnlock: boolean;
+    type: string;
     skills?: Array<string>;
     color?: string;
     chapter: Chapter;

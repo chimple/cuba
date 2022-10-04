@@ -69,7 +69,9 @@ const Home: React.FC = () => {
       tempChapterMap[chapters[i].id] = i;
     }
     if (!lessonsScoreMap) {
-      const tempLessonMap = await getResultsWithLesson("", "");
+      const apiInstance = OneRosterApi.getInstance();
+      const tempLessonMap =
+        await apiInstance.getResultsForStudentsForClassInLessonMap("", "");
       setLessonsScoreMap(tempLessonMap);
     }
     setSubject(subjectCode);
@@ -98,24 +100,6 @@ const Home: React.FC = () => {
     } else {
       setCurrentChapterId(chapters[0].id);
     }
-  }
-
-  async function getResultsWithLesson(classId: string, studentId: string) {
-    const apiInstance = OneRosterApi.getInstance();
-    const results = await apiInstance.getResultsForStudentForClass(
-      classId,
-      studentId
-    );
-    const lessonMap: any = {};
-    for (let result of results) {
-      if (
-        !lessonMap[result.metadata.lessonId] ||
-        lessonMap[result.metadata.lessonId] < result.score
-      ) {
-        lessonMap[result.metadata.lessonId] = result.score;
-      }
-    }
-    return lessonMap;
   }
 
   function onChapterClick(e: any) {
@@ -169,7 +153,9 @@ const Home: React.FC = () => {
   }
   async function refreshScore() {
     setIsLoading(true);
-    const tempLessonMap = await getResultsWithLesson("", "");
+    const apiInstance = OneRosterApi.getInstance();
+    const tempLessonMap =
+      await apiInstance.getResultsForStudentsForClassInLessonMap("", "");
     setLessonsScoreMap(tempLessonMap);
     setIsLoading(false);
   }
