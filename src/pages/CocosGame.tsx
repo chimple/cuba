@@ -54,14 +54,14 @@ const CocosGame: React.FC = () => {
     const dow = await Util.downloadZipBundle(lessonIds);
     if (!dow) {
       presentToast();
-      history.goBack();
+      history.replace(state.from ?? "/");
       return;
     }
     console.log("donwloaded ", dow);
     setIsLoading(false);
     document.getElementById("iframe")?.focus();
     const push = (e: any) => {
-      history.goBack();
+      history.replace(state.from ?? "/");
     };
 
     //Just fot Testing
