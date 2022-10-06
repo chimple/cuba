@@ -264,12 +264,12 @@ export class OneRosterApi implements ServiceApi {
         if (json) {
             lessons = JSON.parse(json);
         }
-        console.log('kessins', lessons, typeof lessons)
+        // console.log('kessins', lessons, typeof lessons)
         for (let i of Object.keys(lessons)) {
-            console.log('Object.keys', i, lessons)
+            // console.log('Object.keys', i, lessons)
             response.results.push(addTempResult(i, lessons[i]))
         }
-        console.log("response getResultsForStudentForClass", response)
+        // console.log("response getResultsForStudentForClass", response)
         // const req = await Http.get({ url: `/classes/${classId}/students/${studentId}/results` })
         await new Promise(r => setTimeout(r, 1000));
         const results: Result[] = []
@@ -292,6 +292,20 @@ export class OneRosterApi implements ServiceApi {
         this.preQuizMap[subjectCode] = false
 
         return false;
+    }
+
+    public async getResultsForStudentsForClassInLessonMap(classId: string, studentId: string): Promise<{}> {
+        const results = await this.getResultsForStudentForClass(classId, studentId);
+        const lessonMap: any = {};
+        for (let result of results) {
+            if (
+                !lessonMap[result.metadata.lessonId] ||
+                lessonMap[result.metadata.lessonId] < result.score
+            ) {
+                lessonMap[result.metadata.lessonId] = result;
+            }
+        }
+        return lessonMap;
     }
 
 }

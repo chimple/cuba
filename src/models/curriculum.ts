@@ -1,7 +1,7 @@
-import { Http } from "@capacitor-community/http";
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
 import { Util } from "../utility/util";
-import fs from 'fs'
+import { COURSES, EXAM, TEMP_LESSONS_STORE } from "../common/constants";
+import { OneRosterApi } from "../services/OneRosterApi";
 
 export default class Curriculum {
     private static instance: Curriculum;
@@ -85,24 +85,77 @@ export default class Curriculum {
         let res = await fetch("courses/" + courseId + "/course.json")
         const data = await res.json();
         let course = Util.toCourse(data)
-        course.chapters.forEach((chapter) => {
-            chapter.course = course;
-            chapter.lessons.forEach((lesson) => {
-                lesson.chapter = chapter;
-                // if (User.getCurrentUser() && User.getCurrentUser().debug) {
-                //     lesson.open = true
-                // } else {
-                lesson.open = false
-                // }
-                this.allLessons.set(lesson.id, lesson)
+
+        const apiInstance = OneRosterApi.getInstance();
+        const playedLessons: any = await apiInstance.getResultsForStudentsForClassInLessonMap("", "") || {};
+
+        console.log("playedLessons", playedLessons)
+
+        //if quiz is  not played making all other lesson lock
+        if (!playedLessons[courseId + "_PreQuiz"] && courseId != COURSES.PUZZLE) {
+            course.chapters.forEach(async (chapter: Chapter) => {
+                chapter.course = course;
+                chapter.lessons.forEach(async (lesson) => {
+                    lesson.isUnlock = lesson.id != courseId + "_PreQuiz" ? false : true;
+                    lesson.chapter = chapter;
+                    this.allLessons.set(lesson.id, lesson)
+                });
             });
-        });
-        this.curriculum.set(courseId, course);
+            this.curriculum.set(courseId, course);
+            console.log(this.curriculum, this.allLessons)
 
+            return this.curriculum
+        } else {
+            course.chapters.forEach(async (chapter: Chapter) => {
+                chapter.course = course;
+                chapter = await this.unlockingChapterWise(playedLessons, courseId, chapter);
+            });
+            this.curriculum.set(courseId, course);
 
-        console.log(this.curriculum, this.allLessons)
+            console.log(this.curriculum, this.allLessons)
 
-        return this.curriculum;
+            return this.curriculum;
+        }
+    }
+
+    async unlockingChapterWise(playedLessons: any, courseId: string, chapter: Chapter): Promise<Chapter> {
+
+        //Unlocking all Puzzle Lessons
+        if (courseId === COURSES.PUZZLE) {
+            let tempLessons: Lesson[] = chapter.lessons;
+            for (let i = 0; i < tempLessons.length; i++) {
+                tempLessons[i].isUnlock = true;
+                tempLessons[i].chapter = chapter;
+                this.allLessons.set(tempLessons[i].id, tempLessons[i])
+            }
+            chapter.lessons = tempLessons
+            return chapter
+        } else {
+            let tempLessons: Lesson[] = chapter.lessons;
+            for (let i = 0; i < tempLessons.length; i++) {
+
+                //Unlocking Played lessons and first lessons in each chapter (i===0 ? true)
+                tempLessons[i].isUnlock = playedLessons[tempLessons[i].id] ? true : i === 0 ? true : false;
+                tempLessons[i].chapter = chapter;
+                this.allLessons.set(tempLessons[i].id, tempLessons[i])
+
+                //if lesson is played then Unlocking Next Lesson
+                if (playedLessons[tempLessons[i].id] && tempLessons.length > i + 1) {
+
+                    //if challenge lesson is played and score is > 70%, then unlocking the next lesson.
+                    if (tempLessons[i].type === EXAM && playedLessons[tempLessons[i].id].score < 70) {
+                        continue
+                    }
+                    tempLessons[i + 1].isUnlock = true;
+                    tempLessons[i + 1].chapter = chapter;
+                    this.allLessons.set(tempLessons[i + 1].id, tempLessons[i + 1]);
+                    console.log(tempLessons[i].name, "is played so unlocking next lesson", tempLessons[i + 1].name)
+                    i++;
+                }
+            }
+            chapter.lessons = tempLessons
+            return chapter
+        }
     }
 
     async allChapterforSubject(courseId: string): Promise<Chapter[]> {

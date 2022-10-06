@@ -43,8 +43,8 @@ const CustomSlider: React.FC<{
         }}
       >
         {lessonData.map((m: Lesson, i: number) => {
-          const isUnlocked = !isPreQuizPlayed ? i === 0 : true;
-          const isPlayed = !!lessonsScoreMap[m.id] && lessonsScoreMap[m.id] > 0;
+          const isPlayed =
+            !!lessonsScoreMap[m.id] && lessonsScoreMap[m.id]?.score > 0;
           return (
             <SplideSlide className="slide" key={i}>
               <LessonCard
@@ -52,7 +52,7 @@ const CustomSlider: React.FC<{
                 height="45vh"
                 subjectCode={subjectCode}
                 isPlayed={isPlayed}
-                isUnlocked={isUnlocked}
+                isUnlocked={m.isUnlock}
                 lesson={m}
               />
             </SplideSlide>
