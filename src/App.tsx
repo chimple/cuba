@@ -29,8 +29,7 @@ import { Filesystem, Directory } from "@capacitor/filesystem";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
-import Slider from "./pages/Slider";
-import { LANGUAGE } from "./common/constants";
+import { BASE_NAME, GAME_URL, LANG, LANGUAGE, PAGES } from "./common/constants";
 // import Assignments from "./pages/Assignments";
 
 setupIonicReact();
@@ -38,7 +37,7 @@ setupIonicReact();
 const App: React.FC = () => {
   useEffect(() => {
     console.log("fetching...");
-    localStorage.setItem(LANGUAGE, "en");
+    localStorage.setItem(LANGUAGE, LANG.ENGLISH);
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({
         directory: Directory.Data,
@@ -53,46 +52,29 @@ const App: React.FC = () => {
           if (path instanceof Object) {
             const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.cuba/files
             console.log("uri", uri); //http://localhost/_capacitor_file_/data/user/0/org.chimple.cuba/files
-            localStorage.setItem("gameUrl", uri + "/");
+            localStorage.setItem(GAME_URL, uri + "/");
           }
         });
     }
   }, []);
   return (
     <IonApp>
-      <IonReactRouter
-        basename={
-          Capacitor.isNativePlatform()
-            ? ""
-            : process.env.NODE_ENV === "production"
-            ? "/cuba"
-            : ""
-        }
-      >
+      <IonReactRouter basename={BASE_NAME}>
         <IonRouterOutlet>
           <Switch>
-            <ProtectedRoute path="/" exact={true}>
+            <ProtectedRoute path={PAGES.HOME} exact={true}>
               <Home />
             </ProtectedRoute>
-            {/* <ProtectedRoute path="/cuba" exact={true}>
-              <Home />
-            </ProtectedRoute> */}
-            <Route path="/login" exact={true}>
+            <Route path={PAGES.LOGIN} exact={true}>
               <Login />
             </Route>
-            <ProtectedRoute path="/Home" exact={true}>
-              <Home />
-            </ProtectedRoute>
-            <Route path="/slider" exact={true}>
-              <Slider />
-            </Route>
-            <ProtectedRoute path="/game" exact={true}>
+            <ProtectedRoute path={PAGES.GAME} exact={true}>
               <CocosGame />
             </ProtectedRoute>
-            <ProtectedRoute path="/end" exact={true}>
+            <ProtectedRoute path={PAGES.END} exact={true}>
               <End />
             </ProtectedRoute>
-            <ProtectedRoute path="/profile" exact={true}>
+            <ProtectedRoute path={PAGES.PROFILE} exact={true}>
               <Profile />
             </ProtectedRoute>
             {/* <Route path="/assignments" exact={true}>

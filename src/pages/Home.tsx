@@ -1,13 +1,10 @@
-import { IonPage, IonHeader, IonContent, IonCol, IonRow } from "@ionic/react";
+import { IonPage, IonHeader, IonContent, IonCol } from "@ionic/react";
 import { useEffect, useState } from "react";
 import {
-  ALL_COURSES,
   COURSES,
   HEADERLIST,
-  SCREEN_WIDTH,
-  SCREEN_HEIGHT,
-  TEMP_LESSONS_STORE,
   CURRENT_LESSON_LEVEL,
+  PAGES,
 } from "../common/constants";
 import Curriculum from "../models/curriculum";
 import "./Home.css";
@@ -19,6 +16,10 @@ import { Splide } from "@splidejs/react-splide";
 import { OneRosterApi } from "../services/OneRosterApi";
 import HomeHeader from "../components/HomeHeader";
 import { useHistory } from "react-router";
+// Default theme
+import "@splidejs/react-splide/css";
+// or only core styles
+import "@splidejs/react-splide/css/core";
 
 const Home: React.FC = () => {
   const [dataCourse, setDataCourse] = useState<{
@@ -46,7 +47,7 @@ const Home: React.FC = () => {
     history.listen((location, action) => {
       if (
         (action === "POP" || action === "REPLACE") &&
-        location.pathname === "/"
+        location.pathname === PAGES.HOME
       )
         refreshScore();
     });
@@ -89,9 +90,8 @@ const Home: React.FC = () => {
     if (currentLessonJson) {
       currentLessonLevel = JSON.parse(currentLessonJson);
     }
-    
+
     const currentLessonId = currentLessonLevel[subjectCode];
-    console.log("currentChapterId", currentChapterId, currentLessonLevel);
     if (currentLessonId != undefined) {
       const lessonIndex: number = lessons.findIndex(
         (lesson: any) => lesson.id === currentLessonId
@@ -144,7 +144,7 @@ const Home: React.FC = () => {
       case HEADERLIST.PROFILE:
         setCurrentHeader(HEADERLIST.PROFILE);
         console.log("Profile Icons is selected");
-        history.push("/profile");
+        history.push(PAGES.PROFILE);
         break;
 
       default:

@@ -1,4 +1,5 @@
 import { useHistory } from "react-router";
+import { PAGES } from "../common/constants";
 import IconButton from "./IconButton";
 import "./ProfileHeader.css";
 
@@ -10,7 +11,7 @@ const ProfileHeader: React.FC = () => {
         name="Back"
         iconSrc="assets/icons/BackIcon.svg"
         onClick={() => {
-          history.replace("/");
+          history.replace(PAGES.HOME);
         }}
       />
       <IconButton name="Chimp" iconSrc="assets/icons/profile.png" />
@@ -18,7 +19,7 @@ const ProfileHeader: React.FC = () => {
         name="Sign Out"
         iconSrc="assets/icons/SignOutIcon.svg"
         onClick={() => {
-          history.push("/login");
+          history.push(PAGES.LOGIN);
           localStorage.setItem("isUserLogedIn", "false");
         }}
       />

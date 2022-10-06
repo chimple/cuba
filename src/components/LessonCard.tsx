@@ -1,7 +1,7 @@
-import { IonCard, IonCardHeader, IonCardTitle } from "@ionic/react";
+import { IonCard } from "@ionic/react";
 import { useState } from "react";
 import { useHistory } from "react-router-dom";
-import { LESSON_CARD_COLORS } from "../common/constants";
+import { LESSON_CARD_COLORS, PAGES } from "../common/constants";
 import { Lesson } from "../interface/curriculumInterfaces";
 import "./LessonCard.css";
 
@@ -43,7 +43,7 @@ const LessonCard: React.FC<{
       }}
       onClick={() => {
         const url = `chimple-lib/index.html?courseid=${subjectCode}&chapterid=${lesson.chapter.id}&lessonid=${lesson.id}`;
-        history.push("/game", {
+        history.push(PAGES.GAME, {
           url: url,
           lessonId: lesson.id,
           lesson: lesson,
