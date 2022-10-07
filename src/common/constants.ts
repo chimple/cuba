@@ -1,3 +1,5 @@
+import { Capacitor } from "@capacitor/core";
+
 export enum COURSES {
     SIERRA_LEONE_ENGLISH = 'en-sl',
     SIERRA_LEONE_MATHS = 'maths-sl',
@@ -25,6 +27,22 @@ export const LESSON_CARD_COLORS = [
     "#AC82CF"
 ]
 
+export enum PAGES {
+    HOME = "/",
+    LOGIN = "/login",
+    GAME = "/game",
+    END = "/end",
+    PROFILE = "/profile",
+}
+
+export enum LANG {
+    ENGLISH = 'en',
+    HINDI = 'hi',
+    KANNADA = 'kn',
+    MARATHI = 'mr',
+}
+
+
 export const SCREEN_WIDTH = window.innerWidth;
 export const SCREEN_HEIGHT = window.innerHeight;
 
@@ -36,3 +54,10 @@ export const IS_USER_LOGED_IN = "isUserLogedIn"
 export const CURRENT_LESSON_LEVEL = "currentLessonLevel"
 export const LANGUAGE = "language"
 export const EXAM = "exam"
+export const PRE_QUIZ = "PreQuiz";
+export const GAME_URL = "gameUrl"
+export const BASE_NAME = Capacitor.isNativePlatform()
+    ? ""
+    : process.env.NODE_ENV === "production"
+        ? "/cuba"
+        : "";

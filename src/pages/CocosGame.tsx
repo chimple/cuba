@@ -3,8 +3,11 @@ import { useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import {
   CURRENT_LESSON_LEVEL,
+  EXAM,
   GAME_END,
   LESSON_END,
+  PAGES,
+  PRE_QUIZ,
   TEMP_LESSONS_STORE,
 } from "../common/constants";
 import { Lesson } from "../interface/curriculumInterfaces";
@@ -42,12 +45,12 @@ const CocosGame: React.FC = () => {
     setIsLoading(true);
     const lesson: Lesson = state.lesson;
     const lessonIds: string[] = [];
-    if (lesson.type === "exam" && !lesson.id.endsWith("PreQuiz")) {
+    if (lesson.type === EXAM && !lesson.id.endsWith(PRE_QUIZ)) {
       const lessonsInChapter = lesson.chapter.lessons;
       let foundLesson = false;
       for (let i = lessonsInChapter.length - 1; i >= 0; i--) {
         if (foundLesson) {
-          if (lessonsInChapter[i].type === "exam") break;
+          if (lessonsInChapter[i].type === EXAM) break;
           lessonIds.push(lessonsInChapter[i].id);
         } else if (lessonsInChapter[i].id === lesson.id) {
           foundLesson = true;
@@ -59,14 +62,14 @@ const CocosGame: React.FC = () => {
     const dow = await Util.downloadZipBundle(lessonIds);
     if (!dow) {
       presentToast();
-      history.replace(state.from ?? "/");
+      history.replace(state.from ?? PAGES.HOME);
       return;
     }
     console.log("donwloaded ", dow);
     setIsLoading(false);
     document.getElementById("iframe")?.focus();
     const push = (e: any) => {
-      history.replace(state.from ?? "/");
+      history.replace(state.from ?? PAGES.HOME);
     };
 
     //Just fot Testing

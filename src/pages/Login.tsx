@@ -6,7 +6,7 @@ import "./Login.css";
 import { useHistory } from "react-router-dom";
 import { BackgroundMode } from "@awesome-cordova-plugins/background-mode";
 import { Capacitor } from "@capacitor/core";
-import { IS_USER_LOGED_IN } from "../common/constants";
+import { IS_USER_LOGED_IN, PAGES } from "../common/constants";
 
 const Login: React.FC = () => {
   const history = useHistory();
@@ -14,7 +14,7 @@ const Login: React.FC = () => {
   useEffect(() => {
     const isUserLogedIn = localStorage.getItem(IS_USER_LOGED_IN);
     if (isUserLogedIn == "true") {
-      history.replace("/");
+      history.replace(PAGES.HOME);
     }
   }, []);
   console.log("Login page");
@@ -51,7 +51,7 @@ const Login: React.FC = () => {
               if (result) {
                 console.log("login-button result true", result);
                 localStorage.setItem(IS_USER_LOGED_IN, "true");
-                history.replace("/");
+                history.replace(PAGES.HOME);
               } else {
                 console.log("login-button result false", result);
                 localStorage.setItem(IS_USER_LOGED_IN, "false");
@@ -65,7 +65,7 @@ const Login: React.FC = () => {
               ) {
                 console.log("login-button result true");
                 localStorage.setItem(IS_USER_LOGED_IN, "true");
-                history.replace("/");
+                history.replace(PAGES.HOME);
               }
             }
             if (BackgroundMode.isActive()) {
