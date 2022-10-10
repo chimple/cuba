@@ -104,7 +104,6 @@ export class Result extends BaseObject {
         this._learningObjectiveSet = learningObjectiveSet;
     }
     static fromJson(jsonObj: any): Result {
-        const classCode: ScoreStatusEnum = (ScoreStatusEnum[jsonObj?.classCode] as unknown as ScoreStatusEnum) ?? ScoreStatusEnum.submitted;
         const status: OneRosterStatus = (OneRosterStatus[jsonObj?.status] as unknown as OneRosterStatus) ?? OneRosterStatus.active;
         const learningObjectiveSet: LearningObjective[] = [];
         for (let i of jsonObj.learningObjectiveSet) {
@@ -125,7 +124,7 @@ export class Result extends BaseObject {
             Util.getGUIDRef(jsonObj?.student),
             Util.getGUIDRef(jsonObj?.class),
             Util.getGUIDRef(jsonObj?.scoreScale),
-            classCode,
+            ScoreStatusEnum[jsonObj?.classCode] ?? ScoreStatusEnum.SUBMITTED,
             jsonObj.score,
             jsonObj.textScore,
             jsonObj.scoreDate,

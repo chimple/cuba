@@ -15,15 +15,15 @@ export enum OneRosterStatus {
 }
 
 export enum ScoreStatusEnum {
-    exempt,
-    "fully graded",
-    "not submitted",
-    "partially graded",
-    submitted,
-    incomplete,
-    missing,
-    withdrawal,
-    "in progress"
+    EXEMPT = "exempt",
+    FULLY_GRADED = "fully graded",
+    NOT_SUBMITTED = "not submitted",
+    PARTIALLY_GRADED = "partially graded",
+    SUBMITTED = "submitted",
+    INCOMPLETE = "incomplete",
+    MISSING = "missing",
+    WITHDRAWAL = "withdrawal",
+    IN_PROGRESS = "in progress"
 }
 
 export interface LearningObjectiveResult {
@@ -35,4 +35,12 @@ export interface LearningObjectiveResult {
 export interface LearningObjective {
     "source": string,
     "learningObjectiveResults": LearningObjectiveResult[]
+}
+export enum OrgTypeEnum {
+    DEPARTMENT = "department",
+    DISTRICT = "district",
+    LOCAL = "local",
+    NATIONAL = "national",
+    SCHOOL = "school",
+    STATE = "state"
 }
