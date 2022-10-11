@@ -1,4 +1,4 @@
-import { LearningObjective, LearningObjectiveResult, GUIDRef, OneRosterStatus, ScoreStatusEnum } from "../interface/modelInterfaces";
+import { GUIDRef, OneRosterStatus, ScoreStatusEnum } from "../interface/modelInterfaces";
 import { Util } from "../utility/util";
 import { BaseObject } from "./baseObject";
 
@@ -6,13 +6,13 @@ export class Result extends BaseObject {
     private _lineItem: GUIDRef;
     private _student: GUIDRef;
     private _class: GUIDRef;
-    private _scoreScale: GUIDRef;
+    // private _scoreScale: GUIDRef;
     private _scoreStatus: ScoreStatusEnum;
     private _score: number;
-    private _textScore: string;
+    // private _textScore: string;
     private _scoreDate: string;
     private _comment: string;
-    private _learningObjectiveSet: LearningObjective[];
+    // private _learningObjectiveSet: LearningObjective[];
 
     public get lineItem(): GUIDRef {
         return this._lineItem;
@@ -32,12 +32,12 @@ export class Result extends BaseObject {
     public set class(value: GUIDRef) {
         this._class = value;
     }
-    public get scoreScale(): GUIDRef {
-        return this._scoreScale;
-    }
-    public set scoreScale(value: GUIDRef) {
-        this._scoreScale = value;
-    }
+    // public get scoreScale(): GUIDRef {
+    //     return this._scoreScale;
+    // }
+    // public set scoreScale(value: GUIDRef) {
+    //     this._scoreScale = value;
+    // }
     public get scoreStatus(): ScoreStatusEnum {
         return this._scoreStatus;
     }
@@ -50,12 +50,12 @@ export class Result extends BaseObject {
     public set score(value: number) {
         this._score = value;
     }
-    public get textScore(): string {
-        return this._textScore;
-    }
-    public set textScore(value: string) {
-        this._textScore = value;
-    }
+    // public get textScore(): string {
+    //     return this._textScore;
+    // }
+    // public set textScore(value: string) {
+    //     this._textScore = value;
+    // }
     public get scoreDate(): string {
         return this._scoreDate;
     }
@@ -68,24 +68,24 @@ export class Result extends BaseObject {
     public set comment(value: string) {
         this._comment = value;
     }
-    public get learningObjectiveSet(): LearningObjective[] {
-        return this._learningObjectiveSet;
-    }
-    public set learningObjectiveSet(value: LearningObjective[]) {
-        this._learningObjectiveSet = value;
-    }
+    // public get learningObjectiveSet(): LearningObjective[] {
+    //     return this._learningObjectiveSet;
+    // }
+    // public set learningObjectiveSet(value: LearningObjective[]) {
+    //     this._learningObjectiveSet = value;
+    // }
 
     constructor(
         lineItem: GUIDRef,
         student: GUIDRef,
         class_1: GUIDRef,
-        scoreScale: GUIDRef,
+        // scoreScale: GUIDRef,
         scoreStatus: ScoreStatusEnum,
         score: number,
-        textScore: string,
+        // textScore: string,
         scoreDate: string,
         comment: string,
-        learningObjectiveSet: LearningObjective[],
+        // learningObjectiveSet: LearningObjective[],
         sourcedId: string,
         status: OneRosterStatus,
         dateLastModified: string,
@@ -95,46 +95,65 @@ export class Result extends BaseObject {
         this._lineItem = lineItem;
         this._student = student;
         this._class = class_1;
-        this._scoreScale = scoreScale;
+        // this._scoreScale = scoreScale;
         this._scoreStatus = scoreStatus;
         this._score = score;
-        this._textScore = textScore;
+        // this._textScore = textScore;
         this._scoreDate = scoreDate;
         this._comment = comment;
-        this._learningObjectiveSet = learningObjectiveSet;
+        // this._learningObjectiveSet = learningObjectiveSet;
     }
+
     static fromJson(jsonObj: any): Result {
-        const status: OneRosterStatus = (OneRosterStatus[jsonObj?.status] as unknown as OneRosterStatus) ?? OneRosterStatus.active;
-        const learningObjectiveSet: LearningObjective[] = [];
-        for (let i of jsonObj.learningObjectiveSet) {
-            const learningObjectiveResults: LearningObjectiveResult[] = []
-            for (let j of i.learningObjectiveResults) {
-                learningObjectiveResults.push({
-                    learningObjectiveId: j.learningObjectiveId,
-                    score: j.score,
-                    textScore: j.textScore
-                })
-            }
-            const learningObjective: LearningObjective = { source: i.source, learningObjectiveResults: learningObjectiveResults }
-            learningObjectiveSet.push(learningObjective)
-        }
+        // const status: OneRosterStatus = (OneRosterStatus[jsonObj?.status] as unknown as OneRosterStatus) ?? OneRosterStatus.active;
+        // const learningObjectiveSet: LearningObjective[] = [];
+        // for (let i of jsonObj.learningObjectiveSet) {
+        //     const learningObjectiveResults: LearningObjectiveResult[] = []
+        //     for (let j of i.learningObjectiveResults) {
+        //         learningObjectiveResults.push({
+        //             learningObjectiveId: j.learningObjectiveId,
+        //             score: j.score,
+        //             textScore: j.textScore
+        //         })
+        //     }
+        //     const learningObjective: LearningObjective = { source: i.source, learningObjectiveResults: learningObjectiveResults }
+        //     learningObjectiveSet.push(learningObjective)
+        // }
 
         const newResult = new Result(
             Util.getGUIDRef(jsonObj?.lineItem),
             Util.getGUIDRef(jsonObj?.student),
             Util.getGUIDRef(jsonObj?.class),
-            Util.getGUIDRef(jsonObj?.scoreScale),
+            // Util.getGUIDRef(jsonObj?.scoreScale),
             ScoreStatusEnum[jsonObj?.classCode] ?? ScoreStatusEnum.SUBMITTED,
             jsonObj.score,
-            jsonObj.textScore,
+            // jsonObj.textScore,
             jsonObj.scoreDate,
             jsonObj.comment,
-            learningObjectiveSet,
+            // learningObjectiveSet,
             jsonObj.sourcedId,
-            status,
+            OneRosterStatus[jsonObj?.status] ?? OneRosterStatus.ACTIVE,
             jsonObj.dateLastModified,
             jsonObj.metadata
         )
         return newResult;
     }
+
+    toJson() {
+        return {
+            sourcedId: this.sourcedId,
+            status: this.status,
+            dateLastModified: this.dateLastModified,
+            metadata: this.metadata,
+            lineItem: this.lineItem,
+            student: this.student,
+            class: this.class,
+            scoreStatus: this.scoreStatus,
+            score: this.score,
+            // textScore: this.textScore,
+            scoreDate: this.scoreDate,
+            comment: this.comment,
+        }
+    }
+
 }

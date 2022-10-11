@@ -11,6 +11,7 @@ import {
   TEMP_LESSONS_STORE,
 } from "../common/constants";
 import { Lesson } from "../interface/curriculumInterfaces";
+import { OneRosterApi } from "../services/OneRosterApi";
 import { Util } from "../utility/util";
 
 const CocosGame: React.FC = () => {
@@ -73,7 +74,7 @@ const CocosGame: React.FC = () => {
     };
 
     //Just fot Testing
-    const saveTempData = (e: any) => {
+    const saveTempData = async (e: any) => {
       const json = localStorage.getItem(TEMP_LESSONS_STORE);
       let lessons: any = {};
       if (json) {
@@ -92,6 +93,18 @@ const CocosGame: React.FC = () => {
         CURRENT_LESSON_LEVEL,
         JSON.stringify(currentLessonLevel)
       );
+      const apiInstance = OneRosterApi.getInstance();
+      const tempClass = await apiInstance.getClassForUserForSubject(
+        "",
+        e.detail.courseName
+      );
+      const result = await apiInstance.putResult(
+        "user",
+        tempClass?.sourcedId ?? "",
+        e.detail.lessonId,
+        e.detail.score
+      );
+      console.log("result ", result);
     };
 
     document.body.addEventListener(LESSON_END, saveTempData);

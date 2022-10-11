@@ -133,12 +133,11 @@ export class Class extends BaseObject {
         for (let i of jsonObj?.resources) {
             resources.push(Util.getGUIDRef(i))
         }
-        const status: OneRosterStatus = (OneRosterStatus[jsonObj?.status] as unknown as OneRosterStatus) ?? OneRosterStatus.active;
 
         const newClass = new Class(
             jsonObj?.title,
-            ClassType[jsonObj?.classCode] ?? ClassType.homeroom,
-            jsonObj?.classType,
+            jsonObj?.classCode,
+            ClassType[jsonObj?.classType] ?? ClassType.HOME_ROOM,
             jsonObj?.location,
             jsonObj?.grades ?? [],
             jsonObj?.subjects ?? [],
@@ -149,7 +148,7 @@ export class Class extends BaseObject {
             jsonObj?.periods,
             resources,
             jsonObj?.sourcedId,
-            status,
+            OneRosterStatus[jsonObj?.status] ?? OneRosterStatus.ACTIVE,
             jsonObj?.dateLastModified,
             jsonObj?.metadata
 

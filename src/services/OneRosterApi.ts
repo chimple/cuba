@@ -1,13 +1,18 @@
 import { Http, HttpHeaders } from "@capacitor-community/http";
 import { COURSES, PRE_QUIZ, TEMP_LESSONS_STORE } from "../common/constants";
 import { Lesson } from "../interface/curriculumInterfaces";
+import { OneRosterStatus, ScoreStatusEnum } from "../interface/modelInterfaces";
 import { Class } from "../models/class";
+import { LineItem } from "../models/lineItem";
 import { Result } from "../models/result";
 import { ServiceApi } from "./ServiceApi";
+import { v4 as uuidv4 } from 'uuid';
+
 
 export class OneRosterApi implements ServiceApi {
     public static i: OneRosterApi;
     private preQuizMap: any = {}
+    private classes: { [key: string]: Class[] } = {}
     private constructor() {
     }
 
@@ -24,10 +29,10 @@ export class OneRosterApi implements ServiceApi {
 
     async getClassesForUser(userId: string): Promise<Class[]> {
         try {
-            const response = await Http.get({ url: "https://mocki.io/v1/db8a9853-1afa-441a-b6a8-b199f3bc2e3e", headers: this.getHeaders() }).catch((e) => { console.log("error on getResultsForStudentForClass", e) });
+            const response = await Http.get({ url: "https://mocki.io/v1/eed2eaa3-cd47-4f13-a3c4-524de936d132", headers: this.getHeaders() }).catch((e) => { console.log("error on getResultsForStudentForClass", e) });
             const result = (response && response.status === 200) ? response.data : {};
             // const req=await Http.get({url:`http://users/${userId}/classes`})
-            await new Promise(r => setTimeout(r, 1000));
+            // await new Promise(r => setTimeout(r, 1000));
             const classes: Class[] = []
             if (result.classes) {
                 for (let i of result.classes) {
@@ -147,6 +152,81 @@ export class OneRosterApi implements ServiceApi {
             }
         }
         return lessonMap;
+    }
+
+    async getLineItemsForClassForLessonId(classId: string, LessonId: string): Promise<LineItem[]> {
+        try {
+            const filter = encodeURIComponent(`title='${LessonId}'`)
+            const response = await Http.get({ url: "https://mocki.io/v1/18b2c698-d192-4fc5-9e47-a6eae79bb681?filter=" + filter, headers: this.getHeaders(), shouldEncodeUrlParams: false }).catch((e) => { console.log("error on getResultsForStudentForClass", e) });
+            const result = (response && response.status === 200) ? response.data : {};
+            const lineItems: LineItem[] = [];
+            if (result.lineItems) {
+                for (let i of result.lineItems) {
+                    lineItems.push(LineItem.fromJson(i))
+                }
+            }
+            return lineItems;
+        } catch (error) {
+            console.log(error);
+            return [];
+        }
+    }
+
+    async putLineItem(classId: string, lessonId: string): Promise<LineItem> {
+        const sourcedId = uuidv4();
+        const assignDate = new Date().toISOString();
+        const dueDate = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString()
+        const lineItem = new LineItem(lessonId, assignDate, dueDate, { href: classId, sourcedId: classId, type: "class" }, { href: "category", sourcedId: "category", type: "category" }, 0, 100, sourcedId, OneRosterStatus.ACTIVE, assignDate, {}, lessonId);
+        console.log("lineItem", { lineItems: lineItem.toJson() })
+        // Http.put({ url: `/lineItems/${sourcedId}`, data: { lineItem: result.toJson() }, headers: this.getHeaders() })
+        return lineItem;
+
+    }
+
+    async putResult(userId: string, classId: string, LessonId: string, score: number): Promise<Result | undefined> {
+        try {
+            const lineItems = await this.getLineItemsForClassForLessonId(classId, LessonId);
+            const lineItem: LineItem = (lineItems && lineItems.length > 0) ? lineItems[0] : await this.putLineItem(classId, LessonId);
+            const date = new Date().toISOString();
+            const sourcedId = uuidv4();
+            const result = new Result(
+                {
+                    href: lineItem?.sourcedId,
+                    sourcedId: lineItem?.sourcedId,
+                    type: "lineItem"
+                },
+                {
+                    href: userId,
+                    sourcedId: userId,
+                    type: "user"
+                },
+                lineItem.class,
+                ScoreStatusEnum.SUBMITTED,
+                score,
+                date,
+                "",
+                sourcedId,
+                OneRosterStatus.ACTIVE,
+                date,
+                { LessonId: LessonId });
+            console.log('results', { result: result.toJson() })
+            // Http.put({ url: `/results/${sourcedId}`, data: { result: result.toJson() }, headers: this.getHeaders() })
+            return result;
+        } catch (error) {
+            console.log(error)
+        }
+    }
+    async getClassForUserForSubject(userId: string, subjectCode: string): Promise<Class | undefined> {
+        let classes: Class[] = [];
+        if (this.classes[userId] && this.classes[userId].length > 0) {
+            classes = this.classes[userId]
+        }
+        else {
+            classes = await this.getClassesForUser(userId);
+            this.classes[userId] = classes;
+        }
+        const classForSub = classes.find((value: Class, index: number, obj: Class[]) => value.classCode === subjectCode);
+        return classForSub;
     }
 
 }
