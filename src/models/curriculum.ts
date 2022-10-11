@@ -142,7 +142,7 @@ export default class Curriculum {
                     tempLessons[i].isUnlock = true
                     tempLessons[i].chapter = chapter;
                     this.allLessons.set(tempLessons[i].id, tempLessons[i])
-                    console.log(tempLessons[i].id, "is played so unlocking this lesson", tempLessons[i].isUnlock, playedLessons['ambulance']._metadata.lessonId)
+                    console.log(tempLessons[i].id, "is played so unlocking this lesson", tempLessons[i].isUnlock, playedLessons[tempLessons[i].id]?._metadata.lessonId);
                     
                     // checking lesson type === EXAM && scored > 70 then Unlocking Next lesson
                     if (playedLessons[tempLessons[i].id] && tempLessons.length > i + 1) {
