@@ -55,7 +55,7 @@ const HomeHeader: React.FC<{
       </div>
       <IconButton
         name="Profile"
-        iconSrc="assets/icons/profile.png"
+        iconSrc="assets/icons/Profile.svg"
         onClick={() => {
           if (currentHeader != HEADERLIST.PROFILE) {
             onHeaderIconClick(HEADERLIST.PROFILE);

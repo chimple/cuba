@@ -14,7 +14,7 @@ const ProfileHeader: React.FC = () => {
           history.replace(PAGES.HOME);
         }}
       />
-      <IconButton name="Chimp" iconSrc="assets/icons/profile.png" />
+      <IconButton name="Chimp" iconSrc="assets/icons/Profile.svg" />
       <IconButton
         name="Sign Out"
         iconSrc="assets/icons/SignOutIcon.svg"
