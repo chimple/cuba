@@ -64,6 +64,8 @@ export default class Curriculum {
         this.course = null!
         this.chapter = null!
         this.lesson = null!
+        this.curriculum.clear();
+        this.allLessons.clear();
     }
 
     // To load Course Jsons
@@ -108,7 +110,7 @@ export default class Curriculum {
         } else {
             course.chapters.forEach(async (chapter: Chapter) => {
                 chapter.course = course;
-                chapter = await this.unlockingChapterWise(playedLessons, courseId, chapter);
+                chapter = await this.unlockingLessonsByChapterWise(playedLessons, courseId, chapter);
             });
             this.curriculum.set(courseId, course);
 
@@ -118,7 +120,7 @@ export default class Curriculum {
         }
     }
 
-    async unlockingChapterWise(playedLessons: any, courseId: string, chapter: Chapter): Promise<Chapter> {
+    async unlockingLessonsByChapterWise(playedLessons: any, courseId: string, chapter: Chapter): Promise<Chapter> {
 
         //Unlocking all Puzzle Lessons
         if (courseId === COURSES.PUZZLE) {
@@ -132,26 +134,43 @@ export default class Curriculum {
             return chapter
         } else {
             let tempLessons: Lesson[] = chapter.lessons;
+            // console.log("chapter.lessons", chapter.lessons)
             for (let i = 0; i < tempLessons.length; i++) {
 
-                //Unlocking Played lessons and first lessons in each chapter (i===0 ? true)
-                tempLessons[i].isUnlock = playedLessons[tempLessons[i].id] ? true : i === 0 ? true : false;
-                tempLessons[i].chapter = chapter;
-                this.allLessons.set(tempLessons[i].id, tempLessons[i])
-
-                //if lesson is played then Unlocking Next Lesson
-                if (playedLessons[tempLessons[i].id] && tempLessons.length > i + 1) {
-
-                    //if challenge lesson is played and score is > 70%, then unlocking the next lesson.
-                    if (tempLessons[i].type === EXAM && playedLessons[tempLessons[i].id].score < 70) {
-                        continue
+                //Unlocking Played lessons and Next Lesson
+                if ((playedLessons[tempLessons[i].id] && tempLessons.length > i + 1) || (i - 1 >= 0 && playedLessons[tempLessons[i - 1]?.id])) {
+                    tempLessons[i].isUnlock = true
+                    tempLessons[i].chapter = chapter;
+                    this.allLessons.set(tempLessons[i].id, tempLessons[i])
+                    console.log(tempLessons[i].id, "is played so unlocking this lesson", tempLessons[i].isUnlock, playedLessons['ambulance']._metadata.lessonId)
+                    
+                    // checking lesson type === EXAM && scored > 70 then Unlocking Next lesson
+                    if (playedLessons[tempLessons[i].id] && tempLessons.length > i + 1) {
+                        if (tempLessons[i].type != EXAM || (tempLessons[i].type === EXAM && playedLessons[tempLessons[i].id].score > 70)) {
+                            tempLessons[i + 1].isUnlock = true
+                            tempLessons[i + 1].chapter = chapter;
+                            this.allLessons.set(tempLessons[i + 1].id, tempLessons[i + 1]);
+                            console.log(tempLessons[i].name, "is played so unlocking next lesson", tempLessons[i + 1].name, tempLessons[i + 1].isUnlock)
+                        } else {
+                            // console.log("Entered else", tempLessons[i + 1].isUnlock)
+                            tempLessons[i + 1].isUnlock = false
+                            tempLessons[i + 1].chapter = chapter;
+                            this.allLessons.set(tempLessons[i + 1].id, tempLessons[i + 1]);
+                            console.log(tempLessons[i].name, "is played but challenge score not > 70", tempLessons[i + 1].name, tempLessons[i + 1].isUnlock)
+                            i++
+                        }
                     }
-                    tempLessons[i + 1].isUnlock = true;
-                    tempLessons[i + 1].chapter = chapter;
-                    this.allLessons.set(tempLessons[i + 1].id, tempLessons[i + 1]);
-                    console.log(tempLessons[i].name, "is played so unlocking next lesson", tempLessons[i + 1].name)
-                    i++;
+                    // Unlocking every first lessons in each chapter(i === 0 ? true)
+                } else if (i === 0) {
+                    tempLessons[i].isUnlock = true
+                    tempLessons[i].chapter = chapter;
+                    this.allLessons.set(tempLessons[i].id, tempLessons[i])
+                } else {
+                    tempLessons[i].isUnlock = false
+                    tempLessons[i].chapter = chapter;
+                    this.allLessons.set(tempLessons[i].id, tempLessons[i])
                 }
+
             }
             chapter.lessons = tempLessons
             return chapter

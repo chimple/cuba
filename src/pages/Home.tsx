@@ -48,8 +48,10 @@ const Home: React.FC = () => {
       if (
         (action === "POP" || action === "REPLACE") &&
         location.pathname === PAGES.HOME
-      )
+      ) {
         refreshScore();
+        Curriculum.i.clear();
+      }
     });
   }, []);
 
