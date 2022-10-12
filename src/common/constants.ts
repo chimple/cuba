@@ -12,9 +12,9 @@ export const ALL_COURSES = [COURSES.SIERRA_LEONE_ENGLISH, COURSES.SIERRA_LEONE_M
 
 export enum HEADERLIST {
     HOME = 'HOME',
-    ENGLISH = 'ENGLISH',
-    MATHS = 'MATHS',
-    PUZZLE = 'PUZZLE',
+    ENGLISH = 'en',
+    MATHS = 'maths',
+    PUZZLE = 'puzzle',
     PROFILE = 'PROFILE'
 }
 
@@ -52,6 +52,7 @@ export const GAME_END = "gameEnd"
 export const TEMP_LESSONS_STORE = "tempLessonsStore"
 export const IS_USER_LOGED_IN = "isUserLogedIn"
 export const CURRENT_LESSON_LEVEL = "currentLessonLevel"
+export const PREVIOUS_SELECTED_COURSE = "previousSelectedCourse"
 export const LANGUAGE = "language"
 export const EXAM = 'exam'
 export const PRE_QUIZ = "PreQuiz";
