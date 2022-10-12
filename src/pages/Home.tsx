@@ -5,6 +5,7 @@ import {
   HEADERLIST,
   CURRENT_LESSON_LEVEL,
   PAGES,
+  PREVIOUS_SELECTED_COURSE,
 } from "../common/constants";
 import Curriculum from "../models/curriculum";
 import "./Home.css";
@@ -35,15 +36,20 @@ const Home: React.FC = () => {
   const [isPreQuizPlayed, setIsPreQuizPlayed] = useState(false);
   const [currentChapterId, setCurrentChapterId] = useState("");
   const [chaptersMap, setChaptersMap] = useState<any>();
-  const [currentHeader, setCurrentHeader] = useState<any>("");
+  const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [lessonsScoreMap, setLessonsScoreMap] = useState<any>();
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
 
   const history = useHistory();
 
   useEffect(() => {
-    setCurrentHeader(HEADERLIST.ENGLISH);
-    setCourse(COURSES.ENGLISH);
+    let selectedCourse = localStorage.getItem(PREVIOUS_SELECTED_COURSE);
+    if (!selectedCourse) {
+      selectedCourse = COURSES.ENGLISH;
+    }
+    setCurrentHeader(selectedCourse);
+    
+    setCourse(selectedCourse);
     history.listen((location, action) => {
       if (
         (action === "POP" || action === "REPLACE") &&
@@ -131,16 +137,19 @@ const Home: React.FC = () => {
       case HEADERLIST.ENGLISH:
         setCurrentHeader(HEADERLIST.ENGLISH);
         setCourse(COURSES.ENGLISH);
+        localStorage.setItem(PREVIOUS_SELECTED_COURSE, COURSES.ENGLISH);
         break;
 
       case HEADERLIST.MATHS:
         setCurrentHeader(HEADERLIST.MATHS);
         setCourse(COURSES.MATHS);
+        localStorage.setItem(PREVIOUS_SELECTED_COURSE, COURSES.MATHS);
         break;
 
       case HEADERLIST.PUZZLE:
         setCurrentHeader(HEADERLIST.PUZZLE);
         setCourse(COURSES.PUZZLE);
+        localStorage.setItem(PREVIOUS_SELECTED_COURSE, COURSES.PUZZLE);
         break;
 
       case HEADERLIST.PROFILE:

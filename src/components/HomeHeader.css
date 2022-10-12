@@ -1,6 +1,6 @@
 #home-header-icons {
     display: flex;
-    margin: 1.5%;
+    margin: 0% 1.5% 0% 1.5%;
     justify-content: space-between;
     align-items: center;
 }
@@ -14,4 +14,10 @@
 
 #home-header-puzzle-icon {
     margin-left: -10px;
+}
+
+.home-header-indicator {
+    color: white;
+    font-size: 18px;
+    text-align: center;
 }
