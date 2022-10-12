@@ -44,15 +44,15 @@ const Home: React.FC = () => {
   useEffect(() => {
     setCurrentHeader(HEADERLIST.ENGLISH);
     setCourse(COURSES.ENGLISH);
-    history.listen((location, action) => {
-      if (
-        (action === "POP" || action === "REPLACE") &&
-        location.pathname === PAGES.HOME
-      ) {
-        refreshScore();
-        Curriculum.i.clear();
-      }
-    });
+    // history.listen((location, action) => {
+    //   if (
+    //     (action === "POP" || action === "REPLACE") &&
+    //     location.pathname === PAGES.HOME
+    //   ) {
+    //     refreshScore(subject ?? COURSES.ENGLISH);
+    //     Curriculum.i.clear();
+    //   }
+    // });
   }, []);
 
   async function setCourse(subjectCode: string) {
@@ -71,12 +71,9 @@ const Home: React.FC = () => {
     for (let i = 0; i < chapters.length; i++) {
       tempChapterMap[chapters[i].id] = i;
     }
-    if (!lessonsScoreMap) {
-      const apiInstance = OneRosterApi.getInstance();
-      const tempLessonMap =
-        await apiInstance.getResultsForStudentsForClassInLessonMap("", "");
-      setLessonsScoreMap(tempLessonMap);
-    }
+    // if (!lessonsScoreMap) {
+      await setScore(subjectCode);
+    // }
     setSubject(subjectCode);
     setChaptersMap(tempChapterMap);
     setDataCourse({ lessons: lessons, chapters: chapters });
@@ -153,14 +150,27 @@ const Home: React.FC = () => {
         break;
     }
   }
-  async function refreshScore() {
+  async function refreshScore(subjectCode: string) {
     setIsLoading(true);
-    const apiInstance = OneRosterApi.getInstance();
-    const tempLessonMap =
-      await apiInstance.getResultsForStudentsForClassInLessonMap("", "");
-    setLessonsScoreMap(tempLessonMap);
+    await setScore(subjectCode);
     setIsLoading(false);
   }
+
+  async function setScore(subjectCode: string) {
+    const apiInstance = OneRosterApi.getInstance();
+    const tempClass = await apiInstance.getClassForUserForSubject(
+      "",
+      subjectCode
+    );
+    console.log("tempClass",tempClass)
+    const tempLessonMap =
+      await apiInstance.getResultsForStudentsForClassInLessonMap(
+        tempClass?.sourcedId ?? "",
+        ""
+      );
+    setLessonsScoreMap(tempLessonMap);
+  }
+
   return (
     <IonPage id="home-page">
       <IonHeader id="home-header">
