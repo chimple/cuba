@@ -125,7 +125,7 @@ export class Result extends BaseObject {
             Util.getGUIDRef(jsonObj?.student),
             Util.getGUIDRef(jsonObj?.class),
             // Util.getGUIDRef(jsonObj?.scoreScale),
-            ScoreStatusEnum[jsonObj?.classCode] ?? ScoreStatusEnum.SUBMITTED,
+            ScoreStatusEnum[jsonObj?.scoreStatus] ?? ScoreStatusEnum.SUBMITTED,
             jsonObj.score,
             // jsonObj.textScore,
             jsonObj.scoreDate,

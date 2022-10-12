@@ -44,3 +44,24 @@ export enum OrgTypeEnum {
     SCHOOL = "school",
     STATE = "state"
 }
+
+export interface UserId {
+    type: string,
+    identifier: string,
+}
+
+export enum TrueFalseEnum {
+    TRUE = "true",
+    FALSE = "false",
+}
+
+export enum RoleType {
+    ADMINISTRATOR = "administrator",
+    AIDE = "aide",
+    GUARDIAN = "guardian",
+    PARENT = "parent",
+    PROCTOR = "proctor",
+    RELATIVE = "relative",
+    STUDENT = "student",
+    TEACHER = "teacher",
+}
