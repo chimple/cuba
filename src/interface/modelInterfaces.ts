@@ -5,13 +5,13 @@ export interface GUIDRef {
 }
 
 export enum ClassType {
-    homeroom,
-    scheduled,
+    HOME_ROOM = "homeroom",
+    SCHEDULED = "scheduled",
 }
 
 export enum OneRosterStatus {
-    active,
-    tobedeleted,
+    ACTIVE = "active",
+    TO_BE_DELETED = "tobedeleted",
 }
 
 export enum ScoreStatusEnum {

@@ -88,7 +88,6 @@ export class Course extends BaseObject {
     }
 
     static fromJson(jsonObj: any): Course {
-        const status: OneRosterStatus = (OneRosterStatus[jsonObj?.status] as unknown as OneRosterStatus) ?? OneRosterStatus.active;
         const resources: GUIDRef[] = [];
         if (jsonObj.resources) {
             for (const i of jsonObj.resources) {
@@ -105,7 +104,7 @@ export class Course extends BaseObject {
             jsonObj.subjectCodes,
             resources,
             jsonObj.sourcedId,
-            status,
+            OneRosterStatus[jsonObj?.status] ?? OneRosterStatus.ACTIVE,
             jsonObj.dateLastModified,
             jsonObj.metadata
         )

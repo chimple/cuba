@@ -60,7 +60,6 @@ export class Org extends BaseObject {
     }
 
     static fromJson(jsonObj: any): Org {
-        const status: OneRosterStatus = (OneRosterStatus[jsonObj?.status] as unknown as OneRosterStatus) ?? OneRosterStatus.active;
         const children: GUIDRef[] = [];
         for (let i of jsonObj?.children) {
             children.push(Util.getGUIDRef(i))
@@ -72,7 +71,7 @@ export class Org extends BaseObject {
             Util.getGUIDRef(jsonObj?.parent),
             children,
             jsonObj?.sourcedId,
-            status,
+            OneRosterStatus[jsonObj?.status] ?? OneRosterStatus.ACTIVE,
             jsonObj?.dateLastModified,
             jsonObj?.metadata)
         return newOrg;
