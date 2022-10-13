@@ -77,7 +77,7 @@ const Home: React.FC = () => {
       tempChapterMap[chapters[i].id] = i;
     }
     // if (!lessonsScoreMap) {
-      await setScore(subjectCode);
+    await setScore(subjectCode);
     // }
     setSubject(subjectCode);
     setChaptersMap(tempChapterMap);
@@ -170,7 +170,7 @@ const Home: React.FC = () => {
       "",
       subjectCode
     );
-    console.log("tempClass",tempClass)
+    console.log("tempClass", tempClass);
     const tempLessonMap =
       await apiInstance.getResultsForStudentsForClassInLessonMap(
         tempClass?.sourcedId ?? "",
@@ -187,34 +187,28 @@ const Home: React.FC = () => {
           onHeaderIconClick={onHeaderIconClick}
         ></HomeHeader>
       </IonHeader>
-      <IonContent fullscreen>
-        <IonContent className="slider-content">
-          {isLoading === false ? (
-            <div className="fullheight xc">
-              <IonCol className="cloumn">
-                {/* <IonRow> */}
-                <ChapterSlider
-                  chapterData={dataCourse.chapters}
-                  onChapterClick={onChapterClick}
-                  currentChapterId={currentChapterId}
-                  chaptersIndex={chaptersMap[currentChapterId] ?? 0}
-                />
-                {/* </IonRow> */}
-                <CustomSlider
-                  lessonData={dataCourse.lessons}
-                  onSwiper={setCustomSwiperRef}
-                  onSlideChange={onCustomSlideChange}
-                  subjectCode={subject ?? COURSES.ENGLISH}
-                  isPreQuizPlayed={isPreQuizPlayed}
-                  lessonsScoreMap={lessonsScoreMap}
-                  startIndex={currentLessonIndex}
-                />
-              </IonCol>
-            </div>
-          ) : null}
-          <Loading isLoading={isLoading} />
-        </IonContent>
-      </IonContent>
+      <div className="slider-content">
+        {!isLoading ? (
+          <div className="space-between">
+            <ChapterSlider
+              chapterData={dataCourse.chapters}
+              onChapterClick={onChapterClick}
+              currentChapterId={currentChapterId}
+              chaptersIndex={chaptersMap[currentChapterId] ?? 0}
+            />
+            <CustomSlider
+              lessonData={dataCourse.lessons}
+              onSwiper={setCustomSwiperRef}
+              onSlideChange={onCustomSlideChange}
+              subjectCode={subject ?? COURSES.ENGLISH}
+              isPreQuizPlayed={isPreQuizPlayed}
+              lessonsScoreMap={lessonsScoreMap}
+              startIndex={currentLessonIndex}
+            />
+          </div>
+        ) : null}
+        <Loading isLoading={isLoading} />
+      </div>
     </IonPage>
   );
 };

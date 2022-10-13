@@ -1,7 +1,8 @@
 .chapter-splide {
   overflow: hidden;
-  flex-grow: 1;
-  padding-left: 1em;
+  /* flex-grow: 1; */
+  /* padding-left: 1em; */
   align-self: center;
-  margin: 1%;
+  /* margin: 1%; */
+  width: 100%;
 }
