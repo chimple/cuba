@@ -24,7 +24,8 @@ const Login: React.FC = () => {
         <img
           id="login-chimple-logo"
           alt="Chimple Brand Logo"
-          src="assets/icons/ChimpleBrandLogo.svg"
+          src="assets/Monk.gif"
+          // src="assets/icons/ChimpleBrandLogo.svg"
         />
         <div
           id="login-button"
