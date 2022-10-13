@@ -1,25 +1,20 @@
 #home-header {
-    position: initial !important;
+  position: initial !important;
 }
 
 div p {
-    margin: 0px;
+  margin: 0px;
 }
 
 .slider-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
+  height: 100%;
+  margin: 0 1%;
 }
 
-.fullheight {
-    height: 100%;
-}
-
-.xc {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.space-between {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
 }
