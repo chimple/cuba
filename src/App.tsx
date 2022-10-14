@@ -40,7 +40,7 @@ const App: React.FC = () => {
     localStorage.setItem(LANGUAGE, LANG.ENGLISH);
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({
-        directory: Directory.Data,
+        directory: Directory.Cache,
         path: "",
       })
         .catch((ca) => {

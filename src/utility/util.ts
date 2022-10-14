@@ -16,10 +16,10 @@ export class Util {
         for (let lessonId of lessonIds) {
             try {
                 if (!Capacitor.isNativePlatform()) return true;
-                console.log("downloading Directory.Data", Directory.Data, "Directory.Library",)
+                console.log("downloading Directory.Cache", Directory.Cache, "Directory.Library",)
                 const fs = createFilesystem(Filesystem, {
                     rootDir: "/",
-                    directory: Directory.Data,
+                    directory: Directory.Cache,
                     base64Alway: false,
                 })
                 const path = (localStorage.getItem("gameUrl") ?? "http://localhost/_capacitor_file_/data/user/0/org.chimple.cuba/files/") + lessonId + "/index.js";
