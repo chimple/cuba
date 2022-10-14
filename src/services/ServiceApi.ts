@@ -1,6 +1,7 @@
 import { Class } from "../models/class";
 import { LineItem } from "../models/lineItem";
 import { Result } from "../models/result";
+import { User } from "../models/user";
 
 export interface ServiceApi {
 
@@ -16,4 +17,5 @@ export interface ServiceApi {
 
     putResult(userId: string, classId: string, LessonId: string, score: number): Promise<Result | undefined>;
 
+    getUser(userId: string): Promise<User | undefined>
 }
