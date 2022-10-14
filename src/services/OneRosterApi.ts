@@ -7,6 +7,7 @@ import { LineItem } from "../models/lineItem";
 import { Result } from "../models/result";
 import { ServiceApi } from "./ServiceApi";
 import { v4 as uuidv4 } from 'uuid';
+import { User } from "../models/user";
 
 
 export class OneRosterApi implements ServiceApi {
@@ -229,4 +230,14 @@ export class OneRosterApi implements ServiceApi {
         return classForSub;
     }
 
+    async getUser(userId: string): Promise<User | undefined> {
+        try {
+            const response = await Http.get({ url: "https://mocki.io/v1/c856c037-87d1-4722-b623-a6e0fd302ae9", headers: this.getHeaders() }).catch((e) => { console.log("error on getResultsForStudentForClass", e) });
+            const result = (response && response.status === 200) ? response.data : {};
+            if (result.user)
+                return User.fromJson(result.user)
+        } catch (error) {
+            console.log('error')
+        }
+    }
 }
