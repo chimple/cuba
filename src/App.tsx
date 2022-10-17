@@ -40,7 +40,7 @@ const App: React.FC = () => {
     localStorage.setItem(LANGUAGE, LANG.ENGLISH);
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({
-        directory: Directory.Data,
+        directory: Directory.Cache,
         path: "",
       })
         .catch((ca) => {
@@ -50,8 +50,8 @@ const App: React.FC = () => {
           console.log("path ", path, "uri", path?.uri);
 
           if (path instanceof Object) {
-            const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.cuba/files
-            console.log("uri", uri); //http://localhost/_capacitor_file_/data/user/0/org.chimple.cuba/files
+            const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.cuba/cache
+            console.log("uri", uri); //http://localhost/_capacitor_file_/data/user/0/org.chimple.cuba/cache
             localStorage.setItem(GAME_URL, uri + "/");
           }
         });
