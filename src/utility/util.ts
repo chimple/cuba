@@ -22,7 +22,7 @@ export class Util {
                     directory: Directory.Cache,
                     base64Alway: false,
                 })
-                const path = (localStorage.getItem("gameUrl") ?? "http://localhost/_capacitor_file_/data/user/0/org.chimple.cuba/files/") + lessonId + "/index.js";
+                const path = (localStorage.getItem("gameUrl") ?? "http://localhost/_capacitor_file_/data/user/0/org.chimple.cuba/cache/") + lessonId + "/index.js";
                 console.log("cheching path..", "path", path)
                 const res = await fetch(path)
                 const isExists = res.ok;
