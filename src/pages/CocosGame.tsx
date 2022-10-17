@@ -11,6 +11,7 @@ import {
   TEMP_LESSONS_STORE,
 } from "../common/constants";
 import { Lesson } from "../interface/curriculumInterfaces";
+import Curriculum from "../models/curriculum";
 import { OneRosterApi } from "../services/OneRosterApi";
 import { Util } from "../utility/util";
 
@@ -104,6 +105,7 @@ const CocosGame: React.FC = () => {
         e.detail.lessonId,
         e.detail.score
       );
+      Curriculum.i.clear();
       console.log("result ", result);
     };
 

@@ -6,7 +6,8 @@ import "./Login.css";
 import { useHistory } from "react-router-dom";
 import { BackgroundMode } from "@awesome-cordova-plugins/background-mode";
 import { Capacitor } from "@capacitor/core";
-import { IS_USER_LOGED_IN, PAGES } from "../common/constants";
+import { IS_USER_LOGED_IN, PAGES, USER_TOKEN } from "../common/constants";
+import Auth from "../models/auth";
 
 const Login: React.FC = () => {
   const history = useHistory();
@@ -34,25 +35,37 @@ const Login: React.FC = () => {
               BackgroundMode.setEnabled(true);
             }
 
-            // let result = await AccountManager.authenticator({
-            //   userName: "skandakumar97@gmail.com",
-            //   AccountType: "com.google",
-            // });
-            console.log("login-button entred");
             let responce: any;
             try {
               responce = await AccountManager.accountPicker();
               console.log("login-button-result", responce.result);
-              let result: boolean = responce.result;
-              console.log(
-                "login-button-result result.result",
-                result,
-                responce.result
-              );
+              let result: any = responce.result;
+              console.log("login-button-result result.result", result);
               if (result) {
                 console.log("login-button result true", result);
+                result = result.replace("Bundle[", "");
+                result = result.replace("]", "");
+
+                localStorage.setItem(USER_TOKEN, JSON.stringify(result));
+
+                const auth = Auth.i;
+                // console.log("auth result ", result.authtoken, auth.authToken);
+                // auth.userAccountName = result.authAccount;
+                // auth.authToken = result.authtoken;
+                // auth.accountType = result.accountType;
+
+                console.log(
+                  "auth result after ",
+                  result.authtoken,
+                  auth.authToken
+                );
+
                 localStorage.setItem(IS_USER_LOGED_IN, "true");
                 history.replace(PAGES.HOME);
+                console.log(
+                  "localStorage.getItem(USER_TOKEN) ",
+                  localStorage.getItem(USER_TOKEN)
+                );
               } else {
                 console.log("login-button result false", result);
                 localStorage.setItem(IS_USER_LOGED_IN, "false");
