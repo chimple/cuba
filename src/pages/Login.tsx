@@ -73,9 +73,12 @@ const Login: React.FC = () => {
             } catch (error: any) {
               localStorage.setItem(IS_USER_LOGED_IN, "false");
 
+              console.log("Capacitor.getPlatform()", Capacitor.getPlatform());
+
               if (
                 error.message === "Method not implemented." &&
-                !Capacitor.isNativePlatform()
+                (Capacitor.getPlatform() === "web" ||
+                  Capacitor.getPlatform() === "ios")
               ) {
                 console.log("login-button result true");
                 localStorage.setItem(IS_USER_LOGED_IN, "true");
