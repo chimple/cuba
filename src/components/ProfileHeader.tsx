@@ -1,5 +1,6 @@
 import { useHistory } from "react-router";
 import { PAGES, USER_TOKEN } from "../common/constants";
+import Auth from "../models/auth";
 import IconButton from "./IconButton";
 import "./ProfileHeader.css";
 
@@ -19,13 +20,10 @@ const ProfileHeader: React.FC = () => {
         name="Sign Out"
         iconSrc="assets/icons/SignOutIcon.svg"
         onClick={() => {
-          history.push(PAGES.LOGIN);
-          localStorage.setItem(USER_TOKEN, "null");
-          console.log(
-            "localStorage.getItem(USER_TOKEN) ",
-            localStorage.getItem(USER_TOKEN)
-          );
-          localStorage.setItem("isUserLogedIn", "false");
+          const isUserLoggedOut: boolean = Auth.i.authLogout();
+          if (isUserLoggedOut) {
+            history.replace(PAGES.LOGIN);
+          }
         }}
       />
     </div>
