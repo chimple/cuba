@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { Redirect, Route } from "react-router-dom";
+import Auth from "./models/auth";
 
 export default function ProtectedRoute({ children, ...rest }) {
   const [isAuth, setIsAuth] = useState<Boolean | null>(null); // initially undefined
   useEffect(() => {
-    const isUserLogedIn = localStorage.getItem("isUserLogedIn");
-    setIsAuth(isUserLogedIn != null && isUserLogedIn == "true");
+    const isUserLogedIn = Auth.i.isUserLoggedIn();
+    console.log("isUserLogedIn", isUserLogedIn);
+    setIsAuth(isUserLogedIn);
+    // setIsAuth(await Auth.i.isUserLoggedIn());
   }, []);
 
+  console.log("isUserLogedIn", isAuth);
   if (isAuth == null) return null;
 
   return (

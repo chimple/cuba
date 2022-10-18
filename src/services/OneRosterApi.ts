@@ -8,6 +8,7 @@ import { Result } from "../models/result";
 import { ServiceApi } from "./ServiceApi";
 import { v4 as uuidv4 } from 'uuid';
 import { User } from "../models/user";
+import Auth from "../models/auth";
 
 
 export class OneRosterApi implements ServiceApi {
@@ -25,7 +26,8 @@ export class OneRosterApi implements ServiceApi {
     }
 
     getHeaders(): HttpHeaders {
-        return { Authorization: "Bearer 2YotnFZFEjr1zCsicMWpAA" }
+        console.log("Auth.i.authToken", Auth.i)
+        return { Authorization: "Bearer " + Auth.i.authToken }
     }
 
     async getClassesForUser(userId: string): Promise<Class[]> {
