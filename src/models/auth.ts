@@ -75,7 +75,7 @@ export default class Auth {
             ) {
                 console.log("login-button result true");
                 localStorage.setItem(IS_USER_LOGED_IN, "true");
-                localStorage.setItem(USER_TOKEN, JSON.stringify({ "authAccount": "degug15@gmail.com", "accountType": "com.debug15", "authtoken": "Pgjb9cE2D0wWXqVcisaeK2MhuAxpUCvWUcmVoGyxe1NKY_xQ3rBLzoWxU79kRnncV3sDYw." }));
+                localStorage.setItem(USER_TOKEN, JSON.stringify({ "authAccount": "debug15@gmail.com", "accountType": "com.debug15", "authtoken": "VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY" }));
                 return true;
                 // history.replace(PAGES.HOME);
             }

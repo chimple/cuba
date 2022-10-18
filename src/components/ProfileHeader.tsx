@@ -22,7 +22,7 @@ const ProfileHeader: React.FC = () => {
         onClick={() => {
           const isUserLoggedOut: boolean = Auth.i.authLogout();
           if (isUserLoggedOut) {
-            history.push(PAGES.LOGIN);
+            history.replace(PAGES.LOGIN);
           }
         }}
       />
