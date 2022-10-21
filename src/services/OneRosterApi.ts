@@ -1,6 +1,6 @@
 import { Http, HttpHeaders } from "@capacitor-community/http";
-import { COURSES, PRE_QUIZ, TEMP_LESSONS_STORE } from "../common/constants";
-import { Lesson } from "../interface/curriculumInterfaces";
+import { COURSES, EXAM, MIN_PASS, PRE_QUIZ, TEMP_LESSONS_STORE } from "../common/constants";
+import { Chapter, Lesson } from "../interface/curriculumInterfaces";
 import { OneRosterStatus, ScoreStatusEnum } from "../interface/modelInterfaces";
 import { Class } from "../models/class";
 import { LineItem } from "../models/lineItem";
@@ -8,11 +8,12 @@ import { Result } from "../models/result";
 import { ServiceApi } from "./ServiceApi";
 import { v4 as uuidv4 } from 'uuid';
 import { User } from "../models/user";
+import Curriculum from "../models/curriculum";
 
 
 export class OneRosterApi implements ServiceApi {
     public static i: OneRosterApi;
-    private preQuizMap: any = {}
+    private preQuizMap: { [key: string]: { [key: string]: Result } } = {}
     private classes: { [key: string]: Class[] } = {}
     private constructor() {
     }
@@ -127,18 +128,23 @@ export class OneRosterApi implements ServiceApi {
     }
 
     async isPreQuizDone(subjectCode: string, classId: string, studentId: string): Promise<boolean> {
-        if (COURSES.PUZZLE === subjectCode || this.preQuizMap[subjectCode])
-            return true;
+        if (COURSES.PUZZLE === subjectCode) return true;
+        const preQuiz = await this.getPreQuiz(subjectCode, classId, studentId)
+        return !!preQuiz;
+    }
+
+    async getPreQuiz(subjectCode: string, classId: string, studentId: string): Promise<Result | undefined> {
+        if (!this.preQuizMap[studentId]) {
+            this.preQuizMap[studentId] = {}
+        }
+        if (this.preQuizMap[studentId][subjectCode])
+            return this.preQuizMap[studentId][subjectCode];
         const results = await this.getResultsForStudentForClass(classId, studentId);
         for (let result of results)
             if (result.metadata?.lessonId === subjectCode + "_" + PRE_QUIZ) {
-                this.preQuizMap[subjectCode] = true
-                return true;
+                this.preQuizMap[studentId][subjectCode] = result
+                return result;
             }
-
-        this.preQuizMap[subjectCode] = false
-
-        return false;
     }
 
     public async getResultsForStudentsForClassInLessonMap(classId: string, studentId: string): Promise<{ [key: string]: Lesson; }> {
@@ -184,10 +190,10 @@ export class OneRosterApi implements ServiceApi {
 
     }
 
-    async putResult(userId: string, classId: string, LessonId: string, score: number): Promise<Result | undefined> {
+    async putResult(userId: string, classId: string, lessonId: string, score: number, subjectCode: string): Promise<Result | undefined> {
         try {
-            const lineItems = await this.getLineItemsForClassForLessonId(classId, LessonId);
-            const lineItem: LineItem = (lineItems && lineItems.length > 0) ? lineItems[0] : await this.putLineItem(classId, LessonId);
+            const lineItems = await this.getLineItemsForClassForLessonId(classId, lessonId);
+            const lineItem: LineItem = (lineItems && lineItems.length > 0) ? lineItems[0] : await this.putLineItem(classId, lessonId);
             const date = new Date().toISOString();
             const sourcedId = uuidv4();
             const result = new Result(
@@ -209,14 +215,25 @@ export class OneRosterApi implements ServiceApi {
                 sourcedId,
                 OneRosterStatus.ACTIVE,
                 date,
-                { LessonId: LessonId });
+                { LessonId: lessonId });
             console.log('results', { result: result.toJson() })
             // Http.put({ url: `/results/${sourcedId}`, data: { result: result.toJson() }, headers: this.getHeaders() })
+            if (score >= MIN_PASS) {
+                const curInstanse = Curriculum.getInstance();
+                const lessons = await curInstanse.allLessonforSubject(subjectCode);
+                const lesson = lessons.find((lesson: Lesson) => lesson.id === lessonId);
+                if (lesson && lesson.type === EXAM && lesson.chapter.lessons[lesson.chapter.lessons.length - 1].id === lessonId) {
+                    console.log("updating prequiz for lesson", lesson)
+                    const preQuiz = await this.updatePreQuiz(subjectCode, classId, userId, lesson.chapter.id, true)
+                    console.log("updated prequiz", preQuiz)
+                }
+            }
             return result;
         } catch (error) {
             console.log(error)
         }
     }
+
     async getClassForUserForSubject(userId: string, subjectCode: string): Promise<Class | undefined> {
         let classes: Class[] = [];
         if (this.classes[userId] && this.classes[userId].length > 0) {
@@ -240,4 +257,74 @@ export class OneRosterApi implements ServiceApi {
             console.log('error')
         }
     }
+
+    async updatePreQuiz(subjectCode: string, classId: string, studentId: string, chapterId: string, updateNextChapter = true): Promise<Result | undefined> {
+        try {
+            const curInstanse = Curriculum.getInstance();
+            const chapters = await curInstanse.allChapterforSubject(subjectCode);
+            const chapterIndex = chapters.findIndex((chapter: Chapter) => chapter.id === chapterId);
+            let score = (((chapterIndex + (updateNextChapter ? 2 : 1)) / chapters.length) * 100);
+            if (score > 100) score = 100
+            let index = ((score * chapters.length) / 100) - 1
+            const isFloat = (x: number) => !!(x % 1);
+            if (isFloat(index)) {
+                index = Math.round(index)
+            }
+            console.log('updatePreQuiz', score, chapterIndex, chapterId, index, chapters[Math.min(index, chapters.length - 1)]?.id)
+            const preQuiz = await this.getPreQuiz(subjectCode, classId, studentId);
+            const date = new Date().toISOString();
+            let preQuizresult: Result;
+            if (preQuiz) {
+                preQuiz.dateLastModified = date
+                preQuiz.score = Math.max(score, preQuiz.score);
+                preQuizresult = preQuiz;
+            }
+            else {
+                const sourcedId = uuidv4();
+                const lessonId = subjectCode + "_" + PRE_QUIZ;
+                const lineItems = await this.getLineItemsForClassForLessonId(classId, lessonId);
+                const lineItem: LineItem = (lineItems && lineItems.length > 0) ? lineItems[0] : await this.putLineItem(classId, lessonId);
+                preQuizresult = new Result(
+                    {
+                        href: lineItem?.sourcedId,
+                        sourcedId: lineItem?.sourcedId,
+                        type: "lineItem"
+                    },
+                    {
+                        href: studentId,
+                        sourcedId: studentId,
+                        type: "user"
+                    },
+                    lineItem.class,
+                    ScoreStatusEnum.SUBMITTED,
+                    score,
+                    date,
+                    "",
+                    sourcedId,
+                    OneRosterStatus.ACTIVE,
+                    date,
+                    { LessonId: lessonId });
+            }
+            // Http.put({ url: `/results/${preQuizresult.sourcedId}`, data: { result: preQuizresult.toJson() }, headers: this.getHeaders() })
+            if (!this.preQuizMap[studentId]) {
+                this.preQuizMap[studentId] = {};
+            }
+            this.preQuizMap[studentId][subjectCode] = preQuizresult;
+            return preQuizresult;
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    async getChapaterForPreQuizScore(subjectCode: string, score: number): Promise<Chapter> {
+        const curInstanse = Curriculum.getInstance();
+        const chapters = await curInstanse.allChapterforSubject(subjectCode);
+        if (score > 100) score = 100;
+        let index = ((score * chapters.length) / 100) - 1;
+        const isFloat = (x: number) => !!(x % 1);
+        if (isFloat(index)) index = Math.round(index);
+        console.log('getChapaterForPreQuizScore', score, index, chapters[Math.min(index, chapters.length - 1)]?.id)
+        return chapters[Math.min(index, chapters.length - 1)] ?? chapters[1];
+    }
+
 }
