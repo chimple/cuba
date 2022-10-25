@@ -35,53 +35,11 @@ const Login: React.FC = () => {
               BackgroundMode.setEnabled(true);
             }
 
-            let responce: any;
-            try {
-              responce = await AccountManager.accountPicker();
-              console.log("login-button-result", responce.result);
-              let result: any = responce.result;
-              console.log("login-button-result result.result", result);
-              if (result) {
-                console.log("login-button result true", result);
-                result = result.replace("Bundle[", "");
-                result = result.replace("]", "");
-
-                localStorage.setItem(USER_TOKEN, JSON.stringify(result));
-
-                const auth = Auth.i;
-                // console.log("auth result ", result.authtoken, auth.authToken);
-                // auth.userAccountName = result.authAccount;
-                // auth.authToken = result.authtoken;
-                // auth.accountType = result.accountType;
-
-                console.log(
-                  "auth result after ",
-                  result.authtoken,
-                  auth.authToken
-                );
-
-                localStorage.setItem(IS_USER_LOGED_IN, "true");
-                history.replace(PAGES.HOME);
-                console.log(
-                  "localStorage.getItem(USER_TOKEN) ",
-                  localStorage.getItem(USER_TOKEN)
-                );
-              } else {
-                console.log("login-button result false", result);
-                localStorage.setItem(IS_USER_LOGED_IN, "false");
-              }
-            } catch (error: any) {
-              localStorage.setItem(IS_USER_LOGED_IN, "false");
-
-              if (
-                error.message === "Method not implemented." &&
-                !Capacitor.isNativePlatform()
-              ) {
-                console.log("login-button result true");
-                localStorage.setItem(IS_USER_LOGED_IN, "true");
-                history.replace(PAGES.HOME);
-              }
+            let isUserLoggedIn: boolean = await Auth.i.VSOLogin();
+            if (isUserLoggedIn) {
+              history.replace(PAGES.HOME);
             }
+
             if (BackgroundMode.isActive()) {
               BackgroundMode.setEnabled(false);
             }
