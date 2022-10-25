@@ -15,7 +15,7 @@ export interface ServiceApi {
 
     putLineItem(classId: string, lessonId: string): Promise<LineItem>;
 
-    putResult(userId: string, classId: string, LessonId: string, score: number): Promise<Result | undefined>;
+    putResult(userId: string, classId: string, LessonId: string, score: number, subjectCode: string): Promise<Result | undefined>;
 
     getUser(userId: string): Promise<User | undefined>
 }

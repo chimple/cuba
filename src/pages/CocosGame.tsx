@@ -99,18 +99,32 @@ const CocosGame: React.FC = () => {
         "",
         e.detail.courseName
       );
-      const result = await apiInstance.putResult(
-        "user",
-        tempClass?.sourcedId ?? "",
-        e.detail.lessonId,
-        e.detail.score
-      );
+      if (e.detail.lessonId.endsWith(PRE_QUIZ)) {
+        const preQuiz = await apiInstance.updatePreQuiz(
+          e.detail.courseName,
+          tempClass?.sourcedId ?? "",
+          "user",
+          e.detail.preQuizChapterId ?? e.detail.chapterId,
+          false
+        );
+        lessons[e.detail.lessonId] = preQuiz?.score;
+        localStorage.setItem(TEMP_LESSONS_STORE, JSON.stringify(lessons));
+        console.log("preQuiz after update", preQuiz);
+      } else {
+        const result = await apiInstance.putResult(
+          "user",
+          tempClass?.sourcedId ?? "",
+          e.detail.lessonId,
+          e.detail.score,
+          e.detail.courseName
+        );
+        console.log("result ", result);
+      }
       Curriculum.i.clear();
-      console.log("result ", result);
     };
 
-    document.body.addEventListener(LESSON_END, saveTempData);
-    document.body.addEventListener(GAME_END, push);
+    document.body.addEventListener(LESSON_END, saveTempData, { once: true });
+    document.body.addEventListener(GAME_END, push, { once: true });
 
     // let prevPercentage = 0;
     // document.body.addEventListener("problemEnd", onProblemEnd);
