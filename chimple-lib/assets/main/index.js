@@ -558,8 +558,178 @@ window.__require = function e(t, n, r) {
         }
       }
       const WebView = registerPlugin("WebView");
+      const encode = str => encodeURIComponent(str).replace(/%(2[346B]|5E|60|7C)/g, decodeURIComponent).replace(/[()]/g, escape);
+      class CapacitorCookiesPluginWeb extends WebPlugin {
+        async setCookie(options) {
+          try {
+            const encodedKey = encode(options.key);
+            const encodedValue = encode(options.value);
+            const expires = `; expires=${(options.expires || "").replace("expires=", "")}`;
+            const path = (options.path || "/").replace("path=", "");
+            document.cookie = `${encodedKey}=${encodedValue || ""}${expires}; path=${path}`;
+          } catch (error) {
+            return Promise.reject(error);
+          }
+        }
+        async deleteCookie(options) {
+          try {
+            document.cookie = `${options.key}=; Max-Age=0`;
+          } catch (error) {
+            return Promise.reject(error);
+          }
+        }
+        async clearCookies() {
+          try {
+            const cookies = document.cookie.split(";") || [];
+            for (const cookie of cookies) document.cookie = cookie.replace(/^ +/, "").replace(/=.*/, `=;expires=${new Date().toUTCString()};path=/`);
+          } catch (error) {
+            return Promise.reject(error);
+          }
+        }
+        async clearAllCookies() {
+          try {
+            await this.clearCookies();
+          } catch (error) {
+            return Promise.reject(error);
+          }
+        }
+      }
+      const CapacitorCookies = registerPlugin("CapacitorCookies", {
+        web: () => new CapacitorCookiesPluginWeb()
+      });
+      const readBlobAsBase64 = async blob => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64String = reader.result;
+          resolve(base64String.indexOf(",") >= 0 ? base64String.split(",")[1] : base64String);
+        };
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(blob);
+      });
+      const normalizeHttpHeaders = (headers = {}) => {
+        const originalKeys = Object.keys(headers);
+        const loweredKeys = Object.keys(headers).map(k => k.toLocaleLowerCase());
+        const normalized = loweredKeys.reduce((acc, key, index) => {
+          acc[key] = headers[originalKeys[index]];
+          return acc;
+        }, {});
+        return normalized;
+      };
+      const buildUrlParams = (params, shouldEncode = true) => {
+        if (!params) return null;
+        const output = Object.entries(params).reduce((accumulator, entry) => {
+          const [key, value] = entry;
+          let encodedValue;
+          let item;
+          if (Array.isArray(value)) {
+            item = "";
+            value.forEach(str => {
+              encodedValue = shouldEncode ? encodeURIComponent(str) : str;
+              item += `${key}=${encodedValue}&`;
+            });
+            item.slice(0, -1);
+          } else {
+            encodedValue = shouldEncode ? encodeURIComponent(value) : value;
+            item = `${key}=${encodedValue}`;
+          }
+          return `${accumulator}&${item}`;
+        }, "");
+        return output.substr(1);
+      };
+      const buildRequestInit = (options, extra = {}) => {
+        const output = Object.assign({
+          method: options.method || "GET",
+          headers: options.headers
+        }, extra);
+        const headers = normalizeHttpHeaders(options.headers);
+        const type = headers["content-type"] || "";
+        if ("string" === typeof options.data) output.body = options.data; else if (type.includes("application/x-www-form-urlencoded")) {
+          const params = new URLSearchParams();
+          for (const [key, value] of Object.entries(options.data || {})) params.set(key, value);
+          output.body = params.toString();
+        } else if (type.includes("multipart/form-data")) {
+          const form = new FormData();
+          if (options.data instanceof FormData) options.data.forEach((value, key) => {
+            form.append(key, value);
+          }); else for (const key of Object.keys(options.data)) form.append(key, options.data[key]);
+          output.body = form;
+          const headers = new Headers(output.headers);
+          headers.delete("content-type");
+          output.headers = headers;
+        } else (type.includes("application/json") || "object" === typeof options.data) && (output.body = JSON.stringify(options.data));
+        return output;
+      };
+      class CapacitorHttpPluginWeb extends WebPlugin {
+        async request(options) {
+          const requestInit = buildRequestInit(options, options.webFetchExtra);
+          const urlParams = buildUrlParams(options.params, options.shouldEncodeUrlParams);
+          const url = urlParams ? `${options.url}?${urlParams}` : options.url;
+          const response = await fetch(url, requestInit);
+          const contentType = response.headers.get("content-type") || "";
+          let {responseType: responseType = "text"} = response.ok ? options : {};
+          contentType.includes("application/json") && (responseType = "json");
+          let data;
+          let blob;
+          switch (responseType) {
+           case "arraybuffer":
+           case "blob":
+            blob = await response.blob();
+            data = await readBlobAsBase64(blob);
+            break;
+
+           case "json":
+            data = await response.json();
+            break;
+
+           case "document":
+           case "text":
+           default:
+            data = await response.text();
+          }
+          const headers = {};
+          response.headers.forEach((value, key) => {
+            headers[key] = value;
+          });
+          return {
+            data: data,
+            headers: headers,
+            status: response.status,
+            url: response.url
+          };
+        }
+        async get(options) {
+          return this.request(Object.assign(Object.assign({}, options), {
+            method: "GET"
+          }));
+        }
+        async post(options) {
+          return this.request(Object.assign(Object.assign({}, options), {
+            method: "POST"
+          }));
+        }
+        async put(options) {
+          return this.request(Object.assign(Object.assign({}, options), {
+            method: "PUT"
+          }));
+        }
+        async patch(options) {
+          return this.request(Object.assign(Object.assign({}, options), {
+            method: "PATCH"
+          }));
+        }
+        async delete(options) {
+          return this.request(Object.assign(Object.assign({}, options), {
+            method: "DELETE"
+          }));
+        }
+      }
+      const CapacitorHttp = registerPlugin("CapacitorHttp", {
+        web: () => new CapacitorHttpPluginWeb()
+      });
       exports.Capacitor = Capacitor;
+      exports.CapacitorCookies = CapacitorCookies;
       exports.CapacitorException = CapacitorException;
+      exports.CapacitorHttp = CapacitorHttp;
       exports.CapacitorPlatforms = CapacitorPlatforms;
       exports.Plugins = Plugins;
       exports.WebPlugin = WebPlugin;
@@ -6783,7 +6953,7 @@ window.__require = function e(t, n, r) {
       UpdateEvent[UpdateEvent["Error"] = 4] = "Error";
     })(UpdateEvent = exports.UpdateEvent || (exports.UpdateEvent = {}));
     exports.PROJECT_MANIFEST = "project.manifest";
-    exports.DO_HOT_UPDATE = true;
+    exports.DO_HOT_UPDATE = false;
     exports.RECEIVED_TEACHER_REQUESTS = false;
     cc.deep_link = function(url) {
       cc.log("deep link called with url:" + url);
@@ -7604,7 +7774,6 @@ window.__require = function e(t, n, r) {
       };
       Config.loadBundle = function(lessonId, callback, errCallback) {
         var _a;
-        console.log("loading bundle for ", lessonId, core_1.Capacitor.getPlatform());
         var isIframe = !(window === window.parent);
         var isAndroid = "android" === core_1.Capacitor.getPlatform();
         var gameUrl = null !== (_a = cc.sys.localStorage.getItem("gameUrl")) && void 0 !== _a ? _a : "http://localhost/_capacitor_file_/data/user/0/org.chimple.cuba/files/";
@@ -11236,7 +11405,7 @@ window.__require = function e(t, n, r) {
       };
       LessonController.prototype.lessonEnd = function() {
         return __awaiter(this, void 0, void 0, function() {
-          var config, timeSpent, score, isIframe, event, user, reward, finishedLessons_1, percentageComplete, updateInfo, mode, updateInfo_1, requestParams, error_1, block, scorecard, scorecardComp, gameConfig;
+          var config, timeSpent, score, isIframe, detail, event, user, reward, finishedLessons_1, percentageComplete, updateInfo, mode, updateInfo_1, requestParams, error_1, block, scorecard, scorecardComp, gameConfig;
           return __generator(this, function(_a) {
             switch (_a.label) {
              case 0:
@@ -11248,17 +11417,19 @@ window.__require = function e(t, n, r) {
               isNaN(score) && (score = 0);
               isIframe = !(window === window.parent);
               if (isIframe) {
+                detail = {
+                  chapterName: config.chapter.name,
+                  chapterId: config.chapter.id,
+                  lessonName: config.lesson.name,
+                  lessonId: config.lesson.id,
+                  courseName: config.course.id,
+                  lessonType: config.lesson.type,
+                  score: score,
+                  timeSpent: Math.abs(timeSpent)
+                };
+                config.lesson.id == config.course.id + "_PreQuiz" && (detail["preQuizChapterId"] = util_logger_1.default.getChapterIdForPrequiz(this.quizScores));
                 event = new CustomEvent("lessonEnd", {
-                  detail: {
-                    chapterName: config.chapter.name,
-                    chapterId: config.chapter.id,
-                    lessonName: config.lesson.name,
-                    lessonId: config.lesson.id,
-                    courseName: config.course.id,
-                    lessonType: config.lesson.type,
-                    score: score,
-                    timeSpent: Math.abs(timeSpent)
-                  }
+                  detail: detail
                 });
                 window.parent.document.body.dispatchEvent(event);
                 console.log("event dispatched", event);
@@ -14232,33 +14403,9 @@ window.__require = function e(t, n, r) {
             this._lessonProgressMap.set(lessonId, new LessonProgressClass(score, 1, config_1.default.i.course.id, config_1.default.i.lesson.assignmentId));
           }
           if (lessonId == config.course.id + "_PreQuiz") {
-            var quizChapter = config.course.chapters.find(function(c) {
-              return c.id == config.course.id + "_quiz";
-            });
-            if (quizChapter) {
-              var currentCourse = config.course.chapters.find(function(c) {
-                return c.id != config.course.id + "_quiz";
-              });
-              var qzId_1 = 0;
-              for (var index = 0; index + 2 < quizScores.length; index += 3) {
-                if (!(quizScores[index] + quizScores[index + 1] + quizScores[index + 2] >= 2)) break;
-                currentCourse = config.course.chapters.find(function(c) {
-                  return c.id == config.course.levels[qzId_1];
-                });
-                qzId_1++;
-              }
-              cpm.updateChapterId(currentCourse.id);
-            } else {
-              var formulaScore = quizScores.reduce(function(acc, cur, i, arr) {
-                var mul = Math.floor(arr.length / 2) - Math.floor(i / 2);
-                var neg = 0 == cur ? -.5 : cur;
-                return acc + neg * mul;
-              }, 0);
-              var max = quizScores.length / 2 * (quizScores.length / 2 + 1);
-              var total = Math.max(0, formulaScore / max);
-              var chapters = config.curriculum.get(config.course.id).chapters;
-              cpm.updateChapterId(chapters[Math.floor((chapters.length - 1) * total)].id);
-            }
+            var chapterId = util_logger_1.default.getChapterIdForPrequiz(quizScores);
+            console.log("on prequiz chapterid", chapterId);
+            cpm.updateChapterId(chapterId);
           } else if (config_1.default.i.lesson.type != constants_1.EXAM || score >= constants_1.MIN_PASS) {
             var lessons = config_1.default.i.chapter.lessons;
             var lessonIndex = lessons.findIndex(function(les) {
@@ -15220,7 +15367,6 @@ window.__require = function e(t, n, r) {
             detail: {}
           });
           window.parent.document.body.dispatchEvent(customEvent);
-          console.log("gameEnd event dispatched", customEvent);
           return;
         }
         if (cc.sys.isNative && config_1.default.isMicroLink) {
@@ -17383,6 +17529,7 @@ window.__require = function e(t, n, r) {
     var constants_1 = require("./lib/constants");
     var profile_1 = require("./lib/profile");
     var chimple_1 = require("../../chimple");
+    var config_1 = require("./lib/config");
     var LOGGER_CLASS = "org/chimple/bahama/logger/ChimpleLogger";
     var LOGGER_METHOD = "logEvent";
     var LOGGER_METHOD_SIGNATURE = "(Ljava/lang/String;)V";
@@ -17932,6 +18079,35 @@ window.__require = function e(t, n, r) {
           if (cc.sys.isNative && cc.sys.os == cc.sys.OS_ANDROID) return jsb.reflection.callStaticMethod(LOGGER_CLASS, LOG_DAILY_METHOD, LOG_DAILY_METHOD_SIGNATURE, header, event, fileName);
         } catch (e) {}
       };
+      UtilLogger.getChapterIdForPrequiz = function(quizScores) {
+        var config = config_1.default.i;
+        var quizChapter = config.course.chapters.find(function(c) {
+          return c.id == config.course.id + "_quiz";
+        });
+        if (quizChapter) {
+          var currentCourse = config.course.chapters.find(function(c) {
+            return c.id != config.course.id + "_quiz";
+          });
+          var qzId_1 = 0;
+          for (var index = 0; index + 2 < quizScores.length; index += 3) {
+            if (!(quizScores[index] + quizScores[index + 1] + quizScores[index + 2] >= 2)) break;
+            currentCourse = config.course.chapters.find(function(c) {
+              return c.id == config.course.levels[qzId_1];
+            });
+            qzId_1++;
+          }
+          return currentCourse.id;
+        }
+        var formulaScore = quizScores.reduce(function(acc, cur, i, arr) {
+          var mul = Math.floor(arr.length / 2) - Math.floor(i / 2);
+          var neg = 0 == cur ? -.5 : cur;
+          return acc + neg * mul;
+        }, 0);
+        var max = quizScores.length / 2 * (quizScores.length / 2 + 1);
+        var total = Math.max(0, formulaScore / max);
+        var chapters = config.curriculum.get(config.course.id).chapters;
+        return chapters[Math.floor((chapters.length - 1) * total)].id;
+      };
       UtilLogger._storageDirectory = null;
       UtilLogger._currentUserId = null;
       UtilLogger._currentDeviceId = null;
@@ -17942,6 +18118,7 @@ window.__require = function e(t, n, r) {
     cc._RF.pop();
   }, {
     "../../chimple": "chimple",
+    "./lib/config": "config",
     "./lib/constants": "constants",
     "./lib/profile": "profile",
     "firebase/analytics": 13,
