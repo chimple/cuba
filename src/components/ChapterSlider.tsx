@@ -9,7 +9,14 @@ const ChapterSlider: React.FC<{
   onChapterClick: Function;
   currentChapterId: string;
   chaptersIndex: number;
-}> = ({ chapterData, onChapterClick, currentChapterId, chaptersIndex }) => {
+  levelChapter: Chapter | undefined;
+}> = ({
+  chapterData,
+  onChapterClick,
+  currentChapterId,
+  chaptersIndex,
+  levelChapter,
+}) => {
   const [chapterSwiperRef, setChaptertSwiperRef] = useState<any>();
   useEffect(() => {
     if (chaptersIndex) chapterSwiperRef?.go(chaptersIndex);
@@ -37,6 +44,7 @@ const ChapterSlider: React.FC<{
               isActive={chap.id === currentChapterId}
               onChapterClick={onChapterClick}
               isLastChapter={chapterData.length - 1 === i}
+              levelChapter={levelChapter}
             />
           </SplideSlide>
         ))}

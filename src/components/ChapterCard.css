@@ -17,7 +17,7 @@
   opacity: 0.8;
   z-index: -1;
 }
-.active-button {
+.star-button {
   opacity: 1;
 }
 .active-line {
@@ -32,4 +32,8 @@
   padding-right: 1em;
   align-self: center;
   text-transform: none;
+}
+
+.active-chapter-name {
+  color: #ff5804;
 }
