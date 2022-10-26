@@ -7,22 +7,32 @@ const ChapterCard: React.FC<{
   isActive: boolean;
   onChapterClick: Function;
   isLastChapter: boolean;
-}> = ({ chapter, isActive, onChapterClick, isLastChapter }) => {
+  levelChapter: Chapter | undefined;
+}> = ({ chapter, isActive, onChapterClick, isLastChapter, levelChapter }) => {
+  const isLevelChapter = chapter.id === levelChapter?.id;
+  if (chapter.id === levelChapter?.id)
+    console.log("levelChapter", levelChapter?.id, levelChapter);
   return (
     <div>
       <IonRow>
         <IonButton
-          className={"chapter-button " + (isActive ? "active-button" : "")}
-          fill="outline"
+          className={"chapter-button " + (isLevelChapter ? "star-button " : "")}
+          fill={isActive ? "solid" : "outline"}
           shape="round"
           onClick={() => {
             onChapterClick(chapter);
           }}
-          color={isActive ? "success" : "success"}
+          color="success"
         >
           <IonRow>
-            <p className="chapter-name">{chapter.name}</p>
-            {isActive ? (
+            <p
+              className={
+                "chapter-name " + (isActive ? "active-chapter-name " : "")
+              }
+            >
+              {chapter.name}
+            </p>
+            {isLevelChapter ? (
               <img className="star" src="assets/icons/star.svg" />
             ) : (
               <div className="stat" />
