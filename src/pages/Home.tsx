@@ -116,7 +116,6 @@ const Home: React.FC = () => {
   }
 
   function onHeaderIconClick(selectedHeader: any) {
-    // console.log("onHeaderIconClick called", selectedHeader);
 
     switch (selectedHeader) {
       case HEADERLIST.HOME:
@@ -159,13 +158,15 @@ const Home: React.FC = () => {
       "user",
       subjectCode
     );
-    const _isPreQuizPlayed = await apiInstance.isPreQuizDone(
+
+const _isPreQuizPlayed = await apiInstance.isPreQuizDone(
       subjectCode,
       tempClass?.sourcedId ?? "",
       "user"
     );
     console.log("tempClass", tempClass);
-    const tempLessonMap =
+
+const tempLessonMap =
       await apiInstance.getResultsForStudentsForClassInLessonMap(
         tempClass?.sourcedId ?? "",
         "user"

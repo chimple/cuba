@@ -27,7 +27,6 @@ export class OneRosterApi implements ServiceApi {
     }
 
     getHeaders(): HttpHeaders {
-        console.log("Auth.i.authToken", Auth.i)
         return { Authorization: "Bearer " + Auth.i.authToken }
     }
 

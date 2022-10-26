@@ -42,19 +42,23 @@ const LessonCard: React.FC<{
         height: "auto",
       }}
       onClick={() => {
-        const url = `chimple-lib/index.html?courseid=${subjectCode}&chapterid=${lesson.chapter.id}&lessonid=${lesson.id}`;
-        history.push(PAGES.GAME, {
-          url: url,
-          lessonId: lesson.id,
-          lesson: lesson,
-          from: history.location.pathname,
-        });
+        if (isUnlocked) {
+          const url = `chimple-lib/index.html?courseid=${subjectCode}&chapterid=${lesson.chapter.id}&lessonid=${lesson.id}`;
+          history.push(PAGES.GAME, {
+            url: url,
+            lessonId: lesson.id,
+            lesson: lesson,
+            from: history.location.pathname,
+          });
+        } else {
+          console.log("lesson is locked");
+        }
       }}
-      disabled={!isUnlocked}
+      // disabled={!isUnlocked}
     >
       <div
         style={{
-          background: lessonCardColor,
+          background: isUnlocked ? lessonCardColor : lessonCardColor + "66",
           borderRadius: "25px",
           width: width,
           height: height,
@@ -67,6 +71,9 @@ const LessonCard: React.FC<{
         {showImage ? (
           <img
             id="lesson-card-image"
+            style={{
+              opacity: isUnlocked ? "1" : "0.5",
+            }}
             loading="lazy"
             alt={"courses/" + subjectCode + "/icons/" + lesson.image}
             src={"courses/" + subjectCode + "/icons/" + lesson.image}
@@ -97,7 +104,16 @@ const LessonCard: React.FC<{
       {/* <IonCardHeader id="lesson-header"> */}
       {/* <IonCardSubtitle>Card Subtitle</IonCardSubtitle> */}
       {/* <IonCardTitle> {lesson?.name}</IonCardTitle> */}
-      {showText ? <p id="lesson-card-name">{lesson?.name}</p> : null}
+      {showText ? (
+        <p
+          id="lesson-card-name"
+          style={{
+            opacity: isUnlocked ? "1" : "0.5",
+          }}
+        >
+          {lesson?.name}
+        </p>
+      ) : null}
       {/* </IonCardHeader> */}
       {/* <IonCardContent> Keep close to Nature's heart... </IonCardContent> */}
     </IonCard>

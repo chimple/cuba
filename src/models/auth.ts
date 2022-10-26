@@ -34,9 +34,7 @@ export default class Auth {
         let responce: any;
         try {
             responce = await AccountManager.accountPicker();
-            // console.log("login-button-result", responce.result);
             let result: any = responce.result;
-            // console.log("login-button-result result.result", result);
             if (result) {
                 console.log("login-button result true", result);
                 result = result.replace(/Bundle/s, '').replace("]", "").replace("[", "").replace("{", "{\"").replace("}", "\"}").replaceAll("=", "\":\"").replaceAll(",", "\",\"").replaceAll(" ", "")
@@ -47,19 +45,9 @@ export default class Auth {
                 this._authToken = result.authtoken;
                 this._accountType = result.accountType;
 
-                console.log(
-                    "auth result after ",
-                    result.authtoken,
-                    this._authToken
-                );
-
                 localStorage.setItem(IS_USER_LOGED_IN, "true");
                 localStorage.setItem(USER_TOKEN, JSON.stringify(result));
                 // history.replace(PAGES.HOME);
-                console.log(
-                    "localStorage.getItem(USER_TOKEN) ",
-                    localStorage.getItem(USER_TOKEN)
-                );
                 return true;
             } else {
                 console.log("login-button result false", result);
@@ -67,13 +55,11 @@ export default class Auth {
                 return false
             }
         } catch (error: any) {
-            console.log("Capacitor.getPlatform()", Capacitor.getPlatform());
             if (
                 error.message === "Method not implemented." &&
                 (Capacitor.getPlatform() === "web" ||
                     Capacitor.getPlatform() === "ios")
             ) {
-                console.log("login-button result true");
                 localStorage.setItem(IS_USER_LOGED_IN, "true");
                 localStorage.setItem(USER_TOKEN, JSON.stringify({ "authAccount": "debug15@gmail.com", "accountType": "com.debug15", "authtoken": "VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY" }));
                 return true;
@@ -92,15 +78,12 @@ export default class Auth {
         }
 
         let userData: any = localStorage.getItem(USER_TOKEN)
-        console.log("Auth userData ", userData)
         if (userData && userData != 'null') {
             userData = JSON.parse(userData)
-            console.log("Auth userData ", userData, userData.authtoken)
 
             this._userAccountName = userData.authAccount;
             this._authToken = userData.authtoken;
             this._accountType = userData.accountType;
-            console.log("Auth object ", Auth.i)
             return true;
         }
         else {

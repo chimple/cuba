@@ -82,7 +82,6 @@ export default class Curriculum {
             return this.curriculum;
         }
 
-        console.log('loadSingleCourseJson() method called')
         // let course: Course;
         let res = await fetch("courses/" + courseId + "/course.json")
         const data = await res.json();
@@ -134,7 +133,6 @@ export default class Curriculum {
             return chapter
         } else {
             let tempLessons: Lesson[] = chapter.lessons;
-            // console.log("chapter.lessons", chapter.lessons)
             for (let i = 0; i < tempLessons.length; i++) {
 
                 //Unlocking Played lessons and Next Lesson
