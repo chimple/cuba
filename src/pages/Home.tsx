@@ -122,7 +122,6 @@ const Home: React.FC = () => {
   }
 
   function onHeaderIconClick(selectedHeader: any) {
-    // console.log("onHeaderIconClick called", selectedHeader);
 
     switch (selectedHeader) {
       case HEADERLIST.HOME:
@@ -170,7 +169,6 @@ const Home: React.FC = () => {
       "",
       subjectCode
     );
-    console.log("tempClass", tempClass);
     const tempLessonMap =
       await apiInstance.getResultsForStudentsForClassInLessonMap(
         tempClass?.sourcedId ?? "",

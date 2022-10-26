@@ -24,7 +24,7 @@ const HomeHeader: React.FC<{
           {currentHeader == HEADERLIST.ENGLISH ? (
             <p className="home-header-indicator">&#9679;</p>
           ) : (
-            <p>&nbsp;</p>
+            <p className="home-header-indicator">&nbsp;</p>
           )}
           <IconButton
             name="English"
@@ -41,7 +41,7 @@ const HomeHeader: React.FC<{
           {currentHeader == HEADERLIST.MATHS ? (
             <p className="home-header-indicator">&#9679;</p>
           ) : (
-            <p>&nbsp;</p>
+            <p className="home-header-indicator">&nbsp;</p>
           )}
           <IconButton
             name="Maths"
@@ -59,7 +59,7 @@ const HomeHeader: React.FC<{
             {currentHeader == HEADERLIST.PUZZLE ? (
               <p className="home-header-indicator">&#9679;</p>
             ) : (
-              <p>&nbsp;</p>
+              <p className="home-header-indicator">&nbsp;</p>
             )}
             <IconButton
               name="Digital Skills"

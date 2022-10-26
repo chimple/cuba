@@ -3,17 +3,25 @@ p {
 }
 
 #login-chimple-logo {
-    height: min(200px, 60vh);
+    /* height: min(200px, 60vh);
     margin-left: calc(33vw);
-    margin-top: 2%;
+    margin-top: 2%; */
+    position: absolute;
+    left: 50%;
+    top: 40%;
+    -webkit-transform: translateY(-50%) translateX(-50%);
 }
 
 #login-button {
+    position: absolute;
+    left: 50%;
+    top: 83%;
+    -webkit-transform: translateY(-50%) translateX(-50%);
     width: min(350px, 100vh);
     height: min(50px, 70vh);
     font-size: 20px;
-    margin-top: calc(8vh);
-    margin-left: calc(28vw);
+    /* margin-top: calc(8vh);
+    margin-left: calc(28vw); */
     background: white;
     border-radius: 25px;
     display: flex;

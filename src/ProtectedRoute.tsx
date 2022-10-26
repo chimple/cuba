@@ -6,12 +6,10 @@ export default function ProtectedRoute({ children, ...rest }) {
   const [isAuth, setIsAuth] = useState<Boolean | null>(null); // initially undefined
   useEffect(() => {
     const isUserLogedIn = Auth.i.isUserLoggedIn();
-    console.log("isUserLogedIn", isUserLogedIn);
     setIsAuth(isUserLogedIn);
     // setIsAuth(await Auth.i.isUserLoggedIn());
   }, []);
 
-  console.log("isUserLogedIn", isAuth);
   if (isAuth == null) return null;
 
   return (
