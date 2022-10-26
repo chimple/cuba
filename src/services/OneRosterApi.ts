@@ -162,9 +162,9 @@ export class OneRosterApi implements ServiceApi {
         return lessonMap;
     }
 
-    async getLineItemsForClassForLessonId(classId: string, LessonId: string): Promise<LineItem[]> {
+    async getLineItemsForClassForLessonId(classId: string, lessonId: string): Promise<LineItem[]> {
         try {
-            const filter = encodeURIComponent(`title='${LessonId}'`)
+            const filter = encodeURIComponent(`title='${lessonId}'`)
             const response = await Http.get({ url: "https://mocki.io/v1/18b2c698-d192-4fc5-9e47-a6eae79bb681?filter=" + filter, headers: this.getHeaders(), shouldEncodeUrlParams: false }).catch((e) => { console.log("error on getResultsForStudentForClass", e) });
             const result = (response && response.status === 200) ? response.data : {};
             const lineItems: LineItem[] = [];
@@ -216,7 +216,7 @@ export class OneRosterApi implements ServiceApi {
                 sourcedId,
                 OneRosterStatus.ACTIVE,
                 date,
-                { LessonId: lessonId });
+                { lessonId: lessonId });
             console.log('results', { result: result.toJson() })
             // Http.put({ url: `/results/${sourcedId}`, data: { result: result.toJson() }, headers: this.getHeaders() })
             if (score >= MIN_PASS) {
@@ -304,13 +304,23 @@ export class OneRosterApi implements ServiceApi {
                     sourcedId,
                     OneRosterStatus.ACTIVE,
                     date,
-                    { LessonId: lessonId });
+                    { lessonId: lessonId });
             }
             // Http.put({ url: `/results/${preQuizresult.sourcedId}`, data: { result: preQuizresult.toJson() }, headers: this.getHeaders() })
             if (!this.preQuizMap[studentId]) {
                 this.preQuizMap[studentId] = {};
             }
             this.preQuizMap[studentId][subjectCode] = preQuizresult;
+
+            //temp storing prequiz locally
+            const json = localStorage.getItem(TEMP_LESSONS_STORE);
+            let lessons: any = {};
+            if (json) {
+                lessons = JSON.parse(json);
+            }
+            lessons[preQuizresult.metadata.lessonId] = preQuizresult?.score;
+            localStorage.setItem(TEMP_LESSONS_STORE, JSON.stringify(lessons));
+            
             return preQuizresult;
         } catch (error) {
             console.log(error)

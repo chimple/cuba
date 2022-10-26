@@ -39,6 +39,7 @@ const Home: React.FC = () => {
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [lessonsScoreMap, setLessonsScoreMap] = useState<any>();
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
+  const [levelChapter, setLevelChapter] = useState<Chapter>();
 
   const history = useHistory();
 
@@ -66,12 +67,6 @@ const Home: React.FC = () => {
     const lessons = await curInstanse.allLessonforSubject(subjectCode);
     const chapters = await curInstanse.allChapterforSubject(subjectCode);
     await new Promise((r) => setTimeout(r, 100));
-    const apiInstance = OneRosterApi.getInstance();
-    const _isPreQuizPlayed = await apiInstance.isPreQuizDone(
-      subjectCode,
-      "",
-      ""
-    );
     const tempChapterMap: any = {};
     for (let i = 0; i < chapters.length; i++) {
       tempChapterMap[chapters[i].id] = i;
@@ -83,7 +78,6 @@ const Home: React.FC = () => {
     setChaptersMap(tempChapterMap);
     setDataCourse({ lessons: lessons, chapters: chapters });
     setCurrentChapterId(chapters[0].id);
-    setIsPreQuizPlayed(_isPreQuizPlayed);
     setIsLoading(false);
     setCurrentLevel(subjectCode, chapters, lessons);
   }
@@ -157,23 +151,39 @@ const Home: React.FC = () => {
         break;
     }
   }
-  async function refreshScore(subjectCode: string) {
-    setIsLoading(true);
-    await setScore(subjectCode);
-    setIsLoading(false);
-  }
 
   async function setScore(subjectCode: string) {
     const apiInstance = OneRosterApi.getInstance();
     const tempClass = await apiInstance.getClassForUserForSubject(
-      "",
+      "user",
       subjectCode
     );
-    const tempLessonMap =
+
+const _isPreQuizPlayed = await apiInstance.isPreQuizDone(
+      subjectCode,
+      tempClass?.sourcedId ?? "",
+      "user"
+    );
+    console.log("tempClass", tempClass);
+
+const tempLessonMap =
       await apiInstance.getResultsForStudentsForClassInLessonMap(
         tempClass?.sourcedId ?? "",
-        ""
+        "user"
       );
+    if (subjectCode !== COURSES.PUZZLE && _isPreQuizPlayed) {
+      const preQuiz = await apiInstance.getPreQuiz(
+        subjectCode,
+        tempClass?.sourcedId ?? "",
+        "user"
+      );
+      const tempLevelChapter = await apiInstance.getChapaterForPreQuizScore(
+        subjectCode,
+        preQuiz?.score ?? 0
+      );
+      setLevelChapter(tempLevelChapter);
+    }
+    setIsPreQuizPlayed(_isPreQuizPlayed);
     setLessonsScoreMap(tempLessonMap);
   }
 
@@ -193,6 +203,7 @@ const Home: React.FC = () => {
               onChapterClick={onChapterClick}
               currentChapterId={currentChapterId}
               chaptersIndex={chaptersMap[currentChapterId] ?? 0}
+              levelChapter={levelChapter}
             />
             <CustomSlider
               lessonData={dataCourse.lessons}
