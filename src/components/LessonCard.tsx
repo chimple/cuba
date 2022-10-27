@@ -33,7 +33,6 @@ const LessonCard: React.FC<{
     ? lesson.color
     : LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
 
-  // console.log("isUnlocked ", !isUnlocked, "isPlayed ", isPlayed);
   return (
     <IonCard
       id="lesson-card"
@@ -51,54 +50,75 @@ const LessonCard: React.FC<{
             from: history.location.pathname,
           });
         } else {
-          console.log("lesson is locked");
+          console.log(lesson?.name, "lesson is locked");
         }
       }}
       // disabled={!isUnlocked}
     >
       <div
         style={{
-          background: isUnlocked ? lessonCardColor : lessonCardColor + "66",
-          borderRadius: "25px",
-          width: width,
-          height: height,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
+          display: "grid",
         }}
-        color={lesson?.color}
       >
-        {showImage ? (
-          <img
-            id="lesson-card-image"
-            style={{
-              opacity: isUnlocked ? "1" : "0.5",
-            }}
-            loading="lazy"
-            alt={"courses/" + subjectCode + "/icons/" + lesson.image}
-            src={"courses/" + subjectCode + "/icons/" + lesson.image}
-            onError={hideImg}
-          />
-        ) : (
-          <div /> // we can show Default LessonCard text or image
-        )}
         {!isUnlocked ? (
-          <img
-            id="lesson-card-status-icon"
-            loading="lazy"
-            src="assets/icons/LockIcon.svg"
-            alt="LockIcon"
-          />
-        ) : isPlayed ? (
-          <img
-            id="lesson-card-status-icon"
-            loading="lazy"
-            src="assets/icons/DoneIcon.svg"
-            alt="DoneIcon"
-          />
+          <div
+            style={{
+              background: "#000000",
+              borderRadius: "25px",
+              width: width,
+              height: height,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              opacity: "0.3",
+              gridArea: "1/1",
+            }}
+          ></div>
         ) : (
-          <div />
+          <div></div>
         )}
+        <div
+          style={{
+            background: isUnlocked ? lessonCardColor : lessonCardColor,
+            borderRadius: "25px",
+            width: width,
+            height: height,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gridArea: "1/1",
+          }}
+          color={lesson?.color}
+        >
+          {showImage ? (
+            <img
+              id="lesson-card-image"
+              loading="lazy"
+              alt={"courses/" + subjectCode + "/icons/" + lesson.image}
+              src={"courses/" + subjectCode + "/icons/" + lesson.image}
+              onError={hideImg}
+            />
+          ) : (
+            <div /> // we can show Default LessonCard text or image
+          )}
+          {!isUnlocked ? (
+            <img
+              id="lesson-card-status-icon"
+              loading="lazy"
+              src="assets/icons/LockIcon.svg"
+              alt="LockIcon"
+            />
+          ) : isPlayed ? (
+            <img
+              id="lesson-card-status-icon"
+              loading="lazy"
+              src="assets/icons/DoneIcon.svg"
+              alt="DoneIcon"
+            />
+          ) : (
+            <div />
+          )}
+        </div>
       </div>
 
       {/* <IonCardHeader id="lesson-header"> */}
