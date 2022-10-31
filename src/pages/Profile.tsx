@@ -105,6 +105,8 @@ const Profile: React.FC = () => {
                   isUnlocked={isUnlocked}
                   subjectCode={lesson.chapter.course.id}
                   showText={false}
+                  showScoreCard={false}
+                  score={0}
                 />
               );
             })}

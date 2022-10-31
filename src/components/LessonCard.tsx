@@ -4,6 +4,7 @@ import { useHistory } from "react-router-dom";
 import { LESSON_CARD_COLORS, PAGES } from "../common/constants";
 import { Lesson } from "../interface/curriculumInterfaces";
 import "./LessonCard.css";
+import ScoreCard from "./ScoreCard";
 
 const LessonCard: React.FC<{
   width: string;
@@ -13,6 +14,8 @@ const LessonCard: React.FC<{
   isUnlocked: boolean;
   subjectCode: string;
   showText?: boolean;
+  showScoreCard?: boolean;
+  score: any;
 }> = ({
   width,
   height,
@@ -21,6 +24,8 @@ const LessonCard: React.FC<{
   isUnlocked,
   subjectCode,
   showText = true,
+  showScoreCard = true,
+  score,
 }) => {
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
@@ -79,51 +84,56 @@ const LessonCard: React.FC<{
         )}
         <div
           style={{
-            background: isUnlocked ? lessonCardColor : lessonCardColor,
+            background: lessonCardColor,
             borderRadius: "25px",
             width: width,
             height: height,
-            display: "flex",
+            display: showScoreCard ? "initial" : "flex",
             justifyContent: "center",
             alignItems: "center",
             gridArea: "1/1",
           }}
           color={lesson?.color}
         >
-          {showImage ? (
-            <img
-              id="lesson-card-image"
-              loading="lazy"
-              alt={"courses/" + subjectCode + "/icons/" + lesson.image}
-              src={"courses/" + subjectCode + "/icons/" + lesson.image}
-              onError={hideImg}
-            />
+          <div id="lesson-card-image">
+            {showImage ? (
+              <img
+                id="lesson-card-image"
+                loading="lazy"
+                alt={"courses/" + subjectCode + "/icons/" + lesson.image}
+                src={"courses/" + subjectCode + "/icons/" + lesson.image}
+                onError={hideImg}
+              />
+            ) : (
+              <div /> // we can show Default LessonCard text or image
+            )}
+            {!isUnlocked ? (
+              <img
+                id="lesson-card-status-icon"
+                loading="lazy"
+                src="assets/icons/LockIcon.svg"
+                alt="LockIcon"
+              />
+            ) : isPlayed ? (
+              <img
+                id="lesson-card-status-icon"
+                loading="lazy"
+                src="assets/icons/DoneIcon.svg"
+                alt="DoneIcon"
+              />
+            ) : (
+              <div />
+            )}
+          </div>
+          {showScoreCard ? (
+            <div id="lesson-card-score">
+              <ScoreCard score={score}></ScoreCard>
+            </div>
           ) : (
-            <div /> // we can show Default LessonCard text or image
-          )}
-          {!isUnlocked ? (
-            <img
-              id="lesson-card-status-icon"
-              loading="lazy"
-              src="assets/icons/LockIcon.svg"
-              alt="LockIcon"
-            />
-          ) : isPlayed ? (
-            <img
-              id="lesson-card-status-icon"
-              loading="lazy"
-              src="assets/icons/DoneIcon.svg"
-              alt="DoneIcon"
-            />
-          ) : (
-            <div />
+            <></>
           )}
         </div>
       </div>
-
-      {/* <IonCardHeader id="lesson-header"> */}
-      {/* <IonCardSubtitle>Card Subtitle</IonCardSubtitle> */}
-      {/* <IonCardTitle> {lesson?.name}</IonCardTitle> */}
       {showText ? (
         <p
           id="lesson-card-name"
@@ -134,8 +144,6 @@ const LessonCard: React.FC<{
           {lesson?.name}
         </p>
       ) : null}
-      {/* </IonCardHeader> */}
-      {/* <IonCardContent> Keep close to Nature's heart... </IonCardContent> */}
     </IonCard>
   );
 };

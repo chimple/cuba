@@ -1,0 +1,15 @@
+.lesson-card-score-card {
+    height: 100%;
+}
+
+.lesson-card-score-card-star {
+    width: min(3vh, 32px);
+    min-width: 30px;
+}
+
+.lesson-card-score-card-middle-star {
+    width: min(3vh, 32px);
+    min-width: 30px;
+    position: relative;
+    bottom: 10px;
+}

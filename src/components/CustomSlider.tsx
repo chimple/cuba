@@ -54,6 +54,8 @@ const CustomSlider: React.FC<{
                 isPlayed={isPlayed}
                 isUnlocked={m.isUnlock}
                 lesson={m}
+                showScoreCard={isPlayed}
+                score={lessonsScoreMap[m.id]?.score}
               />
             </SplideSlide>
           );

@@ -8,16 +8,23 @@ const HomeHeader: React.FC<{
 }> = ({ currentHeader, onHeaderIconClick }) => {
   return (
     <div id="home-header-icons">
-      <IconButton
-        name="Home"
-        iconSrc="assets/icons/HomeIcon.svg"
-        onClick={() => {
-          if (currentHeader != HEADERLIST.HOME) {
-            onHeaderIconClick(HEADERLIST.HOME);
-            console.log("Home button clicked", HEADERLIST.HOME);
-          }
-        }}
-      ></IconButton>
+      <div>
+        {currentHeader == HEADERLIST.HOME ? (
+          <p className="home-header-indicator">&#9679;</p>
+        ) : (
+          <p className="home-header-indicator">&nbsp;</p>
+        )}
+        <IconButton
+          name="Home"
+          iconSrc="assets/icons/HomeIcon.svg"
+          onClick={() => {
+            if (currentHeader != HEADERLIST.HOME) {
+              onHeaderIconClick(HEADERLIST.HOME);
+              console.log("Home button clicked", HEADERLIST.HOME);
+            }
+          }}
+        ></IconButton>
+      </div>
 
       <div id="home-header-middle-icons">
         <div>
@@ -74,16 +81,19 @@ const HomeHeader: React.FC<{
           </div>
         </div>
       </div>
-      <IconButton
-        name="Profile"
-        iconSrc="assets/icons/Profile.svg"
-        onClick={() => {
-          if (currentHeader != HEADERLIST.PROFILE) {
-            onHeaderIconClick(HEADERLIST.PROFILE);
-            console.log("Profile button clicked", HEADERLIST.PROFILE);
-          }
-        }}
-      ></IconButton>
+      <div>
+        <p className="home-header-indicator">&nbsp;</p>
+        <IconButton
+          name="Profile"
+          iconSrc="assets/icons/Profile.svg"
+          onClick={() => {
+            if (currentHeader != HEADERLIST.PROFILE) {
+              onHeaderIconClick(HEADERLIST.PROFILE);
+              console.log("Profile button clicked", HEADERLIST.PROFILE);
+            }
+          }}
+        ></IconButton>
+      </div>
     </div>
   );
 };
