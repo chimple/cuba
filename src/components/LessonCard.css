@@ -18,8 +18,20 @@
 }
 
 #lesson-card-image {
+    max-width: 100%;
     height: auto;
-    width: min(124px, 100vh);
+    width: auto;
+    height: 80%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#lesson-card-score {
+    height: 20%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #lesson-card-name {
