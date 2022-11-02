@@ -88,7 +88,7 @@ const LessonCard: React.FC<{
             borderRadius: "25px",
             width: width,
             height: height,
-            display: showScoreCard ? "initial" : "flex",
+            display: "grid",
             justifyContent: "center",
             alignItems: "center",
             gridArea: "1/1",
