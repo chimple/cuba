@@ -6,6 +6,7 @@ p {
     /* height: min(200px, 60vh);
     margin-left: calc(33vw);
     margin-top: 2%; */
+    height: 50%;
     position: absolute;
     left: 50%;
     top: 40%;
@@ -17,7 +18,7 @@ p {
     left: 50%;
     top: 83%;
     -webkit-transform: translateY(-50%) translateX(-50%);
-    width: min(350px, 100vh);
+    width: min(350px, 80vh);
     height: min(50px, 70vh);
     font-size: 20px;
     /* margin-top: calc(8vh);
@@ -31,6 +32,11 @@ p {
     color: #2DAAE1;
     font-family: 'BalooExtraBold';
     font-weight: bolder;
+}
+
+
+#login-button-text {
+    color: #FF7925;
 }
 
 #login-button-img {
