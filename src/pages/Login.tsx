@@ -50,7 +50,7 @@ const Login: React.FC = () => {
             alt="VSO Icon"
             src="assets/icons/VSOLogo.svg"
           />
-          <p>Login with VSO</p>
+          <p id="login-button-text">Login with VSO</p>
           <img
             id="login-button-img"
             alt="Arrow Icon"
