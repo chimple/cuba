@@ -60,7 +60,7 @@ export default class Curriculum {
         return Curriculum.getInstance();
     }
 
-    clear() {
+    async clear() {
         this.course = null!
         this.chapter = null!
         this.lesson = null!
