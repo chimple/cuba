@@ -1,1 +1,229 @@
-{"paths":{"0":["prefabs/Capsule",0],"1":["textures/new/box_empty_sentencebridge",2,1],"2":["textures/sentencebride_bush2",2,1],"3":["textures/sentencebride_box",2,1],"4":["textures/new/box",2,1],"5":["textures/sentencebride_cloud",2,1],"6":["textures/round_alpha_sentencebridge",2,1],"7":["prefabs/jumpsentence",0],"8":["textures/new/lowercase_switch",2,1],"9":["textures/sentencebride_moon",2,1],"10":["textures/sentencebride_pattern2",2,1],"11":["textures/new/box_alpha_sentencebridge",2,1],"12":["textures/lowercase_switch",2,1],"13":["textures/sentencebride_bush1",2,1],"14":["textures/new/box_disabled_sentencebridge",2,1],"15":["textures/sentencebride_mountain",2,1],"18":["textures/box_alpha_sentencebridge",2,1],"19":["prefabs/bridge",0],"20":["prefabs/word_box",0],"21":["textures/new/uppercase_switch",2,1],"22":["textures/box_glow_sentencebridge",2,1],"23":["textures/sentencebride_pattern1",2,1],"24":["textures/uppercase_switch",2,1],"25":["prefabs/Box",0],"26":["prefabs/Box Empty",0],"28":["textures/AutoAtlas",1],"29":["prefabs/Capsule Empty",0],"30":["prefabs/label",0]},"types":["cc.Prefab","cc.SpriteAtlas","cc.SpriteFrame"],"uuids":["0eyDGTknlE47ih6HPR01oy","15eybFWAxMzIXyVt2dZP/7","2avzZDsKxHEKYHGGDavcP8","2a/gGYjWFEooiFc68E2OCp","3cytEETjhClbk1I6qXmMwS","40nJ94EZhFDKYkvrO00oJf","7eItlVTVBAs5Ko6pVZtSds","7euDISwsFBm63NuGtzNT/i","84J/u6Q7dOJ5JheaSfWReu","9fXPt2zDhCDJTXjfpUvW/a","a8XzRA0fNN15JdTJKeKfq5","b8v9UNcQNCEq7Rab8+YALr","beL8v9XC5DdoABQghNIn62","da+sPQEC9KoJjP3uBxhsHZ","eatfiB0SVCfYOszCu1Dbws","f1v6LYXgFMkrO4U7kIo8IH","08OOcgWF1GSKOdO5zYCffN","11714aaa1","31T2wWP9hBf64QRmmOkGYW","44o/+6c3dCOI2gNiHq2t3Z","7fxVZgY0JKeqwGYVV4V2UG","a1hYrmfx1NabNyKb5jvOb1","b6d0sShg9LpL3HrmzT0Irc","bcSLYHb8dB5qLRI9CR6oXo","c4k4z/wu9J7o4uNp46Yoxy","ebYtMZhC1Po5eeIymnaOtr","1egHbha59FaIp+pPBGfQXq","34Sn6gN4xMD4e25SxHh7cS","79DdMvaWJFAaPrAJm3VJCq","8cn4uYRrFJi6DzksYQy5uD","eaTdWSZs1H1YvVX6ho8zsE","ecpdLyjvZBwrvm+cedCcQy"],"scenes":{"db://assets/games/jumpsentence/scenes/jumpsentence.fire":27},"redirect":[16,0,31,1],"deps":["resources","internal"],"packs":{"03ccf040c":[3,25],"0581f4b5f":[0,6,11],"082283631":[18,19],"092a4f4a0":[4,20],"0c8056f90":[2,5,7,8,9,21,10,23,12,24,13,14,15],"0d6532a46":[1,22]},"name":"jumpsentence","importBase":"import","nativeBase":"native","debug":false,"isZip":false,"encrypted":false}
+{
+    "paths": {
+        "ebYtMZhC1Po5eeIymnaOtr": [
+            "prefabs/Box",
+            "cc.Prefab"
+        ],
+        "1egHbha59FaIp+pPBGfQXq": [
+            "prefabs/Box Empty",
+            "cc.Prefab"
+        ],
+        "0eyDGTknlE47ih6HPR01oy": [
+            "prefabs/Capsule",
+            "cc.Prefab"
+        ],
+        "8cn4uYRrFJi6DzksYQy5uD": [
+            "prefabs/Capsule Empty",
+            "cc.Prefab"
+        ],
+        "44o/+6c3dCOI2gNiHq2t3Z": [
+            "prefabs/bridge",
+            "cc.Prefab"
+        ],
+        "7euDISwsFBm63NuGtzNT/i": [
+            "prefabs/jumpsentence",
+            "cc.Prefab"
+        ],
+        "eaTdWSZs1H1YvVX6ho8zsE": [
+            "prefabs/label",
+            "cc.Prefab"
+        ],
+        "7fxVZgY0JKeqwGYVV4V2UG": [
+            "prefabs/word_box",
+            "cc.Prefab"
+        ],
+        "79DdMvaWJFAaPrAJm3VJCq": [
+            "textures/AutoAtlas",
+            "cc.SpriteAtlas"
+        ],
+        "31T2wWP9hBf64QRmmOkGYW": [
+            "textures/box_alpha_sentencebridge",
+            "cc.SpriteFrame",
+            1
+        ],
+        "b6d0sShg9LpL3HrmzT0Irc": [
+            "textures/box_glow_sentencebridge",
+            "cc.SpriteFrame",
+            1
+        ],
+        "beL8v9XC5DdoABQghNIn62": [
+            "textures/lowercase_switch",
+            "cc.SpriteFrame",
+            1
+        ],
+        "3cytEETjhClbk1I6qXmMwS": [
+            "textures/new/box",
+            "cc.SpriteFrame",
+            1
+        ],
+        "b8v9UNcQNCEq7Rab8+YALr": [
+            "textures/new/box_alpha_sentencebridge",
+            "cc.SpriteFrame",
+            1
+        ],
+        "eatfiB0SVCfYOszCu1Dbws": [
+            "textures/new/box_disabled_sentencebridge",
+            "cc.SpriteFrame",
+            1
+        ],
+        "15eybFWAxMzIXyVt2dZP/7": [
+            "textures/new/box_empty_sentencebridge",
+            "cc.SpriteFrame",
+            1
+        ],
+        "84J/u6Q7dOJ5JheaSfWReu": [
+            "textures/new/lowercase_switch",
+            "cc.SpriteFrame",
+            1
+        ],
+        "a1hYrmfx1NabNyKb5jvOb1": [
+            "textures/new/uppercase_switch",
+            "cc.SpriteFrame",
+            1
+        ],
+        "7eItlVTVBAs5Ko6pVZtSds": [
+            "textures/round_alpha_sentencebridge",
+            "cc.SpriteFrame",
+            1
+        ],
+        "2a/gGYjWFEooiFc68E2OCp": [
+            "textures/sentencebride_box",
+            "cc.SpriteFrame",
+            1
+        ],
+        "da+sPQEC9KoJjP3uBxhsHZ": [
+            "textures/sentencebride_bush1",
+            "cc.SpriteFrame",
+            1
+        ],
+        "2avzZDsKxHEKYHGGDavcP8": [
+            "textures/sentencebride_bush2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "40nJ94EZhFDKYkvrO00oJf": [
+            "textures/sentencebride_cloud",
+            "cc.SpriteFrame",
+            1
+        ],
+        "9fXPt2zDhCDJTXjfpUvW/a": [
+            "textures/sentencebride_moon",
+            "cc.SpriteFrame",
+            1
+        ],
+        "f1v6LYXgFMkrO4U7kIo8IH": [
+            "textures/sentencebride_mountain",
+            "cc.SpriteFrame",
+            1
+        ],
+        "bcSLYHb8dB5qLRI9CR6oXo": [
+            "textures/sentencebride_pattern1",
+            "cc.SpriteFrame",
+            1
+        ],
+        "a8XzRA0fNN15JdTJKeKfq5": [
+            "textures/sentencebride_pattern2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "c4k4z/wu9J7o4uNp46Yoxy": [
+            "textures/uppercase_switch",
+            "cc.SpriteFrame",
+            1
+        ]
+    },
+    "uuids": [
+        "08OOcgWF1GSKOdO5zYCffN",
+        "0eyDGTknlE47ih6HPR01oy",
+        "11714aaa1",
+        "15eybFWAxMzIXyVt2dZP/7",
+        "1egHbha59FaIp+pPBGfQXq",
+        "2avzZDsKxHEKYHGGDavcP8",
+        "2a/gGYjWFEooiFc68E2OCp",
+        "31T2wWP9hBf64QRmmOkGYW",
+        "34Sn6gN4xMD4e25SxHh7cS",
+        "3cytEETjhClbk1I6qXmMwS",
+        "40nJ94EZhFDKYkvrO00oJf",
+        "44o/+6c3dCOI2gNiHq2t3Z",
+        "79DdMvaWJFAaPrAJm3VJCq",
+        "7eItlVTVBAs5Ko6pVZtSds",
+        "7euDISwsFBm63NuGtzNT/i",
+        "7fxVZgY0JKeqwGYVV4V2UG",
+        "84J/u6Q7dOJ5JheaSfWReu",
+        "8cn4uYRrFJi6DzksYQy5uD",
+        "90foRryRJM3p9AGFGyKh5x",
+        "9fXPt2zDhCDJTXjfpUvW/a",
+        "a1hYrmfx1NabNyKb5jvOb1",
+        "a8XzRA0fNN15JdTJKeKfq5",
+        "b6d0sShg9LpL3HrmzT0Irc",
+        "b8v9UNcQNCEq7Rab8+YALr",
+        "bcSLYHb8dB5qLRI9CR6oXo",
+        "beL8v9XC5DdoABQghNIn62",
+        "c4k4z/wu9J7o4uNp46Yoxy",
+        "da+sPQEC9KoJjP3uBxhsHZ",
+        "eaTdWSZs1H1YvVX6ho8zsE",
+        "eatfiB0SVCfYOszCu1Dbws",
+        "ebYtMZhC1Po5eeIymnaOtr",
+        "ecpdLyjvZBwrvm+cedCcQy",
+        "f1v6LYXgFMkrO4U7kIo8IH"
+    ],
+    "scenes": {
+        "db://assets/games/jumpsentence/scenes/jumpsentence.fire": "34Sn6gN4xMD4e25SxHh7cS"
+    },
+    "redirect": [
+        "ecpdLyjvZBwrvm+cedCcQy",
+        0
+    ],
+    "deps": [
+        "internal"
+    ],
+    "packs": {
+        "03ccf040c": [
+            "2a/gGYjWFEooiFc68E2OCp",
+            "ebYtMZhC1Po5eeIymnaOtr"
+        ],
+        "0581f4b5f": [
+            "0eyDGTknlE47ih6HPR01oy",
+            "7eItlVTVBAs5Ko6pVZtSds",
+            "b8v9UNcQNCEq7Rab8+YALr"
+        ],
+        "0620c61d0": [
+            "08OOcgWF1GSKOdO5zYCffN",
+            "2avzZDsKxHEKYHGGDavcP8",
+            "40nJ94EZhFDKYkvrO00oJf",
+            "7euDISwsFBm63NuGtzNT/i",
+            "84J/u6Q7dOJ5JheaSfWReu",
+            "9fXPt2zDhCDJTXjfpUvW/a",
+            "a1hYrmfx1NabNyKb5jvOb1",
+            "a8XzRA0fNN15JdTJKeKfq5",
+            "bcSLYHb8dB5qLRI9CR6oXo",
+            "beL8v9XC5DdoABQghNIn62",
+            "c4k4z/wu9J7o4uNp46Yoxy",
+            "da+sPQEC9KoJjP3uBxhsHZ",
+            "eatfiB0SVCfYOszCu1Dbws",
+            "f1v6LYXgFMkrO4U7kIo8IH"
+        ],
+        "082283631": [
+            "31T2wWP9hBf64QRmmOkGYW",
+            "44o/+6c3dCOI2gNiHq2t3Z"
+        ],
+        "092a4f4a0": [
+            "3cytEETjhClbk1I6qXmMwS",
+            "7fxVZgY0JKeqwGYVV4V2UG"
+        ],
+        "0d6532a46": [
+            "15eybFWAxMzIXyVt2dZP/7",
+            "b6d0sShg9LpL3HrmzT0Irc"
+        ],
+        "0dd9eccd8": [
+            "11714aaa1",
+            "90foRryRJM3p9AGFGyKh5x"
+        ]
+    },
+    "name": "jumpsentence",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

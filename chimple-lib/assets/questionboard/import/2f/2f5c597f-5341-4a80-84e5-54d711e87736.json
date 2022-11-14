@@ -1,1 +1,51 @@
-[1,["14ce69a9e"],["_textureSetter"],["cc.SpriteFrame"],0,[{"name":"wordwindow_frame_question","rect":[3,3,760,355],"offset":[0,0],"originalSize":[760,355],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]]
+[
+  1,
+  [
+    "14ce69a9e"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "wordwindow_frame_question",
+      "rect": [
+        3,
+        3,
+        760,
+        355
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "originalSize": [
+        760,
+        355
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

@@ -1,1 +1,51 @@
-[1,["1785352fe"],["_textureSetter"],["cc.SpriteFrame"],0,[{"name":"pretest-speaker-active","rect":[3,89,449,448],"offset":[0,-0.5],"originalSize":[449,449],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]]
+[
+  1,
+  [
+    "1785352fe"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "pretest-speaker-active",
+      "rect": [
+        3,
+        89,
+        449,
+        448
+      ],
+      "offset": [
+        0,
+        -0.5
+      ],
+      "originalSize": [
+        449,
+        449
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

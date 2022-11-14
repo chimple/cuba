@@ -1,0 +1,97 @@
+[
+  1,
+  [
+    "90foRryRJM3p9AGFGyKh5x",
+    "139129333"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    [
+      [
+        {
+          "name": "default_white_panel",
+          "rect": [
+            0,
+            0,
+            21,
+            21
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            21,
+            21
+          ],
+          "capInsets": [
+            3,
+            3,
+            3,
+            3
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "whatisthis_bush",
+          "rect": [
+            355,
+            3,
+            351,
+            141
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            351,
+            141
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        1
+      ]
+    ]
+  ]
+]

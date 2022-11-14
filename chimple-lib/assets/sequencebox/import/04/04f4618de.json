@@ -1,1 +1,516 @@
-[1,["1cb626ad2","adQFlqOrdC5aVMxpEoS5lG","58mq1eMJNB+6kFHjSMNbYh","07r2Np8m9AtJ7DdjOtFb6n","866GAwJpNHma7jAiHxo7hz","e1im0K8mlKuqP36BuRodqN","3dRNHuAixBoKg5N5xbMXTo"],["_textureSetter","value"],["cc.SpriteFrame",["cc.AnimationClip",["_name","_duration","events","curveData"],0,11]],[[1,0,1,2,3,4]],[[[{"name":"tressure_top3","rect":[391,387,208,70],"offset":[0.5,43],"originalSize":[211,220],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"tressure_top6","rect":[521,3,208,70],"offset":[-0.5,43],"originalSize":[211,220],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"tressure_top2","rect":[341,608,208,70],"offset":[-0.5,43],"originalSize":[211,220],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"tressure_top4","rect":[3,918,207,70],"offset":[0,43.5],"originalSize":[211,221],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[[0,"tressure",0.35,[{"frame":0.06666666666666667,"func":"","params":[]}],[{"props":{"scaleY":[{"frame":0,"value":1},{"frame":0.16666666666666666,"value":1.2000000476837158},{"frame":0.18333333333333332,"value":1.2000000476837158},{"frame":0.35,"value":1}]}},"paths",11,[{"particlesystem":{"comps":{"cc.ParticleSystem":{"duration":[{"frame":0.35,"value":2}],"emitterMode":[],"startRadius":[],"endRadius":[{"frame":0.35,"value":30}],"playOnLoad":[],"emissionRate":[{"frame":0.35,"value":50}]}},"props":{"active":[]}}},"top_box_node",11,[{"props":{"scaleY":[]}},"comps",11,[{},"cc.Sprite",11,[{},"spriteFrame",12,[[[{"frame":0},"value",6,0],[{"frame":0.03333333333333333},"value",6,1],[{"frame":0.06666666666666667},"value",6,2],[{"frame":0.1},"value",6,3],[{"frame":0.13333333333333333},"value",6,4],[{"frame":0.16666666666666666},"value",6,5]],11,11,11,11,11,11]]]],"character_node",11,[{},"props",11,[{"y":[{"frame":0,"value":23.85099983215332}]},"scale",12,[[[{"frame":0},"value",8,[0,0.20000000298023224,0.20000000298023224]],[{"frame":0.16666666666666666},"value",8,[0,0.800000011920929,0.800000011920929]]],11,11]]]]]]],0,0,[0,0,0,0,0,0],[1,1,1,1,1,1],[1,2,3,4,5,6]],[[{"name":"tressure_top1","rect":[417,608,207,56],"offset":[0,64.5],"originalSize":[211,191],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"tressure_top5","rect":[216,780,208,70],"offset":[0.5,43],"originalSize":[211,220],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]]]]
+[
+  1,
+  [
+    "1cb626ad2",
+    "adQFlqOrdC5aVMxpEoS5lG",
+    "58mq1eMJNB+6kFHjSMNbYh",
+    "07r2Np8m9AtJ7DdjOtFb6n",
+    "866GAwJpNHma7jAiHxo7hz",
+    "e1im0K8mlKuqP36BuRodqN",
+    "3dRNHuAixBoKg5N5xbMXTo"
+  ],
+  [
+    "_textureSetter",
+    "value"
+  ],
+  [
+    "cc.SpriteFrame",
+    [
+      "cc.AnimationClip",
+      [
+        "_name",
+        "_duration",
+        "events",
+        "curveData"
+      ],
+      0,
+      11
+    ]
+  ],
+  [
+    [
+      1,
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  ],
+  [
+    [
+      [
+        {
+          "name": "tressure_top3",
+          "rect": [
+            391,
+            387,
+            208,
+            70
+          ],
+          "offset": [
+            0.5,
+            43
+          ],
+          "originalSize": [
+            211,
+            220
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "tressure_top6",
+          "rect": [
+            521,
+            3,
+            208,
+            70
+          ],
+          "offset": [
+            -0.5,
+            43
+          ],
+          "originalSize": [
+            211,
+            220
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "tressure_top2",
+          "rect": [
+            341,
+            608,
+            208,
+            70
+          ],
+          "offset": [
+            -0.5,
+            43
+          ],
+          "originalSize": [
+            211,
+            220
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "tressure_top4",
+          "rect": [
+            3,
+            918,
+            207,
+            70
+          ],
+          "offset": [
+            0,
+            43.5
+          ],
+          "originalSize": [
+            211,
+            221
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        [
+          0,
+          "tressure",
+          0.35,
+          [
+            {
+              "frame": 0.06666666666666667,
+              "func": "",
+              "params": []
+            }
+          ],
+          [
+            {
+              "props": {
+                "scaleY": [
+                  {
+                    "frame": 0,
+                    "value": 1
+                  },
+                  {
+                    "frame": 0.16666666666666666,
+                    "value": 1.2000000476837158
+                  },
+                  {
+                    "frame": 0.18333333333333332,
+                    "value": 1.2000000476837158
+                  },
+                  {
+                    "frame": 0.35,
+                    "value": 1
+                  }
+                ]
+              }
+            },
+            "paths",
+            11,
+            [
+              {
+                "particlesystem": {
+                  "comps": {
+                    "cc.ParticleSystem": {
+                      "duration": [
+                        {
+                          "frame": 0.35,
+                          "value": 2
+                        }
+                      ],
+                      "emitterMode": [],
+                      "startRadius": [],
+                      "endRadius": [
+                        {
+                          "frame": 0.35,
+                          "value": 30
+                        }
+                      ],
+                      "playOnLoad": [],
+                      "emissionRate": [
+                        {
+                          "frame": 0.35,
+                          "value": 50
+                        }
+                      ]
+                    }
+                  },
+                  "props": {
+                    "active": []
+                  }
+                }
+              },
+              "top_box_node",
+              11,
+              [
+                {
+                  "props": {
+                    "scaleY": []
+                  }
+                },
+                "comps",
+                11,
+                [
+                  {},
+                  "cc.Sprite",
+                  11,
+                  [
+                    {},
+                    "spriteFrame",
+                    12,
+                    [
+                      [
+                        [
+                          {
+                            "frame": 0
+                          },
+                          "value",
+                          6,
+                          0
+                        ],
+                        [
+                          {
+                            "frame": 0.03333333333333333
+                          },
+                          "value",
+                          6,
+                          1
+                        ],
+                        [
+                          {
+                            "frame": 0.06666666666666667
+                          },
+                          "value",
+                          6,
+                          2
+                        ],
+                        [
+                          {
+                            "frame": 0.1
+                          },
+                          "value",
+                          6,
+                          3
+                        ],
+                        [
+                          {
+                            "frame": 0.13333333333333333
+                          },
+                          "value",
+                          6,
+                          4
+                        ],
+                        [
+                          {
+                            "frame": 0.16666666666666666
+                          },
+                          "value",
+                          6,
+                          5
+                        ]
+                      ],
+                      11,
+                      11,
+                      11,
+                      11,
+                      11,
+                      11
+                    ]
+                  ]
+                ]
+              ],
+              "character_node",
+              11,
+              [
+                {},
+                "props",
+                11,
+                [
+                  {
+                    "y": [
+                      {
+                        "frame": 0,
+                        "value": 23.85099983215332
+                      }
+                    ]
+                  },
+                  "scale",
+                  12,
+                  [
+                    [
+                      [
+                        {
+                          "frame": 0
+                        },
+                        "value",
+                        8,
+                        [
+                          0,
+                          0.20000000298023224,
+                          0.20000000298023224
+                        ]
+                      ],
+                      [
+                        {
+                          "frame": 0.16666666666666666
+                        },
+                        "value",
+                        8,
+                        [
+                          0,
+                          0.800000011920929,
+                          0.800000011920929
+                        ]
+                      ]
+                    ],
+                    11,
+                    11
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ]
+      ],
+      0,
+      0,
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    ],
+    [
+      [
+        {
+          "name": "tressure_top1",
+          "rect": [
+            417,
+            608,
+            207,
+            56
+          ],
+          "offset": [
+            0,
+            64.5
+          ],
+          "originalSize": [
+            211,
+            191
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "tressure_top5",
+          "rect": [
+            216,
+            780,
+            208,
+            70
+          ],
+          "offset": [
+            0.5,
+            43
+          ],
+          "originalSize": [
+            211,
+            220
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ]
+  ]
+]

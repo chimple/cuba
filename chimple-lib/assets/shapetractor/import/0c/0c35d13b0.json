@@ -1,0 +1,217 @@
+[
+  1,
+  [
+    "133fc0633",
+    "90foRryRJM3p9AGFGyKh5x"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    [
+      [
+        {
+          "name": "default_white_panel",
+          "rect": [
+            0,
+            0,
+            21,
+            21
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            21,
+            21
+          ],
+          "capInsets": [
+            3,
+            3,
+            3,
+            3
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        1
+      ]
+    ],
+    [
+      [
+        {
+          "name": "shapetractor_crops1",
+          "rect": [
+            3,
+            561,
+            277,
+            71
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            277,
+            71
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "shapetractor_crops2",
+          "rect": [
+            3,
+            790,
+            130,
+            87
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            130,
+            87
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "shapetractor_cloud",
+          "rect": [
+            3,
+            151,
+            509,
+            254
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            509,
+            254
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "shapetractor_bush",
+          "rect": [
+            3,
+            3,
+            555,
+            142
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            555,
+            142
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ]
+  ]
+]

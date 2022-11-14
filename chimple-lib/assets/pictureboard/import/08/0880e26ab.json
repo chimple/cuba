@@ -1,0 +1,380 @@
+[
+  1,
+  [
+    "167cb824d",
+    "15a1fc46d",
+    "90foRryRJM3p9AGFGyKh5x"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    [
+      [
+        {
+          "name": "default_white_panel",
+          "rect": [
+            0,
+            0,
+            21,
+            21
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            21,
+            21
+          ],
+          "capInsets": [
+            3,
+            3,
+            3,
+            3
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        2
+      ]
+    ],
+    [
+      [
+        {
+          "name": "pictureboard_chair",
+          "rect": [
+            3,
+            769,
+            264,
+            184
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            264,
+            184
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "pictureboard_moon",
+          "rect": [
+            373,
+            3,
+            316,
+            315
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            316,
+            315
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        1
+      ]
+    ],
+    [
+      [
+        {
+          "name": "pictureboard_clock",
+          "rect": [
+            3,
+            552,
+            150,
+            149
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            150,
+            149
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "pictureboard_tree",
+          "rect": [
+            589,
+            552,
+            256,
+            395
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            256,
+            395
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "pictureboard_pattern1",
+          "rect": [
+            909,
+            3,
+            78,
+            376
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            78,
+            376
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "pictureboard_moutain",
+          "rect": [
+            3,
+            3,
+            920,
+            364
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            920,
+            364
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        1
+      ]
+    ],
+    [
+      [
+        {
+          "name": "pictureboard_pattern2",
+          "rect": [
+            909,
+            385,
+            74,
+            378
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            74,
+            378
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "pictureboard_roof",
+          "rect": [
+            273,
+            552,
+            310,
+            452
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            310,
+            452
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ]
+  ]
+]

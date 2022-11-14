@@ -1,1 +1,51 @@
-[1,["1ca1e63e6"],["_textureSetter"],["cc.SpriteFrame"],0,[{"name":"sumtogether_railing","rect":[26,3,166,28],"offset":[0,0],"originalSize":[166,28],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]]
+[
+  1,
+  [
+    "1ca1e63e6"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "sumtogether_railing",
+      "rect": [
+        26,
+        3,
+        166,
+        28
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "originalSize": [
+        166,
+        28
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

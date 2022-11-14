@@ -1,1 +1,51 @@
-[1,["1ea37e593"],["_textureSetter"],["cc.SpriteFrame"],0,[{"name":"box_paintbrush","rect":[3,169,132,101],"offset":[0,0],"originalSize":[132,101],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]]
+[
+  1,
+  [
+    "1ea37e593"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "box_paintbrush",
+      "rect": [
+        3,
+        169,
+        132,
+        101
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "originalSize": [
+        132,
+        101
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

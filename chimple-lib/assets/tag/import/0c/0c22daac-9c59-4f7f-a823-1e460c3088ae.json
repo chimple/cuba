@@ -1,1 +1,52 @@
-[1,["13b31b142"],["_textureSetter"],["cc.SpriteFrame"],0,[{"name":"label_labeling","rect":[479,837,184,43],"offset":[0,0],"originalSize":[184,43],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]]
+[
+  1,
+  [
+    "13b31b142"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "label_labeling",
+      "rect": [
+        479,
+        837,
+        184,
+        43
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "originalSize": [
+        184,
+        43
+      ],
+      "rotated": 1,
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

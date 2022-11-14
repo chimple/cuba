@@ -1,1 +1,1342 @@
-[1,["d9i7KgYS9JC5PGQ1jbVNTU"],["_textureSetter"],["cc.SpriteFrame"],0,[[[{"name":"decomon-decomon3-decomon_nose_9","rect":[71,481,53,56],"offset":[0,0],"originalSize":[53,56],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_paintbucket_3","rect":[52,817,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_paintbucket_6","rect":[1,863,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_paintbucket_2","rect":[1,773,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_nose_2","rect":[1,565,62,29],"offset":[0,0],"originalSize":[62,29],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_icon_paintbrush","rect":[70,539,54,59],"offset":[0,0],"originalSize":[54,59],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_hair_5","rect":[1,649,26,50],"offset":[0,0],"originalSize":[26,50],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_paintbucket_5","rect":[52,862,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_nose_3","rect":[1,677,49,49],"offset":[0,0],"originalSize":[49,49],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_hair_4","rect":[97,952,26,28],"offset":[0,0],"originalSize":[26,28],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_paintbucket_7","rect":[52,907,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_paintbucket_4","rect":[1,818,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_nose_6","rect":[64,636,52,44],"offset":[0,0],"originalSize":[52,44],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_icon_eye","rect":[1,953,47,47],"offset":[0,0],"originalSize":[47,47],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_icon_mustache","rect":[1,436,70,22],"offset":[0,0],"originalSize":[70,22],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_nose_4","rect":[1,499,68,25],"offset":[0,0],"originalSize":[68,25],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_hair_8","rect":[97,72,86,27],"offset":[0,0],"originalSize":[86,27],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_hair_3","rect":[1,596,51,61],"offset":[0,0],"originalSize":[51,61],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_hair_7","rect":[1,410,76,24],"offset":[0,0],"originalSize":[76,24],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_paintbucket_1","rect":[63,682,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_paintbucket_8","rect":[1,908,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_nose_1","rect":[1,460,68,37],"offset":[0,0],"originalSize":[68,37],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_nose_8","rect":[52,703,40,7],"offset":[0,0],"originalSize":[40,7],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_nose_5","rect":[82,372,43,40],"offset":[0,0],"originalSize":[43,40],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_hair_2","rect":[1,22,94,53],"offset":[0,0],"originalSize":[94,53],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_hair_1","rect":[88,229,79,34],"offset":[0,0],"originalSize":[79,34],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_nose_7","rect":[82,310,40,60],"offset":[0,0],"originalSize":[40,60],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_hair_9","rect":[1,234,83,30],"offset":[0,0],"originalSize":[83,30],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_paintbucket_11","rect":[61,727,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_paintbucket_9","rect":[52,952,49,43],"offset":[0,0],"originalSize":[49,43],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_paintbucket_12","rect":[52,772,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_hair_6","rect":[1,134,88,55],"offset":[0,0],"originalSize":[88,55],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_icon_mouth","rect":[1,526,67,37],"offset":[0,0],"originalSize":[67,37],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]]]]
+[
+  1,
+  [
+    "d9i7KgYS9JC5PGQ1jbVNTU"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_nose_9",
+          "rect": [
+            71,
+            481,
+            53,
+            56
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            53,
+            56
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_3",
+          "rect": [
+            52,
+            817,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_6",
+          "rect": [
+            1,
+            863,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_2",
+          "rect": [
+            1,
+            773,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_nose_2",
+          "rect": [
+            1,
+            565,
+            62,
+            29
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            62,
+            29
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_icon_paintbrush",
+          "rect": [
+            70,
+            539,
+            54,
+            59
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            54,
+            59
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_hair_5",
+          "rect": [
+            1,
+            649,
+            26,
+            50
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            26,
+            50
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_5",
+          "rect": [
+            52,
+            862,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_nose_3",
+          "rect": [
+            1,
+            677,
+            49,
+            49
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            49
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_hair_4",
+          "rect": [
+            97,
+            952,
+            26,
+            28
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            26,
+            28
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_7",
+          "rect": [
+            52,
+            907,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_4",
+          "rect": [
+            1,
+            818,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_nose_6",
+          "rect": [
+            64,
+            636,
+            52,
+            44
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            52,
+            44
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_icon_eye",
+          "rect": [
+            1,
+            953,
+            47,
+            47
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            47,
+            47
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_icon_mustache",
+          "rect": [
+            1,
+            436,
+            70,
+            22
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            70,
+            22
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_nose_4",
+          "rect": [
+            1,
+            499,
+            68,
+            25
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            68,
+            25
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_hair_8",
+          "rect": [
+            97,
+            72,
+            86,
+            27
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            86,
+            27
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_hair_3",
+          "rect": [
+            1,
+            596,
+            51,
+            61
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            51,
+            61
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_hair_7",
+          "rect": [
+            1,
+            410,
+            76,
+            24
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            76,
+            24
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_1",
+          "rect": [
+            63,
+            682,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_8",
+          "rect": [
+            1,
+            908,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_nose_1",
+          "rect": [
+            1,
+            460,
+            68,
+            37
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            68,
+            37
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_nose_8",
+          "rect": [
+            52,
+            703,
+            40,
+            7
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            40,
+            7
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_nose_5",
+          "rect": [
+            82,
+            372,
+            43,
+            40
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            43,
+            40
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_hair_2",
+          "rect": [
+            1,
+            22,
+            94,
+            53
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            94,
+            53
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_hair_1",
+          "rect": [
+            88,
+            229,
+            79,
+            34
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            79,
+            34
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_nose_7",
+          "rect": [
+            82,
+            310,
+            40,
+            60
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            40,
+            60
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_hair_9",
+          "rect": [
+            1,
+            234,
+            83,
+            30
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            83,
+            30
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_11",
+          "rect": [
+            61,
+            727,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_9",
+          "rect": [
+            52,
+            952,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_12",
+          "rect": [
+            52,
+            772,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_hair_6",
+          "rect": [
+            1,
+            134,
+            88,
+            55
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            88,
+            55
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_icon_mouth",
+          "rect": [
+            1,
+            526,
+            67,
+            37
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            67,
+            37
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ]
+  ]
+]

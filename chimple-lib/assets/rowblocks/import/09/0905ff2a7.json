@@ -1,0 +1,138 @@
+[
+  1,
+  [
+    "192d4dd95",
+    "90foRryRJM3p9AGFGyKh5x"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    [
+      [
+        {
+          "name": "rowblocks_roof",
+          "rect": [
+            588,
+            303,
+            158,
+            112
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            158,
+            112
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "default_white_panel",
+          "rect": [
+            0,
+            0,
+            21,
+            21
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            21,
+            21
+          ],
+          "capInsets": [
+            3,
+            3,
+            3,
+            3
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        1
+      ]
+    ],
+    [
+      [
+        {
+          "name": "rowblocks_shed",
+          "rect": [
+            490,
+            3,
+            294,
+            254
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            294,
+            254
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ]
+  ]
+]

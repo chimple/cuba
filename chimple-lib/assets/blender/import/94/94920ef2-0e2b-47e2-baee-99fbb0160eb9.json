@@ -1,1 +1,52 @@
-[1,["13071710c"],["_textureSetter"],["cc.SpriteFrame"],0,[{"name":"button-drop-on-land-ten","rect":[510,252,25,206],"offset":[0,0],"originalSize":[25,206],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]]
+[
+  1,
+  [
+    "13071710c"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "button-drop-on-land-ten",
+      "rect": [
+        510,
+        252,
+        25,
+        206
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "originalSize": [
+        25,
+        206
+      ],
+      "rotated": 1,
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

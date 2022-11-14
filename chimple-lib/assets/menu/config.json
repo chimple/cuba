@@ -1,1 +1,1631 @@
-{"paths":{"0":["map/textures/levelunlocked",2],"1":["rewards/textures/icons/unicon",2],"2":["start/textures/hindi_chapter",2],"3":["home/textures/circle_downloading",1,1],"4":["rewards/textures/icons/reward_button_disable",2],"6":["Profile/textures/3rdwinner",2],"7":["map/textures/world icon/playground",1,1],"8":["start/textures/giftbox_iconBG",2],"9":["start/textures/drawer_icon_bg",1,1],"10":["start/textures/jungle_bg",2],"11":["inventory/textures/scroll back",1,1],"12":["start/textures/count_icon",1,1],"13":["home/textures/literacy_balloon",1,1],"14":["home/textures/world over/worldover_beach2",2],"15":["inventory/textures/acc_icons/acc_icon",2],"16":["inventory/textures/acc/cap",1,1],"17":["Profile/textures/selfuser",2],"18":["rewards/textures/icons/character_icon",2],"19":["rewards/textures/reward_icon/teacup_rewards",2],"20":["map/textures/world icon/farm",2],"21":["home/textures/world over/worldover_ocean2",2],"22":["map/textures/world icon/worldmap_bg",1,1],"23":["start/textures/lessonname",1,1],"27":["home/textures/world over/worldover_dessert2",1,1],"28":["home/prefabs/chimp_loading",0],"29":["home/textures/world over/worldover_forest_tree2",1,1],"30":["home/textures/loading png sequence/Artboard 7",1,1],"35":["start/textures/lessonbg",1,1],"37":["inventory/textures/acc/hats",1,1],"40":["home/textures/loading png sequence/Artboard 17",1,1],"43":["home/textures/world over/worldover_glow",2],"44":["rewards/textures/fungameicon",2],"46":["start/textures/level highlight",1,1],"47":["Profile/textures/bg",2],"48":["inventory/textures/acc/glasses",2],"49":["start/textures/more_icon",1,1],"50":["map/textures/world icon/forest",2],"51":["home/textures/world over/worldover_farm1",2],"52":["start/textures/arrow_downloading",2],"53":["inventory/textures/scroll front",2],"54":["map/textures/levelcompleted",1,1],"55":["home/textures/balloonwhite",1,1],"56":["rewards/textures/reward_icon/xmastree_rewards",2],"57":["home/textures/world over/worldover_farm3",2],"58":["start/textures/assignment_icon",2],"59":["home/textures/loading png sequence/Artboard 20",2],"60":["rewards/prefabs/stickerBookIcon",0],"61":["home/textures/literacy_balloon_redline",1,1],"62":["rewards/textures/badgesicon",2],"64":["start/prefabs/mainLessonButton",0],"65":["home/textures/world over/worldover_dessert3",1,1],"66":["home/textures/tree_homescreen",1,1],"67":["home/textures/world over/worldover_beach1",1,1],"75":["home/textures/loading png sequence/Artboard 3",1,1],"77":["home/textures/loading png sequence/Artboard 6",1,1],"78":["start/textures/chaptercontainer",1,1],"79":["home/textures/loading png sequence/Artboard 20",1,1],"83":["inventory/textures/acc_icons/cap",1,1],"85":["rewards/textures/icons/reward_button_pressed",1,1],"86":["inventory/prefabs/acc1",0],"90":["map/textures/world icon/garden",2],"91":["rewards/textures/reward_icon/yatch_rewards",2],"92":["map/textures/world icon/beach",1,1],"93":["start/textures/container",1,1],"94":["Profile/textures/selectedtoggle",1,1],"95":["rewards/textures/backgroundicon",2],"97":["rewards/textures/icons/item_bg_lock",2],"98":["Profile/textures/1stwinner",1,1],"99":["home/animations/downloading",3],"100":["map/textures/world icon/worldmap_path",2],"101":["map/textures/world icon/worldmap_bg",2],"102":["Profile/textures/bg",1,1],"103":["rewards/textures/icons/character_icon_bg",1,1],"104":["map/textures/world icon/sky",1,1],"105":["map/textures/world icon/worldmap_path",1,1],"106":["home/textures/world over/worldover_tag",2],"107":["Profile/textures/femaleuser",2],"108":["inventory/textures/item locked",2],"109":["start/textures/featured_icon",2],"110":["start/textures/play button",2],"111":["start/textures/arrow_downloading",1,1],"112":["map/prefabs/levelunlocked",0],"113":["home/textures/loading png sequence/Artboard 10",2],"114":["start/textures/headerBG",2],"115":["start/textures/Assignment Icon",2],"117":["home/textures/loading png sequence/Artboard 21",2],"118":["start/textures/currentChapter",1,1],"119":["home/textures/world over/worldover_sky3",2],"120":["inventory/textures/acc_icons/neck",2],"121":["home/textures/arrow_downloading",1,1],"122":["rewards/textures/icons/achievement_icon",1,1],"123":["inventory/textures/acc/tie",2],"124":["home/textures/loading png sequence/Artboard 13",2],"125":["home/textures/loading png sequence/Artboard 16",2],"126":["rewards/textures/icons/selectbutton",2],"127":["start/textures/homework_icon",1,1],"128":["inventory/textures/acc/hats",2],"129":["map/textures/world icon/city",2],"130":["rewards/textures/icons/teddy",2],"131":["start/prefabs/level_play_button",0],"133":["home/animations/banana_loading",3],"134":["home/animations/world_over_forest",3],"135":["home/textures/world over/worldover_city3",1,1],"136":["home/textures/world over/worldover_farm3",1,1],"137":["map/textures/world icon/map_icon",1,1],"143":["start/textures/kannada_chapter",1,1],"147":["inventory/textures/acc/headphones",1,1],"149":["home/textures/world over/worldover_beach3",1,1],"151":["rewards/textures/reward_icon/zip_rewards",1,1],"152":["start/textures/play_button",1,1],"154":["rewards/prefabs/bg_button_prefab",0],"155":["home/textures/world over/worldover_ocean3",1,1],"157":["start/textures/hindilessonbg",1,1],"158":["home/textures/loading png sequence/Artboard 16",1,1],"159":["start/textures/englishicon",1,1],"162":["rewards/textures/icons/teddy",1,1],"165":["home/textures/loading png sequence/Artboard 18",1,1],"166":["inventory/textures/done_button",1,1],"169":["Profile/textures/femaleuser",1,1],"177":["home/textures/balloonwhite",2],"178":["inventory/textures/acc_icons/item_bg_lock",1,1],"179":["home/textures/gamecompleted",2],"180":["rewards/textures/storyicon",1,1],"181":["home/textures/cloud_downloading",2],"182":["inventory/textures/acc_icons/shoe",2],"183":["start/textures/gamecompleted",2],"186":["inventory/textures/acc_icons/hand",2],"187":["Profile/textures/maleuser",2],"188":["Profile/prefabs/user",0],"189":["home/textures/loading png sequence/Artboard 4",1,1],"190":["home/textures/world over/worldover_city1",1,1],"191":["home/textures/world over/worldover_garden1",1,1],"198":["home/textures/world over/worldover_glow",1,1],"202":["home/textures/world over/worldover_garden3",1,1],"203":["map/prefabs/block",0],"204":["rewards/textures/reward_icon/yatch_rewards",1,1],"207":["start/textures/giftbox_iconBG",1,1],"208":["map/textures/world icon/ocean",2],"209":["map/textures/world icon/textline",2],"210":["home/textures/world over/worldover_city2",2],"211":["start/textures/rewardIcon",1,1],"212":["start/textures/lessonbg",2],"213":["rewards/textures/backgroundicon",1,1],"214":["home/textures/loading png sequence/Artboard 3",2],"215":["inventory/textures/acc_icons/item_bg_lock",2],"216":["inventory/textures/scroll back pressed",1,1],"217":["map/textures/world icon/snow",1,1],"218":["map/prefabs/levelcurrent",0],"220":["home/textures/hourglass",2],"221":["rewards/textures/listBG",2],"222":["home/textures/loading png sequence/Artboard 22",2],"223":["rewards/textures/rewardBG",2],"224":["start/prefabs/startHeaderButton",0],"225":["rewards/textures/icons/selectbutton",1,1],"226":["Profile/textures/profileBG",1,1],"228":["home/textures/loading png sequence/Artboard 19",1,1],"241":["rewards/textures/icons/background_icon_disable",1,1],"243":["home/textures/loading png sequence/Artboard 9",1,1],"246":["home/textures/world over/worldover_playground2",1,1],"248":["home/textures/loading png sequence/Artboard 11",1,1],"250":["start/textures/container",2],"251":["inventory/textures/items_panel",2],"252":["map/textures/world icon/beach",2],"253":["rewards/textures/rewardBG",1,1],"254":["inventory/textures/doodle1",2],"255":["home/textures/world over/worldover_city3",2],"256":["start/prefabs/startHeader",0],"257":["home/textures/world over/worldover_dessert2",2],"258":["rewards/textures/icons/background_icon_disable",2],"259":["inventory/textures/shadow_circle",1,1],"260":["rewards/textures/rewardicon",1,1],"261":["start/prefabs/picdisplayprefab",0],"262":["home/textures/world over/worldover_sky1",2],"263":["start/textures/morelesson_icon",2],"264":["Profile/textures/starscore",1,1],"265":["home/textures/world over/worldover_beach1",2],"266":["rewards/textures/icons/character_icon_bg",2],"268":["home/textures/loading png sequence/Artboard 8",2],"269":["inventory/textures/scroll back pressed",2],"270":["start/textures/currentChapter",2],"271":["Profile/textures/maleuser",1,1],"272":["Profile/textures/signout",2],"273":["inventory/textures/acc_icons/neck",1,1],"274":["rewards/textures/reward_icon/windmill_rewards",2],"276":["home/textures/world over/worldover_beach2",1,1],"280":["textures/doodle bg/doodle1",1,1],"283":["home/textures/world over/worldover_sky1",1,1],"291":["start/prefabs/courseContent",0],"294":["rewards/textures/reward_icon/zip_rewards",2],"295":["start/textures/seperateline",2],"296":["start/prefabs/lessonButton",0],"297":["home/animations/balloon_floating",3],"298":["home/textures/world over/worldover_beach3",2],"299":["map/textures/world icon/city",1,1],"300":["start/textures/play button",1,1],"301":["rewards/animations/unlock_char",3],"302":["home/textures/gamecompleted",1,1],"303":["start/textures/drawer_icon_bg",2],"304":["rewards/textures/icons/achievement_icon",2],"305":["inventory/textures/acc_icons/glasses",2],"306":["rewards/textures/icons/item_bg_lock",1,1],"307":["home/textures/highlight",1,1],"308":["start/textures/headerBG",1,1],"309":["home/textures/world over/worldover_forest_tree1",2],"310":["rewards/textures/icons/character_icon",1,1],"311":["start/textures/Assignment Icon",1,1],"312":["rewards/textures/fungameicon",1,1],"313":["rewards/prefabs/character",0],"314":["start/textures/morelesson_icon",1,1],"315":["home/textures/world over/worldover_garden3",2],"316":["map/textures/world icon/snow",2],"317":["map/textures/levelcompleted",2],"318":["inventory/textures/acc_icons/item_bg",2],"319":["inventory/prefabs/inv_item",0],"320":["home/textures/tree_homescreen",2],"321":["inventory/textures/acc_icons/item_bg",1,1],"322":["home/textures/loading png sequence/Artboard 5",2],"323":["home/textures/loading png sequence/Artboard 14",2],"324":["inventory/textures/scroll back",2],"325":["home/textures/hourglass",1,1],"326":["home/textures/world over/worldover_snow2",2],"327":["Profile/textures/3rdwinner",1,1],"328":["home/textures/world over/worldover_bg",2],"329":["start/textures/more_icon",2],"330":["home/textures/world over/worldover_ocean4",2],"331":["inventory/textures/done_button",2],"332":["inventory/textures/acc_icons/cap",2],"333":["home/textures/loading png sequence/Artboard 9",2],"334":["start/textures/hindilessonbg",2],"335":["Profile/textures/toggleBG",1,1],"338":["rewards/textures/listBG",1,1],"339":["start/textures/mathlessonbg",2],"340":["home/textures/chimple_learning",1,1],"341":["home/textures/loading png sequence/Artboard 7",2],"342":["start/textures/lessonname",2],"343":["map/textures/world icon/icon_bg",1,1],"344":["rewards/textures/stickericon",2],"345":["textures/doodle bg/doodle1",2],"346":["inventory/textures/acc icon",2],"347":["inventory/textures/shadow_circle",2],"348":["map/textures/levelunlocked",1,1],"349":["home/textures/loading png sequence/Artboard 17",2],"350":["map/scene/bar",0],"351":["map/textures/world icon/map_icon",2],"352":["start/textures/homework_icon",2],"353":["inventory/textures/acc_icons/glasses",1,1],"354":["map/textures/world icon/forest",1,1],"355":["rewards/prefabs/achievement",0],"356":["home/textures/world over/worldover_dessert3",2],"357":["home/textures/world over/worldover_snow3",2],"358":["rewards/textures/badgesicon",1,1],"359":["map/textures/levelcurrent",2],"360":["Profile/textures/toggleBG",2],"361":["map/textures/world icon/sky",2],"362":["rewards/textures/icons/editbutton",2],"363":["home/textures/world over/worldover_ocean3",2],"364":["rewards/textures/reward_icon/yarn_rewards",2],"366":["map/textures/world icon/textline",1,1],"367":["rewards/textures/icons/character_icon_color",2],"368":["Profile/textures/numberBG",1,1],"369":["inventory/textures/scroll front",1,1],"370":["Profile/textures/classconnectBG",1,1],"371":["map/textures/world icon/icon_bg",2],"372":["map/textures/world icon/ocean",1,1],"373":["home/textures/literacy_balloon_redline",2],"374":["map/textures/world icon/playground",2],"375":["inventory/textures/acc/headphones",2],"376":["start/prefabs/rewardGiftbox",0],"377":["start/prefabs/startContent",0],"378":["home/textures/loading png sequence/Artboard 15",2],"379":["start/textures/englishicon",2],"380":["start/textures/assignment_icon",1,1],"381":["home/textures/cloud_downloading",1,1],"382":["home/textures/loading png sequence/Artboard 2",1,1],"383":["map/textures/world icon/crossmark",2],"384":["Profile/textures/classconnectBG",2],"385":["start/textures/currentLesson",1,1],"386":["Profile/textures/2ndwinner",2],"387":["Profile/textures/selectedtoggle",2],"388":["Profile/textures/1stwinner",2],"389":["start/textures/level highlight",2],"390":["rewards/textures/reward_icon/windmill_rewards",1,1],"398":["home/textures/loading png sequence/Artboard 8",1,1],"399":["rewards/textures/icons/reward_button_normal",1,1],"401":["home/textures/loading png sequence/Artboard 14",1,1],"403":["rewards/textures/reward_icon/xmastree_rewards",1,1],"404":["inventory/textures/acc icon",1,1],"405":["home/textures/world over/worldover_playground3",1,1],"406":["start/textures/gameiconbg",1,1],"408":["home/textures/loading png sequence/Artboard 5",1,1],"409":["home/textures/world over/worldover_bg",1,1],"418":["home/textures/world over/worldover_snow1",1,1],"419":["home/textures/loading png sequence/Artboard 21",1,1],"421":["home/textures/loading png sequence/Artboard 13",1,1],"424":["inventory/textures/acc/glasses",1,1],"425":["inventory/textures/acc/tie",1,1],"428":["rewards/textures/reward_icon/wheel_rewards",1,1],"430":["start/textures/hindi_chapter",1,1],"431":["start/textures/mathlessonbg",1,1],"432":["inventory/textures/doodle1",1,1],"434":["Profile/textures/homeicon",1,1],"436":["start/textures/seperateline",1,1],"443":["map/prefabs/map_icon",0],"444":["home/textures/loading png sequence/Artboard 10",1,1],"446":["map/prefabs/levelcompleted",0],"447":["rewards/prefabs/indi_button_prefab",0],"448":["rewards/textures/reward_icon/wheel_rewards",2],"449":["rewards/textures/charactericon",1,1],"450":["home/prefabs/banana_loading",0],"451":["home/textures/loading png sequence/Artboard 19",2],"452":["rewards/textures/icons/char_reward_button",2],"453":["start/textures/chaptercontainer",2],"454":["home/textures/loading png sequence/Artboard 18",2],"455":["map/textures/world icon/farm",1,1],"456":["rewards/textures/storyicon",2],"458":["map/textures/world icon/desert",1,1],"459":["rewards/prefabs/background",0],"460":["inventory/textures/scroll front pressed",1,1],"461":["rewards/textures/icons/editbutton",1,1],"462":["start/textures/item_bg_lock",1,1],"463":["home/textures/arrow_downloading",2],"464":["inventory/textures/scroll front pressed",2],"465":["home/textures/world over/worldover_garden2",2],"466":["home/textures/circle_downloading",2],"467":["map/textures/world icon/crossmark",1,1],"468":["rewards/textures/icons/reward_button_pressed",2],"469":["inventory/textures/acc_icons/shoe",1,1],"470":["home/textures/world over/worldover_sky2",2],"471":["rewards/textures/icons/character_icon_color",1,1],"472":["home/textures/world over/worldover_forest_tree3",2],"473":["Profile/textures/homeicon",2],"474":["rewards/textures/icons/logout_button",2],"475":["Profile/textures/numberBG",2],"476":["home/animations/gameover",3],"477":["map/textures/world icon/garden",1,1],"479":["rewards/textures/icons/background_icon",1,1],"480":["rewards/textures/icons/duck",2],"481":["home/animations/wrong_fruit_collect",3],"486":["home/textures/loading png sequence/Artboard 15",1,1],"488":["rewards/prefabs/vertical_layout",0],"490":["start/textures/library_icon",1,1],"491":["rewards/textures/icons/reward_button",1,1],"492":["home/textures/world over/worldover_farm1",1,1],"494":["rewards/textures/reward_icon/yarn_rewards",1,1],"495":["home/textures/world over/worldover_ocean1",1,1],"499":["home/textures/world over/worldover_garden2",1,1],"502":["home/textures/world over/worldover_sky3",1,1],"504":["home/textures/world over/worldover_tag",1,1],"506":["home/animations/world_over_city",3],"508":["home/textures/world over/worldover_snow2",1,1],"510":["home/animations/balloon_loading",3],"513":["start/prefabs/drawer",0],"514":["home/textures/world over/worldover_snow4",1,1],"515":["inventory/textures/items_panel",1,1],"519":["rewards/textures/icons/unicon",1,1],"525":["home/textures/world over/worldover_dessert1",1,1],"527":["home/textures/world over/worldover_playground1",1,1],"529":["rewards/textures/icons/character_icon_disable",1,1],"532":["start/textures/gamecompleted",1,1],"533":["inventory/textures/item locked",1,1],"540":["start/textures/count_icon",2],"541":["start/textures/library_icon",2],"542":["start/textures/play_button",2],"543":["rewards/textures/icons/background_icon",2],"544":["Profile/textures/profileBG",2],"545":["home/textures/world over/worldover_playground2",2],"546":["home/prefabs/downloading",0],"547":["home/textures/world over/worldover_forest_tree2",2],"549":["start/textures/circle_bg",2],"550":["home/textures/highlight",2],"551":["map/textures/levelcurrent",1,1],"552":["start/textures/gameiconbg",2],"553":["start/textures/rewardIcon",2],"554":["start/textures/item_bg_lock",2],"555":["home/textures/world over/worldover_playground1",2],"556":["home/textures/loading png sequence/Artboard 6",2],"557":["home/textures/world over/worldover_snow1",2],"558":["start/textures/featured_icon",1,1],"559":["Profile/textures/starscore",2],"560":["home/textures/chimple_learning",2],"561":["home/textures/world over/worldover_ocean1",2],"562":["inventory/textures/acc/cap",2],"563":["home/textures/literacy_balloon",2],"564":["rewards/textures/icons/character_icon_disable",2],"565":["home/textures/world over/worldover_farm2",2],"566":["start/prefabs/drawerButton",0],"567":["home/textures/world over/worldover_playground3",2],"568":["Profile/textures/2ndwinner",1,1],"569":["rewards/textures/reward_icon/yogurt_rewards",2],"570":["start/textures/kannada_chapter",2],"571":["rewards/textures/icons/reward_button_normal",2],"572":["inventory/textures/acc_icons/hand",1,1],"573":["home/textures/world over/worldover_city1",2],"574":["home/textures/world over/worldover_garden1",2],"575":["home/textures/loading png sequence/Artboard 4",2],"576":["start/prefabs/chapterMenuButton",0],"577":["home/textures/world over/worldover_snow4",2],"578":["Profile/textures/signout",1,1],"579":["home/textures/loading png sequence/Artboard 11",2],"580":["rewards/textures/icons/reward_button_disable",1,1],"581":["rewards/textures/icons/logout_button",1,1],"582":["start/textures/currentLesson",2],"583":["inventory/textures/item1",2],"584":["start/animations/level_play_button",3],"585":["rewards/textures/stickericon",1,1],"586":["home/textures/world over/worldover_forest_cloud",2],"587":["home/textures/world over/worldover_dessert1",2],"588":["rewards/textures/rewardicon",2],"589":["rewards/textures/charactericon",2],"590":["map/textures/world icon/desert",2],"591":["rewards/textures/icons/reward_button",2],"592":["home/textures/loading png sequence/Artboard 2",2],"593":["rewards/textures/reward_icon/wings_rewards",2],"595":["Profile/textures/selfuser",1,1],"596":["rewards/textures/reward_icon/yogurt_rewards",1,1],"598":["rewards/textures/reward_icon/teacup_rewards",1,1],"601":["home/textures/world over/worldover_forest_tree1",1,1],"604":["home/textures/loading png sequence/Artboard 22",1,1],"607":["home/textures/world over/worldover_city2",1,1],"608":["home/textures/world over/worldover_forest_cloud",1,1],"612":["home/textures/world over/worldover_ocean4",1,1],"617":["start/textures/jungle_bg",1,1],"620":["rewards/New AnimationClip",3],"622":["rewards/textures/reward_icon/wings_rewards",1,1],"628":["inventory/textures/acc_icons/acc_icon",1,1],"630":["rewards/textures/icons/duck",1,1],"633":["rewards/textures/icons/char_reward_button",1,1],"634":["home/textures/world over/worldover_snow3",1,1],"637":["home/textures/world over/worldover_ocean2",1,1],"645":["home/textures/world over/worldover_forest_tree3",1,1],"646":["rewards/prefabs/content_layout_grid",0],"647":["start/textures/circle_bg",1,1],"648":["inventory/textures/item1",1,1],"649":["home/textures/world over/worldover_sky2",1,1],"654":["home/textures/world over/worldover_farm2",1,1],"655":["inventory/prefabs/inventory",0],"659":["map/scene/MapScrollView",0]},"types":["cc.Prefab","cc.SpriteFrame","cc.Texture2D","cc.AnimationClip"],"uuids":["00NlaNGP9A5Y6WAot8t+5S","0093uhREJOHqr/ErkwBBBb","05I7649PBBCqTCz9Hkhnav","05TewjAUdFO7/ckv8S0yXp","05jelKSJpAZaGWbMI8hKIE","07rN6dYlBFrYADA1auMxn2","09AYAEo5pJ/ayFCZ3LJY5i","0aHvPqsutC1IUi/KCI1eFI","0aS1ytaNRAaaxV0wFuda7J","0cNbHO7Q1DJpfXqwxB0dtn","0cl8Zx7uhEqozdD9yBQUHW","0dEn02P4RAFKTEEtitw2Mv","0diO7RE91EBLaHlUy37eRD","0d1WTB7a5GZJwFZsNQiHKu","0eIME2MPVPvKcHwl0L4KPd","0f48eCraVKaaufscFYqUVP","10ABJLQl9LO487n8JaiVJe","404T/pN8lAVaeiWffIr6Bx","413uSSMKROGb16hUYhwQ2+","47jUq17pNGPatVSlTxvwKL","48rI+Ei/xOhZHM+s4WLgsX","49EI1BntxKjrrCyWXT05SW","49364ArxFLFoGPUI/CDfnb","003fyXhFlChrONRswRmUW5","01M7llEhdDlrbnhvOGW0KB","02WU0rDvdGIqsuKvOMRfur","02delMVqdBD70a/HSD99FK","03D42C2ERMZ6nMvsj7dhF4","04DK20cz9LS5lmEhURMYz9","05RWgRxHFNq7hB3muQiOZZ","05TDF4SX9OMb1+c8DYk0UR","05fbj9apJEzLNMrCRbOLJb","05/EcqAfBIEaebC1+unsBe","07+w68fQpN544EXoPe2YBT","08NvyAfqlMjLv7HX6UWR5x","08X5j4wAdG/6HuS02lZEUi","08i4PwkZpDg7EYvOsePaXA","0a4OYGT6JD76xXerZnZN5w","0cLj5p8VBFep1CzPZ1/BcP","0cm4Xrts1GurQEAIWhN+vI","0cvISdX/lBWLej3CPljOhM","0c7Oc+W3lC85LC88jM6HvA","0dqu5dI69Bx6gFonFpb851","107VRmJStMRplTPVMYzQS1","11GJSsYU9Dt6ugU+jQY2Ee","11OTLZF55FsYy5E7x3m+Bh","121C9V7/hI2aP6ulsNUkZU","13TAgvWv1N1LeSf32EQYrh","13y+kjsuRJDLJvaevYx7pc","14npIZGWtForPixGiS85ei","14tiSsPLhJyp2KkcV4S1av","16XBluUt9AHbwNuMtvBYdE","16uyU1yRpLYIKVOCDCgYhK","160DROu61OZ7Zv8ogikqjC","17h2WtGp9P/I7AR6/puG5w","18NIBavw1B8rFGFpTR5iz9","181SOz39RCr6nOqnFgLuyk","1avlu8+dxMBKbnaSAMGRrJ","1cJ9VoqONDPJhrYOs9k3dx","1dAXbirilLioqOhkBdkLhR","1do/kxGFpEybyQw+ABhH3C","1eTmM2X79Gxq05+aHcnTvS","1eVs7cAQlI3YgmOnXMlQer","0eimLb66lA+aEVx2TVhCvu","0ejzk4us9AGrtE1/KKfTXb","0fR1mt+8JI+I7nqLCOgI7k","0faY1uIlRF4JVkqCTB9Inm","0fsy70lxNGYpUfdpqs/lIg","10SQ6j1spKlqUj5hiDKtgm","111a88769","11XO77BQdDPJERM/tYE2Sy","15h1bs2rdIBJMETbTgdSq2","159SRPyOpB/60HaMUR4ZW0","16aozz9QBDM6ndYYv3zlBK","16g4qn8CVD5430kWQwiKzM","17qNB8zddIurLxkLxYY+bA","18ISw36G5I5L5Wlu543wD8","18JLA+DwNO1pKbKXW0K9tO","18NWHhDnxAFoAtK6KU8PBH","19dq27AzFP465HxsdZY+Fq","19a6d7ef0","1aUe6nG0ZKrpyqWguwRrf3","1aoiclKERCUpojKTik9Eoj","1bpZIn9GdAq59jTAZU6zvm","1byMjMjJxGxLEjB5gfB1ey","1b/jPtjrdPdaOu2n+Ylaxk","1cbABIaDFE+rS7pI4kfRCC","1d02rQbsdKso/QuPxmr3zT","1emLAJaLBH4LYuAgzUH4CJ","1e1nxGkjtIOKWsQBZF3PNT","1fNQci/VtI/YlbjqG+kRB2","21oZmqcJJCH771ffH9305K","23EBCMYr5LXKP08rX2k65w","23L0JvDgZEybO/CTB7Hwb+","23uDdTLypM97HWZcOhR/UK","2345GAz+xED6/Pt6xSCfvY","240MTN5BxGRbYFvQJors5Y","244RBocCZJlYiriZ41oAFB","25/7wVxqxNwa/ptyDilbVe","26rV2RDJ5LpIYlCaYY7OjF","27bHxMRxNFwK0Y28YuQG/o","27tepU1OJDQIU8iSNBT+wH","28uvGh8jpBPJMSMEsBT1su","289XR39HxO87siHEiUvhFA","2bGzxFnv5GUY2oePWsT0NV","2bdPzX1Q9EHLxxYwXLqkh7","2caJ8o5P1DRK6RImZN43iA","2cqst4gl5L658DbLEnS6Sh","2cuIbmrl5Nx4MCWKblQZt7","2ejcy1PeFOA7/024WyBa+u","2fUzhvB7xBg5sZk3FJAy87","2f9Vq6/hRM0pkEJQswQVQI","30Xtjt2jZFSrvj7ZJvhwF5","30qyKgSCVKcoHysX4eVueW","30rdTRnL5EuZKedi1k5G6y","31kW7HxxRNA6TTptIIWXHD","33KZoMsnpDsYuUrGbc7caL","33e02XxI9DY56oFmfVnkg1","33t0CfmVZONby+xgAXaTSy","35OI40tIFBC5xNusKFEEpL","37p2GMG9FFBbboAkrNoCzn","37sZVJYeRI6q/6YtB/8Pwy","3azvzqdM9MdJXYXJ7O6u4M","3a0h7aAqtKT7juRJUS9Z/7","3bh9pBHp1GKor8X/h0Db7p","3bp+kasAlFNbWpmBfK3I0u","3b0H8yBZhD0LvkkZoj1fDd","3dOInLqLBGIb4jK0aPDM/H","3dmWOt5xFKtIFwH7PQprZp","3do1DOeP9LbLhQGNLlzhVn","3dwDj6YVdC2ZQfiK2Eg4Zd","3fEw8qp3VBGJzjsC0c+n0X","3fcIDGxXJAWb21JNQNIZfo","40YmnsnEJDW4KT6r1drBxv","1fYIqeQ/1GsYW4kYfZ3t/w","20KPJzgStNs4vFNtElN1lE","20la67OjVFUZLbTLrKgig5","22jCuiBFFIN6ZjHk9E8jal","23fqbMZUVGmImBK2NppAlr","236EzM/Q5NzKEh9IyFRGS5","25mucr/XBL1LmM+FlzW/Hb","26rjywzNJLqraN7nciuQs9","27T0njqR1BSKb0Xc5bpptd","27e3yIvypLr4b9iVnm3slu","29FYIk+N1GYaeWH/q1NxQO","29KHkL7WlADoCYifOhC0s4","29dRgP6I1CTbkMk8Ks0o88","290ACON1JPAbWBss/jvwp5","2aOhFcZ9RI+paC31bRl7jD","2aQ9wPWsBEobpz/rT5EssW","2bo+1gM7lFIq83JYRShhjn","2fRIanSzVBXIQuQyGqn0WT","2fqYno1XdM67/CyXdU5PNB","30D9hoXIRBg6ocUr/0poq7","30K0zjlxhOxIv1OasRFXRg","31PQPe30xJT54xO7pRNLdF","31QjZ38bRIMaE1PihEaUIg","32EH2m7jRPKp/q07vN1sH7","330Nj9Z9RO0qO5dcEMZiun","34YpKsrNRBmb6cbW7086nC","34n7K+AVdHV6oVY8qVSiBB","35qUhsWX5P/Yob53rXR9ID","36MzO9rKVFPKdZbrBaRJmv","38CPnuPIZIY5C9q2suf1aP","38t+v3MpBHyZQSE1zAJGX/","39BeQMiKlPl53GwC6l1MF8","3aaDmjE1NJNptEwuXDwLyH","3ae7efMv1CLq2ilvUY/tQi","3bpnsnE1dK7Ko/2N+TRz9Y","3b9tLMq7xJE4EXlH3o3AzC","3cH62akYFBK5YgbuNTD+Nh","3eflcDJ8VCe52azXUw/rS1","3e07HIXutMar6F5ExkEjAU","3f+hy3RatGML5KiIScmx8n","41D7kWhyFGY7q4NDlzkazn","41r8rDtSlPpq2n1hBdLxbC","43PvaB8cpKCJ6h8pNAoRA2","462VzK1StNQYhgIb5hFEms","477kFl0FlBhpQVf8XLBjHq","4aKBkAE51PkI3lK8xLpCAh","4a2iLFhJxHy4ZMxY0GnUQv","4bCALLx51FyZnOU1ik8AL6","4cjQgajtRLV6siprucfjuM","4csXPOhQ5HTZ5tZNu4NXER","4cuJbldQhEH5mN0IwlfIxU","4ewfYoDDZEEamNoiLB1sZl","4fA3m53IxPAYzlHWjuLnC4","4fvMS+6ORD86jvABooNtcP","50//q8mAVKepM1+aQY/vV/","434IyZAJFJhqQ3qc1gjvCd","44DjgfQFJBJLbLoh+Vhm3Y","44Ret3fwBGpoZ2VO7Wab7B","44hrGzs1NDA5aaCKKTdofm","466z9qrA5KcIom0kxKGdkh","47AiOQDX1EJZX+t6HRAruV","48He6kNmlCZoPFNI8zVxH1","48QjpvR8NCzLxWPz1auvHQ","49AFF2/0xProokrEsMoOlW","49Mc6ORl9Oqo4Mu5f/nEUa","4axBd8GVxNCZrTl+m2Uiml","4bq2fLGOZAmbhANV8Ec/iQ","4b65NVTjxGuK5Rsq4XADES","4eztDvmIBH9Yq44eO2fk4u","4e5bB0joJCWYk3L2rX6/Ri","50DEZAawtLhpLDcyCaW9vx","51U+foJsRAoqiumqF168z6","51xmQiU3hOx7MMVKo6XU2v","53ZWfgantOobGR/GqGeffr","536qo9sa1P0YKzGgiajTqt","54sUSzPmBN1rmCHbZBkWf7","561VmTzVtIS50n1jQBW49Q","57COuEGrNM8K+sUfx+cR2n","57b1BNl3VOX7VZ5e8rqUjk","58NZ9VFitPoah2+Nx17PVC","5aU+dMWS5MCrvUgMjBiSUR","5ask6FJOxFCa+X9kFxSQY5","5b54+zmhtCH6khf80T9eIx","5b7gNmPJ9DHpWGjdxAKSji","5cTw/Jxu5JWYxDsTcqOcCO","5dCpb6oLNCsaZU1sxgAfkA","5dNHGtOABO2IALZRxommF5","5dwctlFWJNGp+QI3dvsxJL","5eXBj4ZzNAcbA4IQRizETa","5faM2gDRBMQ5VXfWkpYB1E","5fc6qVPvdLi4nuoRgibb40","5fn53Hrt9HgoYNA1kKXBv1","60LMJ/jvNJHbQxPy2bsqzs","52VVXyobRAobZMjkV96ath","52ct7XHZhKSIhGWAPh4UAm","52v91LR2VDHaKUQ/FzWS61","55HI0AeBZIDoDwxGuUGaAp","55f2TsUwpA4KTHtuhgafqm","56S0wtY+JPeaiLkXX/JOIK","561vFrqJVCY6paruyJ3Ypu","57YwrdrRdJxa8gCtx7yXNV","57ivW/AsNEXryBztp0fcam","573sz9FPpGPo8QLtYrx/fN","58Z4ePVuBC77Rx3qRTRbs2","58nQAipoNPUqVkhihucYPf","589eeC/LZPnowtCqutkJ/A","59JT0GspdDMLl5iHdmEWX5","59+uhIfzVNqoBVN+/DkRK1","5agAdcdCpAzquB8ROC6EwY","5ak7+mDD9HB5ATXvdXr5Jt","5aq4SJ9tNECpHpIfe4yH56","5atSqSUplI147xzA2oRC8q","5bVhTgt19MEIcvZO34ImfY","5bvAAPG3dHg6hFkxhXvdcS","5cjjb17JZGiJwFC9GDVjgo","5c+fEb2x5LTJhCj7870AnL","61X4k1T7pB24qDrxnqkc+N","62QHuT+AFPzrNgebmBl2YG","63HWcIRg1Fx6H4L4cnWvki","63iByeTCRGiqTt9eElId0K","63yzbVpr1Cq5rEnSAjLFwS","643LL5MAZKDo9eSY3EF4Zh","659d5IsF1KHow9mj1ao2xA","66JBqC57xNs7J9hKyha3lq","66gsQBNiNARJE7uaG7yBwM","66vq+pdMZP8aFYHRxFcAX/","66xBodXPtPKZZ1dzX5YHLf","67LKBsSvZAOI+jyYQE4o5r","67x6h5/0tLNL1ZdDPJEgYH","67+v1XIg5F8a+EkTH0NKeY","68BNVrNEhHs5SL97sqN8pa","69U9YJ9pxCGaBiBMD/2FNr","6aFVyGgF9CG4KEQ4Wrb9Vk","6bkJfkoNlP8q656kRPHDHS","6cpVByIohFOKGHkva5ZwlS","6cshGAqWtIM5/JMlR4Ft+2","6d3lPD25tGV6zTNpusu3QO","6evk1zwRNJYZfaGJr10pSW","6fRF5bdVtM/ImTkxwuDKnG","6fmmTc9SVIH5QW1wfBf4rH","70pXMRTCZPn4dL/4qayF44","605C0d3AJP4pLVjUje/ifp","63IW3220JPRpIZkRiCyxLS","63PgEwi59GWaeaukTuU4H6","63qMRIz2FE8Z7yqPQrFeV6","64y9VnNQhIXo4HyCCQtDHj","64+vsm24xPi4qGBdLYx/em","65+6Py/HJHr6WeYB/kiRFe","667OafA8NNhKo3NFzwiZE4","67MQ5XlnpBToAZ4qKBCHBu","675ovJ2tVK2aLYfgPUWOMv","678fGhVoVMS57QtB52i7OG","680nuZyU1D5b8x2fkvoQV4","6dh1IK/KpNk6a3NCewxFO8","6dvUKPGNlPjqXXaa65PdV+","6eBWFz0oVHPLIGQKf/9Thu","6fCMdz4OBEnZzF81HOOzMi","6f6pmwL7ZFAYRpQBIY21ZM","71nYNTNvdD/Ze1ZYfpKuc4","71tDEbOT1DP7pj/3nrCZdr","71/ev7SkdPbLNnNFZCrnkm","72RlH7/BZFhLDUdofdD+z5","72TY9F1RlEqoGmgVX1Vw2m","72bmd8DZ9Gc4OgjxQr5H2V","73TBcpnPJFlaTlVSI2D6QC","740Cenw1hJUoC6cBAgcPqU","742SikAqVF+7QkrdVdk6WW","76Pims7C9Iw4tfdAm8QzBq","76WOKUILNMyYc2BcwSHQJq","76WigH6PVEr5KJGsUA8FeB","77aFx/xDFKr7r5DIb7AKyR","7amYa0Bl9BZKJrm2TmSIpn","7bEjHxkHtFeIc8/HRsARqe","7di+58arpALaYBpokRojuE","7dkWTR2zRHIa3ZJ1UPQtrU","7eDHYpxS1CNbYwRQVgic3u","7eR/ND1y9Hq6VODEyMrGmZ","7ev1j2a31LcpBf5cyNQabP","7fYecBqbZNLLiEbgv+hxrq","7fr1EGcs9EkqQBDMgTutTz","80do3gPJNFK4KW7H8eUEiF","80oRvioR5ABZ92aSSyeJc3","81D0YmJHRAOoBEF/HiTIT7","81JABZfalNUZ761yD55cg2","81V2Fh/dBGaqO7B692bYIk","83grFkKyhK4bqDd52x9T4y","83vOiEN69LxqdQdaaQ+eI7","84yCDZMgJA47bmyPzPSv5i","841xRyO39HXK2uK7R9vv4K","85DyN9YptCMpSnm3yU0poI","855dxtUQhE/IxQYZIU1Wrw","86Vdboc/FD3YpoPbtVy/U1","86hvJQAGZB57Qzr82Wnb6x","86kJY+hrdCPJblw87D8pR4","88uQnaXSBDsaxmum7SYPBZ","89W2EM+8xG96pg5TqEJjGk","89apsV6Y1EXIRfCWeQ4l+d","89ngGQNftA3YpD1HGee/RG","8aAxmfXARFXp3HgeuOZcxa","8ayuqhCUhLmqvJHgEQ9PQz","8b7Kbp/75I6JlSR1QdJxYv","8coYbyD49IVZGDAPgKwkUz","8dHS6RwG5NVomWHtu2oLcx","8d3CAWe1tBZKNNeHsRPmp+","8e4pHaJZJEJ5yTKz5Af00B","8fE+Nip0BIrbev/xb6Mmqv","90REWFlvJJyrqKyjBZMyLT","908b30rJNIq6oBbtVrGFbP","91S9iUv2NL7KMZOt2mLYOe","91qJEtOfFEGpHqWmfAsV4t","92PCd5faNP1qfjaHvgeULM","92YTezsLhLlZMYqq7Jb5Md","93KX2vCwRCP4fQPE3vEMw2","93/NueKcREGryUa7r4xrS8","94BmSsMCdNzaWfj5QsXBL/","94HYx/CytPRLG6TJrWwJCw","94itGpQ3VLUYNvJRSeNSR4","95G6lh7GxKZ65zob2EHJ6R","95qzCGn4dFd5Vvr5wGcU0b","96CkR/I8pPb6rjQGZnRPRI","96X8mjVYJLJ7cg4rUAtHHz","967qJ3bp5OIJ/pQLIh3SUc","98E/w0bKBO56hvhG30qYGE","99duM+/AlNvbL4wYArz5oy","9aZfvHNihPA5eU0JKcZoCG","9auvrh0A5PKYZEbu51cLQw","9axpGETudCHIIbIqrew6tO","9a08W01IVGP6cThZHmLAM1","9ca0afhL9A+4BqKYWIFOXR","9cnfeQpylIaLAhPQJkBKT5","9do3nPr4pJL6Vvozgky/PA","9eCPRm7hFGeaVOgwJVzXr8","9eSIpDM3dP2ql+Eqq6lhDj","9fEMPki5lEXrxSBCcRaLkq","9fnmK/+qVDP5MKeYMnaAu9","a0U1T/5p5GtrXscwk00fDk","a0y9sXRcxJjKBnHUakVd2X","a2k0f++2VKIrcl1wngR/wp","a3b5WaCChPxadfr+BgcsPG","a4cuxAPjZCh6JX5/YZFkln","a5rkRkbEFMl5TBensHzci7","a8i25aX/1BT7BbZEabEPFm","aaUF/DtytNMp+FUuLW6+c5","acTpNJdNBAZIyxUFN0J2pj","acfAo5NqtFZ4XpST1rrgXk","adAqBczRBHEojw53UwNmVT","adVi92Ml1Gh6+d3m65+rQp","adkW2eoh1LYo82ivoPDsae","aeBPp20E1G1aEEU94bDhMF","aeGUgkv3BBEqj2Pie2BSD3","ae/c55khtNGL7KmxdVOffV","af6fZW0eZOoYvLmoJXGcGa","b1v92veKNFwImU93rZHZcN","b1zkoJfvJPsqJKavCTWjIS","b18TLdkNVF+YXp4TFjtW3E","b2RGRsb1ZBwKvHQRMHvYKd","82cCoVi4NGd7q2zpAG8Ipq","82n6qldQpBL5n+AMkMS/n7","84ANTu0ylChoeOMzo99Rcq","859ANKkBZNbYEMO9029kwT","86Smbi6N5AVJY3LCO1h/FZ","880bpKsz1G2qjN2RyvWua1","8855/VlrRKd6H0MSRnFxAU","8aMYllBUhIdKJghXKr1Z8+","8awIlUVT1GVYK3RO/b9pFn","8bZodU2opB2YeOm5fE90vx","8c20Sso/ZEn7NUfNSM+EBh","8d70F7rs1LHbwU5UbQEG4F","8fqLkj9aFFFJ1MTv1m3PWW","9159lFQW1KU7T5f8uLL+bY","92XDTcR0FKlqe3LIMX4QC/","92tLjt4oxGWaVGxENCOrL6","94F77uvr9KX4VJ1CbPaJPx","95OOkwyp5N8r11Bi5Ohf2H","95nqtdUShC8p43hiSUGiUu","959jSJqgdH459Ofb3ErQ/2","96f04Ji4VIiJwbipSU/vA/","97DJmNj+1Ofa/oD+ZTcKGh","97I0AGZ4lHXLjFO6HeIYf3","97dFF66oRBGp6TGpb0X730","9aMVR6lldCaI0/Gy6JbeMm","9bvaMerUlDyary99mJa6xp","9eaTUdmgtE+4Uj1z9HUq1n","9feHgGkLVHsIKdYsqEGQ5t","9fnv5WiDJINYDZ0Sus25ev","9fymCW789CVIKIzn5URCNe","9f0EdhghRP4rcvPjxy7W18","a0X7jg2CBKaopMpjrP/jr4","a1QbXfeRlK+IhWjFXJoUWE","a1U5RdJRFMFL57BdJC9H1X","a2KUywM8ZH/6KWrtlzucxu","a2MZ+7Y3dPKYc9O/hMTOqj","a2MjXRFdtLlYQ5ouAFv/+R","a2NpIV0SJPGZGII37tilk7","a2yWTsV1lJ5aavHV9TdwFv","a3GOU2BphAdZUy+Zjfd+RT","a3b/XzL9NGaJ4RNmjJJKV9","a5K9V+FotDH5b+fzb8oCA6","a6rhg7gWZAbL5SVL6hksaK","a6ypLcj3BJQJgk10XDwjwB","a7bAJxhW1Olb5uzhzKTfz3","a8LolTpcpAMZsfbTKzNd5a","a9bxyN28lFG4+BcBeAT+FN","a9+pphwwdPlZ0EgFnhqSoF","aaBlvoUrNCi4yzZn2agUZ8","acQT3Ja7ZFkI53YNRm1IXf","acUV15u25GH6fs78d6h3KV","afxc1/Nx9BRJzBixijYuCa","af4cJgGMVAV75vH2Jbwmmm","b1Q0RL5zhC6IOW5+ztxG97","b1dP3CjjRKO43RA4JY+IlE","b2uuLYUmJGG6YBZPEaphsb","b3HeuO9JZHPZMQqEdlbYY3","b3nOgy0G5DQ4xlz/NyZsWS","b6v9klXcBALJJ+/l0j1zKA","bagDG1KHVGLKNjweJyIqZI","bbXn+sFnxKA5YxVnJ/1X4B","bbr/7Xcl5NN6kp54nUZlqb","bc3mQW0sVIKLGff+fYmEt4","beyljDdGVNNJ2fJYqT7M8x","bfCwblVUlNyb1dO9cuQuqY","bfSogV0oZG0ogLQKwMdSk8","bfsyUYEdRJUKP4Q+PSODdH","c0BHZKOqlEiYrvGHQtKMaP","c0M9X5gQdBjZBCpVMdjo2J","c1OUUMaRtNY7r1vDn5gKNK","c1xF9LqLdJjZf9ZU9ofpie","c2E7lwSPdK3I9cCCA69InH","c2GEFCam9Kg7+BoMIZKJi8","c3J//ldaBC+oaB42scvAcg","c3UVEdoy1DKLQAyRO5ebQT","c4K98+K0tKSIgrtHd4i316","c4/OnvhnhPpaM2l5RJeHNP","c6RDHrAf5HfoNPeGcXKyiC","c6wx9pCZ9EgrI65CX5hvxG","c8ukz4dwVJFIdg6PGtPeJq","c9BTUdg/ZGhLx3FhG5BeZm","c9Yjwma2ZNgoK01u0rvVlW","caPgOv4XVARr7QS5EFWvdf","caSpBUFqZNWZmadvvnYGby","cbxh50i75OGp6/qSC5wZO8","ccBbcAGA9PSJW/GpSHWu00","ccGcu7r0FHVInpEeWK/8eg","cd1ywamGhD766oRz9ff33Z","ceB+FeCA5NnLRd7p2zcDXs","cedWKmuv5CpIxwqMg+o0GN","ce/0nrJt5PNqnzCQ6ka8H6","5fQh5NDh5PraMY/9NceEyC","5fS3B18MZOf6FdfDIfgFgB","73aFAX1wVNhLpYoaE6pPYr","74j3fDD31O36woQ/RBfY1Y","74lnY+ushGBZxhYwAS85bk","74mCH4wJ1AQoaOUT4+GYHH","76RfCTwtxCh41odfrwYVL2","77HBbkm/5GwpyosMMnYdP8","77p92P2kJM6LOwvuxWHGtG","77vUtuD/FIV717wAN8rlPO","79CH5Uc+1ECadSgW69P7HF","79DyALRydPmap9kbTmMTat","7c6tPEebNMwoqDIBcqV2Av","7eJ7CCCttGT4fiQE/glq10","80iO91fOpIDLMqkDdkF9v+","81zHu4Sy1BJ7ZeTUJPYog1","82XNUxBbJEy7gOzEAEKWhO","b3cqkPS7ZKl4CPWAHuh4eY","b4nbxxgj5I1aLxXoQLxhRT","b48jSF0zhAJrVlOsF7B2mz","b6jCgXK9FG8oLy5kkwJZ6U","b6vuDLgElOiaFh4rniHo2g","b66UuZVrxI06k5+dPipde4","b7qhKWx8pENJeI9mCtVj65","b73wsn6I9HvLrAc5TnOEkl","b83Tyr/QtFXKHpfjJqoUsB","b9N+VEaP9IYIrrL+1u+z2N","b9UH1VKlNDrJG6IsjGDAe2","bbLjGWCxhNSK4k8p+KCzF2","bbi3hkHjhFAoV12qrPT4XI","bbvVbxlTFKlpJdjNoXZFxE","bc7F4oql1OuI5m6wZ3Gi5q","bdRaCZBl5AWIbXoLHRAVyP","bdWezjWuVEiLOZxh6PkjcS","bdtbBtDRxD4I3krJVZmKmQ","bfLbL85CNLE66+w+3gZaz8","bfQaQwwclL+JEl+UUeUi0F","bfidEKG0tCbL8XG/7TpVJy","bfwfwRSQ1B1LlmRo5FLhb2","c0zlA4e0lFNK6qBLousTNn","c1g0Xsc/lE8o9Sckso6qKb","c29Us2+K1CoIvKAR5Z9Czm","c4mowSXw5OC5LdQHJHAjch","c4y+kMbDhAx7Iwr3cFTCqS","c5QtS6fItJNpAMre9UIEla","c5pON/5OVIcqr7hs+Inft0","c6jyuLsj5ODIFvrmgr4wmx","c6u/NxsZlLipzcN1LlAOTC","c7XxhMJNJE1YKvxYAXwtN/","c7pmaAMJtJIKCljM9/B5Wj","c75l8rRGhKUqoypELKtdOS","c8KRGKza9PDqsw3S7XKqig","c8Q/qgSzxBt4wDXxITMZo4","c9NCJq8LBKWqGS89FHtpfm","c9lTJWfG1PMYZkn1z3rQuR","c9+lH/PwFGAY+AMl0bEdq3","ca9ACrp4FMtZzdzNZS3OF/","cbTpJh6CNARbqoFil5/+0j","cbwjpWrBFAWJppSx9lKQJa","d0hU/JuzNG3pB9JRokZSd8","d04k05ewtCz5xdiDe5bT1K","d1KnpAeEdMaYsSwvjSuGuT","d1MDSFFNJGvpKy+s5vWmzj","d1pst/9ihLwL2wbVpH/BtO","d2GyTKrHdAgJoWs9awd6oB","d2z7e5dFRHaKqypoqCwp44","d3d2UCuZtNlYgQ++8sH8Hs","d5PBIbhlxP6qniY6b3J8h0","d63fT6O69Bdq+7PyIvWe/g","d9mOJHUJJOqIz5GfJfARoQ","d96XQgU4NPpIjNnYjo1Uwk","dauVPEDmdEL6v70r6WsWtP","dcUqm9pg5Pu7cYc1n1/jYL","ddPn+/SBxGYYxOCgNo0RCe","ddoTG+OdxFma9a55c4Ev9r","dduLLGfF5I0qfRoi7h5bgQ","deA9QtyY9EVKA+P5ZGft4E","deNEniuQJByqfxLyarQ7Ok","de0RWoKOxOeoI4KnpkFlU0","df0JlAsSNO/ZYgX57f1eJS","e0BVg0UXFD4q8M8EucwpB5","e1G+UGXs1CBrN2KY54F4Kx","e34uWyfyhCEY4lqNh61TXS","e5Pdk8C/VJT4Ok4UMvlqGd","e6VoUTplFDQrkPp38tkBRd","e7N/zBpZdHopX0Njr17fd2","e7XfBeofJHcqXhqaQ0UR4m","e7aXzXLXlD+7duUd4iVnoU","e7wL+cKMlMB5j4QUSXX8uZ","ebMWbPTCdASaNM64oGS/va","ecYxfCZVFPAbWFcJEkxkUM","edwA0jzClHzJPcaud8v8xH","eeayUWZXJO76haIT30fjje","eehDjS2CZCcKm0kWb7hdAN","efanDDns1CE7O0oCtlj8gB","eflNeHBd1LZZXbKE3z4j51","efoKMlv5RAKKZrsELHCywX","efzO4tr1dF1LHxmvlYz9c8","f0BJ4aAydE/58NLb2fZkOH","f15WVpPv9ON6hNTS1/a2ob","f3bWdYGV5Bx7hrsRiMDaa9","f5u9lOg69KFbHR/wzCs58e","f59aI3y3BAxIVFRkepfd4Z","f7li4pKqFHmYdKTc7gguEC","f74pvF9UdHoIZDXuFEDus9","f8EtV5A/BMeKU6JzXNrw67","f8socCquxJaJ/tIrje+fcr","f99SZB+s9EoZzKx1AtU+Zo","fahXPN8ZNPMbsPFNoN4L7j","fb+Xw0ScVMdpHP7GNWpcJz","fcp/nV6+1CsobFBF915GIi","fe8a68+fRCsJ4yiPNsOmYK","ff5ltO3OpF1JI91AmbZIuF","cb0a7HhVtOIr5dE7umh+qY","cdY8LML41C86XkDNVQZaHa","cdfsWmdzVFvaEBpoUR15jY","ce86SgPqNL3osX5CXzlmAS","d0Ih/0nbNHEoeUP7PCHC0d","d0bAqKjQJP95CWf2tpITfp","d0iAIx2xREbrJQZOstjivS","d19S0y0qdL77gTKRLg9apL","d2Fqp6YixNgaP7SUWEXGGQ","d2enfGkmtLvrCf6QgnbtOY","d2y/NAaK1Gr7c1Cpr2F+m1","d28fFMJ05FCL4yBeihIAxd","d4P7RC36xGSbAOgJC2b9um","d5E9MfsMhH15tzGwk/UxUy","d5aGSR4ERM0pr2M/0q8JWV","d5qdQqNa5KZqZ6mkWWFCHp","d6FovhWCxBxqcXUUs3hy70","d6tH0eBLdOnLyq93y91DPU","d7aTg9c25NbYi5CPfO1wIR","d8fK69DrZO9LfBNgbyZx04","d9BU1+evpBzohFIxnIb0Qk","d9LDjplOBJb6i5VjFdZqR3","d9hr6JwkpKT54gjn7OS+Je","dbQwUl3udBtoPguzdZCbZT","dcT4CKWZRB+ZYIJswti3St","dcZXAhedRGOoGx8oTN4x6k","ddg7G93vlBT6bYNiJB60FI","dfbhxqHEBO3pGbLiEj1lXZ","df2S9dCPhP17o/wMSxjCYV","df9AO2IuNLf5vQGnVmkXKY","e09q1Bro1JVL2N1SN6wxPe","e19Eq9JF9OK7Lnro07YyEZ","e2Cw6PvCtAxpmm2pwNPpbV","e2cWxNBTlDrrkR8oSBfO3O","e5duzyKd1HF506eCrApSj4","e5eQ7SwCVJarIMavRopJzg","e58mhOa9tKK54WZYwuNdJ7","e6OhTHl41Lc5A94aTnRw8k","e6tDiB9AdGM53fpblnBTS0","e8jIW/rz5ElIZ9z/CKDBeo","e9LIy2MhFGoqXPMw3nmh3b","e97GVMl6JHh5Ml5qEDdSGa","ebI29iugdETq5NmlsZCL1U","ebJtUN2SxLH5IaSbB1ZpXN","ebfRqsS2VHTrVehm4SP9CP","ecQKecd9BI9qtNXbKlXY4x","ecpdLyjvZBwrvm+cedCcQy","edVxRYyqlJG7bF++4Eh6jV","ef4rvsZPNNvKj1EPDDKMm7","f0BIwQ8D5Ml7nTNQbh1YlS","f1cjFVX81ELKMUk/GGyKB5","f2nVIq4olCToAnvWR9uWN/","f4hul3wW1Nm7alb+KeGBfN","f5Lm2dMcJKf7Z0VFPriJWD","f50MMhRt1Lla/pSHYEpCW3","f58o65DFVCFK3PBShWWWv1","f6E3lJPzhPcpad3ZmTmV0E","f7rHFsCPZDV7skEQF3X9uI","f8mz380fZAAY25+l8qtIwO","f9DUrPhhpL0rET4UMBuj4U","f988K1+65Ka65UCUqGP0Wd","fcrMjWCBtAvaNmIG1F71JZ","fdQb8FU8VIT6a+u/oGAjHF","fdULAiEeZKM6uo0tu05Fu+","fdnFdWcK1LcJYU9uxBz+fj","fdsNC5q71KnZpW3595Njmf","fduPp736NOnqh3UovRvaX/"],"scenes":{"db://assets/menu/home/scenes/first.fire":173,"db://assets/menu/home/scenes/home.fire":478,"db://assets/menu/inventory/scenes/inventory.fire":336,"db://assets/menu/map/scene/map0.fire":599,"db://assets/menu/map/scene/map1.fire":5,"db://assets/menu/map/scene/map2.fire":219,"db://assets/menu/map/scene/map3.fire":185,"db://assets/menu/map/scene/map4.fire":45,"db://assets/menu/map/scene/map5.fire":116,"db://assets/menu/map/scene/map6.fire":365,"db://assets/menu/map/scene/map7.fire":96,"db://assets/menu/map/scene/map8.fire":132,"db://assets/menu/map/scene/map9.fire":457,"db://assets/menu/map/scene/sample.fire":441,"db://assets/menu/map/scene/test.fire":618,"db://assets/menu/Profile/scene/leaderboardProfile.fire":337,"db://assets/menu/rewards/scenes/dairyrewards.fire":548,"db://assets/menu/rewards/scenes/rewards - old.fire":239,"db://assets/menu/rewards/scenes/rewards.fire":610,"db://assets/menu/rewards/scenes/stickerBookList.fire":267,"db://assets/menu/start/scenes/chapterLessons.fire":138,"db://assets/menu/start/scenes/courseChapters.fire":275,"db://assets/menu/start/scenes/start.fire":184},"redirect":[24,0,25,0,26,1,31,0,33,0,34,2,63,0,68,0,71,0,73,2,76,0,84,0,88,0,140,0,141,0,142,0,144,2,145,0,148,0,153,2,156,0,163,2,164,0,167,1,170,0,171,0,133,2,174,0,175,2,196,2,231,0,232,0,236,0,244,0,247,0,277,0,278,0,281,0,284,2,285,0,489,0,496,0,391,2,393,0,394,2,395,0,396,2,397,0,410,0,412,2,415,0,416,0,420,2,422,0,423,1,433,0,437,0,438,0,440,0,382,2,442,0,498,0,500,2,501,2,503,0,509,0,450,2,516,0,517,2,521,2,523,0,524,0,534,0,535,2,537,2,538,0,597,0,600,0,603,2,605,0,611,0,619,2,623,0,624,2,625,0,629,0,631,0,635,2,639,2,640,1,642,0,643,2,644,0,651,0,652,0,656,0,657,0,592,2],"deps":["resources","internal","main"],"packs":{"010ad3914":[36,13,70,74,55,81,61,235,297,302,307,325,340,476,478],"01497258c":[256,308,380],"0168207d2":[225,306],"018597126":[497,392,512],"01b9d4891":[39,12,49,127,184,211,242,261,385,507,528,558],"01bdb852a":[377,536],"01e041570":[96,653],"024260d90":[234,296,427,462],"0246a36da":[11,16,216,259,273,353,369,460,469,572],"0263c332b":[219,282],"030f86810":[218,551],"03323f656":[72,150,207,237,245,493,376,522,602],"038b0b38e":[279,457],"038bef85f":[146,459],"0405ff22d":[290,417],"040790bf8":[118,511,576],"040d0de32":[46,131,300,584],"0669a5b71":[87,132],"067f307d9":[41,116],"06acf24fe":[93,94,98,195,226,327,335,337,370,616,568,578],"074d56d03":[301,447],"0775878f1":[122,310,479,581],"07a333d13":[185,650],"07ee1cb13":[0,1,2,4,6,8,38,10,14,15,43,44,69,47,48,50,51,52,53,56,80,57,58,59,62,90,91,95,97,100,101,106,107,108,109,110,113,114,115,117,160,119,161,120,123,124,125,126,128,129,130,172,17,18,192,177,194,19,20,197,21,179,199,181,200,182,183,186,187,205,227,229,208,209,230,210,212,238,214,215,220,221,222,223,250,251,252,254,255,257,258,262,263,286,265,266,268,269,287,288,270,289,272,274,294,295,298,483,484,303,304,305,309,315,316,317,318,320,322,323,324,326,328,329,330,331,332,333,334,339,402,341,342,344,345,346,347,349,351,407,352,411,413,356,357,359,360,361,362,363,364,367,371,373,374,375,378,379,383,384,386,387,388,389,448,451,452,453,454,518,456,520,463,464,465,466,526,468,531,470,472,473,474,594,475,480,540,541,542,543,544,545,547,606,549,613,614,615,550,552,553,554,555,556,557,559,560,561,562,563,564,565,632,567,569,636,570,571,641,573,574,575,577,579,582,583,586,587,588,589,590,591,658,593],"07f5ba4e0":[5,193],"07fa4c8e8":[260,267],"09a67b670":[224,485,311,314],"09d1423c0":[178,319,321],"0a3d3fa48":[233,336,426],"0aa0a9f7c":[7,92,104,105,22,217,292,299,343,350,354,366,372,455,458,467,477,626],"0b2d894e1":[355,580],"0b76836ce":[102,188,264,271,368],"0bd1594da":[487,365],"0cbec48d6":[112,348],"0cc30f4e6":[3,99,121,381,546],"0ce974bfd":[180,213,253,312,358,449,548,585],"0d3b867a7":[32,111,621],"0d8ebc89c":[60,139,338],"0e569a6ba":[240,482,505,627,638,660],"0ebb0bd2e":[9,566],"0ed3fb653":[45,82],"0fdda79d1":[103,313,461,471],"0fed976a2":[54,446]},"name":"menu","importBase":"import","nativeBase":"native","debug":false,"isZip":false,"encrypted":false}
+{
+    "paths": {
+        "72bmd8DZ9Gc4OgjxQr5H2V": [
+            "home/animations/balloon_floating",
+            "cc.AnimationClip"
+        ],
+        "bbi3hkHjhFAoV12qrPT4XI": [
+            "home/animations/balloon_loading",
+            "cc.AnimationClip"
+        ],
+        "40YmnsnEJDW4KT6r1drBxv": [
+            "home/animations/banana_loading",
+            "cc.AnimationClip"
+        ],
+        "26rV2RDJ5LpIYlCaYY7OjF": [
+            "home/animations/downloading",
+            "cc.AnimationClip"
+        ],
+        "ccGcu7r0FHVInpEeWK/8eg": [
+            "home/animations/gameover",
+            "cc.AnimationClip"
+        ],
+        "b83Tyr/QtFXKHpfjJqoUsB": [
+            "home/animations/world_over_city",
+            "cc.AnimationClip"
+        ],
+        "1fYIqeQ/1GsYW4kYfZ3t/w": [
+            "home/animations/world_over_forest",
+            "cc.AnimationClip"
+        ],
+        "5fQh5NDh5PraMY/9NceEyC": [
+            "home/animations/wrong_fruit_collect",
+            "cc.AnimationClip"
+        ],
+        "bbXn+sFnxKA5YxVnJ/1X4B": [
+            "home/prefabs/banana_loading",
+            "cc.Prefab"
+        ],
+        "04DK20cz9LS5lmEhURMYz9": [
+            "home/prefabs/chimp_loading",
+            "cc.Prefab"
+        ],
+        "d2z7e5dFRHaKqypoqCwp44": [
+            "home/prefabs/downloading",
+            "cc.Prefab"
+        ],
+        "37sZVJYeRI6q/6YtB/8Pwy": [
+            "home/textures/arrow_downloading",
+            "cc.SpriteFrame",
+            1
+        ],
+        "c3J//ldaBC+oaB42scvAcg": [
+            "home/textures/arrow_downloading",
+            "cc.Texture2D"
+        ],
+        "18NIBavw1B8rFGFpTR5iz9": [
+            "home/textures/balloonwhite",
+            "cc.SpriteFrame",
+            1
+        ],
+        "462VzK1StNQYhgIb5hFEms": [
+            "home/textures/balloonwhite",
+            "cc.Texture2D"
+        ],
+        "90REWFlvJJyrqKyjBZMyLT": [
+            "home/textures/chimple_learning",
+            "cc.SpriteFrame",
+            1
+        ],
+        "df0JlAsSNO/ZYgX57f1eJS": [
+            "home/textures/chimple_learning",
+            "cc.Texture2D"
+        ],
+        "05TewjAUdFO7/ckv8S0yXp": [
+            "home/textures/circle_downloading",
+            "cc.SpriteFrame",
+            1
+        ],
+        "c4/OnvhnhPpaM2l5RJeHNP": [
+            "home/textures/circle_downloading",
+            "cc.Texture2D"
+        ],
+        "4bCALLx51FyZnOU1ik8AL6": [
+            "home/textures/cloud_downloading",
+            "cc.Texture2D"
+        ],
+        "adkW2eoh1LYo82ivoPDsae": [
+            "home/textures/cloud_downloading",
+            "cc.SpriteFrame",
+            1
+        ],
+        "4aKBkAE51PkI3lK8xLpCAh": [
+            "home/textures/gamecompleted",
+            "cc.Texture2D"
+        ],
+        "76WOKUILNMyYc2BcwSHQJq": [
+            "home/textures/gamecompleted",
+            "cc.SpriteFrame",
+            1
+        ],
+        "7di+58arpALaYBpokRojuE": [
+            "home/textures/highlight",
+            "cc.SpriteFrame",
+            1
+        ],
+        "d9mOJHUJJOqIz5GfJfARoQ": [
+            "home/textures/highlight",
+            "cc.Texture2D"
+        ],
+        "5dNHGtOABO2IALZRxommF5": [
+            "home/textures/hourglass",
+            "cc.Texture2D"
+        ],
+        "86Vdboc/FD3YpoPbtVy/U1": [
+            "home/textures/hourglass",
+            "cc.SpriteFrame",
+            1
+        ],
+        "0d1WTB7a5GZJwFZsNQiHKu": [
+            "home/textures/literacy_balloon",
+            "cc.SpriteFrame",
+            1
+        ],
+        "e34uWyfyhCEY4lqNh61TXS": [
+            "home/textures/literacy_balloon",
+            "cc.Texture2D"
+        ],
+        "1eTmM2X79Gxq05+aHcnTvS": [
+            "home/textures/literacy_balloon_redline",
+            "cc.SpriteFrame",
+            1
+        ],
+        "a4cuxAPjZCh6JX5/YZFkln": [
+            "home/textures/literacy_balloon_redline",
+            "cc.Texture2D"
+        ],
+        "30qyKgSCVKcoHysX4eVueW": [
+            "home/textures/loading png sequence/Artboard 10",
+            "cc.Texture2D"
+        ],
+        "b1dP3CjjRKO43RA4JY+IlE": [
+            "home/textures/loading png sequence/Artboard 10",
+            "cc.SpriteFrame",
+            1
+        ],
+        "5cjjb17JZGiJwFC9GDVjgo": [
+            "home/textures/loading png sequence/Artboard 11",
+            "cc.SpriteFrame",
+            1
+        ],
+        "f0BJ4aAydE/58NLb2fZkOH": [
+            "home/textures/loading png sequence/Artboard 11",
+            "cc.Texture2D"
+        ],
+        "3bh9pBHp1GKor8X/h0Db7p": [
+            "home/textures/loading png sequence/Artboard 13",
+            "cc.Texture2D"
+        ],
+        "a0X7jg2CBKaopMpjrP/jr4": [
+            "home/textures/loading png sequence/Artboard 13",
+            "cc.SpriteFrame",
+            1
+        ],
+        "85DyN9YptCMpSnm3yU0poI": [
+            "home/textures/loading png sequence/Artboard 14",
+            "cc.Texture2D"
+        ],
+        "8d70F7rs1LHbwU5UbQEG4F": [
+            "home/textures/loading png sequence/Artboard 14",
+            "cc.SpriteFrame",
+            1
+        ],
+        "74mCH4wJ1AQoaOUT4+GYHH": [
+            "home/textures/loading png sequence/Artboard 15",
+            "cc.SpriteFrame",
+            1
+        ],
+        "acfAo5NqtFZ4XpST1rrgXk": [
+            "home/textures/loading png sequence/Artboard 15",
+            "cc.Texture2D"
+        ],
+        "330Nj9Z9RO0qO5dcEMZiun": [
+            "home/textures/loading png sequence/Artboard 16",
+            "cc.SpriteFrame",
+            1
+        ],
+        "3bp+kasAlFNbWpmBfK3I0u": [
+            "home/textures/loading png sequence/Artboard 16",
+            "cc.Texture2D"
+        ],
+        "0cvISdX/lBWLej3CPljOhM": [
+            "home/textures/loading png sequence/Artboard 17",
+            "cc.SpriteFrame",
+            1
+        ],
+        "94HYx/CytPRLG6TJrWwJCw": [
+            "home/textures/loading png sequence/Artboard 17",
+            "cc.Texture2D"
+        ],
+        "39BeQMiKlPl53GwC6l1MF8": [
+            "home/textures/loading png sequence/Artboard 18",
+            "cc.SpriteFrame",
+            1
+        ],
+        "bfCwblVUlNyb1dO9cuQuqY": [
+            "home/textures/loading png sequence/Artboard 18",
+            "cc.Texture2D"
+        ],
+        "52ct7XHZhKSIhGWAPh4UAm": [
+            "home/textures/loading png sequence/Artboard 19",
+            "cc.SpriteFrame",
+            1
+        ],
+        "bbr/7Xcl5NN6kp54nUZlqb": [
+            "home/textures/loading png sequence/Artboard 19",
+            "cc.Texture2D"
+        ],
+        "aeBPp20E1G1aEEU94bDhMF": [
+            "home/textures/loading png sequence/Artboard 2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "fe8a68+fRCsJ4yiPNsOmYK": [
+            "home/textures/loading png sequence/Artboard 2",
+            "cc.Texture2D"
+        ],
+        "19dq27AzFP465HxsdZY+Fq": [
+            "home/textures/loading png sequence/Artboard 20",
+            "cc.SpriteFrame",
+            1
+        ],
+        "1dAXbirilLioqOhkBdkLhR": [
+            "home/textures/loading png sequence/Artboard 20",
+            "cc.Texture2D"
+        ],
+        "33e02XxI9DY56oFmfVnkg1": [
+            "home/textures/loading png sequence/Artboard 21",
+            "cc.Texture2D"
+        ],
+        "9fymCW789CVIKIzn5URCNe": [
+            "home/textures/loading png sequence/Artboard 21",
+            "cc.SpriteFrame",
+            1
+        ],
+        "5eXBj4ZzNAcbA4IQRizETa": [
+            "home/textures/loading png sequence/Artboard 22",
+            "cc.Texture2D"
+        ],
+        "d2y/NAaK1Gr7c1Cpr2F+m1": [
+            "home/textures/loading png sequence/Artboard 22",
+            "cc.SpriteFrame",
+            1
+        ],
+        "17qNB8zddIurLxkLxYY+bA": [
+            "home/textures/loading png sequence/Artboard 3",
+            "cc.SpriteFrame",
+            1
+        ],
+        "5aU+dMWS5MCrvUgMjBiSUR": [
+            "home/textures/loading png sequence/Artboard 3",
+            "cc.Texture2D"
+        ],
+        "434IyZAJFJhqQ3qc1gjvCd": [
+            "home/textures/loading png sequence/Artboard 4",
+            "cc.SpriteFrame",
+            1
+        ],
+        "efanDDns1CE7O0oCtlj8gB": [
+            "home/textures/loading png sequence/Artboard 4",
+            "cc.Texture2D"
+        ],
+        "841xRyO39HXK2uK7R9vv4K": [
+            "home/textures/loading png sequence/Artboard 5",
+            "cc.Texture2D"
+        ],
+        "95nqtdUShC8p43hiSUGiUu": [
+            "home/textures/loading png sequence/Artboard 5",
+            "cc.SpriteFrame",
+            1
+        ],
+        "18JLA+DwNO1pKbKXW0K9tO": [
+            "home/textures/loading png sequence/Artboard 6",
+            "cc.SpriteFrame",
+            1
+        ],
+        "dduLLGfF5I0qfRoi7h5bgQ": [
+            "home/textures/loading png sequence/Artboard 6",
+            "cc.Texture2D"
+        ],
+        "05TDF4SX9OMb1+c8DYk0UR": [
+            "home/textures/loading png sequence/Artboard 7",
+            "cc.SpriteFrame",
+            1
+        ],
+        "908b30rJNIq6oBbtVrGFbP": [
+            "home/textures/loading png sequence/Artboard 7",
+            "cc.Texture2D"
+        ],
+        "6cpVByIohFOKGHkva5ZwlS": [
+            "home/textures/loading png sequence/Artboard 8",
+            "cc.Texture2D"
+        ],
+        "8awIlUVT1GVYK3RO/b9pFn": [
+            "home/textures/loading png sequence/Artboard 8",
+            "cc.SpriteFrame",
+            1
+        ],
+        "5ak7+mDD9HB5ATXvdXr5Jt": [
+            "home/textures/loading png sequence/Artboard 9",
+            "cc.SpriteFrame",
+            1
+        ],
+        "8ayuqhCUhLmqvJHgEQ9PQz": [
+            "home/textures/loading png sequence/Artboard 9",
+            "cc.Texture2D"
+        ],
+        "0faY1uIlRF4JVkqCTB9Inm": [
+            "home/textures/tree_homescreen",
+            "cc.SpriteFrame",
+            1
+        ],
+        "83vOiEN69LxqdQdaaQ+eI7": [
+            "home/textures/tree_homescreen",
+            "cc.Texture2D"
+        ],
+        "0fsy70lxNGYpUfdpqs/lIg": [
+            "home/textures/world over/worldover_beach1",
+            "cc.SpriteFrame",
+            1
+        ],
+        "69U9YJ9pxCGaBiBMD/2FNr": [
+            "home/textures/world over/worldover_beach1",
+            "cc.Texture2D"
+        ],
+        "0eIME2MPVPvKcHwl0L4KPd": [
+            "home/textures/world over/worldover_beach2",
+            "cc.Texture2D"
+        ],
+        "63IW3220JPRpIZkRiCyxLS": [
+            "home/textures/world over/worldover_beach2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "2aQ9wPWsBEobpz/rT5EssW": [
+            "home/textures/world over/worldover_beach3",
+            "cc.SpriteFrame",
+            1
+        ],
+        "73TBcpnPJFlaTlVSI2D6QC": [
+            "home/textures/world over/worldover_beach3",
+            "cc.Texture2D"
+        ],
+        "88uQnaXSBDsaxmum7SYPBZ": [
+            "home/textures/world over/worldover_bg",
+            "cc.Texture2D"
+        ],
+        "959jSJqgdH459Ofb3ErQ/2": [
+            "home/textures/world over/worldover_bg",
+            "cc.SpriteFrame",
+            1
+        ],
+        "44DjgfQFJBJLbLoh+Vhm3Y": [
+            "home/textures/world over/worldover_city1",
+            "cc.SpriteFrame",
+            1
+        ],
+        "eeayUWZXJO76haIT30fjje": [
+            "home/textures/world over/worldover_city1",
+            "cc.Texture2D"
+        ],
+        "561VmTzVtIS50n1jQBW49Q": [
+            "home/textures/world over/worldover_city2",
+            "cc.Texture2D"
+        ],
+        "d5E9MfsMhH15tzGwk/UxUy": [
+            "home/textures/world over/worldover_city2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "20KPJzgStNs4vFNtElN1lE": [
+            "home/textures/world over/worldover_city3",
+            "cc.SpriteFrame",
+            1
+        ],
+        "643LL5MAZKDo9eSY3EF4Zh": [
+            "home/textures/world over/worldover_city3",
+            "cc.Texture2D"
+        ],
+        "c5QtS6fItJNpAMre9UIEla": [
+            "home/textures/world over/worldover_dessert1",
+            "cc.SpriteFrame",
+            1
+        ],
+        "f8socCquxJaJ/tIrje+fcr": [
+            "home/textures/world over/worldover_dessert1",
+            "cc.Texture2D"
+        ],
+        "03D42C2ERMZ6nMvsj7dhF4": [
+            "home/textures/world over/worldover_dessert2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "66JBqC57xNs7J9hKyha3lq": [
+            "home/textures/world over/worldover_dessert2",
+            "cc.Texture2D"
+        ],
+        "0fR1mt+8JI+I7nqLCOgI7k": [
+            "home/textures/world over/worldover_dessert3",
+            "cc.SpriteFrame",
+            1
+        ],
+        "98E/w0bKBO56hvhG30qYGE": [
+            "home/textures/world over/worldover_dessert3",
+            "cc.Texture2D"
+        ],
+        "16XBluUt9AHbwNuMtvBYdE": [
+            "home/textures/world over/worldover_farm1",
+            "cc.Texture2D"
+        ],
+        "79DyALRydPmap9kbTmMTat": [
+            "home/textures/world over/worldover_farm1",
+            "cc.SpriteFrame",
+            1
+        ],
+        "e6VoUTplFDQrkPp38tkBRd": [
+            "home/textures/world over/worldover_farm2",
+            "cc.Texture2D"
+        ],
+        "f988K1+65Ka65UCUqGP0Wd": [
+            "home/textures/world over/worldover_farm2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "1avlu8+dxMBKbnaSAMGRrJ": [
+            "home/textures/world over/worldover_farm3",
+            "cc.Texture2D"
+        ],
+        "20la67OjVFUZLbTLrKgig5": [
+            "home/textures/world over/worldover_farm3",
+            "cc.SpriteFrame",
+            1
+        ],
+        "d5aGSR4ERM0pr2M/0q8JWV": [
+            "home/textures/world over/worldover_forest_cloud",
+            "cc.SpriteFrame",
+            1
+        ],
+        "f8EtV5A/BMeKU6JzXNrw67": [
+            "home/textures/world over/worldover_forest_cloud",
+            "cc.Texture2D"
+        ],
+        "7eDHYpxS1CNbYwRQVgic3u": [
+            "home/textures/world over/worldover_forest_tree1",
+            "cc.Texture2D"
+        ],
+        "d19S0y0qdL77gTKRLg9apL": [
+            "home/textures/world over/worldover_forest_tree1",
+            "cc.SpriteFrame",
+            1
+        ],
+        "05RWgRxHFNq7hB3muQiOZZ": [
+            "home/textures/world over/worldover_forest_tree2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "d3d2UCuZtNlYgQ++8sH8Hs": [
+            "home/textures/world over/worldover_forest_tree2",
+            "cc.Texture2D"
+        ],
+        "caPgOv4XVARr7QS5EFWvdf": [
+            "home/textures/world over/worldover_forest_tree3",
+            "cc.Texture2D"
+        ],
+        "f2nVIq4olCToAnvWR9uWN/": [
+            "home/textures/world over/worldover_forest_tree3",
+            "cc.SpriteFrame",
+            1
+        ],
+        "44Ret3fwBGpoZ2VO7Wab7B": [
+            "home/textures/world over/worldover_garden1",
+            "cc.SpriteFrame",
+            1
+        ],
+        "eehDjS2CZCcKm0kWb7hdAN": [
+            "home/textures/world over/worldover_garden1",
+            "cc.Texture2D"
+        ],
+        "b4nbxxgj5I1aLxXoQLxhRT": [
+            "home/textures/world over/worldover_garden2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "c4K98+K0tKSIgrtHd4i316": [
+            "home/textures/world over/worldover_garden2",
+            "cc.Texture2D"
+        ],
+        "4eztDvmIBH9Yq44eO2fk4u": [
+            "home/textures/world over/worldover_garden3",
+            "cc.SpriteFrame",
+            1
+        ],
+        "80oRvioR5ABZ92aSSyeJc3": [
+            "home/textures/world over/worldover_garden3",
+            "cc.Texture2D"
+        ],
+        "107VRmJStMRplTPVMYzQS1": [
+            "home/textures/world over/worldover_glow",
+            "cc.Texture2D"
+        ],
+        "49Mc6ORl9Oqo4Mu5f/nEUa": [
+            "home/textures/world over/worldover_glow",
+            "cc.SpriteFrame",
+            1
+        ],
+        "80iO91fOpIDLMqkDdkF9v+": [
+            "home/textures/world over/worldover_ocean1",
+            "cc.SpriteFrame",
+            1
+        ],
+        "e0BVg0UXFD4q8M8EucwpB5": [
+            "home/textures/world over/worldover_ocean1",
+            "cc.Texture2D"
+        ],
+        "49EI1BntxKjrrCyWXT05SW": [
+            "home/textures/world over/worldover_ocean2",
+            "cc.Texture2D"
+        ],
+        "ebJtUN2SxLH5IaSbB1ZpXN": [
+            "home/textures/world over/worldover_ocean2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "31PQPe30xJT54xO7pRNLdF": [
+            "home/textures/world over/worldover_ocean3",
+            "cc.SpriteFrame",
+            1
+        ],
+        "9cnfeQpylIaLAhPQJkBKT5": [
+            "home/textures/world over/worldover_ocean3",
+            "cc.Texture2D"
+        ],
+        "89apsV6Y1EXIRfCWeQ4l+d": [
+            "home/textures/world over/worldover_ocean4",
+            "cc.Texture2D"
+        ],
+        "d7aTg9c25NbYi5CPfO1wIR": [
+            "home/textures/world over/worldover_ocean4",
+            "cc.SpriteFrame",
+            1
+        ],
+        "c6jyuLsj5ODIFvrmgr4wmx": [
+            "home/textures/world over/worldover_playground1",
+            "cc.SpriteFrame",
+            1
+        ],
+        "ddoTG+OdxFma9a55c4Ev9r": [
+            "home/textures/world over/worldover_playground1",
+            "cc.Texture2D"
+        ],
+        "5bVhTgt19MEIcvZO34ImfY": [
+            "home/textures/world over/worldover_playground2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "d2GyTKrHdAgJoWs9awd6oB": [
+            "home/textures/world over/worldover_playground2",
+            "cc.Texture2D"
+        ],
+        "92tLjt4oxGWaVGxENCOrL6": [
+            "home/textures/world over/worldover_playground3",
+            "cc.SpriteFrame",
+            1
+        ],
+        "e7XfBeofJHcqXhqaQ0UR4m": [
+            "home/textures/world over/worldover_playground3",
+            "cc.Texture2D"
+        ],
+        "67MQ5XlnpBToAZ4qKBCHBu": [
+            "home/textures/world over/worldover_sky1",
+            "cc.SpriteFrame",
+            1
+        ],
+        "67x6h5/0tLNL1ZdDPJEgYH": [
+            "home/textures/world over/worldover_sky1",
+            "cc.Texture2D"
+        ],
+        "c9BTUdg/ZGhLx3FhG5BeZm": [
+            "home/textures/world over/worldover_sky2",
+            "cc.Texture2D"
+        ],
+        "f58o65DFVCFK3PBShWWWv1": [
+            "home/textures/world over/worldover_sky2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "35OI40tIFBC5xNusKFEEpL": [
+            "home/textures/world over/worldover_sky3",
+            "cc.Texture2D"
+        ],
+        "b6vuDLgElOiaFh4rniHo2g": [
+            "home/textures/world over/worldover_sky3",
+            "cc.SpriteFrame",
+            1
+        ],
+        "9fnv5WiDJINYDZ0Sus25ev": [
+            "home/textures/world over/worldover_snow1",
+            "cc.SpriteFrame",
+            1
+        ],
+        "deA9QtyY9EVKA+P5ZGft4E": [
+            "home/textures/world over/worldover_snow1",
+            "cc.Texture2D"
+        ],
+        "86hvJQAGZB57Qzr82Wnb6x": [
+            "home/textures/world over/worldover_snow2",
+            "cc.Texture2D"
+        ],
+        "b9UH1VKlNDrJG6IsjGDAe2": [
+            "home/textures/world over/worldover_snow2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "99duM+/AlNvbL4wYArz5oy": [
+            "home/textures/world over/worldover_snow3",
+            "cc.Texture2D"
+        ],
+        "e9LIy2MhFGoqXPMw3nmh3b": [
+            "home/textures/world over/worldover_snow3",
+            "cc.SpriteFrame",
+            1
+        ],
+        "bdWezjWuVEiLOZxh6PkjcS": [
+            "home/textures/world over/worldover_snow4",
+            "cc.SpriteFrame",
+            1
+        ],
+        "efoKMlv5RAKKZrsELHCywX": [
+            "home/textures/world over/worldover_snow4",
+            "cc.Texture2D"
+        ],
+        "2caJ8o5P1DRK6RImZN43iA": [
+            "home/textures/world over/worldover_tag",
+            "cc.Texture2D"
+        ],
+        "b7qhKWx8pENJeI9mCtVj65": [
+            "home/textures/world over/worldover_tag",
+            "cc.SpriteFrame",
+            1
+        ],
+        "f7li4pKqFHmYdKTc7gguEC": [
+            "start/animations/level_play_button",
+            "cc.AnimationClip"
+        ],
+        "eflNeHBd1LZZXbKE3z4j51": [
+            "start/prefabs/chapterMenuButton",
+            "cc.Prefab"
+        ],
+        "6f6pmwL7ZFAYRpQBIY21ZM": [
+            "start/prefabs/courseContent",
+            "cc.Prefab"
+        ],
+        "bdRaCZBl5AWIbXoLHRAVyP": [
+            "start/prefabs/drawer",
+            "cc.Prefab"
+        ],
+        "e7N/zBpZdHopX0Njr17fd2": [
+            "start/prefabs/drawerButton",
+            "cc.Prefab"
+        ],
+        "72TY9F1RlEqoGmgVX1Vw2m": [
+            "start/prefabs/lessonButton",
+            "cc.Prefab"
+        ],
+        "3fEw8qp3VBGJzjsC0c+n0X": [
+            "start/prefabs/level_play_button",
+            "cc.Prefab"
+        ],
+        "0ejzk4us9AGrtE1/KKfTXb": [
+            "start/prefabs/mainLessonButton",
+            "cc.Prefab"
+        ],
+        "67LKBsSvZAOI+jyYQE4o5r": [
+            "start/prefabs/picdisplayprefab",
+            "cc.Prefab"
+        ],
+        "aaUF/DtytNMp+FUuLW6+c5": [
+            "start/prefabs/rewardGiftbox",
+            "cc.Prefab"
+        ],
+        "acTpNJdNBAZIyxUFN0J2pj": [
+            "start/prefabs/startContent",
+            "cc.Prefab"
+        ],
+        "659d5IsF1KHow9mj1ao2xA": [
+            "start/prefabs/startHeader",
+            "cc.Prefab"
+        ],
+        "5fc6qVPvdLi4nuoRgibb40": [
+            "start/prefabs/startHeaderButton",
+            "cc.Prefab"
+        ],
+        "31kW7HxxRNA6TTptIIWXHD": [
+            "start/textures/Assignment Icon",
+            "cc.Texture2D"
+        ],
+        "7ev1j2a31LcpBf5cyNQabP": [
+            "start/textures/Assignment Icon",
+            "cc.SpriteFrame",
+            1
+        ],
+        "16uyU1yRpLYIKVOCDCgYhK": [
+            "start/textures/arrow_downloading",
+            "cc.Texture2D"
+        ],
+        "2f9Vq6/hRM0pkEJQswQVQI": [
+            "start/textures/arrow_downloading",
+            "cc.SpriteFrame",
+            1
+        ],
+        "1cJ9VoqONDPJhrYOs9k3dx": [
+            "start/textures/assignment_icon",
+            "cc.Texture2D"
+        ],
+        "adVi92Ml1Gh6+d3m65+rQp": [
+            "start/textures/assignment_icon",
+            "cc.SpriteFrame",
+            1
+        ],
+        "18NWHhDnxAFoAtK6KU8PBH": [
+            "start/textures/chaptercontainer",
+            "cc.SpriteFrame",
+            1
+        ],
+        "beyljDdGVNNJ2fJYqT7M8x": [
+            "start/textures/chaptercontainer",
+            "cc.Texture2D"
+        ],
+        "d63fT6O69Bdq+7PyIvWe/g": [
+            "start/textures/circle_bg",
+            "cc.Texture2D"
+        ],
+        "f5Lm2dMcJKf7Z0VFPriJWD": [
+            "start/textures/circle_bg",
+            "cc.SpriteFrame",
+            1
+        ],
+        "23L0JvDgZEybO/CTB7Hwb+": [
+            "start/textures/container",
+            "cc.SpriteFrame",
+            1
+        ],
+        "61X4k1T7pB24qDrxnqkc+N": [
+            "start/textures/container",
+            "cc.Texture2D"
+        ],
+        "0diO7RE91EBLaHlUy37eRD": [
+            "start/textures/count_icon",
+            "cc.SpriteFrame",
+            1
+        ],
+        "d0hU/JuzNG3pB9JRokZSd8": [
+            "start/textures/count_icon",
+            "cc.Texture2D"
+        ],
+        "33t0CfmVZONby+xgAXaTSy": [
+            "start/textures/currentChapter",
+            "cc.SpriteFrame",
+            1
+        ],
+        "6d3lPD25tGV6zTNpusu3QO": [
+            "start/textures/currentChapter",
+            "cc.Texture2D"
+        ],
+        "af6fZW0eZOoYvLmoJXGcGa": [
+            "start/textures/currentLesson",
+            "cc.SpriteFrame",
+            1
+        ],
+        "f5u9lOg69KFbHR/wzCs58e": [
+            "start/textures/currentLesson",
+            "cc.Texture2D"
+        ],
+        "0cNbHO7Q1DJpfXqwxB0dtn": [
+            "start/textures/drawer_icon_bg",
+            "cc.SpriteFrame",
+            1
+        ],
+        "76WigH6PVEr5KJGsUA8FeB": [
+            "start/textures/drawer_icon_bg",
+            "cc.Texture2D"
+        ],
+        "34YpKsrNRBmb6cbW7086nC": [
+            "start/textures/englishicon",
+            "cc.SpriteFrame",
+            1
+        ],
+        "adAqBczRBHEojw53UwNmVT": [
+            "start/textures/englishicon",
+            "cc.Texture2D"
+        ],
+        "2ejcy1PeFOA7/024WyBa+u": [
+            "start/textures/featured_icon",
+            "cc.Texture2D"
+        ],
+        "deNEniuQJByqfxLyarQ7Ok": [
+            "start/textures/featured_icon",
+            "cc.SpriteFrame",
+            1
+        ],
+        "4csXPOhQ5HTZ5tZNu4NXER": [
+            "start/textures/gamecompleted",
+            "cc.Texture2D"
+        ],
+        "c8KRGKza9PDqsw3S7XKqig": [
+            "start/textures/gamecompleted",
+            "cc.SpriteFrame",
+            1
+        ],
+        "94F77uvr9KX4VJ1CbPaJPx": [
+            "start/textures/gameiconbg",
+            "cc.SpriteFrame",
+            1
+        ],
+        "dauVPEDmdEL6v70r6WsWtP": [
+            "start/textures/gameiconbg",
+            "cc.Texture2D"
+        ],
+        "0aS1ytaNRAaaxV0wFuda7J": [
+            "start/textures/giftbox_iconBG",
+            "cc.Texture2D"
+        ],
+        "53ZWfgantOobGR/GqGeffr": [
+            "start/textures/giftbox_iconBG",
+            "cc.SpriteFrame",
+            1
+        ],
+        "30rdTRnL5EuZKedi1k5G6y": [
+            "start/textures/headerBG",
+            "cc.Texture2D"
+        ],
+        "7dkWTR2zRHIa3ZJ1UPQtrU": [
+            "start/textures/headerBG",
+            "cc.SpriteFrame",
+            1
+        ],
+        "05I7649PBBCqTCz9Hkhnav": [
+            "start/textures/hindi_chapter",
+            "cc.Texture2D"
+        ],
+        "a3b/XzL9NGaJ4RNmjJJKV9": [
+            "start/textures/hindi_chapter",
+            "cc.SpriteFrame",
+            1
+        ],
+        "32EH2m7jRPKp/q07vN1sH7": [
+            "start/textures/hindilessonbg",
+            "cc.SpriteFrame",
+            1
+        ],
+        "8b7Kbp/75I6JlSR1QdJxYv": [
+            "start/textures/hindilessonbg",
+            "cc.Texture2D"
+        ],
+        "3dOInLqLBGIb4jK0aPDM/H": [
+            "start/textures/homework_icon",
+            "cc.SpriteFrame",
+            1
+        ],
+        "95qzCGn4dFd5Vvr5wGcU0b": [
+            "start/textures/homework_icon",
+            "cc.Texture2D"
+        ],
+        "c2GEFCam9Kg7+BoMIZKJi8": [
+            "start/textures/item_bg_lock",
+            "cc.SpriteFrame",
+            1
+        ],
+        "ddPn+/SBxGYYxOCgNo0RCe": [
+            "start/textures/item_bg_lock",
+            "cc.Texture2D"
+        ],
+        "0cl8Zx7uhEqozdD9yBQUHW": [
+            "start/textures/jungle_bg",
+            "cc.Texture2D"
+        ],
+        "dbQwUl3udBtoPguzdZCbZT": [
+            "start/textures/jungle_bg",
+            "cc.SpriteFrame",
+            1
+        ],
+        "27e3yIvypLr4b9iVnm3slu": [
+            "start/textures/kannada_chapter",
+            "cc.SpriteFrame",
+            1
+        ],
+        "ebMWbPTCdASaNM64oGS/va": [
+            "start/textures/kannada_chapter",
+            "cc.Texture2D"
+        ],
+        "08X5j4wAdG/6HuS02lZEUi": [
+            "start/textures/lessonbg",
+            "cc.SpriteFrame",
+            1
+        ],
+        "57b1BNl3VOX7VZ5e8rqUjk": [
+            "start/textures/lessonbg",
+            "cc.Texture2D"
+        ],
+        "003fyXhFlChrONRswRmUW5": [
+            "start/textures/lessonname",
+            "cc.SpriteFrame",
+            1
+        ],
+        "91S9iUv2NL7KMZOt2mLYOe": [
+            "start/textures/lessonname",
+            "cc.Texture2D"
+        ],
+        "121C9V7/hI2aP6ulsNUkZU": [
+            "start/textures/level highlight",
+            "cc.SpriteFrame",
+            1
+        ],
+        "b2RGRsb1ZBwKvHQRMHvYKd": [
+            "start/textures/level highlight",
+            "cc.Texture2D"
+        ],
+        "77vUtuD/FIV717wAN8rlPO": [
+            "start/textures/library_icon",
+            "cc.SpriteFrame",
+            1
+        ],
+        "d04k05ewtCz5xdiDe5bT1K": [
+            "start/textures/library_icon",
+            "cc.Texture2D"
+        ],
+        "8fE+Nip0BIrbev/xb6Mmqv": [
+            "start/textures/mathlessonbg",
+            "cc.Texture2D"
+        ],
+        "a5K9V+FotDH5b+fzb8oCA6": [
+            "start/textures/mathlessonbg",
+            "cc.SpriteFrame",
+            1
+        ],
+        "14npIZGWtForPixGiS85ei": [
+            "start/textures/more_icon",
+            "cc.SpriteFrame",
+            1
+        ],
+        "89W2EM+8xG96pg5TqEJjGk": [
+            "start/textures/more_icon",
+            "cc.Texture2D"
+        ],
+        "67+v1XIg5F8a+EkTH0NKeY": [
+            "start/textures/morelesson_icon",
+            "cc.Texture2D"
+        ],
+        "80do3gPJNFK4KW7H8eUEiF": [
+            "start/textures/morelesson_icon",
+            "cc.SpriteFrame",
+            1
+        ],
+        "2fUzhvB7xBg5sZk3FJAy87": [
+            "start/textures/play button",
+            "cc.Texture2D"
+        ],
+        "742SikAqVF+7QkrdVdk6WW": [
+            "start/textures/play button",
+            "cc.SpriteFrame",
+            1
+        ],
+        "2fqYno1XdM67/CyXdU5PNB": [
+            "start/textures/play_button",
+            "cc.SpriteFrame",
+            1
+        ],
+        "d1KnpAeEdMaYsSwvjSuGuT": [
+            "start/textures/play_button",
+            "cc.Texture2D"
+        ],
+        "57COuEGrNM8K+sUfx+cR2n": [
+            "start/textures/rewardIcon",
+            "cc.SpriteFrame",
+            1
+        ],
+        "dcUqm9pg5Pu7cYc1n1/jYL": [
+            "start/textures/rewardIcon",
+            "cc.Texture2D"
+        ],
+        "72RlH7/BZFhLDUdofdD+z5": [
+            "start/textures/seperateline",
+            "cc.Texture2D"
+        ],
+        "a9bxyN28lFG4+BcBeAT+FN": [
+            "start/textures/seperateline",
+            "cc.SpriteFrame",
+            1
+        ]
+    },
+    "uuids": [
+        "003fyXhFlChrONRswRmUW5",
+        "03D42C2ERMZ6nMvsj7dhF4",
+        "04DK20cz9LS5lmEhURMYz9",
+        "05I7649PBBCqTCz9Hkhnav",
+        "05RWgRxHFNq7hB3muQiOZZ",
+        "05TDF4SX9OMb1+c8DYk0UR",
+        "05TewjAUdFO7/ckv8S0yXp",
+        "05/EcqAfBIEaebC1+unsBe",
+        "08NvyAfqlMjLv7HX6UWR5x",
+        "08X5j4wAdG/6HuS02lZEUi",
+        "08i4PwkZpDg7EYvOsePaXA",
+        "0aS1ytaNRAaaxV0wFuda7J",
+        "0cLj5p8VBFep1CzPZ1/BcP",
+        "0cNbHO7Q1DJpfXqwxB0dtn",
+        "0cl8Zx7uhEqozdD9yBQUHW",
+        "0cm4Xrts1GurQEAIWhN+vI",
+        "0cvISdX/lBWLej3CPljOhM",
+        "0diO7RE91EBLaHlUy37eRD",
+        "0dqu5dI69Bx6gFonFpb851",
+        "0d1WTB7a5GZJwFZsNQiHKu",
+        "0eIME2MPVPvKcHwl0L4KPd",
+        "0ejzk4us9AGrtE1/KKfTXb",
+        "0fR1mt+8JI+I7nqLCOgI7k",
+        "0faY1uIlRF4JVkqCTB9Inm",
+        "0fsy70lxNGYpUfdpqs/lIg",
+        "107VRmJStMRplTPVMYzQS1",
+        "111a88769",
+        "11XO77BQdDPJERM/tYE2Sy",
+        "121C9V7/hI2aP6ulsNUkZU",
+        "14npIZGWtForPixGiS85ei",
+        "159SRPyOpB/60HaMUR4ZW0",
+        "16XBluUt9AHbwNuMtvBYdE",
+        "16g4qn8CVD5430kWQwiKzM",
+        "16uyU1yRpLYIKVOCDCgYhK",
+        "17qNB8zddIurLxkLxYY+bA",
+        "18JLA+DwNO1pKbKXW0K9tO",
+        "18NIBavw1B8rFGFpTR5iz9",
+        "18NWHhDnxAFoAtK6KU8PBH",
+        "19dq27AzFP465HxsdZY+Fq",
+        "1aUe6nG0ZKrpyqWguwRrf3",
+        "1avlu8+dxMBKbnaSAMGRrJ",
+        "1cJ9VoqONDPJhrYOs9k3dx",
+        "1dAXbirilLioqOhkBdkLhR",
+        "1eTmM2X79Gxq05+aHcnTvS",
+        "1fYIqeQ/1GsYW4kYfZ3t/w",
+        "20KPJzgStNs4vFNtElN1lE",
+        "20la67OjVFUZLbTLrKgig5",
+        "23L0JvDgZEybO/CTB7Hwb+",
+        "23fqbMZUVGmImBK2NppAlr",
+        "26rV2RDJ5LpIYlCaYY7OjF",
+        "27e3yIvypLr4b9iVnm3slu",
+        "29FYIk+N1GYaeWH/q1NxQO",
+        "2aQ9wPWsBEobpz/rT5EssW",
+        "2bo+1gM7lFIq83JYRShhjn",
+        "2caJ8o5P1DRK6RImZN43iA",
+        "2ejcy1PeFOA7/024WyBa+u",
+        "2fUzhvB7xBg5sZk3FJAy87",
+        "2fqYno1XdM67/CyXdU5PNB",
+        "2f9Vq6/hRM0pkEJQswQVQI",
+        "30D9hoXIRBg6ocUr/0poq7",
+        "30qyKgSCVKcoHysX4eVueW",
+        "30rdTRnL5EuZKedi1k5G6y",
+        "31PQPe30xJT54xO7pRNLdF",
+        "31QjZ38bRIMaE1PihEaUIg",
+        "31kW7HxxRNA6TTptIIWXHD",
+        "32EH2m7jRPKp/q07vN1sH7",
+        "33e02XxI9DY56oFmfVnkg1",
+        "33t0CfmVZONby+xgAXaTSy",
+        "330Nj9Z9RO0qO5dcEMZiun",
+        "34YpKsrNRBmb6cbW7086nC",
+        "35OI40tIFBC5xNusKFEEpL",
+        "37sZVJYeRI6q/6YtB/8Pwy",
+        "38CPnuPIZIY5C9q2suf1aP",
+        "39BeQMiKlPl53GwC6l1MF8",
+        "3ae7efMv1CLq2ilvUY/tQi",
+        "3bh9pBHp1GKor8X/h0Db7p",
+        "3bp+kasAlFNbWpmBfK3I0u",
+        "3dOInLqLBGIb4jK0aPDM/H",
+        "3e07HIXutMar6F5ExkEjAU",
+        "3fEw8qp3VBGJzjsC0c+n0X",
+        "3f+hy3RatGML5KiIScmx8n",
+        "40YmnsnEJDW4KT6r1drBxv",
+        "41D7kWhyFGY7q4NDlzkazn",
+        "41r8rDtSlPpq2n1hBdLxbC",
+        "434IyZAJFJhqQ3qc1gjvCd",
+        "44DjgfQFJBJLbLoh+Vhm3Y",
+        "44Ret3fwBGpoZ2VO7Wab7B",
+        "44hrGzs1NDA5aaCKKTdofm",
+        "462VzK1StNQYhgIb5hFEms",
+        "49AFF2/0xProokrEsMoOlW",
+        "49EI1BntxKjrrCyWXT05SW",
+        "49Mc6ORl9Oqo4Mu5f/nEUa",
+        "4aKBkAE51PkI3lK8xLpCAh",
+        "4bCALLx51FyZnOU1ik8AL6",
+        "4bq2fLGOZAmbhANV8Ec/iQ",
+        "4b65NVTjxGuK5Rsq4XADES",
+        "4csXPOhQ5HTZ5tZNu4NXER",
+        "4cuJbldQhEH5mN0IwlfIxU",
+        "4eztDvmIBH9Yq44eO2fk4u",
+        "51U+foJsRAoqiumqF168z6",
+        "52ct7XHZhKSIhGWAPh4UAm",
+        "52v91LR2VDHaKUQ/FzWS61",
+        "53ZWfgantOobGR/GqGeffr",
+        "55HI0AeBZIDoDwxGuUGaAp",
+        "561VmTzVtIS50n1jQBW49Q",
+        "57COuEGrNM8K+sUfx+cR2n",
+        "57YwrdrRdJxa8gCtx7yXNV",
+        "57b1BNl3VOX7VZ5e8rqUjk",
+        "57ivW/AsNEXryBztp0fcam",
+        "58Z4ePVuBC77Rx3qRTRbs2",
+        "58nQAipoNPUqVkhihucYPf",
+        "59JT0GspdDMLl5iHdmEWX5",
+        "5aU+dMWS5MCrvUgMjBiSUR",
+        "5agAdcdCpAzquB8ROC6EwY",
+        "5ak7+mDD9HB5ATXvdXr5Jt",
+        "5atSqSUplI147xzA2oRC8q",
+        "5bVhTgt19MEIcvZO34ImfY",
+        "5cjjb17JZGiJwFC9GDVjgo",
+        "5dNHGtOABO2IALZRxommF5",
+        "5eXBj4ZzNAcbA4IQRizETa",
+        "5fQh5NDh5PraMY/9NceEyC",
+        "5fS3B18MZOf6FdfDIfgFgB",
+        "5fc6qVPvdLi4nuoRgibb40",
+        "605C0d3AJP4pLVjUje/ifp",
+        "61X4k1T7pB24qDrxnqkc+N",
+        "63IW3220JPRpIZkRiCyxLS",
+        "643LL5MAZKDo9eSY3EF4Zh",
+        "659d5IsF1KHow9mj1ao2xA",
+        "66JBqC57xNs7J9hKyha3lq",
+        "67LKBsSvZAOI+jyYQE4o5r",
+        "67MQ5XlnpBToAZ4qKBCHBu",
+        "67x6h5/0tLNL1ZdDPJEgYH",
+        "675ovJ2tVK2aLYfgPUWOMv",
+        "67+v1XIg5F8a+EkTH0NKeY",
+        "680nuZyU1D5b8x2fkvoQV4",
+        "69U9YJ9pxCGaBiBMD/2FNr",
+        "6cpVByIohFOKGHkva5ZwlS",
+        "6dh1IK/KpNk6a3NCewxFO8",
+        "6dvUKPGNlPjqXXaa65PdV+",
+        "6d3lPD25tGV6zTNpusu3QO",
+        "6fCMdz4OBEnZzF81HOOzMi",
+        "6f6pmwL7ZFAYRpQBIY21ZM",
+        "72RlH7/BZFhLDUdofdD+z5",
+        "72TY9F1RlEqoGmgVX1Vw2m",
+        "72bmd8DZ9Gc4OgjxQr5H2V",
+        "73TBcpnPJFlaTlVSI2D6QC",
+        "73aFAX1wVNhLpYoaE6pPYr",
+        "74lnY+ushGBZxhYwAS85bk",
+        "74mCH4wJ1AQoaOUT4+GYHH",
+        "742SikAqVF+7QkrdVdk6WW",
+        "76WOKUILNMyYc2BcwSHQJq",
+        "76WigH6PVEr5KJGsUA8FeB",
+        "77vUtuD/FIV717wAN8rlPO",
+        "79DyALRydPmap9kbTmMTat",
+        "7c6tPEebNMwoqDIBcqV2Av",
+        "7di+58arpALaYBpokRojuE",
+        "7dkWTR2zRHIa3ZJ1UPQtrU",
+        "7eDHYpxS1CNbYwRQVgic3u",
+        "7ev1j2a31LcpBf5cyNQabP",
+        "80do3gPJNFK4KW7H8eUEiF",
+        "80iO91fOpIDLMqkDdkF9v+",
+        "80oRvioR5ABZ92aSSyeJc3",
+        "82XNUxBbJEy7gOzEAEKWhO",
+        "82n6qldQpBL5n+AMkMS/n7",
+        "83vOiEN69LxqdQdaaQ+eI7",
+        "84ANTu0ylChoeOMzo99Rcq",
+        "841xRyO39HXK2uK7R9vv4K",
+        "85DyN9YptCMpSnm3yU0poI",
+        "86Vdboc/FD3YpoPbtVy/U1",
+        "86hvJQAGZB57Qzr82Wnb6x",
+        "88uQnaXSBDsaxmum7SYPBZ",
+        "8855/VlrRKd6H0MSRnFxAU",
+        "89W2EM+8xG96pg5TqEJjGk",
+        "89apsV6Y1EXIRfCWeQ4l+d",
+        "8awIlUVT1GVYK3RO/b9pFn",
+        "8ayuqhCUhLmqvJHgEQ9PQz",
+        "8b7Kbp/75I6JlSR1QdJxYv",
+        "8d70F7rs1LHbwU5UbQEG4F",
+        "8fE+Nip0BIrbev/xb6Mmqv",
+        "8fqLkj9aFFFJ1MTv1m3PWW",
+        "90REWFlvJJyrqKyjBZMyLT",
+        "908b30rJNIq6oBbtVrGFbP",
+        "91S9iUv2NL7KMZOt2mLYOe",
+        "92tLjt4oxGWaVGxENCOrL6",
+        "94F77uvr9KX4VJ1CbPaJPx",
+        "94HYx/CytPRLG6TJrWwJCw",
+        "95nqtdUShC8p43hiSUGiUu",
+        "95qzCGn4dFd5Vvr5wGcU0b",
+        "959jSJqgdH459Ofb3ErQ/2",
+        "97I0AGZ4lHXLjFO6HeIYf3",
+        "98E/w0bKBO56hvhG30qYGE",
+        "99duM+/AlNvbL4wYArz5oy",
+        "9bvaMerUlDyary99mJa6xp",
+        "9cnfeQpylIaLAhPQJkBKT5",
+        "9feHgGkLVHsIKdYsqEGQ5t",
+        "9fnv5WiDJINYDZ0Sus25ev",
+        "9fymCW789CVIKIzn5URCNe",
+        "a0X7jg2CBKaopMpjrP/jr4",
+        "a1U5RdJRFMFL57BdJC9H1X",
+        "a2NpIV0SJPGZGII37tilk7",
+        "a3b/XzL9NGaJ4RNmjJJKV9",
+        "a4cuxAPjZCh6JX5/YZFkln",
+        "a5K9V+FotDH5b+fzb8oCA6",
+        "a9bxyN28lFG4+BcBeAT+FN",
+        "aaUF/DtytNMp+FUuLW6+c5",
+        "acTpNJdNBAZIyxUFN0J2pj",
+        "acfAo5NqtFZ4XpST1rrgXk",
+        "adAqBczRBHEojw53UwNmVT",
+        "adVi92Ml1Gh6+d3m65+rQp",
+        "adkW2eoh1LYo82ivoPDsae",
+        "aeBPp20E1G1aEEU94bDhMF",
+        "af6fZW0eZOoYvLmoJXGcGa",
+        "b1dP3CjjRKO43RA4JY+IlE",
+        "b2RGRsb1ZBwKvHQRMHvYKd",
+        "b4nbxxgj5I1aLxXoQLxhRT",
+        "b48jSF0zhAJrVlOsF7B2mz",
+        "b6jCgXK9FG8oLy5kkwJZ6U",
+        "b6vuDLgElOiaFh4rniHo2g",
+        "b7qhKWx8pENJeI9mCtVj65",
+        "b73wsn6I9HvLrAc5TnOEkl",
+        "b83Tyr/QtFXKHpfjJqoUsB",
+        "b9N+VEaP9IYIrrL+1u+z2N",
+        "b9UH1VKlNDrJG6IsjGDAe2",
+        "bbXn+sFnxKA5YxVnJ/1X4B",
+        "bbi3hkHjhFAoV12qrPT4XI",
+        "bbr/7Xcl5NN6kp54nUZlqb",
+        "bbvVbxlTFKlpJdjNoXZFxE",
+        "bc7F4oql1OuI5m6wZ3Gi5q",
+        "bdRaCZBl5AWIbXoLHRAVyP",
+        "bdWezjWuVEiLOZxh6PkjcS",
+        "beyljDdGVNNJ2fJYqT7M8x",
+        "bfCwblVUlNyb1dO9cuQuqY",
+        "bfQaQwwclL+JEl+UUeUi0F",
+        "bfidEKG0tCbL8XG/7TpVJy",
+        "c1g0Xsc/lE8o9Sckso6qKb",
+        "c2GEFCam9Kg7+BoMIZKJi8",
+        "c29Us2+K1CoIvKAR5Z9Czm",
+        "c3J//ldaBC+oaB42scvAcg",
+        "c4K98+K0tKSIgrtHd4i316",
+        "c4/OnvhnhPpaM2l5RJeHNP",
+        "c5QtS6fItJNpAMre9UIEla",
+        "c5pON/5OVIcqr7hs+Inft0",
+        "c6jyuLsj5ODIFvrmgr4wmx",
+        "c6u/NxsZlLipzcN1LlAOTC",
+        "c8KRGKza9PDqsw3S7XKqig",
+        "c9BTUdg/ZGhLx3FhG5BeZm",
+        "c9lTJWfG1PMYZkn1z3rQuR",
+        "c9+lH/PwFGAY+AMl0bEdq3",
+        "caPgOv4XVARr7QS5EFWvdf",
+        "ca9ACrp4FMtZzdzNZS3OF/",
+        "cbTpJh6CNARbqoFil5/+0j",
+        "ccGcu7r0FHVInpEeWK/8eg",
+        "ceB+FeCA5NnLRd7p2zcDXs",
+        "d0hU/JuzNG3pB9JRokZSd8",
+        "d04k05ewtCz5xdiDe5bT1K",
+        "d1KnpAeEdMaYsSwvjSuGuT",
+        "d19S0y0qdL77gTKRLg9apL",
+        "d2Fqp6YixNgaP7SUWEXGGQ",
+        "d2GyTKrHdAgJoWs9awd6oB",
+        "d2enfGkmtLvrCf6QgnbtOY",
+        "d2y/NAaK1Gr7c1Cpr2F+m1",
+        "d2z7e5dFRHaKqypoqCwp44",
+        "d3d2UCuZtNlYgQ++8sH8Hs",
+        "d4P7RC36xGSbAOgJC2b9um",
+        "d5E9MfsMhH15tzGwk/UxUy",
+        "d5aGSR4ERM0pr2M/0q8JWV",
+        "d5qdQqNa5KZqZ6mkWWFCHp",
+        "d63fT6O69Bdq+7PyIvWe/g",
+        "d7aTg9c25NbYi5CPfO1wIR",
+        "d8HsitJHxOYqo801xBk8ev",
+        "d8fK69DrZO9LfBNgbyZx04",
+        "d9BU1+evpBzohFIxnIb0Qk",
+        "d9LDjplOBJb6i5VjFdZqR3",
+        "d9mOJHUJJOqIz5GfJfARoQ",
+        "dauVPEDmdEL6v70r6WsWtP",
+        "dbQwUl3udBtoPguzdZCbZT",
+        "dcUqm9pg5Pu7cYc1n1/jYL",
+        "ddPn+/SBxGYYxOCgNo0RCe",
+        "ddoTG+OdxFma9a55c4Ev9r",
+        "dduLLGfF5I0qfRoi7h5bgQ",
+        "deA9QtyY9EVKA+P5ZGft4E",
+        "deNEniuQJByqfxLyarQ7Ok",
+        "dfbhxqHEBO3pGbLiEj1lXZ",
+        "df0JlAsSNO/ZYgX57f1eJS",
+        "e0BVg0UXFD4q8M8EucwpB5",
+        "e09q1Bro1JVL2N1SN6wxPe",
+        "e2cWxNBTlDrrkR8oSBfO3O",
+        "e34uWyfyhCEY4lqNh61TXS",
+        "e6VoUTplFDQrkPp38tkBRd",
+        "e6tDiB9AdGM53fpblnBTS0",
+        "e7N/zBpZdHopX0Njr17fd2",
+        "e7XfBeofJHcqXhqaQ0UR4m",
+        "e9LIy2MhFGoqXPMw3nmh3b",
+        "e97GVMl6JHh5Ml5qEDdSGa",
+        "ebI29iugdETq5NmlsZCL1U",
+        "ebJtUN2SxLH5IaSbB1ZpXN",
+        "ebMWbPTCdASaNM64oGS/va",
+        "ebfRqsS2VHTrVehm4SP9CP",
+        "ecQKecd9BI9qtNXbKlXY4x",
+        "ecpdLyjvZBwrvm+cedCcQy",
+        "edVxRYyqlJG7bF++4Eh6jV",
+        "eeayUWZXJO76haIT30fjje",
+        "eehDjS2CZCcKm0kWb7hdAN",
+        "efanDDns1CE7O0oCtlj8gB",
+        "eflNeHBd1LZZXbKE3z4j51",
+        "efoKMlv5RAKKZrsELHCywX",
+        "f0BIwQ8D5Ml7nTNQbh1YlS",
+        "f0BJ4aAydE/58NLb2fZkOH",
+        "f2nVIq4olCToAnvWR9uWN/",
+        "f5Lm2dMcJKf7Z0VFPriJWD",
+        "f5u9lOg69KFbHR/wzCs58e",
+        "f58o65DFVCFK3PBShWWWv1",
+        "f7li4pKqFHmYdKTc7gguEC",
+        "f8EtV5A/BMeKU6JzXNrw67",
+        "f8socCquxJaJ/tIrje+fcr",
+        "f988K1+65Ka65UCUqGP0Wd",
+        "fduPp736NOnqh3UovRvaX/",
+        "fe8a68+fRCsJ4yiPNsOmYK"
+    ],
+    "scenes": {
+        "db://assets/menu/home/scenes/first.fire": "3f+hy3RatGML5KiIScmx8n",
+        "db://assets/menu/home/scenes/home.fire": "ceB+FeCA5NnLRd7p2zcDXs",
+        "db://assets/menu/start/scenes/chapterLessons.fire": "23fqbMZUVGmImBK2NppAlr",
+        "db://assets/menu/start/scenes/courseChapters.fire": "605C0d3AJP4pLVjUje/ifp",
+        "db://assets/menu/start/scenes/start.fire": "4cuJbldQhEH5mN0IwlfIxU"
+    },
+    "redirect": [
+        "08NvyAfqlMjLv7HX6UWR5x",
+        0,
+        "29FYIk+N1GYaeWH/q1NxQO",
+        0,
+        "30D9hoXIRBg6ocUr/0poq7",
+        0,
+        "38CPnuPIZIY5C9q2suf1aP",
+        0,
+        "3ae7efMv1CLq2ilvUY/tQi",
+        1,
+        "40YmnsnEJDW4KT6r1drBxv",
+        0,
+        "41D7kWhyFGY7q4NDlzkazn",
+        2,
+        "41r8rDtSlPpq2n1hBdLxbC",
+        0,
+        "675ovJ2tVK2aLYfgPUWOMv",
+        0,
+        "82n6qldQpBL5n+AMkMS/n7",
+        0,
+        "8855/VlrRKd6H0MSRnFxAU",
+        0,
+        "97I0AGZ4lHXLjFO6HeIYf3",
+        0,
+        "a1U5RdJRFMFL57BdJC9H1X",
+        1,
+        "aeBPp20E1G1aEEU94bDhMF",
+        0,
+        "b48jSF0zhAJrVlOsF7B2mz",
+        0,
+        "b6jCgXK9FG8oLy5kkwJZ6U",
+        0,
+        "bbXn+sFnxKA5YxVnJ/1X4B",
+        0,
+        "bfQaQwwclL+JEl+UUeUi0F",
+        0,
+        "c1g0Xsc/lE8o9Sckso6qKb",
+        0,
+        "c9lTJWfG1PMYZkn1z3rQuR",
+        0,
+        "ca9ACrp4FMtZzdzNZS3OF/",
+        0,
+        "d2enfGkmtLvrCf6QgnbtOY",
+        0,
+        "e09q1Bro1JVL2N1SN6wxPe",
+        0,
+        "e97GVMl6JHh5Ml5qEDdSGa",
+        0,
+        "ecQKecd9BI9qtNXbKlXY4x",
+        0,
+        "ecpdLyjvZBwrvm+cedCcQy",
+        1,
+        "f0BIwQ8D5Ml7nTNQbh1YlS",
+        0,
+        "fe8a68+fRCsJ4yiPNsOmYK",
+        0
+    ],
+    "deps": [
+        "main",
+        "internal",
+        "resources"
+    ],
+    "packs": {
+        "01497258c": [
+            "659d5IsF1KHow9mj1ao2xA",
+            "7dkWTR2zRHIa3ZJ1UPQtrU",
+            "adVi92Ml1Gh6+d3m65+rQp"
+        ],
+        "018597126": [
+            "82XNUxBbJEy7gOzEAEKWhO",
+            "84ANTu0ylChoeOMzo99Rcq",
+            "bc7F4oql1OuI5m6wZ3Gi5q"
+        ],
+        "01b9d4891": [
+            "0cm4Xrts1GurQEAIWhN+vI",
+            "0diO7RE91EBLaHlUy37eRD",
+            "14npIZGWtForPixGiS85ei",
+            "3dOInLqLBGIb4jK0aPDM/H",
+            "4cuJbldQhEH5mN0IwlfIxU",
+            "57COuEGrNM8K+sUfx+cR2n",
+            "5agAdcdCpAzquB8ROC6EwY",
+            "67LKBsSvZAOI+jyYQE4o5r",
+            "af6fZW0eZOoYvLmoJXGcGa",
+            "b9N+VEaP9IYIrrL+1u+z2N",
+            "c6u/NxsZlLipzcN1LlAOTC",
+            "deNEniuQJByqfxLyarQ7Ok"
+        ],
+        "01bdb852a": [
+            "acTpNJdNBAZIyxUFN0J2pj",
+            "c9+lH/PwFGAY+AMl0bEdq3"
+        ],
+        "024260d90": [
+            "57YwrdrRdJxa8gCtx7yXNV",
+            "72TY9F1RlEqoGmgVX1Vw2m",
+            "a2NpIV0SJPGZGII37tilk7",
+            "c2GEFCam9Kg7+BoMIZKJi8"
+        ],
+        "02a1ef096": [
+            "04DK20cz9LS5lmEhURMYz9",
+            "08i4PwkZpDg7EYvOsePaXA",
+            "0d1WTB7a5GZJwFZsNQiHKu",
+            "11XO77BQdDPJERM/tYE2Sy",
+            "16g4qn8CVD5430kWQwiKzM",
+            "18NIBavw1B8rFGFpTR5iz9",
+            "1aUe6nG0ZKrpyqWguwRrf3",
+            "1eTmM2X79Gxq05+aHcnTvS",
+            "57ivW/AsNEXryBztp0fcam",
+            "59JT0GspdDMLl5iHdmEWX5",
+            "5fS3B18MZOf6FdfDIfgFgB",
+            "72bmd8DZ9Gc4OgjxQr5H2V",
+            "76WOKUILNMyYc2BcwSHQJq",
+            "7di+58arpALaYBpokRojuE",
+            "86Vdboc/FD3YpoPbtVy/U1",
+            "90REWFlvJJyrqKyjBZMyLT",
+            "b73wsn6I9HvLrAc5TnOEkl",
+            "ccGcu7r0FHVInpEeWK/8eg",
+            "ceB+FeCA5NnLRd7p2zcDXs",
+            "e2cWxNBTlDrrkR8oSBfO3O",
+            "ebfRqsS2VHTrVehm4SP9CP",
+            "fduPp736NOnqh3UovRvaX/"
+        ],
+        "03323f656": [
+            "159SRPyOpB/60HaMUR4ZW0",
+            "2bo+1gM7lFIq83JYRShhjn",
+            "53ZWfgantOobGR/GqGeffr",
+            "58Z4ePVuBC77Rx3qRTRbs2",
+            "5atSqSUplI147xzA2oRC8q",
+            "7c6tPEebNMwoqDIBcqV2Av",
+            "aaUF/DtytNMp+FUuLW6+c5",
+            "c29Us2+K1CoIvKAR5Z9Czm",
+            "d2Fqp6YixNgaP7SUWEXGGQ"
+        ],
+        "03b919a31": [
+            "6fCMdz4OBEnZzF81HOOzMi",
+            "9feHgGkLVHsIKdYsqEGQ5t",
+            "d5qdQqNa5KZqZ6mkWWFCHp"
+        ],
+        "040790bf8": [
+            "33t0CfmVZONby+xgAXaTSy",
+            "bbvVbxlTFKlpJdjNoXZFxE",
+            "eflNeHBd1LZZXbKE3z4j51"
+        ],
+        "040d0de32": [
+            "121C9V7/hI2aP6ulsNUkZU",
+            "3fEw8qp3VBGJzjsC0c+n0X",
+            "742SikAqVF+7QkrdVdk6WW",
+            "f7li4pKqFHmYdKTc7gguEC"
+        ],
+        "04eea4806": [
+            "05I7649PBBCqTCz9Hkhnav",
+            "0aS1ytaNRAaaxV0wFuda7J",
+            "0cLj5p8VBFep1CzPZ1/BcP",
+            "0cl8Zx7uhEqozdD9yBQUHW",
+            "0eIME2MPVPvKcHwl0L4KPd",
+            "107VRmJStMRplTPVMYzQS1",
+            "111a88769",
+            "16XBluUt9AHbwNuMtvBYdE",
+            "16uyU1yRpLYIKVOCDCgYhK",
+            "1avlu8+dxMBKbnaSAMGRrJ",
+            "1cJ9VoqONDPJhrYOs9k3dx",
+            "1dAXbirilLioqOhkBdkLhR",
+            "2caJ8o5P1DRK6RImZN43iA",
+            "2ejcy1PeFOA7/024WyBa+u",
+            "2fUzhvB7xBg5sZk3FJAy87",
+            "30qyKgSCVKcoHysX4eVueW",
+            "30rdTRnL5EuZKedi1k5G6y",
+            "31kW7HxxRNA6TTptIIWXHD",
+            "33e02XxI9DY56oFmfVnkg1",
+            "35OI40tIFBC5xNusKFEEpL",
+            "3bh9pBHp1GKor8X/h0Db7p",
+            "3bp+kasAlFNbWpmBfK3I0u",
+            "3e07HIXutMar6F5ExkEjAU",
+            "44hrGzs1NDA5aaCKKTdofm",
+            "462VzK1StNQYhgIb5hFEms",
+            "49AFF2/0xProokrEsMoOlW",
+            "49EI1BntxKjrrCyWXT05SW",
+            "4aKBkAE51PkI3lK8xLpCAh",
+            "4bCALLx51FyZnOU1ik8AL6",
+            "4bq2fLGOZAmbhANV8Ec/iQ",
+            "4csXPOhQ5HTZ5tZNu4NXER",
+            "51U+foJsRAoqiumqF168z6",
+            "52v91LR2VDHaKUQ/FzWS61",
+            "55HI0AeBZIDoDwxGuUGaAp",
+            "561VmTzVtIS50n1jQBW49Q",
+            "57b1BNl3VOX7VZ5e8rqUjk",
+            "58nQAipoNPUqVkhihucYPf",
+            "5aU+dMWS5MCrvUgMjBiSUR",
+            "5dNHGtOABO2IALZRxommF5",
+            "5eXBj4ZzNAcbA4IQRizETa",
+            "61X4k1T7pB24qDrxnqkc+N",
+            "643LL5MAZKDo9eSY3EF4Zh",
+            "66JBqC57xNs7J9hKyha3lq",
+            "67x6h5/0tLNL1ZdDPJEgYH",
+            "67+v1XIg5F8a+EkTH0NKeY",
+            "680nuZyU1D5b8x2fkvoQV4",
+            "69U9YJ9pxCGaBiBMD/2FNr",
+            "6cpVByIohFOKGHkva5ZwlS",
+            "6dh1IK/KpNk6a3NCewxFO8",
+            "6dvUKPGNlPjqXXaa65PdV+",
+            "6d3lPD25tGV6zTNpusu3QO",
+            "72RlH7/BZFhLDUdofdD+z5",
+            "73TBcpnPJFlaTlVSI2D6QC",
+            "73aFAX1wVNhLpYoaE6pPYr",
+            "76WigH6PVEr5KJGsUA8FeB",
+            "7eDHYpxS1CNbYwRQVgic3u",
+            "80oRvioR5ABZ92aSSyeJc3",
+            "83vOiEN69LxqdQdaaQ+eI7",
+            "841xRyO39HXK2uK7R9vv4K",
+            "85DyN9YptCMpSnm3yU0poI",
+            "86hvJQAGZB57Qzr82Wnb6x",
+            "88uQnaXSBDsaxmum7SYPBZ",
+            "89W2EM+8xG96pg5TqEJjGk",
+            "89apsV6Y1EXIRfCWeQ4l+d",
+            "8ayuqhCUhLmqvJHgEQ9PQz",
+            "8b7Kbp/75I6JlSR1QdJxYv",
+            "8fE+Nip0BIrbev/xb6Mmqv",
+            "8fqLkj9aFFFJ1MTv1m3PWW",
+            "908b30rJNIq6oBbtVrGFbP",
+            "91S9iUv2NL7KMZOt2mLYOe",
+            "94HYx/CytPRLG6TJrWwJCw",
+            "95qzCGn4dFd5Vvr5wGcU0b",
+            "98E/w0bKBO56hvhG30qYGE",
+            "99duM+/AlNvbL4wYArz5oy",
+            "9cnfeQpylIaLAhPQJkBKT5",
+            "a4cuxAPjZCh6JX5/YZFkln",
+            "acfAo5NqtFZ4XpST1rrgXk",
+            "adAqBczRBHEojw53UwNmVT",
+            "b2RGRsb1ZBwKvHQRMHvYKd",
+            "bbr/7Xcl5NN6kp54nUZlqb",
+            "beyljDdGVNNJ2fJYqT7M8x",
+            "bfCwblVUlNyb1dO9cuQuqY",
+            "bfidEKG0tCbL8XG/7TpVJy",
+            "c3J//ldaBC+oaB42scvAcg",
+            "c4K98+K0tKSIgrtHd4i316",
+            "c4/OnvhnhPpaM2l5RJeHNP",
+            "c5pON/5OVIcqr7hs+Inft0",
+            "c9BTUdg/ZGhLx3FhG5BeZm",
+            "caPgOv4XVARr7QS5EFWvdf",
+            "d0hU/JuzNG3pB9JRokZSd8",
+            "d04k05ewtCz5xdiDe5bT1K",
+            "d1KnpAeEdMaYsSwvjSuGuT",
+            "d2GyTKrHdAgJoWs9awd6oB",
+            "d3d2UCuZtNlYgQ++8sH8Hs",
+            "d4P7RC36xGSbAOgJC2b9um",
+            "d63fT6O69Bdq+7PyIvWe/g",
+            "d8HsitJHxOYqo801xBk8ev",
+            "d8fK69DrZO9LfBNgbyZx04",
+            "d9BU1+evpBzohFIxnIb0Qk",
+            "d9LDjplOBJb6i5VjFdZqR3",
+            "d9mOJHUJJOqIz5GfJfARoQ",
+            "dauVPEDmdEL6v70r6WsWtP",
+            "dcUqm9pg5Pu7cYc1n1/jYL",
+            "ddPn+/SBxGYYxOCgNo0RCe",
+            "ddoTG+OdxFma9a55c4Ev9r",
+            "dduLLGfF5I0qfRoi7h5bgQ",
+            "deA9QtyY9EVKA+P5ZGft4E",
+            "df0JlAsSNO/ZYgX57f1eJS",
+            "e0BVg0UXFD4q8M8EucwpB5",
+            "e34uWyfyhCEY4lqNh61TXS",
+            "e6VoUTplFDQrkPp38tkBRd",
+            "e6tDiB9AdGM53fpblnBTS0",
+            "e7XfBeofJHcqXhqaQ0UR4m",
+            "ebI29iugdETq5NmlsZCL1U",
+            "ebMWbPTCdASaNM64oGS/va",
+            "edVxRYyqlJG7bF++4Eh6jV",
+            "eeayUWZXJO76haIT30fjje",
+            "eehDjS2CZCcKm0kWb7hdAN",
+            "efanDDns1CE7O0oCtlj8gB",
+            "efoKMlv5RAKKZrsELHCywX",
+            "f0BJ4aAydE/58NLb2fZkOH",
+            "f5u9lOg69KFbHR/wzCs58e",
+            "f8EtV5A/BMeKU6JzXNrw67",
+            "f8socCquxJaJ/tIrje+fcr"
+        ],
+        "09a67b670": [
+            "5fc6qVPvdLi4nuoRgibb40",
+            "74lnY+ushGBZxhYwAS85bk",
+            "7ev1j2a31LcpBf5cyNQabP",
+            "80do3gPJNFK4KW7H8eUEiF"
+        ],
+        "0cc30f4e6": [
+            "05TewjAUdFO7/ckv8S0yXp",
+            "26rV2RDJ5LpIYlCaYY7OjF",
+            "37sZVJYeRI6q/6YtB/8Pwy",
+            "adkW2eoh1LYo82ivoPDsae",
+            "d2z7e5dFRHaKqypoqCwp44"
+        ],
+        "0d3b867a7": [
+            "05/EcqAfBIEaebC1+unsBe",
+            "2f9Vq6/hRM0pkEJQswQVQI",
+            "dfbhxqHEBO3pGbLiEj1lXZ"
+        ],
+        "0ebb0bd2e": [
+            "0cNbHO7Q1DJpfXqwxB0dtn",
+            "e7N/zBpZdHopX0Njr17fd2"
+        ]
+    },
+    "name": "menu",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

@@ -1,1 +1,105 @@
-[1,["1c49d44d4"],["_textureSetter"],["cc.SpriteFrame",["cc.AudioClip",["_name","_native","duration"],0]],[[1,0,1,2,4]],[[[{"name":"counting_image_digit_common_countnumber_bg","rect":[229,800,22,21],"offset":[0,0],"originalSize":[22,21],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[[0,"tokenappear",".m4a",0.25542],-1],0,0,[],[],[]],[[[0,"panelput",".m4a",0.371519],-1],0,0,[],[],[]]]]
+[
+  1,
+  [
+    "1c49d44d4"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame",
+    [
+      "cc.AudioClip",
+      [
+        "_name",
+        "_native",
+        "duration"
+      ],
+      0
+    ]
+  ],
+  [
+    [
+      1,
+      0,
+      1,
+      2,
+      4
+    ]
+  ],
+  [
+    [
+      [
+        {
+          "name": "counting_image_digit_common_countnumber_bg",
+          "rect": [
+            229,
+            800,
+            22,
+            21
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            22,
+            21
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        [
+          0,
+          "tokenappear",
+          ".m4a",
+          0.25542
+        ],
+        -1
+      ],
+      0,
+      0,
+      [],
+      [],
+      []
+    ],
+    [
+      [
+        [
+          0,
+          "panelput",
+          ".m4a",
+          0.371519
+        ],
+        -1
+      ],
+      0,
+      0,
+      [],
+      [],
+      []
+    ]
+  ]
+]

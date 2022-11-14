@@ -1,1 +1,137 @@
-[1,["0du7EeVaZF97A10r7CcGM6"],["_textureSetter"],["cc.SpriteFrame"],0,[[[{"name":"decomon-decomon2-decomon_mouth_a_smile3","rect":[234,656,54,17],"offset":[0,0],"originalSize":[54,17],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon2-decomon_mouth_a_smile2","rect":[1,674,60,14],"offset":[0,0],"originalSize":[60,14],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon2-decomon_mouth_a_smile1","rect":[241,536,61,10],"offset":[0,0],"originalSize":[61,10],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]]]]
+[
+  1,
+  [
+    "0du7EeVaZF97A10r7CcGM6"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_mouth_a_smile3",
+          "rect": [
+            234,
+            656,
+            54,
+            17
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            54,
+            17
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_mouth_a_smile2",
+          "rect": [
+            1,
+            674,
+            60,
+            14
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            60,
+            14
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon2-decomon_mouth_a_smile1",
+          "rect": [
+            241,
+            536,
+            61,
+            10
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            61,
+            10
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ]
+  ]
+]
