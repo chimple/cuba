@@ -6,6 +6,7 @@ import {
   CURRENT_LESSON_LEVEL,
   PAGES,
   PREVIOUS_SELECTED_COURSE,
+  PRE_QUIZ,
 } from "../common/constants";
 import Curriculum from "../models/curriculum";
 import "./Home.css";
@@ -64,16 +65,19 @@ const Home: React.FC = () => {
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
     const curInstanse = Curriculum.getInstance();
-    const lessons = await curInstanse.allLessonforSubject(subjectCode);
-    const chapters = await curInstanse.allChapterforSubject(subjectCode);
-    await new Promise((r) => setTimeout(r, 100));
+    let lessons = await curInstanse.allLessonforSubject(subjectCode);
+    let chapters = await curInstanse.allChapterforSubject(subjectCode);
+    const _preQuizPlayed = await setScore(subjectCode);
+    if (_preQuizPlayed) {
+      if (lessons[0].id === subjectCode + "_" + PRE_QUIZ) {
+        lessons = lessons.slice(1);
+        chapters = chapters.slice(1);
+      }
+    }
     const tempChapterMap: any = {};
     for (let i = 0; i < chapters.length; i++) {
       tempChapterMap[chapters[i].id] = i;
     }
-    // if (!lessonsScoreMap) {
-    await setScore(subjectCode);
-    // }
     setSubject(subjectCode);
     setChaptersMap(tempChapterMap);
     setDataCourse({ lessons: lessons, chapters: chapters });
@@ -116,7 +120,6 @@ const Home: React.FC = () => {
   }
 
   function onHeaderIconClick(selectedHeader: any) {
-
     switch (selectedHeader) {
       case HEADERLIST.HOME:
         setCurrentHeader(HEADERLIST.HOME);
@@ -152,21 +155,21 @@ const Home: React.FC = () => {
     }
   }
 
-  async function setScore(subjectCode: string) {
+  async function setScore(subjectCode: string): Promise<boolean> {
     const apiInstance = OneRosterApi.getInstance();
     const tempClass = await apiInstance.getClassForUserForSubject(
       "user",
       subjectCode
     );
 
-const _isPreQuizPlayed = await apiInstance.isPreQuizDone(
+    const _isPreQuizPlayed = await apiInstance.isPreQuizDone(
       subjectCode,
       tempClass?.sourcedId ?? "",
       "user"
     );
     console.log("tempClass", tempClass);
 
-const tempLessonMap =
+    const tempLessonMap =
       await apiInstance.getResultsForStudentsForClassInLessonMap(
         tempClass?.sourcedId ?? "",
         "user"
@@ -185,6 +188,7 @@ const tempLessonMap =
     }
     setIsPreQuizPlayed(_isPreQuizPlayed);
     setLessonsScoreMap(tempLessonMap);
+    return subjectCode !== COURSES.PUZZLE && _isPreQuizPlayed;
   }
 
   return (
