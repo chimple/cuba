@@ -558,8 +558,178 @@ window.__require = function e(t, n, r) {
         }
       }
       const WebView = registerPlugin("WebView");
+      const encode = str => encodeURIComponent(str).replace(/%(2[346B]|5E|60|7C)/g, decodeURIComponent).replace(/[()]/g, escape);
+      class CapacitorCookiesPluginWeb extends WebPlugin {
+        async setCookie(options) {
+          try {
+            const encodedKey = encode(options.key);
+            const encodedValue = encode(options.value);
+            const expires = `; expires=${(options.expires || "").replace("expires=", "")}`;
+            const path = (options.path || "/").replace("path=", "");
+            document.cookie = `${encodedKey}=${encodedValue || ""}${expires}; path=${path}`;
+          } catch (error) {
+            return Promise.reject(error);
+          }
+        }
+        async deleteCookie(options) {
+          try {
+            document.cookie = `${options.key}=; Max-Age=0`;
+          } catch (error) {
+            return Promise.reject(error);
+          }
+        }
+        async clearCookies() {
+          try {
+            const cookies = document.cookie.split(";") || [];
+            for (const cookie of cookies) document.cookie = cookie.replace(/^ +/, "").replace(/=.*/, `=;expires=${new Date().toUTCString()};path=/`);
+          } catch (error) {
+            return Promise.reject(error);
+          }
+        }
+        async clearAllCookies() {
+          try {
+            await this.clearCookies();
+          } catch (error) {
+            return Promise.reject(error);
+          }
+        }
+      }
+      const CapacitorCookies = registerPlugin("CapacitorCookies", {
+        web: () => new CapacitorCookiesPluginWeb()
+      });
+      const readBlobAsBase64 = async blob => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64String = reader.result;
+          resolve(base64String.indexOf(",") >= 0 ? base64String.split(",")[1] : base64String);
+        };
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(blob);
+      });
+      const normalizeHttpHeaders = (headers = {}) => {
+        const originalKeys = Object.keys(headers);
+        const loweredKeys = Object.keys(headers).map(k => k.toLocaleLowerCase());
+        const normalized = loweredKeys.reduce((acc, key, index) => {
+          acc[key] = headers[originalKeys[index]];
+          return acc;
+        }, {});
+        return normalized;
+      };
+      const buildUrlParams = (params, shouldEncode = true) => {
+        if (!params) return null;
+        const output = Object.entries(params).reduce((accumulator, entry) => {
+          const [key, value] = entry;
+          let encodedValue;
+          let item;
+          if (Array.isArray(value)) {
+            item = "";
+            value.forEach(str => {
+              encodedValue = shouldEncode ? encodeURIComponent(str) : str;
+              item += `${key}=${encodedValue}&`;
+            });
+            item.slice(0, -1);
+          } else {
+            encodedValue = shouldEncode ? encodeURIComponent(value) : value;
+            item = `${key}=${encodedValue}`;
+          }
+          return `${accumulator}&${item}`;
+        }, "");
+        return output.substr(1);
+      };
+      const buildRequestInit = (options, extra = {}) => {
+        const output = Object.assign({
+          method: options.method || "GET",
+          headers: options.headers
+        }, extra);
+        const headers = normalizeHttpHeaders(options.headers);
+        const type = headers["content-type"] || "";
+        if ("string" === typeof options.data) output.body = options.data; else if (type.includes("application/x-www-form-urlencoded")) {
+          const params = new URLSearchParams();
+          for (const [key, value] of Object.entries(options.data || {})) params.set(key, value);
+          output.body = params.toString();
+        } else if (type.includes("multipart/form-data")) {
+          const form = new FormData();
+          if (options.data instanceof FormData) options.data.forEach((value, key) => {
+            form.append(key, value);
+          }); else for (const key of Object.keys(options.data)) form.append(key, options.data[key]);
+          output.body = form;
+          const headers = new Headers(output.headers);
+          headers.delete("content-type");
+          output.headers = headers;
+        } else (type.includes("application/json") || "object" === typeof options.data) && (output.body = JSON.stringify(options.data));
+        return output;
+      };
+      class CapacitorHttpPluginWeb extends WebPlugin {
+        async request(options) {
+          const requestInit = buildRequestInit(options, options.webFetchExtra);
+          const urlParams = buildUrlParams(options.params, options.shouldEncodeUrlParams);
+          const url = urlParams ? `${options.url}?${urlParams}` : options.url;
+          const response = await fetch(url, requestInit);
+          const contentType = response.headers.get("content-type") || "";
+          let {responseType: responseType = "text"} = response.ok ? options : {};
+          contentType.includes("application/json") && (responseType = "json");
+          let data;
+          let blob;
+          switch (responseType) {
+           case "arraybuffer":
+           case "blob":
+            blob = await response.blob();
+            data = await readBlobAsBase64(blob);
+            break;
+
+           case "json":
+            data = await response.json();
+            break;
+
+           case "document":
+           case "text":
+           default:
+            data = await response.text();
+          }
+          const headers = {};
+          response.headers.forEach((value, key) => {
+            headers[key] = value;
+          });
+          return {
+            data: data,
+            headers: headers,
+            status: response.status,
+            url: response.url
+          };
+        }
+        async get(options) {
+          return this.request(Object.assign(Object.assign({}, options), {
+            method: "GET"
+          }));
+        }
+        async post(options) {
+          return this.request(Object.assign(Object.assign({}, options), {
+            method: "POST"
+          }));
+        }
+        async put(options) {
+          return this.request(Object.assign(Object.assign({}, options), {
+            method: "PUT"
+          }));
+        }
+        async patch(options) {
+          return this.request(Object.assign(Object.assign({}, options), {
+            method: "PATCH"
+          }));
+        }
+        async delete(options) {
+          return this.request(Object.assign(Object.assign({}, options), {
+            method: "DELETE"
+          }));
+        }
+      }
+      const CapacitorHttp = registerPlugin("CapacitorHttp", {
+        web: () => new CapacitorHttpPluginWeb()
+      });
       exports.Capacitor = Capacitor;
+      exports.CapacitorCookies = CapacitorCookies;
       exports.CapacitorException = CapacitorException;
+      exports.CapacitorHttp = CapacitorHttp;
       exports.CapacitorPlatforms = CapacitorPlatforms;
       exports.Plugins = Plugins;
       exports.WebPlugin = WebPlugin;
@@ -569,6 +739,3871 @@ window.__require = function e(t, n, r) {
       exports.registerWebPlugin = registerWebPlugin;
       exports.setPlatform = setPlatform;
     }).call(this, "undefined" !== typeof global ? global : "undefined" !== typeof self ? self : "undefined" !== typeof window ? window : {});
+  }, {} ],
+  2: [ function(require, module, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var tslib = require("tslib");
+    var firebase = require("@firebase/app");
+    require("@firebase/installations");
+    var logger$1 = require("@firebase/logger");
+    var util = require("@firebase/util");
+    var component = require("@firebase/component");
+    function _interopDefaultLegacy(e) {
+      return e && "object" === typeof e && "default" in e ? e : {
+        default: e
+      };
+    }
+    var firebase__default = _interopDefaultLegacy(firebase);
+    var GA_FID_KEY = "firebase_id";
+    var ORIGIN_KEY = "origin";
+    var FETCH_TIMEOUT_MILLIS = 6e4;
+    var DYNAMIC_CONFIG_URL = "https://firebase.googleapis.com/v1alpha/projects/-/apps/{app-id}/webConfig";
+    var GTAG_URL = "https://www.googletagmanager.com/gtag/js";
+    var GtagCommand;
+    (function(GtagCommand) {
+      GtagCommand["EVENT"] = "event";
+      GtagCommand["SET"] = "set";
+      GtagCommand["CONFIG"] = "config";
+    })(GtagCommand || (GtagCommand = {}));
+    var EventName;
+    (function(EventName) {
+      EventName["ADD_SHIPPING_INFO"] = "add_shipping_info";
+      EventName["ADD_PAYMENT_INFO"] = "add_payment_info";
+      EventName["ADD_TO_CART"] = "add_to_cart";
+      EventName["ADD_TO_WISHLIST"] = "add_to_wishlist";
+      EventName["BEGIN_CHECKOUT"] = "begin_checkout";
+      EventName["CHECKOUT_PROGRESS"] = "checkout_progress";
+      EventName["EXCEPTION"] = "exception";
+      EventName["GENERATE_LEAD"] = "generate_lead";
+      EventName["LOGIN"] = "login";
+      EventName["PAGE_VIEW"] = "page_view";
+      EventName["PURCHASE"] = "purchase";
+      EventName["REFUND"] = "refund";
+      EventName["REMOVE_FROM_CART"] = "remove_from_cart";
+      EventName["SCREEN_VIEW"] = "screen_view";
+      EventName["SEARCH"] = "search";
+      EventName["SELECT_CONTENT"] = "select_content";
+      EventName["SELECT_ITEM"] = "select_item";
+      EventName["SELECT_PROMOTION"] = "select_promotion";
+      EventName["SET_CHECKOUT_OPTION"] = "set_checkout_option";
+      EventName["SHARE"] = "share";
+      EventName["SIGN_UP"] = "sign_up";
+      EventName["TIMING_COMPLETE"] = "timing_complete";
+      EventName["VIEW_CART"] = "view_cart";
+      EventName["VIEW_ITEM"] = "view_item";
+      EventName["VIEW_ITEM_LIST"] = "view_item_list";
+      EventName["VIEW_PROMOTION"] = "view_promotion";
+      EventName["VIEW_SEARCH_RESULTS"] = "view_search_results";
+    })(EventName || (EventName = {}));
+    function logEvent(gtagFunction, initializationPromise, eventName, eventParams, options) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var measurementId, params;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            if (!(options && options.global)) return [ 3, 1 ];
+            gtagFunction(GtagCommand.EVENT, eventName, eventParams);
+            return [ 2 ];
+
+           case 1:
+            return [ 4, initializationPromise ];
+
+           case 2:
+            measurementId = _a.sent();
+            params = tslib.__assign(tslib.__assign({}, eventParams), {
+              send_to: measurementId
+            });
+            gtagFunction(GtagCommand.EVENT, eventName, params);
+            _a.label = 3;
+
+           case 3:
+            return [ 2 ];
+          }
+        });
+      });
+    }
+    function setCurrentScreen(gtagFunction, initializationPromise, screenName, options) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var measurementId;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            if (!(options && options.global)) return [ 3, 1 ];
+            gtagFunction(GtagCommand.SET, {
+              screen_name: screenName
+            });
+            return [ 2, Promise.resolve() ];
+
+           case 1:
+            return [ 4, initializationPromise ];
+
+           case 2:
+            measurementId = _a.sent();
+            gtagFunction(GtagCommand.CONFIG, measurementId, {
+              update: true,
+              screen_name: screenName
+            });
+            _a.label = 3;
+
+           case 3:
+            return [ 2 ];
+          }
+        });
+      });
+    }
+    function setUserId(gtagFunction, initializationPromise, id, options) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var measurementId;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            if (!(options && options.global)) return [ 3, 1 ];
+            gtagFunction(GtagCommand.SET, {
+              user_id: id
+            });
+            return [ 2, Promise.resolve() ];
+
+           case 1:
+            return [ 4, initializationPromise ];
+
+           case 2:
+            measurementId = _a.sent();
+            gtagFunction(GtagCommand.CONFIG, measurementId, {
+              update: true,
+              user_id: id
+            });
+            _a.label = 3;
+
+           case 3:
+            return [ 2 ];
+          }
+        });
+      });
+    }
+    function setUserProperties(gtagFunction, initializationPromise, properties, options) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var flatProperties, _i, _a, key, measurementId;
+        return tslib.__generator(this, function(_b) {
+          switch (_b.label) {
+           case 0:
+            if (!(options && options.global)) return [ 3, 1 ];
+            flatProperties = {};
+            for (_i = 0, _a = Object.keys(properties); _i < _a.length; _i++) {
+              key = _a[_i];
+              flatProperties["user_properties." + key] = properties[key];
+            }
+            gtagFunction(GtagCommand.SET, flatProperties);
+            return [ 2, Promise.resolve() ];
+
+           case 1:
+            return [ 4, initializationPromise ];
+
+           case 2:
+            measurementId = _b.sent();
+            gtagFunction(GtagCommand.CONFIG, measurementId, {
+              update: true,
+              user_properties: properties
+            });
+            _b.label = 3;
+
+           case 3:
+            return [ 2 ];
+          }
+        });
+      });
+    }
+    function setAnalyticsCollectionEnabled(initializationPromise, enabled) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var measurementId;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            return [ 4, initializationPromise ];
+
+           case 1:
+            measurementId = _a.sent();
+            window["ga-disable-" + measurementId] = !enabled;
+            return [ 2 ];
+          }
+        });
+      });
+    }
+    var logger = new logger$1.Logger("@firebase/analytics");
+    function insertScriptTag(dataLayerName) {
+      var script = document.createElement("script");
+      script.src = GTAG_URL + "?l=" + dataLayerName;
+      script.async = true;
+      document.head.appendChild(script);
+    }
+    function getOrCreateDataLayer(dataLayerName) {
+      var dataLayer = [];
+      Array.isArray(window[dataLayerName]) ? dataLayer = window[dataLayerName] : window[dataLayerName] = dataLayer;
+      return dataLayer;
+    }
+    function gtagOnConfig(gtagCore, initializationPromisesMap, dynamicConfigPromisesList, measurementIdToAppId, measurementId, gtagParams) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var correspondingAppId, dynamicConfigResults, foundConfig, e_1;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            correspondingAppId = measurementIdToAppId[measurementId];
+            _a.label = 1;
+
+           case 1:
+            _a.trys.push([ 1, 7, , 8 ]);
+            if (!correspondingAppId) return [ 3, 3 ];
+            return [ 4, initializationPromisesMap[correspondingAppId] ];
+
+           case 2:
+            _a.sent();
+            return [ 3, 6 ];
+
+           case 3:
+            return [ 4, Promise.all(dynamicConfigPromisesList) ];
+
+           case 4:
+            dynamicConfigResults = _a.sent();
+            foundConfig = dynamicConfigResults.find(function(config) {
+              return config.measurementId === measurementId;
+            });
+            if (!foundConfig) return [ 3, 6 ];
+            return [ 4, initializationPromisesMap[foundConfig.appId] ];
+
+           case 5:
+            _a.sent();
+            _a.label = 6;
+
+           case 6:
+            return [ 3, 8 ];
+
+           case 7:
+            e_1 = _a.sent();
+            logger.error(e_1);
+            return [ 3, 8 ];
+
+           case 8:
+            gtagCore(GtagCommand.CONFIG, measurementId, gtagParams);
+            return [ 2 ];
+          }
+        });
+      });
+    }
+    function gtagOnEvent(gtagCore, initializationPromisesMap, dynamicConfigPromisesList, measurementId, gtagParams) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var initializationPromisesToWaitFor, gaSendToList, dynamicConfigResults, _loop_1, _i, gaSendToList_1, sendToId, state_1, e_2;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            _a.trys.push([ 0, 4, , 5 ]);
+            initializationPromisesToWaitFor = [];
+            if (!(gtagParams && gtagParams["send_to"])) return [ 3, 2 ];
+            gaSendToList = gtagParams["send_to"];
+            Array.isArray(gaSendToList) || (gaSendToList = [ gaSendToList ]);
+            return [ 4, Promise.all(dynamicConfigPromisesList) ];
+
+           case 1:
+            dynamicConfigResults = _a.sent();
+            _loop_1 = function(sendToId) {
+              var foundConfig = dynamicConfigResults.find(function(config) {
+                return config.measurementId === sendToId;
+              });
+              var initializationPromise = foundConfig && initializationPromisesMap[foundConfig.appId];
+              if (!initializationPromise) {
+                initializationPromisesToWaitFor = [];
+                return "break";
+              }
+              initializationPromisesToWaitFor.push(initializationPromise);
+            };
+            for (_i = 0, gaSendToList_1 = gaSendToList; _i < gaSendToList_1.length; _i++) {
+              sendToId = gaSendToList_1[_i];
+              state_1 = _loop_1(sendToId);
+              if ("break" === state_1) break;
+            }
+            _a.label = 2;
+
+           case 2:
+            0 === initializationPromisesToWaitFor.length && (initializationPromisesToWaitFor = Object.values(initializationPromisesMap));
+            return [ 4, Promise.all(initializationPromisesToWaitFor) ];
+
+           case 3:
+            _a.sent();
+            gtagCore(GtagCommand.EVENT, measurementId, gtagParams || {});
+            return [ 3, 5 ];
+
+           case 4:
+            e_2 = _a.sent();
+            logger.error(e_2);
+            return [ 3, 5 ];
+
+           case 5:
+            return [ 2 ];
+          }
+        });
+      });
+    }
+    function wrapGtag(gtagCore, initializationPromisesMap, dynamicConfigPromisesList, measurementIdToAppId) {
+      function gtagWrapper(command, idOrNameOrParams, gtagParams) {
+        return tslib.__awaiter(this, void 0, void 0, function() {
+          var e_3;
+          return tslib.__generator(this, function(_a) {
+            switch (_a.label) {
+             case 0:
+              _a.trys.push([ 0, 6, , 7 ]);
+              if (!(command === GtagCommand.EVENT)) return [ 3, 2 ];
+              return [ 4, gtagOnEvent(gtagCore, initializationPromisesMap, dynamicConfigPromisesList, idOrNameOrParams, gtagParams) ];
+
+             case 1:
+              _a.sent();
+              return [ 3, 5 ];
+
+             case 2:
+              if (!(command === GtagCommand.CONFIG)) return [ 3, 4 ];
+              return [ 4, gtagOnConfig(gtagCore, initializationPromisesMap, dynamicConfigPromisesList, measurementIdToAppId, idOrNameOrParams, gtagParams) ];
+
+             case 3:
+              _a.sent();
+              return [ 3, 5 ];
+
+             case 4:
+              gtagCore(GtagCommand.SET, idOrNameOrParams);
+              _a.label = 5;
+
+             case 5:
+              return [ 3, 7 ];
+
+             case 6:
+              e_3 = _a.sent();
+              logger.error(e_3);
+              return [ 3, 7 ];
+
+             case 7:
+              return [ 2 ];
+            }
+          });
+        });
+      }
+      return gtagWrapper;
+    }
+    function wrapOrCreateGtag(initializationPromisesMap, dynamicConfigPromisesList, measurementIdToAppId, dataLayerName, gtagFunctionName) {
+      var gtagCore = function() {
+        var _args = [];
+        for (var _i = 0; _i < arguments.length; _i++) _args[_i] = arguments[_i];
+        window[dataLayerName].push(arguments);
+      };
+      window[gtagFunctionName] && "function" === typeof window[gtagFunctionName] && (gtagCore = window[gtagFunctionName]);
+      window[gtagFunctionName] = wrapGtag(gtagCore, initializationPromisesMap, dynamicConfigPromisesList, measurementIdToAppId);
+      return {
+        gtagCore: gtagCore,
+        wrappedGtag: window[gtagFunctionName]
+      };
+    }
+    function findGtagScriptOnPage() {
+      var scriptTags = window.document.getElementsByTagName("script");
+      for (var _i = 0, _a = Object.values(scriptTags); _i < _a.length; _i++) {
+        var tag = _a[_i];
+        if (tag.src && tag.src.includes(GTAG_URL)) return tag;
+      }
+      return null;
+    }
+    var _a;
+    var ERRORS = (_a = {}, _a["already-exists"] = "A Firebase Analytics instance with the appId {$id}  already exists. Only one Firebase Analytics instance can be created for each appId.", 
+    _a["already-initialized"] = "Firebase Analytics has already been initialized.settings() must be called before initializing any Analytics instanceor it will have no effect.", 
+    _a["interop-component-reg-failed"] = "Firebase Analytics Interop Component failed to instantiate: {$reason}", 
+    _a["invalid-analytics-context"] = "Firebase Analytics is not supported in this environment. Wrap initialization of analytics in analytics.isSupported() to prevent initialization in unsupported environments. Details: {$errorInfo}", 
+    _a["indexeddb-unavailable"] = "IndexedDB unavailable or restricted in this environment. Wrap initialization of analytics in analytics.isSupported() to prevent initialization in unsupported environments. Details: {$errorInfo}", 
+    _a["fetch-throttle"] = "The config fetch request timed out while in an exponential backoff state. Unix timestamp in milliseconds when fetch request throttling ends: {$throttleEndTimeMillis}.", 
+    _a["config-fetch-failed"] = "Dynamic config fetch failed: [{$httpStatus}] {$responseMessage}", 
+    _a["no-api-key"] = 'The "apiKey" field is empty in the local Firebase config. Firebase Analytics requires this field tocontain a valid API key.', 
+    _a["no-app-id"] = 'The "appId" field is empty in the local Firebase config. Firebase Analytics requires this field tocontain a valid app ID.', 
+    _a);
+    var ERROR_FACTORY = new util.ErrorFactory("analytics", "Analytics", ERRORS);
+    var LONG_RETRY_FACTOR = 30;
+    var BASE_INTERVAL_MILLIS = 1e3;
+    var RetryData = function() {
+      function RetryData(throttleMetadata, intervalMillis) {
+        void 0 === throttleMetadata && (throttleMetadata = {});
+        void 0 === intervalMillis && (intervalMillis = BASE_INTERVAL_MILLIS);
+        this.throttleMetadata = throttleMetadata;
+        this.intervalMillis = intervalMillis;
+      }
+      RetryData.prototype.getThrottleMetadata = function(appId) {
+        return this.throttleMetadata[appId];
+      };
+      RetryData.prototype.setThrottleMetadata = function(appId, metadata) {
+        this.throttleMetadata[appId] = metadata;
+      };
+      RetryData.prototype.deleteThrottleMetadata = function(appId) {
+        delete this.throttleMetadata[appId];
+      };
+      return RetryData;
+    }();
+    var defaultRetryData = new RetryData();
+    function getHeaders(apiKey) {
+      return new Headers({
+        Accept: "application/json",
+        "x-goog-api-key": apiKey
+      });
+    }
+    function fetchDynamicConfig(appFields) {
+      var _a;
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var appId, apiKey, request, appUrl, response, errorMessage, jsonResponse, _ignored_1;
+        return tslib.__generator(this, function(_b) {
+          switch (_b.label) {
+           case 0:
+            appId = appFields.appId, apiKey = appFields.apiKey;
+            request = {
+              method: "GET",
+              headers: getHeaders(apiKey)
+            };
+            appUrl = DYNAMIC_CONFIG_URL.replace("{app-id}", appId);
+            return [ 4, fetch(appUrl, request) ];
+
+           case 1:
+            response = _b.sent();
+            if (!(200 !== response.status && 304 !== response.status)) return [ 3, 6 ];
+            errorMessage = "";
+            _b.label = 2;
+
+           case 2:
+            _b.trys.push([ 2, 4, , 5 ]);
+            return [ 4, response.json() ];
+
+           case 3:
+            jsonResponse = _b.sent();
+            (null === (_a = jsonResponse.error) || void 0 === _a ? void 0 : _a.message) && (errorMessage = jsonResponse.error.message);
+            return [ 3, 5 ];
+
+           case 4:
+            _ignored_1 = _b.sent();
+            return [ 3, 5 ];
+
+           case 5:
+            throw ERROR_FACTORY.create("config-fetch-failed", {
+              httpStatus: response.status,
+              responseMessage: errorMessage
+            });
+
+           case 6:
+            return [ 2, response.json() ];
+          }
+        });
+      });
+    }
+    function fetchDynamicConfigWithRetry(app, retryData, timeoutMillis) {
+      void 0 === retryData && (retryData = defaultRetryData);
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var _a, appId, apiKey, measurementId, throttleMetadata, signal;
+        var _this = this;
+        return tslib.__generator(this, function(_b) {
+          _a = app.options, appId = _a.appId, apiKey = _a.apiKey, measurementId = _a.measurementId;
+          if (!appId) throw ERROR_FACTORY.create("no-app-id");
+          if (!apiKey) {
+            if (measurementId) return [ 2, {
+              measurementId: measurementId,
+              appId: appId
+            } ];
+            throw ERROR_FACTORY.create("no-api-key");
+          }
+          throttleMetadata = retryData.getThrottleMetadata(appId) || {
+            backoffCount: 0,
+            throttleEndTimeMillis: Date.now()
+          };
+          signal = new AnalyticsAbortSignal();
+          setTimeout(function() {
+            return tslib.__awaiter(_this, void 0, void 0, function() {
+              return tslib.__generator(this, function(_a) {
+                signal.abort();
+                return [ 2 ];
+              });
+            });
+          }, void 0 !== timeoutMillis ? timeoutMillis : FETCH_TIMEOUT_MILLIS);
+          return [ 2, attemptFetchDynamicConfigWithRetry({
+            appId: appId,
+            apiKey: apiKey,
+            measurementId: measurementId
+          }, throttleMetadata, signal, retryData) ];
+        });
+      });
+    }
+    function attemptFetchDynamicConfigWithRetry(appFields, _a, signal, retryData) {
+      var throttleEndTimeMillis = _a.throttleEndTimeMillis, backoffCount = _a.backoffCount;
+      void 0 === retryData && (retryData = defaultRetryData);
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var appId, measurementId, e_1, response, e_2, backoffMillis, throttleMetadata;
+        return tslib.__generator(this, function(_b) {
+          switch (_b.label) {
+           case 0:
+            appId = appFields.appId, measurementId = appFields.measurementId;
+            _b.label = 1;
+
+           case 1:
+            _b.trys.push([ 1, 3, , 4 ]);
+            return [ 4, setAbortableTimeout(signal, throttleEndTimeMillis) ];
+
+           case 2:
+            _b.sent();
+            return [ 3, 4 ];
+
+           case 3:
+            e_1 = _b.sent();
+            if (measurementId) {
+              logger.warn("Timed out fetching this Firebase app's measurement ID from the server. Falling back to the measurement ID " + measurementId + ' provided in the "measurementId" field in the local Firebase config. [' + e_1.message + "]");
+              return [ 2, {
+                appId: appId,
+                measurementId: measurementId
+              } ];
+            }
+            throw e_1;
+
+           case 4:
+            _b.trys.push([ 4, 6, , 7 ]);
+            return [ 4, fetchDynamicConfig(appFields) ];
+
+           case 5:
+            response = _b.sent();
+            retryData.deleteThrottleMetadata(appId);
+            return [ 2, response ];
+
+           case 6:
+            e_2 = _b.sent();
+            if (!isRetriableError(e_2)) {
+              retryData.deleteThrottleMetadata(appId);
+              if (measurementId) {
+                logger.warn("Failed to fetch this Firebase app's measurement ID from the server. Falling back to the measurement ID " + measurementId + ' provided in the "measurementId" field in the local Firebase config. [' + e_2.message + "]");
+                return [ 2, {
+                  appId: appId,
+                  measurementId: measurementId
+                } ];
+              }
+              throw e_2;
+            }
+            backoffMillis = 503 === Number(e_2.httpStatus) ? util.calculateBackoffMillis(backoffCount, retryData.intervalMillis, LONG_RETRY_FACTOR) : util.calculateBackoffMillis(backoffCount, retryData.intervalMillis);
+            throttleMetadata = {
+              throttleEndTimeMillis: Date.now() + backoffMillis,
+              backoffCount: backoffCount + 1
+            };
+            retryData.setThrottleMetadata(appId, throttleMetadata);
+            logger.debug("Calling attemptFetch again in " + backoffMillis + " millis");
+            return [ 2, attemptFetchDynamicConfigWithRetry(appFields, throttleMetadata, signal, retryData) ];
+
+           case 7:
+            return [ 2 ];
+          }
+        });
+      });
+    }
+    function setAbortableTimeout(signal, throttleEndTimeMillis) {
+      return new Promise(function(resolve, reject) {
+        var backoffMillis = Math.max(throttleEndTimeMillis - Date.now(), 0);
+        var timeout = setTimeout(resolve, backoffMillis);
+        signal.addEventListener(function() {
+          clearTimeout(timeout);
+          reject(ERROR_FACTORY.create("fetch-throttle", {
+            throttleEndTimeMillis: throttleEndTimeMillis
+          }));
+        });
+      });
+    }
+    function isRetriableError(e) {
+      if (!(e instanceof util.FirebaseError)) return false;
+      var httpStatus = Number(e["httpStatus"]);
+      return 429 === httpStatus || 500 === httpStatus || 503 === httpStatus || 504 === httpStatus;
+    }
+    var AnalyticsAbortSignal = function() {
+      function AnalyticsAbortSignal() {
+        this.listeners = [];
+      }
+      AnalyticsAbortSignal.prototype.addEventListener = function(listener) {
+        this.listeners.push(listener);
+      };
+      AnalyticsAbortSignal.prototype.abort = function() {
+        this.listeners.forEach(function(listener) {
+          return listener();
+        });
+      };
+      return AnalyticsAbortSignal;
+    }();
+    function validateIndexedDB() {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var e_1;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            if (!!util.isIndexedDBAvailable()) return [ 3, 1 ];
+            logger.warn(ERROR_FACTORY.create("indexeddb-unavailable", {
+              errorInfo: "IndexedDB is not available in this environment."
+            }).message);
+            return [ 2, false ];
+
+           case 1:
+            _a.trys.push([ 1, 3, , 4 ]);
+            return [ 4, util.validateIndexedDBOpenable() ];
+
+           case 2:
+            _a.sent();
+            return [ 3, 4 ];
+
+           case 3:
+            e_1 = _a.sent();
+            logger.warn(ERROR_FACTORY.create("indexeddb-unavailable", {
+              errorInfo: e_1
+            }).message);
+            return [ 2, false ];
+
+           case 4:
+            return [ 2, true ];
+          }
+        });
+      });
+    }
+    function initializeIds(app, dynamicConfigPromisesList, measurementIdToAppId, installations, gtagCore) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var dynamicConfigPromise, fidPromise, _a, dynamicConfig, fid, configProperties;
+        var _b;
+        return tslib.__generator(this, function(_c) {
+          switch (_c.label) {
+           case 0:
+            dynamicConfigPromise = fetchDynamicConfigWithRetry(app);
+            dynamicConfigPromise.then(function(config) {
+              measurementIdToAppId[config.measurementId] = config.appId;
+              app.options.measurementId && config.measurementId !== app.options.measurementId && logger.warn("The measurement ID in the local Firebase config (" + app.options.measurementId + ") does not match the measurement ID fetched from the server (" + config.measurementId + "). To ensure analytics events are always sent to the correct Analytics property, update the measurement ID field in the local config or remove it from the local config.");
+            }).catch(function(e) {
+              return logger.error(e);
+            });
+            dynamicConfigPromisesList.push(dynamicConfigPromise);
+            fidPromise = validateIndexedDB().then(function(envIsValid) {
+              return envIsValid ? installations.getId() : void 0;
+            });
+            return [ 4, Promise.all([ dynamicConfigPromise, fidPromise ]) ];
+
+           case 1:
+            _a = _c.sent(), dynamicConfig = _a[0], fid = _a[1];
+            gtagCore("js", new Date());
+            configProperties = (_b = {}, _b[ORIGIN_KEY] = "firebase", _b.update = true, _b);
+            null != fid && (configProperties[GA_FID_KEY] = fid);
+            gtagCore(GtagCommand.CONFIG, dynamicConfig.measurementId, configProperties);
+            return [ 2, dynamicConfig.measurementId ];
+          }
+        });
+      });
+    }
+    var initializationPromisesMap = {};
+    var dynamicConfigPromisesList = [];
+    var measurementIdToAppId = {};
+    var dataLayerName = "dataLayer";
+    var gtagName = "gtag";
+    var gtagCoreFunction;
+    var wrappedGtagFunction;
+    var globalInitDone = false;
+    function resetGlobalVars(newGlobalInitDone, newInitializationPromisesMap, newDynamicPromises) {
+      void 0 === newGlobalInitDone && (newGlobalInitDone = false);
+      void 0 === newInitializationPromisesMap && (newInitializationPromisesMap = {});
+      void 0 === newDynamicPromises && (newDynamicPromises = []);
+      globalInitDone = newGlobalInitDone;
+      initializationPromisesMap = newInitializationPromisesMap;
+      dynamicConfigPromisesList = newDynamicPromises;
+      dataLayerName = "dataLayer";
+      gtagName = "gtag";
+    }
+    function getGlobalVars() {
+      return {
+        initializationPromisesMap: initializationPromisesMap,
+        dynamicConfigPromisesList: dynamicConfigPromisesList
+      };
+    }
+    function settings(options) {
+      if (globalInitDone) throw ERROR_FACTORY.create("already-initialized");
+      options.dataLayerName && (dataLayerName = options.dataLayerName);
+      options.gtagName && (gtagName = options.gtagName);
+    }
+    function warnOnBrowserContextMismatch() {
+      var mismatchedEnvMessages = [];
+      util.isBrowserExtension() && mismatchedEnvMessages.push("This is a browser extension environment.");
+      util.areCookiesEnabled() || mismatchedEnvMessages.push("Cookies are not available.");
+      if (mismatchedEnvMessages.length > 0) {
+        var details = mismatchedEnvMessages.map(function(message, index) {
+          return "(" + (index + 1) + ") " + message;
+        }).join(" ");
+        var err = ERROR_FACTORY.create("invalid-analytics-context", {
+          errorInfo: details
+        });
+        logger.warn(err.message);
+      }
+    }
+    function factory(app, installations) {
+      warnOnBrowserContextMismatch();
+      var appId = app.options.appId;
+      if (!appId) throw ERROR_FACTORY.create("no-app-id");
+      if (!app.options.apiKey) {
+        if (!app.options.measurementId) throw ERROR_FACTORY.create("no-api-key");
+        logger.warn('The "apiKey" field is empty in the local Firebase config. This is needed to fetch the latest measurement ID for this Firebase app. Falling back to the measurement ID ' + app.options.measurementId + ' provided in the "measurementId" field in the local Firebase config.');
+      }
+      if (null != initializationPromisesMap[appId]) throw ERROR_FACTORY.create("already-exists", {
+        id: appId
+      });
+      if (!globalInitDone) {
+        findGtagScriptOnPage() || insertScriptTag(dataLayerName);
+        getOrCreateDataLayer(dataLayerName);
+        var _a = wrapOrCreateGtag(initializationPromisesMap, dynamicConfigPromisesList, measurementIdToAppId, dataLayerName, gtagName), wrappedGtag = _a.wrappedGtag, gtagCore = _a.gtagCore;
+        wrappedGtagFunction = wrappedGtag;
+        gtagCoreFunction = gtagCore;
+        globalInitDone = true;
+      }
+      initializationPromisesMap[appId] = initializeIds(app, dynamicConfigPromisesList, measurementIdToAppId, installations, gtagCoreFunction);
+      var analyticsInstance = {
+        app: app,
+        logEvent: function(eventName, eventParams, options) {
+          logEvent(wrappedGtagFunction, initializationPromisesMap[appId], eventName, eventParams, options).catch(function(e) {
+            return logger.error(e);
+          });
+        },
+        setCurrentScreen: function(screenName, options) {
+          setCurrentScreen(wrappedGtagFunction, initializationPromisesMap[appId], screenName, options).catch(function(e) {
+            return logger.error(e);
+          });
+        },
+        setUserId: function(id, options) {
+          setUserId(wrappedGtagFunction, initializationPromisesMap[appId], id, options).catch(function(e) {
+            return logger.error(e);
+          });
+        },
+        setUserProperties: function(properties, options) {
+          setUserProperties(wrappedGtagFunction, initializationPromisesMap[appId], properties, options).catch(function(e) {
+            return logger.error(e);
+          });
+        },
+        setAnalyticsCollectionEnabled: function(enabled) {
+          setAnalyticsCollectionEnabled(initializationPromisesMap[appId], enabled).catch(function(e) {
+            return logger.error(e);
+          });
+        },
+        INTERNAL: {
+          delete: function() {
+            delete initializationPromisesMap[appId];
+            return Promise.resolve();
+          }
+        }
+      };
+      return analyticsInstance;
+    }
+    var name = "@firebase/analytics";
+    var version = "0.6.0";
+    var ANALYTICS_TYPE = "analytics";
+    function registerAnalytics(instance) {
+      instance.INTERNAL.registerComponent(new component.Component(ANALYTICS_TYPE, function(container) {
+        var app = container.getProvider("app").getImmediate();
+        var installations = container.getProvider("installations").getImmediate();
+        return factory(app, installations);
+      }, "PUBLIC").setServiceProps({
+        settings: settings,
+        EventName: EventName,
+        isSupported: isSupported
+      }));
+      instance.INTERNAL.registerComponent(new component.Component("analytics-internal", internalFactory, "PRIVATE"));
+      instance.registerVersion(name, version);
+      function internalFactory(container) {
+        try {
+          var analytics = container.getProvider(ANALYTICS_TYPE).getImmediate();
+          return {
+            logEvent: analytics.logEvent
+          };
+        } catch (e) {
+          throw ERROR_FACTORY.create("interop-component-reg-failed", {
+            reason: e
+          });
+        }
+      }
+    }
+    registerAnalytics(firebase__default["default"]);
+    function isSupported() {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var isDBOpenable, error_1;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            if (util.isBrowserExtension()) return [ 2, false ];
+            if (!util.areCookiesEnabled()) return [ 2, false ];
+            if (!util.isIndexedDBAvailable()) return [ 2, false ];
+            _a.label = 1;
+
+           case 1:
+            _a.trys.push([ 1, 3, , 4 ]);
+            return [ 4, util.validateIndexedDBOpenable() ];
+
+           case 2:
+            isDBOpenable = _a.sent();
+            return [ 2, isDBOpenable ];
+
+           case 3:
+            error_1 = _a.sent();
+            return [ 2, false ];
+
+           case 4:
+            return [ 2 ];
+          }
+        });
+      });
+    }
+    exports.factory = factory;
+    exports.getGlobalVars = getGlobalVars;
+    exports.registerAnalytics = registerAnalytics;
+    exports.resetGlobalVars = resetGlobalVars;
+    exports.settings = settings;
+  }, {
+    "@firebase/app": 4,
+    "@firebase/component": 6,
+    "@firebase/installations": 8,
+    "@firebase/logger": 10,
+    "@firebase/util": 11,
+    tslib: 3
+  } ],
+  3: [ function(require, module, exports) {
+    (function(global) {
+      var __extends;
+      var __assign;
+      var __rest;
+      var __decorate;
+      var __param;
+      var __metadata;
+      var __awaiter;
+      var __generator;
+      var __exportStar;
+      var __values;
+      var __read;
+      var __spread;
+      var __spreadArrays;
+      var __await;
+      var __asyncGenerator;
+      var __asyncDelegator;
+      var __asyncValues;
+      var __makeTemplateObject;
+      var __importStar;
+      var __importDefault;
+      var __classPrivateFieldGet;
+      var __classPrivateFieldSet;
+      var __createBinding;
+      (function(factory) {
+        var root = "object" === typeof global ? global : "object" === typeof self ? self : "object" === typeof this ? this : {};
+        "function" === typeof define && define.amd ? define("tslib", [ "exports" ], function(exports) {
+          factory(createExporter(root, createExporter(exports)));
+        }) : "object" === typeof module && "object" === typeof module.exports ? factory(createExporter(root, createExporter(module.exports))) : factory(createExporter(root));
+        function createExporter(exports, previous) {
+          exports !== root && ("function" === typeof Object.create ? Object.defineProperty(exports, "__esModule", {
+            value: true
+          }) : exports.__esModule = true);
+          return function(id, v) {
+            return exports[id] = previous ? previous(id, v) : v;
+          };
+        }
+      })(function(exporter) {
+        var extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) b.hasOwnProperty(p) && (d[p] = b[p]);
+        };
+        __extends = function(d, b) {
+          extendStatics(d, b);
+          function __() {
+            this.constructor = d;
+          }
+          d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+        };
+        __assign = Object.assign || function(t) {
+          for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) Object.prototype.hasOwnProperty.call(s, p) && (t[p] = s[p]);
+          }
+          return t;
+        };
+        __rest = function(s, e) {
+          var t = {};
+          for (var p in s) Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0 && (t[p] = s[p]);
+          if (null != s && "function" === typeof Object.getOwnPropertySymbols) for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]) && (t[p[i]] = s[p[i]]);
+          return t;
+        };
+        __decorate = function(decorators, target, key, desc) {
+          var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+          if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+          return c > 3 && r && Object.defineProperty(target, key, r), r;
+        };
+        __param = function(paramIndex, decorator) {
+          return function(target, key) {
+            decorator(target, key, paramIndex);
+          };
+        };
+        __metadata = function(metadataKey, metadataValue) {
+          if ("object" === typeof Reflect && "function" === typeof Reflect.metadata) return Reflect.metadata(metadataKey, metadataValue);
+        };
+        __awaiter = function(thisArg, _arguments, P, generator) {
+          function adopt(value) {
+            return value instanceof P ? value : new P(function(resolve) {
+              resolve(value);
+            });
+          }
+          return new (P || (P = Promise))(function(resolve, reject) {
+            function fulfilled(value) {
+              try {
+                step(generator.next(value));
+              } catch (e) {
+                reject(e);
+              }
+            }
+            function rejected(value) {
+              try {
+                step(generator["throw"](value));
+              } catch (e) {
+                reject(e);
+              }
+            }
+            function step(result) {
+              result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+            }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+          });
+        };
+        __generator = function(thisArg, body) {
+          var _ = {
+            label: 0,
+            sent: function() {
+              if (1 & t[0]) throw t[1];
+              return t[1];
+            },
+            trys: [],
+            ops: []
+          }, f, y, t, g;
+          return g = {
+            next: verb(0),
+            throw: verb(1),
+            return: verb(2)
+          }, "function" === typeof Symbol && (g[Symbol.iterator] = function() {
+            return this;
+          }), g;
+          function verb(n) {
+            return function(v) {
+              return step([ n, v ]);
+            };
+          }
+          function step(op) {
+            if (f) throw new TypeError("Generator is already executing.");
+            while (_) try {
+              if (f = 1, y && (t = 2 & op[0] ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 
+              0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+              (y = 0, t) && (op = [ 2 & op[0], t.value ]);
+              switch (op[0]) {
+               case 0:
+               case 1:
+                t = op;
+                break;
+
+               case 4:
+                _.label++;
+                return {
+                  value: op[1],
+                  done: false
+                };
+
+               case 5:
+                _.label++;
+                y = op[1];
+                op = [ 0 ];
+                continue;
+
+               case 7:
+                op = _.ops.pop();
+                _.trys.pop();
+                continue;
+
+               default:
+                if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (6 === op[0] || 2 === op[0])) {
+                  _ = 0;
+                  continue;
+                }
+                if (3 === op[0] && (!t || op[1] > t[0] && op[1] < t[3])) {
+                  _.label = op[1];
+                  break;
+                }
+                if (6 === op[0] && _.label < t[1]) {
+                  _.label = t[1];
+                  t = op;
+                  break;
+                }
+                if (t && _.label < t[2]) {
+                  _.label = t[2];
+                  _.ops.push(op);
+                  break;
+                }
+                t[2] && _.ops.pop();
+                _.trys.pop();
+                continue;
+              }
+              op = body.call(thisArg, _);
+            } catch (e) {
+              op = [ 6, e ];
+              y = 0;
+            } finally {
+              f = t = 0;
+            }
+            if (5 & op[0]) throw op[1];
+            return {
+              value: op[0] ? op[1] : void 0,
+              done: true
+            };
+          }
+        };
+        __createBinding = function(o, m, k, k2) {
+          void 0 === k2 && (k2 = k);
+          o[k2] = m[k];
+        };
+        __exportStar = function(m, exports) {
+          for (var p in m) "default" === p || exports.hasOwnProperty(p) || (exports[p] = m[p]);
+        };
+        __values = function(o) {
+          var s = "function" === typeof Symbol && Symbol.iterator, m = s && o[s], i = 0;
+          if (m) return m.call(o);
+          if (o && "number" === typeof o.length) return {
+            next: function() {
+              o && i >= o.length && (o = void 0);
+              return {
+                value: o && o[i++],
+                done: !o
+              };
+            }
+          };
+          throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+        };
+        __read = function(o, n) {
+          var m = "function" === typeof Symbol && o[Symbol.iterator];
+          if (!m) return o;
+          var i = m.call(o), r, ar = [], e;
+          try {
+            while ((void 0 === n || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+          } catch (error) {
+            e = {
+              error: error
+            };
+          } finally {
+            try {
+              r && !r.done && (m = i["return"]) && m.call(i);
+            } finally {
+              if (e) throw e.error;
+            }
+          }
+          return ar;
+        };
+        __spread = function() {
+          for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
+          return ar;
+        };
+        __spreadArrays = function() {
+          for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+          for (var r = Array(s), k = 0, i = 0; i < il; i++) for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, 
+          k++) r[k] = a[j];
+          return r;
+        };
+        __await = function(v) {
+          return this instanceof __await ? (this.v = v, this) : new __await(v);
+        };
+        __asyncGenerator = function(thisArg, _arguments, generator) {
+          if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+          var g = generator.apply(thisArg, _arguments || []), i, q = [];
+          return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function() {
+            return this;
+          }, i;
+          function verb(n) {
+            g[n] && (i[n] = function(v) {
+              return new Promise(function(a, b) {
+                q.push([ n, v, a, b ]) > 1 || resume(n, v);
+              });
+            });
+          }
+          function resume(n, v) {
+            try {
+              step(g[n](v));
+            } catch (e) {
+              settle(q[0][3], e);
+            }
+          }
+          function step(r) {
+            r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r);
+          }
+          function fulfill(value) {
+            resume("next", value);
+          }
+          function reject(value) {
+            resume("throw", value);
+          }
+          function settle(f, v) {
+            (f(v), q.shift(), q.length) && resume(q[0][0], q[0][1]);
+          }
+        };
+        __asyncDelegator = function(o) {
+          var i, p;
+          return i = {}, verb("next"), verb("throw", function(e) {
+            throw e;
+          }), verb("return"), i[Symbol.iterator] = function() {
+            return this;
+          }, i;
+          function verb(n, f) {
+            i[n] = o[n] ? function(v) {
+              return (p = !p) ? {
+                value: __await(o[n](v)),
+                done: "return" === n
+              } : f ? f(v) : v;
+            } : f;
+          }
+        };
+        __asyncValues = function(o) {
+          if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+          var m = o[Symbol.asyncIterator], i;
+          return m ? m.call(o) : (o = "function" === typeof __values ? __values(o) : o[Symbol.iterator](), 
+          i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function() {
+            return this;
+          }, i);
+          function verb(n) {
+            i[n] = o[n] && function(v) {
+              return new Promise(function(resolve, reject) {
+                v = o[n](v), settle(resolve, reject, v.done, v.value);
+              });
+            };
+          }
+          function settle(resolve, reject, d, v) {
+            Promise.resolve(v).then(function(v) {
+              resolve({
+                value: v,
+                done: d
+              });
+            }, reject);
+          }
+        };
+        __makeTemplateObject = function(cooked, raw) {
+          Object.defineProperty ? Object.defineProperty(cooked, "raw", {
+            value: raw
+          }) : cooked.raw = raw;
+          return cooked;
+        };
+        __importStar = function(mod) {
+          if (mod && mod.__esModule) return mod;
+          var result = {};
+          if (null != mod) for (var k in mod) Object.hasOwnProperty.call(mod, k) && (result[k] = mod[k]);
+          result["default"] = mod;
+          return result;
+        };
+        __importDefault = function(mod) {
+          return mod && mod.__esModule ? mod : {
+            default: mod
+          };
+        };
+        __classPrivateFieldGet = function(receiver, privateMap) {
+          if (!privateMap.has(receiver)) throw new TypeError("attempted to get private field on non-instance");
+          return privateMap.get(receiver);
+        };
+        __classPrivateFieldSet = function(receiver, privateMap, value) {
+          if (!privateMap.has(receiver)) throw new TypeError("attempted to set private field on non-instance");
+          privateMap.set(receiver, value);
+          return value;
+        };
+        exporter("__extends", __extends);
+        exporter("__assign", __assign);
+        exporter("__rest", __rest);
+        exporter("__decorate", __decorate);
+        exporter("__param", __param);
+        exporter("__metadata", __metadata);
+        exporter("__awaiter", __awaiter);
+        exporter("__generator", __generator);
+        exporter("__exportStar", __exportStar);
+        exporter("__createBinding", __createBinding);
+        exporter("__values", __values);
+        exporter("__read", __read);
+        exporter("__spread", __spread);
+        exporter("__spreadArrays", __spreadArrays);
+        exporter("__await", __await);
+        exporter("__asyncGenerator", __asyncGenerator);
+        exporter("__asyncDelegator", __asyncDelegator);
+        exporter("__asyncValues", __asyncValues);
+        exporter("__makeTemplateObject", __makeTemplateObject);
+        exporter("__importStar", __importStar);
+        exporter("__importDefault", __importDefault);
+        exporter("__classPrivateFieldGet", __classPrivateFieldGet);
+        exporter("__classPrivateFieldSet", __classPrivateFieldSet);
+      });
+    }).call(this, "undefined" !== typeof global ? global : "undefined" !== typeof self ? self : "undefined" !== typeof window ? window : {});
+  }, {} ],
+  4: [ function(require, module, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var tslib = require("tslib");
+    var util = require("@firebase/util");
+    var component = require("@firebase/component");
+    var logger$1 = require("@firebase/logger");
+    var _a;
+    var ERRORS = (_a = {}, _a["no-app"] = "No Firebase App '{$appName}' has been created - call Firebase App.initializeApp()", 
+    _a["bad-app-name"] = "Illegal App name: '{$appName}", _a["duplicate-app"] = "Firebase App named '{$appName}' already exists", 
+    _a["app-deleted"] = "Firebase App named '{$appName}' already deleted", _a["invalid-app-argument"] = "firebase.{$appName}() takes either no argument or a Firebase App instance.", 
+    _a["invalid-log-argument"] = "First argument to `onLog` must be null or a function.", 
+    _a);
+    var ERROR_FACTORY = new util.ErrorFactory("app", "Firebase", ERRORS);
+    var name$1 = "@firebase/app";
+    var version = "0.6.11";
+    var name$2 = "@firebase/analytics";
+    var name$3 = "@firebase/auth";
+    var name$4 = "@firebase/database";
+    var name$5 = "@firebase/functions";
+    var name$6 = "@firebase/installations";
+    var name$7 = "@firebase/messaging";
+    var name$8 = "@firebase/performance";
+    var name$9 = "@firebase/remote-config";
+    var name$a = "@firebase/storage";
+    var name$b = "@firebase/firestore";
+    var name$c = "firebase-wrapper";
+    var _a$1;
+    var DEFAULT_ENTRY_NAME = "[DEFAULT]";
+    var PLATFORM_LOG_STRING = (_a$1 = {}, _a$1[name$1] = "fire-core", _a$1[name$2] = "fire-analytics", 
+    _a$1[name$3] = "fire-auth", _a$1[name$4] = "fire-rtdb", _a$1[name$5] = "fire-fn", 
+    _a$1[name$6] = "fire-iid", _a$1[name$7] = "fire-fcm", _a$1[name$8] = "fire-perf", 
+    _a$1[name$9] = "fire-rc", _a$1[name$a] = "fire-gcs", _a$1[name$b] = "fire-fst", 
+    _a$1["fire-js"] = "fire-js", _a$1[name$c] = "fire-js-all", _a$1);
+    var logger = new logger$1.Logger("@firebase/app");
+    var FirebaseAppImpl = function() {
+      function FirebaseAppImpl(options, config, firebase_) {
+        var e_1, _a;
+        var _this = this;
+        this.firebase_ = firebase_;
+        this.isDeleted_ = false;
+        this.name_ = config.name;
+        this.automaticDataCollectionEnabled_ = config.automaticDataCollectionEnabled || false;
+        this.options_ = util.deepCopy(options);
+        this.container = new component.ComponentContainer(config.name);
+        this._addComponent(new component.Component("app", function() {
+          return _this;
+        }, "PUBLIC"));
+        try {
+          for (var _b = tslib.__values(this.firebase_.INTERNAL.components.values()), _c = _b.next(); !_c.done; _c = _b.next()) {
+            var component$1 = _c.value;
+            this._addComponent(component$1);
+          }
+        } catch (e_1_1) {
+          e_1 = {
+            error: e_1_1
+          };
+        } finally {
+          try {
+            _c && !_c.done && (_a = _b.return) && _a.call(_b);
+          } finally {
+            if (e_1) throw e_1.error;
+          }
+        }
+      }
+      Object.defineProperty(FirebaseAppImpl.prototype, "automaticDataCollectionEnabled", {
+        get: function() {
+          this.checkDestroyed_();
+          return this.automaticDataCollectionEnabled_;
+        },
+        set: function(val) {
+          this.checkDestroyed_();
+          this.automaticDataCollectionEnabled_ = val;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(FirebaseAppImpl.prototype, "name", {
+        get: function() {
+          this.checkDestroyed_();
+          return this.name_;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(FirebaseAppImpl.prototype, "options", {
+        get: function() {
+          this.checkDestroyed_();
+          return this.options_;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      FirebaseAppImpl.prototype.delete = function() {
+        var _this = this;
+        return new Promise(function(resolve) {
+          _this.checkDestroyed_();
+          resolve();
+        }).then(function() {
+          _this.firebase_.INTERNAL.removeApp(_this.name_);
+          return Promise.all(_this.container.getProviders().map(function(provider) {
+            return provider.delete();
+          }));
+        }).then(function() {
+          _this.isDeleted_ = true;
+        });
+      };
+      FirebaseAppImpl.prototype._getService = function(name, instanceIdentifier) {
+        void 0 === instanceIdentifier && (instanceIdentifier = DEFAULT_ENTRY_NAME);
+        this.checkDestroyed_();
+        return this.container.getProvider(name).getImmediate({
+          identifier: instanceIdentifier
+        });
+      };
+      FirebaseAppImpl.prototype._removeServiceInstance = function(name, instanceIdentifier) {
+        void 0 === instanceIdentifier && (instanceIdentifier = DEFAULT_ENTRY_NAME);
+        this.container.getProvider(name).clearInstance(instanceIdentifier);
+      };
+      FirebaseAppImpl.prototype._addComponent = function(component) {
+        try {
+          this.container.addComponent(component);
+        } catch (e) {
+          logger.debug("Component " + component.name + " failed to register with FirebaseApp " + this.name, e);
+        }
+      };
+      FirebaseAppImpl.prototype._addOrOverwriteComponent = function(component) {
+        this.container.addOrOverwriteComponent(component);
+      };
+      FirebaseAppImpl.prototype.checkDestroyed_ = function() {
+        if (this.isDeleted_) throw ERROR_FACTORY.create("app-deleted", {
+          appName: this.name_
+        });
+      };
+      return FirebaseAppImpl;
+    }();
+    FirebaseAppImpl.prototype.name && FirebaseAppImpl.prototype.options || FirebaseAppImpl.prototype.delete || console.log("dc");
+    var version$1 = "7.20.0";
+    function createFirebaseNamespaceCore(firebaseAppImpl) {
+      var apps = {};
+      var components = new Map();
+      var namespace = {
+        __esModule: true,
+        initializeApp: initializeApp,
+        app: app,
+        registerVersion: registerVersion,
+        setLogLevel: logger$1.setLogLevel,
+        onLog: onLog,
+        apps: null,
+        SDK_VERSION: version$1,
+        INTERNAL: {
+          registerComponent: registerComponent,
+          removeApp: removeApp,
+          components: components,
+          useAsService: useAsService
+        }
+      };
+      namespace["default"] = namespace;
+      Object.defineProperty(namespace, "apps", {
+        get: getApps
+      });
+      function removeApp(name) {
+        delete apps[name];
+      }
+      function app(name) {
+        name = name || DEFAULT_ENTRY_NAME;
+        if (!util.contains(apps, name)) throw ERROR_FACTORY.create("no-app", {
+          appName: name
+        });
+        return apps[name];
+      }
+      app["App"] = firebaseAppImpl;
+      function initializeApp(options, rawConfig) {
+        void 0 === rawConfig && (rawConfig = {});
+        if ("object" !== typeof rawConfig || null === rawConfig) {
+          var name_1 = rawConfig;
+          rawConfig = {
+            name: name_1
+          };
+        }
+        var config = rawConfig;
+        void 0 === config.name && (config.name = DEFAULT_ENTRY_NAME);
+        var name = config.name;
+        if ("string" !== typeof name || !name) throw ERROR_FACTORY.create("bad-app-name", {
+          appName: String(name)
+        });
+        if (util.contains(apps, name)) throw ERROR_FACTORY.create("duplicate-app", {
+          appName: name
+        });
+        var app = new firebaseAppImpl(options, config, namespace);
+        apps[name] = app;
+        return app;
+      }
+      function getApps() {
+        return Object.keys(apps).map(function(name) {
+          return apps[name];
+        });
+      }
+      function registerComponent(component) {
+        var e_1, _a;
+        var componentName = component.name;
+        if (components.has(componentName)) {
+          logger.debug("There were multiple attempts to register component " + componentName + ".");
+          return "PUBLIC" === component.type ? namespace[componentName] : null;
+        }
+        components.set(componentName, component);
+        if ("PUBLIC" === component.type) {
+          var serviceNamespace = function(appArg) {
+            void 0 === appArg && (appArg = app());
+            if ("function" !== typeof appArg[componentName]) throw ERROR_FACTORY.create("invalid-app-argument", {
+              appName: componentName
+            });
+            return appArg[componentName]();
+          };
+          void 0 !== component.serviceProps && util.deepExtend(serviceNamespace, component.serviceProps);
+          namespace[componentName] = serviceNamespace;
+          firebaseAppImpl.prototype[componentName] = function() {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) args[_i] = arguments[_i];
+            var serviceFxn = this._getService.bind(this, componentName);
+            return serviceFxn.apply(this, component.multipleInstances ? args : []);
+          };
+        }
+        try {
+          for (var _b = tslib.__values(Object.keys(apps)), _c = _b.next(); !_c.done; _c = _b.next()) {
+            var appName = _c.value;
+            apps[appName]._addComponent(component);
+          }
+        } catch (e_1_1) {
+          e_1 = {
+            error: e_1_1
+          };
+        } finally {
+          try {
+            _c && !_c.done && (_a = _b.return) && _a.call(_b);
+          } finally {
+            if (e_1) throw e_1.error;
+          }
+        }
+        return "PUBLIC" === component.type ? namespace[componentName] : null;
+      }
+      function registerVersion(libraryKeyOrName, version, variant) {
+        var _a;
+        var library = null !== (_a = PLATFORM_LOG_STRING[libraryKeyOrName]) && void 0 !== _a ? _a : libraryKeyOrName;
+        variant && (library += "-" + variant);
+        var libraryMismatch = library.match(/\s|\//);
+        var versionMismatch = version.match(/\s|\//);
+        if (libraryMismatch || versionMismatch) {
+          var warning = [ 'Unable to register library "' + library + '" with version "' + version + '":' ];
+          libraryMismatch && warning.push('library name "' + library + '" contains illegal characters (whitespace or "/")');
+          libraryMismatch && versionMismatch && warning.push("and");
+          versionMismatch && warning.push('version name "' + version + '" contains illegal characters (whitespace or "/")');
+          logger.warn(warning.join(" "));
+          return;
+        }
+        registerComponent(new component.Component(library + "-version", function() {
+          return {
+            library: library,
+            version: version
+          };
+        }, "VERSION"));
+      }
+      function onLog(logCallback, options) {
+        if (null !== logCallback && "function" !== typeof logCallback) throw ERROR_FACTORY.create("invalid-log-argument", {
+          appName: name
+        });
+        logger$1.setUserLogHandler(logCallback, options);
+      }
+      function useAsService(app, name) {
+        if ("serverAuth" === name) return null;
+        var useService = name;
+        return useService;
+      }
+      return namespace;
+    }
+    function createFirebaseNamespace() {
+      var namespace = createFirebaseNamespaceCore(FirebaseAppImpl);
+      namespace.INTERNAL = tslib.__assign(tslib.__assign({}, namespace.INTERNAL), {
+        createFirebaseNamespace: createFirebaseNamespace,
+        extendNamespace: extendNamespace,
+        createSubscribe: util.createSubscribe,
+        ErrorFactory: util.ErrorFactory,
+        deepExtend: util.deepExtend
+      });
+      function extendNamespace(props) {
+        util.deepExtend(namespace, props);
+      }
+      return namespace;
+    }
+    var firebase = createFirebaseNamespace();
+    var PlatformLoggerService = function() {
+      function PlatformLoggerService(container) {
+        this.container = container;
+      }
+      PlatformLoggerService.prototype.getPlatformInfoString = function() {
+        var providers = this.container.getProviders();
+        return providers.map(function(provider) {
+          if (isVersionServiceProvider(provider)) {
+            var service = provider.getImmediate();
+            return service.library + "/" + service.version;
+          }
+          return null;
+        }).filter(function(logString) {
+          return logString;
+        }).join(" ");
+      };
+      return PlatformLoggerService;
+    }();
+    function isVersionServiceProvider(provider) {
+      var component = provider.getComponent();
+      return "VERSION" === (null === component || void 0 === component ? void 0 : component.type);
+    }
+    function registerCoreComponents(firebase, variant) {
+      firebase.INTERNAL.registerComponent(new component.Component("platform-logger", function(container) {
+        return new PlatformLoggerService(container);
+      }, "PRIVATE"));
+      firebase.registerVersion(name$1, version, variant);
+      firebase.registerVersion("fire-js", "");
+    }
+    if (util.isBrowser() && void 0 !== self.firebase) {
+      logger.warn("\n    Warning: Firebase is already defined in the global scope. Please make sure\n    Firebase library is only loaded once.\n  ");
+      var sdkVersion = self.firebase.SDK_VERSION;
+      sdkVersion && sdkVersion.indexOf("LITE") >= 0 && logger.warn("\n    Warning: You are trying to load Firebase while using Firebase Performance standalone script.\n    You should load Firebase Performance with this instance of Firebase to avoid loading duplicate code.\n    ");
+    }
+    var initializeApp = firebase.initializeApp;
+    firebase.initializeApp = function() {
+      var args = [];
+      for (var _i = 0; _i < arguments.length; _i++) args[_i] = arguments[_i];
+      util.isNode() && logger.warn('\n      Warning: This is a browser-targeted Firebase bundle but it appears it is being\n      run in a Node environment.  If running in a Node environment, make sure you\n      are using the bundle specified by the "main" field in package.json.\n      \n      If you are using Webpack, you can specify "main" as the first item in\n      "resolve.mainFields":\n      https://webpack.js.org/configuration/resolve/#resolvemainfields\n      \n      If using Rollup, use the rollup-plugin-node-resolve plugin and specify "main"\n      as the first item in "mainFields", e.g. [\'main\', \'module\'].\n      https://github.com/rollup/rollup-plugin-node-resolve\n      ');
+      return initializeApp.apply(void 0, args);
+    };
+    var firebase$1 = firebase;
+    registerCoreComponents(firebase$1);
+    exports.default = firebase$1;
+    exports.firebase = firebase$1;
+  }, {
+    "@firebase/component": 6,
+    "@firebase/logger": 10,
+    "@firebase/util": 11,
+    tslib: 5
+  } ],
+  5: [ function(require, module, exports) {
+    arguments[4][3][0].apply(exports, arguments);
+  }, {
+    dup: 3
+  } ],
+  6: [ function(require, module, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var tslib = require("tslib");
+    var util = require("@firebase/util");
+    var Component = function() {
+      function Component(name, instanceFactory, type) {
+        this.name = name;
+        this.instanceFactory = instanceFactory;
+        this.type = type;
+        this.multipleInstances = false;
+        this.serviceProps = {};
+        this.instantiationMode = "LAZY";
+      }
+      Component.prototype.setInstantiationMode = function(mode) {
+        this.instantiationMode = mode;
+        return this;
+      };
+      Component.prototype.setMultipleInstances = function(multipleInstances) {
+        this.multipleInstances = multipleInstances;
+        return this;
+      };
+      Component.prototype.setServiceProps = function(props) {
+        this.serviceProps = props;
+        return this;
+      };
+      return Component;
+    }();
+    var DEFAULT_ENTRY_NAME = "[DEFAULT]";
+    var Provider = function() {
+      function Provider(name, container) {
+        this.name = name;
+        this.container = container;
+        this.component = null;
+        this.instances = new Map();
+        this.instancesDeferred = new Map();
+      }
+      Provider.prototype.get = function(identifier) {
+        void 0 === identifier && (identifier = DEFAULT_ENTRY_NAME);
+        var normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
+        if (!this.instancesDeferred.has(normalizedIdentifier)) {
+          var deferred = new util.Deferred();
+          this.instancesDeferred.set(normalizedIdentifier, deferred);
+          try {
+            var instance = this.getOrInitializeService(normalizedIdentifier);
+            instance && deferred.resolve(instance);
+          } catch (e) {}
+        }
+        return this.instancesDeferred.get(normalizedIdentifier).promise;
+      };
+      Provider.prototype.getImmediate = function(options) {
+        var _a = tslib.__assign({
+          identifier: DEFAULT_ENTRY_NAME,
+          optional: false
+        }, options), identifier = _a.identifier, optional = _a.optional;
+        var normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
+        try {
+          var instance = this.getOrInitializeService(normalizedIdentifier);
+          if (!instance) {
+            if (optional) return null;
+            throw Error("Service " + this.name + " is not available");
+          }
+          return instance;
+        } catch (e) {
+          if (optional) return null;
+          throw e;
+        }
+      };
+      Provider.prototype.getComponent = function() {
+        return this.component;
+      };
+      Provider.prototype.setComponent = function(component) {
+        var e_1, _a;
+        if (component.name !== this.name) throw Error("Mismatching Component " + component.name + " for Provider " + this.name + ".");
+        if (this.component) throw Error("Component for " + this.name + " has already been provided");
+        this.component = component;
+        if (isComponentEager(component)) try {
+          this.getOrInitializeService(DEFAULT_ENTRY_NAME);
+        } catch (e) {}
+        try {
+          for (var _b = tslib.__values(this.instancesDeferred.entries()), _c = _b.next(); !_c.done; _c = _b.next()) {
+            var _d = tslib.__read(_c.value, 2), instanceIdentifier = _d[0], instanceDeferred = _d[1];
+            var normalizedIdentifier = this.normalizeInstanceIdentifier(instanceIdentifier);
+            try {
+              var instance = this.getOrInitializeService(normalizedIdentifier);
+              instanceDeferred.resolve(instance);
+            } catch (e) {}
+          }
+        } catch (e_1_1) {
+          e_1 = {
+            error: e_1_1
+          };
+        } finally {
+          try {
+            _c && !_c.done && (_a = _b.return) && _a.call(_b);
+          } finally {
+            if (e_1) throw e_1.error;
+          }
+        }
+      };
+      Provider.prototype.clearInstance = function(identifier) {
+        void 0 === identifier && (identifier = DEFAULT_ENTRY_NAME);
+        this.instancesDeferred.delete(identifier);
+        this.instances.delete(identifier);
+      };
+      Provider.prototype.delete = function() {
+        return tslib.__awaiter(this, void 0, void 0, function() {
+          var services;
+          return tslib.__generator(this, function(_a) {
+            switch (_a.label) {
+             case 0:
+              services = Array.from(this.instances.values());
+              return [ 4, Promise.all(tslib.__spread(services.filter(function(service) {
+                return "INTERNAL" in service;
+              }).map(function(service) {
+                return service.INTERNAL.delete();
+              }), services.filter(function(service) {
+                return "_delete" in service;
+              }).map(function(service) {
+                return service._delete();
+              }))) ];
+
+             case 1:
+              _a.sent();
+              return [ 2 ];
+            }
+          });
+        });
+      };
+      Provider.prototype.isComponentSet = function() {
+        return null != this.component;
+      };
+      Provider.prototype.getOrInitializeService = function(identifier) {
+        var instance = this.instances.get(identifier);
+        if (!instance && this.component) {
+          instance = this.component.instanceFactory(this.container, normalizeIdentifierForFactory(identifier));
+          this.instances.set(identifier, instance);
+        }
+        return instance || null;
+      };
+      Provider.prototype.normalizeInstanceIdentifier = function(identifier) {
+        return this.component ? this.component.multipleInstances ? identifier : DEFAULT_ENTRY_NAME : identifier;
+      };
+      return Provider;
+    }();
+    function normalizeIdentifierForFactory(identifier) {
+      return identifier === DEFAULT_ENTRY_NAME ? void 0 : identifier;
+    }
+    function isComponentEager(component) {
+      return "EAGER" === component.instantiationMode;
+    }
+    var ComponentContainer = function() {
+      function ComponentContainer(name) {
+        this.name = name;
+        this.providers = new Map();
+      }
+      ComponentContainer.prototype.addComponent = function(component) {
+        var provider = this.getProvider(component.name);
+        if (provider.isComponentSet()) throw new Error("Component " + component.name + " has already been registered with " + this.name);
+        provider.setComponent(component);
+      };
+      ComponentContainer.prototype.addOrOverwriteComponent = function(component) {
+        var provider = this.getProvider(component.name);
+        provider.isComponentSet() && this.providers.delete(component.name);
+        this.addComponent(component);
+      };
+      ComponentContainer.prototype.getProvider = function(name) {
+        if (this.providers.has(name)) return this.providers.get(name);
+        var provider = new Provider(name, this);
+        this.providers.set(name, provider);
+        return provider;
+      };
+      ComponentContainer.prototype.getProviders = function() {
+        return Array.from(this.providers.values());
+      };
+      return ComponentContainer;
+    }();
+    exports.Component = Component;
+    exports.ComponentContainer = ComponentContainer;
+    exports.Provider = Provider;
+  }, {
+    "@firebase/util": 11,
+    tslib: 7
+  } ],
+  7: [ function(require, module, exports) {
+    arguments[4][3][0].apply(exports, arguments);
+  }, {
+    dup: 3
+  } ],
+  8: [ function(require, module, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var firebase = require("@firebase/app");
+    var component = require("@firebase/component");
+    var tslib = require("tslib");
+    var util = require("@firebase/util");
+    var idb = require("idb");
+    function _interopDefaultLegacy(e) {
+      return e && "object" === typeof e && "default" in e ? e : {
+        default: e
+      };
+    }
+    var firebase__default = _interopDefaultLegacy(firebase);
+    var name = "@firebase/installations";
+    var version = "0.4.17";
+    var PENDING_TIMEOUT_MS = 1e4;
+    var PACKAGE_VERSION = "w:" + version;
+    var INTERNAL_AUTH_VERSION = "FIS_v2";
+    var INSTALLATIONS_API_URL = "https://firebaseinstallations.googleapis.com/v1";
+    var TOKEN_EXPIRATION_BUFFER = 36e5;
+    var SERVICE = "installations";
+    var SERVICE_NAME = "Installations";
+    var _a;
+    var ERROR_DESCRIPTION_MAP = (_a = {}, _a["missing-app-config-values"] = 'Missing App configuration value: "{$valueName}"', 
+    _a["not-registered"] = "Firebase Installation is not registered.", _a["installation-not-found"] = "Firebase Installation not found.", 
+    _a["request-failed"] = '{$requestName} request failed with error "{$serverCode} {$serverStatus}: {$serverMessage}"', 
+    _a["app-offline"] = "Could not process request. Application offline.", _a["delete-pending-registration"] = "Can't delete installation while there is a pending registration request.", 
+    _a);
+    var ERROR_FACTORY = new util.ErrorFactory(SERVICE, SERVICE_NAME, ERROR_DESCRIPTION_MAP);
+    function isServerError(error) {
+      return error instanceof util.FirebaseError && error.code.includes("request-failed");
+    }
+    function getInstallationsEndpoint(_a) {
+      var projectId = _a.projectId;
+      return INSTALLATIONS_API_URL + "/projects/" + projectId + "/installations";
+    }
+    function extractAuthTokenInfoFromResponse(response) {
+      return {
+        token: response.token,
+        requestStatus: 2,
+        expiresIn: getExpiresInFromResponseExpiresIn(response.expiresIn),
+        creationTime: Date.now()
+      };
+    }
+    function getErrorFromResponse(requestName, response) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var responseJson, errorData;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            return [ 4, response.json() ];
+
+           case 1:
+            responseJson = _a.sent();
+            errorData = responseJson.error;
+            return [ 2, ERROR_FACTORY.create("request-failed", {
+              requestName: requestName,
+              serverCode: errorData.code,
+              serverMessage: errorData.message,
+              serverStatus: errorData.status
+            }) ];
+          }
+        });
+      });
+    }
+    function getHeaders(_a) {
+      var apiKey = _a.apiKey;
+      return new Headers({
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "x-goog-api-key": apiKey
+      });
+    }
+    function getHeadersWithAuth(appConfig, _a) {
+      var refreshToken = _a.refreshToken;
+      var headers = getHeaders(appConfig);
+      headers.append("Authorization", getAuthorizationHeader(refreshToken));
+      return headers;
+    }
+    function retryIfServerError(fn) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var result;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            return [ 4, fn() ];
+
+           case 1:
+            result = _a.sent();
+            if (result.status >= 500 && result.status < 600) return [ 2, fn() ];
+            return [ 2, result ];
+          }
+        });
+      });
+    }
+    function getExpiresInFromResponseExpiresIn(responseExpiresIn) {
+      return Number(responseExpiresIn.replace("s", "000"));
+    }
+    function getAuthorizationHeader(refreshToken) {
+      return INTERNAL_AUTH_VERSION + " " + refreshToken;
+    }
+    function createInstallationRequest(appConfig, _a) {
+      var fid = _a.fid;
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var endpoint, headers, body, request, response, responseValue, registeredInstallationEntry;
+        return tslib.__generator(this, function(_b) {
+          switch (_b.label) {
+           case 0:
+            endpoint = getInstallationsEndpoint(appConfig);
+            headers = getHeaders(appConfig);
+            body = {
+              fid: fid,
+              authVersion: INTERNAL_AUTH_VERSION,
+              appId: appConfig.appId,
+              sdkVersion: PACKAGE_VERSION
+            };
+            request = {
+              method: "POST",
+              headers: headers,
+              body: JSON.stringify(body)
+            };
+            return [ 4, retryIfServerError(function() {
+              return fetch(endpoint, request);
+            }) ];
+
+           case 1:
+            response = _b.sent();
+            if (!response.ok) return [ 3, 3 ];
+            return [ 4, response.json() ];
+
+           case 2:
+            responseValue = _b.sent();
+            registeredInstallationEntry = {
+              fid: responseValue.fid || fid,
+              registrationStatus: 2,
+              refreshToken: responseValue.refreshToken,
+              authToken: extractAuthTokenInfoFromResponse(responseValue.authToken)
+            };
+            return [ 2, registeredInstallationEntry ];
+
+           case 3:
+            return [ 4, getErrorFromResponse("Create Installation", response) ];
+
+           case 4:
+            throw _b.sent();
+          }
+        });
+      });
+    }
+    function sleep(ms) {
+      return new Promise(function(resolve) {
+        setTimeout(resolve, ms);
+      });
+    }
+    function bufferToBase64UrlSafe(array) {
+      var b64 = btoa(String.fromCharCode.apply(String, tslib.__spread(array)));
+      return b64.replace(/\+/g, "-").replace(/\//g, "_");
+    }
+    var VALID_FID_PATTERN = /^[cdef][\w-]{21}$/;
+    var INVALID_FID = "";
+    function generateFid() {
+      try {
+        var fidByteArray = new Uint8Array(17);
+        var crypto_1 = self.crypto || self.msCrypto;
+        crypto_1.getRandomValues(fidByteArray);
+        fidByteArray[0] = 112 + fidByteArray[0] % 16;
+        var fid = encode(fidByteArray);
+        return VALID_FID_PATTERN.test(fid) ? fid : INVALID_FID;
+      } catch (_a) {
+        return INVALID_FID;
+      }
+    }
+    function encode(fidByteArray) {
+      var b64String = bufferToBase64UrlSafe(fidByteArray);
+      return b64String.substr(0, 22);
+    }
+    function getKey(appConfig) {
+      return appConfig.appName + "!" + appConfig.appId;
+    }
+    var fidChangeCallbacks = new Map();
+    function fidChanged(appConfig, fid) {
+      var key = getKey(appConfig);
+      callFidChangeCallbacks(key, fid);
+      broadcastFidChange(key, fid);
+    }
+    function addCallback(appConfig, callback) {
+      getBroadcastChannel();
+      var key = getKey(appConfig);
+      var callbackSet = fidChangeCallbacks.get(key);
+      if (!callbackSet) {
+        callbackSet = new Set();
+        fidChangeCallbacks.set(key, callbackSet);
+      }
+      callbackSet.add(callback);
+    }
+    function removeCallback(appConfig, callback) {
+      var key = getKey(appConfig);
+      var callbackSet = fidChangeCallbacks.get(key);
+      if (!callbackSet) return;
+      callbackSet.delete(callback);
+      0 === callbackSet.size && fidChangeCallbacks.delete(key);
+      closeBroadcastChannel();
+    }
+    function callFidChangeCallbacks(key, fid) {
+      var e_1, _a;
+      var callbacks = fidChangeCallbacks.get(key);
+      if (!callbacks) return;
+      try {
+        for (var callbacks_1 = tslib.__values(callbacks), callbacks_1_1 = callbacks_1.next(); !callbacks_1_1.done; callbacks_1_1 = callbacks_1.next()) {
+          var callback = callbacks_1_1.value;
+          callback(fid);
+        }
+      } catch (e_1_1) {
+        e_1 = {
+          error: e_1_1
+        };
+      } finally {
+        try {
+          callbacks_1_1 && !callbacks_1_1.done && (_a = callbacks_1.return) && _a.call(callbacks_1);
+        } finally {
+          if (e_1) throw e_1.error;
+        }
+      }
+    }
+    function broadcastFidChange(key, fid) {
+      var channel = getBroadcastChannel();
+      channel && channel.postMessage({
+        key: key,
+        fid: fid
+      });
+      closeBroadcastChannel();
+    }
+    var broadcastChannel = null;
+    function getBroadcastChannel() {
+      if (!broadcastChannel && "BroadcastChannel" in self) {
+        broadcastChannel = new BroadcastChannel("[Firebase] FID Change");
+        broadcastChannel.onmessage = function(e) {
+          callFidChangeCallbacks(e.data.key, e.data.fid);
+        };
+      }
+      return broadcastChannel;
+    }
+    function closeBroadcastChannel() {
+      if (0 === fidChangeCallbacks.size && broadcastChannel) {
+        broadcastChannel.close();
+        broadcastChannel = null;
+      }
+    }
+    var DATABASE_NAME = "firebase-installations-database";
+    var DATABASE_VERSION = 1;
+    var OBJECT_STORE_NAME = "firebase-installations-store";
+    var dbPromise = null;
+    function getDbPromise() {
+      dbPromise || (dbPromise = idb.openDb(DATABASE_NAME, DATABASE_VERSION, function(upgradeDB) {
+        switch (upgradeDB.oldVersion) {
+         case 0:
+          upgradeDB.createObjectStore(OBJECT_STORE_NAME);
+        }
+      }));
+      return dbPromise;
+    }
+    function set(appConfig, value) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var key, db, tx, objectStore, oldValue;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            key = getKey(appConfig);
+            return [ 4, getDbPromise() ];
+
+           case 1:
+            db = _a.sent();
+            tx = db.transaction(OBJECT_STORE_NAME, "readwrite");
+            objectStore = tx.objectStore(OBJECT_STORE_NAME);
+            return [ 4, objectStore.get(key) ];
+
+           case 2:
+            oldValue = _a.sent();
+            return [ 4, objectStore.put(value, key) ];
+
+           case 3:
+            _a.sent();
+            return [ 4, tx.complete ];
+
+           case 4:
+            _a.sent();
+            oldValue && oldValue.fid === value.fid || fidChanged(appConfig, value.fid);
+            return [ 2, value ];
+          }
+        });
+      });
+    }
+    function remove(appConfig) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var key, db, tx;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            key = getKey(appConfig);
+            return [ 4, getDbPromise() ];
+
+           case 1:
+            db = _a.sent();
+            tx = db.transaction(OBJECT_STORE_NAME, "readwrite");
+            return [ 4, tx.objectStore(OBJECT_STORE_NAME).delete(key) ];
+
+           case 2:
+            _a.sent();
+            return [ 4, tx.complete ];
+
+           case 3:
+            _a.sent();
+            return [ 2 ];
+          }
+        });
+      });
+    }
+    function update(appConfig, updateFn) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var key, db, tx, store, oldValue, newValue;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            key = getKey(appConfig);
+            return [ 4, getDbPromise() ];
+
+           case 1:
+            db = _a.sent();
+            tx = db.transaction(OBJECT_STORE_NAME, "readwrite");
+            store = tx.objectStore(OBJECT_STORE_NAME);
+            return [ 4, store.get(key) ];
+
+           case 2:
+            oldValue = _a.sent();
+            newValue = updateFn(oldValue);
+            if (!(void 0 === newValue)) return [ 3, 4 ];
+            return [ 4, store.delete(key) ];
+
+           case 3:
+            _a.sent();
+            return [ 3, 6 ];
+
+           case 4:
+            return [ 4, store.put(newValue, key) ];
+
+           case 5:
+            _a.sent();
+            _a.label = 6;
+
+           case 6:
+            return [ 4, tx.complete ];
+
+           case 7:
+            _a.sent();
+            !newValue || oldValue && oldValue.fid === newValue.fid || fidChanged(appConfig, newValue.fid);
+            return [ 2, newValue ];
+          }
+        });
+      });
+    }
+    function getInstallationEntry(appConfig) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var registrationPromise, installationEntry;
+        var _a;
+        return tslib.__generator(this, function(_b) {
+          switch (_b.label) {
+           case 0:
+            return [ 4, update(appConfig, function(oldEntry) {
+              var installationEntry = updateOrCreateInstallationEntry(oldEntry);
+              var entryWithPromise = triggerRegistrationIfNecessary(appConfig, installationEntry);
+              registrationPromise = entryWithPromise.registrationPromise;
+              return entryWithPromise.installationEntry;
+            }) ];
+
+           case 1:
+            installationEntry = _b.sent();
+            if (!(installationEntry.fid === INVALID_FID)) return [ 3, 3 ];
+            _a = {};
+            return [ 4, registrationPromise ];
+
+           case 2:
+            return [ 2, (_a.installationEntry = _b.sent(), _a) ];
+
+           case 3:
+            return [ 2, {
+              installationEntry: installationEntry,
+              registrationPromise: registrationPromise
+            } ];
+          }
+        });
+      });
+    }
+    function updateOrCreateInstallationEntry(oldEntry) {
+      var entry = oldEntry || {
+        fid: generateFid(),
+        registrationStatus: 0
+      };
+      return clearTimedOutRequest(entry);
+    }
+    function triggerRegistrationIfNecessary(appConfig, installationEntry) {
+      if (0 === installationEntry.registrationStatus) {
+        if (!navigator.onLine) {
+          var registrationPromiseWithError = Promise.reject(ERROR_FACTORY.create("app-offline"));
+          return {
+            installationEntry: installationEntry,
+            registrationPromise: registrationPromiseWithError
+          };
+        }
+        var inProgressEntry = {
+          fid: installationEntry.fid,
+          registrationStatus: 1,
+          registrationTime: Date.now()
+        };
+        var registrationPromise = registerInstallation(appConfig, inProgressEntry);
+        return {
+          installationEntry: inProgressEntry,
+          registrationPromise: registrationPromise
+        };
+      }
+      return 1 === installationEntry.registrationStatus ? {
+        installationEntry: installationEntry,
+        registrationPromise: waitUntilFidRegistration(appConfig)
+      } : {
+        installationEntry: installationEntry
+      };
+    }
+    function registerInstallation(appConfig, installationEntry) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var registeredInstallationEntry, e_1;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            _a.trys.push([ 0, 2, , 7 ]);
+            return [ 4, createInstallationRequest(appConfig, installationEntry) ];
+
+           case 1:
+            registeredInstallationEntry = _a.sent();
+            return [ 2, set(appConfig, registeredInstallationEntry) ];
+
+           case 2:
+            e_1 = _a.sent();
+            if (!(isServerError(e_1) && 409 === e_1.serverCode)) return [ 3, 4 ];
+            return [ 4, remove(appConfig) ];
+
+           case 3:
+            _a.sent();
+            return [ 3, 6 ];
+
+           case 4:
+            return [ 4, set(appConfig, {
+              fid: installationEntry.fid,
+              registrationStatus: 0
+            }) ];
+
+           case 5:
+            _a.sent();
+            _a.label = 6;
+
+           case 6:
+            throw e_1;
+
+           case 7:
+            return [ 2 ];
+          }
+        });
+      });
+    }
+    function waitUntilFidRegistration(appConfig) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var entry, _a, installationEntry, registrationPromise;
+        return tslib.__generator(this, function(_b) {
+          switch (_b.label) {
+           case 0:
+            return [ 4, updateInstallationRequest(appConfig) ];
+
+           case 1:
+            entry = _b.sent();
+            _b.label = 2;
+
+           case 2:
+            if (!(1 === entry.registrationStatus)) return [ 3, 5 ];
+            return [ 4, sleep(100) ];
+
+           case 3:
+            _b.sent();
+            return [ 4, updateInstallationRequest(appConfig) ];
+
+           case 4:
+            entry = _b.sent();
+            return [ 3, 2 ];
+
+           case 5:
+            if (!(0 === entry.registrationStatus)) return [ 3, 7 ];
+            return [ 4, getInstallationEntry(appConfig) ];
+
+           case 6:
+            _a = _b.sent(), installationEntry = _a.installationEntry, registrationPromise = _a.registrationPromise;
+            return registrationPromise ? [ 2, registrationPromise ] : [ 2, installationEntry ];
+
+           case 7:
+            return [ 2, entry ];
+          }
+        });
+      });
+    }
+    function updateInstallationRequest(appConfig) {
+      return update(appConfig, function(oldEntry) {
+        if (!oldEntry) throw ERROR_FACTORY.create("installation-not-found");
+        return clearTimedOutRequest(oldEntry);
+      });
+    }
+    function clearTimedOutRequest(entry) {
+      if (hasInstallationRequestTimedOut(entry)) return {
+        fid: entry.fid,
+        registrationStatus: 0
+      };
+      return entry;
+    }
+    function hasInstallationRequestTimedOut(installationEntry) {
+      return 1 === installationEntry.registrationStatus && installationEntry.registrationTime + PENDING_TIMEOUT_MS < Date.now();
+    }
+    function generateAuthTokenRequest(_a, installationEntry) {
+      var appConfig = _a.appConfig, platformLoggerProvider = _a.platformLoggerProvider;
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var endpoint, headers, platformLogger, body, request, response, responseValue, completedAuthToken;
+        return tslib.__generator(this, function(_b) {
+          switch (_b.label) {
+           case 0:
+            endpoint = getGenerateAuthTokenEndpoint(appConfig, installationEntry);
+            headers = getHeadersWithAuth(appConfig, installationEntry);
+            platformLogger = platformLoggerProvider.getImmediate({
+              optional: true
+            });
+            platformLogger && headers.append("x-firebase-client", platformLogger.getPlatformInfoString());
+            body = {
+              installation: {
+                sdkVersion: PACKAGE_VERSION
+              }
+            };
+            request = {
+              method: "POST",
+              headers: headers,
+              body: JSON.stringify(body)
+            };
+            return [ 4, retryIfServerError(function() {
+              return fetch(endpoint, request);
+            }) ];
+
+           case 1:
+            response = _b.sent();
+            if (!response.ok) return [ 3, 3 ];
+            return [ 4, response.json() ];
+
+           case 2:
+            responseValue = _b.sent();
+            completedAuthToken = extractAuthTokenInfoFromResponse(responseValue);
+            return [ 2, completedAuthToken ];
+
+           case 3:
+            return [ 4, getErrorFromResponse("Generate Auth Token", response) ];
+
+           case 4:
+            throw _b.sent();
+          }
+        });
+      });
+    }
+    function getGenerateAuthTokenEndpoint(appConfig, _a) {
+      var fid = _a.fid;
+      return getInstallationsEndpoint(appConfig) + "/" + fid + "/authTokens:generate";
+    }
+    function refreshAuthToken(dependencies, forceRefresh) {
+      void 0 === forceRefresh && (forceRefresh = false);
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var tokenPromise, entry, authToken, _a;
+        return tslib.__generator(this, function(_b) {
+          switch (_b.label) {
+           case 0:
+            return [ 4, update(dependencies.appConfig, function(oldEntry) {
+              if (!isEntryRegistered(oldEntry)) throw ERROR_FACTORY.create("not-registered");
+              var oldAuthToken = oldEntry.authToken;
+              if (!forceRefresh && isAuthTokenValid(oldAuthToken)) return oldEntry;
+              if (1 === oldAuthToken.requestStatus) {
+                tokenPromise = waitUntilAuthTokenRequest(dependencies, forceRefresh);
+                return oldEntry;
+              }
+              if (!navigator.onLine) throw ERROR_FACTORY.create("app-offline");
+              var inProgressEntry = makeAuthTokenRequestInProgressEntry(oldEntry);
+              tokenPromise = fetchAuthTokenFromServer(dependencies, inProgressEntry);
+              return inProgressEntry;
+            }) ];
+
+           case 1:
+            entry = _b.sent();
+            if (!tokenPromise) return [ 3, 3 ];
+            return [ 4, tokenPromise ];
+
+           case 2:
+            _a = _b.sent();
+            return [ 3, 4 ];
+
+           case 3:
+            _a = entry.authToken;
+            _b.label = 4;
+
+           case 4:
+            authToken = _a;
+            return [ 2, authToken ];
+          }
+        });
+      });
+    }
+    function waitUntilAuthTokenRequest(dependencies, forceRefresh) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var entry, authToken;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            return [ 4, updateAuthTokenRequest(dependencies.appConfig) ];
+
+           case 1:
+            entry = _a.sent();
+            _a.label = 2;
+
+           case 2:
+            if (!(1 === entry.authToken.requestStatus)) return [ 3, 5 ];
+            return [ 4, sleep(100) ];
+
+           case 3:
+            _a.sent();
+            return [ 4, updateAuthTokenRequest(dependencies.appConfig) ];
+
+           case 4:
+            entry = _a.sent();
+            return [ 3, 2 ];
+
+           case 5:
+            authToken = entry.authToken;
+            return 0 === authToken.requestStatus ? [ 2, refreshAuthToken(dependencies, forceRefresh) ] : [ 2, authToken ];
+          }
+        });
+      });
+    }
+    function updateAuthTokenRequest(appConfig) {
+      return update(appConfig, function(oldEntry) {
+        if (!isEntryRegistered(oldEntry)) throw ERROR_FACTORY.create("not-registered");
+        var oldAuthToken = oldEntry.authToken;
+        if (hasAuthTokenRequestTimedOut(oldAuthToken)) return tslib.__assign(tslib.__assign({}, oldEntry), {
+          authToken: {
+            requestStatus: 0
+          }
+        });
+        return oldEntry;
+      });
+    }
+    function fetchAuthTokenFromServer(dependencies, installationEntry) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var authToken, updatedInstallationEntry, e_1, updatedInstallationEntry;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            _a.trys.push([ 0, 3, , 8 ]);
+            return [ 4, generateAuthTokenRequest(dependencies, installationEntry) ];
+
+           case 1:
+            authToken = _a.sent();
+            updatedInstallationEntry = tslib.__assign(tslib.__assign({}, installationEntry), {
+              authToken: authToken
+            });
+            return [ 4, set(dependencies.appConfig, updatedInstallationEntry) ];
+
+           case 2:
+            _a.sent();
+            return [ 2, authToken ];
+
+           case 3:
+            e_1 = _a.sent();
+            if (!(isServerError(e_1) && (401 === e_1.serverCode || 404 === e_1.serverCode))) return [ 3, 5 ];
+            return [ 4, remove(dependencies.appConfig) ];
+
+           case 4:
+            _a.sent();
+            return [ 3, 7 ];
+
+           case 5:
+            updatedInstallationEntry = tslib.__assign(tslib.__assign({}, installationEntry), {
+              authToken: {
+                requestStatus: 0
+              }
+            });
+            return [ 4, set(dependencies.appConfig, updatedInstallationEntry) ];
+
+           case 6:
+            _a.sent();
+            _a.label = 7;
+
+           case 7:
+            throw e_1;
+
+           case 8:
+            return [ 2 ];
+          }
+        });
+      });
+    }
+    function isEntryRegistered(installationEntry) {
+      return void 0 !== installationEntry && 2 === installationEntry.registrationStatus;
+    }
+    function isAuthTokenValid(authToken) {
+      return 2 === authToken.requestStatus && !isAuthTokenExpired(authToken);
+    }
+    function isAuthTokenExpired(authToken) {
+      var now = Date.now();
+      return now < authToken.creationTime || authToken.creationTime + authToken.expiresIn < now + TOKEN_EXPIRATION_BUFFER;
+    }
+    function makeAuthTokenRequestInProgressEntry(oldEntry) {
+      var inProgressAuthToken = {
+        requestStatus: 1,
+        requestTime: Date.now()
+      };
+      return tslib.__assign(tslib.__assign({}, oldEntry), {
+        authToken: inProgressAuthToken
+      });
+    }
+    function hasAuthTokenRequestTimedOut(authToken) {
+      return 1 === authToken.requestStatus && authToken.requestTime + PENDING_TIMEOUT_MS < Date.now();
+    }
+    function getId(dependencies) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var _a, installationEntry, registrationPromise;
+        return tslib.__generator(this, function(_b) {
+          switch (_b.label) {
+           case 0:
+            return [ 4, getInstallationEntry(dependencies.appConfig) ];
+
+           case 1:
+            _a = _b.sent(), installationEntry = _a.installationEntry, registrationPromise = _a.registrationPromise;
+            registrationPromise ? registrationPromise.catch(console.error) : refreshAuthToken(dependencies).catch(console.error);
+            return [ 2, installationEntry.fid ];
+          }
+        });
+      });
+    }
+    function getToken(dependencies, forceRefresh) {
+      void 0 === forceRefresh && (forceRefresh = false);
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var authToken;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            return [ 4, completeInstallationRegistration(dependencies.appConfig) ];
+
+           case 1:
+            _a.sent();
+            return [ 4, refreshAuthToken(dependencies, forceRefresh) ];
+
+           case 2:
+            authToken = _a.sent();
+            return [ 2, authToken.token ];
+          }
+        });
+      });
+    }
+    function completeInstallationRegistration(appConfig) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var registrationPromise;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            return [ 4, getInstallationEntry(appConfig) ];
+
+           case 1:
+            registrationPromise = _a.sent().registrationPromise;
+            if (!registrationPromise) return [ 3, 3 ];
+            return [ 4, registrationPromise ];
+
+           case 2:
+            _a.sent();
+            _a.label = 3;
+
+           case 3:
+            return [ 2 ];
+          }
+        });
+      });
+    }
+    function deleteInstallationRequest(appConfig, installationEntry) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var endpoint, headers, request, response;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            endpoint = getDeleteEndpoint(appConfig, installationEntry);
+            headers = getHeadersWithAuth(appConfig, installationEntry);
+            request = {
+              method: "DELETE",
+              headers: headers
+            };
+            return [ 4, retryIfServerError(function() {
+              return fetch(endpoint, request);
+            }) ];
+
+           case 1:
+            response = _a.sent();
+            if (!!response.ok) return [ 3, 3 ];
+            return [ 4, getErrorFromResponse("Delete Installation", response) ];
+
+           case 2:
+            throw _a.sent();
+
+           case 3:
+            return [ 2 ];
+          }
+        });
+      });
+    }
+    function getDeleteEndpoint(appConfig, _a) {
+      var fid = _a.fid;
+      return getInstallationsEndpoint(appConfig) + "/" + fid;
+    }
+    function deleteInstallation(dependencies) {
+      return tslib.__awaiter(this, void 0, void 0, function() {
+        var appConfig, entry;
+        return tslib.__generator(this, function(_a) {
+          switch (_a.label) {
+           case 0:
+            appConfig = dependencies.appConfig;
+            return [ 4, update(appConfig, function(oldEntry) {
+              if (oldEntry && 0 === oldEntry.registrationStatus) return;
+              return oldEntry;
+            }) ];
+
+           case 1:
+            entry = _a.sent();
+            if (!entry) return [ 3, 6 ];
+            if (!(1 === entry.registrationStatus)) return [ 3, 2 ];
+            throw ERROR_FACTORY.create("delete-pending-registration");
+
+           case 2:
+            if (!(2 === entry.registrationStatus)) return [ 3, 6 ];
+            if (!!navigator.onLine) return [ 3, 3 ];
+            throw ERROR_FACTORY.create("app-offline");
+
+           case 3:
+            return [ 4, deleteInstallationRequest(appConfig, entry) ];
+
+           case 4:
+            _a.sent();
+            return [ 4, remove(appConfig) ];
+
+           case 5:
+            _a.sent();
+            _a.label = 6;
+
+           case 6:
+            return [ 2 ];
+          }
+        });
+      });
+    }
+    function onIdChange(_a, callback) {
+      var appConfig = _a.appConfig;
+      addCallback(appConfig, callback);
+      return function() {
+        removeCallback(appConfig, callback);
+      };
+    }
+    function extractAppConfig(app) {
+      var e_1, _a;
+      if (!app || !app.options) throw getMissingValueError("App Configuration");
+      if (!app.name) throw getMissingValueError("App Name");
+      var configKeys = [ "projectId", "apiKey", "appId" ];
+      try {
+        for (var configKeys_1 = tslib.__values(configKeys), configKeys_1_1 = configKeys_1.next(); !configKeys_1_1.done; configKeys_1_1 = configKeys_1.next()) {
+          var keyName = configKeys_1_1.value;
+          if (!app.options[keyName]) throw getMissingValueError(keyName);
+        }
+      } catch (e_1_1) {
+        e_1 = {
+          error: e_1_1
+        };
+      } finally {
+        try {
+          configKeys_1_1 && !configKeys_1_1.done && (_a = configKeys_1.return) && _a.call(configKeys_1);
+        } finally {
+          if (e_1) throw e_1.error;
+        }
+      }
+      return {
+        appName: app.name,
+        projectId: app.options.projectId,
+        apiKey: app.options.apiKey,
+        appId: app.options.appId
+      };
+    }
+    function getMissingValueError(valueName) {
+      return ERROR_FACTORY.create("missing-app-config-values", {
+        valueName: valueName
+      });
+    }
+    function registerInstallations(instance) {
+      var installationsName = "installations";
+      instance.INTERNAL.registerComponent(new component.Component(installationsName, function(container) {
+        var app = container.getProvider("app").getImmediate();
+        var appConfig = extractAppConfig(app);
+        var platformLoggerProvider = container.getProvider("platform-logger");
+        var dependencies = {
+          appConfig: appConfig,
+          platformLoggerProvider: platformLoggerProvider
+        };
+        var installations = {
+          app: app,
+          getId: function() {
+            return getId(dependencies);
+          },
+          getToken: function(forceRefresh) {
+            return getToken(dependencies, forceRefresh);
+          },
+          delete: function() {
+            return deleteInstallation(dependencies);
+          },
+          onIdChange: function(callback) {
+            return onIdChange(dependencies, callback);
+          }
+        };
+        return installations;
+      }, "PUBLIC"));
+      instance.registerVersion(name, version);
+    }
+    registerInstallations(firebase__default["default"]);
+    exports.registerInstallations = registerInstallations;
+  }, {
+    "@firebase/app": 4,
+    "@firebase/component": 6,
+    "@firebase/util": 11,
+    idb: 15,
+    tslib: 9
+  } ],
+  9: [ function(require, module, exports) {
+    arguments[4][3][0].apply(exports, arguments);
+  }, {
+    dup: 3
+  } ],
+  10: [ function(require, module, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    function __spreadArrays() {
+      for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+      for (var r = Array(s), k = 0, i = 0; i < il; i++) for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, 
+      k++) r[k] = a[j];
+      return r;
+    }
+    var _a;
+    var instances = [];
+    (function(LogLevel) {
+      LogLevel[LogLevel["DEBUG"] = 0] = "DEBUG";
+      LogLevel[LogLevel["VERBOSE"] = 1] = "VERBOSE";
+      LogLevel[LogLevel["INFO"] = 2] = "INFO";
+      LogLevel[LogLevel["WARN"] = 3] = "WARN";
+      LogLevel[LogLevel["ERROR"] = 4] = "ERROR";
+      LogLevel[LogLevel["SILENT"] = 5] = "SILENT";
+    })(exports.LogLevel || (exports.LogLevel = {}));
+    var levelStringToEnum = {
+      debug: exports.LogLevel.DEBUG,
+      verbose: exports.LogLevel.VERBOSE,
+      info: exports.LogLevel.INFO,
+      warn: exports.LogLevel.WARN,
+      error: exports.LogLevel.ERROR,
+      silent: exports.LogLevel.SILENT
+    };
+    var defaultLogLevel = exports.LogLevel.INFO;
+    var ConsoleMethod = (_a = {}, _a[exports.LogLevel.DEBUG] = "log", _a[exports.LogLevel.VERBOSE] = "log", 
+    _a[exports.LogLevel.INFO] = "info", _a[exports.LogLevel.WARN] = "warn", _a[exports.LogLevel.ERROR] = "error", 
+    _a);
+    var defaultLogHandler = function(instance, logType) {
+      var args = [];
+      for (var _i = 2; _i < arguments.length; _i++) args[_i - 2] = arguments[_i];
+      if (logType < instance.logLevel) return;
+      var now = new Date().toISOString();
+      var method = ConsoleMethod[logType];
+      if (!method) throw new Error("Attempted to log a message with an invalid logType (value: " + logType + ")");
+      console[method].apply(console, __spreadArrays([ "[" + now + "]  " + instance.name + ":" ], args));
+    };
+    var Logger = function() {
+      function Logger(name) {
+        this.name = name;
+        this._logLevel = defaultLogLevel;
+        this._logHandler = defaultLogHandler;
+        this._userLogHandler = null;
+        instances.push(this);
+      }
+      Object.defineProperty(Logger.prototype, "logLevel", {
+        get: function() {
+          return this._logLevel;
+        },
+        set: function(val) {
+          if (!(val in exports.LogLevel)) throw new TypeError('Invalid value "' + val + '" assigned to `logLevel`');
+          this._logLevel = val;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Logger.prototype.setLogLevel = function(val) {
+        this._logLevel = "string" === typeof val ? levelStringToEnum[val] : val;
+      };
+      Object.defineProperty(Logger.prototype, "logHandler", {
+        get: function() {
+          return this._logHandler;
+        },
+        set: function(val) {
+          if ("function" !== typeof val) throw new TypeError("Value assigned to `logHandler` must be a function");
+          this._logHandler = val;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(Logger.prototype, "userLogHandler", {
+        get: function() {
+          return this._userLogHandler;
+        },
+        set: function(val) {
+          this._userLogHandler = val;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Logger.prototype.debug = function() {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) args[_i] = arguments[_i];
+        this._userLogHandler && this._userLogHandler.apply(this, __spreadArrays([ this, exports.LogLevel.DEBUG ], args));
+        this._logHandler.apply(this, __spreadArrays([ this, exports.LogLevel.DEBUG ], args));
+      };
+      Logger.prototype.log = function() {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) args[_i] = arguments[_i];
+        this._userLogHandler && this._userLogHandler.apply(this, __spreadArrays([ this, exports.LogLevel.VERBOSE ], args));
+        this._logHandler.apply(this, __spreadArrays([ this, exports.LogLevel.VERBOSE ], args));
+      };
+      Logger.prototype.info = function() {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) args[_i] = arguments[_i];
+        this._userLogHandler && this._userLogHandler.apply(this, __spreadArrays([ this, exports.LogLevel.INFO ], args));
+        this._logHandler.apply(this, __spreadArrays([ this, exports.LogLevel.INFO ], args));
+      };
+      Logger.prototype.warn = function() {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) args[_i] = arguments[_i];
+        this._userLogHandler && this._userLogHandler.apply(this, __spreadArrays([ this, exports.LogLevel.WARN ], args));
+        this._logHandler.apply(this, __spreadArrays([ this, exports.LogLevel.WARN ], args));
+      };
+      Logger.prototype.error = function() {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) args[_i] = arguments[_i];
+        this._userLogHandler && this._userLogHandler.apply(this, __spreadArrays([ this, exports.LogLevel.ERROR ], args));
+        this._logHandler.apply(this, __spreadArrays([ this, exports.LogLevel.ERROR ], args));
+      };
+      return Logger;
+    }();
+    function setLogLevel(level) {
+      instances.forEach(function(inst) {
+        inst.setLogLevel(level);
+      });
+    }
+    function setUserLogHandler(logCallback, options) {
+      var _loop_1 = function(instance) {
+        var customLogLevel = null;
+        options && options.level && (customLogLevel = levelStringToEnum[options.level]);
+        instance.userLogHandler = null === logCallback ? null : function(instance, level) {
+          var args = [];
+          for (var _i = 2; _i < arguments.length; _i++) args[_i - 2] = arguments[_i];
+          var message = args.map(function(arg) {
+            if (null == arg) return null;
+            if ("string" === typeof arg) return arg;
+            if ("number" === typeof arg || "boolean" === typeof arg) return arg.toString();
+            if (arg instanceof Error) return arg.message;
+            try {
+              return JSON.stringify(arg);
+            } catch (ignored) {
+              return null;
+            }
+          }).filter(function(arg) {
+            return arg;
+          }).join(" ");
+          level >= (null !== customLogLevel && void 0 !== customLogLevel ? customLogLevel : instance.logLevel) && logCallback({
+            level: exports.LogLevel[level].toLowerCase(),
+            message: message,
+            args: args,
+            type: instance.name
+          });
+        };
+      };
+      for (var _i = 0, instances_1 = instances; _i < instances_1.length; _i++) {
+        var instance = instances_1[_i];
+        _loop_1(instance);
+      }
+    }
+    exports.Logger = Logger;
+    exports.setLogLevel = setLogLevel;
+    exports.setUserLogHandler = setUserLogHandler;
+  }, {} ],
+  11: [ function(require, module, exports) {
+    (function(global) {
+      "use strict";
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      var tslib = require("tslib");
+      var CONSTANTS = {
+        NODE_CLIENT: false,
+        NODE_ADMIN: false,
+        SDK_VERSION: "${JSCORE_VERSION}"
+      };
+      var assert = function(assertion, message) {
+        if (!assertion) throw assertionError(message);
+      };
+      var assertionError = function(message) {
+        return new Error("Firebase Database (" + CONSTANTS.SDK_VERSION + ") INTERNAL ASSERT FAILED: " + message);
+      };
+      var stringToByteArray = function(str) {
+        var out = [];
+        var p = 0;
+        for (var i = 0; i < str.length; i++) {
+          var c = str.charCodeAt(i);
+          if (c < 128) out[p++] = c; else if (c < 2048) {
+            out[p++] = c >> 6 | 192;
+            out[p++] = 63 & c | 128;
+          } else if (55296 === (64512 & c) && i + 1 < str.length && 56320 === (64512 & str.charCodeAt(i + 1))) {
+            c = 65536 + ((1023 & c) << 10) + (1023 & str.charCodeAt(++i));
+            out[p++] = c >> 18 | 240;
+            out[p++] = c >> 12 & 63 | 128;
+            out[p++] = c >> 6 & 63 | 128;
+            out[p++] = 63 & c | 128;
+          } else {
+            out[p++] = c >> 12 | 224;
+            out[p++] = c >> 6 & 63 | 128;
+            out[p++] = 63 & c | 128;
+          }
+        }
+        return out;
+      };
+      var byteArrayToString = function(bytes) {
+        var out = [];
+        var pos = 0, c = 0;
+        while (pos < bytes.length) {
+          var c1 = bytes[pos++];
+          if (c1 < 128) out[c++] = String.fromCharCode(c1); else if (c1 > 191 && c1 < 224) {
+            var c2 = bytes[pos++];
+            out[c++] = String.fromCharCode((31 & c1) << 6 | 63 & c2);
+          } else if (c1 > 239 && c1 < 365) {
+            var c2 = bytes[pos++];
+            var c3 = bytes[pos++];
+            var c4 = bytes[pos++];
+            var u = ((7 & c1) << 18 | (63 & c2) << 12 | (63 & c3) << 6 | 63 & c4) - 65536;
+            out[c++] = String.fromCharCode(55296 + (u >> 10));
+            out[c++] = String.fromCharCode(56320 + (1023 & u));
+          } else {
+            var c2 = bytes[pos++];
+            var c3 = bytes[pos++];
+            out[c++] = String.fromCharCode((15 & c1) << 12 | (63 & c2) << 6 | 63 & c3);
+          }
+        }
+        return out.join("");
+      };
+      var base64 = {
+        byteToCharMap_: null,
+        charToByteMap_: null,
+        byteToCharMapWebSafe_: null,
+        charToByteMapWebSafe_: null,
+        ENCODED_VALS_BASE: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+        get ENCODED_VALS() {
+          return this.ENCODED_VALS_BASE + "+/=";
+        },
+        get ENCODED_VALS_WEBSAFE() {
+          return this.ENCODED_VALS_BASE + "-_.";
+        },
+        HAS_NATIVE_SUPPORT: "function" === typeof atob,
+        encodeByteArray: function(input, webSafe) {
+          if (!Array.isArray(input)) throw Error("encodeByteArray takes an array as a parameter");
+          this.init_();
+          var byteToCharMap = webSafe ? this.byteToCharMapWebSafe_ : this.byteToCharMap_;
+          var output = [];
+          for (var i = 0; i < input.length; i += 3) {
+            var byte1 = input[i];
+            var haveByte2 = i + 1 < input.length;
+            var byte2 = haveByte2 ? input[i + 1] : 0;
+            var haveByte3 = i + 2 < input.length;
+            var byte3 = haveByte3 ? input[i + 2] : 0;
+            var outByte1 = byte1 >> 2;
+            var outByte2 = (3 & byte1) << 4 | byte2 >> 4;
+            var outByte3 = (15 & byte2) << 2 | byte3 >> 6;
+            var outByte4 = 63 & byte3;
+            if (!haveByte3) {
+              outByte4 = 64;
+              haveByte2 || (outByte3 = 64);
+            }
+            output.push(byteToCharMap[outByte1], byteToCharMap[outByte2], byteToCharMap[outByte3], byteToCharMap[outByte4]);
+          }
+          return output.join("");
+        },
+        encodeString: function(input, webSafe) {
+          if (this.HAS_NATIVE_SUPPORT && !webSafe) return btoa(input);
+          return this.encodeByteArray(stringToByteArray(input), webSafe);
+        },
+        decodeString: function(input, webSafe) {
+          if (this.HAS_NATIVE_SUPPORT && !webSafe) return atob(input);
+          return byteArrayToString(this.decodeStringToByteArray(input, webSafe));
+        },
+        decodeStringToByteArray: function(input, webSafe) {
+          this.init_();
+          var charToByteMap = webSafe ? this.charToByteMapWebSafe_ : this.charToByteMap_;
+          var output = [];
+          for (var i = 0; i < input.length; ) {
+            var byte1 = charToByteMap[input.charAt(i++)];
+            var haveByte2 = i < input.length;
+            var byte2 = haveByte2 ? charToByteMap[input.charAt(i)] : 0;
+            ++i;
+            var haveByte3 = i < input.length;
+            var byte3 = haveByte3 ? charToByteMap[input.charAt(i)] : 64;
+            ++i;
+            var haveByte4 = i < input.length;
+            var byte4 = haveByte4 ? charToByteMap[input.charAt(i)] : 64;
+            ++i;
+            if (null == byte1 || null == byte2 || null == byte3 || null == byte4) throw Error();
+            var outByte1 = byte1 << 2 | byte2 >> 4;
+            output.push(outByte1);
+            if (64 !== byte3) {
+              var outByte2 = byte2 << 4 & 240 | byte3 >> 2;
+              output.push(outByte2);
+              if (64 !== byte4) {
+                var outByte3 = byte3 << 6 & 192 | byte4;
+                output.push(outByte3);
+              }
+            }
+          }
+          return output;
+        },
+        init_: function() {
+          if (!this.byteToCharMap_) {
+            this.byteToCharMap_ = {};
+            this.charToByteMap_ = {};
+            this.byteToCharMapWebSafe_ = {};
+            this.charToByteMapWebSafe_ = {};
+            for (var i = 0; i < this.ENCODED_VALS.length; i++) {
+              this.byteToCharMap_[i] = this.ENCODED_VALS.charAt(i);
+              this.charToByteMap_[this.byteToCharMap_[i]] = i;
+              this.byteToCharMapWebSafe_[i] = this.ENCODED_VALS_WEBSAFE.charAt(i);
+              this.charToByteMapWebSafe_[this.byteToCharMapWebSafe_[i]] = i;
+              if (i >= this.ENCODED_VALS_BASE.length) {
+                this.charToByteMap_[this.ENCODED_VALS_WEBSAFE.charAt(i)] = i;
+                this.charToByteMapWebSafe_[this.ENCODED_VALS.charAt(i)] = i;
+              }
+            }
+          }
+        }
+      };
+      var base64Encode = function(str) {
+        var utf8Bytes = stringToByteArray(str);
+        return base64.encodeByteArray(utf8Bytes, true);
+      };
+      var base64Decode = function(str) {
+        try {
+          return base64.decodeString(str, true);
+        } catch (e) {
+          console.error("base64Decode failed: ", e);
+        }
+        return null;
+      };
+      function deepCopy(value) {
+        return deepExtend(void 0, value);
+      }
+      function deepExtend(target, source) {
+        if (!(source instanceof Object)) return source;
+        switch (source.constructor) {
+         case Date:
+          var dateValue = source;
+          return new Date(dateValue.getTime());
+
+         case Object:
+          void 0 === target && (target = {});
+          break;
+
+         case Array:
+          target = [];
+          break;
+
+         default:
+          return source;
+        }
+        for (var prop in source) {
+          if (!source.hasOwnProperty(prop)) continue;
+          target[prop] = deepExtend(target[prop], source[prop]);
+        }
+        return target;
+      }
+      var Deferred = function() {
+        function Deferred() {
+          var _this = this;
+          this.reject = function() {};
+          this.resolve = function() {};
+          this.promise = new Promise(function(resolve, reject) {
+            _this.resolve = resolve;
+            _this.reject = reject;
+          });
+        }
+        Deferred.prototype.wrapCallback = function(callback) {
+          var _this = this;
+          return function(error, value) {
+            error ? _this.reject(error) : _this.resolve(value);
+            if ("function" === typeof callback) {
+              _this.promise.catch(function() {});
+              1 === callback.length ? callback(error) : callback(error, value);
+            }
+          };
+        };
+        return Deferred;
+      }();
+      function getUA() {
+        return "undefined" !== typeof navigator && "string" === typeof navigator["userAgent"] ? navigator["userAgent"] : "";
+      }
+      function isMobileCordova() {
+        return "undefined" !== typeof window && !!(window["cordova"] || window["phonegap"] || window["PhoneGap"]) && /ios|iphone|ipod|ipad|android|blackberry|iemobile/i.test(getUA());
+      }
+      function isNode() {
+        try {
+          return "[object process]" === Object.prototype.toString.call(global.process);
+        } catch (e) {
+          return false;
+        }
+      }
+      function isBrowser() {
+        return "object" === typeof self && self.self === self;
+      }
+      function isBrowserExtension() {
+        var runtime = "object" === typeof chrome ? chrome.runtime : "object" === typeof browser ? browser.runtime : void 0;
+        return "object" === typeof runtime && void 0 !== runtime.id;
+      }
+      function isReactNative() {
+        return "object" === typeof navigator && "ReactNative" === navigator["product"];
+      }
+      function isElectron() {
+        return getUA().indexOf("Electron/") >= 0;
+      }
+      function isIE() {
+        var ua = getUA();
+        return ua.indexOf("MSIE ") >= 0 || ua.indexOf("Trident/") >= 0;
+      }
+      function isUWP() {
+        return getUA().indexOf("MSAppHost/") >= 0;
+      }
+      function isNodeSdk() {
+        return true === CONSTANTS.NODE_CLIENT || true === CONSTANTS.NODE_ADMIN;
+      }
+      function isSafari() {
+        return !isNode() && navigator.userAgent.includes("Safari") && !navigator.userAgent.includes("Chrome");
+      }
+      function isIndexedDBAvailable() {
+        return "indexedDB" in self && null != indexedDB;
+      }
+      function validateIndexedDBOpenable() {
+        return new Promise(function(resolve, reject) {
+          try {
+            var preExist_1 = true;
+            var DB_CHECK_NAME_1 = "validate-browser-context-for-indexeddb-analytics-module";
+            var request_1 = window.indexedDB.open(DB_CHECK_NAME_1);
+            request_1.onsuccess = function() {
+              request_1.result.close();
+              preExist_1 || window.indexedDB.deleteDatabase(DB_CHECK_NAME_1);
+              resolve(true);
+            };
+            request_1.onupgradeneeded = function() {
+              preExist_1 = false;
+            };
+            request_1.onerror = function() {
+              var _a;
+              reject((null === (_a = request_1.error) || void 0 === _a ? void 0 : _a.message) || "");
+            };
+          } catch (error) {
+            reject(error);
+          }
+        });
+      }
+      function areCookiesEnabled() {
+        if (!navigator || !navigator.cookieEnabled) return false;
+        return true;
+      }
+      var ERROR_NAME = "FirebaseError";
+      var FirebaseError = function(_super) {
+        tslib.__extends(FirebaseError, _super);
+        function FirebaseError(code, message) {
+          var _this = _super.call(this, message) || this;
+          _this.code = code;
+          _this.name = ERROR_NAME;
+          Object.setPrototypeOf(_this, FirebaseError.prototype);
+          Error.captureStackTrace && Error.captureStackTrace(_this, ErrorFactory.prototype.create);
+          return _this;
+        }
+        return FirebaseError;
+      }(Error);
+      var ErrorFactory = function() {
+        function ErrorFactory(service, serviceName, errors) {
+          this.service = service;
+          this.serviceName = serviceName;
+          this.errors = errors;
+        }
+        ErrorFactory.prototype.create = function(code) {
+          var data = [];
+          for (var _i = 1; _i < arguments.length; _i++) data[_i - 1] = arguments[_i];
+          var customData = data[0] || {};
+          var fullCode = this.service + "/" + code;
+          var template = this.errors[code];
+          var message = template ? replaceTemplate(template, customData) : "Error";
+          var fullMessage = this.serviceName + ": " + message + " (" + fullCode + ").";
+          var error = new FirebaseError(fullCode, fullMessage);
+          for (var _a = 0, _b = Object.keys(customData); _a < _b.length; _a++) {
+            var key = _b[_a];
+            if ("_" !== key.slice(-1)) {
+              key in error && console.warn('Overwriting FirebaseError base field "' + key + '" can cause unexpected behavior.');
+              error[key] = customData[key];
+            }
+          }
+          return error;
+        };
+        return ErrorFactory;
+      }();
+      function replaceTemplate(template, data) {
+        return template.replace(PATTERN, function(_, key) {
+          var value = data[key];
+          return null != value ? String(value) : "<" + key + "?>";
+        });
+      }
+      var PATTERN = /\{\$([^}]+)}/g;
+      function jsonEval(str) {
+        return JSON.parse(str);
+      }
+      function stringify(data) {
+        return JSON.stringify(data);
+      }
+      var decode = function(token) {
+        var header = {}, claims = {}, data = {}, signature = "";
+        try {
+          var parts = token.split(".");
+          header = jsonEval(base64Decode(parts[0]) || "");
+          claims = jsonEval(base64Decode(parts[1]) || "");
+          signature = parts[2];
+          data = claims["d"] || {};
+          delete claims["d"];
+        } catch (e) {}
+        return {
+          header: header,
+          claims: claims,
+          data: data,
+          signature: signature
+        };
+      };
+      var isValidTimestamp = function(token) {
+        var claims = decode(token).claims;
+        var now = Math.floor(new Date().getTime() / 1e3);
+        var validSince = 0, validUntil = 0;
+        if ("object" === typeof claims) {
+          claims.hasOwnProperty("nbf") ? validSince = claims["nbf"] : claims.hasOwnProperty("iat") && (validSince = claims["iat"]);
+          validUntil = claims.hasOwnProperty("exp") ? claims["exp"] : validSince + 86400;
+        }
+        return !!now && !!validSince && !!validUntil && now >= validSince && now <= validUntil;
+      };
+      var issuedAtTime = function(token) {
+        var claims = decode(token).claims;
+        if ("object" === typeof claims && claims.hasOwnProperty("iat")) return claims["iat"];
+        return null;
+      };
+      var isValidFormat = function(token) {
+        var decoded = decode(token), claims = decoded.claims;
+        return !!claims && "object" === typeof claims && claims.hasOwnProperty("iat");
+      };
+      var isAdmin = function(token) {
+        var claims = decode(token).claims;
+        return "object" === typeof claims && true === claims["admin"];
+      };
+      function contains(obj, key) {
+        return Object.prototype.hasOwnProperty.call(obj, key);
+      }
+      function safeGet(obj, key) {
+        return Object.prototype.hasOwnProperty.call(obj, key) ? obj[key] : void 0;
+      }
+      function isEmpty(obj) {
+        for (var key in obj) if (Object.prototype.hasOwnProperty.call(obj, key)) return false;
+        return true;
+      }
+      function map(obj, fn, contextObj) {
+        var res = {};
+        for (var key in obj) Object.prototype.hasOwnProperty.call(obj, key) && (res[key] = fn.call(contextObj, obj[key], key, obj));
+        return res;
+      }
+      function querystring(querystringParams) {
+        var params = [];
+        var _loop_1 = function(key, value) {
+          Array.isArray(value) ? value.forEach(function(arrayVal) {
+            params.push(encodeURIComponent(key) + "=" + encodeURIComponent(arrayVal));
+          }) : params.push(encodeURIComponent(key) + "=" + encodeURIComponent(value));
+        };
+        for (var _i = 0, _a = Object.entries(querystringParams); _i < _a.length; _i++) {
+          var _b = _a[_i], key = _b[0], value = _b[1];
+          _loop_1(key, value);
+        }
+        return params.length ? "&" + params.join("&") : "";
+      }
+      function querystringDecode(querystring) {
+        var obj = {};
+        var tokens = querystring.replace(/^\?/, "").split("&");
+        tokens.forEach(function(token) {
+          if (token) {
+            var key = token.split("=");
+            obj[key[0]] = key[1];
+          }
+        });
+        return obj;
+      }
+      var Sha1 = function() {
+        function Sha1() {
+          this.chain_ = [];
+          this.buf_ = [];
+          this.W_ = [];
+          this.pad_ = [];
+          this.inbuf_ = 0;
+          this.total_ = 0;
+          this.blockSize = 64;
+          this.pad_[0] = 128;
+          for (var i = 1; i < this.blockSize; ++i) this.pad_[i] = 0;
+          this.reset();
+        }
+        Sha1.prototype.reset = function() {
+          this.chain_[0] = 1732584193;
+          this.chain_[1] = 4023233417;
+          this.chain_[2] = 2562383102;
+          this.chain_[3] = 271733878;
+          this.chain_[4] = 3285377520;
+          this.inbuf_ = 0;
+          this.total_ = 0;
+        };
+        Sha1.prototype.compress_ = function(buf, offset) {
+          offset || (offset = 0);
+          var W = this.W_;
+          if ("string" === typeof buf) for (var i = 0; i < 16; i++) {
+            W[i] = buf.charCodeAt(offset) << 24 | buf.charCodeAt(offset + 1) << 16 | buf.charCodeAt(offset + 2) << 8 | buf.charCodeAt(offset + 3);
+            offset += 4;
+          } else for (var i = 0; i < 16; i++) {
+            W[i] = buf[offset] << 24 | buf[offset + 1] << 16 | buf[offset + 2] << 8 | buf[offset + 3];
+            offset += 4;
+          }
+          for (var i = 16; i < 80; i++) {
+            var t = W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16];
+            W[i] = 4294967295 & (t << 1 | t >>> 31);
+          }
+          var a = this.chain_[0];
+          var b = this.chain_[1];
+          var c = this.chain_[2];
+          var d = this.chain_[3];
+          var e = this.chain_[4];
+          var f, k;
+          for (var i = 0; i < 80; i++) {
+            if (i < 40) if (i < 20) {
+              f = d ^ b & (c ^ d);
+              k = 1518500249;
+            } else {
+              f = b ^ c ^ d;
+              k = 1859775393;
+            } else if (i < 60) {
+              f = b & c | d & (b | c);
+              k = 2400959708;
+            } else {
+              f = b ^ c ^ d;
+              k = 3395469782;
+            }
+            var t = (a << 5 | a >>> 27) + f + e + k + W[i] & 4294967295;
+            e = d;
+            d = c;
+            c = 4294967295 & (b << 30 | b >>> 2);
+            b = a;
+            a = t;
+          }
+          this.chain_[0] = this.chain_[0] + a & 4294967295;
+          this.chain_[1] = this.chain_[1] + b & 4294967295;
+          this.chain_[2] = this.chain_[2] + c & 4294967295;
+          this.chain_[3] = this.chain_[3] + d & 4294967295;
+          this.chain_[4] = this.chain_[4] + e & 4294967295;
+        };
+        Sha1.prototype.update = function(bytes, length) {
+          if (null == bytes) return;
+          void 0 === length && (length = bytes.length);
+          var lengthMinusBlock = length - this.blockSize;
+          var n = 0;
+          var buf = this.buf_;
+          var inbuf = this.inbuf_;
+          while (n < length) {
+            if (0 === inbuf) while (n <= lengthMinusBlock) {
+              this.compress_(bytes, n);
+              n += this.blockSize;
+            }
+            if ("string" === typeof bytes) while (n < length) {
+              buf[inbuf] = bytes.charCodeAt(n);
+              ++inbuf;
+              ++n;
+              if (inbuf === this.blockSize) {
+                this.compress_(buf);
+                inbuf = 0;
+                break;
+              }
+            } else while (n < length) {
+              buf[inbuf] = bytes[n];
+              ++inbuf;
+              ++n;
+              if (inbuf === this.blockSize) {
+                this.compress_(buf);
+                inbuf = 0;
+                break;
+              }
+            }
+          }
+          this.inbuf_ = inbuf;
+          this.total_ += length;
+        };
+        Sha1.prototype.digest = function() {
+          var digest = [];
+          var totalBits = 8 * this.total_;
+          this.inbuf_ < 56 ? this.update(this.pad_, 56 - this.inbuf_) : this.update(this.pad_, this.blockSize - (this.inbuf_ - 56));
+          for (var i = this.blockSize - 1; i >= 56; i--) {
+            this.buf_[i] = 255 & totalBits;
+            totalBits /= 256;
+          }
+          this.compress_(this.buf_);
+          var n = 0;
+          for (var i = 0; i < 5; i++) for (var j = 24; j >= 0; j -= 8) {
+            digest[n] = this.chain_[i] >> j & 255;
+            ++n;
+          }
+          return digest;
+        };
+        return Sha1;
+      }();
+      function createSubscribe(executor, onNoObservers) {
+        var proxy = new ObserverProxy(executor, onNoObservers);
+        return proxy.subscribe.bind(proxy);
+      }
+      var ObserverProxy = function() {
+        function ObserverProxy(executor, onNoObservers) {
+          var _this = this;
+          this.observers = [];
+          this.unsubscribes = [];
+          this.observerCount = 0;
+          this.task = Promise.resolve();
+          this.finalized = false;
+          this.onNoObservers = onNoObservers;
+          this.task.then(function() {
+            executor(_this);
+          }).catch(function(e) {
+            _this.error(e);
+          });
+        }
+        ObserverProxy.prototype.next = function(value) {
+          this.forEachObserver(function(observer) {
+            observer.next(value);
+          });
+        };
+        ObserverProxy.prototype.error = function(error) {
+          this.forEachObserver(function(observer) {
+            observer.error(error);
+          });
+          this.close(error);
+        };
+        ObserverProxy.prototype.complete = function() {
+          this.forEachObserver(function(observer) {
+            observer.complete();
+          });
+          this.close();
+        };
+        ObserverProxy.prototype.subscribe = function(nextOrObserver, error, complete) {
+          var _this = this;
+          var observer;
+          if (void 0 === nextOrObserver && void 0 === error && void 0 === complete) throw new Error("Missing Observer.");
+          observer = implementsAnyMethods(nextOrObserver, [ "next", "error", "complete" ]) ? nextOrObserver : {
+            next: nextOrObserver,
+            error: error,
+            complete: complete
+          };
+          void 0 === observer.next && (observer.next = noop);
+          void 0 === observer.error && (observer.error = noop);
+          void 0 === observer.complete && (observer.complete = noop);
+          var unsub = this.unsubscribeOne.bind(this, this.observers.length);
+          this.finalized && this.task.then(function() {
+            try {
+              _this.finalError ? observer.error(_this.finalError) : observer.complete();
+            } catch (e) {}
+            return;
+          });
+          this.observers.push(observer);
+          return unsub;
+        };
+        ObserverProxy.prototype.unsubscribeOne = function(i) {
+          if (void 0 === this.observers || void 0 === this.observers[i]) return;
+          delete this.observers[i];
+          this.observerCount -= 1;
+          0 === this.observerCount && void 0 !== this.onNoObservers && this.onNoObservers(this);
+        };
+        ObserverProxy.prototype.forEachObserver = function(fn) {
+          if (this.finalized) return;
+          for (var i = 0; i < this.observers.length; i++) this.sendOne(i, fn);
+        };
+        ObserverProxy.prototype.sendOne = function(i, fn) {
+          var _this = this;
+          this.task.then(function() {
+            if (void 0 !== _this.observers && void 0 !== _this.observers[i]) try {
+              fn(_this.observers[i]);
+            } catch (e) {
+              "undefined" !== typeof console && console.error && console.error(e);
+            }
+          });
+        };
+        ObserverProxy.prototype.close = function(err) {
+          var _this = this;
+          if (this.finalized) return;
+          this.finalized = true;
+          void 0 !== err && (this.finalError = err);
+          this.task.then(function() {
+            _this.observers = void 0;
+            _this.onNoObservers = void 0;
+          });
+        };
+        return ObserverProxy;
+      }();
+      function async(fn, onError) {
+        return function() {
+          var args = [];
+          for (var _i = 0; _i < arguments.length; _i++) args[_i] = arguments[_i];
+          Promise.resolve(true).then(function() {
+            fn.apply(void 0, args);
+          }).catch(function(error) {
+            onError && onError(error);
+          });
+        };
+      }
+      function implementsAnyMethods(obj, methods) {
+        if ("object" !== typeof obj || null === obj) return false;
+        for (var _i = 0, methods_1 = methods; _i < methods_1.length; _i++) {
+          var method = methods_1[_i];
+          if (method in obj && "function" === typeof obj[method]) return true;
+        }
+        return false;
+      }
+      function noop() {}
+      var validateArgCount = function(fnName, minCount, maxCount, argCount) {
+        var argError;
+        argCount < minCount ? argError = "at least " + minCount : argCount > maxCount && (argError = 0 === maxCount ? "none" : "no more than " + maxCount);
+        if (argError) {
+          var error = fnName + " failed: Was called with " + argCount + (1 === argCount ? " argument." : " arguments.") + " Expects " + argError + ".";
+          throw new Error(error);
+        }
+      };
+      function errorPrefix(fnName, argumentNumber, optional) {
+        var argName = "";
+        switch (argumentNumber) {
+         case 1:
+          argName = optional ? "first" : "First";
+          break;
+
+         case 2:
+          argName = optional ? "second" : "Second";
+          break;
+
+         case 3:
+          argName = optional ? "third" : "Third";
+          break;
+
+         case 4:
+          argName = optional ? "fourth" : "Fourth";
+          break;
+
+         default:
+          throw new Error("errorPrefix called with argumentNumber > 4.  Need to update it?");
+        }
+        var error = fnName + " failed: ";
+        error += argName + " argument ";
+        return error;
+      }
+      function validateNamespace(fnName, argumentNumber, namespace, optional) {
+        if (optional && !namespace) return;
+        if ("string" !== typeof namespace) throw new Error(errorPrefix(fnName, argumentNumber, optional) + "must be a valid firebase namespace.");
+      }
+      function validateCallback(fnName, argumentNumber, callback, optional) {
+        if (optional && !callback) return;
+        if ("function" !== typeof callback) throw new Error(errorPrefix(fnName, argumentNumber, optional) + "must be a valid function.");
+      }
+      function validateContextObject(fnName, argumentNumber, context, optional) {
+        if (optional && !context) return;
+        if ("object" !== typeof context || null === context) throw new Error(errorPrefix(fnName, argumentNumber, optional) + "must be a valid context object.");
+      }
+      var stringToByteArray$1 = function(str) {
+        var out = [];
+        var p = 0;
+        for (var i = 0; i < str.length; i++) {
+          var c = str.charCodeAt(i);
+          if (c >= 55296 && c <= 56319) {
+            var high = c - 55296;
+            i++;
+            assert(i < str.length, "Surrogate pair missing trail surrogate.");
+            var low = str.charCodeAt(i) - 56320;
+            c = 65536 + (high << 10) + low;
+          }
+          if (c < 128) out[p++] = c; else if (c < 2048) {
+            out[p++] = c >> 6 | 192;
+            out[p++] = 63 & c | 128;
+          } else if (c < 65536) {
+            out[p++] = c >> 12 | 224;
+            out[p++] = c >> 6 & 63 | 128;
+            out[p++] = 63 & c | 128;
+          } else {
+            out[p++] = c >> 18 | 240;
+            out[p++] = c >> 12 & 63 | 128;
+            out[p++] = c >> 6 & 63 | 128;
+            out[p++] = 63 & c | 128;
+          }
+        }
+        return out;
+      };
+      var stringLength = function(str) {
+        var p = 0;
+        for (var i = 0; i < str.length; i++) {
+          var c = str.charCodeAt(i);
+          if (c < 128) p++; else if (c < 2048) p += 2; else if (c >= 55296 && c <= 56319) {
+            p += 4;
+            i++;
+          } else p += 3;
+        }
+        return p;
+      };
+      var DEFAULT_INTERVAL_MILLIS = 1e3;
+      var DEFAULT_BACKOFF_FACTOR = 2;
+      var MAX_VALUE_MILLIS = 144e5;
+      var RANDOM_FACTOR = .5;
+      function calculateBackoffMillis(backoffCount, intervalMillis, backoffFactor) {
+        void 0 === intervalMillis && (intervalMillis = DEFAULT_INTERVAL_MILLIS);
+        void 0 === backoffFactor && (backoffFactor = DEFAULT_BACKOFF_FACTOR);
+        var currBaseValue = intervalMillis * Math.pow(backoffFactor, backoffCount);
+        var randomWait = Math.round(RANDOM_FACTOR * currBaseValue * (Math.random() - .5) * 2);
+        return Math.min(MAX_VALUE_MILLIS, currBaseValue + randomWait);
+      }
+      exports.CONSTANTS = CONSTANTS;
+      exports.Deferred = Deferred;
+      exports.ErrorFactory = ErrorFactory;
+      exports.FirebaseError = FirebaseError;
+      exports.MAX_VALUE_MILLIS = MAX_VALUE_MILLIS;
+      exports.RANDOM_FACTOR = RANDOM_FACTOR;
+      exports.Sha1 = Sha1;
+      exports.areCookiesEnabled = areCookiesEnabled;
+      exports.assert = assert;
+      exports.assertionError = assertionError;
+      exports.async = async;
+      exports.base64 = base64;
+      exports.base64Decode = base64Decode;
+      exports.base64Encode = base64Encode;
+      exports.calculateBackoffMillis = calculateBackoffMillis;
+      exports.contains = contains;
+      exports.createSubscribe = createSubscribe;
+      exports.decode = decode;
+      exports.deepCopy = deepCopy;
+      exports.deepExtend = deepExtend;
+      exports.errorPrefix = errorPrefix;
+      exports.getUA = getUA;
+      exports.isAdmin = isAdmin;
+      exports.isBrowser = isBrowser;
+      exports.isBrowserExtension = isBrowserExtension;
+      exports.isElectron = isElectron;
+      exports.isEmpty = isEmpty;
+      exports.isIE = isIE;
+      exports.isIndexedDBAvailable = isIndexedDBAvailable;
+      exports.isMobileCordova = isMobileCordova;
+      exports.isNode = isNode;
+      exports.isNodeSdk = isNodeSdk;
+      exports.isReactNative = isReactNative;
+      exports.isSafari = isSafari;
+      exports.isUWP = isUWP;
+      exports.isValidFormat = isValidFormat;
+      exports.isValidTimestamp = isValidTimestamp;
+      exports.issuedAtTime = issuedAtTime;
+      exports.jsonEval = jsonEval;
+      exports.map = map;
+      exports.querystring = querystring;
+      exports.querystringDecode = querystringDecode;
+      exports.safeGet = safeGet;
+      exports.stringLength = stringLength;
+      exports.stringToByteArray = stringToByteArray$1;
+      exports.stringify = stringify;
+      exports.validateArgCount = validateArgCount;
+      exports.validateCallback = validateCallback;
+      exports.validateContextObject = validateContextObject;
+      exports.validateIndexedDBOpenable = validateIndexedDBOpenable;
+      exports.validateNamespace = validateNamespace;
+    }).call(this, "undefined" !== typeof global ? global : "undefined" !== typeof self ? self : "undefined" !== typeof window ? window : {});
+  }, {
+    tslib: 12
+  } ],
+  12: [ function(require, module, exports) {
+    arguments[4][3][0].apply(exports, arguments);
+  }, {
+    dup: 3
+  } ],
+  13: [ function(require, module, exports) {
+    "use strict";
+    require("@firebase/analytics");
+  }, {
+    "@firebase/analytics": 2
+  } ],
+  14: [ function(require, module, exports) {
+    "use strict";
+    var firebase = require("@firebase/app");
+    function _interopDefaultLegacy(e) {
+      return e && "object" === typeof e && "default" in e ? e : {
+        default: e
+      };
+    }
+    var firebase__default = _interopDefaultLegacy(firebase);
+    var name = "firebase";
+    var version = "7.24.0";
+    firebase__default["default"].registerVersion(name, version, "app");
+    module.exports = firebase__default["default"];
+  }, {
+    "@firebase/app": 4
+  } ],
+  15: [ function(require, module, exports) {
+    (function(global, factory) {
+      "object" === typeof exports && "undefined" !== typeof module ? factory(exports) : "function" === typeof define && define.amd ? define([ "exports" ], factory) : (global = global || self, 
+      factory(global.idb = {}));
+    })(this, function(exports) {
+      "use strict";
+      function toArray(arr) {
+        return Array.prototype.slice.call(arr);
+      }
+      function promisifyRequest(request) {
+        return new Promise(function(resolve, reject) {
+          request.onsuccess = function() {
+            resolve(request.result);
+          };
+          request.onerror = function() {
+            reject(request.error);
+          };
+        });
+      }
+      function promisifyRequestCall(obj, method, args) {
+        var request;
+        var p = new Promise(function(resolve, reject) {
+          request = obj[method].apply(obj, args);
+          promisifyRequest(request).then(resolve, reject);
+        });
+        p.request = request;
+        return p;
+      }
+      function promisifyCursorRequestCall(obj, method, args) {
+        var p = promisifyRequestCall(obj, method, args);
+        return p.then(function(value) {
+          if (!value) return;
+          return new Cursor(value, p.request);
+        });
+      }
+      function proxyProperties(ProxyClass, targetProp, properties) {
+        properties.forEach(function(prop) {
+          Object.defineProperty(ProxyClass.prototype, prop, {
+            get: function() {
+              return this[targetProp][prop];
+            },
+            set: function(val) {
+              this[targetProp][prop] = val;
+            }
+          });
+        });
+      }
+      function proxyRequestMethods(ProxyClass, targetProp, Constructor, properties) {
+        properties.forEach(function(prop) {
+          if (!(prop in Constructor.prototype)) return;
+          ProxyClass.prototype[prop] = function() {
+            return promisifyRequestCall(this[targetProp], prop, arguments);
+          };
+        });
+      }
+      function proxyMethods(ProxyClass, targetProp, Constructor, properties) {
+        properties.forEach(function(prop) {
+          if (!(prop in Constructor.prototype)) return;
+          ProxyClass.prototype[prop] = function() {
+            return this[targetProp][prop].apply(this[targetProp], arguments);
+          };
+        });
+      }
+      function proxyCursorRequestMethods(ProxyClass, targetProp, Constructor, properties) {
+        properties.forEach(function(prop) {
+          if (!(prop in Constructor.prototype)) return;
+          ProxyClass.prototype[prop] = function() {
+            return promisifyCursorRequestCall(this[targetProp], prop, arguments);
+          };
+        });
+      }
+      function Index(index) {
+        this._index = index;
+      }
+      proxyProperties(Index, "_index", [ "name", "keyPath", "multiEntry", "unique" ]);
+      proxyRequestMethods(Index, "_index", IDBIndex, [ "get", "getKey", "getAll", "getAllKeys", "count" ]);
+      proxyCursorRequestMethods(Index, "_index", IDBIndex, [ "openCursor", "openKeyCursor" ]);
+      function Cursor(cursor, request) {
+        this._cursor = cursor;
+        this._request = request;
+      }
+      proxyProperties(Cursor, "_cursor", [ "direction", "key", "primaryKey", "value" ]);
+      proxyRequestMethods(Cursor, "_cursor", IDBCursor, [ "update", "delete" ]);
+      [ "advance", "continue", "continuePrimaryKey" ].forEach(function(methodName) {
+        if (!(methodName in IDBCursor.prototype)) return;
+        Cursor.prototype[methodName] = function() {
+          var cursor = this;
+          var args = arguments;
+          return Promise.resolve().then(function() {
+            cursor._cursor[methodName].apply(cursor._cursor, args);
+            return promisifyRequest(cursor._request).then(function(value) {
+              if (!value) return;
+              return new Cursor(value, cursor._request);
+            });
+          });
+        };
+      });
+      function ObjectStore(store) {
+        this._store = store;
+      }
+      ObjectStore.prototype.createIndex = function() {
+        return new Index(this._store.createIndex.apply(this._store, arguments));
+      };
+      ObjectStore.prototype.index = function() {
+        return new Index(this._store.index.apply(this._store, arguments));
+      };
+      proxyProperties(ObjectStore, "_store", [ "name", "keyPath", "indexNames", "autoIncrement" ]);
+      proxyRequestMethods(ObjectStore, "_store", IDBObjectStore, [ "put", "add", "delete", "clear", "get", "getAll", "getKey", "getAllKeys", "count" ]);
+      proxyCursorRequestMethods(ObjectStore, "_store", IDBObjectStore, [ "openCursor", "openKeyCursor" ]);
+      proxyMethods(ObjectStore, "_store", IDBObjectStore, [ "deleteIndex" ]);
+      function Transaction(idbTransaction) {
+        this._tx = idbTransaction;
+        this.complete = new Promise(function(resolve, reject) {
+          idbTransaction.oncomplete = function() {
+            resolve();
+          };
+          idbTransaction.onerror = function() {
+            reject(idbTransaction.error);
+          };
+          idbTransaction.onabort = function() {
+            reject(idbTransaction.error);
+          };
+        });
+      }
+      Transaction.prototype.objectStore = function() {
+        return new ObjectStore(this._tx.objectStore.apply(this._tx, arguments));
+      };
+      proxyProperties(Transaction, "_tx", [ "objectStoreNames", "mode" ]);
+      proxyMethods(Transaction, "_tx", IDBTransaction, [ "abort" ]);
+      function UpgradeDB(db, oldVersion, transaction) {
+        this._db = db;
+        this.oldVersion = oldVersion;
+        this.transaction = new Transaction(transaction);
+      }
+      UpgradeDB.prototype.createObjectStore = function() {
+        return new ObjectStore(this._db.createObjectStore.apply(this._db, arguments));
+      };
+      proxyProperties(UpgradeDB, "_db", [ "name", "version", "objectStoreNames" ]);
+      proxyMethods(UpgradeDB, "_db", IDBDatabase, [ "deleteObjectStore", "close" ]);
+      function DB(db) {
+        this._db = db;
+      }
+      DB.prototype.transaction = function() {
+        return new Transaction(this._db.transaction.apply(this._db, arguments));
+      };
+      proxyProperties(DB, "_db", [ "name", "version", "objectStoreNames" ]);
+      proxyMethods(DB, "_db", IDBDatabase, [ "close" ]);
+      [ "openCursor", "openKeyCursor" ].forEach(function(funcName) {
+        [ ObjectStore, Index ].forEach(function(Constructor) {
+          if (!(funcName in Constructor.prototype)) return;
+          Constructor.prototype[funcName.replace("open", "iterate")] = function() {
+            var args = toArray(arguments);
+            var callback = args[args.length - 1];
+            var nativeObject = this._store || this._index;
+            var request = nativeObject[funcName].apply(nativeObject, args.slice(0, -1));
+            request.onsuccess = function() {
+              callback(request.result);
+            };
+          };
+        });
+      });
+      [ Index, ObjectStore ].forEach(function(Constructor) {
+        if (Constructor.prototype.getAll) return;
+        Constructor.prototype.getAll = function(query, count) {
+          var instance = this;
+          var items = [];
+          return new Promise(function(resolve) {
+            instance.iterateCursor(query, function(cursor) {
+              if (!cursor) {
+                resolve(items);
+                return;
+              }
+              items.push(cursor.value);
+              if (void 0 !== count && items.length == count) {
+                resolve(items);
+                return;
+              }
+              cursor.continue();
+            });
+          });
+        };
+      });
+      function openDb(name, version, upgradeCallback) {
+        var p = promisifyRequestCall(indexedDB, "open", [ name, version ]);
+        var request = p.request;
+        request && (request.onupgradeneeded = function(event) {
+          upgradeCallback && upgradeCallback(new UpgradeDB(request.result, event.oldVersion, request.transaction));
+        });
+        return p.then(function(db) {
+          return new DB(db);
+        });
+      }
+      function deleteDb(name) {
+        return promisifyRequestCall(indexedDB, "deleteDatabase", [ name ]);
+      }
+      exports.openDb = openDb;
+      exports.deleteDb = deleteDb;
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+    });
   }, {} ],
   FirebaseApi: [ function(require, module, exports) {
     "use strict";
@@ -2976,7 +7011,7 @@ window.__require = function e(t, n, r) {
       Chimple.prototype.onLoad = function() {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function() {
-          var params, urlParams, _i, params_1, param, isIframe, input, lang, langConfig, teachersAdded, updates, subpackages, doRestart;
+          var params, urlParams, _i, params_1, param, input, lang, langConfig, teachersAdded, updates, subpackages, doRestart;
           var _this = this;
           return __generator(this, function(_c) {
             cc.sys.isNative && jsb.fileUtils.setSearchPaths([ jsb.fileUtils.getWritablePath() + "HotUpdateSearchPaths", "@assets/" ]);
@@ -2987,8 +7022,7 @@ window.__require = function e(t, n, r) {
               param = params_1[_i];
               urlParams[param.split("=")[0]] = param.split("=")[1];
             }
-            isIframe = !(window === window.parent);
-            cc.log("xxxxx data", urlParams, "isIframe", isIframe);
+            cc.log("urlParams", urlParams);
             if (null != urlParams["courseid"] && null != urlParams["chapterid"] && null != urlParams["lessonid"]) {
               input = {
                 courseid: urlParams["courseid"],
@@ -3721,11 +7755,11 @@ window.__require = function e(t, n, r) {
       };
       Config.loadBundle = function(lessonId, callback, errCallback) {
         var _a;
-        var isIframe = !(window === window.parent);
+        var isCuba = profile_1.default.getItem(constants_1.IS_CUBA);
         var isAndroid = "android" === core_1.Capacitor.getPlatform();
         var gameUrl = null !== (_a = cc.sys.localStorage.getItem("gameUrl")) && void 0 !== _a ? _a : "http://localhost/_capacitor_file_/data/user/0/org.chimple.cuba/files/";
-        var firstPath = isIframe && isAndroid && gameUrl ? gameUrl + lessonId : lessonId;
-        console.log("gameUrl", gameUrl, "isIframe", isIframe, cc.sys.localStorage.getItem("gameUrl"), "firstPath", firstPath);
+        var firstPath = isCuba && isAndroid && gameUrl ? gameUrl + lessonId : lessonId;
+        console.log("gameUrl", gameUrl, "isCuba", isCuba, cc.sys.localStorage.getItem("gameUrl"), "firstPath", firstPath);
         cc.assetManager.loadBundle(firstPath, function(err, bundle) {
           err ? cc.assetManager.loadBundle(constants_1.BUNDLE_URL + lessonId, function(err2, bundle2) {
             err2 ? errCallback(err2) : callback(bundle2);
@@ -3759,7 +7793,7 @@ window.__require = function e(t, n, r) {
       value: true
     });
     exports.FIREBASE_STUDENT_ID = exports.FIREBASE_SECTION_ID = exports.FIREBASE_SCHOOL_ID = exports.CURRENT_SUBJECT_ID = exports.CURRENT_SECTION_ID = exports.CURRENT_CLASS_ID = exports.CURRENT_STUDENT_ID = exports.CURRENT_SCHOOL_ID = exports.PARSE_ENABLED = exports.QUEUE_OFFLOAD_FREQUENCY = exports.LEVEL_END = exports.LEVEL_NAME = exports.LEVEL_START = exports.ACHIEVEMENT_ID = exports.UNLOCK_ACHIEVEMENT = exports.CONTENT_TYPE = exports.ITEM_ID = exports.SELECT_CONTENT = exports.FAIL_TO_COLLECT_ALL_REWARDS = exports.APP_END = exports.APP_START = exports.WORLD_COMPLETED = exports.LEVEL_COMPLETED = exports.GAME_END = exports.PROBLEM_END = exports.GAME_START = exports.PROBLEM_START = exports.LOG_TYPE = exports.LOG_RIGHT_MOVES = exports.LOG_WRONG_MOVES = exports.LOG_PROBLEM = exports.LOG_GAME_LEVEL = exports.SKILLS = exports.COURSE = exports.LOG_LEVEL = exports.LOG_WORLD = exports.LOG_GAME = exports.ASSET_URL = exports.BUNDLE_URL = exports.COURSES_URL = exports.COURSE_SERVER = exports.SIMULATOR_ROOT_DIR = exports.ANDROID_ROOT_DIR = exports.ASSET_LOAD_METHOD = exports.ENV = exports.LANG = exports.MODE = exports.D_MODE = exports.Mode = exports.DeployMode = void 0;
-    exports.courseSortIndex = exports.firebaseConfigWeb = exports.COUNTRY_CODES = exports.MICROLINK_END_BLANK = exports.MIN_PASS = exports.EXAM = exports.IS_REMEMBER_TOGGLE_ON = exports.REMEMBERED_USER = exports.LOGGED_IN_USER = void 0;
+    exports.courseSortIndex = exports.firebaseConfigWeb = exports.COUNTRY_CODES = exports.MICROLINK_END_BLANK = exports.IS_CUBA = exports.MIN_PASS = exports.EXAM = exports.IS_REMEMBER_TOGGLE_ON = exports.REMEMBERED_USER = exports.LOGGED_IN_USER = void 0;
     var DeployMode;
     (function(DeployMode) {
       DeployMode[DeployMode["Open"] = 0] = "Open";
@@ -3852,6 +7886,7 @@ window.__require = function e(t, n, r) {
     exports.IS_REMEMBER_TOGGLE_ON = "isRememberToggleOn";
     exports.EXAM = "exam";
     exports.MIN_PASS = 70;
+    exports.IS_CUBA = "is_cuba";
     exports.MICROLINK_END_BLANK = "blank";
     exports.COUNTRY_CODES = [ {
       name: "Afghanistan",
@@ -7308,8 +11343,8 @@ window.__require = function e(t, n, r) {
           mlClassId: config.lesson.mlClassId || null,
           mlPartnerId: config.lesson.mlPartnerId || null
         };
-        var isIframe = !(window === window.parent);
-        if (isIframe) {
+        var isCuba = profile_1.default.getItem(constants_1.IS_CUBA);
+        if (isCuba) {
           var customEvent = new CustomEvent("problemEnd", {
             detail: event
           });
@@ -7352,7 +11387,7 @@ window.__require = function e(t, n, r) {
       };
       LessonController.prototype.lessonEnd = function() {
         return __awaiter(this, void 0, void 0, function() {
-          var config, timeSpent, score, isIframe, detail, event, user, reward, finishedLessons_1, percentageComplete, updateInfo, mode, updateInfo_1, requestParams, error_1, block, scorecard, scorecardComp, gameConfig;
+          var config, timeSpent, score, isCuba, detail, event, user, reward, finishedLessons_1, percentageComplete, updateInfo, mode, updateInfo_1, requestParams, error_1, block, scorecard, scorecardComp, gameConfig;
           return __generator(this, function(_a) {
             switch (_a.label) {
              case 0:
@@ -7362,8 +11397,8 @@ window.__require = function e(t, n, r) {
               Math.abs(timeSpent) > 1200 && (timeSpent = 1200);
               score = Math.round(this.totalQuizzes > 0 ? this.quizScore / this.totalQuizzes * 70 + this.rightMoves / (this.rightMoves + this.wrongMoves) * 30 : this.rightMoves / (this.rightMoves + this.wrongMoves) * 100);
               isNaN(score) && (score = 0);
-              isIframe = !(window === window.parent);
-              if (isIframe) {
+              isCuba = profile_1.default.getItem(constants_1.IS_CUBA);
+              if (isCuba) {
                 detail = {
                   chapterName: config.chapter.name,
                   chapterId: config.chapter.id,
@@ -7490,7 +11525,7 @@ window.__require = function e(t, n, r) {
               scorecardComp.score = score;
               scorecardComp.text = config.lesson.name;
               scorecardComp.reward = reward;
-              !config_1.default.isMicroLink || cc.sys.isNative || isIframe || (scorecardComp.continueButton.active = false);
+              !config_1.default.isMicroLink || cc.sys.isNative || isCuba || (scorecardComp.continueButton.active = false);
               LessonController_1.friend.node.removeFromParent();
               this.node.addChild(scorecard);
               gameConfig = gameConfigs_1.GAME_CONFIGS[config.game];
@@ -11250,6 +15285,7 @@ window.__require = function e(t, n, r) {
     var achievement_1 = require("./achievement");
     var friend_1 = require("../../scripts/friend");
     var constants_1 = require("../../scripts/lib/constants");
+    var profile_1 = require("../../scripts/lib/profile");
     var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
     var Scorecard = function(_super) {
       __extends(Scorecard, _super);
@@ -11264,12 +15300,12 @@ window.__require = function e(t, n, r) {
         _this.rewardPos = null;
         _this.score = 0;
         _this.text = "Lesson";
-        _this.isIframe = !(window === window.parent);
+        _this.isCuba = profile_1.default.getItem(constants_1.IS_CUBA);
         return _this;
       }
       Scorecard.prototype.onLoad = function() {
         var _this = this;
-        if (!cc.sys.isNative && config_1.default.isMicroLink && !this.isIframe) {
+        if (!cc.sys.isNative && config_1.default.isMicroLink && !this.isCuba) {
           this.continueButton.active = false;
           if (config_1.default.i.microLinkData.end != constants_1.MICROLINK_END_BLANK) {
             this.downloadButton.active = true;
@@ -11309,11 +15345,12 @@ window.__require = function e(t, n, r) {
       };
       Scorecard.prototype.onContinueClick = function() {
         this.continueButton.getComponent(cc.Button).interactable = false;
-        if (this.isIframe) {
+        if (this.isCuba) {
           var customEvent = new CustomEvent("gameEnd", {
             detail: {}
           });
           window.parent.document.body.dispatchEvent(customEvent);
+          console.log("event dispatched", customEvent);
           return;
         }
         if (cc.sys.isNative && config_1.default.isMicroLink) {
@@ -11345,6 +15382,7 @@ window.__require = function e(t, n, r) {
     "../../../common/scripts/lib/config": "config",
     "../../scripts/friend": "friend",
     "../../scripts/lib/constants": "constants",
+    "../../scripts/lib/profile": "profile",
     "../../scripts/util": "util",
     "./achievement": "achievement"
   } ],
@@ -14068,8 +18106,8 @@ window.__require = function e(t, n, r) {
     "./lib/config": "config",
     "./lib/constants": "constants",
     "./lib/profile": "profile",
-    "firebase/analytics": void 0,
-    "firebase/app": void 0
+    "firebase/analytics": 13,
+    "firebase/app": 14
   } ],
   util: [ function(require, module, exports) {
     "use strict";
