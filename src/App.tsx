@@ -29,7 +29,14 @@ import { Filesystem, Directory } from "@capacitor/filesystem";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
-import { BASE_NAME, GAME_URL, LANG, LANGUAGE, PAGES } from "./common/constants";
+import {
+  BASE_NAME,
+  GAME_URL,
+  IS_CUBA,
+  LANG,
+  LANGUAGE,
+  PAGES
+} from "./common/constants";
 // import Assignments from "./pages/Assignments";
 
 setupIonicReact();
@@ -38,6 +45,7 @@ const App: React.FC = () => {
   useEffect(() => {
     console.log("fetching...");
     localStorage.setItem(LANGUAGE, LANG.ENGLISH);
+    localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({
         directory: Directory.Cache,

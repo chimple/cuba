@@ -61,6 +61,7 @@ export const GAME_URL = "gameUrl"
 export const BASE_NAME = Capacitor.isNativePlatform()
     ? ""
     : process.env.NODE_ENV === "production"
-        ? "/cuba"
+        ? "/"
         : "";
 export const MIN_PASS = 70
+export const IS_CUBA = "is_cuba"

@@ -18,7 +18,11 @@
 
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
-    <link rel="shortcut icon" type="image/png" href="%PUBLIC_URL%/assets/icon/favicon.png" />
+    <link
+      rel="shortcut icon"
+      type="image/png"
+      href="%PUBLIC_URL%/assets/icon/favicon.png"
+    />
 
     <!-- add to homescreen for ios -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -28,6 +32,45 @@
 
   <body>
     <div id="root"></div>
-  </body>
+    <canvas
+      id="GameCanvas"
+      style="display: ''; width: 0; height: 0"
+      oncontextmenu="event.preventDefault()"
+      tabindex="0"
+    ></canvas>
+    <script src="src/settings.js" charset="utf-8"></script>
 
+    <script src="cocos-main.js" charset="utf-8"></script>
+
+    <script type="text/javascript">
+      (function () {
+        // open web debugger console
+        if (typeof VConsole !== "undefined") {
+          window.vConsole = new VConsole();
+        }
+
+        var debug = window._CCSettings.debug;
+        function loadScript(moduleName, cb) {
+          function scriptLoaded() {
+            document.body.removeChild(domScript);
+            domScript.removeEventListener("load", scriptLoaded, false);
+            cb && cb();
+          }
+          var domScript = document.createElement("script");
+          domScript.async = true;
+          domScript.src = moduleName;
+          domScript.addEventListener("load", scriptLoaded, false);
+          document.body.appendChild(domScript);
+        }
+
+        loadScript(debug ? "cocos2d-js.js" : "cocos2d-js-min.js", function () {
+          if (CC_PHYSICS_BUILTIN || CC_PHYSICS_CANNON) {
+            loadScript(debug ? "physics.js" : "physics-min.js", window.boot);
+          } else {
+            if (window.boot) window.boot();
+          }
+        });
+      })();
+    </script>
+  </body>
 </html>

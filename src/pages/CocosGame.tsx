@@ -14,6 +14,12 @@ import { Lesson } from "../interface/curriculumInterfaces";
 import Curriculum from "../models/curriculum";
 import { OneRosterApi } from "../services/OneRosterApi";
 import { Util } from "../utility/util";
+declare global {
+  interface Window {
+    launchGame: Function;
+    killGame: Function;
+  }
+}
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -69,8 +75,10 @@ const CocosGame: React.FC = () => {
     }
     console.log("donwloaded ", dow);
     setIsLoading(false);
-    document.getElementById("iframe")?.focus();
+    // document.getElementById("iframe")?.focus();
+    if (window.launchGame) window.launchGame();
     const push = (e: any) => {
+      if (window.killGame) window.killGame();
       history.replace(state.from ?? PAGES.HOME);
     };
 
@@ -137,14 +145,14 @@ const CocosGame: React.FC = () => {
           isOpen={isLoading}
           message={"Please wait..."}
         />
-        {!isLoading ? (
+        {/* {!isLoading ? (
           <iframe
             src={iFrameUrl}
             id="iframe"
             style={{ height: "100vh", width: "100vw" }}
             frameBorder="0"
           ></iframe>
-        ) : null}
+        ) : null} */}
       </IonContent>
     </IonPage>
   );
