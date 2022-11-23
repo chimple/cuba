@@ -47,9 +47,9 @@ const LessonCard: React.FC<{
       }}
       onClick={() => {
         if (isUnlocked) {
-          const url = `chimple-lib/index.html?courseid=${subjectCode}&chapterid=${lesson.chapter.id}&lessonid=${lesson.id}`;
-          history.push(PAGES.GAME, {
-            url: url,
+          const parmas = `?courseid=${subjectCode}&chapterid=${lesson.chapter.id}&lessonid=${lesson.id}`;
+          history.push(PAGES.GAME + parmas, {
+            url: "chimple-lib/index.html" + parmas,
             lessonId: lesson.id,
             lesson: lesson,
             from: history.location.pathname,

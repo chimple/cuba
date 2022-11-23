@@ -54,7 +54,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build && cap sync android",
+    "build": "react-scripts build && npm run copy-build && cap sync android",
+    "copy-build": "shx cp chimple-lib/*.js build/ && shx cp -r chimple-lib/src build/src && shx cp -r chimple-lib/assets/* build/assets/",
     "test": "react-scripts test --transformIgnorePatterns 'node_modules/(?!(@ionic/react|@ionic/react-router|@ionic/core|@stencil/core|ionicons)/)'",
     "eject": "react-scripts eject"
   },
@@ -77,7 +78,8 @@
     ]
   },
   "devDependencies": {
-    "@capacitor/cli": "4.2.0"
+    "@capacitor/cli": "4.2.0",
+    "shx": "^0.3.4"
   },
   "description": "An Ionic project"
 }
