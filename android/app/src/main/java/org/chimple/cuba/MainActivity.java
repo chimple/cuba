@@ -23,10 +23,10 @@ public class MainActivity extends BridgeActivity {
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
-        String newUA= "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.4) Gecko/20100101 Firefox/4.0";
-        WebView webView = getBridge().getWebView();
-        WebSettings settings = webView.getSettings();
-        settings.setUserAgentString(newUA);
+        // String newUA= "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.4) Gecko/20100101 Firefox/4.0";
+        // WebView webView = getBridge().getWebView();
+        // WebSettings settings = webView.getSettings();
+        // settings.setUserAgentString(newUA);
     }
 
 }
