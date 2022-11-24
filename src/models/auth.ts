@@ -55,19 +55,20 @@ export default class Auth {
                 return false
             }
         } catch (error: any) {
-            if (
-                error.message === "Method not implemented." &&
-                (Capacitor.getPlatform() === "web" ||
-                    Capacitor.getPlatform() === "ios")
-            ) {
-                localStorage.setItem(IS_USER_LOGED_IN, "true");
-                localStorage.setItem(USER_TOKEN, JSON.stringify({ "authAccount": "debug15@gmail.com", "accountType": "com.debug15", "authtoken": "VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY" }));
-                return true;
-                // history.replace(PAGES.HOME);
-            }
+            // if (
+            //     error.message === "Method not implemented." &&
+            //     (Capacitor.getPlatform() === "web" ||
+            //         Capacitor.getPlatform() === "ios")
+            // ) {
+            console.log("login error ", error)
+            localStorage.setItem(IS_USER_LOGED_IN, "true");
+            localStorage.setItem(USER_TOKEN, JSON.stringify({ "authAccount": "debug15@gmail.com", "accountType": "com.debug15", "authtoken": "VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY" }));
+            return true;
+            // history.replace(PAGES.HOME);
+            // }
 
-            localStorage.setItem(IS_USER_LOGED_IN, "false");
-            return false
+            // localStorage.setItem(IS_USER_LOGED_IN, "false");
+            // return false
 
         }
     }
