@@ -35,6 +35,17 @@ window.boot = function () {
       cc.assetManager.downloader.maxConcurrency = 2;
       cc.assetManager.downloader.maxRequestsPerFrame = 2;
     }
+    var launchScene = settings.launchScene;
+    var bundle = cc.assetManager.bundles.find(function (b) {
+      return b.getSceneInfo(launchScene);
+    });
+
+    bundle.loadScene(launchScene, null, null, function (err, scene) {
+      if (!err) {
+        console.log("init loaded scene", scene);
+        // cc.director.runSceneImmediate(scene);
+      }
+    });
   };
 
   var option = {
