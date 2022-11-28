@@ -14,7 +14,7 @@ const Profile: React.FC = () => {
   const [rewards, setRewards] = useState<any>();
   const [allLessons, setAllLessons] = useState<any>();
   const [currentCourseId, setCurrentCourseId] = useState(COURSES.ENGLISH);
-  const [unlockUpTo, setUnlockUpTo] = useState(-1);
+  // const [unlockUpTo, setUnlockUpTo] = useState(-1);
 
   useEffect(() => {
     init();
@@ -38,19 +38,19 @@ const Profile: React.FC = () => {
       lessonMap = tempLessonMap;
     }
     const lessons: Lesson[] = [];
-    let tempUnlockUpTo = -1;
+    // let tempUnlockUpTo = -1;
 
     for (let i = 0; i < tempLessons.length; i++) {
       const lesson = tempLessons[i];
       if (lesson.type === "exam") {
         lessons.push(lesson);
-        const isUnlocked = !!lessonMap[lesson.id] && lessonMap[lesson.id] > 0;
-        if (isUnlocked) {
-          tempUnlockUpTo = lessons.length - 1;
-        }
+        // const isUnlocked = !!lessonMap[lesson.id] && lessonMap[lesson.id] > 0;
+        // if (isUnlocked) {
+        //   tempUnlockUpTo = lessons.length - 1;
+        // }
       }
     }
-    setUnlockUpTo(tempUnlockUpTo);
+    // setUnlockUpTo(tempUnlockUpTo);
     setCurrentCourseId(subjectCode);
     setAllLessons(lessons);
     setIsLoading(false);
@@ -93,7 +93,7 @@ const Profile: React.FC = () => {
         {!isLoading ? (
           <div className="wrapper">
             {allLessons?.map((lesson: Lesson, index: number) => {
-              const isUnlocked = index <= unlockUpTo;
+              // const isUnlocked = index <= unlockUpTo;
               const isPLayed = !!rewards[lesson.id] && rewards[lesson.id] > 0;
               return (
                 <LessonCard
@@ -102,7 +102,7 @@ const Profile: React.FC = () => {
                   lesson={lesson}
                   key={index}
                   isPlayed={isPLayed}
-                  isUnlocked={isUnlocked}
+                  isUnlocked={isPLayed}
                   subjectCode={lesson.chapter.course.id}
                   showText={false}
                   showScoreCard={false}
