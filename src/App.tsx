@@ -43,7 +43,7 @@ setupIonicReact();
 
 const App: React.FC = () => {
   useEffect(() => {
-    console.log("fetching...");
+    console.log("fetching...",process.env,"env");
     localStorage.setItem(LANGUAGE, LANG.ENGLISH);
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {

@@ -3,7 +3,7 @@ name: Build Android
 on:
   push:
     branches:
-      - master
+      - bhanu
 
 jobs:
   build:
@@ -26,23 +26,13 @@ jobs:
         with:
           node-version: 16.x
 
-      # - name: Install Ionic
-      #   run: npm install -g @ionic/cli
-
       - name: Install app dependencies
         run: npm install
 
-      # - name: Build Ionic App
-      #   run: ionic build
-
-      # - name: Copy Android
-      #   run: ionic capacitor copy android
-
-      # - name: Build Android Dev APK
-      #   run: ionic capacitor build android
-
-      # - name: Build Android Release APK
-      #   run: ionic capacitor build android --release --prod
+      - name: Store variables
+        run: |
+          touch .env
+          echo 'REACT_APP_GITHUB_BASE=/cuba' >> .env
 
       - name: Build
         run: npm run build
@@ -63,13 +53,6 @@ jobs:
         working-directory: ./android/
         run: ./gradlew assembleDebug
 
-      # - name: Upload dev APK
-      #   uses: actions/upload-artifact@v1
-      #   with:
-      #   name: app-dev
-      #   working-directory: .
-      #   path: android/app/build/outputs/apk/debug/app-debug.apk
-
       - name: Deploy apk
         working-directory: .
         run: |
@@ -84,31 +67,3 @@ jobs:
           #git push --force secure-origin apk
           #git push --set-upstream origin gh-pages
           git push origin apk -f
-
-      # - name: Build web
-      #   run: |
-      #     npm run build
-      #     echo "REPO_NAME=${{ github.event.repository.name }}"
-
-      #   env:
-      #     FLOW: "/${{ github.event.repository.name }}/"
-
-      # - name: Deploy web
-      #   working-directory: .
-      #   run: |
-      #     cd dist
-      #     rm chimple-lib/.git
-      #     git init
-      #     git config --global user.email prakash@sutara.org
-      #     git config --global user.name  bhanugummana
-      #     git remote add origin https://${{ secrets.ACCESS_TOKEN }}@github.com/chimple/cuba-test.git
-      #     git checkout -b gh-pages
-      #     git add --all
-      #     git commit -m "Updated web"
-      #     git push origin gh-pages -f
-
-      # - name: Upload release bundle
-      #   uses: actions/upload-artifact@v1
-      #   with:
-      #     name: app-release
-      #     path: apk/app.aab

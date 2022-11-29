@@ -58,10 +58,8 @@ export const LANGUAGE = "language"
 export const EXAM = 'exam'
 export const PRE_QUIZ = "PreQuiz";
 export const GAME_URL = "gameUrl"
-export const BASE_NAME = Capacitor.isNativePlatform()
-    ? ""
-    : process.env.NODE_ENV === "production"
-        ? "/cuba"
-        : "";
+export const BASE_NAME = !Capacitor.isNativePlatform() && !!process.env.REACT_APP_GITHUB_BASE
+    ? process.env.REACT_APP_GITHUB_BASE
+    : "";
 export const MIN_PASS = 70
 export const IS_CUBA = "is_cuba"
