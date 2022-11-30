@@ -64,11 +64,8 @@ const Home: React.FC = () => {
 
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
-    const curInstanse = Curriculum.getInstance();
-    let lessons = await curInstanse.allLessonforSubject(subjectCode);
-    let chapters = await curInstanse.allChapterforSubject(subjectCode);
-    const _preQuizPlayed = await setScore(subjectCode);
-    if (_preQuizPlayed) {
+    let { preQuizPlayed, lessons, chapters } = await setScore(subjectCode);
+    if (preQuizPlayed) {
       if (lessons[0].id === subjectCode + "_" + PRE_QUIZ) {
         lessons = lessons.slice(1);
         chapters = chapters.slice(1);
@@ -155,40 +152,43 @@ const Home: React.FC = () => {
     }
   }
 
-  async function setScore(subjectCode: string): Promise<boolean> {
+  async function setScore(subjectCode: string): Promise<any> {
     const apiInstance = OneRosterApi.getInstance();
     const tempClass = await apiInstance.getClassForUserForSubject(
       "user",
       subjectCode
     );
-
-    const _isPreQuizPlayed = await apiInstance.isPreQuizDone(
-      subjectCode,
-      tempClass?.sourcedId ?? "",
-      "user"
-    );
     console.log("tempClass", tempClass);
-
     const tempLessonMap =
       await apiInstance.getResultsForStudentsForClassInLessonMap(
         tempClass?.sourcedId ?? "",
         "user"
       );
-    if (subjectCode !== COURSES.PUZZLE && _isPreQuizPlayed) {
-      const preQuiz = await apiInstance.getPreQuiz(
+    const preQuiz = tempLessonMap[subjectCode + "_" + PRE_QUIZ];
+    const curInstance = Curriculum.getInstance();
+    let chapters = await curInstance.allChapterForSubject(
+      subjectCode,
+      tempLessonMap
+    );
+    let lessons = await curInstance.allLessonForSubject(
+      subjectCode,
+      tempLessonMap
+    );
+    if (subjectCode !== COURSES.PUZZLE && !!preQuiz) {
+      const tempLevelChapter = await apiInstance.getChapterForPreQuizScore(
         subjectCode,
-        tempClass?.sourcedId ?? "",
-        "user"
-      );
-      const tempLevelChapter = await apiInstance.getChapaterForPreQuizScore(
-        subjectCode,
-        preQuiz?.score ?? 0
+        preQuiz?.score ?? 0,
+        chapters
       );
       setLevelChapter(tempLevelChapter);
     }
-    setIsPreQuizPlayed(_isPreQuizPlayed);
+    setIsPreQuizPlayed(!!preQuiz);
     setLessonsScoreMap(tempLessonMap);
-    return subjectCode !== COURSES.PUZZLE && _isPreQuizPlayed;
+    return {
+      preQuizPlayed: subjectCode !== COURSES.PUZZLE && !!preQuiz,
+      lessons: lessons,
+      chapters: chapters,
+    };
   }
 
   return (

@@ -1,7 +1,7 @@
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
 import { Util } from "../utility/util";
 import { COURSES, EXAM, TEMP_LESSONS_STORE } from "../common/constants";
-import { OneRosterApi } from "../services/OneRosterApi";
+import { Result } from "./result";
 
 export default class Curriculum {
     private static instance: Curriculum;
@@ -71,12 +71,12 @@ export default class Curriculum {
     // To load Course Jsons
     async loadCourseJsons(courseIds: Array<string>) {
         for (let i = 0; i < courseIds.length; i++) {
-            await this.loadSingleCourseJson(courseIds[i])
+            await this.loadSingleCourseJson(courseIds[i], {})
         }
     }
 
     //To load single course Json
-    async loadSingleCourseJson(courseId: string): Promise<Map<string, Course>> {
+    async loadSingleCourseJson(courseId: string, results: { [key: string]: Result; }): Promise<Map<string, Course>> {
 
         if (this.curriculum.get(courseId)) {
             return this.curriculum;
@@ -86,14 +86,10 @@ export default class Curriculum {
         let res = await fetch("courses/" + courseId + "/course.json")
         const data = await res.json();
         let course = Util.toCourse(data)
-
-        const apiInstance = OneRosterApi.getInstance();
-        const playedLessons: any = await apiInstance.getResultsForStudentsForClassInLessonMap("", "") || {};
-
-        console.log("playedLessons", playedLessons)
+        console.log("playedLessons", results)
 
         //if quiz is  not played making all other lesson lock
-        if (!playedLessons[courseId + "_PreQuiz"] && courseId != COURSES.PUZZLE) {
+        if (!results[courseId + "_PreQuiz"] && courseId != COURSES.PUZZLE) {
             course.chapters.forEach(async (chapter: Chapter) => {
                 chapter.course = course;
                 chapter.lessons.forEach(async (lesson) => {
@@ -109,7 +105,7 @@ export default class Curriculum {
         } else {
             course.chapters.forEach(async (chapter: Chapter) => {
                 chapter.course = course;
-                chapter = await this.unlockingLessonsByChapterWise(playedLessons, courseId, chapter);
+                chapter = await this.unlockingLessonsByChapterWise(results, courseId, chapter);
             });
             this.curriculum.set(courseId, course);
 
@@ -175,20 +171,20 @@ export default class Curriculum {
         }
     }
 
-    async allChapterforSubject(courseId: string): Promise<Chapter[]> {
+    async allChapterForSubject(courseId: string, results: { [key: string]: Result; } = {}): Promise<Chapter[]> {
 
         if (this.curriculum.get(courseId)?.chapters == undefined) {
-            const course = await this.loadSingleCourseJson(courseId);
+            const course = await this.loadSingleCourseJson(courseId, results);
             return course.get(courseId)?.chapters || [];
         }
         return this.curriculum.get(courseId)?.chapters || [];
     }
 
-    async allLessonforSubject(courseId: string): Promise<Lesson[]> {
+    async allLessonForSubject(courseId: string, results: { [key: string]: Result; } = {}): Promise<Lesson[]> {
         let course = this.curriculum || undefined;
         const lessons: Lesson[] = []
         if (course.get(courseId)?.chapters == undefined) {
-            course = await this.loadSingleCourseJson(courseId);
+            course = await this.loadSingleCourseJson(courseId, results);
         }
         const chapters = course.get(courseId)?.chapters || []
         for (let chapter of chapters) {
