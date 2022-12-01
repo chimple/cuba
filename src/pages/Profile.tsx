@@ -25,7 +25,7 @@ const Profile: React.FC = () => {
     const results =
       await OneRosterApi.getInstance().getResultsForStudentForClass("", "");
     const curriculum = Curriculum.getInstance();
-    const tempLessons = await curriculum.allLessonforSubject(subjectCode);
+    const tempLessons = await curriculum.allLessonForSubject(subjectCode);
     let lessonMap = rewards;
     if (!rewards) {
       const tempLessonMap: any = {};

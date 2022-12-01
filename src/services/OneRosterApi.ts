@@ -16,6 +16,7 @@ export class OneRosterApi implements ServiceApi {
     public static i: OneRosterApi;
     private preQuizMap: { [key: string]: { [key: string]: Result } } = {}
     private classes: { [key: string]: Class[] } = {}
+    private lessonMap: { [key: string]: { [key: string]: Result } } = {}
     private constructor() {
     }
 
@@ -31,6 +32,7 @@ export class OneRosterApi implements ServiceApi {
     }
 
     async getClassesForUser(userId: string): Promise<Class[]> {
+        console.log('in getClassesForUser')
         try {
             const response = await Http.get({ url: "https://mocki.io/v1/eed2eaa3-cd47-4f13-a3c4-524de936d132", headers: this.getHeaders() }).catch((e) => { console.log("error on getResultsForStudentForClass", e) });
             const result = (response && response.status === 200) ? response.data : {};
@@ -148,7 +150,11 @@ export class OneRosterApi implements ServiceApi {
             }
     }
 
-    public async getResultsForStudentsForClassInLessonMap(classId: string, studentId: string): Promise<{ [key: string]: Lesson; }> {
+    public async getResultsForStudentsForClassInLessonMap(classId: string, studentId: string): Promise<{ [key: string]: Result; }> {
+        if (!!this.lessonMap[studentId]) {
+            await new Promise(r => setTimeout(r, 10));
+            return this.lessonMap[studentId];
+        }
         const results = await this.getResultsForStudentForClass(classId, studentId);
         const lessonMap: any = {};
         for (let result of results) {
@@ -159,6 +165,7 @@ export class OneRosterApi implements ServiceApi {
                 lessonMap[result.metadata.lessonId] = result;
             }
         }
+        this.lessonMap[studentId] = lessonMap;
         return lessonMap;
     }
 
@@ -219,9 +226,13 @@ export class OneRosterApi implements ServiceApi {
                 { lessonId: lessonId });
             console.log('results', { result: result.toJson() })
             // Http.put({ url: `/results/${sourcedId}`, data: { result: result.toJson() }, headers: this.getHeaders() })
+            if (this.lessonMap[userId] == null) {
+                this.lessonMap[userId] = {}
+            }
+            this.lessonMap[userId][lessonId] = result;
             if (score >= MIN_PASS) {
-                const curInstanse = Curriculum.getInstance();
-                const lessons = await curInstanse.allLessonforSubject(subjectCode);
+                const curInstance = Curriculum.getInstance();
+                const lessons = await curInstance.allLessonForSubject(subjectCode, this.lessonMap[userId]);
                 const lesson = lessons.find((lesson: Lesson) => lesson.id === lessonId);
                 if (lesson && lesson.type === EXAM && lesson.chapter.lessons[lesson.chapter.lessons.length - 1].id === lessonId) {
                     console.log("updating prequiz for lesson", lesson)
@@ -261,8 +272,8 @@ export class OneRosterApi implements ServiceApi {
 
     async updatePreQuiz(subjectCode: string, classId: string, studentId: string, chapterId: string, updateNextChapter = true): Promise<Result | undefined> {
         try {
-            const curInstanse = Curriculum.getInstance();
-            const chapters = await curInstanse.allChapterforSubject(subjectCode);
+            const curInstance = Curriculum.getInstance();
+            const chapters = await curInstance.allChapterForSubject(subjectCode);
             const chapterIndex = chapters.findIndex((chapter: Chapter) => chapter.id === chapterId);
             let score = (((chapterIndex + (updateNextChapter ? 2 : 1)) / chapters.length) * 100);
             if (score > 100) score = 100
@@ -312,6 +323,11 @@ export class OneRosterApi implements ServiceApi {
             }
             this.preQuizMap[studentId][subjectCode] = preQuizresult;
 
+            if (this.lessonMap[studentId] == null) {
+                this.lessonMap[studentId] = {}
+            }
+            this.lessonMap[studentId][subjectCode + "_" + PRE_QUIZ] = preQuizresult;
+
             //temp storing prequiz locally
             const json = localStorage.getItem(TEMP_LESSONS_STORE);
             let lessons: any = {};
@@ -327,14 +343,16 @@ export class OneRosterApi implements ServiceApi {
         }
     }
 
-    async getChapaterForPreQuizScore(subjectCode: string, score: number): Promise<Chapter> {
-        const curInstanse = Curriculum.getInstance();
-        const chapters = await curInstanse.allChapterforSubject(subjectCode);
+    async getChapterForPreQuizScore(subjectCode: string, score: number, chapters: Chapter[] | undefined = undefined): Promise<Chapter> {
+        if (!chapters) {
+            const curInstance = Curriculum.getInstance();
+            chapters = await curInstance.allChapterForSubject(subjectCode);
+        }
         if (score > 100) score = 100;
         let index = ((score * chapters.length) / 100) - 1;
         const isFloat = (x: number) => !!(x % 1);
         if (isFloat(index)) index = Math.round(index);
-        console.log('getChapaterForPreQuizScore', score, index, chapters[Math.min(index, chapters.length - 1)]?.id)
+        console.log('getChapterForPreQuizScore', score, index, chapters[Math.min(index, chapters.length - 1)]?.id)
         return chapters[Math.min(index, chapters.length - 1)] ?? chapters[1];
     }
 
