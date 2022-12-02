@@ -63,3 +63,4 @@ export const BASE_NAME = !Capacitor.isNativePlatform() && !!process.env.REACT_AP
     : "";
 export const MIN_PASS = 70
 export const IS_CUBA = "is_cuba"
+export const BUNDLE_URL = "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/"

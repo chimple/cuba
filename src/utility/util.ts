@@ -3,6 +3,7 @@ import { Capacitor } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
+import { BUNDLE_URL } from "../common/constants";
 import { Course } from "../interface/curriculumInterfaces";
 import { GUIDRef } from "../interface/modelInterfaces";
 
@@ -30,7 +31,7 @@ export class Util {
                 console.log('isexists', isExists);
                 if (isExists) continue;
                 console.log("fs", fs)
-                const url = "https://github.com/chimple/chimple-zips/raw/main/" + lessonId + ".zip"
+                const url = BUNDLE_URL + lessonId + ".zip"
                 const zip = await Http.get({ url: url, responseType: "blob" })
                 if (zip instanceof Object) {
                     console.log('unzipping ',)
