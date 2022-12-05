@@ -11123,6 +11123,7 @@ window.__require = function e(t, n, r) {
         _this.quizTime = 0;
         _this.quizScores = [];
         _this.tempWrongMoves = 0;
+        _this.isCuba = profile_1.default.getItem(constants_1.IS_CUBA);
         return _this;
       }
       LessonController_1 = LessonController;
@@ -11137,9 +11138,9 @@ window.__require = function e(t, n, r) {
         util_1.Util.loadAccessoriesAndEquipAcc(LessonController_1.friend.node.children[1], LessonController_1.friend.node);
         LessonController_1.friend.node.removeFromParent();
         this.lessonStart();
-        config_1.default.isMicroLink ? this.backButton.active = false : this.backButton.on("touchend", function() {
+        config_1.default.isMicroLink && !this.isCuba ? this.backButton.active = false : this.backButton.on("touchend", function() {
           _this.node.getChildByName("quit").active = true;
-          if (parseInt(profile_1.default.getValue(profile_1.CURRENTMODE)) == constants_1.Mode.School) {
+          if (parseInt(profile_1.default.getValue(profile_1.CURRENTMODE)) == constants_1.Mode.School || _this.isCuba) {
             _this.node.getChildByName("quit").getChildByName("quit_bg").getChildByName("exit_game").y = _this.node.getChildByName("quit").getPosition().y;
             _this.node.getChildByName("quit").getChildByName("quit_bg").getChildByName("help_video").active = false;
           }
@@ -15042,6 +15043,8 @@ window.__require = function e(t, n, r) {
     });
     var lessonController_1 = require("./lessonController");
     var config_1 = require("./lib/config");
+    var constants_1 = require("./lib/constants");
+    var profile_1 = require("./lib/profile");
     var util_1 = require("./util");
     var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
     var QuitPopup = function(_super) {
@@ -15051,6 +15054,7 @@ window.__require = function e(t, n, r) {
         _this.inputEventBlocker = null;
         _this.exitLabel = null;
         _this.videoLabel = null;
+        _this.isCuba = profile_1.default.getItem(constants_1.IS_CUBA);
         return _this;
       }
       QuitPopup.prototype.onLoad = function() {
@@ -15062,6 +15066,14 @@ window.__require = function e(t, n, r) {
       QuitPopup.prototype.onClickYesButton = function() {
         this.node.getChildByName("quit_bg").getChildByName("exit_game").getComponent(cc.Button).interactable = false;
         config_1.default.isMicroLink = false;
+        if (this.isCuba) {
+          var customEvent = new CustomEvent("gameEnd", {
+            detail: {}
+          });
+          window.parent.document.body.dispatchEvent(customEvent);
+          console.log("event dispatched", customEvent);
+          return;
+        }
         config_1.default.i.popScene();
         lessonController_1.default.getFriend().stopAudio();
       };
@@ -15095,6 +15107,8 @@ window.__require = function e(t, n, r) {
   }, {
     "./lessonController": "lessonController",
     "./lib/config": "config",
+    "./lib/constants": "constants",
+    "./lib/profile": "profile",
     "./util": "util"
   } ],
   "quiz-monitor": [ function(require, module, exports) {
