@@ -137,7 +137,7 @@ export default class Curriculum {
                     tempLessons[i].chapter = chapter;
                     this.allLessons.set(tempLessons[i].id, tempLessons[i])
                     console.log(tempLessons[i].id, "is played so unlocking this lesson", tempLessons[i].isUnlock, playedLessons[tempLessons[i].id]?._metadata.lessonId);
-                    
+
                     // checking lesson type === EXAM && scored > 70 then Unlocking Next lesson
                     if (playedLessons[tempLessons[i].id] && tempLessons.length > i + 1) {
                         if (tempLessons[i].type != EXAM || (tempLessons[i].type === EXAM && playedLessons[tempLessons[i].id].score > 70)) {
@@ -168,6 +168,26 @@ export default class Curriculum {
             }
             chapter.lessons = tempLessons
             return chapter
+        }
+    }
+
+    async unlockNextLesson(courseId: string, playedLessonId: string) {
+        console.log("unlockNextLesson method called", courseId, playedLessonId);
+        let isLessonFound: boolean = false;
+        let course = this.curriculum || undefined;
+        const chapters = course.get(courseId)?.chapters || []
+        for (let chapter of chapters) {
+            for (let lesson of chapter.lessons) {
+                if (isLessonFound) {
+                    lesson.isUnlock = true;
+                    console.log("Next Lesson Unlocked", isLessonFound, lesson);
+                    return
+                }
+                if (lesson.id === playedLessonId) {
+                    isLessonFound = true;
+                    console.log("found Played Lesson", playedLessonId, lesson);
+                }
+            }
         }
     }
 
