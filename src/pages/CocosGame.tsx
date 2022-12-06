@@ -84,6 +84,12 @@ const CocosGame: React.FC = () => {
 
     //Just fot Testing
     const saveTempData = async (e: any) => {
+      console.log("e", e);
+      await Curriculum.i.unlockNextLesson(
+        e.detail.courseName,
+        e.detail.lessonId
+      );
+
       const json = localStorage.getItem(TEMP_LESSONS_STORE);
       let lessons: any = {};
       if (json) {
@@ -128,7 +134,6 @@ const CocosGame: React.FC = () => {
         );
         console.log("result ", result);
       }
-      await Curriculum.i.clear();
     };
 
     document.body.addEventListener(LESSON_END, saveTempData, { once: true });
