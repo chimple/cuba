@@ -1,6 +1,6 @@
 import { IonButton, IonContent, IonPage, IonRow } from "@ionic/react";
 import { useEffect, useState } from "react";
-import { COURSES } from "../common/constants";
+import { COURSES, MIN_PASS } from "../common/constants";
 import LessonCard from "../components/LessonCard";
 import Loading from "../components/Loading";
 import ProfileHeader from "../components/ProfileHeader";
@@ -22,35 +22,25 @@ const Profile: React.FC = () => {
 
   async function init(subjectCode = COURSES.ENGLISH) {
     setIsLoading(true);
-    const results =
-      await OneRosterApi.getInstance().getResultsForStudentForClass("", "");
+    const apiInstance = OneRosterApi.getInstance();
+    const tempClass = await apiInstance.getClassForUserForSubject(
+      "user",
+      subjectCode
+    );
+    const results = await apiInstance.getResultsForStudentsForClassInLessonMap(
+      tempClass?.sourcedId ?? "",
+      "user"
+    );
     const curriculum = Curriculum.getInstance();
-    const tempLessons = await curriculum.allLessonForSubject(subjectCode);
-    let lessonMap = rewards;
-    if (!rewards) {
-      const tempLessonMap: any = {};
-      for (const result of results) {
-        if (!tempLessonMap[result.metadata?.lessonId]) {
-          tempLessonMap[result.metadata?.lessonId] = result.score;
-        }
-      }
-      setRewards(tempLessonMap);
-      lessonMap = tempLessonMap;
-    }
+    const tempLessons = await curriculum.allLessonForSubject(subjectCode,results);
     const lessons: Lesson[] = [];
-    // let tempUnlockUpTo = -1;
-
     for (let i = 0; i < tempLessons.length; i++) {
       const lesson = tempLessons[i];
       if (lesson.type === "exam") {
         lessons.push(lesson);
-        // const isUnlocked = !!lessonMap[lesson.id] && lessonMap[lesson.id] > 0;
-        // if (isUnlocked) {
-        //   tempUnlockUpTo = lessons.length - 1;
-        // }
       }
     }
-    // setUnlockUpTo(tempUnlockUpTo);
+    setRewards(results);
     setCurrentCourseId(subjectCode);
     setAllLessons(lessons);
     setIsLoading(false);
@@ -93,8 +83,8 @@ const Profile: React.FC = () => {
         {!isLoading ? (
           <div className="wrapper">
             {allLessons?.map((lesson: Lesson, index: number) => {
-              // const isUnlocked = index <= unlockUpTo;
-              const isPLayed = !!rewards[lesson.id] && rewards[lesson.id] > 0;
+              const isPLayed =
+                !!rewards[lesson.id] && rewards[lesson.id].score >= MIN_PASS;
               return (
                 <LessonCard
                   width="clamp(150px,40vh,200px)"
