@@ -10,7 +10,7 @@ import {
 } from "../common/constants";
 import Curriculum from "../models/curriculum";
 import "./Home.css";
-import CustomSlider from "../components/CustomSlider";
+import LessonSlider from "../components/LessonSlider";
 import Loading from "../components/Loading";
 import ChapterSlider from "../components/ChapterSlider";
 import { Chapter, Lesson } from "../interface/curriculumInterfaces";
@@ -196,7 +196,7 @@ const Home: React.FC = () => {
               chaptersIndex={chaptersMap[currentChapterId] ?? 0}
               levelChapter={levelChapter}
             />
-            <CustomSlider
+            <LessonSlider
               lessonData={dataCourse.lessons}
               onSwiper={setCustomSwiperRef}
               onSlideChange={onCustomSlideChange}
