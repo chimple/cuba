@@ -1,9 +1,9 @@
-import "./CustomSlider.css";
+import "./LessonSlider.css";
 import LessonCard from "./LessonCard";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import { Lesson } from "../interface/curriculumInterfaces";
 
-const CustomSlider: React.FC<{
+const LessonSlider: React.FC<{
   lessonData: Lesson[];
   onSwiper: any;
   onSlideChange: Function;
@@ -65,4 +65,4 @@ const CustomSlider: React.FC<{
   );
 };
 
-export default CustomSlider;
+export default LessonSlider;
