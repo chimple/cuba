@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { HEADERLIST } from "../common/constants";
 import "./HomeHeader.css";
 import IconButton from "./IconButton";
@@ -6,6 +7,8 @@ const HomeHeader: React.FC<{
   currentHeader: string;
   onHeaderIconClick: Function;
 }> = ({ currentHeader, onHeaderIconClick }) => {
+  const { t } = useTranslation();
+
   return (
     <div id="home-header-icons">
       <div>
@@ -15,7 +18,7 @@ const HomeHeader: React.FC<{
           <p className="home-header-indicator">&nbsp;</p>
         )}
         <IconButton
-          name="Home"
+          name={t("home")}
           iconSrc="assets/icons/HomeIcon.svg"
           onClick={() => {
             if (currentHeader != HEADERLIST.HOME) {
@@ -84,7 +87,7 @@ const HomeHeader: React.FC<{
       <div>
         <p className="home-header-indicator">&nbsp;</p>
         <IconButton
-          name="Profile"
+          name={t("profile")}
           iconSrc="assets/icons/Profile.svg"
           onClick={() => {
             if (currentHeader != HEADERLIST.PROFILE) {
