@@ -1,12 +1,15 @@
 import { IonLoading } from "@ionic/react";
+import { useTranslation } from "react-i18next";
 
 const Loading: React.FC<{ isLoading: boolean; msg?: string }> = ({
   isLoading,
-  msg = "Loading...",
+  msg = "loading",
 }) => {
+  const { t } = useTranslation();
+  const tMsg = t(msg);
   return (
     <div>
-      <IonLoading isOpen={isLoading} message={msg} />
+      <IonLoading isOpen={isLoading} message={tMsg} />
     </div>
   );
 };
