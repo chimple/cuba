@@ -5,11 +5,13 @@ import {
   CURRENT_LESSON_LEVEL,
   EXAM,
   GAME_END,
+  GAME_EXIT,
   LESSON_END,
   PAGES,
   PRE_QUIZ,
   TEMP_LESSONS_STORE,
 } from "../common/constants";
+import Loading from "../components/Loading";
 import { Lesson } from "../interface/curriculumInterfaces";
 import Curriculum from "../models/curriculum";
 import { OneRosterApi } from "../services/OneRosterApi";
@@ -49,6 +51,19 @@ const CocosGame: React.FC = () => {
     init();
   }, []);
 
+  const killGame = (e: any) => {
+    if (window.killGame) window.killGame();
+  };
+
+  const push = () => {
+    history.replace(state.from ?? PAGES.HOME);
+  };
+
+  const gameExit = (e: any) => {
+    killGame(e);
+    push();
+  };
+  
   async function init() {
     setIsLoading(true);
     const lesson: Lesson = state.lesson;
@@ -70,20 +85,17 @@ const CocosGame: React.FC = () => {
     const dow = await Util.downloadZipBundle(lessonIds);
     if (!dow) {
       presentToast();
-      history.replace(state.from ?? PAGES.HOME);
+      push();
       return;
     }
     console.log("donwloaded ", dow);
     setIsLoading(false);
     // document.getElementById("iframe")?.focus();
     if (window.launchGame) window.launchGame();
-    const push = (e: any) => {
-      if (window.killGame) window.killGame();
-      history.replace(state.from ?? PAGES.HOME);
-    };
 
     //Just fot Testing
     const saveTempData = async (e: any) => {
+      setIsLoading(true);
       console.log("e", e);
       await Curriculum.i.unlockNextLesson(
         e.detail.courseName,
@@ -134,30 +146,20 @@ const CocosGame: React.FC = () => {
         );
         console.log("result ", result);
       }
+      setIsLoading(false);
+      push();
     };
 
     document.body.addEventListener(LESSON_END, saveTempData, { once: true });
-    document.body.addEventListener(GAME_END, push, { once: true });
+    document.body.addEventListener(GAME_END, killGame, { once: true });
+    document.body.addEventListener(GAME_EXIT, gameExit, { once: true });
 
-    // let prevPercentage = 0;
     // document.body.addEventListener("problemEnd", onProblemEnd);
   }
   return (
     <IonPage id="cocos-game-page">
       <IonContent>
-        <IonLoading
-          cssClass="my-custom-class"
-          isOpen={isLoading}
-          message={"Please wait..."}
-        />
-        {/* {!isLoading ? (
-          <iframe
-            src={iFrameUrl}
-            id="iframe"
-            style={{ height: "100vh", width: "100vw" }}
-            frameBorder="0"
-          ></iframe>
-        ) : null} */}
+        <Loading isLoading={isLoading} />
       </IonContent>
     </IonPage>
   );
