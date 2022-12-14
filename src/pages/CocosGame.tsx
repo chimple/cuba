@@ -1,4 +1,4 @@
-import { IonContent, IonLoading, IonPage, useIonToast } from "@ionic/react";
+import { IonContent, IonPage, useIonToast } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import {
@@ -133,6 +133,17 @@ const CocosGame: React.FC = () => {
           e.detail.preQuizChapterId ?? e.detail.chapterId,
           false
         );
+        const levelChapter = await apiInstance.getChapterForPreQuizScore(
+          e.detail.courseName,
+          preQuiz?.score ?? 0,
+          await Curriculum.i.allChapterForSubject(e.detail.courseName)
+        );
+        currentLessonLevel[e.detail.courseName] = levelChapter.lessons[0].id;
+        localStorage.setItem(
+          CURRENT_LESSON_LEVEL,
+          JSON.stringify(currentLessonLevel)
+        );
+        Curriculum.i.clear();
         lessons[e.detail.lessonId] = preQuiz?.score;
         localStorage.setItem(TEMP_LESSONS_STORE, JSON.stringify(lessons));
         console.log("preQuiz after update", preQuiz);
