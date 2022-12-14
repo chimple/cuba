@@ -6678,7 +6678,6 @@ window.__require = function e(t, n, r) {
         var config = config_1.default.i;
         if (null !== config) {
           var fontName = config.currentFontName;
-          cc.log("applied font:", fontName);
           var fontLoaded = config.hasLoadedTextFont(fontName);
           fontLoaded && (this.font = config.getTextFont(fontName));
           config.direction == config_1.Direction.RTL && this.horizontalAlign == cc.Label.HorizontalAlign.LEFT && (this.horizontalAlign = cc.Label.HorizontalAlign.RIGHT);
@@ -7464,7 +7463,6 @@ window.__require = function e(t, n, r) {
         return traceFont;
       };
       Config.prototype.getTextFont = function(fontName) {
-        cc.log("fonts loaded:" + Array.from(this._textFontMap.keys()));
         return this._textFontMap.get(fontName);
       };
       Object.defineProperty(Config.prototype, "textFontMap", {
@@ -7792,8 +7790,8 @@ window.__require = function e(t, n, r) {
     Object.defineProperty(exports, "__esModule", {
       value: true
     });
-    exports.FIREBASE_STUDENT_ID = exports.FIREBASE_SECTION_ID = exports.FIREBASE_SCHOOL_ID = exports.CURRENT_SUBJECT_ID = exports.CURRENT_SECTION_ID = exports.CURRENT_CLASS_ID = exports.CURRENT_STUDENT_ID = exports.CURRENT_SCHOOL_ID = exports.PARSE_ENABLED = exports.QUEUE_OFFLOAD_FREQUENCY = exports.LEVEL_END = exports.LEVEL_NAME = exports.LEVEL_START = exports.ACHIEVEMENT_ID = exports.UNLOCK_ACHIEVEMENT = exports.CONTENT_TYPE = exports.ITEM_ID = exports.SELECT_CONTENT = exports.FAIL_TO_COLLECT_ALL_REWARDS = exports.APP_END = exports.APP_START = exports.WORLD_COMPLETED = exports.LEVEL_COMPLETED = exports.GAME_END = exports.PROBLEM_END = exports.GAME_START = exports.PROBLEM_START = exports.LOG_TYPE = exports.LOG_RIGHT_MOVES = exports.LOG_WRONG_MOVES = exports.LOG_PROBLEM = exports.LOG_GAME_LEVEL = exports.SKILLS = exports.COURSE = exports.LOG_LEVEL = exports.LOG_WORLD = exports.LOG_GAME = exports.ASSET_URL = exports.BUNDLE_URL = exports.COURSES_URL = exports.COURSE_SERVER = exports.SIMULATOR_ROOT_DIR = exports.ANDROID_ROOT_DIR = exports.ASSET_LOAD_METHOD = exports.ENV = exports.LANG = exports.MODE = exports.D_MODE = exports.Mode = exports.DeployMode = void 0;
-    exports.courseSortIndex = exports.firebaseConfigWeb = exports.COUNTRY_CODES = exports.MICROLINK_END_BLANK = exports.IS_CUBA = exports.MIN_PASS = exports.EXAM = exports.IS_REMEMBER_TOGGLE_ON = exports.REMEMBERED_USER = exports.LOGGED_IN_USER = void 0;
+    exports.FIREBASE_SECTION_ID = exports.FIREBASE_SCHOOL_ID = exports.CURRENT_SUBJECT_ID = exports.CURRENT_SECTION_ID = exports.CURRENT_CLASS_ID = exports.CURRENT_STUDENT_ID = exports.CURRENT_SCHOOL_ID = exports.PARSE_ENABLED = exports.QUEUE_OFFLOAD_FREQUENCY = exports.LEVEL_END = exports.LEVEL_NAME = exports.LEVEL_START = exports.ACHIEVEMENT_ID = exports.UNLOCK_ACHIEVEMENT = exports.CONTENT_TYPE = exports.ITEM_ID = exports.SELECT_CONTENT = exports.FAIL_TO_COLLECT_ALL_REWARDS = exports.APP_END = exports.APP_START = exports.WORLD_COMPLETED = exports.LEVEL_COMPLETED = exports.GAME_EXIT = exports.GAME_END = exports.PROBLEM_END = exports.GAME_START = exports.PROBLEM_START = exports.LOG_TYPE = exports.LOG_RIGHT_MOVES = exports.LOG_WRONG_MOVES = exports.LOG_PROBLEM = exports.LOG_GAME_LEVEL = exports.SKILLS = exports.COURSE = exports.LOG_LEVEL = exports.LOG_WORLD = exports.LOG_GAME = exports.ASSET_URL = exports.BUNDLE_URL = exports.COURSES_URL = exports.COURSE_SERVER = exports.SIMULATOR_ROOT_DIR = exports.ANDROID_ROOT_DIR = exports.ASSET_LOAD_METHOD = exports.ENV = exports.LANG = exports.MODE = exports.D_MODE = exports.Mode = exports.DeployMode = void 0;
+    exports.courseSortIndex = exports.firebaseConfigWeb = exports.COUNTRY_CODES = exports.MICROLINK_END_BLANK = exports.IS_CUBA = exports.MIN_PASS = exports.EXAM = exports.IS_REMEMBER_TOGGLE_ON = exports.REMEMBERED_USER = exports.LOGGED_IN_USER = exports.FIREBASE_STUDENT_ID = void 0;
     var DeployMode;
     (function(DeployMode) {
       DeployMode[DeployMode["Open"] = 0] = "Open";
@@ -7858,6 +7856,7 @@ window.__require = function e(t, n, r) {
     exports.GAME_START = "gameStart";
     exports.PROBLEM_END = "problemEnd";
     exports.GAME_END = "gameEnd";
+    exports.GAME_EXIT = "gameExit";
     exports.LEVEL_COMPLETED = "level_completed";
     exports.WORLD_COMPLETED = "world_completed";
     exports.APP_START = "app_start";
@@ -15067,7 +15066,7 @@ window.__require = function e(t, n, r) {
         this.node.getChildByName("quit_bg").getChildByName("exit_game").getComponent(cc.Button).interactable = false;
         config_1.default.isMicroLink = false;
         if (this.isCuba) {
-          var customEvent = new CustomEvent("gameEnd", {
+          var customEvent = new CustomEvent(constants_1.GAME_EXIT, {
             detail: {}
           });
           window.parent.document.body.dispatchEvent(customEvent);
