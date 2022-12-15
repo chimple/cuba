@@ -1,6 +1,6 @@
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
 import { Util } from "../utility/util";
-import { COURSES, EXAM, TEMP_LESSONS_STORE } from "../common/constants";
+import { COURSES, EXAM, MIN_PASS, PRE_QUIZ, TEMP_LESSONS_STORE } from "../common/constants";
 import { Result } from "./result";
 
 export default class Curriculum {
@@ -89,11 +89,11 @@ export default class Curriculum {
         console.log("playedLessons", results)
 
         //if quiz is  not played making all other lesson lock
-        if (!results[courseId + "_PreQuiz"] && courseId != COURSES.PUZZLE) {
+        if (!results[courseId + "_" + PRE_QUIZ] && courseId != COURSES.PUZZLE) {
             course.chapters.forEach(async (chapter: Chapter) => {
                 chapter.course = course;
                 chapter.lessons.forEach(async (lesson) => {
-                    lesson.isUnlock = lesson.id != courseId + "_PreQuiz" ? false : true;
+                    lesson.isUnlock = lesson.id != courseId + "_" + PRE_QUIZ ? false : true;
                     lesson.chapter = chapter;
                     this.allLessons.set(lesson.id, lesson)
                 });
@@ -140,7 +140,7 @@ export default class Curriculum {
 
                     // checking lesson type === EXAM && scored > 70 then Unlocking Next lesson
                     if (playedLessons[tempLessons[i].id] && tempLessons.length > i + 1) {
-                        if (tempLessons[i].type != EXAM || (tempLessons[i].type === EXAM && playedLessons[tempLessons[i].id].score > 70)) {
+                        if (tempLessons[i].type != EXAM || (tempLessons[i].type === EXAM && playedLessons[tempLessons[i].id].score > MIN_PASS)) {
                             tempLessons[i + 1].isUnlock = true
                             tempLessons[i + 1].chapter = chapter;
                             this.allLessons.set(tempLessons[i + 1].id, tempLessons[i + 1]);
@@ -171,24 +171,23 @@ export default class Curriculum {
         }
     }
 
-    async unlockNextLesson(courseId: string, playedLessonId: string) {
+    async unlockNextLesson(courseId: string, playedLessonId: string, score: number) {
         console.log("unlockNextLesson method called", courseId, playedLessonId);
-        let isLessonFound: boolean = false;
-        let course = this.curriculum || undefined;
-        const chapters = course.get(courseId)?.chapters || []
-        for (let chapter of chapters) {
-            for (let lesson of chapter.lessons) {
-                if (isLessonFound) {
-                    lesson.isUnlock = true;
-                    console.log("Next Lesson Unlocked", isLessonFound, lesson);
-                    return
-                }
-                if (lesson.id === playedLessonId) {
-                    isLessonFound = true;
-                    console.log("found Played Lesson", playedLessonId, lesson);
+
+        const playedLesson = this.allLessons.get(playedLessonId)
+        console.log("before playedLesson?.chapter", playedLesson, playedLesson?.chapter)
+        playedLesson?.chapter.lessons.forEach((lesson, index, lessons) => {
+            if (playedLessonId === lesson.id) {
+                console.log(lessons.length, index + 1, lessons.length > index + 1);
+                if (lessons.length > index + 1) {
+                    console.log((lesson.type != EXAM || lesson.type === null || lesson.type === undefined), (lesson.type === EXAM && score > MIN_PASS), lesson.type != EXAM || (lesson.type === EXAM && score > MIN_PASS));
+                    if ((lesson.type != EXAM || lesson.type === null || lesson.type === undefined) || (lesson.type === EXAM && score > MIN_PASS)) {
+                        lessons[index + 1].isUnlock = true;
+                        console.log("after playedLesson?.chapter", playedLesson, playedLesson?.chapter)
+                    }
                 }
             }
-        }
+        });
     }
 
     async allChapterForSubject(courseId: string, results: { [key: string]: Result; } = {}): Promise<Chapter[]> {
