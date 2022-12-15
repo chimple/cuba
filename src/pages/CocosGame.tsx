@@ -156,7 +156,7 @@ const CocosGame: React.FC = () => {
       await Curriculum.i.unlockNextLesson(
         e.detail.courseName,
         e.detail.lessonId,
-        parseInt(e.detail.score)
+        e.detail.score
       );
 
       setIsLoading(false);
