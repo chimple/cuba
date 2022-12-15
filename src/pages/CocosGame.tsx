@@ -16,12 +16,6 @@ import { Lesson } from "../interface/curriculumInterfaces";
 import Curriculum from "../models/curriculum";
 import { OneRosterApi } from "../services/OneRosterApi";
 import { Util } from "../utility/util";
-declare global {
-  interface Window {
-    launchGame: Function;
-    killGame: Function;
-  }
-}
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -52,7 +46,8 @@ const CocosGame: React.FC = () => {
   }, []);
 
   const killGame = (e: any) => {
-    if (window.killGame) window.killGame();
+    // if (window.killGame) window.killGame();
+    Util.killCocosGame();
   };
 
   const push = () => {
@@ -91,7 +86,8 @@ const CocosGame: React.FC = () => {
     console.log("donwloaded ", dow);
     setIsLoading(false);
     // document.getElementById("iframe")?.focus();
-    if (window.launchGame) window.launchGame();
+    // if (window.launchGame) window.launchGame();
+    Util.launchCocosGame();
 
     //Just fot Testing
     const saveTempData = async (e: any) => {
