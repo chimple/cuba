@@ -60,6 +60,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build && npm run copy-build && cap sync",
     "copy-build": "shx cp chimple-lib/*.js build/ && shx cp -r chimple-lib/src build/src && shx cp -r chimple-lib/assets/* build/assets/",
+    "serve-build": "http-server build",
     "test": "react-scripts test --transformIgnorePatterns 'node_modules/(?!(@ionic/react|@ionic/react-router|@ionic/core|@stencil/core|ionicons)/)'",
     "eject": "react-scripts eject"
   },
@@ -83,6 +84,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "4.2.0",
+    "http-server": "^14.1.1",
     "shx": "^0.3.4"
   },
   "description": "An Ionic project"
