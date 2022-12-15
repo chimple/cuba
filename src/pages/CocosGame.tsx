@@ -63,7 +63,7 @@ const CocosGame: React.FC = () => {
     killGame(e);
     push();
   };
-  
+
   async function init() {
     setIsLoading(true);
     const lesson: Lesson = state.lesson;
@@ -156,7 +156,7 @@ const CocosGame: React.FC = () => {
       await Curriculum.i.unlockNextLesson(
         e.detail.courseName,
         e.detail.lessonId,
-        e.detail.score
+        parseInt(e.detail.score)
       );
 
       setIsLoading(false);
