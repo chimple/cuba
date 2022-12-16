@@ -6,6 +6,12 @@ import { unzip } from "zip2";
 import { BUNDLE_URL } from "../common/constants";
 import { Course } from "../interface/curriculumInterfaces";
 import { GUIDRef } from "../interface/modelInterfaces";
+declare global {
+    interface Window {
+        cc: any;
+        _CCSettings: any;
+    }
+}
 
 export class Util {
 
@@ -70,4 +76,62 @@ export class Util {
         return JSON.stringify(value);
     }
 
+    public static async launchCocosGame(): Promise<void> {
+        if (!window.cc) {
+            return;
+        }
+        const settings = window._CCSettings;
+        const launchScene = settings.launchScene;
+        const bundle = window.cc.assetManager.bundles.find(function (b) {
+            return b.getSceneInfo(launchScene);
+        });
+
+        await new Promise((resolve, reject) => {
+            bundle.loadScene(launchScene, null, null, function (err, scene) {
+                if (!err) {
+                    window.cc.director.runSceneImmediate(scene);
+                    if (window.cc.sys.isBrowser) {
+                        // show canvas
+                        var canvas = document.getElementById("GameCanvas");
+                        if (canvas) {
+                            canvas.style.visibility = "";
+                            canvas.style.display = "";
+                        }
+                        const container = document.getElementById("Cocos2dGameContainer");
+                        if (container) {
+                            container.style.display = "";
+                        }
+                        var div = document.getElementById("GameDiv");
+                        if (div) {
+                            div.style.backgroundImage = "";
+                        }
+                        console.log("Success to load scene: " + launchScene);
+                    }
+                    resolve(scene)
+                }
+                else {
+                    reject(err)
+                }
+            });
+        });
+
+    }
+
+    public static killCocosGame(): void {
+        if (!window.cc) {
+            return;
+        }
+        console.log("pausing the game");
+        window.cc.game.pause();
+        window.cc.audioEngine.stopAll();
+        const canvas = document.getElementById("GameCanvas");
+        if (canvas) {
+            canvas.style.visibility = "none";
+            canvas.style.display = "none";
+        }
+        const container = document.getElementById("Cocos2dGameContainer");
+        if (container) {
+            container.style.display = "none";
+        }
+    }
 }
