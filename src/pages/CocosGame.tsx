@@ -8,6 +8,7 @@ import {
   GAME_EXIT,
   LESSON_END,
   PAGES,
+  PREVIOUS_PLAYED_COURSE,
   PRE_QUIZ,
   TEMP_LESSONS_STORE,
 } from "../common/constants";
@@ -101,7 +102,7 @@ const CocosGame: React.FC = () => {
       }
       lessons[e.detail.lessonId] = e.detail.score;
       localStorage.setItem(TEMP_LESSONS_STORE, JSON.stringify(lessons));
-
+      localStorage.setItem(PREVIOUS_PLAYED_COURSE, e.detail.courseName);
       const levelJson = localStorage.getItem(CURRENT_LESSON_LEVEL);
       let currentLessonLevel: any = {};
       if (levelJson) {

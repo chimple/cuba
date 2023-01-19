@@ -7,6 +7,8 @@ import {
   PAGES,
   PREVIOUS_SELECTED_COURSE,
   PRE_QUIZ,
+  ALL_COURSES,
+  PREVIOUS_PLAYED_COURSE,
 } from "../common/constants";
 import Curriculum from "../models/curriculum";
 import "./Home.css";
@@ -22,6 +24,7 @@ import { useHistory } from "react-router";
 import "@splidejs/react-splide/css";
 // or only core styles
 import "@splidejs/react-splide/css/core";
+import { Util } from "../utility/util";
 
 const Home: React.FC = () => {
   const [dataCourse, setDataCourse] = useState<{
@@ -32,9 +35,7 @@ const Home: React.FC = () => {
     chapters: [],
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [subject, setSubject] = useState<string>();
   const [customSwiperRef, setCustomSwiperRef] = useState<Splide>();
-  const [isPreQuizPlayed, setIsPreQuizPlayed] = useState(false);
   const [currentChapterId, setCurrentChapterId] = useState("");
   const [chaptersMap, setChaptersMap] = useState<any>();
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
@@ -47,7 +48,7 @@ const Home: React.FC = () => {
   useEffect(() => {
     let selectedCourse = localStorage.getItem(PREVIOUS_SELECTED_COURSE);
     if (!selectedCourse) {
-      selectedCourse = COURSES.ENGLISH;
+      selectedCourse = HEADERLIST.HOME;
     }
     setCurrentHeader(selectedCourse);
     setCourse(selectedCourse);
@@ -55,6 +56,78 @@ const Home: React.FC = () => {
 
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
+    const apiInstance = OneRosterApi.getInstance();
+    if (subjectCode === HEADERLIST.HOME) {
+      let lessonScoreMap = {};
+      const lessonMap = {};
+      for (const course of ALL_COURSES) {
+        const { chapters, lessons, tempResultLessonMap } =
+          await getDataForSubject(course);
+        lessonScoreMap = { ...lessonScoreMap, ...tempResultLessonMap };
+        const currentLessonIndex = await Util.getCurrentLessonIndex(
+          course,
+          lessons,
+          chapters,
+          tempResultLessonMap
+        );
+        lessonMap[course] =
+          lessons.length > currentLessonIndex + 1 &&
+          lessons[currentLessonIndex + 1].isUnlock
+            ? [lessons[currentLessonIndex + 1]]
+            : [];
+        if (
+          currentLessonIndex > 0 &&
+          course !== COURSES.PUZZLE &&
+          lessons[currentLessonIndex].isUnlock
+        ) {
+          lessonMap[course].push(lessons[currentLessonIndex]);
+        }
+      }
+      const prevPlayedCourse = localStorage.getItem(PREVIOUS_PLAYED_COURSE);
+      let _lessons: Lesson[] = [...lessonMap[COURSES.ENGLISH]];
+      if (prevPlayedCourse && prevPlayedCourse === COURSES.ENGLISH) {
+        _lessons.splice(0, 0, lessonMap[COURSES.MATHS][0]);
+        if (lessonMap[COURSES.MATHS].length > 1)
+          _lessons.splice(2, 0, lessonMap[COURSES.MATHS][1]);
+      } else {
+        _lessons.splice(1, 0, lessonMap[COURSES.MATHS][0]);
+        if (lessonMap[COURSES.MATHS].length > 1)
+          _lessons.push(lessonMap[COURSES.MATHS][1]);
+      }
+      _lessons.push(lessonMap[COURSES.PUZZLE][0]);
+      setLessonsScoreMap(lessonScoreMap);
+      setDataCourse({ lessons: _lessons, chapters: [] });
+      setIsLoading(false);
+      return;
+    }
+    let { chapters, lessons, tempResultLessonMap, preQuiz } =
+      await getDataForSubject(subjectCode);
+    const _isPreQuizPlayed = subjectCode !== COURSES.PUZZLE && !!preQuiz;
+    if (_isPreQuizPlayed) {
+      if (lessons[0].id === subjectCode + "_" + PRE_QUIZ) {
+        lessons = lessons.slice(1);
+        chapters = chapters.slice(1);
+      }
+      const tempLevelChapter = await apiInstance.getChapterForPreQuizScore(
+        subjectCode,
+        preQuiz?.score ?? 0,
+        chapters
+      );
+      setLevelChapter(tempLevelChapter);
+    }
+    const tempChapterMap: any = {};
+    for (let i = 0; i < chapters.length; i++) {
+      tempChapterMap[chapters[i].id] = i;
+    }
+    setLessonsScoreMap(tempResultLessonMap);
+    setCurrentLevel(subjectCode, chapters, lessons);
+    setChaptersMap(tempChapterMap);
+    setCurrentChapterId(chapters[0].id);
+    setDataCourse({ lessons: lessons, chapters: chapters });
+    setIsLoading(false);
+  }
+
+  async function getDataForSubject(subjectCode: string) {
     const apiInstance = OneRosterApi.getInstance();
     const tempClass = await apiInstance.getClassForUserForSubject(
       "user",
@@ -66,7 +139,6 @@ const Home: React.FC = () => {
         tempClass?.sourcedId ?? "",
         "user"
       );
-    const preQuiz = tempResultLessonMap[subjectCode + "_" + PRE_QUIZ];
     const curInstance = Curriculum.getInstance();
     let chapters = await curInstance.allChapterForSubject(
       subjectCode,
@@ -76,33 +148,13 @@ const Home: React.FC = () => {
       subjectCode,
       tempResultLessonMap
     );
-    const _isPreQuizPlayed = subjectCode !== COURSES.PUZZLE && !!preQuiz;
-    if (_isPreQuizPlayed) {
-      const tempLevelChapter = await apiInstance.getChapterForPreQuizScore(
-        subjectCode,
-        preQuiz?.score ?? 0,
-        chapters
-      );
-      setLevelChapter(tempLevelChapter);
-    }
-    setIsPreQuizPlayed(!!preQuiz);
-    setLessonsScoreMap(tempResultLessonMap);
-    if (_isPreQuizPlayed) {
-      if (lessons[0].id === subjectCode + "_" + PRE_QUIZ) {
-        lessons = lessons.slice(1);
-        chapters = chapters.slice(1);
-      }
-    }
-    const tempChapterMap: any = {};
-    for (let i = 0; i < chapters.length; i++) {
-      tempChapterMap[chapters[i].id] = i;
-    }
-    setCurrentLevel(subjectCode, chapters, lessons);
-    setSubject(subjectCode);
-    setChaptersMap(tempChapterMap);
-    setDataCourse({ lessons: lessons, chapters: chapters });
-    setCurrentChapterId(chapters[0].id);
-    setIsLoading(false);
+    const preQuiz = tempResultLessonMap[subjectCode + "_" + PRE_QUIZ];
+    return {
+      chapters: chapters,
+      lessons: lessons,
+      tempResultLessonMap: tempResultLessonMap,
+      preQuiz: preQuiz,
+    };
   }
 
   function setCurrentLevel(
@@ -136,16 +188,19 @@ const Home: React.FC = () => {
     setCurrentChapterId(e.id);
   }
   function onCustomSlideChange(lessonIndex: number) {
+    if (!chaptersMap) return;
     const chapter = dataCourse.lessons[lessonIndex].chapter;
     if (chapter.id === currentChapterId) return;
     const chapterIndex = chaptersMap[chapter.id];
-    setCurrentChapterId(dataCourse.chapters[chapterIndex].id);
+    setCurrentChapterId(dataCourse.chapters[chapterIndex]?.id);
   }
 
   function onHeaderIconClick(selectedHeader: any) {
     switch (selectedHeader) {
       case HEADERLIST.HOME:
         setCurrentHeader(HEADERLIST.HOME);
+        setCourse(HEADERLIST.HOME);
+        localStorage.setItem(PREVIOUS_SELECTED_COURSE, HEADERLIST.HOME);
         console.log("Home Icons is selected");
         break;
 
@@ -189,21 +244,23 @@ const Home: React.FC = () => {
       <div className="slider-content">
         {!isLoading ? (
           <div className="space-between">
-            <ChapterSlider
-              chapterData={dataCourse.chapters}
-              onChapterClick={onChapterClick}
-              currentChapterId={currentChapterId}
-              chaptersIndex={chaptersMap[currentChapterId] ?? 0}
-              levelChapter={levelChapter}
-            />
+            {currentHeader !== HEADERLIST.HOME && (
+              <ChapterSlider
+                chapterData={dataCourse.chapters}
+                onChapterClick={onChapterClick}
+                currentChapterId={currentChapterId}
+                chaptersIndex={chaptersMap[currentChapterId] ?? 0}
+                levelChapter={levelChapter}
+              />
+            )}
             <LessonSlider
               lessonData={dataCourse.lessons}
               onSwiper={setCustomSwiperRef}
               onSlideChange={onCustomSlideChange}
-              subjectCode={subject ?? COURSES.ENGLISH}
-              isPreQuizPlayed={isPreQuizPlayed}
               lessonsScoreMap={lessonsScoreMap}
-              startIndex={currentLessonIndex}
+              startIndex={
+                currentHeader === HEADERLIST.HOME ? 0 : currentLessonIndex
+              }
             />
           </div>
         ) : null}

@@ -12,7 +12,6 @@ const LessonCard: React.FC<{
   lesson: Lesson;
   isPlayed: boolean;
   isUnlocked: boolean;
-  subjectCode: string;
   showText?: boolean;
   showScoreCard?: boolean;
   score: any;
@@ -22,7 +21,6 @@ const LessonCard: React.FC<{
   lesson,
   isPlayed,
   isUnlocked,
-  subjectCode,
   showText = true,
   showScoreCard = true,
   score,
@@ -33,7 +31,7 @@ const LessonCard: React.FC<{
   const hideImg = (event: any) => {
     setShowImage(false);
   };
-
+  const subjectCode = lesson.chapter.course.id;
   const lessonCardColor = lesson?.color
     ? lesson.color
     : LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
