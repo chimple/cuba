@@ -93,7 +93,6 @@ const Profile: React.FC = () => {
                   key={index}
                   isPlayed={isPLayed}
                   isUnlocked={isPLayed}
-                  subjectCode={lesson.chapter.course.id}
                   showText={false}
                   showScoreCard={false}
                   score={0}

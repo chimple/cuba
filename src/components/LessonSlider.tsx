@@ -7,19 +7,9 @@ const LessonSlider: React.FC<{
   lessonData: Lesson[];
   onSwiper: any;
   onSlideChange: Function;
-  isPreQuizPlayed: boolean;
-  subjectCode: string;
   lessonsScoreMap: any;
   startIndex: number;
-}> = ({
-  lessonData,
-  onSwiper,
-  onSlideChange,
-  isPreQuizPlayed,
-  subjectCode,
-  lessonsScoreMap,
-  startIndex,
-}) => {
+}> = ({ lessonData, onSwiper, onSlideChange, lessonsScoreMap, startIndex }) => {
   return (
     <div className="content">
       <Splide
@@ -43,6 +33,7 @@ const LessonSlider: React.FC<{
         }}
       >
         {lessonData.map((m: Lesson, i: number) => {
+          if (!m) return;
           const isPlayed =
             !!lessonsScoreMap[m.id] && lessonsScoreMap[m.id]?.score > 0;
           return (
@@ -50,7 +41,6 @@ const LessonSlider: React.FC<{
               <LessonCard
                 width="40vh"
                 height="45vh"
-                subjectCode={subjectCode}
                 isPlayed={isPlayed}
                 isUnlocked={m.isUnlock}
                 lesson={m}

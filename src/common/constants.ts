@@ -8,7 +8,7 @@ export enum COURSES {
     MATHS = 'maths'
 }
 
-export const ALL_COURSES = [COURSES.SIERRA_LEONE_ENGLISH, COURSES.SIERRA_LEONE_MATHS, COURSES.PUZZLE];
+export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
 export enum HEADERLIST {
     HOME = 'HOME',
@@ -54,6 +54,7 @@ export const TEMP_LESSONS_STORE = "tempLessonsStore"
 export const IS_USER_LOGED_IN = "isUserLogedIn"
 export const USER_TOKEN = 'userToken'
 export const CURRENT_LESSON_LEVEL = "currentLessonLevel"
+export const PREVIOUS_PLAYED_COURSE = "previousPlayedCourse"
 export const PREVIOUS_SELECTED_COURSE = "previousSelectedCourse"
 export const LANGUAGE = "language"
 export const EXAM = 'exam'
