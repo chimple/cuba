@@ -1,11 +1,8 @@
 import { IonContent, IonPage } from "@ionic/react";
 import { useEffect, useState } from "react";
-import Loading from "../components/Loading";
-import { AccountManager } from "account-manager";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
 import { BackgroundMode } from "@awesome-cordova-plugins/background-mode";
-import { Capacitor } from "@capacitor/core";
 import { IS_USER_LOGED_IN, PAGES, USER_TOKEN } from "../common/constants";
 import Auth from "../models/auth";
 
@@ -13,8 +10,8 @@ const Login: React.FC = () => {
   const history = useHistory();
 
   useEffect(() => {
-    const isUserLogedIn = localStorage.getItem(IS_USER_LOGED_IN);
-    if (isUserLogedIn == "true") {
+    const isUserLogedIn = Auth.i.isUserLoggedIn();
+    if (isUserLogedIn == true) {
       history.replace(PAGES.HOME);
     }
   }, []);

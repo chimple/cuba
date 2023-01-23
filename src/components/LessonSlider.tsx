@@ -9,7 +9,15 @@ const LessonSlider: React.FC<{
   onSlideChange: Function;
   lessonsScoreMap: any;
   startIndex: number;
-}> = ({ lessonData, onSwiper, onSlideChange, lessonsScoreMap, startIndex }) => {
+  showSubjectName: boolean;
+}> = ({
+  lessonData,
+  onSwiper,
+  onSlideChange,
+  lessonsScoreMap,
+  startIndex,
+  showSubjectName = false,
+}) => {
   return (
     <div className="content">
       <Splide
@@ -44,6 +52,7 @@ const LessonSlider: React.FC<{
                 isPlayed={isPlayed}
                 isUnlocked={m.isUnlock}
                 lesson={m}
+                showSubjectName={showSubjectName}
                 showScoreCard={isPlayed}
                 score={lessonsScoreMap[m.id]?.score}
               />

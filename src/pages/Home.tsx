@@ -261,6 +261,7 @@ const Home: React.FC = () => {
               startIndex={
                 currentHeader === HEADERLIST.HOME ? 0 : currentLessonIndex
               }
+              showSubjectName={currentHeader === HEADERLIST.HOME}
             />
           </div>
         ) : null}

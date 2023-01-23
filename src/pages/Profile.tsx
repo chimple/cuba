@@ -32,7 +32,10 @@ const Profile: React.FC = () => {
       "user"
     );
     const curriculum = Curriculum.getInstance();
-    const tempLessons = await curriculum.allLessonForSubject(subjectCode,results);
+    const tempLessons = await curriculum.allLessonForSubject(
+      subjectCode,
+      results
+    );
     const lessons: Lesson[] = [];
     for (let i = 0; i < tempLessons.length; i++) {
       const lesson = tempLessons[i];
@@ -93,6 +96,7 @@ const Profile: React.FC = () => {
                   key={index}
                   isPlayed={isPLayed}
                   isUnlocked={isPLayed}
+                  showSubjectName={false}
                   showText={false}
                   showScoreCard={false}
                   score={0}
