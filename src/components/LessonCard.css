@@ -42,3 +42,13 @@
     white-space: nowrap;
     text-overflow: ellipsis;
 }
+
+#lesson-card-subject-name {
+    background: rgba(255, 255, 255, 0.5);
+    color: #fff;
+    border-radius: 25px;
+    position: absolute;
+    top: 4%;
+    justify-self: center;
+    width: 55%;
+}

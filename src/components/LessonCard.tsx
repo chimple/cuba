@@ -12,6 +12,7 @@ const LessonCard: React.FC<{
   lesson: Lesson;
   isPlayed: boolean;
   isUnlocked: boolean;
+  showSubjectName: boolean;
   showText?: boolean;
   showScoreCard?: boolean;
   score: any;
@@ -21,6 +22,7 @@ const LessonCard: React.FC<{
   lesson,
   isPlayed,
   isUnlocked,
+  showSubjectName = false,
   showText = true,
   showScoreCard = true,
   score,
@@ -93,6 +95,11 @@ const LessonCard: React.FC<{
           }}
           color={lesson?.color}
         >
+          {showSubjectName ? (
+            <div id="lesson-card-subject-name">
+              <p>{lesson?.chapter.course.name}</p>
+            </div>
+          ) : null}
           <div id="lesson-card-image">
             {showImage ? (
               <img

@@ -244,7 +244,7 @@ const Home: React.FC = () => {
       <div className="slider-content">
         {!isLoading ? (
           <div className="space-between">
-            {currentHeader !== HEADERLIST.HOME && (
+            {currentHeader !== HEADERLIST.HOME ? (
               <ChapterSlider
                 chapterData={dataCourse.chapters}
                 onChapterClick={onChapterClick}
@@ -252,6 +252,8 @@ const Home: React.FC = () => {
                 chaptersIndex={chaptersMap[currentChapterId] ?? 0}
                 levelChapter={levelChapter}
               />
+            ) : (
+              <div style={{ marginTop: "2.6%" }}></div>
             )}
             <LessonSlider
               lessonData={dataCourse.lessons}
@@ -261,6 +263,7 @@ const Home: React.FC = () => {
               startIndex={
                 currentHeader === HEADERLIST.HOME ? 0 : currentLessonIndex
               }
+              showSubjectName={currentHeader === HEADERLIST.HOME}
             />
           </div>
         ) : null}

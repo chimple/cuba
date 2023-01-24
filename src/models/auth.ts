@@ -34,16 +34,18 @@ export default class Auth {
         let responce: any;
         try {
             responce = await AccountManager.accountPicker();
-            let result: any = responce.result;
+            let result: string = responce.result;
             if (result) {
                 console.log("login-button result true", result);
-                result = result.replace(/Bundle/s, '').replace("]", "").replace("[", "").replace("{", "{\"").replace("}", "\"}").replaceAll("=", "\":\"").replaceAll(",", "\",\"").replaceAll(" ", "")
-                result = JSON.parse(result)
+                // result = result.replace(/Bundle/s, '').replace("]", "").replace("[", "").replace("{", "{\"").replace("}", "\"}").replaceAll("=", "\":\"").replaceAll(",", "\",\"").replaceAll(" ", "")
+                // result = JSON.parse(result)
 
-                console.log("auth result ", result.authtoken, this._authToken);
-                this._userAccountName = result.authAccount;
-                this._authToken = result.authtoken;
-                this._accountType = result.accountType;
+                let res: string[] = result.split(',');
+
+                console.log("auth result ", res[0], res[1], res[2], res[3]);
+                this._userAccountName = res[1];
+                this._accountType = res[2];;
+                this._authToken = res[3];
 
                 localStorage.setItem(IS_USER_LOGED_IN, "true");
                 localStorage.setItem(USER_TOKEN, JSON.stringify(result));
@@ -55,20 +57,20 @@ export default class Auth {
                 return false
             }
         } catch (error: any) {
-            // if (
-            //     error.message === "Method not implemented." &&
-            //     (Capacitor.getPlatform() === "web" ||
-            //         Capacitor.getPlatform() === "ios")
-            // ) {
-            console.log("login error ", error)
-            localStorage.setItem(IS_USER_LOGED_IN, "true");
-            localStorage.setItem(USER_TOKEN, JSON.stringify({ "authAccount": "debug15@gmail.com", "accountType": "com.debug15", "authtoken": "VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY" }));
-            return true;
-            // history.replace(PAGES.HOME);
-            // }
+            if (
+                error.message === "Method not implemented." &&
+                (Capacitor.getPlatform() === "web" ||
+                    Capacitor.getPlatform() === "ios")
+            ) {
+                console.log("login error ", Capacitor.getPlatform(), error)
+                localStorage.setItem(IS_USER_LOGED_IN, "true");
+                localStorage.setItem(USER_TOKEN, JSON.stringify("01,debug15@gmail.com,com.debug15,VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY"));
+                return true;
+                // history.replace(PAGES.HOME);
+            }
 
-            // localStorage.setItem(IS_USER_LOGED_IN, "false");
-            // return false
+            localStorage.setItem(IS_USER_LOGED_IN, "false");
+            return false
 
         }
     }
@@ -78,13 +80,18 @@ export default class Auth {
             return true;
         }
 
-        let userData: any = localStorage.getItem(USER_TOKEN)
-        if (userData && userData != 'null') {
-            userData = JSON.parse(userData)
+        const isUserLogedIn = localStorage.getItem(IS_USER_LOGED_IN);
 
-            this._userAccountName = userData.authAccount;
-            this._authToken = userData.authtoken;
-            this._accountType = userData.accountType;
+        let userData: string = localStorage.getItem(USER_TOKEN) || '';
+        if (isUserLogedIn == "true" && userData && userData != 'null') {
+            userData = JSON.parse(userData)
+            let res: string[] = userData.split(',');
+
+            console.log("auth result ", res[0], res[1], res[2], res[3]);
+            this._userAccountName = res[1];
+            this._accountType = res[2];;
+            this._authToken = res[3];
+
             return true;
         }
         else {
