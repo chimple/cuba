@@ -12,7 +12,6 @@ const LessonCard: React.FC<{
   lesson: Lesson;
   isPlayed: boolean;
   isUnlocked: boolean;
-  showSubjectName: boolean;
   showText?: boolean;
   showScoreCard?: boolean;
   score: any;
@@ -22,7 +21,6 @@ const LessonCard: React.FC<{
   lesson,
   isPlayed,
   isUnlocked,
-  showSubjectName = false,
   showText = true,
   showScoreCard = true,
   score,
@@ -37,6 +35,8 @@ const LessonCard: React.FC<{
   const lessonCardColor = lesson?.color
     ? lesson.color
     : LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
+
+  const lessonCard = LESSON_CARD_IMAGES[Math.floor(Math.random() * LESSON_CARD_IMAGES.length)];
 
   return (
     <IonCard
@@ -65,78 +65,45 @@ const LessonCard: React.FC<{
           display: "grid",
         }}
       >
-        {!isUnlocked ? (
-          <div
-            style={{
-              background: "#000000",
-              borderRadius: "25px",
-              width: width,
-              height: height,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              opacity: "0.3",
-              gridArea: "1/1",
-            }}
-          ></div>
-        ) : (
-          <div></div>
-        )}
+        
+          
+        
         <div
-          style={{
-            background: lessonCardColor,
-            borderRadius: "25px",
-            width: width,
-            height: height,
-            display: "grid",
-            justifyContent: "center",
-            alignItems: "center",
-            gridArea: "1/1",
-          }}
-          color={lesson?.color}
         >
-          {showSubjectName ? (
-            <div id="lesson-card-subject-name">
-              <p>{lesson?.chapter.course.name}</p>
-            </div>
-          ) : null}
-          <div id="lesson-card-image">
+          <div >
             {showImage ? (
               <img
-                id="lesson-card-image"
                 loading="lazy"
-                alt={"courses/" + subjectCode + "/icons/" + lesson.image}
-                src={"courses/" + subjectCode + "/icons/" + lesson.image}
+                alt={"assets/icons/Card_A.svg"}
+                src={lessonCard}
                 onError={hideImg}
               />
             ) : (
               <div /> // we can show Default LessonCard text or image
             )}
             {!isUnlocked ? (
+              <div id = "lesson-card-status-icon">
               <img
-                id="lesson-card-status-icon"
+                id="lesson-card-status-icon1"
                 loading="lazy"
                 src="assets/icons/LockIcon.svg"
                 alt="LockIcon"
               />
+               </div>
+              
             ) : isPlayed ? (
-              <img
-                id="lesson-card-status-icon"
-                loading="lazy"
-                src="assets/icons/DoneIcon.svg"
-                alt="DoneIcon"
-              />
+              showScoreCard ? (
+                <div id="lesson-card-score">
+                  <ScoreCard score={score}></ScoreCard> 
+                </div>
+              ) : (
+                <></>
+              )
             ) : (
               <div />
             )}
           </div>
-          {showScoreCard ? (
-            <div id="lesson-card-score">
-              <ScoreCard score={score}></ScoreCard>
-            </div>
-          ) : (
-            <></>
-          )}
+          
         </div>
       </div>
       {showText ? (
@@ -154,3 +121,11 @@ const LessonCard: React.FC<{
 };
 
 export default LessonCard;
+
+const LESSON_CARD_IMAGES = [
+  "assets/icons/Card_A_1.png",
+  "assets/icons/Card_B_1.png",
+  "assets/icons/Card_C_1.png"
+]
+//.svg
+//_1.png
