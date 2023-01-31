@@ -54,6 +54,29 @@ const Login: React.FC = () => {
             src="assets/icons/ArrowIcon.svg"
           />
         </div>
+        <button
+          style={{
+            position: "absolute",
+            top: "90%",
+            left: "45%",
+            padding: "1%",
+          }}
+          onClick={async () => {
+            Auth.i.userAccountName = "debug15@gmail.com";
+            Auth.i.accountType = "com.debug15";
+            Auth.i.authToken = "VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY";
+            localStorage.setItem(IS_USER_LOGED_IN, "true");
+            localStorage.setItem(
+              USER_TOKEN,
+              JSON.stringify(
+                "01,debug15@gmail.com,com.debug15,VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY"
+              )
+            );
+            history.replace(PAGES.HOME);
+          }}
+        >
+          Debug login
+        </button>
         {/* <Loading isLoading={isLoading} /> */}
       </IonContent>
     </IonPage>
