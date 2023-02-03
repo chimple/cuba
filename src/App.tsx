@@ -35,7 +35,7 @@ import {
   IS_CUBA,
   LANG,
   LANGUAGE,
-  PAGES
+  PAGES,
 } from "./common/constants";
 // import Assignments from "./pages/Assignments";
 
@@ -44,7 +44,7 @@ setupIonicReact();
 const App: React.FC = () => {
   useEffect(() => {
     console.log("fetching...");
-    localStorage.setItem(LANGUAGE, LANG.ENGLISH);
+    localStorage.setItem(LANGUAGE, LANG.SIERRA_LEONE);
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({

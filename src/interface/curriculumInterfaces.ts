@@ -6,6 +6,7 @@ export interface Course {
     lang: string;
     type: string;
     levels: string[];
+    isCourseMapped: boolean | null,
 }
 
 export interface Chapter {
@@ -27,4 +28,8 @@ export interface Lesson {
     color?: string;
     chapter: Chapter;
     assignmentId?: string;
+    outcome?: string | null;
+    orig_chapter_id?: string | null;
+    orig_course_id?: string | null;
+    orig_lesson_id?: string | null;
 }

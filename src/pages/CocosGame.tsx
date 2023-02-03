@@ -23,7 +23,7 @@ const CocosGame: React.FC = () => {
   console.log("cocos game", history.location.state);
   const state = history.location.state as any;
   const iFrameUrl = state?.url;
-  console.log("iFrameUrl", iFrameUrl);
+  console.log("iFrameUrl", state?.url, iFrameUrl);
   const [isLoading, setIsLoading] = useState<any>();
   const [present] = useIonToast();
 
@@ -70,14 +70,25 @@ const CocosGame: React.FC = () => {
       for (let i = lessonsInChapter.length - 1; i >= 0; i--) {
         if (foundLesson) {
           if (lessonsInChapter[i].type === EXAM) break;
-          lessonIds.push(lessonsInChapter[i].id);
+          let lessonId =
+            lessonsInChapter[i].chapter.course.isCourseMapped &&
+            lessonsInChapter[i].orig_lesson_id != undefined
+              ? lessonsInChapter[i].orig_lesson_id
+              : lessonsInChapter[i].id;
+          lessonIds.push(lessonId || "");
         } else if (lessonsInChapter[i].id === lesson.id) {
           foundLesson = true;
         }
       }
     } else {
-      lessonIds.push(lesson.id);
+      let lessonId =
+        lesson.chapter.course.isCourseMapped &&
+        lesson.orig_lesson_id != undefined
+          ? lesson.orig_lesson_id
+          : lesson.id;
+      lessonIds.push(lessonId);
     }
+    console.log("cocosGame page lessonIds", lessonIds);
     const dow = await Util.downloadZipBundle(lessonIds);
     if (!dow) {
       presentToast();
@@ -93,22 +104,69 @@ const CocosGame: React.FC = () => {
     //Just fot Testing
     const saveTempData = async (e: any) => {
       setIsLoading(true);
-      console.log("e", e);
+      console.log("Lesson progress ", e);
+      let progressCourseId: string,
+        progressChapterId: string,
+        progressLessonId: string,
+        progressScore: number,
+        progressTimeSpent: string;
+      if (
+        lesson.chapter.course.isCourseMapped &&
+        lesson.orig_course_id != undefined &&
+        lesson.orig_chapter_id != undefined &&
+        lesson.orig_lesson_id != undefined
+      ) {
+        progressCourseId = state.lesson.chapter.course.id;
+        progressChapterId = state.lesson.chapter.id;
+        progressLessonId = state.lesson.id;
+        progressScore = e.detail.score;
+        progressTimeSpent = e.detail.timeSpent;
+        console.log(
+          "Mapped lesson Progress ",
+          progressCourseId,
+          "  ",
+          progressChapterId,
+          "  ",
+          progressLessonId,
+          "  ",
+          progressScore,
+          "  ",
+          progressTimeSpent
+        );
+      } else {
+        progressCourseId = e.detail.courseName;
+        progressChapterId = e.detail.chapterId;
+        progressLessonId = e.detail.lessonId;
+        progressScore = e.detail.score;
+        progressTimeSpent = e.detail.timeSpent;
+        console.log(
+          "lesson Progress ",
+          progressCourseId,
+          "  ",
+          progressChapterId,
+          "  ",
+          progressLessonId,
+          "  ",
+          progressScore,
+          "  ",
+          progressTimeSpent
+        );
+      }
 
       const json = localStorage.getItem(TEMP_LESSONS_STORE);
       let lessons: any = {};
       if (json) {
         lessons = JSON.parse(json);
       }
-      lessons[e.detail.lessonId] = e.detail.score;
+      lessons[progressLessonId] = progressScore;
       localStorage.setItem(TEMP_LESSONS_STORE, JSON.stringify(lessons));
-      localStorage.setItem(PREVIOUS_PLAYED_COURSE, e.detail.courseName);
+      localStorage.setItem(PREVIOUS_PLAYED_COURSE, progressCourseId);
       const levelJson = localStorage.getItem(CURRENT_LESSON_LEVEL);
       let currentLessonLevel: any = {};
       if (levelJson) {
         currentLessonLevel = JSON.parse(levelJson);
       }
-      currentLessonLevel[e.detail.courseName] = e.detail.lessonId;
+      currentLessonLevel[progressCourseId] = progressLessonId;
       localStorage.setItem(
         CURRENT_LESSON_LEVEL,
         JSON.stringify(currentLessonLevel)
@@ -116,44 +174,44 @@ const CocosGame: React.FC = () => {
       const apiInstance = OneRosterApi.getInstance();
       const tempClass = await apiInstance.getClassForUserForSubject(
         "user",
-        e.detail.courseName
+        progressCourseId
       );
-      if (e.detail.lessonId.endsWith(PRE_QUIZ)) {
+      if (progressLessonId.endsWith(PRE_QUIZ)) {
         const preQuiz = await apiInstance.updatePreQuiz(
-          e.detail.courseName,
+          progressCourseId,
           tempClass?.sourcedId ?? "",
           "user",
-          e.detail.preQuizChapterId ?? e.detail.chapterId,
+          e.detail.preQuizChapterId ?? progressChapterId,
           false
         );
         const levelChapter = await apiInstance.getChapterForPreQuizScore(
-          e.detail.courseName,
+          progressCourseId,
           preQuiz?.score ?? 0,
-          await Curriculum.i.allChapterForSubject(e.detail.courseName)
+          await Curriculum.i.allChapterForSubject(progressCourseId)
         );
-        currentLessonLevel[e.detail.courseName] = levelChapter.lessons[0].id;
+        currentLessonLevel[progressCourseId] = levelChapter.lessons[0].id;
         localStorage.setItem(
           CURRENT_LESSON_LEVEL,
           JSON.stringify(currentLessonLevel)
         );
         Curriculum.i.clear();
-        lessons[e.detail.lessonId] = preQuiz?.score;
+        lessons[progressLessonId] = preQuiz?.score;
         localStorage.setItem(TEMP_LESSONS_STORE, JSON.stringify(lessons));
         console.log("preQuiz after update", preQuiz);
       } else {
         const result = await apiInstance.putResult(
           "user",
           tempClass?.sourcedId ?? "",
-          e.detail.lessonId,
-          e.detail.score,
-          e.detail.courseName
+          progressLessonId,
+          progressScore,
+          progressCourseId
         );
         console.log("result ", result);
       }
       await Curriculum.i.unlockNextLesson(
-        e.detail.courseName,
-        e.detail.lessonId,
-        e.detail.score
+        progressCourseId,
+        progressLessonId,
+        progressScore
       );
 
       setIsLoading(false);
