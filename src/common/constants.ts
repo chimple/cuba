@@ -1,19 +1,19 @@
 import { Capacitor } from "@capacitor/core";
 
 export enum COURSES {
-    SIERRA_LEONE_ENGLISH = 'en-sl',
-    SIERRA_LEONE_MATHS = 'maths-sl',
+    SIERRA_LEONE_ENGLISH = 'sl-en',
+    SIERRA_LEONE_MATHS = 'sl-maths',
     PUZZLE = 'puzzle',
-    ENGLISH = 'en',
-    MATHS = 'maths'
+    ENGLISH = 'sl_en1_mp',
+    MATHS = 'sl_maths1_mp'
 }
 
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
 export enum HEADERLIST {
     HOME = 'HOME',
-    ENGLISH = 'en',
-    MATHS = 'maths',
+    ENGLISH = 'sl_en1_mp',
+    MATHS = 'sl_maths1_mp',
     PUZZLE = 'puzzle',
     PROFILE = 'PROFILE'
 }
@@ -40,6 +40,7 @@ export enum LANG {
     HINDI = 'hi',
     KANNADA = 'kn',
     MARATHI = 'mr',
+    SIERRA_LEONE = "sl_en"
 }
 
 

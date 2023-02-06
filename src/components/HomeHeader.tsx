@@ -37,7 +37,7 @@ const HomeHeader: React.FC<{
             <p className="home-header-indicator">&nbsp;</p>
           )}
           <IconButton
-            name="English"
+            name="SL English G1"
             iconSrc="assets/icons/EnglishIcon.svg"
             onClick={() => {
               if (currentHeader != HEADERLIST.ENGLISH) {
@@ -54,7 +54,7 @@ const HomeHeader: React.FC<{
             <p className="home-header-indicator">&nbsp;</p>
           )}
           <IconButton
-            name="Maths"
+            name="SL Maths G1"
             iconSrc="assets/icons/MathsIcon.svg"
             onClick={() => {
               if (currentHeader != HEADERLIST.MATHS) {

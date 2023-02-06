@@ -34,7 +34,7 @@ export class OneRosterApi implements ServiceApi {
     async getClassesForUser(userId: string): Promise<Class[]> {
         console.log('in getClassesForUser')
         try {
-            const response = await Http.get({ url: "https://mocki.io/v1/eed2eaa3-cd47-4f13-a3c4-524de936d132", headers: this.getHeaders() }).catch((e) => { console.log("error on getResultsForStudentForClass", e) });
+            const response = await Http.get({ url: "https://mocki.io/v1/dcf990f5-52ca-48c2-9ff7-31a25f7a5d9d", headers: this.getHeaders() }).catch((e) => { console.log("error on getResultsForStudentForClass", e) });
             const result = (response && response.status === 200) ? response.data : {};
             // const req=await Http.get({url:`http://users/${userId}/classes`})
             // await new Promise(r => setTimeout(r, 1000));
