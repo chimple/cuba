@@ -72,7 +72,8 @@ const CocosGame: React.FC = () => {
           if (lessonsInChapter[i].type === EXAM) break;
           let lessonId =
             lessonsInChapter[i].chapter.course.isCourseMapped &&
-            lessonsInChapter[i].orig_lesson_id != undefined
+            lessonsInChapter[i].orig_lesson_id != undefined &&
+            lesson.type != EXAM
               ? lessonsInChapter[i].orig_lesson_id
               : lessonsInChapter[i].id;
           lessonIds.push(lessonId || "");
