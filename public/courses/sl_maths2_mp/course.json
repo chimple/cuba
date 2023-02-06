@@ -1,6 +1,24 @@
 {
   "chapters": [
     {
+      "id": "sl_maths2_mp_quiz",
+      "image": "sl_maths2_mp_quiz.png",
+      "type": "exam",
+      "lessons": [
+        {
+          "color": "",
+          "id": "sl_maths2_mp_PreQuiz",
+          "image": "sl_maths2_mp_Prequiz.png",
+          "name": "Assesment",
+          "orig_chapter_id": "sl_maths_quiz",
+          "orig_course_id": "sl_maths",
+          "orig_lesson_id": "sl_maths_g2_PreQuiz",
+          "outcome": "Learn about shapes and digital skills of clicking and dragging actions"
+        }
+      ],
+      "name": "Quiz"
+    },
+    {
       "id": "sl_maths2_mp00",
       "image": "sl_maths2_mp00.png",
       "lessons": [
