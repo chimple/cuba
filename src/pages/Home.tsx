@@ -84,15 +84,15 @@ const Home: React.FC = () => {
         }
       }
       const prevPlayedCourse = localStorage.getItem(PREVIOUS_PLAYED_COURSE);
-      let _lessons: Lesson[] = [...lessonMap[COURSES.ENGLISH]];
-      if (prevPlayedCourse && prevPlayedCourse === COURSES.ENGLISH) {
-        _lessons.splice(0, 0, lessonMap[COURSES.MATHS][0]);
-        if (lessonMap[COURSES.MATHS].length > 1)
-          _lessons.splice(2, 0, lessonMap[COURSES.MATHS][1]);
+      let _lessons: Lesson[] = [...lessonMap[COURSES.ENGLISH_G1]];
+      if (prevPlayedCourse && prevPlayedCourse === COURSES.ENGLISH_G1) {
+        _lessons.splice(0, 0, lessonMap[COURSES.MATHS_G1][0]);
+        if (lessonMap[COURSES.MATHS_G1].length > 1)
+          _lessons.splice(2, 0, lessonMap[COURSES.MATHS_G1][1]);
       } else {
-        _lessons.splice(1, 0, lessonMap[COURSES.MATHS][0]);
-        if (lessonMap[COURSES.MATHS].length > 1)
-          _lessons.push(lessonMap[COURSES.MATHS][1]);
+        _lessons.splice(1, 0, lessonMap[COURSES.MATHS_G1][0]);
+        if (lessonMap[COURSES.MATHS_G1].length > 1)
+          _lessons.push(lessonMap[COURSES.MATHS_G1][1]);
       }
       _lessons.push(lessonMap[COURSES.PUZZLE][0]);
       setLessonsScoreMap(lessonScoreMap);
@@ -204,16 +204,28 @@ const Home: React.FC = () => {
         console.log("Home Icons is selected");
         break;
 
-      case HEADERLIST.ENGLISH:
-        setCurrentHeader(HEADERLIST.ENGLISH);
-        setCourse(COURSES.ENGLISH);
-        localStorage.setItem(PREVIOUS_SELECTED_COURSE, COURSES.ENGLISH);
+      case HEADERLIST.ENGLISH_G1:
+        setCurrentHeader(HEADERLIST.ENGLISH_G1);
+        setCourse(COURSES.ENGLISH_G1);
+        localStorage.setItem(PREVIOUS_SELECTED_COURSE, COURSES.ENGLISH_G1);
         break;
 
-      case HEADERLIST.MATHS:
-        setCurrentHeader(HEADERLIST.MATHS);
-        setCourse(COURSES.MATHS);
-        localStorage.setItem(PREVIOUS_SELECTED_COURSE, COURSES.MATHS);
+      case HEADERLIST.MATHS_G1:
+        setCurrentHeader(HEADERLIST.MATHS_G1);
+        setCourse(COURSES.MATHS_G1);
+        localStorage.setItem(PREVIOUS_SELECTED_COURSE, COURSES.MATHS_G1);
+        break;
+
+      case HEADERLIST.ENGLISH_G2:
+        setCurrentHeader(HEADERLIST.ENGLISH_G2);
+        setCourse(COURSES.ENGLISH_G2);
+        localStorage.setItem(PREVIOUS_SELECTED_COURSE, COURSES.ENGLISH_G2);
+        break;
+
+      case HEADERLIST.MATHS_G2:
+        setCurrentHeader(HEADERLIST.MATHS_G2);
+        setCourse(COURSES.MATHS_G2);
+        localStorage.setItem(PREVIOUS_SELECTED_COURSE, COURSES.MATHS_G2);
         break;
 
       case HEADERLIST.PUZZLE:

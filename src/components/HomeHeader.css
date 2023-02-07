@@ -8,7 +8,7 @@
 #home-header-middle-icons {
     display: flex;
     justify-content: space-between;
-    width: 60vh;
+    width: 90vh;
     /* width: 30vw; */
     margin: 0 auto
 }
