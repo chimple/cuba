@@ -1,6 +1,24 @@
 {
   "chapters": [
     {
+      "id": "sl_en2_mp_quiz",
+      "image": "sl_en2_mp_quiz.png",
+      "type": "exam",
+      "lessons": [
+        {
+          "color": "",
+          "id": "sl_en2_mp_PreQuiz",
+          "image": "sl_en2_mp_Prequiz.png",
+          "name": "Assesment",
+          "orig_chapter_id": "sl_en_quiz",
+          "orig_course_id": "sl_en",
+          "orig_lesson_id": "sl_en_g2_PreQuiz",
+          "outcome": "Learn about shapes and digital skills of clicking and dragging actions"
+        }
+      ],
+      "name": "Quiz"
+    },
+    {
       "id": "sl_en2_mp00",
       "image": "sl_en2_mp00.png",
       "lessons": [
@@ -55,6 +73,14 @@
           "outcome": "None"
         },
         {
+          "id": "challenge1",
+          "name": "Challenge 1",
+          "image": "challenge1.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp0005",
           "image": "sl_en2_mp0005.png",
@@ -93,6 +119,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en2501",
           "outcome": "None"
+        },
+        {
+          "id": "challenge2",
+          "name": "Challenge 2",
+          "image": "challenge2.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -135,6 +169,14 @@
           "outcome": "None"
         },
         {
+          "id": "challenge3",
+          "name": "Challenge 3",
+          "image": "challenge3.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp0013",
           "image": "sl_en2_mp0013.png",
@@ -173,6 +215,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en0103",
           "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
+        },
+        {
+          "id": "challenge4",
+          "name": "Challenge 4",
+          "image": "challenge4.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -215,6 +265,14 @@
           "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
         },
         {
+          "id": "challenge5",
+          "name": "Challenge 5",
+          "image": "challenge5.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp0021",
           "image": "sl_en2_mp0021.png",
@@ -253,6 +311,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en0204",
           "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
+        },
+        {
+          "id": "challenge6",
+          "name": "Challenge 6",
+          "image": "challenge6.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -295,6 +361,14 @@
           "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
         },
         {
+          "id": "challenge7",
+          "name": "Challenge 7",
+          "image": "challenge7.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp0029",
           "image": "sl_en2_mp0029.png",
@@ -333,6 +407,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en0306",
           "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
+        },
+        {
+          "id": "challenge8",
+          "name": "Challenge 8",
+          "image": "challenge8.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -375,6 +457,14 @@
           "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
         },
         {
+          "id": "challenge9",
+          "name": "Challenge 9",
+          "image": "challenge9.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp0037",
           "image": "sl_en2_mp0037.png",
@@ -413,6 +503,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en0406",
           "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
+        },
+        {
+          "id": "challenge10",
+          "name": "Challenge 10",
+          "image": "challenge10.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -473,6 +571,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en0600",
           "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
+        },
+        {
+          "id": "challenge11",
+          "name": "Challenge 11",
+          "image": "challenge11.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 1"
@@ -532,6 +638,14 @@
           "outcome": "Learn to use action words, ie, verbs in sentences."
         },
         {
+          "id": "challenge12",
+          "name": "Challenge 12",
+          "image": "challenge12.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp0105",
           "image": "sl_en2_mp0105.png",
@@ -572,6 +686,14 @@
           "outcome": "Students should dentify and properly pronounce one/two syllable words with emphasis on the vowel sounds. Pupils must pronounce the different vowel sounds in one /two syllable words."
         },
         {
+          "id": "challenge13",
+          "name": "Challenge 13",
+          "image": "challenge13.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp0109",
           "image": "sl_en2_mp0109.png",
@@ -610,6 +732,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en1005",
           "outcome": "Students should dentify and properly pronounce one/two syllable words with emphasis on the vowel sounds. Pupils must pronounce the different vowel sounds in one /two syllable words."
+        },
+        {
+          "id": "challenge14",
+          "name": "Challenge 14",
+          "image": "challenge14.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -660,6 +790,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en1010",
           "outcome": "Students should dentify and properly pronounce one/two syllable words with emphasis on the vowel sounds. Pupils must pronounce the different vowel sounds in one /two syllable words."
+        },
+        {
+          "id": "challenge15",
+          "name": "Challenge 15",
+          "image": "challenge15.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 2"
@@ -737,6 +875,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en2409",
           "outcome": "None"
+        },
+        {
+          "id": "challenge16",
+          "name": "Challenge 16",
+          "image": "challenge16.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 3"
@@ -796,6 +942,14 @@
           "outcome": "Improve English reading and communication skills"
         },
         {
+          "id": "challenge17",
+          "name": "Challenge 17",
+          "image": "challenge17.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp0305",
           "image": "sl_en2_mp0305.png",
@@ -836,6 +990,14 @@
           "outcome": "Create plurals \na. Identify nouns that form their\nplurals by adding “s”\nb. Identify nouns that form their\nplurals by adding ‘es” e.g.\nnouns ending in “x” “ch” and\n“sh”\nc. Use of singular and plural\nnouns in simple sentences\nusing this, that, these or\nthose."
         },
         {
+          "id": "challenge18",
+          "name": "Challenge 18",
+          "image": "challenge18.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp0309",
           "image": "sl_en2_mp0309.png",
@@ -874,6 +1036,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en3204",
           "outcome": "Create plurals \na. Identify nouns that form their\nplurals by adding “s”\nb. Identify nouns that form their\nplurals by adding ‘es” e.g.\nnouns ending in “x” “ch” and\n“sh”\nc. Use of singular and plural\nnouns in simple sentences\nusing this, that, these or\nthose."
+        },
+        {
+          "id": "challenge19",
+          "name": "Challenge 19",
+          "image": "challenge19.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 4"
@@ -931,6 +1101,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en2509",
           "outcome": "Learn about activities people do in their everyday life."
+        },
+        {
+          "id": "challenge20",
+          "name": "Challenge 20",
+          "image": "challenge20.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -993,6 +1171,14 @@
           "outcome": "Learn alphabet d, e, n, and t. Learn words starting with the above mentioned alphabet."
         },
         {
+          "id": "challenge21",
+          "name": "Challenge 21",
+          "image": "challenge21.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp0411",
           "image": "sl_en2_mp0411.png",
@@ -1041,6 +1227,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en2415",
           "outcome": "None"
+        },
+        {
+          "id": "challenge22",
+          "name": "Challenge 22",
+          "image": "challenge22.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 5"
@@ -1100,6 +1294,14 @@
           "outcome": "Learn the use of adjectives in describing nouns."
         },
         {
+          "id": "challenge23",
+          "name": "Challenge 23",
+          "image": "challenge23.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp0505",
           "image": "sl_en2_mp0505.png",
@@ -1138,6 +1340,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en0201",
           "outcome": "Learn alphabet f,h, and m. Learn words starting with the above mentioned alphabet."
+        },
+        {
+          "id": "challenge24",
+          "name": "Challenge 24",
+          "image": "challenge24.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -1180,6 +1390,14 @@
           "outcome": "Learn more words"
         },
         {
+          "id": "challenge25",
+          "name": "Challenge 25",
+          "image": "challenge25.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp0513",
           "image": "sl_en2_mp0513.png",
@@ -1218,6 +1436,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en0505",
           "outcome": "a. Writing the alphabet in Capital Letters.\nb. Writing the alphabet in capital and small letters, eg.\nAa, Bb, Cc, Dd, Ee, Ff, Gg"
+        },
+        {
+          "id": "challenge26",
+          "name": "Challenge 26",
+          "image": "challenge26.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -1268,6 +1494,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en0512",
           "outcome": "a. Writing the alphabet in Capital Letters.\nb. Writing the alphabet in capital and small letters, eg.\nAa, Bb, Cc, Dd, Ee, Ff, Gg"
+        },
+        {
+          "id": "challenge27",
+          "name": "Challenge 27",
+          "image": "challenge27.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 6"
@@ -1335,6 +1569,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en2609",
           "outcome": "Pupils should identify actions as verbs, relating to their daily activities."
+        },
+        {
+          "id": "challenge28",
+          "name": "Challenge 28",
+          "image": "challenge28.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 7"
@@ -1392,6 +1634,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en0202",
           "outcome": "Learn alphabet p, i, and g. Learn words starting with the above mentioned alphabet."
+        },
+        {
+          "id": "challenge29",
+          "name": "Challenge 29",
+          "image": "challenge29.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -1464,6 +1714,14 @@
           "outcome": "None"
         },
         {
+          "id": "challenge30",
+          "name": "Challenge 30",
+          "image": "challenge30.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp0712",
           "image": "sl_en2_mp0712.png",
@@ -1492,6 +1750,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en2101",
           "outcome": "Learn digital skills of typing words"
+        },
+        {
+          "id": "challenge31",
+          "name": "Challenge 31",
+          "image": "challenge31.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 8"
@@ -1551,6 +1817,14 @@
           "outcome": "Learn alphabet l, u, and j. Learn words starting with the above mentioned alphabet."
         },
         {
+          "id": "challenge32",
+          "name": "Challenge 32",
+          "image": "challenge32.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp0805",
           "image": "sl_en2_mp0805.png",
@@ -1589,6 +1863,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en3001",
           "outcome": "None"
+        },
+        {
+          "id": "challenge33",
+          "name": "Challenge 33",
+          "image": "challenge33.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -1641,6 +1923,14 @@
           "outcome": "Learn use of pronouns in sentences."
         },
         {
+          "id": "challenge34",
+          "name": "Challenge 34",
+          "image": "challenge34.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp0814",
           "image": "sl_en2_mp0814.png",
@@ -1689,6 +1979,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en2506",
           "outcome": "Learn use of pronouns in sentences."
+        },
+        {
+          "id": "challenge35",
+          "name": "Challenge 35",
+          "image": "challenge35.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 9"
@@ -1768,6 +2066,14 @@
           "outcome": "English comprehension. Learn to create sentences."
         },
         {
+          "id": "challenge36",
+          "name": "Challenge 36",
+          "image": "challenge36.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp0907",
           "image": "sl_en2_mp0907.png",
@@ -1806,6 +2112,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en2903",
           "outcome": "Pupils should identify\nstatement which end with a\nperiod/full stop (.) and an\nasking sentence ending\nwith a question mark (?)"
+        },
+        {
+          "id": "challenge37",
+          "name": "Challenge 37",
+          "image": "challenge37.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 10"
@@ -1865,6 +2179,14 @@
           "outcome": "Learn alphabet o, q, and v. Learn words starting with the above mentioned alphabet."
         },
         {
+          "id": "challenge38",
+          "name": "Challenge 38",
+          "image": "challenge38.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp1005",
           "image": "sl_en2_mp1005.png",
@@ -1905,6 +2227,14 @@
           "outcome": "Reading practice. Formation of words."
         },
         {
+          "id": "challenge39",
+          "name": "Challenge 39",
+          "image": "challenge39.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp1009",
           "image": "sl_en2_mp1009.png",
@@ -1943,6 +2273,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en1107",
           "outcome": "Reading practice. Formation of words."
+        },
+        {
+          "id": "challenge40",
+          "name": "Challenge 40",
+          "image": "challenge40.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -2003,6 +2341,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en1113",
           "outcome": "Reading practice. Formation of words."
+        },
+        {
+          "id": "challenge41",
+          "name": "Challenge 41",
+          "image": "challenge41.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 11"
@@ -2060,6 +2406,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en3604",
           "outcome": "Reading time by looking at clock face. Relating time to the work we do."
+        },
+        {
+          "id": "challenge42",
+          "name": "Challenge 42",
+          "image": "challenge42.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -2122,6 +2476,14 @@
           "outcome": "None"
         },
         {
+          "id": "challenge43",
+          "name": "Challenge 43",
+          "image": "challenge43.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp1111",
           "image": "sl_en2_mp1111.png",
@@ -2160,6 +2522,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en2810",
           "outcome": "a. Definition and simple examples\nof prepositions in, out, on, by,\nto, at etc.\nb. Illustrations and uses of\nprepositions in simple\nsentences e.g. The toys are on\nthe table."
+        },
+        {
+          "id": "challenge44",
+          "name": "Challenge 44",
+          "image": "challenge44.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 12"
@@ -2247,6 +2617,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en3802",
           "outcome": "Comparison in adjectives"
+        },
+        {
+          "id": "challenge45",
+          "name": "Challenge 45",
+          "image": "challenge45.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 13"
@@ -2306,6 +2684,14 @@
           "outcome": "Prepositions. Know the placement of objects/people etc."
         },
         {
+          "id": "challenge46",
+          "name": "Challenge 46",
+          "image": "challenge46.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp1305",
           "image": "sl_en2_mp1305.png",
@@ -2344,6 +2730,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en0902",
           "outcome": "Learn beginning sounds. For eg. a for ant etc"
+        },
+        {
+          "id": "challenge47",
+          "name": "Challenge 47",
+          "image": "challenge47.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -2386,6 +2780,14 @@
           "outcome": "None"
         },
         {
+          "id": "challenge48",
+          "name": "Challenge 48",
+          "image": "challenge48.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp1313",
           "image": "sl_en2_mp1313.png",
@@ -2424,6 +2826,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en3404",
           "outcome": "None"
+        },
+        {
+          "id": "challenge49",
+          "name": "Challenge 49",
+          "image": "challenge49.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -2466,6 +2876,14 @@
           "outcome": "None"
         },
         {
+          "id": "challenge50",
+          "name": "Challenge 50",
+          "image": "challenge50.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp1321",
           "image": "sl_en2_mp1321.png",
@@ -2504,6 +2922,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en2807",
           "outcome": "None"
+        },
+        {
+          "id": "challenge51",
+          "name": "Challenge 51",
+          "image": "challenge51.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 14"
@@ -2563,6 +2989,14 @@
           "outcome": "Learn punctuations like period, space between words, use of commas, etc."
         },
         {
+          "id": "challenge52",
+          "name": "Challenge 52",
+          "image": "challenge52.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp1405",
           "image": "sl_en2_mp1405.png",
@@ -2601,6 +3035,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en2904",
           "outcome": "Learn punctuations like period, space between words, use of commas, etc."
+        },
+        {
+          "id": "challenge53",
+          "name": "Challenge 53",
+          "image": "challenge53.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 15"
@@ -2668,6 +3110,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en1815",
           "outcome": "Concord rule in grammar"
+        },
+        {
+          "id": "challenge54",
+          "name": "Challenge 54",
+          "image": "challenge54.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 16"
@@ -2727,6 +3177,14 @@
           "outcome": "Match Upper case alphabet with lower case"
         },
         {
+          "id": "challenge55",
+          "name": "Challenge 55",
+          "image": "challenge55.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp1605",
           "image": "sl_en2_mp1605.png",
@@ -2765,6 +3223,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en1101",
           "outcome": "Rhyming words"
+        },
+        {
+          "id": "challenge56",
+          "name": "Challenge 56",
+          "image": "challenge56.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -2807,6 +3273,14 @@
           "outcome": "None"
         },
         {
+          "id": "challenge57",
+          "name": "Challenge 57",
+          "image": "challenge57.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp1613",
           "image": "sl_en2_mp1613.png",
@@ -2847,6 +3321,14 @@
           "outcome": "None"
         },
         {
+          "id": "challenge58",
+          "name": "Challenge 58",
+          "image": "challenge58.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp1617",
           "image": "sl_en2_mp1617.png",
@@ -2885,6 +3367,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en1502",
           "outcome": "None"
+        },
+        {
+          "id": "challenge59",
+          "name": "Challenge 59",
+          "image": "challenge59.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 17"
@@ -2972,6 +3462,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en3103",
           "outcome": "None"
+        },
+        {
+          "id": "challenge60",
+          "name": "Challenge 60",
+          "image": "challenge60.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 18"
@@ -3031,6 +3529,14 @@
           "outcome": "None"
         },
         {
+          "id": "challenge61",
+          "name": "Challenge 61",
+          "image": "challenge61.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp1805",
           "image": "sl_en2_mp1805.png",
@@ -3071,6 +3577,14 @@
           "outcome": "Pupils must use capital\nletters to start:\na. Names of people\nb. Days of the week\nc. Months of the year\nNames of Places"
         },
         {
+          "id": "challenge62",
+          "name": "Challenge 62",
+          "image": "challenge62.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp1809",
           "image": "sl_en2_mp1809.png",
@@ -3109,6 +3623,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en3609",
           "outcome": "None"
+        },
+        {
+          "id": "challenge63",
+          "name": "Challenge 63",
+          "image": "challenge63.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -3159,6 +3681,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en3614",
           "outcome": "None"
+        },
+        {
+          "id": "challenge64",
+          "name": "Challenge 64",
+          "image": "challenge64.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 19"
@@ -3226,6 +3756,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en0512",
           "outcome": "None"
+        },
+        {
+          "id": "challenge65",
+          "name": "Challenge 65",
+          "image": "challenge65.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 20"
@@ -3293,6 +3831,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en2801",
           "outcome": "Learn about adverbs and their uses in sentences."
+        },
+        {
+          "id": "challenge66",
+          "name": "Challenge 66",
+          "image": "challenge66.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 21"
@@ -3352,6 +3898,14 @@
           "outcome": "None"
         },
         {
+          "id": "challenge67",
+          "name": "Challenge 67",
+          "image": "challenge67.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp2105",
           "image": "sl_en2_mp2105.png",
@@ -3400,6 +3954,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en2413",
           "outcome": "Learn use of articles, 'a', 'an' and 'the'"
+        },
+        {
+          "id": "challenge68",
+          "name": "Challenge 68",
+          "image": "challenge68.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 22"
@@ -3459,6 +4021,14 @@
           "outcome": "None"
         },
         {
+          "id": "challenge69",
+          "name": "Challenge 69",
+          "image": "challenge69.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp2205",
           "image": "sl_en2_mp2205.png",
@@ -3497,6 +4067,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en1300",
           "outcome": "None"
+        },
+        {
+          "id": "challenge70",
+          "name": "Challenge 70",
+          "image": "challenge70.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -3567,6 +4145,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en2700",
           "outcome": "Pupils should recognize\narticle “the” to refer to specific\nperson or object (both\nsingular and plural)."
+        },
+        {
+          "id": "challenge71",
+          "name": "Challenge 71",
+          "image": "challenge71.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 23"
@@ -3594,6 +4180,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en1302",
           "outcome": "Practice adding 'ing' to words"
+        },
+        {
+          "id": "challenge72",
+          "name": "Challenge 72",
+          "image": "challenge72.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 24"
@@ -3681,6 +4275,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en3303",
           "outcome": "❖ Pupils should identify and\nwrite upper and lower cases\nof the small letters of the\nalphabet.\n❖ They should clearly write\nsimple sentences with\nemphasis on upper and lower\nase letters."
+        },
+        {
+          "id": "challenge73",
+          "name": "Challenge 73",
+          "image": "challenge73.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 25"
@@ -3758,6 +4360,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en2606",
           "outcome": "- Pupils should use simple\npresent tense to describe\ntheir daily actions/routines\nin simple sentences.\n- They should relate that to\ndifferent actions in and out\nof the classroom setting."
+        },
+        {
+          "id": "challenge74",
+          "name": "Challenge 74",
+          "image": "challenge74.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 26"
@@ -3817,6 +4427,14 @@
           "outcome": "None"
         },
         {
+          "id": "challenge75",
+          "name": "Challenge 75",
+          "image": "challenge75.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
+        },
+        {
           "color": "",
           "id": "sl_en2_mp2605",
           "image": "sl_en2_mp2605.png",
@@ -3855,6 +4473,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en1601",
           "outcome": "None"
+        },
+        {
+          "id": "challenge76",
+          "name": "Challenge 76",
+          "image": "challenge76.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -3905,6 +4531,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en1815",
           "outcome": "None"
+        },
+        {
+          "id": "challenge77",
+          "name": "Challenge 77",
+          "image": "challenge77.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 27"
@@ -3972,6 +4606,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en1908",
           "outcome": "None"
+        },
+        {
+          "id": "challenge78",
+          "name": "Challenge 78",
+          "image": "challenge78.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 28"
@@ -4029,6 +4671,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en1603",
           "outcome": "None"
+        },
+        {
+          "id": "challenge79",
+          "name": "Challenge 79",
+          "image": "challenge79.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 29"
@@ -4096,6 +4746,14 @@
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en3615",
           "outcome": "Knowing when to use yesterday, today and tomorrow."
+        },
+        {
+          "id": "challenge80",
+          "name": "Challenge 80",
+          "image": "challenge80.png",
+          "color": "",
+          "type": "exam",
+          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 30"
