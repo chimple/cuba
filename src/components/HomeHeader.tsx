@@ -31,34 +31,69 @@ const HomeHeader: React.FC<{
 
       <div id="home-header-middle-icons">
         <div>
-          {currentHeader == HEADERLIST.ENGLISH ? (
+          {currentHeader == HEADERLIST.ENGLISH_G1 ? (
             <p className="home-header-indicator">&#9679;</p>
           ) : (
             <p className="home-header-indicator">&nbsp;</p>
           )}
           <IconButton
-            name="SL English G1"
+            name="English G1"
             iconSrc="assets/icons/EnglishIcon.svg"
             onClick={() => {
-              if (currentHeader != HEADERLIST.ENGLISH) {
-                onHeaderIconClick(HEADERLIST.ENGLISH);
+              if (currentHeader != HEADERLIST.ENGLISH_G1) {
+                onHeaderIconClick(HEADERLIST.ENGLISH_G1);
                 console.log("English button clicked", currentHeader);
               }
             }}
           ></IconButton>
         </div>
         <div>
-          {currentHeader == HEADERLIST.MATHS ? (
+          {currentHeader == HEADERLIST.ENGLISH_G2 ? (
             <p className="home-header-indicator">&#9679;</p>
           ) : (
             <p className="home-header-indicator">&nbsp;</p>
           )}
           <IconButton
-            name="SL Maths G1"
+            name="English G2"
+            iconSrc="assets/icons/EnglishIcon.svg"
+            onClick={() => {
+              if (currentHeader != HEADERLIST.ENGLISH_G2) {
+                onHeaderIconClick(HEADERLIST.ENGLISH_G2);
+                console.log("English button clicked", currentHeader);
+              }
+            }}
+          ></IconButton>
+        </div>
+
+        <div>
+          {currentHeader == HEADERLIST.MATHS_G1 ? (
+            <p className="home-header-indicator">&#9679;</p>
+          ) : (
+            <p className="home-header-indicator">&nbsp;</p>
+          )}
+          <IconButton
+            name="Maths G1"
             iconSrc="assets/icons/MathsIcon.svg"
             onClick={() => {
-              if (currentHeader != HEADERLIST.MATHS) {
-                onHeaderIconClick(HEADERLIST.MATHS);
+              if (currentHeader != HEADERLIST.MATHS_G1) {
+                onHeaderIconClick(HEADERLIST.MATHS_G1);
+                console.log("Maths button clicked", currentHeader);
+              }
+            }}
+          ></IconButton>
+        </div>
+        <div>
+          {currentHeader == HEADERLIST.MATHS_G2 ? (
+            <p className="home-header-indicator">&#9679;</p>
+          ) : (
+            <p className="home-header-indicator">&nbsp;</p>
+          )}
+          <IconButton
+            name="Maths G2"
+            iconSrc="assets/icons/MathsIcon.svg"
+            onClick={() => {
+              if (currentHeader != HEADERLIST.MATHS_G2) {
+                onHeaderIconClick(HEADERLIST.MATHS_G2);
                 console.log("Maths button clicked", currentHeader);
               }
             }}
