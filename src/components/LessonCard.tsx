@@ -47,21 +47,21 @@ const LessonCard: React.FC<{
       }}
       onClick={() => {
         if (isUnlocked) {
-          if (
-            lesson.chapter.course.isCourseMapped &&
-            lesson.orig_course_id != undefined &&
-            lesson.orig_chapter_id != undefined &&
-            lesson.orig_lesson_id != undefined
-          ) {
-            const parmas = `?courseid=${lesson.orig_course_id}&chapterid=${lesson.orig_chapter_id}&lessonid=${lesson.orig_lesson_id}`;
-            console.log("parmas", parmas);
-            history.push(PAGES.GAME + parmas, {
-              url: "chimple-lib/index.html" + parmas,
-              lessonId: lesson.orig_lesson_id,
-              lesson: lesson,
-              from: history.location.pathname,
-            });
-          } else {
+          // if (
+          //   lesson.chapter.course.isCourseMapped &&
+          //   lesson.orig_course_id != undefined &&
+          //   lesson.orig_chapter_id != undefined &&
+          //   lesson.orig_lesson_id != undefined
+          // ) {
+          //   const parmas = `?courseid=${lesson.orig_course_id}&chapterid=${lesson.orig_chapter_id}&lessonid=${lesson.orig_lesson_id}`;
+          //   console.log("parmas", parmas);
+          //   history.push(PAGES.GAME + parmas, {
+          //     url: "chimple-lib/index.html" + parmas,
+          //     lessonId: lesson.orig_lesson_id,
+          //     lesson: lesson,
+          //     from: history.location.pathname,
+          //   });
+          // } else {
             const parmas = `?courseid=${subjectCode}&chapterid=${lesson.chapter.id}&lessonid=${lesson.id}`;
             history.push(PAGES.GAME + parmas, {
               url: "chimple-lib/index.html" + parmas,
@@ -69,7 +69,7 @@ const LessonCard: React.FC<{
               lesson: lesson,
               from: history.location.pathname,
             });
-          }
+          // }
         } else {
           console.log(lesson?.name, "lesson is locked");
         }

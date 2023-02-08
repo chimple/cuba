@@ -1,0 +1,11 @@
+.loading-wrapper {
+  --background: transparent !important;
+  -webkit-box-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.loading {
+  /* border-radius: 30px; */
+  width: 100px;
+  height: 100px;
+}
