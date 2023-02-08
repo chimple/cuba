@@ -4,16 +4,21 @@ export enum COURSES {
     SIERRA_LEONE_ENGLISH = 'sl-en',
     SIERRA_LEONE_MATHS = 'sl-maths',
     PUZZLE = 'puzzle',
-    ENGLISH = 'sl_en1_mp',
-    MATHS = 'sl_maths1_mp'
+    ENGLISH_G1 = 'sl_en1_mp',
+    MATHS_G1 = 'sl_maths1_mp',
+    ENGLISH_G2 = 'sl_en2_mp',
+    MATHS_G2 = 'sl_maths2_mp'
+
 }
 
-export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
+export const ALL_COURSES = [COURSES.ENGLISH_G1, COURSES.MATHS_G1, COURSES.PUZZLE];
 
 export enum HEADERLIST {
     HOME = 'HOME',
-    ENGLISH = 'sl_en1_mp',
-    MATHS = 'sl_maths1_mp',
+    ENGLISH_G1 = 'sl_en1_mp',
+    MATHS_G1 = 'sl_maths1_mp',
+    ENGLISH_G2 = 'sl_en2_mp',
+    MATHS_G2 = 'sl_maths2_mp',
     PUZZLE = 'puzzle',
     PROFILE = 'PROFILE'
 }

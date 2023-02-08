@@ -13,14 +13,14 @@ const Profile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [rewards, setRewards] = useState<any>();
   const [allLessons, setAllLessons] = useState<any>();
-  const [currentCourseId, setCurrentCourseId] = useState(COURSES.ENGLISH);
+  const [currentCourseId, setCurrentCourseId] = useState(COURSES.ENGLISH_G1);
   // const [unlockUpTo, setUnlockUpTo] = useState(-1);
 
   useEffect(() => {
     init();
   }, []);
 
-  async function init(subjectCode = COURSES.ENGLISH) {
+  async function init(subjectCode = COURSES.ENGLISH_G1) {
     setIsLoading(true);
     const apiInstance = OneRosterApi.getInstance();
     const tempClass = await apiInstance.getClassForUserForSubject(
@@ -54,13 +54,13 @@ const Profile: React.FC = () => {
       <div className="tabs">
         <IonButton
           className={
-            "tab " + (currentCourseId === COURSES.ENGLISH ? " active" : "")
+            "tab " + (currentCourseId === COURSES.ENGLISH_G1 ? " active" : "")
           }
           color={"success"}
-          fill={currentCourseId === COURSES.ENGLISH ? "solid" : "outline"}
+          fill={currentCourseId === COURSES.ENGLISH_G1 ? "solid" : "outline"}
           onClick={async () => {
-            if (currentCourseId === COURSES.ENGLISH) return;
-            await init(COURSES.ENGLISH);
+            if (currentCourseId === COURSES.ENGLISH_G1) return;
+            await init(COURSES.ENGLISH_G1);
           }}
           shape="round"
         >
@@ -68,14 +68,14 @@ const Profile: React.FC = () => {
         </IonButton>
         <IonButton
           className={
-            "tab " + (currentCourseId === COURSES.MATHS ? " active" : "")
+            "tab " + (currentCourseId === COURSES.MATHS_G1 ? " active" : "")
           }
           color={"success"}
-          fill={currentCourseId === COURSES.MATHS ? "solid" : "outline"}
+          fill={currentCourseId === COURSES.MATHS_G1 ? "solid" : "outline"}
           onClick={async () => {
-            if (currentCourseId === COURSES.MATHS) return;
+            if (currentCourseId === COURSES.MATHS_G1) return;
 
-            await init(COURSES.MATHS);
+            await init(COURSES.MATHS_G1);
           }}
           shape="round"
         >

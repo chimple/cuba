@@ -5,6 +5,8 @@ import { useHistory } from "react-router-dom";
 import { BackgroundMode } from "@awesome-cordova-plugins/background-mode";
 import { IS_USER_LOGED_IN, PAGES, USER_TOKEN } from "../common/constants";
 import Auth from "../models/auth";
+import { Capacitor } from "@capacitor/core";
+// import { Platform } from "react-native";
 
 const Login: React.FC = () => {
   const history = useHistory();
@@ -15,7 +17,11 @@ const Login: React.FC = () => {
       history.replace(PAGES.HOME);
     }
   }, []);
-  console.log("Login page");
+  console.log(
+    "Login page",
+    Capacitor.getPlatform(),
+    Capacitor.getPlatform() === "android"
+  );
   return (
     <IonPage>
       <IonContent fullscreen>
@@ -54,29 +60,33 @@ const Login: React.FC = () => {
             src="assets/icons/ArrowIcon.svg"
           />
         </div>
-        <button
-          style={{
-            position: "absolute",
-            top: "90%",
-            left: "45%",
-            padding: "1%",
-          }}
-          onClick={async () => {
-            Auth.i.userAccountName = "debug15@gmail.com";
-            Auth.i.accountType = "com.debug15";
-            Auth.i.authToken = "VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY";
-            localStorage.setItem(IS_USER_LOGED_IN, "true");
-            localStorage.setItem(
-              USER_TOKEN,
-              JSON.stringify(
-                "01,debug15@gmail.com,com.debug15,VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY"
-              )
-            );
-            history.replace(PAGES.HOME);
-          }}
-        >
-          Debug login
-        </button>
+        {Capacitor.getPlatform() === "android" ? (
+          <button
+            style={{
+              position: "absolute",
+              top: "90%",
+              left: "45%",
+              padding: "1%",
+            }}
+            onClick={async () => {
+              Auth.i.userAccountName = "debug15@gmail.com";
+              Auth.i.accountType = "com.debug15";
+              Auth.i.authToken = "VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY";
+              localStorage.setItem(IS_USER_LOGED_IN, "true");
+              localStorage.setItem(
+                USER_TOKEN,
+                JSON.stringify(
+                  "01,debug15@gmail.com,com.debug15,VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY"
+                )
+              );
+              history.replace(PAGES.HOME);
+            }}
+          >
+            Debug login
+          </button>
+        ) : (
+          <></>
+        )}
         {/* <Loading isLoading={isLoading} /> */}
       </IonContent>
     </IonPage>
