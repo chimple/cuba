@@ -18,7 +18,7 @@ const HomeHeader: React.FC<{
           <p className="home-header-indicator">&nbsp;</p>
         )}
         <IconButton
-          name={t("home")}
+          name={t("Home")}
           iconSrc="assets/icons/HomeIcon.svg"
           onClick={() => {
             if (currentHeader != HEADERLIST.HOME) {
@@ -122,7 +122,7 @@ const HomeHeader: React.FC<{
       <div>
         <p className="home-header-indicator">&nbsp;</p>
         <IconButton
-          name={t("profile")}
+          name={t("Profile")}
           iconSrc="assets/icons/Profile.svg"
           onClick={() => {
             if (currentHeader != HEADERLIST.PROFILE) {
