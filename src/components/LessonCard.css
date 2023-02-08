@@ -45,7 +45,8 @@
 
 #lesson-card-subject-name {
     background: rgba(255, 255, 255, 0.5);
-    color: #fff;
+    /* color: #FF5500; */
+    color: var(--text-color);
     border-radius: 25px;
     position: absolute;
     top: 4%;

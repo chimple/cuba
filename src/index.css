@@ -2,7 +2,7 @@
     font-family: "BalooRegular";
     src: local("BalooRegular"),
         url("/public/assets/fonts/Baloo/Baloo2-Regular.ttf") format("truetype");
-    font-weight: bolder;
+    /* font-weight: bolder; */
 }
 
 @font-face {
@@ -16,5 +16,5 @@
     font-family: "BalooRegular";
     src: local("BalooRegular"),
         url("/public/assets/fonts/Baloo/Baloo2-Regular.ttf") format("truetype");
-    font-weight: bolder;
+    /* font-weight: bolder; */
 }
