@@ -33,7 +33,7 @@ http://ionicframework.com/docs/theming/ */
   --ion-color-success-contrast: #ffffff;
   --ion-color-success-contrast-rgb: 255, 255, 255;
   --ion-color-success-shade: #28ba62;
-  --ion-color-success-tint: #42d77d;
+  --ion-color-success-tint: white;
 
   /** warning **/
   --ion-color-warning: #ffc409;
@@ -77,6 +77,6 @@ http://ionicframework.com/docs/theming/ */
 
   /** custom **/
   --ion-background-color: #CDE7EF;
-  --text-color: white;
+  --text-color: #182A4F;
   --text-size: clamp(10px, 3.5vh, 20px);
 }
