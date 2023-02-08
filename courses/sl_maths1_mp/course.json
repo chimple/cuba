@@ -73,14 +73,6 @@
           "outcome": "None"
         },
         {
-          "id": "challenge1",
-          "name": "Challenge 1",
-          "image": "challenge1.png",
-          "color": "",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
-        },
-        {
           "color": "",
           "id": "sl_maths1_mp0005",
           "image": "sl_maths1_mp0005.png",
@@ -119,14 +111,6 @@
           "orig_course_id": "puzzle",
           "orig_lesson_id": "puzzle0008",
           "outcome": "None"
-        },
-        {
-          "id": "challenge2",
-          "name": "Challenge 2",
-          "image": "challenge2.png",
-          "color": "",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -169,14 +153,6 @@
           "outcome": "None"
         },
         {
-          "id": "challenge3",
-          "name": "Challenge 3",
-          "image": "challenge3.png",
-          "color": "",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
-        },
-        {
           "color": "",
           "id": "sl_maths1_mp0013",
           "image": "sl_maths1_mp0013.png",
@@ -215,14 +191,6 @@
           "orig_course_id": "puzzle",
           "orig_lesson_id": "puzzle0100",
           "outcome": "None"
-        },
-        {
-          "id": "challenge4",
-          "name": "Challenge 4",
-          "image": "challenge4.png",
-          "color": "",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -265,14 +233,6 @@
           "outcome": "None"
         },
         {
-          "id": "challenge5",
-          "name": "Challenge 5",
-          "image": "challenge5.png",
-          "color": "",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
-        },
-        {
           "color": "",
           "id": "sl_maths1_mp0021",
           "image": "sl_maths1_mp0021.png",
@@ -311,14 +271,6 @@
           "orig_course_id": "puzzle",
           "orig_lesson_id": "platformer04",
           "outcome": "None"
-        },
-        {
-          "id": "challenge6",
-          "name": "Challenge 6",
-          "image": "challenge6.png",
-          "color": "",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -361,14 +313,6 @@
           "outcome": "None"
         },
         {
-          "id": "challenge7",
-          "name": "Challenge 7",
-          "image": "challenge7.png",
-          "color": "",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
-        },
-        {
           "color": "",
           "id": "sl_maths1_mp0029",
           "image": "sl_maths1_mp0029.png",
@@ -407,14 +351,6 @@
           "orig_course_id": "puzzle",
           "orig_lesson_id": "drawshape0001",
           "outcome": "None"
-        },
-        {
-          "id": "challenge8",
-          "name": "Challenge 8",
-          "image": "challenge8.png",
-          "color": "",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -457,14 +393,6 @@
           "outcome": "None"
         },
         {
-          "id": "challenge9",
-          "name": "Challenge 9",
-          "image": "challenge9.png",
-          "color": "",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
-        },
-        {
           "color": "",
           "id": "sl_maths1_mp0037",
           "image": "sl_maths1_mp0037.png",
@@ -503,14 +431,6 @@
           "orig_course_id": "puzzle",
           "orig_lesson_id": "drawshape0010",
           "outcome": "None"
-        },
-        {
-          "id": "challenge10",
-          "name": "Challenge 10",
-          "image": "challenge10.png",
-          "color": "",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -553,14 +473,6 @@
           "outcome": "None"
         },
         {
-          "id": "challenge11",
-          "name": "Challenge 11",
-          "image": "challenge11.png",
-          "color": "",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
-        },
-        {
           "color": "",
           "id": "sl_maths1_mp0045",
           "image": "sl_maths1_mp0045.png",
@@ -599,14 +511,6 @@
           "orig_course_id": "puzzle",
           "orig_lesson_id": "pictureboard0002",
           "outcome": "None"
-        },
-        {
-          "id": "challenge12",
-          "name": "Challenge 12",
-          "image": "challenge12.png",
-          "color": "",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -649,14 +553,6 @@
           "outcome": "None"
         },
         {
-          "id": "challenge13",
-          "name": "Challenge 13",
-          "image": "challenge13.png",
-          "color": "",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
-        },
-        {
           "color": "",
           "id": "sl_maths1_mp0053",
           "image": "sl_maths1_mp0053.png",
@@ -695,14 +591,6 @@
           "orig_course_id": "puzzle",
           "orig_lesson_id": "pictureboard0010",
           "outcome": "None"
-        },
-        {
-          "id": "challenge14",
-          "name": "Challenge 14",
-          "image": "challenge14.png",
-          "color": "",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -745,14 +633,6 @@
           "outcome": "None"
         },
         {
-          "id": "challenge15",
-          "name": "Challenge 15",
-          "image": "challenge15.png",
-          "color": "",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
-        },
-        {
           "color": "",
           "id": "sl_maths1_mp0061",
           "image": "sl_maths1_mp0061.png",
@@ -793,14 +673,6 @@
           "outcome": "None"
         },
         {
-          "id": "challenge16",
-          "name": "Challenge 16",
-          "image": "challenge16.png",
-          "color": "",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
-        },
-        {
           "color": "",
           "id": "sl_maths1_mp0065",
           "image": "sl_maths1_mp0065.png",
@@ -839,14 +711,6 @@
           "orig_course_id": "puzzle",
           "orig_lesson_id": "matchingcard0002",
           "outcome": "None"
-        },
-        {
-          "id": "challenge17",
-          "name": "Challenge 17",
-          "image": "challenge17.png",
-          "color": "",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
           "color": "",
@@ -897,14 +761,6 @@
           "orig_course_id": "puzzle",
           "orig_lesson_id": "matchingcard0007",
           "outcome": "None"
-        },
-        {
-          "id": "challenge18",
-          "name": "Challenge 18",
-          "image": "challenge18.png",
-          "color": "",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Term 1"
@@ -964,9 +820,9 @@
           "outcome": "None"
         },
         {
-          "id": "challenge19",
+          "id": "sl_maths1_mp_challenge19",
           "name": "Challenge 19",
-          "image": "challenge19.png",
+          "image": "sl_maths1_mp_challenge19.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1022,9 +878,9 @@
           "outcome": "None"
         },
         {
-          "id": "challenge20",
+          "id": "sl_maths1_mp_challenge20",
           "name": "Challenge 20",
-          "image": "challenge20.png",
+          "image": "sl_maths1_mp_challenge20.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1090,9 +946,9 @@
           "outcome": "None"
         },
         {
-          "id": "challenge21",
+          "id": "sl_maths1_mp_challenge21",
           "name": "Challenge 21",
-          "image": "challenge21.png",
+          "image": "sl_maths1_mp_challenge21.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1165,9 +1021,9 @@
           "outcome": "None"
         },
         {
-          "id": "challenge22",
+          "id": "sl_maths1_mp_challenge22",
           "name": "Challenge 22",
-          "image": "challenge22.png",
+          "image": "sl_maths1_mp_challenge22.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1200,9 +1056,9 @@
           "outcome": "None"
         },
         {
-          "id": "challenge23",
+          "id": "sl_maths1_mp_challenge23",
           "name": "Challenge 23",
-          "image": "challenge23.png",
+          "image": "sl_maths1_mp_challenge23.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1225,9 +1081,9 @@
           "outcome": "Measuring objects and other things around us."
         },
         {
-          "id": "challenge24",
+          "id": "sl_maths1_mp_challenge24",
           "name": "Challenge 24",
-          "image": "challenge24.png",
+          "image": "sl_maths1_mp_challenge24.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1250,9 +1106,9 @@
           "outcome": "Weighing"
         },
         {
-          "id": "challenge25",
+          "id": "sl_maths1_mp_challenge25",
           "name": "Challenge 25",
-          "image": "challenge25.png",
+          "image": "sl_maths1_mp_challenge25.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1275,9 +1131,9 @@
           "outcome": "Capacity"
         },
         {
-          "id": "challenge26",
+          "id": "sl_maths1_mp_challenge26",
           "name": "Challenge 26",
-          "image": "challenge26.png",
+          "image": "sl_maths1_mp_challenge26.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1300,9 +1156,9 @@
           "outcome": "Time"
         },
         {
-          "id": "challenge27",
+          "id": "sl_maths1_mp_challenge27",
           "name": "Challenge 27",
-          "image": "challenge27.png",
+          "image": "sl_maths1_mp_challenge27.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1325,9 +1181,9 @@
           "outcome": "Money"
         },
         {
-          "id": "challenge28",
+          "id": "sl_maths1_mp_challenge28",
           "name": "Challenge 28",
-          "image": "challenge28.png",
+          "image": "sl_maths1_mp_challenge28.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1390,9 +1246,9 @@
           "outcome": "Count, name and write numbers from 6 - 9"
         },
         {
-          "id": "challenge29",
+          "id": "sl_maths1_mp_challenge29",
           "name": "Challenge 29",
-          "image": "challenge29.png",
+          "image": "sl_maths1_mp_challenge29.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1438,9 +1294,9 @@
           "outcome": "None"
         },
         {
-          "id": "challenge30",
+          "id": "sl_maths1_mp_challenge30",
           "name": "Challenge 30",
-          "image": "challenge30.png",
+          "image": "sl_maths1_mp_challenge30.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1486,9 +1342,9 @@
           "outcome": "None"
         },
         {
-          "id": "challenge31",
+          "id": "sl_maths1_mp_challenge31",
           "name": "Challenge 31",
-          "image": "challenge31.png",
+          "image": "sl_maths1_mp_challenge31.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1551,9 +1407,9 @@
           "outcome": "None"
         },
         {
-          "id": "challenge32",
+          "id": "sl_maths1_mp_challenge32",
           "name": "Challenge 32",
-          "image": "challenge32.png",
+          "image": "sl_maths1_mp_challenge32.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1599,9 +1455,9 @@
           "outcome": "None"
         },
         {
-          "id": "challenge33",
+          "id": "sl_maths1_mp_challenge33",
           "name": "Challenge 33",
-          "image": "challenge33.png",
+          "image": "sl_maths1_mp_challenge33.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1647,9 +1503,9 @@
           "outcome": "None"
         },
         {
-          "id": "challenge34",
+          "id": "sl_maths1_mp_challenge34",
           "name": "Challenge 34",
-          "image": "challenge34.png",
+          "image": "sl_maths1_mp_challenge34.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1722,9 +1578,9 @@
           "outcome": "None"
         },
         {
-          "id": "challenge35",
+          "id": "sl_maths1_mp_challenge35",
           "name": "Challenge 35",
-          "image": "challenge35.png",
+          "image": "sl_maths1_mp_challenge35.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1747,9 +1603,9 @@
           "outcome": "Learn about fractions and the names of parts of a whole object."
         },
         {
-          "id": "challenge36",
+          "id": "sl_maths1_mp_challenge36",
           "name": "Challenge 36",
-          "image": "challenge36.png",
+          "image": "sl_maths1_mp_challenge36.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1832,9 +1688,9 @@
           "outcome": "Learn adding different smaller numbers to create one bigger number. Learn concepts of addition."
         },
         {
-          "id": "challenge37",
+          "id": "sl_maths1_mp_challenge37",
           "name": "Challenge 37",
-          "image": "challenge37.png",
+          "image": "sl_maths1_mp_challenge37.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1927,9 +1783,9 @@
           "outcome": "Students learn to take away a smaller number or smaller group of things from a larger number or a larger group. It is represented by the '- ' sign."
         },
         {
-          "id": "challenge38",
+          "id": "sl_maths1_mp_challenge38",
           "name": "Challenge 38",
-          "image": "challenge38.png",
+          "image": "sl_maths1_mp_challenge38.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1952,9 +1808,9 @@
           "outcome": "Measuring length"
         },
         {
-          "id": "challenge39",
+          "id": "sl_maths1_mp_challenge39",
           "name": "Challenge 39",
-          "image": "challenge39.png",
+          "image": "sl_maths1_mp_challenge39.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -1977,9 +1833,9 @@
           "outcome": "Comparison of weight"
         },
         {
-          "id": "challenge40",
+          "id": "sl_maths1_mp_challenge40",
           "name": "Challenge 40",
-          "image": "challenge40.png",
+          "image": "sl_maths1_mp_challenge40.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2002,9 +1858,9 @@
           "outcome": "Find measurement as in litres and Kilograms. Learn what is full, half full."
         },
         {
-          "id": "challenge41",
+          "id": "sl_maths1_mp_challenge41",
           "name": "Challenge 41",
-          "image": "challenge41.png",
+          "image": "sl_maths1_mp_challenge41.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2037,9 +1893,9 @@
           "outcome": "None"
         },
         {
-          "id": "challenge42",
+          "id": "sl_maths1_mp_challenge42",
           "name": "Challenge 42",
-          "image": "challenge42.png",
+          "image": "sl_maths1_mp_challenge42.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2072,9 +1928,9 @@
           "outcome": "None"
         },
         {
-          "id": "challenge43",
+          "id": "sl_maths1_mp_challenge43",
           "name": "Challenge 43",
-          "image": "challenge43.png",
+          "image": "sl_maths1_mp_challenge43.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2127,9 +1983,9 @@
           "outcome": "Shapes of different objects around us."
         },
         {
-          "id": "challenge44",
+          "id": "sl_maths1_mp_challenge44",
           "name": "Challenge 44",
-          "image": "challenge44.png",
+          "image": "sl_maths1_mp_challenge44.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2152,9 +2008,9 @@
           "outcome": "Knowing the decimal system and counting in tens"
         },
         {
-          "id": "challenge45",
+          "id": "sl_maths1_mp_challenge45",
           "name": "Challenge 45",
-          "image": "challenge45.png",
+          "image": "sl_maths1_mp_challenge45.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2237,9 +2093,9 @@
           "outcome": "Learning double-digit numbers from 0 - 50"
         },
         {
-          "id": "challenge46",
+          "id": "sl_maths1_mp_challenge46",
           "name": "Challenge 46",
-          "image": "challenge46.png",
+          "image": "sl_maths1_mp_challenge46.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2295,9 +2151,9 @@
           "outcome": "Learning double-digit numbers from 0 - 50"
         },
         {
-          "id": "challenge47",
+          "id": "sl_maths1_mp_challenge47",
           "name": "Challenge 47",
-          "image": "challenge47.png",
+          "image": "sl_maths1_mp_challenge47.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2320,9 +2176,9 @@
           "outcome": "Learn how an whole object is divided into 1/2 or 1/4"
         },
         {
-          "id": "challenge48",
+          "id": "sl_maths1_mp_challenge48",
           "name": "Challenge 48",
-          "image": "challenge48.png",
+          "image": "sl_maths1_mp_challenge48.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2395,9 +2251,9 @@
           "outcome": "Learn adding double-digit numbers upto 19"
         },
         {
-          "id": "challenge49",
+          "id": "sl_maths1_mp_challenge49",
           "name": "Challenge 49",
-          "image": "challenge49.png",
+          "image": "sl_maths1_mp_challenge49.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2453,9 +2309,9 @@
           "outcome": "Learn adding double-digit numbers upto 19"
         },
         {
-          "id": "challenge50",
+          "id": "sl_maths1_mp_challenge50",
           "name": "Challenge 50",
-          "image": "challenge50.png",
+          "image": "sl_maths1_mp_challenge50.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2518,9 +2374,9 @@
           "outcome": "Concepts of mathematical operation - subtraction."
         },
         {
-          "id": "challenge51",
+          "id": "sl_maths1_mp_challenge51",
           "name": "Challenge 51",
-          "image": "challenge51.png",
+          "image": "sl_maths1_mp_challenge51.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2586,9 +2442,9 @@
           "outcome": "Concepts of mathematical operation - subtraction."
         },
         {
-          "id": "challenge52",
+          "id": "sl_maths1_mp_challenge52",
           "name": "Challenge 52",
-          "image": "challenge52.png",
+          "image": "sl_maths1_mp_challenge52.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2644,9 +2500,9 @@
           "outcome": "Concepts of mathematical operation - subtraction."
         },
         {
-          "id": "challenge53",
+          "id": "sl_maths1_mp_challenge53",
           "name": "Challenge 53",
-          "image": "challenge53.png",
+          "image": "sl_maths1_mp_challenge53.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2709,9 +2565,9 @@
           "outcome": "Learn both mathematical operations of Addition and Subtraction"
         },
         {
-          "id": "challenge54",
+          "id": "sl_maths1_mp_challenge54",
           "name": "Challenge 54",
-          "image": "challenge54.png",
+          "image": "sl_maths1_mp_challenge54.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2767,9 +2623,9 @@
           "outcome": "Learn both mathematical operations of Addition and Subtraction"
         },
         {
-          "id": "challenge55",
+          "id": "sl_maths1_mp_challenge55",
           "name": "Challenge 55",
-          "image": "challenge55.png",
+          "image": "sl_maths1_mp_challenge55.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2792,9 +2648,9 @@
           "outcome": "Measuring the length of objects"
         },
         {
-          "id": "challenge56",
+          "id": "sl_maths1_mp_challenge56",
           "name": "Challenge 56",
-          "image": "challenge56.png",
+          "image": "sl_maths1_mp_challenge56.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2817,9 +2673,9 @@
           "outcome": "Weighing objects"
         },
         {
-          "id": "challenge57",
+          "id": "sl_maths1_mp_challenge57",
           "name": "Challenge 57",
-          "image": "challenge57.png",
+          "image": "sl_maths1_mp_challenge57.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2842,9 +2698,9 @@
           "outcome": "How much can an object hold?"
         },
         {
-          "id": "challenge58",
+          "id": "sl_maths1_mp_challenge58",
           "name": "Challenge 58",
-          "image": "challenge58.png",
+          "image": "sl_maths1_mp_challenge58.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2877,9 +2733,9 @@
           "outcome": "None"
         },
         {
-          "id": "challenge59",
+          "id": "sl_maths1_mp_challenge59",
           "name": "Challenge 59",
-          "image": "challenge59.png",
+          "image": "sl_maths1_mp_challenge59.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2912,9 +2768,9 @@
           "outcome": "None"
         },
         {
-          "id": "challenge60",
+          "id": "sl_maths1_mp_challenge60",
           "name": "Challenge 60",
-          "image": "challenge60.png",
+          "image": "sl_maths1_mp_challenge60.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
@@ -2977,9 +2833,9 @@
           "outcome": "Introduction to word problem in maths, which is a maths question written as one sentence or more that requires children to apply their maths knowledge to a ‘real-life’ scenario. The child will become familiar with the vocabulary associated with the mathematical symbols they are used to, in order to make sense of the word problem."
         },
         {
-          "id": "challenge61",
+          "id": "sl_maths1_mp_challenge61",
           "name": "Challenge 61",
-          "image": "challenge61.png",
+          "image": "sl_maths1_mp_challenge61.png",
           "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
