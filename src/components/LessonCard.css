@@ -35,9 +35,9 @@
     height: 38px;
     width: auto;
     position: absolute;
-    right: 0;
-    top: 0;
-    padding: max(1.5vh, min(10px, 0.5vh));
+    right: 4%;
+    top: 3%;
+    padding: max(1.5vh, min(15px, 0.8vh));
 }
 
 #lesson-card-score {
