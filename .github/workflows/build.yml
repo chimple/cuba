@@ -32,7 +32,7 @@ jobs:
       - name: Store variables
         run: |
           touch .env
-          echo 'REACT_APP_GITHUB_BASE=/cuba' >> .env
+          echo 'REACT_APP_GITHUB_BASE=/cuba\nGENERATE_SOURCEMAP=false' >> .env
 
       - name: Build
         run: npm run build
