@@ -54,9 +54,9 @@ const Profile: React.FC = () => {
       <div className="tabs">
         <IonButton
           className={
-            "tab " + (currentCourseId === COURSES.ENGLISH_G1 ? " active" : "")
+            "tab " + (currentCourseId === COURSES.ENGLISH_G1 ? " active" : "in-active")
           }
-          color={"success"}
+          color={currentCourseId === COURSES.ENGLISH_G1 ?"success":""}
           fill={currentCourseId === COURSES.ENGLISH_G1 ? "solid" : "outline"}
           onClick={async () => {
             if (currentCourseId === COURSES.ENGLISH_G1) return;
@@ -68,9 +68,11 @@ const Profile: React.FC = () => {
         </IonButton>
         <IonButton
           className={
-            "tab " + (currentCourseId === COURSES.MATHS_G1 ? " active" : "")
+            "tab " + (currentCourseId === COURSES.MATHS_G1 ? " active" : "in-active")
           }
-          color={"success"}
+          color={currentCourseId === COURSES.MATHS_G1 ?"success":""}
+
+          // color={"success"}
           fill={currentCourseId === COURSES.MATHS_G1 ? "solid" : "outline"}
           onClick={async () => {
             if (currentCourseId === COURSES.MATHS_G1) return;
