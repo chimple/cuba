@@ -1,15 +1,13 @@
 .lesson-card-score-card {
-    height: 100%;
+    width: 100%;
 }
 
 .lesson-card-score-card-star {
-    width: min(3vh, 32px);
-    min-width: 30px;
+    width: min(2.8vh, 28px);
+    float: left;
 }
 
 .lesson-card-score-card-middle-star {
-    width: min(3vh, 32px);
-    min-width: 30px;
-    position: relative;
-    bottom: 10px;
+    width: min(2.8vh, 28px);
+    float: left;
 }
