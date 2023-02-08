@@ -65,7 +65,7 @@
         {
           "id": "sl_en1_mp_challenge1",
           "image": "sl_en1_mp_challenge1.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 1"
@@ -93,7 +93,7 @@
         {
           "id": "sl_en1_mp_challenge2",
           "image": "sl_en1_mp_challenge2.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 2"
@@ -158,7 +158,7 @@
         {
           "id": "sl_en1_mp_challenge3",
           "image": "sl_en1_mp_challenge3.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 3"
@@ -223,7 +223,7 @@
         {
           "id": "sl_en1_mp_challenge4",
           "image": "sl_en1_mp_challenge4.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 4"
@@ -278,7 +278,7 @@
         {
           "id": "sl_en1_mp_challenge5",
           "image": "sl_en1_mp_challenge5.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 5"
@@ -316,7 +316,7 @@
         {
           "id": "sl_en1_mp_challenge6",
           "image": "sl_en1_mp_challenge6.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 6"
@@ -371,7 +371,7 @@
         {
           "id": "sl_en1_mp_challenge7",
           "image": "sl_en1_mp_challenge7.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 7"
@@ -419,7 +419,7 @@
         {
           "id": "sl_en1_mp_challenge8",
           "image": "sl_en1_mp_challenge8.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 8"
@@ -457,7 +457,7 @@
         {
           "id": "sl_en1_mp_challenge9",
           "image": "sl_en1_mp_challenge9.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 9"
@@ -505,7 +505,7 @@
         {
           "id": "sl_en1_mp_challenge10",
           "image": "sl_en1_mp_challenge10.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 10"
@@ -560,7 +560,7 @@
         {
           "id": "sl_en1_mp_challenge11",
           "image": "sl_en1_mp_challenge11.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 11"
@@ -608,7 +608,7 @@
         {
           "id": "sl_en1_mp_challenge12",
           "image": "sl_en1_mp_challenge12.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 12"
@@ -656,7 +656,7 @@
         {
           "id": "sl_en1_mp_challenge13",
           "image": "sl_en1_mp_challenge13.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 13"
@@ -711,7 +711,7 @@
         {
           "id": "sl_en1_mp_challenge14",
           "image": "sl_en1_mp_challenge14.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 14"
@@ -759,7 +759,7 @@
         {
           "id": "sl_en1_mp_challenge15",
           "image": "sl_en1_mp_challenge15.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 15"
@@ -807,7 +807,7 @@
         {
           "id": "sl_en1_mp_challenge16",
           "image": "sl_en1_mp_challenge16.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 16"
@@ -855,7 +855,7 @@
         {
           "id": "sl_en1_mp_challenge17",
           "image": "sl_en1_mp_challenge17.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 17"
@@ -903,7 +903,7 @@
         {
           "id": "sl_en1_mp_challenge18",
           "image": "sl_en1_mp_challenge18.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 18"
@@ -951,7 +951,7 @@
         {
           "id": "sl_en1_mp_challenge19",
           "image": "sl_en1_mp_challenge19.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 19"
@@ -1009,7 +1009,7 @@
         {
           "id": "sl_en1_mp_challenge20",
           "image": "sl_en1_mp_challenge20.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 20"
@@ -1064,7 +1064,7 @@
         {
           "id": "sl_en1_mp_challenge21",
           "image": "sl_en1_mp_challenge21.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 21"
@@ -1112,7 +1112,7 @@
         {
           "id": "sl_en1_mp_challenge22",
           "image": "sl_en1_mp_challenge22.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 22"
@@ -1160,7 +1160,7 @@
         {
           "id": "sl_en1_mp_challenge23",
           "image": "sl_en1_mp_challenge23.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 23"
@@ -1208,7 +1208,7 @@
         {
           "id": "sl_en1_mp_challenge24",
           "image": "sl_en1_mp_challenge24.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 24"
@@ -1256,7 +1256,7 @@
         {
           "id": "sl_en1_mp_challenge25",
           "image": "sl_en1_mp_challenge25.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 25"
@@ -1304,7 +1304,7 @@
         {
           "id": "sl_en1_mp_challenge26",
           "image": "sl_en1_mp_challenge26.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 26"
@@ -1332,7 +1332,7 @@
         {
           "id": "sl_en1_mp_challenge27",
           "image": "sl_en1_mp_challenge27.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 27"
@@ -1387,7 +1387,7 @@
         {
           "id": "sl_en1_mp_challenge28",
           "image": "sl_en1_mp_challenge28.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 28"
@@ -1435,7 +1435,7 @@
         {
           "id": "sl_en1_mp_challenge29",
           "image": "sl_en1_mp_challenge29.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 29"
@@ -1483,7 +1483,7 @@
         {
           "id": "sl_en1_mp_challenge30",
           "image": "sl_en1_mp_challenge30.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 30"
@@ -1531,7 +1531,7 @@
         {
           "id": "sl_en1_mp_challenge31",
           "image": "sl_en1_mp_challenge31.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 31"
@@ -1586,7 +1586,7 @@
         {
           "id": "sl_en1_mp_challenge32",
           "image": "sl_en1_mp_challenge32.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 32"
@@ -1634,7 +1634,7 @@
         {
           "id": "sl_en1_mp_challenge33",
           "image": "sl_en1_mp_challenge33.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 33"
@@ -1682,7 +1682,7 @@
         {
           "id": "sl_en1_mp_challenge34",
           "image": "sl_en1_mp_challenge34.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 34"
@@ -1730,7 +1730,7 @@
         {
           "id": "sl_en1_mp_challenge35",
           "image": "sl_en1_mp_challenge35.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 35"
@@ -1785,7 +1785,7 @@
         {
           "id": "sl_en1_mp_challenge36",
           "image": "sl_en1_mp_challenge36.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 36"
@@ -1833,7 +1833,7 @@
         {
           "id": "sl_en1_mp_challenge37",
           "image": "sl_en1_mp_challenge37.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 37"
@@ -1871,7 +1871,7 @@
         {
           "id": "sl_en1_mp_challenge38",
           "image": "sl_en1_mp_challenge38.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 38"
@@ -1926,7 +1926,7 @@
         {
           "id": "sl_en1_mp_challenge39",
           "image": "sl_en1_mp_challenge39.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 39"
@@ -1974,7 +1974,7 @@
         {
           "id": "sl_en1_mp_challenge40",
           "image": "sl_en1_mp_challenge40.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 40"
@@ -2022,7 +2022,7 @@
         {
           "id": "sl_en1_mp_challenge41",
           "image": "sl_en1_mp_challenge41.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 41"
@@ -2060,7 +2060,7 @@
         {
           "id": "sl_en1_mp_challenge42",
           "image": "sl_en1_mp_challenge42.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 42"
@@ -2105,7 +2105,7 @@
         {
           "id": "sl_en1_mp_challenge43",
           "image": "sl_en1_mp_challenge43.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 43"
@@ -2160,7 +2160,7 @@
         {
           "id": "sl_en1_mp_challenge44",
           "image": "sl_en1_mp_challenge44.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 44"
@@ -2208,7 +2208,7 @@
         {
           "id": "sl_en1_mp_challenge45",
           "image": "sl_en1_mp_challenge45.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 45"
@@ -2256,7 +2256,7 @@
         {
           "id": "sl_en1_mp_challenge46",
           "image": "sl_en1_mp_challenge46.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 46"
@@ -2304,7 +2304,7 @@
         {
           "id": "sl_en1_mp_challenge47",
           "image": "sl_en1_mp_challenge47.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 47"
@@ -2359,7 +2359,7 @@
         {
           "id": "sl_en1_mp_challenge48",
           "image": "sl_en1_mp_challenge48.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 48"
@@ -2417,7 +2417,7 @@
         {
           "id": "sl_en1_mp_challenge49",
           "image": "sl_en1_mp_challenge49.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 49"
@@ -2472,7 +2472,7 @@
         {
           "id": "sl_en1_mp_challenge50",
           "image": "sl_en1_mp_challenge50.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 50"
@@ -2520,7 +2520,7 @@
         {
           "id": "sl_en1_mp_challenge51",
           "image": "sl_en1_mp_challenge51.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 51"
@@ -2568,7 +2568,7 @@
         {
           "id": "sl_en1_mp_challenge52",
           "image": "sl_en1_mp_challenge52.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 52"
@@ -2616,7 +2616,7 @@
         {
           "id": "sl_en1_mp_challenge53",
           "image": "sl_en1_mp_challenge53.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 53"
@@ -2664,7 +2664,7 @@
         {
           "id": "sl_en1_mp_challenge54",
           "image": "sl_en1_mp_challenge54.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 54"
@@ -2712,7 +2712,7 @@
         {
           "id": "sl_en1_mp_challenge55",
           "image": "sl_en1_mp_challenge55.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 55"
@@ -2767,7 +2767,7 @@
         {
           "id": "sl_en1_mp_challenge56",
           "image": "sl_en1_mp_challenge56.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 56"
@@ -2815,7 +2815,7 @@
         {
           "id": "sl_en1_mp_challenge57",
           "image": "sl_en1_mp_challenge57.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 57"
@@ -2853,7 +2853,7 @@
         {
           "id": "sl_en1_mp_challenge58",
           "image": "sl_en1_mp_challenge58.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 58"
@@ -2908,7 +2908,7 @@
         {
           "id": "sl_en1_mp_challenge59",
           "image": "sl_en1_mp_challenge59.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 59"
@@ -2946,7 +2946,7 @@
         {
           "id": "sl_en1_mp_challenge60",
           "image": "sl_en1_mp_challenge60.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 60"
@@ -3001,7 +3001,7 @@
         {
           "id": "sl_en1_mp_challenge61",
           "image": "sl_en1_mp_challenge61.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 61"
@@ -3049,7 +3049,7 @@
         {
           "id": "sl_en1_mp_challenge62",
           "image": "sl_en1_mp_challenge62.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 62"
@@ -3097,7 +3097,7 @@
         {
           "id": "sl_en1_mp_challenge63",
           "image": "sl_en1_mp_challenge63.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 63"
@@ -3145,7 +3145,7 @@
         {
           "id": "sl_en1_mp_challenge64",
           "image": "sl_en1_mp_challenge64.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 64"
@@ -3183,7 +3183,7 @@
         {
           "id": "sl_en1_mp_challenge65",
           "image": "sl_en1_mp_challenge65.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 65"
@@ -3238,7 +3238,7 @@
         {
           "id": "sl_en1_mp_challenge66",
           "image": "sl_en1_mp_challenge66.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 66"
@@ -3296,7 +3296,7 @@
         {
           "id": "sl_en1_mp_challenge67",
           "image": "sl_en1_mp_challenge67.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 67"
@@ -3351,7 +3351,7 @@
         {
           "id": "sl_en1_mp_challenge68",
           "image": "sl_en1_mp_challenge68.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 68"
@@ -3399,7 +3399,7 @@
         {
           "id": "sl_en1_mp_challenge69",
           "image": "sl_en1_mp_challenge69.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 69"
@@ -3457,7 +3457,7 @@
         {
           "id": "sl_en1_mp_challenge70",
           "image": "sl_en1_mp_challenge70.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 70"
@@ -3512,7 +3512,7 @@
         {
           "id": "sl_en1_mp_challenge71",
           "image": "sl_en1_mp_challenge71.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 71"
@@ -3560,7 +3560,7 @@
         {
           "id": "sl_en1_mp_challenge72",
           "image": "sl_en1_mp_challenge72.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 72"
@@ -3608,7 +3608,7 @@
         {
           "id": "sl_en1_mp_challenge73",
           "image": "sl_en1_mp_challenge73.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 73"
@@ -3656,7 +3656,7 @@
         {
           "id": "sl_en1_mp_challenge74",
           "image": "sl_en1_mp_challenge74.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 74"
@@ -3694,7 +3694,7 @@
         {
           "id": "sl_en1_mp_challenge75",
           "image": "sl_en1_mp_challenge75.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 75"
@@ -3722,7 +3722,7 @@
         {
           "id": "sl_en1_mp_challenge76",
           "image": "sl_en1_mp_challenge76.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 76"
@@ -3777,7 +3777,7 @@
         {
           "id": "sl_en1_mp_challenge77",
           "image": "sl_en1_mp_challenge77.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 77"
@@ -3825,7 +3825,7 @@
         {
           "id": "sl_en1_mp_challenge78",
           "image": "sl_en1_mp_challenge78.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 78"
@@ -3873,7 +3873,7 @@
         {
           "id": "sl_en1_mp_challenge79",
           "image": "sl_en1_mp_challenge79.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 79"
@@ -3921,7 +3921,7 @@
         {
           "id": "sl_en1_mp_challenge80",
           "image": "sl_en1_mp_challenge80.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 80"
@@ -3959,7 +3959,7 @@
         {
           "id": "sl_en1_mp_challenge81",
           "image": "sl_en1_mp_challenge81.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 81"
@@ -4014,7 +4014,7 @@
         {
           "id": "sl_en1_mp_challenge82",
           "image": "sl_en1_mp_challenge82.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 82"
@@ -4069,7 +4069,7 @@
         {
           "id": "sl_en1_mp_challenge83",
           "image": "sl_en1_mp_challenge83.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 83"
@@ -4117,7 +4117,7 @@
         {
           "id": "sl_en1_mp_challenge84",
           "image": "sl_en1_mp_challenge84.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 84"
@@ -4172,7 +4172,7 @@
         {
           "id": "sl_en1_mp_challenge85",
           "image": "sl_en1_mp_challenge85.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 85"
@@ -4220,7 +4220,7 @@
         {
           "id": "sl_en1_mp_challenge86",
           "image": "sl_en1_mp_challenge86.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 86"
@@ -4268,7 +4268,7 @@
         {
           "id": "sl_en1_mp_challenge87",
           "image": "sl_en1_mp_challenge87.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 87"
@@ -4306,7 +4306,7 @@
         {
           "id": "sl_en1_mp_challenge88",
           "image": "sl_en1_mp_challenge88.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 88"
@@ -4361,7 +4361,7 @@
         {
           "id": "sl_en1_mp_challenge89",
           "image": "sl_en1_mp_challenge89.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 89"
@@ -4409,7 +4409,7 @@
         {
           "id": "sl_en1_mp_challenge90",
           "image": "sl_en1_mp_challenge90.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 90"
@@ -4457,7 +4457,7 @@
         {
           "id": "sl_en1_mp_challenge91",
           "image": "sl_en1_mp_challenge91.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 91"
@@ -4515,7 +4515,7 @@
         {
           "id": "sl_en1_mp_challenge92",
           "image": "sl_en1_mp_challenge92.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 92"
@@ -4570,7 +4570,7 @@
         {
           "id": "sl_en1_mp_challenge93",
           "image": "sl_en1_mp_challenge93.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 93"
@@ -4618,7 +4618,7 @@
         {
           "id": "sl_en1_mp_challenge94",
           "image": "sl_en1_mp_challenge94.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 94"
@@ -4666,7 +4666,7 @@
         {
           "id": "sl_en1_mp_challenge95",
           "image": "sl_en1_mp_challenge95.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 95"
@@ -4704,7 +4704,7 @@
         {
           "id": "sl_en1_mp_challenge96",
           "image": "sl_en1_mp_challenge96.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 96"
@@ -4759,7 +4759,7 @@
         {
           "id": "sl_en1_mp_challenge97",
           "image": "sl_en1_mp_challenge97.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 97"
@@ -4807,7 +4807,7 @@
         {
           "id": "sl_en1_mp_challenge98",
           "image": "sl_en1_mp_challenge98.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 98"
@@ -4855,7 +4855,7 @@
         {
           "id": "sl_en1_mp_challenge99",
           "image": "sl_en1_mp_challenge99.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 99"
@@ -4910,7 +4910,7 @@
         {
           "id": "sl_en1_mp_challenge100",
           "image": "sl_en1_mp_challenge100.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 100"
@@ -4958,7 +4958,7 @@
         {
           "id": "sl_en1_mp_challenge101",
           "image": "sl_en1_mp_challenge101.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 101"
@@ -5006,7 +5006,7 @@
         {
           "id": "sl_en1_mp_challenge102",
           "image": "sl_en1_mp_challenge102.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 102"
@@ -5054,7 +5054,7 @@
         {
           "id": "sl_en1_mp_challenge103",
           "image": "sl_en1_mp_challenge103.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 103"
@@ -5102,7 +5102,7 @@
         {
           "id": "sl_en1_mp_challenge104",
           "image": "sl_en1_mp_challenge104.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 104"
@@ -5150,7 +5150,7 @@
         {
           "id": "sl_en1_mp_challenge105",
           "image": "sl_en1_mp_challenge105.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 105"
@@ -5208,7 +5208,7 @@
         {
           "id": "sl_en1_mp_challenge106",
           "image": "sl_en1_mp_challenge106.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. ",
           "name": "Challenge 106"
