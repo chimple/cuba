@@ -1,1 +1,101 @@
-{"paths":{"0":["textures/createsentence_building",2,1],"1":["textures/sentence_drop_sentencemaker",2,1],"2":["prefabs/createsentence",0],"3":["prefabs/sentencemakerDrop",0],"4":["textures/createsentence_tree",2,1],"5":["prefabs/sentencemakerDrag",0],"6":["textures/answer_drop_sentencemaker",2,1],"16":["textures/AutoAtlas",1]},"types":["cc.Prefab","cc.SpriteAtlas","cc.SpriteFrame"],"uuids":["33wzdbhkNHzYr+1vYLBz+5","3cJraQMrpCZ7+FUjT8MUgD","88l8XSK8hAUrNHrcBSPPk0","8bXwbxafxJe4FCv4gNsf9g","92x9qQyi5A2Z7TqxaY2d9v","b5/pq2MkJAIauaEHBb9ZgN","d4ePoZ3ZxDi4yjtSW9kzpk","08OOcgWF1GSKOdO5zYCffN","13fcbfcc5","1a9ef80f1","1eD9ygHzBIVqqLRXcmxJXa","39JMefsAROp67H2EDLf5Jg","58jBXCD8JAt5tOMi5vYFtR","5dob//cZhGibWNsI2+uQiI","90foRryRJM3p9AGFGyKh5x","ecpdLyjvZBwrvm+cedCcQy","ec0jR8x6lDzbgiFfwHdvuP","fdVt62fIZOOJ4afejD6VxC"],"scenes":{"db://assets/games/createsentence/scene/createsentence.fire":12},"redirect":[15,0],"deps":["internal"],"packs":{"0408207bd":[8,9,13,14],"05f9ae889":[7,10,0,11,2,4,17],"09b961880":[3,6],"0c50e3302":[1,5]},"name":"createsentence","importBase":"import","nativeBase":"native","debug":false,"isZip":false,"encrypted":false}
+{
+    "paths": {
+        "88l8XSK8hAUrNHrcBSPPk0": [
+            "prefabs/createsentence",
+            "cc.Prefab"
+        ],
+        "b5/pq2MkJAIauaEHBb9ZgN": [
+            "prefabs/sentencemakerDrag",
+            "cc.Prefab"
+        ],
+        "8bXwbxafxJe4FCv4gNsf9g": [
+            "prefabs/sentencemakerDrop",
+            "cc.Prefab"
+        ],
+        "ec0jR8x6lDzbgiFfwHdvuP": [
+            "textures/AutoAtlas",
+            "cc.SpriteAtlas"
+        ],
+        "d4ePoZ3ZxDi4yjtSW9kzpk": [
+            "textures/answer_drop_sentencemaker",
+            "cc.SpriteFrame",
+            1
+        ],
+        "33wzdbhkNHzYr+1vYLBz+5": [
+            "textures/createsentence_building",
+            "cc.SpriteFrame",
+            1
+        ],
+        "92x9qQyi5A2Z7TqxaY2d9v": [
+            "textures/createsentence_tree",
+            "cc.SpriteFrame",
+            1
+        ],
+        "3cJraQMrpCZ7+FUjT8MUgD": [
+            "textures/sentence_drop_sentencemaker",
+            "cc.SpriteFrame",
+            1
+        ]
+    },
+    "uuids": [
+        "08OOcgWF1GSKOdO5zYCffN",
+        "13fcbfcc5",
+        "1a9ef80f1",
+        "1eD9ygHzBIVqqLRXcmxJXa",
+        "33wzdbhkNHzYr+1vYLBz+5",
+        "39JMefsAROp67H2EDLf5Jg",
+        "3cJraQMrpCZ7+FUjT8MUgD",
+        "58jBXCD8JAt5tOMi5vYFtR",
+        "5dob//cZhGibWNsI2+uQiI",
+        "88l8XSK8hAUrNHrcBSPPk0",
+        "8bXwbxafxJe4FCv4gNsf9g",
+        "90foRryRJM3p9AGFGyKh5x",
+        "92x9qQyi5A2Z7TqxaY2d9v",
+        "b5/pq2MkJAIauaEHBb9ZgN",
+        "d4ePoZ3ZxDi4yjtSW9kzpk",
+        "ecpdLyjvZBwrvm+cedCcQy",
+        "ec0jR8x6lDzbgiFfwHdvuP",
+        "fdVt62fIZOOJ4afejD6VxC"
+    ],
+    "scenes": {
+        "db://assets/games/createsentence/scene/createsentence.fire": "58jBXCD8JAt5tOMi5vYFtR"
+    },
+    "redirect": [
+        "ecpdLyjvZBwrvm+cedCcQy",
+        0
+    ],
+    "deps": [
+        "internal"
+    ],
+    "packs": {
+        "0408207bd": [
+            "13fcbfcc5",
+            "1a9ef80f1",
+            "5dob//cZhGibWNsI2+uQiI",
+            "90foRryRJM3p9AGFGyKh5x"
+        ],
+        "05f9ae889": [
+            "08OOcgWF1GSKOdO5zYCffN",
+            "1eD9ygHzBIVqqLRXcmxJXa",
+            "33wzdbhkNHzYr+1vYLBz+5",
+            "39JMefsAROp67H2EDLf5Jg",
+            "88l8XSK8hAUrNHrcBSPPk0",
+            "92x9qQyi5A2Z7TqxaY2d9v",
+            "fdVt62fIZOOJ4afejD6VxC"
+        ],
+        "09b961880": [
+            "8bXwbxafxJe4FCv4gNsf9g",
+            "d4ePoZ3ZxDi4yjtSW9kzpk"
+        ],
+        "0c50e3302": [
+            "3cJraQMrpCZ7+FUjT8MUgD",
+            "b5/pq2MkJAIauaEHBb9ZgN"
+        ]
+    },
+    "name": "createsentence",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

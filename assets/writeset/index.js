@@ -1,1 +1,452 @@
-window.__require=function t(e,n,i){function o(c,a){if(!n[c]){if(!e[c]){var s=c.split("/");if(s=s[s.length-1],!e[s]){var u="function"==typeof __require&&__require;if(!a&&u)return u(s,!0);if(r)return r(s,!0);throw new Error("Cannot find module '"+c+"'")}c=s}var l=n[c]={exports:{}};e[c][0].call(l.exports,function(t){return o(e[c][1][t]||t)},l,l.exports,t,e,n,i)}return n[c].exports}for(var r="function"==typeof __require&&__require,c=0;c<i.length;c++)o(i[c]);return o}({singlenumbertracing:[function(t,e,n){"use strict";cc._RF.push(e,"5da4eDY4s1EHawDKyXsr9Mj","singlenumbertracing");var i,o=this&&this.__extends||(i=function(t,e){return(i=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[n]=e[n])})(t,e)},function(t,e){function n(){this.constructor=t}i(t,e),t.prototype=null===e?Object.create(e):(n.prototype=e.prototype,new n)}),r=this&&this.__decorate||function(t,e,n,i){var o,r=arguments.length,c=r<3?e:null===i?i=Object.getOwnPropertyDescriptor(e,n):i;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,n,i);else for(var a=t.length-1;a>=0;a--)(o=t[a])&&(c=(r<3?o(c):r>3?o(e,n,c):o(e,n))||c);return r>3&&c&&Object.defineProperty(e,n,c),c};Object.defineProperty(n,"__esModule",{value:!0}),n.SingleNumberTracing=n.TRACE_NODE_POS_Y=n.TRACE_NODE_POS_X=n.LETTER_SCALE=void 0;var c=cc._decorator.ccclass,a=cc._decorator.property,s=t("../../../common/scripts/util"),u=t("../../../common/scripts/lib/config"),l=t("../../../common/scripts/lib/error-handler"),d=t("../../../common/scripts/helper"),h=t("../../../common/Tracing/scripts/tracing-container"),p=t("../../../common/scripts/lessonController"),_=t("../../../common/Tracing/scripts/trace-graphics");n.LETTER_SCALE=.95,n.TRACE_NODE_POS_X=-256,n.TRACE_NODE_POS_Y=-384;var f=function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e._tracingContainerComponent=null,e._traceGraphics=null,e._letter=null,e._wordTracingContainer=null,e._tracingScale=null,e._sound=null,e}return o(e,t),e.prototype.onLoad=function(){var t=this;cc.director.getCollisionManager().enabled=!1,this._tracingContainer=cc.instantiate(this.tracingContainerPrefab),this._tracingContainer.scale=.75,this._wordTracingContainer.on(d.CONFIG_LOADED,function(){t.setAlphabetToDisplay(t._letter),t.loadSounds(t._letter)})},e.prototype.loadSounds=function(t){var e=this;isNaN(Number(t))?(this.preloadSound(t.toLowerCase(),u.default.dir+d.PHONIC_VOICE),null===this._sound&&this.preloadSound(t.toLowerCase(),u.default.dir+d.LETTER_VOICE),null===this._sound&&this.preloadSound(t.toLowerCase(),u.default.dir+WORD_TRACING_SOUNDS)):s.Util.loadNumericSound(t,function(t){e._sound=t})},e.prototype.reset=function(){this._traceGraphics.getComponent(_.default).resetGraphics()},e.prototype.preloadSound=function(t,e){var n=this,i=e+t;cc.resources.load(i,cc.AudioClip,function(t,e){t||null===e||(n._sound=e)})},e.prototype.pronounce=function(){p.default.getFriend().speak(this._sound)},e.prototype.setAlphabetToDisplay=function(t){var e=this;this._tracingContainerComponent=this._tracingContainer.getComponent(h.default),this._tracingContainerComponent.tracingLetter=t,this._tracingContainerComponent.traceGenerationMode=!1,this.node.addChild(this._tracingContainer),null!==this._tracingScale?this._tracingContainerComponent._traceGraphicsComponent.adjustedScale=this._tracingScale:this._tracingContainerComponent._traceGraphicsComponent.adjustedScale=n.LETTER_SCALE,this._traceGraphics=this._tracingContainerComponent.traceGraphics,this._tracingContainer.setPosition(new cc.Vec2(n.TRACE_NODE_POS_X,n.TRACE_NODE_POS_Y)),this.node.on("letterEnabledEvent",function(t,n){void 0===n&&(n=0),e._order===t&&e.scheduleOnce(function(){e._traceGraphics.emit("enabledGraphics")},n)}),this.node.width=this._tracingContainer.width},e.prototype.onDestroy=function(){cc.audioEngine.stopAllEffects()},Object.defineProperty(e.prototype,"letter",{set:function(t){this._letter=t},enumerable:!1,configurable:!0}),Object.defineProperty(e.prototype,"wordTracingContainer",{set:function(t){this._wordTracingContainer=t},enumerable:!1,configurable:!0}),Object.defineProperty(e.prototype,"order",{get:function(){return this._order},set:function(t){this._order=t},enumerable:!1,configurable:!0}),Object.defineProperty(e.prototype,"tracingScale",{get:function(){return this._tracingScale},set:function(t){this._tracingScale=t},enumerable:!1,configurable:!0}),r([a(cc.Prefab)],e.prototype,"tracingContainerPrefab",void 0),r([l.default()],e.prototype,"onLoad",null),r([l.default()],e.prototype,"setAlphabetToDisplay",null),r([c],e)}(cc.Component);n.SingleNumberTracing=f,cc._RF.pop()},{"../../../common/Tracing/scripts/trace-graphics":void 0,"../../../common/Tracing/scripts/tracing-container":void 0,"../../../common/scripts/helper":void 0,"../../../common/scripts/lessonController":void 0,"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/error-handler":void 0,"../../../common/scripts/util":void 0}],writeset:[function(t,e,n){"use strict";cc._RF.push(e,"9b9b8DQ5iFEVLfnKGfxdWGv","writeset");var i,o=this&&this.__extends||(i=function(t,e){return(i=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[n]=e[n])})(t,e)},function(t,e){function n(){this.constructor=t}i(t,e),t.prototype=null===e?Object.create(e):(n.prototype=e.prototype,new n)}),r=this&&this.__decorate||function(t,e,n,i){var o,r=arguments.length,c=r<3?e:null===i?i=Object.getOwnPropertyDescriptor(e,n):i;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,n,i);else for(var a=t.length-1;a>=0;a--)(o=t[a])&&(c=(r<3?o(c):r>3?o(e,n,c):o(e,n))||c);return r>3&&c&&Object.defineProperty(e,n,c),c};Object.defineProperty(n,"__esModule",{value:!0}),n.WriteSet=n.TRACE_HEIGHT=void 0;var c=cc._decorator.ccclass,a=cc._decorator.property,s=cc.Layout,u=t("../../../common/scripts/lib/config"),l=t("../../../common/scripts/util"),d=t("./singlenumbertracing"),h=t("../../../common/scripts/helper"),p=t("../../../common/scripts/game");n.TRACE_HEIGHT=768;var _=function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e.wordsPrefab=null,e.animsPrefab=null,e.singleLetterPrefab=null,e.b1=null,e.b2=null,e._currentConfig=null,e._numericTracingContainer=null,e._words=null,e._anims=null,e._currentLetterIndex=0,e._shelf=null,e._touchAllowedOnAnimLayout=!1,e}return o(e,t),e.prototype.onLoad=function(){var t=this;cc.director.getCollisionManager().enabled=!0;var e=this.node.getChildByName("writeset_bg");if(e&&(this._shelf=e.getChildByName("writeset_shelf_main")),this._currentConfig=this.processConfiguration(u.default.getInstance().data[0]),null!==this._currentConfig){this._words=cc.instantiate(this.wordsPrefab),this.node.addChild(this._words),this._anims=cc.instantiate(this.animsPrefab),this.node.addChild(this._anims),this._numericTracingContainer=this.node,this._numericTracingContainer.scale*=1,this._speakCount=0,this.buildNumbersWithGrid(),this.subScribeToTracingEvents(),this.node.emit(h.CONFIG_LOADED);var n=Number(this._currentConfig.count)<=100?[this._currentConfig.count]:[String(Number(this._currentConfig.count)-Number(this._currentConfig.count)%10),String(Number(this._currentConfig.count)%10)];Number(this._currentConfig.count)<=25&&this.friend.node.setPosition(this.friend.node.position.x,this.friend.node.position.y-600),l.Util.showHelp(null,null,function(){t.friend.speakEquation(n,function(){t.emitLetterEnabledEvent(t._layout.node.getChildByName(t._originalLetterName+"0"),0)})})}},e.prototype.createSprite=function(t,e){var n=e>25?cc.instantiate(this.b2):cc.instantiate(this.b1);n.scale=.75,t.addChild(n)},e.prototype.buildLayout=function(){var t=this;this._layout=this._words.getComponent(cc.Layout),this._layout.node.zIndex=2,this._layout.spacingX=125,this._layout.spacingY=0,this._layout.resizeMode=s.ResizeMode.CONTAINER,this._words.scale=d.LETTER_SCALE,this._characters.forEach(function(e,i){var o=cc.instantiate(t.singleLetterPrefab);o.height=n.TRACE_HEIGHT,o.scale=1.25,t._originalLetterName=o.name,o.name=t._originalLetterName+i;var r=o.getComponent(d.SingleNumberTracing);r.tracingScale=.75,r.wordTracingContainer=t.node,r.order=i,r.letter=e,t._layout.node.addChild(o),0===i&&(t._currentLetterIndex=i)}),this._layout.updateLayout()},e.prototype.buildGrid=function(){this._animLayout=this._anims.getComponent(cc.Layout),this._animLayout.node.zIndex=1,this._animLayout.node.setPosition(new cc.Vec2(cc.winSize.width/2,0)),this._animLayout.resizeMode=s.ResizeMode.CHILDREN,this.adjustLayout(Number(this._currentConfig.count)),this._animLayout.updateLayout()},e.prototype.adjustLayout=function(t){if(t<=25){this._animLayout.spacingX=0,this._animLayout.cellSize=new cc.Size(176,30);var e=176*Math.floor(t/5)+10*Math.floor(t/5)+176;this._anims.width=e,this._anims.height=160,this.generateSprites(t)}else this._animLayout.cellSize=new cc.Size(20,20),this._animLayout.spacingX=10,e=20*Math.floor(t/10)+10*Math.floor(t/10)+20,this._anims.width=e,this._anims.height=210,this.generateSprites(t)},e.prototype.buildNumbersWithGrid=function(){this.buildGrid(),this.buildLayout(),this._words.width=cc.winSize.width,this._words.height=cc.winSize.height/2,this._shelf&&Number(this._currentConfig.count)<=25&&(this._shelf.width=this._shelf.width<this._layout.node.width?this._layout.node.width:this._shelf.width),this._words.setPosition(new cc.Vec2(50,25)),this._anims.setPosition(new cc.Vec2(0,250))},e.prototype.generateSprites=function(t){for(var e=0;e<t;e++)this.createSprite(this._animLayout.node,t,e+1)},e.prototype.subScribeToTracingEvents=function(){var t=this;this.node.on(h.TRACING_FINISHED,function(e){e.stopPropagation(),t.tracingFinished()}),this.node.on(h.TRACING_CORRECT,function(e){e.stopPropagation(),t.node.emit("correct")}),this.node.on(h.TRACING_WRONG,function(e){e.stopPropagation(),t.node.emit("wrong")}),this.node.on(h.RESET_TRACING,function(e){e.stopPropagation(),t._layout.node.getChildByName(t._originalLetterName+t._currentLetterIndex).getComponent(d.SingleNumberTracing).reset()}),this.node.on(h.RESET_TRACING_ALLOWED,function(){null!==t.node.getChildByName("reeetTracingButton")&&(t.node.getChildByName("reeetTracingButton").opacity=255)}),this.node.on(h.RESET_TRACING_NOT_ALLOWED,function(){null!==t.node.getChildByName("reeetTracingButton")&&(t.node.getChildByName("reeetTracingButton").opacity=0)}),null!==this.node.getChildByName("reeetTracingButton")&&(this.node.getChildByName("reeetTracingButton").opacity=0)},e.prototype.emitLetterEnabledEvent=function(t,e){t.emit("letterEnabledEvent",e,1)},e.prototype.tracingFinished=function(){this.pronounceAndTrigger()},e.prototype.individualLetterSound=function(){this._characters.length>1&&this._layout.node.getChildByName(this._originalLetterName+(this._currentLetterIndex-1)).getComponent(d.SingleNumberTracing).pronounce()},e.prototype.pronounceAndTrigger=function(){var t=this;this._currentLetterIndex++,this.individualLetterSound(),this._currentLetterIndex===this._characters.length?this.scheduleOnce(function(){var e=Number(t._currentConfig.count)<=100?[t._currentConfig.count]:[String(Number(t._currentConfig.count)-Number(t._currentConfig.count)%10),String(Number(t._currentConfig.count)%10)];l.Util.showHelp(null,null,function(){t.friend.speakEquation(e,function(){t.emitLetterEnabledEvent(t._layout.node.getChildByName(t._originalLetterName+"0"),0)})}),t.node.emit("nextProblem")},1):this.emitLetterEnabledEvent(this._layout.node.getChildByName(this._originalLetterName+this._currentLetterIndex),this._currentLetterIndex)},e.prototype.processConfiguration=function(t){void 0===t&&(t=[]);var e=[].concat.apply([],t),n=e[0],i=e[1],o=e[2],r=e[3];return this._characters=Array.from(r),{level:n,workSheet:i,problemNo:o,count:r}},e.prototype.onDestroy=function(){cc.audioEngine.stopAllEffects()},e.prototype.updateSpeakCount=function(){this._speakCount++},Object.defineProperty(e.prototype,"speakCount",{get:function(){return this._speakCount},enumerable:!1,configurable:!0}),Object.defineProperty(e.prototype,"touchAllowedOnAnimLayout",{get:function(){return this._touchAllowedOnAnimLayout},enumerable:!1,configurable:!0}),r([a(cc.Prefab)],e.prototype,"wordsPrefab",void 0),r([a(cc.Prefab)],e.prototype,"animsPrefab",void 0),r([a(cc.Prefab)],e.prototype,"singleLetterPrefab",void 0),r([a(cc.Prefab)],e.prototype,"b1",void 0),r([a(cc.Prefab)],e.prototype,"b2",void 0),r([c],e)}(p.default);n.WriteSet=_,cc._RF.pop()},{"../../../common/scripts/game":void 0,"../../../common/scripts/helper":void 0,"../../../common/scripts/lib/config":void 0,"../../../common/scripts/util":void 0,"./singlenumbertracing":"singlenumbertracing"}]},{},["singlenumbertracing","writeset"]);
+window.__require = function e(t, n, r) {
+  function s(o, u) {
+    if (!n[o]) {
+      if (!t[o]) {
+        var b = o.split("/");
+        b = b[b.length - 1];
+        if (!t[b]) {
+          var a = "function" == typeof __require && __require;
+          if (!u && a) return a(b, !0);
+          if (i) return i(b, !0);
+          throw new Error("Cannot find module '" + o + "'");
+        }
+        o = b;
+      }
+      var f = n[o] = {
+        exports: {}
+      };
+      t[o][0].call(f.exports, function(e) {
+        var n = t[o][1][e];
+        return s(n || e);
+      }, f, f.exports, e, t, n, r);
+    }
+    return n[o].exports;
+  }
+  var i = "function" == typeof __require && __require;
+  for (var o = 0; o < r.length; o++) s(r[o]);
+  return s;
+}({
+  singlenumbertracing: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "5da4eDY4s1EHawDKyXsr9Mj", "singlenumbertracing");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    exports.SingleNumberTracing = exports.TRACE_NODE_POS_Y = exports.TRACE_NODE_POS_X = exports.LETTER_SCALE = void 0;
+    var ccclass = cc._decorator.ccclass;
+    var property = cc._decorator.property;
+    var util_1 = require("../../../common/scripts/util");
+    var config_1 = require("../../../common/scripts/lib/config");
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var helper_1 = require("../../../common/scripts/helper");
+    var tracing_container_1 = require("../../../common/Tracing/scripts/tracing-container");
+    var lessonController_1 = require("../../../common/scripts/lessonController");
+    var trace_graphics_1 = require("../../../common/Tracing/scripts/trace-graphics");
+    exports.LETTER_SCALE = .95;
+    exports.TRACE_NODE_POS_X = -256;
+    exports.TRACE_NODE_POS_Y = -384;
+    var SingleNumberTracing = function(_super) {
+      __extends(SingleNumberTracing, _super);
+      function SingleNumberTracing() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this._tracingContainerComponent = null;
+        _this._traceGraphics = null;
+        _this._letter = null;
+        _this._wordTracingContainer = null;
+        _this._tracingScale = null;
+        _this._sound = null;
+        return _this;
+      }
+      SingleNumberTracing.prototype.onLoad = function() {
+        var _this = this;
+        var manager = cc.director.getCollisionManager();
+        manager.enabled = false;
+        this._tracingContainer = cc.instantiate(this.tracingContainerPrefab);
+        this._tracingContainer.scale = .75;
+        this._wordTracingContainer.on(helper_1.CONFIG_LOADED, function() {
+          _this.setAlphabetToDisplay(_this._letter);
+          _this.loadSounds(_this._letter);
+        });
+      };
+      SingleNumberTracing.prototype.loadSounds = function(text) {
+        var _this = this;
+        var isString = isNaN(Number(text));
+        if (isString) {
+          this.preloadSound(text.toLowerCase(), config_1.default.dir + helper_1.PHONIC_VOICE);
+          null === this._sound && this.preloadSound(text.toLowerCase(), config_1.default.dir + helper_1.LETTER_VOICE);
+          null === this._sound && this.preloadSound(text.toLowerCase(), config_1.default.dir + WORD_TRACING_SOUNDS);
+        } else util_1.Util.loadNumericSound(text, function(clip) {
+          _this._sound = clip;
+        });
+      };
+      SingleNumberTracing.prototype.reset = function() {
+        var traceGraphics = this._traceGraphics.getComponent(trace_graphics_1.default);
+        traceGraphics.resetGraphics();
+      };
+      SingleNumberTracing.prototype.preloadSound = function(content, loadFrom) {
+        var _this = this;
+        var soundFile = loadFrom + content;
+        cc.resources.load(soundFile, cc.AudioClip, function(err, clip) {
+          err || null === clip || (_this._sound = clip);
+        });
+      };
+      SingleNumberTracing.prototype.pronounce = function() {
+        lessonController_1.default.getFriend().speak(this._sound);
+      };
+      SingleNumberTracing.prototype.setAlphabetToDisplay = function(letter) {
+        var _this = this;
+        this._tracingContainerComponent = this._tracingContainer.getComponent(tracing_container_1.default);
+        this._tracingContainerComponent.tracingLetter = letter;
+        this._tracingContainerComponent.traceGenerationMode = false;
+        this.node.addChild(this._tracingContainer);
+        null !== this._tracingScale ? this._tracingContainerComponent._traceGraphicsComponent.adjustedScale = this._tracingScale : this._tracingContainerComponent._traceGraphicsComponent.adjustedScale = exports.LETTER_SCALE;
+        this._traceGraphics = this._tracingContainerComponent.traceGraphics;
+        this._tracingContainer.setPosition(new cc.Vec2(exports.TRACE_NODE_POS_X, exports.TRACE_NODE_POS_Y));
+        this.node.on("letterEnabledEvent", function(index, timeToEnable) {
+          void 0 === timeToEnable && (timeToEnable = 0);
+          _this._order === index && _this.scheduleOnce(function() {
+            _this._traceGraphics.emit("enabledGraphics");
+          }, timeToEnable);
+        });
+        this.node.width = this._tracingContainer.width;
+      };
+      SingleNumberTracing.prototype.onDestroy = function() {
+        cc.audioEngine.stopAllEffects();
+      };
+      Object.defineProperty(SingleNumberTracing.prototype, "letter", {
+        set: function(l) {
+          this._letter = l;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(SingleNumberTracing.prototype, "wordTracingContainer", {
+        set: function(c) {
+          this._wordTracingContainer = c;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(SingleNumberTracing.prototype, "order", {
+        get: function() {
+          return this._order;
+        },
+        set: function(o) {
+          this._order = o;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(SingleNumberTracing.prototype, "tracingScale", {
+        get: function() {
+          return this._tracingScale;
+        },
+        set: function(n) {
+          this._tracingScale = n;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      __decorate([ property(cc.Prefab) ], SingleNumberTracing.prototype, "tracingContainerPrefab", void 0);
+      __decorate([ error_handler_1.default() ], SingleNumberTracing.prototype, "onLoad", null);
+      __decorate([ error_handler_1.default() ], SingleNumberTracing.prototype, "setAlphabetToDisplay", null);
+      SingleNumberTracing = __decorate([ ccclass ], SingleNumberTracing);
+      return SingleNumberTracing;
+    }(cc.Component);
+    exports.SingleNumberTracing = SingleNumberTracing;
+    cc._RF.pop();
+  }, {
+    "../../../common/Tracing/scripts/trace-graphics": void 0,
+    "../../../common/Tracing/scripts/tracing-container": void 0,
+    "../../../common/scripts/helper": void 0,
+    "../../../common/scripts/lessonController": void 0,
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/error-handler": void 0,
+    "../../../common/scripts/util": void 0
+  } ],
+  writeset: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "9b9b8DQ5iFEVLfnKGfxdWGv", "writeset");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    exports.WriteSet = exports.TRACE_HEIGHT = void 0;
+    var ccclass = cc._decorator.ccclass;
+    var property = cc._decorator.property;
+    var Layout = cc.Layout;
+    var config_1 = require("../../../common/scripts/lib/config");
+    var util_1 = require("../../../common/scripts/util");
+    var singlenumbertracing_1 = require("./singlenumbertracing");
+    var helper_1 = require("../../../common/scripts/helper");
+    var game_1 = require("../../../common/scripts/game");
+    exports.TRACE_HEIGHT = 768;
+    var BAT_SIZE_X = 176;
+    var BAT_SIZE_Y = 30;
+    var BALL_SIZE = 20;
+    var LIMIT = 25;
+    var SPACE = 10;
+    var WriteSet = function(_super) {
+      __extends(WriteSet, _super);
+      function WriteSet() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.wordsPrefab = null;
+        _this.animsPrefab = null;
+        _this.singleLetterPrefab = null;
+        _this.b1 = null;
+        _this.b2 = null;
+        _this._currentConfig = null;
+        _this._numericTracingContainer = null;
+        _this._words = null;
+        _this._anims = null;
+        _this._currentLetterIndex = 0;
+        _this._shelf = null;
+        _this._touchAllowedOnAnimLayout = false;
+        return _this;
+      }
+      WriteSet.prototype.onLoad = function() {
+        var _this = this;
+        var manager = cc.director.getCollisionManager();
+        manager.enabled = true;
+        var writeBg = this.node.getChildByName("writeset_bg");
+        !writeBg || (this._shelf = writeBg.getChildByName("writeset_shelf_main"));
+        this._currentConfig = this.processConfiguration(config_1.default.getInstance().data[0]);
+        if (null !== this._currentConfig) {
+          this._words = cc.instantiate(this.wordsPrefab);
+          this.node.addChild(this._words);
+          this._anims = cc.instantiate(this.animsPrefab);
+          this.node.addChild(this._anims);
+          this._numericTracingContainer = this.node;
+          this._numericTracingContainer.scale *= 1;
+          this._speakCount = 0;
+          this.buildNumbersWithGrid();
+          this.subScribeToTracingEvents();
+          this.node.emit(helper_1.CONFIG_LOADED);
+          var equations_1 = Number(this._currentConfig.count) <= 100 ? [ this._currentConfig.count ] : [ String(Number(this._currentConfig.count) - Number(this._currentConfig.count) % 10), String(Number(this._currentConfig.count) % 10) ];
+          Number(this._currentConfig.count) <= LIMIT && this.friend.node.setPosition(this.friend.node.position.x, this.friend.node.position.y - 600);
+          util_1.Util.showHelp(null, null, function() {
+            _this.friend.speakEquation(equations_1, function(index) {
+              _this.emitLetterEnabledEvent(_this._layout.node.getChildByName(_this._originalLetterName + "0"), 0);
+            });
+          });
+        }
+      };
+      WriteSet.prototype.createSprite = function(parent, count, index) {
+        var sprite = count > LIMIT ? cc.instantiate(this.b2) : cc.instantiate(this.b1);
+        sprite.scale = .75;
+        parent.addChild(sprite);
+      };
+      WriteSet.prototype.buildLayout = function() {
+        var _this = this;
+        this._layout = this._words.getComponent(cc.Layout);
+        this._layout.node.zIndex = 2;
+        this._layout.spacingX = 125;
+        this._layout.spacingY = 0;
+        this._layout.resizeMode = Layout.ResizeMode.CONTAINER;
+        this._words.scale = singlenumbertracing_1.LETTER_SCALE;
+        this._characters.forEach(function(c, i) {
+          var singleLetter = cc.instantiate(_this.singleLetterPrefab);
+          singleLetter.height = exports.TRACE_HEIGHT;
+          singleLetter.scale = 1.25;
+          _this._originalLetterName = singleLetter.name;
+          singleLetter.name = _this._originalLetterName + i;
+          var singleLetterComponent = singleLetter.getComponent(singlenumbertracing_1.SingleNumberTracing);
+          singleLetterComponent.tracingScale = .75;
+          singleLetterComponent.wordTracingContainer = _this.node;
+          singleLetterComponent.order = i;
+          singleLetterComponent.letter = c;
+          _this._layout.node.addChild(singleLetter);
+          0 === i && (_this._currentLetterIndex = i);
+        });
+        this._layout.updateLayout();
+      };
+      WriteSet.prototype.buildGrid = function() {
+        this._animLayout = this._anims.getComponent(cc.Layout);
+        this._animLayout.node.zIndex = 1;
+        this._animLayout.node.setPosition(new cc.Vec2(cc.winSize.width / 2, 0));
+        this._animLayout.resizeMode = Layout.ResizeMode.CHILDREN;
+        this.adjustLayout(Number(this._currentConfig.count));
+        this._animLayout.updateLayout();
+      };
+      WriteSet.prototype.adjustLayout = function(howMany) {
+        if (howMany <= LIMIT) {
+          this._animLayout.spacingX = 0;
+          this._animLayout.cellSize = new cc.Size(BAT_SIZE_X, BAT_SIZE_Y);
+          var totalWidth = Math.floor(howMany / (SPACE / 2)) * BAT_SIZE_X + Math.floor(howMany / (SPACE / 2)) * SPACE + 1 * BAT_SIZE_X;
+          this._anims.width = totalWidth;
+          this._anims.height = BAT_SIZE_Y * SPACE / 2 + SPACE;
+          this.generateSprites(howMany);
+        } else {
+          this._animLayout.cellSize = new cc.Size(BALL_SIZE, BALL_SIZE);
+          this._animLayout.spacingX = SPACE;
+          var totalWidth = Math.floor(howMany / SPACE) * BALL_SIZE + Math.floor(howMany / SPACE) * SPACE + 1 * BALL_SIZE;
+          this._anims.width = totalWidth;
+          this._anims.height = BALL_SIZE * SPACE + SPACE;
+          this.generateSprites(howMany);
+        }
+      };
+      WriteSet.prototype.buildNumbersWithGrid = function() {
+        this.buildGrid();
+        this.buildLayout();
+        this._words.width = cc.winSize.width;
+        this._words.height = cc.winSize.height / 2;
+        !!this._shelf && Number(this._currentConfig.count) <= LIMIT && (this._shelf.width = this._shelf.width < this._layout.node.width ? this._layout.node.width : this._shelf.width);
+        this._words.setPosition(new cc.Vec2(50, 25));
+        this._anims.setPosition(new cc.Vec2(0, 250));
+      };
+      WriteSet.prototype.generateSprites = function(count) {
+        for (var i = 0; i < count; i++) this.createSprite(this._animLayout.node, count, i + 1);
+      };
+      WriteSet.prototype.subScribeToTracingEvents = function() {
+        var _this = this;
+        this.node.on(helper_1.TRACING_FINISHED, function(event) {
+          event.stopPropagation();
+          _this.tracingFinished();
+        });
+        this.node.on(helper_1.TRACING_CORRECT, function(event) {
+          event.stopPropagation();
+          _this.node.emit("correct");
+        });
+        this.node.on(helper_1.TRACING_WRONG, function(event) {
+          event.stopPropagation();
+          _this.node.emit("wrong");
+        });
+        this.node.on(helper_1.RESET_TRACING, function(event) {
+          event.stopPropagation();
+          var letterNode = _this._layout.node.getChildByName(_this._originalLetterName + _this._currentLetterIndex);
+          var singleLetterTracing = letterNode.getComponent(singlenumbertracing_1.SingleNumberTracing);
+          singleLetterTracing.reset();
+        });
+        this.node.on(helper_1.RESET_TRACING_ALLOWED, function() {
+          null !== _this.node.getChildByName("reeetTracingButton") && (_this.node.getChildByName("reeetTracingButton").opacity = 255);
+        });
+        this.node.on(helper_1.RESET_TRACING_NOT_ALLOWED, function() {
+          null !== _this.node.getChildByName("reeetTracingButton") && (_this.node.getChildByName("reeetTracingButton").opacity = 0);
+        });
+        null !== this.node.getChildByName("reeetTracingButton") && (this.node.getChildByName("reeetTracingButton").opacity = 0);
+      };
+      WriteSet.prototype.emitLetterEnabledEvent = function(fNode, index) {
+        fNode.emit("letterEnabledEvent", index, 1);
+      };
+      WriteSet.prototype.tracingFinished = function() {
+        this.pronounceAndTrigger();
+      };
+      WriteSet.prototype.individualLetterSound = function() {
+        if (this._characters.length > 1) {
+          var letterNode = this._layout.node.getChildByName(this._originalLetterName + (this._currentLetterIndex - 1));
+          letterNode.getComponent(singlenumbertracing_1.SingleNumberTracing).pronounce();
+        }
+      };
+      WriteSet.prototype.pronounceAndTrigger = function() {
+        var _this = this;
+        this._currentLetterIndex++;
+        this.individualLetterSound();
+        this._currentLetterIndex === this._characters.length ? this.scheduleOnce(function() {
+          var equations = Number(_this._currentConfig.count) <= 100 ? [ _this._currentConfig.count ] : [ String(Number(_this._currentConfig.count) - Number(_this._currentConfig.count) % 10), String(Number(_this._currentConfig.count) % 10) ];
+          util_1.Util.showHelp(null, null, function() {
+            _this.friend.speakEquation(equations, function(index) {
+              _this.emitLetterEnabledEvent(_this._layout.node.getChildByName(_this._originalLetterName + "0"), 0);
+            });
+          });
+          _this.node.emit("nextProblem");
+        }, 1) : this.emitLetterEnabledEvent(this._layout.node.getChildByName(this._originalLetterName + this._currentLetterIndex), this._currentLetterIndex);
+      };
+      WriteSet.prototype.processConfiguration = function(data) {
+        void 0 === data && (data = []);
+        var configurations = [].concat.apply([], data);
+        var level = configurations[0], workSheet = configurations[1], problemNo = configurations[2], count = configurations[3];
+        this._characters = Array.from(count);
+        return {
+          level: level,
+          workSheet: workSheet,
+          problemNo: problemNo,
+          count: count
+        };
+      };
+      WriteSet.prototype.onDestroy = function() {
+        cc.audioEngine.stopAllEffects();
+      };
+      WriteSet.prototype.updateSpeakCount = function() {
+        this._speakCount++;
+      };
+      Object.defineProperty(WriteSet.prototype, "speakCount", {
+        get: function() {
+          return this._speakCount;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(WriteSet.prototype, "touchAllowedOnAnimLayout", {
+        get: function() {
+          return this._touchAllowedOnAnimLayout;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      __decorate([ property(cc.Prefab) ], WriteSet.prototype, "wordsPrefab", void 0);
+      __decorate([ property(cc.Prefab) ], WriteSet.prototype, "animsPrefab", void 0);
+      __decorate([ property(cc.Prefab) ], WriteSet.prototype, "singleLetterPrefab", void 0);
+      __decorate([ property(cc.Prefab) ], WriteSet.prototype, "b1", void 0);
+      __decorate([ property(cc.Prefab) ], WriteSet.prototype, "b2", void 0);
+      WriteSet = __decorate([ ccclass ], WriteSet);
+      return WriteSet;
+    }(game_1.default);
+    exports.WriteSet = WriteSet;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/game": void 0,
+    "../../../common/scripts/helper": void 0,
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/util": void 0,
+    "./singlenumbertracing": "singlenumbertracing"
+  } ]
+}, {}, [ "singlenumbertracing", "writeset" ]);

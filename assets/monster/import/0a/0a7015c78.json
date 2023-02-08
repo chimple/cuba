@@ -1,1 +1,138 @@
-[1,["64nJmQcJ5EHZA5P/pkA9U2"],["_textureSetter"],["cc.SpriteFrame"],0,[[[{"name":"decomon-decomon1-decomon_eye_d_blink1","rect":[114,119,58,50],"offset":[0,0],"originalSize":[58,50],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon1-decomon_eye_d_blink2","rect":[115,179,58,50],"offset":[0,0],"originalSize":[58,50],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon1-decomon_eye_d_blink3","rect":[115,239,58,50],"offset":[0,0],"originalSize":[58,50],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]]]]
+[
+  1,
+  [
+    "64nJmQcJ5EHZA5P/pkA9U2"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    [
+      [
+        {
+          "name": "decomon-decomon1-decomon_eye_d_blink1",
+          "rect": [
+            114,
+            119,
+            58,
+            50
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            58,
+            50
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon1-decomon_eye_d_blink2",
+          "rect": [
+            115,
+            179,
+            58,
+            50
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            58,
+            50
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon1-decomon_eye_d_blink3",
+          "rect": [
+            115,
+            239,
+            58,
+            50
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            58,
+            50
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ]
+  ]
+]

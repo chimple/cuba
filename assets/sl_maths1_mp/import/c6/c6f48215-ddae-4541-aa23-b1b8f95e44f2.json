@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "dbYlpW52NLgK3GHY9a5Z10"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "avacado",
+      "rect": [
+        14,
+        0,
+        72,
+        96
+      ],
+      "offset": [
+        2,
+        0
+      ],
+      "originalSize": [
+        96,
+        96
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

@@ -1,1 +1,542 @@
-window.__require=function t(e,o,r){function n(c,a){if(!o[c]){if(!e[c]){var l=c.split("/");if(l=l[l.length-1],!e[l]){var s="function"==typeof __require&&__require;if(!a&&s)return s(l,!0);if(i)return i(l,!0);throw new Error("Cannot find module '"+c+"'")}c=l}var u=o[c]={exports:{}};e[c][0].call(u.exports,function(t){return n(e[c][1][t]||t)},u,u.exports,t,e,o,r)}return o[c].exports}for(var i="function"==typeof __require&&__require,c=0;c<r.length;c++)n(r[c]);return n}({rowblocks:[function(t,e,o){"use strict";cc._RF.push(e,"12807aaEE9HJb90O9Ox1dj8","rowblocks");var r,n=this&&this.__extends||(r=function(t,e){return(r=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(t[o]=e[o])})(t,e)},function(t,e){function o(){this.constructor=t}r(t,e),t.prototype=null===e?Object.create(e):(o.prototype=e.prototype,new o)}),i=this&&this.__decorate||function(t,e,o,r){var n,i=arguments.length,c=i<3?e:null===r?r=Object.getOwnPropertyDescriptor(e,o):r;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,o,r);else for(var a=t.length-1;a>=0;a--)(n=t[a])&&(c=(i<3?n(c):i>3?n(e,o,c):n(e,o))||c);return i>3&&c&&Object.defineProperty(e,o,c),c};Object.defineProperty(o,"__esModule",{value:!0});var c=cc._decorator.ccclass,a=cc._decorator.property,l=t("../../../common/scripts/lib/config"),s=t("../../../common/scripts/drag"),u=t("../../../common/scripts/util"),p=t("../../../common/scripts/lib/error-handler"),d=t("../../../common/scripts/game"),h=["#E3EB0E","#FF809A","#74F750","#56DEA8","#A857FF"],f=function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e.board=null,e.truck=null,e.dragPrefab=null,e.dropPrefab=null,e.dragTilePrefab=null,e.tilePrefab=null,e.dark=null,e.light=null,e.truckInAudio=null,e.truckOutAudio=null,e.currentConfig=null,e.matchCount=0,e.boardContents=[[1,2,3,4,5,6,7,8,9,10],[11,12,13,14,15,16,17,18,19,20],[21,22,23,24,25,26,27,28,29,30]],e.dragTiles=new Map,e.colorMap=new Map,e}return n(e,t),e.prototype.onLoad=function(){var t=this;cc.director.getCollisionManager().enabled=!0,this.currentConfig=this.processConfiguration(l.default.getInstance().data[0]),this.generateAllSingleSquares();for(var e=Math.floor(this.currentConfig.columns.length/10),o=null,r=null,n=0;n<e;n++)for(var i=0;i<10;i++){var c=this.currentConfig.columns[10*n+i],a=new cc.Node,p=a.addComponent(cc.Sprite);a.x=80*i,a.y=80*-n,a.anchorX=0,a.anchorY=1,p.spriteFrame=n%2==0?i%2==0?this.dark:this.light:i%2==0?this.light:this.dark,this.board.addChild(a),this.board.setPosition(new cc.Vec2(this.board.x,.75*cc.winSize.height-(e-1)*this.board.height));var d=cc.instantiate(this.boardContents[n][i]<0?this.dropPrefab:this.tilePrefab);if(cc.log("tile.name",c.toString()),d.name=c.toString(),d.x=80*i,d.y=80*-n,this.board.addChild(d),this.boardContents[n][i]<0){if(!this.dragTiles.has(this.boardContents[n][i])){var f=cc.instantiate(this.dragTilePrefab);cc.log("dragTile.name",(-this.boardContents[n][i]).toString()),f.name=(-this.boardContents[n][i]).toString(),this.dragTiles.set(this.boardContents[n][i],f),this.colorMap.set(-this.boardContents[n][i],(new cc.Color).fromHEX(h[Math.floor(Math.random()*h.length)])),f.on("thirtypuzzleMatch",this.onMatch,this),f.on("thirtypuzzleNoMatch",function(){t.node.emit("wrong")}),null==o&&(o=f,r=d)}this.addToDragTile(-this.boardContents[n][i],c,this.dragTiles.get(this.boardContents[n][i]))}}var g=this.truck.x,y=u.Util.generatePositionsArray(700,300,100,40);(new cc.Tween).target(this.truck).set({x:cc.winSize.width}).call(function(){u.Util.playSfx(t.truckInAudio)}).to(3,{x:g},{progress:null,easing:"quadOut"}).call(function(){t.truck.getComponent(cc.Animation).stop();var e=0;t.dragTiles.forEach(function(o){o.position=cc.v2(cc.winSize.width+10,-cc.winSize.height/8),t.node.addChild(o),(new cc.Tween).target(o).delay(2*Math.random()).to(.5,{x:y[e].x,y:y[e].y},{progress:null,easing:"sineOut"}).start(),e++}),t.scheduleOnce(function(){s.default.letDrag=!0,u.Util.showHelp(o,r)},2.5)}).start()},e.prototype.processConfiguration=function(t){void 0===t&&(t=[]);var e=[].concat.apply([],t),o=e[0],r=e[1],n=e[2],i=e[3],c=e[4],a=e[5],l=e[6];return{level:o,workSheet:r,problem:n,columns:i.split(",").map(function(t){return parseInt(t,10)}),suggests:c.split(",").map(function(t){return parseInt(t,10)}),isRandom:a,problemNumber:l}},e.prototype.onMatch=function(){var t=this;this.node.emit("correct"),++this.matchCount>=this.dragTiles.size&&(this.truck.getComponent(cc.Animation).play(),(new cc.Tween).target(this.truck).call(function(){t.truckInAudio=u.Util.playSfx(t.truckAudio,!1,!0)}).delay(2).call(function(){u.Util.playSfx(t.truckOutAudio)}).to(3,{x:2*-cc.winSize.width},{progress:null,easing:"quadOut"}).call(function(){cc.audioEngine.stop(t.truckAudioId),t.node.emit("nextProblem")}).start())},e.prototype.addToDragTile=function(t,e,o){var r=cc.instantiate(this.dragPrefab);r.name=e.toString(),r.x=0,r.y=80*(Math.floor((t-1)/10)-Math.floor((e-1)/10)),o.addChild(r),o.width<r.x+80&&(o.width=r.x+80),o.height<80-r.y&&(o.height=80-r.y);var n=r.getChildByName("sprite");null!=n&&(n.color=this.colorMap.get(t))},e.prototype.generateAllSingleSquares=function(){for(var t=0,e=Math.floor(this.currentConfig.columns.length/10),o=0;o<e;o++)for(var r=0;r<10;r++){var n=10*o+r,i=this.currentConfig.columns[n];-1!==this.currentConfig.suggests.indexOf(i)&&(this.boardContents[o][r]=-this.currentConfig.suggests[t++])}},i([a(cc.Node)],e.prototype,"board",void 0),i([a(cc.Node)],e.prototype,"truck",void 0),i([a(cc.Prefab)],e.prototype,"dragPrefab",void 0),i([a(cc.Prefab)],e.prototype,"dropPrefab",void 0),i([a(cc.Prefab)],e.prototype,"dragTilePrefab",void 0),i([a(cc.Prefab)],e.prototype,"tilePrefab",void 0),i([a(cc.SpriteFrame)],e.prototype,"dark",void 0),i([a(cc.SpriteFrame)],e.prototype,"light",void 0),i([a(cc.AudioClip)],e.prototype,"truckInAudio",void 0),i([a(cc.AudioClip)],e.prototype,"truckOutAudio",void 0),i([p.default()],e.prototype,"onLoad",null),i([c],e)}(d.default);o.default=f,cc._RF.pop()},{"../../../common/scripts/drag":void 0,"../../../common/scripts/game":void 0,"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/error-handler":void 0,"../../../common/scripts/util":void 0}],thirtypuzzleboard:[function(t,e,o){"use strict";cc._RF.push(e,"b585fpQEdZFCLsWaxi0XujG","thirtypuzzleboard");var r,n=this&&this.__extends||(r=function(t,e){return(r=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(t[o]=e[o])})(t,e)},function(t,e){function o(){this.constructor=t}r(t,e),t.prototype=null===e?Object.create(e):(o.prototype=e.prototype,new o)}),i=this&&this.__decorate||function(t,e,o,r){var n,i=arguments.length,c=i<3?e:null===r?r=Object.getOwnPropertyDescriptor(e,o):r;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,o,r);else for(var a=t.length-1;a>=0;a--)(n=t[a])&&(c=(i<3?n(c):i>3?n(e,o,c):n(e,o))||c);return i>3&&c&&Object.defineProperty(e,o,c),c};Object.defineProperty(o,"__esModule",{value:!0});var c=t("../../../common/scripts/lib/config"),a=t("../../../common/scripts/util"),l=t("../../../common/scripts/lib/error-handler"),s=cc._decorator,u=s.ccclass,p=s.property,d=function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e.back=null,e.front=null,e.shadow=null,e.left=null,e.right=null,e.match=null,e.truck=null,e.choice=null,e.isMoving=!1,e.cards=null,e.choiceY=null,e}return n(e,t),e.prototype.onLoad=function(){var t=this;this.choiceY=this.choice.y,this.choice.y=-cc.winSize.height;var e=this.truck.x;(new cc.Tween).target(this.truck).set({x:cc.winSize.width}).to(3,{x:e},{progress:null,easing:"quadOut"}).call(function(){t.truck.getComponent(cc.Animation).stop(),t.onIteration()}).start(),this.node.on("nextIteration",function(){t.onIteration()})},e.prototype.onIteration=function(){var t=this,e=c.default.dir+"games/findthematch/images/",o=c.default.getInstance().data[0],r=(o[0],o[1],o[2],o[3]),n=o[4],i=[n,o[5],o[6],o[7]];this.cards=[],a.Util.load(e+n,function(e,o){var r=new cc.Node;r.addComponent(cc.Sprite).spriteFrame=new cc.SpriteFrame(o),t.left.addChild(r)});for(var l=0;l<parseInt(r);l++)this.cards.push(this.makeChoiceCard(e+i[l],l));a.Util.shuffle(this.cards),this.cards.forEach(function(e){t.choice.addChild(e)}),(new cc.Tween).target(this.choice).to(.25,{y:this.choiceY},{progress:null,easing:"quadOut"}).start()},e.prototype.makeChoiceCard=function(t,e){var o=this,r=new cc.Node(e.toString());r.addComponent(cc.Sprite).spriteFrame=this.front;var n=new cc.Node,i=n.addComponent(cc.Sprite);a.Util.load(t,function(t,e){i.spriteFrame=new cc.SpriteFrame(e)}),r.addChild(n),r.on("touchstart",function(){o.isMoving||(o.isMoving=!0,(new cc.Tween).target(r).to(.5,{position:r.convertToNodeSpaceAR(o.right.convertToWorldSpaceAR(cc.Vec2.ZERO))},null).call(function(){0==e?o.node.emit("correct"):o.node.emit("wrong")}).call(function(){0==e?o.scheduleOnce(function(){o.choice.removeAllChildren(),o.left.removeAllChildren(),o.isMoving=!1,o.choice.y=-cc.winSize.height,o.node.emit("nextProblem",!1)},2):(new cc.Tween).target(r).to(.25,{position:cc.Vec2.ZERO},{progress:null,easing:"quadOut"}).call(function(){o.isMoving=!1}).start()}).start())},this);var c=new cc.Node;return c.width=168,c.height=200,c.addChild(r),c},i([p(cc.SpriteFrame)],e.prototype,"back",void 0),i([p(cc.SpriteFrame)],e.prototype,"front",void 0),i([p(cc.SpriteFrame)],e.prototype,"shadow",void 0),i([p(cc.Node)],e.prototype,"left",void 0),i([p(cc.Node)],e.prototype,"right",void 0),i([p(cc.Node)],e.prototype,"match",void 0),i([p(cc.Node)],e.prototype,"truck",void 0),i([p(cc.Node)],e.prototype,"choice",void 0),i([l.default()],e.prototype,"onLoad",null),i([l.default()],e.prototype,"onIteration",null),i([l.default()],e.prototype,"makeChoiceCard",null),i([u],e)}(cc.Component);o.default=d,cc._RF.pop()},{"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/error-handler":void 0,"../../../common/scripts/util":void 0}],thirtypuzzledragtile:[function(t,e,o){"use strict";cc._RF.push(e,"154c6pfZMpDy4D6AnFSfXly","thirtypuzzledragtile");var r,n=this&&this.__extends||(r=function(t,e){return(r=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(t[o]=e[o])})(t,e)},function(t,e){function o(){this.constructor=t}r(t,e),t.prototype=null===e?Object.create(e):(o.prototype=e.prototype,new o)}),i=this&&this.__decorate||function(t,e,o,r){var n,i=arguments.length,c=i<3?e:null===r?r=Object.getOwnPropertyDescriptor(e,o):r;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,o,r);else for(var a=t.length-1;a>=0;a--)(n=t[a])&&(c=(i<3?n(c):i>3?n(e,o,c):n(e,o))||c);return i>3&&c&&Object.defineProperty(e,o,c),c};Object.defineProperty(o,"__esModule",{value:!0});var c=t("../../../common/scripts/drag"),a=t("../../../common/scripts/lib/error-handler"),l=cc._decorator,s=l.ccclass,u=(l.property,function(t){function e(){return null!==t&&t.apply(this,arguments)||this}return n(e,t),e.prototype.onTouchEnd=function(e){if(t.prototype.onTouchEnd.call(this,e),this.match)this.node.emit("thirtypuzzleMatch",this);else{this.node.emit("thirtypuzzleNoMatch");var o=this.node.convertToWorldSpaceAR(cc.Vec2.ZERO),r=this.node.getPosition(),n=!1;o.x+this.node.width>cc.winSize.width?(r.x-=o.x+this.node.width-cc.winSize.width,n=!0):o.x<0&&(r.x-=o.x,n=!0),o.y>cc.winSize.height?(r.y-=o.y-cc.winSize.height,n=!0):o.y-this.node.height<0&&(r.y-=o.y-this.node.height,n=!0),n&&(new cc.Tween).target(this.node).to(.25,{position:r},{progress:null,easing:"sineOut"}).start()}},i([a.default()],e.prototype,"onTouchEnd",null),i([s],e)}(c.default));o.default=u,cc._RF.pop()},{"../../../common/scripts/drag":void 0,"../../../common/scripts/lib/error-handler":void 0}],thirtypuzzletile:[function(t,e,o){"use strict";cc._RF.push(e,"52320TDYzFGZJiyqDmSbA/8","thirtypuzzletile");var r,n=this&&this.__extends||(r=function(t,e){return(r=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(t[o]=e[o])})(t,e)},function(t,e){function o(){this.constructor=t}r(t,e),t.prototype=null===e?Object.create(e):(o.prototype=e.prototype,new o)}),i=this&&this.__decorate||function(t,e,o,r){var n,i=arguments.length,c=i<3?e:null===r?r=Object.getOwnPropertyDescriptor(e,o):r;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,o,r);else for(var a=t.length-1;a>=0;a--)(n=t[a])&&(c=(i<3?n(c):i>3?n(e,o,c):n(e,o))||c);return i>3&&c&&Object.defineProperty(e,o,c),c};Object.defineProperty(o,"__esModule",{value:!0});var c=t("../../../common/scripts/lib/error-handler"),a=cc._decorator,l=a.ccclass,s=a.property,u=function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e.numberLabel=null,e}return n(e,t),e.prototype.onLoad=function(){this.numberLabel.string=this.node.name},i([s(cc.Label)],e.prototype,"numberLabel",void 0),i([c.default()],e.prototype,"onLoad",null),i([l],e)}(cc.Component);o.default=u,cc._RF.pop()},{"../../../common/scripts/lib/error-handler":void 0}]},{},["rowblocks","thirtypuzzleboard","thirtypuzzledragtile","thirtypuzzletile"]);
+window.__require = function e(t, n, r) {
+  function s(o, u) {
+    if (!n[o]) {
+      if (!t[o]) {
+        var b = o.split("/");
+        b = b[b.length - 1];
+        if (!t[b]) {
+          var a = "function" == typeof __require && __require;
+          if (!u && a) return a(b, !0);
+          if (i) return i(b, !0);
+          throw new Error("Cannot find module '" + o + "'");
+        }
+        o = b;
+      }
+      var f = n[o] = {
+        exports: {}
+      };
+      t[o][0].call(f.exports, function(e) {
+        var n = t[o][1][e];
+        return s(n || e);
+      }, f, f.exports, e, t, n, r);
+    }
+    return n[o].exports;
+  }
+  var i = "function" == typeof __require && __require;
+  for (var o = 0; o < r.length; o++) s(r[o]);
+  return s;
+}({
+  rowblocks: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "12807aaEE9HJb90O9Ox1dj8", "rowblocks");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var ccclass = cc._decorator.ccclass;
+    var property = cc._decorator.property;
+    var config_1 = require("../../../common/scripts/lib/config");
+    var drag_1 = require("../../../common/scripts/drag");
+    var util_1 = require("../../../common/scripts/util");
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var game_1 = require("../../../common/scripts/game");
+    var tileWidth = 80;
+    var tileHeight = 80;
+    var startX = 50;
+    var colors = [ "#E3EB0E", "#FF809A", "#74F750", "#56DEA8", "#A857FF" ];
+    var RowBlocks = function(_super) {
+      __extends(RowBlocks, _super);
+      function RowBlocks() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.board = null;
+        _this.truck = null;
+        _this.dragPrefab = null;
+        _this.dropPrefab = null;
+        _this.dragTilePrefab = null;
+        _this.tilePrefab = null;
+        _this.dark = null;
+        _this.light = null;
+        _this.truckInAudio = null;
+        _this.truckOutAudio = null;
+        _this.currentConfig = null;
+        _this.matchCount = 0;
+        _this.boardContents = [ [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ], [ 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 ], [ 21, 22, 23, 24, 25, 26, 27, 28, 29, 30 ] ];
+        _this.dragTiles = new Map();
+        _this.colorMap = new Map();
+        return _this;
+      }
+      RowBlocks.prototype.onLoad = function() {
+        var _this = this;
+        cc.director.getCollisionManager().enabled = true;
+        this.currentConfig = this.processConfiguration(config_1.default.getInstance().data[0]);
+        this.generateAllSingleSquares();
+        var howManyRows = Math.floor(this.currentConfig.columns.length / 10);
+        var firstDrag = null;
+        var firstDrop = null;
+        for (var i = 0; i < howManyRows; i++) for (var j = 0; j < 10; j++) {
+          var num = this.currentConfig.columns[10 * i + j];
+          var bg = new cc.Node();
+          var bgComp = bg.addComponent(cc.Sprite);
+          bg.x = j * tileWidth;
+          bg.y = -i * tileHeight;
+          bg.anchorX = 0;
+          bg.anchorY = 1;
+          bgComp.spriteFrame = i % 2 == 0 ? j % 2 == 0 ? this.dark : this.light : j % 2 == 0 ? this.light : this.dark;
+          this.board.addChild(bg);
+          this.board.setPosition(new cc.Vec2(this.board.x, .75 * cc.winSize.height - (howManyRows - 1) * this.board.height));
+          var tile = cc.instantiate(this.boardContents[i][j] < 0 ? this.dropPrefab : this.tilePrefab);
+          cc.log("tile.name", num.toString());
+          tile.name = num.toString();
+          tile.x = j * tileWidth;
+          tile.y = -i * tileHeight;
+          this.board.addChild(tile);
+          if (this.boardContents[i][j] < 0) {
+            if (!this.dragTiles.has(this.boardContents[i][j])) {
+              var dragTile = cc.instantiate(this.dragTilePrefab);
+              cc.log("dragTile.name", (-this.boardContents[i][j]).toString());
+              dragTile.name = (-this.boardContents[i][j]).toString();
+              this.dragTiles.set(this.boardContents[i][j], dragTile);
+              this.colorMap.set(-this.boardContents[i][j], new cc.Color().fromHEX(colors[Math.floor(Math.random() * colors.length)]));
+              dragTile.on("thirtypuzzleMatch", this.onMatch, this);
+              dragTile.on("thirtypuzzleNoMatch", function() {
+                _this.node.emit("wrong");
+              });
+              if (null == firstDrag) {
+                firstDrag = dragTile;
+                firstDrop = tile;
+              }
+            }
+            this.addToDragTile(-this.boardContents[i][j], num, this.dragTiles.get(this.boardContents[i][j]));
+          }
+        }
+        var truckX = this.truck.x;
+        var randomPositions = util_1.Util.generatePositionsArray(700, 300, 100, 40);
+        new cc.Tween().target(this.truck).set({
+          x: cc.winSize.width
+        }).call(function() {
+          util_1.Util.playSfx(_this.truckInAudio);
+        }).to(3, {
+          x: truckX
+        }, {
+          progress: null,
+          easing: "quadOut"
+        }).call(function() {
+          var anim = _this.truck.getComponent(cc.Animation);
+          anim.stop();
+          var count = 0;
+          _this.dragTiles.forEach(function(val, key) {
+            val.position = cc.v2(cc.winSize.width + 10, -cc.winSize.height / 8);
+            _this.node.addChild(val);
+            new cc.Tween().target(val).delay(2 * Math.random()).to(.5, {
+              x: randomPositions[count].x,
+              y: randomPositions[count].y
+            }, {
+              progress: null,
+              easing: "sineOut"
+            }).start();
+            count++;
+          });
+          _this.scheduleOnce(function() {
+            drag_1.default.letDrag = true;
+            util_1.Util.showHelp(firstDrag, firstDrop);
+          }, 2.5);
+        }).start();
+      };
+      RowBlocks.prototype.processConfiguration = function(data) {
+        void 0 === data && (data = []);
+        var configurations = [].concat.apply([], data);
+        var level = configurations[0], workSheet = configurations[1], problem = configurations[2], columnStr = configurations[3], suggestStr = configurations[4], isRandom = configurations[5], problemNumber = configurations[6];
+        return {
+          level: level,
+          workSheet: workSheet,
+          problem: problem,
+          columns: columnStr.split(",").map(function(i) {
+            return parseInt(i, 10);
+          }),
+          suggests: suggestStr.split(",").map(function(i) {
+            return parseInt(i, 10);
+          }),
+          isRandom: isRandom,
+          problemNumber: problemNumber
+        };
+      };
+      RowBlocks.prototype.onMatch = function() {
+        var _this = this;
+        this.node.emit("correct");
+        if (++this.matchCount >= this.dragTiles.size) {
+          var anim = this.truck.getComponent(cc.Animation);
+          anim.play();
+          new cc.Tween().target(this.truck).call(function() {
+            _this.truckInAudio = util_1.Util.playSfx(_this.truckAudio, false, true);
+          }).delay(2).call(function() {
+            util_1.Util.playSfx(_this.truckOutAudio);
+          }).to(3, {
+            x: 2 * -cc.winSize.width
+          }, {
+            progress: null,
+            easing: "quadOut"
+          }).call(function() {
+            cc.audioEngine.stop(_this.truckAudioId);
+            _this.node.emit("nextProblem");
+          }).start();
+        }
+      };
+      RowBlocks.prototype.addToDragTile = function(pos, currentPos, dragTile) {
+        var drag = cc.instantiate(this.dragPrefab);
+        drag.name = currentPos.toString();
+        drag.x = 0;
+        drag.y = (Math.floor((pos - 1) / 10) - Math.floor((currentPos - 1) / 10)) * tileHeight;
+        dragTile.addChild(drag);
+        dragTile.width < drag.x + tileWidth && (dragTile.width = drag.x + tileWidth);
+        dragTile.height < -drag.y + tileHeight && (dragTile.height = -drag.y + tileHeight);
+        var sprite = drag.getChildByName("sprite");
+        null != sprite && (sprite.color = this.colorMap.get(pos));
+      };
+      RowBlocks.prototype.generateAllSingleSquares = function() {
+        var index = 0;
+        var howManyRows = Math.floor(this.currentConfig.columns.length / 10);
+        for (var i = 0; i < howManyRows; i++) for (var j = 0; j < 10; j++) {
+          var num = 10 * i + j;
+          var eleNum = this.currentConfig.columns[num];
+          -1 !== this.currentConfig.suggests.indexOf(eleNum) && (this.boardContents[i][j] = -this.currentConfig.suggests[index++]);
+        }
+      };
+      __decorate([ property(cc.Node) ], RowBlocks.prototype, "board", void 0);
+      __decorate([ property(cc.Node) ], RowBlocks.prototype, "truck", void 0);
+      __decorate([ property(cc.Prefab) ], RowBlocks.prototype, "dragPrefab", void 0);
+      __decorate([ property(cc.Prefab) ], RowBlocks.prototype, "dropPrefab", void 0);
+      __decorate([ property(cc.Prefab) ], RowBlocks.prototype, "dragTilePrefab", void 0);
+      __decorate([ property(cc.Prefab) ], RowBlocks.prototype, "tilePrefab", void 0);
+      __decorate([ property(cc.SpriteFrame) ], RowBlocks.prototype, "dark", void 0);
+      __decorate([ property(cc.SpriteFrame) ], RowBlocks.prototype, "light", void 0);
+      __decorate([ property(cc.AudioClip) ], RowBlocks.prototype, "truckInAudio", void 0);
+      __decorate([ property(cc.AudioClip) ], RowBlocks.prototype, "truckOutAudio", void 0);
+      __decorate([ error_handler_1.default() ], RowBlocks.prototype, "onLoad", null);
+      RowBlocks = __decorate([ ccclass ], RowBlocks);
+      return RowBlocks;
+    }(game_1.default);
+    exports.default = RowBlocks;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/drag": void 0,
+    "../../../common/scripts/game": void 0,
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/error-handler": void 0,
+    "../../../common/scripts/util": void 0
+  } ],
+  thirtypuzzleboard: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "b585fpQEdZFCLsWaxi0XujG", "thirtypuzzleboard");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var config_1 = require("../../../common/scripts/lib/config");
+    var util_1 = require("../../../common/scripts/util");
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var ThirtyPuzzleBoard = function(_super) {
+      __extends(ThirtyPuzzleBoard, _super);
+      function ThirtyPuzzleBoard() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.back = null;
+        _this.front = null;
+        _this.shadow = null;
+        _this.left = null;
+        _this.right = null;
+        _this.match = null;
+        _this.truck = null;
+        _this.choice = null;
+        _this.isMoving = false;
+        _this.cards = null;
+        _this.choiceY = null;
+        return _this;
+      }
+      ThirtyPuzzleBoard.prototype.onLoad = function() {
+        var _this = this;
+        this.choiceY = this.choice.y;
+        this.choice.y = -cc.winSize.height;
+        var truckX = this.truck.x;
+        new cc.Tween().target(this.truck).set({
+          x: cc.winSize.width
+        }).to(3, {
+          x: truckX
+        }, {
+          progress: null,
+          easing: "quadOut"
+        }).call(function() {
+          var anim = _this.truck.getComponent(cc.Animation);
+          anim.stop();
+          _this.onIteration();
+        }).start();
+        this.node.on("nextIteration", function() {
+          _this.onIteration();
+        });
+      };
+      ThirtyPuzzleBoard.prototype.onIteration = function() {
+        var _this = this;
+        var prefix = config_1.default.dir + "games/findthematch/images/";
+        var _a = config_1.default.getInstance().data[0], level = _a[0], worksheet = _a[1], problem = _a[2], choices = _a[3], choice0 = _a[4], choice1 = _a[5], choice2 = _a[6], choice3 = _a[7];
+        var choiceArray = [ choice0, choice1, choice2, choice3 ];
+        this.cards = [];
+        util_1.Util.load(prefix + choice0, function(err, texture) {
+          var spriteNode = new cc.Node();
+          var sprite = spriteNode.addComponent(cc.Sprite);
+          sprite.spriteFrame = new cc.SpriteFrame(texture);
+          _this.left.addChild(spriteNode);
+        });
+        for (var index = 0; index < parseInt(choices); index++) this.cards.push(this.makeChoiceCard(prefix + choiceArray[index], index));
+        util_1.Util.shuffle(this.cards);
+        this.cards.forEach(function(element) {
+          _this.choice.addChild(element);
+        });
+        new cc.Tween().target(this.choice).to(.25, {
+          y: this.choiceY
+        }, {
+          progress: null,
+          easing: "quadOut"
+        }).start();
+      };
+      ThirtyPuzzleBoard.prototype.makeChoiceCard = function(textureName, index) {
+        var _this = this;
+        var cardNode = new cc.Node(index.toString());
+        var cardSprite = cardNode.addComponent(cc.Sprite);
+        cardSprite.spriteFrame = this.front;
+        var spriteNode = new cc.Node();
+        var sprite = spriteNode.addComponent(cc.Sprite);
+        util_1.Util.load(textureName, function(err, texture) {
+          sprite.spriteFrame = new cc.SpriteFrame(texture);
+        });
+        cardNode.addChild(spriteNode);
+        cardNode.on("touchstart", function() {
+          if (!_this.isMoving) {
+            _this.isMoving = true;
+            new cc.Tween().target(cardNode).to(.5, {
+              position: cardNode.convertToNodeSpaceAR(_this.right.convertToWorldSpaceAR(cc.Vec2.ZERO))
+            }, null).call(function() {
+              0 == index ? _this.node.emit("correct") : _this.node.emit("wrong");
+            }).call(function() {
+              0 == index ? _this.scheduleOnce(function() {
+                _this.choice.removeAllChildren();
+                _this.left.removeAllChildren();
+                _this.isMoving = false;
+                _this.choice.y = -cc.winSize.height;
+                _this.node.emit("nextProblem", false);
+              }, 2) : new cc.Tween().target(cardNode).to(.25, {
+                position: cc.Vec2.ZERO
+              }, {
+                progress: null,
+                easing: "quadOut"
+              }).call(function() {
+                _this.isMoving = false;
+              }).start();
+            }).start();
+          }
+        }, this);
+        var tempNode = new cc.Node();
+        tempNode.width = 168;
+        tempNode.height = 200;
+        tempNode.addChild(cardNode);
+        return tempNode;
+      };
+      __decorate([ property(cc.SpriteFrame) ], ThirtyPuzzleBoard.prototype, "back", void 0);
+      __decorate([ property(cc.SpriteFrame) ], ThirtyPuzzleBoard.prototype, "front", void 0);
+      __decorate([ property(cc.SpriteFrame) ], ThirtyPuzzleBoard.prototype, "shadow", void 0);
+      __decorate([ property(cc.Node) ], ThirtyPuzzleBoard.prototype, "left", void 0);
+      __decorate([ property(cc.Node) ], ThirtyPuzzleBoard.prototype, "right", void 0);
+      __decorate([ property(cc.Node) ], ThirtyPuzzleBoard.prototype, "match", void 0);
+      __decorate([ property(cc.Node) ], ThirtyPuzzleBoard.prototype, "truck", void 0);
+      __decorate([ property(cc.Node) ], ThirtyPuzzleBoard.prototype, "choice", void 0);
+      __decorate([ error_handler_1.default() ], ThirtyPuzzleBoard.prototype, "onLoad", null);
+      __decorate([ error_handler_1.default() ], ThirtyPuzzleBoard.prototype, "onIteration", null);
+      __decorate([ error_handler_1.default() ], ThirtyPuzzleBoard.prototype, "makeChoiceCard", null);
+      ThirtyPuzzleBoard = __decorate([ ccclass ], ThirtyPuzzleBoard);
+      return ThirtyPuzzleBoard;
+    }(cc.Component);
+    exports.default = ThirtyPuzzleBoard;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/error-handler": void 0,
+    "../../../common/scripts/util": void 0
+  } ],
+  thirtypuzzledragtile: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "154c6pfZMpDy4D6AnFSfXly", "thirtypuzzledragtile");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var drag_1 = require("../../../common/scripts/drag");
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var ThirtyPuzzleDragTile = function(_super) {
+      __extends(ThirtyPuzzleDragTile, _super);
+      function ThirtyPuzzleDragTile() {
+        return null !== _super && _super.apply(this, arguments) || this;
+      }
+      ThirtyPuzzleDragTile.prototype.onTouchEnd = function(touch) {
+        _super.prototype.onTouchEnd.call(this, touch);
+        if (this.match) this.node.emit("thirtypuzzleMatch", this); else {
+          this.node.emit("thirtypuzzleNoMatch");
+          var worldPos = this.node.convertToWorldSpaceAR(cc.Vec2.ZERO);
+          var newPos = this.node.getPosition();
+          var doTween = false;
+          if (worldPos.x + this.node.width > cc.winSize.width) {
+            newPos.x -= worldPos.x + this.node.width - cc.winSize.width;
+            doTween = true;
+          } else if (worldPos.x < 0) {
+            newPos.x -= worldPos.x;
+            doTween = true;
+          }
+          if (worldPos.y > cc.winSize.height) {
+            newPos.y -= worldPos.y - cc.winSize.height;
+            doTween = true;
+          } else if (worldPos.y - this.node.height < 0) {
+            newPos.y -= worldPos.y - this.node.height;
+            doTween = true;
+          }
+          doTween && new cc.Tween().target(this.node).to(.25, {
+            position: newPos
+          }, {
+            progress: null,
+            easing: "sineOut"
+          }).start();
+        }
+      };
+      __decorate([ error_handler_1.default() ], ThirtyPuzzleDragTile.prototype, "onTouchEnd", null);
+      ThirtyPuzzleDragTile = __decorate([ ccclass ], ThirtyPuzzleDragTile);
+      return ThirtyPuzzleDragTile;
+    }(drag_1.default);
+    exports.default = ThirtyPuzzleDragTile;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/drag": void 0,
+    "../../../common/scripts/lib/error-handler": void 0
+  } ],
+  thirtypuzzletile: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "52320TDYzFGZJiyqDmSbA/8", "thirtypuzzletile");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var ThirtyPuzzleTile = function(_super) {
+      __extends(ThirtyPuzzleTile, _super);
+      function ThirtyPuzzleTile() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.numberLabel = null;
+        return _this;
+      }
+      ThirtyPuzzleTile.prototype.onLoad = function() {
+        this.numberLabel.string = this.node.name;
+      };
+      __decorate([ property(cc.Label) ], ThirtyPuzzleTile.prototype, "numberLabel", void 0);
+      __decorate([ error_handler_1.default() ], ThirtyPuzzleTile.prototype, "onLoad", null);
+      ThirtyPuzzleTile = __decorate([ ccclass ], ThirtyPuzzleTile);
+      return ThirtyPuzzleTile;
+    }(cc.Component);
+    exports.default = ThirtyPuzzleTile;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/lib/error-handler": void 0
+  } ]
+}, {}, [ "rowblocks", "thirtypuzzleboard", "thirtypuzzledragtile", "thirtypuzzletile" ]);

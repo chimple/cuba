@@ -1,1 +1,51 @@
-[1,["b1Jt2rutdLGpPcbv3kmE3G"],["_textureSetter"],["cc.SpriteFrame"],0,[{"name":"apple","rect":[0,0,74,96],"offset":[0,0.5],"originalSize":[74,97],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]]
+[
+  1,
+  [
+    "b1Jt2rutdLGpPcbv3kmE3G"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "apple",
+      "rect": [
+        0,
+        0,
+        74,
+        96
+      ],
+      "offset": [
+        0,
+        0.5
+      ],
+      "originalSize": [
+        74,
+        97
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

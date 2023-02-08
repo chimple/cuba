@@ -1,1 +1,252 @@
-window.__require=function t(e,o,n){function r(c,a){if(!o[c]){if(!e[c]){var l=c.split("/");if(l=l[l.length-1],!e[l]){var s="function"==typeof __require&&__require;if(!a&&s)return s(l,!0);if(i)return i(l,!0);throw new Error("Cannot find module '"+c+"'")}c=l}var u=o[c]={exports:{}};e[c][0].call(u.exports,function(t){return r(e[c][1][t]||t)},u,u.exports,t,e,o,n)}return o[c].exports}for(var i="function"==typeof __require&&__require,c=0;c<n.length;c++)r(n[c]);return r}({animationEvent:[function(t,e,o){"use strict";cc._RF.push(e,"2158b6z985AaKJeKWVKF/jy","animationEvent");var n,r=this&&this.__extends||(n=function(t,e){return(n=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(t[o]=e[o])})(t,e)},function(t,e){function o(){this.constructor=t}n(t,e),t.prototype=null===e?Object.create(e):(o.prototype=e.prototype,new o)}),i=this&&this.__decorate||function(t,e,o,n){var r,i=arguments.length,c=i<3?e:null===n?n=Object.getOwnPropertyDescriptor(e,o):n;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,o,n);else for(var a=t.length-1;a>=0;a--)(r=t[a])&&(c=(i<3?r(c):i>3?r(e,o,c):r(e,o))||c);return i>3&&c&&Object.defineProperty(e,o,c),c};Object.defineProperty(o,"__esModule",{value:!0});var c=t("../../../common/scripts/game"),a=t("../../../common/scripts/lib/error-handler"),l=cc._decorator,s=l.ccclass,u=(l.property,function(t){function e(){return null!==t&&t.apply(this,arguments)||this}return r(e,t),e.prototype.onRightAns=function(){var t=this;cc.log("sdfsdhf awejsf ahgdsfvhdsGASDJS"),this.node.getParent().getComponent(c.default).friend.speakExtra(function(){var e=cc.moveTo(2,0,540),o=t.node.getParent().getChildByName("board_question_wordkicker");o.runAction(cc.sequence([e,cc.callFunc(t.nextQuestion,t)]));var n=cc.moveTo(2,0,-443);o.getParent().getChildByName("buttons").runAction(n)})},e.prototype.nextQuestion=function(){this.node.getParent().emit("nextProblem")},i([a.default()],e.prototype,"onRightAns",null),i([a.default()],e.prototype,"nextQuestion",null),i([s],e)}(cc.Component));o.default=u,cc._RF.pop()},{"../../../common/scripts/game":void 0,"../../../common/scripts/lib/error-handler":void 0}],fillblank:[function(t,e,o){"use strict";cc._RF.push(e,"ecf83FCqjBOG4x20zbiUIJv","fillblank");var n,r=this&&this.__extends||(n=function(t,e){return(n=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(t[o]=e[o])})(t,e)},function(t,e){function o(){this.constructor=t}n(t,e),t.prototype=null===e?Object.create(e):(o.prototype=e.prototype,new o)}),i=this&&this.__decorate||function(t,e,o,n){var r,i=arguments.length,c=i<3?e:null===n?n=Object.getOwnPropertyDescriptor(e,o):n;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,o,n);else for(var a=t.length-1;a>=0;a--)(r=t[a])&&(c=(i<3?r(c):i>3?r(e,o,c):r(e,o))||c);return i>3&&c&&Object.defineProperty(e,o,c),c};Object.defineProperty(o,"__esModule",{value:!0});var c=t("../../../common/scripts/lib/config"),a=t("../../../common/scripts/util"),l=t("../../../common/scripts/lib/error-handler"),s=t("../../../common/scripts/game"),u=cc._decorator,p=u.ccclass,d=u.property,f=function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e.label=null,e.question="",e.ans_button=0,e.rightSprite=null,e.wrongSprite=null,e.soundFile=null,e.disableCorrectButton=!1,e}return r(e,t),e.prototype.onLoad=function(){var t=this;(new cc.Tween).target(this.friend.node).set({x:-cc.winSize.width}).to(1,{x:0},null).start();var e=null;c.default.getInstance().data.forEach(function(o){t.question=o[3];var n=t.question.indexOf("["),r=t.question.indexOf("]"),i=t.question.substring(n+1,r);t.question=t.question.replace(t.question.substring(n,r+1),"______"),t.soundFile=o[4],a.Util.loadGameSound(t.soundFile,function(o){null!=o&&(t.friend.extraClip=o),t.scheduleOnce(function(){a.Util.showHelp(e,e,function(){e=t.enableButtons(c,e,l,!0)})},2)});var c=t.node;c.getChildByName("board_question_wordkicker").getChildByName("question").getComponent(cc.Label).string=t.question;var l=[i,o[5],o[6],o[7]];l=t.shuffle(l),t.ans_button=l.indexOf(i)+1,e=t.enableButtons(c,e,l,!1)})},e.prototype.enableButtons=function(t,e,o,n){for(var r=0;r<4;r++){var i="button_"+(r+1),c=t.getChildByName("buttons").getChildByName(i);r+1==this.ans_button&&(e=c),c.getChildByName("Background").getChildByName("Label").getComponent(cc.Label).string=o[r],n?c.on("click",this.callback.bind(this),this):c.off("click",this.callback.bind(this),this)}return e},e.prototype.callback=function(t){if(cc.log(" y i m getting called"+t.node.name),!this.disableCorrectButton)if(t.node.name==="button_"+this.ans_button){cc.log("this is right answer"),this.node.emit("correct"),this.disableCorrectButton=!0;for(var e=1;e<5;e++)t.node.name!="button_"+e&&(this.node.getChildByName("buttons").getChildByName("button_"+e).getComponent(cc.Button).interactable=!1);var o=this.question.replace("______",this.node.getChildByName("buttons").getChildByName(t.node.name).getChildByName("Background").getChildByName("Label").getComponent(cc.Label).string);this.node.getChildByName("board_question_wordkicker").getChildByName("question").getComponent(cc.Label).string=o,this.node.getChildByName("buttons").getChildByName(t.node.name).getChildByName("Background").getComponent(cc.Sprite).spriteFrame=this.rightSprite;var n=this.node.getChildByName("flower_anim");n.x=0,n.getComponent(cc.Animation).play()}else{this.node.emit("wrong"),this.node.getChildByName("buttons").getChildByName(t.node.name).getChildByName("Background").getComponent(cc.Sprite).spriteFrame=this.wrongSprite;var r=this.node.getChildByName("flower_wrong");r.x=140,r.getComponent(cc.Animation).play()}},e.prototype.shuffle=function(t){for(var e,o,n=t.length;0!==n;)o=Math.floor(Math.random()*n),e=t[n-=1],t[n]=t[o],t[o]=e;return t},e.prototype.start=function(){var t=cc.moveTo(1,0,278);this.node.getChildByName("board_question_wordkicker").runAction(t);var e=cc.moveTo(1,0,0);this.node.getChildByName("buttons").runAction(e)},i([d(cc.Label)],e.prototype,"label",void 0),i([d],e.prototype,"question",void 0),i([d],e.prototype,"ans_button",void 0),i([d(cc.SpriteFrame)],e.prototype,"rightSprite",void 0),i([d(cc.SpriteFrame)],e.prototype,"wrongSprite",void 0),i([l.default()],e.prototype,"enableButtons",null),i([l.default()],e.prototype,"callback",null),i([l.default()],e.prototype,"shuffle",null),i([l.default()],e.prototype,"start",null),i([p],e)}(s.default);o.default=f,cc._RF.pop()},{"../../../common/scripts/game":void 0,"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/error-handler":void 0,"../../../common/scripts/util":void 0}]},{},["animationEvent","fillblank"]);
+window.__require = function e(t, n, r) {
+  function s(o, u) {
+    if (!n[o]) {
+      if (!t[o]) {
+        var b = o.split("/");
+        b = b[b.length - 1];
+        if (!t[b]) {
+          var a = "function" == typeof __require && __require;
+          if (!u && a) return a(b, !0);
+          if (i) return i(b, !0);
+          throw new Error("Cannot find module '" + o + "'");
+        }
+        o = b;
+      }
+      var f = n[o] = {
+        exports: {}
+      };
+      t[o][0].call(f.exports, function(e) {
+        var n = t[o][1][e];
+        return s(n || e);
+      }, f, f.exports, e, t, n, r);
+    }
+    return n[o].exports;
+  }
+  var i = "function" == typeof __require && __require;
+  for (var o = 0; o < r.length; o++) s(r[o]);
+  return s;
+}({
+  animationEvent: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "2158b6z985AaKJeKWVKF/jy", "animationEvent");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var game_1 = require("../../../common/scripts/game");
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var AnimationEvents = function(_super) {
+      __extends(AnimationEvents, _super);
+      function AnimationEvents() {
+        return null !== _super && _super.apply(this, arguments) || this;
+      }
+      AnimationEvents.prototype.onRightAns = function(event) {
+        var _this = this;
+        cc.log("sdfsdhf awejsf ahgdsfvhdsGASDJS");
+        var fillBlank = this.node.getParent();
+        var game = fillBlank.getComponent(game_1.default);
+        game.friend.speakExtra(function() {
+          var questionFadeOut = cc.moveTo(2, 0, 540);
+          var nd = _this.node.getParent().getChildByName("board_question_wordkicker");
+          nd.runAction(cc.sequence([ questionFadeOut, cc.callFunc(_this.nextQuestion, _this) ]));
+          var buttonFadeOut = cc.moveTo(2, 0, -443);
+          nd.getParent().getChildByName("buttons").runAction(buttonFadeOut);
+        });
+      };
+      AnimationEvents.prototype.nextQuestion = function() {
+        this.node.getParent().emit("nextProblem");
+      };
+      __decorate([ error_handler_1.default() ], AnimationEvents.prototype, "onRightAns", null);
+      __decorate([ error_handler_1.default() ], AnimationEvents.prototype, "nextQuestion", null);
+      AnimationEvents = __decorate([ ccclass ], AnimationEvents);
+      return AnimationEvents;
+    }(cc.Component);
+    exports.default = AnimationEvents;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/game": void 0,
+    "../../../common/scripts/lib/error-handler": void 0
+  } ],
+  fillblank: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "ecf83FCqjBOG4x20zbiUIJv", "fillblank");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var config_1 = require("../../../common/scripts/lib/config");
+    var util_1 = require("../../../common/scripts/util");
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var game_1 = require("../../../common/scripts/game");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var FillBlank = function(_super) {
+      __extends(FillBlank, _super);
+      function FillBlank() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.label = null;
+        _this.question = "";
+        _this.ans_button = 0;
+        _this.rightSprite = null;
+        _this.wrongSprite = null;
+        _this.soundFile = null;
+        _this.disableCorrectButton = false;
+        return _this;
+      }
+      FillBlank.prototype.onLoad = function() {
+        var _this = this;
+        new cc.Tween().target(this.friend.node).set({
+          x: -cc.winSize.width
+        }).to(1, {
+          x: 0
+        }, null).start();
+        var answerNode = null;
+        config_1.default.getInstance().data.forEach(function(row) {
+          _this.question = row[3];
+          var startIndex = _this.question.indexOf("[");
+          var endIndex = _this.question.indexOf("]");
+          var ansString = _this.question.substring(startIndex + 1, endIndex);
+          _this.question = _this.question.replace(_this.question.substring(startIndex, endIndex + 1), "______");
+          _this.soundFile = row[4];
+          util_1.Util.loadGameSound(_this.soundFile, function(clip) {
+            null != clip && (_this.friend.extraClip = clip);
+            _this.scheduleOnce(function() {
+              util_1.Util.showHelp(answerNode, answerNode, function() {
+                answerNode = _this.enableButtons(node, answerNode, arr, true);
+              });
+            }, 2);
+          });
+          var node = _this.node;
+          node.getChildByName("board_question_wordkicker").getChildByName("question").getComponent(cc.Label).string = _this.question;
+          var arr = [ ansString, row[5], row[6], row[7] ];
+          arr = _this.shuffle(arr);
+          _this.ans_button = arr.indexOf(ansString) + 1;
+          answerNode = _this.enableButtons(node, answerNode, arr, false);
+        });
+      };
+      FillBlank.prototype.enableButtons = function(node, answerNode, arr, enable) {
+        for (var i = 0; i < 4; i++) {
+          var str = "button_";
+          var temp = str + (i + 1);
+          var tempNode = node.getChildByName("buttons").getChildByName(temp);
+          i + 1 == this.ans_button && (answerNode = tempNode);
+          tempNode.getChildByName("Background").getChildByName("Label").getComponent(cc.Label).string = arr[i];
+          enable ? tempNode.on("click", this.callback.bind(this), this) : tempNode.off("click", this.callback.bind(this), this);
+        }
+        return answerNode;
+      };
+      FillBlank.prototype.callback = function(event) {
+        cc.log(" y i m getting called" + event.node.name);
+        if (!this.disableCorrectButton) if (event.node.name === "button_" + this.ans_button) {
+          cc.log("this is right answer");
+          this.node.emit("correct");
+          this.disableCorrectButton = true;
+          for (var i = 1; i < 5; i++) {
+            var tempButton = "button_";
+            if (event.node.name != tempButton + i) {
+              var makeButtonDisabled = this.node.getChildByName("buttons").getChildByName(tempButton + i).getComponent(cc.Button);
+              makeButtonDisabled.interactable = false;
+            }
+          }
+          var fullAnsString = this.question.replace("______", this.node.getChildByName("buttons").getChildByName(event.node.name).getChildByName("Background").getChildByName("Label").getComponent(cc.Label).string);
+          this.node.getChildByName("board_question_wordkicker").getChildByName("question").getComponent(cc.Label).string = fullAnsString;
+          this.node.getChildByName("buttons").getChildByName(event.node.name).getChildByName("Background").getComponent(cc.Sprite).spriteFrame = this.rightSprite;
+          var rightAnimationNode = this.node.getChildByName("flower_anim");
+          rightAnimationNode.x = 0;
+          var playRightAnimation = rightAnimationNode.getComponent(cc.Animation);
+          playRightAnimation.play();
+        } else {
+          this.node.emit("wrong");
+          this.node.getChildByName("buttons").getChildByName(event.node.name).getChildByName("Background").getComponent(cc.Sprite).spriteFrame = this.wrongSprite;
+          var wrongAnimationNode = this.node.getChildByName("flower_wrong");
+          wrongAnimationNode.x = 140;
+          var playRightAnimation = wrongAnimationNode.getComponent(cc.Animation);
+          playRightAnimation.play();
+        }
+      };
+      FillBlank.prototype.shuffle = function(array) {
+        var currentIndex = array.length, temporaryValue, randomIndex;
+        while (0 !== currentIndex) {
+          randomIndex = Math.floor(Math.random() * currentIndex);
+          currentIndex -= 1;
+          temporaryValue = array[currentIndex];
+          array[currentIndex] = array[randomIndex];
+          array[randomIndex] = temporaryValue;
+        }
+        return array;
+      };
+      FillBlank.prototype.start = function() {
+        var questionAction = cc.moveTo(1, 0, 278);
+        this.node.getChildByName("board_question_wordkicker").runAction(questionAction);
+        var buttonAction = cc.moveTo(1, 0, 0);
+        this.node.getChildByName("buttons").runAction(buttonAction);
+      };
+      __decorate([ property(cc.Label) ], FillBlank.prototype, "label", void 0);
+      __decorate([ property ], FillBlank.prototype, "question", void 0);
+      __decorate([ property ], FillBlank.prototype, "ans_button", void 0);
+      __decorate([ property(cc.SpriteFrame) ], FillBlank.prototype, "rightSprite", void 0);
+      __decorate([ property(cc.SpriteFrame) ], FillBlank.prototype, "wrongSprite", void 0);
+      __decorate([ error_handler_1.default() ], FillBlank.prototype, "enableButtons", null);
+      __decorate([ error_handler_1.default() ], FillBlank.prototype, "callback", null);
+      __decorate([ error_handler_1.default() ], FillBlank.prototype, "shuffle", null);
+      __decorate([ error_handler_1.default() ], FillBlank.prototype, "start", null);
+      FillBlank = __decorate([ ccclass ], FillBlank);
+      return FillBlank;
+    }(game_1.default);
+    exports.default = FillBlank;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/game": void 0,
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/error-handler": void 0,
+    "../../../common/scripts/util": void 0
+  } ]
+}, {}, [ "animationEvent", "fillblank" ]);

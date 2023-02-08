@@ -1,1 +1,27 @@
-{"paths":{"0":["prefabs/youtube",0]},"types":["cc.Prefab"],"uuids":["2aUOMVv2RLJKPUyFzWcpVx","ecpdLyjvZBwrvm+cedCcQy"],"scenes":{},"redirect":[1,0],"deps":["internal"],"packs":{},"name":"youtube","importBase":"import","nativeBase":"native","debug":false,"isZip":false,"encrypted":false}
+{
+    "paths": {
+        "2aUOMVv2RLJKPUyFzWcpVx": [
+            "prefabs/youtube",
+            "cc.Prefab"
+        ]
+    },
+    "uuids": [
+        "2aUOMVv2RLJKPUyFzWcpVx",
+        "ecpdLyjvZBwrvm+cedCcQy"
+    ],
+    "scenes": {},
+    "redirect": [
+        "ecpdLyjvZBwrvm+cedCcQy",
+        0
+    ],
+    "deps": [
+        "internal"
+    ],
+    "packs": {},
+    "name": "youtube",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

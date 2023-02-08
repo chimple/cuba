@@ -1,1 +1,162 @@
-{"paths":{"0":["textures/drawshape_globe",2,1],"1":["textures/drawshape_notice",2,1],"2":["textures/drawshape_books",2,1],"3":["textures/drawshape_clock",2,1],"4":["textures/drawshape_drawing",2,1],"5":["textures/drawshape_notes",2,1],"6":["prefabs/drawshape",0],"7":["textures/drawshape_ruler",2,1],"19":["textures/AutoAtlas",1]},"types":["cc.Prefab","cc.SpriteAtlas","cc.SpriteFrame"],"uuids":["32P4CeDn9Hpqar5OOhhN/N","33C+oUBBpBQbB5QIdUYtIM","3bVhSUgwpI45O34Xc9OoQo","487GXyDYpII6rCEB43yTEb","4c4ya5Gr1AeqjsWSHW0/C3","6aXYwh9/JNOrQBI5x/XSqs","d7CIuI4wFNlLaE4WwToBeQ","fdxw90+YBPD7bOoxEDUhiP","01f3gOl2ZIL5/A6T4MRvZr","08OOcgWF1GSKOdO5zYCffN","08O87iaFVOwqdn4knjw/Kf","08i4PwkZpDg7EYvOsePaXA","1c1d39150","29FYIk+N1GYaeWH/q1NxQO","294r0zUKFEtbsJXlgZR6RM","31McsRwsdECKG9lhJD0sDQ","4eB6E5EoZJD5qF2xdw0mY/","5dhkL/og9E76lIntYk4qqa","61dgq5YLtFmJwmJCjpCtIj","64q1FePepMGbjy1GqAeXnP","6fgBCSDDdPMInvyNlggls2","72JqB/Me9DsL34MjKJmTqA","7aC83sViVIOr8eWdAcQurx","87Ix9+v5BBPpOuzf6hZ6tr","88uQnaXSBDsaxmum7SYPBZ","89iPjnjTVH/YB9pLly2jLk","8beQfKEnVE/YT+eXO7+b+H","8b1aVw2d1PcqkZyFbnuG27","8dq7sJmrBPVqZ6dIBZGFAu","90foRryRJM3p9AGFGyKh5x","959jSJqgdH459Ofb3ErQ/2","a7wqE/D5pFW6z2EvayLPeB","a9YkwEgwlJsJ6JAuHDfbRm","b5IGZuAzxJHb/FXUa3Tf5t","bfnUUojGJC2q4Mbs5MaQc+","c8pvvO7xtJxrQLHj0GTsoH","cbfPvPf3pM7pZFpaw+bcsK","d21U5tsdlDfZ1+CHCOX+/e","d9LDjplOBJb6i5VjFdZqR3","e97GVMl6JHh5Ml5qEDdSGa","ecpdLyjvZBwrvm+cedCcQy","efrehnIdRAuZRwryvIGD+n","f0BIwQ8D5Ml7nTNQbh1YlS","fe52TgMxFDxakHqkKriWpe"],"scenes":{"db://assets/games/drawshape/scenes/drawshape.fire":18},"redirect":[13,0,20,1,23,0,39,0,40,1,42,0],"deps":["main","internal"],"packs":{"073878dc4":[12,17,21,24,27,29,31,34,37,38],"09dcafbe6":[8,9,10,11,14,15,0,1,2,3,4,16,5,22,25,26,28,30,32,33,35,36,6,41,7,43]},"name":"drawshape","importBase":"import","nativeBase":"native","debug":false,"isZip":false,"encrypted":false}
+{
+    "paths": {
+        "d7CIuI4wFNlLaE4WwToBeQ": [
+            "prefabs/drawshape",
+            "cc.Prefab"
+        ],
+        "64q1FePepMGbjy1GqAeXnP": [
+            "textures/AutoAtlas",
+            "cc.SpriteAtlas"
+        ],
+        "3bVhSUgwpI45O34Xc9OoQo": [
+            "textures/drawshape_books",
+            "cc.SpriteFrame",
+            1
+        ],
+        "487GXyDYpII6rCEB43yTEb": [
+            "textures/drawshape_clock",
+            "cc.SpriteFrame",
+            1
+        ],
+        "4c4ya5Gr1AeqjsWSHW0/C3": [
+            "textures/drawshape_drawing",
+            "cc.SpriteFrame",
+            1
+        ],
+        "32P4CeDn9Hpqar5OOhhN/N": [
+            "textures/drawshape_globe",
+            "cc.SpriteFrame",
+            1
+        ],
+        "6aXYwh9/JNOrQBI5x/XSqs": [
+            "textures/drawshape_notes",
+            "cc.SpriteFrame",
+            1
+        ],
+        "33C+oUBBpBQbB5QIdUYtIM": [
+            "textures/drawshape_notice",
+            "cc.SpriteFrame",
+            1
+        ],
+        "fdxw90+YBPD7bOoxEDUhiP": [
+            "textures/drawshape_ruler",
+            "cc.SpriteFrame",
+            1
+        ]
+    },
+    "uuids": [
+        "01f3gOl2ZIL5/A6T4MRvZr",
+        "08OOcgWF1GSKOdO5zYCffN",
+        "08O87iaFVOwqdn4knjw/Kf",
+        "08i4PwkZpDg7EYvOsePaXA",
+        "1c1d39150",
+        "29FYIk+N1GYaeWH/q1NxQO",
+        "294r0zUKFEtbsJXlgZR6RM",
+        "31McsRwsdECKG9lhJD0sDQ",
+        "32P4CeDn9Hpqar5OOhhN/N",
+        "33C+oUBBpBQbB5QIdUYtIM",
+        "3bVhSUgwpI45O34Xc9OoQo",
+        "487GXyDYpII6rCEB43yTEb",
+        "4c4ya5Gr1AeqjsWSHW0/C3",
+        "4eB6E5EoZJD5qF2xdw0mY/",
+        "5dhkL/og9E76lIntYk4qqa",
+        "61dgq5YLtFmJwmJCjpCtIj",
+        "64q1FePepMGbjy1GqAeXnP",
+        "6aXYwh9/JNOrQBI5x/XSqs",
+        "6fgBCSDDdPMInvyNlggls2",
+        "72JqB/Me9DsL34MjKJmTqA",
+        "7aC83sViVIOr8eWdAcQurx",
+        "87Ix9+v5BBPpOuzf6hZ6tr",
+        "88uQnaXSBDsaxmum7SYPBZ",
+        "89iPjnjTVH/YB9pLly2jLk",
+        "8beQfKEnVE/YT+eXO7+b+H",
+        "8b1aVw2d1PcqkZyFbnuG27",
+        "8dq7sJmrBPVqZ6dIBZGFAu",
+        "90foRryRJM3p9AGFGyKh5x",
+        "959jSJqgdH459Ofb3ErQ/2",
+        "a7wqE/D5pFW6z2EvayLPeB",
+        "a9YkwEgwlJsJ6JAuHDfbRm",
+        "b5IGZuAzxJHb/FXUa3Tf5t",
+        "bfnUUojGJC2q4Mbs5MaQc+",
+        "c8pvvO7xtJxrQLHj0GTsoH",
+        "cbfPvPf3pM7pZFpaw+bcsK",
+        "d21U5tsdlDfZ1+CHCOX+/e",
+        "d7CIuI4wFNlLaE4WwToBeQ",
+        "d9LDjplOBJb6i5VjFdZqR3",
+        "e97GVMl6JHh5Ml5qEDdSGa",
+        "ecpdLyjvZBwrvm+cedCcQy",
+        "efrehnIdRAuZRwryvIGD+n",
+        "f0BIwQ8D5Ml7nTNQbh1YlS",
+        "fdxw90+YBPD7bOoxEDUhiP",
+        "fe52TgMxFDxakHqkKriWpe"
+    ],
+    "scenes": {
+        "db://assets/games/drawshape/scenes/drawshape.fire": "61dgq5YLtFmJwmJCjpCtIj"
+    },
+    "redirect": [
+        "29FYIk+N1GYaeWH/q1NxQO",
+        0,
+        "6fgBCSDDdPMInvyNlggls2",
+        1,
+        "87Ix9+v5BBPpOuzf6hZ6tr",
+        0,
+        "e97GVMl6JHh5Ml5qEDdSGa",
+        0,
+        "ecpdLyjvZBwrvm+cedCcQy",
+        1,
+        "f0BIwQ8D5Ml7nTNQbh1YlS",
+        0
+    ],
+    "deps": [
+        "main",
+        "internal"
+    ],
+    "packs": {
+        "073878dc4": [
+            "1c1d39150",
+            "5dhkL/og9E76lIntYk4qqa",
+            "72JqB/Me9DsL34MjKJmTqA",
+            "88uQnaXSBDsaxmum7SYPBZ",
+            "8b1aVw2d1PcqkZyFbnuG27",
+            "90foRryRJM3p9AGFGyKh5x",
+            "a7wqE/D5pFW6z2EvayLPeB",
+            "bfnUUojGJC2q4Mbs5MaQc+",
+            "d21U5tsdlDfZ1+CHCOX+/e",
+            "d9LDjplOBJb6i5VjFdZqR3"
+        ],
+        "09dcafbe6": [
+            "01f3gOl2ZIL5/A6T4MRvZr",
+            "08OOcgWF1GSKOdO5zYCffN",
+            "08O87iaFVOwqdn4knjw/Kf",
+            "08i4PwkZpDg7EYvOsePaXA",
+            "294r0zUKFEtbsJXlgZR6RM",
+            "31McsRwsdECKG9lhJD0sDQ",
+            "32P4CeDn9Hpqar5OOhhN/N",
+            "33C+oUBBpBQbB5QIdUYtIM",
+            "3bVhSUgwpI45O34Xc9OoQo",
+            "487GXyDYpII6rCEB43yTEb",
+            "4c4ya5Gr1AeqjsWSHW0/C3",
+            "4eB6E5EoZJD5qF2xdw0mY/",
+            "6aXYwh9/JNOrQBI5x/XSqs",
+            "7aC83sViVIOr8eWdAcQurx",
+            "89iPjnjTVH/YB9pLly2jLk",
+            "8beQfKEnVE/YT+eXO7+b+H",
+            "8dq7sJmrBPVqZ6dIBZGFAu",
+            "959jSJqgdH459Ofb3ErQ/2",
+            "a9YkwEgwlJsJ6JAuHDfbRm",
+            "b5IGZuAzxJHb/FXUa3Tf5t",
+            "c8pvvO7xtJxrQLHj0GTsoH",
+            "cbfPvPf3pM7pZFpaw+bcsK",
+            "d7CIuI4wFNlLaE4WwToBeQ",
+            "efrehnIdRAuZRwryvIGD+n",
+            "fdxw90+YBPD7bOoxEDUhiP",
+            "fe52TgMxFDxakHqkKriWpe"
+        ]
+    },
+    "name": "drawshape",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

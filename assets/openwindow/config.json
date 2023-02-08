@@ -1,1 +1,223 @@
-{"paths":{"0":["textures/curtain2",4,1],"1":["prefabs/scrollWindow",1],"2":["sounds/c3",2],"3":["textures/curtain",4,1],"4":["textures/wm_4letters_slotwheel_2",4,1],"5":["textures/roof_wordmachine",5],"6":["textures/wordmachine_cloud1",4,1],"7":["textures/ans_button_pressed",4,1],"8":["textures/wordmachine_bush1",4,1],"9":["sounds/correct",2],"10":["animations/door_open",0],"11":["textures/wordmachine_cloud2",4,1],"12":["prefabs/slotframe",1],"13":["textures/wm_oneslot_frame",4,1],"14":["textures/curtain3",4,1],"15":["animations/close",0],"16":["sounds/wrong",2],"17":["animations/door_close",0],"18":["animations/open",0],"19":["textures/ans_button",4,1],"20":["textures/roof_wordmachine",4,1],"21":["textures/door_bg",4,1],"22":["textures/wordmachine_fence",4,1],"23":["textures/door_inner",4,1],"24":["prefabs/openwindow",1],"25":["prefabs/slotWindow",1],"28":["textures/AutoAtlas",3],"31":["textures/ans_wrong",4,1]},"types":["cc.AnimationClip","cc.Prefab","cc.AudioClip","cc.SpriteAtlas","cc.SpriteFrame","cc.Texture2D"],"uuids":["05MYA5zJRLNaFW3ky8l+Qb","07s/hElF1IZJ6h5FcuUe6J","09UcA9U4hKG6xDje1NKR2d","0bJ+p0ENdKvqfSxZMeDe3h","11Oqi2X0xGYJYlPM9bS5Qj","217qtGXydPHKCqEs4GraN1","28OlNiouJGe4Zy5L8h41ua","2bq8+n3LRPSrbbGGuSDGa4","527Wy2X4BMcJYlvm8x8N4H","62wQyKO/ZJ37swOavy7yg/","6aLzMPAptNwJq4lzchN0VE","76PtSN4o1HMbxett4c0Zms","83e+V376tFpr6lhpzZh8Pt","9anDvjcslCUqVslYxgPkfe","a7YH5fNvxOHoy14RIAEzrw","a8BIFUHDlJa4vjEhdd9LDq","aeBV5WfN5BoomlM0OiypBb","b0rTfBFv5Is5LCHjdlWtIy","baM/R5E/5KLbH0vHXAznyJ","c1s6+yafhDYbXPGIFD5kVV","c8yUoxk8hCRYmOP6/CEOxI","ca06L+EpJLA7Mf+Q2wXA2z","cddZ+JN+xLTa7sDh2Ndeog","d2BjiPW0lBq66UQFoHIJPi","ec512avz5OZrWPque7YmK6","01Wf6DQQNHcLU4tjbTn1nn","08OOcgWF1GSKOdO5zYCffN","14f8b35cb","6af1Od3GJK/oNuevDhX9oZ","90foRryRJM3p9AGFGyKh5x","9bvaMerUlDyary99mJa6xp","d3//Ubr2pHpLjRN1eoMfo+","d8HsitJHxOYqo801xBk8ev","ecpdLyjvZBwrvm+cedCcQy","fbiqwhKxBMULwb/MHxp1/W"],"scenes":{"db://assets/games/openwindow/scenes/openwindow.fire":34},"redirect":[33,0],"deps":["internal"],"packs":{"038534b5d":[4,12],"03957b92a":[26,2,6,7,8,9,10,11,16,17,19,20,21,22,23,24],"0705b9ddc":[27,5,29,32],"08ac0da6e":[0,1,3,13,14,15,18]},"name":"openwindow","importBase":"import","nativeBase":"native","debug":false,"isZip":false,"encrypted":false}
+{
+    "paths": {
+        "a8BIFUHDlJa4vjEhdd9LDq": [
+            "animations/close",
+            "cc.AnimationClip"
+        ],
+        "b0rTfBFv5Is5LCHjdlWtIy": [
+            "animations/door_close",
+            "cc.AnimationClip"
+        ],
+        "6aLzMPAptNwJq4lzchN0VE": [
+            "animations/door_open",
+            "cc.AnimationClip"
+        ],
+        "baM/R5E/5KLbH0vHXAznyJ": [
+            "animations/open",
+            "cc.AnimationClip"
+        ],
+        "ec512avz5OZrWPque7YmK6": [
+            "prefabs/openwindow",
+            "cc.Prefab"
+        ],
+        "07s/hElF1IZJ6h5FcuUe6J": [
+            "prefabs/scrollWindow",
+            "cc.Prefab"
+        ],
+        "01Wf6DQQNHcLU4tjbTn1nn": [
+            "prefabs/slotWindow",
+            "cc.Prefab"
+        ],
+        "83e+V376tFpr6lhpzZh8Pt": [
+            "prefabs/slotframe",
+            "cc.Prefab"
+        ],
+        "09UcA9U4hKG6xDje1NKR2d": [
+            "sounds/c3",
+            "cc.AudioClip"
+        ],
+        "62wQyKO/ZJ37swOavy7yg/": [
+            "sounds/correct",
+            "cc.AudioClip"
+        ],
+        "aeBV5WfN5BoomlM0OiypBb": [
+            "sounds/wrong",
+            "cc.AudioClip"
+        ],
+        "6af1Od3GJK/oNuevDhX9oZ": [
+            "textures/AutoAtlas",
+            "cc.SpriteAtlas"
+        ],
+        "c1s6+yafhDYbXPGIFD5kVV": [
+            "textures/ans_button",
+            "cc.SpriteFrame",
+            1
+        ],
+        "2bq8+n3LRPSrbbGGuSDGa4": [
+            "textures/ans_button_pressed",
+            "cc.SpriteFrame",
+            1
+        ],
+        "d3//Ubr2pHpLjRN1eoMfo+": [
+            "textures/ans_wrong",
+            "cc.SpriteFrame",
+            1
+        ],
+        "0bJ+p0ENdKvqfSxZMeDe3h": [
+            "textures/curtain",
+            "cc.SpriteFrame",
+            1
+        ],
+        "05MYA5zJRLNaFW3ky8l+Qb": [
+            "textures/curtain2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "a7YH5fNvxOHoy14RIAEzrw": [
+            "textures/curtain3",
+            "cc.SpriteFrame",
+            1
+        ],
+        "ca06L+EpJLA7Mf+Q2wXA2z": [
+            "textures/door_bg",
+            "cc.SpriteFrame",
+            1
+        ],
+        "d2BjiPW0lBq66UQFoHIJPi": [
+            "textures/door_inner",
+            "cc.SpriteFrame",
+            1
+        ],
+        "217qtGXydPHKCqEs4GraN1": [
+            "textures/roof_wordmachine",
+            "cc.Texture2D"
+        ],
+        "c8yUoxk8hCRYmOP6/CEOxI": [
+            "textures/roof_wordmachine",
+            "cc.SpriteFrame",
+            1
+        ],
+        "11Oqi2X0xGYJYlPM9bS5Qj": [
+            "textures/wm_4letters_slotwheel_2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "9anDvjcslCUqVslYxgPkfe": [
+            "textures/wm_oneslot_frame",
+            "cc.SpriteFrame",
+            1
+        ],
+        "527Wy2X4BMcJYlvm8x8N4H": [
+            "textures/wordmachine_bush1",
+            "cc.SpriteFrame",
+            1
+        ],
+        "28OlNiouJGe4Zy5L8h41ua": [
+            "textures/wordmachine_cloud1",
+            "cc.SpriteFrame",
+            1
+        ],
+        "76PtSN4o1HMbxett4c0Zms": [
+            "textures/wordmachine_cloud2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "cddZ+JN+xLTa7sDh2Ndeog": [
+            "textures/wordmachine_fence",
+            "cc.SpriteFrame",
+            1
+        ]
+    },
+    "uuids": [
+        "01Wf6DQQNHcLU4tjbTn1nn",
+        "05MYA5zJRLNaFW3ky8l+Qb",
+        "07s/hElF1IZJ6h5FcuUe6J",
+        "08OOcgWF1GSKOdO5zYCffN",
+        "09UcA9U4hKG6xDje1NKR2d",
+        "0bJ+p0ENdKvqfSxZMeDe3h",
+        "11Oqi2X0xGYJYlPM9bS5Qj",
+        "14f8b35cb",
+        "217qtGXydPHKCqEs4GraN1",
+        "28OlNiouJGe4Zy5L8h41ua",
+        "2bq8+n3LRPSrbbGGuSDGa4",
+        "527Wy2X4BMcJYlvm8x8N4H",
+        "62wQyKO/ZJ37swOavy7yg/",
+        "6aLzMPAptNwJq4lzchN0VE",
+        "6af1Od3GJK/oNuevDhX9oZ",
+        "76PtSN4o1HMbxett4c0Zms",
+        "83e+V376tFpr6lhpzZh8Pt",
+        "90foRryRJM3p9AGFGyKh5x",
+        "9anDvjcslCUqVslYxgPkfe",
+        "9bvaMerUlDyary99mJa6xp",
+        "a7YH5fNvxOHoy14RIAEzrw",
+        "a8BIFUHDlJa4vjEhdd9LDq",
+        "aeBV5WfN5BoomlM0OiypBb",
+        "b0rTfBFv5Is5LCHjdlWtIy",
+        "baM/R5E/5KLbH0vHXAznyJ",
+        "c1s6+yafhDYbXPGIFD5kVV",
+        "c8yUoxk8hCRYmOP6/CEOxI",
+        "ca06L+EpJLA7Mf+Q2wXA2z",
+        "cddZ+JN+xLTa7sDh2Ndeog",
+        "d2BjiPW0lBq66UQFoHIJPi",
+        "d3//Ubr2pHpLjRN1eoMfo+",
+        "d8HsitJHxOYqo801xBk8ev",
+        "ecpdLyjvZBwrvm+cedCcQy",
+        "ec512avz5OZrWPque7YmK6",
+        "fbiqwhKxBMULwb/MHxp1/W"
+    ],
+    "scenes": {
+        "db://assets/games/openwindow/scenes/openwindow.fire": "fbiqwhKxBMULwb/MHxp1/W"
+    },
+    "redirect": [
+        "ecpdLyjvZBwrvm+cedCcQy",
+        0
+    ],
+    "deps": [
+        "internal"
+    ],
+    "packs": {
+        "038534b5d": [
+            "11Oqi2X0xGYJYlPM9bS5Qj",
+            "83e+V376tFpr6lhpzZh8Pt"
+        ],
+        "03957b92a": [
+            "08OOcgWF1GSKOdO5zYCffN",
+            "09UcA9U4hKG6xDje1NKR2d",
+            "28OlNiouJGe4Zy5L8h41ua",
+            "2bq8+n3LRPSrbbGGuSDGa4",
+            "527Wy2X4BMcJYlvm8x8N4H",
+            "62wQyKO/ZJ37swOavy7yg/",
+            "6aLzMPAptNwJq4lzchN0VE",
+            "76PtSN4o1HMbxett4c0Zms",
+            "aeBV5WfN5BoomlM0OiypBb",
+            "b0rTfBFv5Is5LCHjdlWtIy",
+            "c1s6+yafhDYbXPGIFD5kVV",
+            "c8yUoxk8hCRYmOP6/CEOxI",
+            "ca06L+EpJLA7Mf+Q2wXA2z",
+            "cddZ+JN+xLTa7sDh2Ndeog",
+            "d2BjiPW0lBq66UQFoHIJPi",
+            "ec512avz5OZrWPque7YmK6"
+        ],
+        "0705b9ddc": [
+            "14f8b35cb",
+            "217qtGXydPHKCqEs4GraN1",
+            "90foRryRJM3p9AGFGyKh5x",
+            "d8HsitJHxOYqo801xBk8ev"
+        ],
+        "08ac0da6e": [
+            "05MYA5zJRLNaFW3ky8l+Qb",
+            "07s/hElF1IZJ6h5FcuUe6J",
+            "0bJ+p0ENdKvqfSxZMeDe3h",
+            "9anDvjcslCUqVslYxgPkfe",
+            "a7YH5fNvxOHoy14RIAEzrw",
+            "a8BIFUHDlJa4vjEhdd9LDq",
+            "baM/R5E/5KLbH0vHXAznyJ"
+        ]
+    },
+    "name": "openwindow",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

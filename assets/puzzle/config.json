@@ -1,1 +1,21 @@
-{"paths":{"0":["res/course",0]},"types":["cc.JsonAsset"],"uuids":["7dapBKH5lIebmDRIfGIqC0"],"scenes":{},"redirect":[],"deps":[],"packs":{},"name":"puzzle","importBase":"import","nativeBase":"native","debug":false,"isZip":false,"encrypted":false}
+{
+    "paths": {
+        "7dapBKH5lIebmDRIfGIqC0": [
+            "res/course",
+            "cc.JsonAsset"
+        ]
+    },
+    "uuids": [
+        "7dapBKH5lIebmDRIfGIqC0"
+    ],
+    "scenes": {},
+    "redirect": [],
+    "deps": [],
+    "packs": {},
+    "name": "puzzle",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

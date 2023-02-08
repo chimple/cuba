@@ -1,1 +1,216 @@
-window.__require=function e(t,o,n){function i(r,l){if(!o[r]){if(!t[r]){var c=r.split("/");if(c=c[c.length-1],!t[c]){var s="function"==typeof __require&&__require;if(!l&&s)return s(c,!0);if(a)return a(c,!0);throw new Error("Cannot find module '"+r+"'")}r=c}var m=o[r]={exports:{}};t[r][0].call(m.exports,function(e){return i(t[r][1][e]||e)},m,m.exports,e,t,o,n)}return o[r].exports}for(var a="function"==typeof __require&&__require,r=0;r<n.length;r++)i(n[r]);return i}({nimbletable:[function(e,t,o){"use strict";cc._RF.push(t,"6a390mFaB9B/LrP8hn2ahQC","nimbletable");var n,i=this&&this.__extends||(n=function(e,t){return(n=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(e,t){e.__proto__=t}||function(e,t){for(var o in t)Object.prototype.hasOwnProperty.call(t,o)&&(e[o]=t[o])})(e,t)},function(e,t){function o(){this.constructor=e}n(e,t),e.prototype=null===t?Object.create(t):(o.prototype=t.prototype,new o)}),a=this&&this.__decorate||function(e,t,o,n){var i,a=arguments.length,r=a<3?t:null===n?n=Object.getOwnPropertyDescriptor(t,o):n;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)r=Reflect.decorate(e,t,o,n);else for(var l=e.length-1;l>=0;l--)(i=e[l])&&(r=(a<3?i(r):a>3?i(t,o,r):i(t,o))||r);return a>3&&r&&Object.defineProperty(t,o,r),r};Object.defineProperty(o,"__esModule",{value:!0});var r=e("../../../common/scripts/lib/config"),l=e("../../../common/scripts/util"),c=e("../../../common/scripts/lib/error-handler"),s=e("../../../common/scripts/game"),m=cc._decorator,u=m.ccclass,h=m.property,p=function(e){function t(){var t=null!==e&&e.apply(this,arguments)||this;return t.label=null,t.choicesPrefab=null,t.correctAudio=null,t.wrongAudio=null,t.text="hello",t.arr_name=[],t.currentProblem=0,t.totalNextQues=4,t.checkLasts=!1,t._totalCount=null,t.isInitial=!0,t}return i(t,e),t.prototype.nextProblem=function(){this.currentProblem++,""==this.arr_name[this.currentProblem][5]?this.node.emit("nextProblem"):(this.node.getChildByName("examples").getChildByName("layoutExamples").removeAllChildren(),this.makeScreen())},t.prototype.makeNimbleTableData=function(e){for(var t=[],o=0,n=3;n<e.length;n+=7){o++;var i=n,a=["1","1","1","1"];a.push(e[i+3]),a.push(e[i+4]),a.push(e[i+5]),a.push(e[i+6]);for(var r=0,l=+e[i];r<15;r++,l+=+e[i+2])l<=+e[i+1]?a.push(l.toString()):a.push("");t.push(a)}for(n=1;n<=o;n++)t.push(["1","1",n.toString(),"","","","","","","","","","","","","","","","","","","",""]);return t},t.prototype.onLoad=function(){r.default.getInstance();var e=this.makeNimbleTableData(r.default.i.data[0]);console.log("data came",e),this.arr_name=e,this.makeScreen()},t.prototype.makeScreen=function(){this.examples=[];var e=this.arr_name[this.currentProblem];this.firstValue=e[4],this.secondValue=e[5],this.mathSign=e[6],this.rightAnswer=e[7];var t=null;this._totalCount=this.rightAnswer,""!=this.firstValue&&(this.node.getChildByName("questionboard_quickfacts").getChildByName("question").getComponent(cc.Label).string=this.firstValue+" "+this.mathSign+" "+this.secondValue+" = ?");for(var o=8;o<=22;o++)if(""!=e[o]){this.totalExamplesCount=o,this.examples.push(e[o]);var n=cc.instantiate(this.choicesPrefab);n.getChildByName("Background").getChildByName("Label").getComponent(cc.Label).string=e[o],e[o]===this.rightAnswer&&null!=n&&(t=n),this.node.getChildByName("examples").getChildByName("layoutExamples").addChild(n),n.name="2_"+o,n.getComponent(cc.Button).node.on("click",this.callback,this),n.getComponent(cc.Animation).play("popup")}if(this.isInitial){this.isInitial=!1;try{l.Util.showHelp(t,t)}catch(r){}}for(o=0;o<4;o++){var i=this.arr_name[o+this.currentProblem+1],a=this.node.getChildByName("nextQues").getChildByName("transparentBg").getChildByName("containerNode").getChildByName(""+(o+1));""!=i[5]?a.getComponent(cc.Label).string=i[4]+" "+i[6]+" "+i[5]+" = ?":a.getComponent(cc.Label).string=""}},t.prototype.callback=function(e){var t=this;if(this.node.getChildByName("examples").getChildByName("layoutExamples").getChildByName(e.node.name).getChildByName("Background").getChildByName("Label").getComponent(cc.Label).string==this.rightAnswer){this.node.emit("correct");for(var o=8;o<=this.totalExamplesCount;o++)this.node.getChildByName("examples").getChildByName("layoutExamples").getChildByName("2_"+o).getComponent(cc.Animation).play("correct"),this.node.getChildByName("examples").getChildByName("layoutExamples").getChildByName("2_"+o).getComponent(cc.Button).node.off("click",this.callback,this);this.nextProblemTimeout=setTimeout(function(){t.node.getChildByName("questionboard_quickfacts").getChildByName("question").getComponent(cc.Label).string=t.firstValue+" "+t.mathSign+" "+t.secondValue+" = "+t.rightAnswer;var e=cc.moveBy(.5,0,132),o=cc.moveBy(.5/3,2,50);l.Util.speakEquation([String(t._totalCount)],function(){}),t.nextProblemTimeout2=setTimeout(function(){t.node.getChildByName("questionboard_quickfacts").getChildByName("question").runAction(cc.sequence(o,cc.callFunc(function(){t.node.getChildByName("questionboard_quickfacts").getChildByName("question").getComponent(cc.Label).string="",t.node.getChildByName("questionboard_quickfacts").getChildByName("question").position=new cc.Vec3(-7,-70)}))),t.node.getChildByName("nextQues").getChildByName("transparentBg").getChildByName("containerNode").runAction(cc.sequence(e,cc.callFunc(function(){t.nextProblem(),t.node.getChildByName("nextQues").getChildByName("transparentBg").getChildByName("containerNode").position=new cc.Vec3(12,50)})))},3e3)},300)}else this.node.emit("wrong"),this.node.getChildByName("examples").getChildByName("layoutExamples").getChildByName(e.node.name).getComponent(cc.Animation).play("wrong"),setTimeout(function(){t.wrongAnimationTimer=t.node.getChildByName("examples").getChildByName("layoutExamples").getChildByName(e.node.name).removeAllChildren()},300)},t.prototype.onDestroy=function(){clearTimeout(this.wrongAnimationTimer),clearTimeout(this.nextProblemTimeout),clearTimeout(this.nextProblemTimeout2)},a([h(cc.Label)],t.prototype,"label",void 0),a([h(cc.Prefab)],t.prototype,"choicesPrefab",void 0),a([h({type:cc.AudioClip})],t.prototype,"correctAudio",void 0),a([h({type:cc.AudioClip})],t.prototype,"wrongAudio",void 0),a([h],t.prototype,"text",void 0),a([c.default()],t.prototype,"nextProblem",null),a([c.default()],t.prototype,"makeNimbleTableData",null),a([c.default()],t.prototype,"onLoad",null),a([c.default()],t.prototype,"makeScreen",null),a([c.default()],t.prototype,"callback",null),a([c.default()],t.prototype,"onDestroy",null),a([u],t)}(s.default);o.default=p,cc._RF.pop()},{"../../../common/scripts/game":void 0,"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/error-handler":void 0,"../../../common/scripts/util":void 0}]},{},["nimbletable"]);
+window.__require = function e(t, n, r) {
+  function s(o, u) {
+    if (!n[o]) {
+      if (!t[o]) {
+        var b = o.split("/");
+        b = b[b.length - 1];
+        if (!t[b]) {
+          var a = "function" == typeof __require && __require;
+          if (!u && a) return a(b, !0);
+          if (i) return i(b, !0);
+          throw new Error("Cannot find module '" + o + "'");
+        }
+        o = b;
+      }
+      var f = n[o] = {
+        exports: {}
+      };
+      t[o][0].call(f.exports, function(e) {
+        var n = t[o][1][e];
+        return s(n || e);
+      }, f, f.exports, e, t, n, r);
+    }
+    return n[o].exports;
+  }
+  var i = "function" == typeof __require && __require;
+  for (var o = 0; o < r.length; o++) s(r[o]);
+  return s;
+}({
+  nimbletable: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "6a390mFaB9B/LrP8hn2ahQC", "nimbletable");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var config_1 = require("../../../common/scripts/lib/config");
+    var util_1 = require("../../../common/scripts/util");
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var game_1 = require("../../../common/scripts/game");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var NimbleTable = function(_super) {
+      __extends(NimbleTable, _super);
+      function NimbleTable() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.label = null;
+        _this.choicesPrefab = null;
+        _this.correctAudio = null;
+        _this.wrongAudio = null;
+        _this.text = "hello";
+        _this.arr_name = [];
+        _this.currentProblem = 0;
+        _this.totalNextQues = 4;
+        _this.checkLasts = false;
+        _this._totalCount = null;
+        _this.isInitial = true;
+        return _this;
+      }
+      NimbleTable.prototype.nextProblem = function() {
+        this.currentProblem++;
+        if ("" == this.arr_name[this.currentProblem][5]) this.node.emit("nextProblem"); else {
+          this.node.getChildByName("examples").getChildByName("layoutExamples").removeAllChildren();
+          this.makeScreen();
+        }
+      };
+      NimbleTable.prototype.makeNimbleTableData = function(array) {
+        var result = [];
+        var dataRowsCount = 0;
+        for (var i = 3; i < array.length; i += 7) {
+          dataRowsCount++;
+          var k = i;
+          var temp = [ "1", "1", "1", "1" ];
+          temp.push(array[k + 3]);
+          temp.push(array[k + 4]);
+          temp.push(array[k + 5]);
+          temp.push(array[k + 6]);
+          for (var c = 0, d = +array[k]; c < 15; c++, d += +array[k + 2]) d <= +array[k + 1] ? temp.push(d.toString()) : temp.push("");
+          result.push(temp);
+        }
+        for (var i = 1; i <= dataRowsCount; i++) result.push([ "1", "1", i.toString(), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" ]);
+        return result;
+      };
+      NimbleTable.prototype.onLoad = function() {
+        var config = config_1.default.getInstance();
+        var result = this.makeNimbleTableData(config_1.default.i.data[0]);
+        console.log("data came", result);
+        this.arr_name = result;
+        this.makeScreen();
+      };
+      NimbleTable.prototype.makeScreen = function() {
+        this.examples = [];
+        var el = this.arr_name[this.currentProblem];
+        this.firstValue = el[4];
+        this.secondValue = el[5];
+        this.mathSign = el[6];
+        this.rightAnswer = el[7];
+        var tempString = "";
+        var answerNode = null;
+        this._totalCount = this.rightAnswer;
+        "" != this.firstValue && (this.node.getChildByName("questionboard_quickfacts").getChildByName("question").getComponent(cc.Label).string = tempString + this.firstValue + " " + this.mathSign + " " + this.secondValue + " = ?");
+        for (var i = 8; i <= 22; i++) if ("" != el[i]) {
+          this.totalExamplesCount = i;
+          this.examples.push(el[i]);
+          var choices = cc.instantiate(this.choicesPrefab);
+          choices.getChildByName("Background").getChildByName("Label").getComponent(cc.Label).string = el[i];
+          el[i] === this.rightAnswer && null != choices && (answerNode = choices);
+          this.node.getChildByName("examples").getChildByName("layoutExamples").addChild(choices);
+          choices.name = "2_" + i;
+          choices.getComponent(cc.Button).node.on("click", this.callback, this);
+          choices.getComponent(cc.Animation).play("popup");
+        }
+        if (this.isInitial) {
+          this.isInitial = false;
+          try {
+            util_1.Util.showHelp(answerNode, answerNode);
+          } catch (e) {}
+        }
+        for (var i = 0; i < 4; i++) {
+          var el_1 = this.arr_name[i + this.currentProblem + 1];
+          var labelNode = this.node.getChildByName("nextQues").getChildByName("transparentBg").getChildByName("containerNode").getChildByName("" + (i + 1));
+          if ("" != el_1[5]) {
+            var questionString = "";
+            labelNode.getComponent(cc.Label).string = questionString + el_1[4] + " " + el_1[6] + " " + el_1[5] + " = ?";
+          } else labelNode.getComponent(cc.Label).string = "";
+        }
+      };
+      NimbleTable.prototype.callback = function(event) {
+        var _this = this;
+        var buttonValue = this.node.getChildByName("examples").getChildByName("layoutExamples").getChildByName(event.node.name).getChildByName("Background").getChildByName("Label").getComponent(cc.Label).string;
+        if (buttonValue == this.rightAnswer) {
+          this.node.emit("correct");
+          for (var i = 8; i <= this.totalExamplesCount; i++) {
+            this.node.getChildByName("examples").getChildByName("layoutExamples").getChildByName("2_" + i).getComponent(cc.Animation).play("correct");
+            this.node.getChildByName("examples").getChildByName("layoutExamples").getChildByName("2_" + i).getComponent(cc.Button).node.off("click", this.callback, this);
+          }
+          this.nextProblemTimeout = setTimeout(function() {
+            var tempString = "";
+            _this.node.getChildByName("questionboard_quickfacts").getChildByName("question").getComponent(cc.Label).string = tempString + _this.firstValue + " " + _this.mathSign + " " + _this.secondValue + " = " + _this.rightAnswer;
+            var timeFactor = .5;
+            var nextProblemAnimation = cc.moveBy(timeFactor, 0, 132);
+            var questionUpAction = cc.moveBy(timeFactor / 3, 2, 50);
+            util_1.Util.speakEquation([ String(_this._totalCount) ], function(index) {});
+            _this.nextProblemTimeout2 = setTimeout(function() {
+              _this.node.getChildByName("questionboard_quickfacts").getChildByName("question").runAction(cc.sequence(questionUpAction, cc.callFunc(function() {
+                _this.node.getChildByName("questionboard_quickfacts").getChildByName("question").getComponent(cc.Label).string = "";
+                _this.node.getChildByName("questionboard_quickfacts").getChildByName("question").position = new cc.Vec3(-7, -70);
+              })));
+              _this.node.getChildByName("nextQues").getChildByName("transparentBg").getChildByName("containerNode").runAction(cc.sequence(nextProblemAnimation, cc.callFunc(function() {
+                _this.nextProblem();
+                _this.node.getChildByName("nextQues").getChildByName("transparentBg").getChildByName("containerNode").position = new cc.Vec3(12, 50);
+              })));
+            }, 3e3);
+          }, 300);
+        } else {
+          this.node.emit("wrong");
+          this.node.getChildByName("examples").getChildByName("layoutExamples").getChildByName(event.node.name).getComponent(cc.Animation).play("wrong");
+          setTimeout(function() {
+            _this.wrongAnimationTimer = _this.node.getChildByName("examples").getChildByName("layoutExamples").getChildByName(event.node.name).removeAllChildren();
+          }, 300);
+        }
+      };
+      NimbleTable.prototype.onDestroy = function() {
+        clearTimeout(this.wrongAnimationTimer);
+        clearTimeout(this.nextProblemTimeout);
+        clearTimeout(this.nextProblemTimeout2);
+      };
+      __decorate([ property(cc.Label) ], NimbleTable.prototype, "label", void 0);
+      __decorate([ property(cc.Prefab) ], NimbleTable.prototype, "choicesPrefab", void 0);
+      __decorate([ property({
+        type: cc.AudioClip
+      }) ], NimbleTable.prototype, "correctAudio", void 0);
+      __decorate([ property({
+        type: cc.AudioClip
+      }) ], NimbleTable.prototype, "wrongAudio", void 0);
+      __decorate([ property ], NimbleTable.prototype, "text", void 0);
+      __decorate([ error_handler_1.default() ], NimbleTable.prototype, "nextProblem", null);
+      __decorate([ error_handler_1.default() ], NimbleTable.prototype, "makeNimbleTableData", null);
+      __decorate([ error_handler_1.default() ], NimbleTable.prototype, "onLoad", null);
+      __decorate([ error_handler_1.default() ], NimbleTable.prototype, "makeScreen", null);
+      __decorate([ error_handler_1.default() ], NimbleTable.prototype, "callback", null);
+      __decorate([ error_handler_1.default() ], NimbleTable.prototype, "onDestroy", null);
+      NimbleTable = __decorate([ ccclass ], NimbleTable);
+      return NimbleTable;
+    }(game_1.default);
+    exports.default = NimbleTable;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/game": void 0,
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/error-handler": void 0,
+    "../../../common/scripts/util": void 0
+  } ]
+}, {}, [ "nimbletable" ]);

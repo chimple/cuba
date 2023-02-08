@@ -1,1 +1,97 @@
-[1,["13071710c"],["_textureSetter"],["cc.SpriteFrame"],0,[[[{"name":"goal_juice2","rect":[616,283,147,68],"offset":[0,0],"originalSize":[147,68],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"goal_juice1","rect":[606,596,147,66],"offset":[0,0],"originalSize":[147,66],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]]]]
+[
+  1,
+  [
+    "13071710c"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    [
+      [
+        {
+          "name": "goal_juice2",
+          "rect": [
+            616,
+            283,
+            147,
+            68
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            147,
+            68
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "goal_juice1",
+          "rect": [
+            606,
+            596,
+            147,
+            66
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            147,
+            66
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ]
+  ]
+]

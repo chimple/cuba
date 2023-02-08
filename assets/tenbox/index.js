@@ -1,1 +1,493 @@
-window.__require=function t(o,e,r){function n(i,a){if(!e[i]){if(!o[i]){var p=i.split("/");if(p=p[p.length-1],!o[p]){var s="function"==typeof __require&&__require;if(!a&&s)return s(p,!0);if(c)return c(p,!0);throw new Error("Cannot find module '"+i+"'")}i=p}var u=e[i]={exports:{}};o[i][0].call(u.exports,function(t){return n(o[i][1][t]||t)},u,u.exports,t,o,e,r)}return e[i].exports}for(var c="function"==typeof __require&&__require,i=0;i<r.length;i++)n(r[i]);return n}({tenboxChoiceDrag:[function(t,o,e){"use strict";cc._RF.push(o,"b7e8c5HIaRDSK7anLugLpru","tenboxChoiceDrag");var r,n=this&&this.__extends||(r=function(t,o){return(r=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,o){t.__proto__=o}||function(t,o){for(var e in o)Object.prototype.hasOwnProperty.call(o,e)&&(t[e]=o[e])})(t,o)},function(t,o){function e(){this.constructor=t}r(t,o),t.prototype=null===o?Object.create(o):(e.prototype=o.prototype,new e)}),c=this&&this.__decorate||function(t,o,e,r){var n,c=arguments.length,i=c<3?o:null===r?r=Object.getOwnPropertyDescriptor(o,e):r;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)i=Reflect.decorate(t,o,e,r);else for(var a=t.length-1;a>=0;a--)(n=t[a])&&(i=(c<3?n(i):c>3?n(o,e,i):n(o,e))||i);return c>3&&i&&Object.defineProperty(o,e,i),i};Object.defineProperty(e,"__esModule",{value:!0});var i=t("../../../common/scripts/drag"),a=cc._decorator,p=a.ccclass,s=a.property,u=function(t){function o(){var o=null!==t&&t.apply(this,arguments)||this;return o.label=null,o.missingNumber=null,o}return n(o,t),o.prototype.onTouchEnd=function(o){var e=this.isDragging;t.prototype.onTouchEnd.call(this,o),e&&(this.match?this.missingNumber.emit("tenBoxChoiceMatch",this):this.missingNumber.emit("tenBoxChoiceNoMatch"))},c([s(cc.Label)],o.prototype,"label",void 0),c([s(cc.Node)],o.prototype,"missingNumber",void 0),c([p],o)}(i.default);e.default=u,cc._RF.pop()},{"../../../common/scripts/drag":void 0}],tenboxDrag:[function(t,o,e){"use strict";cc._RF.push(o,"c9dc7csF+lOZKHnRWOZ68WX","tenboxDrag");var r,n=this&&this.__extends||(r=function(t,o){return(r=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,o){t.__proto__=o}||function(t,o){for(var e in o)Object.prototype.hasOwnProperty.call(o,e)&&(t[e]=o[e])})(t,o)},function(t,o){function e(){this.constructor=t}r(t,o),t.prototype=null===o?Object.create(o):(e.prototype=o.prototype,new e)}),c=this&&this.__decorate||function(t,o,e,r){var n,c=arguments.length,i=c<3?o:null===r?r=Object.getOwnPropertyDescriptor(o,e):r;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)i=Reflect.decorate(t,o,e,r);else for(var a=t.length-1;a>=0;a--)(n=t[a])&&(i=(c<3?n(i):c>3?n(o,e,i):n(o,e))||i);return c>3&&i&&Object.defineProperty(o,e,i),i};Object.defineProperty(e,"__esModule",{value:!0});var i=t("../../../common/scripts/drag"),a=t("../../../common/scripts/drop"),p=cc._decorator,s=p.ccclass,u=(p.property,function(t){function o(){return null!==t&&t.apply(this,arguments)||this}return n(o,t),o.prototype.onLoad=function(){t.prototype.onLoad.call(this)},o.prototype.onTouchStart=function(o){t.prototype.onTouchStart.call(this,o),this.node.parent.parent.parent.zIndex=1},o.prototype.onTouchEnd=function(o){t.prototype.onTouchEnd.call(this,o),this.node.parent.parent.parent.zIndex=0,this.match},o.prototype.onMatchOver=function(){this.isDragging=!1,this.allowDrag=!0,i.default.letDrag=!0;var t=this.matchingNode,o=this.node.parent;o.removeFromParent(),this.node.position=cc.Vec2.ZERO,t.addChild(o),t.getComponent(a.default).onMatchOver()},c([s],o)}(i.default));e.default=u,cc._RF.pop()},{"../../../common/scripts/drag":void 0,"../../../common/scripts/drop":void 0}],tenboxDrop:[function(t,o,e){"use strict";cc._RF.push(o,"b7851hBZftIEbGOjKvyr7Rx","tenboxDrop");var r,n=this&&this.__extends||(r=function(t,o){return(r=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,o){t.__proto__=o}||function(t,o){for(var e in o)Object.prototype.hasOwnProperty.call(o,e)&&(t[e]=o[e])})(t,o)},function(t,o){function e(){this.constructor=t}r(t,o),t.prototype=null===o?Object.create(o):(e.prototype=o.prototype,new e)}),c=this&&this.__decorate||function(t,o,e,r){var n,c=arguments.length,i=c<3?o:null===r?r=Object.getOwnPropertyDescriptor(o,e):r;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)i=Reflect.decorate(t,o,e,r);else for(var a=t.length-1;a>=0;a--)(n=t[a])&&(i=(c<3?n(i):c>3?n(o,e,i):n(o,e))||i);return c>3&&i&&Object.defineProperty(o,e,i),i};Object.defineProperty(e,"__esModule",{value:!0});var i=t("../../../common/scripts/drop"),a=cc._decorator,p=a.ccclass,s=a.property,u=function(t){function o(){var o=null!==t&&t.apply(this,arguments)||this;return o.count=0,o.dropPrefab=null,o.subPrefab=null,o.cover=null,o.seal=null,o}return n(o,t),o.prototype.onLoad=function(){var t=this;10==this.count?this.closeCover():(this.cover.active=!1,this.seal.active=!1),this.node.name="A";for(var o=0;o<this.count;o++){var e=cc.instantiate(this.dropPrefab);e.name="A";var r=new cc.Node;r.height=e.height,r.width=e.width,r.addChild(e),this.node.addChild(r)}this.node.on("child-added",function(){++t.count>=10&&(t.allowDrop=!1,t.closeCover())},this),this.node.on("child-removed",function(){--t.count<10&&(t.allowDrop=!0)},this)},o.prototype.closeCover=function(){var t=this;this.allowDrop=!1,this.scheduleOnce(function(){t.cover.active=!0,t.seal.active=!0,t.cover.on("touchstart",function(){t.cover.active=!1,t.seal.active=!1},t),(new cc.Tween).target(t.seal).set({scale:2}).to(.5,{scale:1},null).start()},1)},c([s],o.prototype,"count",void 0),c([s(cc.Prefab)],o.prototype,"dropPrefab",void 0),c([s(cc.Prefab)],o.prototype,"subPrefab",void 0),c([s(cc.Node)],o.prototype,"cover",void 0),c([s(cc.Node)],o.prototype,"seal",void 0),c([p],o)}(i.default);e.default=u,cc._RF.pop()},{"../../../common/scripts/drop":void 0}],tenboxSub:[function(t,o,e){"use strict";cc._RF.push(o,"1939fodrYRH1LqUcX6kHYjq","tenboxSub");var r,n=this&&this.__extends||(r=function(t,o){return(r=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,o){t.__proto__=o}||function(t,o){for(var e in o)Object.prototype.hasOwnProperty.call(o,e)&&(t[e]=o[e])})(t,o)},function(t,o){function e(){this.constructor=t}r(t,o),t.prototype=null===o?Object.create(o):(e.prototype=o.prototype,new e)}),c=this&&this.__decorate||function(t,o,e,r){var n,c=arguments.length,i=c<3?o:null===r?r=Object.getOwnPropertyDescriptor(o,e):r;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)i=Reflect.decorate(t,o,e,r);else for(var a=t.length-1;a>=0;a--)(n=t[a])&&(i=(c<3?n(i):c>3?n(o,e,i):n(o,e))||i);return c>3&&i&&Object.defineProperty(o,e,i),i};Object.defineProperty(e,"__esModule",{value:!0});var i=t("../../../common/scripts/drop"),a=cc._decorator,p=a.ccclass,s=a.property,u=function(t){function o(){var o=null!==t&&t.apply(this,arguments)||this;return o.count=0,o.subLayout=null,o.subPrefab=null,o}return n(o,t),o.prototype.onLoad=function(){var t=this;this.node.name="A";for(var o=0;o<this.count;o++){var e=cc.instantiate(this.subPrefab);e.name="A";var r=new cc.Node;r.height=e.height,r.width=e.width,r.addChild(e),this.subLayout.addChild(r)}this.node.on("child-added",function(){t.node.childrenCount>=t.count&&(t.allowDrop=!1,t.scheduleOnce(function(){(new cc.Tween).target(t.node.parent).to(.5,{x:cc.winSize.width},null).start()},1))},this),this.node.on("child-removed",function(){t.node.childrenCount<t.count&&(t.allowDrop=!0)},this)},c([s],o.prototype,"count",void 0),c([s(cc.Node)],o.prototype,"subLayout",void 0),c([s(cc.Prefab)],o.prototype,"subPrefab",void 0),c([p],o)}(i.default);e.default=u,cc._RF.pop()},{"../../../common/scripts/drop":void 0}],tenbox:[function(t,o,e){"use strict";cc._RF.push(o,"fe772XRpipECrBrs8ZjOHue","tenbox");var r,n=this&&this.__extends||(r=function(t,o){return(r=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,o){t.__proto__=o}||function(t,o){for(var e in o)Object.prototype.hasOwnProperty.call(o,e)&&(t[e]=o[e])})(t,o)},function(t,o){function e(){this.constructor=t}r(t,o),t.prototype=null===o?Object.create(o):(e.prototype=o.prototype,new e)}),c=this&&this.__decorate||function(t,o,e,r){var n,c=arguments.length,i=c<3?o:null===r?r=Object.getOwnPropertyDescriptor(o,e):r;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)i=Reflect.decorate(t,o,e,r);else for(var a=t.length-1;a>=0;a--)(n=t[a])&&(i=(c<3?n(i):c>3?n(o,e,i):n(o,e))||i);return c>3&&i&&Object.defineProperty(o,e,i),i};Object.defineProperty(e,"__esModule",{value:!0});var i=t("./tenboxDrop"),a=t("./tenboxSub"),p=t("../../../common/scripts/lib/config"),s=t("../../../common/scripts/drag"),u=t("../../../common/scripts/util"),l=t("../../../common/scripts/lib/error-handler"),d=t("./tenboxChoiceDrag"),h=t("../../../common/scripts/game"),f=cc._decorator,b=f.ccclass,y=f.property,v=function(t){function o(){var o=null!==t&&t.apply(this,arguments)||this;return o.numberDrag=null,o.numberDrop=null,o.tenboxDrop=null,o.tenboxSub=null,o.numberDragLayout=null,o.problemLayout=null,o.boxLayout=null,o.empty=0,o}return n(o,t),o.prototype.onLoad=function(){var t=this;cc.director.getCollisionManager().enabled=!0,s.default.letDrag=!1,this.node.on("tenBoxChoiceMatch",this.onMatch.bind(this)),this.node.on("tenBoxChoiceNoMatch",function(){t.node.emit("wrong")});var o=p.default.getInstance().data[0],e=(o[0],o[1],o[2],o[3]),r=o[4],n=o[5],c=parseInt(n);if("SUB"==e){var i=r.split("-");this.addTenBoxes(!0,parseInt(i[0]),2,0),this.addTenBoxes(!1,parseInt(i[1]),2,1)}else{var a=r.split("+");a.forEach(function(o,e){t.addTenBoxes(!0,parseInt(o),a.length,e)})}for(var l=0;l<10;l++){var h=cc.instantiate(this.numberDrag);h.name=l.toString();var f=h.getComponent(d.default);f.missingNumber=this.node,f.label.string=l.toString();var b=new cc.Node;b.width=h.width,b.height=h.height,b.addChild(h),this.numberDragLayout.addChild(b)}var y=this.problemLayout.getChildByName("label");null!=y&&(y.getComponent(cc.Label).string=r+"="),c>9?(this.createDropBox(this.numberDrop,Math.floor(c/10).toString(),this.problemLayout),this.createDropBox(this.numberDrop,(c%10).toString(),this.problemLayout)):this.createDropBox(this.numberDrop,c.toString(),this.problemLayout);var v=this.numberDragLayout.children[c%10],m=this.problemLayout.children[this.problemLayout.childrenCount-1];u.Util.showHelp(v,m),s.default.letDrag=!0},o.prototype.addTenBoxes=function(t,o,e,r){if(o>10){var n=this.createTenBox(t,10,r,e);n.y=n.height/2+10,this.boxLayout.addChild(n);var c=this.createTenBox(t,o-10,r,e);c.y=-n.height/2-10,this.boxLayout.addChild(c)}else this.boxLayout.addChild(this.createTenBox(t,o,r,e))},o.prototype.createTenBox=function(t,o,e,r){var n=cc.instantiate(t?this.tenboxDrop:this.tenboxSub),c=n.getChildByName("layout");return t?c.getComponent(i.default).count=o:c.getComponent(a.default).count=o,n.x=(.5+e-r/2)*(n.width+20),n},o.prototype.createDropBox=function(t,o,e){this.empty++;var r=cc.instantiate(t);r.name=o,e.addChild(r)},o.prototype.onMatch=function(){this.node.emit("correct"),--this.empty<=0&&this.node.emit("nextProblem")},c([y(cc.Prefab)],o.prototype,"numberDrag",void 0),c([y(cc.Prefab)],o.prototype,"numberDrop",void 0),c([y(cc.Prefab)],o.prototype,"tenboxDrop",void 0),c([y(cc.Prefab)],o.prototype,"tenboxSub",void 0),c([y(cc.Node)],o.prototype,"numberDragLayout",void 0),c([y(cc.Node)],o.prototype,"problemLayout",void 0),c([y(cc.Node)],o.prototype,"boxLayout",void 0),c([l.default()],o.prototype,"onLoad",null),c([b],o)}(h.default);e.default=v,cc._RF.pop()},{"../../../common/scripts/drag":void 0,"../../../common/scripts/game":void 0,"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/error-handler":void 0,"../../../common/scripts/util":void 0,"./tenboxChoiceDrag":"tenboxChoiceDrag","./tenboxDrop":"tenboxDrop","./tenboxSub":"tenboxSub"}]},{},["tenbox","tenboxChoiceDrag","tenboxDrag","tenboxDrop","tenboxSub"]);
+window.__require = function e(t, n, r) {
+  function s(o, u) {
+    if (!n[o]) {
+      if (!t[o]) {
+        var b = o.split("/");
+        b = b[b.length - 1];
+        if (!t[b]) {
+          var a = "function" == typeof __require && __require;
+          if (!u && a) return a(b, !0);
+          if (i) return i(b, !0);
+          throw new Error("Cannot find module '" + o + "'");
+        }
+        o = b;
+      }
+      var f = n[o] = {
+        exports: {}
+      };
+      t[o][0].call(f.exports, function(e) {
+        var n = t[o][1][e];
+        return s(n || e);
+      }, f, f.exports, e, t, n, r);
+    }
+    return n[o].exports;
+  }
+  var i = "function" == typeof __require && __require;
+  for (var o = 0; o < r.length; o++) s(r[o]);
+  return s;
+}({
+  tenboxChoiceDrag: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "b7e8c5HIaRDSK7anLugLpru", "tenboxChoiceDrag");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var drag_1 = require("../../../common/scripts/drag");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var TenBoxChoiceDrag = function(_super) {
+      __extends(TenBoxChoiceDrag, _super);
+      function TenBoxChoiceDrag() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.label = null;
+        _this.missingNumber = null;
+        return _this;
+      }
+      TenBoxChoiceDrag.prototype.onTouchEnd = function(touch) {
+        var isDragging = this.isDragging;
+        _super.prototype.onTouchEnd.call(this, touch);
+        isDragging && (this.match ? this.missingNumber.emit("tenBoxChoiceMatch", this) : this.missingNumber.emit("tenBoxChoiceNoMatch"));
+      };
+      __decorate([ property(cc.Label) ], TenBoxChoiceDrag.prototype, "label", void 0);
+      __decorate([ property(cc.Node) ], TenBoxChoiceDrag.prototype, "missingNumber", void 0);
+      TenBoxChoiceDrag = __decorate([ ccclass ], TenBoxChoiceDrag);
+      return TenBoxChoiceDrag;
+    }(drag_1.default);
+    exports.default = TenBoxChoiceDrag;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/drag": void 0
+  } ],
+  tenboxDrag: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "c9dc7csF+lOZKHnRWOZ68WX", "tenboxDrag");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var drag_1 = require("../../../common/scripts/drag");
+    var drop_1 = require("../../../common/scripts/drop");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var TenboxDrag = function(_super) {
+      __extends(TenboxDrag, _super);
+      function TenboxDrag() {
+        return null !== _super && _super.apply(this, arguments) || this;
+      }
+      TenboxDrag.prototype.onLoad = function() {
+        _super.prototype.onLoad.call(this);
+      };
+      TenboxDrag.prototype.onTouchStart = function(touch) {
+        _super.prototype.onTouchStart.call(this, touch);
+        this.node.parent.parent.parent.zIndex = 1;
+      };
+      TenboxDrag.prototype.onTouchEnd = function(touch) {
+        _super.prototype.onTouchEnd.call(this, touch);
+        this.node.parent.parent.parent.zIndex = 0;
+        !this.match;
+      };
+      TenboxDrag.prototype.onMatchOver = function() {
+        this.isDragging = false;
+        this.allowDrag = true;
+        drag_1.default.letDrag = true;
+        var mNode = this.matchingNode;
+        var parent = this.node.parent;
+        parent.removeFromParent();
+        this.node.position = cc.Vec2.ZERO;
+        mNode.addChild(parent);
+        mNode.getComponent(drop_1.default).onMatchOver();
+      };
+      TenboxDrag = __decorate([ ccclass ], TenboxDrag);
+      return TenboxDrag;
+    }(drag_1.default);
+    exports.default = TenboxDrag;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/drag": void 0,
+    "../../../common/scripts/drop": void 0
+  } ],
+  tenboxDrop: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "b7851hBZftIEbGOjKvyr7Rx", "tenboxDrop");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var drop_1 = require("../../../common/scripts/drop");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var commonName = "A";
+    var TenboxDrop = function(_super) {
+      __extends(TenboxDrop, _super);
+      function TenboxDrop() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.count = 0;
+        _this.dropPrefab = null;
+        _this.subPrefab = null;
+        _this.cover = null;
+        _this.seal = null;
+        return _this;
+      }
+      TenboxDrop.prototype.onLoad = function() {
+        var _this = this;
+        if (10 == this.count) this.closeCover(); else {
+          this.cover.active = false;
+          this.seal.active = false;
+        }
+        this.node.name = commonName;
+        for (var index = 0; index < this.count; index++) {
+          var drop = cc.instantiate(this.dropPrefab);
+          drop.name = commonName;
+          var tempNode = new cc.Node();
+          tempNode.height = drop.height;
+          tempNode.width = drop.width;
+          tempNode.addChild(drop);
+          this.node.addChild(tempNode);
+        }
+        this.node.on("child-added", function() {
+          if (++_this.count >= 10) {
+            _this.allowDrop = false;
+            _this.closeCover();
+          }
+        }, this);
+        this.node.on("child-removed", function() {
+          --_this.count < 10 && (_this.allowDrop = true);
+        }, this);
+      };
+      TenboxDrop.prototype.closeCover = function() {
+        var _this = this;
+        this.allowDrop = false;
+        this.scheduleOnce(function() {
+          _this.cover.active = true;
+          _this.seal.active = true;
+          _this.cover.on("touchstart", function() {
+            _this.cover.active = false;
+            _this.seal.active = false;
+          }, _this);
+          new cc.Tween().target(_this.seal).set({
+            scale: 2
+          }).to(.5, {
+            scale: 1
+          }, null).start();
+        }, 1);
+      };
+      __decorate([ property ], TenboxDrop.prototype, "count", void 0);
+      __decorate([ property(cc.Prefab) ], TenboxDrop.prototype, "dropPrefab", void 0);
+      __decorate([ property(cc.Prefab) ], TenboxDrop.prototype, "subPrefab", void 0);
+      __decorate([ property(cc.Node) ], TenboxDrop.prototype, "cover", void 0);
+      __decorate([ property(cc.Node) ], TenboxDrop.prototype, "seal", void 0);
+      TenboxDrop = __decorate([ ccclass ], TenboxDrop);
+      return TenboxDrop;
+    }(drop_1.default);
+    exports.default = TenboxDrop;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/drop": void 0
+  } ],
+  tenboxSub: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "1939fodrYRH1LqUcX6kHYjq", "tenboxSub");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var drop_1 = require("../../../common/scripts/drop");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var commonName = "A";
+    var TenboxSub = function(_super) {
+      __extends(TenboxSub, _super);
+      function TenboxSub() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.count = 0;
+        _this.subLayout = null;
+        _this.subPrefab = null;
+        return _this;
+      }
+      TenboxSub.prototype.onLoad = function() {
+        var _this = this;
+        this.node.name = commonName;
+        for (var index = 0; index < this.count; index++) {
+          var drop = cc.instantiate(this.subPrefab);
+          drop.name = commonName;
+          var tempNode = new cc.Node();
+          tempNode.height = drop.height;
+          tempNode.width = drop.width;
+          tempNode.addChild(drop);
+          this.subLayout.addChild(tempNode);
+        }
+        this.node.on("child-added", function() {
+          if (_this.node.childrenCount >= _this.count) {
+            _this.allowDrop = false;
+            _this.scheduleOnce(function() {
+              new cc.Tween().target(_this.node.parent).to(.5, {
+                x: cc.winSize.width
+              }, null).start();
+            }, 1);
+          }
+        }, this);
+        this.node.on("child-removed", function() {
+          _this.node.childrenCount < _this.count && (_this.allowDrop = true);
+        }, this);
+      };
+      __decorate([ property ], TenboxSub.prototype, "count", void 0);
+      __decorate([ property(cc.Node) ], TenboxSub.prototype, "subLayout", void 0);
+      __decorate([ property(cc.Prefab) ], TenboxSub.prototype, "subPrefab", void 0);
+      TenboxSub = __decorate([ ccclass ], TenboxSub);
+      return TenboxSub;
+    }(drop_1.default);
+    exports.default = TenboxSub;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/drop": void 0
+  } ],
+  tenbox: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "fe772XRpipECrBrs8ZjOHue", "tenbox");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var tenboxDrop_1 = require("./tenboxDrop");
+    var tenboxSub_1 = require("./tenboxSub");
+    var config_1 = require("../../../common/scripts/lib/config");
+    var drag_1 = require("../../../common/scripts/drag");
+    var util_1 = require("../../../common/scripts/util");
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var tenboxChoiceDrag_1 = require("./tenboxChoiceDrag");
+    var game_1 = require("../../../common/scripts/game");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var Tenbox = function(_super) {
+      __extends(Tenbox, _super);
+      function Tenbox() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.numberDrag = null;
+        _this.numberDrop = null;
+        _this.tenboxDrop = null;
+        _this.tenboxSub = null;
+        _this.numberDragLayout = null;
+        _this.problemLayout = null;
+        _this.boxLayout = null;
+        _this.empty = 0;
+        return _this;
+      }
+      Tenbox.prototype.onLoad = function() {
+        var _this = this;
+        cc.director.getCollisionManager().enabled = true;
+        drag_1.default.letDrag = false;
+        this.node.on("tenBoxChoiceMatch", this.onMatch.bind(this));
+        this.node.on("tenBoxChoiceNoMatch", function() {
+          _this.node.emit("wrong");
+        });
+        var _a = config_1.default.getInstance().data[0], level = _a[0], worksheet = _a[1], problem = _a[2], category = _a[3], question = _a[4], answerStr = _a[5];
+        var answer = parseInt(answerStr);
+        if ("SUB" == category) {
+          var operands = question.split("-");
+          this.addTenBoxes(true, parseInt(operands[0]), 2, 0);
+          this.addTenBoxes(false, parseInt(operands[1]), 2, 1);
+        } else {
+          var operands_1 = question.split("+");
+          operands_1.forEach(function(val, index) {
+            _this.addTenBoxes(true, parseInt(val), operands_1.length, index);
+          });
+        }
+        for (var index = 0; index < 10; index++) {
+          var card = cc.instantiate(this.numberDrag);
+          card.name = index.toString();
+          var dragComp = card.getComponent(tenboxChoiceDrag_1.default);
+          dragComp.missingNumber = this.node;
+          dragComp.label.string = index.toString();
+          var tempNode = new cc.Node();
+          tempNode.width = card.width;
+          tempNode.height = card.height;
+          tempNode.addChild(card);
+          this.numberDragLayout.addChild(tempNode);
+        }
+        var label = this.problemLayout.getChildByName("label");
+        if (null != label) {
+          var labelComp = label.getComponent(cc.Label);
+          labelComp.string = question + "=";
+        }
+        if (answer > 9) {
+          this.createDropBox(this.numberDrop, Math.floor(answer / 10).toString(), this.problemLayout);
+          this.createDropBox(this.numberDrop, (answer % 10).toString(), this.problemLayout);
+        } else this.createDropBox(this.numberDrop, answer.toString(), this.problemLayout);
+        var firstDrag = this.numberDragLayout.children[answer % 10];
+        var firstDrop = this.problemLayout.children[this.problemLayout.childrenCount - 1];
+        util_1.Util.showHelp(firstDrag, firstDrop);
+        drag_1.default.letDrag = true;
+      };
+      Tenbox.prototype.addTenBoxes = function(add, count, totalBoxes, boxNum) {
+        if (count > 10) {
+          var drop1 = this.createTenBox(add, 10, boxNum, totalBoxes);
+          drop1.y = drop1.height / 2 + 10;
+          this.boxLayout.addChild(drop1);
+          var drop2 = this.createTenBox(add, count - 10, boxNum, totalBoxes);
+          drop2.y = -drop1.height / 2 - 10;
+          this.boxLayout.addChild(drop2);
+        } else this.boxLayout.addChild(this.createTenBox(add, count, boxNum, totalBoxes));
+      };
+      Tenbox.prototype.createTenBox = function(add, count, boxNum, totalBoxes) {
+        var drop = cc.instantiate(add ? this.tenboxDrop : this.tenboxSub);
+        var box = drop.getChildByName("layout");
+        if (add) {
+          var boxComp = box.getComponent(tenboxDrop_1.default);
+          boxComp.count = count;
+        } else {
+          var boxComp = box.getComponent(tenboxSub_1.default);
+          boxComp.count = count;
+        }
+        drop.x = (.5 + boxNum - totalBoxes / 2) * (drop.width + 20);
+        return drop;
+      };
+      Tenbox.prototype.createDropBox = function(dropPrefab, digit, layout) {
+        this.empty++;
+        var drop = cc.instantiate(dropPrefab);
+        drop.name = digit;
+        layout.addChild(drop);
+      };
+      Tenbox.prototype.onMatch = function() {
+        this.node.emit("correct");
+        --this.empty <= 0 && this.node.emit("nextProblem");
+      };
+      __decorate([ property(cc.Prefab) ], Tenbox.prototype, "numberDrag", void 0);
+      __decorate([ property(cc.Prefab) ], Tenbox.prototype, "numberDrop", void 0);
+      __decorate([ property(cc.Prefab) ], Tenbox.prototype, "tenboxDrop", void 0);
+      __decorate([ property(cc.Prefab) ], Tenbox.prototype, "tenboxSub", void 0);
+      __decorate([ property(cc.Node) ], Tenbox.prototype, "numberDragLayout", void 0);
+      __decorate([ property(cc.Node) ], Tenbox.prototype, "problemLayout", void 0);
+      __decorate([ property(cc.Node) ], Tenbox.prototype, "boxLayout", void 0);
+      __decorate([ error_handler_1.default() ], Tenbox.prototype, "onLoad", null);
+      Tenbox = __decorate([ ccclass ], Tenbox);
+      return Tenbox;
+    }(game_1.default);
+    exports.default = Tenbox;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/drag": void 0,
+    "../../../common/scripts/game": void 0,
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/error-handler": void 0,
+    "../../../common/scripts/util": void 0,
+    "./tenboxChoiceDrag": "tenboxChoiceDrag",
+    "./tenboxDrop": "tenboxDrop",
+    "./tenboxSub": "tenboxSub"
+  } ]
+}, {}, [ "tenbox", "tenboxChoiceDrag", "tenboxDrag", "tenboxDrop", "tenboxSub" ]);

@@ -1,1 +1,159 @@
-window.__require=function t(e,n,o){function r(c,a){if(!n[c]){if(!e[c]){var s=c.split("/");if(s=s[s.length-1],!e[s]){var p="function"==typeof __require&&__require;if(!a&&p)return p(s,!0);if(i)return i(s,!0);throw new Error("Cannot find module '"+c+"'")}c=s}var u=n[c]={exports:{}};e[c][0].call(u.exports,function(t){return r(e[c][1][t]||t)},u,u.exports,t,e,n,o)}return n[c].exports}for(var i="function"==typeof __require&&__require,c=0;c<o.length;c++)r(o[c]);return r}({drawshape:[function(t,e,n){"use strict";cc._RF.push(e,"3f0f1gHZZ9PW7BGMLuhBiRT","drawshape");var o,r=this&&this.__extends||(o=function(t,e){return(o=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[n]=e[n])})(t,e)},function(t,e){function n(){this.constructor=t}o(t,e),t.prototype=null===e?Object.create(e):(n.prototype=e.prototype,new n)}),i=this&&this.__decorate||function(t,e,n,o){var r,i=arguments.length,c=i<3?e:null===o?o=Object.getOwnPropertyDescriptor(e,n):o;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,n,o);else for(var a=t.length-1;a>=0;a--)(r=t[a])&&(c=(i<3?r(c):i>3?r(e,n,c):r(e,n))||c);return i>3&&c&&Object.defineProperty(e,n,c),c};Object.defineProperty(n,"__esModule",{value:!0}),n.DrawShape=n.GAME_VOICE=n.LETTER_TRACING_TEXTURE=void 0;var c=t("../../../common/scripts/lib/config"),a=cc._decorator.ccclass,s=cc._decorator.property,p=t("../../../common/scripts/lib/error-handler"),u=t("../../../common/scripts/helper"),l=t("../../../common/Tracing/scripts/tracing-container"),f=t("../../../common/scripts/game");n.LETTER_TRACING_TEXTURE="games/lettertracing/textures/",n.GAME_VOICE="games/lettertracing/sounds";var g=function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e.progressMonitorPrefab=null,e._tracingContainerComponent=null,e._imageName=null,e._currentConfig=null,e._imageTracingContainer=null,e}return r(e,t),e.prototype.onLoad=function(){cc.director.getCollisionManager().enabled=!1,this._currentConfig=this.processConfiguration(c.default.getInstance().data[0]),null!==this._currentConfig&&(this._imageTracingContainer=this.node,this._imageTracingContainer.scale*=1,this.node.width=cc.winSize.width,this.node.height=cc.winSize.height,this._tracingContainer=cc.instantiate(this.tracingContainerPrefab),this.setImageToDisplay(this._currentConfig.image),this.subScribeToTracingEvents())},e.prototype.subScribeToTracingEvents=function(){var t=this;this.node.on(u.TRACING_FINISHED,function(e){e.stopPropagation(),t.tracingFinished()}),this.node.on(u.TRACING_CORRECT,function(e){e.stopPropagation(),t.node.emit("correct")}),this.node.on(u.TRACING_WRONG,function(e){e.stopPropagation(),t.node.emit("wrong")})},e.prototype.tracingFinished=function(){var t=this;this.scheduleOnce(function(){t.node.emit("nextProblem")},1)},e.prototype.setImageToDisplay=function(t){this._tracingContainerComponent=this._tracingContainer.getComponent(l.default),this._tracingContainerComponent.tracingImage=t,this._tracingContainerComponent.lineWidth=25,this._tracingContainerComponent.traceGenerationMode=!1,this.node.addChild(this._tracingContainer),this._tracingContainer.setPosition(new cc.Vec2(0,100)),this._tracingContainerComponent.traceGraphics.emit("enabledGraphics")},e.prototype.processConfiguration=function(t){void 0===t&&(t=[]);var e=[].concat.apply([],t);return{level:e[0],workSheet:e[1],problemNo:e[2],image:e[3]}},e.prototype.onDestroy=function(){cc.resources.release(this._imageName,cc.SpriteFrame),cc.audioEngine.stopAllEffects()},i([s(cc.Prefab)],e.prototype,"progressMonitorPrefab",void 0),i([s(cc.Prefab)],e.prototype,"tracingContainerPrefab",void 0),i([p.default()],e.prototype,"onLoad",null),i([p.default()],e.prototype,"subScribeToTracingEvents",null),i([p.default()],e.prototype,"tracingFinished",null),i([p.default()],e.prototype,"setImageToDisplay",null),i([p.default()],e.prototype,"processConfiguration",null),i([a],e)}(f.default);n.DrawShape=g,cc._RF.pop()},{"../../../common/Tracing/scripts/tracing-container":void 0,"../../../common/scripts/game":void 0,"../../../common/scripts/helper":void 0,"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/error-handler":void 0}]},{},["drawshape"]);
+window.__require = function e(t, n, r) {
+  function s(o, u) {
+    if (!n[o]) {
+      if (!t[o]) {
+        var b = o.split("/");
+        b = b[b.length - 1];
+        if (!t[b]) {
+          var a = "function" == typeof __require && __require;
+          if (!u && a) return a(b, !0);
+          if (i) return i(b, !0);
+          throw new Error("Cannot find module '" + o + "'");
+        }
+        o = b;
+      }
+      var f = n[o] = {
+        exports: {}
+      };
+      t[o][0].call(f.exports, function(e) {
+        var n = t[o][1][e];
+        return s(n || e);
+      }, f, f.exports, e, t, n, r);
+    }
+    return n[o].exports;
+  }
+  var i = "function" == typeof __require && __require;
+  for (var o = 0; o < r.length; o++) s(r[o]);
+  return s;
+}({
+  drawshape: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "3f0f1gHZZ9PW7BGMLuhBiRT", "drawshape");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    exports.DrawShape = exports.GAME_VOICE = exports.LETTER_TRACING_TEXTURE = void 0;
+    var config_1 = require("../../../common/scripts/lib/config");
+    var ccclass = cc._decorator.ccclass;
+    var property = cc._decorator.property;
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var helper_1 = require("../../../common/scripts/helper");
+    var tracing_container_1 = require("../../../common/Tracing/scripts/tracing-container");
+    var game_1 = require("../../../common/scripts/game");
+    exports.LETTER_TRACING_TEXTURE = "games/lettertracing/textures/";
+    exports.GAME_VOICE = "games/lettertracing/sounds";
+    var DrawShape = function(_super) {
+      __extends(DrawShape, _super);
+      function DrawShape() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.progressMonitorPrefab = null;
+        _this._tracingContainerComponent = null;
+        _this._imageName = null;
+        _this._currentConfig = null;
+        _this._imageTracingContainer = null;
+        return _this;
+      }
+      DrawShape.prototype.onLoad = function() {
+        var manager = cc.director.getCollisionManager();
+        manager.enabled = false;
+        this._currentConfig = this.processConfiguration(config_1.default.getInstance().data[0]);
+        if (null !== this._currentConfig) {
+          this._imageTracingContainer = this.node;
+          this._imageTracingContainer.scale *= 1;
+          this.node.width = cc.winSize.width;
+          this.node.height = cc.winSize.height;
+          this._tracingContainer = cc.instantiate(this.tracingContainerPrefab);
+          this.setImageToDisplay(this._currentConfig.image);
+          this.subScribeToTracingEvents();
+        }
+      };
+      DrawShape.prototype.subScribeToTracingEvents = function() {
+        var _this = this;
+        this.node.on(helper_1.TRACING_FINISHED, function(event) {
+          event.stopPropagation();
+          _this.tracingFinished();
+        });
+        this.node.on(helper_1.TRACING_CORRECT, function(event) {
+          event.stopPropagation();
+          _this.node.emit("correct");
+        });
+        this.node.on(helper_1.TRACING_WRONG, function(event) {
+          event.stopPropagation();
+          _this.node.emit("wrong");
+        });
+      };
+      DrawShape.prototype.tracingFinished = function() {
+        var _this = this;
+        this.scheduleOnce(function() {
+          _this.node.emit("nextProblem");
+        }, 1);
+      };
+      DrawShape.prototype.setImageToDisplay = function(image) {
+        this._tracingContainerComponent = this._tracingContainer.getComponent(tracing_container_1.default);
+        this._tracingContainerComponent.tracingImage = image;
+        this._tracingContainerComponent.lineWidth = 25;
+        this._tracingContainerComponent.traceGenerationMode = false;
+        this.node.addChild(this._tracingContainer);
+        this._tracingContainer.setPosition(new cc.Vec2(0, 100));
+        this._tracingContainerComponent.traceGraphics.emit("enabledGraphics");
+      };
+      DrawShape.prototype.processConfiguration = function(data) {
+        void 0 === data && (data = []);
+        var configurations = [].concat.apply([], data);
+        var level = configurations[0], workSheet = configurations[1], problemNo = configurations[2], image = configurations[3];
+        return {
+          level: level,
+          workSheet: workSheet,
+          problemNo: problemNo,
+          image: image
+        };
+      };
+      DrawShape.prototype.onDestroy = function() {
+        cc.resources.release(this._imageName, cc.SpriteFrame);
+        cc.audioEngine.stopAllEffects();
+      };
+      __decorate([ property(cc.Prefab) ], DrawShape.prototype, "progressMonitorPrefab", void 0);
+      __decorate([ property(cc.Prefab) ], DrawShape.prototype, "tracingContainerPrefab", void 0);
+      __decorate([ error_handler_1.default() ], DrawShape.prototype, "onLoad", null);
+      __decorate([ error_handler_1.default() ], DrawShape.prototype, "subScribeToTracingEvents", null);
+      __decorate([ error_handler_1.default() ], DrawShape.prototype, "tracingFinished", null);
+      __decorate([ error_handler_1.default() ], DrawShape.prototype, "setImageToDisplay", null);
+      __decorate([ error_handler_1.default() ], DrawShape.prototype, "processConfiguration", null);
+      DrawShape = __decorate([ ccclass ], DrawShape);
+      return DrawShape;
+    }(game_1.default);
+    exports.DrawShape = DrawShape;
+    cc._RF.pop();
+  }, {
+    "../../../common/Tracing/scripts/tracing-container": void 0,
+    "../../../common/scripts/game": void 0,
+    "../../../common/scripts/helper": void 0,
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/error-handler": void 0
+  } ]
+}, {}, [ "drawshape" ]);

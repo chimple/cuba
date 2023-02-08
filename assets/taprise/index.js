@@ -1,1 +1,302 @@
-window.__require=function t(e,o,n){function i(a,c){if(!o[a]){if(!e[a]){var l=a.split("/");if(l=l[l.length-1],!e[l]){var s="function"==typeof __require&&__require;if(!c&&s)return s(l,!0);if(r)return r(l,!0);throw new Error("Cannot find module '"+a+"'")}a=l}var h=o[a]={exports:{}};e[a][0].call(h.exports,function(t){return i(e[a][1][t]||t)},h,h.exports,t,e,o,n)}return o[a].exports}for(var r="function"==typeof __require&&__require,a=0;a<n.length;a++)i(n[a]);return i}({taprise:[function(t,e,o){"use strict";cc._RF.push(e,"3726fWjxaxNu6O6gihwo23+","taprise");var n,i=this&&this.__extends||(n=function(t,e){return(n=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(t[o]=e[o])})(t,e)},function(t,e){function o(){this.constructor=t}n(t,e),t.prototype=null===e?Object.create(e):(o.prototype=e.prototype,new o)}),r=this&&this.__decorate||function(t,e,o,n){var i,r=arguments.length,a=r<3?e:null===n?n=Object.getOwnPropertyDescriptor(e,o):n;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)a=Reflect.decorate(t,e,o,n);else for(var c=t.length-1;c>=0;c--)(i=t[c])&&(a=(r<3?i(a):r>3?i(e,o,a):i(e,o))||a);return r>3&&a&&Object.defineProperty(e,o,a),a};Object.defineProperty(o,"__esModule",{value:!0});var a=t("../../../common/scripts/lib/config"),c=t("../../../common/scripts/util"),l=t("../../../common/scripts/lib/error-handler"),s=cc._decorator,h=s.ccclass,u=s.property,d=function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e.bubble=null,e.ai=0,e.countArr=[0,10,10,1],e.tap=[0,1,1,100],e.touchcount=0,e.destroyCount=0,e.touchArray=[0,0,0,0,0],e.shouldTouch=!0,e.shouldGen=!0,e.endofgame=0,e.genval=0,e.auther=1,e}return i(e,t),e.prototype.onLoad=function(){var t=a.default.getInstance().data[0].toString().split(",").map(function(t){return/^\d*\.?\d+$/.test(t)?Number(t):t});for(cc.log("field "+t),this.nameOfGame=t[0],this.lev=t[1],this.description=t[2],this.level=t[3],this.worksheet=t[4],this.problem=t[5],this.objb=t[6],this.noobj=parseInt(this.objb),cc.log("obj"+this.noobj);this.ai<this.noobj;this.ai++)this.generateObj(0);this.x=0,this.y=100,this.levelint=parseInt(this.level),cc.log("lvl"+this.levelint),this.problemint=parseInt(this.problem),c.Util.showHelp(this.firstDrag,this.firstDrop)},e.prototype.generateObj=function(){var t=this;c.Util.loadFriend(function(e){t.friendName=e.name,console.log(t.genval,"ai"),t.objin=cc.instantiate(t.bubble);var o=t.getRandomArbitrary(-170,170);t.objin.parent=t.node,0==t.ai&&(t.firstDrag=t.objin,t.firstDrop=t.objin),t.objin.on(cc.Node.EventType.TOUCH_START,t.onTouchStart,t),t.objin.on(cc.Node.EventType.TOUCH_END,t.onTouchEnd,t),t.objin.on(cc.Node.EventType.TOUCH_CANCEL,t.onTouchEnd,t);var n=t.objin.getChildByName("charnode");if(null!=n){e.getComponent(cc.Button).interactable=!1,n.addChild(e),c.Util.loadAccessoriesAndEquipAcc(e.children[1],n.getChildByName(e.name)),console.log(e);var i=200*t.genval-400;cc.log("xcor"+i),t.objin.position=cc.v2(i,o),t.objin.name=t.genval.toString(),t.genval=t.genval+1}})},e.prototype.getRandomArbitrary=function(t,e){return Math.floor(Math.random()*(e-t)+t)},e.prototype.onTouchStart=function(t){var e=this,o=t.currentTarget;if(this.shouldTouch&&this.shouldGen&&0==t.getID()){if(cc.log("yx"+o.y),this.namee=o.name,3!=this.levelint){var n=cc.moveTo(2,cc.v2(o.x,o.y=o.y+10));o.runAction(n)}if(this.shouldTouch=!1,"a"!=o.name&&1!=this.endofgame){if(o.zIndex=1,this.node.emit("correct"),this.charNode=o.getChildByName("charnode"),cc.log("qw"+this.touchArray[this.namee]),cc.log("namee"+this.namee),3!=this.levelint){o.getChildByName("cardParticlea").opacity=255,o.getChildByName("cardParticleb").opacity=255,o.getChildByName("flyboard").getComponent(cc.Animation).play(),setTimeout(function(){o.getChildByName("cardParticlea").opacity=0,o.getChildByName("cardParticleb").opacity=0,o.getChildByName("flyboard").getComponent(cc.Animation).stop()},500),setTimeout(function(){e.shouldTouch=!0},700),this.timing=.3,this.getRandomArbitrary(1,5);var i="labcenter";cc.log(i+"xran");var r=o.getChildByName(i);if(null!=r&&(r.getComponent(cc.Label).string=(this.touchArray[parseInt(this.namee)]=this.touchArray[parseInt(this.namee)]+1).toString(),cc.log("result"+this.touchArray[parseInt(this.namee)]),10==this.touchArray[parseInt(this.namee)])){o.getChildByName("res").getComponent(cc.Label).string=(10*this.problemint).toString();var a=cc.moveTo(3,cc.v2(0,1500));o.runAction(a),o.getChildByName("cardParticlea").opacity=255,o.getChildByName("cardParticleb").opacity=255}}else 3==this.levelint&&(this.timing=.7);(new cc.Tween).target(this.node).to(this.timing,{},{progress:null,easing:"sineOutIn"}).call(function(){var t=o.getChildByName(i);null!=t&&(t.getComponent(cc.Label).string="")}).start()}}},e.prototype.onTouchEnd=function(t){var e=this,o=t.currentTarget,n=o.children[0].children[0].children[0].getComponent(dragonBones.ArmatureDisplay);if(o.children[0].children[0].children[0].getComponent(dragonBones.ArmatureDisplay).playAnimation("joy",1),o.zIndex=0,this.touchArray[parseInt(this.namee)]==this.countArr[this.levelint]&&3!=this.levelint&&1!=this.endofgame)cc.log("this"+this.touchArray[parseInt(this.namee)]),3!=this.levelint&&(this.shouldTouch=!0,o.getChildByName("flyboard").getComponent(cc.Animation).play(),o.getChildByName("cardParticle").opacity=255),n.playAnimation("joy"),o.name="a",this.destroyCount++,this.destroyCount==this.tap[this.levelint]&&(this.endofgame=1,cc.log("charge"+this.destroyCount+this.tap[this.levelint]),(new cc.Tween).target(this.node).to(.5,{},{progress:null,easing:"sineOutIn"}).call(function(){e.node.emit("nextProblem")}).start());else if(3==this.levelint&&"a"!=o.name&&1!=this.endofgame&&this.shouldGen){this.shouldGen=!1;var i;i=this.touchcount%10==0?3:2;var r=cc.moveTo(i,cc.v2(0,1e3));setTimeout(function(){e.shouldGen=!0,e.shouldTouch=!0},2e3),o.runAction(r),o.zIndex=3,o.name="a",this.touchcount%10==0&&(o.getChildByName("cardParticle").opacity=255,o.getChildByName("flyboard").getComponent(cc.Animation).play()),o.getChildByName("cardParticlea").opacity=255,o.getChildByName("cardParticleb").opacity=255,o.getChildByName("flyboard").getComponent(cc.Animation).play(),cc.log("me100"),this.timing=.7,cc.log("labcenterlabval");var a=o.getChildByName("labcenter");null!=a&&(this.touchcount=this.touchcount+1,this.touchcount%10!=0&&(a.getComponent(cc.Label).string=this.touchcount.toString(),o.getChildByName("res").getComponent(cc.Label).string=this.touchcount.toString()),this.touchcount%10==0&&(o.getChildByName("res").getComponent(cc.Label).string=this.touchcount.toString())),(new cc.Tween).target(this.node).to(2,{},{progress:null,easing:"sineOutIn"}).call(function(){e.auther=1,e.shouldTouch=!0;var t=parseInt(e.namee);cc.log("imi"+t),e.objin=cc.instantiate(e.bubble);var o=e.getRandomArbitrary(-250,250),i=150*t-300+e.getRandomArbitrary(-70,100);e.objin.position=cc.v2(i,o),e.objin.parent=e.node,e.objin.name=t.toString(),c.Util.loadFriend(function(t){var o=e.objin.getChildByName("charnode");null!=o&&(o.addChild(t),c.Util.loadAccessoriesAndEquipAcc(t.children[1],o.getChildByName(t.name)),n.playAnimation("joy"))}),e.objin.on(cc.Node.EventType.TOUCH_START,e.onTouchStart,e),e.objin.on(cc.Node.EventType.TOUCH_END,e.onTouchEnd,e),e.objin.on(cc.Node.EventType.TOUCH_CANCEL,e.onTouchEnd,e)}).start(),this.destroyCount++,this.destroyCount==this.tap[this.levelint]&&(cc.log("charge"+this.destroyCount+this.tap[this.levelint]),this.endofgame=1,(new cc.Tween).target(this.node).to(.5,{},{progress:null,easing:"sineOutIn"}).call(function(){e.node.emit("nextProblem")}).start())}},r([u(cc.Prefab)],e.prototype,"bubble",void 0),r([l.default()],e.prototype,"onLoad",null),r([l.default()],e.prototype,"generateObj",null),r([l.default()],e.prototype,"getRandomArbitrary",null),r([l.default()],e.prototype,"onTouchStart",null),r([l.default()],e.prototype,"onTouchEnd",null),r([h],e)}(cc.Component);o.default=d,cc._RF.pop()},{"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/error-handler":void 0,"../../../common/scripts/util":void 0}]},{},["taprise"]);
+window.__require = function e(t, n, r) {
+  function s(o, u) {
+    if (!n[o]) {
+      if (!t[o]) {
+        var b = o.split("/");
+        b = b[b.length - 1];
+        if (!t[b]) {
+          var a = "function" == typeof __require && __require;
+          if (!u && a) return a(b, !0);
+          if (i) return i(b, !0);
+          throw new Error("Cannot find module '" + o + "'");
+        }
+        o = b;
+      }
+      var f = n[o] = {
+        exports: {}
+      };
+      t[o][0].call(f.exports, function(e) {
+        var n = t[o][1][e];
+        return s(n || e);
+      }, f, f.exports, e, t, n, r);
+    }
+    return n[o].exports;
+  }
+  var i = "function" == typeof __require && __require;
+  for (var o = 0; o < r.length; o++) s(r[o]);
+  return s;
+}({
+  taprise: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "3726fWjxaxNu6O6gihwo23+", "taprise");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var config_1 = require("../../../common/scripts/lib/config");
+    var util_1 = require("../../../common/scripts/util");
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var TapRise = function(_super) {
+      __extends(TapRise, _super);
+      function TapRise() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.bubble = null;
+        _this.ai = 0;
+        _this.countArr = [ 0, 10, 10, 1 ];
+        _this.tap = [ 0, 1, 1, 100 ];
+        _this.touchcount = 0;
+        _this.destroyCount = 0;
+        _this.touchArray = [ 0, 0, 0, 0, 0 ];
+        _this.shouldTouch = true;
+        _this.shouldGen = true;
+        _this.endofgame = 0;
+        _this.genval = 0;
+        _this.auther = 1;
+        return _this;
+      }
+      TapRise.prototype.onLoad = function() {
+        var fieldArr = config_1.default.getInstance().data[0].toString().split(",").map(function(field) {
+          return /^\d*\.?\d+$/.test(field) ? Number(field) : field;
+        });
+        cc.log("field " + fieldArr);
+        this.nameOfGame = fieldArr[0], this.lev = fieldArr[1], this.description = fieldArr[2], 
+        this.level = fieldArr[3], this.worksheet = fieldArr[4], this.problem = fieldArr[5], 
+        this.objb = fieldArr[6];
+        this.noobj = parseInt(this.objb);
+        cc.log("obj" + this.noobj);
+        for (var ai = 0; this.ai < this.noobj; this.ai++) this.generateObj(ai);
+        this.x = 0;
+        this.y = 100;
+        this.levelint = parseInt(this.level);
+        cc.log("lvl" + this.levelint);
+        this.problemint = parseInt(this.problem);
+        util_1.Util.showHelp(this.firstDrag, this.firstDrop);
+      };
+      TapRise.prototype.generateObj = function(indexx) {
+        var _this = this;
+        util_1.Util.loadFriend(function(friendNode) {
+          _this.friendName = friendNode.name;
+          console.log(_this.genval, "ai");
+          _this.objin = cc.instantiate(_this.bubble);
+          var yi = _this.getRandomArbitrary(-170, 170);
+          _this.objin.parent = _this.node;
+          if (0 == _this.ai) {
+            _this.firstDrag = _this.objin;
+            _this.firstDrop = _this.objin;
+          }
+          _this.objin.on(cc.Node.EventType.TOUCH_START, _this.onTouchStart, _this);
+          _this.objin.on(cc.Node.EventType.TOUCH_END, _this.onTouchEnd, _this);
+          _this.objin.on(cc.Node.EventType.TOUCH_CANCEL, _this.onTouchEnd, _this);
+          var characterNode = _this.objin.getChildByName("charnode");
+          if (null != characterNode) {
+            friendNode.getComponent(cc.Button).interactable = false;
+            characterNode.addChild(friendNode);
+            util_1.Util.loadAccessoriesAndEquipAcc(friendNode.children[1], characterNode.getChildByName(friendNode.name));
+            console.log(friendNode);
+            var xcor = 200 * _this.genval - 400;
+            cc.log("xcor" + xcor);
+            _this.objin.position = cc.v2(xcor, yi);
+            _this.objin.name = _this.genval.toString();
+            _this.genval = _this.genval + 1;
+          }
+        });
+      };
+      TapRise.prototype.getRandomArbitrary = function(min, max) {
+        return Math.floor(Math.random() * (max - min) + min);
+      };
+      TapRise.prototype.onTouchStart = function(touch) {
+        var _this = this;
+        var touchObj = touch.currentTarget;
+        if (this.shouldTouch && this.shouldGen && 0 == touch.getID()) {
+          cc.log("yx" + touchObj.y);
+          this.namee = touchObj.name;
+          if (3 != this.levelint) {
+            var actiondx = cc.moveTo(2, cc.v2(touchObj.x, touchObj.y = touchObj.y + 10));
+            touchObj.runAction(actiondx);
+          }
+          this.shouldTouch = false;
+          if ("a" != touchObj.name && 1 != this.endofgame) {
+            touchObj.zIndex = 1;
+            this.node.emit("correct");
+            this.charNode = touchObj.getChildByName("charnode");
+            cc.log("qw" + this.touchArray[this.namee]);
+            cc.log("namee" + this.namee);
+            if (3 != this.levelint) {
+              touchObj.getChildByName("cardParticlea").opacity = 255;
+              touchObj.getChildByName("cardParticleb").opacity = 255;
+              touchObj.getChildByName("flyboard").getComponent(cc.Animation).play();
+              setTimeout(function() {
+                touchObj.getChildByName("cardParticlea").opacity = 0;
+                touchObj.getChildByName("cardParticleb").opacity = 0;
+                touchObj.getChildByName("flyboard").getComponent(cc.Animation).stop();
+              }, 500);
+              setTimeout(function() {
+                _this.shouldTouch = true;
+              }, 700);
+              this.timing = .3;
+              var xran = this.getRandomArbitrary(1, 5);
+              var labval = "labcenter";
+              cc.log(labval + "xran");
+              var labvalNode = touchObj.getChildByName(labval);
+              if (null != labvalNode) {
+                labvalNode.getComponent(cc.Label).string = (this.touchArray[parseInt(this.namee)] = this.touchArray[parseInt(this.namee)] + 1).toString();
+                cc.log("result" + this.touchArray[parseInt(this.namee)]);
+                if (10 == this.touchArray[parseInt(this.namee)]) {
+                  touchObj.getChildByName("res").getComponent(cc.Label).string = (10 * this.problemint).toString();
+                  var actionfly = cc.moveTo(3, cc.v2(0, 1500));
+                  touchObj.runAction(actionfly);
+                  touchObj.getChildByName("cardParticlea").opacity = 255;
+                  touchObj.getChildByName("cardParticleb").opacity = 255;
+                }
+              }
+            } else 3 == this.levelint && (this.timing = .7);
+            new cc.Tween().target(this.node).to(this.timing, {}, {
+              progress: null,
+              easing: "sineOutIn"
+            }).call(function() {
+              var labvalNode = touchObj.getChildByName(labval);
+              null != labvalNode && (labvalNode.getComponent(cc.Label).string = "");
+            }).start();
+          }
+        }
+      };
+      TapRise.prototype.onTouchEnd = function(touch) {
+        var _this = this;
+        var touchEndObj = touch.currentTarget;
+        var animation = touchEndObj.children[0].children[0].children[0].getComponent(dragonBones.ArmatureDisplay);
+        touchEndObj.children[0].children[0].children[0].getComponent(dragonBones.ArmatureDisplay).playAnimation("joy", 1);
+        touchEndObj.zIndex = 0;
+        if (this.touchArray[parseInt(this.namee)] == this.countArr[this.levelint] && 3 != this.levelint && 1 != this.endofgame) {
+          cc.log("this" + this.touchArray[parseInt(this.namee)]);
+          if (3 != this.levelint) {
+            this.shouldTouch = true;
+            touchEndObj.getChildByName("flyboard").getComponent(cc.Animation).play();
+            touchEndObj.getChildByName("cardParticle").opacity = 255;
+          }
+          animation.playAnimation("joy");
+          touchEndObj.name = "a";
+          this.destroyCount++;
+          if (this.destroyCount == this.tap[this.levelint]) {
+            this.endofgame = 1;
+            cc.log("charge" + this.destroyCount + this.tap[this.levelint]);
+            new cc.Tween().target(this.node).to(.5, {}, {
+              progress: null,
+              easing: "sineOutIn"
+            }).call(function() {
+              _this.node.emit("nextProblem");
+            }).start();
+          }
+        } else if (3 == this.levelint && "a" != touchEndObj.name && 1 != this.endofgame && this.shouldGen) {
+          this.shouldGen = false;
+          var runtime = void 0;
+          runtime = this.touchcount % 10 == 0 ? 3 : 2;
+          var actiona = cc.moveTo(runtime, cc.v2(0, 1e3));
+          setTimeout(function() {
+            _this.shouldGen = true;
+            _this.shouldTouch = true;
+          }, 2e3);
+          touchEndObj.runAction(actiona);
+          touchEndObj.zIndex = 3;
+          touchEndObj.name = "a";
+          if (this.touchcount % 10 == 0) {
+            touchEndObj.getChildByName("cardParticle").opacity = 255;
+            touchEndObj.getChildByName("flyboard").getComponent(cc.Animation).play();
+          }
+          touchEndObj.getChildByName("cardParticlea").opacity = 255;
+          touchEndObj.getChildByName("cardParticleb").opacity = 255;
+          touchEndObj.getChildByName("flyboard").getComponent(cc.Animation).play();
+          var me = 100;
+          cc.log("me" + me);
+          this.timing = .7;
+          var labval = "labcenter";
+          cc.log(labval + "labval");
+          var labvalNode = touchEndObj.getChildByName(labval);
+          if (null != labvalNode) {
+            this.touchcount = this.touchcount + 1;
+            if (this.touchcount % 10 != 0) {
+              labvalNode.getComponent(cc.Label).string = this.touchcount.toString();
+              touchEndObj.getChildByName("res").getComponent(cc.Label).string = this.touchcount.toString();
+            }
+            this.touchcount % 10 == 0 && (touchEndObj.getChildByName("res").getComponent(cc.Label).string = this.touchcount.toString());
+          }
+          new cc.Tween().target(this.node).to(2, {}, {
+            progress: null,
+            easing: "sineOutIn"
+          }).call(function() {
+            _this.auther = 1;
+            _this.shouldTouch = true;
+            var i = parseInt(_this.namee);
+            cc.log("imi" + i);
+            _this.objin = cc.instantiate(_this.bubble);
+            var yi = _this.getRandomArbitrary(-250, 250);
+            var xi = 150 * i - 300 + _this.getRandomArbitrary(-70, 100);
+            _this.objin.position = cc.v2(xi, yi);
+            _this.objin.parent = _this.node;
+            _this.objin.name = i.toString();
+            util_1.Util.loadFriend(function(friendNode) {
+              var characterNode = _this.objin.getChildByName("charnode");
+              if (null != characterNode) {
+                characterNode.addChild(friendNode);
+                util_1.Util.loadAccessoriesAndEquipAcc(friendNode.children[1], characterNode.getChildByName(friendNode.name));
+                animation.playAnimation("joy");
+              }
+            });
+            _this.objin.on(cc.Node.EventType.TOUCH_START, _this.onTouchStart, _this);
+            _this.objin.on(cc.Node.EventType.TOUCH_END, _this.onTouchEnd, _this);
+            _this.objin.on(cc.Node.EventType.TOUCH_CANCEL, _this.onTouchEnd, _this);
+          }).start();
+          this.destroyCount++;
+          if (this.destroyCount == this.tap[this.levelint]) {
+            cc.log("charge" + this.destroyCount + this.tap[this.levelint]);
+            this.endofgame = 1;
+            new cc.Tween().target(this.node).to(.5, {}, {
+              progress: null,
+              easing: "sineOutIn"
+            }).call(function() {
+              _this.node.emit("nextProblem");
+            }).start();
+          }
+        }
+      };
+      __decorate([ property(cc.Prefab) ], TapRise.prototype, "bubble", void 0);
+      __decorate([ error_handler_1.default() ], TapRise.prototype, "onLoad", null);
+      __decorate([ error_handler_1.default() ], TapRise.prototype, "generateObj", null);
+      __decorate([ error_handler_1.default() ], TapRise.prototype, "getRandomArbitrary", null);
+      __decorate([ error_handler_1.default() ], TapRise.prototype, "onTouchStart", null);
+      __decorate([ error_handler_1.default() ], TapRise.prototype, "onTouchEnd", null);
+      TapRise = __decorate([ ccclass ], TapRise);
+      return TapRise;
+    }(cc.Component);
+    exports.default = TapRise;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/error-handler": void 0,
+    "../../../common/scripts/util": void 0
+  } ]
+}, {}, [ "taprise" ]);

@@ -1,1 +1,269 @@
-window.__require=function t(e,o,r){function i(c,a){if(!o[c]){if(!e[c]){var l=c.split("/");if(l=l[l.length-1],!e[l]){var s="function"==typeof __require&&__require;if(!a&&s)return s(l,!0);if(n)return n(l,!0);throw new Error("Cannot find module '"+c+"'")}c=l}var h=o[c]={exports:{}};e[c][0].call(h.exports,function(t){return i(e[c][1][t]||t)},h,h.exports,t,e,o,r)}return o[c].exports}for(var n="function"==typeof __require&&__require,c=0;c<r.length;c++)i(r[c]);return i}({arrangeLetters:[function(t,e,o){"use strict";cc._RF.push(e,"2137c29qlpJiK1XLcEby1WA","arrangeLetters");var r,i=this&&this.__extends||(r=function(t,e){return(r=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(t[o]=e[o])})(t,e)},function(t,e){function o(){this.constructor=t}r(t,e),t.prototype=null===e?Object.create(e):(o.prototype=e.prototype,new o)}),n=this&&this.__decorate||function(t,e,o,r){var i,n=arguments.length,c=n<3?e:null===r?r=Object.getOwnPropertyDescriptor(e,o):r;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,o,r);else for(var a=t.length-1;a>=0;a--)(i=t[a])&&(c=(n<3?i(c):n>3?i(e,o,c):i(e,o))||c);return n>3&&c&&Object.defineProperty(e,o,c),c};Object.defineProperty(o,"__esModule",{value:!0});var c=t("../../../common/scripts/util"),a=t("../../../common/scripts/lib/config"),l=t("../../../common/scripts/game"),s=cc._decorator,h=s.ccclass,u=s.property,p=function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e.playground=null,e.playground2=null,e.ball2=null,e.ball=null,e.imagePrefab=null,e.isSoundPlaying=!1,e}var o;return i(e,t),o=e,e.prototype.onLoad=function(){var t;t=a.default.getInstance().data[0],this.level=t[0],this.worksheet=t[1],this.problem=t[2],this.backgroundName=t[3],this.objectName=t[4],this.word=t[5],this.wordAudioFileName=t[6],this.imageFileName=t[7],this.correctLetterArray=this.word.split(","),o.correctPosition=new Map,o.wordLength=this.correctLetterArray.length,this.loadBackground(),o.letterArray=this.word.split(","),this.makeDragObjects(),this.startGameSound(),this.node.getChildByName("friendPos").zIndex=1,this.node.getChildByName("friendPos").scale=.5,c.Util.playGameSound(this.wordAudioFileName,function(){})},e.prototype.makeDragObjects=function(){for(var t=c.Util.shuffle(this.correctLetterArray),e=0;e<this.correctLetterArray.length;e++){var r=cc.instantiate(this[this.objectName]);r.parent=this.node,r.name=t[e];for(var i=0;i<o.letterArray.length;i++)if(r.name===o.letterArray[i]){r.name=r.name+e,o.letterArray[i]=o.letterArray[i]+e;break}r.width=(1-.1*this.correctLetterArray.length+.7)*r.width,r.height=(1-.1*this.correctLetterArray.length+.7)*r.height,r.getChildByName("objLabel").getComponent(cc.Label).fontSize=150*(1-.1*this.correctLetterArray.length+.5),r.getChildByName("objLabel").getComponent(cc.Label).lineHeight=150*(1-.1*this.correctLetterArray.length+.5),r.position=cc.v3(this.correctLetterArray.length<=4?-cc.winSize.width/2.8+e*cc.winSize.width/this.correctLetterArray.length:-cc.winSize.width/2.4+e*cc.winSize.width/this.correctLetterArray.length,-cc.winSize.height/4),o.correctPosition.set(r.name,r.position.x),r.getChildByName("objLabel").getComponent(cc.Label).string=t[e]}},e.prototype.loadBackground=function(){var t=cc.instantiate(this[this.backgroundName]);this.node.addChild(t);var e=cc.instantiate(this.imagePrefab);this.node.addChild(e),c.Util.loadTexture(this.imageFileName,function(t){e.getChildByName("image").getComponent(cc.Sprite).spriteFrame=new cc.SpriteFrame(t)})},e.prototype.startGameSound=function(){var t=this;c.Util.loadGameSound(this.wordAudioFileName,function(e){null!=e&&(t.friend.extraClip=e)})},n([u(cc.Prefab)],e.prototype,"playground",void 0),n([u(cc.Prefab)],e.prototype,"playground2",void 0),n([u(cc.Prefab)],e.prototype,"ball2",void 0),n([u(cc.Prefab)],e.prototype,"ball",void 0),n([u(cc.Prefab)],e.prototype,"imagePrefab",void 0),o=n([h],e)}(l.default);o.default=p,cc._RF.pop()},{"../../../common/scripts/game":void 0,"../../../common/scripts/lib/config":void 0,"../../../common/scripts/util":void 0}],dragObj:[function(t,e,o){"use strict";cc._RF.push(e,"9def2ENnVJIraLwiLEaCkx3","dragObj");var r,i=this&&this.__extends||(r=function(t,e){return(r=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(t[o]=e[o])})(t,e)},function(t,e){function o(){this.constructor=t}r(t,e),t.prototype=null===e?Object.create(e):(o.prototype=e.prototype,new o)}),n=this&&this.__decorate||function(t,e,o,r){var i,n=arguments.length,c=n<3?e:null===r?r=Object.getOwnPropertyDescriptor(e,o):r;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,o,r);else for(var a=t.length-1;a>=0;a--)(i=t[a])&&(c=(n<3?i(c):n>3?i(e,o,c):i(e,o))||c);return n>3&&c&&Object.defineProperty(e,o,c),c};Object.defineProperty(o,"__esModule",{value:!0});var c=t("../../../common/scripts/drag"),a=t("./arrangeLetters"),l=t("../../../common/scripts/util"),s=cc._decorator,h=s.ccclass,u=s.property,p=function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e.correctClip=null,e.richTextNode=null,e._text=null,e._soundName=null,e._soundClip=null,e.isCollisionEnable=!1,e.goToOriginalPosition=!0,e.positionArray=[],e.currentXPos=null,e.done=!1,e.allSwapCorrect=[],e.touchSoundIsPlaying=!1,e}return i(e,t),e.prototype.onLoad=function(){cc.director.getCollisionManager().enabled=!0,cc.macro.ENABLE_MULTI_TOUCH=!1;for(var t=0;t<a.default.wordLength-1;t++)this.allSwapCorrect[t]=!1},e.prototype.onTouchStart=function(e){var o=this;t.prototype.onTouchStart.call(this,e),this.touchSoundIsPlaying||(this.touchSoundIsPlaying=!0,l.Util.speakPhonicsOrLetter(e.currentTarget.name,function(){o.touchSoundIsPlaying=!1})),this.goToOriginalPosition=!0,this.isCollisionEnable=!0},e.prototype.onTouchMove=function(e){t.prototype.onTouchMove.call(this,e),this.node.setPosition(this.node.position.x,-cc.winSize.height/4),e.currentTarget.position.z=1},e.prototype.onTouchEnd=function(e){t.prototype.onTouchEnd.call(this,e);var o=cc.moveTo(.1,cc.v2(a.default.correctPosition.get(e.currentTarget.name),-cc.winSize.height/4));this.node.runAction(o),this.checkIfMatch(),this.isCollisionEnable=!1},e.prototype.onCollisionEnter=function(t,e){if(this.isCollisionEnable){this.selfName=e.node.name,this.otherName=t.node.name;var o=cc.moveTo(.1,cc.v2(a.default.correctPosition.get(this.selfName),-cc.winSize.height/4));t.node.runAction(o);var r=a.default.correctPosition.get(this.selfName);a.default.correctPosition.set(this.selfName,a.default.correctPosition.get(this.otherName)),a.default.correctPosition.set(this.otherName,r)}},e.prototype.onCollisionExit=function(){},e.prototype.checkIfMatch=function(){var t=this;this.allSwapCorrect.forEach(function(e,o){t.allSwapCorrect[o]=!1});for(var e=0;e<a.default.wordLength;e++)a.default.correctPosition.get(a.default.letterArray[e])<a.default.correctPosition.get(a.default.letterArray[e+1])&&(cc.log(a.default.correctPosition.get(a.default.letterArray[e])+a.default.correctPosition.get(a.default.letterArray[e+1])),this.allSwapCorrect[e]=!0);this.done=this.allSwapCorrect.every(function(t){return!0===t}),cc.log(this.allSwapCorrect),cc.log(a.default.correctPosition),this.done&&(this.node.parent.emit("correct"),this.node.parent.emit("nextProblem"))},n([u(cc.AudioClip)],e.prototype,"correctClip",void 0),n([u(cc.RichText)],e.prototype,"richTextNode",void 0),n([h],e)}(c.default);o.default=p,cc._RF.pop()},{"../../../common/scripts/drag":void 0,"../../../common/scripts/util":void 0,"./arrangeLetters":"arrangeLetters"}]},{},["arrangeLetters","dragObj"]);
+window.__require = function e(t, n, r) {
+  function s(o, u) {
+    if (!n[o]) {
+      if (!t[o]) {
+        var b = o.split("/");
+        b = b[b.length - 1];
+        if (!t[b]) {
+          var a = "function" == typeof __require && __require;
+          if (!u && a) return a(b, !0);
+          if (i) return i(b, !0);
+          throw new Error("Cannot find module '" + o + "'");
+        }
+        o = b;
+      }
+      var f = n[o] = {
+        exports: {}
+      };
+      t[o][0].call(f.exports, function(e) {
+        var n = t[o][1][e];
+        return s(n || e);
+      }, f, f.exports, e, t, n, r);
+    }
+    return n[o].exports;
+  }
+  var i = "function" == typeof __require && __require;
+  for (var o = 0; o < r.length; o++) s(r[o]);
+  return s;
+}({
+  arrangeLetters: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "2137c29qlpJiK1XLcEby1WA", "arrangeLetters");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var util_1 = require("../../../common/scripts/util");
+    var config_1 = require("../../../common/scripts/lib/config");
+    var game_1 = require("../../../common/scripts/game");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var ArrangeLetters = function(_super) {
+      __extends(ArrangeLetters, _super);
+      function ArrangeLetters() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.playground = null;
+        _this.playground2 = null;
+        _this.ball2 = null;
+        _this.ball = null;
+        _this.imagePrefab = null;
+        _this.isSoundPlaying = false;
+        return _this;
+      }
+      ArrangeLetters_1 = ArrangeLetters;
+      ArrangeLetters.prototype.onLoad = function() {
+        var _a;
+        _a = config_1.default.getInstance().data[0], this.level = _a[0], this.worksheet = _a[1], 
+        this.problem = _a[2], this.backgroundName = _a[3], this.objectName = _a[4], this.word = _a[5], 
+        this.wordAudioFileName = _a[6], this.imageFileName = _a[7];
+        this.correctLetterArray = this.word.split(",");
+        ArrangeLetters_1.correctPosition = new Map();
+        ArrangeLetters_1.wordLength = this.correctLetterArray.length;
+        this.loadBackground();
+        ArrangeLetters_1.letterArray = this.word.split(",");
+        this.makeDragObjects();
+        this.startGameSound();
+        this.node.getChildByName("friendPos").zIndex = 1;
+        this.node.getChildByName("friendPos").scale = .5;
+        util_1.Util.playGameSound(this.wordAudioFileName, function() {});
+      };
+      ArrangeLetters.prototype.makeDragObjects = function() {
+        var shuffledArray = util_1.Util.shuffle(this.correctLetterArray);
+        for (var i = 0; i < this.correctLetterArray.length; i++) {
+          var dragObj = cc.instantiate(this[this.objectName]);
+          dragObj.parent = this.node;
+          dragObj.name = shuffledArray[i];
+          for (var j = 0; j < ArrangeLetters_1.letterArray.length; j++) if (dragObj.name === ArrangeLetters_1.letterArray[j]) {
+            dragObj.name = dragObj.name + i;
+            ArrangeLetters_1.letterArray[j] = ArrangeLetters_1.letterArray[j] + i;
+            break;
+          }
+          dragObj.width = (1 - .1 * this.correctLetterArray.length + .7) * dragObj.width;
+          dragObj.height = (1 - .1 * this.correctLetterArray.length + .7) * dragObj.height;
+          dragObj.getChildByName("objLabel").getComponent(cc.Label).fontSize = 150 * (1 - .1 * this.correctLetterArray.length + .5);
+          dragObj.getChildByName("objLabel").getComponent(cc.Label).lineHeight = 150 * (1 - .1 * this.correctLetterArray.length + .5);
+          dragObj.position = cc.v3(this.correctLetterArray.length <= 4 ? -cc.winSize.width / 2.8 + i * cc.winSize.width / this.correctLetterArray.length : -cc.winSize.width / 2.4 + i * cc.winSize.width / this.correctLetterArray.length, -cc.winSize.height / 4);
+          ArrangeLetters_1.correctPosition.set(dragObj.name, dragObj.position.x);
+          dragObj.getChildByName("objLabel").getComponent(cc.Label).string = shuffledArray[i];
+        }
+      };
+      ArrangeLetters.prototype.loadBackground = function() {
+        var loadbg = cc.instantiate(this[this.backgroundName]);
+        this.node.addChild(loadbg);
+        var imgVal = cc.instantiate(this.imagePrefab);
+        this.node.addChild(imgVal);
+        util_1.Util.loadTexture(this.imageFileName, function(texture, err) {
+          imgVal.getChildByName("image").getComponent(cc.Sprite).spriteFrame = new cc.SpriteFrame(texture);
+        });
+      };
+      ArrangeLetters.prototype.startGameSound = function() {
+        var _this = this;
+        util_1.Util.loadGameSound(this.wordAudioFileName, function(clip) {
+          null != clip && (_this.friend.extraClip = clip);
+        });
+      };
+      var ArrangeLetters_1;
+      __decorate([ property(cc.Prefab) ], ArrangeLetters.prototype, "playground", void 0);
+      __decorate([ property(cc.Prefab) ], ArrangeLetters.prototype, "playground2", void 0);
+      __decorate([ property(cc.Prefab) ], ArrangeLetters.prototype, "ball2", void 0);
+      __decorate([ property(cc.Prefab) ], ArrangeLetters.prototype, "ball", void 0);
+      __decorate([ property(cc.Prefab) ], ArrangeLetters.prototype, "imagePrefab", void 0);
+      ArrangeLetters = ArrangeLetters_1 = __decorate([ ccclass ], ArrangeLetters);
+      return ArrangeLetters;
+    }(game_1.default);
+    exports.default = ArrangeLetters;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/game": void 0,
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/util": void 0
+  } ],
+  dragObj: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "9def2ENnVJIraLwiLEaCkx3", "dragObj");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var drag_1 = require("../../../common/scripts/drag");
+    var arrangeLetters_1 = require("./arrangeLetters");
+    var util_1 = require("../../../common/scripts/util");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var DragObj = function(_super) {
+      __extends(DragObj, _super);
+      function DragObj() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.correctClip = null;
+        _this.richTextNode = null;
+        _this._text = null;
+        _this._soundName = null;
+        _this._soundClip = null;
+        _this.isCollisionEnable = false;
+        _this.goToOriginalPosition = true;
+        _this.positionArray = [];
+        _this.currentXPos = null;
+        _this.done = false;
+        _this.allSwapCorrect = [];
+        _this.touchSoundIsPlaying = false;
+        return _this;
+      }
+      DragObj.prototype.onLoad = function() {
+        cc.director.getCollisionManager().enabled = true;
+        cc.macro.ENABLE_MULTI_TOUCH = false;
+        for (var i = 0; i < arrangeLetters_1.default.wordLength - 1; i++) this.allSwapCorrect[i] = false;
+      };
+      DragObj.prototype.onTouchStart = function(touch) {
+        var _this = this;
+        _super.prototype.onTouchStart.call(this, touch);
+        if (!this.touchSoundIsPlaying) {
+          this.touchSoundIsPlaying = true;
+          util_1.Util.speakPhonicsOrLetter(touch.currentTarget.name, function() {
+            _this.touchSoundIsPlaying = false;
+          });
+        }
+        this.goToOriginalPosition = true;
+        this.isCollisionEnable = true;
+      };
+      DragObj.prototype.onTouchMove = function(touch) {
+        _super.prototype.onTouchMove.call(this, touch);
+        this.node.setPosition(this.node.position.x, -cc.winSize.height / 4);
+        touch.currentTarget.position.z = 1;
+      };
+      DragObj.prototype.onTouchEnd = function(touch) {
+        _super.prototype.onTouchEnd.call(this, touch);
+        var actiona = cc.moveTo(.1, cc.v2(arrangeLetters_1.default.correctPosition.get(touch.currentTarget.name), -cc.winSize.height / 4));
+        this.node.runAction(actiona);
+        this.checkIfMatch();
+        this.isCollisionEnable = false;
+      };
+      DragObj.prototype.onCollisionEnter = function(other, self) {
+        if (this.isCollisionEnable) {
+          this.selfName = self.node.name;
+          this.otherName = other.node.name;
+          var actiona = cc.moveTo(.1, cc.v2(arrangeLetters_1.default.correctPosition.get(this.selfName), -cc.winSize.height / 4));
+          other.node.runAction(actiona);
+          var temp = arrangeLetters_1.default.correctPosition.get(this.selfName);
+          arrangeLetters_1.default.correctPosition.set(this.selfName, arrangeLetters_1.default.correctPosition.get(this.otherName));
+          arrangeLetters_1.default.correctPosition.set(this.otherName, temp);
+        }
+      };
+      DragObj.prototype.onCollisionExit = function(other, self) {};
+      DragObj.prototype.checkIfMatch = function() {
+        var _this = this;
+        this.allSwapCorrect.forEach(function(element, index) {
+          _this.allSwapCorrect[index] = false;
+        });
+        for (var i = 0; i < arrangeLetters_1.default.wordLength; i++) if (arrangeLetters_1.default.correctPosition.get(arrangeLetters_1.default.letterArray[i]) < arrangeLetters_1.default.correctPosition.get(arrangeLetters_1.default.letterArray[i + 1])) {
+          cc.log(arrangeLetters_1.default.correctPosition.get(arrangeLetters_1.default.letterArray[i]) + arrangeLetters_1.default.correctPosition.get(arrangeLetters_1.default.letterArray[i + 1]));
+          this.allSwapCorrect[i] = true;
+        }
+        this.done = this.allSwapCorrect.every(function(val, i, arr) {
+          return true === val;
+        });
+        cc.log(this.allSwapCorrect);
+        cc.log(arrangeLetters_1.default.correctPosition);
+        if (this.done) {
+          this.node.parent.emit("correct");
+          this.node.parent.emit("nextProblem");
+        }
+      };
+      __decorate([ property(cc.AudioClip) ], DragObj.prototype, "correctClip", void 0);
+      __decorate([ property(cc.RichText) ], DragObj.prototype, "richTextNode", void 0);
+      DragObj = __decorate([ ccclass ], DragObj);
+      return DragObj;
+    }(drag_1.default);
+    exports.default = DragObj;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/drag": void 0,
+    "../../../common/scripts/util": void 0,
+    "./arrangeLetters": "arrangeLetters"
+  } ]
+}, {}, [ "arrangeLetters", "dragObj" ]);

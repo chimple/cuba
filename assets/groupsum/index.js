@@ -1,1 +1,605 @@
-window.__require=function t(o,e,n){function i(r,h){if(!e[r]){if(!o[r]){var s=r.split("/");if(s=s[s.length-1],!o[s]){var a="function"==typeof __require&&__require;if(!h&&a)return a(s,!0);if(c)return c(s,!0);throw new Error("Cannot find module '"+r+"'")}r=s}var l=e[r]={exports:{}};o[r][0].call(l.exports,function(t){return i(o[r][1][t]||t)},l,l.exports,t,o,e,n)}return e[r].exports}for(var c="function"==typeof __require&&__require,r=0;r<n.length;r++)i(n[r]);return i}({ball:[function(t,o,e){"use strict";cc._RF.push(o,"c5b8dPAkWlICI8Qm3q02Ske","ball");var n,i=this&&this.__extends||(n=function(t,o){return(n=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,o){t.__proto__=o}||function(t,o){for(var e in o)Object.prototype.hasOwnProperty.call(o,e)&&(t[e]=o[e])})(t,o)},function(t,o){function e(){this.constructor=t}n(t,o),t.prototype=null===o?Object.create(o):(e.prototype=o.prototype,new e)}),c=this&&this.__decorate||function(t,o,e,n){var i,c=arguments.length,r=c<3?o:null===n?n=Object.getOwnPropertyDescriptor(o,e):n;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)r=Reflect.decorate(t,o,e,n);else for(var h=t.length-1;h>=0;h--)(i=t[h])&&(r=(c<3?i(r):c>3?i(o,e,r):i(o,e))||r);return c>3&&r&&Object.defineProperty(o,e,r),r};Object.defineProperty(e,"__esModule",{value:!0});var r=t("./groupsum"),h=t("../../../common/scripts/lib/error-handler"),s=cc._decorator,a=s.ccclass,l=(s.property,function(t){function o(){var o=null!==t&&t.apply(this,arguments)||this;return o.homePos=null,o.box1Rect=null,o.box2Rect=null,o.hasTouchEnd=!1,o.hasTouchCanceled=!1,o.hasPlacedBallWrong=!1,o.hasTouchMoved=!1,o}return i(o,t),o.prototype.onLoad=function(){cc.director.getPhysicsManager().enabled=!0,this.node.on("touchstart",this.onTouchStart,this),this.node.on("touchend",this.onTouchCancel,this),this.node.on("touchmove",this.onTouchMove,this),this.node.on("touchcancel",this.onTouchCancel,this)},o.prototype.onDestroy=function(){this.node.off("touchstart",this.onTouchStart,this),this.node.off("touchmove",this.onTouchMove,this),this.node.off("touchend",this.onTouchCancel,this),this.node.off("touchcancel",this.onTouchCancel,this)},o.prototype.onTouchStart=function(t){0==t.getID()&&(this.node.getComponent(cc.PhysicsCircleCollider).sensor=!0,this.hasTouchEnd=!1,this.touchedBallName=this.node.name,this.node.getComponent(cc.RigidBody).active=!1,this.node.parent.getComponent(r.default).draggedBall=this.node.name,this.node.parent.getComponent(r.default).checkFinishCtl(!1,!0),this.node.zIndex=1)},o.prototype.onTouchMove=function(t){0==t.getID()&&(this.hasTouchMoved=!0,this.node.getComponent(cc.RigidBody).node.setPosition(this.node.position.add(t.getDelta())),this.node.position.y<-cc.winSize.height/2+60&&(this.touchFinished(t),this.hasTouchCanceled=!0,this.node.off("touchmove",this.onTouchMove,this)))},o.prototype.onTouchCancel=function(t){this.hasTouchCanceled?(cc.log("hi new test "),this.hasTouchCanceled=!1,this.node.on("touchmove",this.onTouchMove,this)):this.touchFinished(t)},o.prototype.touchFinished=function(){var t=this.node.parent.getChildByName("tub1");this.node.y<t.getPosition().y-t.height/2?this.node.parent.getComponent(r.default).checkFinishCtl(!0,!1):this.node.parent.getComponent(r.default).checkFinishCtl(!1,!1),this.node.getComponent(cc.PhysicsCircleCollider).sensor=!1,this.node.getComponent(cc.RigidBody).active=!0,this.hasTouchEnd=!0,this.hasTouchMoved&&(this.hasTouchMoved=!1,this.node.getBoundingBoxToWorld().intersects(t.getChildByName("covering collider").getBoundingBoxToWorld())?this.hasPlacedBallWrong=!0:null!=this.node.parent.getChildByName("tub2")&&this.node.getBoundingBoxToWorld().intersects(this.node.parent.getChildByName("tub2").getChildByName("covering collider").getBoundingBoxToWorld())&&(this.hasPlacedBallWrong=!0)),this.node.parent.getComponent(r.default).draggedBall=""},o.prototype.handleNodeTouch=function(t){"off"==t?(this.node.off("touchstart",this.onTouchStart,this),this.node.off("touchend",this.onTouchCancel,this),this.node.off("touchmove",this.onTouchMove,this),this.node.off("touchcancel",this.onTouchCancel,this)):"on"==t&&(this.node.on("touchstart",this.onTouchStart,this),this.node.on("touchend",this.onTouchCancel,this),this.node.on("touchmove",this.onTouchMove,this),this.node.on("touchcancel",this.onTouchCancel,this))},o.prototype.onBeginContact=function(t,o,e){var n=o.node.getComponent(cc.RigidBody).linearVelocity.y;cc.log("wrong"+this.hasPlacedBallWrong),this.hasPlacedBallWrong&&("colliderLine"==e.node.name?(t.disabled=!1,this.hasPlacedBallWrong=!1):(e.node.name.startsWith("tub")||"ball"==e.node.name)&&(t.disabled=!0)),this.hasTouchEnd&&(n<-110&&!t.disabled&&this.node.parent.getComponent(r.default).playBallAudio(),n>-21&&this.node.parent.getComponent(r.default).checkFinishCtl(!0,!1))},c([h.catchError()],o.prototype,"onLoad",null),c([h.catchError()],o.prototype,"onDestroy",null),c([h.catchError()],o.prototype,"onTouchStart",null),c([h.catchError()],o.prototype,"onTouchMove",null),c([h.catchError()],o.prototype,"onTouchCancel",null),c([h.catchError()],o.prototype,"touchFinished",null),c([h.catchError()],o.prototype,"handleNodeTouch",null),c([h.catchError()],o.prototype,"onBeginContact",null),c([a],o)}(cc.Component));e.default=l,cc._RF.pop()},{"../../../common/scripts/lib/error-handler":void 0,"./groupsum":"groupsum"}],groupsum:[function(t,o,e){"use strict";cc._RF.push(o,"39b92yLE6tEi65ekAba27Th","groupsum");var n,i=this&&this.__extends||(n=function(t,o){return(n=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,o){t.__proto__=o}||function(t,o){for(var e in o)Object.prototype.hasOwnProperty.call(o,e)&&(t[e]=o[e])})(t,o)},function(t,o){function e(){this.constructor=t}n(t,o),t.prototype=null===o?Object.create(o):(e.prototype=o.prototype,new e)}),c=this&&this.__decorate||function(t,o,e,n){var i,c=arguments.length,r=c<3?o:null===n?n=Object.getOwnPropertyDescriptor(o,e):n;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)r=Reflect.decorate(t,o,e,n);else for(var h=t.length-1;h>=0;h--)(i=t[h])&&(r=(c<3?i(r):c>3?i(o,e,r):i(o,e))||r);return c>3&&r&&Object.defineProperty(o,e,r),r};Object.defineProperty(e,"__esModule",{value:!0}),e.GROUND=void 0;var r=t("./ball"),h=t("../../../common/scripts/lib/config"),s=t("../../../common/scripts/util"),a=t("../../../common/scripts/lib/error-handler"),l=t("../../../common/scripts/game"),d=cc._decorator,u=d.ccclass,p=d.property;e.GROUND=50;var g=function(t){function o(){var o=null!==t&&t.apply(this,arguments)||this;return o.ballAudio=null,o.clearAudio=null,o.ballPrefab=null,o.boxPrefab=null,o.tubPrefab=null,o.helpLabelPrefab=null,o.boxIndex=[3,4,5,6,7,8],o.tub2Count=0,o.groundBallCount=0,o.totalPieces=0,o.count=0,o.isScrolling=!1,o.draggedBall="",o.firstDrag=null,o.firstDrop=null,o.hasScrollComplete=!1,o}return i(o,t),o.prototype.onLoad=function(){var t=h.default.getInstance().data[0];cc.director.getPhysicsManager().enabled=!0,this.animAudio("problem_clear"),this.totalPieces++,cc.log(t),this.boxHomePos=new Map,this.ballCurrentPlace=new Map,this.audioName=[];var o=t.toString().split(",");this.mode="true"==o[8]?"subtraction":"addition",this.showAnswer="true"==o[9],this.tub1Count=+o[3],this.tub2Count=+o[5],this.groundBallCount=+o[5],this.totalCount=this.tub1Count+this.tub2Count,this.finishCount=this.showAnswer?3:5,this.firstDrop=new cc.Node;for(var n,i,c=3;c<8;)this.audioName.push(o[c]),c++;cc.log(o[3]+o[4]+o[8]+this.mode);var a=-cc.winSize.height/2+200+e.GROUND;"addition"==this.mode?((n=cc.instantiate(this.tubPrefab)).name="tub1",this.node.addChild(n),(i=cc.instantiate(this.tubPrefab)).name="tub2",this.node.addChild(i),n.getComponent(cc.RigidBody).node.position=cc.v2(-300,a),n.getChildByName("colliderLine").getComponent(cc.RigidBody).node.position=cc.v2(0,a),i.getComponent(cc.RigidBody).node.position=cc.v2(300,a),i.getChildByName("colliderLine").getComponent(cc.RigidBody).node.position=cc.v2(0,a),this.firstDrop.parent=n,this.firstDrop.y+=n.y+380):((n=cc.instantiate(this.tubPrefab)).name="tub1",this.node.addChild(n),n.getComponent(cc.RigidBody).node.position=cc.v2(0,a),n.getChildByName("colliderLine").getComponent(cc.RigidBody).node.position=cc.v2(0,a),this.firstDrop.parent=n,this.firstDrop.position=cc.v2(-350,-150));var l=this.node.getChildByName("tub1").getBoundingBox(),d=this.totalCount;"subtraction"==this.mode&&(d=+o[3]);for(var u=0,p=l.y+45;u<d;u++){var g=cc.instantiate(this.ballPrefab),f=g.getComponent(r.default);this.node.addChild(g),0==u&&(this.firstDrag=g),"subtraction"==this.mode?(f.mode=this.mode,f.name=u.toString(),f.homeName="tub1",f.box1Rect=l,u%6==5&&(p+=10+g.height),g.position=cc.v2(l.x+u%6*(g.width-5)+130,p),f.homePos=g.position):(g.position=cc.v2(Math.random()*cc.winSize.width-cc.winSize.width/2,-cc.winSize.height/2+80),f.homePos=g.position,f.homeName="ground",f.mode=this.mode,f.name=u.toString(),f.box1Rect=l,f.box2Rect=this.node.getChildByName("tub2").getBoundingBox())}var y=cc.instantiate(this.helpLabelPrefab),m=cc.instantiate(this.helpLabelPrefab),b=cc.instantiate(this.helpLabelPrefab),C=cc.instantiate(this.helpLabelPrefab);y.getComponent(cc.Label).string=o[3],m.getComponent(cc.Label).string=o[5],b.getComponent(cc.Label).string=o[3],C.getComponent(cc.Label).fontSize=35,"subtraction"==this.mode?(y.getComponent(cc.Label).fontSize=35,y.opacity=0,b.parent=n,b.position=cc.v2(l.origin.x-7,l.height-70),y.parent=n,y.name="help1",C.parent=n,C.name="help4",y.position=cc.v2(l.width/2-80,l.height/2-80),C.position=cc.v2(100,-l.height/2-20),m.parent=n,m.position=cc.v2(-310,-75),m.zIndex=1):(y.parent=this.node,y.position=l.center,m.parent=this.node,m.position=this.node.getChildByName("tub2").getBoundingBox().center);var B=new cc.Node;for(this.node.addChild(B),B.position=cc.v2(0,0),B.name="box_slot",u=0,p=3;u<5;u++,p++){var v=cc.instantiate(this.boxPrefab);B.addChild(v),v.position=cc.v2(150*u-300,-460),v.name=o[p],!this.showAnswer||"="!=o[p]&&"+"!=o[p]&&"-"!=o[p]||(v.getChildByName("label").getComponent(cc.Label).string=o[p],v.name=o[p]+"_operator")}this.boxIndex=this.shuffle(this.boxIndex);for(var T=Math.round(this.getRandom(1,9));T==+o[3]||T==+o[5]||T==+o[7];)T=Math.round(this.getRandom(1,9));for(this.notCompare=T.toString(),u=0,p=3;u<6;u++)v=cc.instantiate(this.boxPrefab),B.addChild(v),v.position=cc.v2(150*u-300-60,-600),8!=this.boxIndex[u]?(v.getChildByName("label").getComponent(cc.Label).string=o[this.boxIndex[u]],this.boxHomePos.set("choice_"+u.toString()+o[this.boxIndex[u]],v.position),v.name="choice_"+u.toString()+o[this.boxIndex[u]]):(v.getChildByName("label").getComponent(cc.Label).string=T.toString(),v.name="choice_"+u.toString()+T.toString(),this.boxHomePos.set("choice_"+u.toString()+T.toString(),v.position)),v.on(s.TouchEvents.TOUCH_START,this.onTouchStarted,this),v.on(s.TouchEvents.TOUCH_MOVE,this.onTouchMoved,this),v.on(s.TouchEvents.TOUCH_END,this.onTouchEnded,this),v.on(s.TouchEvents.TOUCH_CANCEL,this.onTouchEnded,this);s.Util.showHelp(this.firstDrag,this.firstDrop)},o.prototype.shuffle=function(t){for(var o,e,n=t.length;0!==n;)e=Math.floor(Math.random()*n),o=t[n-=1],t[n]=t[e],t[e]=o;return t},o.prototype.getRandom=function(t,o){return Math.random()*(o-t)+t},o.prototype.playBallAudio=function(){cc.audioEngine.isMusicPlaying()||s.Util.playSfx(this.ballAudio)},o.prototype.animAudio=function(){cc.audioEngine.isMusicPlaying()||s.Util.playSfx(this.clearAudio)},o.prototype.onDestroy=function(){cc.audioEngine.stopAllEffects()},o.prototype.checkFinishCtl=function(t,o){this.Callback=function(){this.checkFinish(!0)},this.Callback&&this.unscheduleAllCallbacks(),t&&(o?this.checkFinish(!1):this.scheduleOnce(this.Callback,.5))},o.prototype.checkFinish=function(t){var o,e=this.node.getChildByName("tub1").getChildByName("collider");"addition"==this.mode&&(o=this.node.getChildByName("tub2").getChildByName("collider")),cc.log("final fn "+t+this.draggedBall+"Count: "+cc.director.getPhysicsManager().testAABB(this.node.getChildByName("tub1").getChildByName("collider").getBoundingBoxToWorld()).length+" diff_1 "+cc.director.getPhysicsManager().testAABB(this.node.getChildByName("tub1").getChildByName("collider").getChildByName("diff_1").getBoundingBoxToWorld()).length+" diff2 "+cc.director.getPhysicsManager().testAABB(this.node.getChildByName("tub1").getChildByName("collider").getChildByName("diff_2").getBoundingBoxToWorld()).length);var n=this.ballsInTub(e);"subtraction"==this.mode?(this.tub1Count-n==0?(this.node.getChildByName("tub1").getChildByName("help1").opacity=0,this.node.getChildByName("tub1").getChildByName("help4").opacity=0):(this.node.getChildByName("tub1").getChildByName("help1").opacity=255,this.node.getChildByName("tub1").getChildByName("help4").opacity=255,this.node.getChildByName("tub1").getChildByName("help1").getComponent(cc.Label).string=n.toString(),this.node.getChildByName("tub1").getChildByName("help4").getComponent(cc.Label).string=(this.tub1Count-n).toString()),n==this.tub1Count-this.groundBallCount&&t&&this.scrollScene()):t&&this.tub1Count==n&&this.tub2Count==this.ballsInTub(o)&&this.scrollScene()},o.prototype.ballsInTub=function(t){var o=cc.director.getPhysicsManager().testAABB(t.getBoundingBoxToWorld()),e=cc.director.getPhysicsManager().testAABB(t.getChildByName("diff_1").getBoundingBoxToWorld()).concat(cc.director.getPhysicsManager().testAABB(t.getChildByName("diff_2").getBoundingBoxToWorld()));return o.length-e.length},o.prototype.scrollScene=function(){var t=this;if(!this.isScrolling){this.isScrolling=!0,this.node.getComponentsInChildren(r.default).forEach(function(t){t.handleNodeTouch("off")});var o=this.node.getChildByName("box_slot");(new cc.Tween).target(o).to(2,{position:cc.v2(o.x,o.y+745)},{progress:null,easing:"bounceOut"}).call(function(){return t.hasScrollComplete=!0}).start()}},o.prototype.onTouchStarted=function(t){0==t.getID()&&this.hasScrollComplete&&(t.currentTarget.scale=1.1)},o.prototype.onTouchMoved=function(t){0==t.getID()&&this.hasScrollComplete&&(t.currentTarget.position=t.currentTarget.position.add(t.getDelta()))},o.prototype.onTouchEnded=function(t){var o,e=this,n=t.currentTarget.getChildByName("label").getComponent(cc.Label).string,i=!1;this.node.getChildByName("box_slot").children.forEach(function(e){e.name==n&&e.getBoundingBox().contains(t.currentTarget)&&(e.name="done"+e.name,o=e.getBoundingBox(),i=!0)}),n!=this.notCompare&&i?(this.node.emit("correct"),t.currentTarget.scale=1,t.currentTarget.position=o.center,t.currentTarget.name="done_"+n,t.currentTarget.off(cc.Node.EventType.TOUCH_START,this.onTouchStarted,this),t.currentTarget.off(cc.Node.EventType.TOUCH_MOVE,this.onTouchMoved,this),t.currentTarget.off(cc.Node.EventType.TOUCH_END,this.onTouchEnded,this),t.currentTarget.off(cc.Node.EventType.TOUCH_CANCEL,this.onTouchEnded,this),0==--this.finishCount&&(this.node.getChildByName("box_slot").children.forEach(function(t){t.name.startsWith("choice")&&(t.off("touchstart",e.onTouchStarted,e),t.off("touchmove",e.onTouchMoved,e),t.off("touchend",e.onTouchEnded,e),t.off("touchcancel",e.onTouchEnded,e))}),this.scheduleOnce(function(){s.Util.speakEquation(e.audioName,function(t){t+1==e.audioName.length&&e.node.emit("nextProblem")})},1)),t.currentTarget.scale=1):(this.node.emit("wrong"),(new cc.Tween).target(t.currentTarget).to(.3,{position:this.boxHomePos.get(t.currentTarget.name),scale:1},{progress:null,easing:function(t){return t}}).start())},c([p({type:cc.AudioClip})],o.prototype,"ballAudio",void 0),c([p(cc.AudioClip)],o.prototype,"clearAudio",void 0),c([p(cc.Prefab)],o.prototype,"ballPrefab",void 0),c([p(cc.Prefab)],o.prototype,"boxPrefab",void 0),c([p(cc.Prefab)],o.prototype,"tubPrefab",void 0),c([p(cc.Prefab)],o.prototype,"helpLabelPrefab",void 0),c([a.catchError()],o.prototype,"onLoad",null),c([a.catchError()],o.prototype,"shuffle",null),c([a.catchError()],o.prototype,"getRandom",null),c([a.catchError()],o.prototype,"playBallAudio",null),c([a.catchError()],o.prototype,"animAudio",null),c([a.catchError()],o.prototype,"onDestroy",null),c([a.catchError()],o.prototype,"checkFinishCtl",null),c([a.catchError()],o.prototype,"checkFinish",null),c([a.catchError()],o.prototype,"ballsInTub",null),c([a.catchError()],o.prototype,"scrollScene",null),c([a.catchError()],o.prototype,"onTouchStarted",null),c([a.catchError()],o.prototype,"onTouchMoved",null),c([a.catchError()],o.prototype,"onTouchEnded",null),c([u],o)}(l.default);e.default=g,cc._RF.pop()},{"../../../common/scripts/game":void 0,"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/error-handler":void 0,"../../../common/scripts/util":void 0,"./ball":"ball"}],wall:[function(t,o,e){"use strict";cc._RF.push(o,"abf56clOGNFW6BijP3gSPXh","wall");var n,i=this&&this.__extends||(n=function(t,o){return(n=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,o){t.__proto__=o}||function(t,o){for(var e in o)Object.prototype.hasOwnProperty.call(o,e)&&(t[e]=o[e])})(t,o)},function(t,o){function e(){this.constructor=t}n(t,o),t.prototype=null===o?Object.create(o):(e.prototype=o.prototype,new e)}),c=this&&this.__decorate||function(t,o,e,n){var i,c=arguments.length,r=c<3?o:null===n?n=Object.getOwnPropertyDescriptor(o,e):n;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)r=Reflect.decorate(t,o,e,n);else for(var h=t.length-1;h>=0;h--)(i=t[h])&&(r=(c<3?i(r):c>3?i(o,e,r):i(o,e))||r);return c>3&&r&&Object.defineProperty(o,e,r),r};Object.defineProperty(e,"__esModule",{value:!0});var r=t("../../../common/scripts/lib/error-handler"),h=cc._decorator,s=h.ccclass,a=h.property,l=function(t){function o(){return null!==t&&t.apply(this,arguments)||this}return i(o,t),o.prototype.onLoad=function(){switch(cc.director.getPhysicsManager().enabled=!0,this.text){case"ground":this.node.getComponent(cc.PhysicsBoxCollider).size.width=cc.winSize.width,this.node.getComponent(cc.PhysicsBoxCollider).offset.y=-cc.winSize.height/2-250+180;break;case"left":this.node.getComponent(cc.PhysicsBoxCollider).size.height=cc.winSize.height,this.node.getComponent(cc.PhysicsBoxCollider).offset.x=-cc.winSize.width/2-100;break;case"right":this.node.getComponent(cc.PhysicsBoxCollider).size.height=cc.winSize.height,this.node.getComponent(cc.PhysicsBoxCollider).offset.x=cc.winSize.width/2+100}},c([a],o.prototype,"text",void 0),c([r.catchError()],o.prototype,"onLoad",null),c([s],o)}(cc.Component);e.default=l,cc._RF.pop()},{"../../../common/scripts/lib/error-handler":void 0}]},{},["ball","groupsum","wall"]);
+window.__require = function e(t, n, r) {
+  function s(o, u) {
+    if (!n[o]) {
+      if (!t[o]) {
+        var b = o.split("/");
+        b = b[b.length - 1];
+        if (!t[b]) {
+          var a = "function" == typeof __require && __require;
+          if (!u && a) return a(b, !0);
+          if (i) return i(b, !0);
+          throw new Error("Cannot find module '" + o + "'");
+        }
+        o = b;
+      }
+      var f = n[o] = {
+        exports: {}
+      };
+      t[o][0].call(f.exports, function(e) {
+        var n = t[o][1][e];
+        return s(n || e);
+      }, f, f.exports, e, t, n, r);
+    }
+    return n[o].exports;
+  }
+  var i = "function" == typeof __require && __require;
+  for (var o = 0; o < r.length; o++) s(r[o]);
+  return s;
+}({
+  ball: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "c5b8dPAkWlICI8Qm3q02Ske", "ball");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var groupsum_1 = require("./groupsum");
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var Ball = function(_super) {
+      __extends(Ball, _super);
+      function Ball() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.homePos = null;
+        _this.box1Rect = null;
+        _this.box2Rect = null;
+        _this.hasTouchEnd = false;
+        _this.hasTouchCanceled = false;
+        _this.hasPlacedBallWrong = false;
+        _this.hasTouchMoved = false;
+        return _this;
+      }
+      Ball.prototype.onLoad = function() {
+        cc.director.getPhysicsManager().enabled = true;
+        this.node.on("touchstart", this.onTouchStart, this);
+        this.node.on("touchend", this.onTouchCancel, this);
+        this.node.on("touchmove", this.onTouchMove, this);
+        this.node.on("touchcancel", this.onTouchCancel, this);
+      };
+      Ball.prototype.onDestroy = function() {
+        this.node.off("touchstart", this.onTouchStart, this);
+        this.node.off("touchmove", this.onTouchMove, this);
+        this.node.off("touchend", this.onTouchCancel, this);
+        this.node.off("touchcancel", this.onTouchCancel, this);
+      };
+      Ball.prototype.onTouchStart = function(touch) {
+        if (0 == touch.getID()) {
+          this.node.getComponent(cc.PhysicsCircleCollider).sensor = true;
+          this.hasTouchEnd = false;
+          this.touchedBallName = this.node.name;
+          this.node.getComponent(cc.RigidBody).active = false;
+          this.node.parent.getComponent(groupsum_1.default).draggedBall = this.node.name;
+          this.node.parent.getComponent(groupsum_1.default).checkFinishCtl(false, true);
+          this.node.zIndex = 1;
+        }
+      };
+      Ball.prototype.onTouchMove = function(touch) {
+        if (0 == touch.getID()) {
+          this.hasTouchMoved = true;
+          this.node.getComponent(cc.RigidBody).node.setPosition(this.node.position.add(touch.getDelta()));
+          if (this.node.position.y < -cc.winSize.height / 2 + 60) {
+            this.touchFinished(touch);
+            this.hasTouchCanceled = true;
+            this.node.off("touchmove", this.onTouchMove, this);
+          }
+        }
+      };
+      Ball.prototype.onTouchCancel = function(touch) {
+        if (this.hasTouchCanceled) {
+          cc.log("hi new test ");
+          this.hasTouchCanceled = false;
+          this.node.on("touchmove", this.onTouchMove, this);
+        } else this.touchFinished(touch);
+      };
+      Ball.prototype.touchFinished = function(touch) {
+        var tub = this.node.parent.getChildByName("tub1");
+        this.node.y < tub.getPosition().y - tub.height / 2 ? this.node.parent.getComponent(groupsum_1.default).checkFinishCtl(true, false) : this.node.parent.getComponent(groupsum_1.default).checkFinishCtl(false, false);
+        this.node.getComponent(cc.PhysicsCircleCollider).sensor = false;
+        this.node.getComponent(cc.RigidBody).active = true;
+        this.hasTouchEnd = true;
+        if (this.hasTouchMoved) {
+          this.hasTouchMoved = false;
+          this.node.getBoundingBoxToWorld().intersects(tub.getChildByName("covering collider").getBoundingBoxToWorld()) ? this.hasPlacedBallWrong = true : null != this.node.parent.getChildByName("tub2") && this.node.getBoundingBoxToWorld().intersects(this.node.parent.getChildByName("tub2").getChildByName("covering collider").getBoundingBoxToWorld()) && (this.hasPlacedBallWrong = true);
+        }
+        this.node.parent.getComponent(groupsum_1.default).draggedBall = "";
+      };
+      Ball.prototype.handleNodeTouch = function(handle) {
+        if ("off" == handle) {
+          this.node.off("touchstart", this.onTouchStart, this);
+          this.node.off("touchend", this.onTouchCancel, this);
+          this.node.off("touchmove", this.onTouchMove, this);
+          this.node.off("touchcancel", this.onTouchCancel, this);
+        } else if ("on" == handle) {
+          this.node.on("touchstart", this.onTouchStart, this);
+          this.node.on("touchend", this.onTouchCancel, this);
+          this.node.on("touchmove", this.onTouchMove, this);
+          this.node.on("touchcancel", this.onTouchCancel, this);
+        }
+      };
+      Ball.prototype.onBeginContact = function(contact, selfCollider, otherCollider) {
+        var velocity = selfCollider.node.getComponent(cc.RigidBody).linearVelocity.y;
+        cc.log("wrong" + this.hasPlacedBallWrong);
+        if (this.hasPlacedBallWrong) if ("colliderLine" == otherCollider.node.name) {
+          contact.disabled = false;
+          this.hasPlacedBallWrong = false;
+        } else (otherCollider.node.name.startsWith("tub") || "ball" == otherCollider.node.name) && (contact.disabled = true);
+        if (this.hasTouchEnd) {
+          velocity < -110 && !contact.disabled && this.node.parent.getComponent(groupsum_1.default).playBallAudio();
+          velocity > -21 && this.node.parent.getComponent(groupsum_1.default).checkFinishCtl(true, false);
+        }
+      };
+      __decorate([ error_handler_1.catchError() ], Ball.prototype, "onLoad", null);
+      __decorate([ error_handler_1.catchError() ], Ball.prototype, "onDestroy", null);
+      __decorate([ error_handler_1.catchError() ], Ball.prototype, "onTouchStart", null);
+      __decorate([ error_handler_1.catchError() ], Ball.prototype, "onTouchMove", null);
+      __decorate([ error_handler_1.catchError() ], Ball.prototype, "onTouchCancel", null);
+      __decorate([ error_handler_1.catchError() ], Ball.prototype, "touchFinished", null);
+      __decorate([ error_handler_1.catchError() ], Ball.prototype, "handleNodeTouch", null);
+      __decorate([ error_handler_1.catchError() ], Ball.prototype, "onBeginContact", null);
+      Ball = __decorate([ ccclass ], Ball);
+      return Ball;
+    }(cc.Component);
+    exports.default = Ball;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/lib/error-handler": void 0,
+    "./groupsum": "groupsum"
+  } ],
+  groupsum: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "39b92yLE6tEi65ekAba27Th", "groupsum");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    exports.GROUND = void 0;
+    var ball_1 = require("./ball");
+    var config_1 = require("../../../common/scripts/lib/config");
+    var util_1 = require("../../../common/scripts/util");
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var game_1 = require("../../../common/scripts/game");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    exports.GROUND = 50;
+    var GROUND_TUB = 200;
+    var GroupSum = function(_super) {
+      __extends(GroupSum, _super);
+      function GroupSum() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.ballAudio = null;
+        _this.clearAudio = null;
+        _this.ballPrefab = null;
+        _this.boxPrefab = null;
+        _this.tubPrefab = null;
+        _this.helpLabelPrefab = null;
+        _this.boxIndex = [ 3, 4, 5, 6, 7, 8 ];
+        _this.tub2Count = 0;
+        _this.groundBallCount = 0;
+        _this.totalPieces = 0;
+        _this.count = 0;
+        _this.isScrolling = false;
+        _this.draggedBall = "";
+        _this.firstDrag = null;
+        _this.firstDrop = null;
+        _this.hasScrollComplete = false;
+        return _this;
+      }
+      GroupSum.prototype.onLoad = function() {
+        var data = config_1.default.getInstance().data[0];
+        cc.director.getPhysicsManager().enabled = true;
+        this.animAudio("problem_clear");
+        this.totalPieces++;
+        cc.log(data);
+        this.boxHomePos = new Map();
+        this.ballCurrentPlace = new Map();
+        this.audioName = [];
+        var fieldArr = data.toString().split(",");
+        this.mode = "true" == fieldArr[8] ? "subtraction" : "addition";
+        this.showAnswer = "true" == fieldArr[9];
+        this.tub1Count = +fieldArr[3];
+        this.tub2Count = +fieldArr[5];
+        this.groundBallCount = +fieldArr[5];
+        this.totalCount = this.tub1Count + this.tub2Count;
+        this.finishCount = this.showAnswer ? 3 : 5;
+        this.firstDrop = new cc.Node();
+        var ac = 3;
+        while (ac < 8) {
+          this.audioName.push(fieldArr[ac]);
+          ac++;
+        }
+        var tub1;
+        var tub2;
+        cc.log(fieldArr[3] + fieldArr[4] + fieldArr[8] + this.mode);
+        var tubY = -cc.winSize.height / 2 + GROUND_TUB + exports.GROUND;
+        if ("addition" == this.mode) {
+          tub1 = cc.instantiate(this.tubPrefab);
+          tub1.name = "tub1";
+          this.node.addChild(tub1);
+          tub2 = cc.instantiate(this.tubPrefab);
+          tub2.name = "tub2";
+          this.node.addChild(tub2);
+          tub1.getComponent(cc.RigidBody).node.position = cc.v2(-300, tubY);
+          tub1.getChildByName("colliderLine").getComponent(cc.RigidBody).node.position = cc.v2(0, tubY);
+          tub2.getComponent(cc.RigidBody).node.position = cc.v2(300, tubY);
+          tub2.getChildByName("colliderLine").getComponent(cc.RigidBody).node.position = cc.v2(0, tubY);
+          this.firstDrop.parent = tub1;
+          this.firstDrop.y += tub1.y + 380;
+        } else {
+          tub1 = cc.instantiate(this.tubPrefab);
+          tub1.name = "tub1";
+          this.node.addChild(tub1);
+          tub1.getComponent(cc.RigidBody).node.position = cc.v2(0, tubY);
+          tub1.getChildByName("colliderLine").getComponent(cc.RigidBody).node.position = cc.v2(0, tubY);
+          this.firstDrop.parent = tub1;
+          this.firstDrop.position = cc.v2(-350, -150);
+        }
+        var box1Rect = this.node.getChildByName("tub1").getBoundingBox();
+        var loopLen = this.totalCount;
+        "subtraction" == this.mode && (loopLen = +fieldArr[3]);
+        for (var i = 0, j = box1Rect.y + 45; i < loopLen; i++) {
+          var ball = cc.instantiate(this.ballPrefab);
+          var ballComp = ball.getComponent(ball_1.default);
+          this.node.addChild(ball);
+          0 == i && (this.firstDrag = ball);
+          if ("subtraction" == this.mode) {
+            ballComp.mode = this.mode;
+            ballComp.name = i.toString();
+            ballComp.homeName = "tub1";
+            ballComp.box1Rect = box1Rect;
+            i % 6 == 5 && (j += 10 + ball.height);
+            ball.position = cc.v2(box1Rect.x + i % 6 * (ball.width - 5) + 130, j);
+            ballComp.homePos = ball.position;
+          } else {
+            ball.position = cc.v2(Math.random() * cc.winSize.width - cc.winSize.width / 2, -cc.winSize.height / 2 + 80);
+            ballComp.homePos = ball.position;
+            ballComp.homeName = "ground";
+            ballComp.mode = this.mode;
+            ballComp.name = i.toString();
+            ballComp.box1Rect = box1Rect;
+            ballComp.box2Rect = this.node.getChildByName("tub2").getBoundingBox();
+          }
+        }
+        var helpLabel1 = cc.instantiate(this.helpLabelPrefab);
+        var helpLabel2 = cc.instantiate(this.helpLabelPrefab);
+        var helpLabel3 = cc.instantiate(this.helpLabelPrefab);
+        var helpLabel4 = cc.instantiate(this.helpLabelPrefab);
+        helpLabel1.getComponent(cc.Label).string = fieldArr[3];
+        helpLabel2.getComponent(cc.Label).string = fieldArr[5];
+        helpLabel3.getComponent(cc.Label).string = fieldArr[3];
+        helpLabel4.getComponent(cc.Label).fontSize = 35;
+        if ("subtraction" == this.mode) {
+          helpLabel1.getComponent(cc.Label).fontSize = 35;
+          helpLabel1.opacity = 0;
+          helpLabel3.parent = tub1;
+          helpLabel3.position = cc.v2(box1Rect.origin.x - 7, box1Rect.height - 70);
+          helpLabel1.parent = tub1;
+          helpLabel1.name = "help1";
+          helpLabel4.parent = tub1;
+          helpLabel4.name = "help4";
+          helpLabel1.position = cc.v2(box1Rect.width / 2 - 80, box1Rect.height / 2 - 80);
+          helpLabel4.position = cc.v2(100, -box1Rect.height / 2 - 20);
+          helpLabel2.parent = tub1;
+          helpLabel2.position = cc.v2(-310, -75);
+          helpLabel2.zIndex = 1;
+        } else {
+          helpLabel1.parent = this.node;
+          helpLabel1.position = box1Rect.center;
+          helpLabel2.parent = this.node;
+          helpLabel2.position = this.node.getChildByName("tub2").getBoundingBox().center;
+        }
+        var slot = new cc.Node();
+        this.node.addChild(slot);
+        slot.position = cc.v2(0, 0);
+        slot.name = "box_slot";
+        for (var i = 0, j = 3; i < 5; i++, j++) {
+          var box = cc.instantiate(this.boxPrefab);
+          slot.addChild(box);
+          box.position = cc.v2(150 * i - 300, -460);
+          box.name = fieldArr[j];
+          if (this.showAnswer && ("=" == fieldArr[j] || "+" == fieldArr[j] || "-" == fieldArr[j])) {
+            box.getChildByName("label").getComponent(cc.Label).string = fieldArr[j];
+            box.name = fieldArr[j] + "_operator";
+          }
+        }
+        this.boxIndex = this.shuffle(this.boxIndex);
+        var random = Math.round(this.getRandom(1, 9));
+        while (random == +fieldArr[3] || random == +fieldArr[5] || random == +fieldArr[7]) random = Math.round(this.getRandom(1, 9));
+        this.notCompare = random.toString();
+        for (var i = 0, j = 3; i < 6; i++) {
+          var box = cc.instantiate(this.boxPrefab);
+          slot.addChild(box);
+          box.position = cc.v2(150 * i - 300 - 60, -600);
+          if (8 != this.boxIndex[i]) {
+            box.getChildByName("label").getComponent(cc.Label).string = fieldArr[this.boxIndex[i]];
+            this.boxHomePos.set("choice_" + i.toString() + fieldArr[this.boxIndex[i]], box.position);
+            box.name = "choice_" + i.toString() + fieldArr[this.boxIndex[i]];
+          } else {
+            box.getChildByName("label").getComponent(cc.Label).string = random.toString();
+            box.name = "choice_" + i.toString() + random.toString();
+            this.boxHomePos.set("choice_" + i.toString() + random.toString(), box.position);
+          }
+          box.on(util_1.TouchEvents.TOUCH_START, this.onTouchStarted, this);
+          box.on(util_1.TouchEvents.TOUCH_MOVE, this.onTouchMoved, this);
+          box.on(util_1.TouchEvents.TOUCH_END, this.onTouchEnded, this);
+          box.on(util_1.TouchEvents.TOUCH_CANCEL, this.onTouchEnded, this);
+        }
+        util_1.Util.showHelp(this.firstDrag, this.firstDrop);
+      };
+      GroupSum.prototype.shuffle = function(array) {
+        var currentIndex = array.length;
+        var temporaryValue;
+        var randomIndex;
+        while (0 !== currentIndex) {
+          randomIndex = Math.floor(Math.random() * currentIndex);
+          currentIndex -= 1;
+          temporaryValue = array[currentIndex];
+          array[currentIndex] = array[randomIndex];
+          array[randomIndex] = temporaryValue;
+        }
+        return array;
+      };
+      GroupSum.prototype.getRandom = function(min, max) {
+        return Math.random() * (max - min) + min;
+      };
+      GroupSum.prototype.playBallAudio = function() {
+        cc.audioEngine.isMusicPlaying() || util_1.Util.playSfx(this.ballAudio);
+      };
+      GroupSum.prototype.animAudio = function(musicName) {
+        cc.audioEngine.isMusicPlaying() || util_1.Util.playSfx(this.clearAudio);
+      };
+      GroupSum.prototype.onDestroy = function() {
+        cc.audioEngine.stopAllEffects();
+      };
+      GroupSum.prototype.checkFinishCtl = function(shouldCheckFinish, isDrag) {
+        this.Callback = function() {
+          this.checkFinish(true);
+        };
+        this.Callback && this.unscheduleAllCallbacks();
+        shouldCheckFinish && (isDrag ? this.checkFinish(false) : this.scheduleOnce(this.Callback, .5));
+      };
+      GroupSum.prototype.checkFinish = function(shouldScroll) {
+        var collider1 = this.node.getChildByName("tub1").getChildByName("collider");
+        var collider2;
+        "addition" == this.mode && (collider2 = this.node.getChildByName("tub2").getChildByName("collider"));
+        cc.log("final fn " + shouldScroll + this.draggedBall + "Count: " + cc.director.getPhysicsManager().testAABB(this.node.getChildByName("tub1").getChildByName("collider").getBoundingBoxToWorld()).length + " diff_1 " + cc.director.getPhysicsManager().testAABB(this.node.getChildByName("tub1").getChildByName("collider").getChildByName("diff_1").getBoundingBoxToWorld()).length + " diff2 " + cc.director.getPhysicsManager().testAABB(this.node.getChildByName("tub1").getChildByName("collider").getChildByName("diff_2").getBoundingBoxToWorld()).length);
+        var tub1Count = this.ballsInTub(collider1);
+        if ("subtraction" == this.mode) {
+          if (this.tub1Count - tub1Count == 0) {
+            this.node.getChildByName("tub1").getChildByName("help1").opacity = 0;
+            this.node.getChildByName("tub1").getChildByName("help4").opacity = 0;
+          } else {
+            this.node.getChildByName("tub1").getChildByName("help1").opacity = 255;
+            this.node.getChildByName("tub1").getChildByName("help4").opacity = 255;
+            this.node.getChildByName("tub1").getChildByName("help1").getComponent(cc.Label).string = tub1Count.toString();
+            this.node.getChildByName("tub1").getChildByName("help4").getComponent(cc.Label).string = (this.tub1Count - tub1Count).toString();
+          }
+          tub1Count == this.tub1Count - this.groundBallCount && shouldScroll && this.scrollScene();
+        } else shouldScroll && this.tub1Count == tub1Count && this.tub2Count == this.ballsInTub(collider2) && this.scrollScene();
+      };
+      GroupSum.prototype.ballsInTub = function(tubCollider) {
+        var collideBalls = cc.director.getPhysicsManager().testAABB(tubCollider.getBoundingBoxToWorld());
+        var ballsOut = cc.director.getPhysicsManager().testAABB(tubCollider.getChildByName("diff_1").getBoundingBoxToWorld()).concat(cc.director.getPhysicsManager().testAABB(tubCollider.getChildByName("diff_2").getBoundingBoxToWorld()));
+        return collideBalls.length - ballsOut.length;
+      };
+      GroupSum.prototype.scrollScene = function() {
+        var _this = this;
+        if (!this.isScrolling) {
+          this.isScrolling = true;
+          this.node.getComponentsInChildren(ball_1.default).forEach(function(e) {
+            e.handleNodeTouch("off");
+          });
+          var target = this.node.getChildByName("box_slot");
+          new cc.Tween().target(target).to(2, {
+            position: cc.v2(target.x, target.y + 745)
+          }, {
+            progress: null,
+            easing: "bounceOut"
+          }).call(function() {
+            return _this.hasScrollComplete = true;
+          }).start();
+        }
+      };
+      GroupSum.prototype.onTouchStarted = function(touch) {
+        0 == touch.getID() && this.hasScrollComplete && (touch.currentTarget.scale = 1.1);
+      };
+      GroupSum.prototype.onTouchMoved = function(touch) {
+        0 == touch.getID() && this.hasScrollComplete && (touch.currentTarget.position = touch.currentTarget.position.add(touch.getDelta()));
+      };
+      GroupSum.prototype.onTouchEnded = function(touch) {
+        var _this = this;
+        var touchedName = touch.currentTarget.getChildByName("label").getComponent(cc.Label).string;
+        var dropRect;
+        var isRight = false;
+        this.node.getChildByName("box_slot").children.forEach(function(e) {
+          if (e.name == touchedName && e.getBoundingBox().contains(touch.currentTarget)) {
+            e.name = "done" + e.name;
+            dropRect = e.getBoundingBox();
+            isRight = true;
+          }
+        });
+        if (touchedName != this.notCompare && isRight) {
+          this.node.emit("correct");
+          touch.currentTarget.scale = 1;
+          touch.currentTarget.position = dropRect.center;
+          touch.currentTarget.name = "done_" + touchedName;
+          touch.currentTarget.off(cc.Node.EventType.TOUCH_START, this.onTouchStarted, this);
+          touch.currentTarget.off(cc.Node.EventType.TOUCH_MOVE, this.onTouchMoved, this);
+          touch.currentTarget.off(cc.Node.EventType.TOUCH_END, this.onTouchEnded, this);
+          touch.currentTarget.off(cc.Node.EventType.TOUCH_CANCEL, this.onTouchEnded, this);
+          if (0 == --this.finishCount) {
+            this.node.getChildByName("box_slot").children.forEach(function(e) {
+              if (e.name.startsWith("choice")) {
+                e.off("touchstart", _this.onTouchStarted, _this);
+                e.off("touchmove", _this.onTouchMoved, _this);
+                e.off("touchend", _this.onTouchEnded, _this);
+                e.off("touchcancel", _this.onTouchEnded, _this);
+              }
+            });
+            this.scheduleOnce(function() {
+              util_1.Util.speakEquation(_this.audioName, function(index) {
+                index + 1 == _this.audioName.length && _this.node.emit("nextProblem");
+              });
+            }, 1);
+          }
+          touch.currentTarget.scale = 1;
+        } else {
+          this.node.emit("wrong");
+          new cc.Tween().target(touch.currentTarget).to(.3, {
+            position: this.boxHomePos.get(touch.currentTarget.name),
+            scale: 1
+          }, {
+            progress: null,
+            easing: function(t) {
+              return t;
+            }
+          }).start();
+        }
+      };
+      __decorate([ property({
+        type: cc.AudioClip
+      }) ], GroupSum.prototype, "ballAudio", void 0);
+      __decorate([ property(cc.AudioClip) ], GroupSum.prototype, "clearAudio", void 0);
+      __decorate([ property(cc.Prefab) ], GroupSum.prototype, "ballPrefab", void 0);
+      __decorate([ property(cc.Prefab) ], GroupSum.prototype, "boxPrefab", void 0);
+      __decorate([ property(cc.Prefab) ], GroupSum.prototype, "tubPrefab", void 0);
+      __decorate([ property(cc.Prefab) ], GroupSum.prototype, "helpLabelPrefab", void 0);
+      __decorate([ error_handler_1.catchError() ], GroupSum.prototype, "onLoad", null);
+      __decorate([ error_handler_1.catchError() ], GroupSum.prototype, "shuffle", null);
+      __decorate([ error_handler_1.catchError() ], GroupSum.prototype, "getRandom", null);
+      __decorate([ error_handler_1.catchError() ], GroupSum.prototype, "playBallAudio", null);
+      __decorate([ error_handler_1.catchError() ], GroupSum.prototype, "animAudio", null);
+      __decorate([ error_handler_1.catchError() ], GroupSum.prototype, "onDestroy", null);
+      __decorate([ error_handler_1.catchError() ], GroupSum.prototype, "checkFinishCtl", null);
+      __decorate([ error_handler_1.catchError() ], GroupSum.prototype, "checkFinish", null);
+      __decorate([ error_handler_1.catchError() ], GroupSum.prototype, "ballsInTub", null);
+      __decorate([ error_handler_1.catchError() ], GroupSum.prototype, "scrollScene", null);
+      __decorate([ error_handler_1.catchError() ], GroupSum.prototype, "onTouchStarted", null);
+      __decorate([ error_handler_1.catchError() ], GroupSum.prototype, "onTouchMoved", null);
+      __decorate([ error_handler_1.catchError() ], GroupSum.prototype, "onTouchEnded", null);
+      GroupSum = __decorate([ ccclass ], GroupSum);
+      return GroupSum;
+    }(game_1.default);
+    exports.default = GroupSum;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/game": void 0,
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/error-handler": void 0,
+    "../../../common/scripts/util": void 0,
+    "./ball": "ball"
+  } ],
+  wall: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "abf56clOGNFW6BijP3gSPXh", "wall");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var GROUND = 180;
+    var Wall = function(_super) {
+      __extends(Wall, _super);
+      function Wall() {
+        return null !== _super && _super.apply(this, arguments) || this;
+      }
+      Wall.prototype.onLoad = function() {
+        cc.director.getPhysicsManager().enabled = true;
+        switch (this.text) {
+         case "ground":
+          this.node.getComponent(cc.PhysicsBoxCollider).size.width = cc.winSize.width;
+          this.node.getComponent(cc.PhysicsBoxCollider).offset.y = -cc.winSize.height / 2 - 250 + GROUND;
+          break;
+
+         case "left":
+          this.node.getComponent(cc.PhysicsBoxCollider).size.height = cc.winSize.height;
+          this.node.getComponent(cc.PhysicsBoxCollider).offset.x = -cc.winSize.width / 2 - 100;
+          break;
+
+         case "right":
+          this.node.getComponent(cc.PhysicsBoxCollider).size.height = cc.winSize.height;
+          this.node.getComponent(cc.PhysicsBoxCollider).offset.x = cc.winSize.width / 2 + 100;
+        }
+      };
+      __decorate([ property ], Wall.prototype, "text", void 0);
+      __decorate([ error_handler_1.catchError() ], Wall.prototype, "onLoad", null);
+      Wall = __decorate([ ccclass ], Wall);
+      return Wall;
+    }(cc.Component);
+    exports.default = Wall;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/lib/error-handler": void 0
+  } ]
+}, {}, [ "ball", "groupsum", "wall" ]);

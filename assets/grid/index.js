@@ -1,1 +1,1065 @@
-window.__require=function t(o,e,n){function i(c,s){if(!e[c]){if(!o[c]){var l=c.split("/");if(l=l[l.length-1],!o[l]){var d="function"==typeof __require&&__require;if(!s&&d)return d(l,!0);if(r)return r(l,!0);throw new Error("Cannot find module '"+c+"'")}c=l}var a=e[c]={exports:{}};o[c][0].call(a.exports,function(t){return i(o[c][1][t]||t)},a,a.exports,t,o,e,n)}return e[c].exports}for(var r="function"==typeof __require&&__require,c=0;c<n.length;c++)i(n[c]);return i}({CommonBlock:[function(t,o,e){"use strict";cc._RF.push(o,"67f43WsyVpLZ7sWQJdjmnZ6","CommonBlock");var n,i=this&&this.__extends||(n=function(t,o){return(n=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,o){t.__proto__=o}||function(t,o){for(var e in o)Object.prototype.hasOwnProperty.call(o,e)&&(t[e]=o[e])})(t,o)},function(t,o){function e(){this.constructor=t}n(t,o),t.prototype=null===o?Object.create(o):(e.prototype=o.prototype,new e)}),r=this&&this.__decorate||function(t,o,e,n){var i,r=arguments.length,c=r<3?o:null===n?n=Object.getOwnPropertyDescriptor(o,e):n;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,o,e,n);else for(var s=t.length-1;s>=0;s--)(i=t[s])&&(c=(r<3?i(c):r>3?i(o,e,c):i(o,e))||c);return r>3&&c&&Object.defineProperty(o,e,c),c};Object.defineProperty(e,"__esModule",{value:!0}),e.DEFAULT_FONT_COLOR=void 0;var c=cc._decorator.property,s=cc.Label.Overflow,l=t("../../../common/scripts/lib/error-handler"),d=t("../../../common/scripts/chimple-label");e.DEFAULT_FONT_COLOR=cc.Color.BLACK;var a=function(t){function o(){var o=null!==t&&t.apply(this,arguments)||this;return o.slotSelectedPrefab=null,o._contentText=null,o._fontSize=null,o._fontColor=null,o._questionSound=null,o.highlightNode=null,o._isHighlightNodePresent=!1,o}return i(o,t),Object.defineProperty(o.prototype,"contentText",{get:function(){return this._contentText},set:function(t){this._contentText=t},enumerable:!1,configurable:!0}),Object.defineProperty(o.prototype,"fontSize",{get:function(){return this._fontSize},set:function(t){this._fontSize=t},enumerable:!1,configurable:!0}),Object.defineProperty(o.prototype,"fontColor",{get:function(){return this._fontColor},set:function(t){this._fontColor=t},enumerable:!1,configurable:!0}),o.prototype.createLabelNode=function(t,o,n,i,r){void 0===t&&(t=null),void 0===o&&(o=""),void 0===n&&(n="10"),void 0===i&&(i=null),void 0===r&&(r=!0);var c=new cc.Node(o),l=c.addComponent(d.default);l.string=r?o:"",l.overflow=s.NONE;var a=e.DEFAULT_FONT_COLOR;i&&(a=a.fromHEX(i)),c.color=a,c.addComponent(cc.LabelOutline).width=3;var h=parseInt(n);return l.fontSize=h,l.lineHeight=h,c.position=new cc.Vec2(0,.1*h),c},o.prototype.getRandom=function(t,o){return Math.random()*(o-t)+t},o.prototype.addHighLightedNode=function(){!this._isHighlightNodePresent&&this.highlightNode&&(this._isHighlightNodePresent=!0,this.highlightNode.width=this.node.width,this.highlightNode.height=this.node.height,this.node.addChild(this.highlightNode))},o.prototype.removeHighLightedNode=function(){this._isHighlightNodePresent&&this.highlightNode&&(this._isHighlightNodePresent=!1,this.node.removeChild(this.highlightNode))},r([c(cc.Prefab)],o.prototype,"slotSelectedPrefab",void 0),r([l.default()],o.prototype,"createLabelNode",null),r([l.default()],o.prototype,"addHighLightedNode",null),r([l.default()],o.prototype,"removeHighLightedNode",null),o}(cc.Component);e.default=a,cc._RF.pop()},{"../../../common/scripts/chimple-label":void 0,"../../../common/scripts/lib/error-handler":void 0}],answerblock:[function(t,o,e){"use strict";cc._RF.push(o,"736a5xa/ABAMYiLpVMzh3hK","answerblock");var n,i=this&&this.__extends||(n=function(t,o){return(n=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,o){t.__proto__=o}||function(t,o){for(var e in o)Object.prototype.hasOwnProperty.call(o,e)&&(t[e]=o[e])})(t,o)},function(t,o){function e(){this.constructor=t}n(t,o),t.prototype=null===o?Object.create(o):(e.prototype=o.prototype,new e)}),r=this&&this.__decorate||function(t,o,e,n){var i,r=arguments.length,c=r<3?o:null===n?n=Object.getOwnPropertyDescriptor(o,e):n;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,o,e,n);else for(var s=t.length-1;s>=0;s--)(i=t[s])&&(c=(r<3?i(c):r>3?i(o,e,c):i(o,e))||c);return r>3&&c&&Object.defineProperty(o,e,c),c};Object.defineProperty(e,"__esModule",{value:!0});var c=t("./CommonBlock"),s=t("./grid"),l=t("./wordblock"),d=t("./questionblock"),a=t("../../../common/scripts/util"),h=t("../../../common/scripts/lib/config"),u=cc.Vec2,p=t("../../../common/scripts/lib/error-handler"),f=cc._decorator,g=f.ccclass,_=f.property,m=function(t){function o(){var o=null!==t&&t.apply(this,arguments)||this;return o.originalPosition=new u(0,0),o.finishPosition=new u(0,0),o.matchRect=null,o.match=!1,o.moved=!1,o._sound=null,o._explode=null,o._startPos=null,o._isRTL=!1,o.shouldStopMovementX=!1,o.shouldStopMovementY=!1,o.wrongMoveAudio=null,o.rightMoveAudio=null,o.problemClear=null,o.explodeParticle=null,o.questionBlocksMap=new Map,o}return i(o,t),o.prototype.onLoad=function(){var t=this;this.node.on(s.TouchEvents.TOUCH_START,this.onTouchStart,this),this.node.on(s.TouchEvents.TOUCH_END,this.onTouchEnd,this),this.node.on(s.TouchEvents.TOUCH_MOVE,this.onTouchMove,this),this.node.on(s.TouchEvents.TOUCH_CANCEL,this.onTouchEnd,this),this.fontColor="#654321";var o=this.createLabelNode(null,this.contentText,this.fontSize,this.fontColor);this._isRTL=h.default.i.direction==h.Direction.RTL,this._isRTL?(this.node.scaleX*=-s.SCALE,this.node.scaleY*=s.SCALE):this.node.scale*=s.SCALE,this.node.addChild(o),this.node.width=s.Grid._maxNodeWidth,this.node.height=s.Grid._maxNodeHeight,this.highlightNode=cc.instantiate(this.slotSelectedPrefab),a.Util.loadGameSound(this.contentText,function(o){t._sound=o})},o.prototype.start=function(){var t=this.contentText+s.PLACEHOLDER_PAIR,o=this.node.parent.getChildByName("ground");this.pairingPlaceHolderBlock=o.getChildByName(t).getComponent(l.default);var e=this.pairingPlaceHolderBlock.node.getBoundingBox();this.matchRect=cc.Rect.fromMinMax(cc.v2(e.x+40,e.y+40),cc.v2(e.x+e.width-40,e.y+e.height-40)),this.finishPosition=this.pairingPlaceHolderBlock.node.position;var n=cc.moveTo(.3,this.originalPosition);this.node.runAction(n)},o.prototype.checkRTLAndScale=function(t){return this._isRTL?-t*s.SCALE:t*s.SCALE},o.prototype.renderAnswerHolder=function(t){if(t.yPositionAdj=25,this.render(t),t.combinedQAndA){var o=t.content,e=[];t.combinedQAndA.split("-").map(function(t){e.push(t)}),this.questionBlocksMap.set(o,e)}},o.prototype.render=function(t){var o=t.xPositions[t.index],e=-t.groundHeight*s.HALF+s.HALF*s.V_MARGIN;this.originalPosition=new u(o,e),this.originalPosition.y+=t.yPositionAdj?t.yPositionAdj:0,this.grid=t.wordMatrix,this.fontSize=s.FONT_SIZE,this.contentText=t.content,this.node.setPosition(this.originalPosition.x,this.originalPosition.y),t.parentNode.addChild(this.node)},o.prototype.onTouchStart=function(t){var o=this;this.shouldStopMovementX=!1,this.shouldStopMovementY=!1;var e=this.node.getParent().convertToNodeSpaceAR(t.getLocation());this._startPos=e,this.match?(new cc.Tween).target(this.node).to(.1,{scaleX:this.checkRTLAndScale(1.1),scaleY:1.1*s.SCALE},{progress:null,easing:"sineOut"}).call(function(){o.speak()}).start():(this.moved=!1,(new cc.Tween).target(this.node).to(.1,{scaleX:this.checkRTLAndScale(1.1),scaleY:1.1*s.SCALE},{progress:null,easing:"sineOut"}).call(function(){o.speak()}).start())},o.prototype.speak=function(){try{this._sound?(this._soundID=a.Util.play(this._sound,!1),-1===this._soundID&&a.Util.speakGameAudioOrPhonics(this.contentText,function(){})):a.Util.speakGameAudioOrPhonics(this.contentText,function(){})}catch(t){}},o.prototype.onTouchMove=function(t){var o=this;this.moved=!0;var e=new cc.Vec2(1/s.MATRIX_CONTAINER_SCALE*t.getDelta().x,1/s.MATRIX_CONTAINER_SCALE*t.getDelta().y);this.node.setPosition(this.node.position.add(cc.v2(this._isRTL?e.neg().x:e.x,e.y))),this.node.getBoundingBox().intersects(this.matchRect)?(this.match=!0,this.pairingPlaceHolderBlock.removeHighLightedNode(),this.pairingPlaceHolderBlock.addHighLightedNode(),this.questionBlocksMap.get(this.contentText).forEach(function(t){o.node.parent.getChildByName("ground").getChildByName(t).getComponent(d.default).addHighLightedNode()})):(this.match=!1,this.pairingPlaceHolderBlock.removeHighLightedNode(),this.questionBlocksMap.get(this.contentText).forEach(function(t){o.node.parent.getChildByName("ground").getChildByName(t).getComponent(d.default).removeHighLightedNode()})),(new cc.Tween).target(this.node).call(function(){cc.audioEngine.stopEffect(o._sound)}).to(.15,{scaleX:this.checkRTLAndScale(1),scaleY:s.SCALE},{progress:null,easing:"sineOut"}).start()},o.prototype.shouldConsiderAsInvalidMove=function(){this.node.position.x>cc.winSize.width/2-50?(this.node.position.x=cc.winSize.width/2-50,this.shouldStopMovementX=!0):this.node.position.x<-cc.winSize.width/2+50&&(this.node.position.x=-cc.winSize.width/2+50,this.shouldStopMovementX=!0),this.node.position.y>cc.winSize.height/2-50?(this.node.position.y=cc.winSize.height/2-50,this.shouldStopMovementY=!0):this.node.position.y<-cc.winSize.height/2&&(this.node.position.y=-cc.winSize.height/2+50,this.shouldStopMovementY=!0)},o.prototype.onTouchEnd=function(t){var o=this.node.getParent().convertToNodeSpaceAR(t.getLocation()).sub(this._startPos);(new cc.Tween).target(this.node).to(.15,{scaleX:this.checkRTLAndScale(1),scaleY:s.SCALE},{progress:null,easing:"sineOut"}).start();var e=o.magSqr()>=50;this.match?this.matchFound():(this.match=!1,this.matchNotFound(e))},o.prototype.matchFound=function(){var t=this;this.match=!0,this.node.off(s.TouchEvents.TOUCH_MOVE),this.node.off(s.TouchEvents.TOUCH_END),this.node.parent.emit("correct"),this.moveToPos(this.finishPosition).call(function(){t.removeHighLightedNode(),t.sparkle(),t.rightMoveAudio&&a.Util.playSfx(t.rightMoveAudio),t.grid.scheduleOnce(function(){t.unSparkle(),t.grid.wordMatched(t.contentText)},.5),t.questionBlocksMap.get(t.contentText).forEach(function(o){t.node.parent.getChildByName("ground").getChildByName(o).getComponent(d.default).removeHighLightedNode()}),t.moved=!1}).start()},o.prototype.matchNotFound=function(t){var o=this;this.moveToPos(this.originalPosition).call(function(){o.moved&&t&&(o.wrongMoveAudio&&a.Util.playSfx(o.wrongMoveAudio),o.node.parent.emit("wrong"),o.moved=!1)}).start()},o.prototype.moveToPos=function(t){return(new cc.Tween).target(this.node).to(.15,{position:t,scaleX:this.checkRTLAndScale(1),scaleY:s.SCALE},{progress:null,easing:"quadOut"})},o.prototype.onDestroy=function(){cc.audioEngine.stopAllEffects()},o.prototype.sparkle=function(){this._explode=cc.instantiate(this.explodeParticle),this._explode.position=this.node.position,this.node.parent.addChild(this._explode)},o.prototype.unSparkle=function(){null!=this._explode&&(this.node.removeChild(this._explode),this._explode=null)},o.prototype.update=function(){this.shouldConsiderAsInvalidMove(),(this.shouldStopMovementX||this.shouldStopMovementY)&&this.matchNotFound(!1)},r([_({type:cc.AudioClip})],o.prototype,"wrongMoveAudio",void 0),r([_({type:cc.AudioClip})],o.prototype,"rightMoveAudio",void 0),r([_({type:cc.AudioClip})],o.prototype,"problemClear",void 0),r([_(cc.Prefab)],o.prototype,"explodeParticle",void 0),r([p.default()],o.prototype,"onLoad",null),r([p.default()],o.prototype,"start",null),r([p.default()],o.prototype,"checkRTLAndScale",null),r([p.default()],o.prototype,"renderAnswerHolder",null),r([p.default()],o.prototype,"render",null),r([p.default()],o.prototype,"onTouchStart",null),r([p.default()],o.prototype,"speak",null),r([p.default()],o.prototype,"onTouchMove",null),r([p.default()],o.prototype,"onTouchEnd",null),r([p.default()],o.prototype,"matchFound",null),r([p.default()],o.prototype,"matchNotFound",null),r([p.default()],o.prototype,"moveToPos",null),r([p.default()],o.prototype,"sparkle",null),r([p.default()],o.prototype,"unSparkle",null),r([g],o)}(c.default);e.default=m,cc._RF.pop()},{"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/error-handler":void 0,"../../../common/scripts/util":void 0,"./CommonBlock":"CommonBlock","./grid":"grid","./questionblock":"questionblock","./wordblock":"wordblock"}],grid:[function(t,o,e){"use strict";cc._RF.push(o,"3ca74VIctlE4JZY6uSw5DYe","grid");var n,i=this&&this.__extends||(n=function(t,o){return(n=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,o){t.__proto__=o}||function(t,o){for(var e in o)Object.prototype.hasOwnProperty.call(o,e)&&(t[e]=o[e])})(t,o)},function(t,o){function e(){this.constructor=t}n(t,o),t.prototype=null===o?Object.create(o):(e.prototype=o.prototype,new e)}),r=this&&this.__decorate||function(t,o,e,n){var i,r=arguments.length,c=r<3?o:null===n?n=Object.getOwnPropertyDescriptor(o,e):n;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,o,e,n);else for(var s=t.length-1;s>=0;s--)(i=t[s])&&(c=(r<3?i(c):r>3?i(o,e,c):i(o,e))||c);return r>3&&c&&Object.defineProperty(o,e,c),c};Object.defineProperty(e,"__esModule",{value:!0}),e.Grid=e.TouchEvents=e.BLOCK_TYPE=e.PLACEHOLDER_PAIR=e.FONT_SIZE=e.HALF=e.SCALE=e.MATRIX_CONTAINER_SCALE=e.V_MARGIN=e.H_MARGIN=e.H_GAP=e.V_GAP=e.GAME_SOUND=void 0;var c,s=cc._decorator.ccclass,l=cc._decorator.property,d=t("../../../common/scripts/lib/config"),a=t("./answerblock"),h=t("./wordblock"),u=cc.Vec2,p=t("./questionblock"),f=t("../../../common/scripts/util"),g=t("../../../common/scripts/lib/error-handler"),_=t("../../../common/scripts/game");e.GAME_SOUND="games/grid/sound/",e.V_GAP=18,e.H_GAP=20,e.H_MARGIN=50,e.V_MARGIN=30,e.MATRIX_CONTAINER_SCALE=1,e.SCALE=1,e.HALF=.5,e.FONT_SIZE="65",e.PLACEHOLDER_PAIR="-PAIR",function(t){t[t.H_QUESTION=0]="H_QUESTION",t[t.V_QUESTION=1]="V_QUESTION",t[t.ANSWER=2]="ANSWER",t[t.PLACEHOLDER=3]="PLACEHOLDER"}(c=e.BLOCK_TYPE||(e.BLOCK_TYPE={})),function(t){t.TOUCH_START="touchstart",t.TOUCH_END="touchend",t.TOUCH_MOVE="touchmove",t.TOUCH_CANCEL="touchCancel"}(e.TouchEvents||(e.TouchEvents={}));var m=function(t){function o(){var o=null!==t&&t.apply(this,arguments)||this;return o.groundPrefab=null,o.questionBlockPrefab=null,o.answerBlockPrefab=null,o.wordBlockPrefab=null,o.gameLoadAudio=null,o.currentConfig=null,o._remainingAnswers=[],o._matchedCounterInCurrentRun=0,o._helpDragNode=null,o._helpDropNode=null,o._isRTL=!1,o}var n;return i(o,t),n=o,o.prototype.onLoad=function(){var t=this;n._horizontalPositions=[],n._verticalPositions=[],this.currentConfig=this.processConfiguration(d.default.getInstance().data[0]),this._isRTL=d.default.i.direction==d.Direction.RTL,f.Util.playSfx(this.gameLoadAudio),null!==this.currentConfig&&(this.matrixContainer=this.node,this._isRTL?(this.matrixContainer.scaleX*=-e.MATRIX_CONTAINER_SCALE,this.matrixContainer.scaleY*=e.MATRIX_CONTAINER_SCALE):this.matrixContainer.scale*=e.MATRIX_CONTAINER_SCALE,this.currentConfig.horizontalProblem=this.currentConfig.horizontalProblem,this.currentConfig.verticalProblem=this.shuffle(this.currentConfig.verticalProblem),this.buildGround(),this.renderWordMatrix(this.mapToWordMatrixElements(this.currentConfig.horizontalProblem),this.questionBlockPrefab,c.H_QUESTION),this.renderWordMatrix(this.mapToWordMatrixElements(this.currentConfig.verticalProblem),this.questionBlockPrefab,c.V_QUESTION),this.buildAnswersAndPlaceHolders(this.currentConfig.horizontalProblem,this.currentConfig.verticalProblem,this.currentConfig.aHorizontalProblem),this.scheduleOnce(function(){f.Util.showHelp(t._helpDragNode,t._helpDropNode)},.5))},o.prototype.mapToWordMatrixElements=function(t){return t.map(function(t){return{text:t}})},o.prototype.processConfiguration=function(t){void 0===t&&(t=[]);var o=[].concat.apply([],t),e=o[0],n=o[1],i=o[2],r=o[3],c=o[4],s=o[5]||c;return{level:e,workSheet:n,problemNo:i,verticalProblem:this.shuffle(r.split(",")),horizontalProblem:c.split(","),aHorizontalProblem:s.split(",")}},o.prototype.getRandom=function(t,o){return Math.random()*(o-t)+t},o.prototype.buildGround=function(){var t=this.currentConfig.horizontalProblem.length,o=this.currentConfig.verticalProblem.length,i=this.currentConfig.horizontalProblem.reduce(function(t,o){return t.length>o.length?t:o}),r=this.currentConfig.verticalProblem.reduce(function(t,o){return t.length>o.length?t:o}),c=cc.instantiate(this.questionBlockPrefab).getComponent(p.default),s=c.createLabelNode(c.textFont,String(o*Number(i)+t*Number(r)),e.FONT_SIZE,"#654321");this._isRTL?(s.scaleX=-e.SCALE,s.scaleY=e.SCALE):s.scale=e.SCALE,n._maxNodeWidth=s.getBoundingBox().width+2.25*e.H_MARGIN,n._maxNodeHeight=s.getBoundingBox().height+1.5*e.V_MARGIN,this._ground=cc.instantiate(this.groundPrefab);var l=10*e.V_MARGIN+n._maxNodeWidth+t*n._maxNodeWidth,d=15*e.V_MARGIN+n._maxNodeHeight+o*n._maxNodeHeight;this.ground.setContentSize(new cc.Size(l,d)),this.ground.width=l,this.ground.height=d,this.matrixContainer.addChild(this.ground)},o.prototype.renderWordMatrix=function(t,o,e){var n=this,i=t.length;t.forEach(function(t,r){var s=JSON.parse(JSON.stringify(t)),l=cc.instantiate(o);switch(e){case c.H_QUESTION:case c.V_QUESTION:var d=l.getComponent(p.default),u={wordMatrix:n,parentNode:n.ground,content:s.text,blockType:e,index:r,totalBlocks:i};d.render(u);break;case c.ANSWER:var f=l.getComponent(a.default),g={wordMatrix:n,parentNode:n.matrixContainer,content:s.text,combinedQAndA:s.questionRelatedText,blockType:e,index:r,totalBlocks:i,xPositions:s.xPositions,groundHeight:n.ground.getBoundingBox().height};f.renderAnswerHolder(g),0===r&&(n._helpDragNode=l);break;case c.PLACEHOLDER:var _=l.getComponent(h.default),m={wordMatrix:n,parentNode:n.ground,content:s.placeHolderText,blockType:e,index:r,totalBlocks:i,position:s.placeHolderPosition};_.render(m),0===r&&(n._helpDropNode=l)}})},o.prototype.flattenDeep=function(t){var o=this;return t.reduce(function(t,e){return Array.isArray(e)?t.concat(o.flattenDeep(e)):t.concat(e)},[])},o.prototype.buildAnswersAndPlaceHolders=function(t,o,e){this._remainingAnswers=this.computeAnswers(t,o,e),this.renderWordMatrix(this._remainingAnswers,this.wordBlockPrefab,c.PLACEHOLDER),this.renderWordMatrix(this.slices(this._remainingAnswers,t.length),this.answerBlockPrefab,c.ANSWER)},o.prototype.computeAnswers=function(t,o,i){console.log("horizontalConfigs",t),console.log("aHorizontalConfigs",i);var r=this.flattenDeep(o.map(function(o,r){return t.map(function(t,c){return{text:o+i[c],placeHolderPosition:new u(n._horizontalPositions[c],n._verticalPositions[r]),placeHolderText:o+i[c]+e.PLACEHOLDER_PAIR,questionRelatedText:o+"-"+t,xPositions:Array.from(new Set(n._horizontalPositions))}})}));return this.shuffle(r)},o.prototype.slices=function(t,o){return this._matchedCounterInCurrentRun=0,t.slice(0,o)},o.prototype.shuffle=function(t){for(var o,e,n=t.length;n>0;)e=Math.floor(Math.random()*n),o=t[--n],t[n]=t[e],t[e]=o;return t},o.addToHorizontalPositions=function(t){n._horizontalPositions.push(t)},o.addToVerticalPositions=function(t){n._verticalPositions.push(t)},Object.defineProperty(o.prototype,"ground",{get:function(){return this._ground},enumerable:!1,configurable:!0}),o.prototype.wordMatched=function(t){this._matchedCounterInCurrentRun++,this._remainingAnswers=this._remainingAnswers.filter(function(o){return o.text!==t}),this._remainingAnswers.length<=0?this.node.emit("nextProblem"):this._matchedCounterInCurrentRun===this.currentConfig.horizontalProblem.length&&this.renderWordMatrix(this.slices(this._remainingAnswers,this.currentConfig.horizontalProblem.length),this.answerBlockPrefab,c.ANSWER)},o.prototype.playGameSound=function(t){var o=this;f.Util.loadGameSound(t,function(t){o.friend.speak(t)})},o._maxNodeWidth=0,o._maxNodeHeight=0,o._horizontalPositions=[],o._verticalPositions=[],r([l(cc.Prefab)],o.prototype,"groundPrefab",void 0),r([l(cc.Prefab)],o.prototype,"questionBlockPrefab",void 0),r([l(cc.Prefab)],o.prototype,"answerBlockPrefab",void 0),r([l(cc.Prefab)],o.prototype,"wordBlockPrefab",void 0),r([l({type:cc.AudioClip})],o.prototype,"gameLoadAudio",void 0),r([g.default()],o.prototype,"onLoad",null),r([g.default()],o.prototype,"mapToWordMatrixElements",null),r([g.default()],o.prototype,"buildGround",null),r([g.default()],o.prototype,"renderWordMatrix",null),r([g.default()],o.prototype,"buildAnswersAndPlaceHolders",null),r([g.default()],o.prototype,"computeAnswers",null),r([g.default()],o.prototype,"slices",null),r([g.default()],o.prototype,"wordMatched",null),r([g.default()],o.prototype,"playGameSound",null),n=r([s],o)}(_.default);e.Grid=m,cc._RF.pop()},{"../../../common/scripts/game":void 0,"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/error-handler":void 0,"../../../common/scripts/util":void 0,"./answerblock":"answerblock","./questionblock":"questionblock","./wordblock":"wordblock"}],ground:[function(t,o,e){"use strict";cc._RF.push(o,"16f0fFVfwRFAojrnIPvN0ch","ground");var n,i=this&&this.__extends||(n=function(t,o){return(n=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,o){t.__proto__=o}||function(t,o){for(var e in o)Object.prototype.hasOwnProperty.call(o,e)&&(t[e]=o[e])})(t,o)},function(t,o){function e(){this.constructor=t}n(t,o),t.prototype=null===o?Object.create(o):(e.prototype=o.prototype,new e)}),r=this&&this.__decorate||function(t,o,e,n){var i,r=arguments.length,c=r<3?o:null===n?n=Object.getOwnPropertyDescriptor(o,e):n;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,o,e,n);else for(var s=t.length-1;s>=0;s--)(i=t[s])&&(c=(r<3?i(c):r>3?i(o,e,c):i(o,e))||c);return r>3&&c&&Object.defineProperty(o,e,c),c};Object.defineProperty(e,"__esModule",{value:!0});var c=cc._decorator,s=c.ccclass,l=(c.property,function(t){function o(){return null!==t&&t.apply(this,arguments)||this}return i(o,t),r([s],o)}(cc.Component));e.default=l,cc._RF.pop()},{}],questionblock:[function(t,o,e){"use strict";cc._RF.push(o,"fec20HTyIZFwZJfUjwQdlER","questionblock");var n,i=this&&this.__extends||(n=function(t,o){return(n=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,o){t.__proto__=o}||function(t,o){for(var e in o)Object.prototype.hasOwnProperty.call(o,e)&&(t[e]=o[e])})(t,o)},function(t,o){function e(){this.constructor=t}n(t,o),t.prototype=null===o?Object.create(o):(e.prototype=o.prototype,new e)}),r=this&&this.__decorate||function(t,o,e,n){var i,r=arguments.length,c=r<3?o:null===n?n=Object.getOwnPropertyDescriptor(o,e):n;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,o,e,n);else for(var s=t.length-1;s>=0;s--)(i=t[s])&&(c=(r<3?i(c):r>3?i(o,e,c):i(o,e))||c);return r>3&&c&&Object.defineProperty(o,e,c),c};Object.defineProperty(e,"__esModule",{value:!0});var c=t("./CommonBlock"),s=t("./grid"),l=cc._decorator.property,d=t("../../../common/scripts/lib/config"),a=t("../../../common/scripts/util"),h=t("../../../common/scripts/lib/error-handler"),u=t("../../../common/scripts/lessonController"),p=cc._decorator.ccclass,f=function(t){function o(){var o=null!==t&&t.apply(this,arguments)||this;return o.slotSelectedPrefab=null,o.highlightNode=null,o._isHighlightNodePresent=!1,o._sound=null,o._isRTL=!1,o}return i(o,t),o.prototype.onLoad=function(){var t=this;this.node.on(s.TouchEvents.TOUCH_START,this.onTouchStart,this),this.node.on(s.TouchEvents.TOUCH_MOVE,this.onTouchMove,this),this.node.on(s.TouchEvents.TOUCH_END,this.onTouchEnd,this),this.node.on(s.TouchEvents.TOUCH_CANCEL,this.onTouchEnd,this),this.fontColor="#654321";var o=this.createLabelNode(this.textFont,this.contentText,this.fontSize,this.fontColor);this.node.addChild(o),this.highlightNode=cc.instantiate(this.slotSelectedPrefab),this._isRTL=d.default.i.direction==d.Direction.RTL,a.Util.loadGameSound(this.contentText,function(o){t._sound=o}),this._isRTL&&(this.node.scaleX=-1)},o.prototype.onTouchMove=function(t){var o=t.getLocation(),e=this.node.getParent().convertToNodeSpaceAR(o);this.node.getBoundingBox().contains(e)||this.touchEnded()},o.prototype.onTouchStart=function(){var t=this;(new cc.Tween).target(this.node).call(function(){t.addHighLightedNode(),t.speak()}).to(.15,{scaleX:this.checkRTLAndScale(1.1),scaleY:1.1*s.SCALE},{progress:null,easing:"sineOut"}).start()},o.prototype.speak=function(){u.default.getFriend().speakGameAudioOrPhonics(this.contentText,function(){})},o.prototype.onTouchEnd=function(){this.touchEnded()},o.prototype.touchEnded=function(){var t=this;(new cc.Tween).target(this.node).to(.15,{scaleX:this.checkRTLAndScale(1.1),scaleY:1.1*s.SCALE},{progress:null,easing:"sineOut"}).call(function(){t.removeHighLightedNode()}).start()},o.prototype.checkRTLAndScale=function(t){return t*s.SCALE*(this._isRTL?-1:1)},o.prototype.render=function(t){this.node.name=t.content,this.contentText=t.content,this.node.width=s.Grid._maxNodeWidth,this.node.height=s.Grid._maxNodeHeight,this.fontSize=s.FONT_SIZE,this.node.scale*=s.SCALE;var o,e=0;switch(t.blockType){case s.BLOCK_TYPE.H_QUESTION:var n=parseFloat(((t.index+1)/(t.totalBlocks+1)).toFixed(2));o=t.parentNode.getBoundingBox().width*(this.node.anchorX-n)+.5*this.node.getBoundingBox().width,e=t.parentNode.getBoundingBox().height*s.HALF-2.35*s.V_MARGIN,this.node.setPosition(o,e),s.Grid.addToHorizontalPositions(o);break;case s.BLOCK_TYPE.V_QUESTION:this.node.width-=s.H_MARGIN,n=parseFloat(((t.index+1)/(t.totalBlocks+1)).toFixed(2)),o=t.parentNode.getBoundingBox().x+this.node.getBoundingBox().width*s.HALF+s.H_MARGIN,e=t.parentNode.getBoundingBox().height*(this.node.anchorY-n)-.7*this.node.getBoundingBox().height,this.node.setPosition(o,e),s.Grid.addToVerticalPositions(e)}t.parentNode.addChild(this.node)},o.prototype.onDestroy=function(){cc.audioEngine.stopAllEffects()},r([l(cc.Prefab)],o.prototype,"slotSelectedPrefab",void 0),r([h.default()],o.prototype,"onLoad",null),r([h.default()],o.prototype,"speak",null),r([h.default()],o.prototype,"checkRTLAndScale",null),r([h.default()],o.prototype,"render",null),r([p],o)}(c.default);e.default=f,cc._RF.pop()},{"../../../common/scripts/lessonController":void 0,"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/error-handler":void 0,"../../../common/scripts/util":void 0,"./CommonBlock":"CommonBlock","./grid":"grid"}],wordblock:[function(t,o,e){"use strict";cc._RF.push(o,"838aexRwfVPA6gdgGhMuC9w","wordblock");var n,i=this&&this.__extends||(n=function(t,o){return(n=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,o){t.__proto__=o}||function(t,o){for(var e in o)Object.prototype.hasOwnProperty.call(o,e)&&(t[e]=o[e])})(t,o)},function(t,o){function e(){this.constructor=t}n(t,o),t.prototype=null===o?Object.create(o):(e.prototype=o.prototype,new e)}),r=this&&this.__decorate||function(t,o,e,n){var i,r=arguments.length,c=r<3?o:null===n?n=Object.getOwnPropertyDescriptor(o,e):n;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,o,e,n);else for(var s=t.length-1;s>=0;s--)(i=t[s])&&(c=(r<3?i(c):r>3?i(o,e,c):i(o,e))||c);return r>3&&c&&Object.defineProperty(o,e,c),c};Object.defineProperty(e,"__esModule",{value:!0});var c=t("./CommonBlock"),s=t("./grid"),l=t("../../../common/scripts/lib/config"),d=t("../../../common/scripts/lib/error-handler"),a=cc._decorator,h=a.ccclass,u=(a.property,function(t){function o(){return null!==t&&t.apply(this,arguments)||this}return i(o,t),o.prototype.onLoad=function(){this.fontColor="#654321";var t=this.createLabelNode(null,this.contentText,this.fontSize,this.fontColor,!1);this.node.addChild(t),this.node.width=s.Grid._maxNodeWidth+s.H_GAP,this.node.height=s.Grid._maxNodeHeight+s.V_GAP,this.highlightNode=cc.instantiate(this.slotSelectedPrefab),l.default.i.direction==l.Direction.RTL&&(this.node.scaleX=-1)},o.prototype.render=function(t){this.fontSize=s.FONT_SIZE,this.node.name=t.content,this.contentText=t.content,this.node.setPosition(t.position.x,t.position.y),t.parentNode.addChild(this.node),l.default.i.direction==l.Direction.RTL&&(this.node.scaleX=-1)},r([d.default()],o.prototype,"onLoad",null),r([d.default()],o.prototype,"render",null),r([h],o)}(c.default));e.default=u,cc._RF.pop()},{"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/error-handler":void 0,"./CommonBlock":"CommonBlock","./grid":"grid"}]},{},["CommonBlock","answerblock","grid","ground","questionblock","wordblock"]);
+window.__require = function e(t, n, r) {
+  function s(o, u) {
+    if (!n[o]) {
+      if (!t[o]) {
+        var b = o.split("/");
+        b = b[b.length - 1];
+        if (!t[b]) {
+          var a = "function" == typeof __require && __require;
+          if (!u && a) return a(b, !0);
+          if (i) return i(b, !0);
+          throw new Error("Cannot find module '" + o + "'");
+        }
+        o = b;
+      }
+      var f = n[o] = {
+        exports: {}
+      };
+      t[o][0].call(f.exports, function(e) {
+        var n = t[o][1][e];
+        return s(n || e);
+      }, f, f.exports, e, t, n, r);
+    }
+    return n[o].exports;
+  }
+  var i = "function" == typeof __require && __require;
+  for (var o = 0; o < r.length; o++) s(r[o]);
+  return s;
+}({
+  CommonBlock: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "67f43WsyVpLZ7sWQJdjmnZ6", "CommonBlock");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    exports.DEFAULT_FONT_COLOR = void 0;
+    var property = cc._decorator.property;
+    var Overflow = cc.Label.Overflow;
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var chimple_label_1 = require("../../../common/scripts/chimple-label");
+    exports.DEFAULT_FONT_COLOR = cc.Color.BLACK;
+    var CommonBlock = function(_super) {
+      __extends(CommonBlock, _super);
+      function CommonBlock() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.slotSelectedPrefab = null;
+        _this._contentText = null;
+        _this._fontSize = null;
+        _this._fontColor = null;
+        _this._questionSound = null;
+        _this.highlightNode = null;
+        _this._isHighlightNodePresent = false;
+        return _this;
+      }
+      Object.defineProperty(CommonBlock.prototype, "contentText", {
+        get: function() {
+          return this._contentText;
+        },
+        set: function(newVal) {
+          this._contentText = newVal;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(CommonBlock.prototype, "fontSize", {
+        get: function() {
+          return this._fontSize;
+        },
+        set: function(newVal) {
+          this._fontSize = newVal;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(CommonBlock.prototype, "fontColor", {
+        get: function() {
+          return this._fontColor;
+        },
+        set: function(newVal) {
+          this._fontColor = newVal;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      CommonBlock.prototype.createLabelNode = function(textFont, text, fontSize, fontColor, showLabel) {
+        void 0 === textFont && (textFont = null);
+        void 0 === text && (text = "");
+        void 0 === fontSize && (fontSize = "10");
+        void 0 === fontColor && (fontColor = null);
+        void 0 === showLabel && (showLabel = true);
+        var qLabelNode = new cc.Node(text);
+        var label = qLabelNode.addComponent(chimple_label_1.default);
+        label.string = showLabel ? text : "";
+        label.overflow = Overflow.NONE;
+        var defaultFontColor = exports.DEFAULT_FONT_COLOR;
+        !fontColor || (defaultFontColor = defaultFontColor.fromHEX(fontColor));
+        qLabelNode.color = defaultFontColor;
+        var outLine = qLabelNode.addComponent(cc.LabelOutline);
+        outLine.width = 3;
+        var fSize = parseInt(fontSize);
+        label.fontSize = fSize;
+        label.lineHeight = fSize;
+        qLabelNode.position = new cc.Vec2(0, .1 * fSize);
+        return qLabelNode;
+      };
+      CommonBlock.prototype.getRandom = function(min, max) {
+        return Math.random() * (max - min) + min;
+      };
+      CommonBlock.prototype.addHighLightedNode = function() {
+        if (!this._isHighlightNodePresent && !!this.highlightNode) {
+          this._isHighlightNodePresent = true;
+          this.highlightNode.width = this.node.width;
+          this.highlightNode.height = this.node.height;
+          this.node.addChild(this.highlightNode);
+        }
+      };
+      CommonBlock.prototype.removeHighLightedNode = function() {
+        if (this._isHighlightNodePresent && !!this.highlightNode) {
+          this._isHighlightNodePresent = false;
+          this.node.removeChild(this.highlightNode);
+        }
+      };
+      __decorate([ property(cc.Prefab) ], CommonBlock.prototype, "slotSelectedPrefab", void 0);
+      __decorate([ error_handler_1.default() ], CommonBlock.prototype, "createLabelNode", null);
+      __decorate([ error_handler_1.default() ], CommonBlock.prototype, "addHighLightedNode", null);
+      __decorate([ error_handler_1.default() ], CommonBlock.prototype, "removeHighLightedNode", null);
+      return CommonBlock;
+    }(cc.Component);
+    exports.default = CommonBlock;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/chimple-label": void 0,
+    "../../../common/scripts/lib/error-handler": void 0
+  } ],
+  answerblock: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "736a5xa/ABAMYiLpVMzh3hK", "answerblock");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var CommonBlock_1 = require("./CommonBlock");
+    var grid_1 = require("./grid");
+    var wordblock_1 = require("./wordblock");
+    var questionblock_1 = require("./questionblock");
+    var util_1 = require("../../../common/scripts/util");
+    var config_1 = require("../../../common/scripts/lib/config");
+    var Vec2 = cc.Vec2;
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var MIN_MATCH = 40;
+    var AnswerBlock = function(_super) {
+      __extends(AnswerBlock, _super);
+      function AnswerBlock() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.originalPosition = new Vec2(0, 0);
+        _this.finishPosition = new Vec2(0, 0);
+        _this.matchRect = null;
+        _this.match = false;
+        _this.moved = false;
+        _this._sound = null;
+        _this._explode = null;
+        _this._startPos = null;
+        _this._isRTL = false;
+        _this.shouldStopMovementX = false;
+        _this.shouldStopMovementY = false;
+        _this.wrongMoveAudio = null;
+        _this.rightMoveAudio = null;
+        _this.problemClear = null;
+        _this.explodeParticle = null;
+        _this.questionBlocksMap = new Map();
+        return _this;
+      }
+      AnswerBlock.prototype.onLoad = function() {
+        var _this = this;
+        this.node.on(grid_1.TouchEvents.TOUCH_START, this.onTouchStart, this);
+        this.node.on(grid_1.TouchEvents.TOUCH_END, this.onTouchEnd, this);
+        this.node.on(grid_1.TouchEvents.TOUCH_MOVE, this.onTouchMove, this);
+        this.node.on(grid_1.TouchEvents.TOUCH_CANCEL, this.onTouchEnd, this);
+        this.fontColor = "#654321";
+        var label = this.createLabelNode(null, this.contentText, this.fontSize, this.fontColor);
+        this._isRTL = config_1.default.i.direction == config_1.Direction.RTL;
+        if (this._isRTL) {
+          this.node.scaleX *= -grid_1.SCALE;
+          this.node.scaleY *= grid_1.SCALE;
+        } else this.node.scale *= grid_1.SCALE;
+        this.node.addChild(label);
+        this.node.width = grid_1.Grid._maxNodeWidth;
+        this.node.height = grid_1.Grid._maxNodeHeight;
+        this.highlightNode = cc.instantiate(this.slotSelectedPrefab);
+        util_1.Util.loadGameSound(this.contentText, function(clip) {
+          _this._sound = clip;
+        });
+      };
+      AnswerBlock.prototype.start = function() {
+        var matchedPlaceHolderName = this.contentText + grid_1.PLACEHOLDER_PAIR;
+        var ground = this.node.parent.getChildByName("ground");
+        this.pairingPlaceHolderBlock = ground.getChildByName(matchedPlaceHolderName).getComponent(wordblock_1.default);
+        var pairingPlaceHolderBlockBox = this.pairingPlaceHolderBlock.node.getBoundingBox();
+        this.matchRect = cc.Rect.fromMinMax(cc.v2(pairingPlaceHolderBlockBox.x + MIN_MATCH, pairingPlaceHolderBlockBox.y + MIN_MATCH), cc.v2(pairingPlaceHolderBlockBox.x + pairingPlaceHolderBlockBox.width - MIN_MATCH, pairingPlaceHolderBlockBox.y + pairingPlaceHolderBlockBox.height - MIN_MATCH));
+        this.finishPosition = this.pairingPlaceHolderBlock.node.position;
+        var action = cc.moveTo(.3, this.originalPosition);
+        this.node.runAction(action);
+      };
+      AnswerBlock.prototype.checkRTLAndScale = function(value) {
+        return this._isRTL ? -value * grid_1.SCALE : value * grid_1.SCALE;
+      };
+      AnswerBlock.prototype.renderAnswerHolder = function(renderParams) {
+        renderParams.yPositionAdj = 25;
+        this.render(renderParams);
+        if (!!renderParams.combinedQAndA) {
+          var mapKey = renderParams.content;
+          var questionBlocks_1 = [];
+          renderParams.combinedQAndA.split("-").map(function(s) {
+            questionBlocks_1.push(s);
+          });
+          this.questionBlocksMap.set(mapKey, questionBlocks_1);
+        }
+      };
+      AnswerBlock.prototype.render = function(renderParams) {
+        var x = renderParams.xPositions[renderParams.index];
+        var y = -renderParams.groundHeight * grid_1.HALF + grid_1.HALF * grid_1.V_MARGIN;
+        this.originalPosition = new Vec2(x, y);
+        this.originalPosition.y += renderParams.yPositionAdj ? renderParams.yPositionAdj : 0;
+        this.grid = renderParams.wordMatrix;
+        this.fontSize = grid_1.FONT_SIZE;
+        this.contentText = renderParams.content;
+        this.node.setPosition(this.originalPosition.x, this.originalPosition.y);
+        renderParams.parentNode.addChild(this.node);
+      };
+      AnswerBlock.prototype.onTouchStart = function(touch) {
+        var _this = this;
+        this.shouldStopMovementX = false;
+        this.shouldStopMovementY = false;
+        var nPos = this.node.getParent().convertToNodeSpaceAR(touch.getLocation());
+        this._startPos = nPos;
+        if (this.match) new cc.Tween().target(this.node).to(.1, {
+          scaleX: this.checkRTLAndScale(1.1),
+          scaleY: 1.1 * grid_1.SCALE
+        }, {
+          progress: null,
+          easing: "sineOut"
+        }).call(function() {
+          _this.speak();
+        }).start(); else {
+          this.moved = false;
+          new cc.Tween().target(this.node).to(.1, {
+            scaleX: this.checkRTLAndScale(1.1),
+            scaleY: 1.1 * grid_1.SCALE
+          }, {
+            progress: null,
+            easing: "sineOut"
+          }).call(function() {
+            _this.speak();
+          }).start();
+        }
+      };
+      AnswerBlock.prototype.speak = function() {
+        try {
+          if (!this._sound) util_1.Util.speakGameAudioOrPhonics(this.contentText, function() {}); else {
+            this._soundID = util_1.Util.play(this._sound, false);
+            -1 === this._soundID && util_1.Util.speakGameAudioOrPhonics(this.contentText, function() {});
+          }
+        } catch (e) {}
+      };
+      AnswerBlock.prototype.onTouchMove = function(touch) {
+        var _this = this;
+        this.moved = true;
+        var delta = new cc.Vec2(1 / grid_1.MATRIX_CONTAINER_SCALE * touch.getDelta().x, 1 / grid_1.MATRIX_CONTAINER_SCALE * touch.getDelta().y);
+        this.node.setPosition(this.node.position.add(cc.v2(this._isRTL ? delta.neg().x : delta.x, delta.y)));
+        if (this.node.getBoundingBox().intersects(this.matchRect)) {
+          this.match = true;
+          this.pairingPlaceHolderBlock.removeHighLightedNode();
+          this.pairingPlaceHolderBlock.addHighLightedNode();
+          var questions = this.questionBlocksMap.get(this.contentText);
+          questions.forEach(function(q) {
+            var ground = _this.node.parent.getChildByName("ground");
+            var questionBlock = ground.getChildByName(q).getComponent(questionblock_1.default);
+            questionBlock.addHighLightedNode();
+          });
+        } else {
+          this.match = false;
+          this.pairingPlaceHolderBlock.removeHighLightedNode();
+          var questions = this.questionBlocksMap.get(this.contentText);
+          questions.forEach(function(q) {
+            var ground = _this.node.parent.getChildByName("ground");
+            var questionBlock = ground.getChildByName(q).getComponent(questionblock_1.default);
+            questionBlock.removeHighLightedNode();
+          });
+        }
+        new cc.Tween().target(this.node).call(function() {
+          cc.audioEngine.stopEffect(_this._sound);
+        }).to(.15, {
+          scaleX: this.checkRTLAndScale(1),
+          scaleY: grid_1.SCALE
+        }, {
+          progress: null,
+          easing: "sineOut"
+        }).start();
+      };
+      AnswerBlock.prototype.shouldConsiderAsInvalidMove = function() {
+        if (this.node.position.x > cc.winSize.width / 2 - 50) {
+          this.node.position.x = cc.winSize.width / 2 - 50;
+          this.shouldStopMovementX = true;
+        } else if (this.node.position.x < -cc.winSize.width / 2 + 50) {
+          this.node.position.x = -cc.winSize.width / 2 + 50;
+          this.shouldStopMovementX = true;
+        }
+        if (this.node.position.y > cc.winSize.height / 2 - 50) {
+          this.node.position.y = cc.winSize.height / 2 - 50;
+          this.shouldStopMovementY = true;
+        } else if (this.node.position.y < -cc.winSize.height / 2) {
+          this.node.position.y = -cc.winSize.height / 2 + 50;
+          this.shouldStopMovementY = true;
+        }
+      };
+      AnswerBlock.prototype.onTouchEnd = function(touch) {
+        var ePos = this.node.getParent().convertToNodeSpaceAR(touch.getLocation());
+        var diff = ePos.sub(this._startPos);
+        new cc.Tween().target(this.node).to(.15, {
+          scaleX: this.checkRTLAndScale(1),
+          scaleY: grid_1.SCALE
+        }, {
+          progress: null,
+          easing: "sineOut"
+        }).start();
+        var needToLog = diff.magSqr() >= 50;
+        if (this.match) this.matchFound(); else {
+          this.match = false;
+          this.matchNotFound(needToLog);
+        }
+      };
+      AnswerBlock.prototype.matchFound = function() {
+        var _this = this;
+        this.match = true;
+        this.node.off(grid_1.TouchEvents.TOUCH_MOVE);
+        this.node.off(grid_1.TouchEvents.TOUCH_END);
+        this.node.parent.emit("correct");
+        this.moveToPos(this.finishPosition).call(function() {
+          _this.removeHighLightedNode();
+          _this.sparkle();
+          !_this.rightMoveAudio || util_1.Util.playSfx(_this.rightMoveAudio);
+          _this.grid.scheduleOnce(function() {
+            _this.unSparkle();
+            _this.grid.wordMatched(_this.contentText);
+          }, .5);
+          var questions = _this.questionBlocksMap.get(_this.contentText);
+          questions.forEach(function(q) {
+            var ground = _this.node.parent.getChildByName("ground");
+            var questionBlock = ground.getChildByName(q).getComponent(questionblock_1.default);
+            questionBlock.removeHighLightedNode();
+          });
+          _this.moved = false;
+        }).start();
+      };
+      AnswerBlock.prototype.matchNotFound = function(needToLog) {
+        var _this = this;
+        this.moveToPos(this.originalPosition).call(function() {
+          if (_this.moved && needToLog) {
+            !_this.wrongMoveAudio || util_1.Util.playSfx(_this.wrongMoveAudio);
+            _this.node.parent.emit("wrong");
+            _this.moved = false;
+          }
+        }).start();
+      };
+      AnswerBlock.prototype.moveToPos = function(pos) {
+        return new cc.Tween().target(this.node).to(.15, {
+          position: pos,
+          scaleX: this.checkRTLAndScale(1),
+          scaleY: grid_1.SCALE
+        }, {
+          progress: null,
+          easing: "quadOut"
+        });
+      };
+      AnswerBlock.prototype.onDestroy = function() {
+        cc.audioEngine.stopAllEffects();
+      };
+      AnswerBlock.prototype.sparkle = function() {
+        this._explode = cc.instantiate(this.explodeParticle);
+        this._explode.position = this.node.position;
+        this.node.parent.addChild(this._explode);
+      };
+      AnswerBlock.prototype.unSparkle = function() {
+        if (null != this._explode) {
+          this.node.removeChild(this._explode);
+          this._explode = null;
+        }
+      };
+      AnswerBlock.prototype.update = function(dt) {
+        this.shouldConsiderAsInvalidMove();
+        (this.shouldStopMovementX || this.shouldStopMovementY) && this.matchNotFound(false);
+      };
+      __decorate([ property({
+        type: cc.AudioClip
+      }) ], AnswerBlock.prototype, "wrongMoveAudio", void 0);
+      __decorate([ property({
+        type: cc.AudioClip
+      }) ], AnswerBlock.prototype, "rightMoveAudio", void 0);
+      __decorate([ property({
+        type: cc.AudioClip
+      }) ], AnswerBlock.prototype, "problemClear", void 0);
+      __decorate([ property(cc.Prefab) ], AnswerBlock.prototype, "explodeParticle", void 0);
+      __decorate([ error_handler_1.default() ], AnswerBlock.prototype, "onLoad", null);
+      __decorate([ error_handler_1.default() ], AnswerBlock.prototype, "start", null);
+      __decorate([ error_handler_1.default() ], AnswerBlock.prototype, "checkRTLAndScale", null);
+      __decorate([ error_handler_1.default() ], AnswerBlock.prototype, "renderAnswerHolder", null);
+      __decorate([ error_handler_1.default() ], AnswerBlock.prototype, "render", null);
+      __decorate([ error_handler_1.default() ], AnswerBlock.prototype, "onTouchStart", null);
+      __decorate([ error_handler_1.default() ], AnswerBlock.prototype, "speak", null);
+      __decorate([ error_handler_1.default() ], AnswerBlock.prototype, "onTouchMove", null);
+      __decorate([ error_handler_1.default() ], AnswerBlock.prototype, "onTouchEnd", null);
+      __decorate([ error_handler_1.default() ], AnswerBlock.prototype, "matchFound", null);
+      __decorate([ error_handler_1.default() ], AnswerBlock.prototype, "matchNotFound", null);
+      __decorate([ error_handler_1.default() ], AnswerBlock.prototype, "moveToPos", null);
+      __decorate([ error_handler_1.default() ], AnswerBlock.prototype, "sparkle", null);
+      __decorate([ error_handler_1.default() ], AnswerBlock.prototype, "unSparkle", null);
+      AnswerBlock = __decorate([ ccclass ], AnswerBlock);
+      return AnswerBlock;
+    }(CommonBlock_1.default);
+    exports.default = AnswerBlock;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/error-handler": void 0,
+    "../../../common/scripts/util": void 0,
+    "./CommonBlock": "CommonBlock",
+    "./grid": "grid",
+    "./questionblock": "questionblock",
+    "./wordblock": "wordblock"
+  } ],
+  grid: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "3ca74VIctlE4JZY6uSw5DYe", "grid");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    exports.Grid = exports.TouchEvents = exports.BLOCK_TYPE = exports.PLACEHOLDER_PAIR = exports.FONT_SIZE = exports.HALF = exports.SCALE = exports.MATRIX_CONTAINER_SCALE = exports.V_MARGIN = exports.H_MARGIN = exports.H_GAP = exports.V_GAP = exports.GAME_SOUND = void 0;
+    var ccclass = cc._decorator.ccclass;
+    var property = cc._decorator.property;
+    var config_1 = require("../../../common/scripts/lib/config");
+    var answerblock_1 = require("./answerblock");
+    var wordblock_1 = require("./wordblock");
+    var Vec2 = cc.Vec2;
+    var questionblock_1 = require("./questionblock");
+    var util_1 = require("../../../common/scripts/util");
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var game_1 = require("../../../common/scripts/game");
+    exports.GAME_SOUND = "games/grid/sound/";
+    exports.V_GAP = 18;
+    exports.H_GAP = 20;
+    exports.H_MARGIN = 50;
+    exports.V_MARGIN = 30;
+    exports.MATRIX_CONTAINER_SCALE = 1;
+    exports.SCALE = 1;
+    exports.HALF = .5;
+    exports.FONT_SIZE = "65";
+    exports.PLACEHOLDER_PAIR = "-PAIR";
+    var BLOCK_TYPE;
+    (function(BLOCK_TYPE) {
+      BLOCK_TYPE[BLOCK_TYPE["H_QUESTION"] = 0] = "H_QUESTION";
+      BLOCK_TYPE[BLOCK_TYPE["V_QUESTION"] = 1] = "V_QUESTION";
+      BLOCK_TYPE[BLOCK_TYPE["ANSWER"] = 2] = "ANSWER";
+      BLOCK_TYPE[BLOCK_TYPE["PLACEHOLDER"] = 3] = "PLACEHOLDER";
+    })(BLOCK_TYPE = exports.BLOCK_TYPE || (exports.BLOCK_TYPE = {}));
+    var TouchEvents;
+    (function(TouchEvents) {
+      TouchEvents["TOUCH_START"] = "touchstart";
+      TouchEvents["TOUCH_END"] = "touchend";
+      TouchEvents["TOUCH_MOVE"] = "touchmove";
+      TouchEvents["TOUCH_CANCEL"] = "touchCancel";
+    })(TouchEvents = exports.TouchEvents || (exports.TouchEvents = {}));
+    var Grid = function(_super) {
+      __extends(Grid, _super);
+      function Grid() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.groundPrefab = null;
+        _this.questionBlockPrefab = null;
+        _this.answerBlockPrefab = null;
+        _this.wordBlockPrefab = null;
+        _this.gameLoadAudio = null;
+        _this.currentConfig = null;
+        _this._remainingAnswers = [];
+        _this._matchedCounterInCurrentRun = 0;
+        _this._helpDragNode = null;
+        _this._helpDropNode = null;
+        _this._isRTL = false;
+        return _this;
+      }
+      Grid_1 = Grid;
+      Grid.prototype.onLoad = function() {
+        var _this = this;
+        Grid_1._horizontalPositions = [];
+        Grid_1._verticalPositions = [];
+        this.currentConfig = this.processConfiguration(config_1.default.getInstance().data[0]);
+        this._isRTL = config_1.default.i.direction == config_1.Direction.RTL;
+        util_1.Util.playSfx(this.gameLoadAudio);
+        if (null !== this.currentConfig) {
+          this.matrixContainer = this.node;
+          if (this._isRTL) {
+            this.matrixContainer.scaleX *= -exports.MATRIX_CONTAINER_SCALE;
+            this.matrixContainer.scaleY *= exports.MATRIX_CONTAINER_SCALE;
+          } else this.matrixContainer.scale *= exports.MATRIX_CONTAINER_SCALE;
+          this.currentConfig.horizontalProblem = this.currentConfig.horizontalProblem;
+          this.currentConfig.verticalProblem = this.shuffle(this.currentConfig.verticalProblem);
+          this.buildGround();
+          this.renderWordMatrix(this.mapToWordMatrixElements(this.currentConfig.horizontalProblem), this.questionBlockPrefab, BLOCK_TYPE.H_QUESTION);
+          this.renderWordMatrix(this.mapToWordMatrixElements(this.currentConfig.verticalProblem), this.questionBlockPrefab, BLOCK_TYPE.V_QUESTION);
+          this.buildAnswersAndPlaceHolders(this.currentConfig.horizontalProblem, this.currentConfig.verticalProblem, this.currentConfig.aHorizontalProblem);
+          this.scheduleOnce(function() {
+            util_1.Util.showHelp(_this._helpDragNode, _this._helpDropNode);
+          }, .5);
+        }
+      };
+      Grid.prototype.mapToWordMatrixElements = function(strs) {
+        return strs.map(function(s) {
+          return {
+            text: s
+          };
+        });
+      };
+      Grid.prototype.processConfiguration = function(data) {
+        void 0 === data && (data = []);
+        var configurations = [].concat.apply([], data);
+        var level = configurations[0], workSheet = configurations[1], problemNo = configurations[2], verticalProblemStr = configurations[3], horizontalProblemStr = configurations[4], aHorizontalProblemStr = configurations[5];
+        var ahorizontalProblemStr = aHorizontalProblemStr || horizontalProblemStr;
+        return {
+          level: level,
+          workSheet: workSheet,
+          problemNo: problemNo,
+          verticalProblem: this.shuffle(verticalProblemStr.split(",")),
+          horizontalProblem: horizontalProblemStr.split(","),
+          aHorizontalProblem: ahorizontalProblemStr.split(",")
+        };
+      };
+      Grid.prototype.getRandom = function(min, max) {
+        return Math.random() * (max - min) + min;
+      };
+      Grid.prototype.buildGround = function() {
+        var horizontalWordsCount = this.currentConfig.horizontalProblem.length;
+        var verticalWordsCount = this.currentConfig.verticalProblem.length;
+        var lh = this.currentConfig.horizontalProblem.reduce(function(a, b) {
+          return a.length > b.length ? a : b;
+        });
+        var lv = this.currentConfig.verticalProblem.reduce(function(a, b) {
+          return a.length > b.length ? a : b;
+        });
+        var tNode = cc.instantiate(this.questionBlockPrefab);
+        var questionBlockComponent = tNode.getComponent(questionblock_1.default);
+        var fontColor = "#654321";
+        var labelNode = questionBlockComponent.createLabelNode(questionBlockComponent.textFont, String(verticalWordsCount * Number(lh) + horizontalWordsCount * Number(lv)), exports.FONT_SIZE, fontColor);
+        if (this._isRTL) {
+          labelNode.scaleX = -exports.SCALE;
+          labelNode.scaleY = exports.SCALE;
+        } else labelNode.scale = exports.SCALE;
+        Grid_1._maxNodeWidth = labelNode.getBoundingBox().width + 2.25 * exports.H_MARGIN;
+        Grid_1._maxNodeHeight = labelNode.getBoundingBox().height + 1.5 * exports.V_MARGIN;
+        this._ground = cc.instantiate(this.groundPrefab);
+        var groundWidth = 10 * exports.V_MARGIN + Grid_1._maxNodeWidth + horizontalWordsCount * Grid_1._maxNodeWidth;
+        var groundHeight = 15 * exports.V_MARGIN + Grid_1._maxNodeHeight + verticalWordsCount * Grid_1._maxNodeHeight;
+        this.ground.setContentSize(new cc.Size(groundWidth, groundHeight));
+        this.ground.width = groundWidth;
+        this.ground.height = groundHeight;
+        this.matrixContainer.addChild(this.ground);
+      };
+      Grid.prototype.renderWordMatrix = function(choices, prefab, blockType) {
+        var _this = this;
+        var length = choices.length;
+        choices.forEach(function(choice, index) {
+          var ch = JSON.parse(JSON.stringify(choice));
+          var node = cc.instantiate(prefab);
+          switch (blockType) {
+           case BLOCK_TYPE.H_QUESTION:
+           case BLOCK_TYPE.V_QUESTION:
+            var questionBlockComponent = node.getComponent(questionblock_1.default);
+            var renderParams = {
+              wordMatrix: _this,
+              parentNode: _this.ground,
+              content: ch.text,
+              blockType: blockType,
+              index: index,
+              totalBlocks: length
+            };
+            questionBlockComponent.render(renderParams);
+            break;
+
+           case BLOCK_TYPE.ANSWER:
+            var answerBlockComponent = node.getComponent(answerblock_1.default);
+            var renderParamsAnswer = {
+              wordMatrix: _this,
+              parentNode: _this.matrixContainer,
+              content: ch.text,
+              combinedQAndA: ch.questionRelatedText,
+              blockType: blockType,
+              index: index,
+              totalBlocks: length,
+              xPositions: ch.xPositions,
+              groundHeight: _this.ground.getBoundingBox().height
+            };
+            answerBlockComponent.renderAnswerHolder(renderParamsAnswer);
+            0 === index && (_this._helpDragNode = node);
+            break;
+
+           case BLOCK_TYPE.PLACEHOLDER:
+            var component = node.getComponent(wordblock_1.default);
+            var renderParamsPlaceHolder = {
+              wordMatrix: _this,
+              parentNode: _this.ground,
+              content: ch.placeHolderText,
+              blockType: blockType,
+              index: index,
+              totalBlocks: length,
+              position: ch.placeHolderPosition
+            };
+            component.render(renderParamsPlaceHolder);
+            0 === index && (_this._helpDropNode = node);
+          }
+        });
+      };
+      Grid.prototype.flattenDeep = function(arr) {
+        var _this = this;
+        return arr.reduce(function(acc, val) {
+          return Array.isArray(val) ? acc.concat(_this.flattenDeep(val)) : acc.concat(val);
+        }, []);
+      };
+      Grid.prototype.buildAnswersAndPlaceHolders = function(horizontalConfigs, verticalConfigs, aHorizontalConfigs) {
+        this._remainingAnswers = this.computeAnswers(horizontalConfigs, verticalConfigs, aHorizontalConfigs);
+        this.renderWordMatrix(this._remainingAnswers, this.wordBlockPrefab, BLOCK_TYPE.PLACEHOLDER);
+        this.renderWordMatrix(this.slices(this._remainingAnswers, horizontalConfigs.length), this.answerBlockPrefab, BLOCK_TYPE.ANSWER);
+      };
+      Grid.prototype.computeAnswers = function(horizontalConfigs, verticalConfigs, aHorizontalConfigs) {
+        console.log("horizontalConfigs", horizontalConfigs);
+        console.log("aHorizontalConfigs", aHorizontalConfigs);
+        var wordMatrixElements = this.flattenDeep(verticalConfigs.map(function(vText, y) {
+          return horizontalConfigs.map(function(hText, x) {
+            return {
+              text: vText + aHorizontalConfigs[x],
+              placeHolderPosition: new Vec2(Grid_1._horizontalPositions[x], Grid_1._verticalPositions[y]),
+              placeHolderText: vText + aHorizontalConfigs[x] + exports.PLACEHOLDER_PAIR,
+              questionRelatedText: vText + "-" + hText,
+              xPositions: Array.from(new Set(Grid_1._horizontalPositions))
+            };
+          });
+        }));
+        return this.shuffle(wordMatrixElements);
+      };
+      Grid.prototype.slices = function(answers, sliceLength) {
+        this._matchedCounterInCurrentRun = 0;
+        return answers.slice(0, sliceLength);
+      };
+      Grid.prototype.shuffle = function(arr) {
+        var ctr = arr.length;
+        var temp;
+        var index;
+        while (ctr > 0) {
+          index = Math.floor(Math.random() * ctr);
+          ctr--;
+          temp = arr[ctr];
+          arr[ctr] = arr[index];
+          arr[index] = temp;
+        }
+        return arr;
+      };
+      Grid.addToHorizontalPositions = function(x) {
+        Grid_1._horizontalPositions.push(x);
+      };
+      Grid.addToVerticalPositions = function(y) {
+        Grid_1._verticalPositions.push(y);
+      };
+      Object.defineProperty(Grid.prototype, "ground", {
+        get: function() {
+          return this._ground;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Grid.prototype.wordMatched = function(word) {
+        this._matchedCounterInCurrentRun++;
+        this._remainingAnswers = this._remainingAnswers.filter(function(a) {
+          return a.text !== word;
+        });
+        this._remainingAnswers.length <= 0 ? this.node.emit("nextProblem") : this._matchedCounterInCurrentRun === this.currentConfig.horizontalProblem.length && this.renderWordMatrix(this.slices(this._remainingAnswers, this.currentConfig.horizontalProblem.length), this.answerBlockPrefab, BLOCK_TYPE.ANSWER);
+      };
+      Grid.prototype.playGameSound = function(nameOfSound) {
+        var _this = this;
+        util_1.Util.loadGameSound(nameOfSound, function(clip) {
+          _this.friend.speak(clip);
+        });
+      };
+      var Grid_1;
+      Grid._maxNodeWidth = 0;
+      Grid._maxNodeHeight = 0;
+      Grid._horizontalPositions = [];
+      Grid._verticalPositions = [];
+      __decorate([ property(cc.Prefab) ], Grid.prototype, "groundPrefab", void 0);
+      __decorate([ property(cc.Prefab) ], Grid.prototype, "questionBlockPrefab", void 0);
+      __decorate([ property(cc.Prefab) ], Grid.prototype, "answerBlockPrefab", void 0);
+      __decorate([ property(cc.Prefab) ], Grid.prototype, "wordBlockPrefab", void 0);
+      __decorate([ property({
+        type: cc.AudioClip
+      }) ], Grid.prototype, "gameLoadAudio", void 0);
+      __decorate([ error_handler_1.default() ], Grid.prototype, "onLoad", null);
+      __decorate([ error_handler_1.default() ], Grid.prototype, "mapToWordMatrixElements", null);
+      __decorate([ error_handler_1.default() ], Grid.prototype, "buildGround", null);
+      __decorate([ error_handler_1.default() ], Grid.prototype, "renderWordMatrix", null);
+      __decorate([ error_handler_1.default() ], Grid.prototype, "buildAnswersAndPlaceHolders", null);
+      __decorate([ error_handler_1.default() ], Grid.prototype, "computeAnswers", null);
+      __decorate([ error_handler_1.default() ], Grid.prototype, "slices", null);
+      __decorate([ error_handler_1.default() ], Grid.prototype, "wordMatched", null);
+      __decorate([ error_handler_1.default() ], Grid.prototype, "playGameSound", null);
+      Grid = Grid_1 = __decorate([ ccclass ], Grid);
+      return Grid;
+    }(game_1.default);
+    exports.Grid = Grid;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/game": void 0,
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/error-handler": void 0,
+    "../../../common/scripts/util": void 0,
+    "./answerblock": "answerblock",
+    "./questionblock": "questionblock",
+    "./wordblock": "wordblock"
+  } ],
+  ground: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "16f0fFVfwRFAojrnIPvN0ch", "ground");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var Ground = function(_super) {
+      __extends(Ground, _super);
+      function Ground() {
+        return null !== _super && _super.apply(this, arguments) || this;
+      }
+      Ground = __decorate([ ccclass ], Ground);
+      return Ground;
+    }(cc.Component);
+    exports.default = Ground;
+    cc._RF.pop();
+  }, {} ],
+  questionblock: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "fec20HTyIZFwZJfUjwQdlER", "questionblock");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var CommonBlock_1 = require("./CommonBlock");
+    var grid_1 = require("./grid");
+    var property = cc._decorator.property;
+    var config_1 = require("../../../common/scripts/lib/config");
+    var util_1 = require("../../../common/scripts/util");
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var lessonController_1 = require("../../../common/scripts/lessonController");
+    var ccclass = cc._decorator.ccclass;
+    var QuestionBlock = function(_super) {
+      __extends(QuestionBlock, _super);
+      function QuestionBlock() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.slotSelectedPrefab = null;
+        _this.highlightNode = null;
+        _this._isHighlightNodePresent = false;
+        _this._sound = null;
+        _this._isRTL = false;
+        return _this;
+      }
+      QuestionBlock.prototype.onLoad = function() {
+        var _this = this;
+        this.node.on(grid_1.TouchEvents.TOUCH_START, this.onTouchStart, this);
+        this.node.on(grid_1.TouchEvents.TOUCH_MOVE, this.onTouchMove, this);
+        this.node.on(grid_1.TouchEvents.TOUCH_END, this.onTouchEnd, this);
+        this.node.on(grid_1.TouchEvents.TOUCH_CANCEL, this.onTouchEnd, this);
+        this.fontColor = "#654321";
+        var label = this.createLabelNode(this.textFont, this.contentText, this.fontSize, this.fontColor);
+        this.node.addChild(label);
+        this.highlightNode = cc.instantiate(this.slotSelectedPrefab);
+        this._isRTL = config_1.default.i.direction == config_1.Direction.RTL;
+        util_1.Util.loadGameSound(this.contentText, function(clip) {
+          _this._sound = clip;
+        });
+        this._isRTL && (this.node.scaleX = -1);
+      };
+      QuestionBlock.prototype.onTouchMove = function(touch) {
+        var location = touch.getLocation();
+        var nodeSpaceLocation = this.node.getParent().convertToNodeSpaceAR(location);
+        this.node.getBoundingBox().contains(nodeSpaceLocation) || this.touchEnded();
+      };
+      QuestionBlock.prototype.onTouchStart = function(touch) {
+        var _this = this;
+        new cc.Tween().target(this.node).call(function() {
+          _this.addHighLightedNode();
+          _this.speak();
+        }).to(.15, {
+          scaleX: this.checkRTLAndScale(1.1),
+          scaleY: 1.1 * grid_1.SCALE
+        }, {
+          progress: null,
+          easing: "sineOut"
+        }).start();
+      };
+      QuestionBlock.prototype.speak = function() {
+        lessonController_1.default.getFriend().speakGameAudioOrPhonics(this.contentText, function() {});
+      };
+      QuestionBlock.prototype.onTouchEnd = function(touch) {
+        this.touchEnded();
+      };
+      QuestionBlock.prototype.touchEnded = function() {
+        var _this = this;
+        new cc.Tween().target(this.node).to(.15, {
+          scaleX: this.checkRTLAndScale(1.1),
+          scaleY: 1.1 * grid_1.SCALE
+        }, {
+          progress: null,
+          easing: "sineOut"
+        }).call(function() {
+          _this.removeHighLightedNode();
+        }).start();
+      };
+      QuestionBlock.prototype.checkRTLAndScale = function(value) {
+        return value * grid_1.SCALE * (this._isRTL ? -1 : 1);
+      };
+      QuestionBlock.prototype.render = function(renderParams) {
+        this.node.name = renderParams.content;
+        this.contentText = renderParams.content;
+        this.node.width = grid_1.Grid._maxNodeWidth;
+        this.node.height = grid_1.Grid._maxNodeHeight;
+        this.fontSize = grid_1.FONT_SIZE;
+        this.node.scale *= grid_1.SCALE;
+        var x, y = 0;
+        switch (renderParams.blockType) {
+         case grid_1.BLOCK_TYPE.H_QUESTION:
+          var fraction = parseFloat(((renderParams.index + 1) / (renderParams.totalBlocks + 1)).toFixed(2));
+          x = renderParams.parentNode.getBoundingBox().width * (this.node.anchorX - fraction) + .5 * this.node.getBoundingBox().width;
+          y = renderParams.parentNode.getBoundingBox().height * grid_1.HALF - 2.35 * grid_1.V_MARGIN;
+          this.node.setPosition(x, y);
+          grid_1.Grid.addToHorizontalPositions(x);
+          break;
+
+         case grid_1.BLOCK_TYPE.V_QUESTION:
+          this.node.width -= grid_1.H_MARGIN;
+          var fraction = parseFloat(((renderParams.index + 1) / (renderParams.totalBlocks + 1)).toFixed(2));
+          x = renderParams.parentNode.getBoundingBox().x + this.node.getBoundingBox().width * grid_1.HALF + grid_1.H_MARGIN;
+          y = renderParams.parentNode.getBoundingBox().height * (this.node.anchorY - fraction) - .7 * this.node.getBoundingBox().height;
+          this.node.setPosition(x, y);
+          grid_1.Grid.addToVerticalPositions(y);
+        }
+        renderParams.parentNode.addChild(this.node);
+      };
+      QuestionBlock.prototype.onDestroy = function() {
+        cc.audioEngine.stopAllEffects();
+      };
+      __decorate([ property(cc.Prefab) ], QuestionBlock.prototype, "slotSelectedPrefab", void 0);
+      __decorate([ error_handler_1.default() ], QuestionBlock.prototype, "onLoad", null);
+      __decorate([ error_handler_1.default() ], QuestionBlock.prototype, "speak", null);
+      __decorate([ error_handler_1.default() ], QuestionBlock.prototype, "checkRTLAndScale", null);
+      __decorate([ error_handler_1.default() ], QuestionBlock.prototype, "render", null);
+      QuestionBlock = __decorate([ ccclass ], QuestionBlock);
+      return QuestionBlock;
+    }(CommonBlock_1.default);
+    exports.default = QuestionBlock;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/lessonController": void 0,
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/error-handler": void 0,
+    "../../../common/scripts/util": void 0,
+    "./CommonBlock": "CommonBlock",
+    "./grid": "grid"
+  } ],
+  wordblock: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "838aexRwfVPA6gdgGhMuC9w", "wordblock");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var CommonBlock_1 = require("./CommonBlock");
+    var grid_1 = require("./grid");
+    var config_1 = require("../../../common/scripts/lib/config");
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var WordBlock = function(_super) {
+      __extends(WordBlock, _super);
+      function WordBlock() {
+        return null !== _super && _super.apply(this, arguments) || this;
+      }
+      WordBlock.prototype.onLoad = function() {
+        this.fontColor = "#654321";
+        var label = this.createLabelNode(null, this.contentText, this.fontSize, this.fontColor, false);
+        this.node.addChild(label);
+        this.node.width = grid_1.Grid._maxNodeWidth + grid_1.H_GAP;
+        this.node.height = grid_1.Grid._maxNodeHeight + grid_1.V_GAP;
+        this.highlightNode = cc.instantiate(this.slotSelectedPrefab);
+        config_1.default.i.direction == config_1.Direction.RTL && (this.node.scaleX = -1);
+      };
+      WordBlock.prototype.render = function(renderParams) {
+        this.fontSize = grid_1.FONT_SIZE;
+        this.node.name = renderParams.content;
+        this.contentText = renderParams.content;
+        this.node.setPosition(renderParams.position.x, renderParams.position.y);
+        renderParams.parentNode.addChild(this.node);
+        config_1.default.i.direction == config_1.Direction.RTL && (this.node.scaleX = -1);
+      };
+      __decorate([ error_handler_1.default() ], WordBlock.prototype, "onLoad", null);
+      __decorate([ error_handler_1.default() ], WordBlock.prototype, "render", null);
+      WordBlock = __decorate([ ccclass ], WordBlock);
+      return WordBlock;
+    }(CommonBlock_1.default);
+    exports.default = WordBlock;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/error-handler": void 0,
+    "./CommonBlock": "CommonBlock",
+    "./grid": "grid"
+  } ]
+}, {}, [ "CommonBlock", "answerblock", "grid", "ground", "questionblock", "wordblock" ]);

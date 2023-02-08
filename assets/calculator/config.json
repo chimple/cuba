@@ -1,1 +1,199 @@
-{"paths":{"0":["textures/doubledigit_pattern1",2,1],"1":["textures/doubledigit_pattern1",3],"2":["textures/multidigit_trashcan_normal",2,1],"3":["textures/doubledigit_sheet",2,1],"4":["textures/multidigit_notepad",3],"5":["prefabs/drawingArea",0],"6":["prefabs/calculator",0],"7":["textures/doubledigit_pattern2",3],"8":["prefabs/labelPrefab",0],"9":["textures/doubledigit_pencil",2,1],"11":["textures/doubledigit_cup",2,1],"12":["prefabs/canvas",0],"13":["textures/doubledigit_notepad",2,1],"14":["prefabs/layout",0],"15":["textures/doubledigit_pattern2",2,1],"16":["textures/multidigit_notepad",2,1],"17":["textures/multidigit_trashcan_touch",2,1],"23":["textures/clear",2,1],"26":["textures/AutoAtlas",1]},"types":["cc.Prefab","cc.SpriteAtlas","cc.SpriteFrame","cc.Texture2D"],"uuids":["127pZJ16VAX4I1ZGaPat1f","13xKWD5Q9EvbI+J9gOIP7n","30cRMl2iZGbK/iwTq6hqa9","31NTJD2LhIDphwcR7CroxT","41YxxJar5APZOQFh9MRans","46K7M5mnxC/pmipCtCaW6B","4aZksXzrtEUKDEOkeddVD5","4fXKSzhclCJqO4eX9vKK4v","74wlwmhj5FUrk0AUaCuzBj","97aQcTPnxDNaxqefRa2GAt","aaUeVsVGtBH5yPplemplcT","bcVsvJkIZOpbyMvSVL4Cpi","cd4N/yELFGKLNDPTTBB0O7","d4cNmtAixFYqFtBY68F0Ba","d6NB/ZLHBGK504p9jEmnle","e6pxgOrlNLoIc1FKQiHfMi","f4CzWsEMFMt4sbFgMuFFgT","fcpXKaQztPNJ3AVvnm9lmt","02delMVqdBD70a/HSD99FK","06c5W53blLqLOGr5GzsOVg","08OOcgWF1GSKOdO5zYCffN","0flfD1YkdO6a+SuWM/8DME","12dcb5179","17ONbV4FhIf5rTae54WWtJ","1a35f124b","2df4EOxUtLrZhtp94sm1jv","40Xov6aCNF2Keogimousm6","60LDUZAkxIa7Dsbr6bYFHp","6fgBCSDDdPMInvyNlggls2","72NyVs3JhHXZu+3NK3bcXs","90foRryRJM3p9AGFGyKh5x","9bvaMerUlDyary99mJa6xp","a2MjXRFdtLlYQ5ouAFv/+R","abC0fBGuVNtKm8F6/fB50j","b9d4kcq5RDio6UL0rIqbzY","bcH/JqK6xNx6YTCe5XaOW5","d8HsitJHxOYqo801xBk8ev","ecpdLyjvZBwrvm+cedCcQy","f2ZYld2ZZBPIzC3npRv5kM"],"scenes":{"db://assets/games/calculator/scenes/calculator.fire":10},"redirect":[18,0,28,0,37,0],"deps":["internal"],"packs":{"0223f66e5":[31,12],"051592e24":[22,1,24,4,7,30,36],"08f5b1893":[19,21,25,2,27,29,8,32,33,35,38,17],"0cafab581":[10,34],"0cd7075ff":[5,16],"0f21ac673":[20,0,3,6,9,11,13,14,15]},"name":"calculator","importBase":"import","nativeBase":"native","debug":false,"isZip":false,"encrypted":false}
+{
+    "paths": {
+        "4aZksXzrtEUKDEOkeddVD5": [
+            "prefabs/calculator",
+            "cc.Prefab"
+        ],
+        "cd4N/yELFGKLNDPTTBB0O7": [
+            "prefabs/canvas",
+            "cc.Prefab"
+        ],
+        "46K7M5mnxC/pmipCtCaW6B": [
+            "prefabs/drawingArea",
+            "cc.Prefab"
+        ],
+        "74wlwmhj5FUrk0AUaCuzBj": [
+            "prefabs/labelPrefab",
+            "cc.Prefab"
+        ],
+        "d6NB/ZLHBGK504p9jEmnle": [
+            "prefabs/layout",
+            "cc.Prefab"
+        ],
+        "40Xov6aCNF2Keogimousm6": [
+            "textures/AutoAtlas",
+            "cc.SpriteAtlas"
+        ],
+        "17ONbV4FhIf5rTae54WWtJ": [
+            "textures/clear",
+            "cc.SpriteFrame",
+            1
+        ],
+        "bcVsvJkIZOpbyMvSVL4Cpi": [
+            "textures/doubledigit_cup",
+            "cc.SpriteFrame",
+            1
+        ],
+        "d4cNmtAixFYqFtBY68F0Ba": [
+            "textures/doubledigit_notepad",
+            "cc.SpriteFrame",
+            1
+        ],
+        "127pZJ16VAX4I1ZGaPat1f": [
+            "textures/doubledigit_pattern1",
+            "cc.SpriteFrame",
+            1
+        ],
+        "13xKWD5Q9EvbI+J9gOIP7n": [
+            "textures/doubledigit_pattern1",
+            "cc.Texture2D"
+        ],
+        "4fXKSzhclCJqO4eX9vKK4v": [
+            "textures/doubledigit_pattern2",
+            "cc.Texture2D"
+        ],
+        "e6pxgOrlNLoIc1FKQiHfMi": [
+            "textures/doubledigit_pattern2",
+            "cc.SpriteFrame",
+            1
+        ],
+        "97aQcTPnxDNaxqefRa2GAt": [
+            "textures/doubledigit_pencil",
+            "cc.SpriteFrame",
+            1
+        ],
+        "31NTJD2LhIDphwcR7CroxT": [
+            "textures/doubledigit_sheet",
+            "cc.SpriteFrame",
+            1
+        ],
+        "41YxxJar5APZOQFh9MRans": [
+            "textures/multidigit_notepad",
+            "cc.Texture2D"
+        ],
+        "f4CzWsEMFMt4sbFgMuFFgT": [
+            "textures/multidigit_notepad",
+            "cc.SpriteFrame",
+            1
+        ],
+        "30cRMl2iZGbK/iwTq6hqa9": [
+            "textures/multidigit_trashcan_normal",
+            "cc.SpriteFrame",
+            1
+        ],
+        "fcpXKaQztPNJ3AVvnm9lmt": [
+            "textures/multidigit_trashcan_touch",
+            "cc.SpriteFrame",
+            1
+        ]
+    },
+    "uuids": [
+        "02delMVqdBD70a/HSD99FK",
+        "06c5W53blLqLOGr5GzsOVg",
+        "08OOcgWF1GSKOdO5zYCffN",
+        "0flfD1YkdO6a+SuWM/8DME",
+        "12dcb5179",
+        "127pZJ16VAX4I1ZGaPat1f",
+        "13xKWD5Q9EvbI+J9gOIP7n",
+        "17ONbV4FhIf5rTae54WWtJ",
+        "1a35f124b",
+        "2df4EOxUtLrZhtp94sm1jv",
+        "30cRMl2iZGbK/iwTq6hqa9",
+        "31NTJD2LhIDphwcR7CroxT",
+        "40Xov6aCNF2Keogimousm6",
+        "41YxxJar5APZOQFh9MRans",
+        "46K7M5mnxC/pmipCtCaW6B",
+        "4aZksXzrtEUKDEOkeddVD5",
+        "4fXKSzhclCJqO4eX9vKK4v",
+        "60LDUZAkxIa7Dsbr6bYFHp",
+        "6fgBCSDDdPMInvyNlggls2",
+        "72NyVs3JhHXZu+3NK3bcXs",
+        "74wlwmhj5FUrk0AUaCuzBj",
+        "90foRryRJM3p9AGFGyKh5x",
+        "97aQcTPnxDNaxqefRa2GAt",
+        "9bvaMerUlDyary99mJa6xp",
+        "a2MjXRFdtLlYQ5ouAFv/+R",
+        "aaUeVsVGtBH5yPplemplcT",
+        "abC0fBGuVNtKm8F6/fB50j",
+        "b9d4kcq5RDio6UL0rIqbzY",
+        "bcH/JqK6xNx6YTCe5XaOW5",
+        "bcVsvJkIZOpbyMvSVL4Cpi",
+        "cd4N/yELFGKLNDPTTBB0O7",
+        "d4cNmtAixFYqFtBY68F0Ba",
+        "d6NB/ZLHBGK504p9jEmnle",
+        "d8HsitJHxOYqo801xBk8ev",
+        "e6pxgOrlNLoIc1FKQiHfMi",
+        "ecpdLyjvZBwrvm+cedCcQy",
+        "f2ZYld2ZZBPIzC3npRv5kM",
+        "f4CzWsEMFMt4sbFgMuFFgT",
+        "fcpXKaQztPNJ3AVvnm9lmt"
+    ],
+    "scenes": {
+        "db://assets/games/calculator/scenes/calculator.fire": "aaUeVsVGtBH5yPplemplcT"
+    },
+    "redirect": [
+        "02delMVqdBD70a/HSD99FK",
+        0,
+        "6fgBCSDDdPMInvyNlggls2",
+        0,
+        "ecpdLyjvZBwrvm+cedCcQy",
+        0
+    ],
+    "deps": [
+        "internal"
+    ],
+    "packs": {
+        "0223f66e5": [
+            "9bvaMerUlDyary99mJa6xp",
+            "cd4N/yELFGKLNDPTTBB0O7"
+        ],
+        "051592e24": [
+            "12dcb5179",
+            "13xKWD5Q9EvbI+J9gOIP7n",
+            "1a35f124b",
+            "41YxxJar5APZOQFh9MRans",
+            "4fXKSzhclCJqO4eX9vKK4v",
+            "90foRryRJM3p9AGFGyKh5x",
+            "d8HsitJHxOYqo801xBk8ev"
+        ],
+        "08f5b1893": [
+            "06c5W53blLqLOGr5GzsOVg",
+            "0flfD1YkdO6a+SuWM/8DME",
+            "2df4EOxUtLrZhtp94sm1jv",
+            "30cRMl2iZGbK/iwTq6hqa9",
+            "60LDUZAkxIa7Dsbr6bYFHp",
+            "72NyVs3JhHXZu+3NK3bcXs",
+            "74wlwmhj5FUrk0AUaCuzBj",
+            "a2MjXRFdtLlYQ5ouAFv/+R",
+            "abC0fBGuVNtKm8F6/fB50j",
+            "bcH/JqK6xNx6YTCe5XaOW5",
+            "f2ZYld2ZZBPIzC3npRv5kM",
+            "fcpXKaQztPNJ3AVvnm9lmt"
+        ],
+        "0cafab581": [
+            "aaUeVsVGtBH5yPplemplcT",
+            "b9d4kcq5RDio6UL0rIqbzY"
+        ],
+        "0cd7075ff": [
+            "46K7M5mnxC/pmipCtCaW6B",
+            "f4CzWsEMFMt4sbFgMuFFgT"
+        ],
+        "0f21ac673": [
+            "08OOcgWF1GSKOdO5zYCffN",
+            "127pZJ16VAX4I1ZGaPat1f",
+            "31NTJD2LhIDphwcR7CroxT",
+            "4aZksXzrtEUKDEOkeddVD5",
+            "97aQcTPnxDNaxqefRa2GAt",
+            "bcVsvJkIZOpbyMvSVL4Cpi",
+            "d4cNmtAixFYqFtBY68F0Ba",
+            "d6NB/ZLHBGK504p9jEmnle",
+            "e6pxgOrlNLoIc1FKQiHfMi"
+        ]
+    },
+    "name": "calculator",
+    "importBase": "import",
+    "nativeBase": "native",
+    "debug": true,
+    "isZip": false,
+    "encrypted": false
+}

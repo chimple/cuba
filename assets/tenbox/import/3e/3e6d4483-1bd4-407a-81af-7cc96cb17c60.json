@@ -1,1 +1,51 @@
-[1,["1a2835161"],["_textureSetter"],["cc.SpriteFrame"],0,[{"name":"mango-shop_image_box_horizontal","rect":[162,781,307,146],"offset":[0,0],"originalSize":[307,146],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]]
+[
+  1,
+  [
+    "1a2835161"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "mango-shop_image_box_horizontal",
+      "rect": [
+        162,
+        781,
+        307,
+        146
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "originalSize": [
+        307,
+        146
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

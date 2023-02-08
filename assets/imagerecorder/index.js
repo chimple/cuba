@@ -1,1 +1,179 @@
-window.__require=function t(n,e,i){function o(a,c){if(!e[a]){if(!n[a]){var s=a.split("/");if(s=s[s.length-1],!n[s]){var h="function"==typeof __require&&__require;if(!c&&h)return h(s,!0);if(r)return r(s,!0);throw new Error("Cannot find module '"+a+"'")}a=s}var p=e[a]={exports:{}};n[a][0].call(p.exports,function(t){return o(n[a][1][t]||t)},p,p.exports,t,n,e,i)}return e[a].exports}for(var r="function"==typeof __require&&__require,a=0;a<i.length;a++)o(i[a]);return o}({imagerecorder:[function(t,n,e){"use strict";cc._RF.push(n,"81166YxH/9FvoH17KHx2wTS","imagerecorder");var i,o=this&&this.__extends||(i=function(t,n){return(i=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,n){t.__proto__=n}||function(t,n){for(var e in n)Object.prototype.hasOwnProperty.call(n,e)&&(t[e]=n[e])})(t,n)},function(t,n){function e(){this.constructor=t}i(t,n),t.prototype=null===n?Object.create(n):(e.prototype=n.prototype,new e)}),r=this&&this.__decorate||function(t,n,e,i){var o,r=arguments.length,a=r<3?n:null===i?i=Object.getOwnPropertyDescriptor(n,e):i;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)a=Reflect.decorate(t,n,e,i);else for(var c=t.length-1;c>=0;c--)(o=t[c])&&(a=(r<3?o(a):r>3?o(n,e,a):o(n,e))||a);return r>3&&a&&Object.defineProperty(n,e,a),a};Object.defineProperty(e,"__esModule",{value:!0}),e.ImageRecorder=void 0;var a=cc._decorator.ccclass,c=t("../../../common/scripts/lib/config"),s=cc._decorator.property,h=t("../../../common/Tracing/scripts/tracing-container"),p=t("../../../common/scripts/helper"),l=function(t){function n(){var n=null!==t&&t.apply(this,arguments)||this;return n.progressMonitorPrefab=null,n._tracingContainerVisible=!1,n._recordingContainerComponent=null,n._tracingContainerComponent=null,n._imageName=null,n._tracePath=null,n._jsonLoadingStatus=!0,n._currentConfig=null,n}return o(n,t),n.prototype.onLoad=function(){var t=this;this._recordingContainer=cc.instantiate(this.recordContainerPrefab),this._tracingContainer=cc.instantiate(this.tracingContainerPrefab),this._currentConfig=this.processConfiguration(c.default.getInstance().data[0]),null!==this._currentConfig&&(this._imageName=this._currentConfig.image,this.setImageToDisplay(this._imageName)),this.node.dispatchEvent(new cc.Event.EventCustom(p.TRACING_FINISHED,!0)),this.node.on(p.RECORDING_FINISHED,function(n){n.stopPropagation(),t.scheduleOnce(function(){t._tracingContainer.active=!0,t._recordingContainer.active=!1},3)}),this.node.on(p.BACK_FINISHED,function(n){n.stopPropagation(),t._tracingContainer.active=!1,t._recordingContainer.active=!0}),this.node.on(p.TRACING_FINISHED,function(n){n.stopPropagation(),t.nextProblem()})},n.prototype.nextProblem=function(){this.node.emit("nextProblem")},n.prototype.loadTracePath=function(t){var n=this;try{null==this._tracePath&&c.default.getInstance().loadPathJSON(t,function(t){t&&t.length>0?(n._jsonLoadingStatus=!0,n._tracePath=t):(n._jsonLoadingStatus=!1,n._tracePath=null)})}catch(e){this._jsonLoadingStatus=!1}},n.prototype.setImageToDisplay=function(t){this._recordingContainerComponent=this._recordingContainer.getComponent(h.default),this._recordingContainerComponent.tracingImage=t,this._tracingContainerComponent=this._tracingContainer.getComponent(h.default),this._tracingContainerComponent.tracingImage=this._imageName,this._tracingContainerComponent.lineWidth=25,this._recordingContainerComponent.lineWidth=25,this._tracingContainerComponent.traceGenerationMode=!0,this.node.addChild(this._recordingContainer),this.node.addChild(this._tracingContainer),this.node.setPosition(new cc.Vec2(-cc.winSize.width/2,-cc.winSize.height/2)),this._tracingContainer.active=!1,this._recordingContainer.setPosition(new cc.Vec2(0,0)),this._tracingContainer.setPosition(new cc.Vec2(0,0)),this._recordingContainerComponent.traceGraphics.emit("enabledGraphics"),this._tracingContainerComponent.traceGraphics.emit("enabledGraphics"),null!==this._imageName&&null==this._tracePath&&this.loadTracePath(this._imageName)},n.prototype.processConfiguration=function(t){void 0===t&&(t=[]);var n=[].concat.apply([],t);return 4===n.length?{level:n[0],workSheet:n[1],problemNo:n[2],image:n[3]}:null},n.prototype.update=function(){null!==this._imageName&&null==this._tracePath&&this._jsonLoadingStatus&&this.loadTracePath(this._imageName),!1===this._tracingContainerVisible&&null!==this._tracePath&&(this._tracingContainer.active=!0,this._tracingContainerVisible=!0,this._tracingContainerComponent._traceGraphicsComponent.loadTracePath(this._imageName))},r([s(cc.Prefab)],n.prototype,"progressMonitorPrefab",void 0),r([s(cc.Prefab)],n.prototype,"recordContainerPrefab",void 0),r([s(cc.Prefab)],n.prototype,"tracingContainerPrefab",void 0),r([a],n)}(cc.Component);e.ImageRecorder=l,cc._RF.pop()},{"../../../common/Tracing/scripts/tracing-container":void 0,"../../../common/scripts/helper":void 0,"../../../common/scripts/lib/config":void 0}]},{},["imagerecorder"]);
+window.__require = function e(t, n, r) {
+  function s(o, u) {
+    if (!n[o]) {
+      if (!t[o]) {
+        var b = o.split("/");
+        b = b[b.length - 1];
+        if (!t[b]) {
+          var a = "function" == typeof __require && __require;
+          if (!u && a) return a(b, !0);
+          if (i) return i(b, !0);
+          throw new Error("Cannot find module '" + o + "'");
+        }
+        o = b;
+      }
+      var f = n[o] = {
+        exports: {}
+      };
+      t[o][0].call(f.exports, function(e) {
+        var n = t[o][1][e];
+        return s(n || e);
+      }, f, f.exports, e, t, n, r);
+    }
+    return n[o].exports;
+  }
+  var i = "function" == typeof __require && __require;
+  for (var o = 0; o < r.length; o++) s(r[o]);
+  return s;
+}({
+  imagerecorder: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "81166YxH/9FvoH17KHx2wTS", "imagerecorder");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    exports.ImageRecorder = void 0;
+    var ccclass = cc._decorator.ccclass;
+    var config_1 = require("../../../common/scripts/lib/config");
+    var property = cc._decorator.property;
+    var tracing_container_1 = require("../../../common/Tracing/scripts/tracing-container");
+    var helper_1 = require("../../../common/scripts/helper");
+    var ImageRecorder = function(_super) {
+      __extends(ImageRecorder, _super);
+      function ImageRecorder() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.progressMonitorPrefab = null;
+        _this._tracingContainerVisible = false;
+        _this._recordingContainerComponent = null;
+        _this._tracingContainerComponent = null;
+        _this._imageName = null;
+        _this._tracePath = null;
+        _this._jsonLoadingStatus = true;
+        _this._currentConfig = null;
+        return _this;
+      }
+      ImageRecorder.prototype.onLoad = function() {
+        var _this = this;
+        this._recordingContainer = cc.instantiate(this.recordContainerPrefab);
+        this._tracingContainer = cc.instantiate(this.tracingContainerPrefab);
+        this._currentConfig = this.processConfiguration(config_1.default.getInstance().data[0]);
+        if (null !== this._currentConfig) {
+          this._imageName = this._currentConfig.image;
+          this.setImageToDisplay(this._imageName);
+        }
+        this.node.dispatchEvent(new cc.Event.EventCustom(helper_1.TRACING_FINISHED, true));
+        this.node.on(helper_1.RECORDING_FINISHED, function(event) {
+          event.stopPropagation();
+          _this.scheduleOnce(function() {
+            _this._tracingContainer.active = true;
+            _this._recordingContainer.active = false;
+          }, 3);
+        });
+        this.node.on(helper_1.BACK_FINISHED, function(event) {
+          event.stopPropagation();
+          _this._tracingContainer.active = false;
+          _this._recordingContainer.active = true;
+        });
+        this.node.on(helper_1.TRACING_FINISHED, function(event) {
+          event.stopPropagation();
+          _this.nextProblem();
+        });
+      };
+      ImageRecorder.prototype.nextProblem = function() {
+        this.node.emit("nextProblem");
+      };
+      ImageRecorder.prototype.loadTracePath = function(letter) {
+        var _this = this;
+        try {
+          null == this._tracePath && config_1.default.getInstance().loadPathJSON(letter, function(data) {
+            if (!!data && data.length > 0) {
+              _this._jsonLoadingStatus = true;
+              _this._tracePath = data;
+            } else {
+              _this._jsonLoadingStatus = false;
+              _this._tracePath = null;
+            }
+          });
+        } catch (e) {
+          this._jsonLoadingStatus = false;
+        }
+      };
+      ImageRecorder.prototype.setImageToDisplay = function(image) {
+        this._recordingContainerComponent = this._recordingContainer.getComponent(tracing_container_1.default);
+        this._recordingContainerComponent.tracingImage = image;
+        this._tracingContainerComponent = this._tracingContainer.getComponent(tracing_container_1.default);
+        this._tracingContainerComponent.tracingImage = this._imageName;
+        this._tracingContainerComponent.lineWidth = 25;
+        this._recordingContainerComponent.lineWidth = 25;
+        this._tracingContainerComponent.traceGenerationMode = true;
+        this.node.addChild(this._recordingContainer);
+        this.node.addChild(this._tracingContainer);
+        this.node.setPosition(new cc.Vec2(-cc.winSize.width / 2, -cc.winSize.height / 2));
+        this._tracingContainer.active = false;
+        this._recordingContainer.setPosition(new cc.Vec2(0, 0));
+        this._tracingContainer.setPosition(new cc.Vec2(0, 0));
+        this._recordingContainerComponent.traceGraphics.emit("enabledGraphics");
+        this._tracingContainerComponent.traceGraphics.emit("enabledGraphics");
+        null !== this._imageName && null == this._tracePath && this.loadTracePath(this._imageName);
+      };
+      ImageRecorder.prototype.processConfiguration = function(data) {
+        void 0 === data && (data = []);
+        var configurations = [].concat.apply([], data);
+        if (4 === configurations.length) {
+          var level = configurations[0], workSheet = configurations[1], problemNo = configurations[2], image = configurations[3];
+          return {
+            level: level,
+            workSheet: workSheet,
+            problemNo: problemNo,
+            image: image
+          };
+        }
+        return null;
+      };
+      ImageRecorder.prototype.update = function(dt) {
+        null !== this._imageName && null == this._tracePath && this._jsonLoadingStatus && this.loadTracePath(this._imageName);
+        if (false === this._tracingContainerVisible && null !== this._tracePath) {
+          this._tracingContainer.active = true;
+          this._tracingContainerVisible = true;
+          this._tracingContainerComponent._traceGraphicsComponent.loadTracePath(this._imageName);
+        }
+      };
+      __decorate([ property(cc.Prefab) ], ImageRecorder.prototype, "progressMonitorPrefab", void 0);
+      __decorate([ property(cc.Prefab) ], ImageRecorder.prototype, "recordContainerPrefab", void 0);
+      __decorate([ property(cc.Prefab) ], ImageRecorder.prototype, "tracingContainerPrefab", void 0);
+      ImageRecorder = __decorate([ ccclass ], ImageRecorder);
+      return ImageRecorder;
+    }(cc.Component);
+    exports.ImageRecorder = ImageRecorder;
+    cc._RF.pop();
+  }, {
+    "../../../common/Tracing/scripts/tracing-container": void 0,
+    "../../../common/scripts/helper": void 0,
+    "../../../common/scripts/lib/config": void 0
+  } ]
+}, {}, [ "imagerecorder" ]);

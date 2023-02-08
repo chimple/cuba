@@ -1,1 +1,577 @@
-window.__require=function t(e,o,i){function r(c,s){if(!o[c]){if(!e[c]){var a=c.split("/");if(a=a[a.length-1],!e[a]){var p="function"==typeof __require&&__require;if(!s&&p)return p(a,!0);if(n)return n(a,!0);throw new Error("Cannot find module '"+c+"'")}c=a}var l=o[c]={exports:{}};e[c][0].call(l.exports,function(t){return r(e[c][1][t]||t)},l,l.exports,t,e,o,i)}return o[c].exports}for(var n="function"==typeof __require&&__require,c=0;c<i.length;c++)r(i[c]);return r}({stampDrag:[function(t,e,o){"use strict";cc._RF.push(e,"a4573yt5RVGJ42Gc6ELNRzx","stampDrag");var i,r=this&&this.__extends||(i=function(t,e){return(i=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(t[o]=e[o])})(t,e)},function(t,e){function o(){this.constructor=t}i(t,e),t.prototype=null===e?Object.create(e):(o.prototype=e.prototype,new o)}),n=this&&this.__decorate||function(t,e,o,i){var r,n=arguments.length,c=n<3?e:null===i?i=Object.getOwnPropertyDescriptor(e,o):i;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,o,i);else for(var s=t.length-1;s>=0;s--)(r=t[s])&&(c=(n<3?r(c):n>3?r(e,o,c):r(e,o))||c);return n>3&&c&&Object.defineProperty(e,o,c),c};Object.defineProperty(o,"__esModule",{value:!0});var c=t("../../../common/scripts/drag"),s=cc._decorator,a=s.ccclass,p=(s.property,function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e.inStickerPack=!0,e.imageIndex=0,e}return r(e,t),e.prototype.touchStartAnimation=function(){t.prototype.touchStartAnimation.call(this),this.node.zIndex=1,this.node.children[0].y=-15,this.node.x+=5},e.prototype.touchEndAnimation=function(){t.prototype.touchEndAnimation.call(this),this.node.children[0].y=-10,this.node.x-=5,this.node.zIndex=0},e.prototype.onTouchStart=function(e){t.prototype.onTouchStart.call(this,e),this.allowDrag&&this.inStickerPack&&(this.inStickerPack=!1,this.node.scale=1,this.node.parent=this.node.parent.parent.parent)},e.prototype.onTouchEnd=function(e){if(t.prototype.onTouchEnd.call(this,e),this.match)this.node.children[0].active=!1,this.node.emit("stampMatch",this,this.node);else{var o=this.node.children[1],i=this.node.convertToWorldSpaceAR(cc.Vec2.ZERO),r=this.node.getPosition(),n=!1;i.x+o.width>cc.winSize.width?(r.x-=i.x+o.width-cc.winSize.width,n=!0):i.x<0&&(r.x-=i.x,n=!0),i.y+o.height>cc.winSize.height?(r.y-=i.y+o.height-cc.winSize.height,n=!0):i.y<0&&(r.y-=i.y,n=!0),n&&(new cc.Tween).target(this.node).to(.25,{position:r},{progress:null,easing:"sineOut"}).start();var c=this.node.parent.convertToWorldSpaceAR(e.getLocation());this.node.position.x=c.x,this.node.position.y=c.y,console.log("this.node.position ",this.node.position),this.node.emit("stampNoMatch",this,this.node)}},n([a],e)}(c.default));o.default=p,cc._RF.pop()},{"../../../common/scripts/drag":void 0}],stampDrop:[function(t,e,o){"use strict";cc._RF.push(e,"8f35dUsgcdDCYTYNpIxYVMv","stampDrop");var i,r=this&&this.__extends||(i=function(t,e){return(i=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(t[o]=e[o])})(t,e)},function(t,e){function o(){this.constructor=t}i(t,e),t.prototype=null===e?Object.create(e):(o.prototype=e.prototype,new o)}),n=this&&this.__decorate||function(t,e,o,i){var r,n=arguments.length,c=n<3?e:null===i?i=Object.getOwnPropertyDescriptor(e,o):i;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,o,i);else for(var s=t.length-1;s>=0;s--)(r=t[s])&&(c=(n<3?r(c):n>3?r(e,o,c):r(e,o))||c);return n>3&&c&&Object.defineProperty(e,o,c),c};Object.defineProperty(o,"__esModule",{value:!0});var c=t("../../../common/scripts/drop"),s=cc._decorator,a=s.ccclass,p=(s.property,function(t){function e(){return null!==t&&t.apply(this,arguments)||this}return r(e,t),n([a],e)}(c.default));o.default=p,cc._RF.pop()},{"../../../common/scripts/drop":void 0}],stamp:[function(t,e,o){"use strict";cc._RF.push(e,"e42a8U9jAVJ+aTaNF1tBayg","stamp");var i,r=this&&this.__extends||(i=function(t,e){return(i=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(t[o]=e[o])})(t,e)},function(t,e){function o(){this.constructor=t}i(t,e),t.prototype=null===e?Object.create(e):(o.prototype=e.prototype,new o)}),n=this&&this.__decorate||function(t,e,o,i){var r,n=arguments.length,c=n<3?e:null===i?i=Object.getOwnPropertyDescriptor(e,o):i;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,o,i);else for(var s=t.length-1;s>=0;s--)(r=t[s])&&(c=(n<3?r(c):n>3?r(e,o,c):r(e,o))||c);return n>3&&c&&Object.defineProperty(e,o,c),c};Object.defineProperty(o,"__esModule",{value:!0});var c=t("../../../common/scripts/drag"),s=t("../../../common/scripts/util"),a=t("../../../common/scripts/lib/config"),p=t("../../../common/scripts/game"),l=t("./stickerHolder"),d=t("./stampDrag"),h=t("../../../common/scripts/lib/profile"),u=t("../../../common/scripts/lessonController"),f=cc._decorator,m=f.ccclass,g=f.property,y=function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e.stampDrag=null,e.stampDrop=null,e.label=null,e.stickerPrefab=null,e.graphics=null,e.bottomPaint=null,e.stickerLayer=null,e.mask=null,e.camera=null,e.numPieces=0,e.text=null,e.audio=null,e.stampReward=null,e.drags=[],e.isPainting=!1,e}return r(e,t),e.prototype.onLoad=function(){var t=this,e=a.default.getInstance();if(u.default.bundles)for(var o=0;o<u.default.bundles.length;o++)u.default.bundles[o].name===e.lesson.id&&u.default.bundles.splice(o,1);cc.director.getCollisionManager().enabled=!0,this.graphics.node.on("touchstart",function(){}),this.graphics.node.on("touchmove",this.onTouchMove,this),this.graphics.node.on("touchend",this.onTouchEnd,this);var i=e.data[0],r=(i[0],i[1],i[2],i[3]),n=i[4],p=i[5],f=(i[6],i[7]);this.text=r,this.numPieces=parseInt(p);var m=this.getItemName(e);this.stampReward=JSON.parse(cc.sys.localStorage.getItem(m)),null==this.stampReward&&(this.stampReward={done:!1,stickers:[],drawStokes:[]}),this.toDrawSavedDrawing(),s.Util.loadTexture(n,function(e){null!=e&&(t.bg.spriteFrame=new cc.SpriteFrame(e))}),s.Util.loadGameSound(f,function(e){t.audio=e});for(var g=function(o){var i=e.data[0][8+4*o],r=e.data[0][9+4*o],n=e.data[0][10+4*o];y.stampReward.stickers.length<=o&&y.stampReward.stickers.push({id:i,fixed:!1,peeled:!1,x:0,y:0});var p=cc.instantiate(y.stickerPrefab),u=p.getComponent(l.default);u.bg=y.stickerLayer,y.stickerPack.addChild(p);var f=cc.instantiate(y.stampDrag);f.name=o.toString(),console.log("drag.position",f.position),f.position=cc.Vec3.ZERO,console.log("drag.position",f.position),u.icon.addChild(f),y.drags.push(f);var m=s.REWARD_TYPES[4]+"-"+a.default.i.chapter.id+"-"+a.default.i.lesson.id+"-"+i;u.rewardArray=[s.REWARD_TYPES[4],a.default.i.chapter.id,a.default.i.lesson.id,i],s.Util.loadTexture(i,function(e){if(null!=e){var i=new cc.SpriteFrame(e),p=u.icon.getComponent(cc.Sprite);p.spriteFrame=i,s.Util.resizeSprite(p,96,96);var l=s.Util.minScale(p,96,96),g=l.scale;if(l.size,1==h.User.getCurrentUser().unlockedRewards[m]){u.lock.active=!1,u.icon.getComponent(cc.Button).interactable=!1,a.default.i.direction===a.Direction.RTL&&(f.getComponent(c.default).isReverseXNeeded=!0),f.on("stampMatch",function(e,o){console.log("this.stampReward.stickers",t.stampReward.stickers),console.log("drag",o),t.stampReward.stickers[o.name].fixed=!0,t.stampReward.stickers[o.name].peeled=!0,t.stampReward.stickers[o.name].x=0,t.stampReward.stickers[o.name].y=0,console.log("this.stampReward.stickers",t.stampReward.stickers),t.saveItem()}),f.on("stampNoMatch",function(e,o){console.log("this.stampReward.stickers",t.stampReward.stickers),console.log("drag",o),t.stampReward.stickers[o.name].fixed=!1,t.stampReward.stickers[o.name].peeled=!0,t.stampReward.stickers[o.name].x=o.x,t.stampReward.stickers[o.name].y=o.y,console.log("this.stampReward.stickers",t.stampReward.stickers),t.saveItem()}),f.children[1].getComponent(cc.Sprite).spriteFrame=i;var y=f.children[0];y.getComponent(cc.Sprite).spriteFrame=i,y.active=!1;var v=f.getComponent(d.default);v.imageIndex=o,t.stampReward.stickers[o].fixed?(f.parent=t.stickerLayer,v.allowDrag=!1,f.position=new cc.Vec3(parseInt(r),parseInt(n)),y.active=!1,v.inStickerPack=!1):(t.stampReward.stickers[o].peeled?(f.position=new cc.Vec3(t.stampReward.stickers[o].x,t.stampReward.stickers[o].y,0),v.inStickerPack=!1,f.parent=f.parent.parent.parent,f.height=i.getOriginalSize().height,f.width=i.getOriginalSize().width):(f.scale=g,f.position=new cc.Vec3(-u.icon.width/2,-u.icon.height/2,0),f.height=i.getOriginalSize().height,f.width=i.getOriginalSize().width),f.getComponent(c.default).allowDrag=!0);var w=cc.instantiate(t.stampDrop);w.name=o.toString(),w.position=new cc.Vec3(parseInt(r),parseInt(n)),w.height=f.height,w.width=f.width,t.stickerLayer.addChild(w)}}}),console.log("this.stampReward in onload before change",y.stampReward)},y=this,v=0;v<this.numPieces;v++)g(v)},e.prototype.getItemName=function(t){return h.User.getCurrentUser().id+"_"+t.course.id+"_"+t.chapter.id+"_"+t.lesson.id+"_"+t.problem},e.prototype.saveItem=function(){cc.sys.localStorage.setItem(this.getItemName(a.default.i),JSON.stringify(this.stampReward)),console.log("this.stampReward in saveItem",this.stampReward)},e.prototype.onPaintClick=function(t,e){this.graphics.strokeColor=(new cc.Color).fromHEX(e),this.isPainting=!0,c.default.letDrag=!1,this.currentColor=e},e.prototype.onTouchMove=function(t){if(this.isPainting){var e=this.graphics.node.convertToNodeSpaceAR(t.getPreviousLocation()),o=this.graphics.node.convertToNodeSpaceAR(t.getLocation());this.graphics.moveTo(e.x,e.y),this.graphics.lineTo(o.x,o.y),this.graphics.stroke(),this.stampReward.drawStokes.push([this.currentColor,e.x,e.y,o.x,o.y])}},e.prototype.onTouchEnd=function(){this.isPainting&&(this.isPainting=!1,c.default.letDrag=!0,this.saveItem())},e.prototype.onToolClick=function(){this.isPainting?(this.isPainting=!1,c.default.letDrag=!0,this.bottomPaint.active=!1):(this.isPainting=!0,c.default.letDrag=!1,this.bottomPaint.active=!0)},e.prototype.toDrawSavedDrawing=function(){console.log("const drawstrokes",this.stampReward),null==this.stampReward.drawStokes&&(this.stampReward.drawStokes=[]);for(var t=this.stampReward.drawStokes,e=0;e<t.length;e++)this.graphics.strokeColor=(new cc.Color).fromHEX(t[e][0]),this.graphics.moveTo(t[e][1],t[e][2]),this.graphics.lineTo(t[e][3],t[e][4]),this.graphics.stroke()},e.prototype.capturingScreenshot=function(){var t=this;console.log("screenshot method called");var e=new cc.RenderTexture;e.initWithSize(cc.visibleRect.width,cc.visibleRect.height,cc.Texture2D.PixelFormat.RGBA8888),this.camera.getComponent(cc.Camera).targetTexture=e,this.texture=e,this.schedule(function(){var e=t.initImage();t.createCanvas(e),t.saveFile(e)},1,0)},e.prototype.initImage=function(){var t=this.texture.readPixels();return this._width=this.texture.width,this._height=this.texture.height,this.filpYImage(t,this._width,this._height)},e.prototype.filpYImage=function(t,e,o){for(var i=new Uint8Array(e*o*4),r=4*e,n=0;n<o;n++)for(var c=(o-1-n)*e*4,s=n*e*4,a=0;a<r;a++)i[s+a]=t[c+a];return i},e.prototype.createCanvas=function(t){var e=new cc.Texture2D;e.initWithData(t,32,this._width,this._height);var o=new cc.SpriteFrame;o.setTexture(e);var i=new cc.Node;i.addComponent(cc.Sprite).spriteFrame=o,i.zIndex=cc.macro.MAX_ZINDEX,i.parent=cc.director.getScene();var r=cc.winSize.width,n=cc.winSize.height;i.x=r/2,i.y=n/2,i.on(cc.Node.EventType.TOUCH_START,function(){i.parent=null,i.destroy()}),this.captureAction(i,r,n)},e.prototype.captureAction=function(t,e,o){var i=cc.scaleTo(1,.3),r=cc.v2(e-e/6,o/4),n=cc.moveTo(1,r),c=cc.spawn(i,n);t.runAction(c);var s=cc.blink(.1,1);this.node.runAction(s)},e.prototype.saveFile=function(){cc.log("saveFile() called")},n([g(cc.Prefab)],e.prototype,"stampDrag",void 0),n([g(cc.Prefab)],e.prototype,"stampDrop",void 0),n([g(cc.Sprite)],e.prototype,"bg",void 0),n([g(cc.Node)],e.prototype,"label",void 0),n([g(cc.Prefab)],e.prototype,"stickerPrefab",void 0),n([g(cc.Node)],e.prototype,"stickerPack",void 0),n([g(cc.Graphics)],e.prototype,"graphics",void 0),n([g(cc.Node)],e.prototype,"bottomPaint",void 0),n([g(cc.Node)],e.prototype,"stickerLayer",void 0),n([g(cc.Node)],e.prototype,"mask",void 0),n([g(cc.Node)],e.prototype,"camera",void 0),n([m],e)}(p.default);o.default=y,cc._RF.pop()},{"../../../common/scripts/drag":void 0,"../../../common/scripts/game":void 0,"../../../common/scripts/lessonController":void 0,"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/profile":void 0,"../../../common/scripts/util":void 0,"./stampDrag":"stampDrag","./stickerHolder":"stickerHolder"}],stickerHolder:[function(t,e,o){"use strict";cc._RF.push(e,"b32b0MVudVFoKPoIC3ME9Cg","stickerHolder");var i,r=this&&this.__extends||(i=function(t,e){return(i=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(t[o]=e[o])})(t,e)},function(t,e){function o(){this.constructor=t}i(t,e),t.prototype=null===e?Object.create(e):(o.prototype=e.prototype,new o)}),n=this&&this.__decorate||function(t,e,o,i){var r,n=arguments.length,c=n<3?e:null===i?i=Object.getOwnPropertyDescriptor(e,o):i;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,o,i);else for(var s=t.length-1;s>=0;s--)(r=t[s])&&(c=(n<3?r(c):n>3?r(e,o,c):r(e,o))||c);return n>3&&c&&Object.defineProperty(e,o,c),c};Object.defineProperty(o,"__esModule",{value:!0});var c=t("../../../common/scripts/lib/config"),s=t("../../../common/scripts/lib/profile"),a=cc._decorator,p=a.ccclass,l=a.property,d=function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e.icon=null,e.bg=null,e.lock=null,e}return r(e,t),e.prototype.start=function(){},e.prototype.onClick=function(){this.icon.getComponent(cc.Button).interactable=!1,s.User.getCurrentUser().currentReward=this.rewardArray,c.default.i.popAllScenes(),c.default.i.pushScene("menu/start/scenes/start","menu",null,!0)},n([l(cc.Node)],e.prototype,"icon",void 0),n([l(cc.Node)],e.prototype,"bg",void 0),n([l(cc.Node)],e.prototype,"lock",void 0),n([p],e)}(cc.Component);o.default=d,cc._RF.pop()},{"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/profile":void 0}]},{},["stamp","stampDrag","stampDrop","stickerHolder"]);
+window.__require = function e(t, n, r) {
+  function s(o, u) {
+    if (!n[o]) {
+      if (!t[o]) {
+        var b = o.split("/");
+        b = b[b.length - 1];
+        if (!t[b]) {
+          var a = "function" == typeof __require && __require;
+          if (!u && a) return a(b, !0);
+          if (i) return i(b, !0);
+          throw new Error("Cannot find module '" + o + "'");
+        }
+        o = b;
+      }
+      var f = n[o] = {
+        exports: {}
+      };
+      t[o][0].call(f.exports, function(e) {
+        var n = t[o][1][e];
+        return s(n || e);
+      }, f, f.exports, e, t, n, r);
+    }
+    return n[o].exports;
+  }
+  var i = "function" == typeof __require && __require;
+  for (var o = 0; o < r.length; o++) s(r[o]);
+  return s;
+}({
+  stampDrag: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "a4573yt5RVGJ42Gc6ELNRzx", "stampDrag");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var drag_1 = require("../../../common/scripts/drag");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var StampDrag = function(_super) {
+      __extends(StampDrag, _super);
+      function StampDrag() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.inStickerPack = true;
+        _this.imageIndex = 0;
+        return _this;
+      }
+      StampDrag.prototype.touchStartAnimation = function() {
+        _super.prototype.touchStartAnimation.call(this);
+        this.node.zIndex = 1;
+        this.node.children[0].y = -15;
+        this.node.x += 5;
+      };
+      StampDrag.prototype.touchEndAnimation = function() {
+        _super.prototype.touchEndAnimation.call(this);
+        this.node.children[0].y = -10;
+        this.node.x -= 5;
+        this.node.zIndex = 0;
+      };
+      StampDrag.prototype.onTouchStart = function(touch) {
+        _super.prototype.onTouchStart.call(this, touch);
+        if (this.allowDrag && this.inStickerPack) {
+          this.inStickerPack = false;
+          this.node.scale = 1;
+          this.node.parent = this.node.parent.parent.parent;
+        }
+      };
+      StampDrag.prototype.onTouchEnd = function(touch) {
+        _super.prototype.onTouchEnd.call(this, touch);
+        if (this.match) {
+          this.node.children[0].active = false;
+          this.node.emit("stampMatch", this, this.node);
+        } else {
+          var pic = this.node.children[1];
+          var worldPos = this.node.convertToWorldSpaceAR(cc.Vec2.ZERO);
+          var newPos = this.node.getPosition();
+          var doTween = false;
+          if (worldPos.x + pic.width > cc.winSize.width) {
+            newPos.x -= worldPos.x + pic.width - cc.winSize.width;
+            doTween = true;
+          } else if (worldPos.x < 0) {
+            newPos.x -= worldPos.x;
+            doTween = true;
+          }
+          if (worldPos.y + pic.height > cc.winSize.height) {
+            newPos.y -= worldPos.y + pic.height - cc.winSize.height;
+            doTween = true;
+          } else if (worldPos.y < 0) {
+            newPos.y -= worldPos.y;
+            doTween = true;
+          }
+          doTween && new cc.Tween().target(this.node).to(.25, {
+            position: newPos
+          }, {
+            progress: null,
+            easing: "sineOut"
+          }).start();
+          var temp = this.node.parent.convertToWorldSpaceAR(touch.getLocation());
+          this.node.position.x = temp.x;
+          this.node.position.y = temp.y;
+          console.log("this.node.position ", this.node.position);
+          this.node.emit("stampNoMatch", this, this.node);
+        }
+      };
+      StampDrag = __decorate([ ccclass ], StampDrag);
+      return StampDrag;
+    }(drag_1.default);
+    exports.default = StampDrag;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/drag": void 0
+  } ],
+  stampDrop: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "8f35dUsgcdDCYTYNpIxYVMv", "stampDrop");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var drop_1 = require("../../../common/scripts/drop");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var StampDrop = function(_super) {
+      __extends(StampDrop, _super);
+      function StampDrop() {
+        return null !== _super && _super.apply(this, arguments) || this;
+      }
+      StampDrop = __decorate([ ccclass ], StampDrop);
+      return StampDrop;
+    }(drop_1.default);
+    exports.default = StampDrop;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/drop": void 0
+  } ],
+  stamp: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "e42a8U9jAVJ+aTaNF1tBayg", "stamp");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var drag_1 = require("../../../common/scripts/drag");
+    var util_1 = require("../../../common/scripts/util");
+    var config_1 = require("../../../common/scripts/lib/config");
+    var game_1 = require("../../../common/scripts/game");
+    var stickerHolder_1 = require("./stickerHolder");
+    var stampDrag_1 = require("./stampDrag");
+    var profile_1 = require("../../../common/scripts/lib/profile");
+    var lessonController_1 = require("../../../common/scripts/lessonController");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var Stamp = function(_super) {
+      __extends(Stamp, _super);
+      function Stamp() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.stampDrag = null;
+        _this.stampDrop = null;
+        _this.label = null;
+        _this.stickerPrefab = null;
+        _this.graphics = null;
+        _this.bottomPaint = null;
+        _this.stickerLayer = null;
+        _this.mask = null;
+        _this.camera = null;
+        _this.numPieces = 0;
+        _this.text = null;
+        _this.audio = null;
+        _this.stampReward = null;
+        _this.drags = [];
+        _this.isPainting = false;
+        return _this;
+      }
+      Stamp.prototype.onLoad = function() {
+        var _this = this;
+        var config = config_1.default.getInstance();
+        if (!!lessonController_1.default.bundles) for (var i = 0; i < lessonController_1.default.bundles.length; i++) lessonController_1.default.bundles[i].name === config.lesson.id && lessonController_1.default.bundles.splice(i, 1);
+        cc.director.getCollisionManager().enabled = true;
+        this.graphics.node.on("touchstart", function() {});
+        this.graphics.node.on("touchmove", this.onTouchMove, this);
+        this.graphics.node.on("touchend", this.onTouchEnd, this);
+        var _a = config.data[0], level = _a[0], worksheet = _a[1], problem = _a[2], name = _a[3], bgImage = _a[4], num = _a[5], fixed = _a[6], sound = _a[7];
+        this.text = name;
+        this.numPieces = parseInt(num);
+        var itemName = this.getItemName(config);
+        this.stampReward = JSON.parse(cc.sys.localStorage.getItem(itemName));
+        null == this.stampReward && (this.stampReward = {
+          done: false,
+          stickers: [],
+          drawStokes: []
+        });
+        this.toDrawSavedDrawing();
+        util_1.Util.loadTexture(bgImage, function(texture) {
+          null != texture && (_this.bg.spriteFrame = new cc.SpriteFrame(texture));
+        });
+        util_1.Util.loadGameSound(sound, function(audioClip) {
+          _this.audio = audioClip;
+        });
+        var firstDrag = null;
+        var firstDrop = null;
+        var _loop_1 = function(index) {
+          var image = config.data[0][8 + 4 * index];
+          var x = config.data[0][9 + 4 * index];
+          var y = config.data[0][10 + 4 * index];
+          this_1.stampReward.stickers.length <= index && this_1.stampReward.stickers.push({
+            id: image,
+            fixed: false,
+            peeled: false,
+            x: 0,
+            y: 0
+          });
+          var sticker = cc.instantiate(this_1.stickerPrefab);
+          var stickerHolder = sticker.getComponent(stickerHolder_1.default);
+          stickerHolder.bg = this_1.stickerLayer;
+          this_1.stickerPack.addChild(sticker);
+          var drag = cc.instantiate(this_1.stampDrag);
+          drag.name = index.toString();
+          console.log("drag.position", drag.position);
+          drag.position = cc.Vec3.ZERO;
+          console.log("drag.position", drag.position);
+          stickerHolder.icon.addChild(drag);
+          this_1.drags.push(drag);
+          var rewardName = util_1.REWARD_TYPES[4] + "-" + config_1.default.i.chapter.id + "-" + config_1.default.i.lesson.id + "-" + image;
+          stickerHolder.rewardArray = [ util_1.REWARD_TYPES[4], config_1.default.i.chapter.id, config_1.default.i.lesson.id, image ];
+          util_1.Util.loadTexture(image, function(texture) {
+            if (null != texture) {
+              var spriteFrame = new cc.SpriteFrame(texture);
+              var stickerHolderSprite = stickerHolder.icon.getComponent(cc.Sprite);
+              stickerHolderSprite.spriteFrame = spriteFrame;
+              util_1.Util.resizeSprite(stickerHolderSprite, 96, 96);
+              var _a = util_1.Util.minScale(stickerHolderSprite, 96, 96), scale = _a.scale, size = _a.size;
+              if (1 == profile_1.User.getCurrentUser().unlockedRewards[rewardName]) {
+                stickerHolder.lock.active = false;
+                var stickerButton = stickerHolder.icon.getComponent(cc.Button);
+                stickerButton.interactable = false;
+                config_1.default.i.direction === config_1.Direction.RTL && (drag.getComponent(drag_1.default).isReverseXNeeded = true);
+                drag.on("stampMatch", function(th, drag) {
+                  console.log("this.stampReward.stickers", _this.stampReward.stickers);
+                  console.log("drag", drag);
+                  _this.stampReward.stickers[drag.name].fixed = true;
+                  _this.stampReward.stickers[drag.name].peeled = true;
+                  _this.stampReward.stickers[drag.name].x = 0;
+                  _this.stampReward.stickers[drag.name].y = 0;
+                  console.log("this.stampReward.stickers", _this.stampReward.stickers);
+                  _this.saveItem();
+                });
+                drag.on("stampNoMatch", function(th, drag) {
+                  console.log("this.stampReward.stickers", _this.stampReward.stickers);
+                  console.log("drag", drag);
+                  _this.stampReward.stickers[drag.name].fixed = false;
+                  _this.stampReward.stickers[drag.name].peeled = true;
+                  _this.stampReward.stickers[drag.name].x = drag.x;
+                  _this.stampReward.stickers[drag.name].y = drag.y;
+                  console.log("this.stampReward.stickers", _this.stampReward.stickers);
+                  _this.saveItem();
+                });
+                var stampNode = drag.children[1];
+                stampNode.getComponent(cc.Sprite).spriteFrame = spriteFrame;
+                var shadowNode = drag.children[0];
+                shadowNode.getComponent(cc.Sprite).spriteFrame = spriteFrame;
+                shadowNode.active = false;
+                var dragComp = drag.getComponent(stampDrag_1.default);
+                dragComp.imageIndex = index;
+                if (_this.stampReward.stickers[index].fixed) {
+                  drag.parent = _this.stickerLayer;
+                  dragComp.allowDrag = false;
+                  drag.position = new cc.Vec3(parseInt(x), parseInt(y));
+                  shadowNode.active = false;
+                  dragComp.inStickerPack = false;
+                } else {
+                  if (_this.stampReward.stickers[index].peeled) {
+                    drag.position = new cc.Vec3(_this.stampReward.stickers[index].x, _this.stampReward.stickers[index].y, 0);
+                    dragComp.inStickerPack = false;
+                    drag.parent = drag.parent.parent.parent;
+                    drag.height = spriteFrame.getOriginalSize().height;
+                    drag.width = spriteFrame.getOriginalSize().width;
+                  } else {
+                    drag.scale = scale;
+                    drag.position = new cc.Vec3(-stickerHolder.icon.width / 2, -stickerHolder.icon.height / 2, 0);
+                    drag.height = spriteFrame.getOriginalSize().height;
+                    drag.width = spriteFrame.getOriginalSize().width;
+                  }
+                  drag.getComponent(drag_1.default).allowDrag = true;
+                }
+                var drop = cc.instantiate(_this.stampDrop);
+                drop.name = index.toString();
+                drop.position = new cc.Vec3(parseInt(x), parseInt(y));
+                drop.height = drag.height;
+                drop.width = drag.width;
+                _this.stickerLayer.addChild(drop);
+                if (1 == index) {
+                  firstDrag = drag;
+                  firstDrop = drop;
+                }
+              }
+            }
+          });
+          console.log("this.stampReward in onload before change", this_1.stampReward);
+        };
+        var this_1 = this;
+        for (var index = 0; index < this.numPieces; index++) _loop_1(index);
+      };
+      Stamp.prototype.getItemName = function(config) {
+        return profile_1.User.getCurrentUser().id + "_" + config.course.id + "_" + config.chapter.id + "_" + config.lesson.id + "_" + config.problem;
+      };
+      Stamp.prototype.saveItem = function() {
+        cc.sys.localStorage.setItem(this.getItemName(config_1.default.i), JSON.stringify(this.stampReward));
+        console.log("this.stampReward in saveItem", this.stampReward);
+      };
+      Stamp.prototype.onPaintClick = function(event, customEventData) {
+        this.graphics.strokeColor = new cc.Color().fromHEX(customEventData);
+        this.isPainting = true;
+        drag_1.default.letDrag = false;
+        this.currentColor = customEventData;
+      };
+      Stamp.prototype.onTouchMove = function(touch) {
+        if (this.isPainting) {
+          var from = this.graphics.node.convertToNodeSpaceAR(touch.getPreviousLocation());
+          var to = this.graphics.node.convertToNodeSpaceAR(touch.getLocation());
+          this.graphics.moveTo(from.x, from.y);
+          this.graphics.lineTo(to.x, to.y);
+          this.graphics.stroke();
+          this.stampReward.drawStokes.push([ this.currentColor, from.x, from.y, to.x, to.y ]);
+        }
+      };
+      Stamp.prototype.onTouchEnd = function(touch) {
+        if (this.isPainting) {
+          this.isPainting = false;
+          drag_1.default.letDrag = true;
+          this.saveItem();
+        }
+      };
+      Stamp.prototype.onToolClick = function(event, customEventData) {
+        if (this.isPainting) {
+          this.isPainting = false;
+          drag_1.default.letDrag = true;
+          this.bottomPaint.active = false;
+        } else {
+          this.isPainting = true;
+          drag_1.default.letDrag = false;
+          this.bottomPaint.active = true;
+        }
+      };
+      Stamp.prototype.toDrawSavedDrawing = function() {
+        console.log("const drawstrokes", this.stampReward);
+        void 0 == this.stampReward.drawStokes && (this.stampReward.drawStokes = []);
+        var drawstrokes = this.stampReward.drawStokes;
+        for (var i = 0; i < drawstrokes.length; i++) {
+          this.graphics.strokeColor = new cc.Color().fromHEX(drawstrokes[i][0]);
+          this.graphics.moveTo(drawstrokes[i][1], drawstrokes[i][2]);
+          this.graphics.lineTo(drawstrokes[i][3], drawstrokes[i][4]);
+          this.graphics.stroke();
+        }
+      };
+      Stamp.prototype.capturingScreenshot = function() {
+        var _this = this;
+        console.log("screenshot method called");
+        var texture = new cc.RenderTexture();
+        texture.initWithSize(cc.visibleRect.width, cc.visibleRect.height, cc.Texture2D.PixelFormat.RGBA8888);
+        this.camera.getComponent(cc.Camera).targetTexture = texture;
+        this.texture = texture;
+        this.schedule(function() {
+          var picData = _this.initImage();
+          _this.createCanvas(picData);
+          _this.saveFile(picData);
+        }, 1, 0);
+      };
+      Stamp.prototype.initImage = function() {
+        var data = this.texture.readPixels();
+        this._width = this.texture.width;
+        this._height = this.texture.height;
+        var picData = this.filpYImage(data, this._width, this._height);
+        return picData;
+      };
+      Stamp.prototype.filpYImage = function(data, width, height) {
+        var picData = new Uint8Array(width * height * 4);
+        var rowBytes = 4 * width;
+        for (var row = 0; row < height; row++) {
+          var srow = height - 1 - row;
+          var start = srow * width * 4;
+          var reStart = row * width * 4;
+          for (var i = 0; i < rowBytes; i++) picData[reStart + i] = data[start + i];
+        }
+        return picData;
+      };
+      Stamp.prototype.createCanvas = function(picData) {
+        var texture = new cc.Texture2D();
+        texture.initWithData(picData, 32, this._width, this._height);
+        var spriteFrame = new cc.SpriteFrame();
+        spriteFrame.setTexture(texture);
+        var node = new cc.Node();
+        var sprite = node.addComponent(cc.Sprite);
+        sprite.spriteFrame = spriteFrame;
+        node.zIndex = cc.macro.MAX_ZINDEX;
+        node.parent = cc.director.getScene();
+        var width = cc.winSize.width;
+        var height = cc.winSize.height;
+        node.x = width / 2;
+        node.y = height / 2;
+        node.on(cc.Node.EventType.TOUCH_START, function() {
+          node.parent = null;
+          node.destroy();
+        });
+        this.captureAction(node, width, height);
+      };
+      Stamp.prototype.captureAction = function(capture, width, height) {
+        var scaleAction = cc.scaleTo(1, .3);
+        var targetPos = cc.v2(width - width / 6, height / 4);
+        var moveAction = cc.moveTo(1, targetPos);
+        var spawn = cc.spawn(scaleAction, moveAction);
+        capture.runAction(spawn);
+        var blinkAction = cc.blink(.1, 1);
+        this.node.runAction(blinkAction);
+      };
+      Stamp.prototype.saveFile = function(picData) {
+        cc.log("saveFile() called");
+        var filePath;
+        var success;
+        false;
+      };
+      __decorate([ property(cc.Prefab) ], Stamp.prototype, "stampDrag", void 0);
+      __decorate([ property(cc.Prefab) ], Stamp.prototype, "stampDrop", void 0);
+      __decorate([ property(cc.Sprite) ], Stamp.prototype, "bg", void 0);
+      __decorate([ property(cc.Node) ], Stamp.prototype, "label", void 0);
+      __decorate([ property(cc.Prefab) ], Stamp.prototype, "stickerPrefab", void 0);
+      __decorate([ property(cc.Node) ], Stamp.prototype, "stickerPack", void 0);
+      __decorate([ property(cc.Graphics) ], Stamp.prototype, "graphics", void 0);
+      __decorate([ property(cc.Node) ], Stamp.prototype, "bottomPaint", void 0);
+      __decorate([ property(cc.Node) ], Stamp.prototype, "stickerLayer", void 0);
+      __decorate([ property(cc.Node) ], Stamp.prototype, "mask", void 0);
+      __decorate([ property(cc.Node) ], Stamp.prototype, "camera", void 0);
+      Stamp = __decorate([ ccclass ], Stamp);
+      return Stamp;
+    }(game_1.default);
+    exports.default = Stamp;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/drag": void 0,
+    "../../../common/scripts/game": void 0,
+    "../../../common/scripts/lessonController": void 0,
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/profile": void 0,
+    "../../../common/scripts/util": void 0,
+    "./stampDrag": "stampDrag",
+    "./stickerHolder": "stickerHolder"
+  } ],
+  stickerHolder: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "b32b0MVudVFoKPoIC3ME9Cg", "stickerHolder");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var config_1 = require("../../../common/scripts/lib/config");
+    var profile_1 = require("../../../common/scripts/lib/profile");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var StickerHolder = function(_super) {
+      __extends(StickerHolder, _super);
+      function StickerHolder() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.icon = null;
+        _this.bg = null;
+        _this.lock = null;
+        return _this;
+      }
+      StickerHolder.prototype.start = function() {};
+      StickerHolder.prototype.onClick = function(event, customEventData) {
+        this.icon.getComponent(cc.Button).interactable = false;
+        profile_1.User.getCurrentUser().currentReward = this.rewardArray;
+        config_1.default.i.popAllScenes();
+        config_1.default.i.pushScene("menu/start/scenes/start", "menu", null, true);
+      };
+      __decorate([ property(cc.Node) ], StickerHolder.prototype, "icon", void 0);
+      __decorate([ property(cc.Node) ], StickerHolder.prototype, "bg", void 0);
+      __decorate([ property(cc.Node) ], StickerHolder.prototype, "lock", void 0);
+      StickerHolder = __decorate([ ccclass ], StickerHolder);
+      return StickerHolder;
+    }(cc.Component);
+    exports.default = StickerHolder;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/profile": void 0
+  } ]
+}, {}, [ "stamp", "stampDrag", "stampDrop", "stickerHolder" ]);

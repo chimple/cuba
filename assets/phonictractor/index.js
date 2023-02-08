@@ -1,1 +1,346 @@
-window.__require=function t(o,r,e){function i(c,l){if(!r[c]){if(!o[c]){var s=c.split("/");if(s=s[s.length-1],!o[s]){var a="function"==typeof __require&&__require;if(!l&&a)return a(s,!0);if(n)return n(s,!0);throw new Error("Cannot find module '"+c+"'")}c=s}var u=r[c]={exports:{}};o[c][0].call(u.exports,function(t){return i(o[c][1][t]||t)},u,u.exports,t,o,r,e)}return r[c].exports}for(var n="function"==typeof __require&&__require,c=0;c<e.length;c++)i(e[c]);return i}({phonictractor_drag:[function(t,o,r){"use strict";cc._RF.push(o,"e4098tLChNJ3qDgl7RyRMjd","phonictractor_drag");var e,i=this&&this.__extends||(e=function(t,o){return(e=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,o){t.__proto__=o}||function(t,o){for(var r in o)Object.prototype.hasOwnProperty.call(o,r)&&(t[r]=o[r])})(t,o)},function(t,o){function r(){this.constructor=t}e(t,o),t.prototype=null===o?Object.create(o):(r.prototype=o.prototype,new r)}),n=this&&this.__decorate||function(t,o,r,e){var i,n=arguments.length,c=n<3?o:null===e?e=Object.getOwnPropertyDescriptor(o,r):e;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,o,r,e);else for(var l=t.length-1;l>=0;l--)(i=t[l])&&(c=(n<3?i(c):n>3?i(o,r,c):i(o,r))||c);return n>3&&c&&Object.defineProperty(o,r,c),c};Object.defineProperty(r,"__esModule",{value:!0});var c=t("../../../common/scripts/lib/error-handler"),l=t("../../../common/scripts/drag"),s=t("../../../common/scripts/util"),a=t("../../../common/scripts/lessonController"),u=t("../../../common/scripts/lib/config"),p=cc._decorator,d=p.ccclass,h=(p.property,function(t){function o(){var o=null!==t&&t.apply(this,arguments)||this;return o._soundClip=null,o}return i(o,t),o.prototype.onLoad=function(){var t=this;this.label.string=u.default.wide?" "+this.node.name+" ":this.node.name,s.Util.loadGameAudioOrPhonics(this.node.name.toLowerCase(),function(o){null!=o&&(t._soundClip=o)})},o.prototype.onTouchStart=function(o){if(t.prototype.onTouchStart.call(this,o),null!=this._soundClip)try{a.default.getFriend().speak(this._soundClip)}catch(r){console.log("Failed playing sound")}},o.prototype.onTouchEnd=function(o){t.prototype.onTouchEnd.call(this,o),this.match?this.node.emit("phonicTractorMatch",this):this.node.emit("phonicTractorNoMatch")},n([c.catchError()],o.prototype,"onTouchEnd",null),n([d],o)}(l.default));r.default=h,cc._RF.pop()},{"../../../common/scripts/drag":void 0,"../../../common/scripts/lessonController":void 0,"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/error-handler":void 0,"../../../common/scripts/util":void 0}],phonictractor:[function(t,o,r){"use strict";cc._RF.push(o,"5bfc5YJVeVKdpzUCaJg9HZ5","phonictractor");var e,i=this&&this.__extends||(e=function(t,o){return(e=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,o){t.__proto__=o}||function(t,o){for(var r in o)Object.prototype.hasOwnProperty.call(o,r)&&(t[r]=o[r])})(t,o)},function(t,o){function r(){this.constructor=t}e(t,o),t.prototype=null===o?Object.create(o):(r.prototype=o.prototype,new r)}),n=this&&this.__decorate||function(t,o,r,e){var i,n=arguments.length,c=n<3?o:null===e?e=Object.getOwnPropertyDescriptor(o,r):e;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,o,r,e);else for(var l=t.length-1;l>=0;l--)(i=t[l])&&(c=(n<3?i(c):n>3?i(o,r,c):i(o,r))||c);return n>3&&c&&Object.defineProperty(o,r,c),c};Object.defineProperty(r,"__esModule",{value:!0});var c=t("../../../common/scripts/lib/config"),l=t("../../../common/scripts/util"),s=t("./phonictractor_drag"),a=t("../../../common/scripts/lib/error-handler"),u=t("../../../common/scripts/game"),p=t("../../../common/scripts/drag"),d=cc._decorator,h=d.ccclass,f=d.property,y=function(t){function o(){var o=null!==t&&t.apply(this,arguments)||this;return o.truckNode=null,o.trolleyPrefab=null,o.boxPrefab=null,o.metalAudio=null,o.truckInAudio=null,o.truckOutAudio=null,o.trolley=[],o.box=null,o.count=1,o.totalPieces=0,o.finishTruckMoveTo=-2e3,o.firstDrag=null,o.firstDrop=null,o._isRTL=!1,o}return i(o,t),o.prototype.onLoad=function(){var t=this;p.default.letDrag=!1,cc.director.getCollisionManager().enabled=!0,this._isRTL=c.default.i.direction==c.Direction.RTL,this.totalPieces++,this.completed=[],this.wordAudio=new Map;var o,r,e,i,n,s,a,u=c.default.getInstance().data[0].toString().split(",");u[0],u[1],u[2],u[3],this.answer=u[4],this.temp=u[5],o=u[6],i=u[7],null==(r=u[8])&&(r=""),null==(n=u[9])&&(n=""),null==(e=u[10])&&(e=""),null==(s=u[11])&&(s=""),this.truckNode.x=cc.winSize.width/2,this.word=[o],""!=r&&this.word.push(r),""!=e&&this.word.push(e),this._isRTL&&(this.truckNode.x=-cc.winSize.width/2,this.finishTruckMoveTo=2e3),this.wordAudio.set(this.answer,this.temp),this.wordAudio.set(o,i),this.wordAudio.set(r,n),this.wordAudio.set(e,s),console.log("words"+this.word),this.onTouchAudio(this.wordAudio.get(this.answer)),this.instantiateTrolley(0),0!=r.length&&(this.count++,this.instantiateTrolley(1)),0!=e.length&&(this.count++,this.instantiateTrolley(2)),c.default.i.direction==c.Direction.RTL?(this.truckNode.scaleX=-1,a=100*(this.count-1)+310):a=100*-(this.count-1)-310,(new cc.Tween).target(this.truckNode).call(function(){l.Util.playSfx(t.truckInAudio)}).to(2.1,{x:a},{progress:null,easing:function(t){return t}}).call(function(){var o=0;t.trolley.forEach(function(r){o++,(new cc.Tween).target(r).call(function(){l.Util.playSfx(t.metalAudio)}).to(.5,{position:cc.v2(r.position.x+20*o,r.position.y)},{progress:null,easing:"elasticOut"}).start()}),t.showOptions()}).start(),this.node.getChildByName("board").getChildByName("answer_label").getComponent(cc.Label).string=c.default.wide?" "+this.answer+" ":this.answer},o.prototype.instantiateTrolley=function(t){this.trolley[t]=cc.instantiate(this.trolleyPrefab),this.trolley[t].parent=this.truckNode,this.trolley[t].position=cc.v3(this.trolley[t].position.x+260*t,-75,0),this.trolley[t].getChildByName("drop_area").name=this.word[t],0==t&&(this.firstDrop=this.trolley[t])},o.prototype.showOptions=function(){var t=this,o=this.word[0],r=this.word;Math.random()>.3&&(r=l.Util.shuffle(this.word));for(var e=0;e<this.count;e++){var i=cc.instantiate(this.boxPrefab),n=i.getComponent(s.default);null!=n&&(n.label.string=r[e]),r[e]==o&&(this.firstDrag=i),i.name=r[e];var c=new cc.Node;if(c.addChild(i),c.name=r[e],this.node.getChildByName("New Layout").addChild(c),i.on("phonicTractorMatch",this.onMatch.bind(this)),i.on("phonicTractorNoMatch",function(){return t.node.emit("wrong")}),this._isRTL){var a=new cc.Node;a.name="shouldFlip",i.addChild(a)}}l.Util.loadGameSound(this.wordAudio.get(this.answer),function(o){null!=o&&(t.friend.extraClip=o),l.Util.showHelp(t.firstDrag,t.firstDrop),p.default.letDrag=!0})},o.prototype.onTouchAudio=function(t){var o=this;l.Util.loadGameSound(t,function(t){null!=t&&o.friend.speak(t)})},o.prototype.onMatch=function(){var t=this;this.node.emit("correct"),0==--this.count&&(new cc.Tween).target(this.truckNode).delay(1).call(function(){t.friend.speakExtra()}).delay(1).call(function(){var o=0;l.Util.playSfx(t.metalAudio),t.trolley.forEach(function(t){o++,(new cc.Tween).target(t).to(.5,{position:cc.v2(t.position.x-20*o,t.position.y)},{progress:null,easing:"sineOut"}).start()})}).delay(1).call(function(){l.Util.playSfx(t.truckOutAudio)}).to(2,{x:this.finishTruckMoveTo},{progress:null,easing:function(t){return t}}).call(function(){return t.match()}).start()},o.prototype.match=function(){--this.totalPieces<=0&&this.node.emit("nextProblem")},o.prototype.onDestroy=function(){cc.audioEngine.stopAllEffects()},n([f(cc.Node)],o.prototype,"truckNode",void 0),n([f(cc.Prefab)],o.prototype,"trolleyPrefab",void 0),n([f(cc.Prefab)],o.prototype,"boxPrefab",void 0),n([f({type:cc.AudioClip})],o.prototype,"metalAudio",void 0),n([f({type:cc.AudioClip})],o.prototype,"truckInAudio",void 0),n([f({type:cc.AudioClip})],o.prototype,"truckOutAudio",void 0),n([a.catchError()],o.prototype,"onLoad",null),n([a.catchError()],o.prototype,"instantiateTrolley",null),n([a.catchError()],o.prototype,"showOptions",null),n([a.catchError()],o.prototype,"onTouchAudio",null),n([a.catchError()],o.prototype,"onMatch",null),n([a.catchError()],o.prototype,"match",null),n([a.catchError()],o.prototype,"onDestroy",null),n([h],o)}(u.default);r.default=y,cc._RF.pop()},{"../../../common/scripts/drag":void 0,"../../../common/scripts/game":void 0,"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/error-handler":void 0,"../../../common/scripts/util":void 0,"./phonictractor_drag":"phonictractor_drag"}]},{},["phonictractor","phonictractor_drag"]);
+window.__require = function e(t, n, r) {
+  function s(o, u) {
+    if (!n[o]) {
+      if (!t[o]) {
+        var b = o.split("/");
+        b = b[b.length - 1];
+        if (!t[b]) {
+          var a = "function" == typeof __require && __require;
+          if (!u && a) return a(b, !0);
+          if (i) return i(b, !0);
+          throw new Error("Cannot find module '" + o + "'");
+        }
+        o = b;
+      }
+      var f = n[o] = {
+        exports: {}
+      };
+      t[o][0].call(f.exports, function(e) {
+        var n = t[o][1][e];
+        return s(n || e);
+      }, f, f.exports, e, t, n, r);
+    }
+    return n[o].exports;
+  }
+  var i = "function" == typeof __require && __require;
+  for (var o = 0; o < r.length; o++) s(r[o]);
+  return s;
+}({
+  phonictractor_drag: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "e4098tLChNJ3qDgl7RyRMjd", "phonictractor_drag");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var drag_1 = require("../../../common/scripts/drag");
+    var util_1 = require("../../../common/scripts/util");
+    var lessonController_1 = require("../../../common/scripts/lessonController");
+    var config_1 = require("../../../common/scripts/lib/config");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var PhonicTractorDrag = function(_super) {
+      __extends(PhonicTractorDrag, _super);
+      function PhonicTractorDrag() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this._soundClip = null;
+        return _this;
+      }
+      PhonicTractorDrag.prototype.onLoad = function() {
+        var _this = this;
+        this.label.string = config_1.default.wide ? " " + this.node.name + " " : this.node.name;
+        util_1.Util.loadGameAudioOrPhonics(this.node.name.toLowerCase(), function(clip) {
+          null != clip && (_this._soundClip = clip);
+        });
+      };
+      PhonicTractorDrag.prototype.onTouchStart = function(touch) {
+        _super.prototype.onTouchStart.call(this, touch);
+        if (null != this._soundClip) try {
+          lessonController_1.default.getFriend().speak(this._soundClip);
+        } catch (error) {
+          console.log("Failed playing sound");
+        }
+      };
+      PhonicTractorDrag.prototype.onTouchEnd = function(touch) {
+        _super.prototype.onTouchEnd.call(this, touch);
+        this.match ? this.node.emit("phonicTractorMatch", this) : this.node.emit("phonicTractorNoMatch");
+      };
+      __decorate([ error_handler_1.catchError() ], PhonicTractorDrag.prototype, "onTouchEnd", null);
+      PhonicTractorDrag = __decorate([ ccclass ], PhonicTractorDrag);
+      return PhonicTractorDrag;
+    }(drag_1.default);
+    exports.default = PhonicTractorDrag;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/drag": void 0,
+    "../../../common/scripts/lessonController": void 0,
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/error-handler": void 0,
+    "../../../common/scripts/util": void 0
+  } ],
+  phonictractor: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "5bfc5YJVeVKdpzUCaJg9HZ5", "phonictractor");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var config_1 = require("../../../common/scripts/lib/config");
+    var util_1 = require("../../../common/scripts/util");
+    var phonictractor_drag_1 = require("./phonictractor_drag");
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var game_1 = require("../../../common/scripts/game");
+    var drag_1 = require("../../../common/scripts/drag");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var PhonicTractor = function(_super) {
+      __extends(PhonicTractor, _super);
+      function PhonicTractor() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.truckNode = null;
+        _this.trolleyPrefab = null;
+        _this.boxPrefab = null;
+        _this.metalAudio = null;
+        _this.truckInAudio = null;
+        _this.truckOutAudio = null;
+        _this.trolley = [];
+        _this.box = null;
+        _this.count = 1;
+        _this.totalPieces = 0;
+        _this.finishTruckMoveTo = -2e3;
+        _this.firstDrag = null;
+        _this.firstDrop = null;
+        _this._isRTL = false;
+        return _this;
+      }
+      PhonicTractor.prototype.onLoad = function() {
+        var _this = this;
+        drag_1.default.letDrag = false;
+        cc.director.getCollisionManager().enabled = true;
+        this._isRTL = config_1.default.i.direction == config_1.Direction.RTL;
+        this.totalPieces++;
+        this.completed = [];
+        this.wordAudio = new Map();
+        var fieldArr = config_1.default.getInstance().data[0].toString().split(",");
+        var word1, word2, word3, problemCount, level, worksheet, problem, audio, audio1, audio2, audio3;
+        level = fieldArr[0], worksheet = fieldArr[1], problem = fieldArr[2], problemCount = fieldArr[3], 
+        this.answer = fieldArr[4], this.temp = fieldArr[5], word1 = fieldArr[6], audio1 = fieldArr[7], 
+        word2 = fieldArr[8], audio2 = fieldArr[9], word3 = fieldArr[10], audio3 = fieldArr[11];
+        null == word2 && (word2 = "");
+        null == audio2 && (audio2 = "");
+        null == word3 && (word3 = "");
+        null == audio3 && (audio3 = "");
+        this.truckNode.x = cc.winSize.width / 2;
+        this.word = [ word1 ];
+        "" != word2 && this.word.push(word2);
+        "" != word3 && this.word.push(word3);
+        if (this._isRTL) {
+          this.truckNode.x = -cc.winSize.width / 2;
+          this.finishTruckMoveTo = 2e3;
+        }
+        this.wordAudio.set(this.answer, this.temp);
+        this.wordAudio.set(word1, audio1);
+        this.wordAudio.set(word2, audio2);
+        this.wordAudio.set(word3, audio3);
+        console.log("words" + this.word);
+        this.onTouchAudio(this.wordAudio.get(this.answer));
+        var truckOffset;
+        this.instantiateTrolley(0);
+        if (0 != word2.length) {
+          this.count++;
+          this.instantiateTrolley(1);
+        }
+        if (0 != word3.length) {
+          this.count++;
+          this.instantiateTrolley(2);
+        }
+        if (config_1.default.i.direction == config_1.Direction.RTL) {
+          this.truckNode.scaleX = -1;
+          truckOffset = 100 * (this.count - 1) + 310;
+        } else truckOffset = 100 * -(this.count - 1) - 310;
+        new cc.Tween().target(this.truckNode).call(function() {
+          util_1.Util.playSfx(_this.truckInAudio);
+        }).to(2.1, {
+          x: truckOffset
+        }, {
+          progress: null,
+          easing: function(t) {
+            return t;
+          }
+        }).call(function() {
+          var i = 0;
+          _this.trolley.forEach(function(e) {
+            i++;
+            new cc.Tween().target(e).call(function() {
+              util_1.Util.playSfx(_this.metalAudio);
+            }).to(.5, {
+              position: cc.v2(e.position.x + 20 * i, e.position.y)
+            }, {
+              progress: null,
+              easing: "elasticOut"
+            }).start();
+          });
+          _this.showOptions();
+        }).start();
+        this.node.getChildByName("board").getChildByName("answer_label").getComponent(cc.Label).string = config_1.default.wide ? " " + this.answer + " " : this.answer;
+      };
+      PhonicTractor.prototype.instantiateTrolley = function(i) {
+        this.trolley[i] = cc.instantiate(this.trolleyPrefab);
+        this.trolley[i].parent = this.truckNode;
+        this.trolley[i].position = cc.v3(this.trolley[i].position.x + 260 * i, -75, 0);
+        this.trolley[i].getChildByName("drop_area").name = this.word[i];
+        0 == i && (this.firstDrop = this.trolley[i]);
+      };
+      PhonicTractor.prototype.showOptions = function() {
+        var _this = this;
+        var firstDragData = this.word[0];
+        var arr = this.word;
+        Math.random() > .3 && (arr = util_1.Util.shuffle(this.word));
+        for (var i = 0; i < this.count; i++) {
+          var dragBox = cc.instantiate(this.boxPrefab);
+          var dragComp = dragBox.getComponent(phonictractor_drag_1.default);
+          null != dragComp && (dragComp.label.string = arr[i]);
+          arr[i] == firstDragData && (this.firstDrag = dragBox);
+          dragBox.name = arr[i];
+          var tempNode = new cc.Node();
+          tempNode.addChild(dragBox);
+          tempNode.name = arr[i];
+          this.node.getChildByName("New Layout").addChild(tempNode);
+          dragBox.on("phonicTractorMatch", this.onMatch.bind(this));
+          dragBox.on("phonicTractorNoMatch", function() {
+            return _this.node.emit("wrong");
+          });
+          if (this._isRTL) {
+            var newNode = new cc.Node();
+            newNode.name = "shouldFlip";
+            dragBox.addChild(newNode);
+          }
+        }
+        util_1.Util.loadGameSound(this.wordAudio.get(this.answer), function(clip) {
+          null != clip && (_this.friend.extraClip = clip);
+          util_1.Util.showHelp(_this.firstDrag, _this.firstDrop);
+          drag_1.default.letDrag = true;
+        });
+      };
+      PhonicTractor.prototype.onTouchAudio = function(file) {
+        var _this = this;
+        util_1.Util.loadGameSound(file, function(clip) {
+          null != clip && _this.friend.speak(clip);
+        });
+      };
+      PhonicTractor.prototype.onMatch = function() {
+        var _this = this;
+        this.node.emit("correct");
+        0 == --this.count && new cc.Tween().target(this.truckNode).delay(1).call(function() {
+          _this.friend.speakExtra();
+        }).delay(1).call(function() {
+          var j = 0;
+          util_1.Util.playSfx(_this.metalAudio);
+          _this.trolley.forEach(function(e) {
+            j++;
+            new cc.Tween().target(e).to(.5, {
+              position: cc.v2(e.position.x - 20 * j, e.position.y)
+            }, {
+              progress: null,
+              easing: "sineOut"
+            }).start();
+          });
+        }).delay(1).call(function() {
+          util_1.Util.playSfx(_this.truckOutAudio);
+        }).to(2, {
+          x: this.finishTruckMoveTo
+        }, {
+          progress: null,
+          easing: function(t) {
+            return t;
+          }
+        }).call(function() {
+          return _this.match();
+        }).start();
+      };
+      PhonicTractor.prototype.match = function() {
+        --this.totalPieces <= 0 && this.node.emit("nextProblem");
+      };
+      PhonicTractor.prototype.onDestroy = function() {
+        cc.audioEngine.stopAllEffects();
+      };
+      __decorate([ property(cc.Node) ], PhonicTractor.prototype, "truckNode", void 0);
+      __decorate([ property(cc.Prefab) ], PhonicTractor.prototype, "trolleyPrefab", void 0);
+      __decorate([ property(cc.Prefab) ], PhonicTractor.prototype, "boxPrefab", void 0);
+      __decorate([ property({
+        type: cc.AudioClip
+      }) ], PhonicTractor.prototype, "metalAudio", void 0);
+      __decorate([ property({
+        type: cc.AudioClip
+      }) ], PhonicTractor.prototype, "truckInAudio", void 0);
+      __decorate([ property({
+        type: cc.AudioClip
+      }) ], PhonicTractor.prototype, "truckOutAudio", void 0);
+      __decorate([ error_handler_1.catchError() ], PhonicTractor.prototype, "onLoad", null);
+      __decorate([ error_handler_1.catchError() ], PhonicTractor.prototype, "instantiateTrolley", null);
+      __decorate([ error_handler_1.catchError() ], PhonicTractor.prototype, "showOptions", null);
+      __decorate([ error_handler_1.catchError() ], PhonicTractor.prototype, "onTouchAudio", null);
+      __decorate([ error_handler_1.catchError() ], PhonicTractor.prototype, "onMatch", null);
+      __decorate([ error_handler_1.catchError() ], PhonicTractor.prototype, "match", null);
+      __decorate([ error_handler_1.catchError() ], PhonicTractor.prototype, "onDestroy", null);
+      PhonicTractor = __decorate([ ccclass ], PhonicTractor);
+      return PhonicTractor;
+    }(game_1.default);
+    exports.default = PhonicTractor;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/drag": void 0,
+    "../../../common/scripts/game": void 0,
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/error-handler": void 0,
+    "../../../common/scripts/util": void 0,
+    "./phonictractor_drag": "phonictractor_drag"
+  } ]
+}, {}, [ "phonictractor", "phonictractor_drag" ]);

@@ -1,1 +1,379 @@
-[1,["18cffe2ed","90foRryRJM3p9AGFGyKh5x"],["_textureSetter"],["cc.SpriteFrame"],0,[[[{"name":"phonictractor_shadow1","rect":[366,339,186,228],"offset":[0,0],"originalSize":[186,228],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"default_white_panel","rect":[0,0,21,21],"offset":[0,0],"originalSize":[21,21],"capInsets":[3,3,3,3]}],[0],0,[0],[0],[1]],[[{"name":"phonictractor_mountain1","rect":[368,3,201,233],"offset":[0,0],"originalSize":[201,233],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"phonictractor_mountain3","rect":[3,447,338,204],"offset":[0,0],"originalSize":[338,204],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"phonictractor_shadow2","rect":[366,210,123,233],"offset":[0,0],"originalSize":[123,233],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"phonictractor_tracks","rect":[145,775,108,56],"offset":[0,0],"originalSize":[108,56],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"phonictractor_mountain2","rect":[3,202,357,239],"offset":[0,0],"originalSize":[357,239],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"phonictractor_shadow3","rect":[3,3,359,193],"offset":[0,0],"originalSize":[359,193],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"phonictractor_moon","rect":[212,861,151,151],"offset":[0,0],"originalSize":[151,151],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]]]]
+[
+  1,
+  [
+    "18cffe2ed",
+    "90foRryRJM3p9AGFGyKh5x"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    [
+      [
+        {
+          "name": "phonictractor_shadow1",
+          "rect": [
+            366,
+            339,
+            186,
+            228
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            186,
+            228
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "default_white_panel",
+          "rect": [
+            0,
+            0,
+            21,
+            21
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            21,
+            21
+          ],
+          "capInsets": [
+            3,
+            3,
+            3,
+            3
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        1
+      ]
+    ],
+    [
+      [
+        {
+          "name": "phonictractor_mountain1",
+          "rect": [
+            368,
+            3,
+            201,
+            233
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            201,
+            233
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "phonictractor_mountain3",
+          "rect": [
+            3,
+            447,
+            338,
+            204
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            338,
+            204
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "phonictractor_shadow2",
+          "rect": [
+            366,
+            210,
+            123,
+            233
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            123,
+            233
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "phonictractor_tracks",
+          "rect": [
+            145,
+            775,
+            108,
+            56
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            108,
+            56
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "phonictractor_mountain2",
+          "rect": [
+            3,
+            202,
+            357,
+            239
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            357,
+            239
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "phonictractor_shadow3",
+          "rect": [
+            3,
+            3,
+            359,
+            193
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            359,
+            193
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "phonictractor_moon",
+          "rect": [
+            212,
+            861,
+            151,
+            151
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            151,
+            151
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ]
+  ]
+]

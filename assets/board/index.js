@@ -1,1 +1,573 @@
-window.__require=function t(e,o,i){function r(c,a){if(!o[c]){if(!e[c]){var p=c.split("/");if(p=p[p.length-1],!e[p]){var s="function"==typeof __require&&__require;if(!a&&s)return s(p,!0);if(n)return n(p,!0);throw new Error("Cannot find module '"+c+"'")}c=p}var l=o[c]={exports:{}};e[c][0].call(l.exports,function(t){return r(e[c][1][t]||t)},l,l.exports,t,e,o,i)}return o[c].exports}for(var n="function"==typeof __require&&__require,c=0;c<i.length;c++)r(i[c]);return r}({alphaDrag:[function(t,e,o){"use strict";cc._RF.push(e,"80ee4YIDgNNuKEhs9/f7oXY","alphaDrag");var i,r=this&&this.__extends||(i=function(t,e){return(i=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(t[o]=e[o])})(t,e)},function(t,e){function o(){this.constructor=t}i(t,e),t.prototype=null===e?Object.create(e):(o.prototype=e.prototype,new o)}),n=this&&this.__decorate||function(t,e,o,i){var r,n=arguments.length,c=n<3?e:null===i?i=Object.getOwnPropertyDescriptor(e,o):i;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,o,i);else for(var a=t.length-1;a>=0;a--)(r=t[a])&&(c=(n<3?r(c):n>3?r(e,o,c):r(e,o))||c);return n>3&&c&&Object.defineProperty(e,o,c),c};Object.defineProperty(o,"__esModule",{value:!0});var c=t("../../../common/scripts/lib/config"),a=t("../../../common/scripts/util"),p=t("../../../common/scripts/drag"),s=cc._decorator,l=s.ccclass,h=(s.property,function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e.pos=0,e._soundClip=null,e}return r(e,t),e.prototype.onLoad=function(){var e=this;t.prototype.onLoad.call(this),"letterboard"==c.default.i.data[0][0]?a.Util.loadsLetter(this.node.name.toLowerCase(),function(t){e._soundClip=t}):a.Util.loadNumericSound(this.node.name,function(t){e._soundClip=t})},e.prototype.onTouchStart=function(e){if(t.prototype.onTouchStart.call(this,e),this.allowDrag&&null!=this._soundClip)try{this._soundClip&&a.Util.play(this._soundClip,!1)}catch(o){console.log("Failed playing sound")}},e.prototype.onTouchEnd=function(e){t.prototype.onTouchEnd.call(this,e),this.match?this.node.emit("alphaMatch",this):this.node.emit("alphaNoMatch")},e.prototype.onMatchOver=function(){t.prototype.onMatchOver.call(this),this.node.parent.color=cc.Color.WHITE,this.node.parent.opacity=255},n([l],e)}(p.default));o.default=h,cc._RF.pop()},{"../../../common/scripts/drag":void 0,"../../../common/scripts/lib/config":void 0,"../../../common/scripts/util":void 0}],alphaDrop:[function(t,e,o){"use strict";cc._RF.push(e,"0afdbuIudJG17Ubeb9JdadQ","alphaDrop");var i,r=this&&this.__extends||(i=function(t,e){return(i=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(t[o]=e[o])})(t,e)},function(t,e){function o(){this.constructor=t}i(t,e),t.prototype=null===e?Object.create(e):(o.prototype=e.prototype,new o)}),n=this&&this.__decorate||function(t,e,o,i){var r,n=arguments.length,c=n<3?e:null===i?i=Object.getOwnPropertyDescriptor(e,o):i;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,o,i);else for(var a=t.length-1;a>=0;a--)(r=t[a])&&(c=(n<3?r(c):n>3?r(e,o,c):r(e,o))||c);return n>3&&c&&Object.defineProperty(e,o,c),c};Object.defineProperty(o,"__esModule",{value:!0});var c=t("../../../common/scripts/drop"),a=cc._decorator,p=a.ccclass,s=(a.property,function(t){function e(){return null!==t&&t.apply(this,arguments)||this}return r(e,t),n([p],e)}(c.default));o.default=s,cc._RF.pop()},{"../../../common/scripts/drop":void 0}],board:[function(t,e,o){"use strict";cc._RF.push(e,"39a7exrKS9LEquIcYndlzb0","board");var i,r=this&&this.__extends||(i=function(t,e){return(i=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(t[o]=e[o])})(t,e)},function(t,e){function o(){this.constructor=t}i(t,e),t.prototype=null===e?Object.create(e):(o.prototype=e.prototype,new o)}),n=this&&this.__decorate||function(t,e,o,i){var r,n=arguments.length,c=n<3?e:null===i?i=Object.getOwnPropertyDescriptor(e,o):i;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,o,i);else for(var a=t.length-1;a>=0;a--)(r=t[a])&&(c=(n<3?r(c):n>3?r(e,o,c):r(e,o))||c);return n>3&&c&&Object.defineProperty(e,o,c),c};Object.defineProperty(o,"__esModule",{value:!0});var c,a=t("../../../common/scripts/drag"),p=t("../../../common/scripts/game"),s=t("../../../common/scripts/lib/config"),l=t("../../../common/scripts/lib/error-handler"),h=t("../../../common/scripts/util"),u=t("./alphaDrag"),d=t("./numberDisplay"),f=cc._decorator,g=f.ccclass,y=f.property,m=["#5BC0EB","#FDE74C","#9BC53D","#55934","#A7921","#540D6E","#EE4266","#FFD23F","#3BCEAC","#0EAD69"];(function(t){t[t.Alpha=0]="Alpha",t[t.DropStickDragAlpha=1]="DropStickDragAlpha",t[t.DropAlphaDragStick=2]="DropAlphaDragStick"})(c||(c={}));var v=function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e.dropLayout=null,e.alphaDrag=null,e.alphaDrop=null,e.pos0=null,e.pos1=null,e.pos2=null,e.truck=null,e.truckInClip=null,e.truckOutClip=null,e.letters=null,e.positions=null,e.drags=[],e.currentIndex=0,e.dragPositions={},e.fontSize=0,e.lineHeight=0,e.type=null,e}return r(e,t),e.prototype.onLoad=function(){var t=this,e=s.default.getInstance();cc.director.getCollisionManager().enabled=!0,a.default.letDrag=!1,this.truck.x,s.default.i.direction==s.Direction.RTL?(this.truck.scaleX=-1,this.xpos=-this.truck.x,this.truck.x=-cc.winSize.width,this.pos0.x=-this.pos0.x,this.pos1.x=-this.pos1.x,this.pos2.x=-this.pos2.x):(this.xpos=this.truck.x,this.truck.x=cc.winSize.width),this.positions=[this.pos0,this.pos1,this.pos2],this.dropLayout.removeAllChildren();var o=e.data;this.letters=o[0][3].split(",");var i=this.dropLayout.getComponent(cc.Layout);i.paddingTop=parseInt(o[0][5]),i.paddingBottom=parseInt(o[0][6]),i.spacingX=parseInt(o[0][7]),i.spacingY=parseInt(o[0][8]),this.fontSize=parseInt(o[0][9]),this.lineHeight=parseInt(o[0][10]),"Alpha"==o[0][4]?(this.type=c.Alpha,this.letters.forEach(function(e){var o=cc.instantiate(t.alphaDrop);o.name=e,s.default.i.direction==s.Direction.RTL&&(o.scaleX=-1);var i=o.getComponent(cc.Label);i.string=e,i.fontSize=t.fontSize,i.lineHeight=t.lineHeight,t.dropLayout.addChild(o)})):"DropStickDragAlpha"==o[0][4]?(this.type=c.DropStickDragAlpha,this.letters.forEach(function(e){var o=cc.instantiate(t.imagePuzzleDrop);o.name=e,s.default.i.direction==s.Direction.RTL&&(o.scaleX=-1);var i=cc.instantiate(t.numberDisplay),r=i.getComponent(d.default);r.num=parseInt(e),r.type="Stick",o.getChildByName("imageglass_alphapuzzle").addChild(i),t.dropLayout.addChild(o)})):"DropAlphaDragStick"==o[0][4]&&(this.type=c.DropAlphaDragStick,this.letters.forEach(function(e){var o=cc.instantiate(t.imagePuzzleDrop);o.name=e,s.default.i.direction==s.Direction.RTL&&(o.scaleX=-1);var i=cc.instantiate(t.numberDisplay);i.color=(new cc.Color).fromHEX(m[Math.floor(Math.random()*m.length)]);var r=i.getComponent(d.default);r.type="Alpha",r.num=parseInt(e),r.fontSize=t.fontSize,r.lineHeight=t.lineHeight,o.getChildByName("imageglass_alphapuzzle").addChild(i),t.dropLayout.addChild(o)})),"y"==o[0][11]&&(this.letters=h.Util.shuffle(this.letters)),(new cc.Tween).target(this.truck).call(function(){h.Util.playSfx(t.truckInClip)}).to(1.5,{x:(this.truck.x+this.xpos)/2},{progress:null,easing:"quadOut"}).delay(.5).to(1.5,{x:this.xpos},{progress:null,easing:"quadIn"}).call(function(){t.truck.getComponent(cc.Animation).stop(),t.createDrag(0,0),t.createDrag(1,1),t.createDrag(2,2),t.scheduleOnce(function(){a.default.letDrag=!0},1)}).start()},e.prototype.onMatch=function(t){var e=this;if(this.node.emit("correct"),null!=this.friend&&this.friend.playAnimation("happy",1),1==this.drags.length)this.truck.getComponent(cc.Animation).play(),(new cc.Tween).target(this.truck).delay(1).call(function(){h.Util.playSfx(e.truckOutClip)}).to(3,{x:2*-cc.winSize.width},{progress:null,easing:"quadOut"}).call(function(){e.node.emit("nextProblem")}).start();else{for(var o=t.pos;o<this.drags.length-1;o++)this.drags[o]=this.drags[o+1],(new cc.Tween).target(this.drags[o]).to(.5,{position:this.positions[o].position},{progress:null,easing:"backOut"}).start(),this.drags[o].position=this.positions[o].position,this.drags[o].children[0].getComponent(u.default).pos=o;++this.currentIndex<this.letters.length?this.createDrag(this.currentIndex,this.drags.length-1):this.drags.splice(this.drags.length-1,1)}},e.prototype.createDrag=function(t,e){var o=this,i=null;this.type==c.Alpha?i=this.createAlphaDrag(t):this.type==c.DropStickDragAlpha?i=this.createImageAlphaDrag(t):this.type==c.DropAlphaDragStick&&(i=this.createImageObjectDrag(t)),i.name=this.letters[t],i.on("alphaMatch",this.onMatch.bind(this)),i.on("alphaNoMatch",function(){o.node.emit("wrong"),null!=o.friend&&o.friend.playAnimation("sad",1)}),i.getComponent(u.default).pos=e;var r=new cc.Node;r.addChild(i),r.position=this.positions[e].position,this.node.addChild(r),this.drags[e]=r,this.currentIndex=t,(new cc.Tween).target(r).set({position:new cc.Vec2(this.positions[e].position.x,-cc.winSize.height)}).to(.5,{position:this.positions[e].position},{progress:null,easing:"backOut"}).call(function(){0==t&&h.Util.showHelp(i,o.dropLayout.getChildByName(i.name))}).start()},e.prototype.createAlphaDrag=function(t){var e=cc.instantiate(this.alphaDrag);e.color=(new cc.Color).fromHEX(m[Math.floor(Math.random()*m.length)]);var o=e.getComponent(cc.Label);return o.string=this.letters[t],o.fontSize=this.fontSize,o.lineHeight=this.lineHeight,e},e.prototype.createImageAlphaDrag=function(t){var e=cc.instantiate(this.imagePuzzleDrag),o=cc.instantiate(this.numberDisplay);o.color=(new cc.Color).fromHEX(m[Math.floor(Math.random()*m.length)]);var i=o.getComponent(d.default);return i.type="Alpha",i.num=parseInt(this.letters[t]),i.fontSize=this.fontSize,i.lineHeight=this.lineHeight,e.addChild(o),e},e.prototype.createImageObjectDrag=function(t){var e=cc.instantiate(this.imagePuzzleDrag),o=cc.instantiate(this.numberDisplay),i=o.getComponent(d.default);return i.type="Object",i.num=parseInt(this.letters[t]),e.addChild(o),e},n([y(cc.Node)],e.prototype,"dropLayout",void 0),n([y(cc.Prefab)],e.prototype,"alphaDrag",void 0),n([y(cc.Prefab)],e.prototype,"alphaDrop",void 0),n([y(cc.Prefab)],e.prototype,"imagePuzzleDrag",void 0),n([y(cc.Prefab)],e.prototype,"imagePuzzleDrop",void 0),n([y(cc.Prefab)],e.prototype,"numberDisplay",void 0),n([y(cc.Node)],e.prototype,"pos0",void 0),n([y(cc.Node)],e.prototype,"pos1",void 0),n([y(cc.Node)],e.prototype,"pos2",void 0),n([y(cc.Node)],e.prototype,"truck",void 0),n([y(cc.AudioClip)],e.prototype,"truckInClip",void 0),n([y(cc.AudioClip)],e.prototype,"truckOutClip",void 0),n([l.default()],e.prototype,"onLoad",null),n([l.default()],e.prototype,"onMatch",null),n([l.default()],e.prototype,"createDrag",null),n([g],e)}(p.default);o.default=v,cc._RF.pop()},{"../../../common/scripts/drag":void 0,"../../../common/scripts/game":void 0,"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/error-handler":void 0,"../../../common/scripts/util":void 0,"./alphaDrag":"alphaDrag","./numberDisplay":"numberDisplay"}],numberDisplay:[function(t,e,o){"use strict";cc._RF.push(e,"d0dae0qgp5NMJHe3SoDzmOk","numberDisplay");var i,r=this&&this.__extends||(i=function(t,e){return(i=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var o in e)Object.prototype.hasOwnProperty.call(e,o)&&(t[o]=e[o])})(t,e)},function(t,e){function o(){this.constructor=t}i(t,e),t.prototype=null===e?Object.create(e):(o.prototype=e.prototype,new o)}),n=this&&this.__decorate||function(t,e,o,i){var r,n=arguments.length,c=n<3?e:null===i?i=Object.getOwnPropertyDescriptor(e,o):i;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)c=Reflect.decorate(t,e,o,i);else for(var a=t.length-1;a>=0;a--)(r=t[a])&&(c=(n<3?r(c):n>3?r(e,o,c):r(e,o))||c);return n>3&&c&&Object.defineProperty(e,o,c),c};Object.defineProperty(o,"__esModule",{value:!0});var c=t("../../../common/scripts/chimple-label"),a=cc._decorator,p=a.ccclass,s=a.property,l=function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e.num=null,e.type="Alpha",e.fontSize=null,e.lineHeight=null,e.stick=null,e.object1=null,e.object2=null,e.object3=null,e.object4=null,e.object5=null,e.object6=null,e.object7=null,e.object8=null,e.object9=null,e.object10=null,e}return r(e,t),e.prototype.onLoad=function(){if("Stick"==this.type){var t=this.getComponent(cc.Layout);this.num<=10&&(t.paddingBottom=10,t.paddingTop=10,t.paddingLeft=10,t.paddingRight=10,t.spacingX=10);for(var e=0;e<this.num;e++)this.num>10&&e%5==0&&e%10!=0&&((n=new cc.Node).width=4,this.node.addChild(n)),(a=new cc.Node).addComponent(cc.Sprite).spriteFrame=this.stick,this.num>10&&(a.width=8),this.node.addChild(a)}else if("Alpha"==this.type){var o=this.node.addComponent(c.default);o.fontSize=this.fontSize,o.lineHeight=this.lineHeight,o.string=this.num.toString()}else if("Object"==this.type){(t=this.getComponent(cc.Layout)).resizeMode=cc.Layout.ResizeMode.CHILDREN,this.num<=10?(t.paddingLeft=5,t.paddingTop=0,t.spacingX=5,t.spacingY=4,t.cellSize=cc.size(30,30)):(t.paddingLeft=5,t.paddingTop=0,t.spacingX=2,t.spacingY=5,t.cellSize=cc.size(19,19));var i=this["object"+Math.ceil(10*Math.random())];for(e=0;e<this.num;e++){if(10==e)for(var r=0;r<5;r++){var n=new cc.Node;this.node.addChild(n)}var a;(a=new cc.Node).addComponent(cc.Sprite).spriteFrame=i,this.num>10&&(a.width=8),this.node.addChild(a)}}},n([s],e.prototype,"num",void 0),n([s],e.prototype,"type",void 0),n([s],e.prototype,"fontSize",void 0),n([s],e.prototype,"lineHeight",void 0),n([s(cc.SpriteFrame)],e.prototype,"stick",void 0),n([s(cc.SpriteFrame)],e.prototype,"object1",void 0),n([s(cc.SpriteFrame)],e.prototype,"object2",void 0),n([s(cc.SpriteFrame)],e.prototype,"object3",void 0),n([s(cc.SpriteFrame)],e.prototype,"object4",void 0),n([s(cc.SpriteFrame)],e.prototype,"object5",void 0),n([s(cc.SpriteFrame)],e.prototype,"object6",void 0),n([s(cc.SpriteFrame)],e.prototype,"object7",void 0),n([s(cc.SpriteFrame)],e.prototype,"object8",void 0),n([s(cc.SpriteFrame)],e.prototype,"object9",void 0),n([s(cc.SpriteFrame)],e.prototype,"object10",void 0),n([p],e)}(cc.Component);o.default=l,cc._RF.pop()},{"../../../common/scripts/chimple-label":void 0}]},{},["alphaDrag","alphaDrop","board","numberDisplay"]);
+window.__require = function e(t, n, r) {
+  function s(o, u) {
+    if (!n[o]) {
+      if (!t[o]) {
+        var b = o.split("/");
+        b = b[b.length - 1];
+        if (!t[b]) {
+          var a = "function" == typeof __require && __require;
+          if (!u && a) return a(b, !0);
+          if (i) return i(b, !0);
+          throw new Error("Cannot find module '" + o + "'");
+        }
+        o = b;
+      }
+      var f = n[o] = {
+        exports: {}
+      };
+      t[o][0].call(f.exports, function(e) {
+        var n = t[o][1][e];
+        return s(n || e);
+      }, f, f.exports, e, t, n, r);
+    }
+    return n[o].exports;
+  }
+  var i = "function" == typeof __require && __require;
+  for (var o = 0; o < r.length; o++) s(r[o]);
+  return s;
+}({
+  alphaDrag: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "80ee4YIDgNNuKEhs9/f7oXY", "alphaDrag");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var config_1 = require("../../../common/scripts/lib/config");
+    var util_1 = require("../../../common/scripts/util");
+    var drag_1 = require("../../../common/scripts/drag");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var AlphaDrag = function(_super) {
+      __extends(AlphaDrag, _super);
+      function AlphaDrag() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.pos = 0;
+        _this._soundClip = null;
+        return _this;
+      }
+      AlphaDrag.prototype.onLoad = function() {
+        var _this = this;
+        _super.prototype.onLoad.call(this);
+        "letterboard" == config_1.default.i.data[0][0] ? util_1.Util.loadsLetter(this.node.name.toLowerCase(), function(clip) {
+          _this._soundClip = clip;
+        }) : util_1.Util.loadNumericSound(this.node.name, function(clip) {
+          _this._soundClip = clip;
+        });
+      };
+      AlphaDrag.prototype.onTouchStart = function(touch) {
+        _super.prototype.onTouchStart.call(this, touch);
+        if (this.allowDrag && null != this._soundClip) try {
+          !this._soundClip || util_1.Util.play(this._soundClip, false);
+        } catch (error) {
+          console.log("Failed playing sound");
+        }
+      };
+      AlphaDrag.prototype.onTouchEnd = function(touch) {
+        _super.prototype.onTouchEnd.call(this, touch);
+        this.match ? this.node.emit("alphaMatch", this) : this.node.emit("alphaNoMatch");
+      };
+      AlphaDrag.prototype.onMatchOver = function() {
+        _super.prototype.onMatchOver.call(this);
+        this.node.parent.color = cc.Color.WHITE;
+        this.node.parent.opacity = 255;
+      };
+      AlphaDrag = __decorate([ ccclass ], AlphaDrag);
+      return AlphaDrag;
+    }(drag_1.default);
+    exports.default = AlphaDrag;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/drag": void 0,
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/util": void 0
+  } ],
+  alphaDrop: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "0afdbuIudJG17Ubeb9JdadQ", "alphaDrop");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var drop_1 = require("../../../common/scripts/drop");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var AlphaDrop = function(_super) {
+      __extends(AlphaDrop, _super);
+      function AlphaDrop() {
+        return null !== _super && _super.apply(this, arguments) || this;
+      }
+      AlphaDrop = __decorate([ ccclass ], AlphaDrop);
+      return AlphaDrop;
+    }(drop_1.default);
+    exports.default = AlphaDrop;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/drop": void 0
+  } ],
+  board: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "39a7exrKS9LEquIcYndlzb0", "board");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var drag_1 = require("../../../common/scripts/drag");
+    var game_1 = require("../../../common/scripts/game");
+    var config_1 = require("../../../common/scripts/lib/config");
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var util_1 = require("../../../common/scripts/util");
+    var alphaDrag_1 = require("./alphaDrag");
+    var numberDisplay_1 = require("./numberDisplay");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var colors = [ "#5BC0EB", "#FDE74C", "#9BC53D", "#55934", "#A7921", "#540D6E", "#EE4266", "#FFD23F", "#3BCEAC", "#0EAD69" ];
+    var PuzzleType;
+    (function(PuzzleType) {
+      PuzzleType[PuzzleType["Alpha"] = 0] = "Alpha";
+      PuzzleType[PuzzleType["DropStickDragAlpha"] = 1] = "DropStickDragAlpha";
+      PuzzleType[PuzzleType["DropAlphaDragStick"] = 2] = "DropAlphaDragStick";
+    })(PuzzleType || (PuzzleType = {}));
+    var Board = function(_super) {
+      __extends(Board, _super);
+      function Board() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.dropLayout = null;
+        _this.alphaDrag = null;
+        _this.alphaDrop = null;
+        _this.pos0 = null;
+        _this.pos1 = null;
+        _this.pos2 = null;
+        _this.truck = null;
+        _this.truckInClip = null;
+        _this.truckOutClip = null;
+        _this.letters = null;
+        _this.positions = null;
+        _this.drags = [];
+        _this.currentIndex = 0;
+        _this.dragPositions = {};
+        _this.fontSize = 0;
+        _this.lineHeight = 0;
+        _this.type = null;
+        return _this;
+      }
+      Board.prototype.onLoad = function() {
+        var _this = this;
+        var config = config_1.default.getInstance();
+        cc.director.getCollisionManager().enabled = true;
+        drag_1.default.letDrag = false;
+        var truckX = this.truck.x;
+        if (config_1.default.i.direction == config_1.Direction.RTL) {
+          this.truck.scaleX = -1;
+          this.xpos = -this.truck.x;
+          this.truck.x = -cc.winSize.width;
+          this.pos0.x = -this.pos0.x;
+          this.pos1.x = -this.pos1.x;
+          this.pos2.x = -this.pos2.x;
+        } else {
+          this.xpos = this.truck.x;
+          this.truck.x = cc.winSize.width;
+        }
+        this.positions = [ this.pos0, this.pos1, this.pos2 ];
+        this.dropLayout.removeAllChildren();
+        var data = config.data;
+        this.letters = data[0][3].split(",");
+        var layout = this.dropLayout.getComponent(cc.Layout);
+        layout.paddingTop = parseInt(data[0][5]);
+        layout.paddingBottom = parseInt(data[0][6]);
+        layout.spacingX = parseInt(data[0][7]);
+        layout.spacingY = parseInt(data[0][8]);
+        this.fontSize = parseInt(data[0][9]);
+        this.lineHeight = parseInt(data[0][10]);
+        if ("Alpha" == data[0][4]) {
+          this.type = PuzzleType.Alpha;
+          this.letters.forEach(function(element) {
+            var drop = cc.instantiate(_this.alphaDrop);
+            drop.name = element;
+            config_1.default.i.direction == config_1.Direction.RTL && (drop.scaleX = -1);
+            var dropLabel = drop.getComponent(cc.Label);
+            dropLabel.string = element;
+            dropLabel.fontSize = _this.fontSize;
+            dropLabel.lineHeight = _this.lineHeight;
+            _this.dropLayout.addChild(drop);
+          });
+        } else if ("DropStickDragAlpha" == data[0][4]) {
+          this.type = PuzzleType.DropStickDragAlpha;
+          this.letters.forEach(function(element) {
+            var drop = cc.instantiate(_this.imagePuzzleDrop);
+            drop.name = element;
+            config_1.default.i.direction == config_1.Direction.RTL && (drop.scaleX = -1);
+            var numberDisplay = cc.instantiate(_this.numberDisplay);
+            var numberDisplayComp = numberDisplay.getComponent(numberDisplay_1.default);
+            numberDisplayComp.num = parseInt(element);
+            numberDisplayComp.type = "Stick";
+            drop.getChildByName("imageglass_alphapuzzle").addChild(numberDisplay);
+            _this.dropLayout.addChild(drop);
+          });
+        } else if ("DropAlphaDragStick" == data[0][4]) {
+          this.type = PuzzleType.DropAlphaDragStick;
+          this.letters.forEach(function(element) {
+            var drop = cc.instantiate(_this.imagePuzzleDrop);
+            drop.name = element;
+            config_1.default.i.direction == config_1.Direction.RTL && (drop.scaleX = -1);
+            var numberDisplay = cc.instantiate(_this.numberDisplay);
+            numberDisplay.color = new cc.Color().fromHEX(colors[Math.floor(Math.random() * colors.length)]);
+            var comp = numberDisplay.getComponent(numberDisplay_1.default);
+            comp.type = "Alpha";
+            comp.num = parseInt(element);
+            comp.fontSize = _this.fontSize;
+            comp.lineHeight = _this.lineHeight;
+            drop.getChildByName("imageglass_alphapuzzle").addChild(numberDisplay);
+            _this.dropLayout.addChild(drop);
+          });
+        }
+        "y" == data[0][11] && (this.letters = util_1.Util.shuffle(this.letters));
+        new cc.Tween().target(this.truck).call(function() {
+          util_1.Util.playSfx(_this.truckInClip);
+        }).to(1.5, {
+          x: (this.truck.x + this.xpos) / 2
+        }, {
+          progress: null,
+          easing: "quadOut"
+        }).delay(.5).to(1.5, {
+          x: this.xpos
+        }, {
+          progress: null,
+          easing: "quadIn"
+        }).call(function() {
+          var anim = _this.truck.getComponent(cc.Animation);
+          anim.stop();
+          _this.createDrag(0, 0);
+          _this.createDrag(1, 1);
+          _this.createDrag(2, 2);
+          _this.scheduleOnce(function() {
+            drag_1.default.letDrag = true;
+          }, 1);
+        }).start();
+      };
+      Board.prototype.onMatch = function(drag) {
+        var _this = this;
+        this.node.emit("correct");
+        null != this.friend && this.friend.playAnimation("happy", 1);
+        if (1 == this.drags.length) {
+          var anim = this.truck.getComponent(cc.Animation);
+          anim.play();
+          new cc.Tween().target(this.truck).delay(1).call(function() {
+            util_1.Util.playSfx(_this.truckOutClip);
+          }).to(3, {
+            x: 2 * -cc.winSize.width
+          }, {
+            progress: null,
+            easing: "quadOut"
+          }).call(function() {
+            _this.node.emit("nextProblem");
+          }).start();
+        } else {
+          for (var i = drag.pos; i < this.drags.length - 1; i++) {
+            this.drags[i] = this.drags[i + 1];
+            new cc.Tween().target(this.drags[i]).to(.5, {
+              position: this.positions[i].position
+            }, {
+              progress: null,
+              easing: "backOut"
+            }).start();
+            this.drags[i].position = this.positions[i].position;
+            var dragChild = this.drags[i].children[0];
+            var dragComp = dragChild.getComponent(alphaDrag_1.default);
+            dragComp.pos = i;
+          }
+          ++this.currentIndex < this.letters.length ? this.createDrag(this.currentIndex, this.drags.length - 1) : this.drags.splice(this.drags.length - 1, 1);
+        }
+      };
+      Board.prototype.createDrag = function(index, pos) {
+        var _this = this;
+        var drag = null;
+        this.type == PuzzleType.Alpha ? drag = this.createAlphaDrag(index) : this.type == PuzzleType.DropStickDragAlpha ? drag = this.createImageAlphaDrag(index) : this.type == PuzzleType.DropAlphaDragStick && (drag = this.createImageObjectDrag(index));
+        drag.name = this.letters[index];
+        drag.on("alphaMatch", this.onMatch.bind(this));
+        drag.on("alphaNoMatch", function() {
+          _this.node.emit("wrong");
+          null != _this.friend && _this.friend.playAnimation("sad", 1);
+        });
+        var dragComp = drag.getComponent(alphaDrag_1.default);
+        dragComp.pos = pos;
+        var tempNode = new cc.Node();
+        tempNode.addChild(drag);
+        tempNode.position = this.positions[pos].position;
+        this.node.addChild(tempNode);
+        this.drags[pos] = tempNode;
+        this.currentIndex = index;
+        new cc.Tween().target(tempNode).set({
+          position: new cc.Vec2(this.positions[pos].position.x, -cc.winSize.height)
+        }).to(.5, {
+          position: this.positions[pos].position
+        }, {
+          progress: null,
+          easing: "backOut"
+        }).call(function() {
+          0 == index && util_1.Util.showHelp(drag, _this.dropLayout.getChildByName(drag.name));
+        }).start();
+      };
+      Board.prototype.createAlphaDrag = function(index) {
+        var drag = cc.instantiate(this.alphaDrag);
+        drag.color = new cc.Color().fromHEX(colors[Math.floor(Math.random() * colors.length)]);
+        var dragLabel = drag.getComponent(cc.Label);
+        dragLabel.string = this.letters[index];
+        dragLabel.fontSize = this.fontSize;
+        dragLabel.lineHeight = this.lineHeight;
+        return drag;
+      };
+      Board.prototype.createImageAlphaDrag = function(index) {
+        var drag = cc.instantiate(this.imagePuzzleDrag);
+        var display = cc.instantiate(this.numberDisplay);
+        display.color = new cc.Color().fromHEX(colors[Math.floor(Math.random() * colors.length)]);
+        var comp = display.getComponent(numberDisplay_1.default);
+        comp.type = "Alpha";
+        comp.num = parseInt(this.letters[index]);
+        comp.fontSize = this.fontSize;
+        comp.lineHeight = this.lineHeight;
+        drag.addChild(display);
+        return drag;
+      };
+      Board.prototype.createImageObjectDrag = function(index) {
+        var drag = cc.instantiate(this.imagePuzzleDrag);
+        var display = cc.instantiate(this.numberDisplay);
+        var comp = display.getComponent(numberDisplay_1.default);
+        comp.type = "Object";
+        comp.num = parseInt(this.letters[index]);
+        drag.addChild(display);
+        return drag;
+      };
+      __decorate([ property(cc.Node) ], Board.prototype, "dropLayout", void 0);
+      __decorate([ property(cc.Prefab) ], Board.prototype, "alphaDrag", void 0);
+      __decorate([ property(cc.Prefab) ], Board.prototype, "alphaDrop", void 0);
+      __decorate([ property(cc.Prefab) ], Board.prototype, "imagePuzzleDrag", void 0);
+      __decorate([ property(cc.Prefab) ], Board.prototype, "imagePuzzleDrop", void 0);
+      __decorate([ property(cc.Prefab) ], Board.prototype, "numberDisplay", void 0);
+      __decorate([ property(cc.Node) ], Board.prototype, "pos0", void 0);
+      __decorate([ property(cc.Node) ], Board.prototype, "pos1", void 0);
+      __decorate([ property(cc.Node) ], Board.prototype, "pos2", void 0);
+      __decorate([ property(cc.Node) ], Board.prototype, "truck", void 0);
+      __decorate([ property(cc.AudioClip) ], Board.prototype, "truckInClip", void 0);
+      __decorate([ property(cc.AudioClip) ], Board.prototype, "truckOutClip", void 0);
+      __decorate([ error_handler_1.default() ], Board.prototype, "onLoad", null);
+      __decorate([ error_handler_1.default() ], Board.prototype, "onMatch", null);
+      __decorate([ error_handler_1.default() ], Board.prototype, "createDrag", null);
+      Board = __decorate([ ccclass ], Board);
+      return Board;
+    }(game_1.default);
+    exports.default = Board;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/drag": void 0,
+    "../../../common/scripts/game": void 0,
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/error-handler": void 0,
+    "../../../common/scripts/util": void 0,
+    "./alphaDrag": "alphaDrag",
+    "./numberDisplay": "numberDisplay"
+  } ],
+  numberDisplay: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "d0dae0qgp5NMJHe3SoDzmOk", "numberDisplay");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    var chimple_label_1 = require("../../../common/scripts/chimple-label");
+    var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
+    var NumberDisplay = function(_super) {
+      __extends(NumberDisplay, _super);
+      function NumberDisplay() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this.num = null;
+        _this.type = "Alpha";
+        _this.fontSize = null;
+        _this.lineHeight = null;
+        _this.stick = null;
+        _this.object1 = null;
+        _this.object2 = null;
+        _this.object3 = null;
+        _this.object4 = null;
+        _this.object5 = null;
+        _this.object6 = null;
+        _this.object7 = null;
+        _this.object8 = null;
+        _this.object9 = null;
+        _this.object10 = null;
+        return _this;
+      }
+      NumberDisplay.prototype.onLoad = function() {
+        if ("Stick" == this.type) {
+          var layout = this.getComponent(cc.Layout);
+          if (this.num <= 10) {
+            layout.paddingBottom = 10;
+            layout.paddingTop = 10;
+            layout.paddingLeft = 10;
+            layout.paddingRight = 10;
+            layout.spacingX = 10;
+          }
+          for (var index = 0; index < this.num; index++) {
+            if (this.num > 10 && index % 5 == 0 && index % 10 != 0) {
+              var filler = new cc.Node();
+              filler.width = 4;
+              this.node.addChild(filler);
+            }
+            var image = new cc.Node();
+            var sprite = image.addComponent(cc.Sprite);
+            sprite.spriteFrame = this.stick;
+            this.num > 10 && (image.width = 8);
+            this.node.addChild(image);
+          }
+        } else if ("Alpha" == this.type) {
+          var label = this.node.addComponent(chimple_label_1.default);
+          label.fontSize = this.fontSize;
+          label.lineHeight = this.lineHeight;
+          label.string = this.num.toString();
+        } else if ("Object" == this.type) {
+          var layout = this.getComponent(cc.Layout);
+          layout.resizeMode = cc.Layout.ResizeMode.CHILDREN;
+          if (this.num <= 10) {
+            layout.paddingLeft = 5;
+            layout.paddingTop = 0;
+            layout.spacingX = 5;
+            layout.spacingY = 4;
+            layout.cellSize = cc.size(30, 30);
+          } else {
+            layout.paddingLeft = 5;
+            layout.paddingTop = 0;
+            layout.spacingX = 2;
+            layout.spacingY = 5;
+            layout.cellSize = cc.size(19, 19);
+          }
+          var object = this["object" + Math.ceil(10 * Math.random())];
+          for (var index = 0; index < this.num; index++) {
+            if (10 == index) for (var i = 0; i < 5; i++) {
+              var filler = new cc.Node();
+              this.node.addChild(filler);
+            }
+            var image = new cc.Node();
+            var sprite = image.addComponent(cc.Sprite);
+            sprite.spriteFrame = object;
+            this.num > 10 && (image.width = 8);
+            this.node.addChild(image);
+          }
+        }
+      };
+      __decorate([ property ], NumberDisplay.prototype, "num", void 0);
+      __decorate([ property ], NumberDisplay.prototype, "type", void 0);
+      __decorate([ property ], NumberDisplay.prototype, "fontSize", void 0);
+      __decorate([ property ], NumberDisplay.prototype, "lineHeight", void 0);
+      __decorate([ property(cc.SpriteFrame) ], NumberDisplay.prototype, "stick", void 0);
+      __decorate([ property(cc.SpriteFrame) ], NumberDisplay.prototype, "object1", void 0);
+      __decorate([ property(cc.SpriteFrame) ], NumberDisplay.prototype, "object2", void 0);
+      __decorate([ property(cc.SpriteFrame) ], NumberDisplay.prototype, "object3", void 0);
+      __decorate([ property(cc.SpriteFrame) ], NumberDisplay.prototype, "object4", void 0);
+      __decorate([ property(cc.SpriteFrame) ], NumberDisplay.prototype, "object5", void 0);
+      __decorate([ property(cc.SpriteFrame) ], NumberDisplay.prototype, "object6", void 0);
+      __decorate([ property(cc.SpriteFrame) ], NumberDisplay.prototype, "object7", void 0);
+      __decorate([ property(cc.SpriteFrame) ], NumberDisplay.prototype, "object8", void 0);
+      __decorate([ property(cc.SpriteFrame) ], NumberDisplay.prototype, "object9", void 0);
+      __decorate([ property(cc.SpriteFrame) ], NumberDisplay.prototype, "object10", void 0);
+      NumberDisplay = __decorate([ ccclass ], NumberDisplay);
+      return NumberDisplay;
+    }(cc.Component);
+    exports.default = NumberDisplay;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/chimple-label": void 0
+  } ]
+}, {}, [ "alphaDrag", "alphaDrop", "board", "numberDisplay" ]);

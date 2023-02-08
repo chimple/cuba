@@ -1,1 +1,536 @@
-window.__require=function t(e,n,o){function r(a,c){if(!n[a]){if(!e[a]){var s=a.split("/");if(s=s[s.length-1],!e[s]){var d="function"==typeof __require&&__require;if(!c&&d)return d(s,!0);if(i)return i(s,!0);throw new Error("Cannot find module '"+a+"'")}a=s}var p=n[a]={exports:{}};e[a][0].call(p.exports,function(t){return r(e[a][1][t]||t)},p,p.exports,t,e,n,o)}return n[a].exports}for(var i="function"==typeof __require&&__require,a=0;a<o.length;a++)r(o[a]);return r}({lettertracingbackcard:[function(t,e,n){"use strict";cc._RF.push(e,"acec3FaEClIN4cjiOVY6VX8","lettertracingbackcard");var o,r=this&&this.__extends||(o=function(t,e){return(o=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[n]=e[n])})(t,e)},function(t,e){function n(){this.constructor=t}o(t,e),t.prototype=null===e?Object.create(e):(n.prototype=e.prototype,new n)}),i=this&&this.__decorate||function(t,e,n,o){var r,i=arguments.length,a=i<3?e:null===o?o=Object.getOwnPropertyDescriptor(e,n):o;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)a=Reflect.decorate(t,e,n,o);else for(var c=t.length-1;c>=0;c--)(r=t[c])&&(a=(i<3?r(a):i>3?r(e,n,a):r(e,n))||a);return i>3&&a&&Object.defineProperty(e,n,a),a};Object.defineProperty(n,"__esModule",{value:!0}),n.LetterTracingBackCard=void 0;var a=cc._decorator.ccclass,c=cc.Color,s=t("../../../common/scripts/util"),d=t("./writecard"),p=t("../../../common/scripts/helper"),l=t("../../../common/scripts/lessonController"),u=function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e._sound=null,e._textNode=null,e}return r(e,t),e.prototype.onLoad=function(){var t=this;this._WriteCard=this.node.parent.getComponent(d.WriteCard);var e=this.node.getChildByName("imageFace");null!=e&&(this._image=e.getChildByName("image")),this._textNode=this.node.getChildByName("textNode"),this.node.parent.on(p.CONFIG_LOADED,function(){t._optionText=t._WriteCard.currentConfig.options[t.optionIndex];var e=t._WriteCard.currentConfig.images[t.optionIndex],n=t._WriteCard.currentConfig.sounds[t.optionIndex];t._textNode.getComponent(cc.Label).string=t._optionText,t._textNode.color=p.DEFAULT_FONT_COLOR,t.loadImage(e),t.loadSounds(n)})},e.prototype.loadImage=function(t){var e=this;t&&s.Util.loadTexture(t,function(t){if(t){var n=e._image.getComponent(cc.Sprite);n.spriteFrame=new cc.SpriteFrame(t),s.Util.resizeSprite(n,400,333)}})},e.prototype.loadSounds=function(t){var e=this;s.Util.loadGameSound(t.toLowerCase(),function(t){e._sound=t,e.node.emit("soundLoaded")})},Object.defineProperty(e.prototype,"optionIndex",{get:function(){return this._optionIndex},set:function(t){this._optionIndex=t},enumerable:!1,configurable:!0}),e.prototype.animateText=function(){(new cc.Tween).target(this._textNode).to(.1,{color:c.RED},{progress:null,easing:"sineOut"}).to(.15,{scale:1.25},{progress:null,easing:"sineOut"}).to(.15,{scale:1},{progress:null,easing:"sineOut"}).to(.1,{color:p.DEFAULT_FONT_COLOR},{progress:null,easing:"sineOut"}).start()},e.prototype.pronounce=function(){l.default.getFriend().speak(this._sound)},e.prototype.onDestroy=function(){cc.audioEngine.stopAllEffects()},i([a],e)}(cc.Component);n.LetterTracingBackCard=u,cc._RF.pop()},{"../../../common/scripts/helper":void 0,"../../../common/scripts/lessonController":void 0,"../../../common/scripts/util":void 0,"./writecard":"writecard"}],lettertracingfrontcard:[function(t,e,n){"use strict";cc._RF.push(e,"a753819skdEkpyGIbDDs8N8","lettertracingfrontcard");var o,r=this&&this.__extends||(o=function(t,e){return(o=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[n]=e[n])})(t,e)},function(t,e){function n(){this.constructor=t}o(t,e),t.prototype=null===e?Object.create(e):(n.prototype=e.prototype,new n)}),i=this&&this.__decorate||function(t,e,n,o){var r,i=arguments.length,a=i<3?e:null===o?o=Object.getOwnPropertyDescriptor(e,n):o;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)a=Reflect.decorate(t,e,n,o);else for(var c=t.length-1;c>=0;c--)(r=t[c])&&(a=(i<3?r(a):i>3?r(e,n,a):r(e,n))||a);return i>3&&a&&Object.defineProperty(e,n,a),a};Object.defineProperty(n,"__esModule",{value:!0}),n.LetterTracingFrontCard=void 0;var a=cc._decorator.ccclass,c=cc._decorator.property,s=t("./writecard"),d=t("../../../common/scripts/util"),p=t("../../../common/scripts/helper"),l=t("../../../common/Tracing/scripts/tracing-container"),u=t("../../../common/scripts/lessonController"),h=t("../../../common/Tracing/scripts/trace-graphics"),_=function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e._tracingContainer=null,e._traceGraphics=null,e._sound=null,e}return r(e,t),e.prototype.onLoad=function(){var t=this;this._WriteCard=this.node.parent.getComponent(s.WriteCard),this._tracingContainer=cc.instantiate(this.tracingContainerPrefab),this.node.parent.on(p.CONFIG_LOADED,function(){t.setAlphabetToDisplay(t._WriteCard.currentConfig.traceText),t.loadSounds(t._WriteCard.currentConfig.traceText),t.subScribeToTracingEvents()})},e.prototype.subScribeToTracingEvents=function(){var t=this;this.node.on(p.TRACING_FINISHED,function(e){e.stopPropagation(),t.tracingFinished()}),this.node.on(p.TRACING_CORRECT,function(e){e.stopPropagation(),t.node.parent.emit("correct")}),this.node.on(p.TRACING_WRONG,function(e){e.stopPropagation(),t.node.parent.emit("wrong")}),this.node.on(p.RESET_TRACING_ALLOWED,function(){null!==t.node.getChildByName("reeetTracingButton")&&(t.node.getChildByName("reeetTracingButton").opacity=255)}),this.node.on(p.RESET_TRACING_NOT_ALLOWED,function(){null!==t.node.getChildByName("reeetTracingButton")&&(t.node.getChildByName("reeetTracingButton").opacity=0)}),null!==this.node.getChildByName("reeetTracingButton")&&(this.node.getChildByName("reeetTracingButton").opacity=0)},e.prototype.resetTracing=function(){this._traceGraphics.getComponent(h.default).resetGraphics()},e.prototype.setAlphabetToDisplay=function(t){var e=this;this._tracingContainerComponent=this._tracingContainer.getComponent(l.default),this._tracingContainerComponent.tracingLetter=t,this._tracingContainerComponent.traceGenerationMode=!1,this.node.addChild(this._tracingContainer),this._tracingContainer.setPosition(new cc.Vec2(-256,-350)),this._tracingContainer.zIndex=100,this._traceGraphics=this._tracingContainerComponent.traceGraphics,this._tracingContainerComponent._traceGraphicsComponent.adjustedScale=s.LETTER_TRACING_CARD_SCALE,this.node.on("cardEnabled",function(t){e._optionIndex===t&&e._traceGraphics.emit("enabledGraphics")})},e.prototype.loadSounds=function(t){var e=this;d.Util.loadsLetter(t.toLowerCase(),function(t){e._sound=t,e.node.emit("soundLoaded")})},e.prototype.pronounce=function(){u.default.getFriend().speak(this._sound)},e.prototype.tracingFinished=function(){var t=this;this.pronounce(),this.clearGraphics(),this.scheduleOnce(function(){var e=new cc.Event.EventCustom(s.LETTER_TRACING_CARD_EVENT,!0);e.setUserData({elementIndex:t.optionIndex}),t.node.dispatchEvent(e)},1)},e.prototype.clearGraphics=function(){this._tracingContainerComponent._traceGraphicsComponent.clear()},e.prototype.onDestroy=function(){cc.audioEngine.stopAllEffects()},Object.defineProperty(e.prototype,"optionIndex",{get:function(){return this._optionIndex},set:function(t){this._optionIndex=t},enumerable:!1,configurable:!0}),i([c(cc.Prefab)],e.prototype,"tracingContainerPrefab",void 0),i([a],e)}(cc.Component);n.LetterTracingFrontCard=_,cc._RF.pop()},{"../../../common/Tracing/scripts/trace-graphics":void 0,"../../../common/Tracing/scripts/tracing-container":void 0,"../../../common/scripts/helper":void 0,"../../../common/scripts/lessonController":void 0,"../../../common/scripts/util":void 0,"./writecard":"writecard"}],writecard:[function(t,e,n){"use strict";cc._RF.push(e,"26b91PcY09KPpsuUF+lBa66","writecard");var o,r=this&&this.__extends||(o=function(t,e){return(o=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var n in e)Object.prototype.hasOwnProperty.call(e,n)&&(t[n]=e[n])})(t,e)},function(t,e){function n(){this.constructor=t}o(t,e),t.prototype=null===e?Object.create(e):(n.prototype=e.prototype,new n)}),i=this&&this.__decorate||function(t,e,n,o){var r,i=arguments.length,a=i<3?e:null===o?o=Object.getOwnPropertyDescriptor(e,n):o;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)a=Reflect.decorate(t,e,n,o);else for(var c=t.length-1;c>=0;c--)(r=t[c])&&(a=(i<3?r(a):i>3?r(e,n,a):r(e,n))||a);return i>3&&a&&Object.defineProperty(e,n,a),a};Object.defineProperty(n,"__esModule",{value:!0}),n.WriteCard=n.LETTER_TRACING_CARD_EVENT=n.LETTER_TRACING_CARD_SCALE=void 0;var a=cc._decorator.ccclass,c=cc._decorator.property,s=t("../../../common/scripts/lib/config"),d=t("./lettertracingbackcard"),p=t("./lettertracingfrontcard"),l=t("../../../common/scripts/lib/error-handler"),u=t("../../../common/scripts/helper"),h=t("../../../common/scripts/game"),_=t("../../../common/scripts/util");n.LETTER_TRACING_CARD_SCALE=.85,n.LETTER_TRACING_CARD_EVENT="hideFrontCardAndShowBackCard";var f=function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e._letterTracingCardContainer=null,e._frontCard=null,e._backCard=null,e._frontCards=[],e._backCards=[],e._currentIndex=0,e}return r(e,t),e.prototype.onLoad=function(){var t=this;cc.director.getCollisionManager().enabled=!1,this._currentConfig=this.processConfiguration(s.default.getInstance().data[0]),this.node.on(n.LETTER_TRACING_CARD_EVENT,function(e){e.stopPropagation();var n=e.getUserData();t.hideFrontCardAndShowBackCard(n)}),this.buildUI(),_.Util.showHelp(null,null),this.node.on(u.RESET_TRACING_ALLOWED,function(){null!==t.node.getChildByName("reeetTracingButton")&&(t.node.getChildByName("reeetTracingButton").opacity=255)}),this.node.on(u.RESET_TRACING_NOT_ALLOWED,function(){null!==t.node.getChildByName("reeetTracingButton")&&(t.node.getChildByName("reeetTracingButton").opacity=0)}),null!==this.node.getChildByName("reeetTracingButton")&&(this.node.getChildByName("reeetTracingButton").opacity=0),this.node.on(u.RESET_TRACING,function(e){e.stopPropagation(),console.log("current index"+t._currentIndex);var n=t.node.getChildByName(t._originalFrontCardName+t._currentIndex);if(n){var o=n.getComponent(p.LetterTracingFrontCard);o&&(o.resetTracing(),t.emitCardEnabledEvent(n,t._currentIndex))}})},e.prototype.buildUI=function(){if(null!==this._currentConfig){console.log("current config",this._currentConfig),this._letterTracingCardContainer=this.node,this._letterTracingCardContainer.scale*=n.LETTER_TRACING_CARD_SCALE,this.node.width=cc.winSize.width,this.node.height=cc.winSize.height;for(var t=this._currentConfig.options.length||0,e=0;e<t;e++)this.renderCard(e);this.node.emit(u.CONFIG_LOADED);var o=this.node.getChildByName(this._originalFrontCardName+"0");this.emitCardEnabledEvent(o,0)}},e.prototype.renderCard=function(t){this._frontCard=cc.instantiate(this.frontCardPrefab),this._originalFrontCardName=this._frontCard.name,this._frontCard.name=this._frontCard.name+t,this._frontCard.getComponent(p.LetterTracingFrontCard).optionIndex=t,this._backCard=cc.instantiate(this.backCardPrefab),this._originalBackCardName=this._backCard.name,this._backCard.name=this._backCard.name+t,this._backCard.getComponent(d.LetterTracingBackCard).optionIndex=t,this.node.addChild(this._frontCard),this.node.addChild(this._backCard),this._backCard.active=!1,this._frontCard.opacity=0===t?255:0,this._frontCard.setPosition(0,0),this._backCard.setPosition(0,0),this._frontCards.push(this._frontCard),this._backCards.push(this._backCard)},e.prototype.emitCardEnabledEvent=function(t,e){t.opacity=255,t.emit("cardEnabled",e),this._currentIndex=e},e.prototype.processConfiguration=function(t){void 0===t&&(t=[]);var e=[].concat.apply([],t),n=e[0],o=e[1],r=e[2],i=e[3],a=e[4],c=e[5],s=e[6],d=e[7],p=e[8],l=e[9];return{level:n,workSheet:o,problemNo:r,traceText:i,options:[a,d,e[10]],images:[c,p,e[11]],sounds:[s,l,e[12]]}},Object.defineProperty(e.prototype,"currentConfig",{get:function(){return this._currentConfig},enumerable:!1,configurable:!0}),e.prototype.hideFrontCardAndShowBackCard=function(t){var e=this,n=t.elementIndex,o=this.node.getChildByName(this._originalFrontCardName+n),r=this.node.getChildByName(this._originalBackCardName+n);(new cc.Tween).target(o).to(.5,{opacity:0},{progress:null,easing:"sineOut"}).call(function(){r.active=!0,r.scale=0,(new cc.Tween).target(r).to(.5,{scale:1},{progress:null,easing:"sineOut"}).call(function(){r.getComponent(d.LetterTracingBackCard).animateText(),r.getComponent(d.LetterTracingBackCard).pronounce(),e.scheduleOnce(function(){o.active=!1,(new cc.Tween).target(r).to(.2,{opacity:255,scale:.75},{progress:null,easing:"quintInOut"}).then((new cc.Tween).to(.2,{opacity:255,scale:.5},{progress:null,easing:"cubicInOut"})).then((new cc.Tween).to(.2,{opacity:255,scale:.25},{progress:null,easing:"cubicInOut"})).then((new cc.Tween).to(.2,{opacity:255,scale:0},{progress:null,easing:"cubicInOut"})).call(function(){if(r.active=!1,n<e._currentConfig.options.length-1){var t=e.node.getChildByName(e._originalFrontCardName+(n+1));e.emitCardEnabledEvent(t,n+1)}else e.node.emit("nextProblem")}).start()},1)}).start()}).start()},i([c(cc.Prefab)],e.prototype,"frontCardPrefab",void 0),i([c(cc.Prefab)],e.prototype,"backCardPrefab",void 0),i([l.default()],e.prototype,"onLoad",null),i([l.default()],e.prototype,"buildUI",null),i([l.default()],e.prototype,"renderCard",null),i([l.default()],e.prototype,"emitCardEnabledEvent",null),i([a],e)}(h.default);n.WriteCard=f,cc._RF.pop()},{"../../../common/scripts/game":void 0,"../../../common/scripts/helper":void 0,"../../../common/scripts/lib/config":void 0,"../../../common/scripts/lib/error-handler":void 0,"../../../common/scripts/util":void 0,"./lettertracingbackcard":"lettertracingbackcard","./lettertracingfrontcard":"lettertracingfrontcard"}]},{},["lettertracingbackcard","lettertracingfrontcard","writecard"]);
+window.__require = function e(t, n, r) {
+  function s(o, u) {
+    if (!n[o]) {
+      if (!t[o]) {
+        var b = o.split("/");
+        b = b[b.length - 1];
+        if (!t[b]) {
+          var a = "function" == typeof __require && __require;
+          if (!u && a) return a(b, !0);
+          if (i) return i(b, !0);
+          throw new Error("Cannot find module '" + o + "'");
+        }
+        o = b;
+      }
+      var f = n[o] = {
+        exports: {}
+      };
+      t[o][0].call(f.exports, function(e) {
+        var n = t[o][1][e];
+        return s(n || e);
+      }, f, f.exports, e, t, n, r);
+    }
+    return n[o].exports;
+  }
+  var i = "function" == typeof __require && __require;
+  for (var o = 0; o < r.length; o++) s(r[o]);
+  return s;
+}({
+  lettertracingbackcard: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "acec3FaEClIN4cjiOVY6VX8", "lettertracingbackcard");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    exports.LetterTracingBackCard = void 0;
+    var ccclass = cc._decorator.ccclass;
+    var Color = cc.Color;
+    var util_1 = require("../../../common/scripts/util");
+    var writecard_1 = require("./writecard");
+    var helper_1 = require("../../../common/scripts/helper");
+    var lessonController_1 = require("../../../common/scripts/lessonController");
+    var LetterTracingBackCard = function(_super) {
+      __extends(LetterTracingBackCard, _super);
+      function LetterTracingBackCard() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this._sound = null;
+        _this._textNode = null;
+        return _this;
+      }
+      LetterTracingBackCard.prototype.onLoad = function() {
+        var _this = this;
+        this._WriteCard = this.node.parent.getComponent(writecard_1.WriteCard);
+        var imageFace = this.node.getChildByName("imageFace");
+        null != imageFace && (this._image = imageFace.getChildByName("image"));
+        this._textNode = this.node.getChildByName("textNode");
+        this.node.parent.on(helper_1.CONFIG_LOADED, function() {
+          _this._optionText = _this._WriteCard.currentConfig.options[_this.optionIndex];
+          var imageText = _this._WriteCard.currentConfig.images[_this.optionIndex];
+          var sound = _this._WriteCard.currentConfig.sounds[_this.optionIndex];
+          var label = _this._textNode.getComponent(cc.Label);
+          label.string = _this._optionText;
+          _this._textNode.color = helper_1.DEFAULT_FONT_COLOR;
+          _this.loadImage(imageText);
+          _this.loadSounds(sound);
+        });
+      };
+      LetterTracingBackCard.prototype.loadImage = function(imageName) {
+        var _this = this;
+        !imageName || util_1.Util.loadTexture(imageName, function(texture) {
+          if (!!texture) {
+            var sprite = _this._image.getComponent(cc.Sprite);
+            sprite.spriteFrame = new cc.SpriteFrame(texture);
+            util_1.Util.resizeSprite(sprite, 400, 333);
+          }
+        });
+      };
+      LetterTracingBackCard.prototype.loadSounds = function(text) {
+        var _this = this;
+        util_1.Util.loadGameSound(text.toLowerCase(), function(clip) {
+          _this._sound = clip;
+          _this.node.emit("soundLoaded");
+        });
+      };
+      Object.defineProperty(LetterTracingBackCard.prototype, "optionIndex", {
+        get: function() {
+          return this._optionIndex;
+        },
+        set: function(index) {
+          this._optionIndex = index;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      LetterTracingBackCard.prototype.animateText = function() {
+        new cc.Tween().target(this._textNode).to(.1, {
+          color: Color.RED
+        }, {
+          progress: null,
+          easing: "sineOut"
+        }).to(.15, {
+          scale: 1.25
+        }, {
+          progress: null,
+          easing: "sineOut"
+        }).to(.15, {
+          scale: 1
+        }, {
+          progress: null,
+          easing: "sineOut"
+        }).to(.1, {
+          color: helper_1.DEFAULT_FONT_COLOR
+        }, {
+          progress: null,
+          easing: "sineOut"
+        }).start();
+      };
+      LetterTracingBackCard.prototype.pronounce = function() {
+        lessonController_1.default.getFriend().speak(this._sound);
+      };
+      LetterTracingBackCard.prototype.onDestroy = function() {
+        cc.audioEngine.stopAllEffects();
+      };
+      LetterTracingBackCard = __decorate([ ccclass ], LetterTracingBackCard);
+      return LetterTracingBackCard;
+    }(cc.Component);
+    exports.LetterTracingBackCard = LetterTracingBackCard;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/helper": void 0,
+    "../../../common/scripts/lessonController": void 0,
+    "../../../common/scripts/util": void 0,
+    "./writecard": "writecard"
+  } ],
+  lettertracingfrontcard: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "a753819skdEkpyGIbDDs8N8", "lettertracingfrontcard");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    exports.LetterTracingFrontCard = void 0;
+    var ccclass = cc._decorator.ccclass;
+    var property = cc._decorator.property;
+    var writecard_1 = require("./writecard");
+    var util_1 = require("../../../common/scripts/util");
+    var helper_1 = require("../../../common/scripts/helper");
+    var tracing_container_1 = require("../../../common/Tracing/scripts/tracing-container");
+    var lessonController_1 = require("../../../common/scripts/lessonController");
+    var trace_graphics_1 = require("../../../common/Tracing/scripts/trace-graphics");
+    var LetterTracingFrontCard = function(_super) {
+      __extends(LetterTracingFrontCard, _super);
+      function LetterTracingFrontCard() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this._tracingContainer = null;
+        _this._traceGraphics = null;
+        _this._sound = null;
+        return _this;
+      }
+      LetterTracingFrontCard.prototype.onLoad = function() {
+        var _this = this;
+        this._WriteCard = this.node.parent.getComponent(writecard_1.WriteCard);
+        this._tracingContainer = cc.instantiate(this.tracingContainerPrefab);
+        this.node.parent.on(helper_1.CONFIG_LOADED, function() {
+          _this.setAlphabetToDisplay(_this._WriteCard.currentConfig.traceText);
+          _this.loadSounds(_this._WriteCard.currentConfig.traceText);
+          _this.subScribeToTracingEvents();
+        });
+      };
+      LetterTracingFrontCard.prototype.subScribeToTracingEvents = function() {
+        var _this = this;
+        this.node.on(helper_1.TRACING_FINISHED, function(event) {
+          event.stopPropagation();
+          _this.tracingFinished();
+        });
+        this.node.on(helper_1.TRACING_CORRECT, function(event) {
+          event.stopPropagation();
+          _this.node.parent.emit("correct");
+        });
+        this.node.on(helper_1.TRACING_WRONG, function(event) {
+          event.stopPropagation();
+          _this.node.parent.emit("wrong");
+        });
+        this.node.on(helper_1.RESET_TRACING_ALLOWED, function() {
+          null !== _this.node.getChildByName("reeetTracingButton") && (_this.node.getChildByName("reeetTracingButton").opacity = 255);
+        });
+        this.node.on(helper_1.RESET_TRACING_NOT_ALLOWED, function() {
+          null !== _this.node.getChildByName("reeetTracingButton") && (_this.node.getChildByName("reeetTracingButton").opacity = 0);
+        });
+        null !== this.node.getChildByName("reeetTracingButton") && (this.node.getChildByName("reeetTracingButton").opacity = 0);
+      };
+      LetterTracingFrontCard.prototype.resetTracing = function() {
+        var traceGraphics = this._traceGraphics.getComponent(trace_graphics_1.default);
+        traceGraphics.resetGraphics();
+      };
+      LetterTracingFrontCard.prototype.setAlphabetToDisplay = function(letter) {
+        var _this = this;
+        this._tracingContainerComponent = this._tracingContainer.getComponent(tracing_container_1.default);
+        this._tracingContainerComponent.tracingLetter = letter;
+        this._tracingContainerComponent.traceGenerationMode = false;
+        this.node.addChild(this._tracingContainer);
+        this._tracingContainer.setPosition(new cc.Vec2(-256, -350));
+        this._tracingContainer.zIndex = 100;
+        this._traceGraphics = this._tracingContainerComponent.traceGraphics;
+        this._tracingContainerComponent._traceGraphicsComponent.adjustedScale = writecard_1.LETTER_TRACING_CARD_SCALE;
+        this.node.on("cardEnabled", function(index) {
+          _this._optionIndex === index && _this._traceGraphics.emit("enabledGraphics");
+        });
+      };
+      LetterTracingFrontCard.prototype.loadSounds = function(text) {
+        var _this = this;
+        util_1.Util.loadsLetter(text.toLowerCase(), function(clip) {
+          _this._sound = clip;
+          _this.node.emit("soundLoaded");
+        });
+      };
+      LetterTracingFrontCard.prototype.pronounce = function() {
+        lessonController_1.default.getFriend().speak(this._sound);
+      };
+      LetterTracingFrontCard.prototype.tracingFinished = function() {
+        var _this = this;
+        this.pronounce();
+        this.clearGraphics();
+        this.scheduleOnce(function() {
+          var customEvent = new cc.Event.EventCustom(writecard_1.LETTER_TRACING_CARD_EVENT, true);
+          customEvent.setUserData({
+            elementIndex: _this.optionIndex
+          });
+          _this.node.dispatchEvent(customEvent);
+        }, 1);
+      };
+      LetterTracingFrontCard.prototype.clearGraphics = function() {
+        this._tracingContainerComponent._traceGraphicsComponent.clear();
+      };
+      LetterTracingFrontCard.prototype.onDestroy = function() {
+        cc.audioEngine.stopAllEffects();
+      };
+      Object.defineProperty(LetterTracingFrontCard.prototype, "optionIndex", {
+        get: function() {
+          return this._optionIndex;
+        },
+        set: function(index) {
+          this._optionIndex = index;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      __decorate([ property(cc.Prefab) ], LetterTracingFrontCard.prototype, "tracingContainerPrefab", void 0);
+      LetterTracingFrontCard = __decorate([ ccclass ], LetterTracingFrontCard);
+      return LetterTracingFrontCard;
+    }(cc.Component);
+    exports.LetterTracingFrontCard = LetterTracingFrontCard;
+    cc._RF.pop();
+  }, {
+    "../../../common/Tracing/scripts/trace-graphics": void 0,
+    "../../../common/Tracing/scripts/tracing-container": void 0,
+    "../../../common/scripts/helper": void 0,
+    "../../../common/scripts/lessonController": void 0,
+    "../../../common/scripts/util": void 0,
+    "./writecard": "writecard"
+  } ],
+  writecard: [ function(require, module, exports) {
+    "use strict";
+    cc._RF.push(module, "26b91PcY09KPpsuUF+lBa66", "writecard");
+    "use strict";
+    var __extends = this && this.__extends || function() {
+      var extendStatics = function(d, b) {
+        extendStatics = Object.setPrototypeOf || {
+          __proto__: []
+        } instanceof Array && function(d, b) {
+          d.__proto__ = b;
+        } || function(d, b) {
+          for (var p in b) Object.prototype.hasOwnProperty.call(b, p) && (d[p] = b[p]);
+        };
+        return extendStatics(d, b);
+      };
+      return function(d, b) {
+        extendStatics(d, b);
+        function __() {
+          this.constructor = d;
+        }
+        d.prototype = null === b ? Object.create(b) : (__.prototype = b.prototype, new __());
+      };
+    }();
+    var __decorate = this && this.__decorate || function(decorators, target, key, desc) {
+      var c = arguments.length, r = c < 3 ? target : null === desc ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+      if ("object" === typeof Reflect && "function" === typeof Reflect.decorate) r = Reflect.decorate(decorators, target, key, desc); else for (var i = decorators.length - 1; i >= 0; i--) (d = decorators[i]) && (r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r);
+      return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    exports.WriteCard = exports.LETTER_TRACING_CARD_EVENT = exports.LETTER_TRACING_CARD_SCALE = void 0;
+    var ccclass = cc._decorator.ccclass;
+    var property = cc._decorator.property;
+    var config_1 = require("../../../common/scripts/lib/config");
+    var lettertracingbackcard_1 = require("./lettertracingbackcard");
+    var lettertracingfrontcard_1 = require("./lettertracingfrontcard");
+    var error_handler_1 = require("../../../common/scripts/lib/error-handler");
+    var helper_1 = require("../../../common/scripts/helper");
+    var game_1 = require("../../../common/scripts/game");
+    var util_1 = require("../../../common/scripts/util");
+    exports.LETTER_TRACING_CARD_SCALE = .85;
+    exports.LETTER_TRACING_CARD_EVENT = "hideFrontCardAndShowBackCard";
+    var WriteCard = function(_super) {
+      __extends(WriteCard, _super);
+      function WriteCard() {
+        var _this = null !== _super && _super.apply(this, arguments) || this;
+        _this._letterTracingCardContainer = null;
+        _this._frontCard = null;
+        _this._backCard = null;
+        _this._frontCards = [];
+        _this._backCards = [];
+        _this._currentIndex = 0;
+        return _this;
+      }
+      WriteCard.prototype.onLoad = function() {
+        var _this = this;
+        var manager = cc.director.getCollisionManager();
+        manager.enabled = false;
+        this._currentConfig = this.processConfiguration(config_1.default.getInstance().data[0]);
+        this.node.on(exports.LETTER_TRACING_CARD_EVENT, function(event) {
+          event.stopPropagation();
+          var data = event.getUserData();
+          _this.hideFrontCardAndShowBackCard(data);
+        });
+        this.buildUI();
+        util_1.Util.showHelp(null, null);
+        this.node.on(helper_1.RESET_TRACING_ALLOWED, function() {
+          null !== _this.node.getChildByName("reeetTracingButton") && (_this.node.getChildByName("reeetTracingButton").opacity = 255);
+        });
+        this.node.on(helper_1.RESET_TRACING_NOT_ALLOWED, function() {
+          null !== _this.node.getChildByName("reeetTracingButton") && (_this.node.getChildByName("reeetTracingButton").opacity = 0);
+        });
+        null !== this.node.getChildByName("reeetTracingButton") && (this.node.getChildByName("reeetTracingButton").opacity = 0);
+        this.node.on(helper_1.RESET_TRACING, function(event) {
+          event.stopPropagation();
+          console.log("current index" + _this._currentIndex);
+          var fNode = _this.node.getChildByName(_this._originalFrontCardName + _this._currentIndex);
+          if (!!fNode) {
+            var frontComponent = fNode.getComponent(lettertracingfrontcard_1.LetterTracingFrontCard);
+            if (!!frontComponent) {
+              frontComponent.resetTracing();
+              _this.emitCardEnabledEvent(fNode, _this._currentIndex);
+            }
+          }
+        });
+      };
+      WriteCard.prototype.buildUI = function() {
+        if (null !== this._currentConfig) {
+          console.log("current config", this._currentConfig);
+          this._letterTracingCardContainer = this.node;
+          this._letterTracingCardContainer.scale *= exports.LETTER_TRACING_CARD_SCALE;
+          this.node.width = cc.winSize.width;
+          this.node.height = cc.winSize.height;
+          var optionsLength = this._currentConfig.options.length || 0;
+          for (var i = 0; i < optionsLength; i++) this.renderCard(i);
+          this.node.emit(helper_1.CONFIG_LOADED);
+          var fNode = this.node.getChildByName(this._originalFrontCardName + "0");
+          this.emitCardEnabledEvent(fNode, 0);
+        }
+      };
+      WriteCard.prototype.renderCard = function(index) {
+        this._frontCard = cc.instantiate(this.frontCardPrefab);
+        this._originalFrontCardName = this._frontCard.name;
+        this._frontCard.name = this._frontCard.name + index;
+        this._frontCard.getComponent(lettertracingfrontcard_1.LetterTracingFrontCard).optionIndex = index;
+        this._backCard = cc.instantiate(this.backCardPrefab);
+        this._originalBackCardName = this._backCard.name;
+        this._backCard.name = this._backCard.name + index;
+        this._backCard.getComponent(lettertracingbackcard_1.LetterTracingBackCard).optionIndex = index;
+        this.node.addChild(this._frontCard);
+        this.node.addChild(this._backCard);
+        this._backCard.active = false;
+        this._frontCard.opacity = 0 === index ? 255 : 0;
+        this._frontCard.setPosition(0, 0);
+        this._backCard.setPosition(0, 0);
+        this._frontCards.push(this._frontCard);
+        this._backCards.push(this._backCard);
+      };
+      WriteCard.prototype.emitCardEnabledEvent = function(fNode, index) {
+        fNode.opacity = 255;
+        fNode.emit("cardEnabled", index);
+        this._currentIndex = index;
+      };
+      WriteCard.prototype.processConfiguration = function(data) {
+        void 0 === data && (data = []);
+        var configurations = [].concat.apply([], data);
+        var level = configurations[0], workSheet = configurations[1], problemNo = configurations[2], traceText = configurations[3], option1 = configurations[4], image1 = configurations[5], sound1 = configurations[6], option2 = configurations[7], image2 = configurations[8], sound2 = configurations[9], option3 = configurations[10], image3 = configurations[11], sound3 = configurations[12];
+        var options = [ option1, option2, option3 ];
+        var images = [ image1, image2, image3 ];
+        var sounds = [ sound1, sound2, sound3 ];
+        return {
+          level: level,
+          workSheet: workSheet,
+          problemNo: problemNo,
+          traceText: traceText,
+          options: options,
+          images: images,
+          sounds: sounds
+        };
+      };
+      Object.defineProperty(WriteCard.prototype, "currentConfig", {
+        get: function() {
+          return this._currentConfig;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      WriteCard.prototype.hideFrontCardAndShowBackCard = function(data) {
+        var _this = this;
+        var index = data.elementIndex;
+        var fNode = this.node.getChildByName(this._originalFrontCardName + index);
+        var bcNode = this.node.getChildByName(this._originalBackCardName + index);
+        new cc.Tween().target(fNode).to(.5, {
+          opacity: 0
+        }, {
+          progress: null,
+          easing: "sineOut"
+        }).call(function() {
+          bcNode.active = true;
+          bcNode.scale = 0;
+          new cc.Tween().target(bcNode).to(.5, {
+            scale: 1
+          }, {
+            progress: null,
+            easing: "sineOut"
+          }).call(function() {
+            bcNode.getComponent(lettertracingbackcard_1.LetterTracingBackCard).animateText();
+            bcNode.getComponent(lettertracingbackcard_1.LetterTracingBackCard).pronounce();
+            _this.scheduleOnce(function() {
+              fNode.active = false;
+              new cc.Tween().target(bcNode).to(.2, {
+                opacity: 255,
+                scale: .75
+              }, {
+                progress: null,
+                easing: "quintInOut"
+              }).then(new cc.Tween().to(.2, {
+                opacity: 255,
+                scale: .5
+              }, {
+                progress: null,
+                easing: "cubicInOut"
+              })).then(new cc.Tween().to(.2, {
+                opacity: 255,
+                scale: .25
+              }, {
+                progress: null,
+                easing: "cubicInOut"
+              })).then(new cc.Tween().to(.2, {
+                opacity: 255,
+                scale: 0
+              }, {
+                progress: null,
+                easing: "cubicInOut"
+              })).call(function() {
+                bcNode.active = false;
+                if (index < _this._currentConfig.options.length - 1) {
+                  var nextFNode = _this.node.getChildByName(_this._originalFrontCardName + (index + 1));
+                  _this.emitCardEnabledEvent(nextFNode, index + 1);
+                } else _this.node.emit("nextProblem");
+              }).start();
+            }, 1);
+          }).start();
+        }).start();
+      };
+      __decorate([ property(cc.Prefab) ], WriteCard.prototype, "frontCardPrefab", void 0);
+      __decorate([ property(cc.Prefab) ], WriteCard.prototype, "backCardPrefab", void 0);
+      __decorate([ error_handler_1.default() ], WriteCard.prototype, "onLoad", null);
+      __decorate([ error_handler_1.default() ], WriteCard.prototype, "buildUI", null);
+      __decorate([ error_handler_1.default() ], WriteCard.prototype, "renderCard", null);
+      __decorate([ error_handler_1.default() ], WriteCard.prototype, "emitCardEnabledEvent", null);
+      WriteCard = __decorate([ ccclass ], WriteCard);
+      return WriteCard;
+    }(game_1.default);
+    exports.WriteCard = WriteCard;
+    cc._RF.pop();
+  }, {
+    "../../../common/scripts/game": void 0,
+    "../../../common/scripts/helper": void 0,
+    "../../../common/scripts/lib/config": void 0,
+    "../../../common/scripts/lib/error-handler": void 0,
+    "../../../common/scripts/util": void 0,
+    "./lettertracingbackcard": "lettertracingbackcard",
+    "./lettertracingfrontcard": "lettertracingfrontcard"
+  } ]
+}, {}, [ "lettertracingbackcard", "lettertracingfrontcard", "writecard" ]);

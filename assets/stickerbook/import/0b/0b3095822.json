@@ -1,1 +1,783 @@
-[1,["d9i7KgYS9JC5PGQ1jbVNTU","90foRryRJM3p9AGFGyKh5x","d9BU1+evpBzohFIxnIb0Qk","e46ZVCv3RERL8xe0mQDmpV","f6e1CTDGVNLbu3YyXbVlBa","fcjO1aIctHhpdoLP8sIqUx","1f12365aa","41n6EDOlJP5bpE2rvGOCsr"],["_textureSetter"],["cc.SpriteFrame"],0,[[[{"name":"default_white_panel","rect":[0,0,21,21],"offset":[0,0],"originalSize":[21,21],"capInsets":[3,3,3,3]}],[0],0,[0],[0],[1]],[[{"name":"decomon-decomon3-decomon_paintbucket_3","rect":[52,817,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_paintbucket_6","rect":[1,863,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"glass_star","rect":[0,0,74,101],"offset":[0,0],"originalSize":[74,101],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[2]],[[{"name":"decomon-decomon3-decomon_paintbucket_2","rect":[1,773,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_icon_paintbrush","rect":[70,539,54,59],"offset":[0,0],"originalSize":[54,59],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_paintbucket_5","rect":[52,862,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_paintbucket_7","rect":[52,907,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"camera_icon","rect":[0,0,110,70],"offset":[0,0],"originalSize":[110,70],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[3]],[[{"name":"decomon-decomon3-decomon_paintbucket_4","rect":[1,818,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"box_decamon3","rect":[0,0,132,101],"offset":[0,0],"originalSize":[132,101],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[4]],[[{"name":"camera_click","rect":[0,0,23,16],"offset":[0,0],"originalSize":[23,16],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[5]],[[{"name":"decomon-decomon3-decomon_paintbucket_1","rect":[63,682,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_paintbucket_8","rect":[1,908,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"circle_zigzag","rect":[3,3,258,258],"offset":[0,0],"originalSize":[258,258],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[6]],[[{"name":"box_decamon2","rect":[0,0,689,130],"offset":[0,0],"originalSize":[689,130],"capInsets":[47,0,47,0]}],[0],0,[0],[0],[7]],[[{"name":"decomon-decomon3-decomon_paintbucket_11","rect":[61,727,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_paintbucket_9","rect":[52,952,49,43],"offset":[0,0],"originalSize":[49,43],"rotated":1,"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]],[[{"name":"decomon-decomon3-decomon_paintbucket_12","rect":[52,772,49,43],"offset":[0,0],"originalSize":[49,43],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]]]]
+[
+  1,
+  [
+    "d9i7KgYS9JC5PGQ1jbVNTU",
+    "90foRryRJM3p9AGFGyKh5x",
+    "d9BU1+evpBzohFIxnIb0Qk",
+    "e46ZVCv3RERL8xe0mQDmpV",
+    "f6e1CTDGVNLbu3YyXbVlBa",
+    "fcjO1aIctHhpdoLP8sIqUx",
+    "1f12365aa",
+    "41n6EDOlJP5bpE2rvGOCsr"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    [
+      [
+        {
+          "name": "default_white_panel",
+          "rect": [
+            0,
+            0,
+            21,
+            21
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            21,
+            21
+          ],
+          "capInsets": [
+            3,
+            3,
+            3,
+            3
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        1
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_3",
+          "rect": [
+            52,
+            817,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_6",
+          "rect": [
+            1,
+            863,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "glass_star",
+          "rect": [
+            0,
+            0,
+            74,
+            101
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            74,
+            101
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        2
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_2",
+          "rect": [
+            1,
+            773,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_icon_paintbrush",
+          "rect": [
+            70,
+            539,
+            54,
+            59
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            54,
+            59
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_5",
+          "rect": [
+            52,
+            862,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_7",
+          "rect": [
+            52,
+            907,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "camera_icon",
+          "rect": [
+            0,
+            0,
+            110,
+            70
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            110,
+            70
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        3
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_4",
+          "rect": [
+            1,
+            818,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "box_decamon3",
+          "rect": [
+            0,
+            0,
+            132,
+            101
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            132,
+            101
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        4
+      ]
+    ],
+    [
+      [
+        {
+          "name": "camera_click",
+          "rect": [
+            0,
+            0,
+            23,
+            16
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            23,
+            16
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        5
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_1",
+          "rect": [
+            63,
+            682,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_8",
+          "rect": [
+            1,
+            908,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "circle_zigzag",
+          "rect": [
+            3,
+            3,
+            258,
+            258
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            258,
+            258
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        6
+      ]
+    ],
+    [
+      [
+        {
+          "name": "box_decamon2",
+          "rect": [
+            0,
+            0,
+            689,
+            130
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            689,
+            130
+          ],
+          "capInsets": [
+            47,
+            0,
+            47,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        7
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_11",
+          "rect": [
+            61,
+            727,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_9",
+          "rect": [
+            52,
+            952,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "rotated": 1,
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ],
+    [
+      [
+        {
+          "name": "decomon-decomon3-decomon_paintbucket_12",
+          "rect": [
+            52,
+            772,
+            49,
+            43
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "originalSize": [
+            49,
+            43
+          ],
+          "capInsets": [
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        0
+      ],
+      0,
+      [
+        0
+      ],
+      [
+        0
+      ],
+      [
+        0
+      ]
+    ]
+  ]
+]
