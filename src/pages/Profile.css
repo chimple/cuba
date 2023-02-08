@@ -26,8 +26,16 @@
   opacity: 0.8;
 }
 .active {
-  --ion-color-success-contrast: #FF5500;
+  --ion-color-success-contrast: #ff5500;
   opacity: 1;
+  --ion-color-success-shade:white
+}
+.in-active {
+  /* --ion-color-success-contrast: var(--text-color); */
+  opacity: 1;
+  color: var(--text-color);
+  --border-color: white;
+  --ion-color-success-shade:white
 }
 
 /* ion-content {

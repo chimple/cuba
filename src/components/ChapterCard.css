@@ -32,6 +32,7 @@
   padding-right: 1em;
   align-self: center;
   text-transform: none;
+  color: var(--text-color);
 }
 
 .active-chapter-name {
