@@ -5220,7 +5220,6 @@
   "id": "sl_en1_mp",
   "isCourseMapped": true,
   "lang": "en",
-  "name": "English G1",
-  "type": "literacy",
-  "levels": ["sl_en1_mp02", "sl_en1_mp09", "sl_en1_mp16", "sl_en1_mp24"]
+  "name": "SL English Grade 1",
+  "type": "literacy"
 }

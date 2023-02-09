@@ -28,7 +28,7 @@
         "id": "sl_maths1_mp",
         "isCourseMapped": true,
         "lang": "en",
-        "name": "Maths G1",
+        "name": "SL Maths Grade 1",
         "type": "maths",
         "chapters": [
           {
@@ -38,10 +38,10 @@
             "name": "Quiz",
             "lessons": [
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp_PreQuiz",
                 "image": "sl_maths1_mp_Prequiz.png",
-                "name": "Assessment",
+                "name": "Assesment",
                 "orig_chapter_id": "sl_maths_quiz",
                 "orig_course_id": "sl_maths",
                 "orig_lesson_id": "sl_maths_g1_PreQuiz",
@@ -55,7 +55,7 @@
             "name": "Term 1",
             "lessons": [
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0000",
                 "image": "sl_maths1_mp0000.png",
                 "name": "Match Coloured Objects",
@@ -65,7 +65,7 @@
                 "outcome": "Learn about shapes and digital skills of clicking and dragging actions"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0001",
                 "image": "sl_maths1_mp0001.png",
                 "name": "Match Coloured Objects 2",
@@ -75,7 +75,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0002",
                 "image": "sl_maths1_mp0002.png",
                 "name": "Match Blue Shadows",
@@ -85,7 +85,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0003",
                 "image": "sl_maths1_mp0003.png",
                 "name": "Animals and Babies",
@@ -95,7 +95,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0004",
                 "image": "sl_maths1_mp0004.png",
                 "name": "Shapes and Objects",
@@ -105,7 +105,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0005",
                 "image": "sl_maths1_mp0005.png",
                 "name": "Count and Match",
@@ -115,7 +115,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0006",
                 "image": "sl_maths1_mp0006.png",
                 "name": "Shapes",
@@ -125,7 +125,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0007",
                 "image": "sl_maths1_mp0007.png",
                 "name": "Match figures",
@@ -135,7 +135,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp0008",
                 "image": "sl_maths1_mp0008.png",
                 "name": "Count and Pair",
@@ -145,7 +145,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0009",
                 "image": "sl_maths1_mp0009.png",
                 "name": "How Many",
@@ -155,7 +155,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0010",
                 "image": "sl_maths1_mp0010.png",
                 "name": "Parts and Whole",
@@ -165,7 +165,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0011",
                 "image": "sl_maths1_mp0011.png",
                 "name": "Parts and whole 2",
@@ -175,7 +175,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0012",
                 "image": "sl_maths1_mp0012.png",
                 "name": "Objects and shapes",
@@ -185,7 +185,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0013",
                 "image": "sl_maths1_mp0013.png",
                 "name": "3D shapes",
@@ -195,7 +195,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp0014",
                 "image": "sl_maths1_mp0014.png",
                 "name": "Stringed objects",
@@ -205,7 +205,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0015",
                 "image": "sl_maths1_mp0015.png",
                 "name": "Tiny shapes",
@@ -215,7 +215,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0016",
                 "image": "sl_maths1_mp0016.png",
                 "name": "Shape Sequence",
@@ -225,7 +225,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0017",
                 "image": "sl_maths1_mp0017.png",
                 "name": "Shape Series",
@@ -235,7 +235,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0018",
                 "image": "sl_maths1_mp0018.png",
                 "name": "Shape Pattern",
@@ -245,7 +245,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0019",
                 "image": "sl_maths1_mp0019.png",
                 "name": "Shape Order",
@@ -255,7 +255,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp0020",
                 "image": "sl_maths1_mp0020.png",
                 "name": "Succession in Shapes",
@@ -265,7 +265,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0021",
                 "image": "sl_maths1_mp0021.png",
                 "name": "Jungle",
@@ -275,7 +275,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0022",
                 "image": "sl_maths1_mp0022.png",
                 "name": "Beach",
@@ -285,7 +285,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0023",
                 "image": "sl_maths1_mp0023.png",
                 "name": "City",
@@ -295,7 +295,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0024",
                 "image": "sl_maths1_mp0024.png",
                 "name": "Desert",
@@ -305,7 +305,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0025",
                 "image": "sl_maths1_mp0025.png",
                 "name": "Farm",
@@ -315,7 +315,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp0026",
                 "image": "sl_maths1_mp0026.png",
                 "name": "Garden",
@@ -325,7 +325,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0027",
                 "image": "sl_maths1_mp0027.png",
                 "name": "PlayGround",
@@ -335,7 +335,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0028",
                 "image": "sl_maths1_mp0028.png",
                 "name": "Sea",
@@ -345,7 +345,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0029",
                 "image": "sl_maths1_mp0029.png",
                 "name": "Sky",
@@ -355,7 +355,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0030",
                 "image": "sl_maths1_mp0030.png",
                 "name": "Snow",
@@ -365,7 +365,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0031",
                 "image": "sl_maths1_mp0031.png",
                 "name": "Balloon",
@@ -375,7 +375,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp0032",
                 "image": "sl_maths1_mp0032.png",
                 "name": "Box",
@@ -385,7 +385,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0033",
                 "image": "sl_maths1_mp0033.png",
                 "name": "Egg",
@@ -395,7 +395,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0034",
                 "image": "sl_maths1_mp0034.png",
                 "name": "Flower",
@@ -405,7 +405,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0035",
                 "image": "sl_maths1_mp0035.png",
                 "name": "Heart",
@@ -415,7 +415,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0036",
                 "image": "sl_maths1_mp0036.png",
                 "name": "House",
@@ -425,7 +425,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0037",
                 "image": "sl_maths1_mp0037.png",
                 "name": "Moon",
@@ -435,7 +435,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp0038",
                 "image": "sl_maths1_mp0038.png",
                 "name": "Rectangle",
@@ -445,7 +445,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0039",
                 "image": "sl_maths1_mp0039.png",
                 "name": "Star",
@@ -455,7 +455,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0040",
                 "image": "sl_maths1_mp0040.png",
                 "name": "Watermelon",
@@ -465,7 +465,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0041",
                 "image": "sl_maths1_mp0041.png",
                 "name": "Trophy",
@@ -475,7 +475,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0042",
                 "image": "sl_maths1_mp0042.png",
                 "name": "Dog",
@@ -485,7 +485,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0043",
                 "image": "sl_maths1_mp0043.png",
                 "name": "Fish",
@@ -495,7 +495,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp0044",
                 "image": "sl_maths1_mp0044.png",
                 "name": "Bird",
@@ -505,7 +505,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0045",
                 "image": "sl_maths1_mp0045.png",
                 "name": "Arrow",
@@ -515,7 +515,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0046",
                 "image": "sl_maths1_mp0046.png",
                 "name": "Bird",
@@ -525,7 +525,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0047",
                 "image": "sl_maths1_mp0047.png",
                 "name": "Lizard",
@@ -535,7 +535,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0048",
                 "image": "sl_maths1_mp0048.png",
                 "name": "Mouse",
@@ -545,7 +545,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0049",
                 "image": "sl_maths1_mp0049.png",
                 "name": "Turtle",
@@ -555,7 +555,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp0050",
                 "image": "sl_maths1_mp0050.png",
                 "name": "Ball and Dog",
@@ -565,7 +565,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0051",
                 "image": "sl_maths1_mp0051.png",
                 "name": "Meerkats",
@@ -575,7 +575,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0052",
                 "image": "sl_maths1_mp0052.png",
                 "name": "Insects",
@@ -585,7 +585,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0053",
                 "image": "sl_maths1_mp0053.png",
                 "name": "Cat and Butterfly",
@@ -595,7 +595,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0054",
                 "image": "sl_maths1_mp0054.png",
                 "name": "Penguin",
@@ -605,7 +605,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0055",
                 "image": "sl_maths1_mp0055.png",
                 "name": "Rabbit and Flower",
@@ -615,7 +615,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp0056",
                 "image": "sl_maths1_mp0056.png",
                 "name": "Gazelle",
@@ -625,7 +625,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0057",
                 "image": "sl_maths1_mp0057.png",
                 "name": "Goat",
@@ -635,7 +635,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0058",
                 "image": "sl_maths1_mp0058.png",
                 "name": "Pig",
@@ -645,7 +645,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0059",
                 "image": "sl_maths1_mp0059.png",
                 "name": "Zebra",
@@ -655,7 +655,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0060",
                 "image": "sl_maths1_mp0060.png",
                 "name": "More Birds",
@@ -665,7 +665,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0061",
                 "image": "sl_maths1_mp0061.png",
                 "name": "Elephants",
@@ -675,7 +675,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp0062",
                 "image": "sl_maths1_mp0062.png",
                 "name": "Eagle",
@@ -685,7 +685,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0063",
                 "image": "sl_maths1_mp0063.png",
                 "name": "Hyena",
@@ -695,7 +695,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0064",
                 "image": "sl_maths1_mp0064.png",
                 "name": "Cow",
@@ -705,7 +705,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0065",
                 "image": "sl_maths1_mp0065.png",
                 "name": "Squirrel",
@@ -715,7 +715,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0066",
                 "image": "sl_maths1_mp0066.png",
                 "name": "Monkeys and Crocodile",
@@ -725,7 +725,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0067",
                 "image": "sl_maths1_mp0067.png",
                 "name": "Beginner",
@@ -735,7 +735,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp0068",
                 "image": "sl_maths1_mp0068.png",
                 "name": "Basic",
@@ -745,7 +745,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0069",
                 "image": "sl_maths1_mp0069.png",
                 "name": "Simple",
@@ -755,7 +755,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0070",
                 "image": "sl_maths1_mp0070.png",
                 "name": "Easy",
@@ -765,7 +765,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0071",
                 "image": "sl_maths1_mp0071.png",
                 "name": "Intermediate",
@@ -775,7 +775,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0072",
                 "image": "sl_maths1_mp0072.png",
                 "name": "Difficult",
@@ -785,7 +785,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0073",
                 "image": "sl_maths1_mp0073.png",
                 "name": "Hard",
@@ -802,7 +802,7 @@
             "name": "Unit 1",
             "lessons": [
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp0100",
                 "image": "sl_maths1_mp0100.png",
                 "name": "Match Numbers 1",
@@ -812,7 +812,7 @@
                 "outcome": "Learn to see objects and count how many of them are there"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0101",
                 "image": "sl_maths1_mp0101.png",
                 "name": "Match Numbers 2",
@@ -822,7 +822,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0102",
                 "image": "sl_maths1_mp0102.png",
                 "name": "Number Series",
@@ -832,7 +832,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0103",
                 "image": "sl_maths1_mp0103.png",
                 "name": "1",
@@ -842,7 +842,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0104",
                 "image": "sl_maths1_mp0104.png",
                 "name": "2",
@@ -855,12 +855,12 @@
                 "id": "sl_maths1_mp_challenge19",
                 "name": "Challenge 19",
                 "image": "sl_maths1_mp_challenge19.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0105",
                 "image": "sl_maths1_mp0105.png",
                 "name": "3",
@@ -870,7 +870,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0106",
                 "image": "sl_maths1_mp0106.png",
                 "name": "4",
@@ -880,7 +880,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0107",
                 "image": "sl_maths1_mp0107.png",
                 "name": "5",
@@ -890,7 +890,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp0108",
                 "image": "sl_maths1_mp0108.png",
                 "name": "1",
@@ -900,7 +900,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0109",
                 "image": "sl_maths1_mp0109.png",
                 "name": "2",
@@ -913,12 +913,12 @@
                 "id": "sl_maths1_mp_challenge20",
                 "name": "Challenge 20",
                 "image": "sl_maths1_mp_challenge20.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0110",
                 "image": "sl_maths1_mp0110.png",
                 "name": "3",
@@ -928,7 +928,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0111",
                 "image": "sl_maths1_mp0111.png",
                 "name": "4",
@@ -938,7 +938,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0112",
                 "image": "sl_maths1_mp0112.png",
                 "name": "5",
@@ -948,7 +948,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0113",
                 "image": "sl_maths1_mp0113.png",
                 "name": "Count",
@@ -958,7 +958,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp0114",
                 "image": "sl_maths1_mp0114.png",
                 "name": "Count Objects",
@@ -968,7 +968,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0115",
                 "image": "sl_maths1_mp0115.png",
                 "name": "How Many?",
@@ -981,7 +981,7 @@
                 "id": "sl_maths1_mp_challenge21",
                 "name": "Challenge 21",
                 "image": "sl_maths1_mp_challenge21.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -993,7 +993,7 @@
             "name": "Unit 2",
             "lessons": [
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0200",
                 "image": "sl_maths1_mp0200.png",
                 "name": "Add 1",
@@ -1003,7 +1003,7 @@
                 "outcome": "Introduce addition to children."
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0201",
                 "image": "sl_maths1_mp0201.png",
                 "name": "Add 2",
@@ -1013,7 +1013,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0202",
                 "image": "sl_maths1_mp0202.png",
                 "name": "Add 3 and 4",
@@ -1023,7 +1023,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0203",
                 "image": "sl_maths1_mp0203.png",
                 "name": "Quick Addition 1",
@@ -1033,7 +1033,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp0204",
                 "image": "sl_maths1_mp0204.png",
                 "name": "Quick Addition 2",
@@ -1043,7 +1043,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0205",
                 "image": "sl_maths1_mp0205.png",
                 "name": "Count and Add -1",
@@ -1056,7 +1056,7 @@
                 "id": "sl_maths1_mp_challenge22",
                 "name": "Challenge 22",
                 "image": "sl_maths1_mp_challenge22.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -1068,7 +1068,7 @@
             "name": "Unit 3",
             "lessons": [
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0300",
                 "image": "sl_maths1_mp0300.png",
                 "name": "Quick Addition 3",
@@ -1078,7 +1078,7 @@
                 "outcome": "Learn few facts about addition"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0301",
                 "image": "sl_maths1_mp0301.png",
                 "name": "Count and Add -2",
@@ -1091,7 +1091,7 @@
                 "id": "sl_maths1_mp_challenge23",
                 "name": "Challenge 23",
                 "image": "sl_maths1_mp_challenge23.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -1103,7 +1103,7 @@
             "name": "Unit 4",
             "lessons": [
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0400",
                 "image": "sl_maths1_mp0400.png",
                 "name": "Comparison",
@@ -1116,7 +1116,7 @@
                 "id": "sl_maths1_mp_challenge24",
                 "name": "Challenge 24",
                 "image": "sl_maths1_mp_challenge24.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -1128,7 +1128,7 @@
             "name": "Unit 5",
             "lessons": [
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0500",
                 "image": "sl_maths1_mp0500.png",
                 "name": "More Comparisons",
@@ -1141,7 +1141,7 @@
                 "id": "sl_maths1_mp_challenge25",
                 "name": "Challenge 25",
                 "image": "sl_maths1_mp_challenge25.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -1153,7 +1153,7 @@
             "name": "Unit 6",
             "lessons": [
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp0600",
                 "image": "sl_maths1_mp0600.png",
                 "name": "Parts & Whole",
@@ -1166,7 +1166,7 @@
                 "id": "sl_maths1_mp_challenge26",
                 "name": "Challenge 26",
                 "image": "sl_maths1_mp_challenge26.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -1178,7 +1178,7 @@
             "name": "Unit 7",
             "lessons": [
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0700",
                 "image": "sl_maths1_mp0700.png",
                 "name": "Day and Night",
@@ -1191,7 +1191,7 @@
                 "id": "sl_maths1_mp_challenge27",
                 "name": "Challenge 27",
                 "image": "sl_maths1_mp_challenge27.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -1203,7 +1203,7 @@
             "name": "Unit 8",
             "lessons": [
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0800",
                 "image": "sl_maths1_mp0800.png",
                 "name": "Sierra Leone Currency 1",
@@ -1216,7 +1216,7 @@
                 "id": "sl_maths1_mp_challenge28",
                 "name": "Challenge 28",
                 "image": "sl_maths1_mp_challenge28.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -1228,7 +1228,7 @@
             "name": "Unit 9",
             "lessons": [
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0900",
                 "image": "sl_maths1_mp0900.png",
                 "name": "Match Numbers 1",
@@ -1238,7 +1238,7 @@
                 "outcome": "Understand mathematical concept of Numbers 0 - 9"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0901",
                 "image": "sl_maths1_mp0901.png",
                 "name": "6",
@@ -1248,7 +1248,7 @@
                 "outcome": "Count, name and write numbers from 6 - 9"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0902",
                 "image": "sl_maths1_mp0902.png",
                 "name": "7",
@@ -1258,7 +1258,7 @@
                 "outcome": "Count, name and write numbers from 6 - 9"
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp0903",
                 "image": "sl_maths1_mp0903.png",
                 "name": "8",
@@ -1268,7 +1268,7 @@
                 "outcome": "Count, name and write numbers from 6 - 9"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0904",
                 "image": "sl_maths1_mp0904.png",
                 "name": "9",
@@ -1281,12 +1281,12 @@
                 "id": "sl_maths1_mp_challenge29",
                 "name": "Challenge 29",
                 "image": "sl_maths1_mp_challenge29.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0905",
                 "image": "sl_maths1_mp0905.png",
                 "name": "0",
@@ -1296,7 +1296,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0906",
                 "image": "sl_maths1_mp0906.png",
                 "name": "Match Numbers 2",
@@ -1306,7 +1306,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp0907",
                 "image": "sl_maths1_mp0907.png",
                 "name": "Match Numbers 3",
@@ -1316,7 +1316,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp0908",
                 "image": "sl_maths1_mp0908.png",
                 "name": "Match Numbers 4",
@@ -1329,12 +1329,12 @@
                 "id": "sl_maths1_mp_challenge30",
                 "name": "Challenge 30",
                 "image": "sl_maths1_mp_challenge30.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp0909",
                 "image": "sl_maths1_mp0909.png",
                 "name": "Match Numbers 5",
@@ -1344,7 +1344,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp0910",
                 "image": "sl_maths1_mp0910.png",
                 "name": "Number Order 6-10",
@@ -1354,7 +1354,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp0911",
                 "image": "sl_maths1_mp0911.png",
                 "name": "Number Series 1-8",
@@ -1364,7 +1364,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp0912",
                 "image": "sl_maths1_mp0912.png",
                 "name": "Number Series 6-9",
@@ -1377,7 +1377,7 @@
                 "id": "sl_maths1_mp_challenge31",
                 "name": "Challenge 31",
                 "image": "sl_maths1_mp_challenge31.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -1389,7 +1389,7 @@
             "name": "Unit 10",
             "lessons": [
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp1000",
                 "image": "sl_maths1_mp1000.png",
                 "name": "Number Series 7-10",
@@ -1399,7 +1399,7 @@
                 "outcome": "Numbers 0 to 20."
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp1001",
                 "image": "sl_maths1_mp1001.png",
                 "name": "Number Series 1- 9",
@@ -1409,7 +1409,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp1002",
                 "image": "sl_maths1_mp1002.png",
                 "name": "10",
@@ -1419,7 +1419,7 @@
                 "outcome": "Read, count and write number 10"
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp1003",
                 "image": "sl_maths1_mp1003.png",
                 "name": "11",
@@ -1429,7 +1429,7 @@
                 "outcome": "Learn numbers 11 to 20"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp1004",
                 "image": "sl_maths1_mp1004.png",
                 "name": "12",
@@ -1442,12 +1442,12 @@
                 "id": "sl_maths1_mp_challenge32",
                 "name": "Challenge 32",
                 "image": "sl_maths1_mp_challenge32.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp1005",
                 "image": "sl_maths1_mp1005.png",
                 "name": "13",
@@ -1457,7 +1457,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp1006",
                 "image": "sl_maths1_mp1006.png",
                 "name": "14",
@@ -1467,7 +1467,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp1007",
                 "image": "sl_maths1_mp1007.png",
                 "name": "15",
@@ -1477,7 +1477,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp1008",
                 "image": "sl_maths1_mp1008.png",
                 "name": "16",
@@ -1490,12 +1490,12 @@
                 "id": "sl_maths1_mp_challenge33",
                 "name": "Challenge 33",
                 "image": "sl_maths1_mp_challenge33.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp1009",
                 "image": "sl_maths1_mp1009.png",
                 "name": "17",
@@ -1505,7 +1505,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp1010",
                 "image": "sl_maths1_mp1010.png",
                 "name": "18",
@@ -1515,7 +1515,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp1011",
                 "image": "sl_maths1_mp1011.png",
                 "name": "19",
@@ -1525,7 +1525,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp1012",
                 "image": "sl_maths1_mp1012.png",
                 "name": "20",
@@ -1538,7 +1538,7 @@
                 "id": "sl_maths1_mp_challenge34",
                 "name": "Challenge 34",
                 "image": "sl_maths1_mp_challenge34.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -1550,7 +1550,7 @@
             "name": "Unit 11",
             "lessons": [
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp1100",
                 "image": "sl_maths1_mp1100.png",
                 "name": "Sequences",
@@ -1560,7 +1560,7 @@
                 "outcome": "Ordinal numbers and their use in sequences"
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp1101",
                 "image": "sl_maths1_mp1101.png",
                 "name": "Ordinal Counting",
@@ -1570,7 +1570,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp1102",
                 "image": "sl_maths1_mp1102.png",
                 "name": "Ordinal Counting 1",
@@ -1580,7 +1580,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp1103",
                 "image": "sl_maths1_mp1103.png",
                 "name": "Ordinal Counting 2",
@@ -1590,7 +1590,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp1104",
                 "image": "sl_maths1_mp1104.png",
                 "name": "Ordinal Counting 3",
@@ -1600,7 +1600,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp1105",
                 "image": "sl_maths1_mp1105.png",
                 "name": "Big to Small",
@@ -1613,7 +1613,7 @@
                 "id": "sl_maths1_mp_challenge35",
                 "name": "Challenge 35",
                 "image": "sl_maths1_mp_challenge35.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -1625,7 +1625,7 @@
             "name": "Unit 12",
             "lessons": [
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp1200",
                 "image": "sl_maths1_mp1200.png",
                 "name": "Parts & Whole",
@@ -1638,7 +1638,7 @@
                 "id": "sl_maths1_mp_challenge36",
                 "name": "Challenge 36",
                 "image": "sl_maths1_mp_challenge36.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -1650,7 +1650,7 @@
             "name": "Unit 13",
             "lessons": [
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp1300",
                 "image": "sl_maths1_mp1300.png",
                 "name": "Count and Add -2",
@@ -1660,7 +1660,7 @@
                 "outcome": "Learn adding different smaller numbers to create one bigger number. Learn concepts of addition."
               },
               {
-                "color": "#FF7925",
+                "color": "",
                 "id": "sl_maths1_mp1301",
                 "image": "sl_maths1_mp1301.png",
                 "name": "Addition Beginners",
@@ -1670,7 +1670,7 @@
                 "outcome": "Learn adding different smaller numbers to create one bigger number. Learn concepts of addition."
               },
               {
-                "color": "#FF94B5",
+                "color": "",
                 "id": "sl_maths1_mp1302",
                 "image": "sl_maths1_mp1302.png",
                 "name": "Addition",
@@ -1680,7 +1680,7 @@
                 "outcome": "Learn adding different smaller numbers to create one bigger number. Learn concepts of addition."
               },
               {
-                "color": "#FFC000",
+                "color": "",
                 "id": "sl_maths1_mp1303",
                 "image": "sl_maths1_mp1303.png",
                 "name": "Count & Add 1",
@@ -1690,7 +1690,7 @@
                 "outcome": "Learn adding different smaller numbers to create one bigger number. Learn concepts of addition."
               },
               {
-                "color": "#008CD2",
+                "color": "",
                 "id": "sl_maths1_mp1304",
                 "image": "sl_maths1_mp1304.png",
                 "name": "Count & Add 2",
@@ -1700,7 +1700,7 @@
                 "outcome": "Learn adding different smaller numbers to create one bigger number. Learn concepts of addition."
               },
               {
-                "color": "#2BAC67",
+                "color": "",
                 "id": "sl_maths1_mp1305",
                 "image": "sl_maths1_mp1305.png",
                 "name": "Family of 10",
@@ -1710,7 +1710,7 @@
                 "outcome": "Learn adding different smaller numbers to create one bigger number. Learn concepts of addition."
               },
               {
-                "color": "#AC82CF",
+                "color": "",
                 "id": "sl_maths1_mp1306",
                 "image": "sl_maths1_mp1306.png",
                 "name": "Quick Addition 1-10",
@@ -1723,7 +1723,7 @@
                 "id": "sl_maths1_mp_challenge37",
                 "name": "Challenge 37",
                 "image": "sl_maths1_mp_challenge37.png",
-                "color": "#B8D855",
+                "color": "",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
