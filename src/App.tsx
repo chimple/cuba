@@ -29,6 +29,7 @@ import { Filesystem, Directory } from "@capacitor/filesystem";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
+import { App as CapApp } from "@capacitor/app";
 import {
   BASE_NAME,
   GAME_URL,
@@ -63,6 +64,11 @@ const App: React.FC = () => {
             localStorage.setItem(GAME_URL, uri + "/");
           }
         });
+      CapApp.addListener("appStateChange", ({ isActive }) => {
+        if (isActive && window.location.pathname !== PAGES.GAME) {
+          window.location.reload();
+        }
+      });
     }
   }, []);
   return (
