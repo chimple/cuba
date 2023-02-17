@@ -47,7 +47,7 @@ const LessonCard: React.FC<{
         height: "auto",
       }}
       onClick={() => {
-        if (isUnlocked) {
+        // if (isUnlocked) {
           // if (
           //   lesson.chapter.course.isCourseMapped &&
           //   lesson.orig_course_id != undefined &&
@@ -71,9 +71,9 @@ const LessonCard: React.FC<{
               from: history.location.pathname,
             });
           // }
-        } else {
-          console.log(lesson?.name, "lesson is locked");
-        }
+        // } else {
+        //   console.log(lesson?.name, "lesson is locked");
+        // }
       }}
       // disabled={!isUnlocked}
     >

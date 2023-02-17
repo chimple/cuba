@@ -178,6 +178,7 @@ export default class Curriculum {
         console.log("before playedLesson?.chapter", playedLesson, playedLesson?.chapter)
         playedLesson?.chapter.lessons.forEach((lesson, index, lessons) => {
             if (playedLessonId === lesson.id) {
+                lessons[index].isUnlock = true;
                 console.log(lessons.length, index + 1, lessons.length > index + 1);
                 if (lessons.length > index + 1) {
                     console.log((lesson.type != EXAM || lesson.type === null || lesson.type === undefined), (lesson.type === EXAM && score > MIN_PASS), lesson.type != EXAM || (lesson.type === EXAM && score > MIN_PASS));
