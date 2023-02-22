@@ -92,7 +92,6 @@ const LessonCard: React.FC<{
           justifyContent: "center",
           alignItems: "center",
           gridArea: "1/1",
-          filter: isUnlocked ? 'none' :'grayscale(90%)',
         }}
         color={lesson?.color}>
           {showSubjectName ? (
@@ -144,9 +143,6 @@ const LessonCard: React.FC<{
       {showText ? (
         <p
           id="lesson-card-name"
-          style={{
-            opacity: isUnlocked ? "1" : "0.5",
-          }}
         >
           {lesson?.name}
         </p>
