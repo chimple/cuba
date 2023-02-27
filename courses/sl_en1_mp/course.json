@@ -2415,6 +2415,16 @@
           "outcome": "Students learn four-letter words with \ndifferent vowel letters and sounds. \nThey recognize other consonant blends not\ntreated e.g. one-syllable words."
         },
         {
+          "color": "#FFC000",
+          "id": "sl_en1_mp1409",
+          "image": "sl_en1_mp1409.png",
+          "name": "Long Vowels",
+          "orig_chapter_id": "sl_en07",
+          "orig_course_id": "sl_en",
+          "orig_lesson_id": "sl_en0705",
+          "outcome": ""
+        },
+        {
           "id": "sl_en1_mp_challenge49",
           "image": "sl_en1_mp_challenge49.png",
           "color": "#B8D855",
