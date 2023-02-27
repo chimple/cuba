@@ -573,6 +573,16 @@
           "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
         },
         {
+          "color": "#FFC000",
+          "id": "sl_en2_mp0047",
+          "image": "sl_en2_mp0047.png",
+          "name": "Long Vowels",
+          "orig_chapter_id": "sl_en07",
+          "orig_course_id": "sl_en",
+          "orig_lesson_id": "sl_en0705",
+          "outcome": ""
+        },
+        {
           "id": "sl_en2_mp_challenge11",
           "name": "Challenge 11",
           "image": "sl_en2_mp_challenge11.png",
