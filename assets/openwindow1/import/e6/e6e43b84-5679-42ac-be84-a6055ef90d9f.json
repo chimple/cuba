@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "1ecf64adf"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "wm_oneslot_frame",
+      "rect": [
+        3,
+        638,
+        157,
+        157
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "originalSize": [
+        157,
+        157
+      ],
+      "capInsets": [
+        25,
+        0,
+        25,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]

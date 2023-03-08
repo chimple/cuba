@@ -3285,8 +3285,8 @@ window.__require = function e(t, n, r) {
     var core_1 = require("@capacitor/core");
     exports.DEFAULT_FONT = "main";
     exports.STORY = "story";
-    exports.COURSES = [ "en", "en-maths" ];
-    exports.COURSES_LANG_ID = [ "en", "maths" ];
+    exports.COURSES = [ "en", "en-maths", "hi", "hi-maths", "ur", "ur-maths", "mr" ];
+    exports.COURSES_LANG_ID = [ "en", "hi", "maths", "kn", "mr" ];
     var Flow;
     (function(Flow) {
       Flow[Flow["Default"] = 0] = "Default";
@@ -5946,6 +5946,11 @@ window.__require = function e(t, n, r) {
       openwindow: {
         bundle: "openwindow",
         prefab: "prefabs/openwindow",
+        youtube: "VwVEw3cexvI"
+      },
+      openwindow1: {
+        bundle: "openwindow1",
+        prefab: "prefabs/openwindow1",
         youtube: "VwVEw3cexvI"
       },
       picturemeaning: {
