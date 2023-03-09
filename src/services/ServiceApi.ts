@@ -11,7 +11,7 @@ export interface ServiceApi {
 
     isPreQuizDone(subjectCode: string, classId: string, studentId: string): Promise<boolean>;
 
-    getLineItemsForClassForLessonId(classId: string, LessonId: string): Promise<LineItem[]>;
+    getLineItemForClassForLessonId(classId: string, LessonId: string): Promise<LineItem | undefined>;
 
     putLineItem(classId: string, lessonId: string): Promise<LineItem>;
 
