@@ -169,26 +169,32 @@ export class OneRosterApi implements ServiceApi {
         return lessonMap;
     }
 
-    async getLineItemsForClassForLessonId(classId: string, lessonId: string): Promise<LineItem[]> {
+    async getLineItemForClassForLessonId(classId: string, lessonId: string): Promise<LineItem | undefined> {
         try {
-            const filter = encodeURIComponent(`title='${lessonId}'`)
-            const response = await Http.get({ url: "https://mocki.io/v1/18b2c698-d192-4fc5-9e47-a6eae79bb681?filter=" + filter, headers: this.getHeaders(), shouldEncodeUrlParams: false }).catch((e) => { console.log("error on getResultsForStudentForClass", e) });
-            const result = (response && response.status === 200) ? response.data : {};
-            const lineItems: LineItem[] = [];
-            if (result.lineItems) {
-                for (let i of result.lineItems) {
-                    lineItems.push(LineItem.fromJson(i))
-                }
-            }
-            return lineItems;
+            // const filter = encodeURIComponent(`title='${lessonId}'`)
+            // const sourcedId = lessonId + "-" + classId;
+            // const response=await Http.get({url:`http://lineItems/${sourcedId}`})
+            const response = await Http.get({ url: "https://mocki.io/v1/f81bc722-3d4e-4eca-b8ea-040d93353f3f", headers: this.getHeaders() }).catch((e) => { console.log("error on getResultsForStudentForClass", e) });
+            const result =
+              response && response.status === 200 ? response.data : {};
+            const lineItem = result.lineItem
+              ? LineItem.fromJson(result.lineItem)
+              : undefined;
+            // const lineItems: LineItem[] = [];
+            // if (result.lineItems) {
+            //     for (let i of result.lineItems) {
+            //         lineItems.push(LineItem.fromJson(i))
+            //     }
+            // }
+            return lineItem;
         } catch (error) {
             console.log(error);
-            return [];
+            return ;
         }
     }
 
     async putLineItem(classId: string, lessonId: string): Promise<LineItem> {
-        const sourcedId = uuidv4();
+        const sourcedId = lessonId + "-" + classId;
         const assignDate = new Date().toISOString();
         const dueDate = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString()
         const lineItem = new LineItem(lessonId, assignDate, dueDate, { href: classId, sourcedId: classId, type: "class" }, { href: "category", sourcedId: "category", type: "category" }, 0, 100, sourcedId, OneRosterStatus.ACTIVE, assignDate, {}, lessonId);
@@ -200,8 +206,9 @@ export class OneRosterApi implements ServiceApi {
 
     async putResult(userId: string, classId: string, lessonId: string, score: number, subjectCode: string): Promise<Result | undefined> {
         try {
-            const lineItems = await this.getLineItemsForClassForLessonId(classId, lessonId);
-            const lineItem: LineItem = (lineItems && lineItems.length > 0) ? lineItems[0] : await this.putLineItem(classId, lessonId);
+            const lineItem: LineItem =
+              (await this.getLineItemForClassForLessonId(classId, lessonId)) ??
+              (await this.putLineItem(classId, lessonId));
             const date = new Date().toISOString();
             const sourcedId = uuidv4();
             const result = new Result(
@@ -294,8 +301,11 @@ export class OneRosterApi implements ServiceApi {
             else {
                 const sourcedId = uuidv4();
                 const lessonId = subjectCode + "_" + PRE_QUIZ;
-                const lineItems = await this.getLineItemsForClassForLessonId(classId, lessonId);
-                const lineItem: LineItem = (lineItems && lineItems.length > 0) ? lineItems[0] : await this.putLineItem(classId, lessonId);
+                const lineItem: LineItem =
+                (await this.getLineItemForClassForLessonId(classId, lessonId)) ??
+                (await this.putLineItem(classId, lessonId));
+                // const lineItems = await this.getLineItemsForClassForLessonId(classId, lessonId);
+                // const lineItem: LineItem = (lineItems && lineItems.length > 0) ? lineItems[0] : await this.putLineItem(classId, lessonId);
                 preQuizresult = new Result(
                     {
                         href: lineItem?.sourcedId,
