@@ -50,7 +50,7 @@ const LessonSlider: React.FC<{
                 width="40vh"
                 height="45vh"
                 isPlayed={isPlayed}
-                isUnlocked={m.isUnlock}
+                isUnlocked={true}
                 lesson={m}
                 showSubjectName={showSubjectName}
                 showScoreCard={isPlayed}
