@@ -1,5 +1,5 @@
 import { Http } from "@capacitor-community/http";
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
@@ -30,18 +30,18 @@ export class Util {
       try {
         if (!Capacitor.isNativePlatform()) return true;
         console.log(
-          "downloading Directory.Cache",
-          Directory.Cache,
+          "downloading Directory.External",
+          Directory.External,
           "Directory.Library"
         );
         const fs = createFilesystem(Filesystem, {
           rootDir: "/",
-          directory: Directory.Cache,
+          directory: Directory.External,
           base64Alway: false,
         });
         const path =
           (localStorage.getItem("gameUrl") ??
-            "http://localhost/_capacitor_file_/data/user/0/org.chimple.cuba/cache/") +
+            "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.cuba/files/") +
           lessonId +
           "/index.js";
         console.log("cheching path..", "path", path);
@@ -155,7 +155,7 @@ export class Util {
     }
   }
 
-  public static async getCurrentLessonIndex(
+  public static async getLastPlayedLessonIndex(
     subjectCode: string,
     lessons: Lesson[],
     chapters: Chapter[] = [],
@@ -175,14 +175,18 @@ export class Util {
     }
 
     if (subjectCode === COURSES.PUZZLE) {
-      let currentIndex = -1;
+      // let currentIndex = -1;
       if (Object.keys(lessonResultMap).length <= 0) return 0;
-      for (let i = 0; i < lessons.length; i++) {
-        if (lessonResultMap[lessons[i].id]) {
-          currentIndex = i;
-        }
-      }
-      return currentIndex;
+      const currentIndex = Util.getLastPlayedLessonIndexForLessons(
+        lessons,
+        lessonResultMap
+      );
+      // for (let i = 0; i < lessons.length; i++) {
+      //   if (lessonResultMap[lessons[i].id]) {
+      //     currentIndex = i;
+      //   }
+      // }
+      return currentIndex <= 0 ? -1 : currentIndex;
     }
     const apiInstance = OneRosterApi.getInstance();
     const preQuiz = lessonResultMap[subjectCode + "_" + PRE_QUIZ];
@@ -192,17 +196,34 @@ export class Util {
       preQuiz.score ?? 0,
       chapters
     );
-    let tempCurrentIndex = 0;
-    for (let i = 0; i < tempLevelChapter.lessons.length; i++) {
-      if (lessonResultMap[tempLevelChapter.lessons[i].id]) {
-        tempCurrentIndex = i;
-      }
-    }
+    // let tempCurrentIndex = 0;
+    // for (let i = 0; i < tempLevelChapter.lessons.length; i++) {
+    //   if (lessonResultMap[tempLevelChapter.lessons[i].id]) {
+    //     tempCurrentIndex = i;
+    //   }
+    // }
+    const tempCurrentIndex = Util.getLastPlayedLessonIndexForLessons(
+      tempLevelChapter.lessons,
+      lessonResultMap
+    );
     let currentIndex: number = lessons.findIndex(
       (lesson: any) =>
         lesson.id === tempLevelChapter.lessons[tempCurrentIndex].id
     );
     // currentIndex--;
     return currentIndex < 0 ? 0 : currentIndex;
+  }
+
+  public static getLastPlayedLessonIndexForLessons(
+    lessons: Lesson[],
+    lessonResultMap: { [key: string]: Result } = {}
+  ): number {
+    let tempCurrentIndex = 0;
+    for (let i = 0; i < lessons.length; i++) {
+      if (lessonResultMap[lessons[i].id]) {
+        tempCurrentIndex = i;
+      }
+    }
+    return tempCurrentIndex;
   }
 }

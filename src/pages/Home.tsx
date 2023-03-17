@@ -25,6 +25,7 @@ import "@splidejs/react-splide/css";
 // or only core styles
 import "@splidejs/react-splide/css/core";
 import { Util } from "../utility/util";
+import ChapterBar from "../components/ChapterBar";
 
 const Home: React.FC = () => {
   const [dataCourse, setDataCourse] = useState<{
@@ -35,8 +36,8 @@ const Home: React.FC = () => {
     chapters: [],
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [customSwiperRef, setCustomSwiperRef] = useState<Splide>();
-  const [currentChapterId, setCurrentChapterId] = useState("");
+  const [lessonSwiperRef, setLessonSwiperRef] = useState<Splide>();
+  const [currentChapter, setCurrentChapter] = useState<Chapter>();
   const [chaptersMap, setChaptersMap] = useState<any>();
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [lessonsScoreMap, setLessonsScoreMap] = useState<any>();
@@ -56,7 +57,7 @@ const Home: React.FC = () => {
 
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
-    const apiInstance = OneRosterApi.getInstance();
+    // const apiInstance = OneRosterApi.getInstance();
     if (subjectCode === HEADERLIST.HOME) {
       let lessonScoreMap = {};
       const lessonMap = {};
@@ -64,7 +65,7 @@ const Home: React.FC = () => {
         const { chapters, lessons, tempResultLessonMap } =
           await getDataForSubject(course);
         lessonScoreMap = { ...lessonScoreMap, ...tempResultLessonMap };
-        const currentLessonIndex = await Util.getCurrentLessonIndex(
+        const currentLessonIndex = await Util.getLastPlayedLessonIndex(
           course,
           lessons,
           chapters,
@@ -108,21 +109,36 @@ const Home: React.FC = () => {
         lessons = lessons.slice(1);
         chapters = chapters.slice(1);
       }
-      const tempLevelChapter = await apiInstance.getChapterForPreQuizScore(
-        subjectCode,
-        preQuiz?.score ?? 0,
-        chapters
-      );
-      setLevelChapter(tempLevelChapter);
+      // const tempLevelChapter = await apiInstance.getChapterForPreQuizScore(
+      //   subjectCode,
+      //   preQuiz?.score ?? 0,
+      //   chapters
+      // );
+      // setLevelChapter(tempLevelChapter);
     }
     const tempChapterMap: any = {};
     for (let i = 0; i < chapters.length; i++) {
       tempChapterMap[chapters[i].id] = i;
     }
+
+    const currentLessonIndex =
+      (await Util.getLastPlayedLessonIndex(
+        subjectCode,
+        lessons,
+        chapters,
+        tempResultLessonMap
+      )) + 1;
+    const currentLesson = lessons[currentLessonIndex] ?? lessons[0];
+    const currentChapter = currentLesson.chapter ?? chapters[0];
+    setCurrentChapter(currentChapter);
+    const lessonChapterIndex = currentChapter.lessons
+      .map((l) => l.id)
+      .indexOf(currentLesson.id);
+    setCurrentLessonIndex(lessonChapterIndex);
+
     setLessonsScoreMap(tempResultLessonMap);
-    setCurrentLevel(subjectCode, chapters, lessons);
+    // setCurrentLevel(subjectCode, chapters, lessons);
     setChaptersMap(tempChapterMap);
-    setCurrentChapterId(chapters[0].id);
     setDataCourse({ lessons: lessons, chapters: chapters });
     setIsLoading(false);
   }
@@ -175,25 +191,36 @@ const Home: React.FC = () => {
       );
       setCurrentLessonIndex(lessonIndex <= 0 ? 0 : lessonIndex);
     } else {
-      setCurrentChapterId(chapters[0].id);
+      setCurrentChapter(chapters[0]);
     }
   }
 
   function onChapterClick(e: any) {
-    const firstLessonId = e.lessons[0].id;
-    const lessonIndex = dataCourse.lessons.findIndex(
-      (lesson: any) => lesson.id === firstLessonId
-    );
-    customSwiperRef?.go(lessonIndex);
-    setCurrentChapterId(e.id);
+    const chapter = dataCourse.chapters[chaptersMap[e.detail.value]];
+    // const firstLessonId = chapter.lessons[0].id;
+    // const lessonIndex = dataCourse.lessons.findIndex(
+    //   (lesson: any) => lesson.id === firstLessonId
+    // );
+    // customSwiperRef?.go(lessonIndex);
+    const tempCurrentIndex =
+      Util.getLastPlayedLessonIndexForLessons(
+        chapter.lessons,
+        lessonsScoreMap
+      ) + 1;
+    setCurrentLessonIndex(tempCurrentIndex);
+    setCurrentChapter(chapter);
+    // lessonSwiperRef?.go(tempCurrentIndex);
+    // setTimeout(() => {
+    //   lessonSwiperRef?.go(tempCurrentIndex);
+    // }, 300);
   }
-  function onCustomSlideChange(lessonIndex: number) {
-    if (!chaptersMap) return;
-    const chapter = dataCourse.lessons[lessonIndex].chapter;
-    if (chapter.id === currentChapterId) return;
-    const chapterIndex = chaptersMap[chapter.id];
-    setCurrentChapterId(dataCourse.chapters[chapterIndex]?.id);
-  }
+  // function onCustomSlideChange(lessonIndex: number) {
+  // if (!chaptersMap) return;
+  // const chapter = dataCourse.lessons[lessonIndex].chapter;
+  // if (chapter.id === currentChapter?.id) return;
+  // const chapterIndex = chaptersMap[chapter.id];
+  // setCurrentChapter(dataCourse.chapters[chapterIndex]);
+  // }
 
   function onHeaderIconClick(selectedHeader: any) {
     switch (selectedHeader) {
@@ -257,23 +284,41 @@ const Home: React.FC = () => {
         {!isLoading ? (
           <div className="space-between">
             {currentHeader !== HEADERLIST.HOME ? (
-              <ChapterSlider
-                chapterData={dataCourse.chapters}
-                onChapterClick={onChapterClick}
-                currentChapterId={currentChapterId}
-                chaptersIndex={chaptersMap[currentChapterId] ?? 0}
-                levelChapter={levelChapter}
+              // <ChapterSlider
+              //   chapterData={dataCourse.chapters}
+              //   onChapterClick={onChapterClick}
+              //   currentChapterId={currentChapterId}
+              //   chaptersIndex={chaptersMap[currentChapterId] ?? 0}
+              //   levelChapter={levelChapter}
+              // />
+              <ChapterBar
+                onChapterChange={onChapterClick}
+                currentChapter={currentChapter!}
+                chapters={dataCourse.chapters}
+                onGradeChange={(grade) => {
+                  console.log("🚀 ~ file: Home.tsx:325 ~ grade:", grade);
+                }}
+                currentGrade={"Grade 1"}
+                grades={["Grade 1", "Grade 2"]}
+                showGrade={
+                  currentHeader !== HEADERLIST.HOME &&
+                  currentHeader !== HEADERLIST.PUZZLE
+                }
               />
             ) : (
               <div style={{ marginTop: "2.6%" }}></div>
             )}
             <LessonSlider
-              lessonData={dataCourse.lessons}
-              onSwiper={setCustomSwiperRef}
-              onSlideChange={onCustomSlideChange}
+              lessonData={
+                currentHeader === HEADERLIST.HOME
+                  ? dataCourse.lessons
+                  : currentChapter?.lessons!
+              }
+              onSwiper={setLessonSwiperRef}
+              // onSlideChange={onCustomSlideChange}
               lessonsScoreMap={lessonsScoreMap}
               startIndex={
-                currentHeader === HEADERLIST.HOME ? 0 : currentLessonIndex
+                currentHeader === HEADERLIST.HOME ? 0 : currentLessonIndex - 1
               }
               showSubjectName={currentHeader === HEADERLIST.HOME}
             />
