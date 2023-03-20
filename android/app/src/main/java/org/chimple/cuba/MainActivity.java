@@ -1,32 +1,65 @@
 package org.chimple.cuba;
 
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.PersistableBundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import androidx.annotation.Nullable;
 
+import rawhttp.core.RawHttp;
 import com.getcapacitor.BridgeActivity;
+import com.ustadmobile.httpoveripc.client.HttpOverIpcClient;
+import com.ustadmobile.httpoveripc.client.HttpOverIpcProxy;
+
+import java.io.IOException;
 
 public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        registerPlugin(PortPlugin.class);
         super.onCreate(savedInstanceState);
         View decorView = getWindow().getDecorView();
-        // Hide both the navigation bar and the status bar.
-        // SYSTEM_UI_FLAG_FULLSCREEN is only available on Android 4.1 and higher, but as
-        // a general rule, you should design your app to hide the status bar whenever you
-        // hide the navigation bar.
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
-        // String newUA= "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.4) Gecko/20100101 Firefox/4.0";
-        // WebView webView = getBridge().getWebView();
-        // WebSettings settings = webView.getSettings();
-        // settings.setUserAgentString(newUA);
+        Intent intent =new Intent("oneroster").setPackage("com.toughra.ustadmobile");
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }
+    private HttpOverIpcClient mIpcClient;
 
+    protected HttpOverIpcProxy mHttpOverIpcProxy;
+    private Boolean bound = false;
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.d("onServiceConnected",name.toString()+service.toString());
+            mIpcClient = new HttpOverIpcClient(service);
+            mHttpOverIpcProxy = new HttpOverIpcProxy(mIpcClient, new RawHttp(),30000,null,42339);
+            mHttpOverIpcProxy.start();
+            bound = true;
+        }
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.d("onServiceDisconnected",name.toString());
+            mHttpOverIpcProxy.stop();
+            mIpcClient.close();
+            mIpcClient = null;
+            bound = false;
+        }
+
+    };
+    @Override
+    public void onDestroy() {
+        if(bound){
+            unbindService(mServiceConnection);
+        }
+        super.onDestroy();
+    }
 }
+
+//D/accountType1: teacher@192.168.55.103:8087
+//        D/authTokenType: 3a86238f-ccc1-4e3f-8cc9-c07ed9326ae7

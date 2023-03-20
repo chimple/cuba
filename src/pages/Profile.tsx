@@ -5,6 +5,7 @@ import LessonCard from "../components/LessonCard";
 import Loading from "../components/Loading";
 import ProfileHeader from "../components/ProfileHeader";
 import { Lesson } from "../interface/curriculumInterfaces";
+import Auth from "../models/auth";
 import Curriculum from "../models/curriculum";
 import { OneRosterApi } from "../services/OneRosterApi";
 import "./Profile.css";
@@ -24,12 +25,12 @@ const Profile: React.FC = () => {
     setIsLoading(true);
     const apiInstance = OneRosterApi.getInstance();
     const tempClass = await apiInstance.getClassForUserForSubject(
-      "user",
+      Auth.i.sourcedId,
       subjectCode
     );
     const results = await apiInstance.getResultsForStudentsForClassInLessonMap(
       tempClass?.sourcedId ?? "",
-      "user"
+      Auth.i.sourcedId
     );
     const curriculum = Curriculum.getInstance();
     const tempLessons = await curriculum.allLessonForSubject(

@@ -7,6 +7,7 @@ import {
   BUNDLE_URL,
   COURSES,
   CURRENT_LESSON_LEVEL,
+  PortPlugin,
   PRE_QUIZ,
 } from "../common/constants";
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
@@ -21,6 +22,8 @@ declare global {
 }
 
 export class Util {
+  public static port: PortPlugin;
+
   public static getGUIDRef(map: any): GUIDRef {
     return { href: map?.href, sourcedId: map?.sourcedId, type: map?.type };
   }
@@ -161,7 +164,7 @@ export class Util {
     chapters: Chapter[] = [],
     lessonResultMap: { [key: string]: Result } = {}
   ): Promise<number> {
-    const currentLessonJson = localStorage.getItem(CURRENT_LESSON_LEVEL);
+    const currentLessonJson = localStorage.getItem(CURRENT_LESSON_LEVEL());
     let currentLessonLevel: any = {};
     if (currentLessonJson) {
       currentLessonLevel = JSON.parse(currentLessonJson);
@@ -225,5 +228,19 @@ export class Util {
       }
     }
     return tempCurrentIndex;
+  }
+
+  public static async getPort(): Promise<number> {
+    if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+    try {
+      const port = await Util.port.getPort();
+      return port.port;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: util.ts:218 ~ Util ~ getPort ~ error:",
+        JSON.stringify(error)
+      );
+      return 0;
+    }
   }
 }
