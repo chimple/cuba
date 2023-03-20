@@ -53,6 +53,14 @@ export class Util {
         console.log("fethting path", path);
         console.log("isexists", isExists);
         if (isExists) continue;
+
+        console.log("before local lesson Bundle http url:" + "assets/" + lessonId + "/index.js")
+
+        const fetchingLocalBundle = await fetch("assets/" + lessonId + "/index.js")
+        console.log("after local lesson Bundle fetch url:" + "assets/" + lessonId + "/index.js", fetchingLocalBundle.ok, fetchingLocalBundle.json, fetchingLocalBundle)
+
+        if (fetchingLocalBundle.ok) continue;
+
         console.log("fs", fs);
         const url = BUNDLE_URL + lessonId + ".zip";
         const zip = await Http.get({ url: url, responseType: "blob" });
