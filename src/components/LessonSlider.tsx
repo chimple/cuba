@@ -2,42 +2,45 @@ import "./LessonSlider.css";
 import LessonCard from "./LessonCard";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import { Lesson } from "../interface/curriculumInterfaces";
+import { useEffect, useState } from "react";
 
 const LessonSlider: React.FC<{
   lessonData: Lesson[];
   onSwiper: any;
-  onSlideChange: Function;
+  // onSlideChange: Function;
   lessonsScoreMap: any;
   startIndex: number;
   showSubjectName: boolean;
 }> = ({
   lessonData,
   onSwiper,
-  onSlideChange,
+  // onSlideChange,
   lessonsScoreMap,
   startIndex,
   showSubjectName = false,
 }) => {
+  const [lessonSwiperRef, setLessonSwiperRef] = useState<any>();
+  useEffect(() => {
+    console.log(
+      "🚀 ~ file: LessonSlider.tsx:24 ~ useEffect ~ useEffect:startIndex",
+      startIndex
+    );
+    lessonSwiperRef?.go(0);
+    setTimeout(() => {
+      if (startIndex) lessonSwiperRef?.go(startIndex);
+    }, 100);
+  });
   return (
     <div className="content">
       <Splide
-        ref={onSwiper}
-        key="slpider1"
+        ref={setLessonSwiperRef}
         hasTrack={true}
-        onReady={(slider: any) => {
-          setTimeout(() => {
-            slider.go(startIndex);
-          }, 100);
-        }}
         options={{
           arrows: false,
           wheel: true,
           lazyLoad: true,
           direction: "ltr",
           pagination: false,
-        }}
-        onMove={(slider: any) => {
-          onSlideChange(slider.index);
         }}
       >
         {lessonData.map((m: Lesson, i: number) => {
@@ -50,7 +53,7 @@ const LessonSlider: React.FC<{
                 width="40vh"
                 height="45vh"
                 isPlayed={isPlayed}
-                isUnlocked={m.isUnlock}
+                isUnlocked={true}
                 lesson={m}
                 showSubjectName={showSubjectName}
                 showScoreCard={isPlayed}

@@ -49,7 +49,7 @@ const App: React.FC = () => {
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({
-        directory: Directory.Cache,
+        directory: Directory.External,
         path: "",
       })
         .catch((ca) => {

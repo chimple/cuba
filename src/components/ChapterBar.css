@@ -1,0 +1,30 @@
+.bar-header {
+  position: relative;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.right {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+ion-select::part(icon) {
+  content: url("https://cdn-icons-png.flaticon.com/512/25/25623.png");
+}
+ion-select {
+  background: white;
+  padding: 10px 20px;
+  border-radius: 30px;
+  height: min(5vh, 40px);
+  min-height: 35px;
+}
+ion-select::part(text) {
+  color: var(--text-color);
+  padding-right: 20px;
+}
