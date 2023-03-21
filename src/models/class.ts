@@ -34,9 +34,9 @@ export class Class extends BaseObject {
         sourcedId: string,
         status: OneRosterStatus,
         dateLastModified: string,
-        metadata: object,
+        metaData: object,
     ) {
-        super(sourcedId, status, dateLastModified, metadata);
+        super(sourcedId, status, dateLastModified, metaData);
         this._title = title
         this._classCode = classCode
         this._classType = classType
@@ -126,13 +126,15 @@ export class Class extends BaseObject {
     }
     static fromJson(jsonObj: any): Class {
         const terms: GUIDRef[] = [];
-        for (let i of jsonObj?.terms) {
-            terms.push(Util.getGUIDRef(i))
-        }
+        if (jsonObj?.terms)
+          for (let i of jsonObj?.terms) {
+            terms.push(Util.getGUIDRef(i));
+          }
         const resources: GUIDRef[] = [];
-        for (let i of jsonObj?.resources) {
-            resources.push(Util.getGUIDRef(i))
-        }
+        if (jsonObj?.resources)
+          for (let i of jsonObj?.resources) {
+            resources.push(Util.getGUIDRef(i));
+          }
 
         const newClass = new Class(
             jsonObj?.title,
@@ -150,7 +152,7 @@ export class Class extends BaseObject {
             jsonObj?.sourcedId,
             OneRosterStatus[jsonObj?.status] ?? OneRosterStatus.ACTIVE,
             jsonObj?.dateLastModified,
-            jsonObj?.metadata
+            jsonObj?.metaData
 
         )
         return newClass;

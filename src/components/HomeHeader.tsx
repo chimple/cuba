@@ -23,7 +23,6 @@ const HomeHeader: React.FC<{
           onClick={() => {
             if (currentHeader != HEADERLIST.HOME) {
               onHeaderIconClick(HEADERLIST.HOME);
-              console.log("Home button clicked", HEADERLIST.HOME);
             }
           }}
         ></IconButton>
@@ -31,70 +30,34 @@ const HomeHeader: React.FC<{
 
       <div id="home-header-middle-icons">
         <div>
-          {currentHeader == HEADERLIST.ENGLISH_G1 ? (
+          {currentHeader == HEADERLIST.ENGLISH ? (
             <p className="home-header-indicator">&#9679;</p>
           ) : (
             <p className="home-header-indicator">&nbsp;</p>
           )}
           <IconButton
-            name="English G1"
+            name="English"
             iconSrc="assets/icons/EnglishIcon.svg"
             onClick={() => {
-              if (currentHeader != HEADERLIST.ENGLISH_G1) {
-                onHeaderIconClick(HEADERLIST.ENGLISH_G1);
-                console.log("English button clicked", currentHeader);
-              }
-            }}
-          ></IconButton>
-        </div>
-        <div>
-          {currentHeader == HEADERLIST.ENGLISH_G2 ? (
-            <p className="home-header-indicator">&#9679;</p>
-          ) : (
-            <p className="home-header-indicator">&nbsp;</p>
-          )}
-          <IconButton
-            name="English G2"
-            iconSrc="assets/icons/EnglishIcon.svg"
-            onClick={() => {
-              if (currentHeader != HEADERLIST.ENGLISH_G2) {
-                onHeaderIconClick(HEADERLIST.ENGLISH_G2);
-                console.log("English button clicked", currentHeader);
+              if (currentHeader != HEADERLIST.ENGLISH) {
+                onHeaderIconClick(HEADERLIST.ENGLISH);
               }
             }}
           ></IconButton>
         </div>
 
         <div>
-          {currentHeader == HEADERLIST.MATHS_G1 ? (
+          {currentHeader == HEADERLIST.MATHS ? (
             <p className="home-header-indicator">&#9679;</p>
           ) : (
             <p className="home-header-indicator">&nbsp;</p>
           )}
           <IconButton
-            name="Maths G1"
+            name="Maths"
             iconSrc="assets/icons/MathsIcon.svg"
             onClick={() => {
-              if (currentHeader != HEADERLIST.MATHS_G1) {
-                onHeaderIconClick(HEADERLIST.MATHS_G1);
-                console.log("Maths button clicked", currentHeader);
-              }
-            }}
-          ></IconButton>
-        </div>
-        <div>
-          {currentHeader == HEADERLIST.MATHS_G2 ? (
-            <p className="home-header-indicator">&#9679;</p>
-          ) : (
-            <p className="home-header-indicator">&nbsp;</p>
-          )}
-          <IconButton
-            name="Maths G2"
-            iconSrc="assets/icons/MathsIcon.svg"
-            onClick={() => {
-              if (currentHeader != HEADERLIST.MATHS_G2) {
-                onHeaderIconClick(HEADERLIST.MATHS_G2);
-                console.log("Maths button clicked", currentHeader);
+              if (currentHeader != HEADERLIST.MATHS) {
+                onHeaderIconClick(HEADERLIST.MATHS);
               }
             }}
           ></IconButton>
@@ -112,7 +75,6 @@ const HomeHeader: React.FC<{
               onClick={() => {
                 if (currentHeader != HEADERLIST.PUZZLE) {
                   onHeaderIconClick(HEADERLIST.PUZZLE);
-                  console.log("PUZZLE button clicked", HEADERLIST.PROFILE);
                 }
               }}
             ></IconButton>
@@ -127,7 +89,6 @@ const HomeHeader: React.FC<{
           onClick={() => {
             if (currentHeader != HEADERLIST.PROFILE) {
               onHeaderIconClick(HEADERLIST.PROFILE);
-              console.log("Profile button clicked", HEADERLIST.PROFILE);
             }
           }}
         ></IconButton>

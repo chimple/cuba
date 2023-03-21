@@ -7,7 +7,11 @@ import {
   BUNDLE_URL,
   COURSES,
   CURRENT_LESSON_LEVEL,
+  HEADERLIST,
+  PortPlugin,
   PRE_QUIZ,
+  SELECTED_GRADE,
+  SL_GRADES,
 } from "../common/constants";
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
 import { GUIDRef } from "../interface/modelInterfaces";
@@ -21,6 +25,8 @@ declare global {
 }
 
 export class Util {
+  public static port: PortPlugin;
+
   public static getGUIDRef(map: any): GUIDRef {
     return { href: map?.href, sourcedId: map?.sourcedId, type: map?.type };
   }
@@ -169,7 +175,7 @@ export class Util {
     chapters: Chapter[] = [],
     lessonResultMap: { [key: string]: Result } = {}
   ): Promise<number> {
-    const currentLessonJson = localStorage.getItem(CURRENT_LESSON_LEVEL);
+    const currentLessonJson = localStorage.getItem(CURRENT_LESSON_LEVEL());
     let currentLessonLevel: any = {};
     if (currentLessonJson) {
       currentLessonLevel = JSON.parse(currentLessonJson);
@@ -234,4 +240,44 @@ export class Util {
     }
     return tempCurrentIndex;
   }
+
+  public static async getPort(): Promise<number> {
+    if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+    try {
+      const port = await Util.port.getPort();
+      return port.port;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: util.ts:218 ~ Util ~ getPort ~ error:",
+        JSON.stringify(error)
+      );
+      return 0;
+    }
+  }
+
+  public static getCourseByGrade(courseId): string {
+
+    let selectedGrade = localStorage.getItem(SELECTED_GRADE());
+    let gradeMap = {}
+    if (!selectedGrade) {
+      gradeMap = { en: SL_GRADES.GRADE1, maths: SL_GRADES.GRADE1 };
+      console.log("in util if (!selectedGrade) {", gradeMap);
+    } else {
+      gradeMap = JSON.parse(selectedGrade);
+      console.log("else (selectedGrade) {", gradeMap);
+    }
+
+    if (courseId === HEADERLIST.ENGLISH) {
+      return gradeMap[HEADERLIST.ENGLISH] === SL_GRADES.GRADE1
+        ? COURSES.ENGLISH_G1
+        : COURSES.ENGLISH_G2;
+    } else if (courseId === HEADERLIST.MATHS) {
+      return gradeMap[HEADERLIST.MATHS] === SL_GRADES.GRADE1
+        ? COURSES.MATHS_G1
+        : COURSES.MATHS_G2;
+    } else {
+      return courseId
+    }
+  }
+
 }

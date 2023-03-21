@@ -74,9 +74,9 @@ export class Course extends BaseObject {
         sourcedId: string,
         status: OneRosterStatus,
         dateLastModified: string,
-        metadata: object
+        metaData: object
     ) {
-        super(sourcedId, status, dateLastModified, metadata);
+        super(sourcedId, status, dateLastModified, metaData);
         this._title = title;
         this._schoolYear = schoolYear;
         this._courseCode = courseCode;
@@ -106,7 +106,7 @@ export class Course extends BaseObject {
             jsonObj.sourcedId,
             OneRosterStatus[jsonObj?.status] ?? OneRosterStatus.ACTIVE,
             jsonObj.dateLastModified,
-            jsonObj.metadata
+            jsonObj.metaData
         )
         return newCourse;
     }

@@ -5,31 +5,35 @@ import LessonCard from "../components/LessonCard";
 import Loading from "../components/Loading";
 import ProfileHeader from "../components/ProfileHeader";
 import { Lesson } from "../interface/curriculumInterfaces";
+import Auth from "../models/auth";
 import Curriculum from "../models/curriculum";
 import { OneRosterApi } from "../services/OneRosterApi";
+import { Util } from "../utility/util";
 import "./Profile.css";
 
 const Profile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [rewards, setRewards] = useState<any>();
   const [allLessons, setAllLessons] = useState<any>();
-  const [currentCourseId, setCurrentCourseId] = useState(COURSES.ENGLISH_G1);
+  const [currentCourseId, setCurrentCourseId] = useState(
+    Util.getCourseByGrade(COURSES.ENGLISH)
+  );
   // const [unlockUpTo, setUnlockUpTo] = useState(-1);
 
   useEffect(() => {
     init();
   }, []);
 
-  async function init(subjectCode = COURSES.ENGLISH_G1) {
+  async function init(subjectCode = Util.getCourseByGrade(COURSES.ENGLISH)) {
     setIsLoading(true);
     const apiInstance = OneRosterApi.getInstance();
     const tempClass = await apiInstance.getClassForUserForSubject(
-      "user",
+      Auth.i.sourcedId,
       subjectCode
     );
     const results = await apiInstance.getResultsForStudentsForClassInLessonMap(
       tempClass?.sourcedId ?? "",
-      "user"
+      Auth.i.sourcedId
     );
     const curriculum = Curriculum.getInstance();
     const tempLessons = await curriculum.allLessonForSubject(
@@ -54,13 +58,25 @@ const Profile: React.FC = () => {
       <div className="tabs">
         <IonButton
           className={
-            "tab " + (currentCourseId === COURSES.ENGLISH_G1 ? " active" : "in-active")
+            "tab " +
+            (currentCourseId === Util.getCourseByGrade(COURSES.ENGLISH)
+              ? " active"
+              : "in-active")
           }
-          color={currentCourseId === COURSES.ENGLISH_G1 ?"success":""}
-          fill={currentCourseId === COURSES.ENGLISH_G1 ? "solid" : "outline"}
+          color={
+            currentCourseId === Util.getCourseByGrade(COURSES.ENGLISH)
+              ? "success"
+              : ""
+          }
+          fill={
+            currentCourseId === Util.getCourseByGrade(COURSES.ENGLISH)
+              ? "solid"
+              : "outline"
+          }
           onClick={async () => {
-            if (currentCourseId === COURSES.ENGLISH_G1) return;
-            await init(COURSES.ENGLISH_G1);
+            if (currentCourseId === Util.getCourseByGrade(COURSES.ENGLISH))
+              return;
+            await init(Util.getCourseByGrade(COURSES.ENGLISH));
           }}
           shape="round"
         >
@@ -68,16 +84,27 @@ const Profile: React.FC = () => {
         </IonButton>
         <IonButton
           className={
-            "tab " + (currentCourseId === COURSES.MATHS_G1 ? " active" : "in-active")
+            "tab " +
+            (currentCourseId === Util.getCourseByGrade(COURSES.MATHS)
+              ? " active"
+              : "in-active")
           }
-          color={currentCourseId === COURSES.MATHS_G1 ?"success":""}
-
+          color={
+            currentCourseId === Util.getCourseByGrade(COURSES.MATHS)
+              ? "success"
+              : ""
+          }
           // color={"success"}
-          fill={currentCourseId === COURSES.MATHS_G1 ? "solid" : "outline"}
+          fill={
+            currentCourseId === Util.getCourseByGrade(COURSES.MATHS)
+              ? "solid"
+              : "outline"
+          }
           onClick={async () => {
-            if (currentCourseId === COURSES.MATHS_G1) return;
+            if (currentCourseId === Util.getCourseByGrade(COURSES.MATHS))
+              return;
 
-            await init(COURSES.MATHS_G1);
+            await init(Util.getCourseByGrade(COURSES.MATHS));
           }}
           shape="round"
         >

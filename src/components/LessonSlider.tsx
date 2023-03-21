@@ -34,10 +34,10 @@ const LessonSlider: React.FC<{
   let playCard: boolean;
   let checkSecond: boolean;
   useEffect(() => {
-    console.log(
-      "🚀 ~ file: LessonSlider.tsx:24 ~ useEffect ~ useEffect:startIndex",
-      startIndex
-    );
+    // console.log(
+    //   "🚀 ~ file: LessonSlider.tsx:24 ~ useEffect ~ useEffect:startIndex",
+    //   startIndex
+    // );
     lessonSwiperRef?.go(0);
     setTimeout(() => {
       if (startIndex) lessonSwiperRef?.go(startIndex);

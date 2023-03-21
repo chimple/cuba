@@ -49,9 +49,9 @@ export class Org extends BaseObject {
         sourcedId: string,
         status: OneRosterStatus,
         dateLastModified: string,
-        metadata: object,
+        metaData: object,
     ) {
-        super(sourcedId, status, dateLastModified, metadata);
+        super(sourcedId, status, dateLastModified, metaData);
         this._name = name;
         this._type = type;
         this._identifier = identifier;
@@ -73,7 +73,7 @@ export class Org extends BaseObject {
             jsonObj?.sourcedId,
             OneRosterStatus[jsonObj?.status] ?? OneRosterStatus.ACTIVE,
             jsonObj?.dateLastModified,
-            jsonObj?.metadata)
+            jsonObj?.metaData)
         return newOrg;
     }
 
