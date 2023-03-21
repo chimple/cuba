@@ -102,6 +102,7 @@ const Profile: React.FC = () => {
                   showText={false}
                   showScoreCard={false}
                   score={0}
+                  toBePlayed = {false}
                 />
               );
             })}
