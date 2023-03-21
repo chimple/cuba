@@ -39,6 +39,11 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+    implementation "com.github.UstadMobile.httpoveripc:core:0.0.1m"
+    implementation "com.github.UstadMobile.httpoveripc:client:0.0.1m"
+    implementation "org.nanohttpd:nanohttpd:2.3.1"
+    implementation "com.athaydes.rawhttp:rawhttp-core:2.5.2"
+
 }
 
 apply from: 'capacitor.build.gradle'

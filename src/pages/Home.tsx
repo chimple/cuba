@@ -28,6 +28,7 @@ import "@splidejs/react-splide/css";
 import "@splidejs/react-splide/css/core";
 import { Util } from "../utility/util";
 import ChapterBar from "../components/ChapterBar";
+import Auth from "../models/auth";
 
 const Home: React.FC = () => {
   const [dataCourse, setDataCourse] = useState<{
@@ -50,7 +51,7 @@ const Home: React.FC = () => {
   const history = useHistory();
 
   useEffect(() => {
-    let selectedCourse = localStorage.getItem(PREVIOUS_SELECTED_COURSE);
+    let selectedCourse = localStorage.getItem(PREVIOUS_SELECTED_COURSE());
     if (!selectedCourse) {
       selectedCourse = HEADERLIST.HOME;
     }
@@ -116,7 +117,7 @@ const Home: React.FC = () => {
           lessonMap[course].push(lessons[currentLessonIndex]);
         }
       }
-      const prevPlayedCourse = localStorage.getItem(PREVIOUS_PLAYED_COURSE);
+      const prevPlayedCourse = localStorage.getItem(PREVIOUS_PLAYED_COURSE());
       let _lessons: Lesson[] = [...lessonMap[COURSES.ENGLISH_G1]];
       if (prevPlayedCourse && prevPlayedCourse === COURSES.ENGLISH_G1) {
         _lessons.splice(0, 0, lessonMap[COURSES.MATHS_G1][0]);
@@ -178,20 +179,20 @@ const Home: React.FC = () => {
   async function getDataForSubject(subjectCode: string) {
     const apiInstance = OneRosterApi.getInstance();
     const tempClass = await apiInstance.getClassForUserForSubject(
-      "user",
+      Auth.i.sourcedId,
       subjectCode
     );
     const tempResultLessonMap =
       await apiInstance.getResultsForStudentsForClassInLessonMap(
         tempClass?.sourcedId ?? "",
-        "user"
+        Auth.i.sourcedId
       );
     const curInstance = Curriculum.getInstance();
-    let chapters = await curInstance.allChapterForSubject(
+    const chapters = await curInstance.allChapterForSubject(
       subjectCode,
       tempResultLessonMap
     );
-    let lessons = await curInstance.allLessonForSubject(
+    const lessons = await curInstance.allLessonForSubject(
       subjectCode,
       tempResultLessonMap
     );
@@ -209,7 +210,7 @@ const Home: React.FC = () => {
     chapters: Chapter[],
     lessons: Lesson[]
   ) {
-    const currentLessonJson = localStorage.getItem(CURRENT_LESSON_LEVEL);
+    const currentLessonJson = localStorage.getItem(CURRENT_LESSON_LEVEL());
     let currentLessonLevel: any = {};
     if (currentLessonJson) {
       currentLessonLevel = JSON.parse(currentLessonJson);
@@ -228,11 +229,7 @@ const Home: React.FC = () => {
 
   function onChapterClick(e: any) {
     const chapter = dataCourse.chapters[chaptersMap[e.detail.value]];
-    // const firstLessonId = chapter.lessons[0].id;
-    // const lessonIndex = dataCourse.lessons.findIndex(
-    //   (lesson: any) => lesson.id === firstLessonId
-    // );
-    // customSwiperRef?.go(lessonIndex);
+
     const tempCurrentIndex =
       Util.getLastPlayedLessonIndexForLessons(
         chapter.lessons,
@@ -240,10 +237,6 @@ const Home: React.FC = () => {
       ) + 1;
     setCurrentLessonIndex(tempCurrentIndex);
     setCurrentChapter(chapter);
-    // lessonSwiperRef?.go(tempCurrentIndex);
-    // setTimeout(() => {
-    //   lessonSwiperRef?.go(tempCurrentIndex);
-    // }, 300);
   }
   // function onCustomSlideChange(lessonIndex: number) {
   // if (!chaptersMap) return;
@@ -259,6 +252,7 @@ const Home: React.FC = () => {
       case HEADERLIST.HOME:
         setCurrentHeader(HEADERLIST.HOME);
         setCourse(HEADERLIST.HOME);
+<<<<<<< HEAD
         localStorage.setItem(PREVIOUS_SELECTED_COURSE, HEADERLIST.HOME);
         break;
 
@@ -280,36 +274,40 @@ const Home: React.FC = () => {
         setCurrentHeader(HEADERLIST.MATHS);
         setCourse(course);
         localStorage.setItem(PREVIOUS_SELECTED_COURSE, HEADERLIST.MATHS);
+=======
+        localStorage.setItem(PREVIOUS_SELECTED_COURSE(), HEADERLIST.HOME);
+        console.log("Home Icons is selected");
+>>>>>>> master
         break;
 
       case HEADERLIST.ENGLISH_G1:
         setCurrentHeader(HEADERLIST.ENGLISH_G1);
         setCourse(COURSES.ENGLISH_G1);
-        localStorage.setItem(PREVIOUS_SELECTED_COURSE, COURSES.ENGLISH_G1);
+        localStorage.setItem(PREVIOUS_SELECTED_COURSE(), COURSES.ENGLISH_G1);
         break;
 
       case HEADERLIST.MATHS_G1:
         setCurrentHeader(HEADERLIST.MATHS_G1);
         setCourse(COURSES.MATHS_G1);
-        localStorage.setItem(PREVIOUS_SELECTED_COURSE, COURSES.MATHS_G1);
+        localStorage.setItem(PREVIOUS_SELECTED_COURSE(), COURSES.MATHS_G1);
         break;
 
       case HEADERLIST.ENGLISH_G2:
         setCurrentHeader(HEADERLIST.ENGLISH_G2);
         setCourse(COURSES.ENGLISH_G2);
-        localStorage.setItem(PREVIOUS_SELECTED_COURSE, COURSES.ENGLISH_G2);
+        localStorage.setItem(PREVIOUS_SELECTED_COURSE(), COURSES.ENGLISH_G2);
         break;
 
       case HEADERLIST.MATHS_G2:
         setCurrentHeader(HEADERLIST.MATHS_G2);
         setCourse(COURSES.MATHS_G2);
-        localStorage.setItem(PREVIOUS_SELECTED_COURSE, COURSES.MATHS_G2);
+        localStorage.setItem(PREVIOUS_SELECTED_COURSE(), COURSES.MATHS_G2);
         break;
 
       case HEADERLIST.PUZZLE:
         setCurrentHeader(HEADERLIST.PUZZLE);
         setCourse(COURSES.PUZZLE);
-        localStorage.setItem(PREVIOUS_SELECTED_COURSE, COURSES.PUZZLE);
+        localStorage.setItem(PREVIOUS_SELECTED_COURSE(), COURSES.PUZZLE);
         break;
 
       case HEADERLIST.PROFILE:
