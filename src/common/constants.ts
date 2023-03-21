@@ -9,22 +9,28 @@ export enum COURSES {
   MATHS_G1 = "sl_maths1_mp",
   ENGLISH_G2 = "sl_en2_mp",
   MATHS_G2 = "sl_maths2_mp",
+  ENGLISH = 'en',
+  MATHS = 'maths',
+
 }
 
-export const ALL_COURSES = [
-  COURSES.ENGLISH_G1,
-  COURSES.MATHS_G1,
-  COURSES.PUZZLE,
-];
+export enum SL_GRADES {
+  GRADE1 = 'Grade 1',
+  GRADE2 = 'Grade 2'
+}
+
+export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
 export enum HEADERLIST {
-  HOME = "HOME",
-  ENGLISH_G1 = "sl_en1_mp",
-  MATHS_G1 = "sl_maths1_mp",
-  ENGLISH_G2 = "sl_en2_mp",
-  MATHS_G2 = "sl_maths2_mp",
-  PUZZLE = "puzzle",
-  PROFILE = "PROFILE",
+  HOME = 'HOME',
+  ENGLISH = 'en',
+  MATHS = 'maths',
+  ENGLISH_G1 = 'sl_en1_mp',
+  MATHS_G1 = 'sl_maths1_mp',
+  ENGLISH_G2 = 'sl_en2_mp',
+  MATHS_G2 = 'sl_maths2_mp',
+  PUZZLE = 'puzzle',
+  PROFILE = 'PROFILE'
 }
 
 export const LESSON_CARD_COLORS = [
@@ -59,12 +65,13 @@ export const LESSON_END = "lessonEnd";
 export const PROBLEM_END = "problemEnd";
 export const GAME_END = "gameEnd";
 export const GAME_EXIT = "gameExit";
-export const TEMP_LESSONS_STORE =()=>`${Auth.i.sourcedId}-lessonsStore`;
+export const TEMP_LESSONS_STORE = () => `${Auth.i.sourcedId}-lessonsStore`;
 export const IS_USER_LOGED_IN = "isUserLogedIn";
 export const USER_TOKEN = "userToken";
-export const CURRENT_LESSON_LEVEL =()=>`${Auth.i.sourcedId}-currentLessonLevel`;
-export const PREVIOUS_PLAYED_COURSE =()=>`${Auth.i.sourcedId}-previousPlayedCourse`;
-export const PREVIOUS_SELECTED_COURSE =()=>`${Auth.i.sourcedId}-previousSelectedCourse`;
+export const CURRENT_LESSON_LEVEL = () => `${Auth.i.sourcedId}-currentLessonLevel`;
+export const PREVIOUS_PLAYED_COURSE = () => `${Auth.i.sourcedId}-previousPlayedCourse`;
+export const PREVIOUS_SELECTED_COURSE = () => `${Auth.i.sourcedId}-previousSelectedCourse`;
+export const SELECTED_GRADE = () => `${Auth.i.sourcedId}-selectedGrade`;
 export const LANGUAGE = "language";
 export const EXAM = "exam";
 export const PRE_QUIZ = "PreQuiz";
