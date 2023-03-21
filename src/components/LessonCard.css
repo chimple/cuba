@@ -1,7 +1,13 @@
 #lesson-card {
     cursor: pointer;
     box-shadow: none !important;
-    margin: 10px 15px 10px 0px;
+    margin: 30px 15px 0px 0px;
+}
+
+#lesson-card1 {
+    cursor: pointer;
+    box-shadow: none !important;
+    margin: 0px 15px 45px 0px;
 }
 
 #lesson-header {
