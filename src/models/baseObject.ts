@@ -4,6 +4,7 @@ export class BaseObject {
     private _sourcedId: string;
     private _status: OneRosterStatus;
     private _dateLastModified: string;
+    //TODO Changed metadata to metaData to match mikes schema
     private _metaData: any;
 
     constructor(

@@ -59,6 +59,7 @@ export class OneRosterApi implements ServiceApi {
       const result = response && response.status === 200 ? response.data : [];
       const classes: Class[] = [];
       if (result) {
+        //TODO Using result instead of result.classes to match mikes schema
         for (let i of result) {
           classes.push(Class.fromJson(i));
         }
@@ -167,6 +168,7 @@ export class OneRosterApi implements ServiceApi {
       // }
       const results: Result[] = [];
       if (data) {
+        //TODO Using data instead of data.results to match mikes schema
         for (let i of data) {
           results.push(Result.fromJson(i));
         }

@@ -151,6 +151,7 @@ export class Result extends BaseObject {
       sourcedId: this.sourcedId,
       status: this.status,
       dateLastModified: this.dateLastModified,
+      //TODO converting metaData to string to match mike schema
       metaData: JSON.stringify(this.metaData),
       lineItem: this.lineItem,
       student: this.student,
