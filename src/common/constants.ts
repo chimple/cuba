@@ -11,10 +11,17 @@ export enum COURSES {
 
 }
 
+export enum SL_GRADES {
+    GRADE1 = 'Grade 1',
+    GRADE2 = 'Grade 2'
+}
+
 export const ALL_COURSES = [COURSES.ENGLISH_G1, COURSES.MATHS_G1, COURSES.PUZZLE];
 
 export enum HEADERLIST {
     HOME = 'HOME',
+    ENGLISH = 'en',
+    MATHS = 'maths',
     ENGLISH_G1 = 'sl_en1_mp',
     MATHS_G1 = 'sl_maths1_mp',
     ENGLISH_G2 = 'sl_en2_mp',
@@ -62,6 +69,7 @@ export const USER_TOKEN = 'userToken'
 export const CURRENT_LESSON_LEVEL = "currentLessonLevel"
 export const PREVIOUS_PLAYED_COURSE = "previousPlayedCourse"
 export const PREVIOUS_SELECTED_COURSE = "previousSelectedCourse"
+export const SELECTED_GRADE = "selectedGrade"
 export const LANGUAGE = "language"
 export const EXAM = 'exam'
 export const PRE_QUIZ = "PreQuiz";

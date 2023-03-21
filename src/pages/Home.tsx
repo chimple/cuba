@@ -9,6 +9,8 @@ import {
   PRE_QUIZ,
   ALL_COURSES,
   PREVIOUS_PLAYED_COURSE,
+  SL_GRADES,
+  SELECTED_GRADE,
 } from "../common/constants";
 import Curriculum from "../models/curriculum";
 import "./Home.css";
@@ -43,6 +45,7 @@ const Home: React.FC = () => {
   const [lessonsScoreMap, setLessonsScoreMap] = useState<any>();
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
   const [levelChapter, setLevelChapter] = useState<Chapter>();
+  const [gradeMap, setGradeMap] = useState<any>({});
 
   const history = useHistory();
 
@@ -51,7 +54,36 @@ const Home: React.FC = () => {
     if (!selectedCourse) {
       selectedCourse = HEADERLIST.HOME;
     }
+
+    let selectedGrade = localStorage.getItem(SELECTED_GRADE);
+    if (!selectedGrade) {
+      setGradeMap({ en: SL_GRADES.GRADE1, maths: SL_GRADES.GRADE1 });
+      console.log("if (!selectedGrade) {", gradeMap);
+    } else {
+      setGradeMap(JSON.parse(selectedGrade));
+      console.log("else (!selectedGrade) {", gradeMap);
+    }
+    console.log("selectedCourse ", selectedCourse);
+
     setCurrentHeader(selectedCourse);
+
+    console.log("selectedCourse ", selectedCourse);
+
+    if (selectedCourse === HEADERLIST.ENGLISH) {
+      selectedCourse =
+        gradeMap[HEADERLIST.ENGLISH] === SL_GRADES.GRADE1
+          ? COURSES.ENGLISH_G1
+          : COURSES.ENGLISH_G2;
+    } else if (selectedCourse === HEADERLIST.MATHS) {
+      selectedCourse =
+        gradeMap[HEADERLIST.MATHS] === SL_GRADES.GRADE1
+          ? COURSES.MATHS_G1
+          : COURSES.MATHS_G2;
+    }
+
+    console.log("selectedCourse ", selectedCourse);
+
+    // setCurrentHeader(selectedCourse);
     setCourse(selectedCourse);
   }, []);
 
@@ -149,7 +181,6 @@ const Home: React.FC = () => {
       "user",
       subjectCode
     );
-    console.log("tempClass", tempClass);
     const tempResultLessonMap =
       await apiInstance.getResultsForStudentsForClassInLessonMap(
         tempClass?.sourcedId ?? "",
@@ -223,12 +254,32 @@ const Home: React.FC = () => {
   // }
 
   function onHeaderIconClick(selectedHeader: any) {
+    let course;
     switch (selectedHeader) {
       case HEADERLIST.HOME:
         setCurrentHeader(HEADERLIST.HOME);
         setCourse(HEADERLIST.HOME);
         localStorage.setItem(PREVIOUS_SELECTED_COURSE, HEADERLIST.HOME);
-        console.log("Home Icons is selected");
+        break;
+
+      case HEADERLIST.ENGLISH:
+        course =
+          gradeMap[HEADERLIST.ENGLISH] === SL_GRADES.GRADE1
+            ? COURSES.ENGLISH_G1
+            : COURSES.ENGLISH_G2;
+        setCurrentHeader(HEADERLIST.ENGLISH);
+        setCourse(course);
+        localStorage.setItem(PREVIOUS_SELECTED_COURSE, HEADERLIST.ENGLISH);
+        break;
+
+      case HEADERLIST.MATHS:
+        course =
+          gradeMap[HEADERLIST.MATHS] === SL_GRADES.GRADE1
+            ? HEADERLIST.MATHS_G1
+            : HEADERLIST.MATHS_G2;
+        setCurrentHeader(HEADERLIST.MATHS);
+        setCourse(course);
+        localStorage.setItem(PREVIOUS_SELECTED_COURSE, HEADERLIST.MATHS);
         break;
 
       case HEADERLIST.ENGLISH_G1:
@@ -263,7 +314,6 @@ const Home: React.FC = () => {
 
       case HEADERLIST.PROFILE:
         setCurrentHeader(HEADERLIST.PROFILE);
-        console.log("Profile Icons is selected");
         history.push(PAGES.PROFILE);
         break;
 
@@ -295,11 +345,31 @@ const Home: React.FC = () => {
                 onChapterChange={onChapterClick}
                 currentChapter={currentChapter!}
                 chapters={dataCourse.chapters}
-                onGradeChange={(grade) => {
-                  console.log("🚀 ~ file: Home.tsx:325 ~ grade:", grade);
+                onGradeChange={(selectedGrade) => {
+                  gradeMap[currentHeader] = selectedGrade.detail.value;
+                  setGradeMap(gradeMap);
+                  let course;
+                  if (currentHeader === HEADERLIST.ENGLISH) {
+                    course =
+                      selectedGrade.detail.value === SL_GRADES.GRADE1
+                        ? HEADERLIST.ENGLISH_G1
+                        : HEADERLIST.ENGLISH_G2;
+                    // currentHeader === HEADERLIST.ENGLISH
+                  } else if (currentHeader === HEADERLIST.MATHS) {
+                    course =
+                      selectedGrade.detail.value === SL_GRADES.GRADE1
+                        ? HEADERLIST.MATHS_G1
+                        : HEADERLIST.MATHS_G2;
+                  }
+                  setCourse(course);
+                  localStorage.setItem(PREVIOUS_SELECTED_COURSE, course);
+                  localStorage.setItem(
+                    SELECTED_GRADE,
+                    JSON.stringify(gradeMap)
+                  );
                 }}
-                currentGrade={"Grade 1"}
-                grades={["Grade 1", "Grade 2"]}
+                currentGrade={gradeMap[currentHeader] || SL_GRADES.GRADE1}
+                grades={[SL_GRADES.GRADE1, SL_GRADES.GRADE2]}
                 showGrade={
                   currentHeader !== HEADERLIST.HOME &&
                   currentHeader !== HEADERLIST.PUZZLE
