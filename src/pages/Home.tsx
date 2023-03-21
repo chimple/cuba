@@ -56,7 +56,7 @@ const Home: React.FC = () => {
       selectedCourse = HEADERLIST.HOME;
     }
 
-    let selectedGrade = localStorage.getItem(SELECTED_GRADE);
+    let selectedGrade = localStorage.getItem(SELECTED_GRADE());
     if (!selectedGrade) {
       setGradeMap({ en: SL_GRADES.GRADE1, maths: SL_GRADES.GRADE1 });
       console.log("if (!selectedGrade) {", gradeMap);
@@ -70,17 +70,7 @@ const Home: React.FC = () => {
 
     console.log("selectedCourse ", selectedCourse);
 
-    if (selectedCourse === HEADERLIST.ENGLISH) {
-      selectedCourse =
-        gradeMap[HEADERLIST.ENGLISH] === SL_GRADES.GRADE1
-          ? COURSES.ENGLISH_G1
-          : COURSES.ENGLISH_G2;
-    } else if (selectedCourse === HEADERLIST.MATHS) {
-      selectedCourse =
-        gradeMap[HEADERLIST.MATHS] === SL_GRADES.GRADE1
-          ? COURSES.MATHS_G1
-          : COURSES.MATHS_G2;
-    }
+    selectedCourse = Util.getCourseByGrade(selectedCourse);
 
     console.log("selectedCourse ", selectedCourse);
 
@@ -94,7 +84,8 @@ const Home: React.FC = () => {
     if (subjectCode === HEADERLIST.HOME) {
       let lessonScoreMap = {};
       const lessonMap = {};
-      for (const course of ALL_COURSES) {
+      for (const tempCourse of ALL_COURSES) {
+        const course = Util.getCourseByGrade(tempCourse);
         const { chapters, lessons, tempResultLessonMap } =
           await getDataForSubject(course);
         lessonScoreMap = { ...lessonScoreMap, ...tempResultLessonMap };
@@ -118,15 +109,22 @@ const Home: React.FC = () => {
         }
       }
       const prevPlayedCourse = localStorage.getItem(PREVIOUS_PLAYED_COURSE());
-      let _lessons: Lesson[] = [...lessonMap[COURSES.ENGLISH_G1]];
-      if (prevPlayedCourse && prevPlayedCourse === COURSES.ENGLISH_G1) {
-        _lessons.splice(0, 0, lessonMap[COURSES.MATHS_G1][0]);
-        if (lessonMap[COURSES.MATHS_G1].length > 1)
-          _lessons.splice(2, 0, lessonMap[COURSES.MATHS_G1][1]);
+      console.log("lessonMap", lessonMap);
+      // Util.getCourseByGrade(tempCourse);
+      let _lessons: Lesson[] = [
+        ...lessonMap[Util.getCourseByGrade(COURSES.ENGLISH)],
+      ];
+      if (
+        prevPlayedCourse &&
+        prevPlayedCourse === Util.getCourseByGrade(COURSES.ENGLISH)
+      ) {
+        _lessons.splice(0, 0, lessonMap[Util.getCourseByGrade(COURSES.MATHS)][0]);
+        if (lessonMap[Util.getCourseByGrade(COURSES.MATHS)].length > 1)
+          _lessons.splice(2, 0, lessonMap[Util.getCourseByGrade(COURSES.MATHS)][1]);
       } else {
-        _lessons.splice(1, 0, lessonMap[COURSES.MATHS_G1][0]);
-        if (lessonMap[COURSES.MATHS_G1].length > 1)
-          _lessons.push(lessonMap[COURSES.MATHS_G1][1]);
+        _lessons.splice(1, 0, lessonMap[Util.getCourseByGrade(COURSES.MATHS)][0]);
+        if (lessonMap[Util.getCourseByGrade(COURSES.MATHS)].length > 1)
+          _lessons.push(lessonMap[Util.getCourseByGrade(COURSES.MATHS)][1]);
       }
       _lessons.push(lessonMap[COURSES.PUZZLE][0]);
       setLessonsScoreMap(lessonScoreMap);
@@ -356,9 +354,9 @@ const Home: React.FC = () => {
                         : HEADERLIST.MATHS_G2;
                   }
                   setCourse(course);
-                  localStorage.setItem(PREVIOUS_SELECTED_COURSE, course);
+                  localStorage.setItem(PREVIOUS_SELECTED_COURSE(), course);
                   localStorage.setItem(
-                    SELECTED_GRADE,
+                    SELECTED_GRADE(),
                     JSON.stringify(gradeMap)
                   );
                 }}
