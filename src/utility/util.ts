@@ -7,8 +7,11 @@ import {
   BUNDLE_URL,
   COURSES,
   CURRENT_LESSON_LEVEL,
+  HEADERLIST,
   PortPlugin,
   PRE_QUIZ,
+  SELECTED_GRADE,
+  SL_GRADES,
 } from "../common/constants";
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
 import { GUIDRef } from "../interface/modelInterfaces";
@@ -251,4 +254,30 @@ export class Util {
       return 0;
     }
   }
+
+  public static getCourseByGrade(courseId): string {
+
+    let selectedGrade = localStorage.getItem(SELECTED_GRADE());
+    let gradeMap = {}
+    if (!selectedGrade) {
+      gradeMap = { en: SL_GRADES.GRADE1, maths: SL_GRADES.GRADE1 };
+      console.log("in util if (!selectedGrade) {", gradeMap);
+    } else {
+      gradeMap = JSON.parse(selectedGrade);
+      console.log("else (selectedGrade) {", gradeMap);
+    }
+
+    if (courseId === HEADERLIST.ENGLISH) {
+      return gradeMap[HEADERLIST.ENGLISH] === SL_GRADES.GRADE1
+        ? COURSES.ENGLISH_G1
+        : COURSES.ENGLISH_G2;
+    } else if (courseId === HEADERLIST.MATHS) {
+      return gradeMap[HEADERLIST.MATHS] === SL_GRADES.GRADE1
+        ? COURSES.MATHS_G1
+        : COURSES.MATHS_G2;
+    } else {
+      return courseId
+    }
+  }
+
 }
