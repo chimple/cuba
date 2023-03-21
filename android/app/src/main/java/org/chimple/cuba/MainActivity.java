@@ -60,6 +60,3 @@ public class MainActivity extends BridgeActivity {
         super.onDestroy();
     }
 }
-
-//D/accountType1: teacher@192.168.55.103:8087
-//        D/authTokenType: 3a86238f-ccc1-4e3f-8cc9-c07ed9326ae7
