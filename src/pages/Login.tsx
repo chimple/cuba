@@ -69,15 +69,21 @@ const Login: React.FC = () => {
               padding: "1%",
             }}
             onClick={async () => {
-              Auth.i.userAccountName = "debug15@gmail.com";
-              Auth.i.accountType = "com.debug15";
+              Auth.i.userAccountName = "student";
+              Auth.i.accountType = "com.ustadmobile";
               Auth.i.authToken = "VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY";
+              Auth.i.sourcedId = "4334700840729898";
+              Auth.i.endpointUrl = "http://192.168.88.99:8087/";
               localStorage.setItem(IS_USER_LOGED_IN, "true");
               localStorage.setItem(
                 USER_TOKEN,
-                JSON.stringify(
-                  "01,debug15@gmail.com,com.debug15,VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY"
-                )
+                JSON.stringify({
+                  authAccount: Auth.i.userAccountName,
+                  sourcedId: Auth.i.sourcedId,
+                  endpointUrl: Auth.i.endpointUrl,
+                  addedType: Auth.i.accountType,
+                  authToken: Auth.i.authToken,
+                })
               );
               history.replace(PAGES.HOME);
             }}

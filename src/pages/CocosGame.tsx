@@ -14,6 +14,7 @@ import {
 } from "../common/constants";
 import Loading from "../components/Loading";
 import { Lesson } from "../interface/curriculumInterfaces";
+import Auth from "../models/auth";
 import Curriculum from "../models/curriculum";
 import { OneRosterApi } from "../services/OneRosterApi";
 import { Util } from "../utility/util";
@@ -153,34 +154,34 @@ const CocosGame: React.FC = () => {
         );
       }
 
-      const json = localStorage.getItem(TEMP_LESSONS_STORE);
+      const json = localStorage.getItem(TEMP_LESSONS_STORE());
       let lessons: any = {};
       if (json) {
         lessons = JSON.parse(json);
       }
       lessons[progressLessonId] = progressScore;
-      localStorage.setItem(TEMP_LESSONS_STORE, JSON.stringify(lessons));
-      localStorage.setItem(PREVIOUS_PLAYED_COURSE, progressCourseId);
-      const levelJson = localStorage.getItem(CURRENT_LESSON_LEVEL);
+      localStorage.setItem(TEMP_LESSONS_STORE(), JSON.stringify(lessons));
+      localStorage.setItem(PREVIOUS_PLAYED_COURSE(), progressCourseId);
+      const levelJson = localStorage.getItem(CURRENT_LESSON_LEVEL());
       let currentLessonLevel: any = {};
       if (levelJson) {
         currentLessonLevel = JSON.parse(levelJson);
       }
       currentLessonLevel[progressCourseId] = progressLessonId;
       localStorage.setItem(
-        CURRENT_LESSON_LEVEL,
+        CURRENT_LESSON_LEVEL(),
         JSON.stringify(currentLessonLevel)
       );
       const apiInstance = OneRosterApi.getInstance();
       const tempClass = await apiInstance.getClassForUserForSubject(
-        "user",
+        Auth.i.sourcedId,
         progressCourseId
       );
       if (progressLessonId.endsWith(PRE_QUIZ)) {
         const preQuiz = await apiInstance.updatePreQuiz(
           progressCourseId,
           tempClass?.sourcedId ?? "",
-          "user",
+          Auth.i.sourcedId,
           e.detail.preQuizChapterId ?? progressChapterId,
           false
         );
@@ -191,16 +192,16 @@ const CocosGame: React.FC = () => {
         );
         currentLessonLevel[progressCourseId] = levelChapter.lessons[0].id;
         localStorage.setItem(
-          CURRENT_LESSON_LEVEL,
+          CURRENT_LESSON_LEVEL(),
           JSON.stringify(currentLessonLevel)
         );
         Curriculum.i.clear();
         lessons[progressLessonId] = preQuiz?.score;
-        localStorage.setItem(TEMP_LESSONS_STORE, JSON.stringify(lessons));
+        localStorage.setItem(TEMP_LESSONS_STORE(), JSON.stringify(lessons));
         console.log("preQuiz after update", preQuiz);
       } else {
         const result = await apiInstance.putResult(
-          "user",
+          Auth.i.sourcedId,
           tempClass?.sourcedId ?? "",
           progressLessonId,
           progressScore,

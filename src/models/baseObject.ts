@@ -4,19 +4,20 @@ export class BaseObject {
     private _sourcedId: string;
     private _status: OneRosterStatus;
     private _dateLastModified: string;
-    private _metadata: any;
+    //TODO Changed metadata to metaData to match mikes schema
+    private _metaData: any;
 
     constructor(
         sourcedId: string,
         status: OneRosterStatus,
         dateLastModified: string,
-        metadata: any,
+        metaData: any,
 
     ) {
         this._sourcedId = sourcedId
         this._status = status
         this._dateLastModified = dateLastModified
-        this._metadata = metadata
+        this._metaData = metaData
     }
 
     get sourcedId(): string {
@@ -37,10 +38,10 @@ export class BaseObject {
     set dateLastModified(value: string) {
         this._dateLastModified = value;
     }
-    get metadata(): any {
-        return this._metadata;
+    get metaData(): any {
+        return this._metaData;
     }
-    set metadata(value: any) {
-        this._metadata = value;
+    set metaData(value: any) {
+        this._metaData = value;
     }
 }

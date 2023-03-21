@@ -129,9 +129,9 @@ export class User extends BaseObject {
         sourcedId: string,
         status: OneRosterStatus,
         dateLastModified: string,
-        metadata: object,
+        metaData: object,
     ) {
-        super(sourcedId, status, dateLastModified, metadata);
+        super(sourcedId, status, dateLastModified, metaData);
         this._username = username;
         this._userIds = userIds;
         this._enabledUser = enabledUser;
@@ -179,7 +179,7 @@ export class User extends BaseObject {
             jsonObj?.sourcedId,
             OneRosterStatus[jsonObj?.status] ?? OneRosterStatus.ACTIVE,
             jsonObj?.dateLastModified,
-            jsonObj?.metadata
+            jsonObj?.metaData
         )
         return newUser;
     }

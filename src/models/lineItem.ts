@@ -113,10 +113,10 @@ export class LineItem extends BaseObject {
         sourcedId: string,
         status: OneRosterStatus,
         dateLastModified: string,
-        metadata: any,
+        metaData: any,
         description: string | null,
     ) {
-        super(sourcedId, status, dateLastModified, metadata);
+        super(sourcedId, status, dateLastModified, metaData);
         this._title = title;
         this._description = description;
         this._assignDate = assignDate;
@@ -163,7 +163,7 @@ export class LineItem extends BaseObject {
             jsonObj.sourcedId,
             OneRosterStatus[jsonObj?.status] ?? OneRosterStatus.ACTIVE,
             jsonObj.dateLastModified,
-            jsonObj.metadata,
+            jsonObj.metaData,
             jsonObj.description,
         );
         return newLineItem;
@@ -174,13 +174,13 @@ export class LineItem extends BaseObject {
             sourcedId: this.sourcedId,
             status: this.status,
             dateLastModified: this.dateLastModified,
-            metadata: this.metadata,
+            // metadata: this.metaData,
             title: this.title,
             description: this.description,
             assignDate: this.assignDate,
             dueDate: this.dueDate,
             class: this.class,
-            category: this.category,
+            // category: this.category,
             resultValueMin: this.resultValueMin,
             resultValueMax: this.resultValueMax,
         }
