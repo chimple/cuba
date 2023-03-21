@@ -87,7 +87,9 @@ export default class Auth {
     if (
       this._userAccountName != undefined &&
       this._authToken != undefined &&
-      this._accountType != undefined
+      this._accountType != undefined &&
+      this._sourcedId != undefined &&
+      this._endpointUrl != undefined 
     ) {
       return true;
     }
@@ -103,8 +105,16 @@ export default class Auth {
       this._authToken = res.authToken;
       this._sourcedId = res.sourcedId;
       this._endpointUrl = res.endpointUrl;
-
-      return true;
+      if (
+        this._userAccountName != undefined &&
+        this._authToken != undefined &&
+        this._accountType != undefined &&
+        this._sourcedId != undefined &&
+        this._endpointUrl != undefined 
+      ) {
+        return true;
+      }
+      return false;
     } else {
       this._userAccountName = null!;
       this._authToken = null!;
@@ -120,6 +130,8 @@ export default class Auth {
       this._userAccountName = null!;
       this._authToken = null!;
       this._accountType = null!;
+      this._sourcedId = null!;
+      this._endpointUrl = null!;
       localStorage.setItem(USER_TOKEN, "null");
       localStorage.setItem("isUserLogedIn", "false");
       return true;
