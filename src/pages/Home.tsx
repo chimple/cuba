@@ -391,6 +391,7 @@ const Home: React.FC = () => {
                   ? dataCourse.lessons
                   : currentChapter?.lessons!
               }
+              chaptersData = {dataCourse.chapters}
               currentChapter={currentChapter!}
               onChapterChange={onArrowClick}
               isHome={currentHeader === HEADERLIST.HOME?true:false}
