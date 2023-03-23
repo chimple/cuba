@@ -41,6 +41,8 @@ const Home: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [lessonSwiperRef, setLessonSwiperRef] = useState<Splide>();
   const [currentChapter, setCurrentChapter] = useState<Chapter>();
+  const [nextChapter, setNextChapter] = useState<Chapter>();
+  const [previousChapter, setPreviousChapter] = useState<Chapter>();
   const [chaptersMap, setChaptersMap] = useState<any>();
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [lessonsScoreMap, setLessonsScoreMap] = useState<any>();
@@ -161,6 +163,7 @@ const Home: React.FC = () => {
       )) + 1;
     const currentLesson = lessons[currentLessonIndex] ?? lessons[0];
     const currentChapter = currentLesson.chapter ?? chapters[0];
+    console.log('get chap',currentChapter.id)
     setCurrentChapter(currentChapter);
     const lessonChapterIndex = currentChapter.lessons
       .map((l) => l.id)
@@ -235,6 +238,18 @@ const Home: React.FC = () => {
       ) + 1;
     setCurrentLessonIndex(tempCurrentIndex);
     setCurrentChapter(chapter);
+  }
+
+  function onArrowClick(e: any, b: boolean) {
+    const chapter = b?dataCourse.chapters[chaptersMap[e]+1]:dataCourse.chapters[chaptersMap[e]-1];
+    const tempCurrentIndex =
+      Util.getLastPlayedLessonIndexForLessons(
+        chapter.lessons,
+        lessonsScoreMap
+      ) + 1;
+    setCurrentLessonIndex(tempCurrentIndex);
+    setCurrentChapter(chapter);
+    console.log(currentChapter)
   }
   // function onCustomSlideChange(lessonIndex: number) {
   // if (!chaptersMap) return;
@@ -376,6 +391,10 @@ const Home: React.FC = () => {
                   ? dataCourse.lessons
                   : currentChapter?.lessons!
               }
+              chaptersData = {dataCourse.chapters}
+              currentChapter={currentChapter!}
+              onChapterChange={onArrowClick}
+              isHome={currentHeader === HEADERLIST.HOME?true:false}
               onSwiper={setLessonSwiperRef}
               // onSlideChange={onCustomSlideChange}
               lessonsScoreMap={lessonsScoreMap}
