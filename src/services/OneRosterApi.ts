@@ -34,9 +34,10 @@ export class OneRosterApi implements ServiceApi {
   }
 
   getHeaders(): HttpHeaders {
+    const endpointUrl = new URL(Auth.i.endpointUrl);
     return {
       "auth-token": Auth.i.authToken,
-      "ipc-host": new URL(Auth.i.endpointUrl).host,
+      "ipc-host": endpointUrl.host + endpointUrl.pathname,
     };
   }
 
