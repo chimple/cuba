@@ -57,10 +57,25 @@ export class Util {
         console.log("isexists", isExists);
         if (isExists) continue;
 
-        console.log("before local lesson Bundle http url:" + "assets/" + lessonId + "/index.js")
+        console.log(
+          "before local lesson Bundle http url:" +
+            "assets/" +
+            lessonId +
+            "/index.js"
+        );
 
-        const fetchingLocalBundle = await fetch("assets/" + lessonId + "/index.js")
-        console.log("after local lesson Bundle fetch url:" + "assets/" + lessonId + "/index.js", fetchingLocalBundle.ok, fetchingLocalBundle.json, fetchingLocalBundle)
+        const fetchingLocalBundle = await fetch(
+          "assets/" + lessonId + "/index.js"
+        );
+        console.log(
+          "after local lesson Bundle fetch url:" +
+            "assets/" +
+            lessonId +
+            "/index.js",
+          fetchingLocalBundle.ok,
+          fetchingLocalBundle.json,
+          fetchingLocalBundle
+        );
 
         if (fetchingLocalBundle.ok) continue;
 
@@ -241,7 +256,7 @@ export class Util {
     return tempCurrentIndex;
   }
 
-  public static async getPort(): Promise<number> {
+  public static async getPort(errorIndex = 0): Promise<number> {
     if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
     try {
       const port = await Util.port.getPort();
@@ -249,16 +264,19 @@ export class Util {
     } catch (error) {
       console.log(
         "🚀 ~ file: util.ts:218 ~ Util ~ getPort ~ error:",
-        JSON.stringify(error)
+        JSON.stringify(error),
+        "errorIndex",
+        errorIndex
       );
-      return 0;
+      if (errorIndex > 40) return 0;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      return await Util.getPort(++errorIndex);
     }
   }
 
   public static getCourseByGrade(courseId): string {
-
     let selectedGrade = localStorage.getItem(SELECTED_GRADE());
-    let gradeMap = {}
+    let gradeMap = {};
     if (!selectedGrade) {
       gradeMap = { en: SL_GRADES.GRADE1, maths: SL_GRADES.GRADE1 };
       console.log("in util if (!selectedGrade) {", gradeMap);
@@ -276,8 +294,7 @@ export class Util {
         ? COURSES.MATHS_G1
         : COURSES.MATHS_G2;
     } else {
-      return courseId
+      return courseId;
     }
   }
-
 }
