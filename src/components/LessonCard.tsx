@@ -43,7 +43,7 @@ const LessonCard: React.FC<{
   let x = toBePlayed? "lesson-card1":"lesson-card";
   return (
     <IonCard
-      id={x}
+      id={toBePlayed? "lesson-card1":"lesson-card"}
       style={{
         width: width,
         height: "auto",
@@ -87,7 +87,7 @@ const LessonCard: React.FC<{
         <div
         style={{
           background: lessonCardColor,
-          borderRadius: "30px",
+          borderRadius: "25px",
           width: width,
           height: height,
           display: "grid",

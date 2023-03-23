@@ -9,6 +9,7 @@ import { Chapter } from "../interface/curriculumInterfaces";
 
 const LessonSlider: React.FC<{
   lessonData: Lesson[];
+  chaptersData: Chapter[];
   currentChapter: Chapter;
   onChapterChange;
   isHome: boolean;
@@ -19,6 +20,7 @@ const LessonSlider: React.FC<{
   showSubjectName: boolean;
 }> = ({
   lessonData,
+  chaptersData,
   currentChapter,
   isHome,
   onSwiper,
@@ -61,7 +63,7 @@ const LessonSlider: React.FC<{
           if (!m) return;
           const isPlayed =
             !!lessonsScoreMap[m.id] && lessonsScoreMap[m.id]?.score > 0;
-            width1="35vh"
+            width1="50vh"
             height1="40vh"
             playCard = false
           return (
@@ -98,42 +100,39 @@ const LessonSlider: React.FC<{
           if (!m) return;
           const isPlayed =
             !!lessonsScoreMap[m.id] && lessonsScoreMap[m.id]?.score > 0;
-          width1="35vh"
+          width1="50vh"
           height1="40vh"
           playCard = false
           if(i == startIndex){
             if(isPlayed){
-              width1="35vh"
+              width1="50vh"
               height1="40vh"
               playCard = false
               checkSecond = true
             }
             else if(!isPlayed){
-              width1 = "40vh"
+              width1 = "60vh"
               height1 = "50vh"
               playCard = true
               checkSecond = false
             }
           }
           if(i === (startIndex + 1) && checkSecond){  
-            width1 = "40vh"
+            width1 = "60vh"
             height1 = "50vh"
             playCard = true
           } 
           else if(i === (startIndex + 1) && !checkSecond){
-            width1="35vh"
+            width1="50vh"
             height1="40vh"
             playCard = false
           }
           else if(checkSecond) {
-            width1="35vh"
+            width1="50vh"
             height1="40vh"
             playCard = false
           }
-          if(i == lessonData.length - 1){
-            console.log("LAST", m)
-          }
-          if(i == lessonData.length-1){
+          if(i == lessonData.length-1 && !(currentChapter.id == chaptersData[chaptersData.length-1].id)){
             return(
               <><SplideSlide className="slide" key={i}>
                 <LessonCard
@@ -160,7 +159,7 @@ const LessonSlider: React.FC<{
                 </SplideSlide></>
             )
           }
-          else if(i == 0){
+          else if(i == 0 && !(currentChapter.id == chaptersData[0].id)){
             return(
               <>
               <SplideSlide className="slide" key={i}>
