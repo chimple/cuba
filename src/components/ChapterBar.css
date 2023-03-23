@@ -15,7 +15,7 @@
 }
 
 ion-select::part(icon) {
-  content: url("https://cdn-icons-png.flaticon.com/512/25/25623.png");
+  content: url("../../public/assets/icons/DropDownArrow.png");
 }
 ion-select {
   background: white;
@@ -27,4 +27,13 @@ ion-select {
 ion-select::part(text) {
   color: var(--text-color);
   padding-right: 20px;
+  font-size: var(--text-size);
+}
+
+ion-popover {
+  /* --background: rgba(40, 173, 218, 0.6);
+  --backdrop-opacity: 0.6;
+  --box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.6);
+  --color: white; */
+  --width: none;
 }

@@ -965,34 +965,34 @@
       "image": "sl_maths2_mp04.png",
       "lessons": [
         {
-          "color": "#008CD2",
+          "color": "#2BAC67",
           "id": "sl_maths2_mp0400",
           "image": "sl_maths2_mp0400.png",
+          "name": "Long, Tall, Short -1",
+          "orig_chapter_id": "sl_en38",
+          "orig_course_id": "sl_en",
+          "orig_lesson_id": "sl_en3812",
+          "outcome": "None"
+        },
+        {
+          "color": "#AC82CF",
+          "id": "sl_maths2_mp0401",
+          "image": "sl_maths2_mp0401.png",
+          "name": "Longest, Tallest, Shortest - 1",
+          "orig_chapter_id": "sl_en38",
+          "orig_course_id": "sl_en",
+          "orig_lesson_id": "sl_en3814",
+          "outcome": "None"
+        },
+        {
+          "color": "#008CD2",
+          "id": "sl_maths2_mp0402",
+          "image": "sl_maths2_mp0402.png",
           "name": "Basics",
           "orig_chapter_id": "sl_en38",
           "orig_course_id": "sl_en",
           "orig_lesson_id": "sl_en3800",
           "outcome": "Measuring length of objects"
-        },
-        {
-          "color": "#2BAC67",
-          "id": "sl_maths2_mp0401",
-          "image": "sl_maths2_mp0401.png",
-          "name": "Comparison",
-          "orig_chapter_id": "sl_en38",
-          "orig_course_id": "sl_en",
-          "orig_lesson_id": "sl_en3801",
-          "outcome": "None"
-        },
-        {
-          "color": "#AC82CF",
-          "id": "sl_maths2_mp0402",
-          "image": "sl_maths2_mp0402.png",
-          "name": "Units of Measurement",
-          "orig_chapter_id": "sl_en38",
-          "orig_course_id": "sl_en",
-          "orig_lesson_id": "sl_en3803",
-          "outcome": "None"
         },
         {
           "id": "sl_maths2_mp_challenge19",
@@ -1009,6 +1009,16 @@
       "id": "sl_maths2_mp05",
       "image": "sl_maths2_mp05.png",
       "lessons": [
+        {
+          "color": "#FF7925",
+          "id": "sl_maths2_mp0506",
+          "image": "sl_maths2_mp0506.png",
+          "name": "Clock",
+          "orig_chapter_id": "sl_en36",
+          "orig_course_id": "sl_en",
+          "orig_lesson_id": "sl_en3618",
+          "outcome": "Reading time and knowing days of the week"
+        },
         {
           "color": "#FF7925",
           "id": "sl_maths2_mp0500",
@@ -1208,6 +1218,36 @@
           "color": "#008CD2",
           "id": "sl_maths2_mp0800",
           "image": "sl_maths2_mp0800.png",
+          "name": "Parts Of Whole - 1/2",
+          "orig_chapter_id": "sl_en38",
+          "orig_course_id": "sl_en",
+          "orig_lesson_id": "sl_en3817",
+          "outcome": "Name the part of fraction by looking at the pictures"
+        },
+        {
+          "color": "#2BAC67",
+          "id": "sl_maths2_mp0801",
+          "image": "sl_maths2_mp0801.png",
+          "name": "Parts Of Whole - 1/4",
+          "orig_chapter_id": "sl_en38",
+          "orig_course_id": "sl_en",
+          "orig_lesson_id": "sl_en3818",
+          "outcome": "None"
+        },
+        {
+          "color": "#008CD2",
+          "id": "sl_maths2_mp0802",
+          "image": "sl_maths2_mp0802.png",
+          "name": "Parts Of Whole - 3/4",
+          "orig_chapter_id": "sl_en38",
+          "orig_course_id": "sl_en",
+          "orig_lesson_id": "sl_en3819",
+          "outcome": "Name the part of fraction by looking at the pictures"
+        },
+        {
+          "color": "#008CD2",
+          "id": "sl_maths2_mp0803",
+          "image": "sl_maths2_mp0803.png",
           "name": "Parts & Whole",
           "orig_chapter_id": "sl_en38",
           "orig_course_id": "sl_en",
@@ -1216,8 +1256,8 @@
         },
         {
           "color": "#2BAC67",
-          "id": "sl_maths2_mp0801",
-          "image": "sl_maths2_mp0801.png",
+          "id": "sl_maths2_mp0804",
+          "image": "sl_maths2_mp0804.png",
           "name": "Parts & Whole 1",
           "orig_chapter_id": "sl_en38",
           "orig_course_id": "sl_en",
@@ -1719,7 +1759,7 @@
       "image": "sl_maths2_mp10.png",
       "lessons": [
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp1000",
           "image": "sl_maths2_mp1000.png",
           "name": "Subtract - 1",
@@ -1729,7 +1769,7 @@
           "outcome": "Subtraction by regrouping numbers"
         },
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp1001",
           "image": "sl_maths2_mp1001.png",
           "name": "Subtract - 2",
@@ -1739,7 +1779,7 @@
           "outcome": "None"
         },
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp1002",
           "image": "sl_maths2_mp1002.png",
           "name": "Subtract - 3",
@@ -1749,7 +1789,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp1003",
           "image": "sl_maths2_mp1003.png",
           "name": "Subtract - 4",
@@ -1759,7 +1799,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp1004",
           "image": "sl_maths2_mp1004.png",
           "name": "Subtract - 5",
@@ -1772,12 +1812,12 @@
           "id": "sl_maths2_mp_challenge33",
           "name": "Challenge 33",
           "image": "sl_maths2_mp_challenge33.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp1005",
           "image": "sl_maths2_mp1005.png",
           "name": "Statement Sums 1",
@@ -1787,7 +1827,7 @@
           "outcome": "Word problems"
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp1006",
           "image": "sl_maths2_mp1006.png",
           "name": "Subtract - 6",
@@ -1797,7 +1837,7 @@
           "outcome": "None"
         },
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp1007",
           "image": "sl_maths2_mp1007.png",
           "name": "Subtract - 7",
@@ -1807,7 +1847,7 @@
           "outcome": "None"
         },
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp1008",
           "image": "sl_maths2_mp1008.png",
           "name": "Subtract - 8",
@@ -1820,12 +1860,12 @@
           "id": "sl_maths2_mp_challenge34",
           "name": "Challenge 34",
           "image": "sl_maths2_mp_challenge34.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp1009",
           "image": "sl_maths2_mp1009.png",
           "name": "Subtract - 9",
@@ -1835,7 +1875,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp1010",
           "image": "sl_maths2_mp1010.png",
           "name": "Practice",
@@ -1845,7 +1885,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp1011",
           "image": "sl_maths2_mp1011.png",
           "name": "Subtract 10-70",
@@ -1855,7 +1895,7 @@
           "outcome": "None"
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp1012",
           "image": "sl_maths2_mp1012.png",
           "name": "Subtract 20-90",
@@ -1868,12 +1908,12 @@
           "id": "sl_maths2_mp_challenge35",
           "name": "Challenge 35",
           "image": "sl_maths2_mp_challenge35.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp1013",
           "image": "sl_maths2_mp1013.png",
           "name": "Practice 1",
@@ -1883,7 +1923,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp1014",
           "image": "sl_maths2_mp1014.png",
           "name": "Practice 2",
@@ -1893,7 +1933,7 @@
           "outcome": "None"
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp1015",
           "image": "sl_maths2_mp1015.png",
           "name": "Practice 3",
@@ -1903,7 +1943,7 @@
           "outcome": "None"
         },
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp1016",
           "image": "sl_maths2_mp1016.png",
           "name": "Practice 4",
@@ -1916,12 +1956,12 @@
           "id": "sl_maths2_mp_challenge36",
           "name": "Challenge 36",
           "image": "sl_maths2_mp_challenge36.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp1017",
           "image": "sl_maths2_mp1017.png",
           "name": "More sums",
@@ -1931,7 +1971,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp1018",
           "image": "sl_maths2_mp1018.png",
           "name": "Subtract 2",
@@ -1941,7 +1981,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp1019",
           "image": "sl_maths2_mp1019.png",
           "name": "Exercise 1",
@@ -1951,7 +1991,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp1020",
           "image": "sl_maths2_mp1020.png",
           "name": "Exercise 2",
@@ -1964,7 +2004,7 @@
           "id": "sl_maths2_mp_challenge37",
           "name": "Challenge 37",
           "image": "sl_maths2_mp_challenge37.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
@@ -1976,7 +2016,7 @@
       "image": "sl_maths2_mp11.png",
       "lessons": [
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp1100",
           "image": "sl_maths2_mp1100.png",
           "name": "Table of 1",
@@ -1986,7 +2026,7 @@
           "outcome": "Concept showing that multiplication is nothing but repeated addition"
         },
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp1101",
           "image": "sl_maths2_mp1101.png",
           "name": "Count and Multiply 2",
@@ -1996,7 +2036,7 @@
           "outcome": "None"
         },
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp1102",
           "image": "sl_maths2_mp1102.png",
           "name": "Table of 2",
@@ -2006,7 +2046,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp1103",
           "image": "sl_maths2_mp1103.png",
           "name": "Skip by 2's",
@@ -2016,7 +2056,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp1104",
           "image": "sl_maths2_mp1104.png",
           "name": "Count and Multiply 3",
@@ -2029,12 +2069,12 @@
           "id": "sl_maths2_mp_challenge38",
           "name": "Challenge 38",
           "image": "sl_maths2_mp_challenge38.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp1105",
           "image": "sl_maths2_mp1105.png",
           "name": "Table of 3",
@@ -2044,7 +2084,7 @@
           "outcome": "None"
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp1106",
           "image": "sl_maths2_mp1106.png",
           "name": "Skip by 3's",
@@ -2054,7 +2094,7 @@
           "outcome": "None"
         },
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp1107",
           "image": "sl_maths2_mp1107.png",
           "name": "Skip By 5's",
@@ -2064,7 +2104,7 @@
           "outcome": "None"
         },
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp1108",
           "image": "sl_maths2_mp1108.png",
           "name": "Number Order 1-5",
@@ -2074,7 +2114,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp1109",
           "image": "sl_maths2_mp1109.png",
           "name": "Table of 5",
@@ -2087,7 +2127,7 @@
           "id": "sl_maths2_mp_challenge39",
           "name": "Challenge 39",
           "image": "sl_maths2_mp_challenge39.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
@@ -2099,9 +2139,39 @@
       "image": "sl_maths2_mp12.png",
       "lessons": [
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp1200",
           "image": "sl_maths2_mp1200.png",
+          "name": "Heavy or Light 3",
+          "orig_chapter_id": "sl_en38",
+          "orig_course_id": "sl_en",
+          "orig_lesson_id": "sl_en3822",
+          "outcome": "Weighing on scales"
+        },
+        {
+          "color": "",
+          "id": "sl_maths2_mp1201",
+          "image": "sl_maths2_mp1201.png",
+          "name": "Heavy or Light 4",
+          "orig_chapter_id": "sl_en38",
+          "orig_course_id": "sl_en",
+          "orig_lesson_id": "sl_en3823",
+          "outcome": "None"
+        },
+        {
+          "color": "",
+          "id": "sl_maths2_mp1202",
+          "image": "sl_maths2_mp1202.png",
+          "name": "Heaviest or Lightest?",
+          "orig_chapter_id": "sl_en38",
+          "orig_course_id": "sl_en",
+          "orig_lesson_id": "sl_en3824",
+          "outcome": "None"
+        },
+        {
+          "color": "",
+          "id": "sl_maths2_mp1203",
+          "image": "sl_maths2_mp1203.png",
           "name": "Basics",
           "orig_chapter_id": "sl_en38",
           "orig_course_id": "sl_en",
@@ -2109,9 +2179,9 @@
           "outcome": "Weighing on scales"
         },
         {
-          "color": "#FFC000",
-          "id": "sl_maths2_mp1201",
-          "image": "sl_maths2_mp1201.png",
+          "color": "",
+          "id": "sl_maths2_mp1204",
+          "image": "sl_maths2_mp1204.png",
           "name": "More Comparisons",
           "orig_chapter_id": "sl_en38",
           "orig_course_id": "sl_en",
@@ -2119,9 +2189,9 @@
           "outcome": "None"
         },
         {
-          "color": "#008CD2",
-          "id": "sl_maths2_mp1202",
-          "image": "sl_maths2_mp1202.png",
+          "color": "",
+          "id": "sl_maths2_mp1205",
+          "image": "sl_maths2_mp1205.png",
           "name": "Units of Measurement",
           "orig_chapter_id": "sl_en38",
           "orig_course_id": "sl_en",
@@ -2132,7 +2202,7 @@
           "id": "sl_maths2_mp_challenge40",
           "name": "Challenge 40",
           "image": "sl_maths2_mp_challenge40.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
@@ -2144,7 +2214,7 @@
       "image": "sl_maths2_mp13.png",
       "lessons": [
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp1300",
           "image": "sl_maths2_mp1300.png",
           "name": "Months of the year",
@@ -2154,7 +2224,7 @@
           "outcome": "None"
         },
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp1301",
           "image": "sl_maths2_mp1301.png",
           "name": "Months of the year 1",
@@ -2164,7 +2234,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp1302",
           "image": "sl_maths2_mp1302.png",
           "name": "Months of the year 2",
@@ -2174,7 +2244,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp1303",
           "image": "sl_maths2_mp1303.png",
           "name": "Months of the year 3",
@@ -2184,7 +2254,7 @@
           "outcome": "None"
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp1304",
           "image": "sl_maths2_mp1304.png",
           "name": "Months of the year 4",
@@ -2197,7 +2267,7 @@
           "id": "sl_maths2_mp_challenge41",
           "name": "Challenge 41",
           "image": "sl_maths2_mp_challenge41.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
@@ -2209,7 +2279,7 @@
       "image": "sl_maths2_mp14.png",
       "lessons": [
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp1400",
           "image": "sl_maths2_mp1400.png",
           "name": "Sierra Leone  Currency 4",
@@ -2219,7 +2289,7 @@
           "outcome": "Knowing the use of money in everyday life."
         },
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp1401",
           "image": "sl_maths2_mp1401.png",
           "name": "Sierra Leone  Currency 5",
@@ -2232,7 +2302,7 @@
           "id": "sl_maths2_mp_challenge42",
           "name": "Challenge 42",
           "image": "sl_maths2_mp_challenge42.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
@@ -2244,7 +2314,7 @@
       "image": "sl_maths2_mp15.png",
       "lessons": [
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp1500",
           "image": "sl_maths2_mp1500.png",
           "name": "3D shapes",
@@ -2254,7 +2324,7 @@
           "outcome": "Learn the names of shapes around us."
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp1501",
           "image": "sl_maths2_mp1501.png",
           "name": "Shapes Advanced",
@@ -2264,7 +2334,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp1502",
           "image": "sl_maths2_mp1502.png",
           "name": "2D & 3D Shapes",
@@ -2274,7 +2344,7 @@
           "outcome": "None"
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp1503",
           "image": "sl_maths2_mp1503.png",
           "name": "Shapes and Solids",
@@ -2287,7 +2357,7 @@
           "id": "sl_maths2_mp_challenge43",
           "name": "Challenge 43",
           "image": "sl_maths2_mp_challenge43.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
@@ -2299,7 +2369,7 @@
       "image": "sl_maths2_mp16.png",
       "lessons": [
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp1600",
           "image": "sl_maths2_mp1600.png",
           "name": "Write 100-110",
@@ -2309,7 +2379,7 @@
           "outcome": "Learning numbers 0 to 1000. Understanding place value and decimal system."
         },
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp1601",
           "image": "sl_maths2_mp1601.png",
           "name": "100 -150",
@@ -2319,7 +2389,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp1602",
           "image": "sl_maths2_mp1602.png",
           "name": "150 -200",
@@ -2329,7 +2399,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp1603",
           "image": "sl_maths2_mp1603.png",
           "name": "200 - 250",
@@ -2339,7 +2409,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp1604",
           "image": "sl_maths2_mp1604.png",
           "name": "250 - 300",
@@ -2352,12 +2422,12 @@
           "id": "sl_maths2_mp_challenge44",
           "name": "Challenge 44",
           "image": "sl_maths2_mp_challenge44.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp1605",
           "image": "sl_maths2_mp1605.png",
           "name": "300 - 400",
@@ -2367,7 +2437,7 @@
           "outcome": "None"
         },
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp1606",
           "image": "sl_maths2_mp1606.png",
           "name": "400 - 500",
@@ -2377,7 +2447,7 @@
           "outcome": "None"
         },
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp1607",
           "image": "sl_maths2_mp1607.png",
           "name": "500 - 600",
@@ -2387,7 +2457,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp1608",
           "image": "sl_maths2_mp1608.png",
           "name": "600 - 700",
@@ -2400,12 +2470,12 @@
           "id": "sl_maths2_mp_challenge45",
           "name": "Challenge 45",
           "image": "sl_maths2_mp_challenge45.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp1609",
           "image": "sl_maths2_mp1609.png",
           "name": "700 - 800",
@@ -2415,7 +2485,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp1610",
           "image": "sl_maths2_mp1610.png",
           "name": "800 - 900",
@@ -2425,7 +2495,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp1611",
           "image": "sl_maths2_mp1611.png",
           "name": "900 - 999",
@@ -2435,7 +2505,7 @@
           "outcome": "None"
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp1612",
           "image": "sl_maths2_mp1612.png",
           "name": "Number Order",
@@ -2448,12 +2518,12 @@
           "id": "sl_maths2_mp_challenge46",
           "name": "Challenge 46",
           "image": "sl_maths2_mp_challenge46.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp1613",
           "image": "sl_maths2_mp1613.png",
           "name": "100 - 200",
@@ -2463,7 +2533,7 @@
           "outcome": "None"
         },
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp1614",
           "image": "sl_maths2_mp1614.png",
           "name": "300 - 900",
@@ -2473,7 +2543,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp1615",
           "image": "sl_maths2_mp1615.png",
           "name": "Count Backwards",
@@ -2483,7 +2553,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp1616",
           "image": "sl_maths2_mp1616.png",
           "name": "Place Value 100-300",
@@ -2496,12 +2566,12 @@
           "id": "sl_maths2_mp_challenge47",
           "name": "Challenge 47",
           "image": "sl_maths2_mp_challenge47.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp1617",
           "image": "sl_maths2_mp1617.png",
           "name": "Place Value 300-500",
@@ -2511,7 +2581,7 @@
           "outcome": "None"
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp1618",
           "image": "sl_maths2_mp1618.png",
           "name": "Skip By 100",
@@ -2521,7 +2591,7 @@
           "outcome": "None"
         },
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp1619",
           "image": "sl_maths2_mp1619.png",
           "name": "100-500",
@@ -2531,7 +2601,7 @@
           "outcome": "None"
         },
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp1620",
           "image": "sl_maths2_mp1620.png",
           "name": "100-300",
@@ -2544,12 +2614,12 @@
           "id": "sl_maths2_mp_challenge48",
           "name": "Challenge 48",
           "image": "sl_maths2_mp_challenge48.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp1621",
           "image": "sl_maths2_mp1621.png",
           "name": "200-300",
@@ -2559,7 +2629,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp1622",
           "image": "sl_maths2_mp1622.png",
           "name": "300-500",
@@ -2569,7 +2639,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp1623",
           "image": "sl_maths2_mp1623.png",
           "name": "300-600",
@@ -2579,7 +2649,7 @@
           "outcome": "None"
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp1624",
           "image": "sl_maths2_mp1624.png",
           "name": "200-700",
@@ -2592,12 +2662,12 @@
           "id": "sl_maths2_mp_challenge49",
           "name": "Challenge 49",
           "image": "sl_maths2_mp_challenge49.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp1625",
           "image": "sl_maths2_mp1625.png",
           "name": "500-700",
@@ -2607,7 +2677,7 @@
           "outcome": "None"
         },
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp1626",
           "image": "sl_maths2_mp1626.png",
           "name": "500 - 900",
@@ -2617,7 +2687,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp1627",
           "image": "sl_maths2_mp1627.png",
           "name": "700-900",
@@ -2627,7 +2697,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp1628",
           "image": "sl_maths2_mp1628.png",
           "name": "800-999",
@@ -2637,7 +2707,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp1629",
           "image": "sl_maths2_mp1629.png",
           "name": "100-999",
@@ -2650,7 +2720,7 @@
           "id": "sl_maths2_mp_challenge50",
           "name": "Challenge 50",
           "image": "sl_maths2_mp_challenge50.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
@@ -2662,9 +2732,19 @@
       "image": "sl_maths2_mp17.png",
       "lessons": [
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp1700",
           "image": "sl_maths2_mp1700.png",
+          "name": "Parts Of Whole - 3/4",
+          "orig_chapter_id": "sl_en38",
+          "orig_course_id": "sl_en",
+          "orig_lesson_id": "sl_en3819",
+          "outcome": "Name the fractions and recognize them in a whole."
+        },
+        {
+          "color": "",
+          "id": "sl_maths2_mp1701",
+          "image": "sl_maths2_mp1701.png",
           "name": "Parts & Whole",
           "orig_chapter_id": "sl_en38",
           "orig_course_id": "sl_en",
@@ -2672,9 +2752,9 @@
           "outcome": "Name the fractions and recognize them in a whole."
         },
         {
-          "color": "#2BAC67",
-          "id": "sl_maths2_mp1701",
-          "image": "sl_maths2_mp1701.png",
+          "color": "",
+          "id": "sl_maths2_mp1702",
+          "image": "sl_maths2_mp1702.png",
           "name": "Parts & Whole 1",
           "orig_chapter_id": "sl_en38",
           "orig_course_id": "sl_en",
@@ -2685,7 +2765,7 @@
           "id": "sl_maths2_mp_challenge51",
           "name": "Challenge 51",
           "image": "sl_maths2_mp_challenge51.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
@@ -2697,7 +2777,7 @@
       "image": "sl_maths2_mp18.png",
       "lessons": [
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp1800",
           "image": "sl_maths2_mp1800.png",
           "name": "Table of 3",
@@ -2707,7 +2787,7 @@
           "outcome": "Multiplication and times tables"
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp1801",
           "image": "sl_maths2_mp1801.png",
           "name": "Table of 4",
@@ -2717,7 +2797,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp1802",
           "image": "sl_maths2_mp1802.png",
           "name": "Tables 1-10",
@@ -2727,7 +2807,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp1803",
           "image": "sl_maths2_mp1803.png",
           "name": "Fast Multiplication 3-10",
@@ -2737,7 +2817,7 @@
           "outcome": "None"
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp1804",
           "image": "sl_maths2_mp1804.png",
           "name": "Fast Multiplication 3-81",
@@ -2747,7 +2827,7 @@
           "outcome": "None"
         },
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp1805",
           "image": "sl_maths2_mp1805.png",
           "name": "Table of 6",
@@ -2757,7 +2837,7 @@
           "outcome": "None"
         },
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp1806",
           "image": "sl_maths2_mp1806.png",
           "name": "Skip 2's Backward",
@@ -2770,12 +2850,12 @@
           "id": "sl_maths2_mp_challenge52",
           "name": "Challenge 52",
           "image": "sl_maths2_mp_challenge52.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp1807",
           "image": "sl_maths2_mp1807.png",
           "name": "Skip By 5's",
@@ -2785,7 +2865,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp1808",
           "image": "sl_maths2_mp1808.png",
           "name": "Skip By 5's Backwards",
@@ -2795,7 +2875,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp1809",
           "image": "sl_maths2_mp1809.png",
           "name": "Skip By 10's",
@@ -2805,7 +2885,7 @@
           "outcome": "None"
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp1810",
           "image": "sl_maths2_mp1810.png",
           "name": "Skip By 10's Backwards",
@@ -2815,7 +2895,7 @@
           "outcome": "None"
         },
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp1811",
           "image": "sl_maths2_mp1811.png",
           "name": "Skip By 100",
@@ -2828,7 +2908,7 @@
           "id": "sl_maths2_mp_challenge53",
           "name": "Challenge 53",
           "image": "sl_maths2_mp_challenge53.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
@@ -2840,7 +2920,7 @@
       "image": "sl_maths2_mp19.png",
       "lessons": [
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp1900",
           "image": "sl_maths2_mp1900.png",
           "name": "Table of 7",
@@ -2850,7 +2930,7 @@
           "outcome": "Grouping objects"
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp1901",
           "image": "sl_maths2_mp1901.png",
           "name": "Table of 8",
@@ -2860,7 +2940,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp1902",
           "image": "sl_maths2_mp1902.png",
           "name": "Multiply 2-9",
@@ -2870,7 +2950,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp1903",
           "image": "sl_maths2_mp1903.png",
           "name": "Multiply 3-8",
@@ -2880,7 +2960,7 @@
           "outcome": "None"
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp1904",
           "image": "sl_maths2_mp1904.png",
           "name": "Find the product 2-9",
@@ -2890,7 +2970,7 @@
           "outcome": "None"
         },
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp1905",
           "image": "sl_maths2_mp1905.png",
           "name": "Find the product 2-8",
@@ -2903,7 +2983,7 @@
           "id": "sl_maths2_mp_challenge54",
           "name": "Challenge 54",
           "image": "sl_maths2_mp_challenge54.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
@@ -2915,7 +2995,7 @@
       "image": "sl_maths2_mp20.png",
       "lessons": [
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp2000",
           "image": "sl_maths2_mp2000.png",
           "name": "Sierra Leone  Currency 2",
@@ -2925,7 +3005,7 @@
           "outcome": "Learning the use of currency in everyday life"
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp2001",
           "image": "sl_maths2_mp2001.png",
           "name": "Sierra Leone  Currency 3",
@@ -2935,7 +3015,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp2002",
           "image": "sl_maths2_mp2002.png",
           "name": "Sierra Leone  Currency 4",
@@ -2948,7 +3028,7 @@
           "id": "sl_maths2_mp_challenge55",
           "name": "Challenge 55",
           "image": "sl_maths2_mp_challenge55.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
@@ -2960,20 +3040,40 @@
       "image": "sl_maths2_mp21.png",
       "lessons": [
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp2100",
           "image": "sl_maths2_mp2100.png",
-          "name": "More Comparisons",
+          "name": "Big or Small",
           "orig_chapter_id": "sl_en38",
           "orig_course_id": "sl_en",
-          "orig_lesson_id": "sl_en3802",
+          "orig_lesson_id": "sl_en3808",
+          "outcome": "Which container holds more? Which container has more capacity?"
+        },
+        {
+          "color": "",
+          "id": "sl_maths2_mp2101",
+          "image": "sl_maths2_mp2101.png",
+          "name": "More or Less",
+          "orig_chapter_id": "sl_en38",
+          "orig_course_id": "sl_en",
+          "orig_lesson_id": "sl_en3807",
+          "outcome": "Which container holds more? Which container has more capacity?"
+        },
+        {
+          "color": "",
+          "id": "sl_maths2_mp2102",
+          "image": "sl_maths2_mp2102.png",
+          "name": "More or Less 1",
+          "orig_chapter_id": "sl_en38",
+          "orig_course_id": "sl_en",
+          "orig_lesson_id": "sl_en3807",
           "outcome": "Which container holds more? Which container has more capacity?"
         },
         {
           "id": "sl_maths2_mp_challenge56",
           "name": "Challenge 56",
           "image": "sl_maths2_mp_challenge56.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
@@ -2985,7 +3085,7 @@
       "image": "sl_maths2_mp22.png",
       "lessons": [
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp2200",
           "image": "sl_maths2_mp2200.png",
           "name": "Shape Sequence",
@@ -2995,7 +3095,7 @@
           "outcome": "Observe the area of a shape and decide which is bigger"
         },
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp2201",
           "image": "sl_maths2_mp2201.png",
           "name": "Shape Series",
@@ -3005,7 +3105,7 @@
           "outcome": "None"
         },
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp2202",
           "image": "sl_maths2_mp2202.png",
           "name": "Shape Pattern",
@@ -3015,7 +3115,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp2203",
           "image": "sl_maths2_mp2203.png",
           "name": "Shape Order",
@@ -3025,7 +3125,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp2204",
           "image": "sl_maths2_mp2204.png",
           "name": "Succession in Shapes",
@@ -3038,7 +3138,7 @@
           "id": "sl_maths2_mp_challenge57",
           "name": "Challenge 57",
           "image": "sl_maths2_mp_challenge57.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
@@ -3050,7 +3150,7 @@
       "image": "sl_maths2_mp23.png",
       "lessons": [
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp2300",
           "image": "sl_maths2_mp2300.png",
           "name": "Shapes Advanced",
@@ -3060,7 +3160,7 @@
           "outcome": "Identify different shapes"
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp2301",
           "image": "sl_maths2_mp2301.png",
           "name": "2D & 3D Shapes",
@@ -3070,7 +3170,7 @@
           "outcome": "None"
         },
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp2302",
           "image": "sl_maths2_mp2302.png",
           "name": "Shapes and Solids",
@@ -3083,7 +3183,7 @@
           "id": "sl_maths2_mp_challenge58",
           "name": "Challenge 58",
           "image": "sl_maths2_mp_challenge58.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
@@ -3095,7 +3195,7 @@
       "image": "sl_maths2_mp24.png",
       "lessons": [
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp2400",
           "image": "sl_maths2_mp2400.png",
           "name": "Ascending and Descending",
@@ -3105,7 +3205,7 @@
           "outcome": "Revision and learning more mathematical concepts."
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp2401",
           "image": "sl_maths2_mp2401.png",
           "name": "Ascending and Descending -1",
@@ -3115,7 +3215,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp2402",
           "image": "sl_maths2_mp2402.png",
           "name": "Ascending and Descending -2",
@@ -3125,7 +3225,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp2403",
           "image": "sl_maths2_mp2403.png",
           "name": "Even and Odd Numbers",
@@ -3135,7 +3235,7 @@
           "outcome": "None"
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp2404",
           "image": "sl_maths2_mp2404.png",
           "name": "Odd Numbers",
@@ -3148,12 +3248,12 @@
           "id": "sl_maths2_mp_challenge59",
           "name": "Challenge 59",
           "image": "sl_maths2_mp_challenge59.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp2405",
           "image": "sl_maths2_mp2405.png",
           "name": "Count Backwards 1",
@@ -3163,7 +3263,7 @@
           "outcome": "None"
         },
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp2406",
           "image": "sl_maths2_mp2406.png",
           "name": "Count Backwards 2",
@@ -3173,7 +3273,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp2407",
           "image": "sl_maths2_mp2407.png",
           "name": "Number Order 1",
@@ -3183,7 +3283,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp2408",
           "image": "sl_maths2_mp2408.png",
           "name": "Number Order 2",
@@ -3196,12 +3296,12 @@
           "id": "sl_maths2_mp_challenge60",
           "name": "Challenge 60",
           "image": "sl_maths2_mp_challenge60.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp2409",
           "image": "sl_maths2_mp2409.png",
           "name": "Number Order 3",
@@ -3211,7 +3311,7 @@
           "outcome": "None"
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp2410",
           "image": "sl_maths2_mp2410.png",
           "name": "Number Order 4",
@@ -3221,7 +3321,7 @@
           "outcome": "None"
         },
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp2411",
           "image": "sl_maths2_mp2411.png",
           "name": "Number Order 5",
@@ -3231,7 +3331,7 @@
           "outcome": "None"
         },
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp2412",
           "image": "sl_maths2_mp2412.png",
           "name": "Number Order 6",
@@ -3244,12 +3344,12 @@
           "id": "sl_maths2_mp_challenge61",
           "name": "Challenge 61",
           "image": "sl_maths2_mp_challenge61.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp2413",
           "image": "sl_maths2_mp2413.png",
           "name": "Number Order 7",
@@ -3259,7 +3359,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp2414",
           "image": "sl_maths2_mp2414.png",
           "name": "Number Order 8",
@@ -3269,7 +3369,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp2415",
           "image": "sl_maths2_mp2415.png",
           "name": "Add 1-99",
@@ -3279,7 +3379,7 @@
           "outcome": "None"
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp2416",
           "image": "sl_maths2_mp2416.png",
           "name": "Statement Sums 1",
@@ -3292,12 +3392,12 @@
           "id": "sl_maths2_mp_challenge62",
           "name": "Challenge 62",
           "image": "sl_maths2_mp_challenge62.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp2417",
           "image": "sl_maths2_mp2417.png",
           "name": "Compare and Add",
@@ -3307,7 +3407,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp2418",
           "image": "sl_maths2_mp2418.png",
           "name": "Comparison",
@@ -3317,7 +3417,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp2419",
           "image": "sl_maths2_mp2419.png",
           "name": "Addition 2",
@@ -3327,7 +3427,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp2420",
           "image": "sl_maths2_mp2420.png",
           "name": "Compare and Add",
@@ -3340,12 +3440,12 @@
           "id": "sl_maths2_mp_challenge63",
           "name": "Challenge 63",
           "image": "sl_maths2_mp_challenge63.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp2421",
           "image": "sl_maths2_mp2421.png",
           "name": "Subtraction 2",
@@ -3355,7 +3455,7 @@
           "outcome": "None"
         },
         {
-          "color": "#2BAC67",
+          "color": "",
           "id": "sl_maths2_mp2422",
           "image": "sl_maths2_mp2422.png",
           "name": "Comparison by Subtraction",
@@ -3365,7 +3465,7 @@
           "outcome": "None"
         },
         {
-          "color": "#AC82CF",
+          "color": "",
           "id": "sl_maths2_mp2423",
           "image": "sl_maths2_mp2423.png",
           "name": "Subtract",
@@ -3375,7 +3475,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF7925",
+          "color": "",
           "id": "sl_maths2_mp2424",
           "image": "sl_maths2_mp2424.png",
           "name": "How Many?",
@@ -3388,12 +3488,12 @@
           "id": "sl_maths2_mp_challenge64",
           "name": "Challenge 64",
           "image": "sl_maths2_mp_challenge64.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp2425",
           "image": "sl_maths2_mp2425.png",
           "name": "Subtraction Challenge",
@@ -3403,7 +3503,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FFC000",
+          "color": "",
           "id": "sl_maths2_mp2426",
           "image": "sl_maths2_mp2426.png",
           "name": "Subtraction 3",
@@ -3413,7 +3513,7 @@
           "outcome": "None"
         },
         {
-          "color": "#FF94B5",
+          "color": "",
           "id": "sl_maths2_mp2427",
           "image": "sl_maths2_mp2427.png",
           "name": "Multiplication 1",
@@ -3423,7 +3523,7 @@
           "outcome": "None"
         },
         {
-          "color": "#008CD2",
+          "color": "",
           "id": "sl_maths2_mp2428",
           "image": "sl_maths2_mp2428.png",
           "name": "Multiplication 2",
@@ -3436,7 +3536,7 @@
           "id": "sl_maths2_mp_challenge65",
           "name": "Challenge 65",
           "image": "sl_maths2_mp_challenge65.png",
-          "color": "#B8D855",
+          "color": "",
           "type": "exam",
           "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }

@@ -38,7 +38,7 @@ public class MainActivity extends BridgeActivity {
         public void onServiceConnected(ComponentName name, IBinder service) {
             Log.d("onServiceConnected",name.toString()+service.toString());
             mIpcClient = new HttpOverIpcClient(service);
-            mHttpOverIpcProxy = new HttpOverIpcProxy(mIpcClient, new RawHttp(),30000,null,42339);
+            mHttpOverIpcProxy = new HttpOverIpcProxy(mIpcClient, new RawHttp(),30000,null,0);
             mHttpOverIpcProxy.start();
             bound = true;
         }
