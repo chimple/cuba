@@ -268,7 +268,7 @@ export class Util {
         "errorIndex",
         errorIndex
       );
-      if (errorIndex > 40) return 0;
+      if (errorIndex > 120) return 0;
       await new Promise((resolve) => setTimeout(resolve, 500));
       return await Util.getPort(++errorIndex);
     }

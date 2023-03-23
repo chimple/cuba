@@ -24,6 +24,10 @@
 		"classpath": "com.capacitorjs.plugins.statusbar.StatusBarPlugin"
 	},
 	{
+		"pkg": "@capacitor/toast",
+		"classpath": "com.capacitorjs.plugins.toast.ToastPlugin"
+	},
+	{
 		"pkg": "account-manager",
 		"classpath": "org.chimple.accountmanager.AccountManagerPlugin"
 	}
