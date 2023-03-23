@@ -28,3 +28,11 @@ ion-select::part(text) {
   color: var(--text-color);
   padding-right: 20px;
 }
+
+ion-popover {
+  /* --background: rgba(40, 173, 218, 0.6);
+  --backdrop-opacity: 0.6;
+  --box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.6);
+  --color: white; */
+  --width: none;
+}
