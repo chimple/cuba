@@ -3285,8 +3285,8 @@ window.__require = function e(t, n, r) {
     var core_1 = require("@capacitor/core");
     exports.DEFAULT_FONT = "main";
     exports.STORY = "story";
-    exports.COURSES = [ "en", "en-maths", "hi", "hi-maths", "ur", "ur-maths", "mr" ];
-    exports.COURSES_LANG_ID = [ "en", "hi", "maths", "kn", "mr" ];
+    exports.COURSES = [ "en", "en-maths" ];
+    exports.COURSES_LANG_ID = [ "en", "maths" ];
     var Flow;
     (function(Flow) {
       Flow[Flow["Default"] = 0] = "Default";
@@ -3728,12 +3728,7 @@ window.__require = function e(t, n, r) {
         console.log("gameUrl", gameUrl, "isCuba", isCuba, cc.sys.localStorage.getItem("gameUrl"), "firstPath", firstPath);
         cc.assetManager.loadBundle(firstPath, function(err, bundle) {
           err ? cc.assetManager.loadBundle(constants_1.BUNDLE_URL + lessonId, function(err2, bundle2) {
-            if (err2) {
-              cc.assetManager.loadBundle(lessonId, function(err3, bundle3) {
-                err3 ? errCallback(err3) : callback(bundle3);
-              });
-              errCallback(err2);
-            } else callback(bundle2);
+            err2 ? errCallback(err2) : callback(bundle2);
           }) : callback(bundle);
         });
       };
@@ -5951,11 +5946,6 @@ window.__require = function e(t, n, r) {
       openwindow: {
         bundle: "openwindow",
         prefab: "prefabs/openwindow",
-        youtube: "VwVEw3cexvI"
-      },
-      openwindow1: {
-        bundle: "openwindow1",
-        prefab: "prefabs/openwindow1",
         youtube: "VwVEw3cexvI"
       },
       picturemeaning: {
