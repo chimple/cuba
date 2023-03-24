@@ -11,6 +11,7 @@ import {
   PREVIOUS_PLAYED_COURSE,
   SL_GRADES,
   SELECTED_GRADE,
+  DEBUG_15,
 } from "../common/constants";
 import Curriculum from "../models/curriculum";
 import "./Home.css";
@@ -197,7 +198,7 @@ const Home: React.FC = () => {
       Auth.i.sourcedId,
       subjectCode
     );
-    if (!tempClass && Capacitor.getPlatform() === "android") {
+    if (!tempClass && Capacitor.getPlatform() === "android" && Auth.i.userAccountName !== DEBUG_15) {
       const isUserLoggedOut = Auth.i.authLogout();
       Toast.show({
         text: "No classes Found for user",
