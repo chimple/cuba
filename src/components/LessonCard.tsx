@@ -17,6 +17,7 @@ const LessonCard: React.FC<{
   showText?: boolean;
   showScoreCard?: boolean;
   score: any;
+  toBePlayed: boolean;
 }> = ({
   width,
   height,
@@ -27,6 +28,7 @@ const LessonCard: React.FC<{
   showText = true,
   showScoreCard = true,
   score,
+  toBePlayed,
 }) => {
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
@@ -38,15 +40,15 @@ const LessonCard: React.FC<{
   const lessonCardColor = lesson?.color
     ? lesson.color
     : LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
-
+  let x = toBePlayed? "lesson-card1":"lesson-card";
   return (
     <IonCard
-      id="lesson-card"
+      id={toBePlayed? "lesson-card1":"lesson-card"}
       style={{
         width: width,
         height: "auto",
       }}
-      onClick={() => {
+      onClick={() => { 
         if (isUnlocked) {
           // if (
           //   lesson.chapter.course.isCourseMapped &&
@@ -85,7 +87,7 @@ const LessonCard: React.FC<{
         <div
         style={{
           background: lessonCardColor,
-          borderRadius: "30px",
+          borderRadius: "25px",
           width: width,
           height: height,
           display: "grid",
