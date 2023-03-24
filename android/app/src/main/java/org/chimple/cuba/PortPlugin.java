@@ -13,16 +13,20 @@ public class PortPlugin extends Plugin {
 
     @PluginMethod()
     public void getPort(PluginCall call) {
-        JSObject ret = new JSObject();
-        if(((MainActivity)getActivity()).mHttpOverIpcProxy != null){
-            ret.put("port", ((MainActivity)getActivity()).mHttpOverIpcProxy.getListeningPort());
-            Log.d("Porting", String.valueOf(((MainActivity)getActivity()).mHttpOverIpcProxy.getListeningPort()));
-            call.resolve(ret);
+        try {
+            JSObject ret = new JSObject();
+            if(((MainActivity)getActivity()).mHttpOverIpcProxy != null){
+                ret.put("port", ((MainActivity)getActivity()).mHttpOverIpcProxy.getListeningPort());
+                Log.d("Porting", String.valueOf(((MainActivity)getActivity()).mHttpOverIpcProxy.getListeningPort()));
+                call.resolve(ret);
+            }
+            else{
+                call.reject("Not Found");
+            }
         }
-        else{
-            //TODO wait if no port found
-            call.reject("Not Found");
+        catch (Exception e){
+            Log.d("error on portPlugin",e.toString());
+            call.reject(e.toString());
         }
-
     }
 }

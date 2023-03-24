@@ -29,6 +29,8 @@ import "@splidejs/react-splide/css/core";
 import { Util } from "../utility/util";
 import ChapterBar from "../components/ChapterBar";
 import Auth from "../models/auth";
+import { Toast } from "@capacitor/toast";
+import { Capacitor } from "@capacitor/core";
 
 const Home: React.FC = () => {
   const [dataCourse, setDataCourse] = useState<{
@@ -120,11 +122,23 @@ const Home: React.FC = () => {
         prevPlayedCourse &&
         prevPlayedCourse === Util.getCourseByGrade(COURSES.ENGLISH)
       ) {
-        _lessons.splice(0, 0, lessonMap[Util.getCourseByGrade(COURSES.MATHS)][0]);
+        _lessons.splice(
+          0,
+          0,
+          lessonMap[Util.getCourseByGrade(COURSES.MATHS)][0]
+        );
         if (lessonMap[Util.getCourseByGrade(COURSES.MATHS)].length > 1)
-          _lessons.splice(2, 0, lessonMap[Util.getCourseByGrade(COURSES.MATHS)][1]);
+          _lessons.splice(
+            2,
+            0,
+            lessonMap[Util.getCourseByGrade(COURSES.MATHS)][1]
+          );
       } else {
-        _lessons.splice(1, 0, lessonMap[Util.getCourseByGrade(COURSES.MATHS)][0]);
+        _lessons.splice(
+          1,
+          0,
+          lessonMap[Util.getCourseByGrade(COURSES.MATHS)][0]
+        );
         if (lessonMap[Util.getCourseByGrade(COURSES.MATHS)].length > 1)
           _lessons.push(lessonMap[Util.getCourseByGrade(COURSES.MATHS)][1]);
       }
@@ -163,7 +177,7 @@ const Home: React.FC = () => {
       )) + 1;
     const currentLesson = lessons[currentLessonIndex] ?? lessons[0];
     const currentChapter = currentLesson.chapter ?? chapters[0];
-    console.log('get chap',currentChapter.id)
+    console.log("get chap", currentChapter.id);
     setCurrentChapter(currentChapter);
     const lessonChapterIndex = currentChapter.lessons
       .map((l) => l.id)
@@ -183,6 +197,16 @@ const Home: React.FC = () => {
       Auth.i.sourcedId,
       subjectCode
     );
+    if (!tempClass && Capacitor.getPlatform() === "android") {
+      const isUserLoggedOut = Auth.i.authLogout();
+      Toast.show({
+        text: "No classes Found for user",
+        duration: "long",
+      });
+      if (isUserLoggedOut) {
+        history.replace(PAGES.LOGIN);
+      }
+    }
     const tempResultLessonMap =
       await apiInstance.getResultsForStudentsForClassInLessonMap(
         tempClass?.sourcedId ?? "",
@@ -241,7 +265,9 @@ const Home: React.FC = () => {
   }
 
   function onArrowClick(e: any, b: boolean) {
-    const chapter = b?dataCourse.chapters[chaptersMap[e]+1]:dataCourse.chapters[chaptersMap[e]-1];
+    const chapter = b
+      ? dataCourse.chapters[chaptersMap[e] + 1]
+      : dataCourse.chapters[chaptersMap[e] - 1];
     const tempCurrentIndex =
       Util.getLastPlayedLessonIndexForLessons(
         chapter.lessons,
@@ -249,7 +275,7 @@ const Home: React.FC = () => {
       ) + 1;
     setCurrentLessonIndex(tempCurrentIndex);
     setCurrentChapter(chapter);
-    console.log(currentChapter)
+    console.log(currentChapter);
   }
   // function onCustomSlideChange(lessonIndex: number) {
   // if (!chaptersMap) return;
@@ -391,10 +417,10 @@ const Home: React.FC = () => {
                   ? dataCourse.lessons
                   : currentChapter?.lessons!
               }
-              chaptersData = {dataCourse.chapters}
+              chaptersData={dataCourse.chapters}
               currentChapter={currentChapter!}
               onChapterChange={onArrowClick}
-              isHome={currentHeader === HEADERLIST.HOME?true:false}
+              isHome={currentHeader === HEADERLIST.HOME ? true : false}
               onSwiper={setLessonSwiperRef}
               // onSlideChange={onCustomSlideChange}
               lessonsScoreMap={lessonsScoreMap}

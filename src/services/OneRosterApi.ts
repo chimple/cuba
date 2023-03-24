@@ -57,6 +57,7 @@ export class OneRosterApi implements ServiceApi {
       }).catch((e) => {
         console.log("error on getResultsForStudentForClass", e);
       });
+      console.log("🚀 ~ file: OneRosterApi.ts:60 ~ OneRosterApi ~ getClassesForUser ~ response:", JSON.stringify(response))
       const result = response && response.status === 200 ? response.data : [];
       const classes: Class[] = [];
       if (result) {
