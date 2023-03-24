@@ -56,7 +56,7 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     let selectedCourse = localStorage.getItem(PREVIOUS_SELECTED_COURSE());
-    if (!selectedCourse) {
+    if (!selectedCourse || !ALL_COURSES.includes(selectedCourse as COURSES)) {
       selectedCourse = HEADERLIST.HOME;
     }
 
@@ -395,7 +395,7 @@ const Home: React.FC = () => {
                         : HEADERLIST.MATHS_G2;
                   }
                   setCourse(course);
-                  localStorage.setItem(PREVIOUS_SELECTED_COURSE(), course);
+                  localStorage.setItem(PREVIOUS_SELECTED_COURSE(), currentHeader);
                   localStorage.setItem(
                     SELECTED_GRADE(),
                     JSON.stringify(gradeMap)
