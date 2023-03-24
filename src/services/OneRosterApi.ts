@@ -1,6 +1,7 @@
 import { Http, HttpHeaders } from "@capacitor-community/http";
 import {
   COURSES,
+  DEBUG_15,
   EXAM,
   MIN_PASS,
   PRE_QUIZ,
@@ -45,7 +46,7 @@ export class OneRosterApi implements ServiceApi {
     console.log("in getClassesForUser");
     try {
       let url;
-      if (Capacitor.getPlatform() === "android") {
+      if (Capacitor.getPlatform() === "android" && Auth.i.userAccountName !== DEBUG_15 ) {
         const port = await Util.getPort();
         url = `http://localhost:${port}/api/oneroster/users/${userId}/classes`;
       } else {
@@ -86,7 +87,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<Result[]> {
     try {
       let url;
-      if (Capacitor.getPlatform() === "android") {
+      if (Capacitor.getPlatform() === "android" && Auth.i.userAccountName !== DEBUG_15) {
         const port = await Util.getPort();
         url = `http://localhost:${port}/api/oneroster/classes/${classId}/students/${studentId}/results`;
       } else {
@@ -153,7 +154,7 @@ export class OneRosterApi implements ServiceApi {
         return result;
       };
 
-      if (!Capacitor.isNativePlatform()) {
+      if (!Capacitor.isNativePlatform() || Auth.i.userAccountName === DEBUG_15) {
         const json = localStorage.getItem(TEMP_LESSONS_STORE());
         let lessons: any = {};
         if (json) {
@@ -252,7 +253,7 @@ export class OneRosterApi implements ServiceApi {
       const sourcedId = lessonId + "-" + classId;
       // const response=await Http.get({url:`http://lineItems/${sourcedId}`})
       let url;
-      if (Capacitor.getPlatform() === "android") {
+      if (Capacitor.getPlatform() === "android" && Auth.i.userAccountName !== DEBUG_15) {
         const port = await Util.getPort();
         url = `http://localhost:${port}/api/oneroster/lineItems/${sourcedId}`;
       } else {
@@ -306,7 +307,7 @@ export class OneRosterApi implements ServiceApi {
       lessonId
     );
     console.log("lineItem", JSON.stringify(lineItem.toJson()));
-    if (Capacitor.getPlatform() === "android") {
+    if (Capacitor.getPlatform() === "android" && Auth.i.userAccountName !== DEBUG_15) {
       const port = await Util.getPort();
       const header = this.getHeaders();
       header["Content-Type"] = "application/json";
@@ -387,7 +388,7 @@ export class OneRosterApi implements ServiceApi {
           console.log("updated prequiz", preQuiz);
         }
       }
-      if (Capacitor.getPlatform() === "android") {
+      if (Capacitor.getPlatform() === "android" && Auth.i.userAccountName !== DEBUG_15) {
         const port = await Util.getPort();
         const header = this.getHeaders();
         header["Content-Type"] = "application/json";
@@ -506,7 +507,7 @@ export class OneRosterApi implements ServiceApi {
           { lessonId: lessonId }
         );
       }
-      if (Capacitor.getPlatform() === "android") {
+      if (Capacitor.getPlatform() === "android" && Auth.i.userAccountName !== DEBUG_15) {
         const port = await Util.getPort();
         const header = this.getHeaders();
         header["Content-Type"] = "application/json";
