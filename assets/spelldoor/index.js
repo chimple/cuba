@@ -85,7 +85,7 @@ window.__require = function e(t, n, r) {
         var config = config_1.default.getInstance();
         cc.director.getCollisionManager().enabled = true;
         drag_1.default.letDrag = false;
-        var _a = config.data[0], level = _a[0], worksheet = _a[1], problem = _a[2], word = _a[3], missingPos = _a[4], totalConsonants = _a[5], totalVowels = _a[6], image = _a[7], sound = _a[8];
+        var _a = config.data[0], level = _a[0], worksheet = _a[1], problem = _a[2], word = _a[3], missingPos = _a[4], totalConsonants = _a[5], totalVowels = _a[6], image = _a[7], sound = _a[8], isLetterVoice = _a[9];
         var firstDrag = null;
         var firstDrop = null;
         var positions = this.splitWord(missingPos);
@@ -270,8 +270,12 @@ window.__require = function e(t, n, r) {
       SpellingDrag.prototype.onLoad = function() {
         var _this = this;
         _super.prototype.onLoad.call(this);
+        var config = config_1.default.getInstance();
+        var _a = config.data[0], level = _a[0], worksheet = _a[1], problem = _a[2], word = _a[3], missingPos = _a[4], totalConsonants = _a[5], totalVowels = _a[6], image = _a[7], sound = _a[8], isLetterVoice = _a[9];
         this.label.string = config_1.default.wide ? " " + this.node.name + " " : this.node.name;
-        util_1.Util.loadsLetter(this.node.name.toLowerCase(), function(clip) {
+        "true" === isLetterVoice || "True" === isLetterVoice ? util_1.Util.loadsLetter(this.node.name.toLowerCase(), function(clip) {
+          _this._soundClip = clip;
+        }) : util_1.Util.loadsPhonicsOrLetter(this.node.name.toLowerCase(), function(clip) {
           _this._soundClip = clip;
         });
       };

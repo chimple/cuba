@@ -3285,8 +3285,8 @@ window.__require = function e(t, n, r) {
     var core_1 = require("@capacitor/core");
     exports.DEFAULT_FONT = "main";
     exports.STORY = "story";
-    exports.COURSES = [ "en", "en-maths" ];
-    exports.COURSES_LANG_ID = [ "en", "maths" ];
+    exports.COURSES = [ "en", "en-maths", "hi", "hi-maths", "ur", "ur-maths", "mr" ];
+    exports.COURSES_LANG_ID = [ "en", "hi", "maths", "kn", "mr" ];
     var Flow;
     (function(Flow) {
       Flow[Flow["Default"] = 0] = "Default";
@@ -3728,7 +3728,12 @@ window.__require = function e(t, n, r) {
         console.log("gameUrl", gameUrl, "isCuba", isCuba, cc.sys.localStorage.getItem("gameUrl"), "firstPath", firstPath);
         cc.assetManager.loadBundle(firstPath, function(err, bundle) {
           err ? cc.assetManager.loadBundle(constants_1.BUNDLE_URL + lessonId, function(err2, bundle2) {
-            err2 ? errCallback(err2) : callback(bundle2);
+            if (err2) {
+              cc.assetManager.loadBundle(lessonId, function(err3, bundle3) {
+                err3 ? errCallback(err3) : callback(bundle3);
+              });
+              errCallback(err2);
+            } else callback(bundle2);
           }) : callback(bundle);
         });
       };
@@ -5946,6 +5951,11 @@ window.__require = function e(t, n, r) {
       openwindow: {
         bundle: "openwindow",
         prefab: "prefabs/openwindow",
+        youtube: "VwVEw3cexvI"
+      },
+      openwindow1: {
+        bundle: "openwindow1",
+        prefab: "prefabs/openwindow1",
         youtube: "VwVEw3cexvI"
       },
       picturemeaning: {
@@ -14593,6 +14603,8 @@ window.__require = function e(t, n, r) {
         cc.log("resources left: ---\x3e", this._resources.length);
       };
       Util.load = function(res, callback, needsRelease) {
+        var _this = this;
+        var _a, _b;
         void 0 === needsRelease && (needsRelease = true);
         Util.bundles.get(profile_1.default.lang + "-help") || cc.assetManager.loadBundle(profile_1.default.lang + "-help", function(err, bundle) {
           Util.bundles.set(profile_1.default.lang + "-help", bundle);
@@ -14602,15 +14614,33 @@ window.__require = function e(t, n, r) {
         var lessonName = resArray[1];
         var resDir = resArray.slice(2).join("/");
         var resName = resDir.split(".")[0];
+        var ext = resDir.split(".")[1];
         var bundle = this.bundles.get("course" == lessonName ? courseName : lessonName);
+        console.log("Config.i.course.isCourseMapped ", null === (_a = config_1.default.i.course) || void 0 === _a ? void 0 : _a.isCourseMapped);
+        if (!bundle && (null === (_b = config_1.default.i.course) || void 0 === _b ? void 0 : _b.isCourseMapped)) {
+          console.log("LessonController.bundles", lessonController_1.default.bundles);
+          lessonController_1.default.bundles.forEach(function(element) {
+            console.log("bundles ", element.name, _this.bundles.get(element.name));
+            bundle = _this.bundles.get(element.name);
+            "mp3" === ext || "m4a" === ext ? bundle.load(resName, cc.AudioClip, function(err, asset) {
+              err && cc.log(JSON.stringify(err));
+              callback(err, asset);
+            }) : "png" === ext || "jpg" === ext ? bundle.load(resName, cc.Texture2D, function(err, asset) {
+              err && cc.log(JSON.stringify(err));
+              callback(err, asset);
+            }) : bundle.load(resName, function(err, asset) {
+              err && cc.log(JSON.stringify(err));
+              callback(err, asset);
+            });
+          });
+        }
         console.log("resArray", resArray);
         console.log("courseName", courseName);
         console.log("lessonName", lessonName);
         console.log("resDir", resDir);
         console.log("resName", resName);
-        console.log("bundle", bundle);
+        console.log("bundle", bundle, profile_1.default.lang + "-help");
         console.log("this.bundles", this.bundles);
-        var ext = resDir.split(".")[1];
         "mp3" === ext || "m4a" === ext ? bundle.load(resName, cc.AudioClip, function(err, asset) {
           err && cc.log(JSON.stringify(err));
           callback(err, asset);
