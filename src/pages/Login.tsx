@@ -2,7 +2,6 @@ import { IonContent, IonPage } from "@ionic/react";
 import { useEffect, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
-import { BackgroundMode } from "@awesome-cordova-plugins/background-mode";
 import { DEBUG_15, IS_USER_LOGED_IN, PAGES, USER_TOKEN } from "../common/constants";
 import Auth from "../models/auth";
 import { Capacitor } from "@capacitor/core";
@@ -34,18 +33,12 @@ const Login: React.FC = () => {
         <div
           id="login-button"
           onClick={async () => {
-            if (!BackgroundMode.isActive()) {
-              BackgroundMode.setEnabled(true);
-            }
-
+            
             let isUserLoggedIn: boolean = await Auth.i.VSOLogin();
             if (isUserLoggedIn) {
               history.replace(PAGES.HOME);
             }
 
-            if (BackgroundMode.isActive()) {
-              BackgroundMode.setEnabled(false);
-            }
           }}
         >
           <img

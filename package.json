@@ -4,7 +4,6 @@
   "private": true,
   "homepage": ".",
   "dependencies": {
-    "@awesome-cordova-plugins/background-mode": "^5.45.0",
     "@capacitor-community/http": "^1.4.1",
     "@capacitor/android": "4.2.0",
     "@capacitor/app": "4.0.1",
