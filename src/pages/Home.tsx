@@ -11,6 +11,7 @@ import {
   PREVIOUS_PLAYED_COURSE,
   SL_GRADES,
   SELECTED_GRADE,
+  DEBUG_15,
 } from "../common/constants";
 import Curriculum from "../models/curriculum";
 import "./Home.css";
@@ -56,7 +57,7 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     let selectedCourse = localStorage.getItem(PREVIOUS_SELECTED_COURSE());
-    if (!selectedCourse) {
+    if (!selectedCourse || !ALL_COURSES.includes(selectedCourse as COURSES)) {
       selectedCourse = HEADERLIST.HOME;
     }
 
@@ -197,7 +198,7 @@ const Home: React.FC = () => {
       Auth.i.sourcedId,
       subjectCode
     );
-    if (!tempClass && Capacitor.getPlatform() === "android") {
+    if (!tempClass && Capacitor.getPlatform() === "android" && Auth.i.userAccountName !== DEBUG_15) {
       const isUserLoggedOut = Auth.i.authLogout();
       Toast.show({
         text: "No classes Found for user",
@@ -395,7 +396,7 @@ const Home: React.FC = () => {
                         : HEADERLIST.MATHS_G2;
                   }
                   setCourse(course);
-                  localStorage.setItem(PREVIOUS_SELECTED_COURSE(), course);
+                  localStorage.setItem(PREVIOUS_SELECTED_COURSE(), currentHeader);
                   localStorage.setItem(
                     SELECTED_GRADE(),
                     JSON.stringify(gradeMap)

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
 import { BackgroundMode } from "@awesome-cordova-plugins/background-mode";
-import { IS_USER_LOGED_IN, PAGES, USER_TOKEN } from "../common/constants";
+import { DEBUG_15, IS_USER_LOGED_IN, PAGES, USER_TOKEN } from "../common/constants";
 import Auth from "../models/auth";
 import { Capacitor } from "@capacitor/core";
 // import { Platform } from "react-native";
@@ -69,7 +69,7 @@ const Login: React.FC = () => {
               padding: "1%",
             }}
             onClick={async () => {
-              Auth.i.userAccountName = "student";
+              Auth.i.userAccountName = DEBUG_15;
               Auth.i.accountType = "com.ustadmobile";
               Auth.i.authToken = "VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY";
               Auth.i.sourcedId = "4334700840729898";

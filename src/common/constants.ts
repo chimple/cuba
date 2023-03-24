@@ -9,28 +9,27 @@ export enum COURSES {
   MATHS_G1 = "sl_maths1_mp",
   ENGLISH_G2 = "sl_en2_mp",
   MATHS_G2 = "sl_maths2_mp",
-  ENGLISH = 'en',
-  MATHS = 'maths',
-
+  ENGLISH = "en",
+  MATHS = "maths",
 }
 
 export enum SL_GRADES {
-  GRADE1 = 'Grade 1',
-  GRADE2 = 'Grade 2'
+  GRADE1 = "Grade 1",
+  GRADE2 = "Grade 2",
 }
 
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
 export enum HEADERLIST {
-  HOME = 'HOME',
-  ENGLISH = 'en',
-  MATHS = 'maths',
-  ENGLISH_G1 = 'sl_en1_mp',
-  MATHS_G1 = 'sl_maths1_mp',
-  ENGLISH_G2 = 'sl_en2_mp',
-  MATHS_G2 = 'sl_maths2_mp',
-  PUZZLE = 'puzzle',
-  PROFILE = 'PROFILE'
+  HOME = "HOME",
+  ENGLISH = "en",
+  MATHS = "maths",
+  ENGLISH_G1 = "sl_en1_mp",
+  MATHS_G1 = "sl_maths1_mp",
+  ENGLISH_G2 = "sl_en2_mp",
+  MATHS_G2 = "sl_maths2_mp",
+  PUZZLE = "puzzle",
+  PROFILE = "PROFILE",
 }
 
 export const LESSON_CARD_COLORS = [
@@ -87,3 +86,4 @@ export const BUNDLE_URL =
 export interface PortPlugin {
   getPort(): Promise<{ port: number }>;
 }
+export const DEBUG_15 = "debug15";
