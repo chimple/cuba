@@ -198,12 +198,13 @@ const Home: React.FC = () => {
       Auth.i.sourcedId,
       subjectCode
     );
-    if (!tempClass && Capacitor.getPlatform() === "android" && Auth.i.userAccountName !== DEBUG_15) {
+    if (
+      !tempClass &&
+      Capacitor.getPlatform() === "android" &&
+      Auth.i.userAccountName !== DEBUG_15
+    ) {
       const isUserLoggedOut = Auth.i.authLogout();
-      Toast.show({
-        text: "No classes Found for user",
-        duration: "long",
-      });
+      Util.showLog("No classes Found for user");
       if (isUserLoggedOut) {
         history.replace(PAGES.LOGIN);
       }

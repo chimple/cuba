@@ -72,6 +72,9 @@ export class OneRosterApi implements ServiceApi {
       }).catch((e) => {
         console.log("error on getResultsForStudentForClass", e);
       });
+      if (response && response.status !== 200) {
+        Util.showLog(response.data);
+      }
       console.log(
         "🚀 ~ file: OneRosterApi.ts:60 ~ OneRosterApi ~ getClassesForUser ~ response:",
         JSON.stringify(response)
@@ -119,6 +122,9 @@ export class OneRosterApi implements ServiceApi {
       }).catch((e) => {
         console.log("error on getResultsForStudentForClass", e);
       });
+      if (response && response.status !== 200) {
+        Util.showLog(response.data);
+      }
       const data = response && response.status === 200 ? response.data : [];
       console.log(
         "🚀 ~ file: OneRosterApi.ts:75 ~ OneRosterApi ~ getResultsForStudentForClass ~ response :",
