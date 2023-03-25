@@ -1,13 +1,13 @@
 #lesson-card {
     cursor: pointer;
     box-shadow: none !important;
-    margin: 14% 15px 0px 0px;
+    margin: 10% 10px 0px 0px;
 }
 
 #lesson-card1 {
     cursor: pointer;
     box-shadow: none !important;
-    margin: 10px 15px 10px 0px;
+    margin: 0px 10px 0px 0px;
 }
 
 #lesson-header {
@@ -55,7 +55,7 @@
 #lesson-card-name {
     margin: 0px !important;
     color: var(--text-color);
-    font-size: 20px;
+    font-size: var(--text-size);
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;

@@ -87,7 +87,7 @@ const LessonCard: React.FC<{
         <div
         style={{
           background: lessonCardColor,
-          borderRadius: "25px",
+          borderRadius: "28px",
           width: width,
           height: height,
           display: "grid",

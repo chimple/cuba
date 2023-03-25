@@ -45,8 +45,9 @@ const LessonSlider: React.FC<{
       if (startIndex) lessonSwiperRef?.go(startIndex);
       console.log('timeout',lessonSwiperRef)
     }, 100); 
-  });
-  return(isHome?(
+  });  
+  return(
+    isHome?(
     <div className="content">
       <Splide
         ref={setLessonSwiperRef}
@@ -63,8 +64,8 @@ const LessonSlider: React.FC<{
           if (!m) return;
           const isPlayed =
             !!lessonsScoreMap[m.id] && lessonsScoreMap[m.id]?.score > 0;
-            width1="50vh"
-            height1="40vh"
+            width1="47.5vh"
+            height1="37vh"
             playCard = false
           return (
             <SplideSlide className="slide" key={i}>
@@ -100,39 +101,40 @@ const LessonSlider: React.FC<{
           if (!m) return;
           const isPlayed =
             !!lessonsScoreMap[m.id] && lessonsScoreMap[m.id]?.score > 0;
-          width1="50vh"
-          height1="40vh"
+          width1="47.5vh"
+          height1="37vh"
           playCard = false
           if(i == startIndex){
             if(isPlayed){
-              width1="50vh"
-              height1="40vh"
+              width1="47.5vh"
+              height1="37vh"
               playCard = false
               checkSecond = true
             }
             else if(!isPlayed){
-              width1 = "60vh"
-              height1 = "50vh"
+              width1 = "57.5vh"
+              height1 = "47vh"
               playCard = true
               checkSecond = false
             }
           }
           if(i === (startIndex + 1) && checkSecond){  
-            width1 = "60vh"
-            height1 = "50vh"
+            width1 = "57.5vh"
+            height1 = "47vh"
             playCard = true
           } 
           else if(i === (startIndex + 1) && !checkSecond){
-            width1="50vh"
-            height1="40vh"
+            width1="47.5vh"
+            height1="37vh"
             playCard = false
           }
           else if(checkSecond) {
-            width1="50vh"
-            height1="40vh"
+            width1="47.5vh"
+            height1="37vh"
             playCard = false
           }
-          if(i == lessonData.length-1 && !(currentChapter.id == chaptersData[chaptersData.length-1].id)){
+          if(i === lessonData.length-1 && !(currentChapter.id === chaptersData[chaptersData.length-1].id) &&
+          !(currentChapter.name === 'Quiz')){
             return(
               <><SplideSlide className="slide" key={i}>
                 <LessonCard
@@ -159,7 +161,7 @@ const LessonSlider: React.FC<{
                 </SplideSlide></>
             )
           }
-          else if(i == 0 && !(currentChapter.id == chaptersData[0].id)){
+          else if(i === 0 && !(currentChapter.id === chaptersData[0].id)){
             return(
               <>
               <SplideSlide className="slide" key={i}>
