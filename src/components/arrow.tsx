@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useHistory } from "react-router-dom";
 import "./LessonCard.css";
 import { Chapter } from "../interface/curriculumInterfaces";
+import { FaChevronCircleRight } from "react-icons/fa";
+import { FaChevronCircleLeft } from "react-icons/fa";
 
 const Arrow: React.FC<{
     width: string;
@@ -29,20 +31,36 @@ const Arrow: React.FC<{
         <div
         style={{
           background: "#CDE7EF",
-          borderRadius: "30px",
+          borderRadius: "28px",
           width: width,
-          height: height,
           display: "grid",
           justifyContent: "center",
           alignItems: "center",
-          gridArea: "1/1",
+          marginTop: '20%',
+          marginBottom: '20%'
         }}>
         
-        {<img
-            id="lesson-card-image"
-             loading="lazy"
-             alt={imgUrl}
-             src={imgUrl} />}
+        {isForward?<FaChevronCircleRight
+        style={{ 
+          fill: 'white',
+          width: '100%',
+          height: '100%',
+         
+        }}/>:<FaChevronCircleLeft
+        style={{
+          color:"white",
+          width: '100%',
+          height: '100%'
+        }}/>}
+        {isForward?(<p
+          id="lesson-card-name"
+        >
+          Next Chapter
+        </p>):(<p
+          id="lesson-card-name"
+        >
+          Previous Chapter
+        </p>)}
         
         </div>
     </IonCard>
