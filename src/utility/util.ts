@@ -1,6 +1,7 @@
 import { Http } from "@capacitor-community/http";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
+import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
 import {
@@ -296,5 +297,17 @@ export class Util {
     } else {
       return courseId;
     }
+  }
+
+  public static async showLog(msg): Promise<void> {
+    if (Capacitor.getPlatform() !== "android") return;
+    if (typeof msg !== "string") {
+      msg = JSON.stringify(msg);
+    }
+    console.log("🚀 ~ file: util.ts:303 ~ showLog ~ msg:", msg);
+    await Toast.show({
+      text: msg,
+      duration: "long",
+    });
   }
 }
