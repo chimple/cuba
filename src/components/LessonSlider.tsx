@@ -95,6 +95,8 @@ const LessonSlider: React.FC<{
           lazyLoad: true,
           direction: "ltr",
           pagination: false,
+          gap: 15,
+          drag: true,
         }}
       >
         {lessonData.map((m: Lesson, i: number) => {
@@ -148,7 +150,7 @@ const LessonSlider: React.FC<{
                   score={lessonsScoreMap[m.id]?.score}
                   toBePlayed={playCard} />
 
-              </SplideSlide><SplideSlide className="slide" key={i}>
+              </SplideSlide><SplideSlide className="slide" key={i+0.5}>
                   <Arrow
                     width={width1}
                     height={height1}
@@ -175,7 +177,7 @@ const LessonSlider: React.FC<{
                     onChapterChange={onChapterChange}
                   ></Arrow>
                 </SplideSlide>
-              <SplideSlide className="slide" key={i}>
+              <SplideSlide className="slide" key={i+0.5}>
                 <LessonCard
                   width={width1}
                   height={height1}
