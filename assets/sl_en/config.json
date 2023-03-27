@@ -1029,6 +1029,10 @@
             "res/sound/phonicvoice/pe",
             "cc.AudioClip"
         ],
+        "00cBAPgAZFDrwkmQda1rgN": [
+            "res/sound/phonicvoice/phonicvoice",
+            "cc.Asset"
+        ],
         "f5r+iOLIpO/osf5SxzfK3p": [
             "res/sound/phonicvoice/pl",
             "cc.AudioClip"
@@ -1161,6 +1165,7 @@
     "uuids": [
         "00O6E0eChCkKQZNjdURke/",
         "00ZKl/bTVNWojBwMeqSCqY",
+        "00cBAPgAZFDrwkmQda1rgN",
         "02oNc7bPpLoKOcLDH6bTqO",
         "03ZQzmXxBK3p/S4pb4noA+",
         "03nGRbNcRILa25ux+6d7Jp",

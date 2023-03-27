@@ -12,6 +12,10 @@
             "games/balancing",
             "cc.AudioClip"
         ],
+        "b0cRTf6nRKPqZQ5UHXeqBk": [
+            "games/balloonpop",
+            "cc.AudioClip"
+        ],
         "91pV4W4+hEv6FTsSAvUz4a": [
             "games/blender",
             "cc.AudioClip"
@@ -90,6 +94,10 @@
         ],
         "7eh+lp3wdBxo5Nnx9WvKuQ": [
             "games/openwindow",
+            "cc.AudioClip"
+        ],
+        "0f+QULERtA84rIoi+0UCeU": [
+            "games/openwindow1",
             "cc.AudioClip"
         ],
         "2ediq/A5xJC5biAx/fBe9o": [
@@ -1192,6 +1200,7 @@
         "0dSYW4b1NMaqi26lkz7IP+",
         "0e2SP8FU5O9YfaIXe8Y5cG",
         "0fW3UQSDxHyZF4fwfnTsnn",
+        "0f+QULERtA84rIoi+0UCeU",
         "118h1nC8RJwKrbgGim6ToD",
         "12A5vVGWZIZpgIOB7TJx8n",
         "13f98JHgtH6KpRWzvGzHkK",
@@ -1359,6 +1368,7 @@
         "aaXUl66gJIrYl++4tcP4lx",
         "aeKAnXQn1P4LH470dOwn44",
         "afMbVajYpLQocW4pPUJle4",
+        "b0cRTf6nRKPqZQ5UHXeqBk",
         "b0fgauBnxHc6Cr9lTqo3m/",
         "b2sZ0u4oNMFZj3G7nawe7j",
         "b6IvTfvXlEl4qjlZXFNTCN",
