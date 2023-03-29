@@ -9,30 +9,25 @@ import { FaChevronCircleLeft } from "react-icons/fa";
 const Arrow: React.FC<{
     width: string;
     height: string;
-    toBePlayed: boolean;
     isForward: boolean;
     imgUrl: string;
     currentChapter: Chapter;
     onChapterChange;
 }> = ({  
     width,
-    height,
-    toBePlayed,isForward,imgUrl, currentChapter,onChapterChange }) => {
-    let x = toBePlayed? "lesson-card1":"lesson-card";
-    console.log('IMPORT', currentChapter)
+    height,isForward,imgUrl, currentChapter,onChapterChange }) => {
   return (
     <IonCard
-      id={x}
+      id="lesson-card"
       style={{
-        width: width,
+        width:"47.5vh",
         height: "auto",
       }}
       onClick={() => {onChapterChange(currentChapter.id, isForward)}}>
         <div
         style={{
-          background: "#CDE7EF",
           borderRadius: "28px",
-          width: width,
+          width: "47.5vh",
           display: "grid",
           justifyContent: "center",
           alignItems: "center",
@@ -42,15 +37,15 @@ const Arrow: React.FC<{
         
         {isForward?<FaChevronCircleRight
         style={{ 
-          fill: 'white',
-          width: '100%',
-          height: '100%',
+          fill: 'var(--ion-color-medium-tint)',
+          width: '70%',
+          height: '70%',
          
         }}/>:<FaChevronCircleLeft
         style={{
-          color:"white",
-          width: '100%',
-          height: '100%'
+          fill: 'var(--ion-color-medium-tint)',
+          width: '60%',
+          height: '60%'
         }}/>}
         {isForward?(<p
           id="lesson-card-name"
