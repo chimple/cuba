@@ -1,7 +1,7 @@
 #lesson-card {
     cursor: pointer;
     box-shadow: none !important;
-    margin: 10% 10px 0px 0px;
+    margin: 0 2em;
 }
 
 #lesson-card1 {
@@ -18,6 +18,16 @@
 #lesson-card-status-icon1{
     width: min(2.8vh, 28px);
     float: left;
+}
+
+.pattern{
+    background-size: cover;
+    background-repeat: no-repeat;
+    border-radius: 28px;
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    grid-area: 1/1;
 }
 
 #lesson-card-image {
@@ -59,6 +69,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    text-align: center;
 }
 
 #lesson-card-subject-name {
