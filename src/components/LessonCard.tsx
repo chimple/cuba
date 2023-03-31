@@ -87,7 +87,7 @@ const LessonCard: React.FC<{
         <div
         style={{
           background: lessonCardColor,
-          borderRadius: "28px",
+          borderRadius: "12%",
           width: width,
           height: height,
           display: "grid",
@@ -106,8 +106,8 @@ const LessonCard: React.FC<{
                 width: width,
                 height: height, 
               }}  
-              src={"assets/icons/" + patternSvg + ".svg"}
-              alt={"assets/icons/" + patternSvg + ".svg"}>
+              src={"assets/icons/" + patternSvg + ".png"}
+              alt={"assets/icons/" + patternSvg + ".png"}>
               </img>
               
               <div id="lesson-card-image">

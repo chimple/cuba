@@ -1,6 +1,4 @@
 import { IonCard } from "@ionic/react";
-import { useState } from "react";
-import { useHistory } from "react-router-dom";
 import "./LessonCard.css";
 import { Chapter } from "../interface/curriculumInterfaces";
 import { FaChevronCircleRight } from "react-icons/fa";
@@ -10,13 +8,53 @@ const Arrow: React.FC<{
     width: string;
     height: string;
     isForward: boolean;
-    imgUrl: string;
     currentChapter: Chapter;
+    chaptersData:Chapter[];
     onChapterChange;
 }> = ({  
     width,
-    height,isForward,imgUrl, currentChapter,onChapterChange }) => {
+    height,isForward, currentChapter,chaptersData,onChapterChange }) => {
   return (
+    (currentChapter.name === 'Quiz')?
+    <IonCard id="lesson-card"
+    style={{
+      width:"47.5vh",
+      height: "auto",
+    }}></IonCard>: (currentChapter.id === chaptersData[chaptersData.length-1].id)?
+    <IonCard
+      id="lesson-card"
+      style={{
+        width:"47.5vh",
+        height: "auto",
+      }}
+      onClick={() => {onChapterChange(currentChapter.id, isForward)}}>
+        <div
+        style={{
+          borderRadius: "28px",
+          width: "47.5vh",
+          display: "grid",
+          justifyContent: "center",
+          alignItems: "center",
+          marginTop: '20%',
+          marginBottom: '20%'
+        }}>
+        
+        {<FaChevronCircleLeft
+        style={{
+          fill: 'var(--ion-color-medium-tint)',
+          width: '60%',
+          height: '60%'
+        }}/>}
+        {(<p
+          id="lesson-card-name"
+        >
+          Previous Chapter
+        </p>)}
+        
+        </div>
+    </IonCard>:
+
+
     <IonCard
       id="lesson-card"
       style={{
