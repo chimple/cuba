@@ -14,20 +14,26 @@ const LessonCard: React.FC<{
   lesson: Lesson;
   isPlayed: boolean;
   isUnlocked: boolean;
+  isHome: boolean;
   showSubjectName: boolean;
   showText?: boolean;
   showScoreCard?: boolean;
   score: any;
+  lessonData: Lesson[];
+  startIndex: number;
 }> = ({
   width,
   height,
   lesson,
   isPlayed,
   isUnlocked,
+  isHome,
   showSubjectName = false,
   showText = true,
   showScoreCard = true,
   score,
+  lessonData,
+  startIndex,
 }) => {
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
@@ -36,14 +42,16 @@ const LessonCard: React.FC<{
     setShowImage(false);
   };
   const subjectCode = lesson.chapter.course.id;
-  const cardPattern = ['CloudyPattern','RainyPattern','SpringPattern','WinterPattern'];
+  
   const lessonCardColor = lesson?.color
     ? lesson.color
     : LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
-  const patternSvg = cardPattern[Math.floor(Math.random() * cardPattern.length)];
   return (
     <IonCard
-      id="lesson-card"
+      id={
+        isHome?
+        'lesson-card'
+        :lessonData[startIndex].id === lesson.id ? "lesson-card1" : "lesson-card"}
       style={{
         width: width,
         height: "auto",
@@ -105,9 +113,14 @@ const LessonCard: React.FC<{
               style={{
                 width: width,
                 height: height, 
+                borderRadius: '12%',
+                display: 'grid',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gridArea: '1 / 1 ',
               }}  
-              src={"assets/icons/" + patternSvg + ".png"}
-              alt={"assets/icons/" + patternSvg + ".png"}>
+              src={"courses/" + subjectCode + "/icons/" + lesson.pattern}
+              alt={"courses/" + subjectCode + "/icons/" + lesson.pattern}>
               </img>
               
               <div id="lesson-card-image">

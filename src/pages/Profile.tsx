@@ -125,10 +125,13 @@ const Profile: React.FC = () => {
                   key={index}
                   isPlayed={isPLayed}
                   isUnlocked={isPLayed}
+                  isHome={false}
                   showSubjectName={false}
                   showText={false}
                   showScoreCard={false}
                   score={0}
+                  lessonData={allLessons}
+                  startIndex={0}
                 />
               );
             })}

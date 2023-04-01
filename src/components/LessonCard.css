@@ -1,13 +1,16 @@
 #lesson-card {
     cursor: pointer;
     box-shadow: none !important;
-    margin: 0 2em;
+    margin: 0 0em;
+    -ms-transform: scale(0.85); 
+    -webkit-transform: scale(0.85); 
+    transform: scale(0.85);
 }
 
 #lesson-card1 {
     cursor: pointer;
     box-shadow: none !important;
-    margin: 0px 10px 0px 0px;
+    margin: 0 1em;
 }
 
 #lesson-header {
@@ -21,9 +24,7 @@
 }
 
 .pattern{
-    background-size: cover;
-    background-repeat: no-repeat;
-    border-radius: 28px;
+    border-radius: 12%;
     display: grid;
     justify-content: center;
     align-items: center;
@@ -38,7 +39,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    grid-area: 1/1;
+    grid-area: 1/1/ span 2 / span 2;
 }
 
 /* #lesson-card-status-icon {
