@@ -48,10 +48,7 @@ const LessonCard: React.FC<{
     : LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
   return (
     <IonCard
-      id={
-        isHome?
-        'lesson-card'
-        :lessonData[startIndex].id === lesson.id ? "lesson-card1" : "lesson-card"}
+      id='lesson-card'
       style={{
         width: width,
         height: "auto",
