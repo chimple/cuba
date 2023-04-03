@@ -1,11 +1,14 @@
 import "./LessonSlider.css";
 import "./LessonCard.css";
 import LessonCard from "./LessonCard";
-import { Splide, SplideSlide } from "@splidejs/react-splide";
 import { Lesson } from "../interface/curriculumInterfaces";
-import { useEffect, useState } from "react";
 import Arrow from "./arrow";
 import { Chapter } from "../interface/curriculumInterfaces";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/effect-coverflow";
+import "swiper/css/pagination";
+import { EffectCoverflow, Mousewheel, Pagination } from "swiper";
 
 const LessonSlider: React.FC<{
   lessonData: Lesson[];
@@ -14,7 +17,6 @@ const LessonSlider: React.FC<{
   onChapterChange;
   isHome: boolean;
   onSwiper: any;
-  // onSlideChange: Function;
   lessonsScoreMap: any;
   startIndex: number;
   showSubjectName: boolean;
@@ -25,195 +27,106 @@ const LessonSlider: React.FC<{
   isHome,
   onSwiper,
   onChapterChange,
-  // onSlideChange,
   lessonsScoreMap,
   startIndex,
   showSubjectName = false,
 }) => {
-  const [lessonSwiperRef, setLessonSwiperRef] = useState<any>();
-  let width1: string;
-  let height1: string;
-  let playCard: boolean;
-  let checkSecond: boolean;
-  useEffect(() => {
-    // console.log(
-    //   "🚀 ~ file: LessonSlider.tsx:24 ~ useEffect ~ useEffect:startIndex",
-    //   startIndex
-    // );
-    lessonSwiperRef?.go(0);
-    setTimeout(() => {
-      if (startIndex) lessonSwiperRef?.go(startIndex);
-      console.log('timeout',lessonSwiperRef)
-    }, 100); 
-  });  
+  
+  let width: string;
+  let height: string; 
+  width="47.5vh"
+  height="37vh"
   return(
     isHome?(
     <div className="content">
-      <Splide
-        ref={setLessonSwiperRef}
-        hasTrack={true}
-        options={{
-          arrows: false,
-          wheel: true,
-          lazyLoad: true,
-          direction: "ltr",
-          pagination: false,
-        }}
+      <Swiper
+        className="mySwiper"
       >
         {lessonData.map((m: Lesson, i: number) => {
           if (!m) return;
           const isPlayed =
             !!lessonsScoreMap[m.id] && lessonsScoreMap[m.id]?.score > 0;
-            width1="47.5vh"
-            height1="37vh"
-            playCard = false
+            width="47.5vh"
+            height="37vh"
           return (
-            <SplideSlide className="slide" key={i}>
+            <SwiperSlide className="slide" key={i}>
               <LessonCard
-                width= {width1}
-                height={height1}
+                width= {width}
+                height={height}
                 isPlayed={isPlayed}
                 isUnlocked={true}
                 lesson={m}
                 showSubjectName={showSubjectName}
                 showScoreCard={isPlayed}
-                score={lessonsScoreMap[m.id]?.score}
-                toBePlayed={playCard}              />
-            </SplideSlide>
+                score={lessonsScoreMap[m.id]?.score}             />
+            </SwiperSlide>
           );
         })}
-      </Splide>
+      </Swiper>
     </div>
   ):(
     <div className="content">
-      <Splide
-        ref={setLessonSwiperRef}
-        hasTrack={true}
-        options={{
-          arrows: false,
-          wheel: true,
-          lazyLoad: true,
-          direction: "ltr",
-          pagination: false,
-          gap: 15,
-          drag: true,
+      <Swiper
+        effect={"coverflow"}
+        grabCursor={true}
+        initialSlide={startIndex}
+        centeredSlides={false}
+        slidesPerView={"auto"}
+        mousewheel={true}
+        coverflowEffect={{
+          rotate: 0,
+          stretch: 0,
+          depth: 300,
+          modifier: 1,
+          slideShadows: false
         }}
+        modules={[Mousewheel, EffectCoverflow, Pagination]}
+        className="mySwiper"
       >
+      
+        <SwiperSlide className="slide" >
+        <Arrow
+              width={width}
+              height={height}
+              isForward={false}
+              currentChapter={currentChapter!}
+              chaptersData = {chaptersData}
+              onChapterChange={onChapterChange}
+            ></Arrow>
+          </SwiperSlide>
         {lessonData.map((m: Lesson, i: number) => {
           if (!m) return;
           const isPlayed =
             !!lessonsScoreMap[m.id] && lessonsScoreMap[m.id]?.score > 0;
-          width1="47.5vh"
-          height1="37vh"
-          playCard = false
-          if(i == startIndex){
-            if(isPlayed){
-              width1="47.5vh"
-              height1="37vh"
-              playCard = false
-              checkSecond = true
-            }
-            else if(!isPlayed){
-              width1 = "57.5vh"
-              height1 = "47vh"
-              playCard = true
-              checkSecond = false
-            }
-          }
-          if(i === (startIndex + 1) && checkSecond){  
-            width1 = "57.5vh"
-            height1 = "47vh"
-            playCard = true
-          } 
-          else if(i === (startIndex + 1) && !checkSecond){
-            width1="47.5vh"
-            height1="37vh"
-            playCard = false
-          }
-          else if(checkSecond) {
-            width1="47.5vh"
-            height1="37vh"
-            playCard = false
-          }
-          if(i === lessonData.length-1 && !(currentChapter.id === chaptersData[chaptersData.length-1].id) &&
-          !(currentChapter.name === 'Quiz')){
-            return(
-              <><SplideSlide className="slide" key={i}>
+            return (  
+              <SwiperSlide className="slide" key={i}>
                 <LessonCard
-                  width={width1}
-                  height={height1}
+                  width= {width}
+                  height={height}
                   isPlayed={isPlayed}
                   isUnlocked={true}
                   lesson={m}
                   showSubjectName={showSubjectName}
                   showScoreCard={isPlayed}
                   score={lessonsScoreMap[m.id]?.score}
-                  toBePlayed={playCard} />
-
-              </SplideSlide><SplideSlide className="slide" key={i+0.5}>
-                  <Arrow
-                    width={width1}
-                    height={height1}
-                    toBePlayed={playCard}
-                    isForward={true}
-                    imgUrl="assets/icons/forward-arrow.png"
-                    currentChapter={currentChapter!}
-                    onChapterChange={onChapterChange}
-                  ></Arrow>
-                </SplideSlide></>
-            )
-          }
-          else if(i === 0 && !(currentChapter.id === chaptersData[0].id)){
-            return(
-              <>
-              <SplideSlide className="slide" key={i}>
-              <Arrow
-                    width={width1}
-                    height={height1}
-                    toBePlayed={playCard}
-                    isForward={false}
-                    imgUrl="assets/icons/previous.png"
-                    currentChapter={currentChapter!}
-                    onChapterChange={onChapterChange}
-                  ></Arrow>
-                </SplideSlide>
-              <SplideSlide className="slide" key={i+0.5}>
-                <LessonCard
-                  width={width1}
-                  height={height1}
-                  isPlayed={isPlayed}
-                  isUnlocked={true}
-                  lesson={m}
-                  showSubjectName={showSubjectName}
-                  showScoreCard={isPlayed}
-                  score={lessonsScoreMap[m.id]?.score}
-                  toBePlayed={playCard} />
-
-              </SplideSlide>
-              </>
-            )
-          }
-          else{
-            return (
-              <SplideSlide className="slide" key={i}>
-                <LessonCard
-                  width= {width1}
-                  height={height1}
-                  isPlayed={isPlayed}
-                  isUnlocked={true}
-                  lesson={m}
-                  showSubjectName={showSubjectName}
-                  showScoreCard={isPlayed}
-                  score={lessonsScoreMap[m.id]?.score}
-                  toBePlayed={playCard}
                 />
-              </SplideSlide>
+              </SwiperSlide>
             )
-          }
-        })}
-      </Splide>
-    </div>
-  ));
-};
-
-export default LessonSlider;
+          })}
+          <SwiperSlide className="slide" >
+      <Arrow
+            width={width}
+            height={height}
+            isForward={true}
+            currentChapter={currentChapter!}
+            chaptersData = {chaptersData}
+            onChapterChange={onChapterChange}
+          ></Arrow>
+        </SwiperSlide>
+          </Swiper>
+        </div>
+      ));
+    };
+    export default LessonSlider;
+          
+        
