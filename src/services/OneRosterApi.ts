@@ -10,12 +10,12 @@ import {
 import { Chapter, Lesson } from "../interface/curriculumInterfaces";
 import { OneRosterStatus, ScoreStatusEnum } from "../interface/modelInterfaces";
 import { Class } from "../models/class";
-import { LineItem } from "../models/lineItem";
+import { Assignment } from "../models/assignment";
 import { Result } from "../models/result";
 import { ServiceApi } from "./ServiceApi";
 import { v4 as uuidv4 } from "uuid";
 import { User } from "../models/user";
-import Curriculum from "../models/curriculum";
+import CurriculumController from "../models/curriculumController";
 import Auth from "../models/auth";
 import { Util } from "../utility/util";
 import { Capacitor } from "@capacitor/core";
@@ -276,7 +276,7 @@ export class OneRosterApi implements ServiceApi {
   async getLineItemForClassForLessonId(
     classId: string,
     lessonId: string
-  ): Promise<LineItem | undefined> {
+  ): Promise<Assignment | undefined> {
     try {
       // const filter = encodeURIComponent(`title='${lessonId}'`)
       const sourcedId = lessonId + "-" + classId;
@@ -303,7 +303,7 @@ export class OneRosterApi implements ServiceApi {
       );
       const result =
         response && response.status === 200 ? response.data : undefined;
-      const lineItem = result ? LineItem.fromJson(result) : undefined;
+      const lineItem = result ? Assignment.fromJson(result) : undefined;
       console.log(
         "🚀 ~ file: OneRosterApi.ts:204 ~ OneRosterApi ~ getLineItemForClassForLessonId ~ lineItem:",
         JSON.stringify(lineItem)
@@ -318,13 +318,13 @@ export class OneRosterApi implements ServiceApi {
     }
   }
 
-  async putLineItem(classId: string, lessonId: string): Promise<LineItem> {
+  async putLineItem(classId: string, lessonId: string): Promise<Assignment> {
     const sourcedId = lessonId + "-" + classId;
     const assignDate = new Date().toISOString();
     const dueDate = new Date(
       new Date().setFullYear(new Date().getFullYear() + 1)
     ).toISOString();
-    const lineItem = new LineItem(
+    const lineItem = new Assignment(
       lessonId,
       assignDate,
       dueDate,
@@ -367,7 +367,7 @@ export class OneRosterApi implements ServiceApi {
     subjectCode: string
   ): Promise<Result | undefined> {
     try {
-      const lineItem: LineItem =
+      const lineItem: Assignment =
         (await this.getLineItemForClassForLessonId(classId, lessonId)) ??
         (await this.putLineItem(classId, lessonId));
       const date = new Date().toISOString();
@@ -400,7 +400,7 @@ export class OneRosterApi implements ServiceApi {
       }
       this.lessonMap[userId][lessonId] = result;
       if (score >= MIN_PASS) {
-        const curInstance = Curriculum.getInstance();
+        const curInstance = CurriculumController.getInstance();
         const lessons = await curInstance.allLessonForSubject(
           subjectCode,
           this.lessonMap[userId]
@@ -487,7 +487,7 @@ export class OneRosterApi implements ServiceApi {
     updateNextChapter = true
   ): Promise<Result | undefined> {
     try {
-      const curInstance = Curriculum.getInstance();
+      const curInstance = CurriculumController.getInstance();
       const chapters = await curInstance.allChapterForSubject(subjectCode);
       const chapterIndex = chapters.findIndex(
         (chapter: Chapter) => chapter.id === chapterId
@@ -518,7 +518,7 @@ export class OneRosterApi implements ServiceApi {
       } else {
         const sourcedId = uuidv4();
         const lessonId = subjectCode + "_" + PRE_QUIZ;
-        const lineItem: LineItem =
+        const lineItem: Assignment =
           (await this.getLineItemForClassForLessonId(classId, lessonId)) ??
           (await this.putLineItem(classId, lessonId));
         // const lineItems = await this.getLineItemsForClassForLessonId(classId, lessonId);
@@ -594,7 +594,7 @@ export class OneRosterApi implements ServiceApi {
     chapters: Chapter[] | undefined = undefined
   ): Promise<Chapter> {
     if (!chapters) {
-      const curInstance = Curriculum.getInstance();
+      const curInstance = CurriculumController.getInstance();
       chapters = await curInstance.allChapterForSubject(subjectCode);
     }
     if (score > 100) score = 100;

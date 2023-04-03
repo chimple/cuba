@@ -1,6 +1,6 @@
 import { BaseObject } from "./baseObject";
 
-export default class Curriculum extends BaseObject {
+export default class Grade extends BaseObject {
   private _description: string;
   private _title: string;
 

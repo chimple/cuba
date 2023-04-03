@@ -1,47 +1,30 @@
-import { OneRosterStatus } from "../interface/modelInterfaces";
-
 export class BaseObject {
-    private _sourcedId: string;
-    private _status: OneRosterStatus;
-    private _dateLastModified: string;
-    //TODO Changed metadata to metaData to match mikes schema
-    private _metaData: any;
+  private _dateLastModified: string;
+  private _createdAt: string;
+  private _docId: string;
 
-    constructor(
-        sourcedId: string,
-        status: OneRosterStatus,
-        dateLastModified: string,
-        metaData: any,
+  constructor(dateLastModified: string, createdAt: string, docId: string) {
+    this._dateLastModified = dateLastModified;
+    this._createdAt = createdAt;
+    this._docId = docId;
+  }
 
-    ) {
-        this._sourcedId = sourcedId
-        this._status = status
-        this._dateLastModified = dateLastModified
-        this._metaData = metaData
-    }
-
-    get sourcedId(): string {
-        return this._sourcedId;
-    }
-    set sourcedId(value: string) {
-        this._sourcedId = value;
-    }
-    get status(): OneRosterStatus {
-        return this._status;
-    }
-    set status(value: OneRosterStatus) {
-        this._status = value;
-    }
-    get dateLastModified(): string {
-        return this._dateLastModified;
-    }
-    set dateLastModified(value: string) {
-        this._dateLastModified = value;
-    }
-    get metaData(): any {
-        return this._metaData;
-    }
-    set metaData(value: any) {
-        this._metaData = value;
-    }
+  get dateLastModified(): string {
+    return this._dateLastModified;
+  }
+  set dateLastModified(value: string) {
+    this._dateLastModified = value;
+  }
+  public get createdAt(): string {
+    return this._createdAt;
+  }
+  public set createdAt(value: string) {
+    this._createdAt = value;
+  }
+  public get docId(): string {
+    return this._docId;
+  }
+  public set docId(value: string) {
+    this._docId = value;
+  }
 }

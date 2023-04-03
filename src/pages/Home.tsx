@@ -13,7 +13,7 @@ import {
   SELECTED_GRADE,
   DEBUG_15,
 } from "../common/constants";
-import Curriculum from "../models/curriculum";
+import CurriculumController from "../models/curriculumController";
 import "./Home.css";
 import LessonSlider from "../components/LessonSlider";
 import Loading from "../components/Loading";
@@ -211,10 +211,10 @@ const Home: React.FC = () => {
     }
     const tempResultLessonMap =
       await apiInstance.getResultsForStudentsForClassInLessonMap(
-        tempClass?.sourcedId ?? "",
+        tempClass?.docId ?? "",
         Auth.i.sourcedId
       );
-    const curInstance = Curriculum.getInstance();
+    const curInstance = CurriculumController.getInstance();
     const chapters = await curInstance.allChapterForSubject(
       subjectCode,
       tempResultLessonMap

@@ -1,5 +1,5 @@
 import { Class } from "../models/class";
-import { LineItem } from "../models/lineItem";
+import { Assignment } from "../models/assignment";
 import { Result } from "../models/result";
 import { User } from "../models/user";
 
@@ -11,9 +11,9 @@ export interface ServiceApi {
 
     isPreQuizDone(subjectCode: string, classId: string, studentId: string): Promise<boolean>;
 
-    getLineItemForClassForLessonId(classId: string, LessonId: string): Promise<LineItem | undefined>;
+    getLineItemForClassForLessonId(classId: string, LessonId: string): Promise<Assignment | undefined>;
 
-    putLineItem(classId: string, lessonId: string): Promise<LineItem>;
+    putLineItem(classId: string, lessonId: string): Promise<Assignment>;
 
     putResult(userId: string, classId: string, LessonId: string, score: number, subjectCode: string): Promise<Result | undefined>;
 

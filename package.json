@@ -13,6 +13,7 @@
     "@capacitor/keyboard": "4.0.1",
     "@capacitor/status-bar": "4.0.1",
     "@capacitor/toast": "^4.1.0",
+    "@firebase/firestore": "^3.10.0",
     "@ionic/react": "^6.0.0",
     "@ionic/react-router": "^6.0.0",
     "@splidejs/react-splide": "^0.7.10",
