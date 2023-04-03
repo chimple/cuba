@@ -4,11 +4,8 @@ import LessonCard from "./LessonCard";
 import { Lesson } from "../interface/curriculumInterfaces";
 import Arrow from "./arrow";
 import { Chapter } from "../interface/curriculumInterfaces";
-import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
-import "swiper/css/effect-coverflow";
-import "swiper/css/pagination";
-import { EffectCoverflow, Mousewheel, Pagination } from "swiper";
+import { Splide, SplideSlide } from "@splidejs/react-splide";
+import { useEffect, useState } from "react";
 
 const LessonSlider: React.FC<{
   lessonData: Lesson[];
@@ -31,16 +28,35 @@ const LessonSlider: React.FC<{
   startIndex,
   showSubjectName = false,
 }) => {
-  
+  const [lessonSwiperRef, setLessonSwiperRef] = useState<any>();
   let width: string;
   let height: string; 
-  width="47.5vh"
-  height="37vh"
+  width="45.5vh"
+  height="35vh"
+  useEffect(() => {
+    // console.log(
+    //   "🚀 ~ file: LessonSlider.tsx:24 ~ useEffect ~ useEffect:startIndex",
+    //   startIndex
+    // );
+    lessonSwiperRef?.go(0);
+    setTimeout(() => {
+      if (startIndex) lessonSwiperRef?.go(startIndex);
+    }, 100); 
+  });
+  console.log("REFERENCE", startIndex)
   return(
     isHome?(
     <div className="content">
-      <Swiper
-        className="mySwiper"
+      <Splide
+        ref={setLessonSwiperRef}
+        hasTrack={true}
+        options={{
+          arrows: false,
+          wheel: true,
+          lazyLoad: true,
+          direction: "ltr",
+          pagination: false,
+        }}
       >
         {lessonData.map((m: Lesson, i: number) => {
           if (!m) return;
@@ -49,81 +65,82 @@ const LessonSlider: React.FC<{
             width="47.5vh"
             height="37vh"
           return (
-            <SwiperSlide className="slide" key={i}>
+            <SplideSlide  className="slide" key={i}>
               <LessonCard
                 width= {width}
                 height={height}
                 isPlayed={isPlayed}
                 isUnlocked={true}
+                isHome={isHome}
                 lesson={m}
                 showSubjectName={showSubjectName}
                 showScoreCard={isPlayed}
-                score={lessonsScoreMap[m.id]?.score}             />
-            </SwiperSlide>
+                score={lessonsScoreMap[m.id]?.score}
+                lessonData={lessonData}
+                startIndex={startIndex === -1 ?startIndex+1 : startIndex}             />
+            </SplideSlide>
           );
         })}
-      </Swiper>
+      </Splide>
     </div>
   ):(
     <div className="content">
-      <Swiper
-        effect={"coverflow"}
-        grabCursor={true}
-        initialSlide={startIndex}
-        centeredSlides={false}
-        slidesPerView={"auto"}
-        mousewheel={true}
-        coverflowEffect={{
-          rotate: 0,
-          stretch: 0,
-          depth: 300,
-          modifier: 1,
-          slideShadows: false
+      <Splide
+        ref={setLessonSwiperRef}
+        hasTrack={true}
+        options={{
+          arrows: false,
+          wheel: true,
+          lazyLoad: true,
+          direction: "ltr",
+          pagination: false,
         }}
-        modules={[Mousewheel, EffectCoverflow, Pagination]}
-        className="mySwiper"
       >
       
-        <SwiperSlide className="slide" >
+      {
+      (currentChapter.id === chaptersData[0].id)?<></>:<SplideSlide className="slide" >
         <Arrow
               width={width}
               height={height}
               isForward={false}
               currentChapter={currentChapter!}
-              chaptersData = {chaptersData}
               onChapterChange={onChapterChange}
             ></Arrow>
-          </SwiperSlide>
+          </SplideSlide>
+          }
         {lessonData.map((m: Lesson, i: number) => {
           if (!m) return;
           const isPlayed =
             !!lessonsScoreMap[m.id] && lessonsScoreMap[m.id]?.score > 0;
             return (  
-              <SwiperSlide className="slide" key={i}>
+              <SplideSlide className="slide" key={i}>
                 <LessonCard
                   width= {width}
                   height={height}
                   isPlayed={isPlayed}
                   isUnlocked={true}
+                  isHome={isHome}
                   lesson={m}
                   showSubjectName={showSubjectName}
                   showScoreCard={isPlayed}
                   score={lessonsScoreMap[m.id]?.score}
+                  lessonData={lessonData}
+                  startIndex={startIndex === -1 ?startIndex+1 : startIndex}  
                 />
-              </SwiperSlide>
+              </SplideSlide>
             )
           })}
-          <SwiperSlide className="slide" >
+          {((currentChapter.id === chaptersData[0].id && currentChapter.name === 'Quiz') || 
+      currentChapter.id === chaptersData[chaptersData.length-1].id)?<></>:<SplideSlide className="slide" >
       <Arrow
             width={width}
             height={height}
             isForward={true}
             currentChapter={currentChapter!}
-            chaptersData = {chaptersData}
             onChapterChange={onChapterChange}
           ></Arrow>
-        </SwiperSlide>
-          </Swiper>
+        </SplideSlide>}
+          </Splide>
         </div>
       ));
     };

@@ -26,6 +26,7 @@ export interface Lesson {
     type: string;
     skills?: Array<string>;
     color?: string;
+    pattern: string;
     chapter: Chapter;
     assignmentId?: string;
     outcome?: string | null;
