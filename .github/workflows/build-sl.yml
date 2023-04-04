@@ -1,0 +1,68 @@
+name: Build SL Android
+
+on:
+  push:
+    branches:
+      # - sierra-leone
+      - new-schema
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+          token: ${{ secrets.ACCESS_TOKEN }}
+
+      - name: Setup java
+        uses: actions/setup-java@v1
+        with:
+          java-version: "12.x"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+
+      - name: Install app dependencies
+        run: npm install
+
+      - name: Store variables
+        run: |
+          touch .env
+          echo 'REACT_APP_GITHUB_BASE=/cuba' >> .env
+
+      - name: Build
+        run: npm run build
+        env:
+          CI: false
+
+      # - name: deploy web
+      #   uses: peaceiris/actions-gh-pages@v3
+      #   with:
+      #     github_token: ${{ secrets.ACCESS_TOKEN }}
+      #     publish_dir: ./build
+
+      - name: Make gradlew executable
+        working-directory: ./android/
+        run: chmod +x ./gradlew
+
+      - name: Generate the Android App assembleDebug
+        working-directory: ./android/
+        run: ./gradlew assembleDebug
+
+      - name: Deploy apk
+        working-directory: .
+        run: |
+          cd android/app/build/outputs/apk/debug/
+          git init
+          git config --global user.email prakash@sutara.org
+          git config --global user.name  bhanugummana
+          git remote add origin https://${{ secrets.ACCESS_TOKEN }}@github.com/chimple/cuba.git
+          git checkout -b sl-apk
+          git add app-debug.apk
+          git commit -m "created sl apk"
+          git push origin sl-apk -f
