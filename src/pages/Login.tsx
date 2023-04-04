@@ -53,7 +53,7 @@ const Login: React.FC = () => {
             src="assets/icons/ArrowIcon.svg"
           />
         </div>
-        {Capacitor.getPlatform() === "android" ? (
+        {/* {Capacitor.getPlatform() === "android" ? (
           <button
             style={{
               position: "absolute",
@@ -85,7 +85,7 @@ const Login: React.FC = () => {
           </button>
         ) : (
           <></>
-        )}
+        )} */}
         {/* <Loading isLoading={isLoading} /> */}
       </IonContent>
     </IonPage>
