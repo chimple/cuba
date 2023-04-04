@@ -16,7 +16,7 @@ import {
 } from "../common/constants";
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
 import { GUIDRef } from "../interface/modelInterfaces";
-import { Result } from "../models/result";
+import Result  from "../models/result";
 import { OneRosterApi } from "../services/OneRosterApi";
 declare global {
   interface Window {

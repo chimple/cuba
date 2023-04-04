@@ -1,4 +1,4 @@
-import { BaseObject } from "./baseObject";
+import BaseObject from "./baseObject";
 import { DocumentReference, Timestamp } from "@firebase/firestore";
 
 export default class Result extends BaseObject {

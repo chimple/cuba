@@ -1,7 +1,7 @@
 import { RoleType } from "../interface/modelInterfaces";
-import { BaseObject } from "./baseObject";
+import BaseObject from "./baseObject";
 
-export class User extends BaseObject {
+export default class User extends BaseObject {
   private _username: string;
   private _userIds: string[];
   private _givenName: string;

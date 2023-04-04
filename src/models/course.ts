@@ -1,7 +1,7 @@
-import { BaseObject } from "./baseObject";
+import BaseObject from "./baseObject";
 import { DocumentReference } from "@firebase/firestore";
 
-export class Course extends BaseObject {
+export default class Course extends BaseObject {
   private _title: string;
   private _chapters: object[];
   private _courseCode: string;

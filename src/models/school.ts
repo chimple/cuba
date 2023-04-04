@@ -1,4 +1,4 @@
-import { BaseObject } from "./baseObject";
+import BaseObject from "./baseObject";
 
 export default class school extends BaseObject {
   private _name: string;

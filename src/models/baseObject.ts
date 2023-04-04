@@ -1,4 +1,4 @@
-export class BaseObject {
+export default class BaseObject {
   private _dateLastModified: string;
   private _createdAt: string;
   private _docId: string;
