@@ -69,24 +69,9 @@ const App: React.FC = () => {
           window.location.reload();
         }
       });
-
-      //Detecting Screen Orientation and Reloading the page
-      detectScreenOrientation();
     }
   }, []);
-  function detectScreenOrientation() {
-    window.addEventListener(
-      "orientationchange",
-      function () {
-        // alert(window.orientation);
-        if (window.location.pathname !== PAGES.GAME) {
-          console.log("window.addListener(orientationchange ");
-          window.location.reload();
-        }
-      },
-      false
-    );
-  }
+
   return (
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>
