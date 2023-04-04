@@ -1,5 +1,5 @@
 import BaseObject from "./baseObject";
-import { DocumentReference } from "@firebase/firestore";
+import { DocumentReference } from "firebase/firestore";
 
 export default class Class extends BaseObject {
   private _title: string;
@@ -13,7 +13,7 @@ export default class Class extends BaseObject {
   private _principal: string[];
   private _coordinator: string[];
 
-  constructor(
+constructor(
     title: string,
     classCode: string,
     school: DocumentReference,

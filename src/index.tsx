@@ -4,6 +4,7 @@ import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import reportWebVitals from "./reportWebVitals";
 import "./index.css";
 import './i18n';
+import { initializeFireBase } from "./services/Firebase";
 
 const container = document.getElementById("root");
 const root = createRoot(container!);
@@ -12,6 +13,7 @@ root.render(
     <App />
   </>
 );
+initializeFireBase();
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

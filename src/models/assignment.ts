@@ -1,5 +1,5 @@
 import BaseObject from "./baseObject";
-import { DocumentReference, Timestamp } from "@firebase/firestore";
+import { DocumentReference, Timestamp } from "firebase/firestore";
 
 export default class Assignment extends BaseObject {
   private _assigner: DocumentReference;

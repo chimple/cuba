@@ -1,5 +1,5 @@
 import BaseObject from "./baseObject";
-import { DocumentReference } from "@firebase/firestore";
+import { DocumentReference } from "firebase/firestore";
 
 export default class Topic extends BaseObject {
   private _description: string;

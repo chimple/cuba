@@ -1,5 +1,5 @@
 import BaseObject from "./baseObject";
-import { DocumentReference } from "@firebase/firestore";
+import { DocumentReference } from "firebase/firestore";
 
 export default class StudentProfile extends BaseObject {
   private _classes: string[];
