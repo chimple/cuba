@@ -3,8 +3,7 @@ name: Build SL Android
 on:
   push:
     branches:
-      # - sierra-leone
-      - new-schema
+      - sierra-leone
 
 jobs:
   build:
@@ -40,11 +39,11 @@ jobs:
         env:
           CI: false
 
-      # - name: deploy web
-      #   uses: peaceiris/actions-gh-pages@v3
-      #   with:
-      #     github_token: ${{ secrets.ACCESS_TOKEN }}
-      #     publish_dir: ./build
+      - name: deploy web
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.ACCESS_TOKEN }}
+          publish_dir: ./build
 
       - name: Make gradlew executable
         working-directory: ./android/
