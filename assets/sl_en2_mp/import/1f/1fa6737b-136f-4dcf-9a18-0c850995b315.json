@@ -38,8 +38,7 @@
             "name": "Quiz",
             "lessons": [
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp_PreQuiz",
                 "image": "sl_en2_mp_Prequiz.png",
                 "name": "Assessment",
@@ -56,8 +55,7 @@
             "name": "Unit 1",
             "lessons": [
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0000",
                 "image": "sl_en2_mp0000.png",
                 "name": "Playing",
@@ -67,8 +65,7 @@
                 "outcome": "Improve reading skills"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0001",
                 "image": "sl_en2_mp0001.png",
                 "name": "Transport",
@@ -78,8 +75,7 @@
                 "outcome": "Improve reading skills"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0002",
                 "image": "sl_en2_mp0002.png",
                 "name": "World",
@@ -89,8 +85,7 @@
                 "outcome": "Improve reading skills"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0003",
                 "image": "sl_en2_mp0003.png",
                 "name": "Maths",
@@ -100,8 +95,7 @@
                 "outcome": "Improve reading skills"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0004",
                 "image": "sl_en2_mp0004.png",
                 "name": "What I am doing",
@@ -114,14 +108,12 @@
                 "id": "sl_en2_mp_challenge1",
                 "name": "Challenge 1",
                 "image": "sl_en2_mp_challenge1.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0005",
                 "image": "sl_en2_mp0005.png",
                 "name": "Profession",
@@ -131,8 +123,7 @@
                 "outcome": "Improve reading skills"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0006",
                 "image": "sl_en2_mp0006.png",
                 "name": "Activities",
@@ -142,8 +133,7 @@
                 "outcome": "Improve reading skills"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0007",
                 "image": "sl_en2_mp0007.png",
                 "name": "He",
@@ -153,8 +143,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0008",
                 "image": "sl_en2_mp0008.png",
                 "name": "She",
@@ -167,14 +156,12 @@
                 "id": "sl_en2_mp_challenge2",
                 "name": "Challenge 2",
                 "image": "sl_en2_mp_challenge2.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0009",
                 "image": "sl_en2_mp0009.png",
                 "name": "You",
@@ -184,8 +171,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0010",
                 "image": "sl_en2_mp0010.png",
                 "name": "They",
@@ -195,8 +181,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0011",
                 "image": "sl_en2_mp0011.png",
                 "name": "Sentences starting with 'the'",
@@ -206,8 +191,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0012",
                 "image": "sl_en2_mp0012.png",
                 "name": "Sentences with article 'a'",
@@ -220,14 +204,12 @@
                 "id": "sl_en2_mp_challenge3",
                 "name": "Challenge 3",
                 "image": "sl_en2_mp_challenge3.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0013",
                 "image": "sl_en2_mp0013.png",
                 "name": "a",
@@ -237,8 +219,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0014",
                 "image": "sl_en2_mp0014.png",
                 "name": "b",
@@ -248,8 +229,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0015",
                 "image": "sl_en2_mp0015.png",
                 "name": "c",
@@ -259,8 +239,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0016",
                 "image": "sl_en2_mp0016.png",
                 "name": "d",
@@ -273,14 +252,12 @@
                 "id": "sl_en2_mp_challenge4",
                 "name": "Challenge 4",
                 "image": "sl_en2_mp_challenge4.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0017",
                 "image": "sl_en2_mp0017.png",
                 "name": "e",
@@ -290,8 +267,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0018",
                 "image": "sl_en2_mp0018.png",
                 "name": "f",
@@ -301,8 +277,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0019",
                 "image": "sl_en2_mp0019.png",
                 "name": "g",
@@ -312,8 +287,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0020",
                 "image": "sl_en2_mp0020.png",
                 "name": "h",
@@ -326,14 +300,12 @@
                 "id": "sl_en2_mp_challenge5",
                 "name": "Challenge 5",
                 "image": "sl_en2_mp_challenge5.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0021",
                 "image": "sl_en2_mp0021.png",
                 "name": "i",
@@ -343,8 +315,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0022",
                 "image": "sl_en2_mp0022.png",
                 "name": "j",
@@ -354,8 +325,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0023",
                 "image": "sl_en2_mp0023.png",
                 "name": "j",
@@ -365,8 +335,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0024",
                 "image": "sl_en2_mp0024.png",
                 "name": "k",
@@ -379,14 +348,12 @@
                 "id": "sl_en2_mp_challenge6",
                 "name": "Challenge 6",
                 "image": "sl_en2_mp_challenge6.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0025",
                 "image": "sl_en2_mp0025.png",
                 "name": "l",
@@ -396,8 +363,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0026",
                 "image": "sl_en2_mp0026.png",
                 "name": "m",
@@ -407,8 +373,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0027",
                 "image": "sl_en2_mp0027.png",
                 "name": "n",
@@ -418,8 +383,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0028",
                 "image": "sl_en2_mp0028.png",
                 "name": "o",
@@ -432,14 +396,12 @@
                 "id": "sl_en2_mp_challenge7",
                 "name": "Challenge 7",
                 "image": "sl_en2_mp_challenge7.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0029",
                 "image": "sl_en2_mp0029.png",
                 "name": "p",
@@ -449,8 +411,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0030",
                 "image": "sl_en2_mp0030.png",
                 "name": "q",
@@ -460,8 +421,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0031",
                 "image": "sl_en2_mp0031.png",
                 "name": "r",
@@ -471,8 +431,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0032",
                 "image": "sl_en2_mp0032.png",
                 "name": "s",
@@ -485,14 +444,12 @@
                 "id": "sl_en2_mp_challenge8",
                 "name": "Challenge 8",
                 "image": "sl_en2_mp_challenge8.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0033",
                 "image": "sl_en2_mp0033.png",
                 "name": "t",
@@ -502,8 +459,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0034",
                 "image": "sl_en2_mp0034.png",
                 "name": "u",
@@ -513,8 +469,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0035",
                 "image": "sl_en2_mp0035.png",
                 "name": "v",
@@ -524,8 +479,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0036",
                 "image": "sl_en2_mp0036.png",
                 "name": "w",
@@ -538,14 +492,12 @@
                 "id": "sl_en2_mp_challenge9",
                 "name": "Challenge 9",
                 "image": "sl_en2_mp_challenge9.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0037",
                 "image": "sl_en2_mp0037.png",
                 "name": "x",
@@ -555,8 +507,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0038",
                 "image": "sl_en2_mp0038.png",
                 "name": "x",
@@ -566,8 +517,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0039",
                 "image": "sl_en2_mp0039.png",
                 "name": "y",
@@ -577,8 +527,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0040",
                 "image": "sl_en2_mp0040.png",
                 "name": "z",
@@ -591,14 +540,12 @@
                 "id": "sl_en2_mp_challenge10",
                 "name": "Challenge 10",
                 "image": "sl_en2_mp_challenge10.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0041",
                 "image": "sl_en2_mp0041.png",
                 "name": "Alphabet A - F",
@@ -608,8 +555,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0042",
                 "image": "sl_en2_mp0042.png",
                 "name": "Alphabet G - L",
@@ -619,8 +565,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0043",
                 "image": "sl_en2_mp0043.png",
                 "name": "Alphabet M - S",
@@ -630,8 +575,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0044",
                 "image": "sl_en2_mp0044.png",
                 "name": "Alphabet T - Z",
@@ -641,8 +585,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0045",
                 "image": "sl_en2_mp0045.png",
                 "name": "Revision Aa-Zz",
@@ -652,8 +595,7 @@
                 "outcome": "Help pupils in recognizing and identifying the small letters of the alphabet.\nHelps in identifying and writing the upper case and lower case letters of the alphabet."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0046",
                 "image": "sl_en2_mp0046.png",
                 "name": "A-E",
@@ -666,8 +608,7 @@
                 "id": "sl_en2_mp_challenge11",
                 "name": "Challenge 11",
                 "image": "sl_en2_mp_challenge11.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -679,8 +620,7 @@
             "name": "Unit 2",
             "lessons": [
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0100",
                 "image": "sl_en2_mp0100.png",
                 "name": "Action Words - 1",
@@ -690,8 +630,7 @@
                 "outcome": "Learn to use action words, ie, verbs in sentences."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0101",
                 "image": "sl_en2_mp0101.png",
                 "name": "Action Words -2",
@@ -701,8 +640,7 @@
                 "outcome": "Learn to use action words, ie, verbs in sentences."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0102",
                 "image": "sl_en2_mp0102.png",
                 "name": "Past- Tense",
@@ -712,8 +650,7 @@
                 "outcome": "Learn to use action words, ie, verbs in sentences."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0103",
                 "image": "sl_en2_mp0103.png",
                 "name": "Present Tense",
@@ -723,8 +660,7 @@
                 "outcome": "Learn to use action words, ie, verbs in sentences."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0104",
                 "image": "sl_en2_mp0104.png",
                 "name": "Future- Tense",
@@ -737,14 +673,12 @@
                 "id": "sl_en2_mp_challenge12",
                 "name": "Challenge 12",
                 "image": "sl_en2_mp_challenge12.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0105",
                 "image": "sl_en2_mp0105.png",
                 "name": "Verbs Practice",
@@ -754,8 +688,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0106",
                 "image": "sl_en2_mp0106.png",
                 "name": "Sentences with verb in present tense",
@@ -765,8 +698,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0107",
                 "image": "sl_en2_mp0107.png",
                 "name": "Word Sounds -1",
@@ -776,8 +708,7 @@
                 "outcome": "Students should dentify and properly pronounce one/two syllable words with emphasis on the vowel sounds. Pupils must pronounce the different vowel sounds in one /two syllable words."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0108",
                 "image": "sl_en2_mp0108.png",
                 "name": "Word Sounds - 2",
@@ -790,14 +721,12 @@
                 "id": "sl_en2_mp_challenge13",
                 "name": "Challenge 13",
                 "image": "sl_en2_mp_challenge13.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0109",
                 "image": "sl_en2_mp0109.png",
                 "name": "Word sounds - 3",
@@ -807,8 +736,7 @@
                 "outcome": "Students should dentify and properly pronounce one/two syllable words with emphasis on the vowel sounds. Pupils must pronounce the different vowel sounds in one /two syllable words."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0110",
                 "image": "sl_en2_mp0110.png",
                 "name": "Word Sounds - 4",
@@ -818,8 +746,7 @@
                 "outcome": "Students should dentify and properly pronounce one/two syllable words with emphasis on the vowel sounds. Pupils must pronounce the different vowel sounds in one /two syllable words."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0111",
                 "image": "sl_en2_mp0111.png",
                 "name": "Word Sounds - 5",
@@ -829,8 +756,7 @@
                 "outcome": "Students should dentify and properly pronounce one/two syllable words with emphasis on the vowel sounds. Pupils must pronounce the different vowel sounds in one /two syllable words."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0112",
                 "image": "sl_en2_mp0112.png",
                 "name": "Word Sounds - 6",
@@ -843,14 +769,12 @@
                 "id": "sl_en2_mp_challenge14",
                 "name": "Challenge 14",
                 "image": "sl_en2_mp_challenge14.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0113",
                 "image": "sl_en2_mp0113.png",
                 "name": "Word Sounds - 7",
@@ -860,8 +784,7 @@
                 "outcome": "Students should dentify and properly pronounce one/two syllable words with emphasis on the vowel sounds. Pupils must pronounce the different vowel sounds in one /two syllable words."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0114",
                 "image": "sl_en2_mp0114.png",
                 "name": "Word Sounds - 8",
@@ -871,8 +794,7 @@
                 "outcome": "Students should dentify and properly pronounce one/two syllable words with emphasis on the vowel sounds. Pupils must pronounce the different vowel sounds in one /two syllable words."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0115",
                 "image": "sl_en2_mp0115.png",
                 "name": "Word Sounds - 9",
@@ -882,8 +804,7 @@
                 "outcome": "Students should dentify and properly pronounce one/two syllable words with emphasis on the vowel sounds. Pupils must pronounce the different vowel sounds in one /two syllable words."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0116",
                 "image": "sl_en2_mp0116.png",
                 "name": "Word Sounds - 10",
@@ -893,8 +814,7 @@
                 "outcome": "Students should dentify and properly pronounce one/two syllable words with emphasis on the vowel sounds. Pupils must pronounce the different vowel sounds in one /two syllable words."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0117",
                 "image": "sl_en2_mp0117.png",
                 "name": "Word Sounds - 11",
@@ -907,8 +827,7 @@
                 "id": "sl_en2_mp_challenge15",
                 "name": "Challenge 15",
                 "image": "sl_en2_mp_challenge15.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -920,8 +839,7 @@
             "name": "Unit 3",
             "lessons": [
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0200",
                 "image": "sl_en2_mp0200.png",
                 "name": "Revision 1",
@@ -931,8 +849,7 @@
                 "outcome": "Identify objects and people. Learn about body parts."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0201",
                 "image": "sl_en2_mp0201.png",
                 "name": "Revision - 2",
@@ -942,8 +859,7 @@
                 "outcome": "Identify objects and people. Learn about body parts."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0202",
                 "image": "sl_en2_mp0202.png",
                 "name": "My Body",
@@ -953,8 +869,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0203",
                 "image": "sl_en2_mp0203.png",
                 "name": "My Body 1",
@@ -964,8 +879,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0204",
                 "image": "sl_en2_mp0204.png",
                 "name": "Nouns- My Body",
@@ -975,8 +889,7 @@
                 "outcome": "Identify objects and people. Learn about body parts."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0205",
                 "image": "sl_en2_mp0205.png",
                 "name": "Noun - Person",
@@ -986,8 +899,7 @@
                 "outcome": "Identify objects and people. Learn about body parts."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0206",
                 "image": "sl_en2_mp0206.png",
                 "name": "Gender Nouns",
@@ -1000,8 +912,7 @@
                 "id": "sl_en2_mp_challenge16",
                 "name": "Challenge 16",
                 "image": "sl_en2_mp_challenge16.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -1013,8 +924,7 @@
             "name": "Unit 4",
             "lessons": [
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0300",
                 "image": "sl_en2_mp0300.png",
                 "name": "About people",
@@ -1024,8 +934,7 @@
                 "outcome": "Improve English reading and communication skills"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0301",
                 "image": "sl_en2_mp0301.png",
                 "name": "Day to day life",
@@ -1035,8 +944,7 @@
                 "outcome": "Improve English reading and communication skills"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0302",
                 "image": "sl_en2_mp0302.png",
                 "name": "About things",
@@ -1046,8 +954,7 @@
                 "outcome": "Improve English reading and communication skills"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0303",
                 "image": "sl_en2_mp0303.png",
                 "name": "Tiny Words - 1",
@@ -1057,8 +964,7 @@
                 "outcome": "Improve English reading and communication skills"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0304",
                 "image": "sl_en2_mp0304.png",
                 "name": "Tiny Words - 2",
@@ -1071,14 +977,12 @@
                 "id": "sl_en2_mp_challenge17",
                 "name": "Challenge 17",
                 "image": "sl_en2_mp_challenge17.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0305",
                 "image": "sl_en2_mp0305.png",
                 "name": "a",
@@ -1088,8 +992,7 @@
                 "outcome": "Learn alphabet a,b, and c. Create words starting from the alphabet."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0306",
                 "image": "sl_en2_mp0306.png",
                 "name": "b",
@@ -1099,8 +1002,7 @@
                 "outcome": "Learn alphabet a,b, and c. Create words starting from the alphabet."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0307",
                 "image": "sl_en2_mp0307.png",
                 "name": "c",
@@ -1110,8 +1012,7 @@
                 "outcome": "Learn alphabet a,b, and c. Create words starting from the alphabet."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0308",
                 "image": "sl_en2_mp0308.png",
                 "name": "One Or More",
@@ -1124,14 +1025,12 @@
                 "id": "sl_en2_mp_challenge18",
                 "name": "Challenge 18",
                 "image": "sl_en2_mp_challenge18.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0309",
                 "image": "sl_en2_mp0309.png",
                 "name": "One Or More 1",
@@ -1141,8 +1040,7 @@
                 "outcome": "Create plurals \na. Identify nouns that form their\nplurals by adding “s”\nb. Identify nouns that form their\nplurals by adding ‘es” e.g.\nnouns ending in “x” “ch” and\n“sh”\nc. Use of singular and plural\nnouns in simple sentences\nusing this, that, these or\nthose."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0310",
                 "image": "sl_en2_mp0310.png",
                 "name": "Pair them",
@@ -1152,8 +1050,7 @@
                 "outcome": "Create plurals \na. Identify nouns that form their\nplurals by adding “s”\nb. Identify nouns that form their\nplurals by adding ‘es” e.g.\nnouns ending in “x” “ch” and\n“sh”\nc. Use of singular and plural\nnouns in simple sentences\nusing this, that, these or\nthose."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0311",
                 "image": "sl_en2_mp0311.png",
                 "name": "Fill Right Words",
@@ -1163,8 +1060,7 @@
                 "outcome": "Create plurals \na. Identify nouns that form their\nplurals by adding “s”\nb. Identify nouns that form their\nplurals by adding ‘es” e.g.\nnouns ending in “x” “ch” and\n“sh”\nc. Use of singular and plural\nnouns in simple sentences\nusing this, that, these or\nthose."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0312",
                 "image": "sl_en2_mp0312.png",
                 "name": "Fill Plural Form",
@@ -1177,8 +1073,7 @@
                 "id": "sl_en2_mp_challenge19",
                 "name": "Challenge 19",
                 "image": "sl_en2_mp_challenge19.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -1190,8 +1085,7 @@
             "name": "Unit 5",
             "lessons": [
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0400",
                 "image": "sl_en2_mp0400.png",
                 "name": "They",
@@ -1201,8 +1095,7 @@
                 "outcome": "Learn about activities people do in their everyday life."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0401",
                 "image": "sl_en2_mp0401.png",
                 "name": "It",
@@ -1212,8 +1105,7 @@
                 "outcome": "Learn about activities people do in their everyday life."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0402",
                 "image": "sl_en2_mp0402.png",
                 "name": "I",
@@ -1223,8 +1115,7 @@
                 "outcome": "Learn about activities people do in their everyday life."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0403",
                 "image": "sl_en2_mp0403.png",
                 "name": "We",
@@ -1234,8 +1125,7 @@
                 "outcome": "Learn about activities people do in their everyday life."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0404",
                 "image": "sl_en2_mp0404.png",
                 "name": "Revision 1",
@@ -1248,14 +1138,12 @@
                 "id": "sl_en2_mp_challenge20",
                 "name": "Challenge 20",
                 "image": "sl_en2_mp_challenge20.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0405",
                 "image": "sl_en2_mp0405.png",
                 "name": "Revision - 2",
@@ -1265,8 +1153,7 @@
                 "outcome": "Learn about activities people do in their everyday life."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0406",
                 "image": "sl_en2_mp0406.png",
                 "name": "What I am doing",
@@ -1276,8 +1163,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0407",
                 "image": "sl_en2_mp0407.png",
                 "name": "d",
@@ -1287,8 +1173,7 @@
                 "outcome": "Learn alphabet d, e, n, and t. Learn words starting with the above mentioned alphabet."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0408",
                 "image": "sl_en2_mp0408.png",
                 "name": "e",
@@ -1298,8 +1183,7 @@
                 "outcome": "Learn alphabet d, e, n, and t. Learn words starting with the above mentioned alphabet."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0409",
                 "image": "sl_en2_mp0409.png",
                 "name": "n",
@@ -1309,8 +1193,7 @@
                 "outcome": "Learn alphabet d, e, n, and t. Learn words starting with the above mentioned alphabet."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0410",
                 "image": "sl_en2_mp0410.png",
                 "name": "t",
@@ -1323,14 +1206,12 @@
                 "id": "sl_en2_mp_challenge21",
                 "name": "Challenge 21",
                 "image": "sl_en2_mp_challenge21.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0411",
                 "image": "sl_en2_mp0411.png",
                 "name": "Big words",
@@ -1340,8 +1221,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0412",
                 "image": "sl_en2_mp0412.png",
                 "name": "Big Words - 2",
@@ -1351,8 +1231,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0413",
                 "image": "sl_en2_mp0413.png",
                 "name": "Bigger words",
@@ -1362,8 +1241,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0414",
                 "image": "sl_en2_mp0414.png",
                 "name": "Countable nouns",
@@ -1373,8 +1251,7 @@
                 "outcome": "Definitions and examples of\ncountable and uncountable\nnouns. Uses of “a” or “an” some, many,\nwith countable nouns."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0415",
                 "image": "sl_en2_mp0415.png",
                 "name": "Uncountable Nouns",
@@ -1387,8 +1264,7 @@
                 "id": "sl_en2_mp_challenge22",
                 "name": "Challenge 22",
                 "image": "sl_en2_mp_challenge22.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -1400,8 +1276,7 @@
             "name": "Unit 6",
             "lessons": [
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0500",
                 "image": "sl_en2_mp0500.png",
                 "name": "Noun - Person",
@@ -1411,8 +1286,7 @@
                 "outcome": "Family and relationships"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0501",
                 "image": "sl_en2_mp0501.png",
                 "name": "My Family",
@@ -1422,8 +1296,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0502",
                 "image": "sl_en2_mp0502.png",
                 "name": "My Family 1",
@@ -1433,8 +1306,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0503",
                 "image": "sl_en2_mp0503.png",
                 "name": "Fill Right Adjectives",
@@ -1444,8 +1316,7 @@
                 "outcome": "Learn the use of adjectives in describing nouns."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0504",
                 "image": "sl_en2_mp0504.png",
                 "name": "Tag Adjectives",
@@ -1458,14 +1329,12 @@
                 "id": "sl_en2_mp_challenge23",
                 "name": "Challenge 23",
                 "image": "sl_en2_mp_challenge23.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0505",
                 "image": "sl_en2_mp0505.png",
                 "name": "Write Adjectives",
@@ -1475,8 +1344,7 @@
                 "outcome": "Learn the use of adjectives in describing nouns."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0506",
                 "image": "sl_en2_mp0506.png",
                 "name": "Sentences ending with adjectives",
@@ -1486,8 +1354,7 @@
                 "outcome": "Learn the use of adjectives in describing nouns."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0507",
                 "image": "sl_en2_mp0507.png",
                 "name": "f",
@@ -1497,8 +1364,7 @@
                 "outcome": "Learn alphabet f,h, and m. Learn words starting with the above mentioned alphabet."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0508",
                 "image": "sl_en2_mp0508.png",
                 "name": "h",
@@ -1511,14 +1377,12 @@
                 "id": "sl_en2_mp_challenge24",
                 "name": "Challenge 24",
                 "image": "sl_en2_mp_challenge24.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0509",
                 "image": "sl_en2_mp0509.png",
                 "name": "m",
@@ -1528,8 +1392,7 @@
                 "outcome": "Learn alphabet f,h, and m. Learn words starting with the above mentioned alphabet."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0510",
                 "image": "sl_en2_mp0510.png",
                 "name": "4 letters",
@@ -1539,8 +1402,7 @@
                 "outcome": "Learn more words"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0511",
                 "image": "sl_en2_mp0511.png",
                 "name": "5 letters",
@@ -1550,8 +1412,7 @@
                 "outcome": "Learn more words"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0512",
                 "image": "sl_en2_mp0512.png",
                 "name": "6 letters",
@@ -1564,14 +1425,12 @@
                 "id": "sl_en2_mp_challenge25",
                 "name": "Challenge 25",
                 "image": "sl_en2_mp_challenge25.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0513",
                 "image": "sl_en2_mp0513.png",
                 "name": "Alphabet A - F",
@@ -1581,8 +1440,7 @@
                 "outcome": "a. Writing the alphabet in Capital Letters.\nb. Writing the alphabet in capital and small letters, eg.\nAa, Bb, Cc, Dd, Ee, Ff, Gg"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0514",
                 "image": "sl_en2_mp0514.png",
                 "name": "Revision A - F",
@@ -1592,8 +1450,7 @@
                 "outcome": "a. Writing the alphabet in Capital Letters.\nb. Writing the alphabet in capital and small letters, eg.\nAa, Bb, Cc, Dd, Ee, Ff, Gg"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0515",
                 "image": "sl_en2_mp0515.png",
                 "name": "Alphabet G - L",
@@ -1603,8 +1460,7 @@
                 "outcome": "a. Writing the alphabet in Capital Letters.\nb. Writing the alphabet in capital and small letters, eg.\nAa, Bb, Cc, Dd, Ee, Ff, Gg"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0516",
                 "image": "sl_en2_mp0516.png",
                 "name": "Revision G - L",
@@ -1617,14 +1473,12 @@
                 "id": "sl_en2_mp_challenge26",
                 "name": "Challenge 26",
                 "image": "sl_en2_mp_challenge26.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0517",
                 "image": "sl_en2_mp0517.png",
                 "name": "Alphabet M - S",
@@ -1634,8 +1488,7 @@
                 "outcome": "a. Writing the alphabet in Capital Letters.\nb. Writing the alphabet in capital and small letters, eg.\nAa, Bb, Cc, Dd, Ee, Ff, Gg"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0518",
                 "image": "sl_en2_mp0518.png",
                 "name": "Revision M - S",
@@ -1645,8 +1498,7 @@
                 "outcome": "a. Writing the alphabet in Capital Letters.\nb. Writing the alphabet in capital and small letters, eg.\nAa, Bb, Cc, Dd, Ee, Ff, Gg"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0519",
                 "image": "sl_en2_mp0519.png",
                 "name": "Alphabet T - Z",
@@ -1656,8 +1508,7 @@
                 "outcome": "a. Writing the alphabet in Capital Letters.\nb. Writing the alphabet in capital and small letters, eg.\nAa, Bb, Cc, Dd, Ee, Ff, Gg"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0520",
                 "image": "sl_en2_mp0520.png",
                 "name": "Revision T - Z",
@@ -1667,8 +1518,7 @@
                 "outcome": "a. Writing the alphabet in Capital Letters.\nb. Writing the alphabet in capital and small letters, eg.\nAa, Bb, Cc, Dd, Ee, Ff, Gg"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0521",
                 "image": "sl_en2_mp0521.png",
                 "name": "Revision Aa-Zz",
@@ -1681,8 +1531,7 @@
                 "id": "sl_en2_mp_challenge27",
                 "name": "Challenge 27",
                 "image": "sl_en2_mp_challenge27.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -1694,8 +1543,7 @@
             "name": "Unit 7",
             "lessons": [
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0600",
                 "image": "sl_en2_mp0600.png",
                 "name": "Reading Time",
@@ -1705,8 +1553,7 @@
                 "outcome": "Reading time on Analog clock. Learning to say time by seeing clock."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0601",
                 "image": "sl_en2_mp0601.png",
                 "name": "Sentences with article 'an'",
@@ -1716,8 +1563,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0602",
                 "image": "sl_en2_mp0602.png",
                 "name": "Action Words - 1",
@@ -1727,8 +1573,7 @@
                 "outcome": "Pupils should identify actions as verbs, relating to their daily activities."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0603",
                 "image": "sl_en2_mp0603.png",
                 "name": "Action Words -2",
@@ -1738,8 +1583,7 @@
                 "outcome": "Pupils should identify actions as verbs, relating to their daily activities."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0604",
                 "image": "sl_en2_mp0604.png",
                 "name": "Verbs Practice",
@@ -1749,8 +1593,7 @@
                 "outcome": "Pupils should identify actions as verbs, relating to their daily activities."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0605",
                 "image": "sl_en2_mp0605.png",
                 "name": "Sentences with verb in present tense",
@@ -1763,8 +1606,7 @@
                 "id": "sl_en2_mp_challenge28",
                 "name": "Challenge 28",
                 "image": "sl_en2_mp_challenge28.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -1776,8 +1618,7 @@
             "name": "Unit 8",
             "lessons": [
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0700",
                 "image": "sl_en2_mp0700.png",
                 "name": "Demonstrative Words",
@@ -1787,8 +1628,7 @@
                 "outcome": "Use of singular and plural nouns in sentences."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0701",
                 "image": "sl_en2_mp0701.png",
                 "name": "Count",
@@ -1798,8 +1638,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0702",
                 "image": "sl_en2_mp0702.png",
                 "name": "p",
@@ -1809,8 +1648,7 @@
                 "outcome": "Learn alphabet p, i, and g. Learn words starting with the above mentioned alphabet."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0703",
                 "image": "sl_en2_mp0703.png",
                 "name": "g",
@@ -1820,8 +1658,7 @@
                 "outcome": "Learn alphabet p, i, and g. Learn words starting with the above mentioned alphabet."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0704",
                 "image": "sl_en2_mp0704.png",
                 "name": "i",
@@ -1834,14 +1671,12 @@
                 "id": "sl_en2_mp_challenge29",
                 "name": "Challenge 29",
                 "image": "sl_en2_mp_challenge29.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0705",
                 "image": "sl_en2_mp0705.png",
                 "name": "5 letters",
@@ -1851,8 +1686,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0706",
                 "image": "sl_en2_mp0706.png",
                 "name": "6 letters",
@@ -1862,8 +1696,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0707",
                 "image": "sl_en2_mp0707.png",
                 "name": "Past- Tense",
@@ -1873,8 +1706,7 @@
                 "outcome": "Learn Verb tenses."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0708",
                 "image": "sl_en2_mp0708.png",
                 "name": "Present Tense",
@@ -1884,8 +1716,7 @@
                 "outcome": "Learn Verb tenses."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0709",
                 "image": "sl_en2_mp0709.png",
                 "name": "Future- Tense",
@@ -1895,8 +1726,7 @@
                 "outcome": "Learn Verb tenses."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0710",
                 "image": "sl_en2_mp0710.png",
                 "name": "What I do",
@@ -1906,8 +1736,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0711",
                 "image": "sl_en2_mp0711.png",
                 "name": "What I did",
@@ -1920,14 +1749,12 @@
                 "id": "sl_en2_mp_challenge30",
                 "name": "Challenge 30",
                 "image": "sl_en2_mp_challenge30.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0712",
                 "image": "sl_en2_mp0712.png",
                 "name": "What I am doing",
@@ -1937,8 +1764,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0713",
                 "image": "sl_en2_mp0713.png",
                 "name": "Type Alpahbet",
@@ -1948,8 +1774,7 @@
                 "outcome": "Learn digital skills of typing words"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0714",
                 "image": "sl_en2_mp0714.png",
                 "name": "Type Words",
@@ -1962,8 +1787,7 @@
                 "id": "sl_en2_mp_challenge31",
                 "name": "Challenge 31",
                 "image": "sl_en2_mp_challenge31.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -1975,8 +1799,7 @@
             "name": "Unit 9",
             "lessons": [
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0800",
                 "image": "sl_en2_mp0800.png",
                 "name": "Demonstrative words",
@@ -1986,8 +1809,7 @@
                 "outcome": "Improve English comprehension."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0801",
                 "image": "sl_en2_mp0801.png",
                 "name": "Possesive Pronouns",
@@ -1997,8 +1819,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0802",
                 "image": "sl_en2_mp0802.png",
                 "name": "Possesive Pronouns 1",
@@ -2008,8 +1829,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0803",
                 "image": "sl_en2_mp0803.png",
                 "name": "I Feel",
@@ -2019,8 +1839,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0804",
                 "image": "sl_en2_mp0804.png",
                 "name": "l",
@@ -2033,14 +1852,12 @@
                 "id": "sl_en2_mp_challenge32",
                 "name": "Challenge 32",
                 "image": "sl_en2_mp_challenge32.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0805",
                 "image": "sl_en2_mp0805.png",
                 "name": "u",
@@ -2050,8 +1867,7 @@
                 "outcome": "Learn alphabet l, u, and j. Learn words starting with the above mentioned alphabet."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0806",
                 "image": "sl_en2_mp0806.png",
                 "name": "j",
@@ -2061,8 +1877,7 @@
                 "outcome": "Learn alphabet l, u, and j. Learn words starting with the above mentioned alphabet."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0807",
                 "image": "sl_en2_mp0807.png",
                 "name": "Fill Right Adjectives",
@@ -2072,8 +1887,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0808",
                 "image": "sl_en2_mp0808.png",
                 "name": "Tag Adjectives",
@@ -2086,14 +1900,12 @@
                 "id": "sl_en2_mp_challenge33",
                 "name": "Challenge 33",
                 "image": "sl_en2_mp_challenge33.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0809",
                 "image": "sl_en2_mp0809.png",
                 "name": "Write Adjectives",
@@ -2103,8 +1915,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0810",
                 "image": "sl_en2_mp0810.png",
                 "name": "Sentences ending with adjectives",
@@ -2114,8 +1925,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0811",
                 "image": "sl_en2_mp0811.png",
                 "name": "Describe",
@@ -2125,8 +1935,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0812",
                 "image": "sl_en2_mp0812.png",
                 "name": "He",
@@ -2136,8 +1945,7 @@
                 "outcome": "Learn use of pronouns in sentences."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0813",
                 "image": "sl_en2_mp0813.png",
                 "name": "She",
@@ -2150,14 +1958,12 @@
                 "id": "sl_en2_mp_challenge34",
                 "name": "Challenge 34",
                 "image": "sl_en2_mp_challenge34.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0814",
                 "image": "sl_en2_mp0814.png",
                 "name": "You",
@@ -2167,8 +1973,7 @@
                 "outcome": "Learn use of pronouns in sentences."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0815",
                 "image": "sl_en2_mp0815.png",
                 "name": "They",
@@ -2178,8 +1983,7 @@
                 "outcome": "Learn use of pronouns in sentences."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0816",
                 "image": "sl_en2_mp0816.png",
                 "name": "It",
@@ -2189,8 +1993,7 @@
                 "outcome": "Learn use of pronouns in sentences."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0817",
                 "image": "sl_en2_mp0817.png",
                 "name": "I",
@@ -2200,8 +2003,7 @@
                 "outcome": "Learn use of pronouns in sentences."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0818",
                 "image": "sl_en2_mp0818.png",
                 "name": "We",
@@ -2214,8 +2016,7 @@
                 "id": "sl_en2_mp_challenge35",
                 "name": "Challenge 35",
                 "image": "sl_en2_mp_challenge35.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -2227,8 +2028,7 @@
             "name": "Unit 10",
             "lessons": [
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0900",
                 "image": "sl_en2_mp0900.png",
                 "name": "Large Sentences",
@@ -2238,8 +2038,7 @@
                 "outcome": "English comprehension. Learn to create sentences."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0901",
                 "image": "sl_en2_mp0901.png",
                 "name": "Sentences Starting With Pronouns",
@@ -2249,8 +2048,7 @@
                 "outcome": "English comprehension. Learn to create sentences."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0902",
                 "image": "sl_en2_mp0902.png",
                 "name": "Negative Sentences",
@@ -2260,8 +2058,7 @@
                 "outcome": "English comprehension. Learn to create sentences."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0903",
                 "image": "sl_en2_mp0903.png",
                 "name": "Large Sentences",
@@ -2271,8 +2068,7 @@
                 "outcome": "English comprehension. Learn to create sentences."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0904",
                 "image": "sl_en2_mp0904.png",
                 "name": "Sentences Starting With Pronouns",
@@ -2282,8 +2078,7 @@
                 "outcome": "English comprehension. Learn to create sentences."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp0905",
                 "image": "sl_en2_mp0905.png",
                 "name": "Beginning Sounds - 1",
@@ -2293,8 +2088,7 @@
                 "outcome": "English comprehension. Learn to create sentences."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp0906",
                 "image": "sl_en2_mp0906.png",
                 "name": "Beginning Sounds - 2",
@@ -2307,14 +2101,12 @@
                 "id": "sl_en2_mp_challenge36",
                 "name": "Challenge 36",
                 "image": "sl_en2_mp_challenge36.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp0907",
                 "image": "sl_en2_mp0907.png",
                 "name": "Period -Sentence Ending",
@@ -2324,8 +2116,7 @@
                 "outcome": "Pupils should identify\nstatement which end with a\nperiod/full stop (.) and an\nasking sentence ending\nwith a question mark (?)"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp0908",
                 "image": "sl_en2_mp0908.png",
                 "name": "Word Space",
@@ -2335,8 +2126,7 @@
                 "outcome": "Pupils should identify\nstatement which end with a\nperiod/full stop (.) and an\nasking sentence ending\nwith a question mark (?)"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp0909",
                 "image": "sl_en2_mp0909.png",
                 "name": "Practice 1",
@@ -2346,8 +2136,7 @@
                 "outcome": "Pupils should identify\nstatement which end with a\nperiod/full stop (.) and an\nasking sentence ending\nwith a question mark (?)"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp0910",
                 "image": "sl_en2_mp0910.png",
                 "name": "Question Mark",
@@ -2360,8 +2149,7 @@
                 "id": "sl_en2_mp_challenge37",
                 "name": "Challenge 37",
                 "image": "sl_en2_mp_challenge37.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -2373,8 +2161,7 @@
             "name": "Unit 11",
             "lessons": [
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1000",
                 "image": "sl_en2_mp1000.png",
                 "name": "Food",
@@ -2384,8 +2171,7 @@
                 "outcome": "Learn the names of vegetable and fruit."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1001",
                 "image": "sl_en2_mp1001.png",
                 "name": "Fruits and Vegetables",
@@ -2395,8 +2181,7 @@
                 "outcome": "Learn the names of vegetable and fruit."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1002",
                 "image": "sl_en2_mp1002.png",
                 "name": "o",
@@ -2406,8 +2191,7 @@
                 "outcome": "Learn alphabet o, q, and v. Learn words starting with the above mentioned alphabet."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1003",
                 "image": "sl_en2_mp1003.png",
                 "name": "q",
@@ -2417,8 +2201,7 @@
                 "outcome": "Learn alphabet o, q, and v. Learn words starting with the above mentioned alphabet."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1004",
                 "image": "sl_en2_mp1004.png",
                 "name": "v",
@@ -2431,14 +2214,12 @@
                 "id": "sl_en2_mp_challenge38",
                 "name": "Challenge 38",
                 "image": "sl_en2_mp_challenge38.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1005",
                 "image": "sl_en2_mp1005.png",
                 "name": "ad",
@@ -2448,8 +2229,7 @@
                 "outcome": "Reading practice. Formation of words."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1006",
                 "image": "sl_en2_mp1006.png",
                 "name": "at",
@@ -2459,8 +2239,7 @@
                 "outcome": "Reading practice. Formation of words."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1007",
                 "image": "sl_en2_mp1007.png",
                 "name": "an",
@@ -2470,8 +2249,7 @@
                 "outcome": "Reading practice. Formation of words."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1008",
                 "image": "sl_en2_mp1008.png",
                 "name": "am",
@@ -2484,14 +2262,12 @@
                 "id": "sl_en2_mp_challenge39",
                 "name": "Challenge 39",
                 "image": "sl_en2_mp_challenge39.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1009",
                 "image": "sl_en2_mp1009.png",
                 "name": "ap",
@@ -2501,8 +2277,7 @@
                 "outcome": "Reading practice. Formation of words."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1010",
                 "image": "sl_en2_mp1010.png",
                 "name": "ag, ay",
@@ -2512,8 +2287,7 @@
                 "outcome": "Reading practice. Formation of words."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1011",
                 "image": "sl_en2_mp1011.png",
                 "name": "ain",
@@ -2523,8 +2297,7 @@
                 "outcome": "Reading practice. Formation of words."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1012",
                 "image": "sl_en2_mp1012.png",
                 "name": "art, air, are",
@@ -2537,14 +2310,12 @@
                 "id": "sl_en2_mp_challenge40",
                 "name": "Challenge 40",
                 "image": "sl_en2_mp_challenge40.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1013",
                 "image": "sl_en2_mp1013.png",
                 "name": "ake",
@@ -2554,8 +2325,7 @@
                 "outcome": "Reading practice. Formation of words."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1014",
                 "image": "sl_en2_mp1014.png",
                 "name": "ane, ave",
@@ -2565,8 +2335,7 @@
                 "outcome": "Reading practice. Formation of words."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1015",
                 "image": "sl_en2_mp1015.png",
                 "name": "ale, ate, ade",
@@ -2576,8 +2345,7 @@
                 "outcome": "Reading practice. Formation of words."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1016",
                 "image": "sl_en2_mp1016.png",
                 "name": "ace, ase, ape",
@@ -2587,8 +2355,7 @@
                 "outcome": "Reading practice. Formation of words."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1017",
                 "image": "sl_en2_mp1017.png",
                 "name": "amp, ank, ail",
@@ -2598,8 +2365,7 @@
                 "outcome": "Reading practice. Formation of words."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1018",
                 "image": "sl_en2_mp1018.png",
                 "name": "ark, all",
@@ -2612,8 +2378,7 @@
                 "id": "sl_en2_mp_challenge41",
                 "name": "Challenge 41",
                 "image": "sl_en2_mp_challenge41.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -2625,8 +2390,7 @@
             "name": "Unit 12",
             "lessons": [
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1100",
                 "image": "sl_en2_mp1100.png",
                 "name": "Reading Time",
@@ -2636,8 +2400,7 @@
                 "outcome": "Reading time by looking at clock face. Relating time to the work we do."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1101",
                 "image": "sl_en2_mp1101.png",
                 "name": "Match Time",
@@ -2647,8 +2410,7 @@
                 "outcome": "Reading time by looking at clock face. Relating time to the work we do."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1102",
                 "image": "sl_en2_mp1102.png",
                 "name": "Day and Night",
@@ -2658,8 +2420,7 @@
                 "outcome": "Reading time by looking at clock face. Relating time to the work we do."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1103",
                 "image": "sl_en2_mp1103.png",
                 "name": "Night and Day",
@@ -2669,8 +2430,7 @@
                 "outcome": "Reading time by looking at clock face. Relating time to the work we do."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1104",
                 "image": "sl_en2_mp1104.png",
                 "name": "Practice",
@@ -2683,14 +2443,12 @@
                 "id": "sl_en2_mp_challenge42",
                 "name": "Challenge 42",
                 "image": "sl_en2_mp_challenge42.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1105",
                 "image": "sl_en2_mp1105.png",
                 "name": "k",
@@ -2700,8 +2458,7 @@
                 "outcome": "Learn alphabet k, x, y, and z. Learn words starting with the above mentioned alphabet."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1106",
                 "image": "sl_en2_mp1106.png",
                 "name": "x",
@@ -2711,8 +2468,7 @@
                 "outcome": "Learn alphabet k, x, y, and z. Learn words starting with the above mentioned alphabet."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1107",
                 "image": "sl_en2_mp1107.png",
                 "name": "y",
@@ -2722,8 +2478,7 @@
                 "outcome": "Learn alphabet k, x, y, and z. Learn words starting with the above mentioned alphabet."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1108",
                 "image": "sl_en2_mp1108.png",
                 "name": "z",
@@ -2733,8 +2488,7 @@
                 "outcome": "Learn alphabet k, x, y, and z. Learn words starting with the above mentioned alphabet."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1109",
                 "image": "sl_en2_mp1109.png",
                 "name": "Beginning Sounds - 3",
@@ -2744,8 +2498,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1110",
                 "image": "sl_en2_mp1110.png",
                 "name": "Beginning Sounds - 4",
@@ -2758,14 +2511,12 @@
                 "id": "sl_en2_mp_challenge43",
                 "name": "Challenge 43",
                 "image": "sl_en2_mp_challenge43.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1111",
                 "image": "sl_en2_mp1111.png",
                 "name": "Beginning Sounds - 5",
@@ -2775,8 +2526,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1112",
                 "image": "sl_en2_mp1112.png",
                 "name": "Prepositions",
@@ -2786,8 +2536,7 @@
                 "outcome": "a. Definition and simple examples\nof prepositions in, out, on, by,\nto, at etc.\nb. Illustrations and uses of\nprepositions in simple\nsentences e.g. The toys are on\nthe table."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1113",
                 "image": "sl_en2_mp1113.png",
                 "name": "Prepositions 2",
@@ -2797,8 +2546,7 @@
                 "outcome": "a. Definition and simple examples\nof prepositions in, out, on, by,\nto, at etc.\nb. Illustrations and uses of\nprepositions in simple\nsentences e.g. The toys are on\nthe table."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1114",
                 "image": "sl_en2_mp1114.png",
                 "name": "Prepositions 3",
@@ -2811,8 +2559,7 @@
                 "id": "sl_en2_mp_challenge44",
                 "name": "Challenge 44",
                 "image": "sl_en2_mp_challenge44.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -2824,8 +2571,7 @@
             "name": "Unit 13",
             "lessons": [
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1200",
                 "image": "sl_en2_mp1200.png",
                 "name": "Count",
@@ -2835,8 +2581,7 @@
                 "outcome": "Communication skills. General talk during shopping."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1201",
                 "image": "sl_en2_mp1201.png",
                 "name": "Describe",
@@ -2846,8 +2591,7 @@
                 "outcome": "Communication skills. General talk during shopping."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1202",
                 "image": "sl_en2_mp1202.png",
                 "name": "Colours",
@@ -2857,8 +2601,7 @@
                 "outcome": "Communication skills. General talk during shopping."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1203",
                 "image": "sl_en2_mp1203.png",
                 "name": "Fill Right Adjectives",
@@ -2868,8 +2611,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1204",
                 "image": "sl_en2_mp1204.png",
                 "name": "Sentences ending with adjectives",
@@ -2879,8 +2621,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1205",
                 "image": "sl_en2_mp1205.png",
                 "name": "Describe",
@@ -2890,8 +2631,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1206",
                 "image": "sl_en2_mp1206.png",
                 "name": "Comparison",
@@ -2901,8 +2641,7 @@
                 "outcome": "Comparison in adjectives"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1207",
                 "image": "sl_en2_mp1207.png",
                 "name": "More Comparisons",
@@ -2915,8 +2654,7 @@
                 "id": "sl_en2_mp_challenge45",
                 "name": "Challenge 45",
                 "image": "sl_en2_mp_challenge45.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -2928,8 +2666,7 @@
             "name": "Unit 14",
             "lessons": [
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1300",
                 "image": "sl_en2_mp1300.png",
                 "name": "Medial Sounds",
@@ -2939,8 +2676,7 @@
                 "outcome": "Comprehension. Reading practice."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1301",
                 "image": "sl_en2_mp1301.png",
                 "name": "Medial Sounds II",
@@ -2950,8 +2686,7 @@
                 "outcome": "Comprehension. Reading practice."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1302",
                 "image": "sl_en2_mp1302.png",
                 "name": "Ending Sounds",
@@ -2961,8 +2696,7 @@
                 "outcome": "Comprehension. Reading practice."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1303",
                 "image": "sl_en2_mp1303.png",
                 "name": "Prepositions",
@@ -2972,8 +2706,7 @@
                 "outcome": "Prepositions. Know the placement of objects/people etc."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1304",
                 "image": "sl_en2_mp1304.png",
                 "name": "Prepositions 2",
@@ -2986,14 +2719,12 @@
                 "id": "sl_en2_mp_challenge46",
                 "name": "Challenge 46",
                 "image": "sl_en2_mp_challenge46.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1305",
                 "image": "sl_en2_mp1305.png",
                 "name": "Prepositions 3",
@@ -3003,8 +2734,7 @@
                 "outcome": "Prepositions. Know the placement of objects/people etc."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1306",
                 "image": "sl_en2_mp1306.png",
                 "name": "Beginning Sounds - 1",
@@ -3014,8 +2744,7 @@
                 "outcome": "Learn beginning sounds. For eg. a for ant etc"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1307",
                 "image": "sl_en2_mp1307.png",
                 "name": "Beginning Sounds - 2",
@@ -3025,8 +2754,7 @@
                 "outcome": "Learn beginning sounds. For eg. a for ant etc"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1308",
                 "image": "sl_en2_mp1308.png",
                 "name": "Beginning Sounds - 3",
@@ -3039,14 +2767,12 @@
                 "id": "sl_en2_mp_challenge47",
                 "name": "Challenge 47",
                 "image": "sl_en2_mp_challenge47.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1309",
                 "image": "sl_en2_mp1309.png",
                 "name": "Beginning Sounds - 4",
@@ -3056,8 +2782,7 @@
                 "outcome": "Learn beginning sounds. For eg. a for ant etc"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1310",
                 "image": "sl_en2_mp1310.png",
                 "name": "Beginning Sounds - 5",
@@ -3067,8 +2792,7 @@
                 "outcome": "Learn beginning sounds. For eg. a for ant etc"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1311",
                 "image": "sl_en2_mp1311.png",
                 "name": "Count",
@@ -3078,8 +2802,7 @@
                 "outcome": "Pupils should identify\nnumbers in their cardinal\nas well as ordinal forms.\nThey should the cardinal forms\nof numbers and the ordinal\nforms too, in simple sentences\nlike telling totals and dates."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1312",
                 "image": "sl_en2_mp1312.png",
                 "name": "Number Names",
@@ -3092,14 +2815,12 @@
                 "id": "sl_en2_mp_challenge48",
                 "name": "Challenge 48",
                 "image": "sl_en2_mp_challenge48.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1313",
                 "image": "sl_en2_mp1313.png",
                 "name": "Number Names 2",
@@ -3109,8 +2830,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1314",
                 "image": "sl_en2_mp1314.png",
                 "name": "Number Names 3",
@@ -3120,8 +2840,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1315",
                 "image": "sl_en2_mp1315.png",
                 "name": "Number Names 4",
@@ -3131,8 +2850,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1316",
                 "image": "sl_en2_mp1316.png",
                 "name": "Number Names 5",
@@ -3145,14 +2863,12 @@
                 "id": "sl_en2_mp_challenge49",
                 "name": "Challenge 49",
                 "image": "sl_en2_mp_challenge49.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1317",
                 "image": "sl_en2_mp1317.png",
                 "name": "Number Names 6",
@@ -3162,8 +2878,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1318",
                 "image": "sl_en2_mp1318.png",
                 "name": "Number Names 7",
@@ -3173,8 +2888,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1319",
                 "image": "sl_en2_mp1319.png",
                 "name": "Number Names 8",
@@ -3184,8 +2898,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1320",
                 "image": "sl_en2_mp1320.png",
                 "name": "Ordinal Counting",
@@ -3198,14 +2911,12 @@
                 "id": "sl_en2_mp_challenge50",
                 "name": "Challenge 50",
                 "image": "sl_en2_mp_challenge50.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1321",
                 "image": "sl_en2_mp1321.png",
                 "name": "Ordinal Counting 1",
@@ -3215,8 +2926,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1322",
                 "image": "sl_en2_mp1322.png",
                 "name": "Ordinal Counting 2",
@@ -3226,8 +2936,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1323",
                 "image": "sl_en2_mp1323.png",
                 "name": "Ordinal Counting 3",
@@ -3237,8 +2946,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1324",
                 "image": "sl_en2_mp1324.png",
                 "name": "Sequences",
@@ -3251,8 +2959,7 @@
                 "id": "sl_en2_mp_challenge51",
                 "name": "Challenge 51",
                 "image": "sl_en2_mp_challenge51.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -3264,8 +2971,7 @@
             "name": "Unit 15",
             "lessons": [
               {
-                "color": "#5A3985",
-                "pattern": "RainyPattern.png",
+                "color": "",
                 "id": "sl_en2_mp1400",
                 "image": "sl_en2_mp1400.png",
                 "name": "Morning Routine",
@@ -3275,8 +2981,7 @@
                 "outcome": "Morning Routine"
               },
               {
-                "color": "#5A3985",
-                "pattern": "RainyPattern.png",
+                "color": "",
                 "id": "sl_en2_mp1403",
                 "image": "sl_en2_mp1403.png",
                 "name": "Revision Aa-Zz",
@@ -3286,8 +2991,7 @@
                 "outcome": "Match Upper case alphabet with lower case"
               },
               {
-                "color": "#5A3985",
-                "pattern": "RainyPattern.png",
+                "color": "",
                 "id": "sl_en2_mp1404",
                 "image": "sl_en2_mp1404.png",
                 "name": "Period  Sentence Ending",
@@ -3300,14 +3004,12 @@
                 "id": "sl_en2_mp_challenge52",
                 "name": "Challenge 52",
                 "image": "sl_en2_mp_challenge52.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1405",
                 "image": "sl_en2_mp1405.png",
                 "name": "Word Space",
@@ -3317,8 +3019,7 @@
                 "outcome": "Learn punctuations like period, space between words, use of commas, etc."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1406",
                 "image": "sl_en2_mp1406.png",
                 "name": "Practice 1",
@@ -3328,8 +3029,7 @@
                 "outcome": "Learn punctuations like period, space between words, use of commas, etc."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1407",
                 "image": "sl_en2_mp1407.png",
                 "name": "Question Mark",
@@ -3339,8 +3039,7 @@
                 "outcome": "Learn punctuations like period, space between words, use of commas, etc."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1408",
                 "image": "sl_en2_mp1408.png",
                 "name": "Capitalization",
@@ -3353,8 +3052,7 @@
                 "id": "sl_en2_mp_challenge53",
                 "name": "Challenge 53",
                 "image": "sl_en2_mp_challenge53.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -3366,8 +3064,7 @@
             "name": "Unit 16",
             "lessons": [
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1500",
                 "image": "sl_en2_mp1500.png",
                 "name": "Days of the week",
@@ -3377,8 +3074,7 @@
                 "outcome": "Days of the week"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1501",
                 "image": "sl_en2_mp1501.png",
                 "name": "Days of the week 1",
@@ -3388,8 +3084,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1502",
                 "image": "sl_en2_mp1502.png",
                 "name": "Revision Aa-Zz",
@@ -3399,8 +3094,7 @@
                 "outcome": "Match Upper case alphabet with lower case"
               },
               {
-                "color": "#5A3985",
-                "pattern": "RainyPattern.png",
+                "color": "",
                 "id": "sl_en2_mp1503",
                 "image": "sl_en2_mp1503.png",
                 "name": "Day Routine",
@@ -3410,8 +3104,7 @@
                 "outcome": "Day Routine"
               },
               {
-                "color": "#5A3985",
-                "pattern": "RainyPattern.png",
+                "color": "",
                 "id": "sl_en2_mp1504",
                 "image": "sl_en2_mp1504.png",
                 "name": "Night Routine",
@@ -3421,8 +3114,7 @@
                 "outcome": "Daily routine"
               },
               {
-                "color": "#5A3985",
-                "pattern": "RainyPattern.png",
+                "color": "",
                 "id": "sl_en2_mp1505",
                 "image": "sl_en2_mp1505.png",
                 "name": "World",
@@ -3435,8 +3127,7 @@
                 "id": "sl_en2_mp_challenge54",
                 "name": "Challenge 54",
                 "image": "sl_en2_mp_challenge54.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -3448,8 +3139,7 @@
             "name": "Unit 17",
             "lessons": [
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1600",
                 "image": "sl_en2_mp1600.png",
                 "name": "Verbs Practice",
@@ -3459,8 +3149,7 @@
                 "outcome": "Creating sentences with verbs and nouns. Plural forms of nouns."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1601",
                 "image": "sl_en2_mp1601.png",
                 "name": "Sentences with verb in present tense",
@@ -3470,8 +3159,7 @@
                 "outcome": "Creating sentences with verbs and nouns. Plural forms of nouns."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1602",
                 "image": "sl_en2_mp1602.png",
                 "name": "Uncountable Nouns",
@@ -3481,8 +3169,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1603",
                 "image": "sl_en2_mp1603.png",
                 "name": "Countable nouns",
@@ -3492,8 +3179,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1604",
                 "image": "sl_en2_mp1604.png",
                 "name": "Revision Aa-Zz",
@@ -3506,14 +3192,12 @@
                 "id": "sl_en2_mp_challenge55",
                 "name": "Challenge 55",
                 "image": "sl_en2_mp_challenge55.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1605",
                 "image": "sl_en2_mp1605.png",
                 "name": "Fill Right Words",
@@ -3523,8 +3207,7 @@
                 "outcome": "Singular and plural words in sentences."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1606",
                 "image": "sl_en2_mp1606.png",
                 "name": "Fill Plural Form",
@@ -3534,8 +3217,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1607",
                 "image": "sl_en2_mp1607.png",
                 "name": "ad",
@@ -3545,8 +3227,7 @@
                 "outcome": "Rhyming words"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1608",
                 "image": "sl_en2_mp1608.png",
                 "name": "at",
@@ -3559,14 +3240,12 @@
                 "id": "sl_en2_mp_challenge56",
                 "name": "Challenge 56",
                 "image": "sl_en2_mp_challenge56.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1609",
                 "image": "sl_en2_mp1609.png",
                 "name": "an",
@@ -3576,8 +3255,7 @@
                 "outcome": "Rhyming words"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1610",
                 "image": "sl_en2_mp1610.png",
                 "name": "am",
@@ -3587,8 +3265,7 @@
                 "outcome": "Rhyming words"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1611",
                 "image": "sl_en2_mp1611.png",
                 "name": "en,ed",
@@ -3598,8 +3275,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1612",
                 "image": "sl_en2_mp1612.png",
                 "name": "et",
@@ -3612,14 +3288,12 @@
                 "id": "sl_en2_mp_challenge57",
                 "name": "Challenge 57",
                 "image": "sl_en2_mp_challenge57.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1613",
                 "image": "sl_en2_mp1613.png",
                 "name": "id, ide",
@@ -3629,8 +3303,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1614",
                 "image": "sl_en2_mp1614.png",
                 "name": "it, ite",
@@ -3640,8 +3313,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1615",
                 "image": "sl_en2_mp1615.png",
                 "name": "in, ing, ink",
@@ -3651,8 +3323,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1616",
                 "image": "sl_en2_mp1616.png",
                 "name": "og, ox",
@@ -3665,14 +3336,12 @@
                 "id": "sl_en2_mp_challenge58",
                 "name": "Challenge 58",
                 "image": "sl_en2_mp_challenge58.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1617",
                 "image": "sl_en2_mp1617.png",
                 "name": "ot",
@@ -3682,8 +3351,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1618",
                 "image": "sl_en2_mp1618.png",
                 "name": "op,",
@@ -3693,8 +3361,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1619",
                 "image": "sl_en2_mp1619.png",
                 "name": "un",
@@ -3704,8 +3371,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1620",
                 "image": "sl_en2_mp1620.png",
                 "name": "ug",
@@ -3718,8 +3384,7 @@
                 "id": "sl_en2_mp_challenge59",
                 "name": "Challenge 59",
                 "image": "sl_en2_mp_challenge59.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -3731,8 +3396,7 @@
             "name": "Unit 18",
             "lessons": [
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1700",
                 "image": "sl_en2_mp1700.png",
                 "name": "Nouns- My Body",
@@ -3742,8 +3406,7 @@
                 "outcome": "Know your body parts"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1701",
                 "image": "sl_en2_mp1701.png",
                 "name": "My Body 3",
@@ -3753,8 +3416,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1702",
                 "image": "sl_en2_mp1702.png",
                 "name": "My Body 4",
@@ -3764,8 +3426,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1703",
                 "image": "sl_en2_mp1703.png",
                 "name": "Revision Aa-Zz",
@@ -3775,8 +3436,7 @@
                 "outcome": "Match Upper case alphabet with lower case"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1704",
                 "image": "sl_en2_mp1704.png",
                 "name": "Colours",
@@ -3786,8 +3446,7 @@
                 "outcome": "Identify colours of different\nobjects in and out of the\nclassroom and use them to\nanswer simple questions."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1705",
                 "image": "sl_en2_mp1705.png",
                 "name": "Rainbow",
@@ -3797,8 +3456,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1706",
                 "image": "sl_en2_mp1706.png",
                 "name": "I Am Wearing...",
@@ -3808,8 +3466,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1707",
                 "image": "sl_en2_mp1707.png",
                 "name": "My Colour",
@@ -3822,8 +3479,7 @@
                 "id": "sl_en2_mp_challenge60",
                 "name": "Challenge 60",
                 "image": "sl_en2_mp_challenge60.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -3835,8 +3491,7 @@
             "name": "Unit 19",
             "lessons": [
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1800",
                 "image": "sl_en2_mp1800.png",
                 "name": "Reading Time",
@@ -3846,8 +3501,7 @@
                 "outcome": "Reading Time"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1801",
                 "image": "sl_en2_mp1801.png",
                 "name": "What Time Is It?",
@@ -3857,8 +3511,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1802",
                 "image": "sl_en2_mp1802.png",
                 "name": "Profession",
@@ -3868,8 +3521,7 @@
                 "outcome": "Community helpers and their profession"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1803",
                 "image": "sl_en2_mp1803.png",
                 "name": "Community Helpers 1",
@@ -3879,8 +3531,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1804",
                 "image": "sl_en2_mp1804.png",
                 "name": "Community Helpers 2",
@@ -3893,14 +3544,12 @@
                 "id": "sl_en2_mp_challenge61",
                 "name": "Challenge 61",
                 "image": "sl_en2_mp_challenge61.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1805",
                 "image": "sl_en2_mp1805.png",
                 "name": "Community Helpers 3",
@@ -3910,8 +3559,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1806",
                 "image": "sl_en2_mp1806.png",
                 "name": "Revision Aa-Zz",
@@ -3921,8 +3569,7 @@
                 "outcome": "Match Upper case alphabet with lower case"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1807",
                 "image": "sl_en2_mp1807.png",
                 "name": "Noun - Person",
@@ -3932,8 +3579,7 @@
                 "outcome": "Pupils must use capital\nletters to start:\na. Names of people\nb. Days of the week\nc. Months of the year\nNames of Places"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1808",
                 "image": "sl_en2_mp1808.png",
                 "name": "Capitalization",
@@ -3946,14 +3592,12 @@
                 "id": "sl_en2_mp_challenge62",
                 "name": "Challenge 62",
                 "image": "sl_en2_mp_challenge62.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1809",
                 "image": "sl_en2_mp1809.png",
                 "name": "Days of the week",
@@ -3963,8 +3607,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1810",
                 "image": "sl_en2_mp1810.png",
                 "name": "Days of the week 1",
@@ -3974,8 +3617,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1811",
                 "image": "sl_en2_mp1811.png",
                 "name": "Days of the week 2",
@@ -3985,8 +3627,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1812",
                 "image": "sl_en2_mp1812.png",
                 "name": "Days of the week 3",
@@ -3999,14 +3640,12 @@
                 "id": "sl_en2_mp_challenge63",
                 "name": "Challenge 63",
                 "image": "sl_en2_mp_challenge63.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1813",
                 "image": "sl_en2_mp1813.png",
                 "name": "Months of the year",
@@ -4016,8 +3655,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1814",
                 "image": "sl_en2_mp1814.png",
                 "name": "Months of the year 1",
@@ -4027,8 +3665,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1815",
                 "image": "sl_en2_mp1815.png",
                 "name": "Months of the year 2",
@@ -4038,8 +3675,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1816",
                 "image": "sl_en2_mp1816.png",
                 "name": "Months of the year 3",
@@ -4049,8 +3685,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1817",
                 "image": "sl_en2_mp1817.png",
                 "name": "Months of the year 4",
@@ -4063,8 +3698,7 @@
                 "id": "sl_en2_mp_challenge64",
                 "name": "Challenge 64",
                 "image": "sl_en2_mp_challenge64.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -4076,8 +3710,7 @@
             "name": "Unit 20",
             "lessons": [
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp1900",
                 "image": "sl_en2_mp1900.png",
                 "name": "Profession",
@@ -4087,8 +3720,7 @@
                 "outcome": "Trading by Farmer. Professions in our community."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp1901",
                 "image": "sl_en2_mp1901.png",
                 "name": "Community Helpers 1",
@@ -4098,8 +3730,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp1902",
                 "image": "sl_en2_mp1902.png",
                 "name": "Community Helpers 2",
@@ -4109,8 +3740,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp1903",
                 "image": "sl_en2_mp1903.png",
                 "name": "Community Helpers 3",
@@ -4120,8 +3750,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp1904",
                 "image": "sl_en2_mp1904.png",
                 "name": "Revision Aa-Zz",
@@ -4131,8 +3760,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp1905",
                 "image": "sl_en2_mp1905.png",
                 "name": "Revision Aa-Zz",
@@ -4145,8 +3773,7 @@
                 "id": "sl_en2_mp_challenge65",
                 "name": "Challenge 65",
                 "image": "sl_en2_mp_challenge65.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -4158,8 +3785,7 @@
             "name": "Unit 21",
             "lessons": [
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp2000",
                 "image": "sl_en2_mp2000.png",
                 "name": "Animals",
@@ -4169,8 +3795,7 @@
                 "outcome": "Learn the names of food products"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp2001",
                 "image": "sl_en2_mp2001.png",
                 "name": "Food",
@@ -4180,8 +3805,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp2002",
                 "image": "sl_en2_mp2002.png",
                 "name": "Fruits and Vegetables",
@@ -4191,8 +3815,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp2003",
                 "image": "sl_en2_mp2003.png",
                 "name": "Revision Aa-Zz",
@@ -4202,8 +3825,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp2004",
                 "image": "sl_en2_mp2004.png",
                 "name": "Adverbs",
@@ -4213,8 +3835,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp2005",
                 "image": "sl_en2_mp2005.png",
                 "name": "Sentences ending in Adverbs",
@@ -4227,8 +3848,7 @@
                 "id": "sl_en2_mp_challenge66",
                 "name": "Challenge 66",
                 "image": "sl_en2_mp_challenge66.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -4240,8 +3860,7 @@
             "name": "Unit 22",
             "lessons": [
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp2100",
                 "image": "sl_en2_mp2100.png",
                 "name": "Fill Right Adjectives",
@@ -4251,8 +3870,7 @@
                 "outcome": "Learn about adjectives and their uses in sentences."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp2101",
                 "image": "sl_en2_mp2101.png",
                 "name": "Tag Adjectives",
@@ -4262,8 +3880,7 @@
                 "outcome": "Learn about adjectives and their uses in sentences."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp2102",
                 "image": "sl_en2_mp2102.png",
                 "name": "Write Adjectives",
@@ -4273,8 +3890,7 @@
                 "outcome": "Learn about adjectives and their uses in sentences."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp2103",
                 "image": "sl_en2_mp2103.png",
                 "name": "Sentences ending with adjectives",
@@ -4284,8 +3900,7 @@
                 "outcome": "Learn about adjectives and their uses in sentences."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp2104",
                 "image": "sl_en2_mp2104.png",
                 "name": "Describe",
@@ -4298,14 +3913,12 @@
                 "id": "sl_en2_mp_challenge67",
                 "name": "Challenge 67",
                 "image": "sl_en2_mp_challenge67.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp2105",
                 "image": "sl_en2_mp2105.png",
                 "name": "Degrees Of Comparison",
@@ -4315,8 +3928,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp2106",
                 "image": "sl_en2_mp2106.png",
                 "name": "Sentences starting with 'the'",
@@ -4326,8 +3938,7 @@
                 "outcome": "Learn use of articles, 'a', 'an' and 'the'"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp2107",
                 "image": "sl_en2_mp2107.png",
                 "name": "Sentences with article 'a'",
@@ -4337,8 +3948,7 @@
                 "outcome": "Learn use of articles, 'a', 'an' and 'the'"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp2108",
                 "image": "sl_en2_mp2108.png",
                 "name": "Sentences with article 'an'",
@@ -4348,8 +3958,7 @@
                 "outcome": "Learn use of articles, 'a', 'an' and 'the'"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp2109",
                 "image": "sl_en2_mp2109.png",
                 "name": "Revision",
@@ -4362,8 +3971,7 @@
                 "id": "sl_en2_mp_challenge68",
                 "name": "Challenge 68",
                 "image": "sl_en2_mp_challenge68.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -4375,8 +3983,7 @@
             "name": "Unit 23",
             "lessons": [
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp2200",
                 "image": "sl_en2_mp2200.png",
                 "name": "Practice More Words",
@@ -4386,8 +3993,7 @@
                 "outcome": "Learn about clothes people wear."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp2201",
                 "image": "sl_en2_mp2201.png",
                 "name": "Clothes We Wear",
@@ -4397,8 +4003,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp2202",
                 "image": "sl_en2_mp2202.png",
                 "name": "Clothes We Wear 2",
@@ -4408,8 +4013,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp2203",
                 "image": "sl_en2_mp2203.png",
                 "name": "Noun - Person",
@@ -4419,8 +4023,7 @@
                 "outcome": "Learn about family"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp2204",
                 "image": "sl_en2_mp2204.png",
                 "name": "My Family",
@@ -4433,14 +4036,12 @@
                 "id": "sl_en2_mp_challenge69",
                 "name": "Challenge 69",
                 "image": "sl_en2_mp_challenge69.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp2205",
                 "image": "sl_en2_mp2205.png",
                 "name": "My Family 1",
@@ -4450,8 +4051,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp2206",
                 "image": "sl_en2_mp2206.png",
                 "name": "ad",
@@ -4461,8 +4061,7 @@
                 "outcome": "Learn how words rhyme when they end with same letters."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp2207",
                 "image": "sl_en2_mp2207.png",
                 "name": "en,ed",
@@ -4472,8 +4071,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp2208",
                 "image": "sl_en2_mp2208.png",
                 "name": "id, ide",
@@ -4486,14 +4084,12 @@
                 "id": "sl_en2_mp_challenge70",
                 "name": "Challenge 70",
                 "image": "sl_en2_mp_challenge70.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp2209",
                 "image": "sl_en2_mp2209.png",
                 "name": "ot",
@@ -4503,8 +4099,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp2210",
                 "image": "sl_en2_mp2210.png",
                 "name": "op",
@@ -4514,8 +4109,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp2211",
                 "image": "sl_en2_mp2211.png",
                 "name": "Blend 'ee'",
@@ -4525,8 +4119,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp2212",
                 "image": "sl_en2_mp2212.png",
                 "name": "Blend 'ee' 1",
@@ -4536,8 +4129,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp2213",
                 "image": "sl_en2_mp2213.png",
                 "name": "Blend 'oo'",
@@ -4547,8 +4139,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp2214",
                 "image": "sl_en2_mp2214.png",
                 "name": "Blend 'oo' 1",
@@ -4558,8 +4149,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp2215",
                 "image": "sl_en2_mp2215.png",
                 "name": "Sentences starting with 'the'",
@@ -4572,8 +4162,7 @@
                 "id": "sl_en2_mp_challenge71",
                 "name": "Challenge 71",
                 "image": "sl_en2_mp_challenge71.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -4585,8 +4174,7 @@
             "name": "Unit 24",
             "lessons": [
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp2300",
                 "image": "sl_en2_mp2300.png",
                 "name": "Degrees Of Comparison",
@@ -4596,8 +4184,7 @@
                 "outcome": "Use of superlatives"
               },
               {
-                "color": "#5A3985",
-                "pattern": "RainyPattern.png",
+                "color": "",
                 "id": "sl_en2_mp2301",
                 "image": "sl_en2_mp2301.png",
                 "name": "Longest, Tallest, Shortest",
@@ -4607,8 +4194,7 @@
                 "outcome": "Use of superlatives"
               },
               {
-                "color": "#5A3985",
-                "pattern": "RainyPattern.png",
+                "color": "",
                 "id": "sl_en2_mp2302",
                 "image": "sl_en2_mp2302.png",
                 "name": "Longest, Tallest, Shortest - 1",
@@ -4618,8 +4204,7 @@
                 "outcome": "Use of superlatives"
               },
               {
-                "color": "#5A3985",
-                "pattern": "RainyPattern.png",
+                "color": "",
                 "id": "sl_en2_mp2303",
                 "image": "sl_en2_mp2303.png",
                 "name": "Heaviest or Lightest?",
@@ -4629,8 +4214,7 @@
                 "outcome": "Use of superlatives"
               },
               {
-                "color": "#5A3985",
-                "pattern": "RainyPattern.png",
+                "color": "",
                 "id": "sl_en2_mp2304",
                 "image": "sl_en2_mp2301.png",
                 "name": "in, ing, ink",
@@ -4643,8 +4227,7 @@
                 "id": "sl_en2_mp_challenge72",
                 "name": "Challenge 72",
                 "image": "sl_en2_mp_challenge72.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -4656,8 +4239,7 @@
             "name": "Unit 25",
             "lessons": [
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp2400",
                 "image": "sl_en2_mp2400.png",
                 "name": "Past- Tense",
@@ -4667,8 +4249,7 @@
                 "outcome": "Understand how verb changes when we are talking about yesterday and today."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp2401",
                 "image": "sl_en2_mp2401.png",
                 "name": "When?",
@@ -4678,8 +4259,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp2402",
                 "image": "sl_en2_mp2402.png",
                 "name": "My Body 1",
@@ -4689,8 +4269,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp2403",
                 "image": "sl_en2_mp2403.png",
                 "name": "My Body 2",
@@ -4700,8 +4279,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp2404",
                 "image": "sl_en2_mp2404.png",
                 "name": "Declarative/Assertive Sentence",
@@ -4711,8 +4289,7 @@
                 "outcome": "❖ Pupils should identify and\nwrite upper and lower cases\nof the small letters of the\nalphabet.\n❖ They should clearly write\nsimple sentences with\nemphasis on upper and lower\nase letters."
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp2405",
                 "image": "sl_en2_mp2405.png",
                 "name": "Interrogative Sentences",
@@ -4722,8 +4299,7 @@
                 "outcome": "❖ Pupils should identify and\nwrite upper and lower cases\nof the small letters of the\nalphabet.\n❖ They should clearly write\nsimple sentences with\nemphasis on upper and lower\nase letters."
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp2406",
                 "image": "sl_en2_mp2406.png",
                 "name": "Negative Sentences",
@@ -4733,8 +4309,7 @@
                 "outcome": "❖ Pupils should identify and\nwrite upper and lower cases\nof the small letters of the\nalphabet.\n❖ They should clearly write\nsimple sentences with\nemphasis on upper and lower\nase letters."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp2407",
                 "image": "sl_en2_mp2407.png",
                 "name": "Large Sentences",
@@ -4747,8 +4322,7 @@
                 "id": "sl_en2_mp_challenge73",
                 "name": "Challenge 73",
                 "image": "sl_en2_mp_challenge73.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -4760,8 +4334,7 @@
             "name": "Unit 26",
             "lessons": [
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp2500",
                 "image": "sl_en2_mp2500.png",
                 "name": "When?",
@@ -4771,8 +4344,7 @@
                 "outcome": "Verb tenses"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp2501",
                 "image": "sl_en2_mp2501.png",
                 "name": "What I did",
@@ -4782,8 +4354,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp2502",
                 "image": "sl_en2_mp2502.png",
                 "name": "When?",
@@ -4793,8 +4364,7 @@
                 "outcome": "Learn number names from thirteen to twenty"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp2503",
                 "image": "sl_en2_mp2503.png",
                 "name": "Number Names",
@@ -4804,8 +4374,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp2504",
                 "image": "sl_en2_mp2504.png",
                 "name": "Number Names 2",
@@ -4815,8 +4384,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp2505",
                 "image": "sl_en2_mp2505.png",
                 "name": "Number Names 3",
@@ -4826,8 +4394,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp2506",
                 "image": "sl_en2_mp2506.png",
                 "name": "Present Tense",
@@ -4840,8 +4407,7 @@
                 "id": "sl_en2_mp_challenge74",
                 "name": "Challenge 74",
                 "image": "sl_en2_mp_challenge74.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -4853,8 +4419,7 @@
             "name": "Unit 27",
             "lessons": [
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp2600",
                 "image": "sl_en2_mp2600.png",
                 "name": "Family of 10",
@@ -4864,8 +4429,7 @@
                 "outcome": "Colours, Addition and Counting objects"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp2601",
                 "image": "sl_en2_mp2601.png",
                 "name": "Quick Addition 1-10",
@@ -4875,8 +4439,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp2602",
                 "image": "sl_en2_mp2602.png",
                 "name": "Activities",
@@ -4886,8 +4449,7 @@
                 "outcome": "Actitivies people do"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp2603",
                 "image": "sl_en2_mp2603.png",
                 "name": "What I do",
@@ -4897,8 +4459,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp2604",
                 "image": "sl_en2_mp2604.png",
                 "name": "What I did",
@@ -4911,14 +4472,12 @@
                 "id": "sl_en2_mp_challenge75",
                 "name": "Challenge 75",
                 "image": "sl_en2_mp_challenge75.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp2605",
                 "image": "sl_en2_mp2605.png",
                 "name": "What I am doing",
@@ -4928,8 +4487,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp2606",
                 "image": "sl_en2_mp2606.png",
                 "name": "Negative Sentences",
@@ -4939,8 +4497,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp2607",
                 "image": "sl_en2_mp2607.png",
                 "name": "Blend - ch",
@@ -4950,8 +4507,7 @@
                 "outcome": "Blend ch"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp2608",
                 "image": "sl_en2_mp2608.png",
                 "name": "Blend - ch- 2",
@@ -4964,14 +4520,12 @@
                 "id": "sl_en2_mp_challenge76",
                 "name": "Challenge 76",
                 "image": "sl_en2_mp_challenge76.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp2609",
                 "image": "sl_en2_mp2609.png",
                 "name": "Simple Sentences",
@@ -4981,8 +4535,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp2610",
                 "image": "sl_en2_mp2610.png",
                 "name": "Simple sentences = 2",
@@ -4992,8 +4545,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp2611",
                 "image": "sl_en2_mp2611.png",
                 "name": "Reading Time",
@@ -5003,8 +4555,7 @@
                 "outcome": "Telling time"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp2612",
                 "image": "sl_en2_mp2612.png",
                 "name": "Match Time",
@@ -5014,8 +4565,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp2613",
                 "image": "sl_en2_mp2613.png",
                 "name": "World",
@@ -5028,8 +4578,7 @@
                 "id": "sl_en2_mp_challenge77",
                 "name": "Challenge 77",
                 "image": "sl_en2_mp_challenge77.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -5041,8 +4590,7 @@
             "name": "Unit 28",
             "lessons": [
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp2700",
                 "image": "sl_en2_mp2700.png",
                 "name": "Good Manners",
@@ -5052,8 +4600,7 @@
                 "outcome": "How to politely request someone to help you or do a job."
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp2701",
                 "image": "sl_en2_mp2701.png",
                 "name": "Past- Tense",
@@ -5063,8 +4610,7 @@
                 "outcome": "Actions of people in past tense of verb"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp2702",
                 "image": "sl_en2_mp2702.png",
                 "name": "Opposites",
@@ -5074,8 +4620,7 @@
                 "outcome": "Opposites"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp2703",
                 "image": "sl_en2_mp2703.png",
                 "name": "Pair Opposites",
@@ -5085,8 +4630,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp2704",
                 "image": "sl_en2_mp2704.png",
                 "name": "Sequences",
@@ -5096,8 +4640,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp2705",
                 "image": "sl_en2_mp2705.png",
                 "name": "Simple Sentences",
@@ -5110,8 +4653,7 @@
                 "id": "sl_en2_mp_challenge78",
                 "name": "Challenge 78",
                 "image": "sl_en2_mp_challenge78.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -5123,8 +4665,7 @@
             "name": "Unit 29",
             "lessons": [
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp2800",
                 "image": "sl_en2_mp2800.png",
                 "name": "Verbs Practice",
@@ -5134,8 +4675,7 @@
                 "outcome": "Actions of people"
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp2801",
                 "image": "sl_en2_mp2801.png",
                 "name": "What I am doing",
@@ -5145,8 +4685,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp2802",
                 "image": "sl_en2_mp2802.png",
                 "name": "Playing",
@@ -5156,8 +4695,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp2803",
                 "image": "sl_en2_mp2803.png",
                 "name": "Blend - th",
@@ -5167,8 +4705,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp2804",
                 "image": "sl_en2_mp2804.png",
                 "name": "Blend - th - 2",
@@ -5181,8 +4718,7 @@
                 "id": "sl_en2_mp_challenge79",
                 "name": "Challenge 79",
                 "image": "sl_en2_mp_challenge79.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
@@ -5194,8 +4730,7 @@
             "name": "Unit 30",
             "lessons": [
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FFC000",
                 "id": "sl_en2_mp2900",
                 "image": "sl_en2_mp2900.png",
                 "name": "I Feel",
@@ -5205,8 +4740,7 @@
                 "outcome": "Expressing emotions"
               },
               {
-                "color": "#008473",
-                "pattern": "SpringPattern.png",
+                "color": "#008CD2",
                 "id": "sl_en2_mp2901",
                 "image": "sl_en2_mp2901.png",
                 "name": "Interjections",
@@ -5216,8 +4750,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#2BAC67",
                 "id": "sl_en2_mp2902",
                 "image": "sl_en2_mp2902.png",
                 "name": "Past- Tense",
@@ -5227,8 +4760,7 @@
                 "outcome": "Verb tenses."
               },
               {
-                "color": "#33CECA",
-                "pattern": "CloudyPattern.png",
+                "color": "#AC82CF",
                 "id": "sl_en2_mp2903",
                 "image": "sl_en2_mp2903.png",
                 "name": "Present Tense",
@@ -5238,8 +4770,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#45B6FC",
-                "pattern": "RainyPattern.png",
+                "color": "#FF7925",
                 "id": "sl_en2_mp2904",
                 "image": "sl_en2_mp2904.png",
                 "name": "Future- Tense",
@@ -5249,8 +4780,7 @@
                 "outcome": "None"
               },
               {
-                "color": "#5A3985",
-                "pattern": "WinterPattern.png",
+                "color": "#FF94B5",
                 "id": "sl_en2_mp2905",
                 "image": "sl_en2_mp2905.png",
                 "name": "When?",
@@ -5263,8 +4793,7 @@
                 "id": "sl_en2_mp_challenge80",
                 "name": "Challenge 80",
                 "image": "sl_en2_mp_challenge80.png",
-                "color": "#FF3C4C",
-                "pattern": "ChallengePattern.png",
+                "color": "#B8D855",
                 "type": "exam",
                 "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
               }
