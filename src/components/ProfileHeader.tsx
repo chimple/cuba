@@ -8,13 +8,6 @@ import "./ProfileHeader.css";
 const ProfileHeader: React.FC = () => {
   const history = useHistory();
   const { t } = useTranslation();
-  const tempAccountName = Auth.i.userAccountName?.split("@");
-  let accountName: string;
-  if (Auth.i.userAccountName && tempAccountName.length > 1) {
-    accountName = tempAccountName[0];
-  } else {
-    accountName = "Chimp";
-  }
 
   return (
     <div className="header">
@@ -25,7 +18,10 @@ const ProfileHeader: React.FC = () => {
           history.replace(PAGES.HOME);
         }}
       />
-      <IconButton name={accountName} iconSrc="assets/icons/Profile.svg" />
+      <IconButton
+        name={Auth.i.getUsername}
+        iconSrc="assets/icons/Profile.svg"
+      />
       <IconButton
         name={t("signOut")}
         iconSrc="assets/icons/SignOutIcon.svg"

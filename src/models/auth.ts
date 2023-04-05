@@ -89,7 +89,7 @@ export default class Auth {
       this._authToken != undefined &&
       this._accountType != undefined &&
       this._sourcedId != undefined &&
-      this._endpointUrl != undefined 
+      this._endpointUrl != undefined
     ) {
       return true;
     }
@@ -110,7 +110,7 @@ export default class Auth {
         this._authToken != undefined &&
         this._accountType != undefined &&
         this._sourcedId != undefined &&
-        this._endpointUrl != undefined 
+        this._endpointUrl != undefined
       ) {
         return true;
       }
@@ -170,5 +170,15 @@ export default class Auth {
   }
   public set endpointUrl(value: string) {
     this._endpointUrl = value;
+  }
+  public get getUsername(): string {
+    const tempAccountName = Auth.i.userAccountName?.split("@");
+    let accountName: string;
+    if (Auth.i.userAccountName && tempAccountName.length > 1) {
+      accountName = tempAccountName[0];
+    } else {
+      accountName = "Chimp";
+    }
+    return accountName;
   }
 }
