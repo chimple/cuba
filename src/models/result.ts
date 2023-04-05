@@ -1,52 +1,81 @@
-import {
-  GUIDRef,
-  OneRosterStatus,
-  ScoreStatusEnum,
-} from "../interface/modelInterfaces";
-import { Util } from "../utility/util";
-import { BaseObject } from "./baseObject";
+import BaseObject from "./baseObject";
+import { DocumentReference, Timestamp } from "firebase/firestore";
 
-export class Result extends BaseObject {
-  private _lineItem: GUIDRef;
-  private _student: GUIDRef;
-  private _class: GUIDRef;
-  // private _scoreScale: GUIDRef;
-  private _scoreStatus: ScoreStatusEnum;
-  private _score: number;
-  // private _textScore: string;
-  private _scoreDate: string;
+export default class Result extends BaseObject {
   private _comment: string;
-  // private _learningObjectiveSet: LearningObjective[];
+  private _name: string;
+  private _assignment: DocumentReference;
+  private _class: DocumentReference;
+  private _course: DocumentReference;
+  private _lesson: DocumentReference;
+  private _school: DocumentReference;
+  private _score: number;
+  private _scoreDate: Timestamp;
+  private _student: DocumentReference;
 
-  public get lineItem(): GUIDRef {
-    return this._lineItem;
+  constructor(
+    comment: string,
+    name: string,
+    dateLastModified: string,
+    createdAt: string,
+    assignment: DocumentReference,
+    class_1: DocumentReference,
+    course: DocumentReference,
+    lesson: DocumentReference,
+    school: DocumentReference,
+    score: number,
+    scoreDate: Timestamp,
+    student: DocumentReference,
+    docId: string,
+  ) {
+    super(dateLastModified, createdAt,docId);
+    this._comment = comment;
+    this._name = name;
+    this._assignment = assignment;
+    this._class = class_1;
+    this._course = course;
+    this._lesson = lesson;
+    this._school = school;
+    this._score = score;
+    this._scoreDate = scoreDate;
+    this._student = student;
   }
-  public set lineItem(value: GUIDRef) {
-    this._lineItem = value;
+
+  public get comment(): string {
+    return this._comment;
   }
-  public get student(): GUIDRef {
-    return this._student;
+  public set comment(value: string) {
+    this._comment = value;
   }
-  public set student(value: GUIDRef) {
-    this._student = value;
+  public get name(): string {
+    return this._name;
   }
-  public get class(): GUIDRef {
+  public set name(value: string) {
+    this._name = value;
+  }
+  public get class(): DocumentReference {
     return this._class;
   }
-  public set class(value: GUIDRef) {
+  public set class(value: DocumentReference) {
     this._class = value;
   }
-  // public get scoreScale(): GUIDRef {
-  //     return this._scoreScale;
-  // }
-  // public set scoreScale(value: GUIDRef) {
-  //     this._scoreScale = value;
-  // }
-  public get scoreStatus(): ScoreStatusEnum {
-    return this._scoreStatus;
+  public get course(): DocumentReference {
+    return this._course;
   }
-  public set scoreStatus(value: ScoreStatusEnum) {
-    this._scoreStatus = value;
+  public set course(value: DocumentReference) {
+    this._course = value;
+  }
+  public get lesson(): DocumentReference {
+    return this._lesson;
+  }
+  public set lesson(value: DocumentReference) {
+    this._lesson = value;
+  }
+  public get school(): DocumentReference {
+    return this._school;
+  }
+  public set school(value: DocumentReference) {
+    this._school = value;
   }
   public get score(): number {
     return this._score;
@@ -54,113 +83,22 @@ export class Result extends BaseObject {
   public set score(value: number) {
     this._score = value;
   }
-  // public get textScore(): string {
-  //     return this._textScore;
-  // }
-  // public set textScore(value: string) {
-  //     this._textScore = value;
-  // }
-  public get scoreDate(): string {
+  public get scoreDate(): Timestamp {
     return this._scoreDate;
   }
-  public set scoreDate(value: string) {
+  public set scoreDate(value: Timestamp) {
     this._scoreDate = value;
   }
-  public get comment(): string {
-    return this._comment;
+  public get student(): DocumentReference {
+    return this._student;
   }
-  public set comment(value: string) {
-    this._comment = value;
+  public set student(value: DocumentReference) {
+    this._student = value;
   }
-  // public get learningObjectiveSet(): LearningObjective[] {
-  //     return this._learningObjectiveSet;
-  // }
-  // public set learningObjectiveSet(value: LearningObjective[]) {
-  //     this._learningObjectiveSet = value;
-  // }
-
-  constructor(
-    lineItem: GUIDRef,
-    student: GUIDRef,
-    class_1: GUIDRef,
-    // scoreScale: GUIDRef,
-    scoreStatus: ScoreStatusEnum,
-    score: number,
-    // textScore: string,
-    scoreDate: string,
-    comment: string,
-    // learningObjectiveSet: LearningObjective[],
-    sourcedId: string,
-    status: OneRosterStatus,
-    dateLastModified: string,
-    metaData: any
-  ) {
-    super(sourcedId, status, dateLastModified, metaData);
-    this._lineItem = lineItem;
-    this._student = student;
-    this._class = class_1;
-    // this._scoreScale = scoreScale;
-    this._scoreStatus = scoreStatus;
-    this._score = score;
-    // this._textScore = textScore;
-    this._scoreDate = scoreDate;
-    this._comment = comment;
-    // this._learningObjectiveSet = learningObjectiveSet;
+  public get assignment(): DocumentReference {
+    return this._assignment;
   }
-
-  static fromJson(jsonObj: any): Result {
-    // const status: OneRosterStatus = (OneRosterStatus[jsonObj?.status] as unknown as OneRosterStatus) ?? OneRosterStatus.active;
-    // const learningObjectiveSet: LearningObjective[] = [];
-    // for (let i of jsonObj.learningObjectiveSet) {
-    //     const learningObjectiveResults: LearningObjectiveResult[] = []
-    //     for (let j of i.learningObjectiveResults) {
-    //         learningObjectiveResults.push({
-    //             learningObjectiveId: j.learningObjectiveId,
-    //             score: j.score,
-    //             textScore: j.textScore
-    //         })
-    //     }
-    //     const learningObjective: LearningObjective = { source: i.source, learningObjectiveResults: learningObjectiveResults }
-    //     learningObjectiveSet.push(learningObjective)
-    // }
-    let metaData = jsonObj.metaData;
-    if (metaData && typeof metaData === "string") {
-      metaData = JSON.parse(metaData);
-    }
-    const newResult = new Result(
-      Util.getGUIDRef(jsonObj?.lineItem),
-      Util.getGUIDRef(jsonObj?.student),
-      Util.getGUIDRef(jsonObj?.class),
-      // Util.getGUIDRef(jsonObj?.scoreScale),
-      ScoreStatusEnum[jsonObj?.scoreStatus] ?? ScoreStatusEnum.SUBMITTED,
-      jsonObj.score,
-      // jsonObj.textScore,
-      jsonObj.scoreDate,
-      jsonObj.comment,
-      // learningObjectiveSet,
-      jsonObj.sourcedId,
-      OneRosterStatus[jsonObj?.status] ?? OneRosterStatus.ACTIVE,
-      jsonObj.dateLastModified,
-      metaData
-    );
-    return newResult;
-  }
-
-  toJson() {
-    return {
-      sourcedId: this.sourcedId,
-      status: this.status,
-      dateLastModified: this.dateLastModified,
-      //TODO converting metaData to string to match mike schema
-      metaData: JSON.stringify(this.metaData),
-      lineItem: this.lineItem,
-      student: this.student,
-      class: this.class,
-      scoreStatus: this.scoreStatus,
-      score: this.score,
-      // textScore: this.textScore,
-      scoreDate: this.scoreDate,
-      comment: this.comment,
-    };
+  public set assignment(value: DocumentReference) {
+    this._assignment = value;
   }
 }

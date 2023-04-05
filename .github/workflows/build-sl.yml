@@ -1,9 +1,9 @@
-name: Build Android
+name: Build SL Android
 
 on:
   push:
     branches:
-      - master
+      - sierra-leone
 
 jobs:
   build:
@@ -39,11 +39,11 @@ jobs:
         env:
           CI: false
 
-      # - name: deploy web
-      #   uses: peaceiris/actions-gh-pages@v3
-      #   with:
-      #     github_token: ${{ secrets.ACCESS_TOKEN }}
-      #     publish_dir: ./build
+      - name: deploy web
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.ACCESS_TOKEN }}
+          publish_dir: ./build
 
       - name: Make gradlew executable
         working-directory: ./android/
@@ -61,9 +61,7 @@ jobs:
           git config --global user.email prakash@sutara.org
           git config --global user.name  bhanugummana
           git remote add origin https://${{ secrets.ACCESS_TOKEN }}@github.com/chimple/cuba.git
-          git checkout -b apk
+          git checkout -b sl-apk
           git add app-debug.apk
-          git commit -m "created apk"
-          #git push --force secure-origin apk
-          #git push --set-upstream origin gh-pages
-          git push origin apk -f
+          git commit -m "created sl apk"
+          git push origin sl-apk -f

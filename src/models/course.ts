@@ -1,113 +1,76 @@
-import { GUIDRef, OneRosterStatus } from "../interface/modelInterfaces";
-import { Util } from "../utility/util";
-import { BaseObject } from "./baseObject";
+import BaseObject from "./baseObject";
+import { DocumentReference } from "firebase/firestore";
 
-export class Course extends BaseObject {
+export default class Course extends BaseObject {
+  private _title: string;
+  private _chapters: object[];
+  private _courseCode: string;
+  private _curriculum: DocumentReference;
+  private _grade: DocumentReference;
+  private _status: string;
+  private _subject: DocumentReference;
 
-    private _title: string;
-    private _schoolYear: GUIDRef;
-    private _courseCode: string;
-    private _grades: string[];
-    private _subjects: string[];
-    private _org: GUIDRef;
-    private _subjectCodes: string[];
-    private _resources: GUIDRef[];
-
-    public get title(): string {
-        return this._title;
-    }
-    public set title(value: string) {
-        this._title = value;
-    }
-    public get schoolYear(): GUIDRef {
-        return this._schoolYear;
-    }
-    public set schoolYear(value: GUIDRef) {
-        this._schoolYear = value;
-    }
-    public get courseCode(): string {
-        return this._courseCode;
-    }
-    public set courseCode(value: string) {
-        this._courseCode = value;
-    }
-    public get grades(): string[] {
-        return this._grades;
-    }
-    public set grades(value: string[]) {
-        this._grades = value;
-    }
-    public get subjects(): string[] {
-        return this._subjects;
-    }
-    public set subjects(value: string[]) {
-        this._subjects = value;
-    }
-    public get org(): GUIDRef {
-        return this._org;
-    }
-    public set org(value: GUIDRef) {
-        this._org = value;
-    }
-    public get subjectCodes(): string[] {
-        return this._subjectCodes;
-    }
-    public set subjectCodes(value: string[]) {
-        this._subjectCodes = value;
-    }
-    public get resources(): GUIDRef[] {
-        return this._resources;
-    }
-    public set resources(value: GUIDRef[]) {
-        this._resources = value;
-    }
-
-    constructor(
-        title: string,
-        schoolYear: GUIDRef,
-        courseCode: string,
-        grades: string[],
-        subjects: string[],
-        org: GUIDRef,
-        subjectCodes: string[],
-        resources: GUIDRef[],
-        sourcedId: string,
-        status: OneRosterStatus,
-        dateLastModified: string,
-        metaData: object
-    ) {
-        super(sourcedId, status, dateLastModified, metaData);
-        this._title = title;
-        this._schoolYear = schoolYear;
-        this._courseCode = courseCode;
-        this._grades = grades;
-        this._subjects = subjects;
-        this._org = org;
-        this._subjectCodes = subjectCodes;
-        this._resources = resources;
-    }
-
-    static fromJson(jsonObj: any): Course {
-        const resources: GUIDRef[] = [];
-        if (jsonObj.resources) {
-            for (const i of jsonObj.resources) {
-                resources.push(Util.getGUIDRef(i));
-            }
-        }
-        const newCourse = new Course(
-            jsonObj.title,
-            Util.getGUIDRef(jsonObj.schoolYear),
-            jsonObj.courseCode,
-            jsonObj.grades,
-            jsonObj.subjects,
-            Util.getGUIDRef(jsonObj.org),
-            jsonObj.subjectCodes,
-            resources,
-            jsonObj.sourcedId,
-            OneRosterStatus[jsonObj?.status] ?? OneRosterStatus.ACTIVE,
-            jsonObj.dateLastModified,
-            jsonObj.metaData
-        )
-        return newCourse;
-    }
+  constructor(
+    chapters: object[],
+    courseCode: string,
+    curriculum: DocumentReference,
+    grade: DocumentReference,
+    status: string,
+    subject: DocumentReference,
+    title: string,
+    dateLastModified: string,
+    createdAt: string,
+    docId: string
+  ) {
+    super(dateLastModified, createdAt, docId);
+    this._chapters = chapters;
+    this._courseCode = courseCode;
+    this._curriculum = curriculum;
+    this._grade = grade;
+    this._status = status;
+    this._subject = subject;
+    this._title = title;
+  }
+  public get chapters(): object[] {
+    return this._chapters;
+  }
+  public set chapters(value: object[]) {
+    this._chapters = value;
+  }
+  public get courseCode(): string {
+    return this._courseCode;
+  }
+  public set courseCode(value: string) {
+    this._courseCode = value;
+  }
+  public get curriculum(): DocumentReference {
+    return this._curriculum;
+  }
+  public set curriculum(value: DocumentReference) {
+    this._curriculum = value;
+  }
+  public get grade(): DocumentReference {
+    return this._grade;
+  }
+  public set grade(value: DocumentReference) {
+    this._grade = value;
+  }
+  public get status(): string {
+    return this._status;
+  }
+  public set status(value: string) {
+    this._status = value;
+  }
+  public get subject(): DocumentReference {
+    return this._subject;
+  }
+  public set subject(value: DocumentReference) {
+    this._subject = value;
+  }
+  public get title(): string {
+    return this._title;
+  }
+  public set title(value: string) {
+    this._title = value;
+  }
 }

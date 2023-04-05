@@ -15,7 +15,7 @@ import {
 import Loading from "../components/Loading";
 import { Lesson } from "../interface/curriculumInterfaces";
 import Auth from "../models/auth";
-import Curriculum from "../models/curriculum";
+import CurriculumController from "../models/curriculumController";
 import { OneRosterApi } from "../services/OneRosterApi";
 import { Util } from "../utility/util";
 
@@ -180,7 +180,7 @@ const CocosGame: React.FC = () => {
       if (progressLessonId.endsWith(PRE_QUIZ)) {
         const preQuiz = await apiInstance.updatePreQuiz(
           progressCourseId,
-          tempClass?.sourcedId ?? "",
+          tempClass?.docId ?? "",
           Auth.i.sourcedId,
           e.detail.preQuizChapterId ?? progressChapterId,
           false
@@ -188,28 +188,28 @@ const CocosGame: React.FC = () => {
         const levelChapter = await apiInstance.getChapterForPreQuizScore(
           progressCourseId,
           preQuiz?.score ?? 0,
-          await Curriculum.i.allChapterForSubject(progressCourseId)
+          await CurriculumController.i.allChapterForSubject(progressCourseId)
         );
         currentLessonLevel[progressCourseId] = levelChapter.lessons[0].id;
         localStorage.setItem(
           CURRENT_LESSON_LEVEL(),
           JSON.stringify(currentLessonLevel)
         );
-        Curriculum.i.clear();
+        CurriculumController.i.clear();
         lessons[progressLessonId] = preQuiz?.score;
         localStorage.setItem(TEMP_LESSONS_STORE(), JSON.stringify(lessons));
         console.log("preQuiz after update", preQuiz);
       } else {
         const result = await apiInstance.putResult(
           Auth.i.sourcedId,
-          tempClass?.sourcedId ?? "",
+          tempClass?.docId ?? "",
           progressLessonId,
           progressScore,
           progressCourseId
         );
         console.log("result ", result);
       }
-      await Curriculum.i.unlockNextLesson(
+      await CurriculumController.i.unlockNextLesson(
         progressCourseId,
         progressLessonId,
         progressScore

@@ -38,6 +38,7 @@ import {
   LANGUAGE,
   PAGES,
 } from "./common/constants";
+import { ServiceConfig, APIMode } from "./services/ServiceConfig";
 // import Assignments from "./pages/Assignments";
 
 setupIonicReact();
@@ -47,6 +48,7 @@ const App: React.FC = () => {
     console.log("fetching...");
     localStorage.setItem(LANGUAGE, LANG.SIERRA_LEONE);
     localStorage.setItem(IS_CUBA, "1");
+    ServiceConfig.getInstance(APIMode.FIREBASE);
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({
         directory: Directory.External,
