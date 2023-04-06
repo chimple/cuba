@@ -24,7 +24,7 @@
 }
 
 .pattern{
-    border-radius: 12%;
+    border-radius: 14%;
     display: grid;
     justify-content: center;
     align-items: center;
@@ -74,7 +74,6 @@
 }
 
 #lesson-card-subject-name {
-    background: rgba(255, 255, 255, 0.5);
     color: var(--text-color);
     font-size: var(--text-size);
     border-radius: 25px;
