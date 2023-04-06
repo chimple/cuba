@@ -1,0 +1,51 @@
+[
+  1,
+  [
+    "01L/9q5G9HzrPYZ2C3WN8T"
+  ],
+  [
+    "_textureSetter"
+  ],
+  [
+    "cc.SpriteFrame"
+  ],
+  0,
+  [
+    {
+      "name": "star-outline",
+      "rect": [
+        189,
+        29,
+        586,
+        560
+      ],
+      "offset": [
+        -18,
+        -3
+      ],
+      "originalSize": [
+        1000,
+        612
+      ],
+      "capInsets": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  [
+    0
+  ],
+  0,
+  [
+    0
+  ],
+  [
+    0
+  ],
+  [
+    0
+  ]
+]
