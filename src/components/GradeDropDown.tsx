@@ -11,7 +11,7 @@ const GradeDropDown: React.FC<{
 }) => {
   return (
     <IonList>
-      <IonItem lines="none" fill="outline" color={'none'}>
+      <IonItem lines="none" fill="outline">
         <IonSelect
           onIonChange={onChapterChange}
           interface="popover"

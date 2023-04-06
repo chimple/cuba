@@ -23,7 +23,7 @@ const Arrow: React.FC<{
       onClick={() => {onChapterChange(currentChapter.id, isForward)}}>
         <div
         style={{
-          borderRadius: "14%",
+          borderRadius: "28px",
           width: "47.5vh",
           display: "grid",
           justifyContent: "center",

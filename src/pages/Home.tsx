@@ -358,13 +358,7 @@ const Home: React.FC = () => {
   }
 
   return (
-    <IonPage id="home-page"
-    style={{
-      backgroundColor: (currentHeader === HEADERLIST.ENGLISH) ? '#EBE5F9' :
-      (currentHeader === HEADERLIST.MATHS) ? '#DFF1F7':
-      (currentHeader === HEADERLIST.PUZZLE) ? '#DCF4E7' : '#FFECE1',
-    }}
-    >
+    <IonPage id="home-page">
       <IonHeader id="home-header">
         <HomeHeader
           currentHeader={currentHeader}
