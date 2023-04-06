@@ -1,7 +1,9 @@
-import { ApiHandler } from "./ApiHandler";
-import { FirebaseApi } from "./FirebaseApi";
-import { OneRosterApi } from "./OneRosterApi";
-
+import { ApiHandler } from "./api/ApiHandler";
+import { FirebaseApi } from "./api/FirebaseApi";
+import { OneRosterApi } from "./api/OneRosterApi";
+import { AuthHandler } from "./auth/AuthHandler";
+import { FirebaseAuth } from "./auth/FirebaseAuth";
+import { OneRosterAuth } from "./auth/OneRosterAuth";
 export enum APIMode {
   ONEROSTER,
   FIREBASE,
@@ -9,7 +11,8 @@ export enum APIMode {
 
 export class ServiceConfig {
   private static instance: ServiceConfig;
-  private _handler: ApiHandler;
+  private _apiHandler: ApiHandler;
+  private _authHandler: AuthHandler;
   private _mode: APIMode;
 
   private constructor() {}
@@ -38,15 +41,21 @@ export class ServiceConfig {
   }
 
   private initializeOneroster(): void {
-    this._handler = ApiHandler.getInstance(OneRosterApi.getInstance());
+    this._apiHandler = ApiHandler.getInstance(OneRosterApi.getInstance());
+    this._authHandler = AuthHandler.getInstance(OneRosterAuth.getInstance());
   }
 
   private initializeFireBase() {
-    this._handler = ApiHandler.getInstance(FirebaseApi.getInstance());
+    this._apiHandler = ApiHandler.getInstance(FirebaseApi.getInstance());
+    this._authHandler = AuthHandler.getInstance(FirebaseAuth.getInstance());
   }
 
-  get handle(): ApiHandler {
-    return this._handler;
+  get apiHandle(): ApiHandler {
+    return this._apiHandler;
+  }
+
+  get authHandle(): AuthHandler {
+    return this._authHandler;
   }
 
   public get mode(): APIMode {

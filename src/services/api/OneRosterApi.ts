@@ -1,24 +1,13 @@
-import { Http, HttpHeaders } from "@capacitor-community/http";
-import {
-  COURSES,
-  DEBUG_15,
-  EXAM,
-  MIN_PASS,
-  PRE_QUIZ,
-  TEMP_LESSONS_STORE,
-} from "../common/constants";
-import { Chapter, Lesson } from "../interface/curriculumInterfaces";
-import { OneRosterStatus, ScoreStatusEnum } from "../interface/modelInterfaces";
-import Class from "../models/class";
-import Assignment from "../models/assignment";
-import Result from "../models/result";
+import { HttpHeaders } from "@capacitor-community/http";
+import { COURSES } from "../../common/constants";
+import { Chapter } from "../../interface/curriculumInterfaces";
+import Assignment from "../../models/assignment";
+import Auth from "../../models/auth";
+import Class from "../../models/class";
+import CurriculumController from "../../models/curriculumController";
+import Result from "../../models/result";
+import User from "../../models/user";
 import { ServiceApi } from "./ServiceApi";
-import { v4 as uuidv4 } from "uuid";
-import  User from "../models/user";
-import CurriculumController from "../models/curriculumController";
-import Auth from "../models/auth";
-import { Util } from "../utility/util";
-import { Capacitor } from "@capacitor/core";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;

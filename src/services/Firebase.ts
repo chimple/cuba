@@ -1,8 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
-import firebase from "firebase/compat/app";
-
 export const initializeFireBase = () => {
   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
   const firebaseConfig = {
