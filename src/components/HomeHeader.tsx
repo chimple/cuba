@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { HEADERLIST } from "../common/constants";
 import "./HomeHeader.css";
 import IconButton from "./IconButton";
+import Auth from "../models/auth";
 
 const HomeHeader: React.FC<{
   currentHeader: string;
@@ -84,7 +85,8 @@ const HomeHeader: React.FC<{
       <div>
         <p className="home-header-indicator">&nbsp;</p>
         <IconButton
-          name={t("profile")}
+          // name={t("profile")}
+          name={Auth.i.getUsername}
           iconSrc="assets/icons/Profile.svg"
           onClick={() => {
             if (currentHeader != HEADERLIST.PROFILE) {
