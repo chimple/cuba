@@ -47,6 +47,17 @@
       3,
       6
     ],
+    [
+      "cc.PrefabInfo",
+      [
+        "fileId",
+        "root",
+        "asset"
+      ],
+      2,
+      1,
+      1
+    ],
     "cc.SpriteFrame",
     [
       "cc.Prefab",
@@ -56,40 +67,33 @@
       2
     ],
     [
-      "cc.PrefabInfo",
-      [
-        "fileId",
-        "root"
-      ],
-      2,
-      1
-    ],
-    [
       "0ddb3t+49REZ5s0SVkIuotE",
       [
         "_name",
         "_string",
         "_fontSize",
         "_lineHeight",
+        "_isSystemFontUsed",
         "_N$horizontalAlign",
         "_N$verticalAlign",
         "node",
         "_materials"
       ],
-      -3,
+      -4,
       1,
       3
     ]
   ],
   [
     [
-      4,
+      2,
       0,
       1,
+      2,
       2
     ],
     [
-      3,
+      4,
       0,
       2
     ],
@@ -139,6 +143,12 @@
       1
     ],
     [
+      2,
+      1,
+      2,
+      1
+    ],
+    [
       5,
       0,
       1,
@@ -148,7 +158,8 @@
       5,
       6,
       7,
-      7
+      8,
+      8
     ]
   ],
   [
@@ -178,9 +189,9 @@
             ]
           ],
           [
-            0,
-            "239pJCdbpHmp18+vbpd+DH",
-            -1
+            7,
+            -1,
+            0
           ],
           [
             5,
@@ -195,12 +206,13 @@
           1,
           [
             [
-              7,
+              8,
               "label<Label>",
-              "CAKE",
+              "Thursday",
               100,
               100,
-              1,
+              false,
+              2,
               1,
               -5,
               [
@@ -211,16 +223,17 @@
           [
             0,
             "bcVja40YxOx6BUtfGWYA7K",
-            1
+            1,
+            0
           ],
           [
             5,
-            272.31,
+            416.85,
             126
           ],
           [
-            0,
-            29.163999557495117,
+            103.228,
+            29.164,
             0,
             0,
             0,
@@ -247,7 +260,8 @@
           [
             0,
             "1bq2EINMNNH7WHjDN/CK3w",
-            1
+            1,
+            0
           ],
           [
             5,
@@ -340,7 +354,7 @@
         }
       ],
       [
-        2
+        3
       ],
       0,
       [
