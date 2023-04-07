@@ -16,7 +16,7 @@ import {
 } from "../common/constants";
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
 import { GUIDRef } from "../interface/modelInterfaces";
-import Result  from "../models/result";
+import Result from "../models/result";
 import { OneRosterApi } from "../services/OneRosterApi";
 declare global {
   interface Window {
@@ -60,9 +60,9 @@ export class Util {
 
         console.log(
           "before local lesson Bundle http url:" +
-            "assets/" +
-            lessonId +
-            "/index.js"
+          "assets/" +
+          lessonId +
+          "/index.js"
         );
 
         const fetchingLocalBundle = await fetch(
@@ -70,9 +70,9 @@ export class Util {
         );
         console.log(
           "after local lesson Bundle fetch url:" +
-            "assets/" +
-            lessonId +
-            "/index.js",
+          "assets/" +
+          lessonId +
+          "/index.js",
           fetchingLocalBundle.ok,
           fetchingLocalBundle.json,
           fetchingLocalBundle
@@ -286,17 +286,19 @@ export class Util {
       console.log("else (selectedGrade) {", gradeMap);
     }
 
-    if (courseId === HEADERLIST.ENGLISH) {
-      return gradeMap[HEADERLIST.ENGLISH] === SL_GRADES.GRADE1
-        ? COURSES.ENGLISH_G1
-        : COURSES.ENGLISH_G2;
-    } else if (courseId === HEADERLIST.MATHS) {
-      return gradeMap[HEADERLIST.MATHS] === SL_GRADES.GRADE1
-        ? COURSES.MATHS_G1
-        : COURSES.MATHS_G2;
-    } else {
-      return courseId;
-    }
+    return courseId;
+
+    // if (courseId === HEADERLIST.ENGLISH) {
+    //   return gradeMap[HEADERLIST.ENGLISH] === SL_GRADES.GRADE1
+    //     ? COURSES.ENGLISH_G1
+    //     : COURSES.ENGLISH_G2;
+    // } else if (courseId === HEADERLIST.MATHS) {
+    //   return gradeMap[HEADERLIST.MATHS] === SL_GRADES.GRADE1
+    //     ? COURSES.MATHS_G1
+    //     : COURSES.MATHS_G2;
+    // } else {
+    //   return courseId;
+    // }
   }
 
   public static async showLog(msg): Promise<void> {
