@@ -44,7 +44,7 @@ export class OneRosterApi implements ServiceApi {
 
   async getClassesForUser(userId: string): Promise<Class[]> {
     console.log("in getClassesForUser");
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
     // try {
     //   let url;
     //   if (

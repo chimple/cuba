@@ -1,25 +1,20 @@
 import { IonContent, IonPage } from "@ionic/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
-import { PAGES } from "../common/constants";
+import { DEBUG_15, IS_USER_LOGED_IN, PAGES, USER_TOKEN } from "../common/constants";
 import Auth from "../models/auth";
 import { Capacitor } from "@capacitor/core";
-import { ServiceConfig } from "../services/ServiceConfig";
 // import { Platform } from "react-native";
 
 const Login: React.FC = () => {
   const history = useHistory();
 
   useEffect(() => {
-    const authHandler = ServiceConfig.getI().authHandler;
-    authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
-      if (isUserLoggedIn) history.replace(PAGES.HOME);
-    });
-    // const isUserLogedIn = Auth.i.isUserLoggedIn();
-    // if (isUserLogedIn == true) {
-    //   history.replace(PAGES.HOME);
-    // }
+    const isUserLogedIn = Auth.i.isUserLoggedIn();
+    if (isUserLogedIn == true) {
+      history.replace(PAGES.HOME);
+    }
   }, []);
   console.log(
     "Login page",
@@ -38,20 +33,12 @@ const Login: React.FC = () => {
         <div
           id="login-button"
           onClick={async () => {
-            const _authHandler = ServiceConfig.getI().authHandler;
-            const result = await _authHandler.googleSign();
-            console.log(
-              "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
-              result
-            );
-            if (result) {
+            
+            let isUserLoggedIn: boolean = await Auth.i.VSOLogin();
+            if (isUserLoggedIn) {
               history.replace(PAGES.HOME);
             }
 
-            // let isUserLoggedIn: boolean = await Auth.i.VSOLogin();
-            // if (isUserLoggedIn) {
-            //   history.replace(PAGES.HOME);
-            // }
           }}
         >
           <img
@@ -59,13 +46,47 @@ const Login: React.FC = () => {
             alt="VSO Icon"
             src="assets/icons/VSOLogo.svg"
           />
-          <p id="login-button-text">Login with Google</p>
+          <p id="login-button-text">Login with VSO</p>
           <img
             id="login-button-img"
             alt="Arrow Icon"
             src="assets/icons/ArrowIcon.svg"
           />
         </div>
+        {/* {Capacitor.getPlatform() === "android" ? (
+          <button
+            style={{
+              position: "absolute",
+              top: "90%",
+              left: "45%",
+              padding: "1%",
+            }}
+            onClick={async () => {
+              Auth.i.userAccountName = DEBUG_15;
+              Auth.i.accountType = "com.ustadmobile";
+              Auth.i.authToken = "VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY";
+              Auth.i.sourcedId = "4334700840729898";
+              Auth.i.endpointUrl = "http://192.168.88.99:8087/";
+              localStorage.setItem(IS_USER_LOGED_IN, "true");
+              localStorage.setItem(
+                USER_TOKEN,
+                JSON.stringify({
+                  authAccount: Auth.i.userAccountName,
+                  sourcedId: Auth.i.sourcedId,
+                  endpointUrl: Auth.i.endpointUrl,
+                  addedType: Auth.i.accountType,
+                  authToken: Auth.i.authToken,
+                })
+              );
+              history.replace(PAGES.HOME);
+            }}
+          >
+            Debug login
+          </button>
+        ) : (
+          <></>
+        )} */}
+        {/* <Loading isLoading={isLoading} /> */}
       </IonContent>
     </IonPage>
   );

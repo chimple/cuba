@@ -9,8 +9,12 @@
     display: flex;
     justify-content: space-between;
     /* width: 90vh; */
-    width: 30vw;
+    /* width: 30vw; */
     margin: 0 auto
+}
+
+#home-header-middle-icons div {
+    padding-right: 5px
 }
 
 #home-header-puzzle-icon {
