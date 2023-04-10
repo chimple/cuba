@@ -5,6 +5,7 @@
   "homepage": ".",
   "dependencies": {
     "@capacitor-community/http": "^1.4.1",
+    "@capacitor-firebase/authentication": "^1.4.0",
     "@capacitor/android": "4.2.0",
     "@capacitor/app": "4.0.1",
     "@capacitor/core": "4.2.0",

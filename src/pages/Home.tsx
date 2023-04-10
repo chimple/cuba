@@ -20,7 +20,6 @@ import Loading from "../components/Loading";
 import ChapterSlider from "../components/ChapterSlider";
 import { Chapter, Lesson } from "../interface/curriculumInterfaces";
 import { Splide } from "@splidejs/react-splide";
-import { OneRosterApi } from "../services/OneRosterApi";
 import HomeHeader from "../components/HomeHeader";
 import { useHistory } from "react-router";
 // Default theme
@@ -32,6 +31,7 @@ import ChapterBar from "../components/ChapterBar";
 import Auth from "../models/auth";
 import { Toast } from "@capacitor/toast";
 import { Capacitor } from "@capacitor/core";
+import { OneRosterApi } from "../services/api/OneRosterApi";
 
 const Home: React.FC = () => {
   const [dataCourse, setDataCourse] = useState<{

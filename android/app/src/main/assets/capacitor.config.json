@@ -2,5 +2,13 @@
 	"appId": "org.chimple.cuba",
 	"appName": "Chimple",
 	"webDir": "build",
-	"bundledWebRuntime": false
+	"bundledWebRuntime": false,
+	"plugins": {
+		"FirebaseAuthentication": {
+			"skipNativeAuth": false,
+			"providers": [
+				"google.com"
+			]
+		}
+	}
 }

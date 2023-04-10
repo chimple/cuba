@@ -39,6 +39,7 @@ import {
   PAGES,
 } from "./common/constants";
 import { ServiceConfig, APIMode } from "./services/ServiceConfig";
+import { Util } from "./utility/util";
 // import Assignments from "./pages/Assignments";
 
 setupIonicReact();
@@ -66,11 +67,7 @@ const App: React.FC = () => {
             localStorage.setItem(GAME_URL, uri + "/");
           }
         });
-      CapApp.addListener("appStateChange", ({ isActive }) => {
-        if (isActive && window.location.pathname !== PAGES.GAME) {
-          window.location.reload();
-        }
-      });
+      CapApp.addListener("appStateChange", Util.onAppStateChange);
     }
   }, []);
 

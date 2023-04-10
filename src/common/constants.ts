@@ -67,9 +67,12 @@ export const GAME_EXIT = "gameExit";
 export const TEMP_LESSONS_STORE = () => `${Auth.i.sourcedId}-lessonsStore`;
 export const IS_USER_LOGED_IN = "isUserLogedIn";
 export const USER_TOKEN = "userToken";
-export const CURRENT_LESSON_LEVEL = () => `${Auth.i.sourcedId}-currentLessonLevel`;
-export const PREVIOUS_PLAYED_COURSE = () => `${Auth.i.sourcedId}-previousPlayedCourse`;
-export const PREVIOUS_SELECTED_COURSE = () => `${Auth.i.sourcedId}-previousSelectedCourse`;
+export const CURRENT_LESSON_LEVEL = () =>
+  `${Auth.i.sourcedId}-currentLessonLevel`;
+export const PREVIOUS_PLAYED_COURSE = () =>
+  `${Auth.i.sourcedId}-previousPlayedCourse`;
+export const PREVIOUS_SELECTED_COURSE = () =>
+  `${Auth.i.sourcedId}-previousSelectedCourse`;
 export const SELECTED_GRADE = () => `${Auth.i.sourcedId}-selectedGrade`;
 export const LANGUAGE = "language";
 export const EXAM = "exam";
@@ -87,3 +90,8 @@ export interface PortPlugin {
   getPort(): Promise<{ port: number }>;
 }
 export const DEBUG_15 = "debug15";
+export const DEFAULT_COURSE_IDS = [
+  "RiMQCOteNrktL0Oa6dNi",
+  "zmElfKhtS152dPrwcJ0n",
+  "KiaqDYLBN2dBcodOOBPA",
+];

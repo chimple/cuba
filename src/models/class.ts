@@ -1,5 +1,5 @@
 import BaseObject from "./baseObject";
-import { DocumentReference } from "firebase/firestore";
+import { DocumentReference,Timestamp } from "firebase/firestore";
 
 export default class Class extends BaseObject {
   private _title: string;
@@ -24,8 +24,8 @@ constructor(
     teachers: string[],
     principal: string[],
     coordinator: string[],
-    dateLastModified: string,
-    createdAt: string,
+    dateLastModified: Timestamp,
+    createdAt: Timestamp,
     docId: string
   ) {
     super(dateLastModified, createdAt, docId);

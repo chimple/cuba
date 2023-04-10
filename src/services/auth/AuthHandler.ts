@@ -1,6 +1,7 @@
+import User from "../../models/user";
 import { ServiceAuth } from "./ServiceAuth";
 
-export class AuthHandler {
+export class AuthHandler implements ServiceAuth {
   public static i: AuthHandler;
 
   private s: ServiceAuth;
@@ -15,7 +16,15 @@ export class AuthHandler {
     return AuthHandler.i;
   }
 
-  // public async getUser(userId: string): Promise<User | undefined> {
-  //   return await this.s.getUser(userId);
-  // }
+  async googleSign(): Promise<boolean> {
+    return await this.s.googleSign();
+  }
+
+  async getCurrentUser(): Promise<User | undefined> {
+    return await this.s.getCurrentUser();
+  }
+
+  async isUserLoggedIn(): Promise<boolean> {
+    return await this.s.isUserLoggedIn();
+  }
 }

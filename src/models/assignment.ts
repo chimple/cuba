@@ -24,8 +24,8 @@ export default class Assignment extends BaseObject {
     resultValueMin: number,
     results: object,
     school: DocumentReference,
-    dateLastModified: string,
-    createdAt: string,
+    dateLastModified: Timestamp,
+    createdAt: Timestamp,
     docId: string
   ) {
     super(dateLastModified, createdAt, docId);

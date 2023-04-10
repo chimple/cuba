@@ -50,11 +50,11 @@ export class ServiceConfig {
     this._authHandler = AuthHandler.getInstance(FirebaseAuth.getInstance());
   }
 
-  get apiHandle(): ApiHandler {
+  get apiHandler(): ApiHandler {
     return this._apiHandler;
   }
 
-  get authHandle(): AuthHandler {
+  get authHandler(): AuthHandler {
     return this._authHandler;
   }
 
