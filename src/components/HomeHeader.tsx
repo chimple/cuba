@@ -1,7 +1,13 @@
 import { useTranslation } from "react-i18next";
-import { HEADERLIST } from "../common/constants";
+import {
+  HEADERLIST,
+  HEADER_ICON_CONFIGS,
+  HeaderIconConfig,
+} from "../common/constants";
 import "./HomeHeader.css";
 import IconButton from "./IconButton";
+import HeaderIcon from "./HeaderIcon";
+import React from "react";
 
 const HomeHeader: React.FC<{
   currentHeader: string;
@@ -9,90 +15,56 @@ const HomeHeader: React.FC<{
 }> = ({ currentHeader, onHeaderIconClick }) => {
   const { t } = useTranslation();
 
+  var headerIconList: HeaderIconConfig[] = [];
+  HEADER_ICON_CONFIGS.forEach((element) => {
+    // console.log("elements", element);
+    headerIconList.push(element);
+  });
+
   return (
     <div id="home-header-icons">
-      <div>
-        {currentHeader == HEADERLIST.HOME ? (
-          <p className="home-header-indicator">&#9679;</p>
-        ) : (
-          <p className="home-header-indicator">&nbsp;</p>
-        )}
-        <IconButton
-          name={t("home")}
-          iconSrc="assets/icons/HomeIcon.svg"
-          onClick={() => {
-            if (currentHeader != HEADERLIST.HOME) {
-              onHeaderIconClick(HEADERLIST.HOME);
-            }
-          }}
-        ></IconButton>
-      </div>
+      <HeaderIcon
+        headerName="Home"
+        iconSrc="assets/icons/HomeIcon.svg"
+        currentHeader={currentHeader}
+        headerList={HEADERLIST.HOME}
+        onHeaderIconClick={() => {
+          if (currentHeader != HEADERLIST.HOME) {
+            onHeaderIconClick(HEADERLIST.HOME);
+          }
+        }}
+      ></HeaderIcon>
 
       <div id="home-header-middle-icons">
-        <div>
-          {currentHeader == HEADERLIST.ENGLISH ? (
-            <p className="home-header-indicator">&#9679;</p>
-          ) : (
-            <p className="home-header-indicator">&nbsp;</p>
-          )}
-          <IconButton
-            name="English"
-            iconSrc="assets/icons/EnglishIcon.svg"
-            onClick={() => {
-              if (currentHeader != HEADERLIST.ENGLISH) {
-                onHeaderIconClick(HEADERLIST.ENGLISH);
-              }
-            }}
-          ></IconButton>
-        </div>
-
-        <div>
-          {currentHeader == HEADERLIST.MATHS ? (
-            <p className="home-header-indicator">&#9679;</p>
-          ) : (
-            <p className="home-header-indicator">&nbsp;</p>
-          )}
-          <IconButton
-            name="Maths"
-            iconSrc="assets/icons/MathsIcon.svg"
-            onClick={() => {
-              if (currentHeader != HEADERLIST.MATHS) {
-                onHeaderIconClick(HEADERLIST.MATHS);
-              }
-            }}
-          ></IconButton>
-        </div>
-        <div id="home-header-puzzle-icon">
-          <div>
-            {currentHeader == HEADERLIST.PUZZLE ? (
-              <p className="home-header-indicator">&#9679;</p>
-            ) : (
-              <p className="home-header-indicator">&nbsp;</p>
-            )}
-            <IconButton
-              name="Digital Skills"
-              iconSrc="assets/icons/DigitalSkillsIcon.svg"
-              onClick={() => {
-                if (currentHeader != HEADERLIST.PUZZLE) {
-                  onHeaderIconClick(HEADERLIST.PUZZLE);
+        {headerIconList.map((element, index) => {
+          // console.log("Dyanamic Header List ", element);
+          return (
+            <HeaderIcon
+              headerName={element.displayName}
+              iconSrc={element.iconSrc}
+              currentHeader={currentHeader}
+              headerList={element.headerList}
+              onHeaderIconClick={() => {
+                if (currentHeader != element.headerList) {
+                  onHeaderIconClick(element.headerList);
                 }
               }}
-            ></IconButton>
-          </div>
-        </div>
+            ></HeaderIcon>
+          );
+        })}
       </div>
-      <div>
-        <p className="home-header-indicator">&nbsp;</p>
-        <IconButton
-          name={t("profile")}
-          iconSrc="assets/icons/Profile.svg"
-          onClick={() => {
-            if (currentHeader != HEADERLIST.PROFILE) {
-              onHeaderIconClick(HEADERLIST.PROFILE);
-            }
-          }}
-        ></IconButton>
-      </div>
+
+      <HeaderIcon
+        headerName="Profile"
+        iconSrc="assets/icons/Profile.svg"
+        currentHeader={currentHeader}
+        headerList={HEADERLIST.PROFILE}
+        onHeaderIconClick={() => {
+          if (currentHeader != HEADERLIST.PROFILE) {
+            onHeaderIconClick(HEADERLIST.PROFILE);
+          }
+        }}
+      ></HeaderIcon>
     </div>
   );
 };

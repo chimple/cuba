@@ -5,10 +5,6 @@ export enum COURSES {
   SIERRA_LEONE_ENGLISH = "sl-en",
   SIERRA_LEONE_MATHS = "sl-maths",
   PUZZLE = "puzzle",
-  ENGLISH_G1 = "sl_en1_mp",
-  MATHS_G1 = "sl_maths1_mp",
-  ENGLISH_G2 = "sl_en2_mp",
-  MATHS_G2 = "sl_maths2_mp",
   ENGLISH = "en",
   MATHS = "maths",
 }
@@ -22,15 +18,29 @@ export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
 export enum HEADERLIST {
   HOME = "HOME",
-  ENGLISH = "en",
-  MATHS = "maths",
-  ENGLISH_G1 = "sl_en1_mp",
-  MATHS_G1 = "sl_maths1_mp",
-  ENGLISH_G2 = "sl_en2_mp",
-  MATHS_G2 = "sl_maths2_mp",
-  PUZZLE = "puzzle",
+  RECOMMENDATION = "RECOMMENDATION",
+  ASSIGNMENT = "ASSIGNMENT",
+  FAVORITE = "FAVORITE",
+  CHALLENGES = "CHALLENGES",
+  SEARCH = "SEARCH",
   PROFILE = "PROFILE",
 }
+
+export class HeaderIconConfig {
+  displayName: string;
+  iconSrc: string;
+  headerList: HEADERLIST;
+}
+
+export const HEADER_ICON_CONFIGS: Map<HEADERLIST, HeaderIconConfig> = new Map<HEADERLIST, HeaderIconConfig>([
+  [HEADERLIST.RECOMMENDATION, { 'displayName': 'Recommendation', 'iconSrc': '/assets/icons/EnglishIcon.svg', 'headerList': HEADERLIST.RECOMMENDATION }],
+  [HEADERLIST.ASSIGNMENT, { 'displayName': 'Assignment', 'iconSrc': '/assets/icons/MathsIcon.svg', 'headerList': HEADERLIST.ASSIGNMENT }],
+  [HEADERLIST.FAVORITE, { 'displayName': 'Fav/History', 'iconSrc': '/assets/icons/DigitalSkillsIcon.svg', 'headerList': HEADERLIST.FAVORITE }],
+  [HEADERLIST.CHALLENGES, { 'displayName': 'Challenges', 'iconSrc': '/assets/icons/MathsIcon.svg', 'headerList': HEADERLIST.CHALLENGES }],
+  [HEADERLIST.SEARCH, { 'displayName': 'Search', 'iconSrc': '/assets/icons/DigitalSkillsIcon.svg', 'headerList': HEADERLIST.SEARCH }],
+])
+
+// export const HEADERLIST = [HOME_CONFIG, LANG_CONFIGS, PROFILE_CONFIG]
 
 export const LESSON_CARD_COLORS = [
   "#FF7925",

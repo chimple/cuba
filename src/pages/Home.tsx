@@ -12,6 +12,8 @@ import {
   SL_GRADES,
   SELECTED_GRADE,
   DEBUG_15,
+  HeaderIconConfig,
+  HEADER_ICON_CONFIGS,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -58,7 +60,7 @@ const Home: React.FC = () => {
   useEffect(() => {
     let selectedCourse = localStorage.getItem(PREVIOUS_SELECTED_COURSE());
     if (!selectedCourse || !ALL_COURSES.includes(selectedCourse as COURSES)) {
-      selectedCourse = HEADERLIST.HOME;
+      selectedCourse = HEADERLIST.RECOMMENDATION;
     }
 
     let selectedGrade = localStorage.getItem(SELECTED_GRADE());
@@ -86,7 +88,7 @@ const Home: React.FC = () => {
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
     // const apiInstance = OneRosterApi.getInstance();
-    if (subjectCode === HEADERLIST.HOME) {
+    if (subjectCode === HEADERLIST.RECOMMENDATION) {
       let lessonScoreMap = {};
       const lessonMap = {};
       for (const tempCourse of ALL_COURSES) {
@@ -149,47 +151,50 @@ const Home: React.FC = () => {
       setIsLoading(false);
       return;
     }
-    let { chapters, lessons, tempResultLessonMap, preQuiz } =
-      await getDataForSubject(subjectCode);
-    const _isPreQuizPlayed = subjectCode !== COURSES.PUZZLE && !!preQuiz;
-    if (_isPreQuizPlayed) {
-      if (lessons[0].id === subjectCode + "_" + PRE_QUIZ) {
-        lessons = lessons.slice(1);
-        chapters = chapters.slice(1);
-      }
-      // const tempLevelChapter = await apiInstance.getChapterForPreQuizScore(
-      //   subjectCode,
-      //   preQuiz?.score ?? 0,
-      //   chapters
-      // );
-      // setLevelChapter(tempLevelChapter);
-    }
-    const tempChapterMap: any = {};
-    for (let i = 0; i < chapters.length; i++) {
-      tempChapterMap[chapters[i].id] = i;
-    }
 
-    const currentLessonIndex =
-      (await Util.getLastPlayedLessonIndex(
-        subjectCode,
-        lessons,
-        chapters,
-        tempResultLessonMap
-      )) + 1;
-    const currentLesson = lessons[currentLessonIndex] ?? lessons[0];
-    const currentChapter = currentLesson.chapter ?? chapters[0];
-    console.log("get chap", currentChapter.id);
-    setCurrentChapter(currentChapter);
-    const lessonChapterIndex = currentChapter.lessons
-      .map((l) => l.id)
-      .indexOf(currentLesson.id);
-    setCurrentLessonIndex(lessonChapterIndex);
+    /// Below code to show lessons card and chapters bar
 
-    setLessonsScoreMap(tempResultLessonMap);
-    // setCurrentLevel(subjectCode, chapters, lessons);
-    setChaptersMap(tempChapterMap);
-    setDataCourse({ lessons: lessons, chapters: chapters });
-    setIsLoading(false);
+    // let { chapters, lessons, tempResultLessonMap, preQuiz } =
+    //   await getDataForSubject(subjectCode);
+    // const _isPreQuizPlayed = subjectCode !== COURSES.PUZZLE && !!preQuiz;
+    // if (_isPreQuizPlayed) {
+    //   if (lessons[0].id === subjectCode + "_" + PRE_QUIZ) {
+    //     lessons = lessons.slice(1);
+    //     chapters = chapters.slice(1);
+    //   }
+    //   // const tempLevelChapter = await apiInstance.getChapterForPreQuizScore(
+    //   //   subjectCode,
+    //   //   preQuiz?.score ?? 0,
+    //   //   chapters
+    //   // );
+    //   // setLevelChapter(tempLevelChapter);
+    // }
+    // const tempChapterMap: any = {};
+    // for (let i = 0; i < chapters.length; i++) {
+    //   tempChapterMap[chapters[i].id] = i;
+    // }
+
+    // const currentLessonIndex =
+    //   (await Util.getLastPlayedLessonIndex(
+    //     subjectCode,
+    //     lessons,
+    //     chapters,
+    //     tempResultLessonMap
+    //   )) + 1;
+    // const currentLesson = lessons[currentLessonIndex] ?? lessons[0];
+    // const currentChapter = currentLesson.chapter ?? chapters[0];
+    // console.log("get chap", currentChapter.id);
+    // setCurrentChapter(currentChapter);
+    // const lessonChapterIndex = currentChapter.lessons
+    //   .map((l) => l.id)
+    //   .indexOf(currentLesson.id);
+    // setCurrentLessonIndex(lessonChapterIndex);
+
+    // setLessonsScoreMap(tempResultLessonMap);
+    // // setCurrentLevel(subjectCode, chapters, lessons);
+    // setChaptersMap(tempChapterMap);
+    // setDataCourse({ lessons: lessons, chapters: chapters });
+    // setIsLoading(false);
   }
 
   async function getDataForSubject(subjectCode: string) {
@@ -288,72 +293,22 @@ const Home: React.FC = () => {
   // }
 
   function onHeaderIconClick(selectedHeader: any) {
-    let course;
-    switch (selectedHeader) {
-      case HEADERLIST.HOME:
-        setCurrentHeader(HEADERLIST.HOME);
-        setCourse(HEADERLIST.HOME);
-        localStorage.setItem(PREVIOUS_SELECTED_COURSE(), HEADERLIST.HOME);
-        console.log("Home Icons is selected");
-        break;
+    var headerIconList: HeaderIconConfig[] = [];
+    HEADER_ICON_CONFIGS.forEach((element) => {
+      // console.log("elements", element);
+      headerIconList.push(element);
+    });
 
-      case HEADERLIST.ENGLISH:
-        course =
-          gradeMap[HEADERLIST.ENGLISH] === SL_GRADES.GRADE1
-            ? COURSES.ENGLISH_G1
-            : COURSES.ENGLISH_G2;
-        setCurrentHeader(HEADERLIST.ENGLISH);
-        setCourse(course);
-        localStorage.setItem(PREVIOUS_SELECTED_COURSE(), HEADERLIST.ENGLISH);
-        break;
+    setCurrentHeader(selectedHeader);
+    localStorage.setItem(PREVIOUS_SELECTED_COURSE(), selectedHeader);
+    HEADER_ICON_CONFIGS.get(selectedHeader);
+    console.log(selectedHeader, " Icons is selected");
+    if (selectedHeader === HEADERLIST.RECOMMENDATION) {
+      setCourse(HEADERLIST.RECOMMENDATION);
+    }
 
-      case HEADERLIST.MATHS:
-        course =
-          gradeMap[HEADERLIST.MATHS] === SL_GRADES.GRADE1
-            ? HEADERLIST.MATHS_G1
-            : HEADERLIST.MATHS_G2;
-        setCurrentHeader(HEADERLIST.MATHS);
-        setCourse(course);
-        localStorage.setItem(PREVIOUS_SELECTED_COURSE(), HEADERLIST.MATHS);
-        break;
-
-      case HEADERLIST.ENGLISH_G1:
-        setCurrentHeader(HEADERLIST.ENGLISH_G1);
-        setCourse(COURSES.ENGLISH_G1);
-        localStorage.setItem(PREVIOUS_SELECTED_COURSE(), COURSES.ENGLISH_G1);
-        break;
-
-      case HEADERLIST.MATHS_G1:
-        setCurrentHeader(HEADERLIST.MATHS_G1);
-        setCourse(COURSES.MATHS_G1);
-        localStorage.setItem(PREVIOUS_SELECTED_COURSE(), COURSES.MATHS_G1);
-        break;
-
-      case HEADERLIST.ENGLISH_G2:
-        setCurrentHeader(HEADERLIST.ENGLISH_G2);
-        setCourse(COURSES.ENGLISH_G2);
-        localStorage.setItem(PREVIOUS_SELECTED_COURSE(), COURSES.ENGLISH_G2);
-        break;
-
-      case HEADERLIST.MATHS_G2:
-        setCurrentHeader(HEADERLIST.MATHS_G2);
-        setCourse(COURSES.MATHS_G2);
-        localStorage.setItem(PREVIOUS_SELECTED_COURSE(), COURSES.MATHS_G2);
-        break;
-
-      case HEADERLIST.PUZZLE:
-        setCurrentHeader(HEADERLIST.PUZZLE);
-        setCourse(COURSES.PUZZLE);
-        localStorage.setItem(PREVIOUS_SELECTED_COURSE(), COURSES.PUZZLE);
-        break;
-
-      case HEADERLIST.PROFILE:
-        setCurrentHeader(HEADERLIST.PROFILE);
-        history.push(PAGES.PROFILE);
-        break;
-
-      default:
-        break;
+    if (selectedHeader === HEADERLIST.PROFILE) {
+      history.push(PAGES.PROFILE);
     }
   }
 
@@ -368,7 +323,36 @@ const Home: React.FC = () => {
       <div className="slider-content">
         {!isLoading ? (
           <div className="space-between">
-            {currentHeader !== HEADERLIST.HOME ? (
+            {currentHeader === HEADERLIST.RECOMMENDATION ? (
+              <LessonSlider
+                lessonData={
+                  currentHeader === HEADERLIST.RECOMMENDATION
+                    ? dataCourse.lessons
+                    : currentChapter?.lessons!
+                }
+                chaptersData={dataCourse.chapters}
+                currentChapter={currentChapter!}
+                onChapterChange={onArrowClick}
+                isHome={
+                  currentHeader === HEADERLIST.RECOMMENDATION ? true : false
+                }
+                onSwiper={setLessonSwiperRef}
+                // onSlideChange={onCustomSlideChange}
+                lessonsScoreMap={lessonsScoreMap}
+                startIndex={
+                  currentHeader === HEADERLIST.RECOMMENDATION
+                    ? 0
+                    : currentLessonIndex - 1
+                }
+                showSubjectName={currentHeader === HEADERLIST.RECOMMENDATION}
+              />
+            ) : (
+              <div style={{ marginTop: "2.6%" }}></div>
+            )}
+
+            {/* To show lesson cards after clicking on header icon  */}
+
+            {/* {currentHeader !== HEADERLIST.RECOMMENDATION ? (
               // <ChapterSlider
               //   chapterData={dataCourse.chapters}
               //   onChapterClick={onChapterClick}
@@ -384,20 +368,17 @@ const Home: React.FC = () => {
                   gradeMap[currentHeader] = selectedGrade.detail.value;
                   setGradeMap(gradeMap);
                   let course;
-                  if (currentHeader === HEADERLIST.ENGLISH) {
-                    course =
-                      selectedGrade.detail.value === SL_GRADES.GRADE1
-                        ? HEADERLIST.ENGLISH_G1
-                        : HEADERLIST.ENGLISH_G2;
-                    // currentHeader === HEADERLIST.ENGLISH
-                  } else if (currentHeader === HEADERLIST.MATHS) {
-                    course =
-                      selectedGrade.detail.value === SL_GRADES.GRADE1
-                        ? HEADERLIST.MATHS_G1
-                        : HEADERLIST.MATHS_G2;
-                  }
+                  // if (currentHeader === HEADERLIST.ENGLISH) {
+                  //   course = HEADERLIST.ENGLISH;
+                  //   // currentHeader === HEADERLIST.ENGLISH
+                  // } else if (currentHeader === HEADERLIST.MATHS) {
+                  //   course = HEADERLIST.MATHS;
+                  // }
                   setCourse(course);
-                  localStorage.setItem(PREVIOUS_SELECTED_COURSE(), currentHeader);
+                  localStorage.setItem(
+                    PREVIOUS_SELECTED_COURSE(),
+                    currentHeader
+                  );
                   localStorage.setItem(
                     SELECTED_GRADE(),
                     JSON.stringify(gradeMap)
@@ -405,32 +386,35 @@ const Home: React.FC = () => {
                 }}
                 currentGrade={gradeMap[currentHeader] || SL_GRADES.GRADE1}
                 grades={[SL_GRADES.GRADE1, SL_GRADES.GRADE2]}
-                showGrade={
-                  currentHeader !== HEADERLIST.HOME &&
-                  currentHeader !== HEADERLIST.PUZZLE
-                }
+                showGrade={currentHeader !== HEADERLIST.RECOMMENDATION}
               />
             ) : (
               <div style={{ marginTop: "2.6%" }}></div>
             )}
+            
             <LessonSlider
-              lessonData={
-                currentHeader === HEADERLIST.HOME
-                  ? dataCourse.lessons
-                  : currentChapter?.lessons!
-              }
-              chaptersData={dataCourse.chapters}
-              currentChapter={currentChapter!}
-              onChapterChange={onArrowClick}
-              isHome={currentHeader === HEADERLIST.HOME ? true : false}
-              onSwiper={setLessonSwiperRef}
-              // onSlideChange={onCustomSlideChange}
-              lessonsScoreMap={lessonsScoreMap}
-              startIndex={
-                currentHeader === HEADERLIST.HOME ? 0 : currentLessonIndex - 1
-              }
-              showSubjectName={currentHeader === HEADERLIST.HOME}
-            />
+                lessonData={
+                  currentHeader === HEADERLIST.RECOMMENDATION
+                    ? dataCourse.lessons
+                    : currentChapter?.lessons!
+                }
+                chaptersData={dataCourse.chapters}
+                currentChapter={currentChapter!}
+                onChapterChange={onArrowClick}
+                isHome={
+                  currentHeader === HEADERLIST.RECOMMENDATION ? true : false
+                }
+                onSwiper={setLessonSwiperRef}
+                // onSlideChange={onCustomSlideChange}
+                lessonsScoreMap={lessonsScoreMap}
+                startIndex={
+                  currentHeader === HEADERLIST.RECOMMENDATION
+                    ? 0
+                    : currentLessonIndex - 1
+                }
+                showSubjectName={currentHeader === HEADERLIST.RECOMMENDATION}
+              />
+            */}
           </div>
         ) : null}
         <Loading isLoading={isLoading} />
