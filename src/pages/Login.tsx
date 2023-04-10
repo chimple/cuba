@@ -34,10 +34,10 @@ const Login: React.FC = () => {
           id="login-button"
           onClick={async () => {
             
-            let isUserLoggedIn: boolean = await Auth.i.VSOLogin();
-            if (isUserLoggedIn) {
+            // let isUserLoggedIn: boolean = await Auth.i.VSOLogin();
+            // if (isUserLoggedIn) {
               history.replace(PAGES.HOME);
-            }
+            // }
 
           }}
         >
