@@ -1,39 +1,34 @@
+import { DocumentReference, Timestamp } from "firebase/firestore";
 import { RoleType } from "../interface/modelInterfaces";
 import BaseObject from "./baseObject";
 
 export default class User extends BaseObject {
   private _username: string;
-  private _userIds: string[];
-  private _givenName: string;
-  private _familyName: string;
-  private _middleName: string | null;
+  private _userIds: DocumentReference[];
+  private _name: string;
   private _role: RoleType;
   private _uid: string;
-  private _courses: string[];
-  private _age: number;
-  private _image: string;
+  private _courses: DocumentReference[];
+  private _age: number | null;
+  private _image: string | null;
 
   constructor(
     username: string,
-    userIds: string[],
-    givenName: string,
-    familyName: string,
-    middleName: string | null,
+    userIds: DocumentReference[],
+    name: string,
     role: RoleType,
     uid: string,
-    courses: string[],
-    age: number,
-    image: string,
-    dateLastModified: string,
-    createdAt: string,
+    courses: DocumentReference[],
+    age: number | null,
+    image: string | null,
+    dateLastModified: Timestamp,
+    createdAt: Timestamp,
     docId: string
   ) {
     super(dateLastModified, createdAt, docId);
     this._username = username;
     this._userIds = userIds;
-    this._givenName = givenName;
-    this._familyName = familyName;
-    this._middleName = middleName;
+    this._name = name;
     this._role = role;
     this._uid = uid;
     this._courses = courses;
@@ -46,30 +41,11 @@ export default class User extends BaseObject {
   public set username(value: string) {
     this._username = value;
   }
-  public get userIds(): string[] {
+  public get userIds(): DocumentReference[] {
     return this._userIds;
   }
-  public set userIds(value: string[]) {
+  public set userIds(value: DocumentReference[]) {
     this._userIds = value;
-  }
-
-  public get givenName(): string {
-    return this._givenName;
-  }
-  public set givenName(value: string) {
-    this._givenName = value;
-  }
-  public get familyName(): string {
-    return this._familyName;
-  }
-  public set familyName(value: string) {
-    this._familyName = value;
-  }
-  public get middleName(): string | null {
-    return this._middleName;
-  }
-  public set middleName(value: string | null) {
-    this._middleName = value;
   }
   public get role(): RoleType {
     return this._role;
@@ -83,22 +59,43 @@ export default class User extends BaseObject {
   public set uid(value: string) {
     this._uid = value;
   }
-  public get courses(): string[] {
+  public get courses(): DocumentReference[] {
     return this._courses;
   }
-  public set courses(value: string[]) {
+  public set courses(value: DocumentReference[]) {
     this._courses = value;
   }
-  public get age(): number {
+  public get age(): number | null {
     return this._age;
   }
-  public set age(value: number) {
+  public set age(value: number | null) {
     this._age = value;
   }
-  public get image(): string {
+  public get image(): string | null {
     return this._image;
   }
-  public set image(value: string) {
+  public set image(value: string | null) {
     this._image = value;
+  }
+  public get name(): string {
+    return this._name;
+  }
+  public set name(value: string) {
+    this._name = value;
+  }
+  public toJson() {
+    return {
+      username: this.username,
+      userIds: this.userIds,
+      name: this.name,
+      role: this.role,
+      uid: this.uid,
+      courses: this.courses,
+      age: this.age,
+      image: this.image ?? null,
+      dateLastModified: this.dateLastModified,
+      createdAt: this.createdAt,
+      docId: this.docId,
+    };
   }
 }

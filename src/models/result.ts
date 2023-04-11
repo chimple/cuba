@@ -16,8 +16,8 @@ export default class Result extends BaseObject {
   constructor(
     comment: string,
     name: string,
-    dateLastModified: string,
-    createdAt: string,
+    dateLastModified: Timestamp,
+    createdAt: Timestamp,
     assignment: DocumentReference,
     class_1: DocumentReference,
     course: DocumentReference,

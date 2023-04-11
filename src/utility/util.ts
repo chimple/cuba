@@ -9,6 +9,7 @@ import {
   COURSES,
   CURRENT_LESSON_LEVEL,
   HEADERLIST,
+  PAGES,
   PortPlugin,
   PRE_QUIZ,
   SELECTED_GRADE,
@@ -17,7 +18,7 @@ import {
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
 import { GUIDRef } from "../interface/modelInterfaces";
 import Result from "../models/result";
-import { OneRosterApi } from "../services/OneRosterApi";
+import { OneRosterApi } from "../services/api/OneRosterApi";
 declare global {
   interface Window {
     cc: any;
@@ -312,4 +313,14 @@ export class Util {
       duration: "long",
     });
   }
+
+  public static onAppStateChange = ({ isActive }) => {
+    if (
+      Capacitor.isNativePlatform() &&
+      isActive &&
+      window.location.pathname !== PAGES.GAME
+    ) {
+      window.location.reload();
+    }
+  };
 }

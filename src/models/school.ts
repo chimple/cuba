@@ -1,3 +1,4 @@
+import { Timestamp } from "firebase/firestore";
 import BaseObject from "./baseObject";
 
 export default class school extends BaseObject {
@@ -13,8 +14,8 @@ export default class school extends BaseObject {
     principal: string[],
     coordinator: string[],
     name: string,
-    dateLastModified: string,
-    createdAt: string,
+    dateLastModified: Timestamp,
+    createdAt: Timestamp,
     docId: string
   ) {
     super(dateLastModified, createdAt, docId);

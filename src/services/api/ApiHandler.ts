@@ -1,7 +1,7 @@
-import Assignment from "../models/assignment";
-import Class from "../models/class";
-import Result from "../models/result";
-import User from "../models/user";
+import Assignment from "../../models/assignment";
+import Class from "../../models/class";
+import Result from "../../models/result";
+import User from "../../models/user";
 import { ServiceApi } from "./ServiceApi";
 
 export class ApiHandler {

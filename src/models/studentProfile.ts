@@ -1,3 +1,4 @@
+import { Timestamp } from "firebase/firestore";
 import BaseObject from "./baseObject";
 import { DocumentReference } from "firebase/firestore";
 
@@ -14,8 +15,8 @@ export default class StudentProfile extends BaseObject {
     last5Lessons: object,
     lessons: object,
     school: DocumentReference,
-    dateLastModified: string,
-    createdAt: string,
+    dateLastModified: Timestamp,
+    createdAt: Timestamp,
     docId: string
   ) {
     super(dateLastModified, createdAt, docId);

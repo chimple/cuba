@@ -1,3 +1,4 @@
+import { Timestamp } from "firebase/firestore";
 import BaseObject from "./baseObject";
 
 export default class Curriculum extends BaseObject {
@@ -7,8 +8,8 @@ export default class Curriculum extends BaseObject {
   constructor(
     description: string,
     title: string,
-    dateLastModified: string,
-    createdAt: string,
+    dateLastModified: Timestamp,
+    createdAt: Timestamp,
     docId: string
   ) {
     super(dateLastModified, createdAt, docId);

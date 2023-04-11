@@ -7,9 +7,9 @@ import ProfileHeader from "../components/ProfileHeader";
 import { Lesson } from "../interface/curriculumInterfaces";
 import Auth from "../models/auth";
 import CurriculumController from "../models/curriculumController";
-import { OneRosterApi } from "../services/OneRosterApi";
 import { Util } from "../utility/util";
 import "./Profile.css";
+import { OneRosterApi } from "../services/api/OneRosterApi";
 
 const Profile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
