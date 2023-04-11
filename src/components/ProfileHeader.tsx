@@ -4,6 +4,7 @@ import { PAGES } from "../common/constants";
 import Auth from "../models/auth";
 import IconButton from "./IconButton";
 import "./ProfileHeader.css";
+import { ServiceConfig } from "../services/ServiceConfig";
 
 const ProfileHeader: React.FC = () => {
   const history = useHistory();
@@ -22,11 +23,14 @@ const ProfileHeader: React.FC = () => {
       <IconButton
         name={t("signOut")}
         iconSrc="assets/icons/SignOutIcon.svg"
-        onClick={() => {
-          const isUserLoggedOut: boolean = Auth.i.authLogout();
-          if (isUserLoggedOut) {
-            history.replace(PAGES.LOGIN);
-          }
+        onClick={async () => {
+          // const isUserLoggedOut: boolean = Auth.i.authLogout();
+          // if (isUserLoggedOut) {
+          await ServiceConfig.getI().authHandler.logOut();
+          // setTimeout(() => {
+          history.replace(PAGES.LOGIN);
+          // }, 300);
+          // }
         }}
       />
     </div>

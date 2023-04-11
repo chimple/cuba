@@ -5,6 +5,9 @@ export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
 
   private constructor() {}
+  logOut(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
   isUserLoggedIn(): Promise<boolean> {
     throw new Error("Method not implemented.");
   }

@@ -21,7 +21,7 @@ import { Capacitor } from "@capacitor/core";
 
 export class FirebaseAuth implements ServiceAuth {
   public static i: FirebaseAuth;
-  private _currentUser: User;
+  private _currentUser: User | null;
   private _db = getFirestore();
   private _auth = getAuth();
 
@@ -115,5 +115,10 @@ export class FirebaseAuth implements ServiceAuth {
       if (!!user) return true;
     }
     return false;
+  }
+  async logOut(): Promise<void> {
+    await FirebaseAuthentication.signOut();
+    await this._auth.signOut();
+    this._currentUser = null;
   }
 }

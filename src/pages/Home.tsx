@@ -203,17 +203,17 @@ const Home: React.FC = () => {
       Auth.i.sourcedId,
       subjectCode
     );
-    if (
-      !tempClass &&
-      Capacitor.getPlatform() === "android" &&
-      Auth.i.userAccountName !== DEBUG_15
-    ) {
-      const isUserLoggedOut = Auth.i.authLogout();
-      Util.showLog("No classes Found for user");
-      if (isUserLoggedOut) {
-        history.replace(PAGES.LOGIN);
-      }
-    }
+    // if (
+    //   !tempClass &&
+    //   Capacitor.getPlatform() === "android" &&
+    //   Auth.i.userAccountName !== DEBUG_15
+    // ) {
+    //   const isUserLoggedOut = Auth.i.authLogout();
+    //   Util.showLog("No classes Found for user");
+    //   if (isUserLoggedOut) {
+    //     history.replace(PAGES.LOGIN);
+    //   }
+    // }
     const tempResultLessonMap =
       await apiInstance.getResultsForStudentsForClassInLessonMap(
         tempClass?.docId ?? "",

@@ -27,4 +27,8 @@ export class AuthHandler implements ServiceAuth {
   async isUserLoggedIn(): Promise<boolean> {
     return await this.s.isUserLoggedIn();
   }
+
+  async logOut(): Promise<void> {
+    return await this.s.logOut();
+  }
 }
