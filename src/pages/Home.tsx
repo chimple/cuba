@@ -81,12 +81,14 @@ const Home: React.FC = () => {
 
     // setCurrentHeader(selectedCourse);
     setCourse(selectedCourse);
+    setBackgroundColor(selectedCourse);
   }, []);
 
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
     // const apiInstance = OneRosterApi.getInstance();
     if (subjectCode === HEADERLIST.HOME) {
+      setBackgroundColor(HEADERLIST.HOME);
       let lessonScoreMap = {};
       const lessonMap = {};
       for (const tempCourse of ALL_COURSES) {
@@ -292,6 +294,7 @@ const Home: React.FC = () => {
     switch (selectedHeader) {
       case HEADERLIST.HOME:
         setCurrentHeader(HEADERLIST.HOME);
+        setBackgroundColor(HEADERLIST.HOME);
         setCourse(HEADERLIST.HOME);
         localStorage.setItem(PREVIOUS_SELECTED_COURSE(), HEADERLIST.HOME);
         console.log("Home Icons is selected");
@@ -303,6 +306,7 @@ const Home: React.FC = () => {
             ? COURSES.ENGLISH_G1
             : COURSES.ENGLISH_G2;
         setCurrentHeader(HEADERLIST.ENGLISH);
+        setBackgroundColor(HEADERLIST.ENGLISH);
         setCourse(course);
         localStorage.setItem(PREVIOUS_SELECTED_COURSE(), HEADERLIST.ENGLISH);
         break;
@@ -313,6 +317,7 @@ const Home: React.FC = () => {
             ? HEADERLIST.MATHS_G1
             : HEADERLIST.MATHS_G2;
         setCurrentHeader(HEADERLIST.MATHS);
+        setBackgroundColor(HEADERLIST.MATHS);
         setCourse(course);
         localStorage.setItem(PREVIOUS_SELECTED_COURSE(), HEADERLIST.MATHS);
         break;
@@ -343,12 +348,14 @@ const Home: React.FC = () => {
 
       case HEADERLIST.PUZZLE:
         setCurrentHeader(HEADERLIST.PUZZLE);
+        setBackgroundColor(HEADERLIST.PUZZLE);
         setCourse(COURSES.PUZZLE);
         localStorage.setItem(PREVIOUS_SELECTED_COURSE(), COURSES.PUZZLE);
         break;
 
       case HEADERLIST.PROFILE:
         setCurrentHeader(HEADERLIST.PROFILE);
+        setBackgroundColor(HEADERLIST.PROFILE);
         history.push(PAGES.PROFILE);
         break;
 
@@ -357,12 +364,23 @@ const Home: React.FC = () => {
     }
   }
 
+  function setBackgroundColor(course) {
+    const backgroundColor =
+      course === HEADERLIST.ENGLISH
+        ? "#EBE5F9"
+        : course === HEADERLIST.MATHS
+        ? "#DFF1F7"
+        : course === HEADERLIST.PUZZLE
+        ? "#DCF4E7"
+        : course === HEADERLIST.HOME
+        ? "#FFECE1"
+        : "#EBE5F9";
+    const htmlEl = document.querySelector("html")!;
+    htmlEl.style.setProperty("--ion-background-color", backgroundColor);
+  }
+
   return (
-    <IonPage id="home-page" 
-    style={{
-      backgroundColor : (currentHeader === HEADERLIST.ENGLISH)? '#EBE5F9' : 
-      (currentHeader === HEADERLIST.MATHS)? '#DFF1F7':(currentHeader === HEADERLIST.PUZZLE)? '#DCF4E7':'#FFECE1'
-    }}>
+    <IonPage id="home-page">
       <IonHeader id="home-header">
         <HomeHeader
           currentHeader={currentHeader}
@@ -401,7 +419,11 @@ const Home: React.FC = () => {
                         : HEADERLIST.MATHS_G2;
                   }
                   setCourse(course);
-                  localStorage.setItem(PREVIOUS_SELECTED_COURSE(), currentHeader);
+                  setBackgroundColor(course);
+                  localStorage.setItem(
+                    PREVIOUS_SELECTED_COURSE(),
+                    currentHeader
+                  );
                   localStorage.setItem(
                     SELECTED_GRADE(),
                     JSON.stringify(gradeMap)
