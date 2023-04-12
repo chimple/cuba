@@ -6,11 +6,16 @@ import {
 } from "firebase/auth";
 import User from "../../models/user";
 import {
+  DocumentReference,
   Timestamp,
+  addDoc,
+  arrayUnion,
+  collection,
   doc,
   getDoc,
   getFirestore,
   setDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { RoleType } from "../../interface/modelInterfaces";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
@@ -18,6 +23,7 @@ import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
+import { DEFAULT_COURSE_IDS } from "../../common/constants";
 
 export class FirebaseAuth implements ServiceAuth {
   public static i: FirebaseAuth;
@@ -83,6 +89,7 @@ export class FirebaseAuth implements ServiceAuth {
       [],
       null,
       user.photoUrl,
+      null,
       Timestamp.now(),
       Timestamp.now(),
       user.uid
@@ -98,6 +105,7 @@ export class FirebaseAuth implements ServiceAuth {
     if (!currentUser) return;
     const tempUserDoc = await getDoc(doc(this._db, "User", currentUser.uid));
     this._currentUser = tempUserDoc.data() as User;
+    this._currentUser.docId = tempUserDoc.id;
     return this._currentUser;
   }
 
@@ -116,9 +124,62 @@ export class FirebaseAuth implements ServiceAuth {
     }
     return false;
   }
+
   async logOut(): Promise<void> {
     await FirebaseAuthentication.signOut();
     await this._auth.signOut();
     this._currentUser = null;
+  }
+
+  async createProfile(
+    name: string,
+    age: number,
+    gender: string,
+    image: string | null
+  ): Promise<User> {
+    const _currentUser = await this.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
+    const courseIds: DocumentReference[] = DEFAULT_COURSE_IDS.map((id) =>
+      doc(this._db, `Course/${id}`)
+    );
+    const student = new User(
+      _currentUser?.username,
+      [],
+      name,
+      RoleType.STUDENT,
+      _currentUser.uid,
+      courseIds,
+      age,
+      image,
+      gender,
+      Timestamp.now(),
+      Timestamp.now(),
+      null!
+    );
+    const studentDoc = await addDoc(
+      collection(this._db, "User"),
+      student.toJson()
+    );
+    student.docId = studentDoc.id;
+    await updateDoc(doc(this._db, `User/${student.uid}`), {
+      users: arrayUnion(studentDoc),
+      dateLastModified: Timestamp.now(),
+    });
+    return student;
+  }
+
+  async getUserProfiles(): Promise<User[]> {
+    const currentUser = await this.getCurrentUser();
+    if (!currentUser) throw "User is not Logged in";
+    if (!currentUser.users || currentUser.users.length < 1) return [];
+    const users = await Promise.all(
+      currentUser.users.map(async (user) => {
+        const userDoc = await getDoc(user);
+        const newUser = userDoc.data() as User;
+        newUser.docId = userDoc.id;
+        return newUser;
+      })
+    );
+    return users;
   }
 }
