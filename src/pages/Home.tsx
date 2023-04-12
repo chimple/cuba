@@ -34,6 +34,7 @@ import Auth from "../models/auth";
 import { Toast } from "@capacitor/toast";
 import { Capacitor } from "@capacitor/core";
 import { OneRosterApi } from "../services/api/OneRosterApi";
+import React from "react";
 
 const Home: React.FC = () => {
   const [dataCourse, setDataCourse] = useState<{
