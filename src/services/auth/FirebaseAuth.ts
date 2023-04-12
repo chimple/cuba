@@ -90,6 +90,9 @@ export class FirebaseAuth implements ServiceAuth {
       null,
       user.photoUrl,
       null,
+      null,
+      null,
+      null,
       Timestamp.now(),
       Timestamp.now(),
       user.uid
@@ -135,7 +138,10 @@ export class FirebaseAuth implements ServiceAuth {
     name: string,
     age: number,
     gender: string,
-    image: string | null
+    image: string | null,
+    board: DocumentReference | null,
+    grade: DocumentReference | null,
+    language: DocumentReference | null
   ): Promise<User> {
     const _currentUser = await this.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
@@ -152,6 +158,9 @@ export class FirebaseAuth implements ServiceAuth {
       age,
       image,
       gender,
+      board,
+      grade,
+      language,
       Timestamp.now(),
       Timestamp.now(),
       null!
