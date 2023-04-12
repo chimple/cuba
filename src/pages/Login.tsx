@@ -1,4 +1,4 @@
-import { IonContent, IonPage } from "@ionic/react";
+import { IonContent, IonIcon, IonPage } from "@ionic/react";
 import { useEffect } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
@@ -6,6 +6,8 @@ import { PAGES } from "../common/constants";
 import Auth from "../models/auth";
 import { Capacitor } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
+import TextBox from "../components/TextBox";
+import { FaBeer, FaGoogle } from "react-icons/fa";
 // import { Platform } from "react-native";
 
 const Login: React.FC = () => {
@@ -27,7 +29,7 @@ const Login: React.FC = () => {
     Capacitor.getPlatform() === "android"
   );
   return (
-    <IonPage>
+    <IonPage id="login-screen">
       <IonContent fullscreen>
         <img
           id="login-chimple-logo"
@@ -35,8 +37,25 @@ const Login: React.FC = () => {
           // src="assets/Monk.gif"
           src="assets/icons/ChimpleBrandLogo.svg"
         />
-        <div
-          id="login-button"
+        <div id="chimple-brand-text1">Welcome to Chimple!</div>
+        <p id="chimple-brand-text2">
+          Discovering the joy of learning with Chimple- where curiosity meets
+          education!
+        </p>
+
+        <TextBox
+          inputText={"Enter your Phone Number"}
+          inputType={"number"}
+        ></TextBox>
+
+        <div id="login-continue-button">Continue</div>
+
+        <div id="login-google-icon-text">Continue with Google</div>
+
+        <img
+          id="login-google-icon"
+          alt="Google Icon"
+          src="assets/icons/Google Icon.png"
           onClick={async () => {
             const _authHandler = ServiceConfig.getI().authHandler;
             const result = await _authHandler.googleSign();
@@ -47,25 +66,8 @@ const Login: React.FC = () => {
             if (result) {
               history.replace(PAGES.HOME);
             }
-
-            // let isUserLoggedIn: boolean = await Auth.i.VSOLogin();
-            // if (isUserLoggedIn) {
-            //   history.replace(PAGES.HOME);
-            // }
           }}
-        >
-          <img
-            id="login-button-img"
-            alt="VSO Icon"
-            src="assets/icons/VSOLogo.svg"
-          />
-          <p id="login-button-text">Login with Google</p>
-          <img
-            id="login-button-img"
-            alt="Arrow Icon"
-            src="assets/icons/ArrowIcon.svg"
-          />
-        </div>
+        />
       </IonContent>
     </IonPage>
   );
