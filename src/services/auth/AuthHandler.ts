@@ -1,3 +1,4 @@
+import { DocumentReference } from "firebase/firestore";
 import User from "../../models/user";
 import { ServiceAuth } from "./ServiceAuth";
 
@@ -36,9 +37,20 @@ export class AuthHandler implements ServiceAuth {
     name: string,
     age: number,
     gender: string,
-    image: string | null
+    image: string | null,
+    board: DocumentReference | null,
+    grade: DocumentReference | null,
+    language: DocumentReference | null
   ): Promise<User> {
-    return await this.s.createProfile(name, age, gender, image);
+    return await this.s.createProfile(
+      name,
+      age,
+      gender,
+      image,
+      board,
+      grade,
+      language
+    );
   }
   async getUserProfiles() {
     return await this.s.getUserProfiles();

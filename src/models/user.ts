@@ -12,6 +12,9 @@ export default class User extends BaseObject {
   private _age: number | null;
   private _image: string | null;
   private _gender: string | null;
+  private _board: DocumentReference | null;
+  private _grade: DocumentReference | null;
+  private _language: DocumentReference | null;
 
   constructor(
     username: string,
@@ -23,6 +26,9 @@ export default class User extends BaseObject {
     age: number | null,
     image: string | null,
     gender: string | null,
+    board: DocumentReference | null,
+    grade: DocumentReference | null,
+    language: DocumentReference | null,
     dateLastModified: Timestamp,
     createdAt: Timestamp,
     docId: string
@@ -37,6 +43,9 @@ export default class User extends BaseObject {
     this._age = age;
     this._image = image;
     this._gender = gender;
+    this._board = board;
+    this._grade = grade;
+    this._language = language;
   }
   public get username(): string {
     return this._username;
@@ -92,6 +101,24 @@ export default class User extends BaseObject {
   public set gender(value: string | null) {
     this._gender = value;
   }
+  public get board(): DocumentReference | null {
+    return this._board;
+  }
+  public set board(value: DocumentReference | null) {
+    this._board = value;
+  }
+  public get grade(): DocumentReference | null {
+    return this._grade;
+  }
+  public set grade(value: DocumentReference | null) {
+    this._grade = value;
+  }
+  public get language(): DocumentReference | null {
+    return this._language;
+  }
+  public set language(value: DocumentReference | null) {
+    this._language = value;
+  }
 
   public toJson() {
     return {
@@ -104,6 +131,9 @@ export default class User extends BaseObject {
       age: this.age,
       image: this.image ?? null,
       gender: this.gender ?? null,
+      board: this.board,
+      grade: this.grade,
+      language: this.language,
       dateLastModified: this.dateLastModified,
       createdAt: this.createdAt,
       // docId: this.docId,
