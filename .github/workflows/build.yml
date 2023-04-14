@@ -3,7 +3,7 @@ name: Build Android
 on:
   push:
     branches:
-      - master
+      - bhanu
 
 jobs:
   build:
@@ -33,6 +33,11 @@ jobs:
       #   run: |
       #     touch .env
       #     echo 'REACT_APP_GITHUB_BASE=/cuba' >> .env
+      - name: Create Google Services JSON File
+        working-directory: ./android/app/
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: echo $GOOGLE_SERVICES_JSON | base64 -di > google-services.json
 
       - name: Build
         run: npm run build
