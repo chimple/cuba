@@ -14,6 +14,7 @@ export class OneRosterAuth implements ServiceAuth {
     age: number,
     gender: string,
     image: string | null,
+    avatar: string | null,
     board: DocumentReference | null,
     grade: DocumentReference | null,
     language: DocumentReference | null

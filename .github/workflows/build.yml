@@ -29,15 +29,22 @@ jobs:
       - name: Install app dependencies
         run: npm install
 
-      - name: Store variables
-        run: |
-          touch .env
-          echo 'REACT_APP_GITHUB_BASE=/cuba' >> .env
+      # - name: Store variables
+      #   run: |
+      #     touch .env
+      #     echo 'REACT_APP_GITHUB_BASE=/cuba' >> .env
 
       - name: Build
         run: npm run build
         env:
           CI: false
+
+      - name: Deploy to Firebase
+        uses: w9jds/firebase-action@master
+        with:
+          args: deploy --only hosting
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
       # - name: deploy web
       #   uses: peaceiris/actions-gh-pages@v3

@@ -15,6 +15,7 @@ export default class User extends BaseObject {
   private _board: DocumentReference | null;
   private _grade: DocumentReference | null;
   private _language: DocumentReference | null;
+  private _avatar: string | null;
 
   constructor(
     username: string,
@@ -29,6 +30,7 @@ export default class User extends BaseObject {
     board: DocumentReference | null,
     grade: DocumentReference | null,
     language: DocumentReference | null,
+    avatar: string | null,
     dateLastModified: Timestamp,
     createdAt: Timestamp,
     docId: string
@@ -46,6 +48,7 @@ export default class User extends BaseObject {
     this._board = board;
     this._grade = grade;
     this._language = language;
+    this._avatar = avatar;
   }
   public get username(): string {
     return this._username;
@@ -118,6 +121,12 @@ export default class User extends BaseObject {
   }
   public set language(value: DocumentReference | null) {
     this._language = value;
+  }
+  public get avatar(): string | null {
+    return this._avatar;
+  }
+  public set avatar(value: string | null) {
+    this._avatar = value;
   }
 
   public toJson() {

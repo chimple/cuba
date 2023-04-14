@@ -14,6 +14,7 @@ export interface ServiceAuth {
     name: string,
     age: number,
     gender: string,
+    avatar: string | null,
     image: string | null,
     board: DocumentReference | null,
     grade: DocumentReference | null,
