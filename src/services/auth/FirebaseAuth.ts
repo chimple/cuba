@@ -93,6 +93,7 @@ export class FirebaseAuth implements ServiceAuth {
       null,
       null,
       null,
+      null,
       Timestamp.now(),
       Timestamp.now(),
       user.uid
@@ -138,6 +139,7 @@ export class FirebaseAuth implements ServiceAuth {
     name: string,
     age: number,
     gender: string,
+    avatar: string | null,
     image: string | null,
     board: DocumentReference | null,
     grade: DocumentReference | null,
@@ -161,6 +163,7 @@ export class FirebaseAuth implements ServiceAuth {
       board,
       grade,
       language,
+      avatar,
       Timestamp.now(),
       Timestamp.now(),
       null!
