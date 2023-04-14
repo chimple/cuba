@@ -1,0 +1,32 @@
+#text-box {
+    position: absolute;
+    outline-style: solid;
+    outline-width: 0.1px;
+    left: 50%;
+    top: 58%;
+    width: min(350px, 80vh);
+    height: min(60px, 100vh);
+    -webkit-transform: translateY(-50%) translateX(-50%);
+    border-radius: 10px;
+}
+
+#text-box-elements {
+    display: flex;
+    text-align: center;
+    /* display: flex; */
+    /* justify-content: space-between; */
+    margin: 1% 1% 1% 1%;
+}
+
+#text-box-icon {
+    width: auto;
+    height: 25px;
+    margin: 4.1%;
+}
+
+#text-box-vertical-line {
+    width: 0.5%;
+    height: 40px;
+    margin-top: 2%;
+    background-color: gray
+}
