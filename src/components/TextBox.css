@@ -4,10 +4,10 @@
     outline-width: 0.1px;
     left: 50%;
     top: 58%;
-    width: min(350px, 80vh);
-    height: min(60px, 100vh);
-    -webkit-transform: translateY(-50%) translateX(-50%);
-    border-radius: 10px;
+    width: min(90vh, 100vh);
+    height: min(55vh, 15vh);
+    transform: translateY(-50%) translateX(-50%);
+    border-radius: 4vh;
 }
 
 #text-box-elements {
@@ -20,13 +20,30 @@
 
 #text-box-icon {
     width: auto;
-    height: 25px;
+    height: 6vh;
     margin: 4.1%;
 }
 
 #text-box-vertical-line {
-    width: 0.5%;
-    height: 40px;
+    width: 0.5vh;
+    height: 10vh;
     margin-top: 2%;
     background-color: gray
+}
+
+#text-box-ion-item {
+    font-size: 4vh !important;
+    transform: translateY(-8px) translateX(-20px) scale(0.8) !important;
+}
+
+.text-box-ion-label {
+    margin: 0px !important;
+    padding: 0% !important;
+    font-size: 5vh !important;
+}
+
+.text-box-ion-input {
+    transform: translateY(3vh) !important;
+    font-size: 5vh !important;
+    /* height: 10px !important; */
 }

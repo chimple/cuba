@@ -20,11 +20,19 @@ const TextBox: React.FC<{ inputText; inputType }> = ({
         <div id="text-box-vertical-line"></div>
 
         <div id="text-box-input">
-          <IonItem lines="none">
-            <IonLabel position="floating" color="dark">
+          <IonItem id="text-box-ion-item" lines="none">
+            <IonLabel
+              class="text-box-ion-label"
+              position="floating"
+              color="dark"
+            >
               {inputText}
             </IonLabel>
-            <IonInput type={inputType}></IonInput>
+            <IonInput
+              class="ion-no-padding"
+              className="text-box-ion-input"
+              type={inputType}
+            ></IonInput>
           </IonItem>
         </div>
       </div>
