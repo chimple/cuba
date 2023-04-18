@@ -26,9 +26,11 @@ const ProfileHeader: React.FC = () => {
         onClick={async () => {
           // const isUserLoggedOut: boolean = Auth.i.authLogout();
           // if (isUserLoggedOut) {
-          await ServiceConfig.getI().authHandler.logOut();
+
+          // await ServiceConfig.getI().authHandler.logOut();
+
           // setTimeout(() => {
-          history.replace(PAGES.LOGIN);
+          history.replace(PAGES.PARENT);
           // }, 300);
           // }
         }}

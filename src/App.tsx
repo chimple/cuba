@@ -40,6 +40,7 @@ import {
 } from "./common/constants";
 import { ServiceConfig, APIMode } from "./services/ServiceConfig";
 import { Util } from "./utility/util";
+import Parent from "./pages/Parent";
 // import Assignments from "./pages/Assignments";
 
 setupIonicReact();
@@ -90,6 +91,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.PROFILE} exact={true}>
               <Profile />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.PARENT} exact={true}>
+              <Parent />
             </ProtectedRoute>
             {/* <Route path="/assignments" exact={true}>
             <Assignments />

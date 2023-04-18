@@ -1,0 +1,35 @@
+#profile-card {
+    background-color: white;
+    border-radius: 3vw;
+}
+
+#profile-card-image-div {
+    text-align: center;
+    margin-bottom: 8%;
+}
+
+#profile-card-image {
+    width: 25%;
+    height: auto;
+}
+
+#profile-card-edit-icon-div {
+    text-align: end;
+}
+
+#profile-card-edit-icon {
+    text-align: end;
+    width: 40px;
+    height: 40px;
+}
+
+#profile-card-image-report {
+    text-align: center;
+    background-color: green;
+    color: black;
+    border-radius: 2vw;
+    width: 70%;
+    height: 15%;
+    margin-left: 15%;
+    padding-top: 2%;
+}

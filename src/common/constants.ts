@@ -16,7 +16,7 @@ export enum SL_GRADES {
 
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
-export enum HEADERLIST {
+export enum HOMEHEADERLIST {
   HOME = "HOME",
   RECOMMENDATION = "RECOMMENDATION",
   ASSIGNMENT = "ASSIGNMENT",
@@ -26,18 +26,42 @@ export enum HEADERLIST {
   PROFILE = "PROFILE",
 }
 
+export enum PARENTHEADERLIST {
+  PROFILE = "PROFILE",
+  SETTING = "SETTING",
+  HELP = "HELP",
+}
+
+export const parentHeaderIconList: HeaderIconConfig[] = [
+  {
+    displayName: "User/Profile",
+    iconSrc: "assets/icons/favicon.png",
+    headerList: PARENTHEADERLIST.PROFILE,
+  },
+  {
+    displayName: "Setting",
+    iconSrc: "/assets/icons/favicon.png",
+    headerList: PARENTHEADERLIST.SETTING,
+  },
+  {
+    displayName: "Help/Contact",
+    iconSrc: "/assets/icons/favicon.png",
+    headerList: PARENTHEADERLIST.HELP,
+  },
+];
+
 export class HeaderIconConfig {
   displayName: string;
   iconSrc: string;
-  headerList: HEADERLIST;
+  headerList: any;
 }
 
-export const HEADER_ICON_CONFIGS: Map<HEADERLIST, HeaderIconConfig> = new Map<HEADERLIST, HeaderIconConfig>([
-  [HEADERLIST.RECOMMENDATION, { 'displayName': 'Recommendation', 'iconSrc': '/assets/icons/EnglishIcon.svg', 'headerList': HEADERLIST.RECOMMENDATION }],
-  [HEADERLIST.ASSIGNMENT, { 'displayName': 'Assignment', 'iconSrc': '/assets/icons/MathsIcon.svg', 'headerList': HEADERLIST.ASSIGNMENT }],
-  [HEADERLIST.FAVORITE, { 'displayName': 'Fav/History', 'iconSrc': '/assets/icons/DigitalSkillsIcon.svg', 'headerList': HEADERLIST.FAVORITE }],
-  [HEADERLIST.CHALLENGES, { 'displayName': 'Challenges', 'iconSrc': '/assets/icons/MathsIcon.svg', 'headerList': HEADERLIST.CHALLENGES }],
-  [HEADERLIST.SEARCH, { 'displayName': 'Search', 'iconSrc': '/assets/icons/DigitalSkillsIcon.svg', 'headerList': HEADERLIST.SEARCH }],
+export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> = new Map<HOMEHEADERLIST, HeaderIconConfig>([
+  [HOMEHEADERLIST.RECOMMENDATION, { 'displayName': 'Recommendation', 'iconSrc': '/assets/icons/EnglishIcon.svg', 'headerList': HOMEHEADERLIST.RECOMMENDATION }],
+  [HOMEHEADERLIST.ASSIGNMENT, { 'displayName': 'Assignment', 'iconSrc': '/assets/icons/MathsIcon.svg', 'headerList': HOMEHEADERLIST.ASSIGNMENT }],
+  [HOMEHEADERLIST.FAVORITE, { 'displayName': 'Fav/History', 'iconSrc': '/assets/icons/DigitalSkillsIcon.svg', 'headerList': HOMEHEADERLIST.FAVORITE }],
+  [HOMEHEADERLIST.CHALLENGES, { 'displayName': 'Challenges', 'iconSrc': '/assets/icons/MathsIcon.svg', 'headerList': HOMEHEADERLIST.CHALLENGES }],
+  [HOMEHEADERLIST.SEARCH, { 'displayName': 'Search', 'iconSrc': '/assets/icons/DigitalSkillsIcon.svg', 'headerList': HOMEHEADERLIST.SEARCH }],
 ])
 
 // export const HEADERLIST = [HOME_CONFIG, LANG_CONFIGS, PROFILE_CONFIG]
@@ -57,6 +81,7 @@ export enum PAGES {
   GAME = "/game",
   END = "/end",
   PROFILE = "/profile",
+  PARENT = "/parent"
 }
 
 export enum LANG {

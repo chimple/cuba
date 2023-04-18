@@ -80,3 +80,10 @@ p {
     height: 38px;
     width: auto;
 }
+
+#login-page-parent-button {
+    /* position: absolute;
+    top: 10%;
+    left: 70%; */
+    /* transform: translateY(20%) translateX(40%); */
+}
