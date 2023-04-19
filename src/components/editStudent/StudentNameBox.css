@@ -1,0 +1,24 @@
+.name-header {
+  width: 40vw;
+}
+
+.text-box {
+  width: 100%;
+  height: max(6vh, 5vw);
+  padding: 2vh;
+  border-radius: 1.1vw;
+  border: hidden;
+  outline: none;
+  margin-top: 1vh;
+  background-color: white;
+}
+
+.title {
+  font-size: 3vh;
+  text-align: start;
+}
+
+.main-header {
+  width: 100%;
+  text-align: -webkit-center;
+}

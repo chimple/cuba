@@ -1,0 +1,29 @@
+.content {
+  margin-top: 4vh;
+}
+.avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  font-size: var(--text-size);
+}
+.avatar-container {
+  margin: 0.4vh;
+  gap: 5vh;
+  align-items: center;
+  justify-items: center;
+  width: 90%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.add-new-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  font-size: var(--text-size);
+  margin-top: 3vh;
+  width: max-content;
+}

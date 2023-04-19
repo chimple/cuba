@@ -38,8 +38,9 @@ import {
   LANGUAGE,
   PAGES,
 } from "./common/constants";
-import { ServiceConfig, APIMode } from "./services/ServiceConfig";
 import { Util } from "./utility/util";
+import EditStudent from "./pages/EditStudent";
+import DisplayStudents from "./pages/DisplayStudents";
 // import Assignments from "./pages/Assignments";
 
 setupIonicReact();
@@ -49,7 +50,6 @@ const App: React.FC = () => {
     console.log("fetching...");
     localStorage.setItem(LANGUAGE, LANG.SIERRA_LEONE);
     localStorage.setItem(IS_CUBA, "1");
-    ServiceConfig.getInstance(APIMode.FIREBASE);
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({
         directory: Directory.External,
@@ -91,9 +91,12 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.PROFILE} exact={true}>
               <Profile />
             </ProtectedRoute>
-            {/* <Route path="/assignments" exact={true}>
-            <Assignments />
-          </Route> */}
+            <ProtectedRoute path={PAGES.CREATE_STUDENT} exact={true}>
+              <EditStudent />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.DISPLAY_STUDENT} exact={true}>
+              <DisplayStudents />
+            </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
       </IonReactRouter>

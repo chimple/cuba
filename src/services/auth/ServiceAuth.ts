@@ -10,16 +10,4 @@ export interface ServiceAuth {
 
   logOut(): Promise<void>;
 
-  createProfile(
-    name: string,
-    age: number,
-    gender: string,
-    avatar: string | null,
-    image: string | null,
-    board: DocumentReference | null,
-    grade: DocumentReference | null,
-    language: DocumentReference | null
-  ): Promise<User>;
-
-  getUserProfiles(): Promise<User[]>;
 }

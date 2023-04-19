@@ -1,15 +1,61 @@
-import Assignment from "../../models/assignment";
-import Class from "../../models/class";
-import Result from "../../models/result";
 import User from "../../models/user";
 import { ServiceApi } from "./ServiceApi";
+import Curriculum from "../../models/curriculum";
+import Grade from "../../models/grade";
+import Language from "../../models/language";
 
-export class ApiHandler {
+export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
 
   private s: ServiceApi;
 
   private constructor() {}
+
+  public async getAllCurriculums(): Promise<Curriculum[]> {
+    return await this.s.getAllCurriculums();
+  }
+
+  public async getAllGrades(): Promise<Grade[]> {
+    return await this.s.getAllGrades();
+  }
+
+  public async getAllLanguages(): Promise<Language[]> {
+    return await this.s.getAllLanguages();
+  }
+
+  public async getParentStudentProfiles(): Promise<User[]> {
+    return await this.s.getParentStudentProfiles();
+  }
+
+  public get currentStudent(): User {
+    return this.s.currentStudent;
+  }
+
+  public set currentStudent(value: User) {
+    this.s.currentStudent = value;
+  }
+
+  public async createProfile(
+    name: string,
+    age: number,
+    gender: string,
+    avatar: string | undefined,
+    image: string | undefined,
+    boardDocId: string | undefined,
+    gradeDocId: string | undefined,
+    languageDocId: string | undefined
+  ): Promise<User> {
+    return await this.s.createProfile(
+      name,
+      age,
+      gender,
+      avatar,
+      image,
+      boardDocId,
+      gradeDocId,
+      languageDocId
+    );
+  }
 
   public static getInstance(s: ServiceApi): ApiHandler {
     if (!ApiHandler.i) {

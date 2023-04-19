@@ -1,7 +1,21 @@
 {
-  "loading": "Loading...",
-  "home": "Home",
-  "profile": "Profile",
   "back": "Back",
-  "signOut": "Sign Out"
+  "Boy": "Boy",
+  "Create New User": "Create New User",
+  "Discovering the joy of learning with Chimple- where curiosity meets education!": "Discovering the joy of learning with Chimple- where curiosity meets education!",
+  "Enter Kid Name": "Enter Kid Name",
+  "Girl": "Girl",
+  "home": "Home",
+  "loading": "Loading...",
+  "Medium of Instructions": "Medium of Instructions",
+  "Next": "Next",
+  "Please create your child profile": "Please create your child profile",
+  "profile": "Profile",
+  "Select Board": "Select Board",
+  "Select Grade": "Select Grade",
+  "Select Kid Age:": "Select Kid Age:",
+  "Select Kid Avatar:": "Select Kid Avatar:",
+  "Select Kid Gender:": "Select Kid Gender:",
+  "signOut": "Sign Out",
+  "Welcome to Chimple!": "Welcome to Chimple!"
 }

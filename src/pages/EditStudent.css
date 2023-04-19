@@ -1,0 +1,17 @@
+.content {
+  margin-top: 9vh;
+}
+
+.next-button {
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  /* padding: 3vh 7vh;
+  border-radius: 5vh; */
+  color: var(--text-color);
+  /* background-color: white; */
+  font-size: var(--text-size);
+  /* border: 0;
+  cursor: pointer;
+  margin: 3vh; */
+}

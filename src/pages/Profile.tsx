@@ -1,6 +1,6 @@
 import { IonButton, IonContent, IonPage, IonRow } from "@ionic/react";
 import { useEffect, useState } from "react";
-import { COURSES, MIN_PASS } from "../common/constants";
+import { COURSES, MIN_PASS, PAGES } from "../common/constants";
 import LessonCard from "../components/LessonCard";
 import Loading from "../components/Loading";
 import ProfileHeader from "../components/ProfileHeader";
@@ -10,6 +10,8 @@ import CurriculumController from "../models/curriculumController";
 import { Util } from "../utility/util";
 import "./Profile.css";
 import { OneRosterApi } from "../services/api/OneRosterApi";
+import { useHistory } from "react-router";
+import { ServiceConfig } from "../services/ServiceConfig";
 
 const Profile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -19,9 +21,13 @@ const Profile: React.FC = () => {
     Util.getCourseByGrade(COURSES.ENGLISH)
   );
   // const [unlockUpTo, setUnlockUpTo] = useState(-1);
-
+  const history = useHistory();
   useEffect(() => {
-    init();
+    if (!ServiceConfig.getI().apiHandler.currentStudent) {
+      history.replace(PAGES.DISPLAY_STUDENT);
+    } else {
+      init();
+    }
   }, []);
 
   async function init(subjectCode = Util.getCourseByGrade(COURSES.ENGLISH)) {

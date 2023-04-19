@@ -1,0 +1,28 @@
+.avatar-header {
+  width: 100%;
+  text-align: -webkit-center;
+}
+
+.avatar-title {
+  font-size: var(--text-size);
+  text-align: center;
+  margin-bottom: 1.5vh;
+}
+
+.avatar-img {
+  width: 20vh;
+  padding: 2vh;
+}
+
+.avatar-button {
+  display: inline;
+  cursor: pointer;
+  user-select: none;
+  width: 20vh;
+}
+
+.avatar-check {
+  position: absolute;
+  margin-top: 2vh;
+  margin-left: -5vh;
+}

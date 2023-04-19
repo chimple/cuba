@@ -1,0 +1,57 @@
+.gender-title {
+  font-size: var(--text-size);
+  text-align: center;
+  margin-bottom: 1.5vh;
+}
+
+.main-header {
+  width: 100%;
+  text-align: -webkit-center;
+}
+
+.gender-button {
+  background: white;
+  height: 9vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border-radius: 2vh;
+  cursor: pointer;
+  margin: 0px 3vh;
+}
+
+.gender-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4vh;
+}
+
+.gender-text {
+  font-size: var(--text-size);
+  align-self: center;
+}
+
+.gender-check-box {
+  margin: 0px 3vh;
+}
+
+.age-container {
+  display: flex;
+  justify-content: center;
+}
+
+.age-button {
+  height: 12vh;
+  width: 12vh;
+  margin: 1vh;
+  border-radius: 1.1vh;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  font-size: var(--text-size);
+  align-items: center;
+}
+
+.active-age {
+  background: green;
+}

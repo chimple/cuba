@@ -9,13 +9,13 @@ export default class User extends BaseObject {
   private _role: RoleType;
   private _uid: string;
   private _courses: DocumentReference[];
-  private _age: number | null;
-  private _image: string | null;
-  private _gender: string | null;
-  private _board: DocumentReference | null;
-  private _grade: DocumentReference | null;
-  private _language: DocumentReference | null;
-  private _avatar: string | null;
+  private _age: number | undefined;
+  private _image: string | undefined;
+  private _gender: string | undefined;
+  private _board: DocumentReference | undefined;
+  private _grade: DocumentReference | undefined;
+  private _language: DocumentReference | undefined;
+  private _avatar: string | undefined;
 
   constructor(
     username: string,
@@ -24,13 +24,13 @@ export default class User extends BaseObject {
     role: RoleType,
     uid: string,
     courses: DocumentReference[],
-    age: number | null,
-    image: string | null,
-    gender: string | null,
-    board: DocumentReference | null,
-    grade: DocumentReference | null,
-    language: DocumentReference | null,
-    avatar: string | null,
+    age: number | undefined,
+    image: string | undefined,
+    gender: string | undefined,
+    board: DocumentReference | undefined,
+    grade: DocumentReference | undefined,
+    language: DocumentReference | undefined,
+    avatar: string | undefined,
     dateLastModified: Timestamp,
     createdAt: Timestamp,
     docId: string
@@ -80,16 +80,16 @@ export default class User extends BaseObject {
   public set courses(value: DocumentReference[]) {
     this._courses = value;
   }
-  public get age(): number | null {
+  public get age(): number | undefined {
     return this._age;
   }
-  public set age(value: number | null) {
+  public set age(value: number | undefined) {
     this._age = value;
   }
-  public get image(): string | null {
+  public get image(): string | undefined {
     return this._image;
   }
-  public set image(value: string | null) {
+  public set image(value: string | undefined) {
     this._image = value;
   }
   public get name(): string {
@@ -98,53 +98,54 @@ export default class User extends BaseObject {
   public set name(value: string) {
     this._name = value;
   }
-  public get gender(): string | null {
+  public get gender(): string | undefined {
     return this._gender;
   }
-  public set gender(value: string | null) {
+  public set gender(value: string | undefined) {
     this._gender = value;
   }
-  public get board(): DocumentReference | null {
+  public get board(): DocumentReference | undefined {
     return this._board;
   }
-  public set board(value: DocumentReference | null) {
+  public set board(value: DocumentReference | undefined) {
     this._board = value;
   }
-  public get grade(): DocumentReference | null {
+  public get grade(): DocumentReference | undefined {
     return this._grade;
   }
-  public set grade(value: DocumentReference | null) {
+  public set grade(value: DocumentReference | undefined) {
     this._grade = value;
   }
-  public get language(): DocumentReference | null {
+  public get language(): DocumentReference | undefined {
     return this._language;
   }
-  public set language(value: DocumentReference | null) {
+  public set language(value: DocumentReference | undefined) {
     this._language = value;
   }
-  public get avatar(): string | null {
+  public get avatar(): string | undefined {
     return this._avatar;
   }
-  public set avatar(value: string | null) {
+  public set avatar(value: string | undefined) {
     this._avatar = value;
   }
 
   public toJson() {
     return {
-      username: this.username,
-      users: this.users,
+      age: this.age ?? null,
+      avatar: this.avatar ?? null,
+      board: this.board ?? null,
+      courses: this.courses,
+      createdAt: this.createdAt,
+      dateLastModified: this.dateLastModified,
+      gender: this.gender ?? null,
+      grade: this.grade ?? null,
+      image: this.image ?? null,
+      language: this.language ?? null,
       name: this.name,
       role: this.role,
       uid: this.uid,
-      courses: this.courses,
-      age: this.age,
-      image: this.image ?? null,
-      gender: this.gender ?? null,
-      board: this.board,
-      grade: this.grade,
-      language: this.language,
-      dateLastModified: this.dateLastModified,
-      createdAt: this.createdAt,
+      username: this.username,
+      users: this.users,
       // docId: this.docId,
     };
   }
