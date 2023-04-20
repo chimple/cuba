@@ -35,11 +35,13 @@ export class OneRosterApi implements ServiceApi {
   }
 
   getHeaders(): HttpHeaders {
-    let ipcHost;
+    let host;
+    let proto;
     if (Auth.i.endpointUrl) {
       try {
         const endpointUrl = new URL(Auth.i.endpointUrl);
-        ipcHost = endpointUrl.host + endpointUrl.pathname;
+        host = endpointUrl.host;
+        proto = endpointUrl.protocol;
       } catch (error) {
         console.log(
           "🚀 ~ file: OneRosterApi.ts:53 ~ OneRosterApi ~ getHeaders ~ error:",
@@ -49,7 +51,8 @@ export class OneRosterApi implements ServiceApi {
     }
     return {
       "auth-token": Auth.i.authToken,
-      "ipc-host": ipcHost,
+      host: host,
+      proto: proto,
     };
   }
 
