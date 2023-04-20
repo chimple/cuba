@@ -5,10 +5,11 @@ import "./DisplayStudents.css";
 import Loading from "../components/Loading";
 import User from "../models/user";
 import { AVATARS, MAX_STUDENTS_ALLOWED, PAGES } from "../common/constants";
-import { IoAddCircleOutline } from "react-icons/io5";
+import { IoAddCircleSharp } from "react-icons/io5";
 import { useHistory } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
+import { Util } from "../utility/util";
 
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -25,14 +26,17 @@ const DisplayStudents: FC<{}> = () => {
       students
     );
     setStudents(students);
+    // setStudents([students[0]]);
+
+    // setStudents([...students, students[0]]);
     setIsLoading(false);
   };
-  const onStudentClick = (student: User) => {
+  const onStudentClick = async (student: User) => {
     console.log(
       "🚀 ~ file: DisplayStudents.tsx:30 ~ onStudentClick:student",
       student
     );
-    ServiceConfig.getI().apiHandler.currentStudent = student;
+    await Util.setCurrentStudent(student);
     history.push(PAGES.HOME);
   };
   const onCreateNewStudent = () => {
@@ -72,7 +76,7 @@ const DisplayStudents: FC<{}> = () => {
             </div>
             {students.length < MAX_STUDENTS_ALLOWED && (
               <div onClick={onCreateNewStudent} className="add-new-button">
-                <IoAddCircleOutline size="18vh" />
+                <IoAddCircleSharp color="white" size="10vh" />
                 {t("Create New User")}
               </div>
             )}

@@ -3,7 +3,7 @@
   "Boy": "लड़का",
   "Create New User": "नया उपयोगकर्ता बनाएं",
   "Discovering the joy of learning with Chimple- where curiosity meets education!": "चिम्पल के साथ सीखने की खुशी की खोज- जहां जिज्ञासा शिक्षा से मिलती है!",
-  "Enter Kid Name": "बच्चे का नाम दर्ज करें",
+  "Enter Child Name:": "बच्चे का नाम दर्ज करें",
   "Girl": "लड़की",
   "home": "घर",
   "loading": "लोड हो रहा है...",
@@ -13,9 +13,9 @@
   "profile": "प्रोफ़ाइल",
   "Select Board": "चुनिंदा बोर्ड",
   "Select Grade": "ग्रेड का चयन करें",
-  "Select Kid Age:": "बच्चे की उम्र का चयन करें:",
-  "Select Kid Avatar:": "बच्चे अवतार का चयन करें:",
-  "Select Kid Gender:": "किड लिंग का चयन करें:",
+  "Select Child Age:": "बच्चे की उम्र का चयन करें:",
+  "Select Child Avatar:": "बच्चे अवतार का चयन करें:",
+  "Select Child Gender:": "किड लिंग का चयन करें:",
   "signOut": "साइन आउट",
   "Welcome to Chimple!": "चिम्पल में आपका स्वागत है!"
 }

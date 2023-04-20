@@ -37,8 +37,8 @@ export class ApiHandler implements ServiceApi {
 
   public async createProfile(
     name: string,
-    age: number,
-    gender: string,
+    age: number | undefined,
+    gender: string | undefined,
     avatar: string | undefined,
     image: string | undefined,
     boardDocId: string | undefined,
@@ -63,6 +63,10 @@ export class ApiHandler implements ServiceApi {
       ApiHandler.i.s = s;
     }
     return ApiHandler.i;
+  }
+
+  public async getLanguageWithId(id: string): Promise<Language | undefined> {
+    return await this.s.getLanguageWithId(id);
   }
 
   // public async getUser(userId: string): Promise<User | undefined> {

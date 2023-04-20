@@ -14,10 +14,11 @@
   height: 9vh;
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-between;
   border-radius: 2vh;
   cursor: pointer;
   margin: 0px 3vh;
+  width: 30vh;
 }
 
 .gender-container {
@@ -32,7 +33,7 @@
 }
 
 .gender-check-box {
-  margin: 0px 3vh;
+  margin-right: 1vh;
 }
 
 .age-container {
@@ -53,5 +54,5 @@
 }
 
 .active-age {
-  background: green;
+  background: #81C127;
 }

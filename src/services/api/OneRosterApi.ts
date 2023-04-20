@@ -19,6 +19,9 @@ export class OneRosterApi implements ServiceApi {
   private classes: { [key: string]: Class[] } = {};
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
   private constructor() {}
+  getLanguageWithId(id: string): Promise<Language | undefined> {
+    throw new Error("Method not implemented.");
+  }
   getAllCurriculums(): Promise<Curriculum[]> {
     throw new Error("Method not implemented.");
   }

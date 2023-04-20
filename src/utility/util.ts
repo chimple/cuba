@@ -9,6 +9,8 @@ import {
   COURSES,
   CURRENT_LESSON_LEVEL,
   HEADERLIST,
+  LANG,
+  LANGUAGE,
   PAGES,
   PortPlugin,
   PRE_QUIZ,
@@ -19,6 +21,9 @@ import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
 import { GUIDRef } from "../interface/modelInterfaces";
 import Result from "../models/result";
 import { OneRosterApi } from "../services/api/OneRosterApi";
+import User from "../models/user";
+import { ServiceConfig } from "../services/ServiceConfig";
+import i18n from "../i18n";
 declare global {
   interface Window {
     cc: any;
@@ -61,9 +66,9 @@ export class Util {
 
         console.log(
           "before local lesson Bundle http url:" +
-          "assets/" +
-          lessonId +
-          "/index.js"
+            "assets/" +
+            lessonId +
+            "/index.js"
         );
 
         const fetchingLocalBundle = await fetch(
@@ -71,9 +76,9 @@ export class Util {
         );
         console.log(
           "after local lesson Bundle fetch url:" +
-          "assets/" +
-          lessonId +
-          "/index.js",
+            "assets/" +
+            lessonId +
+            "/index.js",
           fetchingLocalBundle.ok,
           fetchingLocalBundle.json,
           fetchingLocalBundle
@@ -322,5 +327,22 @@ export class Util {
     ) {
       window.location.reload();
     }
+  };
+
+  public static setCurrentStudent = async (
+    student: User,
+    languageCode: string | undefined = undefined
+  ) => {
+    const api = ServiceConfig.getI().apiHandler;
+    api.currentStudent = student;
+    if (!languageCode && !!student.language?.id) {
+      const langDoc = await api.getLanguageWithId(student.language.id);
+      if (langDoc) {
+        languageCode = langDoc.code;
+      }
+    }
+    const tempLangCode = languageCode ?? LANG.ENGLISH;
+    localStorage.setItem(LANGUAGE, tempLangCode);
+    await i18n.changeLanguage(tempLangCode);
   };
 }

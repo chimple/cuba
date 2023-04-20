@@ -4,14 +4,24 @@
 
 .next-button {
   position: fixed;
-  top: 0px;
-  right: 0px;
-  /* padding: 3vh 7vh;
-  border-radius: 5vh; */
+  top: 3vh;
+  right: 4vh;
   color: var(--text-color);
-  /* background-color: white; */
   font-size: var(--text-size);
-  /* border: 0;
-  cursor: pointer;
-  margin: 3vh; */
+  height: 7vh;
+}
+
+.button-round {
+  --padding-start: 4vh;
+  --padding-end: 1vh;
+  --padding-top: 0.6vh;
+}
+
+.arrow-icon {
+  padding-left: 4vh;
+  padding-bottom: 1.3vh;
+}
+
+.button-solid {
+  --box-shadow: 0;
 }

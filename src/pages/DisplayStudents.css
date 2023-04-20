@@ -1,5 +1,6 @@
 .content {
-  margin-top: 4vh;
+  margin-top: 8vh;
+
 }
 .avatar {
   display: flex;
@@ -10,7 +11,7 @@
 }
 .avatar-container {
   margin: 0.4vh;
-  gap: 5vh;
+  gap: 10vh;
   align-items: center;
   justify-items: center;
   width: 90%;
@@ -24,6 +25,6 @@
   align-items: center;
   cursor: pointer;
   font-size: var(--text-size);
-  margin-top: 3vh;
+  margin-top: 15vh;
   width: max-content;
 }

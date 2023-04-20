@@ -8,8 +8,8 @@ import Language from "../../models/language";
 export interface ServiceApi {
   createProfile(
     name: string,
-    age: number,
-    gender: string,
+    age: number | undefined,
+    gender: string | undefined,
     avatar: string | undefined,
     image: string | undefined,
     boardDocId: string | undefined,
@@ -23,4 +23,5 @@ export interface ServiceApi {
   getParentStudentProfiles(): Promise<User[]>;
   get currentStudent(): User;
   set currentStudent(value: User);
+  getLanguageWithId(id: string): Promise<Language | undefined>;
 }

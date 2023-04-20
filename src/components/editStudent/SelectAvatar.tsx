@@ -4,15 +4,15 @@ import "./SelectAvatar.css";
 import { BsFillCheckCircleFill } from "react-icons/bs";
 import { t } from "i18next";
 
-const SelectAvatar: FC<{ avatar: string; onAvatarChange: (avatar: string) => void }> = ({
+const SelectAvatar: FC<{ avatar: string|undefined; onAvatarChange: (avatar: string) => void }> = ({
   avatar,
   onAvatarChange,
 }) => {
   return (
     <div>
       <div className="avatar-header">
-        <div className="avatar-title">{t("Select Kid Avatar:")}</div>
-        <div className="avatar-container">
+        <div className="avatar-title">{t("Select Child Avatar:")}</div>
+        <div className="avatar-container1">
           {AVATARS.map((_avatar: string) => {
             return (
               <div
@@ -27,9 +27,8 @@ const SelectAvatar: FC<{ avatar: string; onAvatarChange: (avatar: string) => voi
                 />
                 {avatar === _avatar && (
                   <BsFillCheckCircleFill
-                    color="green"
                     className="avatar-check"
-                    size="4vh"
+                    size="4.5vh"
                   />
                 )}
               </div>

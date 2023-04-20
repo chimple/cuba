@@ -2,6 +2,7 @@
   height: 20vh;
   padding-top: 0.2vh;
   margin-top: 1vh;
+  margin-bottom: -3vh;
 }
 
 #logo-header {
@@ -10,9 +11,9 @@
 
 #logo-heading {
   font-weight: bold;
-  font-size: 4vh;
+  font-size: 6vh;
 }
 
 #logo-msg {
-  font-size: 3vh;
+  font-size: var(--text-size);
 }

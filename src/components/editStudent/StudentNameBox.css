@@ -14,8 +14,8 @@
 }
 
 .title {
-  font-size: 3vh;
-  text-align: start;
+  font-size: var(--text-size);
+  text-align: center;
 }
 
 .main-header {

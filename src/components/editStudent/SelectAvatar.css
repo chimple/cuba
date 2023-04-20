@@ -11,7 +11,7 @@
 
 .avatar-img {
   width: 20vh;
-  padding: 2vh;
+  padding: 0.5vh;
 }
 
 .avatar-button {
@@ -19,10 +19,24 @@
   cursor: pointer;
   user-select: none;
   width: 20vh;
+  flex: 0 0 16%;
 }
 
 .avatar-check {
   position: absolute;
-  margin-top: 2vh;
+  margin-top: 0.5vh;
   margin-left: -5vh;
+  color: #81c127;
+}
+
+.avatar-container1 {
+  margin: 0.4vh;
+  gap: 2vh;
+  align-items: center;
+  justify-items: center;
+  flex: 1 0 21%;
+  width: 60%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
 }

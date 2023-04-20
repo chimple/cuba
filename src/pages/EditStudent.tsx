@@ -15,6 +15,7 @@ import Loading from "../components/Loading";
 import { useHistory } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
+import { Util } from "../utility/util";
 
 const EditStudent = () => {
   enum STAGES {
@@ -25,9 +26,9 @@ const EditStudent = () => {
   }
   const [stage, setStage] = useState(STAGES.NAME);
   const [studentName, setStudentName] = useState("");
-  const [gender, setGender] = useState(GENDER.BOY);
-  const [age, setAge] = useState(5);
-  const [avatar, setAvatar] = useState(AVATARS[0]);
+  const [gender, setGender] = useState<GENDER>();
+  const [age, setAge] = useState<number>();
+  const [avatar, setAvatar] = useState<string>();
   const [board, setBoard] = useState<string>();
   const [grade, setGrade] = useState<string>();
   const [language, setLanguage] = useState<string>();
@@ -60,7 +61,12 @@ const EditStudent = () => {
         student
       );
       //Setting the Current Student
-      api.currentStudent = student;
+      // api.currentStudent = student;
+      const langIndex = languages?.findIndex((lang) => lang.docId === language);
+      await Util.setCurrentStudent(
+        student,
+        langIndex && languages ? languages[langIndex]?.code : undefined
+      );
       history.replace(PAGES.HOME);
     } else {
       if (newStage === STAGES.GRADE) {
@@ -85,10 +91,14 @@ const EditStudent = () => {
     switch (stage) {
       case STAGES.NAME:
         return !!studentName;
+      case STAGES.GENDER_AND_AGE:
+        return !!gender && !!age;
+      case STAGES.AVATAR:
+        return !!avatar;
       case STAGES.GRADE:
         return !!grade && !!board && !!language;
       default:
-        return true;
+        return false;
     }
   };
 
@@ -99,17 +109,20 @@ const EditStudent = () => {
           className="next-button"
           disabled={!isNextButtonEnabled()}
           color="light"
+          fill="solid"
           shape="round"
           onClick={onNextButton}
         >
           {t("Next")}
-          <IonIcon slot="end" icon={chevronForward}></IonIcon>
+          <IonIcon
+            className="arrow-icon"
+            slot="end"
+            icon={chevronForward}
+          ></IonIcon>
         </IonButton>
         <ChimpleLogo
           header={t("Welcome to Chimple!")}
-          msg={t(
-            "Please create your child profile"
-          )}
+          msg={t("Please create your child profile")}
         />
         <div className="content">
           {stage === STAGES.NAME && (

@@ -141,10 +141,14 @@ export interface PortPlugin {
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_COURSE_IDS = [
-  "RiMQCOteNrktL0Oa6dNi",
-  "zmElfKhtS152dPrwcJ0n",
-  "KiaqDYLBN2dBcodOOBPA",
+  "RiMQCOteNrktL0Oa6dNi", //English
+  "zmElfKhtS152dPrwcJ0n", //Maths
+  "KiaqDYLBN2dBcodOOBPA", //Digital Skills
 ];
+export const LANGUAGE_COURSE_MAP = {
+  sju2ne9JwNE1TZgo9M4G: "WUfGFSqcW8cIyl8yiqcR", //Hindi
+  zvmpksodSkr8bmhGAFaT: "jZp8NfR84MILMEazPSK7", //Kannada
+};
 
 export enum GENDER {
   BOY = "boy",

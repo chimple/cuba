@@ -7,15 +7,15 @@ import { GENDER } from "../../common/constants";
 import { t } from "i18next";
 
 const GenderAndAge: React.FC<{
-  gender: GENDER;
-  age: number;
+  gender: GENDER | undefined;
+  age: number | undefined;
   onGenderChange: (gender: GENDER) => void;
   onAgeChange: (age: number) => void;
 }> = ({ gender, age, onGenderChange, onAgeChange }) => {
   return (
     <div>
       <div className="main-header">
-        <div className="gender-title">{t("Select Kid Gender:")}</div>
+        <div className="gender-title">{t("Select Child Gender:")}</div>
         <div className="gender-container">
           <div
             className="gender-button"
@@ -28,7 +28,7 @@ const GenderAndAge: React.FC<{
               <p className="gender-text"> {t("Boy")}</p>
             </IonRow>
             <BsFillCheckCircleFill
-              color={gender === GENDER.BOY ? "green" : "grey"}
+              color={gender === GENDER.BOY ? "#81C127" : "grey"}
               className="gender-check-box"
               size="4vh"
             />
@@ -44,13 +44,13 @@ const GenderAndAge: React.FC<{
               <p className="gender-text"> {t("Girl")}</p>
             </IonRow>
             <BsFillCheckCircleFill
-              color={gender === GENDER.GIRL ? "green" : "grey"}
+              color={gender === GENDER.GIRL ? "#81C127" : "grey"}
               className="gender-check-box"
               size="4vh"
             />
           </div>
         </div>
-        <div className="gender-title">{t("Select Kid Age:")}</div>
+        <div className="gender-title">{t("Select Child Age:")}</div>
         <div className="age-container">
           {Array(7)
             .fill(null)

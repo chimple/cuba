@@ -11,7 +11,10 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { ServiceApi } from "./ServiceApi";
-import { DEFAULT_COURSE_IDS } from "../../common/constants";
+import {
+  DEFAULT_COURSE_IDS,
+  LANGUAGE_COURSE_MAP,
+} from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
 import User from "../../models/user";
 import { ServiceConfig } from "../ServiceConfig";
@@ -35,8 +38,8 @@ export class FirebaseApi implements ServiceApi {
 
   public async createProfile(
     name: string,
-    age: number,
-    gender: string,
+    age: number | undefined,
+    gender: string | undefined,
     avatar: string | undefined,
     image: string | undefined,
     boardDocId: string | undefined,
@@ -49,6 +52,13 @@ export class FirebaseApi implements ServiceApi {
     const courseIds: DocumentReference[] = DEFAULT_COURSE_IDS.map((id) =>
       doc(this._db, `Course/${id}`)
     );
+    if (!!languageDocId && !!LANGUAGE_COURSE_MAP[languageDocId]) {
+      courseIds.splice(
+        1,
+        0,
+        doc(this._db, `Course/${LANGUAGE_COURSE_MAP[languageDocId]}`)
+      );
+    }
     const boardRef = doc(this._db, `Curriculum/${boardDocId}`);
     const gradeRef = doc(this._db, `Grade/${gradeDocId}`);
     const languageRef = doc(this._db, `Language/${languageDocId}`);
@@ -139,5 +149,11 @@ export class FirebaseApi implements ServiceApi {
 
   public set currentStudent(value: User) {
     this._currentStudent = value;
+  }
+
+  async getLanguageWithId(id: string): Promise<Language | undefined> {
+    const result = await getDoc(doc(this._db, `Language/${id}`));
+    if (!result.data()) return;
+    return result.data() as Language;
   }
 }

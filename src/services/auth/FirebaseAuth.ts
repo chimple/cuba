@@ -24,6 +24,7 @@ import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { DEFAULT_COURSE_IDS } from "../../common/constants";
+import Language from "../../models/language";
 
 export class FirebaseAuth implements ServiceAuth {
   public static i: FirebaseAuth;
