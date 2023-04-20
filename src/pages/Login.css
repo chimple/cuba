@@ -15,7 +15,7 @@ p {
     position: absolute;
     left: 50%;
     top: 15%;
-    -webkit-transform: translateY(-50%) translateX(-50%);
+    transform: translateY(-50%) translateX(-50%);
 }
 
 #chimple-brand-text1 {
@@ -26,49 +26,54 @@ p {
     /* width: 40%; */
     font-weight: bolder;
     text-align: center;
-    -webkit-transform: translateY(-5%) translateX(-50%);
+    transform: translateY(-5%) translateX(-50%);
+    font-size: 4vh;
 }
 
 #chimple-brand-text2 {
     position: absolute;
-    top: 37%;
-    height: 5%;
-    width: 40%;
+    top: min(38%, 44%);
+    height: auto;
+    /* height: min(200px, 60vh); */
+    width: min(90%, 100%);
     font-weight: 500;
-    left: 30%;
+    left: min(5%, 10%);
     text-align: center;
     line-height: 1;
+    font-size: 4vh;
 }
 
 #login-continue-button {
     position: absolute;
     left: 50%;
     top: 75%;
-    -webkit-transform: translateY(-50%) translateX(-50%);
-    width: min(350px, 80vh);
-    height: min(60px, 100vh);
+    transform: translateY(-50%) translateX(-50%);
+    width: min(90vh, 100vh);
+    height: min(55vh, 15vh);
     color: white;
     background: green;
-    border-radius: 10px;
+    border-radius: 4vh;
     text-align: center;
-    line-height: 60px;
+    line-height: 15vh;
+    font-size: 4vh;
 }
 
 #login-google-icon-text {
     position: absolute;
     top: 83%;
     left: 50%;
-    -webkit-transform: translateY(-5%) translateX(-50%);
+    transform: translateY(-5%) translateX(-50%);
+    font-size: 4vh;
 }
 
 #login-google-icon {
     position: absolute;
     top: 89%;
     left: 50%;
-    height: 38px;
+    height: 10vh;
     width: auto;
     text-align: center;
-    -webkit-transform: translateY(-5%) translateX(-50%);
+    transform: translateY(-5%) translateX(-50%);
 }
 
 #login-button-img {

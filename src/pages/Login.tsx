@@ -1,4 +1,10 @@
-import { IonContent, IonIcon, IonPage } from "@ionic/react";
+import {
+  IonContent,
+  IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
+  IonPage,
+} from "@ionic/react";
 import { useEffect, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
@@ -28,7 +34,10 @@ const Login: React.FC = () => {
   );
   return (
     <IonPage id="login-screen">
-      <IonContent fullscreen>
+      <IonContent fullscreen scrollY={true}>
+        {/* <IonInfiniteScroll> */}
+        {/* <IonInfiniteScrollContent> */}
+
         {!isLoading ? (
           <div>
             <img
@@ -78,6 +87,8 @@ const Login: React.FC = () => {
           </div>
         ) : null}
         <Loading isLoading={isLoading} />
+        {/* </IonInfiniteScrollContent> */}
+        {/* </IonInfiniteScroll> */}
       </IonContent>
     </IonPage>
   );
