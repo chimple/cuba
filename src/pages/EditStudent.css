@@ -1,4 +1,5 @@
 .content {
+  overflow: scroll;
   margin-top: 9vh;
 }
 
@@ -6,22 +7,28 @@
   position: fixed;
   top: 3vh;
   right: 4vh;
-  color: var(--text-color);
+  /* color: var(--text-color); */
+  color: #05342f;
   font-size: var(--text-size);
   height: 7vh;
+  max-height: 50px;
 }
 
 .button-round {
-  --padding-start: 4vh;
-  --padding-end: 1vh;
-  --padding-top: 0.6vh;
+  --padding-start: min(16px, 4vh);
+  --padding-end: min(5px, 1vh);
+  /* --padding-top: 0.6vh; */
 }
 
 .arrow-icon {
   padding-left: 4vh;
-  padding-bottom: 1.3vh;
+  /* padding-bottom: 1.3vh; */
 }
 
 .button-solid {
   --box-shadow: 0;
+}
+
+.ion-page {
+  justify-content: start;
 }

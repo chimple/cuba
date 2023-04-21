@@ -28,7 +28,6 @@ const SelectAvatar: FC<{ avatar: string|undefined; onAvatarChange: (avatar: stri
                 {avatar === _avatar && (
                   <BsFillCheckCircleFill
                     className="avatar-check"
-                    size="4.5vh"
                   />
                 )}
               </div>

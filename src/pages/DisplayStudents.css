@@ -1,6 +1,5 @@
 .content {
-  margin-top: 8vh;
-
+  margin-top: 3vh;
 }
 .avatar {
   display: flex;
@@ -8,6 +7,7 @@
   align-items: center;
   cursor: pointer;
   font-size: var(--text-size);
+  color: #05342f;
 }
 .avatar-container {
   margin: 0.4vh;
@@ -25,6 +25,11 @@
   align-items: center;
   cursor: pointer;
   font-size: var(--text-size);
-  margin-top: 15vh;
+  margin-top: 13vh;
   width: max-content;
+  color: #05342f;
+}
+
+.ion-page {
+  justify-content: start;
 }

@@ -6,7 +6,7 @@ import { useState } from "react";
 import GenderAndAge from "../components/editStudent/GenderAndAge";
 import SelectAvatar from "../components/editStudent/SelectAvatar";
 import GradeBoardAndLangDropdown from "../components/editStudent/GradeBoardAndLangDropdown";
-import { AVATARS, GENDER, PAGES } from "../common/constants";
+import { GENDER, PAGES } from "../common/constants";
 import { chevronForward } from "ionicons/icons";
 import Curriculum from "../models/curriculum";
 import Grade from "../models/grade";
@@ -104,7 +104,7 @@ const EditStudent = () => {
 
   return (
     <IonPage id="Edit-student-page">
-      <IonContent>
+      {/* <IonContent> */}
         <IonButton
           className="next-button"
           disabled={!isNextButtonEnabled()}
@@ -157,7 +157,7 @@ const EditStudent = () => {
           )}
         </div>
         <Loading isLoading={isLoading} />
-      </IonContent>
+      {/* </IonContent> */}
     </IonPage>
   );
 };

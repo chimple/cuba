@@ -37,7 +37,7 @@ const DisplayStudents: FC<{}> = () => {
       student
     );
     await Util.setCurrentStudent(student);
-    history.push(PAGES.HOME);
+    history.replace(PAGES.HOME);
   };
   const onCreateNewStudent = () => {
     history.push(PAGES.CREATE_STUDENT);
@@ -45,7 +45,7 @@ const DisplayStudents: FC<{}> = () => {
 
   return (
     <IonPage id="display-students">
-      <IonContent>
+      {/* <IonContent> */}
         <ChimpleLogo
           header={t("Welcome to Chimple!")}
           msg={[
@@ -84,7 +84,7 @@ const DisplayStudents: FC<{}> = () => {
           </div>
         )}
         <Loading isLoading={isLoading} />
-      </IonContent>
+      {/* </IonContent> */}
     </IonPage>
   );
 };

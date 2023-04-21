@@ -7,6 +7,7 @@
   font-size: var(--text-size);
   text-align: center;
   margin-bottom: 1.5vh;
+  color: #05342f;
 }
 
 .avatar-img {
@@ -20,13 +21,16 @@
   user-select: none;
   width: 20vh;
   flex: 0 0 16%;
+  position: relative;
 }
 
 .avatar-check {
-  position: absolute;
-  margin-top: 0.5vh;
-  margin-left: -5vh;
   color: #81c127;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 4.5vh;
+  height: 4.5vh;
 }
 
 .avatar-container1 {

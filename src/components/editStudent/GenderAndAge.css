@@ -1,6 +1,7 @@
 .gender-title {
   font-size: var(--text-size);
   text-align: center;
+  color: #05342f;
   margin-bottom: 1.5vh;
 }
 
@@ -30,6 +31,7 @@
 .gender-text {
   font-size: var(--text-size);
   align-self: center;
+  color: #05342f;
 }
 
 .gender-check-box {
@@ -51,8 +53,9 @@
   justify-content: center;
   font-size: var(--text-size);
   align-items: center;
+  color: #05342f;
 }
 
 .active-age {
-  background: #81C127;
+  background: #81c127;
 }

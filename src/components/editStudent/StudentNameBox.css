@@ -11,11 +11,13 @@
   outline: none;
   margin-top: 1vh;
   background-color: white;
+  color: #05342f;
 }
 
 .title {
   font-size: var(--text-size);
   text-align: center;
+  color: #05342f;
 }
 
 .main-header {
