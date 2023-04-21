@@ -42,6 +42,7 @@ import { Util } from "./utility/util";
 import EditStudent from "./pages/EditStudent";
 import DisplayStudents from "./pages/DisplayStudents";
 // import Assignments from "./pages/Assignments";
+import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
 
 setupIonicReact();
 
@@ -68,6 +69,7 @@ const App: React.FC = () => {
           }
         });
       CapApp.addListener("appStateChange", Util.onAppStateChange);
+      Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
     }
   }, []);
 

@@ -9,6 +9,11 @@
 			"providers": [
 				"google.com"
 			]
+		},
+		"Keyboard": {
+			"resize": "body",
+			"style": "DARK",
+			"resizeOnFullScreen": true
 		}
 	}
 }

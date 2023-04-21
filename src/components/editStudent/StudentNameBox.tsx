@@ -4,7 +4,8 @@ import "./StudentNameBox.css";
 const StudentNameBox: React.FC<{
   studentName: string;
   onValueChange: (name: string) => void;
-}> = ({ studentName, onValueChange }) => {
+  onEnterDown: Function;
+}> = ({ studentName, onValueChange, onEnterDown }) => {
   return (
     <div className="main-header">
       <div className="name-header">
@@ -13,6 +14,11 @@ const StudentNameBox: React.FC<{
           onChange={(evt) => onValueChange(evt.target.value)}
           className="text-box"
           type="text"
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              onEnterDown();
+            }
+          }}
           value={studentName}
         ></input>
       </div>

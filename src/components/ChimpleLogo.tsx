@@ -14,7 +14,11 @@ const ChimpleLogo: React.FC<{ header: string; msg: string | string[] }> = ({
       {typeof msg === "string" ? (
         <div id="logo-msg">{msg}</div>
       ) : (
-        msg.map((value) => <div id="logo-msg">{value}</div>)
+        msg.map((value) => (
+          <div key={value} id="logo-msg">
+            {value}
+          </div>
+        ))
       )}
       {/* <div id="logo-msg">{msg}</div> */}
     </div>
