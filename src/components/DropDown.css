@@ -3,6 +3,12 @@
     padding: 0% !important;
     margin: 0% !important;
     max-width: 15vw;
+    background-color: var(--ion-background-color);
+    /* bac */
+}
+
+.IonSelect {
+    background: var(--ion-background-color);
 }
 
 .list-md {

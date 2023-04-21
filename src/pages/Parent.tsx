@@ -1,4 +1,4 @@
-import { IonContent, IonIcon, IonPage } from "@ionic/react";
+import { IonContent, IonPage } from "@ionic/react";
 import { useEffect, useState } from "react";
 import Loading from "../components/Loading";
 import "./Parent.css";
@@ -6,11 +6,9 @@ import ParentHeader from "../components/parent/ParentHeader";
 import { PARENTHEADERLIST } from "../common/constants";
 import ProfileCard from "../components/parent/ProfileCard";
 import User from "../models/user";
-import { FirebaseAuth } from "../services/auth/FirebaseAuth";
-import DropDown from "../components/DropDown";
 import ToggleButton from "../components/parent/ToggleButton";
 // import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
-import share, {
+import {
   EmailIcon,
   EmailShareButton,
   FacebookIcon,
@@ -22,7 +20,8 @@ import share, {
 } from "react-share";
 import { FaInstagramSquare } from "react-icons/fa";
 import { TfiWorld } from "react-icons/tfi";
-import RectangularOutlineDropDown from "../components/parent/LeftTitleRectangularIconButton";
+import RectangularOutlineDropDown from "../components/parent/RectangularOutlineDropDown";
+import { FirebaseApi } from "../services/api/FirebaseApi";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 
@@ -54,9 +53,9 @@ const Parent: React.FC = () => {
   //     return await FirebaseAuth.i.getUserProfiles();
   //   }
 
-  function profileUI(selectedHeader: any) {
+  function profileUI() {
     const userProfilePromise: Promise<User[]> =
-      FirebaseAuth.i.getUserProfiles();
+      FirebaseApi.i.getParentStudentProfiles();
 
     let userProfile: User[];
     userProfilePromise.then((u) => {
@@ -87,18 +86,7 @@ const Parent: React.FC = () => {
     );
   }
 
-  function settingUI(selectedHeader: any) {
-    // return (
-    //   <ToggleButton
-    //     flag={musicFlag}
-    //     title="Music"
-    //     onIonChangeClick={(v) => {
-    //       console.log("ion change value ", v.detail.checked);
-    //       setMusicFlag(v.detail.checked);
-    //     }}
-    //   ></ToggleButton>
-    // );
-
+  function settingUI() {
     return (
       <div id="parent-page-setting">
         <div id="parent-page-setting-div">
@@ -148,7 +136,7 @@ const Parent: React.FC = () => {
     );
   }
 
-  function helpUI(selectedHeader: any) {
+  function helpUI() {
     return (
       <div id="parent-page-help">
         <h1 id="parent-page-help-title">Chimple Help Desk</h1>
@@ -298,15 +286,15 @@ const Parent: React.FC = () => {
             ></ParentHeader>
 
             {currentHeader === PARENTHEADERLIST.PROFILE ? (
-              <div>{profileUI(currentHeader)}</div>
+              <div>{profileUI()}</div>
             ) : null}
 
             {currentHeader === PARENTHEADERLIST.SETTING ? (
-              <div>{settingUI(currentHeader)}</div>
+              <div>{settingUI()}</div>
             ) : null}
 
             {currentHeader === PARENTHEADERLIST.HELP ? (
-              <div>{helpUI(currentHeader)}</div>
+              <div>{helpUI()}</div>
             ) : null}
           </div>
         ) : null}

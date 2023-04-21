@@ -1,0 +1,24 @@
+#app-lang {
+    /* background-color: ; */
+    text-align: center;
+}
+
+#app-lang-chimple-logo {
+    text-align: center;
+    width: auto;
+    height: 30vh;
+}
+
+#app-lang-element {
+    display: flex;
+    text-align: center;
+    margin-top: 10vh;
+    margin-left: 30vw;
+    gap: 5vw;
+}
+
+#app-lang-text {
+    /* color: white; */
+    font-size: var(--text-size);
+    padding-top: 4vh;
+}

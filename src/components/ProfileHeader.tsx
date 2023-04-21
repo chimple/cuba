@@ -4,6 +4,7 @@ import { AVATARS, PAGES } from "../common/constants";
 import IconButton from "./IconButton";
 import "./ProfileHeader.css";
 import { ServiceConfig } from "../services/ServiceConfig";
+import Auth from "../models/auth";
 
 const ProfileHeader: React.FC = () => {
   const history = useHistory();

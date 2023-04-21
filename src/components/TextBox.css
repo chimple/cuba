@@ -8,6 +8,7 @@
     height: min(55vh, 15vh);
     /* transform: translateY(-50%) translateX(-50%); */
     border-radius: 4vh;
+    /* background-color: var(--ion-background-color); */
 }
 
 #text-box-elements {

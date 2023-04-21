@@ -90,6 +90,7 @@ export enum PAGES {
   PARENT = "/parent",
   CREATE_STUDENT = "/create-student",
   DISPLAY_STUDENT = "/display-students",
+  APP_LANG_SELECTION = "/app-lang-selection",
 }
 
 export enum LANG {
@@ -117,6 +118,7 @@ export const PREVIOUS_PLAYED_COURSE = () =>
 export const PREVIOUS_SELECTED_COURSE = () =>
   `${Auth.i.sourcedId}-previousSelectedCourse`;
 export const SELECTED_GRADE = () => `${Auth.i.sourcedId}-selectedGrade`;
+export const APP_LANG = "appLang";
 export const LANGUAGE = "language";
 export const EXAM = "exam";
 export const PRE_QUIZ = "PreQuiz";
