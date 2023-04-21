@@ -1,4 +1,4 @@
-import { IonContent, IonPage } from "@ionic/react";
+import { IonContent, IonIcon, IonPage } from "@ionic/react";
 import { useEffect, useState } from "react";
 import Loading from "../components/Loading";
 import "./Parent.css";
@@ -7,15 +7,22 @@ import { PARENTHEADERLIST } from "../common/constants";
 import ProfileCard from "../components/parent/ProfileCard";
 import User from "../models/user";
 import { FirebaseAuth } from "../services/auth/FirebaseAuth";
-import GradeDropDown from "../components/GradeDropDown";
+import DropDown from "../components/DropDown";
 import ToggleButton from "../components/parent/ToggleButton";
-import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
+// import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import share, {
   EmailIcon,
   EmailShareButton,
   FacebookIcon,
   FacebookShareButton,
+  TwitterIcon,
+  TwitterShareButton,
+  WhatsappIcon,
+  WhatsappShareButton,
 } from "react-share";
+import { FaInstagramSquare } from "react-icons/fa";
+import { TfiWorld } from "react-icons/tfi";
+import RectangularOutlineDropDown from "../components/parent/LeftTitleRectangularIconButton";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 
@@ -27,7 +34,7 @@ const Parent: React.FC = () => {
 
   useEffect(() => {
     // init();
-    setCurrentHeader(PARENTHEADERLIST.HELP);
+    setCurrentHeader(PARENTHEADERLIST.SETTING);
   }, []);
 
   function onHeaderIconClick(selectedHeader: any) {
@@ -59,20 +66,20 @@ const Parent: React.FC = () => {
     return (
       <div id="parent-page-profile">
         <ProfileCard
-          width={"25vw"}
-          height={"45vh"}
+          width={"27vw"}
+          height={"40vh"}
           user={userProfilePromise}
           showText={true}
         />
         <ProfileCard
-          width={"25vw"}
-          height={"45vh"}
+          width={"27vw"}
+          height={"40vh"}
           user={userProfilePromise}
           showText={true}
         />
         <ProfileCard
-          width={"25vw"}
-          height={"45vh"}
+          width={"27vw"}
+          height={"40vh"}
           user={userProfilePromise}
           showText={true}
         />
@@ -94,16 +101,31 @@ const Parent: React.FC = () => {
 
     return (
       <div id="parent-page-setting">
-        <div id="parent-page-setting-lang-dropdown">
-          <GradeDropDown
-            grades={["English", "Hindi", "Karnataka"]}
-            currentGrade={"English"}
-            onGradeChange={(selectedGrade) => {
+        <div id="parent-page-setting-div">
+          <p id="parent-page-setting-lang-text">Language</p>
+          <RectangularOutlineDropDown
+            optionList={["English", "Hindi", "Karnataka"]}
+            currentValue={"English"}
+            width="15vw"
+            onValueChange={(selectedGrade) => {
+              console.log("selected Langauage", selectedGrade);
+            }}
+          ></RectangularOutlineDropDown>
+        </div>
+        {/* <div id="parent-page-setting-lang-dropdown">
+          <DropDown
+            optionList={["English", "Hindi", "Karnataka"]}
+            currentValue={"English"}
+            width="15vw"
+            onValueChange={(selectedGrade) => {
               console.log("selected Langauage", selectedGrade);
             }}
           />
-        </div>
-        <div id="parent-page-setting-toggle">
+        </div> */}
+        <div
+          id="parent-page-setting-div"
+          // className="parent-page-setting-div-vertical-space"
+        >
           <ToggleButton
             flag={soundFlag}
             title="Sound"
@@ -127,69 +149,33 @@ const Parent: React.FC = () => {
   }
 
   function helpUI(selectedHeader: any) {
-    let email = {
-      to: "skanda@sutara.org",
-      cc: ["prakash@sutara.org", "vinay@sutara.org"],
-      // bcc: ["john@doe.com", "jane@doe.com"],
-      // attachments: [
-      //   "file://img/logo.png",
-      //   "res://icon.png",
-      //   "base64:icon.png//iVBORw0KGgoAAAANSUhEUg...",
-      //   "file://README.pdf",
-      // ],
-      subject: "Testing Testing",
-      body: "Em Chestunnav ra leyyy",
-      isHtml: true,
-    };
-
-    // Send a text message using default options
-    const shareUrl = "http://github.com";
-    const title = "GitHub";
-
     return (
       <div id="parent-page-help">
         <h1 id="parent-page-help-title">Chimple Help Desk</h1>
         <div id="parent-page-help-title-e1">
-          <EmailShareButton
-            url={"shareUrl"}
-            subject={"title"}
-            body="body"
-            className="Demo__some-network__share-button"
-          >
-            <EmailIcon size={32} round />
-          </EmailShareButton>
-          <FacebookShareButton
-            url={shareUrl}
-            quote={title}
-            className="Demo__some-network__share-button"
-          >
-            <FacebookIcon size={32} round />
-          </FacebookShareButton>
-          <LeftTitleRectangularIconButton
-            buttonWidth={20}
-            buttonHeight={7}
-            iconSrc={"assets/icons/favicon.png"}
-            name={"Email Us"}
-            isButtonEnable={true}
-            onHeaderIconClick={() => {
-              // console.log(
-              //   "eMAIL clicked",
-              //   EmailComposer,
-              //   EmailComposer.isAvailable()
-              // );
-              // EmailComposer.isAvailable().then((available: boolean) => {
-              //   console.log("available", available);
-              //   if (available) {
-              //     //Now we know we can send
-              //     EmailComposer.open(email);
-              //   }
-              // });
-              // if (currentHeader != element.headerList) {
-              //   onHeaderIconClick(element.headerList);
-              // }
+          <div id="parent-page-help-share-button">
+            <EmailShareButton
+              url={"help@sutara.org"}
+              subject={"Chimple Kids app- Help Desk"}
+              body=""
+              className="Demo__some-network__share-button"
+            >
+              Email Us
+            </EmailShareButton>
+            <EmailIcon size={"2vw"} round />
+          </div>
+          <div
+            id="parent-page-help-share-button"
+            onClick={() => {
+              console.log("Value clicked");
+              window.open("https://www.chimple.org/", "_system");
             }}
-          ></LeftTitleRectangularIconButton>
-          <LeftTitleRectangularIconButton
+          >
+            Visit Website
+            <TfiWorld size={"2vw"} />
+            {/* <IonIcon name="globe-outline" size={"2vw"}></IonIcon> */}
+          </div>
+          {/* <LeftTitleRectangularIconButton
             buttonWidth={20}
             buttonHeight={7}
             iconSrc={"assets/icons/favicon.png"}
@@ -198,12 +184,19 @@ const Parent: React.FC = () => {
             onHeaderIconClick={() => {
               console.log("Value clicked");
               window.open("https://www.chimple.org/", "_system");
-              // if (currentHeader != element.headerList) {
-              //   onHeaderIconClick(element.headerList);
-              // }
             }}
-          ></LeftTitleRectangularIconButton>
-          <LeftTitleRectangularIconButton
+          ></LeftTitleRectangularIconButton> */}
+          <div id="parent-page-help-share-button">
+            <WhatsappShareButton
+              url={"?phone=918904515444&"}
+              title={"title"}
+              className="Demo__some-network__share-button"
+            >
+              WhatsApp Us
+            </WhatsappShareButton>
+            <WhatsappIcon size={"2vw"} round />
+          </div>
+          {/* <LeftTitleRectangularIconButton
             buttonWidth={20}
             buttonHeight={7}
             iconSrc={"assets/icons/favicon.png"}
@@ -216,54 +209,62 @@ const Parent: React.FC = () => {
                 "_system"
               );
             }}
-          ></LeftTitleRectangularIconButton>
+          ></LeftTitleRectangularIconButton> */}
         </div>
         <div id="parent-page-help-title-e2">
-          <iframe
-            id="responsive-iframe"
-            // width="50%"
-            // height="50%"
-            src="https://www.youtube.com/embed/Ez9oouE2pOE"
-            title="YouTube video player"
-            // frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            // allowfullscreen
-          ></iframe>
+          Help Video
+          <div id="parent-page-help-title-e2-video">
+            <iframe
+              id="parent-page-help-title-e2-video-youtude"
+              // width="50%"
+              // height="50%"
+              src="https://www.youtube.com/embed/Ez9oouE2pOE"
+              title="YouTube video player"
+              // frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              // allowfullscreen
+            ></iframe>
+          </div>
         </div>
         <div id="parent-page-help-title-e3">
-          <LeftTitleRectangularIconButton
-            buttonWidth={15}
-            buttonHeight={7}
-            iconSrc={"assets/icons/favicon.png"}
-            name={"Instagram"}
-            isButtonEnable={true}
-            onHeaderIconClick={() => {
+          <div
+            id="parent-page-help-share-button-e3"
+            onClick={() => {
               console.log("Value clicked");
-              // Linking.openURL("https://www.instagram.com/chimple_learning/");
-              // window.open(
-              //   "https://www.instagram.com/chimple_learning/",
-              //   "_system"
-              // );
-              // if (currentHeader != element.headerList) {
-              //   onHeaderIconClick(element.headerList);
-              // }
+              // let message = "Hiii !!!!";
+              window.open(
+                `https://api.instagram.com/chimple_learning/`,
+                "_system"
+              );
+              // https://api.instagram.com/chimple_learning/
+
+              // instagram://user?username=its_mee_skanda
             }}
-          ></LeftTitleRectangularIconButton>
-          <LeftTitleRectangularIconButton
-            buttonWidth={20}
-            buttonHeight={7}
-            iconSrc={"assets/icons/favicon.png"}
-            name={"Facebook"}
-            isButtonEnable={true}
-            onHeaderIconClick={() => {
-              console.log("Value clicked");
-              window.open("https://www.facebook.com/chimple/", "_system");
-              // if (currentHeader != element.headerList) {
-              //   onHeaderIconClick(element.headerList);
-              // }
-            }}
-          ></LeftTitleRectangularIconButton>
-          <LeftTitleRectangularIconButton
+          >
+            Instagram
+            <FaInstagramSquare size={"2vw"} />
+          </div>
+          <div id="parent-page-help-share-button-e3">
+            <FacebookShareButton
+              url={"https://www.facebook.com/chimple"}
+              quote={"Chimple Learning"}
+              className="Demo__some-network__share-button"
+            >
+              Fackbook
+            </FacebookShareButton>
+            <FacebookIcon size={"2vw"} round />
+          </div>
+          <div id="parent-page-help-share-button-e3">
+            <TwitterShareButton
+              url={"https://twitter.com/chimple_org"}
+              title={"Chimple Learning"}
+              className="Demo__some-network__share-button"
+            >
+              Twitter
+            </TwitterShareButton>
+            <TwitterIcon size={"2vw"} round />
+          </div>
+          {/* <LeftTitleRectangularIconButton
             buttonWidth={20}
             buttonHeight={7}
             iconSrc={"assets/icons/favicon.png"}
@@ -271,12 +272,16 @@ const Parent: React.FC = () => {
             isButtonEnable={true}
             onHeaderIconClick={() => {
               console.log("Value clicked");
-              window.open("https://twitter.com/chimple_org/", "_system");
+              let message = "Hiii !!!!";
+              window.open(
+                `https://twitter.com/intent/tweet?text=${message}`,
+                "_system"
+              );
               // if (currentHeader != element.headerList) {
               //   onHeaderIconClick(element.headerList);
               // }
             }}
-          ></LeftTitleRectangularIconButton>
+          ></LeftTitleRectangularIconButton> */}
         </div>
       </div>
     );

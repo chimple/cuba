@@ -30,11 +30,12 @@ export enum PARENTHEADERLIST {
   PROFILE = "PROFILE",
   SETTING = "SETTING",
   HELP = "HELP",
+  FAQ = "FAQ"
 }
 
 export const parentHeaderIconList: HeaderIconConfig[] = [
   {
-    displayName: "User/Profile",
+    displayName: "User",
     iconSrc: "assets/icons/favicon.png",
     headerList: PARENTHEADERLIST.PROFILE,
   },
@@ -47,6 +48,11 @@ export const parentHeaderIconList: HeaderIconConfig[] = [
     displayName: "Help/Contact",
     iconSrc: "/assets/icons/favicon.png",
     headerList: PARENTHEADERLIST.HELP,
+  },
+  {
+    displayName: "FAQ",
+    iconSrc: "/assets/icons/favicon.png",
+    headerList: PARENTHEADERLIST.FAQ,
   },
 ];
 

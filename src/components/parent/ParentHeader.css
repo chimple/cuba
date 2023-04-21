@@ -1,20 +1,29 @@
 #parent-header-icons {
     display: flex;
-    margin: 0% 1.5% 0% 1.5%;
+    margin: 1% 1.5% 1% 1.5%;
     justify-content: flex-start;
     align-items: center;
+}
+
+#parent-header-icons-back {
+    /* width: 4%; */
+    /* padding: 2%; */
+    color: black;
+    /* fill: white; */
+    background-color: white;
+    border-radius: 100%;
 }
 
 #parent-header-middle-icons {
     display: flex;
     justify-content: space-between;
-    width: 70vw;
+    width: 80vw;
     /* width: 30vw; */
     margin: 0 auto
 }
 
 #parent-header-middle-icons div {
-    padding-right: 5px
+    padding-right: 1%
 }
 
 #parent-header-puzzle-icon {

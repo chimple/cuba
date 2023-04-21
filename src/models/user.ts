@@ -16,6 +16,8 @@ export default class User extends BaseObject {
   private _grade: DocumentReference | null;
   private _language: DocumentReference | null;
   private _avatar: string | null;
+  private _soundFlag: boolean | undefined;
+  private _musicFlag: boolean | undefined;
 
   constructor(
     username: string,
@@ -33,7 +35,9 @@ export default class User extends BaseObject {
     avatar: string | null,
     dateLastModified: Timestamp,
     createdAt: Timestamp,
-    docId: string
+    docId: string,
+    soundFlag: boolean = true,
+    musicFlag: boolean = true,
   ) {
     super(dateLastModified, createdAt, docId);
     this._username = username;
@@ -49,6 +53,9 @@ export default class User extends BaseObject {
     this._grade = grade;
     this._language = language;
     this._avatar = avatar;
+    this._soundFlag = soundFlag;
+    this._musicFlag = musicFlag;
+
   }
   public get username(): string {
     return this._username;
@@ -122,6 +129,20 @@ export default class User extends BaseObject {
   public set language(value: DocumentReference | null) {
     this._language = value;
   }
+  public get soundFlag(): boolean | undefined {
+    return this._soundFlag;
+  }
+  public set soundFlag(value: boolean | undefined) {
+    this._soundFlag = value;
+  }
+
+  public get musicFlag(): boolean | undefined {
+    return this._musicFlag;
+  }
+  public set musicFlag(value: boolean | undefined) {
+    this._musicFlag = value;
+  }
+
   public get avatar(): string | null {
     return this._avatar;
   }

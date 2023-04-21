@@ -24,15 +24,14 @@ const ProfileHeader: React.FC = () => {
         name={t("signOut")}
         iconSrc="assets/icons/SignOutIcon.svg"
         onClick={async () => {
-          // const isUserLoggedOut: boolean = Auth.i.authLogout();
-          // if (isUserLoggedOut) {
+          const isUserLoggedOut: boolean = Auth.i.authLogout();
+          if (isUserLoggedOut) {
+            await ServiceConfig.getI().authHandler.logOut();
 
-          // await ServiceConfig.getI().authHandler.logOut();
-
-          // setTimeout(() => {
-          history.replace(PAGES.PARENT);
-          // }, 300);
-          // }
+            setTimeout(() => {
+              history.replace(PAGES.LOGIN);
+            }, 300);
+          }
         }}
       />
     </div>

@@ -2,6 +2,7 @@ import { IonCard } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import "./ProfileCard.css";
 import React from "react";
+import { MdModeEditOutline } from "react-icons/md";
 
 const ProfileCard: React.FC<{
   width: string;
@@ -17,20 +18,30 @@ const ProfileCard: React.FC<{
     <IonCard
       id="profile-card"
       style={{
+        // width: "auto",
         width: width,
-        height: height,
+        // height: height,
+        height: "auto",
       }}
       onClick={() => {
         console.log("Profile card Icon is clicked");
       }}
     >
       <div id="profile-card-edit-icon-div">
-        <img
+        <MdModeEditOutline
+          id="profile-card-edit-icon"
+          size={"5%"}
+          onClick={() => {
+            console.log("clicked on Parent back");
+            //   history.replace(PAGES.HOME);
+          }}
+        ></MdModeEditOutline>
+        {/* <img
           id="profile-card-edit-icon"
           loading="lazy"
           src="assets/icons/DoneIcon.svg"
           alt="assets/icons/DoneIcon.svg"
-        />
+        /> */}
       </div>
       <div id="profile-card-image-div">
         <img
@@ -41,7 +52,7 @@ const ProfileCard: React.FC<{
         />
         <p>User Name</p>
       </div>
-      <div id="profile-card-image-report">report</div>
+      <div id="profile-card-image-report">Report</div>
     </IonCard>
   );
 };

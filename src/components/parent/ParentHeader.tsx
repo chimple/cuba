@@ -11,6 +11,7 @@ import IconButton from "./../IconButton";
 import HeaderIcon from "./../HeaderIcon";
 import React from "react";
 import RectangularIconButton from "./RectangularIconButton";
+import { IoIosArrowBack, IoIosArrowDropleftCircle } from "react-icons/io";
 
 const ParentHeader: React.FC<{
   currentHeader: string;
@@ -20,21 +21,38 @@ const ParentHeader: React.FC<{
 
   return (
     <div id="parent-header-icons">
-      <IconButton
-        name={t("back")}
-        iconSrc="assets/icons/BackIcon.svg"
+      <IoIosArrowBack
+        id="parent-header-icons-back"
+        size={"8vh"}
         onClick={() => {
           console.log("clicked on Parent back");
           //   history.replace(PAGES.HOME);
         }}
-      />
+      ></IoIosArrowBack>
+      {/* <IoIosArrowDropleftCircle
+        id="parent-header-icons-back"
+        size={"4%"}
+        onClick={() => {
+          console.log("clicked on Parent back");
+          //   history.replace(PAGES.HOME);
+        }}
+      ></IoIosArrowDropleftCircle> */}
+      {/* <img
+        id="parent-header-icons-back"
+        src="assets/icons/ArrowIcon.svg"
+        alt="Back"
+        onClick={() => {
+          console.log("clicked on Parent back");
+          //   history.replace(PAGES.HOME);
+        }}
+      /> */}
       <div id="parent-header-middle-icons">
         {parentHeaderIconList.map((element) => {
           //   console.log("Dyanamic Parent Header List ", element);
           return (
             <RectangularIconButton
-              buttonWidth={20}
-              buttonHeight={7}
+              buttonWidth={18}
+              buttonHeight={8}
               iconSrc={element.iconSrc}
               name={element.displayName}
               isButtonEnable={currentHeader === element.headerList}

@@ -69,10 +69,12 @@ const Login: React.FC = () => {
               Discovering the joy of learning with Chimple- where curiosity
               meets education!
             </p>
-            <TextBox
-              inputText={"Enter your Phone Number"}
-              inputType={"number"}
-            ></TextBox>
+            <div id="login-text-box">
+              <TextBox
+                inputText={"Enter your Phone Number"}
+                inputType={"number"}
+              ></TextBox>
+            </div>
             <div
               id="login-continue-button"
               // onClick={() => {
