@@ -1,0 +1,46 @@
+.avatar-header {
+  width: 100%;
+  text-align: -webkit-center;
+}
+
+.avatar-title {
+  font-size: var(--text-size);
+  text-align: center;
+  margin-bottom: 1.5vh;
+  color: #05342f;
+}
+
+.avatar-img {
+  width: 20vh;
+  padding: 0.5vh;
+}
+
+.avatar-button {
+  display: inline;
+  cursor: pointer;
+  user-select: none;
+  width: 20vh;
+  flex: 0 0 16%;
+  position: relative;
+}
+
+.avatar-check {
+  color: #81c127;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 4.5vh;
+  height: 4.5vh;
+}
+
+.avatar-container1 {
+  margin: 0.4vh;
+  gap: 2vh;
+  align-items: center;
+  justify-items: center;
+  flex: 1 0 21%;
+  width: 60%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}

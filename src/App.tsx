@@ -38,18 +38,19 @@ import {
   LANGUAGE,
   PAGES,
 } from "./common/constants";
-import { ServiceConfig, APIMode } from "./services/ServiceConfig";
 import { Util } from "./utility/util";
+import EditStudent from "./pages/EditStudent";
+import DisplayStudents from "./pages/DisplayStudents";
 // import Assignments from "./pages/Assignments";
+import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
 
 setupIonicReact();
 
 const App: React.FC = () => {
   useEffect(() => {
     console.log("fetching...");
-    localStorage.setItem(LANGUAGE, LANG.SIERRA_LEONE);
+    localStorage.setItem(LANGUAGE, LANG.ENGLISH);
     localStorage.setItem(IS_CUBA, "1");
-    ServiceConfig.getInstance(APIMode.FIREBASE);
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({
         directory: Directory.External,
@@ -68,6 +69,7 @@ const App: React.FC = () => {
           }
         });
       CapApp.addListener("appStateChange", Util.onAppStateChange);
+      Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
     }
   }, []);
 
@@ -91,9 +93,12 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.PROFILE} exact={true}>
               <Profile />
             </ProtectedRoute>
-            {/* <Route path="/assignments" exact={true}>
-            <Assignments />
-          </Route> */}
+            <ProtectedRoute path={PAGES.CREATE_STUDENT} exact={true}>
+              <EditStudent />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.DISPLAY_STUDENT} exact={true}>
+              <DisplayStudents />
+            </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
       </IonReactRouter>

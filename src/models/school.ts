@@ -3,23 +3,26 @@ import BaseObject from "./baseObject";
 
 export default class school extends BaseObject {
   private _name: string;
+  private _image: string | undefined;
   private _courses: string[];
   private _teachers: string[];
   private _principal: string[];
   private _coordinator: string[];
 
   constructor(
+    name: string,
+    image: string | undefined,
     courses: string[],
     teachers: string[],
     principal: string[],
     coordinator: string[],
-    name: string,
     dateLastModified: Timestamp,
     createdAt: Timestamp,
     docId: string
   ) {
     super(dateLastModified, createdAt, docId);
     this._name = name;
+    this._image = image;
     this._teachers = teachers;
     this._principal = principal;
     this._coordinator = coordinator;
@@ -54,5 +57,11 @@ export default class school extends BaseObject {
   }
   public set coordinator(value: string[]) {
     this._coordinator = value;
+  }
+  public get image(): string | undefined {
+    return this._image;
+  }
+  public set image(value: string | undefined) {
+    this._image = value;
   }
 }

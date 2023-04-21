@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router";
-import { PAGES } from "../common/constants";
-import Auth from "../models/auth";
+import { AVATARS, PAGES } from "../common/constants";
 import IconButton from "./IconButton";
 import "./ProfileHeader.css";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -9,6 +8,7 @@ import { ServiceConfig } from "../services/ServiceConfig";
 const ProfileHeader: React.FC = () => {
   const history = useHistory();
   const { t } = useTranslation();
+  const student = ServiceConfig.getI().apiHandler.currentStudent;
 
   return (
     <div className="header">
@@ -19,7 +19,10 @@ const ProfileHeader: React.FC = () => {
           history.replace(PAGES.HOME);
         }}
       />
-      <IconButton name="Chimp" iconSrc="assets/icons/Profile.svg" />
+      <IconButton
+        name={student?.name ?? "Chimp"}
+        iconSrc={"assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png"}
+      />
       <IconButton
         name={t("signOut")}
         iconSrc="assets/icons/SignOutIcon.svg"
