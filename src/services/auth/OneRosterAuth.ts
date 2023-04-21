@@ -6,21 +6,7 @@ export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
 
   private constructor() {}
-  getUserProfiles(): Promise<User[]> {
-    throw new Error("Method not implemented.");
-  }
-  createProfile(
-    name: string,
-    age: number,
-    gender: string,
-    image: string | null,
-    avatar: string | null,
-    board: DocumentReference | null,
-    grade: DocumentReference | null,
-    language: DocumentReference | null
-  ): Promise<User> {
-    throw new Error("Method not implemented.");
-  }
+
   logOut(): Promise<void> {
     throw new Error("Method not implemented.");
   }

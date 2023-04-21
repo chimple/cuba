@@ -87,7 +87,9 @@ export enum PAGES {
   GAME = "/game",
   END = "/end",
   PROFILE = "/profile",
-  PARENT = "/parent"
+  PARENT = "/parent",
+  CREATE_STUDENT = "/create-student",
+  DISPLAY_STUDENT = "/display-students",
 }
 
 export enum LANG {
@@ -132,7 +134,62 @@ export interface PortPlugin {
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_COURSE_IDS = [
-  "RiMQCOteNrktL0Oa6dNi",
-  "zmElfKhtS152dPrwcJ0n",
-  "KiaqDYLBN2dBcodOOBPA",
+  "RiMQCOteNrktL0Oa6dNi", //English
+  "zmElfKhtS152dPrwcJ0n", //Maths
+  "KiaqDYLBN2dBcodOOBPA", //Digital Skills
 ];
+export const LANGUAGE_COURSE_MAP = {
+  sju2ne9JwNE1TZgo9M4G: "WUfGFSqcW8cIyl8yiqcR", //Hindi
+  zvmpksodSkr8bmhGAFaT: "jZp8NfR84MILMEazPSK7", //Kannada
+};
+
+export enum GENDER {
+  BOY = "boy",
+  GIRL = "girl",
+  OTHER = "other",
+}
+
+export const AVATARS: string[] = [
+  "Aligator",
+  "armydog",
+  "astronautraccon",
+  "barbermouse",
+  "bosspanda",
+  "bull",
+  "cheetah",
+  "chefrat",
+  "chicken",
+  "chimpanzee",
+  "cow",
+  "deer",
+  "doctorrabbit",
+  "donkey",
+  "elephant",
+  "fox",
+  "giraffe",
+  "goat",
+  "hamster",
+  "hippo",
+  "horse",
+  "journalistdeer",
+  "koala",
+  "lion",
+  "monkey",
+  "owl",
+  "pilotpenguin",
+  "plumerpig",
+  "policecat",
+  "postmanbear",
+  "rabbit",
+  "reporterfox",
+  "rhino",
+  "sheep",
+  "sloth",
+  "snake",
+  "soldierpolar",
+  "teacherbird",
+  "tiger",
+  "zebra",
+];
+
+export const MAX_STUDENTS_ALLOWED = 3;

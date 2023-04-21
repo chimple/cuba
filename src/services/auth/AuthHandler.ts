@@ -32,29 +32,4 @@ export class AuthHandler implements ServiceAuth {
   async logOut(): Promise<void> {
     return await this.s.logOut();
   }
-
-  async createProfile(
-    name: string,
-    age: number,
-    gender: string,
-    avatar: string | null,
-    image: string | null,
-    board: DocumentReference | null,
-    grade: DocumentReference | null,
-    language: DocumentReference | null
-  ): Promise<User> {
-    return await this.s.createProfile(
-      name,
-      age,
-      gender,
-      avatar,
-      image,
-      board,
-      grade,
-      language
-    );
-  }
-  async getUserProfiles() {
-    return await this.s.getUserProfiles();
-  }
 }

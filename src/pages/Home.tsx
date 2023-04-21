@@ -1,5 +1,5 @@
 import { IonPage, IonHeader } from "@ionic/react";
-import { useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import {
   COURSES,
   HOMEHEADERLIST,
@@ -11,7 +11,6 @@ import {
   PREVIOUS_PLAYED_COURSE,
   SL_GRADES,
   SELECTED_GRADE,
-  DEBUG_15,
   HeaderIconConfig,
   HEADER_ICON_CONFIGS,
 } from "../common/constants";
@@ -19,7 +18,6 @@ import CurriculumController from "../models/curriculumController";
 import "./Home.css";
 import LessonSlider from "../components/LessonSlider";
 import Loading from "../components/Loading";
-import ChapterSlider from "../components/ChapterSlider";
 import { Chapter, Lesson } from "../interface/curriculumInterfaces";
 import { Splide } from "@splidejs/react-splide";
 import HomeHeader from "../components/HomeHeader";
@@ -29,14 +27,11 @@ import "@splidejs/react-splide/css";
 // or only core styles
 import "@splidejs/react-splide/css/core";
 import { Util } from "../utility/util";
-import ChapterBar from "../components/ChapterBar";
 import Auth from "../models/auth";
-import { Toast } from "@capacitor/toast";
-import { Capacitor } from "@capacitor/core";
 import { OneRosterApi } from "../services/api/OneRosterApi";
-import React from "react";
+import { ServiceConfig } from "../services/ServiceConfig";
 
-const Home: React.FC = () => {
+const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<{
     lessons: Lesson[];
     chapters: Chapter[];
@@ -59,6 +54,9 @@ const Home: React.FC = () => {
   const history = useHistory();
 
   useEffect(() => {
+    if (!ServiceConfig.getI().apiHandler.currentStudent) {
+      history.replace(PAGES.DISPLAY_STUDENT);
+    }
     let selectedCourse = localStorage.getItem(PREVIOUS_SELECTED_COURSE());
     if (!selectedCourse || !ALL_COURSES.includes(selectedCourse as COURSES)) {
       selectedCourse = HOMEHEADERLIST.RECOMMENDATION;

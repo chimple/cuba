@@ -1,13 +1,14 @@
 import { useTranslation } from "react-i18next";
 import {
   HOMEHEADERLIST,
+  AVATARS,
   HEADER_ICON_CONFIGS,
   HeaderIconConfig,
 } from "../common/constants";
 import "./HomeHeader.css";
-import IconButton from "./IconButton";
 import HeaderIcon from "./HeaderIcon";
 import React from "react";
+import { ServiceConfig } from "../services/ServiceConfig";
 
 const HomeHeader: React.FC<{
   currentHeader: string;
@@ -20,6 +21,7 @@ const HomeHeader: React.FC<{
     // console.log("elements", element);
     headerIconList.push(element);
   });
+  const student = ServiceConfig.getI().apiHandler.currentStudent;
 
   return (
     <div id="home-header-icons">
@@ -55,8 +57,8 @@ const HomeHeader: React.FC<{
       </div>
 
       <HeaderIcon
-        headerName="Profile"
-        iconSrc="assets/icons/Profile.svg"
+        headerName={student?.name ?? "Profile"}
+        iconSrc={"assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png"}
         currentHeader={currentHeader}
         headerList={HOMEHEADERLIST.PROFILE}
         onHeaderIconClick={() => {

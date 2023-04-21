@@ -11,7 +11,7 @@
     "@capacitor/core": "4.2.0",
     "@capacitor/filesystem": "^4.1.1",
     "@capacitor/haptics": "4.0.1",
-    "@capacitor/keyboard": "4.0.1",
+    "@capacitor/keyboard": "^4.0.1",
     "@capacitor/status-bar": "4.0.1",
     "@capacitor/toast": "^4.1.0",
     "@ionic/react": "^6.0.0",

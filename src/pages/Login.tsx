@@ -104,7 +104,7 @@ const Login: React.FC = () => {
                   if (result) {
                     setIsLoading(false);
                     console.log("isLoading ", isLoading);
-                    history.replace(PAGES.HOME);
+                    history.replace(PAGES.DISPLAY_STUDENT);
                   } else {
                     setIsLoading(false);
                   }

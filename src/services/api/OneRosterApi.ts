@@ -8,6 +8,10 @@ import CurriculumController from "../../models/curriculumController";
 import Result from "../../models/result";
 import User from "../../models/user";
 import { ServiceApi } from "./ServiceApi";
+import { DocumentReference, DocumentData } from "firebase/firestore";
+import Curriculum from "../../models/curriculum";
+import Grade from "../../models/grade";
+import Language from "../../models/language";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -15,6 +19,39 @@ export class OneRosterApi implements ServiceApi {
   private classes: { [key: string]: Class[] } = {};
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
   private constructor() {}
+  getLanguageWithId(id: string): Promise<Language | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getAllCurriculums(): Promise<Curriculum[]> {
+    throw new Error("Method not implemented.");
+  }
+  getAllGrades(): Promise<Grade[]> {
+    throw new Error("Method not implemented.");
+  }
+  getAllLanguages(): Promise<Language[]> {
+    throw new Error("Method not implemented.");
+  }
+  getParentStudentProfiles(): Promise<User[]> {
+    throw new Error("Method not implemented.");
+  }
+  get currentStudent(): User {
+    throw new Error("Method not implemented.");
+  }
+  set currentStudent(value: User) {
+    throw new Error("Method not implemented.");
+  }
+  createProfile(
+    name: string,
+    age: number,
+    gender: string,
+    avatar: string | undefined,
+    image: string | undefined,
+    boardDocId: string | undefined,
+    gradeDocId: string | undefined,
+    languageDocId: string | undefined
+  ): Promise<User> {
+    throw new Error("Method not implemented.");
+  }
 
   public static getInstance(): OneRosterApi {
     if (!OneRosterApi.i) {
@@ -87,7 +124,7 @@ export class OneRosterApi implements ServiceApi {
     //     "🚀 ~ file: OneRosterApi.ts:57 ~ OneRosterApi ~ getClassesForUser ~ error:",
     //     error
     //   );
-      return [];
+    return [];
     // }
   }
 
@@ -206,7 +243,7 @@ export class OneRosterApi implements ServiceApi {
     //     "🚀 ~ file: OneRosterApi.ts:143 ~ OneRosterApi ~ getResultsForStudentForClass ~ error:",
     //     JSON.stringify(error)
     //   );
-      return [];
+    return [];
     // }
   }
 
@@ -263,7 +300,7 @@ export class OneRosterApi implements ServiceApi {
     // }
     // this.lessonMap[studentId] = lessonMap;
     // return lessonMap;
-    return {}
+    return {};
   }
 
   async getLineItemForClassForLessonId(
@@ -307,7 +344,7 @@ export class OneRosterApi implements ServiceApi {
     //     "🚀 ~ file: OneRosterApi.ts:216 ~ OneRosterApi ~ getLineItemForClassForLessonId ~ error:",
     //     JSON.stringify(error)
     //   );
-      return;
+    return;
     // }
   }
 
