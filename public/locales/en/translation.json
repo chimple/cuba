@@ -2,7 +2,7 @@
   "back": "Back",
   "Boy": "Boy",
   "Create New User": "Create New User",
-  "Discovering the joy of learning with Chimple- where curiosity meets education!": "Discovering the joy of learning with Chimple- where curiosity meets education!",
+  "Discovering the joy of learning with Chimple": "Discovering the joy of learning with Chimple",
   "Enter Child Name:": "Enter Child Name:",
   "Girl": "Girl",
   "home": "Home",
@@ -12,10 +12,11 @@
   "Please create your child profile": "Please create your child profile",
   "profile": "Profile",
   "Select Board": "Select Board",
-  "Select Grade": "Select Grade",
   "Select Child Age:": "Select Child Age:",
   "Select Child Avatar:": "Select Child Avatar:",
   "Select Child Gender:": "Select Child Gender:",
+  "Select Grade": "Select Grade",
   "signOut": "Sign Out",
-  "Welcome to Chimple!": "Welcome to Chimple!"
+  "Welcome to Chimple!": "Welcome to Chimple!",
+  "where curiosity meets education!": "where curiosity meets education!"
 }

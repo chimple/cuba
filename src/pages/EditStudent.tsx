@@ -122,7 +122,7 @@ const EditStudent = () => {
         </IonButton>
         <ChimpleLogo
           header={t("Welcome to Chimple!")}
-          msg={t("Please create your child profile")}
+          msg={t("Please create your child profile").toString()}
         />
         <div className="content">
           {stage === STAGES.NAME && (

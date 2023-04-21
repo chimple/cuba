@@ -48,9 +48,10 @@ const DisplayStudents: FC<{}> = () => {
       <IonContent>
         <ChimpleLogo
           header={t("Welcome to Chimple!")}
-          msg={t(
-            "Discovering the joy of learning with Chimple - where curiosity meets education!"
-          )}
+          msg={[
+            t("Discovering the joy of learning with Chimple"),
+            t("where curiosity meets education!"),
+          ]}
         />
         {!isLoading && students && (
           <div className="content">
