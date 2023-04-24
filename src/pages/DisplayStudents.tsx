@@ -46,6 +46,7 @@ const DisplayStudents: FC<{}> = () => {
   return (
     <IonPage id="display-students">
       {/* <IonContent> */}
+      <div id="display-students-chimple-logo">
         <ChimpleLogo
           header={t("Welcome to Chimple!")}
           msg={[
@@ -53,37 +54,45 @@ const DisplayStudents: FC<{}> = () => {
             t("where curiosity meets education!"),
           ]}
         />
-        {!isLoading && students && (
-          <div className="content">
-            <div className="avatar-container">
-              {students.map((student) => (
-                <div
-                  key={student.docId}
-                  onClick={() => onStudentClick(student)}
-                  className="avatar"
-                >
-                  <img
-                    className="avatar-img"
-                    src={
-                      "assets/avatars/" +
-                      (student.avatar ?? AVATARS[0]) +
-                      ".png"
-                    }
-                    alt=""
-                  />
-                  {student.name}
-                </div>
-              ))}
-            </div>
-            {students.length < MAX_STUDENTS_ALLOWED && (
-              <div onClick={onCreateNewStudent} className="add-new-button">
-                <IoAddCircleSharp color="white" size="10vh" />
-                {t("Create New User")}
+        <div
+          id="display-students-parent-icon"
+          onClick={() => {
+            history.replace(PAGES.PARENT);
+          }}
+        >
+          <img src={"assets/icons/ParentIcon.png"} alt="" />
+          {"Parent"}
+        </div>
+      </div>
+      {!isLoading && students && (
+        <div className="content">
+          <div className="avatar-container">
+            {students.map((student) => (
+              <div
+                key={student.docId}
+                onClick={() => onStudentClick(student)}
+                className="avatar"
+              >
+                <img
+                  className="avatar-img"
+                  src={
+                    "assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png"
+                  }
+                  alt=""
+                />
+                {student.name}
               </div>
-            )}
+            ))}
           </div>
-        )}
-        <Loading isLoading={isLoading} />
+          {students.length < MAX_STUDENTS_ALLOWED && (
+            <div onClick={onCreateNewStudent} className="add-new-button">
+              <IoAddCircleSharp color="white" size="10vh" />
+              {t("Create New User")}
+            </div>
+          )}
+        </div>
+      )}
+      <Loading isLoading={isLoading} />
       {/* </IonContent> */}
     </IonPage>
   );

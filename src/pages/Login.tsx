@@ -17,7 +17,6 @@ import React from "react";
 import Loading from "../components/Loading";
 import RectangularIconButton from "../components/parent/RectangularIconButton";
 import Parent from "./Parent";
-import { FirebaseApi } from "../services/api/FirebaseApi";
 // import { Platform } from "react-native";
 
 const Login: React.FC = () => {

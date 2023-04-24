@@ -15,7 +15,7 @@
 }
 
 #profile-card-image {
-    width: 25%;
+    width: 35%;
     height: auto;
 }
 
@@ -34,6 +34,32 @@
     /* margin: 4%; */
     padding: 2%;
     opacity: 0.25;
+}
+
+#profile-card-new-user {
+    text-align: center;
+}
+
+#profile-card-new-user-icon {
+    text-align: center;
+    width: auto;
+    height: 70%;
+    margin: 2%;
+    opacity: 0.25;
+    font-size: var(--text-size);
+}
+
+#profile-card-new-user p {
+    color: black;
+    font-size: var(--text-size);
+}
+
+
+.profile-card-empty-element {
+    color: white;
+    font-size: 5.5vh;
+    text-align: center;
+    line-height: 1;
 }
 
 #profile-card-image-report {

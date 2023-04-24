@@ -4,9 +4,10 @@
 }
 
 #app-lang-chimple-logo {
+    margin-top: 1%;
     text-align: center;
     width: auto;
-    height: 30vh;
+    height: 50vh;
 }
 
 #app-lang-element {
@@ -21,4 +22,20 @@
     /* color: white; */
     font-size: var(--text-size);
     padding-top: 4vh;
+}
+
+.app-lang-next-button {
+    position: fixed;
+    top: 3vh;
+    right: 4vh;
+    /* color: var(--text-color); */
+    color: #05342f;
+    font-size: var(--text-size);
+    height: 7vh;
+    max-height: 50px;
+}
+
+.app-lang-arrow-icon {
+    padding-left: 4vh;
+    /* padding-bottom: 1.3vh; */
 }

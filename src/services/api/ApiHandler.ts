@@ -3,13 +3,14 @@ import { ServiceApi } from "./ServiceApi";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
 import Language from "../../models/language";
+import { DocumentReference } from "firebase/firestore";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
 
   private s: ServiceApi;
 
-  private constructor() {}
+  private constructor() { }
 
   public async getAllCurriculums(): Promise<Curriculum[]> {
     return await this.s.getAllCurriculums();
@@ -26,6 +27,19 @@ export class ApiHandler implements ServiceApi {
   public async getParentStudentProfiles(): Promise<User[]> {
     return await this.s.getParentStudentProfiles();
   }
+
+  updateSoundFlag(user: User, value: boolean) {
+    return this.s.updateSoundFlag(user, value);
+  };
+
+  updateMusicFlag(user: User, value: boolean) {
+    return this.s.updateMusicFlag(user, value);
+  };
+
+  updateLanguage(user: User, value: string) {
+    return this.s.updateLanguage(user, value);
+  };
+
 
   public get currentStudent(): User {
     return this.s.currentStudent;

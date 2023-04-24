@@ -3,7 +3,12 @@ import { useEffect, useState } from "react";
 import Loading from "../components/Loading";
 import "./Parent.css";
 import ParentHeader from "../components/parent/ParentHeader";
-import { PARENTHEADERLIST } from "../common/constants";
+import {
+  APP_LANG,
+  LANG,
+  MAX_STUDENTS_ALLOWED,
+  PARENTHEADERLIST,
+} from "../common/constants";
 import ProfileCard from "../components/parent/ProfileCard";
 import User from "../models/user";
 import ToggleButton from "../components/parent/ToggleButton";
@@ -21,114 +26,146 @@ import {
 import { FaInstagramSquare } from "react-icons/fa";
 import { TfiWorld } from "react-icons/tfi";
 import RectangularOutlineDropDown from "../components/parent/RectangularOutlineDropDown";
-import { FirebaseApi } from "../services/api/FirebaseApi";
+import i18n from "../i18n";
+import Language from "../models/language";
+import { ServiceConfig } from "../services/ServiceConfig";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 
 const Parent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
-  const [soundFlag, setSoundFlag] = useState<boolean>(true);
-  const [musicFlag, setMusicFlag] = useState<boolean>(false);
+  const [soundFlag, setSoundFlag] = useState<boolean>();
+  const [musicFlag, setMusicFlag] = useState<boolean>();
+  const [userProfile, setUserProfile] = useState<any[]>([]);
+  const [langList, setLangList] = useState<string[]>([]);
+  const [currentAppLang, setCurrentAppLang] = useState<string>();
 
   useEffect(() => {
-    // init();
-    setCurrentHeader(PARENTHEADERLIST.SETTING);
+    inti();
   }, []);
 
-  function onHeaderIconClick(selectedHeader: any) {
-    console.log("Parent selectedHeader ", selectedHeader);
-    setCurrentHeader(selectedHeader);
-    // localStorage.setItem(PREVIOUS_SELECTED_COURSE(), selectedHeader);
-    console.log(selectedHeader, " Icons is selected");
-    // if (selectedHeader === HEADERLIST.RECOMMENDATION) {
-    //   setCourse(HEADERLIST.RECOMMENDATION);
-    // }
-    // if (selectedHeader === HEADERLIST.PROFILE) {
-    //   history.push(PAGES.PROFILE);
-    // }
+  async function inti() {
+    setCurrentHeader(PARENTHEADERLIST.PROFILE);
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    setSoundFlag(currentUser?.soundFlag);
+    setSoundFlag(currentUser?.musicFlag);
   }
 
-  //   async function getAsyncUserProfiles() {
-  //     return await FirebaseAuth.i.getUserProfiles();
-  //   }
+  function onHeaderIconClick(selectedHeader: any) {
+    setCurrentHeader(selectedHeader);
+  }
 
   function profileUI() {
     const userProfilePromise: Promise<User[]> =
-      FirebaseApi.i.getParentStudentProfiles();
+      ServiceConfig.getI().apiHandler.getParentStudentProfiles();
 
-    let userProfile: User[];
+    let finalUser: any[] = [];
     userProfilePromise.then((u) => {
-      console.log("up", u);
-      userProfile = u;
+      for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
+        if (u[i]) {
+          finalUser.push(u[i]);
+        } else {
+          finalUser.push("no user");
+        }
+      }
+      setUserProfile(finalUser);
     });
+
     return (
       <div id="parent-page-profile">
-        <ProfileCard
-          width={"27vw"}
-          height={"40vh"}
-          user={userProfilePromise}
-          showText={true}
-        />
-        <ProfileCard
-          width={"27vw"}
-          height={"40vh"}
-          user={userProfilePromise}
-          showText={true}
-        />
-        <ProfileCard
-          width={"27vw"}
-          height={"40vh"}
-          user={userProfilePromise}
-          showText={true}
-        />
+        {userProfile.map((element) => {
+          return (
+            <ProfileCard
+              width={"27vw"}
+              height={"40vh"}
+              userType={element?.name ? true : false}
+              user={element}
+              showText={true}
+            />
+          );
+        })}
       </div>
     );
   }
 
   function settingUI() {
+    let tempLangList: string[] = [];
+    let langDocIds: Map<string, string> = new Map();
+    ServiceConfig.getI()
+      .apiHandler.getAllLanguages()
+      .then((l) => {
+        l.forEach((element) => {
+          tempLangList.push(element.title);
+          langDocIds.set(element.title, element.docId);
+        });
+        setLangList(tempLangList);
+        setCurrentAppLang(localStorage.getItem(APP_LANG) || LANG.ENGLISH);
+      });
+
     return (
       <div id="parent-page-setting">
         <div id="parent-page-setting-div">
           <p id="parent-page-setting-lang-text">Language</p>
           <RectangularOutlineDropDown
-            optionList={["English", "Hindi", "Karnataka"]}
-            currentValue={"English"}
+            optionList={langList}
+            currentValue={currentAppLang || LANG.ENGLISH}
             width="15vw"
-            onValueChange={(selectedGrade) => {
-              console.log("selected Langauage", selectedGrade);
+            onValueChange={async (selectedLang) => {
+              console.log("selected Langauage", selectedLang.detail.value);
+              const tempLangCode: string =
+                selectedLang.detail.value ?? LANG.ENGLISH;
+              setCurrentAppLang(selectedLang.detail.value);
+              console.log("UI Lang", selectedLang.detail.value, currentAppLang);
+              await i18n.changeLanguage(tempLangCode);
+              const currentUser =
+                await ServiceConfig.getI().authHandler.getCurrentUser();
+
+              const langId = langDocIds.get(selectedLang.detail.value);
+
+              if (currentUser && langId) {
+                ServiceConfig.getI().apiHandler.updateLanguage(
+                  currentUser,
+                  langId
+                );
+              }
             }}
           ></RectangularOutlineDropDown>
         </div>
-        {/* <div id="parent-page-setting-lang-dropdown">
-          <DropDown
-            optionList={["English", "Hindi", "Karnataka"]}
-            currentValue={"English"}
-            width="15vw"
-            onValueChange={(selectedGrade) => {
-              console.log("selected Langauage", selectedGrade);
-            }}
-          />
-        </div> */}
-        <div
-          id="parent-page-setting-div"
-          // className="parent-page-setting-div-vertical-space"
-        >
+        <div id="parent-page-setting-div">
           <ToggleButton
-            flag={soundFlag}
+            flag={soundFlag!}
             title="Sound"
-            onIonChangeClick={(v) => {
+            onIonChangeClick={async (v) => {
               console.log("ion change value ", v.detail.checked);
               setSoundFlag(v.detail.checked);
+              const currentUser =
+                await ServiceConfig.getI().authHandler.getCurrentUser();
+
+              if (currentUser) {
+                ServiceConfig.getI().apiHandler.updateSoundFlag(
+                  currentUser,
+                  v.detail.checked
+                );
+              }
             }}
           ></ToggleButton>
 
           <ToggleButton
-            flag={musicFlag}
+            flag={musicFlag!}
             title="Music"
-            onIonChangeClick={(v) => {
+            onIonChangeClick={async (v) => {
               console.log("ion change value ", v.detail.checked);
               setMusicFlag(v.detail.checked);
+              const currentUser =
+                await ServiceConfig.getI().authHandler.getCurrentUser();
+
+              if (currentUser) {
+                ServiceConfig.getI().apiHandler.updateMusicFlag(
+                  currentUser,
+                  v.detail.checked
+                );
+              }
             }}
           ></ToggleButton>
         </div>
@@ -163,47 +200,35 @@ const Parent: React.FC = () => {
             <TfiWorld size={"2vw"} />
             {/* <IonIcon name="globe-outline" size={"2vw"}></IonIcon> */}
           </div>
-          {/* <LeftTitleRectangularIconButton
-            buttonWidth={20}
-            buttonHeight={7}
-            iconSrc={"assets/icons/favicon.png"}
-            name={"Visit Website"}
-            isButtonEnable={true}
-            onHeaderIconClick={() => {
-              console.log("Value clicked");
-              window.open("https://www.chimple.org/", "_system");
-            }}
-          ></LeftTitleRectangularIconButton> */}
-          <div id="parent-page-help-share-button">
-            <WhatsappShareButton
-              url={"?phone=918904515444&"}
-              title={"title"}
-              className="Demo__some-network__share-button"
-            >
-              WhatsApp Us
-            </WhatsappShareButton>
-            <WhatsappIcon size={"2vw"} round />
-          </div>
-          {/* <LeftTitleRectangularIconButton
-            buttonWidth={20}
-            buttonHeight={7}
-            iconSrc={"assets/icons/favicon.png"}
-            name={"WhatsApp Us"}
-            isButtonEnable={true}
-            onHeaderIconClick={() => {
+          <div
+            id="parent-page-help-share-button"
+            onClick={() => {
               let message = "Hiii !!!!";
               window.open(
                 `https://api.whatsapp.com/send?phone=917981611434&text=${message}`,
                 "_system"
               );
             }}
-          ></LeftTitleRectangularIconButton> */}
+          >
+            {/* <WhatsappShareButton
+              // https://api.whatsapp.com/send?phone=917981611434&text=${message}
+              url={"send?phone=917981611434&"}
+              title={"hi"}
+              className="Demo__some-network__share-button"
+            >
+              WhatsApp Us
+            </WhatsappShareButton> */}
+            WhatsApp Us
+            <WhatsappIcon size={"2vw"} round />
+          </div>
         </div>
         <div id="parent-page-help-title-e2">
           Help Video
           <div id="parent-page-help-title-e2-video">
             <iframe
               id="parent-page-help-title-e2-video-youtude"
+              className="embed-responsive-item"
+              allowFullScreen={true}
               // width="50%"
               // height="50%"
               src="https://www.youtube.com/embed/Ez9oouE2pOE"
@@ -232,44 +257,40 @@ const Parent: React.FC = () => {
             Instagram
             <FaInstagramSquare size={"2vw"} />
           </div>
-          <div id="parent-page-help-share-button-e3">
-            <FacebookShareButton
+          <div
+            id="parent-page-help-share-button-e3"
+            onClick={() => {
+              // let message = "Hiii !!!!";
+              window.open(`https://www.facebook.com/chimple`, "_system");
+            }}
+          >
+            {/* <FacebookShareButton
               url={"https://www.facebook.com/chimple"}
               quote={"Chimple Learning"}
               className="Demo__some-network__share-button"
             >
               Fackbook
-            </FacebookShareButton>
+            </FacebookShareButton> */}
+            Fackbook
             <FacebookIcon size={"2vw"} round />
           </div>
-          <div id="parent-page-help-share-button-e3">
-            <TwitterShareButton
+          <div
+            id="parent-page-help-share-button-e3"
+            onClick={() => {
+              // let message = "Hiii !!!!";
+              window.open(`https://twitter.com/chimple_org`, "_system");
+            }}
+          >
+            {/* <TwitterShareButton
               url={"https://twitter.com/chimple_org"}
               title={"Chimple Learning"}
               className="Demo__some-network__share-button"
             >
               Twitter
-            </TwitterShareButton>
+            </TwitterShareButton> */}
+            Twitter
             <TwitterIcon size={"2vw"} round />
           </div>
-          {/* <LeftTitleRectangularIconButton
-            buttonWidth={20}
-            buttonHeight={7}
-            iconSrc={"assets/icons/favicon.png"}
-            name={"Twiter"}
-            isButtonEnable={true}
-            onHeaderIconClick={() => {
-              console.log("Value clicked");
-              let message = "Hiii !!!!";
-              window.open(
-                `https://twitter.com/intent/tweet?text=${message}`,
-                "_system"
-              );
-              // if (currentHeader != element.headerList) {
-              //   onHeaderIconClick(element.headerList);
-              // }
-            }}
-          ></LeftTitleRectangularIconButton> */}
         </div>
       </div>
     );
@@ -277,29 +298,27 @@ const Parent: React.FC = () => {
 
   return (
     <IonPage>
-      <IonContent>
-        {!isLoading ? (
-          <div id="parent-page">
-            <ParentHeader
-              currentHeader={currentHeader}
-              onHeaderIconClick={onHeaderIconClick}
-            ></ParentHeader>
+      {!isLoading ? (
+        <div id="parent-page">
+          <ParentHeader
+            currentHeader={currentHeader}
+            onHeaderIconClick={onHeaderIconClick}
+          ></ParentHeader>
 
-            {currentHeader === PARENTHEADERLIST.PROFILE ? (
-              <div>{profileUI()}</div>
-            ) : null}
+          {currentHeader === PARENTHEADERLIST.PROFILE ? (
+            <div>{profileUI()}</div>
+          ) : null}
 
-            {currentHeader === PARENTHEADERLIST.SETTING ? (
-              <div>{settingUI()}</div>
-            ) : null}
+          {currentHeader === PARENTHEADERLIST.SETTING ? (
+            <div>{settingUI()}</div>
+          ) : null}
 
-            {currentHeader === PARENTHEADERLIST.HELP ? (
-              <div>{helpUI()}</div>
-            ) : null}
-          </div>
-        ) : null}
-        <Loading isLoading={isLoading} />
-      </IonContent>
+          {currentHeader === PARENTHEADERLIST.HELP ? (
+            <div>{helpUI()}</div>
+          ) : null}
+        </div>
+      ) : null}
+      <Loading isLoading={isLoading} />
     </IonPage>
   );
 };

@@ -3,16 +3,24 @@ import { useHistory } from "react-router-dom";
 import "./ProfileCard.css";
 import React from "react";
 import { MdModeEditOutline } from "react-icons/md";
+import { FcPlus } from "react-icons/fc";
+import { HiPlusCircle } from "react-icons/hi";
+import User from "../../models/user";
+import { AVATARS, PAGES } from "../../common/constants";
 
 const ProfileCard: React.FC<{
   width: string;
   height: string;
-  user: any;
+  //true for User, false for no user
+  userType: boolean;
+  user: User;
   //   isPlayed: boolean;
   //   isUnlocked: boolean;
   showText?: boolean;
-}> = ({ width, height, user }) => {
+}> = ({ width, height, userType, user }) => {
   const history = useHistory();
+
+  // console.log("Dyanamic user List ", user, user instanceof User);
 
   return (
     <IonCard
@@ -28,14 +36,19 @@ const ProfileCard: React.FC<{
       }}
     >
       <div id="profile-card-edit-icon-div">
-        <MdModeEditOutline
-          id="profile-card-edit-icon"
-          size={"5%"}
-          onClick={() => {
-            console.log("clicked on Parent back");
-            //   history.replace(PAGES.HOME);
-          }}
-        ></MdModeEditOutline>
+        {userType ? (
+          <MdModeEditOutline
+            id="profile-card-edit-icon"
+            size={"5%"}
+            onClick={() => {
+              console.log("click on edit icon");
+              //   history.replace(PAGES.HOME);
+            }}
+          ></MdModeEditOutline>
+        ) : (
+          // <></>
+          <p className="profile-card-empty-element">&#9679;</p>
+        )}
         {/* <img
           id="profile-card-edit-icon"
           loading="lazy"
@@ -43,16 +56,39 @@ const ProfileCard: React.FC<{
           alt="assets/icons/DoneIcon.svg"
         /> */}
       </div>
-      <div id="profile-card-image-div">
-        <img
-          id="profile-card-image"
-          loading="lazy"
-          src="assets/icons/Profile.svg"
-          alt="assets/icons/Profile.svg"
-        />
-        <p>User Name</p>
-      </div>
-      <div id="profile-card-image-report">Report</div>
+      {userType ? (
+        <div id="profile-card-image-div">
+          <img
+            id="profile-card-image"
+            loading="lazy"
+            src={"assets/avatars/" + (user.avatar ?? AVATARS[0]) + ".png"}
+            alt=""
+          />
+          <p>{user.name}</p>
+        </div>
+      ) : (
+        <div id="profile-card-new-user">
+          <HiPlusCircle
+            id="profile-card-new-user-icon"
+            // id="profile-card-edit-icon"
+            size={"25vh"}
+            onClick={() => {
+              // if (!userType) {
+              //   console.log("clicked on New User Icon");
+              history.replace(PAGES.CREATE_STUDENT);
+              // }
+            }}
+          ></HiPlusCircle>
+          <p>New User</p>
+        </div>
+      )}
+
+      {userType ? (
+        <div id="profile-card-image-report">Report</div>
+      ) : (
+        // <></>
+        <p className="profile-card-empty-element">&#9679;</p>
+      )}
     </IonCard>
   );
 };

@@ -5,6 +5,7 @@ import {
   HeaderIconConfig,
   PARENTHEADERLIST,
   parentHeaderIconList,
+  PAGES,
 } from "../../common/constants";
 import "./ParentHeader.css";
 import IconButton from "./../IconButton";
@@ -12,12 +13,14 @@ import HeaderIcon from "./../HeaderIcon";
 import React from "react";
 import RectangularIconButton from "./RectangularIconButton";
 import { IoIosArrowBack, IoIosArrowDropleftCircle } from "react-icons/io";
+import { useHistory } from "react-router-dom";
 
 const ParentHeader: React.FC<{
   currentHeader: string;
   onHeaderIconClick: Function;
 }> = ({ currentHeader, onHeaderIconClick }) => {
   const { t } = useTranslation();
+  const history = useHistory();
 
   return (
     <div id="parent-header-icons">
@@ -26,7 +29,7 @@ const ParentHeader: React.FC<{
         size={"8vh"}
         onClick={() => {
           console.log("clicked on Parent back");
-          //   history.replace(PAGES.HOME);
+          history.replace(PAGES.DISPLAY_STUDENT);
         }}
       ></IoIosArrowBack>
       {/* <IoIosArrowDropleftCircle

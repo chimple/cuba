@@ -61,42 +61,45 @@
 #parent-page-help-title {
     font-weight: bolder;
     text-align: center;
+    font-size: 5vh;
     margin: 2% 0%;
 }
 
 #parent-page-help-title-e1 {
     display: flex;
-    margin: 1%;
+    margin: 0.5%;
     justify-content: space-evenly;
     align-items: center;
 }
 
 #parent-page-help-title-e2 {
     background-color: white;
-    margin: 2% 25%;
+    margin: 1% 25%;
     padding: 1%;
     text-align: center;
     font-weight: bolder;
     width: 50vw;
-    height: auto;
-    /* height: 50vh; */
+    /* height: auto; */
+    height: 51vh;
     border-radius: 3vh;
+    overflow: hidden;
 }
 
 #parent-page-help-title-e2-video {
     width: 85%;
-    height: 90%;
+    /* height: 90%; */
+    /* height: 40vh; */
 }
 
 #parent-page-help-title-e2-video-youtude {
     width: 43vw;
-    height: 42vh;
+    height: 40vh;
     margin-left: 7.5%;
 }
 
 #parent-page-help-title-e3 {
     display: flex;
-    margin: 2% 11% 2% 12%;
+    margin: 1% 11% 2% 12%;
     justify-content: space-evenly;
     align-items: center;
     border-radius: 2vh;
@@ -125,7 +128,7 @@
     /* padding: 0% 5% 0% 5%; */
     justify-content: inherit;
     align-items: center;
-    width: 12vw;
+    /* width: 12vw; */
     /* height: 15%; */
     padding: 0.5% 1%;
     font-size: var(--text-size);

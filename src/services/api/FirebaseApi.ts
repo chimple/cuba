@@ -9,6 +9,7 @@ import {
   getFirestore,
   getDocs,
   getDoc,
+  setDoc,
 } from "firebase/firestore";
 import { ServiceApi } from "./ServiceApi";
 import {
@@ -27,7 +28,7 @@ export class FirebaseApi implements ServiceApi {
   private _db = getFirestore();
   private _currentStudent: User;
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): FirebaseApi {
     if (!FirebaseApi.i) {
@@ -120,7 +121,7 @@ export class FirebaseApi implements ServiceApi {
     const querySnapshot = await getDocs(collection(this._db, "Language"));
     const languages: Language[] = [];
     querySnapshot.forEach((doc) => {
-      console.log(`${doc.id} => ${doc.data()}`);
+      // console.log(`${doc.id} => ${doc.data()}`);
       const language = doc.data() as Language;
       language.docId = doc.id;
       languages.push(language);
@@ -150,6 +151,53 @@ export class FirebaseApi implements ServiceApi {
   public set currentStudent(value: User) {
     this._currentStudent = value;
   }
+
+  public updateSoundFlag = async (
+    user: User, value: boolean
+  ) => {
+
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (currentUser) {
+      currentUser.soundFlag = value
+      ServiceConfig.getI().authHandler.currentUser = currentUser
+
+      await updateDoc(doc(this._db, `User/${user.uid}`), {
+        soundFlag: value,
+        dateLastModified: Timestamp.now(),
+      });
+    }
+
+  };
+
+  public updateMusicFlag = async (
+    user: User, value: boolean
+  ) => {
+
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (currentUser) {
+      currentUser.musicFlag = value
+      ServiceConfig.getI().authHandler.currentUser = currentUser
+      await updateDoc(doc(this._db, `User/${user.uid}`), {
+        musicFlag: value,
+        dateLastModified: Timestamp.now(),
+      });
+    }
+  };
+
+  public updateLanguage = async (
+    user: User, value: string
+  ) => {
+
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (currentUser) {
+      currentUser.language = doc(this._db, `Language/${value}`)
+      ServiceConfig.getI().authHandler.currentUser = currentUser
+      await updateDoc(doc(this._db, `User/${user.uid}`), {
+        language: currentUser.language,
+        dateLastModified: Timestamp.now(),
+      });
+    }
+  };
 
   async getLanguageWithId(id: string): Promise<Language | undefined> {
     const result = await getDoc(doc(this._db, `Language/${id}`));
