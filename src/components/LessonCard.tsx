@@ -2,12 +2,13 @@ import { IonCard } from "@ionic/react";
 import { useState } from "react";
 import { useHistory } from "react-router-dom";
 import { LESSON_CARD_COLORS, PAGES } from "../common/constants";
-import { Lesson } from "../interface/curriculumInterfaces";
+// import { Lesson } from "../interface/curriculumInterfaces";
 import "./LessonCard.css";
 import ScoreCard from "./ScoreCard";
 import styled from "styled-components";
 import { url } from "inspector";
 import React from "react";
+import Lesson from "../models/lesson";
 
 const LessonCard: React.FC<{
   width: string;
@@ -42,11 +43,9 @@ const LessonCard: React.FC<{
   const hideImg = (event: any) => {
     setShowImage(false);
   };
-  const subjectCode = lesson.chapter.course.id;
+  // const subjectCode = lesson.chapter.course.id;
 
-  const lessonCardColor = lesson?.color
-    ? lesson.color
-    : LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
+  const lessonCardColor = LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
   return (
     <IonCard
       id="lesson-card"
@@ -71,7 +70,7 @@ const LessonCard: React.FC<{
           //     from: history.location.pathname,
           //   });
           // } else {
-          const parmas = `?courseid=${subjectCode}&chapterid=${lesson.chapter.id}&lessonid=${lesson.id}`;
+          const parmas = `?courseid=${null}&chapterid=${null}&lessonid=${lesson.id}`;
           history.push(PAGES.GAME + parmas, {
             url: "chimple-lib/index.html" + parmas,
             lessonId: lesson.id,
@@ -80,7 +79,7 @@ const LessonCard: React.FC<{
           });
           // }
         } else {
-          console.log(lesson?.name, "lesson is locked");
+          console.log(lesson?.title, "lesson is locked");
         }
       }}
       // disabled={!isUnlocked}
@@ -101,14 +100,14 @@ const LessonCard: React.FC<{
             alignItems: "center",
             gridArea: "1/1",
           }}
-          color={lesson?.color}
+          color={lessonCardColor}
         >
-          {showSubjectName ? (
+          {/* {showSubjectName ? (
             <div id="lesson-card-subject-name">
               <p>{lesson?.chapter.course.name}</p>
             </div>
-          ) : null}
-          <img
+          ) : null} */}
+          {/* <img
             className="pattern"
             style={{
               width: width,
@@ -121,10 +120,10 @@ const LessonCard: React.FC<{
             }}
             src={"courses/" + subjectCode + "/icons/" + lesson.pattern}
             alt={"courses/" + subjectCode + "/icons/" + lesson.pattern}
-          ></img>
+          ></img> */}
 
           <div id="lesson-card-image">
-            {showImage ? (
+            {/* {showImage ? (
               <img
                 id="lesson-card-image"
                 loading="lazy"
@@ -134,7 +133,7 @@ const LessonCard: React.FC<{
               />
             ) : (
               <div /> // we can show Default LessonCard text or image
-            )}
+            )} */}
 
             {!isUnlocked ? (
               <div id="lesson-card-status-icon">
@@ -159,7 +158,7 @@ const LessonCard: React.FC<{
           </div>
         </div>
       </div>
-      {showText ? <p id="lesson-card-name">{lesson?.name}</p> : null}
+      {showText ? <p id="lesson-card-name">{lesson?.title}</p> : null}
     </IonCard>
   );
 };

@@ -1,29 +1,19 @@
 import "./LessonSlider.css";
 import "./LessonCard.css";
 import LessonCard from "./LessonCard";
-import { Lesson } from "../interface/curriculumInterfaces";
-import Arrow from "./arrow";
-import { Chapter } from "../interface/curriculumInterfaces";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import { useEffect, useState } from "react";
+import Lesson from "../models/lesson";
 
 const LessonSlider: React.FC<{
   lessonData: Lesson[];
-  chaptersData: Chapter[];
-  currentChapter: Chapter;
-  onChapterChange;
   isHome: boolean;
-  onSwiper: any;
   lessonsScoreMap: any;
   startIndex: number;
   showSubjectName: boolean;
 }> = ({
   lessonData,
-  chaptersData,
-  currentChapter,
   isHome,
-  onSwiper,
-  onChapterChange,
   lessonsScoreMap,
   startIndex,
   showSubjectName = false,
@@ -97,7 +87,7 @@ const LessonSlider: React.FC<{
         }}
       >
       
-      {
+      {/* {
       (currentChapter.id === chaptersData[0].id)?<></>:<SplideSlide className="slide" >
         <Arrow
               width={width}
@@ -107,7 +97,7 @@ const LessonSlider: React.FC<{
               onChapterChange={onChapterChange}
             ></Arrow>
           </SplideSlide>
-          }
+          } */}
         {lessonData.map((m: Lesson, i: number) => {
           if (!m) return;
           const isPlayed =
@@ -130,7 +120,7 @@ const LessonSlider: React.FC<{
               </SplideSlide>
             )
           })}
-          {((currentChapter.id === chaptersData[0].id && currentChapter.name === 'Quiz') || 
+          {/* {((currentChapter.id === chaptersData[0].id && currentChapter.title === 'Quiz') || 
       currentChapter.id === chaptersData[chaptersData.length-1].id)?<></>:<SplideSlide className="slide" >
       <Arrow
             width={width}
@@ -139,7 +129,7 @@ const LessonSlider: React.FC<{
             currentChapter={currentChapter!}
             onChapterChange={onChapterChange}
           ></Arrow>
-        </SplideSlide>}
+        </SplideSlide>} */}
           </Splide>
         </div>
       ));

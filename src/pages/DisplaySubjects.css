@@ -1,0 +1,34 @@
+.back-button {
+  width: 10vh;
+  height: 10vh;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.subjects-header {
+  display: flex;
+  margin-top: 2vh;
+  justify-content: space-between;
+}
+
+.subject-name {
+  color: var(--text-color);
+  font-size: var(--text-size);
+  align-self: center;
+  font-weight: bold;
+}
+
+.button-right {
+  width: 10vh;
+  height: 10vh;
+}
+.subjects-content {
+  align-self: center;
+  overflow-y: scroll;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  height: 100vh;
+}

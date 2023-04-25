@@ -17,8 +17,10 @@ const GradeDropDown: React.FC<{
           interface="popover"
           value={currentChapter}
         >
-          {chapters.map((chapter) => (
-            <IonSelectOption value={chapter}>{chapter}</IonSelectOption>
+          {chapters.map((chapter, index) => (
+            <IonSelectOption key={index} value={chapter}>
+              {chapter}
+            </IonSelectOption>
           ))}
         </IonSelect>
       </IonItem>

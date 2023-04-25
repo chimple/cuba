@@ -42,6 +42,7 @@ const HomeHeader: React.FC<{
           // console.log("Dyanamic Header List ", element);
           return (
             <HeaderIcon
+              key={index}
               headerName={element.displayName}
               iconSrc={element.iconSrc}
               currentHeader={currentHeader}
