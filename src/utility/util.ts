@@ -60,9 +60,9 @@ export class Util {
 
         console.log(
           "before local lesson Bundle http url:" +
-            "assets/" +
-            lessonId +
-            "/index.js"
+          "assets/" +
+          lessonId +
+          "/index.js"
         );
 
         const fetchingLocalBundle = await fetch(
@@ -70,9 +70,9 @@ export class Util {
         );
         console.log(
           "after local lesson Bundle fetch url:" +
-            "assets/" +
-            lessonId +
-            "/index.js",
+          "assets/" +
+          lessonId +
+          "/index.js",
           fetchingLocalBundle.ok,
           fetchingLocalBundle.json,
           fetchingLocalBundle
@@ -110,7 +110,7 @@ export class Util {
 
         console.log("zip ", zip);
       } catch (error) {
-        console.log("errpor", error);
+        console.log("errpor", JSON.stringify(error));
         return false;
       }
     }
@@ -127,7 +127,6 @@ export class Util {
   public static courseToJson(value: Course): string {
     return JSON.stringify(value);
   }
-
   public static async launchCocosGame(): Promise<void> {
     if (!window.cc) {
       return;
@@ -138,33 +137,42 @@ export class Util {
       return b.getSceneInfo(launchScene);
     });
 
-    await new Promise((resolve, reject) => {
-      bundle.loadScene(launchScene, null, null, function (err, scene) {
-        if (!err) {
-          window.cc.director.runSceneImmediate(scene);
-          if (window.cc.sys.isBrowser) {
-            // show canvas
-            var canvas = document.getElementById("GameCanvas");
-            if (canvas) {
-              canvas.style.visibility = "";
-              canvas.style.display = "";
+    try {
+      await new Promise((resolve, reject) => {
+        bundle.loadScene(launchScene, null, null, function (err, scene) {
+          if (!err) {
+            try {
+              window.cc.director.runSceneImmediate(scene);
+            } catch (error) {
+              reject();
+              return;
             }
-            const container = document.getElementById("Cocos2dGameContainer");
-            if (container) {
-              container.style.display = "";
+            if (window.cc.sys.isBrowser) {
+              // show canvas
+              var canvas = document.getElementById("GameCanvas");
+              if (canvas) {
+                canvas.style.visibility = "";
+                canvas.style.display = "";
+              }
+              const container = document.getElementById("Cocos2dGameContainer");
+              if (container) {
+                container.style.display = "";
+              }
+              var div = document.getElementById("GameDiv");
+              if (div) {
+                div.style.backgroundImage = "";
+              }
+              console.log("Success to load scene: " + launchScene);
             }
-            var div = document.getElementById("GameDiv");
-            if (div) {
-              div.style.backgroundImage = "";
-            }
-            console.log("Success to load scene: " + launchScene);
+            resolve(scene);
+          } else {
+            reject(err);
           }
-          resolve(scene);
-        } else {
-          reject(err);
-        }
+        });
       });
-    });
+    } catch (error) {
+      throw new Error("Something went wrong");
+    }
   }
 
   public static killCocosGame(): void {
