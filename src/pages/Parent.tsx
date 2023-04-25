@@ -39,17 +39,49 @@ const Parent: React.FC = () => {
   const [musicFlag, setMusicFlag] = useState<boolean>();
   const [userProfile, setUserProfile] = useState<any[]>([]);
   const [langList, setLangList] = useState<string[]>([]);
+  const [langDocIds, setLangDocIds] = useState<Map<string, string>>(new Map());
   const [currentAppLang, setCurrentAppLang] = useState<string>();
 
+  let tempLangList: string[] = [];
+  // let langDocIds: Map<string, string> = new Map();
+  const localAppLang = localStorage.getItem(APP_LANG);
+
   useEffect(() => {
+    setCurrentHeader(PARENTHEADERLIST.PROFILE);
     inti();
   }, []);
 
   async function inti() {
-    setCurrentHeader(PARENTHEADERLIST.PROFILE);
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    setSoundFlag(currentUser?.soundFlag);
-    setSoundFlag(currentUser?.musicFlag);
+    if (currentUser != undefined) {
+      console.log("User ", currentUser);
+      setSoundFlag(currentUser?.soundFlag!);
+      setMusicFlag(currentUser?.musicFlag!);
+
+      const allLang = await ServiceConfig.getI().apiHandler.getAllLanguages();
+      let tempLangDocIds: Map<string, string> = new Map();
+      let keytempLangDocIds: Map<string, string> = new Map();
+      for (let i = 0; i < allLang.length; i++) {
+        const element = allLang[i];
+        tempLangList.push(element.title);
+        tempLangDocIds.set(element.title, element.docId);
+        keytempLangDocIds.set(element.docId, element.title);
+      }
+
+      setLangDocIds(tempLangDocIds);
+      setLangList(tempLangList);
+
+      console.log(
+        "current Lang",
+        langDocIds,
+        langDocIds.get(currentUser?.language?.id!),
+        keytempLangDocIds.get(currentUser?.language?.id!),
+        langDocIds.get(currentUser?.language?.id!) ||
+          localAppLang ||
+          langList[0]
+      );
+      setCurrentAppLang(keytempLangDocIds.get(currentUser?.language?.id!));
+    }
   }
 
   function onHeaderIconClick(selectedHeader: any) {
@@ -78,7 +110,7 @@ const Parent: React.FC = () => {
           return (
             <ProfileCard
               width={"27vw"}
-              height={"40vh"}
+              height={"50vh"}
               userType={element?.name ? true : false}
               user={element}
               showText={true}
@@ -90,26 +122,14 @@ const Parent: React.FC = () => {
   }
 
   function settingUI() {
-    let tempLangList: string[] = [];
-    let langDocIds: Map<string, string> = new Map();
-    ServiceConfig.getI()
-      .apiHandler.getAllLanguages()
-      .then((l) => {
-        l.forEach((element) => {
-          tempLangList.push(element.title);
-          langDocIds.set(element.title, element.docId);
-        });
-        setLangList(tempLangList);
-        setCurrentAppLang(localStorage.getItem(APP_LANG) || LANG.ENGLISH);
-      });
-
+    
     return (
       <div id="parent-page-setting">
         <div id="parent-page-setting-div">
           <p id="parent-page-setting-lang-text">Language</p>
           <RectangularOutlineDropDown
             optionList={langList}
-            currentValue={currentAppLang || LANG.ENGLISH}
+            currentValue={currentAppLang || langList[0]}
             width="15vw"
             onValueChange={async (selectedLang) => {
               console.log("selected Langauage", selectedLang.detail.value);

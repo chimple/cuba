@@ -11,8 +11,7 @@ const DropDown: React.FC<{
     <IonList>
       <IonItem id="drop-down" lines="none" fill="outline">
         <IonSelect
-          onClick={onValueChange}
-          // onIonChange={onValueChange}
+          onIonChange={onValueChange}
           interface="popover"
           value={currentValue}
           // aria-label="Fruit"

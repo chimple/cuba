@@ -28,8 +28,8 @@ const ProfileCard: React.FC<{
       style={{
         // width: "auto",
         width: width,
-        // height: height,
-        height: "auto",
+        height: height,
+        // height: "auto",
       }}
       onClick={() => {
         console.log("Profile card Icon is clicked");

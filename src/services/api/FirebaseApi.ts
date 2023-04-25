@@ -158,13 +158,13 @@ export class FirebaseApi implements ServiceApi {
 
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {
-      currentUser.soundFlag = value
-      ServiceConfig.getI().authHandler.currentUser = currentUser
-
       await updateDoc(doc(this._db, `User/${user.uid}`), {
         soundFlag: value,
         dateLastModified: Timestamp.now(),
       });
+      user.soundFlag = value
+      ServiceConfig.getI().authHandler.currentUser = user
+      console.log("Updated User ", await ServiceConfig.getI().authHandler.getCurrentUser())
     }
 
   };
@@ -175,12 +175,13 @@ export class FirebaseApi implements ServiceApi {
 
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {
-      currentUser.musicFlag = value
-      ServiceConfig.getI().authHandler.currentUser = currentUser
       await updateDoc(doc(this._db, `User/${user.uid}`), {
         musicFlag: value,
         dateLastModified: Timestamp.now(),
       });
+      currentUser.musicFlag = value
+      ServiceConfig.getI().authHandler.currentUser = currentUser
+      console.log("Updated User ", await ServiceConfig.getI().authHandler.getCurrentUser())
     }
   };
 

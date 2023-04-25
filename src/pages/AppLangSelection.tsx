@@ -17,6 +17,7 @@ const AppLangSelection: React.FC = () => {
   const history = useHistory();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [langList, setLangList] = useState<string[]>([]);
+  const [currentAppLang, setCurrentAppLang] = useState<string>();
 
   useEffect(() => {}, []);
 
@@ -69,12 +70,13 @@ const AppLangSelection: React.FC = () => {
             <p id="app-lang-text">Select App Language</p>
             <RectangularOutlineDropDown
               optionList={langList}
-              currentValue={"English"}
+              currentValue={currentAppLang || langList[0]}
               width="25vw"
               onValueChange={async (selectedLang) => {
                 console.log("selected Langauage", selectedLang.detail.value);
-                const tempLangCode = selectedLang.detail.value ?? LANG.ENGLISH;
+                const tempLangCode = selectedLang.detail.value;
                 localStorage.setItem(APP_LANG, tempLangCode);
+                setCurrentAppLang(tempLangCode);
                 await i18n.changeLanguage(tempLangCode);
                 // history.replace(PAGES.LOGIN);
               }}
