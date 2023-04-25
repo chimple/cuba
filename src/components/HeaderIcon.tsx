@@ -1,5 +1,5 @@
 import { t } from "i18next";
-import { COURSES, HEADERLIST } from "../common/constants";
+import { COURSES, HOMEHEADERLIST } from "../common/constants";
 import IconButton from "./IconButton";
 import "./IconButton.css";
 import React from "react";
@@ -7,7 +7,7 @@ const HeaderIcon: React.FC<{
   iconSrc: string;
   headerName: string;
   currentHeader: string;
-  headerList: HEADERLIST;
+  headerList: HOMEHEADERLIST;
   onHeaderIconClick: Function;
 }> = ({
   iconSrc,

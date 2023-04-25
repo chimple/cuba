@@ -1,0 +1,25 @@
+.drop-down {
+    /* max-width: 100%; */
+    padding: 0% !important;
+    margin: 0% !important;
+    max-width: 15vw;
+    background-color: var(--ion-background-color);
+    /* bac */
+}
+
+.IonSelect {
+    background: var(--ion-background-color);
+}
+
+.list-md {
+    padding: 0% !important;
+}
+
+.ion-select-popover {
+    --max-width: 15vw
+}
+
+.IonPopover {
+    --width: 15vw;
+    --max-width: 15vw
+}

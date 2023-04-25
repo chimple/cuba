@@ -1,4 +1,4 @@
-ion-select::part(icon) {
+/* ion-select::part(icon) {
   content: url("../../public/assets/icons/DropDownArrow.png");
 }
 ion-select {
@@ -16,4 +16,4 @@ ion-select::part(text) {
 
 ion-popover {
   --width: none;
-}
+} */

@@ -1,0 +1,18 @@
+#rectangular-icon-button {
+    background-color: white;
+    color: black;
+    border-radius: 10vh;
+    display: flex;
+    padding: 0 0% 0% 1%;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+#rectangular-icon-button-img {
+    padding-right: 10%;
+}
+
+#rectangular-icon-button {
+    color: black;
+    font-size: var(--text-size);
+}
