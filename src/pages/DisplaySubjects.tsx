@@ -5,7 +5,6 @@ import Lesson from "../models/lesson";
 import { Chapter } from "../common/courseConstants";
 import { useHistory } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { FirebaseApi } from "../services/api/FirebaseApi";
 import { PAGES } from "../common/constants";
 import { IonIcon, IonPage } from "@ionic/react";
 import { chevronBackCircleSharp } from "ionicons/icons";
@@ -36,8 +35,7 @@ const DisplaySubjects: FC<{}> = () => {
   const [currentGrade, setCurrentGrade] = useState<Grade>();
 
   const history = useHistory();
-  //   const api = ServiceConfig.getI().apiHandler
-  const api = FirebaseApi.i;
+  const api = ServiceConfig.getI().apiHandler;
   useEffect(() => {
     getCourses();
   }, []);

@@ -176,11 +176,6 @@ export class FirebaseApi implements ServiceApi {
     return result.data() as Language;
   }
 
-  /**
-   * Gives List of subjects for given a student for Home user
-   * @param student - Student User object
-   * @returns Array of subject objects
-   */
   async getCoursesForParentsStudent(student: User): Promise<Course[]> {
     const subjects: Course[] = [];
     if (!student?.courses || student.courses.length < 1) return subjects;

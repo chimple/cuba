@@ -30,7 +30,6 @@ import { Util } from "../utility/util";
 import Auth from "../models/auth";
 import { OneRosterApi } from "../services/api/OneRosterApi";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { FirebaseApi } from "../services/api/FirebaseApi";
 
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<{
