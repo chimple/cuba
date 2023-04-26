@@ -2,11 +2,8 @@ import { IonCard } from "@ionic/react";
 import { useState } from "react";
 import { useHistory } from "react-router-dom";
 import { LESSON_CARD_COLORS, PAGES } from "../common/constants";
-// import { Lesson } from "../interface/curriculumInterfaces";
 import "./LessonCard.css";
 import ScoreCard from "./ScoreCard";
-import styled from "styled-components";
-import { url } from "inspector";
 import React from "react";
 import Lesson from "../models/lesson";
 
@@ -45,7 +42,8 @@ const LessonCard: React.FC<{
   };
   // const subjectCode = lesson.chapter.course.id;
 
-  const lessonCardColor = LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
+  const lessonCardColor =
+    LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
   return (
     <IonCard
       id="lesson-card"
@@ -70,12 +68,17 @@ const LessonCard: React.FC<{
           //     from: history.location.pathname,
           //   });
           // } else {
-          const parmas = `?courseid=${null}&chapterid=${null}&lessonid=${lesson.id}`;
+          const parmas = `?courseid=${lesson.cocosSubjectCode}&chapterid=${lesson.cocosChapterCode}&lessonid=${lesson.id}`;
+          console.log(
+            "🚀 ~ file: LessonCard.tsx:73 ~ parmas:",
+            parmas,
+            Lesson.toJson(lesson)
+          );
           history.push(PAGES.GAME + parmas, {
             url: "chimple-lib/index.html" + parmas,
             lessonId: lesson.id,
-            lesson: lesson,
-            from: history.location.pathname,
+            lesson: JSON.stringify(Lesson.toJson(lesson)),
+            from: history.location.pathname + "?continue=true",
           });
           // }
         } else {
@@ -118,19 +121,19 @@ const LessonCard: React.FC<{
               alignItems: "center",
               gridArea: "1 / 1 ",
             }}
-            src={"courses/" + 'sl_en1_mp' + "/icons/" + "ChallengePattern.png"}
-            alt={"courses/" + 'sl_en1_mp' + "/icons/" + "ChallengePattern.png"}
+            src={"courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"}
+            alt={"courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"}
           ></img>
 
           <div id="lesson-card-image">
             {/* {showImage ? ( */}
-              <img
-                id="lesson-card-image"
-                loading="lazy"
-                alt={"courses/" + 'en' + "/icons/" + "en0000.png"}
-                src={"courses/" + 'en' + "/icons/" + "en0000.png"}
-                onError={hideImg}
-              />
+            <img
+              id="lesson-card-image"
+              loading="lazy"
+              alt={"courses/" + "en" + "/icons/" + "en0000.png"}
+              src={"courses/" + "en" + "/icons/" + "en0000.png"}
+              onError={hideImg}
+            />
             {/* ) : (
               <div /> // we can show Default LessonCard text or image
             )} */}
