@@ -100,7 +100,19 @@ const CocosGame: React.FC = () => {
     setIsLoading(false);
     // document.getElementById("iframe")?.focus();
     // if (window.launchGame) window.launchGame();
-    Util.launchCocosGame();
+    try {
+      await Util.launchCocosGame();
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: CocosGame.tsx:108 ~ init ~ error:",
+        JSON.stringify(error)
+      );
+      presentToast();
+      setTimeout(() => {
+        push();
+        window.location.reload();
+      }, 1000);
+    }
 
     //Just fot Testing
     const saveTempData = async (e: any) => {
