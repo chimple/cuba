@@ -6,6 +6,8 @@ export interface ServiceAuth {
 
   getCurrentUser(): Promise<User | undefined>;
 
+  set currentUser(user: User);
+
   isUserLoggedIn(): Promise<boolean>;
 
   logOut(): Promise<void>;

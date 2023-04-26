@@ -7,7 +7,7 @@ export class AuthHandler implements ServiceAuth {
 
   private s: ServiceAuth;
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(s: ServiceAuth): AuthHandler {
     if (!AuthHandler.i) {
@@ -23,6 +23,10 @@ export class AuthHandler implements ServiceAuth {
 
   async getCurrentUser(): Promise<User | undefined> {
     return await this.s.getCurrentUser();
+  }
+
+  public set currentUser(user: User) {
+    this.s.currentUser = user;
   }
 
   async isUserLoggedIn(): Promise<boolean> {

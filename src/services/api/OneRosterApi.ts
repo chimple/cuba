@@ -21,7 +21,6 @@ export class OneRosterApi implements ServiceApi {
   private preQuizMap: { [key: string]: { [key: string]: Result } } = {};
   private classes: { [key: string]: Class[] } = {};
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
-  private constructor() {}
   getCoursesForParentsStudent(student: User): Promise<Course[]> {
     throw new Error("Method not implemented.");
   }
@@ -34,6 +33,7 @@ export class OneRosterApi implements ServiceApi {
   getDifferentGradesForCourse(course: Course): Promise<{ grades: Grade[]; courses: Course[]; }> {
     throw new Error("Method not implemented.");
   }
+  private constructor() { }
   getLanguageWithId(id: string): Promise<Language | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -49,6 +49,18 @@ export class OneRosterApi implements ServiceApi {
   getParentStudentProfiles(): Promise<User[]> {
     throw new Error("Method not implemented.");
   }
+
+  updateSoundFlag(user: User, value: boolean) {
+    throw new Error("Method not implemented.");
+  };
+  updateMusicFlag(user: User, value: boolean) {
+    throw new Error("Method not implemented.");
+  };
+  updateLanguage(user: User, value: string) {
+    throw new Error("Method not implemented.");
+  };
+
+
   get currentStudent(): User {
     throw new Error("Method not implemented.");
   }

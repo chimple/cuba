@@ -28,11 +28,12 @@ import Language from "../../models/language";
 
 export class FirebaseAuth implements ServiceAuth {
   public static i: FirebaseAuth;
-  private _currentUser: User | null;
+  private _currentUser: User | undefined;
+
   private _db = getFirestore();
   private _auth = getAuth();
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): FirebaseAuth {
     if (!FirebaseAuth.i) {
@@ -97,7 +98,9 @@ export class FirebaseAuth implements ServiceAuth {
       undefined,
       Timestamp.now(),
       Timestamp.now(),
-      user.uid
+      user.uid,
+      true,
+      true,
     );
     await setDoc(userRef, tempUser.toJson());
     this._currentUser = tempUser;
@@ -113,6 +116,14 @@ export class FirebaseAuth implements ServiceAuth {
     this._currentUser.docId = tempUserDoc.id;
     return this._currentUser;
   }
+
+  public set currentUser(value: User) {
+    this._currentUser = value;
+  }
+  // public set updateCurrentUser(user: User) {
+  //     this._currentUser = user;
+  // }
+
 
   async isUserLoggedIn(): Promise<boolean> {
     const user = await this.getCurrentUser();
@@ -133,6 +144,6 @@ export class FirebaseAuth implements ServiceAuth {
   async logOut(): Promise<void> {
     await FirebaseAuthentication.signOut();
     await this._auth.signOut();
-    this._currentUser = null;
+    this._currentUser = undefined;
   }
 }

@@ -2,7 +2,7 @@ import { IonPage, IonHeader } from "@ionic/react";
 import { FC, useEffect, useState } from "react";
 import {
   COURSES,
-  HEADERLIST,
+  HOMEHEADERLIST,
   CURRENT_LESSON_LEVEL,
   PAGES,
   PREVIOUS_SELECTED_COURSE,
@@ -59,7 +59,7 @@ const Home: FC = () => {
     }
     let selectedCourse = localStorage.getItem(PREVIOUS_SELECTED_COURSE());
     if (!selectedCourse || !ALL_COURSES.includes(selectedCourse as COURSES)) {
-      selectedCourse = HEADERLIST.RECOMMENDATION;
+      selectedCourse = HOMEHEADERLIST.RECOMMENDATION;
     }
 
     let selectedGrade = localStorage.getItem(SELECTED_GRADE());
@@ -87,7 +87,7 @@ const Home: FC = () => {
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
     // const apiInstance = OneRosterApi.getInstance();
-    if (subjectCode === HEADERLIST.RECOMMENDATION) {
+    if (subjectCode === HOMEHEADERLIST.RECOMMENDATION) {
       let lessonScoreMap = {};
       const lessonMap = {};
       for (const tempCourse of ALL_COURSES) {
@@ -302,14 +302,14 @@ const Home: FC = () => {
     localStorage.setItem(PREVIOUS_SELECTED_COURSE(), selectedHeader);
     HEADER_ICON_CONFIGS.get(selectedHeader);
     console.log(selectedHeader, " Icons is selected");
-    if (selectedHeader === HEADERLIST.HOME) {
+    if (selectedHeader === HOMEHEADERLIST.HOME) {
       history.push(PAGES.DISPLAY_SUBJECTS);
     }
-    if (selectedHeader === HEADERLIST.RECOMMENDATION) {
-      setCourse(HEADERLIST.RECOMMENDATION);
+    if (selectedHeader === HOMEHEADERLIST.RECOMMENDATION) {
+      setCourse(HOMEHEADERLIST.RECOMMENDATION);
     }
 
-    if (selectedHeader === HEADERLIST.PROFILE) {
+    if (selectedHeader === HOMEHEADERLIST.PROFILE) {
       history.push(PAGES.PROFILE);
     }
   }
@@ -325,7 +325,7 @@ const Home: FC = () => {
       <div className="slider-content">
         {!isLoading ? (
           <div className="space-between">
-            {currentHeader === HEADERLIST.RECOMMENDATION ? (
+            {currentHeader === HOMEHEADERLIST.RECOMMENDATION ? (
               <div></div>
               // <LessonSlider
               //   lessonData={

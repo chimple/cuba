@@ -5,7 +5,7 @@ import { ServiceAuth } from "./ServiceAuth";
 export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
 
-  private constructor() {}
+  private constructor() { }
 
   logOut(): Promise<void> {
     throw new Error("Method not implemented.");
@@ -20,6 +20,11 @@ export class OneRosterAuth implements ServiceAuth {
     }
     return OneRosterAuth.i;
   }
+
+  public set currentUser(user: User) {
+    throw new Error("Method not implemented.");
+  }
+
 
   googleSign(): Promise<any> {
     throw new Error("Method not implemented.");

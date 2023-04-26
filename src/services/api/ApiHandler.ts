@@ -7,13 +7,14 @@ import { Chapter } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import { GENDER } from "../../common/constants";
+import { DocumentReference } from "firebase/firestore";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
 
   private s: ServiceApi;
 
-  private constructor() {}
+  private constructor() { }
 
   public async getCoursesForParentsStudent(student: User): Promise<Course[]> {
     return await this.s.getCoursesForParentsStudent(student);
@@ -48,6 +49,19 @@ export class ApiHandler implements ServiceApi {
   public async getParentStudentProfiles(): Promise<User[]> {
     return await this.s.getParentStudentProfiles();
   }
+
+  updateSoundFlag(user: User, value: boolean) {
+    return this.s.updateSoundFlag(user, value);
+  };
+
+  updateMusicFlag(user: User, value: boolean) {
+    return this.s.updateMusicFlag(user, value);
+  };
+
+  updateLanguage(user: User, value: string) {
+    return this.s.updateLanguage(user, value);
+  };
+
 
   public get currentStudent(): User {
     return this.s.currentStudent;

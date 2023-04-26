@@ -39,11 +39,13 @@ import {
   PAGES,
 } from "./common/constants";
 import { Util } from "./utility/util";
+import Parent from "./pages/Parent";
 import EditStudent from "./pages/EditStudent";
 import DisplayStudents from "./pages/DisplayStudents";
 // import Assignments from "./pages/Assignments";
 import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
 import DisplaySubjects from "./pages/DisplaySubjects";
+import AppLangSelection from "./pages/AppLangSelection";
 
 setupIonicReact();
 
@@ -94,6 +96,12 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.PROFILE} exact={true}>
               <Profile />
             </ProtectedRoute>
+            <ProtectedRoute path={PAGES.PARENT} exact={true}>
+              <Parent />
+            </ProtectedRoute>
+            <Route path={PAGES.APP_LANG_SELECTION} exact={true}>
+              <AppLangSelection />
+            </Route>
             <ProtectedRoute path={PAGES.CREATE_STUDENT} exact={true}>
               <EditStudent />
             </ProtectedRoute>

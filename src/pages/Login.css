@@ -4,50 +4,59 @@ p {
 
 
 #login-screen {
-    --ion-background-color: #F2D9CA !important;
+    /* --ion-background-color: #F2D9CA !important; */
+    text-align: center;
 }
 
 #login-chimple-logo {
     /* height: min(200px, 60vh);
     margin-left: calc(33vw);
     margin-top: 2%; */
-    height: 28%;
+    text-align: center;
+    width: auto;
+    height: 30vh;
+    /* height: 28%;
     position: absolute;
     left: 50%;
     top: 15%;
-    transform: translateY(-50%) translateX(-50%);
+    transform: translateY(-50%) translateX(-50%); */
 }
 
 #chimple-brand-text1 {
-    position: absolute;
-    top: 30%;
-    left: 50%;
+    /* position: absolute; */
+    /* top: 30%;
+    left: 50%; */
     /* height: 20%; */
     /* width: 40%; */
     font-weight: bolder;
-    text-align: center;
-    transform: translateY(-5%) translateX(-50%);
-    font-size: 4vh;
+    /* text-align: center; */
+    /* transform: translateY(-5%) translateX(-50%); */
+    font-size: var(--text-size);
 }
 
 #chimple-brand-text2 {
-    position: absolute;
-    top: min(38%, 44%);
+    /* position: absolute; */
+    /* top: min(38%, 44%); */
     height: auto;
     /* height: min(200px, 60vh); */
-    width: min(90%, 100%);
+    /* width: min(90%, 100%); */
     font-weight: 500;
-    left: min(5%, 10%);
-    text-align: center;
-    line-height: 1;
-    font-size: 4vh;
+    /* left: min(5%, 10%); */
+    /* text-align: center; */
+    /* line-height: 1; */
+    font-size: var(--text-size);
+}
+
+#login-text-box {
+    /* transform: translateX(50%); */
+    margin: 2% 0% 2% 30vw;
 }
 
 #login-continue-button {
-    position: absolute;
+    /* position: absolute;
     left: 50%;
-    top: 75%;
-    transform: translateY(-50%) translateX(-50%);
+    top: 75%; */
+    /* transform: translateX(50%); */
     width: min(90vh, 100vh);
     height: min(55vh, 15vh);
     color: white;
@@ -56,27 +65,36 @@ p {
     text-align: center;
     line-height: 15vh;
     font-size: 4vh;
+    margin: 2% 0% 1% 30vw;
 }
 
 #login-google-icon-text {
-    position: absolute;
+    /* position: absolute;
     top: 83%;
     left: 50%;
-    transform: translateY(-5%) translateX(-50%);
-    font-size: 4vh;
+    transform: translateY(-5%) translateX(-50%); */
+    /* margin: 0% 0% 0% 0%; */
+    font-size: var(--text-size);
 }
 
 #login-google-icon {
-    position: absolute;
+    /* position: absolute;
     top: 89%;
-    left: 50%;
+    left: 50%; */
     height: 10vh;
     width: auto;
-    text-align: center;
-    transform: translateY(-5%) translateX(-50%);
+    /* text-align: center; */
+    /* transform: translateY(-5%) translateX(-50%); */
 }
 
 #login-button-img {
     height: 38px;
     width: auto;
+}
+
+#login-page-parent-button {
+    /* position: absolute;
+    top: 10%;
+    left: 70%; */
+    /* transform: translateY(20%) translateX(40%); */
 }

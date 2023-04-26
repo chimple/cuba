@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import {
+  HOMEHEADERLIST,
   AVATARS,
-  HEADERLIST,
   HEADER_ICON_CONFIGS,
   HeaderIconConfig,
 } from "../common/constants";
@@ -29,10 +29,10 @@ const HomeHeader: React.FC<{
         headerName={t("Subjects")}
         iconSrc="assets/icons/HomeIcon.svg"
         currentHeader={currentHeader}
-        headerList={HEADERLIST.HOME}
+        headerList={HOMEHEADERLIST.HOME}
         onHeaderIconClick={() => {
-          if (currentHeader != HEADERLIST.HOME) {
-            onHeaderIconClick(HEADERLIST.HOME);
+          if (currentHeader != HOMEHEADERLIST.HOME) {
+            onHeaderIconClick(HOMEHEADERLIST.HOME);
           }
         }}
       ></HeaderIcon>
@@ -61,10 +61,10 @@ const HomeHeader: React.FC<{
         headerName={student?.name ?? "Profile"}
         iconSrc={"assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png"}
         currentHeader={currentHeader}
-        headerList={HEADERLIST.PROFILE}
+        headerList={HOMEHEADERLIST.PROFILE}
         onHeaderIconClick={() => {
-          if (currentHeader != HEADERLIST.PROFILE) {
-            onHeaderIconClick(HEADERLIST.PROFILE);
+          if (currentHeader != HOMEHEADERLIST.PROFILE) {
+            onHeaderIconClick(HOMEHEADERLIST.PROFILE);
           }
         }}
       ></HeaderIcon>

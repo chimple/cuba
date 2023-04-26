@@ -1,6 +1,24 @@
 .content {
   margin-top: 3vh;
 }
+
+#display-students-chimple-logo {
+  display: flex;
+  justify-content: end;
+  /* align-items: center; */
+  cursor: pointer;
+  font-size: var(--text-size);
+  color: #05342f;
+}
+
+#display-students-parent-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 7vw;
+  margin: 1vh 1vh 0vh 27vw;
+}
+
 .avatar {
   display: flex;
   flex-direction: column;
@@ -9,6 +27,7 @@
   font-size: var(--text-size);
   color: #05342f;
 }
+
 .avatar-container {
   margin: 0.4vh;
   gap: 10vh;
@@ -19,6 +38,7 @@
   flex-wrap: wrap;
   justify-content: center;
 }
+
 .add-new-button {
   display: flex;
   flex-direction: column;

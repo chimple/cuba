@@ -56,8 +56,12 @@ export interface ServiceApi {
   getParentStudentProfiles(): Promise<User[]>;
 
   get currentStudent(): User;
-  
+
   set currentStudent(value: User);
+
+  updateSoundFlag(user: User, value: boolean);
+  updateMusicFlag(user: User, value: boolean);
+  updateLanguage(user: User, value: string);
 
   /**
    * Gives Language for given a language firebase doc Id

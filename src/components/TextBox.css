@@ -1,13 +1,14 @@
 #text-box {
-    position: absolute;
+    /* position: absolute; */
     outline-style: solid;
     outline-width: 0.1px;
     left: 50%;
     top: 58%;
     width: min(90vh, 100vh);
     height: min(55vh, 15vh);
-    transform: translateY(-50%) translateX(-50%);
+    /* transform: translateY(-50%) translateX(-50%); */
     border-radius: 4vh;
+    /* background-color: var(--ion-background-color); */
 }
 
 #text-box-elements {
@@ -33,7 +34,7 @@
 
 #text-box-ion-item {
     font-size: 4vh !important;
-    transform: translateY(-8px) translateX(-20px) scale(0.8) !important;
+    transform: translateY(-8px) translateX(-20px) scale(0.75) !important;
 }
 
 .text-box-ion-label {
