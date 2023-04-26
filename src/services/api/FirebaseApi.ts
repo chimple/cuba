@@ -234,11 +234,17 @@ export class FirebaseApi implements ServiceApi {
     } = { grades: [], courses: [] };
     await Promise.all(
       queryResult.docs.map(
-        async (courseDoc): Promise<{ grade: Grade; course: Course }> => {
+        async (
+          courseDoc
+        ): Promise<{ grade: Grade; course: Course } | undefined> => {
           const course = courseDoc.data() as Course;
           course.docId = courseDoc.id;
           const gradeDoc = await getDoc(course.grade);
           const grade = gradeDoc.data() as Grade;
+          const gradeAlreadyExists = gradeMap.grades.find(
+            (_grade) => _grade.docId === gradeDoc.id
+          );
+          if (!!gradeAlreadyExists) return;
           grade.docId = gradeDoc.id;
           gradeMap.courses.push(course);
           gradeMap.grades.push(grade);
