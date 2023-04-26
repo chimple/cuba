@@ -26,7 +26,7 @@ const HomeHeader: React.FC<{
   return (
     <div id="home-header-icons">
       <HeaderIcon
-        headerName="Home"
+        headerName={t("Subjects")}
         iconSrc="assets/icons/HomeIcon.svg"
         currentHeader={currentHeader}
         headerList={HEADERLIST.HOME}
