@@ -1,8 +1,8 @@
 import { IonCard } from "@ionic/react";
 import "./LessonCard.css";
-import { Chapter } from "../interface/curriculumInterfaces";
 import { FaChevronCircleRight } from "react-icons/fa";
 import { FaChevronCircleLeft } from "react-icons/fa";
+import { Chapter } from "../common/courseConstants";
 
 const Arrow: React.FC<{
     width: string;

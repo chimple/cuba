@@ -9,6 +9,8 @@ import {
   getFirestore,
   getDocs,
   getDoc,
+  query,
+  where,
   setDoc,
 } from "firebase/firestore";
 import { ServiceApi } from "./ServiceApi";
@@ -22,6 +24,9 @@ import { ServiceConfig } from "../ServiceConfig";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
 import Language from "../../models/language";
+import { Chapter, CollectionIds } from "../../common/courseConstants";
+import Course from "../../models/course";
+import Lesson from "../../models/lesson";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
@@ -51,18 +56,24 @@ export class FirebaseApi implements ServiceApi {
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
     const courseIds: DocumentReference[] = DEFAULT_COURSE_IDS.map((id) =>
-      doc(this._db, `Course/${id}`)
+      doc(this._db, `${CollectionIds.COURSE}/${id}`)
     );
     if (!!languageDocId && !!LANGUAGE_COURSE_MAP[languageDocId]) {
       courseIds.splice(
         1,
         0,
-        doc(this._db, `Course/${LANGUAGE_COURSE_MAP[languageDocId]}`)
+        doc(
+          this._db,
+          `${CollectionIds.COURSE}/${LANGUAGE_COURSE_MAP[languageDocId]}`
+        )
       );
     }
-    const boardRef = doc(this._db, `Curriculum/${boardDocId}`);
-    const gradeRef = doc(this._db, `Grade/${gradeDocId}`);
-    const languageRef = doc(this._db, `Language/${languageDocId}`);
+    const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
+    const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
+    const languageRef = doc(
+      this._db,
+      `${CollectionIds.LANGUAGE}/${languageDocId}`
+    );
     const student = new User(
       _currentUser?.username,
       [],
@@ -82,11 +93,11 @@ export class FirebaseApi implements ServiceApi {
       null!
     );
     const studentDoc = await addDoc(
-      collection(this._db, "User"),
+      collection(this._db, CollectionIds.USER),
       student.toJson()
     );
     student.docId = studentDoc.id;
-    await updateDoc(doc(this._db, `User/${student.uid}`), {
+    await updateDoc(doc(this._db, `${CollectionIds.USER}/${student.uid}`), {
       users: arrayUnion(studentDoc),
       dateLastModified: Timestamp.now(),
     });
@@ -94,7 +105,9 @@ export class FirebaseApi implements ServiceApi {
   }
 
   public async getAllCurriculums(): Promise<Curriculum[]> {
-    const querySnapshot = await getDocs(collection(this._db, "Curriculum"));
+    const querySnapshot = await getDocs(
+      collection(this._db, CollectionIds.CURRICULUM)
+    );
     const curriculums: Curriculum[] = [];
     querySnapshot.forEach((doc) => {
       console.log(`${doc.id} => ${doc.data()}`);
@@ -106,7 +119,9 @@ export class FirebaseApi implements ServiceApi {
   }
 
   public async getAllGrades(): Promise<Grade[]> {
-    const querySnapshot = await getDocs(collection(this._db, "Grade"));
+    const querySnapshot = await getDocs(
+      collection(this._db, CollectionIds.GRADE)
+    );
     const grades: Grade[] = [];
     querySnapshot.forEach((doc) => {
       console.log(`${doc.id} => ${doc.data()}`);
@@ -118,7 +133,9 @@ export class FirebaseApi implements ServiceApi {
   }
 
   public async getAllLanguages(): Promise<Language[]> {
-    const querySnapshot = await getDocs(collection(this._db, "Language"));
+    const querySnapshot = await getDocs(
+      collection(this._db, CollectionIds.LANGUAGE)
+    );
     const languages: Language[] = [];
     querySnapshot.forEach((doc) => {
       // console.log(`${doc.id} => ${doc.data()}`);
@@ -201,8 +218,89 @@ export class FirebaseApi implements ServiceApi {
   };
 
   async getLanguageWithId(id: string): Promise<Language | undefined> {
-    const result = await getDoc(doc(this._db, `Language/${id}`));
+    const result = await getDoc(
+      doc(this._db, `${CollectionIds.LANGUAGE}/${id}`)
+    );
     if (!result.data()) return;
     return result.data() as Language;
+  }
+
+  async getCoursesForParentsStudent(student: User): Promise<Course[]> {
+    const subjects: Course[] = [];
+    if (!student?.courses || student.courses.length < 1) return subjects;
+    const courseDocs = await Promise.all(
+      student.courses.map((course) => getDoc(course))
+    );
+    courseDocs.forEach((courseDoc) => {
+      if (courseDoc && courseDoc.data()) {
+        const course = courseDoc.data() as Course;
+        course.docId = courseDoc.id;
+        subjects.push(course);
+      }
+    });
+    return subjects;
+  }
+
+  async getLesson(id: string): Promise<Lesson | undefined> {
+    const lessonDoc = await getDoc(
+      doc(this._db, `${CollectionIds.LESSON}/${id}`)
+    );
+    if (!lessonDoc.exists) return;
+    const lesson = lessonDoc.data() as Lesson;
+    lesson.docId = lesson.id;
+    return lesson;
+  }
+
+  async getLessonsForChapter(chapter: Chapter): Promise<Lesson[]> {
+    const lessons: Lesson[] = [];
+    if (chapter.lessons && chapter.lessons.length > 0) {
+      for (let lesson of chapter.lessons) {
+        if (lesson instanceof DocumentReference) {
+          const lessonObj = await this.getLesson(lesson.id);
+          if (lessonObj) {
+            lessons.push(lessonObj);
+          }
+        } else {
+          lessons.push(lesson);
+        }
+      }
+    }
+    return lessons;
+  }
+
+  async getDifferentGradesForCourse(
+    course: Course
+  ): Promise<{ grades: Grade[]; courses: Course[] }> {
+    const q = query(
+      collection(this._db, CollectionIds.COURSE),
+      where("subject", "==", course.subject),
+      where("curriculum", "==", course.curriculum)
+    );
+    const queryResult = await getDocs(q);
+    const gradeMap: {
+      grades: Grade[];
+      courses: Course[];
+    } = { grades: [], courses: [] };
+    await Promise.all(
+      queryResult.docs.map(
+        async (
+          courseDoc
+        ): Promise<{ grade: Grade; course: Course } | undefined> => {
+          const course = courseDoc.data() as Course;
+          course.docId = courseDoc.id;
+          const gradeDoc = await getDoc(course.grade);
+          const grade = gradeDoc.data() as Grade;
+          const gradeAlreadyExists = gradeMap.grades.find(
+            (_grade) => _grade.docId === gradeDoc.id
+          );
+          if (!!gradeAlreadyExists) return;
+          grade.docId = gradeDoc.id;
+          gradeMap.courses.push(course);
+          gradeMap.grades.push(grade);
+          return { grade: grade, course: course };
+        }
+      )
+    );
+    return gradeMap;
   }
 }

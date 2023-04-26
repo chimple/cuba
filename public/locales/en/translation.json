@@ -1,6 +1,7 @@
 {
   "back": "Back",
   "Boy": "Boy",
+  "Chapters": "Chapters",
   "Create New User": "Create New User",
   "Discovering the joy of learning with Chimple": "Discovering the joy of learning with Chimple",
   "Enter Child Name:": "Enter Child Name:",
@@ -17,6 +18,7 @@
   "Select Child Gender:": "Select Child Gender:",
   "Select Grade": "Select Grade",
   "signOut": "Sign Out",
+  "Subjects": "Subjects",
   "Welcome to Chimple!": "Welcome to Chimple!",
   "where curiosity meets education!": "where curiosity meets education!"
 }

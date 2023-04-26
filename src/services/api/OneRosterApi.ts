@@ -12,12 +12,27 @@ import { DocumentReference, DocumentData } from "firebase/firestore";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
 import Language from "../../models/language";
+// import { Chapter } from "../../common/courseConstants";
+import Course from "../../models/course";
+import Lesson from "../../models/lesson";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
   private preQuizMap: { [key: string]: { [key: string]: Result } } = {};
   private classes: { [key: string]: Class[] } = {};
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
+  getCoursesForParentsStudent(student: User): Promise<Course[]> {
+    throw new Error("Method not implemented.");
+  }
+  getLesson(id: string): Promise<Lesson | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getLessonsForChapter(chapter): Promise<Lesson[]> {
+    throw new Error("Method not implemented.");
+  }
+  getDifferentGradesForCourse(course: Course): Promise<{ grades: Grade[]; courses: Course[]; }> {
+    throw new Error("Method not implemented.");
+  }
   private constructor() { }
   getLanguageWithId(id: string): Promise<Language | undefined> {
     throw new Error("Method not implemented.");

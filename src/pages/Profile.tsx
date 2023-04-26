@@ -124,21 +124,22 @@ const Profile: React.FC = () => {
               const isPLayed =
                 !!rewards[lesson.id] && rewards[lesson.id].score >= MIN_PASS;
               return (
-                <LessonCard
-                  width="clamp(150px,40vh,200px)"
-                  height="clamp(150px,40vh,200px)"
-                  lesson={lesson}
-                  key={index}
-                  isPlayed={isPLayed}
-                  isUnlocked={isPLayed}
-                  isHome={false}
-                  showSubjectName={false}
-                  showText={false}
-                  showScoreCard={false}
-                  score={0}
-                  lessonData={allLessons}
-                  startIndex={0}
-                />
+                <div></div>
+                // <LessonCard
+                //   width="clamp(150px,40vh,200px)"
+                //   height="clamp(150px,40vh,200px)"
+                //   lesson={lesson}
+                //   key={index}
+                //   isPlayed={isPLayed}
+                //   isUnlocked={isPLayed}
+                //   isHome={false}
+                //   showSubjectName={false}
+                //   showText={false}
+                //   showScoreCard={false}
+                //   score={0}
+                //   lessonData={allLessons}
+                //   startIndex={0}
+                // />
               );
             })}
           </div>

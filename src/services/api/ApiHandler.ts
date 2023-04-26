@@ -3,6 +3,10 @@ import { ServiceApi } from "./ServiceApi";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
 import Language from "../../models/language";
+import { Chapter } from "../../common/courseConstants";
+import Course from "../../models/course";
+import Lesson from "../../models/lesson";
+import { GENDER } from "../../common/constants";
 import { DocumentReference } from "firebase/firestore";
 
 export class ApiHandler implements ServiceApi {
@@ -11,6 +15,24 @@ export class ApiHandler implements ServiceApi {
   private s: ServiceApi;
 
   private constructor() { }
+
+  public async getCoursesForParentsStudent(student: User): Promise<Course[]> {
+    return await this.s.getCoursesForParentsStudent(student);
+  }
+
+  public async getLesson(id: string): Promise<Lesson | undefined> {
+    return await this.s.getLesson(id);
+  }
+
+  public async getLessonsForChapter(chapter: Chapter): Promise<Lesson[]> {
+    return await this.s.getLessonsForChapter(chapter);
+  }
+
+  public async getDifferentGradesForCourse(
+    course: Course
+  ): Promise<{ grades: Grade[]; courses: Course[] }> {
+    return await this.s.getDifferentGradesForCourse(course);
+  }
 
   public async getAllCurriculums(): Promise<Curriculum[]> {
     return await this.s.getAllCurriculums();
@@ -82,8 +104,4 @@ export class ApiHandler implements ServiceApi {
   public async getLanguageWithId(id: string): Promise<Language | undefined> {
     return await this.s.getLanguageWithId(id);
   }
-
-  // public async getUser(userId: string): Promise<User | undefined> {
-  //   return await this.s.getUser(userId);
-  // }
 }

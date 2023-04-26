@@ -2,7 +2,7 @@ import { Timestamp } from "firebase/firestore";
 import BaseObject from "./baseObject";
 import { DocumentReference } from "firebase/firestore";
 
-export default class lesson extends BaseObject {
+export default class Lesson extends BaseObject {
   private _title: string;
   private _clonedFrom: DocumentReference;
   private _createdBy: DocumentReference;

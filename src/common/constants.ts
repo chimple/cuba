@@ -90,6 +90,7 @@ export enum PAGES {
   PARENT = "/parent",
   CREATE_STUDENT = "/create-student",
   DISPLAY_STUDENT = "/display-students",
+  DISPLAY_SUBJECTS = "/display-subjects",
   APP_LANG_SELECTION = "/app-lang-selection",
   STUDENT_PROGRESS = "/student-progress",
 }
