@@ -1,8 +1,8 @@
 import { FC } from "react";
 import { Chapter } from "../../common/courseConstants";
 import "./SelectChapter.css";
-import GradeDropDown from "../GradeDropDown";
 import Grade from "../../models/grade";
+import DropDown from "../DropDown";
 
 const SelectChapter: FC<{
   chapters: Chapter[];
@@ -14,15 +14,16 @@ const SelectChapter: FC<{
   return (
     <div>
       <div className="grade-container">
-        <GradeDropDown
-          currentGrade={currentGrade.title}
-          grades={grades.map((grade) => grade.title)}
-          onGradeChange={(evt) => {
+        <DropDown
+          currentValue={currentGrade.title}
+          optionList={grades.map((grade) => grade.title)}
+          onValueChange={(evt) => {
             const tempGrade = grades.find(
               (grade) => grade.title === evt.detail.value
             );
             onGradeChange(tempGrade ?? currentGrade);
           }}
+          width="15vw"
         />
       </div>
       <div className="chapter-container">
