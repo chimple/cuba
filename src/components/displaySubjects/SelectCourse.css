@@ -20,8 +20,8 @@
 }
 
 .course-icon {
-  width: 30vh;
-  height: 30vh;
+  width: min(30vh, 200px);
+  height: min(30vh, 200px);
   background-color: white;
   background-repeat: no-repeat;
   border-radius: 50%;
