@@ -302,6 +302,9 @@ const Home: FC = () => {
     localStorage.setItem(PREVIOUS_SELECTED_COURSE(), selectedHeader);
     HEADER_ICON_CONFIGS.get(selectedHeader);
     console.log(selectedHeader, " Icons is selected");
+    if (selectedHeader === HOMEHEADERLIST.HOME) {
+      history.push(PAGES.DISPLAY_SUBJECTS);
+    }
     if (selectedHeader === HOMEHEADERLIST.RECOMMENDATION) {
       setCourse(HOMEHEADERLIST.RECOMMENDATION);
     }
@@ -323,28 +326,29 @@ const Home: FC = () => {
         {!isLoading ? (
           <div className="space-between">
             {currentHeader === HOMEHEADERLIST.RECOMMENDATION ? (
-              <LessonSlider
-                lessonData={
-                  currentHeader === HOMEHEADERLIST.RECOMMENDATION
-                    ? dataCourse.lessons
-                    : currentChapter?.lessons!
-                }
-                chaptersData={dataCourse.chapters}
-                currentChapter={currentChapter!}
-                onChapterChange={onArrowClick}
-                isHome={
-                  currentHeader === HOMEHEADERLIST.RECOMMENDATION ? true : false
-                }
-                onSwiper={setLessonSwiperRef}
-                // onSlideChange={onCustomSlideChange}
-                lessonsScoreMap={lessonsScoreMap}
-                startIndex={
-                  currentHeader === HOMEHEADERLIST.RECOMMENDATION
-                    ? 0
-                    : currentLessonIndex - 1
-                }
-                showSubjectName={currentHeader === HOMEHEADERLIST.RECOMMENDATION}
-              />
+              <div></div>
+              // <LessonSlider
+              //   lessonData={
+              //     currentHeader === HEADERLIST.RECOMMENDATION
+              //       ? dataCourse.lessons
+              //       : currentChapter?.lessons!
+              //   }
+              //   chaptersData={dataCourse.chapters}
+              //   currentChapter={currentChapter!}
+              //   onChapterChange={onArrowClick}
+              //   isHome={
+              //     currentHeader === HEADERLIST.RECOMMENDATION ? true : false
+              //   }
+              //   onSwiper={setLessonSwiperRef}
+              //   // onSlideChange={onCustomSlideChange}
+              //   lessonsScoreMap={lessonsScoreMap}
+              //   startIndex={
+              //     currentHeader === HEADERLIST.RECOMMENDATION
+              //       ? 0
+              //       : currentLessonIndex - 1
+              //   }
+              //   showSubjectName={currentHeader === HEADERLIST.RECOMMENDATION}
+              // />
             ) : (
               <div style={{ marginTop: "2.6%" }}></div>
             )}

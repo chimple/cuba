@@ -26,7 +26,7 @@ const HomeHeader: React.FC<{
   return (
     <div id="home-header-icons">
       <HeaderIcon
-        headerName="Subject"
+        headerName={t("Subjects")}
         iconSrc="assets/icons/HomeIcon.svg"
         currentHeader={currentHeader}
         headerList={HOMEHEADERLIST.HOME}
@@ -42,6 +42,7 @@ const HomeHeader: React.FC<{
           // console.log("Dyanamic Header List ", element);
           return (
             <HeaderIcon
+              key={index}
               headerName={element.displayName}
               iconSrc={element.iconSrc}
               currentHeader={currentHeader}

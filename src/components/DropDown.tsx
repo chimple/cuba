@@ -22,8 +22,8 @@ const DropDown: React.FC<{
             // --max-width:width,
           }}
         >
-          {optionList.map((option) => (
-            <IonSelectOption value={option}>{option}</IonSelectOption>
+          {optionList.map((option,index) => (
+            <IonSelectOption key={index} value={option}>{option}</IonSelectOption>
           ))}
         </IonSelect>
       </IonItem>

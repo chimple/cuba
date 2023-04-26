@@ -1,6 +1,7 @@
 {
   "back": "पीछे",
   "Boy": "लड़का",
+  "Chapters": "अध्याय",
   "Create New User": "नया उपयोगकर्ता बनाएं",
   "Discovering the joy of learning with Chimple": "चिम्पल के साथ सीखने की खुशी की खोज",
   "Enter Child Name:": "बच्चे का नाम दर्ज करें",
@@ -17,6 +18,7 @@
   "Select Child Gender:": "किड लिंग का चयन करें:",
   "Select Grade": "ग्रेड का चयन करें",
   "signOut": "साइन आउट",
+  "Subjects": "विषयों",
   "Welcome to Chimple!": "चिम्पल में आपका स्वागत है!",
   "where curiosity meets education!": "जहां जिज्ञासा शिक्षा से मिलती है!"
 }
