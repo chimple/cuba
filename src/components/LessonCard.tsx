@@ -107,7 +107,7 @@ const LessonCard: React.FC<{
               <p>{lesson?.chapter.course.name}</p>
             </div>
           ) : null} */}
-          {/* <img
+          <img
             className="pattern"
             style={{
               width: width,
@@ -118,20 +118,20 @@ const LessonCard: React.FC<{
               alignItems: "center",
               gridArea: "1 / 1 ",
             }}
-            src={"courses/" + subjectCode + "/icons/" + lesson.pattern}
-            alt={"courses/" + subjectCode + "/icons/" + lesson.pattern}
-          ></img> */}
+            src={"courses/" + 'sl_en1_mp' + "/icons/" + "ChallengePattern.png"}
+            alt={"courses/" + 'sl_en1_mp' + "/icons/" + "ChallengePattern.png"}
+          ></img>
 
           <div id="lesson-card-image">
-            {/* {showImage ? (
+            {/* {showImage ? ( */}
               <img
                 id="lesson-card-image"
                 loading="lazy"
-                alt={"courses/" + subjectCode + "/icons/" + lesson.image}
-                src={"courses/" + subjectCode + "/icons/" + lesson.image}
+                alt={"courses/" + 'en' + "/icons/" + "en0000.png"}
+                src={"courses/" + 'en' + "/icons/" + "en0000.png"}
                 onError={hideImg}
               />
-            ) : (
+            {/* ) : (
               <div /> // we can show Default LessonCard text or image
             )} */}
 
