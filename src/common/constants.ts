@@ -91,6 +91,7 @@ export enum PAGES {
   CREATE_STUDENT = "/create-student",
   DISPLAY_STUDENT = "/display-students",
   APP_LANG_SELECTION = "/app-lang-selection",
+  STUDENT_PROGRESS = "/student-progress",
 }
 
 export enum LANG {

@@ -45,6 +45,7 @@ import DisplayStudents from "./pages/DisplayStudents";
 // import Assignments from "./pages/Assignments";
 import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
 import AppLangSelection from "./pages/AppLangSelection";
+import StudentProgress from "./pages/StudentProgress";
 
 setupIonicReact();
 
@@ -106,6 +107,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.DISPLAY_STUDENT} exact={true}>
               <DisplayStudents />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.STUDENT_PROGRESS} exact={true}>
+              <StudentProgress />
             </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>

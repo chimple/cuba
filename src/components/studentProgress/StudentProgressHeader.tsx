@@ -1,37 +1,33 @@
 import { useTranslation } from "react-i18next";
 import {
-  HOMEHEADERLIST,
-  HEADER_ICON_CONFIGS,
-  HeaderIconConfig,
-  PARENTHEADERLIST,
   parentHeaderIconList,
   PAGES,
+  HeaderIconConfig,
 } from "../../common/constants";
-import "./ParentHeader.css";
-import IconButton from "./../IconButton";
-import HeaderIcon from "./../HeaderIcon";
+import "./StudentProgressHeader.css";
 import React from "react";
-import RectangularIconButton from "./RectangularIconButton";
 import { useHistory } from "react-router-dom";
 import BackButton from "../common/BackButton";
+import RectangularIconButton from "../parent/RectangularIconButton";
 
-const ParentHeader: React.FC<{
+const StudentProgressHeader: React.FC<{
   currentHeader: string;
+  headerIconList: HeaderIconConfig[];
   onHeaderIconClick: Function;
-}> = ({ currentHeader, onHeaderIconClick }) => {
+}> = ({ currentHeader, headerIconList, onHeaderIconClick }) => {
   const { t } = useTranslation();
   const history = useHistory();
 
   return (
-    <div id="parent-header-icons">
+    <div id="student-progress-header-icons">
       <BackButton
         iconSize={"8vh"}
         onClicked={() => {
-          history.replace(PAGES.DISPLAY_STUDENT);
+          history.replace(PAGES.PARENT);
         }}
       ></BackButton>
-      <div id="parent-header-middle-icons">
-        {parentHeaderIconList.map((element) => {
+      <div id="student-progress-header-middle-icons">
+        {headerIconList.map((element) => {
           //   console.log("Dyanamic Parent Header List ", element);
           return (
             <RectangularIconButton
@@ -53,4 +49,4 @@ const ParentHeader: React.FC<{
   );
 };
 
-export default ParentHeader;
+export default StudentProgressHeader;

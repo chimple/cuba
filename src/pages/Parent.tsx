@@ -122,7 +122,6 @@ const Parent: React.FC = () => {
   }
 
   function settingUI() {
-    
     return (
       <div id="parent-page-setting">
         <div id="parent-page-setting-div">
@@ -225,7 +224,7 @@ const Parent: React.FC = () => {
             onClick={() => {
               let message = "Hiii !!!!";
               window.open(
-                `https://api.whatsapp.com/send?phone=917981611434&text=${message}`,
+                `https://api.whatsapp.com/send?phone=918904515444&text=${message}`,
                 "_system"
               );
             }}

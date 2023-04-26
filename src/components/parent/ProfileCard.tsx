@@ -14,13 +14,9 @@ const ProfileCard: React.FC<{
   //true for User, false for no user
   userType: boolean;
   user: User;
-  //   isPlayed: boolean;
-  //   isUnlocked: boolean;
   showText?: boolean;
 }> = ({ width, height, userType, user }) => {
   const history = useHistory();
-
-  // console.log("Dyanamic user List ", user, user instanceof User);
 
   return (
     <IonCard
@@ -42,11 +38,9 @@ const ProfileCard: React.FC<{
             size={"5%"}
             onClick={() => {
               console.log("click on edit icon");
-              //   history.replace(PAGES.HOME);
             }}
           ></MdModeEditOutline>
         ) : (
-          // <></>
           <p className="profile-card-empty-element">&#9679;</p>
         )}
         {/* <img
@@ -84,7 +78,14 @@ const ProfileCard: React.FC<{
       )}
 
       {userType ? (
-        <div id="profile-card-image-report">Report</div>
+        <div
+          id="profile-card-image-report"
+          onClick={() => {
+            history.replace(PAGES.STUDENT_PROGRESS);
+          }}
+        >
+          Progress Report
+        </div>
       ) : (
         // <></>
         <p className="profile-card-empty-element">&#9679;</p>

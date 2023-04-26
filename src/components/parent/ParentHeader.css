@@ -5,15 +5,6 @@
     align-items: center;
 }
 
-#parent-header-icons-back {
-    /* width: 4%; */
-    /* padding: 2%; */
-    color: black;
-    /* fill: white; */
-    background-color: white;
-    border-radius: 100%;
-}
-
 #parent-header-middle-icons {
     display: flex;
     justify-content: space-between;
