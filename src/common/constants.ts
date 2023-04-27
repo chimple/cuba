@@ -67,14 +67,18 @@ export const GAME_EXIT = "gameExit";
 export const TEMP_LESSONS_STORE = () => `${Auth.i.sourcedId}-lessonsStore`;
 export const IS_USER_LOGED_IN = "isUserLogedIn";
 export const USER_TOKEN = "userToken";
-export const CURRENT_LESSON_LEVEL = () => `${Auth.i.sourcedId}-currentLessonLevel`;
-export const PREVIOUS_PLAYED_COURSE = () => `${Auth.i.sourcedId}-previousPlayedCourse`;
-export const PREVIOUS_SELECTED_COURSE = () => `${Auth.i.sourcedId}-previousSelectedCourse`;
+export const CURRENT_LESSON_LEVEL = () =>
+  `${Auth.i.sourcedId}-currentLessonLevel`;
+export const PREVIOUS_PLAYED_COURSE = () =>
+  `${Auth.i.sourcedId}-previousPlayedCourse`;
+export const PREVIOUS_SELECTED_COURSE = () =>
+  `${Auth.i.sourcedId}-previousSelectedCourse`;
 export const SELECTED_GRADE = () => `${Auth.i.sourcedId}-selectedGrade`;
 export const LANGUAGE = "language";
 export const EXAM = "exam";
 export const PRE_QUIZ = "PreQuiz";
 export const GAME_URL = "gameUrl";
+export const CHIMPLE_BUNDLE_FOLDER = "chimpleBundleFolder";
 export const BASE_NAME =
   !Capacitor.isNativePlatform() && !!process.env.REACT_APP_GITHUB_BASE
     ? process.env.REACT_APP_GITHUB_BASE
