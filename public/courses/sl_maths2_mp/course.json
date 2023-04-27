@@ -3441,15 +3441,6 @@
           "orig_course_id": "puzzle",
           "orig_lesson_id": "puzzle0104",
           "outcome": "None"
-        },
-        {
-          "id": "sl_maths2_mp_challenge57",
-          "name": "Challenge 57",
-          "image": "sl_maths2_mp_challenge57.png",
-          "color": "#FF3C4C",
-          "pattern": "ChallengePattern.png",
-          "type": "exam",
-          "outcome": "The challenge evalutates leraning outcomes of previous lessons. If the child cannot complete the challenge with a good score, further lessons remain locked. "
         }
       ],
       "name": "Unit 23"
