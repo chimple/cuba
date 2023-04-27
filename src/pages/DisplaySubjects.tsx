@@ -44,7 +44,20 @@ const DisplaySubjects: FC<{}> = () => {
   }, []);
   const init = async () => {
     const urlParams = new URLSearchParams(location.search);
-    if (!!urlParams.get("continue") && !!localData.currentCourse) {
+    console.log(
+      "🚀 ~ file: DisplaySubjects.tsx:47 ~ init ~ urlParams:",
+      urlParams.get("continue")
+    );
+    console.log(
+      "🚀 ~ file: DisplaySubjects.tsx:68 ~ init ~ localData:",
+      localData
+    );
+    if (
+      !!urlParams.get("continue") &&
+      !!localData.currentCourse &&
+      !!localData.currentGrade &&
+      !!localData.currentChapter
+    ) {
       setCourses(localData.courses);
       setLessons(localData.lessons);
       setCurrentGrade(localData.currentGrade);
@@ -52,8 +65,10 @@ const DisplaySubjects: FC<{}> = () => {
       setCurrentCourse(localData.currentCourse);
       setCurrentChapter(localData.currentChapter);
       setStage(STAGES.LESSONS);
+      setIsLoading(false);
     } else {
       await getCourses();
+      console.log("🚀 ~ file: DisplaySubjects.tsx:70 ~ init ~ getCourses:");
     }
   };
 
