@@ -17,26 +17,50 @@ export default class Lesson extends BaseObject {
   private _thumbnail: string;
   private _topic: DocumentReference;
   private _type: string;
+  private _cocosChapterCode: string | undefined;
+  private _cocosSubjectCode: string | undefined;
 
-  constructor(
-    clonedFrom: DocumentReference,
-    createdBy: DocumentReference,
-    id: string,
-    language: string,
-    outcome: string,
-    pluginType: string,
-    status: string,
-    subject: DocumentReference,
-    targetFrom: number,
-    targetTo: number,
-    thumbnail: string,
-    topic: DocumentReference,
-    type: string,
-    title: string,
-    dateLastModified: Timestamp,
-    createdAt: Timestamp,
-    docId: string
-  ) {
+  constructor({
+    clonedFrom,
+    createdBy,
+    id,
+    language,
+    outcome,
+    pluginType,
+    status,
+    subject,
+    targetFrom,
+    targetTo,
+    thumbnail,
+    topic,
+    type,
+    title,
+    dateLastModified,
+    createdAt,
+    docId,
+    cocosChapterCode,
+    cocosSubjectCode,
+  }: {
+    clonedFrom: DocumentReference;
+    createdBy: DocumentReference;
+    id: string;
+    language: string;
+    outcome: string;
+    pluginType: string;
+    status: string;
+    subject: DocumentReference;
+    targetFrom: number;
+    targetTo: number;
+    thumbnail: string;
+    topic: DocumentReference;
+    type: string;
+    title: string;
+    dateLastModified: Timestamp;
+    createdAt: Timestamp;
+    docId: string;
+    cocosChapterCode: string | undefined;
+    cocosSubjectCode: string | undefined;
+  }) {
     super(dateLastModified, createdAt, docId);
     this._clonedFrom = clonedFrom;
     this._createdBy = createdBy;
@@ -52,6 +76,8 @@ export default class Lesson extends BaseObject {
     this._topic = topic;
     this._type = type;
     this._title = title;
+    this._cocosChapterCode = cocosChapterCode;
+    this._cocosSubjectCode = cocosSubjectCode;
   }
 
   public get title(): string {
@@ -137,5 +163,38 @@ export default class Lesson extends BaseObject {
   }
   public set type(value: string) {
     this._type = value;
+  }
+  public get cocosChapterCode(): string | undefined {
+    return this._cocosChapterCode;
+  }
+  public set cocosChapterCode(value: string | undefined) {
+    this._cocosChapterCode = value;
+  }
+  public get cocosSubjectCode(): string | undefined {
+    return this._cocosSubjectCode;
+  }
+  public set cocosSubjectCode(value: string | undefined) {
+    this._cocosSubjectCode = value;
+  }
+
+  public static toJson(lesson: Lesson) {
+    return {
+      title: lesson.title,
+      clonedFrom: lesson.clonedFrom,
+      createdBy: lesson.createdBy,
+      id: lesson.id,
+      language: lesson.language,
+      outcome: lesson.outcome,
+      pluginType: lesson.pluginType,
+      status: lesson.status,
+      subject: lesson.subject,
+      targetFrom: lesson.targetFrom,
+      targetTo: lesson.targetTo,
+      thumbnail: lesson.thumbnail,
+      topic: lesson.topic,
+      type: lesson.type,
+      cocosChapterCode: lesson.cocosChapterCode,
+      cocosSubjectCode: lesson.cocosSubjectCode,
+    };
   }
 }
