@@ -126,17 +126,29 @@ const LessonCard: React.FC<{
           ></img>
 
           <div id="lesson-card-image">
-            {/* {showImage ? ( */}
-            <img
-              id="lesson-card-image"
-              loading="lazy"
-              alt={"courses/" + "en" + "/icons/" + "en0000.png"}
-              src={"courses/" + "en" + "/icons/" + "en0000.png"}
-              onError={hideImg}
-            />
-            {/* ) : (
+            {showImage ? (
+              <img
+                id="lesson-card-image"
+                loading="lazy"
+                alt={
+                  "courses/" +
+                  lesson.cocosSubjectCode +
+                  "/icons/" +
+                  lesson.id +
+                  ".png"
+                }
+                src={
+                  "courses/" +
+                  lesson.cocosSubjectCode +
+                  "/icons/" +
+                  lesson.id +
+                  ".png"
+                }
+                onError={hideImg}
+              />
+            ) : (
               <div /> // we can show Default LessonCard text or image
-            )} */}
+            )}
 
             {!isUnlocked ? (
               <div id="lesson-card-status-icon">
