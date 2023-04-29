@@ -20,4 +20,13 @@ export enum CollectionIds {
   SUBJECT = "Subject",
   TOPIC = "Topic",
   USER = "User",
+  STUDENTPROFILE = "StudentProfile",
+}
+
+export interface StudentLessonResult {
+  date: Timestamp;
+  course: DocumentReference;
+  score: number;
+  timeSpent: number;
+  docId: string;
 }

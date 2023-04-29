@@ -1,8 +1,5 @@
-import { useState } from "react";
 import {
-  IonContent,
   IonInput,
-  IonTextarea,
   IonItem,
   IonLabel,
 } from "@ionic/react";

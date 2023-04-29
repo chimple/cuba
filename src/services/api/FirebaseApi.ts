@@ -12,6 +12,8 @@ import {
   query,
   where,
   setDoc,
+  DocumentSnapshot,
+  DocumentData,
 } from "firebase/firestore";
 import { ServiceApi } from "./ServiceApi";
 import {
@@ -24,16 +26,21 @@ import { ServiceConfig } from "../ServiceConfig";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
 import Language from "../../models/language";
-import { Chapter, CollectionIds } from "../../common/courseConstants";
+import {
+  Chapter,
+  CollectionIds,
+  StudentLessonResult,
+} from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
+import StudentProfile from "../../models/studentProfile";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
   private _db = getFirestore();
   private _currentStudent: User;
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): FirebaseApi {
     if (!FirebaseApi.i) {
@@ -169,47 +176,43 @@ export class FirebaseApi implements ServiceApi {
     this._currentStudent = value;
   }
 
-  public updateSoundFlag = async (
-    user: User, value: boolean
-  ) => {
-
+  public updateSoundFlag = async (user: User, value: boolean) => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {
       await updateDoc(doc(this._db, `User/${user.uid}`), {
         soundFlag: value,
         dateLastModified: Timestamp.now(),
       });
-      user.soundFlag = value
-      ServiceConfig.getI().authHandler.currentUser = user
-      console.log("Updated User ", await ServiceConfig.getI().authHandler.getCurrentUser())
+      user.soundFlag = value;
+      ServiceConfig.getI().authHandler.currentUser = user;
+      console.log(
+        "Updated User ",
+        await ServiceConfig.getI().authHandler.getCurrentUser()
+      );
     }
-
   };
 
-  public updateMusicFlag = async (
-    user: User, value: boolean
-  ) => {
-
+  public updateMusicFlag = async (user: User, value: boolean) => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {
       await updateDoc(doc(this._db, `User/${user.uid}`), {
         musicFlag: value,
         dateLastModified: Timestamp.now(),
       });
-      currentUser.musicFlag = value
-      ServiceConfig.getI().authHandler.currentUser = currentUser
-      console.log("Updated User ", await ServiceConfig.getI().authHandler.getCurrentUser())
+      currentUser.musicFlag = value;
+      ServiceConfig.getI().authHandler.currentUser = currentUser;
+      console.log(
+        "Updated User ",
+        await ServiceConfig.getI().authHandler.getCurrentUser()
+      );
     }
   };
 
-  public updateLanguage = async (
-    user: User, value: string
-  ) => {
-
+  public updateLanguage = async (user: User, value: string) => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {
-      currentUser.language = doc(this._db, `Language/${value}`)
-      ServiceConfig.getI().authHandler.currentUser = currentUser
+      currentUser.language = doc(this._db, `Language/${value}`);
+      ServiceConfig.getI().authHandler.currentUser = currentUser;
       await updateDoc(doc(this._db, `User/${user.uid}`), {
         language: currentUser.language,
         dateLastModified: Timestamp.now(),
@@ -239,6 +242,33 @@ export class FirebaseApi implements ServiceApi {
       }
     });
     return subjects;
+  }
+
+  async getLessonResultsForStudent(
+    studentId: string
+  ): Promise<Map<string, StudentLessonResult> | undefined> {
+    // const currentStudent = await ServiceConfig.getI().apiHandler.currentStudent;
+    const studentLessons = await getDoc(
+      doc(this._db, `${CollectionIds.STUDENTPROFILE}/${studentId}`)
+    );
+
+    // if (studentLessons.data()) {
+    const lessonsData: DocumentData = studentLessons.data()!;
+    console.log("lessonsData.lessons ", lessonsData.lessons);
+    const lessonsMap: Map<string, StudentLessonResult> = new Map(
+      Object.entries(lessonsData.lessons)
+    );
+
+    console.log("lessonsMap ", lessonsMap);
+    // let studentResults: StudentLessonResult[] = [];
+    // for (const [key, value] of Object.entries(lessonsMap)) {
+    //   console.log(key, value);
+    //   value.docId = key;
+    //   studentResults.push(value);
+    // }
+    // console.log("studentResults ", studentResults);
+    return lessonsMap;
+    // }
   }
 
   async getLesson(id: string): Promise<Lesson | undefined> {

@@ -7,6 +7,7 @@ import { FcPlus } from "react-icons/fc";
 import { HiPlusCircle } from "react-icons/hi";
 import User from "../../models/user";
 import { AVATARS, PAGES } from "../../common/constants";
+import { Util } from "../../utility/util";
 
 const ProfileCard: React.FC<{
   width: string;
@@ -80,7 +81,8 @@ const ProfileCard: React.FC<{
       {userType ? (
         <div
           id="profile-card-image-report"
-          onClick={() => {
+          onClick={async () => {
+            await Util.setCurrentStudent(user);
             history.replace(PAGES.STUDENT_PROGRESS);
           }}
         >

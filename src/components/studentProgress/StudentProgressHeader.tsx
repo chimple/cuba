@@ -1,14 +1,18 @@
 import { useTranslation } from "react-i18next";
-import {
-  parentHeaderIconList,
-  PAGES,
-  HeaderIconConfig,
-} from "../../common/constants";
+import { PAGES } from "../../common/constants";
 import "./StudentProgressHeader.css";
 import React from "react";
 import { useHistory } from "react-router-dom";
 import BackButton from "../common/BackButton";
 import RectangularIconButton from "../parent/RectangularIconButton";
+import Course from "../../models/course";
+
+interface HeaderIconConfig {
+  displayName: string;
+  iconSrc: string;
+  header: any;
+  course: Course;
+}
 
 const StudentProgressHeader: React.FC<{
   currentHeader: string;
@@ -35,10 +39,10 @@ const StudentProgressHeader: React.FC<{
               buttonHeight={8}
               iconSrc={element.iconSrc}
               name={element.displayName}
-              isButtonEnable={currentHeader === element.headerList}
+              isButtonEnable={currentHeader === element.header}
               onHeaderIconClick={() => {
-                if (currentHeader != element.headerList) {
-                  onHeaderIconClick(element.headerList);
+                if (currentHeader != element.header) {
+                  onHeaderIconClick(element.header);
                 }
               }}
             />

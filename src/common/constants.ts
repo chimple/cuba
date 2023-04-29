@@ -30,7 +30,7 @@ export enum PARENTHEADERLIST {
   PROFILE = "PROFILE",
   SETTING = "SETTING",
   HELP = "HELP",
-  FAQ = "FAQ"
+  FAQ = "FAQ",
 }
 
 export const parentHeaderIconList: HeaderIconConfig[] = [
@@ -56,19 +56,55 @@ export const parentHeaderIconList: HeaderIconConfig[] = [
   },
 ];
 
-export class HeaderIconConfig {
+export interface HeaderIconConfig {
   displayName: string;
   iconSrc: string;
   headerList: any;
 }
 
-export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> = new Map<HOMEHEADERLIST, HeaderIconConfig>([
-  [HOMEHEADERLIST.RECOMMENDATION, { 'displayName': 'Recommendation', 'iconSrc': '/assets/icons/EnglishIcon.svg', 'headerList': HOMEHEADERLIST.RECOMMENDATION }],
-  [HOMEHEADERLIST.ASSIGNMENT, { 'displayName': 'Assignment', 'iconSrc': '/assets/icons/MathsIcon.svg', 'headerList': HOMEHEADERLIST.ASSIGNMENT }],
-  [HOMEHEADERLIST.FAVORITE, { 'displayName': 'Fav/History', 'iconSrc': '/assets/icons/DigitalSkillsIcon.svg', 'headerList': HOMEHEADERLIST.FAVORITE }],
-  [HOMEHEADERLIST.CHALLENGES, { 'displayName': 'Challenges', 'iconSrc': '/assets/icons/MathsIcon.svg', 'headerList': HOMEHEADERLIST.CHALLENGES }],
-  [HOMEHEADERLIST.SEARCH, { 'displayName': 'Search', 'iconSrc': '/assets/icons/DigitalSkillsIcon.svg', 'headerList': HOMEHEADERLIST.SEARCH }],
-])
+export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
+  new Map<HOMEHEADERLIST, HeaderIconConfig>([
+    [
+      HOMEHEADERLIST.RECOMMENDATION,
+      {
+        displayName: "Recommendation",
+        iconSrc: "/assets/icons/EnglishIcon.svg",
+        headerList: HOMEHEADERLIST.RECOMMENDATION,
+      },
+    ],
+    [
+      HOMEHEADERLIST.ASSIGNMENT,
+      {
+        displayName: "Assignment",
+        iconSrc: "/assets/icons/MathsIcon.svg",
+        headerList: HOMEHEADERLIST.ASSIGNMENT,
+      },
+    ],
+    [
+      HOMEHEADERLIST.FAVORITE,
+      {
+        displayName: "Fav/History",
+        iconSrc: "/assets/icons/DigitalSkillsIcon.svg",
+        headerList: HOMEHEADERLIST.FAVORITE,
+      },
+    ],
+    [
+      HOMEHEADERLIST.CHALLENGES,
+      {
+        displayName: "Challenges",
+        iconSrc: "/assets/icons/MathsIcon.svg",
+        headerList: HOMEHEADERLIST.CHALLENGES,
+      },
+    ],
+    [
+      HOMEHEADERLIST.SEARCH,
+      {
+        displayName: "Search",
+        iconSrc: "/assets/icons/DigitalSkillsIcon.svg",
+        headerList: HOMEHEADERLIST.SEARCH,
+      },
+    ],
+  ]);
 
 // export const HEADERLIST = [HOME_CONFIG, LANG_CONFIGS, PROFILE_CONFIG]
 

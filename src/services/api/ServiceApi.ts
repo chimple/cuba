@@ -6,7 +6,7 @@ import Grade from "../../models/grade";
 import Language from "../../models/language";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
-import { Chapter } from "../../common/courseConstants";
+import { Chapter, StudentLessonResult } from "../../common/courseConstants";
 
 export interface ServiceApi {
   /**
@@ -99,4 +99,13 @@ export interface ServiceApi {
   getDifferentGradesForCourse(
     course: Course
   ): Promise<{ grades: Grade[]; courses: Course[] }>;
+
+  /**
+   * Gives all lesson results for given student id
+   * @param {string } studentId - Student Id
+   * @returns {{ StudentLessonResult[] }} Array of `StudentLessonResult` Objects
+   */
+  getLessonResultsForStudent(
+    studentId: string
+  ): Promise<Map<string, StudentLessonResult> | undefined>;
 }

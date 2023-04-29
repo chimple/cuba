@@ -1,4 +1,4 @@
-import { IonContent, IonPage } from "@ionic/react";
+import { IonPage } from "@ionic/react";
 import { useEffect, useState } from "react";
 import Loading from "../components/Loading";
 import "./Parent.css";
@@ -47,6 +47,7 @@ const Parent: React.FC = () => {
   const localAppLang = localStorage.getItem(APP_LANG);
 
   useEffect(() => {
+    // setIsLoading(true);
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
     inti();
   }, []);
@@ -103,6 +104,7 @@ const Parent: React.FC = () => {
       }
       setUserProfile(finalUser);
     });
+    // setIsLoading(false);
 
     return (
       <div id="parent-page-profile">

@@ -3,7 +3,7 @@ import { ServiceApi } from "./ServiceApi";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
 import Language from "../../models/language";
-import { Chapter } from "../../common/courseConstants";
+import { Chapter, StudentLessonResult } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import { GENDER } from "../../common/constants";
@@ -14,7 +14,13 @@ export class ApiHandler implements ServiceApi {
 
   private s: ServiceApi;
 
-  private constructor() { }
+  private constructor() {}
+
+  public async getLessonResultsForStudent(
+    studentId: string
+  ): Promise<Map<string, StudentLessonResult> | undefined> {
+    return await this.s.getLessonResultsForStudent(studentId);
+  }
 
   public async getCoursesForParentsStudent(student: User): Promise<Course[]> {
     return await this.s.getCoursesForParentsStudent(student);
@@ -52,16 +58,15 @@ export class ApiHandler implements ServiceApi {
 
   updateSoundFlag(user: User, value: boolean) {
     return this.s.updateSoundFlag(user, value);
-  };
+  }
 
   updateMusicFlag(user: User, value: boolean) {
     return this.s.updateMusicFlag(user, value);
-  };
+  }
 
   updateLanguage(user: User, value: string) {
     return this.s.updateLanguage(user, value);
-  };
-
+  }
 
   public get currentStudent(): User {
     return this.s.currentStudent;
