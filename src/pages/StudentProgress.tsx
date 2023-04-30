@@ -44,12 +44,14 @@ const StudentProgress: React.FC = () => {
   async function inti() {
     const currentStudent = await api.currentStudent;
     if (currentStudent) {
-      console.log("User ", currentStudent);
+      // console.log("User ", currentStudent);
+      setHeaderContent(["Lesson Name", "Chapter Name", "Score", "Time Spent"]);
       setCurrentStudent(currentStudent);
 
       const courses = await getCourses();
+      // console.log("courses ", courses);
       setCourses(courses);
-      console.log("courses ", courses);
+      setCurrentHeader(courses[0].courseCode);
 
       let tempStudentProgressHeaderIconList: HeaderIconConfig[] = [];
 
@@ -60,21 +62,15 @@ const StudentProgress: React.FC = () => {
           header: courses[i].courseCode,
           course: courses[i],
         });
-
-        setCurrentHeader(courses[0].courseCode);
-        getResultsForStudentForSelectedHeader(
-          courses[0].courseCode,
-          currentStudent.docId,
-          courses[0]
-        );
       }
+
       setStudentProgressHeaderIconList(tempStudentProgressHeaderIconList);
 
-      setLessonsResults(
-        (await api.getLessonResultsForStudent(currentStudent.docId)) ||
-          new Map()
-      );
-      setHeaderContent(["Lesson Name", "Chapter Name", "Score", "Time Spent"]);
+      api.getLessonResultsForStudent(currentStudent.docId).then((res) => {
+        console.log("lesson res", res);
+        setLessonsResults(res || new Map());
+        getResultsForStudentForSelectedHeader(courses[0], res || new Map());
+      });
 
       setIsLoading(false);
     }
@@ -88,9 +84,8 @@ const StudentProgress: React.FC = () => {
       for (let i = 0; i < studentProgressHeaderIconList.length; i++) {
         if (studentProgressHeaderIconList[i].header === selectedHeader) {
           getResultsForStudentForSelectedHeader(
-            currentStudent.docId,
-            selectedHeader,
-            studentProgressHeaderIconList[i].course
+            studentProgressHeaderIconList[i].course,
+            lessonsResults
           );
           console.log("setIsLoading(false);", isLoading);
           return;
@@ -100,19 +95,49 @@ const StudentProgress: React.FC = () => {
   }
 
   async function getResultsForStudentForSelectedHeader(
-    studentId: string,
-    selectedHeader: any,
-    course: Course
+    course: Course,
+    lessonsResults: Map<string, StudentLessonResult>
   ) {
     setIsLoading(true);
     console.log("Selected header ", course.title, lessonsResults);
     let isDataAvailable: boolean = false;
     let tempDataContent: string[][] = [];
-    await course.chapters.forEach(async (chapter) => {
-      await chapter.lessons.forEach(async (lesson) => {
-        if (lessonsResults) {
-          const lessonRes = lessonsResults?.get(lesson.id);
+    if (lessonsResults) {
+      // for (let i = 0; i < course.chapters.length; i++) {
+      //   const chapter = course.chapters[i];
+      //   for (let j = 0; j < chapter.lessons.length; j++) {
+      //     const lesson = chapter.lessons[j];
+      //     const lessonDetail = (await api.getLesson(lesson.id)) as Lesson;
+      //     const lessonRes = await lessonsResults.get(lesson.id);
+      //     // console.log("const lessonRes ", lessonRes, lessonDetail);
+
+      //     if (lessonDetail && lessonRes) {
+      //       isDataAvailable = true;
+      //       console.log(
+      //         "Data ",
+      //         lessonDetail.title,
+      //         chapter.title,
+      //         lessonRes.score,
+      //         lessonRes.timeSpent
+      //       );
+      //       tempDataContent.push([
+      //         lessonDetail.title,
+      //         chapter.title,
+      //         lessonRes.score.toString(),
+      //         lessonRes.timeSpent.toString(),
+      //       ]);
+      //       console.log("tempDataContent ", tempDataContent);
+      //       setDataContent(tempDataContent);
+      //       // setIsLoading(false);
+      //     }
+      //   }
+      // }
+
+      await course.chapters.forEach(async (chapter) => {
+        await chapter.lessons.forEach(async (lesson) => {
           const lessonDetail = (await api.getLesson(lesson.id)) as Lesson;
+          const lessonRes = await lessonsResults.get(lesson.id);
+          // console.log("const lessonRes ", lessonRes, lessonDetail);
 
           if (lessonDetail && lessonRes) {
             isDataAvailable = true;
@@ -133,16 +158,29 @@ const StudentProgress: React.FC = () => {
             setDataContent(tempDataContent);
             setIsLoading(false);
           }
-        }
+        });
       });
-    });
+    }
 
     // return isDataAvailable ? tempDataContent : [];
 
-    if (isDataAvailable) {
+    console.log(
+      "if (!isDataAvailable && !lessonsResults) {",
+      isDataAvailable,
+      lessonsResults,
+      tempDataContent,
+      tempDataContent.length,
+      !isDataAvailable && tempDataContent
+    );
+
+    if (!isDataAvailable) {
       setDataContent([]);
-      setIsLoading(false);
+      // setIsLoading(false);
     }
+
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
   }
 
   const getCourses = async (): Promise<Course[]> => {
@@ -156,7 +194,6 @@ const StudentProgress: React.FC = () => {
   };
 
   function displayProgressUI(selectedHeader: any) {
-    console.log("dataContent ", dataContent);
     return (
       <div id="student-progress-display-progress">
         <div id="student-progress-display-progress-header">
@@ -172,6 +209,11 @@ const StudentProgress: React.FC = () => {
             })}
           </IonRow>
         </div>
+        {dataContent.length === 0 ? (
+          <p id="student-progress-display-progress-no-data-message">
+            {"No Data "}
+          </p>
+        ) : null}
         <div id="student-progress-display-progress-content">
           {dataContent.map((e) => {
             return (

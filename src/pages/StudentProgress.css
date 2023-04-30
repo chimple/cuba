@@ -19,3 +19,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+#student-progress-display-progress-no-data-message {
+  text-align: center;
+}

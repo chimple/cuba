@@ -47,17 +47,17 @@ const Parent: React.FC = () => {
   const localAppLang = localStorage.getItem(APP_LANG);
 
   useEffect(() => {
-    // setIsLoading(true);
+    setIsLoading(true);
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
     inti();
   }, []);
 
   async function inti() {
-    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (currentUser != undefined) {
-      console.log("User ", currentUser);
-      setSoundFlag(currentUser?.soundFlag!);
-      setMusicFlag(currentUser?.musicFlag!);
+    const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (parentUser != undefined) {
+      console.log("User ", parentUser);
+      setSoundFlag(parentUser?.soundFlag!);
+      setMusicFlag(parentUser?.musicFlag!);
 
       const allLang = await ServiceConfig.getI().apiHandler.getAllLanguages();
       let tempLangDocIds: Map<string, string> = new Map();
@@ -75,13 +75,12 @@ const Parent: React.FC = () => {
       console.log(
         "current Lang",
         langDocIds,
-        langDocIds.get(currentUser?.language?.id!),
-        keytempLangDocIds.get(currentUser?.language?.id!),
-        langDocIds.get(currentUser?.language?.id!) ||
-          localAppLang ||
-          langList[0]
+        langDocIds.get(parentUser?.language?.id!),
+        keytempLangDocIds.get(parentUser?.language?.id!),
+        langDocIds.get(parentUser?.language?.id!) || localAppLang || langList[0]
       );
-      setCurrentAppLang(keytempLangDocIds.get(currentUser?.language?.id!));
+      setCurrentAppLang(keytempLangDocIds.get(parentUser?.language?.id!));
+      setIsLoading(false);
     }
   }
 
