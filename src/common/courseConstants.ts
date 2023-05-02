@@ -21,6 +21,7 @@ export enum CollectionIds {
   TOPIC = "Topic",
   USER = "User",
   STUDENTPROFILE = "StudentProfile",
+  RESULT = "Result",
 }
 
 export interface StudentLessonResult {
@@ -29,4 +30,18 @@ export interface StudentLessonResult {
   score: number;
   timeSpent: number;
   docId: string;
+}
+
+export interface lessonEndData {
+  chapterName: string;
+  chapterId: string;
+  lessonName: string;
+  lessonId: string;
+  courseName: string;
+  score: number;
+  timeSpent: number;
+  totalGames: number;
+  wrongMoves: number;
+  correctMoves: number;
+  correct: number;
 }

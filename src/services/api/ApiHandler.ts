@@ -6,8 +6,7 @@ import Language from "../../models/language";
 import { Chapter, StudentLessonResult } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
-import { GENDER } from "../../common/constants";
-import { DocumentReference } from "firebase/firestore";
+import Result from "../../models/result";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -20,6 +19,26 @@ export class ApiHandler implements ServiceApi {
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined> {
     return await this.s.getLessonResultsForStudent(studentId);
+  }
+
+  public async updateResult(
+    student: User,
+    courseId: string,
+    lessonId: string,
+    score: number,
+    correctMoves: number,
+    wrongMoves: number,
+    timeSpent: number
+  ): Promise<Result> {
+    return await this.s.updateResult(
+      student,
+      courseId,
+      lessonId,
+      score,
+      correctMoves,
+      wrongMoves,
+      timeSpent
+    );
   }
 
   public async getCoursesForParentsStudent(student: User): Promise<Course[]> {
