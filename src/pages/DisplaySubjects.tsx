@@ -191,6 +191,7 @@ const DisplaySubjects: FC<{}> = () => {
           <LessonSlider
             lessonData={lessons}
             isHome={true}
+            course={currentCourse!}
             lessonsScoreMap={{}}
             startIndex={0}
             showSubjectName={false}

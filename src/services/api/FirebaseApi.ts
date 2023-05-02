@@ -27,13 +27,14 @@ import Language from "../../models/language";
 import { Chapter, CollectionIds } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
+import Result from "../../models/result";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
   private _db = getFirestore();
   private _currentStudent: User;
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): FirebaseApi {
     if (!FirebaseApi.i) {
@@ -169,47 +170,35 @@ export class FirebaseApi implements ServiceApi {
     this._currentStudent = value;
   }
 
-  public updateSoundFlag = async (
-    user: User, value: boolean
-  ) => {
-
+  public updateSoundFlag = async (user: User, value: boolean) => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {
       await updateDoc(doc(this._db, `User/${user.uid}`), {
         soundFlag: value,
         dateLastModified: Timestamp.now(),
       });
-      user.soundFlag = value
-      ServiceConfig.getI().authHandler.currentUser = user
-      console.log("Updated User ", await ServiceConfig.getI().authHandler.getCurrentUser())
+      user.soundFlag = value;
+      ServiceConfig.getI().authHandler.currentUser = user;
     }
-
   };
 
-  public updateMusicFlag = async (
-    user: User, value: boolean
-  ) => {
-
+  public updateMusicFlag = async (user: User, value: boolean) => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {
       await updateDoc(doc(this._db, `User/${user.uid}`), {
         musicFlag: value,
         dateLastModified: Timestamp.now(),
       });
-      currentUser.musicFlag = value
-      ServiceConfig.getI().authHandler.currentUser = currentUser
-      console.log("Updated User ", await ServiceConfig.getI().authHandler.getCurrentUser())
+      currentUser.musicFlag = value;
+      ServiceConfig.getI().authHandler.currentUser = currentUser;
     }
   };
 
-  public updateLanguage = async (
-    user: User, value: string
-  ) => {
-
+  public updateLanguage = async (user: User, value: string) => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {
-      currentUser.language = doc(this._db, `Language/${value}`)
-      ServiceConfig.getI().authHandler.currentUser = currentUser
+      currentUser.language = doc(this._db, `Language/${value}`);
+      ServiceConfig.getI().authHandler.currentUser = currentUser;
       await updateDoc(doc(this._db, `User/${user.uid}`), {
         language: currentUser.language,
         dateLastModified: Timestamp.now(),
@@ -247,7 +236,7 @@ export class FirebaseApi implements ServiceApi {
     );
     if (!lessonDoc.exists) return;
     const lesson = lessonDoc.data() as Lesson;
-    lesson.docId = lesson.id;
+    lesson.docId = lessonDoc.id;
     return lesson;
   }
 
@@ -302,5 +291,45 @@ export class FirebaseApi implements ServiceApi {
       )
     );
     return gradeMap;
+  }
+
+  async updateResult(
+    student: User,
+    courseId: string,
+    lessonId: string,
+    score: number,
+    correctMoves: number,
+    wrongMoves: number,
+    timeSpent: number
+  ): Promise<Result> {
+    const courseRef = doc(this._db, CollectionIds.COURSE, courseId);
+    const lessonRef = doc(this._db, CollectionIds.LESSON, lessonId);
+    const studentRef = doc(this._db, CollectionIds.USER, student.docId);
+    const result = new Result(
+      undefined,
+      Timestamp.now(),
+      Timestamp.now(),
+      undefined,
+      undefined,
+      courseRef,
+      lessonRef,
+      undefined,
+      score,
+      correctMoves,
+      wrongMoves,
+      timeSpent,
+      studentRef,
+      null!
+    );
+    const resultDoc = await addDoc(
+      collection(this._db, CollectionIds.RESULT),
+      result.toJson()
+    );
+    console.log(
+      "🚀 ~ file: FirebaseApi.ts:330 ~ FirebaseApi ~ resultDoc:",
+      resultDoc
+    );
+    result.docId = resultDoc.id;
+    return result;
   }
 }

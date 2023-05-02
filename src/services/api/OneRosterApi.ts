@@ -34,6 +34,9 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() { }
+  updateResult(student: User, courseId: string, lessonId: string, score: number, correctMoves: number, wrongMoves: number, timeSpent: number): Promise<Result> {
+    throw new Error("Method not implemented.");
+  }
   getLanguageWithId(id: string): Promise<Language | undefined> {
     throw new Error("Method not implemented.");
   }

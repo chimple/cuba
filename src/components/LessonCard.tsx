@@ -6,11 +6,13 @@ import "./LessonCard.css";
 import ScoreCard from "./ScoreCard";
 import React from "react";
 import Lesson from "../models/lesson";
+import Course from "../models/course";
 
 const LessonCard: React.FC<{
   width: string;
   height: string;
   lesson: Lesson;
+  course:Course;
   isPlayed: boolean;
   isUnlocked: boolean;
   isHome: boolean;
@@ -24,6 +26,7 @@ const LessonCard: React.FC<{
   width,
   height,
   lesson,
+  course,
   isPlayed,
   isUnlocked,
   isHome,
@@ -77,6 +80,7 @@ const LessonCard: React.FC<{
           history.push(PAGES.GAME + parmas, {
             url: "chimple-lib/index.html" + parmas,
             lessonId: lesson.id,
+            courseDocId:course.docId,
             lesson: JSON.stringify(Lesson.toJson(lesson)),
             from: history.location.pathname + "?continue=true",
           });
@@ -126,17 +130,29 @@ const LessonCard: React.FC<{
           ></img>
 
           <div id="lesson-card-image">
-            {/* {showImage ? ( */}
-            <img
-              id="lesson-card-image"
-              loading="lazy"
-              alt={"courses/" + "en" + "/icons/" + "en0000.png"}
-              src={"courses/" + "en" + "/icons/" + "en0000.png"}
-              onError={hideImg}
-            />
-            {/* ) : (
+            {showImage ? (
+              <img
+                id="lesson-card-image"
+                loading="lazy"
+                alt={
+                  "courses/" +
+                  lesson.cocosSubjectCode +
+                  "/icons/" +
+                  lesson.id +
+                  ".png"
+                }
+                src={
+                  "courses/" +
+                  lesson.cocosSubjectCode +
+                  "/icons/" +
+                  lesson.id +
+                  ".png"
+                }
+                onError={hideImg}
+              />
+            ) : (
               <div /> // we can show Default LessonCard text or image
-            )} */}
+            )}
 
             {!isUnlocked ? (
               <div id="lesson-card-status-icon">

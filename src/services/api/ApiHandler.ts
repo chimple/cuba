@@ -6,15 +6,33 @@ import Language from "../../models/language";
 import { Chapter } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
-import { GENDER } from "../../common/constants";
-import { DocumentReference } from "firebase/firestore";
+import Result from "../../models/result";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
 
   private s: ServiceApi;
 
-  private constructor() { }
+  private constructor() {}
+  public async updateResult(
+    student: User,
+    courseId: string,
+    lessonId: string,
+    score: number,
+    correctMoves: number,
+    wrongMoves: number,
+    timeSpent: number
+  ): Promise<Result> {
+    return await this.s.updateResult(
+      student,
+      courseId,
+      lessonId,
+      score,
+      correctMoves,
+      wrongMoves,
+      timeSpent
+    );
+  }
 
   public async getCoursesForParentsStudent(student: User): Promise<Course[]> {
     return await this.s.getCoursesForParentsStudent(student);
@@ -52,16 +70,15 @@ export class ApiHandler implements ServiceApi {
 
   updateSoundFlag(user: User, value: boolean) {
     return this.s.updateSoundFlag(user, value);
-  };
+  }
 
   updateMusicFlag(user: User, value: boolean) {
     return this.s.updateMusicFlag(user, value);
-  };
+  }
 
   updateLanguage(user: User, value: string) {
     return this.s.updateLanguage(user, value);
-  };
-
+  }
 
   public get currentStudent(): User {
     return this.s.currentStudent;

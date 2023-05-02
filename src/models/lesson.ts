@@ -195,6 +195,7 @@ export default class Lesson extends BaseObject {
       type: lesson.type,
       cocosChapterCode: lesson.cocosChapterCode,
       cocosSubjectCode: lesson.cocosSubjectCode,
+      docId: lesson.docId,
     };
   }
 }
