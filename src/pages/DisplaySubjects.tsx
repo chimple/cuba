@@ -3,7 +3,7 @@ import Course from "../models/course";
 import Lesson from "../models/lesson";
 
 import { Chapter } from "../common/courseConstants";
-import { useHistory } from "react-router";
+import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { PAGES } from "../common/constants";
 import { IonIcon, IonPage } from "@ionic/react";
@@ -16,6 +16,7 @@ import SelectChapter from "../components/displaySubjects/SelectChapter";
 import LessonSlider from "../components/LessonSlider";
 import Grade from "../models/grade";
 
+const localData: any = {};
 const DisplaySubjects: FC<{}> = () => {
   enum STAGES {
     SUBJECTS,
@@ -35,10 +36,41 @@ const DisplaySubjects: FC<{}> = () => {
   const [currentGrade, setCurrentGrade] = useState<Grade>();
 
   const history = useHistory();
+  const location = useLocation();
+
   const api = ServiceConfig.getI().apiHandler;
   useEffect(() => {
-    getCourses();
+    init();
   }, []);
+  const init = async () => {
+    const urlParams = new URLSearchParams(location.search);
+    console.log(
+      "🚀 ~ file: DisplaySubjects.tsx:47 ~ init ~ urlParams:",
+      urlParams.get("continue")
+    );
+    console.log(
+      "🚀 ~ file: DisplaySubjects.tsx:68 ~ init ~ localData:",
+      localData
+    );
+    if (
+      !!urlParams.get("continue") &&
+      !!localData.currentCourse &&
+      !!localData.currentGrade &&
+      !!localData.currentChapter
+    ) {
+      setCourses(localData.courses);
+      setLessons(localData.lessons);
+      setCurrentGrade(localData.currentGrade);
+      setGradesMap(localData.gradesMap);
+      setCurrentCourse(localData.currentCourse);
+      setCurrentChapter(localData.currentChapter);
+      setStage(STAGES.LESSONS);
+      setIsLoading(false);
+    } else {
+      await getCourses();
+      console.log("🚀 ~ file: DisplaySubjects.tsx:70 ~ init ~ getCourses:");
+    }
+  };
 
   const getCourses = async (): Promise<Course[]> => {
     setIsLoading(true);
@@ -48,6 +80,7 @@ const DisplaySubjects: FC<{}> = () => {
       return [];
     }
     const courses = await api.getCoursesForParentsStudent(currentStudent);
+    localData.courses = courses;
     setCourses(courses);
     setIsLoading(false);
     return courses;
@@ -60,6 +93,7 @@ const DisplaySubjects: FC<{}> = () => {
       return [];
     }
     const lessons = await api.getLessonsForChapter(chapter);
+    localData.lessons = lessons;
     setLessons(lessons);
     setIsLoading(false);
     return lessons;
@@ -84,42 +118,30 @@ const DisplaySubjects: FC<{}> = () => {
   const onCourseChanges = async (course: Course) => {
     const gradesMap: { grades: Grade[]; courses: Course[] } =
       await api.getDifferentGradesForCourse(course);
-    console.log(
-      "🚀 ~ file: DisplaySubjects.tsx:88 ~ onCourseChanges ~ gradesMap:",
-      gradesMap
-    );
     const currentGrade = gradesMap.grades.find(
       (grade) => grade.docId === course.grade.id
     );
-    console.log(
-      "🚀 ~ file: DisplaySubjects.tsx:92 ~ onCourseChanges ~ currentGrade:",
-      currentGrade
-    );
+    localData.currentGrade = currentGrade ?? gradesMap.grades[0];
+    localData.gradesMap = gradesMap;
+    localData.currentCourse = course;
     setCurrentGrade(currentGrade ?? gradesMap.grades[0]);
     setGradesMap(gradesMap);
-    setStage(STAGES.CHAPTERS);
     setCurrentCourse(course);
+    setStage(STAGES.CHAPTERS);
   };
 
   const onGradeChanges = async (grade: Grade) => {
     const currentCourse = gradesMap?.courses.find(
       (course) => course.grade.id === grade.docId
     );
-    console.log(
-      "🚀 ~ file: DisplaySubjects.tsx:110 ~ onGradeChanges ~ currentCourse:",
-      currentCourse
-    );
-    console.log(
-      "🚀 ~ file: DisplaySubjects.tsx:114 ~ onGradeChanges ~ grade:",
-      grade
-    );
-
+    localData.currentGrade = grade;
     setCurrentGrade(grade);
     setCurrentCourse(currentCourse);
   };
 
   const onChapterChange = async (chapter: Chapter) => {
     await getLessonsForChapter(chapter);
+    localData.currentChapter = chapter;
     setCurrentChapter(chapter);
     setStage(STAGES.LESSONS);
   };
