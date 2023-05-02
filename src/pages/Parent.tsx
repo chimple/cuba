@@ -1,4 +1,4 @@
-import { IonContent, IonPage } from "@ionic/react";
+import { IonPage } from "@ionic/react";
 import { useEffect, useState } from "react";
 import Loading from "../components/Loading";
 import "./Parent.css";
@@ -47,16 +47,17 @@ const Parent: React.FC = () => {
   const localAppLang = localStorage.getItem(APP_LANG);
 
   useEffect(() => {
+    setIsLoading(true);
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
     inti();
   }, []);
 
   async function inti() {
-    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (currentUser != undefined) {
-      console.log("User ", currentUser);
-      setSoundFlag(currentUser?.soundFlag!);
-      setMusicFlag(currentUser?.musicFlag!);
+    const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (parentUser != undefined) {
+      console.log("User ", parentUser);
+      setSoundFlag(parentUser?.soundFlag!);
+      setMusicFlag(parentUser?.musicFlag!);
 
       const allLang = await ServiceConfig.getI().apiHandler.getAllLanguages();
       let tempLangDocIds: Map<string, string> = new Map();
@@ -74,13 +75,12 @@ const Parent: React.FC = () => {
       console.log(
         "current Lang",
         langDocIds,
-        langDocIds.get(currentUser?.language?.id!),
-        keytempLangDocIds.get(currentUser?.language?.id!),
-        langDocIds.get(currentUser?.language?.id!) ||
-          localAppLang ||
-          langList[0]
+        langDocIds.get(parentUser?.language?.id!),
+        keytempLangDocIds.get(parentUser?.language?.id!),
+        langDocIds.get(parentUser?.language?.id!) || localAppLang || langList[0]
       );
-      setCurrentAppLang(keytempLangDocIds.get(currentUser?.language?.id!));
+      setCurrentAppLang(keytempLangDocIds.get(parentUser?.language?.id!));
+      setIsLoading(false);
     }
   }
 
@@ -103,6 +103,7 @@ const Parent: React.FC = () => {
       }
       setUserProfile(finalUser);
     });
+    // setIsLoading(false);
 
     return (
       <div id="parent-page-profile">
@@ -122,7 +123,6 @@ const Parent: React.FC = () => {
   }
 
   function settingUI() {
-    
     return (
       <div id="parent-page-setting">
         <div id="parent-page-setting-div">
@@ -225,7 +225,7 @@ const Parent: React.FC = () => {
             onClick={() => {
               let message = "Hiii !!!!";
               window.open(
-                `https://api.whatsapp.com/send?phone=917981611434&text=${message}`,
+                `https://api.whatsapp.com/send?phone=918904515444&text=${message}`,
                 "_system"
               );
             }}

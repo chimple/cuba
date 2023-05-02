@@ -15,12 +15,14 @@ import Language from "../../models/language";
 // import { Chapter } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
+import { StudentLessonResult } from "../../common/courseConstants";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
   private preQuizMap: { [key: string]: { [key: string]: Result } } = {};
   private classes: { [key: string]: Class[] } = {};
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
+
   getCoursesForParentsStudent(student: User): Promise<Course[]> {
     throw new Error("Method not implemented.");
   }
@@ -30,11 +32,26 @@ export class OneRosterApi implements ServiceApi {
   getLessonsForChapter(chapter): Promise<Lesson[]> {
     throw new Error("Method not implemented.");
   }
-  getDifferentGradesForCourse(course: Course): Promise<{ grades: Grade[]; courses: Course[]; }> {
+  getDifferentGradesForCourse(
+    course: Course
+  ): Promise<{ grades: Grade[]; courses: Course[] }> {
     throw new Error("Method not implemented.");
   }
-  private constructor() { }
-  updateResult(student: User, courseId: string, lessonId: string, score: number, correctMoves: number, wrongMoves: number, timeSpent: number): Promise<Result> {
+  private constructor() {}
+  getLessonResultsForStudent(
+    studentId: string
+  ): Promise<Map<string, StudentLessonResult> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  updateResult(
+    student: User,
+    courseId: string,
+    lessonId: string,
+    score: number,
+    correctMoves: number,
+    wrongMoves: number,
+    timeSpent: number
+  ): Promise<Result> {
     throw new Error("Method not implemented.");
   }
   getLanguageWithId(id: string): Promise<Language | undefined> {
@@ -55,14 +72,13 @@ export class OneRosterApi implements ServiceApi {
 
   updateSoundFlag(user: User, value: boolean) {
     throw new Error("Method not implemented.");
-  };
+  }
   updateMusicFlag(user: User, value: boolean) {
     throw new Error("Method not implemented.");
-  };
+  }
   updateLanguage(user: User, value: string) {
     throw new Error("Method not implemented.");
-  };
-
+  }
 
   get currentStudent(): User {
     throw new Error("Method not implemented.");

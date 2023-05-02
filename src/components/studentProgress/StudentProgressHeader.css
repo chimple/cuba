@@ -1,0 +1,18 @@
+#student-progress-header-icons {
+    display: flex;
+    margin: 1% 1.5% 1% 1.5%;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+#student-progress-header-middle-icons {
+    display: flex;
+    justify-content: space-between;
+    width: 80vw;
+    /* width: 30vw; */
+    margin: 0 auto
+}
+
+#student-progress-header-middle-icons div {
+    padding-right: 1%
+}

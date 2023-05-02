@@ -1,5 +1,4 @@
 import {
-  IonContent,
   IonIcon,
   IonInfiniteScroll,
   IonInfiniteScrollContent,

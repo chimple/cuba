@@ -3,7 +3,7 @@ import { ServiceApi } from "./ServiceApi";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
 import Language from "../../models/language";
-import { Chapter } from "../../common/courseConstants";
+import { Chapter, StudentLessonResult } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import Result from "../../models/result";
@@ -14,6 +14,13 @@ export class ApiHandler implements ServiceApi {
   private s: ServiceApi;
 
   private constructor() {}
+
+  public async getLessonResultsForStudent(
+    studentId: string
+  ): Promise<Map<string, StudentLessonResult> | undefined> {
+    return await this.s.getLessonResultsForStudent(studentId);
+  }
+
   public async updateResult(
     student: User,
     courseId: string,

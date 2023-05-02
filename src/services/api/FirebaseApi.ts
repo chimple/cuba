@@ -12,6 +12,8 @@ import {
   query,
   where,
   setDoc,
+  DocumentSnapshot,
+  DocumentData,
 } from "firebase/firestore";
 import { ServiceApi } from "./ServiceApi";
 import {
@@ -24,9 +26,14 @@ import { ServiceConfig } from "../ServiceConfig";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
 import Language from "../../models/language";
-import { Chapter, CollectionIds } from "../../common/courseConstants";
+import {
+  Chapter,
+  CollectionIds,
+  StudentLessonResult,
+} from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
+import StudentProfile from "../../models/studentProfile";
 import Result from "../../models/result";
 
 export class FirebaseApi implements ServiceApi {
@@ -228,6 +235,33 @@ export class FirebaseApi implements ServiceApi {
       }
     });
     return subjects;
+  }
+
+  async getLessonResultsForStudent(
+    studentId: string
+  ): Promise<Map<string, StudentLessonResult> | undefined> {
+    // const currentStudent = await ServiceConfig.getI().apiHandler.currentStudent;
+    const studentLessons = await getDoc(
+      doc(this._db, `${CollectionIds.STUDENTPROFILE}/${studentId}`)
+    );
+
+    // if (studentLessons.data()) {
+    const lessonsData: DocumentData = studentLessons.data()!;
+    console.log("lessonsData.lessons ", lessonsData.lessons);
+    const lessonsMap: Map<string, StudentLessonResult> = new Map(
+      Object.entries(lessonsData.lessons)
+    );
+
+    console.log("lessonsMap ", lessonsMap);
+    // let studentResults: StudentLessonResult[] = [];
+    // for (const [key, value] of Object.entries(lessonsMap)) {
+    //   console.log(key, value);
+    //   value.docId = key;
+    //   studentResults.push(value);
+    // }
+    // console.log("studentResults ", studentResults);
+    return lessonsMap;
+    // }
   }
 
   async getLesson(id: string): Promise<Lesson | undefined> {

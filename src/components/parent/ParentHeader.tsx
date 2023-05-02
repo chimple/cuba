@@ -12,8 +12,8 @@ import IconButton from "./../IconButton";
 import HeaderIcon from "./../HeaderIcon";
 import React from "react";
 import RectangularIconButton from "./RectangularIconButton";
-import { IoIosArrowBack, IoIosArrowDropleftCircle } from "react-icons/io";
 import { useHistory } from "react-router-dom";
+import BackButton from "../common/BackButton";
 
 const ParentHeader: React.FC<{
   currentHeader: string;
@@ -24,31 +24,12 @@ const ParentHeader: React.FC<{
 
   return (
     <div id="parent-header-icons">
-      <IoIosArrowBack
-        id="parent-header-icons-back"
-        size={"8vh"}
-        onClick={() => {
-          console.log("clicked on Parent back");
+      <BackButton
+        iconSize={"8vh"}
+        onClicked={() => {
           history.replace(PAGES.DISPLAY_STUDENT);
         }}
-      ></IoIosArrowBack>
-      {/* <IoIosArrowDropleftCircle
-        id="parent-header-icons-back"
-        size={"4%"}
-        onClick={() => {
-          console.log("clicked on Parent back");
-          //   history.replace(PAGES.HOME);
-        }}
-      ></IoIosArrowDropleftCircle> */}
-      {/* <img
-        id="parent-header-icons-back"
-        src="assets/icons/ArrowIcon.svg"
-        alt="Back"
-        onClick={() => {
-          console.log("clicked on Parent back");
-          //   history.replace(PAGES.HOME);
-        }}
-      /> */}
+      ></BackButton>
       <div id="parent-header-middle-icons">
         {parentHeaderIconList.map((element) => {
           //   console.log("Dyanamic Parent Header List ", element);

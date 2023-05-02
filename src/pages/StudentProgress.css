@@ -1,0 +1,25 @@
+#student-progress-display-progress-header {
+  margin: 3vw 1vw 1vw 8vw;
+}
+
+#student-progress-display-progress-header-content {
+  font-size: 4vh;
+  color: black;
+  font-weight: bold;
+}
+
+#student-progress-display-progress-content {
+  margin: 3vw 1vw 1vw 8vw;
+  height: 80vh;
+  overflow-y: scroll;
+}
+
+#student-progress-display-progress-content-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#student-progress-display-progress-no-data-message {
+  text-align: center;
+}
