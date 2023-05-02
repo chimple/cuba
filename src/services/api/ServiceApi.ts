@@ -7,6 +7,7 @@ import Language from "../../models/language";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import { Chapter } from "../../common/courseConstants";
+import Result from "../../models/result";
 
 export interface ServiceApi {
   /**
@@ -99,4 +100,14 @@ export interface ServiceApi {
   getDifferentGradesForCourse(
     course: Course
   ): Promise<{ grades: Grade[]; courses: Course[] }>;
+
+  updateResult(
+    student: User,
+    courseId: string,
+    lessonId: string,
+    score: number,
+    correctMoves: number,
+    wrongMoves: number,
+    timeSpent: number
+  ): Promise<Result>;
 }
