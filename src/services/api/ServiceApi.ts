@@ -101,6 +101,17 @@ export interface ServiceApi {
     course: Course
   ): Promise<{ grades: Grade[]; courses: Course[] }>;
 
+  /**
+   * Creates a Document in Result collection with the given params
+   * student: User
+   * @param {string} courseId -  Course Firebase Document ID
+   * @param {string} lessonId -  Lesson Firebase Document ID
+   * @param {number} score -  Total Score for a lesson
+   * @param {number} correctMoves -  Number of correct moves in a lesson
+   * @param {number} wrongMoves -  Number of wrong moves in a lesson
+   * @param {number} timeSpent -  Total TimeSpent in a lesson
+   * @returns {Result}} Updated result Object
+   */
   updateResult(
     student: User,
     courseId: string,

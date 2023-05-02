@@ -303,34 +303,8 @@ export class FirebaseApi implements ServiceApi {
     timeSpent: number
   ): Promise<Result> {
     const courseRef = doc(this._db, CollectionIds.COURSE, courseId);
-    console.log(
-      "🚀 ~ file: FirebaseApi.ts:314 ~ FirebaseApi ~ courseId:",
-      courseId
-    );
-    console.log(
-      "🚀 ~ file: FirebaseApi.ts:314 ~ FirebaseApi ~ courseRef:",
-      courseRef
-    );
-    console.log(
-      "🚀 ~ file: FirebaseApi.ts:317 ~ FirebaseApi ~ lessonId:",
-      lessonId
-    );
     const lessonRef = doc(this._db, CollectionIds.LESSON, lessonId);
-
-    console.log(
-      "🚀 ~ file: FirebaseApi.ts:316 ~ FirebaseApi ~ lessonRef:",
-      lessonRef
-    );
     const studentRef = doc(this._db, CollectionIds.USER, student.docId);
-    console.log(
-      "🚀 ~ file: FirebaseApi.ts:320 ~ FirebaseApi ~ student.docId:",
-      student
-    );
-    console.log(
-      "🚀 ~ file: FirebaseApi.ts:318 ~ FirebaseApi ~ studentRef:",
-      studentRef
-    );
-
     const result = new Result(
       undefined,
       Timestamp.now(),
@@ -347,17 +321,13 @@ export class FirebaseApi implements ServiceApi {
       studentRef,
       null!
     );
-    console.log(
-      "🚀 ~ file: FirebaseApi.ts:333 ~ FirebaseApi ~ result:",
-      result
-    );
-    console.log(
-      "🚀 ~ file: FirebaseApi.ts:334 ~ FirebaseApi ~ Result.toJson(result):",
-      result.toJson()
-    );
     const resultDoc = await addDoc(
       collection(this._db, CollectionIds.RESULT),
       result.toJson()
+    );
+    console.log(
+      "🚀 ~ file: FirebaseApi.ts:330 ~ FirebaseApi ~ resultDoc:",
+      resultDoc
     );
     result.docId = resultDoc.id;
     return result;
