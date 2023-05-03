@@ -1,0 +1,30 @@
+.alert-wrapper.sc-ion-alert-md {
+  background-color: white;
+  color: black;
+  max-width: 40vw !important;
+  max-height: 60vh !important;
+  padding: 5vh 0vh;
+  border-radius: 2.5vw;
+}
+
+.alert-head.sc-ion-alert-md {
+  text-align: center;
+  padding-bottom: 10%;
+}
+
+.alert-button-group.sc-ion-alert-md {
+  justify-content: space-around;
+}
+
+.alert-button.sc-ion-alert-md {
+  color: white;
+  background-color: black;
+  border-radius: var(--border-radius);
+  padding: 5%;
+  opacity: 0.9;
+}
+
+.alert-button-role-delete.sc-ion-alert-md {
+  background: gray !important;
+  opacity: 0.5;
+}

@@ -38,6 +38,11 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
+
+  deleteProfile(studentId: string) {
+    throw new Error("Method not implemented.");
+  }
+
   getLessonResultsForStudent(
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined> {
