@@ -78,10 +78,9 @@ const Login: React.FC = () => {
               /> */}
           </div>
           <div id="chimple-brand-text1">Welcome to Chimple!</div>
-          <p id="chimple-brand-text2">
-            Discovering the joy of learning with Chimple- where curiosity meets
-            education!
-          </p>
+          <p id="chimple-brand-text2">&nbsp;&nbsp;Discovering the joy of learning with</p>
+          <p id="chimple-brand-text2">&nbsp;&nbsp;&nbsp;&nbsp;Chimple- where curiosity meets education!</p>
+          <div id="chimple-brand-text2"><br/></div>
           <div id="login-text-box">
             <TextBox
               inputText={"Enter your Phone Number"}
@@ -99,7 +98,7 @@ const Login: React.FC = () => {
           >
             Continue
           </div>
-          <div id="login-google-icon-text">Continue with Google</div>
+          <div id="login-google-icon-text">&nbsp; &nbsp; &nbsp;----------Continue with Google----------</div>
           <img
             id="login-google-icon"
             alt="Google Icon"

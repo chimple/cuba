@@ -3,11 +3,13 @@
     outline-style: solid;
     outline-width: 0.1px;
     left: 50%;
-    top: 58%;
-    width: min(90vh, 100vh);
-    height: min(55vh, 15vh);
-    /* transform: translateY(-50%) translateX(-50%); */
+    color: black;
+    /*top: 58%; */
+    width: min(80vh, 80vh);
+    height: min(35vh, 13vh);
+    transform: translateY(0%) translateX(14%);
     border-radius: 4vh;
+    
     /* background-color: var(--ion-background-color); */
 }
 
@@ -16,17 +18,18 @@
     text-align: center;
     /* display: flex; */
     /* justify-content: space-between; */
-    margin: 1% 1% 1% 1%;
+    margin: 2% 1% 1% 1%;
 }
 
 #text-box-icon {
-    width: auto;
+    width: 50px;
     height: 6vh;
-    margin: 4.1%;
+    margin: 4.6%;
+    color:black;
 }
 
 #text-box-vertical-line {
-    width: 0.5vh;
+    width: 0.4vw;
     height: 10vh;
     margin-top: 2%;
     background-color: gray
