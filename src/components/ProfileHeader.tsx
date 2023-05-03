@@ -5,6 +5,7 @@ import IconButton from "./IconButton";
 import "./ProfileHeader.css";
 import { ServiceConfig } from "../services/ServiceConfig";
 import Auth from "../models/auth";
+import { Capacitor } from "@capacitor/core";
 
 const ProfileHeader: React.FC = () => {
   const history = useHistory();
@@ -31,9 +32,9 @@ const ProfileHeader: React.FC = () => {
           const isUserLoggedOut: boolean = Auth.i.authLogout();
           if (isUserLoggedOut) {
             await ServiceConfig.getI().authHandler.logOut();
-
             setTimeout(() => {
               history.replace(PAGES.LOGIN);
+              if (Capacitor.isNativePlatform()) window.location.reload();
             }, 300);
           }
         }}
