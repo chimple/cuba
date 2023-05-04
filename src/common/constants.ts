@@ -231,5 +231,17 @@ export const AVATARS: string[] = [
   "tiger",
   "zebra",
 ];
+export const NUMBER_NAME = [
+  "zero",
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight",
+  "nine",
+];
 
 export const MAX_STUDENTS_ALLOWED = 3;

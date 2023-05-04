@@ -117,6 +117,10 @@ export class ApiHandler implements ServiceApi {
     );
   }
 
+  public async deleteProfile(studentId: string) {
+    return await this.s.deleteProfile(studentId);
+  }
+
   public static getInstance(s: ServiceApi): ApiHandler {
     if (!ApiHandler.i) {
       ApiHandler.i = new ApiHandler();

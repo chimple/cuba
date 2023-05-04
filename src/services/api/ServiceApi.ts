@@ -33,6 +33,12 @@ export interface ServiceApi {
   ): Promise<User>;
 
   /**
+   * To delete `Profile` for given student Id
+   * @param {string } studentId - Student Id
+   */
+  deleteProfile(studentId: string);
+
+  /**
    * Gives all `Curriculums` available on database
    * @returns {Curriculum[]} Array of `Curriculum` objects
    */

@@ -1,13 +1,15 @@
 import { IonCard } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import "./ProfileCard.css";
-import React from "react";
+import React, { useState } from "react";
 import { MdModeEditOutline } from "react-icons/md";
 import { FcPlus } from "react-icons/fc";
 import { HiPlusCircle } from "react-icons/hi";
 import User from "../../models/user";
 import { AVATARS, PAGES } from "../../common/constants";
 import { Util } from "../../utility/util";
+import DialogBoxButtons from "./DialogBoxButtons​";
+import { ServiceConfig } from "../../services/ServiceConfig";
 
 const ProfileCard: React.FC<{
   width: string;
@@ -18,6 +20,7 @@ const ProfileCard: React.FC<{
   showText?: boolean;
 }> = ({ width, height, userType, user }) => {
   const history = useHistory();
+  const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
 
   return (
     <IonCard
@@ -39,6 +42,7 @@ const ProfileCard: React.FC<{
             size={"5%"}
             onClick={() => {
               console.log("click on edit icon");
+              setShowDialogBox(true);
             }}
           ></MdModeEditOutline>
         ) : (
@@ -92,6 +96,24 @@ const ProfileCard: React.FC<{
         // <></>
         <p className="profile-card-empty-element">&#9679;</p>
       )}
+      {showDialogBox ? (
+        <DialogBoxButtons
+          width={"10vh"}
+          height={"10vh"}
+          message="You can edit or delete user by clicking on the below buttons"
+          showDialogBox={showDialogBox}
+          yesText="Delete User"
+          noText="Edit User"
+          onButtonClicked={async ({ detail }) => {
+            console.log(`Dismissed with role: ${detail.role} ${user.docId}`);
+            if (detail.role === "delete") {
+              // await ServiceConfig.getI().authHandler.getCurrentUser();
+              await ServiceConfig.getI().apiHandler.deleteProfile(user.docId);
+            }
+            setShowDialogBox(false);
+          }}
+        ></DialogBoxButtons>
+      ) : null}
     </IonCard>
   );
 };
