@@ -7,7 +7,7 @@
     /*top: 58%; */
     width: min(80vh, 80vh);
     height: min(35vh, 13vh);
-    transform: translateY(0%) translateX(14%);
+    transform: translateY(0%) translateX(12%);
     border-radius: 4vh;
     
     /* background-color: var(--ion-background-color); */
@@ -22,7 +22,7 @@
 }
 
 #text-box-icon {
-    width: 50px;
+    width: auto;
     height: 6vh;
     margin: 4.6%;
     color:black;
