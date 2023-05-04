@@ -10,10 +10,12 @@ import { useHistory } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
 import { Util } from "../utility/util";
+import ParentalLock from "../components/parent/ParentalLock";
 
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<User[]>();
+  const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const history = useHistory();
   useEffect(() => {
     getStudents();
@@ -57,7 +59,8 @@ const DisplayStudents: FC<{}> = () => {
         <div
           id="display-students-parent-icon"
           onClick={() => {
-            history.replace(PAGES.PARENT);
+            // history.replace(PAGES.PARENT);
+            setShowDialogBox(true);
           }}
         >
           <img src={"assets/icons/ParentIcon.png"} alt="" />
@@ -90,6 +93,22 @@ const DisplayStudents: FC<{}> = () => {
               {t("Create New User")}
             </div>
           )}
+          {showDialogBox ? (
+            <ParentalLock
+              width={"10vh"}
+              height={"10vh"}
+              message="You can edit or delete user by"
+              showDialogBox={showDialogBox}
+              handleClose={() => {
+                setShowDialogBox(false);
+                console.log("Close", false);
+              }}
+              onHandleClose={() => {
+                setShowDialogBox(false);
+                console.log("Close", false);
+              }}
+            ></ParentalLock>
+          ) : null}
         </div>
       )}
       <Loading isLoading={isLoading} />

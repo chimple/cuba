@@ -345,4 +345,9 @@ export class Util {
     localStorage.setItem(LANGUAGE, tempLangCode);
     await i18n.changeLanguage(tempLangCode);
   };
+
+  public static randomBetween(min, max) {
+    return Math.floor(Math.random() * (max - min) + min);
+  }
+  
 }

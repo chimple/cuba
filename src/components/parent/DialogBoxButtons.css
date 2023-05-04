@@ -9,7 +9,7 @@
 
 .alert-head.sc-ion-alert-md {
   text-align: center;
-  padding-bottom: 10%;
+  padding-bottom: 15%;
 }
 
 .alert-button-group.sc-ion-alert-md {
@@ -18,9 +18,9 @@
 
 .alert-button.sc-ion-alert-md {
   color: white;
-  background-color: black;
+  background-color: #83c327;
   border-radius: var(--border-radius);
-  padding: 5%;
+  padding: 3% 10%;
   opacity: 0.9;
 }
 
