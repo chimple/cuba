@@ -135,4 +135,27 @@ export interface ServiceApi {
     wrongMoves: number,
     timeSpent: number
   ): Promise<Result>;
+
+  /**
+   * Update the student profile for a parent and returns the student object
+   * @param {string} name - name of the student
+   * @param {number} age - age of the student
+   * @param {GENDER} gender - gender of the student
+   * @param {string} image - image of the student
+   * @param {string} boardDocId - boardDocId is `Curriculum` doc id
+   * @param {string} gradeDocId -  gradeDocId is `Grade` doc id
+   * @param {string} languageDocId -  languageDocId is `Language` doc id
+   * @returns {User} Updated Student User Object
+   */
+  updateStudent(
+    student: User,
+    name: string,
+    age: number,
+    gender: string,
+    avatar: string,
+    image: string | undefined,
+    boardDocId: string,
+    gradeDocId: string,
+    languageDocId: string
+  ): Promise<User>;
 }

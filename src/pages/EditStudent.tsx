@@ -12,12 +12,18 @@ import Curriculum from "../models/curriculum";
 import Grade from "../models/grade";
 import Language from "../models/language";
 import Loading from "../components/Loading";
-import { useHistory } from "react-router";
+import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
 import { Util } from "../utility/util";
 
 const EditStudent = () => {
+  const history = useHistory();
+  const location = useLocation();
+  const api = ServiceConfig.getI().apiHandler;
+  const isEdit =
+    location.pathname === PAGES.EDIT_STUDENT && !!api.currentStudent;
+
   enum STAGES {
     NAME,
     GENDER_AND_AGE,
@@ -25,49 +31,83 @@ const EditStudent = () => {
     GRADE,
   }
   const [stage, setStage] = useState(STAGES.NAME);
-  const [studentName, setStudentName] = useState("");
-  const [gender, setGender] = useState<GENDER>();
-  const [age, setAge] = useState<number>();
-  const [avatar, setAvatar] = useState<string>();
-  const [board, setBoard] = useState<string>();
-  const [grade, setGrade] = useState<string>();
-  const [language, setLanguage] = useState<string>();
+  const [studentName, setStudentName] = useState(
+    isEdit ? api.currentStudent?.name : ""
+  );
+  const [gender, setGender] = useState<GENDER | undefined>(
+    isEdit && api.currentStudent?.gender
+      ? (api.currentStudent?.gender as GENDER)
+      : undefined
+  );
+  const [age, setAge] = useState<number | undefined>(
+    isEdit ? api.currentStudent?.age : undefined
+  );
+  const [avatar, setAvatar] = useState<string | undefined>(
+    isEdit ? api.currentStudent?.avatar : undefined
+  );
+  const [board, setBoard] = useState<string | undefined>(
+    isEdit ? api.currentStudent?.board?.id : undefined
+  );
+  const [grade, setGrade] = useState<string | undefined>(
+    isEdit ? api.currentStudent?.grade?.id : undefined
+  );
+  const [language, setLanguage] = useState<string | undefined>(
+    isEdit ? api.currentStudent?.language?.id : undefined
+  );
   const [boards, setBoards] = useState<Curriculum[]>();
   const [grades, setGrades] = useState<Grade[]>();
   const [languages, setLanguages] = useState<Language[]>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const history = useHistory();
 
   const onNextButton = async () => {
-    const api = ServiceConfig.getI().apiHandler;
     setIsLoading(true);
     const stagesLength = Object.keys(STAGES).length / 2;
     const newStage = stage + 1;
     //Completed all stages
     if (stagesLength === newStage) {
       //Creating Profile for the Student
-      const student = await api.createProfile(
-        studentName,
-        age,
-        gender,
-        avatar,
-        undefined,
-        board,
-        grade,
-        language
-      );
+      let student;
+      if (isEdit) {
+        const currentStudent = api.currentStudent;
+        student = await api.updateStudent(
+          currentStudent,
+          studentName,
+          age ?? currentStudent.age!,
+          gender ?? currentStudent.gender!,
+          avatar ?? currentStudent.avatar!,
+          undefined,
+          board ?? currentStudent.board?.id!,
+          grade ?? currentStudent.grade?.id!,
+          language ?? currentStudent.language?.id!
+        );
+      } else {
+        student = await api.createProfile(
+          studentName,
+          age,
+          gender,
+          avatar,
+          undefined,
+          board,
+          grade,
+          language
+        );
+
+        //Setting the Current Student
+        const langIndex = languages?.findIndex(
+          (lang) => lang.docId === language
+        );
+        await Util.setCurrentStudent(
+          student,
+          langIndex && languages ? languages[langIndex]?.code : undefined
+        );
+      }
       console.log(
         "🚀 ~ file: EditStudent.tsx:56 ~ onNextButton ~ student:",
         student
       );
-      //Setting the Current Student
-      // api.currentStudent = student;
-      const langIndex = languages?.findIndex((lang) => lang.docId === language);
-      await Util.setCurrentStudent(
-        student,
-        langIndex && languages ? languages[langIndex]?.code : undefined
-      );
-      history.replace(PAGES.HOME);
+
+      const state = history.location.state as any;
+      history.replace(state.from ?? PAGES.HOME);
     } else {
       if (newStage === STAGES.GRADE) {
         const results = await Promise.all([
