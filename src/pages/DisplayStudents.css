@@ -4,7 +4,7 @@
 
 #display-students-chimple-logo {
   display: flex;
-  justify-content: end;
+  justify-content: center;
   /* align-items: center; */
   cursor: pointer;
   font-size: var(--text-size);
@@ -47,7 +47,8 @@
   font-size: var(--text-size);
   margin-top: 13vh;
   width: max-content;
-  color: #05342f;
+  /* color: #05342f; */
+  color: var(--text-color);
 }
 
 .ion-page {

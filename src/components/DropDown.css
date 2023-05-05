@@ -19,7 +19,13 @@
     --max-width: 15vw
 }
 
+
 .IonPopover {
     --width: 15vw;
     --max-width: 15vw
 }
+.ion-item{
+    border: 1px solid;
+    border-radius: 1.5vh;
+}
+

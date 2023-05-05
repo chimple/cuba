@@ -17,9 +17,9 @@ const CustomDropdown: FC<{
   onDropdownChange: (event: string) => void;
 }> = ({ placeholder, options, currentlySelected, onDropdownChange }) => {
   return (
-    <IonList>
-      <IonItem lines="none" fill="outline">
-        <IonSelect
+    <IonList mode="ios">
+      <IonItem lines="none" fill="outline" mode="ios">
+        <IonSelect mode="ios"
           onIonChange={(evt) => {
             onDropdownChange(evt.detail.value);
           }}

@@ -8,8 +8,8 @@ const DropDown: React.FC<{
   width: string;
 }> = ({ optionList, currentValue, onValueChange, width }) => {
   return (
-    <IonList>
-      <IonItem id="drop-down" lines="none" fill="outline">
+    <IonList  mode="ios">
+      <IonItem id="drop-down" lines="none" fill="outline"  mode="ios">
         <IonSelect
           onIonChange={onValueChange}
           interface="popover"

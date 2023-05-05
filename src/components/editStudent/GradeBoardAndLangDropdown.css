@@ -1,12 +1,13 @@
 /* ion-select::part(icon) {
   content: url("../../../public/assets/icons/DropDownArrow.png");
-}
+} */
 ion-select {
-  background: white;
-  padding: 10px 20px;
+  /* background: white; */
+  /* padding: 10px 20px; */
   border-radius: 30px;
   height: min(5vh, 40px);
   min-height: 35px;
+  
 }
 ion-select::part(text) {
   color: var(--text-color);
@@ -15,8 +16,8 @@ ion-select::part(text) {
 }
 
 ion-popover {
-  --width: none;
-} */
+  /* --width: none; */
+}
 
 .dropdown-header {
   /* position: relative; */
@@ -24,6 +25,6 @@ ion-popover {
   margin: 0;
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content:space-around;
   align-items: center;
 }

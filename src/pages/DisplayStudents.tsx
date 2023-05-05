@@ -43,11 +43,13 @@ const DisplayStudents: FC<{}> = () => {
     history.push(PAGES.CREATE_STUDENT);
   };
 
-  return (
+  return ( 
     <IonPage id="display-students">
       {/* <IonContent> */}
       <div id="display-students-chimple-logo">
-        <ChimpleLogo
+        <div id="display-students-parent-icon">
+        </div>
+        <ChimpleLogo  
           header={t("Welcome to Chimple!")}
           msg={[
             t("Discovering the joy of learning with Chimple"),
