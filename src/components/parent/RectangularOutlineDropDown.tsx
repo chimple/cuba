@@ -21,7 +21,7 @@ const RectangularOutlineDropDown: React.FC<{
         width: width,
       }}
     >
-      <DropDown
+      <DropDown 
         optionList={optionList}
         currentValue={currentValue}
         width={width}

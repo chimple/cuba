@@ -19,7 +19,7 @@ const AppLangSelection: React.FC = () => {
   const [langList, setLangList] = useState<string[]>([]);
   const [currentAppLang, setCurrentAppLang] = useState<string>();
 
-  useEffect(() => {}, []);
+  useEffect(() => { }, []);
 
   let tempLangList: string[] = [];
   ServiceConfig.getI()
@@ -43,7 +43,7 @@ const AppLangSelection: React.FC = () => {
             // src="assets/Monk.gif"
             src="assets/icons/ChimpleBrandLogo.svg"
           />
-          <IonButton
+          <IonButton mode="ios"
             className="app-lang-next-button"
             // disabled={}
             color="light"
@@ -60,29 +60,29 @@ const AppLangSelection: React.FC = () => {
             }}
           >
             {t("Next")}
-            <IonIcon
+            <IonIcon mode="ios"
               className="app-lang-arrow-icon"
               slot="end"
               icon={chevronForward}
             ></IonIcon>
-          </IonButton>
+          </IonButton >
           <div id="app-lang-element">
             <p id="app-lang-text">Select App Language</p>
-            <RectangularOutlineDropDown
-              optionList={langList}
-              currentValue={currentAppLang || langList[0]}
-              width="25vw"
-              onValueChange={async (selectedLang) => {
-                console.log("selected Langauage", selectedLang.detail.value);
-                const tempLangCode = selectedLang.detail.value;
-                localStorage.setItem(APP_LANG, tempLangCode);
-                setCurrentAppLang(tempLangCode);
-                await i18n.changeLanguage(tempLangCode);
-                // history.replace(PAGES.LOGIN);
-              }}
-            ></RectangularOutlineDropDown>
+              <RectangularOutlineDropDown 
+                optionList={langList}
+                currentValue={currentAppLang || langList[0]}
+                width="26vw"
+                onValueChange={async (selectedLang) => {
+                  console.log("selected Langauage", selectedLang.detail.value);
+                  const tempLangCode = selectedLang.detail.value;
+                  localStorage.setItem(APP_LANG, tempLangCode);
+                  setCurrentAppLang(tempLangCode);
+                  await i18n.changeLanguage(tempLangCode);
+                  // history.replace(PAGES.LOGIN);
+                }}
+              ></RectangularOutlineDropDown>
+            </div>
           </div>
-        </div>
       ) : null}
       <Loading isLoading={isLoading} />
       {/* </IonInfiniteScrollContent> */}

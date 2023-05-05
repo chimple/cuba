@@ -35,9 +35,10 @@
     margin: 6% 5% 0% 5%;
     justify-content: space-evenly;
     align-items: center; */
-    margin-bottom: 4vh;
+    margin-bottom: 2vh;
     font-size: var(--text-size);
     color: black;
+    margin-top: -4vh;
 }
 
 .parent-page-setting-div #toggle-button {
@@ -70,6 +71,7 @@
     margin: 0.5%;
     justify-content: space-evenly;
     align-items: center;
+    
 }
 
 #parent-page-help-title-e2 {

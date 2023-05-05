@@ -13,19 +13,19 @@ const TextBox: React.FC<{ inputText; inputType }> = ({
   return (
     <div id="text-box">
       <div id="text-box-elements">
-        <IoCallOutline id="text-box-icon" />
+        <IoCallOutline id="text-box-icon" mode="ios"/>
         <div id="text-box-vertical-line"></div>
 
         <div id="text-box-input">
-          <IonItem id="text-box-ion-item" lines="none">
-            <IonLabel
+          <IonItem id="text-box-ion-item" lines="none" mode="ios">
+            <IonLabel mode="ios"
               class="text-box-ion-label"
               position="floating"
               color="dark"
             >
               {inputText}
             </IonLabel>
-            <IonInput
+            <IonInput mode="ios"
               class="ion-no-padding"
               className="text-box-ion-input"
               type={inputType}
