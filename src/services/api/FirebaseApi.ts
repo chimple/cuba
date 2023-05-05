@@ -390,4 +390,45 @@ export class FirebaseApi implements ServiceApi {
     result.docId = resultDoc.id;
     return result;
   }
+
+  async updateStudent(
+    student: User,
+    name: string,
+    age: number,
+    gender: string,
+    avatar: string,
+    image: string,
+    boardDocId: string,
+    gradeDocId: string,
+    languageDocId: string
+  ): Promise<User> {
+    const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
+    const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
+    const languageRef = doc(
+      this._db,
+      `${CollectionIds.LANGUAGE}/${languageDocId}`
+    );
+    const now = Timestamp.now();
+    await updateDoc(doc(this._db, `${CollectionIds.USER}/${student.docId}`), {
+      age: age,
+      avatar: avatar,
+      board: boardRef,
+      dateLastModified: now,
+      gender: gender,
+      grade: gradeRef,
+      image: image ?? null,
+      language: languageRef,
+      name: name,
+    });
+    student.age = age;
+    student.avatar = avatar;
+    student.board = boardRef;
+    student.dateLastModified = now;
+    student.gender = gender;
+    student.grade = gradeRef;
+    student.image = image;
+    student.language = languageRef;
+    student.name = name;
+    return student;
+  }
 }
