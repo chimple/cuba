@@ -78,8 +78,8 @@ const Login: React.FC = () => {
               /> */}
           </div>
           <div id="chimple-brand-text1">Welcome to Chimple!</div>
-          <p id="chimple-brand-text2">&nbsp;&nbsp;Discovering the joy of learning with</p>
-          <p id="chimple-brand-text2">&nbsp;&nbsp;&nbsp;&nbsp;Chimple- where curiosity meets education!</p>
+          <p id="chimple-brand-text2">Discovering the joy of learning with</p>
+          <p id="chimple-brand-text2">Chimple- where curiosity meets education!</p>
           <div id="chimple-brand-text2"><br/></div>
           <div id="login-text-box">
             <TextBox
