@@ -114,6 +114,11 @@ const ProfileCard: React.FC<{
           }}
           onNoButtonClicked={async ({}) => {
             console.log(`Edit Profile`, "no", user.docId);
+            const api = ServiceConfig.getI().apiHandler;
+            api.currentStudent = user;
+            history.push(PAGES.EDIT_STUDENT, {
+              from: history.location.pathname,
+            });
             setShowDialogBox(false);
           }}
         ></DialogBoxButtons>

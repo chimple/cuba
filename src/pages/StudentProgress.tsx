@@ -141,18 +141,20 @@ const StudentProgress: React.FC = () => {
 
           if (lessonDetail && lessonRes) {
             isDataAvailable = true;
+            var computeMinutes = Math.floor(lessonRes.timeSpent / 60);
+            var result = lessonRes.timeSpent % 60;
             console.log(
               "Data ",
               lessonDetail.title,
               chapter.title,
               lessonRes.score,
-              lessonRes.timeSpent
+              computeMinutes + ":" + result
             );
             tempDataContent.push([
               lessonDetail.title,
               chapter.title,
               lessonRes.score.toString(),
-              lessonRes.timeSpent.toString(),
+              computeMinutes + ":" + result,
             ]);
             console.log("tempDataContent ", tempDataContent);
             setDataContent(tempDataContent);
