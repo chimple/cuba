@@ -106,6 +106,9 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.CREATE_STUDENT} exact={true}>
               <EditStudent />
             </ProtectedRoute>
+            <ProtectedRoute path={PAGES.EDIT_STUDENT} exact={true}>
+              <EditStudent />
+            </ProtectedRoute>
             <ProtectedRoute path={PAGES.DISPLAY_STUDENT} exact={true}>
               <DisplayStudents />
             </ProtectedRoute>

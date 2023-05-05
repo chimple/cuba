@@ -125,6 +125,7 @@ export enum PAGES {
   PROFILE = "/profile",
   PARENT = "/parent",
   CREATE_STUDENT = "/create-student",
+  EDIT_STUDENT = "/edit-student",
   DISPLAY_STUDENT = "/display-students",
   DISPLAY_SUBJECTS = "/display-subjects",
   APP_LANG_SELECTION = "/app-lang-selection",
