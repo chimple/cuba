@@ -9,23 +9,33 @@
 
 .IonSelect {
     background: var(--ion-background-color);
+  
 }
 
 .list-md {
     padding: 0% !important;
+    
 }
 
 .ion-select-popover {
-    --max-width: 15vw
+    --max-width: 15vw;
 }
+
+ion-label {
+    font-size: var(--text-size) !important;
+}
+
+/* ion-item{
+    font-size: var(--text-size) !important
+} */
 
 
 .IonPopover {
     --width: 15vw;
-    --max-width: 15vw
+    --max-width: 15vw;
 }
-.ion-item{
+
+.ion-item {
     border: 1px solid;
     border-radius: 1.5vh;
 }
-

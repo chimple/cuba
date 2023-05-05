@@ -22,3 +22,6 @@ ion-popover {
   /* margin-top: 1vh; */
   margin-left: -0.6vw;
 }
+ion-label {
+  font-size: var(--text-size) !important;
+}

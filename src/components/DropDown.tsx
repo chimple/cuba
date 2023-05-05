@@ -8,8 +8,8 @@ const DropDown: React.FC<{
   width: string;
 }> = ({ optionList, currentValue, onValueChange, width }) => {
   return (
-    <IonList  mode="ios">
-      <IonItem id="drop-down" lines="none" fill="outline"  mode="ios">
+    <IonList mode="ios">
+      <IonItem id="drop-down" lines="none" fill="outline" mode="ios">
         <IonSelect
           onIonChange={onValueChange}
           interface="popover"
@@ -19,10 +19,11 @@ const DropDown: React.FC<{
           // placeholder="Select fruit"
           style={{
             width: width,
+            fontsize: "20vh",
             // --max-width:width,
           }}
         >
-          {optionList.map((option,index) => (
+          {optionList.map((option, index) => (
             <IonSelectOption key={index} value={option}>{option}</IonSelectOption>
           ))}
         </IonSelect>
