@@ -130,6 +130,7 @@ export enum PAGES {
   DISPLAY_SUBJECTS = "/display-subjects",
   APP_LANG_SELECTION = "/app-lang-selection",
   STUDENT_PROGRESS = "/student-progress",
+  LEADERBOARD = "/leaderboard",
 }
 
 export enum LANG {

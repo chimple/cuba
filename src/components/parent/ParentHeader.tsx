@@ -1,15 +1,9 @@
 import { useTranslation } from "react-i18next";
 import {
-  HOMEHEADERLIST,
-  HEADER_ICON_CONFIGS,
-  HeaderIconConfig,
-  PARENTHEADERLIST,
   parentHeaderIconList,
   PAGES,
 } from "../../common/constants";
 import "./ParentHeader.css";
-import IconButton from "./../IconButton";
-import HeaderIcon from "./../HeaderIcon";
 import React from "react";
 import RectangularIconButton from "./RectangularIconButton";
 import { useHistory } from "react-router-dom";
