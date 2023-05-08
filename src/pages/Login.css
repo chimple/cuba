@@ -67,13 +67,14 @@ p {
     left: 50%;
     top: 75%; */
     /* transform: translateX(50%); */
-    width: min(70vh, 57vh);
-    height: min(55vh, 12vh);
+   /* width: min(70vh, 57vh); */
+    height: min(55vh, 12.5vh);
     color: white;
+    width: 26vw;
     background: yellowgreen;
-    border-radius: 4vh;
+    border-radius: var(--border-radius);
     text-align: center;
-    line-height: 11vh;
+    line-height: 12.5vh;
     font-size: 4vh;
     margin: 2% 0% 1% 37vw;
 }
@@ -83,7 +84,7 @@ p {
     top: 83%;
     left: 50%;
     transform: translateY(-5%) translateX(-50%); */
-     margin: 0% 0% 0% 0%; 
+     margin: -1% 0% 0% 0%; 
     font-size: var(--text-size);
     color: black;
 }
@@ -96,8 +97,26 @@ p {
     width: auto;
     /* text-align: center; */
     /* transform: translateY(-5%) translateX(-50%); */
+    margin-top: 1%;
 }
-
+#Google-horizontal-line {
+    width: 5vw;
+    height: 0.1vh;
+    margin-top: 2%;
+    background-color: gray;
+    display: block;
+    margin-left: 38%;
+    margin-top: 2%;
+}
+#Google-horizontal-line2{
+    width: 5vw;
+    height:0.1vh;
+    margin-top: 2%;
+    background-color: gray;
+    display: block;
+    margin-left: 57%;
+    margin-top: -1%;
+}
 #login-button-img {
     height: 38px;
     width: auto;

@@ -5,16 +5,16 @@
     left: 50%;
     color: black;
     /*top: 58%; */
-    width: min(80vh, 80vh);
-    height: min(35vh, 13vh);
-    transform: translateY(0%) translateX(12%);
-    border-radius: 4vh;
+    width: min(100vh, 56.4vh);
+    height: min(100vh, 12.5vh);
+    transform: translateY(0%) translateX(16%);
+    border-radius: var(--border-radius);
     
     /* background-color: var(--ion-background-color); */
 }
 
 #text-box-elements {
-    display: flex;
+    display: -webkit-box;
     text-align: center;
     /* display: flex; */
     /* justify-content: space-between; */
@@ -22,28 +22,30 @@
 }
 
 #text-box-icon {
-    width: auto;
-    height: 6vh;
+    width: 4vw;
+    height: 5vh;
     margin: 4.6%;
     color:black;
+    transform: translateX(-6px) translateY(4px);
 }
 
 #text-box-vertical-line {
-    width: 0.4vw;
-    height: 10vh;
-    margin-top: 2%;
-    background-color: gray
+    width: 0.1vw;
+    height: 8vh;
+    margin-top: 4%;
+    background-color: gray;
+    transform: translateX(8px);
 }
 
 #text-box-ion-item {
     font-size: 4vh !important;
-    transform: translateY(-8px) translateX(-20px) scale(0.75) !important;
+    transform: translateY(-7px) translateX(-15px) scale(0.75) !important;
 }
 
 .text-box-ion-label {
     margin: 0px !important;
     padding: 0% !important;
-    font-size: 5vh !important;
+    font-size: 4vh !important;
 }
 
 .text-box-ion-input {

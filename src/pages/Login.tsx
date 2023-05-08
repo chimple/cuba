@@ -98,7 +98,9 @@ const Login: React.FC = () => {
           >
             Continue
           </div>
-          <div id="login-google-icon-text">----------Continue with Google----------</div>
+          <div id="Google-horizontal-line"></div>
+          <div id="login-google-icon-text"> Continue with Google</div>
+          <div id="Google-horizontal-line2"></div>
           <img
             id="login-google-icon"
             alt="Google Icon"
