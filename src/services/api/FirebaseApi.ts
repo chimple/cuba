@@ -353,14 +353,16 @@ export class FirebaseApi implements ServiceApi {
 
   async updateResult(
     student: User,
-    courseId: string,
+    courseId: string | undefined,
     lessonId: string,
     score: number,
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number
   ): Promise<Result> {
-    const courseRef = doc(this._db, CollectionIds.COURSE, courseId);
+    const courseRef = courseId
+      ? doc(this._db, CollectionIds.COURSE, courseId)
+      : undefined;
     const lessonRef = doc(this._db, CollectionIds.LESSON, lessonId);
     const studentRef = doc(this._db, CollectionIds.USER, student.docId);
     const result = new Result(

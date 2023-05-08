@@ -312,6 +312,9 @@ const Home: FC = () => {
     if (selectedHeader === HOMEHEADERLIST.PROFILE) {
       history.push(PAGES.PROFILE);
     }
+    if (selectedHeader === HOMEHEADERLIST.SEARCH) {
+      history.push(PAGES.SEARCH);
+    }
   }
 
   return (
@@ -327,6 +330,7 @@ const Home: FC = () => {
           <div className="space-between">
             {currentHeader === HOMEHEADERLIST.RECOMMENDATION ? (
               <div></div>
+            ) : (
               // <LessonSlider
               //   lessonData={
               //     currentHeader === HEADERLIST.RECOMMENDATION
@@ -349,7 +353,6 @@ const Home: FC = () => {
               //   }
               //   showSubjectName={currentHeader === HEADERLIST.RECOMMENDATION}
               // />
-            ) : (
               <div style={{ marginTop: "2.6%" }}></div>
             )}
 

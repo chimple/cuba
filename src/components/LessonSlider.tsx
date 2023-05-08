@@ -8,7 +8,7 @@ import Course from "../models/course";
 
 const LessonSlider: React.FC<{
   lessonData: Lesson[];
-  course: Course;
+  course: Course | undefined;
   isHome: boolean;
   lessonsScoreMap: any;
   startIndex: number;

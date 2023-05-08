@@ -47,7 +47,7 @@ export class ApiHandler implements ServiceApi {
 
   public async updateResult(
     student: User,
-    courseId: string,
+    courseId: string | undefined,
     lessonId: string,
     score: number,
     correctMoves: number,

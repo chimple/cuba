@@ -128,7 +128,7 @@ export interface ServiceApi {
    */
   updateResult(
     student: User,
-    courseId: string,
+    courseId: string | undefined,
     lessonId: string,
     score: number,
     correctMoves: number,

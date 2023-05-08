@@ -130,6 +130,7 @@ export enum PAGES {
   DISPLAY_SUBJECTS = "/display-subjects",
   APP_LANG_SELECTION = "/app-lang-selection",
   STUDENT_PROGRESS = "/student-progress",
+  SEARCH = "/search",
 }
 
 export enum LANG {
@@ -246,3 +247,4 @@ export const NUMBER_NAME = [
 ];
 
 export const MAX_STUDENTS_ALLOWED = 3;
+export const INSTANT_SEARCH_INDEX_NAME = "lesson_cuba";
