@@ -11,8 +11,6 @@ import {
   getDoc,
   query,
   where,
-  setDoc,
-  DocumentSnapshot,
   DocumentData,
   deleteDoc,
 } from "firebase/firestore";
@@ -34,13 +32,14 @@ import {
 } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
-import StudentProfile from "../../models/studentProfile";
 import Result from "../../models/result";
+import Subject from "../../models/subject";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
   private _db = getFirestore();
   private _currentStudent: User;
+  private _subjectsCache: { [key: string]: Subject } = {};
 
   private constructor() {}
 
@@ -432,5 +431,15 @@ export class FirebaseApi implements ServiceApi {
     student.language = languageRef;
     student.name = name;
     return student;
+  }
+
+  async getSubject(id: string): Promise<Subject | undefined> {
+    if (!!this._subjectsCache[id]) return this._subjectsCache[id];
+    const subjectDoc = await getDoc(doc(this._db, CollectionIds.SUBJECT, id));
+    if (!subjectDoc.exists) return;
+    const subject = subjectDoc.data() as Subject;
+    subject.docId = id;
+    this._subjectsCache[id] = subject;
+    return subject;
   }
 }
