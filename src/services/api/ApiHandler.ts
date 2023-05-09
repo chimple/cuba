@@ -15,6 +15,30 @@ export class ApiHandler implements ServiceApi {
 
   private constructor() {}
 
+  public async updateStudent(
+    student: User,
+    name: string,
+    age: number,
+    gender: string,
+    avatar: string,
+    image: string | undefined,
+    boardDocId: string,
+    gradeDocId: string,
+    languageDocId: string
+  ): Promise<User> {
+    return await this.s.updateStudent(
+      student,
+      name,
+      age,
+      gender,
+      avatar,
+      image,
+      boardDocId,
+      gradeDocId,
+      languageDocId
+    );
+  }
+
   public async getLessonResultsForStudent(
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined> {
@@ -115,6 +139,10 @@ export class ApiHandler implements ServiceApi {
       gradeDocId,
       languageDocId
     );
+  }
+
+  public async deleteProfile(studentId: string) {
+    return await this.s.deleteProfile(studentId);
   }
 
   public static getInstance(s: ServiceApi): ApiHandler {

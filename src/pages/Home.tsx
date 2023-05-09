@@ -30,6 +30,7 @@ import { Util } from "../utility/util";
 import Auth from "../models/auth";
 import { OneRosterApi } from "../services/api/OneRosterApi";
 import { ServiceConfig } from "../services/ServiceConfig";
+import RectangularIconButton from "../components/parent/RectangularIconButton";
 
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<{
@@ -327,6 +328,7 @@ const Home: FC = () => {
           <div className="space-between">
             {currentHeader === HOMEHEADERLIST.RECOMMENDATION ? (
               <div></div>
+            ) : (
               // <LessonSlider
               //   lessonData={
               //     currentHeader === HEADERLIST.RECOMMENDATION
@@ -349,7 +351,6 @@ const Home: FC = () => {
               //   }
               //   showSubjectName={currentHeader === HEADERLIST.RECOMMENDATION}
               // />
-            ) : (
               <div style={{ marginTop: "2.6%" }}></div>
             )}
 
@@ -418,6 +419,21 @@ const Home: FC = () => {
                 showSubjectName={currentHeader === HEADERLIST.RECOMMENDATION}
               />
             */}
+            <div id="home-leaderboard-button">
+              <RectangularIconButton
+                buttonWidth={18}
+                buttonHeight={8}
+                iconSrc={"assets/icons/ChimpleBrandLogo.svg"}
+                name={"Leaderboard"}
+                isButtonEnable={true}
+                onHeaderIconClick={() => {
+                  history.replace(PAGES.LEADERBOARD);
+                  // if (currentHeader != element.header) {
+                  //   onHeaderIconClick(element.header);
+                  // }
+                }}
+              />
+            </div>
           </div>
         ) : null}
         <Loading isLoading={isLoading} />

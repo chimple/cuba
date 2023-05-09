@@ -1,0 +1,30 @@
+#parental-lock-close-icon {
+  color: gray;
+  opacity: 0.25;
+  display: block;
+}
+
+#parental-lock-number {
+  outline-style: solid;
+  outline-width: 1.5px;
+  border-radius: 100%;
+  text-align: center;
+  width: 10vh;
+  height: 10vh;
+  padding: 1vh;
+  font-size: 5vh;
+  font-weight: bold;
+  color: var(--text-color);
+  /* font-size: var(--text-size); */
+}
+
+#parental-lock-unlock-button {
+  opacity: 0.25;
+  text-align: center;
+  font-size: var(--text-size);
+  height: 7vh;
+  /* width: 45%; */
+  max-height: 50px;
+  margin-top: 3vh;
+  color: var(--text-color);
+}

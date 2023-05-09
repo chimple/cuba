@@ -130,7 +130,7 @@ const Parent: React.FC = () => {
           <RectangularOutlineDropDown
             optionList={langList}
             currentValue={currentAppLang || langList[0]}
-            width="15vw"
+            width="26vw"
             onValueChange={async (selectedLang) => {
               console.log("selected Langauage", selectedLang.detail.value);
               const tempLangCode: string =

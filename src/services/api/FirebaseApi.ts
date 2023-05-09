@@ -14,6 +14,7 @@ import {
   setDoc,
   DocumentSnapshot,
   DocumentData,
+  deleteDoc,
 } from "firebase/firestore";
 import { ServiceApi } from "./ServiceApi";
 import {
@@ -110,6 +111,41 @@ export class FirebaseApi implements ServiceApi {
       dateLastModified: Timestamp.now(),
     });
     return student;
+  }
+
+  public async deleteProfile(studentId: string) {
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
+
+    const studentDoc = await doc(
+      this._db,
+      `${CollectionIds.USER}/${studentId}`
+    );
+    let userList = _currentUser.users;
+    console.log("before userList ", _currentUser, userList);
+    // userList.findIndex(studentDoc);
+    for (let i = 0; i < userList.length; i++) {
+      const element = userList[i];
+      console.log("element", element.id, studentDoc.id);
+      if (element.id === studentDoc.id) {
+        userList.splice(i, 1);
+        console.log("enter if", userList);
+      }
+    }
+
+    console.log("userList ", userList);
+
+    await updateDoc(
+      doc(this._db, `${CollectionIds.USER}/${_currentUser?.docId}`),
+      {
+        users: userList,
+        dateLastModified: Timestamp.now(),
+      }
+    );
+    _currentUser.users = userList;
+    ServiceConfig.getI().authHandler.currentUser = _currentUser;
+    await deleteDoc(doc(this._db, `${CollectionIds.USER}/${studentId}`));
   }
 
   public async getAllCurriculums(): Promise<Curriculum[]> {
@@ -240,28 +276,16 @@ export class FirebaseApi implements ServiceApi {
   async getLessonResultsForStudent(
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined> {
-    // const currentStudent = await ServiceConfig.getI().apiHandler.currentStudent;
     const studentLessons = await getDoc(
       doc(this._db, `${CollectionIds.STUDENTPROFILE}/${studentId}`)
     );
-
-    // if (studentLessons.data()) {
     const lessonsData: DocumentData = studentLessons.data()!;
     console.log("lessonsData.lessons ", lessonsData.lessons);
     const lessonsMap: Map<string, StudentLessonResult> = new Map(
       Object.entries(lessonsData.lessons)
     );
 
-    console.log("lessonsMap ", lessonsMap);
-    // let studentResults: StudentLessonResult[] = [];
-    // for (const [key, value] of Object.entries(lessonsMap)) {
-    //   console.log(key, value);
-    //   value.docId = key;
-    //   studentResults.push(value);
-    // }
-    // console.log("studentResults ", studentResults);
     return lessonsMap;
-    // }
   }
 
   async getLesson(id: string): Promise<Lesson | undefined> {
@@ -365,5 +389,46 @@ export class FirebaseApi implements ServiceApi {
     );
     result.docId = resultDoc.id;
     return result;
+  }
+
+  async updateStudent(
+    student: User,
+    name: string,
+    age: number,
+    gender: string,
+    avatar: string,
+    image: string,
+    boardDocId: string,
+    gradeDocId: string,
+    languageDocId: string
+  ): Promise<User> {
+    const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
+    const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
+    const languageRef = doc(
+      this._db,
+      `${CollectionIds.LANGUAGE}/${languageDocId}`
+    );
+    const now = Timestamp.now();
+    await updateDoc(doc(this._db, `${CollectionIds.USER}/${student.docId}`), {
+      age: age,
+      avatar: avatar,
+      board: boardRef,
+      dateLastModified: now,
+      gender: gender,
+      grade: gradeRef,
+      image: image ?? null,
+      language: languageRef,
+      name: name,
+    });
+    student.age = age;
+    student.avatar = avatar;
+    student.board = boardRef;
+    student.dateLastModified = now;
+    student.gender = gender;
+    student.grade = gradeRef;
+    student.image = image;
+    student.language = languageRef;
+    student.name = name;
+    return student;
   }
 }

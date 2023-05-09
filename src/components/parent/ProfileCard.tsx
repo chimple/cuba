@@ -1,13 +1,15 @@
 import { IonCard } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import "./ProfileCard.css";
-import React from "react";
+import React, { useState } from "react";
 import { MdModeEditOutline } from "react-icons/md";
 import { FcPlus } from "react-icons/fc";
 import { HiPlusCircle } from "react-icons/hi";
 import User from "../../models/user";
 import { AVATARS, PAGES } from "../../common/constants";
 import { Util } from "../../utility/util";
+import DialogBoxButtons from "./DialogBoxButtons​";
+import { ServiceConfig } from "../../services/ServiceConfig";
 
 const ProfileCard: React.FC<{
   width: string;
@@ -18,6 +20,9 @@ const ProfileCard: React.FC<{
   showText?: boolean;
 }> = ({ width, height, userType, user }) => {
   const history = useHistory();
+  const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
+  const [showWarningDialogBox, setShowWarningDialogBox] =
+    useState<boolean>(false);
 
   return (
     <IonCard
@@ -25,8 +30,9 @@ const ProfileCard: React.FC<{
       style={{
         // width: "auto",
         width: width,
-        height: height,
-        // height: "auto",
+        // height: height,
+        height: "auto",
+        padding: userType ? "1.5% 1.5% 3% 1.5%" : "0% 0% 0% 0%",
       }}
       onClick={() => {
         console.log("Profile card Icon is clicked");
@@ -39,9 +45,11 @@ const ProfileCard: React.FC<{
             size={"5%"}
             onClick={() => {
               console.log("click on edit icon");
+              setShowDialogBox(true);
             }}
           ></MdModeEditOutline>
         ) : (
+          // <></>
           <p className="profile-card-empty-element">&#9679;</p>
         )}
         {/* <img
@@ -65,13 +73,9 @@ const ProfileCard: React.FC<{
         <div id="profile-card-new-user">
           <HiPlusCircle
             id="profile-card-new-user-icon"
-            // id="profile-card-edit-icon"
-            size={"25vh"}
+            size={"16vw"}
             onClick={() => {
-              // if (!userType) {
-              //   console.log("clicked on New User Icon");
               history.replace(PAGES.CREATE_STUDENT);
-              // }
             }}
           ></HiPlusCircle>
           <p>New User</p>
@@ -92,6 +96,57 @@ const ProfileCard: React.FC<{
         // <></>
         <p className="profile-card-empty-element">&#9679;</p>
       )}
+      {showDialogBox ? (
+        <DialogBoxButtons
+          width={"40vw"}
+          height={"30vh"}
+          message="You can edit or delete user by clicking on the below buttons"
+          showDialogBox={showDialogBox}
+          yesText="Delete User"
+          noText="Edit User"
+          handleClose={() => {
+            setShowDialogBox(false);
+            console.log("Close", false);
+          }}
+          onYesButtonClicked={async ({}) => {
+            console.log(`Delete Profile`, "yes", user.docId);
+            setShowWarningDialogBox(true);
+          }}
+          onNoButtonClicked={async ({}) => {
+            console.log(`Edit Profile`, "no", user.docId);
+            const api = ServiceConfig.getI().apiHandler;
+            api.currentStudent = user;
+            history.push(PAGES.EDIT_STUDENT, {
+              from: history.location.pathname,
+            });
+            setShowDialogBox(false);
+          }}
+        ></DialogBoxButtons>
+      ) : null}
+      {showWarningDialogBox ? (
+        <DialogBoxButtons
+          width={"40vw"}
+          height={"30vh"}
+          message="Are you sure to delete?"
+          showDialogBox={showDialogBox}
+          yesText="Yes"
+          noText="No"
+          handleClose={() => {
+            setShowDialogBox(false);
+            console.log("Close", false);
+          }}
+          onYesButtonClicked={async ({}) => {
+            console.log(`Show warning yes:`, user.docId);
+            setShowWarningDialogBox(false);
+            setShowDialogBox(false);
+            await ServiceConfig.getI().apiHandler.deleteProfile(user.docId);
+          }}
+          onNoButtonClicked={async ({}) => {
+            console.log(`Show warning No:`);
+            setShowWarningDialogBox(false);
+          }}
+        ></DialogBoxButtons>
+      ) : null}
     </IonCard>
   );
 };
