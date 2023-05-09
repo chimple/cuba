@@ -13,10 +13,9 @@ p {
     margin-left: calc(33vw);
     margin-top: 2%; */
     text-align: center;
-    width: 15vw;
+    width: auto;
     height: 19vh;
-    margin-top: 4vh;
-    margin-bottom: 0px;
+    margin-top: 2%;
     /* height: 28%;
     position: absolute;
     left: 50%;
@@ -34,9 +33,9 @@ p {
     text-align: center; 
     /* transform: translateY(-5%) translateX(-50%); */
     font-size: xx-large;
-    color: black;
-    font-weight: 500;
-    /*margin-top: 0px; */
+    color: var(--text-color);
+   /* font-weight: 500; */
+       /*margin-top: 0px; */
 
 }
 
@@ -46,12 +45,12 @@ p {
     height: auto;
     /* height: min(200px, 60vh); */
     /* width: min(90%, 100%); */
-    font-weight: 500;
+    /*font-weight: 500; */
     /* left: min(5%, 10%); */
-     text-align: center; 
-     line-height: 1; 
-    font-size:  small;
-    color: black;
+    text-align: center; 
+    line-height: 1; 
+    font-size:  3.3vh;
+    color: var(--text-color);
 }
 
 #login-text-box {
@@ -86,7 +85,7 @@ p {
     transform: translateY(-5%) translateX(-50%); */
      margin: -1% 0% 0% 0%; 
     font-size: var(--text-size);
-    color: black;
+    color: var(--text-color);
 }
 
 #login-google-icon {

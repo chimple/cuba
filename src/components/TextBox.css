@@ -5,8 +5,8 @@
     left: 50%;
     color: black;
     /*top: 58%; */
-    width: min(100vh, 56.4vh);
-    height: min(100vh, 12.5vh);
+    width: 26vw;
+    height: 12.5vh;
     transform: translateY(0%) translateX(16%);
     border-radius: var(--border-radius);
     
