@@ -1,4 +1,4 @@
-.alert-wrapper.sc-ion-alert-md {
+/* .alert-wrapper.sc-ion-alert-md {
   background-color: white;
   color: black;
   max-width: 40vw !important;
@@ -14,17 +14,24 @@
 
 .alert-button-group.sc-ion-alert-md {
   justify-content: space-around;
+} */
+
+.dialog-box-button-style {
+  color: white !important;
+  border-radius: var(--border-radius) !important;
+  padding: 4% 0% !important;
+  width: 45%;
+  font-size: 4vh;
+  text-align: center;
+  /* font-size: var(--text-size) !important; */
 }
 
-.alert-button.sc-ion-alert-md {
-  color: white;
+#no-button {
   background-color: #83c327;
-  border-radius: var(--border-radius);
-  padding: 3% 10%;
   opacity: 0.9;
 }
 
-.alert-button-role-delete.sc-ion-alert-md {
+#yes-button {
   background: gray !important;
   opacity: 0.5;
 }
