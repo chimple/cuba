@@ -3,7 +3,7 @@
     outline-style: solid;
     outline-width: 0.1px;
     left: 50%;
-    color: black;
+    color: var(--text-color);
     /*top: 58%; */
     width: 26vw;
     height: 12.5vh;

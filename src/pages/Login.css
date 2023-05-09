@@ -32,7 +32,7 @@ p {
     /*font-weight: bolder; */
     text-align: center; 
     /* transform: translateY(-5%) translateX(-50%); */
-    font-size: xx-large;
+    font-size: 8vh;
     color: var(--text-color);
    /* font-weight: 500; */
        /*margin-top: 0px; */
