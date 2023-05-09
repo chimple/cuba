@@ -106,16 +106,14 @@ const ProfileCard: React.FC<{
           noText="Edit User"
           onButtonClicked={async ({ detail }) => {
             console.log(`Dismissed with role: ${detail.role} ${user.docId}`);
-
+            const api = ServiceConfig.getI().apiHandler;
+            api.currentStudent = user;
+            history.push(PAGES.EDIT_STUDENT, {
+              from: history.location.pathname,
+            });
             if (detail.role === "delete") {
               // await ServiceConfig.getI().authHandler.getCurrentUser();
               await ServiceConfig.getI().apiHandler.deleteProfile(user.docId);
-            } else {
-              const api = ServiceConfig.getI().apiHandler;
-              api.currentStudent = user;
-              history.push(PAGES.EDIT_STUDENT, {
-                from: history.location.pathname,
-              });
             }
 
             setShowDialogBox(false);
