@@ -79,6 +79,12 @@ http://ionicframework.com/docs/theming/ */
   --ion-background-color: #cbdcff;
   --text-color: #182A4F;
   --text-size: clamp(10px, 3vh, 20px);
+  --border-radius: 1.5vh; 
 
-  --border-radius: 1.5vh
+  /* minimum size for buttons/tabs */
+  --button-height:3vh;
+  --button-width:3vw;
+
+  /* minimum font size */
+  --font-size:3vh;
 }

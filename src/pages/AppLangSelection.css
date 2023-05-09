@@ -7,29 +7,35 @@
     margin-top: 1%;
     text-align: center;
     width: auto;
-    height: 50vh;
+    height: 25vh;
 }
 
 #app-lang-element {
+   
+    /* text-align:initial;
+    margin-left: 38vw;
+    gap: 5vw; */
     display: flex;
-    text-align: center;
-    margin-top: 10vh;
-    margin-left: 30vw;
-    gap: 5vw;
+    /* width: 22vw; */
+    flex-direction: column;
+    align-items: center;
 }
 
 #app-lang-text {
     /* color: white; */
     font-size: var(--text-size);
     padding-top: 4vh;
+    color: var(--text-color);
+    margin-bottom: 2vh;
+    margin-left: -10vw;
 }
 
 .app-lang-next-button {
     position: fixed;
     top: 3vh;
     right: 4vh;
-    /* color: var(--text-color); */
-    color: #05342f;
+    color: var(--text-color);
+    /* color: #05342f; */
     font-size: var(--text-size);
     height: 7vh;
     max-height: 50px;
@@ -39,3 +45,4 @@
     padding-left: 4vh;
     /* padding-bottom: 1.3vh; */
 }
+

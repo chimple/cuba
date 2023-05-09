@@ -14,7 +14,8 @@ p {
     margin-top: 2%; */
     text-align: center;
     width: auto;
-    height: 30vh;
+    height: 25vh;
+    margin-top: 2%;
     /* height: 28%;
     position: absolute;
     left: 50%;
@@ -32,6 +33,7 @@ p {
     /* text-align: center; */
     /* transform: translateY(-5%) translateX(-50%); */
     font-size: var(--text-size);
+    color: var(--text-color);
 }
 
 #chimple-brand-text2 {
@@ -45,6 +47,7 @@ p {
     /* text-align: center; */
     /* line-height: 1; */
     font-size: var(--text-size);
+    color: var(--text-color);
 }
 
 #login-text-box {
@@ -75,6 +78,7 @@ p {
     transform: translateY(-5%) translateX(-50%); */
     /* margin: 0% 0% 0% 0%; */
     font-size: var(--text-size);
+    color: var(--text-color);
 }
 
 #login-google-icon {
