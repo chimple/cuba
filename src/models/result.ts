@@ -5,7 +5,7 @@ export default class Result extends BaseObject {
   private _comment: string | undefined;
   private _assignment: DocumentReference | undefined;
   private _class: DocumentReference | undefined;
-  private _course: DocumentReference;
+  private _course: DocumentReference | undefined;
   private _lesson: DocumentReference;
   private _school: DocumentReference | undefined;
   private _score: number;
@@ -20,7 +20,7 @@ export default class Result extends BaseObject {
     createdAt: Timestamp,
     assignment: DocumentReference | undefined,
     class_1: DocumentReference | undefined,
-    course: DocumentReference,
+    course: DocumentReference | undefined,
     lesson: DocumentReference,
     school: DocumentReference | undefined,
     score: number,
@@ -56,10 +56,10 @@ export default class Result extends BaseObject {
   public set class(value: DocumentReference | undefined) {
     this._class = value;
   }
-  public get course(): DocumentReference {
+  public get course(): DocumentReference | undefined {
     return this._course;
   }
-  public set course(value: DocumentReference) {
+  public set course(value: DocumentReference | undefined) {
     this._course = value;
   }
   public get lesson(): DocumentReference {

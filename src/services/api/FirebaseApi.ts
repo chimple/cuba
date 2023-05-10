@@ -11,8 +11,6 @@ import {
   getDoc,
   query,
   where,
-  setDoc,
-  DocumentSnapshot,
   DocumentData,
   deleteDoc,
 } from "firebase/firestore";
@@ -34,13 +32,14 @@ import {
 } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
-import StudentProfile from "../../models/studentProfile";
 import Result from "../../models/result";
+import Subject from "../../models/subject";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
   private _db = getFirestore();
   private _currentStudent: User;
+  private _subjectsCache: { [key: string]: Subject } = {};
 
   private constructor() {}
 
@@ -353,14 +352,16 @@ export class FirebaseApi implements ServiceApi {
 
   async updateResult(
     student: User,
-    courseId: string,
+    courseId: string | undefined,
     lessonId: string,
     score: number,
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number
   ): Promise<Result> {
-    const courseRef = doc(this._db, CollectionIds.COURSE, courseId);
+    const courseRef = courseId
+      ? doc(this._db, CollectionIds.COURSE, courseId)
+      : undefined;
     const lessonRef = doc(this._db, CollectionIds.LESSON, lessonId);
     const studentRef = doc(this._db, CollectionIds.USER, student.docId);
     const result = new Result(
@@ -430,5 +431,15 @@ export class FirebaseApi implements ServiceApi {
     student.language = languageRef;
     student.name = name;
     return student;
+  }
+
+  async getSubject(id: string): Promise<Subject | undefined> {
+    if (!!this._subjectsCache[id]) return this._subjectsCache[id];
+    const subjectDoc = await getDoc(doc(this._db, CollectionIds.SUBJECT, id));
+    if (!subjectDoc.exists) return;
+    const subject = subjectDoc.data() as Subject;
+    subject.docId = id;
+    this._subjectsCache[id] = subject;
+    return subject;
   }
 }

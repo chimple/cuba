@@ -313,6 +313,9 @@ const Home: FC = () => {
     if (selectedHeader === HOMEHEADERLIST.PROFILE) {
       history.push(PAGES.PROFILE);
     }
+    if (selectedHeader === HOMEHEADERLIST.SEARCH) {
+      history.push(PAGES.SEARCH);
+    }
   }
 
   return (

@@ -31,22 +31,27 @@ const onResultDocCreate = async (
   };
   newData.lastPlayedCourse = course;
 
-  const lastLesson = {
-    date: createdAt,
-    score: score,
-    lesson: lesson,
-  };
+  if (!!course) {
+    const lastLesson = {
+      date: createdAt,
+      score: score,
+      lesson: lesson,
+    };
 
-  if (!newData.last5Lessons) {
-    newData.last5Lessons = {};
+    if (!newData.last5Lessons) {
+      newData.last5Lessons = {};
+    }
+
+    if (!newData.last5Lessons[course.id]) {
+      newData.last5Lessons[course.id] = [];
+    }
+
+    newData.last5Lessons[course.id].unshift(lastLesson);
+    newData.last5Lessons[course.id] = newData.last5Lessons[course.id].slice(
+      0,
+      5
+    );
   }
-
-  if (!newData.last5Lessons[course.id]) {
-    newData.last5Lessons[course.id] = [];
-  }
-
-  newData.last5Lessons[course.id].unshift(lastLesson);
-  newData.last5Lessons[course.id] = newData.last5Lessons[course.id].slice(0, 5);
 
   await studentDocRef.set(newData);
 };

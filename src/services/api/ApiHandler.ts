@@ -7,6 +7,7 @@ import { Chapter, StudentLessonResult } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import Result from "../../models/result";
+import Subject from "../../models/subject";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -47,7 +48,7 @@ export class ApiHandler implements ServiceApi {
 
   public async updateResult(
     student: User,
-    courseId: string,
+    courseId: string | undefined,
     lessonId: string,
     score: number,
     correctMoves: number,
@@ -155,5 +156,9 @@ export class ApiHandler implements ServiceApi {
 
   public async getLanguageWithId(id: string): Promise<Language | undefined> {
     return await this.s.getLanguageWithId(id);
+  }
+
+  public async getSubject(id: string): Promise<Subject | undefined> {
+    return await this.s.getSubject(id);
   }
 }
