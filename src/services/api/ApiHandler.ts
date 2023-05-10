@@ -112,11 +112,11 @@ export class ApiHandler implements ServiceApi {
     return this.s.updateLanguage(user, value);
   }
 
-  public get currentStudent(): User {
+  public get currentStudent(): User | undefined {
     return this.s.currentStudent;
   }
 
-  public set currentStudent(value: User) {
+  public set currentStudent(value: User | undefined) {
     this.s.currentStudent = value;
   }
 

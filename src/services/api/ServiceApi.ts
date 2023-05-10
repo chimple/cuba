@@ -63,9 +63,9 @@ export interface ServiceApi {
    */
   getParentStudentProfiles(): Promise<User[]>;
 
-  get currentStudent(): User;
+  get currentStudent(): User | undefined;
 
-  set currentStudent(value: User);
+  set currentStudent(value: User | undefined);
 
   updateSoundFlag(user: User, value: boolean);
   updateMusicFlag(user: User, value: boolean);
