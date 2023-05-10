@@ -16,6 +16,7 @@ import Language from "../../models/language";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import { StudentLessonResult } from "../../common/courseConstants";
+import Subject from "../../models/subject";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -38,6 +39,9 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
+  getSubject(id: string): Promise<Subject | undefined> {
+    throw new Error("Method not implemented.");
+  }
 
   deleteProfile(studentId: string) {
     throw new Error("Method not implemented.");

@@ -1,5 +1,5 @@
 import { IonCard } from "@ionic/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { LESSON_CARD_COLORS, PAGES } from "../common/constants";
 import "./LessonCard.css";
@@ -7,12 +7,14 @@ import ScoreCard from "./ScoreCard";
 import React from "react";
 import Lesson from "../models/lesson";
 import Course from "../models/course";
+import { ServiceConfig } from "../services/ServiceConfig";
+import Subject from "../models/subject";
 
 const LessonCard: React.FC<{
   width: string;
   height: string;
   lesson: Lesson;
-  course:Course;
+  course: Course | undefined;
   isPlayed: boolean;
   isUnlocked: boolean;
   isHome: boolean;
@@ -39,11 +41,23 @@ const LessonCard: React.FC<{
 }) => {
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
+  const [subject, setSubject] = useState<Subject>();
 
   const hideImg = (event: any) => {
     setShowImage(false);
   };
   // const subjectCode = lesson.chapter.course.id;
+  useEffect(() => {
+    if (showSubjectName) getSubject();
+  }, [lesson]);
+
+  const getSubject = async () => {
+    const subjectId = lesson?.subject?.toString()?.split("/")?.at(-1);
+    if (!subjectId) return;
+    const subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
+    if (!subject) return;
+    setSubject(subject);
+  };
 
   const lessonCardColor =
     LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
@@ -80,7 +94,7 @@ const LessonCard: React.FC<{
           history.push(PAGES.GAME + parmas, {
             url: "chimple-lib/index.html" + parmas,
             lessonId: lesson.id,
-            courseDocId:course.docId,
+            courseDocId: course?.docId,
             lesson: JSON.stringify(Lesson.toJson(lesson)),
             from: history.location.pathname + "?continue=true",
           });
@@ -109,11 +123,11 @@ const LessonCard: React.FC<{
           }}
           color={lessonCardColor}
         >
-          {/* {showSubjectName ? (
+          {showSubjectName && subject?.title ? (
             <div id="lesson-card-subject-name">
-              <p>{lesson?.chapter.course.name}</p>
+              <p>{subject.title}</p>
             </div>
-          ) : null} */}
+          ) : null}
           <img
             className="pattern"
             style={{

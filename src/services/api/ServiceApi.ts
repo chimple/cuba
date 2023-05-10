@@ -8,6 +8,7 @@ import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import { Chapter, StudentLessonResult } from "../../common/courseConstants";
 import Result from "../../models/result";
+import Subject from "../../models/subject";
 
 export interface ServiceApi {
   /**
@@ -128,7 +129,7 @@ export interface ServiceApi {
    */
   updateResult(
     student: User,
-    courseId: string,
+    courseId: string | undefined,
     lessonId: string,
     score: number,
     correctMoves: number,
@@ -158,4 +159,11 @@ export interface ServiceApi {
     gradeDocId: string,
     languageDocId: string
   ): Promise<User>;
+
+  /**
+   * Gives Subject for given a Subject firebase doc Id
+   * @param {string} id - Subject firebase doc id
+   * @returns {Subject | undefined}`Subject` or `undefined` if it could not find the Subject with given `id`
+   */
+  getSubject(id: string): Promise<Subject | undefined>;
 }

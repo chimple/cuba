@@ -55,7 +55,7 @@ const CocosGame: React.FC = () => {
     setIsLoading(true);
     const lesson: Lesson = JSON.parse(state.lesson);
     console.log("🚀 ~ file: CocosGame.tsx:57 ~ init ~ lesson:", lesson);
-    const courseDocId: string = state.courseDocId;
+    const courseDocId: string | undefined = state.courseDocId;
 
     const lessonId: string = state.lessonId;
     const lessonIds: string[] = [];
