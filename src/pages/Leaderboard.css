@@ -1,0 +1,21 @@
+#leaderboard-page {
+  padding: 1%;
+  align-items: center;
+}
+
+#leaderboard-UI {
+  display: flex;
+  margin: 5% 0% 0% 5%;
+  justify-content: space-around;
+  align-items: center;
+  font-size: var(--text-size);
+  color: black;
+}
+
+#leaderboard-left-UI {
+  width: 40vw;
+}
+
+#leaderboard-right-UI {
+  width: 60vw;
+}

@@ -131,6 +131,7 @@ export enum PAGES {
   APP_LANG_SELECTION = "/app-lang-selection",
   STUDENT_PROGRESS = "/student-progress",
   SEARCH = "/search",
+  LEADERBOARD = "/leaderboard",
 }
 
 export enum LANG {

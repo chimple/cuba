@@ -69,7 +69,9 @@ const ParentalLock: React.FC<{
       <Dialog
         open={showDialogBox}
         onClose={handleClose}
-        // style={{ borderRadius: "6vh" }}
+        sx={{
+          "& .MuiPaper-root": { borderRadius: "6vh" },
+        }}
       >
         <DialogContent
           style={{

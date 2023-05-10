@@ -107,7 +107,7 @@ const EditStudent = () => {
       );
 
       const state = history.location.state as any;
-      history.replace(state.from ?? PAGES.HOME);
+      history.replace(state?.from ?? PAGES.HOME);
     } else {
       if (newStage === STAGES.GRADE) {
         const results = await Promise.all([
