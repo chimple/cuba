@@ -67,9 +67,10 @@ p {
     top: 75%; */
     /* transform: translateX(50%); */
    /* width: min(70vh, 57vh); */
-    height: min(55vh, 12.5vh);
+
     color: white;
     width: 26vw;
+    height: 13vh;
     background: yellowgreen;
     border-radius: var(--border-radius);
     text-align: center;

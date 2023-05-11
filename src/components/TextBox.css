@@ -6,7 +6,7 @@
     color: var(--text-color);
     /*top: 58%; */
     width: 26vw;
-    height: 12.5vh;
+    height: 13vh;
     transform: translateY(0%) translateX(16%);
     border-radius: var(--border-radius);
     
@@ -39,7 +39,7 @@
 
 #text-box-ion-item {
     font-size: 4vh !important;
-    transform: translateY(-7px) translateX(-15px) scale(0.75) !important;
+    transform: translateY(-11px) translateX(-15px) scale(0.75) !important;
 }
 
 .text-box-ion-label {
