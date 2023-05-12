@@ -27,4 +27,15 @@ ion-popover {
   flex-direction: row;
   justify-content:space-around;
   align-items: center;
+  height: min(80vh, 20vh);
+  align-content: flex-start;
+}
+ion-list {
+  outline-style: solid;
+  outline-width: 0.1px;
+  outline-color: black;
+  border-radius: var(--border-radius); 
+  padding: 0;
+  
+  
 }
