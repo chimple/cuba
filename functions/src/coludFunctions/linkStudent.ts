@@ -79,20 +79,31 @@ const linkStudent = async (
     );
   }
 
-  await ref.update({
-    parents: FieldValue.arrayUnion(parentId),
-    students: FieldValue.arrayUnion(studentId),
-  });
-  await db
-    .collection("StudentProfile")
-    .doc(studentId)
-    .set(
-      {
-        classes: FieldValue.arrayUnion(ref),
-        schools: FieldValue.arrayUnion(refDoc.get("school")),
-      },
-      { merge: true }
-    );
+  const batch = db.batch();
+  batch.set(
+    db.collection("ClassConnection").doc("PT_" + ref.id),
+    {
+      roles: FieldValue.arrayUnion(parentId),
+    },
+    { merge: true }
+  );
+  batch.set(
+    db.collection("ClassConnection").doc("ST_" + ref.id),
+    {
+      roles: FieldValue.arrayUnion(studentId),
+    },
+    { merge: true }
+  );
+  batch.set(
+    db.collection("StudentProfile").doc(studentId),
+    {
+      classes: FieldValue.arrayUnion(ref.id),
+      schools: FieldValue.arrayUnion(refDoc.get("school")?.id),
+    },
+    { merge: true }
+  );
+  await batch.commit();
+  return { link: true };
 };
 
 export default linkStudent;
