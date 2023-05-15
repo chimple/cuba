@@ -68,10 +68,10 @@ const EditStudent = () => {
       //Creating Profile for the Student
       let student;
       if (isEdit) {
-        const currentStudent = api.currentStudent;
+        const currentStudent = api.currentStudent!;
         student = await api.updateStudent(
           currentStudent,
-          studentName,
+          studentName!,
           age ?? currentStudent.age!,
           gender ?? currentStudent.gender!,
           avatar ?? currentStudent.avatar!,
@@ -82,7 +82,7 @@ const EditStudent = () => {
         );
       } else {
         student = await api.createProfile(
-          studentName,
+          studentName!,
           age,
           gender,
           avatar,
@@ -167,7 +167,7 @@ const EditStudent = () => {
       <div className="content">
         {stage === STAGES.NAME && (
           <StudentNameBox
-            studentName={studentName}
+            studentName={studentName!}
             onValueChange={setStudentName}
             onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
           />

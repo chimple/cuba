@@ -1,16 +1,17 @@
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router";
-import { AVATARS, PAGES } from "../common/constants";
+import { AVATARS, LANG, PAGES } from "../common/constants";
 import IconButton from "./IconButton";
 import "./ProfileHeader.css";
 import { ServiceConfig } from "../services/ServiceConfig";
-import Auth from "../models/auth";
-import { Capacitor } from "@capacitor/core";
+import i18n from "../i18n";
 
 const ProfileHeader: React.FC = () => {
   const history = useHistory();
   const { t } = useTranslation();
-  const student = ServiceConfig.getI().apiHandler.currentStudent;
+  const api = ServiceConfig.getI().apiHandler;
+  const auth = ServiceConfig.getI().authHandler;
+  const student = api.currentStudent;
 
   return (
     <div className="header">
@@ -26,17 +27,19 @@ const ProfileHeader: React.FC = () => {
         iconSrc={"assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png"}
       />
       <IconButton
-        name={t("signOut")}
+        name={t("Sign Out")}
         iconSrc="assets/icons/SignOutIcon.svg"
         onClick={async () => {
-          const isUserLoggedOut: boolean = Auth.i.authLogout();
-          if (isUserLoggedOut) {
-            await ServiceConfig.getI().authHandler.logOut();
-            setTimeout(() => {
-              history.replace(PAGES.LOGIN);
-              if (Capacitor.isNativePlatform()) window.location.reload();
-            }, 300);
+          api.currentStudent = undefined;
+          const user = await auth.getCurrentUser();
+          if (!!user && !!user.language?.id) {
+            const langDoc = await api.getLanguageWithId(user.language.id);
+            if (langDoc) {
+              const tempLangCode = langDoc.code ?? LANG.ENGLISH;
+              await i18n.changeLanguage(tempLangCode);
+            }
           }
+          history.replace(PAGES.DISPLAY_STUDENT);
         }}
       />
     </div>

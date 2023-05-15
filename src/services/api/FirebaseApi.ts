@@ -38,7 +38,7 @@ import Subject from "../../models/subject";
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
   private _db = getFirestore();
-  private _currentStudent: User;
+  private _currentStudent: User | undefined;
   private _subjectsCache: { [key: string]: Subject } = {};
 
   private constructor() {}
@@ -105,7 +105,7 @@ export class FirebaseApi implements ServiceApi {
       student.toJson()
     );
     student.docId = studentDoc.id;
-    await updateDoc(doc(this._db, `${CollectionIds.USER}/${student.uid}`), {
+    await updateDoc(doc(this._db, `${CollectionIds.USER}/${_currentUser.docId}`), {
       users: arrayUnion(studentDoc),
       dateLastModified: Timestamp.now(),
     });
@@ -204,11 +204,11 @@ export class FirebaseApi implements ServiceApi {
     return users;
   }
 
-  public get currentStudent(): User {
+  public get currentStudent(): User | undefined {
     return this._currentStudent;
   }
 
-  public set currentStudent(value: User) {
+  public set currentStudent(value: User | undefined) {
     this._currentStudent = value;
   }
 

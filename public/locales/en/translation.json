@@ -1,9 +1,11 @@
 {
   "back": "Back",
   "Boy": "Boy",
+  "Cancel": "Cancel",
   "Chapters": "Chapters",
   "Create New User": "Create New User",
   "Discovering the joy of learning with Chimple": "Discovering the joy of learning with Chimple",
+  "Do you want to sign out": "Do you want to sign out",
   "Enter Child Name:": "Enter Child Name:",
   "Girl": "Girl",
   "home": "Home",
@@ -17,7 +19,8 @@
   "Select Child Avatar:": "Select Child Avatar:",
   "Select Child Gender:": "Select Child Gender:",
   "Select Grade": "Select Grade",
-  "signOut": "Sign Out",
+  "Sign out as Parent": "Sign out as Parent",
+  "Sign Out": "Sign Out",
   "Subjects": "Subjects",
   "Welcome to Chimple!": "Welcome to Chimple!",
   "where curiosity meets education!": "where curiosity meets education!"
