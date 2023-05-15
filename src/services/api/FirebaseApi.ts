@@ -105,7 +105,7 @@ export class FirebaseApi implements ServiceApi {
       student.toJson()
     );
     student.docId = studentDoc.id;
-    await updateDoc(doc(this._db, `${CollectionIds.USER}/${student.uid}`), {
+    await updateDoc(doc(this._db, `${CollectionIds.USER}/${_currentUser.docId}`), {
       users: arrayUnion(studentDoc),
       dateLastModified: Timestamp.now(),
     });

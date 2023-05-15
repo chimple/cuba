@@ -27,7 +27,7 @@ const ProfileHeader: React.FC = () => {
         iconSrc={"assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png"}
       />
       <IconButton
-        name={t("signOut")}
+        name={t("Sign Out")}
         iconSrc="assets/icons/SignOutIcon.svg"
         onClick={async () => {
           api.currentStudent = undefined;
