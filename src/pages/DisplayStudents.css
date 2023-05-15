@@ -4,7 +4,7 @@
 
 #display-students-chimple-logo {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   /* align-items: center; */
   cursor: pointer;
   font-size: var(--text-size);
@@ -16,8 +16,8 @@
   flex-direction: column;
   align-items: center;
   width: 7vw;
-  margin: 1vh 1vh 0vh 27vw;
-}
+  /* margin: 1vh 1vh 0vh 27vw; */
+  }
 
 .avatar {
   display: flex;
@@ -38,6 +38,7 @@
   flex-wrap: wrap;
   justify-content: center;
 }
+
 
 .add-new-button {
   display: flex;
