@@ -18,7 +18,7 @@ ion-select::part(text) {
 
 }
 ion-popover {
-  --width: 26.2vw;
+  width: 26vw;
   /* margin-top: 1vh; */
   margin-left: -0.6vw;
 }

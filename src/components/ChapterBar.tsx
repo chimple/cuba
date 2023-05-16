@@ -9,7 +9,10 @@ const ChapterBar: React.FC<{
   onChapterChange;
   onGradeChange;
   showGrade: boolean;
-  grades: string[];
+  grades: ({
+    id: string;
+    displayName: string;
+  })[];
   currentGrade: string;
 }> = ({
   chapters,
@@ -31,6 +34,7 @@ const ChapterBar: React.FC<{
         {showGrade ? (
           <DropDown
             width="5vw"
+            placeholder=""
             optionList={grades}
             currentValue={currentGrade}
             onValueChange={onGradeChange}

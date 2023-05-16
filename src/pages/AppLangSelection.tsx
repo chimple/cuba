@@ -16,20 +16,29 @@ import { ServiceConfig } from "../services/ServiceConfig";
 const AppLangSelection: React.FC = () => {
   const history = useHistory();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [langList, setLangList] = useState<string[]>([]);
+  const [langList, setLangList] = useState<{
+    id: string;
+    displayName: string;
+  }[]>([]);
   const [currentAppLang, setCurrentAppLang] = useState<string>();
 
-  useEffect(() => { }, []);
-
-  let tempLangList: string[] = [];
+  useEffect(() => { 
+  let tempLangList:{
+    id: string;
+    displayName: string;
+  } [] = [];
   ServiceConfig.getI()
     .apiHandler.getAllLanguages()
     .then((l) => {
       l.forEach((element) => {
-        tempLangList.push(element.title);
+        tempLangList.push({
+          id: element.code,
+          displayName: element.title,
+        });
       });
       setLangList(tempLangList);
     });
+  }, []);
 
   // const currentAppLang = localStorage.getItem(APP_LANG) || LANG.ENGLISH;
 
@@ -69,12 +78,15 @@ const AppLangSelection: React.FC = () => {
           <div id="app-lang-element">
             <p id="app-lang-text">Select App Language</p>
               <RectangularOutlineDropDown 
+              placeholder=""
                 optionList={langList}
-                currentValue={currentAppLang || langList[0]}
-                width="26vw"
+                currentValue={currentAppLang || langList[0]?.id}
+                width="26vw"  
                 onValueChange={async (selectedLang) => {
-                  console.log("selected Langauage", selectedLang.detail.value);
-                  const tempLangCode = selectedLang.detail.value;
+                  console.log("selected Langauage", selectedLang);
+                  const tempLangCode = selectedLang
+                  console.log("tempLangCode",tempLangCode,langList)  
+                  if(!tempLangCode) return;
                   localStorage.setItem(APP_LANG, tempLangCode);
                   setCurrentAppLang(tempLangCode);
                   await i18n.changeLanguage(tempLangCode);
