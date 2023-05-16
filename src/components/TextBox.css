@@ -1,55 +1,57 @@
 #text-box {
-    /* position: absolute; */
-    outline-style: solid;
-    outline-width: 0.1px;
-    left: 50%;
-    color: var(--text-color);
-    /*top: 58%; */
-    width: 26vw;
-    height: 6.5vw;
-    transform: translateY(-20%) translateX(16%);
-    border-radius: var(--border-radius);
-    
-    /* background-color: var(--ion-background-color); */
+  /* position: absolute; */
+  outline-style: solid;
+  outline-width: 0.1px;
+  left: 50%;
+  color: var(--text-color);
+  /*top: 58%; */
+  width: 26vw;
+  height: 6.5vw;
+  transform: translateY(-20%) translateX(16%);
+  border-radius: var(--border-radius);
+
+  /* background-color: var(--ion-background-color); */
 }
 
 #text-box-elements {
-    display: -webkit-box;
-    text-align: center;
-    /* display: flex; */
-    /* justify-content: space-between; */
-    margin: 2% 1% 1% 1%;
+  display: -webkit-box;
+  text-align: center;
+  /* display: flex; */
+  /* justify-content: space-between; */
+  margin: 2% 1% 1% 1%;
 }
 
 #text-box-icon {
-    width: 4vw;
-    height: 5vh;
-    margin: 4.6%;
-    color:black;
-    transform: translateX(-6px) translateY(4px);
+  width: 4vw;
+  height: 5vh;
+  margin: 4.6%;
+  color: black;
+  transform: translateX(-6px) translateY(4px);
 }
 
 #text-box-vertical-line {
-    width: 0.15vw;
-    height: 4.5vw;
-    margin-top: 3%;
-    background-color: var(--text-color);
-    transform: translateX(8px);
+  width: 0.15vw;
+  height: 4.5vw;
+  margin-top: 3%;
+  background-color: var(--text-color);
+  transform: translateX(8px);
 }
 
 #text-box-ion-item {
-    font-size: 4vh !important;
-    transform: translateY(-8px) translateX(-15px) scale(0.75) !important;
+  /* font-size: 4vh !important; */
+  color: var(--text-color) !important;
+  font-size: var(--text-size) !important;
+  transform: translateY(-8px) translateX(-15px) scale(0.75) !important;
 }
 
 .text-box-ion-label {
-    margin: 0px !important;
-    padding: 0% !important;
-    font-size: 1.7vw !important;
+  margin: 0px !important;
+  padding: 0% !important;
+  font-size: 1.7vw !important;
 }
 
 .text-box-ion-input {
-    transform: translateY(-1vh) !important;
-    font-size: 5vh !important;
-    /* height: 10px !important; */
+  transform: translateY(-1vh) !important;
+  font-size: 5vh !important;
+  /* height: 10px !important; */
 }

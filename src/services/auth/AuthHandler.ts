@@ -1,13 +1,15 @@
 import { DocumentReference } from "firebase/firestore";
 import User from "../../models/user";
 import { ServiceAuth } from "./ServiceAuth";
+import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
+import { ConfirmationResult } from "@firebase/auth";
 
 export class AuthHandler implements ServiceAuth {
   public static i: AuthHandler;
 
   private s: ServiceAuth;
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(s: ServiceAuth): AuthHandler {
     if (!AuthHandler.i) {
@@ -31,6 +33,23 @@ export class AuthHandler implements ServiceAuth {
 
   async isUserLoggedIn(): Promise<boolean> {
     return await this.s.isUserLoggedIn();
+  }
+
+  public async phoneNumberSignIn(
+    phoneNumber,
+    recaptchaVerifier
+  ): Promise<ConfirmationResult | SignInWithPhoneNumberResult | undefined> {
+    return await this.s.phoneNumberSignIn(phoneNumber, recaptchaVerifier);
+  }
+
+  public async proceedWithVerificationCode(
+    verificationId,
+    verificationCode
+  ): Promise<boolean> {
+    return await this.s.proceedWithVerificationCode(
+      verificationId,
+      verificationCode
+    );
   }
 
   async logOut(): Promise<void> {

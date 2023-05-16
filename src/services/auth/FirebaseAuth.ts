@@ -1,8 +1,11 @@
 import { ServiceAuth } from "./ServiceAuth";
 import {
+  ConfirmationResult,
   GoogleAuthProvider,
+  PhoneAuthProvider,
   getAuth,
   signInWithCredential,
+  signInWithPhoneNumber,
 } from "firebase/auth";
 import User from "../../models/user";
 import {
@@ -18,7 +21,10 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { RoleType } from "../../interface/modelInterfaces";
-import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
+import {
+  FirebaseAuthentication,
+  SignInWithPhoneNumberResult,
+} from "@capacitor-firebase/authentication";
 // import { getFirebaseAuth } from "../Firebase";
 import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
@@ -33,7 +39,7 @@ export class FirebaseAuth implements ServiceAuth {
   private _db = getFirestore();
   private _auth = getAuth();
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): FirebaseAuth {
     if (!FirebaseAuth.i) {
@@ -100,7 +106,7 @@ export class FirebaseAuth implements ServiceAuth {
       Timestamp.now(),
       user.uid,
       true,
-      true,
+      true
     );
     await setDoc(userRef, tempUser.toJson());
     this._currentUser = tempUser;
@@ -124,6 +130,94 @@ export class FirebaseAuth implements ServiceAuth {
   //     this._currentUser = user;
   // }
 
+  public async phoneNumberSignIn(
+    phoneNumber,
+    recaptchaVerifier
+  ): Promise<ConfirmationResult | SignInWithPhoneNumberResult | undefined> {
+    try {
+      let verificationId;
+      console.log(
+        "onclick phone Numver",
+        phoneNumber,
+        Capacitor.isNativePlatform()
+      );
+      let result: ConfirmationResult | SignInWithPhoneNumberResult;
+      if (Capacitor.isNativePlatform()) {
+        result = await FirebaseAuthentication.signInWithPhoneNumber({
+          phoneNumber,
+        });
+        console.log("if (Capacitor.isNativePlatform()) { result ", result);
+      } else {
+        result = await signInWithPhoneNumber(
+          this._auth,
+          phoneNumber,
+          recaptchaVerifier
+        );
+        console.log("else result ", result);
+      }
+      verificationId = result?.verificationId;
+      console.log("verificationId ", verificationId);
+      // if (verificationId) {
+      //   console.log("verificationId if ");
+      //   proceedWithVerificationCode(verificationId);
+      // }
+      return result;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseAuth.ts:167 ~ FirebaseAuth ~ phoneNumberSignin ~ error:",
+        error
+      );
+      return;
+    }
+  }
+
+  public async proceedWithVerificationCode(
+    result,
+    verificationCode
+  ): Promise<boolean> {
+    try {
+      // const verificationCode = e.detail.data.values[0];
+      console.log("verificationCode", verificationCode);
+      if (!verificationCode || !result || verificationCode.length < 6) {
+        return false;
+      }
+      const credential = PhoneAuthProvider.credential(
+        result.verificationId!,
+        verificationCode
+      );
+      console.log("credential", this._auth, credential);
+
+      let res = await signInWithCredential(this._auth, credential);
+      console.log("signInWithCredential Success!", res);
+      // history.replace(PAGES.DISPLAY_STUDENT);
+      // Success!
+
+      const user = res.user;
+      console.log("res user", user);
+      const userRef = doc(this._db, "User", user.uid);
+      // if (res.additionalUserInfo?.isNewUser) {
+      //   await this._createUserDoc(user);
+      // } else {
+      console.log("userRef", userRef);
+      const tempUserDoc = await getDoc(userRef);
+      console.log("tempUserDoc", tempUserDoc);
+      if (!tempUserDoc.exists) {
+        let u = await this._createUserDoc(user);
+        console.log("u", u);
+      } else {
+        this._currentUser = tempUserDoc.data() as User;
+        console.log("this._currentUser", tempUserDoc.data() as User);
+      }
+      // }
+      // App.addListener("appStateChange", Util.onAppStateChange);
+      
+      return true;
+    } catch (err) {
+      // Failure!
+      console.log("signInWithCredential Failure!", err);
+      return false;
+    }
+  }
 
   async isUserLoggedIn(): Promise<boolean> {
     const user = await this.getCurrentUser();
