@@ -39,11 +39,17 @@ const Parent: React.FC = () => {
   const [soundFlag, setSoundFlag] = useState<boolean>();
   const [musicFlag, setMusicFlag] = useState<boolean>();
   const [userProfile, setUserProfile] = useState<any[]>([]);
-  const [langList, setLangList] = useState<string[]>([]);
+  const [langList, setLangList] = useState<{
+    id: string;
+    displayName: string;
+  }[]>([]);
   const [langDocIds, setLangDocIds] = useState<Map<string, string>>(new Map());
   const [currentAppLang, setCurrentAppLang] = useState<string>();
 
-  let tempLangList: string[] = [];
+  let tempLangList: {
+    id: string;
+    displayName: string;
+  }[] = [];
   // let langDocIds: Map<string, string> = new Map();
   const localAppLang = localStorage.getItem(APP_LANG);
 
@@ -65,7 +71,10 @@ const Parent: React.FC = () => {
       let keytempLangDocIds: Map<string, string> = new Map();
       for (let i = 0; i < allLang.length; i++) {
         const element = allLang[i];
-        tempLangList.push(element.title);
+        tempLangList.push({
+          id: element.docId,
+          displayName: element.title,
+        });
         tempLangDocIds.set(element.title, element.docId);
         keytempLangDocIds.set(element.docId, element.title);
       }
@@ -130,8 +139,9 @@ const Parent: React.FC = () => {
           <div id="parent-page-setting-div">
             <p id="parent-page-setting-lang-text">Language</p>
             <RectangularOutlineDropDown
+            placeholder=""
               optionList={langList}
-              currentValue={currentAppLang || langList[0]}
+              currentValue={currentAppLang || langList[0].id}
               width="26vw"
               onValueChange={async (selectedLang) => {
                 console.log("selected Langauage", selectedLang.detail.value);

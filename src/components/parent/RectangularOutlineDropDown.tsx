@@ -2,10 +2,14 @@ import { PARENTHEADERLIST } from "../../common/constants";
 import DropDown from "../DropDown";
 import "./RectangularOutlineDropDown.css";
 const RectangularOutlineDropDown: React.FC<{
-  optionList: string[];
-  currentValue: string;
+  optionList:    {
+    id: string;
+    displayName: string;
+  }[];
+  currentValue: string | undefined;
   onValueChange;
   width: string;
+  placeholder:string| undefined
   // buttonWidth: number;
   // buttonHeight: number;
   // iconSrc: string;
@@ -13,7 +17,7 @@ const RectangularOutlineDropDown: React.FC<{
   // name: string;
   // isButtonEnable: boolean;
   // onHeaderIconClick: React.MouseEventHandler<HTMLDivElement>;
-}> = ({ optionList, currentValue, onValueChange, width }) => {
+}> = ({ optionList, currentValue, onValueChange, width,placeholder }) => {
   return (
     <div
       id="rectangular-outline-dropdown"
@@ -25,6 +29,7 @@ const RectangularOutlineDropDown: React.FC<{
         optionList={optionList}
         currentValue={currentValue}
         width={width}
+        placeholder={placeholder}
         onValueChange={onValueChange}
       />
     </div>
