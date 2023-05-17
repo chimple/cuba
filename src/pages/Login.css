@@ -66,18 +66,18 @@ p {
     /* position: absolute;
     left: 50%;
     top: 75%; */
-     transform: translateY(-25%); 
+    /* transform: translateY(-25%); */
    /* width: min(70vh, 57vh); */
 
     color: white;
     width: 26vw;
-    height: 6.5vw;
+    height: 5.5vw;
     background: yellowgreen;
     border-radius: var(--border-radius);
     text-align: center;
-    line-height: 6.5vw;
-    font-size: 1.9vw;
-    margin: 2% 0% 1% 37vw;
+    line-height: 5.5vw;
+    font-size: 1.8vw;
+    margin: 2% 0% 3% 37vw;
 }
 
 #login-google-icon-text {
@@ -86,7 +86,7 @@ p {
     left: 50%;
     transform: translateY(-5%) translateX(-50%); */
      margin: -1.2% 0% 0% 0%; 
-    font-size: var(--text-size);
+    font-size: 1.4vw;
     color: var(--text-color);
 }
 

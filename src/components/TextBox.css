@@ -2,12 +2,12 @@
     /* position: absolute; */
     outline-style: solid;
     outline-width: 0.1px;
-    left: 50%;
+    /*left: 50%; */
     color: var(--text-color);
     /*top: 58%; */
     width: 26vw;
-    height: 6.5vw;
-    transform: translateY(-20%) translateX(16%);
+    height: 5.5vw;
+    transform: translateY(0vw) translateX(4.3vw);
     border-radius: var(--border-radius);
     
     /* background-color: var(--ion-background-color); */
@@ -23,33 +23,41 @@
 
 #text-box-icon {
     width: 4vw;
-    height: 5vh;
-    margin: 4.6%;
+    height: 2.1vw;
+    min-width: 1vw;
+    min-height: 1vw;
+    /*margin: 4.6%;*/
     color:black;
-    transform: translateX(-6px) translateY(4px);
+    margin: 1.7vw 0vw 0vw 0.5vw;
+    /*transform: translateX(-6px) translateY(4px); */
 }
 
 #text-box-vertical-line {
-    width: 0.15vw;
-    height: 4.5vw;
-    margin-top: 3%;
+    width: 0.1vw;
+    height: 3.5vw;
+   /* margin-top: 3.5%; */
     background-color: var(--text-color);
-    transform: translateX(8px);
+    /*transform: translateX(8px);*/
+    margin: 1vw 0vw 0vw 0.5vw;
 }
 
 #text-box-ion-item {
     font-size: 4vh !important;
-    transform: translateY(-8px) translateX(-15px) scale(0.75) !important;
+    transform: translateY(-1.8vw) translateX(-9vw) scale(0.5) !important;
+    height: 9vw;
+    width: 37vw;
+    /*margin: -1.3vw 0vw 0vw -8vw;*/
+    /*scale: 0.5;*/
 }
 
 .text-box-ion-label {
     margin: 0px !important;
     padding: 0% !important;
-    font-size: 1.7vw !important;
+    font-size: 2.7vw !important;
 }
 
 .text-box-ion-input {
-    transform: translateY(-1vh) !important;
-    font-size: 5vh !important;
+    transform: translateY(0vh) !important;
+    font-size: 2.7vw !important;
     /* height: 10px !important; */
 }
