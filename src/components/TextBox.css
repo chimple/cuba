@@ -2,12 +2,12 @@
     /* position: absolute; */
     outline-style: solid;
     outline-width: 0.1px;
-    left: 50%;
+    /*left: 50%; */
     color: var(--text-color);
     /*top: 58%; */
     width: 26vw;
     height: 5.5vw;
-    transform: translateY(-4%) translateX(16%);
+    transform: translateY(0vw) translateX(4.3vw);
     border-radius: var(--border-radius);
     
     /* background-color: var(--ion-background-color); */
@@ -43,9 +43,11 @@
 
 #text-box-ion-item {
     font-size: 4vh !important;
-    /*transform: translateY(-1.3vw) translateX(-8vw) scale(0.5) !important; */ 
-    margin: -1.3vw 0vw 0vw -8vw;
-    scale: 0.5;
+    transform: translateY(-1.8vw) translateX(-9vw) scale(0.5) !important;
+    height: 9vw;
+    width: 37vw;
+    /*margin: -1.3vw 0vw 0vw -8vw;*/
+    /*scale: 0.5;*/
 }
 
 .text-box-ion-label {
@@ -56,6 +58,6 @@
 
 .text-box-ion-input {
     transform: translateY(0vh) !important;
-    font-size: 5vh !important;
+    font-size: 2.7vw !important;
     /* height: 10px !important; */
 }
