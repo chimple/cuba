@@ -12,6 +12,10 @@
   font-size: var(--text-size);
   height: 7vh;
   max-height: 50px;
+  min-height: 30px;
+  margin-top: 3vh;
+  margin-right: 2vw;
+
 }
 
 .button-round {

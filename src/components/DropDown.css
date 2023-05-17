@@ -31,11 +31,17 @@ ion-label {
 
 
 .IonPopover {
-    --width: 15vw;
-    --max-width: 15vw;
+    --width: 26vw;
+    --max-width: 26vw;
 }
 
 .ion-item {
     border: 1px solid;
     border-radius: 1.5vh;
 }
+
+:host {
+    --width:26vw!important;
+    --offset-x: -17px!important;
+    --offset-y: 0px!important;
+   }

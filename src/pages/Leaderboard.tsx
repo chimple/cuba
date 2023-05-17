@@ -1,31 +1,11 @@
 import { useEffect, useState } from "react";
 import "./Leaderboard.css";
 import {
-  APP_LANG,
-  LANG,
-  MAX_STUDENTS_ALLOWED,
   PAGES,
   PARENTHEADERLIST,
 } from "../common/constants";
-import ProfileCard from "../components/parent/ProfileCard";
-import User from "../models/user";
-import ToggleButton from "../components/parent/ToggleButton";
 // import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
-import {
-  EmailIcon,
-  EmailShareButton,
-  FacebookIcon,
-  TwitterIcon,
-  WhatsappIcon,
-} from "react-share";
-import { FaInstagramSquare } from "react-icons/fa";
-import { TfiWorld } from "react-icons/tfi";
-import RectangularOutlineDropDown from "../components/parent/RectangularOutlineDropDown";
-import i18n from "../i18n";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { AppBar, Box, Tab, Tabs } from "@mui/material";
-import { blue, red, green } from "@mui/material/colors";
-import { common } from "@mui/material/colors";
 import BackButton from "../components/common/BackButton";
 import { useHistory } from "react-router-dom";
 import Loading from "../components/Loading";

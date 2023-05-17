@@ -2,10 +2,9 @@
   content: url("../../public/assets/icons/DropDownArrow.png");
 } */
 ion-select {
-  /* background: white;  */
-  /* padding: 10px 20px; */
+  padding: 2vh 0.5vw;
   border-radius: 12px;
-  /* height: min(5vh, 40px); */
+  height: min(5vh, 40px);
   width: 26vw;
   border-radius: 12px;
   height: min(4vh, 40px);
@@ -18,7 +17,7 @@ ion-select::part(text) {
 
 }
 ion-popover {
-  --width: 26.2vw;
+  width: 26vw;
   /* margin-top: 1vh; */
   margin-left: -0.6vw;
 }
