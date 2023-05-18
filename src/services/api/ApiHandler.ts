@@ -53,7 +53,9 @@ export class ApiHandler implements ServiceApi {
     score: number,
     correctMoves: number,
     wrongMoves: number,
-    timeSpent: number
+    timeSpent: number,
+    assignmentId: string | undefined
+
   ): Promise<Result> {
     return await this.s.updateResult(
       student,
@@ -62,7 +64,8 @@ export class ApiHandler implements ServiceApi {
       score,
       correctMoves,
       wrongMoves,
-      timeSpent
+      timeSpent,
+      assignmentId
     );
   }
 

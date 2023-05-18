@@ -1,6 +1,7 @@
 import { Timestamp } from "firebase/firestore";
 import BaseObject from "./baseObject";
 import { DocumentReference } from "firebase/firestore";
+import Assignment from "./assignment";
 
 export default class Lesson extends BaseObject {
   private _title: string;
@@ -19,6 +20,7 @@ export default class Lesson extends BaseObject {
   private _type: string;
   private _cocosChapterCode: string | undefined;
   private _cocosSubjectCode: string | undefined;
+  private _assignment: Assignment | undefined;
 
   constructor({
     clonedFrom,
@@ -177,6 +179,13 @@ export default class Lesson extends BaseObject {
     this._cocosSubjectCode = value;
   }
 
+  public get assignment(): Assignment | undefined {
+    return this._assignment;
+  }
+  public set assignment(value: Assignment | undefined) {
+    this._assignment = value;
+  }
+
   public static toJson(lesson: Lesson) {
     return {
       title: lesson.title,
@@ -196,6 +205,7 @@ export default class Lesson extends BaseObject {
       cocosChapterCode: lesson.cocosChapterCode,
       cocosSubjectCode: lesson.cocosSubjectCode,
       docId: lesson.docId,
+      assignment: lesson.assignment,
     };
   }
 }

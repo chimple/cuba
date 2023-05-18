@@ -1,0 +1,33 @@
+.assignment-main {
+  margin: 1vh;
+  flex-direction: column;
+  display: flex;
+  /* justify-content: center; */
+  height: 100%;
+}
+
+.lesson-body {
+  align-items: center;
+  display: flex;
+  height: 70%;
+  justify-content: center;
+}
+
+.assignment-body {
+  margin-top: 15vh;
+}
+
+.assignment-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2vh;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-left: 1vh;
+  align-items: center;
+}
+
+.right-button {
+  width: 8vh;
+}

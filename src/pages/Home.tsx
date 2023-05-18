@@ -303,18 +303,24 @@ const Home: FC = () => {
     localStorage.setItem(PREVIOUS_SELECTED_COURSE(), selectedHeader);
     HEADER_ICON_CONFIGS.get(selectedHeader);
     console.log(selectedHeader, " Icons is selected");
-    if (selectedHeader === HOMEHEADERLIST.HOME) {
-      history.push(PAGES.DISPLAY_SUBJECTS);
-    }
-    if (selectedHeader === HOMEHEADERLIST.RECOMMENDATION) {
-      setCourse(HOMEHEADERLIST.RECOMMENDATION);
-    }
-
-    if (selectedHeader === HOMEHEADERLIST.PROFILE) {
-      history.push(PAGES.PROFILE);
-    }
-    if (selectedHeader === HOMEHEADERLIST.SEARCH) {
-      history.push(PAGES.SEARCH);
+    switch (selectedHeader) {
+      case HOMEHEADERLIST.HOME:
+        history.push(PAGES.DISPLAY_SUBJECTS);
+        break;
+      case HOMEHEADERLIST.RECOMMENDATION:
+        setCourse(HOMEHEADERLIST.RECOMMENDATION);
+        break;
+      case HOMEHEADERLIST.PROFILE:
+        history.push(PAGES.PROFILE);
+        break;
+      case HOMEHEADERLIST.SEARCH:
+        history.push(PAGES.SEARCH);
+        break;
+      case HOMEHEADERLIST.ASSIGNMENT:
+        history.push(PAGES.ASSIGNMENT);
+        break;
+      default:
+        break;
     }
   }
 

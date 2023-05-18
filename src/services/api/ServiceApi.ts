@@ -134,7 +134,8 @@ export interface ServiceApi {
     score: number,
     correctMoves: number,
     wrongMoves: number,
-    timeSpent: number
+    timeSpent: number,
+    assignmentId: string | undefined
   ): Promise<Result>;
 
   /**

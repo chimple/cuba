@@ -49,6 +49,7 @@ import AppLangSelection from "./pages/AppLangSelection";
 import StudentProgress from "./pages/StudentProgress";
 import SearchLesson from "./pages/SearchLesson";
 import Leaderboard from "./pages/Leaderboard";
+import AssignmentPage from "./pages/Assignment";
 
 setupIonicReact();
 
@@ -125,6 +126,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.LEADERBOARD} exact={true}>
               <Leaderboard />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ASSIGNMENT} exact={true}>
+              <AssignmentPage />
             </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
