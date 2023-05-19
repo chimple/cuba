@@ -1,5 +1,5 @@
 import { IonPage } from "@ionic/react";
-import JoinClass from "../components/assignmnet/JoinClass";
+import JoinClass from "../components/assignment/JoinClass";
 import "./Assignment.css";
 import { useEffect, useState } from "react";
 import BackButton from "../components/common/BackButton";
