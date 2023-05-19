@@ -2,10 +2,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 2vh;
+  margin: clamp(10px,10vh,20px);
+  /* margin-top: 2vh; */
   flex-direction: row;
   justify-content: space-between;
-  margin-left: 1vh;
+  /* margin-left: 1vh; */
   align-items: center;
 }
 

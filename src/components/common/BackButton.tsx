@@ -8,7 +8,7 @@ const BackButton: React.FC<{
   return (
     <IoIosArrowBack
       id="common-back-button"
-      size={iconSize}
+      // size={iconSize}
       onClick={onClicked}
     ></IoIosArrowBack>
   );
