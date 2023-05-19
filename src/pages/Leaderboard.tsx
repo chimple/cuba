@@ -58,7 +58,7 @@ const Leaderboard: React.FC = () => {
       {!isLoading ? (
         <div id="leaderboard-page">
           <BackButton
-            iconSize={"8vh"}
+           // iconSize={"8vh"}
             onClicked={() => {
               history.replace(PAGES.HOME);
             }}

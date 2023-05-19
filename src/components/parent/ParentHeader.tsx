@@ -19,7 +19,7 @@ const ParentHeader: React.FC<{
   return (
     <div id="parent-header-icons">
       <BackButton
-        iconSize={"8vh"}
+        // iconSize={"8vh"}
         onClicked={() => {
           history.replace(PAGES.DISPLAY_STUDENT);
         }}
