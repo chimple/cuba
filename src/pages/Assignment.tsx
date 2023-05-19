@@ -11,6 +11,7 @@ import Assignment from "../models/assignment";
 import Lesson from "../models/lesson";
 import LessonSlider from "../components/LessonSlider";
 import { ServiceConfig } from "../services/ServiceConfig";
+import { t } from "i18next";
 
 const AssignmentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -114,7 +115,7 @@ const AssignmentPage: React.FC = () => {
                     showSubjectName={true}
                   />
                 ) : (
-                  <div>You have to pending assignments</div>
+                  <div>{t("There are no pending assignments for you.")}</div>
                 )}
               </div>
             )}
