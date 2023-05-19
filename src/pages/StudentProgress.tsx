@@ -8,7 +8,6 @@ import StudentProgressHeader from "../components/studentProgress/StudentProgress
 import Course from "../models/course";
 import React from "react";
 import User from "../models/user";
-import { FirebaseApi } from "../services/api/FirebaseApi";
 import { StudentLessonResult } from "../common/courseConstants";
 import Lesson from "../models/lesson";
 import { useHistory } from "react-router-dom";

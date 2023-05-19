@@ -8,6 +8,9 @@ import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import Result from "../../models/result";
 import Subject from "../../models/subject";
+import Assignment from "../../models/assignment";
+import Class from "../../models/class";
+import StudentProfile from "../../models/studentProfile";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -15,6 +18,34 @@ export class ApiHandler implements ServiceApi {
   private s: ServiceApi;
 
   private constructor() {}
+  
+  public async getDataByInviteCode(inviteCode: number): Promise<any> {
+    return await this.s.getDataByInviteCode(inviteCode);
+  }
+  public async linkStudent(inviteCode: number): Promise<any> {
+    return await this.s.linkStudent(inviteCode);
+  }
+  public async getStudentResult(
+    studentId: string,
+    fromCache: boolean = true
+  ): Promise<StudentProfile | undefined> {
+    return await this.s.getStudentResult(studentId, fromCache);
+  }
+  public async getClassById(id: string): Promise<Class | undefined> {
+    return await this.s.getClassById(id);
+  }
+  public async isStudentLinked(
+    studentId: string,
+    fromCache: boolean = true
+  ): Promise<boolean> {
+    return await this.s.isStudentLinked(studentId, fromCache);
+  }
+  public async getPendingAssignments(
+    classId: string,
+    studentId: string
+  ): Promise<Assignment[]> {
+    return await this.s.getPendingAssignments(classId, studentId);
+  }
 
   public async updateStudent(
     student: User,
@@ -55,7 +86,6 @@ export class ApiHandler implements ServiceApi {
     wrongMoves: number,
     timeSpent: number,
     assignmentId: string | undefined
-
   ): Promise<Result> {
     return await this.s.updateResult(
       student,

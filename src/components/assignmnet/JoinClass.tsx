@@ -4,7 +4,6 @@ import { FC, useState } from "react";
 import Loading from "../Loading";
 import DialogBoxButtons from "../parent/DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { FirebaseApi } from "../../services/api/FirebaseApi";
 const JoinClass: FC<{
   onClassJoin: () => void;
 }> = ({ onClassJoin }) => {
@@ -13,7 +12,7 @@ const JoinClass: FC<{
   const [inviteCode, setInviteCode] = useState<number>();
   const [codeResult, setCodeResult] = useState();
   const [error, setError] = useState("");
-  const api = FirebaseApi.i;
+  const api = ServiceConfig.getI().apiHandler;
 
   const isNextButtonEnabled = () => {
     return !!inviteCode && inviteCode.toString().length === 6;

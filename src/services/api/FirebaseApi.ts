@@ -454,6 +454,7 @@ export class FirebaseApi implements ServiceApi {
     const subjectDoc = await getDoc(doc(this._db, CollectionIds.SUBJECT, id));
     if (!subjectDoc.exists) return;
     const subject = subjectDoc.data() as Subject;
+    if (!subject) return;
     subject.docId = id;
     this._subjectsCache[id] = subject;
     return subject;
@@ -551,7 +552,10 @@ export class FirebaseApi implements ServiceApi {
       const doneAssignmentLocally = assignmentCompletedIds[studentId]?.find(
         (assignmentId) => assignmentId === assignment.docId
       );
-      console.log("🚀 ~ file: FirebaseApi.ts:554 ~ FirebaseApi ~ queryResult.docs.forEach ~ doneAssignmentLocally:", doneAssignmentLocally)
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:554 ~ FirebaseApi ~ queryResult.docs.forEach ~ doneAssignmentLocally:",
+        doneAssignmentLocally
+      );
 
       if (!doneAssignment && !doneAssignmentLocally)
         assignments.push(assignment);

@@ -5,12 +5,12 @@ import { useEffect, useState } from "react";
 import BackButton from "../components/common/BackButton";
 import { PAGES } from "../common/constants";
 import { useHistory } from "react-router";
-import { FirebaseApi } from "../services/api/FirebaseApi";
 import Loading from "../components/Loading";
 import Class from "../models/class";
 import Assignment from "../models/assignment";
 import Lesson from "../models/lesson";
 import LessonSlider from "../components/LessonSlider";
+import { ServiceConfig } from "../services/ServiceConfig";
 
 const AssignmentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -19,7 +19,8 @@ const AssignmentPage: React.FC = () => {
   const [lessons, setLessons] = useState<Lesson[]>([]);
 
   const history = useHistory();
-  const api = FirebaseApi.getInstance();
+  const api = ServiceConfig.getI().apiHandler;
+
   useEffect(() => {
     init();
   }, []);
