@@ -11,16 +11,11 @@ import {
 } from "firebase/auth";
 import User from "../../models/user";
 import {
-  DocumentReference,
   Timestamp,
-  addDoc,
-  arrayUnion,
-  collection,
   doc,
   getDoc,
   getFirestore,
   setDoc,
-  updateDoc,
 } from "firebase/firestore";
 import { RoleType } from "../../interface/modelInterfaces";
 import {
@@ -33,8 +28,6 @@ import {
 import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
-import { DEFAULT_COURSE_IDS } from "../../common/constants";
-import Language from "../../models/language";
 import { getApp } from "firebase/app";
 
 export class FirebaseAuth implements ServiceAuth {
@@ -42,7 +35,7 @@ export class FirebaseAuth implements ServiceAuth {
   private _currentUser: User | undefined;
 
   private _db = getFirestore();
-  private _auth = FirebaseAuth.whichAuth();
+  private _auth = getAuth(); //FirebaseAuth.whichAuth();
 
   private constructor() {}
 
@@ -53,19 +46,17 @@ export class FirebaseAuth implements ServiceAuth {
     return FirebaseAuth.i;
   }
 
-  public static whichAuth() {
-    let auth;
-    if (Capacitor.isNativePlatform()) {
-      auth = initializeAuth(getApp(), {
-        persistence: indexedDBLocalPersistence,
-      });
-    } else {
-      auth = getAuth(getApp());
-    }
-    return auth;
-  }
-
-  // export const auth = whichAuth();
+  // public static whichAuth() {
+  //   let auth;
+  //   if (Capacitor.isNativePlatform()) {
+  //     auth = initializeAuth(getApp(), {
+  //       persistence: indexedDBLocalPersistence,
+  //     });
+  //   } else {
+  //     auth = getAuth(getApp());
+  //   }
+  //   return auth;
+  // }
 
   public async googleSign(): Promise<boolean> {
     try {
@@ -264,7 +255,7 @@ export class FirebaseAuth implements ServiceAuth {
       console.log("credential", this._auth, credential);
 
       let res = await signInWithCredential(this._auth, credential);
-      console.log("signInWithCredential Success!", res.user);
+      console.log("signInWithCredential Success!", res);
       // Success!
 
       const user = res.user;
@@ -306,13 +297,18 @@ export class FirebaseAuth implements ServiceAuth {
       //   console.log("created user", u);
       // } else {
       const tempUserDoc = await getDoc(userRef);
-      console.log("tempUserDoc", tempUserDoc);
-      // if (!tempUserDoc.exists) {
-      let u = await this._createUserDoc(userData);
-      console.log("created user", u);
-      // } else {
-      //   this._currentUser = tempUserDoc.data() as User;
-      // }
+      console.log(
+        "tempUserDoc",
+        tempUserDoc,
+        tempUserDoc.exists(),
+        !tempUserDoc.exists()
+      );
+      if (!tempUserDoc.exists()) {
+        let u = await this._createUserDoc(userData);
+        console.log("created user", u);
+      } else {
+        this._currentUser = tempUserDoc.data() as User;
+      }
       // }
 
       return true;
