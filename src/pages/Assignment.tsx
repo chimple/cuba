@@ -84,7 +84,6 @@ const AssignmentPage: React.FC = () => {
             onClicked={() => {
               history.replace(PAGES.HOME);
             }}
-            iconSize="8vh"
           />
           <div>{currentClass?.name ? currentClass?.name : ""}</div>
           <div className="right-button"></div>
