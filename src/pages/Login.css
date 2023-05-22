@@ -125,3 +125,10 @@ p {
   height: 38px;
   width: auto;
 }
+
+#custom-loading {
+  --background: #e3edff;
+  --spinner-color: white;
+
+  color: white;
+}

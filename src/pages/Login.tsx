@@ -1,4 +1,4 @@
-import { IonPage } from "@ionic/react";
+import { IonLoading, IonPage } from "@ionic/react";
 import { useEffect, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
@@ -10,6 +10,8 @@ import React from "react";
 import Loading from "../components/Loading";
 import { ConfirmationResult, RecaptchaVerifier, getAuth } from "@firebase/auth";
 import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
+import { BackgroundMode } from "@awesome-cordova-plugins/background-mode";
+import { FirebaseAuth } from "../services/auth/FirebaseAuth";
 
 const Login: React.FC = () => {
   const history = useHistory();
@@ -17,14 +19,17 @@ const Login: React.FC = () => {
   const [showVerification, setShowVerification] = useState<boolean>(false);
   const [showNameInput, setShowNameInput] = useState<boolean>(false);
   const [verificationCode, setVerificationCode] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("+919553642967"); // Example: "+12133734253".
+  const [phoneNumber, setPhoneNumber] = useState("+91"); // Example: "+919553642967".
   const [recaptchaVerifier, setRecaptchaVerifier] =
     useState<RecaptchaVerifier>();
   const [phoneNumberSigninRes, setPhoneNumberSigninRes] = useState<
     ConfirmationResult | SignInWithPhoneNumberResult
   >();
+  const [userData, setUserData] = useState<any>();
 
   const authInstance = ServiceConfig.getI().authHandler;
+  let displayName: string;
+  const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const authHandler = ServiceConfig.getI().authHandler;
@@ -46,42 +51,46 @@ const Login: React.FC = () => {
         console.log("navigating to app lang");
         history.replace(PAGES.HOME);
       }
-      // else {
-      //   console.log("navigating to home");
-      //   history.replace(PAGES.HOME);
-      // }
     });
     if (!recaptchaVerifier && !Capacitor.isNativePlatform()) {
       // Note: The 'recaptcha-container' must be rendered by this point, or
       // else Firebase throws 'auth/argument-error'
       const auth = getAuth();
-      
-      setTimeout(() => {
-        const rv = new RecaptchaVerifier(
-          "recaptcha-container",
-          { size: "invisible" },
-          auth
-        );
-        setRecaptchaVerifier(rv);
-      }, 2000);
+
+      const rv = new RecaptchaVerifier(
+        "recaptcha-container",
+        { size: "invisible" },
+        auth
+      );
+      setRecaptchaVerifier(rv);
     }
   }, [recaptchaVerifier]);
 
   const onPhoneNumberSubmit = async () => {
-    setIsLoading(true);
+    // setIsLoading(true);
+    if (phoneNumber.length <= 10) {
+      setSpinnerLoading(false);
+      alert("Phone Number Invalid");
+      return;
+    }
+    BackgroundMode.enable();
+    console.log("onPhoneNumberSubmit called ", phoneNumber, recaptchaVerifier);
     let authRes = await authInstance.phoneNumberSignIn(
       phoneNumber,
       recaptchaVerifier
     );
     console.log("verificationIdRes", authRes?.verificationId);
+    BackgroundMode.disable();
 
     if (authRes) {
       setPhoneNumberSigninRes(authRes);
       setShowVerification(true);
-      setIsLoading(false);
+      setSpinnerLoading(false);
+      // setIsLoading(false);
     } else {
       console.log("Phone Number signin Failed");
-      alert("Phone Number signin Failed");
+      setSpinnerLoading(false);
+      alert("Phone Number signin Failed" + authRes);
     }
   };
 
@@ -91,10 +100,12 @@ const Login: React.FC = () => {
       phoneNumberSigninRes,
       verificationCode
     );
-    console.log("login res", res);
+    setUserData(res);
+    console.log("login User Data ", res, userData);
 
     if (res) {
       setIsLoading(false);
+      setShowNameInput(true);
     } else {
       setIsLoading(false);
       console.log("Verification Failed");
@@ -119,36 +130,40 @@ const Login: React.FC = () => {
           <div id="chimple-brand-text2">
             <br />
           </div>
-          <div id="recaptcha-container" />
           {!showVerification ? (
             <div>
-              <div>
-                <div id="login-text-box">
-                  <TextBox
-                    inputText={"Enter your Phone Number"}
-                    inputType={"tel"}
-                    maxLength={10}
-                    onChange={(input) => {
-                      if (input.detail.value) {
-                        setPhoneNumber("+91" + input.detail.value);
-                        console.log("+91" + input.detail.value);
-                      }
-                    }}
-                  ></TextBox>
-                  <div id="recaptcha-container" />
-                </div>
-
-                <div
-                  id="login-continue-button"
-                  onClick={() => {
-                    // recaptchaVerifier.render();
-                    onPhoneNumberSubmit();
-                    // history.push(PAGES.PARENT);
+              <div id="recaptcha-container" />
+              <div id="login-text-box">
+                <TextBox
+                  inputText={"Enter your Phone Number"}
+                  inputType={"tel"}
+                  maxLength={10}
+                  onChange={(input) => {
+                    if (input.detail.value) {
+                      setPhoneNumber("+91" + input.detail.value);
+                      console.log("+91" + input.detail.value);
+                    }
                   }}
-                >
-                  Sent the OTP
-                </div>
+                ></TextBox>
               </div>
+
+              <div
+                id="login-continue-button"
+                onClick={() => {
+                  setSpinnerLoading(true);
+                  onPhoneNumberSubmit();
+                }}
+              >
+                Sent the OTP
+              </div>
+              <IonLoading
+                id="custom-loading"
+                // trigger="open-loading"
+                message="Loading"
+                // duration={3000}
+                isOpen={spinnerLoading}
+              />
+
               <div id="Google-horizontal-line"></div>
               <div id="Google-horizontal-line2"></div>
               <div id="login-google-icon-text"> Continue with Google</div>
@@ -178,7 +193,6 @@ const Login: React.FC = () => {
                   }
                 }}
               />
-              <div id="recaptcha-container" />
             </div>
           ) : !showNameInput ? (
             <div>
@@ -194,7 +208,6 @@ const Login: React.FC = () => {
                     }
                   }}
                 ></TextBox>
-                <div id="recaptcha-container" />
               </div>
               <div
                 id="login-continue-button"
@@ -205,7 +218,6 @@ const Login: React.FC = () => {
               >
                 Get Started
               </div>
-              <div id="recaptcha-container" />
             </div>
           ) : (
             <div>
@@ -216,30 +228,32 @@ const Login: React.FC = () => {
                   maxLength={54}
                   onChange={(input) => {
                     if (input.detail.value) {
-                      setVerificationCode("" + input.detail.value);
                       console.log("" + input.detail.value);
+                      displayName = input.detail.value;
                     }
                   }}
                 ></TextBox>
-                <div id="recaptcha-container" />
               </div>
               <div
                 id="login-continue-button"
-                onClick={() => {
-                  // onVerificationCodeSubmit();
-                  history.push(PAGES.DISPLAY_STUDENT);
+                onClick={async () => {
+                  setUserData((userData.displayName = displayName));
+                  let res = await FirebaseAuth.i.createPhoneAuthUser(
+                    userData,
+                    phoneNumberSigninRes
+                  );
+                  if (res) {
+                    history.push(PAGES.DISPLAY_STUDENT);
+                  }
                 }}
               >
                 Enter Chimple APP
               </div>
-              <div id="recaptcha-container" />
             </div>
           )}
         </div>
       ) : null}
       <Loading isLoading={isLoading} />
-      {/* </IonInfiniteScrollContent> */}
-      {/* </IonInfiniteScroll> */}
     </IonPage>
   );
 };

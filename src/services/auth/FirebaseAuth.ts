@@ -4,6 +4,8 @@ import {
   GoogleAuthProvider,
   PhoneAuthProvider,
   getAuth,
+  indexedDBLocalPersistence,
+  initializeAuth,
   signInWithCredential,
   signInWithPhoneNumber,
 } from "firebase/auth";
@@ -25,19 +27,22 @@ import {
   FirebaseAuthentication,
   SignInWithPhoneNumberResult,
 } from "@capacitor-firebase/authentication";
+// import { cfaSignIn } from "capacitor-firebase-auth-x";
+// import { FirebaseAuthentication } from "@awesome-cordova-plugins/firebase-authentication";
 // import { getFirebaseAuth } from "../Firebase";
 import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { DEFAULT_COURSE_IDS } from "../../common/constants";
 import Language from "../../models/language";
+import { getApp } from "firebase/app";
 
 export class FirebaseAuth implements ServiceAuth {
   public static i: FirebaseAuth;
   private _currentUser: User | undefined;
 
   private _db = getFirestore();
-  private _auth = getAuth();
+  private _auth = FirebaseAuth.whichAuth();
 
   private constructor() {}
 
@@ -47,6 +52,20 @@ export class FirebaseAuth implements ServiceAuth {
     }
     return FirebaseAuth.i;
   }
+
+  public static whichAuth() {
+    let auth;
+    if (Capacitor.isNativePlatform()) {
+      auth = initializeAuth(getApp(), {
+        persistence: indexedDBLocalPersistence,
+      });
+    } else {
+      auth = getAuth(getApp());
+    }
+    return auth;
+  }
+
+  // export const auth = whichAuth();
 
   public async googleSign(): Promise<boolean> {
     try {
@@ -115,11 +134,18 @@ export class FirebaseAuth implements ServiceAuth {
 
   public async getCurrentUser(): Promise<User | undefined> {
     if (this._currentUser) return this._currentUser;
-    const currentUser = (await FirebaseAuthentication.getCurrentUser()).user;
+    let currentUser: any = (await FirebaseAuthentication.getCurrentUser()).user;
+    console.log("let currentUser", currentUser);
+
+    if (!currentUser) {
+      currentUser = getAuth().currentUser;
+      console.log("currentUser in if (!currentUser) {", currentUser);
+    }
     if (!currentUser) return;
     const tempUserDoc = await getDoc(doc(this._db, "User", currentUser.uid));
-    this._currentUser = tempUserDoc.data() as User;
+    this._currentUser = (tempUserDoc.data() || tempUserDoc) as User;
     this._currentUser.docId = tempUserDoc.id;
+    console.log("this._currentUser", this._currentUser);
     return this._currentUser;
   }
 
@@ -137,16 +163,60 @@ export class FirebaseAuth implements ServiceAuth {
     try {
       let verificationId;
       console.log(
-        "onclick phone Numver",
+        "onclick phone Number",
         phoneNumber,
         Capacitor.isNativePlatform()
       );
       let result: ConfirmationResult | SignInWithPhoneNumberResult;
       if (Capacitor.isNativePlatform()) {
+        console.log("if (Capacitor.isNativePlatform()) {");
+        // let res = await FirebaseAuthentication.verifyPhoneNumber(
+        //   phoneNumber,
+        //   0
+        // ).then((verificationId) => {
+        //   console.log("in then verificationId", verificationId, res);
+        // });
+
         result = await FirebaseAuthentication.signInWithPhoneNumber({
           phoneNumber,
         });
-        console.log("if (Capacitor.isNativePlatform()) { result ", result);
+        App.addListener("appStateChange", Util.onAppStateChange);
+
+        // .then((verificationId) => {
+        //   console.log("verificationId in verifyphonenumber", verificationId);
+
+        //   // var code = prompt("Enter verification code");
+        //   // if (code) {
+        //   FirebaseAuthentication.signInWithVerificationId(
+        //     verificationId,
+        //     "code"
+        //   );
+        //   // }
+        // })
+        // .catch((err) => {
+        //   console.error("Phone number verification failed", err);
+        // });
+
+        // result = cfaSignIn("phone", { phone: phoneNumber }).subscribe((user) =>
+        //   console.log(user.phoneNumber)
+        // );
+        // // Android and iOS
+        // cfaSignInPhoneOnCodeSent().subscribe((verificationId) => {
+        //   console.log(verificationId);
+        // });
+        // // Android Only
+        // cfaSignInPhoneOnCodeReceived().subscribe(
+        //   (event: { verificationId: string; verificationCode: string }) => {
+        //     console.log(`${event.verificationId}:${event.verificationCode}`);
+        //     return event;
+        //   }
+        // );
+        // result = await FirebaseAuthentication.signInWithPhoneNumber({
+        //   phoneNumber,
+        // });
+        // console.log("if (Capacitor.isNativePlatform()) { result ", result);
+        console.log("FirebaseAuthentication.verifyPhoneNumber res", result);
+        return result;
       } else {
         result = await signInWithPhoneNumber(
           this._auth,
@@ -154,14 +224,15 @@ export class FirebaseAuth implements ServiceAuth {
           recaptchaVerifier
         );
         console.log("else result ", result);
+        verificationId = result?.verificationId;
+        console.log("verificationId ", verificationId);
+        return result;
       }
-      verificationId = result?.verificationId;
-      console.log("verificationId ", verificationId);
+
       // if (verificationId) {
       //   console.log("verificationId if ");
       //   proceedWithVerificationCode(verificationId);
       // }
-      return result;
     } catch (error) {
       console.log(
         "🚀 ~ file: FirebaseAuth.ts:167 ~ FirebaseAuth ~ phoneNumberSignin ~ error:",
@@ -174,12 +245,12 @@ export class FirebaseAuth implements ServiceAuth {
   public async proceedWithVerificationCode(
     result,
     verificationCode
-  ): Promise<boolean> {
+  ): Promise<any> {
     try {
       // const verificationCode = e.detail.data.values[0];
       console.log("verificationCode", verificationCode);
       if (!verificationCode || !result || verificationCode.length < 6) {
-        return false;
+        return;
       }
       const credential = PhoneAuthProvider.credential(
         result.verificationId!,
@@ -188,41 +259,75 @@ export class FirebaseAuth implements ServiceAuth {
       console.log("credential", this._auth, credential);
 
       let res = await signInWithCredential(this._auth, credential);
-      console.log("signInWithCredential Success!", res);
-      // history.replace(PAGES.DISPLAY_STUDENT);
+      console.log("signInWithCredential Success!", res.user);
       // Success!
 
       const user = res.user;
       console.log("res user", user);
-      const userRef = doc(this._db, "User", user.uid);
-      // if (res.additionalUserInfo?.isNewUser) {
-      //   await this._createUserDoc(user);
-      // } else {
-      console.log("userRef", userRef);
-      const tempUserDoc = await getDoc(userRef);
-      console.log("tempUserDoc", tempUserDoc);
-      if (!tempUserDoc.exists) {
-        let u = await this._createUserDoc(user);
-        console.log("u", u);
-      } else {
-        this._currentUser = tempUserDoc.data() as User;
-        console.log("this._currentUser", tempUserDoc.data() as User);
-      }
-      // }
-      // App.addListener("appStateChange", Util.onAppStateChange);
-      
-      return true;
+      // const userRef = doc(this._db, "User", user.uid);
+      // // if (res.additionalUserInfo?.isNewUser) {
+      // //   await this._createUserDoc(user);
+      // // } else {
+      // console.log("userRef", userRef);
+      // const tempUserDoc = await getDoc(userRef);
+      // console.log("tempUserDoc", tempUserDoc);
+      // // if (tempUserDoc.exists()) {
+      // let u = await this._createUserDoc(user);
+      // console.log("created user", u);
+      // // } else {
+      // //   this._currentUser = tempUserDoc.data() as User;
+      // //   console.log("this._currentUser", tempUserDoc.data() as User);
+      // // }
+      // // }
+      // // // App.addListener("appStateChange", Util.onAppStateChange);
+
+      return user;
     } catch (err) {
       // Failure!
       console.log("signInWithCredential Failure!", err);
+      return;
+    }
+  }
+
+  public async createPhoneAuthUser(userData, result): Promise<any> {
+    try {
+      const additionalUserInfo = result.additionalUserInfo;
+      // const additionalUserInfo = getAdditionalUserInfo(result)
+      if (!userData) return false;
+      const userRef = doc(this._db, "User", userData.uid);
+      console.log("userRef", userRef);
+      if (additionalUserInfo?.isNewUser) {
+        let u = await this._createUserDoc(userData);
+        console.log("created user", u);
+      } else {
+        const tempUserDoc = await getDoc(userRef);
+        console.log("tempUserDoc", tempUserDoc);
+        if (!tempUserDoc.exists) {
+          let u = await this._createUserDoc(userData);
+          console.log("created user", u);
+        } else {
+          this._currentUser = tempUserDoc.data() as User;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.log("User Creation Failed!", error);
       return false;
     }
   }
 
   async isUserLoggedIn(): Promise<boolean> {
+    console.log("isUserLoggedIn entred");
+
     const user = await this.getCurrentUser();
+    console.log("isUserLoggedIn user", user, !!user);
     if (!!user) return true;
-    if (!user && Capacitor.isNativePlatform()) return false;
+    console.log(
+      "isUserLoggedIn !user && Capacitor.isNativePlatform()",
+      !user,
+      !user && Capacitor.isNativePlatform()
+    );
     for (var i = 0; i < 10; i++) {
       await new Promise((res) => setTimeout(res, 100));
       const user = await this.getCurrentUser();
@@ -230,8 +335,10 @@ export class FirebaseAuth implements ServiceAuth {
         "🚀 ~ file: FirebaseAuth.ts:146 ~ FirebaseAuth ~ isUserLoggedIn ~ user:",
         user
       );
-      if (!!user) return true;
+
+      if (!user && Capacitor.isNativePlatform()) return false;
     }
+
     return false;
   }
 
