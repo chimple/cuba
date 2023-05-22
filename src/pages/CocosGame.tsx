@@ -10,7 +10,6 @@ import {
   lessonEndData,
 } from "../common/courseConstants";
 import { ServiceConfig } from "../services/ServiceConfig";
-import Course from "../models/course";
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -99,7 +98,7 @@ const CocosGame: React.FC = () => {
       if (!tempAssignmentCompletedIds) {
         assignmentCompletedIds = {};
       } else {
-        assignmentCompletedIds = JSON.parse(assignmentCompletedIds);
+        assignmentCompletedIds = JSON.parse(tempAssignmentCompletedIds);
       }
       if (!assignmentCompletedIds[api.currentStudent?.docId!]) {
         assignmentCompletedIds[api.currentStudent?.docId!] = [];
