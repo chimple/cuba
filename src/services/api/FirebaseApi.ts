@@ -121,6 +121,8 @@ export class FirebaseApi implements ServiceApi {
         dateLastModified: Timestamp.now(),
       }
     );
+    if (!_currentUser.users) _currentUser.users = [];
+    _currentUser.users.push(studentDoc);
     return student;
   }
 
