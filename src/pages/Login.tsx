@@ -18,14 +18,14 @@ const Login: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showVerification, setShowVerification] = useState<boolean>(false);
   const [showNameInput, setShowNameInput] = useState<boolean>(false);
-  const [verificationCode, setVerificationCode] = useState("");
+  const [verificationCode, setVerificationCode] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState("+91"); // Example: "+919553642967".
   const [recaptchaVerifier, setRecaptchaVerifier] =
     useState<RecaptchaVerifier>();
   const [phoneNumberSigninRes, setPhoneNumberSigninRes] = useState<
     ConfirmationResult | SignInWithPhoneNumberResult
   >();
-  const [userData, setUserData] = useState<any>();
+  const [userData, setUserData] = useState<any>("");
 
   const authInstance = ServiceConfig.getI().authHandler;
   let displayName: string;
@@ -100,6 +100,7 @@ const Login: React.FC = () => {
       phoneNumberSigninRes,
       verificationCode
     );
+    console.log("login User Data ", res, userData);
     setUserData(res);
     console.log("login User Data ", res, userData);
 

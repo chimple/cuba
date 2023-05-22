@@ -144,8 +144,13 @@ export class FirebaseAuth implements ServiceAuth {
     if (!currentUser) return;
     const tempUserDoc = await getDoc(doc(this._db, "User", currentUser.uid));
     this._currentUser = (tempUserDoc.data() || tempUserDoc) as User;
+    console.log(
+      "currentUser in if (!currentUser) {",
+      tempUserDoc,
+      this._currentUser
+    );
     this._currentUser.docId = tempUserDoc.id;
-    console.log("this._currentUser", this._currentUser);
+    console.log("currentUser in if (!currentUser) {", currentUser);
     return this._currentUser;
   }
 
@@ -296,19 +301,19 @@ export class FirebaseAuth implements ServiceAuth {
       if (!userData) return false;
       const userRef = doc(this._db, "User", userData.uid);
       console.log("userRef", userRef);
-      if (additionalUserInfo?.isNewUser) {
-        let u = await this._createUserDoc(userData);
-        console.log("created user", u);
-      } else {
-        const tempUserDoc = await getDoc(userRef);
-        console.log("tempUserDoc", tempUserDoc);
-        if (!tempUserDoc.exists) {
-          let u = await this._createUserDoc(userData);
-          console.log("created user", u);
-        } else {
-          this._currentUser = tempUserDoc.data() as User;
-        }
-      }
+      // if (additionalUserInfo?.isNewUser) {
+      //   let u = await this._createUserDoc(userData);
+      //   console.log("created user", u);
+      // } else {
+      const tempUserDoc = await getDoc(userRef);
+      console.log("tempUserDoc", tempUserDoc);
+      // if (!tempUserDoc.exists) {
+      let u = await this._createUserDoc(userData);
+      console.log("created user", u);
+      // } else {
+      //   this._currentUser = tempUserDoc.data() as User;
+      // }
+      // }
 
       return true;
     } catch (error) {
@@ -328,6 +333,8 @@ export class FirebaseAuth implements ServiceAuth {
       !user,
       !user && Capacitor.isNativePlatform()
     );
+    // if (!user && Capacitor.isNativePlatform()) return false;
+
     for (var i = 0; i < 10; i++) {
       await new Promise((res) => setTimeout(res, 100));
       const user = await this.getCurrentUser();
@@ -335,10 +342,8 @@ export class FirebaseAuth implements ServiceAuth {
         "🚀 ~ file: FirebaseAuth.ts:146 ~ FirebaseAuth ~ isUserLoggedIn ~ user:",
         user
       );
-
-      if (!user && Capacitor.isNativePlatform()) return false;
     }
-
+    if (!user && Capacitor.isNativePlatform()) return false;
     return false;
   }
 
