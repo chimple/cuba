@@ -26,7 +26,7 @@ ion-label {
 }
 
 /* ion-item{
-    font-size: var(--text-size) !important
+    font-size: var(--text-size) ! important
 } */
 
 
@@ -40,8 +40,13 @@ ion-label {
     border-radius: 1.5vh;
 }
 
-:host {
-    --width:26vw!important;
-    --offset-x: -17px!important;
-    --offset-y: 0px!important;
-   }
+  ion-popover {
+    --width:26.5vw;
+    --offset-x: -5px;
+    border-radius: 10px;
+    border: 0.5px solid black;
+    --background: rgba(40, 173, 218, 0.6);
+    --backdrop-opacity: 0.6;
+    --box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.6);
+    --color: black;
+}

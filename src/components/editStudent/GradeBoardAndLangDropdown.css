@@ -25,9 +25,9 @@ ion-popover {
   margin: 0;
   display: flex;
   flex-direction: row;
-  justify-content:space-around;
+  justify-content:space-evenly;
   align-items: center;
-  height: min(80vh, 20vh);
+  height: min(80vh, 15vh);
   align-content: flex-start;
 }
 ion-list {
