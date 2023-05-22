@@ -113,7 +113,7 @@ function SearchLesson() {
     <div className="search-container">
       <div className="search-header">
         <BackButton
-          iconSize="8vh"
+          //  iconSize="8vh"
           onClicked={() => {
             history.replace(PAGES.HOME);
           }}

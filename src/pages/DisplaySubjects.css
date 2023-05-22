@@ -1,13 +1,15 @@
 .back-button {
-  width: min(10vh, 60px);
-  height: min(10vh, 60px);
+  width: clamp(30px,15vh,50px);
+  height: clamp(30px,15vh,50px); 
   color: var(--text-color);
   cursor: pointer;
+  
 }
 
 .subjects-header {
   display: flex;
   /* margin-top: 1vh; */
+  margin: clamp(10px,10vh,20px);
   justify-content: space-between;
   align-items: center;
 }

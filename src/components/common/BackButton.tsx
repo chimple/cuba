@@ -2,13 +2,13 @@ import "./BackButton.css";
 import { IoIosArrowBack } from "react-icons/io";
 
 const BackButton: React.FC<{
-  iconSize: string;
+  // iconSize: string;
   onClicked: React.MouseEventHandler<SVGElement>;
-}> = ({ iconSize, onClicked }) => {
+}> = ({  onClicked }) => {
   return (
     <IoIosArrowBack
       id="common-back-button"
-      size={iconSize}
+      // size={iconSize}
       onClick={onClicked}
     ></IoIosArrowBack>
   );
