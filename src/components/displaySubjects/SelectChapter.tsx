@@ -16,10 +16,14 @@ const SelectChapter: FC<{
       <div className="grade-container">
         <DropDown
           currentValue={currentGrade.title}
-          optionList={grades.map((grade) => grade.title)}
+          optionList={grades.map((grade) => ({
+            displayName: grade.title,
+            id: grade.docId,
+          }))}
+          placeholder=""
           onValueChange={(evt) => {
             const tempGrade = grades.find(
-              (grade) => grade.title === evt.detail.value
+              (grade) => grade.docId === evt.detail.value
             );
             onGradeChange(tempGrade ?? currentGrade);
           }}

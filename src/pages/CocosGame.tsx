@@ -76,7 +76,7 @@ const CocosGame: React.FC = () => {
       console.log("🚀 ~ file: CocosGame.tsx:76 ~ saveTempData ~ e:", e);
       const data = e.detail as lessonEndData;
       const result = await api.updateResult(
-        api.currentStudent,
+        api.currentStudent!,
         courseDocId,
         lesson.docId,
         data.score,

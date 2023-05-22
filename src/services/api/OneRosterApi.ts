@@ -92,10 +92,10 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  get currentStudent(): User {
+  get currentStudent(): User | undefined {
     throw new Error("Method not implemented.");
   }
-  set currentStudent(value: User) {
+  set currentStudent(value: User | undefined) {
     throw new Error("Method not implemented.");
   }
   createProfile(

@@ -39,6 +39,9 @@
     font-size: var(--text-size);
     height: 7vh;
     max-height: 50px;
+    min-height: 5vh;
+    margin-top: 3vh;
+    margin-right: 2vw;
 }
 
 .app-lang-arrow-icon {

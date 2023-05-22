@@ -29,6 +29,7 @@ import RectangularOutlineDropDown from "../components/parent/RectangularOutlineD
 import i18n from "../i18n";
 import Language from "../models/language";
 import { ServiceConfig } from "../services/ServiceConfig";
+import ParentLogout from "../components/parent/ParentLogout";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 
@@ -38,11 +39,17 @@ const Parent: React.FC = () => {
   const [soundFlag, setSoundFlag] = useState<boolean>();
   const [musicFlag, setMusicFlag] = useState<boolean>();
   const [userProfile, setUserProfile] = useState<any[]>([]);
-  const [langList, setLangList] = useState<string[]>([]);
+  const [langList, setLangList] = useState<{
+    id: string;
+    displayName: string;
+  }[]>([]);
   const [langDocIds, setLangDocIds] = useState<Map<string, string>>(new Map());
   const [currentAppLang, setCurrentAppLang] = useState<string>();
 
-  let tempLangList: string[] = [];
+  let tempLangList: {
+    id: string;
+    displayName: string;
+  }[] = [];
   // let langDocIds: Map<string, string> = new Map();
   const localAppLang = localStorage.getItem(APP_LANG);
 
@@ -64,7 +71,10 @@ const Parent: React.FC = () => {
       let keytempLangDocIds: Map<string, string> = new Map();
       for (let i = 0; i < allLang.length; i++) {
         const element = allLang[i];
-        tempLangList.push(element.title);
+        tempLangList.push({
+          id: element.docId,
+          displayName: element.title,
+        });
         tempLangDocIds.set(element.title, element.docId);
         keytempLangDocIds.set(element.docId, element.title);
       }
@@ -124,70 +134,80 @@ const Parent: React.FC = () => {
 
   function settingUI() {
     return (
-      <div id="parent-page-setting">
-        <div id="parent-page-setting-div">
-          <p id="parent-page-setting-lang-text">Language</p>
-          <RectangularOutlineDropDown
-            optionList={langList}
-            currentValue={currentAppLang || langList[0]}
-            width="26vw"
-            onValueChange={async (selectedLang) => {
-              console.log("selected Langauage", selectedLang.detail.value);
-              const tempLangCode: string =
-                selectedLang.detail.value ?? LANG.ENGLISH;
-              setCurrentAppLang(selectedLang.detail.value);
-              console.log("UI Lang", selectedLang.detail.value, currentAppLang);
-              await i18n.changeLanguage(tempLangCode);
-              const currentUser =
-                await ServiceConfig.getI().authHandler.getCurrentUser();
-
-              const langId = langDocIds.get(selectedLang.detail.value);
-
-              if (currentUser && langId) {
-                ServiceConfig.getI().apiHandler.updateLanguage(
-                  currentUser,
-                  langId
+      <div>
+        <div id="parent-page-setting">
+          <div id="parent-page-setting-div">
+            <p id="parent-page-setting-lang-text">Language</p>
+            <RectangularOutlineDropDown
+            placeholder=""
+              optionList={langList}
+              currentValue={currentAppLang || langList[0].id}
+              width="26vw"
+              onValueChange={async (selectedLang) => {
+                console.log("selected Langauage", selectedLang.detail.value);
+                const tempLangCode: string =
+                  selectedLang.detail.value ?? LANG.ENGLISH;
+                setCurrentAppLang(selectedLang.detail.value);
+                console.log(
+                  "UI Lang",
+                  selectedLang.detail.value,
+                  currentAppLang
                 );
-              }
-            }}
-          ></RectangularOutlineDropDown>
+                await i18n.changeLanguage(tempLangCode);
+                const currentUser =
+                  await ServiceConfig.getI().authHandler.getCurrentUser();
+
+                const langId = langDocIds.get(selectedLang.detail.value);
+
+                if (currentUser && langId) {
+                  ServiceConfig.getI().apiHandler.updateLanguage(
+                    currentUser,
+                    langId
+                  );
+                }
+              }}
+            ></RectangularOutlineDropDown>
+          </div>
+          <div id="parent-page-setting-div">
+            <ToggleButton
+              flag={soundFlag!}
+              title="Sound"
+              onIonChangeClick={async (v) => {
+                console.log("ion change value ", v.detail.checked);
+                setSoundFlag(v.detail.checked);
+                const currentUser =
+                  await ServiceConfig.getI().authHandler.getCurrentUser();
+
+                if (currentUser) {
+                  ServiceConfig.getI().apiHandler.updateSoundFlag(
+                    currentUser,
+                    v.detail.checked
+                  );
+                }
+              }}
+            ></ToggleButton>
+
+            <ToggleButton
+              flag={musicFlag!}
+              title="Music"
+              onIonChangeClick={async (v) => {
+                console.log("ion change value ", v.detail.checked);
+                setMusicFlag(v.detail.checked);
+                const currentUser =
+                  await ServiceConfig.getI().authHandler.getCurrentUser();
+
+                if (currentUser) {
+                  ServiceConfig.getI().apiHandler.updateMusicFlag(
+                    currentUser,
+                    v.detail.checked
+                  );
+                }
+              }}
+            ></ToggleButton>
+          </div>
         </div>
-        <div id="parent-page-setting-div">
-          <ToggleButton
-            flag={soundFlag!}
-            title="Sound"
-            onIonChangeClick={async (v) => {
-              console.log("ion change value ", v.detail.checked);
-              setSoundFlag(v.detail.checked);
-              const currentUser =
-                await ServiceConfig.getI().authHandler.getCurrentUser();
-
-              if (currentUser) {
-                ServiceConfig.getI().apiHandler.updateSoundFlag(
-                  currentUser,
-                  v.detail.checked
-                );
-              }
-            }}
-          ></ToggleButton>
-
-          <ToggleButton
-            flag={musicFlag!}
-            title="Music"
-            onIonChangeClick={async (v) => {
-              console.log("ion change value ", v.detail.checked);
-              setMusicFlag(v.detail.checked);
-              const currentUser =
-                await ServiceConfig.getI().authHandler.getCurrentUser();
-
-              if (currentUser) {
-                ServiceConfig.getI().apiHandler.updateMusicFlag(
-                  currentUser,
-                  v.detail.checked
-                );
-              }
-            }}
-          ></ToggleButton>
+        <div id="parent-logout">
+          <ParentLogout />
         </div>
       </div>
     );

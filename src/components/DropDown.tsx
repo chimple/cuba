@@ -2,16 +2,23 @@ import { IonList, IonItem, IonSelect, IonSelectOption } from "@ionic/react";
 import "./DropDown.css";
 
 const DropDown: React.FC<{
-  optionList: string[];
-  currentValue: string;
+  optionList:  {
+    id: string;
+    displayName: string;
+  }[];
+  currentValue: string| undefined;
   onValueChange;
+  placeholder:string |undefined;
   width: string;
-}> = ({ optionList, currentValue, onValueChange, width }) => {
+}> = ({ optionList, currentValue, onValueChange, width,placeholder }) => {
   return (
     <IonList mode="ios">
       <IonItem id="drop-down" lines="none" fill="outline" mode="ios">
         <IonSelect
-          onIonChange={onValueChange}
+          onIonChange={(evt)=>{
+            onValueChange(evt.detail.value);
+          }}
+          placeholder={placeholder??""}
           interface="popover"
           value={currentValue}
           // aria-label="Fruit"
@@ -24,7 +31,7 @@ const DropDown: React.FC<{
           }}
         >
           {optionList.map((option, index) => (
-            <IonSelectOption key={index} value={option}>{option}</IonSelectOption>
+            <IonSelectOption key={index} value={option.id}>{option.displayName}</IonSelectOption>
           ))}
         </IonSelect>
       </IonItem>

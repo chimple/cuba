@@ -5,6 +5,7 @@ import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
 import Language from "../../models/language";
 import { t } from "i18next";
+import RectangularOutlineDropDown from "../parent/RectangularOutlineDropDown";
 
 const GradeBoardAndLangDropdown: FC<{
   boards: Curriculum[] | undefined;
@@ -31,6 +32,7 @@ const GradeBoardAndLangDropdown: FC<{
     displayName: cur.title,
     id: cur.docId,
   }));
+  const boardOptions1 = boards?.map((cur) => cur.title);
   const gradeOptions = grades?.map((cur) => ({
     displayName: cur.title,
     id: cur.docId,
@@ -41,23 +43,29 @@ const GradeBoardAndLangDropdown: FC<{
   }));
   return (
     <div className="dropdown-header">
-      <CustomDropdown
-        currentlySelected={currentlySelectedBoard}
-        placeholder={t("Select Board")}
-        options={boardOptions ?? []}
-        onDropdownChange={onBoardChange}
+      <RectangularOutlineDropDown
+      currentValue={currentlySelectedBoard!}
+        // currentlySelected={currentlySelectedBoard}
+        placeholder={t("Select Board").toString()}
+        onValueChange={onBoardChange}
+        optionList={boardOptions??[]}
+        width="26vw"
+        // options={boardOptions ?? []}
+        // onDropdownChange={onBoardChange}
       />
-      <CustomDropdown
-        currentlySelected={currentlySelectedGrade}
-        placeholder={t("Select Grade")}
-        options={gradeOptions ?? []}
-        onDropdownChange={onGradeChange}
+      <RectangularOutlineDropDown
+       currentValue={currentlySelectedGrade!}
+       placeholder={t("Select Grade").toString()}
+       onValueChange={onGradeChange}
+       optionList={gradeOptions??[]}
+       width="26vw"
       />
-      <CustomDropdown
-        currentlySelected={currentlySelectedLang}
-        placeholder={t("Medium of Instructions")}
-        options={languageOptions ?? []}
-        onDropdownChange={onLangChange}
+      <RectangularOutlineDropDown
+       currentValue={currentlySelectedLang}
+       placeholder={t("Medium of Instruction").toString()}
+        onValueChange={onLangChange}
+        optionList={languageOptions??[]}
+        width="26vw"
       />
     </div>
   );
