@@ -13,6 +13,8 @@ import {
   where,
   DocumentData,
   deleteDoc,
+  limit,
+  orderBy,
 } from "firebase/firestore";
 import { ServiceApi } from "./ServiceApi";
 import {
@@ -26,6 +28,7 @@ import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
 import Language from "../../models/language";
 import {
+  ASSIGNMENT_COMPLETED_IDS,
   Chapter,
   CollectionIds,
   StudentLessonResult,
@@ -34,12 +37,18 @@ import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import Result from "../../models/result";
 import Subject from "../../models/subject";
+import { getFunctions, httpsCallable } from "firebase/functions";
+import StudentProfile from "../../models/studentProfile";
+import Class from "../../models/class";
+import Assignment from "../../models/assignment";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
   private _db = getFirestore();
   private _currentStudent: User | undefined;
   private _subjectsCache: { [key: string]: Subject } = {};
+  private _classCache: { [key: string]: Class } = {};
+  private _studentResultCache: { [key: string]: StudentProfile } = {};
 
   private constructor() {}
 
@@ -105,10 +114,13 @@ export class FirebaseApi implements ServiceApi {
       student.toJson()
     );
     student.docId = studentDoc.id;
-    await updateDoc(doc(this._db, `${CollectionIds.USER}/${_currentUser.docId}`), {
-      users: arrayUnion(studentDoc),
-      dateLastModified: Timestamp.now(),
-    });
+    await updateDoc(
+      doc(this._db, `${CollectionIds.USER}/${_currentUser.docId}`),
+      {
+        users: arrayUnion(studentDoc),
+        dateLastModified: Timestamp.now(),
+      }
+    );
     return student;
   }
 
@@ -357,10 +369,14 @@ export class FirebaseApi implements ServiceApi {
     score: number,
     correctMoves: number,
     wrongMoves: number,
-    timeSpent: number
+    timeSpent: number,
+    assignmentId: string | undefined
   ): Promise<Result> {
     const courseRef = courseId
       ? doc(this._db, CollectionIds.COURSE, courseId)
+      : undefined;
+    const assignmentRef = assignmentId
+      ? doc(this._db, CollectionIds.ASSIGNMENT, assignmentId)
       : undefined;
     const lessonRef = doc(this._db, CollectionIds.LESSON, lessonId);
     const studentRef = doc(this._db, CollectionIds.USER, student.docId);
@@ -368,7 +384,7 @@ export class FirebaseApi implements ServiceApi {
       undefined,
       Timestamp.now(),
       Timestamp.now(),
-      undefined,
+      assignmentRef,
       undefined,
       courseRef,
       lessonRef,
@@ -438,8 +454,116 @@ export class FirebaseApi implements ServiceApi {
     const subjectDoc = await getDoc(doc(this._db, CollectionIds.SUBJECT, id));
     if (!subjectDoc.exists) return;
     const subject = subjectDoc.data() as Subject;
+    if (!subject) return;
     subject.docId = id;
     this._subjectsCache[id] = subject;
     return subject;
+  }
+
+  async getDataByInviteCode(inviteCode: number): Promise<any> {
+    const functions = getFunctions();
+    const generateInviteCode = httpsCallable(functions, "GetDataByInviteCode");
+    const result = await generateInviteCode({
+      inviteCode: inviteCode,
+    });
+    return result.data;
+  }
+
+  async linkStudent(inviteCode: number): Promise<any> {
+    const functions = getFunctions();
+    const generateInviteCode = httpsCallable(functions, "LinkStudent");
+    const result = await generateInviteCode({
+      inviteCode: inviteCode,
+      studentId: this._currentStudent?.docId,
+    });
+    return result.data;
+  }
+
+  async getStudentResult(
+    studentId: string,
+    fromCache: boolean = false
+  ): Promise<StudentProfile | undefined> {
+    if (!!this._studentResultCache[studentId] && fromCache)
+      return this._studentResultCache[studentId];
+    const studentProfileDoc = await getDoc(
+      doc(this._db, CollectionIds.STUDENTPROFILE, studentId)
+    );
+    if (!studentProfileDoc.exists) return;
+    const studentProfile = studentProfileDoc.data() as StudentProfile;
+    studentProfile.docId = studentId;
+    this._studentResultCache[studentId] = studentProfile;
+    return studentProfile;
+  }
+
+  async getClassById(id: string): Promise<Class | undefined> {
+    if (!!this._classCache[id]) return this._classCache[id];
+    const classDoc = await getDoc(doc(this._db, CollectionIds.CLASS, id));
+    if (!classDoc.exists) return;
+    const classData = classDoc.data() as Class;
+    classData.docId = id;
+    this._classCache[id] = classData;
+    return classData;
+  }
+
+  async isStudentLinked(
+    studentId: string,
+    fromCache: boolean = false
+  ): Promise<boolean> {
+    try {
+      const result = await this.getStudentResult(studentId, fromCache);
+      if (!result) return false;
+      return !!result.classes && result.classes.length > 0;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async getPendingAssignments(
+    classId: string,
+    studentId: string
+  ): Promise<Assignment[]> {
+    const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
+    const q = query(
+      collection(this._db, CollectionIds.ASSIGNMENT),
+      where("class", "==", classDocRef),
+      // where("results." + studentId + ".score", "!=", 1)
+      orderBy("createdAt", "desc"),
+      limit(50)
+    );
+    const queryResult = await getDocs(q);
+    const assignments: Assignment[] = [];
+    queryResult.docs.forEach((_assignment) => {
+      const assignment = _assignment.data() as Assignment;
+      assignment.docId = _assignment.id;
+      const doneAssignment = assignment.completedStudents?.find(
+        (data) => data === studentId
+      );
+      let tempAssignmentCompletedIds = localStorage.getItem(
+        ASSIGNMENT_COMPLETED_IDS
+      );
+      let assignmentCompletedIds = JSON.parse(
+        tempAssignmentCompletedIds ?? "{}"
+      );
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:546 ~ FirebaseApi ~ queryResult.docs.forEach ~ assignmentCompletedIds:",
+        assignmentCompletedIds
+      );
+
+      const doneAssignmentLocally = assignmentCompletedIds[studentId]?.find(
+        (assignmentId) => assignmentId === assignment.docId
+      );
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:554 ~ FirebaseApi ~ queryResult.docs.forEach ~ doneAssignmentLocally:",
+        doneAssignmentLocally
+      );
+
+      if (!doneAssignment && !doneAssignmentLocally)
+        assignments.push(assignment);
+    });
+    console.log(
+      "🚀 ~ file: FirebaseApi.ts:533 ~ FirebaseApi ~ assignments:",
+      assignments
+    );
+    return assignments;
   }
 }

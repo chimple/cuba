@@ -94,7 +94,7 @@ const LessonCard: React.FC<{
           history.push(PAGES.GAME + parmas, {
             url: "chimple-lib/index.html" + parmas,
             lessonId: lesson.id,
-            courseDocId: course?.docId,
+            courseDocId: course?.docId ?? lesson?.assignment?.course?.id,
             lesson: JSON.stringify(Lesson.toJson(lesson)),
             from: history.location.pathname + "?continue=true",
           });

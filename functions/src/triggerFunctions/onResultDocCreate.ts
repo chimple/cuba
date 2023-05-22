@@ -1,5 +1,6 @@
 import * as functions from "firebase-functions";
 import { db } from "..";
+import { DocumentReference, FieldValue } from "firebase-admin/firestore";
 
 const onResultDocCreate = async (
   data: functions.firestore.QueryDocumentSnapshot,
@@ -14,6 +15,7 @@ const onResultDocCreate = async (
   const score = values.score;
   const student = values.student;
   const timeSpent = values.timeSpent;
+  const assignment = values.assignment;
   const studentDocRef = db.collection("StudentProfile").doc(student.id);
   const studentDoc = await studentDocRef.get();
   let newData: any = {};
@@ -54,6 +56,16 @@ const onResultDocCreate = async (
   }
 
   await studentDocRef.set(newData);
+
+  if (!!assignment && assignment instanceof DocumentReference) {
+    await assignment.update({
+      completedStudents: FieldValue.arrayUnion(studentDocRef.id),
+      ["results." + studentDocRef.id]: {
+        date: createdAt,
+        score: score,
+      },
+    });
+  }
 };
 
 export default onResultDocCreate;

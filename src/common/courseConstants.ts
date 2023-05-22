@@ -9,6 +9,7 @@ export interface Chapter {
 }
 
 export enum CollectionIds {
+  ASSIGNMENT = "Assignment",
   CLASS = "Class",
   CONNECTION = "Connection",
   COURSE = "Course",
@@ -29,7 +30,6 @@ export interface StudentLessonResult {
   course: DocumentReference;
   score: number;
   timeSpent: number;
-  docId: string;
 }
 
 export interface lessonEndData {
@@ -45,3 +45,5 @@ export interface lessonEndData {
   correctMoves: number;
   correct: number;
 }
+
+export const ASSIGNMENT_COMPLETED_IDS = "assignmentCompletedIds";
