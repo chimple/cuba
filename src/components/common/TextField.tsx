@@ -1,8 +1,6 @@
 import "../common/TextField.css";
 import { useEffect, useRef, useState } from "react";
 import { Keyboard } from "@capacitor/keyboard";
-import { BsAlignCenter, BsAlignStart } from "react-icons/bs";
-import { alarmOutline } from "ionicons/icons";
 
 const TextField: React.FC<{
   value: string;
@@ -10,14 +8,11 @@ const TextField: React.FC<{
   onEnterDown: Function;
 }> = ({ onChange, value, onEnterDown }) => {
   const [isInputFocus, setIsInputFocus] = useState(false);
-  const [keySize, setKeyboard] = useState(0);
   const scollToRef = useRef(null);
   useEffect(() => {
     Keyboard.addListener("keyboardWillShow", (info) => {
       console.log("info", JSON.stringify(info));
-      setKeyboard(info.keyboardHeight);
       setIsInputFocus(true);
-      //
 
       setTimeout(() => {
         //@ts-ignore
@@ -35,24 +30,14 @@ const TextField: React.FC<{
         type="text"
         value={value}
         ref={scollToRef}
-        // style={{
-        //   marginTop: "12%",
-        // }}
         onChange={onChange}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
             onEnterDown();
           }
         }}
-        onClick={() => {
-          // setIsInputFocus(!isInputFocus);
-          // setTimeout(() => {
-          //   //@ts-ignore
-          //   scollToRef.current?.scrollIntoView({ block: "end" });
-          // }, 500);
-        }}
       ></input>
-      {isInputFocus ? <div ref={scollToRef} id="blur"></div> : null}
+      {isInputFocus ? <div ref={scollToRef} id="scrolling"></div> : null}
     </div>
   );
 };
