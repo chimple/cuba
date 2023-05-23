@@ -43,7 +43,7 @@ import Parent from "./pages/Parent";
 import EditStudent from "./pages/EditStudent";
 import DisplayStudents from "./pages/DisplayStudents";
 // import Assignments from "./pages/Assignments";
-import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
+// import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
 import DisplaySubjects from "./pages/DisplaySubjects";
 import AppLangSelection from "./pages/AppLangSelection";
 import StudentProgress from "./pages/StudentProgress";
@@ -67,7 +67,6 @@ const App: React.FC = () => {
         })
         .then((path) => {
           console.log("path ", path, "uri", path?.uri);
-
           if (path instanceof Object) {
             const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.cuba/cache
             console.log("uri", uri); //http://localhost/_capacitor_file_/data/user/0/org.chimple.cuba/cache
@@ -75,7 +74,7 @@ const App: React.FC = () => {
           }
         });
       CapApp.addListener("appStateChange", Util.onAppStateChange);
-      Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
+      // Keyboard.setScroll({ isDisabled: false });
     }
   }, []);
 

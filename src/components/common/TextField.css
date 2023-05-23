@@ -1,0 +1,25 @@
+.text-box {
+    /* width: 100%; */
+    height: max(6vh, 5vw);
+    padding: 2vh;
+    border-radius: 1.1vw;
+    border: hidden;
+    outline: none;
+    margin-top: 1vh;
+    background-color: white;
+    color: #05342f;
+    overflow-y:scroll;
+  }
+  
+  .text-box-top{
+    position: fixed;
+    top: 10%;
+    width: 41vw;
+    display: block;
+  }
+
+  #blur{
+    width: 10vw;
+    height: 70vh;
+    background-color:#cbdcff;
+  }
