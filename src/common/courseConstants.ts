@@ -23,6 +23,7 @@ export enum CollectionIds {
   USER = "User",
   STUDENTPROFILE = "StudentProfile",
   RESULT = "Result",
+  LEADERBOARD = "Leaderboard",
 }
 
 export interface StudentLessonResult {

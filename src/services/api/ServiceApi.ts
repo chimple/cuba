@@ -11,6 +11,19 @@ import StudentProfile from "../../models/studentProfile";
 import Class from "../../models/class";
 import Assignment from "../../models/assignment";
 
+export interface LeaderboardInfo {
+  weekly: StudentLeaderboardInfo[];
+  allTime: StudentLeaderboardInfo[];
+}
+
+export interface StudentLeaderboardInfo {
+  name: string;
+  score: number;
+  timeSpent: number;
+  lessonsPlayed: number;
+  userId: string;
+}
+
 export interface ServiceApi {
   /**
    * Creates a student profile for a parent and returns the student object

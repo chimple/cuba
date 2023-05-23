@@ -17,7 +17,10 @@ import {
   orderBy,
   arrayRemove,
 } from "firebase/firestore";
-import { ServiceApi } from "./ServiceApi";
+import {
+  ServiceApi,
+  StudentLeaderboardInfo,
+} from "./ServiceApi";
 import {
   DEFAULT_COURSE_IDS,
   LANGUAGE_COURSE_MAP,
@@ -574,5 +577,54 @@ export class FirebaseApi implements ServiceApi {
       assignments
     );
     return assignments;
+  }
+
+  async getLeaderboard(
+    studentId: string,
+    sectionId: string,
+    schoolId: string,
+    isWeeklyData: boolean
+  ): Promise<StudentLeaderboardInfo[]> {
+    const leaderBoardList: StudentLeaderboardInfo[] = [];
+
+    const q = query(
+      collection(
+        this._db,
+        CollectionIds.LEADERBOARD + "/b2c/genericLeaderboard/"
+      ),
+      orderBy(isWeeklyData ? "weeklyScore" : "allTimeScore", "desc"),
+      limit(50)
+    );
+
+    const queryResult = await getDocs(q);
+
+    // console.log("query list ", queryResult);
+    // queryResult.docs.forEach((d) => {
+    for (const d of queryResult.docs) {
+      // console.log("query result ", d);
+      const res = d.data();
+      // console.log("res", res);
+      if (isWeeklyData) {
+        leaderBoardList.push({
+          name: d.get("name"),
+          score: d.get("weeklyScore"),
+          timeSpent: d.get("weeklyTimeSpent"),
+          lessonsPlayed: d.get("weeklyLessonPlayed"),
+          userId: d.id,
+        });
+      } else {
+        leaderBoardList.push({
+          name: d.get("name"),
+          score: d.get("allTimeScore"),
+          timeSpent: d.get("allTimeTimeSpent"),
+          lessonsPlayed: d.get("allTimeLessonPlayed"),
+          userId: d.id,
+        });
+      }
+    }
+
+    console.log("result in FirebaseAPI", leaderBoardList);
+
+    return leaderBoardList;
   }
 }
