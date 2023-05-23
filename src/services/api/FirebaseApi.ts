@@ -15,6 +15,7 @@ import {
   deleteDoc,
   limit,
   orderBy,
+  arrayRemove,
 } from "firebase/firestore";
 import { ServiceApi } from "./ServiceApi";
 import {
@@ -121,6 +122,8 @@ export class FirebaseApi implements ServiceApi {
         dateLastModified: Timestamp.now(),
       }
     );
+    if (!_currentUser.users) _currentUser.users = [];
+    _currentUser.users.push(studentDoc);
     return student;
   }
 
@@ -145,18 +148,24 @@ export class FirebaseApi implements ServiceApi {
       }
     }
 
-    console.log("userList ", userList);
+    console.log("userList ", studentDoc.id, userList);
 
+    // const studentDocRef = await doc(
+    //   this._db,
+    //   `${CollectionIds.USER}/${studentDoc.id}`
+    // );
+
+    await deleteDoc(studentDoc);
     await updateDoc(
       doc(this._db, `${CollectionIds.USER}/${_currentUser?.docId}`),
       {
-        users: userList,
+        // users: userList,
+        users: arrayRemove(studentDoc),
         dateLastModified: Timestamp.now(),
       }
     );
     _currentUser.users = userList;
     ServiceConfig.getI().authHandler.currentUser = _currentUser;
-    await deleteDoc(doc(this._db, `${CollectionIds.USER}/${studentId}`));
   }
 
   public async getAllCurriculums(): Promise<Curriculum[]> {
