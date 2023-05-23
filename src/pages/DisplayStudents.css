@@ -9,6 +9,7 @@
   cursor: pointer;
   font-size: var(--text-size);
   color: #05342f;
+  margin: clamp(10px,10vh,20px);
 }
 
 #display-students-parent-icon {

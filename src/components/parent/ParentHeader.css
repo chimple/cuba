@@ -3,6 +3,7 @@
     margin: 1% 1.5% 1% 1.5%;
     justify-content: flex-start;
     align-items: center;
+    margin: clamp(10px,10vh,20px);
 }
 
 #parent-header-middle-icons {
