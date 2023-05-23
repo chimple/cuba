@@ -1,12 +1,10 @@
-import { IonPage } from "@ionic/react";
 import { useEffect, useState } from "react";
-import Loading from "../components/Loading";
 import "./Parent.css";
-import ParentHeader from "../components/parent/ParentHeader";
 import {
   APP_LANG,
   LANG,
   MAX_STUDENTS_ALLOWED,
+  PAGES,
   PARENTHEADERLIST,
 } from "../common/constants";
 import ProfileCard from "../components/parent/ProfileCard";
@@ -17,18 +15,20 @@ import {
   EmailIcon,
   EmailShareButton,
   FacebookIcon,
-  FacebookShareButton,
   TwitterIcon,
-  TwitterShareButton,
   WhatsappIcon,
-  WhatsappShareButton,
 } from "react-share";
 import { FaInstagramSquare } from "react-icons/fa";
 import { TfiWorld } from "react-icons/tfi";
 import RectangularOutlineDropDown from "../components/parent/RectangularOutlineDropDown";
 import i18n from "../i18n";
-import Language from "../models/language";
 import { ServiceConfig } from "../services/ServiceConfig";
+import ParentLogout from "../components/parent/ParentLogout";
+import { AppBar, Box, Tab, Tabs } from "@mui/material";
+import { blue, red, green } from "@mui/material/colors";
+import { common } from "@mui/material/colors";
+import BackButton from "../components/common/BackButton";
+import { useHistory } from "react-router-dom";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 
@@ -38,13 +38,22 @@ const Parent: React.FC = () => {
   const [soundFlag, setSoundFlag] = useState<boolean>();
   const [musicFlag, setMusicFlag] = useState<boolean>();
   const [userProfile, setUserProfile] = useState<any[]>([]);
-  const [langList, setLangList] = useState<string[]>([]);
+  const [langList, setLangList] = useState<
+    {
+      id: string;
+      displayName: string;
+    }[]
+  >([]);
   const [langDocIds, setLangDocIds] = useState<Map<string, string>>(new Map());
   const [currentAppLang, setCurrentAppLang] = useState<string>();
 
-  let tempLangList: string[] = [];
+  let tempLangList: {
+    id: string;
+    displayName: string;
+  }[] = [];
   // let langDocIds: Map<string, string> = new Map();
   const localAppLang = localStorage.getItem(APP_LANG);
+  const history = useHistory();
 
   useEffect(() => {
     setIsLoading(true);
@@ -64,7 +73,10 @@ const Parent: React.FC = () => {
       let keytempLangDocIds: Map<string, string> = new Map();
       for (let i = 0; i < allLang.length; i++) {
         const element = allLang[i];
-        tempLangList.push(element.title);
+        tempLangList.push({
+          id: element.docId,
+          displayName: element.title,
+        });
         tempLangDocIds.set(element.title, element.docId);
         keytempLangDocIds.set(element.docId, element.title);
       }
@@ -124,70 +136,80 @@ const Parent: React.FC = () => {
 
   function settingUI() {
     return (
-      <div id="parent-page-setting">
-        <div id="parent-page-setting-div">
-          <p id="parent-page-setting-lang-text">Language</p>
-          <RectangularOutlineDropDown
-            optionList={langList}
-            currentValue={currentAppLang || langList[0]}
-            width="26vw"
-            onValueChange={async (selectedLang) => {
-              console.log("selected Langauage", selectedLang.detail.value);
-              const tempLangCode: string =
-                selectedLang.detail.value ?? LANG.ENGLISH;
-              setCurrentAppLang(selectedLang.detail.value);
-              console.log("UI Lang", selectedLang.detail.value, currentAppLang);
-              await i18n.changeLanguage(tempLangCode);
-              const currentUser =
-                await ServiceConfig.getI().authHandler.getCurrentUser();
-
-              const langId = langDocIds.get(selectedLang.detail.value);
-
-              if (currentUser && langId) {
-                ServiceConfig.getI().apiHandler.updateLanguage(
-                  currentUser,
-                  langId
+      <div>
+        <div id="parent-page-setting">
+          <div id="parent-page-setting-div">
+            <p id="parent-page-setting-lang-text">Language</p>
+            <RectangularOutlineDropDown
+              placeholder=""
+              optionList={langList}
+              currentValue={currentAppLang || langList[0].id}
+              width="26vw"
+              onValueChange={async (selectedLang) => {
+                console.log("selected Langauage", selectedLang.detail.value);
+                const tempLangCode: string =
+                  selectedLang.detail.value ?? LANG.ENGLISH;
+                setCurrentAppLang(selectedLang.detail.value);
+                console.log(
+                  "UI Lang",
+                  selectedLang.detail.value,
+                  currentAppLang
                 );
-              }
-            }}
-          ></RectangularOutlineDropDown>
+                await i18n.changeLanguage(tempLangCode);
+                const currentUser =
+                  await ServiceConfig.getI().authHandler.getCurrentUser();
+
+                const langId = langDocIds.get(selectedLang.detail.value);
+
+                if (currentUser && langId) {
+                  ServiceConfig.getI().apiHandler.updateLanguage(
+                    currentUser,
+                    langId
+                  );
+                }
+              }}
+            ></RectangularOutlineDropDown>
+          </div>
+          <div id="parent-page-setting-div">
+            <ToggleButton
+              flag={soundFlag!}
+              title="Sound"
+              onIonChangeClick={async (v) => {
+                console.log("ion change value ", v.detail.checked);
+                setSoundFlag(v.detail.checked);
+                const currentUser =
+                  await ServiceConfig.getI().authHandler.getCurrentUser();
+
+                if (currentUser) {
+                  ServiceConfig.getI().apiHandler.updateSoundFlag(
+                    currentUser,
+                    v.detail.checked
+                  );
+                }
+              }}
+            ></ToggleButton>
+
+            <ToggleButton
+              flag={musicFlag!}
+              title="Music"
+              onIonChangeClick={async (v) => {
+                console.log("ion change value ", v.detail.checked);
+                setMusicFlag(v.detail.checked);
+                const currentUser =
+                  await ServiceConfig.getI().authHandler.getCurrentUser();
+
+                if (currentUser) {
+                  ServiceConfig.getI().apiHandler.updateMusicFlag(
+                    currentUser,
+                    v.detail.checked
+                  );
+                }
+              }}
+            ></ToggleButton>
+          </div>
         </div>
-        <div id="parent-page-setting-div">
-          <ToggleButton
-            flag={soundFlag!}
-            title="Sound"
-            onIonChangeClick={async (v) => {
-              console.log("ion change value ", v.detail.checked);
-              setSoundFlag(v.detail.checked);
-              const currentUser =
-                await ServiceConfig.getI().authHandler.getCurrentUser();
-
-              if (currentUser) {
-                ServiceConfig.getI().apiHandler.updateSoundFlag(
-                  currentUser,
-                  v.detail.checked
-                );
-              }
-            }}
-          ></ToggleButton>
-
-          <ToggleButton
-            flag={musicFlag!}
-            title="Music"
-            onIonChangeClick={async (v) => {
-              console.log("ion change value ", v.detail.checked);
-              setMusicFlag(v.detail.checked);
-              const currentUser =
-                await ServiceConfig.getI().authHandler.getCurrentUser();
-
-              if (currentUser) {
-                ServiceConfig.getI().apiHandler.updateMusicFlag(
-                  currentUser,
-                  v.detail.checked
-                );
-              }
-            }}
-          ></ToggleButton>
+        <div id="parent-logout">
+          <ParentLogout />
         </div>
       </div>
     );
@@ -316,30 +338,111 @@ const Parent: React.FC = () => {
     );
   }
 
+  const [tabIndex, setTabIndex] = useState("profile");
+
+  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+    // setValue(newValue);
+    setTabIndex(newValue);
+  };
+
   return (
-    <IonPage>
-      {!isLoading ? (
-        <div id="parent-page">
-          <ParentHeader
-            currentHeader={currentHeader}
-            onHeaderIconClick={onHeaderIconClick}
-          ></ParentHeader>
+    // <IonPage>
+    //   {!isLoading ? (
+    //     <div id="parent-page">
+    //       <ParentHeader
+    //         currentHeader={currentHeader}
+    //         onHeaderIconClick={onHeaderIconClick}
+    //       ></ParentHeader>
 
-          {currentHeader === PARENTHEADERLIST.PROFILE ? (
+    //       {currentHeader === PARENTHEADERLIST.PROFILE ? (
+    //         <div>{profileUI()}</div>
+    //       ) : null}
+
+    //       {currentHeader === PARENTHEADERLIST.SETTING ? (
+    //         <div>{settingUI()}</div>
+    //       ) : null}
+
+    //       {currentHeader === PARENTHEADERLIST.HELP ? (
+    //         <div>{helpUI()}</div>
+    //       ) : null}
+    //     </div>
+    //   ) : null}
+    //   <Loading isLoading={isLoading} />
+    // </IonPage>
+    <Box>
+      <Box>
+        <AppBar
+          position="static"
+          sx={{
+            flexDirection: "inherit",
+            justifyContent: "space-between",
+            padding: "1vh 1vw",
+            backgroundColor: "#FF7925 !important",
+            boxShadow: "0px 0px 0px 0px !important",
+          }}
+        >
+          <BackButton
+            // iconSize={"8vh"}
+            onClicked={() => {
+              history.replace(PAGES.DISPLAY_STUDENT);
+            }}
+          ></BackButton>
+          <Tabs
+            value={tabIndex}
+            onChange={handleChange}
+            textColor="secondary"
+            indicatorColor="secondary"
+            aria-label="secondary tabs example"
+            // variant="scrollable"
+            scrollButtons="auto"
+            // aria-label="scrollable auto tabs example"
+            centered
+            sx={{
+              // "& .MuiAppBar-root": { backgroundColor: "#FF7925 !important" },
+              "& .MuiTabs-indicator": { backgroundColor: "#FFFFFF" },
+              "& .MuiTab-root": { color: "#000000" },
+              "& .Mui-selected": { color: "#FFFFFF" },
+            }}
+          >
+            <Tab
+              value="profile"
+              label="profile"
+              id="parent-page-tab-bar"
+              // sx={{
+              //   // fontSize:"5vh"
+              //   marginRight: "5vw",
+              // }}
+            />
+            <Tab id="parent-page-tab-bar" value="setting" label="setting" />
+            <Tab id="parent-page-tab-bar" value="help" label="help" />
+            <Tab id="parent-page-tab-bar" value="faq" label="faq" />
+          </Tabs>
+          <div></div>
+        </AppBar>
+      </Box>
+      <Box sx={{}}>
+        {tabIndex === "profile" && (
+          <Box>
             <div>{profileUI()}</div>
-          ) : null}
-
-          {currentHeader === PARENTHEADERLIST.SETTING ? (
+          </Box>
+        )}
+        {tabIndex === "setting" && (
+          <Box>
             <div>{settingUI()}</div>
-          ) : null}
-
-          {currentHeader === PARENTHEADERLIST.HELP ? (
+          </Box>
+        )}
+        {tabIndex === "help" && (
+          <Box>
             <div>{helpUI()}</div>
-          ) : null}
-        </div>
-      ) : null}
-      <Loading isLoading={isLoading} />
-    </IonPage>
+          </Box>
+        )}
+        {tabIndex === "faq" && (
+          <Box>
+            <div></div>
+          </Box>
+        )}
+      </Box>
+    </Box>
   );
 };
 

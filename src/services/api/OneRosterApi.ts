@@ -17,6 +17,7 @@ import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import { StudentLessonResult } from "../../common/courseConstants";
 import Subject from "../../models/subject";
+import StudentProfile from "../../models/studentProfile";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -39,6 +40,24 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
+  getDataByInviteCode(inviteCode: number): Promise<any> {
+    throw new Error("Method not implemented.");
+  }
+  linkStudent(inviteCode: number): Promise<any> {
+    throw new Error("Method not implemented.");
+  }
+  getStudentResult(studentId: string, fromCache: boolean): Promise<StudentProfile | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getClassById(id: string): Promise<Class | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  isStudentLinked(studentId: string, fromCache: boolean): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  getPendingAssignments(classId: string, studentId: string): Promise<Assignment[]> {
+    throw new Error("Method not implemented.");
+  }
   getSubject(id: string): Promise<Subject | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -92,10 +111,10 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  get currentStudent(): User {
+  get currentStudent(): User | undefined {
     throw new Error("Method not implemented.");
   }
-  set currentStudent(value: User) {
+  set currentStudent(value: User | undefined) {
     throw new Error("Method not implemented.");
   }
   createProfile(

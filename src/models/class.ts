@@ -2,7 +2,7 @@ import BaseObject from "./baseObject";
 import { DocumentReference, Timestamp } from "firebase/firestore";
 
 export default class Class extends BaseObject {
-  private _title: string;
+  private _name: string;
   private _image: string | undefined;
   private _classCode: string;
   private _school: DocumentReference;
@@ -15,7 +15,7 @@ export default class Class extends BaseObject {
   private _coordinator: string[];
 
   constructor(
-    title: string,
+    name: string,
     image: string | undefined,
     classCode: string,
     school: DocumentReference,
@@ -31,7 +31,7 @@ export default class Class extends BaseObject {
     docId: string
   ) {
     super(dateLastModified, createdAt, docId);
-    this._title = title;
+    this._name = name;
     this._image = image;
     this._classCode = classCode;
     this._school = school;
@@ -92,11 +92,11 @@ export default class Class extends BaseObject {
   public set coordinator(value: string[]) {
     this._coordinator = value;
   }
-  public get title(): string {
-    return this._title;
+  public get name(): string {
+    return this._name;
   }
-  public set title(value: string) {
-    this._title = value;
+  public set name(value: string) {
+    this._name = value;
   }
   public get classCode(): string {
     return this._classCode;

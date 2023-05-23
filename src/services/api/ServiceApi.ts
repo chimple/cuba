@@ -1,5 +1,3 @@
-// import { User } from "firebase/auth";
-import { DocumentReference } from "firebase/firestore";
 import User from "../../models/user";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
@@ -9,6 +7,9 @@ import Lesson from "../../models/lesson";
 import { Chapter, StudentLessonResult } from "../../common/courseConstants";
 import Result from "../../models/result";
 import Subject from "../../models/subject";
+import StudentProfile from "../../models/studentProfile";
+import Class from "../../models/class";
+import Assignment from "../../models/assignment";
 
 export interface ServiceApi {
   /**
@@ -63,9 +64,9 @@ export interface ServiceApi {
    */
   getParentStudentProfiles(): Promise<User[]>;
 
-  get currentStudent(): User;
+  get currentStudent(): User | undefined;
 
-  set currentStudent(value: User);
+  set currentStudent(value: User | undefined);
 
   updateSoundFlag(user: User, value: boolean);
   updateMusicFlag(user: User, value: boolean);
@@ -134,7 +135,8 @@ export interface ServiceApi {
     score: number,
     correctMoves: number,
     wrongMoves: number,
-    timeSpent: number
+    timeSpent: number,
+    assignmentId: string | undefined
   ): Promise<Result>;
 
   /**
@@ -166,4 +168,58 @@ export interface ServiceApi {
    * @returns {Subject | undefined}`Subject` or `undefined` if it could not find the Subject with given `id`
    */
   getSubject(id: string): Promise<Subject | undefined>;
+
+  /**
+   * Gives StudentProfile for given a Student firebase doc Id
+   * @param {string} id - Student firebase doc id
+   * @param {boolean} fromCache - If true, it will try to fetch the data from the cache. If the data is not found in the cache, it will look in the database.
+   * @returns {StudentProfile | undefined}`StudentProfile` or `undefined` if it could not find the StudentProfile with given `id`
+   */
+  getStudentResult(
+    studentId: string,
+    fromCache: boolean
+  ): Promise<StudentProfile | undefined>;
+
+  /**
+   * Gives Class for given a Class firebase doc Id
+   * @param {string} id - Class firebase doc id
+   * @returns {Class | undefined}`Class` or `undefined` if it could not find the Class with given `id`
+   */
+  getClassById(id: string): Promise<Class | undefined>;
+
+  /**
+   * Gives `boolean` whether the student is connected to any class, for given a Student firebase doc Id
+   * @param {string} studentId - Student firebase doc id
+   * @param {boolean} fromCache - If true, it will try to fetch the data from the cache. If the data is not found in the cache, it will look in the database.
+   * @returns {boolean} Gives `boolean` whether the student is connected to any class
+   */
+  isStudentLinked(studentId: string, fromCache: boolean): Promise<boolean>;
+
+  /**
+   * This function gets all pending assignments for a student in a class.
+   *
+   * @param {string} classId Class firebase doc id
+   * @param {string} studentId Student firebase doc id
+   * @returns A promise that resolves to an array of assignments.
+   */
+  getPendingAssignments(
+    classId: string,
+    studentId: string
+  ): Promise<Assignment[]>;
+
+  /**
+   * This function gets data by invite code.
+   *
+   * @param {number} inviteCode The invite code.
+   * @returns A promise that resolves to the data.
+   */
+  getDataByInviteCode(inviteCode: number): Promise<any>;
+
+  /**
+   * This function links a student to a class.
+   *
+   * @param inviteCode The invite code of the student.
+   * @returns A promise that resolves to the student.
+   */
+  linkStudent(inviteCode: number): Promise<any>;
 }

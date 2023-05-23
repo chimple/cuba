@@ -1,20 +1,21 @@
 import { Timestamp } from "firebase/firestore";
 import BaseObject from "./baseObject";
 import { DocumentReference } from "firebase/firestore";
+import { StudentLessonResult } from "../common/courseConstants";
 
 export default class StudentProfile extends BaseObject {
   private _classes: string[];
   private _last5Lessons: object;
   private _lastPlayedCourse: DocumentReference;
-  private _lessons: object;
-  private _school: DocumentReference;
+  private _lessons: { [lessonDocId: string]: StudentLessonResult };
+  private _schools: string[];
 
   constructor(
     lastPlayedCourse: DocumentReference,
     classes: string[],
     last5Lessons: object,
-    lessons: object,
-    school: DocumentReference,
+    lessons: { [lessonDocId: string]: StudentLessonResult },
+    school: string[],
     dateLastModified: Timestamp,
     createdAt: Timestamp,
     docId: string
@@ -24,7 +25,7 @@ export default class StudentProfile extends BaseObject {
     this._classes = classes;
     this._last5Lessons = last5Lessons;
     this._lessons = lessons;
-    this._school = school;
+    this._schools = school;
   }
 
   public get classes(): string[] {
@@ -45,16 +46,16 @@ export default class StudentProfile extends BaseObject {
   public set lastPlayedCourse(value: DocumentReference) {
     this._lastPlayedCourse = value;
   }
-  public get lessons(): object {
+  public get lessons(): { [lessonDocId: string]: StudentLessonResult } {
     return this._lessons;
   }
-  public set lessons(value: object) {
+  public set lessons(value: { [lessonDocId: string]: StudentLessonResult }) {
     this._lessons = value;
   }
-  public get school(): DocumentReference {
-    return this._school;
+  public get school(): string[] {
+    return this._schools;
   }
-  public set school(value: DocumentReference) {
-    this._school = value;
+  public set school(value: string[]) {
+    this._schools = value;
   }
 }

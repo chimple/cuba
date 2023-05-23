@@ -132,6 +132,7 @@ export enum PAGES {
   STUDENT_PROGRESS = "/student-progress",
   SEARCH = "/search",
   LEADERBOARD = "/leaderboard",
+  ASSIGNMENT = "/assignment",
 }
 
 export enum LANG {

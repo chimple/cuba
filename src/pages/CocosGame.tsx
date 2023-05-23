@@ -5,9 +5,11 @@ import { GAME_END, GAME_EXIT, LESSON_END, PAGES } from "../common/constants";
 import Loading from "../components/Loading";
 import { Util } from "../utility/util";
 import Lesson from "../models/lesson";
-import { lessonEndData } from "../common/courseConstants";
+import {
+  ASSIGNMENT_COMPLETED_IDS,
+  lessonEndData,
+} from "../common/courseConstants";
 import { ServiceConfig } from "../services/ServiceConfig";
-import Course from "../models/course";
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -76,13 +78,37 @@ const CocosGame: React.FC = () => {
       console.log("🚀 ~ file: CocosGame.tsx:76 ~ saveTempData ~ e:", e);
       const data = e.detail as lessonEndData;
       const result = await api.updateResult(
-        api.currentStudent,
+        api.currentStudent!,
         courseDocId,
         lesson.docId,
         data.score,
         data.correctMoves,
         data.wrongMoves,
-        data.timeSpent
+        data.timeSpent,
+        lesson.assignment?.docId
+      );
+      console.log(
+        "🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:",
+        result
+      );
+      let tempAssignmentCompletedIds = localStorage.getItem(
+        ASSIGNMENT_COMPLETED_IDS
+      );
+      let assignmentCompletedIds;
+      if (!tempAssignmentCompletedIds) {
+        assignmentCompletedIds = {};
+      } else {
+        assignmentCompletedIds = JSON.parse(tempAssignmentCompletedIds);
+      }
+      if (!assignmentCompletedIds[api.currentStudent?.docId!]) {
+        assignmentCompletedIds[api.currentStudent?.docId!] = [];
+      }
+      assignmentCompletedIds[api.currentStudent?.docId!].push(
+        lesson.assignment?.docId
+      );
+      localStorage.setItem(
+        ASSIGNMENT_COMPLETED_IDS,
+        JSON.stringify(assignmentCompletedIds)
       );
       push();
     };
