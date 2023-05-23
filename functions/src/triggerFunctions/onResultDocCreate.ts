@@ -56,9 +56,9 @@ const onResultDocCreate = async (
 
   await studentDocRef.set(newStudentData);
 
+  const studentUserDocRef = db.collection("User").doc(student.id);
+  const studentUserDoc = await studentUserDocRef.get();
   if (!!newStudentData.classes && newStudentData.classes.length > 0) {
-    const studentUserDocRef = db.collection("User").doc(student.id);
-    const studentUserDoc = await studentUserDocRef.get();
     if (studentUserDoc.exists && !!studentUserDoc.data()) {
       for (let _classId of newStudentData.classes) {
         await updateClassLeaderboard(
@@ -70,6 +70,13 @@ const onResultDocCreate = async (
         );
       }
     }
+  } else {
+    await updateGenericLeaderboard(
+      studentDocRef.id,
+      studentUserDoc.get("name"),
+      score,
+      timeSpent
+    );
   }
 
   if (!!assignment && assignment instanceof DocumentReference) {
@@ -84,6 +91,33 @@ const onResultDocCreate = async (
 };
 
 export default onResultDocCreate;
+
+async function updateGenericLeaderboard(
+  studentId: string,
+  name: string,
+  score: number,
+  timeSpent: number
+) {
+  const studentRef = db.doc("/Leaderboard/b2c/genericLeaderboard/" + studentId);
+  const studentDoc = await studentRef.get();
+
+  const data: any = {
+    allTimeLessonPlayed: FieldValue.increment(1),
+    allTimeScore: FieldValue.increment(score),
+    allTimeTimeSpent: FieldValue.increment(timeSpent),
+    name: name,
+    weeklyLessonPlayed: FieldValue.increment(1),
+    weeklyScore: FieldValue.increment(score),
+    weeklyTimeSpent: FieldValue.increment(timeSpent),
+  };
+
+  if (studentDoc.exists) {
+    await studentRef.update(data);
+  } else {
+    data["updatedAt"] = FieldValue.serverTimestamp();
+    await studentRef.set(data);
+  }
+}
 
 async function updateClassLeaderboard(
   classId: string,
@@ -101,7 +135,7 @@ async function updateClassLeaderboard(
   felids[`d.${studentId}.w.t`] = FieldValue.increment(timeSpent);
   felids[`d.${studentId}.a.t`] = FieldValue.increment(timeSpent);
   felids[`d.${studentId}.n`] = name;
-  felids[`u`] = FieldValue.serverTimestamp();
+  // felids[`u`] = FieldValue.serverTimestamp();
 
   try {
     await db.collection("Leaderboard").doc(classId).update(felids);
