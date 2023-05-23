@@ -38,10 +38,12 @@ const Parent: React.FC = () => {
   const [soundFlag, setSoundFlag] = useState<boolean>();
   const [musicFlag, setMusicFlag] = useState<boolean>();
   const [userProfile, setUserProfile] = useState<any[]>([]);
-  const [langList, setLangList] = useState<{
-    id: string;
-    displayName: string;
-  }[]>([]);
+  const [langList, setLangList] = useState<
+    {
+      id: string;
+      displayName: string;
+    }[]
+  >([]);
   const [langDocIds, setLangDocIds] = useState<Map<string, string>>(new Map());
   const [currentAppLang, setCurrentAppLang] = useState<string>();
 
@@ -139,7 +141,7 @@ const Parent: React.FC = () => {
           <div id="parent-page-setting-div">
             <p id="parent-page-setting-lang-text">Language</p>
             <RectangularOutlineDropDown
-            placeholder=""
+              placeholder=""
               optionList={langList}
               currentValue={currentAppLang || langList[0].id}
               width="26vw"
@@ -375,6 +377,8 @@ const Parent: React.FC = () => {
             flexDirection: "inherit",
             justifyContent: "space-between",
             padding: "1vh 1vw",
+            backgroundColor: "#FF7925 !important",
+            boxShadow: "0px 0px 0px 0px !important",
           }}
         >
           <BackButton
@@ -394,9 +398,10 @@ const Parent: React.FC = () => {
             // aria-label="scrollable auto tabs example"
             centered
             sx={{
-              "& .MuiTabs-indicator": { backgroundColor: blue[100] },
-              "& .MuiTab-root": { color: common["black"] },
-              "& .Mui-selected": { color: blue[100] },
+              // "& .MuiAppBar-root": { backgroundColor: "#FF7925 !important" },
+              "& .MuiTabs-indicator": { backgroundColor: "#FFFFFF" },
+              "& .MuiTab-root": { color: "#000000" },
+              "& .Mui-selected": { color: "#FFFFFF" },
             }}
           >
             <Tab
