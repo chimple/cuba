@@ -1,22 +1,21 @@
 p {
-    font-family: unset;
+  font-family: unset;
 }
 
-
 #login-screen {
-    /* --ion-background-color: #F2D9CA !important; */
-    text-align: center;
+  /* --ion-background-color: #F2D9CA !important; */
+  text-align: center;
 }
 
 #login-chimple-logo {
-    /* height: min(200px, 60vh);
+  /* height: min(200px, 60vh);
     margin-left: calc(33vw);
     margin-top: 2%; */
-    text-align: center;
-    width: 12vw;
-    height: 19vh;
-    margin-top: 2%;
-    /* height: 28%;
+  text-align: center;
+  width: 12vw;
+  height: 19vh;
+  margin-top: 2%;
+  /* height: 28%;
     position: absolute;
     left: 50%;
     top: 15%;
@@ -24,108 +23,112 @@ p {
 }
 
 #chimple-brand-text1 {
-    /* position: absolute; */
-    /* top: 30%;
+  /* position: absolute; */
+  /* top: 30%;
     left: 50%; */
-    /* height: 20%; */
-    /* width: 40%; */
-    /*font-weight: bolder; */
-    text-align: center; 
-     transform: translateY(-25%);  
-    font-size: 3.7vw;
-    color: var(--text-color);
-   /* font-weight: 500; */
-       /*margin-top: 0px; */
-
+  /* height: 20%; */
+  /* width: 40%; */
+  /*font-weight: bolder; */
+  text-align: center;
+  transform: translateY(-25%);
+  font-size: 3.7vw;
+  color: var(--text-color);
+  /* font-weight: 500; */
+  /*margin-top: 0px; */
 }
 
 #chimple-brand-text2 {
-    /* position: absolute; */
-    /* top: min(38%, 44%); */
-    height: auto;
-    /* height: min(200px, 60vh); */
-    /* width: min(90%, 100%); */
-    /*font-weight: 500; */
-    /* left: min(5%, 10%); */
-    transform: translateY(-1.5vw);
-    text-align: center; 
-    line-height: 1; 
-    font-size:  1.5vw;
-    color: var(--text-color);
+  /* position: absolute; */
+  /* top: min(38%, 44%); */
+  height: auto;
+  /* height: min(200px, 60vh); */
+  /* width: min(90%, 100%); */
+  /*font-weight: 500; */
+  /* left: min(5%, 10%); */
+  transform: translateY(-1.5vw);
+  text-align: center;
+  line-height: 1;
+  font-size: 1.5vw;
+  color: var(--text-color);
 }
 
 #login-text-box {
-    /* transform: translateX(50%); */
-    margin: 1% 0% 2% 32.7vw;
-    width: 30px;
-    height: auto;
-    line-height: 6vh;
+  /* transform: translateX(50%); */
+  margin: 1% 0% 2% 32.7vw;
+  width: 30px;
+  height: auto;
+  line-height: 6vh;
+}
+
+#login-text-box {
+  text-align: center;
+  margin: 2% 0% 1% 32.5vw;
 }
 
 #login-continue-button {
-    /* position: absolute;
+  /* position: absolute;
     left: 50%;
     top: 75%; */
-    /* transform: translateY(-25%); */
-   /* width: min(70vh, 57vh); */
+  transform: translateY(-25%);
+  /* width: min(70vh, 57vh); */
 
-    color: white;
-    width: 26vw;
-    height: 5.5vw;
-    background: yellowgreen;
-    border-radius: var(--border-radius);
-    text-align: center;
-    line-height: 5.5vw;
-    font-size: 1.8vw;
-    margin: 2% 0% 3% 37vw;
+  color: white;
+  width: 26vw;
+  height: 6.5vw;
+  background: yellowgreen;
+  border-radius: var(--border-radius);
+  text-align: center;
+  line-height: 6.5vw;
+  font-size: 1.9vw;
+  margin: 2% 0% 1% 37vw;
 }
 
 #login-google-icon-text {
-    /* position: absolute;
+  /* position: absolute;
     top: 83%;
     left: 50%;
     transform: translateY(-5%) translateX(-50%); */
-     margin: -1.2% 0% 0% 0%; 
-    font-size: 1.4vw;
-    color: var(--text-color);
+  margin: -1.2% 0% 0% 0%;
+  font-size: var(--text-size);
+  color: var(--text-color);
 }
 
 #login-google-icon {
-    /* position: absolute;
+  /* position: absolute;
     top: 89%;
     left: 50%; */
-    height: 10vh;
-    width: auto;
-    /* text-align: center; */
-    /* transform: translateY(-5%) translateX(-50%); */
-    margin-top: 0%;
+  height: 10vh;
+  width: auto;
+  /* text-align: center; */
+  /* transform: translateY(-5%) translateX(-50%); */
+  margin-top: 0%;
 }
 #Google-horizontal-line {
-    width: 5vw;
-    height: 0.1vh;
-    margin-top: 2%;
-    background-color: gray;
-    display: block;
-    margin-left: 38%;
-    margin-top:-1%;
+  width: 5vw;
+  height: 0.1vh;
+  margin-top: 2%;
+  background-color: gray;
+  display: block;
+  margin-left: 38%;
+  margin-top: -1%;
 }
-#Google-horizontal-line2{
-    width: 5vw;
-    height:0.1vh;
-    margin-top: 2%;
-    background-color: gray;
-    display: block;
-    margin-left: 57%;
-    margin-top: 0%;
+#Google-horizontal-line2 {
+  width: 5vw;
+  height: 0.1vh;
+  margin-top: 2%;
+  background-color: gray;
+  display: block;
+  margin-left: 57%;
+  margin-top: 0%;
 }
 #login-button-img {
-    height: 38px;
-    width: auto;
+  height: 38px;
+  width: auto;
 }
 
-#login-page-parent-button {
-    /* position: absolute;
-    top: 10%;
-    left: 70%; */
-    /* transform: translateY(20%) translateX(40%); */
+#custom-loading {
+  --background: #e3edff;
+  --spinner-color: white;
+
+  color: white;
 }

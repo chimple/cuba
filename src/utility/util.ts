@@ -323,7 +323,8 @@ export class Util {
     if (
       Capacitor.isNativePlatform() &&
       isActive &&
-      window.location.pathname !== PAGES.GAME
+      window.location.pathname !== PAGES.GAME &&
+      window.location.pathname !== PAGES.LOGIN
     ) {
       window.location.reload();
     }
