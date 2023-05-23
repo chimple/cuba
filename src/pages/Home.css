@@ -1,5 +1,6 @@
 #home-header {
   position: initial !important;
+  /* margin: clamp(10px,10vh,20px); */
 }
 
 div p {
@@ -13,7 +14,7 @@ div p {
 
 .space-between {
   height: 100%;
-  width: 100%;
+  width: 100%; 
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;

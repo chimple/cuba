@@ -15,6 +15,7 @@ import Loading from "../components/Loading";
 import SelectChapter from "../components/displaySubjects/SelectChapter";
 import LessonSlider from "../components/LessonSlider";
 import Grade from "../models/grade";
+import BackButton from "../components/common/BackButton";
 
 const localData: any = {};
 const DisplaySubjects: FC<{}> = () => {
@@ -150,11 +151,8 @@ const DisplaySubjects: FC<{}> = () => {
     <IonPage id="display-subjects-page">
       <Loading isLoading={isLoading} />
       <div className="subjects-header">
-        <IonIcon
-          className="back-button"
-          slot="end"
-          icon={chevronBackCircleSharp}
-          onClick={onBackButton}
+        <BackButton
+          onClicked={onBackButton}
         />
         <div className="subject-name">
           {stage === STAGES.SUBJECTS
