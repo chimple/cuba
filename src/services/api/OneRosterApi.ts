@@ -7,7 +7,7 @@ import Class from "../../models/class";
 import CurriculumController from "../../models/curriculumController";
 import Result from "../../models/result";
 import User from "../../models/user";
-import { ServiceApi } from "./ServiceApi";
+import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
 import { DocumentReference, DocumentData } from "firebase/firestore";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
@@ -40,13 +40,22 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
+  getLeaderboardResults(
+    sectionId: string,
+    isWeeklyData: boolean
+  ): Promise<LeaderboardInfo | undefined> {
+    throw new Error("Method not implemented.");
+  }
   getDataByInviteCode(inviteCode: number): Promise<any> {
     throw new Error("Method not implemented.");
   }
   linkStudent(inviteCode: number): Promise<any> {
     throw new Error("Method not implemented.");
   }
-  getStudentResult(studentId: string, fromCache: boolean): Promise<StudentProfile | undefined> {
+  getStudentResult(
+    studentId: string,
+    fromCache: boolean
+  ): Promise<StudentProfile | undefined> {
     throw new Error("Method not implemented.");
   }
   getClassById(id: string): Promise<Class | undefined> {
@@ -55,7 +64,10 @@ export class OneRosterApi implements ServiceApi {
   isStudentLinked(studentId: string, fromCache: boolean): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
-  getPendingAssignments(classId: string, studentId: string): Promise<Assignment[]> {
+  getPendingAssignments(
+    classId: string,
+    studentId: string
+  ): Promise<Assignment[]> {
     throw new Error("Method not implemented.");
   }
   getSubject(id: string): Promise<Subject | undefined> {
@@ -66,7 +78,17 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  updateStudent( student: User, name: string, age: number, gender: string, avatar: string, image: string, boardDocId: string, gradeDocId: string, languageDocId: string): Promise<User> {
+  updateStudent(
+    student: User,
+    name: string,
+    age: number,
+    gender: string,
+    avatar: string,
+    image: string,
+    boardDocId: string,
+    gradeDocId: string,
+    languageDocId: string
+  ): Promise<User> {
     throw new Error("Method not implemented.");
   }
   getLessonResultsForStudent(

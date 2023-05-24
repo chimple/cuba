@@ -39,7 +39,6 @@ const Leaderboard: React.FC = () => {
   const [currentUserDataContent, setCurrentUserDataContent] = useState<
     string[][]
   >([]);
-  const [currentAppLang, setCurrentAppLang] = useState<string>();
 
   const history = useHistory();
 
@@ -78,8 +77,7 @@ const Leaderboard: React.FC = () => {
       const getClass = await FirebaseApi.i.getStudentResult(
         currentStudent.docId
       );
-      console.log("getClass", getClass?.classes[0]);
-      if (getClass?.classes[0] != undefined) {
+      if (getClass?.classes != undefined) {
         fetchLeaderBoardData(currentStudent, true, getClass?.classes[0]);
         setCurrentClass(getClass);
       } else {
@@ -98,6 +96,7 @@ const Leaderboard: React.FC = () => {
     classId: string
   ) {
     setIsLoading(true);
+    const api = ServiceConfig.getI().apiHandler;
     console.log(
       "leaderboardDataInfo.weekly.length <= 0 leaderboardDataInfo.allTime.length <= 0",
       leaderboardDataInfo.weekly.length <= 0 ||
@@ -109,12 +108,7 @@ const Leaderboard: React.FC = () => {
 
     const tempLeaderboardData: LeaderboardInfo = (leaderboardDataInfo.weekly
       .length <= 0 || leaderboardDataInfo.allTime.length <= 0
-      ? await FirebaseApi.i.getLeaderboard(
-          "studentId",
-          classId,
-          "schoolId",
-          isWeeklyFlag
-        )
+      ? await api.getLeaderboardResults(classId, isWeeklyFlag)
       : leaderboardDataInfo) || {
       weekly: [],
       allTime: [],
@@ -165,11 +159,18 @@ const Leaderboard: React.FC = () => {
     if (tempCurrentUserDataContent.length <= 0) {
       tempCurrentUserDataContent = [
         // ["Name", element.name],
-        ["Rank", "0"],
-        ["Last Played", "0"],
-        ["Score", "0"],
-        ["Time Spent", 0 + "min " + 0 + " sec"],
+        ["Rank", "--"],
+        ["Last Played", "--"],
+        ["Score", "--"],
+        ["Time Spent", "--min " + "--sec"],
       ];
+      tempLeaderboardDataArray.push([
+        "--",
+        currentStudent.name,
+        "--",
+        "--",
+        "--min " + "--sec",
+      ]);
     }
     setCurrentUserDataContent(tempCurrentUserDataContent);
     setLeaderboardData(tempLeaderboardDataArray);

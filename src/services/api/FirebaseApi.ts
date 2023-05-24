@@ -312,6 +312,7 @@ export class FirebaseApi implements ServiceApi {
       doc(this._db, `${CollectionIds.STUDENTPROFILE}/${studentId}`)
     );
     const lessonsData: DocumentData = studentLessons.data()!;
+    if (lessonsData == undefined || lessonsData.lessons == undefined) return;
     console.log("lessonsData.lessons ", lessonsData.lessons);
     const lessonsMap: Map<string, StudentLessonResult> = new Map(
       Object.entries(lessonsData.lessons)
@@ -592,10 +593,8 @@ export class FirebaseApi implements ServiceApi {
     return assignments;
   }
 
-  public async getLeaderboard(
-    studentId: string,
+  public async getLeaderboardResults(
     sectionId: string,
-    schoolId: string,
     isWeeklyData: boolean
   ): Promise<LeaderboardInfo | undefined> {
     console.log(
@@ -690,27 +689,6 @@ export class FirebaseApi implements ServiceApi {
       console.log("result", result);
 
       return result;
-      // for (const d of data) {
-      //   const res = d.data();
-      //   console.log("isWeeklyData", isWeeklyData);
-      //   if (isWeeklyData) {
-      //     leaderBoardList.push({
-      //       name: d.get("name"),
-      //       score: d.get("weeklyScore"),
-      //       timeSpent: d.get("weeklyTimeSpent"),
-      //       lessonsPlayed: d.get("weeklyLessonPlayed"),
-      //       userId: d.id,
-      //     });
-      //   } else {
-      //     leaderBoardList.push({
-      //       name: d.get("name"),
-      //       score: d.get("allTimeScore"),
-      //       timeSpent: d.get("allTimeTimeSpent"),
-      //       lessonsPlayed: d.get("allTimeLessonPlayed"),
-      //       userId: d.id,
-      //     });
-      //   }
-      // }
     }
 
     console.log("result in FirebaseAPI", leaderBoardList);
