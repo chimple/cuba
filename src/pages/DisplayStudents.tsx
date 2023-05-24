@@ -45,6 +45,13 @@ const DisplayStudents: FC<{}> = () => {
     history.push(PAGES.CREATE_STUDENT);
   };
 
+  function limitChars(content : string, charLen : number){
+    if(content.length > charLen){
+      return content.slice(0,charLen) + "...";
+    }
+    return content;
+  }
+
   return ( 
     <IonPage id="display-students">
       {/* <IonContent> */}
@@ -85,7 +92,9 @@ const DisplayStudents: FC<{}> = () => {
                   }
                   alt=""
                 />
-                {student.name}
+                {/* {student.name} */}
+                {limitChars(student.name, 14)}
+
               </div>
             ))}
           </div>
