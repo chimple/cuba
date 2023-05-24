@@ -43,7 +43,7 @@ import Parent from "./pages/Parent";
 import EditStudent from "./pages/EditStudent";
 import DisplayStudents from "./pages/DisplayStudents";
 // import Assignments from "./pages/Assignments";
-import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
+// import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
 import DisplaySubjects from "./pages/DisplaySubjects";
 import AppLangSelection from "./pages/AppLangSelection";
 import StudentProgress from "./pages/StudentProgress";
@@ -76,7 +76,7 @@ const App: React.FC = () => {
           }
         });
       CapApp.addListener("appStateChange", Util.onAppStateChange);
-      Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
+      // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
     }
   }, []);
 

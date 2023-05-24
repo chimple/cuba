@@ -1,5 +1,6 @@
 import { t } from "i18next";
 import "./StudentNameBox.css";
+import TextField from "../common/TextField";
 
 const StudentNameBox: React.FC<{
   studentName: string;
@@ -10,17 +11,11 @@ const StudentNameBox: React.FC<{
     <div className="main-header">
       <div className="name-header">
         <div className="title">{t("Enter Child Name:")}</div>
-        <input
+        <TextField
           onChange={(evt) => onValueChange(evt.target.value)}
-          className="text-box"
-          type="text"
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              onEnterDown();
-            }
-          }}
           value={studentName}
-        ></input>
+          onEnterDown={onEnterDown}
+        ></TextField>
       </div>
     </div>
   );
