@@ -67,8 +67,8 @@ const EditStudent = () => {
     if (stagesLength === newStage) {
       //Creating Profile for the Student
       let student;
-      if (isEdit) {
-        const currentStudent = api.currentStudent!;
+      const currentStudent = api.currentStudent;
+      if (isEdit && !!currentStudent && !!currentStudent.docId) {
         student = await api.updateStudent(
           currentStudent,
           studentName!,
@@ -145,33 +145,35 @@ const EditStudent = () => {
   return (
     <IonPage id="Edit-student-page">
       {/* <IonContent> */}
-      <IonButton
-        className="next-button"
-        disabled={!isNextButtonEnabled()}
-        color="light"
-        fill="solid"
-        shape="round"
-        onClick={onNextButton}
-      >
-        {t("Next")}
-        <IonIcon
-          className="arrow-icon"
-          slot="end"
-          icon={chevronForward}
-        ></IonIcon>
-      </IonButton>
-      <ChimpleLogo
-        header={t("Welcome to Chimple!")}
-        msg={t("Please create your child profile").toString()}
-      />
-      <div className="content">
-        {stage === STAGES.NAME && (
-          <StudentNameBox
-            studentName={studentName!}
-            onValueChange={setStudentName}
-            onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
-          />
-        )}
+      <div id="scroll">
+        <IonButton
+          className="next-button"
+          disabled={!isNextButtonEnabled()}
+          color="light"
+          fill="solid"
+          shape="round"
+          onClick={onNextButton}
+        >
+          {t("Next")}
+          <IonIcon
+            className="arrow-icon"
+            slot="end"
+            icon={chevronForward}
+          ></IonIcon>
+        </IonButton>
+        <ChimpleLogo
+          header={t("Welcome to Chimple!")}
+          msg={t("Please create your child profile").toString()}
+        />
+        <div className="content">
+          {stage === STAGES.NAME && (
+            <StudentNameBox
+              studentName={studentName!}
+              onValueChange={setStudentName}
+              onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
+            />
+          )}
+        </div>
         {stage === STAGES.GENDER_AND_AGE && (
           <GenderAndAge
             age={age}

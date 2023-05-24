@@ -76,7 +76,16 @@ const JoinClass: FC<{
           }}
           value={inviteCode}
         />
-        <p className="error-text">{error}</p>
+        <p className={"error-text "}>{error}</p>
+        <button
+          className={
+            "okay-button " + (!isNextButtonEnabled() ? "disabled-btn" : "")
+          }
+          disabled={!isNextButtonEnabled()}
+          onClick={getClassData}
+        >
+          {t("Okay")}
+        </button>
       </div>
       <Loading isLoading={loading} />
       <DialogBoxButtons

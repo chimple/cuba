@@ -35,4 +35,5 @@
 
 .ion-page {
   justify-content: start;
+  overflow: scroll;
 }
