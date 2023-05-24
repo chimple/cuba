@@ -7,7 +7,7 @@
       "**/node_modules/**"
     ]
   },
-  "firestore": {
+  "firestore": {yiutyfu7t6yuhy87yui
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
