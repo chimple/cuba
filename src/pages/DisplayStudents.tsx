@@ -44,7 +44,6 @@ const DisplayStudents: FC<{}> = () => {
   const onCreateNewStudent = () => {
     history.push(PAGES.CREATE_STUDENT);
   };
-
   return ( 
     <IonPage id="display-students">
       {/* <IonContent> */}
@@ -85,7 +84,7 @@ const DisplayStudents: FC<{}> = () => {
                   }
                   alt=""
                 />
-                {student.name}
+                <span className="student-name">{student.name}</span>
               </div>
             ))}
           </div>
