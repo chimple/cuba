@@ -12,7 +12,6 @@ const config: CapacitorConfig = {
       providers: ["google.com","phone"],
     },
     Keyboard: {
-      
       // resize: KeyboardResize.Body,
       // style: KeyboardStyle.Dark,
       // resizeOnFullScreen: true,

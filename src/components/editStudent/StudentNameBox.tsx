@@ -8,16 +8,14 @@ const StudentNameBox: React.FC<{
   onEnterDown: Function;
 }> = ({ studentName, onValueChange, onEnterDown }) => {
   return (
-    <div>
-      <div className="main-header">
-        <div className="name-header">
-          <div className="title">{t("Enter Child Name:")}</div>
-          <TextField
-            onChange={(evt) => onValueChange(evt.target.value)}
-            value={studentName}
-            onEnterDown={onEnterDown}
-          ></TextField>
-        </div>
+    <div className="main-header">
+      <div className="name-header">
+        <div className="title">{t("Enter Child Name:")}</div>
+        <TextField
+          onChange={(evt) => onValueChange(evt.target.value)}
+          value={studentName}
+          onEnterDown={onEnterDown}
+        ></TextField>
       </div>
     </div>
   );
