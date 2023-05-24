@@ -1,5 +1,8 @@
 .join-class-header {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .join-class-title {
@@ -20,4 +23,20 @@
 .error-text {
   color: red;
   font-size: var(--text-size);
+}
+
+.okay-button {
+  color: white !important;
+  border-radius: var(--border-radius) !important;
+  padding: 4% 0% !important;
+  width: 50%;
+  font-size: var(--text-size);
+  text-align: center;
+  background-color: #83c327;
+  margin-top: 3%;
+  cursor: pointer;
+}
+
+.disabled-btn {
+  background-color: grey;
 }

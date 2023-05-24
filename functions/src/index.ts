@@ -25,4 +25,6 @@ export const LinkStudent = functions.https.onCall(linkStudent);
 export const CleanLeaderboard = functions.pubsub
   .schedule("0 0 * * 0")
   .timeZone("Asia/Kolkata")
-  .onRun(cleanLeaderboard);
+  .onRun(async (context) => {
+    await cleanLeaderboard();
+  });

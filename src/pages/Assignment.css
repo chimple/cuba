@@ -4,17 +4,20 @@
   display: flex;
   /* justify-content: center; */
   height: 100%;
+  background: var(--ion-background-color);
 }
 
 .lesson-body {
   align-items: center;
   display: flex;
-  height: 70%;
+  /* height: 70%; */
+  /* margin-top: 5%; */
   justify-content: center;
+  color: var(--text-color);
 }
 
 .assignment-body {
-  margin-top: 15vh;
+  margin-top: 10vh;
 }
 
 .assignment-header {
@@ -26,7 +29,8 @@
   justify-content: space-between;
   margin-left: 1vh;
   align-items: center;
-  margin: clamp(10px,10vh,20px);
+  margin: clamp(10px, 10vh, 20px);
+  color: var(--text-color);
 }
 
 .right-button {

@@ -214,14 +214,22 @@ export class FirebaseApi implements ServiceApi {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!currentUser) throw "User is not Logged in";
     if (!currentUser.users || currentUser.users.length < 1) return [];
-    const users = await Promise.all(
+    const tempUsers = await Promise.all(
       currentUser.users.map(async (user) => {
         const userDoc = await getDoc(user);
-        const newUser = userDoc.data() as User;
-        if (newUser) newUser.docId = userDoc.id;
-        return newUser;
+        if (userDoc.exists()) {
+          const newUser = userDoc.data() as User;
+          if (newUser) newUser.docId = userDoc.id;
+          return newUser;
+        }
       })
     );
+    const users: User[] = [];
+    tempUsers.forEach((user) => {
+      if (!!user) {
+        users.push(user);
+      }
+    });
     return users;
   }
 

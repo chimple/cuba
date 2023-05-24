@@ -67,8 +67,8 @@ const EditStudent = () => {
     if (stagesLength === newStage) {
       //Creating Profile for the Student
       let student;
-      if (isEdit) {
-        const currentStudent = api.currentStudent!;
+      const currentStudent = api.currentStudent;
+      if (isEdit && !!currentStudent && !!currentStudent.docId) {
         student = await api.updateStudent(
           currentStudent,
           studentName!,
