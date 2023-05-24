@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import "./Leaderboard.css";
-import { AVATARS, PAGES, PARENTHEADERLIST } from "../common/constants";
+import {
+  AVATARS,
+  LEADERBOARDHEADERLIST,
+  PAGES,
+  PARENTHEADERLIST,
+} from "../common/constants";
 // import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import { ServiceConfig } from "../services/ServiceConfig";
 import BackButton from "../components/common/BackButton";
@@ -15,13 +20,16 @@ import {
   LeaderboardInfo,
   StudentLeaderboardInfo,
 } from "../services/api/ServiceApi";
+import { AppBar, Box, Tab, Tabs } from "@mui/material";
+import { grey } from "@mui/material/colors";
+import StudentProfile from "../models/studentProfile";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentStudent, setCurrentStudent] = useState<User>();
-  const [isWeeklyFlag, setIsWeeklyFlag] = useState<boolean>(true);
+  // const [isWeeklyFlag, setIsWeeklyFlag] = useState<boolean>(true);
   const [leaderboardDataInfo, setLeaderboardDataInfo] =
     useState<LeaderboardInfo>({
       weekly: [],
@@ -35,20 +43,14 @@ const Leaderboard: React.FC = () => {
 
   const history = useHistory();
 
-  const weekOptions = ["Weekly", "ALL Time"];
-  let weekOptionsList: {
-    id: string;
-    displayName: string;
-  }[] = [];
-  weekOptions.forEach((element, i) => {
-    weekOptionsList.push({
-      id: i.toString(),
-      displayName: element,
-    });
-  });
-  const [weeklySelectedValue, setWeeklySelectedValue] = useState<string>(
-    weekOptions[0]
-  );
+  const [weeklyList, setWeeklyList] = useState<
+    {
+      id: string;
+      displayName: string;
+    }[]
+  >([]);
+  const [weeklySelectedValue, setWeeklySelectedValue] = useState<string>();
+  const [currentClass, setCurrentClass] = useState<StudentProfile>();
 
   useEffect(() => {
     setIsLoading(true);
@@ -57,56 +59,98 @@ const Leaderboard: React.FC = () => {
 
   async function inti() {
     console.log("init method called");
+    const weekOptions = ["Weekly", "ALL Time"];
+    let weekOptionsList: {
+      id: string;
+      displayName: string;
+    }[] = [];
+    weekOptions.forEach((element, i) => {
+      weekOptionsList.push({
+        id: i.toString(),
+        displayName: element,
+      });
+    });
+    setWeeklyList(weekOptionsList);
     const api = ServiceConfig.getI().apiHandler;
     const currentStudent = await api.currentStudent;
-
     console.log("currentStudent ", currentStudent);
     if (currentStudent != undefined) {
-      fetchLeaderBoardData(currentStudent);
+      const getClass = await FirebaseApi.i.getStudentResult(
+        currentStudent.docId
+      );
+      console.log("getClass", getClass?.classes[0]);
+      if (getClass?.classes[0] != undefined) {
+        fetchLeaderBoardData(currentStudent, true, getClass?.classes[0]);
+        setCurrentClass(getClass);
+      } else {
+        fetchLeaderBoardData(currentStudent, true, "");
+      }
       console.log("currentStudent ", currentStudent);
       setCurrentStudent(currentStudent);
 
-      setIsLoading(false);
+      // setIsLoading(false);
     }
   }
 
-  async function fetchLeaderBoardData(currentStudent: User) {
-    const tempLeaderboardData: StudentLeaderboardInfo[] =
-      await FirebaseApi.i.getLeaderboard(
-        "studentId",
-        "sectionId",
-        "schoolId",
-        isWeeklyFlag
-      );
-    if (isWeeklyFlag) {
-      setLeaderboardDataInfo({
-        weekly: tempLeaderboardData,
-        allTime: leaderboardDataInfo.allTime,
-      });
-    } else {
-      setLeaderboardDataInfo({
-        weekly: leaderboardDataInfo.weekly,
-        allTime: tempLeaderboardData,
-      });
-    }
+  async function fetchLeaderBoardData(
+    currentStudent: User,
+    isWeeklyFlag: boolean,
+    classId: string
+  ) {
+    setIsLoading(true);
+    console.log(
+      "leaderboardDataInfo.weekly.length <= 0 leaderboardDataInfo.allTime.length <= 0",
+      leaderboardDataInfo.weekly.length <= 0 ||
+        leaderboardDataInfo.allTime.length <= 0,
+      isWeeklyFlag
+        ? "leaderboardDataInfo.weekly"
+        : "leaderboardDataInfo.allTime"
+    );
+
+    const tempLeaderboardData: LeaderboardInfo = (leaderboardDataInfo.weekly
+      .length <= 0 || leaderboardDataInfo.allTime.length <= 0
+      ? await FirebaseApi.i.getLeaderboard(
+          "studentId",
+          classId,
+          "schoolId",
+          isWeeklyFlag
+        )
+      : leaderboardDataInfo) || {
+      weekly: [],
+      allTime: [],
+    };
+
+    // if (isWeeklyFlag) {
+    //   setLeaderboardDataInfo(tempLeaderboardData);
+    // } else {
+    setLeaderboardDataInfo(tempLeaderboardData);
+    // }
+
+    const tempData = isWeeklyFlag
+      ? tempLeaderboardData.weekly
+      : tempLeaderboardData.allTime;
 
     let tempLeaderboardDataArray: any[][] = [];
     let tempCurrentUserDataContent: any[][] = [];
-    for (let i = 0; i < tempLeaderboardData.length; i++) {
-      const element = tempLeaderboardData[i];
+    tempLeaderboardDataArray.push([
+      "#",
+      "Name",
+      "Lesson Played",
+      "Score",
+      "Time Spent",
+    ]);
+
+    for (let i = 0; i < tempData.length; i++) {
+      const element = tempData[i];
+      var computeMinutes = Math.floor(element.timeSpent / 60);
+      var result = element.timeSpent % 60;
       tempLeaderboardDataArray.push([
         i + 1,
         element.name,
         element.lessonsPlayed,
         element.score,
-        element.timeSpent,
+        computeMinutes + "min " + result + " sec",
       ]);
-      // console.log(
-      //   "currentStudent.uid == element.userId",
-      //   currentStudent.uid == element.userId,
-      //   currentStudent.uid,
-      //   element.userId
-      // );
 
       if (currentStudent.docId == element.userId) {
         tempCurrentUserDataContent = [
@@ -114,13 +158,26 @@ const Leaderboard: React.FC = () => {
           ["Rank", i + 1],
           ["Last Played", element.lessonsPlayed],
           ["Score", element.score],
-          ["Time Spent", element.timeSpent],
+          ["Time Spent", computeMinutes + "min " + result + " sec"],
         ];
       }
     }
+    if (tempCurrentUserDataContent.length <= 0) {
+      tempCurrentUserDataContent = [
+        // ["Name", element.name],
+        ["Rank", "0"],
+        ["Last Played", "0"],
+        ["Score", "0"],
+        ["Time Spent", 0 + "min " + 0 + " sec"],
+      ];
+    }
     setCurrentUserDataContent(tempCurrentUserDataContent);
     setLeaderboardData(tempLeaderboardDataArray);
+    setIsLoading(false);
   }
+
+  let headerRowIndicator = -1;
+  let currentUserHeaderRowIndicator = -1;
 
   function leaderboardUI() {
     console.log("weeklySelectedValue", weeklySelectedValue);
@@ -129,33 +186,35 @@ const Leaderboard: React.FC = () => {
       <div id="leaderboard-UI">
         <div id="leaderboard-left-UI">
           <RectangularOutlineDropDown
-            placeholder={weeklySelectedValue}
-            optionList={weekOptionsList}
-            currentValue={weeklySelectedValue}
+            placeholder={weeklySelectedValue || weeklyList[0]?.displayName}
+            optionList={weeklyList}
+            currentValue={weeklySelectedValue || weeklyList[0]?.displayName}
             width="26vw"
             onValueChange={(selectedValue) => {
-              console.log(
-                "selected value",
-                selectedValue,
-                weekOptions[selectedValue],
-                weekOptions[0] === weekOptions[selectedValue]
-                // weekOptionsList[selectedValue],
-                // weekOptionsList[selectedValue]?.displayName
-              );
-              if (weekOptions[0] === weekOptions[selectedValue]) {
-                // setIsWeeklyFlag(true);
-                setWeeklySelectedValue(weekOptions[0]);
-              } else {
-                // setIsWeeklyFlag(false);
-                setWeeklySelectedValue(weekOptions[1]);
+              // if (weekOptionsList[0] != weekOptionsList[selectedValue]) {
+              // setIsWeeklyFlag(true);
+              if (weeklyList[selectedValue]?.displayName != undefined) {
+                console.log(
+                  "selected value",
+                  selectedValue,
+                  weeklyList[selectedValue]?.displayName,
+                  weeklyList[0] === weeklyList[selectedValue]
+                );
+                setWeeklySelectedValue(weeklyList[selectedValue]?.displayName);
+                fetchLeaderBoardData(
+                  currentStudent!,
+                  weeklyList[0] === weeklyList[selectedValue],
+                  currentClass?.classes[0] || ""
+                );
               }
-              // fetchLeaderBoardData(currentStudent!);
+              // }
             }}
           ></RectangularOutlineDropDown>
           <div
             key={currentStudent?.docId}
             // onClick={() => onStudentClick(student)}
             className="avatar"
+            id="leaderboard-avatar"
           >
             <img
               className="avatar-img"
@@ -170,12 +229,48 @@ const Leaderboard: React.FC = () => {
           </div>
           <div>
             {currentUserDataContent.map((e) => {
+              let i = -1;
               return (
                 <IonRow>
                   {e.map((d) => {
+                    i++;
+                    currentUserHeaderRowIndicator++;
+                    console.log(
+                      "color: i === 1 && j === 1 ? white : ",
+                      i,
+                      currentUserHeaderRowIndicator,
+                      i === 1 && currentUserHeaderRowIndicator === 1
+                    );
+
                     return (
                       <IonCol key={d} size="0" size-sm="6">
-                        <p id="leaderboard-left-UI-content">{d || "Empty"}</p>
+                        <p
+                          style={{
+                            color:
+                              i === 1 && currentUserHeaderRowIndicator === 1
+                                ? "black"
+                                : "",
+                            backgroundColor:
+                              i === 1 && currentUserHeaderRowIndicator === 1
+                                ? "white"
+                                : "",
+                            borderRadius:
+                              i === 1 && currentUserHeaderRowIndicator === 1
+                                ? "100vw"
+                                : "",
+                            width:
+                              i === 1 && currentUserHeaderRowIndicator === 1
+                                ? "2.5vw"
+                                : "",
+                            textAlign:
+                              i === 1 && currentUserHeaderRowIndicator === 1
+                                ? "center"
+                                : "left",
+                          }}
+                          id="leaderboard-left-UI-content"
+                        >
+                          {d || "0"}
+                        </p>
                       </IonCol>
                     );
                   })}
@@ -186,18 +281,64 @@ const Leaderboard: React.FC = () => {
         </div>
         <div id="leaderboard-right-UI">
           {leaderboardData.map((e) => {
+            let columnWidth = ["2.5vw", "18vw", "9vw", "9vw", "12vw"];
+            let rankColors = ["", "#FFC32C", "#C4C4C4", "#D39A66", "#959595"];
+            let i = -1;
+            headerRowIndicator++;
+            console.log(
+              "headerRowIndicator",
+              headerRowIndicator,
+              currentUserDataContent[0][1],
+              // i.toString(),
+              Number(currentUserDataContent[0][1]),
+              Number(currentUserDataContent[0][1]) === headerRowIndicator
+            );
+            // if (currentUserDataContent[0][1] === i.toString()) {
+            //   console.log("User e", e);
+            //   // headerRowIndicator = true;
+            // }
+
             return (
-              <IonGrid>
-                <IonRow>
-                  {e.map((d) => {
-                    return (
-                      <IonCol size="auto" size-sm="2">
-                        <p id="leaderboard-right-UI-content">{d}</p>
-                      </IonCol>
-                    );
-                  })}
-                </IonRow>
-              </IonGrid>
+              // <IonGrid>
+              <IonRow
+                style={{
+                  backgroundColor:
+                    headerRowIndicator === 0
+                      ? "#959595"
+                      : Number(currentUserDataContent[0][1]) ===
+                        headerRowIndicator
+                      ? "#FF7925"
+                      : "",
+                  padding: "1vh 2vh",
+                }}
+              >
+                {e.map((d) => {
+                  i++;
+
+                  return (
+                    <IonCol size="auto">
+                      <p
+                        style={{
+                          color:
+                            i === 0 && headerRowIndicator != 0 ? "white" : "",
+                          backgroundColor:
+                            i === 0 && headerRowIndicator != 0
+                              ? rankColors[Number(e[0])] || rankColors[4]
+                              : "",
+                          borderRadius:
+                            i === 0 && headerRowIndicator != 0 ? "100vw" : "",
+                          width: columnWidth[i],
+                          textAlign: i === 0 ? "center" : "left",
+                        }}
+                        id="leaderboard-right-UI-content"
+                      >
+                        {d}
+                      </p>
+                    </IonCol>
+                  );
+                })}
+              </IonRow>
+              // </IonGrid>
             );
           })}
         </div>
@@ -205,18 +346,105 @@ const Leaderboard: React.FC = () => {
     );
   }
 
+  const [tabIndex, setTabIndex] = useState(LEADERBOARDHEADERLIST.LEADERBOARD);
+
+  const handleChange = (
+    event: React.SyntheticEvent,
+    newValue: LEADERBOARDHEADERLIST
+  ) => {
+    // setValue(newValue);
+    setTabIndex(newValue);
+  };
+
   return (
+    // <IonPage>
+    //   {!isLoading ? (
+    //     <div id="leaderboard-page">
+    //       <div>
+    //         <BackButton
+    //           // iconSize={"8vh"}
+    //           onClicked={() => {
+    //             history.replace(PAGES.HOME);
+    //           }}
+    //         ></BackButton>
+    //       </div>
+    //       {currentHeader === LEADERBOARDHEADERLIST.LEADERBOARD ? (
+    //         <div>{leaderboardUI()}</div>
+    //       ) : null}
+    //       {currentHeader === LEADERBOARDHEADERLIST.EVENTS ? <div></div> : null}
+    //     </div>
+    //   ) : null}
+    //   <Loading isLoading={isLoading} />
+    // </IonPage>
+
     <IonPage>
       {!isLoading ? (
-        <div id="leaderboard-page">
-          <BackButton
-            // iconSize={"8vh"}
-            onClicked={() => {
-              history.replace(PAGES.HOME);
-            }}
-          ></BackButton>
-          {leaderboardUI()}
-        </div>
+        <Box>
+          <Box>
+            <AppBar
+              position="static"
+              sx={{
+                flexDirection: "inherit",
+                justifyContent: "space-between",
+                padding: "1vh 1vw",
+                backgroundColor: "#cbdcff !important",
+                boxShadow: "0px 0px 0px 0px !important",
+              }}
+            >
+              <BackButton
+                // iconSize={"8vh"}
+                onClicked={() => {
+                  history.replace(PAGES.HOME);
+                }}
+              ></BackButton>
+              <Tabs
+                value={tabIndex}
+                onChange={handleChange}
+                textColor="secondary"
+                indicatorColor="secondary"
+                aria-label="secondary tabs example"
+                // variant="scrollable"
+                scrollButtons="auto"
+                // aria-label="scrollable auto tabs example"
+                centered
+                sx={{
+                  // "& .MuiAppBar-root": { backgroundColor: "#FF7925 !important" },
+                  "& .MuiTabs-indicator": { backgroundColor: "#000000" },
+                  "& .MuiTab-root": { color: "#000000 !important" },
+                  "& .Mui-selected": { color: "#000000" },
+                }}
+              >
+                <Tab
+                  value={LEADERBOARDHEADERLIST.LEADERBOARD}
+                  label={LEADERBOARDHEADERLIST.LEADERBOARD}
+                  id="parent-page-tab-bar"
+                  // sx={{
+                  //   // fontSize:"5vh"
+                  //   marginRight: "5vw",
+                  // }}
+                />
+                <Tab
+                  id="parent-page-tab-bar"
+                  value={LEADERBOARDHEADERLIST.EVENTS}
+                  label={LEADERBOARDHEADERLIST.EVENTS}
+                />
+              </Tabs>
+              <div></div>
+            </AppBar>
+          </Box>
+          <Box sx={{}}>
+            {tabIndex === LEADERBOARDHEADERLIST.LEADERBOARD && (
+              <Box>
+                <div>{leaderboardUI()}</div>
+              </Box>
+            )}
+            {tabIndex === LEADERBOARDHEADERLIST.EVENTS && (
+              <Box>
+                <div>{}</div>
+              </Box>
+            )}
+          </Box>
+        </Box>
       ) : null}
       <Loading isLoading={isLoading} />
     </IonPage>
