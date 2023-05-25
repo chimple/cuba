@@ -57,16 +57,17 @@ const DisplayStudents: FC<{}> = () => {
             t("where curiosity meets education!"),
           ]}
         />
-        <div
-          id="display-students-parent-icon"
+        <button
+          id="display-students-parent-button"
           onClick={() => {
             // history.replace(PAGES.PARENT);
             setShowDialogBox(true);
           }}
         >
-          <img src={"assets/icons/ParentIcon.png"} alt="" />
-          {"Parent"}
-        </div>
+          {t("Parent")}
+          <img id="parent-icon" src={"assets/icons/user.png"} alt="" />
+          
+        </button>
       </div>
       {!isLoading && students && (
         <div className="content">
