@@ -17,7 +17,11 @@ import {
   orderBy,
   arrayRemove,
 } from "firebase/firestore";
-import { ServiceApi } from "./ServiceApi";
+import {
+  LeaderboardInfo,
+  ServiceApi,
+  StudentLeaderboardInfo,
+} from "./ServiceApi";
 import {
   DEFAULT_COURSE_IDS,
   LANGUAGE_COURSE_MAP,
@@ -308,6 +312,7 @@ export class FirebaseApi implements ServiceApi {
       doc(this._db, `${CollectionIds.STUDENTPROFILE}/${studentId}`)
     );
     const lessonsData: DocumentData = studentLessons.data()!;
+    if (lessonsData == undefined || lessonsData.lessons == undefined) return;
     console.log("lessonsData.lessons ", lessonsData.lessons);
     const lessonsMap: Map<string, StudentLessonResult> = new Map(
       Object.entries(lessonsData.lessons)
@@ -505,8 +510,12 @@ export class FirebaseApi implements ServiceApi {
     const studentProfileDoc = await getDoc(
       doc(this._db, CollectionIds.STUDENTPROFILE, studentId)
     );
+    console.log("studentProfileDoc", studentProfileDoc);
+
     if (!studentProfileDoc.exists) return;
     const studentProfile = studentProfileDoc.data() as StudentProfile;
+    console.log("studentProfile", studentProfile);
+    if (studentProfile === undefined) return;
     studentProfile.docId = studentId;
     this._studentResultCache[studentId] = studentProfile;
     return studentProfile;
@@ -582,5 +591,108 @@ export class FirebaseApi implements ServiceApi {
       assignments
     );
     return assignments;
+  }
+
+  public async getLeaderboardResults(
+    sectionId: string,
+    isWeeklyData: boolean
+  ): Promise<LeaderboardInfo | undefined> {
+    console.log(
+      "async getLeaderboard called",
+      isWeeklyData ? "weeklyScore" : "allTimeScore"
+    );
+
+    const leaderBoardList: LeaderboardInfo = {
+      weekly: [],
+      allTime: [],
+    };
+
+    if (sectionId === undefined || sectionId?.length <= 0) {
+      const q = query(
+        collection(
+          this._db,
+          CollectionIds.LEADERBOARD + "/b2c/genericLeaderboard/"
+        ),
+        orderBy(isWeeklyData ? "weeklyScore" : "allTimeScore", "desc"),
+        limit(50)
+      );
+
+      const queryResult = await getDocs(q);
+
+      for (const d of queryResult.docs) {
+        const res = d.data();
+        console.log("isWeeklyData", isWeeklyData);
+        if (isWeeklyData) {
+          leaderBoardList.weekly.push({
+            name: d.get("name"),
+            score: d.get("weeklyScore"),
+            timeSpent: d.get("weeklyTimeSpent"),
+            lessonsPlayed: d.get("weeklyLessonPlayed"),
+            userId: d.id,
+          });
+        } else {
+          leaderBoardList.allTime.push({
+            name: d.get("name"),
+            score: d.get("allTimeScore"),
+            timeSpent: d.get("allTimeTimeSpent"),
+            lessonsPlayed: d.get("allTimeLessonPlayed"),
+            userId: d.id,
+          });
+        }
+      }
+    } else {
+      const queryResult = await getDoc(
+        doc(this._db, `${CollectionIds.LEADERBOARD}/${sectionId}`)
+      );
+      if (!queryResult.data()) return;
+      const data = queryResult.data();
+      if (!data) return;
+      const weekly: StudentLeaderboardInfo[] = [];
+      const allTime: StudentLeaderboardInfo[] = [];
+      console.log("school mode Data ", data, data.d, Object.keys(data));
+      for (const i of Object.keys(data.d)) {
+        console.log("Object.keys(data) ", i, data.d[i]);
+        weekly.push({
+          name: data.d[i].n,
+          score: data.d[i].w.s,
+          timeSpent: data.d[i].w.t,
+          lessonsPlayed: data.d[i].w.l,
+          userId: i,
+        });
+        allTime.push({
+          name: data.d[i].n,
+          score: data.d[i].a.s,
+          timeSpent: data.d[i].a.t,
+          lessonsPlayed: data.d[i].a.l,
+          userId: i,
+        });
+      }
+      console.log("weekly", weekly, "allTime", allTime);
+
+      const sortLeaderboard = (arr: Array<any>) =>
+        arr.sort(
+          (a, b) =>
+            b.lessonsPlayed - a.lessonsPlayed ||
+            a.timeSpent - b.timeSpent ||
+            b.score - a.score
+        );
+      sortLeaderboard(weekly);
+      sortLeaderboard(allTime);
+      let result: LeaderboardInfo = {
+        weekly: [],
+        allTime: [],
+      };
+      result = {
+        weekly: weekly,
+        allTime: allTime,
+      };
+      console.log("result", result);
+
+      return result;
+    }
+
+    console.log("result in FirebaseAPI", leaderBoardList);
+
+    return leaderBoardList;
   }
 }

@@ -33,6 +33,11 @@ export enum PARENTHEADERLIST {
   FAQ = "FAQ",
 }
 
+export enum LEADERBOARDHEADERLIST {
+  LEADERBOARD = "LEADERBOARD",
+  EVENTS = "EVENTS",
+}
+
 export const parentHeaderIconList: HeaderIconConfig[] = [
   {
     displayName: "User",

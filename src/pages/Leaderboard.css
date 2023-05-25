@@ -1,22 +1,51 @@
 #leaderboard-page {
   padding: 1%;
   align-items: center;
-  margin: clamp(10px,10vh,20px);
+  /* margin: clamp(10px,10vh,20px); */
 }
 
 #leaderboard-UI {
   display: flex;
-  margin: 5% 0% 0% 5%;
+  margin: 1% 0% 0% 5%;
   justify-content: space-around;
   align-items: center;
   font-size: var(--text-size);
   color: black;
+  /* height: 85vh; */
+  padding-bottom: 5vh;
 }
 
-#leaderboard-left-UI {
+/* #leaderboard-left-UI {
   width: 40vw;
+} */
+
+#leaderboard-left-UI-content {
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: bolder;
 }
 
 #leaderboard-right-UI {
   width: 60vw;
+  height: 78vh;
+  outline-style: solid;
+  outline-width: 0.1px;
+  border-radius: 4vh;
+  overflow-y: scroll;
+  text-align: center;
+}
+
+#leaderboard-right-UI-content {
+  /* width: 10vw; */
+  /* text-align: left; */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: bolder;
+}
+
+#leaderboard-avatar {
+  padding: 5% 0%;
 }
