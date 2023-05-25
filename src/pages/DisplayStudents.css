@@ -9,7 +9,12 @@
   cursor: pointer;
   font-size: var(--text-size);
   color: #05342f;
-  margin: clamp(10px,10vh,20px);
+  margin:var(--margin);
+  margin-bottom: 0;
+}
+#parent-icon{
+  height: clamp(20px,5vh,20px);
+  width: clamp(20px,5vw,20px);
 }
 
 #display-students-parent-icon {
@@ -19,6 +24,24 @@
   width: 7vw;
   /* margin: 1vh 1vh 0vh 27vw; */
   }
+#display-students-parent-button{
+  /* display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 7vw; */
+    width: clamp(125px,10vw,125px);
+    height: clamp(45px,10vh,45px);
+    border-radius: 64px;
+    background: #ffffffd9;
+    display: flex;
+    padding-left: min(15px,2vw);
+    padding-right: min(15px,2vw);
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    font-size: var(--text-size);
+    justify-content: space-between;
+}
 
 .avatar {
   display: flex;

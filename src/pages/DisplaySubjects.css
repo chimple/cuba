@@ -1,7 +1,8 @@
 .subjects-header {
   display: flex;
   /* margin-top: 1vh; */
-  margin: clamp(10px,10vh,20px);
+  margin: var(--margin);
+  margin-bottom: 0;
   justify-content: space-between;
   align-items: center;
 }
