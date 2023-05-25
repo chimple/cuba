@@ -2,7 +2,7 @@
   display: grid;
   gap: min(10px, 1vh);
   justify-items: center;
-  align-items: center;
+  
   margin: 2%;
   grid-template-columns: repeat(
     auto-fill,
@@ -19,6 +19,7 @@
   cursor: pointer;
   color: var(--text-color);
   text-align: center;
+  white-space: nowrap;
 }
 
 .chapter-icon {

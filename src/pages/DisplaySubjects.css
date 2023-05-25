@@ -8,7 +8,7 @@
 
 .subject-name {
   color: var(--text-color);
-  font-size: var(--text-size);
+  font-size: clamp(33px,10vh,55px);
   align-self: center;
   font-weight: bold;
 }

@@ -82,7 +82,7 @@ const DisplaySubjects: FC<{}> = () => {
     }
     const courses = await api.getCoursesForParentsStudent(currentStudent);
     localData.courses = courses;
-    setCourses(courses);
+    setCourses([...courses,...courses,...courses]);
     setIsLoading(false);
     return courses;
   };
@@ -158,8 +158,9 @@ const DisplaySubjects: FC<{}> = () => {
           {stage === STAGES.SUBJECTS
             ? t("Subjects")
             : stage === STAGES.CHAPTERS
-            ? t("Chapters")
-            : ""}
+            // ? t("Chapters")
+            ?currentCourse?.title
+            : currentChapter?.title}
         </div>
         <div className="button-right" />
       </div>
@@ -181,6 +182,7 @@ const DisplaySubjects: FC<{}> = () => {
               currentGrade={currentGrade}
               grades={gradesMap.grades}
               onGradeChange={onGradeChanges}
+              course = {currentCourse}
             />
           )}
       </div>

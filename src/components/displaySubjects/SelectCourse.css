@@ -16,12 +16,12 @@
   flex: 1 0 21%;
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .course-icon {
-  width: min(30vh, 200px);
-  height: min(30vh, 200px);
+  width: min(30vh, 136px);
+  height: min(30vh, 136px);
   background-color: white;
   background-repeat: no-repeat;
   border-radius: 50%;
