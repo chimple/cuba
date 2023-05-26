@@ -18,7 +18,11 @@ const TextField: React.FC<{
         setIsInputFocus(true);
         setTimeout(() => {
           //@ts-ignore
-          scollToRef.current?.scrollIntoView({ block: "start" });
+          scollToRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+            inline: "nearest",
+          });
         }, 50);
       });
       Keyboard.addListener("keyboardWillHide", () => {
