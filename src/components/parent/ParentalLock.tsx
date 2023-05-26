@@ -46,8 +46,8 @@ const ParentalLock: React.FC<{
     let code = Util.randomBetween(1, 10);
     let count = Util.randomBetween(1, 5);
     let str = t(`Click x1 times on number x2`)
-      .replace(`x1`, t(NUMBER_NAME[count]))
-      .replace(`x2`, t(NUMBER_NAME[code]));
+      .replace(`x1`, count.toString())
+      .replace(`x2`, code.toString());
     setTitle(str);
     let tempPasscode = "";
     let i = 0;
@@ -92,6 +92,7 @@ const ParentalLock: React.FC<{
               color: "black",
               fontWeight: "normal",
               margin: "6% 0%",
+              fontSize : "4vh"
             }}
           >
             {title}
