@@ -3,14 +3,14 @@
   margin-top: 9vh;
 }
 
-.next-button {
+/* .next-button {
     justify-content: space-between;
     padding-left: min(10px,2vw);
     position: fixed;
     /* top: 3vh; */
-    right: 0;
+    /* right: 0; */
     /* color: var(--text-color); */
-    color: #05342f;
+    /* color: #05342f;
     font-size: var(--text-size);
     height: 7vh;
     height: clamp(45px,15vh,45px);
@@ -18,8 +18,8 @@
     display: flex;
     align-items: center;
     background: white;
-    border-radius: 64px;
-}
+    border-radius: 64px; */
+/* } */ 
 
 .button-round {
   --padding-start: min(13px, 2vw);

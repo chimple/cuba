@@ -16,6 +16,8 @@ import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
 import { Util } from "../utility/util";
+import NextButton from "../components/common/NextButton";
+
 
 const EditStudent = () => {
   const history = useHistory();
@@ -145,21 +147,10 @@ const EditStudent = () => {
   return (
     <IonPage id="Edit-student-page">
       {/* <IonContent> */}
-      <button
-        className="next-button"
-        disabled={!isNextButtonEnabled()}
-        color="light" 
-        // fill="solid"
-        // shape="round"
-        onClick={onNextButton}
-      >
-        {t("Next")}
-        <IonIcon
-          className="arrow-icon"
-          slot="end"
-          icon={chevronForward}
-        ></IonIcon>
-      </button>
+      <NextButton
+      disabled={!isNextButtonEnabled()}
+      onClicked={onNextButton}
+      ></NextButton>
       <ChimpleLogo
         header={t("Welcome to Chimple!")}
         msg={t("Please create your child profile").toString()}

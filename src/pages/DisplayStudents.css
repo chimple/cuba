@@ -40,6 +40,7 @@
     flex-direction: row;
     flex-wrap: nowrap;
     font-size: var(--text-size);
+    color: #05342f;
     justify-content: space-between;
 }
 
