@@ -4,28 +4,32 @@
 }
 
 .next-button {
-  position: fixed;
-  top: 3vh;
-  right: 4vh;
-  /* color: var(--text-color); */
-  color: #05342f;
-  font-size: var(--text-size);
-  height: 7vh;
-  max-height: 50px;
-  min-height: 30px;
-  margin-top: 3vh;
-  margin-right: 2vw;
-
+    justify-content: space-between;
+    padding-left: min(10px,2vw);
+    position: fixed;
+    /* top: 3vh; */
+    right: 0;
+    /* color: var(--text-color); */
+    color: #05342f;
+    font-size: var(--text-size);
+    height: 7vh;
+    height: clamp(45px,15vh,45px);
+    width: clamp(125px,11vw,125px);
+    display: flex;
+    align-items: center;
+    background: white;
+    border-radius: 64px;
 }
 
 .button-round {
-  --padding-start: min(16px, 4vh);
-  --padding-end: min(5px, 1vh);
+  --padding-start: min(13px, 2vw);
+  --padding-end: min(5px, 2vw);
   /* --padding-top: 0.6vh; */
 }
 
 .arrow-icon {
-  padding-left: 4vh;
+  padding-left: 0;
+  padding-right: 0.5vw;
   /* padding-bottom: 1.3vh; */
 }
 
@@ -35,5 +39,12 @@
 
 .ion-page {
   justify-content: start;
-  overflow: scroll;
+}
+#Edit-student-page{
+  margin: var(--margin);
+  margin-bottom: 0;
+}
+
+.button-inner{
+  justify-content: space-between !important;
 }

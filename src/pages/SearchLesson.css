@@ -2,7 +2,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: clamp(10px,10vh,20px);
+  margin: var(--margin);
+  margin-bottom: 0;
   /* margin-top: 2vh; */
   flex-direction: row;
   justify-content: space-between;
