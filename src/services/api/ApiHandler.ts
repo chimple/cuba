@@ -1,5 +1,5 @@
 import User from "../../models/user";
-import { ServiceApi } from "./ServiceApi";
+import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
 import Language from "../../models/language";
@@ -18,7 +18,7 @@ export class ApiHandler implements ServiceApi {
   private s: ServiceApi;
 
   private constructor() {}
-  
+
   public async getDataByInviteCode(inviteCode: number): Promise<any> {
     return await this.s.getDataByInviteCode(inviteCode);
   }
@@ -193,5 +193,12 @@ export class ApiHandler implements ServiceApi {
 
   public async getSubject(id: string): Promise<Subject | undefined> {
     return await this.s.getSubject(id);
+  }
+
+  public async getLeaderboardResults(
+    sectionId: string,
+    isWeeklyData: boolean
+  ): Promise<LeaderboardInfo | undefined> {
+    return await this.s.getLeaderboardResults(sectionId, isWeeklyData);
   }
 }

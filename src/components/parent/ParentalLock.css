@@ -4,6 +4,11 @@
   display: block;
 }
 
+#parental-lock-number:active{
+  background-color:#87A96B;
+  user-select: none;
+}
+
 #parental-lock-number {
   outline-style: solid;
   outline-width: 1.5px;

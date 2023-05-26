@@ -145,12 +145,12 @@ const EditStudent = () => {
   return (
     <IonPage id="Edit-student-page">
       {/* <IonContent> */}
-      <IonButton
+      <button
         className="next-button"
         disabled={!isNextButtonEnabled()}
-        color="light"
-        fill="solid"
-        shape="round"
+        color="light" 
+        // fill="solid"
+        // shape="round"
         onClick={onNextButton}
       >
         {t("Next")}
@@ -159,7 +159,7 @@ const EditStudent = () => {
           slot="end"
           icon={chevronForward}
         ></IonIcon>
-      </IonButton>
+      </button>
       <ChimpleLogo
         header={t("Welcome to Chimple!")}
         msg={t("Please create your child profile").toString()}

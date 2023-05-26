@@ -11,6 +11,19 @@ import StudentProfile from "../../models/studentProfile";
 import Class from "../../models/class";
 import Assignment from "../../models/assignment";
 
+export interface LeaderboardInfo {
+  weekly: StudentLeaderboardInfo[];
+  allTime: StudentLeaderboardInfo[];
+}
+
+export interface StudentLeaderboardInfo {
+  name: string;
+  score: number;
+  timeSpent: number;
+  lessonsPlayed: number;
+  userId: string;
+}
+
 export interface ServiceApi {
   /**
    * Creates a student profile for a parent and returns the student object
@@ -222,4 +235,16 @@ export interface ServiceApi {
    * @returns A promise that resolves to the student.
    */
   linkStudent(inviteCode: number): Promise<any>;
+
+  /**
+   * This function gives Leaderboard results of b2c or b2b Users
+   *
+   * @param sectionId section ID of connected class. If user didn't Connected to class this function gives b2c user
+   * @param isWeeklyData If true, it will gives the weekly data from the Collection. False for it will gives the All Time data from the Collection
+   * @returns A promise that resolves to the student.
+   */
+  getLeaderboardResults(
+    sectionId: string,
+    isWeeklyData: boolean
+  ): Promise<LeaderboardInfo | undefined>;
 }
