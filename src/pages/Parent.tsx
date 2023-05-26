@@ -399,9 +399,12 @@ const Parent: React.FC = () => {
             centered
             sx={{
               // "& .MuiAppBar-root": { backgroundColor: "#FF7925 !important" },
-              "& .MuiTabs-indicator": { backgroundColor: "#FFFFFF" },
+              "& .MuiTabs-indicator": {
+                backgroundColor: "#FFFFFF !important",
+                fontSize: "clamp(10px, 3vh, 20px)",
+              },
               "& .MuiTab-root": { color: "#000000" },
-              "& .Mui-selected": { color: "#FFFFFF" },
+              "& .Mui-selected": { color: "#FFFFFF !important" },
             }}
           >
             <Tab
