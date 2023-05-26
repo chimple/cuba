@@ -144,58 +144,61 @@ const EditStudent = () => {
 
   return (
     <IonPage id="Edit-student-page">
-      {/* <IonContent> */}
-      <button
-        className="next-button"
-        disabled={!isNextButtonEnabled()}
-        color="light" 
-        // fill="solid"
-        // shape="round"
-        onClick={onNextButton}
-      >
-        {t("Next")}
-        <IonIcon
-          className="arrow-icon"
-          slot="end"
-          icon={chevronForward}
-        ></IonIcon>
-      </button>
-      <ChimpleLogo
-        header={t("Welcome to Chimple!")}
-        msg={t("Please create your child profile").toString()}
-      />
-      <div className="content">
-        {stage === STAGES.NAME && (
-          <StudentNameBox
-            studentName={studentName!}
-            onValueChange={setStudentName}
-            onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
-          />
-        )}
-        {stage === STAGES.GENDER_AND_AGE && (
-          <GenderAndAge
-            age={age}
-            gender={gender}
-            onAgeChange={setAge}
-            onGenderChange={setGender}
-          />
-        )}
-        {stage === STAGES.AVATAR && (
-          <SelectAvatar avatar={avatar} onAvatarChange={setAvatar} />
-        )}
-        {stage === STAGES.GRADE && (
-          <GradeBoardAndLangDropdown
-            boards={boards}
-            grades={grades}
-            languages={languages}
-            onBoardChange={setBoard}
-            onGradeChange={setGrade}
-            onLangChange={setLanguage}
-            currentlySelectedBoard={board}
-            currentlySelectedGrade={grade}
-            currentlySelectedLang={language}
-          />
-        )}
+      <div id={stage === STAGES.NAME ? "scroll" : ""}>
+        {/* <IonContent> */}
+        <button
+          className="next-button"
+          disabled={!isNextButtonEnabled()}
+          color="light"
+          // fill="solid"
+          // shape="round"
+          onClick={onNextButton}
+        >
+          {t("Next")}
+          <IonIcon
+            className="arrow-icon"
+            slot="end"
+            icon={chevronForward}
+          ></IonIcon>
+        </button>
+        <ChimpleLogo
+          header={t("Welcome to Chimple!")}
+          msg={t("Please create your child profile").toString()}
+        />
+
+        <div className="content">
+          {stage === STAGES.NAME && (
+            <StudentNameBox
+              studentName={studentName!}
+              onValueChange={setStudentName}
+              onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
+            />
+          )}
+          {stage === STAGES.GENDER_AND_AGE && (
+            <GenderAndAge
+              age={age}
+              gender={gender}
+              onAgeChange={setAge}
+              onGenderChange={setGender}
+            />
+          )}
+          {stage === STAGES.AVATAR && (
+            <SelectAvatar avatar={avatar} onAvatarChange={setAvatar} />
+          )}
+          {stage === STAGES.GRADE && (
+            <GradeBoardAndLangDropdown
+              boards={boards}
+              grades={grades}
+              languages={languages}
+              onBoardChange={setBoard}
+              onGradeChange={setGrade}
+              onLangChange={setLanguage}
+              currentlySelectedBoard={board}
+              currentlySelectedGrade={grade}
+              currentlySelectedLang={language}
+            />
+          )}
+        </div>
       </div>
       <Loading isLoading={isLoading} />
       {/* </IonContent> */}
