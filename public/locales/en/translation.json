@@ -12,7 +12,9 @@
   "Enter the class code to join the class": "Enter the class code to join the class",
   "Enter the Class": "Enter the Class",
   "Fav/History": "Fav/History",
+  "Favourite":"Favourite",
   "Girl": "Girl",
+  "Home work":"Home work",
   "home": "Home",
   "loading": "Loading...",
   "Medium of Instructions": "Medium of Instructions",
@@ -28,8 +30,9 @@
   "Sign out as Parent": "Sign out as Parent",
   "Sign Out": "Sign Out",
   "Subjects": "Subjects",
+  "Suggestion":"Suggestion",
   "There are no pending assignments for you.": "There are no pending assignments for you.",
   "Welcome to Chimple!": "Welcome to Chimple!",
   "where curiosity meets education!": "where curiosity meets education!",
   "You are Joining ": "You are Joining "
-}
+  }

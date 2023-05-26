@@ -11,6 +11,7 @@
     /* width: 90vh; */
     /* width: 30vw; */
     /* margin: 0 auto */
+    gap: 4vw;
 }
 
 #home-header-middle-icons div {
@@ -26,4 +27,5 @@
     font-size: 18px;
     text-align: center;
     line-height: 1;
+    margin-right: 1.5vw;
 }
