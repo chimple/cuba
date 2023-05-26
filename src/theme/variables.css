@@ -30,10 +30,10 @@ http://ionicframework.com/docs/theming/ */
   /** success **/
   --ion-color-success: #2dd36f;
   --ion-color-success-rgb: 45, 211, 111;
-  --ion-color-success-contrast: #150808;
+  --ion-color-success-contrast: #ffffff;
   --ion-color-success-contrast-rgb: 255, 255, 255;
-  --ion-color-success-shade: #83C327;
-  --ion-color-success-tint: rgb(28, 13, 13);
+  --ion-color-success-shade: #28ba62;
+  --ion-color-success-tint: white;
 
   /** warning **/
   --ion-color-warning: #ffc409;
