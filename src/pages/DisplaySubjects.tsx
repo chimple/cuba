@@ -82,7 +82,7 @@ const DisplaySubjects: FC<{}> = () => {
     }
     const courses = await api.getCoursesForParentsStudent(currentStudent);
     localData.courses = courses;
-    setCourses([...courses,...courses,...courses]);
+    setCourses([...courses]);
     setIsLoading(false);
     return courses;
   };
