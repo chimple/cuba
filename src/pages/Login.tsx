@@ -32,7 +32,7 @@ const Login: React.FC = () => {
   let displayName: string;
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
   const [isInputFocus, setIsInputFocus] = useState(false);
-  const scollToRef = useRef(null);
+  const scollToRef = useRef<null | HTMLDivElement>(null);
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {

@@ -9,7 +9,7 @@ const TextField: React.FC<{
   onEnterDown: Function;
 }> = ({ onChange, value, onEnterDown }) => {
   const [isInputFocus, setIsInputFocus] = useState(false);
-  const scollToRef = useRef(null);
+  const scollToRef = useRef<null | HTMLDivElement>(null);
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -36,7 +36,7 @@ const TextField: React.FC<{
         className={"text-box "}
         type="text"
         value={value}
-        ref={scollToRef}
+        // ref={scollToRef}
         onChange={onChange}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
