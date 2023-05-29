@@ -8,8 +8,8 @@
     color: #05342f;
     font-size: var(--text-size);
     height: 7vh;
-    height: clamp(45px,15vh,45px);
-    width: clamp(125px,11vw,125px);
+    width: clamp(95px,10vw,110px);
+    height: clamp(40px,8vh,45px);
     display: flex;
     align-items: center;
     background: white;
