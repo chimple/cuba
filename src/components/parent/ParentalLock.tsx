@@ -109,15 +109,13 @@ const ParentalLock: React.FC<{
                         id="parental-lock-number"
                         onClick={() => {
                           console.log(userInput + d);
-                          if(userInput + d === passCode) {
+                         
                             setDisableUnlockBtn(false);
                             setUnlockColor("success");
-                          }
-
+                          
                           if (userInput.length >= passCode.length) {
                             console.log("reset the userInput");
-                            setDisableUnlockBtn(true);
-                            setUnlockColor("dark");
+                           
                             setUserInput("");
                           } else {
                             setUserInput(userInput + d);
