@@ -22,8 +22,8 @@ div p {
 
 #home-leaderboard-button {
   position: absolute;
-  top: 84vh;
-  left: -2.5vw;
+  bottom: 0;
+  left: 0;
   font-size: var(--text-size);
   color: var(--text-color);
 }
