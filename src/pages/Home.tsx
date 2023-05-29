@@ -431,8 +431,7 @@ const Home: FC = () => {
             <div id="home-leaderboard-button">
               <LeaderBoardButton
                 iconSrc={"assets/icons/LeaderboardIcon.svg"}
-                name={"Leaderboard"}
-                isButtonEnable={true}
+                // name={"Leaderboard"}
                 onHeaderIconClick={() => {
                   history.replace(PAGES.LEADERBOARD);
                   // if (currentHeader != element.header) {

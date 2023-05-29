@@ -1,9 +1,7 @@
 import "./LeaderBoardButton.css";
 const LeaderBoardButton: React.FC<{
   iconSrc: string;
-  // rectangularIcon: any;
-  name: string;
-  isButtonEnable: boolean;
+  // name: string;
   onHeaderIconClick: React.MouseEventHandler<HTMLDivElement>;
 }> = ({
   iconSrc,
@@ -18,7 +16,6 @@ const LeaderBoardButton: React.FC<{
       onClick={onHeaderIconClick}
     />
     //   {/* <p>{name}</p>
-    //   {rectangularIcon} *
     //  </div>
   );
 };
