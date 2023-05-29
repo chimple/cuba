@@ -67,45 +67,46 @@ export interface HeaderIconConfig {
   headerList: any;
 }
 
-export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
+export const 
+HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
   new Map<HOMEHEADERLIST, HeaderIconConfig>([
     [
       HOMEHEADERLIST.RECOMMENDATION,
       {
-        displayName: "Recommendation",
-        iconSrc: "/assets/icons/EnglishIcon.svg",
+        displayName: "Suggestion",
+        iconSrc: "/assets/icons/suggestionIcon.svg",
         headerList: HOMEHEADERLIST.RECOMMENDATION,
       },
     ],
     [
       HOMEHEADERLIST.ASSIGNMENT,
       {
-        displayName: "Assignment",
-        iconSrc: "/assets/icons/MathsIcon.svg",
+        displayName: "Home work",
+        iconSrc: "/assets/icons/homeworkIcon.svg",
         headerList: HOMEHEADERLIST.ASSIGNMENT,
       },
     ],
     [
       HOMEHEADERLIST.FAVORITE,
       {
-        displayName: "Fav/History",
-        iconSrc: "/assets/icons/DigitalSkillsIcon.svg",
+        displayName: "Favourite",
+        iconSrc: "/assets/icons/favoruiteIcon.svg",
         headerList: HOMEHEADERLIST.FAVORITE,
       },
     ],
-    [
-      HOMEHEADERLIST.CHALLENGES,
-      {
-        displayName: "Challenges",
-        iconSrc: "/assets/icons/MathsIcon.svg",
-        headerList: HOMEHEADERLIST.CHALLENGES,
-      },
-    ],
+    // [
+    //   HOMEHEADERLIST.CHALLENGES,
+    //   {
+    //     displayName: "Challenges",
+    //     iconSrc: "/assets/icons/MathsIcon.svg",
+    //     headerList: HOMEHEADERLIST.CHALLENGES,
+    //   },
+    // ],
     [
       HOMEHEADERLIST.SEARCH,
       {
         displayName: "Search",
-        iconSrc: "/assets/icons/DigitalSkillsIcon.svg",
+        iconSrc: "/assets/icons/searchIcon.svg",
         headerList: HOMEHEADERLIST.SEARCH,
       },
     ],
