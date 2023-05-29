@@ -30,7 +30,7 @@ import { Util } from "../utility/util";
 import Auth from "../models/auth";
 import { OneRosterApi } from "../services/api/OneRosterApi";
 import { ServiceConfig } from "../services/ServiceConfig";
-import RectangularIconButton from "../components/parent/RectangularIconButton";
+import LeaderBoardButton from "./LeaderBoardButton";
 
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<{
@@ -429,10 +429,10 @@ const Home: FC = () => {
               />
             */}
             <div id="home-leaderboard-button">
-              <RectangularIconButton
+              <LeaderBoardButton
                 buttonWidth={18}
                 buttonHeight={8}
-                iconSrc={"assets/icons/ChimpleBrandLogo.svg"}
+                iconSrc={"assets/icons/LeaderboardIcon.svg"}
                 name={"Leaderboard"}
                 isButtonEnable={true}
                 onHeaderIconClick={() => {
