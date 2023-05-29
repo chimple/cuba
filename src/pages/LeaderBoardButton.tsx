@@ -1,6 +1,5 @@
+import "./LeaderBoardButton.css";
 const LeaderBoardButton: React.FC<{
-  buttonWidth: number;
-  buttonHeight: number;
   iconSrc: string;
   // rectangularIcon: any;
   name: string;
@@ -13,12 +12,7 @@ const LeaderBoardButton: React.FC<{
 }) => {
   return (
     <img
-      id=""
-      style={{
-        width: "auto",
-        height: 12 + "vh",
-        marginBottom: 100 + "vh",
-      }}
+      id="leader-board-image"
       alt={iconSrc}
       src={iconSrc}
       onClick={onHeaderIconClick}

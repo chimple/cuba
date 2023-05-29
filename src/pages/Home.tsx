@@ -430,8 +430,6 @@ const Home: FC = () => {
             */}
             <div id="home-leaderboard-button">
               <LeaderBoardButton
-                buttonWidth={18}
-                buttonHeight={8}
                 iconSrc={"assets/icons/LeaderboardIcon.svg"}
                 name={"Leaderboard"}
                 isButtonEnable={true}
