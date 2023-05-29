@@ -189,7 +189,6 @@ const EditStudent = () => {
         )}
       </div>
       <Loading isLoading={isLoading} />
-      {/* </IonContent> */}
     </IonPage>
   );
 };
