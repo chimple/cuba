@@ -146,20 +146,20 @@ const Parent: React.FC = () => {
               currentValue={currentAppLang || langList[0].id}
               width="26vw"
               onValueChange={async (selectedLang) => {
-                console.log("selected Langauage", selectedLang.detail.value);
+                console.log("selected Langauage", selectedLang.detail?.value);
                 const tempLangCode: string =
-                  selectedLang.detail.value ?? LANG.ENGLISH;
-                setCurrentAppLang(selectedLang.detail.value);
+                  selectedLang.detail?.value ?? LANG.ENGLISH;
+                setCurrentAppLang(selectedLang.detail?.value);
                 console.log(
                   "UI Lang",
-                  selectedLang.detail.value,
+                  selectedLang.detail?.value,
                   currentAppLang
                 );
                 await i18n.changeLanguage(tempLangCode);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
 
-                const langId = langDocIds.get(selectedLang.detail.value);
+                const langId = langDocIds.get(selectedLang.detail?.value);
 
                 if (currentUser && langId) {
                   ServiceConfig.getI().apiHandler.updateLanguage(
@@ -175,15 +175,15 @@ const Parent: React.FC = () => {
               flag={soundFlag!}
               title="Sound"
               onIonChangeClick={async (v) => {
-                console.log("ion change value ", v.detail.checked);
-                setSoundFlag(v.detail.checked);
+                console.log("ion change value ", v.detail?.checked);
+                setSoundFlag(v.detail?.checked);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
 
                 if (currentUser) {
                   ServiceConfig.getI().apiHandler.updateSoundFlag(
                     currentUser,
-                    v.detail.checked
+                    v.detail?.checked
                   );
                 }
               }}
@@ -193,15 +193,15 @@ const Parent: React.FC = () => {
               flag={musicFlag!}
               title="Music"
               onIonChangeClick={async (v) => {
-                console.log("ion change value ", v.detail.checked);
-                setMusicFlag(v.detail.checked);
+                console.log("ion change value ", v.detail?.checked);
+                setMusicFlag(v.detail?.checked);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
 
                 if (currentUser) {
                   ServiceConfig.getI().apiHandler.updateMusicFlag(
                     currentUser,
-                    v.detail.checked
+                    v.detail?.checked
                   );
                 }
               }}

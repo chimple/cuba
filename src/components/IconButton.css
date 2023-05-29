@@ -9,4 +9,9 @@
   width: auto;
   min-height: 30px;
 }
-
+.child-Name{
+  white-space:nowrap;
+  max-width: 20vh;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
