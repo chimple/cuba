@@ -36,6 +36,7 @@ import { Chapter, StudentLessonResult } from "../common/courseConstants";
 import Lesson from "../models/lesson";
 import { FirebaseApi } from "../services/api/FirebaseApi";
 import { DocumentReference } from "firebase/firestore";
+import LeaderBoardButton from "./LeaderBoardButton";
 
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
@@ -432,12 +433,9 @@ const Home: FC = () => {
               />
             */}
             <div id="home-leaderboard-button">
-              <RectangularIconButton
-                buttonWidth={20}
-                buttonHeight={8}
-                iconSrc={"assets/icons/ChimpleBrandLogo.svg"}
-                name={"Leaderboard"}
-                isButtonEnable={true}
+              <LeaderBoardButton
+                iconSrc={"assets/icons/LeaderboardIcon.svg"}
+                // name={"Leaderboard"}
                 onHeaderIconClick={() => {
                   history.replace(PAGES.LEADERBOARD);
                   // if (currentHeader != element.header) {
