@@ -123,9 +123,9 @@ const LessonCard: React.FC<{
           }}
           color={lessonCardColor}
         >
-          {showSubjectName && subject?.title ? (
+          {showSubjectName && lesson.cocosSubjectCode ? (
             <div id="lesson-card-subject-name">
-              <p>{subject.title}</p>
+              <p>{lesson.cocosSubjectCode}</p>
             </div>
           ) : null}
           <img

@@ -151,9 +151,7 @@ const DisplaySubjects: FC<{}> = () => {
     <IonPage id="display-subjects-page">
       <Loading isLoading={isLoading} />
       <div className="subjects-header">
-        <BackButton
-          onClicked={onBackButton}
-        />
+        <BackButton onClicked={onBackButton} />
         <div className="subject-name">
           {stage === STAGES.SUBJECTS
             ? t("Subjects")
@@ -190,7 +188,7 @@ const DisplaySubjects: FC<{}> = () => {
             lessonData={lessons}
             isHome={true}
             course={currentCourse!}
-            lessonsScoreMap={{}}
+            lessonsScoreMap={new Map()}
             startIndex={0}
             showSubjectName={false}
           />
