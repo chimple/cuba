@@ -10,16 +10,7 @@
     color: #05342f;
     overflow-y:scroll;
   }
-  
-  .text-box-top{
-    position: fixed;
-    top: 10%;
-    width: 41vw;
-    display: block;
-  }
-
-  #scrolling{
-    width: 10vw;
-    height: 70vh;
+ #scroll{
+    height: 60vh;
     background-color:#cbdcff;
   }

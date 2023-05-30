@@ -36,6 +36,14 @@
   justify-content: end;
   align-items: center;
   width: 100vw;
+  position:sticky;
+  margin-right: 3vh;
+  top:1vh;
+  left:10;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  cursor:pointer;
 }
 
 .chapter-img {

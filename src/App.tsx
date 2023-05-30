@@ -68,6 +68,7 @@ const App: React.FC = () => {
         })
         .then((path) => {
           console.log("path ", path, "uri", path?.uri);
+
           if (path instanceof Object) {
             const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.cuba/cache
             console.log("uri", uri); //http://localhost/_capacitor_file_/data/user/0/org.chimple.cuba/cache
@@ -75,7 +76,7 @@ const App: React.FC = () => {
           }
         });
       CapApp.addListener("appStateChange", Util.onAppStateChange);
-      // Keyboard.setScroll({ isDisabled: false });
+      // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
     }
   }, []);
 

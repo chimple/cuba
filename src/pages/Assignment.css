@@ -1,5 +1,5 @@
 .assignment-main {
-  margin: 1vh;
+  /* margin: 1vh; */
   flex-direction: column;
   display: flex;
   /* justify-content: center; */
@@ -11,7 +11,7 @@
   align-items: center;
   display: flex;
   /* height: 70%; */
-  /* margin-top: 5%; */
+  margin-top:-6vh;
   justify-content: center;
   color: var(--text-color);
 }
@@ -27,10 +27,10 @@
   margin-top: 2vh;
   flex-direction: row;
   justify-content: space-between;
-  margin-left: 1vh;
+  /* margin-left: 1vh; */
   align-items: center;
-  margin: clamp(10px, 10vh, 20px);
-  color: var(--text-color);
+  margin: var(--margin);
+  margin-bottom: 0;
 }
 
 .right-button {
