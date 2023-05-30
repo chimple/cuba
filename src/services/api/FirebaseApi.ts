@@ -348,6 +348,49 @@ export class FirebaseApi implements ServiceApi {
     return lessons;
   }
 
+  async getAllLessonsForCourse(course: Course): Promise<{
+    [key: string]: {
+      [key: string]: Lesson;
+    };
+  }> {
+    let lessons: {
+      [key: string]: {
+        [key: string]: Lesson;
+      };
+    } = JSON.parse(localStorage.getItem("CourseLessons")!);
+    console.log("lessons ", lessons);
+    if (!lessons) {
+      lessons = {};
+    }
+    if (lessons != undefined && lessons[course.courseCode]) {
+      return lessons;
+    }
+    let lesMap: {
+      [key: string]: Lesson;
+    } = {};
+    for (let i = 0; i < course.chapters.length; i++) {
+      const chapter = course.chapters[i];
+      if (chapter.lessons && chapter.lessons.length > 0) {
+        for (let lesson of chapter.lessons) {
+          if (lesson instanceof DocumentReference) {
+            const lessonObj = await this.getLesson(lesson.id);
+            if (lessonObj) {
+              lesMap[lesson.id] = lessonObj;
+            }
+          } else {
+            lesMap[lesson.id] = lesson;
+          }
+        }
+      }
+    }
+    console.log("lesMap", lesMap);
+    lessons[course.courseCode] = lesMap;
+    console.log("after lessons", lessons, JSON.stringify(lessons));
+
+    localStorage.setItem("CourseLessons", JSON.stringify(lessons));
+    return lessons;
+  }
+
   async getDifferentGradesForCourse(
     course: Course
   ): Promise<{ grades: Grade[]; courses: Course[] }> {
@@ -670,12 +713,7 @@ export class FirebaseApi implements ServiceApi {
       console.log("weekly", weekly, "allTime", allTime);
 
       const sortLeaderboard = (arr: Array<any>) =>
-        arr.sort(
-          (a, b) =>
-            b.lessonsPlayed - a.lessonsPlayed ||
-            a.timeSpent - b.timeSpent ||
-            b.score - a.score
-        );
+        arr.sort((a, b) => b.score - a.score);
       sortLeaderboard(weekly);
       sortLeaderboard(allTime);
       let result: LeaderboardInfo = {
