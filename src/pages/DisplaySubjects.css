@@ -9,7 +9,7 @@
 
 .subject-name {
   color: var(--text-color);
-  font-size: clamp(33px,10vh,55px);
+  font-size: var(--header-text);
   align-self: center;
   font-weight: bold;
 }

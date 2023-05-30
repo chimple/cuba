@@ -80,6 +80,7 @@ http://ionicframework.com/docs/theming/ */
   --text-color: #182A4F;
   --text-size: clamp(18px, 3vh, 28px);
   --border-radius: 1.5vh; 
+  --header-text: clamp(33px,10vh,55px);
 
   /* minimum size for buttons/tabs */
   --button-height:3vh;
