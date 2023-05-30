@@ -66,7 +66,7 @@
 #lesson-card-name {
     margin: 0px !important;
     color: var(--text-color);
-    font-size: clamp(18px, 3vh, 33px);
+    font-size: var(--text-size);
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
