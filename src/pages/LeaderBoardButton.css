@@ -1,4 +1,5 @@
 #leader-board-image{
-    width: 8vw;
-    cursor: pointer;
+ height: min(44px, 12vh);
+  width: auto;
+  min-height: 30px;
 }
