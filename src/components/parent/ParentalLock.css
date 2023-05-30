@@ -24,7 +24,6 @@
 }
 
 #parental-lock-unlock-button {
-  opacity: 0.25;
   text-align: center;
   font-size: var(--text-size);
   height: 7vh;

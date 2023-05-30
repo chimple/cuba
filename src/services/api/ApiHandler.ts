@@ -201,4 +201,12 @@ export class ApiHandler implements ServiceApi {
   ): Promise<LeaderboardInfo | undefined> {
     return await this.s.getLeaderboardResults(sectionId, isWeeklyData);
   }
+
+  getAllLessonsForCourse(course: Course): Promise<{
+    [key: string]: {
+      [key: string]: Lesson;
+    };
+  }> {
+    return this.s.getAllLessonsForCourse(course);
+  }
 }

@@ -40,14 +40,16 @@ const ParentalLock: React.FC<{
   const [title, setTitle] = React.useState("");
   const [passCode, setPassCode] = React.useState("");
   const [userInput, setUserInput] = React.useState("");
+  const [disableUnlockBtn, setDisableUnlockBtn] = React.useState(true);
+  const [unlockColor, setUnlockColor] = React.useState("dark");
 
   function init() {
     console.log("showDialogBox", showDialogBox);
     let code = Util.randomBetween(1, 10);
     let count = Util.randomBetween(1, 5);
     let str = t(`Click x1 times on number x2`)
-      .replace(`x1`, t(NUMBER_NAME[count]))
-      .replace(`x2`, t(NUMBER_NAME[code]));
+      .replace(`x1`, count.toString())
+      .replace(`x2`, code.toString());
     setTitle(str);
     let tempPasscode = "";
     let i = 0;
@@ -92,6 +94,7 @@ const ParentalLock: React.FC<{
               color: "black",
               fontWeight: "normal",
               margin: "6% 0%",
+              fontSize : "4vh"
             }}
           >
             {title}
@@ -106,9 +109,13 @@ const ParentalLock: React.FC<{
                         id="parental-lock-number"
                         onClick={() => {
                           console.log(userInput + d);
+                         
+                            setDisableUnlockBtn(false);
+                            setUnlockColor("success");
+                          
                           if (userInput.length >= passCode.length) {
                             console.log("reset the userInput");
-
+                           
                             setUserInput("");
                           } else {
                             setUserInput(userInput + d);
@@ -125,8 +132,8 @@ const ParentalLock: React.FC<{
           })}
           <IonButton
             id="parental-lock-unlock-button"
-            disabled={!true}
-            color="dark"
+            disabled={disableUnlockBtn}
+            color={unlockColor}
             fill="solid"
             shape="round"
             onClick={() => {

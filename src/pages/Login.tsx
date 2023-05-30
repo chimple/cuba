@@ -1,5 +1,5 @@
 import { IonLoading, IonPage } from "@ionic/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
 import { APP_LANG, PAGES } from "../common/constants";
@@ -10,8 +10,10 @@ import React from "react";
 import Loading from "../components/Loading";
 import { ConfirmationResult, RecaptchaVerifier, getAuth } from "@firebase/auth";
 import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
-import { BackgroundMode } from "@awesome-cordova-plugins/background-mode";
+// import { BackgroundMode } from "@awesome-cordova-plugins/background-mode";
+// import { setEnabled } from "@red-mobile/cordova-plugin-background-mode/www/background-mode";
 import { FirebaseAuth } from "../services/auth/FirebaseAuth";
+import { Keyboard } from "@capacitor/keyboard";
 
 const Login: React.FC = () => {
   const history = useHistory();
@@ -30,8 +32,28 @@ const Login: React.FC = () => {
   const authInstance = ServiceConfig.getI().authHandler;
   let displayName: string;
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
+  const [isInputFocus, setIsInputFocus] = useState(false);
+  const scollToRef = useRef<null | HTMLDivElement>(null);
 
   useEffect(() => {
+    setIsLoading(true);
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.addListener("keyboardWillShow", (info) => {
+        console.log("info", JSON.stringify(info));
+        setIsInputFocus(true);
+        setTimeout(() => {
+          //@ts-ignore
+          scollToRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "end",
+            inline: "nearest",
+          });
+        }, 50);
+      });
+      Keyboard.addListener("keyboardWillHide", () => {
+        setIsInputFocus(false);
+      });
+    }
     const authHandler = ServiceConfig.getI().authHandler;
     authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
       const appLang = localStorage.getItem(APP_LANG);
@@ -49,8 +71,14 @@ const Login: React.FC = () => {
 
       if (isUserLoggedIn) {
         console.log("navigating to app lang");
+        setIsLoading(false);
         history.replace(PAGES.HOME);
       }
+      if (ServiceConfig.getI().apiHandler.currentStudent) {
+        setIsLoading(false);
+        history.replace(PAGES.DISPLAY_STUDENT);
+      }
+      setIsLoading(false);
     });
     if (!recaptchaVerifier && !Capacitor.isNativePlatform()) {
       // Note: The 'recaptcha-container' must be rendered by this point, or
@@ -73,14 +101,14 @@ const Login: React.FC = () => {
       alert("Phone Number Invalid");
       return;
     }
-    BackgroundMode.enable();
+    // setEnabled(true);
     console.log("onPhoneNumberSubmit called ", phoneNumber, recaptchaVerifier);
     let authRes = await authInstance.phoneNumberSignIn(
       phoneNumber,
       recaptchaVerifier
     );
     console.log("verificationIdRes", authRes?.verificationId);
-    BackgroundMode.disable();
+    // setEnabled(false);
 
     if (authRes) {
       setPhoneNumberSigninRes(authRes);
@@ -157,6 +185,7 @@ const Login: React.FC = () => {
               >
                 Sent the OTP
               </div>
+              {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
               <IonLoading
                 id="custom-loading"
                 // trigger="open-loading"
@@ -219,6 +248,7 @@ const Login: React.FC = () => {
               >
                 Get Started
               </div>
+              {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
             </div>
           ) : (
             <div>
@@ -250,6 +280,7 @@ const Login: React.FC = () => {
               >
                 Enter Chimple APP
               </div>
+              {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
             </div>
           )}
         </div>
@@ -260,3 +291,6 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+function setIsInputFocus(arg0: boolean) {
+  throw new Error("Function not implemented.");
+}

@@ -1,0 +1,5 @@
+#leader-board-image{
+ height: min(44px, 12vh);
+  width: auto;
+  min-height: 30px;
+}

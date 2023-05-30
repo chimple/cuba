@@ -16,7 +16,6 @@ import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
 import { Util } from "../utility/util";
-
 const EditStudent = () => {
   const history = useHistory();
   const location = useLocation();
@@ -143,28 +142,29 @@ const EditStudent = () => {
   };
 
   return (
-    <IonPage id="Edit-student-page">
+    <IonPage id={"Edit-student-page"}>
       {/* <IonContent> */}
-      <button
-        className="next-button"
-        disabled={!isNextButtonEnabled()}
-        color="light" 
-        // fill="solid"
-        // shape="round"
-        onClick={onNextButton}
-      >
-        {t("Next")}
-        <IonIcon
-          className="arrow-icon"
-          slot="end"
-          icon={chevronForward}
-        ></IonIcon>
-      </button>
-      <ChimpleLogo
-        header={t("Welcome to Chimple!")}
-        msg={t("Please create your child profile").toString()}
-      />
-      <div className="content">
+      <div id={stage === STAGES.NAME ? "scroll" : ""}>
+        <button
+          className="next-button"
+          disabled={!isNextButtonEnabled()}
+          color="light"
+          // fill="solid"
+          // shape="round"
+          onClick={onNextButton}
+        >
+          {t("Next")}
+          <IonIcon
+            className="arrow-icon"
+            slot="end"
+            icon={chevronForward}
+          ></IonIcon>
+        </button>
+        <ChimpleLogo
+          header={t("Welcome to Chimple!")}
+          msg={t("Please create your child profile").toString()}
+        />
+
         {stage === STAGES.NAME && (
           <StudentNameBox
             studentName={studentName!}
@@ -172,6 +172,8 @@ const EditStudent = () => {
             onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
           />
         )}
+      </div>
+      <div className="content">
         {stage === STAGES.GENDER_AND_AGE && (
           <GenderAndAge
             age={age}
