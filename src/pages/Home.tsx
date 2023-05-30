@@ -32,7 +32,7 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import RectangularIconButton from "../components/parent/RectangularIconButton";
 import User from "../models/user";
 import Course from "../models/course";
-import { Chapter } from "../common/courseConstants";
+import { Chapter, StudentLessonResult } from "../common/courseConstants";
 import Lesson from "../models/lesson";
 import { FirebaseApi } from "../services/api/FirebaseApi";
 import { DocumentReference } from "firebase/firestore";
@@ -41,7 +41,8 @@ const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentStudent, setCurrentStudent] = useState<User>();
-  const [currentChapter, setCurrentChapter] = useState<Chapter>();
+  const [lessonResultMap, setLessonResultMap] =
+    useState<Map<string, StudentLessonResult>>();
   const [courses, setCourses] = useState<Course[]>();
   const [lessons, setLessons] = useState<Lesson[]>();
   const [nextChapter, setNextChapter] = useState<Chapter>();
@@ -56,10 +57,12 @@ const Home: FC = () => {
   const history = useHistory();
 
   useEffect(() => {
-    setCourse("en");
+    setCurrentHeader(HOMEHEADERLIST.RECOMMENDATION);
+    setCourse(HOMEHEADERLIST.RECOMMENDATION);
   }, []);
 
   const api = ServiceConfig.getI().apiHandler;
+
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
     const currentStudent = await api.currentStudent;
@@ -70,6 +73,40 @@ const Home: FC = () => {
     setCurrentStudent(currentStudent);
     // const apiInstance = OneRosterApi.getInstance();
     if (subjectCode === HOMEHEADERLIST.RECOMMENDATION) {
+      let tempResultLessonMap: Map<string, StudentLessonResult> | undefined =
+        new Map();
+      await api
+        .getLessonResultsForStudent(currentStudent.docId)
+        .then(async (res) => {
+          console.log("lesson res", res);
+          tempResultLessonMap = res;
+          setLessonResultMap(res);
+        });
+
+      const sortLessonResultByDate = (
+        lesMap: Map<string, StudentLessonResult>
+      ) => {
+        // lesMap.sort((a, b) => a.date.getTime() - b.date.getTime());
+        const lesList = Array.from(lesMap)
+          .map(([id, value]) => ({ id, ...value }))
+          .sort((a, b) => {
+            if (a.date === b.date) {
+              return 0;
+            } else {
+              return a.date < b.date ? -1 : 1;
+            }
+          });
+
+        // Rebuild the map after sorting it.
+        const tempLesMap = new Map();
+        lesList.forEach((res) => tempLesMap.set(res.id, res));
+        return tempLesMap;
+      };
+
+      let sortLessonResultMap = sortLessonResultByDate(tempResultLessonMap);
+
+      // console.log("sortLessonResultByDate", sortLessonResultByDate);
+
       let lessonScoreMap = {};
       const lessonMap = {};
       const courses = await api.getCoursesForParentsStudent(currentStudent);
@@ -78,27 +115,32 @@ const Home: FC = () => {
       let reqLes: Lesson[] = [];
 
       for (const tempCourse of courses) {
-        const course = tempCourse;
-        const res = await getDataForSubject(course);
-        // console.log("getDataForSubject res", res);
-
+        // const course = tempCourse;
+        const res = await getDataForSubject(tempCourse);
+        console.log("getDataForSubject res", res);
+        if (!res) {
+          setIsLoading(false);
+          return;
+        }
         console.log(
           "res.tempResultLessonMap === undefined &",
-          res.tempResultLessonMap === undefined,
+          // tempResultLessonMap,
+          tempResultLessonMap === undefined,
           res.chapters[0].id,
-          res.chapters[0].id === course.courseCode + "_quiz",
-          res.tempResultLessonMap === undefined &&
-            res.chapters[0].id === course.courseCode + "_quiz"
+          res.chapters[0].id === tempCourse.courseCode + "_quiz",
+          tempResultLessonMap === undefined &&
+            res.chapters[0].id === tempCourse.courseCode + "_quiz"
         );
 
+        let islessonPushed = false;
         if (
-          res.tempResultLessonMap === undefined &&
-          res.chapters[0].id === course.courseCode + "_quiz"
+          tempResultLessonMap === undefined &&
+          res.chapters[0].id === tempCourse.courseCode + "_quiz"
         ) {
           const tempLes = res.chapters[0].lessons;
           tempLes.forEach(async (l) => {
             if (l instanceof DocumentReference) {
-              const lessonObj = await res.lessons[course.courseCode][l.id];
+              const lessonObj = await res.lessons[tempCourse.courseCode][l.id];
               if (lessonObj) {
                 console.log(lessonObj, "lessons pushed");
                 reqLes.push(lessonObj);
@@ -109,46 +151,75 @@ const Home: FC = () => {
             }
           });
           console.log("pushed lessons", reqLes);
+        } else {
+          for (let c = 0; c < res.chapters.length; c++) {
+            if (islessonPushed) {
+              break;
+            }
+            const chapter = res.chapters[c];
+            console.log("chapter in for ", chapter);
+            for (let l = 0; l < chapter.lessons.length; l++) {
+              const lesson = chapter.lessons[l];
+              console.log("lesson id", lesson.id);
+              if (!tempResultLessonMap.get(lesson.id)) {
+                // if (lesson instanceof DocumentReference) {
+                const lessonObj = await res.lessons[tempCourse.courseCode][
+                  lesson.id
+                ];
+                console.log(
+                  "await res.lessons[tempCourse.courseCode]lesson.id",
+                  await res.lessons[tempCourse.courseCode][lesson.id]
+                );
 
-          setDataCourse(reqLes);
+                if (lessonObj) {
+                  console.log(lessonObj, "lessons pushed");
+                  reqLes.push(lessonObj);
+                }
+                // } else {
+                //   console.log(lesson, "lessons pushed");
+                //   reqLes.push(lesson);
+                // }
+                islessonPushed = true;
+                break;
+              }
+            }
+          }
+          islessonPushed = false;
         }
 
-        // lessonScoreMap = { ...lessonScoreMap, ...tempResultLessonMap };
-        // const currentLessonIndex = await Util.getLastPlayedLessonIndex(
-        //   course,
-        //   lessons,
-        //   chapters,
-        //   tempResultLessonMap
-        // );
-        // lessonMap[course] =
-        //   lessons.length > currentLessonIndex + 1 &&
-        //   lessons[currentLessonIndex + 1].isUnlock
-        //     ? [lessons[currentLessonIndex + 1]]
-        //     : [];
-        // if (
-        //   currentLessonIndex > 0 &&
-        //   course !== COURSES.PUZZLE &&
-        //   lessons[currentLessonIndex].isUnlock
-        // ) {
-        //   lessonMap[course].push(lessons[currentLessonIndex]);
-        // }
+        //Last Played Lessons
+        console.log("sortMap", sortLessonResultMap);
+
+        for (let c = 0; c < res.chapters.length; c++) {
+          if (islessonPushed) {
+            break;
+          }
+          const chapter = res.chapters[c];
+
+          for (let l = 0; l < chapter.lessons.length; l++) {
+            const lesson = chapter.lessons[l];
+            console.log(
+              "sortLessonResultMap.get(lesson.id)",
+              sortLessonResultMap.get(lesson.id)
+            );
+            if (sortLessonResultMap.get(lesson.id)) {
+              // if (lesson instanceof DocumentReference) {
+              const lessonObj = await res.lessons[tempCourse.courseCode][
+                lesson.id
+              ];
+
+              console.log("last played ", lessonObj, "lessons pushed");
+              if (lessonObj.id != tempCourse.courseCode + "_" + PRE_QUIZ) {
+                reqLes.push(lessonObj || lesson);
+                islessonPushed = true;
+                break;
+              }
+            }
+          }
+        }
+
+        setDataCourse(reqLes);
       }
-      // const prevPlayedCourse = localStorage.getItem(PREVIOUS_PLAYED_COURSE());
-      // console.log("lessonMap", lessonMap);
-      // // (tempCourse);
-      // let _lessons: Lesson[] = [...lessonMap[COURSES.ENGLISH]];
-      // if (prevPlayedCourse && prevPlayedCourse === COURSES.ENGLISH) {
-      //   _lessons.splice(0, 0, lessonMap[COURSES.MATHS][0]);
-      //   if (lessonMap[COURSES.MATHS].length > 1)
-      //     _lessons.splice(2, 0, lessonMap[COURSES.MATHS][1]);
-      // } else {
-      //   _lessons.splice(1, 0, lessonMap[COURSES.MATHS][0]);
-      //   if (lessonMap[COURSES.MATHS].length > 1)
-      //     _lessons.push(lessonMap[COURSES.MATHS][1]);
-      // }
-      // _lessons.push(lessonMap[COURSES.PUZZLE][0]);
-      // setLessonsScoreMap(lessonScoreMap);
-      // setDataCourse({ lessons: _lessons, chapters: [] });
       setIsLoading(false);
       return;
     }
@@ -210,86 +281,33 @@ const Home: FC = () => {
     return lessons;
   };
 
-  const onChapterChange = async (chapter: Chapter) => {
-    await getLessonsForChapter(chapter);
-    setCurrentChapter(chapter);
-  };
-
-  async function getDataForSubject(course: Course) {
-    const tempResultLessonMap = await api.getLessonResultsForStudent(
-      currentStudent?.uid!
-    );
-    console.log("tempResultLessonMap", tempResultLessonMap);
-
+  async function getDataForSubject(course: Course): Promise<{
+    chapters: Chapter[];
+    lessons: {
+      [key: string]: {
+        [key: string]: Lesson;
+      };
+    };
+  }> {
     const chapters = course.chapters;
-    const lessons = await FirebaseApi.i.getAllLessonsForCourse(course);
+    const lessons = await api.getAllLessonsForCourse(course);
     // setLessons(lessons);
     console.log("lessons ", lessons);
 
-    const preQuiz = tempResultLessonMap?.get(
-      course.courseCode + "_" + PRE_QUIZ
-    );
+    if (!currentStudent) {
+      console.log("return in getdataForSubject");
+
+      return {
+        chapters: chapters,
+        lessons: lessons,
+      };
+    }
+
     return {
       chapters: chapters,
       lessons: lessons,
-      tempResultLessonMap: tempResultLessonMap,
-      preQuiz: preQuiz,
     };
   }
-
-  function setCurrentLevel(
-    subjectCode: string,
-    chapters: Chapter[],
-    lessons: Lesson[]
-  ) {
-    const currentLessonJson = localStorage.getItem(CURRENT_LESSON_LEVEL());
-    let currentLessonLevel: any = {};
-    if (currentLessonJson) {
-      currentLessonLevel = JSON.parse(currentLessonJson);
-    }
-
-    const currentLessonId = currentLessonLevel[subjectCode];
-    if (currentLessonId != undefined) {
-      const lessonIndex: number = lessons.findIndex(
-        (lesson: any) => lesson.id === currentLessonId
-      );
-      setCurrentLessonIndex(lessonIndex <= 0 ? 0 : lessonIndex);
-    } else {
-      setCurrentChapter(chapters[0]);
-    }
-  }
-
-  function onChapterClick(e: any) {
-    // const chapter = dataCourse.chapters[chaptersMap[e.detail.value]];
-    // const tempCurrentIndex =
-    //   Util.getLastPlayedLessonIndexForLessons(
-    //     chapter.lessons,
-    //     lessonsScoreMap
-    //   ) + 1;
-    // setCurrentLessonIndex(tempCurrentIndex);
-    // setCurrentChapter(chapter);
-  }
-
-  function onArrowClick(e: any, b: boolean) {
-    const chapter = b;
-    // ? dataCourse.chapters[chaptersMap[e] + 1]
-    // : dataCourse.chapters[chaptersMap[e] - 1];
-    // const tempCurrentIndex =
-    //   Util.getLastPlayedLessonIndexForLessons(
-    //     chapter.lessons,
-    //     lessonsScoreMap
-    //   ) + 1;
-    // setCurrentLessonIndex(tempCurrentIndex);
-    // setCurrentChapter(chapter);
-    // console.log(currentChapter);
-  }
-  // function onCustomSlideChange(lessonIndex: number) {
-  // if (!chaptersMap) return;
-  // const chapter = dataCourse.lessons[lessonIndex].chapter;
-  // if (chapter.id === currentChapter?.id) return;
-  // const chapterIndex = chaptersMap[chapter.id];
-  // setCurrentChapter(dataCourse.chapters[chapterIndex]);
-  // }
 
   function onHeaderIconClick(selectedHeader: any) {
     var headerIconList: HeaderIconConfig[] = [];
@@ -339,7 +357,7 @@ const Home: FC = () => {
                   lessonData={dataCourse}
                   isHome={true}
                   course={undefined}
-                  lessonsScoreMap={{}}
+                  lessonsScoreMap={lessonResultMap || new Map()}
                   startIndex={0}
                   showSubjectName={true}
                 />
@@ -415,7 +433,7 @@ const Home: FC = () => {
             */}
             <div id="home-leaderboard-button">
               <RectangularIconButton
-                buttonWidth={18}
+                buttonWidth={20}
                 buttonHeight={8}
                 iconSrc={"assets/icons/ChimpleBrandLogo.svg"}
                 name={"Leaderboard"}

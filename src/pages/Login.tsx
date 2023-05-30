@@ -10,7 +10,8 @@ import React from "react";
 import Loading from "../components/Loading";
 import { ConfirmationResult, RecaptchaVerifier, getAuth } from "@firebase/auth";
 import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
-import { BackgroundMode } from "@awesome-cordova-plugins/background-mode";
+// import { BackgroundMode } from "@awesome-cordova-plugins/background-mode";
+// import { setEnabled } from "@red-mobile/cordova-plugin-background-mode/www/background-mode";
 import { FirebaseAuth } from "../services/auth/FirebaseAuth";
 
 const Login: React.FC = () => {
@@ -32,6 +33,7 @@ const Login: React.FC = () => {
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
 
   useEffect(() => {
+    setIsLoading(true);
     const authHandler = ServiceConfig.getI().authHandler;
     authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
       const appLang = localStorage.getItem(APP_LANG);
@@ -49,8 +51,14 @@ const Login: React.FC = () => {
 
       if (isUserLoggedIn) {
         console.log("navigating to app lang");
+        setIsLoading(false);
         history.replace(PAGES.HOME);
       }
+      if (ServiceConfig.getI().apiHandler.currentStudent) {
+        setIsLoading(false);
+        history.replace(PAGES.DISPLAY_STUDENT);
+      }
+      setIsLoading(false);
     });
     if (!recaptchaVerifier && !Capacitor.isNativePlatform()) {
       // Note: The 'recaptcha-container' must be rendered by this point, or
@@ -73,14 +81,14 @@ const Login: React.FC = () => {
       alert("Phone Number Invalid");
       return;
     }
-    BackgroundMode.enable();
+    // setEnabled(true);
     console.log("onPhoneNumberSubmit called ", phoneNumber, recaptchaVerifier);
     let authRes = await authInstance.phoneNumberSignIn(
       phoneNumber,
       recaptchaVerifier
     );
     console.log("verificationIdRes", authRes?.verificationId);
-    BackgroundMode.disable();
+    // setEnabled(false);
 
     if (authRes) {
       setPhoneNumberSigninRes(authRes);

@@ -713,12 +713,7 @@ export class FirebaseApi implements ServiceApi {
       console.log("weekly", weekly, "allTime", allTime);
 
       const sortLeaderboard = (arr: Array<any>) =>
-        arr.sort(
-          (a, b) =>
-            b.lessonsPlayed - a.lessonsPlayed ||
-            a.timeSpent - b.timeSpent ||
-            b.score - a.score
-        );
+        arr.sort((a, b) => b.score - a.score);
       sortLeaderboard(weekly);
       sortLeaderboard(allTime);
       let result: LeaderboardInfo = {
