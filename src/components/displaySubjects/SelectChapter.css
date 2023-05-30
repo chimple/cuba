@@ -2,7 +2,7 @@
   display: grid;
   gap: min(10px, 1vh);
   justify-items: center;
-  align-items: center;
+  
   margin: 2%;
   grid-template-columns: repeat(
     auto-fill,
@@ -19,6 +19,7 @@
   cursor: pointer;
   color: var(--text-color);
   text-align: center;
+  white-space: nowrap;
 }
 
 .chapter-icon {
@@ -26,8 +27,8 @@
   clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%);
   background-repeat: no-repeat;
   background-position: 50%;
-  width: min(30vh, 130px);
-  height: min(30vh, 130px);
+  width: min(70vh, 130px);
+  height: min(70vh, 130px);
 }
 
 .grade-container {
