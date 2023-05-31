@@ -16,7 +16,6 @@ import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
 import { Util } from "../utility/util";
-
 const EditStudent = () => {
   const history = useHistory();
   const location = useLocation();
@@ -143,9 +142,9 @@ const EditStudent = () => {
   };
 
   return (
-    <IonPage id="Edit-student-page">
+    <IonPage id={"Edit-student-page"}>
+      {/* <IonContent> */}
       <div id={stage === STAGES.NAME ? "scroll" : ""}>
-        {/* <IonContent> */}
         <button
           className="next-button"
           disabled={!isNextButtonEnabled()}
@@ -166,39 +165,39 @@ const EditStudent = () => {
           msg={t("Please create your child profile").toString()}
         />
 
-        <div className="content">
-          {stage === STAGES.NAME && (
-            <StudentNameBox
-              studentName={studentName!}
-              onValueChange={setStudentName}
-              onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
-            />
-          )}
-          {stage === STAGES.GENDER_AND_AGE && (
-            <GenderAndAge
-              age={age}
-              gender={gender}
-              onAgeChange={setAge}
-              onGenderChange={setGender}
-            />
-          )}
-          {stage === STAGES.AVATAR && (
-            <SelectAvatar avatar={avatar} onAvatarChange={setAvatar} />
-          )}
-          {stage === STAGES.GRADE && (
-            <GradeBoardAndLangDropdown
-              boards={boards}
-              grades={grades}
-              languages={languages}
-              onBoardChange={setBoard}
-              onGradeChange={setGrade}
-              onLangChange={setLanguage}
-              currentlySelectedBoard={board}
-              currentlySelectedGrade={grade}
-              currentlySelectedLang={language}
-            />
-          )}
-        </div>
+        {stage === STAGES.NAME && (
+          <StudentNameBox
+            studentName={studentName!}
+            onValueChange={setStudentName}
+            onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
+          />
+        )}
+      </div>
+      <div className="content">
+        {stage === STAGES.GENDER_AND_AGE && (
+          <GenderAndAge
+            age={age}
+            gender={gender}
+            onAgeChange={setAge}
+            onGenderChange={setGender}
+          />
+        )}
+        {stage === STAGES.AVATAR && (
+          <SelectAvatar avatar={avatar} onAvatarChange={setAvatar} />
+        )}
+        {stage === STAGES.GRADE && (
+          <GradeBoardAndLangDropdown
+            boards={boards}
+            grades={grades}
+            languages={languages}
+            onBoardChange={setBoard}
+            onGradeChange={setGrade}
+            onLangChange={setLanguage}
+            currentlySelectedBoard={board}
+            currentlySelectedGrade={grade}
+            currentlySelectedLang={language}
+          />
+        )}
       </div>
       <Loading isLoading={isLoading} />
       {/* </IonContent> */}

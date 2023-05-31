@@ -109,7 +109,7 @@ const AssignmentPage: React.FC = () => {
                     lessonData={lessons}
                     isHome={true}
                     course={undefined}
-                    lessonsScoreMap={{}}
+                    lessonsScoreMap={new Map()}
                     startIndex={0}
                     showSubjectName={true}
                   />
