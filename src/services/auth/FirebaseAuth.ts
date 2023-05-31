@@ -80,6 +80,7 @@ export class FirebaseAuth implements ServiceAuth {
           await this._createUserDoc(user);
         } else {
           this._currentUser = tempUserDoc.data() as User;
+          this._currentUser.docId = tempUserDoc.id;
         }
       }
       App.addListener("appStateChange", Util.onAppStateChange);
@@ -141,7 +142,6 @@ export class FirebaseAuth implements ServiceAuth {
       this._currentUser
     );
     this._currentUser.docId = tempUserDoc.id;
-    console.log("currentUser in if (!currentUser) {", currentUser);
     return this._currentUser;
   }
 
@@ -308,6 +308,7 @@ export class FirebaseAuth implements ServiceAuth {
         console.log("created user", u);
       } else {
         this._currentUser = tempUserDoc.data() as User;
+        this._currentUser.docId = tempUserDoc.id;
       }
       // }
 
@@ -338,6 +339,9 @@ export class FirebaseAuth implements ServiceAuth {
         "🚀 ~ file: FirebaseAuth.ts:146 ~ FirebaseAuth ~ isUserLoggedIn ~ user:",
         user
       );
+      if (!!user) {
+        return true;
+      }
     }
     if (!user && Capacitor.isNativePlatform()) return false;
     return false;
