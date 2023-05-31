@@ -247,4 +247,28 @@ export interface ServiceApi {
     sectionId: string,
     isWeeklyData: boolean
   ): Promise<LeaderboardInfo | undefined>;
+
+  /**
+   * This function gives all chapter and lesson objects
+   *
+   * @param course Course object of the student
+   * @returns A promise that resolves to the course.
+   */
+  getAllLessonsForCourse(course: Course): Promise<{
+    [key: string]: {
+      [key: string]: Lesson;
+    };
+  }>;
+
+  /**
+   * This function gives lesson objects for given LessonId
+   *
+   * @param course Course object of the student
+   * @param lessonId Lesson Id of a course
+   * @returns A promise that resolves to the course.
+   */
+  getLessonFromCourse(
+    course: Course,
+    lessonId: string
+  ): Promise<Lesson | undefined>;
 }

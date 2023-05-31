@@ -12,7 +12,7 @@
   align-items: center;
   font-size: var(--text-size);
   color: black;
-  /* height: 85vh; */
+  height: 85vh;
   padding-bottom: 5vh;
 }
 

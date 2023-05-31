@@ -410,9 +410,11 @@ const Leaderboard: React.FC = () => {
                 centered
                 sx={{
                   // "& .MuiAppBar-root": { backgroundColor: "#FF7925 !important" },
-                  "& .MuiTabs-indicator": { backgroundColor: "#000000" },
+                  "& .MuiTabs-indicator": {
+                    backgroundColor: "#000000 !important",
+                  },
                   "& .MuiTab-root": { color: "#000000 !important" },
-                  "& .Mui-selected": { color: "#000000" },
+                  "& .Mui-selected": { color: "#000000 !important" },
                 }}
               >
                 <Tab

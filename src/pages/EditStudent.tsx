@@ -16,8 +16,8 @@ import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
 import { Util } from "../utility/util";
-import NextButton from "../components/common/NextButton";
 
+import NextButton from "../components/common/NextButton";
 
 const EditStudent = () => {
   const history = useHistory();
@@ -145,6 +145,7 @@ const EditStudent = () => {
   };
 
   return (
+
     <IonPage id="Edit-student-page">
       {/* <IonContent> */}
       <NextButton
@@ -156,6 +157,7 @@ const EditStudent = () => {
         msg={t("Please create your child profile").toString()}
       />
       <div className="content">
+
         {stage === STAGES.NAME && (
           <StudentNameBox
             studentName={studentName!}
@@ -163,6 +165,10 @@ const EditStudent = () => {
             onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
           />
         )}
+
+      </div>
+      <div className="content">
+
         {stage === STAGES.GENDER_AND_AGE && (
           <GenderAndAge
             age={age}

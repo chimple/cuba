@@ -3,14 +3,16 @@ import { Chapter } from "../../common/courseConstants";
 import "./SelectChapter.css";
 import Grade from "../../models/grade";
 import DropDown from "../DropDown";
+import Course from "../../models/course";
 
 const SelectChapter: FC<{
   chapters: Chapter[];
-  onChapterChange: (course: Chapter) => void;
+  onChapterChange: (chapter: Chapter) => void;
   grades: Grade[];
+  course: Course;
   currentGrade: Grade;
   onGradeChange: (grade: Grade) => void;
-}> = ({ chapters, onChapterChange, grades, currentGrade, onGradeChange }) => {
+}> = ({ chapters, onChapterChange, grades, currentGrade, onGradeChange,course }) => {
   return (
     <div>
       <div className="grade-container">
@@ -43,8 +45,8 @@ const SelectChapter: FC<{
               <div className="chapter-icon">
                 <img
                   className="chapter-img"
-                  src={chapter.thumbnail ?? "assets/icons/EnglishIcon.svg"}
-                  alt={chapter.thumbnail ?? "assets/icons/EnglishIcon.svg"}
+                  src={`courses/${course.courseCode}/icons/${chapter.id}.png`}
+                  alt={`courses/${course.courseCode}/icons/${chapter.id}.png`}
                 />
               </div>
               {chapter.title}

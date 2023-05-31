@@ -151,15 +151,14 @@ const DisplaySubjects: FC<{}> = () => {
     <IonPage id="display-subjects-page">
       <Loading isLoading={isLoading} />
       <div className="subjects-header">
-        <BackButton
-          onClicked={onBackButton}
-        />
+        <BackButton onClicked={onBackButton} />
         <div className="subject-name">
           {stage === STAGES.SUBJECTS
             ? t("Subjects")
             : stage === STAGES.CHAPTERS
-            ? t("Chapters")
-            : ""}
+            // ? t("Chapters")
+            ?currentCourse?.title
+            : currentChapter?.title}
         </div>
         <div className="button-right" />
       </div>
@@ -181,6 +180,7 @@ const DisplaySubjects: FC<{}> = () => {
               currentGrade={currentGrade}
               grades={gradesMap.grades}
               onGradeChange={onGradeChanges}
+              course = {currentCourse}
             />
           )}
       </div>
@@ -190,7 +190,7 @@ const DisplaySubjects: FC<{}> = () => {
             lessonData={lessons}
             isHome={true}
             course={currentCourse!}
-            lessonsScoreMap={{}}
+            lessonsScoreMap={new Map()}
             startIndex={0}
             showSubjectName={false}
           />
