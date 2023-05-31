@@ -259,4 +259,16 @@ export interface ServiceApi {
       [key: string]: Lesson;
     };
   }>;
+
+  /**
+   * This function gives lesson objects for given LessonId
+   *
+   * @param course Course object of the student
+   * @param lessonId Lesson Id of a course
+   * @returns A promise that resolves to the course.
+   */
+  getLessonFromCourse(
+    course: Course,
+    lessonId: string
+  ): Promise<Lesson | undefined>;
 }

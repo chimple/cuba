@@ -52,9 +52,9 @@ const LessonSlider: React.FC<{
           if (!m) return;
           console.log(
             "lessonsScoreMap[m.id]",
-            lessonsScoreMap.get(m.docId),
-            m.docId,
-            lessonsScoreMap.get(m.docId)?.score
+            // lessonsScoreMap.get(m.docId),
+            m
+            // lessonsScoreMap.get(m.docId)?.score
           );
           let res: StudentLessonResult = lessonsScoreMap.get[m.docId];
           const isPlayed =

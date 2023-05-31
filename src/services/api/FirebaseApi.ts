@@ -375,10 +375,10 @@ export class FirebaseApi implements ServiceApi {
           if (lesson instanceof DocumentReference) {
             const lessonObj = await this.getLesson(lesson.id);
             if (lessonObj) {
-              lesMap[lesson.id] = lessonObj;
+              lesMap[lesson.id] = lessonObj as Lesson;
             }
           } else {
-            lesMap[lesson.id] = lesson;
+            lesMap[lesson.id] = lesson as Lesson;
           }
         }
       }
@@ -389,6 +389,56 @@ export class FirebaseApi implements ServiceApi {
 
     localStorage.setItem("CourseLessons", JSON.stringify(lessons));
     return lessons;
+  }
+
+  async getLessonFromCourse(
+    course: Course,
+    lessonId: string
+  ): Promise<Lesson | undefined> {
+    let lessons: {
+      [key: string]: {
+        [key: string]: Lesson;
+      };
+    } = JSON.parse(localStorage.getItem("CourseLessons")!);
+    if (!lessons) {
+      lessons = {};
+    }
+    console.log("lessons ", lessons);
+    if (
+      lessons != undefined &&
+      lessons[course.courseCode] != undefined &&
+      lessons[course.courseCode][lessonId]
+    ) {
+      console.log("lesson is already exist");
+      return lessons[course.courseCode][lessonId];
+    }
+    let lesMap: {
+      [key: string]: Lesson;
+    } = {};
+    for (let i = 0; i < course.chapters.length; i++) {
+      const chapter = course.chapters[i];
+      if (chapter.lessons && chapter.lessons.length > 0) {
+        for (let lesson of chapter.lessons) {
+          if (lesson.id === lessonId) {
+            console.log("lesson id Found", lesson);
+            if (lesson instanceof DocumentReference) {
+              const lessonObj = await this.getLesson(lesson.id);
+              if (lessonObj) {
+                lesMap[lesson.id] = lessonObj as Lesson;
+              }
+            } else {
+              lesMap[lesson.id] = lesson as Lesson;
+            }
+            // console.log("lesMap", lesMap);
+            lessons[course.courseCode] = lesMap;
+            console.log("after CourseLessons", lessons);
+
+            localStorage.setItem("CourseLessons", JSON.stringify(lessons));
+            return lessons[course.courseCode][lessonId];
+          }
+        }
+      }
+    }
   }
 
   async getDifferentGradesForCourse(
