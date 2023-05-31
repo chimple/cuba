@@ -348,6 +348,99 @@ export class FirebaseApi implements ServiceApi {
     return lessons;
   }
 
+  async getAllLessonsForCourse(course: Course): Promise<{
+    [key: string]: {
+      [key: string]: Lesson;
+    };
+  }> {
+    let lessons: {
+      [key: string]: {
+        [key: string]: Lesson;
+      };
+    } = JSON.parse(localStorage.getItem("CourseLessons")!);
+    console.log("lessons ", lessons);
+    if (!lessons) {
+      lessons = {};
+    }
+    if (lessons != undefined && lessons[course.courseCode]) {
+      return lessons;
+    }
+    let lesMap: {
+      [key: string]: Lesson;
+    } = {};
+    for (let i = 0; i < course.chapters.length; i++) {
+      const chapter = course.chapters[i];
+      if (chapter.lessons && chapter.lessons.length > 0) {
+        for (let lesson of chapter.lessons) {
+          if (lesson instanceof DocumentReference) {
+            const lessonObj = await this.getLesson(lesson.id);
+            if (lessonObj) {
+              lesMap[lesson.id] = lessonObj as Lesson;
+            }
+          } else {
+            lesMap[lesson.id] = lesson as Lesson;
+          }
+        }
+      }
+    }
+    console.log("lesMap", lesMap);
+    lessons[course.courseCode] = lesMap;
+    console.log("after lessons", lessons, JSON.stringify(lessons));
+
+    localStorage.setItem("CourseLessons", JSON.stringify(lessons));
+    return lessons;
+  }
+
+  async getLessonFromCourse(
+    course: Course,
+    lessonId: string
+  ): Promise<Lesson | undefined> {
+    let lessons: {
+      [key: string]: {
+        [key: string]: Lesson;
+      };
+    } = JSON.parse(localStorage.getItem("CourseLessons")!);
+    if (!lessons) {
+      lessons = {};
+    }
+    console.log("lessons ", lessons);
+    if (
+      lessons != undefined &&
+      lessons[course.courseCode] != undefined &&
+      lessons[course.courseCode][lessonId]
+    ) {
+      console.log("lesson is already exist");
+      return lessons[course.courseCode][lessonId];
+    }
+    let lesMap: {
+      [key: string]: Lesson;
+    } = {};
+    for (let i = 0; i < course.chapters.length; i++) {
+      const chapter = course.chapters[i];
+      if (chapter.lessons && chapter.lessons.length > 0) {
+        for (let lesson of chapter.lessons) {
+          if (lesson.id === lessonId) {
+            console.log("lesson id Found", lesson);
+            if (lesson instanceof DocumentReference) {
+              const lessonObj = await this.getLesson(lesson.id);
+              if (lessonObj) {
+                lesMap[lesson.id] = lessonObj as Lesson;
+              }
+            } else {
+              lesMap[lesson.id] = lesson as Lesson;
+            }
+            // console.log("lesMap", lesMap);
+            lessons[course.courseCode] = lesMap;
+            console.log("after CourseLessons", lessons);
+
+            localStorage.setItem("CourseLessons", JSON.stringify(lessons));
+            return lessons[course.courseCode][lessonId];
+          }
+        }
+      }
+    }
+  }
+
   async getDifferentGradesForCourse(
     course: Course
   ): Promise<{ grades: Grade[]; courses: Course[] }> {
@@ -670,12 +763,7 @@ export class FirebaseApi implements ServiceApi {
       console.log("weekly", weekly, "allTime", allTime);
 
       const sortLeaderboard = (arr: Array<any>) =>
-        arr.sort(
-          (a, b) =>
-            b.lessonsPlayed - a.lessonsPlayed ||
-            a.timeSpent - b.timeSpent ||
-            b.score - a.score
-        );
+        arr.sort((a, b) => b.score - a.score);
       sortLeaderboard(weekly);
       sortLeaderboard(allTime);
       let result: LeaderboardInfo = {
