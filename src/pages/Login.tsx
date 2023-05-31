@@ -1,10 +1,17 @@
-import { IonContent, IonPage } from "@ionic/react";
-import { useEffect, useState } from "react";
+import { IonButton, IonContent, IonPage } from "@ionic/react";
+import { useCallback, useEffect, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
-import { DEBUG_15, IS_USER_LOGED_IN, PAGES, USER_TOKEN } from "../common/constants";
+import {
+  DEBUG_15,
+  IS_USER_LOGED_IN,
+  PAGES,
+  USER_TOKEN,
+} from "../common/constants";
 import Auth from "../models/auth";
 import { Capacitor } from "@capacitor/core";
+import React from "react";
+import { useLongPress, LongPressReactEvents } from "use-long-press";
 // import { Platform } from "react-native";
 
 const Login: React.FC = () => {
@@ -16,6 +23,32 @@ const Login: React.FC = () => {
       history.replace(PAGES.HOME);
     }
   }, []);
+
+  const [enabled, setEnabled] = useState(true);
+  const callback = useCallback((event) => {
+    // alert("Long pressed!" + event);
+    console.log("Long pressed!", event);
+    Auth.i.userAccountName = DEBUG_15;
+    Auth.i.accountType = "com.ustadmobile";
+    Auth.i.authToken = "VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY";
+    Auth.i.sourcedId = "4334700840729898";
+    Auth.i.endpointUrl = "http://192.168.88.99:8087/";
+    localStorage.setItem(IS_USER_LOGED_IN, "true");
+    localStorage.setItem(
+      USER_TOKEN,
+      JSON.stringify({
+        authAccount: Auth.i.userAccountName,
+        sourcedId: Auth.i.sourcedId,
+        endpointUrl: Auth.i.endpointUrl,
+        addedType: Auth.i.accountType,
+        authToken: Auth.i.authToken,
+      })
+    );
+    history.replace(PAGES.HOME);
+  }, []);
+  const bind = useLongPress(enabled ? callback : null, {
+    threshold: 3000, // In milliseconds
+  });
   console.log(
     "Login page",
     Capacitor.getPlatform(),
@@ -24,21 +57,21 @@ const Login: React.FC = () => {
   return (
     <IonPage>
       <IonContent fullscreen>
-        <img
-          id="login-chimple-logo"
-          alt="Chimple Brand Logo"
-          // src="assets/Monk.gif"
-          src="assets/icons/ChimpleBrandLogo.svg"
-        />
+        <button {...bind()}>
+          <img
+            id="login-chimple-logo"
+            alt="Chimple Brand Logo"
+            // src="assets/Monk.gif"
+            src="assets/icons/ChimpleBrandLogo.svg"
+          />
+        </button>
         <div
           id="login-button"
           onClick={async () => {
-            
             let isUserLoggedIn: boolean = await Auth.i.VSOLogin();
             if (isUserLoggedIn) {
               history.replace(PAGES.HOME);
             }
-
           }}
         >
           <img
