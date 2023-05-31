@@ -209,4 +209,11 @@ export class ApiHandler implements ServiceApi {
   }> {
     return this.s.getAllLessonsForCourse(course);
   }
+
+  getLessonFromCourse(
+    course: Course,
+    lessonId: string
+  ): Promise<Lesson | undefined> {
+    return this.s.getLessonFromCourse(course, lessonId);
+  }
 }

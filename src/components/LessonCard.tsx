@@ -53,9 +53,17 @@ const LessonCard: React.FC<{
 
   const getSubject = async () => {
     const subjectId = lesson?.subject?.toString()?.split("/")?.at(-1);
+    console.log(
+      "const subjectId",
+      subjectId,
+      lesson?.subject?.toString(),
+      lesson?.subject?.id?.toString()
+    );
+
     if (!subjectId) return;
     const subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
     if (!subject) return;
+    console.log("const subject", subject);
     setSubject(subject);
   };
 
@@ -123,9 +131,9 @@ const LessonCard: React.FC<{
           }}
           color={lessonCardColor}
         >
-          {showSubjectName && lesson.cocosSubjectCode ? (
+          {showSubjectName && subject?.title ? (
             <div id="lesson-card-subject-name">
-              <p>{lesson.cocosSubjectCode}</p>
+              <p>{subject?.title}</p>
             </div>
           ) : null}
           <img
