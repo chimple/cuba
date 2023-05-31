@@ -5,7 +5,10 @@
     margin-bottom: 0;
     
 }
-
+#App-lang-nextButton{
+    right: 0;
+    position: absolute
+}
 #app-lang-chimple-logo {
     /* margin-top: 1%; */
     text-align: center;
@@ -33,25 +36,4 @@
     margin-left: -10vw;
 }
 
-.app-lang-next-button {
-    justify-content: space-between;
-    margin-top: -145px;
-    padding-left: min(0px,2vw);
-    position: fixed;
-    right: 0;
-    color: #05342f;
-    font-size: var(--text-size);
-    /* height: 7vh; */
-    height: clamp(45px,15vh,45px);
-    width: clamp(125px,11vw,125px);
-    display: flex;
-    align-items: center;
-    background: white;
-    border-radius: 64px;
-}
-
-.app-lang-arrow-icon {
-    padding-left: 4vh;
-    /* padding-bottom: 1.3vh; */
-}
 

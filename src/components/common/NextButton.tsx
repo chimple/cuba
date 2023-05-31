@@ -8,13 +8,16 @@ import "./NextButton.css"
   onClicked:React.MouseEventHandler<HTMLButtonElement>,
   disabled:boolean
   
+  
 }> = ({onClicked,disabled}) => {
   return (
     <button
     id='common-next-button'
     disabled={disabled}
-    color="light"
-    onClick={onClicked} 
+    onClick={onClicked}
+    // style={{
+    //   position:'absolute'
+    // }} 
       >
         {t("Next")}
         <IonIcon
