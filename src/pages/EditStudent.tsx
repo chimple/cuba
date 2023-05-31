@@ -165,10 +165,6 @@ const EditStudent = () => {
             onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
           />
         )}
-
-      </div>
-      <div className="content">
-
         {stage === STAGES.GENDER_AND_AGE && (
           <GenderAndAge
             age={age}
