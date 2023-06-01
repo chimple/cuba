@@ -146,15 +146,19 @@ const EditStudent = () => {
 
   return (
     <IonPage id="Edit-student-page">
-      {/* <IonContent> */}
-      <NextButton
-      disabled={!isNextButtonEnabled()}
-      onClicked={onNextButton}
-      ></NextButton>
+      <div id="common-div">
       <ChimpleLogo
         header={t("Welcome to Chimple!")}
         msg={t("Please create your child profile").toString()}
       />
+       <div id="next-button">
+      <NextButton
+      disabled={!isNextButtonEnabled()}
+      onClicked={onNextButton}
+      />
+      
+      </div>
+      </div>
       <div className="content">
         {stage === STAGES.NAME && (
           <StudentNameBox
@@ -187,6 +191,7 @@ const EditStudent = () => {
             currentlySelectedLang={language}
           />
         )}
+        
       </div>
       <Loading isLoading={isLoading} />
     </IonPage>

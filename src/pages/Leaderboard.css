@@ -1,8 +1,18 @@
 #leaderboard-page {
-  padding: 1%;
+  /* padding: 1%; */
   align-items: center;
+  /* margin: var(--margin); */
+  /* margin-bottom: 0; */
+}
+#LeaderBoard-header{
   margin: var(--margin);
   margin-bottom: 0;
+  /* padding: 1vh 1vw; */
+}
+#LeaderBoard-AppBar{
+  /* padding: 1vh 1vw; */
+  padding: 0%;
+ 
 }
 
 #leaderboard-UI {
