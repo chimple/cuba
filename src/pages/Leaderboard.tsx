@@ -226,7 +226,7 @@ const Leaderboard: React.FC = () => {
               }
               alt=""
             />
-            {currentStudent?.name}
+            <span id="currentStudent-name">{currentStudent?.name}</span>
           </div>
           <div>
             {currentUserDataContent.map((e) => {

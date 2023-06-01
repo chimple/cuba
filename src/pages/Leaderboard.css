@@ -50,3 +50,10 @@
 #leaderboard-avatar {
   padding: 5% 0%;
 }
+
+#currentStudent-name{
+  max-width: 20vh;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
