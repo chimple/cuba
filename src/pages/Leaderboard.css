@@ -51,7 +51,7 @@
   padding: 5% 0%;
 }
 
-#currentStudent-name{
+#leaderboard-student-name{
   max-width: 20vh;
   white-space: nowrap;
   text-overflow: ellipsis;
