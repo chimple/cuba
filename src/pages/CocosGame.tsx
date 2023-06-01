@@ -1,7 +1,13 @@
 import { IonContent, IonPage, useIonToast } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router";
-import { GAME_END, GAME_EXIT, LESSON_END, PAGES } from "../common/constants";
+import {
+  EVENTS,
+  GAME_END,
+  GAME_EXIT,
+  LESSON_END,
+  PAGES,
+} from "../common/constants";
 import Loading from "../components/Loading";
 import { Util } from "../utility/util";
 import Lesson from "../models/lesson";
@@ -101,6 +107,15 @@ const CocosGame: React.FC = () => {
         classId,
         schoolId
       );
+      Util.logEvent(EVENTS.LESSON_END, {
+        studentId: currentStudent.docId,
+        courseDocId: courseDocId,
+        lessonDocId: lesson.docId,
+        assignmentId: lesson.assignment?.docId,
+        classId: classId,
+        schoolId: schoolId,
+        ...data,
+      });
       console.log(
         "🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:",
         result
