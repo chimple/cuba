@@ -1,11 +1,16 @@
 #app-lang {
     /* background-color: ; */
     text-align: center;
+    margin: var(--margin);
+    margin-bottom: 0;
     
 }
-
+#App-lang-nextButton{
+    right: 0;
+    position: absolute
+}
 #app-lang-chimple-logo {
-    margin-top: 1%;
+    /* margin-top: 1%; */
     text-align: center;
     width: auto;
     height: 25vh;
@@ -31,22 +36,4 @@
     margin-left: -10vw;
 }
 
-.app-lang-next-button {
-    position: fixed;
-    top: 3vh;
-    right: 4vh;
-    color: var(--text-color);
-    /* color: #05342f; */
-    font-size: var(--text-size);
-    height: 7vh;
-    max-height: 50px;
-    min-height: 5vh;
-    margin-top: 3vh;
-    margin-right: 2vw;
-}
-
-.app-lang-arrow-icon {
-    padding-left: 4vh;
-    /* padding-bottom: 1.3vh; */
-}
 

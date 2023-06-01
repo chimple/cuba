@@ -7,9 +7,10 @@ import React from "react";
 import Loading from "../components/Loading";
 import RectangularOutlineDropDown from "../components/parent/RectangularOutlineDropDown";
 import i18n from "../i18n";
-import { t } from "i18next";
+import { changeLanguage, t } from "i18next";
 import { chevronForward } from "ionicons/icons";
 import { ServiceConfig } from "../services/ServiceConfig";
+import NextButton from "../components/common/NextButton";
 
 // import { Platform } from "react-native";
 
@@ -46,19 +47,10 @@ const AppLangSelection: React.FC = () => {
     <IonPage id="app-lang">
       {!isLoading ? (
         <div>
-          <img
-            id="app-lang-chimple-logo"
-            alt="Chimple Brand Logo"
-            // src="assets/Monk.gif"
-            src="assets/icons/ChimpleBrandLogo.svg"
-          />
-          <IonButton mode="ios"
-            className="app-lang-next-button"
-            // disabled={}
-            color="light"
-            fill="solid"
-            shape="round"
-            onClick={async () => {
+          <NextButton 
+      
+          disabled={false}          
+            onClicked={async () => {
               history.replace(PAGES.LOGIN);
               const appLang = localStorage.getItem(APP_LANG);
               if (!appLang) {
@@ -67,14 +59,18 @@ const AppLangSelection: React.FC = () => {
                 await i18n.changeLanguage(tempLangCode);
               }
             }}
-          >
-            {t("Next")}
-            <IonIcon mode="ios"
-              className="app-lang-arrow-icon"
-              slot="end"
-              icon={chevronForward}
-            ></IonIcon>
-          </IonButton >
+          />
+       
+          
+          <div>
+           <img
+            id="app-lang-chimple-logo"
+            alt="Chimple Brand Logo"
+            // src="assets/Monk.gif"
+            src="assets/icons/ChimpleBrandLogo.svg"
+          />
+          </div>
+          
           <div id="app-lang-element">
             <p id="app-lang-text">Select App Language</p>
               <RectangularOutlineDropDown 
