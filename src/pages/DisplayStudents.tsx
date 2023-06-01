@@ -68,7 +68,7 @@ const DisplayStudents: FC<{}> = () => {
         </button>
       </div>
       {!isLoading && students && (
-        <div className="content">
+        <div className="display-student-content">
           <div className="avatar-container">
             {students.map((student) => (
               <div
