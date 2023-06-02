@@ -76,16 +76,30 @@ const CocosGame: React.FC = () => {
     //Just fot Testing
     const saveTempData = async (e: any) => {
       console.log("🚀 ~ file: CocosGame.tsx:76 ~ saveTempData ~ e:", e);
+      const currentStudent = api.currentStudent!;
       const data = e.detail as lessonEndData;
+      const isStudentLinked = await api.isStudentLinked(currentStudent.docId);
+      let classId;
+      let schoolId;
+      if (isStudentLinked) {
+        const studentResult = await api.getStudentResult(currentStudent.docId);
+
+        if (!!studentResult && studentResult.classes.length > 0) {
+          classId = studentResult.classes[0];
+          schoolId = studentResult.schools[0];
+        }
+      }
       const result = await api.updateResult(
-        api.currentStudent!,
+        currentStudent,
         courseDocId,
         lesson.docId,
         data.score,
         data.correctMoves,
         data.wrongMoves,
         data.timeSpent,
-        lesson.assignment?.docId
+        lesson.assignment?.docId,
+        classId,
+        schoolId
       );
       console.log(
         "🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:",

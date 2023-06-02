@@ -88,6 +88,7 @@ const Home: FC = () => {
       ) => {
         // lesMap.sort((a, b) => a.date.getTime() - b.date.getTime());
         if (!lesMap) {
+          setIsLoading(false);
           return;
         }
         const lesList = Array.from(lesMap)

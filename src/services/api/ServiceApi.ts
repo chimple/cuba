@@ -139,6 +139,9 @@ export interface ServiceApi {
    * @param {number} correctMoves -  Number of correct moves in a lesson
    * @param {number} wrongMoves -  Number of wrong moves in a lesson
    * @param {number} timeSpent -  Total TimeSpent in a lesson
+   * @param {string | undefined} assignmentId
+   * @param {string | undefined} classId
+   * @param {string | undefined} schoolId
    * @returns {Result}} Updated result Object
    */
   updateResult(
@@ -149,7 +152,9 @@ export interface ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    assignmentId: string | undefined
+    assignmentId: string | undefined,
+    classId: string | undefined,
+    schoolId: string | undefined
   ): Promise<Result>;
 
   /**
