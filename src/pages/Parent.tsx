@@ -370,8 +370,8 @@ const Parent: React.FC = () => {
     //   <Loading isLoading={isLoading} />
     // </IonPage>
     <Box>
-      <Box>
-        <AppBar
+      <Box id="ParentHeader">
+        <AppBar id="ParentHeader-1" 
           position="static"
           sx={{
             flexDirection: "inherit",

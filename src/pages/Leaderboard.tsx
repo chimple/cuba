@@ -381,8 +381,8 @@ const Leaderboard: React.FC = () => {
     <IonPage>
       {!isLoading ? (
         <Box>
-          <Box>
-            <AppBar
+          <Box id="LeaderBoard-header">
+            <AppBar id="LeaderBoard-AppBar"
               position="static"
               sx={{
                 flexDirection: "inherit",

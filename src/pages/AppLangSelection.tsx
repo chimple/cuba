@@ -47,8 +47,8 @@ const AppLangSelection: React.FC = () => {
     <IonPage id="app-lang">
       {!isLoading ? (
         <div>
+          <div id="App-lang-nextButton">
           <NextButton 
-      
           disabled={false}          
             onClicked={async () => {
               history.replace(PAGES.LOGIN);
@@ -60,7 +60,7 @@ const AppLangSelection: React.FC = () => {
               }
             }}
           />
-       
+       </div>
           
           <div>
            <img

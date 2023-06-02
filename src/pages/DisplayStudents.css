@@ -1,4 +1,4 @@
-.content {
+.display-student-content{
   margin-top: 3vh;
 }
 
@@ -14,17 +14,17 @@
 }
 #parent-icon{
   height: clamp(15px,10vh,18px);
-  width: clamp(15px,10vw,18px);
+  width: clamp(15px,10vh,18px);
 }
 
 #display-students-parent-icon {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 7vw;
+  width: clamp(95px,10vw,110px);
   }
 #display-students-parent-button{
-  width: clamp(95px,10vw,110px);
+  width: clamp(95px,10vh,110px);
     height: clamp(40px,8vh,45px);
     border-radius: 64px;
     background: #ffffffd9;
@@ -61,7 +61,6 @@
   gap: 10vh;
   align-items: center;
   justify-items: center;
-  width: 90%;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -78,6 +77,9 @@
   width: max-content;
   /* color: #05342f; */
   color: var(--text-color);
+  bottom: 0;
+    inline-size: -webkit-fill-available;
+    position: absolute;
 }
 
 .ion-page {

@@ -4,7 +4,7 @@
   margin: var(--margin);
   margin-bottom: 0;
   justify-content: space-between;
-  align-items: center;
+  /* align-items: center; */
 }
 
 .subject-name {

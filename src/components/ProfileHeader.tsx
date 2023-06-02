@@ -5,6 +5,7 @@ import IconButton from "./IconButton";
 import "./ProfileHeader.css";
 import { ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
+import BackButton from "./common/BackButton";
 
 const ProfileHeader: React.FC = () => {
   const history = useHistory();
@@ -15,13 +16,12 @@ const ProfileHeader: React.FC = () => {
 
   return (
     <div className="header">
-      <IconButton
-        name={t("back")}
-        iconSrc="assets/icons/BackIcon.svg"
-        onClick={() => {
+      <BackButton
+        onClicked={() => {
           history.replace(PAGES.HOME);
         }}
       />
+      
       <IconButton
         name={student?.name ?? "Chimp"}
         iconSrc={"assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png"}

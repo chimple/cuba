@@ -7,6 +7,13 @@
     justify-content: space-around; */
   align-items: center;
 }
+#ParentHeader{
+  margin: var(--margin);
+  margin-bottom: 0;
+}
+#ParentHeader-1{
+  padding: 0;
+}
 
 #parent-page-profile {
   display: flex;
