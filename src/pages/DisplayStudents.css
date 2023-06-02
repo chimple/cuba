@@ -14,7 +14,7 @@
 }
 #parent-icon{
   height: clamp(15px,10vh,18px);
-  width: clamp(15px,10vw,18px);
+  width: clamp(15px,10vh,18px);
 }
 
 #display-students-parent-icon {
@@ -24,7 +24,7 @@
   width: clamp(95px,10vw,110px);
   }
 #display-students-parent-button{
-  width: clamp(95px,10vw,110px);
+  width: clamp(95px,10vh,110px);
     height: clamp(40px,8vh,45px);
     border-radius: 64px;
     background: #ffffffd9;

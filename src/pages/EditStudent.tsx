@@ -16,8 +16,8 @@ import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
 import { Util } from "../utility/util";
-
 import NextButton from "../components/common/NextButton";
+
 
 const EditStudent = () => {
   const history = useHistory();
@@ -145,19 +145,21 @@ const EditStudent = () => {
   };
 
   return (
-
     <IonPage id="Edit-student-page">
-      {/* <IonContent> */}
-      <NextButton
-      disabled={!isNextButtonEnabled()}
-      onClicked={onNextButton}
-      ></NextButton>
+      <div id="common-div">
       <ChimpleLogo
         header={t("Welcome to Chimple!")}
         msg={t("Please create your child profile").toString()}
       />
+       <div id="next-button">
+      <NextButton
+      disabled={!isNextButtonEnabled()}
+      onClicked={onNextButton}
+      />
+      
+      </div>
+      </div>
       <div className="content">
-
         {stage === STAGES.NAME && (
           <StudentNameBox
             studentName={studentName!}
@@ -189,6 +191,7 @@ const EditStudent = () => {
             currentlySelectedLang={language}
           />
         )}
+        
       </div>
       <Loading isLoading={isLoading} />
     </IonPage>
