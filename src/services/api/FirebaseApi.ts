@@ -154,20 +154,28 @@ export class FirebaseApi implements ServiceApi {
 
     console.log("userList ", studentDoc.id, userList);
 
+    const functions = getFunctions();
+    const generateInviteCode = httpsCallable(
+      functions,
+      "DeleteStudentByParent"
+    );
+    const result = await generateInviteCode({
+      studentId: studentId,
+    });
     // const studentDocRef = await doc(
     //   this._db,
     //   `${CollectionIds.USER}/${studentDoc.id}`
     // );
 
-    await deleteDoc(studentDoc);
-    await updateDoc(
-      doc(this._db, `${CollectionIds.USER}/${_currentUser?.docId}`),
-      {
-        // users: userList,
-        users: arrayRemove(studentDoc),
-        dateLastModified: Timestamp.now(),
-      }
-    );
+    // await deleteDoc(studentDoc);
+    // await updateDoc(
+    //   doc(this._db, `${CollectionIds.USER}/${_currentUser?.docId}`),
+    //   {
+    //     // users: userList,
+    //     users: arrayRemove(studentDoc),
+    //     dateLastModified: Timestamp.now(),
+    //   }
+    // );
     _currentUser.users = userList;
     ServiceConfig.getI().authHandler.currentUser = _currentUser;
   }
