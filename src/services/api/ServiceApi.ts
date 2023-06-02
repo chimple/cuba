@@ -9,6 +9,7 @@ import Result from "../../models/result";
 import Subject from "../../models/subject";
 import StudentProfile from "../../models/studentProfile";
 import Class from "../../models/class";
+import School from "../../models/school";
 import Assignment from "../../models/assignment";
 
 export interface LeaderboardInfo {
@@ -204,6 +205,13 @@ export interface ServiceApi {
    * @returns {Class | undefined}`Class` or `undefined` if it could not find the Class with given `id`
    */
   getClassById(id: string): Promise<Class | undefined>;
+
+  /**
+   * Gives School for given a School firebase doc Id
+   * @param {string} id - School firebase doc id
+   * @returns {School | undefined}`School` or `undefined` if it could not find the School with given `id`
+   */
+  getSchoolById(id: string): Promise<School | undefined>;
 
   /**
    * Gives `boolean` whether the student is connected to any class, for given a Student firebase doc Id

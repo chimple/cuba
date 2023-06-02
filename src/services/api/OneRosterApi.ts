@@ -18,6 +18,7 @@ import Lesson from "../../models/lesson";
 import { StudentLessonResult } from "../../common/courseConstants";
 import Subject from "../../models/subject";
 import StudentProfile from "../../models/studentProfile";
+import school from "../../models/school";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -40,6 +41,9 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
+  getSchoolById(id: string): Promise<school | undefined> {
+    throw new Error("Method not implemented.");
+  }
   getLeaderboardResults(
     sectionId: string,
     isWeeklyData: boolean
