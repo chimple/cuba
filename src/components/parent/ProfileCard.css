@@ -19,6 +19,15 @@
     height: auto;
 }
 
+#profile-card-user-name{
+    display: block;
+    margin: auto auto;
+    white-space: nowrap;
+    max-width: 20vh;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
 #profile-card-edit-icon-div {
     text-align: end;
 }
