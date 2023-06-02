@@ -1,4 +1,4 @@
-.content {
+.display-student-content{
   margin-top: 3vh;
 }
 
@@ -21,7 +21,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 7vw;
+  width: clamp(95px,10vw,110px);
   }
 #display-students-parent-button{
   width: clamp(95px,10vh,110px);
@@ -61,7 +61,6 @@
   gap: 10vh;
   align-items: center;
   justify-items: center;
-  width: 90%;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -78,6 +77,9 @@
   width: max-content;
   /* color: #05342f; */
   color: var(--text-color);
+  bottom: 0;
+    inline-size: -webkit-fill-available;
+    position: absolute;
 }
 
 .ion-page {

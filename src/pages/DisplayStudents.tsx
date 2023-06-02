@@ -44,17 +44,16 @@ const DisplayStudents: FC<{}> = () => {
   const onCreateNewStudent = () => {
     history.push(PAGES.CREATE_STUDENT);
   };
-  return ( 
+  return (
     <IonPage id="display-students">
       {/* <IonContent> */}
       <div id="display-students-chimple-logo">
-        <div id="display-students-parent-icon">
-        </div>
-        <ChimpleLogo  
+        <div id="display-students-parent-icon"></div>
+        <ChimpleLogo
           header={t("Welcome to Chimple!")}
           msg={[
-            t("Discovering the joy of learning with Chimple"),
-            t("where curiosity meets education!"),
+            t("Please select your profile"),
+            // t("where curiosity meets education!"),
           ]}
         />
         <button
@@ -66,11 +65,10 @@ const DisplayStudents: FC<{}> = () => {
         >
           {t("Parent")}
           <img id="parent-icon" src={"assets/icons/user.png"} alt="" />
-          
         </button>
       </div>
       {!isLoading && students && (
-        <div className="content">
+        <div className="display-student-content">
           <div className="avatar-container">
             {students.map((student) => (
               <div

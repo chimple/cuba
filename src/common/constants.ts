@@ -67,8 +67,7 @@ export interface HeaderIconConfig {
   headerList: any;
 }
 
-export const 
-HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
+export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
   new Map<HOMEHEADERLIST, HeaderIconConfig>([
     [
       HOMEHEADERLIST.RECOMMENDATION,
@@ -256,3 +255,7 @@ export const NUMBER_NAME = [
 
 export const MAX_STUDENTS_ALLOWED = 3;
 export const INSTANT_SEARCH_INDEX_NAME = "lesson_cuba";
+
+export enum EVENTS {
+  LESSON_END = "lessonEnd",
+}
