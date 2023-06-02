@@ -17,7 +17,6 @@ const TextField: React.FC<{
         console.log("info", JSON.stringify(info));
         setIsInputFocus(true);
         setTimeout(() => {
-          //@ts-ignore
           scollToRef.current?.scrollIntoView({
             behavior: "smooth",
             block: "start",
