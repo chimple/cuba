@@ -19,7 +19,7 @@
 .dialog-box-button-style {
   color: white !important;
   border-radius: var(--border-radius) !important;
-  padding: 4% 0% !important;
+  padding: 2% 0% !important;
   width: 45%;
   font-size: 4vh;
   text-align: center;
@@ -32,6 +32,6 @@
 }
 
 #yes-button {
-  background: gray !important;
+  background: #F72121  !important;
   opacity: 0.5;
 }

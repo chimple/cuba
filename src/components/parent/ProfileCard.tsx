@@ -127,7 +127,7 @@ const ProfileCard: React.FC<{
         <DialogBoxButtons
           width={"40vw"}
           height={"30vh"}
-          message="Are you sure to delete?"
+          message="Do you want to delete the user?"
           showDialogBox={showDialogBox}
           yesText="Yes"
           noText="No"
