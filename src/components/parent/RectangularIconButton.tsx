@@ -1,5 +1,7 @@
+import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import { PARENTHEADERLIST } from "../../common/constants";
 import "./RectangularIconButton.css";
+import { SyntheticEvent, useState } from "react";
 const RectangularIconButton: React.FC<{
   buttonWidth: number;
   buttonHeight: number;
@@ -17,8 +19,16 @@ const RectangularIconButton: React.FC<{
   isButtonEnable,
   onHeaderIconClick,
 }) => {
-  // const isButtonEnable;
 
+  // const isButtonEnable;
+  const [tabIndex, setTabIndex] = useState(name);
+
+  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+    // setValue(newValue);
+    setTabIndex(newValue);
+
+    
+  }
   return (
     <div
       id="rectangular-icon-button"
@@ -29,7 +39,7 @@ const RectangularIconButton: React.FC<{
         opacity: isButtonEnable ? "1" : "0.5",
       }}
     >
-      <img
+       {/* { <img
         id="rectangular-icon-button-img"
         style={{
           width: "auto",
@@ -37,9 +47,9 @@ const RectangularIconButton: React.FC<{
         }}
         alt={iconSrc}
         src={iconSrc}
-      />
+      /> }  */}
       <p>{name}</p>
-      {/* {rectangularIcon} */}
+      {/* { {rectangularIcon} } */}
     </div>
   );
 };
