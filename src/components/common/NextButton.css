@@ -1,0 +1,22 @@
+#common-next-button{
+    justify-content: space-between;
+    padding-left: min(10px,2vw);
+    /* position: absolute; */
+    /* top: 3vh; */
+    right: 0;
+    /* color: var(--text-color); */
+    color: #05342f;
+    font-size: var(--text-size);
+    height: 7vh;
+    width: clamp(95px,10vh,110px);
+    height: clamp(40px,8vh,45px);
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border-radius: 64px;
+}
+#common-next-button:disabled{
+    background-color: white;
+    opacity: 0.5;
+
+}
