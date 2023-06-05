@@ -10,6 +10,7 @@ import { AVATARS, PAGES } from "../../common/constants";
 import { Util } from "../../utility/util";
 import DialogBoxButtons from "./DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
+import { t } from "i18next";
 
 const ProfileCard: React.FC<{
   width: string;
@@ -127,7 +128,7 @@ const ProfileCard: React.FC<{
         <DialogBoxButtons
           width={"40vw"}
           height={"30vh"}
-          message="Do you want to delete the user?"
+          message={t("Do you want to delete the user?")}
           showDialogBox={showDialogBox}
           yesText="Yes"
           noText="No"
