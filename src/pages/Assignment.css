@@ -30,15 +30,16 @@
 
 .assignment-header {
   display: flex;
+  
   align-items: center;
   justify-content: center;
-  
   flex-direction: row;
   justify-content: space-between;
+  
   /* margin-left: 1vh; */
-  align-items: center;
+   /* align-items: center; */
   margin: var(--margin);
-  margin-top: 1vh;
+  margin-top: 2%;
   margin-bottom: 0;
 }
 
@@ -58,3 +59,4 @@
   display: flex;
   gap: 1vw;
 }
+

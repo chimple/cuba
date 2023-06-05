@@ -76,23 +76,29 @@ const AssignmentPage: React.FC = () => {
       setLessons(_lessons);
       // setAssignments(allAssignments);
       setCurrentClass(classDoc);
+
+      if (classDoc && classDoc.school && classDoc.school.id) {
+       // console.log("hy");
+        const schoolId = classDoc.school.id;
+        api.getSchoolById(schoolId).then((res) => {
+          console.log("res", res);
+          setSchoolName(res?.name);
+        });
+      } 
       setLoading(false);
       setIsLinked(true);
 
-    } else {
+    }
+  
+    else {
       setIsLinked(false);
       setLoading(false);
       return;
     }
+    
   };
-
-  if (currentClass && currentClass.school && currentClass.school.id) {
-    const schoolId = currentClass.school.id;
-    api.getSchoolById(schoolId).then((res) => {
-      console.log("res", res);
-      setSchoolName(res?.name);
-    });
-  }
+ 
+  
 
   return (
     <IonPage>
