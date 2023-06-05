@@ -20,7 +20,7 @@
 }
 
 .classname-header{
-  font-size: 20px;
+  font-size: 3.1vh;
   font-weight: bold;
 }
 
@@ -39,7 +39,7 @@
   /* margin-left: 1vh; */
    /* align-items: center; */
   margin: var(--margin);
-  margin-top: 2%;
+    /* margin-top: 2%; */
   margin-bottom: 0;
 }
 
