@@ -3,7 +3,7 @@ import JoinClass from "../components/assignment/JoinClass";
 import "./Assignment.css";
 import { useEffect, useState } from "react";
 import BackButton from "../components/common/BackButton";
-import { PAGES } from "../common/constants";
+import { CURRENT_LESSON_LEVEL, PAGES } from "../common/constants";
 import { useHistory } from "react-router";
 import Loading from "../components/Loading";
 import Class from "../models/class";
@@ -12,13 +12,15 @@ import Lesson from "../models/lesson";
 import LessonSlider from "../components/LessonSlider";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
+import StudentNameBox from "../components/editStudent/StudentNameBox";
 
 const AssignmentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isLinked, setIsLinked] = useState(true);
   const [currentClass, setCurrentClass] = useState<Class>();
   const [lessons, setLessons] = useState<Lesson[]>([]);
-
+  // const [schoolId, setSchoolId] = useState<any>();
+  const [schoolName, setSchoolName] = useState<string>();
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
 
@@ -28,6 +30,7 @@ const AssignmentPage: React.FC = () => {
 
   const init = async (fromCache: boolean = true) => {
     setLoading(true);
+
     const student = api.currentStudent;
     if (!student) {
       history.replace(PAGES.DISPLAY_STUDENT);
@@ -40,6 +43,8 @@ const AssignmentPage: React.FC = () => {
       return;
     }
     const studentResult = await api.getStudentResult(student.docId);
+
+
     if (
       !!studentResult &&
       !!studentResult.classes &&
@@ -47,6 +52,7 @@ const AssignmentPage: React.FC = () => {
     ) {
       const classId = studentResult.classes[0];
       const classDoc = await api.getClassById(classId);
+
       const allAssignments: Assignment[] = [];
       await Promise.all(
         studentResult.classes.map(async (_class) => {
@@ -61,20 +67,32 @@ const AssignmentPage: React.FC = () => {
           if (!!res) {
             res.assignment = _assignment;
             _lessons.push(res);
+
           }
         })
       );
+
+
       setLessons(_lessons);
       // setAssignments(allAssignments);
       setCurrentClass(classDoc);
       setLoading(false);
       setIsLinked(true);
+
     } else {
       setIsLinked(false);
       setLoading(false);
       return;
     }
   };
+
+  if (currentClass && currentClass.school && currentClass.school.id) {
+    const schoolId = currentClass.school.id;
+    api.getSchoolById(schoolId).then((res) => {
+      console.log("res", res);
+      setSchoolName(res?.name);
+    });
+  }
 
   return (
     <IonPage>
@@ -85,7 +103,10 @@ const AssignmentPage: React.FC = () => {
               history.replace(PAGES.HOME);
             }}
           />
-          <div>{currentClass?.name ? currentClass?.name : ""}</div>
+          <div className="school-class-header">
+            <div className="classname-header">{schoolName}</div>
+            <div className="classname-header">{currentClass?.name ? currentClass?.name : ""}</div>
+          </div>
           <div className="right-button"></div>
         </div>
         {!loading && (
@@ -114,7 +135,7 @@ const AssignmentPage: React.FC = () => {
                     showSubjectName={true}
                   />
                 ) : (
-                  <div>{t("There are no pending assignments for you.")}</div>
+                  <div className="pending-assignment">{t("There are no pending assignments for you.")}</div>
                 )}
               </div>
             )}

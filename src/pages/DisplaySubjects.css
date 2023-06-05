@@ -11,6 +11,7 @@
   color: var(--text-color);
   font-size: var(--header-text);
   align-self: center;
+  font-size: 20px;
   font-weight: bold;
 }
 

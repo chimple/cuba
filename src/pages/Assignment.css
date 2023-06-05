@@ -12,8 +12,16 @@
   display: flex;
   height: 0;
   /* margin-top:-6vh; */
+  /* align-items: center; */
   justify-content: center;
   color: var(--text-color);
+ 
+
+}
+
+.classname-header{
+  font-size: 20px;
+  font-weight: bold;
 }
 
 .assignment-body {
@@ -24,15 +32,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 2vh;
+  
   flex-direction: row;
   justify-content: space-between;
   /* margin-left: 1vh; */
   align-items: center;
   margin: var(--margin);
+  margin-top: 1vh;
   margin-bottom: 0;
 }
 
 .right-button {
   width: 8vh;
+}
+.pending-assignment{
+  display: flex;
+ 
+  position: relative;
+  
+  /* height: 100vh; */
+  top: 40vh;
+ 
+}
+.school-class-header{
+  display: flex;
+  gap: 1vw;
 }
