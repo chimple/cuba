@@ -15,6 +15,7 @@ import { blue, red, green } from "@mui/material/colors";
 import { common } from "@mui/material/colors";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import BackButton from "../components/common/BackButton";
+import StudentProgressHeaderTabBar from "../components/studentProgress/StudentProgressHeaderTabBar";
 
 const StudentProgress: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -245,107 +246,31 @@ const StudentProgress: React.FC = () => {
   // }
   const [tabIndex, setTabIndex] = useState("English");
 
-  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+  const handleChange = (newValue: string) => {
     // setValue(newValue);
     setTabIndex(newValue);
   };
   return (
-    <div>
-      {/* {!isLoading ? (
-        <div id="student-progress">
-          <StudentProgressHeader
-            currentHeader={currentHeader}
-            headerIconList={studentProgressHeaderIconList}
-            onHeaderIconClick={onHeaderIconClick}
-          ></StudentProgressHeader>
-          <div>{displayProgressUI(currentHeader)}</div>
-        </div>
-      ) : null}
-      <Loading isLoading={isLoading} /> */}
+<div>
+      <StudentProgressHeaderTabBar
+        tabNames={["English", "Maths", "Digital Skills"]}
+        value={tabIndex}
+        onChange={handleChange}
+      />
 
-<Box>
-      <Box>
-        <AppBar
-          position="static"
-          sx={{
-            flexDirection: "inherit",
-            justifyContent: "space-between",
-            padding: "1vh 1vw",
-            backgroundColor: "#FF7925 !important",
-            boxShadow: "0px 0px 0px 0px !important",
-          }}
-        >
-          <BackButton
-            // iconSize={"8vh"}
-            onClicked={() => {
-              history.replace(PAGES.PARENT);
-            }}
-          ></BackButton>
-          <Tabs
-            value={tabIndex}
-            onChange={handleChange}
-            textColor="secondary"
-            indicatorColor="secondary"
-            aria-label="secondary tabs example"
-            // variant="scrollable"
-             scrollButtons="auto"
-            // aria-label="scrollable auto tabs example"
-            centered
-            sx={{
-              //"& .MuiAppBar-root": { backgroundColor: "#FF7925 !important" },
-              "& .MuiTabs-indicator": {
-                backgroundColor: "#FFFFFF !important",
-                fontSize: "clamp(10px, 3vh, 20px)",
-              },
-              "& .MuiTab-root": { color: "#000000" },
-              "& .Mui-selected": { color: "#FFFFFF !important" },
-              "& .MuiTab-wrapper": { justifyContent: "space-around" },
-              "& .MuiTab-root:not(:last-child)": { margin: "0 1rem " },
-            }}
-          >
-            
-           <Tab
-              value="English"
-              label="English"
+      {tabIndex === "English" && (
+        <div>{displayProgressUI(currentHeader)}</div>
+      )}
 
-             id="student-page-tab-bar"
-              // sx={{
-              //   // fontSize:"5vh"
-              //   marginRight: "5vw",
-              // }}
-            /> 
-            {/* <Tab id="student-page-tab-bar" value="English" label="English" /> */}
-            <Tab id="student-page-tab-bar" value="Maths" label="Maths" />
-            <Tab id="student-page-tab-bar" value="Digital Skills" label="Digital Skills" />
-            
-          </Tabs>
-          <div></div>
-        </AppBar>
-      </Box>
-      <Box sx={{}}>
-        {tabIndex === "English" && (
-          <Box>
-            <div>{displayProgressUI(currentHeader)}</div>
-          </Box>
-        )}
-        {tabIndex === "Maths" && (
-          <Box>
-            <div>{displayProgressUI(currentHeader)}</div>
-          </Box>
-        )}
-        {tabIndex === "Digital Skills" && (
-          <Box>
-            <div>{displayProgressUI(currentHeader)}</div>
-          </Box>
-        )}
-      </Box> 
-    </Box>
-    
+      {tabIndex === "Maths" && (
+        <div>{displayProgressUI(currentHeader)}</div>
+      )}
+
+      {tabIndex === "Digital Skills" && (
+        <div>{displayProgressUI(currentHeader)}</div>
+      )}
+      
     </div>
-
-
-    
-
   );
 };
 
