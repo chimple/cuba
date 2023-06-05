@@ -11,6 +11,7 @@ import Subject from "../../models/subject";
 import Assignment from "../../models/assignment";
 import Class from "../../models/class";
 import StudentProfile from "../../models/studentProfile";
+import school from "../../models/school";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -18,6 +19,10 @@ export class ApiHandler implements ServiceApi {
   private s: ServiceApi;
 
   private constructor() {}
+
+  public async getSchoolById(id: string): Promise<school | undefined> {
+    return await this.s.getSchoolById(id);
+  }
 
   public async getDataByInviteCode(inviteCode: number): Promise<any> {
     return await this.s.getDataByInviteCode(inviteCode);
