@@ -16,15 +16,13 @@ const StudentProgressHeaderTabBar: React.FC<TabBarProps> = ({ tabNames, value, o
     onChange(newValue);
   };
   const history: any = useHistory();
+  const handleBackButton = () => {
+    history.replace(PAGES.PARENT);
+  };
 
   return (
     <AppBar position="static" sx={{ flexDirection: "inherit", justifyContent: "space-between", padding: "1vh 1vw", backgroundColor: "#FF7925 !important", boxShadow: "0px 0px 0px 0px !important" }}>
-      <BackButton
-            // iconSize={"8vh"}
-            onClicked={() => {
-              history.replace(PAGES.PARENT);
-            }}
-          ></BackButton>
+      <BackButton onClicked={handleBackButton} />
       <Tabs
         value={value}
         onChange={handleChange}

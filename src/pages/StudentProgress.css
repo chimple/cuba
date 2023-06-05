@@ -30,11 +30,11 @@
     justify-content: space-evenly;
     align-items: center; */
   /* margin-right: 4vh; */
-  margin-right: 8vw;
+  margin-right: 9vw;
   font-size: var(--text-size);
   font-weight: bold;
   width: 15vw;
   font-family: "BalooRegular";
-  margin-left: 7vw;
+  margin-left: 6.9vw;
   /* color: black; */
 }

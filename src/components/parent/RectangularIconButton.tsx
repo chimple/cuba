@@ -39,7 +39,7 @@ const RectangularIconButton: React.FC<{
         opacity: isButtonEnable ? "1" : "0.5",
       }}
     >
-       {/* { <img
+       { <img
         id="rectangular-icon-button-img"
         style={{
           width: "auto",
@@ -47,7 +47,7 @@ const RectangularIconButton: React.FC<{
         }}
         alt={iconSrc}
         src={iconSrc}
-      /> }  */}
+      /> } 
       <p>{name}</p>
       {/* { {rectangularIcon} } */}
     </div>

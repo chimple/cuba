@@ -32,13 +32,6 @@ export enum PARENTHEADERLIST {
   HELP = "HELP",
   FAQ = "FAQ",
 }
-
-export enum STUDENTHEADERLIST{
-  ENGLISH = "English",
-  MATHS   = "Maths",
-  DIGITALSKILLS = "Digital Skills",
-}
-
 export enum LEADERBOARDHEADERLIST {
   LEADERBOARD = "LEADERBOARD",
   EVENTS = "EVENTS",
