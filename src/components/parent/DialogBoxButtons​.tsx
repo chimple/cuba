@@ -43,7 +43,7 @@ const DialogBoxButtons: React.FC<{
         onClose={handleClose}
         sx={{
           "& .MuiPaper-root":  { borderRadius: "6vh !important"},
-          "& .MuiTypography-root":  { margin: "13% 0% 0% !important"},
+          "& .MuiTypography-root":  { margin: "13% 0% 0% 0% !important"},
         }}
         
       >
