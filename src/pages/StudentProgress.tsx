@@ -14,7 +14,6 @@ import { useHistory } from "react-router-dom";
 import { blue, red, green } from "@mui/material/colors";
 import { common } from "@mui/material/colors";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
-import BackButton from "../components/common/BackButton";
 import StudentProgressHeaderTabBar from "../components/studentProgress/StudentProgressHeaderTabBar";
 
 const StudentProgress: React.FC = () => {
@@ -44,6 +43,9 @@ const StudentProgress: React.FC = () => {
     header: any;
     course: Course;
   }
+  const handleBackButton = () => {
+    history.replace(PAGES.PARENT);
+  };
 
   async function inti() {
     const currentStudent = await api.currentStudent;
@@ -178,11 +180,12 @@ const StudentProgress: React.FC = () => {
 
   return (
     <div>
-      <StudentProgressHeaderTabBar
-        tabNames={studentProgressHeaderIconList.map((iconConfig) => iconConfig.displayName)}
-        value={tabIndex}
-        onChange={handleChange}
-      />
+     <StudentProgressHeaderTabBar
+      tabNames={studentProgressHeaderIconList.map((iconConfig) => iconConfig.displayName)}
+      value={tabIndex}
+      onChange={handleChange}
+      handleBackButton={handleBackButton}
+     />
 
       {tabIndex && (
         <div>{displayProgressUI(currentHeader)}</div>
