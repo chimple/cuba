@@ -20,7 +20,7 @@
 }
 
 .classname-header{
-  font-size: 3.1vh;
+  font-size: clamp(18px, 3.1vh, 25px);
   font-weight: bold;
 }
 

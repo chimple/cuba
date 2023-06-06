@@ -80,10 +80,10 @@ const AssignmentPage: React.FC = () => {
       if (classDoc && classDoc.school && classDoc.school.id) {
        // console.log("hy");
         const schoolId = classDoc.school.id;
-        api.getSchoolById(schoolId).then((res) => {
-          console.log("res", res);
+       const res =  await api.getSchoolById(schoolId);
+        //  console.log("res", res);
           setSchoolName(res?.name);
-        });
+      //  });
       } 
       setLoading(false);
       setIsLinked(true);
