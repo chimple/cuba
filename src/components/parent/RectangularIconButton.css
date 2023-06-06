@@ -1,4 +1,4 @@
-#rectangular-icon-button {
+/* #rectangular-icon-button {
     background-color: white;
     color: black;
     border-radius: 10vh;
@@ -15,4 +15,19 @@
 #rectangular-icon-button {
     color: black;
     font-size: var(--text-size);
+} */
+#rectangular-icon-button{
+    display: flex;
+    padding-top: 0px;
+    margin: 0%;
+    align-items: center;
+/* below code from parent.tsx */
+  margin-right: 4vh;
+  font-size: var(--text-size);
+  font-weight: bold;
+  width: 15vw;
+  font-family: "BalooRegular";
+
+  margin-left:17vh;
+  color: #000000;
 }
