@@ -413,13 +413,13 @@ export class FirebaseApi implements ServiceApi {
     if (!lessons) {
       lessons = {};
     }
-    console.log("lessons ", lessons);
+    // console.log("lessons ", lessons);
     if (
       lessons != undefined &&
       lessons[course.courseCode] != undefined &&
       lessons[course.courseCode][lessonId]
     ) {
-      console.log("lesson is already exist");
+      // console.log("lesson is already exist");
       return lessons[course.courseCode][lessonId];
     }
     let lesMap: {
@@ -430,7 +430,7 @@ export class FirebaseApi implements ServiceApi {
       if (chapter.lessons && chapter.lessons.length > 0) {
         for (let lesson of chapter.lessons) {
           if (lesson.id === lessonId) {
-            console.log("lesson id Found", lesson);
+            // console.log("lesson id Found", lesson);
             if (lesson instanceof DocumentReference) {
               const lessonObj = await this.getLesson(lesson.id);
               if (lessonObj) {
@@ -441,9 +441,9 @@ export class FirebaseApi implements ServiceApi {
             }
             // console.log("lesMap", lesMap);
             lessons[course.courseCode] = lesMap;
-            console.log("after CourseLessons", lessons);
+            // console.log("after CourseLessons", lessons);
 
-            localStorage.setItem("CourseLessons", JSON.stringify(lessons));
+            // localStorage.setItem("CourseLessons", JSON.stringify(lessons));
             return lessons[course.courseCode][lessonId];
           }
         }
