@@ -15,7 +15,7 @@ export default class StudentProfile extends BaseObject {
     classes: string[],
     last5Lessons: object,
     lessons: { [lessonDocId: string]: StudentLessonResult },
-    school: string[],
+    schools: string[],
     dateLastModified: Timestamp,
     createdAt: Timestamp,
     docId: string
@@ -25,7 +25,7 @@ export default class StudentProfile extends BaseObject {
     this._classes = classes;
     this._last5Lessons = last5Lessons;
     this._lessons = lessons;
-    this._schools = school;
+    this._schools = schools;
   }
 
   public get classes(): string[] {
@@ -52,10 +52,10 @@ export default class StudentProfile extends BaseObject {
   public set lessons(value: { [lessonDocId: string]: StudentLessonResult }) {
     this._lessons = value;
   }
-  public get school(): string[] {
+  public get schools(): string[] {
     return this._schools;
   }
-  public set school(value: string[]) {
+  public set schools(value: string[]) {
     this._schools = value;
   }
 }

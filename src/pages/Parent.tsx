@@ -29,6 +29,7 @@ import { blue, red, green } from "@mui/material/colors";
 import { common } from "@mui/material/colors";
 import BackButton from "../components/common/BackButton";
 import { useHistory } from "react-router-dom";
+
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 
@@ -38,6 +39,7 @@ const Parent: React.FC = () => {
   const [soundFlag, setSoundFlag] = useState<boolean>();
   const [musicFlag, setMusicFlag] = useState<boolean>();
   const [userProfile, setUserProfile] = useState<any[]>([]);
+
   const [langList, setLangList] = useState<
     {
       id: string;
@@ -138,37 +140,41 @@ const Parent: React.FC = () => {
     return (
       <div>
         <div id="parent-page-setting">
-          <div id="parent-page-setting-div">
+          <div id="parent-page-setting-div" >
             <p id="parent-page-setting-lang-text">Language</p>
             <RectangularOutlineDropDown
-              placeholder=""
+              currentValue={currentAppLang}
               optionList={langList}
-              currentValue={currentAppLang || langList[0].id}
+              placeholder="Select Language"
+
               width="26vw"
-              onValueChange={async (selectedLang) => {
-                console.log("selected Langauage", selectedLang.detail?.value);
-                const tempLangCode: string =
-                  selectedLang.detail?.value ?? LANG.ENGLISH;
-                setCurrentAppLang(selectedLang.detail?.value);
-                console.log(
-                  "UI Lang",
-                  selectedLang.detail?.value,
-                  currentAppLang
-                );
-                await i18n.changeLanguage(tempLangCode);
+
+              onValueChange={async (selectedLangDocId) => {
+                // setIsLoading(true);
+                const api = ServiceConfig.getI().apiHandler;
+                const langDoc = await api.getLanguageWithId(selectedLangDocId);
+                console.log("langDoc", langDoc)
+                if (!langDoc) return
+                await i18n.changeLanguage(langDoc.code);
+                console.log("applang", selectedLangDocId);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
 
-                const langId = langDocIds.get(selectedLang.detail?.value);
-
+                const langId = langDocIds.get(langDoc.code);
+                console.log(langId);
                 if (currentUser && langId) {
                   ServiceConfig.getI().apiHandler.updateLanguage(
                     currentUser,
                     langId
                   );
                 }
+                console.log(
+                  "selectedLangDocId", selectedLangDocId
+                )
+                setCurrentAppLang(selectedLangDocId);
+                // setIsLoading(false);
               }}
-            ></RectangularOutlineDropDown>
+            />
           </div>
           <div id="parent-page-setting-div">
             <ToggleButton
@@ -277,7 +283,7 @@ const Parent: React.FC = () => {
               title="YouTube video player"
               // frameborder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              // allowfullscreen
+            // allowfullscreen
             ></iframe>
           </div>
         </div>
@@ -370,8 +376,8 @@ const Parent: React.FC = () => {
     //   <Loading isLoading={isLoading} />
     // </IonPage>
     <Box>
-      <Box>
-        <AppBar
+      <Box id="ParentHeader">
+        <AppBar id="ParentHeader-1" 
           position="static"
           sx={{
             flexDirection: "inherit",
@@ -411,10 +417,10 @@ const Parent: React.FC = () => {
               value="profile"
               label="profile"
               id="parent-page-tab-bar"
-              // sx={{
-              //   // fontSize:"5vh"
-              //   marginRight: "5vw",
-              // }}
+            // sx={{
+            //   // fontSize:"5vh"
+            //   marginRight: "5vw",
+            // }}
             />
             <Tab id="parent-page-tab-bar" value="setting" label="setting" />
             <Tab id="parent-page-tab-bar" value="help" label="help" />
@@ -450,3 +456,4 @@ const Parent: React.FC = () => {
 };
 
 export default Parent;
+

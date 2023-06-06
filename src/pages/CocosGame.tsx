@@ -1,7 +1,13 @@
 import { IonContent, IonPage, useIonToast } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router";
-import { GAME_END, GAME_EXIT, LESSON_END, PAGES } from "../common/constants";
+import {
+  EVENTS,
+  GAME_END,
+  GAME_EXIT,
+  LESSON_END,
+  PAGES,
+} from "../common/constants";
 import Loading from "../components/Loading";
 import { Util } from "../utility/util";
 import Lesson from "../models/lesson";
@@ -76,17 +82,40 @@ const CocosGame: React.FC = () => {
     //Just fot Testing
     const saveTempData = async (e: any) => {
       console.log("🚀 ~ file: CocosGame.tsx:76 ~ saveTempData ~ e:", e);
+      const currentStudent = api.currentStudent!;
       const data = e.detail as lessonEndData;
+      const isStudentLinked = await api.isStudentLinked(currentStudent.docId);
+      let classId;
+      let schoolId;
+      if (isStudentLinked) {
+        const studentResult = await api.getStudentResult(currentStudent.docId);
+
+        if (!!studentResult && studentResult.classes.length > 0) {
+          classId = studentResult.classes[0];
+          schoolId = studentResult.schools[0];
+        }
+      }
       const result = await api.updateResult(
-        api.currentStudent!,
+        currentStudent,
         courseDocId,
         lesson.docId,
         data.score,
         data.correctMoves,
         data.wrongMoves,
         data.timeSpent,
-        lesson.assignment?.docId
+        lesson.assignment?.docId,
+        classId,
+        schoolId
       );
+      Util.logEvent(EVENTS.LESSON_END, {
+        studentId: currentStudent.docId,
+        courseDocId: courseDocId,
+        lessonDocId: lesson.docId,
+        assignmentId: lesson.assignment?.docId,
+        classId: classId,
+        schoolId: schoolId,
+        ...data,
+      });
       console.log(
         "🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:",
         result

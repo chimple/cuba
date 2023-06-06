@@ -45,6 +45,7 @@ import Subject from "../../models/subject";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import StudentProfile from "../../models/studentProfile";
 import Class from "../../models/class";
+import School from "../../models/school";
 import Assignment from "../../models/assignment";
 
 export class FirebaseApi implements ServiceApi {
@@ -53,6 +54,7 @@ export class FirebaseApi implements ServiceApi {
   private _currentStudent: User | undefined;
   private _subjectsCache: { [key: string]: Subject } = {};
   private _classCache: { [key: string]: Class } = {};
+  private _schoolCache: { [key: string]: School } = {};
   private _studentResultCache: { [key: string]: StudentProfile } = {};
 
   private constructor() {}
@@ -154,20 +156,28 @@ export class FirebaseApi implements ServiceApi {
 
     console.log("userList ", studentDoc.id, userList);
 
+    const functions = getFunctions();
+    const generateInviteCode = httpsCallable(
+      functions,
+      "DeleteStudentByParent"
+    );
+    const result = await generateInviteCode({
+      studentId: studentId,
+    });
     // const studentDocRef = await doc(
     //   this._db,
     //   `${CollectionIds.USER}/${studentDoc.id}`
     // );
 
-    await deleteDoc(studentDoc);
-    await updateDoc(
-      doc(this._db, `${CollectionIds.USER}/${_currentUser?.docId}`),
-      {
-        // users: userList,
-        users: arrayRemove(studentDoc),
-        dateLastModified: Timestamp.now(),
-      }
-    );
+    // await deleteDoc(studentDoc);
+    // await updateDoc(
+    //   doc(this._db, `${CollectionIds.USER}/${_currentUser?.docId}`),
+    //   {
+    //     // users: userList,
+    //     users: arrayRemove(studentDoc),
+    //     dateLastModified: Timestamp.now(),
+    //   }
+    // );
     _currentUser.users = userList;
     ServiceConfig.getI().authHandler.currentUser = _currentUser;
   }
@@ -485,13 +495,21 @@ export class FirebaseApi implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    assignmentId: string | undefined
+    assignmentId: string | undefined,
+    classId: string | undefined,
+    schoolId: string | undefined
   ): Promise<Result> {
     const courseRef = courseId
       ? doc(this._db, CollectionIds.COURSE, courseId)
       : undefined;
     const assignmentRef = assignmentId
       ? doc(this._db, CollectionIds.ASSIGNMENT, assignmentId)
+      : undefined;
+    const classRef = classId
+      ? doc(this._db, CollectionIds.CLASS, classId)
+      : undefined;
+    const schoolRef = schoolId
+      ? doc(this._db, CollectionIds.SCHOOL, schoolId)
       : undefined;
     const lessonRef = doc(this._db, CollectionIds.LESSON, lessonId);
     const studentRef = doc(this._db, CollectionIds.USER, student.docId);
@@ -500,10 +518,10 @@ export class FirebaseApi implements ServiceApi {
       Timestamp.now(),
       Timestamp.now(),
       assignmentRef,
-      undefined,
+      classRef,
       courseRef,
       lessonRef,
-      undefined,
+      schoolRef,
       score,
       correctMoves,
       wrongMoves,
@@ -622,6 +640,16 @@ export class FirebaseApi implements ServiceApi {
     classData.docId = id;
     this._classCache[id] = classData;
     return classData;
+  }
+
+  async getSchoolById(id: string): Promise<School | undefined> {
+    if (!!this._schoolCache[id]) return this._schoolCache[id];
+    const schoolDoc = await getDoc(doc(this._db, CollectionIds.SCHOOL, id));
+    if (!schoolDoc.exists) return;
+    const schoolData = schoolDoc.data() as School;
+    schoolData.docId = id;
+    this._schoolCache[id] = schoolData;
+    return schoolData;
   }
 
   async isStudentLinked(
