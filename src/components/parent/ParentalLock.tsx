@@ -143,6 +143,8 @@ const ParentalLock: React.FC<{
                 history.replace(PAGES.PARENT);
               } else {
                 setUserInput("");
+                setDisableUnlockBtn(true);
+                setUnlockColor("dark");
               }
             }}
           >

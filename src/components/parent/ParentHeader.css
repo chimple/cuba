@@ -1,9 +1,9 @@
 #parent-header-icons {
     display: flex;
-    margin: 1% 1.5% 1% 1.5%;
+    /* margin: 1% 1.5% 1% 1.5%; */
     justify-content: flex-start;
     align-items: center;
-    margin: var(--margin);
+    /* margin: var(--margin); */
 }
 
 #parent-header-middle-icons {

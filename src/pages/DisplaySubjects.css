@@ -4,12 +4,12 @@
   margin: var(--margin);
   margin-bottom: 0;
   justify-content: space-between;
-  align-items: center;
+  /* align-items: center; */
 }
 
 .subject-name {
   color: var(--text-color);
-  font-size: var(--text-size);
+  font-size: var(--header-text);
   align-self: center;
   font-weight: bold;
 }

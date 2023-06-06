@@ -226,7 +226,7 @@ const Leaderboard: React.FC = () => {
               }
               alt=""
             />
-            {currentStudent?.name}
+            <span id="leaderboard-student-name">{currentStudent?.name}</span>
           </div>
           <div>
             {currentUserDataContent.map((e) => {
@@ -381,8 +381,8 @@ const Leaderboard: React.FC = () => {
     <IonPage>
       {!isLoading ? (
         <Box>
-          <Box>
-            <AppBar
+          <Box id="LeaderBoard-header">
+            <AppBar id="LeaderBoard-AppBar"
               position="static"
               sx={{
                 flexDirection: "inherit",
