@@ -2,7 +2,7 @@ import { IonButton, IonContent, IonIcon, IonPage } from "@ionic/react";
 import ChimpleLogo from "../components/ChimpleLogo";
 import "./EditStudent.css";
 import StudentNameBox from "../components/editStudent/StudentNameBox";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import GenderAndAge from "../components/editStudent/GenderAndAge";
 import SelectAvatar from "../components/editStudent/SelectAvatar";
 import GradeBoardAndLangDropdown from "../components/editStudent/GradeBoardAndLangDropdown";
