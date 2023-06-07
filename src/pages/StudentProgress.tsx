@@ -15,6 +15,7 @@ import { blue, red, green } from "@mui/material/colors";
 import { common } from "@mui/material/colors";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import StudentProgressHeaderTabBar from "../components/studentProgress/StudentProgressHeaderTabBar";
+import { t } from "i18next";
 
 const StudentProgress: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -92,7 +93,7 @@ const StudentProgress: React.FC = () => {
               return (
                 <IonCol size="12" size-sm="3">
                   <p id="student-progress-display-progress-header-content">
-                    {h}
+                    {t(h)}
                   </p>
                 </IonCol>
               );
@@ -101,7 +102,7 @@ const StudentProgress: React.FC = () => {
         </div>
         {dataContent.length === 0 ? (
           <p id="student-progress-display-progress-no-data-message">
-            {"No Data "}
+            {t("No Data ")}
           </p>
         ) : null}
         <div id="student-progress-display-progress-content">
@@ -180,16 +181,16 @@ const StudentProgress: React.FC = () => {
 
   return (
     <div>
-     <StudentProgressHeaderTabBar
-      tabNames={studentProgressHeaderIconList.map((iconConfig) => iconConfig.displayName)}
-      value={tabIndex}
-      onChange={handleChange}
-      handleBackButton={handleBackButton}
-     />
+      <StudentProgressHeaderTabBar
+        tabNames={studentProgressHeaderIconList.map(
+          (iconConfig) => iconConfig.displayName
+        )}
+        value={tabIndex}
+        onChange={handleChange}
+        handleBackButton={handleBackButton}
+      />
 
-      {tabIndex && (
-        <div>{displayProgressUI(currentHeader)}</div>
-      )}
+      {tabIndex && <div>{displayProgressUI(currentHeader)}</div>}
     </div>
   );
 };
