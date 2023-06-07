@@ -11,6 +11,7 @@
     overflow-y:scroll;
   }
  #scroll{
-    height: 60vh;
+    height: 35vh;
     background-color:#cbdcff;
+    overflow: scroll;
   }

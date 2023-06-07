@@ -1,5 +1,6 @@
 .name-header {
   width: 40vw;
+  height: 20vh;
 }
 
 .text-box {
@@ -23,4 +24,5 @@
 .main-header {
   width: 100%;
   text-align: -webkit-center;
+  height: 20vh;
 }
