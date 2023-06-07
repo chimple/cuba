@@ -96,29 +96,39 @@ const Login: React.FC = () => {
 
   const onPhoneNumberSubmit = async () => {
     // setIsLoading(true);
-    if (phoneNumber.length <= 10) {
-      setSpinnerLoading(false);
-      alert("Phone Number Invalid");
-      return;
-    }
-    // setEnabled(true);
-    console.log("onPhoneNumberSubmit called ", phoneNumber, recaptchaVerifier);
-    let authRes = await authInstance.phoneNumberSignIn(
-      phoneNumber,
-      recaptchaVerifier
-    );
-    console.log("verificationIdRes", authRes?.verificationId);
-    // setEnabled(false);
+    try {
+      if (phoneNumber.length <= 10) {
+        setSpinnerLoading(false);
+        alert("Phone Number Invalid");
+        return;
+      }
+      // setEnabled(true);
+      console.log(
+        "onPhoneNumberSubmit called ",
+        phoneNumber,
+        recaptchaVerifier
+      );
+      let authRes = await authInstance.phoneNumberSignIn(
+        phoneNumber,
+        recaptchaVerifier
+      );
+      console.log("verificationIdRes", authRes?.verificationId);
+      // setEnabled(false);
 
-    if (authRes) {
-      setPhoneNumberSigninRes(authRes);
-      setShowVerification(true);
-      setSpinnerLoading(false);
-      // setIsLoading(false);
-    } else {
+      if (authRes) {
+        setPhoneNumberSigninRes(authRes);
+        setShowVerification(true);
+        setSpinnerLoading(false);
+        // setIsLoading(false);
+      } else {
+        console.log("Phone Number signin Failed");
+        setSpinnerLoading(false);
+        alert("Phone Number signin Failed" + authRes);
+      }
+    } catch (error) {
       console.log("Phone Number signin Failed");
       setSpinnerLoading(false);
-      alert("Phone Number signin Failed" + authRes);
+      alert("Phone Number signin Failed" + error);
     }
   };
 
