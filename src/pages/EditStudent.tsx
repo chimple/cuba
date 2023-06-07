@@ -146,6 +146,7 @@ const EditStudent = () => {
 
   return (
     <IonPage id="Edit-student-page">
+      <div id={stage === STAGES.NAME ? "scroll" : ""}>
       <div id="common-div">
       <ChimpleLogo
         header={t("Welcome to Chimple!")}
@@ -159,14 +160,17 @@ const EditStudent = () => {
       
       </div>
       </div>
-      <div className="content">
+      
         {stage === STAGES.NAME && (
           <StudentNameBox
             studentName={studentName!}
             onValueChange={setStudentName}
             onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
           />
+          
         )}
+        </div>
+        <div className="content">
         {stage === STAGES.GENDER_AND_AGE && (
           <GenderAndAge
             age={age}
