@@ -11,6 +11,7 @@ import User from "../models/user";
 import { StudentLessonResult } from "../common/courseConstants";
 import Lesson from "../models/lesson";
 import { useHistory } from "react-router-dom";
+import { t } from "i18next";
 
 const StudentProgress: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -203,7 +204,7 @@ const StudentProgress: React.FC = () => {
               return (
                 <IonCol size="12" size-sm="3">
                   <p id="student-progress-display-progress-header-content">
-                    {h}
+                    {t(h)}
                   </p>
                 </IonCol>
               );
@@ -212,7 +213,7 @@ const StudentProgress: React.FC = () => {
         </div>
         {dataContent.length === 0 ? (
           <p id="student-progress-display-progress-no-data-message">
-            {"No Data "}
+            {t("No Data ")}
           </p>
         ) : null}
         <div id="student-progress-display-progress-content">

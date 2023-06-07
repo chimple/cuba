@@ -10,6 +10,7 @@ import {
 import ProfileCard from "../components/parent/ProfileCard";
 import User from "../models/user";
 import ToggleButton from "../components/parent/ToggleButton";
+
 // import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import {
   EmailIcon,
@@ -19,6 +20,7 @@ import {
   WhatsappIcon,
 } from "react-share";
 import { FaInstagramSquare } from "react-icons/fa";
+import { t } from "i18next";
 import { TfiWorld } from "react-icons/tfi";
 import RectangularOutlineDropDown from "../components/parent/RectangularOutlineDropDown";
 import i18n from "../i18n";
@@ -120,7 +122,9 @@ const Parent: React.FC = () => {
     // setIsLoading(false);
 
     return (
+    
       <div id="parent-page-profile">
+        
         {userProfile.map((element) => {
           return (
             <ProfileCard
@@ -139,11 +143,12 @@ const Parent: React.FC = () => {
   function settingUI() {
     return (
       <div>
+        
         <div id="parent-page-setting">
           <div id="parent-page-setting-div" >
-            <p id="parent-page-setting-lang-text">Language</p>
+            <p id="parent-page-setting-lang-text">{t("Language")}</p>
             <RectangularOutlineDropDown
-              currentValue={currentAppLang}
+              currentValue={currentAppLang } 
               optionList={langList}
               placeholder="Select Language"
 
@@ -162,11 +167,15 @@ const Parent: React.FC = () => {
 
                 const langId = langDocIds.get(langDoc.code);
                 console.log(langId);
-                if (currentUser && langId) {
+                console.log(selectedLangDocId);
+                if (currentUser && selectedLangDocId) {
                   ServiceConfig.getI().apiHandler.updateLanguage(
                     currentUser,
-                    langId
+                    selectedLangDocId
+                    
                   );
+                 
+                  
                 }
                 console.log(
                   "selectedLangDocId", selectedLangDocId
@@ -174,12 +183,13 @@ const Parent: React.FC = () => {
                 setCurrentAppLang(selectedLangDocId);
                 // setIsLoading(false);
               }}
+             
             />
           </div>
           <div id="parent-page-setting-div">
             <ToggleButton
               flag={soundFlag!}
-              title="Sound"
+              title={t("Sound")}
               onIonChangeClick={async (v) => {
                 console.log("ion change value ", v.detail?.checked);
                 setSoundFlag(v.detail?.checked);
@@ -197,7 +207,7 @@ const Parent: React.FC = () => {
 
             <ToggleButton
               flag={musicFlag!}
-              title="Music"
+              title={t("Music")}
               onIonChangeClick={async (v) => {
                 console.log("ion change value ", v.detail?.checked);
                 setMusicFlag(v.detail?.checked);
@@ -224,7 +234,7 @@ const Parent: React.FC = () => {
   function helpUI() {
     return (
       <div id="parent-page-help">
-        <h1 id="parent-page-help-title">Chimple Help Desk</h1>
+        <h1 id="parent-page-help-title">{t("Chimple Help Desk")}</h1>
         <div id="parent-page-help-title-e1">
           <div id="parent-page-help-share-button">
             <EmailShareButton
@@ -415,16 +425,17 @@ const Parent: React.FC = () => {
           >
             <Tab
               value="profile"
-              label="profile"
+              label={t("profile")}
               id="parent-page-tab-bar"
             // sx={{
             //   // fontSize:"5vh"
             //   marginRight: "5vw",
             // }}
+            
             />
-            <Tab id="parent-page-tab-bar" value="setting" label="setting" />
-            <Tab id="parent-page-tab-bar" value="help" label="help" />
-            <Tab id="parent-page-tab-bar" value="faq" label="faq" />
+            <Tab id="parent-page-tab-bar" value="setting" label={t("setting")} />
+            <Tab id="parent-page-tab-bar" value="help" label={t("help")} />
+            <Tab id="parent-page-tab-bar" value="faq" label={t("faq")} />
           </Tabs>
           <div></div>
         </AppBar>

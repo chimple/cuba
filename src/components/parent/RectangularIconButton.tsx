@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import { PARENTHEADERLIST } from "../../common/constants";
 import "./RectangularIconButton.css";
 const RectangularIconButton: React.FC<{
@@ -38,7 +39,7 @@ const RectangularIconButton: React.FC<{
         alt={iconSrc}
         src={iconSrc}
       />
-      <p>{name}</p>
+      <p>{t(name)}</p>
       {/* {rectangularIcon} */}
     </div>
   );

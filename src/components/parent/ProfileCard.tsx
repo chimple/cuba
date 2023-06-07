@@ -91,7 +91,7 @@ const ProfileCard: React.FC<{
             history.replace(PAGES.STUDENT_PROGRESS);
           }}
         >
-          Progress Report
+        {t("Progress Report")}
         </div>
       ) : (
         // <></>

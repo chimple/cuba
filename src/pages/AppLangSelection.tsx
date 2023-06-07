@@ -11,6 +11,7 @@ import { changeLanguage, t } from "i18next";
 import { chevronForward } from "ionicons/icons";
 import { ServiceConfig } from "../services/ServiceConfig";
 import NextButton from "../components/common/NextButton";
+import Parent from "./Parent";
 
 // import { Platform } from "react-native";
 
@@ -21,7 +22,7 @@ const AppLangSelection: React.FC = () => {
     id: string;
     displayName: string;
   }[]>([]);
-  const [currentAppLang, setCurrentAppLang] = useState<string>();
+   const [currentAppLang, setCurrentAppLang] = useState<string>();
 
   useEffect(() => { 
   let tempLangList:{
@@ -72,7 +73,7 @@ const AppLangSelection: React.FC = () => {
           </div>
           
           <div id="app-lang-element">
-            <p id="app-lang-text">Select App Language</p>
+            <p id="app-lang-text">{t("Select App Language")}</p>
               <RectangularOutlineDropDown 
               placeholder=""
                 optionList={langList}
@@ -95,6 +96,7 @@ const AppLangSelection: React.FC = () => {
       <Loading isLoading={isLoading} />
       {/* </IonInfiniteScrollContent> */}
       {/* </IonInfiniteScroll> */}
+      
     </IonPage>
   );
 };

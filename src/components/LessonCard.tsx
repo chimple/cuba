@@ -9,6 +9,7 @@ import Lesson from "../models/lesson";
 import Course from "../models/course";
 import { ServiceConfig } from "../services/ServiceConfig";
 import Subject from "../models/subject";
+import { t } from "i18next";
 
 const LessonCard: React.FC<{
   width: string;
@@ -199,7 +200,7 @@ const LessonCard: React.FC<{
           </div>
         </div>
       </div>
-      {showText ? <p id="lesson-card-name">{lesson?.title}</p> : null}
+      {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
     </IonCard>
   );
 };

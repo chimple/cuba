@@ -1,5 +1,6 @@
 import { IonToggle, ToggleChangeEventDetail } from "@ionic/react";
 import "./ToggleButton.css";
+import { t } from "i18next";
 const ToggleButton: React.FC<{
   flag: boolean;
   title: string;
@@ -8,7 +9,7 @@ const ToggleButton: React.FC<{
   return (
     <div id="toggle-button">
       <p>
-        {title} {flag ? " ON " : " OFF "}
+        {title}{flag ? t(" ON ") : t(" OFF ")}
       </p>
       <IonToggle
         checked={flag}
