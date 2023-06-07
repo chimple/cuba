@@ -4,6 +4,7 @@ import { FC, useState } from "react";
 import Loading from "../Loading";
 import DialogBoxButtons from "../parent/DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
+import { Util } from "../../utility/util";
 const JoinClass: FC<{
   onClassJoin: () => void;
 }> = ({ onClassJoin }) => {
@@ -43,6 +44,12 @@ const JoinClass: FC<{
     try {
       const result = await api.linkStudent(inviteCode!);
       console.log("🚀 ~ file: JoinClass.tsx:41 ~ onJoin ~ result:", result);
+      if (!!codeResult) {
+        Util.subscribeToClassTopic(
+          codeResult["classId"],
+          codeResult["schoolId"]
+        );
+      }
       onClassJoin();
     } catch (error) {
       console.log("🚀 ~ file: JoinClass.tsx:48 ~ onJoin ~ error:", error);
