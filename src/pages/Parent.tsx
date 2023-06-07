@@ -11,6 +11,7 @@ import ProfileCard from "../components/parent/ProfileCard";
 import User from "../models/user";
 import ToggleButton from "../components/parent/ToggleButton";
 
+
 // import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import {
   EmailIcon,
@@ -122,9 +123,9 @@ const Parent: React.FC = () => {
     // setIsLoading(false);
 
     return (
-    
+
       <div id="parent-page-profile">
-        
+
         {userProfile.map((element) => {
           return (
             <ProfileCard
@@ -143,12 +144,12 @@ const Parent: React.FC = () => {
   function settingUI() {
     return (
       <div>
-        
+
         <div id="parent-page-setting">
           <div id="parent-page-setting-div" >
             <p id="parent-page-setting-lang-text">{t("Language")}</p>
             <RectangularOutlineDropDown
-              currentValue={currentAppLang } 
+              currentValue={currentAppLang}
               optionList={langList}
               placeholder="Select Language"
 
@@ -166,16 +167,15 @@ const Parent: React.FC = () => {
                   await ServiceConfig.getI().authHandler.getCurrentUser();
 
                 const langId = langDocIds.get(langDoc.code);
-                console.log(langId);
-                console.log(selectedLangDocId);
+                
                 if (currentUser && selectedLangDocId) {
                   ServiceConfig.getI().apiHandler.updateLanguage(
                     currentUser,
                     selectedLangDocId
-                    
+
                   );
-                 
-                  
+
+
                 }
                 console.log(
                   "selectedLangDocId", selectedLangDocId
@@ -183,7 +183,7 @@ const Parent: React.FC = () => {
                 setCurrentAppLang(selectedLangDocId);
                 // setIsLoading(false);
               }}
-             
+
             />
           </div>
           <div id="parent-page-setting-div">
@@ -387,7 +387,7 @@ const Parent: React.FC = () => {
     // </IonPage>
     <Box>
       <Box id="ParentHeader">
-        <AppBar id="ParentHeader-1" 
+        <AppBar id="ParentHeader-1"
           position="static"
           sx={{
             flexDirection: "inherit",
@@ -431,7 +431,7 @@ const Parent: React.FC = () => {
             //   // fontSize:"5vh"
             //   marginRight: "5vw",
             // }}
-            
+
             />
             <Tab id="parent-page-tab-bar" value="setting" label={t("setting")} />
             <Tab id="parent-page-tab-bar" value="help" label={t("help")} />
