@@ -1,6 +1,6 @@
 #common-back-button {
-    width: clamp(30px,15vh,50px);
-    height: clamp(30px,15vh,50px);
+    width: clamp(30px,12vh,44px);
+    height: clamp(30px,12vh,44px);
     /* padding: 2%; */
     color: black;
     /* fill: white; */

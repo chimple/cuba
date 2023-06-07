@@ -10,9 +10,6 @@
 .lesson-body {
   align-items: center;
   display: flex;
-  height: 0;
-  /* margin-top:-6vh; */
-  /* align-items: center; */
   justify-content: center;
   color: var(--text-color);
  
