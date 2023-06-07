@@ -74,157 +74,7 @@ const Home: FC = () => {
     setCurrentStudent(currentStudent);
     // const apiInstance = OneRosterApi.getInstance();
     if (subjectCode === HOMEHEADERLIST.RECOMMENDATION) {
-      let tempResultLessonMap: Map<string, StudentLessonResult> | undefined =
-        new Map();
-      await api
-        .getLessonResultsForStudent(currentStudent.docId)
-        .then(async (res) => {
-          tempResultLessonMap = res;
-          setLessonResultMap(res);
-        });
-
-      const sortLessonResultByDate = (
-        lesMap: Map<string, StudentLessonResult>
-      ) => {
-        // lesMap.sort((a, b) => a.date.getTime() - b.date.getTime());
-        if (!lesMap) {
-          setIsLoading(false);
-          return;
-        }
-        const lesList = Array.from(lesMap)
-          .map(([id, value]) => ({ id, ...value }))
-          .sort((a, b) => {
-            if (a.date === b.date) {
-              return 0;
-            } else {
-              return a.date < b.date ? -1 : 1;
-            }
-          });
-
-        // Rebuild the map after sorting it.
-        const tempLesMap = new Map();
-        lesList.forEach((res) => tempLesMap.set(res.id, res));
-        return tempLesMap;
-      };
-
-      let sortLessonResultMap = sortLessonResultByDate(tempResultLessonMap);
-
-      let lessonScoreMap = {};
-      const lessonMap = {};
-      const courses: Course[] = await api.getCoursesForParentsStudent(
-        currentStudent
-      );
-      setCourses(courses);
-      let reqLes: Lesson[] = [];
-
-      for (const tempCourse of courses) {
-        // const course = tempCourse;
-
-        // const res = await FirebaseApi.i.getLessonFromCourse(
-        //   tempCourse,
-        //   tempCourse.chapters[0].id
-        // ); //await getDataForSubject(tempCourse);
-        // if (!res) {
-        //   setIsLoading(false);
-        //   return;
-        // }
-
-        let islessonPushed = false;
-        if (
-          tempResultLessonMap === undefined &&
-          tempCourse.chapters[0].id === tempCourse.courseCode + "_quiz"
-        ) {
-          const tempLes = tempCourse.chapters[0].lessons;
-          tempLes.forEach(async (l) => {
-            if (l instanceof DocumentReference) {
-              const lessonObj = await api.getLessonFromCourse(tempCourse, l.id);
-              // await res.lessons[tempCourse.courseCode][l.id];
-              if (lessonObj) {
-                console.log(lessonObj, "lessons pushed");
-                reqLes.push(lessonObj as Lesson);
-              }
-            } else {
-              console.log(l, "lessons pushed");
-              reqLes.push(l as Lesson);
-            }
-          });
-          console.log("pushed lessons", reqLes);
-        } else {
-          for (let c = 0; c < tempCourse.chapters.length; c++) {
-            if (islessonPushed) {
-              break;
-            }
-            const chapter = tempCourse.chapters[c];
-            // console.log("chapter in for ", chapter);
-            for (let l = 0; l < chapter.lessons.length; l++) {
-              const lesson = chapter.lessons[l];
-              // console.log("lesson id", lesson.id);
-              if (!tempResultLessonMap || !tempResultLessonMap.get(lesson.id)) {
-                // if (lesson instanceof DocumentReference) {
-                const lessonObj = await api.getLessonFromCourse(
-                  tempCourse,
-                  lesson.id
-                );
-                // await res.lessons[tempCourse.courseCode][
-                //   lesson.id
-                // ];
-                // console.log(
-                //   "await FirebaseApi.i.getLessonFromCourse(tempCourse, lesson.id)",
-                //   await FirebaseApi.i.getLessonFromCourse(tempCourse, lesson.id)
-                // );
-
-                if (lessonObj) {
-                  console.log(lessonObj, "lessons pushed");
-                  reqLes.push(lessonObj as Lesson);
-                }
-                // } else {
-                //   console.log(lesson, "lessons pushed");
-                //   reqLes.push(lesson);
-                // }
-                islessonPushed = true;
-                break;
-              }
-            }
-          }
-          islessonPushed = false;
-        }
-
-        //Last Played Lessons
-
-        for (let c = 0; c < tempCourse.chapters.length; c++) {
-          if (islessonPushed) {
-            break;
-          }
-          const chapter = tempCourse.chapters[c];
-
-          for (let l = 0; l < chapter.lessons.length; l++) {
-            const lesson = chapter.lessons[l];
-            if (sortLessonResultMap && sortLessonResultMap.get(lesson.id)) {
-              // if (lesson instanceof DocumentReference) {
-              const lessonObj = await api.getLessonFromCourse(
-                tempCourse,
-                lesson.id
-              );
-              // await res.lessons[tempCourse.courseCode][
-              //   lesson.id
-              // ];
-              if (!lessonObj) {
-                return;
-              }
-              console.log("last played ", lessonObj, "lessons pushed");
-              if (lessonObj.id != tempCourse.courseCode + "_" + PRE_QUIZ) {
-                reqLes.push((lessonObj || lesson) as Lesson);
-                islessonPushed = true;
-                break;
-              }
-            }
-          }
-        }
-
-        setDataCourse(reqLes);
-      }
-      setIsLoading(false);
-      return;
+      getRecommendationLessons(currentStudent);
     }
 
     /// Below code to show lessons card and chapters bar
@@ -268,7 +118,7 @@ const Home: FC = () => {
     // setCurrentLevel(subjectCode, chapters, lessons);
     // setChaptersMap(tempChapterMap);
     // setDataCourse({ lessons: lessons, chapters: chapters });
-    setIsLoading(false);
+    // setIsLoading(false);
   }
 
   const getLessonsForChapter = async (chapter: Chapter): Promise<Lesson[]> => {
@@ -282,6 +132,156 @@ const Home: FC = () => {
     setIsLoading(false);
     return lessons;
   };
+
+  async function getRecommendationLessons(currentStudent: User) {
+    setIsLoading(true);
+    let tempResultLessonMap: Map<string, StudentLessonResult> | undefined =
+      new Map();
+    await api
+      .getLessonResultsForStudent(currentStudent.docId)
+      .then(async (res) => {
+        tempResultLessonMap = res;
+        setLessonResultMap(res);
+      });
+
+    const sortLessonResultByDate = (
+      lesMap: Map<string, StudentLessonResult>
+    ) => {
+      // lesMap.sort((a, b) => a.date.getTime() - b.date.getTime());
+      if (!lesMap) {
+        // setIsLoading(false);
+        return;
+      }
+      const lesList = Array.from(lesMap)
+        .map(([id, value]) => ({ id, ...value }))
+        .sort((a, b) => {
+          if (a.date === b.date) {
+            return 0;
+          } else {
+            return a.date > b.date ? -1 : 1;
+          }
+        });
+
+      // Rebuild the map after sorting it.
+      let tempLesMap = new Map<string, StudentLessonResult>();
+      lesList.forEach((res) => tempLesMap.set(res.id, res));
+      return tempLesMap;
+    };
+
+    let sortLessonResultMap: Map<string, StudentLessonResult> | undefined;
+    if (tempResultLessonMap) {
+      sortLessonResultMap = sortLessonResultByDate(tempResultLessonMap);
+      console.log("sortLessonResultMap ", sortLessonResultMap);
+    }
+
+    const courses: Course[] = await api.getCoursesForParentsStudent(
+      currentStudent
+    );
+    setCourses(courses);
+    let reqLes: Lesson[] = [];
+
+    for (const tempCourse of courses) {
+      setIsLoading(true);
+      let islessonPushed = false;
+      if (
+        tempResultLessonMap === undefined &&
+        tempCourse.chapters[0].id === tempCourse.courseCode + "_quiz"
+      ) {
+        const tempLes = tempCourse.chapters[0].lessons;
+        tempLes.forEach(async (l) => {
+          if (l instanceof DocumentReference) {
+            const lessonObj = await api.getLessonFromCourse(tempCourse, l.id);
+            // await res.lessons[tempCourse.courseCode][l.id];
+            if (lessonObj) {
+              console.log(lessonObj, "lessons pushed");
+              reqLes.push(lessonObj as Lesson);
+            }
+          } else {
+            console.log(l, "lessons pushed");
+            reqLes.push(l as Lesson);
+          }
+        });
+        console.log("pushed lessons", reqLes);
+      } else {
+        for (let c = 0; c < tempCourse.chapters.length; c++) {
+          if (islessonPushed) {
+            break;
+          }
+          const chapter = tempCourse.chapters[c];
+          // console.log("chapter in for ", chapter);
+          for (let l = 0; l < chapter.lessons.length; l++) {
+            const lesson = chapter.lessons[l];
+            // console.log("lesson id", lesson.id);
+            if (!tempResultLessonMap || !tempResultLessonMap.get(lesson.id)) {
+              // if (lesson instanceof DocumentReference) {
+              const lessonObj = await api.getLessonFromCourse(
+                tempCourse,
+                lesson.id
+              );
+              // await res.lessons[tempCourse.courseCode][
+              //   lesson.id
+              // ];
+              // console.log(
+              //   "await FirebaseApi.i.getLessonFromCourse(tempCourse, lesson.id)",
+              //   await FirebaseApi.i.getLessonFromCourse(tempCourse, lesson.id)
+              // );
+
+              if (lessonObj) {
+                console.log(lessonObj, "lessons pushed");
+                reqLes.push(lessonObj as Lesson);
+              }
+              // } else {
+              //   console.log(lesson, "lessons pushed");
+              //   reqLes.push(lesson);
+              // }
+              islessonPushed = true;
+              break;
+            }
+          }
+        }
+        islessonPushed = false;
+      }
+
+      //Last Played Lessons
+      islessonPushed = false;
+      if (!sortLessonResultMap) {
+        setDataCourse(reqLes);
+        setIsLoading(false);
+        continue;
+      }
+      sortLessonResultMap.forEach(async (v, k) => {
+        console.log("element ", k, v);
+        const lessonObj = await api.getLessonFromCourse(tempCourse, k);
+        console.log(
+          "const lessonObj",
+          lessonObj?.subject.id,
+          tempCourse.subject.id,
+          lessonObj?.subject.id === tempCourse.subject.id
+        );
+        if (
+          lessonObj?.subject.id === tempCourse.subject.id &&
+          !islessonPushed
+        ) {
+          console.log("last played ", lessonObj, "lessons pushed");
+          reqLes.push(lessonObj as Lesson);
+          islessonPushed = true;
+          // break;
+          console.log("reqLes.", reqLes);
+
+          setDataCourse(reqLes);
+          // return;
+        }
+      });
+      console.log("reqLes in if.", reqLes);
+
+      setDataCourse(reqLes);
+      // setIsLoading(false);
+    }
+    console.log("reqLes outside.", reqLes);
+    setDataCourse(reqLes);
+    setIsLoading(false);
+    // return;
+  }
 
   async function getDataForSubject(course: Course): Promise<{
     chapters: Chapter[];
@@ -326,7 +326,10 @@ const Home: FC = () => {
         history.push(PAGES.DISPLAY_SUBJECTS);
         break;
       case HOMEHEADERLIST.RECOMMENDATION:
-        setCourse(HOMEHEADERLIST.RECOMMENDATION);
+        // setCourse(HOMEHEADERLIST.RECOMMENDATION);
+        if (currentStudent) {
+          getRecommendationLessons(currentStudent);
+        }
         break;
       case HOMEHEADERLIST.PROFILE:
         history.push(PAGES.PROFILE);

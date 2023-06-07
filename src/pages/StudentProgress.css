@@ -23,3 +23,18 @@
 #student-progress-display-progress-no-data-message {
   text-align: center;
 }
+
+#student-page-tab-bar {
+  /* display: flex;
+    margin: 6% 5% 0% 5%;
+    justify-content: space-evenly;
+    align-items: center; */
+  /* margin-right: 4vh; */
+  margin-right: 9vw;
+  font-size: var(--text-size);
+  font-weight: bold;
+  width: 15vw;
+  font-family: "BalooRegular";
+  margin-left: 6.9vw;
+  /* color: black; */
+}

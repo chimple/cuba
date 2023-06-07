@@ -1,6 +1,11 @@
+<<<<<<< HEAD
 import { t } from "i18next";
+=======
+import { AppBar, Box, Tab, Tabs } from "@mui/material";
+>>>>>>> master
 import { PARENTHEADERLIST } from "../../common/constants";
 import "./RectangularIconButton.css";
+import { SyntheticEvent, useState } from "react";
 const RectangularIconButton: React.FC<{
   buttonWidth: number;
   buttonHeight: number;
@@ -18,6 +23,7 @@ const RectangularIconButton: React.FC<{
   isButtonEnable,
   onHeaderIconClick,
 }) => {
+
   // const isButtonEnable;
 
   return (
@@ -30,7 +36,7 @@ const RectangularIconButton: React.FC<{
         opacity: isButtonEnable ? "1" : "0.5",
       }}
     >
-      <img
+        <img
         id="rectangular-icon-button-img"
         style={{
           width: "auto",
@@ -38,9 +44,15 @@ const RectangularIconButton: React.FC<{
         }}
         alt={iconSrc}
         src={iconSrc}
+<<<<<<< HEAD
       />
       <p>{t(name)}</p>
       {/* {rectangularIcon} */}
+=======
+      /> 
+      <p>{name}</p>
+      {/* { {rectangularIcon} } */}
+>>>>>>> master
     </div>
   );
 };
