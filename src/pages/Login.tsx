@@ -14,6 +14,7 @@ import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication"
 // import { setEnabled } from "@red-mobile/cordova-plugin-background-mode/www/background-mode";
 import { FirebaseAuth } from "../services/auth/FirebaseAuth";
 import { Keyboard } from "@capacitor/keyboard";
+import { t } from "i18next";
 
 const Login: React.FC = () => {
   const history = useHistory();
@@ -151,10 +152,10 @@ const Login: React.FC = () => {
             alt="Chimple Brand Logo"
             src="assets/icons/ChimpleBrandLogo.svg"
           />
-          <div id="chimple-brand-text1">Welcome to Chimple!</div>
-          <p id="chimple-brand-text2">Discovering the joy of learning with</p>
+          <div id="chimple-brand-text1">{t("Welcome to Chimple!")}</div>
+          <p id="chimple-brand-text2">{t("Discovering the joy of learning with")}</p>
           <p id="chimple-brand-text2">
-            Chimple- where curiosity meets education!
+            {t("Chimple- where curiosity meets education!")}
           </p>
           <div id="chimple-brand-text2">
             <br />
@@ -164,7 +165,7 @@ const Login: React.FC = () => {
               <div id="recaptcha-container" />
               <div id="login-text-box">
                 <TextBox
-                  inputText={"Enter your Phone Number"}
+                  inputText={t("Enter your Phone Number")}
                   inputType={"tel"}
                   maxLength={10}
                   onChange={(input) => {
@@ -183,7 +184,7 @@ const Login: React.FC = () => {
                   onPhoneNumberSubmit();
                 }}
               >
-                Sent the OTP
+                {t("Sent the OTP")}
               </div>
               {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
               <IonLoading
