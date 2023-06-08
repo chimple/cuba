@@ -50,7 +50,7 @@ const Parent: React.FC = () => {
   >([]);
   const [langDocIds, setLangDocIds] = useState<Map<string, string>>(new Map());
   const [currentAppLang, setCurrentAppLang] = useState<string>();
-  // const [localLangDocId, setLocalLangDocId] = useState<string>();
+  //  const [localLangDocId, setLocalLangDocId] = useState<any>();
   let tempLangList: {
     id: string;
     displayName: string;
@@ -96,16 +96,12 @@ const Parent: React.FC = () => {
         langDocIds.get(parentUser?.language?.id!) || localAppLang || langList[0]
       );
 
-      // localStorage.setItem(APP_LANG, "sju2ne9JwNE1TZgo9M4G");
-      console.log(localAppLang);
-      for (let i = 0; i < allLang.length; i++) {
-        const element = allLang[i];
-        if (element.code == localAppLang) {
-          // setLocalLangDocId(element.docId);
-          setCurrentAppLang(element.docId);
-          console.log(element.docId);
-        }
-      }
+      //console.log(localAppLang);
+
+      const element = allLang.find((obj) => obj.code === localAppLang);
+      if (!element) return;
+
+      setCurrentAppLang(element.docId);
 
       setIsLoading(false);
     }
@@ -183,12 +179,12 @@ const Parent: React.FC = () => {
                 setCurrentAppLang(selectedLangDocId);
                 const allLang =
                   await ServiceConfig.getI().apiHandler.getAllLanguages();
-                for (let i = 0; i < allLang.length; i++) {
-                  if (allLang[i].docId == selectedLangDocId)
-                    localStorage.setItem(APP_LANG, allLang[i].code);
-                }
 
-                // setIsLoading(false);
+                const element = allLang.find(
+                  (obj) => obj.code === localAppLang
+                );
+                if (!element) return;
+                localStorage.setItem(APP_LANG, element.code);
               }}
             />
           </div>

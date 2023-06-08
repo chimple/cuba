@@ -149,6 +149,7 @@ const StudentProgress: React.FC = () => {
               console.log(
                 "Data ",
                 lessonDetail.title,
+
                 chapter.title,
                 lessonRes.score,
                 computeMinutes + ":" + result
