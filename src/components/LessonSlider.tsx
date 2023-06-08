@@ -61,8 +61,8 @@ const LessonSlider: React.FC<{
             !!lessonsScoreMap.get(m.docId) &&
             lessonsScoreMap.get(m.docId)?.score! > 0;
 
-          width = "47.5vh";
-          height = "37vh";
+          width = "66.66vh";
+          height = "50vh";
           return (
             <SplideSlide className="slide" key={i}>
               <LessonCard

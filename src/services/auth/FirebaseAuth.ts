@@ -121,6 +121,7 @@ export class FirebaseAuth implements ServiceAuth {
     );
     await setDoc(userRef, tempUser.toJson());
     this._currentUser = tempUser;
+    this._currentUser.docId = user.uid;
     return this._currentUser;
   }
 
@@ -234,6 +235,7 @@ export class FirebaseAuth implements ServiceAuth {
         "🚀 ~ file: FirebaseAuth.ts:167 ~ FirebaseAuth ~ phoneNumberSignin ~ error:",
         error
       );
+      throw error;
       return;
     }
   }

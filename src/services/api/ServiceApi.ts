@@ -284,4 +284,10 @@ export interface ServiceApi {
     course: Course,
     lessonId: string
   ): Promise<Lesson | undefined>;
+
+  /**
+   * Gives all `Course` available on database
+   * @returns {Course[]} Array of `Course` objects
+   */
+  getAllCourses(): Promise<Course[]>;
 }

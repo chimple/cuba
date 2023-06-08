@@ -165,7 +165,13 @@ const EditStudent = () => {
           onClicked={onNextButton}
         />
       </div>
-      <div className={"header " + isInputFocus ? "scroll-header" : ""}>
+      <div
+        className={
+          "header " + isInputFocus && stage === STAGES.NAME
+            ? "scroll-header"
+            : ""
+        }
+      >
         <div id="common-div">
           <ChimpleLogo
             header={t("Welcome to Chimple!")}
