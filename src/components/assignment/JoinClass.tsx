@@ -13,6 +13,7 @@ const JoinClass: FC<{
   const [inviteCode, setInviteCode] = useState<number>();
   const [codeResult, setCodeResult] = useState();
   const [error, setError] = useState("");
+  const [schoolName, setSchoolName] = useState<string>();
   const api = ServiceConfig.getI().apiHandler;
 
   const isNextButtonEnabled = () => {
@@ -24,7 +25,7 @@ const JoinClass: FC<{
     if (!!error) setError("");
     if (!isNextButtonEnabled()) return;
     setLoading(true);
-    try {
+    // try {
       const result = await api.getDataByInviteCode(inviteCode!);
       console.log(
         "🚀 ~ file: JoinClass.tsx:24 ~ getClassData ~ result:",
@@ -32,10 +33,10 @@ const JoinClass: FC<{
       );
       setCodeResult(result);
       setShowDialogBox(true);
-    } catch (error) {
-      console.log("🚀 ~ file: JoinClass.tsx:32 ~ getClassData ~ error:", error);
-      if (error instanceof Object) setError(error.toString());
-    }
+    // } catch (error) {
+    //   console.log("🚀 ~ file: JoinClass.tsx:32 ~ getClassData ~ error:", error);
+    //   if (error instanceof Object) setError(error.toString());
+    // }
     setLoading(false);
   };
   const onJoin = async () => {
@@ -57,6 +58,7 @@ const JoinClass: FC<{
     }
     setLoading(false);
   };
+ 
 
   return (
     <div className="join-class-main-header">
@@ -100,7 +102,7 @@ const JoinClass: FC<{
         height={"30vh"}
         message={
           t("You are Joining ") +
-          (!!codeResult ? codeResult["data"]["name"] ?? "" : "")
+          (!!codeResult ? codeResult['schoolName']+", "+codeResult["data"]["name"]   ?? "" : "")
         }
         showDialogBox={showDialogBox}
         yesText={t("Cancel")}
