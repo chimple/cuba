@@ -87,7 +87,10 @@ const ProfileCard: React.FC<{
         <div
           id="profile-card-image-report"
           onClick={async () => {
-            await Util.setCurrentStudent(user);
+            // await Util.setCurrentStudent(user);
+            const api = ServiceConfig.getI().apiHandler;
+            api.currentStudent = user;
+
             history.replace(PAGES.STUDENT_PROGRESS);
           }}
         >
@@ -109,11 +112,11 @@ const ProfileCard: React.FC<{
             setShowDialogBox(false);
             console.log("Close", false);
           }}
-          onYesButtonClicked={async ({ }) => {
+          onYesButtonClicked={async ({}) => {
             console.log(`Delete Profile`, "yes", user.docId);
             setShowWarningDialogBox(true);
           }}
-          onNoButtonClicked={async ({ }) => {
+          onNoButtonClicked={async ({}) => {
             console.log(`Edit Profile`, "no", user.docId);
             const api = ServiceConfig.getI().apiHandler;
             api.currentStudent = user;
@@ -136,13 +139,13 @@ const ProfileCard: React.FC<{
             setShowDialogBox(false);
             console.log("Close", false);
           }}
-          onYesButtonClicked={async ({ }) => {
+          onYesButtonClicked={async ({}) => {
             console.log(`Show warning yes:`, user.docId);
             setShowWarningDialogBox(false);
             setShowDialogBox(false);
             await ServiceConfig.getI().apiHandler.deleteProfile(user.docId);
           }}
-          onNoButtonClicked={async ({ }) => {
+          onNoButtonClicked={async ({}) => {
             console.log(`Show warning No:`);
             setShowWarningDialogBox(false);
           }}

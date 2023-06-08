@@ -12,12 +12,19 @@ const SelectChapter: FC<{
   course: Course;
   currentGrade: Grade;
   onGradeChange: (grade: Grade) => void;
-}> = ({ chapters, onChapterChange, grades, currentGrade, onGradeChange,course }) => {
+}> = ({
+  chapters,
+  onChapterChange,
+  grades,
+  currentGrade,
+  onGradeChange,
+  course,
+}) => {
   return (
     <div>
       <div className="grade-container">
         <DropDown
-          currentValue={currentGrade.title}
+          currentValue={currentGrade.docId}
           optionList={grades.map((grade) => ({
             displayName: grade.title,
             id: grade.docId,
