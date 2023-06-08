@@ -25,7 +25,7 @@ const JoinClass: FC<{
     if (!!error) setError("");
     if (!isNextButtonEnabled()) return;
     setLoading(true);
-    // try {
+     try {
       const result = await api.getDataByInviteCode(inviteCode!);
       console.log(
         "🚀 ~ file: JoinClass.tsx:24 ~ getClassData ~ result:",
@@ -33,10 +33,10 @@ const JoinClass: FC<{
       );
       setCodeResult(result);
       setShowDialogBox(true);
-    // } catch (error) {
-    //   console.log("🚀 ~ file: JoinClass.tsx:32 ~ getClassData ~ error:", error);
-    //   if (error instanceof Object) setError(error.toString());
-    // }
+    } catch (error) {
+      console.log("🚀 ~ file: JoinClass.tsx:32 ~ getClassData ~ error:", error);
+      if (error instanceof Object) setError(error.toString());
+    }
     setLoading(false);
   };
   const onJoin = async () => {
