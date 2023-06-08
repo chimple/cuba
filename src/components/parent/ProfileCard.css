@@ -67,9 +67,9 @@
     background-color: #81C127;
     color: white;
     border-radius: var(--border-radius);
-    width: 70%;
+    width: 83%;
     height: 15%;
-    margin-left: 15%;
-    padding-top: 2%;
+    margin-left: 10%;
+    /*padding-top: 2%;*/
     font-size: var(--text-size);
 }
