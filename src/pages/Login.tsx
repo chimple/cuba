@@ -14,6 +14,12 @@ import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication"
 // import { setEnabled } from "@red-mobile/cordova-plugin-background-mode/www/background-mode";
 import { FirebaseAuth } from "../services/auth/FirebaseAuth";
 import { Keyboard } from "@capacitor/keyboard";
+import { initializeApp } from "firebase/app";
+
+declare global {
+  // eslint-disable-next-line no-var
+  var recaptchaVerifier: any;
+}
 
 const Login: React.FC = () => {
   const history = useHistory();
@@ -21,7 +27,7 @@ const Login: React.FC = () => {
   const [showVerification, setShowVerification] = useState<boolean>(false);
   const [showNameInput, setShowNameInput] = useState<boolean>(false);
   const [verificationCode, setVerificationCode] = useState<string>("");
-  const [phoneNumber, setPhoneNumber] = useState("+91"); // Example: "+919553642967".
+  const [phoneNumber, setPhoneNumber] = useState("+918886722497"); // Example: "+919553642967".
   const [recaptchaVerifier, setRecaptchaVerifier] =
     useState<RecaptchaVerifier>();
   const [phoneNumberSigninRes, setPhoneNumberSigninRes] = useState<
@@ -56,6 +62,7 @@ const Login: React.FC = () => {
     }
     const authHandler = ServiceConfig.getI().authHandler;
     authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
+      const apiHandler = ServiceConfig.getI().apiHandler;
       const appLang = localStorage.getItem(APP_LANG);
       console.log(
         "appLang",
@@ -69,14 +76,14 @@ const Login: React.FC = () => {
         history.replace(PAGES.APP_LANG_SELECTION);
       }
 
+      if (apiHandler.currentStudent) {
+        setIsLoading(false);
+        history.replace(PAGES.DISPLAY_STUDENT);
+      }
       if (isUserLoggedIn) {
         console.log("navigating to app lang");
         setIsLoading(false);
         history.replace(PAGES.HOME);
-      }
-      if (ServiceConfig.getI().apiHandler.currentStudent) {
-        setIsLoading(false);
-        history.replace(PAGES.DISPLAY_STUDENT);
       }
       setIsLoading(false);
     });
@@ -84,13 +91,34 @@ const Login: React.FC = () => {
       // Note: The 'recaptcha-container' must be rendered by this point, or
       // else Firebase throws 'auth/argument-error'
       const auth = getAuth();
+      console.log("auth in recaptcha ", auth);
 
       const rv = new RecaptchaVerifier(
         "recaptcha-container",
-        { size: "invisible" },
+        {
+          size: "invisible",
+          callback: (response) => {
+            // reCAPTCHA solved, allow signInWithPhoneNumber.
+            console.log("// reCAPTCHA solved, allow signInWithPhoneNumber.");
+          },
+          "expired-callback": () => {
+            // Reset reCAPTCHA?
+            console.log("// Reset reCAPTCHA?");
+          },
+        },
         auth
       );
+      console.log("setRecaptchaVerifier(rv);", rv);
+
       setRecaptchaVerifier(rv);
+
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(
+          "recaptcha-container",
+          { size: "invisible" },
+          auth
+        );
+      }
     }
   }, [recaptchaVerifier]);
 
@@ -102,6 +130,8 @@ const Login: React.FC = () => {
         alert("Phone Number Invalid");
         return;
       }
+      console.log("window.recaptchaVerifier", window.recaptchaVerifier);
+
       // setEnabled(true);
       console.log(
         "onPhoneNumberSubmit called ",
@@ -129,6 +159,16 @@ const Login: React.FC = () => {
       console.log("Phone Number signin Failed");
       setSpinnerLoading(false);
       alert("Phone Number signin Failed" + error);
+      console.log(
+        "window.recaptchaVerifier",
+        // window.recaptchaVerifier,
+        recaptchaVerifier!
+      );
+
+      // //@ts-ignore
+      recaptchaVerifier!.clear();
+      // //@ts-ignore
+      // window.recaptchaVerifier.clear();
     }
   };
 
@@ -152,6 +192,17 @@ const Login: React.FC = () => {
     }
   };
 
+  const requestRecaptchVerifier = () => {
+    //@ts-ignore
+    window.recaptchaVerifier = new RecaptchaVerifier(
+      "recapcha-container",
+      {
+        size: "invisible",
+      },
+      getAuth()
+    );
+  };
+
   return (
     <IonPage id="login-screen">
       {!isLoading ? (
@@ -171,7 +222,6 @@ const Login: React.FC = () => {
           </div>
           {!showVerification ? (
             <div>
-              <div id="recaptcha-container" />
               <div id="login-text-box">
                 <TextBox
                   inputText={"Enter your Phone Number"}
@@ -186,9 +236,25 @@ const Login: React.FC = () => {
                 ></TextBox>
               </div>
 
+              <div id="recaptcha-container" />
               <div
                 id="login-continue-button"
                 onClick={() => {
+                  // //@ts-ignore
+                  // window.recaptchaVerifier = new RecaptchaVerifier(
+                  //   "sign-in-button",
+                  //   {
+                  //     size: "normal",
+                  //     callback: (response) => {
+                  //       console.log("prepared phone auth process");
+                  //     },
+                  //   },
+                  //   getAuth()
+                  // );
+                  console.log(
+                    "if (!recaptchaVerifier && !Capacitor.isNativePlatform()) called",
+                    recaptchaVerifier
+                  );
                   setSpinnerLoading(true);
                   onPhoneNumberSubmit();
                 }}

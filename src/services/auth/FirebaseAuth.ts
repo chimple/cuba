@@ -339,6 +339,9 @@ export class FirebaseAuth implements ServiceAuth {
         "🚀 ~ file: FirebaseAuth.ts:146 ~ FirebaseAuth ~ isUserLoggedIn ~ user:",
         user
       );
+      if (user) {
+        return true;
+      }
     }
     if (!user && Capacitor.isNativePlatform()) return false;
     return false;
