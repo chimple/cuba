@@ -10,6 +10,7 @@ import {
 import ProfileCard from "../components/parent/ProfileCard";
 import User from "../models/user";
 import ToggleButton from "../components/parent/ToggleButton";
+
 // import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import {
   EmailIcon,
@@ -19,6 +20,7 @@ import {
   WhatsappIcon,
 } from "react-share";
 import { FaInstagramSquare } from "react-icons/fa";
+import { t } from "i18next";
 import { TfiWorld } from "react-icons/tfi";
 import RectangularOutlineDropDown from "../components/parent/RectangularOutlineDropDown";
 import i18n from "../i18n";
@@ -48,7 +50,7 @@ const Parent: React.FC = () => {
   >([]);
   const [langDocIds, setLangDocIds] = useState<Map<string, string>>(new Map());
   const [currentAppLang, setCurrentAppLang] = useState<string>();
-
+  //  const [localLangDocId, setLocalLangDocId] = useState<any>();
   let tempLangList: {
     id: string;
     displayName: string;
@@ -62,7 +64,6 @@ const Parent: React.FC = () => {
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
     inti();
   }, []);
-
   async function inti() {
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (parentUser != undefined) {
@@ -75,6 +76,7 @@ const Parent: React.FC = () => {
       let keytempLangDocIds: Map<string, string> = new Map();
       for (let i = 0; i < allLang.length; i++) {
         const element = allLang[i];
+
         tempLangList.push({
           id: element.docId,
           displayName: element.title,
@@ -93,7 +95,14 @@ const Parent: React.FC = () => {
         keytempLangDocIds.get(parentUser?.language?.id!),
         langDocIds.get(parentUser?.language?.id!) || localAppLang || langList[0]
       );
-      setCurrentAppLang(keytempLangDocIds.get(parentUser?.language?.id!));
+
+      //console.log(localAppLang);
+
+      const element = allLang.find((obj) => obj.code === localAppLang);
+      if (!element) return;
+
+      setCurrentAppLang(element.docId);
+
       setIsLoading(false);
     }
   }
@@ -140,46 +149,49 @@ const Parent: React.FC = () => {
     return (
       <div>
         <div id="parent-page-setting">
-          <div id="parent-page-setting-div" >
-            <p id="parent-page-setting-lang-text">Language</p>
+          <div id="parent-page-setting-div">
+            <p id="parent-page-setting-lang-text">{t("Language")}</p>
             <RectangularOutlineDropDown
               currentValue={currentAppLang}
               optionList={langList}
               placeholder="Select Language"
-
               width="26vw"
-
               onValueChange={async (selectedLangDocId) => {
                 // setIsLoading(true);
                 const api = ServiceConfig.getI().apiHandler;
                 const langDoc = await api.getLanguageWithId(selectedLangDocId);
-                console.log("langDoc", langDoc)
-                if (!langDoc) return
+                console.log("langDoc", langDoc);
+                if (!langDoc) return;
                 await i18n.changeLanguage(langDoc.code);
                 console.log("applang", selectedLangDocId);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
 
                 const langId = langDocIds.get(langDoc.code);
-                console.log(langId);
-                if (currentUser && langId) {
+
+                if (currentUser && selectedLangDocId) {
                   ServiceConfig.getI().apiHandler.updateLanguage(
                     currentUser,
-                    langId
+                    selectedLangDocId
                   );
                 }
-                console.log(
-                  "selectedLangDocId", selectedLangDocId
-                )
+                console.log("selectedLangDocId", selectedLangDocId);
                 setCurrentAppLang(selectedLangDocId);
-                // setIsLoading(false);
+                const allLang =
+                  await ServiceConfig.getI().apiHandler.getAllLanguages();
+
+                const element = allLang.find(
+                  (obj) => obj.code === localAppLang
+                );
+                if (!element) return;
+                localStorage.setItem(APP_LANG, element.code);
               }}
             />
           </div>
           <div id="parent-page-setting-div">
             <ToggleButton
               flag={soundFlag!}
-              title="Sound"
+              title={t("Sound")}
               onIonChangeClick={async (v) => {
                 console.log("ion change value ", v.detail?.checked);
                 setSoundFlag(v.detail?.checked);
@@ -197,7 +209,7 @@ const Parent: React.FC = () => {
 
             <ToggleButton
               flag={musicFlag!}
-              title="Music"
+              title={t("Music")}
               onIonChangeClick={async (v) => {
                 console.log("ion change value ", v.detail?.checked);
                 setMusicFlag(v.detail?.checked);
@@ -224,7 +236,7 @@ const Parent: React.FC = () => {
   function helpUI() {
     return (
       <div id="parent-page-help">
-        <h1 id="parent-page-help-title">Chimple Help Desk</h1>
+        <h1 id="parent-page-help-title">{t("Chimple Help Desk")}</h1>
         <div id="parent-page-help-title-e1">
           <div id="parent-page-help-share-button">
             <EmailShareButton
@@ -283,7 +295,7 @@ const Parent: React.FC = () => {
               title="YouTube video player"
               // frameborder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            // allowfullscreen
+              // allowfullscreen
             ></iframe>
           </div>
         </div>
@@ -377,7 +389,8 @@ const Parent: React.FC = () => {
     // </IonPage>
     <Box>
       <Box id="ParentHeader">
-        <AppBar id="ParentHeader-1" 
+        <AppBar
+          id="ParentHeader-1"
           position="static"
           sx={{
             flexDirection: "inherit",
@@ -415,16 +428,20 @@ const Parent: React.FC = () => {
           >
             <Tab
               value="profile"
-              label="profile"
+              label={t("profile")}
               id="parent-page-tab-bar"
-            // sx={{
-            //   // fontSize:"5vh"
-            //   marginRight: "5vw",
-            // }}
+              // sx={{
+              //   // fontSize:"5vh"
+              //   marginRight: "5vw",
+              // }}
             />
-            <Tab id="parent-page-tab-bar" value="setting" label="setting" />
-            <Tab id="parent-page-tab-bar" value="help" label="help" />
-            <Tab id="parent-page-tab-bar" value="faq" label="faq" />
+            <Tab
+              id="parent-page-tab-bar"
+              value="setting"
+              label={t("setting")}
+            />
+            <Tab id="parent-page-tab-bar" value="help" label={t("help")} />
+            <Tab id="parent-page-tab-bar" value="faq" label={t("faq")} />
           </Tabs>
           <div></div>
         </AppBar>
@@ -456,4 +473,3 @@ const Parent: React.FC = () => {
 };
 
 export default Parent;
-

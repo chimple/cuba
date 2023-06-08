@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import { PARENTHEADERLIST } from "../../common/constants";
 import "./RectangularIconButton.css";
@@ -19,31 +20,30 @@ const RectangularIconButton: React.FC<{
   isButtonEnable,
   onHeaderIconClick,
 }) => {
+    // const isButtonEnable;
 
-  // const isButtonEnable;
-
-  return (
-    <div
-      id="rectangular-icon-button"
-      onClick={onHeaderIconClick}
-      style={{
-        width: buttonWidth + "vw",
-        height: buttonHeight + "vh",
-        opacity: isButtonEnable ? "1" : "0.5",
-      }}
-    >
-        <img
-        id="rectangular-icon-button-img"
+    return (
+      <div
+        id="rectangular-icon-button"
+        onClick={onHeaderIconClick}
         style={{
-          width: "auto",
-          height: buttonHeight - 2 + "vh",
+          width: buttonWidth + "vw",
+          height: buttonHeight + "vh",
+          opacity: isButtonEnable ? "1" : "0.5",
         }}
-        alt={iconSrc}
-        src={iconSrc}
-      /> 
-      <p>{name}</p>
-      {/* { {rectangularIcon} } */}
-    </div>
-  );
-};
+      >
+        <img
+          id="rectangular-icon-button-img"
+          style={{
+            width: "auto",
+            height: buttonHeight - 2 + "vh",
+          }}
+          alt={iconSrc}
+          src={iconSrc}
+        />
+        <p>{t(name)}</p>
+        {/* {rectangularIcon} */}
+      </div>
+    );
+  };
 export default RectangularIconButton;

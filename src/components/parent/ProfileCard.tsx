@@ -87,11 +87,14 @@ const ProfileCard: React.FC<{
         <div
           id="profile-card-image-report"
           onClick={async () => {
-            await Util.setCurrentStudent(user);
+            // await Util.setCurrentStudent(user);
+            const api = ServiceConfig.getI().apiHandler;
+            api.currentStudent = user;
+
             history.replace(PAGES.STUDENT_PROGRESS);
           }}
         >
-          Progress Report
+          {t("Progress Report")}
         </div>
       ) : (
         // <></>

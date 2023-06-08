@@ -33,10 +33,9 @@
   font-size: var(--text-size);
   text-align: center;
   background-color: #83c327;
-  margin-top: 3%;
+  margin-top: 10%;
   cursor: pointer;
 }
-
-.disabled-btn {
-  background-color: grey;
+.okay-button:disabled{
+  opacity: 0.5;
 }

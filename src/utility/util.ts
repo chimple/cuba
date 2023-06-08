@@ -25,6 +25,7 @@ import User from "../models/user";
 import { ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
 import { FirebaseAnalytics } from "@capacitor-firebase/analytics";
+import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 
 declare global {
   interface Window {
@@ -363,5 +364,24 @@ export class Util {
       name: eventName,
       params: params,
     });
+  }
+
+  public static async subscribeToClassTopic(
+    classId: string,
+    schoolId: string
+  ): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
+    await FirebaseMessaging.subscribeToTopic({
+      topic: `${classId}-assignments`,
+    });
+    await FirebaseMessaging.subscribeToTopic({
+      topic: `${schoolId}-assignments`,
+    });
+  }
+
+  public static async getToken(): Promise<string | undefined> {
+    if (!Capacitor.isNativePlatform()) return;
+    const result = await FirebaseMessaging.getToken();
+    return result.token;
   }
 }

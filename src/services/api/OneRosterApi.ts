@@ -41,6 +41,9 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
+  getAllCourses(): Promise<Course[]> {
+    throw new Error("Method not implemented.");
+  }
   getSchoolById(id: string): Promise<school | undefined> {
     throw new Error("Method not implemented.");
   }

@@ -79,19 +79,28 @@ export class FirebaseApi implements ServiceApi {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
-    const courseIds: DocumentReference[] = DEFAULT_COURSE_IDS.map((id) =>
-      doc(this._db, `${CollectionIds.COURSE}/${id}`)
-    );
-    if (!!languageDocId && !!LANGUAGE_COURSE_MAP[languageDocId]) {
-      courseIds.splice(
-        1,
-        0,
-        doc(
-          this._db,
-          `${CollectionIds.COURSE}/${LANGUAGE_COURSE_MAP[languageDocId]}`
-        )
+    let courseIds: DocumentReference[] = [];
+    const courses = await this.getAllCourses();
+    if (!!courses && courses.length > 0) {
+      courses.forEach((course) => {
+        courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+      });
+    } else {
+      courseIds = DEFAULT_COURSE_IDS.map((id) =>
+        doc(this._db, `${CollectionIds.COURSE}/${id}`)
       );
     }
+
+    // if (!!languageDocId && !!LANGUAGE_COURSE_MAP[languageDocId]) {
+    //   courseIds.splice(
+    //     1,
+    //     0,
+    //     doc(
+    //       this._db,
+    //       `${CollectionIds.COURSE}/${LANGUAGE_COURSE_MAP[languageDocId]}`
+    //     )
+    //   );
+    // }
     const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
     const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
     const languageRef = doc(
@@ -810,5 +819,19 @@ export class FirebaseApi implements ServiceApi {
     console.log("result in FirebaseAPI", leaderBoardList);
 
     return leaderBoardList;
+  }
+
+  public async getAllCourses(): Promise<Course[]> {
+    const querySnapshot = await getDocs(
+      collection(this._db, CollectionIds.COURSE)
+    );
+    const courses: Course[] = [];
+    querySnapshot.forEach((doc) => {
+      console.log(doc.id, " => ", doc.data());
+      const course = doc.data() as Course;
+      course.docId = doc.id;
+      courses.push(course);
+    });
+    return courses;
   }
 }

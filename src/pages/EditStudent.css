@@ -40,6 +40,6 @@
 .button-inner{
   justify-content: space-between !important;
 }
-#scoll{
+.scroll-header{
   overflow: scroll;
 }

@@ -20,6 +20,10 @@ export class ApiHandler implements ServiceApi {
 
   private constructor() {}
 
+  public async getAllCourses(): Promise<Course[]> {
+    return await this.s.getAllCourses();
+  }
+
   public async getSchoolById(id: string): Promise<school | undefined> {
     return await this.s.getSchoolById(id);
   }
