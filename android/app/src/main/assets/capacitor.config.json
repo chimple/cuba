@@ -11,6 +11,13 @@
 				"phone"
 			]
 		},
+		"FirebaseMessaging": {
+			"presentationOptions": [
+				"badge",
+				"sound",
+				"alert"
+			]
+		},
 		"Keyboard": {}
 	}
 }
