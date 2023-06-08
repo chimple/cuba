@@ -235,6 +235,7 @@ export class FirebaseAuth implements ServiceAuth {
         "🚀 ~ file: FirebaseAuth.ts:167 ~ FirebaseAuth ~ phoneNumberSignin ~ error:",
         error
       );
+      throw error;
       return;
     }
   }

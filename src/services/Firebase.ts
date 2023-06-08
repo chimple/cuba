@@ -1,5 +1,17 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import {
+  getToken,
+  initializeAppCheck,
+  ReCaptchaV3Provider,
+  setTokenAutoRefreshEnabled,
+} from "firebase/app-check";
+// import firebase from "firebase/app-check";
+
+// declare global {
+//   // eslint-disable-next-line no-var
+//   var FIREBASE_APPCHECK_DEBUG_TOKEN: boolean | string | undefined;
+// }
 
 export const initializeFireBase = () => {
   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
