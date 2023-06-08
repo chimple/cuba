@@ -25,7 +25,7 @@ const JoinClass: FC<{
     if (!!error) setError("");
     if (!isNextButtonEnabled()) return;
     setLoading(true);
-     try {
+    try {
       const result = await api.getDataByInviteCode(inviteCode!);
       console.log(
         "🚀 ~ file: JoinClass.tsx:24 ~ getClassData ~ result:",
@@ -58,7 +58,6 @@ const JoinClass: FC<{
     }
     setLoading(false);
   };
- 
 
   return (
     <div className="join-class-main-header">
@@ -102,7 +101,9 @@ const JoinClass: FC<{
         height={"30vh"}
         message={
           t("You are Joining ") +
-          (!!codeResult ? codeResult['schoolName']+", "+codeResult["data"]["name"]   ?? "" : "")
+          (!!codeResult
+            ? codeResult["schoolName"] + ", " + codeResult["data"]["name"] ?? ""
+            : "")
         }
         showDialogBox={showDialogBox}
         yesText={t("Cancel")}
