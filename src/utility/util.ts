@@ -8,7 +8,7 @@ import {
   BUNDLE_URL,
   COURSES,
   CURRENT_LESSON_LEVEL,
-  HOMEHEADERLIST,
+  EVENTS,
   LANG,
   LANGUAGE,
   PAGES,
@@ -24,6 +24,9 @@ import { OneRosterApi } from "../services/api/OneRosterApi";
 import User from "../models/user";
 import { ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
+import { FirebaseAnalytics } from "@capacitor-firebase/analytics";
+import { FirebaseMessaging } from "@capacitor-firebase/messaging";
+
 declare global {
   interface Window {
     cc: any;
@@ -350,5 +353,35 @@ export class Util {
   public static randomBetween(min, max) {
     return Math.floor(Math.random() * (max - min) + min);
   }
-  
+
+  public static async logEvent(
+    eventName: EVENTS,
+    params?: {
+      [key: string]: any;
+    }
+  ) {
+    await FirebaseAnalytics.logEvent({
+      name: eventName,
+      params: params,
+    });
+  }
+
+  public static async subscribeToClassTopic(
+    classId: string,
+    schoolId: string
+  ): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
+    await FirebaseMessaging.subscribeToTopic({
+      topic: `${classId}-assignments`,
+    });
+    await FirebaseMessaging.subscribeToTopic({
+      topic: `${schoolId}-assignments`,
+    });
+  }
+
+  public static async getToken(): Promise<string | undefined> {
+    if (!Capacitor.isNativePlatform()) return;
+    const result = await FirebaseMessaging.getToken();
+    return result.token;
+  }
 }

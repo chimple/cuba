@@ -3,12 +3,12 @@
   padding-top: 0.2vh;
   /* margin-top: 1vh; */
   margin-bottom: -3vh;
-  min-height: 107px !important;
+  /* min-height: 107px !important; */
 }
 
 #logo-header {
   text-align: center;
-  min-height: 150px !important;
+  /* min-height: 150px !important; */
 }
 
 #logo-heading {

@@ -7,12 +7,11 @@
     background-color: white;
     border-radius: 100%;
     /* min-width: 12px;
-    min-height: 12px; */
+    min-height: 12px; */    
 }
 .back-button {
     width: clamp(30px,15vh,50px);
     height: clamp(30px,15vh,50px); 
     color: var(--text-color);
     cursor: pointer;
-    
   }
