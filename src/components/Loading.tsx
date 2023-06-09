@@ -1,6 +1,7 @@
 import { IonLoading } from "@ionic/react";
 // import { useTranslation } from "react-i18next";
 import "./Loading.css";
+import React from "react";
 
 const Loading: React.FC<{ isLoading: boolean; msg?: string }> = ({
   isLoading,

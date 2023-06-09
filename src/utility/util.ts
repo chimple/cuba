@@ -10,6 +10,7 @@ import {
   COURSES,
   CURRENT_LESSON_LEVEL,
   GAME_URL,
+  DEBUG_15,
   HEADERLIST,
   PortPlugin,
   PRE_QUIZ,
@@ -20,6 +21,7 @@ import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
 import { GUIDRef } from "../interface/modelInterfaces";
 import { Result } from "../models/result";
 import { OneRosterApi } from "../services/OneRosterApi";
+import Auth from "../models/auth";
 declare global {
   interface Window {
     cc: any;
@@ -81,9 +83,9 @@ export class Util {
 
         console.log(
           "before local lesson Bundle http url:" +
-          "assets/" +
-          lessonId +
-          "/index.js"
+            "assets/" +
+            lessonId +
+            "/index.js"
         );
 
         const fetchingLocalBundle = await fetch(
@@ -91,9 +93,9 @@ export class Util {
         );
         console.log(
           "after local lesson Bundle fetch url:" +
-          "assets/" +
-          lessonId +
-          "/index.js",
+            "assets/" +
+            lessonId +
+            "/index.js",
           fetchingLocalBundle.ok,
           fetchingLocalBundle.json,
           fetchingLocalBundle
@@ -329,7 +331,11 @@ export class Util {
   }
 
   public static async showLog(msg): Promise<void> {
-    if (Capacitor.getPlatform() !== "android") return;
+    if (
+      Capacitor.getPlatform() !== "android" ||
+      Auth.i.userAccountName === DEBUG_15
+    )
+      return;
     if (typeof msg !== "string") {
       msg = JSON.stringify(msg);
     }

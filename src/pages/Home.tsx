@@ -32,6 +32,7 @@ import ChapterBar from "../components/ChapterBar";
 import Auth from "../models/auth";
 import { Toast } from "@capacitor/toast";
 import { Capacitor } from "@capacitor/core";
+import React from "react";
 
 const Home: React.FC = () => {
   const [dataCourse, setDataCourse] = useState<{
