@@ -9,6 +9,7 @@ import {
   COURSES,
   CURRENT_LESSON_LEVEL,
   EVENTS,
+  FCM_TOKENS,
   LANG,
   LANGUAGE,
   PAGES,
@@ -26,6 +27,7 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
 import { FirebaseAnalytics } from "@capacitor-firebase/analytics";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
+import { DocumentReference } from "firebase/firestore";
 
 declare global {
   interface Window {
@@ -370,13 +372,85 @@ export class Util {
     classId: string,
     schoolId: string
   ): Promise<void> {
+    const classToken = `${classId}-assignments`;
+    const schoolToken = `${schoolId}-assignments`;
     if (!Capacitor.isNativePlatform()) return;
     await FirebaseMessaging.subscribeToTopic({
-      topic: `${classId}-assignments`,
+      topic: classToken,
     });
     await FirebaseMessaging.subscribeToTopic({
-      topic: `${schoolId}-assignments`,
+      topic: schoolToken,
     });
+    const subscribedTokens = localStorage.getItem(FCM_TOKENS);
+    let tokens: string[] = [];
+    if (!!subscribedTokens) {
+      tokens = JSON.parse(subscribedTokens) ?? [];
+    }
+    tokens.push(classToken, schoolToken);
+    localStorage.setItem(FCM_TOKENS, JSON.stringify(tokens));
+  }
+
+  public static async unSubscribeToTopic(token: string): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
+    const subscribedTokens = localStorage.getItem(FCM_TOKENS);
+    let tokens: string[] = [];
+    if (!!subscribedTokens) {
+      tokens = JSON.parse(subscribedTokens) ?? [];
+    }
+    await FirebaseMessaging.unsubscribeFromTopic({
+      topic: token,
+    });
+    const newSubscribedTokens = tokens.filter((x) => x !== token);
+    localStorage.setItem(FCM_TOKENS, JSON.stringify(newSubscribedTokens));
+  }
+
+  public static async subscribeToClassTopicForAllStudents(
+    currentUser: User
+  ): Promise<void> {
+    const students: DocumentReference[] = currentUser.users;
+    if (!students || students.length < 1) return;
+    const api = ServiceConfig.getI().apiHandler;
+    for (let studentRef of students) {
+      if (!studentRef.id) continue;
+      api.getStudentResult(studentRef.id).then((studentProfile) => {
+        if (
+          !!studentProfile &&
+          !!studentProfile.classes &&
+          studentProfile.classes.length > 0 &&
+          studentProfile.classes.length === studentProfile.schools.length
+        ) {
+          for (let i = 0; i < studentProfile.classes.length; i++) {
+            const classId = studentProfile.classes[i];
+            const schoolId = studentProfile.schools[i];
+            if (!this.isClassTokenSubscribed(classId))
+              this.subscribeToClassTopic(classId, schoolId);
+          }
+        }
+      });
+    }
+  }
+
+  public static isClassTokenSubscribed(classId: string): boolean {
+    const subscribedTokens = localStorage.getItem(FCM_TOKENS);
+    let tokens = [];
+    if (!!subscribedTokens) {
+      tokens = JSON.parse(subscribedTokens) ?? [];
+    }
+    const foundToken = tokens.find((token: string) =>
+      token.startsWith(classId)
+    );
+    return !!foundToken;
+  }
+
+  public static async unSubscribeToClassTopicForAllStudents() {
+    const subscribedTokens = localStorage.getItem(FCM_TOKENS);
+    let tokens = [];
+    if (!!subscribedTokens) {
+      tokens = JSON.parse(subscribedTokens) ?? [];
+    }
+    for (let token of tokens) {
+      this.unSubscribeToTopic(token);
+    }
   }
 
   public static async getToken(): Promise<string | undefined> {

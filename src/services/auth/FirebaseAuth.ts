@@ -80,6 +80,7 @@ export class FirebaseAuth implements ServiceAuth {
         } else {
           this._currentUser = tempUserDoc.data() as User;
           this._currentUser.docId = tempUserDoc.id;
+          Util.subscribeToClassTopicForAllStudents(this._currentUser);
         }
       }
       App.addListener("appStateChange", Util.onAppStateChange);
@@ -311,6 +312,7 @@ export class FirebaseAuth implements ServiceAuth {
       } else {
         this._currentUser = tempUserDoc.data() as User;
         this._currentUser.docId = tempUserDoc.id;
+        Util.subscribeToClassTopicForAllStudents(this._currentUser);
       }
       // }
       this.updateUserFcm(userData.uid);
