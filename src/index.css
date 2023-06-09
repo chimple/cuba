@@ -18,3 +18,8 @@
         url("/public/assets/fonts/Baloo/Baloo2-Regular.ttf") format("truetype");
     /* font-weight: bolder; */
 }
+
+/* Temporary fix for dropdown opening issue  */
+ion-popover [popover]:not(:popover-open):not(dialog[open]) {
+    display: contents;
+}

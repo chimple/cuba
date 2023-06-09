@@ -6,8 +6,10 @@ import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
 import {
   BUNDLE_URL,
+  CHIMPLE_BUNDLE_FOLDER,
   COURSES,
   CURRENT_LESSON_LEVEL,
+  GAME_URL,
   DEBUG_15,
   HEADERLIST,
   PortPlugin,
@@ -55,9 +57,28 @@ export class Util {
           "/index.js";
         console.log("cheching path..", "path", path);
         const res = await fetch(path);
-        const isExists = res.ok;
+        let isExists = res.ok;
         console.log("fethting path", path);
         console.log("isexists", isExists);
+        const chimpleBundleFolder = localStorage.getItem(CHIMPLE_BUNDLE_FOLDER);
+        if (!isExists && !!chimpleBundleFolder) {
+          const path1 = chimpleBundleFolder + lessonId + "/index.js";
+          console.log("cheching path..", "chimple path", path1);
+          const result = await fetch(path1);
+          console.log(
+            "🚀 ~ file: util.ts:67 ~ downloadZipBundle ~ result:",
+            JSON.stringify(result)
+          );
+          isExists = result.ok;
+          if (isExists) {
+            localStorage.setItem(GAME_URL, chimpleBundleFolder);
+            console.log("🚀 ~ file: util.ts:73 ~ downloadZipBundle ~ chimpleBundleFolder:", chimpleBundleFolder)
+          }
+        }
+        console.log(
+          "🚀 ~ file: util.ts:77 ~ downloadZipBundle ~ isExists:",
+          isExists
+        );
         if (isExists) continue;
 
         console.log(
