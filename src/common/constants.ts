@@ -192,9 +192,9 @@ export const LANGUAGE_COURSE_MAP = {
 };
 
 export enum GENDER {
-  BOY = "boy",
-  GIRL = "girl",
-  OTHER = "other",
+  BOY = "male",
+  GIRL = "female",
+  OTHER = "unspecified",
 }
 
 export const AVATARS: string[] = [
