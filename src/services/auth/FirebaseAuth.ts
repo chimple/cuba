@@ -236,7 +236,6 @@ export class FirebaseAuth implements ServiceAuth {
         error
       );
       throw error;
-      return;
     }
   }
 
@@ -280,10 +279,10 @@ export class FirebaseAuth implements ServiceAuth {
       // // // App.addListener("appStateChange", Util.onAppStateChange);
       this.updateUserFcm(res.user.uid);
       return user;
-    } catch (err) {
+    } catch (error) {
       // Failure!
-      console.log("signInWithCredential Failure!", err);
-      return;
+      console.log("signInWithCredential Failure!", error);
+      throw error;
     }
   }
 
