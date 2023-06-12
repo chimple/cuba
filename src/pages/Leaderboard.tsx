@@ -23,6 +23,7 @@ import {
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import StudentProfile from "../models/studentProfile";
+import { t } from "i18next";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 
@@ -58,7 +59,7 @@ const Leaderboard: React.FC = () => {
 
   async function inti() {
     console.log("init method called");
-    const weekOptions = ["Weekly", "ALL Time"];
+    const weekOptions = [t("Weekly"), t("ALL Time")];
     let weekOptionsList: {
       id: string;
       displayName: string;
@@ -128,10 +129,10 @@ const Leaderboard: React.FC = () => {
     let tempCurrentUserDataContent: any[][] = [];
     tempLeaderboardDataArray.push([
       "#",
-      "Name",
-      "Lesson Played",
-      "Score",
-      "Time Spent",
+      t("Name"),
+      t("Lesson Played"),
+      t("Score"),
+      t("Time Spent"),
     ]);
 
     for (let i = 0; i < tempData.length; i++) {
@@ -149,27 +150,27 @@ const Leaderboard: React.FC = () => {
       if (currentStudent.docId == element.userId) {
         tempCurrentUserDataContent = [
           // ["Name", element.name],
-          ["Rank", i + 1],
-          ["Last Played", element.lessonsPlayed],
-          ["Score", element.score],
-          ["Time Spent", computeMinutes + "min " + result + " sec"],
+          [t("Rank"), i + 1],
+          [t("Last Played"), element.lessonsPlayed],
+          [t("Score"), element.score],
+          [t("Time Spent"), computeMinutes + t("min ") + result + " "+t("sec")],
         ];
       }
     }
     if (tempCurrentUserDataContent.length <= 0) {
       tempCurrentUserDataContent = [
         // ["Name", element.name],
-        ["Rank", "--"],
-        ["Last Played", "--"],
-        ["Score", "--"],
-        ["Time Spent", "--min " + "--sec"],
+        [t("Rank"), "--"],
+        [t("Last Played"), "--"],
+        [t("Score"), "--"],
+        [t("Time Spent"), "--"+t("min ") + "--"+t("sec")],
       ];
       tempLeaderboardDataArray.push([
         "--",
         currentStudent.name,
         "--",
         "--",
-        "--min " + "--sec",
+        "--"+t("min ") + "--"+t("sec"),
       ]);
     }
     setCurrentUserDataContent(tempCurrentUserDataContent);
@@ -270,6 +271,7 @@ const Leaderboard: React.FC = () => {
                           }}
                           id="leaderboard-left-UI-content"
                         >
+                          
                           {d || "0"}
                         </p>
                       </IonCol>
@@ -419,7 +421,7 @@ const Leaderboard: React.FC = () => {
               >
                 <Tab
                   value={LEADERBOARDHEADERLIST.LEADERBOARD}
-                  label={LEADERBOARDHEADERLIST.LEADERBOARD}
+                  label={t(LEADERBOARDHEADERLIST.LEADERBOARD)}
                   id="parent-page-tab-bar"
                   // sx={{
                   //   // fontSize:"5vh"
@@ -429,7 +431,7 @@ const Leaderboard: React.FC = () => {
                 <Tab
                   id="parent-page-tab-bar"
                   value={LEADERBOARDHEADERLIST.EVENTS}
-                  label={LEADERBOARDHEADERLIST.EVENTS}
+                  label={t(LEADERBOARDHEADERLIST.EVENTS)}
                 />
               </Tabs>
               <div></div>
