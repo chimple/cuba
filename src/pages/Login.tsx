@@ -22,14 +22,13 @@ declare global {
   var recaptchaVerifier: any;
 }
 
-
 const Login: React.FC = () => {
   const history = useHistory();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showVerification, setShowVerification] = useState<boolean>(false);
   const [showNameInput, setShowNameInput] = useState<boolean>(false);
-  const [verificationCode, setVerificationCode] = useState<string>("");
-  const [phoneNumber, setPhoneNumber] = useState("+91"); // Example: "+919553642967".
+  // const [verificationCode, setVerificationCode] = useState<string>("");
+  // const [phoneNumber, setPhoneNumber] = useState("+91"); // Example: "+919553642967".
   const [recaptchaVerifier, setRecaptchaVerifier] =
     useState<RecaptchaVerifier>();
   const [phoneNumberSigninRes, setPhoneNumberSigninRes] = useState<
@@ -38,7 +37,10 @@ const Login: React.FC = () => {
   const [userData, setUserData] = useState<any>("");
 
   const authInstance = ServiceConfig.getI().authHandler;
-  let displayName: string;
+  const countryCode = "+91";
+  let phoneNumber: string = "";
+  let verificationCode: string = "";
+  let displayName: string = "";
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
   const [isInputFocus, setIsInputFocus] = useState(false);
   const scollToRef = useRef<null | HTMLDivElement>(null);
@@ -127,9 +129,10 @@ const Login: React.FC = () => {
   const onPhoneNumberSubmit = async () => {
     // setIsLoading(true);
     try {
+      phoneNumber = countryCode + phoneNumber;
       if (phoneNumber.length <= 10) {
         setSpinnerLoading(false);
-        alert("Phone Number Invalid");
+        alert("Phone Number Invalid " + phoneNumber);
         return;
       }
       console.log("window.recaptchaVerifier", window.recaptchaVerifier);
@@ -175,34 +178,29 @@ const Login: React.FC = () => {
   };
 
   const onVerificationCodeSubmit = async () => {
-    setIsLoading(true);
-    const res = await authInstance.proceedWithVerificationCode(
-      phoneNumberSigninRes,
-      verificationCode
-    );
-    console.log("login User Data ", res, userData);
-    setUserData(res);
-    console.log("login User Data ", res, userData);
+    try {
+      setIsLoading(true);
+      const res = await authInstance.proceedWithVerificationCode(
+        phoneNumberSigninRes,
+        verificationCode
+      );
+      console.log("login User Data ", res, userData);
+      setUserData(res);
+      console.log("login User Data ", res, userData);
 
-    if (res) {
+      if (res) {
+        setIsLoading(false);
+        setShowNameInput(true);
+      } else {
+        setIsLoading(false);
+        console.log("Verification Failed");
+        alert("Verification Failed");
+      }
+    } catch (error) {
       setIsLoading(false);
-      setShowNameInput(true);
-    } else {
-      setIsLoading(false);
-      console.log("Verification Failed");
-      alert("Verification Failed");
+      console.log("Verification Failed", error);
+      alert("Verification Failed" + error);
     }
-  };
-
-  const requestRecaptchVerifier = () => {
-    //@ts-ignore
-    window.recaptchaVerifier = new RecaptchaVerifier(
-      "recapcha-container",
-      {
-        size: "invisible",
-      },
-      getAuth()
-    );
   };
 
   return (
@@ -215,7 +213,9 @@ const Login: React.FC = () => {
             src="assets/icons/ChimpleBrandLogo.svg"
           />
           <div id="chimple-brand-text1">{t("Welcome to Chimple!")}</div>
-          <p id="chimple-brand-text2">{t("Discovering the joy of learning with")}</p>
+          <p id="chimple-brand-text2">
+            {t("Discovering the joy of learning with")}
+          </p>
           <p id="chimple-brand-text2">
             {t("Chimple- where curiosity meets education!")}
           </p>
@@ -229,10 +229,12 @@ const Login: React.FC = () => {
                   inputText={t("Enter your Phone Number")}
                   inputType={"tel"}
                   maxLength={10}
+                  inputValue={phoneNumber}
                   onChange={(input) => {
                     if (input.detail.value) {
-                      setPhoneNumber("+91" + input.detail.value);
-                      console.log("+91" + input.detail.value);
+                      // setPhoneNumber(countryCode + input.detail.value);
+                      phoneNumber = input.detail.value;
+                      console.log(countryCode + phoneNumber);
                     }
                   }}
                 ></TextBox>
@@ -259,6 +261,8 @@ const Login: React.FC = () => {
                   );
                   setSpinnerLoading(true);
                   onPhoneNumberSubmit();
+                  // setShowVerification(true);
+                  // setSpinnerLoading(false);
                 }}
               >
                 {t("Sent the OTP")}
@@ -309,9 +313,11 @@ const Login: React.FC = () => {
                   inputText={"Enter 6 Digit Code"}
                   inputType={"tel"}
                   maxLength={6}
+                  inputValue={verificationCode}
                   onChange={(input) => {
                     if (input.detail.value) {
-                      setVerificationCode("" + input.detail.value);
+                      // setVerificationCode("" + input.detail.value);
+                      verificationCode = input.detail.value;
                       console.log("" + input.detail.value);
                     }
                   }}
@@ -321,6 +327,8 @@ const Login: React.FC = () => {
                 id="login-continue-button"
                 onClick={() => {
                   onVerificationCodeSubmit();
+                  // setIsLoading(false);
+                  // setShowNameInput(true);
                   // history.push(PAGES.PARENT);
                 }}
               >
@@ -335,6 +343,7 @@ const Login: React.FC = () => {
                   inputText={"Enter Parent Name"}
                   inputType={"text"}
                   maxLength={54}
+                  inputValue={displayName}
                   onChange={(input) => {
                     if (input.detail.value) {
                       console.log("" + input.detail.value);
