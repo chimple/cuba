@@ -134,7 +134,10 @@ const LessonCard: React.FC<{
           >
             {showSubjectName && subject?.title ? (
               <div id="lesson-card-subject-name">
-                <p>{subject?.title}</p>
+                <p>
+                  {subject?.title}
+                  {/* {subject.title==="English"?subject.title:t(subject.title)} */}
+                  </p>
               </div>
             ) : null}
             <img
