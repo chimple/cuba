@@ -156,7 +156,6 @@ const DisplaySubjects: FC<{}> = () => {
           {stage === STAGES.SUBJECTS
             ? t("Subjects")
             : stage === STAGES.CHAPTERS
-            // ? t("Chapters")
             ?currentCourse?.title
             : currentChapter?.title}
         </div>
