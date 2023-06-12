@@ -144,7 +144,7 @@ const Leaderboard: React.FC = () => {
         element.name,
         element.lessonsPlayed,
         element.score,
-        computeMinutes + "min " + result + " sec",
+        computeMinutes + "min" +" "+ result +" "+ "sec",
       ]);
 
       if (currentStudent.docId == element.userId) {
@@ -153,7 +153,7 @@ const Leaderboard: React.FC = () => {
           [t("Rank"), i + 1],
           [t("Last Played"), element.lessonsPlayed],
           [t("Score"), element.score],
-          [t("Time Spent"), computeMinutes + t("min ") + result + " "+t("sec")],
+          [t("Time Spent"), computeMinutes + t("min") + result + " "+t("sec")],
         ];
       }
     }
@@ -163,14 +163,14 @@ const Leaderboard: React.FC = () => {
         [t("Rank"), "--"],
         [t("Last Played"), "--"],
         [t("Score"), "--"],
-        [t("Time Spent"), "--"+t("min ") + "--"+t("sec")],
+        [t("Time Spent"), "--"+t("min") + " --"+t("sec")],
       ];
       tempLeaderboardDataArray.push([
         "--",
         currentStudent.name,
         "--",
         "--",
-        "--"+t("min ") + "--"+t("sec"),
+        "--"+t("min") + " --"+t("sec"),
       ]);
     }
     setCurrentUserDataContent(tempCurrentUserDataContent);
