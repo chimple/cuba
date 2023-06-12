@@ -28,6 +28,11 @@ import i18n from "../i18n";
 import { FirebaseAnalytics } from "@capacitor-firebase/analytics";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 import { DocumentReference } from "firebase/firestore";
+import {
+  AppUpdate,
+  AppUpdateAvailability,
+  AppUpdateResultCode,
+} from "@capawesome/capacitor-app-update";
 
 declare global {
   interface Window {
@@ -457,5 +462,65 @@ export class Util {
     if (!Capacitor.isNativePlatform()) return;
     const result = await FirebaseMessaging.getToken();
     return result.token;
+  }
+
+  public static async startFlexibleUpdate(): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
+    try {
+      const result = await AppUpdate.getAppUpdateInfo();
+      console.log(
+        "🚀 ~ file: util.ts:471 ~ startFlexibleUpdate ~ result:",
+        JSON.stringify(result)
+      );
+      if (
+        result.updateAvailability !== AppUpdateAvailability.UPDATE_AVAILABLE
+      ) {
+        return;
+      }
+      if (result.flexibleUpdateAllowed) {
+        const appUpdateResult = await AppUpdate.startFlexibleUpdate();
+        console.log(
+          "🚀 ~ file: util.ts:482 ~ startFlexibleUpdate ~ appUpdateResult:",
+          JSON.stringify(appUpdateResult)
+        );
+        if (appUpdateResult.code === AppUpdateResultCode.OK) {
+          console.log(
+            "🚀 ~ file: util.ts:487 ~ startFlexibleUpdate ~ appUpdateResult.code:",
+            appUpdateResult.code
+          );
+          await AppUpdate.completeFlexibleUpdate();
+          console.log(
+            "🚀 ~ file: util.ts:492 ~ startFlexibleUpdate ~ completeFlexibleUpdate:"
+          );
+        }
+      }
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: util.ts:482 ~ startFlexibleUpdate ~ error:",
+        JSON.stringify(error)
+      );
+    }
+  }
+
+  public static async checkNotificationPermissions() {
+    if (!Capacitor.isNativePlatform()) return;
+    try {
+      const result = await FirebaseMessaging.checkPermissions();
+      console.log(
+        "🚀 ~ file: util.ts:509 ~ checkNotificationPermissions ~ result:",
+        JSON.stringify(result)
+      );
+      // if (result.receive === "granted") return;
+      const permissionStatus = await FirebaseMessaging.requestPermissions();
+      console.log(
+        "🚀 ~ file: util.ts:512 ~ checkNotificationPermissions ~ permissionStatus:",
+        JSON.stringify(permissionStatus)
+      );
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: util.ts:514 ~ checkNotificationPermissions ~ error:",
+        JSON.stringify(error)
+      );
+    }
   }
 }

@@ -3,9 +3,10 @@ import App from "./App";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import reportWebVitals from "./reportWebVitals";
 import "./index.css";
-import './i18n';
+import "./i18n";
 import { initializeFireBase } from "./services/Firebase";
 import { APIMode, ServiceConfig } from "./services/ServiceConfig";
+import { Util } from "./utility/util";
 
 const container = document.getElementById("root");
 const root = createRoot(container!);
@@ -26,3 +27,9 @@ serviceWorkerRegistration.unregister();
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
+
+//Checking for flexible update in play-store
+Util.startFlexibleUpdate();
+
+//Checking for Notification permissions
+Util.checkNotificationPermissions();
