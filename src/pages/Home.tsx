@@ -74,7 +74,10 @@ const Home: FC = () => {
     setCurrentStudent(currentStudent);
     // const apiInstance = OneRosterApi.getInstance();
     if (subjectCode === HOMEHEADERLIST.RECOMMENDATION) {
-      getRecommendationLessons(currentStudent);
+      getRecommendationLessons(currentStudent).then(() => {
+        console.log("Final RECOMMENDATION List ", reqLes);
+        setDataCourse(reqLes);
+      });
     }
 
     /// Below code to show lessons card and chapters bar
@@ -133,6 +136,7 @@ const Home: FC = () => {
     return lessons;
   };
 
+  let reqLes: Lesson[] = [];
   async function getRecommendationLessons(currentStudent: User) {
     setIsLoading(true);
     let tempResultLessonMap: Map<string, StudentLessonResult> | undefined =
@@ -178,7 +182,6 @@ const Home: FC = () => {
       currentStudent
     );
     setCourses(courses);
-    let reqLes: Lesson[] = [];
 
     for (const tempCourse of courses) {
       setIsLoading(true);
@@ -188,19 +191,25 @@ const Home: FC = () => {
         tempCourse.chapters[0].id === tempCourse.courseCode + "_quiz"
       ) {
         const tempLes = tempCourse.chapters[0].lessons;
-        tempLes.forEach(async (l) => {
-          if (l instanceof DocumentReference) {
-            const lessonObj = await api.getLessonFromCourse(tempCourse, l.id);
+        for (let i = 0; i < tempLes.length; i++) {
+          const element = tempLes[i];
+          if (element instanceof DocumentReference) {
+            const lessonObj = await api.getLessonFromCourse(
+              tempCourse,
+              element.id
+            );
             // await res.lessons[tempCourse.courseCode][l.id];
             if (lessonObj) {
               console.log(lessonObj, "lessons pushed");
               reqLes.push(lessonObj as Lesson);
+              setDataCourse(reqLes);
             }
           } else {
-            console.log(l, "lessons pushed");
-            reqLes.push(l as Lesson);
+            console.log(element, "lessons pushed");
+            reqLes.push(element as Lesson);
+            setDataCourse(reqLes);
           }
-        });
+        }
         console.log("pushed lessons", reqLes);
       } else {
         for (let c = 0; c < tempCourse.chapters.length; c++) {
@@ -234,6 +243,7 @@ const Home: FC = () => {
               //   console.log(lesson, "lessons pushed");
               //   reqLes.push(lesson);
               // }
+              setDataCourse(reqLes);
               islessonPushed = true;
               break;
             }
@@ -274,13 +284,10 @@ const Home: FC = () => {
       });
       console.log("reqLes in if.", reqLes);
 
-      setDataCourse(reqLes);
-      // setIsLoading(false);
     }
     console.log("reqLes outside.", reqLes);
     setDataCourse(reqLes);
     setIsLoading(false);
-    // return;
   }
 
   async function getDataForSubject(course: Course): Promise<{
@@ -328,7 +335,10 @@ const Home: FC = () => {
       case HOMEHEADERLIST.RECOMMENDATION:
         // setCourse(HOMEHEADERLIST.RECOMMENDATION);
         if (currentStudent) {
-          getRecommendationLessons(currentStudent);
+          getRecommendationLessons(currentStudent).then(() => {
+            console.log("Final RECOMMENDATION List ", reqLes);
+            setDataCourse(reqLes);
+          });
         }
         break;
       case HOMEHEADERLIST.PROFILE:

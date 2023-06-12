@@ -28,13 +28,13 @@ const LessonSlider: React.FC<{
   width = "45.5vh";
   height = "35vh";
   useEffect(() => {
-    console.log("lessonsScoreMap", lessonsScoreMap);
+    // console.log("lessonsScoreMap", lessonsScoreMap);
     lessonSwiperRef?.go(0);
     setTimeout(() => {
       if (startIndex) lessonSwiperRef?.go(startIndex);
     }, 100);
   });
-  console.log("REFERENCE", startIndex);
+  // console.log("REFERENCE", startIndex);
   return isHome ? (
     <div className="content">
       <Splide
