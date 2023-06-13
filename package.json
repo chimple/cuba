@@ -21,6 +21,7 @@
     "@capacitor/keyboard": "^4.0.1",
     "@capacitor/status-bar": "4.0.1",
     "@capacitor/toast": "^4.1.0",
+    "@capawesome/capacitor-app-update": "^2.1.1",
     "@emotion/react": "^11.10.8",
     "@emotion/styled": "^11.10.8",
     "@ionic/react": "^6.0.0",
