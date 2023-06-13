@@ -13,6 +13,7 @@ import LessonSlider from "../components/LessonSlider";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
 import StudentNameBox from "../components/editStudent/StudentNameBox";
+import { StudentLessonResult } from "../common/courseConstants";
 
 const AssignmentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -23,6 +24,9 @@ const AssignmentPage: React.FC = () => {
   const [schoolName, setSchoolName] = useState<string>();
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
+  const [lessonResultMap, setLessonResultMap] = useState<{
+    [lessonDocId: string]: StudentLessonResult;
+  }>();
 
   useEffect(() => {
     init();
@@ -36,6 +40,10 @@ const AssignmentPage: React.FC = () => {
       history.replace(PAGES.DISPLAY_STUDENT);
       return;
     }
+    api.getStudentResultInMap(student.docId).then(async (res) => {
+      console.log("tempResultLessonMap = res;", res);
+      setLessonResultMap(res);
+    });
     const linked = await api.isStudentLinked(student.docId, fromCache);
     if (!linked) {
       setIsLinked(false);
@@ -43,7 +51,6 @@ const AssignmentPage: React.FC = () => {
       return;
     }
     const studentResult = await api.getStudentResult(student.docId);
-
 
     if (
       !!studentResult &&
@@ -67,38 +74,28 @@ const AssignmentPage: React.FC = () => {
           if (!!res) {
             res.assignment = _assignment;
             _lessons.push(res);
-
           }
         })
       );
-
 
       setLessons(_lessons);
 
       setCurrentClass(classDoc);
 
       if (classDoc && classDoc.school && classDoc.school.id) {
-
         const schoolId = classDoc.school.id;
         const res = await api.getSchoolById(schoolId);
 
         setSchoolName(res?.name);
-
       }
       setLoading(false);
       setIsLinked(true);
-
-    }
-
-    else {
+    } else {
       setIsLinked(false);
       setLoading(false);
       return;
     }
-
   };
-
-
 
   return (
     <IonPage>
@@ -111,7 +108,9 @@ const AssignmentPage: React.FC = () => {
           />
           <div className="school-class-header">
             <div className="classname-header">{schoolName}</div>
-            <div className="classname-header">{currentClass?.name ? currentClass?.name : ""}</div>
+            <div className="classname-header">
+              {currentClass?.name ? currentClass?.name : ""}
+            </div>
           </div>
           <div className="right-button"></div>
         </div>
@@ -136,12 +135,14 @@ const AssignmentPage: React.FC = () => {
                     lessonData={lessons}
                     isHome={true}
                     course={undefined}
-                    lessonsScoreMap={new Map()}
+                    lessonsScoreMap={lessonResultMap || {}}
                     startIndex={0}
                     showSubjectName={true}
                   />
                 ) : (
-                  <div className="pending-assignment">{t("There are no pending assignments for you.")}</div>
+                  <div className="pending-assignment">
+                    {t("There are no pending assignments for you.")}
+                  </div>
                 )}
               </div>
             )}
