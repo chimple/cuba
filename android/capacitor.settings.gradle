@@ -34,6 +34,3 @@ project(':capacitor-toast').projectDir = new File('../node_modules/@capacitor/to
 
 include ':capawesome-capacitor-app-update'
 project(':capawesome-capacitor-app-update').projectDir = new File('../node_modules/@capawesome/capacitor-app-update/android')
-
-include ':account-manager'
-project(':account-manager').projectDir = new File('../node_modules/account-manager/android')

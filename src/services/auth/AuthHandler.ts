@@ -1,7 +1,7 @@
 import { DocumentReference } from "firebase/firestore";
 import User from "../../models/user";
 import { ServiceAuth } from "./ServiceAuth";
-import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
+// import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 import { ConfirmationResult } from "@firebase/auth";
 
 export class AuthHandler implements ServiceAuth {
@@ -38,7 +38,7 @@ export class AuthHandler implements ServiceAuth {
   public async phoneNumberSignIn(
     phoneNumber,
     recaptchaVerifier
-  ): Promise<ConfirmationResult | SignInWithPhoneNumberResult | undefined> {
+  ): Promise<ConfirmationResult | undefined> {
     return await this.s.phoneNumberSignIn(phoneNumber, recaptchaVerifier);
   }
 
