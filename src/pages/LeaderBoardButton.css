@@ -1,5 +1,12 @@
 #leader-board-image{
- height: min(44px, 12vh);
-  width: auto;
+  height: min(44px, 12vh);
+  width: 5.8vw;
+  height: 10vh;
   min-height: 30px;
-}
+  margin-left:91.6vw;
+  margin-bottom:1px;
+  text-overflow: ellipsis;
+  
+ 
+}  
+  

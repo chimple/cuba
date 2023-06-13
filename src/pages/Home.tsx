@@ -447,6 +447,7 @@ const Home: FC = () => {
                   // }
                 }}
               />
+              <p className="leaderboard-text">Leaderboard </p>
             </div>
           </div>
         ) : null}
