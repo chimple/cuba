@@ -1,4 +1,25 @@
 #leader-board-image{
-    width: 8vw;
-    cursor: pointer;
+
+  width: 4vw;
+
+  /* height: 9vh; */
+  
+  padding-top: 1rem;
+  margin-left: 3.5rem;
+  min-height:3rem;
+  min-width: 3rem;
+  /* border: 2px solid red; */
 }
+.leader-board-head{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: end;
+}
+.leader-board-image-class{
+  margin-right: 0.7vw;
+  position: relative;
+  left: 1rem;
+}
+
+

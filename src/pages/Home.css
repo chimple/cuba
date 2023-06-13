@@ -23,8 +23,8 @@ div p {
 #home-leaderboard-button {
   position: absolute;
   bottom: 0;
-  left: 0;
+  right: 0;
   font-size: var(--text-size);
   color: var(--text-color);
-  margin-left: 1vw;
+  margin-right: 2vw;
 }
