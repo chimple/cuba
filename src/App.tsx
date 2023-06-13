@@ -78,6 +78,12 @@ const App: React.FC = () => {
       CapApp.addListener("appStateChange", Util.onAppStateChange);
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
     }
+
+    //Checking for flexible update in play-store
+    Util.startFlexibleUpdate();
+
+    //Checking for Notification permissions
+    Util.checkNotificationPermissions();
   }, []);
 
   return (
