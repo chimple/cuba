@@ -25,7 +25,8 @@ const SelectCourse: FC<{
                 alt={course.thumbnail ?? "assets/icons/EnglishIcon.svg"}
               />
             </div>
-            {t(course.title)}
+            {/* {t(course.title)} */}
+            {course.title==="English"?course.title:t(course.title)}
           </div>
         );
       })}

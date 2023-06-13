@@ -55,5 +55,6 @@
 .school-class-header{
   display: flex;
   gap: 1vw;
+  color: black;
 }
 
