@@ -40,6 +40,11 @@ export class ApiHandler implements ServiceApi {
   ): Promise<StudentProfile | undefined> {
     return await this.s.getStudentResult(studentId, fromCache);
   }
+  async getStudentResultInMap(
+    studentId: string
+  ): Promise<{ [lessonDocId: string]: StudentLessonResult } | undefined> {
+    return await this.s.getStudentResultInMap(studentId);
+  }
   public async getClassById(id: string): Promise<Class | undefined> {
     return await this.s.getClassById(id);
   }

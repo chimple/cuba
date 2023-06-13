@@ -42,8 +42,9 @@ const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentStudent, setCurrentStudent] = useState<User>();
-  const [lessonResultMap, setLessonResultMap] =
-    useState<Map<string, StudentLessonResult>>();
+  const [lessonResultMap, setLessonResultMap] = useState<{
+    [lessonDocId: string]: StudentLessonResult;
+  }>();
   const [courses, setCourses] = useState<Course[]>();
   const [lessons, setLessons] = useState<Lesson[]>();
   const [nextChapter, setNextChapter] = useState<Chapter>();
@@ -74,6 +75,8 @@ const Home: FC = () => {
     setCurrentStudent(currentStudent);
     // const apiInstance = OneRosterApi.getInstance();
     if (subjectCode === HOMEHEADERLIST.RECOMMENDATION) {
+      // let r = api.getStudentResultInMap(currentStudent.docId);
+      // console.log("r = api.getStudentResultInMap(currentStudent.docId);", r);
       getRecommendationLessons(currentStudent).then(() => {
         console.log("Final RECOMMENDATION List ", reqLes);
         setDataCourse(reqLes);
@@ -139,44 +142,50 @@ const Home: FC = () => {
   let reqLes: Lesson[] = [];
   async function getRecommendationLessons(currentStudent: User) {
     setIsLoading(true);
-    let tempResultLessonMap: Map<string, StudentLessonResult> | undefined =
-      new Map();
-    await api
-      .getLessonResultsForStudent(currentStudent.docId)
-      .then(async (res) => {
-        tempResultLessonMap = res;
-        setLessonResultMap(res);
-      });
-
-    const sortLessonResultByDate = (
-      lesMap: Map<string, StudentLessonResult>
-    ) => {
+    let tempResultLessonMap:
+      | { [lessonDocId: string]: StudentLessonResult }
+      | undefined = {};
+    // await api
+    //   .getLessonResultsForStudent(currentStudent.docId)
+    const sortLessonResultByDate = (lesMap: {
+      [lessonDocId: string]: StudentLessonResult;
+    }) => {
       // lesMap.sort((a, b) => a.date.getTime() - b.date.getTime());
       if (!lesMap) {
         // setIsLoading(false);
         return;
       }
-      const lesList = Array.from(lesMap)
-        .map(([id, value]) => ({ id, ...value }))
-        .sort((a, b) => {
-          if (a.date === b.date) {
-            return 0;
-          } else {
-            return a.date > b.date ? -1 : 1;
-          }
-        });
+      console.log("Object.entries(lesMap)", lesMap, Object.entries(lesMap));
+      const lesList = Object.entries(lesMap).sort((a, b) => {
+        if (a[1].date === b[1].date) {
+          return 0;
+        } else {
+          return a[1].date > b[1].date ? -1 : 1;
+        }
+      });
 
       // Rebuild the map after sorting it.
-      let tempLesMap = new Map<string, StudentLessonResult>();
-      lesList.forEach((res) => tempLesMap.set(res.id, res));
+      let tempLesMap: {
+        [lessonDocId: string]: StudentLessonResult;
+      } = {};
+      lesList.forEach((res) => (tempLesMap[res[0]] = res[1]));
       return tempLesMap;
     };
-
-    let sortLessonResultMap: Map<string, StudentLessonResult> | undefined;
-    if (tempResultLessonMap) {
-      sortLessonResultMap = sortLessonResultByDate(tempResultLessonMap);
-      console.log("sortLessonResultMap ", sortLessonResultMap);
-    }
+    let sortLessonResultMap:
+      | {
+          [lessonDocId: string]: StudentLessonResult;
+        }
+      | undefined;
+    api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
+      console.log("tempResultLessonMap = res;", res);
+      tempResultLessonMap = res;
+      setLessonResultMap(res);
+      if (tempResultLessonMap) {
+        console.log("tempResultLessonMap", tempResultLessonMap);
+        sortLessonResultMap = sortLessonResultByDate(tempResultLessonMap);
+        console.log("sortLessonResultMap ", sortLessonResultMap);
+      }
+    });
 
     const courses: Course[] = await api.getCoursesForParentsStudent(
       currentStudent
@@ -221,7 +230,7 @@ const Home: FC = () => {
           for (let l = 0; l < chapter.lessons.length; l++) {
             const lesson = chapter.lessons[l];
             // console.log("lesson id", lesson.id);
-            if (!tempResultLessonMap || !tempResultLessonMap.get(lesson.id)) {
+            if (!tempResultLessonMap || !tempResultLessonMap[lesson.id]) {
               // if (lesson instanceof DocumentReference) {
               const lessonObj = await api.getLessonFromCourse(
                 tempCourse,
@@ -259,15 +268,8 @@ const Home: FC = () => {
         setIsLoading(false);
         continue;
       }
-      sortLessonResultMap.forEach(async (v, k) => {
-        console.log("element ", k, v);
-        const lessonObj = await api.getLessonFromCourse(tempCourse, k);
-        console.log(
-          "const lessonObj",
-          lessonObj?.subject.id,
-          tempCourse.subject.id,
-          lessonObj?.subject.id === tempCourse.subject.id
-        );
+      Object.entries(sortLessonResultMap).forEach(async (v, k) => {
+        const lessonObj = await api.getLessonFromCourse(tempCourse, v[0]);
         if (
           lessonObj?.subject.id === tempCourse.subject.id &&
           !islessonPushed
@@ -283,7 +285,6 @@ const Home: FC = () => {
         }
       });
       console.log("reqLes in if.", reqLes);
-
     }
     console.log("reqLes outside.", reqLes);
     setDataCourse(reqLes);
@@ -372,7 +373,7 @@ const Home: FC = () => {
                   lessonData={dataCourse}
                   isHome={true}
                   course={undefined}
-                  lessonsScoreMap={lessonResultMap || new Map()}
+                  lessonsScoreMap={lessonResultMap || {}}
                   startIndex={0}
                   showSubjectName={true}
                 />

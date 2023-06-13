@@ -641,6 +641,15 @@ export class FirebaseApi implements ServiceApi {
     return studentProfile;
   }
 
+  async getStudentResultInMap(
+    studentId: string
+  ): Promise<{ [lessonDocId: string]: StudentLessonResult } | undefined> {
+    const lessonsData = await this.getStudentResult(studentId);
+    console.log("getStudentResultInMap lessonsData ", lessonsData);
+    if (!lessonsData) return;
+    return lessonsData.lessons;
+  }
+
   async getClassById(id: string): Promise<Class | undefined> {
     if (!!this._classCache[id]) return this._classCache[id];
     const classDoc = await getDoc(doc(this._db, CollectionIds.CLASS, id));
