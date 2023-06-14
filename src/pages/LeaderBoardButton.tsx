@@ -8,19 +8,19 @@ const LeaderBoardButton: React.FC<{
   // name,
   onHeaderIconClick,
 }) => {
-  return (
-    <div className="leader-board-head">
-    <img
-      id="leader-board-image"
-      alt={iconSrc}
-      src={iconSrc}
-      onClick={onHeaderIconClick}
-    />
-    <p className="leader-board-image-class">Leaderboard</p>
-    </div>
- 
-    //   {/* <p>{name}</p>
-    //  </div>
-  );
-};
+    return (
+      <div className="leader-board-head">
+        <img
+          id="leader-board-image"
+          alt={iconSrc}
+          src={iconSrc}
+          onClick={onHeaderIconClick}
+        />
+        <p className="leader-board-image-class">Leaderboard</p>
+      </div>
+
+      //   {/* <p>{name}</p>
+      //  </div>
+    );
+  };
 export default LeaderBoardButton;
