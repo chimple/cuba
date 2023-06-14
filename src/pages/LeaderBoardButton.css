@@ -1,13 +1,9 @@
 #leader-board-image {
-
   width: auto;
-
   height: 9vh;
-
   padding-top: 1vh;
   /* margin-left: 3.5rem;
   min-height:3rem; */
-
   /* border: 2px solid red; */
 }
 
@@ -19,7 +15,6 @@
 }
 
 .leader-board-image-class {
-
   right: 1.7vh;
   padding-bottom: 1.5vh;
 }
