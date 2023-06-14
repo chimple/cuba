@@ -3,13 +3,13 @@
   height: 8vh;
   border: none;
   outline: none;
-  padding: 8px;
+  padding: 1vh;
   box-sizing: border-box;
-  border-radius: 5000px;
+  border-radius: 10vh;
 }
 
 .aa-Form {
-  border-radius: 40px;
+  border-radius: 40vw;
   width: 70vw;
   height: 10vh;
   border: white;
