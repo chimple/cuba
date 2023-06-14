@@ -80,6 +80,11 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<StudentProfile | undefined> {
     throw new Error("Method not implemented.");
   }
+  getStudentResultInMap(
+    studentId: string
+  ): Promise<{ [lessonDocId: string]: StudentLessonResult } | undefined> {
+    throw new Error("Method not implemented.");
+  }
   getClassById(id: string): Promise<Class | undefined> {
     throw new Error("Method not implemented.");
   }

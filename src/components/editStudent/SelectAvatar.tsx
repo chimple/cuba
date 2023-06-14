@@ -11,7 +11,6 @@ const SelectAvatar: FC<{ avatar: string|undefined; onAvatarChange: (avatar: stri
   return (
     <div>
       <div className="avatar-header">
-        <div className="avatar-title">{t("Select Child Avatar:")}</div>
         <div className="avatar-container1">
           {AVATARS.map((_avatar: string) => {
             return (

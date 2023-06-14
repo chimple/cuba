@@ -186,6 +186,9 @@ const EditStudent = () => {
           />
         )}
       </div>
+      {stage === STAGES.AVATAR && (
+        <div className="avatar-title">{t("Select Child Avatar:")}</div>
+      )}
       <div className="content">
         {stage === STAGES.GENDER_AND_AGE && (
           <GenderAndAge

@@ -40,38 +40,34 @@ const LessonCard: React.FC<{
   lessonData,
   startIndex,
 }) => {
-    const history = useHistory();
-    const [showImage, setShowImage] = useState(true);
-    const [subject, setSubject] = useState<Subject>();
+  const history = useHistory();
+  const [showImage, setShowImage] = useState(true);
+  const [subject, setSubject] = useState<Subject>();
 
-    const hideImg = (event: any) => {
-      setShowImage(false);
-    };
-    // const subjectCode = lesson.chapter.course.id;
-    useEffect(() => {
-      if (showSubjectName) getSubject();
-    }, [lesson]);
+  const hideImg = (event: any) => {
+    setShowImage(false);
+  };
+  // const subjectCode = lesson.chapter.course.id;
+  useEffect(() => {
+    if (showSubjectName) getSubject();
+  }, [lesson]);
 
-    const getSubject = async () => {
-      const subjectId = lesson?.subject?.toString()?.split("/")?.at(-1);
-      console.log(
-        "const subjectId",
-        subjectId,
-        lesson?.subject?.toString(),
-        lesson?.subject?.id?.toString()
-      );
-
+  const getSubject = async () => {
+    const subjectId = lesson?.subject?.toString()?.split("/")?.at(-1);
+    if (!subjectId) return;
+    let subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
+    if (!subject) {
+      const subjectId = lesson?.subject.path?.toString()?.split("/")?.at(-1);
       if (!subjectId) return;
-      const subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
-      if (!subject) return;
-      console.log("const subject", subject);
-      setSubject(subject);
-    };
+      subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
+    }
+    setSubject(subject);
+  };
 
     const lessonCardColor =
       LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
     return (
-      <div
+      <IonCard
         id="lesson-card"
         style={{
           width: width,
@@ -117,20 +113,18 @@ const LessonCard: React.FC<{
         <div
           style={{
             display: "grid",
-            
           }}
         >
           <div
             style={{
               background: lessonCardColor,
-              borderRadius: "42px",
+              borderRadius: "12%",
               width: width,
               height: height,
               display: "grid",
               justifyContent: "center",
               alignItems: "center",
               gridArea: "1/1",
-              
             }}
             color={lessonCardColor}
           >
@@ -138,6 +132,7 @@ const LessonCard: React.FC<{
               <div id="lesson-card-subject-name">
                 <p>
                   {subject?.title}
+                  {/* {subject.title==="English"?subject.title:t(subject.title)} */}
                   </p>
               </div>
             ) : null}
@@ -156,30 +151,30 @@ const LessonCard: React.FC<{
               alt={"courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"}
             ></img>
 
-            <div id="lesson-card-image">
-              {showImage ? (
-                <img
-                  id="lesson-card-image"
-                  loading="lazy"
-                  alt={
-                    "courses/" +
-                    lesson.cocosSubjectCode +
-                    "/icons/" +
-                    lesson.id +
-                    ".png"
-                  }
-                  src={
-                    "courses/" +
-                    lesson.cocosSubjectCode +
-                    "/icons/" +
-                    lesson.id +
-                    ".png"
-                  }
-                  onError={hideImg}
-                />
-              ) : (
-                <div /> // we can show Default LessonCard text or image
-              )}
+          <div id="lesson-card-image">
+            {showImage ? (
+              <img
+                id="lesson-card-image"
+                loading="lazy"
+                alt={
+                  "courses/" +
+                  lesson.cocosSubjectCode +
+                  "/icons/" +
+                  lesson.id +
+                  ".png"
+                }
+                src={
+                  "courses/" +
+                  lesson.cocosSubjectCode +
+                  "/icons/" +
+                  lesson.id +
+                  ".png"
+                }
+                onError={hideImg}
+              />
+            ) : (
+              <div /> // we can show Default LessonCard text or image
+            )}
 
               {!isUnlocked ? (
                 <div id="lesson-card-status-icon">
@@ -205,7 +200,7 @@ const LessonCard: React.FC<{
           </div>
         </div>
         {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
-      </div>
+      </IonCard>
     );
   };
 
