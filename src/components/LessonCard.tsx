@@ -71,7 +71,7 @@ const LessonCard: React.FC<{
     const lessonCardColor =
       LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
     return (
-      <IonCard
+      <div
         id="lesson-card"
         style={{
           width: width,
@@ -117,18 +117,20 @@ const LessonCard: React.FC<{
         <div
           style={{
             display: "grid",
+            
           }}
         >
           <div
             style={{
               background: lessonCardColor,
-              borderRadius: "12%",
+              borderRadius: "42px",
               width: width,
               height: height,
               display: "grid",
               justifyContent: "center",
               alignItems: "center",
               gridArea: "1/1",
+              
             }}
             color={lessonCardColor}
           >
@@ -136,7 +138,6 @@ const LessonCard: React.FC<{
               <div id="lesson-card-subject-name">
                 <p>
                   {subject?.title}
-                  {/* {subject.title==="English"?subject.title:t(subject.title)} */}
                   </p>
               </div>
             ) : null}
@@ -204,7 +205,7 @@ const LessonCard: React.FC<{
           </div>
         </div>
         {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
-      </IonCard>
+      </div>
     );
   };
 
