@@ -1,24 +1,25 @@
-#leader-board-image{
+#leader-board-image {
 
   width: auto;
 
-   height: 9vh; 
-  
+  height: 9vh;
+
   padding-top: 1vh;
   /* margin-left: 3.5rem;
   min-height:3rem; */
-  min-width: 8.5vh;
+
   /* border: 2px solid red; */
 }
-.leader-board-head{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: end;
+
+.leader-board-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: end;
 }
-.leader-board-image-class{
+
+.leader-board-image-class {
 
   right: 1.7vh;
   padding-bottom: 1.5vh;
 }
-
