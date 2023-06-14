@@ -17,6 +17,7 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import { useHistory, useLocation } from "react-router";
 import { INSTANT_SEARCH_INDEX_NAME, PAGES } from "../common/constants";
 import BackButton from "../components/common/BackButton";
+import { StudentLessonResult } from "../common/courseConstants";
 
 const searchClient = algoliasearch(
   process.env.REACT_APP_ALGOLIA_APP_ID!,
@@ -48,11 +49,21 @@ function SearchLesson() {
   };
   const history = useHistory();
   const location = useLocation();
+  const [lessonResultMap, setLessonResultMap] = useState<{
+    [lessonDocId: string]: StudentLessonResult;
+  }>();
 
   useEffect(() => {
-    if (!ServiceConfig.getI().apiHandler.currentStudent) {
+    const api = ServiceConfig.getI().apiHandler;
+    const currentStudent = api.currentStudent;
+    if (!currentStudent) {
       history.replace(PAGES.DISPLAY_STUDENT);
+      return;
     }
+    api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
+      console.log("tempResultLessonMap = res;", res);
+      setLessonResultMap(res);
+    });
     const urlParams = new URLSearchParams(location.search);
     if (!!urlParams.get("continue") && !!dataToContinue.lessons) {
       setLessons(dataToContinue.lessons);
@@ -113,7 +124,6 @@ function SearchLesson() {
     <div className="search-container">
       <div className="search-header">
         <BackButton
-          //  iconSize="8vh"
           onClicked={() => {
             history.replace(PAGES.HOME);
           }}
@@ -152,7 +162,7 @@ function SearchLesson() {
         lessonData={lessons}
         isHome={true}
         course={undefined}
-        lessonsScoreMap={{}}
+        lessonsScoreMap={lessonResultMap || {}}
         startIndex={0}
         showSubjectName={true}
       />

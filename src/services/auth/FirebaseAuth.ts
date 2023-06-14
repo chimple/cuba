@@ -4,8 +4,6 @@ import {
   GoogleAuthProvider,
   PhoneAuthProvider,
   getAuth,
-  indexedDBLocalPersistence,
-  initializeAuth,
   signInWithCredential,
   signInWithPhoneNumber,
 } from "firebase/auth";
@@ -16,6 +14,7 @@ import {
   getDoc,
   getFirestore,
   setDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { RoleType } from "../../interface/modelInterfaces";
 import {
@@ -28,7 +27,7 @@ import {
 import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
-import { getApp } from "firebase/app";
+import { CollectionIds } from "../../common/courseConstants";
 
 export class FirebaseAuth implements ServiceAuth {
   public static i: FirebaseAuth;
@@ -80,9 +79,12 @@ export class FirebaseAuth implements ServiceAuth {
           await this._createUserDoc(user);
         } else {
           this._currentUser = tempUserDoc.data() as User;
+          this._currentUser.docId = tempUserDoc.id;
+          Util.subscribeToClassTopicForAllStudents(this._currentUser);
         }
       }
       App.addListener("appStateChange", Util.onAppStateChange);
+      this.updateUserFcm(user.uid);
       return true;
     } catch (error) {
       console.log(
@@ -120,6 +122,7 @@ export class FirebaseAuth implements ServiceAuth {
     );
     await setDoc(userRef, tempUser.toJson());
     this._currentUser = tempUser;
+    this._currentUser.docId = user.uid;
     return this._currentUser;
   }
 
@@ -141,7 +144,6 @@ export class FirebaseAuth implements ServiceAuth {
       this._currentUser
     );
     this._currentUser.docId = tempUserDoc.id;
-    console.log("currentUser in if (!currentUser) {", currentUser);
     return this._currentUser;
   }
 
@@ -234,7 +236,7 @@ export class FirebaseAuth implements ServiceAuth {
         "🚀 ~ file: FirebaseAuth.ts:167 ~ FirebaseAuth ~ phoneNumberSignin ~ error:",
         error
       );
-      return;
+      throw error;
     }
   }
 
@@ -276,12 +278,12 @@ export class FirebaseAuth implements ServiceAuth {
       // // }
       // // }
       // // // App.addListener("appStateChange", Util.onAppStateChange);
-
+      this.updateUserFcm(res.user.uid);
       return user;
-    } catch (err) {
+    } catch (error) {
       // Failure!
-      console.log("signInWithCredential Failure!", err);
-      return;
+      console.log("signInWithCredential Failure!", error);
+      throw error;
     }
   }
 
@@ -308,9 +310,11 @@ export class FirebaseAuth implements ServiceAuth {
         console.log("created user", u);
       } else {
         this._currentUser = tempUserDoc.data() as User;
+        this._currentUser.docId = tempUserDoc.id;
+        Util.subscribeToClassTopicForAllStudents(this._currentUser);
       }
       // }
-
+      this.updateUserFcm(userData.uid);
       return true;
     } catch (error) {
       console.log("User Creation Failed!", error);
@@ -338,6 +342,9 @@ export class FirebaseAuth implements ServiceAuth {
         "🚀 ~ file: FirebaseAuth.ts:146 ~ FirebaseAuth ~ isUserLoggedIn ~ user:",
         user
       );
+      if (!!user) {
+        return true;
+      }
     }
     if (!user && Capacitor.isNativePlatform()) return false;
     return false;
@@ -348,4 +355,18 @@ export class FirebaseAuth implements ServiceAuth {
     await this._auth.signOut();
     this._currentUser = undefined;
   }
+
+  private updateUserFcm = async (userId: string) => {
+    const token = await Util.getToken();
+    console.log(
+      "🚀 ~ file: FirebaseAuth.ts:360 ~ updateUserFcm= ~ token:",
+      token
+    );
+    if (!!token) {
+      await updateDoc(doc(this._db, `${CollectionIds.USER}/${userId}`), {
+        fcm: token,
+        dateLastModified: Timestamp.now(),
+      });
+    }
+  };
 }

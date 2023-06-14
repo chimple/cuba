@@ -11,6 +11,7 @@ import Subject from "../../models/subject";
 import Assignment from "../../models/assignment";
 import Class from "../../models/class";
 import StudentProfile from "../../models/studentProfile";
+import school from "../../models/school";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -18,6 +19,14 @@ export class ApiHandler implements ServiceApi {
   private s: ServiceApi;
 
   private constructor() {}
+
+  public async getAllCourses(): Promise<Course[]> {
+    return await this.s.getAllCourses();
+  }
+
+  public async getSchoolById(id: string): Promise<school | undefined> {
+    return await this.s.getSchoolById(id);
+  }
 
   public async getDataByInviteCode(inviteCode: number): Promise<any> {
     return await this.s.getDataByInviteCode(inviteCode);
@@ -30,6 +39,11 @@ export class ApiHandler implements ServiceApi {
     fromCache: boolean = true
   ): Promise<StudentProfile | undefined> {
     return await this.s.getStudentResult(studentId, fromCache);
+  }
+  async getStudentResultInMap(
+    studentId: string
+  ): Promise<{ [lessonDocId: string]: StudentLessonResult } | undefined> {
+    return await this.s.getStudentResultInMap(studentId);
   }
   public async getClassById(id: string): Promise<Class | undefined> {
     return await this.s.getClassById(id);
@@ -85,7 +99,9 @@ export class ApiHandler implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    assignmentId: string | undefined
+    assignmentId: string | undefined,
+    classId: string | undefined,
+    schoolId: string | undefined
   ): Promise<Result> {
     return await this.s.updateResult(
       student,
@@ -95,7 +111,9 @@ export class ApiHandler implements ServiceApi {
       correctMoves,
       wrongMoves,
       timeSpent,
-      assignmentId
+      assignmentId,
+      classId,
+      schoolId
     );
   }
 
@@ -200,5 +218,20 @@ export class ApiHandler implements ServiceApi {
     isWeeklyData: boolean
   ): Promise<LeaderboardInfo | undefined> {
     return await this.s.getLeaderboardResults(sectionId, isWeeklyData);
+  }
+
+  getAllLessonsForCourse(course: Course): Promise<{
+    [key: string]: {
+      [key: string]: Lesson;
+    };
+  }> {
+    return this.s.getAllLessonsForCourse(course);
+  }
+
+  getLessonFromCourse(
+    course: Course,
+    lessonId: string
+  ): Promise<Lesson | undefined> {
+    return this.s.getLessonFromCourse(course, lessonId);
   }
 }

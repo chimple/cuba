@@ -1,5 +1,5 @@
 import { CapacitorConfig } from "@capacitor/cli";
-import { KeyboardResize, KeyboardStyle } from '@capacitor/keyboard';
+import { KeyboardResize, KeyboardStyle } from "@capacitor/keyboard";
 
 const config: CapacitorConfig = {
   appId: "org.chimple.cuba",
@@ -9,7 +9,10 @@ const config: CapacitorConfig = {
   plugins: {
     FirebaseAuthentication: {
       skipNativeAuth: false,
-      providers: ["google.com","phone"],
+      providers: ["google.com", "phone"],
+    },
+    FirebaseMessaging: {
+      presentationOptions: ["badge", "sound", "alert"],
     },
     Keyboard: {
       // resize: KeyboardResize.Body,

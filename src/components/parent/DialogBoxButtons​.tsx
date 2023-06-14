@@ -41,7 +41,11 @@ const DialogBoxButtons: React.FC<{
       <Dialog
         open={showDialogBox}
         onClose={handleClose}
-        // style={{ borderRadius: "6vh" }}
+        sx={{
+          "& .MuiPaper-root":  { borderRadius: "6vh !important"},
+          "& .MuiTypography-root":  { margin: "13% 0% 0% 0% !important"},
+        }}
+        
       >
         <DialogContent
           style={{
@@ -65,7 +69,7 @@ const DialogBoxButtons: React.FC<{
         <DialogActions
           style={{
             justifyContent: "space-around",
-            margin: "0% 0% 5% 0%",
+            margin: "5%",
           }}
         >
           <div

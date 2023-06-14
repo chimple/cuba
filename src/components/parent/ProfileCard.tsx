@@ -10,6 +10,7 @@ import { AVATARS, PAGES } from "../../common/constants";
 import { Util } from "../../utility/util";
 import DialogBoxButtons from "./DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
+import { t } from "i18next";
 
 const ProfileCard: React.FC<{
   width: string;
@@ -67,7 +68,7 @@ const ProfileCard: React.FC<{
             src={"assets/avatars/" + (user.avatar ?? AVATARS[0]) + ".png"}
             alt=""
           />
-          <p>{user.name}</p>
+          <p id="profile-card-user-name">{user.name}</p>
         </div>
       ) : (
         <div id="profile-card-new-user">
@@ -86,11 +87,14 @@ const ProfileCard: React.FC<{
         <div
           id="profile-card-image-report"
           onClick={async () => {
-            await Util.setCurrentStudent(user);
+            // await Util.setCurrentStudent(user);
+            const api = ServiceConfig.getI().apiHandler;
+            api.currentStudent = user;
+
             history.replace(PAGES.STUDENT_PROGRESS);
           }}
         >
-          Progress Report
+          {t("Progress Report")}
         </div>
       ) : (
         // <></>
@@ -100,10 +104,10 @@ const ProfileCard: React.FC<{
         <DialogBoxButtons
           width={"40vw"}
           height={"30vh"}
-          message="You can edit or delete user by clicking on the below buttons"
+          message={t("You can edit or delete user by clicking on the below buttons")}
           showDialogBox={showDialogBox}
-          yesText="Delete User"
-          noText="Edit User"
+          yesText={t("Delete User")}
+          noText={t("Edit User")}
           handleClose={() => {
             setShowDialogBox(false);
             console.log("Close", false);
@@ -127,10 +131,10 @@ const ProfileCard: React.FC<{
         <DialogBoxButtons
           width={"40vw"}
           height={"30vh"}
-          message="Are you sure to delete?"
+          message={t("Do you want to delete the user?")}
           showDialogBox={showDialogBox}
-          yesText="Yes"
-          noText="No"
+          yesText={t("Yes")}
+          noText={t("No")}
           handleClose={() => {
             setShowDialogBox(false);
             console.log("Close", false);

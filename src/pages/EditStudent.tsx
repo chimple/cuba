@@ -2,7 +2,7 @@ import { IonButton, IonContent, IonIcon, IonPage } from "@ionic/react";
 import ChimpleLogo from "../components/ChimpleLogo";
 import "./EditStudent.css";
 import StudentNameBox from "../components/editStudent/StudentNameBox";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import GenderAndAge from "../components/editStudent/GenderAndAge";
 import SelectAvatar from "../components/editStudent/SelectAvatar";
 import GradeBoardAndLangDropdown from "../components/editStudent/GradeBoardAndLangDropdown";
@@ -16,6 +16,9 @@ import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
 import { Util } from "../utility/util";
+import NextButton from "../components/common/NextButton";
+import { Capacitor } from "@capacitor/core";
+import { Keyboard } from "@capacitor/keyboard";
 
 const EditStudent = () => {
   const history = useHistory();
@@ -141,67 +144,78 @@ const EditStudent = () => {
         return false;
     }
   };
+  const [isInputFocus, setIsInputFocus] = useState(false);
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.addListener("keyboardWillShow", (info) => {
+        setIsInputFocus(true);
+      });
+      Keyboard.addListener("keyboardWillHide", () => {
+        setIsInputFocus(false);
+      });
+    }
+  }, []);
 
   return (
     <IonPage id="Edit-student-page">
-      <div id={stage === STAGES.NAME ? "scroll" : ""}>
-        {/* <IonContent> */}
-        <button
-          className="next-button"
+      <div id="next-button">
+        <NextButton
           disabled={!isNextButtonEnabled()}
-          color="light"
-          // fill="solid"
-          // shape="round"
-          onClick={onNextButton}
-        >
-          {t("Next")}
-          <IonIcon
-            className="arrow-icon"
-            slot="end"
-            icon={chevronForward}
-          ></IonIcon>
-        </button>
-        <ChimpleLogo
-          header={t("Welcome to Chimple!")}
-          msg={t("Please create your child profile").toString()}
+          onClicked={onNextButton}
         />
-
-        <div className="content">
-          {stage === STAGES.NAME && (
-            <StudentNameBox
-              studentName={studentName!}
-              onValueChange={setStudentName}
-              onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
-            />
-          )}
-          {stage === STAGES.GENDER_AND_AGE && (
-            <GenderAndAge
-              age={age}
-              gender={gender}
-              onAgeChange={setAge}
-              onGenderChange={setGender}
-            />
-          )}
-          {stage === STAGES.AVATAR && (
-            <SelectAvatar avatar={avatar} onAvatarChange={setAvatar} />
-          )}
-          {stage === STAGES.GRADE && (
-            <GradeBoardAndLangDropdown
-              boards={boards}
-              grades={grades}
-              languages={languages}
-              onBoardChange={setBoard}
-              onGradeChange={setGrade}
-              onLangChange={setLanguage}
-              currentlySelectedBoard={board}
-              currentlySelectedGrade={grade}
-              currentlySelectedLang={language}
-            />
-          )}
+      </div>
+      <div
+        className={
+          "header " + isInputFocus && stage === STAGES.NAME
+            ? "scroll-header"
+            : ""
+        }
+      >
+        <div id="common-div">
+          <ChimpleLogo
+            header={t("Welcome to Chimple!")}
+            msg={t("Please create your child profile").toString()}
+          />
         </div>
+        {stage === STAGES.NAME && (
+          <StudentNameBox
+            studentName={studentName!}
+            onValueChange={setStudentName}
+            onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
+          />
+        )}
+      </div>
+      {stage === STAGES.AVATAR && (
+        <div className="avatar-title">{t("Select Child Avatar:")}</div>
+      )}
+      <div className="content">
+        {stage === STAGES.GENDER_AND_AGE && (
+          <GenderAndAge
+            age={age}
+            gender={gender}
+            onAgeChange={setAge}
+            onGenderChange={setGender}
+          />
+        )}
+        {stage === STAGES.AVATAR && (
+          <SelectAvatar avatar={avatar} onAvatarChange={setAvatar} />
+        )}
+        {stage === STAGES.GRADE && (
+          <GradeBoardAndLangDropdown
+            boards={boards}
+            grades={grades}
+            languages={languages}
+            onBoardChange={setBoard}
+            onGradeChange={setGrade}
+            onLangChange={setLanguage}
+            currentlySelectedBoard={board}
+            currentlySelectedGrade={grade}
+            currentlySelectedLang={language}
+          />
+        )}
       </div>
       <Loading isLoading={isLoading} />
-      {/* </IonContent> */}
     </IonPage>
   );
 };

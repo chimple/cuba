@@ -4,10 +4,10 @@
 
   /* height: 9vh; */
   
-  padding-top: 1rem;
-  margin-left: 3.5rem;
-  min-height:3rem;
-  min-width: 3rem;
+  padding-top: 1vh;
+  /* margin-left: 3.5rem;
+  min-height:3rem; */
+  min-width: 8.5vh;
   /* border: 2px solid red; */
 }
 .leader-board-head{
@@ -19,7 +19,6 @@
 .leader-board-image-class{
   margin-right: 0.7vw;
   position: relative;
-  left: 1rem;
+ 
 }
-
 

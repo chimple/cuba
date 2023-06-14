@@ -32,7 +32,6 @@ export enum PARENTHEADERLIST {
   HELP = "HELP",
   FAQ = "FAQ",
 }
-
 export enum LEADERBOARDHEADERLIST {
   LEADERBOARD = "LEADERBOARD",
   EVENTS = "EVENTS",
@@ -67,8 +66,7 @@ export interface HeaderIconConfig {
   headerList: any;
 }
 
-export const 
-HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
+export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
   new Map<HOMEHEADERLIST, HeaderIconConfig>([
     [
       HOMEHEADERLIST.RECOMMENDATION,
@@ -194,9 +192,9 @@ export const LANGUAGE_COURSE_MAP = {
 };
 
 export enum GENDER {
-  BOY = "boy",
-  GIRL = "girl",
-  OTHER = "other",
+  BOY = "male",
+  GIRL = "female",
+  OTHER = "unspecified",
 }
 
 export const AVATARS: string[] = [
@@ -256,3 +254,9 @@ export const NUMBER_NAME = [
 
 export const MAX_STUDENTS_ALLOWED = 3;
 export const INSTANT_SEARCH_INDEX_NAME = "lesson_cuba";
+
+export enum EVENTS {
+  LESSON_END = "lesson_end",
+}
+
+export const FCM_TOKENS = "fcmTokens";

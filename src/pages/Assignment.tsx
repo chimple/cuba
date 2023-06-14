@@ -3,7 +3,7 @@ import JoinClass from "../components/assignment/JoinClass";
 import "./Assignment.css";
 import { useEffect, useState } from "react";
 import BackButton from "../components/common/BackButton";
-import { PAGES } from "../common/constants";
+import { CURRENT_LESSON_LEVEL, PAGES } from "../common/constants";
 import { useHistory } from "react-router";
 import Loading from "../components/Loading";
 import Class from "../models/class";
@@ -12,15 +12,21 @@ import Lesson from "../models/lesson";
 import LessonSlider from "../components/LessonSlider";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
+import StudentNameBox from "../components/editStudent/StudentNameBox";
+import { StudentLessonResult } from "../common/courseConstants";
 
 const AssignmentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isLinked, setIsLinked] = useState(true);
   const [currentClass, setCurrentClass] = useState<Class>();
   const [lessons, setLessons] = useState<Lesson[]>([]);
-
+  // const [schoolId, setSchoolId] = useState<any>();
+  const [schoolName, setSchoolName] = useState<string>();
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
+  const [lessonResultMap, setLessonResultMap] = useState<{
+    [lessonDocId: string]: StudentLessonResult;
+  }>();
 
   useEffect(() => {
     init();
@@ -28,11 +34,16 @@ const AssignmentPage: React.FC = () => {
 
   const init = async (fromCache: boolean = true) => {
     setLoading(true);
+
     const student = api.currentStudent;
     if (!student) {
       history.replace(PAGES.DISPLAY_STUDENT);
       return;
     }
+    api.getStudentResultInMap(student.docId).then(async (res) => {
+      console.log("tempResultLessonMap = res;", res);
+      setLessonResultMap(res);
+    });
     const linked = await api.isStudentLinked(student.docId, fromCache);
     if (!linked) {
       setIsLinked(false);
@@ -40,6 +51,7 @@ const AssignmentPage: React.FC = () => {
       return;
     }
     const studentResult = await api.getStudentResult(student.docId);
+
     if (
       !!studentResult &&
       !!studentResult.classes &&
@@ -47,6 +59,7 @@ const AssignmentPage: React.FC = () => {
     ) {
       const classId = studentResult.classes[0];
       const classDoc = await api.getClassById(classId);
+
       const allAssignments: Assignment[] = [];
       await Promise.all(
         studentResult.classes.map(async (_class) => {
@@ -64,9 +77,17 @@ const AssignmentPage: React.FC = () => {
           }
         })
       );
+
       setLessons(_lessons);
-      // setAssignments(allAssignments);
+
       setCurrentClass(classDoc);
+
+      if (classDoc && classDoc.school && classDoc.school.id) {
+        const schoolId = classDoc.school.id;
+        const res = await api.getSchoolById(schoolId);
+
+        setSchoolName(res?.name);
+      }
       setLoading(false);
       setIsLinked(true);
     } else {
@@ -85,7 +106,12 @@ const AssignmentPage: React.FC = () => {
               history.replace(PAGES.HOME);
             }}
           />
-          <div>{currentClass?.name ? currentClass?.name : ""}</div>
+          <div className="school-class-header">
+            <div className="classname-header">{schoolName}</div>
+            <div className="classname-header">
+              {currentClass?.name ? currentClass?.name : ""}
+            </div>
+          </div>
           <div className="right-button"></div>
         </div>
         {!loading && (
@@ -109,12 +135,14 @@ const AssignmentPage: React.FC = () => {
                     lessonData={lessons}
                     isHome={true}
                     course={undefined}
-                    lessonsScoreMap={{}}
+                    lessonsScoreMap={lessonResultMap || {}}
                     startIndex={0}
                     showSubjectName={true}
                   />
                 ) : (
-                  <div>{t("There are no pending assignments for you.")}</div>
+                  <div className="pending-assignment">
+                    {t("There are no pending assignments for you.")}
+                  </div>
                 )}
               </div>
             )}

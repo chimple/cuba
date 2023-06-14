@@ -45,6 +45,7 @@ import Subject from "../../models/subject";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import StudentProfile from "../../models/studentProfile";
 import Class from "../../models/class";
+import School from "../../models/school";
 import Assignment from "../../models/assignment";
 
 export class FirebaseApi implements ServiceApi {
@@ -53,6 +54,7 @@ export class FirebaseApi implements ServiceApi {
   private _currentStudent: User | undefined;
   private _subjectsCache: { [key: string]: Subject } = {};
   private _classCache: { [key: string]: Class } = {};
+  private _schoolCache: { [key: string]: School } = {};
   private _studentResultCache: { [key: string]: StudentProfile } = {};
 
   private constructor() {}
@@ -77,19 +79,28 @@ export class FirebaseApi implements ServiceApi {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
-    const courseIds: DocumentReference[] = DEFAULT_COURSE_IDS.map((id) =>
-      doc(this._db, `${CollectionIds.COURSE}/${id}`)
-    );
-    if (!!languageDocId && !!LANGUAGE_COURSE_MAP[languageDocId]) {
-      courseIds.splice(
-        1,
-        0,
-        doc(
-          this._db,
-          `${CollectionIds.COURSE}/${LANGUAGE_COURSE_MAP[languageDocId]}`
-        )
+    let courseIds: DocumentReference[] = [];
+    const courses = await this.getAllCourses();
+    if (!!courses && courses.length > 0) {
+      courses.forEach((course) => {
+        courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+      });
+    } else {
+      courseIds = DEFAULT_COURSE_IDS.map((id) =>
+        doc(this._db, `${CollectionIds.COURSE}/${id}`)
       );
     }
+
+    // if (!!languageDocId && !!LANGUAGE_COURSE_MAP[languageDocId]) {
+    //   courseIds.splice(
+    //     1,
+    //     0,
+    //     doc(
+    //       this._db,
+    //       `${CollectionIds.COURSE}/${LANGUAGE_COURSE_MAP[languageDocId]}`
+    //     )
+    //   );
+    // }
     const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
     const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
     const languageRef = doc(
@@ -154,20 +165,28 @@ export class FirebaseApi implements ServiceApi {
 
     console.log("userList ", studentDoc.id, userList);
 
+    const functions = getFunctions();
+    const generateInviteCode = httpsCallable(
+      functions,
+      "DeleteStudentByParent"
+    );
+    const result = await generateInviteCode({
+      studentId: studentId,
+    });
     // const studentDocRef = await doc(
     //   this._db,
     //   `${CollectionIds.USER}/${studentDoc.id}`
     // );
 
-    await deleteDoc(studentDoc);
-    await updateDoc(
-      doc(this._db, `${CollectionIds.USER}/${_currentUser?.docId}`),
-      {
-        // users: userList,
-        users: arrayRemove(studentDoc),
-        dateLastModified: Timestamp.now(),
-      }
-    );
+    // await deleteDoc(studentDoc);
+    // await updateDoc(
+    //   doc(this._db, `${CollectionIds.USER}/${_currentUser?.docId}`),
+    //   {
+    //     // users: userList,
+    //     users: arrayRemove(studentDoc),
+    //     dateLastModified: Timestamp.now(),
+    //   }
+    // );
     _currentUser.users = userList;
     ServiceConfig.getI().authHandler.currentUser = _currentUser;
   }
@@ -348,6 +367,99 @@ export class FirebaseApi implements ServiceApi {
     return lessons;
   }
 
+  async getAllLessonsForCourse(course: Course): Promise<{
+    [key: string]: {
+      [key: string]: Lesson;
+    };
+  }> {
+    let lessons: {
+      [key: string]: {
+        [key: string]: Lesson;
+      };
+    } = JSON.parse(localStorage.getItem("CourseLessons")!);
+    console.log("lessons ", lessons);
+    if (!lessons) {
+      lessons = {};
+    }
+    if (lessons != undefined && lessons[course.courseCode]) {
+      return lessons;
+    }
+    let lesMap: {
+      [key: string]: Lesson;
+    } = {};
+    for (let i = 0; i < course.chapters.length; i++) {
+      const chapter = course.chapters[i];
+      if (chapter.lessons && chapter.lessons.length > 0) {
+        for (let lesson of chapter.lessons) {
+          if (lesson instanceof DocumentReference) {
+            const lessonObj = await this.getLesson(lesson.id);
+            if (lessonObj) {
+              lesMap[lesson.id] = lessonObj as Lesson;
+            }
+          } else {
+            lesMap[lesson.id] = lesson as Lesson;
+          }
+        }
+      }
+    }
+    console.log("lesMap", lesMap);
+    lessons[course.courseCode] = lesMap;
+    console.log("after lessons", lessons, JSON.stringify(lessons));
+
+    localStorage.setItem("CourseLessons", JSON.stringify(lessons));
+    return lessons;
+  }
+
+  async getLessonFromCourse(
+    course: Course,
+    lessonId: string
+  ): Promise<Lesson | undefined> {
+    let lessons: {
+      [key: string]: {
+        [key: string]: Lesson;
+      };
+    } = JSON.parse(localStorage.getItem("CourseLessons")!);
+    if (!lessons) {
+      lessons = {};
+    }
+    // console.log("lessons ", lessons);
+    if (
+      lessons != undefined &&
+      lessons[course.courseCode] != undefined &&
+      lessons[course.courseCode][lessonId]
+    ) {
+      // console.log("lesson is already exist");
+      return lessons[course.courseCode][lessonId];
+    }
+    let lesMap: {
+      [key: string]: Lesson;
+    } = {};
+    for (let i = 0; i < course.chapters.length; i++) {
+      const chapter = course.chapters[i];
+      if (chapter.lessons && chapter.lessons.length > 0) {
+        for (let lesson of chapter.lessons) {
+          if (lesson.id === lessonId) {
+            // console.log("lesson id Found", lesson);
+            if (lesson instanceof DocumentReference) {
+              const lessonObj = await this.getLesson(lesson.id);
+              if (lessonObj) {
+                lesMap[lesson.id] = lessonObj as Lesson;
+              }
+            } else {
+              lesMap[lesson.id] = lesson as Lesson;
+            }
+            // console.log("lesMap", lesMap);
+            lessons[course.courseCode] = lesMap;
+            // console.log("after CourseLessons", lessons);
+
+            // localStorage.setItem("CourseLessons", JSON.stringify(lessons));
+            return lessons[course.courseCode][lessonId];
+          }
+        }
+      }
+    }
+  }
+
   async getDifferentGradesForCourse(
     course: Course
   ): Promise<{ grades: Grade[]; courses: Course[] }> {
@@ -392,13 +504,21 @@ export class FirebaseApi implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    assignmentId: string | undefined
+    assignmentId: string | undefined,
+    classId: string | undefined,
+    schoolId: string | undefined
   ): Promise<Result> {
     const courseRef = courseId
       ? doc(this._db, CollectionIds.COURSE, courseId)
       : undefined;
     const assignmentRef = assignmentId
       ? doc(this._db, CollectionIds.ASSIGNMENT, assignmentId)
+      : undefined;
+    const classRef = classId
+      ? doc(this._db, CollectionIds.CLASS, classId)
+      : undefined;
+    const schoolRef = schoolId
+      ? doc(this._db, CollectionIds.SCHOOL, schoolId)
       : undefined;
     const lessonRef = doc(this._db, CollectionIds.LESSON, lessonId);
     const studentRef = doc(this._db, CollectionIds.USER, student.docId);
@@ -407,10 +527,10 @@ export class FirebaseApi implements ServiceApi {
       Timestamp.now(),
       Timestamp.now(),
       assignmentRef,
-      undefined,
+      classRef,
       courseRef,
       lessonRef,
-      undefined,
+      schoolRef,
       score,
       correctMoves,
       wrongMoves,
@@ -521,6 +641,15 @@ export class FirebaseApi implements ServiceApi {
     return studentProfile;
   }
 
+  async getStudentResultInMap(
+    studentId: string
+  ): Promise<{ [lessonDocId: string]: StudentLessonResult } | undefined> {
+    const lessonsData = await this.getStudentResult(studentId);
+    console.log("getStudentResultInMap lessonsData ", lessonsData);
+    if (!lessonsData) return;
+    return lessonsData.lessons;
+  }
+
   async getClassById(id: string): Promise<Class | undefined> {
     if (!!this._classCache[id]) return this._classCache[id];
     const classDoc = await getDoc(doc(this._db, CollectionIds.CLASS, id));
@@ -529,6 +658,16 @@ export class FirebaseApi implements ServiceApi {
     classData.docId = id;
     this._classCache[id] = classData;
     return classData;
+  }
+
+  async getSchoolById(id: string): Promise<School | undefined> {
+    if (!!this._schoolCache[id]) return this._schoolCache[id];
+    const schoolDoc = await getDoc(doc(this._db, CollectionIds.SCHOOL, id));
+    if (!schoolDoc.exists) return;
+    const schoolData = schoolDoc.data() as School;
+    schoolData.docId = id;
+    this._schoolCache[id] = schoolData;
+    return schoolData;
   }
 
   async isStudentLinked(
@@ -670,12 +809,7 @@ export class FirebaseApi implements ServiceApi {
       console.log("weekly", weekly, "allTime", allTime);
 
       const sortLeaderboard = (arr: Array<any>) =>
-        arr.sort(
-          (a, b) =>
-            b.lessonsPlayed - a.lessonsPlayed ||
-            a.timeSpent - b.timeSpent ||
-            b.score - a.score
-        );
+        arr.sort((a, b) => b.score - a.score);
       sortLeaderboard(weekly);
       sortLeaderboard(allTime);
       let result: LeaderboardInfo = {
@@ -694,5 +828,19 @@ export class FirebaseApi implements ServiceApi {
     console.log("result in FirebaseAPI", leaderBoardList);
 
     return leaderBoardList;
+  }
+
+  public async getAllCourses(): Promise<Course[]> {
+    const querySnapshot = await getDocs(
+      collection(this._db, CollectionIds.COURSE)
+    );
+    const courses: Course[] = [];
+    querySnapshot.forEach((doc) => {
+      console.log(doc.id, " => ", doc.data());
+      const course = doc.data() as Course;
+      course.docId = doc.id;
+      courses.push(course);
+    });
+    return courses;
   }
 }

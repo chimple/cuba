@@ -1,5 +1,6 @@
 .content {
   text-align: -webkit-center;
+  margin-top: 0vh !important;
 }
 .slide {
   max-width: fit-content;

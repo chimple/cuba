@@ -9,6 +9,7 @@ import Result from "../../models/result";
 import Subject from "../../models/subject";
 import StudentProfile from "../../models/studentProfile";
 import Class from "../../models/class";
+import School from "../../models/school";
 import Assignment from "../../models/assignment";
 
 export interface LeaderboardInfo {
@@ -125,7 +126,7 @@ export interface ServiceApi {
   /**
    * Gives all lesson results for given student id
    * @param {string } studentId - Student Id
-   * @returns {{ StudentLessonResult[] }} Array of `StudentLessonResult` Objects
+   * @returns {{ Map<string, StudentLessonResult> }} Map of `StudentLessonResult` Objects
    */
   getLessonResultsForStudent(
     studentId: string
@@ -139,6 +140,9 @@ export interface ServiceApi {
    * @param {number} correctMoves -  Number of correct moves in a lesson
    * @param {number} wrongMoves -  Number of wrong moves in a lesson
    * @param {number} timeSpent -  Total TimeSpent in a lesson
+   * @param {string | undefined} assignmentId
+   * @param {string | undefined} classId
+   * @param {string | undefined} schoolId
    * @returns {Result}} Updated result Object
    */
   updateResult(
@@ -149,7 +153,9 @@ export interface ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    assignmentId: string | undefined
+    assignmentId: string | undefined,
+    classId: string | undefined,
+    schoolId: string | undefined
   ): Promise<Result>;
 
   /**
@@ -194,11 +200,27 @@ export interface ServiceApi {
   ): Promise<StudentProfile | undefined>;
 
   /**
+   * Gives StudentProfile for given a Student firebase doc Id
+   * @param {string} id - Student firebase doc id
+   * @returns {{ Map<string, StudentLessonResult> }} Map of `StudentLessonResult` Objects
+   */
+  getStudentResultInMap(
+    studentId: string
+  ): Promise<{ [lessonDocId: string]: StudentLessonResult } | undefined>;
+
+  /**
    * Gives Class for given a Class firebase doc Id
    * @param {string} id - Class firebase doc id
    * @returns {Class | undefined}`Class` or `undefined` if it could not find the Class with given `id`
    */
   getClassById(id: string): Promise<Class | undefined>;
+
+  /**
+   * Gives School for given a School firebase doc Id
+   * @param {string} id - School firebase doc id
+   * @returns {School | undefined}`School` or `undefined` if it could not find the School with given `id`
+   */
+  getSchoolById(id: string): Promise<School | undefined>;
 
   /**
    * Gives `boolean` whether the student is connected to any class, for given a Student firebase doc Id
@@ -247,4 +269,34 @@ export interface ServiceApi {
     sectionId: string,
     isWeeklyData: boolean
   ): Promise<LeaderboardInfo | undefined>;
+
+  /**
+   * This function gives all chapter and lesson objects
+   *
+   * @param course Course object of the student
+   * @returns A promise that resolves to the course.
+   */
+  getAllLessonsForCourse(course: Course): Promise<{
+    [key: string]: {
+      [key: string]: Lesson;
+    };
+  }>;
+
+  /**
+   * This function gives lesson objects for given LessonId
+   *
+   * @param course Course object of the student
+   * @param lessonId Lesson Id of a course
+   * @returns A promise that resolves to the course.
+   */
+  getLessonFromCourse(
+    course: Course,
+    lessonId: string
+  ): Promise<Lesson | undefined>;
+
+  /**
+   * Gives all `Course` available on database
+   * @returns {Course[]} Array of `Course` objects
+   */
+  getAllCourses(): Promise<Course[]>;
 }

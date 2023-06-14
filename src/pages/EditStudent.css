@@ -3,30 +3,21 @@
   margin-top: 9vh;
 }
 
-.next-button {
-    justify-content: space-between;
-    padding-left: min(10px,2vw);
-    position: fixed;
-    /* top: 3vh; */
-    right: 0;
-    /* color: var(--text-color); */
-    color: #05342f;
-    font-size: var(--text-size);
-    height: 7vh;
-    height: clamp(45px,15vh,45px);
-    width: clamp(125px,11vw,125px);
-    display: flex;
-    align-items: center;
-    background: white;
-    border-radius: 64px;
-}
-
 .button-round {
   --padding-start: min(13px, 2vw);
   --padding-end: min(5px, 2vw);
   /* --padding-top: 0.6vh; */
 }
+#common-div{
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+}
 
+#next-button{
+  position: absolute;
+  right: 0px;
+}
 .arrow-icon {
   padding-left: 0;
   padding-right: 0.5vw;
@@ -49,6 +40,13 @@
 .button-inner{
   justify-content: space-between !important;
 }
-#scoll{
+.scroll-header{
   overflow: scroll;
+}
+
+.avatar-title {
+  font-size: var(--text-size);
+  text-align: center;
+  margin-bottom: 1.5vh;
+  color: #05342f;
 }

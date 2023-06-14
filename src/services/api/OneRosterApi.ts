@@ -18,6 +18,7 @@ import Lesson from "../../models/lesson";
 import { StudentLessonResult } from "../../common/courseConstants";
 import Subject from "../../models/subject";
 import StudentProfile from "../../models/studentProfile";
+import school from "../../models/school";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -40,10 +41,31 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
+  getAllCourses(): Promise<Course[]> {
+    throw new Error("Method not implemented.");
+  }
+  getSchoolById(id: string): Promise<school | undefined> {
+    throw new Error("Method not implemented.");
+  }
   getLeaderboardResults(
     sectionId: string,
     isWeeklyData: boolean
   ): Promise<LeaderboardInfo | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
+  getAllLessonsForCourse(course: Course): Promise<{
+    [key: string]: {
+      [key: string]: Lesson;
+    };
+  }> {
+    throw new Error("Method not implemented.");
+  }
+
+  getLessonFromCourse(
+    course: Course,
+    lessonId: string
+  ): Promise<Lesson | undefined> {
     throw new Error("Method not implemented.");
   }
   getDataByInviteCode(inviteCode: number): Promise<any> {
@@ -56,6 +78,11 @@ export class OneRosterApi implements ServiceApi {
     studentId: string,
     fromCache: boolean
   ): Promise<StudentProfile | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getStudentResultInMap(
+    studentId: string
+  ): Promise<{ [lessonDocId: string]: StudentLessonResult } | undefined> {
     throw new Error("Method not implemented.");
   }
   getClassById(id: string): Promise<Class | undefined> {

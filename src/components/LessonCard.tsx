@@ -9,6 +9,7 @@ import Lesson from "../models/lesson";
 import Course from "../models/course";
 import { ServiceConfig } from "../services/ServiceConfig";
 import Subject from "../models/subject";
+import { t } from "i18next";
 
 const LessonCard: React.FC<{
   width: string;
@@ -54,13 +55,18 @@ const LessonCard: React.FC<{
   const getSubject = async () => {
     const subjectId = lesson?.subject?.toString()?.split("/")?.at(-1);
     if (!subjectId) return;
-    const subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
-    if (!subject) return;
+    let subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
+    if (!subject) {
+      const subjectId = lesson?.subject.path?.toString()?.split("/")?.at(-1);
+      if (!subjectId) return;
+      subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
+    }
     setSubject(subject);
   };
 
   const lessonCardColor =
     LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
+
   return (
     <IonCard
       id="lesson-card"
@@ -125,7 +131,10 @@ const LessonCard: React.FC<{
         >
           {showSubjectName && subject?.title ? (
             <div id="lesson-card-subject-name">
-              <p>{subject.title}</p>
+              <p>
+                {subject?.title}
+                {/* {subject.title==="English"?subject.title:t(subject.title)} */}
+              </p>
             </div>
           ) : null}
           <img
@@ -191,7 +200,7 @@ const LessonCard: React.FC<{
           </div>
         </div>
       </div>
-      {showText ? <p id="lesson-card-name">{lesson?.title}</p> : null}
+      {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
     </IonCard>
   );
 };

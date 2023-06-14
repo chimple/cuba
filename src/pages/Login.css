@@ -62,25 +62,25 @@ p {
 
 #login-text-box {
   text-align: center;
-  margin: 2% 0% 1% 32.5vw;
+  margin: 0% 0% 4% 32.5vw;
 }
 
 #login-continue-button {
   /* position: absolute;
     left: 50%;
     top: 75%; */
-  transform: translateY(-25%);
+  transform: translateY(-30%);
   /* width: min(70vh, 57vh); */
 
   color: white;
   width: 26vw;
-  height: 6.5vw;
+  height: 5.5vw;
   background: yellowgreen;
   border-radius: var(--border-radius);
   text-align: center;
-  line-height: 6.5vw;
+  line-height: 6vw;
   font-size: 1.9vw;
-  margin: 2% 0% 1% 37vw;
+  margin: 2% 0% 2% 36.8vw;
 }
 
 #login-google-icon-text {
@@ -91,6 +91,7 @@ p {
   margin: -1.2% 0% 0% 0%;
   font-size: var(--text-size);
   color: var(--text-color);
+  font-size: 1.4vw;
 }
 
 #login-google-icon {
@@ -102,23 +103,24 @@ p {
   /* text-align: center; */
   /* transform: translateY(-5%) translateX(-50%); */
   margin-top: 0%;
+
 }
 #Google-horizontal-line {
-  width: 5vw;
+  width: 6vw;
   height: 0.1vh;
   margin-top: 2%;
   background-color: gray;
   display: block;
-  margin-left: 38%;
+  margin-left: 37.5%;
   margin-top: -1%;
 }
 #Google-horizontal-line2 {
-  width: 5vw;
+  width: 6vw;
   height: 0.1vh;
   margin-top: 2%;
   background-color: gray;
   display: block;
-  margin-left: 57%;
+  margin-left: 56.5%;
   margin-top: 0%;
 }
 #login-button-img {

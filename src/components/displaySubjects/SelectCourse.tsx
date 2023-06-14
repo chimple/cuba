@@ -1,6 +1,7 @@
 import { FC } from "react";
 import Course from "../../models/course";
 import "./SelectCourse.css";
+import { t } from "i18next";
 
 const SelectCourse: FC<{
   courses: Course[];
@@ -24,7 +25,8 @@ const SelectCourse: FC<{
                 alt={course.thumbnail ?? "assets/icons/EnglishIcon.svg"}
               />
             </div>
-            {course.title}
+            {/* {t(course.title)} */}
+            {course.title==="English"?course.title:t(course.title)}
           </div>
         );
       })}

@@ -2,7 +2,7 @@ import { FC, useEffect, useState } from "react";
 import Course from "../models/course";
 import Lesson from "../models/lesson";
 
-import { Chapter } from "../common/courseConstants";
+import { Chapter, StudentLessonResult } from "../common/courseConstants";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { PAGES } from "../common/constants";
@@ -35,6 +35,9 @@ const DisplaySubjects: FC<{}> = () => {
     courses: Course[];
   }>();
   const [currentGrade, setCurrentGrade] = useState<Grade>();
+  const [lessonResultMap, setLessonResultMap] = useState<{
+    [lessonDocId: string]: StudentLessonResult;
+  }>();
 
   const history = useHistory();
   const location = useLocation();
@@ -80,6 +83,10 @@ const DisplaySubjects: FC<{}> = () => {
       history.replace(PAGES.DISPLAY_STUDENT);
       return [];
     }
+    api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
+      console.log("tempResultLessonMap = res;", res);
+      setLessonResultMap(res);
+    });
     const courses = await api.getCoursesForParentsStudent(currentStudent);
     localData.courses = courses;
     setCourses(courses);
@@ -151,15 +158,13 @@ const DisplaySubjects: FC<{}> = () => {
     <IonPage id="display-subjects-page">
       <Loading isLoading={isLoading} />
       <div className="subjects-header">
-        <BackButton
-          onClicked={onBackButton}
-        />
+        <BackButton onClicked={onBackButton} />
         <div className="subject-name">
           {stage === STAGES.SUBJECTS
             ? t("Subjects")
             : stage === STAGES.CHAPTERS
-            ? t("Chapters")
-            : ""}
+            ? currentCourse?.title
+            : currentChapter?.title}
         </div>
         <div className="button-right" />
       </div>
@@ -181,6 +186,7 @@ const DisplaySubjects: FC<{}> = () => {
               currentGrade={currentGrade}
               grades={gradesMap.grades}
               onGradeChange={onGradeChanges}
+              course={currentCourse}
             />
           )}
       </div>
@@ -190,7 +196,7 @@ const DisplaySubjects: FC<{}> = () => {
             lessonData={lessons}
             isHome={true}
             course={currentCourse!}
-            lessonsScoreMap={{}}
+            lessonsScoreMap={lessonResultMap || {}}
             startIndex={0}
             showSubjectName={false}
           />

@@ -5,12 +5,13 @@ import { Splide, SplideSlide } from "@splidejs/react-splide";
 import { useEffect, useState } from "react";
 import Lesson from "../models/lesson";
 import Course from "../models/course";
+import { StudentLessonResult } from "../common/courseConstants";
 
 const LessonSlider: React.FC<{
   lessonData: Lesson[];
   course: Course | undefined;
   isHome: boolean;
-  lessonsScoreMap: any;
+  lessonsScoreMap: { [lessonDocId: string]: StudentLessonResult };
   startIndex: number;
   showSubjectName: boolean;
 }> = ({
@@ -27,16 +28,13 @@ const LessonSlider: React.FC<{
   width = "45.5vh";
   height = "35vh";
   useEffect(() => {
-    // console.log(
-    //   "🚀 ~ file: LessonSlider.tsx:24 ~ useEffect ~ useEffect:startIndex",
-    //   startIndex
-    // );
+    // console.log("lessonsScoreMap", lessonsScoreMap);
     lessonSwiperRef?.go(0);
     setTimeout(() => {
       if (startIndex) lessonSwiperRef?.go(startIndex);
     }, 100);
   });
-  console.log("REFERENCE", startIndex);
+  // console.log("REFERENCE", startIndex);
   return isHome ? (
     <div className="content">
       <Splide
@@ -52,10 +50,18 @@ const LessonSlider: React.FC<{
       >
         {lessonData.map((m: Lesson, i: number) => {
           if (!m) return;
+          console.log(
+            "lessonsScoreMap[m.id]",
+            // lessonsScoreMap.get(m.docId),
+            m
+            // lessonsScoreMap.get(m.docId)?.score
+          );
+          let res: StudentLessonResult = lessonsScoreMap[m.docId];
           const isPlayed =
-            !!lessonsScoreMap[m.id] && lessonsScoreMap[m.id]?.score > 0;
-          width = "47.5vh";
-          height = "37vh";
+            !!lessonsScoreMap[m.docId] && lessonsScoreMap[m.docId]?.score! > 0;
+
+          width = "66.66vh";
+          height = "50vh";
           return (
             <SplideSlide className="slide" key={i}>
               <LessonCard
@@ -68,7 +74,7 @@ const LessonSlider: React.FC<{
                 course={course}
                 showSubjectName={showSubjectName}
                 showScoreCard={isPlayed}
-                score={lessonsScoreMap[m.id]?.score}
+                score={lessonsScoreMap[m.docId]?.score}
                 lessonData={lessonData}
                 startIndex={startIndex === -1 ? startIndex + 1 : startIndex}
               />
@@ -104,7 +110,7 @@ const LessonSlider: React.FC<{
         {lessonData.map((m: Lesson, i: number) => {
           if (!m) return;
           const isPlayed =
-            !!lessonsScoreMap[m.id] && lessonsScoreMap[m.id]?.score > 0;
+            !!lessonsScoreMap[m.docId] && lessonsScoreMap[m.docId]?.score! > 0;
           return (
             <SplideSlide className="slide" key={i}>
               <LessonCard
@@ -117,7 +123,7 @@ const LessonSlider: React.FC<{
                 course={course}
                 showSubjectName={showSubjectName}
                 showScoreCard={isPlayed}
-                score={lessonsScoreMap[m.id]?.score}
+                score={lessonsScoreMap[m.docId]?.score}
                 lessonData={lessonData}
                 startIndex={startIndex === -1 ? startIndex + 1 : startIndex}
               />
