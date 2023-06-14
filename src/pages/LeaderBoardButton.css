@@ -1,8 +1,8 @@
 #leader-board-image{
 
-  width: 4vw;
+  width: auto;
 
-  /* height: 9vh; */
+   height: 9vh; 
   
   padding-top: 1vh;
   /* margin-left: 3.5rem;
@@ -17,8 +17,8 @@
     justify-content: end;
 }
 .leader-board-image-class{
-  margin-right: 0.7vw;
-  position: relative;
- 
+
+  right: 1.7vh;
+  padding-bottom: 1.5vh;
 }
 
