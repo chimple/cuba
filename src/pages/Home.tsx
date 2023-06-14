@@ -173,8 +173,8 @@ const Home: FC = () => {
     };
     let sortLessonResultMap:
       | {
-          [lessonDocId: string]: StudentLessonResult;
-        }
+        [lessonDocId: string]: StudentLessonResult;
+      }
       | undefined;
     api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
       console.log("tempResultLessonMap = res;", res);
