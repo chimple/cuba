@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import "./LeaderBoardButton.css";
 const LeaderBoardButton: React.FC<{
   iconSrc: string;
@@ -16,7 +17,7 @@ const LeaderBoardButton: React.FC<{
           src={iconSrc}
           onClick={onHeaderIconClick}
         />
-        <p className="leader-board-image-class">Leaderboard</p>
+        <p className="leader-board-image-class">{t("Leaderboard")}</p>
       </div>
 
       //   {/* <p>{name}</p>
