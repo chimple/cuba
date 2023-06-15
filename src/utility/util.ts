@@ -12,6 +12,8 @@ import {
   FCM_TOKENS,
   LANG,
   LANGUAGE,
+  LAST_PERMISSION_CHECKED,
+  LAST_UPDATE_CHECKED,
   PAGES,
   PortPlugin,
   PRE_QUIZ,
@@ -467,6 +469,12 @@ export class Util {
   public static async startFlexibleUpdate(): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
     try {
+      const canCheckUpdate = Util.canCheckUpdate(LAST_UPDATE_CHECKED);
+      console.log(
+        "🚀 ~ file: util.ts:473 ~ startFlexibleUpdate ~ canCheckUpdate:",
+        canCheckUpdate
+      );
+      if (!canCheckUpdate) return;
       const result = await AppUpdate.getAppUpdateInfo();
       console.log(
         "🚀 ~ file: util.ts:471 ~ startFlexibleUpdate ~ result:",
@@ -505,12 +513,18 @@ export class Util {
   public static async checkNotificationPermissions() {
     if (!Capacitor.isNativePlatform()) return;
     try {
+      const canCheckPermission = Util.canCheckUpdate(LAST_PERMISSION_CHECKED);
+      console.log(
+        "🚀 ~ file: util.ts:513 ~ checkNotificationPermissions ~ canCheckPermission:",
+        canCheckPermission
+      );
+      if (!canCheckPermission) return;
       const result = await FirebaseMessaging.checkPermissions();
       console.log(
         "🚀 ~ file: util.ts:509 ~ checkNotificationPermissions ~ result:",
         JSON.stringify(result)
       );
-      // if (result.receive === "granted") return;
+      if (result.receive === "granted") return;
       const permissionStatus = await FirebaseMessaging.requestPermissions();
       console.log(
         "🚀 ~ file: util.ts:512 ~ checkNotificationPermissions ~ permissionStatus:",
@@ -522,5 +536,29 @@ export class Util {
         JSON.stringify(error)
       );
     }
+  }
+
+  public static canCheckUpdate(updateFor: string) {
+    const tempLastUpdateChecked = localStorage.getItem(updateFor);
+    const now = new Date();
+    let lastUpdateChecked: Date | undefined;
+    if (!!tempLastUpdateChecked) {
+      lastUpdateChecked = new Date(tempLastUpdateChecked);
+    }
+    if (!lastUpdateChecked) {
+      localStorage.setItem(updateFor, now.toString());
+      return true;
+    }
+    const lessThanOneHourAgo = (date) => {
+      const now: any = new Date();
+      const ONE_HOUR = 60 * 60 * 1000; /* ms */
+      const res = now - date < ONE_HOUR;
+      return res;
+    };
+    const _canCheckUpdate = !lessThanOneHourAgo(lastUpdateChecked);
+    if (_canCheckUpdate) {
+      localStorage.setItem(updateFor, now.toString());
+    }
+    return _canCheckUpdate;
   }
 }

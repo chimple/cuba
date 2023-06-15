@@ -42,9 +42,5 @@
 	{
 		"pkg": "@capawesome/capacitor-app-update",
 		"classpath": "io.capawesome.capacitorjs.plugins.appupdate.AppUpdatePlugin"
-	},
-	{
-		"pkg": "account-manager",
-		"classpath": "org.chimple.accountmanager.AccountManagerPlugin"
 	}
 ]

@@ -19,7 +19,7 @@ import {
 import { RoleType } from "../../interface/modelInterfaces";
 import {
   FirebaseAuthentication,
-  SignInWithPhoneNumberResult,
+  // SignInWithPhoneNumberResult,
 } from "@capacitor-firebase/authentication";
 // import { cfaSignIn } from "capacitor-firebase-auth-x";
 // import { FirebaseAuthentication } from "@awesome-cordova-plugins/firebase-authentication";
@@ -157,7 +157,7 @@ export class FirebaseAuth implements ServiceAuth {
   public async phoneNumberSignIn(
     phoneNumber,
     recaptchaVerifier
-  ): Promise<ConfirmationResult | SignInWithPhoneNumberResult | undefined> {
+  ): Promise<ConfirmationResult | undefined> {
     try {
       let verificationId;
       console.log(
@@ -165,7 +165,7 @@ export class FirebaseAuth implements ServiceAuth {
         phoneNumber,
         Capacitor.isNativePlatform()
       );
-      let result: ConfirmationResult | SignInWithPhoneNumberResult;
+      let result: ConfirmationResult;
       if (Capacitor.isNativePlatform()) {
         console.log("if (Capacitor.isNativePlatform()) {");
         // let res = await FirebaseAuthentication.verifyPhoneNumber(
@@ -175,7 +175,7 @@ export class FirebaseAuth implements ServiceAuth {
         //   console.log("in then verificationId", verificationId, res);
         // });
 
-        result = await FirebaseAuthentication.signInWithPhoneNumber({
+         await FirebaseAuthentication.signInWithPhoneNumber({
           phoneNumber,
         });
         App.addListener("appStateChange", Util.onAppStateChange);
@@ -213,8 +213,7 @@ export class FirebaseAuth implements ServiceAuth {
         //   phoneNumber,
         // });
         // console.log("if (Capacitor.isNativePlatform()) { result ", result);
-        console.log("FirebaseAuthentication.verifyPhoneNumber res", result);
-        return result;
+        return ;
       } else {
         result = await signInWithPhoneNumber(
           this._auth,
