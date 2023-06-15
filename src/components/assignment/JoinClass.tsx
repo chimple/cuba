@@ -1,10 +1,12 @@
 import { t } from "i18next";
 import "./JoinClass.css";
-import { FC, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import Loading from "../Loading";
 import DialogBoxButtons from "../parent/DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
+import { Capacitor } from "@capacitor/core";
+import { Keyboard } from "@capacitor/keyboard";
 const JoinClass: FC<{
   onClassJoin: () => void;
 }> = ({ onClassJoin }) => {
@@ -14,6 +16,9 @@ const JoinClass: FC<{
   const [codeResult, setCodeResult] = useState();
   const [error, setError] = useState("");
   const [schoolName, setSchoolName] = useState<string>();
+  const [isInputFocus, setIsInputFocus] = useState(false);
+  const scollToRef = useRef<null | HTMLDivElement>(null);
+
   const api = ServiceConfig.getI().apiHandler;
 
   const isNextButtonEnabled = () => {
@@ -56,8 +61,13 @@ const JoinClass: FC<{
       console.log("🚀 ~ file: JoinClass.tsx:48 ~ onJoin ~ error:", error);
       if (error instanceof Object) setError(error.toString());
     }
+
     setLoading(false);
   };
+
+  Util.isTextFieldFocus(scollToRef, setIsInputFocus)
+
+
 
   return (
     <div className="join-class-main-header">
@@ -94,6 +104,7 @@ const JoinClass: FC<{
         >
           {t("Okay")}
         </button>
+        {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
       </div>
       <Loading isLoading={loading} />
       <DialogBoxButtons
