@@ -1,5 +1,5 @@
 import { Capacitor } from "@capacitor/core";
-import { AccountManager } from "account-manager";
+// import { AccountManager } from "account-manager";
 import { IS_USER_LOGED_IN, PAGES, USER_TOKEN } from "../common/constants";
 
 export default class Auth {
@@ -38,31 +38,31 @@ export default class Auth {
 
   public async VSOLogin(): Promise<boolean> {
     let response: any;
-    try {
-      response = await AccountManager.accountPicker();
-      if (response) {
-        console.log("auth result ", JSON.stringify(response));
-        this._userAccountName = response.authAccount;
-        this._accountType = response.addedType;
-        this._authToken = response.authToken;
-        this._sourcedId = response.sourcedId;
-        this._endpointUrl = response.endpointUrl;
+    // try {
+    //   response = await AccountManager.accountPicker();
+    //   if (response) {
+    //     console.log("auth result ", JSON.stringify(response));
+    //     this._userAccountName = response.authAccount;
+    //     this._accountType = response.addedType;
+    //     this._authToken = response.authToken;
+    //     this._sourcedId = response.sourcedId;
+    //     this._endpointUrl = response.endpointUrl;
 
-        localStorage.setItem(IS_USER_LOGED_IN, "true");
-        localStorage.setItem(USER_TOKEN, JSON.stringify(response));
-        // history.replace(PAGES.HOME);
-        return true;
-      } else {
-        console.log("login-button result false", response);
-        localStorage.setItem(IS_USER_LOGED_IN, "false");
-        return false;
-      }
-    } catch (error: any) {
-      if (
-        error.message === "Method not implemented." &&
-        (Capacitor.getPlatform() === "web" || Capacitor.getPlatform() === "ios")
-      ) {
-        console.log("login error ", Capacitor.getPlatform(), error);
+    //     localStorage.setItem(IS_USER_LOGED_IN, "true");
+    //     localStorage.setItem(USER_TOKEN, JSON.stringify(response));
+    //     // history.replace(PAGES.HOME);
+    //     return true;
+    //   } else {
+    //     console.log("login-button result false", response);
+    //     localStorage.setItem(IS_USER_LOGED_IN, "false");
+    //     return false;
+    //   }
+    // } catch (error: any) {
+      // if (
+      //   error.message === "Method not implemented." &&
+      //   (Capacitor.getPlatform() === "web" || Capacitor.getPlatform() === "ios")
+      // ) {
+        // console.log("login error ", Capacitor.getPlatform(), error);
         localStorage.setItem(IS_USER_LOGED_IN, "true");
         localStorage.setItem(
           USER_TOKEN,
@@ -76,11 +76,11 @@ export default class Auth {
         );
         return true;
         // history.replace(PAGES.HOME);
-      }
+      // }
 
       localStorage.setItem(IS_USER_LOGED_IN, "false");
       return false;
-    }
+    // }
   }
 
   public isUserLoggedIn(): boolean {

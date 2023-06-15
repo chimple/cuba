@@ -9,7 +9,7 @@ import TextBox from "../components/TextBox";
 import React from "react";
 import Loading from "../components/Loading";
 import { ConfirmationResult, RecaptchaVerifier, getAuth } from "@firebase/auth";
-import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
+// import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 // import { BackgroundMode } from "@awesome-cordova-plugins/background-mode";
 // import { setEnabled } from "@red-mobile/cordova-plugin-background-mode/www/background-mode";
 import { FirebaseAuth } from "../services/auth/FirebaseAuth";
@@ -32,7 +32,7 @@ const Login: React.FC = () => {
   const [recaptchaVerifier, setRecaptchaVerifier] =
     useState<RecaptchaVerifier>();
   const [phoneNumberSigninRes, setPhoneNumberSigninRes] = useState<
-    ConfirmationResult | SignInWithPhoneNumberResult
+    ConfirmationResult 
   >();
   const [userData, setUserData] = useState<any>("");
 
