@@ -47,6 +47,7 @@
   display: flex;
   gap: 1vw;
   padding-left: 42vw;
+  color:black;
 }
 
 #assignment-back-button {
