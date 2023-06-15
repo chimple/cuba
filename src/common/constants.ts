@@ -192,9 +192,9 @@ export const LANGUAGE_COURSE_MAP = {
 };
 
 export enum GENDER {
-  BOY = "boy",
-  GIRL = "girl",
-  OTHER = "other",
+  BOY = "male",
+  GIRL = "female",
+  OTHER = "unspecified",
 }
 
 export const AVATARS: string[] = [
@@ -256,5 +256,11 @@ export const MAX_STUDENTS_ALLOWED = 3;
 export const INSTANT_SEARCH_INDEX_NAME = "lesson_cuba";
 
 export enum EVENTS {
-  LESSON_END = "lessonEnd",
+  LESSON_END = "lesson_end",
 }
+
+export const FCM_TOKENS = "fcmTokens";
+
+export const LAST_UPDATE_CHECKED = "lastUpdateChecked";
+
+export const LAST_PERMISSION_CHECKED = "lastPermissionChecked";

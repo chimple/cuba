@@ -9,8 +9,11 @@ import {
   COURSES,
   CURRENT_LESSON_LEVEL,
   EVENTS,
+  FCM_TOKENS,
   LANG,
   LANGUAGE,
+  LAST_PERMISSION_CHECKED,
+  LAST_UPDATE_CHECKED,
   PAGES,
   PortPlugin,
   PRE_QUIZ,
@@ -28,6 +31,12 @@ import { FirebaseAnalytics } from "@capacitor-firebase/analytics";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 import { useEffect, useRef, useState } from "react";
 import { Keyboard } from "@capacitor/keyboard";
+import { DocumentReference } from "firebase/firestore";
+import {
+  AppUpdate,
+  AppUpdateAvailability,
+  AppUpdateResultCode,
+} from "@capawesome/capacitor-app-update";
 
 declare global {
   interface Window {
@@ -372,13 +381,85 @@ export class Util {
     classId: string,
     schoolId: string
   ): Promise<void> {
+    const classToken = `${classId}-assignments`;
+    const schoolToken = `${schoolId}-assignments`;
     if (!Capacitor.isNativePlatform()) return;
     await FirebaseMessaging.subscribeToTopic({
-      topic: `${classId}-assignments`,
+      topic: classToken,
     });
     await FirebaseMessaging.subscribeToTopic({
-      topic: `${schoolId}-assignments`,
+      topic: schoolToken,
     });
+    const subscribedTokens = localStorage.getItem(FCM_TOKENS);
+    let tokens: string[] = [];
+    if (!!subscribedTokens) {
+      tokens = JSON.parse(subscribedTokens) ?? [];
+    }
+    tokens.push(classToken, schoolToken);
+    localStorage.setItem(FCM_TOKENS, JSON.stringify(tokens));
+  }
+
+  public static async unSubscribeToTopic(token: string): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
+    const subscribedTokens = localStorage.getItem(FCM_TOKENS);
+    let tokens: string[] = [];
+    if (!!subscribedTokens) {
+      tokens = JSON.parse(subscribedTokens) ?? [];
+    }
+    await FirebaseMessaging.unsubscribeFromTopic({
+      topic: token,
+    });
+    const newSubscribedTokens = tokens.filter((x) => x !== token);
+    localStorage.setItem(FCM_TOKENS, JSON.stringify(newSubscribedTokens));
+  }
+
+  public static async subscribeToClassTopicForAllStudents(
+    currentUser: User
+  ): Promise<void> {
+    const students: DocumentReference[] = currentUser.users;
+    if (!students || students.length < 1) return;
+    const api = ServiceConfig.getI().apiHandler;
+    for (let studentRef of students) {
+      if (!studentRef.id) continue;
+      api.getStudentResult(studentRef.id).then((studentProfile) => {
+        if (
+          !!studentProfile &&
+          !!studentProfile.classes &&
+          studentProfile.classes.length > 0 &&
+          studentProfile.classes.length === studentProfile.schools.length
+        ) {
+          for (let i = 0; i < studentProfile.classes.length; i++) {
+            const classId = studentProfile.classes[i];
+            const schoolId = studentProfile.schools[i];
+            if (!this.isClassTokenSubscribed(classId))
+              this.subscribeToClassTopic(classId, schoolId);
+          }
+        }
+      });
+    }
+  }
+
+  public static isClassTokenSubscribed(classId: string): boolean {
+    const subscribedTokens = localStorage.getItem(FCM_TOKENS);
+    let tokens = [];
+    if (!!subscribedTokens) {
+      tokens = JSON.parse(subscribedTokens) ?? [];
+    }
+    const foundToken = tokens.find((token: string) =>
+      token.startsWith(classId)
+    );
+    return !!foundToken;
+  }
+
+  public static async unSubscribeToClassTopicForAllStudents() {
+    const subscribedTokens = localStorage.getItem(FCM_TOKENS);
+    let tokens = [];
+    if (!!subscribedTokens) {
+      tokens = JSON.parse(subscribedTokens) ?? [];
+    }
+    for (let token of tokens) {
+      this.unSubscribeToTopic(token);
+    }
   }
 
   public static async getToken(): Promise<string | undefined> {
@@ -408,5 +489,100 @@ export class Util {
     }
   }
 
+  public static async startFlexibleUpdate(): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
+    try {
+      const canCheckUpdate = Util.canCheckUpdate(LAST_UPDATE_CHECKED);
+      console.log(
+        "🚀 ~ file: util.ts:473 ~ startFlexibleUpdate ~ canCheckUpdate:",
+        canCheckUpdate
+      );
+      if (!canCheckUpdate) return;
+      const result = await AppUpdate.getAppUpdateInfo();
+      console.log(
+        "🚀 ~ file: util.ts:471 ~ startFlexibleUpdate ~ result:",
+        JSON.stringify(result)
+      );
+      if (
+        result.updateAvailability !== AppUpdateAvailability.UPDATE_AVAILABLE
+      ) {
+        return;
+      }
+      if (result.flexibleUpdateAllowed) {
+        const appUpdateResult = await AppUpdate.startFlexibleUpdate();
+        console.log(
+          "🚀 ~ file: util.ts:482 ~ startFlexibleUpdate ~ appUpdateResult:",
+          JSON.stringify(appUpdateResult)
+        );
+        if (appUpdateResult.code === AppUpdateResultCode.OK) {
+          console.log(
+            "🚀 ~ file: util.ts:487 ~ startFlexibleUpdate ~ appUpdateResult.code:",
+            appUpdateResult.code
+          );
+          await AppUpdate.completeFlexibleUpdate();
+          console.log(
+            "🚀 ~ file: util.ts:492 ~ startFlexibleUpdate ~ completeFlexibleUpdate:"
+          );
+        }
+      }
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: util.ts:482 ~ startFlexibleUpdate ~ error:",
+        JSON.stringify(error)
+      );
+    }
+  }
+
+  public static async checkNotificationPermissions() {
+    if (!Capacitor.isNativePlatform()) return;
+    try {
+      const canCheckPermission = Util.canCheckUpdate(LAST_PERMISSION_CHECKED);
+      console.log(
+        "🚀 ~ file: util.ts:513 ~ checkNotificationPermissions ~ canCheckPermission:",
+        canCheckPermission
+      );
+      if (!canCheckPermission) return;
+      const result = await FirebaseMessaging.checkPermissions();
+      console.log(
+        "🚀 ~ file: util.ts:509 ~ checkNotificationPermissions ~ result:",
+        JSON.stringify(result)
+      );
+      if (result.receive === "granted") return;
+      const permissionStatus = await FirebaseMessaging.requestPermissions();
+      console.log(
+        "🚀 ~ file: util.ts:512 ~ checkNotificationPermissions ~ permissionStatus:",
+        JSON.stringify(permissionStatus)
+      );
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: util.ts:514 ~ checkNotificationPermissions ~ error:",
+        JSON.stringify(error)
+      );
+    }
+  }
+
+  public static canCheckUpdate(updateFor: string) {
+    const tempLastUpdateChecked = localStorage.getItem(updateFor);
+    const now = new Date();
+    let lastUpdateChecked: Date | undefined;
+    if (!!tempLastUpdateChecked) {
+      lastUpdateChecked = new Date(tempLastUpdateChecked);
+    }
+    if (!lastUpdateChecked) {
+      localStorage.setItem(updateFor, now.toString());
+      return true;
+    }
+    const lessThanOneHourAgo = (date) => {
+      const now: any = new Date();
+      const ONE_HOUR = 60 * 60 * 1000; /* ms */
+      const res = now - date < ONE_HOUR;
+      return res;
+    };
+    const _canCheckUpdate = !lessThanOneHourAgo(lastUpdateChecked);
+    if (_canCheckUpdate) {
+      localStorage.setItem(updateFor, now.toString());
+    }
+    return _canCheckUpdate;
+  }
 }
 

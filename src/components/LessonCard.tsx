@@ -54,22 +54,19 @@ const LessonCard: React.FC<{
 
     const getSubject = async () => {
       const subjectId = lesson?.subject?.toString()?.split("/")?.at(-1);
-      console.log(
-        "const subjectId",
-        subjectId,
-        lesson?.subject?.toString(),
-        lesson?.subject?.id?.toString()
-      );
-
       if (!subjectId) return;
-      const subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
-      if (!subject) return;
-      console.log("const subject", subject);
+      let subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
+      if (!subject) {
+        const subjectId = lesson?.subject.path?.toString()?.split("/")?.at(-1);
+        if (!subjectId) return;
+        subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
+      }
       setSubject(subject);
     };
 
     const lessonCardColor =
       LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
+
     return (
       <IonCard
         id="lesson-card"
@@ -134,7 +131,10 @@ const LessonCard: React.FC<{
           >
             {showSubjectName && subject?.title ? (
               <div id="lesson-card-subject-name">
-                <p>{subject?.title}</p>
+                <p>
+                  {subject?.title}
+                  {/* {subject.title==="English"?subject.title:t(subject.title)} */}
+                </p>
               </div>
             ) : null}
             <img

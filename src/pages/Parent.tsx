@@ -100,7 +100,7 @@ const Parent: React.FC = () => {
 
       const element = allLang.find((obj) => obj.code === localAppLang);
       if (!element) return;
-
+      
       setCurrentAppLang(element.docId);
 
       setIsLoading(false);
@@ -181,7 +181,7 @@ const Parent: React.FC = () => {
                   await ServiceConfig.getI().apiHandler.getAllLanguages();
 
                 const element = allLang.find(
-                  (obj) => obj.code === localAppLang
+                  (obj) => obj.docId === selectedLangDocId
                 );
                 if (!element) return;
                 localStorage.setItem(APP_LANG, element.code);

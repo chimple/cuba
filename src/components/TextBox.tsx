@@ -7,8 +7,9 @@ const TextBox: React.FC<{
   inputText: string;
   inputType;
   maxLength: number;
+  inputValue: string;
   onChange: (event: IonInputCustomEvent<InputChangeEventDetail>) => void;
-}> = ({ inputText, inputType, maxLength, onChange }) => {
+}> = ({ inputText, inputType, inputValue, maxLength, onChange }) => {
   return (
     <div id="text-box">
       <div id="text-box-elements">
@@ -30,11 +31,8 @@ const TextBox: React.FC<{
               class="ion-no-padding"
               className="text-box-ion-input"
               type={inputType}
+              value={inputValue}
               onIonChange={onChange}
-              // onIonChange={(i) => {
-              //   console.log(i.detail.value);
-              // }}
-              // onIonInput={onChange}
               maxlength={maxLength}
             ></IonInput>
           </IonItem>

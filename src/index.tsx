@@ -3,9 +3,10 @@ import App from "./App";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import reportWebVitals from "./reportWebVitals";
 import "./index.css";
-import './i18n';
+import "./i18n";
 import { initializeFireBase } from "./services/Firebase";
 import { APIMode, ServiceConfig } from "./services/ServiceConfig";
+import { Util } from "./utility/util";
 
 const container = document.getElementById("root");
 const root = createRoot(container!);
