@@ -66,10 +66,7 @@ const LessonCard: React.FC<{
 
     const lessonCardColor =
       LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
-<<<<<<< HEAD
-=======
 
->>>>>>> master
     return (
       <IonCard
         id="lesson-card"
@@ -137,11 +134,7 @@ const LessonCard: React.FC<{
                 <p>
                   {subject?.title}
                   {/* {subject.title==="English"?subject.title:t(subject.title)} */}
-<<<<<<< HEAD
-                  </p>
-=======
                 </p>
->>>>>>> master
               </div>
             ) : null}
             <img
@@ -159,51 +152,6 @@ const LessonCard: React.FC<{
               alt={"courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"}
             ></img>
 
-<<<<<<< HEAD
-          <div id="lesson-card-image">
-            {showImage ? (
-              <img
-                id="lesson-card-image"
-                loading="lazy"
-                alt={
-                  "courses/" +
-                  lesson.cocosSubjectCode +
-                  "/icons/" +
-                  lesson.id +
-                  ".png"
-                }
-                src={
-                  "courses/" +
-                  lesson.cocosSubjectCode +
-                  "/icons/" +
-                  lesson.id +
-                  ".png"
-                }
-                onError={hideImg}
-              />
-            ) : (
-              <div /> // we can show Default LessonCard text or image
-            )}
-
-              {!isUnlocked ? (
-                <div id="lesson-card-status-icon">
-                  <img
-                    id="lesson-card-status-icon1"
-                    loading="lazy"
-                    src="assets/icons/Lock_icon.svg"
-                    alt="assets/icons/Lock_icon.svg"
-                  />
-                </div>
-              ) : isPlayed ? (
-                showScoreCard ? (
-                  <div id="lesson-card-score">
-                    <ScoreCard score={score}></ScoreCard>
-                  </div>
-                ) : (
-                  <></>
-                )
-              ) : (
-=======
             <div id="lesson-card-image">
               {showImage ? (
                 <img
@@ -247,7 +195,6 @@ const LessonCard: React.FC<{
                   <></>
                 )
               ) : (
->>>>>>> master
                 <div />
               )}
             </div>
