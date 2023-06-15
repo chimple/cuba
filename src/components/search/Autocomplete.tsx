@@ -30,8 +30,8 @@ export function Autocomplete(props) {
     });
 
     const inputElement = containerRef.current.querySelector("input");
-    if (!inputElement || inputElement.value === "") {
-      inputElement?.focus();
+    if (!!inputElement && inputElement.value === "") {
+      inputElement.focus();
     }
 
     return () => {
