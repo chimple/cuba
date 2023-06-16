@@ -64,10 +64,9 @@ const JoinClass: FC<{
 
     setLoading(false);
   };
-
-  Util.isTextFieldFocus(scollToRef, setIsInputFocus)
-
-
+  useEffect(() => {
+    Util.isTextFieldFocus(scollToRef, setIsInputFocus)
+  }, []);
 
   return (
     <div className="join-class-main-header">
