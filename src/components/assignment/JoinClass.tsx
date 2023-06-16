@@ -65,7 +65,11 @@ const JoinClass: FC<{
     setLoading(false);
   };
 
+  useEffect(() => {
   Util.isTextFieldFocus(scollToRef, setIsInputFocus)
+
+
+  });
 
 
 
