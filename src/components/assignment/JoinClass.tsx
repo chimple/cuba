@@ -69,7 +69,7 @@ const JoinClass: FC<{
   Util.isTextFieldFocus(scollToRef, setIsInputFocus)
 
 
-  });
+  },[]);
 
 
 
