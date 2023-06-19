@@ -14,6 +14,9 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
 import StudentNameBox from "../components/editStudent/StudentNameBox";
 import { Util } from "../utility/util";
+import { Keyboard } from "@capacitor/keyboard";
+import { Capacitor } from "@capacitor/core";
+import { StudentLessonResult } from "../common/courseConstants";
 
 const AssignmentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -24,6 +27,9 @@ const AssignmentPage: React.FC = () => {
   const [schoolName, setSchoolName] = useState<string>();
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
+  const [lessonResultMap, setLessonResultMap] = useState<{
+    [lessonDocId: string]: StudentLessonResult;
+  }>();
 
   useEffect(() => {
     init();
@@ -37,6 +43,10 @@ const AssignmentPage: React.FC = () => {
       history.replace(PAGES.DISPLAY_STUDENT);
       return;
     }
+    api.getStudentResultInMap(student.docId).then(async (res) => {
+      console.log("tempResultLessonMap = res;", res);
+      setLessonResultMap(res);
+    });
     const linked = await api.isStudentLinked(student.docId, fromCache);
     if (!linked) {
       setIsLinked(false);
@@ -70,6 +80,7 @@ const AssignmentPage: React.FC = () => {
           }
         })
       );
+
       setLessons(_lessons);
 
       setCurrentClass(classDoc);
@@ -88,58 +99,79 @@ const AssignmentPage: React.FC = () => {
       return;
     }
   };
+  const [isInputFocus, setIsInputFocus] = useState(false);
 
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.addListener("keyboardWillShow", (info) => {
+        setIsInputFocus(true);
+      });
+      Keyboard.addListener("keyboardWillHide", () => {
+        setIsInputFocus(false);
+      });
+    }
+  }, []);
   return (
     <IonPage>
       <div className="assignment-main">
-        <div className="assignment-header">
+        <div id="assignment-back-button">
           <BackButton
             onClicked={() => {
               history.replace(PAGES.HOME);
             }}
           />
-          <div className="school-class-header">
-            <div className="classname-header">{schoolName}</div>
-            <div className="classname-header">
-              {currentClass?.name ? currentClass?.name : ""}
-            </div>
-          </div>
-          <div className="right-button"></div>
         </div>
-        {!loading && (
-          <div
-            className={
-              !isLinked || lessons.length < 1
-                ? "lesson-body"
-                : "assignment-body"
-            }
-          >
-            {!isLinked ? (
-              <JoinClass
-                onClassJoin={() => {
-                  init(false);
-                }}
-              />
-            ) : (
-              <div>
-                {lessons.length > 0 ? (
-                  <LessonSlider
-                    lessonData={lessons}
-                    isHome={true}
-                    course={undefined}
-                    lessonsScoreMap={new Map()}
-                    startIndex={0}
-                    showSubjectName={true}
-                  />
-                ) : (
-                  <div className="pending-assignment">
-                    {t("There are no pending assignments for you.")}
-                  </div>
-                )}
+
+        <div
+          className={
+            "header " + isInputFocus && !isLinked ? "scroll-header" : ""
+          }
+        >
+          <div className="assignment-header">
+            <div className="school-class-header">
+              <div className="classname-header">{schoolName}</div>
+              <div className="classname-header">
+                {currentClass?.name ? currentClass?.name : ""}
               </div>
-            )}
+            </div>
+            <div className="right-button"></div>
           </div>
-        )}
+
+          {!loading && (
+            <div
+              className={
+                !isLinked || lessons.length < 1
+                  ? "lesson-body"
+                  : "assignment-body"
+              }
+            >
+              {!isLinked ? (
+                <JoinClass
+                  onClassJoin={() => {
+                    init(false);
+                  }}
+                />
+              ) : (
+                <div>
+                  {lessons.length > 0 ? (
+                    <LessonSlider
+                      lessonData={lessons}
+                      isHome={true}
+                      course={undefined}
+                      lessonsScoreMap={lessonResultMap || {}}
+                      startIndex={0}
+                      showSubjectName={true}
+                    />
+                  ) : (
+                    <div className="pending-assignment">
+                      {t("There are no pending assignments for you.")}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
       <Loading isLoading={loading} />
     </IonPage>

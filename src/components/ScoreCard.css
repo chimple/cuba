@@ -1,13 +1,29 @@
+
 .lesson-card-score-card {
     width: 100%;
-}
-
-.lesson-card-score-card-star {
-    width: min(2.8vh, 28px);
+  }
+  
+  .lesson-card-score-card-star {
+    width: min(2.6vh, 26px);
     float: left;
-}
-
-.lesson-card-score-card-middle-star {
-    width: min(2.8vh, 28px);
+    position: relative;
+    
+  }
+  
+  .lesson-card-score-card-middle-star {
+    width: min(2.6vh, 26px);
     float: left;
-}
+    position: relative;
+    margin: 0 2px;
+  }
+  .star-background-shadow {
+    position: absolute;
+    height: 300%;
+    width: 150%;
+    top: -80%;
+    left: -24%;
+    border-bottom-left-radius: 7vh;
+    border-top-right-radius: 7vh;
+    background-color: white;
+    opacity: 1;
+  }

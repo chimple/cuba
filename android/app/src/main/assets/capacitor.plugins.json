@@ -40,7 +40,7 @@
 		"classpath": "com.capacitorjs.plugins.toast.ToastPlugin"
 	},
 	{
-		"pkg": "account-manager",
-		"classpath": "org.chimple.accountmanager.AccountManagerPlugin"
+		"pkg": "@capawesome/capacitor-app-update",
+		"classpath": "io.capawesome.capacitorjs.plugins.appupdate.AppUpdatePlugin"
 	}
 ]

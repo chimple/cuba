@@ -122,7 +122,7 @@ export interface ServiceApi {
   /**
    * Gives all lesson results for given student id
    * @param {string } studentId - Student Id
-   * @returns {{ StudentLessonResult[] }} Array of `StudentLessonResult` Objects
+   * @returns {{ Map<string, StudentLessonResult> }} Map of `StudentLessonResult` Objects
    */
   getLessonResultsForStudent(
     studentId: string
@@ -194,6 +194,15 @@ export interface ServiceApi {
     studentId: string,
     fromCache: boolean
   ): Promise<StudentProfile | undefined>;
+
+  /**
+   * Gives StudentProfile for given a Student firebase doc Id
+   * @param {string} id - Student firebase doc id
+   * @returns {{ Map<string, StudentLessonResult> }} Map of `StudentLessonResult` Objects
+   */
+  getStudentResultInMap(
+    studentId: string
+  ): Promise<{ [lessonDocId: string]: StudentLessonResult } | undefined>;
 
   /**
    * Gives Class for given a Class firebase doc Id

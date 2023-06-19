@@ -18,6 +18,7 @@ import { useHistory, useLocation } from "react-router";
 import { INSTANT_SEARCH_INDEX_NAME, PAGES } from "../common/constants";
 import BackButton from "../components/common/BackButton";
 import { Util } from "../utility/util";
+import { StudentLessonResult } from "../common/courseConstants";
 
 const searchClient = algoliasearch(
   process.env.REACT_APP_ALGOLIA_APP_ID!,
@@ -49,15 +50,27 @@ function SearchLesson() {
   };
   const history = useHistory();
   const location = useLocation();
+  const [lessonResultMap, setLessonResultMap] = useState<{
+    [lessonDocId: string]: StudentLessonResult;
+  }>();
 
   useEffect(() => {
     if (Util.getCurrentStudent()) {
-      history.replace(PAGES.DISPLAY_STUDENT);
-    }
-    const urlParams = new URLSearchParams(location.search);
-    if (!!urlParams.get("continue") && !!dataToContinue.lessons) {
-      setLessons(dataToContinue.lessons);
-      setSearchTerm(dataToContinue.search);
+      const api = ServiceConfig.getI().apiHandler;
+      const currentStudent = Util.getCurrentStudent();
+      if (!currentStudent) {
+        history.replace(PAGES.DISPLAY_STUDENT);
+        return;
+      }
+      api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
+        console.log("tempResultLessonMap = res;", res);
+        setLessonResultMap(res);
+      });
+      const urlParams = new URLSearchParams(location.search);
+      if (!!urlParams.get("continue") && !!dataToContinue.lessons) {
+        setLessons(dataToContinue.lessons);
+        setSearchTerm(dataToContinue.search);
+      }
     }
   }, []);
 
@@ -152,7 +165,7 @@ function SearchLesson() {
         lessonData={lessons}
         isHome={true}
         course={undefined}
-        lessonsScoreMap={new Map()}
+        lessonsScoreMap={lessonResultMap || {}}
         startIndex={0}
         showSubjectName={true}
       />

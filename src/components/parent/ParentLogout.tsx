@@ -7,6 +7,7 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { useHistory } from "react-router";
 import { PAGES } from "../../common/constants";
 import { Capacitor } from "@capacitor/core";
+import { Util } from "../../utility/util";
 
 const ParentLogout: React.FC<{}> = ({}) => {
   const [showDialogBox, setShowDialogBox] = useState(false);
@@ -14,6 +15,7 @@ const ParentLogout: React.FC<{}> = ({}) => {
   const onSignOut = async () => {
     const auth = ServiceConfig.getI().authHandler;
     await auth.logOut();
+    Util.unSubscribeToClassTopicForAllStudents();
     history.replace(PAGES.APP_LANG_SELECTION);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };
