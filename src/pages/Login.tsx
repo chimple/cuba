@@ -36,7 +36,7 @@ const Login: React.FC = () => {
 
   const authInstance = ServiceConfig.getI().authHandler;
   const countryCode = "+91";
-  let phoneNumber: string = "8886722497";
+  let phoneNumber: string = "";
   let verificationCode: string = "";
   let displayName: string = "";
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);

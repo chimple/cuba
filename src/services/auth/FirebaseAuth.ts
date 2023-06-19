@@ -276,15 +276,15 @@ export class FirebaseAuth implements ServiceAuth {
       const user = res.user;
       console.log("res user", user);
       this.updateUserFcm(res.user.uid);
-      // const userRef = doc(this._db, "User", user.uid);
-      // console.log("userRef", userRef);
-      // const tempUserDoc = await getDoc(userRef);
-      // console.log("const tempUserDoc", JSON.stringify(tempUserDoc));
-      // console.log(
-      //   "return result",
-      //   JSON.stringify({ user: user, isUserExist: tempUserDoc.exists() })
-      // );
-      return { user: user, isUserExist: false };
+      const userRef = doc(this._db, "User", user.uid);
+      console.log("userRef", userRef);
+      const tempUserDoc = await getDoc(userRef);
+      console.log("const tempUserDoc", JSON.stringify(tempUserDoc));
+      console.log(
+        "return result",
+        JSON.stringify({ user: user, isUserExist: tempUserDoc.exists() })
+      );
+      return { user: user, isUserExist: tempUserDoc.exists() };
       // return user;
     } catch (error) {
       // Failure!
