@@ -19,6 +19,7 @@ import { INSTANT_SEARCH_INDEX_NAME, PAGES } from "../common/constants";
 import BackButton from "../components/common/BackButton";
 import { Util } from "../utility/util";
 import { StudentLessonResult } from "../common/courseConstants";
+import User from "../models/user";
 
 const searchClient = algoliasearch(
   process.env.REACT_APP_ALGOLIA_APP_ID!,
@@ -53,11 +54,22 @@ function SearchLesson() {
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: StudentLessonResult;
   }>();
-  const currentStudent = Util.getCurrentStudent();
+  const [currentStudent, setStudent] = useState<User>();
   useEffect(() => {
+    async function init() {
+      const currentStudent = await Util.getCurrentStudent();
+      if (!currentStudent) {
+        history.replace(PAGES.HOME);
+        return;
+      }
+
+      setStudent(currentStudent);
+    }
+
+    // const currentStudent = await Util.getCurrentStudent();
     if (currentStudent) {
       const api = ServiceConfig.getI().apiHandler;
-      // const currentStudent = Util.getCurrentStudent();
+      // const currentStudent =await Util.getCurrentStudent();
       if (!currentStudent) {
         history.replace(PAGES.DISPLAY_STUDENT);
         return;

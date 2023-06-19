@@ -4,12 +4,15 @@ import {
   AVATARS,
   HEADER_ICON_CONFIGS,
   HeaderIconConfig,
+  PAGES,
 } from "../common/constants";
 import "./HomeHeader.css";
 import HeaderIcon from "./HeaderIcon";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Util } from "../utility/util";
+import User from "../models/user";
+import { useHistory } from "react-router";
 
 const HomeHeader: React.FC<{
   currentHeader: string;
@@ -22,7 +25,23 @@ const HomeHeader: React.FC<{
     // console.log("elements", element);
     headerIconList.push(element);
   });
-  const student = Util.getCurrentStudent();
+  const history = useHistory();
+  const [student, setStudent] = useState<User>();
+  async function init() {
+    const student = await Util.getCurrentStudent();
+    if (!student) {
+      history.replace(PAGES.HOME);
+      return;
+    }
+
+    setStudent(student);
+  }
+
+  useEffect(() => {
+    init();
+  }, []);
+
+  // const student =await Util.getCurrentStudent();
   return (
     <div id="home-header-icons">
       <HeaderIcon

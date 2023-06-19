@@ -14,17 +14,27 @@ import Language from "../models/language";
 import Loading from "../components/Loading";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { t } from "i18next";
+import { init, t } from "i18next";
 import { Util } from "../utility/util";
 import NextButton from "../components/common/NextButton";
 import { Capacitor } from "@capacitor/core";
 import { Keyboard } from "@capacitor/keyboard";
+import User from "../models/user";
 
 const EditStudent = () => {
+  const [currentStudent, setStudent] = useState<User>();
+  async function init() {
+    const currentStudent = await Util.getCurrentStudent();
+    setStudent(currentStudent);
+    const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
+  }
+  useEffect(() => {
+    init();
+  }, []);
   const history = useHistory();
   const location = useLocation();
   const api = ServiceConfig.getI().apiHandler;
-  const currentStudent = Util.getCurrentStudent();
+  // const currentStudent = await Util.getCurrentStudent();
   const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
 
   enum STAGES {

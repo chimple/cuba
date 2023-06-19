@@ -7,13 +7,28 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
 import BackButton from "./common/BackButton";
 import { Util } from "../utility/util";
+import { useEffect, useState } from "react";
+import User from "../models/user";
 
 const ProfileHeader: React.FC = () => {
   const history = useHistory();
   const { t } = useTranslation();
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
-  const student = Util.getCurrentStudent();
+  const [student, setStudent] = useState<User>();
+  async function init() {
+    const student = await Util.getCurrentStudent();
+    if (!student) {
+      history.replace(PAGES.HOME);
+      return;
+    }
+
+    setStudent(student);
+  }
+
+  useEffect(() => {
+    init();
+  }, []);
 
   return (
     <div className="header">

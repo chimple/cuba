@@ -79,7 +79,7 @@ const DisplaySubjects: FC<{}> = () => {
 
   const getCourses = async (): Promise<Course[]> => {
     setIsLoading(true);
-    const currentStudent = Util.getCurrentStudent();
+    const currentStudent = await Util.getCurrentStudent();
     if (!currentStudent) {
       history.replace(PAGES.DISPLAY_STUDENT);
       return [];

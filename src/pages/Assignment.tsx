@@ -38,7 +38,7 @@ const AssignmentPage: React.FC = () => {
   const init = async (fromCache: boolean = true) => {
     setLoading(true);
 
-    const student = Util.getCurrentStudent();
+    const student = await Util.getCurrentStudent();
     if (!student) {
       history.replace(PAGES.DISPLAY_STUDENT);
       return;
