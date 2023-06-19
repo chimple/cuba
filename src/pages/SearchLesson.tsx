@@ -17,6 +17,7 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import { useHistory, useLocation } from "react-router";
 import { INSTANT_SEARCH_INDEX_NAME, PAGES } from "../common/constants";
 import BackButton from "../components/common/BackButton";
+import { Util } from "../utility/util";
 
 const searchClient = algoliasearch(
   process.env.REACT_APP_ALGOLIA_APP_ID!,
@@ -50,7 +51,7 @@ function SearchLesson() {
   const location = useLocation();
 
   useEffect(() => {
-    if (!ServiceConfig.getI().apiHandler.currentStudent) {
+    if (Util.getCurrentStudent()) {
       history.replace(PAGES.DISPLAY_STUDENT);
     }
     const urlParams = new URLSearchParams(location.search);

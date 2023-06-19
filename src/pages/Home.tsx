@@ -13,6 +13,7 @@ import {
   SELECTED_GRADE,
   HeaderIconConfig,
   HEADER_ICON_CONFIGS,
+  ADD_STUDENT,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -66,7 +67,8 @@ const Home: FC = () => {
 
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
-    const currentStudent = await api.currentStudent;
+    const currentStudent = Util.getCurrentStudent();
+
     if (!currentStudent) {
       history.replace(PAGES.DISPLAY_STUDENT);
       return;

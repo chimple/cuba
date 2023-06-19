@@ -9,6 +9,7 @@ import "./HomeHeader.css";
 import HeaderIcon from "./HeaderIcon";
 import React from "react";
 import { ServiceConfig } from "../services/ServiceConfig";
+import { Util } from "../utility/util";
 
 const HomeHeader: React.FC<{
   currentHeader: string;
@@ -21,8 +22,7 @@ const HomeHeader: React.FC<{
     // console.log("elements", element);
     headerIconList.push(element);
   });
-  const student = ServiceConfig.getI().apiHandler.currentStudent;
-
+  const student = Util.getCurrentStudent();
   return (
     <div id="home-header-icons">
       <HeaderIcon

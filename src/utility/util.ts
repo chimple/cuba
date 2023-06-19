@@ -5,6 +5,7 @@ import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
 import {
+  ADD_STUDENT,
   BUNDLE_URL,
   COURSES,
   CURRENT_LESSON_LEVEL,
@@ -26,6 +27,7 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
 import { FirebaseAnalytics } from "@capacitor-firebase/analytics";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
+import { DocumentReference, doc, getFirestore } from "firebase/firestore";
 
 declare global {
   interface Window {
@@ -36,6 +38,38 @@ declare global {
 
 export class Util {
   public static port: PortPlugin;
+
+  public static getCurrentStudent(): User | undefined {
+    const temp = localStorage.getItem(ADD_STUDENT);
+
+    if (!temp) return;
+    const currentStudent = JSON.parse(temp) as User;
+    function getRef(ref): DocumentReference {
+      const db = getFirestore();
+      const newCourseRef = doc(
+        db,
+        ref["_key"].path.segments.at(-2),
+        ref["_key"].path.segments.at(-1)
+      );
+      return newCourseRef;
+    }
+
+    function convertDoc(refs: any[]): DocumentReference[] {
+      const data: DocumentReference[] = [];
+      for (let ref of refs) {
+        const newCourseRef = getRef(ref);
+
+        data.push(newCourseRef);
+      }
+      return data;
+    }
+    currentStudent.courses = convertDoc(currentStudent.courses);
+    currentStudent.users = convertDoc(currentStudent.users);
+    currentStudent.grade = getRef(currentStudent.grade);
+    currentStudent.language = getRef(currentStudent.language);
+    currentStudent.board = getRef(currentStudent.board);
+    return currentStudent;
+  }
 
   public static getGUIDRef(map: any): GUIDRef {
     return { href: map?.href, sourcedId: map?.sourcedId, type: map?.type };
@@ -332,13 +366,32 @@ export class Util {
       window.location.reload();
     }
   };
-
   public static setCurrentStudent = async (
     student: User,
     languageCode: string | undefined = undefined
   ) => {
     const api = ServiceConfig.getI().apiHandler;
-    api.currentStudent = student;
+    localStorage.setItem(
+      ADD_STUDENT,
+      JSON.stringify({
+        age: student.age ?? null,
+        avatar: student.avatar ?? null,
+        board: student.board ?? null,
+        courses: student.courses,
+        createdAt: student.createdAt,
+        dateLastModified: student.dateLastModified,
+        gender: student.gender ?? null,
+        grade: student.grade ?? null,
+        image: student.image ?? null,
+        language: student.language ?? null,
+        name: student.name,
+        role: student.role,
+        uid: student.uid,
+        username: student.username,
+        users: student.users,
+        docId: student.docId,
+      })
+    );
     if (!languageCode && !!student.language?.id) {
       const langDoc = await api.getLanguageWithId(student.language.id);
       if (langDoc) {

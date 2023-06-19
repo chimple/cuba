@@ -23,7 +23,7 @@ const Profile: React.FC = () => {
   // const [unlockUpTo, setUnlockUpTo] = useState(-1);
   const history = useHistory();
   useEffect(() => {
-    if (!ServiceConfig.getI().apiHandler.currentStudent) {
+    if (!Util.getCurrentStudent()) {
       history.replace(PAGES.DISPLAY_STUDENT);
     } else {
       init();

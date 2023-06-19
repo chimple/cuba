@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import GenderAndAge from "../components/editStudent/GenderAndAge";
 import SelectAvatar from "../components/editStudent/SelectAvatar";
 import GradeBoardAndLangDropdown from "../components/editStudent/GradeBoardAndLangDropdown";
-import { GENDER, PAGES } from "../common/constants";
+import { ADD_STUDENT, GENDER, PAGES } from "../common/constants";
 import { chevronForward } from "ionicons/icons";
 import Curriculum from "../models/curriculum";
 import Grade from "../models/grade";
@@ -25,7 +25,7 @@ const EditStudent = () => {
   const location = useLocation();
   const api = ServiceConfig.getI().apiHandler;
   const isEdit =
-    location.pathname === PAGES.EDIT_STUDENT && !!api.currentStudent;
+    location.pathname === PAGES.EDIT_STUDENT && !!Util.getCurrentStudent();
 
   enum STAGES {
     NAME,
@@ -35,27 +35,27 @@ const EditStudent = () => {
   }
   const [stage, setStage] = useState(STAGES.NAME);
   const [studentName, setStudentName] = useState(
-    isEdit ? api.currentStudent?.name : ""
+    isEdit ? Util.getCurrentStudent()?.name : ""
   );
   const [gender, setGender] = useState<GENDER | undefined>(
-    isEdit && api.currentStudent?.gender
-      ? (api.currentStudent?.gender as GENDER)
+    isEdit && Util.getCurrentStudent()?.gender
+      ? (Util.getCurrentStudent()?.gender as GENDER)
       : undefined
   );
   const [age, setAge] = useState<number | undefined>(
-    isEdit ? api.currentStudent?.age : undefined
+    isEdit ? Util.getCurrentStudent()?.age : undefined
   );
   const [avatar, setAvatar] = useState<string | undefined>(
-    isEdit ? api.currentStudent?.avatar : undefined
+    isEdit ? Util.getCurrentStudent()?.avatar : undefined
   );
   const [board, setBoard] = useState<string | undefined>(
-    isEdit ? api.currentStudent?.board?.id : undefined
+    isEdit ? Util.getCurrentStudent()?.board?.id : undefined
   );
   const [grade, setGrade] = useState<string | undefined>(
-    isEdit ? api.currentStudent?.grade?.id : undefined
+    isEdit ? Util.getCurrentStudent()?.grade?.id : undefined
   );
   const [language, setLanguage] = useState<string | undefined>(
-    isEdit ? api.currentStudent?.language?.id : undefined
+    isEdit ? Util.getCurrentStudent()?.language?.id : undefined
   );
   const [boards, setBoards] = useState<Curriculum[]>();
   const [grades, setGrades] = useState<Grade[]>();
@@ -70,7 +70,7 @@ const EditStudent = () => {
     if (stagesLength === newStage) {
       //Creating Profile for the Student
       let student;
-      const currentStudent = api.currentStudent;
+      const currentStudent = Util.getCurrentStudent();
       if (isEdit && !!currentStudent && !!currentStudent.docId) {
         student = await api.updateStudent(
           currentStudent,

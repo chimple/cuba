@@ -16,6 +16,7 @@ import SelectChapter from "../components/displaySubjects/SelectChapter";
 import LessonSlider from "../components/LessonSlider";
 import Grade from "../models/grade";
 import BackButton from "../components/common/BackButton";
+import { Util } from "../utility/util";
 
 const localData: any = {};
 const DisplaySubjects: FC<{}> = () => {
@@ -75,7 +76,7 @@ const DisplaySubjects: FC<{}> = () => {
 
   const getCourses = async (): Promise<Course[]> => {
     setIsLoading(true);
-    const currentStudent = api.currentStudent;
+    const currentStudent = Util.getCurrentStudent();
     if (!currentStudent) {
       history.replace(PAGES.DISPLAY_STUDENT);
       return [];
@@ -156,8 +157,8 @@ const DisplaySubjects: FC<{}> = () => {
           {stage === STAGES.SUBJECTS
             ? t("Subjects")
             : stage === STAGES.CHAPTERS
-            // ? t("Chapters")
-            ?currentCourse?.title
+            ? // ? t("Chapters")
+              currentCourse?.title
             : currentChapter?.title}
         </div>
         <div className="button-right" />
@@ -180,7 +181,7 @@ const DisplaySubjects: FC<{}> = () => {
               currentGrade={currentGrade}
               grades={gradesMap.grades}
               onGradeChange={onGradeChanges}
-              course = {currentCourse}
+              course={currentCourse}
             />
           )}
       </div>

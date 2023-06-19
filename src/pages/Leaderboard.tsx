@@ -25,6 +25,7 @@ import { grey } from "@mui/material/colors";
 import StudentProfile from "../models/studentProfile";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
+import { Util } from "../utility/util";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -70,9 +71,8 @@ const Leaderboard: React.FC = () => {
       });
     });
     setWeeklyList(weekOptionsList);
-    const api = ServiceConfig.getI().apiHandler;
-    const currentStudent = await api.currentStudent;
-    console.log("currentStudent ", currentStudent);
+    // const api = ServiceConfig.getI().apiHandler;
+    const currentStudent = Util.getCurrentStudent();
     if (currentStudent != undefined) {
       const getClass = await FirebaseApi.i.getStudentResult(
         currentStudent.docId
@@ -382,7 +382,8 @@ const Leaderboard: React.FC = () => {
       {!isLoading ? (
         <Box>
           <Box id="LeaderBoard-header">
-            <AppBar id="LeaderBoard-AppBar"
+            <AppBar
+              id="LeaderBoard-AppBar"
               position="static"
               sx={{
                 flexDirection: "inherit",

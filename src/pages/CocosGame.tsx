@@ -82,7 +82,7 @@ const CocosGame: React.FC = () => {
     //Just fot Testing
     const saveTempData = async (e: any) => {
       console.log("🚀 ~ file: CocosGame.tsx:76 ~ saveTempData ~ e:", e);
-      const currentStudent = api.currentStudent!;
+      const currentStudent = Util.getCurrentStudent()!;
       const data = e.detail as lessonEndData;
       const isStudentLinked = await api.isStudentLinked(currentStudent.docId);
       let classId;
@@ -129,10 +129,10 @@ const CocosGame: React.FC = () => {
       } else {
         assignmentCompletedIds = JSON.parse(tempAssignmentCompletedIds);
       }
-      if (!assignmentCompletedIds[api.currentStudent?.docId!]) {
-        assignmentCompletedIds[api.currentStudent?.docId!] = [];
+      if (!assignmentCompletedIds[Util.getCurrentStudent()?.docId!]) {
+        assignmentCompletedIds[Util.getCurrentStudent()?.docId!] = [];
       }
-      assignmentCompletedIds[api.currentStudent?.docId!].push(
+      assignmentCompletedIds[Util.getCurrentStudent()?.docId!].push(
         lesson.assignment?.docId
       );
       localStorage.setItem(

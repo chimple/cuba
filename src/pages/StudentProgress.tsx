@@ -16,6 +16,7 @@ import { common } from "@mui/material/colors";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import StudentProgressHeaderTabBar from "../components/studentProgress/StudentProgressHeaderTabBar";
 import { t } from "i18next";
+import { Util } from "../utility/util";
 
 const StudentProgress: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +50,7 @@ const StudentProgress: React.FC = () => {
   };
 
   async function inti() {
-    const currentStudent = await api.currentStudent;
+    const currentStudent = Util.getCurrentStudent();
     if (currentStudent) {
       setHeaderContent(["Lesson Name", "Chapter Name", "Score", "Time Spent"]);
       setCurrentStudent(currentStudent);

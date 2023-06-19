@@ -13,6 +13,7 @@ import LessonSlider from "../components/LessonSlider";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
 import StudentNameBox from "../components/editStudent/StudentNameBox";
+import { Util } from "../utility/util";
 
 const AssignmentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -31,7 +32,7 @@ const AssignmentPage: React.FC = () => {
   const init = async (fromCache: boolean = true) => {
     setLoading(true);
 
-    const student = api.currentStudent;
+    const student = Util.getCurrentStudent();
     if (!student) {
       history.replace(PAGES.DISPLAY_STUDENT);
       return;
@@ -43,7 +44,6 @@ const AssignmentPage: React.FC = () => {
       return;
     }
     const studentResult = await api.getStudentResult(student.docId);
-
 
     if (
       !!studentResult &&
@@ -67,38 +67,27 @@ const AssignmentPage: React.FC = () => {
           if (!!res) {
             res.assignment = _assignment;
             _lessons.push(res);
-
           }
         })
       );
-
-
       setLessons(_lessons);
 
       setCurrentClass(classDoc);
 
       if (classDoc && classDoc.school && classDoc.school.id) {
-
         const schoolId = classDoc.school.id;
         const res = await api.getSchoolById(schoolId);
 
         setSchoolName(res?.name);
-
       }
       setLoading(false);
       setIsLinked(true);
-
-    }
-
-    else {
+    } else {
       setIsLinked(false);
       setLoading(false);
       return;
     }
-
   };
-
-
 
   return (
     <IonPage>
@@ -111,7 +100,9 @@ const AssignmentPage: React.FC = () => {
           />
           <div className="school-class-header">
             <div className="classname-header">{schoolName}</div>
-            <div className="classname-header">{currentClass?.name ? currentClass?.name : ""}</div>
+            <div className="classname-header">
+              {currentClass?.name ? currentClass?.name : ""}
+            </div>
           </div>
           <div className="right-button"></div>
         </div>
@@ -141,7 +132,9 @@ const AssignmentPage: React.FC = () => {
                     showSubjectName={true}
                   />
                 ) : (
-                  <div className="pending-assignment">{t("There are no pending assignments for you.")}</div>
+                  <div className="pending-assignment">
+                    {t("There are no pending assignments for you.")}
+                  </div>
                 )}
               </div>
             )}

@@ -16,12 +16,12 @@ import { FirebaseAuth } from "../services/auth/FirebaseAuth";
 import { Keyboard } from "@capacitor/keyboard";
 import { initializeApp } from "firebase/app";
 import { t } from "i18next";
+import { Util } from "../utility/util";
 
 declare global {
   // eslint-disable-next-line no-var
   var recaptchaVerifier: any;
 }
-
 
 const Login: React.FC = () => {
   const history = useHistory();
@@ -78,7 +78,7 @@ const Login: React.FC = () => {
         history.replace(PAGES.APP_LANG_SELECTION);
       }
 
-      if (apiHandler.currentStudent) {
+      if (Util.getCurrentStudent()) {
         setIsLoading(false);
         history.replace(PAGES.DISPLAY_STUDENT);
       }
@@ -215,7 +215,9 @@ const Login: React.FC = () => {
             src="assets/icons/ChimpleBrandLogo.svg"
           />
           <div id="chimple-brand-text1">{t("Welcome to Chimple!")}</div>
-          <p id="chimple-brand-text2">{t("Discovering the joy of learning with")}</p>
+          <p id="chimple-brand-text2">
+            {t("Discovering the joy of learning with")}
+          </p>
           <p id="chimple-brand-text2">
             {t("Chimple- where curiosity meets education!")}
           </p>
