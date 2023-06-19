@@ -256,14 +256,6 @@ export class FirebaseApi implements ServiceApi {
     return users;
   }
 
-  public get currentStudent(): User | undefined {
-    return this._currentStudent;
-  }
-
-  public set currentStudent(value: User | undefined) {
-    this._currentStudent = value;
-  }
-
   public updateSoundFlag = async (user: User, value: boolean) => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {

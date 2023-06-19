@@ -53,11 +53,11 @@ function SearchLesson() {
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: StudentLessonResult;
   }>();
-
+  const currentStudent = Util.getCurrentStudent();
   useEffect(() => {
-    if (Util.getCurrentStudent()) {
+    if (currentStudent) {
       const api = ServiceConfig.getI().apiHandler;
-      const currentStudent = Util.getCurrentStudent();
+      // const currentStudent = Util.getCurrentStudent();
       if (!currentStudent) {
         history.replace(PAGES.DISPLAY_STUDENT);
         return;

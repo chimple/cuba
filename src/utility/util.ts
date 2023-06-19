@@ -5,7 +5,7 @@ import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
 import {
-  ADD_STUDENT,
+  CURRENT_STUDENT,
   BUNDLE_URL,
   COURSES,
   CURRENT_LESSON_LEVEL,
@@ -50,7 +50,7 @@ export class Util {
   public static port: PortPlugin;
 
   public static getCurrentStudent(): User | undefined {
-    const temp = localStorage.getItem(ADD_STUDENT);
+    const temp = localStorage.getItem(CURRENT_STUDENT);
 
     if (!temp) return;
     const currentStudent = JSON.parse(temp) as User;
@@ -382,7 +382,7 @@ export class Util {
   ) => {
     const api = ServiceConfig.getI().apiHandler;
     localStorage.setItem(
-      ADD_STUDENT,
+      CURRENT_STUDENT,
       JSON.stringify({
         age: student.age ?? null,
         avatar: student.avatar ?? null,

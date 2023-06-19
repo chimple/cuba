@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router";
-import { ADD_STUDENT, AVATARS, LANG, PAGES } from "../common/constants";
+import { CURRENT_STUDENT, AVATARS, LANG, PAGES } from "../common/constants";
 import IconButton from "./IconButton";
 import "./ProfileHeader.css";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -31,7 +31,7 @@ const ProfileHeader: React.FC = () => {
         name={t("Sign Out")}
         iconSrc="assets/icons/SignOutIcon.svg"
         onClick={async () => {
-          localStorage.removeItem(ADD_STUDENT);
+          localStorage.removeItem(CURRENT_STUDENT);
           const user = await auth.getCurrentUser();
           if (!!user && !!user.language?.id) {
             const langDoc = await api.getLanguageWithId(user.language.id);

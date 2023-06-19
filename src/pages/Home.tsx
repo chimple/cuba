@@ -13,7 +13,7 @@ import {
   SELECTED_GRADE,
   HeaderIconConfig,
   HEADER_ICON_CONFIGS,
-  ADD_STUDENT,
+  CURRENT_STUDENT,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -67,7 +67,7 @@ const Home: FC = () => {
 
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
-    const currentStudent = Util.getCurrentStudent();
+    const currentStudent = await Util.getCurrentStudent();
 
     if (!currentStudent) {
       history.replace(PAGES.DISPLAY_STUDENT);
@@ -174,8 +174,8 @@ const Home: FC = () => {
     };
     let sortLessonResultMap:
       | {
-        [lessonDocId: string]: StudentLessonResult;
-      }
+          [lessonDocId: string]: StudentLessonResult;
+        }
       | undefined;
     api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
       console.log("tempResultLessonMap = res;", res);
