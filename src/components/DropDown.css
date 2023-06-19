@@ -9,12 +9,12 @@
 
 .IonSelect {
     background: var(--ion-background-color);
-  
+
 }
 
 .list-md {
     padding: 0% !important;
-    
+
 }
 
 .ion-select-popover {
@@ -40,9 +40,14 @@ ion-label {
     border-radius: 1.5vh;
 }
 
-  ion-popover {
-    --width:26.5vw;
-    --offset-x: -5px;
+ion-item {
+    --padding-start: 1.3vw;
+}
+
+
+ion-popover {
+    --width: 26vw;
+    --offset-x: -0.5vw;
     border-radius: 10px;
     border: 0.5px solid black;
     --background: rgba(40, 173, 218, 0.6);
