@@ -12,20 +12,15 @@ import {
   query,
   where,
   DocumentData,
-  deleteDoc,
   limit,
   orderBy,
-  arrayRemove,
 } from "firebase/firestore";
 import {
   LeaderboardInfo,
   ServiceApi,
   StudentLeaderboardInfo,
 } from "./ServiceApi";
-import {
-  DEFAULT_COURSE_IDS,
-  LANGUAGE_COURSE_MAP,
-} from "../../common/constants";
+import { DEFAULT_COURSE_IDS } from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
 import User from "../../models/user";
 import { ServiceConfig } from "../ServiceConfig";
@@ -842,5 +837,14 @@ export class FirebaseApi implements ServiceApi {
       courses.push(course);
     });
     return courses;
+  }
+
+  public async deleteAllUserData(): Promise<void> {
+    const functions = getFunctions();
+    const deleteAllUserDataFunction = httpsCallable(
+      functions,
+      "DeleteAllUserData"
+    );
+    await deleteAllUserDataFunction();
   }
 }
