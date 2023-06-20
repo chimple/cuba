@@ -45,7 +45,7 @@ export class AuthHandler implements ServiceAuth {
   public async proceedWithVerificationCode(
     verificationId,
     verificationCode
-  ): Promise<boolean> {
+  ): Promise<{ user: any; isUserExist: boolean } | undefined> {
     return await this.s.proceedWithVerificationCode(
       verificationId,
       verificationCode

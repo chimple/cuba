@@ -14,7 +14,6 @@ import { ConfirmationResult, RecaptchaVerifier, getAuth } from "@firebase/auth";
 // import { setEnabled } from "@red-mobile/cordova-plugin-background-mode/www/background-mode";
 import { FirebaseAuth } from "../services/auth/FirebaseAuth";
 import { Keyboard } from "@capacitor/keyboard";
-import { initializeApp } from "firebase/app";
 import { t } from "i18next";
 
 declare global {
@@ -31,10 +30,9 @@ const Login: React.FC = () => {
   // const [phoneNumber, setPhoneNumber] = useState("+91"); // Example: "+919553642967".
   const [recaptchaVerifier, setRecaptchaVerifier] =
     useState<RecaptchaVerifier>();
-  const [phoneNumberSigninRes, setPhoneNumberSigninRes] = useState<
-    ConfirmationResult 
-  >();
-  const [userData, setUserData] = useState<any>("");
+  const [phoneNumberSigninRes, setPhoneNumberSigninRes] =
+    useState<ConfirmationResult>();
+  const [userData, setUserData] = useState<any>();
 
   const authInstance = ServiceConfig.getI().authHandler;
   const countryCode = "+91";
@@ -185,10 +183,20 @@ const Login: React.FC = () => {
         verificationCode
       );
       console.log("login User Data ", res, userData);
-      setUserData(res);
+      if (!res) {
+        setIsLoading(false);
+        console.log("Verification Failed");
+        alert("Something went wrong Verification Failed");
+        return;
+      }
+      setUserData(res.user);
       console.log("login User Data ", res, userData);
 
-      if (res) {
+      if (res.isUserExist) {
+        setIsLoading(false);
+        history.push(PAGES.DISPLAY_STUDENT);
+        // setShowNameInput(true);
+      } else if (!res.isUserExist) {
         setIsLoading(false);
         setShowNameInput(true);
       } else {
@@ -278,7 +286,10 @@ const Login: React.FC = () => {
 
               <div id="Google-horizontal-line"></div>
               <div id="Google-horizontal-line2"></div>
-              <div id="login-google-icon-text"> {t("Continue with Google")}</div>
+              <div id="login-google-icon-text">
+                {" "}
+                {t("Continue with Google")}
+              </div>
               <img
                 id="login-google-icon"
                 alt="Google Icon"
