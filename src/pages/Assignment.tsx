@@ -13,6 +13,8 @@ import LessonSlider from "../components/LessonSlider";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
 import StudentNameBox from "../components/editStudent/StudentNameBox";
+import { Keyboard } from "@capacitor/keyboard";
+import { Capacitor } from "@capacitor/core";
 import { StudentLessonResult } from "../common/courseConstants";
 
 const AssignmentPage: React.FC = () => {
@@ -96,58 +98,79 @@ const AssignmentPage: React.FC = () => {
       return;
     }
   };
+  const [isInputFocus, setIsInputFocus] = useState(false);
 
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.addListener("keyboardWillShow", (info) => {
+        setIsInputFocus(true);
+      });
+      Keyboard.addListener("keyboardWillHide", () => {
+        setIsInputFocus(false);
+      });
+    }
+  }, []);
   return (
     <IonPage>
       <div className="assignment-main">
-        <div className="assignment-header">
+        <div id="assignment-back-button" >
           <BackButton
             onClicked={() => {
               history.replace(PAGES.HOME);
             }}
           />
-          <div className="school-class-header">
-            <div className="classname-header">{schoolName}</div>
-            <div className="classname-header">
-              {currentClass?.name ? currentClass?.name : ""}
-            </div>
-          </div>
-          <div className="right-button"></div>
         </div>
-        {!loading && (
-          <div
-            className={
-              !isLinked || lessons.length < 1
-                ? "lesson-body"
-                : "assignment-body"
-            }
-          >
-            {!isLinked ? (
-              <JoinClass
-                onClassJoin={() => {
-                  init(false);
-                }}
-              />
-            ) : (
-              <div>
-                {lessons.length > 0 ? (
-                  <LessonSlider
-                    lessonData={lessons}
-                    isHome={true}
-                    course={undefined}
-                    lessonsScoreMap={lessonResultMap || {}}
-                    startIndex={0}
-                    showSubjectName={true}
-                  />
-                ) : (
-                  <div className="pending-assignment">
-                    {t("There are no pending assignments for you.")}
-                  </div>
-                )}
-              </div>
-            )}
+
+        <div
+          className={
+            "header " + isInputFocus && !isLinked
+              ? "scroll-header"
+              : ""
+          }
+        >
+          <div className="assignment-header">
+            <div className="school-class-header">
+              <div className="classname-header">{schoolName}</div>
+              <div className="classname-header">{currentClass?.name ? currentClass?.name : ""}</div>
+            </div>
+            <div className="right-button"></div>
+
           </div>
-        )}
+
+          {!loading && (
+            <div
+              className={
+                !isLinked || lessons.length < 1
+                  ? "lesson-body"
+                  : "assignment-body"
+              }
+            >
+
+              {!isLinked ? (
+                <JoinClass
+                  onClassJoin={() => {
+                    init(false);
+                  }}
+                />
+              ) : (
+                <div>
+                  {lessons.length > 0 ? (
+                    <LessonSlider
+                      lessonData={lessons}
+                      isHome={true}
+                      course={undefined}
+                      lessonsScoreMap={lessonResultMap || {}}
+                      startIndex={0}
+                      showSubjectName={true}
+                    />
+                  ) : (
+                    <div className="pending-assignment">{t("There are no pending assignments for you.")}</div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
       <Loading isLoading={loading} />
     </IonPage>

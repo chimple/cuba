@@ -29,6 +29,8 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
 import { FirebaseAnalytics } from "@capacitor-firebase/analytics";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
+import { useEffect, useRef, useState } from "react";
+import { Keyboard } from "@capacitor/keyboard";
 import { DocumentReference } from "firebase/firestore";
 import {
   AppUpdate,
@@ -78,9 +80,9 @@ export class Util {
 
         console.log(
           "before local lesson Bundle http url:" +
-            "assets/" +
-            lessonId +
-            "/index.js"
+          "assets/" +
+          lessonId +
+          "/index.js"
         );
 
         const fetchingLocalBundle = await fetch(
@@ -88,9 +90,9 @@ export class Util {
         );
         console.log(
           "after local lesson Bundle fetch url:" +
-            "assets/" +
-            lessonId +
-            "/index.js",
+          "assets/" +
+          lessonId +
+          "/index.js",
           fetchingLocalBundle.ok,
           fetchingLocalBundle.json,
           fetchingLocalBundle
@@ -466,6 +468,27 @@ export class Util {
     return result.token;
   }
 
+
+  public static isTextFieldFocus(scollToRef, setIsInputFocus) {
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.addListener("keyboardWillShow", (info) => {
+        console.log("info", JSON.stringify(info));
+        setIsInputFocus(true);
+
+        setTimeout(() => {
+          scollToRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+            inline: "nearest",
+          });
+        }, 50);
+      });
+      Keyboard.addListener("keyboardWillHide", () => {
+        setIsInputFocus(false);
+      });
+    }
+  }
+
   public static async startFlexibleUpdate(): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
     try {
@@ -562,3 +585,4 @@ export class Util {
     return _canCheckUpdate;
   }
 }
+

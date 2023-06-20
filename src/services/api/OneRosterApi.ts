@@ -8,7 +8,6 @@ import CurriculumController from "../../models/curriculumController";
 import Result from "../../models/result";
 import User from "../../models/user";
 import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
-import { DocumentReference, DocumentData } from "firebase/firestore";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
 import Language from "../../models/language";
@@ -41,6 +40,10 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
+  
+  deleteAllUserData(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
   getAllCourses(): Promise<Course[]> {
     throw new Error("Method not implemented.");
   }
