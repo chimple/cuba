@@ -542,6 +542,21 @@ export class FirebaseApi implements ServiceApi {
       resultDoc
     );
     result.docId = resultDoc.id;
+    let playedResult: StudentLessonResult = {
+      date: result.dateLastModified,
+      course: result.course!,
+      score: result.score,
+      timeSpent: result.timeSpent,
+    };
+    console.log("playedResult", result.lesson.id, JSON.stringify(playedResult));
+
+    this._studentResultCache[student.docId].lessons[result.lesson.id] =
+      playedResult;
+    console.log(
+      "this._studentResultCache[student.docId] ",
+      JSON.stringify(this._studentResultCache[student.docId])
+    );
+
     return result;
   }
 
@@ -640,7 +655,10 @@ export class FirebaseApi implements ServiceApi {
     studentId: string
   ): Promise<{ [lessonDocId: string]: StudentLessonResult } | undefined> {
     const lessonsData = await this.getStudentResult(studentId);
-    console.log("getStudentResultInMap lessonsData ", lessonsData);
+    console.log(
+      "getStudentResultInMap lessonsData ",
+      JSON.stringify(lessonsData)
+    );
     if (!lessonsData) return;
     return lessonsData.lessons;
   }
