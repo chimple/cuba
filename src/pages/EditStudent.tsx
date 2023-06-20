@@ -14,7 +14,7 @@ import Language from "../models/language";
 import Loading from "../components/Loading";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { init, t } from "i18next";
+import { t } from "i18next";
 import { Util } from "../utility/util";
 import NextButton from "../components/common/NextButton";
 import { Capacitor } from "@capacitor/core";
@@ -23,18 +23,22 @@ import User from "../models/user";
 
 const EditStudent = () => {
   const [currentStudent, setStudent] = useState<User>();
-  async function init() {
-    const currentStudent = await Util.getCurrentStudent();
-    setStudent(currentStudent);
-    const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
-  }
-  useEffect(() => {
-    init();
-  }, []);
   const history = useHistory();
   const location = useLocation();
   const api = ServiceConfig.getI().apiHandler;
   // const currentStudent = await Util.getCurrentStudent();
+  async function init() {
+    const currentStudent = await Util.getCurrentStudent();
+    if (!currentStudent) {
+      history.replace(PAGES.HOME);
+      return;
+    }
+    setStudent(currentStudent);
+  }
+
+  useEffect(() => {
+    init();
+  }, []);
   const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
 
   enum STAGES {
@@ -80,7 +84,7 @@ const EditStudent = () => {
     if (stagesLength === newStage) {
       //Creating Profile for the Student
       let student;
-      // const currentStudent = Util.getCurrentStudent();
+      const currentStudent = Util.getCurrentStudent();
       if (isEdit && !!currentStudent && !!currentStudent.docId) {
         student = await api.updateStudent(
           currentStudent,

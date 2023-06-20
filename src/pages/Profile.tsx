@@ -12,6 +12,7 @@ import "./Profile.css";
 import { OneRosterApi } from "../services/api/OneRosterApi";
 import { useHistory } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
+import User from "../models/user";
 
 const Profile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -22,15 +23,18 @@ const Profile: React.FC = () => {
   );
   // const [unlockUpTo, setUnlockUpTo] = useState(-1);
   const history = useHistory();
+  const [currentStudent, setStudent] = useState<User>();
   useEffect(() => {
-    if (!Util.getCurrentStudent()) {
-      history.replace(PAGES.DISPLAY_STUDENT);
-    } else {
-      init();
-    }
+    init();
   }, []);
 
   async function init(subjectCode = Util.getCourseByGrade(COURSES.ENGLISH)) {
+    const currentStudent = await Util.getCurrentStudent();
+    if (!currentStudent) {
+      history.replace(PAGES.DISPLAY_STUDENT);
+    }
+
+    setStudent(currentStudent);
     setIsLoading(true);
     const apiInstance = OneRosterApi.getInstance();
     const tempClass = await apiInstance.getClassForUserForSubject(
