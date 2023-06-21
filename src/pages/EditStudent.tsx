@@ -19,26 +19,12 @@ import { Util } from "../utility/util";
 import NextButton from "../components/common/NextButton";
 import { Capacitor } from "@capacitor/core";
 import { Keyboard } from "@capacitor/keyboard";
-import User from "../models/user";
 
 const EditStudent = () => {
-  const [currentStudent, setStudent] = useState<User>();
   const history = useHistory();
   const location = useLocation();
   const api = ServiceConfig.getI().apiHandler;
-  // const currentStudent = await Util.getCurrentStudent();
-  async function init() {
-    const currentStudent = await Util.getCurrentStudent();
-    if (!currentStudent) {
-      history.replace(PAGES.HOME);
-      return;
-    }
-    setStudent(currentStudent);
-  }
-
-  useEffect(() => {
-    init();
-  }, []);
+  const currentStudent = Util.getCurrentStudent();
   const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
 
   enum STAGES {
