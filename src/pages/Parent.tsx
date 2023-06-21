@@ -100,7 +100,7 @@ const Parent: React.FC = () => {
 
       const element = allLang.find((obj) => obj.code === localAppLang);
       if (!element) return;
-      
+
       setCurrentAppLang(element.docId);
 
       setIsLoading(false);
@@ -237,40 +237,41 @@ const Parent: React.FC = () => {
     return (
       <div id="parent-page-help">
         <h1 id="parent-page-help-title">{t("Chimple Help Desk")}</h1>
-        <div id="parent-page-help-title-e1">
-          <div id="parent-page-help-share-button">
-            <EmailShareButton
-              url={"help@sutara.org"}
-              subject={"Chimple Kids app- Help Desk"}
-              body=""
-              className="Demo__some-network__share-button"
+        <div id="parent-page-help-title-link">
+          <div id="parent-page-help-title-e1">
+            <div id="parent-page-help-share-button">
+              <EmailShareButton
+                url={"help@sutara.org"}
+                subject={"Chimple Kids app- Help Desk"}
+                body=""
+                className="Demo__some-network__share-button"
+              >
+                Email Us
+              </EmailShareButton>
+              <EmailIcon size={"2vw"} round />
+            </div>
+            <div
+              id="parent-page-help-share-button"
+              onClick={() => {
+                console.log("Value clicked");
+                window.open("https://www.chimple.org/", "_system");
+              }}
             >
-              Email Us
-            </EmailShareButton>
-            <EmailIcon size={"2vw"} round />
-          </div>
-          <div
-            id="parent-page-help-share-button"
-            onClick={() => {
-              console.log("Value clicked");
-              window.open("https://www.chimple.org/", "_system");
-            }}
-          >
-            Visit Website
-            <TfiWorld size={"2vw"} />
-            {/* <IonIcon name="globe-outline" size={"2vw"}></IonIcon> */}
-          </div>
-          <div
-            id="parent-page-help-share-button"
-            onClick={() => {
-              let message = "Hiii !!!!";
-              window.open(
-                `https://api.whatsapp.com/send?phone=918904515444&text=${message}`,
-                "_system"
-              );
-            }}
-          >
-            {/* <WhatsappShareButton
+              Visit Website
+              <TfiWorld size={"2vw"} />
+              {/* <IonIcon name="globe-outline" size={"2vw"}></IonIcon> */}
+            </div>
+            <div
+              id="parent-page-help-share-button"
+              onClick={() => {
+                let message = "Hiii !!!!";
+                window.open(
+                  `https://api.whatsapp.com/send?phone=918904515444&text=${message}`,
+                  "_system"
+                );
+              }}
+            >
+              {/* <WhatsappShareButton
               // https://api.whatsapp.com/send?phone=917981611434&text=${message}
               url={"send?phone=917981611434&"}
               title={"hi"}
@@ -278,78 +279,79 @@ const Parent: React.FC = () => {
             >
               WhatsApp Us
             </WhatsappShareButton> */}
-            WhatsApp Us
-            <WhatsappIcon size={"2vw"} round />
+              WhatsApp Us
+              <WhatsappIcon size={"2vw"} round />
+            </div>
           </div>
-        </div>
-        <div id="parent-page-help-title-e2">
-          Help Video
-          <div id="parent-page-help-title-e2-video">
-            <iframe
-              id="parent-page-help-title-e2-video-youtude"
-              className="embed-responsive-item"
-              allowFullScreen={true}
-              // width="50%"
-              // height="50%"
-              src="https://www.youtube.com/embed/Ez9oouE2pOE"
-              title="YouTube video player"
-              // frameborder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          <div id="parent-page-help-title-e2">
+            Help Video
+            <div id="parent-page-help-title-e2-video">
+              <iframe
+                id="parent-page-help-title-e2-video-youtude"
+                className="embed-responsive-item"
+                allowFullScreen={true}
+                // width="50%"
+                // height="50%"
+                src="https://www.youtube.com/embed/Ez9oouE2pOE"
+                title="YouTube video player"
+                // frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               // allowfullscreen
-            ></iframe>
+              ></iframe>
+            </div>
           </div>
-        </div>
-        <div id="parent-page-help-title-e3">
-          <div
-            id="parent-page-help-share-button-e3"
-            onClick={() => {
-              console.log("Value clicked");
-              // let message = "Hiii !!!!";
-              window.open(
-                `https://api.instagram.com/chimple_learning/`,
-                "_system"
-              );
-              // https://api.instagram.com/chimple_learning/
+          <div id="parent-page-help-title-e3">
+            <div
+              id="parent-page-help-share-button-e3"
+              onClick={() => {
+                console.log("Value clicked");
+                // let message = "Hiii !!!!";
+                window.open(
+                  `https://api.instagram.com/chimple_learning/`,
+                  "_system"
+                );
+                // https://api.instagram.com/chimple_learning/
 
-              // instagram://user?username=its_mee_skanda
-            }}
-          >
-            Instagram
-            <FaInstagramSquare size={"2vw"} />
-          </div>
-          <div
-            id="parent-page-help-share-button-e3"
-            onClick={() => {
-              // let message = "Hiii !!!!";
-              window.open(`https://www.facebook.com/chimple`, "_system");
-            }}
-          >
-            {/* <FacebookShareButton
+                // instagram://user?username=its_mee_skanda
+              }}
+            >
+              Instagram
+              <FaInstagramSquare size={"2vw"} />
+            </div>
+            <div
+              id="parent-page-help-share-button-e3"
+              onClick={() => {
+                // let message = "Hiii !!!!";
+                window.open(`https://www.facebook.com/chimple`, "_system");
+              }}
+            >
+              {/* <FacebookShareButton
               url={"https://www.facebook.com/chimple"}
               quote={"Chimple Learning"}
               className="Demo__some-network__share-button"
             >
               Fackbook
             </FacebookShareButton> */}
-            Fackbook
-            <FacebookIcon size={"2vw"} round />
-          </div>
-          <div
-            id="parent-page-help-share-button-e3"
-            onClick={() => {
-              // let message = "Hiii !!!!";
-              window.open(`https://twitter.com/chimple_org`, "_system");
-            }}
-          >
-            {/* <TwitterShareButton
+              Facebook
+              <FacebookIcon size={"2vw"} round />
+            </div>
+            <div
+              id="parent-page-help-share-button-e3"
+              onClick={() => {
+                // let message = "Hiii !!!!";
+                window.open(`https://twitter.com/chimple_org`, "_system");
+              }}
+            >
+              {/* <TwitterShareButton
               url={"https://twitter.com/chimple_org"}
               title={"Chimple Learning"}
               className="Demo__some-network__share-button"
             >
               Twitter
             </TwitterShareButton> */}
-            Twitter
-            <TwitterIcon size={"2vw"} round />
+              Twitter
+              <TwitterIcon size={"2vw"} round />
+            </div>
           </div>
         </div>
       </div>
@@ -430,10 +432,10 @@ const Parent: React.FC = () => {
               value="profile"
               label={t("profile")}
               id="parent-page-tab-bar"
-              // sx={{
-              //   // fontSize:"5vh"
-              //   marginRight: "5vw",
-              // }}
+            // sx={{
+            //   // fontSize:"5vh"
+            //   marginRight: "5vw",
+            // }}
             />
             <Tab
               id="parent-page-tab-bar"
