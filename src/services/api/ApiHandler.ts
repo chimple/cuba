@@ -167,14 +167,6 @@ export class ApiHandler implements ServiceApi {
     return this.s.updateLanguage(user, value);
   }
 
-  public get currentStudent(): User | undefined {
-    return this.s.currentStudent;
-  }
-
-  public set currentStudent(value: User | undefined) {
-    this.s.currentStudent = value;
-  }
-
   public async createProfile(
     name: string,
     age: number | undefined,

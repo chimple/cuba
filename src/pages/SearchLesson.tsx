@@ -17,7 +17,9 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import { useHistory, useLocation } from "react-router";
 import { INSTANT_SEARCH_INDEX_NAME, PAGES } from "../common/constants";
 import BackButton from "../components/common/BackButton";
+import { Util } from "../utility/util";
 import { StudentLessonResult } from "../common/courseConstants";
+import User from "../models/user";
 
 const searchClient = algoliasearch(
   process.env.REACT_APP_ALGOLIA_APP_ID!,
@@ -52,22 +54,35 @@ function SearchLesson() {
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: StudentLessonResult;
   }>();
-
+  const [currentStudent, setStudent] = useState<User>();
   useEffect(() => {
-    const api = ServiceConfig.getI().apiHandler;
-    const currentStudent = api.currentStudent;
-    if (!currentStudent) {
-      history.replace(PAGES.DISPLAY_STUDENT);
-      return;
+    async function init() {
+      const currentStudent = await Util.getCurrentStudent();
+      if (!currentStudent) {
+        history.replace(PAGES.HOME);
+        return;
+      }
+
+      setStudent(currentStudent);
     }
-    api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
-      console.log("tempResultLessonMap = res;", res);
-      setLessonResultMap(res);
-    });
-    const urlParams = new URLSearchParams(location.search);
-    if (!!urlParams.get("continue") && !!dataToContinue.lessons) {
-      setLessons(dataToContinue.lessons);
-      setSearchTerm(dataToContinue.search);
+
+    // const currentStudent = await Util.getCurrentStudent();
+    if (currentStudent) {
+      const api = ServiceConfig.getI().apiHandler;
+      // const currentStudent =await Util.getCurrentStudent();
+      if (!currentStudent) {
+        history.replace(PAGES.DISPLAY_STUDENT);
+        return;
+      }
+      api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
+        console.log("tempResultLessonMap = res;", res);
+        setLessonResultMap(res);
+      });
+      const urlParams = new URLSearchParams(location.search);
+      if (!!urlParams.get("continue") && !!dataToContinue.lessons) {
+        setLessons(dataToContinue.lessons);
+        setSearchTerm(dataToContinue.search);
+      }
     }
   }, []);
 
