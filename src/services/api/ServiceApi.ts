@@ -295,4 +295,9 @@ export interface ServiceApi {
    * @returns {Course[]} Array of `Course` objects
    */
   getAllCourses(): Promise<Course[]>;
+
+  /**
+   * Deletes all the data related to user from database.
+   */
+  deleteAllUserData(): Promise<void>;
 }

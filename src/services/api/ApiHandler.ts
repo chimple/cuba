@@ -20,6 +20,10 @@ export class ApiHandler implements ServiceApi {
 
   private constructor() {}
 
+  public async deleteAllUserData(): Promise<void> {
+    return await this.s.deleteAllUserData();
+  }
+
   public async getAllCourses(): Promise<Course[]> {
     return await this.s.getAllCourses();
   }

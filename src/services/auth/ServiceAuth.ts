@@ -20,7 +20,7 @@ export interface ServiceAuth {
   proceedWithVerificationCode(
     verificationId,
     verificationCode
-  ): Promise<boolean>;
+  ): Promise<{ user: any; isUserExist: boolean } | undefined>;
 
   logOut(): Promise<void>;
 }
