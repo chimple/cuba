@@ -26,6 +26,7 @@ import StudentProfile from "../models/studentProfile";
 import { t } from "i18next";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
+import { Util } from "../utility/util";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -71,9 +72,8 @@ const Leaderboard: React.FC = () => {
       });
     });
     setWeeklyList(weekOptionsList);
-    const api = ServiceConfig.getI().apiHandler;
-    const currentStudent = await api.currentStudent;
-    console.log("currentStudent ", currentStudent);
+    // const api = ServiceConfig.getI().apiHandler;
+    const currentStudent = await Util.getCurrentStudent();
     if (currentStudent != undefined) {
       const getClass = await FirebaseApi.i.getStudentResult(
         currentStudent.docId
@@ -144,7 +144,7 @@ const Leaderboard: React.FC = () => {
         element.name,
         element.lessonsPlayed,
         element.score,
-        computeMinutes + "min" +" "+ result +" "+ "sec",
+        computeMinutes + "min" + " " + result + " " + "sec",
       ]);
 
       if (currentStudent.docId == element.userId) {
@@ -153,7 +153,10 @@ const Leaderboard: React.FC = () => {
           [t("Rank"), i + 1],
           [t("Last Played"), element.lessonsPlayed],
           [t("Score"), element.score],
-          [t("Time Spent"), computeMinutes + t("min") + result + " "+t("sec")],
+          [
+            t("Time Spent"),
+            computeMinutes + t("min") + result + " " + t("sec"),
+          ],
         ];
       }
     }
@@ -163,14 +166,14 @@ const Leaderboard: React.FC = () => {
         [t("Rank"), "--"],
         [t("Last Played"), "--"],
         [t("Score"), "--"],
-        [t("Time Spent"), "--"+t("min") + " --"+t("sec")],
+        [t("Time Spent"), "--" + t("min") + " --" + t("sec")],
       ];
       tempLeaderboardDataArray.push([
         "--",
         currentStudent.name,
         "--",
         "--",
-        "--"+t("min") + " --"+t("sec"),
+        "--" + t("min") + " --" + t("sec"),
       ]);
     }
     setCurrentUserDataContent(tempCurrentUserDataContent);
@@ -271,7 +274,6 @@ const Leaderboard: React.FC = () => {
                           }}
                           id="leaderboard-left-UI-content"
                         >
-                          
                           {d || "0"}
                         </p>
                       </IonCol>
@@ -384,7 +386,8 @@ const Leaderboard: React.FC = () => {
       {!isLoading ? (
         <Box>
           <Box id="LeaderBoard-header">
-            <AppBar id="LeaderBoard-AppBar"
+            <AppBar
+              id="LeaderBoard-AppBar"
               position="static"
               sx={{
                 flexDirection: "inherit",

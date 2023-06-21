@@ -14,7 +14,10 @@ import { ConfirmationResult, RecaptchaVerifier, getAuth } from "@firebase/auth";
 // import { setEnabled } from "@red-mobile/cordova-plugin-background-mode/www/background-mode";
 import { FirebaseAuth } from "../services/auth/FirebaseAuth";
 import { Keyboard } from "@capacitor/keyboard";
-import { t } from "i18next";
+import { initializeApp } from "firebase/app";
+import { init, t } from "i18next";
+import { Util } from "../utility/util";
+import User from "../models/user";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -42,8 +45,10 @@ const Login: React.FC = () => {
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
   const [isInputFocus, setIsInputFocus] = useState(false);
   const scollToRef = useRef<null | HTMLDivElement>(null);
+  const [currentStudent, setStudent] = useState<User>();
 
   useEffect(() => {
+    init();
     setIsLoading(true);
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
@@ -73,12 +78,22 @@ const Login: React.FC = () => {
         isUserLoggedIn && appLang != undefined
       );
 
+      async function init() {
+        const currentStudent = await Util.getCurrentStudent();
+        if (!currentStudent) {
+          history.replace(PAGES.HOME);
+          return;
+        }
+
+        setStudent(currentStudent);
+      }
+
       if (appLang == undefined) {
         console.log("navigating to app lang");
         history.replace(PAGES.APP_LANG_SELECTION);
       }
 
-      if (apiHandler.currentStudent) {
+      if (currentStudent) {
         setIsLoading(false);
         history.replace(PAGES.DISPLAY_STUDENT);
       }
@@ -286,10 +301,7 @@ const Login: React.FC = () => {
 
               <div id="Google-horizontal-line"></div>
               <div id="Google-horizontal-line2"></div>
-              <div id="login-google-icon-text">
-                {" "}
-                {t("Continue with Google")}
-              </div>
+              <div id="login-google-icon-text">{t("Continue with Google")}</div>
               <img
                 id="login-google-icon"
                 alt="Google Icon"
