@@ -18,23 +18,27 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: black;
 }
 
 #student-progress-display-progress-no-data-message {
   text-align: center;
+  color: black;
 }
 
 #student-page-tab-bar {
-  /* display: flex;
-    margin: 6% 5% 0% 5%;
-    justify-content: space-evenly;
-    align-items: center; */
-  /* margin-right: 4vh; */
-  margin-right: 9vw;
+  margin-right: 2vh;
   font-size: var(--text-size);
   font-weight: bold;
-  width: 15vw;
+  width: 17vw;
   font-family: "BalooRegular";
-  margin-left: 6.9vw;
-  /* color: black; */
+  justify-content: space-evenly;
+  white-space: nowrap;
+}
+
+.back-button-inStudentProgress {
+  position: absolute;
+  margin: var(--margin);
+  margin-right: 0;
+  /* z-index: 1; */
 }

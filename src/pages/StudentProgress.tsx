@@ -62,13 +62,13 @@ const StudentProgress: React.FC = () => {
         setTabIndex(courses[0].courseCode);
         setStudentProgressHeaderIconList(
           courses.map((course) => ({
-            displayName:course.title==="English"?course.title: t(course.title),
+            displayName: course.title === "English" ? course.title : t(course.title),
             iconSrc: course.thumbnail ?? "assets/icons/EnglishIcon.svg",
             header: course.courseCode,
             course: course,
           }))
         );
-       // console.log(courses[0].title);
+        // console.log(courses[0].title);
       }
 
       api.getLessonResultsForStudent(currentStudent.docId).then((res) => {
@@ -178,8 +178,23 @@ const StudentProgress: React.FC = () => {
   const handleChange = (newValue: string) => {
     // setValue(newValue);
     setTabIndex(newValue);
+    const selectedHeader = studentProgressHeaderIconList.find(
+      (iconConfig) => iconConfig.displayName === newValue
+    );
+
+    if (selectedHeader) {
+      setCurrentHeader(selectedHeader.header);
+      getResultsForStudentForSelectedHeader(selectedHeader.course, lessonsResults);
+    }
   };
-  const [tabIndex, setTabIndex] = useState<string>("English");
+  const [tabIndex, setTabIndex] = useState<string>("");
+
+  useEffect(() => {
+    if (studentProgressHeaderIconList.length > 0) {
+      setTabIndex(studentProgressHeaderIconList[0].displayName);
+    }
+  }, [studentProgressHeaderIconList]);
+  // const tabWidthPercentage = 100 / studentProgressHeaderIconList.length;
 
   return (
     <div>

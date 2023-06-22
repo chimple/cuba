@@ -100,7 +100,7 @@ const Parent: React.FC = () => {
 
       const element = allLang.find((obj) => obj.code === localAppLang);
       if (!element) return;
-      
+
       setCurrentAppLang(element.docId);
 
       setIsLoading(false);
@@ -295,7 +295,7 @@ const Parent: React.FC = () => {
               title="YouTube video player"
               // frameborder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              // allowfullscreen
+            // allowfullscreen
             ></iframe>
           </div>
         </div>
@@ -389,23 +389,26 @@ const Parent: React.FC = () => {
     // </IonPage>
     <Box>
       <Box id="ParentHeader">
-        <AppBar
-          id="ParentHeader-1"
-          position="static"
-          sx={{
-            flexDirection: "inherit",
-            justifyContent: "space-between",
-            padding: "1vh 1vw",
-            backgroundColor: "#FF7925 !important",
-            boxShadow: "0px 0px 0px 0px !important",
-          }}
-        >
+        <div className="back-button-inParent">
           <BackButton
             // iconSize={"8vh"}
             onClicked={() => {
               history.replace(PAGES.DISPLAY_STUDENT);
             }}
           ></BackButton>
+        </div>
+        <AppBar
+          id="ParentHeader-1"
+          position="static"
+          sx={{
+            flexDirection: "inherit",
+            justifyContent: "space-evenly",
+            padding: "3vh 1vw",
+            backgroundColor: "#FF7925 !important",
+            boxShadow: "0px 0px 0px 0px !important",
+          }}
+        >
+
           <Tabs
             value={tabIndex}
             onChange={handleChange}
@@ -424,16 +427,18 @@ const Parent: React.FC = () => {
               },
               "& .MuiTab-root": { color: "#000000" },
               "& .Mui-selected": { color: "#FFFFFF !important" },
+              "& .MuiTab-wrapper": { justifyContent: "space-around" },
+              "& .MuiTab-root:not(:last-child)": { margin: "0 0rem " },
             }}
           >
             <Tab
               value="profile"
               label={t("profile")}
               id="parent-page-tab-bar"
-              // sx={{
-              //   // fontSize:"5vh"
-              //   marginRight: "5vw",
-              // }}
+            // sx={{
+            //   // fontSize:"5vh"
+            //   marginRight: "5vw",
+            // }}
             />
             <Tab
               id="parent-page-tab-bar"
@@ -443,7 +448,6 @@ const Parent: React.FC = () => {
             <Tab id="parent-page-tab-bar" value="help" label={t("help")} />
             <Tab id="parent-page-tab-bar" value="faq" label={t("faq")} />
           </Tabs>
-          <div></div>
         </AppBar>
       </Box>
       <Box sx={{}}>

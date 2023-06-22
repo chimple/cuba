@@ -7,6 +7,7 @@
     justify-content: space-around; */
   align-items: center;
 }
+
 /* #ParentHeader{
   margin: var(--margin);
   margin-bottom: 0;
@@ -150,20 +151,25 @@
   font-size: var(--text-size);
   margin: 0.5vh;
 }
+
 #parent-logout {
   text-align: -webkit-center;
   margin-top: 10vh;
 }
 
 #parent-page-tab-bar {
-  /* display: flex;
-    margin: 6% 5% 0% 5%;
-    justify-content: space-evenly;
-    align-items: center; */
-  margin-right: 4vh;
+  margin-right: 2vh;
   font-size: var(--text-size);
   font-weight: bold;
-  width: 15vw;
+  width: 17vw;
   font-family: "BalooRegular";
-  /* color: black; */
+  justify-content: space-evenly;
+  white-space: nowrap;
+}
+
+.back-button-inParent {
+  position: absolute;
+  margin: var(--margin);
+  margin-right: 0;
+
 }
