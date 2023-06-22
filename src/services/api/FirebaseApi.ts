@@ -835,4 +835,11 @@ export class FirebaseApi implements ServiceApi {
     });
     return courses;
   }
+
+  get currentStudent(): User | undefined {
+    return this._currentStudent;
+  }
+  set currentStudent(value: User | undefined) {
+    this._currentStudent = value;
+  }
 }

@@ -158,6 +158,13 @@ export class ApiHandler implements ServiceApi {
   updateMusicFlag(user: User, value: boolean) {
     return this.s.updateMusicFlag(user, value);
   }
+  public get currentStudent(): User | undefined {
+    return this.s.currentStudent;
+  }
+
+  public set currentStudent(value: User | undefined) {
+    this.s.currentStudent = value;
+  }
 
   updateLanguage(user: User, value: string) {
     return this.s.updateLanguage(user, value);

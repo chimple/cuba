@@ -45,11 +45,12 @@ declare global {
     _CCSettings: any;
   }
 }
-
 export class Util {
   public static port: PortPlugin;
 
   public static getCurrentStudent(): User | undefined {
+    const api = ServiceConfig.getI().apiHandler;
+    if (!!api.currentStudent) return api.currentStudent;
     const temp = localStorage.getItem(CURRENT_STUDENT);
 
     if (!temp) return;
@@ -78,6 +79,7 @@ export class Util {
     currentStudent.grade = getRef(currentStudent.grade);
     currentStudent.language = getRef(currentStudent.language);
     currentStudent.board = getRef(currentStudent.board);
+    api.currentStudent = currentStudent;
     return currentStudent;
   }
 
@@ -381,6 +383,8 @@ export class Util {
     languageCode: string | undefined = undefined
   ) => {
     const api = ServiceConfig.getI().apiHandler;
+    api.currentStudent = student;
+
     localStorage.setItem(
       CURRENT_STUDENT,
       JSON.stringify({
