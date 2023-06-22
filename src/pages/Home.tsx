@@ -177,10 +177,10 @@ const Home: FC = () => {
           [lessonDocId: string]: StudentLessonResult;
         }
       | undefined;
-    api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
-      console.log("tempResultLessonMap = res;", res);
-      tempResultLessonMap = res;
-      setLessonResultMap(res);
+    api.getStudentResult(currentStudent.docId).then(async (res) => {
+      console.log("tempResultLessonMap = res;", JSON.stringify(res));
+      tempResultLessonMap = res?.lessons;
+      setLessonResultMap(res?.lessons);
       if (tempResultLessonMap) {
         console.log("tempResultLessonMap", tempResultLessonMap);
         sortLessonResultMap = sortLessonResultByDate(tempResultLessonMap);
