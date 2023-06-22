@@ -137,35 +137,35 @@ export class Util {
 
         console.log("fs", fs);
         const url = BUNDLE_URL + lessonId + ".zip";
-        const zip = await Http.get({ url: url, responseType: "blob" });
-        if (zip instanceof Object) {
-          console.log("unzipping ");
-          const buffer = Uint8Array.from(atob(zip.data), (c) =>
-            c.charCodeAt(0)
-          );
-          await unzip({
-            fs: fs,
-            extractTo: lessonId,
-            filepaths: ["."],
-            filter: (filepath: string) =>
-              filepath.startsWith("dist/") === false,
-            onProgress: (event) =>
-              console.log(
-                "event unzipping ",
-                event.total,
-                event.filename,
-                event.isDirectory,
-                event.loaded
-              ),
-            data: buffer,
-          });
+        console.log("const url", url);
+        const zip = fetch(url).then(async (response) => {
+          if (response instanceof Object) {
+            console.log("unzipping ", response);
+            const zipblob = await response.blob();
+            const zipArrBuff = await zipblob.arrayBuffer();
+            await unzip({
+              fs: fs,
+              extractTo: lessonId,
+              filepaths: ["."],
+              filter: (filepath: string) =>
+                filepath.startsWith("dist/") === false,
+              onProgress: (event) =>
+                console.log(
+                  "event unzipping ",
+                  event.total,
+                  event.filename,
+                  event.isDirectory,
+                  event.loaded
+                ),
+              data: zipArrBuff,
+            });
 
-          console.log("un  zip done");
-        }
-
+            console.log("un  zip done");
+          }
+        });
         console.log("zip ", zip);
       } catch (error) {
-        console.log("errpor", error);
+        console.log("error", error);
         return false;
       }
     }

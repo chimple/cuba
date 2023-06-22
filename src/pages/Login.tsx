@@ -35,7 +35,7 @@ const Login: React.FC = () => {
     useState<RecaptchaVerifier>();
   const [phoneNumberSigninRes, setPhoneNumberSigninRes] =
     useState<ConfirmationResult>();
-  const [userData, setUserData] = useState<any>("");
+  const [userData, setUserData] = useState<any>();
 
   const authInstance = ServiceConfig.getI().authHandler;
   const countryCode = "+91";
@@ -198,10 +198,20 @@ const Login: React.FC = () => {
         verificationCode
       );
       console.log("login User Data ", res, userData);
-      setUserData(res);
+      if (!res) {
+        setIsLoading(false);
+        console.log("Verification Failed");
+        alert("Something went wrong Verification Failed");
+        return;
+      }
+      setUserData(res.user);
       console.log("login User Data ", res, userData);
 
-      if (res) {
+      if (res.isUserExist) {
+        setIsLoading(false);
+        history.push(PAGES.DISPLAY_STUDENT);
+        // setShowNameInput(true);
+      } else if (!res.isUserExist) {
         setIsLoading(false);
         setShowNameInput(true);
       } else {

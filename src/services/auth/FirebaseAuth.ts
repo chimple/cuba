@@ -165,9 +165,9 @@ export class FirebaseAuth implements ServiceAuth {
         phoneNumber,
         Capacitor.isNativePlatform()
       );
-      let result: ConfirmationResult;
+      let result: any;
       if (Capacitor.isNativePlatform()) {
-        console.log("if (Capacitor.isNativePlatform()) {");
+        console.log("if (Capacitor.isNativePlatform()) {", phoneNumber);
         // let res = await FirebaseAuthentication.verifyPhoneNumber(
         //   phoneNumber,
         //   0
@@ -175,45 +175,50 @@ export class FirebaseAuth implements ServiceAuth {
         //   console.log("in then verificationId", verificationId, res);
         // });
 
-         await FirebaseAuthentication.signInWithPhoneNumber({
-          phoneNumber,
-        });
+        const signInWithPhoneNumber = async () => {
+          return new Promise(async (resolve) => {
+            // Attach `phoneCodeSent` listener to be notified as soon as the SMS is sent
+            await FirebaseAuthentication.addListener(
+              "phoneCodeSent",
+              async (event) => {
+                console.log("phoneCodeSent event ", event);
+
+                resolve(event);
+                // // Ask the user for the SMS code
+                // const verificationCode = window.prompt(
+                //   "Please enter the verification code that was sent to your mobile device."
+                // );
+                // if (!verificationCode) {
+                //   resolve(false);
+                //   return;
+                // }
+                // // Confirm the verification code
+                // const result =
+                //   await FirebaseAuthentication.confirmVerificationCode({
+                //     verificationId: event.verificationId,
+                //     verificationCode,
+                //   });
+                // resolve(result.user);
+              }
+            );
+            // // Attach `phoneVerificationCompleted` listener to be notified if phone verification could be finished automatically
+            // await FirebaseAuthentication.addListener(
+            //   "phoneVerificationCompleted",
+            //   async (event) => {
+            //     resolve(event.user);
+            //   }
+            // );
+            // Start sign in with phone number and send the SMS
+            await FirebaseAuthentication.signInWithPhoneNumber({
+              phoneNumber: phoneNumber,
+            });
+            console.log("signInWithPhoneNumber exicuted ");
+          });
+        };
+
+        result = await signInWithPhoneNumber();
         App.addListener("appStateChange", Util.onAppStateChange);
-
-        // .then((verificationId) => {
-        //   console.log("verificationId in verifyphonenumber", verificationId);
-
-        //   // var code = prompt("Enter verification code");
-        //   // if (code) {
-        //   FirebaseAuthentication.signInWithVerificationId(
-        //     verificationId,
-        //     "code"
-        //   );
-        //   // }
-        // })
-        // .catch((err) => {
-        //   console.error("Phone number verification failed", err);
-        // });
-
-        // result = cfaSignIn("phone", { phone: phoneNumber }).subscribe((user) =>
-        //   console.log(user.phoneNumber)
-        // );
-        // // Android and iOS
-        // cfaSignInPhoneOnCodeSent().subscribe((verificationId) => {
-        //   console.log(verificationId);
-        // });
-        // // Android Only
-        // cfaSignInPhoneOnCodeReceived().subscribe(
-        //   (event: { verificationId: string; verificationCode: string }) => {
-        //     console.log(`${event.verificationId}:${event.verificationCode}`);
-        //     return event;
-        //   }
-        // );
-        // result = await FirebaseAuthentication.signInWithPhoneNumber({
-        //   phoneNumber,
-        // });
-        // console.log("if (Capacitor.isNativePlatform()) { result ", result);
-        return ;
+        return result;
       } else {
         result = await signInWithPhoneNumber(
           this._auth,
@@ -242,13 +247,19 @@ export class FirebaseAuth implements ServiceAuth {
   public async proceedWithVerificationCode(
     result,
     verificationCode
-  ): Promise<any> {
+  ): Promise<{ user: any; isUserExist: boolean } | undefined> {
     try {
       // const verificationCode = e.detail.data.values[0];
       console.log("verificationCode", verificationCode);
       if (!verificationCode || !result || verificationCode.length < 6) {
         return;
       }
+
+      // Confirm the verification code
+      // const credential = await FirebaseAuthentication.confirmVerificationCode({
+      //   verificationId: result.verificationId,
+      //   verificationCode,
+      // });
       const credential = PhoneAuthProvider.credential(
         result.verificationId!,
         verificationCode
@@ -256,29 +267,25 @@ export class FirebaseAuth implements ServiceAuth {
       console.log("credential", this._auth, credential);
 
       let res = await signInWithCredential(this._auth, credential);
-      console.log("signInWithCredential Success!", res);
+      console.log("signInWithCredential Success!", credential, res.user);
       // Success!
 
+      if (!res.user) {
+        return;
+      }
       const user = res.user;
       console.log("res user", user);
-      // const userRef = doc(this._db, "User", user.uid);
-      // // if (res.additionalUserInfo?.isNewUser) {
-      // //   await this._createUserDoc(user);
-      // // } else {
-      // console.log("userRef", userRef);
-      // const tempUserDoc = await getDoc(userRef);
-      // console.log("tempUserDoc", tempUserDoc);
-      // // if (tempUserDoc.exists()) {
-      // let u = await this._createUserDoc(user);
-      // console.log("created user", u);
-      // // } else {
-      // //   this._currentUser = tempUserDoc.data() as User;
-      // //   console.log("this._currentUser", tempUserDoc.data() as User);
-      // // }
-      // // }
-      // // // App.addListener("appStateChange", Util.onAppStateChange);
       this.updateUserFcm(res.user.uid);
-      return user;
+      const userRef = doc(this._db, "User", user.uid);
+      console.log("userRef", userRef);
+      const tempUserDoc = await getDoc(userRef);
+      console.log("const tempUserDoc", JSON.stringify(tempUserDoc));
+      console.log(
+        "return result",
+        JSON.stringify({ user: user, isUserExist: tempUserDoc.exists() })
+      );
+      return { user: user, isUserExist: tempUserDoc.exists() };
+      // return user;
     } catch (error) {
       // Failure!
       console.log("signInWithCredential Failure!", error);
