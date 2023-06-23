@@ -72,7 +72,7 @@ const SelectMode: FC = () => {
     // }
     const allSchool = await api.getSchoolsForUser(currUser);
     console.log("allSchool", allSchool);
-    for (let i = 0; i < (await allSchool).length; i++) {
+    for (let i = 0; i <  allSchool.length; i++) {
       const element = allSchool[i];
       tempSchoolList.push({
         id: element.docId,

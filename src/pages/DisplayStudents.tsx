@@ -35,22 +35,22 @@ const DisplayStudents: FC<{}> = () => {
     // setStudents([...students, students[0]]);
 
     // const currentUser = await FirebaseAuth.getInstance().getCurrentUser();
-    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    console.log(
-      "🚀 ~ file: DisplayStudents.tsx:35 ~ getStudents ~ FirebaseAuth.getInstance().currentUser:",
-      currentUser
-    );
-    // const iseTeacher = await FirebaseApi.getInstance().isUserTeacher(
+    // const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    // console.log(
+    //   "🚀 ~ file: DisplayStudents.tsx:35 ~ getStudents ~ FirebaseAuth.getInstance().currentUser:",
+    //   currentUser
+    // );
+    // // const iseTeacher = await FirebaseApi.getInstance().isUserTeacher(
     //   currentUser!
     // );
-    if (!currentUser) return;
-    const iseTeacher = await ServiceConfig.getI().apiHandler.isUserTeacher(
-      currentUser
-    );
-    console.log(
-      "🚀 ~ file: DisplayStudents.tsx:34 ~ getStudents ~ iseTeacher:",
-      iseTeacher
-    );
+    //  if (!currentUser) return;
+    // const iseTeacher = await ServiceConfig.getI().apiHandler.isUserTeacher(
+    //   currentUser
+    // );
+    // console.log(
+    //   "🚀 ~ file: DisplayStudents.tsx:34 ~ getStudents ~ iseTeacher:",
+    //   iseTeacher
+    // );
 
     setIsLoading(false);
   };
