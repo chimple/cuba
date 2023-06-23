@@ -68,7 +68,8 @@ const Home: FC = () => {
     setIsLoading(true);
     const currentStudent = await api.currentStudent;
     if (!currentStudent) {
-      history.replace(PAGES.DISPLAY_STUDENT);
+      // history.replace(PAGES.DISPLAY_STUDENT);
+      history.replace(PAGES.SELECT_MODE);
       return;
     }
     setCurrentStudent(currentStudent);

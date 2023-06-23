@@ -295,7 +295,8 @@ const Login: React.FC = () => {
                     );
                     if (result) {
                       setIsLoading(false);
-                      history.replace(PAGES.DISPLAY_STUDENT);
+                      // history.replace(PAGES.DISPLAY_STUDENT);
+                      history.replace(PAGES.SELECT_MODE);
                     } else {
                       setIsLoading(false);
                     }
@@ -361,7 +362,8 @@ const Login: React.FC = () => {
                     phoneNumberSigninRes
                   );
                   if (res) {
-                    history.push(PAGES.DISPLAY_STUDENT);
+                    // history.push(PAGES.DISPLAY_STUDENT);
+                    history.replace(PAGES.SELECT_MODE);
                   }
                 }}
               >

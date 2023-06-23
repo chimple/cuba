@@ -24,7 +24,8 @@ const Profile: React.FC = () => {
   const history = useHistory();
   useEffect(() => {
     if (!ServiceConfig.getI().apiHandler.currentStudent) {
-      history.replace(PAGES.DISPLAY_STUDENT);
+      // history.replace(PAGES.DISPLAY_STUDENT);
+      history.replace(PAGES.SELECT_MODE);
     } else {
       init();
     }

@@ -19,6 +19,7 @@ import { Util } from "../utility/util";
 import NextButton from "../components/common/NextButton";
 import { Capacitor } from "@capacitor/core";
 import { Keyboard } from "@capacitor/keyboard";
+import BackButton from "../components/common/BackButton";
 
 const EditStudent = () => {
   const history = useHistory();
@@ -160,6 +161,7 @@ const EditStudent = () => {
   return (
     <IonPage id="Edit-student-page">
       <div id="next-button">
+      
         <NextButton
           disabled={!isNextButtonEnabled()}
           onClicked={onNextButton}

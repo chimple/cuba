@@ -39,7 +39,8 @@ const ProfileHeader: React.FC = () => {
               await i18n.changeLanguage(tempLangCode);
             }
           }
-          history.replace(PAGES.DISPLAY_STUDENT);
+          // history.replace(PAGES.DISPLAY_STUDENT);
+          history.replace(PAGES.SELECT_MODE);
         }}
       />
     </div>

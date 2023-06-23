@@ -39,7 +39,8 @@ const AssignmentPage: React.FC = () => {
 
     const student = api.currentStudent;
     if (!student) {
-      history.replace(PAGES.DISPLAY_STUDENT);
+      // history.replace(PAGES.DISPLAY_STUDENT);
+      history.replace(PAGES.SELECT_MODE);
       return;
     }
     api.getStudentResultInMap(student.docId).then(async (res) => {

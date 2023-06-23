@@ -1,8 +1,9 @@
 export interface GUIDRef {
-    href: string,
-    sourcedId: string,
-    type: string
-}
+    href: string;
+    sourcedId: string;
+    type: string;
+}   
+
 
 export enum ClassType {
     HOME_ROOM = "homeroom",
@@ -27,14 +28,14 @@ export enum ScoreStatusEnum {
 }
 
 export interface LearningObjectiveResult {
-    "learningObjectiveId": string
-    "score": number,
-    "textScore": string
+    learningObjectiveId: string;
+    score: number;
+    textScore: string;
 }
 
 export interface LearningObjective {
-    "source": string,
-    "learningObjectiveResults": LearningObjectiveResult[]
+    source: string;
+    learningObjectiveResults: LearningObjectiveResult[];
 }
 export enum OrgTypeEnum {
     DEPARTMENT = "department",
@@ -46,8 +47,8 @@ export enum OrgTypeEnum {
 }
 
 export interface UserId {
-    type: string,
-    identifier: string,
+    type: string;
+    identifier: string;
 }
 
 export enum TrueFalseEnum {
@@ -64,4 +65,7 @@ export enum RoleType {
     RELATIVE = "relative",
     STUDENT = "student",
     TEACHER = "teacher",
+    PRINCIPAL = "principal",
+    SPONSOR = "Sponsor",
+    COORDINATOR = "coordinator",
 }

@@ -20,7 +20,7 @@ import {
   ServiceApi,
   StudentLeaderboardInfo,
 } from "./ServiceApi";
-import { DEFAULT_COURSE_IDS } from "../../common/constants";
+import { DEFAULT_COURSE_IDS, MODES } from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
 import User from "../../models/user";
 import { ServiceConfig } from "../ServiceConfig";
@@ -51,7 +51,8 @@ export class FirebaseApi implements ServiceApi {
   private _classCache: { [key: string]: Class } = {};
   private _schoolCache: { [key: string]: School } = {};
   private _studentResultCache: { [key: string]: StudentProfile } = {};
-
+  private _schoolsCache: { [userId: string]: School[] } = {};
+  private _currentMode: MODES;
   private constructor() {}
 
   public static getInstance(): FirebaseApi {
@@ -257,6 +258,14 @@ export class FirebaseApi implements ServiceApi {
 
   public set currentStudent(value: User | undefined) {
     this._currentStudent = value;
+  }
+
+  public get currentMode(): MODES {
+    return this._currentMode;
+  }
+
+  public set currentMode(value: MODES) {
+    this._currentMode = value;
   }
 
   public updateSoundFlag = async (user: User, value: boolean) => {
@@ -725,6 +734,116 @@ export class FirebaseApi implements ServiceApi {
       assignments
     );
     return assignments;
+  }
+
+  async getSchoolsForUser(user: User): Promise<School[]> {
+    if (!!this._schoolsCache[user.docId]) return this._schoolsCache[user.docId];
+    const q = query(
+      collection(this._db, CollectionIds.SCHOOLCONNECTION),
+      where("roles", "array-contains", user.docId)
+    );
+    const queryResult = await getDocs(q);
+    const schools: School[] = [];
+    await Promise.all(
+      queryResult.docs.map(async (connectionDoc) => {
+        const schoolId = connectionDoc.id.slice(3);
+        const schoolDoc = await getDoc(
+          doc(this._db, CollectionIds.SCHOOL, schoolId)
+        );
+        if (schoolDoc.exists() && !!schoolDoc.id) {
+          const school = schoolDoc.data() as School;
+          school.docId = schoolDoc.id;
+          const connectionId = connectionDoc.id.slice(0, 2);
+          switch (connectionId) {
+            case "PR":
+              school.role = RoleType.PRINCIPAL;
+              break;
+            case "CO":
+              school.role = RoleType.COORDINATOR;
+              break;
+            case "TE":
+              school.role = RoleType.TEACHER;
+              break;
+            case "SP":
+              school.role = RoleType.SPONSOR;
+              break;
+          }
+          schools.push(school);
+        }
+      })
+    );
+    this._schoolsCache[user.docId] = schools;
+    return schools;
+  }
+
+  async isUserTeacher(user: User): Promise<boolean> {
+    const isParent = user.role === RoleType.PARENT;
+    console.log("this is the role  " + user.role);
+    if (isParent) return false;
+    const schools = await this.getSchoolsForUser(user);
+    if (!!schools && schools.length > 0) return true;
+    return false;
+  }
+
+  async getClassesForSchool(school: School, user: User): Promise<Class[]> {
+    const classes: Class[] = [];
+    const isTeacher = school.role === RoleType.TEACHER;
+    if (isTeacher) {
+      const q = query(
+        collection(this._db, CollectionIds.CLASSCONNECTION),
+        where("roles", "array-contains", user.docId),
+        where("school", "==", doc(this._db, CollectionIds.SCHOOL, school.docId))
+      );
+      const queryResult = await getDocs(q);
+      await Promise.all(
+        queryResult.docs.map(async (connectionDoc) => {
+          const classId = connectionDoc.id.slice(3);
+          const classDoc = await getDoc(
+            doc(this._db, CollectionIds.CLASS, classId)
+          );
+          if (classDoc.exists() && !!classDoc.id) {
+            const _class = classDoc.data() as Class;
+            _class.docId = classDoc.id;
+            classes.push(_class);
+          }
+        })
+      );
+    } else {
+      const q = query(
+        collection(this._db, CollectionIds.CLASS),
+        where("school", "==", doc(this._db, CollectionIds.SCHOOL, school.docId))
+      );
+      const queryResult = await getDocs(q);
+      queryResult.docs.forEach((classDoc) => {
+        const _class = classDoc.data() as Class;
+        _class.docId = classDoc.id;
+        classes.push(_class);
+      });
+    }
+    return classes;
+  }
+
+  async getStudentsForClass(classId: string): Promise<User[]> {
+    const students: User[] = [];
+    const classConnectionDoc = await getDoc(
+      doc(this._db, CollectionIds.CLASSCONNECTION, "ST_" + classId)
+    );
+    const roles: string[] = classConnectionDoc.get("roles");
+    if (classConnectionDoc.exists() && !!roles && roles.length > 0) {
+      await Promise.all(
+        roles.map(async (userId) => {
+          const userDoc = await getDoc(
+            doc(this._db, CollectionIds.USER, userId)
+          );
+          if (userDoc.exists() && !!userDoc.id) {
+            const user = userDoc.data() as User;
+            user.docId = userDoc.id;
+            students.push(user);
+          }
+        })
+      );
+    }
+    return students;
   }
 
   public async getLeaderboardResults(
