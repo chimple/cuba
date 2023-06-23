@@ -138,8 +138,7 @@ export enum PAGES {
   LEADERBOARD = "/leaderboard",
   ASSIGNMENT = "/assignment",
   SELECT_MODE = "/select-mode",
-  SELECT_SCHOOL = "/select-school",
-  SELECT_CLASS = "/select-class",
+
 }
 
 export enum LANG {
