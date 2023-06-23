@@ -52,7 +52,7 @@ const DisplayStudents: FC<{}> = () => {
         <ChimpleLogo
           header={t("Welcome to Chimple!")}
           msg={[
-            t("Please select your profile"),
+            t("Select the child’s profile"),
             // t("where curiosity meets education!"),
           ]}
         />
@@ -90,7 +90,7 @@ const DisplayStudents: FC<{}> = () => {
           {students.length < MAX_STUDENTS_ALLOWED && (
             <div onClick={onCreateNewStudent} className="add-new-button">
               <IoAddCircleSharp color="white" size="10vh" />
-              {t("Create New User")}
+              {t("Create New Child Profile")}
             </div>
           )}
           {showDialogBox ? (
