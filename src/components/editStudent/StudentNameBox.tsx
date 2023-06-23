@@ -10,7 +10,7 @@ const StudentNameBox: React.FC<{
   return (
     <div className="main-header">
       <div className="name-header">
-        <div className="title">{t("Enter Child Name:")}</div>
+        <div className="title">{t("What is your child’s name?")}</div>
         <TextField
           onChange={(evt) => onValueChange(evt.target.value)}
           value={studentName}
