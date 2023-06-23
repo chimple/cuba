@@ -5,7 +5,13 @@
   text-align: center;
 }
 .img {
-  height: min(44px, 12vh);
+  height: 10vh;
   width: auto;
-  min-height: 30px;
+  /* min-height: 30px; */
+}
+.child-Name{
+  white-space:nowrap;
+  max-width: 20vh;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }

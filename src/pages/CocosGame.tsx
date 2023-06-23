@@ -2,22 +2,20 @@ import { IonContent, IonPage, useIonToast } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import {
-  CURRENT_LESSON_LEVEL,
-  EXAM,
+  EVENTS,
   GAME_END,
   GAME_EXIT,
   LESSON_END,
   PAGES,
-  PREVIOUS_PLAYED_COURSE,
-  PRE_QUIZ,
-  TEMP_LESSONS_STORE,
 } from "../common/constants";
 import Loading from "../components/Loading";
-import { Lesson } from "../interface/curriculumInterfaces";
-import Auth from "../models/auth";
-import CurriculumController from "../models/curriculumController";
-import { OneRosterApi } from "../services/OneRosterApi";
 import { Util } from "../utility/util";
+import Lesson from "../models/lesson";
+import {
+  ASSIGNMENT_COMPLETED_IDS,
+  lessonEndData,
+} from "../common/courseConstants";
+import { ServiceConfig } from "../services/ServiceConfig";
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -48,7 +46,6 @@ const CocosGame: React.FC = () => {
   }, []);
 
   const killGame = (e: any) => {
-    // if (window.killGame) window.killGame();
     Util.killCocosGame();
   };
 
@@ -62,33 +59,15 @@ const CocosGame: React.FC = () => {
   };
 
   async function init() {
+    const api = ServiceConfig.getI().apiHandler;
     setIsLoading(true);
-    const lesson: Lesson = state.lesson;
+    const lesson: Lesson = JSON.parse(state.lesson);
+    console.log("🚀 ~ file: CocosGame.tsx:57 ~ init ~ lesson:", lesson);
+    const courseDocId: string | undefined = state.courseDocId;
+
+    const lessonId: string = state.lessonId;
     const lessonIds: string[] = [];
-    if (lesson.type === EXAM && !lesson.id.endsWith(PRE_QUIZ)) {
-      const lessonsInChapter = lesson.chapter.lessons;
-      let foundLesson = false;
-      for (let i = lessonsInChapter.length - 1; i >= 0; i--) {
-        if (foundLesson) {
-          if (lessonsInChapter[i].type === EXAM) break;
-          let lessonId =
-            lessonsInChapter[i].chapter.course.isCourseMapped &&
-            lessonsInChapter[i].orig_lesson_id != undefined
-              ? lessonsInChapter[i].orig_lesson_id
-              : lessonsInChapter[i].id;
-          lessonIds.push(lessonId || "");
-        } else if (lessonsInChapter[i].id === lesson.id) {
-          foundLesson = true;
-        }
-      }
-    } else {
-      let lessonId =
-        lesson.chapter.course.isCourseMapped &&
-        lesson.orig_lesson_id != undefined
-          ? lesson.orig_lesson_id
-          : lesson.id;
-      lessonIds.push(lessonId);
-    }
+    lessonIds.push(lessonId);
     console.log("cocosGame page lessonIds", lessonIds);
     const dow = await Util.downloadZipBundle(lessonIds);
     if (!dow) {
@@ -98,126 +77,75 @@ const CocosGame: React.FC = () => {
     }
     console.log("donwloaded ", dow);
     setIsLoading(false);
-    // document.getElementById("iframe")?.focus();
-    // if (window.launchGame) window.launchGame();
     Util.launchCocosGame();
 
     //Just fot Testing
     const saveTempData = async (e: any) => {
-      setIsLoading(true);
-      console.log("Lesson progress ", e);
-      let progressCourseId: string,
-        progressChapterId: string,
-        progressLessonId: string,
-        progressScore: number,
-        progressTimeSpent: string;
-      if (
-        lesson.chapter.course.isCourseMapped &&
-        lesson.orig_course_id != undefined &&
-        lesson.orig_chapter_id != undefined &&
-        lesson.orig_lesson_id != undefined
-      ) {
-        progressCourseId = state.lesson.chapter.course.id;
-        progressChapterId = state.lesson.chapter.id;
-        progressLessonId = state.lesson.id;
-        progressScore = e.detail.score;
-        progressTimeSpent = e.detail.timeSpent;
-        console.log(
-          "Mapped lesson Progress ",
-          progressCourseId,
-          "  ",
-          progressChapterId,
-          "  ",
-          progressLessonId,
-          "  ",
-          progressScore,
-          "  ",
-          progressTimeSpent
-        );
-      } else {
-        progressCourseId = e.detail.courseName;
-        progressChapterId = e.detail.chapterId;
-        progressLessonId = e.detail.lessonId;
-        progressScore = e.detail.score;
-        progressTimeSpent = e.detail.timeSpent;
-        console.log(
-          "lesson Progress ",
-          progressCourseId,
-          "  ",
-          progressChapterId,
-          "  ",
-          progressLessonId,
-          "  ",
-          progressScore,
-          "  ",
-          progressTimeSpent
-        );
-      }
+      console.log("🚀 ~ file: CocosGame.tsx:76 ~ saveTempData ~ e:", e);
+      const currentStudent = await Util.getCurrentStudent()!;
+      const data = e.detail as lessonEndData;
+      const isStudentLinked = await api.isStudentLinked(currentStudent.docId);
+      let classId;
+      let schoolId;
+      if (isStudentLinked) {
+        const studentResult = await api.getStudentResult(currentStudent.docId);
 
-      const json = localStorage.getItem(TEMP_LESSONS_STORE());
-      let lessons: any = {};
-      if (json) {
-        lessons = JSON.parse(json);
+        if (!!studentResult && studentResult.classes.length > 0) {
+          classId = studentResult.classes[0];
+          schoolId = studentResult.schools[0];
+        }
       }
-      lessons[progressLessonId] = progressScore;
-      localStorage.setItem(TEMP_LESSONS_STORE(), JSON.stringify(lessons));
-      localStorage.setItem(PREVIOUS_PLAYED_COURSE(), progressCourseId);
-      const levelJson = localStorage.getItem(CURRENT_LESSON_LEVEL());
-      let currentLessonLevel: any = {};
-      if (levelJson) {
-        currentLessonLevel = JSON.parse(levelJson);
+      const result = await api.updateResult(
+        currentStudent,
+        courseDocId,
+        lesson.docId,
+        data.score,
+        data.correctMoves,
+        data.wrongMoves,
+        data.timeSpent,
+        lesson.assignment?.docId,
+        classId,
+        schoolId
+      );
+      Util.logEvent(EVENTS.LESSON_END, {
+        studentId: currentStudent.docId,
+        courseDocId: courseDocId,
+        lessonDocId: lesson.docId,
+        assignmentId: lesson.assignment?.docId,
+        classId: classId,
+        schoolId: schoolId,
+        ...data,
+      });
+      console.log(
+        "🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:",
+        result
+      );
+      let tempAssignmentCompletedIds = localStorage.getItem(
+        ASSIGNMENT_COMPLETED_IDS
+      );
+      let assignmentCompletedIds;
+      if (!tempAssignmentCompletedIds) {
+        assignmentCompletedIds = {};
+      } else {
+        assignmentCompletedIds = JSON.parse(tempAssignmentCompletedIds);
       }
-      currentLessonLevel[progressCourseId] = progressLessonId;
+      if (!assignmentCompletedIds[currentStudent?.docId!]) {
+        assignmentCompletedIds[currentStudent?.docId!] = [];
+      }
+      assignmentCompletedIds[currentStudent?.docId!].push(
+        lesson.assignment?.docId
+      );
       localStorage.setItem(
-        CURRENT_LESSON_LEVEL(),
-        JSON.stringify(currentLessonLevel)
+        ASSIGNMENT_COMPLETED_IDS,
+        JSON.stringify(assignmentCompletedIds)
       );
-      const apiInstance = OneRosterApi.getInstance();
-      const tempClass = await apiInstance.getClassForUserForSubject(
-        Auth.i.sourcedId,
-        progressCourseId
-      );
-      if (progressLessonId.endsWith(PRE_QUIZ)) {
-        const preQuiz = await apiInstance.updatePreQuiz(
-          progressCourseId,
-          tempClass?.docId ?? "",
-          Auth.i.sourcedId,
-          e.detail.preQuizChapterId ?? progressChapterId,
-          false
-        );
-        const levelChapter = await apiInstance.getChapterForPreQuizScore(
-          progressCourseId,
-          preQuiz?.score ?? 0,
-          await CurriculumController.i.allChapterForSubject(progressCourseId)
-        );
-        currentLessonLevel[progressCourseId] = levelChapter.lessons[0].id;
-        localStorage.setItem(
-          CURRENT_LESSON_LEVEL(),
-          JSON.stringify(currentLessonLevel)
-        );
-        CurriculumController.i.clear();
-        lessons[progressLessonId] = preQuiz?.score;
-        localStorage.setItem(TEMP_LESSONS_STORE(), JSON.stringify(lessons));
-        console.log("preQuiz after update", preQuiz);
-      } else {
-        const result = await apiInstance.putResult(
-          Auth.i.sourcedId,
-          tempClass?.docId ?? "",
-          progressLessonId,
-          progressScore,
-          progressCourseId
-        );
-        console.log("result ", result);
-      }
-      await CurriculumController.i.unlockNextLesson(
-        progressCourseId,
-        progressLessonId,
-        progressScore
-      );
-
-      setIsLoading(false);
       push();
     };
+
+    // const onProblemEnd = async (e: any) => {
+    //   console.log("🚀 ~ file: CocosGame.tsx:73 ~ onProblemEnd ~ e:", e);
+    //   push();
+    // };
 
     document.body.addEventListener(LESSON_END, saveTempData, { once: true });
     document.body.addEventListener(GAME_END, killGame, { once: true });

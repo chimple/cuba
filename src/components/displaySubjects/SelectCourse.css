@@ -1,0 +1,37 @@
+.subject-button {
+  font-size: var(--text-size);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 3vh;
+  cursor: pointer;
+  margin-bottom: 0;
+  color: var(--text-color);
+}
+
+.subject-container {
+  margin: 0.4vh;
+  gap: 2vh;
+  margin-top: 6vh;
+  margin-left: 1.5em;
+  align-items: center;
+  justify-items: center;
+  flex: 1 0 21%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  white-space: nowrap;
+}
+
+.course-icon {
+  width: min(30vh, 136px);
+  height: min(30vh, 136px);
+  background-color: white;
+  background-repeat: no-repeat;
+  border-radius: 50%;
+}
+.course-img {
+  object-fit: contain;
+  min-width: 100%;
+  min-height: 100%;
+}

@@ -3,8 +3,10 @@ import App from "./App";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import reportWebVitals from "./reportWebVitals";
 import "./index.css";
-import './i18n';
+import "./i18n";
 import { initializeFireBase } from "./services/Firebase";
+import { APIMode, ServiceConfig } from "./services/ServiceConfig";
+import { Util } from "./utility/util";
 
 const container = document.getElementById("root");
 const root = createRoot(container!);
@@ -14,6 +16,7 @@ root.render(
   </>
 );
 initializeFireBase();
+ServiceConfig.getInstance(APIMode.FIREBASE);
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

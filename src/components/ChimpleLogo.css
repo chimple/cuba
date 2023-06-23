@@ -1,0 +1,23 @@
+#chimple-logo {
+  height: 20vh;
+  padding-top: 0.2vh;
+  /* margin-top: 1vh; */
+  margin-bottom: -3vh;
+  /* min-height: 107px !important; */
+}
+
+#logo-header {
+  text-align: center;
+  /* min-height: 150px !important; */
+}
+
+#logo-heading {
+  font-weight: bold;
+  font-size: 6vh;
+  color: #05342f;
+}
+
+#logo-msg {
+  font-size: var(--text-size);
+  color: #05342f;
+}

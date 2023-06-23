@@ -1,16 +1,25 @@
 import { useEffect, useState } from "react";
 import { Redirect, Route } from "react-router-dom";
-import Auth from "./models/auth";
+import { ServiceConfig } from "./services/ServiceConfig";
+import { PAGES } from "./common/constants";
+import Loading from "./components/Loading";
 
 export default function ProtectedRoute({ children, ...rest }) {
   const [isAuth, setIsAuth] = useState<Boolean | null>(null); // initially undefined
   useEffect(() => {
-    const isUserLogedIn = Auth.i.isUserLoggedIn();
-    setIsAuth(isUserLogedIn);
-    // setIsAuth(await Auth.i.isUserLoggedIn());
+    checkAuth();
   }, []);
+  const checkAuth = async () => {
+    try {
+      const authHandler = ServiceConfig.getI()?.authHandler;
+      const isUserLoggedIn = await authHandler?.isUserLoggedIn();
+      setIsAuth(!!isUserLoggedIn);
+    } catch (error) {
+      setIsAuth(false);
+    }
+  };
 
-  if (isAuth == null) return null;
+  if (isAuth == null) return <Loading isLoading />;
 
   return (
     <Route {...rest}>
@@ -19,7 +28,7 @@ export default function ProtectedRoute({ children, ...rest }) {
       ) : (
         <Redirect
           to={{
-            pathname: "/login",
+            pathname: PAGES.LOGIN,
           }}
         />
       )}

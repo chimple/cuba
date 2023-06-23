@@ -1,51 +1,41 @@
 import "./LessonSlider.css";
 import "./LessonCard.css";
 import LessonCard from "./LessonCard";
-import { Lesson } from "../interface/curriculumInterfaces";
-import Arrow from "./arrow";
-import { Chapter } from "../interface/curriculumInterfaces";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import { useEffect, useState } from "react";
+import Lesson from "../models/lesson";
+import Course from "../models/course";
+import { StudentLessonResult } from "../common/courseConstants";
 
 const LessonSlider: React.FC<{
   lessonData: Lesson[];
-  chaptersData: Chapter[];
-  currentChapter: Chapter;
-  onChapterChange;
+  course: Course | undefined;
   isHome: boolean;
-  onSwiper: any;
-  lessonsScoreMap: any;
+  lessonsScoreMap: { [lessonDocId: string]: StudentLessonResult };
   startIndex: number;
   showSubjectName: boolean;
 }> = ({
   lessonData,
-  chaptersData,
-  currentChapter,
+  course,
   isHome,
-  onSwiper,
-  onChapterChange,
   lessonsScoreMap,
   startIndex,
   showSubjectName = false,
 }) => {
   const [lessonSwiperRef, setLessonSwiperRef] = useState<any>();
   let width: string;
-  let height: string; 
-  width="45.5vh"
-  height="35vh"
+  let height: string;
+  width = "45.5vh";
+  height = "35vh";
   useEffect(() => {
-    // console.log(
-    //   "🚀 ~ file: LessonSlider.tsx:24 ~ useEffect ~ useEffect:startIndex",
-    //   startIndex
-    // );
+    // console.log("lessonsScoreMap", lessonsScoreMap);
     lessonSwiperRef?.go(0);
     setTimeout(() => {
       if (startIndex) lessonSwiperRef?.go(startIndex);
-    }, 100); 
+    }, 100);
   });
-  console.log("REFERENCE", startIndex)
-  return(
-    isHome?(
+  // console.log("REFERENCE", startIndex);
+  return isHome ? (
     <div className="content">
       <Splide
         ref={setLessonSwiperRef}
@@ -60,30 +50,40 @@ const LessonSlider: React.FC<{
       >
         {lessonData.map((m: Lesson, i: number) => {
           if (!m) return;
+          console.log(
+            "lessonsScoreMap[m.id]",
+            // lessonsScoreMap.get(m.docId),
+            m
+            // lessonsScoreMap.get(m.docId)?.score
+          );
+          let res: StudentLessonResult = lessonsScoreMap[m.docId];
           const isPlayed =
-            !!lessonsScoreMap[m.id] && lessonsScoreMap[m.id]?.score > 0;
-            width="47.5vh"
-            height="37vh"
+            !!lessonsScoreMap[m.docId] && lessonsScoreMap[m.docId]?.score! > 0;
+
+          width = "66.66vh";
+          height = "50vh";
           return (
-            <SplideSlide  className="slide" key={i}>
+            <SplideSlide className="slide" key={i}>
               <LessonCard
-                width= {width}
+                width={width}
                 height={height}
                 isPlayed={isPlayed}
                 isUnlocked={true}
                 isHome={isHome}
                 lesson={m}
+                course={course}
                 showSubjectName={showSubjectName}
                 showScoreCard={isPlayed}
-                score={lessonsScoreMap[m.id]?.score}
+                score={lessonsScoreMap[m.docId]?.score}
                 lessonData={lessonData}
-                startIndex={startIndex === -1 ?startIndex+1 : startIndex}             />
+                startIndex={startIndex === -1 ? startIndex + 1 : startIndex}
+              />
             </SplideSlide>
           );
         })}
       </Splide>
     </div>
-  ):(
+  ) : (
     <div className="content">
       <Splide
         ref={setLessonSwiperRef}
@@ -96,8 +96,7 @@ const LessonSlider: React.FC<{
           pagination: false,
         }}
       >
-      
-      {
+        {/* {
       (currentChapter.id === chaptersData[0].id)?<></>:<SplideSlide className="slide" >
         <Arrow
               width={width}
@@ -107,30 +106,31 @@ const LessonSlider: React.FC<{
               onChapterChange={onChapterChange}
             ></Arrow>
           </SplideSlide>
-          }
+          } */}
         {lessonData.map((m: Lesson, i: number) => {
           if (!m) return;
           const isPlayed =
-            !!lessonsScoreMap[m.id] && lessonsScoreMap[m.id]?.score > 0;
-            return (  
-              <SplideSlide className="slide" key={i}>
-                <LessonCard
-                  width= {width}
-                  height={height}
-                  isPlayed={isPlayed}
-                  isUnlocked={true}
-                  isHome={isHome}
-                  lesson={m}
-                  showSubjectName={showSubjectName}
-                  showScoreCard={isPlayed}
-                  score={lessonsScoreMap[m.id]?.score}
-                  lessonData={lessonData}
-                  startIndex={startIndex === -1 ?startIndex+1 : startIndex}  
-                />
-              </SplideSlide>
-            )
-          })}
-          {((currentChapter.id === chaptersData[0].id && currentChapter.name === 'Quiz') || 
+            !!lessonsScoreMap[m.docId] && lessonsScoreMap[m.docId]?.score! > 0;
+          return (
+            <SplideSlide className="slide" key={i}>
+              <LessonCard
+                width={width}
+                height={height}
+                isPlayed={isPlayed}
+                isUnlocked={true}
+                isHome={isHome}
+                lesson={m}
+                course={course}
+                showSubjectName={showSubjectName}
+                showScoreCard={isPlayed}
+                score={lessonsScoreMap[m.docId]?.score}
+                lessonData={lessonData}
+                startIndex={startIndex === -1 ? startIndex + 1 : startIndex}
+              />
+            </SplideSlide>
+          );
+        })}
+        {/* {((currentChapter.id === chaptersData[0].id && currentChapter.title === 'Quiz') || 
       currentChapter.id === chaptersData[chaptersData.length-1].id)?<></>:<SplideSlide className="slide" >
       <Arrow
             width={width}
@@ -139,11 +139,9 @@ const LessonSlider: React.FC<{
             currentChapter={currentChapter!}
             onChapterChange={onChapterChange}
           ></Arrow>
-        </SplideSlide>}
-          </Splide>
-        </div>
-      ));
-    };
-    export default LessonSlider;
-          
-        
+        </SplideSlide>} */}
+      </Splide>
+    </div>
+  );
+};
+export default LessonSlider;

@@ -1,0 +1,37 @@
+#student-progress-header-icons {
+    display: flex;
+    /*margin: 1% 1.5% 1% 1.5%;*/
+    align-items: center;
+
+    justify-content: flex-start;
+    /* margin: var(--margin); */
+    padding-left: 10px;
+    background-color: #FF7925;
+} 
+
+#student-progress-header-middle-icons {
+    display: flex;
+    justify-content: space-between;
+    width: 80vw;
+    /* width: 30vw; */
+     margin: 0 auto;
+    padding: 4px;
+    /* margin-top: 5px; */
+}
+
+#student-progress-header-middle-icons div {
+    padding-right: 1% ;
+}
+#student-progress-tab-bar {
+    /* display: flex;
+      margin: 6% 5% 0% 5%;
+      justify-content: space-evenly;
+      align-items: center; */
+    margin-right: 4vh;
+    font-size: var(--text-size);
+    font-weight: bold;
+    width: 15vw;
+    font-family: "BalooRegular";
+    background-color: red;
+    /* color: black; */
+  }

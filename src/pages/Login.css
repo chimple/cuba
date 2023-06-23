@@ -1,45 +1,136 @@
 p {
-    font-family: unset;
+  font-family: unset;
+}
+
+#login-screen {
+  /* --ion-background-color: #F2D9CA !important; */
+  text-align: center;
 }
 
 #login-chimple-logo {
-    /* height: min(200px, 60vh);
+  /* height: min(200px, 60vh);
     margin-left: calc(33vw);
     margin-top: 2%; */
-    height: 50%;
+  text-align: center;
+  width: 12vw;
+  height: 19vh;
+  margin-top: 2%;
+  /* height: 28%;
     position: absolute;
     left: 50%;
-    top: 40%;
-    -webkit-transform: translateY(-50%) translateX(-50%);
+    top: 15%;
+    transform: translateY(-50%) translateX(-50%); */
 }
 
-#login-button {
-    position: absolute;
+#chimple-brand-text1 {
+  /* position: absolute; */
+  /* top: 30%;
+    left: 50%; */
+  /* height: 20%; */
+  /* width: 40%; */
+  /*font-weight: bolder; */
+  text-align: center;
+  transform: translateY(-25%);
+  font-size: 3.7vw;
+  color: var(--text-color);
+  /* font-weight: 500; */
+  /*margin-top: 0px; */
+}
+
+#chimple-brand-text2 {
+  /* position: absolute; */
+  /* top: min(38%, 44%); */
+  height: auto;
+  /* height: min(200px, 60vh); */
+  /* width: min(90%, 100%); */
+  /*font-weight: 500; */
+  /* left: min(5%, 10%); */
+  transform: translateY(-1.5vw);
+  text-align: center;
+  line-height: 1;
+  font-size: 1.5vw;
+  color: var(--text-color);
+}
+
+#login-text-box {
+  /* transform: translateX(50%); */
+  margin: 1% 0% 2% 32.7vw;
+  width: 30px;
+  height: auto;
+  line-height: 6vh;
+}
+
+#login-text-box {
+  text-align: center;
+  margin: 0% 0% 4% 32.5vw;
+}
+
+#login-continue-button {
+  /* position: absolute;
     left: 50%;
+    top: 75%; */
+  transform: translateY(-30%);
+  /* width: min(70vh, 57vh); */
+
+  color: white;
+  width: 26vw;
+  height: 5.5vw;
+  background: yellowgreen;
+  border-radius: var(--border-radius);
+  text-align: center;
+  line-height: 6vw;
+  font-size: 1.9vw;
+  margin: 2% 0% 2% 36.8vw;
+}
+
+#login-google-icon-text {
+  /* position: absolute;
     top: 83%;
-    -webkit-transform: translateY(-50%) translateX(-50%);
-    width: min(350px, 80vh);
-    height: min(50px, 70vh);
-    font-size: 20px;
-    /* margin-top: calc(8vh);
-    margin-left: calc(28vw); */
-    background: white;
-    border-radius: 25px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 2%;
-    color: #2DAAE1;
-    font-family: 'BalooExtraBold';
-    font-weight: bolder;
+    left: 50%;
+    transform: translateY(-5%) translateX(-50%); */
+  margin: -1.2% 0% 0% 0%;
+  font-size: var(--text-size);
+  color: var(--text-color);
+  font-size: 1.4vw;
 }
 
+#login-google-icon {
+  /* position: absolute;
+    top: 89%;
+    left: 50%; */
+  height: 10vh;
+  width: auto;
+  /* text-align: center; */
+  /* transform: translateY(-5%) translateX(-50%); */
+  margin-top: 0%;
 
-#login-button-text {
-    color: #FF7925;
 }
-
+#Google-horizontal-line {
+  width: 6vw;
+  height: 0.1vh;
+  margin-top: 2%;
+  background-color: gray;
+  display: block;
+  margin-left: 37.5%;
+  margin-top: -1%;
+}
+#Google-horizontal-line2 {
+  width: 6vw;
+  height: 0.1vh;
+  margin-top: 2%;
+  background-color: gray;
+  display: block;
+  margin-left: 56.5%;
+  margin-top: 0%;
+}
 #login-button-img {
-    height: 38px;
-    width: auto;
+  height: 38px;
+  width: auto;
+}
+
+#custom-loading {
+  --background: #e3edff;
+  --spinner-color: white;
+
+  color: white;
 }

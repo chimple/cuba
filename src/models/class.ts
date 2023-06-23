@@ -1,8 +1,9 @@
 import BaseObject from "./baseObject";
-import { DocumentReference } from "firebase/firestore";
+import { DocumentReference, Timestamp } from "firebase/firestore";
 
 export default class Class extends BaseObject {
-  private _title: string;
+  private _name: string;
+  private _image: string | undefined;
   private _classCode: string;
   private _school: DocumentReference;
   private _courses: string[];
@@ -13,8 +14,9 @@ export default class Class extends BaseObject {
   private _principal: string[];
   private _coordinator: string[];
 
-constructor(
-    title: string,
+  constructor(
+    name: string,
+    image: string | undefined,
     classCode: string,
     school: DocumentReference,
     courses: string[],
@@ -24,12 +26,13 @@ constructor(
     teachers: string[],
     principal: string[],
     coordinator: string[],
-    dateLastModified: string,
-    createdAt: string,
+    dateLastModified: Timestamp,
+    createdAt: Timestamp,
     docId: string
   ) {
     super(dateLastModified, createdAt, docId);
-    this._title = title;
+    this._name = name;
+    this._image = image;
     this._classCode = classCode;
     this._school = school;
     this._courses = courses;
@@ -89,16 +92,22 @@ constructor(
   public set coordinator(value: string[]) {
     this._coordinator = value;
   }
-  public get title(): string {
-    return this._title;
+  public get name(): string {
+    return this._name;
   }
-  public set title(value: string) {
-    this._title = value;
+  public set name(value: string) {
+    this._name = value;
   }
   public get classCode(): string {
     return this._classCode;
   }
   public set classCode(value: string) {
     this._classCode = value;
+  }
+  public get image(): string | undefined {
+    return this._image;
+  }
+  public set image(value: string | undefined) {
+    this._image = value;
   }
 }

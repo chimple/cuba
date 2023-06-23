@@ -1,15 +1,18 @@
 import { IonButton, IonContent, IonPage, IonRow } from "@ionic/react";
 import { useEffect, useState } from "react";
-import { COURSES, MIN_PASS } from "../common/constants";
+import { COURSES, MIN_PASS, PAGES } from "../common/constants";
 import LessonCard from "../components/LessonCard";
 import Loading from "../components/Loading";
 import ProfileHeader from "../components/ProfileHeader";
 import { Lesson } from "../interface/curriculumInterfaces";
 import Auth from "../models/auth";
 import CurriculumController from "../models/curriculumController";
-import { OneRosterApi } from "../services/OneRosterApi";
 import { Util } from "../utility/util";
 import "./Profile.css";
+import { OneRosterApi } from "../services/api/OneRosterApi";
+import { useHistory } from "react-router";
+import { ServiceConfig } from "../services/ServiceConfig";
+import User from "../models/user";
 
 const Profile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -19,12 +22,19 @@ const Profile: React.FC = () => {
     Util.getCourseByGrade(COURSES.ENGLISH)
   );
   // const [unlockUpTo, setUnlockUpTo] = useState(-1);
-
+  const history = useHistory();
+  const [currentStudent, setStudent] = useState<User>();
   useEffect(() => {
     init();
   }, []);
 
   async function init(subjectCode = Util.getCourseByGrade(COURSES.ENGLISH)) {
+    const currentStudent = await Util.getCurrentStudent();
+    if (!currentStudent) {
+      history.replace(PAGES.DISPLAY_STUDENT);
+    }
+
+    setStudent(currentStudent);
     setIsLoading(true);
     const apiInstance = OneRosterApi.getInstance();
     const tempClass = await apiInstance.getClassForUserForSubject(
@@ -111,34 +121,34 @@ const Profile: React.FC = () => {
           Maths
         </IonButton>
       </div>
-      <IonContent>
-        {!isLoading ? (
-          <div className="wrapper">
-            {allLessons?.map((lesson: Lesson, index: number) => {
-              const isPLayed =
-                !!rewards[lesson.id] && rewards[lesson.id].score >= MIN_PASS;
-              return (
-                <LessonCard
-                  width="clamp(150px,40vh,200px)"
-                  height="clamp(150px,40vh,200px)"
-                  lesson={lesson}
-                  key={index}
-                  isPlayed={isPLayed}
-                  isUnlocked={isPLayed}
-                  isHome={false}
-                  showSubjectName={false}
-                  showText={false}
-                  showScoreCard={false}
-                  score={0}
-                  lessonData={allLessons}
-                  startIndex={0}
-                />
-              );
-            })}
-          </div>
-        ) : null}
-        <Loading isLoading={isLoading} />
-      </IonContent>
+
+      {!isLoading ? (
+        <div className="wrapper">
+          {allLessons?.map((lesson: Lesson, index: number) => {
+            const isPLayed =
+              !!rewards[lesson.id] && rewards[lesson.id].score >= MIN_PASS;
+            return (
+              <div></div>
+              // <LessonCard
+              //   width="clamp(150px,40vh,200px)"
+              //   height="clamp(150px,40vh,200px)"
+              //   lesson={lesson}
+              //   key={index}
+              //   isPlayed={isPLayed}
+              //   isUnlocked={isPLayed}
+              //   isHome={false}
+              //   showSubjectName={false}
+              //   showText={false}
+              //   showScoreCard={false}
+              //   score={0}
+              //   lessonData={allLessons}
+              //   startIndex={0}
+              // />
+            );
+          })}
+        </div>
+      ) : null}
+      <Loading isLoading={isLoading} />
     </IonPage>
   );
 };

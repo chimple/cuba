@@ -1,27 +1,42 @@
+import { Chapter } from "../common/courseConstants";
 import BaseObject from "./baseObject";
-import { DocumentReference } from "firebase/firestore";
+import { DocumentReference, Timestamp } from "firebase/firestore";
 
 export default class Course extends BaseObject {
   private _title: string;
-  private _chapters: object[];
+  private _chapters: Chapter[];
   private _courseCode: string;
   private _curriculum: DocumentReference;
   private _grade: DocumentReference;
   private _status: string;
   private _subject: DocumentReference;
+  private _thumbnail: string | undefined;
 
-  constructor(
-    chapters: object[],
-    courseCode: string,
-    curriculum: DocumentReference,
-    grade: DocumentReference,
-    status: string,
-    subject: DocumentReference,
-    title: string,
-    dateLastModified: string,
-    createdAt: string,
-    docId: string
-  ) {
+  constructor({
+    chapters,
+    courseCode,
+    curriculum,
+    grade,
+    status,
+    subject,
+    title,
+    thumbnail,
+    dateLastModified,
+    createdAt,
+    docId,
+  }: {
+    chapters: Chapter[];
+    courseCode: string;
+    curriculum: DocumentReference;
+    grade: DocumentReference;
+    status: string;
+    subject: DocumentReference;
+    title: string;
+    thumbnail: string | undefined;
+    dateLastModified: Timestamp;
+    createdAt: Timestamp;
+    docId: string;
+  }) {
     super(dateLastModified, createdAt, docId);
     this._chapters = chapters;
     this._courseCode = courseCode;
@@ -30,11 +45,12 @@ export default class Course extends BaseObject {
     this._status = status;
     this._subject = subject;
     this._title = title;
+    this._thumbnail = thumbnail;
   }
-  public get chapters(): object[] {
+  public get chapters(): Chapter[] {
     return this._chapters;
   }
-  public set chapters(value: object[]) {
+  public set chapters(value: Chapter[]) {
     this._chapters = value;
   }
   public get courseCode(): string {
@@ -72,5 +88,11 @@ export default class Course extends BaseObject {
   }
   public set title(value: string) {
     this._title = value;
+  }
+  public get thumbnail(): string | undefined {
+    return this._thumbnail;
+  }
+  public set thumbnail(value: string | undefined) {
+    this._thumbnail = value;
   }
 }

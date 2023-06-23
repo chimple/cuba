@@ -1,0 +1,52 @@
+.content {
+  overflow: hidden scroll;
+  margin-top: 9vh;
+}
+
+.button-round {
+  --padding-start: min(13px, 2vw);
+  --padding-end: min(5px, 2vw);
+  /* --padding-top: 0.6vh; */
+}
+#common-div{
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+}
+
+#next-button{
+  position: absolute;
+  right: 0px;
+}
+.arrow-icon {
+  padding-left: 0;
+  padding-right: 0.5vw;
+  /* padding-bottom: 1.3vh; */
+}
+
+.button-solid {
+  --box-shadow: 0;
+}
+
+.ion-page {
+  justify-content: start;
+  /* overflow: scroll; */
+}
+#Edit-student-page{
+  margin: var(--margin);
+  margin-bottom: 0;
+}
+
+.button-inner{
+  justify-content: space-between !important;
+}
+.scroll-header{
+  overflow: scroll;
+}
+
+.avatar-title {
+  font-size: var(--text-size);
+  text-align: center;
+  margin-bottom: 1.5vh;
+  color: #05342f;
+}

@@ -5,10 +5,17 @@ import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
 import {
+  CURRENT_STUDENT,
   BUNDLE_URL,
   COURSES,
   CURRENT_LESSON_LEVEL,
-  HEADERLIST,
+  EVENTS,
+  FCM_TOKENS,
+  LANG,
+  LANGUAGE,
+  LAST_PERMISSION_CHECKED,
+  LAST_UPDATE_CHECKED,
+  PAGES,
   PortPlugin,
   PRE_QUIZ,
   SELECTED_GRADE,
@@ -16,17 +23,65 @@ import {
 } from "../common/constants";
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
 import { GUIDRef } from "../interface/modelInterfaces";
-import Result  from "../models/result";
-import { OneRosterApi } from "../services/OneRosterApi";
+import Result from "../models/result";
+import { OneRosterApi } from "../services/api/OneRosterApi";
+import User from "../models/user";
+import { ServiceConfig } from "../services/ServiceConfig";
+import i18n from "../i18n";
+import { FirebaseAnalytics } from "@capacitor-firebase/analytics";
+import { FirebaseMessaging } from "@capacitor-firebase/messaging";
+import { DocumentReference, doc, getFirestore } from "firebase/firestore";
+import { useEffect, useRef, useState } from "react";
+import { Keyboard } from "@capacitor/keyboard";
+import {
+  AppUpdate,
+  AppUpdateAvailability,
+  AppUpdateResultCode,
+} from "@capawesome/capacitor-app-update";
+
 declare global {
   interface Window {
     cc: any;
     _CCSettings: any;
   }
 }
-
 export class Util {
   public static port: PortPlugin;
+
+  public static getCurrentStudent(): User | undefined {
+    const api = ServiceConfig.getI().apiHandler;
+    if (!!api.currentStudent) return api.currentStudent;
+    const temp = localStorage.getItem(CURRENT_STUDENT);
+
+    if (!temp) return;
+    const currentStudent = JSON.parse(temp) as User;
+    function getRef(ref): DocumentReference {
+      const db = getFirestore();
+      const newCourseRef = doc(
+        db,
+        ref["_key"].path.segments.at(-2),
+        ref["_key"].path.segments.at(-1)
+      );
+      return newCourseRef;
+    }
+
+    function convertDoc(refs: any[]): DocumentReference[] {
+      const data: DocumentReference[] = [];
+      for (let ref of refs) {
+        const newCourseRef = getRef(ref);
+
+        data.push(newCourseRef);
+      }
+      return data;
+    }
+    currentStudent.courses = convertDoc(currentStudent.courses);
+    currentStudent.users = convertDoc(currentStudent.users);
+    currentStudent.grade = getRef(currentStudent.grade);
+    currentStudent.language = getRef(currentStudent.language);
+    currentStudent.board = getRef(currentStudent.board);
+    api.currentStudent = currentStudent;
+    return currentStudent;
+  }
 
   public static getGUIDRef(map: any): GUIDRef {
     return { href: map?.href, sourcedId: map?.sourcedId, type: map?.type };
@@ -82,35 +137,35 @@ export class Util {
 
         console.log("fs", fs);
         const url = BUNDLE_URL + lessonId + ".zip";
-        const zip = await Http.get({ url: url, responseType: "blob" });
-        if (zip instanceof Object) {
-          console.log("unzipping ");
-          const buffer = Uint8Array.from(atob(zip.data), (c) =>
-            c.charCodeAt(0)
-          );
-          await unzip({
-            fs: fs,
-            extractTo: lessonId,
-            filepaths: ["."],
-            filter: (filepath: string) =>
-              filepath.startsWith("dist/") === false,
-            onProgress: (event) =>
-              console.log(
-                "event unzipping ",
-                event.total,
-                event.filename,
-                event.isDirectory,
-                event.loaded
-              ),
-            data: buffer,
-          });
+        console.log("const url", url);
+        const zip = fetch(url).then(async (response) => {
+          if (response instanceof Object) {
+            console.log("unzipping ", response);
+            const zipblob = await response.blob();
+            const zipArrBuff = await zipblob.arrayBuffer();
+            await unzip({
+              fs: fs,
+              extractTo: lessonId,
+              filepaths: ["."],
+              filter: (filepath: string) =>
+                filepath.startsWith("dist/") === false,
+              onProgress: (event) =>
+                console.log(
+                  "event unzipping ",
+                  event.total,
+                  event.filename,
+                  event.isDirectory,
+                  event.loaded
+                ),
+              data: zipArrBuff,
+            });
 
-          console.log("un  zip done");
-        }
-
+            console.log("un  zip done");
+          }
+        });
         console.log("zip ", zip);
       } catch (error) {
-        console.log("errpor", error);
+        console.log("error", error);
         return false;
       }
     }
@@ -286,17 +341,19 @@ export class Util {
       console.log("else (selectedGrade) {", gradeMap);
     }
 
-    if (courseId === HEADERLIST.ENGLISH) {
-      return gradeMap[HEADERLIST.ENGLISH] === SL_GRADES.GRADE1
-        ? COURSES.ENGLISH_G1
-        : COURSES.ENGLISH_G2;
-    } else if (courseId === HEADERLIST.MATHS) {
-      return gradeMap[HEADERLIST.MATHS] === SL_GRADES.GRADE1
-        ? COURSES.MATHS_G1
-        : COURSES.MATHS_G2;
-    } else {
-      return courseId;
-    }
+    return courseId;
+
+    // if (courseId === HEADERLIST.ENGLISH) {
+    //   return gradeMap[HEADERLIST.ENGLISH] === SL_GRADES.GRADE1
+    //     ? COURSES.ENGLISH_G1
+    //     : COURSES.ENGLISH_G2;
+    // } else if (courseId === HEADERLIST.MATHS) {
+    //   return gradeMap[HEADERLIST.MATHS] === SL_GRADES.GRADE1
+    //     ? COURSES.MATHS_G1
+    //     : COURSES.MATHS_G2;
+    // } else {
+    //   return courseId;
+    // }
   }
 
   public static async showLog(msg): Promise<void> {
@@ -309,5 +366,277 @@ export class Util {
       text: msg,
       duration: "long",
     });
+  }
+
+  public static onAppStateChange = ({ isActive }) => {
+    if (
+      Capacitor.isNativePlatform() &&
+      isActive &&
+      window.location.pathname !== PAGES.GAME &&
+      window.location.pathname !== PAGES.LOGIN
+    ) {
+      window.location.reload();
+    }
+  };
+  public static setCurrentStudent = async (
+    student: User,
+    languageCode: string | undefined = undefined
+  ) => {
+    const api = ServiceConfig.getI().apiHandler;
+    api.currentStudent = student;
+
+    localStorage.setItem(
+      CURRENT_STUDENT,
+      JSON.stringify({
+        age: student.age ?? null,
+        avatar: student.avatar ?? null,
+        board: student.board ?? null,
+        courses: student.courses,
+        createdAt: student.createdAt,
+        dateLastModified: student.dateLastModified,
+        gender: student.gender ?? null,
+        grade: student.grade ?? null,
+        image: student.image ?? null,
+        language: student.language ?? null,
+        name: student.name,
+        role: student.role,
+        uid: student.uid,
+        username: student.username,
+        users: student.users,
+        docId: student.docId,
+      })
+    );
+    if (!languageCode && !!student.language?.id) {
+      const langDoc = await api.getLanguageWithId(student.language.id);
+      if (langDoc) {
+        languageCode = langDoc.code;
+      }
+    }
+    const tempLangCode = languageCode ?? LANG.ENGLISH;
+    localStorage.setItem(LANGUAGE, tempLangCode);
+    await i18n.changeLanguage(tempLangCode);
+  };
+
+  public static randomBetween(min, max) {
+    return Math.floor(Math.random() * (max - min) + min);
+  }
+
+  public static async logEvent(
+    eventName: EVENTS,
+    params?: {
+      [key: string]: any;
+    }
+  ) {
+    await FirebaseAnalytics.logEvent({
+      name: eventName,
+      params: params,
+    });
+  }
+
+  public static async subscribeToClassTopic(
+    classId: string,
+    schoolId: string
+  ): Promise<void> {
+    const classToken = `${classId}-assignments`;
+    const schoolToken = `${schoolId}-assignments`;
+    if (!Capacitor.isNativePlatform()) return;
+    await FirebaseMessaging.subscribeToTopic({
+      topic: classToken,
+    });
+    await FirebaseMessaging.subscribeToTopic({
+      topic: schoolToken,
+    });
+    const subscribedTokens = localStorage.getItem(FCM_TOKENS);
+    let tokens: string[] = [];
+    if (!!subscribedTokens) {
+      tokens = JSON.parse(subscribedTokens) ?? [];
+    }
+    tokens.push(classToken, schoolToken);
+    localStorage.setItem(FCM_TOKENS, JSON.stringify(tokens));
+  }
+
+  public static async unSubscribeToTopic(token: string): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
+    const subscribedTokens = localStorage.getItem(FCM_TOKENS);
+    let tokens: string[] = [];
+    if (!!subscribedTokens) {
+      tokens = JSON.parse(subscribedTokens) ?? [];
+    }
+    await FirebaseMessaging.unsubscribeFromTopic({
+      topic: token,
+    });
+    const newSubscribedTokens = tokens.filter((x) => x !== token);
+    localStorage.setItem(FCM_TOKENS, JSON.stringify(newSubscribedTokens));
+  }
+
+  public static async subscribeToClassTopicForAllStudents(
+    currentUser: User
+  ): Promise<void> {
+    const students: DocumentReference[] = currentUser.users;
+    if (!students || students.length < 1) return;
+    const api = ServiceConfig.getI().apiHandler;
+    for (let studentRef of students) {
+      if (!studentRef.id) continue;
+      api.getStudentResult(studentRef.id).then((studentProfile) => {
+        if (
+          !!studentProfile &&
+          !!studentProfile.classes &&
+          studentProfile.classes.length > 0 &&
+          studentProfile.classes.length === studentProfile.schools.length
+        ) {
+          for (let i = 0; i < studentProfile.classes.length; i++) {
+            const classId = studentProfile.classes[i];
+            const schoolId = studentProfile.schools[i];
+            if (!this.isClassTokenSubscribed(classId))
+              this.subscribeToClassTopic(classId, schoolId);
+          }
+        }
+      });
+    }
+  }
+
+  public static isClassTokenSubscribed(classId: string): boolean {
+    const subscribedTokens = localStorage.getItem(FCM_TOKENS);
+    let tokens = [];
+    if (!!subscribedTokens) {
+      tokens = JSON.parse(subscribedTokens) ?? [];
+    }
+    const foundToken = tokens.find((token: string) =>
+      token.startsWith(classId)
+    );
+    return !!foundToken;
+  }
+
+  public static async unSubscribeToClassTopicForAllStudents() {
+    const subscribedTokens = localStorage.getItem(FCM_TOKENS);
+    let tokens = [];
+    if (!!subscribedTokens) {
+      tokens = JSON.parse(subscribedTokens) ?? [];
+    }
+    for (let token of tokens) {
+      this.unSubscribeToTopic(token);
+    }
+  }
+
+  public static async getToken(): Promise<string | undefined> {
+    if (!Capacitor.isNativePlatform()) return;
+    const result = await FirebaseMessaging.getToken();
+    return result.token;
+  }
+
+  public static isTextFieldFocus(scollToRef, setIsInputFocus) {
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.addListener("keyboardWillShow", (info) => {
+        console.log("info", JSON.stringify(info));
+        setIsInputFocus(true);
+
+        setTimeout(() => {
+          scollToRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+            inline: "nearest",
+          });
+        }, 50);
+      });
+      Keyboard.addListener("keyboardWillHide", () => {
+        setIsInputFocus(false);
+      });
+    }
+  }
+
+  public static async startFlexibleUpdate(): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
+    try {
+      const canCheckUpdate = Util.canCheckUpdate(LAST_UPDATE_CHECKED);
+      console.log(
+        "🚀 ~ file: util.ts:473 ~ startFlexibleUpdate ~ canCheckUpdate:",
+        canCheckUpdate
+      );
+      if (!canCheckUpdate) return;
+      const result = await AppUpdate.getAppUpdateInfo();
+      console.log(
+        "🚀 ~ file: util.ts:471 ~ startFlexibleUpdate ~ result:",
+        JSON.stringify(result)
+      );
+      if (
+        result.updateAvailability !== AppUpdateAvailability.UPDATE_AVAILABLE
+      ) {
+        return;
+      }
+      if (result.flexibleUpdateAllowed) {
+        const appUpdateResult = await AppUpdate.startFlexibleUpdate();
+        console.log(
+          "🚀 ~ file: util.ts:482 ~ startFlexibleUpdate ~ appUpdateResult:",
+          JSON.stringify(appUpdateResult)
+        );
+        if (appUpdateResult.code === AppUpdateResultCode.OK) {
+          console.log(
+            "🚀 ~ file: util.ts:487 ~ startFlexibleUpdate ~ appUpdateResult.code:",
+            appUpdateResult.code
+          );
+          await AppUpdate.completeFlexibleUpdate();
+          console.log(
+            "🚀 ~ file: util.ts:492 ~ startFlexibleUpdate ~ completeFlexibleUpdate:"
+          );
+        }
+      }
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: util.ts:482 ~ startFlexibleUpdate ~ error:",
+        JSON.stringify(error)
+      );
+    }
+  }
+
+  public static async checkNotificationPermissions() {
+    if (!Capacitor.isNativePlatform()) return;
+    try {
+      const canCheckPermission = Util.canCheckUpdate(LAST_PERMISSION_CHECKED);
+      console.log(
+        "🚀 ~ file: util.ts:513 ~ checkNotificationPermissions ~ canCheckPermission:",
+        canCheckPermission
+      );
+      if (!canCheckPermission) return;
+      const result = await FirebaseMessaging.checkPermissions();
+      console.log(
+        "🚀 ~ file: util.ts:509 ~ checkNotificationPermissions ~ result:",
+        JSON.stringify(result)
+      );
+      if (result.receive === "granted") return;
+      const permissionStatus = await FirebaseMessaging.requestPermissions();
+      console.log(
+        "🚀 ~ file: util.ts:512 ~ checkNotificationPermissions ~ permissionStatus:",
+        JSON.stringify(permissionStatus)
+      );
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: util.ts:514 ~ checkNotificationPermissions ~ error:",
+        JSON.stringify(error)
+      );
+    }
+  }
+
+  public static canCheckUpdate(updateFor: string) {
+    const tempLastUpdateChecked = localStorage.getItem(updateFor);
+    const now = new Date();
+    let lastUpdateChecked: Date | undefined;
+    if (!!tempLastUpdateChecked) {
+      lastUpdateChecked = new Date(tempLastUpdateChecked);
+    }
+    if (!lastUpdateChecked) {
+      localStorage.setItem(updateFor, now.toString());
+      return true;
+    }
+    const lessThanOneHourAgo = (date) => {
+      const now: any = new Date();
+      const ONE_HOUR = 60 * 60 * 1000; /* ms */
+      const res = now - date < ONE_HOUR;
+      return res;
+    };
+    const _canCheckUpdate = !lessThanOneHourAgo(lastUpdateChecked);
+    if (_canCheckUpdate) {
+      localStorage.setItem(updateFor, now.toString());
+    }
+    return _canCheckUpdate;
   }
 }

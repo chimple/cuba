@@ -38,17 +38,26 @@ import {
   LANGUAGE,
   PAGES,
 } from "./common/constants";
-import { ServiceConfig, APIMode } from "./services/ServiceConfig";
+import { Util } from "./utility/util";
+import Parent from "./pages/Parent";
+import EditStudent from "./pages/EditStudent";
+import DisplayStudents from "./pages/DisplayStudents";
 // import Assignments from "./pages/Assignments";
+// import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
+import DisplaySubjects from "./pages/DisplaySubjects";
+import AppLangSelection from "./pages/AppLangSelection";
+import StudentProgress from "./pages/StudentProgress";
+import SearchLesson from "./pages/SearchLesson";
+import Leaderboard from "./pages/Leaderboard";
+import AssignmentPage from "./pages/Assignment";
 
 setupIonicReact();
 
 const App: React.FC = () => {
   useEffect(() => {
     console.log("fetching...");
-    localStorage.setItem(LANGUAGE, LANG.SIERRA_LEONE);
+    localStorage.setItem(LANGUAGE, LANG.ENGLISH);
     localStorage.setItem(IS_CUBA, "1");
-    ServiceConfig.getInstance(APIMode.FIREBASE);
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({
         directory: Directory.External,
@@ -66,12 +75,15 @@ const App: React.FC = () => {
             localStorage.setItem(GAME_URL, uri + "/");
           }
         });
-      CapApp.addListener("appStateChange", ({ isActive }) => {
-        if (isActive && window.location.pathname !== PAGES.GAME) {
-          window.location.reload();
-        }
-      });
+      CapApp.addListener("appStateChange", Util.onAppStateChange);
+      // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
     }
+
+    //Checking for flexible update in play-store
+    Util.startFlexibleUpdate();
+
+    //Checking for Notification permissions
+    Util.checkNotificationPermissions();
   }, []);
 
   return (
@@ -94,9 +106,36 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.PROFILE} exact={true}>
               <Profile />
             </ProtectedRoute>
-            {/* <Route path="/assignments" exact={true}>
-            <Assignments />
-          </Route> */}
+            <ProtectedRoute path={PAGES.PARENT} exact={true}>
+              <Parent />
+            </ProtectedRoute>
+            <Route path={PAGES.APP_LANG_SELECTION} exact={true}>
+              <AppLangSelection />
+            </Route>
+            <ProtectedRoute path={PAGES.CREATE_STUDENT} exact={true}>
+              <EditStudent />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.EDIT_STUDENT} exact={true}>
+              <EditStudent />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.DISPLAY_STUDENT} exact={true}>
+              <DisplayStudents />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.DISPLAY_SUBJECTS} exact={true}>
+              <DisplaySubjects />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.STUDENT_PROGRESS} exact={true}>
+              <StudentProgress />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SEARCH} exact={true}>
+              <SearchLesson />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.LEADERBOARD} exact={true}>
+              <Leaderboard />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ASSIGNMENT} exact={true}>
+              <AssignmentPage />
+            </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
       </IonReactRouter>

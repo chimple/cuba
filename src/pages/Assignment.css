@@ -1,0 +1,60 @@
+.assignment-main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--ion-background-color);
+}
+
+.lesson-body {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  color: var(--text-color);
+
+}
+
+.classname-header {
+  font-size: clamp(18px, 3.1vh, 25px);
+  font-weight: bold;
+}
+
+.assignment-body {
+  margin-top: 10vh;
+}
+
+.assignment-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  justify-content: space-between;
+  margin: var(--margin);
+}
+
+.right-button {
+  width: 8vh;
+}
+
+.pending-assignment {
+  display: flex;
+  position: relative;
+  height: 100vh;
+  top: 40vh;
+
+}
+
+.school-class-header {
+  display: flex;
+  gap: 1vw;
+  padding-left: 42vw;
+  color:black;
+}
+
+#assignment-back-button {
+  position: absolute;
+  margin: var(--margin);
+}
+
+.scroll-header {
+  overflow: scroll;
+}

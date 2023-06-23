@@ -1,7 +1,7 @@
 import ChapterDropDown from "./ChapterDropDown";
 import "./ChapterBar.css";
 import { Chapter } from "../interface/curriculumInterfaces";
-import GradeDropDown from "./GradeDropDown";
+import DropDown from "./DropDown";
 
 const ChapterBar: React.FC<{
   chapters: Chapter[];
@@ -9,8 +9,11 @@ const ChapterBar: React.FC<{
   onChapterChange;
   onGradeChange;
   showGrade: boolean;
-  grades:string[];
-  currentGrade:string
+  grades: ({
+    id: string;
+    displayName: string;
+  })[];
+  currentGrade: string;
 }> = ({
   chapters,
   currentChapter: currentChapter,
@@ -18,7 +21,7 @@ const ChapterBar: React.FC<{
   onGradeChange,
   showGrade,
   currentGrade,
-  grades
+  grades,
 }) => {
   return (
     <div className="bar-header">
@@ -29,10 +32,12 @@ const ChapterBar: React.FC<{
       />
       <div className="right">
         {showGrade ? (
-          <GradeDropDown
-            grades={grades}
-            currentGrade={currentGrade}
-            onGradeChange={onGradeChange}
+          <DropDown
+            width="5vw"
+            placeholder=""
+            optionList={grades}
+            currentValue={currentGrade}
+            onValueChange={onGradeChange}
           />
         ) : null}
       </div>

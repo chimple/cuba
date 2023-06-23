@@ -1,0 +1,30 @@
+#parent-header-icons {
+    display: flex;
+    /* margin: 1% 1.5% 1% 1.5%; */
+    justify-content: flex-start;
+    align-items: center;
+    /* margin: var(--margin); */
+}
+
+#parent-header-middle-icons {
+    display: flex;
+    justify-content: space-between;
+    width: 80vw;
+    /* width: 30vw; */
+    margin: 0 auto
+}
+
+#parent-header-middle-icons div {
+    padding-right: 1%
+}
+
+#parent-header-puzzle-icon {
+    margin-left: -10px;
+}
+
+.parent-header-indicator {
+    color: white;
+    font-size: 18px;
+    text-align: center;
+    line-height: 1;
+}

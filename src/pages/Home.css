@@ -1,5 +1,6 @@
 #home-header {
   position: initial !important;
+  /* margin: clamp(10px,10vh,20px); */
 }
 
 div p {
@@ -17,4 +18,13 @@ div p {
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
+}
+
+#home-leaderboard-button {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  font-size: var(--text-size);
+  color: var(--text-color);
+  margin-right: 2vw;
 }

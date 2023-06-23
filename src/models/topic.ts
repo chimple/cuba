@@ -1,5 +1,5 @@
 import BaseObject from "./baseObject";
-import { DocumentReference } from "firebase/firestore";
+import { DocumentReference, Timestamp } from "firebase/firestore";
 
 export default class Topic extends BaseObject {
   private _description: string;
@@ -10,8 +10,8 @@ export default class Topic extends BaseObject {
     description: string,
     title: string,
     subject: DocumentReference,
-    dateLastModified: string,
-    createdAt: string,
+    dateLastModified: Timestamp,
+    createdAt: Timestamp,
     docId: string
   ) {
     super(dateLastModified, createdAt, docId);

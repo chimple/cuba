@@ -1,0 +1,45 @@
+.join-class-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  margin-top: 15vh;
+}
+
+.join-class-title {
+  font-size: var(--text-size);
+}
+
+.join-class-text-box {
+  width: 100%;
+  height: max(6vh, 5vw);
+  padding: 2vh;
+  border-radius: 1.1vw;
+  border: hidden;
+  outline: none;
+  margin-top: 1vh;
+  background-color: white;
+  color: #05342f;
+}
+
+.error-text {
+  color: red;
+  font-size: var(--text-size);
+}
+
+.okay-button {
+  color: white !important;
+  border-radius: var(--border-radius) !important;
+  padding: 4% 0% !important;
+  width: 50%;
+  font-size: var(--text-size);
+  text-align: center;
+  background-color: #83c327;
+  margin-top: 5%;
+  cursor: pointer;
+}
+
+.okay-button:disabled {
+  opacity: 0.5;
+}

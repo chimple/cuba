@@ -4,7 +4,7 @@ import { DocumentReference, Timestamp } from "firebase/firestore";
 export default class Assignment extends BaseObject {
   private _assigner: DocumentReference;
   private _class: DocumentReference;
-  private _completedStudent: string[];
+  private _completedStudents: string[];
   private _description: string;
   private _dueDate: Timestamp;
   private _lesson: DocumentReference;
@@ -12,11 +12,13 @@ export default class Assignment extends BaseObject {
   private _resultValueMin: number;
   private _results: object;
   private _school: DocumentReference;
+  private _course: DocumentReference;
 
   constructor(
     assigner: DocumentReference,
     class_1: DocumentReference,
-    completedStudent: string[],
+    course: DocumentReference,
+    completedStudents: string[],
     description: string,
     dueDate: Timestamp,
     lesson: DocumentReference,
@@ -24,14 +26,14 @@ export default class Assignment extends BaseObject {
     resultValueMin: number,
     results: object,
     school: DocumentReference,
-    dateLastModified: string,
-    createdAt: string,
+    dateLastModified: Timestamp,
+    createdAt: Timestamp,
     docId: string
   ) {
     super(dateLastModified, createdAt, docId);
     this._assigner = assigner;
     this._class = class_1;
-    this._completedStudent = completedStudent;
+    this._completedStudents = completedStudents;
     this._description = description;
     this._dueDate = dueDate;
     this._lesson = lesson;
@@ -39,6 +41,7 @@ export default class Assignment extends BaseObject {
     this._resultValueMin = resultValueMin;
     this._results = results;
     this._school = school;
+    this._course = course;
   }
 
   public get assigner(): DocumentReference {
@@ -53,11 +56,11 @@ export default class Assignment extends BaseObject {
   public set class(value: DocumentReference) {
     this._class = value;
   }
-  public get completedStudent(): string[] {
-    return this._completedStudent;
+  public get completedStudents(): string[] {
+    return this._completedStudents;
   }
-  public set completedStudent(value: string[]) {
-    this._completedStudent = value;
+  public set completedStudents(value: string[]) {
+    this._completedStudents = value;
   }
   public get description(): string {
     return this._description;
@@ -100,5 +103,11 @@ export default class Assignment extends BaseObject {
   }
   public set school(value: DocumentReference) {
     this._school = value;
+  }
+  public get course(): DocumentReference {
+    return this._course;
+  }
+  public set course(value: DocumentReference) {
+    this._course = value;
   }
 }

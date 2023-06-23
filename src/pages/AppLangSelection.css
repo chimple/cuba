@@ -1,0 +1,38 @@
+#app-lang {
+    /* background-color: ; */
+    text-align: center;
+    margin: var(--margin);
+    margin-bottom: 0;
+    
+}
+#App-lang-nextButton{
+    right: 0;
+    position: absolute
+}
+#app-lang-chimple-logo {
+    /* margin-top: 1%; */
+    text-align: center;
+    width: auto;
+    height: 25vh;
+}
+
+#app-lang-element {
+   
+    /* text-align:initial;
+    margin-left: 38vw;
+    gap: 5vw; */
+    display: flex;
+    /* width: 22vw; */
+    flex-direction: column;
+    align-items: center;
+}
+
+#app-lang-text {
+    /* color: white; */
+    font-size: var(--text-size);
+    padding-top: 4vh;
+    color: var(--text-color);
+    margin-bottom: 2vh;
+}
+
+

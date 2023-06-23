@@ -1,0 +1,17 @@
+.text-box {
+    /* width: 100%; */
+    height: max(6vh, 5vw);
+    padding: 2vh;
+    border-radius: 1.1vw;
+    border: hidden;
+    outline: none;
+    margin-top: 1vh;
+    background-color: white;
+    color: #05342f;
+    overflow-y:scroll;
+  }
+ #scroll{
+    height: 57vh;
+    background-color:#cbdcff;
+    overflow: scroll;
+  }

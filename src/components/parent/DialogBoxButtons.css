@@ -1,0 +1,37 @@
+/* .alert-wrapper.sc-ion-alert-md {
+  background-color: white;
+  color: black;
+  max-width: 40vw !important;
+  max-height: 60vh !important;
+  padding: 5vh 0vh;
+  border-radius: 2.5vw;
+}
+
+.alert-head.sc-ion-alert-md {
+  text-align: center;
+  padding-bottom: 15%;
+}
+
+.alert-button-group.sc-ion-alert-md {
+  justify-content: space-around;
+} */
+
+.dialog-box-button-style {
+  color: white !important;
+  border-radius: var(--border-radius) !important;
+  padding: 2% 0% !important;
+  width: 45%;
+  font-size: 4vh;
+  text-align: center;
+  /* font-size: var(--text-size) !important; */
+}
+
+#no-button {
+  background-color: #83c327;
+  opacity: 0.9;
+}
+
+#yes-button {
+  background: #F72121  !important;
+  opacity: 0.5;
+}
