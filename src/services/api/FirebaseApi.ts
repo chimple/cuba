@@ -848,7 +848,6 @@ export class FirebaseApi implements ServiceApi {
     });
     return courses;
   }
-
   public async deleteAllUserData(): Promise<void> {
     const functions = getFunctions();
     const deleteAllUserDataFunction = httpsCallable(
@@ -856,5 +855,11 @@ export class FirebaseApi implements ServiceApi {
       "DeleteAllUserData"
     );
     await deleteAllUserDataFunction();
+  }
+  get currentStudent(): User | undefined {
+    return this._currentStudent;
+  }
+  set currentStudent(value: User | undefined) {
+    this._currentStudent = value;
   }
 }
