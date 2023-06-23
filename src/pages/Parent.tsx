@@ -31,6 +31,7 @@ import { blue, red, green } from "@mui/material/colors";
 import { common } from "@mui/material/colors";
 import BackButton from "../components/common/BackButton";
 import { useHistory } from "react-router-dom";
+import DeleteParentAccount from "../components/parent/DeleteParentAccount";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
@@ -159,6 +160,7 @@ const Parent: React.FC = () => {
               onValueChange={async (selectedLangDocId) => {
                 // setIsLoading(true);
                 const api = ServiceConfig.getI().apiHandler;
+                // api.deleteAllUserData
                 const langDoc = await api.getLanguageWithId(selectedLangDocId);
                 console.log("langDoc", langDoc);
                 if (!langDoc) return;
@@ -226,8 +228,13 @@ const Parent: React.FC = () => {
             ></ToggleButton>
           </div>
         </div>
-        <div id="parent-logout">
-          <ParentLogout />
+        <div id="logout-delete-button">
+          <div id="parent-logout">
+            <ParentLogout />
+          </div>
+          <div id="parent-delete">
+            <DeleteParentAccount />
+          </div>
         </div>
       </div>
     );
@@ -296,7 +303,7 @@ const Parent: React.FC = () => {
                 title="YouTube video player"
                 // frameborder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              // allowfullscreen
+                // allowfullscreen
               ></iframe>
             </div>
           </div>
@@ -432,10 +439,10 @@ const Parent: React.FC = () => {
               value="profile"
               label={t("profile")}
               id="parent-page-tab-bar"
-            // sx={{
-            //   // fontSize:"5vh"
-            //   marginRight: "5vw",
-            // }}
+              // sx={{
+              //   // fontSize:"5vh"
+              //   marginRight: "5vw",
+              // }}
             />
             <Tab
               id="parent-page-tab-bar"
