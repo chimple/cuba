@@ -18,6 +18,7 @@ export default class User extends BaseObject {
   private _avatar: string | undefined;
   private _soundFlag: boolean | undefined;
   private _musicFlag: boolean | undefined;
+  static avatar: string;
 
   constructor(
     username: string,
@@ -37,7 +38,7 @@ export default class User extends BaseObject {
     createdAt: Timestamp,
     docId: string,
     soundFlag: boolean = true,
-    musicFlag: boolean = true,
+    musicFlag: boolean = true
   ) {
     super(dateLastModified, createdAt, docId);
     this._username = username;
@@ -55,7 +56,6 @@ export default class User extends BaseObject {
     this._avatar = avatar;
     this._soundFlag = soundFlag;
     this._musicFlag = musicFlag;
-
   }
   public get username(): string {
     return this._username;

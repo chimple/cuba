@@ -264,6 +264,7 @@ export enum MODES {
   TEACHER,
 }
 
+export const CURRENT_STUDENT = "currentStudent";
 export enum EVENTS {
   LESSON_END = "lesson_end",
 }

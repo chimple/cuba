@@ -13,6 +13,7 @@ import {
   SELECTED_GRADE,
   HeaderIconConfig,
   HEADER_ICON_CONFIGS,
+  CURRENT_STUDENT,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -66,7 +67,8 @@ const Home: FC = () => {
 
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
-    const currentStudent = await api.currentStudent;
+    const currentStudent = await Util.getCurrentStudent();
+
     if (!currentStudent) {
       // history.replace(PAGES.DISPLAY_STUDENT);
       history.replace(PAGES.SELECT_MODE);
@@ -173,13 +175,13 @@ const Home: FC = () => {
     };
     let sortLessonResultMap:
       | {
-        [lessonDocId: string]: StudentLessonResult;
-      }
+          [lessonDocId: string]: StudentLessonResult;
+        }
       | undefined;
-    api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
-      console.log("tempResultLessonMap = res;", res);
-      tempResultLessonMap = res;
-      setLessonResultMap(res);
+    api.getStudentResult(currentStudent.docId).then(async (res) => {
+      console.log("tempResultLessonMap = res;", JSON.stringify(res));
+      tempResultLessonMap = res?.lessons;
+      setLessonResultMap(res?.lessons);
       if (tempResultLessonMap) {
         console.log("tempResultLessonMap", tempResultLessonMap);
         sortLessonResultMap = sortLessonResultByDate(tempResultLessonMap);

@@ -81,7 +81,6 @@ export interface ServiceApi {
   get currentStudent(): User | undefined;
 
   set currentStudent(value: User | undefined);
-
   updateSoundFlag(user: User, value: boolean);
   updateMusicFlag(user: User, value: boolean);
   updateLanguage(user: User, value: string);

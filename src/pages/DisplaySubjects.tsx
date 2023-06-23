@@ -16,6 +16,7 @@ import SelectChapter from "../components/displaySubjects/SelectChapter";
 import LessonSlider from "../components/LessonSlider";
 import Grade from "../models/grade";
 import BackButton from "../components/common/BackButton";
+import { Util } from "../utility/util";
 
 const localData: any = {};
 const DisplaySubjects: FC<{}> = () => {
@@ -78,7 +79,7 @@ const DisplaySubjects: FC<{}> = () => {
 
   const getCourses = async (): Promise<Course[]> => {
     setIsLoading(true);
-    const currentStudent = api.currentStudent;
+    const currentStudent = await Util.getCurrentStudent();
     if (!currentStudent) {
       // history.replace(PAGES.DISPLAY_STUDENT);
       history.replace(PAGES.SELECT_MODE);
