@@ -200,27 +200,22 @@ const SelectMode: FC = () => {
             </div>
 
             <div className="class-container">
-              {currentClasses?.map((Class) => (
+              {currentClasses?.map((tempClass) => (
                 <div
-                  key={Class.docId}
+                  key={tempClass.docId}
                   onClick={async () => {
-                    if (!Class) return;
+                    if (!tempClass) return;
 
-                    console.log("This is the selected class " + Class);
-                    setCurrClass(Class);
+                    console.log("This is the selected class " + tempClass);
+                    setCurrClass(tempClass);
 
-                    await displayStudents(Class);
+                    await displayStudents(tempClass);
                     setStage(STAGES.STUDENT);
                   }}
                   className="class-avatar"
                 >
-                  {/* <img
-                    className="class-avatar-img"
-                    src={"assets/avatars/" + AVATARS[0] + ".png"}
-                    alt=""
-                  /> */}
                   <div className="class-avatar-counter">{count++}</div>
-                  <span className="class-name">{Class.name}</span>
+                  <span className="class-name">{tempClass.name}</span>
                 </div>
               ))}
             </div>
@@ -246,21 +241,23 @@ const SelectMode: FC = () => {
             </div>
 
             <div className="class-container">
-              {currentStudents?.map((Student) => (
+              {currentStudents?.map((tempStudent) => (
                 <div
-                  key={Student.docId}
+                  key={tempStudent.docId}
                   onClick={() => {
-                    setCurrStudent(Student);
+                    setCurrStudent(tempStudent);
                     // setStage(STAGES.STUDENT);
-                    onStudentClick(Student);
-                    console.log("This is the selected student " + Student.name);
+                    onStudentClick(tempStudent);
+                    console.log(
+                      "This is the selected student " + tempStudent.name
+                    );
                   }}
                   className="class-avatar"
                 >
-                  {!!Student.image ? (
+                  {!!tempStudent.image ? (
                     <img
                       className="class-avatar-img"
-                      src={Student.image}
+                      src={tempStudent.image}
                       alt=""
                     />
                   ) : (
@@ -268,13 +265,13 @@ const SelectMode: FC = () => {
                       className="class-avatar-img"
                       src={
                         "assets/avatars/" +
-                        (Student.avatar ?? AVATARS[randomValue()]) +
+                        (tempStudent.avatar ?? AVATARS[randomValue()]) +
                         ".png"
                       }
                       alt=""
                     />
                   )}
-                  <span className="class-name">{Student.name}</span>
+                  <span className="class-name">{tempStudent.name}</span>
                 </div>
               ))}
             </div>

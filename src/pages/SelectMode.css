@@ -80,7 +80,7 @@
   background-color: white;
   color: black;
   /* font-weight: bold; */
-  font-size: clamp(16px, 36px, 42px);
+  font-size: clamp(36px, 10vh, 56px);
   display: flex;
 
   justify-content: center;

@@ -161,7 +161,6 @@ const EditStudent = () => {
   return (
     <IonPage id="Edit-student-page">
       <div id="next-button">
-      
         <NextButton
           disabled={!isNextButtonEnabled()}
           onClicked={onNextButton}

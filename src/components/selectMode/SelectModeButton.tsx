@@ -16,4 +16,4 @@ const SelectModeButton: FC<{
   );
 };
 
-export default SelectModeButton;    
+export default SelectModeButton;
