@@ -9,14 +9,11 @@
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
-     /* min-width: 170px; */
-    /* max-width: 250px; */
-    /* min-height: 50px; */
-    /* max-height: 65px;  */
-    min-width: 10vw;
-    max-width: 20vw;
-    min-height: 6vh;
-    max-height: 9vh;
+     min-width: 170px; 
+    max-width: 250px;
+     min-height: 50px; 
+     max-height: 65px; 
+  
   }
   
   .select-mode-btn-text {

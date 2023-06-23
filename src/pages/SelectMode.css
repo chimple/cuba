@@ -1,77 +1,61 @@
 .select-mode-main {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 85vh;
-    justify-content: center;
-    gap: 3vh;
-    color: var(--text-color);
-    background: var(--ion-background-color);
-   
-  }
-  
-  .select-mode-text {
-    margin-bottom: 3vh;
-    font-size: clamp(10px, 4vh, 30px);
-  }
- 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 85vh;
+  justify-content: center;
+  gap: 3vh;
+  color: var(--text-color);
+  background: var(--ion-background-color);
+}
 
+.select-mode-text {
+  margin-bottom: 3vh;
+  font-size: clamp(10px, 4vh, 30px);
+}
 
-
-
-
-
-
-  .select-school-main {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 85vh;
-    justify-content: center;
-    gap: 3vh;
-    color: var(--text-color);
-    background: var(--ion-background-color);
-   
-  }
+.select-school-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 85vh;
+  justify-content: center;
+  gap: 3vh;
+  color: var(--text-color);
+  background: var(--ion-background-color);
+}
 .select-school-text {
-    margin-bottom: 3vh;
-    font-size: clamp(10px, 4vh, 30px);
-  }
-  .okay-btn {
-    color: white !important;
-    border-radius: var(--border-radius) !important;
-    padding: 1% 0% !important;
-    width: 20%;
-    height: 10%;
-    font-size: var(--text-size);
-    text-align: center;
-    background-color: #83c327;
-    margin-top: 2%;
-    cursor: pointer;
+  margin-bottom: 3vh;
+  font-size: clamp(10px, 4vh, 30px);
+}
+.okay-btn {
+  color: white !important;
+  border-radius: var(--border-radius) !important;
+  padding: 1% 0% !important;
+  width: 20%;
+  height: 10%;
+  font-size: var(--text-size);
+  text-align: center;
+  background-color: #83c327;
+  margin-top: 2%;
+  cursor: pointer;
+}
 
-  }
-
-
-
-
-
-
-
-  .class-main {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    background: var(--ion-background-color);
-  }
-  .class-header{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: row;
-    justify-content: space-between;
-    margin: var(--margin);
-  }
-  /* .circle{
+.class-main {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--ion-background-color);
+}
+.class-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  justify-content: space-between;
+  margin: var(--margin);
+}
+/* .circle{
     position: absolute;
     top: 20%;
     left: 20%;
@@ -81,56 +65,52 @@
     border: 2px solid red;
   } */
 
-
-
-  .class-container{
-    width: 90%;
-    /* height: 80%; */
-    margin: 0 auto;
-    /* gap: 10vh; */
-    align-items: center;
-    justify-items: center;
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    flex-wrap: wrap;
-    justify-content: center;
-    overflow-y: scroll;
-  }
-  .class-container::-webkit-scrollbar {
-    display: none;
+.class-container {
+  width: 90%;
+  /* height: 80%; */
+  margin: 0 auto;
+  /* gap: 10vh; */
+  align-items: center;
+  justify-items: center;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  flex-wrap: wrap;
+  justify-content: center;
+  overflow-y: scroll;
+}
+.class-container::-webkit-scrollbar {
+  display: none;
 }
 
-  
-  .class-avatar-counter{
-    width: 10vw;
-    height: 10vw;
-    border-radius: 100%;
-    background-color: white;
-    color: black;
-    /* font-weight: bold; */
-    font-size: 10vh;
-    display: flex;
-    
-    justify-content: center;
-    align-items: center;
+.class-avatar-counter {
+  width: 10vw;
+  height: 10vw;
+  border-radius: 100%;
+  background-color: white;
+  color: black;
+  /* font-weight: bold; */
+  font-size: clamp(16px, 36px, 42px);
+  display: flex;
 
-  }
-  .class-avatar {
-    display: flex;
-    flex-direction: column;
-    /* grid-row: auto; */
-    /* border: 2px solid red; */
-    align-items: center;
-    cursor: pointer;
-    font-size: var(--text-size);
-    color: #05342f;
-    margin: 5% 5%;
-  }
-  
-  .class-name {
-    white-space:nowrap;
-    display: block;
-    max-width: 20vh;
-    text-overflow: ellipsis;
-    overflow: hidden;
-  }
+  justify-content: center;
+  align-items: center;
+}
+.class-avatar {
+  display: flex;
+  flex-direction: column;
+  /* grid-row: auto; */
+  /* border: 2px solid red; */
+  align-items: center;
+  cursor: pointer;
+  font-size: var(--text-size);
+  color: #05342f;
+  margin: 5% 5%;
+}
+
+.class-name {
+  white-space: nowrap;
+  display: block;
+  max-width: 20vh;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}

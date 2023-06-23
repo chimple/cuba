@@ -49,7 +49,8 @@ const SelectMode: FC = () => {
   useEffect(() => {
     init();
   }, []);
-  const api = FirebaseApi.getInstance();
+  // const api = FirebaseApi.getInstance();
+  const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
 
