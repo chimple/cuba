@@ -176,7 +176,7 @@ const EditStudent = () => {
         <div id="common-div">
           <ChimpleLogo
             header={t("Welcome to Chimple!")}
-            msg={t("Please create your child profile").toString()}
+            msg={t("").toString()}
           />
         </div>
         {stage === STAGES.NAME && (
@@ -188,7 +188,7 @@ const EditStudent = () => {
         )}
       </div>
       {stage === STAGES.AVATAR && (
-        <div className="avatar-title">{t("Select Child Avatar:")}</div>
+        <div className="avatar-title">{t("Choose an avatar for your child")}</div>
       )}
       <div className="content">
         {stage === STAGES.GENDER_AND_AGE && (
@@ -203,7 +203,9 @@ const EditStudent = () => {
           <SelectAvatar avatar={avatar} onAvatarChange={setAvatar} />
         )}
         {stage === STAGES.GRADE && (
-          <GradeBoardAndLangDropdown
+          <div>
+            <p>{t("Choose your child’s class details").toString()}</p>
+            <GradeBoardAndLangDropdown
             boards={boards}
             grades={grades}
             languages={languages}
@@ -214,6 +216,7 @@ const EditStudent = () => {
             currentlySelectedGrade={grade}
             currentlySelectedLang={language}
           />
+          </div>
         )}
       </div>
       <Loading isLoading={isLoading} />
