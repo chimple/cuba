@@ -472,6 +472,7 @@ export class Util {
   public static async subscribeToClassTopicForAllStudents(
     currentUser: User
   ): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
     const students: DocumentReference[] = currentUser.users;
     if (!students || students.length < 1) return;
     const api = ServiceConfig.getI().apiHandler;
