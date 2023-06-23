@@ -169,14 +169,14 @@ const Login: React.FC = () => {
         setSpinnerLoading(false);
         // setIsLoading(false);
       } else {
-        console.log("Phone Number signin Failed");
+        console.log("Phone Number signin Failed ");
         setSpinnerLoading(false);
-        alert("Phone Number signin Failed" + authRes);
+        alert("Phone Number signin Failed " + authRes);
       }
     } catch (error) {
-      console.log("Phone Number signin Failed");
+      console.log("Phone Number signin Failed ");
       setSpinnerLoading(false);
-      alert("Phone Number signin Failed" + error);
+      alert("Phone Number signin Failed " + error);
       console.log(
         "window.recaptchaVerifier",
         // window.recaptchaVerifier,
