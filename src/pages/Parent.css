@@ -67,11 +67,11 @@
   display: flex;
   text-align: center;
   flex-flow: column;
-  height: 86vh;
+  height: 81vh;
   justify-content: space-between;
+  row-gap: 0.5vh;
+
 }
-
-
 
 #parent-page-help-title {
   font-weight: bolder;
@@ -79,7 +79,17 @@
   font-size: var(--text-size);
   font-family: "Balooregular";
   color: #182A4F;
-  margin: 1% 0% 0%;
+  margin: 1% 0% 0.5% 0%;
+}
+
+#parent-page-help-title-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-content: space-between;
+  row-gap: clamp(0vh, 4vh, 12vh);
+  width: 100%;
+  min-height: 100%;
+  justify-content: space-between
 }
 
 #parent-page-help-title-e1 {
@@ -95,23 +105,25 @@
   padding: 0%;
   text-align: center;
   font-weight: bolder;
-  width: 50vw;
+  width: 50%;
+  font-size: 4vh;
   /* height: auto; */
-  height: 51vh;
+  height: 52%;
   border-radius: 3vh;
   overflow: hidden;
 }
 
 #parent-page-help-title-e2-video {
-  width: 85%;
+  width: 88%;
   /* height: 90%; */
-  /* height: 40vh; */
+  height: auto;
 }
 
 #parent-page-help-title-e2-video-youtude {
-  width: 43vw;
-  height: 40vh;
+  width: 100%;
+  height: 32vh;
   margin-left: 7.5%;
+  margin-bottom: 3vh;
 }
 
 #parent-page-help-title-e3 {
@@ -121,6 +133,7 @@
   align-items: center;
   border-radius: 2vh;
   background-color: white;
+  width: 80%;
 }
 
 #parent-page-help-share-button {
@@ -135,6 +148,8 @@
   /* height: 15%; */
   padding: 0.5% 1%;
   font-size: var(--text-size);
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 #parent-page-help-share-button-e3 {
@@ -157,6 +172,7 @@
   margin-top: 10vh;
 }
 
+
 #parent-page-tab-bar {
   margin-right: 2vh;
   font-size: var(--text-size);
@@ -172,4 +188,5 @@
   margin: var(--margin);
   margin-right: 0;
 
+  /* color: black; */
 }

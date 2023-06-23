@@ -5,6 +5,7 @@ import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
 import {
+  CURRENT_STUDENT,
   BUNDLE_URL,
   COURSES,
   CURRENT_LESSON_LEVEL,
@@ -29,9 +30,9 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
 import { FirebaseAnalytics } from "@capacitor-firebase/analytics";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
+import { DocumentReference, doc, getFirestore } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
 import { Keyboard } from "@capacitor/keyboard";
-import { DocumentReference } from "firebase/firestore";
 import {
   AppUpdate,
   AppUpdateAvailability,
@@ -44,9 +45,43 @@ declare global {
     _CCSettings: any;
   }
 }
-
 export class Util {
   public static port: PortPlugin;
+
+  public static getCurrentStudent(): User | undefined {
+    const api = ServiceConfig.getI().apiHandler;
+    if (!!api.currentStudent) return api.currentStudent;
+    const temp = localStorage.getItem(CURRENT_STUDENT);
+
+    if (!temp) return;
+    const currentStudent = JSON.parse(temp) as User;
+    function getRef(ref): DocumentReference {
+      const db = getFirestore();
+      const newCourseRef = doc(
+        db,
+        ref["_key"].path.segments.at(-2),
+        ref["_key"].path.segments.at(-1)
+      );
+      return newCourseRef;
+    }
+
+    function convertDoc(refs: any[]): DocumentReference[] {
+      const data: DocumentReference[] = [];
+      for (let ref of refs) {
+        const newCourseRef = getRef(ref);
+
+        data.push(newCourseRef);
+      }
+      return data;
+    }
+    currentStudent.courses = convertDoc(currentStudent.courses);
+    currentStudent.users = convertDoc(currentStudent.users);
+    currentStudent.grade = getRef(currentStudent.grade);
+    currentStudent.language = getRef(currentStudent.language);
+    currentStudent.board = getRef(currentStudent.board);
+    api.currentStudent = currentStudent;
+    return currentStudent;
+  }
 
   public static getGUIDRef(map: any): GUIDRef {
     return { href: map?.href, sourcedId: map?.sourcedId, type: map?.type };
@@ -80,9 +115,9 @@ export class Util {
 
         console.log(
           "before local lesson Bundle http url:" +
-          "assets/" +
-          lessonId +
-          "/index.js"
+            "assets/" +
+            lessonId +
+            "/index.js"
         );
 
         const fetchingLocalBundle = await fetch(
@@ -90,9 +125,9 @@ export class Util {
         );
         console.log(
           "after local lesson Bundle fetch url:" +
-          "assets/" +
-          lessonId +
-          "/index.js",
+            "assets/" +
+            lessonId +
+            "/index.js",
           fetchingLocalBundle.ok,
           fetchingLocalBundle.json,
           fetchingLocalBundle
@@ -102,35 +137,35 @@ export class Util {
 
         console.log("fs", fs);
         const url = BUNDLE_URL + lessonId + ".zip";
-        const zip = await Http.get({ url: url, responseType: "blob" });
-        if (zip instanceof Object) {
-          console.log("unzipping ");
-          const buffer = Uint8Array.from(atob(zip.data), (c) =>
-            c.charCodeAt(0)
-          );
-          await unzip({
-            fs: fs,
-            extractTo: lessonId,
-            filepaths: ["."],
-            filter: (filepath: string) =>
-              filepath.startsWith("dist/") === false,
-            onProgress: (event) =>
-              console.log(
-                "event unzipping ",
-                event.total,
-                event.filename,
-                event.isDirectory,
-                event.loaded
-              ),
-            data: buffer,
-          });
+        console.log("const url", url);
+        const zip = fetch(url).then(async (response) => {
+          if (response instanceof Object) {
+            console.log("unzipping ", response);
+            const zipblob = await response.blob();
+            const zipArrBuff = await zipblob.arrayBuffer();
+            await unzip({
+              fs: fs,
+              extractTo: lessonId,
+              filepaths: ["."],
+              filter: (filepath: string) =>
+                filepath.startsWith("dist/") === false,
+              onProgress: (event) =>
+                console.log(
+                  "event unzipping ",
+                  event.total,
+                  event.filename,
+                  event.isDirectory,
+                  event.loaded
+                ),
+              data: zipArrBuff,
+            });
 
-          console.log("un  zip done");
-        }
-
+            console.log("un  zip done");
+          }
+        });
         console.log("zip ", zip);
       } catch (error) {
-        console.log("errpor", error);
+        console.log("error", error);
         return false;
       }
     }
@@ -343,13 +378,34 @@ export class Util {
       window.location.reload();
     }
   };
-
   public static setCurrentStudent = async (
     student: User,
     languageCode: string | undefined = undefined
   ) => {
     const api = ServiceConfig.getI().apiHandler;
     api.currentStudent = student;
+
+    localStorage.setItem(
+      CURRENT_STUDENT,
+      JSON.stringify({
+        age: student.age ?? null,
+        avatar: student.avatar ?? null,
+        board: student.board ?? null,
+        courses: student.courses,
+        createdAt: student.createdAt,
+        dateLastModified: student.dateLastModified,
+        gender: student.gender ?? null,
+        grade: student.grade ?? null,
+        image: student.image ?? null,
+        language: student.language ?? null,
+        name: student.name,
+        role: student.role,
+        uid: student.uid,
+        username: student.username,
+        users: student.users,
+        docId: student.docId,
+      })
+    );
     if (!languageCode && !!student.language?.id) {
       const langDoc = await api.getLanguageWithId(student.language.id);
       if (langDoc) {
@@ -468,7 +524,6 @@ export class Util {
     return result.token;
   }
 
-
   public static isTextFieldFocus(scollToRef, setIsInputFocus) {
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
@@ -585,4 +640,3 @@ export class Util {
     return _canCheckUpdate;
   }
 }
-

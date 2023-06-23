@@ -254,7 +254,7 @@ export const NUMBER_NAME = [
 
 export const MAX_STUDENTS_ALLOWED = 3;
 export const INSTANT_SEARCH_INDEX_NAME = "lesson_cuba";
-
+export const CURRENT_STUDENT = "currentStudent";
 export enum EVENTS {
   LESSON_END = "lesson_end",
 }

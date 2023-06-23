@@ -13,6 +13,7 @@ import LessonSlider from "../components/LessonSlider";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
 import StudentNameBox from "../components/editStudent/StudentNameBox";
+import { Util } from "../utility/util";
 import { Keyboard } from "@capacitor/keyboard";
 import { Capacitor } from "@capacitor/core";
 import { StudentLessonResult } from "../common/courseConstants";
@@ -37,7 +38,7 @@ const AssignmentPage: React.FC = () => {
   const init = async (fromCache: boolean = true) => {
     setLoading(true);
 
-    const student = api.currentStudent;
+    const student = await Util.getCurrentStudent();
     if (!student) {
       history.replace(PAGES.DISPLAY_STUDENT);
       return;
@@ -113,7 +114,7 @@ const AssignmentPage: React.FC = () => {
   return (
     <IonPage>
       <div className="assignment-main">
-        <div id="assignment-back-button" >
+        <div id="assignment-back-button">
           <BackButton
             onClicked={() => {
               history.replace(PAGES.HOME);
@@ -123,18 +124,17 @@ const AssignmentPage: React.FC = () => {
 
         <div
           className={
-            "header " + isInputFocus && !isLinked
-              ? "scroll-header"
-              : ""
+            "header " + isInputFocus && !isLinked ? "scroll-header" : ""
           }
         >
           <div className="assignment-header">
             <div className="school-class-header">
               <div className="classname-header">{schoolName}</div>
-              <div className="classname-header">{currentClass?.name ? currentClass?.name : ""}</div>
+              <div className="classname-header">
+                {currentClass?.name ? currentClass?.name : ""}
+              </div>
             </div>
             <div className="right-button"></div>
-
           </div>
 
           {!loading && (
@@ -145,7 +145,6 @@ const AssignmentPage: React.FC = () => {
                   : "assignment-body"
               }
             >
-
               {!isLinked ? (
                 <JoinClass
                   onClassJoin={() => {
@@ -164,7 +163,9 @@ const AssignmentPage: React.FC = () => {
                       showSubjectName={true}
                     />
                   ) : (
-                    <div className="pending-assignment">{t("There are no pending assignments for you.")}</div>
+                    <div className="pending-assignment">
+                      {t("There are no pending assignments for you.")}
+                    </div>
                   )}
                 </div>
               )}

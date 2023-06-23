@@ -40,7 +40,7 @@ export class OneRosterAuth implements ServiceAuth {
   proceedWithVerificationCode(
     verificationId: any,
     verificationCode: any
-  ): Promise<boolean> {
+  ): Promise<{ user: any; isUserExist: boolean } | undefined> {
     throw new Error("Method not implemented.");
   }
 
