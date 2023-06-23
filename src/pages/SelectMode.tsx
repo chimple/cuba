@@ -97,7 +97,7 @@ const SelectMode: FC = () => {
   };
   const displayClasses = async () => {
     const element = await api.getClassesForSchool(currentSchool, currentUser);
-    console.log("THis are the classes " + element);
+    console.log("this are the classes " + element);
     setCurrentClasses(element);
 
     return;
