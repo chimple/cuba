@@ -21,6 +21,7 @@ const DeleteParentAccount: React.FC<{}> = ({}) => {
     await api.deleteAllUserData();
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
+    setIsLoading(false);
     history.replace(PAGES.APP_LANG_SELECTION);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };
