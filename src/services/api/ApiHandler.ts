@@ -26,16 +26,19 @@ export class ApiHandler implements ServiceApi {
   public async isUserTeacher(user: User): Promise<boolean> {
     return await this.s.isUserTeacher(user);
   }
-  public async getClassesForSchool(school: school, user: User): Promise<Class[]> {
-    return await this.s.getClassesForSchool(school,user);
+  public async getClassesForSchool(
+    school: school,
+    user: User
+  ): Promise<Class[]> {
+    return await this.s.getClassesForSchool(school, user);
   }
   public async getStudentsForClass(classId: string): Promise<User[]> {
     return await this.s.getStudentsForClass(classId);
   }
-   set currentMode(value: MODES) {
+  set currentMode(value: MODES) {
     this.s.currentMode = value;
   }
-   get currentMode(): MODES {
+  get currentMode(): MODES {
     return this.s.currentMode;
   }
   public async deleteAllUserData(): Promise<void> {

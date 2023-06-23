@@ -41,7 +41,7 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
-  
+
   deleteAllUserData(): Promise<void> {
     throw new Error("Method not implemented.");
   }
@@ -101,28 +101,25 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<Assignment[]> {
     throw new Error("Method not implemented.");
   }
-  getSchoolsForUser(user: User): Promise<School[]>{
-    throw new Error("Method not implemented.");
-
-  }
-  isUserTeacher(user: User): Promise<boolean>{
+  getSchoolsForUser(user: User): Promise<School[]> {
     throw new Error("Method not implemented.");
   }
-  getClassesForSchool(school: School, user: User): Promise<Class[]>{
+  isUserTeacher(user: User): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
-  getStudentsForClass(classId: string): Promise<User[]>{
+  getClassesForSchool(school: School, user: User): Promise<Class[]> {
     throw new Error("Method not implemented.");
   }
-  get currentMode(): MODES{
+  getStudentsForClass(classId: string): Promise<User[]> {
     throw new Error("Method not implemented.");
-
+  }
+  get currentMode(): MODES {
+    throw new Error("Method not implemented.");
   }
 
-set currentMode(value: MODES){
-  throw new Error("Method not implemented.");
-
-}
+  set currentMode(value: MODES) {
+    throw new Error("Method not implemented.");
+  }
 
   getSubject(id: string): Promise<Subject | undefined> {
     throw new Error("Method not implemented.");
