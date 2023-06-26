@@ -81,7 +81,8 @@ const DisplaySubjects: FC<{}> = () => {
     setIsLoading(true);
     const currentStudent = await Util.getCurrentStudent();
     if (!currentStudent) {
-      history.replace(PAGES.DISPLAY_STUDENT);
+      // history.replace(PAGES.DISPLAY_STUDENT);
+      history.replace(PAGES.SELECT_MODE);
       return [];
     }
     api.getStudentResultInMap(currentStudent.docId).then(async (res) => {

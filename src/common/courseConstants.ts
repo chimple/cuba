@@ -24,6 +24,8 @@ export enum CollectionIds {
   STUDENTPROFILE = "StudentProfile",
   RESULT = "Result",
   LEADERBOARD = "Leaderboard",
+  CLASSCONNECTION = "ClassConnection",
+  SCHOOLCONNECTION = "SchoolConnection",
 }
 
 export interface StudentLessonResult {
