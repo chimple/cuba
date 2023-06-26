@@ -193,7 +193,7 @@ const StudentProgress: React.FC = () => {
 
   useEffect(() => {
     if (studentProgressHeaderIconList.length > 0) {
-      setTabIndex(studentProgressHeaderIconList[0].displayName);
+      setTabIndex(studentProgressHeaderIconList[0].header);
     }
   }, [studentProgressHeaderIconList]);
 
@@ -201,7 +201,7 @@ const StudentProgress: React.FC = () => {
     <div>
       <CustomAppBar
         tabNames={studentProgressHeaderIconList.map(
-          (iconConfig) => iconConfig.displayName
+          (iconConfig) => iconConfig.header
         )}
         value={tabIndex}
         onChange={handleChange}
