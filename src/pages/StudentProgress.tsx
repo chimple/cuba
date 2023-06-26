@@ -201,7 +201,7 @@ const StudentProgress: React.FC = () => {
     <div>
       <CustomAppBar
         tabNames={studentProgressHeaderIconList.map(
-          (iconConfig) => iconConfig.header
+          (iconConfig) => iconConfig.displayName
         )}
         value={tabIndex}
         onChange={handleChange}

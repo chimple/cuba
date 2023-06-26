@@ -65,7 +65,7 @@ const Parent: React.FC = () => {
     {header: "profile", displayName: "Profile" },
     {header: "settings", displayName: "Settings" },
     {header: "help",  displayName: "Help" },
-    {header: "fAQ",   displayName: "Faq" }
+    {header: "fAQ",   displayName: "FAQ" }
   ];
 
   useEffect(() => {
@@ -380,7 +380,7 @@ const Parent: React.FC = () => {
       (item) => item.header === newValue
     );
     if (selectedHeader) {
-      setCurrentHeader(selectedHeader.displayName);
+      setCurrentHeader(selectedHeader.header);
     }
     setTabIndex(newValue);
   };
