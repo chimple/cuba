@@ -62,10 +62,10 @@ const Parent: React.FC = () => {
   const localAppLang = localStorage.getItem(APP_LANG);
   const history = useHistory();
   const parentHeaderIconList = [
-    { displayName: "profile", header: "Profile" },
-    { displayName: "settings", header: "Settings" },
-    { displayName: "help", header: "Help" },
-    { displayName: "faq", header: "FAQ" }
+    {header: "profile", displayName: "Profile" },
+    {header: "settings", displayName: "Settings" },
+    {header: "help",  displayName: "Help" },
+    {header: "fAQ",   displayName: "Faq" }
   ];
 
   useEffect(() => {
@@ -377,10 +377,10 @@ const Parent: React.FC = () => {
   const handleChange = (newValue: string) => {
 
     const selectedHeader = parentHeaderIconList.find(
-      (item) => item.displayName === newValue
+      (item) => item.header === newValue
     );
     if (selectedHeader) {
-      setCurrentHeader(selectedHeader.header);
+      setCurrentHeader(selectedHeader.displayName);
     }
     setTabIndex(newValue);
   };
@@ -393,7 +393,7 @@ const Parent: React.FC = () => {
 
   useEffect(() => {
     if (!tabIndex && parentHeaderIconList.length > 0) {
-      setTabIndex(parentHeaderIconList[0].displayName);
+      setTabIndex(parentHeaderIconList[0].header);
     }
   }, []);
 
@@ -401,7 +401,7 @@ const Parent: React.FC = () => {
     <Box>
       <div>
         <CustomAppBar
-          tabNames={parentHeaderIconList.map((item) => item.displayName)
+          tabNames={parentHeaderIconList.map((item) => item.header)
           }
           value={tabIndex}
           onChange={handleChange}

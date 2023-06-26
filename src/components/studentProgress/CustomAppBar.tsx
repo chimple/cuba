@@ -19,7 +19,7 @@ const CustomAppBar: React.FC<TabBarProps> = ({ tabNames, value, onChange, handle
 
   return (
     <div>
-      <div className="back-button-InCustomAppBar">
+      <div className="back-button-in-custom-app-bar">
         <BackButton onClicked={handleBackButton} />
       </div>
       <AppBar position="static" sx={{ flexDirection: "inherit", justifyContent: "space-evenly", padding: "3vh 1vw", backgroundColor: "#FF7925 !important", boxShadow: "0px 0px 0px 0px !important" }}>
@@ -45,7 +45,7 @@ const CustomAppBar: React.FC<TabBarProps> = ({ tabNames, value, onChange, handle
           className="custom-tabs"
         >
           {tabNames.map((tabName) => (
-            <Tab key={tabName} value={tabName} label={tabName} id="Custom-AppBar" />
+            <Tab key={tabName} value={tabName} label={tabName} id="custom-app-bar" />
           ))}
         </Tabs>
       </AppBar>

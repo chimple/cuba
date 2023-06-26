@@ -1,4 +1,4 @@
-#Custom-AppBar{
+#custom-app-bar{
     margin-right: 2vh;
     font-size: var(--text-size);
     font-weight: bold;
@@ -8,7 +8,7 @@
     white-space: nowrap;
   }
 
-  .back-button-InCustomAppBar {
+  .back-button-in-custom-app-bar {
     position: absolute;
     margin: var(--margin);
     margin-right: 0;
