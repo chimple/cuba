@@ -169,14 +169,14 @@ const Login: React.FC = () => {
         setSpinnerLoading(false);
         // setIsLoading(false);
       } else {
-        console.log("Phone Number signin Failed");
+        console.log("Phone Number signin Failed ");
         setSpinnerLoading(false);
-        alert("Phone Number signin Failed" + authRes);
+        alert("Phone Number signin Failed " + authRes);
       }
     } catch (error) {
-      console.log("Phone Number signin Failed");
+      console.log("Phone Number signin Failed ");
       setSpinnerLoading(false);
-      alert("Phone Number signin Failed" + error);
+      alert("Phone Number signin Failed " + error);
       console.log(
         "window.recaptchaVerifier",
         // window.recaptchaVerifier,
@@ -249,7 +249,7 @@ const Login: React.FC = () => {
             <div>
               <div id="login-text-box">
                 <TextBox
-                  inputText={t("Enter your Phone Number")}
+                  inputText={t("Enter Mobile Number (10-digit)")}
                   inputType={"tel"}
                   maxLength={10}
                   inputValue={phoneNumber}
@@ -288,7 +288,7 @@ const Login: React.FC = () => {
                   // setSpinnerLoading(false);
                 }}
               >
-                {t("Sent the OTP")}
+                {t("Send OTP")}
               </div>
               {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
               <IonLoading
@@ -318,7 +318,8 @@ const Login: React.FC = () => {
                     );
                     if (result) {
                       setIsLoading(false);
-                      history.replace(PAGES.DISPLAY_STUDENT);
+                      // history.replace(PAGES.DISPLAY_STUDENT);
+                      history.replace(PAGES.SELECT_MODE);
                     } else {
                       setIsLoading(false);
                     }
@@ -384,7 +385,8 @@ const Login: React.FC = () => {
                     phoneNumberSigninRes
                   );
                   if (res) {
-                    history.push(PAGES.DISPLAY_STUDENT);
+                    // history.push(PAGES.DISPLAY_STUDENT);
+                    history.replace(PAGES.SELECT_MODE);
                   }
                 }}
               >

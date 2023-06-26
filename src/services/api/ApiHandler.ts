@@ -12,6 +12,7 @@ import Assignment from "../../models/assignment";
 import Class from "../../models/class";
 import StudentProfile from "../../models/studentProfile";
 import school from "../../models/school";
+import { MODES } from "../../common/constants";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -19,7 +20,27 @@ export class ApiHandler implements ServiceApi {
   private s: ServiceApi;
 
   private constructor() {}
-
+  public async getSchoolsForUser(user: User): Promise<school[]> {
+    return await this.s.getSchoolsForUser(user);
+  }
+  public async isUserTeacher(user: User): Promise<boolean> {
+    return await this.s.isUserTeacher(user);
+  }
+  public async getClassesForSchool(
+    school: school,
+    user: User
+  ): Promise<Class[]> {
+    return await this.s.getClassesForSchool(school, user);
+  }
+  public async getStudentsForClass(classId: string): Promise<User[]> {
+    return await this.s.getStudentsForClass(classId);
+  }
+  set currentMode(value: MODES) {
+    this.s.currentMode = value;
+  }
+  get currentMode(): MODES {
+    return this.s.currentMode;
+  }
   public async deleteAllUserData(): Promise<void> {
     return await this.s.deleteAllUserData();
   }
