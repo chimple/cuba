@@ -171,6 +171,10 @@
   text-align: -webkit-center;
   margin-top: 10vh;
 }
+#parent-delete {
+  text-align: -webkit-center;
+  margin-top: 10vh;
+}
 
 
 #parent-page-tab-bar {
@@ -189,4 +193,10 @@
   margin-right: 0;
 
   /* color: black; */
+}
+#logout-delete-button{
+  position: relative;
+  display: flex;
+  justify-content: space-around;
+  top: 17vh;
 }

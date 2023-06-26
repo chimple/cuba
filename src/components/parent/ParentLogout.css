@@ -1,6 +1,6 @@
 .parent-logout-btn {
   color: var(--text-color);
-  width: 35%;
+  width: 35vw;
   height: 10vh;
   background-color: white;
   border-radius: min(20px,5vh);
@@ -17,4 +17,5 @@
 
 .parent-logout-icon {
   height: 4vh;
+  margin-left: 2vw;
 }

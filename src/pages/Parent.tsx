@@ -32,6 +32,7 @@ import { common } from "@mui/material/colors";
 import BackButton from "../components/common/BackButton";
 import { useHistory } from "react-router-dom";
 import CustomAppBar from "../components/studentProgress/CustomAppBar";
+import DeleteParentAccount from "../components/parent/DeleteParentAccount";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
@@ -167,6 +168,7 @@ const Parent: React.FC = () => {
               onValueChange={async (selectedLangDocId) => {
                 // setIsLoading(true);
                 const api = ServiceConfig.getI().apiHandler;
+                // api.deleteAllUserData
                 const langDoc = await api.getLanguageWithId(selectedLangDocId);
                 console.log("langDoc", langDoc);
                 if (!langDoc) return;
@@ -234,8 +236,13 @@ const Parent: React.FC = () => {
             ></ToggleButton>
           </div>
         </div>
-        <div id="parent-logout">
-          <ParentLogout />
+        <div id="logout-delete-button">
+          <div id="parent-logout">
+            <ParentLogout />
+          </div>
+          <div id="parent-delete">
+            <DeleteParentAccount />
+          </div>
         </div>
       </div>
     );

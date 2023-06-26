@@ -167,58 +167,75 @@ export class FirebaseAuth implements ServiceAuth {
       );
       let result: any;
       if (Capacitor.isNativePlatform()) {
-        console.log("if (Capacitor.isNativePlatform()) {", phoneNumber);
-        // let res = await FirebaseAuthentication.verifyPhoneNumber(
-        //   phoneNumber,
-        //   0
-        // ).then((verificationId) => {
-        //   console.log("in then verificationId", verificationId, res);
-        // });
+        try {
+          console.log("if (Capacitor.isNativePlatform()) {", phoneNumber);
+          // let res = await FirebaseAuthentication.verifyPhoneNumber(
+          //   phoneNumber,
+          //   0
+          // ).then((verificationId) => {
+          //   console.log("in then verificationId", verificationId, res);
+          // });
 
-        const signInWithPhoneNumber = async () => {
-          return new Promise(async (resolve) => {
-            // Attach `phoneCodeSent` listener to be notified as soon as the SMS is sent
-            await FirebaseAuthentication.addListener(
-              "phoneCodeSent",
-              async (event) => {
-                console.log("phoneCodeSent event ", event);
+          const signInWithPhoneNumber = async () => {
+            return new Promise(async (resolve, reject) => {
+              try {
+                // Attach `phoneCodeSent` listener to be notified as soon as the SMS is sent
+                await FirebaseAuthentication.addListener(
+                  "phoneCodeSent",
+                  async (event) => {
+                    console.log("phoneCodeSent event ", event);
 
-                resolve(event);
-                // // Ask the user for the SMS code
-                // const verificationCode = window.prompt(
-                //   "Please enter the verification code that was sent to your mobile device."
+                    resolve(event);
+                  }
+                );
+
+                await FirebaseAuthentication.addListener(
+                  "phoneVerificationFailed",
+                  async (event) => {
+                    console.log(
+                      "FirebaseAuth.ts:196 ~ phoneVerificationFailed event ",
+                      JSON.stringify(event)
+                    );
+
+                    reject(event.message);
+                  }
+                );
+
+                // // Attach `phoneVerificationCompleted` listener to be notified if phone verification could be finished automatically
+                // await FirebaseAuthentication.addListener(
+                //   "phoneVerificationCompleted",
+                //   async (event) => {
+                //     resolve(event.user);
+                //   }
                 // );
-                // if (!verificationCode) {
-                //   resolve(false);
-                //   return;
-                // }
-                // // Confirm the verification code
-                // const result =
-                //   await FirebaseAuthentication.confirmVerificationCode({
-                //     verificationId: event.verificationId,
-                //     verificationCode,
-                //   });
-                // resolve(result.user);
-              }
-            );
-            // // Attach `phoneVerificationCompleted` listener to be notified if phone verification could be finished automatically
-            // await FirebaseAuthentication.addListener(
-            //   "phoneVerificationCompleted",
-            //   async (event) => {
-            //     resolve(event.user);
-            //   }
-            // );
-            // Start sign in with phone number and send the SMS
-            await FirebaseAuthentication.signInWithPhoneNumber({
-              phoneNumber: phoneNumber,
-            });
-            console.log("signInWithPhoneNumber exicuted ");
-          });
-        };
 
-        result = await signInWithPhoneNumber();
-        App.addListener("appStateChange", Util.onAppStateChange);
-        return result;
+                // Start sign in with phone number and send the SMS
+                await FirebaseAuthentication.signInWithPhoneNumber({
+                  phoneNumber: phoneNumber,
+                });
+              } catch (error) {
+                console.log(
+                  "🚀 ~ file: FirebaseAuth.ts:231 ~ FirebaseAuth ~ phoneNumberSignin ~ error:",
+                  error
+                );
+                throw error;
+              }
+              console.log("signInWithPhoneNumber exicuted ");
+            });
+          };
+          result = await signInWithPhoneNumber();
+          console.log("result = await signInWithPhoneNumber();", result);
+
+          App.addListener("appStateChange", Util.onAppStateChange);
+          console.log("result = await signInWithPhoneNumber();", result);
+          return result;
+        } catch (error) {
+          console.log(
+            "🚀 ~ file: FirebaseAuth.ts:167 ~ FirebaseAuth ~ phoneNumberSignin ~ error:",
+            error
+          );
+          throw error;
+        }
       } else {
         result = await signInWithPhoneNumber(
           this._auth,
