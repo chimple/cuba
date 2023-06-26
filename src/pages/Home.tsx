@@ -14,7 +14,6 @@ import {
   HeaderIconConfig,
   HEADER_ICON_CONFIGS,
   CURRENT_STUDENT,
-  MODES,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
