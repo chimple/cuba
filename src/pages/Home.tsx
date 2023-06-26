@@ -14,6 +14,7 @@ import {
   HeaderIconConfig,
   HEADER_ICON_CONFIGS,
   CURRENT_STUDENT,
+  MODES,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -320,14 +321,12 @@ const Home: FC = () => {
       lessons: lessons,
     };
   }
-
   function onHeaderIconClick(selectedHeader: any) {
     var headerIconList: HeaderIconConfig[] = [];
     HEADER_ICON_CONFIGS.forEach((element) => {
-      // console.log("elements", element);
+      //  console.log("elements", element);
       headerIconList.push(element);
     });
-
     setCurrentHeader(selectedHeader);
     localStorage.setItem(PREVIOUS_SELECTED_COURSE(), selectedHeader);
     HEADER_ICON_CONFIGS.get(selectedHeader);

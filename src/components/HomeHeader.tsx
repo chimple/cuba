@@ -5,6 +5,7 @@ import {
   HEADER_ICON_CONFIGS,
   HeaderIconConfig,
   PAGES,
+  MODES,
 } from "../common/constants";
 import "./HomeHeader.css";
 import HeaderIcon from "./HeaderIcon";
@@ -23,7 +24,13 @@ const HomeHeader: React.FC<{
   var headerIconList: HeaderIconConfig[] = [];
   HEADER_ICON_CONFIGS.forEach((element) => {
     // console.log("elements", element);
-    headerIconList.push(element);
+    const api = ServiceConfig.getI().apiHandler;
+    if (
+      api.currentMode !== MODES.TEACHER ||
+      (api.currentMode === MODES.TEACHER &&
+        element.headerList != HOMEHEADERLIST.ASSIGNMENT)
+    )
+      headerIconList.push(element);
   });
   const history = useHistory();
   const [student, setStudent] = useState<User>();
