@@ -1,0 +1,21 @@
+.select-mode-btn {
+  color: var(--text-color);
+  width: 35%;
+  height: 10vh;
+  background-color: white;
+  border-radius: min(20px, 5vh);
+  display: flex;
+  padding: 0% min(20px, 2%);
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  min-width: 170px;
+  max-width: 250px;
+  min-height: 50px;
+  max-height: 65px;
+}
+
+.select-mode-btn-text {
+  color: var(--text-color);
+  font-size: var(--text-size);
+}

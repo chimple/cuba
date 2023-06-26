@@ -1,13 +1,15 @@
 import { Timestamp } from "firebase/firestore";
 import BaseObject from "./baseObject";
+import { RoleType } from "../interface/modelInterfaces";
 
-export default class school extends BaseObject {
+export default class School extends BaseObject {
   private _name: string;
   private _image: string | undefined;
   private _courses: string[];
   private _teachers: string[];
   private _principal: string[];
   private _coordinator: string[];
+  private _role: RoleType;
 
   constructor(
     name: string,
@@ -63,5 +65,11 @@ export default class school extends BaseObject {
   }
   public set image(value: string | undefined) {
     this._image = value;
+  }
+  public get role(): RoleType {
+    return this._role;
+  }
+  public set role(value: RoleType) {
+    this._role = value;
   }
 }
