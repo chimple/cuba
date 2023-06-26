@@ -1,0 +1,16 @@
+#Custom-AppBar{
+    margin-right: 2vh;
+    font-size: var(--text-size);
+    font-weight: bold;
+    width: 17vw;
+    font-family: "BalooRegular";
+    justify-content: space-evenly;
+    white-space: nowrap;
+  }
+
+  .back-button-InCustomAppBar {
+    position: absolute;
+    margin: var(--margin);
+    margin-right: 0;
+    /* z-index: 1; */
+  }

@@ -31,6 +31,7 @@ import { blue, red, green } from "@mui/material/colors";
 import { common } from "@mui/material/colors";
 import BackButton from "../components/common/BackButton";
 import { useHistory } from "react-router-dom";
+import CustomAppBar from "../components/studentProgress/CustomAppBar";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
@@ -41,6 +42,7 @@ const Parent: React.FC = () => {
   const [soundFlag, setSoundFlag] = useState<boolean>();
   const [musicFlag, setMusicFlag] = useState<boolean>();
   const [userProfile, setUserProfile] = useState<any[]>([]);
+  const [tabIndex, setTabIndex] = useState<any>();
 
   const [langList, setLangList] = useState<
     {
@@ -58,6 +60,12 @@ const Parent: React.FC = () => {
   // let langDocIds: Map<string, string> = new Map();
   const localAppLang = localStorage.getItem(APP_LANG);
   const history = useHistory();
+  const parentHeaderIconList = [
+    { displayName: "profile", header: "Profile" },
+    { displayName: "settings", header: "Settings" },
+    { displayName: "help", header: "Help" },
+    { displayName: "faq", header: "FAQ" }
+  ];
 
   useEffect(() => {
     setIsLoading(true);
@@ -358,124 +366,49 @@ const Parent: React.FC = () => {
     );
   }
 
-  const [tabIndex, setTabIndex] = useState("profile");
 
-  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
-    // setValue(newValue);
+  const handleChange = (newValue: string) => {
+
+    const selectedHeader = parentHeaderIconList.find(
+      (item) => item.displayName === newValue
+    );
+    if (selectedHeader) {
+      setCurrentHeader(selectedHeader.header);
+    }
     setTabIndex(newValue);
   };
 
+
+  const handleBackButton = () => {
+    history.replace(PAGES.DISPLAY_STUDENT);
+  };
+
+
+  useEffect(() => {
+    if (!tabIndex && parentHeaderIconList.length > 0) {
+      setTabIndex(parentHeaderIconList[0].displayName);
+    }
+  }, []);
+
   return (
-    // <IonPage>
-    //   {!isLoading ? (
-    //     <div id="parent-page">
-    //       <ParentHeader
-    //         currentHeader={currentHeader}
-    //         onHeaderIconClick={onHeaderIconClick}
-    //       ></ParentHeader>
-
-    //       {currentHeader === PARENTHEADERLIST.PROFILE ? (
-    //         <div>{profileUI()}</div>
-    //       ) : null}
-
-    //       {currentHeader === PARENTHEADERLIST.SETTING ? (
-    //         <div>{settingUI()}</div>
-    //       ) : null}
-
-    //       {currentHeader === PARENTHEADERLIST.HELP ? (
-    //         <div>{helpUI()}</div>
-    //       ) : null}
-    //     </div>
-    //   ) : null}
-    //   <Loading isLoading={isLoading} />
-    // </IonPage>
     <Box>
-      <Box id="ParentHeader">
-        <div className="back-button-inParent">
-          <BackButton
-            // iconSize={"8vh"}
-            onClicked={() => {
-              history.replace(PAGES.DISPLAY_STUDENT);
-            }}
-          ></BackButton>
-        </div>
-        <AppBar
-          id="ParentHeader-1"
-          position="static"
-          sx={{
-            flexDirection: "inherit",
-            justifyContent: "space-evenly",
-            padding: "3vh 1vw",
-            backgroundColor: "#FF7925 !important",
-            boxShadow: "0px 0px 0px 0px !important",
-          }}
-        >
-
-          <Tabs
-            value={tabIndex}
-            onChange={handleChange}
-            textColor="secondary"
-            indicatorColor="secondary"
-            aria-label="secondary tabs example"
-            // variant="scrollable"
-            scrollButtons="auto"
-            // aria-label="scrollable auto tabs example"
-            centered
-            sx={{
-              // "& .MuiAppBar-root": { backgroundColor: "#FF7925 !important" },
-              "& .MuiTabs-indicator": {
-                backgroundColor: "#FFFFFF !important",
-                fontSize: "clamp(10px, 3vh, 20px)",
-              },
-              "& .MuiTab-root": { color: "#000000" },
-              "& .Mui-selected": { color: "#FFFFFF !important" },
-              "& .MuiTab-wrapper": { justifyContent: "space-around" },
-              "& .MuiTab-root:not(:last-child)": { margin: "0 0rem " },
-            }}
-          >
-            <Tab
-              value="profile"
-              label={t("profile")}
-              id="parent-page-tab-bar"
-            // sx={{
-            //   // fontSize:"5vh"
-            //   marginRight: "5vw",
-            // }}
-            />
-            <Tab
-              id="parent-page-tab-bar"
-              value="setting"
-              label={t("setting")}
-            />
-            <Tab id="parent-page-tab-bar" value="help" label={t("help")} />
-            <Tab id="parent-page-tab-bar" value="faq" label={t("faq")} />
-          </Tabs>
-        </AppBar>
-      </Box>
-      <Box sx={{}}>
-        {tabIndex === "profile" && (
-          <Box>
-            <div>{profileUI()}</div>
-          </Box>
-        )}
-        {tabIndex === "setting" && (
-          <Box>
-            <div>{settingUI()}</div>
-          </Box>
-        )}
-        {tabIndex === "help" && (
-          <Box>
-            <div>{helpUI()}</div>
-          </Box>
-        )}
-        {tabIndex === "faq" && (
-          <Box>
-            <div></div>
-          </Box>
-        )}
-      </Box>
-    </Box>
+      <div>
+        <CustomAppBar
+          tabNames={parentHeaderIconList.map((item) => item.displayName)
+          }
+          value={tabIndex}
+          onChange={handleChange}
+          handleBackButton={handleBackButton}
+        />
+        {tabIndex === "profile" && <div>{profileUI()}</div>}
+        {tabIndex === "settings" && <div>{settingUI()}</div>}
+        {tabIndex === "help" && <div>{helpUI()}</div>}
+        {tabIndex === "faq" && <div></div>}
+      </div >
+    </Box >
   );
 };
 
 export default Parent;
+
+

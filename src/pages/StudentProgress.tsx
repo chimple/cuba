@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { IonCol, IonGrid, IonList, IonPage, IonRow } from "@ionic/react";
 import { SyntheticEvent } from "react";
 import Loading from "../components/Loading";
+import "../components/studentProgress/CustomAppBar.css";
 import "./StudentProgress.css";
 import { PAGES } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -14,7 +15,7 @@ import { useHistory } from "react-router-dom";
 import { blue, red, green } from "@mui/material/colors";
 import { common } from "@mui/material/colors";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
-import StudentProgressHeaderTabBar from "../components/studentProgress/StudentProgressHeaderTabBar";
+import CustomAppBar from "../components/studentProgress/CustomAppBar";
 import { t } from "i18next";
 import { Util } from "../utility/util";
 
@@ -195,11 +196,10 @@ const StudentProgress: React.FC = () => {
       setTabIndex(studentProgressHeaderIconList[0].displayName);
     }
   }, [studentProgressHeaderIconList]);
-  // const tabWidthPercentage = 100 / studentProgressHeaderIconList.length;
 
   return (
     <div>
-      <StudentProgressHeaderTabBar
+      <CustomAppBar
         tabNames={studentProgressHeaderIconList.map(
           (iconConfig) => iconConfig.displayName
         )}

@@ -25,20 +25,3 @@
   text-align: center;
   color: black;
 }
-
-#student-page-tab-bar {
-  margin-right: 2vh;
-  font-size: var(--text-size);
-  font-weight: bold;
-  width: 17vw;
-  font-family: "BalooRegular";
-  justify-content: space-evenly;
-  white-space: nowrap;
-}
-
-.back-button-inStudentProgress {
-  position: absolute;
-  margin: var(--margin);
-  margin-right: 0;
-  /* z-index: 1; */
-}
