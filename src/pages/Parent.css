@@ -171,6 +171,7 @@
   text-align: -webkit-center;
   margin-top: 10vh;
 }
+
 #parent-delete {
   text-align: -webkit-center;
   margin-top: 10vh;
@@ -187,14 +188,15 @@
   white-space: nowrap;
 }
 
-.back-button-inParent {
+.back-button-in-parent {
   position: absolute;
   margin: var(--margin);
   margin-right: 0;
 
   /* color: black; */
 }
-#logout-delete-button{
+
+#logout-delete-button {
   position: relative;
   display: flex;
   justify-content: space-around;

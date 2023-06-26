@@ -62,10 +62,10 @@ const Parent: React.FC = () => {
   const localAppLang = localStorage.getItem(APP_LANG);
   const history = useHistory();
   const parentHeaderIconList = [
-    {header: "profile", displayName: "Profile" },
-    {header: "settings", displayName: "Settings" },
-    {header: "help",  displayName: "Help" },
-    {header: "fAQ",   displayName: "FAQ" }
+    { header: "profile", displayName: "Profile" },
+    { header: "settings", displayName: "Settings" },
+    { header: "help", displayName: "Help" },
+    { header: "fAQ", displayName: "FAQ" }
   ];
 
   useEffect(() => {

@@ -1,16 +1,16 @@
-#custom-app-bar{
-    margin-right: 2vh;
-    font-size: var(--text-size);
-    font-weight: bold;
-    width: 17vw;
-    font-family: "BalooRegular";
-    justify-content: space-evenly;
-    white-space: nowrap;
-  }
+#custom-app-bar {
+  margin-right: 2vh;
+  font-size: var(--text-size);
+  font-weight: bold;
+  width: 17vw;
+  font-family: "BalooRegular";
+  justify-content: space-evenly;
+  white-space: nowrap;
+}
 
-  .back-button-in-custom-app-bar {
-    position: absolute;
-    margin: var(--margin);
-    margin-right: 0;
-    /* z-index: 1; */
-  }
+.back-button-in-custom-app-bar {
+  position: absolute;
+  margin: var(--margin);
+  margin-right: 0;
+  /* z-index: 1; */
+}
