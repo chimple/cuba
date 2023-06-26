@@ -92,7 +92,7 @@ const SelectMode: FC = () => {
   };
 
   const onTeacherSelect = () => {
-    api.currentMode = MODES.TEACHER;
+    api.currentMode = MODES.SCHOOL;
     // history.replace(PAGES.SELECT_SCHOOL);
     setStage(STAGES.SCHOOL);
   };

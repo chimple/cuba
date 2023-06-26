@@ -26,11 +26,13 @@ const HomeHeader: React.FC<{
     // console.log("elements", element);
     const api = ServiceConfig.getI().apiHandler;
     if (
-      api.currentMode !== MODES.TEACHER ||
-      (api.currentMode === MODES.TEACHER &&
-        element.headerList != HOMEHEADERLIST.ASSIGNMENT)
-    )
+      !(
+        api.currentMode === MODES.SCHOOL &&
+        element.headerList === HOMEHEADERLIST.ASSIGNMENT
+      )
+    ) {
       headerIconList.push(element);
+    }
   });
   const history = useHistory();
   const [student, setStudent] = useState<User>();
