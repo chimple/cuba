@@ -254,7 +254,8 @@ const Parent: React.FC = () => {
                   body=""
                   className="Demo__some-network__share-button"
                 >
-                  Email Us
+                  {/* Email Us */}
+                  {t("Email Us")}
                 </EmailShareButton>
                 <EmailIcon size={"2vw"} round />
               </div>
@@ -265,7 +266,8 @@ const Parent: React.FC = () => {
                   window.open("https://www.chimple.org/", "_system");
                 }}
               >
-                Visit Website
+                {/* Visit Website */}
+                {t("Visit Website")}
                 <TfiWorld size={"2vw"} />
                 {/* <IonIcon name="globe-outline" size={"2vw"}></IonIcon> */}
               </div>
@@ -287,12 +289,13 @@ const Parent: React.FC = () => {
             >
               WhatsApp Us
             </WhatsappShareButton> */}
-                WhatsApp Us
+                {/* WhatsApp Us */}
+                {t("WhatsApp Us")}
                 <WhatsappIcon size={"2vw"} round />
               </div>
             </div>
             <div id="parent-page-help-title-e2">
-              <div id="help">Help Video</div>
+              <div id="help">{t("Help Video")}</div>
               <div id="parent-page-help-title-e2-video">
                 <iframe
                   id="parent-page-help-title-e2-video-youtude"
@@ -323,7 +326,8 @@ const Parent: React.FC = () => {
                   // instagram://user?username=its_mee_skanda
                 }}
               >
-                Instagram
+                {/* Instagram */}
+                {t("Instagram")}
                 <FaInstagramSquare size={"2vw"} />
               </div>
               <div
@@ -340,7 +344,8 @@ const Parent: React.FC = () => {
             >
               Fackbook
             </FacebookShareButton> */}
-                Facebook
+                {/* Facebook */}
+                {t("Facebook")}
                 <FacebookIcon size={"2vw"} round />
               </div>
               <div
@@ -357,7 +362,8 @@ const Parent: React.FC = () => {
             >
               Twitter
             </TwitterShareButton> */}
-                Twitter
+                {/* Twitter */}
+                {t("Twitter")}
                 <TwitterIcon size={"2vw"} round />
               </div>
             </div>
