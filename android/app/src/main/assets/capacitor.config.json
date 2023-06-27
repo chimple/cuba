@@ -18,6 +18,9 @@
 				"alert"
 			]
 		},
-		"Keyboard": {}
+		"Keyboard": {},
+		"LocalNotifications": {
+			"smallIcon": "chimple_monkey_icon"
+		}
 	}
 }
