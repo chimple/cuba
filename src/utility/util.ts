@@ -1,9 +1,9 @@
-import { Http } from "@capacitor-community/http";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
+import { CapacitorHttp } from "@capacitor/core";
 import {
   CURRENT_STUDENT,
   BUNDLE_URL,
@@ -20,6 +20,7 @@ import {
   PRE_QUIZ,
   SELECTED_GRADE,
   SL_GRADES,
+  CACHE_IMAGE,
 } from "../common/constants";
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
 import { GUIDRef } from "../interface/modelInterfaces";
@@ -649,5 +650,33 @@ export class Util {
       localStorage.setItem(updateFor, now.toString());
     }
     return _canCheckUpdate;
+  }
+
+  public static async getCachedImage(url: string) {
+    try {
+      const result = await Filesystem.readFile({
+        path: CACHE_IMAGE + "/" + btoa(url),
+        directory: Directory.Cache,
+      });
+      return "data:image/png;base64," + result.data;
+    } catch (error) {
+      // retrieve the image
+      const response = await CapacitorHttp.get({
+        url: url,
+        responseType: "blob",
+      });
+      const blob = await response.data;
+
+      const savedFile = await Filesystem.writeFile({
+        path: CACHE_IMAGE + "/" + btoa(url),
+        data: blob,
+        directory: Directory.Cache,
+      });
+      console.log(
+        "🚀 ~ file: util.ts:685 ~ getCachedImage ~ savedFile:",
+        savedFile
+      );
+      return "data:image/png;base64," + blob;
+    }
   }
 }
