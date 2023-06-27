@@ -76,9 +76,12 @@ export class Util {
     }
     currentStudent.courses = convertDoc(currentStudent.courses);
     currentStudent.users = convertDoc(currentStudent.users);
-    currentStudent.grade = getRef(currentStudent.grade);
-    currentStudent.language = getRef(currentStudent.language);
-    currentStudent.board = getRef(currentStudent.board);
+    if (!!currentStudent.grade)
+      currentStudent.grade = getRef(currentStudent.grade);
+    if (!!currentStudent.language)
+      currentStudent.language = getRef(currentStudent.language);
+    if (!!currentStudent.board)
+      currentStudent.board = getRef(currentStudent.board);
     api.currentStudent = currentStudent;
     return currentStudent;
   }

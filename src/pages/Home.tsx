@@ -70,7 +70,8 @@ const Home: FC = () => {
     const currentStudent = await Util.getCurrentStudent();
 
     if (!currentStudent) {
-      history.replace(PAGES.DISPLAY_STUDENT);
+      // history.replace(PAGES.DISPLAY_STUDENT);
+      history.replace(PAGES.SELECT_MODE);
       return;
     }
     setCurrentStudent(currentStudent);
