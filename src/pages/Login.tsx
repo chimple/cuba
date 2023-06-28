@@ -46,9 +46,15 @@ const Login: React.FC = () => {
   const [isInputFocus, setIsInputFocus] = useState(false);
   const scollToRef = useRef<null | HTMLDivElement>(null);
   const [currentStudent, setStudent] = useState<User>();
+  const Buttoncolors={
+    Default:"grey",
+    Valid:"yellowgreen",
+
+  };
 
   const otpBtnRef = useRef<any>();
   const getOtpBtnRef= useRef<any>();
+
 
   useEffect(() => {
 
@@ -265,12 +271,12 @@ const Login: React.FC = () => {
                       console.log(countryCode + phoneNumber);
 
                       let loginBtnBgColor = otpBtnRef.current.style.backgroundColor;
-                      if (phoneNumber.length === 10) {
-                        otpBtnRef.current.style.backgroundColor = "yellowgreen";
+                      if (phoneNumber.length === 10 ) {
+                        otpBtnRef.current.style.backgroundColor = Buttoncolors.Valid;
                       }
                       else {
-                        if (loginBtnBgColor === "yellowgreen") {
-                          otpBtnRef.current.style.backgroundColor = "grey";
+                        if (loginBtnBgColor === Buttoncolors.Valid) {
+                          otpBtnRef.current.style.backgroundColor = Buttoncolors.Default;
 
                         }
                       }
@@ -361,11 +367,11 @@ const Login: React.FC = () => {
                       console.log("" + input.detail.value);
                       let otpBtnBgColor =  getOtpBtnRef.current.style.backgroundColor;
                       if (verificationCode.length === 6) {
-                        getOtpBtnRef.current.style.backgroundColor = "yellowgreen";
+                        getOtpBtnRef.current.style.backgroundColor = Buttoncolors.Valid;
                       }
                       else {
-                        if (otpBtnBgColor === "yellowgreen") {
-                          getOtpBtnRef.current.style.backgroundColor = "grey";
+                        if (otpBtnBgColor === Buttoncolors.Valid) {
+                          getOtpBtnRef.current.style.backgroundColor = Buttoncolors.Default;
 
                         }
                       }
