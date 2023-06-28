@@ -651,36 +651,4 @@ export class Util {
     }
     return _canCheckUpdate;
   }
-
-  public static async getCachedImage(url: string) {
-    if (!Capacitor.isNativePlatform()) return url;
-    try {
-      const result = await Filesystem.readFile({
-        path: CACHE_IMAGE + "/" + url.replaceAll("/", "-"),
-        directory: Directory.Cache,
-      });
-      return "data:image/png;base64," + result.data;
-    } catch (error) {
-      try {
-        // retrieve the image
-        const response = await CapacitorHttp.get({
-          url: url,
-          responseType: "blob",
-        });
-        const blob = await response.data;
-        await Filesystem.writeFile({
-          path: CACHE_IMAGE + "/" + url.replaceAll("/", "-"),
-          data: blob,
-          directory: Directory.Cache,
-        });
-        return "data:image/png;base64," + blob;
-      } catch (error) {
-        console.log(
-          "🚀 ~ file: util.ts:698 ~ getCachedImage ~ error:",
-          JSON.stringify(error)
-        );
-        return url;
-      }
-    }
-  }
 }
