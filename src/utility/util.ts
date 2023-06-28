@@ -31,13 +31,13 @@ import i18n from "../i18n";
 import { FirebaseAnalytics } from "@capacitor-firebase/analytics";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 import { DocumentReference, doc, getFirestore } from "firebase/firestore";
-import { useEffect, useRef, useState } from "react";
 import { Keyboard } from "@capacitor/keyboard";
 import {
   AppUpdate,
   AppUpdateAvailability,
   AppUpdateResultCode,
 } from "@capawesome/capacitor-app-update";
+import { LocalNotifications } from "@capacitor/local-notifications";
 
 declare global {
   interface Window {
@@ -45,11 +45,12 @@ declare global {
     _CCSettings: any;
   }
 }
-
 export class Util {
   public static port: PortPlugin;
 
   public static getCurrentStudent(): User | undefined {
+    const api = ServiceConfig.getI().apiHandler;
+    if (!!api.currentStudent) return api.currentStudent;
     const temp = localStorage.getItem(CURRENT_STUDENT);
 
     if (!temp) return;
@@ -75,9 +76,13 @@ export class Util {
     }
     currentStudent.courses = convertDoc(currentStudent.courses);
     currentStudent.users = convertDoc(currentStudent.users);
-    currentStudent.grade = getRef(currentStudent.grade);
-    currentStudent.language = getRef(currentStudent.language);
-    currentStudent.board = getRef(currentStudent.board);
+    if (!!currentStudent.grade)
+      currentStudent.grade = getRef(currentStudent.grade);
+    if (!!currentStudent.language)
+      currentStudent.language = getRef(currentStudent.language);
+    if (!!currentStudent.board)
+      currentStudent.board = getRef(currentStudent.board);
+    api.currentStudent = currentStudent;
     return currentStudent;
   }
 
@@ -381,6 +386,8 @@ export class Util {
     languageCode: string | undefined = undefined
   ) => {
     const api = ServiceConfig.getI().apiHandler;
+    api.currentStudent = student;
+
     localStorage.setItem(
       CURRENT_STUDENT,
       JSON.stringify({
@@ -468,6 +475,7 @@ export class Util {
   public static async subscribeToClassTopicForAllStudents(
     currentUser: User
   ): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
     const students: DocumentReference[] = currentUser.users;
     if (!students || students.length < 1) return;
     const api = ServiceConfig.getI().apiHandler;
@@ -587,23 +595,30 @@ export class Util {
   public static async checkNotificationPermissions() {
     if (!Capacitor.isNativePlatform()) return;
     try {
-      const canCheckPermission = Util.canCheckUpdate(LAST_PERMISSION_CHECKED);
-      console.log(
-        "🚀 ~ file: util.ts:513 ~ checkNotificationPermissions ~ canCheckPermission:",
-        canCheckPermission
+      await FirebaseMessaging.addListener(
+        "notificationReceived",
+        ({ notification }) => {
+          console.log("notificationReceived", JSON.stringify(notification));
+          LocalNotifications.schedule({
+            notifications: [
+              {
+                id: 0,
+                body: notification.body ?? "",
+                title: notification.title ?? "Chimple",
+                attachments: !!notification.image
+                  ? [{ id: notification.image, url: notification.image }]
+                  : undefined,
+                extra: notification.data,
+              },
+            ],
+          });
+        }
       );
+      const canCheckPermission = Util.canCheckUpdate(LAST_PERMISSION_CHECKED);
       if (!canCheckPermission) return;
       const result = await FirebaseMessaging.checkPermissions();
-      console.log(
-        "🚀 ~ file: util.ts:509 ~ checkNotificationPermissions ~ result:",
-        JSON.stringify(result)
-      );
       if (result.receive === "granted") return;
-      const permissionStatus = await FirebaseMessaging.requestPermissions();
-      console.log(
-        "🚀 ~ file: util.ts:512 ~ checkNotificationPermissions ~ permissionStatus:",
-        JSON.stringify(permissionStatus)
-      );
+      await FirebaseMessaging.requestPermissions();
     } catch (error) {
       console.log(
         "🚀 ~ file: util.ts:514 ~ checkNotificationPermissions ~ error:",

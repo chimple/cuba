@@ -73,7 +73,7 @@ const AppLangSelection: React.FC = () => {
           </div>
 
           <div id="app-lang-element">
-            <p id="app-lang-text">{t("Select App Language")}</p>
+            <p id="app-lang-text">{t("Choose your language")}</p>
             <RectangularOutlineDropDown
               placeholder=""
               optionList={langList}

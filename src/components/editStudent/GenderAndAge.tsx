@@ -15,7 +15,7 @@ const GenderAndAge: React.FC<{
   return (
     <div>
       <div className="main-header">
-        <div className="gender-title">{t("Select Child Gender:")}</div>
+        <div className="gender-title">{t("What is your child’s gender?")}</div>
         <div className="gender-container">
           <div
             className="gender-button"
@@ -50,7 +50,7 @@ const GenderAndAge: React.FC<{
             />
           </div>
         </div>
-        <div className="gender-title">{t("Select Child Age:")}</div>
+        <div className="gender-title">{t("What is your child’s age?")}</div>
         <div className="age-container">
           {Array(7)
             .fill(null)

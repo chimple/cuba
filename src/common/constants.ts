@@ -137,6 +137,7 @@ export enum PAGES {
   SEARCH = "/search",
   LEADERBOARD = "/leaderboard",
   ASSIGNMENT = "/assignment",
+  SELECT_MODE = "/select-mode",
 }
 
 export enum LANG {
@@ -165,6 +166,7 @@ export const PREVIOUS_SELECTED_COURSE = () =>
   `${Auth.i.sourcedId}-previousSelectedCourse`;
 export const SELECTED_GRADE = () => `${Auth.i.sourcedId}-selectedGrade`;
 export const APP_LANG = "appLang";
+export const CURRENT_SCHOOL = "currentSchool";
 export const LANGUAGE = "language";
 export const EXAM = "exam";
 export const PRE_QUIZ = "PreQuiz";
@@ -254,6 +256,12 @@ export const NUMBER_NAME = [
 
 export const MAX_STUDENTS_ALLOWED = 3;
 export const INSTANT_SEARCH_INDEX_NAME = "lesson_cuba";
+
+export enum MODES {
+  PARENT,
+  SCHOOL,
+}
+
 export const CURRENT_STUDENT = "currentStudent";
 export enum EVENTS {
   LESSON_END = "lesson_end",
