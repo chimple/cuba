@@ -54,18 +54,17 @@
   flex-direction: row;
   justify-content: space-between;
   margin: var(--margin);
+  color: var(--text-color);
 }
 
 .class-container {
   width: 90%;
-  /* height: 80%; */
+  height: 80vh;
   margin: 0 auto;
-  /* gap: 10vh; */
-  align-items: center;
   justify-items: center;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  flex-wrap: wrap;
+  /* flex-wrap: wrap; */
   justify-content: center;
   overflow-y: scroll;
 }
@@ -78,7 +77,7 @@
   height: 10vw;
   border-radius: 100%;
   background-color: white;
-  color: black;
+  color: var(--text-color);
   /* font-weight: bold; */
   font-size: clamp(36px, 10vh, 56px);
   display: flex;
@@ -89,12 +88,10 @@
 .class-avatar {
   display: flex;
   flex-direction: column;
-  /* grid-row: auto; */
-  /* border: 2px solid red; */
   align-items: center;
   cursor: pointer;
   font-size: var(--text-size);
-  color: #05342f;
+  color: var(--text-color);
   margin: 5% 5%;
 }
 
