@@ -454,7 +454,7 @@ const Leaderboard: React.FC = () => {
             )}
             {tabIndex === LEADERBOARDHEADERLIST.EVENTS && (
               <Box>
-                <div>{ }</div>
+                
               </Box>
             )}
           </Box>
