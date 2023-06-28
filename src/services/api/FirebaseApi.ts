@@ -551,8 +551,10 @@ export class FirebaseApi implements ServiceApi {
     };
     console.log("playedResult", result.lesson.id, JSON.stringify(playedResult));
 
-    this._studentResultCache[student.docId].lessons[result.lesson.id] =
-      playedResult;
+    if (this._studentResultCache[student.docId] !== undefined) {
+      this._studentResultCache[student.docId].lessons[result.lesson.id] =
+        playedResult;
+    }
     console.log(
       "this._studentResultCache[student.docId] ",
       JSON.stringify(this._studentResultCache[student.docId])
