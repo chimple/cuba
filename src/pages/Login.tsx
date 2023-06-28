@@ -46,10 +46,21 @@ const Login: React.FC = () => {
   const [isInputFocus, setIsInputFocus] = useState(false);
   const scollToRef = useRef<null | HTMLDivElement>(null);
   const [currentStudent, setStudent] = useState<User>();
+  const Buttoncolors={
+    Default:"grey",
+    Valid:"yellowgreen",
+
+  };
+
+  const otpBtnRef = useRef<any>();
+  const getOtpBtnRef= useRef<any>();
+
 
   useEffect(() => {
+
     init();
     setIsLoading(true);
+
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
         console.log("info", JSON.stringify(info));
@@ -258,6 +269,17 @@ const Login: React.FC = () => {
                       // setPhoneNumber(countryCode + input.detail.value);
                       phoneNumber = input.detail.value;
                       console.log(countryCode + phoneNumber);
+
+                      let loginBtnBgColor = otpBtnRef.current.style.backgroundColor;
+                      if (phoneNumber.length === 10 ) {
+                        otpBtnRef.current.style.backgroundColor = Buttoncolors.Valid;
+                      }
+                      else {
+                        if (loginBtnBgColor === Buttoncolors.Valid) {
+                          otpBtnRef.current.style.backgroundColor = Buttoncolors.Default;
+
+                        }
+                      }
                     }
                   }}
                 ></TextBox>
@@ -265,6 +287,7 @@ const Login: React.FC = () => {
 
               <div id="recaptcha-container" />
               <div
+                ref={otpBtnRef}
                 id="login-continue-button"
                 onClick={() => {
                   // //@ts-ignore
@@ -343,11 +366,21 @@ const Login: React.FC = () => {
                       // setVerificationCode("" + input.detail.value);
                       verificationCode = input.detail.value;
                       console.log("" + input.detail.value);
+                      let otpBtnBgColor =  getOtpBtnRef.current.style.backgroundColor;
+                      if (verificationCode.length === 6) {
+                        getOtpBtnRef.current.style.backgroundColor = Buttoncolors.Valid;
+                      }
+                      else {
+                        if (otpBtnBgColor === Buttoncolors.Valid) {
+                          getOtpBtnRef.current.style.backgroundColor = Buttoncolors.Default;
+
+                        }
+                      }
                     }
                   }}
                 ></TextBox>
               </div>
-              <div
+              <div ref={getOtpBtnRef}
                 id="login-continue-button"
                 onClick={() => {
                   onVerificationCodeSubmit();

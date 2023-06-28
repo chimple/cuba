@@ -75,7 +75,7 @@ p {
   color: white;
   width: 26vw;
   height: 5.5vw;
-  background: yellowgreen;
+  background: grey;
   border-radius: var(--border-radius);
   text-align: center;
   line-height: 6vw;
