@@ -1,11 +1,9 @@
 import { ImgHTMLAttributes, useEffect, useState } from "react";
-import { Util } from "../../utility/util";
 import { Capacitor, CapacitorHttp } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import { CACHE_IMAGE } from "../../common/constants";
 
 function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
-  const params = { ...props };
   const [imgSrc, setImgSrc] = useState<string>();
 
   async function getCachedImage(url: string): Promise<string> {
@@ -55,6 +53,6 @@ function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
         });
     }
   }, [props]);
-  return !!imgSrc ? <img {...params} src={imgSrc} alt={imgSrc} /> : <div></div>;
+  return !!imgSrc ? <img {...props} src={imgSrc} alt={imgSrc} /> : <div></div>;
 }
 export default CachedImage;
