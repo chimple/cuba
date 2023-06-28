@@ -50,6 +50,7 @@ import StudentProgress from "./pages/StudentProgress";
 import SearchLesson from "./pages/SearchLesson";
 import Leaderboard from "./pages/Leaderboard";
 import AssignmentPage from "./pages/Assignment";
+import SelectMode from "./pages/SelectMode";
 
 setupIonicReact();
 
@@ -135,6 +136,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.ASSIGNMENT} exact={true}>
               <AssignmentPage />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
+              <SelectMode />
             </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>

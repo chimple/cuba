@@ -28,8 +28,8 @@
 #parent-page-setting {
   /* background-color: white; */
   display: flex;
-  margin: 6% 5% 0% 5%;
-  justify-content: space-evenly;
+  margin: 6% 19% 0% 19%;
+  justify-content: space-between;
   align-items: center;
   font-size: var(--text-size);
   color: black;
@@ -172,16 +172,35 @@
   margin-top: 10vh;
 }
 
+#parent-delete {
+  text-align: -webkit-center;
+  margin-top: 10vh;
+}
+
 
 #parent-page-tab-bar {
-  /* display: flex;
-    margin: 6% 5% 0% 5%;
-    justify-content: space-evenly;
-    align-items: center; */
-  margin-right: 4vh;
+  margin-right: 2vh;
   font-size: var(--text-size);
   font-weight: bold;
+
   width: 19vw;
+
   font-family: "BalooRegular";
+  justify-content: space-evenly;
+  white-space: nowrap;
+}
+
+.back-button-in-parent {
+  position: absolute;
+  margin: var(--margin);
+  margin-right: 0;
+
   /* color: black; */
+}
+
+#logout-delete-button {
+  position: relative;
+  display: flex;
+  justify-content: space-around;
+  top: 17vh;
 }
