@@ -47,9 +47,14 @@ const Login: React.FC = () => {
   const scollToRef = useRef<null | HTMLDivElement>(null);
   const [currentStudent, setStudent] = useState<User>();
 
+  const otpBtnRef = useRef<any>();
+  const getOtpBtnRef= useRef<any>();
+
   useEffect(() => {
+
     init();
     setIsLoading(true);
+
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
         console.log("info", JSON.stringify(info));
@@ -258,6 +263,17 @@ const Login: React.FC = () => {
                       // setPhoneNumber(countryCode + input.detail.value);
                       phoneNumber = input.detail.value;
                       console.log(countryCode + phoneNumber);
+
+                      let loginBtnBgColor = otpBtnRef.current.style.backgroundColor;
+                      if (phoneNumber.length === 10) {
+                        otpBtnRef.current.style.backgroundColor = "yellowgreen";
+                      }
+                      else {
+                        if (loginBtnBgColor === "yellowgreen") {
+                          otpBtnRef.current.style.backgroundColor = "grey";
+
+                        }
+                      }
                     }
                   }}
                 ></TextBox>
@@ -265,6 +281,7 @@ const Login: React.FC = () => {
 
               <div id="recaptcha-container" />
               <div
+                ref={otpBtnRef}
                 id="login-continue-button"
                 onClick={() => {
                   // //@ts-ignore
@@ -342,11 +359,21 @@ const Login: React.FC = () => {
                       // setVerificationCode("" + input.detail.value);
                       verificationCode = input.detail.value;
                       console.log("" + input.detail.value);
+                      let otpBtnBgColor =  getOtpBtnRef.current.style.backgroundColor;
+                      if (verificationCode.length === 6) {
+                        getOtpBtnRef.current.style.backgroundColor = "yellowgreen";
+                      }
+                      else {
+                        if (otpBtnBgColor === "yellowgreen") {
+                          getOtpBtnRef.current.style.backgroundColor = "grey";
+
+                        }
+                      }
                     }
                   }}
                 ></TextBox>
               </div>
-              <div
+              <div ref={getOtpBtnRef}
                 id="login-continue-button"
                 onClick={() => {
                   onVerificationCodeSubmit();
