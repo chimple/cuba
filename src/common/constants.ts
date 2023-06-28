@@ -259,7 +259,7 @@ export const INSTANT_SEARCH_INDEX_NAME = "lesson_cuba";
 
 export enum MODES {
   PARENT,
-  TEACHER,
+  SCHOOL,
 }
 
 export const CURRENT_STUDENT = "currentStudent";

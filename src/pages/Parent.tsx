@@ -31,6 +31,7 @@ import { blue, red, green } from "@mui/material/colors";
 import { common } from "@mui/material/colors";
 import BackButton from "../components/common/BackButton";
 import { useHistory } from "react-router-dom";
+import CustomAppBar from "../components/studentProgress/CustomAppBar";
 import DeleteParentAccount from "../components/parent/DeleteParentAccount";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
@@ -42,6 +43,7 @@ const Parent: React.FC = () => {
   const [soundFlag, setSoundFlag] = useState<boolean>();
   const [musicFlag, setMusicFlag] = useState<boolean>();
   const [userProfile, setUserProfile] = useState<any[]>([]);
+  const [tabIndex, setTabIndex] = useState<any>();
 
   const [langList, setLangList] = useState<
     {
@@ -59,6 +61,12 @@ const Parent: React.FC = () => {
   // let langDocIds: Map<string, string> = new Map();
   const localAppLang = localStorage.getItem(APP_LANG);
   const history = useHistory();
+  const parentHeaderIconList = [
+    { header: "profile", displayName: "Profile" },
+    { header: "settings", displayName: "Settings" },
+    { header: "help", displayName: "Help" },
+    { header: "fAQ", displayName: "FAQ" },
+  ];
 
   useEffect(() => {
     setIsLoading(true);
@@ -244,41 +252,44 @@ const Parent: React.FC = () => {
     return (
       <div id="parent-page-help">
         <h1 id="parent-page-help-title">{t("Chimple Help Desk")}</h1>
-        <div id="parent-page-help-title-link">
-          <div id="parent-page-help-title-e1">
-            <div id="parent-page-help-share-button">
-              <EmailShareButton
-                url={"help@sutara.org"}
-                subject={"Chimple Kids app- Help Desk"}
-                body=""
-                className="Demo__some-network__share-button"
+        <div id="parent-page-help-title-container">
+          <div id="parent-page-help-title-link">
+            <div id="parent-page-help-title-e1">
+              <div id="parent-page-help-share-button">
+                <EmailShareButton
+                  url={"help@sutara.org"}
+                  subject={"Chimple Kids app- Help Desk"}
+                  body=""
+                  className="Demo__some-network__share-button"
+                >
+                  {/* Email Us */}
+                  {t("Email Us")}
+                </EmailShareButton>
+                <EmailIcon size={"2vw"} round />
+              </div>
+              <div
+                id="parent-page-help-share-button"
+                onClick={() => {
+                  console.log("Value clicked");
+                  window.open("https://www.chimple.org/", "_system");
+                }}
               >
-                Email Us
-              </EmailShareButton>
-              <EmailIcon size={"2vw"} round />
-            </div>
-            <div
-              id="parent-page-help-share-button"
-              onClick={() => {
-                console.log("Value clicked");
-                window.open("https://www.chimple.org/", "_system");
-              }}
-            >
-              Visit Website
-              <TfiWorld size={"2vw"} />
-              {/* <IonIcon name="globe-outline" size={"2vw"}></IonIcon> */}
-            </div>
-            <div
-              id="parent-page-help-share-button"
-              onClick={() => {
-                let message = "Hiii !!!!";
-                window.open(
-                  `https://api.whatsapp.com/send?phone=918904515444&text=${message}`,
-                  "_system"
-                );
-              }}
-            >
-              {/* <WhatsappShareButton
+                {/* Visit Website */}
+                {t("Visit Website")}
+                <TfiWorld size={"2vw"} />
+                {/* <IonIcon name="globe-outline" size={"2vw"}></IonIcon> */}
+              </div>
+              <div
+                id="parent-page-help-share-button"
+                onClick={() => {
+                  let message = "Hiii !!!!";
+                  window.open(
+                    `https://api.whatsapp.com/send?phone=918904515444&text=${message}`,
+                    "_system"
+                  );
+                }}
+              >
+                {/* <WhatsappShareButton
               // https://api.whatsapp.com/send?phone=917981611434&text=${message}
               url={"send?phone=917981611434&"}
               title={"hi"}
@@ -286,78 +297,83 @@ const Parent: React.FC = () => {
             >
               WhatsApp Us
             </WhatsappShareButton> */}
-              WhatsApp Us
-              <WhatsappIcon size={"2vw"} round />
+                {/* WhatsApp Us */}
+                {t("WhatsApp Us")}
+                <WhatsappIcon size={"2vw"} round />
+              </div>
             </div>
-          </div>
-          <div id="parent-page-help-title-e2">
-            Help Video
-            <div id="parent-page-help-title-e2-video">
-              <iframe
-                id="parent-page-help-title-e2-video-youtude"
-                className="embed-responsive-item"
-                allowFullScreen={true}
-                // width="50%"
-                // height="50%"
-                src="https://www.youtube.com/embed/Ez9oouE2pOE"
-                title="YouTube video player"
-                // frameborder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                // allowfullscreen
-              ></iframe>
+            <div id="parent-page-help-title-e2">
+              <div id="help">{t("Help Video")}</div>
+              <div id="parent-page-help-title-e2-video">
+                <iframe
+                  id="parent-page-help-title-e2-video-youtude"
+                  className="embed-responsive-item"
+                  allowFullScreen={true}
+                  // width="50%"
+                  // height="50%"
+                  src="https://www.youtube.com/embed/Ez9oouE2pOE"
+                  title="YouTube video player"
+                  // frameborder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  // allowfullscreen
+                ></iframe>
+              </div>
             </div>
-          </div>
-          <div id="parent-page-help-title-e3">
-            <div
-              id="parent-page-help-share-button-e3"
-              onClick={() => {
-                console.log("Value clicked");
-                // let message = "Hiii !!!!";
-                window.open(
-                  `https://api.instagram.com/chimple_learning/`,
-                  "_system"
-                );
-                // https://api.instagram.com/chimple_learning/
+            <div id="parent-page-help-title-e3">
+              <div
+                id="parent-page-help-share-button-e3"
+                onClick={() => {
+                  console.log("Value clicked");
+                  // let message = "Hiii !!!!";
+                  window.open(
+                    `https://api.instagram.com/chimple_learning/`,
+                    "_system"
+                  );
+                  // https://api.instagram.com/chimple_learning/
 
-                // instagram://user?username=its_mee_skanda
-              }}
-            >
-              Instagram
-              <FaInstagramSquare size={"2vw"} />
-            </div>
-            <div
-              id="parent-page-help-share-button-e3"
-              onClick={() => {
-                // let message = "Hiii !!!!";
-                window.open(`https://www.facebook.com/chimple`, "_system");
-              }}
-            >
-              {/* <FacebookShareButton
+                  // instagram://user?username=its_mee_skanda
+                }}
+              >
+                {/* Instagram */}
+                {t("Instagram")}
+                <FaInstagramSquare size={"2vw"} />
+              </div>
+              <div
+                id="parent-page-help-share-button-e3"
+                onClick={() => {
+                  // let message = "Hiii !!!!";
+                  window.open(`https://www.facebook.com/chimple`, "_system");
+                }}
+              >
+                {/* <FacebookShareButton
               url={"https://www.facebook.com/chimple"}
               quote={"Chimple Learning"}
               className="Demo__some-network__share-button"
             >
               Fackbook
             </FacebookShareButton> */}
-              Facebook
-              <FacebookIcon size={"2vw"} round />
-            </div>
-            <div
-              id="parent-page-help-share-button-e3"
-              onClick={() => {
-                // let message = "Hiii !!!!";
-                window.open(`https://twitter.com/chimple_org`, "_system");
-              }}
-            >
-              {/* <TwitterShareButton
+                {/* Facebook */}
+                {t("Facebook")}
+                <FacebookIcon size={"2vw"} round />
+              </div>
+              <div
+                id="parent-page-help-share-button-e3"
+                onClick={() => {
+                  // let message = "Hiii !!!!";
+                  window.open(`https://twitter.com/chimple_org`, "_system");
+                }}
+              >
+                {/* <TwitterShareButton
               url={"https://twitter.com/chimple_org"}
               title={"Chimple Learning"}
               className="Demo__some-network__share-button"
             >
               Twitter
             </TwitterShareButton> */}
-              Twitter
-              <TwitterIcon size={"2vw"} round />
+                {/* Twitter */}
+                {t("Twitter")}
+                <TwitterIcon size={"2vw"} round />
+              </div>
             </div>
           </div>
         </div>
@@ -365,118 +381,40 @@ const Parent: React.FC = () => {
     );
   }
 
-  const [tabIndex, setTabIndex] = useState("profile");
-
-  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
-    // setValue(newValue);
+  const handleChange = (newValue: string) => {
+    const selectedHeader = parentHeaderIconList.find(
+      (item) => item.header === newValue
+    );
+    if (selectedHeader) {
+      setCurrentHeader(selectedHeader.header);
+    }
     setTabIndex(newValue);
   };
 
+  const handleBackButton = () => {
+    history.replace(PAGES.DISPLAY_STUDENT);
+  };
+
+  useEffect(() => {
+    if (!tabIndex && parentHeaderIconList.length > 0) {
+      setTabIndex(parentHeaderIconList[0].header);
+    }
+  }, []);
+
   return (
-    // <IonPage>
-    //   {!isLoading ? (
-    //     <div id="parent-page">
-    //       <ParentHeader
-    //         currentHeader={currentHeader}
-    //         onHeaderIconClick={onHeaderIconClick}
-    //       ></ParentHeader>
-
-    //       {currentHeader === PARENTHEADERLIST.PROFILE ? (
-    //         <div>{profileUI()}</div>
-    //       ) : null}
-
-    //       {currentHeader === PARENTHEADERLIST.SETTING ? (
-    //         <div>{settingUI()}</div>
-    //       ) : null}
-
-    //       {currentHeader === PARENTHEADERLIST.HELP ? (
-    //         <div>{helpUI()}</div>
-    //       ) : null}
-    //     </div>
-    //   ) : null}
-    //   <Loading isLoading={isLoading} />
-    // </IonPage>
     <Box>
-      <Box id="ParentHeader">
-        <AppBar
-          id="ParentHeader-1"
-          position="static"
-          sx={{
-            flexDirection: "inherit",
-            justifyContent: "space-between",
-            padding: "1vh 1vw",
-            backgroundColor: "#FF7925 !important",
-            boxShadow: "0px 0px 0px 0px !important",
-          }}
-        >
-          <BackButton
-            // iconSize={"8vh"}
-            onClicked={() => {
-              history.replace(PAGES.DISPLAY_STUDENT);
-            }}
-          ></BackButton>
-          <Tabs
-            value={tabIndex}
-            onChange={handleChange}
-            textColor="secondary"
-            indicatorColor="secondary"
-            aria-label="secondary tabs example"
-            // variant="scrollable"
-            scrollButtons="auto"
-            // aria-label="scrollable auto tabs example"
-            centered
-            sx={{
-              // "& .MuiAppBar-root": { backgroundColor: "#FF7925 !important" },
-              "& .MuiTabs-indicator": {
-                backgroundColor: "#FFFFFF !important",
-                fontSize: "clamp(10px, 3vh, 20px)",
-              },
-              "& .MuiTab-root": { color: "#000000" },
-              "& .Mui-selected": { color: "#FFFFFF !important" },
-            }}
-          >
-            <Tab
-              value="profile"
-              label={t("profile")}
-              id="parent-page-tab-bar"
-              // sx={{
-              //   // fontSize:"5vh"
-              //   marginRight: "5vw",
-              // }}
-            />
-            <Tab
-              id="parent-page-tab-bar"
-              value="setting"
-              label={t("setting")}
-            />
-            <Tab id="parent-page-tab-bar" value="help" label={t("help")} />
-            <Tab id="parent-page-tab-bar" value="faq" label={t("faq")} />
-          </Tabs>
-          <div></div>
-        </AppBar>
-      </Box>
-      <Box sx={{}}>
-        {tabIndex === "profile" && (
-          <Box>
-            <div>{profileUI()}</div>
-          </Box>
-        )}
-        {tabIndex === "setting" && (
-          <Box>
-            <div>{settingUI()}</div>
-          </Box>
-        )}
-        {tabIndex === "help" && (
-          <Box>
-            <div>{helpUI()}</div>
-          </Box>
-        )}
-        {tabIndex === "faq" && (
-          <Box>
-            <div></div>
-          </Box>
-        )}
-      </Box>
+      <div>
+        <CustomAppBar
+          tabNames={parentHeaderIconList.map((item) => item.header)}
+          value={tabIndex}
+          onChange={handleChange}
+          handleBackButton={handleBackButton}
+        />
+        {tabIndex === "profile" && <div>{profileUI()}</div>}
+        {tabIndex === "settings" && <div>{settingUI()}</div>}
+        {tabIndex === "help" && <div>{helpUI()}</div>}
+        {tabIndex === "faq" && <div></div>}
+      </div>
     </Box>
   );
 };

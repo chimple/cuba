@@ -301,6 +301,11 @@ export class FirebaseAuth implements ServiceAuth {
         "return result",
         JSON.stringify({ user: user, isUserExist: tempUserDoc.exists() })
       );
+      if (tempUserDoc.exists() && !!tempUserDoc.data()) {
+        const userDoc = tempUserDoc.data() as User;
+        userDoc.docId = tempUserDoc.id;
+        Util.subscribeToClassTopicForAllStudents(userDoc);
+      }
       return { user: user, isUserExist: tempUserDoc.exists() };
       // return user;
     } catch (error) {

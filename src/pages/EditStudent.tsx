@@ -63,6 +63,7 @@ const EditStudent = () => {
   const [languages, setLanguages] = useState<Language[]>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+
   const onNextButton = async () => {
     setIsLoading(true);
     const stagesLength = Object.keys(STAGES).length / 2;
@@ -158,8 +159,17 @@ const EditStudent = () => {
     }
   }, []);
 
+
   return (
     <IonPage id="Edit-student-page">
+      <div id="Edit-student-back-button">
+        <BackButton
+          onClicked={() => {
+            history.replace(PAGES.PROFILE)
+          }} />
+      </div>
+
+
       <div id="next-button">
         <NextButton
           disabled={!isNextButtonEnabled()}
@@ -173,33 +183,59 @@ const EditStudent = () => {
             : ""
         }
       >
-        <div id="common-div">
+        {stage == STAGES.NAME && (
           <ChimpleLogo
             header={t("Welcome to Chimple!")}
-            msg={t("").toString()}
-          />
-        </div>
+            msg={t("").toString()} />
+
+        )}
+
         {stage === STAGES.NAME && (
+
+
           <StudentNameBox
             studentName={studentName!}
             onValueChange={setStudentName}
-            onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
+            onEnterDown={isNextButtonEnabled() ? onNextButton : () => { }}
           />
         )}
       </div>
       {stage === STAGES.AVATAR && (
-        <div className="avatar-title">{t("Choose an avatar for your child")}</div>
+        <><>
+          <div id="Edit-student-back-button">
+            <BackButton
+              onClicked={() => {
+                setStage(STAGES.GENDER_AND_AGE);
+              }} />
+          </div>
+
+          <div id="common-div">
+            <ChimpleLogo
+              header={t("")}
+              msg={t("").toString()} />
+          </div><div className="avatar-title">{t("Select Child Avatar:")}</div></></>
       )}
       <div className="content">
         {stage === STAGES.GENDER_AND_AGE && (
-          <GenderAndAge
-            age={age}
-            gender={gender}
-            onAgeChange={setAge}
-            onGenderChange={setGender}
-          />
+          <><div id="Edit-student-back-button">
+            <BackButton
+              onClicked={() => {
+                setStage(STAGES.NAME);
+              }} />
+          </div><><>
+            <div id="common-div">
+              <ChimpleLogo
+                header={t("")}
+                msg={t("").toString()} />
+            </div></>
+              <GenderAndAge
+                age={age}
+                gender={gender}
+                onAgeChange={setAge}
+                onGenderChange={setGender} /></></>
         )}
         {stage === STAGES.AVATAR && (
+
           <SelectAvatar avatar={avatar} onAvatarChange={setAvatar} />
         )}
         {stage === STAGES.GRADE && (
@@ -218,6 +254,7 @@ const EditStudent = () => {
           />
           </div>
         )}
+
       </div>
       <Loading isLoading={isLoading} />
     </IonPage>
