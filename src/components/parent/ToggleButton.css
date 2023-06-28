@@ -2,7 +2,7 @@
     display: flex;
     text-align: center;
     justify-content: space-evenly;
-    /* width: 40vw; */
+    width: 40vw;
 }
 
 ion-toggle {
