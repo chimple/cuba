@@ -3,27 +3,33 @@
   align-items: center;
   /* margin: var(--margin); */
   /* margin-bottom: 0; */
+
 }
-#LeaderBoard-header{
+
+#LeaderBoard-header {
   margin: var(--margin);
   margin-bottom: 0;
+
   /* padding: 1vh 1vw; */
 }
-#LeaderBoard-AppBar{
+
+#LeaderBoard-AppBar {
   /* padding: 1vh 1vw; */
   padding: 0%;
- 
+
 }
 
 #leaderboard-UI {
   display: flex;
-  margin: 1% 0% 0% 5%;
-  justify-content: space-around;
+  margin: 1% 0% 0% 2%;
   align-items: center;
   font-size: var(--text-size);
   color: black;
   height: 85vh;
   padding-bottom: 5vh;
+  flex-wrap: wrap;
+  flex-direction: column;
+
 }
 
 /* #leaderboard-left-UI {
@@ -36,16 +42,20 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: bolder;
+  font-size: 1.5vw;
+
 }
 
 #leaderboard-right-UI {
-  width: 60vw;
-  height: 78vh;
+  width: 65vw;
+  height: 75vh;
   outline-style: solid;
   outline-width: 0.1px;
   border-radius: 4vh;
   overflow-y: scroll;
   text-align: center;
+
+
 }
 
 #leaderboard-right-UI-content {
@@ -55,15 +65,24 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: bolder;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+
 }
 
 #leaderboard-avatar {
   padding: 5% 0%;
+
 }
 
-#leaderboard-student-name{
+#leaderboard-student-name {
   max-width: 20vh;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+  /* background-color: white;
+  color:black; */
+
 }
