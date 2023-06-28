@@ -101,7 +101,7 @@ const Leaderboard: React.FC = () => {
     console.log(
       "leaderboardDataInfo.weekly.length <= 0 leaderboardDataInfo.allTime.length <= 0",
       leaderboardDataInfo.weekly.length <= 0 ||
-        leaderboardDataInfo.allTime.length <= 0,
+      leaderboardDataInfo.allTime.length <= 0,
       isWeeklyFlag
         ? "leaderboardDataInfo.weekly"
         : "leaderboardDataInfo.allTime"
@@ -286,7 +286,7 @@ const Leaderboard: React.FC = () => {
         </div>
         <div id="leaderboard-right-UI">
           {leaderboardData.map((e) => {
-            let columnWidth = ["2.5vw", "13vw", "12vw", "9vw", "12vw"];
+            let columnWidth = ["3vw", "14vw", "15vw", "7vw", "14vw"];
             let rankColors = ["", "#FFC32C", "#C4C4C4", "#D39A66", "#959595"];
             let i = -1;
             headerRowIndicator++;
@@ -309,12 +309,15 @@ const Leaderboard: React.FC = () => {
                 style={{
                   backgroundColor:
                     headerRowIndicator === 0
-                      ? "#959595"
+                      ? "rgb(200 200 200)"
                       : Number(currentUserDataContent[0][1]) ===
                         headerRowIndicator
-                      ? "#FF7925"
-                      : "",
+                        ? "#FF7925"
+                        : "",
                   padding: "1vh 2vh",
+                  position: "sticky",
+                  zIndex: headerRowIndicator === 0 ? "3" : "0",
+                  top: "0px",
                 }}
               >
                 {e.map((d) => {
@@ -325,13 +328,16 @@ const Leaderboard: React.FC = () => {
                       <p
                         style={{
                           color:
-                            i === 0 && headerRowIndicator != 0 ? "white" : "",
+                            i === 0 && headerRowIndicator != 0 ? Number(currentUserDataContent[0][1]) ===
+                              headerRowIndicator ? "black" : "white" : "",
                           backgroundColor:
-                            i === 0 && headerRowIndicator != 0
-                              ? rankColors[Number(e[0])] || rankColors[4]
+                            i === 0 && headerRowIndicator != 0 ? Number(currentUserDataContent[0][1]) ===
+                              headerRowIndicator ? "white" : rankColors[Number(e[0])] || rankColors[4]
                               : "",
                           borderRadius:
                             i === 0 && headerRowIndicator != 0 ? "100vw" : "",
+                          height: i === 0 && headerRowIndicator != 0 ? columnWidth[i] : "",
+                          fontSize: "1.5vw",
                           width: columnWidth[i],
                           textAlign: i === 0 ? "center" : "left",
                         }}
@@ -426,10 +432,10 @@ const Leaderboard: React.FC = () => {
                   value={LEADERBOARDHEADERLIST.LEADERBOARD}
                   label={t(LEADERBOARDHEADERLIST.LEADERBOARD)}
                   id="parent-page-tab-bar"
-                  // sx={{
-                  //   // fontSize:"5vh"
-                  //   marginRight: "5vw",
-                  // }}
+                // sx={{
+                //   // fontSize:"5vh"
+                //   marginRight: "5vw",
+                // }}
                 />
                 <Tab
                   id="parent-page-tab-bar"
@@ -448,7 +454,7 @@ const Leaderboard: React.FC = () => {
             )}
             {tabIndex === LEADERBOARDHEADERLIST.EVENTS && (
               <Box>
-                <div>{}</div>
+
               </Box>
             )}
           </Box>
