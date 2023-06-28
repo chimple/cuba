@@ -204,7 +204,7 @@ const EditStudent = () => {
         )}
         {stage === STAGES.GRADE && (
           <div>
-            <p>{t("Choose your child’s class details").toString()}</p>
+            <p className="child-class-details">{t("Choose your child’s class details").toString()}</p>
             <GradeBoardAndLangDropdown
             boards={boards}
             grades={grades}
