@@ -17,6 +17,12 @@ const ParentalLock: React.FC<{
   handleClose,
   onHandleClose,
 }) => {
+    const enum FourSides {
+      LEFT = "LEFT",
+      RIGHT = "RIGHT",
+      UP = "UP",
+      DOWN = "DOWN",
+    }
     const history = useHistory();
     const [swipeDirection, setSwipeDirection] = useState('');
     const [userDirection, setUserDirection] = useState('');
@@ -63,19 +69,19 @@ const ParentalLock: React.FC<{
       if (isLeftSwipe || isRightSwipe || isUpSwipe || isDownSwipe) {
         if (isLeftSwipe) {
           console.log('Swipe: left');
-          setUserDirection('LEFT');
+          setUserDirection(FourSides.LEFT);
         }
         if (isRightSwipe) {
           console.log('Swipe: right');
-          setUserDirection('RIGHT');
+          setUserDirection(FourSides.RIGHT);
         }
         if (isUpSwipe) {
           console.log('Swipe: up');
-          setUserDirection('UP');
+          setUserDirection(FourSides.UP);
         }
         if (isDownSwipe) {
           console.log('Swipe: down');
-          setUserDirection('DOWN');
+          setUserDirection(FourSides.DOWN);
         }
       }
     };
