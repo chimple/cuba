@@ -272,3 +272,5 @@ export const FCM_TOKENS = "fcmTokens";
 export const LAST_UPDATE_CHECKED = "lastUpdateChecked";
 
 export const LAST_PERMISSION_CHECKED = "lastPermissionChecked";
+
+export const CACHE_IMAGE = "cacheImage";
