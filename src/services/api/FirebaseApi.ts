@@ -188,68 +188,101 @@ export class FirebaseApi implements ServiceApi {
   }
 
   public async getAllCurriculums(): Promise<Curriculum[]> {
-    const querySnapshot = await getDocs(
-      collection(this._db, CollectionIds.CURRICULUM)
-    );
-    const curriculums: Curriculum[] = [];
-    querySnapshot.forEach((doc) => {
-      console.log(`${doc.id} => ${doc.data()}`);
-      const curriculum = doc.data() as Curriculum;
-      curriculum.docId = doc.id;
-      curriculums.push(curriculum);
-    });
-    return curriculums;
+    try {
+      const querySnapshot = await getDocs(
+        collection(this._db, CollectionIds.CURRICULUM)
+      );
+      const curriculums: Curriculum[] = [];
+      querySnapshot.forEach((doc) => {
+        console.log(`${doc.id} => ${doc.data()}`);
+        const curriculum = doc.data() as Curriculum;
+        curriculum.docId = doc.id;
+        curriculums.push(curriculum);
+      });
+      return curriculums;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:206 ~ FirebaseApi ~ getAllCurriculums ~ error:",
+        JSON.stringify(error)
+      );
+      return [];
+    }
   }
 
   public async getAllGrades(): Promise<Grade[]> {
-    const querySnapshot = await getDocs(
-      collection(this._db, CollectionIds.GRADE)
-    );
-    const grades: Grade[] = [];
-    querySnapshot.forEach((doc) => {
-      console.log(`${doc.id} => ${doc.data()}`);
-      const grade = doc.data() as Grade;
-      grade.docId = doc.id;
-      grades.push(grade);
-    });
-    return grades;
+    try {
+      const querySnapshot = await getDocs(
+        collection(this._db, CollectionIds.GRADE)
+      );
+      const grades: Grade[] = [];
+      querySnapshot.forEach((doc) => {
+        console.log(`${doc.id} => ${doc.data()}`);
+        const grade = doc.data() as Grade;
+        grade.docId = doc.id;
+        grades.push(grade);
+      });
+      return grades;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:228 ~ FirebaseApi ~ getAllGrades ~ error:",
+        JSON.stringify(error)
+      );
+      return [];
+    }
   }
 
   public async getAllLanguages(): Promise<Language[]> {
-    const querySnapshot = await getDocs(
-      collection(this._db, CollectionIds.LANGUAGE)
-    );
-    const languages: Language[] = [];
-    querySnapshot.forEach((doc) => {
-      // console.log(`${doc.id} => ${doc.data()}`);
-      const language = doc.data() as Language;
-      language.docId = doc.id;
-      languages.push(language);
-    });
-    return languages;
+    try {
+      const querySnapshot = await getDocs(
+        collection(this._db, CollectionIds.LANGUAGE)
+      );
+      const languages: Language[] = [];
+      querySnapshot.forEach((doc) => {
+        // console.log(`${doc.id} => ${doc.data()}`);
+        const language = doc.data() as Language;
+        language.docId = doc.id;
+        languages.push(language);
+      });
+      return languages;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:250 ~ FirebaseApi ~ getAllLanguages ~ error:",
+        JSON.stringify(error)
+      );
+      return [];
+    }
   }
 
   public async getParentStudentProfiles(): Promise<User[]> {
-    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!currentUser) throw "User is not Logged in";
-    if (!currentUser.users || currentUser.users.length < 1) return [];
-    const tempUsers = await Promise.all(
-      currentUser.users.map(async (user) => {
-        const userDoc = await getDoc(user);
-        if (userDoc.exists()) {
-          const newUser = userDoc.data() as User;
-          if (newUser) newUser.docId = userDoc.id;
-          return newUser;
+    try {
+      const currentUser =
+        await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (!currentUser) throw "User is not Logged in";
+      if (!currentUser.users || currentUser.users.length < 1) return [];
+      const tempUsers = await Promise.all(
+        currentUser.users.map(async (user) => {
+          const userDoc = await getDoc(user);
+          if (userDoc.exists()) {
+            const newUser = userDoc.data() as User;
+            if (newUser) newUser.docId = userDoc.id;
+            return newUser;
+          }
+        })
+      );
+      const users: User[] = [];
+      tempUsers.forEach((user) => {
+        if (!!user) {
+          users.push(user);
         }
-      })
-    );
-    const users: User[] = [];
-    tempUsers.forEach((user) => {
-      if (!!user) {
-        users.push(user);
-      }
-    });
-    return users;
+      });
+      return users;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:280 ~ FirebaseApi ~ getParentStudentProfiles ~ error:",
+        JSON.stringify(error)
+      );
+      return [];
+    }
   }
 
   public get currentMode(): MODES {
@@ -305,60 +338,89 @@ export class FirebaseApi implements ServiceApi {
   }
 
   async getCoursesForParentsStudent(student: User): Promise<Course[]> {
-    const subjects: Course[] = [];
-    if (!student?.courses || student.courses.length < 1) return subjects;
-    const courseDocs = await Promise.all(
-      student.courses.map((course) => getDoc(course))
-    );
-    courseDocs.forEach((courseDoc) => {
-      if (courseDoc && courseDoc.data()) {
-        const course = courseDoc.data() as Course;
-        course.docId = courseDoc.id;
-        subjects.push(course);
-      }
-    });
-    return subjects;
+    try {
+      const subjects: Course[] = [];
+      if (!student?.courses || student.courses.length < 1) return subjects;
+      const courseDocs = await Promise.all(
+        student.courses.map((course) => getDoc(course))
+      );
+      courseDocs.forEach((courseDoc) => {
+        if (courseDoc && courseDoc.data()) {
+          const course = courseDoc.data() as Course;
+          course.docId = courseDoc.id;
+          subjects.push(course);
+        }
+      });
+      return subjects;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:358 ~ FirebaseApi ~ getCoursesForParentsStudent ~ error:",
+        JSON.stringify(error)
+      );
+      return [];
+    }
   }
 
   async getLessonResultsForStudent(
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined> {
-    const studentLessons = await getDoc(
-      doc(this._db, `${CollectionIds.STUDENTPROFILE}/${studentId}`)
-    );
-    const lessonsData: DocumentData = studentLessons.data()!;
-    if (lessonsData == undefined || lessonsData.lessons == undefined) return;
-    console.log("lessonsData.lessons ", lessonsData.lessons);
-    const lessonsMap: Map<string, StudentLessonResult> = new Map(
-      Object.entries(lessonsData.lessons)
-    );
+    try {
+      const studentLessons = await getDoc(
+        doc(this._db, `${CollectionIds.STUDENTPROFILE}/${studentId}`)
+      );
+      const lessonsData: DocumentData = studentLessons.data()!;
+      if (lessonsData == undefined || lessonsData.lessons == undefined) return;
+      console.log("lessonsData.lessons ", lessonsData.lessons);
+      const lessonsMap: Map<string, StudentLessonResult> = new Map(
+        Object.entries(lessonsData.lessons)
+      );
 
-    return lessonsMap;
+      return lessonsMap;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:382 ~ FirebaseApi ~ error:",
+        JSON.stringify(error)
+      );
+    }
   }
 
   async getLesson(id: string): Promise<Lesson | undefined> {
-    const lessonDoc = await getDoc(
-      doc(this._db, `${CollectionIds.LESSON}/${id}`)
-    );
-    if (!lessonDoc.exists) return;
-    const lesson = lessonDoc.data() as Lesson;
-    lesson.docId = lessonDoc.id;
-    return lesson;
+    try {
+      const lessonDoc = await getDoc(
+        doc(this._db, `${CollectionIds.LESSON}/${id}`)
+      );
+      if (!lessonDoc.exists) return;
+      const lesson = lessonDoc.data() as Lesson;
+      lesson.docId = lessonDoc.id;
+      return lesson;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:399 ~ FirebaseApi ~ getLesson ~ error:",
+        JSON.stringify(error)
+      );
+    }
   }
 
   async getLessonsForChapter(chapter: Chapter): Promise<Lesson[]> {
     const lessons: Lesson[] = [];
-    if (chapter.lessons && chapter.lessons.length > 0) {
-      for (let lesson of chapter.lessons) {
-        if (lesson instanceof DocumentReference) {
-          const lessonObj = await this.getLesson(lesson.id);
-          if (lessonObj) {
-            lessons.push(lessonObj);
+    try {
+      if (chapter.lessons && chapter.lessons.length > 0) {
+        for (let lesson of chapter.lessons) {
+          if (lesson instanceof DocumentReference) {
+            const lessonObj = await this.getLesson(lesson.id);
+            if (lessonObj) {
+              lessons.push(lessonObj);
+            }
+          } else {
+            lessons.push(lesson);
           }
-        } else {
-          lessons.push(lesson);
         }
       }
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:367 ~ FirebaseApi ~ getLessonsForChapter ~ error:",
+        JSON.stringify(error)
+      );
     }
     return lessons;
   }
@@ -410,49 +472,56 @@ export class FirebaseApi implements ServiceApi {
     course: Course,
     lessonId: string
   ): Promise<Lesson | undefined> {
-    let lessons: {
-      [key: string]: {
+    try {
+      let lessons: {
+        [key: string]: {
+          [key: string]: Lesson;
+        };
+      } = JSON.parse(localStorage.getItem("CourseLessons")!);
+      if (!lessons) {
+        lessons = {};
+      }
+      // console.log("lessons ", lessons);
+      if (
+        lessons != undefined &&
+        lessons[course.courseCode] != undefined &&
+        lessons[course.courseCode][lessonId]
+      ) {
+        // console.log("lesson is already exist");
+        return lessons[course.courseCode][lessonId];
+      }
+      let lesMap: {
         [key: string]: Lesson;
-      };
-    } = JSON.parse(localStorage.getItem("CourseLessons")!);
-    if (!lessons) {
-      lessons = {};
-    }
-    // console.log("lessons ", lessons);
-    if (
-      lessons != undefined &&
-      lessons[course.courseCode] != undefined &&
-      lessons[course.courseCode][lessonId]
-    ) {
-      // console.log("lesson is already exist");
-      return lessons[course.courseCode][lessonId];
-    }
-    let lesMap: {
-      [key: string]: Lesson;
-    } = {};
-    for (let i = 0; i < course.chapters.length; i++) {
-      const chapter = course.chapters[i];
-      if (chapter.lessons && chapter.lessons.length > 0) {
-        for (let lesson of chapter.lessons) {
-          if (lesson.id === lessonId) {
-            // console.log("lesson id Found", lesson);
-            if (lesson instanceof DocumentReference) {
-              const lessonObj = await this.getLesson(lesson.id);
-              if (lessonObj) {
-                lesMap[lesson.id] = lessonObj as Lesson;
+      } = {};
+      for (let i = 0; i < course.chapters.length; i++) {
+        const chapter = course.chapters[i];
+        if (chapter.lessons && chapter.lessons.length > 0) {
+          for (let lesson of chapter.lessons) {
+            if (lesson.id === lessonId) {
+              // console.log("lesson id Found", lesson);
+              if (lesson instanceof DocumentReference) {
+                const lessonObj = await this.getLesson(lesson.id);
+                if (lessonObj) {
+                  lesMap[lesson.id] = lessonObj as Lesson;
+                }
+              } else {
+                lesMap[lesson.id] = lesson as Lesson;
               }
-            } else {
-              lesMap[lesson.id] = lesson as Lesson;
-            }
-            // console.log("lesMap", lesMap);
-            lessons[course.courseCode] = lesMap;
-            // console.log("after CourseLessons", lessons);
+              // console.log("lesMap", lesMap);
+              lessons[course.courseCode] = lesMap;
+              // console.log("after CourseLessons", lessons);
 
-            // localStorage.setItem("CourseLessons", JSON.stringify(lessons));
-            return lessons[course.courseCode][lessonId];
+              // localStorage.setItem("CourseLessons", JSON.stringify(lessons));
+              return lessons[course.courseCode][lessonId];
+            }
           }
         }
       }
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:523 ~ FirebaseApi ~ error:",
+        JSON.stringify(error)
+      );
     }
   }
 
@@ -603,14 +672,22 @@ export class FirebaseApi implements ServiceApi {
   }
 
   async getSubject(id: string): Promise<Subject | undefined> {
-    if (!!this._subjectsCache[id]) return this._subjectsCache[id];
-    const subjectDoc = await getDoc(doc(this._db, CollectionIds.SUBJECT, id));
-    if (!subjectDoc.exists) return;
-    const subject = subjectDoc.data() as Subject;
-    if (!subject) return;
-    subject.docId = id;
-    this._subjectsCache[id] = subject;
-    return subject;
+    try {
+      if (!!this._subjectsCache[id]) return this._subjectsCache[id];
+      const subjectDoc = await getDoc(doc(this._db, CollectionIds.SUBJECT, id));
+      if (!subjectDoc.exists) return;
+      const subject = subjectDoc.data() as Subject;
+      if (!subject) return;
+      subject.docId = id;
+      this._subjectsCache[id] = subject;
+      return subject;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:623 ~ FirebaseApi ~ getSubject ~ error:",
+        JSON.stringify(error)
+      );
+      return;
+    }
   }
 
   async getDataByInviteCode(inviteCode: number): Promise<any> {
@@ -636,52 +713,80 @@ export class FirebaseApi implements ServiceApi {
     studentId: string,
     fromCache: boolean = false
   ): Promise<StudentProfile | undefined> {
-    if (!!this._studentResultCache[studentId] && fromCache)
-      return this._studentResultCache[studentId];
-    const studentProfileDoc = await getDoc(
-      doc(this._db, CollectionIds.STUDENTPROFILE, studentId)
-    );
-    console.log("studentProfileDoc", studentProfileDoc);
+    try {
+      if (!!this._studentResultCache[studentId] && fromCache)
+        return this._studentResultCache[studentId];
+      const studentProfileDoc = await getDoc(
+        doc(this._db, CollectionIds.STUDENTPROFILE, studentId)
+      );
+      console.log("studentProfileDoc", studentProfileDoc);
 
-    if (!studentProfileDoc.exists) return;
-    const studentProfile = studentProfileDoc.data() as StudentProfile;
-    console.log("studentProfile", studentProfile);
-    if (studentProfile === undefined) return;
-    studentProfile.docId = studentId;
-    this._studentResultCache[studentId] = studentProfile;
-    return studentProfile;
+      if (!studentProfileDoc.exists) return;
+      const studentProfile = studentProfileDoc.data() as StudentProfile;
+      console.log("studentProfile", studentProfile);
+      if (studentProfile === undefined) return;
+      studentProfile.docId = studentId;
+      this._studentResultCache[studentId] = studentProfile;
+      return studentProfile;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:734 ~ FirebaseApi ~ error:",
+        JSON.stringify(error)
+      );
+    }
   }
 
   async getStudentResultInMap(
     studentId: string
   ): Promise<{ [lessonDocId: string]: StudentLessonResult } | undefined> {
-    const lessonsData = await this.getStudentResult(studentId);
-    console.log(
-      "getStudentResultInMap lessonsData ",
-      JSON.stringify(lessonsData)
-    );
-    if (!lessonsData) return;
-    return lessonsData.lessons;
+    try {
+      const lessonsData = await this.getStudentResult(studentId);
+      console.log(
+        "getStudentResultInMap lessonsData ",
+        JSON.stringify(lessonsData)
+      );
+      if (!lessonsData) return;
+      return lessonsData.lessons;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:753 ~ FirebaseApi ~ error:",
+        JSON.stringify(error)
+      );
+    }
   }
 
   async getClassById(id: string): Promise<Class | undefined> {
-    if (!!this._classCache[id]) return this._classCache[id];
-    const classDoc = await getDoc(doc(this._db, CollectionIds.CLASS, id));
-    if (!classDoc.exists) return;
-    const classData = classDoc.data() as Class;
-    classData.docId = id;
-    this._classCache[id] = classData;
-    return classData;
+    try {
+      if (!!this._classCache[id]) return this._classCache[id];
+      const classDoc = await getDoc(doc(this._db, CollectionIds.CLASS, id));
+      if (!classDoc.exists) return;
+      const classData = classDoc.data() as Class;
+      classData.docId = id;
+      this._classCache[id] = classData;
+      return classData;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:770 ~ FirebaseApi ~ getClassById ~ error:",
+        JSON.stringify(error)
+      );
+    }
   }
 
   async getSchoolById(id: string): Promise<School | undefined> {
-    if (!!this._schoolCache[id]) return this._schoolCache[id];
-    const schoolDoc = await getDoc(doc(this._db, CollectionIds.SCHOOL, id));
-    if (!schoolDoc.exists) return;
-    const schoolData = schoolDoc.data() as School;
-    schoolData.docId = id;
-    this._schoolCache[id] = schoolData;
-    return schoolData;
+    try {
+      if (!!this._schoolCache[id]) return this._schoolCache[id];
+      const schoolDoc = await getDoc(doc(this._db, CollectionIds.SCHOOL, id));
+      if (!schoolDoc.exists) return;
+      const schoolData = schoolDoc.data() as School;
+      schoolData.docId = id;
+      this._schoolCache[id] = schoolData;
+      return schoolData;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:787 ~ FirebaseApi ~ getSchoolById ~ error:",
+        JSON.stringify(error)
+      );
+    }
   }
 
   async isStudentLinked(
@@ -701,159 +806,207 @@ export class FirebaseApi implements ServiceApi {
     classId: string,
     studentId: string
   ): Promise<Assignment[]> {
-    const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
-    const q = query(
-      collection(this._db, CollectionIds.ASSIGNMENT),
-      where("class", "==", classDocRef),
-      // where("results." + studentId + ".score", "!=", 1)
-      orderBy("createdAt", "desc"),
-      limit(50)
-    );
-    const queryResult = await getDocs(q);
-    const assignments: Assignment[] = [];
-    queryResult.docs.forEach((_assignment) => {
-      const assignment = _assignment.data() as Assignment;
-      assignment.docId = _assignment.id;
-      const doneAssignment = assignment.completedStudents?.find(
-        (data) => data === studentId
+    try {
+      const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
+      const q = query(
+        collection(this._db, CollectionIds.ASSIGNMENT),
+        where("class", "==", classDocRef),
+        // where("results." + studentId + ".score", "!=", 1)
+        orderBy("createdAt", "desc"),
+        limit(50)
       );
-      let tempAssignmentCompletedIds = localStorage.getItem(
-        ASSIGNMENT_COMPLETED_IDS
-      );
-      let assignmentCompletedIds = JSON.parse(
-        tempAssignmentCompletedIds ?? "{}"
-      );
-      console.log(
-        "🚀 ~ file: FirebaseApi.ts:546 ~ FirebaseApi ~ queryResult.docs.forEach ~ assignmentCompletedIds:",
-        assignmentCompletedIds
-      );
+      const queryResult = await getDocs(q);
+      const assignments: Assignment[] = [];
+      queryResult.docs.forEach((_assignment) => {
+        const assignment = _assignment.data() as Assignment;
+        assignment.docId = _assignment.id;
+        const doneAssignment = assignment.completedStudents?.find(
+          (data) => data === studentId
+        );
+        let tempAssignmentCompletedIds = localStorage.getItem(
+          ASSIGNMENT_COMPLETED_IDS
+        );
+        let assignmentCompletedIds = JSON.parse(
+          tempAssignmentCompletedIds ?? "{}"
+        );
+        console.log(
+          "🚀 ~ file: FirebaseApi.ts:546 ~ FirebaseApi ~ queryResult.docs.forEach ~ assignmentCompletedIds:",
+          assignmentCompletedIds
+        );
 
-      const doneAssignmentLocally = assignmentCompletedIds[studentId]?.find(
-        (assignmentId) => assignmentId === assignment.docId
-      );
-      console.log(
-        "🚀 ~ file: FirebaseApi.ts:554 ~ FirebaseApi ~ queryResult.docs.forEach ~ doneAssignmentLocally:",
-        doneAssignmentLocally
-      );
+        const doneAssignmentLocally = assignmentCompletedIds[studentId]?.find(
+          (assignmentId) => assignmentId === assignment.docId
+        );
+        console.log(
+          "🚀 ~ file: FirebaseApi.ts:554 ~ FirebaseApi ~ queryResult.docs.forEach ~ doneAssignmentLocally:",
+          doneAssignmentLocally
+        );
 
-      if (!doneAssignment && !doneAssignmentLocally)
-        assignments.push(assignment);
-    });
-    console.log(
-      "🚀 ~ file: FirebaseApi.ts:533 ~ FirebaseApi ~ assignments:",
-      assignments
-    );
-    return assignments;
+        if (!doneAssignment && !doneAssignmentLocally)
+          assignments.push(assignment);
+      });
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:533 ~ FirebaseApi ~ assignments:",
+        assignments
+      );
+      return assignments;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:856 ~ FirebaseApi ~ error:",
+        JSON.stringify(error)
+      );
+      return [];
+    }
   }
 
   async getSchoolsForUser(user: User): Promise<School[]> {
-    if (!!this._schoolsCache[user.docId]) return this._schoolsCache[user.docId];
-    const q = query(
-      collection(this._db, CollectionIds.SCHOOLCONNECTION),
-      where("roles", "array-contains", user.docId)
-    );
-    const queryResult = await getDocs(q);
-    const schools: School[] = [];
-    await Promise.all(
-      queryResult.docs.map(async (connectionDoc) => {
-        const schoolId = connectionDoc.id.slice(3);
-        const schoolDoc = await getDoc(
-          doc(this._db, CollectionIds.SCHOOL, schoolId)
-        );
-        if (schoolDoc.exists() && !!schoolDoc.id) {
-          const school = schoolDoc.data() as School;
-          school.docId = schoolDoc.id;
-          const connectionId = connectionDoc.id.slice(0, 2);
-          switch (connectionId) {
-            case "PR":
-              school.role = RoleType.PRINCIPAL;
-              break;
-            case "CO":
-              school.role = RoleType.COORDINATOR;
-              break;
-            case "TE":
-              school.role = RoleType.TEACHER;
-              break;
-            case "SP":
-              school.role = RoleType.SPONSOR;
-              break;
+    try {
+      if (!!this._schoolsCache[user.docId])
+        return this._schoolsCache[user.docId];
+      const q = query(
+        collection(this._db, CollectionIds.SCHOOLCONNECTION),
+        where("roles", "array-contains", user.docId)
+      );
+      const queryResult = await getDocs(q);
+      const schools: School[] = [];
+      await Promise.all(
+        queryResult.docs.map(async (connectionDoc) => {
+          const schoolId = connectionDoc.id.slice(3);
+          const schoolDoc = await getDoc(
+            doc(this._db, CollectionIds.SCHOOL, schoolId)
+          );
+          if (schoolDoc.exists() && !!schoolDoc.id) {
+            const school = schoolDoc.data() as School;
+            school.docId = schoolDoc.id;
+            const connectionId = connectionDoc.id.slice(0, 2);
+            switch (connectionId) {
+              case "PR":
+                school.role = RoleType.PRINCIPAL;
+                break;
+              case "CO":
+                school.role = RoleType.COORDINATOR;
+                break;
+              case "TE":
+                school.role = RoleType.TEACHER;
+                break;
+              case "SP":
+                school.role = RoleType.SPONSOR;
+                break;
+            }
+            schools.push(school);
           }
-          schools.push(school);
-        }
-      })
-    );
-    this._schoolsCache[user.docId] = schools;
-    return schools;
+        })
+      );
+      this._schoolsCache[user.docId] = schools;
+      return schools;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:904 ~ FirebaseApi ~ getSchoolsForUser ~ error:",
+        JSON.stringify(error)
+      );
+      return [];
+    }
   }
 
   async isUserTeacher(user: User): Promise<boolean> {
-    const isParent = user.role === RoleType.PARENT;
-    console.log("this is the role  " + user.role);
-    if (isParent) return false;
-    const schools = await this.getSchoolsForUser(user);
-    if (!!schools && schools.length > 0) return true;
+    try {
+      const isParent = user.role === RoleType.PARENT;
+      console.log("this is the role  " + user.role);
+      if (isParent) return false;
+      const schools = await this.getSchoolsForUser(user);
+      if (!!schools && schools.length > 0) return true;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:921 ~ FirebaseApi ~ isUserTeacher ~ error:",
+        JSON.stringify(error)
+      );
+    }
     return false;
   }
 
   async getClassesForSchool(school: School, user: User): Promise<Class[]> {
-    const classes: Class[] = [];
-    const isTeacher = school.role === RoleType.TEACHER;
-    if (isTeacher) {
-      const q = query(
-        collection(this._db, CollectionIds.CLASSCONNECTION),
-        where("roles", "array-contains", user.docId),
-        where("school", "==", doc(this._db, CollectionIds.SCHOOL, school.docId))
+    try {
+      const classes: Class[] = [];
+      const isTeacher = school.role === RoleType.TEACHER;
+      if (isTeacher) {
+        const q = query(
+          collection(this._db, CollectionIds.CLASSCONNECTION),
+          where("roles", "array-contains", user.docId),
+          where(
+            "school",
+            "==",
+            doc(this._db, CollectionIds.SCHOOL, school.docId)
+          )
+        );
+        const queryResult = await getDocs(q);
+        await Promise.all(
+          queryResult.docs.map(async (connectionDoc) => {
+            const classId = connectionDoc.id.slice(3);
+            const classDoc = await getDoc(
+              doc(this._db, CollectionIds.CLASS, classId)
+            );
+            if (classDoc.exists() && !!classDoc.id) {
+              const _class = classDoc.data() as Class;
+              _class.docId = classDoc.id;
+              classes.push(_class);
+            }
+          })
+        );
+      } else {
+        const q = query(
+          collection(this._db, CollectionIds.CLASS),
+          where(
+            "school",
+            "==",
+            doc(this._db, CollectionIds.SCHOOL, school.docId)
+          )
+        );
+        const queryResult = await getDocs(q);
+        queryResult.docs.forEach((classDoc) => {
+          const _class = classDoc.data() as Class;
+          _class.docId = classDoc.id;
+          classes.push(_class);
+        });
+      }
+      return classes;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:967 ~ FirebaseApi ~ getClassesForSchool ~ error:",
+        JSON.stringify(error)
       );
-      const queryResult = await getDocs(q);
-      await Promise.all(
-        queryResult.docs.map(async (connectionDoc) => {
-          const classId = connectionDoc.id.slice(3);
-          const classDoc = await getDoc(
-            doc(this._db, CollectionIds.CLASS, classId)
-          );
-          if (classDoc.exists() && !!classDoc.id) {
-            const _class = classDoc.data() as Class;
-            _class.docId = classDoc.id;
-            classes.push(_class);
-          }
-        })
-      );
-    } else {
-      const q = query(
-        collection(this._db, CollectionIds.CLASS),
-        where("school", "==", doc(this._db, CollectionIds.SCHOOL, school.docId))
-      );
-      const queryResult = await getDocs(q);
-      queryResult.docs.forEach((classDoc) => {
-        const _class = classDoc.data() as Class;
-        _class.docId = classDoc.id;
-        classes.push(_class);
-      });
+      return [];
     }
-    return classes;
   }
 
   async getStudentsForClass(classId: string): Promise<User[]> {
-    const students: User[] = [];
-    const classConnectionDoc = await getDoc(
-      doc(this._db, CollectionIds.CLASSCONNECTION, "ST_" + classId)
-    );
-    const roles: string[] = classConnectionDoc.get("roles");
-    if (classConnectionDoc.exists() && !!roles && roles.length > 0) {
-      await Promise.all(
-        roles.map(async (userId) => {
-          const userDoc = await getDoc(
-            doc(this._db, CollectionIds.USER, userId)
-          );
-          if (userDoc.exists() && !!userDoc.id) {
-            const user = userDoc.data() as User;
-            user.docId = userDoc.id;
-            students.push(user);
-          }
-        })
+    try {
+      const students: User[] = [];
+      const classConnectionDoc = await getDoc(
+        doc(this._db, CollectionIds.CLASSCONNECTION, "ST_" + classId)
       );
+      const roles: string[] = classConnectionDoc.get("roles");
+      if (classConnectionDoc.exists() && !!roles && roles.length > 0) {
+        await Promise.all(
+          roles.map(async (userId) => {
+            const userDoc = await getDoc(
+              doc(this._db, CollectionIds.USER, userId)
+            );
+            if (userDoc.exists() && !!userDoc.id) {
+              const user = userDoc.data() as User;
+              user.docId = userDoc.id;
+              students.push(user);
+            }
+          })
+        );
+      }
+      return students;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:1006 ~ FirebaseApi ~ getStudentsForClass ~ error:",
+        JSON.stringify(error)
+      );
+      return [];
     }
-    return students;
   }
 
   public async getLeaderboardResults(
@@ -864,108 +1017,122 @@ export class FirebaseApi implements ServiceApi {
       "async getLeaderboard called",
       isWeeklyData ? "weeklyScore" : "allTimeScore"
     );
-
-    const leaderBoardList: LeaderboardInfo = {
-      weekly: [],
-      allTime: [],
-    };
-
-    if (sectionId === undefined || sectionId?.length <= 0) {
-      const q = query(
-        collection(
-          this._db,
-          CollectionIds.LEADERBOARD + "/b2c/genericLeaderboard/"
-        ),
-        orderBy(isWeeklyData ? "weeklyScore" : "allTimeScore", "desc"),
-        limit(50)
-      );
-
-      const queryResult = await getDocs(q);
-
-      for (const d of queryResult.docs) {
-        const res = d.data();
-        console.log("isWeeklyData", isWeeklyData);
-        if (isWeeklyData) {
-          leaderBoardList.weekly.push({
-            name: d.get("name"),
-            score: d.get("weeklyScore"),
-            timeSpent: d.get("weeklyTimeSpent"),
-            lessonsPlayed: d.get("weeklyLessonPlayed"),
-            userId: d.id,
-          });
-        } else {
-          leaderBoardList.allTime.push({
-            name: d.get("name"),
-            score: d.get("allTimeScore"),
-            timeSpent: d.get("allTimeTimeSpent"),
-            lessonsPlayed: d.get("allTimeLessonPlayed"),
-            userId: d.id,
-          });
-        }
-      }
-    } else {
-      const queryResult = await getDoc(
-        doc(this._db, `${CollectionIds.LEADERBOARD}/${sectionId}`)
-      );
-      if (!queryResult.data()) return;
-      const data = queryResult.data();
-      if (!data) return;
-      const weekly: StudentLeaderboardInfo[] = [];
-      const allTime: StudentLeaderboardInfo[] = [];
-      console.log("school mode Data ", data, data.d, Object.keys(data));
-      for (const i of Object.keys(data.d)) {
-        console.log("Object.keys(data) ", i, data.d[i]);
-        weekly.push({
-          name: data.d[i].n,
-          score: data.d[i].w.s,
-          timeSpent: data.d[i].w.t,
-          lessonsPlayed: data.d[i].w.l,
-          userId: i,
-        });
-        allTime.push({
-          name: data.d[i].n,
-          score: data.d[i].a.s,
-          timeSpent: data.d[i].a.t,
-          lessonsPlayed: data.d[i].a.l,
-          userId: i,
-        });
-      }
-      console.log("weekly", weekly, "allTime", allTime);
-
-      const sortLeaderboard = (arr: Array<any>) =>
-        arr.sort((a, b) => b.score - a.score);
-      sortLeaderboard(weekly);
-      sortLeaderboard(allTime);
-      let result: LeaderboardInfo = {
+    try {
+      const leaderBoardList: LeaderboardInfo = {
         weekly: [],
         allTime: [],
       };
-      result = {
-        weekly: weekly,
-        allTime: allTime,
-      };
-      console.log("result", result);
 
-      return result;
+      if (sectionId === undefined || sectionId?.length <= 0) {
+        const q = query(
+          collection(
+            this._db,
+            CollectionIds.LEADERBOARD + "/b2c/genericLeaderboard/"
+          ),
+          orderBy(isWeeklyData ? "weeklyScore" : "allTimeScore", "desc"),
+          limit(50)
+        );
+
+        const queryResult = await getDocs(q);
+
+        for (const d of queryResult.docs) {
+          const res = d.data();
+          console.log("isWeeklyData", isWeeklyData);
+          if (isWeeklyData) {
+            leaderBoardList.weekly.push({
+              name: d.get("name"),
+              score: d.get("weeklyScore"),
+              timeSpent: d.get("weeklyTimeSpent"),
+              lessonsPlayed: d.get("weeklyLessonPlayed"),
+              userId: d.id,
+            });
+          } else {
+            leaderBoardList.allTime.push({
+              name: d.get("name"),
+              score: d.get("allTimeScore"),
+              timeSpent: d.get("allTimeTimeSpent"),
+              lessonsPlayed: d.get("allTimeLessonPlayed"),
+              userId: d.id,
+            });
+          }
+        }
+      } else {
+        const queryResult = await getDoc(
+          doc(this._db, `${CollectionIds.LEADERBOARD}/${sectionId}`)
+        );
+        if (!queryResult.data()) return;
+        const data = queryResult.data();
+        if (!data) return;
+        const weekly: StudentLeaderboardInfo[] = [];
+        const allTime: StudentLeaderboardInfo[] = [];
+        console.log("school mode Data ", data, data.d, Object.keys(data));
+        for (const i of Object.keys(data.d)) {
+          console.log("Object.keys(data) ", i, data.d[i]);
+          weekly.push({
+            name: data.d[i].n,
+            score: data.d[i].w.s,
+            timeSpent: data.d[i].w.t,
+            lessonsPlayed: data.d[i].w.l,
+            userId: i,
+          });
+          allTime.push({
+            name: data.d[i].n,
+            score: data.d[i].a.s,
+            timeSpent: data.d[i].a.t,
+            lessonsPlayed: data.d[i].a.l,
+            userId: i,
+          });
+        }
+        console.log("weekly", weekly, "allTime", allTime);
+
+        const sortLeaderboard = (arr: Array<any>) =>
+          arr.sort((a, b) => b.score - a.score);
+        sortLeaderboard(weekly);
+        sortLeaderboard(allTime);
+        let result: LeaderboardInfo = {
+          weekly: [],
+          allTime: [],
+        };
+        result = {
+          weekly: weekly,
+          allTime: allTime,
+        };
+        console.log("result", result);
+
+        return result;
+      }
+
+      console.log("result in FirebaseAPI", leaderBoardList);
+
+      return leaderBoardList;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:971 ~ FirebaseApi ~ error:",
+        JSON.stringify(error)
+      );
     }
-
-    console.log("result in FirebaseAPI", leaderBoardList);
-
-    return leaderBoardList;
   }
 
   public async getAllCourses(): Promise<Course[]> {
-    const querySnapshot = await getDocs(
-      collection(this._db, CollectionIds.COURSE)
-    );
-    const courses: Course[] = [];
-    querySnapshot.forEach((doc) => {
-      console.log(doc.id, " => ", doc.data());
-      const course = doc.data() as Course;
-      course.docId = doc.id;
-      courses.push(course);
-    });
-    return courses;
+    try {
+      const querySnapshot = await getDocs(
+        collection(this._db, CollectionIds.COURSE)
+      );
+      const courses: Course[] = [];
+      querySnapshot.forEach((doc) => {
+        console.log(doc.id, " => ", doc.data());
+        const course = doc.data() as Course;
+        course.docId = doc.id;
+        courses.push(course);
+      });
+      return courses;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:1132 ~ FirebaseApi ~ getAllCourses ~ error:",
+        JSON.stringify(error)
+      );
+      return [];
+    }
   }
   public async deleteAllUserData(): Promise<void> {
     const functions = getFunctions();
