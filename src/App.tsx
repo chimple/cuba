@@ -32,6 +32,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import { App as CapApp } from "@capacitor/app";
 import {
   BASE_NAME,
+  CACHE_IMAGE,
   GAME_URL,
   IS_CUBA,
   LANG,
@@ -79,6 +80,11 @@ const App: React.FC = () => {
       CapApp.addListener("appStateChange", Util.onAppStateChange);
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
     }
+
+    Filesystem.mkdir({
+      path: CACHE_IMAGE,
+      directory: Directory.Cache,
+    }).catch((_) => {});
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();

@@ -1,9 +1,9 @@
-import { Http } from "@capacitor-community/http";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
+import { CapacitorHttp } from "@capacitor/core";
 import {
   CURRENT_STUDENT,
   BUNDLE_URL,
@@ -20,6 +20,7 @@ import {
   PRE_QUIZ,
   SELECTED_GRADE,
   SL_GRADES,
+  CACHE_IMAGE,
 } from "../common/constants";
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
 import { GUIDRef } from "../interface/modelInterfaces";
