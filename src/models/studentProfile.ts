@@ -5,15 +5,15 @@ import { StudentLessonResult } from "../common/courseConstants";
 
 export default class StudentProfile extends BaseObject {
   private _classes: string[];
-  private _last5Lessons: object;
-  private _lastPlayedCourse: DocumentReference;
+  private _last5Lessons: object | undefined;
+  private _lastPlayedCourse: DocumentReference<any> | null;
   private _lessons: { [lessonDocId: string]: StudentLessonResult };
   private _schools: string[];
 
   constructor(
-    lastPlayedCourse: DocumentReference,
+    lastPlayedCourse: DocumentReference<any> | null,
     classes: string[],
-    last5Lessons: object,
+    last5Lessons: object | undefined,
     lessons: { [lessonDocId: string]: StudentLessonResult },
     schools: string[],
     dateLastModified: Timestamp,
@@ -34,16 +34,16 @@ export default class StudentProfile extends BaseObject {
   public set classes(value: string[]) {
     this._classes = value;
   }
-  public get last5Lessons(): object {
+  public get last5Lessons(): object | undefined {
     return this._last5Lessons;
   }
-  public set last5Lessons(value: object) {
+  public set last5Lessons(value: object | undefined) {
     this._last5Lessons = value;
   }
-  public get lastPlayedCourse(): DocumentReference {
+  public get lastPlayedCourse(): DocumentReference<any> | null {
     return this._lastPlayedCourse;
   }
-  public set lastPlayedCourse(value: DocumentReference) {
+  public set lastPlayedCourse(value: DocumentReference<any> | null) {
     this._lastPlayedCourse = value;
   }
   public get lessons(): { [lessonDocId: string]: StudentLessonResult } {
