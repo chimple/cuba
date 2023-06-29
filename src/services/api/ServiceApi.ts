@@ -11,6 +11,7 @@ import StudentProfile from "../../models/studentProfile";
 import Class from "../../models/class";
 import School from "../../models/school";
 import Assignment from "../../models/assignment";
+import { MODES } from "../../common/constants";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -78,6 +79,9 @@ export interface ServiceApi {
    */
   getParentStudentProfiles(): Promise<User[]>;
 
+  get currentStudent(): User | undefined;
+
+  set currentStudent(value: User | undefined);
   updateSoundFlag(user: User, value: boolean);
   updateMusicFlag(user: User, value: boolean);
   updateLanguage(user: User, value: string);
@@ -237,6 +241,46 @@ export interface ServiceApi {
     classId: string,
     studentId: string
   ): Promise<Assignment[]>;
+  /**
+   * This function gets all the schools for the teacher or principal
+   * @param {User} user user firebase documentId;
+   * @return A promise to an array of schools
+   */
+
+  getSchoolsForUser(user: User): Promise<School[]>;
+
+  /**
+   * This function sets the current mode for the user
+   * @param {MODES} value mode firebase documentId;
+   * @return A promise
+   */
+  set currentMode(value: MODES);
+  /**
+   * This function gets the current mode for the user
+   * @return A promise of the mode.
+   */
+  get currentMode(): MODES;
+  /**
+   * This function gets boolean result to verifiy wheater the user is teacher or not.
+   * @param {User} user user firebase documentId;
+   * @return A promise of boolean.
+   */
+
+  isUserTeacher(user: User): Promise<boolean>;
+
+  /**
+   * This function gets all the Classes for the school.
+   * @param {School} school school firebase documentId;
+   * @return A promise to an array of classes.
+   */
+  getClassesForSchool(school: School, user: User): Promise<Class[]>;
+
+  /**
+   * This function gets all the students for the class.
+   * @param {string} classId class firebase documentId;
+   * @return A promise to an array of students.
+   */
+  getStudentsForClass(classId: string): Promise<User[]>;
 
   /**
    * This function gets data by invite code.

@@ -40,7 +40,11 @@ const JoinClass: FC<{
       setShowDialogBox(true);
     } catch (error) {
       console.log("🚀 ~ file: JoinClass.tsx:32 ~ getClassData ~ error:", error);
-      if (error instanceof Object) setError(error.toString());
+      if (error instanceof Object){ 
+        let eMsg:string ="FirebaseError: Invalid inviteCode"===error.toString()?"Invalid Code. Please contact your teacher":error.toString();
+        setError(eMsg);
+      } 
+     
     }
     setLoading(false);
   };
@@ -72,7 +76,7 @@ const JoinClass: FC<{
     <div className="join-class-main-header">
       <div className="join-class-header">
         <div className="join-class-title">
-          {t("Enter the class code to join the class")}
+          {t("Enter the code your teacher has given to join the class")}
         </div>
         <input
           onChange={(evt) => {

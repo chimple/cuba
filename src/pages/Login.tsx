@@ -46,10 +46,21 @@ const Login: React.FC = () => {
   const [isInputFocus, setIsInputFocus] = useState(false);
   const scollToRef = useRef<null | HTMLDivElement>(null);
   const [currentStudent, setStudent] = useState<User>();
+  const Buttoncolors={
+    Default:"grey",
+    Valid:"yellowgreen",
+
+  };
+
+  const otpBtnRef = useRef<any>();
+  const getOtpBtnRef= useRef<any>();
+
 
   useEffect(() => {
+
     init();
     setIsLoading(true);
+
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
         console.log("info", JSON.stringify(info));
@@ -169,14 +180,14 @@ const Login: React.FC = () => {
         setSpinnerLoading(false);
         // setIsLoading(false);
       } else {
-        console.log("Phone Number signin Failed");
+        console.log("Phone Number signin Failed ");
         setSpinnerLoading(false);
-        alert("Phone Number signin Failed" + authRes);
+        alert("Phone Number signin Failed " + authRes);
       }
     } catch (error) {
-      console.log("Phone Number signin Failed");
+      console.log("Phone Number signin Failed ");
       setSpinnerLoading(false);
-      alert("Phone Number signin Failed" + error);
+      alert("Phone Number signin Failed " + error);
       console.log(
         "window.recaptchaVerifier",
         // window.recaptchaVerifier,
@@ -249,7 +260,7 @@ const Login: React.FC = () => {
             <div>
               <div id="login-text-box">
                 <TextBox
-                  inputText={t("Enter your Phone Number")}
+                  inputText={t("Enter Mobile Number (10-digit)")}
                   inputType={"tel"}
                   maxLength={10}
                   inputValue={phoneNumber}
@@ -258,6 +269,17 @@ const Login: React.FC = () => {
                       // setPhoneNumber(countryCode + input.detail.value);
                       phoneNumber = input.detail.value;
                       console.log(countryCode + phoneNumber);
+
+                      let loginBtnBgColor = otpBtnRef.current.style.backgroundColor;
+                      if (phoneNumber.length === 10 ) {
+                        otpBtnRef.current.style.backgroundColor = Buttoncolors.Valid;
+                      }
+                      else {
+                        if (loginBtnBgColor === Buttoncolors.Valid) {
+                          otpBtnRef.current.style.backgroundColor = Buttoncolors.Default;
+
+                        }
+                      }
                     }
                   }}
                 ></TextBox>
@@ -265,6 +287,7 @@ const Login: React.FC = () => {
 
               <div id="recaptcha-container" />
               <div
+                ref={otpBtnRef}
                 id="login-continue-button"
                 onClick={() => {
                   // //@ts-ignore
@@ -288,7 +311,7 @@ const Login: React.FC = () => {
                   // setSpinnerLoading(false);
                 }}
               >
-                {t("Sent the OTP")}
+                {t("Send OTP")}
               </div>
               {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
               <IonLoading
@@ -318,7 +341,8 @@ const Login: React.FC = () => {
                     );
                     if (result) {
                       setIsLoading(false);
-                      history.replace(PAGES.DISPLAY_STUDENT);
+                      // history.replace(PAGES.DISPLAY_STUDENT);
+                      history.replace(PAGES.SELECT_MODE);
                     } else {
                       setIsLoading(false);
                     }
@@ -342,11 +366,21 @@ const Login: React.FC = () => {
                       // setVerificationCode("" + input.detail.value);
                       verificationCode = input.detail.value;
                       console.log("" + input.detail.value);
+                      let otpBtnBgColor =  getOtpBtnRef.current.style.backgroundColor;
+                      if (verificationCode.length === 6) {
+                        getOtpBtnRef.current.style.backgroundColor = Buttoncolors.Valid;
+                      }
+                      else {
+                        if (otpBtnBgColor === Buttoncolors.Valid) {
+                          getOtpBtnRef.current.style.backgroundColor = Buttoncolors.Default;
+
+                        }
+                      }
                     }
                   }}
                 ></TextBox>
               </div>
-              <div
+              <div ref={getOtpBtnRef}
                 id="login-continue-button"
                 onClick={() => {
                   onVerificationCodeSubmit();
@@ -384,7 +418,8 @@ const Login: React.FC = () => {
                     phoneNumberSigninRes
                   );
                   if (res) {
-                    history.push(PAGES.DISPLAY_STUDENT);
+                    // history.push(PAGES.DISPLAY_STUDENT);
+                    history.replace(PAGES.SELECT_MODE);
                   }
                 }}
               >

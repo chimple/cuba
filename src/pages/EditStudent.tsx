@@ -19,6 +19,7 @@ import { Util } from "../utility/util";
 import NextButton from "../components/common/NextButton";
 import { Capacitor } from "@capacitor/core";
 import { Keyboard } from "@capacitor/keyboard";
+import BackButton from "../components/common/BackButton";
 
 const EditStudent = () => {
   const history = useHistory();
@@ -61,6 +62,7 @@ const EditStudent = () => {
   const [grades, setGrades] = useState<Grade[]>();
   const [languages, setLanguages] = useState<Language[]>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
 
   const onNextButton = async () => {
     setIsLoading(true);
@@ -157,8 +159,17 @@ const EditStudent = () => {
     }
   }, []);
 
+
   return (
     <IonPage id="Edit-student-page">
+      <div id="Edit-student-back-button">
+        <BackButton
+          onClicked={() => {
+            history.replace(PAGES.PROFILE)
+          }} />
+      </div>
+
+
       <div id="next-button">
         <NextButton
           disabled={!isNextButtonEnabled()}
@@ -172,48 +183,86 @@ const EditStudent = () => {
             : ""
         }
       >
-        <div id="common-div">
+        {stage == STAGES.NAME && (
           <ChimpleLogo
             header={t("Welcome to Chimple!")}
-            msg={t("Please create your child profile").toString()}
-          />
-        </div>
+            msg={t("").toString()} />
+
+        )}
+
         {stage === STAGES.NAME && (
+
+
           <StudentNameBox
             studentName={studentName!}
             onValueChange={setStudentName}
-            onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
+            onEnterDown={isNextButtonEnabled() ? onNextButton : () => { }}
           />
         )}
       </div>
       {stage === STAGES.AVATAR && (
-        <div className="avatar-title">{t("Select Child Avatar:")}</div>
+        <><>
+          <div id="Edit-student-back-button">
+            <BackButton
+              onClicked={() => {
+                setStage(STAGES.GENDER_AND_AGE);
+              }} />
+          </div>
+
+          <div id="common-div">
+            <ChimpleLogo
+              header={t("")}
+              msg={t("").toString()} />
+          </div><div className="avatar-title">{t("Select Child Avatar:")}</div></></>
       )}
       <div className="content">
         {stage === STAGES.GENDER_AND_AGE && (
-          <GenderAndAge
-            age={age}
-            gender={gender}
-            onAgeChange={setAge}
-            onGenderChange={setGender}
-          />
+          <><div id="Edit-student-back-button">
+            <BackButton
+              onClicked={() => {
+                setStage(STAGES.NAME);
+              }} />
+          </div><><>
+            <div id="common-div">
+              <ChimpleLogo
+                header={t("")}
+                msg={t("").toString()} />
+            </div></>
+              <GenderAndAge
+                age={age}
+                gender={gender}
+                onAgeChange={setAge}
+                onGenderChange={setGender} /></></>
         )}
         {stage === STAGES.AVATAR && (
+
           <SelectAvatar avatar={avatar} onAvatarChange={setAvatar} />
         )}
         {stage === STAGES.GRADE && (
-          <GradeBoardAndLangDropdown
-            boards={boards}
-            grades={grades}
-            languages={languages}
-            onBoardChange={setBoard}
-            onGradeChange={setGrade}
-            onLangChange={setLanguage}
-            currentlySelectedBoard={board}
-            currentlySelectedGrade={grade}
-            currentlySelectedLang={language}
-          />
+          <><>
+            <div id="Edit-student-back-button">
+              <BackButton
+                onClicked={() => {
+                  setStage(STAGES.AVATAR);
+                }} />
+            </div></><><><>
+              <div id="common-div">
+                <ChimpleLogo
+                  header={t("")}
+                  msg={t("Choose your's childs class").toString()} />
+              </div></>
+              <GradeBoardAndLangDropdown
+                boards={boards}
+                grades={grades}
+                languages={languages}
+                onBoardChange={setBoard}
+                onGradeChange={setGrade}
+                onLangChange={setLanguage}
+                currentlySelectedBoard={board}
+                currentlySelectedGrade={grade}
+                currentlySelectedLang={language} /></></></>
         )}
+
       </div>
       <Loading isLoading={isLoading} />
     </IonPage>
