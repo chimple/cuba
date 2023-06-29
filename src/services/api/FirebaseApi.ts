@@ -504,9 +504,10 @@ export class FirebaseApi implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
+    isLoved: boolean,
     assignmentId: string | undefined,
     classId: string | undefined,
-    schoolId: string | undefined
+    schoolId: string | undefined,
   ): Promise<Result> {
     const courseRef = courseId
       ? doc(this._db, CollectionIds.COURSE, courseId)
@@ -520,6 +521,7 @@ export class FirebaseApi implements ServiceApi {
     const schoolRef = schoolId
       ? doc(this._db, CollectionIds.SCHOOL, schoolId)
       : undefined;
+    
     const lessonRef = doc(this._db, CollectionIds.LESSON, lessonId);
     const studentRef = doc(this._db, CollectionIds.USER, student.docId);
     const result = new Result(
@@ -536,7 +538,8 @@ export class FirebaseApi implements ServiceApi {
       wrongMoves,
       timeSpent,
       studentRef,
-      null!
+      null!,
+      isLoved,
     );
     const resultDoc = await addDoc(
       collection(this._db, CollectionIds.RESULT),

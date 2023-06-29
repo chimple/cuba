@@ -31,6 +31,7 @@ export interface StudentLessonResult {
   course: DocumentReference;
   score: number;
   timeSpent: number;
+  isLoved : boolean;
 }
 
 export interface lessonEndData {
@@ -45,6 +46,7 @@ export interface lessonEndData {
   wrongMoves: number;
   correctMoves: number;
   correct: number;
+  isLoved:boolean;
 }
 
 export const ASSIGNMENT_COMPLETED_IDS = "assignmentCompletedIds";

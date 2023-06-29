@@ -10,6 +10,7 @@ import Course from "../models/course";
 import { ServiceConfig } from "../services/ServiceConfig";
 import Subject from "../models/subject";
 import { t } from "i18next";
+import { AiTwotoneHeart } from "react-icons/ai";
 
 const LessonCard: React.FC<{
   width: string;
@@ -64,8 +65,16 @@ const LessonCard: React.FC<{
     setSubject(subject);
   };
 
-  const lessonCardColor =
-    LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
+  // const lessonCardColor =
+  //   LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
+
+  const [lessonCardColor, setLessonCardColor] = useState("");
+
+  useEffect(() => {
+    setLessonCardColor(
+      LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)]
+    );
+  }, []);
 
   return (
     <IonCard
@@ -74,47 +83,47 @@ const LessonCard: React.FC<{
         width: width,
         height: "auto",
       }}
-      onClick={() => {
-        if (isUnlocked) {
-          // if (
-          //   lesson.chapter.course.isCourseMapped &&
-          //   lesson.orig_course_id != undefined &&
-          //   lesson.orig_chapter_id != undefined &&
-          //   lesson.orig_lesson_id != undefined
-          // ) {
-          //   const parmas = `?courseid=${lesson.orig_course_id}&chapterid=${lesson.orig_chapter_id}&lessonid=${lesson.orig_lesson_id}`;
-          //   console.log("parmas", parmas);
-          //   history.push(PAGES.GAME + parmas, {
-          //     url: "chimple-lib/index.html" + parmas,
-          //     lessonId: lesson.orig_lesson_id,
-          //     lesson: lesson,
-          //     from: history.location.pathname,
-          //   });
-          // } else {
-          const parmas = `?courseid=${lesson.cocosSubjectCode}&chapterid=${lesson.cocosChapterCode}&lessonid=${lesson.id}`;
-          console.log(
-            "🚀 ~ file: LessonCard.tsx:73 ~ parmas:",
-            parmas,
-            Lesson.toJson(lesson)
-          );
-          history.push(PAGES.GAME + parmas, {
-            url: "chimple-lib/index.html" + parmas,
-            lessonId: lesson.id,
-            courseDocId: course?.docId ?? lesson?.assignment?.course?.id,
-            lesson: JSON.stringify(Lesson.toJson(lesson)),
-            from: history.location.pathname + "?continue=true",
-          });
-          // }
-        } else {
-          console.log(lesson?.title, "lesson is locked");
-        }
-      }}
-      // disabled={!isUnlocked}
     >
       <div
         style={{
           display: "grid",
         }}
+        onClick={() => {
+          if (isUnlocked) {
+            // if (
+            //   lesson.chapter.course.isCourseMapped &&
+            //   lesson.orig_course_id != undefined &&
+            //   lesson.orig_chapter_id != undefined &&
+            //   lesson.orig_lesson_id != undefined
+            // ) {
+            //   const parmas = `?courseid=${lesson.orig_course_id}&chapterid=${lesson.orig_chapter_id}&lessonid=${lesson.orig_lesson_id}`;
+            //   console.log("parmas", parmas);
+            //   history.push(PAGES.GAME + parmas, {
+            //     url: "chimple-lib/index.html" + parmas,
+            //     lessonId: lesson.orig_lesson_id,
+            //     lesson: lesson,
+            //     from: history.location.pathname,
+            //   });
+            // } else {
+            const parmas = `?courseid=${lesson.cocosSubjectCode}&chapterid=${lesson.cocosChapterCode}&lessonid=${lesson.id}`;
+            console.log(
+              "🚀 ~ file: LessonCard.tsx:73 ~ parmas:",
+              parmas,
+              Lesson.toJson(lesson)
+            );
+            history.push(PAGES.GAME + parmas, {
+              url: "chimple-lib/index.html" + parmas,
+              lessonId: lesson.id,
+              courseDocId: course?.docId ?? lesson?.assignment?.course?.id,
+              lesson: JSON.stringify(Lesson.toJson(lesson)),
+              from: history.location.pathname + "?continue=true",
+            });
+            // }
+          } else {
+            console.log(lesson?.title, "lesson is locked");
+          }
+        }}
+        // disabled={!isUnlocked}
       >
         <div
           style={{
@@ -198,9 +207,18 @@ const LessonCard: React.FC<{
               <div />
             )}
           </div>
+          <div className="fav-icon">
+            <AiTwotoneHeart
+              className="fav-icon-image"
+              id="fav-icon-image"
+              style={{ color: "red" }}
+            />
+          </div>
         </div>
       </div>
-      {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
+      <div className="lesson-card-text">
+        {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
+      </div>
     </IonCard>
   );
 };

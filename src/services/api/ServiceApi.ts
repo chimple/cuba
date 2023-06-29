@@ -143,6 +143,7 @@ export interface ServiceApi {
    * @param {string | undefined} assignmentId
    * @param {string | undefined} classId
    * @param {string | undefined} schoolId
+   * @param {boolean | undefined} isLoved
    * @returns {Result}} Updated result Object
    */
   updateResult(
@@ -153,6 +154,7 @@ export interface ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
+    isLoved: boolean | undefined,
     assignmentId: string | undefined,
     classId: string | undefined,
     schoolId: string | undefined

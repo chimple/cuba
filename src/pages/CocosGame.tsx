@@ -16,6 +16,7 @@ import {
   lessonEndData,
 } from "../common/courseConstants";
 import { ServiceConfig } from "../services/ServiceConfig";
+import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -25,6 +26,8 @@ const CocosGame: React.FC = () => {
   console.log("iFrameUrl", state?.url, iFrameUrl);
   const [isLoading, setIsLoading] = useState<any>();
   const [present] = useIonToast();
+  const [showDialogBox, setShowDialogBox] = useState(false);
+  const [isLovedYesorNo, setIsLovedYesorNo] = useState(false);
 
   const presentToast = async () => {
     await present({
@@ -46,6 +49,7 @@ const CocosGame: React.FC = () => {
   }, []);
 
   const killGame = (e: any) => {
+    setShowDialogBox(true);
     Util.killCocosGame();
   };
 
@@ -55,6 +59,7 @@ const CocosGame: React.FC = () => {
 
   const gameExit = (e: any) => {
     killGame(e);
+    setShowDialogBox(false);
     push();
   };
 
@@ -64,7 +69,6 @@ const CocosGame: React.FC = () => {
     const lesson: Lesson = JSON.parse(state.lesson);
     console.log("🚀 ~ file: CocosGame.tsx:57 ~ init ~ lesson:", lesson);
     const courseDocId: string | undefined = state.courseDocId;
-
     const lessonId: string = state.lessonId;
     const lessonIds: string[] = [];
     lessonIds.push(lessonId);
@@ -85,6 +89,7 @@ const CocosGame: React.FC = () => {
       const currentStudent = api.currentStudent!;
       const data = e.detail as lessonEndData;
       const isStudentLinked = await api.isStudentLinked(currentStudent.docId);
+      e.data.isLoved = isLovedYesorNo;
       let classId;
       let schoolId;
       if (isStudentLinked) {
@@ -103,6 +108,7 @@ const CocosGame: React.FC = () => {
         data.correctMoves,
         data.wrongMoves,
         data.timeSpent,
+        data.isLoved,
         lesson.assignment?.docId,
         classId,
         schoolId
@@ -139,7 +145,6 @@ const CocosGame: React.FC = () => {
         ASSIGNMENT_COMPLETED_IDS,
         JSON.stringify(assignmentCompletedIds)
       );
-      push();
     };
 
     // const onProblemEnd = async (e: any) => {
@@ -154,11 +159,34 @@ const CocosGame: React.FC = () => {
     // document.body.addEventListener("problemEnd", onProblemEnd);
   }
   return (
-    <IonPage id="cocos-game-page">
-      <IonContent>
-        <Loading isLoading={isLoading} />
-      </IonContent>
-    </IonPage>
+      <IonPage id="cocos-game-page">
+        <IonContent>
+          <Loading isLoading={isLoading} />
+          {showDialogBox && (
+            <DialogBoxButtons
+              width={"35vw"}
+              height={"25vh"}
+              message={"Do you like the lesson"}
+              showDialogBox={showDialogBox}
+              yesText={"Yes"}
+              noText={"No"}
+              handleClose={() => {
+                setShowDialogBox(false);
+                push();
+              }}
+              onYesButtonClicked={() => {
+                setShowDialogBox(false);
+                setIsLovedYesorNo(true);
+                push();
+              }}
+              onNoButtonClicked={() => {
+                setShowDialogBox(false);
+                push();
+              }}
+            />
+          )}
+        </IonContent>
+      </IonPage>
   );
 };
 
