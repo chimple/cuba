@@ -46,7 +46,6 @@
     "cordova-support-android-plugin": "^2.0.4",
     "cuba": "file:",
     "firebase": "^9.19.1",
-    "hammerjs": "^2.0.8",
     "i18next": "^22.4.1",
     "i18next-browser-languagedetector": "^7.0.1",
     "i18next-http-backend": "^2.1.0",
