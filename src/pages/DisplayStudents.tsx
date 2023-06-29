@@ -112,7 +112,7 @@ const DisplayStudents: FC<{}> = () => {
           {students.length < MAX_STUDENTS_ALLOWED && (
             <div className="add-new-button">
               <IoAddCircleSharp color="white" size="10vh" onClick={onCreateNewStudent} />
-              {t("Create New User")}
+              {t("Create New Child Profile")}
             </div>
           )}
           {showDialogBox ? (
