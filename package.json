@@ -105,7 +105,6 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^5.0.0",
-    "@types/hammerjs": "^2.0.41",
     "http-server": "^14.1.1",
     "shx": "^0.3.4"
   },
