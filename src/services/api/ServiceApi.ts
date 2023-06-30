@@ -82,6 +82,10 @@ export interface ServiceApi {
   get currentStudent(): User | undefined;
 
   set currentStudent(value: User | undefined);
+  get currentClass(): Class | undefined;
+  set currentClass(value: Class | undefined);
+  get currentSchool(): School | undefined;
+  set currentSchool(value: School | undefined);
   updateSoundFlag(user: User, value: boolean);
   updateMusicFlag(user: User, value: boolean);
   updateLanguage(user: User, value: string);

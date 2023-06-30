@@ -194,6 +194,18 @@ export class OneRosterApi implements ServiceApi {
   set currentStudent(value: User | undefined) {
     throw new Error("Method not implemented.");
   }
+  get currentClass(): Class | undefined {
+    throw new Error("Method not implemented.");
+  }
+  set currentClass(value: Class | undefined) {
+    throw new Error("Method not implemented.");
+  }
+  get currentSchool(): School | undefined {
+    throw new Error("Method not implemented.");
+  }
+  set currentSchool(value: School | undefined) {
+    throw new Error("Method not implemented.");
+  }
   createProfile(
     name: string,
     age: number,

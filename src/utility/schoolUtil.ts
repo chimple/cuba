@@ -21,6 +21,7 @@ import {
   SELECTED_GRADE,
   SL_GRADES,
   CURRENT_CLASS,
+  CURRENT_SCHOOL,
 } from "../common/constants";
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
 import { GUIDRef } from "../interface/modelInterfaces";
@@ -45,19 +46,14 @@ import {
   AppUpdateResultCode,
 } from "@capawesome/capacitor-app-update";
 import Class from "../models/class";
+import School from "../models/school";
 
-declare global {
-  interface Window {
-    cc: any;
-    _CCSettings: any;
-  }
-}
 export class schoolUtil {
   //   public static port: PortPlugin;
 
   public static getCurrentClass(): Class | undefined {
     const api = ServiceConfig.getI().apiHandler;
-    // if (!!api.currentClass) return api.currentStudent;
+    if (!!api.currentClass) return api.currentClass;
     const temp = localStorage.getItem(CURRENT_CLASS);
 
     if (!temp) return;
@@ -81,11 +77,12 @@ export class schoolUtil {
 
     if (!!currentClass.school)
       currentClass.school = convertDoc(currentClass.school);
+    api.currentClass = currentClass;
     return currentClass;
   }
   public static setCurrentClass = async (currClass: Class) => {
     const api = ServiceConfig.getI().apiHandler;
-    // api.currentStudent = student;
+    api.currentClass = currClass;
 
     localStorage.setItem(
       CURRENT_CLASS,
@@ -101,6 +98,55 @@ export class schoolUtil {
         teachers: currClass.teachers,
         principal: currClass.principal,
         coordinator: currClass.coordinator,
+      })
+    );
+  };
+  public static getCurrentSchool(): School | undefined {
+    const api = ServiceConfig.getI().apiHandler;
+    if (!!api.currentClass) return api.currentSchool;
+    const temp = localStorage.getItem(CURRENT_SCHOOL);
+
+    if (!temp) return;
+    const currentSchool = JSON.parse(temp) as School;
+    function getRef(ref): DocumentReference {
+      const db = getFirestore();
+      const newCourseRef = doc(
+        db,
+        ref["_key"].path.segments.at(-2),
+        ref["_key"].path.segments.at(-1)
+      );
+      return newCourseRef;
+    }
+
+    function convertDoc(
+      refs: DocumentReference<DocumentData>
+    ): DocumentReference {
+      const newCourseRef = getRef(refs);
+      return newCourseRef;
+    }
+
+    // if (!!currentClass.school)
+    //   currentClass.school = convertDoc(currentClass.school);
+    api.currentSchool = currentSchool;
+    return currentSchool;
+  }
+  public static setCurrentSchool = async (currSchool: School) => {
+    const api = ServiceConfig.getI().apiHandler;
+    api.currentSchool = currSchool;
+
+    localStorage.setItem(
+      CURRENT_CLASS,
+      JSON.stringify({
+        name: currSchool.name,
+        image: currSchool.image,
+        courses: currSchool.courses,
+        teachers: currSchool.teachers,
+        principal: currSchool.principal,
+        coordinator: currSchool.coordinator,
+        dateLastModified: currSchool.dateLastModified,
+        role: currSchool.role,
+        createdAt: currSchool.createdAt,
+        docId: currSchool.docId,
       })
     );
   };

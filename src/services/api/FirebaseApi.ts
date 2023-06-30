@@ -47,6 +47,8 @@ export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
   private _db = getFirestore();
   private _currentStudent: User | undefined;
+  private _currentClass: Class | undefined;
+  private _currentSchool: School | undefined;
   private _subjectsCache: { [key: string]: Subject } = {};
   private _classCache: { [key: string]: Class } = {};
   private _schoolCache: { [key: string]: School } = {};
@@ -1163,5 +1165,17 @@ export class FirebaseApi implements ServiceApi {
   }
   set currentStudent(value: User | undefined) {
     this._currentStudent = value;
+  }
+  get currentClass(): Class | undefined {
+    return this._currentClass;
+  }
+  set currentClass(value: Class | undefined) {
+    this._currentClass = value;
+  }
+  get currentSchool(): School | undefined {
+    return this._currentSchool;
+  }
+  set currentSchool(value: School | undefined) {
+    this._currentSchool = value;
   }
 }

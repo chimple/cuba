@@ -217,7 +217,7 @@ const Login: React.FC = () => {
 
       if (res.isUserExist) {
         setIsLoading(false);
-        history.push(PAGES.SELECT_MODE);
+        history.replace(PAGES.SELECT_MODE);
         // setShowNameInput(true);
       } else if (!res.isUserExist) {
         setIsLoading(false);
