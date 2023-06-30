@@ -889,29 +889,31 @@ export class FirebaseApi implements ServiceApi {
       const schools: School[] = [];
       await Promise.all(
         queryResult.docs.map(async (connectionDoc) => {
-          const schoolId = connectionDoc.id.slice(3);
-          const schoolDoc = await getDoc(
-            doc(this._db, CollectionIds.SCHOOL, schoolId)
-          );
-          if (schoolDoc.exists() && !!schoolDoc.id) {
-            const school = schoolDoc.data() as School;
-            school.docId = schoolDoc.id;
-            const connectionId = connectionDoc.id.slice(0, 2);
-            switch (connectionId) {
-              case "PR":
-                school.role = RoleType.PRINCIPAL;
-                break;
-              case "CO":
-                school.role = RoleType.COORDINATOR;
-                break;
-              case "TE":
-                school.role = RoleType.TEACHER;
-                break;
-              case "SP":
-                school.role = RoleType.SPONSOR;
-                break;
+          const schoolId = connectionDoc.id.split("_")[1];
+          const connectionId = connectionDoc.id.split("_")[0];
+          if (connectionId != "PT") {
+            const schoolDoc = await getDoc(
+              doc(this._db, CollectionIds.SCHOOL, schoolId)
+            );
+            if (schoolDoc.exists() && !!schoolDoc.id) {
+              const school = schoolDoc.data() as School;
+              school.docId = schoolDoc.id;
+              switch (connectionId) {
+                case "PR":
+                  school.role = RoleType.PRINCIPAL;
+                  break;
+                case "CO":
+                  school.role = RoleType.COORDINATOR;
+                  break;
+                case "TE":
+                  school.role = RoleType.TEACHER;
+                  break;
+                case "SP":
+                  school.role = RoleType.SPONSOR;
+                  break;
+              }
+              schools.push(school);
             }
-            schools.push(school);
           }
         })
       );

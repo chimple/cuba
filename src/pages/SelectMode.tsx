@@ -66,9 +66,11 @@ const SelectMode: FC = () => {
     setIsLoading(true);
     const currUser = await auth.getCurrentUser();
     if (!currUser) return;
-    const isTeacher = await api.isUserTeacher(currUser);
-    console.log("This is the current status of teacher " + isTeacher);
-    if (!isTeacher) {
+    const allSchool = await api.getSchoolsForUser(currUser);
+
+    // const isTeacher = await api.isUserTeacher(currUser);
+    // console.log("This is the current status of teacher " + isTeacher);
+    if (!allSchool || allSchool.length < 1) {
       api.currentMode = MODES.PARENT;
       history.replace(PAGES.DISPLAY_STUDENT);
       return;
@@ -77,7 +79,7 @@ const SelectMode: FC = () => {
     //   history.push(PAGES.DISPLAY_STUDENT);
     //   return;
     // }
-    const allSchool = await api.getSchoolsForUser(currUser);
+
     console.log("allSchool", allSchool);
     for (let i = 0; i < allSchool.length; i++) {
       const element = allSchool[i];
@@ -169,7 +171,7 @@ const SelectMode: FC = () => {
                 setCurrentSchool(currSchool);
                 setCurrentSchoolName(currSchool.name);
                 setCurrentSchoolId(currSchool.docId);
-              
+
                 schoolUtil.setCurrentSchool(currSchool);
               }}
               optionList={schoolList}
