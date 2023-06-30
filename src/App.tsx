@@ -91,6 +91,9 @@ const App: React.FC = () => {
 
     //Checking for Notification permissions
     Util.checkNotificationPermissions();
+
+    //Listen to network change
+    Util.listenToNetwork();
   }, []);
 
   return (
