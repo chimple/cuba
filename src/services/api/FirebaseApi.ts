@@ -550,27 +550,73 @@ export class FirebaseApi implements ServiceApi {
       timeSpent: result.timeSpent,
     };
     console.log("playedResult", result.lesson.id, JSON.stringify(playedResult));
+    // if(!this._studentResultCache[student.docId]){
+    //   const studentProfile = studentProfileDoc.data() as StudentProfile;
+    //   if(studentProfile === undefined) return;
+    //   this.studentResultCache[studentId] = studentProfile;
+    //   return StudentProfile;
+    // }
+    //   this._studentResultCache[student.docId].lessons[result.lesson.id] =
+    //     playedResult;
+
+    // if (this._studentResultCache[student.docId] === undefined) {
+    //   const studentProfile = new StudentProfile(
+    //     null,
+    //     [],
+    //     undefined,
+    //     {},
+    //     [],
+    //     Timestamp.fromDate(new Date()),
+    //     Timestamp.fromDate(new Date()),
+    //     student.docId
+    //   );
+    //   this._studentResultCache[student.docId].lessons[result.lesson.id] =
+    //     playedResult;
+
+    //   studentProfile.lessons[result.lesson.id] = playedResult;
+
+    //   this._studentResultCache[student.docId] = studentProfile;
+    //   // this._studentResultCache[student.docId].lessons[result.lesson.id] =
+    //   //   playedResult;
+    // } else {
+    //   this._studentResultCache[student.docId].lessons[result.lesson.id] =
+    //     playedResult;
+    // }
+    // In the component containing the getStudentResult method
+    // In the component containing the getStudentResult method
 
     if (this._studentResultCache[student.docId] === undefined) {
-      const studentProfile = new StudentProfile(
-        null,
-        [],
-        undefined,
-        {},
-        [],
-        Timestamp.fromDate(new Date()),
-        Timestamp.fromDate(new Date()),
-        student.docId
-      );
+      const studentProfileData = await this.getStudentResult(student.docId);
+      if (studentProfileData) {
+        const lastPlayedCourse: DocumentReference | undefined =
+          studentProfileData.lastPlayedCourse;
 
-      studentProfile.lessons[result.lesson.id] = playedResult;
+        const studentProfile = new StudentProfile(
+          lastPlayedCourse,
+          studentProfileData.classes,
+          studentProfileData.last5Lessons,
+          studentProfileData.lessons,
+          studentProfileData.schools,
+          Timestamp.fromDate(new Date()),
+          Timestamp.fromDate(new Date()),
+          student.docId
+        );
 
-      this._studentResultCache[student.docId] = studentProfile;
-    } else {
-      this._studentResultCache[student.docId].lessons[result.lesson.id] =
-        playedResult;
+        studentProfile.lessons[result.lesson.id] = playedResult;
+        this._studentResultCache[student.docId] = studentProfile;
+        this._studentResultCache[student.docId].classes.push(
+          ...studentProfileData.classes
+        );
+        this._studentResultCache[student.docId].schools.push(
+          ...studentProfileData.schools
+        );
+      } else {
+        this._studentResultCache[student.docId].lastPlayedCourse =
+          playedResult.course;
+        this._studentResultCache[student.docId].lessons[result.lesson.id] =
+          playedResult;
+      }
     }
-
     console.log(
       "this._studentResultCache[student.docId] ",
       JSON.stringify(this._studentResultCache[student.docId])
