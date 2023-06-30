@@ -29,6 +29,10 @@ export class OneRosterApi implements ServiceApi {
   getCoursesForParentsStudent(student: User): Promise<Course[]> {
     throw new Error("Method not implemented.");
   }
+  getCoursesForClassStudent(currClass: Class): Promise<Course[]> {
+    throw new Error("Method not implemented.");
+  }
+
   getLesson(id: string): Promise<Lesson | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -188,6 +192,18 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   set currentStudent(value: User | undefined) {
+    throw new Error("Method not implemented.");
+  }
+  get currentClass(): Class | undefined {
+    throw new Error("Method not implemented.");
+  }
+  set currentClass(value: Class | undefined) {
+    throw new Error("Method not implemented.");
+  }
+  get currentSchool(): School | undefined {
+    throw new Error("Method not implemented.");
+  }
+  set currentSchool(value: School | undefined) {
     throw new Error("Method not implemented.");
   }
   createProfile(
