@@ -101,6 +101,12 @@ export interface ServiceApi {
   getCoursesForParentsStudent(student: User): Promise<Course[]>;
 
   /**
+   * Gives List of subjects for given a student for Home user
+   * @param {Class} currClass - Class User object
+   * @returns {Course[]} Array of `Course` objects
+   */
+  getCoursesForClassStudent(currClass: Class): Promise<Course[]>;
+  /**
    * Gives Lesson for given a lesson firebase doc Id
    * @param {string} id - Lesson firebase doc id
    * @returns {Lesson | undefined}`Lesson` or `undefined` if it could not find the lesson with given `id`

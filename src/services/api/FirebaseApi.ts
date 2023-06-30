@@ -108,7 +108,7 @@ export class FirebaseApi implements ServiceApi {
       [],
       name,
       RoleType.STUDENT,
-      _currentUser.uid,
+      _currentUser.docId,
       courseIds,
       age,
       image,
@@ -334,6 +334,22 @@ export class FirebaseApi implements ServiceApi {
     );
 
     return lessonsMap;
+  }
+
+  async getCoursesForClassStudent(currClass: Class): Promise<Course[]> {
+    const subjects: Course[] = [];
+    if (!currClass?.courses || currClass.courses.length < 1) return subjects;
+    const courseDocs = await Promise.all(
+      currClass.courses.map((course) => getDoc(doc(this._db, course)))
+    );
+    courseDocs.forEach((courseDoc) => {
+      if (courseDoc && courseDoc.data) {
+        const course = courseDoc.data() as Course;
+        course.docId = courseDoc.id;
+        subjects.push(course);
+      }
+    });
+    return subjects;
   }
 
   async getLesson(id: string): Promise<Lesson | undefined> {
@@ -791,6 +807,7 @@ export class FirebaseApi implements ServiceApi {
     console.log("this is the role  " + user.role);
     if (isParent) return false;
     const schools = await this.getSchoolsForUser(user);
+    console.log(schools);
     if (!!schools && schools.length > 0) return true;
     return false;
   }

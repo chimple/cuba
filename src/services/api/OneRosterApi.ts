@@ -29,6 +29,10 @@ export class OneRosterApi implements ServiceApi {
   getCoursesForParentsStudent(student: User): Promise<Course[]> {
     throw new Error("Method not implemented.");
   }
+  getCoursesForClassStudent(currClass: Class): Promise<Course[]> {
+    throw new Error("Method not implemented.");
+  }
+
   getLesson(id: string): Promise<Lesson | undefined> {
     throw new Error("Method not implemented.");
   }
