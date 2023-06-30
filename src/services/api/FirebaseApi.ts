@@ -549,42 +549,8 @@ export class FirebaseApi implements ServiceApi {
       score: result.score,
       timeSpent: result.timeSpent,
     };
-    console.log("playedResult", result.lesson.id, JSON.stringify(playedResult));
-    // if(!this._studentResultCache[student.docId]){
-    //   const studentProfile = studentProfileDoc.data() as StudentProfile;
-    //   if(studentProfile === undefined) return;
-    //   this.studentResultCache[studentId] = studentProfile;
-    //   return StudentProfile;
-    // }
-    //   this._studentResultCache[student.docId].lessons[result.lesson.id] =
-    //     playedResult;
-
-    // if (this._studentResultCache[student.docId] === undefined) {
-    //   const studentProfile = new StudentProfile(
-    //     null,
-    //     [],
-    //     undefined,
-    //     {},
-    //     [],
-    //     Timestamp.fromDate(new Date()),
-    //     Timestamp.fromDate(new Date()),
-    //     student.docId
-    //   );
-    //   this._studentResultCache[student.docId].lessons[result.lesson.id] =
-    //     playedResult;
-
-    //   studentProfile.lessons[result.lesson.id] = playedResult;
-
-    //   this._studentResultCache[student.docId] = studentProfile;
-    //   // this._studentResultCache[student.docId].lessons[result.lesson.id] =
-    //   //   playedResult;
-    // } else {
-    //   this._studentResultCache[student.docId].lessons[result.lesson.id] =
-    //     playedResult;
-    // }
-    // In the component containing the getStudentResult method
-    // In the component containing the getStudentResult method
-
+    console.log("playedResult", result.lesson.id, JSON.stringify(playedResult))
+    
     if (this._studentResultCache[student.docId] === undefined) {
       const studentProfileData = await this.getStudentResult(student.docId);
       if (studentProfileData) {
