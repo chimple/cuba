@@ -40,6 +40,15 @@ const ParentalLock: React.FC<{
       setTitle(str);
     }, []);
 
+    const checkSwipeDirection = () => {
+      if (swipeDirection.length > 0 && userDirection === swipeDirection) {
+        history.push(PAGES.PARENT);
+      } else if (swipeDirection.length === 0 && userDirection !== swipeDirection) {
+        console.log('not matched');
+      }
+    };
+
+
     const [touchStart, setTouchStart] = useState({ x: null, y: null });
     const [touchEnd, setTouchEnd] = useState({ x: null, y: null });
 
@@ -85,14 +94,10 @@ const ParentalLock: React.FC<{
         }
       }
     };
-    if (swipeDirection.length > 0 && userDirection === swipeDirection) {
-      history.push(PAGES.PARENT);
+    useEffect(() => {
+      checkSwipeDirection();
+    }, [userDirection]);
 
-    } else
-      if (swipeDirection.length == 0 && userDirection != swipeDirection) {
-
-        console.log('not matched');
-      }
     return (
       <div>
         <Dialog
