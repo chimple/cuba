@@ -5,7 +5,7 @@ import Lesson from "../models/lesson";
 import { Chapter, StudentLessonResult } from "../common/courseConstants";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { PAGES } from "../common/constants";
+import { CURRENT_CLASS, MODES, PAGES } from "../common/constants";
 import { IonIcon, IonPage } from "@ionic/react";
 import { chevronBackCircleSharp } from "ionicons/icons";
 import "./DisplaySubjects.css";
@@ -17,6 +17,8 @@ import LessonSlider from "../components/LessonSlider";
 import Grade from "../models/grade";
 import BackButton from "../components/common/BackButton";
 import { Util } from "../utility/util";
+import Class from "../models/class";
+import { schoolUtil } from "../utility/schoolUtil";
 
 const localData: any = {};
 const DisplaySubjects: FC<{}> = () => {
@@ -30,6 +32,7 @@ const DisplaySubjects: FC<{}> = () => {
   const [courses, setCourses] = useState<Course[]>();
   const [currentCourse, setCurrentCourse] = useState<Course>();
   const [currentChapter, setCurrentChapter] = useState<Chapter>();
+  const [currentClass, setCurrentClass] = useState<Class>();
   const [lessons, setLessons] = useState<Lesson[]>();
   const [gradesMap, setGradesMap] = useState<{
     grades: Grade[];
@@ -85,11 +88,17 @@ const DisplaySubjects: FC<{}> = () => {
       history.replace(PAGES.SELECT_MODE);
       return [];
     }
+    // const currClass = localStorage.getItem(CURRENT_CLASS);
+    const currClass = schoolUtil.getCurrentClass();
+    if (!!currClass) setCurrentClass(currClass);
     api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
       console.log("tempResultLessonMap = res;", res);
       setLessonResultMap(res);
     });
-    const courses = await api.getCoursesForParentsStudent(currentStudent);
+    
+    const courses = await (api.currentMode == MODES.SCHOOL && !!currClass
+      ? api.getCoursesForClassStudent(currClass)
+      : api.getCoursesForParentsStudent(currentStudent));
     localData.courses = courses;
     setCourses(courses);
     setIsLoading(false);

@@ -14,6 +14,8 @@ import {
   HeaderIconConfig,
   HEADER_ICON_CONFIGS,
   CURRENT_STUDENT,
+  CURRENT_CLASS,
+  MODES,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -37,11 +39,14 @@ import Lesson from "../models/lesson";
 import { FirebaseApi } from "../services/api/FirebaseApi";
 import { DocumentReference } from "firebase/firestore";
 import LeaderBoardButton from "./LeaderBoardButton";
+import Class from "../models/class";
+import { schoolUtil } from "../utility/schoolUtil";
 
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentStudent, setCurrentStudent] = useState<User>();
+  const [currentClass, setCurrentClass] = useState<Class>();
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: StudentLessonResult;
   }>();
@@ -75,11 +80,15 @@ const Home: FC = () => {
       return;
     }
     setCurrentStudent(currentStudent);
+    // const currClass = localStorage.getItem(CURRENT_CLASS);
+    const currClass = schoolUtil.getCurrentClass();
+    // if (!!currClass) setCurrentClass(JSON.parse(currClass));
+    if (!!currClass) setCurrentClass(currClass);
     // const apiInstance = OneRosterApi.getInstance();
     if (subjectCode === HOMEHEADERLIST.RECOMMENDATION) {
       // let r = api.getStudentResultInMap(currentStudent.docId);
       // console.log("r = api.getStudentResultInMap(currentStudent.docId);", r);
-      getRecommendationLessons(currentStudent).then(() => {
+      getRecommendationLessons(currentStudent, currClass).then(() => {
         console.log("Final RECOMMENDATION List ", reqLes);
         setDataCourse(reqLes);
       });
@@ -142,7 +151,10 @@ const Home: FC = () => {
   };
 
   let reqLes: Lesson[] = [];
-  async function getRecommendationLessons(currentStudent: User) {
+  async function getRecommendationLessons(
+    currentStudent: User,
+    currClass: Class | undefined
+  ) {
     setIsLoading(true);
     let tempResultLessonMap:
       | { [lessonDocId: string]: StudentLessonResult }
@@ -189,9 +201,10 @@ const Home: FC = () => {
       }
     });
 
-    const courses: Course[] = await api.getCoursesForParentsStudent(
-      currentStudent
-    );
+    const courses: Course[] = await (api.currentMode == MODES.SCHOOL &&
+    !!currClass
+      ? api.getCoursesForClassStudent(currClass)
+      : api.getCoursesForParentsStudent(currentStudent));
     setCourses(courses);
 
     for (const tempCourse of courses) {
@@ -336,7 +349,7 @@ const Home: FC = () => {
       case HOMEHEADERLIST.RECOMMENDATION:
         // setCourse(HOMEHEADERLIST.RECOMMENDATION);
         if (currentStudent) {
-          getRecommendationLessons(currentStudent).then(() => {
+          getRecommendationLessons(currentStudent, currentClass).then(() => {
             console.log("Final RECOMMENDATION List ", reqLes);
             setDataCourse(reqLes);
           });

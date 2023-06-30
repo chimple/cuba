@@ -46,18 +46,15 @@ const Login: React.FC = () => {
   const [isInputFocus, setIsInputFocus] = useState(false);
   const scollToRef = useRef<null | HTMLDivElement>(null);
   const [currentStudent, setStudent] = useState<User>();
-  const Buttoncolors={
-    Default:"grey",
-    Valid:"yellowgreen",
-
+  const Buttoncolors = {
+    Default: "grey",
+    Valid: "yellowgreen",
   };
 
   const otpBtnRef = useRef<any>();
-  const getOtpBtnRef= useRef<any>();
-
+  const getOtpBtnRef = useRef<any>();
 
   useEffect(() => {
-
     init();
     setIsLoading(true);
 
@@ -220,7 +217,7 @@ const Login: React.FC = () => {
 
       if (res.isUserExist) {
         setIsLoading(false);
-        history.push(PAGES.DISPLAY_STUDENT);
+        history.replace(PAGES.SELECT_MODE);
         // setShowNameInput(true);
       } else if (!res.isUserExist) {
         setIsLoading(false);
@@ -270,14 +267,15 @@ const Login: React.FC = () => {
                       phoneNumber = input.detail.value;
                       console.log(countryCode + phoneNumber);
 
-                      let loginBtnBgColor = otpBtnRef.current.style.backgroundColor;
-                      if (phoneNumber.length === 10 ) {
-                        otpBtnRef.current.style.backgroundColor = Buttoncolors.Valid;
-                      }
-                      else {
+                      let loginBtnBgColor =
+                        otpBtnRef.current.style.backgroundColor;
+                      if (phoneNumber.length === 10) {
+                        otpBtnRef.current.style.backgroundColor =
+                          Buttoncolors.Valid;
+                      } else {
                         if (loginBtnBgColor === Buttoncolors.Valid) {
-                          otpBtnRef.current.style.backgroundColor = Buttoncolors.Default;
-
+                          otpBtnRef.current.style.backgroundColor =
+                            Buttoncolors.Default;
                         }
                       }
                     }
@@ -366,21 +364,23 @@ const Login: React.FC = () => {
                       // setVerificationCode("" + input.detail.value);
                       verificationCode = input.detail.value;
                       console.log("" + input.detail.value);
-                      let otpBtnBgColor =  getOtpBtnRef.current.style.backgroundColor;
+                      let otpBtnBgColor =
+                        getOtpBtnRef.current.style.backgroundColor;
                       if (verificationCode.length === 6) {
-                        getOtpBtnRef.current.style.backgroundColor = Buttoncolors.Valid;
-                      }
-                      else {
+                        getOtpBtnRef.current.style.backgroundColor =
+                          Buttoncolors.Valid;
+                      } else {
                         if (otpBtnBgColor === Buttoncolors.Valid) {
-                          getOtpBtnRef.current.style.backgroundColor = Buttoncolors.Default;
-
+                          getOtpBtnRef.current.style.backgroundColor =
+                            Buttoncolors.Default;
                         }
                       }
                     }
                   }}
                 ></TextBox>
               </div>
-              <div ref={getOtpBtnRef}
+              <div
+                ref={getOtpBtnRef}
                 id="login-continue-button"
                 onClick={() => {
                   onVerificationCodeSubmit();
