@@ -13,7 +13,7 @@ import { Util } from "../utility/util";
 import Lesson from "../models/lesson";
 import {
   ASSIGNMENT_COMPLETED_IDS,
-  lessonEndData,
+  CocosLessonData,
 } from "../common/courseConstants";
 import { ServiceConfig } from "../services/ServiceConfig";
 
@@ -54,6 +54,9 @@ const CocosGame: React.FC = () => {
   };
 
   const gameExit = (e: any) => {
+    const data = e.detail as CocosLessonData;
+    console.log("GameExit LessonData ", e.detail);
+
     killGame(e);
     push();
   };
@@ -83,7 +86,7 @@ const CocosGame: React.FC = () => {
     const saveTempData = async (e: any) => {
       console.log("🚀 ~ file: CocosGame.tsx:76 ~ saveTempData ~ e:", e);
       const currentStudent = await Util.getCurrentStudent()!;
-      const data = e.detail as lessonEndData;
+      const data = e.detail as CocosLessonData;
       const isStudentLinked = await api.isStudentLinked(currentStudent.docId);
       let classId;
       let schoolId;
@@ -99,7 +102,7 @@ const CocosGame: React.FC = () => {
         currentStudent,
         courseDocId,
         lesson.docId,
-        data.score,
+        data.score!,
         data.correctMoves,
         data.wrongMoves,
         data.timeSpent,
