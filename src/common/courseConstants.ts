@@ -24,6 +24,8 @@ export enum CollectionIds {
   STUDENTPROFILE = "StudentProfile",
   RESULT = "Result",
   LEADERBOARD = "Leaderboard",
+  CLASSCONNECTION = "ClassConnection",
+  SCHOOLCONNECTION = "SchoolConnection",
 }
 
 export interface StudentLessonResult {
@@ -33,18 +35,33 @@ export interface StudentLessonResult {
   timeSpent: number;
 }
 
-export interface lessonEndData {
-  chapterName: string;
-  chapterId: string;
-  lessonName: string;
-  lessonId: string;
+export interface CocosLessonData {
+  mlPartnerId: string | null;
+  mlClassId: string | null;
+  mlStudentId: string | null;
+  courseId: string;
   courseName: string;
-  score: number;
+  chapterId: string;
+  chapterName: string;
+  lessonId: string;
+  lessonName: string;
+  lessonType: string;
   timeSpent: number;
+  score: number | null;
   totalGames: number;
-  wrongMoves: number;
+  totalMoves: number;
   correctMoves: number;
-  correct: number;
+  wrongMoves: number;
+  gameCompleted: boolean;
+  quizCompleted: boolean;
+  isQuizAnsweredCorrectly: boolean;
+  lessonSessionId: string;
+  gameTimeSpent: number | null;
+  quizTimeSpent: number | null;
+  gameScore: number | null;
+  quizScore: number | null;
+  gameName: string | null;
+  currentGameNumber: number | null;
 }
 
 export const ASSIGNMENT_COMPLETED_IDS = "assignmentCompletedIds";

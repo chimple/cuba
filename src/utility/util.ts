@@ -1,4 +1,3 @@
-import { Http } from "@capacitor-community/http";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
@@ -30,14 +29,20 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
 import { FirebaseAnalytics } from "@capacitor-firebase/analytics";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
-import { DocumentReference, doc, getFirestore } from "firebase/firestore";
-import { useEffect, useRef, useState } from "react";
+import {
+  DocumentReference,
+  doc,
+  getFirestore,
+  enableNetwork,
+  disableNetwork,
+} from "firebase/firestore";
 import { Keyboard } from "@capacitor/keyboard";
 import {
   AppUpdate,
   AppUpdateAvailability,
   AppUpdateResultCode,
 } from "@capawesome/capacitor-app-update";
+import { LocalNotifications } from "@capacitor/local-notifications";
 
 declare global {
   interface Window {
@@ -76,9 +81,12 @@ export class Util {
     }
     currentStudent.courses = convertDoc(currentStudent.courses);
     currentStudent.users = convertDoc(currentStudent.users);
-    currentStudent.grade = getRef(currentStudent.grade);
-    currentStudent.language = getRef(currentStudent.language);
-    currentStudent.board = getRef(currentStudent.board);
+    if (!!currentStudent.grade)
+      currentStudent.grade = getRef(currentStudent.grade);
+    if (!!currentStudent.language)
+      currentStudent.language = getRef(currentStudent.language);
+    if (!!currentStudent.board)
+      currentStudent.board = getRef(currentStudent.board);
     api.currentStudent = currentStudent;
     return currentStudent;
   }
@@ -472,6 +480,7 @@ export class Util {
   public static async subscribeToClassTopicForAllStudents(
     currentUser: User
   ): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
     const students: DocumentReference[] = currentUser.users;
     if (!students || students.length < 1) return;
     const api = ServiceConfig.getI().apiHandler;
@@ -588,26 +597,46 @@ export class Util {
     }
   }
 
+  public static notificationsCount = 0;
+
   public static async checkNotificationPermissions() {
     if (!Capacitor.isNativePlatform()) return;
     try {
-      const canCheckPermission = Util.canCheckUpdate(LAST_PERMISSION_CHECKED);
-      console.log(
-        "🚀 ~ file: util.ts:513 ~ checkNotificationPermissions ~ canCheckPermission:",
-        canCheckPermission
+      await FirebaseMessaging.addListener(
+        "notificationReceived",
+        async ({ notification }) => {
+          console.log("notificationReceived", JSON.stringify(notification));
+          try {
+            const res = await LocalNotifications.schedule({
+              notifications: [
+                {
+                  id: Util.notificationsCount++,
+                  body: notification.body ?? "",
+                  title: notification.title ?? "Chimple",
+                  attachments: !!notification.image
+                    ? [{ id: notification.image, url: notification.image }]
+                    : undefined,
+                  extra: notification.data,
+                },
+              ],
+            });
+            console.log(
+              "🚀 ~ file: util.ts:622 ~ res:",
+              JSON.stringify(res.notifications)
+            );
+          } catch (error) {
+            console.log(
+              "🚀 ~ file: util.ts:630 ~ error:",
+              JSON.stringify(error)
+            );
+          }
+        }
       );
+      const canCheckPermission = Util.canCheckUpdate(LAST_PERMISSION_CHECKED);
       if (!canCheckPermission) return;
       const result = await FirebaseMessaging.checkPermissions();
-      console.log(
-        "🚀 ~ file: util.ts:509 ~ checkNotificationPermissions ~ result:",
-        JSON.stringify(result)
-      );
       if (result.receive === "granted") return;
-      const permissionStatus = await FirebaseMessaging.requestPermissions();
-      console.log(
-        "🚀 ~ file: util.ts:512 ~ checkNotificationPermissions ~ permissionStatus:",
-        JSON.stringify(permissionStatus)
-      );
+      await FirebaseMessaging.requestPermissions();
     } catch (error) {
       console.log(
         "🚀 ~ file: util.ts:514 ~ checkNotificationPermissions ~ error:",
@@ -638,5 +667,22 @@ export class Util {
       localStorage.setItem(updateFor, now.toString());
     }
     return _canCheckUpdate;
+  }
+
+  public static listenToNetwork() {
+    const _db = getFirestore();
+    if (navigator.onLine) {
+      enableNetwork(_db);
+    } else {
+      disableNetwork(_db);
+    }
+    window.addEventListener("online", (e) => {
+      console.log("🚀 ~ file: util.ts:677 ~ window.addEventListener ~ e:", e);
+      enableNetwork(_db);
+    });
+    window.addEventListener("offline", (e) => {
+      console.log("🚀 ~ file: util.ts:681 ~ window.addEventListener ~ e:", e);
+      disableNetwork(_db);
+    });
   }
 }

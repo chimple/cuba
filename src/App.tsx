@@ -32,6 +32,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import { App as CapApp } from "@capacitor/app";
 import {
   BASE_NAME,
+  CACHE_IMAGE,
   GAME_URL,
   IS_CUBA,
   LANG,
@@ -50,6 +51,7 @@ import StudentProgress from "./pages/StudentProgress";
 import SearchLesson from "./pages/SearchLesson";
 import Leaderboard from "./pages/Leaderboard";
 import AssignmentPage from "./pages/Assignment";
+import SelectMode from "./pages/SelectMode";
 
 setupIonicReact();
 
@@ -79,11 +81,19 @@ const App: React.FC = () => {
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
     }
 
+    Filesystem.mkdir({
+      path: CACHE_IMAGE,
+      directory: Directory.Cache,
+    }).catch((_) => {});
+
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
 
     //Checking for Notification permissions
     Util.checkNotificationPermissions();
+
+    //Listen to network change
+    Util.listenToNetwork();
   }, []);
 
   return (
@@ -135,6 +145,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.ASSIGNMENT} exact={true}>
               <AssignmentPage />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
+              <SelectMode />
             </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>

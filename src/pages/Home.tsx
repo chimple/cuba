@@ -70,7 +70,8 @@ const Home: FC = () => {
     const currentStudent = await Util.getCurrentStudent();
 
     if (!currentStudent) {
-      history.replace(PAGES.DISPLAY_STUDENT);
+      // history.replace(PAGES.DISPLAY_STUDENT);
+      history.replace(PAGES.SELECT_MODE);
       return;
     }
     setCurrentStudent(currentStudent);
@@ -319,14 +320,12 @@ const Home: FC = () => {
       lessons: lessons,
     };
   }
-
   function onHeaderIconClick(selectedHeader: any) {
     var headerIconList: HeaderIconConfig[] = [];
     HEADER_ICON_CONFIGS.forEach((element) => {
-      // console.log("elements", element);
+      //  console.log("elements", element);
       headerIconList.push(element);
     });
-
     setCurrentHeader(selectedHeader);
     localStorage.setItem(PREVIOUS_SELECTED_COURSE(), selectedHeader);
     HEADER_ICON_CONFIGS.get(selectedHeader);

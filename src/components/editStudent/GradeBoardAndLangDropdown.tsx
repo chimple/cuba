@@ -43,30 +43,40 @@ const GradeBoardAndLangDropdown: FC<{
   }));
   return (
     <div className="dropdown-header">
-      <RectangularOutlineDropDown
+      <div id="drop-down-board">
+        <p id="drop-down-head">Board</p>
+           <RectangularOutlineDropDown
       currentValue={currentlySelectedBoard!}
         // currentlySelected={currentlySelectedBoard}
-        placeholder={t("Select Board").toString()}
+        placeholder={t("Select").toString()}
         onValueChange={onBoardChange}
         optionList={boardOptions??[]}
         width="26vw"
         // options={boardOptions ?? []}
         // onDropdownChange={onBoardChange}
       />
+      </div>
+      <div id="drop-down-grade">
+      <p id="drop-down-head">Grade</p>
       <RectangularOutlineDropDown
        currentValue={currentlySelectedGrade!}
-       placeholder={t("Select Grade").toString()}
+       
+       placeholder={t("Select").toString()}
        onValueChange={onGradeChange}
        optionList={gradeOptions??[]}
        width="26vw"
       />
-      <RectangularOutlineDropDown
+      </div>
+      <div id="drop-down-Medium-of-instruction">
+        <p id="drop-down-head">Medium of instruction</p>
+        <RectangularOutlineDropDown
        currentValue={currentlySelectedLang}
-       placeholder={t("Medium of Instruction").toString()}
+       placeholder={t("Select").toString()}
         onValueChange={onLangChange}
         optionList={languageOptions??[]}
         width="26vw"
       />
+      </div>
     </div>
   );
 };

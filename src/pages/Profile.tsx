@@ -25,7 +25,12 @@ const Profile: React.FC = () => {
   const history = useHistory();
   const [currentStudent, setStudent] = useState<User>();
   useEffect(() => {
-    init();
+    if (!ServiceConfig.getI().apiHandler.currentStudent) {
+      // history.replace(PAGES.DISPLAY_STUDENT);
+      history.replace(PAGES.SELECT_MODE);
+    } else {
+      init();
+    }
   }, []);
 
   async function init(subjectCode = Util.getCourseByGrade(COURSES.ENGLISH)) {
