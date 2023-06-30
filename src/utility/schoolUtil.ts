@@ -135,7 +135,7 @@ export class schoolUtil {
     api.currentSchool = currSchool;
 
     localStorage.setItem(
-      CURRENT_CLASS,
+      CURRENT_SCHOOL,
       JSON.stringify({
         name: currSchool.name,
         image: currSchool.image,

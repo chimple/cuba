@@ -169,10 +169,8 @@ const SelectMode: FC = () => {
                 setCurrentSchool(currSchool);
                 setCurrentSchoolName(currSchool.name);
                 setCurrentSchoolId(currSchool.docId);
-                localStorage.setItem(
-                  CURRENT_SCHOOL,
-                  JSON.stringify(currSchool)
-                );
+              
+                schoolUtil.setCurrentSchool(currSchool);
               }}
               optionList={schoolList}
               width="26vw"
