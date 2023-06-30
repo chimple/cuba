@@ -17,19 +17,19 @@ const ParentalLock: React.FC<{
   handleClose,
   onHandleClose,
 }) => {
-    enum FOURSIDES {
+    enum FourSides {
       LEFT = "LEFT",
       RIGHT = "RIGHT",
       UP = "UP",
       DOWN = "DOWN",
     }
     const history = useHistory();
-    const [userDirection, setUserDirection] = useState<FOURSIDES>();
+    const [userDirection, setUserDirection] = useState<FourSides>();
     const [title, setTitle] = React.useState("");
 
     useEffect(() => {
-      const randomIndex = Math.floor(Math.random() * Object.keys(FOURSIDES).length);
-      const direction = FOURSIDES[Object.keys(FOURSIDES)[randomIndex]];
+      const randomIndex = Math.floor(Math.random() * Object.keys(FourSides).length);
+      const direction = FourSides[Object.keys(FourSides)[randomIndex]];
       setUserDirection(direction) //random sides
 
       const str = t(`Swipe x to Unlock`)
@@ -37,13 +37,13 @@ const ParentalLock: React.FC<{
       setTitle(str);
     }, []);
 
-    const checkSwipeDirection = (swipeDirection: FOURSIDES) => {
+    const checkSwipeDirection = (swipeDirection: FourSides) => {
       console.log("RandomDirection", userDirection);
       console.log("User swipeDirection", swipeDirection);
 
       if (swipeDirection.length > 0 && userDirection === swipeDirection) {
         history.push(PAGES.PARENT);
-      } else if (swipeDirection.length === 0 && userDirection !== swipeDirection) {
+      } else {
         console.log('not matched');
       }
     };
@@ -76,17 +76,20 @@ const ParentalLock: React.FC<{
       const isDownSwipe = distanceY < -minSwipeDistance;
 
       if (isLeftSwipe || isRightSwipe || isUpSwipe || isDownSwipe) {
-        if (isLeftSwipe) {
-          checkSwipeDirection(FOURSIDES.LEFT);
-        }
-        if (isRightSwipe) {
-          checkSwipeDirection(FOURSIDES.RIGHT);
-        }
-        if (isUpSwipe) {
-          checkSwipeDirection(FOURSIDES.UP);
-        }
-        if (isDownSwipe) {
-          checkSwipeDirection(FOURSIDES.DOWN);
+        switch (true) {
+          case isLeftSwipe:
+            checkSwipeDirection(FourSides.LEFT);
+            break;
+          case isRightSwipe:
+            checkSwipeDirection(FourSides.RIGHT);
+            break;
+          case isUpSwipe:
+            checkSwipeDirection(FourSides.UP);
+            break;
+          case isDownSwipe:
+            checkSwipeDirection(FourSides.DOWN);
+            break;
+
         }
       }
     };
