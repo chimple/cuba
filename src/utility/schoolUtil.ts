@@ -103,7 +103,7 @@ export class schoolUtil {
   };
   public static getCurrentSchool(): School | undefined {
     const api = ServiceConfig.getI().apiHandler;
-    if (!!api.currentClass) return api.currentSchool;
+    if (!!api.currentSchool) return api.currentSchool;
     const temp = localStorage.getItem(CURRENT_SCHOOL);
 
     if (!temp) return;

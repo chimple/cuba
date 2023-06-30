@@ -349,7 +349,7 @@ const Home: FC = () => {
       case HOMEHEADERLIST.RECOMMENDATION:
         // setCourse(HOMEHEADERLIST.RECOMMENDATION);
         if (currentStudent) {
-          getRecommendationLessons(currentStudent, currentClass|| undefined).then(() => {
+          getRecommendationLessons(currentStudent, currentClass).then(() => {
             console.log("Final RECOMMENDATION List ", reqLes);
             setDataCourse(reqLes);
           });
