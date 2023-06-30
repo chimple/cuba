@@ -31,7 +31,6 @@ ion-popover {
   height: min(80vh, 30vh);
   align-content: flex-start;
   color: black;
-  margin-top: -3vh;
 }
 
 #drop-down-head {
