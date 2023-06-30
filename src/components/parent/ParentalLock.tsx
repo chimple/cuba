@@ -17,30 +17,30 @@ const ParentalLock: React.FC<{
   handleClose,
   onHandleClose,
 }) => {
-    const enum FourSides {
+    enum FOURSIDES {
       LEFT = "LEFT",
       RIGHT = "RIGHT",
       UP = "UP",
       DOWN = "DOWN",
     }
     const history = useHistory();
-    const [swipeDirection, setSwipeDirection] = useState('');
-    const [userDirection, setUserDirection] = useState('');
+    const [userDirection, setUserDirection] = useState<FOURSIDES>();
     const [title, setTitle] = React.useState("");
 
     useEffect(() => {
-      const sides = ["LEFT", "RIGHT", "UP", "DOWN"];
-      const randomIndex = Math.floor(Math.random() * sides.length);
-      const direction = sides[randomIndex];
+      const randomIndex = Math.floor(Math.random() * Object.keys(FOURSIDES).length);
+      const direction = FOURSIDES[Object.keys(FOURSIDES)[randomIndex]];
+      setUserDirection(direction) //random sides
 
-      setSwipeDirection(direction);
-
-      let str = t(`Swipe x to Unlock`)
+      const str = t(`Swipe x to Unlock`)
         .replace(`x`, t(direction));
       setTitle(str);
     }, []);
 
-    const checkSwipeDirection = () => {
+    const checkSwipeDirection = (swipeDirection: FOURSIDES) => {
+      console.log("RandomDirection", userDirection);
+      console.log("User swipeDirection", swipeDirection);
+
       if (swipeDirection.length > 0 && userDirection === swipeDirection) {
         history.push(PAGES.PARENT);
       } else if (swipeDirection.length === 0 && userDirection !== swipeDirection) {
@@ -77,26 +77,19 @@ const ParentalLock: React.FC<{
 
       if (isLeftSwipe || isRightSwipe || isUpSwipe || isDownSwipe) {
         if (isLeftSwipe) {
-          console.log('Swipe: left');
-          setUserDirection(FourSides.LEFT);
+          checkSwipeDirection(FOURSIDES.LEFT);
         }
         if (isRightSwipe) {
-          console.log('Swipe: right');
-          setUserDirection(FourSides.RIGHT);
+          checkSwipeDirection(FOURSIDES.RIGHT);
         }
         if (isUpSwipe) {
-          console.log('Swipe: up');
-          setUserDirection(FourSides.UP);
+          checkSwipeDirection(FOURSIDES.UP);
         }
         if (isDownSwipe) {
-          console.log('Swipe: down');
-          setUserDirection(FourSides.DOWN);
+          checkSwipeDirection(FOURSIDES.DOWN);
         }
       }
     };
-    useEffect(() => {
-      checkSwipeDirection();
-    }, [userDirection]);
 
     return (
       <div>
