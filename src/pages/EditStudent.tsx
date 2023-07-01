@@ -213,7 +213,7 @@ const EditStudent = () => {
             <ChimpleLogo
               header={t("")}
               msg={t("").toString()} />
-          </div><div className="avatar-title">{t("Select Child Avatar:")}</div></></>
+          </div><div className="avatar-title">{t("Choose an avatar for your child:")}</div></></>
       )}
       <div className="content">
         {stage === STAGES.GENDER_AND_AGE && (
@@ -249,7 +249,7 @@ const EditStudent = () => {
               <div id="common-div">
                 <ChimpleLogo
                   header={t("")}
-                  msg={t("Choose your's childs class").toString()} />
+                  msg={t("Choose your child’s class details").toString()} />
               </div></>
               <GradeBoardAndLangDropdown
                 boards={boards}
