@@ -27,7 +27,7 @@ const CocosGame: React.FC = () => {
   const [isLoading, setIsLoading] = useState<any>();
   const [present] = useIonToast();
   const [showDialogBox, setShowDialogBox] = useState(false);
-  const [isLovedYesorNo, setIsLovedYesorNo] = useState(false);
+  let isLovedYesorNo = false;
 
   const presentToast = async () => {
     await present({
@@ -176,7 +176,7 @@ const CocosGame: React.FC = () => {
               }}
               onYesButtonClicked={() => {
                 setShowDialogBox(false);
-                setIsLovedYesorNo(true);
+                isLovedYesorNo = true;
                 push();
               }}
               onNoButtonClicked={() => {
