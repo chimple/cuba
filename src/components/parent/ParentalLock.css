@@ -13,7 +13,7 @@
   display: block;
 }
 
-#lock-icon {
-  height: 11vh;
-  width: 8vw;
+#parent-screen {
+  padding: 0 8vw;
+  width: 100%;
 }
