@@ -47,6 +47,8 @@ export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
   private _db = getFirestore();
   private _currentStudent: User | undefined;
+  private _currentClass: Class | undefined;
+  private _currentSchool: School | undefined;
   private _subjectsCache: { [key: string]: Subject } = {};
   private _classCache: { [key: string]: Class } = {};
   private _schoolCache: { [key: string]: School } = {};
@@ -108,7 +110,7 @@ export class FirebaseApi implements ServiceApi {
       [],
       name,
       RoleType.STUDENT,
-      _currentUser.uid,
+      _currentUser.docId,
       courseIds,
       age,
       image,
@@ -384,6 +386,22 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
+  async getCoursesForClassStudent(currClass: Class): Promise<Course[]> {
+    const subjects: Course[] = [];
+    if (!currClass?.courses || currClass.courses.length < 1) return subjects;
+    const courseDocs = await Promise.all(
+      currClass.courses.map((course) => getDoc(doc(this._db, course)))
+    );
+    courseDocs.forEach((courseDoc) => {
+      if (courseDoc && courseDoc.data) {
+        const course = courseDoc.data() as Course;
+        course.docId = courseDoc.id;
+        subjects.push(course);
+      }
+    });
+    return subjects;
+  }
+
   async getLesson(id: string): Promise<Lesson | undefined> {
     try {
       const lessonDoc = await getDoc(
@@ -620,8 +638,45 @@ export class FirebaseApi implements ServiceApi {
     };
     console.log("playedResult", result.lesson.id, JSON.stringify(playedResult));
 
-    this._studentResultCache[student.docId].lessons[result.lesson.id] =
-      playedResult;
+    if (this._studentResultCache[student.docId] === undefined) {
+      const studentProfileData = await this.getStudentResult(student.docId);
+      if (studentProfileData) {
+        const lastPlayedCourse: DocumentReference | undefined =
+          studentProfileData.lastPlayedCourse;
+
+        const studentProfile = new StudentProfile(
+          lastPlayedCourse,
+          studentProfileData.classes,
+          studentProfileData.last5Lessons,
+          studentProfileData.lessons,
+          studentProfileData.schools,
+          studentProfileData.dateLastModified,
+          studentProfileData.createdAt,
+          student.docId
+        );
+
+        studentProfile.lessons[result.lesson.id] = playedResult;
+        this._studentResultCache[student.docId] = studentProfile;
+      } else {
+        const studentProfile = new StudentProfile(
+          playedResult.course,
+          [],
+          {},
+          {},
+          [],
+          Timestamp.fromDate(new Date()),
+          Timestamp.fromDate(new Date()),
+          student.docId
+        );
+        studentProfile.lessons[result.lesson.id] = playedResult;
+        this._studentResultCache[student.docId] = studentProfile;
+      }
+    } else {
+      this._studentResultCache[student.docId].lastPlayedCourse =
+        playedResult.course;
+      this._studentResultCache[student.docId].lessons[result.lesson.id] =
+        playedResult;
+    }
     console.log(
       "this._studentResultCache[student.docId] ",
       JSON.stringify(this._studentResultCache[student.docId])
@@ -871,29 +926,31 @@ export class FirebaseApi implements ServiceApi {
       const schools: School[] = [];
       await Promise.all(
         queryResult.docs.map(async (connectionDoc) => {
-          const schoolId = connectionDoc.id.slice(3);
-          const schoolDoc = await getDoc(
-            doc(this._db, CollectionIds.SCHOOL, schoolId)
-          );
-          if (schoolDoc.exists() && !!schoolDoc.id) {
-            const school = schoolDoc.data() as School;
-            school.docId = schoolDoc.id;
-            const connectionId = connectionDoc.id.slice(0, 2);
-            switch (connectionId) {
-              case "PR":
-                school.role = RoleType.PRINCIPAL;
-                break;
-              case "CO":
-                school.role = RoleType.COORDINATOR;
-                break;
-              case "TE":
-                school.role = RoleType.TEACHER;
-                break;
-              case "SP":
-                school.role = RoleType.SPONSOR;
-                break;
+          const schoolId = connectionDoc.id.split("_")[1];
+          const connectionId = connectionDoc.id.split("_")[0];
+          if (connectionId != "PT") {
+            const schoolDoc = await getDoc(
+              doc(this._db, CollectionIds.SCHOOL, schoolId)
+            );
+            if (schoolDoc.exists() && !!schoolDoc.id) {
+              const school = schoolDoc.data() as School;
+              school.docId = schoolDoc.id;
+              switch (connectionId) {
+                case "PR":
+                  school.role = RoleType.PRINCIPAL;
+                  break;
+                case "CO":
+                  school.role = RoleType.COORDINATOR;
+                  break;
+                case "TE":
+                  school.role = RoleType.TEACHER;
+                  break;
+                case "SP":
+                  school.role = RoleType.SPONSOR;
+                  break;
+              }
+              schools.push(school);
             }
-            schools.push(school);
           }
         })
       );
@@ -1147,5 +1204,17 @@ export class FirebaseApi implements ServiceApi {
   }
   set currentStudent(value: User | undefined) {
     this._currentStudent = value;
+  }
+  get currentClass(): Class | undefined {
+    return this._currentClass;
+  }
+  set currentClass(value: Class | undefined) {
+    this._currentClass = value;
+  }
+  get currentSchool(): School | undefined {
+    return this._currentSchool;
+  }
+  set currentSchool(value: School | undefined) {
+    this._currentSchool = value;
   }
 }

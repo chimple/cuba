@@ -20,4 +20,5 @@
 #logo-msg {
   font-size: var(--text-size);
   color: #05342f;
+  margin-top: 5vh;
 }

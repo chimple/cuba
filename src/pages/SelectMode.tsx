@@ -4,7 +4,13 @@ import Loading from "../components/Loading";
 import { FirebaseApi } from "../services/api/FirebaseApi";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { useHistory } from "react-router";
-import { AVATARS, CURRENT_SCHOOL, MODES, PAGES } from "../common/constants";
+import {
+  AVATARS,
+  CURRENT_CLASS,
+  CURRENT_SCHOOL,
+  MODES,
+  PAGES,
+} from "../common/constants";
 import SelectModeButton from "../components/selectMode/SelectModeButton";
 import { IoMdPeople } from "react-icons/io";
 import { GiTeacher } from "react-icons/gi";
@@ -16,6 +22,7 @@ import Class from "../models/class";
 import User from "../models/user";
 import School from "../models/school";
 import { Util } from "../utility/util";
+import { schoolUtil } from "../utility/schoolUtil";
 
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -59,9 +66,11 @@ const SelectMode: FC = () => {
     setIsLoading(true);
     const currUser = await auth.getCurrentUser();
     if (!currUser) return;
-    const isTeacher = await api.isUserTeacher(currUser);
-    console.log("This is the current status of teacher " + isTeacher);
-    if (!isTeacher) {
+    const allSchool = await api.getSchoolsForUser(currUser);
+
+    // const isTeacher = await api.isUserTeacher(currUser);
+    // console.log("This is the current status of teacher " + isTeacher);
+    if (!allSchool || allSchool.length < 1) {
       api.currentMode = MODES.PARENT;
       history.replace(PAGES.DISPLAY_STUDENT);
       return;
@@ -70,9 +79,9 @@ const SelectMode: FC = () => {
     //   history.push(PAGES.DISPLAY_STUDENT);
     //   return;
     // }
-    const allSchool = await api.getSchoolsForUser(currUser);
+
     console.log("allSchool", allSchool);
-    for (let i = 0; i <  allSchool.length; i++) {
+    for (let i = 0; i < allSchool.length; i++) {
       const element = allSchool[i];
       tempSchoolList.push({
         id: element.docId,
@@ -162,6 +171,8 @@ const SelectMode: FC = () => {
                 setCurrentSchool(currSchool);
                 setCurrentSchoolName(currSchool.name);
                 setCurrentSchoolId(currSchool.docId);
+
+                schoolUtil.setCurrentSchool(currSchool);
               }}
               optionList={schoolList}
               width="26vw"
@@ -205,7 +216,8 @@ const SelectMode: FC = () => {
                   key={tempClass.docId}
                   onClick={async () => {
                     if (!tempClass) return;
-
+                    // localStorage.setItem(CURRENT_CLASS,JSON.stringify(tempClass));
+                    schoolUtil.setCurrentClass(tempClass);
                     console.log("This is the selected class " + tempClass);
                     setCurrClass(tempClass);
 
