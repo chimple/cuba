@@ -41,7 +41,7 @@
     "@types/react-router-dom": "^5.1.7",
     "algoliasearch": "^4.17.0",
     "capacitor-fs": "^0.0.41-b5",
-    "capacitor-rate-app": "^4.0.3",
+    "capacitor-rate-app": "^4.0.0-beta.1",
     "cordova-plugin-background-mode": "^0.7.3",
     "cordova-plugin-device": "^2.1.0",
     "cordova-support-android-plugin": "^2.0.4",
