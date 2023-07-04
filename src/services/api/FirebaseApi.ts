@@ -636,8 +636,8 @@ export class FirebaseApi implements ServiceApi {
       score: result.score,
       timeSpent: result.timeSpent,
     };
-    console.log("playedResult", result.lesson.id, JSON.stringify(playedResult))
-    
+    console.log("playedResult", result.lesson.id, JSON.stringify(playedResult));
+
     if (this._studentResultCache[student.docId] === undefined) {
       const studentProfileData = await this.getStudentResult(student.docId);
       if (studentProfileData) {
@@ -650,25 +650,32 @@ export class FirebaseApi implements ServiceApi {
           studentProfileData.last5Lessons,
           studentProfileData.lessons,
           studentProfileData.schools,
-          Timestamp.fromDate(new Date()),
-          Timestamp.fromDate(new Date()),
+          studentProfileData.dateLastModified,
+          studentProfileData.createdAt,
           student.docId
         );
 
         studentProfile.lessons[result.lesson.id] = playedResult;
         this._studentResultCache[student.docId] = studentProfile;
-        this._studentResultCache[student.docId].classes.push(
-          ...studentProfileData.classes
-        );
-        this._studentResultCache[student.docId].schools.push(
-          ...studentProfileData.schools
-        );
       } else {
-        this._studentResultCache[student.docId].lastPlayedCourse =
-          playedResult.course;
-        this._studentResultCache[student.docId].lessons[result.lesson.id] =
-          playedResult;
+        const studentProfile = new StudentProfile(
+          playedResult.course,
+          [],
+          {},
+          {},
+          [],
+          Timestamp.fromDate(new Date()),
+          Timestamp.fromDate(new Date()),
+          student.docId
+        );
+        studentProfile.lessons[result.lesson.id] = playedResult;
+        this._studentResultCache[student.docId] = studentProfile;
       }
+    } else {
+      this._studentResultCache[student.docId].lastPlayedCourse =
+        playedResult.course;
+      this._studentResultCache[student.docId].lessons[result.lesson.id] =
+        playedResult;
     }
     console.log(
       "this._studentResultCache[student.docId] ",
