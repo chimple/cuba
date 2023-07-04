@@ -52,6 +52,7 @@ import SearchLesson from "./pages/SearchLesson";
 import Leaderboard from "./pages/Leaderboard";
 import AssignmentPage from "./pages/Assignment";
 import SelectMode from "./pages/SelectMode";
+import { FirebaseRemoteConfig } from "@capacitor-firebase/remote-config";
 
 setupIonicReact();
 
@@ -94,6 +95,9 @@ const App: React.FC = () => {
 
     //Listen to network change
     Util.listenToNetwork();
+
+    //Initialize firebase remote config
+    FirebaseRemoteConfig.fetchAndActivate();
   }, []);
 
   return (
