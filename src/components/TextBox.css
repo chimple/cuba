@@ -38,7 +38,7 @@
    /* margin-top: 3.5%; */
     background-color: var(--text-color);
     /*transform: translateX(8px);*/
-    margin: 1vw 0vw 0vw 0.5vw;
+    margin: 1vw 0.5vw 0vw 0.5vw;
 }
 
 #text-box-ion-item {

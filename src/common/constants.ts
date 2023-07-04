@@ -167,6 +167,7 @@ export const PREVIOUS_SELECTED_COURSE = () =>
 export const SELECTED_GRADE = () => `${Auth.i.sourcedId}-selectedGrade`;
 export const APP_LANG = "appLang";
 export const CURRENT_SCHOOL = "currentSchool";
+export const CURRENT_CLASS = "currentClass";
 export const LANGUAGE = "language";
 export const EXAM = "exam";
 export const PRE_QUIZ = "PreQuiz";
