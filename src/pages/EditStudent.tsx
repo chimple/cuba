@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import GenderAndAge from "../components/editStudent/GenderAndAge";
 import SelectAvatar from "../components/editStudent/SelectAvatar";
 import GradeBoardAndLangDropdown from "../components/editStudent/GradeBoardAndLangDropdown";
-import { CURRENT_STUDENT, GENDER, PAGES } from "../common/constants";
+import { ACTION, CURRENT_STUDENT, EVENTS, GENDER, PAGES} from '../common/constants';
 import { chevronForward } from "ionicons/icons";
 import Curriculum from "../models/curriculum";
 import Grade from "../models/grade";
@@ -85,6 +85,17 @@ const EditStudent = () => {
           grade ?? currentStudent.grade?.id!,
           language ?? currentStudent.language?.id!
         );
+        Util.logEvent(EVENTS.USER_PROFILE, {
+          user_id: currentStudent,
+          user_type: 'student',
+          user_name: studentName!,
+          user_gender: currentStudent.gender!,
+          user_age: currentStudent.age!,
+          phone_number: '',
+          parent_username: '',
+          parent_id: '',
+          action_type: ACTION.UPDATE
+        });
       } else {
         student = await api.createProfile(
           studentName!,
@@ -96,6 +107,17 @@ const EditStudent = () => {
           grade,
           language
         );
+        Util.logEvent(EVENTS.USER_PROFILE, {
+          user_id: student,
+          user_type: 'student',
+          user_name: studentName!,
+          user_gender: gender,
+          user_age: age,
+          phone_number: '',
+          parent_username: '',
+          parent_id: '',
+          action_type: ACTION.CREATE
+        });
 
         //Setting the Current Student
         const langIndex = languages?.findIndex(
