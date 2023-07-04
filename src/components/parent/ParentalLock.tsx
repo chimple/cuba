@@ -93,6 +93,43 @@ const ParentalLock: React.FC<{
         }
       }
     };
+    const onMouseDown = (e) => {
+      setTouchEnd({ x: null, y: null });
+      setTouchStart({ x: e.clientX, y: e.clientY });
+    };
+
+    const onMouseMove = (e) => {
+      if (!touchStart.x || !touchStart.y) return;
+      setTouchEnd({ x: e.clientX, y: e.clientY });
+    };
+
+    const onMouseUp = () => {
+      if (!touchStart.x || !touchStart.y || !touchEnd.x || !touchEnd.y) return;
+
+      const distanceX = touchStart.x - touchEnd.x;
+      const distanceY = touchStart.y - touchEnd.y;
+      const isLeftSwipe = distanceX > minSwipeDistance;
+      const isRightSwipe = distanceX < -minSwipeDistance;
+      const isUpSwipe = distanceY > minSwipeDistance;
+      const isDownSwipe = distanceY < -minSwipeDistance;
+
+      if (isLeftSwipe || isRightSwipe || isUpSwipe || isDownSwipe) {
+        switch (true) {
+          case isLeftSwipe:
+            checkSwipeDirection(FourSides.LEFT);
+            break;
+          case isRightSwipe:
+            checkSwipeDirection(FourSides.RIGHT);
+            break;
+          case isUpSwipe:
+            checkSwipeDirection(FourSides.UP);
+            break;
+          case isDownSwipe:
+            checkSwipeDirection(FourSides.DOWN);
+            break;
+        }
+      }
+    };
 
     return (
       <div>
@@ -105,8 +142,11 @@ const ParentalLock: React.FC<{
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
           onTouchMove={onTouchMove}
-          onMouseMove={onTouchMove}
-          onMouseEnter={onTouchStart}>
+          onMouseDown={onMouseDown}
+          onMouseUp={onMouseUp}
+          onMouseMove={onMouseMove}
+          onMouseEnter={onMouseDown}
+        >
           <div style={{
             background: 'white',
             color: 'black',
@@ -121,22 +161,23 @@ const ParentalLock: React.FC<{
                   onClick={onHandleClose}
                 ></IoCloseCircle>
               </div>
-              <p style={{
-                fontWeight: 'bold',
-                fontSize: 'var(--text-size)',
-                paddingLeft: "4vw",
-              }}>{t("Parents Screen")}</p>
+              <div id="parent-screen">
+                <p style={{
+                  fontWeight: 'bold',
+                  fontSize: 'var(--text-size)',
+                }}>{t("Parents Screen")}</p>
+              </div>
             </div>
 
             <FcLock
               style={{
-                height: '11vh',
-                width: '8vw',
+                height: '14vh',
+                width: '10vw',
               }}></FcLock>
 
             <DialogContent
               style={{
-                width: '25vw',
+                width: '35vw',
                 height: '15vh',
                 background: 'white',
                 color: 'black',
@@ -144,7 +185,7 @@ const ParentalLock: React.FC<{
                 justifyContent: 'center',
                 alignItems: 'center',
                 overflow: 'hidden',
-                paddingBottom: "0"
+                padding: '4vh 0 0 0'
               }}
             >
 
