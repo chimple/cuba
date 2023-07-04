@@ -6,6 +6,7 @@ import {
   HeaderIconConfig,
   PAGES,
   MODES,
+  CURRENT_MODE,
 } from "../common/constants";
 import "./HomeHeader.css";
 import HeaderIcon from "./HeaderIcon";
@@ -14,6 +15,7 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import { Util } from "../utility/util";
 import User from "../models/user";
 import { useHistory } from "react-router";
+import { schoolUtil } from "../utility/schoolUtil";
 
 const HomeHeader: React.FC<{
   currentHeader: string;
@@ -25,9 +27,11 @@ const HomeHeader: React.FC<{
   HEADER_ICON_CONFIGS.forEach((element) => {
     // console.log("elements", element);
     const api = ServiceConfig.getI().apiHandler;
+    const currMode = schoolUtil.getCurrMode();
+    console.log(currMode);
     if (
       !(
-        api.currentMode === MODES.SCHOOL &&
+        currMode === MODES.SCHOOL &&
         element.headerList === HOMEHEADERLIST.ASSIGNMENT
       )
     ) {

@@ -1,50 +1,16 @@
-import { Http } from "@capacitor-community/http";
-import { Capacitor, registerPlugin } from "@capacitor/core";
-import { Directory, Filesystem } from "@capacitor/filesystem";
-import { Toast } from "@capacitor/toast";
-import createFilesystem from "capacitor-fs";
-import { unzip } from "zip2";
 import {
-  CURRENT_STUDENT,
-  BUNDLE_URL,
-  COURSES,
-  CURRENT_LESSON_LEVEL,
-  EVENTS,
-  FCM_TOKENS,
-  LANG,
-  LANGUAGE,
-  LAST_PERMISSION_CHECKED,
-  LAST_UPDATE_CHECKED,
-  PAGES,
-  PortPlugin,
-  PRE_QUIZ,
-  SELECTED_GRADE,
-  SL_GRADES,
   CURRENT_CLASS,
+  CURRENT_MODE,
   CURRENT_SCHOOL,
+  MODES,
 } from "../common/constants";
-import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
-import { GUIDRef } from "../interface/modelInterfaces";
-import Result from "../models/result";
-import { OneRosterApi } from "../services/api/OneRosterApi";
-import User from "../models/user";
 import { ServiceConfig } from "../services/ServiceConfig";
-import i18n from "../i18n";
-import { FirebaseAnalytics } from "@capacitor-firebase/analytics";
-import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 import {
   DocumentData,
   DocumentReference,
   doc,
   getFirestore,
 } from "firebase/firestore";
-import { useEffect, useRef, useState } from "react";
-import { Keyboard } from "@capacitor/keyboard";
-import {
-  AppUpdate,
-  AppUpdateAvailability,
-  AppUpdateResultCode,
-} from "@capawesome/capacitor-app-update";
 import Class from "../models/class";
 import School from "../models/school";
 
@@ -149,5 +115,23 @@ export class schoolUtil {
         docId: currSchool.docId,
       })
     );
+  };
+  public static getCurrMode(): MODES {
+    const api = ServiceConfig.getI().apiHandler;
+
+    if (!!api.currentMode) return api.currentMode;
+    const currMode = localStorage.getItem(CURRENT_MODE);
+    console.log(currMode);
+    if (!currMode) return MODES.PARENT;
+    const tempMode: MODES = MODES[currMode as keyof typeof MODES];
+    api.currentMode = tempMode;
+
+    if (tempMode === MODES.SCHOOL) return MODES.SCHOOL;
+    return MODES.PARENT;
+  }
+  public static setCurrMode = async (currMode: MODES) => {
+    const api = ServiceConfig.getI().apiHandler;
+    api.currentMode = currMode;
+    localStorage.setItem(CURRENT_MODE, currMode);
   };
 }

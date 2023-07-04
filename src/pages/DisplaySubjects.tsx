@@ -5,7 +5,7 @@ import Lesson from "../models/lesson";
 import { Chapter, StudentLessonResult } from "../common/courseConstants";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { CURRENT_CLASS, MODES, PAGES } from "../common/constants";
+import { CURRENT_CLASS, CURRENT_MODE, MODES, PAGES } from "../common/constants";
 import { IonIcon, IonPage } from "@ionic/react";
 import { chevronBackCircleSharp } from "ionicons/icons";
 import "./DisplaySubjects.css";
@@ -95,8 +95,10 @@ const DisplaySubjects: FC<{}> = () => {
       console.log("tempResultLessonMap = res;", res);
       setLessonResultMap(res);
     });
-    
-    const courses = await (api.currentMode == MODES.SCHOOL && !!currClass
+    function getCurrentMode() {}
+    const currMode = schoolUtil.getCurrMode();
+
+    const courses = await (currMode === MODES.SCHOOL && !!currClass
       ? api.getCoursesForClassStudent(currClass)
       : api.getCoursesForParentsStudent(currentStudent));
     localData.courses = courses;
