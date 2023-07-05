@@ -127,7 +127,6 @@ export class schoolUtil {
     console.log(currMode);
     if (!currMode) {
       const currUser = await auth.getCurrentUser();
-
       if (!currUser) return undefined;
       const allSchool = await api.getSchoolsForUser(currUser);
       if (!allSchool || allSchool.length < 1) {
@@ -140,7 +139,6 @@ export class schoolUtil {
     }
     const tempMode: MODES = MODES[currMode as keyof typeof MODES];
     api.currentMode = tempMode;
-
     return tempMode;
   }
   public static setCurrMode = async (currMode: MODES) => {
