@@ -43,6 +43,7 @@ import {
   AppUpdateResultCode,
 } from "@capawesome/capacitor-app-update";
 import { LocalNotifications } from "@capacitor/local-notifications";
+import { RateApp } from "capacitor-rate-app";
 
 declare global {
   interface Window {
@@ -684,5 +685,16 @@ export class Util {
       console.log("🚀 ~ file: util.ts:681 ~ window.addEventListener ~ e:", e);
       disableNetwork(_db);
     });
+  }
+
+  public static async showInAppReview() {
+    try {
+      await RateApp.requestReview();
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: util.ts:694 ~ showInAppReview ~ error:",
+        JSON.stringify(error)
+      );
+    }
   }
 }
