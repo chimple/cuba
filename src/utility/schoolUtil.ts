@@ -141,7 +141,6 @@ export class schoolUtil {
     const tempMode: MODES = MODES[currMode as keyof typeof MODES];
     api.currentMode = tempMode;
 
-    if (tempMode === MODES.SCHOOL) return tempMode;
     return tempMode;
   }
   public static setCurrMode = async (currMode: MODES) => {
