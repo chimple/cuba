@@ -96,7 +96,7 @@ const DisplaySubjects: FC<{}> = () => {
       setLessonResultMap(res);
     });
     function getCurrentMode() {}
-    const currMode = schoolUtil.getCurrMode();
+    const currMode = await schoolUtil.getCurrMode();
 
     const courses = await (currMode === MODES.SCHOOL && !!currClass
       ? api.getCoursesForClassStudent(currClass)

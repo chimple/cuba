@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 import Class from "../models/class";
 import School from "../models/school";
+import { Util } from "./util";
 
 export class schoolUtil {
   //   public static port: PortPlugin;
@@ -116,13 +117,26 @@ export class schoolUtil {
       })
     );
   };
-  public static getCurrMode(): MODES {
+
+  public static async getCurrMode(): Promise<MODES | undefined> {
     const api = ServiceConfig.getI().apiHandler;
+    const auth = ServiceConfig.getI().authHandler;
 
     if (!!api.currentMode) return api.currentMode;
     const currMode = localStorage.getItem(CURRENT_MODE);
     console.log(currMode);
-    if (!currMode) return MODES.PARENT;
+    if (!currMode) {
+      const currUser = await auth.getCurrentUser();
+
+      if (!currUser) return undefined;
+      const allSchool = await api.getSchoolsForUser(currUser);
+      if (!allSchool || allSchool.length < 1) {
+        api.currentMode = MODES.PARENT;
+        return MODES.PARENT;
+      } else {
+        api.currentMode = MODES.SCHOOL;
+      }
+    }
     const tempMode: MODES = MODES[currMode as keyof typeof MODES];
     api.currentMode = tempMode;
 

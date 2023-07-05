@@ -187,7 +187,7 @@ const Home: FC = () => {
       return tempLesMap;
     };
 
-    const currMode = schoolUtil.getCurrMode();
+    const currMode = await schoolUtil.getCurrMode();
     console.log(currMode);
     let sortLessonResultMap:
       | {
