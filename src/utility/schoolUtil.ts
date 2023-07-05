@@ -135,13 +135,14 @@ export class schoolUtil {
         return MODES.PARENT;
       } else {
         api.currentMode = MODES.SCHOOL;
+        return MODES.SCHOOL;
       }
     }
     const tempMode: MODES = MODES[currMode as keyof typeof MODES];
     api.currentMode = tempMode;
 
-    if (tempMode === MODES.SCHOOL) return MODES.SCHOOL;
-    return MODES.PARENT;
+    if (tempMode === MODES.SCHOOL) return tempMode;
+    return tempMode;
   }
   public static setCurrMode = async (currMode: MODES) => {
     const api = ServiceConfig.getI().apiHandler;
