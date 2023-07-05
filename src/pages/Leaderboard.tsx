@@ -319,10 +319,11 @@ const Leaderboard: React.FC = () => {
                     : Number(currentUserDataContent[0][1]) ===
                       headerRowIndicator
                       ? "0vh 2vh"
-                      : "0vh 2vh",
+                      : "1vh 2vh ",
                   position: "sticky",
                   zIndex: headerRowIndicator === 0 ? "3" : "0",
                   top: "0px",
+
                 }}
               >
                 {e.map((d) => {
