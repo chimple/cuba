@@ -69,9 +69,9 @@ const DisplaySubjects: FC<{}> = () => {
       setCourses(localData.courses);
       setLessons(localData.lessons);
       setCurrentGrade(localData.currentGrade);
-      setGradesMap(localData.gradesMap);
       setCurrentCourse(localData.currentCourse);
       setCurrentChapter(localData.currentChapter);
+      setLessonResultMap(localData.lessonResultMap);
       setStage(STAGES.LESSONS);
       setIsLoading(false);
     } else {
@@ -93,6 +93,7 @@ const DisplaySubjects: FC<{}> = () => {
     if (!!currClass) setCurrentClass(currClass);
     api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
       console.log("tempResultLessonMap = res;", res);
+      localData.lessonResultMap=res;
       setLessonResultMap(res);
     });
     
