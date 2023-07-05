@@ -10,7 +10,7 @@ import Course from "../models/course";
 import { ServiceConfig } from "../services/ServiceConfig";
 import Subject from "../models/subject";
 import { t } from "i18next";
-import { AiTwotoneHeart } from "react-icons/ai";
+import LovedIcon from "./LovedIcon";
 
 const LessonCard: React.FC<{
   width: string;
@@ -24,6 +24,7 @@ const LessonCard: React.FC<{
   showText?: boolean;
   showScoreCard?: boolean;
   score: any;
+  isLoved: boolean | undefined;
   lessonData: Lesson[];
   startIndex: number;
 }> = ({
@@ -38,6 +39,7 @@ const LessonCard: React.FC<{
   showText = true,
   showScoreCard = true,
   score,
+  isLoved,
   lessonData,
   startIndex,
 }) => {
@@ -206,13 +208,7 @@ const LessonCard: React.FC<{
             ) : (
               <div />
             )}
-          </div>
-          <div className="fav-icon">
-            <AiTwotoneHeart
-              className="fav-icon-image"
-              id="fav-icon-image"
-              style={{ color: "red" }}
-            />
+            {!!isLoved && <LovedIcon isLoved={isLoved} />}
           </div>
         </div>
       </div>

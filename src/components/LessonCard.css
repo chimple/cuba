@@ -82,19 +82,3 @@
   justify-self: center;
   width: 55%;
 }
-
-.fav-icon {
-  display: flex;
-  position: absolute;
-  left: 87%;
-  bottom: 11%;
-  right: 3%;
-  background: rgb(220, 213, 213);
-  border-radius: 62%;
-  padding: 1% 0.5% 1% 0.5%;
-}
-
-.fav-icon-image {
-  width: 5vw;
-  height: 5vh;
-}
