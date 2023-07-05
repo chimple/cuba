@@ -1,4 +1,4 @@
-import { Capacitor, registerPlugin } from "@capacitor/core";
+import { Capacitor, CapacitorHttp, registerPlugin } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
@@ -43,6 +43,7 @@ import {
   AppUpdateResultCode,
 } from "@capawesome/capacitor-app-update";
 import { LocalNotifications } from "@capacitor/local-notifications";
+import { RateApp } from "capacitor-rate-app";
 
 declare global {
   interface Window {
@@ -145,32 +146,32 @@ export class Util {
 
         console.log("fs", fs);
         const url = BUNDLE_URL + lessonId + ".zip";
-        console.log("const url", url);
-        const zip = fetch(url).then(async (response) => {
-          if (response instanceof Object) {
-            console.log("unzipping ", response);
-            const zipblob = await response.blob();
-            const zipArrBuff = await zipblob.arrayBuffer();
-            await unzip({
-              fs: fs,
-              extractTo: lessonId,
-              filepaths: ["."],
-              filter: (filepath: string) =>
-                filepath.startsWith("dist/") === false,
-              onProgress: (event) =>
-                console.log(
-                  "event unzipping ",
-                  event.total,
-                  event.filename,
-                  event.isDirectory,
-                  event.loaded
-                ),
-              data: zipArrBuff,
-            });
+        const zip = await CapacitorHttp.get({ url: url, responseType: "blob" });
+        if (!zip.data || zip.status !== 200) return false;
+        if (zip instanceof Object) {
+          console.log("unzipping ");
+          const buffer = Uint8Array.from(atob(zip.data), (c) =>
+            c.charCodeAt(0)
+          );
+          await unzip({
+            fs: fs,
+            extractTo: lessonId,
+            filepaths: ["."],
+            filter: (filepath: string) =>
+              filepath.startsWith("dist/") === false,
+            onProgress: (event) =>
+              console.log(
+                "event unzipping ",
+                event.total,
+                event.filename,
+                event.isDirectory,
+                event.loaded
+              ),
+            data: buffer,
+          });
 
-            console.log("un  zip done");
-          }
-        });
+          console.log("un  zip done");
+        }
         console.log("zip ", zip);
       } catch (error) {
         console.log("error", error);
@@ -684,5 +685,16 @@ export class Util {
       console.log("🚀 ~ file: util.ts:681 ~ window.addEventListener ~ e:", e);
       disableNetwork(_db);
     });
+  }
+
+  public static async showInAppReview() {
+    try {
+      await RateApp.requestReview();
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: util.ts:694 ~ showInAppReview ~ error:",
+        JSON.stringify(error)
+      );
+    }
   }
 }

@@ -638,8 +638,45 @@ export class FirebaseApi implements ServiceApi {
     };
     console.log("playedResult", result.lesson.id, JSON.stringify(playedResult));
 
-    this._studentResultCache[student.docId].lessons[result.lesson.id] =
-      playedResult;
+    if (this._studentResultCache[student.docId] === undefined) {
+      const studentProfileData = await this.getStudentResult(student.docId);
+      if (studentProfileData) {
+        const lastPlayedCourse: DocumentReference | undefined =
+          studentProfileData.lastPlayedCourse;
+
+        const studentProfile = new StudentProfile(
+          lastPlayedCourse,
+          studentProfileData.classes,
+          studentProfileData.last5Lessons,
+          studentProfileData.lessons,
+          studentProfileData.schools,
+          studentProfileData.dateLastModified,
+          studentProfileData.createdAt,
+          student.docId
+        );
+
+        studentProfile.lessons[result.lesson.id] = playedResult;
+        this._studentResultCache[student.docId] = studentProfile;
+      } else {
+        const studentProfile = new StudentProfile(
+          playedResult.course,
+          [],
+          {},
+          {},
+          [],
+          Timestamp.fromDate(new Date()),
+          Timestamp.fromDate(new Date()),
+          student.docId
+        );
+        studentProfile.lessons[result.lesson.id] = playedResult;
+        this._studentResultCache[student.docId] = studentProfile;
+      }
+    } else {
+      this._studentResultCache[student.docId].lastPlayedCourse =
+        playedResult.course;
+      this._studentResultCache[student.docId].lessons[result.lesson.id] =
+        playedResult;
+    }
     console.log(
       "this._studentResultCache[student.docId] ",
       JSON.stringify(this._studentResultCache[student.docId])

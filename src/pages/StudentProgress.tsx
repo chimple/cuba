@@ -193,7 +193,7 @@ const StudentProgress: React.FC = () => {
 
   useEffect(() => {
     if (studentProgressHeaderIconList.length > 0) {
-      setTabIndex(studentProgressHeaderIconList[0].header);
+      setTabIndex(studentProgressHeaderIconList[0].displayName);
     }
   }, [studentProgressHeaderIconList]);
 
