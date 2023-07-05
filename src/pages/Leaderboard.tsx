@@ -314,7 +314,12 @@ const Leaderboard: React.FC = () => {
                         headerRowIndicator
                         ? "#FF7925"
                         : "",
-                  padding: "1vh 2vh",
+                  padding: headerRowIndicator === 0
+                    ? "1vh 2vh"
+                    : Number(currentUserDataContent[0][1]) ===
+                      headerRowIndicator
+                      ? "0vh 2vh"
+                      : "0vh 2vh",
                   position: "sticky",
                   zIndex: headerRowIndicator === 0 ? "3" : "0",
                   top: "0px",
