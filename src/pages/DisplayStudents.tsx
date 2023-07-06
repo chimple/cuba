@@ -11,12 +11,15 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
 import { Util } from "../utility/util";
 import ParentalLock from "../components/parent/ParentalLock";
+// import { FirebaseApi } from "../services/api/FirebaseApi";
+// import { FirebaseAuth } from "../services/auth/FirebaseAuth";
 
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<User[]>();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const history = useHistory();
+
   useEffect(() => {
     getStudents();
   }, []);
@@ -31,6 +34,25 @@ const DisplayStudents: FC<{}> = () => {
     // setStudents([students[0]]);
 
     // setStudents([...students, students[0]]);
+
+    // const currentUser = await FirebaseAuth.getInstance().getCurrentUser();
+    // const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    // console.log(
+    //   "🚀 ~ file: DisplayStudents.tsx:35 ~ getStudents ~ FirebaseAuth.getInstance().currentUser:",
+    //   currentUser
+    // );
+    // // const iseTeacher = await FirebaseApi.getInstance().isUserTeacher(
+    //   currentUser!
+    // );
+    //  if (!currentUser) return;
+    // const iseTeacher = await ServiceConfig.getI().apiHandler.isUserTeacher(
+    //   currentUser
+    // );
+    // console.log(
+    //   "🚀 ~ file: DisplayStudents.tsx:34 ~ getStudents ~ iseTeacher:",
+    //   iseTeacher
+    // );
+
     setIsLoading(false);
   };
   const onStudentClick = async (student: User) => {
@@ -52,7 +74,7 @@ const DisplayStudents: FC<{}> = () => {
         <ChimpleLogo
           header={t("Welcome to Chimple!")}
           msg={[
-            t("Please select your profile"),
+            t("Select the child’s profile"),
             // t("where curiosity meets education!"),
           ]}
         />
@@ -88,19 +110,16 @@ const DisplayStudents: FC<{}> = () => {
             ))}
           </div>
           {students.length < MAX_STUDENTS_ALLOWED && (
-            <div onClick={onCreateNewStudent} className="add-new-button">
-              <IoAddCircleSharp color="white" size="10vh" />
-              {t("Create New User")}
+            <div className="add-new-button">
+              <IoAddCircleSharp color="white" size="10vh" onClick={onCreateNewStudent} />
+              {t("Create New Child Profile")}
             </div>
           )}
           {showDialogBox ? (
             <ParentalLock
-              width={"10vh"}
-              height={"10vh"}
-              message="You can edit or delete user by"
               showDialogBox={showDialogBox}
               handleClose={() => {
-                setShowDialogBox(false);
+                setShowDialogBox(true);
                 console.log("Close", false);
               }}
               onHandleClose={() => {

@@ -12,6 +12,8 @@ import Assignment from "../../models/assignment";
 import Class from "../../models/class";
 import StudentProfile from "../../models/studentProfile";
 import school from "../../models/school";
+import { MODES } from "../../common/constants";
+import School from "../../models/school";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -19,6 +21,30 @@ export class ApiHandler implements ServiceApi {
   private s: ServiceApi;
 
   private constructor() {}
+  public async getSchoolsForUser(user: User): Promise<school[]> {
+    return await this.s.getSchoolsForUser(user);
+  }
+  public async isUserTeacher(user: User): Promise<boolean> {
+    return await this.s.isUserTeacher(user);
+  }
+  public async getClassesForSchool(
+    school: school,
+    user: User
+  ): Promise<Class[]> {
+    return await this.s.getClassesForSchool(school, user);
+  }
+  public async getStudentsForClass(classId: string): Promise<User[]> {
+    return await this.s.getStudentsForClass(classId);
+  }
+  set currentMode(value: MODES) {
+    this.s.currentMode = value;
+  }
+  get currentMode(): MODES {
+    return this.s.currentMode;
+  }
+  public async deleteAllUserData(): Promise<void> {
+    return await this.s.deleteAllUserData();
+  }
 
   public async getAllCourses(): Promise<Course[]> {
     return await this.s.getAllCourses();
@@ -123,6 +149,9 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getCoursesForParentsStudent(student);
   }
 
+  public async getCoursesForClassStudent(currClass: Class): Promise<Course[]> {
+    return await this.s.getCoursesForClassStudent(currClass);
+  }
   public async getLesson(id: string): Promise<Lesson | undefined> {
     return await this.s.getLesson(id);
   }
@@ -160,17 +189,27 @@ export class ApiHandler implements ServiceApi {
   updateMusicFlag(user: User, value: boolean) {
     return this.s.updateMusicFlag(user, value);
   }
-
-  updateLanguage(user: User, value: string) {
-    return this.s.updateLanguage(user, value);
-  }
-
   public get currentStudent(): User | undefined {
     return this.s.currentStudent;
   }
 
   public set currentStudent(value: User | undefined) {
     this.s.currentStudent = value;
+  }
+  public get currentClass(): Class | undefined {
+    return this.s.currentClass;
+  }
+  public set currentClass(value: Class | undefined) {
+    this.s.currentClass = value;
+  }
+  public get currentSchool(): School | undefined {
+    return this.s.currentSchool;
+  }
+  public set currentSchool(value: School | undefined) {
+    this.s.currentSchool = value;
+  }
+  updateLanguage(user: User, value: string) {
+    return this.s.updateLanguage(user, value);
   }
 
   public async createProfile(

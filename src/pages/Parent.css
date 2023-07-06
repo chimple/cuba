@@ -7,6 +7,7 @@
     justify-content: space-around; */
   align-items: center;
 }
+
 /* #ParentHeader{
   margin: var(--margin);
   margin-bottom: 0;
@@ -27,8 +28,8 @@
 #parent-page-setting {
   /* background-color: white; */
   display: flex;
-  margin: 6% 5% 0% 5%;
-  justify-content: space-evenly;
+  margin: 6% 19% 0% 19%;
+  justify-content: space-between;
   align-items: center;
   font-size: var(--text-size);
   color: black;
@@ -63,56 +64,67 @@
 }
 
 #parent-page-help {
-  /* display: flex; */
-  text-align: center;
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  height: 81vh;
+  row-gap: 0.5vh;
 }
 
 #parent-page-help-title {
   font-weight: bolder;
   text-align: center;
-  font-size: 5vh;
-  margin: 2% 0%;
+  font-size: var(--text-size);
+  font-family: "Balooregular";
+  color: #182a4f;
+  margin: 1% 0% 0.5% 0%;
+}
+
+#parent-page-help-title-link {
+  display: flex;
+  flex-direction: column;
+  row-gap: clamp(0vh, 4vh, 12vh);
+  align-items: center;
+  width: 80vw;
 }
 
 #parent-page-help-title-e1 {
   display: flex;
   margin: 0.5%;
-  justify-content: space-evenly;
+  justify-content: space-between;
   align-items: center;
+  padding-top: 2vh;
+  width: 100%;
 }
 
 #parent-page-help-title-e2 {
-  background-color: white;
-  margin: 1% 25%;
-  padding: 1%;
-  text-align: center;
   font-weight: bolder;
-  width: 50vw;
-  /* height: auto; */
-  height: 51vh;
-  border-radius: 3vh;
-  overflow: hidden;
+  color: black;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: white;
+  width: 60%;
+  border-radius: 5vh;
+  height: 60%;
 }
 
 #parent-page-help-title-e2-video {
-  width: 85%;
-  /* height: 90%; */
-  /* height: 40vh; */
+  height: auto;
 }
 
 #parent-page-help-title-e2-video-youtude {
-  width: 43vw;
-  height: 40vh;
-  margin-left: 7.5%;
+  width: 100%;
+  height: 32vh;
 }
 
 #parent-page-help-title-e3 {
   display: flex;
-  margin: 1% 11% 2% 12%;
   justify-content: space-evenly;
   align-items: center;
-  border-radius: 2vh;
+  border-radius: var(--border-radius);
   background-color: white;
+  width: 100%;
 }
 
 #parent-page-help-share-button {
@@ -120,13 +132,13 @@
   color: black;
   border-radius: var(--border-radius);
   display: flex;
-  /* padding: 0% 5% 0% 5%; */
   justify-content: space-between;
   align-items: center;
-  width: 18vw;
-  /* height: 15%; */
+  width: 20vw;
   padding: 0.5% 1%;
   font-size: var(--text-size);
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 #parent-page-help-share-button-e3 {
@@ -141,22 +153,49 @@
   /* height: 15%; */
   padding: 0.5% 1%;
   font-size: var(--text-size);
-  margin: 0.5vh;
+  /* margin: 0.5vh; */
+  gap: 2vw;
 }
+
 #parent-logout {
   text-align: -webkit-center;
   margin-top: 10vh;
 }
 
+#parent-delete {
+  text-align: -webkit-center;
+  margin-top: 10vh;
+}
+
 #parent-page-tab-bar {
-  /* display: flex;
-    margin: 6% 5% 0% 5%;
-    justify-content: space-evenly;
-    align-items: center; */
-  margin-right: 4vh;
+  margin-right: 2vh;
   font-size: var(--text-size);
   font-weight: bold;
-  width: 15vw;
+  width: 19vw;
   font-family: "BalooRegular";
+  justify-content: space-evenly;
+  white-space: nowrap;
+}
+
+.back-button-in-parent {
+  position: absolute;
+  margin: var(--margin);
+  margin-right: 0;
   /* color: black; */
+}
+
+#logout-delete-button {
+  position: relative;
+  display: flex;
+  justify-content: space-around;
+  top: 17vh;
+}
+#parent-page-help-title-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+#help {
+  padding: 1vh;
 }

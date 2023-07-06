@@ -1,10 +1,10 @@
-import { Http } from "@capacitor-community/http";
-import { Capacitor, registerPlugin } from "@capacitor/core";
+import { Capacitor, CapacitorHttp, registerPlugin } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
 import {
+  CURRENT_STUDENT,
   BUNDLE_URL,
   COURSES,
   CURRENT_LESSON_LEVEL,
@@ -12,6 +12,8 @@ import {
   FCM_TOKENS,
   LANG,
   LANGUAGE,
+  LAST_PERMISSION_CHECKED,
+  LAST_UPDATE_CHECKED,
   PAGES,
   PortPlugin,
   PRE_QUIZ,
@@ -27,12 +29,21 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
 import { FirebaseAnalytics } from "@capacitor-firebase/analytics";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
-import { DocumentReference } from "firebase/firestore";
+import {
+  DocumentReference,
+  doc,
+  getFirestore,
+  enableNetwork,
+  disableNetwork,
+} from "firebase/firestore";
+import { Keyboard } from "@capacitor/keyboard";
 import {
   AppUpdate,
   AppUpdateAvailability,
   AppUpdateResultCode,
 } from "@capawesome/capacitor-app-update";
+import { LocalNotifications } from "@capacitor/local-notifications";
+import { RateApp } from "capacitor-rate-app";
 
 declare global {
   interface Window {
@@ -40,9 +51,46 @@ declare global {
     _CCSettings: any;
   }
 }
-
 export class Util {
   public static port: PortPlugin;
+
+  public static getCurrentStudent(): User | undefined {
+    const api = ServiceConfig.getI().apiHandler;
+    if (!!api.currentStudent) return api.currentStudent;
+    const temp = localStorage.getItem(CURRENT_STUDENT);
+
+    if (!temp) return;
+    const currentStudent = JSON.parse(temp) as User;
+    function getRef(ref): DocumentReference {
+      const db = getFirestore();
+      const newCourseRef = doc(
+        db,
+        ref["_key"].path.segments.at(-2),
+        ref["_key"].path.segments.at(-1)
+      );
+      return newCourseRef;
+    }
+
+    function convertDoc(refs: any[]): DocumentReference[] {
+      const data: DocumentReference[] = [];
+      for (let ref of refs) {
+        const newCourseRef = getRef(ref);
+
+        data.push(newCourseRef);
+      }
+      return data;
+    }
+    currentStudent.courses = convertDoc(currentStudent.courses);
+    currentStudent.users = convertDoc(currentStudent.users);
+    if (!!currentStudent.grade)
+      currentStudent.grade = getRef(currentStudent.grade);
+    if (!!currentStudent.language)
+      currentStudent.language = getRef(currentStudent.language);
+    if (!!currentStudent.board)
+      currentStudent.board = getRef(currentStudent.board);
+    api.currentStudent = currentStudent;
+    return currentStudent;
+  }
 
   public static getGUIDRef(map: any): GUIDRef {
     return { href: map?.href, sourcedId: map?.sourcedId, type: map?.type };
@@ -98,7 +146,8 @@ export class Util {
 
         console.log("fs", fs);
         const url = BUNDLE_URL + lessonId + ".zip";
-        const zip = await Http.get({ url: url, responseType: "blob" });
+        const zip = await CapacitorHttp.get({ url: url, responseType: "blob" });
+        if (!zip.data || zip.status !== 200) return false;
         if (zip instanceof Object) {
           console.log("unzipping ");
           const buffer = Uint8Array.from(atob(zip.data), (c) =>
@@ -123,10 +172,9 @@ export class Util {
 
           console.log("un  zip done");
         }
-
         console.log("zip ", zip);
       } catch (error) {
-        console.log("errpor", error);
+        console.log("error", error);
         return false;
       }
     }
@@ -339,13 +387,34 @@ export class Util {
       window.location.reload();
     }
   };
-
   public static setCurrentStudent = async (
     student: User,
     languageCode: string | undefined = undefined
   ) => {
     const api = ServiceConfig.getI().apiHandler;
     api.currentStudent = student;
+
+    localStorage.setItem(
+      CURRENT_STUDENT,
+      JSON.stringify({
+        age: student.age ?? null,
+        avatar: student.avatar ?? null,
+        board: student.board ?? null,
+        courses: student.courses,
+        createdAt: student.createdAt,
+        dateLastModified: student.dateLastModified,
+        gender: student.gender ?? null,
+        grade: student.grade ?? null,
+        image: student.image ?? null,
+        language: student.language ?? null,
+        name: student.name,
+        role: student.role,
+        uid: student.uid,
+        username: student.username,
+        users: student.users,
+        docId: student.docId,
+      })
+    );
     if (!languageCode && !!student.language?.id) {
       const langDoc = await api.getLanguageWithId(student.language.id);
       if (langDoc) {
@@ -412,6 +481,7 @@ export class Util {
   public static async subscribeToClassTopicForAllStudents(
     currentUser: User
   ): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
     const students: DocumentReference[] = currentUser.users;
     if (!students || students.length < 1) return;
     const api = ServiceConfig.getI().apiHandler;
@@ -464,9 +534,35 @@ export class Util {
     return result.token;
   }
 
+  public static isTextFieldFocus(scollToRef, setIsInputFocus) {
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.addListener("keyboardWillShow", (info) => {
+        console.log("info", JSON.stringify(info));
+        setIsInputFocus(true);
+
+        setTimeout(() => {
+          scollToRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+            inline: "nearest",
+          });
+        }, 50);
+      });
+      Keyboard.addListener("keyboardWillHide", () => {
+        setIsInputFocus(false);
+      });
+    }
+  }
+
   public static async startFlexibleUpdate(): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
     try {
+      const canCheckUpdate = Util.canCheckUpdate(LAST_UPDATE_CHECKED);
+      console.log(
+        "🚀 ~ file: util.ts:473 ~ startFlexibleUpdate ~ canCheckUpdate:",
+        canCheckUpdate
+      );
+      if (!canCheckUpdate) return;
       const result = await AppUpdate.getAppUpdateInfo();
       console.log(
         "🚀 ~ file: util.ts:471 ~ startFlexibleUpdate ~ result:",
@@ -502,23 +598,101 @@ export class Util {
     }
   }
 
+  public static notificationsCount = 0;
+
   public static async checkNotificationPermissions() {
     if (!Capacitor.isNativePlatform()) return;
     try {
+      await FirebaseMessaging.addListener(
+        "notificationReceived",
+        async ({ notification }) => {
+          console.log("notificationReceived", JSON.stringify(notification));
+          try {
+            const res = await LocalNotifications.schedule({
+              notifications: [
+                {
+                  id: Util.notificationsCount++,
+                  body: notification.body ?? "",
+                  title: notification.title ?? "Chimple",
+                  attachments: !!notification.image
+                    ? [{ id: notification.image, url: notification.image }]
+                    : undefined,
+                  extra: notification.data,
+                },
+              ],
+            });
+            console.log(
+              "🚀 ~ file: util.ts:622 ~ res:",
+              JSON.stringify(res.notifications)
+            );
+          } catch (error) {
+            console.log(
+              "🚀 ~ file: util.ts:630 ~ error:",
+              JSON.stringify(error)
+            );
+          }
+        }
+      );
+      const canCheckPermission = Util.canCheckUpdate(LAST_PERMISSION_CHECKED);
+      if (!canCheckPermission) return;
       const result = await FirebaseMessaging.checkPermissions();
-      console.log(
-        "🚀 ~ file: util.ts:509 ~ checkNotificationPermissions ~ result:",
-        JSON.stringify(result)
-      );
-      // if (result.receive === "granted") return;
-      const permissionStatus = await FirebaseMessaging.requestPermissions();
-      console.log(
-        "🚀 ~ file: util.ts:512 ~ checkNotificationPermissions ~ permissionStatus:",
-        JSON.stringify(permissionStatus)
-      );
+      if (result.receive === "granted") return;
+      await FirebaseMessaging.requestPermissions();
     } catch (error) {
       console.log(
         "🚀 ~ file: util.ts:514 ~ checkNotificationPermissions ~ error:",
+        JSON.stringify(error)
+      );
+    }
+  }
+
+  public static canCheckUpdate(updateFor: string) {
+    const tempLastUpdateChecked = localStorage.getItem(updateFor);
+    const now = new Date();
+    let lastUpdateChecked: Date | undefined;
+    if (!!tempLastUpdateChecked) {
+      lastUpdateChecked = new Date(tempLastUpdateChecked);
+    }
+    if (!lastUpdateChecked) {
+      localStorage.setItem(updateFor, now.toString());
+      return true;
+    }
+    const lessThanOneHourAgo = (date) => {
+      const now: any = new Date();
+      const ONE_HOUR = 60 * 60 * 1000; /* ms */
+      const res = now - date < ONE_HOUR;
+      return res;
+    };
+    const _canCheckUpdate = !lessThanOneHourAgo(lastUpdateChecked);
+    if (_canCheckUpdate) {
+      localStorage.setItem(updateFor, now.toString());
+    }
+    return _canCheckUpdate;
+  }
+
+  public static listenToNetwork() {
+    const _db = getFirestore();
+    if (navigator.onLine) {
+      enableNetwork(_db);
+    } else {
+      disableNetwork(_db);
+    }
+    window.addEventListener("online", (e) => {
+      console.log("🚀 ~ file: util.ts:677 ~ window.addEventListener ~ e:", e);
+      enableNetwork(_db);
+    });
+    window.addEventListener("offline", (e) => {
+      console.log("🚀 ~ file: util.ts:681 ~ window.addEventListener ~ e:", e);
+      disableNetwork(_db);
+    });
+  }
+
+  public static async showInAppReview() {
+    try {
+      await RateApp.requestReview();
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: util.ts:694 ~ showInAppReview ~ error:",
         JSON.stringify(error)
       );
     }

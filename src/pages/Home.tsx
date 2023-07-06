@@ -13,6 +13,10 @@ import {
   SELECTED_GRADE,
   HeaderIconConfig,
   HEADER_ICON_CONFIGS,
+  CURRENT_STUDENT,
+  CURRENT_CLASS,
+  MODES,
+  CURRENT_MODE,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -26,7 +30,6 @@ import "@splidejs/react-splide/css";
 // or only core styles
 import "@splidejs/react-splide/css/core";
 import { Util } from "../utility/util";
-import Auth from "../models/auth";
 import { OneRosterApi } from "../services/api/OneRosterApi";
 import { ServiceConfig } from "../services/ServiceConfig";
 import RectangularIconButton from "../components/parent/RectangularIconButton";
@@ -37,11 +40,14 @@ import Lesson from "../models/lesson";
 import { FirebaseApi } from "../services/api/FirebaseApi";
 import { DocumentReference } from "firebase/firestore";
 import LeaderBoardButton from "./LeaderBoardButton";
+import Class from "../models/class";
+import { schoolUtil } from "../utility/schoolUtil";
 
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentStudent, setCurrentStudent] = useState<User>();
+  const [currentClass, setCurrentClass] = useState<Class>();
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: StudentLessonResult;
   }>();
@@ -67,17 +73,23 @@ const Home: FC = () => {
 
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
-    const currentStudent = await api.currentStudent;
+    const currentStudent = await Util.getCurrentStudent();
+
     if (!currentStudent) {
-      history.replace(PAGES.DISPLAY_STUDENT);
+      // history.replace(PAGES.DISPLAY_STUDENT);
+      history.replace(PAGES.SELECT_MODE);
       return;
     }
     setCurrentStudent(currentStudent);
+    // const currClass = localStorage.getItem(CURRENT_CLASS);
+    const currClass = schoolUtil.getCurrentClass();
+    // if (!!currClass) setCurrentClass(JSON.parse(currClass));
+    if (!!currClass) setCurrentClass(currClass);
     // const apiInstance = OneRosterApi.getInstance();
     if (subjectCode === HOMEHEADERLIST.RECOMMENDATION) {
       // let r = api.getStudentResultInMap(currentStudent.docId);
       // console.log("r = api.getStudentResultInMap(currentStudent.docId);", r);
-      getRecommendationLessons(currentStudent).then(() => {
+      getRecommendationLessons(currentStudent, currClass).then(() => {
         console.log("Final RECOMMENDATION List ", reqLes);
         setDataCourse(reqLes);
       });
@@ -140,7 +152,10 @@ const Home: FC = () => {
   };
 
   let reqLes: Lesson[] = [];
-  async function getRecommendationLessons(currentStudent: User) {
+  async function getRecommendationLessons(
+    currentStudent: User,
+    currClass: Class | undefined
+  ) {
     setIsLoading(true);
     let tempResultLessonMap:
       | { [lessonDocId: string]: StudentLessonResult }
@@ -171,15 +186,18 @@ const Home: FC = () => {
       lesList.forEach((res) => (tempLesMap[res[0]] = res[1]));
       return tempLesMap;
     };
+
+    const currMode = await schoolUtil.getCurrMode();
+    console.log(currMode);
     let sortLessonResultMap:
       | {
           [lessonDocId: string]: StudentLessonResult;
         }
       | undefined;
-    api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
-      console.log("tempResultLessonMap = res;", res);
-      tempResultLessonMap = res;
-      setLessonResultMap(res);
+    api.getStudentResult(currentStudent.docId).then(async (res) => {
+      console.log("tempResultLessonMap = res;", JSON.stringify(res));
+      tempResultLessonMap = res?.lessons;
+      setLessonResultMap(res?.lessons);
       if (tempResultLessonMap) {
         console.log("tempResultLessonMap", tempResultLessonMap);
         sortLessonResultMap = sortLessonResultByDate(tempResultLessonMap);
@@ -187,9 +205,9 @@ const Home: FC = () => {
       }
     });
 
-    const courses: Course[] = await api.getCoursesForParentsStudent(
-      currentStudent
-    );
+    const courses: Course[] = await (currMode === MODES.SCHOOL && !!currClass
+      ? api.getCoursesForClassStudent(currClass)
+      : api.getCoursesForParentsStudent(currentStudent));
     setCourses(courses);
 
     for (const tempCourse of courses) {
@@ -318,14 +336,12 @@ const Home: FC = () => {
       lessons: lessons,
     };
   }
-
   function onHeaderIconClick(selectedHeader: any) {
     var headerIconList: HeaderIconConfig[] = [];
     HEADER_ICON_CONFIGS.forEach((element) => {
-      // console.log("elements", element);
+      //  console.log("elements", element);
       headerIconList.push(element);
     });
-
     setCurrentHeader(selectedHeader);
     localStorage.setItem(PREVIOUS_SELECTED_COURSE(), selectedHeader);
     HEADER_ICON_CONFIGS.get(selectedHeader);
@@ -336,7 +352,7 @@ const Home: FC = () => {
       case HOMEHEADERLIST.RECOMMENDATION:
         // setCourse(HOMEHEADERLIST.RECOMMENDATION);
         if (currentStudent) {
-          getRecommendationLessons(currentStudent).then(() => {
+          getRecommendationLessons(currentStudent, currentClass).then(() => {
             console.log("Final RECOMMENDATION List ", reqLes);
             setDataCourse(reqLes);
           });

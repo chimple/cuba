@@ -1,7 +1,7 @@
 import { DocumentReference } from "firebase/firestore";
 import User from "../../models/user";
 import { ServiceAuth } from "./ServiceAuth";
-import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
+// import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 import { ConfirmationResult } from "@firebase/auth";
 
 export class OneRosterAuth implements ServiceAuth {
@@ -34,13 +34,13 @@ export class OneRosterAuth implements ServiceAuth {
   phoneNumberSignIn(
     phoneNumber: any,
     recaptchaVerifier: any
-  ): Promise<ConfirmationResult | SignInWithPhoneNumberResult | undefined> {
+  ): Promise<ConfirmationResult | undefined> {
     throw new Error("Method not implemented.");
   }
   proceedWithVerificationCode(
     verificationId: any,
     verificationCode: any
-  ): Promise<boolean> {
+  ): Promise<{ user: any; isUserExist: boolean } | undefined> {
     throw new Error("Method not implemented.");
   }
 

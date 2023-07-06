@@ -5,7 +5,7 @@ import Lesson from "../models/lesson";
 import { Chapter, StudentLessonResult } from "../common/courseConstants";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { PAGES } from "../common/constants";
+import { CURRENT_CLASS, CURRENT_MODE, MODES, PAGES } from "../common/constants";
 import { IonIcon, IonPage } from "@ionic/react";
 import { chevronBackCircleSharp } from "ionicons/icons";
 import "./DisplaySubjects.css";
@@ -16,6 +16,9 @@ import SelectChapter from "../components/displaySubjects/SelectChapter";
 import LessonSlider from "../components/LessonSlider";
 import Grade from "../models/grade";
 import BackButton from "../components/common/BackButton";
+import { Util } from "../utility/util";
+import Class from "../models/class";
+import { schoolUtil } from "../utility/schoolUtil";
 
 const localData: any = {};
 const DisplaySubjects: FC<{}> = () => {
@@ -29,6 +32,7 @@ const DisplaySubjects: FC<{}> = () => {
   const [courses, setCourses] = useState<Course[]>();
   const [currentCourse, setCurrentCourse] = useState<Course>();
   const [currentChapter, setCurrentChapter] = useState<Chapter>();
+  const [currentClass, setCurrentClass] = useState<Class>();
   const [lessons, setLessons] = useState<Lesson[]>();
   const [gradesMap, setGradesMap] = useState<{
     grades: Grade[];
@@ -65,9 +69,9 @@ const DisplaySubjects: FC<{}> = () => {
       setCourses(localData.courses);
       setLessons(localData.lessons);
       setCurrentGrade(localData.currentGrade);
-      setGradesMap(localData.gradesMap);
       setCurrentCourse(localData.currentCourse);
       setCurrentChapter(localData.currentChapter);
+      setLessonResultMap(localData.lessonResultMap);
       setStage(STAGES.LESSONS);
       setIsLoading(false);
     } else {
@@ -78,16 +82,26 @@ const DisplaySubjects: FC<{}> = () => {
 
   const getCourses = async (): Promise<Course[]> => {
     setIsLoading(true);
-    const currentStudent = api.currentStudent;
+    const currentStudent = await Util.getCurrentStudent();
     if (!currentStudent) {
-      history.replace(PAGES.DISPLAY_STUDENT);
+      // history.replace(PAGES.DISPLAY_STUDENT);
+      history.replace(PAGES.SELECT_MODE);
       return [];
     }
+    // const currClass = localStorage.getItem(CURRENT_CLASS);
+    const currClass = schoolUtil.getCurrentClass();
+    if (!!currClass) setCurrentClass(currClass);
     api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
       console.log("tempResultLessonMap = res;", res);
+      localData.lessonResultMap=res;
       setLessonResultMap(res);
     });
-    const courses = await api.getCoursesForParentsStudent(currentStudent);
+    function getCurrentMode() {}
+    const currMode = await schoolUtil.getCurrMode();
+
+    const courses = await (currMode === MODES.SCHOOL && !!currClass
+      ? api.getCoursesForClassStudent(currClass)
+      : api.getCoursesForParentsStudent(currentStudent));
     localData.courses = courses;
     setCourses(courses);
     setIsLoading(false);

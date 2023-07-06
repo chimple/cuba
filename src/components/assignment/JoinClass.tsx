@@ -1,10 +1,12 @@
 import { t } from "i18next";
 import "./JoinClass.css";
-import { FC, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import Loading from "../Loading";
 import DialogBoxButtons from "../parent/DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
+import { Capacitor } from "@capacitor/core";
+import { Keyboard } from "@capacitor/keyboard";
 const JoinClass: FC<{
   onClassJoin: () => void;
 }> = ({ onClassJoin }) => {
@@ -14,6 +16,9 @@ const JoinClass: FC<{
   const [codeResult, setCodeResult] = useState();
   const [error, setError] = useState("");
   const [schoolName, setSchoolName] = useState<string>();
+  const [isInputFocus, setIsInputFocus] = useState(false);
+  const scollToRef = useRef<null | HTMLDivElement>(null);
+
   const api = ServiceConfig.getI().apiHandler;
 
   const isNextButtonEnabled = () => {
@@ -35,7 +40,11 @@ const JoinClass: FC<{
       setShowDialogBox(true);
     } catch (error) {
       console.log("🚀 ~ file: JoinClass.tsx:32 ~ getClassData ~ error:", error);
-      if (error instanceof Object) setError(error.toString());
+      if (error instanceof Object){ 
+        let eMsg:string ="FirebaseError: Invalid inviteCode"===error.toString()?"Invalid Code. Please contact your teacher":error.toString();
+        setError(eMsg);
+      } 
+     
     }
     setLoading(false);
   };
@@ -56,14 +65,18 @@ const JoinClass: FC<{
       console.log("🚀 ~ file: JoinClass.tsx:48 ~ onJoin ~ error:", error);
       if (error instanceof Object) setError(error.toString());
     }
+
     setLoading(false);
   };
+  useEffect(() => {
+    Util.isTextFieldFocus(scollToRef, setIsInputFocus)
+  }, []);
 
   return (
     <div className="join-class-main-header">
       <div className="join-class-header">
         <div className="join-class-title">
-          {t("Enter the class code to join the class")}
+          {t("Enter the code your teacher has given to join the class")}
         </div>
         <input
           onChange={(evt) => {
@@ -94,6 +107,7 @@ const JoinClass: FC<{
         >
           {t("Okay")}
         </button>
+        {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
       </div>
       <Loading isLoading={loading} />
       <DialogBoxButtons

@@ -43,29 +43,29 @@ const LessonCard: React.FC<{
   lessonData,
   startIndex,
 }) => {
-  const history = useHistory();
-  const [showImage, setShowImage] = useState(true);
-  const [subject, setSubject] = useState<Subject>();
+    const history = useHistory();
+    const [showImage, setShowImage] = useState(true);
+    const [subject, setSubject] = useState<Subject>();
 
-  const hideImg = (event: any) => {
-    setShowImage(false);
-  };
-  // const subjectCode = lesson.chapter.course.id;
-  useEffect(() => {
-    if (showSubjectName) getSubject();
-  }, [lesson]);
+    const hideImg = (event: any) => {
+      setShowImage(false);
+    };
+    // const subjectCode = lesson.chapter.course.id;
+    useEffect(() => {
+      if (showSubjectName) getSubject();
+    }, [lesson]);
 
-  const getSubject = async () => {
-    const subjectId = lesson?.subject?.toString()?.split("/")?.at(-1);
-    if (!subjectId) return;
-    let subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
-    if (!subject) {
-      const subjectId = lesson?.subject.path?.toString()?.split("/")?.at(-1);
+    const getSubject = async () => {
+      const subjectId = lesson?.subject?.toString()?.split("/")?.at(-1);
       if (!subjectId) return;
-      subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
-    }
-    setSubject(subject);
-  };
+      let subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
+      if (!subject) {
+        const subjectId = lesson?.subject.path?.toString()?.split("/")?.at(-1);
+        if (!subjectId) return;
+        subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
+      }
+      setSubject(subject);
+    };
 
   // const lessonCardColor =
   //   LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
@@ -87,8 +87,15 @@ const LessonCard: React.FC<{
       }}
     >
       <div
+    const lessonCardColor =
+      LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
+
+    return (
+      <IonCard
+        id="lesson-card"
         style={{
-          display: "grid",
+          width: width,
+          height: "auto",
         }}
         onClick={() => {
           if (isUnlocked) {
@@ -129,79 +136,66 @@ const LessonCard: React.FC<{
       >
         <div
           style={{
-            background: lessonCardColor,
-            borderRadius: "12%",
-            width: width,
-            height: height,
             display: "grid",
-            justifyContent: "center",
-            alignItems: "center",
-            gridArea: "1/1",
           }}
-          color={lessonCardColor}
         >
-          {showSubjectName && subject?.title ? (
-            <div id="lesson-card-subject-name">
-              <p>
-                {subject?.title}
-                {/* {subject.title==="English"?subject.title:t(subject.title)} */}
-              </p>
-            </div>
-          ) : null}
-          <img
-            className="pattern"
+          <div
             style={{
+              background: lessonCardColor,
+              borderRadius: "7vh",
               width: width,
               height: height,
-              borderRadius: "12%",
               display: "grid",
               justifyContent: "center",
               alignItems: "center",
-              gridArea: "1 / 1 ",
+              gridArea: "1/1",
             }}
-            src={"courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"}
-            alt={"courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"}
-          ></img>
-
-          <div id="lesson-card-image">
-            {showImage ? (
-              <img
-                id="lesson-card-image"
-                loading="lazy"
-                alt={
-                  "courses/" +
-                  lesson.cocosSubjectCode +
-                  "/icons/" +
-                  lesson.id +
-                  ".png"
-                }
-                src={
-                  "courses/" +
-                  lesson.cocosSubjectCode +
-                  "/icons/" +
-                  lesson.id +
-                  ".png"
-                }
-                onError={hideImg}
-              />
-            ) : (
-              <div /> // we can show Default LessonCard text or image
-            )}
-
-            {!isUnlocked ? (
-              <div id="lesson-card-status-icon">
-                <img
-                  id="lesson-card-status-icon1"
-                  loading="lazy"
-                  src="assets/icons/Lock_icon.svg"
-                  alt="assets/icons/Lock_icon.svg"
-                />
+            color={lessonCardColor}
+          >
+            {showSubjectName && subject?.title ? (
+              <div id="lesson-card-subject-name">
+                <p>
+                  {subject?.title}
+                  {/* {subject.title==="English"?subject.title:t(subject.title)} */}
+                </p>
               </div>
-            ) : isPlayed ? (
-              showScoreCard ? (
-                <div id="lesson-card-score">
-                  <ScoreCard score={score}></ScoreCard>
-                </div>
+            ) : null}
+            <img
+              className="pattern"
+              style={{
+                width: width,
+                height: height,
+                borderRadius: "12%",
+                display: "grid",
+                justifyContent: "center",
+                alignItems: "center",
+                gridArea: "1 / 1 ",
+              }}
+              src={"courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"}
+              alt={"courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"}
+            ></img>
+
+            <div id="lesson-card-image">
+              {showImage ? (
+                <img
+                  id="lesson-card-image"
+                  loading="lazy"
+                  alt={
+                    "courses/" +
+                    lesson.cocosSubjectCode +
+                    "/icons/" +
+                    lesson.id +
+                    ".png"
+                  }
+                  src={
+                    "courses/" +
+                    lesson.cocosSubjectCode +
+                    "/icons/" +
+                    lesson.id +
+                    ".png"
+                  }
+                  onError={hideImg}
+                />
               ) : (
                 <></>
               )
@@ -218,5 +212,35 @@ const LessonCard: React.FC<{
     </IonCard>
   );
 };
+                <div /> // we can show Default LessonCard text or image
+              )}
+
+              {!isUnlocked ? (
+                <div id="lesson-card-status-icon">
+                  <img
+                    id="lesson-card-status-icon1"
+                    loading="lazy"
+                    src="assets/icons/Lock_icon.svg"
+                    alt="assets/icons/Lock_icon.svg"
+                  />
+                </div>
+              ) : isPlayed ? (
+                showScoreCard ? (
+                  <div id="lesson-card-score">
+                    <ScoreCard score={score}></ScoreCard>
+                  </div>
+                ) : (
+                  <></>
+                )
+              ) : (
+                <div />
+              )}
+            </div>
+          </div>
+        </div>
+        {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
+      </IonCard>
+    );
+  };
 
 export default LessonCard;

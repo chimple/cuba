@@ -13,7 +13,7 @@ import { Util } from "../utility/util";
 import Lesson from "../models/lesson";
 import {
   ASSIGNMENT_COMPLETED_IDS,
-  lessonEndData,
+  CocosLessonData,
 } from "../common/courseConstants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
@@ -59,6 +59,9 @@ const CocosGame: React.FC = () => {
   };
 
   const gameExit = (e: any) => {
+    const data = e.detail as CocosLessonData;
+    console.log("GameExit LessonData ", e.detail);
+
     killGame(e);
     setShowDialogBox(false);
     push();

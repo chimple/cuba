@@ -7,8 +7,9 @@ ion-select {
   border-radius: 30px;
   height: min(5vh, 40px);
   min-height: 35px;
-  
+
 }
+
 ion-select::part(text) {
   color: var(--text-color);
   padding-right: 20px;
@@ -25,17 +26,42 @@ ion-popover {
   margin: 0;
   display: flex;
   flex-direction: row;
-  justify-content:space-evenly;
+  justify-content: space-evenly;
   align-items: center;
-  height: min(80vh, 15vh);
+  height: min(80vh, 30vh);
   align-content: flex-start;
+  color: black;
 }
+
+#drop-down-head {
+  margin-left: 2vh;
+}
+
+#drop-down-board {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+}
+
+#drop-down-grade {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+#drop-down-Medium-of-instruction {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 ion-list {
   outline-style: solid;
   outline-width: 0.1px;
   outline-color: black;
-  border-radius: var(--border-radius); 
+  border-radius: var(--border-radius);
   padding: 0;
-  
-  
+
+
 }

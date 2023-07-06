@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import GenderAndAge from "../components/editStudent/GenderAndAge";
 import SelectAvatar from "../components/editStudent/SelectAvatar";
 import GradeBoardAndLangDropdown from "../components/editStudent/GradeBoardAndLangDropdown";
-import { GENDER, PAGES } from "../common/constants";
+import { CURRENT_STUDENT, GENDER, PAGES } from "../common/constants";
 import { chevronForward } from "ionicons/icons";
 import Curriculum from "../models/curriculum";
 import Grade from "../models/grade";
@@ -19,13 +19,14 @@ import { Util } from "../utility/util";
 import NextButton from "../components/common/NextButton";
 import { Capacitor } from "@capacitor/core";
 import { Keyboard } from "@capacitor/keyboard";
+import BackButton from "../components/common/BackButton";
 
 const EditStudent = () => {
   const history = useHistory();
   const location = useLocation();
   const api = ServiceConfig.getI().apiHandler;
-  const isEdit =
-    location.pathname === PAGES.EDIT_STUDENT && !!api.currentStudent;
+  const currentStudent = Util.getCurrentStudent();
+  const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
 
   enum STAGES {
     NAME,
@@ -35,32 +36,33 @@ const EditStudent = () => {
   }
   const [stage, setStage] = useState(STAGES.NAME);
   const [studentName, setStudentName] = useState(
-    isEdit ? api.currentStudent?.name : ""
+    isEdit ? currentStudent?.name : ""
   );
   const [gender, setGender] = useState<GENDER | undefined>(
-    isEdit && api.currentStudent?.gender
-      ? (api.currentStudent?.gender as GENDER)
+    isEdit && currentStudent?.gender
+      ? (currentStudent?.gender as GENDER)
       : undefined
   );
   const [age, setAge] = useState<number | undefined>(
-    isEdit ? api.currentStudent?.age : undefined
+    isEdit ? currentStudent?.age : undefined
   );
   const [avatar, setAvatar] = useState<string | undefined>(
-    isEdit ? api.currentStudent?.avatar : undefined
+    isEdit ? currentStudent?.avatar : undefined
   );
   const [board, setBoard] = useState<string | undefined>(
-    isEdit ? api.currentStudent?.board?.id : undefined
+    isEdit ? currentStudent?.board?.id : undefined
   );
   const [grade, setGrade] = useState<string | undefined>(
-    isEdit ? api.currentStudent?.grade?.id : undefined
+    isEdit ? currentStudent?.grade?.id : undefined
   );
   const [language, setLanguage] = useState<string | undefined>(
-    isEdit ? api.currentStudent?.language?.id : undefined
+    isEdit ? currentStudent?.language?.id : undefined
   );
   const [boards, setBoards] = useState<Curriculum[]>();
   const [grades, setGrades] = useState<Grade[]>();
   const [languages, setLanguages] = useState<Language[]>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
 
   const onNextButton = async () => {
     setIsLoading(true);
@@ -70,7 +72,7 @@ const EditStudent = () => {
     if (stagesLength === newStage) {
       //Creating Profile for the Student
       let student;
-      const currentStudent = api.currentStudent;
+      const currentStudent = await Util.getCurrentStudent();
       if (isEdit && !!currentStudent && !!currentStudent.docId) {
         student = await api.updateStudent(
           currentStudent,
@@ -157,8 +159,17 @@ const EditStudent = () => {
     }
   }, []);
 
+
   return (
     <IonPage id="Edit-student-page">
+      <div id="Edit-student-back-button">
+        <BackButton
+          onClicked={() => {
+            history.replace(PAGES.PROFILE)
+          }} />
+      </div>
+
+
       <div id="next-button">
         <NextButton
           disabled={!isNextButtonEnabled()}
@@ -172,48 +183,86 @@ const EditStudent = () => {
             : ""
         }
       >
-        <div id="common-div">
+        {stage == STAGES.NAME && (
           <ChimpleLogo
             header={t("Welcome to Chimple!")}
-            msg={t("Please create your child profile").toString()}
-          />
-        </div>
+            msg={t("").toString()} />
+
+        )}
+
         {stage === STAGES.NAME && (
+
+
           <StudentNameBox
             studentName={studentName!}
             onValueChange={setStudentName}
-            onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
+            onEnterDown={isNextButtonEnabled() ? onNextButton : () => { }}
           />
         )}
       </div>
       {stage === STAGES.AVATAR && (
-        <div className="avatar-title">{t("Select Child Avatar:")}</div>
+        <><>
+          <div id="Edit-student-back-button">
+            <BackButton
+              onClicked={() => {
+                setStage(STAGES.GENDER_AND_AGE);
+              }} />
+          </div>
+
+          <div id="common-div">
+            <ChimpleLogo
+              header={t("")}
+              msg={t("").toString()} />
+          </div><div className="avatar-title">{t("Choose an avatar for your child:")}</div></></>
       )}
       <div className="content">
         {stage === STAGES.GENDER_AND_AGE && (
-          <GenderAndAge
-            age={age}
-            gender={gender}
-            onAgeChange={setAge}
-            onGenderChange={setGender}
-          />
+          <><div id="Edit-student-back-button">
+            <BackButton
+              onClicked={() => {
+                setStage(STAGES.NAME);
+              }} />
+          </div><><>
+            <div id="common-div">
+              <ChimpleLogo
+                header={t("")}
+                msg={t("").toString()} />
+            </div></>
+              <GenderAndAge
+                age={age}
+                gender={gender}
+                onAgeChange={setAge}
+                onGenderChange={setGender} /></></>
         )}
         {stage === STAGES.AVATAR && (
+
           <SelectAvatar avatar={avatar} onAvatarChange={setAvatar} />
         )}
         {stage === STAGES.GRADE && (
-          <GradeBoardAndLangDropdown
-            boards={boards}
-            grades={grades}
-            languages={languages}
-            onBoardChange={setBoard}
-            onGradeChange={setGrade}
-            onLangChange={setLanguage}
-            currentlySelectedBoard={board}
-            currentlySelectedGrade={grade}
-            currentlySelectedLang={language}
-          />
+          <><>
+            <div id="Edit-student-back-button">
+              <BackButton
+                onClicked={() => {
+                  setStage(STAGES.AVATAR);
+                }} />
+            </div></><><><>
+              <div id="common-div">
+                <ChimpleLogo
+                  header={t("")}
+                  msg={t("Choose your child’s class details").toString()} />
+              </div></>
+              <GradeBoardAndLangDropdown
+                boards={boards}
+                grades={grades}
+                languages={languages}
+                onBoardChange={setBoard}
+                onGradeChange={setGrade}
+                onLangChange={setLanguage}
+                currentlySelectedBoard={board}
+                currentlySelectedGrade={grade}
+                currentlySelectedLang={language} /></></></>
         )}
+
       </div>
       <Loading isLoading={isLoading} />
     </IonPage>

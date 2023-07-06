@@ -4,25 +4,63 @@ import {
   AVATARS,
   HEADER_ICON_CONFIGS,
   HeaderIconConfig,
+  PAGES,
+  MODES,
+  CURRENT_MODE,
 } from "../common/constants";
 import "./HomeHeader.css";
 import HeaderIcon from "./HeaderIcon";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ServiceConfig } from "../services/ServiceConfig";
+import { Util } from "../utility/util";
+import User from "../models/user";
+import { useHistory } from "react-router";
+import { schoolUtil } from "../utility/schoolUtil";
 
 const HomeHeader: React.FC<{
   currentHeader: string;
   onHeaderIconClick: Function;
 }> = ({ currentHeader, onHeaderIconClick }) => {
   const { t } = useTranslation();
-
+  const [currentHeaderIconList, setCurrentHeaderIconList] =
+    useState<HeaderIconConfig[]>();
   var headerIconList: HeaderIconConfig[] = [];
-  HEADER_ICON_CONFIGS.forEach((element) => {
-    // console.log("elements", element);
-    headerIconList.push(element);
-  });
-  const student = ServiceConfig.getI().apiHandler.currentStudent;
 
+  const history = useHistory();
+  const [student, setStudent] = useState<User>();
+  async function init() {
+    const student = await Util.getCurrentStudent();
+    if (!student) {
+      history.replace(PAGES.HOME);
+      return;
+    }
+    const currMode = await schoolUtil.getCurrMode();
+    HEADER_ICON_CONFIGS.forEach((element) => {
+      // console.log("elements", element);
+      
+      console.log(currMode);
+      if (
+        !(
+          currMode === MODES.SCHOOL &&
+          element.headerList === HOMEHEADERLIST.ASSIGNMENT
+        )
+      ) {
+        headerIconList.push(element);
+      }
+    });
+
+    if (!headerIconList) return;
+
+    setCurrentHeaderIconList(headerIconList);
+
+    setStudent(student);
+  }
+
+  useEffect(() => {
+    init();
+  }, []);
+
+  // const student =await Util.getCurrentStudent();
   return (
     <div id="home-header-icons">
       <HeaderIcon
@@ -38,23 +76,23 @@ const HomeHeader: React.FC<{
       ></HeaderIcon>
 
       <div id="home-header-middle-icons">
-        {headerIconList.map((element, index) => {
-          // console.log("Dyanamic Header List ", element);
-          return (
-            <HeaderIcon
-              key={index}
-              headerName={element.displayName}
-              iconSrc={element.iconSrc}
-              currentHeader={currentHeader}
-              headerList={element.headerList}
-              onHeaderIconClick={() => {
-                if (currentHeader != element.headerList) {
-                  onHeaderIconClick(element.headerList);
-                }
-              }}
-            ></HeaderIcon>
-          );
-        })}
+        {!!currentHeaderIconList &&
+          currentHeaderIconList.map((element, index) => {
+            return (
+              <HeaderIcon
+                key={index}
+                headerName={element.displayName}
+                iconSrc={element.iconSrc}
+                currentHeader={currentHeader}
+                headerList={element.headerList}
+                onHeaderIconClick={() => {
+                  if (currentHeader != element.headerList) {
+                    onHeaderIconClick(element.headerList);
+                  }
+                }}
+              ></HeaderIcon>
+            );
+          })}
       </div>
 
       <HeaderIcon

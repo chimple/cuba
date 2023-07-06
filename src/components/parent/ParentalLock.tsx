@@ -1,164 +1,205 @@
-import React, { MouseEventHandler, useEffect } from "react";
-import "./ParentalLock.css";
-import { OverlayEventDetail } from "@ionic/react/dist/types/components/react-component-lib/interfaces";
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
-import { IonButton, IonCol, IonIcon, IonRow } from "@ionic/react";
-import { Util } from "../../utility/util";
-import { t } from "i18next";
-import { NUMBER_NAME, PAGES } from "../../common/constants";
-import { IoCloseCircle } from "react-icons/io5";
-import { chevronForward } from "ionicons/icons";
+import React, { MouseEventHandler, useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router-dom";
+import { PAGES } from "../../common/constants";
+import { Dialog, DialogContent } from "@mui/material";
+import { IoCloseCircle } from "react-icons/io5";
+import { OverlayEventDetail } from "@ionic/react/dist/types/components/react-component-lib/interfaces";
+import { changeLanguage, t } from "i18next";
+import "./ParentalLock.css";
+import { FcLock } from "react-icons/fc";
 
 const ParentalLock: React.FC<{
-  width: string;
-  height: string;
   showDialogBox: boolean;
-  message: string;
   handleClose: (event: CustomEvent<OverlayEventDetail<any>>) => void;
   onHandleClose: MouseEventHandler<SVGElement>;
 }> = ({
-  width,
-  height,
   showDialogBox,
-  message,
   handleClose,
   onHandleClose,
 }) => {
-  useEffect(() => {
-    init();
-  }, []);
-
-  const history = useHistory();
-  // const [open, setOpen] = React.useState(showDialogBox);
-  const [title, setTitle] = React.useState("");
-  const [passCode, setPassCode] = React.useState("");
-  const [userInput, setUserInput] = React.useState("");
-  const [disableUnlockBtn, setDisableUnlockBtn] = React.useState(true);
-  const [unlockColor, setUnlockColor] = React.useState("dark");
-
-  function init() {
-    console.log("showDialogBox", showDialogBox);
-    let code = Util.randomBetween(1, 10);
-    let count = Util.randomBetween(1, 5);
-    let str = t(`Click x1 times on number x2`)
-    .replace(`x1`, count.toString())
-    .replace(`x2`, code.toString());
-    setTitle(str);
-    let tempPasscode = "";
-    let i = 0;
-    while (i++ < count) {
-      tempPasscode += code.toString();
+    enum FourSides {
+      LEFT = "LEFT",
+      RIGHT = "RIGHT",
+      UP = "UP",
+      DOWN = "DOWN",
     }
-    setPassCode(tempPasscode);
-    console.log("passcode", tempPasscode, passCode);
-  }
+    const history = useHistory();
+    const [userDirection, setUserDirection] = useState<FourSides>();
+    const [title, setTitle] = React.useState("");
 
-  const dataContent = [
-    ["1", "2", "3"],
-    ["4", "5", "6"],
-    ["7", "8", "9"],
-  ];
+    useEffect(() => {
+      const randomIndex = Math.floor(Math.random() * Object.keys(FourSides).length);
+      const direction = FourSides[Object.keys(FourSides)[randomIndex]];
+      setUserDirection(direction) //random sides
 
-  return (
-    <div>
-      <Dialog
-        open={showDialogBox}
-        onClose={handleClose}
-        sx={{
-          "& .MuiPaper-root": { borderRadius: "6vh" },
-        }}
-      >
-        <DialogContent
-          style={{
-            padding: "1%",
-            textAlign: "center",
-            width: "28vw",
-            // height: "auto",
+      const str = t(`Swipe x to Unlock`)
+        .replace(`x`, t(direction));
+      setTitle(str);
+    }, []);
+
+    const checkSwipeDirection = (swipeDirection: FourSides) => {
+      console.log("RandomDirection", userDirection);
+      console.log("User swipeDirection", swipeDirection);
+
+      if (swipeDirection.length > 0 && userDirection === swipeDirection) {
+        history.push(PAGES.PARENT);
+      } else {
+        console.log('not matched');
+      }
+    };
+
+
+    const [touchStart, setTouchStart] = useState({ x: null, y: null });
+    const [touchEnd, setTouchEnd] = useState({ x: null, y: null });
+
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e) => {
+      if (!e.targetTouches || !e.targetTouches[0]?.clientX) return;
+      setTouchEnd({ x: null, y: null }); // Reset touchEnd to null
+      setTouchStart({ x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY });
+    };
+
+    const onTouchMove = (e) => {
+      if (!e.targetTouches || !e.targetTouches[0]?.clientX) return;
+      setTouchEnd({ x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY });
+    };
+
+    const onTouchEnd = () => {
+      if (!touchStart.x || !touchStart.y || !touchEnd.x || !touchEnd.y) return;
+
+      const distanceX = touchStart.x - touchEnd.x;
+      const distanceY = touchStart.y - touchEnd.y;
+      const isLeftSwipe = distanceX > minSwipeDistance;
+      const isRightSwipe = distanceX < -minSwipeDistance;
+      const isUpSwipe = distanceY > minSwipeDistance;
+      const isDownSwipe = distanceY < -minSwipeDistance;
+
+      if (isLeftSwipe || isRightSwipe || isUpSwipe || isDownSwipe) {
+        switch (true) {
+          case isLeftSwipe:
+            checkSwipeDirection(FourSides.LEFT);
+            break;
+          case isRightSwipe:
+            checkSwipeDirection(FourSides.RIGHT);
+            break;
+          case isUpSwipe:
+            checkSwipeDirection(FourSides.UP);
+            break;
+          case isDownSwipe:
+            checkSwipeDirection(FourSides.DOWN);
+            break;
+
+        }
+      }
+    };
+    const onMouseDown = (e) => {
+      setTouchEnd({ x: null, y: null });
+      setTouchStart({ x: e.clientX, y: e.clientY });
+    };
+
+    const onMouseMove = (e) => {
+      if (!touchStart.x || !touchStart.y) return;
+      setTouchEnd({ x: e.clientX, y: e.clientY });
+    };
+
+    const onMouseUp = () => {
+      if (!touchStart.x || !touchStart.y || !touchEnd.x || !touchEnd.y) return;
+
+      const distanceX = touchStart.x - touchEnd.x;
+      const distanceY = touchStart.y - touchEnd.y;
+      const isLeftSwipe = distanceX > minSwipeDistance;
+      const isRightSwipe = distanceX < -minSwipeDistance;
+      const isUpSwipe = distanceY > minSwipeDistance;
+      const isDownSwipe = distanceY < -minSwipeDistance;
+
+      if (isLeftSwipe || isRightSwipe || isUpSwipe || isDownSwipe) {
+        switch (true) {
+          case isLeftSwipe:
+            checkSwipeDirection(FourSides.LEFT);
+            break;
+          case isRightSwipe:
+            checkSwipeDirection(FourSides.RIGHT);
+            break;
+          case isUpSwipe:
+            checkSwipeDirection(FourSides.UP);
+            break;
+          case isDownSwipe:
+            checkSwipeDirection(FourSides.DOWN);
+            break;
+        }
+      }
+    };
+
+    return (
+      <div>
+        <Dialog
+          sx={{
+            "& .MuiPaper-root": { borderRadius: "4vh !important" },
           }}
+          open={showDialogBox}
+          onClose={handleClose}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+          onTouchMove={onTouchMove}
+          onMouseDown={onMouseDown}
+          onMouseUp={onMouseUp}
+          onMouseMove={onMouseMove}
+          onMouseEnter={onMouseDown}
         >
-          <IoCloseCircle
-            id="parental-lock-close-icon"
-            size={"10vh"}
-            onClick={onHandleClose}
-          ></IoCloseCircle>
-          <DialogContentText
-            style={{
-              textAlign: "center",
-              color: "black",
-              fontWeight: "normal",
-              margin: "6% 0%",
-              fontSize : "4vh"
-            }}
-          >
-            {title}
-          </DialogContentText>
-          {dataContent.map((e) => {
-            return (
-              <IonRow style={{ textAlign: "center", paddingLeft: "8%" }}>
-                {e.map((d) => {
-                  return (
-                    <IonCol size="12" size-sm="4" id={d}>
-                      <p
-                        id="parental-lock-number"
-                        onClick={() => {
-                          console.log(userInput + d);
-                         
-                            setDisableUnlockBtn(false);
-                            setUnlockColor("success");
-                          
-                          if (userInput.length >= passCode.length) {
-                            console.log("reset the userInput");
-                           
-                            setUserInput("");
-                          } else {
-                            setUserInput(userInput + d);
-                          }
-                        }}
-                      >
-                        {d}
-                      </p>
-                    </IonCol>
-                  );
-                })}
-              </IonRow>
-            );
-          })}
-          <IonButton
-            id="parental-lock-unlock-button"
-            disabled={disableUnlockBtn}
-            color={unlockColor}
-            fill="solid"
-            shape="round"
-            onClick={() => {
-              console.log("On Next Button");
-              if (userInput === passCode) {
-                setUserInput("");
-                history.replace(PAGES.PARENT);
-              } else {
-                setUserInput("");
-                setDisableUnlockBtn(true);
-                setUnlockColor("dark");
-              }
-            }}
-          >
-            {t("Unlock")}
-            <IonIcon
-              className="arrow-icon"
-              slot="end"
-              icon={chevronForward}
-            ></IonIcon>
-          </IonButton>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
+          <div style={{
+            background: 'white',
+            color: 'black',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}>
+            <div id="parent-lock-header">
+              <div id="parental-lock-close-icon">
+                <IoCloseCircle
+                  size={"10vh"}
+                  onClick={onHandleClose}
+                ></IoCloseCircle>
+              </div>
+              <div id="parent-screen">
+                <p style={{
+                  fontWeight: 'bold',
+                  fontSize: 'var(--text-size)',
+                }}>{t("Parents Screen")}</p>
+              </div>
+            </div>
+
+            <FcLock
+              style={{
+                height: '14vh',
+                width: '10vw',
+              }}></FcLock>
+
+            <DialogContent
+              style={{
+                width: '35vw',
+                height: '15vh',
+                background: 'white',
+                color: 'black',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                overflow: 'hidden',
+                padding: '4vh 0 0 0'
+              }}
+            >
+
+              <p style={{
+                userSelect: "none",
+                fontWeight: 'bold',
+                fontSize: 'var(--text-size)',
+              }}>{title}</p>
+            </DialogContent>
+          </div>
+
+        </Dialog>
+      </div>
+    );
+  };
 
 export default ParentalLock;

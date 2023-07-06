@@ -16,6 +16,10 @@
 		"classpath": "io.capawesome.capacitorjs.plugins.firebase.messaging.FirebaseMessagingPlugin"
 	},
 	{
+		"pkg": "@capacitor-firebase/remote-config",
+		"classpath": "io.capawesome.capacitorjs.plugins.firebase.remoteconfig.FirebaseRemoteConfigPlugin"
+	},
+	{
 		"pkg": "@capacitor/app",
 		"classpath": "com.capacitorjs.plugins.app.AppPlugin"
 	},
@@ -32,6 +36,10 @@
 		"classpath": "com.capacitorjs.plugins.keyboard.KeyboardPlugin"
 	},
 	{
+		"pkg": "@capacitor/local-notifications",
+		"classpath": "com.capacitorjs.plugins.localnotifications.LocalNotificationsPlugin"
+	},
+	{
 		"pkg": "@capacitor/status-bar",
 		"classpath": "com.capacitorjs.plugins.statusbar.StatusBarPlugin"
 	},
@@ -44,7 +52,7 @@
 		"classpath": "io.capawesome.capacitorjs.plugins.appupdate.AppUpdatePlugin"
 	},
 	{
-		"pkg": "account-manager",
-		"classpath": "org.chimple.accountmanager.AccountManagerPlugin"
+		"pkg": "capacitor-rate-app",
+		"classpath": "com.capacitor.rateApp.CapacitorRateAppPlugin"
 	}
 ]

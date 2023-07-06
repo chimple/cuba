@@ -1,4 +1,4 @@
-.display-student-content{
+.display-student-content {
   margin-top: 3vh;
 }
 
@@ -9,34 +9,34 @@
   cursor: pointer;
   font-size: var(--text-size);
   color: #05342f;
-  margin:var(--margin);
+  margin: var(--margin);
   margin-bottom: 0;
 }
-#parent-icon{
-  height: clamp(15px,10vh,18px);
-  width: clamp(15px,10vh,18px);
+#parent-icon {
+  height: clamp(15px, 10vh, 18px);
+  width: clamp(15px, 10vh, 18px);
 }
 
 #display-students-parent-icon {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: clamp(95px,10vw,110px);
-  }
-#display-students-parent-button{
-  width: clamp(95px,10vh,110px);
-    height: clamp(40px,8vh,45px);
-    border-radius: 64px;
-    background: #ffffffd9;
-    display: flex;
-    padding-left: min(10px,2vw);
-    padding-right: min(10px,2vw);
-    align-items: center;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    font-size: var(--text-size);
-    color: #05342f;
-    justify-content: space-between;
+  width: clamp(95px, 10vw, 110px);
+}
+#display-students-parent-button {
+  width: clamp(95px, 10vh, 110px);
+  height: clamp(40px, 8vh, 45px);
+  border-radius: 64px;
+  background: #ffffffd9;
+  display: flex;
+  padding-left: min(10px, 2vw);
+  padding-right: min(10px, 2vw);
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  font-size: var(--text-size);
+  color: #05342f;
+  justify-content: space-between;
 }
 
 .avatar {
@@ -49,7 +49,7 @@
 }
 
 .student-name {
-  white-space:nowrap;
+  white-space: nowrap;
   display: block;
   max-width: 20vh;
   text-overflow: ellipsis;
@@ -66,7 +66,6 @@
   justify-content: center;
 }
 
-
 .add-new-button {
   display: flex;
   flex-direction: column;
@@ -78,8 +77,8 @@
   /* color: #05342f; */
   color: var(--text-color);
   bottom: 0;
-    inline-size: -webkit-fill-available;
-    position: absolute;
+  inline-size: -webkit-fill-available;
+  position: absolute;
 }
 
 .ion-page {

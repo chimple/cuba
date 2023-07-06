@@ -9,13 +9,15 @@ import TextBox from "../components/TextBox";
 import React from "react";
 import Loading from "../components/Loading";
 import { ConfirmationResult, RecaptchaVerifier, getAuth } from "@firebase/auth";
-import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
+// import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 // import { BackgroundMode } from "@awesome-cordova-plugins/background-mode";
 // import { setEnabled } from "@red-mobile/cordova-plugin-background-mode/www/background-mode";
 import { FirebaseAuth } from "../services/auth/FirebaseAuth";
 import { Keyboard } from "@capacitor/keyboard";
 import { initializeApp } from "firebase/app";
-import { t } from "i18next";
+import { init, t } from "i18next";
+import { Util } from "../utility/util";
+import User from "../models/user";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -31,10 +33,9 @@ const Login: React.FC = () => {
   // const [phoneNumber, setPhoneNumber] = useState("+91"); // Example: "+919553642967".
   const [recaptchaVerifier, setRecaptchaVerifier] =
     useState<RecaptchaVerifier>();
-  const [phoneNumberSigninRes, setPhoneNumberSigninRes] = useState<
-    ConfirmationResult | SignInWithPhoneNumberResult
-  >();
-  const [userData, setUserData] = useState<any>("");
+  const [phoneNumberSigninRes, setPhoneNumberSigninRes] =
+    useState<ConfirmationResult>();
+  const [userData, setUserData] = useState<any>();
 
   const authInstance = ServiceConfig.getI().authHandler;
   const countryCode = "+91";
@@ -44,9 +45,19 @@ const Login: React.FC = () => {
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
   const [isInputFocus, setIsInputFocus] = useState(false);
   const scollToRef = useRef<null | HTMLDivElement>(null);
+  const [currentStudent, setStudent] = useState<User>();
+  const Buttoncolors = {
+    Default: "grey",
+    Valid: "yellowgreen",
+  };
+
+  const otpBtnRef = useRef<any>();
+  const getOtpBtnRef = useRef<any>();
 
   useEffect(() => {
+    init();
     setIsLoading(true);
+
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
         console.log("info", JSON.stringify(info));
@@ -75,12 +86,22 @@ const Login: React.FC = () => {
         isUserLoggedIn && appLang != undefined
       );
 
+      async function init() {
+        const currentStudent = await Util.getCurrentStudent();
+        if (!currentStudent) {
+          history.replace(PAGES.HOME);
+          return;
+        }
+
+        setStudent(currentStudent);
+      }
+
       if (appLang == undefined) {
         console.log("navigating to app lang");
         history.replace(PAGES.APP_LANG_SELECTION);
       }
 
-      if (apiHandler.currentStudent) {
+      if (currentStudent) {
         setIsLoading(false);
         history.replace(PAGES.DISPLAY_STUDENT);
       }
@@ -156,14 +177,14 @@ const Login: React.FC = () => {
         setSpinnerLoading(false);
         // setIsLoading(false);
       } else {
-        console.log("Phone Number signin Failed");
+        console.log("Phone Number signin Failed ");
         setSpinnerLoading(false);
-        alert("Phone Number signin Failed" + authRes);
+        alert("Phone Number signin Failed " + authRes);
       }
     } catch (error) {
-      console.log("Phone Number signin Failed");
+      console.log("Phone Number signin Failed ");
       setSpinnerLoading(false);
-      alert("Phone Number signin Failed" + error);
+      alert("Phone Number signin Failed " + error);
       console.log(
         "window.recaptchaVerifier",
         // window.recaptchaVerifier,
@@ -185,10 +206,20 @@ const Login: React.FC = () => {
         verificationCode
       );
       console.log("login User Data ", res, userData);
-      setUserData(res);
+      if (!res) {
+        setIsLoading(false);
+        console.log("Verification Failed");
+        alert("Something went wrong Verification Failed");
+        return;
+      }
+      setUserData(res.user);
       console.log("login User Data ", res, userData);
 
-      if (res) {
+      if (res.isUserExist) {
+        setIsLoading(false);
+        history.replace(PAGES.SELECT_MODE);
+        // setShowNameInput(true);
+      } else if (!res.isUserExist) {
         setIsLoading(false);
         setShowNameInput(true);
       } else {
@@ -226,7 +257,7 @@ const Login: React.FC = () => {
             <div>
               <div id="login-text-box">
                 <TextBox
-                  inputText={t("Enter your Phone Number")}
+                  inputText={t("Enter Mobile Number (10-digit)")}
                   inputType={"tel"}
                   maxLength={10}
                   inputValue={phoneNumber}
@@ -235,6 +266,18 @@ const Login: React.FC = () => {
                       // setPhoneNumber(countryCode + input.detail.value);
                       phoneNumber = input.detail.value;
                       console.log(countryCode + phoneNumber);
+
+                      let loginBtnBgColor =
+                        otpBtnRef.current.style.backgroundColor;
+                      if (phoneNumber.length === 10) {
+                        otpBtnRef.current.style.backgroundColor =
+                          Buttoncolors.Valid;
+                      } else {
+                        if (loginBtnBgColor === Buttoncolors.Valid) {
+                          otpBtnRef.current.style.backgroundColor =
+                            Buttoncolors.Default;
+                        }
+                      }
                     }
                   }}
                 ></TextBox>
@@ -242,6 +285,7 @@ const Login: React.FC = () => {
 
               <div id="recaptcha-container" />
               <div
+                ref={otpBtnRef}
                 id="login-continue-button"
                 onClick={() => {
                   // //@ts-ignore
@@ -265,7 +309,7 @@ const Login: React.FC = () => {
                   // setSpinnerLoading(false);
                 }}
               >
-                {t("Sent the OTP")}
+                {t("Send OTP")}
               </div>
               {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
               <IonLoading
@@ -278,7 +322,7 @@ const Login: React.FC = () => {
 
               <div id="Google-horizontal-line"></div>
               <div id="Google-horizontal-line2"></div>
-              <div id="login-google-icon-text"> {t("Continue with Google")}</div>
+              <div id="login-google-icon-text">{t("Continue with Google")}</div>
               <img
                 id="login-google-icon"
                 alt="Google Icon"
@@ -295,7 +339,8 @@ const Login: React.FC = () => {
                     );
                     if (result) {
                       setIsLoading(false);
-                      history.replace(PAGES.DISPLAY_STUDENT);
+                      // history.replace(PAGES.DISPLAY_STUDENT);
+                      history.replace(PAGES.SELECT_MODE);
                     } else {
                       setIsLoading(false);
                     }
@@ -319,11 +364,23 @@ const Login: React.FC = () => {
                       // setVerificationCode("" + input.detail.value);
                       verificationCode = input.detail.value;
                       console.log("" + input.detail.value);
+                      let otpBtnBgColor =
+                        getOtpBtnRef.current.style.backgroundColor;
+                      if (verificationCode.length === 6) {
+                        getOtpBtnRef.current.style.backgroundColor =
+                          Buttoncolors.Valid;
+                      } else {
+                        if (otpBtnBgColor === Buttoncolors.Valid) {
+                          getOtpBtnRef.current.style.backgroundColor =
+                            Buttoncolors.Default;
+                        }
+                      }
                     }
                   }}
                 ></TextBox>
               </div>
               <div
+                ref={getOtpBtnRef}
                 id="login-continue-button"
                 onClick={() => {
                   onVerificationCodeSubmit();
@@ -361,7 +418,8 @@ const Login: React.FC = () => {
                     phoneNumberSigninRes
                   );
                   if (res) {
-                    history.push(PAGES.DISPLAY_STUDENT);
+                    // history.push(PAGES.DISPLAY_STUDENT);
+                    history.replace(PAGES.SELECT_MODE);
                   }
                 }}
               >

@@ -26,6 +26,7 @@ import StudentProfile from "../models/studentProfile";
 import { t } from "i18next";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
+import { Util } from "../utility/util";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -71,9 +72,8 @@ const Leaderboard: React.FC = () => {
       });
     });
     setWeeklyList(weekOptionsList);
-    const api = ServiceConfig.getI().apiHandler;
-    const currentStudent = await api.currentStudent;
-    console.log("currentStudent ", currentStudent);
+    // const api = ServiceConfig.getI().apiHandler;
+    const currentStudent = await Util.getCurrentStudent();
     if (currentStudent != undefined) {
       const getClass = await FirebaseApi.i.getStudentResult(
         currentStudent.docId
@@ -101,7 +101,7 @@ const Leaderboard: React.FC = () => {
     console.log(
       "leaderboardDataInfo.weekly.length <= 0 leaderboardDataInfo.allTime.length <= 0",
       leaderboardDataInfo.weekly.length <= 0 ||
-        leaderboardDataInfo.allTime.length <= 0,
+      leaderboardDataInfo.allTime.length <= 0,
       isWeeklyFlag
         ? "leaderboardDataInfo.weekly"
         : "leaderboardDataInfo.allTime"
@@ -144,7 +144,7 @@ const Leaderboard: React.FC = () => {
         element.name,
         element.lessonsPlayed,
         element.score,
-        computeMinutes + "min" +" "+ result +" "+ "sec",
+        computeMinutes + "min" + " " + result + " " + "sec",
       ]);
 
       if (currentStudent.docId == element.userId) {
@@ -153,7 +153,10 @@ const Leaderboard: React.FC = () => {
           [t("Rank"), i + 1],
           [t("Last Played"), element.lessonsPlayed],
           [t("Score"), element.score],
-          [t("Time Spent"), computeMinutes + t("min") + result + " "+t("sec")],
+          [
+            t("Time Spent"),
+            computeMinutes + t("min") + result + " " + t("sec"),
+          ],
         ];
       }
     }
@@ -163,14 +166,14 @@ const Leaderboard: React.FC = () => {
         [t("Rank"), "--"],
         [t("Last Played"), "--"],
         [t("Score"), "--"],
-        [t("Time Spent"), "--"+t("min") + " --"+t("sec")],
+        [t("Time Spent"), "--" + t("min") + " --" + t("sec")],
       ];
       tempLeaderboardDataArray.push([
         "--",
         currentStudent.name,
         "--",
         "--",
-        "--"+t("min") + " --"+t("sec"),
+        "--" + t("min") + " --" + t("sec"),
       ]);
     }
     setCurrentUserDataContent(tempCurrentUserDataContent);
@@ -271,7 +274,6 @@ const Leaderboard: React.FC = () => {
                           }}
                           id="leaderboard-left-UI-content"
                         >
-                          
                           {d || "0"}
                         </p>
                       </IonCol>
@@ -284,7 +286,7 @@ const Leaderboard: React.FC = () => {
         </div>
         <div id="leaderboard-right-UI">
           {leaderboardData.map((e) => {
-            let columnWidth = ["2.5vw", "18vw", "9vw", "9vw", "12vw"];
+            let columnWidth = ["3vw", "14vw", "15vw", "7vw", "14vw"];
             let rankColors = ["", "#FFC32C", "#C4C4C4", "#D39A66", "#959595"];
             let i = -1;
             headerRowIndicator++;
@@ -307,12 +309,21 @@ const Leaderboard: React.FC = () => {
                 style={{
                   backgroundColor:
                     headerRowIndicator === 0
-                      ? "#959595"
+                      ? "rgb(200 200 200)"
                       : Number(currentUserDataContent[0][1]) ===
                         headerRowIndicator
-                      ? "#FF7925"
-                      : "",
-                  padding: "1vh 2vh",
+                        ? "#FF7925"
+                        : "",
+                  padding: headerRowIndicator === 0
+                    ? "1vh 2vh"
+                    : Number(currentUserDataContent[0][1]) ===
+                      headerRowIndicator
+                      ? "0vh 2vh"
+                      : "1vh 2vh ",
+                  position: "sticky",
+                  zIndex: headerRowIndicator === 0 ? "3" : "0",
+                  top: "0px",
+
                 }}
               >
                 {e.map((d) => {
@@ -323,13 +334,16 @@ const Leaderboard: React.FC = () => {
                       <p
                         style={{
                           color:
-                            i === 0 && headerRowIndicator != 0 ? "white" : "",
+                            i === 0 && headerRowIndicator != 0 ? Number(currentUserDataContent[0][1]) ===
+                              headerRowIndicator ? "black" : "white" : "",
                           backgroundColor:
-                            i === 0 && headerRowIndicator != 0
-                              ? rankColors[Number(e[0])] || rankColors[4]
+                            i === 0 && headerRowIndicator != 0 ? Number(currentUserDataContent[0][1]) ===
+                              headerRowIndicator ? "white" : rankColors[Number(e[0])] || rankColors[4]
                               : "",
                           borderRadius:
                             i === 0 && headerRowIndicator != 0 ? "100vw" : "",
+                          height: i === 0 && headerRowIndicator != 0 ? columnWidth[i] : "",
+                          fontSize: "1.5vw",
                           width: columnWidth[i],
                           textAlign: i === 0 ? "center" : "left",
                         }}
@@ -384,7 +398,8 @@ const Leaderboard: React.FC = () => {
       {!isLoading ? (
         <Box>
           <Box id="LeaderBoard-header">
-            <AppBar id="LeaderBoard-AppBar"
+            <AppBar
+              id="LeaderBoard-AppBar"
               position="static"
               sx={{
                 flexDirection: "inherit",
@@ -423,10 +438,10 @@ const Leaderboard: React.FC = () => {
                   value={LEADERBOARDHEADERLIST.LEADERBOARD}
                   label={t(LEADERBOARDHEADERLIST.LEADERBOARD)}
                   id="parent-page-tab-bar"
-                  // sx={{
-                  //   // fontSize:"5vh"
-                  //   marginRight: "5vw",
-                  // }}
+                // sx={{
+                //   // fontSize:"5vh"
+                //   marginRight: "5vw",
+                // }}
                 />
                 <Tab
                   id="parent-page-tab-bar"
@@ -445,7 +460,7 @@ const Leaderboard: React.FC = () => {
             )}
             {tabIndex === LEADERBOARDHEADERLIST.EVENTS && (
               <Box>
-                <div>{}</div>
+
               </Box>
             )}
           </Box>

@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import "./LeaderBoardButton.css";
 const LeaderBoardButton: React.FC<{
   iconSrc: string;
@@ -8,15 +9,19 @@ const LeaderBoardButton: React.FC<{
   // name,
   onHeaderIconClick,
 }) => {
-  return (
-    <img
-      id="leader-board-image"
-      alt={iconSrc}
-      src={iconSrc}
-      onClick={onHeaderIconClick}
-    />
-    //   {/* <p>{name}</p>
-    //  </div>
-  );
-};
+    return (
+      <div className="leader-board-head">
+        <img
+          id="leader-board-image"
+          alt={iconSrc}
+          src={iconSrc}
+          onClick={onHeaderIconClick}
+        />
+        <p className="leader-board-image-class">{t("Leaderboard")}</p>
+      </div>
+
+      //   {/* <p>{name}</p>
+      //  </div>
+    );
+  };
 export default LeaderBoardButton;
