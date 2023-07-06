@@ -6,11 +6,12 @@ import { MdModeEditOutline } from "react-icons/md";
 import { FcPlus } from "react-icons/fc";
 import { HiPlusCircle } from "react-icons/hi";
 import User from "../../models/user";
-import { AVATARS, PAGES } from "../../common/constants";
+import { ACTION, AVATARS, EVENTS, PAGES } from "../../common/constants";
 import { Util } from "../../utility/util";
 import DialogBoxButtons from "./DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
+import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
 
 const ProfileCard: React.FC<{
   width: string;
@@ -146,6 +147,17 @@ const ProfileCard: React.FC<{
             setShowWarningDialogBox(false);
             setShowDialogBox(false);
             await ServiceConfig.getI().apiHandler.deleteProfile(user.docId);
+            FirebaseAnalytics.logEvent({name:EVENTS.USER_PROFILE, params:{
+              user_id: user.docId,
+              user_type: user.role,
+              user_name: user.name,
+              user_gender: user.gender!,
+              user_age: user.age!,
+              phone_number: '',
+              parent_username: user.username,
+              parent_id: user.uid,
+              action_type: ACTION.DELETE
+            }});
           }}
           onNoButtonClicked={async ({}) => {
             console.log(`Show warning No:`);
