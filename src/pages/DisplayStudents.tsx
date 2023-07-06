@@ -19,6 +19,7 @@ const DisplayStudents: FC<{}> = () => {
   const [students, setStudents] = useState<User[]>();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const history = useHistory();
+
   useEffect(() => {
     getStudents();
   }, []);
@@ -109,19 +110,16 @@ const DisplayStudents: FC<{}> = () => {
             ))}
           </div>
           {students.length < MAX_STUDENTS_ALLOWED && (
-            <div onClick={onCreateNewStudent} className="add-new-button">
-              <IoAddCircleSharp color="white" size="10vh" />
+            <div className="add-new-button">
+              <IoAddCircleSharp color="white" size="10vh" onClick={onCreateNewStudent} />
               {t("Create New Child Profile")}
             </div>
           )}
           {showDialogBox ? (
             <ParentalLock
-              width={"10vh"}
-              height={"10vh"}
-              message="You can edit or delete user by"
               showDialogBox={showDialogBox}
               handleClose={() => {
-                setShowDialogBox(false);
+                setShowDialogBox(true);
                 console.log("Close", false);
               }}
               onHandleClose={() => {

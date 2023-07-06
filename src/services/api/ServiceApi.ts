@@ -82,6 +82,10 @@ export interface ServiceApi {
   get currentStudent(): User | undefined;
 
   set currentStudent(value: User | undefined);
+  get currentClass(): Class | undefined;
+  set currentClass(value: Class | undefined);
+  get currentSchool(): School | undefined;
+  set currentSchool(value: School | undefined);
   updateSoundFlag(user: User, value: boolean);
   updateMusicFlag(user: User, value: boolean);
   updateLanguage(user: User, value: string);
@@ -100,6 +104,12 @@ export interface ServiceApi {
    */
   getCoursesForParentsStudent(student: User): Promise<Course[]>;
 
+  /**
+   * Gives List of subjects for given a student for Home user
+   * @param {Class} currClass - Class User object
+   * @returns {Course[]} Array of `Course` objects
+   */
+  getCoursesForClassStudent(currClass: Class): Promise<Course[]>;
   /**
    * Gives Lesson for given a lesson firebase doc Id
    * @param {string} id - Lesson firebase doc id

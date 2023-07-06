@@ -13,6 +13,7 @@ dependencies {
     implementation project(':capacitor-firebase-analytics')
     implementation project(':capacitor-firebase-authentication')
     implementation project(':capacitor-firebase-messaging')
+    implementation project(':capacitor-firebase-remote-config')
     implementation project(':capacitor-app')
     implementation project(':capacitor-filesystem')
     implementation project(':capacitor-haptics')
@@ -21,6 +22,7 @@ dependencies {
     implementation project(':capacitor-status-bar')
     implementation project(':capacitor-toast')
     implementation project(':capawesome-capacitor-app-update')
+    implementation project(':capacitor-rate-app')
 
 }
 

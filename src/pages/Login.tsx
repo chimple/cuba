@@ -51,7 +51,6 @@ const Login: React.FC = () => {
   const Buttoncolors = {
     Default: "grey",
     Valid: "yellowgreen",
-
   };
 
   const otpBtnRef = useRef<any>();
@@ -60,7 +59,6 @@ const Login: React.FC = () => {
   const phoneNumberErrorRef = useRef<any>();
 
   useEffect(() => {
-
     init();
     setIsLoading(true);
 
@@ -224,7 +222,7 @@ const Login: React.FC = () => {
 
       if (res.isUserExist) {
         setIsLoading(false);
-        history.push(PAGES.DISPLAY_STUDENT);
+        history.replace(PAGES.SELECT_MODE);
         // setShowNameInput(true);
       } else if (!res.isUserExist) {
         setIsLoading(false);
@@ -396,8 +394,8 @@ const Login: React.FC = () => {
                       }
                       else {
                         if (otpBtnBgColor === Buttoncolors.Valid) {
-                          getOtpBtnRef.current.style.backgroundColor = Buttoncolors.Default;
-
+                          getOtpBtnRef.current.style.backgroundColor =
+                            Buttoncolors.Default;
                         }
                       }
                     }
@@ -408,7 +406,8 @@ const Login: React.FC = () => {
                   }}
                 ></TextBox>
               </div>
-              <div ref={getOtpBtnRef}
+              <div
+                ref={getOtpBtnRef}
                 id="login-continue-button"
                 onClick={() => {
                   if (verificationCode.length === 6) {

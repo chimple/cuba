@@ -13,6 +13,7 @@ import Class from "../../models/class";
 import StudentProfile from "../../models/studentProfile";
 import school from "../../models/school";
 import { MODES } from "../../common/constants";
+import School from "../../models/school";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -146,6 +147,9 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getCoursesForParentsStudent(student);
   }
 
+  public async getCoursesForClassStudent(currClass: Class): Promise<Course[]> {
+    return await this.s.getCoursesForClassStudent(currClass);
+  }
   public async getLesson(id: string): Promise<Lesson | undefined> {
     return await this.s.getLesson(id);
   }
@@ -190,7 +194,18 @@ export class ApiHandler implements ServiceApi {
   public set currentStudent(value: User | undefined) {
     this.s.currentStudent = value;
   }
-
+  public get currentClass(): Class | undefined {
+    return this.s.currentClass;
+  }
+  public set currentClass(value: Class | undefined) {
+    this.s.currentClass = value;
+  }
+  public get currentSchool(): School | undefined {
+    return this.s.currentSchool;
+  }
+  public set currentSchool(value: School | undefined) {
+    this.s.currentSchool = value;
+  }
   updateLanguage(user: User, value: string) {
     return this.s.updateLanguage(user, value);
   }

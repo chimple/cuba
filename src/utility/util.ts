@@ -1,5 +1,4 @@
-import { Http } from "@capacitor-community/http";
-import { Capacitor, registerPlugin } from "@capacitor/core";
+import { Capacitor, CapacitorHttp, registerPlugin } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
@@ -30,7 +29,13 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
 import { FirebaseAnalytics } from "@capacitor-firebase/analytics";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
-import { DocumentReference, doc, getFirestore } from "firebase/firestore";
+import {
+  DocumentReference,
+  doc,
+  getFirestore,
+  enableNetwork,
+  disableNetwork,
+} from "firebase/firestore";
 import { Keyboard } from "@capacitor/keyboard";
 import {
   AppUpdate,
@@ -38,6 +43,7 @@ import {
   AppUpdateResultCode,
 } from "@capawesome/capacitor-app-update";
 import { LocalNotifications } from "@capacitor/local-notifications";
+import { RateApp } from "capacitor-rate-app";
 
 declare global {
   interface Window {
@@ -140,32 +146,32 @@ export class Util {
 
         console.log("fs", fs);
         const url = BUNDLE_URL + lessonId + ".zip";
-        console.log("const url", url);
-        const zip = fetch(url).then(async (response) => {
-          if (response instanceof Object) {
-            console.log("unzipping ", response);
-            const zipblob = await response.blob();
-            const zipArrBuff = await zipblob.arrayBuffer();
-            await unzip({
-              fs: fs,
-              extractTo: lessonId,
-              filepaths: ["."],
-              filter: (filepath: string) =>
-                filepath.startsWith("dist/") === false,
-              onProgress: (event) =>
-                console.log(
-                  "event unzipping ",
-                  event.total,
-                  event.filename,
-                  event.isDirectory,
-                  event.loaded
-                ),
-              data: zipArrBuff,
-            });
+        const zip = await CapacitorHttp.get({ url: url, responseType: "blob" });
+        if (!zip.data || zip.status !== 200) return false;
+        if (zip instanceof Object) {
+          console.log("unzipping ");
+          const buffer = Uint8Array.from(atob(zip.data), (c) =>
+            c.charCodeAt(0)
+          );
+          await unzip({
+            fs: fs,
+            extractTo: lessonId,
+            filepaths: ["."],
+            filter: (filepath: string) =>
+              filepath.startsWith("dist/") === false,
+            onProgress: (event) =>
+              console.log(
+                "event unzipping ",
+                event.total,
+                event.filename,
+                event.isDirectory,
+                event.loaded
+              ),
+            data: buffer,
+          });
 
-            console.log("un  zip done");
-          }
-        });
+          console.log("un  zip done");
+        }
         console.log("zip ", zip);
       } catch (error) {
         console.log("error", error);
@@ -396,7 +402,7 @@ export class Util {
         board: student.board ?? null,
         courses: student.courses,
         createdAt: student.createdAt,
-        dateLastModified: student.dateLastModified,
+        updatedAt: student.updatedAt,
         gender: student.gender ?? null,
         grade: student.grade ?? null,
         image: student.image ?? null,
@@ -592,26 +598,39 @@ export class Util {
     }
   }
 
+  public static notificationsCount = 0;
+
   public static async checkNotificationPermissions() {
     if (!Capacitor.isNativePlatform()) return;
     try {
       await FirebaseMessaging.addListener(
         "notificationReceived",
-        ({ notification }) => {
+        async ({ notification }) => {
           console.log("notificationReceived", JSON.stringify(notification));
-          LocalNotifications.schedule({
-            notifications: [
-              {
-                id: 0,
-                body: notification.body ?? "",
-                title: notification.title ?? "Chimple",
-                attachments: !!notification.image
-                  ? [{ id: notification.image, url: notification.image }]
-                  : undefined,
-                extra: notification.data,
-              },
-            ],
-          });
+          try {
+            const res = await LocalNotifications.schedule({
+              notifications: [
+                {
+                  id: Util.notificationsCount++,
+                  body: notification.body ?? "",
+                  title: notification.title ?? "Chimple",
+                  attachments: !!notification.image
+                    ? [{ id: notification.image, url: notification.image }]
+                    : undefined,
+                  extra: notification.data,
+                },
+              ],
+            });
+            console.log(
+              "🚀 ~ file: util.ts:622 ~ res:",
+              JSON.stringify(res.notifications)
+            );
+          } catch (error) {
+            console.log(
+              "🚀 ~ file: util.ts:630 ~ error:",
+              JSON.stringify(error)
+            );
+          }
         }
       );
       const canCheckPermission = Util.canCheckUpdate(LAST_PERMISSION_CHECKED);
@@ -649,5 +668,33 @@ export class Util {
       localStorage.setItem(updateFor, now.toString());
     }
     return _canCheckUpdate;
+  }
+
+  public static listenToNetwork() {
+    const _db = getFirestore();
+    if (navigator.onLine) {
+      enableNetwork(_db);
+    } else {
+      disableNetwork(_db);
+    }
+    window.addEventListener("online", (e) => {
+      console.log("🚀 ~ file: util.ts:677 ~ window.addEventListener ~ e:", e);
+      enableNetwork(_db);
+    });
+    window.addEventListener("offline", (e) => {
+      console.log("🚀 ~ file: util.ts:681 ~ window.addEventListener ~ e:", e);
+      disableNetwork(_db);
+    });
+  }
+
+  public static async showInAppReview() {
+    try {
+      await RateApp.requestReview();
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: util.ts:694 ~ showInAppReview ~ error:",
+        JSON.stringify(error)
+      );
+    }
   }
 }
