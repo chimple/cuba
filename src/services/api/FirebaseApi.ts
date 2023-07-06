@@ -132,7 +132,7 @@ export class FirebaseApi implements ServiceApi {
       doc(this._db, `${CollectionIds.USER}/${_currentUser.docId}`),
       {
         users: arrayUnion(studentDoc),
-        dateLastModified: Timestamp.now(),
+        updatedAt: Timestamp.now(),
       }
     );
     if (!_currentUser.users) _currentUser.users = [];
@@ -182,7 +182,7 @@ export class FirebaseApi implements ServiceApi {
     //   {
     //     // users: userList,
     //     users: arrayRemove(studentDoc),
-    //     dateLastModified: Timestamp.now(),
+    //     updatedAt: Timestamp.now(),
     //   }
     // );
     _currentUser.users = userList;
@@ -300,7 +300,7 @@ export class FirebaseApi implements ServiceApi {
     if (currentUser) {
       await updateDoc(doc(this._db, `User/${user.uid}`), {
         soundFlag: value,
-        dateLastModified: Timestamp.now(),
+        updatedAt: Timestamp.now(),
       });
       user.soundFlag = value;
       ServiceConfig.getI().authHandler.currentUser = user;
@@ -312,7 +312,7 @@ export class FirebaseApi implements ServiceApi {
     if (currentUser) {
       await updateDoc(doc(this._db, `User/${user.uid}`), {
         musicFlag: value,
-        dateLastModified: Timestamp.now(),
+        updatedAt: Timestamp.now(),
       });
       currentUser.musicFlag = value;
       ServiceConfig.getI().authHandler.currentUser = currentUser;
@@ -326,7 +326,7 @@ export class FirebaseApi implements ServiceApi {
       ServiceConfig.getI().authHandler.currentUser = currentUser;
       await updateDoc(doc(this._db, `User/${user.uid}`), {
         language: currentUser.language,
-        dateLastModified: Timestamp.now(),
+        updatedAt: Timestamp.now(),
       });
     }
   };
@@ -631,7 +631,7 @@ export class FirebaseApi implements ServiceApi {
     );
     result.docId = resultDoc.id;
     let playedResult: StudentLessonResult = {
-      date: result.dateLastModified,
+      date: result.updatedAt,
       course: result.course!,
       score: result.score,
       timeSpent: result.timeSpent,
@@ -650,7 +650,7 @@ export class FirebaseApi implements ServiceApi {
           studentProfileData.last5Lessons,
           studentProfileData.lessons,
           studentProfileData.schools,
-          studentProfileData.dateLastModified,
+          studentProfileData.updatedAt,
           studentProfileData.createdAt,
           student.docId
         );
@@ -707,7 +707,7 @@ export class FirebaseApi implements ServiceApi {
       age: age,
       avatar: avatar,
       board: boardRef,
-      dateLastModified: now,
+      updatedAt: now,
       gender: gender,
       grade: gradeRef,
       image: image ?? null,
@@ -717,7 +717,7 @@ export class FirebaseApi implements ServiceApi {
     student.age = age;
     student.avatar = avatar;
     student.board = boardRef;
-    student.dateLastModified = now;
+    student.updatedAt = now;
     student.gender = gender;
     student.grade = gradeRef;
     student.image = image;

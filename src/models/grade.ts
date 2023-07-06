@@ -8,11 +8,11 @@ export default class Grade extends BaseObject {
   constructor(
     description: string,
     title: string,
-    dateLastModified: Timestamp,
+    updatedAt: Timestamp,
     createdAt: Timestamp,
     docId: string
   ) {
-    super(dateLastModified, createdAt, docId);
+    super(updatedAt, createdAt, docId);
     this._description = description;
     this._title = title;
   }

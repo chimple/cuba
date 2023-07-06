@@ -26,7 +26,7 @@ export default class Assignment extends BaseObject {
     resultValueMin: number,
     results: object,
     school: DocumentReference,
-    dateLastModified: Timestamp,
+    updatedAt: Timestamp,
     createdAt: Timestamp,
     docId: string
   ) {
