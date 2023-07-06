@@ -158,7 +158,8 @@ export class OneRosterApi implements ServiceApi {
     score: number,
     correctMoves: number,
     wrongMoves: number,
-    timeSpent: number
+    timeSpent: number,
+    isLoved:boolean,
   ): Promise<Result> {
     throw new Error("Method not implemented.");
   }

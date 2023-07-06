@@ -13,6 +13,7 @@ export default class Result extends BaseObject {
   private _correctMoves: number;
   private _wrongMoves: number;
   private _timeSpent: number;
+  private _isLoved: boolean;
 
   constructor(
     comment: string | undefined,
@@ -28,7 +29,8 @@ export default class Result extends BaseObject {
     wrongMoves: number,
     timeSpent: number,
     student: DocumentReference,
-    docId: string
+    docId: string,
+    isLoved: boolean
   ) {
     super(updatedAt, createdAt, docId);
     this._comment = comment;
@@ -42,6 +44,7 @@ export default class Result extends BaseObject {
     this._correctMoves = correctMoves;
     this._wrongMoves = wrongMoves;
     this._timeSpent = timeSpent;
+    this._isLoved = isLoved;
   }
 
   public get comment(): string | undefined {
@@ -110,9 +113,15 @@ export default class Result extends BaseObject {
   public set timeSpent(value: number) {
     this._timeSpent = value;
   }
+  public get isLoved(): boolean {
+    return this._isLoved;
+  }
+  public set isLoved(value: boolean) {
+    this._isLoved = value;
+  }
 
   public toJson() {
-    return {
+    const res = {
       comment: this.comment ?? null,
       class: this.class ?? null,
       course: this.course ?? null,
@@ -127,5 +136,9 @@ export default class Result extends BaseObject {
       updatedAt: this.updatedAt,
       createdAt: this.createdAt,
     };
+    if (this.isLoved != null) {
+      res["isLoved"] = this.isLoved;
+    }
+    return res;
   }
 }
