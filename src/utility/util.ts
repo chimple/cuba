@@ -402,7 +402,7 @@ export class Util {
         board: student.board ?? null,
         courses: student.courses,
         createdAt: student.createdAt,
-        updatedAt: student.updatedAt,
+        dateLastModified: student.dateLastModified,
         gender: student.gender ?? null,
         grade: student.grade ?? null,
         image: student.image ?? null,

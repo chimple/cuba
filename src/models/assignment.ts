@@ -26,11 +26,11 @@ export default class Assignment extends BaseObject {
     resultValueMin: number,
     results: object,
     school: DocumentReference,
-    updatedAt: Timestamp,
+    dateLastModified: Timestamp,
     createdAt: Timestamp,
     docId: string
   ) {
-    super(updatedAt, createdAt, docId);
+    super(dateLastModified, createdAt, docId);
     this._assigner = assigner;
     this._class = class_1;
     this._completedStudents = completedStudents;

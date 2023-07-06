@@ -393,7 +393,7 @@ export class FirebaseAuth implements ServiceAuth {
     if (!!token) {
       await updateDoc(doc(this._db, `${CollectionIds.USER}/${userId}`), {
         fcm: token,
-        updatedAt: Timestamp.now(),
+        dateLastModified: Timestamp.now(),
       });
     }
   };

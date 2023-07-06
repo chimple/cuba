@@ -16,7 +16,7 @@ export default class Result extends BaseObject {
 
   constructor(
     comment: string | undefined,
-    updatedAt: Timestamp,
+    dateLastModified: Timestamp,
     createdAt: Timestamp,
     assignment: DocumentReference | undefined,
     class_1: DocumentReference | undefined,
@@ -30,7 +30,7 @@ export default class Result extends BaseObject {
     student: DocumentReference,
     docId: string
   ) {
-    super(updatedAt, createdAt, docId);
+    super(dateLastModified, createdAt, docId);
     this._comment = comment;
     this._assignment = assignment;
     this._class = class_1;
@@ -124,7 +124,7 @@ export default class Result extends BaseObject {
       correctMoves: this.correctMoves,
       wrongMoves: this.wrongMoves,
       timeSpent: this.timeSpent,
-      updatedAt: this.updatedAt,
+      dateLastModified: this.dateLastModified,
       createdAt: this.createdAt,
     };
   }

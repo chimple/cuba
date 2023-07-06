@@ -34,13 +34,13 @@ export default class User extends BaseObject {
     grade: DocumentReference | undefined,
     language: DocumentReference | undefined,
     avatar: string | undefined,
-    updatedAt: Timestamp,
+    dateLastModified: Timestamp,
     createdAt: Timestamp,
     docId: string,
     soundFlag: boolean = true,
     musicFlag: boolean = true
   ) {
-    super(updatedAt, createdAt, docId);
+    super(dateLastModified, createdAt, docId);
     this._username = username;
     this._users = users;
     this._name = name;
@@ -157,7 +157,7 @@ export default class User extends BaseObject {
       board: this.board ?? null,
       courses: this.courses,
       createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
+      dateLastModified: this.dateLastModified,
       gender: this.gender ?? null,
       grade: this.grade ?? null,
       image: this.image ?? null,

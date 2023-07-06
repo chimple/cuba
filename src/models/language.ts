@@ -8,11 +8,11 @@ export default class Language extends BaseObject {
   constructor(
     code: string,
     title: string,
-    updatedAt: Timestamp,
+    dateLastModified: Timestamp,
     createdAt: Timestamp,
     docId: string
   ) {
-    super(updatedAt, createdAt, docId);
+    super(dateLastModified, createdAt, docId);
     this._code = code;
     this._title = title;
   }

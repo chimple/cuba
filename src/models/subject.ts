@@ -8,11 +8,11 @@ export default class Subject extends BaseObject {
   constructor(
     description: string,
     title: string,
-    updatedAt: Timestamp,
+    dateLastModified: Timestamp,
     createdAt: Timestamp,
     docId: string
   ) {
-    super(updatedAt, createdAt, docId);
+    super(dateLastModified, createdAt, docId);
     this._description = description;
     this._title = title;
   }

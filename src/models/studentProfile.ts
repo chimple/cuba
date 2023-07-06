@@ -16,11 +16,11 @@ export default class StudentProfile extends BaseObject {
     last5Lessons: object,
     lessons: { [lessonDocId: string]: StudentLessonResult },
     schools: string[],
-    updatedAt: Timestamp,
+    dateLastModified: Timestamp,
     createdAt: Timestamp,
     docId: string
   ) {
-    super(updatedAt, createdAt, docId);
+    super(dateLastModified, createdAt, docId);
     this._lastPlayedCourse = lastPlayedCourse;
     this._classes = classes;
     this._last5Lessons = last5Lessons;

@@ -21,7 +21,7 @@ export default class Course extends BaseObject {
     subject,
     title,
     thumbnail,
-    updatedAt,
+    dateLastModified,
     createdAt,
     docId,
   }: {
@@ -33,11 +33,11 @@ export default class Course extends BaseObject {
     subject: DocumentReference;
     title: string;
     thumbnail: string | undefined;
-    updatedAt: Timestamp;
+    dateLastModified: Timestamp;
     createdAt: Timestamp;
     docId: string;
   }) {
-    super(updatedAt, createdAt, docId);
+    super(dateLastModified, createdAt, docId);
     this._chapters = chapters;
     this._courseCode = courseCode;
     this._curriculum = curriculum;

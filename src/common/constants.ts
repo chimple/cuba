@@ -200,12 +200,6 @@ export enum GENDER {
   OTHER = "unspecified",
 }
 
-export enum ACTION {
-  CREATE = "create",
-  UPDATE = "update",
-  DELETE = "delete",
-}
-
 export const AVATARS: string[] = [
   "Aligator",
   "armydog",
@@ -272,8 +266,6 @@ export enum MODES {
 export const CURRENT_STUDENT = "currentStudent";
 export enum EVENTS {
   LESSON_END = "lesson_end",
-  LESSON_INCOMPLETE = "lesson_incomplete",
-  USER_PROFILE = "user_profile",
 }
 
 export const FCM_TOKENS = "fcmTokens";
