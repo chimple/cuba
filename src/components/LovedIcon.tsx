@@ -11,7 +11,6 @@ const LovedIcon: React.FC<{
           <AiTwotoneHeart
             className="fav-icon-image"
             id="fav-icon-image"
-            style={{ color: "red" }}
           />
         </div>
       )}
