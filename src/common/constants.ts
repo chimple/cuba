@@ -276,7 +276,3 @@ export const LAST_UPDATE_CHECKED = "lastUpdateChecked";
 export const LAST_PERMISSION_CHECKED = "lastPermissionChecked";
 
 export const CACHE_IMAGE = "cacheImage";
-
-export enum REMOTE_CONFIG_KEYS {
-  SHOW_RATING = "show_rating",
-}
