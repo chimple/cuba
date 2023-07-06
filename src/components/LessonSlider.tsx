@@ -70,6 +70,7 @@ const LessonSlider: React.FC<{
                 isPlayed={isPlayed}
                 isUnlocked={true}
                 isHome={isHome}
+                isLoved={lessonsScoreMap[m.docId]?.isLoved}
                 lesson={m}
                 course={course}
                 showSubjectName={showSubjectName}
@@ -119,6 +120,7 @@ const LessonSlider: React.FC<{
                 isPlayed={isPlayed}
                 isUnlocked={true}
                 isHome={isHome}
+                isLoved={lessonsScoreMap[m.docId]?.isLoved}
                 lesson={m}
                 course={course}
                 showSubjectName={showSubjectName}
