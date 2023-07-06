@@ -85,162 +85,134 @@ const LessonCard: React.FC<{
         width: width,
         height: "auto",
       }}
+      onClick={() => {
+        if (isUnlocked) {
+          // if (
+          //   lesson.chapter.course.isCourseMapped &&
+          //   lesson.orig_course_id != undefined &&
+          //   lesson.orig_chapter_id != undefined &&
+          //   lesson.orig_lesson_id != undefined
+          // ) {
+          //   const parmas = `?courseid=${lesson.orig_course_id}&chapterid=${lesson.orig_chapter_id}&lessonid=${lesson.orig_lesson_id}`;
+          //   console.log("parmas", parmas);
+          //   history.push(PAGES.GAME + parmas, {
+          //     url: "chimple-lib/index.html" + parmas,
+          //     lessonId: lesson.orig_lesson_id,
+          //     lesson: lesson,
+          //     from: history.location.pathname,
+          //   });
+          // } else {
+          const parmas = `?courseid=${lesson.cocosSubjectCode}&chapterid=${lesson.cocosChapterCode}&lessonid=${lesson.id}`;
+          console.log(
+            ":rocket: ~ file: LessonCard.tsx:73 ~ parmas:",
+            parmas,
+            Lesson.toJson(lesson)
+          );
+          history.push(PAGES.GAME + parmas, {
+            url: "chimple-lib/index.html" + parmas,
+            lessonId: lesson.id,
+            courseDocId: course?.docId ?? lesson?.assignment?.course?.id,
+            lesson: JSON.stringify(Lesson.toJson(lesson)),
+            from: history.location.pathname + "?continue=true",
+          });
+          // }
+        } else {
+          console.log(lesson?.title, "lesson is locked");
+        }
+      }}
+    // disabled={!isUnlocked}
     >
       <div
-    const lessonCardColor =
-      LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
-
-    return (
-      <IonCard
-        id="lesson-card"
         style={{
-          width: width,
-          height: "auto",
+          display: "grid",
         }}
-        onClick={() => {
-          if (isUnlocked) {
-            // if (
-            //   lesson.chapter.course.isCourseMapped &&
-            //   lesson.orig_course_id != undefined &&
-            //   lesson.orig_chapter_id != undefined &&
-            //   lesson.orig_lesson_id != undefined
-            // ) {
-            //   const parmas = `?courseid=${lesson.orig_course_id}&chapterid=${lesson.orig_chapter_id}&lessonid=${lesson.orig_lesson_id}`;
-            //   console.log("parmas", parmas);
-            //   history.push(PAGES.GAME + parmas, {
-            //     url: "chimple-lib/index.html" + parmas,
-            //     lessonId: lesson.orig_lesson_id,
-            //     lesson: lesson,
-            //     from: history.location.pathname,
-            //   });
-            // } else {
-            const parmas = `?courseid=${lesson.cocosSubjectCode}&chapterid=${lesson.cocosChapterCode}&lessonid=${lesson.id}`;
-            console.log(
-              "🚀 ~ file: LessonCard.tsx:73 ~ parmas:",
-              parmas,
-              Lesson.toJson(lesson)
-            );
-            history.push(PAGES.GAME + parmas, {
-              url: "chimple-lib/index.html" + parmas,
-              lessonId: lesson.id,
-              courseDocId: course?.docId ?? lesson?.assignment?.course?.id,
-              lesson: JSON.stringify(Lesson.toJson(lesson)),
-              from: history.location.pathname + "?continue=true",
-            });
-            // }
-          } else {
-            console.log(lesson?.title, "lesson is locked");
-          }
-        }}
-        // disabled={!isUnlocked}
       >
         <div
           style={{
+            background: lessonCardColor,
+            borderRadius: "7vh",
+            width: width,
+            height: height,
             display: "grid",
+            justifyContent: "center",
+            alignItems: "center",
+            gridArea: "1/1",
           }}
+          color={lessonCardColor}
         >
-          <div
+          {showSubjectName && subject?.title ? (
+            <div id="lesson-card-subject-name">
+              <p>
+                {subject?.title}
+                {/* {subject.title==="English"?subject.title:t(subject.title)} */}
+              </p>
+            </div>
+          ) : null}
+          <img
+            className="pattern"
             style={{
-              background: lessonCardColor,
-              borderRadius: "7vh",
               width: width,
               height: height,
+              borderRadius: "12%",
               display: "grid",
               justifyContent: "center",
               alignItems: "center",
-              gridArea: "1/1",
+              gridArea: "1 / 1 ",
             }}
-            color={lessonCardColor}
-          >
-            {showSubjectName && subject?.title ? (
-              <div id="lesson-card-subject-name">
-                <p>
-                  {subject?.title}
-                  {/* {subject.title==="English"?subject.title:t(subject.title)} */}
-                </p>
-              </div>
-            ) : null}
-            <img
-              className="pattern"
-              style={{
-                width: width,
-                height: height,
-                borderRadius: "12%",
-                display: "grid",
-                justifyContent: "center",
-                alignItems: "center",
-                gridArea: "1 / 1 ",
-              }}
-              src={"courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"}
-              alt={"courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"}
-            ></img>
-
-            <div id="lesson-card-image">
-              {showImage ? (
+            src={"courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"}
+            alt={"courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"}
+          ></img>
+          <div id="lesson-card-image">
+            {showImage ? (
+              <img
+                id="lesson-card-image"
+                loading="lazy"
+                alt={
+                  "courses/" +
+                  lesson.cocosSubjectCode +
+                  "/icons/" +
+                  lesson.id +
+                  ".png"
+                }
+                src={
+                  "courses/" +
+                  lesson.cocosSubjectCode +
+                  "/icons/" +
+                  lesson.id +
+                  ".png"
+                }
+                onError={hideImg}
+              />
+            ) : (
+              <div /> // we can show Default LessonCard text or image
+            )}
+            {!isUnlocked ? (
+              <div id="lesson-card-status-icon">
                 <img
-                  id="lesson-card-image"
+                  id="lesson-card-status-icon1"
                   loading="lazy"
-                  alt={
-                    "courses/" +
-                    lesson.cocosSubjectCode +
-                    "/icons/" +
-                    lesson.id +
-                    ".png"
-                  }
-                  src={
-                    "courses/" +
-                    lesson.cocosSubjectCode +
-                    "/icons/" +
-                    lesson.id +
-                    ".png"
-                  }
-                  onError={hideImg}
+                  src="assets/icons/Lock_icon.svg"
+                  alt="assets/icons/Lock_icon.svg"
                 />
+              </div>
+            ) : isPlayed ? (
+              showScoreCard ? (
+                <div id="lesson-card-score">
+                  <ScoreCard score={score}></ScoreCard>
+                </div>
               ) : (
                 <></>
               )
             ) : (
               <div />
             )}
-            {!!isLoved && <LovedIcon isLoved={isLoved} />}
+            {isLoved && <LovedIcon isLoved={isLoved} />}
           </div>
         </div>
       </div>
-      <div className="lesson-card-text">
-        {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
-      </div>
+      {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
     </IonCard>
   );
 };
-                <div /> // we can show Default LessonCard text or image
-              )}
-
-              {!isUnlocked ? (
-                <div id="lesson-card-status-icon">
-                  <img
-                    id="lesson-card-status-icon1"
-                    loading="lazy"
-                    src="assets/icons/Lock_icon.svg"
-                    alt="assets/icons/Lock_icon.svg"
-                  />
-                </div>
-              ) : isPlayed ? (
-                showScoreCard ? (
-                  <div id="lesson-card-score">
-                    <ScoreCard score={score}></ScoreCard>
-                  </div>
-                ) : (
-                  <></>
-                )
-              ) : (
-                <div />
-              )}
-            </div>
-          </div>
-        </div>
-        {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
-      </IonCard>
-    );
-  };
 
 export default LessonCard;

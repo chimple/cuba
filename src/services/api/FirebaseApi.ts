@@ -637,6 +637,7 @@ export class FirebaseApi implements ServiceApi {
       date: result.dateLastModified,
       course: result.course!,
       score: result.score,
+      isLoved: result.isLoved,
       timeSpent: result.timeSpent,
     };
     console.log("playedResult", result.lesson.id, JSON.stringify(playedResult));

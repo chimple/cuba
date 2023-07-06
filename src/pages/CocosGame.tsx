@@ -100,7 +100,7 @@ const CocosGame: React.FC = () => {
 
     // document.body.addEventListener("problemEnd", onProblemEnd);
   }
-  const saveTempData = async (lessonData:lessonEndData, isLoved: boolean | undefined) => {
+  const saveTempData = async (lessonData:CocosLessonData, isLoved: boolean | undefined) => {
     const api = ServiceConfig.getI().apiHandler;
     const courseDocId: string | undefined = state.courseDocId;
     const lesson: Lesson = JSON.parse(state.lesson);
