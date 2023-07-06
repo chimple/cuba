@@ -30,7 +30,7 @@ export default class Assignment extends BaseObject {
     createdAt: Timestamp,
     docId: string
   ) {
-    super(dateLastModified, createdAt, docId);
+    super(updatedAt, createdAt, docId);
     this._assigner = assigner;
     this._class = class_1;
     this._completedStudents = completedStudents;
