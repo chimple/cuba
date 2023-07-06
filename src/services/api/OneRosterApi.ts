@@ -329,7 +329,7 @@ export class OneRosterApi implements ServiceApi {
     //     const result = {
     //       sourcedId: "..String..",
     //       status: "active",
-    //       dateLastModified: "..Date/Time..",
+    //       updatedAt: "..Date/Time..",
     //       metaData: {
     //         lessonId: lessonId,
     //       },
@@ -712,7 +712,7 @@ export class OneRosterApi implements ServiceApi {
     //   const date = new Date().toISOString();
     //   let preQuizResult: Result;
     //   if (preQuiz) {
-    //     preQuiz.dateLastModified = date;
+    //     preQuiz.updatedAt = date;
     //     preQuiz.score = Math.max(score, preQuiz.score);
     //     preQuizResult = preQuiz;
     //   } else {

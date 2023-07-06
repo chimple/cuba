@@ -167,6 +167,7 @@ export const PREVIOUS_SELECTED_COURSE = () =>
 export const SELECTED_GRADE = () => `${Auth.i.sourcedId}-selectedGrade`;
 export const APP_LANG = "appLang";
 export const CURRENT_SCHOOL = "currentSchool";
+export const CURRENT_MODE = "currentMode";
 export const CURRENT_CLASS = "currentClass";
 export const LANGUAGE = "language";
 export const EXAM = "exam";
@@ -259,8 +260,8 @@ export const MAX_STUDENTS_ALLOWED = 3;
 export const INSTANT_SEARCH_INDEX_NAME = "lesson_cuba";
 
 export enum MODES {
-  PARENT,
-  SCHOOL,
+  PARENT = "PARENT",
+  SCHOOL = "SCHOOL",
 }
 
 export const CURRENT_STUDENT = "currentStudent";
@@ -275,7 +276,3 @@ export const LAST_UPDATE_CHECKED = "lastUpdateChecked";
 export const LAST_PERMISSION_CHECKED = "lastPermissionChecked";
 
 export const CACHE_IMAGE = "cacheImage";
-
-export enum REMOTE_CONFIG_KEYS {
-  SHOW_RATING = "show_rating",
-}

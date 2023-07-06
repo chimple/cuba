@@ -10,11 +10,11 @@ export default class Topic extends BaseObject {
     description: string,
     title: string,
     subject: DocumentReference,
-    dateLastModified: Timestamp,
+    updatedAt: Timestamp,
     createdAt: Timestamp,
     docId: string
   ) {
-    super(dateLastModified, createdAt, docId);
+    super(updatedAt, createdAt, docId);
     this._description = description;
     this._title = title;
     this._subject = subject;
