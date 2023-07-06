@@ -19,6 +19,7 @@ import {
   PRE_QUIZ,
   SELECTED_GRADE,
   SL_GRADES,
+  APP_LANG,
 } from "../common/constants";
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
 import { GUIDRef } from "../interface/modelInterfaces";
@@ -389,7 +390,8 @@ export class Util {
   };
   public static setCurrentStudent = async (
     student: User,
-    languageCode: string | undefined = undefined
+    languageCode: string | undefined = undefined,
+    langFlag: boolean = true
   ) => {
     const api = ServiceConfig.getI().apiHandler;
     api.currentStudent = student;
@@ -415,15 +417,17 @@ export class Util {
         docId: student.docId,
       })
     );
-    if (!languageCode && !!student.language?.id) {
-      const langDoc = await api.getLanguageWithId(student.language.id);
-      if (langDoc) {
-        languageCode = langDoc.code;
+    if (!!langFlag) {
+      if (!languageCode && !!student.language?.id) {
+        const langDoc = await api.getLanguageWithId(student.language.id);
+        if (langDoc) {
+          languageCode = langDoc.code;
+        }
       }
+      const tempLangCode = languageCode ?? LANG.ENGLISH;
+      localStorage.setItem(LANGUAGE, tempLangCode);
+      await i18n.changeLanguage(tempLangCode);
     }
-    const tempLangCode = languageCode ?? LANG.ENGLISH;
-    localStorage.setItem(LANGUAGE, tempLangCode);
-    await i18n.changeLanguage(tempLangCode);
   };
 
   public static randomBetween(min, max) {
