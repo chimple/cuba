@@ -28,7 +28,6 @@ import { OneRosterApi } from "../services/api/OneRosterApi";
 import User from "../models/user";
 import { ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
-import { FirebaseAnalytics } from "@capacitor-firebase/analytics";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 import {
   DocumentReference,
@@ -432,18 +431,6 @@ export class Util {
 
   public static randomBetween(min, max) {
     return Math.floor(Math.random() * (max - min) + min);
-  }
-
-  public static async logEvent(
-    eventName: EVENTS,
-    params?: {
-      [key: string]: any;
-    }
-  ) {
-    await FirebaseAnalytics.logEvent({
-      name: eventName,
-      params: params,
-    });
   }
 
   public static async subscribeToClassTopic(

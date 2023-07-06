@@ -28,6 +28,8 @@ import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { CollectionIds } from "../../common/courseConstants";
+import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
+import { ACTION, EVENTS } from "../../common/constants";
 
 export class FirebaseAuth implements ServiceAuth {
   public static i: FirebaseAuth;
@@ -73,6 +75,13 @@ export class FirebaseAuth implements ServiceAuth {
       const userRef = doc(this._db, "User", user.uid);
       if (additionalUserInfo?.isNewUser) {
         await this._createUserDoc(user);
+        FirebaseAnalytics.logEvent({name:EVENTS.USER_PROFILE,params:{
+          user_name: user.displayName,
+          phone_number: user.email ?? user.phoneNumber!,
+          user_username: user.email,
+          user_id: user.uid,
+          action_type: ACTION.CREATE
+        }});
       } else {
         const tempUserDoc = await getDoc(userRef);
         if (!tempUserDoc.exists) {
@@ -336,6 +345,12 @@ export class FirebaseAuth implements ServiceAuth {
       if (!tempUserDoc.exists()) {
         let u = await this._createUserDoc(userData);
         console.log("created user", u);
+        FirebaseAnalytics.logEvent({name:EVENTS.USER_PROFILE,params:{
+          user_name: u.name,
+          user_username: u.username,
+          user_id: u.uid,
+          action_type: ACTION.CREATE
+        }});
       } else {
         this._currentUser = tempUserDoc.data() as User;
         this._currentUser.docId = tempUserDoc.id;
