@@ -1,5 +1,9 @@
 [
 	{
+		"pkg": "@capacitor-community/firebase-analytics",
+		"classpath": "com.getcapacitor.community.firebaseanalytics.FirebaseAnalytics"
+	},
+	{
 		"pkg": "@capacitor-community/http",
 		"classpath": "com.getcapacitor.plugin.http.Http"
 	},

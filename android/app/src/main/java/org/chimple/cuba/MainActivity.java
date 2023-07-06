@@ -1,6 +1,5 @@
 package org.chimple.cuba;
 
-
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +11,7 @@ import android.view.View;
 
 import rawhttp.core.RawHttp;
 
+import com.getcapacitor.community.firebaseanalytics.FirebaseAnalytics;
 import com.getcapacitor.BridgeActivity;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.appcheck.FirebaseAppCheck;
@@ -37,6 +37,7 @@ public class MainActivity extends BridgeActivity {
         FirebaseAppCheck firebaseAppCheck = FirebaseAppCheck.getInstance();
         firebaseAppCheck.installAppCheckProviderFactory(
                 DebugAppCheckProviderFactory.getInstance());
+        add(FirebaseAnalytics.class);
     }
 
     private HttpOverIpcClient mIpcClient;
