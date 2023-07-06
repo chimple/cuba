@@ -1,25 +1,25 @@
 import { Timestamp } from "firebase/firestore";
 
 export default class BaseObject {
-  private _dateLastModified: Timestamp;
+  private _updatedAt: Timestamp;
   private _createdAt: Timestamp;
   private _docId: string;
 
   constructor(
-    dateLastModified: Timestamp,
+    updatedAt: Timestamp,
     createdAt: Timestamp,
     docId: string
   ) {
-    this._dateLastModified = dateLastModified;
+    this._updatedAt = updatedAt;
     this._createdAt = createdAt;
     this._docId = docId;
   }
 
-  get dateLastModified(): Timestamp {
-    return this._dateLastModified;
+  get updatedAt(): Timestamp {
+    return this._updatedAt;
   }
-  set dateLastModified(value: Timestamp) {
-    this._dateLastModified = value;
+  set updatedAt(value: Timestamp) {
+    this._updatedAt = value;
   }
   public get createdAt(): Timestamp {
     return this._createdAt;

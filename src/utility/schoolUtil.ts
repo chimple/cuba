@@ -110,7 +110,7 @@ export class schoolUtil {
         teachers: currSchool.teachers,
         principal: currSchool.principal,
         coordinator: currSchool.coordinator,
-        dateLastModified: currSchool.dateLastModified,
+        updatedAt: currSchool.updatedAt,
         role: currSchool.role,
         createdAt: currSchool.createdAt,
         docId: currSchool.docId,
