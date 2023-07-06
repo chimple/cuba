@@ -63,9 +63,9 @@ const Parent: React.FC = () => {
   const history = useHistory();
   const parentHeaderIconList = [
     { header: "profile", displayName: "Profile" },
-    { header: "settings", displayName: "Settings" },
+    { header: "setting", displayName: "Setting" },
     { header: "help", displayName: "Help" },
-    { header: "fAQ", displayName: "FAQ" },
+    { header: "faq", displayName: "FAQ" },
   ];
 
   useEffect(() => {
@@ -167,6 +167,7 @@ const Parent: React.FC = () => {
               width="26vw"
               onValueChange={async (selectedLangDocId) => {
                 // setIsLoading(true);
+
                 const api = ServiceConfig.getI().apiHandler;
                 // api.deleteAllUserData
                 const langDoc = await api.getLanguageWithId(selectedLangDocId);
@@ -176,6 +177,7 @@ const Parent: React.FC = () => {
                 console.log("applang", selectedLangDocId);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
+                setTabIndex(t(parentHeaderIconList[1].header));
 
                 const langId = langDocIds.get(langDoc.code);
 
@@ -193,6 +195,7 @@ const Parent: React.FC = () => {
                 const element = allLang.find(
                   (obj) => obj.docId === selectedLangDocId
                 );
+
                 if (!element) return;
                 localStorage.setItem(APP_LANG, element.code);
               }}
@@ -397,7 +400,7 @@ const Parent: React.FC = () => {
 
   useEffect(() => {
     if (!tabIndex && parentHeaderIconList.length > 0) {
-      setTabIndex(parentHeaderIconList[0].header);
+      setTabIndex(t(parentHeaderIconList[0].header));
     }
   }, []);
 
@@ -405,15 +408,15 @@ const Parent: React.FC = () => {
     <Box>
       <div>
         <CustomAppBar
-          tabNames={parentHeaderIconList.map((item) => item.header)}
+          tabNames={parentHeaderIconList.map((item) => t(item.header))}
           value={tabIndex}
           onChange={handleChange}
           handleBackButton={handleBackButton}
         />
-        {tabIndex === "profile" && <div>{profileUI()}</div>}
-        {tabIndex === "settings" && <div>{settingUI()}</div>}
-        {tabIndex === "help" && <div>{helpUI()}</div>}
-        {tabIndex === "faq" && <div></div>}
+        {tabIndex === t("profile") && <div>{profileUI()}</div>}
+        {tabIndex === t("setting") && <div>{settingUI()}</div>}
+        {tabIndex === t("help") && <div>{helpUI()}</div>}
+        {tabIndex === t("faq") && <div></div>}
       </div>
     </Box>
   );
