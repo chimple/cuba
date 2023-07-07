@@ -697,4 +697,19 @@ export class Util {
       );
     }
   }
+
+  public static async migrate() {
+    if (!Util.port) {
+      Util.port = registerPlugin<PortPlugin>("Port");
+    }
+    try {
+      const port = await Util.port.getMigrateUsers();
+      console.log(
+        "🚀 ~ file: util.ts:706 ~ migrate ~ port:",
+        JSON.stringify(port.users)
+      );
+    } catch (error) {
+      console.log("🚀 ~ file: util.ts:707 ~ migrate ~ error:", error);
+    }
+  }
 }

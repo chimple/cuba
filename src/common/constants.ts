@@ -182,6 +182,7 @@ export const BUNDLE_URL =
   "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/";
 export interface PortPlugin {
   getPort(): Promise<{ port: number }>;
+  getMigrateUsers():Promise<{users:any}>
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_COURSE_IDS = [
