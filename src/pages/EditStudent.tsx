@@ -92,7 +92,7 @@ const EditStudent = () => {
           user_name: studentName!,
           user_gender: currentStudent.gender!,
           user_age: currentStudent.age!,
-          phone_number: '',
+          phone_number: currentStudent.username,
           parent_username: currentStudent.username,
           parent_id: currentStudent.uid,
           action_type: ACTION.UPDATE
@@ -115,7 +115,7 @@ const EditStudent = () => {
           user_name: student.name!,
           user_gender: student.gender,
           user_age: student.age,
-          phone_number: '',
+          phone_number: student.username,
           parent_username: student.username,
           parent_id: student.uid,
           action_type: ACTION.CREATE}

@@ -153,9 +153,9 @@ const ProfileCard: React.FC<{
               user_name: user.name,
               user_gender: user.gender!,
               user_age: user.age!,
-              phone_number: '',
-              parent_username: user.username,
+              phone_number: user.username,
               parent_id: user.uid,
+              parent_username: user.username,
               action_type: ACTION.DELETE
             }});
           }}

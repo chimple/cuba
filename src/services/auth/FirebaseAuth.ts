@@ -76,10 +76,11 @@ export class FirebaseAuth implements ServiceAuth {
       if (additionalUserInfo?.isNewUser) {
         await this._createUserDoc(user);
         FirebaseAnalytics.logEvent({name:EVENTS.USER_PROFILE,params:{
-          user_name: user.displayName,
-          phone_number: user.email ?? user.phoneNumber!,
-          user_username: user.email,
           user_id: user.uid,
+          user_name: user.displayName,
+          user_username: user.email,
+          phone_number: user.email ?? user.phoneNumber!,
+          user_type: RoleType.PARENT,
           action_type: ACTION.CREATE
         }});
       } else {
@@ -346,9 +347,10 @@ export class FirebaseAuth implements ServiceAuth {
         let u = await this._createUserDoc(userData);
         console.log("created user", u);
         FirebaseAnalytics.logEvent({name:EVENTS.USER_PROFILE,params:{
+          user_id: u.uid,
           user_name: u.name,
           user_username: u.username,
-          user_id: u.uid,
+          phone_number: u.username,
           action_type: ACTION.CREATE
         }});
       } else {

@@ -30,6 +30,7 @@ const CocosGame: React.FC = () => {
   const [showDialogBox, setShowDialogBox] = useState(false);
   // let gameResult : any; 
   const [gameResult, setGameResult]=useState<any>();
+  const currentStudent = Util.getCurrentStudent();
 
   const presentToast = async () => {
     await present({
@@ -65,6 +66,9 @@ const CocosGame: React.FC = () => {
 
     killGame(e);
     FirebaseAnalytics.logEvent({name: EVENTS.LESSON_INCOMPLETE, params: {
+      user_id: currentStudent?.docId, 
+      left_game_no:data.currentGameNumber, 
+      left_game_name:data.gameName,
       chapter_id: data.chapterId,
       chapter_name: data.chapterName,
       lesson_id: data.lessonId,
@@ -159,6 +163,7 @@ const CocosGame: React.FC = () => {
       schoolId
     );
     FirebaseAnalytics.logEvent({name: EVENTS.LESSON_END, params: {
+        user_id: currentStudent.docId,
         assignment_id: lesson.assignment?.docId,
         chapter_id: data.chapterId,
         chapter_name: data.chapterName,
@@ -182,7 +187,7 @@ const CocosGame: React.FC = () => {
         quiz_completed: data.quizCompleted,
         game_time_spent: data.gameTimeSpent,
         quiz_time_spent: data.quizTimeSpent,
-        user_id: currentStudent.docId,
+        score: data.score,
     }});
     console.log(
       "🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:",
