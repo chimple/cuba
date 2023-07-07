@@ -351,6 +351,7 @@ export class FirebaseAuth implements ServiceAuth {
           user_name: u.name,
           user_username: u.username,
           phone_number: u.username,
+          user_type: RoleType.PARENT,
           action_type: ACTION.CREATE
         }});
       } else {
