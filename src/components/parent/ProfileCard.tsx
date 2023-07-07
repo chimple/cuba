@@ -87,7 +87,7 @@ const ProfileCard: React.FC<{
         <div
           id="profile-card-image-report"
           onClick={async () => {
-            await Util.setCurrentStudent(user);
+            await Util.setCurrentStudent(user, undefined, false);
             // const api = ServiceConfig.getI().apiHandler;
             // api.currentStudent = user;
 
@@ -104,7 +104,9 @@ const ProfileCard: React.FC<{
         <DialogBoxButtons
           width={"40vw"}
           height={"30vh"}
-          message={t("You can edit or delete user by clicking on the below buttons")}
+          message={t(
+            "You can edit or delete user by clicking on the below buttons"
+          )}
           showDialogBox={showDialogBox}
           yesText={t("Delete User")}
           noText={t("Edit User")}

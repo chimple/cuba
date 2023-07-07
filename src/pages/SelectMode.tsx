@@ -61,19 +61,23 @@ const SelectMode: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
-
+  
   const [stage, setStage] = useState(STAGES.MODE);
   const init = async () => {
     setIsLoading(true);
     const currUser = await auth.getCurrentUser();
     if (!currUser) return;
     const allSchool = await api.getSchoolsForUser(currUser);
-
+    const students = await api.getParentStudentProfiles();
     // const isTeacher = await api.isUserTeacher(currUser);
     // console.log("This is the current status of teacher " + isTeacher);
     if (!allSchool || allSchool.length < 1) {
       api.currentMode = MODES.PARENT;
       schoolUtil.setCurrMode(MODES.PARENT);
+      console.log(students);
+      if(!!students && students.length == 0){
+        history.replace(PAGES.EDIT_STUDENT);
+      }else
       history.replace(PAGES.DISPLAY_STUDENT);
       return;
     } else {
@@ -98,8 +102,12 @@ const SelectMode: FC = () => {
     setSchoolList(tempSchoolList);
   };
 
-  const onParentSelect = () => {
+  const onParentSelect = async () => {
     api.currentMode = MODES.PARENT;
+    const students = await api.getParentStudentProfiles();
+    if(!!students && students.length == 0){
+      history.replace(PAGES.EDIT_STUDENT);
+    }else
     history.replace(PAGES.DISPLAY_STUDENT);
     schoolUtil.setCurrMode(MODES.PARENT);
     // setStage(STAGES.MODE);
