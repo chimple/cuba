@@ -18,10 +18,12 @@ import NextButton from "../components/common/NextButton";
 const AppLangSelection: React.FC = () => {
   const history = useHistory();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [langList, setLangList] = useState<{
-    id: string;
-    displayName: string;
-  }[]>([]);
+  const [langList, setLangList] = useState<
+    {
+      id: string;
+      displayName: string;
+    }[]
+  >([]);
   const [currentAppLang, setCurrentAppLang] = useState<string>();
 
   useEffect(() => {
@@ -81,11 +83,12 @@ const AppLangSelection: React.FC = () => {
               width="26vw"
               onValueChange={async (selectedLang) => {
                 console.log("selected Langauage", selectedLang);
-                const tempLangCode = selectedLang
-                console.log("tempLangCode", tempLangCode, langList)
+                const tempLangCode = selectedLang;
+                console.log("tempLangCode", tempLangCode, langList);
                 if (!tempLangCode) return;
                 localStorage.setItem(APP_LANG, tempLangCode);
                 setCurrentAppLang(tempLangCode);
+                console.log("this is the selected lang" + tempLangCode);
                 await i18n.changeLanguage(tempLangCode);
                 // history.replace(PAGES.LOGIN);
               }}
@@ -96,7 +99,6 @@ const AppLangSelection: React.FC = () => {
       <Loading isLoading={isLoading} />
       {/* </IonInfiniteScrollContent> */}
       {/* </IonInfiniteScroll> */}
-
     </IonPage>
   );
 };

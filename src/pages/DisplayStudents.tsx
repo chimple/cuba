@@ -60,11 +60,14 @@ const DisplayStudents: FC<{}> = () => {
       "🚀 ~ file: DisplayStudents.tsx:30 ~ onStudentClick:student",
       student
     );
-    await Util.setCurrentStudent(student);
+    await Util.setCurrentStudent(student, undefined, false);
     history.replace(PAGES.HOME);
   };
   const onCreateNewStudent = () => {
-    history.push(PAGES.CREATE_STUDENT);
+    // history.push(PAGES.CREATE_STUDENT);
+    history.push(PAGES.CREATE_STUDENT, {
+      showBackButton: true,
+    });
   };
   return (
     <IonPage id="display-students">
@@ -111,7 +114,11 @@ const DisplayStudents: FC<{}> = () => {
           </div>
           {students.length < MAX_STUDENTS_ALLOWED && (
             <div className="add-new-button">
-              <IoAddCircleSharp color="white" size="10vh" onClick={onCreateNewStudent} />
+              <IoAddCircleSharp
+                color="white"
+                size="10vh"
+                onClick={onCreateNewStudent}
+              />
               {t("Create New Child Profile")}
             </div>
           )}

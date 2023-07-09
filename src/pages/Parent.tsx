@@ -170,9 +170,17 @@ const Parent: React.FC = () => {
 
                 const api = ServiceConfig.getI().apiHandler;
                 // api.deleteAllUserData
-                const langDoc = await api.getLanguageWithId(selectedLangDocId);
-                console.log("langDoc", langDoc);
+                // const langDoc = await api.getLanguageWithId(selectedLangDocId);
+                const allLang =
+                  await ServiceConfig.getI().apiHandler.getAllLanguages();
+
+                const langDoc = allLang.find(
+                  (obj) => obj.docId === selectedLangDocId
+                );
+
                 if (!langDoc) return;
+                localStorage.setItem(APP_LANG, langDoc.code);
+                console.log("langDoc", langDoc);
                 await i18n.changeLanguage(langDoc.code);
                 console.log("applang", selectedLangDocId);
                 const currentUser =
@@ -189,15 +197,6 @@ const Parent: React.FC = () => {
                 }
                 console.log("selectedLangDocId", selectedLangDocId);
                 setCurrentAppLang(selectedLangDocId);
-                const allLang =
-                  await ServiceConfig.getI().apiHandler.getAllLanguages();
-
-                const element = allLang.find(
-                  (obj) => obj.docId === selectedLangDocId
-                );
-
-                if (!element) return;
-                localStorage.setItem(APP_LANG, element.code);
               }}
             />
           </div>

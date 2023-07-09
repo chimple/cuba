@@ -25,6 +25,7 @@ import i18n from "../i18n";
 const EditStudent = () => {
   const history = useHistory();
   const location = useLocation();
+  const state = history.location.state as any;
   const api = ServiceConfig.getI().apiHandler;
   const currentStudent = Util.getCurrentStudent();
   const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
@@ -104,6 +105,7 @@ const EditStudent = () => {
         await Util.setCurrentStudent(
           student,
           langIndex && languages ? languages[langIndex]?.code : undefined,
+          false,
           false
         );
       }
@@ -159,18 +161,23 @@ const EditStudent = () => {
         setIsInputFocus(false);
       });
     }
-    const languageDocId = localStorage.getItem(APP_LANG);
-    if (!!languageDocId) i18n.changeLanguage(languageDocId);
+    changeLanguage();
   }, []);
-
+  async function changeLanguage() {
+    const languageDocId = localStorage.getItem(APP_LANG);
+    console.log("This is the lang " + languageDocId);
+    if (!!languageDocId) await i18n.changeLanguage(languageDocId);
+  }
   return (
     <IonPage id="Edit-student-page">
       <div id="Edit-student-back-button">
-        <BackButton
-          onClicked={() => {
-            history.replace(PAGES.PROFILE);
-          }}
-        />
+        {!isEdit && !state?.showBackButton ? null : (
+          <BackButton
+            onClicked={() => {
+              history.replace(PAGES.PROFILE);
+            }}
+          />
+        )}
       </div>
 
       <div id="next-button">
@@ -216,7 +223,7 @@ const EditStudent = () => {
               <ChimpleLogo header={t("")} msg={t("").toString()} />
             </div>
             <div className="avatar-title">
-              {t("Choose an avatar for your child:")}
+              {t("Choose an avatar for your child")}
             </div>
           </>
         </>

@@ -11,7 +11,7 @@ import {
   EVENTS,
   FCM_TOKENS,
   LANG,
-  LANGUAGE,
+  // LANGUAGE,
   LAST_PERMISSION_CHECKED,
   LAST_UPDATE_CHECKED,
   PAGES,
@@ -391,7 +391,8 @@ export class Util {
   public static setCurrentStudent = async (
     student: User,
     languageCode: string | undefined = undefined,
-    langFlag: boolean = true
+    langFlag: boolean = true,
+    isStudent: boolean = true
   ) => {
     const api = ServiceConfig.getI().apiHandler;
     api.currentStudent = student;
@@ -417,17 +418,16 @@ export class Util {
         docId: student.docId,
       })
     );
-    if (!!langFlag) {
-      if (!languageCode && !!student.language?.id) {
-        const langDoc = await api.getLanguageWithId(student.language.id);
-        if (langDoc) {
-          languageCode = langDoc.code;
-        }
+
+    if (!languageCode && !!student.language?.id) {
+      const langDoc = await api.getLanguageWithId(student.language.id);
+      if (langDoc) {
+        languageCode = langDoc.code;
       }
-      const tempLangCode = languageCode ?? LANG.ENGLISH;
-      localStorage.setItem(LANGUAGE, tempLangCode);
-      await i18n.changeLanguage(tempLangCode);
     }
+    const tempLangCode = languageCode ?? LANG.ENGLISH;
+    if (!!langFlag) localStorage.setItem(APP_LANG, tempLangCode);
+    if (!!isStudent) await i18n.changeLanguage(tempLangCode);
   };
 
   public static randomBetween(min, max) {
