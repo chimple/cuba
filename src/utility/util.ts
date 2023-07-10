@@ -11,7 +11,7 @@ import {
   EVENTS,
   FCM_TOKENS,
   LANG,
-  // LANGUAGE,
+  LANGUAGE,
   LAST_PERMISSION_CHECKED,
   LAST_UPDATE_CHECKED,
   PAGES,
@@ -19,7 +19,7 @@ import {
   PRE_QUIZ,
   SELECTED_GRADE,
   SL_GRADES,
-  APP_LANG,
+  // APP_LANG,
 } from "../common/constants";
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
 import { GUIDRef } from "../interface/modelInterfaces";
@@ -426,7 +426,7 @@ export class Util {
       }
     }
     const tempLangCode = languageCode ?? LANG.ENGLISH;
-    if (!!langFlag) localStorage.setItem(APP_LANG, tempLangCode);
+    if (!!langFlag) localStorage.setItem(LANGUAGE, tempLangCode);
     if (!!isStudent) await i18n.changeLanguage(tempLangCode);
   };
 

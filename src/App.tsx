@@ -31,13 +31,13 @@ import Login from "./pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
 import { App as CapApp } from "@capacitor/app";
 import {
-  APP_LANG,
+  // APP_LANG,
   BASE_NAME,
   CACHE_IMAGE,
   GAME_URL,
   IS_CUBA,
   LANG,
-  // LANGUAGE,
+  LANGUAGE,
   PAGES,
 } from "./common/constants";
 import { Util } from "./utility/util";
@@ -60,7 +60,7 @@ setupIonicReact();
 const App: React.FC = () => {
   useEffect(() => {
     console.log("fetching...");
-    localStorage.setItem(APP_LANG, LANG.ENGLISH);
+    localStorage.setItem(LANGUAGE, LANG.ENGLISH);
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({

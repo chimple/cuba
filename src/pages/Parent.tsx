@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./Parent.css";
 import {
-  APP_LANG,
+  LANGUAGE,
   LANG,
   MAX_STUDENTS_ALLOWED,
   PAGES,
@@ -59,7 +59,7 @@ const Parent: React.FC = () => {
     displayName: string;
   }[] = [];
   // let langDocIds: Map<string, string> = new Map();
-  const localAppLang = localStorage.getItem(APP_LANG);
+  const localAppLang = localStorage.getItem(LANGUAGE);
   const history = useHistory();
   const parentHeaderIconList = [
     { header: "profile", displayName: "Profile" },
@@ -179,7 +179,7 @@ const Parent: React.FC = () => {
                 );
 
                 if (!langDoc) return;
-                localStorage.setItem(APP_LANG, langDoc.code);
+                localStorage.setItem(LANGUAGE, langDoc.code);
                 console.log("langDoc", langDoc);
                 await i18n.changeLanguage(langDoc.code);
                 console.log("applang", selectedLangDocId);

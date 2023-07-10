@@ -5,7 +5,7 @@ import { FirebaseApi } from "../services/api/FirebaseApi";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { useHistory } from "react-router";
 import {
-  APP_LANG,
+  LANGUAGE,
   AVATARS,
   CURRENT_CLASS,
   CURRENT_MODE,
@@ -104,7 +104,7 @@ const SelectMode: FC = () => {
     setSchoolList(tempSchoolList);
   };
   async function changeLanguage() {
-    const languageDocId = localStorage.getItem(APP_LANG);
+    const languageDocId = localStorage.getItem(LANGUAGE);
     console.log("This is the lang " + languageDocId);
     if (!!languageDocId) await i18n.changeLanguage(languageDocId);
   }

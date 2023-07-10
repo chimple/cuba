@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import GenderAndAge from "../components/editStudent/GenderAndAge";
 import SelectAvatar from "../components/editStudent/SelectAvatar";
 import GradeBoardAndLangDropdown from "../components/editStudent/GradeBoardAndLangDropdown";
-import { APP_LANG, CURRENT_STUDENT, GENDER, PAGES } from "../common/constants";
+import { LANGUAGE, CURRENT_STUDENT, GENDER, PAGES } from "../common/constants";
 import { chevronForward } from "ionicons/icons";
 import Curriculum from "../models/curriculum";
 import Grade from "../models/grade";
@@ -164,7 +164,7 @@ const EditStudent = () => {
     changeLanguage();
   }, []);
   async function changeLanguage() {
-    const languageDocId = localStorage.getItem(APP_LANG);
+    const languageDocId = localStorage.getItem(LANGUAGE);
     console.log("This is the lang " + languageDocId);
     if (!!languageDocId) await i18n.changeLanguage(languageDocId);
   }
