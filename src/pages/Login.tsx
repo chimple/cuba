@@ -265,12 +265,13 @@ const Login: React.FC = () => {
   async function resendOtpHandler() {
     try {
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
-      await setRecaptchaVerifier(undefined);
+      setRecaptchaVerifier(undefined);
       let authRes = await authInstance.phoneNumberSignIn(
         phoneNumberWithCountryCode,
         recaptchaVerifier
       );
       if (authRes) {
+        setPhoneNumberSigninRes(authRes);
         console.log("Resend Otp Sucessfull");
         setShowResendOtp(false);
         setCounter(59);
@@ -527,6 +528,4 @@ const Login: React.FC = () => {
 };
 
 export default Login;
-function setIsInputFocus(arg0: boolean) {
-  throw new Error("Function not implemented.");
-}
+
