@@ -222,14 +222,21 @@ const Login: React.FC = () => {
 
       if (res.isUserExist) {
         setIsLoading(false);
-        history.replace(PAGES.DISPLAY_STUDENT);
+        history.replace(PAGES.SELECT_MODE);
         // setShowNameInput(true);
       } else if (!res.isUserExist) {
         setIsLoading(false);
-        setShowNameInput(true);
-        history.replace(PAGES. DISPLAY_STUDENT);
+        let phoneAuthResult = await FirebaseAuth.i.createPhoneAuthUser(
+           res.user,
+          phoneNumberSigninRes
+        );
+        if (phoneAuthResult) {
+          // history.push(PAGES.DISPLAY_STUDENT);
+          history.replace(PAGES.SELECT_MODE);
+        }
       } else {
         setIsLoading(false);
+      
         console.log("Verification Failed");
         alert("Verification Failed");
       }
