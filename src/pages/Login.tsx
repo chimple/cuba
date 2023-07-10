@@ -254,9 +254,7 @@ const Login: React.FC = () => {
     }
   };
 
-  function onResendOtp() {
-    throw new Error("Function not implemented.");
-  }
+
   function startResendOtpCounter() {
     !showTimer && setShowTimer(true);
     return true;
