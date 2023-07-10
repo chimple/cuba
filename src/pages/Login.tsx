@@ -44,6 +44,9 @@ const Login: React.FC = () => {
   // let phoneNumber: string = "";
   // let verificationCode: string = "";
   let displayName: string = "";
+  const [counter, setCounter] = useState(59);
+  const [showTimer, setShowTimer] = useState<boolean>(false);
+  const [showResendOtp, setShowResendOtp] = useState<boolean>(false);
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
   const [isInputFocus, setIsInputFocus] = useState(false);
   const scollToRef = useRef<null | HTMLDivElement>(null);
@@ -59,6 +62,7 @@ const Login: React.FC = () => {
   const phoneNumberErrorRef = useRef<any>();
 
   useEffect(() => {
+
     init();
     setIsLoading(true);
 
@@ -151,6 +155,15 @@ const Login: React.FC = () => {
       }
     }
   }, [recaptchaVerifier]);
+  React.useEffect(() => {
+    if (counter <= 0) {
+      setShowResendOtp(true);
+    }
+    showTimer &&
+      counter > 0 && setTimeout(() => setCounter(counter - 1), 1000);
+
+  }, [counter, showTimer]);
+
 
   const onPhoneNumberSubmit = async () => {
     // setIsLoading(true);
@@ -179,6 +192,7 @@ const Login: React.FC = () => {
       if (authRes) {
         setPhoneNumberSigninRes(authRes);
         setShowVerification(true);
+
         setSpinnerLoading(false);
         // setIsLoading(false);
       } else {
@@ -202,6 +216,7 @@ const Login: React.FC = () => {
       // window.recaptchaVerifier.clear();
     }
   };
+
 
   const onVerificationCodeSubmit = async () => {
     try {
@@ -238,6 +253,40 @@ const Login: React.FC = () => {
       alert("Verification Failed" + error);
     }
   };
+
+  function onResendOtp() {
+    throw new Error("Function not implemented.");
+  }
+  function startResendOtpCounter() {
+    !showTimer && setShowTimer(true);
+    return true;
+  }
+
+  async function resendOtpHandler() {
+    try {
+      let phoneNumberWithCountryCode = countryCode + phoneNumber;
+      await setRecaptchaVerifier(undefined);
+      let authRes = await authInstance.phoneNumberSignIn(
+        phoneNumberWithCountryCode,
+        recaptchaVerifier
+      );
+      if (authRes) {
+        console.log("Resend Otp Sucessfull");
+        setShowResendOtp(false);
+        setCounter(59);
+      }
+      else {
+        console.log("Resend Otp failed")
+      }
+
+    } catch (error) {
+      console.log("Resend Otp Failed With Error " + error);
+      alert("Resend Otp Failed " + error);
+      recaptchaVerifier!.clear();
+    }
+
+
+  }
 
   return (
     <IonPage id="login-screen">
@@ -297,6 +346,7 @@ const Login: React.FC = () => {
 
                     ></TextBox>
                   </div>
+
                   <p ref={phoneNumberErrorRef} style={{ display: "none" }} className="error-message">Please Enter 10 digit Mobile Number</p>
                 </div>
                 <div id="recaptcha-container" />
@@ -325,6 +375,9 @@ const Login: React.FC = () => {
                     if (phoneNumber.length === 10) {
                       onPhoneNumberSubmit();
 
+
+
+
                     }
                     else {
                       phoneNumberErrorRef.current.style.display = "block";
@@ -335,6 +388,7 @@ const Login: React.FC = () => {
                 >
                   {t("Send OTP")}
                 </div>
+
               </div>
               {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
               <IonLoading
@@ -376,9 +430,11 @@ const Login: React.FC = () => {
                 }}
               />
             </div>
-          ) : !showNameInput ? (
+          ) : !showNameInput && startResendOtpCounter() ? (
             <div>
+              <p id="otp-sent">Otp Sent To The {countryCode + phoneNumber}</p>
               <div id="login-text-box">
+
                 <TextBox
                   inputText={"Enter 6 Digit Code"}
                   inputType={"tel"}
@@ -412,6 +468,7 @@ const Login: React.FC = () => {
                 onClick={() => {
                   if (verificationCode.length === 6) {
                     onVerificationCodeSubmit();
+
                   }
                   // setIsLoading(false);
                   // setShowNameInput(true);
@@ -420,6 +477,10 @@ const Login: React.FC = () => {
               >
                 Get Started
               </div>
+              {showResendOtp ?
+                <span id="resend-otp" onClick={
+                  resendOtpHandler
+                }>Resend Otp </span> : <span id="resend-otp-in"> ResendOtp In : {counter}</span>}
               {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
             </div>
           ) : (
@@ -432,8 +493,8 @@ const Login: React.FC = () => {
                   inputValue={displayName}
                   onChange={(input) => {
                     if (input.detail.value) {
-                      console.log(""+ input.detail.value);
-                     // setParentName(input.detail.value);
+                      console.log("" + input.detail.value);
+                      // setParentName(input.detail.value);
 
                     }
                   }}
