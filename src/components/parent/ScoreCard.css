@@ -20,6 +20,7 @@
   justify-content: space-around;
   margin: 5%;
 }
+
 .score-card-content {
   display: flex;
   white-space: nowrap;
@@ -44,11 +45,13 @@
 .title-scoreCard {
   font-size: 6vh;
   white-space: nowrap;
+  margin: 6% 0% 0% 0%;
 }
 
 .image-icon {
   height: 18vh;
   width: 18vh;
+  transform: translateY(5vh);
 }
 
 .heart-icon {

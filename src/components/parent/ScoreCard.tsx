@@ -14,9 +14,9 @@ import { chevronForward } from "ionicons/icons";
 import { title } from "process";
 import { IoCloseCircle } from "react-icons/io5";
 import { PAGES } from "../../common/constants";
-import StarImages from "./ScoreCardStarIcons";
 import { AiTwotoneHeart } from "react-icons/ai";
 import { GrFormNext } from "react-icons/gr";
+import ScoreCardStarIcons from "./ScoreCardStarIcons";
 
 const ScoreCard: React.FC<{
   width: string;
@@ -54,6 +54,7 @@ const ScoreCard: React.FC<{
           "& .MuiPaper-root": { borderRadius: "6vh !important" },
           "& .MuiTypography-root": { margin: "0% 0% 0% 0% !important" },
           "& .MuiDialogActions-root": { color: "white" },
+          "& .MuiDialogContent-root" : { padding : "2vh 6vh !important" },
         }}
       >
         <DialogContent
@@ -64,15 +65,14 @@ const ScoreCard: React.FC<{
             height: height,
           }}
         >
-          <DialogContentText
-            className="dialog-content-text"
-          >
-            <div>
+          <DialogContentText className="dialog-content-text">
+            <div className="score-card-icons">
               <img src="assets/loading.gif" className="image-icon" />
+              <div className="star-images-component">
+                <ScoreCardStarIcons score={score} />
+              </div>
             </div>
-            <div className="star-images-component">
-              <StarImages score={score} />
-            </div>
+
             <div className="title-scoreCard">{title}</div>
 
             <div className="score-card-content">
@@ -81,9 +81,7 @@ const ScoreCard: React.FC<{
             </div>
           </DialogContentText>
         </DialogContent>
-        <DialogActions
-          className="dialog-actions"
-        >
+        <DialogActions className="dialog-actions">
           <div
             id={"yesButton"}
             className="dialog-box-button-style-score-card"

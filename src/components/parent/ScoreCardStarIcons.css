@@ -11,8 +11,8 @@
 .score-card-first-star {
   width: min(7.6vh, 62px);
   /* float: left; 
-  position: relative; */
-  transform: translateY(-5vh);
+  position: relative; 
+  transform: translateY(-5vh); */
 }
 
 .score-card-middle-star {
@@ -20,4 +20,5 @@
   /* float: left;
   position: relative; */
   margin: 0 2px;
+  transform: translateY(5vh);
 }
