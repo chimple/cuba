@@ -1,42 +1,42 @@
-import "./ScoreCard.css";
-const ScoreCard: React.FC<{
+import "./ScoreCardStarIcons.css";
+
+const StarImages: React.FC<{
   score: number;
 }> = ({ score }) => {
   return (
     <div>
-      <div className="star-background-shadow"></div>
-      <div className="lesson-card-score-card">
-        <div>
+      <div className="stars-icon">
+        <div className="star-icon-image">
           {score > 25 ? (
             <img
-              className="lesson-card-score-card-star"
+              className="score-card-first-star"
               src="assets/icons/star2.svg"
             />
           ) : (
             <img
-              className="lesson-card-score-card-star"
+              className="score-card-first-star"
               src="assets/icons/greystar2.svg"
             />
           )}
           {score > 50 ? (
             <img
-              className="lesson-card-score-card-middle-star"
+              className="score-card-middle-star"
               src="assets/icons/star2.svg"
             />
           ) : (
             <img
-              className="lesson-card-score-card-middle-star"
+              className="score-card-middle-star"
               src="assets/icons/greystar2.svg"
             />
           )}
           {score > 75 ? (
             <img
-              className="lesson-card-score-card-star"
+              className="score-card-first-star"
               src="assets/icons/star2.svg"
             />
           ) : (
             <img
-              className="lesson-card-score-card-star"
+              className="score-card-first-star"
               src="assets/icons/greystar2.svg"
             />
           )}
@@ -45,6 +45,4 @@ const ScoreCard: React.FC<{
     </div>
   );
 };
-export default ScoreCard;
-
-
+export default StarImages;

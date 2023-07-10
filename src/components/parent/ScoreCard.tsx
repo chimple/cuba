@@ -1,6 +1,6 @@
 import React, { MouseEventHandler } from "react";
 // import { IonAlert, IonButton, IonIcon } from "@ionic/react";
-import "./NewScoreCard.css";
+import "./ScoreCard.css";
 import { OverlayEventDetail } from "@ionic/react/dist/types/components/react-component-lib/interfaces";
 import {
   Button,
@@ -14,8 +14,8 @@ import { chevronForward } from "ionicons/icons";
 import { title } from "process";
 import { IoCloseCircle } from "react-icons/io5";
 import { PAGES } from "../../common/constants";
-import ScoreCard from "../ScoreCard";
-import StarImages from "./StarImages";
+import ScoreCard from "../LessonCardStarIcons";
+import StarImages from "./ScoreCardStarIcons";
 import { AiTwotoneHeart } from "react-icons/ai";
 import { GrFormNext } from "react-icons/gr";
 

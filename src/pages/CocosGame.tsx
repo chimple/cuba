@@ -16,7 +16,8 @@ import {
   CocosLessonData,
 } from "../common/courseConstants";
 import { ServiceConfig } from "../services/ServiceConfig";
-import NewScoreCard from "../components/parent/NewScoreCard";
+import ScoreCard from "../components/parent/ScoreCard";
+import { t } from "i18next";
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -177,16 +178,16 @@ const CocosGame: React.FC = () => {
         <Loading isLoading={isLoading} />
         {showDialogBox && (
           <div>
-            <NewScoreCard
+            <ScoreCard
               width={"50vw"}
               height={"55vh"}
-              title={"Congratulations🎊🎉"}
+              title={t("Congratulations🎊🎉")}
               score={gameResult.detail.gameScore}
-              message={"You Completed the Lesson"}
+              message={t("You Completed the Lesson:")}
               showDialogBox={showDialogBox}
-              yesText={"Like the Game" }
+              yesText={t("Like the Game")}
               lessonName={gameResult.detail.chapterName}
-              noText={"Continue Playing"}
+              noText={t("Continue Playing")}
               handleClose={(e: any) => {
                 setShowDialogBox(true);
                 // saveTempData(gameResult.detail, undefined);
@@ -195,13 +196,19 @@ const CocosGame: React.FC = () => {
               onYesButtonClicked={(e: any) => {
                 setShowDialogBox(false);
                 saveTempData(gameResult.detail, true);
-                console.log("------------------the game result ",gameResult.detail.score);
+                console.log(
+                  "------------------the game result ",
+                  gameResult.detail.score
+                );
                 push();
               }}
               onContinueButtonClicked={(e: any) => {
                 setShowDialogBox(false);
                 saveTempData(gameResult.detail, undefined);
-                console.log("------------------the game result ",gameResult.detail.score);
+                console.log(
+                  "------------------the game result ",
+                  gameResult.detail.score
+                );
                 push();
               }}
             />
