@@ -1,6 +1,6 @@
 import "./ScoreCardStarIcons.css";
 
-const StarImages: React.FC<{
+const ScoreCardStarIcons: React.FC<{
   score: number;
 }> = ({ score }) => {
   return (
@@ -45,4 +45,4 @@ const StarImages: React.FC<{
     </div>
   );
 };
-export default StarImages;
+export default ScoreCardStarIcons;

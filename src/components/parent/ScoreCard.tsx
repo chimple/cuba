@@ -14,12 +14,11 @@ import { chevronForward } from "ionicons/icons";
 import { title } from "process";
 import { IoCloseCircle } from "react-icons/io5";
 import { PAGES } from "../../common/constants";
-import ScoreCard from "../LessonCardStarIcons";
 import StarImages from "./ScoreCardStarIcons";
 import { AiTwotoneHeart } from "react-icons/ai";
 import { GrFormNext } from "react-icons/gr";
 
-const NewScoreCard: React.FC<{
+const ScoreCard: React.FC<{
   width: string;
   height: string;
   showDialogBox: boolean;
@@ -66,12 +65,7 @@ const NewScoreCard: React.FC<{
           }}
         >
           <DialogContentText
-            style={{
-              textAlign: "center",
-              color: "black",
-              fontWeight: "normal",
-              margin: "6% 0% 0% 0%",
-            }}
+            className="dialog-content-text"
           >
             <div>
               <img src="assets/loading.gif" className="image-icon" />
@@ -80,18 +74,15 @@ const NewScoreCard: React.FC<{
               <StarImages score={score} />
             </div>
             <div className="title-scoreCard">{title}</div>
-            
+
             <div className="score-card-content">
-            <div className="score-card-content-message" >{message}</div>
-            <div className="score-card-content-lesson-name" >{lessonName}</div>
+              <div className="score-card-content-message">{message}</div>
+              <div className="score-card-content-lesson-name">{lessonName}</div>
             </div>
           </DialogContentText>
         </DialogContent>
         <DialogActions
-          style={{
-            justifyContent: "space-around",
-            margin: "5%",
-          }}
+          className="dialog-actions"
         >
           <div
             id={"yesButton"}
@@ -123,4 +114,4 @@ const NewScoreCard: React.FC<{
   );
 };
 
-export default NewScoreCard;
+export default ScoreCard;
