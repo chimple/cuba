@@ -80,8 +80,6 @@ const App: React.FC = () => {
         });
       CapApp.addListener("appStateChange", Util.onAppStateChange);
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
-
-      Util.migrate();
     }
 
     Filesystem.mkdir({

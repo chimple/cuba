@@ -85,6 +85,17 @@ export class FirebaseAuth implements ServiceAuth {
       }
       App.addListener("appStateChange", Util.onAppStateChange);
       this.updateUserFcm(user.uid);
+      const migrateRes = await Util.migrate();
+      if (
+        migrateRes?.migrated &&
+        this._currentUser &&
+        !!migrateRes.newStudents
+      ) {
+        if (!this._currentUser.users) {
+          this._currentUser.users = [];
+        }
+        this._currentUser.users.push(...migrateRes.newStudents);
+      }
       return true;
     } catch (error) {
       console.log(
@@ -306,6 +317,7 @@ export class FirebaseAuth implements ServiceAuth {
         userDoc.docId = tempUserDoc.id;
         Util.subscribeToClassTopicForAllStudents(userDoc);
       }
+      await Util.migrate();
       return { user: user, isUserExist: tempUserDoc.exists() };
       // return user;
     } catch (error) {
@@ -340,6 +352,18 @@ export class FirebaseAuth implements ServiceAuth {
         this._currentUser = tempUserDoc.data() as User;
         this._currentUser.docId = tempUserDoc.id;
         Util.subscribeToClassTopicForAllStudents(this._currentUser);
+      }
+      // await Util.migrate();
+      const migrateRes = await Util.migrate();
+      if (
+        migrateRes?.migrated &&
+        this._currentUser &&
+        !!migrateRes.newStudents
+      ) {
+        if (!this._currentUser.users) {
+          this._currentUser.users = [];
+        }
+        this._currentUser.users.push(...migrateRes.newStudents);
       }
       // }
       this.updateUserFcm(userData.uid);
