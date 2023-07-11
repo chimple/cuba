@@ -37,7 +37,7 @@ const HomeHeader: React.FC<{
     const currMode = await schoolUtil.getCurrMode();
     HEADER_ICON_CONFIGS.forEach((element) => {
       // console.log("elements", element);
-      
+
       console.log(currMode);
       if (
         !(
@@ -64,8 +64,8 @@ const HomeHeader: React.FC<{
   return (
     <div id="home-header-icons">
       <HeaderIcon
-        headerName={t("Subjects")}
-        iconSrc="assets/icons/subjectIcon.svg"
+        headerName={t("Home")}
+        iconSrc="assets/icons/home_icon.svg"
         currentHeader={currentHeader}
         headerList={HOMEHEADERLIST.HOME}
         onHeaderIconClick={() => {

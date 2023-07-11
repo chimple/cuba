@@ -17,12 +17,12 @@ export enum SL_GRADES {
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
 export enum HOMEHEADERLIST {
+  SUBJECTS = "SUBJECTS",
   HOME = "HOME",
-  RECOMMENDATION = "RECOMMENDATION",
   ASSIGNMENT = "ASSIGNMENT",
-  FAVORITE = "FAVORITE",
   CHALLENGES = "CHALLENGES",
   SEARCH = "SEARCH",
+  QUIZ = "QUIZ",
   PROFILE = "PROFILE",
 }
 
@@ -32,6 +32,7 @@ export enum PARENTHEADERLIST {
   HELP = "HELP",
   FAQ = "FAQ",
 }
+
 export enum LEADERBOARDHEADERLIST {
   LEADERBOARD = "LEADERBOARD",
   EVENTS = "EVENTS",
@@ -69,11 +70,11 @@ export interface HeaderIconConfig {
 export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
   new Map<HOMEHEADERLIST, HeaderIconConfig>([
     [
-      HOMEHEADERLIST.RECOMMENDATION,
+      HOMEHEADERLIST.SUBJECTS,
       {
-        displayName: "Suggestion",
-        iconSrc: "/assets/icons/suggestionIcon.svg",
-        headerList: HOMEHEADERLIST.RECOMMENDATION,
+        displayName: "Subjects",
+        iconSrc: "/assets/icons/subjectIcon.svg",
+        headerList: HOMEHEADERLIST.SUBJECTS,
       },
     ],
     [
@@ -82,14 +83,6 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
         displayName: "Home work",
         iconSrc: "/assets/icons/homeworkIcon.svg",
         headerList: HOMEHEADERLIST.ASSIGNMENT,
-      },
-    ],
-    [
-      HOMEHEADERLIST.FAVORITE,
-      {
-        displayName: "Favourite",
-        iconSrc: "/assets/icons/favoruiteIcon.svg",
-        headerList: HOMEHEADERLIST.FAVORITE,
       },
     ],
     // [
@@ -106,6 +99,14 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
         displayName: "Search",
         iconSrc: "/assets/icons/searchIcon.svg",
         headerList: HOMEHEADERLIST.SEARCH,
+      },
+    ],
+    [
+      HOMEHEADERLIST.QUIZ,
+      {
+        displayName: "Quiz",
+        iconSrc: "/assets/icons/quiz_icon.svg",
+        headerList: HOMEHEADERLIST.QUIZ,
       },
     ],
   ]);
