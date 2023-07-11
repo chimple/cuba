@@ -19,6 +19,7 @@ import {
   PRE_QUIZ,
   SELECTED_GRADE,
   SL_GRADES,
+  IS_MIGRATION_CHECKED,
   // APP_LANG,
 } from "../common/constants";
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
@@ -44,6 +45,8 @@ import {
 } from "@capawesome/capacitor-app-update";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { RateApp } from "capacitor-rate-app";
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { CollectionIds } from "../common/courseConstants";
 
 declare global {
   interface Window {
@@ -686,6 +689,54 @@ export class Util {
         "🚀 ~ file: util.ts:694 ~ showInAppReview ~ error:",
         JSON.stringify(error)
       );
+    }
+  }
+
+  public static async migrate() {
+    if (
+      !Capacitor.isNativePlatform() ||
+      !!localStorage.getItem(IS_MIGRATION_CHECKED)
+    )
+      return { migrated: false };
+    const path = await Filesystem.getUri({
+      directory: Directory.Data,
+      path: "",
+    });
+    const filePath = path.uri.replace("/files", "/databases/") + "jsb.sqlite";
+    console.log("🚀 ~ file: util.ts:714 ~ migrate ~ filePath:", filePath);
+    const url = Capacitor.convertFileSrc(filePath);
+    const res = await fetch(url);
+    const isExists = res.ok;
+    console.log("🚀 ~ file: util.ts:717 ~ migrate ~ isExists:", isExists);
+    if (!isExists) return { migrated: false };
+
+    if (!Util.port) {
+      Util.port = registerPlugin<PortPlugin>("Port");
+    }
+    try {
+      const port = await Util.port.getMigrateUsers();
+      const functions = getFunctions();
+      const migrateUsers = httpsCallable(functions, "MigrateUsers");
+      const result = await migrateUsers({
+        users: port.users,
+      });
+      console.log(
+        "🚀 ~ file: util.ts:734 ~ migrate ~ result:",
+        JSON.stringify(result)
+      );
+      const res: any = result.data;
+      if (res.migrated) {
+        const _db = getFirestore();
+        const newStudents: DocumentReference[] = res.studentIds.map(
+          (studentId) => doc(_db, CollectionIds.USER, studentId)
+        );
+        await Filesystem.deleteFile({ path: filePath });
+        localStorage.setItem(IS_MIGRATION_CHECKED, "true");
+        return { migrated: true, newStudents: newStudents };
+      }
+    } catch (error) {
+      console.log("🚀 ~ file: util.ts:707 ~ migrate ~ error:", error);
+      return { migrated: false };
     }
   }
 }

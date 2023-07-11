@@ -61,7 +61,14 @@ const DisplayStudents: FC<{}> = () => {
       student
     );
     await Util.setCurrentStudent(student, undefined, false);
-    history.replace(PAGES.HOME);
+
+    if (!student.board || !student.language || !student.grade) {
+      history.push(PAGES.EDIT_STUDENT, {
+        from: history.location.pathname,
+      });
+    } else {
+      history.replace(PAGES.HOME);
+    }
   };
   const onCreateNewStudent = () => {
     // history.push(PAGES.CREATE_STUDENT);
