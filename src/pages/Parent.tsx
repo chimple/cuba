@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./Parent.css";
 import {
-  APP_LANG,
+  LANGUAGE,
   LANG,
   MAX_STUDENTS_ALLOWED,
   PAGES,
@@ -59,7 +59,7 @@ const Parent: React.FC = () => {
     displayName: string;
   }[] = [];
   // let langDocIds: Map<string, string> = new Map();
-  const localAppLang = localStorage.getItem(APP_LANG);
+  const localAppLang = localStorage.getItem(LANGUAGE);
   const history = useHistory();
   const parentHeaderIconList = [
     { header: "profile", displayName: "Profile" },
@@ -170,9 +170,17 @@ const Parent: React.FC = () => {
 
                 const api = ServiceConfig.getI().apiHandler;
                 // api.deleteAllUserData
-                const langDoc = await api.getLanguageWithId(selectedLangDocId);
-                console.log("langDoc", langDoc);
+                // const langDoc = await api.getLanguageWithId(selectedLangDocId);
+                const allLang =
+                  await ServiceConfig.getI().apiHandler.getAllLanguages();
+
+                const langDoc = allLang.find(
+                  (obj) => obj.docId === selectedLangDocId
+                );
+
                 if (!langDoc) return;
+                localStorage.setItem(LANGUAGE, langDoc.code);
+                console.log("langDoc", langDoc);
                 await i18n.changeLanguage(langDoc.code);
                 console.log("applang", selectedLangDocId);
                 const currentUser =
@@ -189,15 +197,6 @@ const Parent: React.FC = () => {
                 }
                 console.log("selectedLangDocId", selectedLangDocId);
                 setCurrentAppLang(selectedLangDocId);
-                const allLang =
-                  await ServiceConfig.getI().apiHandler.getAllLanguages();
-
-                const element = allLang.find(
-                  (obj) => obj.docId === selectedLangDocId
-                );
-
-                if (!element) return;
-                localStorage.setItem(APP_LANG, element.code);
               }}
             />
           </div>

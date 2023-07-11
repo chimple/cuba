@@ -13,11 +13,13 @@
   "Choose the School": "Choose the School",
   "Choose your language": "Choose your language",
   "Choose an avatar for your child": "Choose an avatar for your child",
+
   "Choose your child’s class details": "Choose your child’s class details",
   "Click x1 times on number x2": "Click x1 times on number x2",
+  "Congratulations🎊🎉": "Congratulations🎊🎉",
+  "Continue Playing": "Continue Playing",
   "Continue with Google": "Continue with Google",
   "Create New User": "Create New User",
-  "Delete User": "Delete User",
   "Create New Child Profile": " Create New Child Profile",
   "Delete": "Delete",
   "Delete User": "Delete User",
@@ -59,6 +61,7 @@
   "LEFT": "LEFT",
   "Lesson Name": "Lesson Name",
   "Lesson Played": "Lesson Played",
+  "Like the Game": "Like the Game",
   "loading": "Loading...",
   "Match Coloured Objects": "Match Coloured Objects",
   "Maths": "Maths",
@@ -67,6 +70,7 @@
   "Music": "Music",
   "Name": "Name",
   "Next": "Next",
+  "New User": "New User",
   "No": "No",
   "No Data ": "NO Data ",
   " OFF ": " OFF ",
@@ -118,5 +122,7 @@
   "What is your child’s age?": "What is your child’s age?",
   "Yes": "Yes",
   "You are Joining ": "You are Joining ",
-  "You can edit or delete user by clicking on the below buttons": "You can edit or delete user by clicking on the below buttons"
+  "You can edit or delete user by clicking on the below buttons": "You can edit or delete user by clicking on the below buttons",
+  "You Completed the Lesson:": "You Completed the Lesson:"
 }
+

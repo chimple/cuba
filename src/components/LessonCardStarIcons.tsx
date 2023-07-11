@@ -1,5 +1,5 @@
-import "./ScoreCard.css";
-const ScoreCard: React.FC<{
+import "./LessonCardStarIcons.css";
+const LessonCardStarIcons: React.FC<{
   score: number;
 }> = ({ score }) => {
   return (
@@ -45,6 +45,6 @@ const ScoreCard: React.FC<{
     </div>
   );
 };
-export default ScoreCard;
+export default LessonCardStarIcons;
 
 

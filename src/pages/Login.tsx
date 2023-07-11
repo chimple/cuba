@@ -2,7 +2,7 @@ import { IonLoading, IonPage } from "@ionic/react";
 import { useEffect, useRef, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
-import { APP_LANG, PAGES } from "../common/constants";
+import { LANGUAGE, PAGES } from "../common/constants";
 import { Capacitor } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
 import TextBox from "../components/TextBox";
@@ -66,7 +66,6 @@ const Login: React.FC = () => {
     init();
     setIsLoading(true);
 
-
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
         console.log("info", JSON.stringify(info));
@@ -87,7 +86,7 @@ const Login: React.FC = () => {
     const authHandler = ServiceConfig.getI().authHandler;
     authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
       const apiHandler = ServiceConfig.getI().apiHandler;
-      const appLang = localStorage.getItem(APP_LANG);
+      const appLang = localStorage.getItem(LANGUAGE);
       console.log(
         "appLang",
         appLang,
@@ -298,7 +297,7 @@ const Login: React.FC = () => {
   return (
     <IonPage id="login-screen">
       {!isLoading ? (
-        <div >
+        <div>
           <img
             id="login-chimple-logo"
             alt="Chimple Brand Logo"
@@ -315,7 +314,7 @@ const Login: React.FC = () => {
             <br />
           </div>
           {!showVerification ? (
-            <div >
+            <div>
               <div id="login-screen-input">
                 <div id="login-text-box">
                   <div id="login-text">
@@ -329,28 +328,23 @@ const Login: React.FC = () => {
                           setPhoneNumber(input.detail.value);
                           console.log(countryCode + input.detail.value);
 
-                          let loginBtnBgColor = otpBtnRef.current.style.backgroundColor;
+                          let loginBtnBgColor =
+                            otpBtnRef.current.style.backgroundColor;
                           if (input.detail.value.length === 10) {
-                            otpBtnRef.current.style.backgroundColor = Buttoncolors.Valid;
+                            otpBtnRef.current.style.backgroundColor =
+                              Buttoncolors.Valid;
                             phoneNumberErrorRef.current.style.display = "none";
-                          }
-
-                          else {
+                          } else {
                             if (loginBtnBgColor === Buttoncolors.Valid) {
-                              otpBtnRef.current.style.backgroundColor = Buttoncolors.Default;
+                              otpBtnRef.current.style.backgroundColor =
+                                Buttoncolors.Default;
                             }
-
                           }
-
-                        }
-                        else {
+                        } else {
                           setPhoneNumber("");
                           console.log(countryCode + input.detail.value);
-
                         }
-
                       }}
-
                     ></TextBox>
                   </div>
 
@@ -359,7 +353,6 @@ const Login: React.FC = () => {
                 <div id="recaptcha-container" />
                 <div
                   ref={otpBtnRef}
-
                   id="login-continue-button"
                   onClick={() => {
                     // //@ts-ignore
@@ -451,18 +444,18 @@ const Login: React.FC = () => {
                     if (input.detail.value) {
                       setVerificationCode(input.detail.value);
                       console.log(input.detail.value);
-                      let otpBtnBgColor = getOtpBtnRef.current.style.backgroundColor;
+                      let otpBtnBgColor =
+                        getOtpBtnRef.current.style.backgroundColor;
                       if (input.detail.value.length === 6) {
-                        getOtpBtnRef.current.style.backgroundColor = Buttoncolors.Valid;
-                      }
-                      else {
+                        getOtpBtnRef.current.style.backgroundColor =
+                          Buttoncolors.Valid;
+                      } else {
                         if (otpBtnBgColor === Buttoncolors.Valid) {
                           getOtpBtnRef.current.style.backgroundColor =
                             Buttoncolors.Default;
                         }
                       }
-                    }
-                    else {
+                    } else {
                       setVerificationCode("");
                       console.log(input.detail.value);
                     }
@@ -502,7 +495,6 @@ const Login: React.FC = () => {
                     if (input.detail.value) {
                       console.log("" + input.detail.value);
                       // setParentName(input.detail.value);
-
                     }
                   }}
                 ></TextBox>

@@ -1,0 +1,94 @@
+.dialog-box-button-style-score-card {
+  color: #262222 !important;
+  border-radius: var(--border-radius) !important;
+  padding: 2% 0% !important;
+  width: clamp(15vh, 42vh, 42vh);
+  font-size: 4vh;
+  text-align: center;
+  white-space: nowrap;
+  /* font-size: var(--text-size) !important; */
+}
+
+.dialog-content-text {
+  text-align: center;
+  color: black;
+  font-weight: "normal";
+  margin: 6% 0% 0% 0%;
+}
+
+.dialog-actions {
+  justify-content: space-around;
+  margin: 5%;
+}
+
+.score-card-content {
+  display: flex;
+  white-space: nowrap;
+  justify-content: space-around;
+  align-items: center;
+  flex-direction: column;
+  margin-top: 1.5vh;
+}
+
+.score-card-content-lesson-name {
+  color: red;
+}
+#noButton {
+  background-color: #ccc !important;
+}
+
+#yesButton {
+  background: #ccc !important;
+}
+
+.title-scoreCard {
+  font-size: 6vh;
+  white-space: nowrap;
+  margin: 6% 0% 0% 0%;
+}
+
+.image-icon {
+  height: 18vh;
+  width: 18vh;
+  transform: translateY(5vh);
+}
+
+.heart-icon {
+  color: red;
+  width: 6vh;
+  height: 6vh;
+}
+
+.yes-text-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.no-text-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.heart-icon-field {
+  background-color: white;
+  border-radius: 69%;
+  display: flex;
+  align-items: center;
+  padding:  2% 2% 1% 2%;;
+}
+
+.next-icon-field {
+  background-color: white;
+  border-radius: 69%;
+  display: flex;
+  align-items: center;
+  padding: 1%;
+  justify-content: space-around;
+}
+
+.next-icon {
+  width: 6vh;
+  height: 6vh;
+}
