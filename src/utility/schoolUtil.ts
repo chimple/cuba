@@ -1,52 +1,19 @@
-import { Http } from "@capacitor-community/http";
-import { Capacitor, registerPlugin } from "@capacitor/core";
-import { Directory, Filesystem } from "@capacitor/filesystem";
-import { Toast } from "@capacitor/toast";
-import createFilesystem from "capacitor-fs";
-import { unzip } from "zip2";
 import {
-  CURRENT_STUDENT,
-  BUNDLE_URL,
-  COURSES,
-  CURRENT_LESSON_LEVEL,
-  EVENTS,
-  FCM_TOKENS,
-  LANG,
-  LANGUAGE,
-  LAST_PERMISSION_CHECKED,
-  LAST_UPDATE_CHECKED,
-  PAGES,
-  PortPlugin,
-  PRE_QUIZ,
-  SELECTED_GRADE,
-  SL_GRADES,
   CURRENT_CLASS,
+  CURRENT_MODE,
   CURRENT_SCHOOL,
+  MODES,
 } from "../common/constants";
-import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
-import { GUIDRef } from "../interface/modelInterfaces";
-import Result from "../models/result";
-import { OneRosterApi } from "../services/api/OneRosterApi";
-import User from "../models/user";
 import { ServiceConfig } from "../services/ServiceConfig";
-import i18n from "../i18n";
-import { FirebaseAnalytics } from "@capacitor-firebase/analytics";
-import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 import {
   DocumentData,
   DocumentReference,
   doc,
   getFirestore,
 } from "firebase/firestore";
-import { useEffect, useRef, useState } from "react";
-import { Keyboard } from "@capacitor/keyboard";
-import {
-  AppUpdate,
-  AppUpdateAvailability,
-  AppUpdateResultCode,
-} from "@capawesome/capacitor-app-update";
 import Class from "../models/class";
 import School from "../models/school";
+import { Util } from "./util";
 
 export class schoolUtil {
   //   public static port: PortPlugin;
@@ -143,11 +110,40 @@ export class schoolUtil {
         teachers: currSchool.teachers,
         principal: currSchool.principal,
         coordinator: currSchool.coordinator,
-        dateLastModified: currSchool.dateLastModified,
+        updatedAt: currSchool.updatedAt,
         role: currSchool.role,
         createdAt: currSchool.createdAt,
         docId: currSchool.docId,
       })
     );
+  };
+
+  public static async getCurrMode(): Promise<MODES | undefined> {
+    const api = ServiceConfig.getI().apiHandler;
+    const auth = ServiceConfig.getI().authHandler;
+
+    if (!!api.currentMode) return api.currentMode;
+    const currMode = localStorage.getItem(CURRENT_MODE);
+    console.log(currMode);
+    if (!currMode) {
+      const currUser = await auth.getCurrentUser();
+      if (!currUser) return undefined;
+      const allSchool = await api.getSchoolsForUser(currUser);
+      if (!allSchool || allSchool.length < 1) {
+        api.currentMode = MODES.PARENT;
+        return MODES.PARENT;
+      } else {
+        api.currentMode = MODES.SCHOOL;
+        return MODES.SCHOOL;
+      }
+    }
+    const tempMode: MODES = MODES[currMode as keyof typeof MODES];
+    api.currentMode = tempMode;
+    return tempMode;
+  }
+  public static setCurrMode = async (currMode: MODES) => {
+    const api = ServiceConfig.getI().apiHandler;
+    api.currentMode = currMode;
+    localStorage.setItem(CURRENT_MODE, currMode);
   };
 }

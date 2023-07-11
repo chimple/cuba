@@ -125,6 +125,7 @@ export class ApiHandler implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
+    isLoved : boolean | undefined,
     assignmentId: string | undefined,
     classId: string | undefined,
     schoolId: string | undefined
@@ -137,6 +138,7 @@ export class ApiHandler implements ServiceApi {
       correctMoves,
       wrongMoves,
       timeSpent,
+      isLoved,
       assignmentId,
       classId,
       schoolId

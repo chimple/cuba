@@ -19,6 +19,8 @@ import {
   PRE_QUIZ,
   SELECTED_GRADE,
   SL_GRADES,
+  IS_MIGRATION_CHECKED,
+  APP_LANG,
 } from "../common/constants";
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
 import { GUIDRef } from "../interface/modelInterfaces";
@@ -27,7 +29,6 @@ import { OneRosterApi } from "../services/api/OneRosterApi";
 import User from "../models/user";
 import { ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
-import { FirebaseAnalytics } from "@capacitor-firebase/analytics";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 import {
   DocumentReference,
@@ -44,6 +45,8 @@ import {
 } from "@capawesome/capacitor-app-update";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { RateApp } from "capacitor-rate-app";
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { CollectionIds } from "../common/courseConstants";
 
 declare global {
   interface Window {
@@ -389,7 +392,8 @@ export class Util {
   };
   public static setCurrentStudent = async (
     student: User,
-    languageCode: string | undefined = undefined
+    languageCode: string | undefined = undefined,
+    langFlag: boolean = true
   ) => {
     const api = ServiceConfig.getI().apiHandler;
     api.currentStudent = student;
@@ -402,7 +406,7 @@ export class Util {
         board: student.board ?? null,
         courses: student.courses,
         createdAt: student.createdAt,
-        dateLastModified: student.dateLastModified,
+        updatedAt: student.updatedAt,
         gender: student.gender ?? null,
         grade: student.grade ?? null,
         image: student.image ?? null,
@@ -415,31 +419,21 @@ export class Util {
         docId: student.docId,
       })
     );
-    if (!languageCode && !!student.language?.id) {
-      const langDoc = await api.getLanguageWithId(student.language.id);
-      if (langDoc) {
-        languageCode = langDoc.code;
+    if (!!langFlag) {
+      if (!languageCode && !!student.language?.id) {
+        const langDoc = await api.getLanguageWithId(student.language.id);
+        if (langDoc) {
+          languageCode = langDoc.code;
+        }
       }
+      const tempLangCode = languageCode ?? LANG.ENGLISH;
+      localStorage.setItem(LANGUAGE, tempLangCode);
+      await i18n.changeLanguage(tempLangCode);
     }
-    const tempLangCode = languageCode ?? LANG.ENGLISH;
-    localStorage.setItem(LANGUAGE, tempLangCode);
-    await i18n.changeLanguage(tempLangCode);
   };
 
   public static randomBetween(min, max) {
     return Math.floor(Math.random() * (max - min) + min);
-  }
-
-  public static async logEvent(
-    eventName: EVENTS,
-    params?: {
-      [key: string]: any;
-    }
-  ) {
-    await FirebaseAnalytics.logEvent({
-      name: eventName,
-      params: params,
-    });
   }
 
   public static async subscribeToClassTopic(
@@ -695,6 +689,54 @@ export class Util {
         "🚀 ~ file: util.ts:694 ~ showInAppReview ~ error:",
         JSON.stringify(error)
       );
+    }
+  }
+
+  public static async migrate() {
+    if (
+      !Capacitor.isNativePlatform() ||
+      !!localStorage.getItem(IS_MIGRATION_CHECKED)
+    )
+      return { migrated: false };
+    const path = await Filesystem.getUri({
+      directory: Directory.Data,
+      path: "",
+    });
+    const filePath = path.uri.replace("/files", "/databases/") + "jsb.sqlite";
+    console.log("🚀 ~ file: util.ts:714 ~ migrate ~ filePath:", filePath);
+    const url = Capacitor.convertFileSrc(filePath);
+    const res = await fetch(url);
+    const isExists = res.ok;
+    console.log("🚀 ~ file: util.ts:717 ~ migrate ~ isExists:", isExists);
+    if (!isExists) return { migrated: false };
+
+    if (!Util.port) {
+      Util.port = registerPlugin<PortPlugin>("Port");
+    }
+    try {
+      const port = await Util.port.getMigrateUsers();
+      const functions = getFunctions();
+      const migrateUsers = httpsCallable(functions, "MigrateUsers");
+      const result = await migrateUsers({
+        users: port.users,
+      });
+      console.log(
+        "🚀 ~ file: util.ts:734 ~ migrate ~ result:",
+        JSON.stringify(result)
+      );
+      const res: any = result.data;
+      if (res.migrated) {
+        const _db = getFirestore();
+        const newStudents: DocumentReference[] = res.studentIds.map(
+          (studentId) => doc(_db, CollectionIds.USER, studentId)
+        );
+        await Filesystem.deleteFile({ path: filePath });
+        localStorage.setItem(IS_MIGRATION_CHECKED, "true");
+        return { migrated: true, newStudents: newStudents };
+      }
+    } catch (error) {
+      console.log("🚀 ~ file: util.ts:707 ~ migrate ~ error:", error);
+      return { migrated: false };
     }
   }
 }

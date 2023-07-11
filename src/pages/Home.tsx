@@ -16,6 +16,7 @@ import {
   CURRENT_STUDENT,
   CURRENT_CLASS,
   MODES,
+  CURRENT_MODE,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -185,6 +186,9 @@ const Home: FC = () => {
       lesList.forEach((res) => (tempLesMap[res[0]] = res[1]));
       return tempLesMap;
     };
+
+    const currMode = await schoolUtil.getCurrMode();
+    console.log(currMode);
     let sortLessonResultMap:
       | {
           [lessonDocId: string]: StudentLessonResult;
@@ -201,8 +205,7 @@ const Home: FC = () => {
       }
     });
 
-    const courses: Course[] = await (api.currentMode == MODES.SCHOOL &&
-    !!currClass
+    const courses: Course[] = await (currMode === MODES.SCHOOL && !!currClass
       ? api.getCoursesForClassStudent(currClass)
       : api.getCoursesForParentsStudent(currentStudent));
     setCourses(courses);

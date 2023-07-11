@@ -16,6 +16,8 @@ import {
   CocosLessonData,
 } from "../common/courseConstants";
 import { ServiceConfig } from "../services/ServiceConfig";
+import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
+import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -25,6 +27,10 @@ const CocosGame: React.FC = () => {
   console.log("iFrameUrl", state?.url, iFrameUrl);
   const [isLoading, setIsLoading] = useState<any>();
   const [present] = useIonToast();
+  const [showDialogBox, setShowDialogBox] = useState(false);
+  // let gameResult : any; 
+  const [gameResult, setGameResult]=useState<any>();
+  const currentStudent = Util.getCurrentStudent();
 
   const presentToast = async () => {
     await present({
@@ -46,6 +52,7 @@ const CocosGame: React.FC = () => {
   }, []);
 
   const killGame = (e: any) => {
+    setShowDialogBox(true);
     Util.killCocosGame();
   };
 
@@ -58,16 +65,39 @@ const CocosGame: React.FC = () => {
     console.log("GameExit LessonData ", e.detail);
 
     killGame(e);
+    FirebaseAnalytics.logEvent({name: EVENTS.LESSON_INCOMPLETE, params: {
+      user_id: currentStudent?.docId, 
+      left_game_no:data.currentGameNumber, 
+      left_game_name:data.gameName,
+      chapter_id: data.chapterId,
+      chapter_name: data.chapterName,
+      lesson_id: data.lessonId,
+      lesson_name: data.lessonName,
+      lesson_type: data.lessonType,
+      lesson_session_id: data.lessonSessionId,
+      ml_partner_id: data.mlPartnerId,
+      ml_class_id: data.mlClassId,
+      ml_student_id: data.mlStudentId,
+      course_id: data.courseId,
+      course_name: data.courseName,
+      time_spent: data.timeSpent,
+      total_moves: data.totalMoves,
+      total_games: data.totalGames,
+      correct_moves: data.correctMoves,
+      wrong_moves: data.wrongMoves,
+      game_score: data.gameScore,
+      quiz_score: data.quizScore,
+      game_completed: data.gameCompleted,
+      quiz_completed: data.quizCompleted,
+      game_time_spent: data.gameTimeSpent,
+      quiz_time_spent: data.quizTimeSpent,
+  }});
+    setShowDialogBox(false);
     push();
   };
 
   async function init() {
-    const api = ServiceConfig.getI().apiHandler;
     setIsLoading(true);
-    const lesson: Lesson = JSON.parse(state.lesson);
-    console.log("🚀 ~ file: CocosGame.tsx:57 ~ init ~ lesson:", lesson);
-    const courseDocId: string | undefined = state.courseDocId;
-
     const lessonId: string = state.lessonId;
     const lessonIds: string[] = [];
     lessonIds.push(lessonId);
@@ -83,85 +113,138 @@ const CocosGame: React.FC = () => {
     Util.launchCocosGame();
 
     //Just fot Testing
-    const saveTempData = async (e: any) => {
-      console.log("🚀 ~ file: CocosGame.tsx:76 ~ saveTempData ~ e:", e);
-      const currentStudent = await Util.getCurrentStudent()!;
-      const data = e.detail as CocosLessonData;
-      const isStudentLinked = await api.isStudentLinked(currentStudent.docId);
-      let classId;
-      let schoolId;
-      if (isStudentLinked) {
-        const studentResult = await api.getStudentResult(currentStudent.docId);
-
-        if (!!studentResult && studentResult.classes.length > 0) {
-          classId = studentResult.classes[0];
-          schoolId = studentResult.schools[0];
-        }
-      }
-      const result = await api.updateResult(
-        currentStudent,
-        courseDocId,
-        lesson.docId,
-        data.score!,
-        data.correctMoves,
-        data.wrongMoves,
-        data.timeSpent,
-        lesson.assignment?.docId,
-        classId,
-        schoolId
-      );
-      Util.logEvent(EVENTS.LESSON_END, {
-        studentId: currentStudent.docId,
-        courseDocId: courseDocId,
-        lessonDocId: lesson.docId,
-        assignmentId: lesson.assignment?.docId,
-        classId: classId,
-        schoolId: schoolId,
-        ...data,
-      });
-      console.log(
-        "🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:",
-        result
-      );
-      let tempAssignmentCompletedIds = localStorage.getItem(
-        ASSIGNMENT_COMPLETED_IDS
-      );
-      let assignmentCompletedIds;
-      if (!tempAssignmentCompletedIds) {
-        assignmentCompletedIds = {};
-      } else {
-        assignmentCompletedIds = JSON.parse(tempAssignmentCompletedIds);
-      }
-      if (!assignmentCompletedIds[currentStudent?.docId!]) {
-        assignmentCompletedIds[currentStudent?.docId!] = [];
-      }
-      assignmentCompletedIds[currentStudent?.docId!].push(
-        lesson.assignment?.docId
-      );
-      localStorage.setItem(
-        ASSIGNMENT_COMPLETED_IDS,
-        JSON.stringify(assignmentCompletedIds)
-      );
-      push();
-    };
 
     // const onProblemEnd = async (e: any) => {
     //   console.log("🚀 ~ file: CocosGame.tsx:73 ~ onProblemEnd ~ e:", e);
     //   push();
     // };
 
-    document.body.addEventListener(LESSON_END, saveTempData, { once: true });
+    document.body.addEventListener(LESSON_END, (event)=>{
+      // setGameResult(event.detail as lessonEndData);
+      setGameResult(event);
+      console.log("----------line 91 add event listener------", event);
+    }, { once: true });
     document.body.addEventListener(GAME_END, killGame, { once: true });
     document.body.addEventListener(GAME_EXIT, gameExit, { once: true });
 
     // document.body.addEventListener("problemEnd", onProblemEnd);
   }
+  const saveTempData = async (lessonData:CocosLessonData, isLoved: boolean | undefined) => {
+    const api = ServiceConfig.getI().apiHandler;
+    const courseDocId: string | undefined = state.courseDocId;
+    const lesson: Lesson = JSON.parse(state.lesson);
+    console.log("🚀 ~ file: CocosGame.tsx:57 ~ init ~ lesson:", lesson);
+    console.log("--------lesson data -------", lessonData);
+    console.log("--------score of the lesson",lessonData.score);
+    const currentStudent = api.currentStudent!;
+    const data = lessonData;
+    const isStudentLinked = await api.isStudentLinked(currentStudent.docId);
+    let classId;
+    let schoolId;
+    if (isStudentLinked) {
+      const studentResult = await api.getStudentResult(currentStudent.docId);
+
+      if (!!studentResult && studentResult.classes.length > 0) {
+        classId = studentResult.classes[0];
+        schoolId = studentResult.schools[0];
+      }
+    }
+    const result = await api.updateResult(
+      currentStudent,
+      courseDocId,
+      lesson.docId,
+      data.score!,
+      data.correctMoves,
+      data.wrongMoves,
+      data.timeSpent,
+      isLoved,
+      lesson.assignment?.docId,
+      classId,
+      schoolId
+    );
+    FirebaseAnalytics.logEvent({name: EVENTS.LESSON_END, params: {
+        user_id: currentStudent.docId,
+        assignment_id: lesson.assignment?.docId,
+        chapter_id: data.chapterId,
+        chapter_name: data.chapterName,
+        lesson_id: data.lessonId,
+        lesson_name: data.lessonName,
+        lesson_type: data.lessonType,
+        lesson_session_id: data.lessonSessionId,
+        ml_partner_id: data.mlPartnerId,
+        ml_class_id: data.mlClassId,
+        ml_student_id: data.mlStudentId,
+        course_id: data.courseId,
+        course_name: data.courseName,
+        time_spent: data.timeSpent,
+        total_moves: data.totalMoves,
+        total_games: data.totalGames,
+        correct_moves: data.correctMoves,
+        wrong_moves: data.wrongMoves,
+        game_score: data.gameScore,
+        quiz_score: data.quizScore,
+        game_completed: data.gameCompleted,
+        quiz_completed: data.quizCompleted,
+        game_time_spent: data.gameTimeSpent,
+        quiz_time_spent: data.quizTimeSpent,
+        score: data.score,
+    }});
+    console.log(
+      "🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:",
+      result
+    );
+    let tempAssignmentCompletedIds = localStorage.getItem(
+      ASSIGNMENT_COMPLETED_IDS
+    );
+    let assignmentCompletedIds;
+    if (!tempAssignmentCompletedIds) {
+      assignmentCompletedIds = {};
+    } else {
+      assignmentCompletedIds = JSON.parse(tempAssignmentCompletedIds);
+    }
+    if (!assignmentCompletedIds[api.currentStudent?.docId!]) {
+      assignmentCompletedIds[api.currentStudent?.docId!] = [];
+    }
+    assignmentCompletedIds[api.currentStudent?.docId!].push(
+      lesson.assignment?.docId
+    );
+    localStorage.setItem(
+      ASSIGNMENT_COMPLETED_IDS,
+      JSON.stringify(assignmentCompletedIds)
+    );
+  };
+
   return (
-    <IonPage id="cocos-game-page">
-      <IonContent>
-        <Loading isLoading={isLoading} />
-      </IonContent>
-    </IonPage>
+      <IonPage id="cocos-game-page">
+        <IonContent>
+          <Loading isLoading={isLoading} />
+          {showDialogBox && (
+            <DialogBoxButtons
+              width={"35vw"}
+              height={"25vh"}
+              message={"Do you like the lesson"}
+              showDialogBox={showDialogBox}
+              yesText={"Yes"}
+              noText={"No"}
+              handleClose={(e:any) => {
+                setShowDialogBox(false);
+                saveTempData(gameResult.detail, undefined);
+                push();
+              }}
+              onYesButtonClicked={(e:any) => {
+                setShowDialogBox(false);
+                saveTempData(gameResult.detail, true);
+                push();
+              }}
+              onNoButtonClicked={(e:any) => {
+                setShowDialogBox(false);
+                saveTempData(gameResult.detail, false);
+                push();
+              }}
+            />
+          )}
+        </IonContent>
+      </IonPage>
   );
 };
 

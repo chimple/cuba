@@ -11,6 +11,7 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import Subject from "../models/subject";
 import { t } from "i18next";
 import CachedImage from "./common/CachedImage";
+import LovedIcon from "./LovedIcon";
 
 const LessonCard: React.FC<{
   width: string;
@@ -24,6 +25,7 @@ const LessonCard: React.FC<{
   showText?: boolean;
   showScoreCard?: boolean;
   score: any;
+  isLoved: boolean | undefined;
   lessonData: Lesson[];
   startIndex: number;
 }> = ({
@@ -38,6 +40,7 @@ const LessonCard: React.FC<{
   showText = true,
   showScoreCard = true,
   score,
+  isLoved,
   lessonData,
   startIndex,
 }) => {
@@ -63,8 +66,16 @@ const LessonCard: React.FC<{
     setSubject(subject);
   };
 
-  const lessonCardColor =
-    LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
+  // const lessonCardColor =
+  //   LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
+
+  const [lessonCardColor, setLessonCardColor] = useState("");
+
+  useEffect(() => {
+    setLessonCardColor(
+      LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)]
+    );
+  }, []);
 
   return (
     <IonCard
@@ -207,6 +218,7 @@ const LessonCard: React.FC<{
             ) : (
               <div />
             )}
+            {isLoved && <LovedIcon isLoved={isLoved} />}
           </div>
         </div>
       </div>
