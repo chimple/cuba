@@ -148,3 +148,8 @@ p {
   display: grid;
   gap: 1vw;
 }
+
+#otp-sent {
+  font-size: 3vh;
+  color: #565656;
+}
