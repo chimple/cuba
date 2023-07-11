@@ -1,9 +1,10 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { Chapter } from "../../common/courseConstants";
 import "./SelectChapter.css";
 import Grade from "../../models/grade";
 import DropDown from "../DropDown";
 import Course from "../../models/course";
+import ChapterImage from "./ChapterImage";
 
 const SelectChapter: FC<{
   chapters: Chapter[];
@@ -40,23 +41,19 @@ const SelectChapter: FC<{
         />
       </div>
       <div className="chapter-container">
-        {chapters.map((chapter) => {
+        {chapters.map((Chapter) => {
           return (
             <div
               onClick={() => {
-                onChapterChange(chapter);
+                onChapterChange(Chapter);
               }}
               className="chapter-button"
-              key={chapter.id}
+              key={Chapter.id}
             >
               <div className="chapter-icon">
-                <img
-                  className="chapter-img"
-                  src={`courses/${course.courseCode}/icons/${chapter.id}.png`}
-                  alt={`courses/${course.courseCode}/icons/${chapter.id}.png`}
-                />
+                <ChapterImage course={course} chapter={Chapter} />
               </div>
-              {chapter.title}
+              {Chapter.title}
             </div>
           );
         })}
