@@ -61,7 +61,13 @@ const DisplayStudents: FC<{}> = () => {
       student
     );
     await Util.setCurrentStudent(student);
-    history.replace(PAGES.HOME);
+    if (!student.board || !student.language || !student.grade) {
+      history.push(PAGES.EDIT_STUDENT, {
+        from: history.location.pathname,
+      });
+    } else {
+      history.replace(PAGES.HOME);
+    }
   };
   const onCreateNewStudent = () => {
     history.push(PAGES.CREATE_STUDENT);
@@ -111,7 +117,11 @@ const DisplayStudents: FC<{}> = () => {
           </div>
           {students.length < MAX_STUDENTS_ALLOWED && (
             <div className="add-new-button">
-              <IoAddCircleSharp color="white" size="10vh" onClick={onCreateNewStudent} />
+              <IoAddCircleSharp
+                color="white"
+                size="10vh"
+                onClick={onCreateNewStudent}
+              />
               {t("Create New Child Profile")}
             </div>
           )}
