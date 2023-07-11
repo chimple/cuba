@@ -90,4 +90,4 @@ jobs:
           git commit -m "created apk"
           #git push --force secure-origin apk
           #git push --set-upstream origin gh-pages
-          git push origin apk -f
+          git push origin dev-apk -f
