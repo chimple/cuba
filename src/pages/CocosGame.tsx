@@ -16,6 +16,8 @@ import {
   CocosLessonData,
 } from "../common/courseConstants";
 import { ServiceConfig } from "../services/ServiceConfig";
+import ScoreCard from "../components/parent/ScoreCard";
+import { t } from "i18next";
 import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
 import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 
@@ -119,23 +121,30 @@ const CocosGame: React.FC = () => {
     //   push();
     // };
 
-    document.body.addEventListener(LESSON_END, (event)=>{
-      // setGameResult(event.detail as lessonEndData);
-      setGameResult(event);
-      console.log("----------line 91 add event listener------", event);
-    }, { once: true });
+    document.body.addEventListener(
+      LESSON_END,
+      (event) => {
+        // setGameResult(event.detail as lessonEndData);
+        setGameResult(event);
+        console.log("----------line 100 add event listener------", event);
+      },
+      { once: true }
+    );
     document.body.addEventListener(GAME_END, killGame, { once: true });
     document.body.addEventListener(GAME_EXIT, gameExit, { once: true });
 
     // document.body.addEventListener("problemEnd", onProblemEnd);
   }
-  const saveTempData = async (lessonData:CocosLessonData, isLoved: boolean | undefined) => {
+  const saveTempData = async (
+    lessonData: CocosLessonData,
+    isLoved: boolean | undefined
+  ) => {
     const api = ServiceConfig.getI().apiHandler;
     const courseDocId: string | undefined = state.courseDocId;
     const lesson: Lesson = JSON.parse(state.lesson);
     console.log("🚀 ~ file: CocosGame.tsx:57 ~ init ~ lesson:", lesson);
     console.log("--------lesson data -------", lessonData);
-    console.log("--------score of the lesson",lessonData.score);
+    console.log("--------score of the lesson", lessonData.score);
     const currentStudent = api.currentStudent!;
     const data = lessonData;
     const isStudentLinked = await api.isStudentLinked(currentStudent.docId);
@@ -215,36 +224,49 @@ const CocosGame: React.FC = () => {
   };
 
   return (
-      <IonPage id="cocos-game-page">
-        <IonContent>
-          <Loading isLoading={isLoading} />
-          {showDialogBox && (
-            <DialogBoxButtons
-              width={"35vw"}
-              height={"25vh"}
-              message={"Do you like the lesson"}
+    <IonPage id="cocos-game-page">
+      <IonContent>
+        <Loading isLoading={isLoading} />
+        {showDialogBox && (
+          <div>
+            <ScoreCard
+              width={"50vw"}
+              height={"60vh"}
+              title={t("Congratulations🎊🎉")}
+              score={gameResult.detail.gameScore}
+              message={t("You Completed the Lesson:")}
               showDialogBox={showDialogBox}
-              yesText={"Yes"}
-              noText={"No"}
-              handleClose={(e:any) => {
-                setShowDialogBox(false);
-                saveTempData(gameResult.detail, undefined);
-                push();
+              yesText={t("Like the Game")}
+              lessonName={gameResult.detail.chapterName}
+              noText={t("Continue Playing")}
+              handleClose={(e: any) => {
+                setShowDialogBox(true);
+                // saveTempData(gameResult.detail, undefined);
+                // push();
               }}
-              onYesButtonClicked={(e:any) => {
+              onYesButtonClicked={(e: any) => {
                 setShowDialogBox(false);
                 saveTempData(gameResult.detail, true);
+                console.log(
+                  "------------------the game result ",
+                  gameResult.detail.score
+                );
                 push();
               }}
-              onNoButtonClicked={(e:any) => {
+              onContinueButtonClicked={(e: any) => {
                 setShowDialogBox(false);
-                saveTempData(gameResult.detail, false);
+                saveTempData(gameResult.detail, undefined);
+                console.log(
+                  "------------------the game result ",
+                  gameResult.detail.score
+                );
                 push();
               }}
             />
-          )}
-        </IonContent>
-      </IonPage>
+          </div>
+        )}
+      </IonContent>
+    </IonPage>
   );
 };
 
