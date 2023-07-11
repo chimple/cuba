@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import GenderAndAge from "../components/editStudent/GenderAndAge";
 import SelectAvatar from "../components/editStudent/SelectAvatar";
 import GradeBoardAndLangDropdown from "../components/editStudent/GradeBoardAndLangDropdown";
-import { LANGUAGE, CURRENT_STUDENT, GENDER, PAGES } from "../common/constants";
+import {  ACTION, LANGUAGE, CURRENT_STUDENT, EVENTS, GENDER, PAGES } from "../common/constants";
 import { chevronForward } from "ionicons/icons";
 import Curriculum from "../models/curriculum";
 import Grade from "../models/grade";
@@ -21,6 +21,7 @@ import { Capacitor } from "@capacitor/core";
 import { Keyboard } from "@capacitor/keyboard";
 import BackButton from "../components/common/BackButton";
 import i18n from "../i18n";
+import {FirebaseAnalytics} from "@capacitor-community/firebase-analytics";
 
 const EditStudent = () => {
   const history = useHistory();
@@ -86,6 +87,17 @@ const EditStudent = () => {
           grade ?? currentStudent.grade?.id!,
           language ?? currentStudent.language?.id!
         );
+        FirebaseAnalytics.logEvent({name:EVENTS.USER_PROFILE, params:{
+          user_id: currentStudent.docId,
+          user_type: currentStudent.role,
+          user_name: studentName!,
+          user_gender: currentStudent.gender!,
+          user_age: currentStudent.age!,
+          phone_number: currentStudent.username,
+          parent_username: currentStudent.username,
+          parent_id: currentStudent.uid,
+          action_type: ACTION.UPDATE
+        }});
       } else {
         student = await api.createProfile(
           studentName!,
@@ -97,6 +109,18 @@ const EditStudent = () => {
           grade,
           language
         );
+
+        FirebaseAnalytics.logEvent({name: EVENTS.USER_PROFILE,
+          params: {user_id: student.docId,
+          user_type: student.role,
+          user_name: student.name!,
+          user_gender: student.gender,
+          user_age: student.age,
+          phone_number: student.username,
+          parent_username: student.username,
+          parent_id: student.uid,
+          action_type: ACTION.CREATE}
+      });
 
         //Setting the Current Student
         const langIndex = languages?.findIndex(
