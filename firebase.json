@@ -1,7 +1,14 @@
 {
-  "hosting": {
-    "public": "build",
-    "site": "cuba-stage-dev",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
-  }
+  "hosting": [
+    {
+      "public": "build",
+      "site": "cuba-stage-dev",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    },
+    {
+      "public": "build",
+      "site": "cuba-stage",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    }
+  ]
 }
