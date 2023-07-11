@@ -33,6 +33,7 @@ export interface StudentLessonResult {
   course: DocumentReference;
   score: number;
   timeSpent: number;
+  isLoved : boolean;
 }
 
 export interface CocosLessonData {
@@ -51,6 +52,8 @@ export interface CocosLessonData {
   totalGames: number;
   totalMoves: number;
   correctMoves: number;
+  correct: number;
+  isLoved:boolean;
   wrongMoves: number;
   gameCompleted: boolean;
   quizCompleted: boolean;
