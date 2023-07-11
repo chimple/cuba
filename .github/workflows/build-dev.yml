@@ -3,7 +3,7 @@ name: Build Android
 on:
   push:
     branches:
-      - master
+      - dev
 
 jobs:
   build:
@@ -59,7 +59,7 @@ jobs:
       - name: Deploy to Firebase
         uses: w9jds/firebase-action@master
         with:
-          args: deploy --only hosting:cuba-stage
+          args: deploy --only hosting:cuba-stage-dev
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
@@ -85,7 +85,7 @@ jobs:
           git config --global user.email prakash@sutara.org
           git config --global user.name  bhanugummana
           git remote add origin https://${{ secrets.ACCESS_TOKEN }}@github.com/chimple/cuba.git
-          git checkout -b apk
+          git checkout -b dev-apk
           git add app-debug.apk
           git commit -m "created apk"
           #git push --force secure-origin apk
