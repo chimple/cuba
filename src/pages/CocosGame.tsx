@@ -180,7 +180,7 @@ const CocosGame: React.FC = () => {
           <div>
             <ScoreCard
               width={"50vw"}
-              height={"55vh"}
+              height={"60vh"}
               title={t("Congratulations🎊🎉")}
               score={gameResult.detail.gameScore}
               message={t("You Completed the Lesson:")}

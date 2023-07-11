@@ -53,8 +53,12 @@ const ScoreCard: React.FC<{
         sx={{
           "& .MuiPaper-root": { borderRadius: "6vh !important" },
           "& .MuiTypography-root": { margin: "0% 0% 0% 0% !important" },
-          "& .MuiDialogActions-root": { color: "white" },
-          "& .MuiDialogContent-root" : { padding : "2vh 6vh !important" },
+          "& .MuiDialogActions-root": {
+            color: "white",
+            padding: "0% !important",
+          },
+          "& .MuiDialogContent-root": { padding: "0vh 6vh !important" },
+          "& .MuiDialogActions-spacing": { justifyContent: "space-between !important" },
         }}
       >
         <DialogContent
