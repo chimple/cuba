@@ -26,11 +26,11 @@ export default class Class extends BaseObject {
     teachers: string[],
     principal: string[],
     coordinator: string[],
-    dateLastModified: Timestamp,
+    updatedAt: Timestamp,
     createdAt: Timestamp,
     docId: string
   ) {
-    super(dateLastModified, createdAt, docId);
+    super(updatedAt, createdAt, docId);
     this._name = name;
     this._image = image;
     this._classCode = classCode;

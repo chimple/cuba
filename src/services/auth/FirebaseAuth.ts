@@ -28,6 +28,8 @@ import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { CollectionIds } from "../../common/courseConstants";
+import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
+import { ACTION, EVENTS } from "../../common/constants";
 
 export class FirebaseAuth implements ServiceAuth {
   public static i: FirebaseAuth;
@@ -73,6 +75,14 @@ export class FirebaseAuth implements ServiceAuth {
       const userRef = doc(this._db, "User", user.uid);
       if (additionalUserInfo?.isNewUser) {
         await this._createUserDoc(user);
+        FirebaseAnalytics.logEvent({name:EVENTS.USER_PROFILE,params:{
+          user_id: user.uid,
+          user_name: user.displayName,
+          user_username: user.email,
+          phone_number: user.email ?? user.phoneNumber!,
+          user_type: RoleType.PARENT,
+          action_type: ACTION.CREATE
+        }});
       } else {
         const tempUserDoc = await getDoc(userRef);
         if (!tempUserDoc.exists) {
@@ -85,6 +95,17 @@ export class FirebaseAuth implements ServiceAuth {
       }
       App.addListener("appStateChange", Util.onAppStateChange);
       this.updateUserFcm(user.uid);
+      const migrateRes = await Util.migrate();
+      if (
+        migrateRes?.migrated &&
+        this._currentUser &&
+        !!migrateRes.newStudents
+      ) {
+        if (!this._currentUser.users) {
+          this._currentUser.users = [];
+        }
+        this._currentUser.users.push(...migrateRes.newStudents);
+      }
       return true;
     } catch (error) {
       console.log(
@@ -306,6 +327,7 @@ export class FirebaseAuth implements ServiceAuth {
         userDoc.docId = tempUserDoc.id;
         Util.subscribeToClassTopicForAllStudents(userDoc);
       }
+      await Util.migrate();
       return { user: user, isUserExist: tempUserDoc.exists() };
       // return user;
     } catch (error) {
@@ -336,10 +358,30 @@ export class FirebaseAuth implements ServiceAuth {
       if (!tempUserDoc.exists()) {
         let u = await this._createUserDoc(userData);
         console.log("created user", u);
+        FirebaseAnalytics.logEvent({name:EVENTS.USER_PROFILE,params:{
+          user_id: u.uid,
+          user_name: u.name,
+          user_username: u.username,
+          phone_number: u.username,
+          user_type: RoleType.PARENT,
+          action_type: ACTION.CREATE
+        }});
       } else {
         this._currentUser = tempUserDoc.data() as User;
         this._currentUser.docId = tempUserDoc.id;
         Util.subscribeToClassTopicForAllStudents(this._currentUser);
+      }
+      // await Util.migrate();
+      const migrateRes = await Util.migrate();
+      if (
+        migrateRes?.migrated &&
+        this._currentUser &&
+        !!migrateRes.newStudents
+      ) {
+        if (!this._currentUser.users) {
+          this._currentUser.users = [];
+        }
+        this._currentUser.users.push(...migrateRes.newStudents);
       }
       // }
       this.updateUserFcm(userData.uid);
@@ -393,7 +435,7 @@ export class FirebaseAuth implements ServiceAuth {
     if (!!token) {
       await updateDoc(doc(this._db, `${CollectionIds.USER}/${userId}`), {
         fcm: token,
-        dateLastModified: Timestamp.now(),
+        updatedAt: Timestamp.now(),
       });
     }
   };
