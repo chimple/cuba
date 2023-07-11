@@ -226,9 +226,17 @@ const Login: React.FC = () => {
         // setShowNameInput(true);
       } else if (!res.isUserExist) {
         setIsLoading(false);
-        setShowNameInput(true);
+        let phoneAuthResult = await FirebaseAuth.i.createPhoneAuthUser(
+           res.user,
+          phoneNumberSigninRes
+        );
+        if (phoneAuthResult) {
+          // history.push(PAGES.DISPLAY_STUDENT);
+          history.replace(PAGES.SELECT_MODE);
+        }
       } else {
         setIsLoading(false);
+      
         console.log("Verification Failed");
         alert("Verification Failed");
       }
@@ -424,7 +432,7 @@ const Login: React.FC = () => {
             </div>
           ) : (
             <div>
-              <div id="login-text-box">
+              {/* <div id="login-text-box">
                 <TextBox
                   inputText={"Enter Parent Name"}
                   inputType={"text"}
@@ -438,9 +446,9 @@ const Login: React.FC = () => {
                     }
                   }}
                 ></TextBox>
-              </div>
-              <div
-                ref={parentNameRef}
+              </div> */}
+              {/* <div
+                // ref={parentNameRef}
                 id="login-continue-button"
                 onClick={async () => {
                   let res = await FirebaseAuth.i.createPhoneAuthUser(
@@ -454,10 +462,10 @@ const Login: React.FC = () => {
                 }}
               >
                 Enter Chimple APP
-              </div>
+              </div> */}
               {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
             </div>
-          )}
+              )}
         </div>
       ) : null}
       <Loading isLoading={isLoading} />
