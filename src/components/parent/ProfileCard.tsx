@@ -77,10 +77,12 @@ const ProfileCard: React.FC<{
             id="profile-card-new-user-icon"
             size={"16vw"}
             onClick={() => {
-              history.replace(PAGES.CREATE_STUDENT);
+              history.replace(PAGES.CREATE_STUDENT, {
+                showBackButton: true,
+              });
             }}
           ></HiPlusCircle>
-          <p>New User</p>
+          <p>{t("New User")}</p>
         </div>
       )}
 
@@ -88,7 +90,7 @@ const ProfileCard: React.FC<{
         <div
           id="profile-card-image-report"
           onClick={async () => {
-            await Util.setCurrentStudent(user, undefined, false);
+            await Util.setCurrentStudent(user, undefined, false, false);
             // const api = ServiceConfig.getI().apiHandler;
             // api.currentStudent = user;
 
@@ -122,7 +124,7 @@ const ProfileCard: React.FC<{
           onNoButtonClicked={async ({}) => {
             console.log(`Edit Profile`, "no", user.docId);
             const api = ServiceConfig.getI().apiHandler;
-            await Util.setCurrentStudent(user);
+            await Util.setCurrentStudent(user, undefined, false);
             history.push(PAGES.EDIT_STUDENT, {
               from: history.location.pathname,
             });
