@@ -16,6 +16,8 @@
 
   "Choose your child’s class details": "Choose your child’s class details",
   "Click x1 times on number x2": "Click x1 times on number x2",
+  "Congratulations🎊🎉": "Congratulations🎊🎉",
+  "Continue Playing": "Continue Playing",
   "Continue with Google": "Continue with Google",
   "Create New User": "Create New User",
   "Create New Child Profile": " Create New Child Profile",
@@ -46,9 +48,11 @@
   "help": "Help",
   "Help Video": "Help Video",
   "Hindi": "Hindi",
+  "History": "History",
   "Home work": "Home work",
   "home": "Home",
   "Instagram": "Instagram",
+  "Home": "Home",
   "How do you want to join as?": "How do you want to join as?",
   "Language": "Language",
   "Last Played": "Last Played",
@@ -57,6 +61,7 @@
   "LEFT": "LEFT",
   "Lesson Name": "Lesson Name",
   "Lesson Played": "Lesson Played",
+  "Like the Game": "Like the Game",
   "loading": "Loading...",
   "Match Coloured Objects": "Match Coloured Objects",
   "Maths": "Maths",
@@ -76,6 +81,7 @@
   "Please select your profile": "Please select your profile",
   "profile": "Profile",
   "Progress Report": "Progress Report",
+  "Quiz": "Quiz",
   "Rank": "Rank",
   "RIGHT": "RIGHT",
   "Score": "Score",
@@ -116,5 +122,7 @@
   "What is your child’s age?": "What is your child’s age?",
   "Yes": "Yes",
   "You are Joining ": "You are Joining ",
-  "You can edit or delete user by clicking on the below buttons": "You can edit or delete user by clicking on the below buttons"
+  "You can edit or delete user by clicking on the below buttons": "You can edit or delete user by clicking on the below buttons",
+  "You Completed the Lesson:": "You Completed the Lesson:"
 }
+
