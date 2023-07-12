@@ -42,6 +42,7 @@ import { DocumentReference } from "firebase/firestore";
 import LeaderBoardButton from "./LeaderBoardButton";
 import Class from "../models/class";
 import { schoolUtil } from "../utility/schoolUtil";
+import Assignment from "../models/assignment";
 
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
@@ -61,7 +62,7 @@ const Home: FC = () => {
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
   const [levelChapter, setLevelChapter] = useState<Chapter>();
   const [gradeMap, setGradeMap] = useState<any>({});
-
+  const [homework, sethomework] = useState<Lesson[]>();
   const history = useHistory();
 
   useEffect(() => {
@@ -70,6 +71,49 @@ const Home: FC = () => {
   }, []);
 
   const api = ServiceConfig.getI().apiHandler;
+  const getAssignments = async () => {
+    setIsLoading(true);
+    const student = await Util.getCurrentStudent();
+  
+    if (!student) {
+      history.replace(PAGES.SELECT_MODE);
+      return;
+    }
+  
+    const studentResult = await api.getStudentResult(student.docId);
+  
+    if (
+      !!studentResult &&
+      !!studentResult.classes &&
+      studentResult.classes.length > 0
+    ) {
+      // const classId = studentResult.classes[0];
+      const allAssignments: Assignment[] = [];
+  
+      await Promise.all(
+        studentResult.classes.map(async (_class) => {
+          const res = await api.getPendingAssignments(_class, student.docId);
+          allAssignments.push(...res);
+        })
+      );
+      
+      await Promise.all(
+        allAssignments.map(async (_assignment) => {
+          const res = await api.getLesson(_assignment.lesson.id);
+          if (!!res) {
+            res.assignment = _assignment;
+            reqLes.push(res);
+          }
+        })
+      );
+  
+      setDataCourse(reqLes);
+      // reqLes.sort((a, b) => a.date.getTime() - b.date.getTime());
+      setIsLoading(true);
+    } else {
+      setIsLoading(false);
+    }
+  };
 
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
@@ -89,6 +133,7 @@ const Home: FC = () => {
     if (subjectCode === HOMEHEADERLIST.RECOMMENDATION) {
       // let r = api.getStudentResultInMap(currentStudent.docId);
       // console.log("r = api.getStudentResultInMap(currentStudent.docId);", r);
+      await getAssignments();
       getRecommendationLessons(currentStudent, currClass).then(() => {
         console.log("Final RECOMMENDATION List ", reqLes);
         setDataCourse(reqLes);
