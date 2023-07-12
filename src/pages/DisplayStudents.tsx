@@ -60,7 +60,8 @@ const DisplayStudents: FC<{}> = () => {
       "🚀 ~ file: DisplayStudents.tsx:30 ~ onStudentClick:student",
       student
     );
-    await Util.setCurrentStudent(student);
+    await Util.setCurrentStudent(student, undefined, false);
+
     if (!student.board || !student.language || !student.grade) {
       history.push(PAGES.EDIT_STUDENT, {
         from: history.location.pathname,
@@ -70,7 +71,10 @@ const DisplayStudents: FC<{}> = () => {
     }
   };
   const onCreateNewStudent = () => {
-    history.push(PAGES.CREATE_STUDENT);
+    // history.push(PAGES.CREATE_STUDENT);
+    history.push(PAGES.CREATE_STUDENT, {
+      showBackButton: true,
+    });
   };
   return (
     <IonPage id="display-students">

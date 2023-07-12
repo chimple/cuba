@@ -28,3 +28,26 @@ div p {
   color: var(--text-color);
   margin-right: 2vw;
 }
+
+#sub-tab {
+  text-transform: none;
+  font-family: BalooRegular;
+  font-size: var(--text-size);
+}
+
+.MuiTabs-flexContainer {
+  justify-content: space-between;
+}
+
+.Mui-selected {
+  color: white;
+}
+
+.sub-tab {
+  border-radius: 10vh;
+  background-color: #CCCCCC !important;
+  box-shadow: none !important;
+  width: fit-content !important;
+  margin: auto !important;
+  position: static !important;
+}

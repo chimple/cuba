@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { LESSON_CARD_COLORS, PAGES } from "../common/constants";
 import "./LessonCard.css";
-import ScoreCard from "./ScoreCard";
+import LessonCardStarIcons from "./LessonCardStarIcons";
 import React from "react";
 import Lesson from "../models/lesson";
 import Course from "../models/course";
@@ -208,7 +208,7 @@ const LessonCard: React.FC<{
             ) : isPlayed ? (
               showScoreCard ? (
                 <div id="lesson-card-score">
-                  <ScoreCard score={score}></ScoreCard>
+                  <LessonCardStarIcons score={score}></LessonCardStarIcons>
                 </div>
               ) : (
                 <></>

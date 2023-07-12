@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import GenderAndAge from "../components/editStudent/GenderAndAge";
 import SelectAvatar from "../components/editStudent/SelectAvatar";
 import GradeBoardAndLangDropdown from "../components/editStudent/GradeBoardAndLangDropdown";
-import {  ACTION, APP_LANG, CURRENT_STUDENT, EVENTS, GENDER, PAGES } from "../common/constants";
+import {  ACTION, LANGUAGE, CURRENT_STUDENT, EVENTS, GENDER, PAGES } from "../common/constants";
 import { chevronForward } from "ionicons/icons";
 import Curriculum from "../models/curriculum";
 import Grade from "../models/grade";
@@ -26,6 +26,7 @@ import {FirebaseAnalytics} from "@capacitor-community/firebase-analytics";
 const EditStudent = () => {
   const history = useHistory();
   const location = useLocation();
+  const state = history.location.state as any;
   const api = ServiceConfig.getI().apiHandler;
   const currentStudent = Util.getCurrentStudent();
   const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
@@ -128,6 +129,7 @@ const EditStudent = () => {
         await Util.setCurrentStudent(
           student,
           langIndex && languages ? languages[langIndex]?.code : undefined,
+          false,
           false
         );
       }
@@ -183,18 +185,23 @@ const EditStudent = () => {
         setIsInputFocus(false);
       });
     }
-    const languageDocId = localStorage.getItem(APP_LANG);
-    if (!!languageDocId) i18n.changeLanguage(languageDocId);
+    changeLanguage();
   }, []);
-
+  async function changeLanguage() {
+    const languageDocId = localStorage.getItem(LANGUAGE);
+    console.log("This is the lang " + languageDocId);
+    if (!!languageDocId) await i18n.changeLanguage(languageDocId);
+  }
   return (
     <IonPage id="Edit-student-page">
       <div id="Edit-student-back-button">
-        <BackButton
-          onClicked={() => {
-            history.replace(PAGES.PROFILE);
-          }}
-        />
+        {!isEdit && !state?.showBackButton ? null : (
+          <BackButton
+            onClicked={() => {
+              history.replace(PAGES.PROFILE);
+            }}
+          />
+        )}
       </div>
 
       <div id="next-button">
@@ -240,7 +247,7 @@ const EditStudent = () => {
               <ChimpleLogo header={t("")} msg={t("").toString()} />
             </div>
             <div className="avatar-title">
-              {t("Choose an avatar for your child:")}
+              {t("Choose an avatar for your child")}
             </div>
           </>
         </>
