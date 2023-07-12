@@ -16,6 +16,8 @@ import {
   CocosLessonData,
 } from "../common/courseConstants";
 import { ServiceConfig } from "../services/ServiceConfig";
+import ScoreCard from "../components/parent/ScoreCard";
+import { t } from "i18next";
 import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
 import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 
@@ -28,8 +30,8 @@ const CocosGame: React.FC = () => {
   const [isLoading, setIsLoading] = useState<any>();
   const [present] = useIonToast();
   const [showDialogBox, setShowDialogBox] = useState(false);
-  // let gameResult : any; 
-  const [gameResult, setGameResult]=useState<any>();
+  // let gameResult : any;
+  const [gameResult, setGameResult] = useState<any>();
   const currentStudent = Util.getCurrentStudent();
 
   const presentToast = async () => {
@@ -65,33 +67,36 @@ const CocosGame: React.FC = () => {
     console.log("GameExit LessonData ", e.detail);
 
     killGame(e);
-    FirebaseAnalytics.logEvent({name: EVENTS.LESSON_INCOMPLETE, params: {
-      user_id: currentStudent?.docId, 
-      left_game_no:data.currentGameNumber, 
-      left_game_name:data.gameName,
-      chapter_id: data.chapterId,
-      chapter_name: data.chapterName,
-      lesson_id: data.lessonId,
-      lesson_name: data.lessonName,
-      lesson_type: data.lessonType,
-      lesson_session_id: data.lessonSessionId,
-      ml_partner_id: data.mlPartnerId,
-      ml_class_id: data.mlClassId,
-      ml_student_id: data.mlStudentId,
-      course_id: data.courseId,
-      course_name: data.courseName,
-      time_spent: data.timeSpent,
-      total_moves: data.totalMoves,
-      total_games: data.totalGames,
-      correct_moves: data.correctMoves,
-      wrong_moves: data.wrongMoves,
-      game_score: data.gameScore,
-      quiz_score: data.quizScore,
-      game_completed: data.gameCompleted,
-      quiz_completed: data.quizCompleted,
-      game_time_spent: data.gameTimeSpent,
-      quiz_time_spent: data.quizTimeSpent,
-  }});
+    FirebaseAnalytics.logEvent({
+      name: EVENTS.LESSON_INCOMPLETE,
+      params: {
+        user_id: currentStudent?.docId,
+        left_game_no: data.currentGameNumber,
+        left_game_name: data.gameName,
+        chapter_id: data.chapterId,
+        chapter_name: data.chapterName,
+        lesson_id: data.lessonId,
+        lesson_name: data.lessonName,
+        lesson_type: data.lessonType,
+        lesson_session_id: data.lessonSessionId,
+        ml_partner_id: data.mlPartnerId,
+        ml_class_id: data.mlClassId,
+        ml_student_id: data.mlStudentId,
+        course_id: data.courseId,
+        course_name: data.courseName,
+        time_spent: data.timeSpent,
+        total_moves: data.totalMoves,
+        total_games: data.totalGames,
+        correct_moves: data.correctMoves,
+        wrong_moves: data.wrongMoves,
+        game_score: data.gameScore,
+        quiz_score: data.quizScore,
+        game_completed: data.gameCompleted,
+        quiz_completed: data.quizCompleted,
+        game_time_spent: data.gameTimeSpent,
+        quiz_time_spent: data.quizTimeSpent,
+      },
+    });
     setShowDialogBox(false);
     push();
   };
@@ -119,23 +124,30 @@ const CocosGame: React.FC = () => {
     //   push();
     // };
 
-    document.body.addEventListener(LESSON_END, (event)=>{
-      // setGameResult(event.detail as lessonEndData);
-      setGameResult(event);
-      console.log("----------line 91 add event listener------", event);
-    }, { once: true });
+    document.body.addEventListener(
+      LESSON_END,
+      (event) => {
+        // setGameResult(event.detail as lessonEndData);
+        setGameResult(event);
+        console.log("----------line 100 add event listener------", event);
+      },
+      { once: true }
+    );
     document.body.addEventListener(GAME_END, killGame, { once: true });
     document.body.addEventListener(GAME_EXIT, gameExit, { once: true });
 
     // document.body.addEventListener("problemEnd", onProblemEnd);
   }
-  const saveTempData = async (lessonData:CocosLessonData, isLoved: boolean | undefined) => {
+  const saveTempData = async (
+    lessonData: CocosLessonData,
+    isLoved: boolean | undefined
+  ) => {
     const api = ServiceConfig.getI().apiHandler;
     const courseDocId: string | undefined = state.courseDocId;
     const lesson: Lesson = JSON.parse(state.lesson);
     console.log("🚀 ~ file: CocosGame.tsx:57 ~ init ~ lesson:", lesson);
     console.log("--------lesson data -------", lessonData);
-    console.log("--------score of the lesson",lessonData.score);
+    console.log("--------score of the lesson", lessonData.score);
     const currentStudent = api.currentStudent!;
     const data = lessonData;
     const isStudentLinked = await api.isStudentLinked(currentStudent.docId);
@@ -162,7 +174,9 @@ const CocosGame: React.FC = () => {
       classId,
       schoolId
     );
-    FirebaseAnalytics.logEvent({name: EVENTS.LESSON_END, params: {
+    FirebaseAnalytics.logEvent({
+      name: EVENTS.LESSON_END,
+      params: {
         user_id: currentStudent.docId,
         assignment_id: lesson.assignment?.docId,
         chapter_id: data.chapterId,
@@ -188,11 +202,10 @@ const CocosGame: React.FC = () => {
         game_time_spent: data.gameTimeSpent,
         quiz_time_spent: data.quizTimeSpent,
         score: data.score,
-    }});
-    console.log(
-      "🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:",
-      result
-    );
+      },
+    });
+    console.log("🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:", result);
+    console.log("🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:", result);
     let tempAssignmentCompletedIds = localStorage.getItem(
       ASSIGNMENT_COMPLETED_IDS
     );
@@ -215,36 +228,49 @@ const CocosGame: React.FC = () => {
   };
 
   return (
-      <IonPage id="cocos-game-page">
-        <IonContent>
-          <Loading isLoading={isLoading} />
-          {showDialogBox && (
-            <DialogBoxButtons
-              width={"35vw"}
-              height={"25vh"}
-              message={"Do you like the lesson"}
+    <IonPage id="cocos-game-page">
+      <IonContent>
+        <Loading isLoading={isLoading} />
+        {showDialogBox && (
+          <div>
+            <ScoreCard
+              width={"50vw"}
+              height={"60vh"}
+              title={t("Congratulations🎊🎉")}
+              score={gameResult.detail.gameScore}
+              message={t("You Completed the Lesson:")}
               showDialogBox={showDialogBox}
-              yesText={"Yes"}
-              noText={"No"}
-              handleClose={(e:any) => {
+              yesText={t("Like the Game")}
+              lessonName={gameResult.detail.chapterName}
+              noText={t("Continue Playing")}
+              handleClose={(e: any) => {
+                setShowDialogBox(true);
+                // saveTempData(gameResult.detail, undefined);
+                // push();
+              }}
+              onYesButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
-                saveTempData(gameResult.detail, undefined);
+                await saveTempData(gameResult.detail, true);
+                console.log(
+                  "------------------the game result ",
+                  gameResult.detail.score
+                );
                 push();
               }}
-              onYesButtonClicked={(e:any) => {
+              onContinueButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
-                saveTempData(gameResult.detail, true);
-                push();
-              }}
-              onNoButtonClicked={(e:any) => {
-                setShowDialogBox(false);
-                saveTempData(gameResult.detail, false);
+                await saveTempData(gameResult.detail, undefined);
+                console.log(
+                  "------------------the game result ",
+                  gameResult.detail.score
+                );
                 push();
               }}
             />
-          )}
-        </IonContent>
-      </IonPage>
+          </div>
+        )}
+      </IonContent>
+    </IonPage>
   );
 };
 

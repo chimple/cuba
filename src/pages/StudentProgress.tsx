@@ -186,7 +186,10 @@ const StudentProgress: React.FC = () => {
 
     if (selectedHeader) {
       setCurrentHeader(selectedHeader.header);
-      getResultsForStudentForSelectedHeader(selectedHeader.course, lessonsResults);
+      getResultsForStudentForSelectedHeader(
+        selectedHeader.course,
+        lessonsResults
+      );
     }
   };
   const [tabIndex, setTabIndex] = useState<string>("");
