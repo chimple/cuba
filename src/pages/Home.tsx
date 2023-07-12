@@ -68,7 +68,6 @@ const Home: FC = () => {
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
   const [levelChapter, setLevelChapter] = useState<Chapter>();
   const [gradeMap, setGradeMap] = useState<any>({});
-  const [homework, sethomework] = useState<Lesson[]>();
   const history = useHistory();
 
   useEffect(() => {
