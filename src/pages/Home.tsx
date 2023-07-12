@@ -94,7 +94,6 @@ const Home: FC = () => {
       !!studentResult.classes &&
       studentResult.classes.length > 0
     ) {
-      // const classId = studentResult.classes[0];
       const allAssignments: Assignment[] = [];
   
       await Promise.all(
@@ -115,7 +114,6 @@ const Home: FC = () => {
       );
   
       setDataCourse(reqLes);
-      // reqLes.sort((a, b) => a.date.getTime() - b.date.getTime());
       setIsLoading(true);
     } else {
       setIsLoading(false);
