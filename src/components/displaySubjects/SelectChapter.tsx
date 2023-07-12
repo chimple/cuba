@@ -4,7 +4,7 @@ import "./SelectChapter.css";
 import Grade from "../../models/grade";
 import DropDown from "../DropDown";
 import Course from "../../models/course";
-import ChapterImage from "./ChapterImage";
+import SelectIconImage from "./SelectIconImage";
 
 const SelectChapter: FC<{
   chapters: Chapter[];
@@ -41,19 +41,23 @@ const SelectChapter: FC<{
         />
       </div>
       <div className="chapter-container">
-        {chapters.map((Chapter) => {
+        {chapters.map((chapter) => {
           return (
             <div
               onClick={() => {
-                onChapterChange(Chapter);
+                onChapterChange(chapter);
               }}
               className="chapter-button"
-              key={Chapter.id}
+              key={chapter.id}
             >
               <div className="chapter-icon">
-                <ChapterImage course={course} chapter={Chapter} />
+                <SelectIconImage
+                  localSrc={`courses/${course.courseCode}/icons/${chapter.id}.png`}
+                  defaultSrc={"courses/" + "maths" + "/icons/" + "maths10.png"}
+                  webSrc={chapter.thumbnail}
+                />
               </div>
-              {Chapter.title}
+              {chapter.title}
             </div>
           );
         })}
