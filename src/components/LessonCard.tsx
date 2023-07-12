@@ -145,7 +145,7 @@ const LessonCard: React.FC<{
               <div>
                 <img
                   src="assets/icons/homeworkIcon.svg"
-                  className="homework-icon"
+                  className="lesson-card-homework-indicator"
                 />
               </div>
             ) : null}
