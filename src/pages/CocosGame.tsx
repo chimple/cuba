@@ -30,8 +30,8 @@ const CocosGame: React.FC = () => {
   const [isLoading, setIsLoading] = useState<any>();
   const [present] = useIonToast();
   const [showDialogBox, setShowDialogBox] = useState(false);
-  // let gameResult : any; 
-  const [gameResult, setGameResult]=useState<any>();
+  // let gameResult : any;
+  const [gameResult, setGameResult] = useState<any>();
   const currentStudent = Util.getCurrentStudent();
 
   const presentToast = async () => {
@@ -67,33 +67,36 @@ const CocosGame: React.FC = () => {
     console.log("GameExit LessonData ", e.detail);
 
     killGame(e);
-    FirebaseAnalytics.logEvent({name: EVENTS.LESSON_INCOMPLETE, params: {
-      user_id: currentStudent?.docId, 
-      left_game_no:data.currentGameNumber, 
-      left_game_name:data.gameName,
-      chapter_id: data.chapterId,
-      chapter_name: data.chapterName,
-      lesson_id: data.lessonId,
-      lesson_name: data.lessonName,
-      lesson_type: data.lessonType,
-      lesson_session_id: data.lessonSessionId,
-      ml_partner_id: data.mlPartnerId,
-      ml_class_id: data.mlClassId,
-      ml_student_id: data.mlStudentId,
-      course_id: data.courseId,
-      course_name: data.courseName,
-      time_spent: data.timeSpent,
-      total_moves: data.totalMoves,
-      total_games: data.totalGames,
-      correct_moves: data.correctMoves,
-      wrong_moves: data.wrongMoves,
-      game_score: data.gameScore,
-      quiz_score: data.quizScore,
-      game_completed: data.gameCompleted,
-      quiz_completed: data.quizCompleted,
-      game_time_spent: data.gameTimeSpent,
-      quiz_time_spent: data.quizTimeSpent,
-  }});
+    FirebaseAnalytics.logEvent({
+      name: EVENTS.LESSON_INCOMPLETE,
+      params: {
+        user_id: currentStudent?.docId,
+        left_game_no: data.currentGameNumber,
+        left_game_name: data.gameName,
+        chapter_id: data.chapterId,
+        chapter_name: data.chapterName,
+        lesson_id: data.lessonId,
+        lesson_name: data.lessonName,
+        lesson_type: data.lessonType,
+        lesson_session_id: data.lessonSessionId,
+        ml_partner_id: data.mlPartnerId,
+        ml_class_id: data.mlClassId,
+        ml_student_id: data.mlStudentId,
+        course_id: data.courseId,
+        course_name: data.courseName,
+        time_spent: data.timeSpent,
+        total_moves: data.totalMoves,
+        total_games: data.totalGames,
+        correct_moves: data.correctMoves,
+        wrong_moves: data.wrongMoves,
+        game_score: data.gameScore,
+        quiz_score: data.quizScore,
+        game_completed: data.gameCompleted,
+        quiz_completed: data.quizCompleted,
+        game_time_spent: data.gameTimeSpent,
+        quiz_time_spent: data.quizTimeSpent,
+      },
+    });
     setShowDialogBox(false);
     push();
   };
@@ -171,7 +174,9 @@ const CocosGame: React.FC = () => {
       classId,
       schoolId
     );
-    FirebaseAnalytics.logEvent({name: EVENTS.LESSON_END, params: {
+    FirebaseAnalytics.logEvent({
+      name: EVENTS.LESSON_END,
+      params: {
         user_id: currentStudent.docId,
         assignment_id: lesson.assignment?.docId,
         chapter_id: data.chapterId,
@@ -197,11 +202,10 @@ const CocosGame: React.FC = () => {
         game_time_spent: data.gameTimeSpent,
         quiz_time_spent: data.quizTimeSpent,
         score: data.score,
-    }});
-    console.log(
-      "🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:",
-      result
-    );
+      },
+    });
+    console.log("🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:", result);
+    console.log("🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:", result);
     let tempAssignmentCompletedIds = localStorage.getItem(
       ASSIGNMENT_COMPLETED_IDS
     );
@@ -244,18 +248,18 @@ const CocosGame: React.FC = () => {
                 // saveTempData(gameResult.detail, undefined);
                 // push();
               }}
-              onYesButtonClicked={(e: any) => {
+              onYesButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
-                saveTempData(gameResult.detail, true);
+                await saveTempData(gameResult.detail, true);
                 console.log(
                   "------------------the game result ",
                   gameResult.detail.score
                 );
                 push();
               }}
-              onContinueButtonClicked={(e: any) => {
+              onContinueButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
-                saveTempData(gameResult.detail, undefined);
+                await saveTempData(gameResult.detail, undefined);
                 console.log(
                   "------------------the game result ",
                   gameResult.detail.score
