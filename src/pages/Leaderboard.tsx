@@ -193,7 +193,7 @@ const Leaderboard: React.FC = () => {
           <RectangularOutlineDropDown
             placeholder={weeklySelectedValue || weeklyList[0]?.displayName}
             optionList={weeklyList}
-            currentValue={weeklySelectedValue || weeklyList[0]?.displayName}
+            currentValue={weeklySelectedValue || weeklyList[0]?.id}
             width="26vw"
             onValueChange={(selectedValue) => {
               // if (weekOptionsList[0] != weekOptionsList[selectedValue]) {
@@ -205,14 +205,15 @@ const Leaderboard: React.FC = () => {
                   weeklyList[selectedValue]?.displayName,
                   weeklyList[0] === weeklyList[selectedValue]
                 );
-                setWeeklySelectedValue(weeklyList[selectedValue]?.displayName);
+                setWeeklySelectedValue(weeklyList[selectedValue]?.id);
                 fetchLeaderBoardData(
                   currentStudent!,
                   weeklyList[0] === weeklyList[selectedValue],
                   currentClass?.classes[0] || ""
                 );
+                //  }
               }
-              // }
+
             }}
           ></RectangularOutlineDropDown>
           <div
