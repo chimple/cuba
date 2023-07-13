@@ -43,29 +43,29 @@ const LessonCard: React.FC<{
   lessonData,
   startIndex,
 }) => {
-    const history = useHistory();
-    const [showImage, setShowImage] = useState(true);
-    const [subject, setSubject] = useState<Subject>();
+  const history = useHistory();
+  const [showImage, setShowImage] = useState(true);
+  const [subject, setSubject] = useState<Subject>();
 
-    const hideImg = (event: any) => {
-      setShowImage(false);
-    };
-    // const subjectCode = lesson.chapter.course.id;
-    useEffect(() => {
-      if (showSubjectName) getSubject();
-    }, [lesson]);
+  const hideImg = (event: any) => {
+    setShowImage(false);
+  };
+  // const subjectCode = lesson.chapter.course.id;
+  useEffect(() => {
+    if (showSubjectName) getSubject();
+  }, [lesson]);
 
-    const getSubject = async () => {
-      const subjectId = lesson?.subject?.toString()?.split("/")?.at(-1);
+  const getSubject = async () => {
+    const subjectId = lesson?.subject?.toString()?.split("/")?.at(-1);
+    if (!subjectId) return;
+    let subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
+    if (!subject) {
+      const subjectId = lesson?.subject.path?.toString()?.split("/")?.at(-1);
       if (!subjectId) return;
-      let subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
-      if (!subject) {
-        const subjectId = lesson?.subject.path?.toString()?.split("/")?.at(-1);
-        if (!subjectId) return;
-        subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
-      }
-      setSubject(subject);
-    };
+      subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
+    }
+    setSubject(subject);
+  };
 
   // const lessonCardColor =
   //   LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
@@ -120,7 +120,7 @@ const LessonCard: React.FC<{
           console.log(lesson?.title, "lesson is locked");
         }
       }}
-    // disabled={!isUnlocked}
+      // disabled={!isUnlocked}
     >
       <div
         style={{
@@ -140,6 +140,16 @@ const LessonCard: React.FC<{
           }}
           color={lessonCardColor}
         >
+          <div id="lesson-card-homework-icon">
+            {lesson.assignment != undefined ? (
+              <div>
+                <img
+                  src="assets/icons/homeworkIcon.svg"
+                  className="lesson-card-homework-indicator"
+                />
+              </div>
+            ) : null}
+          </div>
           {showSubjectName && subject?.title ? (
             <div id="lesson-card-subject-name">
               <p>
