@@ -6,11 +6,12 @@ const SelectIconImage: FC<{
   defaultSrc: any;
   webSrc: any;
 }> = ({ localSrc, defaultSrc, webSrc }) => {
-  const [imageCounter, setImageCounter] = useState(1);
   enum Image {
     img1 = 1,
     img2 = 2,
+    img3 = 3,
   }
+  const [imageCounter, setImageCounter] = useState(Image.img1);
 
   return (
     <div>
@@ -19,7 +20,7 @@ const SelectIconImage: FC<{
           src={localSrc}
           alt=""
           onError={() => {
-            setImageCounter(2);
+            setImageCounter(Image.img2);
           }}
         />
       ) : (webSrc ?? defaultSrc) && imageCounter === Image.img2 ? (
@@ -27,7 +28,7 @@ const SelectIconImage: FC<{
           src={webSrc ?? defaultSrc}
           alt=""
           onError={() => {
-            setImageCounter(3);
+            setImageCounter(Image.img3);
           }}
         />
       ) : (
