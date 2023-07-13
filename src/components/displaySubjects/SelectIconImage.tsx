@@ -7,21 +7,23 @@ const SelectIconImage: FC<{
   webSrc: any;
 }> = ({ localSrc, defaultSrc, webSrc }) => {
   const [imageCounter, setImageCounter] = useState(1);
+  enum Image {
+    img1 = 1,
+    img2 = 2,
+  }
 
   return (
     <div>
-      {imageCounter === 1 ? (
+      {imageCounter === Image.img1 ? (
         <img
-          className="class-avatar-img"
           src={localSrc}
           alt=""
           onError={() => {
             setImageCounter(2);
           }}
         />
-      ) : (webSrc ?? defaultSrc) && imageCounter === 2 ? (
+      ) : (webSrc ?? defaultSrc) && imageCounter === Image.img2 ? (
         <CachedImage
-          className="class-avatar-img"
           src={webSrc ?? defaultSrc}
           alt=""
           onError={() => {
@@ -29,7 +31,7 @@ const SelectIconImage: FC<{
           }}
         />
       ) : (
-        <img className="class-avatar-img" src={defaultSrc} alt="all" />
+        <img src={defaultSrc} alt="all" />
       )}
     </div>
   );
