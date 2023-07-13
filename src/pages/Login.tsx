@@ -18,6 +18,7 @@ import { initializeApp } from "firebase/app";
 import { init, t } from "i18next";
 import { Util } from "../utility/util";
 import User from "../models/user";
+import BackButton from "../components/common/BackButton";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -28,6 +29,7 @@ const Login: React.FC = () => {
   const history = useHistory();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showVerification, setShowVerification] = useState<boolean>(false);
+  const [showBackButton, setShowBackButton] = useState<boolean>(false);
   const [showNameInput, setShowNameInput] = useState<boolean>(false);
   const [verificationCode, setVerificationCode] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState<any>(""); // Example: "+919553642967".
@@ -48,13 +50,16 @@ const Login: React.FC = () => {
   const [showTimer, setShowTimer] = useState<boolean>(false);
   const [showResendOtp, setShowResendOtp] = useState<boolean>(false);
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
-  const [isInputFocus, setIsInputFocus] = useState(false);
-  const scollToRef = useRef<null | HTMLDivElement>(null);
-  const [currentStudent, setStudent] = useState<User>();
   const Buttoncolors = {
     Default: "grey",
     Valid: "yellowgreen",
   };
+  const [currentButtonColor, setCurrentButtonColor] = useState<string>(
+    phoneNumber.length === 10 ? Buttoncolors.Valid : Buttoncolors.Default
+  );
+  const [isInputFocus, setIsInputFocus] = useState(false);
+  const scollToRef = useRef<null | HTMLDivElement>(null);
+  const [currentStudent, setStudent] = useState<User>();
 
   const otpBtnRef = useRef<any>();
   const getOtpBtnRef = useRef<any>();
@@ -62,7 +67,6 @@ const Login: React.FC = () => {
   const phoneNumberErrorRef = useRef<any>();
 
   useEffect(() => {
-
     init();
     setIsLoading(true);
 
@@ -100,10 +104,8 @@ const Login: React.FC = () => {
           history.replace(PAGES.HOME);
           return;
         }
-
         setStudent(currentStudent);
       }
-
       if (appLang == undefined) {
         console.log("navigating to app lang");
         history.replace(PAGES.APP_LANG_SELECTION);
@@ -158,11 +160,8 @@ const Login: React.FC = () => {
     if (counter <= 0) {
       setShowResendOtp(true);
     }
-    showTimer &&
-      counter > 0 && setTimeout(() => setCounter(counter - 1), 1000);
-
+    showTimer && counter > 0 && setTimeout(() => setCounter(counter - 1), 1000);
   }, [counter, showTimer]);
-
 
   const onPhoneNumberSubmit = async () => {
     // setIsLoading(true);
@@ -191,7 +190,7 @@ const Login: React.FC = () => {
       if (authRes) {
         setPhoneNumberSigninRes(authRes);
         setShowVerification(true);
-
+        setShowBackButton(true);
         setSpinnerLoading(false);
         // setIsLoading(false);
       } else {
@@ -215,7 +214,6 @@ const Login: React.FC = () => {
       // window.recaptchaVerifier.clear();
     }
   };
-
 
   const onVerificationCodeSubmit = async () => {
     try {
@@ -241,7 +239,7 @@ const Login: React.FC = () => {
       } else if (!res.isUserExist) {
         setIsLoading(false);
         let phoneAuthResult = await FirebaseAuth.i.createPhoneAuthUser(
-           res.user,
+          res.user,
           phoneNumberSigninRes
         );
         if (phoneAuthResult) {
@@ -250,7 +248,7 @@ const Login: React.FC = () => {
         }
       } else {
         setIsLoading(false);
-      
+
         console.log("Verification Failed");
         alert("Verification Failed");
       }
@@ -260,7 +258,6 @@ const Login: React.FC = () => {
       alert("Verification Failed" + error);
     }
   };
-
 
   function startResendOtpCounter() {
     !showTimer && setShowTimer(true);
@@ -280,212 +277,224 @@ const Login: React.FC = () => {
         console.log("Resend Otp Sucessfull");
         setShowResendOtp(false);
         setCounter(59);
-      }
+      } 
       else {
-        console.log("Resend Otp failed")
+        console.log("Resend Otp failed");
       }
-
     } catch (error) {
       console.log("Resend Otp Failed With Error " + error);
       alert("Resend Otp Failed " + error);
       recaptchaVerifier!.clear();
     }
-
-
   }
 
   return (
     <IonPage id="login-screen">
-      {!isLoading ? (
-        <div>
-          <img
-            id="login-chimple-logo"
-            alt="Chimple Brand Logo"
-            src="assets/icons/ChimpleBrandLogo.svg"
+      {!!showBackButton && (
+        <div className="class-header">
+          <BackButton
+            onClicked={() => {
+              setShowVerification(false);
+              setShowBackButton(false);
+              setCurrentButtonColor(Buttoncolors.Valid);
+            }}
           />
-          <div id="chimple-brand-text1">{t("Welcome to Chimple!")}</div>
-          <p id="chimple-brand-text2">
-            {t("Discovering the joy of learning with")}
-          </p>
-          <p id="chimple-brand-text2">
-            {t("Chimple- where curiosity meets education!")}
-          </p>
-          <div id="chimple-brand-text2">
-            <br />
-          </div>
-          {!showVerification ? (
-            <div>
-              <div id="login-screen-input">
-                <div id="login-text-box">
-                  <div id="login-text">
-                    <TextBox
-                      inputText={t("Enter Mobile Number (10-digit)")}
-                      inputType={"tel"}
-                      maxLength={10}
-                      inputValue={phoneNumber}
-                      onChange={(input) => {
-                        if (input.detail.value) {
-                          setPhoneNumber(input.detail.value);
-                          console.log(countryCode + input.detail.value);
+        </div>
+      )}
+      <div className={"header " + isInputFocus ? "scroll-header" : ""}>
+        {!isLoading ? (
+          <div>
+            <img
+              id="login-chimple-logo"
+              alt="Chimple Brand Logo"
+              src="assets/icons/ChimpleBrandLogo.svg"
+            />
+            <div id="chimple-brand-text1">{t("Welcome to Chimple!")}</div>
+            <p id="chimple-brand-text2">
+              {t("Discovering the joy of learning with")}
+            </p>
+            <p id="chimple-brand-text2">
+              {t("Chimple- where curiosity meets education!")}
+            </p>
+            <div id="chimple-brand-text2">
+              <br />
+            </div>
+            {!showVerification ? (
+              <div>
+                <div id="login-screen-input">
+                  <div id="login-text-box">
+                    <div id="login-text">
+                      <TextBox
+                        inputText={t("Enter Mobile Number (10-digit)")}
+                        inputType={"tel"}
+                        maxLength={10}
+                        inputValue={phoneNumber}
+                        onChange={(input) => {
+                          if (input.detail.value) {
+                            setPhoneNumber(input.detail.value);
+                            console.log(countryCode + input.detail.value);
 
-                          let loginBtnBgColor =
-                            otpBtnRef.current.style.backgroundColor;
-                          if (input.detail.value.length === 10) {
-                            otpBtnRef.current.style.backgroundColor =
-                              Buttoncolors.Valid;
-                            phoneNumberErrorRef.current.style.display = "none";
-                          } else {
-                            if (loginBtnBgColor === Buttoncolors.Valid) {
-                              otpBtnRef.current.style.backgroundColor =
-                                Buttoncolors.Default;
+                            let loginBtnBgColor = currentButtonColor;
+                            if (input.detail.value.length === 10) {
+                              console.log(phoneNumber);
+                              setCurrentButtonColor(Buttoncolors.Valid);
+                              phoneNumberErrorRef.current.style.display =
+                                "none";
+                            } else {
+                              if (loginBtnBgColor === Buttoncolors.Valid) {
+                                setCurrentButtonColor(Buttoncolors.Default);
+                              }
                             }
+                          } else {
+                            setPhoneNumber("");
+                            console.log(countryCode + input.detail.value);
                           }
-                        } else {
-                          setPhoneNumber("");
-                          console.log(countryCode + input.detail.value);
-                        }
-                      }}
-                    ></TextBox>
-                  </div>
+                        }}
+                      ></TextBox>
+                    </div>
 
-                  <p ref={phoneNumberErrorRef} style={{ display: "none" }} className="error-message">Please Enter 10 digit Mobile Number</p>
+                    <p
+                      ref={phoneNumberErrorRef}
+                      style={{ display: "none" }}
+                      className="error-message"
+                    >
+                      Please Enter 10 digit Mobile Number
+                    </p>
+                  </div>
+                  <div id="recaptcha-container" />
+                  <div
+                    ref={otpBtnRef}
+                    id="login-continue-button"
+                    style={{ backgroundColor: currentButtonColor }}
+                    onClick={() => {
+                      // //@ts-ignore
+                      // window.recaptchaVerifier = new RecaptchaVerifier(
+                      //   "sign-in-button",
+                      //   {
+                      //     size: "normal",
+                      //     callback: (response) => {
+                      //       console.log("prepared phone auth process");
+                      //     },
+                      //   },
+                      //   getAuth()
+                      // );
+                      console.log(
+                        "if (!recaptchaVerifier && !Capacitor.isNativePlatform()) called",
+                        recaptchaVerifier
+                      );
+
+                      setSpinnerLoading(false);
+                      if (phoneNumber.length === 10) {
+                        onPhoneNumberSubmit();
+                      } else {
+                        phoneNumberErrorRef.current.style.display = "block";
+                      }
+                      // setShowVerification(true);
+                      // setSpinnerLoading(false);
+                    }}
+                  >
+                    {t("Send OTP")}
+                  </div>
                 </div>
-                <div id="recaptcha-container" />
+                {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
+                <IonLoading
+                  id="custom-loading"
+                  // trigger="open-loading"
+                  message="Loading"
+                  // duration={3000}
+                  isOpen={spinnerLoading}
+                />
+
+                <div id="Google-horizontal-line"></div>
+                <div id="Google-horizontal-line2"></div>
+                <div id="login-google-icon-text">
+                  {t("Continue with Google")}
+                </div>
+                <img
+                  id="login-google-icon"
+                  alt="Google Icon"
+                  src="assets/icons/Google Icon.png"
+                  onClick={async () => {
+                    try {
+                      setIsLoading(true);
+                      console.log("isLoading ", isLoading);
+                      const _authHandler = ServiceConfig.getI().authHandler;
+                      const result: boolean = await _authHandler.googleSign();
+                      console.log(
+                        "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
+                        result
+                      );
+                      if (result) {
+                        setIsLoading(false);
+                        // history.replace(PAGES.DISPLAY_STUDENT);
+                        history.replace(PAGES.SELECT_MODE);
+                      } else {
+                        setIsLoading(false);
+                      }
+                    } catch (error) {
+                      setIsLoading(false);
+                      console.log("error", error);
+                    }
+                  }}
+                />
+              </div>
+            ) : !showNameInput && startResendOtpCounter() ? (
+              <div>
+                <p id="otp-sent">Otp Sent To The {countryCode + phoneNumber}</p>
+                <div id="login-text-box">
+                  <TextBox
+                    inputText={"Enter 6 Digit Code"}
+                    inputType={"tel"}
+                    maxLength={6}
+                    inputValue={verificationCode}
+                    onChange={(input) => {
+                      if (input.detail.value) {
+                        setVerificationCode(input.detail.value);
+                        console.log(input.detail.value);
+                        let otpBtnBgColor =
+                          getOtpBtnRef.current.style.backgroundColor;
+                        if (input.detail.value.length === 6) {
+                          getOtpBtnRef.current.style.backgroundColor =
+                            Buttoncolors.Valid;
+                        } else {
+                          if (otpBtnBgColor === Buttoncolors.Valid) {
+                            getOtpBtnRef.current.style.backgroundColor =
+                              Buttoncolors.Default;
+                          }
+                        }
+                      } else {
+                        setVerificationCode("");
+                        console.log(input.detail.value);
+                      }
+                    }}
+                  ></TextBox>
+                </div>
                 <div
-                  ref={otpBtnRef}
+                  ref={getOtpBtnRef}
                   id="login-continue-button"
                   onClick={() => {
-                    // //@ts-ignore
-                    // window.recaptchaVerifier = new RecaptchaVerifier(
-                    //   "sign-in-button",
-                    //   {
-                    //     size: "normal",
-                    //     callback: (response) => {
-                    //       console.log("prepared phone auth process");
-                    //     },
-                    //   },
-                    //   getAuth()
-                    // );
-                    console.log(
-                      "if (!recaptchaVerifier && !Capacitor.isNativePlatform()) called",
-                      recaptchaVerifier
-                    );
-
-                    setSpinnerLoading(false);
-                    if (phoneNumber.length === 10) {
-                      onPhoneNumberSubmit();
-
-
-
-
+                    if (verificationCode.length === 6) {
+                      onVerificationCodeSubmit();
                     }
-                    else {
-                      phoneNumberErrorRef.current.style.display = "block";
-                    }
-                    // setShowVerification(true);
-                    // setSpinnerLoading(false);
+                    // setIsLoading(false);
+                    // setShowNameInput(true);
+                    // history.push(PAGES.PARENT);
                   }}
                 >
-                  {t("Send OTP")}
+                  Get Started
                 </div>
-
+                {showResendOtp ? (
+                  <span id="resend-otp" onClick={resendOtpHandler}>
+                    Resend Otp{" "}
+                  </span>
+                ) : (
+                  <span id="resend-otp-in"> ResendOtp In : {counter}</span>
+                )}
+                {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
               </div>
-              {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
-              <IonLoading
-                id="custom-loading"
-                // trigger="open-loading"
-                message="Loading"
-                // duration={3000}
-                isOpen={spinnerLoading}
-              />
-
-              <div id="Google-horizontal-line"></div>
-              <div id="Google-horizontal-line2"></div>
-              <div id="login-google-icon-text">{t("Continue with Google")}</div>
-              <img
-                id="login-google-icon"
-                alt="Google Icon"
-                src="assets/icons/Google Icon.png"
-                onClick={async () => {
-                  try {
-                    setIsLoading(true);
-                    console.log("isLoading ", isLoading);
-                    const _authHandler = ServiceConfig.getI().authHandler;
-                    const result: boolean = await _authHandler.googleSign();
-                    console.log(
-                      "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
-                      result
-                    );
-                    if (result) {
-                      setIsLoading(false);
-                      // history.replace(PAGES.DISPLAY_STUDENT);
-                      history.replace(PAGES.SELECT_MODE);
-                    } else {
-                      setIsLoading(false);
-                    }
-                  } catch (error) {
-                    setIsLoading(false);
-                    console.log("error", error);
-                  }
-                }}
-              />
-            </div>
-          ) : !showNameInput && startResendOtpCounter() ? (
-            <div>
-              <p id="otp-sent">Otp Sent To The {countryCode + phoneNumber}</p>
-              <div id="login-text-box">
-
-                <TextBox
-                  inputText={"Enter 6 Digit Code"}
-                  inputType={"tel"}
-                  maxLength={6}
-                  inputValue={verificationCode}
-                  onChange={(input) => {
-                    if (input.detail.value) {
-                      setVerificationCode(input.detail.value);
-                      console.log(input.detail.value);
-                      let otpBtnBgColor =
-                        getOtpBtnRef.current.style.backgroundColor;
-                      if (input.detail.value.length === 6) {
-                        getOtpBtnRef.current.style.backgroundColor =
-                          Buttoncolors.Valid;
-                      } else {
-                        if (otpBtnBgColor === Buttoncolors.Valid) {
-                          getOtpBtnRef.current.style.backgroundColor =
-                            Buttoncolors.Default;
-                        }
-                      }
-                    } else {
-                      setVerificationCode("");
-                      console.log(input.detail.value);
-                    }
-                  }}
-                ></TextBox>
-              </div>
-              <div
-                ref={getOtpBtnRef}
-                id="login-continue-button"
-                onClick={() => {
-                  if (verificationCode.length === 6) {
-                    onVerificationCodeSubmit();
-
-                  }
-                  // setIsLoading(false);
-                  // setShowNameInput(true);
-                  // history.push(PAGES.PARENT);
-                }}
-              >
-                Get Started
-              </div>
-              {showResendOtp ?
-                <span id="resend-otp" onClick={
-                  resendOtpHandler
-                }>Resend Otp </span> : <span id="resend-otp-in"> ResendOtp In : {counter}</span>}
-              {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
-            </div>
-          ) : (
-            <div>
-              {/* <div id="login-text-box">
+            ) : (
+              <div>
+                {/* <div id="login-text-box">
                 <TextBox
                   inputText={"Enter Parent Name"}
                   inputType={"text"}
@@ -499,7 +508,7 @@ const Login: React.FC = () => {
                   }}
                 ></TextBox>
               </div> */}
-              {/* <div
+                {/* <div
                 // ref={parentNameRef}
                 id="login-continue-button"
                 onClick={async () => {
@@ -515,15 +524,15 @@ const Login: React.FC = () => {
               >
                 Enter Chimple APP
               </div> */}
-              {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
-            </div>
-              )}
-        </div>
-      ) : null}
+                {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
+              </div>
+            )}
+          </div>
+        ) : null}
+      </div>
       <Loading isLoading={isLoading} />
     </IonPage>
   );
 };
 
 export default Login;
-
