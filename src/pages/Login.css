@@ -103,7 +103,6 @@ p {
   /* text-align: center; */
   /* transform: translateY(-5%) translateX(-50%); */
   margin-top: 0%;
-
 }
 
 #Google-horizontal-line {
@@ -152,4 +151,11 @@ p {
 #otp-sent {
   font-size: 3vh;
   color: #565656;
+}
+.class-header {
+  position: absolute;
+  margin: var(--margin);
+}
+.scroll-header {
+  overflow: scroll;
 }
