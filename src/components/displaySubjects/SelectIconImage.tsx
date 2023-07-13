@@ -6,29 +6,29 @@ const SelectIconImage: FC<{
   defaultSrc: any;
   webSrc: any;
 }> = ({ localSrc, defaultSrc, webSrc }) => {
-  enum Image {
-    img1 = 1,
-    img2 = 2,
-    img3 = 3,
+  enum LOADICON {
+    Local,
+    Web,
+    Default,
   }
-  const [imageCounter, setImageCounter] = useState(Image.img1);
+  const [loadIcon, setLoadIcon] = useState(LOADICON.Local);
 
   return (
     <div>
-      {imageCounter === Image.img1 ? (
+      {loadIcon === LOADICON.Local ? (
         <img
           src={localSrc}
           alt=""
           onError={() => {
-            setImageCounter(Image.img2);
+            setLoadIcon(LOADICON.Web);
           }}
         />
-      ) : (webSrc ?? defaultSrc) && imageCounter === Image.img2 ? (
+      ) : (webSrc ?? defaultSrc) && loadIcon === LOADICON.Web ? (
         <CachedImage
           src={webSrc ?? defaultSrc}
           alt=""
           onError={() => {
-            setImageCounter(Image.img3);
+            setLoadIcon(LOADICON.Default);
           }}
         />
       ) : (
