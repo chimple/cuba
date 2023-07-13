@@ -490,8 +490,8 @@ const Home: FC = () => {
               />
             */}
             {currentHeader !== HOMEHEADERLIST.QUIZ && (
-              <div>
-                <AppBar className="sub-tab"
+              <div id="home-page-bottom" >
+                <AppBar className="app-bar"
                 >
                   <Box>
                     <Tabs
@@ -504,21 +504,22 @@ const Home: FC = () => {
                           borderRadius: '5vh',
                           padding: "0 3vw",
                           margin: "1vh 1vh",
-
+                          minHeight: "37px",
                         },
                         '& .Mui-selected': {
                           backgroundColor: '#FF7925',
                           borderRadius: '8vh',
-                          color: "#FFFFFF !important"
+                          color: "#FFFFFF !important",
+                          minHeight: "37px",
                         },
                       }}
                     >
-                      <Tab id='sub-tab' label={t("Suggestion")}
+                      <Tab id='sub-tabs' label={t("Suggestion")}
                         onClick={() => setCurrentHeader(HOMEHEADERLIST.HOME)}
                       />
-                      <Tab id='sub-tab' label={t("Favourite")} />
+                      <Tab id='sub-tabs' label={t("Favourite")} onClick={() => setCurrentHeader("")} />
 
-                      <Tab id='sub-tab' label={t("History")} />
+                      <Tab id='sub-tabs' label={t("History")} onClick={() => setCurrentHeader("")} />
                     </Tabs>
                   </Box>
                 </AppBar>
