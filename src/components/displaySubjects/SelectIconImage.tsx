@@ -6,29 +6,29 @@ const SelectIconImage: FC<{
   defaultSrc: any;
   webSrc: any;
 }> = ({ localSrc, defaultSrc, webSrc }) => {
-  enum LOADICON {
+  enum LoadIcon {
     Local,
     Web,
     Default,
   }
-  const [loadIcon, setLoadIcon] = useState(LOADICON.Local);
+  const [loadIcon, setLoadIcon] = useState(LoadIcon.Local);
 
   return (
     <div>
-      {loadIcon === LOADICON.Local ? (
+      {loadIcon === LoadIcon.Local ? (
         <img
           src={localSrc}
           alt=""
           onError={() => {
-            setLoadIcon(LOADICON.Web);
+            setLoadIcon(LoadIcon.Web);
           }}
         />
-      ) : (webSrc ?? defaultSrc) && loadIcon === LOADICON.Web ? (
+      ) : (webSrc ?? defaultSrc) && loadIcon === LoadIcon.Web ? (
         <CachedImage
           src={webSrc ?? defaultSrc}
           alt=""
           onError={() => {
-            setLoadIcon(LOADICON.Default);
+            setLoadIcon(LoadIcon.Default);
           }}
         />
       ) : (
