@@ -23,9 +23,9 @@ const SelectIconImage: FC<{
             setLoadIcon(LoadIcon.Web);
           }}
         />
-      ) : (webSrc ?? defaultSrc) && loadIcon === LoadIcon.Web ? (
+      ) : webSrc != undefined && loadIcon === LoadIcon.Web ? (
         <CachedImage
-          src={webSrc ?? defaultSrc}
+          src={webSrc}
           alt=""
           onError={() => {
             setLoadIcon(LoadIcon.Default);

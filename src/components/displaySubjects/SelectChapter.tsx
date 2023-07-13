@@ -53,7 +53,7 @@ const SelectChapter: FC<{
               <div className="chapter-icon">
                 <SelectIconImage
                   localSrc={`courses/${course.courseCode}/icons/${chapter.id}.png`}
-                  defaultSrc={"courses/" + "maths" + "/icons/" + "maths10.png"}
+                  defaultSrc={"courses/" + "en" + "/icons/" + "en33.png"}
                   webSrc={chapter.thumbnail}
                 />
               </div>
