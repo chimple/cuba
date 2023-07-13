@@ -17,7 +17,6 @@ div p {
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
-  margin-top: -5vh;
 }
 
 #home-leaderboard-button {
@@ -29,7 +28,7 @@ div p {
   margin-right: 2vw;
 }
 
-#sub-tabs {
+#home-page-sub-tab {
   text-transform: none;
   font-family: BalooRegular;
   font-size: var(--text-size);
@@ -47,7 +46,7 @@ div p {
   min-height: fit-content !important;
 }
 
-.app-bar {
+.home-page-app-bar {
   border-radius: 10vh;
   background-color: #CCCCCC !important;
   box-shadow: none !important;

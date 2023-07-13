@@ -491,7 +491,7 @@ const Home: FC = () => {
             */}
             {currentHeader !== HOMEHEADERLIST.QUIZ && (
               <div id="home-page-bottom" >
-                <AppBar className="app-bar"
+                <AppBar className="home-page-app-bar"
                 >
                   <Box>
                     <Tabs
@@ -514,12 +514,12 @@ const Home: FC = () => {
                         },
                       }}
                     >
-                      <Tab id='sub-tabs' label={t("Suggestion")}
+                      <Tab id='home-page-sub-tab' label={t("Suggestion")}
                         onClick={() => setCurrentHeader(HOMEHEADERLIST.HOME)}
                       />
-                      <Tab id='sub-tabs' label={t("Favourite")} onClick={() => setCurrentHeader("")} />
+                      <Tab id='home-page-sub-tab' label={t("Favourite")} onClick={() => setCurrentHeader("")} />
 
-                      <Tab id='sub-tabs' label={t("History")} onClick={() => setCurrentHeader("")} />
+                      <Tab id='home-page-sub-tab' label={t("History")} onClick={() => setCurrentHeader("")} />
                     </Tabs>
                   </Box>
                 </AppBar>
