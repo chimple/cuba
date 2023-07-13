@@ -54,12 +54,13 @@ import Leaderboard from "./pages/Leaderboard";
 import AssignmentPage from "./pages/Assignment";
 import SelectMode from "./pages/SelectMode";
 import { FirebaseRemoteConfig } from "@capacitor-firebase/remote-config";
+import { AppUpdater } from "./services/AppUpdater.ts";
 
 setupIonicReact();
 
 const App: React.FC = () => {
   useEffect(() => {
-    console.log("fetching...");
+    console.log("fetching77777...");
     // localStorage.setItem(LANGUAGE, LANG.ENGLISH);
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
@@ -81,6 +82,19 @@ const App: React.FC = () => {
         });
       CapApp.addListener("appStateChange", Util.onAppStateChange);
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
+      AppUpdater.sync("http://192.168.0.41:8000/",60000)
+        .then((update) => {
+          console.log(
+            "🚀 ~ file: App.tsx:87 ~ AppUpdater.sync ~ update:",
+            update
+          );
+        })
+        .catch((error) => {
+          console.log(
+            "🚀 ~ file: App.tsx:89 ~ AppUpdater.sync ~ error:",
+            error
+          );
+        });
     }
 
     Filesystem.mkdir({
