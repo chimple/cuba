@@ -150,6 +150,17 @@ const ProfileCard: React.FC<{
             setShowDialogBox(false);
             await ServiceConfig.getI().apiHandler.deleteProfile(user.docId);
             await setReloadProfiles (true);
+            Util.logEvent(EVENTS.USER_PROFILE, {
+              user_id: user.docId,
+              user_type: user.role,
+              user_name: user.name,
+              user_gender: user.gender!,
+              user_age: user.age!,
+              phone_number: user.username,
+              parent_id: user.uid,
+              parent_username: user.username,
+              action_type: ACTION.DELETE
+            });
           }}
           onNoButtonClicked={async ({}) => {
             console.log(`Show warning No:`);
