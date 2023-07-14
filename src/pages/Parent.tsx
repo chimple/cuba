@@ -148,16 +148,16 @@ const Parent: React.FC = () => {
       <div id="parent-page-profile">
         {userProfile.map((element) => {
           console.log("userProfile",userProfile)
-          let userTemplate: boolean = true;
+          let studentUserType: boolean = true;
           if  (element === undefined  ){
             console.log("element",element)
-            userTemplate = false;
+            studentUserType = false;
           }
           return (
             <ProfileCard
               width={"27vw"}
               height={"50vh"}
-              userType={userTemplate}
+              userType={studentUserType}
               user={element}
               showText={true}
               setReloadProfiles={setReloadProfiles}
