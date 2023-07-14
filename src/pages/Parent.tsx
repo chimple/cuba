@@ -33,7 +33,6 @@ import BackButton from "../components/common/BackButton";
 import { useHistory } from "react-router-dom";
 import CustomAppBar from "../components/studentProgress/CustomAppBar";
 import DeleteParentAccount from "../components/parent/DeleteParentAccount";
-import { object } from "prop-types";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
@@ -149,16 +148,16 @@ const Parent: React.FC = () => {
       <div id="parent-page-profile">
         {userProfile.map((element) => {
           console.log("userProfile",userProfile)
-          let temp: boolean = true;
+          let userTemplate: boolean = true;
           if  (element === undefined  ){
             console.log("element",element)
-            temp = false;
+            userTemplate = false;
           }
           return (
             <ProfileCard
               width={"27vw"}
               height={"50vh"}
-              userType={temp}
+              userType={userTemplate}
               user={element}
               showText={true}
               setReloadProfiles={setReloadProfiles}
