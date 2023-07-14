@@ -50,6 +50,11 @@ const Login: React.FC = () => {
   const [showTimer, setShowTimer] = useState<boolean>(false);
   const [showResendOtp, setShowResendOtp] = useState<boolean>(false);
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
+  const [isInvalidCode, setIsInvalidCode] = useState<{
+    isInvalidCode: boolean,
+    isInvalidCodeLength: boolean
+
+  }>();
   const Buttoncolors = {
     Default: "grey",
     Valid: "yellowgreen",
@@ -287,7 +292,7 @@ const Login: React.FC = () => {
         console.log("Resend Otp Sucessfull");
         setShowResendOtp(false);
         setCounter(59);
-      } 
+      }
       else {
         console.log("Resend Otp failed");
       }
