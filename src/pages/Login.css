@@ -82,7 +82,7 @@ p {
   font-size: 1.9vw;
   margin: 4% 0% 2% 36.8vw;
 }
-#login-continue-button-otp{
+#login-otp-button{
   transform: translateY(-15%);
   color: white;
   width: 26vw;
@@ -171,16 +171,19 @@ p {
 .scroll-header {
   overflow: scroll;
 }
-#expire-otp{
-  font-size: 1.5vw;
-}
+
 #resend-otp{
-font-size: 1.5vw;
-}
-#resend-otp-line{
   display: flex;
   justify-content: space-between;
   line-height: 3vw;
+}
+
+#timer{
+  font-size: 1.5vw;
+}
+
+#resend-otp-text{
+font-size: 1.5vw;
 }
 
 .verification-error-message{

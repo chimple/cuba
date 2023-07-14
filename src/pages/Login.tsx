@@ -496,7 +496,7 @@ const Login: React.FC = () => {
                 </div>
                 <div
                   ref={getOtpBtnRef}
-                  id="login-continue-button-otp">
+                  id="login-otp-button">
 
                   <div onClick={() => {
                     if (verificationCode.length === 6) {
@@ -522,11 +522,11 @@ const Login: React.FC = () => {
                       Get Started
                     </div>
                   </div>
-                  <div id="resend-otp-line">
+                  <div id="resend-otp">
                     <div>
-                      <span style={!showResendOtp ? { color: "red" } : { color: "grey" }} id="expire-otp">Time Remaining : {counter}</span>
+                      <span style={!showResendOtp ? { color: "red" } : { color: "grey" }} id="timer">Time Remaining : {counter}</span>
                     </div>
-                    <span id="resend-otp" onClick={resendOtpHandler} style={showResendOtp ? { color: "green" } : { color: "grey" }}>Resend Otp </span>
+                    <span id="resend-otp-text" onClick={resendOtpHandler} style={showResendOtp ? { color: "green" } : { color: "grey" }}>Resend Otp </span>
                   </div>
                 </div>
                 {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
