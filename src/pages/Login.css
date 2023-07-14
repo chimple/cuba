@@ -82,7 +82,18 @@ p {
   font-size: 1.9vw;
   margin: 4% 0% 2% 36.8vw;
 }
-
+#login-continue-button-otp{
+  transform: translateY(-15%);
+  color: white;
+  width: 26vw;
+  height: 5.5vw;
+  background: grey;
+  border-radius: var(--border-radius);
+  text-align: center;
+  line-height: 6vw;
+  font-size: 1.9vw;
+  margin: 4% 0% 2% 36.8vw;
+}
 #login-google-icon-text {
   /* position: absolute;
     top: 83%;
@@ -150,6 +161,27 @@ p {
 }
 
 #otp-sent {
-  font-size: 3vh;
+  font-size: 1.5vw;
   color: #565656;
+}
+#expire-otp{
+  font-size: 1.5vw;
+
+
+}
+#resend-otp{
+font-size: 1.5vw;
+
+}
+#resend-otp-line{
+  display: flex;
+  justify-content: space-between;
+  line-height: 3vw;
+}
+
+.verification-error-message{
+  width: 35vw;
+  color: red;
+  font-size: 1.5vw;
+
 }
