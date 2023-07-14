@@ -20,7 +20,8 @@ const ProfileCard: React.FC<{
   userType: boolean;
   user: User;
   showText?: boolean;
-}> = ({ width, height, userType, user }) => {
+  setReloadProfiles: (event: boolean) => void;
+}> = ({ width, height, userType, user , setReloadProfiles }) => {
   const history = useHistory();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [showWarningDialogBox, setShowWarningDialogBox] =
@@ -149,6 +150,7 @@ const ProfileCard: React.FC<{
             setShowWarningDialogBox(false);
             setShowDialogBox(false);
             await ServiceConfig.getI().apiHandler.deleteProfile(user.docId);
+            await setReloadProfiles (true);
             FirebaseAnalytics.logEvent({name:EVENTS.USER_PROFILE, params:{
               user_id: user.docId,
               user_type: user.role,
