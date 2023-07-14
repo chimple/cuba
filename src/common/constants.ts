@@ -17,12 +17,12 @@ export enum SL_GRADES {
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
 export enum HOMEHEADERLIST {
+  SUBJECTS = "SUBJECTS",
   HOME = "HOME",
-  RECOMMENDATION = "RECOMMENDATION",
   ASSIGNMENT = "ASSIGNMENT",
-  FAVORITE = "FAVORITE",
   CHALLENGES = "CHALLENGES",
   SEARCH = "SEARCH",
+  QUIZ = "QUIZ",
   PROFILE = "PROFILE",
 }
 
@@ -32,6 +32,7 @@ export enum PARENTHEADERLIST {
   HELP = "HELP",
   FAQ = "FAQ",
 }
+
 export enum LEADERBOARDHEADERLIST {
   LEADERBOARD = "LEADERBOARD",
   EVENTS = "EVENTS",
@@ -69,11 +70,11 @@ export interface HeaderIconConfig {
 export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
   new Map<HOMEHEADERLIST, HeaderIconConfig>([
     [
-      HOMEHEADERLIST.RECOMMENDATION,
+      HOMEHEADERLIST.SUBJECTS,
       {
-        displayName: "Suggestion",
-        iconSrc: "/assets/icons/suggestionIcon.svg",
-        headerList: HOMEHEADERLIST.RECOMMENDATION,
+        displayName: "Subjects",
+        iconSrc: "/assets/icons/subjectIcon.svg",
+        headerList: HOMEHEADERLIST.SUBJECTS,
       },
     ],
     [
@@ -82,14 +83,6 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
         displayName: "Home work",
         iconSrc: "/assets/icons/homeworkIcon.svg",
         headerList: HOMEHEADERLIST.ASSIGNMENT,
-      },
-    ],
-    [
-      HOMEHEADERLIST.FAVORITE,
-      {
-        displayName: "Favourite",
-        iconSrc: "/assets/icons/favoruiteIcon.svg",
-        headerList: HOMEHEADERLIST.FAVORITE,
       },
     ],
     // [
@@ -106,6 +99,14 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
         displayName: "Search",
         iconSrc: "/assets/icons/searchIcon.svg",
         headerList: HOMEHEADERLIST.SEARCH,
+      },
+    ],
+    [
+      HOMEHEADERLIST.QUIZ,
+      {
+        displayName: "Quiz",
+        iconSrc: "/assets/icons/quiz_icon.svg",
+        headerList: HOMEHEADERLIST.QUIZ,
       },
     ],
   ]);
@@ -165,7 +166,7 @@ export const PREVIOUS_PLAYED_COURSE = () =>
 export const PREVIOUS_SELECTED_COURSE = () =>
   `${Auth.i.sourcedId}-previousSelectedCourse`;
 export const SELECTED_GRADE = () => `${Auth.i.sourcedId}-selectedGrade`;
-export const APP_LANG = "appLang";
+// export const APP_LANG = "appLang";
 export const CURRENT_SCHOOL = "currentSchool";
 export const CURRENT_MODE = "currentMode";
 export const CURRENT_CLASS = "currentClass";
@@ -183,6 +184,7 @@ export const BUNDLE_URL =
   "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/";
 export interface PortPlugin {
   getPort(): Promise<{ port: number }>;
+  getMigrateUsers():Promise<{users:any}>
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_COURSE_IDS = [
@@ -264,9 +266,17 @@ export enum MODES {
   SCHOOL = "SCHOOL",
 }
 
+export enum ACTION {
+  CREATE = "create",
+  UPDATE = "update",
+  DELETE = "delete",
+}
+
 export const CURRENT_STUDENT = "currentStudent";
 export enum EVENTS {
   LESSON_END = "lesson_end",
+  LESSON_INCOMPLETE = "lesson_incomplete",
+  USER_PROFILE = "user_profile",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -276,3 +286,5 @@ export const LAST_UPDATE_CHECKED = "lastUpdateChecked";
 export const LAST_PERMISSION_CHECKED = "lastPermissionChecked";
 
 export const CACHE_IMAGE = "cacheImage";
+
+export const IS_MIGRATION_CHECKED="isMigrationChecked"

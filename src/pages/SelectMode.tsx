@@ -5,6 +5,7 @@ import { FirebaseApi } from "../services/api/FirebaseApi";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { useHistory } from "react-router";
 import {
+  LANGUAGE,
   AVATARS,
   CURRENT_CLASS,
   CURRENT_MODE,
@@ -24,6 +25,7 @@ import User from "../models/user";
 import School from "../models/school";
 import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
+import i18n from "../i18n";
 
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -56,6 +58,7 @@ const SelectMode: FC = () => {
   }[] = [];
   useEffect(() => {
     init();
+    changeLanguage();
   }, []);
   // const api = FirebaseApi.getInstance();
   const api = ServiceConfig.getI().apiHandler;
@@ -68,13 +71,16 @@ const SelectMode: FC = () => {
     const currUser = await auth.getCurrentUser();
     if (!currUser) return;
     const allSchool = await api.getSchoolsForUser(currUser);
-
+    const students = await api.getParentStudentProfiles();
     // const isTeacher = await api.isUserTeacher(currUser);
     // console.log("This is the current status of teacher " + isTeacher);
     if (!allSchool || allSchool.length < 1) {
       api.currentMode = MODES.PARENT;
       schoolUtil.setCurrMode(MODES.PARENT);
-      history.replace(PAGES.DISPLAY_STUDENT);
+      console.log(students);
+      if (!!students && students.length == 0) {
+        history.replace(PAGES.CREATE_STUDENT);
+      } else history.replace(PAGES.DISPLAY_STUDENT);
       return;
     } else {
       setIsLoading(false);
@@ -97,10 +103,17 @@ const SelectMode: FC = () => {
     setCurrentUser(currUser);
     setSchoolList(tempSchoolList);
   };
-
-  const onParentSelect = () => {
+  async function changeLanguage() {
+    const languageDocId = localStorage.getItem(LANGUAGE);
+    console.log("This is the lang " + languageDocId);
+    if (!!languageDocId) await i18n.changeLanguage(languageDocId);
+  }
+  const onParentSelect = async () => {
     api.currentMode = MODES.PARENT;
-    history.replace(PAGES.DISPLAY_STUDENT);
+    const students = await api.getParentStudentProfiles();
+    if (!!students && students.length == 0) {
+      history.replace(PAGES.CREATE_STUDENT);
+    } else history.replace(PAGES.DISPLAY_STUDENT);
     schoolUtil.setCurrMode(MODES.PARENT);
     // setStage(STAGES.MODE);
   };
@@ -133,7 +146,7 @@ const SelectMode: FC = () => {
       "🚀 ~ file: DisplayStudents.tsx:30 ~ onStudentClick:student",
       student
     );
-    await Util.setCurrentStudent(student);
+    await Util.setCurrentStudent(student, undefined, false);
     history.replace(PAGES.HOME);
   };
   function randomValue() {

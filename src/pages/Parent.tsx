@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./Parent.css";
 import {
-  APP_LANG,
+  LANGUAGE,
   LANG,
   MAX_STUDENTS_ALLOWED,
   PAGES,
@@ -61,13 +61,13 @@ const Parent: React.FC = () => {
     displayName: string;
   }[] = [];
   // let langDocIds: Map<string, string> = new Map();
-  const localAppLang = localStorage.getItem(APP_LANG);
+  const localAppLang = localStorage.getItem(LANGUAGE);
   const history = useHistory();
   const parentHeaderIconList = [
     { header: "profile", displayName: "Profile" },
-    { header: "settings", displayName: "Settings" },
+    { header: "setting", displayName: "Setting" },
     { header: "help", displayName: "Help" },
-    { header: "fAQ", displayName: "FAQ" },
+    { header: "faq", displayName: "FAQ" },
   ];
 
   useEffect(() => {
@@ -182,15 +182,25 @@ const Parent: React.FC = () => {
               width="26vw"
               onValueChange={async (selectedLangDocId) => {
                 // setIsLoading(true);
+
                 const api = ServiceConfig.getI().apiHandler;
                 // api.deleteAllUserData
-                const langDoc = await api.getLanguageWithId(selectedLangDocId);
-                console.log("langDoc", langDoc);
+                // const langDoc = await api.getLanguageWithId(selectedLangDocId);
+                const allLang =
+                  await ServiceConfig.getI().apiHandler.getAllLanguages();
+
+                const langDoc = allLang.find(
+                  (obj) => obj.docId === selectedLangDocId
+                );
+
                 if (!langDoc) return;
+                localStorage.setItem(LANGUAGE, langDoc.code);
+                console.log("langDoc", langDoc);
                 await i18n.changeLanguage(langDoc.code);
                 console.log("applang", selectedLangDocId);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
+                setTabIndex(t(parentHeaderIconList[1].header));
 
                 const langId = langDocIds.get(langDoc.code);
 
@@ -202,14 +212,6 @@ const Parent: React.FC = () => {
                 }
                 console.log("selectedLangDocId", selectedLangDocId);
                 setCurrentAppLang(selectedLangDocId);
-                const allLang =
-                  await ServiceConfig.getI().apiHandler.getAllLanguages();
-
-                const element = allLang.find(
-                  (obj) => obj.docId === selectedLangDocId
-                );
-                if (!element) return;
-                localStorage.setItem(APP_LANG, element.code);
               }}
             />
           </div>
@@ -412,7 +414,7 @@ const Parent: React.FC = () => {
 
   useEffect(() => {
     if (!tabIndex && parentHeaderIconList.length > 0) {
-      setTabIndex(parentHeaderIconList[0].header);
+      setTabIndex(t(parentHeaderIconList[0].header));
     }
   }, []);
 
@@ -420,15 +422,15 @@ const Parent: React.FC = () => {
     <Box>
       <div>
         <CustomAppBar
-          tabNames={parentHeaderIconList.map((item) => item.header)}
+          tabNames={parentHeaderIconList.map((item) => t(item.header))}
           value={tabIndex}
           onChange={handleChange}
           handleBackButton={handleBackButton}
         />
-        {tabIndex === "profile" && <div>{profileUI()}</div>}
-        {tabIndex === "settings" && <div>{settingUI()}</div>}
-        {tabIndex === "help" && <div>{helpUI()}</div>}
-        {tabIndex === "faq" && <div></div>}
+        {tabIndex === t("profile") && <div>{profileUI()}</div>}
+        {tabIndex === t("setting") && <div>{settingUI()}</div>}
+        {tabIndex === t("help") && <div>{helpUI()}</div>}
+        {tabIndex === t("faq") && <div></div>}
       </div>
     </Box>
   );
