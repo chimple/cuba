@@ -1,6 +1,5 @@
 #home-header {
   position: initial !important;
-  /* margin: clamp(10px,10vh,20px); */
 }
 
 div p {
@@ -27,4 +26,37 @@ div p {
   font-size: var(--text-size);
   color: var(--text-color);
   margin-right: 2vw;
+}
+
+#home-page-sub-tab {
+  text-transform: none;
+  font-family: BalooRegular;
+  font-size: var(--text-size);
+}
+
+.MuiTabs-flexContainer {
+  justify-content: space-between;
+}
+
+.Mui-selected {
+  color: white;
+}
+
+.MuiTabs-root {
+  min-height: fit-content !important;
+}
+
+.home-page-app-bar {
+  border-radius: 10vh;
+  background-color: #CCCCCC !important;
+  box-shadow: none !important;
+  width: fit-content !important;
+  margin: auto !important;
+  position: static !important;
+}
+
+#home-page-bottom {
+  position: fixed;
+  width: 100%;
+  bottom: 2vh;
 }

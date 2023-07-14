@@ -114,7 +114,6 @@ p {
   /* text-align: center; */
   /* transform: translateY(-5%) translateX(-50%); */
   margin-top: 0%;
-
 }
 
 #Google-horizontal-line {
@@ -184,4 +183,11 @@ font-size: 1.5vw;
   color: red;
   font-size: 1.5vw;
 
+}
+.class-header {
+  position: absolute;
+  margin: var(--margin);
+}
+.scroll-header {
+  overflow: scroll;
 }

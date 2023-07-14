@@ -47,8 +47,9 @@
   "help": "मदद",
   "Help Video": "सहायता वीडियो",
   "Hindi": "हिंदी",
+  "History": "इतिहास",
   "Home work": "गृहकार्य",
-  "home": "घर",
+  "Home": "घर",
   "Instagram": "इंस्टाग्राम",
   "How do you want to join as?": "आप किस रूप में शामिल होना चाहते हैं?",
   "Language": "भाषा",
@@ -78,6 +79,7 @@
   "Please select your profile": "कृपया अपनी प्रोफ़ाइल का चयन करें",
   "profile": "प्रोफ़ाइल",
   "Progress Report": "प्रगति रिपोर्ट",
+  "Quiz": "प्रश्नोत्तरी",
   "Rank": "पद",
   "RIGHT": "दाएँ",
   "Score": "अंक",
@@ -121,3 +123,4 @@
   "You can edit or delete user by clicking on the below buttons": "आप नीचे दिए गए बटनों पर क्लिक करके उपयोगकर्ता को संपादित या हटा सकते हैं",
   "You Completed the Lesson:" : "आपने पाठ पूरा कर लिया:"
 }
+
