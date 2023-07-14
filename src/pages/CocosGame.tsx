@@ -5,6 +5,7 @@ import {
   EVENTS,
   GAME_END,
   GAME_EXIT,
+  FIVE_LESSONS_PLAYED,
   LESSON_END,
   PAGES,
 } from "../common/constants";
@@ -34,6 +35,8 @@ const CocosGame: React.FC = () => {
   const [gameResult, setGameResult] = useState<any>();
   const currentStudent = Util.getCurrentStudent();
 
+  let initialCount = Number(localStorage.getItem(FIVE_LESSONS_PLAYED));
+
   const presentToast = async () => {
     await present({
       message: "Something went wrong!",
@@ -56,6 +59,9 @@ const CocosGame: React.FC = () => {
   const killGame = (e: any) => {
     setShowDialogBox(true);
     Util.killCocosGame();
+    initialCount++;
+    localStorage.setItem(FIVE_LESSONS_PLAYED, JSON.stringify(initialCount));
+    console.log("---------Five LESSONS PLAYED", initialCount);
   };
 
   const push = () => {
@@ -255,6 +261,14 @@ const CocosGame: React.FC = () => {
                   "------------------the game result ",
                   gameResult.detail.score
                 );
+                if (initialCount >= 5) {
+                  Util.showInAppReview();
+                  initialCount = 0;
+                  localStorage.setItem(
+                    FIVE_LESSONS_PLAYED,
+                    JSON.stringify(initialCount)
+                  );
+                }
                 push();
               }}
               onContinueButtonClicked={async (e: any) => {
