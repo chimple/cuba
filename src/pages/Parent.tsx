@@ -33,6 +33,7 @@ import BackButton from "../components/common/BackButton";
 import { useHistory } from "react-router-dom";
 import CustomAppBar from "../components/studentProgress/CustomAppBar";
 import DeleteParentAccount from "../components/parent/DeleteParentAccount";
+import { object } from "prop-types";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
@@ -54,6 +55,7 @@ const Parent: React.FC = () => {
   const [langDocIds, setLangDocIds] = useState<Map<string, string>>(new Map());
   const [currentAppLang, setCurrentAppLang] = useState<string>();
   //  const [localLangDocId, setLocalLangDocId] = useState<any>();
+  const [reloadProfiles , setReloadProfiles] = useState<boolean>(false);
   let tempLangList: {
     id: string;
     displayName: string;
@@ -72,8 +74,27 @@ const Parent: React.FC = () => {
     setIsLoading(true);
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
     inti();
-  }, []);
-  async function inti() {
+    getStudentProfile();
+  }, [reloadProfiles]);
+  
+  function getStudentProfile(){ 
+    console.log("getStudentProfile");
+    const userProfilePromise: Promise<User[]> =
+    ServiceConfig.getI().apiHandler.getParentStudentProfiles();
+    let finalUser: any[] = [];
+  userProfilePromise.then((u) => {
+    for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
+      if (u[i]) {
+        finalUser.push(u[i]);
+      } else {
+        finalUser.push(undefined);
+      }
+    }
+    setUserProfile(finalUser);
+    
+  });
+  }
+  async function inti(): Promise<void> {
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (parentUser != undefined) {
       console.log("User ", parentUser);
@@ -121,32 +142,26 @@ const Parent: React.FC = () => {
   }
 
   function profileUI() {
-    const userProfilePromise: Promise<User[]> =
-      ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-
-    let finalUser: any[] = [];
-    userProfilePromise.then((u) => {
-      for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
-        if (u[i]) {
-          finalUser.push(u[i]);
-        } else {
-          finalUser.push("no user");
-        }
-      }
-      setUserProfile(finalUser);
-    });
+   
     // setIsLoading(false);
 
     return (
       <div id="parent-page-profile">
         {userProfile.map((element) => {
+          console.log("userProfile",userProfile)
+          let temp: boolean = true;
+          if  (element === undefined  ){
+            console.log("element",element)
+            temp = false;
+          }
           return (
             <ProfileCard
               width={"27vw"}
               height={"50vh"}
-              userType={element?.name ? true : false}
+              userType={temp}
               user={element}
               showText={true}
+              setReloadProfiles={setReloadProfiles}
             />
           );
         })}
