@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
+import { Device } from "@capacitor/device";
 import {
   CACHE_SIZE_UNLIMITED,
   initializeFirestore,
@@ -18,7 +19,7 @@ import {
 //   var FIREBASE_APPCHECK_DEBUG_TOKEN: boolean | string | undefined;
 // }\
 
-export const initializeFireBase = () => {
+export const initializeFireBase = async () => {
   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
   const firebaseConfig = {
     apiKey: process.env.REACT_APP_API_KEY!,
@@ -39,6 +40,7 @@ export const initializeFireBase = () => {
   initializeFirestore(app, {
     localCache: persistentLocalCache({ cacheSizeBytes: CACHE_SIZE_UNLIMITED }),
   });
-
-  FirebaseAnalytics.initializeFirebase(firebaseConfig);
+  if((await Device.getInfo()).platform === 'web'){
+    FirebaseAnalytics.initializeFirebase(firebaseConfig);
+  }
 };
