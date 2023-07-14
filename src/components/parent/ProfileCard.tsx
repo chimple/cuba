@@ -19,7 +19,8 @@ const ProfileCard: React.FC<{
   userType: boolean;
   user: User;
   showText?: boolean;
-}> = ({ width, height, userType, user }) => {
+  setReloadProfiles: (event: boolean) => void;
+}> = ({ width, height, userType, user , setReloadProfiles }) => {
   const history = useHistory();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [showWarningDialogBox, setShowWarningDialogBox] =
@@ -148,6 +149,7 @@ const ProfileCard: React.FC<{
             setShowWarningDialogBox(false);
             setShowDialogBox(false);
             await ServiceConfig.getI().apiHandler.deleteProfile(user.docId);
+            await setReloadProfiles (true);
           }}
           onNoButtonClicked={async ({}) => {
             console.log(`Show warning No:`);
