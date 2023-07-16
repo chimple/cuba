@@ -35,7 +35,7 @@ const CocosGame: React.FC = () => {
   const [gameResult, setGameResult] = useState<any>();
   const currentStudent = Util.getCurrentStudent();
 
-  let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT));
+  let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
 
   const presentToast = async () => {
     await present({
@@ -60,8 +60,8 @@ const CocosGame: React.FC = () => {
     setShowDialogBox(true);
     Util.killCocosGame();
     initialCount++;
-    localStorage.setItem(LESSONS_PLAYED_COUNT, JSON.stringify(initialCount));
-    console.log("---------Five LESSONS PLAYED", initialCount);
+    localStorage.setItem(LESSONS_PLAYED_COUNT, (initialCount.toString()));
+    console.log("---------count of LESSONS PLAYED", initialCount);
   };
 
   const push = () => {
@@ -266,7 +266,7 @@ const CocosGame: React.FC = () => {
                   initialCount = 0;
                   localStorage.setItem(
                     LESSONS_PLAYED_COUNT,
-                    JSON.stringify(initialCount)
+                    (initialCount.toString())
                   );
                 }
                 push();
