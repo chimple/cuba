@@ -148,7 +148,7 @@ p {
   color: white;
 }
 
-.error-message {
+.login-error-message {
   display: flex;
   width: 35vw;
   color: red;
@@ -160,7 +160,7 @@ p {
   gap: 1vw;
 }
 
-#otp-sent {
+#login-otp-sent {
   font-size: 1.5vw;
   color: #565656;
 }
@@ -171,22 +171,20 @@ p {
 .scroll-header {
   overflow: scroll;
 }
-
-#resend-otp{
+#login-resend-otp{
   display: flex;
   justify-content: space-between;
   line-height: 3vw;
 }
-
-#timer{
+#login-time-remaining{
   font-size: 1.5vw;
 }
-
-#resend-otp-text{
+#login-resend-otp-text{
 font-size: 1.5vw;
 }
 
-.verification-error-message{
+
+.login-verification-error-message{
   width: 35vw;
   color: red;
   font-size: 1.5vw;
