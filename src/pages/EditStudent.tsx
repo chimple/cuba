@@ -174,7 +174,7 @@ const EditStudent = () => {
         {!isEdit && !state?.showBackButton ? null : (
           <BackButton
             onClicked={() => {
-              history.replace(PAGES.PROFILE);
+              history.replace(PAGES.DISPLAY_STUDENT);
             }}
           />
         )}
