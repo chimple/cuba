@@ -4,14 +4,16 @@
   font-size: var(--text-size);
   text-align: center;
 }
+
 .img {
   height: 10vh;
   width: auto;
   /* min-height: 30px; */
 }
-.child-Name{
-  white-space:nowrap;
-  max-width: 20vh;
-  text-overflow: ellipsis;
+
+.child-Name {
+  white-space: nowrap;
+  max-width: 17vw;
+  /* text-overflow: ellipsis; */
   overflow: hidden;
 }
