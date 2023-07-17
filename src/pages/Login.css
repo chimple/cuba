@@ -12,8 +12,8 @@ p {
     margin-left: calc(33vw);
     margin-top: 2%; */
   text-align: center;
-  width: 12vw;
-  height: 19vh;
+  width: 11.5vw;
+  height: 18vh;
   margin-top: 2%;
   /* height: 28%;
     position: absolute;
@@ -80,7 +80,7 @@ p {
   text-align: center;
   line-height: 6vw;
   font-size: 1.9vw;
-  margin: 4% 0% 2% 36.8vw;
+  margin: 3.5% 0% 2% 36.8vw;
 }
 #login-otp-button{
   transform: translateY(-15%);
@@ -110,7 +110,7 @@ p {
   /* position: absolute;
     top: 89%;
     left: 50%; */
-  height: 10vh;
+  height: 9vh;
   width: auto;
   /* text-align: center; */
   /* transform: translateY(-5%) translateX(-50%); */
