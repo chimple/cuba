@@ -82,6 +82,18 @@ p {
   font-size: 1.9vw;
   margin: 3.5% 0% 2% 36.8vw;
 }
+#login-otp-button{
+  transform: translateY(-15%);
+  color: white;
+  width: 26vw;
+  height: 5.5vw;
+  background: grey;
+  border-radius: var(--border-radius);
+  text-align: center;
+  line-height: 6vw;
+  font-size: 1.9vw;
+  margin: 4% 0% 2% 36.8vw;
+}
 
 #login-google-icon-text {
   /* position: absolute;
@@ -136,7 +148,7 @@ p {
   color: white;
 }
 
-.error-message {
+.login-error-message {
   display: flex;
   width: 35vw;
   color: red;
@@ -148,8 +160,8 @@ p {
   gap: 1vw;
 }
 
-#otp-sent {
-  font-size: 3vh;
+#login-otp-sent {
+  font-size: 1.5vw;
   color: #565656;
 }
 .class-header {
@@ -158,4 +170,23 @@ p {
 }
 .scroll-header {
   overflow: scroll;
+}
+#login-resend-otp{
+  display: flex;
+  justify-content: space-between;
+  line-height: 3vw;
+}
+#login-time-remaining{
+  font-size: 1.5vw;
+}
+#login-resend-otp-text{
+font-size: 1.5vw;
+}
+
+
+.login-verification-error-message{
+  width: 35vw;
+  color: red;
+  font-size: 1.5vw;
+
 }
