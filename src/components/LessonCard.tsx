@@ -11,6 +11,7 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import Subject from "../models/subject";
 import { t } from "i18next";
 import LovedIcon from "./LovedIcon";
+import SelectIconImage from "./displaySubjects/SelectIconImage";
 
 const LessonCard: React.FC<{
   width: string;
@@ -50,6 +51,7 @@ const LessonCard: React.FC<{
   const hideImg = (event: any) => {
     setShowImage(false);
   };
+
   // const subjectCode = lesson.chapter.course.id;
   useEffect(() => {
     if (showSubjectName) getSubject();
@@ -104,7 +106,7 @@ const LessonCard: React.FC<{
           // } else {
           const parmas = `?courseid=${lesson.cocosSubjectCode}&chapterid=${lesson.cocosChapterCode}&lessonid=${lesson.id}`;
           console.log(
-            ":rocket: ~ file: LessonCard.tsx:73 ~ parmas:",
+            "🚀 ~ file: LessonCard.tsx:73 ~ parmas:",
             parmas,
             Lesson.toJson(lesson)
           );
@@ -158,44 +160,33 @@ const LessonCard: React.FC<{
               </p>
             </div>
           ) : null}
-          <img
-            className="pattern"
-            style={{
-              width: width,
-              height: height,
-              borderRadius: "12%",
-              display: "grid",
-              justifyContent: "center",
-              alignItems: "center",
-              gridArea: "1 / 1 ",
-            }}
-            src={"courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"}
-            alt={"courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"}
-          ></img>
+          <div className="pattern">
+            <SelectIconImage
+              localSrc={
+                // this is for lesson card background
+                "courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"
+              }
+              defaultSrc={
+                "courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"
+              }
+              webSrc={
+                "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/lesson_thumbnails%2FlessonCaredPattern%2FChallengePattern.png?alt=media&token=be64aec1-f70f-43c3-95de-fd4b1afe5806"
+              }
+            />
+          </div>
+
           <div id="lesson-card-image">
-            {showImage ? (
-              <img
-                id="lesson-card-image"
-                loading="lazy"
-                alt={
-                  "courses/" +
-                  lesson.cocosSubjectCode +
-                  "/icons/" +
-                  lesson.id +
-                  ".png"
-                }
-                src={
-                  "courses/" +
-                  lesson.cocosSubjectCode +
-                  "/icons/" +
-                  lesson.id +
-                  ".png"
-                }
-                onError={hideImg}
-              />
-            ) : (
-              <div /> // we can show Default LessonCard text or image
-            )}
+            <SelectIconImage
+              localSrc={
+                "courses/" +
+                lesson.cocosSubjectCode +
+                "/icons/" +
+                lesson.id +
+                ".png"
+              }
+              defaultSrc={"courses/" + "en" + "/icons/" + "en33.png"}
+              webSrc={lesson.thumbnail}
+            />
             {!isUnlocked ? (
               <div id="lesson-card-status-icon">
                 <img
