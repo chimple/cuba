@@ -20,6 +20,8 @@ import {
   SELECTED_GRADE,
   SL_GRADES,
   IS_MIGRATION_CHECKED,
+  SOUND,
+  MUSIC,
   // APP_LANG,
 } from "../common/constants";
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
@@ -94,7 +96,53 @@ export class Util {
     api.currentStudent = currentStudent;
     return currentStudent;
   }
+  public static getCurrentSound(): boolean {
+    const auth = ServiceConfig.getI().authHandler;
+    const currUser = auth.currentUser;
+    if (!!currUser?.soundFlag) return currUser.soundFlag;
+    const currSound = localStorage.getItem(SOUND);
+    if (!currSound) return true;
+    console.log(currSound);
+    if (currUser) {
+      ServiceConfig.getI().apiHandler.updateSoundFlag(
+        currUser,
+        currSound === "true" ? true : false
+      );
+    }
+    return currSound === "true" ? true : false;
+  }
+  public static setCurrentSound = async (currSound: boolean) => {
+    const auth = ServiceConfig.getI().authHandler;
+    const currUser = auth.currentUser;
+    if (currUser) {
+      ServiceConfig.getI().apiHandler.updateSoundFlag(currUser, currSound);
+    }
+    localStorage.setItem(SOUND, currSound.toString());
+  };
 
+  public static getCurrentMusic(): boolean {
+    const auth = ServiceConfig.getI().authHandler;
+    const currUser = auth.currentUser;
+    if (!!currUser?.musicFlag) return currUser.musicFlag;
+    const currMusic = localStorage.getItem(MUSIC);
+    if (!currMusic) return true;
+    console.log(currMusic);
+    if (currUser) {
+      ServiceConfig.getI().apiHandler.updateMusicFlag(
+        currUser,
+        currMusic === "true" ? true : false
+      );
+    }
+    return currMusic === "true" ? true : false;
+  }
+  public static setCurrentMusic = async (currMusic: boolean) => {
+    const auth = ServiceConfig.getI().authHandler;
+    const currUser = auth.currentUser;
+    if (currUser) {
+      ServiceConfig.getI().apiHandler.updateMusicFlag(currUser, currMusic);
+    }
+    localStorage.setItem(MUSIC, currMusic.toString());
+  };
   public static getGUIDRef(map: any): GUIDRef {
     return { href: map?.href, sourcedId: map?.sourcedId, type: map?.type };
   }

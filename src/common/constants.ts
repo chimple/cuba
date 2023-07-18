@@ -174,6 +174,8 @@ export const CURRENT_CLASS = "currentClass";
 export const LANGUAGE = "language";
 export const EXAM = "exam";
 export const PRE_QUIZ = "PreQuiz";
+export const SOUND = "sound";
+export const MUSIC = "music";
 export const GAME_URL = "gameUrl";
 export const BASE_NAME =
   !Capacitor.isNativePlatform() && !!process.env.REACT_APP_GITHUB_BASE
