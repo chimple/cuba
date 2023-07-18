@@ -1,5 +1,7 @@
 import { Capacitor, CapacitorHttp, WebView } from "@capacitor/core";
 import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
+import pLimit from "p-limit";
+
 // --------------
 // INTERNAL TYPES
 // --------------
@@ -60,12 +62,12 @@ export const AppUpdater = {
     // Start the app update job.
     const timeStart = new Date();
 
-    console.log("AppUpdater: Starting...");
+    console.debug("AppUpdater: Starting...");
 
     try {
       // Get the currently installed release version.
       let activeRelease = await getCurrentRelease();
-      console.log(
+      console.debug(
         "🚀 ~ file: AppUpdater.ts.ts:91 ~ activeRelease:",
         JSON.stringify(activeRelease)
       );
@@ -77,12 +79,7 @@ export const AppUpdater = {
 
       // Check that enough time has elapsed before we can check for an update again.
       const lastUpdated = activeRelease.updated;
-      console.log("🚀 ~ file: AppUpdater.ts.ts:78 ~ lastUpdated:", lastUpdated);
       const nextUpdateDue = new Date(lastUpdated.getTime() + checkDelay);
-      console.log(
-        "🚀 ~ file: AppUpdater.ts.ts:80 ~ nextUpdateDue:",
-        nextUpdateDue
-      );
 
       if (new Date() < nextUpdateDue) {
         throw `Last update was run at '${lastUpdated.toJSON()}'. Next update check only due at '${nextUpdateDue.toJSON()}'`;
@@ -92,20 +89,10 @@ export const AppUpdater = {
       const serverChecksum = await getServerChecksum(
         webServerURL + "/checksum.json"
       );
-      console.log(
-        "🚀 ~ file: AppUpdater.ts.ts:88 ~ checksum:",
-        JSON.stringify(serverChecksum)
-      );
 
       if (!serverChecksum) {
         throw "Unable to get checksum from server";
       }
-
-      console.log(
-        "🚀 ~ file: AppUpdater.ts.ts:96 ~ activeRelease.checksum.id === serverChecksum.id:",
-        activeRelease.checksum.id,
-        serverChecksum.id
-      );
 
       // Check that latest release is not already installed.
       if (activeRelease.checksum.id === serverChecksum.id) {
@@ -162,15 +149,8 @@ export const AppUpdater = {
           );
         }
       }
-      console.log("🚀 ~ file: AppUpdater.ts.ts:164 ~ downloadTasks: start");
 
       await Promise.all(downloadTasks);
-      console.log("🚀 ~ file: AppUpdater.ts.ts:164 ~ downloadTasks: end");
-
-      console.log(
-        "🚀 ~ file: AppUpdater.ts.ts:177 ~ Save the release checksum:start"
-      );
-
       // Save the release checksum.
       await Filesystem.writeFile({
         path: "releases/next/checksum.json",
@@ -179,31 +159,17 @@ export const AppUpdater = {
         encoding: Encoding.UTF8,
         recursive: true,
       });
-      console.log(
-        "🚀 ~ file: AppUpdater.ts.ts:177 ~ Save the release checksum:end"
-      );
-
-      console.log(
-        "🚀 ~ file: AppUpdater.ts.ts:188 ~ Install the downloaded release package:start"
-      );
-
       // Install the downloaded release package.
       await Filesystem.rename({
         from: "releases/next",
         to: `releases/${serverChecksum.id}`,
         directory: Directory.Data,
       });
-      console.log(
-        "🚀 ~ file: AppUpdater.ts.ts:188 ~ Install the downloaded release package:end"
-      );
-
       // Delete any old release packages.
       await deleteOldReleases(serverChecksum.id);
-      console.log("🚀 ~ file: AppUpdater.ts.ts:193 ~ deleteOldReleases:");
 
       // Activate the downloaded release.
       await activateRelease(serverChecksum.id);
-      console.log("🚀 ~ file: AppUpdater.ts.ts:198 ~ activateRelease:");
 
       // Report that the app was successfully updated.
       return true;
@@ -307,13 +273,16 @@ async function buildReleaseFromBundle(): Promise<Release> {
 
     // Download the release files from the app bundle local web server.
     const downloadTasks: Promise<boolean>[] = [];
+    const limit = pLimit(600);
 
     for (const file of checksum.files) {
       downloadTasks.push(
-        downloadFileFromAppBundle(
-          `http://localhost/${file.path}`,
-          `releases/${checksum.id}/${file.path}`,
-          Directory.Data
+        limit(() =>
+          downloadFileFromAppBundle(
+            `http://localhost/${file.path}`,
+            `releases/${checksum.id}/${file.path}`,
+            Directory.Data
+          )
         )
       );
     }
@@ -498,15 +467,11 @@ async function copyFromPreviousRelease(
 ): Promise<void> {
   // console.debug(`AppUpdater: Copy from previous release: '${fromPath}'`);
   try {
-    const copyResult = await Filesystem.copy({
+    await Filesystem.copy({
       from: fromPath,
       to: toPath,
       directory: directory,
     });
-    console.log(
-      "🚀 ~ file: AppUpdater.ts.ts:477 ~ copyResult:",
-      copyResult.uri
-    );
   } catch (error) {
     console.log("🚀 ~ file: AppUpdater.ts.ts:474 ~ error:", error);
   }
@@ -527,19 +492,27 @@ async function downloadFileFromWebServer(
   directory: Directory
 ): Promise<void> {
   try {
-    console.debug(`AppUpdater: Download from Server: '${path}'`);
-    const res = await CapacitorHttp.get({
+    console.debug(`AppUpdater: Download from Server:${url} '${path}'`);
+    const result = await Filesystem.downloadFile({
       url: url,
-      responseType: "blob",
-    });
-    console.log("🚀 ~ file: AppUpdater.ts.ts:501 ~ res:", JSON.stringify(res));
-
-    const writeFile = await Filesystem.writeFile({
-      data: res.data,
       path: path,
+      method: "GET",
       directory: directory,
+      connectTimeout: 10 * 1000,
+      readTimeout: 10 * 1000,
     });
-    console.log("🚀 ~ file: AppUpdater.ts.ts:507 ~ writeFile:", writeFile.uri);
+    console.debug("🚀 ~ file: AppUpdater.ts.ts:540 ~ result:", result.path);
+    // const res = await CapacitorHttp.get({
+    //   url: url,
+    //   responseType: "blob",
+    // });
+    // console.log("🚀 ~ file: AppUpdater.ts.ts:501 ~ res:", JSON.stringify(res));
+
+    // const writeFile = await Filesystem.writeFile({
+    //   data: res.data,
+    //   path: path,
+    //   directory: directory,
+    // });
   } catch (error) {
     console.error(
       "🚀 ~ file: AppUpdater.ts.ts:526 ~ error:",
@@ -564,12 +537,12 @@ async function downloadFileFromWebServer(
  *
  * @returns True if the file cold be downloaded, otherwise false.
  */
-async function downloadFileFromAppBundle(
+export async function downloadFileFromAppBundle(
   url: RequestInfo,
   path: string,
   directory: Directory
 ): Promise<boolean> {
-  console.debug(`AppUpdater: Download from Bundle: '${path}'`);
+  console.debug(`AppUpdater: Download from Bundle:,${url} '${path}'`);
 
   /*
 		This is a complex issue to solve without writing native code. But the below workaround works perfectly well
@@ -606,12 +579,13 @@ async function downloadFileFromAppBundle(
   // Attempt to copy a file from the app bundle to the specified path.
   try {
     // Get the file from the app bundle local web server.
-    const response = await fetch(url);
 
     // Parse the file response into a base64 string that can be sent through the Capacitor bridge.
     let base64Data: string;
 
     if (path.endsWith(".html")) {
+      const response = await fetch(url);
+
       // Read the HTML file out as text.
       let text = await response.text();
 
@@ -623,9 +597,23 @@ async function downloadFileFromAppBundle(
 
       // Convert the clean-up text to a base64 string.
       base64Data = btoa(text);
+    } else if (path.endsWith(".svg")) {
+      const response = await fetch(url);
+
+      // Read the HTML file out as text.
+      const text = await response.text();
+
+      // Convert the clean-up text to a base64 string.
+      base64Data = btoa(text);
     } else {
-      // Get a blob (binary) of the local file.
+      const response = await fetch(url);
       const blob = await response.blob();
+      console.log(
+        "🚀 ~ file: AppUpdater.ts.ts:644 ~ blob:",
+        blob,
+        url,
+        JSON.stringify(blob)
+      );
 
       // Convert the blob to a base64 string.
       base64Data = await new Promise((resolve, reject) => {
@@ -639,14 +627,24 @@ async function downloadFileFromAppBundle(
     }
 
     // Save the base64 data to disk. Capacitor will parse this back to a binary file type internally.
-    await Filesystem.appendFile({
-      path: path,
-      directory: directory,
-      data: base64Data,
-    });
+    if (path.endsWith(".svg")) {
+      const svgWrite = await Filesystem.writeFile({
+        path: path,
+        directory: directory,
+        data: base64Data,
+      });
+      console.log("🚀 ~ file: AppUpdater.ts.ts:690 ~ x:", svgWrite.uri);
+    } else {
+      await Filesystem.appendFile({
+        path: path,
+        directory: directory,
+        data: base64Data,
+      });
+    }
   } catch (error) {
     console.debug(
       `AppUpdater: Could not copy '${path}' from app bundle`,
+      url,
       error
     );
 

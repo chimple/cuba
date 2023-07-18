@@ -123,7 +123,8 @@ export const LESSON_CARD_COLORS = [
 ];
 
 export enum PAGES {
-  HOME = "/",
+  APP_UPDATE = "/",
+  HOME = "/home",
   LOGIN = "/login",
   GAME = "/game",
   END = "/end",
@@ -184,7 +185,7 @@ export const BUNDLE_URL =
   "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/";
 export interface PortPlugin {
   getPort(): Promise<{ port: number }>;
-  getMigrateUsers():Promise<{users:any}>
+  getMigrateUsers(): Promise<{ users: any }>;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_COURSE_IDS = [
@@ -287,4 +288,4 @@ export const LAST_PERMISSION_CHECKED = "lastPermissionChecked";
 
 export const CACHE_IMAGE = "cacheImage";
 
-export const IS_MIGRATION_CHECKED="isMigrationChecked"
+export const IS_MIGRATION_CHECKED = "isMigrationChecked";
