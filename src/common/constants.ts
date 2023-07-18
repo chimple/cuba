@@ -152,6 +152,7 @@ export enum LANG {
 export const SCREEN_WIDTH = window.innerWidth;
 export const SCREEN_HEIGHT = window.innerHeight;
 
+export const LESSONS_PLAYED_COUNT = "lessonsPlayedCount";
 export const LESSON_END = "lessonEnd";
 export const PROBLEM_END = "problemEnd";
 export const GAME_END = "gameEnd";
@@ -173,6 +174,8 @@ export const CURRENT_CLASS = "currentClass";
 export const LANGUAGE = "language";
 export const EXAM = "exam";
 export const PRE_QUIZ = "PreQuiz";
+export const SOUND = "sound";
+export const MUSIC = "music";
 export const GAME_URL = "gameUrl";
 export const BASE_NAME =
   !Capacitor.isNativePlatform() && !!process.env.REACT_APP_GITHUB_BASE
@@ -184,7 +187,7 @@ export const BUNDLE_URL =
   "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/";
 export interface PortPlugin {
   getPort(): Promise<{ port: number }>;
-  getMigrateUsers():Promise<{users:any}>
+  getMigrateUsers(): Promise<{ users: any }>;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_COURSE_IDS = [
@@ -287,4 +290,4 @@ export const LAST_PERMISSION_CHECKED = "lastPermissionChecked";
 
 export const CACHE_IMAGE = "cacheImage";
 
-export const IS_MIGRATION_CHECKED="isMigrationChecked"
+export const IS_MIGRATION_CHECKED = "isMigrationChecked";
