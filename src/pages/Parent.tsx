@@ -42,7 +42,7 @@ const Parent: React.FC = () => {
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [soundFlag, setSoundFlag] = useState<boolean>();
   const [musicFlag, setMusicFlag] = useState<boolean>();
-  const [userProfile, setUserProfile] = useState<any[]>([]);
+  const [userProfile, setUserProfile] = useState<User[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
 
   const [langList, setLangList] = useState<
@@ -54,7 +54,7 @@ const Parent: React.FC = () => {
   const [langDocIds, setLangDocIds] = useState<Map<string, string>>(new Map());
   const [currentAppLang, setCurrentAppLang] = useState<string>();
   //  const [localLangDocId, setLocalLangDocId] = useState<any>();
-  const [reloadProfiles , setReloadProfiles] = useState<boolean>(false);
+  const [reloadProfiles, setReloadProfiles] = useState<boolean>(false);
   let tempLangList: {
     id: string;
     displayName: string;
@@ -75,23 +75,18 @@ const Parent: React.FC = () => {
     inti();
     getStudentProfile();
   }, [reloadProfiles]);
-  
-  function getStudentProfile(){ 
+
+  async function getStudentProfile() {
     console.log("getStudentProfile");
-    const userProfilePromise: Promise<User[]> =
-    ServiceConfig.getI().apiHandler.getParentStudentProfiles();
+    const userProfilePromise: User[] = await
+      ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     let finalUser: any[] = [];
-  userProfilePromise.then((u) => {
     for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
-      if (u[i]) {
-        finalUser.push(u[i]);
-      } else {
-        finalUser.push(undefined);
-      }
+      finalUser.push(userProfilePromise[i]);
     }
     setUserProfile(finalUser);
-    
-  });
+
+    // });
   }
   async function inti(): Promise<void> {
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -141,16 +136,16 @@ const Parent: React.FC = () => {
   }
 
   function profileUI() {
-   
+
     // setIsLoading(false);
 
     return (
       <div id="parent-page-profile">
         {userProfile.map((element) => {
-          console.log("userProfile",userProfile)
+          console.log("userProfile", userProfile)
           let studentUserType: boolean = true;
-          if  (element === undefined  ){
-            console.log("element",element)
+          if (element === undefined) {
+            console.log("element", element)
             studentUserType = false;
           }
           return (
@@ -331,7 +326,7 @@ const Parent: React.FC = () => {
                   title="YouTube video player"
                   // frameborder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  // allowfullscreen
+                // allowfullscreen
                 ></iframe>
               </div>
             </div>
