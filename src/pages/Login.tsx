@@ -455,7 +455,7 @@ const Login: React.FC = () => {
                           getOtpBtnRef.current.style.backgroundColor;
                         if (input.target.value.length === 6) {
                           getOtpBtnRef.current.style.backgroundColor =
-                            Buttoncolors.Valid;
+                            Buttoncolors.Valid; 
                         } else {
                           if (otpBtnBgColor === Buttoncolors.Valid) {
                             getOtpBtnRef.current.style.backgroundColor =
