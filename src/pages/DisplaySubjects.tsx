@@ -25,6 +25,7 @@ import BackButton from "../components/common/BackButton";
 import { Util } from "../utility/util";
 import Class from "../models/class";
 import { schoolUtil } from "../utility/schoolUtil";
+import DropDown from "../components/DropDown";
 
 const localData: any = {};
 const DisplaySubjects: FC<{}> = () => {
@@ -177,12 +178,13 @@ const DisplaySubjects: FC<{}> = () => {
     setCurrentChapter(chapter);
     setStage(STAGES.LESSONS);
   };
-
   return (
     <IonPage id="display-subjects-page">
       <Loading isLoading={isLoading} />
       <div className="subjects-header">
-        <BackButton onClicked={onBackButton} />
+        <div id="back-button-container">
+          <BackButton onClicked={onBackButton} />
+        </div>
         <div className="subject-name">
           {stage === STAGES.SUBJECTS
             ? t("Subjects")
@@ -190,7 +192,26 @@ const DisplaySubjects: FC<{}> = () => {
             ? currentCourse?.title
             : currentChapter?.title}
         </div>
-        <div className="button-right" />
+        {gradesMap && currentGrade && stage === STAGES.CHAPTERS && (
+          <DropDown
+            currentValue={currentGrade?.docId}
+            optionList={gradesMap.grades.map((grade) => ({
+              displayName: grade.title,
+              id: grade.docId,
+            }))}
+            placeholder=""
+            onValueChange={(evt) => {
+              {
+                const tempGrade = gradesMap.grades.find(
+                  (grade) => grade.docId === evt.detail.value
+                );
+                onGradeChanges(tempGrade ?? currentGrade);
+              }
+            }}
+            width="15vw"
+          />
+        )}
+        {stage !== STAGES.CHAPTERS && <div className="button-right" />}
       </div>
       <div className="subjects-content">
         {!isLoading &&
