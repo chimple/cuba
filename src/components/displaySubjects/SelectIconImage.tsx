@@ -19,7 +19,7 @@ const SelectIconImage: FC<{
       {loadIcon === LoadIcon.Local ? (
         <img
           src={localSrc}
-          alt="local"
+          alt=""
           onError={() => {
             setLoadIcon(LoadIcon.Web);
           }}
@@ -29,13 +29,13 @@ const SelectIconImage: FC<{
         loadIcon === LoadIcon.Web ? (
         <CachedImage
           src={webSrc}
-          alt="web"
+          alt=""
           onError={() => {
             setLoadIcon(LoadIcon.Default);
           }}
         />
       ) : (
-        <img src={defaultSrc} alt="default" />
+        <img src={defaultSrc} alt="" />
       )}
     </div>
   );
