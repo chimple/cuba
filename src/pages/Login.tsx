@@ -50,6 +50,11 @@ const Login: React.FC = () => {
   const [showTimer, setShowTimer] = useState<boolean>(false);
   const [showResendOtp, setShowResendOtp] = useState<boolean>(false);
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
+  const [isInvalidCode, setIsInvalidCode] = useState<{
+    isInvalidCode: boolean,
+    isInvalidCodeLength: boolean
+
+  }>();
   const Buttoncolors = {
     Default: "grey",
     Valid: "yellowgreen",
@@ -65,10 +70,14 @@ const Login: React.FC = () => {
   const getOtpBtnRef = useRef<any>();
   const parentNameRef = useRef<any>();
   const phoneNumberErrorRef = useRef<any>();
-
+  let verificationCodeMessageFlags = {
+    isInvalidCode: false,
+    isInvalidCodeLength: false
+  }
   useEffect(() => {
     init();
     setIsLoading(true);
+    setIsInvalidCode(verificationCodeMessageFlags);
 
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
@@ -250,12 +259,16 @@ const Login: React.FC = () => {
         setIsLoading(false);
 
         console.log("Verification Failed");
-        alert("Verification Failed");
+        //alert("Verification Failed");
       }
     } catch (error) {
       setIsLoading(false);
       console.log("Verification Failed", error);
-      alert("Verification Failed" + error);
+      //alert("Please Enter Valid Verification Code");
+      setIsInvalidCode({
+        isInvalidCode: true,
+        isInvalidCodeLength: false
+      });
     }
   };
 
@@ -277,7 +290,7 @@ const Login: React.FC = () => {
         console.log("Resend Otp Sucessfull");
         setShowResendOtp(false);
         setCounter(59);
-      } 
+      }
       else {
         console.log("Resend Otp failed");
       }
@@ -291,7 +304,7 @@ const Login: React.FC = () => {
   return (
     <IonPage id="login-screen">
       {!!showBackButton && (
-        <div className="class-header">
+        <div className="class-header-container">
           <BackButton
             onClicked={() => {
               setShowVerification(false);
@@ -356,7 +369,7 @@ const Login: React.FC = () => {
                     <p
                       ref={phoneNumberErrorRef}
                       style={{ display: "none" }}
-                      className="error-message"
+                      className="login-error-message"
                     >
                       Please Enter 10 digit Mobile Number
                     </p>
@@ -440,56 +453,82 @@ const Login: React.FC = () => {
               </div>
             ) : !showNameInput && startResendOtpCounter() ? (
               <div>
-                <p id="otp-sent">Otp Sent To The {countryCode + phoneNumber}</p>
+                <p id="login-otp-sent">Otp Sent To The {countryCode + phoneNumber}</p>
                 <div id="login-text-box">
-                  <TextBox
-                    inputText={"Enter 6 Digit Code"}
-                    inputType={"tel"}
-                    maxLength={6}
-                    inputValue={verificationCode}
-                    onChange={(input) => {
-                      if (input.detail.value) {
-                        setVerificationCode(input.detail.value);
-                        console.log(input.detail.value);
-                        let otpBtnBgColor =
-                          getOtpBtnRef.current.style.backgroundColor;
-                        if (input.detail.value.length === 6) {
-                          getOtpBtnRef.current.style.backgroundColor =
-                            Buttoncolors.Valid;
-                        } else {
-                          if (otpBtnBgColor === Buttoncolors.Valid) {
+                  <div>
+                    <TextBox
+                      inputText={"Enter 6 Digit Code"}
+                      inputType={"tel"}
+                      maxLength={6}
+                      inputValue={verificationCode}
+                      onChange={(input) => {
+                        if (input.detail.value) {
+                          setVerificationCode(input.detail.value);
+                          console.log(input.detail.value);
+                          let otpBtnBgColor =
+                            getOtpBtnRef.current.style.backgroundColor;
+                          if (input.detail.value.length === 6) {
                             getOtpBtnRef.current.style.backgroundColor =
-                              Buttoncolors.Default;
+                              Buttoncolors.Valid;
+                            setIsInvalidCode({
+                              isInvalidCode: false,
+                              isInvalidCodeLength: false
+                            });
+
+                          } else {
+                            if (otpBtnBgColor === Buttoncolors.Valid) {
+                              getOtpBtnRef.current.style.backgroundColor =
+                                Buttoncolors.Default;
+                            }
                           }
+                        } else {
+                          setVerificationCode("");
+                          console.log(input.detail.value);
                         }
-                      } else {
-                        setVerificationCode("");
-                        console.log(input.detail.value);
-                      }
-                    }}
-                  ></TextBox>
+                      }}
+
+                    ></TextBox>
+                  </div>
+                  {isInvalidCode?.isInvalidCodeLength &&
+                    <p className="login-verification-error-message">Please Enter 6 Digit Code</p>}
+                  {isInvalidCode?.isInvalidCode &&
+                    <p className="login-verification-error-message">Please Enter Valid Code</p>}
                 </div>
                 <div
                   ref={getOtpBtnRef}
-                  id="login-continue-button"
-                  onClick={() => {
+                  id="login-otp-button">
+
+                  <div onClick={() => {
                     if (verificationCode.length === 6) {
                       onVerificationCodeSubmit();
+                      setVerificationCode("");
+                    }
+                    else if (verificationCode.length <= 6) {
+                      setVerificationCode("");
+                      setIsInvalidCode({
+                        isInvalidCode: false,
+                        isInvalidCodeLength: true
+                      });
                     }
                     // setIsLoading(false);
                     // setShowNameInput(true);
                     // history.push(PAGES.PARENT);
+                    else {
+                      onVerificationCodeSubmit();
+                    }
                   }}
-                >
-                  Get Started
+                  >
+                    <div>
+                      Get Started
+                    </div>
+                  </div>
+                  <div id="login-resend-otp">
+                    <div>
+                      <span style={!showResendOtp ? { color: "red" } : { color: "grey" }} id="login-time-remaining">Time Remaining : {counter}</span>
+                    </div>
+                    <span id="login-resend-otp-text" onClick={resendOtpHandler} style={showResendOtp ? { color: "green" } : { color: "grey" }}>Resend Otp </span>
+                  </div>
                 </div>
-                {showResendOtp ? (
-                  <span id="resend-otp" onClick={resendOtpHandler}>
-                    Resend Otp{" "}
-                  </span>
-                ) : (
-                  <span id="resend-otp-in"> ResendOtp In : {counter}</span>
-                )}
                 {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
               </div>
             ) : (

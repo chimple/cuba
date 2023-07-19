@@ -11,7 +11,6 @@ import { Util } from "../../utility/util";
 import DialogBoxButtons from "./DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
-import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
 
 const ProfileCard: React.FC<{
   width: string;
@@ -20,7 +19,8 @@ const ProfileCard: React.FC<{
   userType: boolean;
   user: User;
   showText?: boolean;
-}> = ({ width, height, userType, user }) => {
+  setReloadProfiles: (event: boolean) => void;
+}> = ({ width, height, userType, user , setReloadProfiles }) => {
   const history = useHistory();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [showWarningDialogBox, setShowWarningDialogBox] =
@@ -149,17 +149,7 @@ const ProfileCard: React.FC<{
             setShowWarningDialogBox(false);
             setShowDialogBox(false);
             await ServiceConfig.getI().apiHandler.deleteProfile(user.docId);
-            FirebaseAnalytics.logEvent({name:EVENTS.USER_PROFILE, params:{
-              user_id: user.docId,
-              user_type: user.role,
-              user_name: user.name,
-              user_gender: user.gender!,
-              user_age: user.age!,
-              phone_number: user.username,
-              parent_id: user.uid,
-              parent_username: user.username,
-              action_type: ACTION.DELETE
-            }});
+            await setReloadProfiles (true);
           }}
           onNoButtonClicked={async ({}) => {
             console.log(`Show warning No:`);

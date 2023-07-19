@@ -33,10 +33,11 @@ import BackButton from "../components/common/BackButton";
 import { useHistory } from "react-router-dom";
 import CustomAppBar from "../components/studentProgress/CustomAppBar";
 import DeleteParentAccount from "../components/parent/DeleteParentAccount";
+import { TrueFalseEnum } from "../interface/modelInterfaces";
+import { Util } from "../utility/util";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
-
 const Parent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
@@ -54,6 +55,7 @@ const Parent: React.FC = () => {
   const [langDocIds, setLangDocIds] = useState<Map<string, string>>(new Map());
   const [currentAppLang, setCurrentAppLang] = useState<string>();
   //  const [localLangDocId, setLocalLangDocId] = useState<any>();
+  const [reloadProfiles, setReloadProfiles] = useState<boolean>(false);
   let tempLangList: {
     id: string;
     displayName: string;
@@ -72,13 +74,33 @@ const Parent: React.FC = () => {
     setIsLoading(true);
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
     inti();
-  }, []);
-  async function inti() {
+    getStudentProfile();
+  }, [reloadProfiles]);
+
+  function getStudentProfile() {
+    console.log("getStudentProfile");
+    const userProfilePromise: Promise<User[]> =
+      ServiceConfig.getI().apiHandler.getParentStudentProfiles();
+    let finalUser: any[] = [];
+    userProfilePromise.then((u) => {
+      for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
+        if (u[i]) {
+          finalUser.push(u[i]);
+        } else {
+          finalUser.push(undefined);
+        }
+      }
+      setUserProfile(finalUser);
+    });
+  }
+  async function inti(): Promise<void> {
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (parentUser != undefined) {
-      console.log("User ", parentUser);
-      setSoundFlag(parentUser?.soundFlag!);
-      setMusicFlag(parentUser?.musicFlag!);
+      console.log("User ", parentUser?.musicFlag!);
+      const sound = Util.getCurrentSound();
+      const music = Util.getCurrentMusic();
+      setSoundFlag(sound);
+      setMusicFlag(music);
 
       const allLang = await ServiceConfig.getI().apiHandler.getAllLanguages();
       let tempLangDocIds: Map<string, string> = new Map();
@@ -121,32 +143,25 @@ const Parent: React.FC = () => {
   }
 
   function profileUI() {
-    const userProfilePromise: Promise<User[]> =
-      ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-
-    let finalUser: any[] = [];
-    userProfilePromise.then((u) => {
-      for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
-        if (u[i]) {
-          finalUser.push(u[i]);
-        } else {
-          finalUser.push("no user");
-        }
-      }
-      setUserProfile(finalUser);
-    });
     // setIsLoading(false);
 
     return (
       <div id="parent-page-profile">
         {userProfile.map((element) => {
+          console.log("userProfile", userProfile);
+          let studentUserType: boolean = true;
+          if (element === undefined) {
+            console.log("element", element);
+            studentUserType = false;
+          }
           return (
             <ProfileCard
               width={"27vw"}
               height={"50vh"}
-              userType={element?.name ? true : false}
+              userType={studentUserType}
               user={element}
               showText={true}
+              setReloadProfiles={setReloadProfiles}
             />
           );
         })}
@@ -209,7 +224,7 @@ const Parent: React.FC = () => {
                 setSoundFlag(v.detail?.checked);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
-
+                Util.setCurrentSound(v.detail?.checked);
                 if (currentUser) {
                   ServiceConfig.getI().apiHandler.updateSoundFlag(
                     currentUser,
@@ -227,7 +242,7 @@ const Parent: React.FC = () => {
                 setMusicFlag(v.detail?.checked);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
-
+                Util.setCurrentMusic(v.detail?.checked);
                 if (currentUser) {
                   ServiceConfig.getI().apiHandler.updateMusicFlag(
                     currentUser,

@@ -5,7 +5,13 @@ import Lesson from "../models/lesson";
 import { Chapter, StudentLessonResult } from "../common/courseConstants";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { CURRENT_CLASS, CURRENT_MODE, MODES, PAGES } from "../common/constants";
+import {
+  CURRENT_CLASS,
+  CURRENT_MODE,
+  GRADE_MAP,
+  MODES,
+  PAGES,
+} from "../common/constants";
 import { IonIcon, IonPage } from "@ionic/react";
 import { chevronBackCircleSharp } from "ionicons/icons";
 import "./DisplaySubjects.css";
@@ -39,14 +45,16 @@ const DisplaySubjects: FC<{}> = () => {
     grades: Grade[];
     courses: Course[];
   }>();
+  const [localGradeMap, setLocalGradeMap] = useState<{
+    grades: Grade[];
+    courses: Course[];
+  }>();
   const [currentGrade, setCurrentGrade] = useState<Grade>();
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: StudentLessonResult;
   }>();
-
   const history = useHistory();
   const location = useLocation();
-
   const api = ServiceConfig.getI().apiHandler;
   useEffect(() => {
     init();
@@ -79,6 +87,8 @@ const DisplaySubjects: FC<{}> = () => {
       await getCourses();
       console.log("🚀 ~ file: DisplaySubjects.tsx:70 ~ init ~ getCourses:");
     }
+    let map = localStorage.getItem(GRADE_MAP);
+    if (!!map) setLocalGradeMap(JSON.parse(map));
   };
 
   const getCourses = async (): Promise<Course[]> => {
@@ -137,13 +147,13 @@ const DisplaySubjects: FC<{}> = () => {
         break;
     }
   };
-
   const onCourseChanges = async (course: Course) => {
     const gradesMap: { grades: Grade[]; courses: Course[] } =
       await api.getDifferentGradesForCourse(course);
     const currentGrade = gradesMap.grades.find(
       (grade) => grade.docId === course.grade.id
     );
+    localStorage.setItem(GRADE_MAP, JSON.stringify(gradesMap));
     localData.currentGrade = currentGrade ?? gradesMap.grades[0];
     localData.gradesMap = gradesMap;
     localData.currentCourse = course;
@@ -210,16 +220,17 @@ const DisplaySubjects: FC<{}> = () => {
           courses.length > 0 && (
             <SelectCourse courses={courses} onCourseChange={onCourseChanges} />
           )}
+
         {!isLoading &&
           stage === STAGES.CHAPTERS &&
           currentCourse &&
-          currentGrade &&
-          gradesMap && (
+          localGradeMap &&
+          currentGrade && (
             <SelectChapter
               chapters={currentCourse.chapters}
               onChapterChange={onChapterChange}
               currentGrade={currentGrade}
-              grades={gradesMap.grades}
+              grades={!!gradesMap ? gradesMap.grades : localGradeMap.grades}
               onGradeChange={onGradeChanges}
               course={currentCourse}
             />
