@@ -50,7 +50,11 @@ export class RemoteConfig {
       const { value } = await FirebaseRemoteConfig.getBoolean({
         key: key,
       });
-      return value ?? REMOTE_CONFIG_DEFAULTS[key];
+      console.log(
+        "🚀 ~ file: RemoteConfig.ts:53 ~ RemoteConfig ~ getBoolean ~ value:",
+        value
+      );
+      return value || REMOTE_CONFIG_DEFAULTS[key];
     } catch (error) {
       console.log(
         "🚀 ~ file: RemoteConfig.ts:50 ~ RemoteConfig ~ getBoolean ~ error:",
@@ -63,8 +67,12 @@ export class RemoteConfig {
 
 export enum REMOTE_CONFIG_KEYS {
   TEST_NUM = "test_num",
+  HOT_UPDATE_SERVER = "hot_update_server",
+  CAN_HOT_UPDATE = "can_hot_update",
 }
 
 export const REMOTE_CONFIG_DEFAULTS: { [key: string]: any } = {
   [REMOTE_CONFIG_KEYS.TEST_NUM]: 60,
+  [REMOTE_CONFIG_KEYS.HOT_UPDATE_SERVER]: "https://cuba-stage.web.app/",
+  [REMOTE_CONFIG_KEYS.CAN_HOT_UPDATE]: true,
 };

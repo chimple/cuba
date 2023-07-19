@@ -8,7 +8,6 @@ div p {
 
 .slider-content {
   height: 100%;
-  margin: 0 1%;
 }
 
 .space-between {
@@ -58,5 +57,5 @@ div p {
 #home-page-bottom {
   position: fixed;
   width: 100%;
-  bottom: 2vh;
+  bottom: 3vh;
 }

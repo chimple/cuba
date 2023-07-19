@@ -40,11 +40,13 @@ const JoinClass: FC<{
       setShowDialogBox(true);
     } catch (error) {
       console.log("🚀 ~ file: JoinClass.tsx:32 ~ getClassData ~ error:", error);
-      if (error instanceof Object){ 
-        let eMsg:string ="FirebaseError: Invalid inviteCode"===error.toString()?"Invalid Code. Please contact your teacher":error.toString();
+      if (error instanceof Object) {
+        let eMsg: string =
+          "FirebaseError: Invalid inviteCode" === error.toString()
+            ? "Invalid Code. Please contact your teacher"
+            : error.toString();
         setError(eMsg);
-      } 
-     
+      }
     }
     setLoading(false);
   };
@@ -69,7 +71,7 @@ const JoinClass: FC<{
     setLoading(false);
   };
   useEffect(() => {
-    Util.isTextFieldFocus(scollToRef, setIsInputFocus)
+    Util.isTextFieldFocus(scollToRef, setIsInputFocus);
   }, []);
 
   return (
@@ -80,7 +82,7 @@ const JoinClass: FC<{
         </div>
         <input
           onChange={(evt) => {
-            const inviteCode = evt.target.value;
+            const inviteCode = evt.target.value.slice(0, 6);
             setInviteCode(
               !!inviteCode && !isNaN(parseInt(inviteCode))
                 ? parseInt(inviteCode)

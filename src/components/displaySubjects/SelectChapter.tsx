@@ -23,23 +23,7 @@ const SelectChapter: FC<{
 }) => {
   return (
     <div>
-      <div className="grade-container">
-        <DropDown
-          currentValue={currentGrade.docId}
-          optionList={grades.map((grade) => ({
-            displayName: grade.title,
-            id: grade.docId,
-          }))}
-          placeholder=""
-          onValueChange={(evt) => {
-            const tempGrade = grades.find(
-              (grade) => grade.docId === evt.detail.value
-            );
-            onGradeChange(tempGrade ?? currentGrade);
-          }}
-          width="15vw"
-        />
-      </div>
+      <div className="grade-container" />
       <div className="chapter-container">
         {chapters.map((chapter) => {
           return (
