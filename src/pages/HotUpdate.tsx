@@ -1,6 +1,6 @@
 import { IonPage } from "@ionic/react";
 import { FC, useEffect } from "react";
-import { AppUpdater } from "../services/AppUpdater.ts";
+import { AppUpdater } from "../services/AppUpdater";
 import { useHistory } from "react-router";
 import { PAGES } from "../common/constants";
 import { t } from "i18next";
