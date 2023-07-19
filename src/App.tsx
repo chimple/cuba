@@ -36,8 +36,6 @@ import {
   CACHE_IMAGE,
   GAME_URL,
   IS_CUBA,
-  LANG,
-  LANGUAGE,
   PAGES,
 } from "./common/constants";
 import { Util } from "./utility/util";
@@ -54,6 +52,7 @@ import Leaderboard from "./pages/Leaderboard";
 import AssignmentPage from "./pages/Assignment";
 import SelectMode from "./pages/SelectMode";
 import { FirebaseRemoteConfig } from "@capacitor-firebase/remote-config";
+import HotUpdate from "./pages/HotUpdate";
 
 setupIonicReact();
 
@@ -106,6 +105,9 @@ const App: React.FC = () => {
       <IonReactRouter basename={BASE_NAME}>
         <IonRouterOutlet>
           <Switch>
+            <Route path={PAGES.APP_UPDATE} exact={true}>
+              <HotUpdate />
+            </Route>
             <ProtectedRoute path={PAGES.HOME} exact={true}>
               <Home />
             </ProtectedRoute>

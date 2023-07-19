@@ -1,0 +1,6 @@
+#app-update {
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

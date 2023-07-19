@@ -2,7 +2,7 @@
   display: grid;
   gap: min(10px, 1vh);
   justify-items: center;
-  
+
   margin: 2%;
   grid-template-columns: repeat(
     auto-fill,
@@ -38,8 +38,7 @@
   align-items: center;
   width: 100vw;
   margin-right: 3vh;
-  
- margin-top: 1vh;
+  margin-top: 1vh;
 }
 
 .chapter-img {

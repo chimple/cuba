@@ -1,5 +1,6 @@
 import { FC, useState } from "react";
 import CachedImage from "../common/CachedImage";
+import Lesson from "../../models/lesson";
 
 const SelectIconImage: FC<{
   localSrc: any;
@@ -23,7 +24,9 @@ const SelectIconImage: FC<{
             setLoadIcon(LoadIcon.Web);
           }}
         />
-      ) : webSrc != undefined && loadIcon === LoadIcon.Web ? (
+      ) : webSrc !== undefined &&
+        (webSrc ?? defaultSrc) &&
+        loadIcon === LoadIcon.Web ? (
         <CachedImage
           src={webSrc}
           alt=""
@@ -32,7 +35,7 @@ const SelectIconImage: FC<{
           }}
         />
       ) : (
-        <img src={defaultSrc} alt="all" />
+        <img src={defaultSrc} alt="" />
       )}
     </div>
   );
