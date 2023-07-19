@@ -258,19 +258,11 @@ const Home: FC = () => {
         playedLessonsList.push(lesson);
       }
 
-      const sortedPlayedLessonsList = playedLessonsList.sort((a, b) => {
-        const lessonResultA = lessonResultMap?.[a.docId];
-        const lessonResultB = lessonResultMap?.[b.docId];
-
-        if (!lessonResultA || !lessonResultB) {
-          return 0;
-        }
-
-        return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
-      });
-      console.log("checking sorting", sortedPlayedLessonsList);
+      const sortedPlayedLessonsList = sortPlayedLessonsByDate(
+        playedLessonsList,
+        lessonResultMap || {}
+      );
       setPlayedLessonsList(sortedPlayedLessonsList);
-      setPlayedLessonsList(playedLessonsList);
     }
     setIsLoading(false);
   };
