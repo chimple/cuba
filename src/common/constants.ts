@@ -173,6 +173,7 @@ export const CURRENT_CLASS = "currentClass";
 export const LANGUAGE = "language";
 export const EXAM = "exam";
 export const PRE_QUIZ = "PreQuiz";
+export const GRADE_MAP = "GradeMap";
 export const SOUND = "sound";
 export const MUSIC = "music";
 export const GAME_URL = "gameUrl";
