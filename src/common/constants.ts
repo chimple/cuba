@@ -123,7 +123,8 @@ export const LESSON_CARD_COLORS = [
 ];
 
 export enum PAGES {
-  HOME = "/",
+  APP_UPDATE = "/",
+  HOME = "/home",
   LOGIN = "/login",
   GAME = "/game",
   END = "/end",
