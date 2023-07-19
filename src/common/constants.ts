@@ -155,6 +155,7 @@ export enum LANG {
 export const SCREEN_WIDTH = window.innerWidth;
 export const SCREEN_HEIGHT = window.innerHeight;
 
+export const LESSONS_PLAYED_COUNT = "lessonsPlayedCount";
 export const LESSON_END = "lessonEnd";
 export const PROBLEM_END = "problemEnd";
 export const GAME_END = "gameEnd";

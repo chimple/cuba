@@ -104,9 +104,7 @@ const Home: FC = () => {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
-
     const studentResult = await api.getStudentResult(student.docId);
-
     if (
       !!studentResult &&
       !!studentResult.classes &&
@@ -120,7 +118,6 @@ const Home: FC = () => {
           allAssignments.push(...res);
         })
       );
-
       await Promise.all(
         allAssignments.map(async (_assignment) => {
           const res = await api.getLesson(_assignment.lesson.id);
