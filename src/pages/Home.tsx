@@ -252,14 +252,8 @@ const Home: FC = () => {
         (lesson): lesson is Lesson => lesson !== undefined
       );
 
-      const playedLessonsList: Lesson[] = [];
-
-      for (const lesson of validLessons) {
-        playedLessonsList.push(lesson);
-      }
-
       const sortedPlayedLessonsList = sortPlayedLessonsByDate(
-        playedLessonsList,
+        validLessons,
         lessonResultMap || {}
       );
       setPlayedLessonsList(sortedPlayedLessonsList);
