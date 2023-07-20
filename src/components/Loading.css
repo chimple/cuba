@@ -9,3 +9,11 @@
   width: 100px;
   height: 100px;
 }
+
+.loading-content {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text-color);
+}
