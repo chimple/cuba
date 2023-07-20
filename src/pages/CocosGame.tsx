@@ -33,6 +33,7 @@ const CocosGame: React.FC = () => {
   // let gameResult : any;
   const [gameResult, setGameResult] = useState<any>();
   const currentStudent = Util.getCurrentStudent();
+  const LessonDetail: Lesson = JSON.parse(state.lesson);
 
   let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
 
@@ -184,11 +185,11 @@ const CocosGame: React.FC = () => {
               width={"50vw"}
               height={"60vh"}
               title={t("🎉Congratulations🎊")}
-              score={gameResult.detail.gameScore}
+              score={gameResult.detail.score}
               message={t("You Completed the Lesson:")}
               showDialogBox={showDialogBox}
               yesText={t("Like the Game")}
-              lessonName={gameResult.detail.chapterName}
+              lessonName={LessonDetail.title}
               noText={t("Continue Playing")}
               handleClose={(e: any) => {
                 setShowDialogBox(true);
@@ -197,6 +198,7 @@ const CocosGame: React.FC = () => {
               }}
               onYesButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
+                console.log("--------------line 200 game result",gameResult);
                 await saveTempData(gameResult.detail, true);
                 console.log(
                   "------------------the game result ",
