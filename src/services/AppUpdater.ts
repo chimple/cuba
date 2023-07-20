@@ -86,20 +86,26 @@ export const AppUpdater = {
       }
 
       // Go online to check what the latest app release is.
-      const serverChecksum = await getServerChecksum(
-        webServerURL + "/checksum.json"
+      const serverChecksumVersion = await getServerChecksum(
+        webServerURL + "/checksum-version.json"
       );
 
-      if (!serverChecksum) {
-        throw "Unable to get checksum from server";
+      if (!serverChecksumVersion) {
+        throw "Unable to get checksum-version from server";
       }
 
       // Check that latest release is not already installed.
-      if (activeRelease.checksum.id === serverChecksum.id) {
+      if (activeRelease.checksum.id === serverChecksumVersion.id) {
         // Nothing changed, reset the update check timestamp so that we don't check again unnecessarily.
-        await setCurrentRelease(serverChecksum.id, new Date());
+        await setCurrentRelease(serverChecksumVersion.id, new Date());
 
-        throw `Latest release already installed (${serverChecksum.id})`;
+        throw `Latest release already installed (${serverChecksumVersion.id})`;
+      }
+      const serverChecksum = await getServerChecksum(
+        webServerURL + "/checksum.json"
+      );
+      if (!serverChecksum) {
+        throw "Unable to get checksum from server";
       }
 
       // Prepare to download a new release.
