@@ -74,5 +74,5 @@ export enum REMOTE_CONFIG_KEYS {
 export const REMOTE_CONFIG_DEFAULTS: { [key: string]: any } = {
   [REMOTE_CONFIG_KEYS.TEST_NUM]: 60,
   [REMOTE_CONFIG_KEYS.HOT_UPDATE_SERVER]: "https://cuba-stage.web.app/",
-  [REMOTE_CONFIG_KEYS.CAN_HOT_UPDATE]: true,
+  [REMOTE_CONFIG_KEYS.CAN_HOT_UPDATE]: false,
 };
