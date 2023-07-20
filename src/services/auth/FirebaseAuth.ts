@@ -273,26 +273,34 @@ export class FirebaseAuth implements ServiceAuth {
       }
 
       // Confirm the verification code
-      // const credential = await FirebaseAuthentication.confirmVerificationCode({
-      //   verificationId: result.verificationId,
-      //   verificationCode,
-      // });
-      const credential = PhoneAuthProvider.credential(
-        result.verificationId!,
-        verificationCode
+      const credential =
+        await FirebaseAuthentication.confirmVerificationCode({
+          verificationId: result.verificationId,
+          verificationCode,
+        });
+      // if (!confirmVerificationCredential.credential) {
+      //   return;
+      // }
+      console.log(
+        "confirmVerificationCredential",
+        JSON.stringify(credential)
       );
-      console.log("credential", this._auth, credential);
 
-      let res = await signInWithCredential(this._auth, credential);
-      console.log("signInWithCredential Success!", credential, res.user);
+      // const credential = PhoneAuthProvider.credential(
+      //   result.verificationId!,
+      //   verificationCode
+      // );
+      // console.log("credential", this._auth, credential);
+      // let res = await signInWithCredential(this._auth, credential);
+      console.log("signInWithCredential Success!", credential, credential.user);
       // Success!
 
-      if (!res.user) {
+      if (!credential.user) {
         return;
       }
-      const user = res.user;
+      const user = credential.user;
       console.log("res user", user);
-      this.updateUserFcm(res.user.uid);
+      this.updateUserFcm(credential.user.uid);
       const userRef = doc(this._db, "User", user.uid);
       console.log("userRef", userRef);
       const tempUserDoc = await getDoc(userRef);
