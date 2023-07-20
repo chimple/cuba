@@ -1,14 +1,16 @@
-import { IonInput, IonItem, IonLabel } from "@ionic/react";
+// import { IonInput, IonItem, IonLabel } from "@ionic/react";
 import "./TextBox.css";
 import { IoCallOutline } from "react-icons/io5";
-import { InputChangeEventDetail, IonInputCustomEvent } from "@ionic/core";
+// import { InputChangeEventDetail, IonInputCustomEvent } from "@ionic/core";
+import { ChangeEvent } from "react";
 
 const TextBox: React.FC<{
   inputText: string;
   inputType;
   maxLength: number;
   inputValue: string;
-  onChange: (event: IonInputCustomEvent<InputChangeEventDetail>) => void;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  // onChange: (event: IonInputCustomEvent<InputChangeEventDetail>) => void;
 }> = ({ inputText, inputType, inputValue, maxLength, onChange }) => {
   return (
     <div id="text-box">
@@ -17,7 +19,21 @@ const TextBox: React.FC<{
         <div id="text-box-vertical-line"></div>
 
         <div id="text-box-input">
-          <IonItem id="text-box-ion-item" lines="none" mode="ios">
+          <div id="text-box-container">
+            <div id="text-box-label-content">
+              <input id="text-box-floating-input"
+                type={inputType}
+                value={inputValue}
+                onChange={onChange}
+                maxLength={maxLength}
+                placeholder=" "
+              />
+              <label id="text-box-floating-label">
+                {inputText}
+              </label>
+            </div>
+          </div>
+           {/* <IonItem id="text-box-ion-item" lines="none" mode="ios">
             <IonLabel
               mode="ios"
               class="text-box-ion-label"
@@ -35,7 +51,8 @@ const TextBox: React.FC<{
               onIonChange={onChange}
               maxlength={maxLength}
             ></IonInput>
-          </IonItem>
+        
+          </IonItem> */}
         </div>
       </div>
     </div>

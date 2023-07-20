@@ -123,7 +123,8 @@ export const LESSON_CARD_COLORS = [
 ];
 
 export enum PAGES {
-  HOME = "/",
+  APP_UPDATE = "/",
+  HOME = "/home",
   LOGIN = "/login",
   GAME = "/game",
   END = "/end",
@@ -174,6 +175,7 @@ export const CURRENT_CLASS = "currentClass";
 export const LANGUAGE = "language";
 export const EXAM = "exam";
 export const PRE_QUIZ = "PreQuiz";
+export const GRADE_MAP = "GradeMap";
 export const SOUND = "sound";
 export const MUSIC = "music";
 export const GAME_URL = "gameUrl";
