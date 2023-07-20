@@ -106,7 +106,6 @@ const EditStudent = () => {
           student,
           langIndex && languages ? languages[langIndex]?.code : undefined,
           false,
-          false
         );
       }
       console.log(
