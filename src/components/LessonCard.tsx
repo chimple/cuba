@@ -51,7 +51,6 @@ const LessonCard: React.FC<{
   const hideImg = (event: any) => {
     setShowImage(false);
   };
-
   // const subjectCode = lesson.chapter.course.id;
   useEffect(() => {
     if (showSubjectName) getSubject();
