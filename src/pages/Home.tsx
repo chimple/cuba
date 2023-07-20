@@ -47,6 +47,7 @@ import { auto } from "@popperjs/core";
 import { margin } from "@mui/system";
 import { push } from "ionicons/icons";
 import { t } from "i18next";
+import Assignment from "../models/assignment";
 
 const Home: FC = () => {
 
@@ -67,6 +68,7 @@ const Home: FC = () => {
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
   const [levelChapter, setLevelChapter] = useState<Chapter>();
   const [gradeMap, setGradeMap] = useState<any>({});
+  const [pendingAssignmentsCount, setPendingAssignmentsCount] = useState<number>(0);
 
   const history = useHistory();
 
@@ -100,6 +102,7 @@ const Home: FC = () => {
         console.log("Final RECOMMENDATION List ", reqLes);
         setDataCourse(reqLes);
       });
+      getAssignments(currentStudent);
     }
 
     /// Below code to show lessons card and chapters bar
@@ -330,6 +333,33 @@ const Home: FC = () => {
     setIsLoading(false);
   }
 
+  const getAssignments = async (student: User) => {
+    setIsLoading(true);
+    const studentResult = await api.getStudentResult(student.docId);
+
+    if (
+      !!studentResult &&
+      !!studentResult.classes &&
+      studentResult.classes.length > 0
+    ) {
+      const allAssignments: Assignment[] = [];
+
+      await Promise.all(
+        studentResult.classes.map(async (_class) => {
+          const res = await api.getPendingAssignments(_class, student.docId);
+          allAssignments.push(...res);
+        })
+      );
+      if (allAssignments) {
+        setPendingAssignmentsCount(allAssignments.length);
+      }
+
+      setIsLoading(false);
+    } else {
+      setIsLoading(false);
+    }
+  };
+
   async function getDataForSubject(course: Course): Promise<{
     chapters: Chapter[];
     lessons: {
@@ -403,6 +433,7 @@ const Home: FC = () => {
         <HomeHeader
           currentHeader={currentHeader}
           onHeaderIconClick={onHeaderIconClick}
+          pendingAssignmentCount={pendingAssignmentsCount}
         ></HomeHeader>
       </IonHeader>
       <div className="slider-content">

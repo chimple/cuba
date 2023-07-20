@@ -20,7 +20,8 @@ import { schoolUtil } from "../utility/schoolUtil";
 const HomeHeader: React.FC<{
   currentHeader: string;
   onHeaderIconClick: Function;
-}> = ({ currentHeader, onHeaderIconClick }) => {
+  pendingAssignmentCount: number;
+}> = ({ currentHeader, onHeaderIconClick, pendingAssignmentCount }) => {
   const { t } = useTranslation();
   const [currentHeaderIconList, setCurrentHeaderIconList] =
     useState<HeaderIconConfig[]>();
@@ -68,6 +69,7 @@ const HomeHeader: React.FC<{
         iconSrc="assets/icons/home_icon.svg"
         currentHeader={currentHeader}
         headerList={HOMEHEADERLIST.HOME}
+        pendingAssignmentCount={0}
         onHeaderIconClick={() => {
           if (currentHeader != HOMEHEADERLIST.HOME) {
             onHeaderIconClick(HOMEHEADERLIST.HOME);
@@ -85,6 +87,7 @@ const HomeHeader: React.FC<{
                 iconSrc={element.iconSrc}
                 currentHeader={currentHeader}
                 headerList={element.headerList}
+                pendingAssignmentCount={pendingAssignmentCount}
                 onHeaderIconClick={() => {
                   if (currentHeader != element.headerList) {
                     onHeaderIconClick(element.headerList);
@@ -100,6 +103,7 @@ const HomeHeader: React.FC<{
         iconSrc={"assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png"}
         currentHeader={currentHeader}
         headerList={HOMEHEADERLIST.PROFILE}
+        pendingAssignmentCount={0}
         onHeaderIconClick={() => {
           if (currentHeader != HOMEHEADERLIST.PROFILE) {
             onHeaderIconClick(HOMEHEADERLIST.PROFILE);
