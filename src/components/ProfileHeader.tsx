@@ -9,7 +9,6 @@ import BackButton from "./common/BackButton";
 import { Util } from "../utility/util";
 import { useEffect, useState } from "react";
 import User from "../models/user";
-import React from "react";
 
 const ProfileHeader: React.FC = () => {
   const history = useHistory();

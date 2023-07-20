@@ -1,4 +1,3 @@
-import React from "react";
 import "./IconButton.css";
 const IconButton: React.FC<{
   iconSrc: string;

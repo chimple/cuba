@@ -43,12 +43,12 @@
   "Facebook": "Facebook",
   "faq": "FAQ",
   "Fav/History": "Fav/History",
-  "Favourite": "Liked",
+  "Favourite": "Favourite",
   "Girl": "Girl",
   "help": "Help",
   "Help Video": "Help Video",
   "Hindi": "Hindi",
-  "History": "Played",
+  "History": "History",
   "Home work": "Home work",
   "home": "Home",
   "Instagram": "Instagram",
@@ -102,7 +102,7 @@
   "Sign Out": "Switch",
   "Sound": "Sound",
   "Subjects": "Subjects",
-  "Suggestion": "For You",
+  "Suggestion": "Suggestion",
   "Swipe x to Unlock": "Swipe x to Unlock",
   "Time Spent": "Time Spent",
   "There are no pending assignments for you.": "There are no pending assignments for you.",
@@ -124,4 +124,6 @@
   "You are Joining ": "You are Joining ",
   "You can edit or delete user by clicking on the below buttons": "You can edit or delete user by clicking on the below buttons",
   "You Completed the Lesson:": "You Completed the Lesson:"
+
 }
+
