@@ -1,5 +1,5 @@
 import { t } from "i18next";
-import { COURSES, HOMEHEADERLIST } from "../common/constants";
+import { COURSES, HEADER_ICON_CONFIGS, HOMEHEADERLIST } from "../common/constants";
 import IconButton from "./IconButton";
 import "./IconButton.css";
 import React from "react";
@@ -19,7 +19,7 @@ const HeaderIcon: React.FC<{
   pendingAssignmentCount,
   onHeaderIconClick,
 }) => {
-    // if(pendingAssignmentCount != undefined && pendingAssignmentCount > 0)
+
     return (
       <div>
         {currentHeader == headerList ? (
@@ -28,7 +28,7 @@ const HeaderIcon: React.FC<{
           <p className="home-header-indicator">&nbsp;</p>
         )}
         {
-          headerName == "Home work" && (pendingAssignmentCount != undefined && pendingAssignmentCount > 0) &&
+          headerName == HEADER_ICON_CONFIGS.get(HOMEHEADERLIST.ASSIGNMENT)?.displayName && (pendingAssignmentCount != undefined && pendingAssignmentCount > 0) &&
           <div id="homework-notification">
             <IonBadge class="badge-notification">
               {
