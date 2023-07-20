@@ -164,7 +164,7 @@ p {
   font-size: 1.5vw;
   color: #565656;
 }
-.class-header {
+.class-header-container {
   position: absolute;
   margin: var(--margin);
 }

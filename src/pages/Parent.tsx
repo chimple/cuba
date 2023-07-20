@@ -33,10 +33,11 @@ import BackButton from "../components/common/BackButton";
 import { useHistory } from "react-router-dom";
 import CustomAppBar from "../components/studentProgress/CustomAppBar";
 import DeleteParentAccount from "../components/parent/DeleteParentAccount";
+import { TrueFalseEnum } from "../interface/modelInterfaces";
+import { Util } from "../utility/util";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
-
 const Parent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
@@ -76,6 +77,7 @@ const Parent: React.FC = () => {
     getStudentProfile();
   }, [reloadProfiles]);
 
+
   async function getStudentProfile() {
     console.log("getStudentProfile");
     const userProfilePromise: User[] = await
@@ -85,15 +87,16 @@ const Parent: React.FC = () => {
       finalUser.push(userProfilePromise[i]);
     }
     setUserProfile(finalUser);
-
     // });
   }
   async function inti(): Promise<void> {
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (parentUser != undefined) {
-      console.log("User ", parentUser);
-      setSoundFlag(parentUser?.soundFlag!);
-      setMusicFlag(parentUser?.musicFlag!);
+      console.log("User ", parentUser?.musicFlag!);
+      const sound = Util.getCurrentSound();
+      const music = Util.getCurrentMusic();
+      setSoundFlag(sound);
+      setMusicFlag(music);
 
       const allLang = await ServiceConfig.getI().apiHandler.getAllLanguages();
       let tempLangDocIds: Map<string, string> = new Map();
@@ -136,16 +139,15 @@ const Parent: React.FC = () => {
   }
 
   function profileUI() {
-
     // setIsLoading(false);
 
     return (
       <div id="parent-page-profile">
         {userProfile.map((element) => {
-          console.log("userProfile", userProfile)
+          console.log("userProfile", userProfile);
           let studentUserType: boolean = true;
           if (element === undefined) {
-            console.log("element", element)
+            console.log("element", element);
             studentUserType = false;
           }
           return (
@@ -218,7 +220,7 @@ const Parent: React.FC = () => {
                 setSoundFlag(v.detail?.checked);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
-
+                Util.setCurrentSound(v.detail?.checked);
                 if (currentUser) {
                   ServiceConfig.getI().apiHandler.updateSoundFlag(
                     currentUser,
@@ -236,7 +238,7 @@ const Parent: React.FC = () => {
                 setMusicFlag(v.detail?.checked);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
-
+                Util.setCurrentMusic(v.detail?.checked);
                 if (currentUser) {
                   ServiceConfig.getI().apiHandler.updateMusicFlag(
                     currentUser,
