@@ -82,7 +82,8 @@ p {
   font-size: 1.9vw;
   margin: 3.5% 0% 2% 36.8vw;
 }
-#login-otp-button{
+
+#login-otp-button {
   transform: translateY(-15%);
   color: white;
   width: 26vw;
@@ -164,27 +165,32 @@ p {
   font-size: 1.5vw;
   color: #565656;
 }
-.class-header-container {
+
+.class-header {
   position: absolute;
   margin: var(--margin);
 }
+
 .scroll-header {
   overflow: scroll;
 }
-#login-resend-otp{
+
+#login-resend-otp {
   display: flex;
   justify-content: space-between;
   line-height: 3vw;
 }
-#login-time-remaining{
+
+#login-time-remaining {
   font-size: 1.5vw;
 }
-#login-resend-otp-text{
-font-size: 1.5vw;
+
+#login-resend-otp-text {
+  font-size: 2vw;
+  font-weight: bold;
 }
 
-
-.login-verification-error-message{
+.login-verification-error-message {
   width: 35vw;
   color: red;
   font-size: 1.5vw;

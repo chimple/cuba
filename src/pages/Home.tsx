@@ -468,7 +468,7 @@ const Home: FC = () => {
         }
         break;
       case HOMEHEADERLIST.PROFILE:
-        history.push(PAGES.PROFILE);
+        history.push(PAGES.LEADERBOARD);
         break;
       case HOMEHEADERLIST.SEARCH:
         history.push(PAGES.SEARCH);
@@ -687,18 +687,6 @@ const Home: FC = () => {
                 </AppBar>
               </div>
             )}
-            <div id="home-leaderboard-button">
-              <LeaderBoardButton
-                iconSrc={"assets/icons/LeaderboardIcon.svg"}
-                // name={"Leaderboard"}
-                onHeaderIconClick={() => {
-                  history.replace(PAGES.LEADERBOARD);
-                  // if (currentHeader != element.header) {
-                  //   onHeaderIconClick(element.header);
-                  // }
-                }}
-              />
-            </div>
           </div>
         ) : null}
         <Loading isLoading={isLoading} />
