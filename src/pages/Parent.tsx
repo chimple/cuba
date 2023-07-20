@@ -35,6 +35,7 @@ import CustomAppBar from "../components/studentProgress/CustomAppBar";
 import DeleteParentAccount from "../components/parent/DeleteParentAccount";
 import { TrueFalseEnum } from "../interface/modelInterfaces";
 import { Util } from "../utility/util";
+import React from "react";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";

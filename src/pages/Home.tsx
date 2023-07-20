@@ -48,6 +48,7 @@ import { auto } from "@popperjs/core";
 import { margin } from "@mui/system";
 import { push } from "ionicons/icons";
 import { t } from "i18next";
+import React from "react";
 
 const Home: FC = () => {
 
