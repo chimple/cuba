@@ -27,7 +27,7 @@ const ChecksumReport = {
       checksum.files.reduce((acc, curr) => acc + curr.hash, "")
     );
     // Return the resulting checksum hash once done.
-    return JSON.stringify(checksum);
+    return checksum;
   },
   /**
    * Generate a checksum file for a given directory path and saves it to disk.
@@ -45,7 +45,7 @@ const ChecksumReport = {
     // Generate the directory checksum.
     const checksumJSON = await ChecksumReport.get(directoryPath);
     // Write the checksum output the specified directory.
-    await fsp.writeFile(outputPath, checksumJSON);
+    await fsp.writeFile(outputPath, JSON.stringify(checksumJSON));
     // Return the resulting checksum hash once done.
     return checksumJSON;
   },
@@ -115,15 +115,23 @@ async function getFileHash(filePath) {
 const createJson = async () => {
   const json = await ChecksumReport.get("./build");
   console.log("🚀 ~ file: createCheckSum.js:138 ~ createJson ~ json:");
-  var destManifest = path.join("build", "checksum.json");
-  console.log(
-    "🚀 ~ file: createCheckSum.js:140 ~ createJson :",
-    destManifest
-  );
-  fs.writeFile(destManifest, json, (err) => {
+  const destCheckSum = path.join("build", "checksum.json");
+  const destCheckSumVersion = path.join("build", "checksum-version.json");
+  fs.writeFile(destCheckSum, JSON.stringify(json), (err) => {
     if (err) throw err;
-    console.log("CheckSum.json successfully generated");
+    console.log("checksum.json successfully generated");
   });
+  fs.writeFile(
+    destCheckSumVersion,
+    JSON.stringify({
+      id: json.id,
+      timestamp: json.timestamp,
+    }),
+    (err) => {
+      if (err) throw err;
+      console.log("checksum-version.json successfully generated");
+    }
+  );
 };
 
 createJson();
