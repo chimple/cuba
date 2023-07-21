@@ -54,6 +54,8 @@ jobs:
           REACT_APP_MEASUREMENT_ID: ${{ secrets.REACT_APP_MEASUREMENT_ID}}
           REACT_APP_ALGOLIA_APP_ID: ${{ secrets.REACT_APP_ALGOLIA_APP_ID }}
           REACT_APP_ALGOLIA_API_KEY: ${{ secrets.REACT_APP_ALGOLIA_API_KEY }}
+          REACT_APP_HOT_UPDATE_SERVER: ${{ secrets.MASTER_HOT_UPDATE_SERVER }}
+
         run: npm run build
 
       - name: Deploy to Firebase
