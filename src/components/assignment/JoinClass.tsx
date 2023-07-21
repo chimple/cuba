@@ -78,7 +78,7 @@ const JoinClass: FC<{
     <div className="join-class-main-header">
       <div className="join-class-header">
         <div className="join-class-title">
-          {t("Enter the code your teacher has given to join the class")}
+          {t("Enter the 6 digit code your teacher has given to join the class")}
         </div>
         <input
           onChange={(evt) => {

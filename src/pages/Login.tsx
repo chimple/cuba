@@ -28,6 +28,7 @@ declare global {
 const Login: React.FC = () => {
   const history = useHistory();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [sentOtpLoading, setSentOtpLoading] = useState<boolean>(false);
   const [showVerification, setShowVerification] = useState<boolean>(false);
   const [showBackButton, setShowBackButton] = useState<boolean>(false);
   const [showNameInput, setShowNameInput] = useState<boolean>(false);
@@ -166,18 +167,17 @@ const Login: React.FC = () => {
     }
   }, [recaptchaVerifier]);
   React.useEffect(() => {
-    if (counter <= 0) {
+    if (counter <= 0 && showTimer) {
       setShowResendOtp(true);
     }
     showTimer && counter > 0 && setTimeout(() => setCounter(counter - 1), 1000);
   }, [counter, showTimer]);
 
   const onPhoneNumberSubmit = async () => {
-    // setIsLoading(true);
     try {
+      setSentOtpLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
       if (phoneNumber.length != 10) {
-        setSpinnerLoading(false);
         alert("Phone Number Invalid " + phoneNumber);
         return;
       }
@@ -198,18 +198,23 @@ const Login: React.FC = () => {
 
       if (authRes) {
         setPhoneNumberSigninRes(authRes);
+        setSentOtpLoading(false);
         setShowVerification(true);
+        setCounter(59);
         setShowBackButton(true);
         setSpinnerLoading(false);
-        // setIsLoading(false);
+
+
       } else {
         console.log("Phone Number signin Failed ");
         setSpinnerLoading(false);
+        setSentOtpLoading(false);
         alert("Phone Number signin Failed " + authRes);
       }
     } catch (error) {
       console.log("Phone Number signin Failed ");
       setSpinnerLoading(false);
+      setSentOtpLoading(false);
       alert("Phone Number signin Failed " + error);
       console.log(
         "window.recaptchaVerifier",
@@ -278,7 +283,9 @@ const Login: React.FC = () => {
   }
 
   async function resendOtpHandler() {
+
     try {
+      setSentOtpLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
       setRecaptchaVerifier(undefined);
       let authRes = await authInstance.phoneNumberSignIn(
@@ -288,14 +295,19 @@ const Login: React.FC = () => {
       if (authRes) {
         setPhoneNumberSigninRes(authRes);
         console.log("Resend Otp Sucessfull");
+        setSentOtpLoading(false);
         setShowResendOtp(false);
         setCounter(59);
+        setVerificationCode("");
       }
       else {
+        setSentOtpLoading(false);
         console.log("Resend Otp failed");
+
       }
     } catch (error) {
       console.log("Resend Otp Failed With Error " + error);
+      setSentOtpLoading(false);
       alert("Resend Otp Failed " + error);
       recaptchaVerifier!.clear();
     }
@@ -310,6 +322,14 @@ const Login: React.FC = () => {
               setShowVerification(false);
               setShowBackButton(false);
               setCurrentButtonColor(Buttoncolors.Valid);
+              setVerificationCode("");
+              setShowResendOtp(false);
+              setShowTimer(false);
+              setIsInvalidCode({
+                isInvalidCode: false,
+                isInvalidCodeLength: false
+              });
+
             }}
           />
         </div>
@@ -569,7 +589,7 @@ const Login: React.FC = () => {
           </div>
         ) : null}
       </div>
-      <Loading isLoading={isLoading} />
+      <Loading isLoading={isLoading || sentOtpLoading} />
     </IonPage>
   );
 };
