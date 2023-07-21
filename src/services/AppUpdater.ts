@@ -1,6 +1,5 @@
 import { Capacitor, CapacitorHttp, WebView } from "@capacitor/core";
 import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
-import pLimit from "p-limit";
 
 // --------------
 // INTERNAL TYPES
@@ -86,20 +85,26 @@ export const AppUpdater = {
       }
 
       // Go online to check what the latest app release is.
-      const serverChecksum = await getServerChecksum(
-        webServerURL + "/checksum.json"
+      const serverChecksumVersion = await getServerChecksum(
+        webServerURL + "/checksum-version.json"
       );
 
-      if (!serverChecksum) {
-        throw "Unable to get checksum from server";
+      if (!serverChecksumVersion) {
+        throw "Unable to get checksum-version from server";
       }
 
       // Check that latest release is not already installed.
-      if (activeRelease.checksum.id === serverChecksum.id) {
+      if (activeRelease.checksum.id === serverChecksumVersion.id) {
         // Nothing changed, reset the update check timestamp so that we don't check again unnecessarily.
-        await setCurrentRelease(serverChecksum.id, new Date());
+        await setCurrentRelease(serverChecksumVersion.id, new Date());
 
-        throw `Latest release already installed (${serverChecksum.id})`;
+        throw `Latest release already installed (${serverChecksumVersion.id})`;
+      }
+      const serverChecksum = await getServerChecksum(
+        webServerURL + "/checksum.json"
+      );
+      if (!serverChecksum) {
+        throw "Unable to get checksum from server";
       }
 
       // Prepare to download a new release.
@@ -272,22 +277,27 @@ async function buildReleaseFromBundle(): Promise<Release> {
     }
 
     // Download the release files from the app bundle local web server.
-    const downloadTasks: Promise<boolean>[] = [];
-    const limit = pLimit(600);
+    let downloadTasks: Promise<boolean>[] = [];
+    const limit = 300;
 
-    for (const file of checksum.files) {
+    for (let i = 0; i < checksum.files.length; i++) {
+      const currentFile = checksum.files[i];
       downloadTasks.push(
-        limit(() =>
-          downloadFileFromAppBundle(
-            `http://localhost/${file.path}`,
-            `releases/${checksum.id}/${file.path}`,
-            Directory.Data
-          )
+        downloadFileFromAppBundle(
+          `http://localhost/${currentFile.path}`,
+          `releases/${checksum.id}/${currentFile.path}`,
+          Directory.Data
         )
       );
+      if (
+        currentFile.path === checksum.files.at(-1)?.path ||
+        downloadTasks.length >= limit
+      ) {
+        await Promise.all(downloadTasks);
+        await new Promise((resolve, _) => setTimeout(resolve, 500));
+        downloadTasks = [];
+      }
     }
-
-    await Promise.all(downloadTasks);
 
     // Save the release checksum.
     await Filesystem.writeFile({
@@ -300,7 +310,15 @@ async function buildReleaseFromBundle(): Promise<Release> {
 
     // Saves app release summary file.
     const releaseID = checksum.id;
+    console.log(
+      "🚀 ~ file: AppUpdater.ts:317 ~ buildReleaseFromBundle ~ releaseID:",
+      releaseID
+    );
     const releaseDate = new Date(checksum.timestamp);
+    console.log(
+      "🚀 ~ file: AppUpdater.ts:319 ~ buildReleaseFromBundle ~ releaseDate:",
+      releaseDate
+    );
 
     await setCurrentRelease(releaseID, releaseDate);
 
@@ -434,15 +452,28 @@ async function getServerChecksum(url: string): Promise<Checksum | null> {
   console.debug(`AppUpdater: Getting latest release checksum from '${url}'`);
 
   try {
-    return (
-      await CapacitorHttp.request({
-        url: url,
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-    ).data as Checksum;
+    const res = await CapacitorHttp.request({
+      url: url,
+      method: "GET",
+      responseType: "json",
+    });
+    console.log(
+      "🚀 ~ file: AppUpdater.ts:519 ~ getServerChecksum ~ res:",
+      JSON.stringify(res)
+    );
+    if (!!res && res.status === 200 && !!res.data) {
+      console.log(
+        "🚀 ~ file: AppUpdater.ts:524 ~ getServerChecksum ~ res.data:",
+        res.status,
+        res.data
+      );
+      return res.data as Checksum;
+    }
+    console.log(
+      "🚀 ~ file: AppUpdater.ts:526 ~ getServerChecksum ~ res.data:",
+      res.status,
+      res.data
+    );
   } catch (error) {
     console.debug(
       "AppUpdater: Could not download and parse server checksum.\n\n",
