@@ -32,6 +32,7 @@ const CocosGame: React.FC = () => {
   // let gameResult : any;
   const [gameResult, setGameResult] = useState<any>();
   const currentStudent = Util.getCurrentStudent();
+  const lessonDetail: Lesson = JSON.parse(state.lesson);
 
   const presentToast = async () => {
     await present({
@@ -177,12 +178,12 @@ const CocosGame: React.FC = () => {
             <ScoreCard
               width={"50vw"}
               height={"60vh"}
-              title={t("Congratulations🎊🎉")}
-              score={gameResult.detail.gameScore}
+              title={t("🎉Congratulations🎊")}
+              score={gameResult.detail.score}
               message={t("You Completed the Lesson:")}
               showDialogBox={showDialogBox}
               yesText={t("Like the Game")}
-              lessonName={gameResult.detail.chapterName}
+              lessonName={lessonDetail.title}
               noText={t("Continue Playing")}
               handleClose={(e: any) => {
                 setShowDialogBox(true);
