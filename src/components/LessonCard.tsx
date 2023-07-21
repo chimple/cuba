@@ -45,8 +45,12 @@ const LessonCard: React.FC<{
   startIndex,
 }) => {
   const history = useHistory();
+  const [showImage, setShowImage] = useState(true);
   const [subject, setSubject] = useState<Subject>();
 
+  const hideImg = (event: any) => {
+    setShowImage(false);
+  };
   // const subjectCode = lesson.chapter.course.id;
   useEffect(() => {
     if (showSubjectName) getSubject();
@@ -137,6 +141,16 @@ const LessonCard: React.FC<{
           }}
           color={lessonCardColor}
         >
+          <div id="lesson-card-homework-icon">
+            {lesson.assignment != undefined ? (
+              <div>
+                <img
+                  src="assets/icons/homeworkIcon.svg"
+                  className="lesson-card-homework-indicator"
+                />
+              </div>
+            ) : null}
+          </div>
           {showSubjectName && subject?.title ? (
             <div id="lesson-card-subject-name">
               <p>
