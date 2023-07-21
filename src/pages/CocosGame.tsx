@@ -33,7 +33,7 @@ const CocosGame: React.FC = () => {
   // let gameResult : any;
   const [gameResult, setGameResult] = useState<any>();
   const currentStudent = Util.getCurrentStudent();
-  const LessonDetail: Lesson = JSON.parse(state.lesson);
+  const lessonDetail: Lesson = JSON.parse(state.lesson);
 
   let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
 
@@ -189,7 +189,7 @@ const CocosGame: React.FC = () => {
               message={t("You Completed the Lesson:")}
               showDialogBox={showDialogBox}
               yesText={t("Like the Game")}
-              lessonName={LessonDetail.title}
+              lessonName={lessonDetail.title}
               noText={t("Continue Playing")}
               handleClose={(e: any) => {
                 setShowDialogBox(true);
