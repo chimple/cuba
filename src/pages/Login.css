@@ -166,7 +166,7 @@ p {
   color: #565656;
 }
 
-.class-header-container {
+.class-header {
   position: absolute;
   margin: var(--margin);
 }
@@ -189,6 +189,11 @@ p {
   font-size: 1.5vw;
 }
 
+
+#login-resend-otp-text {
+  font-size: 2vw;
+  font-weight: bold;
+}
 
 .login-verification-error-message {
   width: 35vw;

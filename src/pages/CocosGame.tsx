@@ -5,6 +5,7 @@ import {
   EVENTS,
   GAME_END,
   GAME_EXIT,
+  LESSONS_PLAYED_COUNT,
   LESSON_END,
   PAGES,
 } from "../common/constants";
@@ -32,6 +33,9 @@ const CocosGame: React.FC = () => {
   // let gameResult : any;
   const [gameResult, setGameResult] = useState<any>();
   const currentStudent = Util.getCurrentStudent();
+  const lessonDetail: Lesson = JSON.parse(state.lesson);
+
+  let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
 
   const presentToast = async () => {
     await present({
@@ -55,6 +59,9 @@ const CocosGame: React.FC = () => {
   const killGame = (e: any) => {
     setShowDialogBox(true);
     Util.killCocosGame();
+    initialCount++;
+    localStorage.setItem(LESSONS_PLAYED_COUNT, (initialCount.toString()));
+    console.log("---------count of LESSONS PLAYED", initialCount);
   };
 
   const push = () => {
@@ -177,12 +184,12 @@ const CocosGame: React.FC = () => {
             <ScoreCard
               width={"50vw"}
               height={"60vh"}
-              title={t("Congratulations🎊🎉")}
-              score={gameResult.detail.gameScore}
+              title={t("🎉Congratulations🎊")}
+              score={gameResult.detail.score}
               message={t("You Completed the Lesson:")}
               showDialogBox={showDialogBox}
               yesText={t("Like the Game")}
-              lessonName={gameResult.detail.chapterName}
+              lessonName={lessonDetail.title}
               noText={t("Continue Playing")}
               handleClose={(e: any) => {
                 setShowDialogBox(true);
@@ -191,11 +198,20 @@ const CocosGame: React.FC = () => {
               }}
               onYesButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
+                console.log("--------------line 200 game result",gameResult);
                 await saveTempData(gameResult.detail, true);
                 console.log(
                   "------------------the game result ",
                   gameResult.detail.score
                 );
+                if (initialCount >= 5) {
+                  Util.showInAppReview();
+                  initialCount = 0;
+                  localStorage.setItem(
+                    LESSONS_PLAYED_COUNT,
+                    (initialCount.toString())
+                  );
+                }
                 push();
               }}
               onContinueButtonClicked={async (e: any) => {
