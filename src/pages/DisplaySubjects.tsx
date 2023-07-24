@@ -123,7 +123,6 @@ const DisplaySubjects: FC<{}> = () => {
       localData.lessonResultMap = res;
       setLessonResultMap(res);
     });
-    function getCurrentMode() { }
     const currMode = await schoolUtil.getCurrMode();
 
     const courses = await (currMode === MODES.SCHOOL && !!currClass
