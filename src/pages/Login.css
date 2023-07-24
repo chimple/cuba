@@ -12,8 +12,8 @@ p {
     margin-left: calc(33vw);
     margin-top: 2%; */
   text-align: center;
-  width: 11.5vw;
-  height: 18vh;
+  width: 11vw;
+  height: 15vh;
   margin-top: 2%;
   /* height: 28%;
     position: absolute;
@@ -184,6 +184,11 @@ p {
 #login-time-remaining {
   font-size: 1.5vw;
 }
+
+#login-resend-otp-text {
+  font-size: 1.5vw;
+}
+
 
 #login-resend-otp-text {
   font-size: 2vw;
