@@ -49,6 +49,7 @@ import { margin } from "@mui/system";
 import { push } from "ionicons/icons";
 import { t } from "i18next";
 
+
 const sortPlayedLessonsByDate = (
   lessons: Lesson[],
   lessonResultMap: { [lessonDocId: string]: StudentLessonResult }
@@ -85,6 +86,7 @@ const Home: FC = () => {
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
   const [levelChapter, setLevelChapter] = useState<Chapter>();
   const [gradeMap, setGradeMap] = useState<any>({});
+  const [pendingAssignmentsCount, setPendingAssignmentsCount] = useState<number>(0);
   const history = useHistory();
   const [PlayedLessonsList, setPlayedLessonsList] = useState<Lesson[]>([]);
 
@@ -118,15 +120,18 @@ const Home: FC = () => {
           allAssignments.push(...res);
         })
       );
+      let count= 0;
       await Promise.all(
         allAssignments.map(async (_assignment) => {
           const res = await api.getLesson(_assignment.lesson.id);
           if (!!res) {
+            count++;
             res.assignment = _assignment;
             reqLes.push(res);
           }
         })
       );
+      setPendingAssignmentsCount(count);
 
       setDataCourse(reqLes);
       setIsLoading(true);
@@ -158,6 +163,7 @@ const Home: FC = () => {
         console.log("Final RECOMMENDATION List ", reqLes);
         setDataCourse(reqLes);
       });
+
     }
 
     /// Below code to show lessons card and chapters bar
@@ -417,6 +423,7 @@ const Home: FC = () => {
     setIsLoading(false);
   }
 
+ 
   async function getDataForSubject(course: Course): Promise<{
     chapters: Chapter[];
     lessons: {
@@ -531,6 +538,7 @@ const Home: FC = () => {
         <HomeHeader
           currentHeader={currentHeader}
           onHeaderIconClick={onHeaderIconClick}
+          pendingAssignmentCount={pendingAssignmentsCount}
         ></HomeHeader>
       </IonHeader>
       <div className="slider-content">
