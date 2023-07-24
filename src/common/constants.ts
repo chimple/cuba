@@ -24,6 +24,8 @@ export enum HOMEHEADERLIST {
   SEARCH = "SEARCH",
   QUIZ = "QUIZ",
   PROFILE = "PROFILE",
+  FAVOURITES = "FAVOURITES",
+  HISTORY = "HISTORY"
 }
 
 export enum PARENTHEADERLIST {
@@ -153,6 +155,7 @@ export enum LANG {
 export const SCREEN_WIDTH = window.innerWidth;
 export const SCREEN_HEIGHT = window.innerHeight;
 
+export const LESSONS_PLAYED_COUNT = "lessonsPlayedCount";
 export const LESSON_END = "lessonEnd";
 export const PROBLEM_END = "problemEnd";
 export const GAME_END = "gameEnd";
@@ -293,8 +296,13 @@ export const CACHE_IMAGE = "cacheImage";
 
 export const IS_MIGRATION_CHECKED = "isMigrationChecked";
 
+
 export const courseSortIndex = {
   en: 1,
   maths: 2,
   puzzle: 3,
 };
+
+export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
+
+export const COPIED_BUNDLE_FILES = "copiedBundleFiles";
