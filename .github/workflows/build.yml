@@ -9,7 +9,6 @@ jobs:
   build:
     name: Build APK
     runs-on: ubuntu-latest
-    container: pandoc/latex
     steps:
       - name: Checkout source
         uses: actions/checkout@v2
