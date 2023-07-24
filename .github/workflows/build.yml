@@ -3,12 +3,13 @@ name: Build Android
 on:
   push:
     branches:
-      - master
+      - bhanu-new
 
 jobs:
   build:
     name: Build APK
     runs-on: ubuntu-latest
+    container: pandoc/latex
     steps:
       - name: Checkout source
         uses: actions/checkout@v2
@@ -29,10 +30,6 @@ jobs:
       - name: Install app dependencies
         run: npm install
 
-      # - name: Store variables
-      #   run: |
-      #     touch .env
-      #     echo 'REACT_APP_GITHUB_BASE=/cuba' >> .env
       - name: Create Google Services JSON File and key.jks
         working-directory: ./android/app/
         env:
@@ -58,38 +55,44 @@ jobs:
 
         run: npm run build
 
-      - name: Deploy to Firebase
-        uses: w9jds/firebase-action@master
-        with:
-          args: deploy --only hosting:cuba-stage
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
-      # - name: deploy web
-      #   uses: peaceiris/actions-gh-pages@v3
+      # - name: Deploy to Firebase
+      #   uses: w9jds/firebase-action@master
       #   with:
-      #     github_token: ${{ secrets.ACCESS_TOKEN }}
-      #     publish_dir: ./build
+      #     args: deploy --only hosting:cuba-stage
+      #   env:
+      #     FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
-      - name: Make gradlew executable
-        working-directory: ./android/
-        run: chmod +x ./gradlew
+      # - name: Make gradlew executable
+      #   working-directory: ./android/
+      #   run: chmod +x ./gradlew
 
-      - name: Generate the Android App assembleDebug
-        working-directory: ./android/
-        run: ./gradlew assembleDebug
+      # - name: Generate the Android App assembleDebug
+      #   working-directory: ./android/
+      #   run: ./gradlew assembleDebug
 
-      - name: Deploy apk
-        working-directory: .
-        run: |
-          cd android/app/build/outputs/apk/debug/
-          git init
-          git config --global user.email prakash@sutara.org
-          git config --global user.name  bhanugummana
-          git remote add origin https://${{ secrets.ACCESS_TOKEN }}@github.com/chimple/cuba.git
-          git checkout -b apk
-          git add app-debug.apk
-          git commit -m "created apk"
-          #git push --force secure-origin apk
-          #git push --set-upstream origin gh-pages
-          git push origin apk -f
+      # - name: Deploy apk
+      #   working-directory: .
+      #   run: |
+      #     cd android/app/build/outputs/apk/debug/
+      #     git init
+      #     git config --global user.email prakash@sutara.org
+      #     git config --global user.name  bhanugummana
+      #     git remote add origin https://${{ secrets.ACCESS_TOKEN }}@github.com/chimple/cuba.git
+      #     git checkout -b apk
+      #     git add app-debug.apk
+      #     git commit -m "created apk"
+      #     #git push --force secure-origin apk
+      #     #git push --set-upstream origin gh-pages
+      #     git push origin apk -f
+      - name: Pushes to Hot update
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.ACCESS_TOKEN }}
+        with:
+          source-directory: "build"
+          target-directory: "v1"
+          destination-github-username: "chimple"
+          destination-repository-name: "cuba-hot-update"
+          user-email: prakash@sutara.org
+          target-branch: test
