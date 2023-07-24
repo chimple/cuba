@@ -99,11 +99,12 @@
   "Send OTP": "Send OTP",
   "setting": "SETTING",
   "Sign out as Parent": "Sign out as Parent",
-  "Sign Out": "Switch",
+  "Sign Out": "Sign Out",
   "Sound": "Sound",
   "Subjects": "Subjects",
   "Suggestion": "Suggestion",
   "Swipe x to Unlock": "Swipe x to Unlock",
+  "Switch": "Switch",
   "Time Spent": "Time Spent",
   "There are no pending assignments for you.": "There are no pending assignments for you.",
   "UP": "UP",
@@ -124,6 +125,4 @@
   "You are Joining ": "You are Joining ",
   "You can edit or delete user by clicking on the below buttons": "You can edit or delete user by clicking on the below buttons",
   "You Completed the Lesson:": "You Completed the Lesson:"
-
 }
-
