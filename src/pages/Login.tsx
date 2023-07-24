@@ -182,7 +182,7 @@ const Login: React.FC = () => {
         return;
       }
       console.log("window.recaptchaVerifier", window.recaptchaVerifier);
-      
+
       // setEnabled(true);
       console.log(
         "onPhoneNumberSubmit called ",
@@ -228,7 +228,7 @@ const Login: React.FC = () => {
       // window.recaptchaVerifier.clear();
     }
   };
-  
+
   const onVerificationCodeSubmit = async () => {
     try {
       setIsLoading(true);
@@ -316,7 +316,7 @@ const Login: React.FC = () => {
   return (
     <IonPage id="login-screen">
       {!!showBackButton && (
-        <div className="class-header-container">
+        <div className="login-class-header">
           <BackButton
             onClicked={() => {
               setShowVerification(false);
@@ -385,7 +385,7 @@ const Login: React.FC = () => {
                         }}
                       ></TextBox>
                     </div>
-                    
+
                     <p
                       ref={phoneNumberErrorRef}
                       style={{ display: "none" }}
@@ -546,7 +546,7 @@ const Login: React.FC = () => {
                     <div>
                       <span style={!showResendOtp ? { color: "red" } : { color: "grey" }} id="login-time-remaining">Time Remaining : {counter}</span>
                     </div>
-                    <span id="login-resend-otp-text" onClick={resendOtpHandler} style={showResendOtp ? { color: "green" } : { color: "grey" }}>Resend Otp </span>
+                    <span id="login-resend-otp-text" onClick={resendOtpHandler} style={showResendOtp ? { color: "green" } : { color: "grey" }}>Resend OTP </span>
                   </div>
                 </div>
                 {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}

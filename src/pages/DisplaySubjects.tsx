@@ -88,7 +88,10 @@ const DisplaySubjects: FC<{}> = () => {
       console.log("🚀 ~ file: DisplaySubjects.tsx:70 ~ init ~ getCourses:");
     }
     let map = localStorage.getItem(GRADE_MAP);
-    if (!!map) setLocalGradeMap(JSON.parse(map));
+    if (!!map) {
+      setLocalGradeMap(JSON.parse(map));
+      setGradesMap(JSON.parse(map));
+    };
   };
 
   const getCourses = async (): Promise<Course[]> => {
@@ -107,7 +110,7 @@ const DisplaySubjects: FC<{}> = () => {
       localData.lessonResultMap = res;
       setLessonResultMap(res);
     });
-    function getCurrentMode() {}
+    function getCurrentMode() { }
     const currMode = await schoolUtil.getCurrMode();
 
     const courses = await (currMode === MODES.SCHOOL && !!currClass
@@ -189,8 +192,8 @@ const DisplaySubjects: FC<{}> = () => {
           {stage === STAGES.SUBJECTS
             ? t("Subjects")
             : stage === STAGES.CHAPTERS
-            ? currentCourse?.title
-            : currentChapter?.title}
+              ? currentCourse?.title
+              : currentChapter?.title}
         </div>
         {gradesMap && currentGrade && stage === STAGES.CHAPTERS && (
           <DropDown
