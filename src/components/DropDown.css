@@ -41,13 +41,13 @@ ion-label {
 }
 
 ion-item {
-    --padding-start: 1.7vw;
+    --padding-start: -1.7vw;
 }
 
 
 ion-popover {
     --width: 26vw;
-    --offset-x: -0.5vw;
+    --offset-x: -1vw;
     border-radius: 10px;
     border: 0.5px solid black;
     --background: rgba(40, 173, 218, 0.6);
