@@ -391,7 +391,7 @@ const Login: React.FC = () => {
                       style={{ display: "none" }}
                       className="login-error-message"
                     >
-                      Please Enter 10 digit Mobile Number
+                     {t("Please Enter 10 digit Mobile Number")}
                     </p>
                   </div>
                   <div id="recaptcha-container" />
@@ -473,7 +473,7 @@ const Login: React.FC = () => {
               </div>
             ) : !showNameInput && startResendOtpCounter() ? (
               <div>
-                <p id="login-otp-sent">Otp Sent To The {countryCode + phoneNumber}</p>
+                <p id="login-otp-sent">{t("Otp Sent To The")}{countryCode + phoneNumber}</p>
                 <div id="login-text-box">
                   <div>
                     <TextBox
@@ -510,9 +510,9 @@ const Login: React.FC = () => {
                     ></TextBox>
                   </div>
                   {isInvalidCode?.isInvalidCodeLength &&
-                    <p className="login-verification-error-message">Please Enter 6 Digit Code</p>}
+                    <p className="login-verification-error-message">{t("Please Enter 6 Digit Code")}</p>}
                   {isInvalidCode?.isInvalidCode &&
-                    <p className="login-verification-error-message">Please Enter Valid Code</p>}
+                    <p className="login-verification-error-message">{t("Please Enter Valid Code")}</p>}
                 </div>
                 <div
                   ref={getOtpBtnRef}
@@ -544,9 +544,9 @@ const Login: React.FC = () => {
                   </div>
                   <div id="login-resend-otp">
                     <div>
-                      <span style={!showResendOtp ? { color: "red" } : { color: "grey" }} id="login-time-remaining">Time Remaining : {counter}</span>
+                      <span style={!showResendOtp ? { color: "red" } : { color: "grey" }} id="login-time-remaining">{t("Time Remaining :")} {counter}</span>
                     </div>
-                    <span id="login-resend-otp-text" onClick={resendOtpHandler} style={showResendOtp ? { color: "green" } : { color: "grey" }}>Resend OTP </span>
+                    <span id="login-resend-otp-text" onClick={resendOtpHandler} style={showResendOtp ? { color: "green" } : { color: "grey" }}>{t("Resend OTP")}</span>
                   </div>
                 </div>
                 {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
