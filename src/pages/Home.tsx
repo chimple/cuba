@@ -48,7 +48,7 @@ import { auto } from "@popperjs/core";
 import { margin } from "@mui/system";
 import { push } from "ionicons/icons";
 import { t } from "i18next";
-import Assignment from "../models/assignment";
+
 
 const sortPlayedLessonsByDate = (
   lessons: Lesson[],
@@ -120,15 +120,18 @@ const Home: FC = () => {
           allAssignments.push(...res);
         })
       );
+      let count= 0;
       await Promise.all(
         allAssignments.map(async (_assignment) => {
           const res = await api.getLesson(_assignment.lesson.id);
           if (!!res) {
+            count++;
             res.assignment = _assignment;
             reqLes.push(res);
           }
         })
       );
+      setPendingAssignmentsCount(count);
 
       setDataCourse(reqLes);
       setIsLoading(true);
@@ -160,7 +163,7 @@ const Home: FC = () => {
         console.log("Final RECOMMENDATION List ", reqLes);
         setDataCourse(reqLes);
       });
-      getAssignments(currentStudent);
+
     }
 
     /// Below code to show lessons card and chapters bar
@@ -420,33 +423,7 @@ const Home: FC = () => {
     setIsLoading(false);
   }
 
-  const getAssignments = async (student: User) => {
-    setIsLoading(true);
-    const studentResult = await api.getStudentResult(student.docId);
-
-    if (
-      !!studentResult &&
-      !!studentResult.classes &&
-      studentResult.classes.length > 0
-    ) {
-      const allAssignments: Assignment[] = [];
-
-      await Promise.all(
-        studentResult.classes.map(async (_class) => {
-          const res = await api.getPendingAssignments(_class, student.docId);
-          allAssignments.push(...res);
-        })
-      );
-      if (allAssignments) {
-        setPendingAssignmentsCount(allAssignments.length);
-      }
-
-      setIsLoading(false);
-    } else {
-      setIsLoading(false);
-    }
-  };
-
+ 
   async function getDataForSubject(course: Course): Promise<{
     chapters: Chapter[];
     lessons: {
