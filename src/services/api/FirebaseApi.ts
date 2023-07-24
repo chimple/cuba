@@ -20,7 +20,11 @@ import {
   ServiceApi,
   StudentLeaderboardInfo,
 } from "./ServiceApi";
-import { DEFAULT_COURSE_IDS, MODES } from "../../common/constants";
+import {
+  DEFAULT_COURSE_IDS,
+  MODES,
+  courseSortIndex,
+} from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
 import User from "../../models/user";
 import { ServiceConfig } from "../ServiceConfig";
@@ -353,6 +357,16 @@ export class FirebaseApi implements ServiceApi {
           subjects.push(course);
         }
       });
+      try {
+        subjects.sort(
+          (a, b) =>
+            courseSortIndex[a.courseCode] - courseSortIndex[b.courseCode]
+        );
+        const digitalSkills = subjects.splice(2, 1)[0];
+        subjects.push(digitalSkills);
+      } catch (error) {
+        console.log(error);
+      }
       return subjects;
     } catch (error) {
       console.log(
@@ -399,6 +413,15 @@ export class FirebaseApi implements ServiceApi {
         subjects.push(course);
       }
     });
+    try {
+      subjects.sort(
+        (a, b) => courseSortIndex[a.courseCode] - courseSortIndex[b.courseCode]
+      );
+      const digitalSkills = subjects.splice(2, 1)[0];
+      subjects.push(digitalSkills);
+    } catch (error) {
+      console.log(error);
+    }
     return subjects;
   }
 
@@ -590,7 +613,7 @@ export class FirebaseApi implements ServiceApi {
     isLoved: boolean,
     assignmentId: string | undefined,
     classId: string | undefined,
-    schoolId: string | undefined,
+    schoolId: string | undefined
   ): Promise<Result> {
     const courseRef = courseId
       ? doc(this._db, CollectionIds.COURSE, courseId)
@@ -604,7 +627,7 @@ export class FirebaseApi implements ServiceApi {
     const schoolRef = schoolId
       ? doc(this._db, CollectionIds.SCHOOL, schoolId)
       : undefined;
-    
+
     const lessonRef = doc(this._db, CollectionIds.LESSON, lessonId);
     const studentRef = doc(this._db, CollectionIds.USER, student.docId);
     const result = new Result(
@@ -622,7 +645,7 @@ export class FirebaseApi implements ServiceApi {
       timeSpent,
       studentRef,
       null!,
-      isLoved,
+      isLoved
     );
     const resultDoc = await addDoc(
       collection(this._db, CollectionIds.RESULT),
