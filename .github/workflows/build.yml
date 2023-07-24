@@ -54,7 +54,6 @@ jobs:
 
         run: npm run build
 
-
       # - name: Deploy to Firebase
       #   uses: w9jds/firebase-action@master
       #   with:
@@ -90,7 +89,7 @@ jobs:
           API_TOKEN_GITHUB: ${{ secrets.ACCESS_TOKEN }}
         with:
           source-directory: "build"
-          target-directory: "v1"
+          target-directory: "public/v1"
           destination-github-username: "chimple"
           destination-repository-name: "cuba-hot-update"
           user-email: prakash@sutara.org
