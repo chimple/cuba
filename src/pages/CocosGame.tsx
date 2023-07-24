@@ -32,6 +32,7 @@ const CocosGame: React.FC = () => {
   // let gameResult : any;
   const [gameResult, setGameResult] = useState<any>();
   const currentStudent = Util.getCurrentStudent();
+  const lessonDetail: Lesson = JSON.parse(state.lesson);
 
   const presentToast = async () => {
     await present({
@@ -64,8 +65,35 @@ const CocosGame: React.FC = () => {
   const gameExit = (e: any) => {
     const data = e.detail as CocosLessonData;
     console.log("GameExit LessonData ", e.detail);
-
     killGame(e);
+    Util.logEvent(EVENTS.LESSON_INCOMPLETE,{
+      user_id: currentStudent?.docId, 
+      assignment_id: lessonDetail.assignment?.docId,
+      left_game_no:data.currentGameNumber, 
+      left_game_name:data.gameName,
+      chapter_id: data.chapterId,
+      chapter_name: lessonDetail.cocosChapterCode,
+      lesson_id: data.lessonId,
+      lesson_name: lessonDetail.title,
+      lesson_type: data.lessonType,
+      lesson_session_id: data.lessonSessionId,
+      ml_partner_id: data.mlPartnerId,
+      ml_class_id: data.mlClassId,
+      ml_student_id: data.mlStudentId,
+      course_id: data.courseId,
+      course_name: data.courseName,
+      time_spent: data.timeSpent,
+      total_moves: data.totalMoves,
+      total_games: data.totalGames,
+      correct_moves: data.correctMoves,
+      wrong_moves: data.wrongMoves,
+      game_score: data.gameScore,
+      quiz_score: data.quizScore,
+      game_completed: data.gameCompleted,
+      quiz_completed: data.quizCompleted,
+      game_time_spent: data.gameTimeSpent,
+      quiz_time_spent: data.quizTimeSpent,
+  });
     setShowDialogBox(false);
     push();
   };
@@ -143,6 +171,33 @@ const CocosGame: React.FC = () => {
       classId,
       schoolId
     );
+    Util.logEvent(EVENTS.LESSON_END,{
+        user_id: currentStudent.docId,
+        assignment_id: lesson.assignment?.docId,
+        chapter_id: data.chapterId,
+        chapter_name: lesson.cocosChapterCode,
+        lesson_id: data.lessonId,
+        lesson_name: lesson.title,
+        lesson_type: data.lessonType,
+        lesson_session_id: data.lessonSessionId,
+        ml_partner_id: data.mlPartnerId,
+        ml_class_id: data.mlClassId,
+        ml_student_id: data.mlStudentId,
+        course_id: data.courseId,
+        course_name: data.courseName,
+        time_spent: data.timeSpent,
+        total_moves: data.totalMoves,
+        total_games: data.totalGames,
+        correct_moves: data.correctMoves,
+        wrong_moves: data.wrongMoves,
+        game_score: data.gameScore,
+        quiz_score: data.quizScore,
+        game_completed: data.gameCompleted,
+        quiz_completed: data.quizCompleted,
+        game_time_spent: data.gameTimeSpent,
+        quiz_time_spent: data.quizTimeSpent,
+        score: data.score,
+    });
     console.log(
       "🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:",
       result
@@ -177,12 +232,12 @@ const CocosGame: React.FC = () => {
             <ScoreCard
               width={"50vw"}
               height={"60vh"}
-              title={t("Congratulations🎊🎉")}
-              score={gameResult.detail.gameScore}
+              title={t("🎉Congratulations🎊")}
+              score={gameResult.detail.score}
               message={t("You Completed the Lesson:")}
               showDialogBox={showDialogBox}
               yesText={t("Like the Game")}
-              lessonName={gameResult.detail.chapterName}
+              lessonName={lessonDetail.title}
               noText={t("Continue Playing")}
               handleClose={(e: any) => {
                 setShowDialogBox(true);
