@@ -442,7 +442,7 @@ export class Util {
       });
     }
     catch(error) {
-      console.log("Error logging event to firebase analytics $eventName : ",error);
+      console.log("Error logging event to firebase analytics ",eventName,":",error);
     }
   }
 
