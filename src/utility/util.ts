@@ -32,6 +32,7 @@ import User from "../models/user";
 import { ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
+import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 import {
   DocumentReference,
   doc,
@@ -425,6 +426,18 @@ export class Util {
     await Toast.show({
       text: msg,
       duration: "long",
+    });
+  }
+
+  public static async logEvent(
+    eventName: EVENTS,
+    params: {
+      [key: string]: any;
+    }
+  ) {
+    await FirebaseAnalytics.logEvent({
+      name: eventName,
+      params: params,
     });
   }
 

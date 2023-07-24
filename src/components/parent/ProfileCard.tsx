@@ -7,7 +7,7 @@ import { FcPlus } from "react-icons/fc";
 import { HiPlusCircle } from "react-icons/hi";
 import User from "../../models/user";
 import { ACTION, AVATARS, EVENTS, PAGES } from "../../common/constants";
-import { Util } from "../../utility/util";
+import { Util } from '../../utility/util';
 import DialogBoxButtons from "./DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
@@ -155,6 +155,17 @@ const ProfileCard: React.FC<{
             await ServiceConfig.getI().apiHandler.deleteProfile(user.docId);
             setReloadProfiles(true);
             setIsLoading(false)
+            Util.logEvent(EVENTS.USER_PROFILE,{
+              user_id: user.docId,
+              user_type: user.role,
+              user_name: user.name,
+              user_gender: user.gender!,
+              user_age: user.age!,
+              phone_number: user.username,
+              parent_id: user.uid,
+              parent_username: user.username,
+              action_type: ACTION.DELETE
+            });
           }}
           onNoButtonClicked={async ({ }) => {
             console.log(`Show warning No:`);
