@@ -93,4 +93,4 @@ jobs:
           destination-github-username: "chimple"
           destination-repository-name: "cuba-hot-update"
           user-email: prakash@sutara.org
-          target-branch: test
+          target-branch: main
