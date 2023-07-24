@@ -2,16 +2,21 @@ import { IonPage } from "@ionic/react";
 import { FC, useEffect } from "react";
 import { AppUpdater } from "../services/AppUpdater";
 import { useHistory } from "react-router";
-import { PAGES } from "../common/constants";
+import { HOT_UPDATE_SERVER, PAGES } from "../common/constants";
 import { t } from "i18next";
 import "./HotUpdate.css";
 import Loading from "../components/Loading";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
+import { Capacitor } from "@capacitor/core";
 
 const HotUpdate: FC<{}> = () => {
   const history = useHistory();
   const init = async () => {
     try {
+      if (!Capacitor.isNativePlatform()) {
+        push();
+        return;
+      }
       const canHotUpdate = await RemoteConfig.getBoolean(
         REMOTE_CONFIG_KEYS.CAN_HOT_UPDATE
       );
@@ -19,13 +24,16 @@ const HotUpdate: FC<{}> = () => {
         "🚀 ~ file: HotUpdate.tsx:18 ~ init ~ canHotUpdate:",
         canHotUpdate
       );
-      if (!canHotUpdate) {
+      const hotUpdateServer = HOT_UPDATE_SERVER;
+      console.log(
+        "🚀 ~ file: HotUpdate.tsx:23 ~ init ~ hotUpdateServer:",
+        hotUpdateServer
+      );
+
+      if (!canHotUpdate || !hotUpdateServer) {
         push();
         return;
       }
-      const hotUpdateServer = await RemoteConfig.getString(
-        REMOTE_CONFIG_KEYS.HOT_UPDATE_SERVER
-      );
       console.log(
         "🚀 ~ file: AppUpdate.tsx:18 ~ init ~ hotUpdateServer:",
         hotUpdateServer

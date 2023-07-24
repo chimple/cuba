@@ -14,10 +14,9 @@
   "Choose the School": "Choose the School",
   "Choose your language": "Choose your language",
   "Choose an avatar for your child": "Choose an avatar for your child",
-
   "Choose your child’s class details": "Choose your child’s class details",
   "Click x1 times on number x2": "Click x1 times on number x2",
-  "Congratulations🎊🎉": "Congratulations🎊🎉",
+  "🎉Congratulations🎊": "🎉Congratulations🎊",
   "Continue Playing": "Continue Playing",
   "Continue with Google": "Continue with Google",
   "Create New User": "Create New User",
@@ -100,7 +99,7 @@
   "Send OTP": "Send OTP",
   "setting": "SETTING",
   "Sign out as Parent": "Sign out as Parent",
-  "Sign Out": "Sign Out",
+  "Sign Out": "Switch",
   "Sound": "Sound",
   "Subjects": "Subjects",
   "Suggestion": "Suggestion",
@@ -125,4 +124,6 @@
   "You are Joining ": "You are Joining ",
   "You can edit or delete user by clicking on the below buttons": "You can edit or delete user by clicking on the below buttons",
   "You Completed the Lesson:": "You Completed the Lesson:"
+
 }
+

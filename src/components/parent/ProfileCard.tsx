@@ -7,10 +7,11 @@ import { FcPlus } from "react-icons/fc";
 import { HiPlusCircle } from "react-icons/hi";
 import User from "../../models/user";
 import { ACTION, AVATARS, EVENTS, PAGES } from "../../common/constants";
-import { Util } from "../../utility/util";
+import { Util } from '../../utility/util';
 import DialogBoxButtons from "./DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
+import Loading from "../Loading";
 
 const ProfileCard: React.FC<{
   width: string;
@@ -20,11 +21,12 @@ const ProfileCard: React.FC<{
   user: User;
   showText?: boolean;
   setReloadProfiles: (event: boolean) => void;
-}> = ({ width, height, userType, user , setReloadProfiles }) => {
+}> = ({ width, height, userType, user, setReloadProfiles }) => {
   const history = useHistory();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [showWarningDialogBox, setShowWarningDialogBox] =
     useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   return (
     <IonCard
@@ -117,11 +119,11 @@ const ProfileCard: React.FC<{
             setShowDialogBox(false);
             console.log("Close", false);
           }}
-          onYesButtonClicked={async ({}) => {
+          onYesButtonClicked={async ({ }) => {
             console.log(`Delete Profile`, "yes", user.docId);
             setShowWarningDialogBox(true);
           }}
-          onNoButtonClicked={async ({}) => {
+          onNoButtonClicked={async ({ }) => {
             console.log(`Edit Profile`, "no", user.docId);
             const api = ServiceConfig.getI().apiHandler;
             await Util.setCurrentStudent(user, undefined, false);
@@ -144,19 +146,34 @@ const ProfileCard: React.FC<{
             setShowDialogBox(false);
             console.log("Close", false);
           }}
-          onYesButtonClicked={async ({}) => {
+          onYesButtonClicked={async ({ }) => {
             console.log(`Show warning yes:`, user.docId);
             setShowWarningDialogBox(false);
             setShowDialogBox(false);
+            setIsLoading(true)
+            setReloadProfiles(false);
             await ServiceConfig.getI().apiHandler.deleteProfile(user.docId);
-            await setReloadProfiles (true);
+            setReloadProfiles(true);
+            setIsLoading(false)
+            Util.logEvent(EVENTS.USER_PROFILE,{
+              user_id: user.docId,
+              user_type: user.role,
+              user_name: user.name,
+              user_gender: user.gender!,
+              user_age: user.age!,
+              phone_number: user.username,
+              parent_id: user.uid,
+              parent_username: user.username,
+              action_type: ACTION.DELETE
+            });
           }}
-          onNoButtonClicked={async ({}) => {
+          onNoButtonClicked={async ({ }) => {
             console.log(`Show warning No:`);
             setShowWarningDialogBox(false);
           }}
         ></DialogBoxButtons>
       ) : null}
+      <Loading isLoading={isLoading} />
     </IonCard>
   );
 };

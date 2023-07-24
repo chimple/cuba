@@ -9,6 +9,7 @@
         android:roundIcon="@mipmap/chimple_monkey_icon"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
+        android:largeHeap="true"
         android:theme="@style/AppTheme">
 
         <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@mipmap/chimple_monkey_icon" />

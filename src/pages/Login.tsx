@@ -28,6 +28,7 @@ declare global {
 const Login: React.FC = () => {
   const history = useHistory();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [sentOtpLoading, setSentOtpLoading] = useState<boolean>(false);
   const [showVerification, setShowVerification] = useState<boolean>(false);
   const [showBackButton, setShowBackButton] = useState<boolean>(false);
   const [showNameInput, setShowNameInput] = useState<boolean>(false);
@@ -166,23 +167,22 @@ const Login: React.FC = () => {
     }
   }, [recaptchaVerifier]);
   React.useEffect(() => {
-    if (counter <= 0) {
+    if (counter <= 0 && showTimer) {
       setShowResendOtp(true);
     }
     showTimer && counter > 0 && setTimeout(() => setCounter(counter - 1), 1000);
   }, [counter, showTimer]);
 
   const onPhoneNumberSubmit = async () => {
-    // setIsLoading(true);
     try {
+      setSentOtpLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
       if (phoneNumber.length != 10) {
-        setSpinnerLoading(false);
         alert("Phone Number Invalid " + phoneNumber);
         return;
       }
       console.log("window.recaptchaVerifier", window.recaptchaVerifier);
-
+      
       // setEnabled(true);
       console.log(
         "onPhoneNumberSubmit called ",
@@ -198,18 +198,23 @@ const Login: React.FC = () => {
 
       if (authRes) {
         setPhoneNumberSigninRes(authRes);
+        setSentOtpLoading(false);
         setShowVerification(true);
+        setCounter(59);
         setShowBackButton(true);
         setSpinnerLoading(false);
-        // setIsLoading(false);
+
+
       } else {
         console.log("Phone Number signin Failed ");
         setSpinnerLoading(false);
+        setSentOtpLoading(false);
         alert("Phone Number signin Failed " + authRes);
       }
     } catch (error) {
       console.log("Phone Number signin Failed ");
       setSpinnerLoading(false);
+      setSentOtpLoading(false);
       alert("Phone Number signin Failed " + error);
       console.log(
         "window.recaptchaVerifier",
@@ -223,7 +228,7 @@ const Login: React.FC = () => {
       // window.recaptchaVerifier.clear();
     }
   };
-
+  
   const onVerificationCodeSubmit = async () => {
     try {
       setIsLoading(true);
@@ -278,7 +283,9 @@ const Login: React.FC = () => {
   }
 
   async function resendOtpHandler() {
+
     try {
+      setSentOtpLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
       setRecaptchaVerifier(undefined);
       let authRes = await authInstance.phoneNumberSignIn(
@@ -288,14 +295,19 @@ const Login: React.FC = () => {
       if (authRes) {
         setPhoneNumberSigninRes(authRes);
         console.log("Resend Otp Sucessfull");
+        setSentOtpLoading(false);
         setShowResendOtp(false);
         setCounter(59);
+        setVerificationCode("");
       }
       else {
+        setSentOtpLoading(false);
         console.log("Resend Otp failed");
+
       }
     } catch (error) {
       console.log("Resend Otp Failed With Error " + error);
+      setSentOtpLoading(false);
       alert("Resend Otp Failed " + error);
       recaptchaVerifier!.clear();
     }
@@ -310,6 +322,14 @@ const Login: React.FC = () => {
               setShowVerification(false);
               setShowBackButton(false);
               setCurrentButtonColor(Buttoncolors.Valid);
+              setVerificationCode("");
+              setShowResendOtp(false);
+              setShowTimer(false);
+              setIsInvalidCode({
+                isInvalidCode: false,
+                isInvalidCodeLength: false
+              });
+
             }}
           />
         </div>
@@ -343,12 +363,12 @@ const Login: React.FC = () => {
                         maxLength={10}
                         inputValue={phoneNumber}
                         onChange={(input) => {
-                          if (input.detail.value) {
-                            setPhoneNumber(input.detail.value);
-                            console.log(countryCode + input.detail.value);
+                          if (input.target.value) {
+                            setPhoneNumber(input.target.value);
+                            console.log(countryCode + input.target.value);
 
                             let loginBtnBgColor = currentButtonColor;
-                            if (input.detail.value.length === 10) {
+                            if (input.target.value.length === 10) {
                               console.log(phoneNumber);
                               setCurrentButtonColor(Buttoncolors.Valid);
                               phoneNumberErrorRef.current.style.display =
@@ -360,12 +380,12 @@ const Login: React.FC = () => {
                             }
                           } else {
                             setPhoneNumber("");
-                            console.log(countryCode + input.detail.value);
+                            console.log(countryCode + input.target.value);
                           }
                         }}
                       ></TextBox>
                     </div>
-
+                    
                     <p
                       ref={phoneNumberErrorRef}
                       style={{ display: "none" }}
@@ -462,12 +482,12 @@ const Login: React.FC = () => {
                       maxLength={6}
                       inputValue={verificationCode}
                       onChange={(input) => {
-                        if (input.detail.value) {
-                          setVerificationCode(input.detail.value);
-                          console.log(input.detail.value);
+                        if (input.target.value) {
+                          setVerificationCode(input.target.value);
+                          console.log(input.target.value);
                           let otpBtnBgColor =
                             getOtpBtnRef.current.style.backgroundColor;
-                          if (input.detail.value.length === 6) {
+                          if (input.target.value.length === 6) {
                             getOtpBtnRef.current.style.backgroundColor =
                               Buttoncolors.Valid;
                             setIsInvalidCode({
@@ -483,7 +503,7 @@ const Login: React.FC = () => {
                           }
                         } else {
                           setVerificationCode("");
-                          console.log(input.detail.value);
+                          console.log(input.target.value);
                         }
                       }}
 
@@ -569,7 +589,7 @@ const Login: React.FC = () => {
           </div>
         ) : null}
       </div>
-      <Loading isLoading={isLoading} />
+      <Loading isLoading={isLoading || sentOtpLoading} />
     </IonPage>
   );
 };
