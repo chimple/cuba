@@ -362,8 +362,16 @@ export class FirebaseApi implements ServiceApi {
           (a, b) =>
             courseSortIndex[a.courseCode] - courseSortIndex[b.courseCode]
         );
-        const digitalSkills = subjects.splice(2, 1)[0];
-        subjects.push(digitalSkills);
+        function checkDigitalSkillSubject(arr, index) {
+          if (index >= 0 && index < arr.length) {
+            return arr[index];
+          }
+        }
+        const digitaSkills = checkDigitalSkillSubject(subjects, 2);
+        if (digitaSkills.courseCode == "puzzle") {
+          const digitalSkills = subjects.splice(2, 1)[0];
+          subjects.push(digitalSkills);
+        }
       } catch (error) {
         console.log(error);
       }
@@ -417,8 +425,16 @@ export class FirebaseApi implements ServiceApi {
       subjects.sort(
         (a, b) => courseSortIndex[a.courseCode] - courseSortIndex[b.courseCode]
       );
-      const digitalSkills = subjects.splice(2, 1)[0];
-      subjects.push(digitalSkills);
+      function checkDigitalSkillSubject(arr, index) {
+        if (index >= 0 && index < arr.length) {
+          return arr[index];
+        }
+      }
+      const digitaSkills = checkDigitalSkillSubject(subjects, 2);
+      if (digitaSkills.courseCode == "puzzle") {
+        const digitalSkills = subjects.splice(2, 1)[0];
+        subjects.push(digitalSkills);
+      }
     } catch (error) {
       console.log(error);
     }
