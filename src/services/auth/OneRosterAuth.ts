@@ -31,10 +31,7 @@ export class OneRosterAuth implements ServiceAuth {
     throw new Error("Method not implemented.");
   }
 
-  phoneNumberSignIn(
-    phoneNumber: any,
-    recaptchaVerifier: any
-  ): Promise<ConfirmationResult | undefined> {
+  phoneNumberSignIn(phoneNumber: any, recaptchaVerifier: any): Promise<any> {
     throw new Error("Method not implemented.");
   }
   proceedWithVerificationCode(

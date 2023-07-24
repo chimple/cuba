@@ -12,10 +12,7 @@ export interface ServiceAuth {
 
   isUserLoggedIn(): Promise<boolean>;
 
-  phoneNumberSignIn(
-    phoneNumber,
-    recaptchaVerifier
-  ): Promise<ConfirmationResult | undefined>;
+  phoneNumberSignIn(phoneNumber, recaptchaVerifier): Promise<any>;
 
   proceedWithVerificationCode(
     verificationId,

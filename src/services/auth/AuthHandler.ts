@@ -35,10 +35,7 @@ export class AuthHandler implements ServiceAuth {
     return await this.s.isUserLoggedIn();
   }
 
-  public async phoneNumberSignIn(
-    phoneNumber,
-    recaptchaVerifier
-  ): Promise<ConfirmationResult | undefined> {
+  public async phoneNumberSignIn(phoneNumber, recaptchaVerifier): Promise<any> {
     return await this.s.phoneNumberSignIn(phoneNumber, recaptchaVerifier);
   }
 
