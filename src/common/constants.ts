@@ -25,7 +25,7 @@ export enum HOMEHEADERLIST {
   QUIZ = "QUIZ",
   PROFILE = "PROFILE",
   FAVOURITES = "FAVOURITES",
-  HISTORY = "HISTORY",
+  HISTORY = "HISTORY"
 }
 
 export enum PARENTHEADERLIST {
@@ -75,7 +75,7 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
       HOMEHEADERLIST.SUBJECTS,
       {
         displayName: "Subjects",
-        iconSrc: "/assets/icons/subject_icon.svg",
+        iconSrc: "/assets/icons/subjectIcon.svg",
         headerList: HOMEHEADERLIST.SUBJECTS,
       },
     ],
@@ -83,7 +83,7 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
       HOMEHEADERLIST.ASSIGNMENT,
       {
         displayName: "Home work",
-        iconSrc: "/assets/icons/homework_icon.svg",
+        iconSrc: "/assets/icons/homeworkIcon.svg",
         headerList: HOMEHEADERLIST.ASSIGNMENT,
       },
     ],
@@ -99,7 +99,7 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
       HOMEHEADERLIST.SEARCH,
       {
         displayName: "Search",
-        iconSrc: "/assets/icons/search_icon.svg",
+        iconSrc: "/assets/icons/searchIcon.svg",
         headerList: HOMEHEADERLIST.SEARCH,
       },
     ],
@@ -295,6 +295,7 @@ export const LAST_PERMISSION_CHECKED = "lastPermissionChecked";
 export const CACHE_IMAGE = "cacheImage";
 
 export const IS_MIGRATION_CHECKED = "isMigrationChecked";
+
 
 export const courseSortIndex = {
   en: 1,
