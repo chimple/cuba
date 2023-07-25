@@ -103,14 +103,14 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
         headerList: HOMEHEADERLIST.SEARCH,
       },
     ],
-    [
-      HOMEHEADERLIST.QUIZ,
-      {
-        displayName: "Quiz",
-        iconSrc: "/assets/icons/quiz_icon.svg",
-        headerList: HOMEHEADERLIST.QUIZ,
-      },
-    ],
+    // [
+    //   HOMEHEADERLIST.QUIZ,
+    //   {
+    //     displayName: "Quiz",
+    //     iconSrc: "/assets/icons/quiz_icon.svg",
+    //     headerList: HOMEHEADERLIST.QUIZ,
+    //   },
+    // ],
   ]);
 
 // export const HEADERLIST = [HOME_CONFIG, LANG_CONFIGS, PROFILE_CONFIG]
@@ -295,6 +295,13 @@ export const LAST_PERMISSION_CHECKED = "lastPermissionChecked";
 export const CACHE_IMAGE = "cacheImage";
 
 export const IS_MIGRATION_CHECKED = "isMigrationChecked";
+
+
+export const courseSortIndex = {
+  en: 1,
+  maths: 2,
+  puzzle: 3,
+};
 
 export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
 
