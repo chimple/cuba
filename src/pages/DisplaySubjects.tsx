@@ -96,7 +96,18 @@ const DisplaySubjects: FC<{}> = () => {
       setCurrentGrade(localData.currentGrade);
       setCurrentCourse(localData.currentCourse);
       setCurrentChapter(localData.currentChapter);
-      setLessonResultMap(localData.lessonResultMap);
+      if (localData.lessonResultMap) {
+        setLessonResultMap(localData.lessonResultMap);
+      } else {
+        const currentStudent = Util.getCurrentStudent();
+        if (currentStudent) {
+          //loading student result cache (seems like a new user)
+          const result = await api.getStudentResult(currentStudent.docId, true);
+          const lessons = result?.lessons;
+          localData.lessonResultMap = lessons;
+          setLessonResultMap(lessons);
+        }
+      }
       setStage(STAGES.LESSONS);
       setIsLoading(false);
     } else {
