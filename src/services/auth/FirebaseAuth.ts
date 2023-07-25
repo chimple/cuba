@@ -74,13 +74,13 @@ export class FirebaseAuth implements ServiceAuth {
       const userRef = doc(this._db, "User", user.uid);
       if (additionalUserInfo?.isNewUser) {
         await this._createUserDoc(user);
-        Util.logEvent(EVENTS.USER_PROFILE,{
+        Util.logEvent(EVENTS.USER_PROFILE, {
           user_id: user.uid,
           user_name: user.displayName,
           user_username: user.email,
           phone_number: user.email ?? user.phoneNumber!,
           user_type: RoleType.PARENT,
-          action_type: ACTION.CREATE
+          action_type: ACTION.CREATE,
         });
       } else {
         const tempUserDoc = await getDoc(userRef);
@@ -176,10 +176,7 @@ export class FirebaseAuth implements ServiceAuth {
   //     this._currentUser = user;
   // }
 
-  public async phoneNumberSignIn(
-    phoneNumber,
-    recaptchaVerifier
-  ): Promise<ConfirmationResult | undefined> {
+  public async phoneNumberSignIn(phoneNumber, recaptchaVerifier): Promise<any> {
     try {
       let verificationId;
       console.log(
@@ -211,6 +208,16 @@ export class FirebaseAuth implements ServiceAuth {
                   }
                 );
 
+                // Attach `phoneCodeSent` listener to be notified as soon as the SMS is sent
+                await FirebaseAuthentication.addListener(
+                  "authStateChange",
+                  async (event) => {
+                    console.log("authStateChange event ", event);
+
+                    resolve(event);
+                  }
+                );
+
                 await FirebaseAuthentication.addListener(
                   "phoneVerificationFailed",
                   async (event) => {
@@ -223,13 +230,50 @@ export class FirebaseAuth implements ServiceAuth {
                   }
                 );
 
-                // // Attach `phoneVerificationCompleted` listener to be notified if phone verification could be finished automatically
-                // await FirebaseAuthentication.addListener(
-                //   "phoneVerificationCompleted",
-                //   async (event) => {
-                //     resolve(event.user);
-                //   }
-                // );
+                // Attach `phoneVerificationCompleted` listener to be notified if phone verification could be finished automatically
+                await FirebaseAuthentication.addListener(
+                  "phoneVerificationCompleted",
+                  async (event) => {
+                    console.log(
+                      "`phoneVerificationCompleted` listener to be notified if phone verification could be finished automatically"
+                    );
+
+                    if (event.user) {
+                      console.log(
+                        "instant verification ",
+                        JSON.stringify(event)
+                      );
+                      const user = event.user;
+                      console.log("res user", user);
+                      this.updateUserFcm(event.user.uid);
+                      const userRef = doc(this._db, "User", user.uid);
+                      console.log("userRef", userRef);
+                      const tempUserDoc = await getDoc(userRef);
+                      console.log(
+                        "const tempUserDoc",
+                        JSON.stringify(tempUserDoc)
+                      );
+                      console.log(
+                        "return result",
+                        JSON.stringify({
+                          user: user,
+                          isUserExist: tempUserDoc.exists(),
+                        })
+                      );
+                      if (tempUserDoc.exists() && !!tempUserDoc.data()) {
+                        const userDoc = tempUserDoc.data() as User;
+                        userDoc.docId = tempUserDoc.id;
+                        Util.subscribeToClassTopicForAllStudents(userDoc);
+                      }
+                      await Util.migrate();
+                      resolve(event);
+                    } else {
+                      console.log("instant verification");
+
+                      reject(event);
+                    }
+                  }
+                );
 
                 // Start sign in with phone number and send the SMS
                 await FirebaseAuthentication.signInWithPhoneNumber({
@@ -295,34 +339,60 @@ export class FirebaseAuth implements ServiceAuth {
       }
 
       // Confirm the verification code
-      const credential =
-        await FirebaseAuthentication.confirmVerificationCode({
-          verificationId: result.verificationId,
-          verificationCode,
-        });
+      // const credential =
+      //   await FirebaseAuthentication.confirmVerificationCode({
+      //     verificationId: result.verificationId,
+      //     verificationCode,
+      //   });
       // if (!confirmVerificationCredential.credential) {
       //   return;
       // }
-      console.log(
-        "confirmVerificationCredential",
-        JSON.stringify(credential)
+      // console.log(
+      //   "confirmVerificationCredential",
+      //   JSON.stringify(credential)
+      // );
+
+      const credential = PhoneAuthProvider.credential(
+        result.verificationId!,
+        verificationCode
       );
 
-      // const credential = PhoneAuthProvider.credential(
-      //   result.verificationId!,
-      //   verificationCode
-      // );
-      // console.log("credential", this._auth, credential);
-      // let res = await signInWithCredential(this._auth, credential);
-      console.log("signInWithCredential Success!", credential, credential.user);
+      const auth = getAuth();
+      console.log("credential", auth, credential);
+      let res = await signInWithCredential(auth, credential);
+      const u = await FirebaseAuthentication.getCurrentUser();
+      console.log(
+        "line ni 316 before FirebaseAuthentication.getCurrentUser()",
+        JSON.stringify(u.user)
+      );
+      console.log(
+        "line ni 320 before JSON.stringify(auth.currentUser)",
+        JSON.stringify(auth.currentUser)
+      );
+
+      console.log("signInWithCredential Success!", JSON.stringify(credential));
       // Success!
 
-      if (!credential.user) {
-        return;
+      // await FirebaseAuthentication.confirmVerificationCode({
+      //   verificationId: result.verificationId,
+      //   verificationCode,
+      // });
+
+      // console.log(
+      //   "line ni 316 FirebaseAuthentication.getCurrentUser()",
+      //   JSON.stringify(u.user)
+      // );
+      // console.log(
+      //   "line ni 320 JSON.stringify(auth.currentUser)",
+      //   JSON.stringify(auth.currentUser)
+      // );
+
+      if (!res.user) {
+        throw Error("Verification Failed");
       }
-      const user = credential.user;
+      const user = res.user;
       console.log("res user", user);
-      this.updateUserFcm(credential.user.uid);
+      this.updateUserFcm(res.user.uid);
       const userRef = doc(this._db, "User", user.uid);
       console.log("userRef", userRef);
       const tempUserDoc = await getDoc(userRef);
@@ -346,9 +416,9 @@ export class FirebaseAuth implements ServiceAuth {
     }
   }
 
-  public async createPhoneAuthUser(userData, result): Promise<any> {
+  public async createPhoneAuthUser(userData): Promise<any> {
     try {
-      const additionalUserInfo = result.additionalUserInfo;
+      // const additionalUserInfo = result.additionalUserInfo;
       // const additionalUserInfo = getAdditionalUserInfo(result)
       if (!userData) return false;
       const userRef = doc(this._db, "User", userData.uid);
@@ -367,13 +437,13 @@ export class FirebaseAuth implements ServiceAuth {
       if (!tempUserDoc.exists()) {
         let u = await this._createUserDoc(userData);
         console.log("created user", u);
-        Util.logEvent(EVENTS.USER_PROFILE,{
+        Util.logEvent(EVENTS.USER_PROFILE, {
           user_id: u.uid,
           user_name: u.name,
           user_username: u.username,
           phone_number: u.username,
           user_type: RoleType.PARENT,
-          action_type: ACTION.CREATE
+          action_type: ACTION.CREATE,
         });
       } else {
         this._currentUser = tempUserDoc.data() as User;

@@ -435,10 +435,15 @@ export class Util {
       [key: string]: any;
     }
   ) {
-    await FirebaseAnalytics.logEvent({
-      name: eventName,
-      params: params,
-    });
+    try{
+      await FirebaseAnalytics.logEvent({
+        name: eventName,
+        params: params,
+      });
+    }
+    catch(error) {
+      console.log("Error logging event to firebase analytics ",eventName,":",error);
+    }
   }
 
   public static onAppStateChange = ({ isActive }) => {

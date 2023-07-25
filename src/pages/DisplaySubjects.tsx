@@ -59,6 +59,22 @@ const DisplaySubjects: FC<{}> = () => {
   useEffect(() => {
     init();
   }, []);
+  useEffect(() => {
+    console.log("chapters", currentCourse);
+    console.log("local grade map", localGradeMap);
+    if (!localGradeMap || !localGradeMap.grades) {
+      if (currentCourse) {
+        setIsLoading(true);
+        api.getDifferentGradesForCourse(currentCourse).then(({ grades }) => {
+          localData.gradesMap = { grades, courses: [currentCourse] };
+          setLocalGradeMap({ grades, courses: [currentCourse] });
+          setIsLoading(false);
+        });
+      }
+    }
+  }, [localGradeMap, currentCourse]);
+
+
   const init = async () => {
     const urlParams = new URLSearchParams(location.search);
     console.log(
@@ -109,7 +125,6 @@ const DisplaySubjects: FC<{}> = () => {
       localData.lessonResultMap = res;
       setLessonResultMap(res);
     });
-    function getCurrentMode() { }
     const currMode = await schoolUtil.getCurrMode();
 
     const courses = await (currMode === MODES.SCHOOL && !!currClass
