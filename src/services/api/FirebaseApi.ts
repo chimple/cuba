@@ -21,6 +21,7 @@ import {
   StudentLeaderboardInfo,
 } from "./ServiceApi";
 import {
+  COURSES,
   DEFAULT_COURSE_IDS,
   MODES,
   courseSortIndex,
@@ -349,7 +350,7 @@ export class FirebaseApi implements ServiceApi {
     );
     const indexOfDigitalSkill = subjects
       .map((e) => e.courseCode)
-      .indexOf("puzzle");
+      .indexOf(COURSES.PUZZLE);
     if (indexOfDigitalSkill) {
       const digitalSkills = subjects.splice(indexOfDigitalSkill, 1)[0];
       subjects.push(digitalSkills);
