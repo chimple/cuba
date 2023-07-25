@@ -319,7 +319,7 @@ const Login: React.FC = () => {
   return (
     <IonPage id="login-screen">
       {!!showBackButton && (
-        <div className="class-header-container">
+        <div className="login-class-header">
           <BackButton
             onClicked={() => {
               setShowVerification(false);

@@ -166,7 +166,7 @@ p {
   color: #565656;
 }
 
-.class-header {
+.login-class-header {
   position: absolute;
   margin: var(--margin);
 }
