@@ -145,7 +145,7 @@ const LessonCard: React.FC<{
             {lesson.assignment != undefined ? (
               <div>
                 <img
-                  src="assets/icons/homeworkIcon.svg"
+                  src="assets/icons/homework_icon.svg"
                   className="lesson-card-homework-indicator"
                 />
               </div>
