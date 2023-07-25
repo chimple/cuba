@@ -52,9 +52,8 @@ const Login: React.FC = () => {
   const [showResendOtp, setShowResendOtp] = useState<boolean>(false);
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
   const [isInvalidCode, setIsInvalidCode] = useState<{
-    isInvalidCode: boolean,
-    isInvalidCodeLength: boolean
-
+    isInvalidCode: boolean;
+    isInvalidCodeLength: boolean;
   }>();
   const Buttoncolors = {
     Default: "grey",
@@ -73,8 +72,8 @@ const Login: React.FC = () => {
   const phoneNumberErrorRef = useRef<any>();
   let verificationCodeMessageFlags = {
     isInvalidCode: false,
-    isInvalidCodeLength: false
-  }
+    isInvalidCodeLength: false,
+  };
   useEffect(() => {
     init();
     setIsLoading(true);
@@ -193,6 +192,11 @@ const Login: React.FC = () => {
         phoneNumberWithCountryCode,
         recaptchaVerifier
       );
+      if (authRes.user) {
+        setIsLoading(false);
+        history.replace(PAGES.SELECT_MODE);
+        // setShowNameInput(true);
+      }
       console.log("verificationIdRes", authRes?.verificationId);
       // setEnabled(false);
 
@@ -253,8 +257,7 @@ const Login: React.FC = () => {
       } else if (!res.isUserExist) {
         setIsLoading(false);
         let phoneAuthResult = await FirebaseAuth.i.createPhoneAuthUser(
-          res.user,
-          phoneNumberSigninRes
+          res.user
         );
         if (phoneAuthResult) {
           // history.push(PAGES.DISPLAY_STUDENT);
@@ -272,7 +275,7 @@ const Login: React.FC = () => {
       //alert("Please Enter Valid Verification Code");
       setIsInvalidCode({
         isInvalidCode: true,
-        isInvalidCodeLength: false
+        isInvalidCodeLength: false,
       });
     }
   };
@@ -492,9 +495,8 @@ const Login: React.FC = () => {
                               Buttoncolors.Valid;
                             setIsInvalidCode({
                               isInvalidCode: false,
-                              isInvalidCodeLength: false
+                              isInvalidCodeLength: false,
                             });
-
                           } else {
                             if (otpBtnBgColor === Buttoncolors.Valid) {
                               getOtpBtnRef.current.style.backgroundColor =
@@ -506,7 +508,6 @@ const Login: React.FC = () => {
                           console.log(input.target.value);
                         }
                       }}
-
                     ></TextBox>
                   </div>
                   {isInvalidCode?.isInvalidCodeLength &&
@@ -514,33 +515,28 @@ const Login: React.FC = () => {
                   {isInvalidCode?.isInvalidCode &&
                     <p className="login-verification-error-message">{t("Please Enter Valid Code")}</p>}
                 </div>
-                <div
-                  ref={getOtpBtnRef}
-                  id="login-otp-button">
-
-                  <div onClick={() => {
-                    if (verificationCode.length === 6) {
-                      onVerificationCodeSubmit();
-                      setVerificationCode("");
-                    }
-                    else if (verificationCode.length <= 6) {
-                      setVerificationCode("");
-                      setIsInvalidCode({
-                        isInvalidCode: false,
-                        isInvalidCodeLength: true
-                      });
-                    }
-                    // setIsLoading(false);
-                    // setShowNameInput(true);
-                    // history.push(PAGES.PARENT);
-                    else {
-                      onVerificationCodeSubmit();
-                    }
-                  }}
+                <div ref={getOtpBtnRef} id="login-otp-button">
+                  <div
+                    onClick={() => {
+                      if (verificationCode.length === 6) {
+                        onVerificationCodeSubmit();
+                        setVerificationCode("");
+                      } else if (verificationCode.length <= 6) {
+                        setVerificationCode("");
+                        setIsInvalidCode({
+                          isInvalidCode: false,
+                          isInvalidCodeLength: true,
+                        });
+                      }
+                      // setIsLoading(false);
+                      // setShowNameInput(true);
+                      // history.push(PAGES.PARENT);
+                      else {
+                        onVerificationCodeSubmit();
+                      }
+                    }}
                   >
-                    <div>
-                      Get Started
-                    </div>
+                    <div>Get Started</div>
                   </div>
                   <div id="login-resend-otp">
                     <div>
