@@ -46,6 +46,7 @@ import StudentProfile from "../../models/studentProfile";
 import Class from "../../models/class";
 import School from "../../models/school";
 import Assignment from "../../models/assignment";
+import { sort } from "semver";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
@@ -342,6 +343,19 @@ export class FirebaseApi implements ServiceApi {
     if (!result.data()) return;
     return result.data() as Language;
   }
+  async sortSubject(subjects) {
+    subjects.sort(
+      (a, b) => courseSortIndex[a.courseCode] - courseSortIndex[b.courseCode]
+    );
+    const indexOfDigitalSkill = subjects
+      .map((e) => e.courseCode)
+      .indexOf("puzzle");
+    if (indexOfDigitalSkill) {
+      const digitalSkills = subjects.splice(indexOfDigitalSkill, 1)[0];
+      subjects.push(digitalSkills);
+    }
+    return subjects;
+  }
 
   async getCoursesForParentsStudent(student: User): Promise<Course[]> {
     try {
@@ -357,25 +371,7 @@ export class FirebaseApi implements ServiceApi {
           subjects.push(course);
         }
       });
-      try {
-        subjects.sort(
-          (a, b) =>
-            courseSortIndex[a.courseCode] - courseSortIndex[b.courseCode]
-        );
-        function checkDigitalSkillSubject(arr, index) {
-          if (index >= 0 && index < arr.length) {
-            return arr[index];
-          }
-        }
-        const digitaSkills = checkDigitalSkillSubject(subjects, 2);
-        if (digitaSkills.courseCode == "puzzle") {
-          const digitalSkills = subjects.splice(2, 1)[0];
-          subjects.push(digitalSkills);
-        }
-      } catch (error) {
-        console.log(error);
-      }
-      return subjects;
+      return this.sortSubject(subjects);
     } catch (error) {
       console.log(
         "🚀 ~ file: FirebaseApi.ts:358 ~ FirebaseApi ~ getCoursesForParentsStudent ~ error:",
@@ -421,24 +417,8 @@ export class FirebaseApi implements ServiceApi {
         subjects.push(course);
       }
     });
-    try {
-      subjects.sort(
-        (a, b) => courseSortIndex[a.courseCode] - courseSortIndex[b.courseCode]
-      );
-      function checkDigitalSkillSubject(arr, index) {
-        if (index >= 0 && index < arr.length) {
-          return arr[index];
-        }
-      }
-      const digitaSkills = checkDigitalSkillSubject(subjects, 2);
-      if (digitaSkills.courseCode == "puzzle") {
-        const digitalSkills = subjects.splice(2, 1)[0];
-        subjects.push(digitalSkills);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-    return subjects;
+
+    return this.sortSubject(subjects);
   }
 
   async getLesson(id: string): Promise<Lesson | undefined> {
