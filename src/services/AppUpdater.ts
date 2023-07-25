@@ -1,6 +1,6 @@
 import { Capacitor, CapacitorHttp, WebView } from "@capacitor/core";
 import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
-import { COPIED_BUNDLE_FILES } from "../common/constants";
+import { COPIED_BUNDLE_FILES_INDEX } from "../common/constants";
 
 // --------------
 // INTERNAL TYPES
@@ -78,7 +78,7 @@ export const AppUpdater = {
         console.debug("copying the files from bundle in background");
         return false;
       }
-      localStorage.removeItem(COPIED_BUNDLE_FILES);
+      localStorage.removeItem(COPIED_BUNDLE_FILES_INDEX);
 
       // Check that enough time has elapsed before we can check for an update again.
       const lastUpdated = activeRelease.updated;
@@ -283,19 +283,25 @@ async function buildReleaseFromBundle(): Promise<Release> {
     // Download the release files from the app bundle local web server.
     // let downloadTasks: Promise<boolean>[] = [];
     // const limit = 300;
-    const copiedBundleFiles: string[] =
-      JSON.parse(localStorage.getItem(COPIED_BUNDLE_FILES) ?? "[]") ?? [];
-    for (let i = 0; i < checksum.files.length; i++) {
+    const copiedBundleFiles: number = Number(
+      localStorage.getItem(COPIED_BUNDLE_FILES_INDEX) ?? 0
+    );
+    console.log(
+      "🚀 ~ file: AppUpdater.ts:289 ~ buildReleaseFromBundle ~ copiedBundleFiles:",
+      copiedBundleFiles
+    );
+
+    for (let i = copiedBundleFiles; i < checksum.files.length; i++) {
       const currentFile = checksum.files[i];
       const url = `http://localhost/${currentFile.path}`;
-      const alreadyCopied = copiedBundleFiles.find((value) => url === value);
+      // const alreadyCopied = copiedBundleFiles.find((value) => url === value);
       console.debug(
         "🚀 ~ file: AppUpdater.ts:291 ~ buildReleaseFromBundle ~ alreadyCopied:",
-        alreadyCopied,
+        i,
         currentFile.path,
         JSON.stringify(copiedBundleFiles)
       );
-      if (!!alreadyCopied) continue;
+      // if (!!alreadyCopied) continue;
       console.debug(
         "🚀 ~ file: AppUpdater.ts:293 ~ buildReleaseFromBundle ~ continue:",
         currentFile.path,
@@ -308,7 +314,8 @@ async function buildReleaseFromBundle(): Promise<Release> {
       const didDownload = await downloadFileFromAppBundle(
         url,
         `releases/${checksum.id}/${currentFile.path}`,
-        Directory.Data
+        Directory.Data,
+        i + 1
       );
       console.log(
         "🚀 ~ file: AppUpdater.ts:312 ~ buildReleaseFromBundle ~ didDownload:",
@@ -598,7 +605,8 @@ async function downloadFileFromWebServer(
 export async function downloadFileFromAppBundle(
   url: RequestInfo,
   path: string,
-  directory: Directory
+  directory: Directory,
+  index: number
 ): Promise<boolean> {
   console.debug(`AppUpdater: Download from Bundle:,${url} '${path}'`);
 
@@ -693,27 +701,19 @@ export async function downloadFileFromAppBundle(
       });
       console.log("🚀 ~ file: AppUpdater.ts.ts:690 ~ x:", svgWrite.uri);
     } else {
-      await Filesystem.appendFile({
-        path: path,
-        directory: directory,
-        data: base64Data,
-      });
+      try {
+        await Filesystem.writeFile({
+          path: path,
+          directory: directory,
+          data: base64Data,
+        });
+      } catch (error) {
+        console.log("🚀 ~ file: AppUpdater.ts:713 ~ error:", error);
+      }
     }
-    const copiedBundleFiles: string[] =
-      JSON.parse(localStorage.getItem(COPIED_BUNDLE_FILES) ?? "[]") ?? [];
-    console.log(
-      "🚀 ~ file: AppUpdater.ts:693 ~ copiedBundleFiles:",
-      copiedBundleFiles
-    );
-    copiedBundleFiles.push(url.toString());
-    console.log(
-      "🚀 ~ file: AppUpdater.ts:694 ~ copiedBundleFiles:",
-      copiedBundleFiles
-    );
-    localStorage.setItem(
-      COPIED_BUNDLE_FILES,
-      JSON.stringify(copiedBundleFiles)
-    );
+
+    console.log("🚀 ~ file: AppUpdater.ts:694 ~ copiedBundleFiles:", index);
+    localStorage.setItem(COPIED_BUNDLE_FILES_INDEX, index.toString());
   } catch (error) {
     console.debug(
       `AppUpdater: Could not copy '${path}' from app bundle`,
