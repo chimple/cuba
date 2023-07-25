@@ -60,6 +60,7 @@ const CocosGame: React.FC = () => {
 
   const push = () => {
     history.replace(state.from ?? PAGES.HOME);
+    setIsLoading(false);
   };
 
   const gameExit = (e: any) => {
@@ -192,6 +193,7 @@ const CocosGame: React.FC = () => {
               }}
               onYesButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
+                setIsLoading(true);
                 await saveTempData(gameResult.detail, true);
                 console.log(
                   "------------------the game result ",
@@ -201,6 +203,7 @@ const CocosGame: React.FC = () => {
               }}
               onContinueButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
+                setIsLoading(true);
                 await saveTempData(gameResult.detail, undefined);
                 console.log(
                   "------------------the game result ",
