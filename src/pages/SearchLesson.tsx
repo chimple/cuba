@@ -64,7 +64,6 @@ function SearchLesson() {
     }
 
     setStudent(currentStudent);
-
     if (currentStudent) {
       const api = ServiceConfig.getI().apiHandler;
       // const currentStudent =await Util.getCurrentStudent();
@@ -72,6 +71,7 @@ function SearchLesson() {
         history.replace(PAGES.DISPLAY_STUDENT);
         return;
       }
+
       const res = await api.getStudentResultInMap(currentStudent.docId);
       console.log("tempResultLessonMap = res;", res);
       setLessonResultMap(res);
@@ -94,7 +94,7 @@ function SearchLesson() {
   // }, []);
   useEffect(() => {
     init();
-    // const currentStudent = await Util.getCurrentStudent();
+
     const urlParams = new URLSearchParams(location.search);
     if (!!urlParams.get("continue") && !!dataToContinue.lessons) {
       setLessons(dataToContinue.lessons);

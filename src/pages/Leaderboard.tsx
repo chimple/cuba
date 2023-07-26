@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import "./Leaderboard.css";
 import {
   AVATARS,
+  CURRENT_STUDENT,
+  LANG,
   LEADERBOARDHEADERLIST,
   PAGES,
   PARENTHEADERLIST,
@@ -27,6 +29,9 @@ import { t } from "i18next";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 import { Util } from "../utility/util";
+// import auth from "../models/auth";
+import i18n from "../i18n";
+import IconButton from "../components/IconButton";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +46,8 @@ const Leaderboard: React.FC = () => {
   const [currentUserDataContent, setCurrentUserDataContent] = useState<
     string[][]
   >([]);
-
+  const api = ServiceConfig.getI().apiHandler;
+  const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
 
   const [weeklyList, setWeeklyList] = useState<
@@ -101,7 +107,7 @@ const Leaderboard: React.FC = () => {
     console.log(
       "leaderboardDataInfo.weekly.length <= 0 leaderboardDataInfo.allTime.length <= 0",
       leaderboardDataInfo.weekly.length <= 0 ||
-      leaderboardDataInfo.allTime.length <= 0,
+        leaderboardDataInfo.allTime.length <= 0,
       isWeeklyFlag
         ? "leaderboardDataInfo.weekly"
         : "leaderboardDataInfo.allTime"
@@ -213,7 +219,6 @@ const Leaderboard: React.FC = () => {
                 );
                 //  }
               }
-
             }}
           ></RectangularOutlineDropDown>
           <div
@@ -313,18 +318,18 @@ const Leaderboard: React.FC = () => {
                       ? "rgb(200 200 200)"
                       : Number(currentUserDataContent[0][1]) ===
                         headerRowIndicator
-                        ? "#FF7925"
-                        : "",
-                  padding: headerRowIndicator === 0
-                    ? "1vh 2vh"
-                    : Number(currentUserDataContent[0][1]) ===
-                      headerRowIndicator
+                      ? "#FF7925"
+                      : "",
+                  padding:
+                    headerRowIndicator === 0
+                      ? "1vh 2vh"
+                      : Number(currentUserDataContent[0][1]) ===
+                        headerRowIndicator
                       ? "0vh 2vh"
                       : "1vh 2vh ",
                   position: "sticky",
                   zIndex: headerRowIndicator === 0 ? "3" : "0",
                   top: "0px",
-
                 }}
               >
                 {e.map((d) => {
@@ -335,15 +340,25 @@ const Leaderboard: React.FC = () => {
                       <p
                         style={{
                           color:
-                            i === 0 && headerRowIndicator != 0 ? Number(currentUserDataContent[0][1]) ===
-                              headerRowIndicator ? "black" : "white" : "",
+                            i === 0 && headerRowIndicator != 0
+                              ? Number(currentUserDataContent[0][1]) ===
+                                headerRowIndicator
+                                ? "black"
+                                : "white"
+                              : "",
                           backgroundColor:
-                            i === 0 && headerRowIndicator != 0 ? Number(currentUserDataContent[0][1]) ===
-                              headerRowIndicator ? "white" : rankColors[Number(e[0])] || rankColors[4]
+                            i === 0 && headerRowIndicator != 0
+                              ? Number(currentUserDataContent[0][1]) ===
+                                headerRowIndicator
+                                ? "white"
+                                : rankColors[Number(e[0])] || rankColors[4]
                               : "",
                           borderRadius:
                             i === 0 && headerRowIndicator != 0 ? "100vw" : "",
-                          height: i === 0 && headerRowIndicator != 0 ? columnWidth[i] : "",
+                          height:
+                            i === 0 && headerRowIndicator != 0
+                              ? columnWidth[i]
+                              : "",
                           fontSize: "1.5vw",
                           width: columnWidth[i],
                           textAlign: i === 0 ? "center" : "left",
@@ -398,72 +413,91 @@ const Leaderboard: React.FC = () => {
     <IonPage>
       {!isLoading ? (
         <Box>
-          <Box id="LeaderBoard-header">
-            <AppBar
-              id="LeaderBoard-AppBar"
-              position="static"
-              sx={{
-                flexDirection: "inherit",
-                justifyContent: "space-between",
-                padding: "1vh 1vw",
-                backgroundColor: "#cbdcff !important",
-                boxShadow: "0px 0px 0px 0px !important",
+          <div id="LeaderBoard-Header">
+            <BackButton
+              // iconSize={"8vh"}
+              onClicked={() => {
+                history.replace(PAGES.HOME);
               }}
-            >
-              <BackButton
-                // iconSize={"8vh"}
-                onClicked={() => {
-                  history.replace(PAGES.HOME);
-                }}
-              ></BackButton>
-              <Tabs
-                value={tabIndex}
-                onChange={handleChange}
-                textColor="secondary"
-                indicatorColor="secondary"
-                aria-label="secondary tabs example"
-                // variant="scrollable"
-                scrollButtons="auto"
-                // aria-label="scrollable auto tabs example"
-                centered
+            ></BackButton>
+            <Box>
+              <AppBar
+                id="LeaderBoard-AppBar"
+                position="static"
                 sx={{
-                  // "& .MuiAppBar-root": { backgroundColor: "#FF7925 !important" },
-                  "& .MuiTabs-indicator": {
-                    backgroundColor: "#000000 !important",
-                  },
-                  "& .MuiTab-root": { color: "#000000 !important" },
-                  "& .Mui-selected": { color: "#000000 !important" },
+                  flexDirection: "inherit",
+                  justifyContent: "space-between",
+                  padding: "1vh 1vw",
+                  backgroundColor: "#e2dede !important",
+                  boxShadow: "0px 0px 0px 0px !important",
                 }}
               >
-                <Tab
-                  value={LEADERBOARDHEADERLIST.LEADERBOARD}
-                  label={t(LEADERBOARDHEADERLIST.LEADERBOARD)}
-                  id="parent-page-tab-bar"
-                // sx={{
-                //   // fontSize:"5vh"
-                //   marginRight: "5vw",
-                // }}
-                />
-                <Tab
-                  id="parent-page-tab-bar"
-                  value={LEADERBOARDHEADERLIST.EVENTS}
-                  label={t(LEADERBOARDHEADERLIST.EVENTS)}
-                />
-              </Tabs>
-              <div></div>
-            </AppBar>
-          </Box>
+                <Tabs
+                  value={tabIndex}
+                  onChange={handleChange}
+                  textColor="secondary"
+                  indicatorColor="secondary"
+                  aria-label="secondary tabs example"
+                  // variant="scrollable"
+                  scrollButtons="auto"
+                  // aria-label="scrollable auto tabs example"
+                  centered
+                  sx={{
+                    // "& .MuiAppBar-root": { backgroundColor: "#FF7925 !important" },
+                    "& .MuiTabs-indicator": {
+                      backgroundColor: "#000000 !important",
+                      bottom: "15% !important",
+                    },
+                    "& .MuiTab-root": { color: "#000000 !important" },
+                    "& .Mui-selected": { color: "#000000 !important" },
+                  }}
+                >
+                  <Tab
+                    value={LEADERBOARDHEADERLIST.LEADERBOARD}
+                    label={t(LEADERBOARDHEADERLIST.LEADERBOARD)}
+                    id="parent-page-tab-bar"
+                    // sx={{
+                    //   // fontSize:"5vh"
+                    //   marginRight: "5vw",
+                    // }}
+                  />
+                  <Tab
+                    id="parent-page-tab-bar"
+                    value={LEADERBOARDHEADERLIST.EVENTS}
+                    label={t(LEADERBOARDHEADERLIST.EVENTS)}
+                  />
+                </Tabs>
+              </AppBar>
+            </Box>
+            <div>
+              <IconButton
+                name={t("Switch")}
+                iconSrc="assets/icons/SignOutIcon.svg"
+                onClick={async () => {
+                  localStorage.removeItem(CURRENT_STUDENT);
+                  const user = await auth.getCurrentUser();
+                  if (!!user && !!user.language?.id) {
+                    const langDoc = await api.getLanguageWithId(
+                      user.language.id
+                    );
+                    if (langDoc) {
+                      const tempLangCode = langDoc.code ?? LANG.ENGLISH;
+                      await i18n.changeLanguage(tempLangCode);
+                    }
+                  }
+                  // history.replace(PAGES.DISPLAY_STUDENT);
+                  history.replace(PAGES.SELECT_MODE);
+                }}
+              />
+            </div>
+          </div>
           <Box sx={{}}>
             {tabIndex === LEADERBOARDHEADERLIST.LEADERBOARD && (
               <Box>
                 <div>{leaderboardUI()}</div>
               </Box>
             )}
-            {tabIndex === LEADERBOARDHEADERLIST.EVENTS && (
-              <Box>
-
-              </Box>
-            )}
+            {tabIndex === LEADERBOARDHEADERLIST.EVENTS && <Box></Box>}
           </Box>
         </Box>
       ) : null}

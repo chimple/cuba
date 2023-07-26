@@ -50,6 +50,7 @@ import { LocalNotifications } from "@capacitor/local-notifications";
 import { RateApp } from "capacitor-rate-app";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { CollectionIds } from "../common/courseConstants";
+import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 
 declare global {
   interface Window {
@@ -197,9 +198,33 @@ export class Util {
         if (fetchingLocalBundle.ok) continue;
 
         console.log("fs", fs);
-        const url = BUNDLE_URL + lessonId + ".zip";
-        const zip = await CapacitorHttp.get({ url: url, responseType: "blob" });
-        if (!zip.data || zip.status !== 200) return false;
+        const bundleZipUrls: string[] = await RemoteConfig.getJSON(
+          REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS
+        );
+        if (!bundleZipUrls || bundleZipUrls.length < 1) return false;
+        let zip;
+        for (let bundleUrl of bundleZipUrls) {
+          const zipUrl = bundleUrl + lessonId + ".zip";
+          try {
+            zip = await CapacitorHttp.get({
+              url: zipUrl,
+              responseType: "blob",
+            });
+            console.log(
+              "🚀 ~ file: util.ts:219 ~ downloadZipBundle ~ zip:",
+              zip.status
+            );
+            if (!!zip && !!zip.data && zip.status === 200) break;
+          } catch (error) {
+            console.log(
+              "🚀 ~ file: util.ts:216 ~ downloadZipBundle ~ error:",
+              error
+            );
+          }
+        }
+
+        if (!zip || !zip.data || zip.status !== 200) return false;
+
         if (zip instanceof Object) {
           console.log("unzipping ");
           const buffer = Uint8Array.from(atob(zip.data), (c) =>
@@ -226,7 +251,10 @@ export class Util {
         }
         console.log("zip ", zip);
       } catch (error) {
-        console.log("error", error);
+        console.log(
+          "🚀 ~ file: util.ts:249 ~ downloadZipBundle ~ error:",
+          error
+        );
         return false;
       }
     }
@@ -435,14 +463,18 @@ export class Util {
       [key: string]: any;
     }
   ) {
-    try{
+    try {
       await FirebaseAnalytics.logEvent({
         name: eventName,
         params: params,
       });
-    }
-    catch(error) {
-      console.log("Error logging event to firebase analytics ",eventName,":",error);
+    } catch (error) {
+      console.log(
+        "Error logging event to firebase analytics ",
+        eventName,
+        ":",
+        error
+      );
     }
   }
 
