@@ -42,14 +42,13 @@ import { DocumentReference } from "firebase/firestore";
 import LeaderBoardButton from "./LeaderBoardButton";
 import Class from "../models/class";
 import { schoolUtil } from "../utility/schoolUtil";
-import { AppBar, Box, Tab, Tabs } from '@mui/material';
+import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import { auto } from "@popperjs/core";
 import { margin } from "@mui/system";
 import { push } from "ionicons/icons";
 import { t } from "i18next";
 
 const Home: FC = () => {
-
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentStudent, setCurrentStudent] = useState<User>();
@@ -151,13 +150,15 @@ const Home: FC = () => {
     HISTORY,
   }
   const [value, setValue] = useState(SUBTAB.SUGGESTIONS);
-  const handleChange = (event: React.SyntheticEvent, newValue: SUBTAB.SUGGESTIONS) => {
+  const handleChange = (
+    event: React.SyntheticEvent,
+    newValue: SUBTAB.SUGGESTIONS
+  ) => {
     setValue(newValue);
     console.log("Changing...", newValue);
-
   };
   const handleHomeIconClick = () => {
-    setValue(SUBTAB.SUGGESTIONS)
+    setValue(SUBTAB.SUGGESTIONS);
   };
 
   const getLessonsForChapter = async (chapter: Chapter): Promise<Lesson[]> => {
@@ -212,8 +213,8 @@ const Home: FC = () => {
     console.log(currMode);
     let sortLessonResultMap:
       | {
-        [lessonDocId: string]: StudentLessonResult;
-      }
+          [lessonDocId: string]: StudentLessonResult;
+        }
       | undefined;
     api.getStudentResult(currentStudent.docId).then(async (res) => {
       console.log("tempResultLessonMap = res;", JSON.stringify(res));
@@ -234,6 +235,10 @@ const Home: FC = () => {
     for (const tempCourse of courses) {
       setIsLoading(true);
       let islessonPushed = false;
+      if (tempCourse.chapters.length <= 0) {
+        console.log("Chapter are empty", tempCourse);
+        continue;
+      }
       if (
         tempResultLessonMap === undefined &&
         tempCourse.chapters[0].id === tempCourse.courseCode + "_quiz"
@@ -390,7 +395,7 @@ const Home: FC = () => {
         history.push(PAGES.ASSIGNMENT);
         break;
       case HOMEHEADERLIST.QUIZ:
-        history.push(PAGES.HOME)
+        history.push(PAGES.HOME);
         break;
       default:
         break;
@@ -418,7 +423,6 @@ const Home: FC = () => {
                   startIndex={0}
                   showSubjectName={true}
                 />
-
               </div>
             ) : (
               <div style={{ marginTop: "2.6%" }}></div>
@@ -490,36 +494,45 @@ const Home: FC = () => {
               />
             */}
             {currentHeader !== HOMEHEADERLIST.QUIZ && (
-              <div id="home-page-bottom" >
-                <AppBar className="home-page-app-bar"
-                >
+              <div id="home-page-bottom">
+                <AppBar className="home-page-app-bar">
                   <Box>
                     <Tabs
                       value={value}
                       onChange={handleChange}
-                      TabIndicatorProps={{ style: { display: 'none' } }}
+                      TabIndicatorProps={{ style: { display: "none" } }}
                       sx={{
-                        '& .MuiTab-root': {
+                        "& .MuiTab-root": {
                           color: "black",
-                          borderRadius: '5vh',
+                          borderRadius: "5vh",
                           padding: "0 3vw",
                           margin: "1vh 1vh",
                           minHeight: "37px",
                         },
-                        '& .Mui-selected': {
-                          backgroundColor: '#FF7925',
-                          borderRadius: '8vh',
+                        "& .Mui-selected": {
+                          backgroundColor: "#FF7925",
+                          borderRadius: "8vh",
                           color: "#FFFFFF !important",
                           minHeight: "37px",
                         },
                       }}
                     >
-                      <Tab id='home-page-sub-tab' label={t("Suggestion")}
+                      <Tab
+                        id="home-page-sub-tab"
+                        label={t("Suggestion")}
                         onClick={() => setCurrentHeader(HOMEHEADERLIST.HOME)}
                       />
-                      <Tab id='home-page-sub-tab' label={t("Favourite")} onClick={() => setCurrentHeader("")} />
+                      <Tab
+                        id="home-page-sub-tab"
+                        label={t("Favourite")}
+                        onClick={() => setCurrentHeader("")}
+                      />
 
-                      <Tab id='home-page-sub-tab' label={t("History")} onClick={() => setCurrentHeader("")} />
+                      <Tab
+                        id="home-page-sub-tab"
+                        label={t("History")}
+                        onClick={() => setCurrentHeader("")}
+                      />
                     </Tabs>
                   </Box>
                 </AppBar>
