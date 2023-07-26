@@ -1,6 +1,6 @@
 import { Capacitor, CapacitorHttp, WebView } from "@capacitor/core";
 import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
-import pLimit from "p-limit";
+import { COPIED_BUNDLE_FILES_INDEX } from "../common/constants";
 
 // --------------
 // INTERNAL TYPES
@@ -74,8 +74,11 @@ export const AppUpdater = {
 
       // Build the initial release from the app bundle if no release has been installed.
       if (!activeRelease) {
-        activeRelease = await buildReleaseFromBundle();
+        buildReleaseFromBundle();
+        console.debug("copying the files from bundle in background");
+        return false;
       }
+      localStorage.removeItem(COPIED_BUNDLE_FILES_INDEX);
 
       // Check that enough time has elapsed before we can check for an update again.
       const lastUpdated = activeRelease.updated;
@@ -86,20 +89,26 @@ export const AppUpdater = {
       }
 
       // Go online to check what the latest app release is.
-      const serverChecksum = await getServerChecksum(
-        webServerURL + "/checksum.json"
+      const serverChecksumVersion = await getServerChecksum(
+        webServerURL + "/checksum-version.json"
       );
 
-      if (!serverChecksum) {
-        throw "Unable to get checksum from server";
+      if (!serverChecksumVersion) {
+        throw "Unable to get checksum-version from server";
       }
 
       // Check that latest release is not already installed.
-      if (activeRelease.checksum.id === serverChecksum.id) {
+      if (activeRelease.checksum.id === serverChecksumVersion.id) {
         // Nothing changed, reset the update check timestamp so that we don't check again unnecessarily.
-        await setCurrentRelease(serverChecksum.id, new Date());
+        await setCurrentRelease(serverChecksumVersion.id, new Date());
 
-        throw `Latest release already installed (${serverChecksum.id})`;
+        throw `Latest release already installed (${serverChecksumVersion.id})`;
+      }
+      const serverChecksum = await getServerChecksum(
+        webServerURL + "/checksum.json"
+      );
+      if (!serverChecksum) {
+        throw "Unable to get checksum from server";
       }
 
       // Prepare to download a new release.
@@ -272,22 +281,57 @@ async function buildReleaseFromBundle(): Promise<Release> {
     }
 
     // Download the release files from the app bundle local web server.
-    const downloadTasks: Promise<boolean>[] = [];
-    const limit = pLimit(600);
+    // let downloadTasks: Promise<boolean>[] = [];
+    // const limit = 300;
+    const copiedBundleFiles: number = Number(
+      localStorage.getItem(COPIED_BUNDLE_FILES_INDEX) ?? 0
+    );
+    console.log(
+      "🚀 ~ file: AppUpdater.ts:289 ~ buildReleaseFromBundle ~ copiedBundleFiles:",
+      copiedBundleFiles
+    );
 
-    for (const file of checksum.files) {
-      downloadTasks.push(
-        limit(() =>
-          downloadFileFromAppBundle(
-            `http://localhost/${file.path}`,
-            `releases/${checksum.id}/${file.path}`,
-            Directory.Data
-          )
-        )
+    for (let i = copiedBundleFiles; i < checksum.files.length; i++) {
+      const currentFile = checksum.files[i];
+      const url = `http://localhost/${currentFile.path}`;
+      // const alreadyCopied = copiedBundleFiles.find((value) => url === value);
+      console.debug(
+        "🚀 ~ file: AppUpdater.ts:291 ~ buildReleaseFromBundle ~ alreadyCopied:",
+        i,
+        currentFile.path,
+        JSON.stringify(copiedBundleFiles)
       );
+      // if (!!alreadyCopied) continue;
+      console.debug(
+        "🚀 ~ file: AppUpdater.ts:293 ~ buildReleaseFromBundle ~ continue:",
+        currentFile.path,
+        "total",
+        i,
+        "/",
+        checksum.files.length
+      );
+      // downloadTasks.push(
+      const didDownload = await downloadFileFromAppBundle(
+        url,
+        `releases/${checksum.id}/${currentFile.path}`,
+        Directory.Data,
+        i + 1
+      );
+      console.log(
+        "🚀 ~ file: AppUpdater.ts:312 ~ buildReleaseFromBundle ~ didDownload:",
+        didDownload,
+        currentFile.path
+      );
+      // );
+      // if (
+      //   currentFile.path === checksum.files.at(-1)?.path ||
+      //   downloadTasks.length >= limit
+      // ) {
+      //   await Promise.all(downloadTasks);
+      //   await new Promise((resolve, _) => setTimeout(resolve, 500));
+      //   downloadTasks = [];
+      // }
     }
-
-    await Promise.all(downloadTasks);
 
     // Save the release checksum.
     await Filesystem.writeFile({
@@ -300,7 +344,15 @@ async function buildReleaseFromBundle(): Promise<Release> {
 
     // Saves app release summary file.
     const releaseID = checksum.id;
+    console.log(
+      "🚀 ~ file: AppUpdater.ts:317 ~ buildReleaseFromBundle ~ releaseID:",
+      releaseID
+    );
     const releaseDate = new Date(checksum.timestamp);
+    console.log(
+      "🚀 ~ file: AppUpdater.ts:319 ~ buildReleaseFromBundle ~ releaseDate:",
+      releaseDate
+    );
 
     await setCurrentRelease(releaseID, releaseDate);
 
@@ -434,15 +486,28 @@ async function getServerChecksum(url: string): Promise<Checksum | null> {
   console.debug(`AppUpdater: Getting latest release checksum from '${url}'`);
 
   try {
-    return (
-      await CapacitorHttp.request({
-        url: url,
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-    ).data as Checksum;
+    const res = await CapacitorHttp.request({
+      url: url,
+      method: "GET",
+      responseType: "json",
+    });
+    console.log(
+      "🚀 ~ file: AppUpdater.ts:519 ~ getServerChecksum ~ res:",
+      JSON.stringify(res)
+    );
+    if (!!res && res.status === 200 && !!res.data) {
+      console.log(
+        "🚀 ~ file: AppUpdater.ts:524 ~ getServerChecksum ~ res.data:",
+        res.status,
+        res.data
+      );
+      return res.data as Checksum;
+    }
+    console.log(
+      "🚀 ~ file: AppUpdater.ts:526 ~ getServerChecksum ~ res.data:",
+      res.status,
+      res.data
+    );
   } catch (error) {
     console.debug(
       "AppUpdater: Could not download and parse server checksum.\n\n",
@@ -540,7 +605,8 @@ async function downloadFileFromWebServer(
 export async function downloadFileFromAppBundle(
   url: RequestInfo,
   path: string,
-  directory: Directory
+  directory: Directory,
+  index: number
 ): Promise<boolean> {
   console.debug(`AppUpdater: Download from Bundle:,${url} '${path}'`);
 
@@ -635,12 +701,19 @@ export async function downloadFileFromAppBundle(
       });
       console.log("🚀 ~ file: AppUpdater.ts.ts:690 ~ x:", svgWrite.uri);
     } else {
-      await Filesystem.appendFile({
-        path: path,
-        directory: directory,
-        data: base64Data,
-      });
+      try {
+        await Filesystem.writeFile({
+          path: path,
+          directory: directory,
+          data: base64Data,
+        });
+      } catch (error) {
+        console.log("🚀 ~ file: AppUpdater.ts:713 ~ error:", error);
+      }
     }
+
+    console.log("🚀 ~ file: AppUpdater.ts:694 ~ copiedBundleFiles:", index);
+    localStorage.setItem(COPIED_BUNDLE_FILES_INDEX, index.toString());
   } catch (error) {
     console.debug(
       `AppUpdater: Could not copy '${path}' from app bundle`,

@@ -32,6 +32,7 @@ import User from "../models/user";
 import { ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
+import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 import {
   DocumentReference,
   doc,
@@ -49,6 +50,7 @@ import { LocalNotifications } from "@capacitor/local-notifications";
 import { RateApp } from "capacitor-rate-app";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { CollectionIds } from "../common/courseConstants";
+import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 
 declare global {
   interface Window {
@@ -196,9 +198,33 @@ export class Util {
         if (fetchingLocalBundle.ok) continue;
 
         console.log("fs", fs);
-        const url = BUNDLE_URL + lessonId + ".zip";
-        const zip = await CapacitorHttp.get({ url: url, responseType: "blob" });
-        if (!zip.data || zip.status !== 200) return false;
+        const bundleZipUrls: string[] = await RemoteConfig.getJSON(
+          REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS
+        );
+        if (!bundleZipUrls || bundleZipUrls.length < 1) return false;
+        let zip;
+        for (let bundleUrl of bundleZipUrls) {
+          const zipUrl = bundleUrl + lessonId + ".zip";
+          try {
+            zip = await CapacitorHttp.get({
+              url: zipUrl,
+              responseType: "blob",
+            });
+            console.log(
+              "🚀 ~ file: util.ts:219 ~ downloadZipBundle ~ zip:",
+              zip.status
+            );
+            if (!!zip && !!zip.data && zip.status === 200) break;
+          } catch (error) {
+            console.log(
+              "🚀 ~ file: util.ts:216 ~ downloadZipBundle ~ error:",
+              error
+            );
+          }
+        }
+
+        if (!zip || !zip.data || zip.status !== 200) return false;
+
         if (zip instanceof Object) {
           console.log("unzipping ");
           const buffer = Uint8Array.from(atob(zip.data), (c) =>
@@ -225,7 +251,10 @@ export class Util {
         }
         console.log("zip ", zip);
       } catch (error) {
-        console.log("error", error);
+        console.log(
+          "🚀 ~ file: util.ts:249 ~ downloadZipBundle ~ error:",
+          error
+        );
         return false;
       }
     }
@@ -426,6 +455,27 @@ export class Util {
       text: msg,
       duration: "long",
     });
+  }
+
+  public static async logEvent(
+    eventName: EVENTS,
+    params: {
+      [key: string]: any;
+    }
+  ) {
+    try {
+      await FirebaseAnalytics.logEvent({
+        name: eventName,
+        params: params,
+      });
+    } catch (error) {
+      console.log(
+        "Error logging event to firebase analytics ",
+        eventName,
+        ":",
+        error
+      );
+    }
   }
 
   public static onAppStateChange = ({ isActive }) => {
