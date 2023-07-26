@@ -20,7 +20,12 @@ import {
   ServiceApi,
   StudentLeaderboardInfo,
 } from "./ServiceApi";
-import { DEFAULT_COURSE_IDS, MODES } from "../../common/constants";
+import {
+  COURSES,
+  DEFAULT_COURSE_IDS,
+  MODES,
+  courseSortIndex,
+} from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
 import User from "../../models/user";
 import { ServiceConfig } from "../ServiceConfig";
@@ -42,6 +47,7 @@ import StudentProfile from "../../models/studentProfile";
 import Class from "../../models/class";
 import School from "../../models/school";
 import Assignment from "../../models/assignment";
+import { sort } from "semver";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
@@ -338,6 +344,19 @@ export class FirebaseApi implements ServiceApi {
     if (!result.data()) return;
     return result.data() as Language;
   }
+  async sortSubject(subjects) {
+    subjects.sort(
+      (a, b) => courseSortIndex[a.courseCode] - courseSortIndex[b.courseCode]
+    );
+    const indexOfDigitalSkill = subjects
+      .map((e) => e.courseCode)
+      .indexOf(COURSES.PUZZLE);
+    if (indexOfDigitalSkill) {
+      const digitalSkills = subjects.splice(indexOfDigitalSkill, 1)[0];
+      subjects.push(digitalSkills);
+    }
+    return subjects;
+  }
 
   async getCoursesForParentsStudent(student: User): Promise<Course[]> {
     try {
@@ -353,7 +372,7 @@ export class FirebaseApi implements ServiceApi {
           subjects.push(course);
         }
       });
-      return subjects;
+      return this.sortSubject(subjects);
     } catch (error) {
       console.log(
         "🚀 ~ file: FirebaseApi.ts:358 ~ FirebaseApi ~ getCoursesForParentsStudent ~ error:",
@@ -399,7 +418,8 @@ export class FirebaseApi implements ServiceApi {
         subjects.push(course);
       }
     });
-    return subjects;
+
+    return this.sortSubject(subjects);
   }
 
   async getLesson(id: string): Promise<Lesson | undefined> {
@@ -590,7 +610,7 @@ export class FirebaseApi implements ServiceApi {
     isLoved: boolean,
     assignmentId: string | undefined,
     classId: string | undefined,
-    schoolId: string | undefined,
+    schoolId: string | undefined
   ): Promise<Result> {
     const courseRef = courseId
       ? doc(this._db, CollectionIds.COURSE, courseId)
@@ -604,7 +624,7 @@ export class FirebaseApi implements ServiceApi {
     const schoolRef = schoolId
       ? doc(this._db, CollectionIds.SCHOOL, schoolId)
       : undefined;
-    
+
     const lessonRef = doc(this._db, CollectionIds.LESSON, lessonId);
     const studentRef = doc(this._db, CollectionIds.USER, student.docId);
     const result = new Result(
@@ -622,7 +642,7 @@ export class FirebaseApi implements ServiceApi {
       timeSpent,
       studentRef,
       null!,
-      isLoved,
+      isLoved
     );
     const resultDoc = await addDoc(
       collection(this._db, CollectionIds.RESULT),

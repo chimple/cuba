@@ -28,7 +28,7 @@ http://ionicframework.com/docs/theming/ */
   --ion-color-tertiary-tint: #6370ff;
 
   /** success **/
-  --ion-color-success: #83C327;
+  --ion-color-success: #83c327;
   --ion-color-success-rgb: 45, 211, 111;
   --ion-color-success-contrast: #ffffff;
   --ion-color-success-contrast-rgb: 255, 255, 255;
@@ -76,18 +76,18 @@ http://ionicframework.com/docs/theming/ */
   --ion-color-light-tint: #f5f6f9;
 
   /** custom **/
-  --ion-background-color: #cbdcff;
-  --text-color: #182A4F;
+  --ion-background-color: #e2dede;
+  --text-color: #182a4f;
   --text-size: clamp(15px, 4vh, 18px);
-  --border-radius: 1.5vh; 
-  --header-text: clamp(33px,10vh,55px);
+  --border-radius: 1.5vh;
+  --header-text: clamp(33px, 10vh, 55px);
 
   /* minimum size for buttons/tabs */
-  --button-height:3vh;
-  --button-width:3vw;
+  --button-height: 3vh;
+  --button-width: 3vw;
 
   /* minimum font size */
-  --font-size:3vh;
+  --font-size: 3vh;
   /* margin size */
-  --margin: clamp(10px,10vh,20px)
+  --margin: clamp(10px, 10vh, 20px);
 }
