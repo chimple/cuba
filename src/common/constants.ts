@@ -295,4 +295,4 @@ export const IS_MIGRATION_CHECKED = "isMigrationChecked";
 
 export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
 
-export const COPIED_BUNDLE_FILES = "copiedBundleFiles";
+export const COPIED_BUNDLE_FILES_INDEX = "copiedBundleFilesIndex";

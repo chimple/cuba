@@ -66,13 +66,14 @@ export class RemoteConfig {
 }
 
 export enum REMOTE_CONFIG_KEYS {
-  TEST_NUM = "test_num",
-  HOT_UPDATE_SERVER = "hot_update_server",
   CAN_HOT_UPDATE = "can_hot_update",
+  BUNDLE_ZIP_URLS = "bundle_zip_urls",
 }
 
 export const REMOTE_CONFIG_DEFAULTS: { [key: string]: any } = {
-  [REMOTE_CONFIG_KEYS.TEST_NUM]: 60,
-  [REMOTE_CONFIG_KEYS.HOT_UPDATE_SERVER]: "https://cuba-stage.web.app/",
   [REMOTE_CONFIG_KEYS.CAN_HOT_UPDATE]: true,
+  [REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS]: [
+    "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/",
+    "https://raw.githubusercontent.com/chimple/chimple-zips/main/",
+  ],
 };
