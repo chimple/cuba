@@ -74,6 +74,7 @@ export const REMOTE_CONFIG_DEFAULTS: { [key: string]: any } = {
   [REMOTE_CONFIG_KEYS.CAN_HOT_UPDATE]: true,
   [REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS]: [
     "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/",
+    "https://cuba-stage-zip-bundle.web.app/",
     "https://raw.githubusercontent.com/chimple/chimple-zips/main/",
   ],
 };
