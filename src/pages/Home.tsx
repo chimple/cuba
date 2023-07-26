@@ -328,6 +328,10 @@ const Home: FC = () => {
     for (const tempCourse of courses) {
       setIsLoading(true);
       let islessonPushed = false;
+      if (tempCourse.chapters.length <= 0) {
+        console.log("Chapter are empty", tempCourse);
+        continue;
+      }
       if (
         tempResultLessonMap === undefined &&
         tempCourse.chapters[0].id === tempCourse.courseCode + "_quiz"
