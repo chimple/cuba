@@ -49,7 +49,6 @@ import { margin } from "@mui/system";
 import { push } from "ionicons/icons";
 import { t } from "i18next";
 
-
 const sortPlayedLessonsByDate = (
   lessons: Lesson[],
   lessonResultMap: { [lessonDocId: string]: StudentLessonResult }
@@ -86,7 +85,8 @@ const Home: FC = () => {
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
   const [levelChapter, setLevelChapter] = useState<Chapter>();
   const [gradeMap, setGradeMap] = useState<any>({});
-  const [pendingAssignmentsCount, setPendingAssignmentsCount] = useState<number>(0);
+  const [pendingAssignmentsCount, setPendingAssignmentsCount] =
+    useState<number>(0);
   const history = useHistory();
   const [PlayedLessonsList, setPlayedLessonsList] = useState<Lesson[]>([]);
 
@@ -120,7 +120,7 @@ const Home: FC = () => {
           allAssignments.push(...res);
         })
       );
-      let count= 0;
+      let count = 0;
       await Promise.all(
         allAssignments.map(async (_assignment) => {
           const res = await api.getLesson(_assignment.lesson.id);
@@ -163,7 +163,6 @@ const Home: FC = () => {
         console.log("Final RECOMMENDATION List ", reqLes);
         setDataCourse(reqLes);
       });
-
     }
 
     /// Below code to show lessons card and chapters bar
@@ -327,6 +326,10 @@ const Home: FC = () => {
     setCourses(courses);
     for (const tempCourse of courses) {
       setIsLoading(true);
+      if (tempCourse.chapters.length <= 0) {
+        console.log("Chapters are empty", tempCourse);
+        continue;
+      }
       let islessonPushed = false;
       if (
         tempResultLessonMap === undefined &&
@@ -423,7 +426,6 @@ const Home: FC = () => {
     setIsLoading(false);
   }
 
- 
   async function getDataForSubject(course: Course): Promise<{
     chapters: Chapter[];
     lessons: {
