@@ -73,7 +73,7 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
       HOMEHEADERLIST.SUBJECTS,
       {
         displayName: "Subjects",
-        iconSrc: "/assets/icons/subjectIcon.svg",
+        iconSrc: "/assets/icons/subject_icon.svg",
         headerList: HOMEHEADERLIST.SUBJECTS,
       },
     ],
@@ -81,7 +81,7 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
       HOMEHEADERLIST.ASSIGNMENT,
       {
         displayName: "Home work",
-        iconSrc: "/assets/icons/homeworkIcon.svg",
+        iconSrc: "/assets/icons/homework_icon.svg",
         headerList: HOMEHEADERLIST.ASSIGNMENT,
       },
     ],
@@ -97,18 +97,18 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
       HOMEHEADERLIST.SEARCH,
       {
         displayName: "Search",
-        iconSrc: "/assets/icons/searchIcon.svg",
+        iconSrc: "/assets/icons/search_icon.svg",
         headerList: HOMEHEADERLIST.SEARCH,
       },
     ],
-    [
-      HOMEHEADERLIST.QUIZ,
-      {
-        displayName: "Quiz",
-        iconSrc: "/assets/icons/quiz_icon.svg",
-        headerList: HOMEHEADERLIST.QUIZ,
-      },
-    ],
+    // [
+    //   HOMEHEADERLIST.QUIZ,
+    //   {
+    //     displayName: "Quiz",
+    //     iconSrc: "/assets/icons/quiz_icon.svg",
+    //     headerList: HOMEHEADERLIST.QUIZ,
+    //   },
+    // ],
   ]);
 
 // export const HEADERLIST = [HOME_CONFIG, LANG_CONFIGS, PROFILE_CONFIG]
@@ -296,3 +296,10 @@ export const IS_MIGRATION_CHECKED = "isMigrationChecked";
 export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
 
 export const COPIED_BUNDLE_FILES_INDEX = "copiedBundleFilesIndex";
+
+export const courseSortIndex = {
+  en: 1,
+  maths: 2,
+  puzzle: 3,
+  hi: 4,
+};
