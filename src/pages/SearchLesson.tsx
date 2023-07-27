@@ -83,6 +83,15 @@ function SearchLesson() {
     }
   }
 
+  // useEffect(() => {
+  //   init();
+  //   // const currentStudent = await Util.getCurrentStudent();
+  //   const urlParams = new URLSearchParams(location.search);
+  //   if (!!urlParams.get("continue") && !!dataToContinue.lessons) {
+  //     setLessons(dataToContinue.lessons);
+  //     setSearchTerm(dataToContinue.search);
+  //   }
+  // }, []);
   useEffect(() => {
     init();
 
@@ -91,8 +100,16 @@ function SearchLesson() {
       setLessons(dataToContinue.lessons);
       setSearchTerm(dataToContinue.search);
     }
-    // const currentStudent = await Util.getCurrentStudent();
-  }, []);
+    const savedSearchTerm = localStorage.getItem("searchTerm");
+    if (savedSearchTerm !== null) {
+      setSearchTerm(savedSearchTerm);
+      onSearch(savedSearchTerm);
+    }
+    localStorage.setItem("searchTerm", searchTerm);
+    return () => {
+      localStorage.removeItem("searchTerm");
+    };
+  }, [searchTerm]);
 
   const plugins = useMemo(() => {
     const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
