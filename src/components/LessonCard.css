@@ -70,6 +70,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   text-align: center;
+  font-weight: bold;
 }
 
 #lesson-card-subject-name {
@@ -98,4 +99,15 @@
   background-color: white;
   opacity: 1;
   top: 0%;
+}
+
+#chapter-title {
+  margin: -20px 0px 0px 0px ;
+  color: var(--text-color);
+  font-size: var(--text-size);
+  font-weight: bold;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: center;
 }
