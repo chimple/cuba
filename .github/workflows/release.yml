@@ -38,6 +38,16 @@ jobs:
       #   run: |
       #     echo $GOOGLE_SERVICES_JSON | base64 -di > google-services.json
       #     echo $SHA_KEY | base64 -di > key.jks
+      - name: Extract Tag Name
+        run: |
+          # Extract the tag name from GITHUB_REF using sed (Linux/Unix-based systems)
+          TAG_NAME=$(echo "${GITHUB_REF}" | sed 's/refs\/tags\///')
+
+          # Get the first two characters from the tag name
+          SHORT_TAG_NAME=${TAG_NAME:0:2}
+
+          echo "Short Tag Name: ${SHORT_TAG_NAME}"
+
 
       - name: Build
         env:
@@ -57,8 +67,7 @@ jobs:
         run: |
           # echo hot update server ${REACT_APP_HOT_UPDATE_SERVER}v1/
           echo tag name ${{ github.ref }}
-          TAG_NAME=$(echo "${GITHUB_REF}" | sed 's/refs\/tags\///')
-          echo Tag Name: ${TAG_NAME}
+          echo new $SHORT_TAG_NAME
 
     # - uses: ncipollo/release-action@v1
     #   with:
