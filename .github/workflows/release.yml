@@ -47,6 +47,10 @@ jobs:
           SHORT_TAG_NAME=${TAG_NAME:0:2}
 
           echo "Short Tag Name: ${SHORT_TAG_NAME}"
+          
+          # Set the SHORT_TAG_NAME as an environment variable
+          echo "SHORT_TAG_NAME=${SHORT_TAG_NAME}" >> $GITHUB_ENV
+
 
 
       - name: Build
