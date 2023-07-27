@@ -50,7 +50,7 @@ jobs:
 
           # Set the SHORT_TAG_NAME as an environment variable
           echo "SHORT_TAG_NAME=${SHORT_TAG_NAME}" >> $GITHUB_ENV
-          echo "HOT_UPDATE_SERVER=${{ secrets.RELEASE_HOT_UPDATE_SERVER }}v1/" >> $GITHUB_ENV
+          echo "HOT_UPDATE_SERVER=${{ secrets.RELEASE_HOT_UPDATE_SERVER }}$SHORT_TAG_NAME/" >> $GITHUB_ENV
 
       - name: Build
         env:
@@ -64,14 +64,12 @@ jobs:
           REACT_APP_MEASUREMENT_ID: ${{ secrets.REACT_APP_MEASUREMENT_ID}}
           REACT_APP_ALGOLIA_APP_ID: ${{ secrets.REACT_APP_ALGOLIA_APP_ID }}
           REACT_APP_ALGOLIA_API_KEY: ${{ secrets.REACT_APP_ALGOLIA_API_KEY }}
-          REACT_APP_HOT_UPDATE_SERVER: ${{ secrets.RELEASE_HOT_UPDATE_SERVER }}v1/
+          REACT_APP_HOT_UPDATE_SERVER: ${HOT_UPDATE_SERVER}
 
         # run: npm run build
         run: |
-          # echo hot update server ${REACT_APP_HOT_UPDATE_SERVER}v1/
-          echo tag name ${{ github.ref }}
-          echo new $SHORT_TAG_NAME
-          echo new $HOT_UPDATE_SERVER
+          echo new SHORT_TAG_NAME $SHORT_TAG_NAME
+          echo new HOT_UPDATE_SERVER $HOT_UPDATE_SERVER
 
     # - uses: ncipollo/release-action@v1
     #   with:
