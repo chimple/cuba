@@ -47,11 +47,10 @@ jobs:
           SHORT_TAG_NAME=${TAG_NAME:0:2}
 
           echo "Short Tag Name: ${SHORT_TAG_NAME}"
-          
+
           # Set the SHORT_TAG_NAME as an environment variable
           echo "SHORT_TAG_NAME=${SHORT_TAG_NAME}" >> $GITHUB_ENV
-
-
+          echo "HOT_UPDATE_SERVER=${{ secrets.RELEASE_HOT_UPDATE_SERVER }}v1/" >> $GITHUB_ENV
 
       - name: Build
         env:
@@ -72,6 +71,7 @@ jobs:
           # echo hot update server ${REACT_APP_HOT_UPDATE_SERVER}v1/
           echo tag name ${{ github.ref }}
           echo new $SHORT_TAG_NAME
+          echo new $HOT_UPDATE_SERVER
 
     # - uses: ncipollo/release-action@v1
     #   with:
