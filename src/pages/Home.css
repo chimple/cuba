@@ -16,6 +16,7 @@ div p {
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
+  margin: -22px 0px 0px 0px;
 }
 
 #home-leaderboard-button {

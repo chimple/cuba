@@ -79,6 +79,11 @@ const LessonSlider: React.FC<{
                 lessonData={lessonData}
                 startIndex={startIndex === -1 ? startIndex + 1 : startIndex}
               />
+              {m.chapterTitle && 
+              <div id="chapter-title">
+                {m.chapterTitle}
+              </div>
+              }
             </SplideSlide>
           );
         })}
