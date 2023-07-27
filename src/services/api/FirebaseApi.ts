@@ -373,6 +373,7 @@ export class FirebaseApi implements ServiceApi {
         }
       });
       return this.sortSubject(subjects);
+      return this.sortSubject(subjects);
     } catch (error) {
       console.log(
         "🚀 ~ file: FirebaseApi.ts:358 ~ FirebaseApi ~ getCoursesForParentsStudent ~ error:",
@@ -611,6 +612,7 @@ export class FirebaseApi implements ServiceApi {
     assignmentId: string | undefined,
     classId: string | undefined,
     schoolId: string | undefined
+    schoolId: string | undefined
   ): Promise<Result> {
     const courseRef = courseId
       ? doc(this._db, CollectionIds.COURSE, courseId)
@@ -642,6 +644,7 @@ export class FirebaseApi implements ServiceApi {
       timeSpent,
       studentRef,
       null!,
+      isLoved
       isLoved
     );
     const resultDoc = await addDoc(
