@@ -11,33 +11,34 @@ jobs:
     permissions:
       contents: write
     steps:
-      # - name: Checkout source
-      #   uses: actions/checkout@v2
-      #   with:
-      #     submodules: true
-      #     token: ${{ secrets.ACCESS_TOKEN }}
+      - name: Checkout source
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+          token: ${{ secrets.ACCESS_TOKEN }}
 
-      # - name: Setup java
-      #   uses: actions/setup-java@v1
-      #   with:
-      #     java-version: "17"
+      - name: Setup java
+        uses: actions/setup-java@v1
+        with:
+          java-version: "17"
 
-      # - name: Setup Node.js
-      #   uses: actions/setup-node@v1
-      #   with:
-      #     node-version: 16.x
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
 
-      #   - name: Install app dependencies
-      #     run: npm install
+      - name: Install app dependencies
+        run: npm install
 
-      # - name: Create Google Services JSON File and key.jks
-      #   working-directory: ./android/app/
-      #   env:
-      #     GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-      #     SHA_KEY: ${{ secrets.SHA_KEY }}
-      #   run: |
-      #     echo $GOOGLE_SERVICES_JSON | base64 -di > google-services.json
-      #     echo $SHA_KEY | base64 -di > key.jks
+      - name: Create Google Services JSON File and key.jks
+        working-directory: ./android/app/
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          SHA_KEY: ${{ secrets.SHA_KEY }}
+        run: |
+          echo $GOOGLE_SERVICES_JSON | base64 -di > google-services.json
+          echo $SHA_KEY | base64 -di > key.jks
+
       - name: Extract Tag Name
         run: |
           # Extract the tag name from GITHUB_REF using sed (Linux/Unix-based systems)
@@ -46,7 +47,7 @@ jobs:
           # Get the first two characters from the tag name
           SHORT_TAG_NAME=${TAG_NAME:0:2}
 
-          echo "Short Tag Name: ${SHORT_TAG_NAME}"
+          echo "Tag Name: ${SHORT_TAG_NAME}"
 
           # Set the SHORT_TAG_NAME as an environment variable
           echo "SHORT_TAG_NAME=${SHORT_TAG_NAME}" >> $GITHUB_ENV
@@ -66,12 +67,34 @@ jobs:
           REACT_APP_ALGOLIA_API_KEY: ${{ secrets.REACT_APP_ALGOLIA_API_KEY }}
           REACT_APP_HOT_UPDATE_SERVER: ${HOT_UPDATE_SERVER}
 
-        # run: npm run build
-        run: |
-          echo new SHORT_TAG_NAME $SHORT_TAG_NAME
-          echo new HOT_UPDATE_SERVER $HOT_UPDATE_SERVER
+        run: npm run build
 
-    # - uses: ncipollo/release-action@v1
-    #   with:
-    #     artifacts: "release.tar.gz,foo/*.txt"
-    #     bodyFile: "body.md"
+      - name: Pushes to Hot update
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.ACCESS_TOKEN }}
+        with:
+          source-directory: "build"
+          target-directory: "public/${SHORT_TAG_NAME}"
+          destination-github-username: "chimple"
+          destination-repository-name: "cuba-hot-update"
+          user-email: prakash@sutara.org
+          target-branch: main
+
+      - name: Make gradlew executable
+        working-directory: ./android/
+        run: chmod +x ./gradlew
+
+      - name: Generate the Android App bundleRelease
+        working-directory: ./android/
+        # android/app/build/outputs/bundle/release/app-release.aab
+        run: ./gradlew bundleRelease
+
+      - name: Generate the Android App apk
+        working-directory: ./android/
+        # android/app/build/outputs/apk/release/app-release.apk
+        run: ./gradlew assembleRelease
+
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "android/app/build/outputs/bundle/release/app-release.aab,android/app/build/outputs/apk/release/app-release.apk"
