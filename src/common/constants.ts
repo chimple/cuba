@@ -296,12 +296,13 @@ export const CACHE_IMAGE = "cacheImage";
 
 export const IS_MIGRATION_CHECKED = "isMigrationChecked";
 
+export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
+
+export const COPIED_BUNDLE_FILES_INDEX = "copiedBundleFilesIndex";
+
 export const courseSortIndex = {
   en: 1,
   maths: 2,
   puzzle: 3,
+  hi: 4,
 };
-
-export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
-
-export const COPIED_BUNDLE_FILES_INDEX = "copiedBundleFilesIndex";
