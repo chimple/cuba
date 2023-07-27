@@ -54,7 +54,7 @@ jobs:
           REACT_APP_HOT_UPDATE_SERVER: ${{ secrets.RELEASE_HOT_UPDATE_SERVER }}
 
         # run: npm run build
-        run: /
+        run:
           echo hot update server ${REACT_APP_HOT_UPDATE_SERVER}v1/
           echo tag name ${{ github.ref }}
 
