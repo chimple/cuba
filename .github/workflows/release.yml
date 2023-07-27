@@ -38,7 +38,7 @@ jobs:
       #   run: |
       #     echo $GOOGLE_SERVICES_JSON | base64 -di > google-services.json
       #     echo $SHA_KEY | base64 -di > key.jks
- 
+
       - name: Build
         env:
           CI: false
@@ -51,12 +51,14 @@ jobs:
           REACT_APP_MEASUREMENT_ID: ${{ secrets.REACT_APP_MEASUREMENT_ID}}
           REACT_APP_ALGOLIA_APP_ID: ${{ secrets.REACT_APP_ALGOLIA_APP_ID }}
           REACT_APP_ALGOLIA_API_KEY: ${{ secrets.REACT_APP_ALGOLIA_API_KEY }}
-          REACT_APP_HOT_UPDATE_SERVER: ${{ secrets.RELEASE_HOT_UPDATE_SERVER }}
+          REACT_APP_HOT_UPDATE_SERVER: ${{ secrets.RELEASE_HOT_UPDATE_SERVER }}v1/
 
         # run: npm run build
-        run:
-          echo hot update server ${REACT_APP_HOT_UPDATE_SERVER}v1/
+        run: |
+          # echo hot update server ${REACT_APP_HOT_UPDATE_SERVER}v1/
           echo tag name ${{ github.ref }}
+          TAG_NAME=$(echo "${GITHUB_REF}" | sed 's/refs\/tags\///')
+          echo Tag Name: ${TAG_NAME}
 
     # - uses: ncipollo/release-action@v1
     #   with:
