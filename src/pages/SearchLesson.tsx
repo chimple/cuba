@@ -72,9 +72,12 @@ function SearchLesson() {
         return;
       }
 
-      const res = await api.getStudentResultInMap(currentStudent.docId);
-      console.log("tempResultLessonMap = res;", res);
-      setLessonResultMap(res);
+      if (!dataToContinue.lessonResultMap) {
+        const res = await api.getStudentResultInMap(currentStudent.docId);
+        console.log("tempResultLessonMap = res;", res);
+        dataToContinue.lessonResultMap = res;
+        setLessonResultMap(res);
+      }
 
       // api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
       //   console.log("tempResultLessonMap = res;", res);
@@ -99,6 +102,7 @@ function SearchLesson() {
     if (!!urlParams.get("continue") && !!dataToContinue.lessons) {
       setLessons(dataToContinue.lessons);
       setSearchTerm(dataToContinue.search);
+      setLessonResultMap(dataToContinue.lessonResultMap);
     }
     const savedSearchTerm = localStorage.getItem("searchTerm");
     if (savedSearchTerm !== null) {
