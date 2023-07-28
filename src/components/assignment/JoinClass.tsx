@@ -7,8 +7,12 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { Keyboard } from "@capacitor/keyboard";
+import { PAGES } from "../../common/constants";
+import { useLocation } from "react-router";
+const urlClassCode:any={};
+
 const JoinClass: FC<{
-  onClassJoin: () => void;
+  onClassJoin: () => void,
 }> = ({ onClassJoin }) => {
   const [loading, setLoading] = useState(false);
   const [showDialogBox, setShowDialogBox] = useState(false);
@@ -22,16 +26,17 @@ const JoinClass: FC<{
   const api = ServiceConfig.getI().apiHandler;
 
   const isNextButtonEnabled = () => {
-    return !!inviteCode && inviteCode.toString().length === 6;
+    let tempInviteCode=urlClassCode.inviteCode ? urlClassCode.inviteCode : inviteCode;
+    return !!tempInviteCode && tempInviteCode.toString().length === 6;
   };
 
   const getClassData = async () => {
-    console.log("onJoin", inviteCode, isNextButtonEnabled());
+    console.log("onJoin", urlClassCode.inviteCode, isNextButtonEnabled());
     if (!!error) setError("");
     if (!isNextButtonEnabled()) return;
     setLoading(true);
     try {
-      const result = await api.getDataByInviteCode(inviteCode!);
+      const result = await api.getDataByInviteCode(urlClassCode.inviteCode ? urlClassCode.inviteCode : inviteCode);
       console.log(
         "🚀 ~ file: JoinClass.tsx:24 ~ getClassData ~ result:",
         result
@@ -70,8 +75,27 @@ const JoinClass: FC<{
 
     setLoading(false);
   };
+  const location = useLocation();
+
   useEffect(() => {
     Util.isTextFieldFocus(scollToRef, setIsInputFocus);
+
+    const urlParams = new URLSearchParams(location.search);
+    const joinClassParam = urlParams.get('join-class');
+    const classCode = urlParams.get('classCode');
+
+    if(classCode!=""){
+      let tempClassCode =!!classCode && !isNaN(parseInt(classCode))
+      ? parseInt(classCode)
+      : undefined
+      setInviteCode(
+        tempClassCode
+      );
+      urlClassCode.inviteCode=tempClassCode;
+      if (classCode != "") {
+        getClassData();
+      }
+    }
   }, []);
 
   return (

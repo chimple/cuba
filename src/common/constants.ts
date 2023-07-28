@@ -139,6 +139,7 @@ export enum PAGES {
   SEARCH = "/search",
   LEADERBOARD = "/leaderboard",
   ASSIGNMENT = "/assignment",
+  JOIN_CLASS = "/join-class",
   SELECT_MODE = "/select-mode",
 }
 

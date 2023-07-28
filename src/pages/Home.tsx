@@ -47,6 +47,7 @@ import { auto } from "@popperjs/core";
 import { margin } from "@mui/system";
 import { push } from "ionicons/icons";
 import { t } from "i18next";
+import { App, URLOpenListenerEvent } from "@capacitor/app";
 
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
@@ -73,7 +74,19 @@ const Home: FC = () => {
     setCurrentHeader(HOMEHEADERLIST.HOME);
     setCourse(HOMEHEADERLIST.HOME);
     setValue(SUBTAB.SUGGESTIONS);
+
+    urlOpenListenerEvent();
   }, []);
+
+  function urlOpenListenerEvent() {
+    App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
+      
+      const slug = event.url.split(".cc").pop();
+      if (slug) {
+        history.push(slug);
+      }
+    });
+  }
 
   const api = ServiceConfig.getI().apiHandler;
 
