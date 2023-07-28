@@ -73,11 +73,13 @@ jobs:
         uses: cpina/github-action-push-to-another-repository@main
         env:
           API_TOKEN_GITHUB: ${{ secrets.ACCESS_TOKEN }}
+          SHORT_TAG_NAME_ENV: $SHORT_TAG_NAME
+
         with:
-          source-directory: "build"
-          target-directory: public/${SHORT_TAG_NAME}
-          destination-github-username: "chimple"
-          destination-repository-name: "cuba-hot-update"
+          source-directory: build
+          target-directory: public/${{env.SHORT_TAG_NAME_ENV}}
+          destination-github-username: chimple
+          destination-repository-name: cuba-hot-update
           user-email: prakash@sutara.org
           target-branch: main
 
