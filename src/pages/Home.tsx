@@ -68,6 +68,7 @@ const sortPlayedLessonsByDate = (
   return sortedLessons;
 };
 
+ const localData: any ={};
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -89,7 +90,7 @@ const Home: FC = () => {
   const [pendingAssignmentsCount, setPendingAssignmentsCount] = useState<number>(0);
   const history = useHistory();
   const [PlayedLessonsList, setPlayedLessonsList] = useState<Lesson[]>([]);
-  const [allCourses , setAllCourses] = useState<Course[]>();
+
 
   useEffect(() => {
     setCurrentHeader(HOMEHEADERLIST.HOME);
@@ -128,26 +129,7 @@ const Home: FC = () => {
           if (!!res) {
             count++;
             res.assignment = _assignment;
-
-            allCourses?.map((totalCourse) => {
-              console.log("CourseIDDDDD", totalCourse.docId);
-              console.log("CourseCOCIDDDDD", _assignment.course.id);
-              if (totalCourse.docId === _assignment.course.id) {
-                totalCourse.chapters.map((chap) => {
-                    chap.lessons.map((le) => {
-                      if (le.id === _assignment.lesson.id) {
-                        console.log("Chapter Found :" + chap.title);
-                        res.chapterTitle = chap.title;
-                        return;
-                      }
-                    })
-                    if (res.chapterTitle) return;
-                    console.log("Chapther MAP")
-                  })
-                  if (res.chapterTitle) return;
-                  console.log("Course Map MAP")
-              }
-            })
+            res.chapterTitle = getChapterTitle(_assignment.course.id, res.docId);
             reqLes.push(res);
           }
         })
@@ -160,6 +142,41 @@ const Home: FC = () => {
       setIsLoading(false);
     }
   };
+  
+  function getChapterTitle(courseId: string | undefined, lesssonId: string) {
+    let chapT: string = "";
+    if (courseId) {
+      let locCourse: Course | undefined = localData.allCourses?.find((cour)=>cour.docId===courseId);
+      locCourse ? getChaptitle(locCourse) : localData.allCourses?.find((c) => getChaptitle(c));
+    } else {
+      localData.allCourses?.find((c) => getChaptitle(c));
+    }
+
+    function getChaptitle(aCourse: Course) {
+
+      // function lessonMatched(les : any) {
+      //   return les?.id == lesssonId;
+      // }
+
+      aCourse.chapters.map((chap) => {
+       // chap.lessons.find(lessonMatched);
+        chap.lessons.map((le) => {
+          if (le.id == lesssonId) {
+            console.log("Chapter Found :" + chap.title);
+            chapT = chap.title;
+            return;
+          }
+        })
+        if (chapT) return;
+        console.log("Chapther MAP")
+      });
+    }
+
+    function getC(course: Course) {
+      return courseId === course.docId;
+    }
+    return chapT;
+  }
 
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
@@ -179,10 +196,10 @@ const Home: FC = () => {
     if (subjectCode === HOMEHEADERLIST.HOME) {
       // let r = api.getStudentResultInMap(currentStudent.docId);
       // console.log("r = api.getStudentResultInMap(currentStudent.docId);", r);
-      let tempAllCourse = await api.getAllCourses();
-      console.log("tempAllCourse", tempAllCourse)
-      await setAllCourses(tempAllCourse);
-      console.log("SetAllCourses",allCourses)
+      if( !localData.allCourses){
+        let tempAllCourses = await api.getAllCourses();
+      localData.allCourses = tempAllCourses;
+      }
       await getAssignments();
       getRecommendationLessons(currentStudent, currClass).then(() => {
         console.log("Final RECOMMENDATION List ", reqLes);
@@ -550,27 +567,8 @@ const Home: FC = () => {
 
   const getLovedLessons = () => {
     return PlayedLessonsList.filter((lesson) => {
+      lesson.chapterTitle = getChapterTitle(undefined, lesson.docId);
       const lessonResult = lessonResultMap?.[lesson.docId];
-      
-      allCourses?.map((totalCourse) => {
-        console.log("CourseIDDDDD ", totalCourse.docId);
-        console.log("CourseCOCIDDDDD ", lesson.docId);
-       
-          totalCourse.chapters.map((chap) => {
-              chap.lessons.map((le) => {
-                if (le.id === lesson.docId) {
-                  console.log("Chapter Found :" + chap.title);
-                  lesson.chapterTitle = chap.title;
-                  return;
-                }
-              })
-              if (lesson.chapterTitle) return;
-              console.log("Chapther MAP")
-            })
-            if (lesson.chapterTitle) return;
-            console.log("Course Map MAP")
-       
-      })
       return lessonResult?.isLoved ?? false;
     }).sort((a, b) => {
       const lessonResultA = lessonResultMap?.[a.docId];
