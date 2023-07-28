@@ -96,6 +96,11 @@ jobs:
         # android/app/build/outputs/apk/release/app-release.apk
         run: ./gradlew assembleRelease
 
-      # - uses: ncipollo/release-action@v1
-      #   with:
-      #     artifacts: "android/app/build/outputs/bundle/release/app-release.aab,android/app/build/outputs/apk/release/app-release.apk"
+      - name: Generate the Android App assembleDebug
+        working-directory: ./android/
+        # android/app/build/outputs/apk/debug/app-debug.apk
+        run: ./gradlew assembleDebug
+
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "android/app/build/outputs/bundle/release/app-release.aab,android/app/build/outputs/apk/release/app-release.apk,android/app/build/outputs/apk/debug/app-debug.apk"
