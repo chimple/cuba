@@ -68,8 +68,8 @@ const sortPlayedLessonsByDate = (
   return sortedLessons;
 };
 
- const localData: any ={};
-const Home: FC = () => {
+  const localData: any = {};
+  const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentStudent, setCurrentStudent] = useState<User>();
@@ -122,7 +122,7 @@ const Home: FC = () => {
           allAssignments.push(...res);
         })
       );
-      let count= 0;
+      let count = 0;
       await Promise.all(
         allAssignments.map(async (_assignment) => {
           const res = await api.getLesson(_assignment.lesson.id);
@@ -142,11 +142,11 @@ const Home: FC = () => {
       setIsLoading(false);
     }
   };
-  
+
   function getChapterTitle(courseId: string | undefined, lesssonId: string) {
     let chapT: string = "";
     if (courseId) {
-      let locCourse: Course | undefined = localData.allCourses?.find((cour)=>cour.docId===courseId);
+      let locCourse: Course | undefined = localData.allCourses?.find((cour) => cour.docId === courseId);
       locCourse ? getChaptitle(locCourse) : localData.allCourses?.find((c) => getChaptitle(c));
     } else {
       localData.allCourses?.find((c) => getChaptitle(c));
