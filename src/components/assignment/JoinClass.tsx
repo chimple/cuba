@@ -118,7 +118,7 @@ const JoinClass: FC<{
         message={
           t("You are Joining ") +
           (!!codeResult
-            ? codeResult["schoolName"] + ", " + codeResult["data"]["name"] ?? ""
+            ? t("School") + ": " + codeResult["schoolName"] + ", " + t("Class") + ": " + codeResult["data"]["name"] ?? ""
             : "")
         }
         showDialogBox={showDialogBox}
@@ -129,6 +129,7 @@ const JoinClass: FC<{
         }}
         onYesButtonClicked={() => {
           setShowDialogBox(false);
+
         }}
         onNoButtonClicked={async () => {
           await onJoin();

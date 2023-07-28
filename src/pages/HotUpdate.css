@@ -4,3 +4,8 @@
     justify-content: center;
     align-items: center;
 }
+
+.hot-update-loading {
+    width: 100px;
+    height: 100px;
+}
