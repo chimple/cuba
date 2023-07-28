@@ -73,11 +73,10 @@ jobs:
         uses: cpina/github-action-push-to-another-repository@main
         env:
           API_TOKEN_GITHUB: ${{ secrets.ACCESS_TOKEN }}
-          SHORT_TAG_NAME_ENV: $SHORT_TAG_NAME
 
         with:
           source-directory: build
-          target-directory: public/${{env.SHORT_TAG_NAME_ENV}}
+          target-directory: public/${{ env.SHORT_TAG_NAME }}
           destination-github-username: chimple
           destination-repository-name: cuba-hot-update
           user-email: prakash@sutara.org
@@ -97,6 +96,6 @@ jobs:
         # android/app/build/outputs/apk/release/app-release.apk
         run: ./gradlew assembleRelease
 
-      - uses: ncipollo/release-action@v1
-        with:
-          artifacts: "android/app/build/outputs/bundle/release/app-release.aab,android/app/build/outputs/apk/release/app-release.apk"
+      # - uses: ncipollo/release-action@v1
+      #   with:
+      #     artifacts: "android/app/build/outputs/bundle/release/app-release.aab,android/app/build/outputs/apk/release/app-release.apk"
