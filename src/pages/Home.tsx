@@ -151,17 +151,10 @@ const Home: FC = () => {
     } else {
       localData.allCourses?.find((c) => getChaptitle(c));
     }
-
     function getChaptitle(aCourse: Course) {
-
-      // function lessonMatched(les : any) {
-      //   return les?.id == lesssonId;
-      // }
-
-      aCourse.chapters.map((chap) => {
-       // chap.lessons.find(lessonMatched);
-        chap.lessons.map((le) => {
-          if (le.id == lesssonId) {
+      aCourse.chapters.forEach((chap) => {
+        chap.lessons.forEach((le) => {
+          if (le.id === lesssonId) {
             console.log("Chapter Found :" + chap.title);
             chapT = chap.title;
             return;
