@@ -65,9 +65,9 @@ jobs:
           REACT_APP_MEASUREMENT_ID: ${{ secrets.REACT_APP_MEASUREMENT_ID}}
           REACT_APP_ALGOLIA_APP_ID: ${{ secrets.REACT_APP_ALGOLIA_APP_ID }}
           REACT_APP_ALGOLIA_API_KEY: ${{ secrets.REACT_APP_ALGOLIA_API_KEY }}
-          REACT_APP_HOT_UPDATE_SERVER: ${HOT_UPDATE_SERVER}
+          REACT_APP_HOT_UPDATE_SERVER: ${{ env.HOT_UPDATE_SERVER }}
 
-        run: npm run build
+        run: echo REACT_APP_HOT_UPDATE_SERVER ${REACT_APP_HOT_UPDATE_SERVER} && npm run build
 
       - name: Pushes to Hot update
         uses: cpina/github-action-push-to-another-repository@main
