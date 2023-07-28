@@ -68,7 +68,8 @@ const sortPlayedLessonsByDate = (
   return sortedLessons;
 };
 
-const Home: FC = () => {
+  const localData: any = {};
+  const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentStudent, setCurrentStudent] = useState<User>();
@@ -89,6 +90,7 @@ const Home: FC = () => {
   const [pendingAssignmentsCount, setPendingAssignmentsCount] = useState<number>(0);
   const history = useHistory();
   const [PlayedLessonsList, setPlayedLessonsList] = useState<Lesson[]>([]);
+
 
   useEffect(() => {
     setCurrentHeader(HOMEHEADERLIST.HOME);
@@ -120,13 +122,14 @@ const Home: FC = () => {
           allAssignments.push(...res);
         })
       );
-      let count= 0;
+      let count = 0;
       await Promise.all(
         allAssignments.map(async (_assignment) => {
           const res = await api.getLesson(_assignment.lesson.id);
           if (!!res) {
             count++;
             res.assignment = _assignment;
+            res.chapterTitle = getChapterTitle(_assignment.course.id, res.docId);
             reqLes.push(res);
           }
         })
@@ -139,6 +142,34 @@ const Home: FC = () => {
       setIsLoading(false);
     }
   };
+
+  function getChapterTitle(courseId: string | undefined, lesssonId: string) {
+    let chapT: string = "";
+    if (courseId) {
+      let locCourse: Course | undefined = localData.allCourses?.find((cour) => cour.docId === courseId);
+      locCourse ? getChaptitle(locCourse) : localData.allCourses?.find((c) => getChaptitle(c));
+    } else {
+      localData.allCourses?.find((c) => getChaptitle(c));
+    }
+    function getChaptitle(aCourse: Course) {
+      aCourse.chapters.forEach((chap) => {
+        chap.lessons.forEach((le) => {
+          if (le.id === lesssonId) {
+            console.log("Chapter Found :" + chap.title);
+            chapT = chap.title;
+            return;
+          }
+        })
+        if (chapT) return;
+        console.log("Chapther MAP")
+      });
+    }
+
+    function getC(course: Course) {
+      return courseId === course.docId;
+    }
+    return chapT;
+  }
 
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
@@ -158,6 +189,10 @@ const Home: FC = () => {
     if (subjectCode === HOMEHEADERLIST.HOME) {
       // let r = api.getStudentResultInMap(currentStudent.docId);
       // console.log("r = api.getStudentResultInMap(currentStudent.docId);", r);
+      if( !localData.allCourses){
+        let tempAllCourses = await api.getAllCourses();
+      localData.allCourses = tempAllCourses;
+      }
       await getAssignments();
       getRecommendationLessons(currentStudent, currClass).then(() => {
         console.log("Final RECOMMENDATION List ", reqLes);
@@ -346,11 +381,14 @@ const Home: FC = () => {
             );
             // await res.lessons[tempCourse.courseCode][l.id];
             if (lessonObj) {
+              let chapterTitle = tempCourse.chapters[0].title;
+              lessonObj.chapterTitle = chapterTitle;
               console.log(lessonObj, "lessons pushed");
               reqLes.push(lessonObj as Lesson);
               setDataCourse(reqLes);
             }
           } else {
+            console.log("Wrong place")
             console.log(element, "lessons pushed");
             reqLes.push(element as Lesson);
             setDataCourse(reqLes);
@@ -382,6 +420,8 @@ const Home: FC = () => {
               // );
 
               if (lessonObj) {
+                let chapterTitle = chapter.title;
+                lessonObj.chapterTitle = chapterTitle;
                 console.log(lessonObj, "lessons pushed");
                 reqLes.push(lessonObj as Lesson);
               }
@@ -389,6 +429,7 @@ const Home: FC = () => {
               //   console.log(lesson, "lessons pushed");
               //   reqLes.push(lesson);
               // }
+              console.log("DWSGSGSG")
               setDataCourse(reqLes);
               islessonPushed = true;
               break;
@@ -401,6 +442,7 @@ const Home: FC = () => {
       //Last Played Lessons
       islessonPushed = false;
       if (!sortLessonResultMap) {
+        console.log("ERERERER")
         setDataCourse(reqLes);
         setIsLoading(false);
         continue;
@@ -522,6 +564,7 @@ const Home: FC = () => {
 
   const getLovedLessons = () => {
     return PlayedLessonsList.filter((lesson) => {
+      lesson.chapterTitle = getChapterTitle(undefined, lesson.docId);
       const lessonResult = lessonResultMap?.[lesson.docId];
       return lessonResult?.isLoved ?? false;
     }).sort((a, b) => {
