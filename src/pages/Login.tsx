@@ -475,9 +475,9 @@ const Login: React.FC = () => {
                       maxLength={6}
                       inputValue={verificationCode.trim()}
                       onChange={(input) => {
-                        if (input.detail.value) {
-                          setVerificationCode(input.detail.value.trim());
-                          console.log(input.detail.value);
+                        if (input.target.value) {
+                          setVerificationCode(input.target.value);
+                          console.log(input.target.value);
                           let otpBtnBgColor =
                             getOtpBtnRef.current.style.backgroundColor;
                           if (input.target.value.length === 6) {
