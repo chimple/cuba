@@ -48,6 +48,7 @@ import { auto } from "@popperjs/core";
 import { margin } from "@mui/system";
 import { push } from "ionicons/icons";
 import { t } from "i18next";
+import { App, URLOpenListenerEvent } from "@capacitor/app";
 
 
 const sortPlayedLessonsByDate = (
@@ -97,7 +98,19 @@ const sortPlayedLessonsByDate = (
     setCourse(HOMEHEADERLIST.HOME);
     setValue(SUBTAB.SUGGESTIONS);
     getHistory();
+
+    urlOpenListenerEvent();
   }, []);
+
+  function urlOpenListenerEvent() {
+    App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
+      
+      const slug = event.url.split(".cc").pop();
+      if (slug) {
+        history.push(slug);
+      }
+    });
+  }
 
   const api = ServiceConfig.getI().apiHandler;
   const getAssignments = async () => {

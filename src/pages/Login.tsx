@@ -33,7 +33,7 @@ const Login: React.FC = () => {
   const [showBackButton, setShowBackButton] = useState<boolean>(false);
   const [showNameInput, setShowNameInput] = useState<boolean>(false);
   const [verificationCode, setVerificationCode] = useState<string>("");
-  const [phoneNumber, setPhoneNumber] = useState<any>(""); // Example: "+919553642967".
+  const [phoneNumber, setPhoneNumber] = useState<any>("");
   //const [parentName, setParentName] = useState<any>("");
 
   const [recaptchaVerifier, setRecaptchaVerifier] =
@@ -192,6 +192,7 @@ const Login: React.FC = () => {
         phoneNumberWithCountryCode,
         recaptchaVerifier
       );
+      console.log("phoneNumberSignIn authRes", JSON.stringify(authRes));
       if (authRes.user) {
         setIsLoading(false);
         history.replace(PAGES.SELECT_MODE);
@@ -238,7 +239,7 @@ const Login: React.FC = () => {
       setIsLoading(true);
       const res = await authInstance.proceedWithVerificationCode(
         phoneNumberSigninRes,
-        verificationCode
+        verificationCode.trim()
       );
       console.log("login User Data ", res, userData);
       if (!res) {
@@ -402,31 +403,20 @@ const Login: React.FC = () => {
                     ref={otpBtnRef}
                     id="login-continue-button"
                     style={{ backgroundColor: currentButtonColor }}
-                    onClick={() => {
-                      // //@ts-ignore
-                      // window.recaptchaVerifier = new RecaptchaVerifier(
-                      //   "sign-in-button",
-                      //   {
-                      //     size: "normal",
-                      //     callback: (response) => {
-                      //       console.log("prepared phone auth process");
-                      //     },
-                      //   },
-                      //   getAuth()
-                      // );
+                    onClick={async () => {
                       console.log(
                         "if (!recaptchaVerifier && !Capacitor.isNativePlatform()) called",
                         recaptchaVerifier
                       );
 
-                      setSpinnerLoading(false);
+                      setSpinnerLoading(true);
                       if (phoneNumber.length === 10) {
-                        onPhoneNumberSubmit();
+                        await onPhoneNumberSubmit();
                       } else {
                         phoneNumberErrorRef.current.style.display = "block";
                       }
                       // setShowVerification(true);
-                      // setSpinnerLoading(false);
+                      setSpinnerLoading(false);
                     }}
                   >
                     {t("Send OTP")}
@@ -483,11 +473,11 @@ const Login: React.FC = () => {
                       inputText={"Enter 6 Digit Code"}
                       inputType={"tel"}
                       maxLength={6}
-                      inputValue={verificationCode}
+                      inputValue={verificationCode.trim()}
                       onChange={(input) => {
-                        if (input.target.value) {
-                          setVerificationCode(input.target.value);
-                          console.log(input.target.value);
+                        if (input.detail.value) {
+                          setVerificationCode(input.detail.value.trim());
+                          console.log(input.detail.value);
                           let otpBtnBgColor =
                             getOtpBtnRef.current.style.backgroundColor;
                           if (input.target.value.length === 6) {
