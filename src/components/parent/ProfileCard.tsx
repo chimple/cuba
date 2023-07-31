@@ -84,7 +84,7 @@ const ProfileCard: React.FC<{
               });
             }}
           ></HiPlusCircle>
-          <p>{t("New User")}</p>
+          <p>{t("New Profile")}</p>
         </div>
       )}
 
@@ -155,7 +155,7 @@ const ProfileCard: React.FC<{
             await ServiceConfig.getI().apiHandler.deleteProfile(user.docId);
             setReloadProfiles(true);
             setIsLoading(false)
-            Util.logEvent(EVENTS.USER_PROFILE,{
+            Util.logEvent(EVENTS.USER_PROFILE, {
               user_id: user.docId,
               user_type: user.role,
               user_name: user.name,
