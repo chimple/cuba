@@ -332,7 +332,7 @@ const Parent: React.FC = () => {
                   title="YouTube video player"
                   // frameborder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  // allowfullscreen
+                // allowfullscreen
                 ></iframe>
               </div>
             </div>
@@ -397,6 +397,18 @@ const Parent: React.FC = () => {
       </div>
     );
   }
+  function faqUI() {
+    return (
+      <div id="faq-page"
+        onClick={() => {
+          window.open('https://www.chimple.org/in-school-guide-for-teachers', "_system");
+        }}
+      >
+        <p>{t("Please Visit Our Website")}</p>
+        <TfiWorld size={"3vw"} />
+      </div>
+    );
+  }
 
   const handleChange = (newValue: string) => {
     const selectedHeader = parentHeaderIconList.find(
@@ -430,7 +442,7 @@ const Parent: React.FC = () => {
         {tabIndex === t("profile") && <div>{profileUI()}</div>}
         {tabIndex === t("setting") && <div>{settingUI()}</div>}
         {tabIndex === t("help") && <div>{helpUI()}</div>}
-        {tabIndex === t("faq") && <div></div>}
+        {tabIndex === t("faq") && <div>{faqUI()}</div>}
       </div>
     </Box>
   );
