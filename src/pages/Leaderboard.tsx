@@ -471,7 +471,7 @@ const Leaderboard: React.FC = () => {
             </Box>
             <div>
               <IconButton
-                name={t("Switch")}
+                name={t("Switch Profile")}
                 iconSrc="assets/icons/SignOutIcon.svg"
                 onClick={async () => {
                   localStorage.removeItem(CURRENT_STUDENT);
