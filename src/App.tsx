@@ -153,6 +153,9 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.ASSIGNMENT} exact={true}>
               <AssignmentPage />
             </ProtectedRoute>
+            <ProtectedRoute path={PAGES.JOIN_CLASS} exact={true}>
+              <AssignmentPage />
+            </ProtectedRoute>
             <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
               <SelectMode />
             </ProtectedRoute>

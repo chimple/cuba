@@ -373,6 +373,7 @@ export class FirebaseApi implements ServiceApi {
         }
       });
       return this.sortSubject(subjects);
+      return this.sortSubject(subjects);
     } catch (error) {
       console.log(
         "🚀 ~ file: FirebaseApi.ts:358 ~ FirebaseApi ~ getCoursesForParentsStudent ~ error:",

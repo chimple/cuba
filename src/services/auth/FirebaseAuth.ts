@@ -202,21 +202,21 @@ export class FirebaseAuth implements ServiceAuth {
                 await FirebaseAuthentication.addListener(
                   "phoneCodeSent",
                   async (event) => {
-                    console.log("phoneCodeSent event ", event);
+                    console.log("phoneCodeSent event ", JSON.stringify(event));
 
                     resolve(event);
                   }
                 );
 
-                // Attach `phoneCodeSent` listener to be notified as soon as the SMS is sent
-                await FirebaseAuthentication.addListener(
-                  "authStateChange",
-                  async (event) => {
-                    console.log("authStateChange event ", event);
+                // // Attach `phoneCodeSent` listener to be notified as soon as the SMS is sent
+                // await FirebaseAuthentication.addListener(
+                //   "authStateChange",
+                //   async (event) => {
+                //     console.log("authStateChange event ", event);
 
-                    resolve(event);
-                  }
-                );
+                //     resolve(event);
+                //   }
+                // );
 
                 await FirebaseAuthentication.addListener(
                   "phoneVerificationFailed",
@@ -352,13 +352,23 @@ export class FirebaseAuth implements ServiceAuth {
       //   JSON.stringify(credential)
       // );
 
+      console.log(
+        "result.verificationId!,",
+        JSON.stringify(result.verificationId),
+        JSON.stringify(verificationCode)
+      );
+
       const credential = PhoneAuthProvider.credential(
-        result.verificationId!,
+        result.verificationId,
         verificationCode
       );
 
-      const auth = getAuth();
-      console.log("credential", auth, credential);
+      const auth = await getAuth();
+      console.log(
+        "credential",
+        JSON.stringify(auth),
+        JSON.stringify(credential)
+      );
       let res = await signInWithCredential(auth, credential);
       const u = await FirebaseAuthentication.getCurrentUser();
       console.log(

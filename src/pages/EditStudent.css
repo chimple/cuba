@@ -1,7 +1,8 @@
 .content {
   overflow: hidden scroll;
   margin-top: 9vh;
-  margin-bottom: 9vh;
+  margin-bottom: 16vh;
+  background-color: #e2dede;
 }
 
 .button-round {

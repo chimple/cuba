@@ -39,6 +39,15 @@ declare type Release = {
   checksum: Checksum;
 };
 
+export enum HotUpdateStatus {
+  CHECKING_FOR_UPDATE = "Checking for an update",
+  COPY_FROM_BUNDLE = "Getting ready for update in background",
+  FOUND_UPDATE = "Found a new update",
+  DOWNLOADING_THE_UPDATES = "Downloading the latest updates",
+  ALREADY_UPDATED = "Already on the latest version",
+  ERROR = "Something went wrong",
+}
+
 export const AppUpdater = {
   /**
    * Syncs the online web app to the native app shell.
@@ -52,6 +61,7 @@ export const AppUpdater = {
    */
   sync: async (
     webServerURL: string,
+    statusCallback: (status: HotUpdateStatus) => void,
     checkDelay: number = 1000 * 60 * 60
   ): Promise<boolean> => {
     // Do not run the sync job on non-native platforms. On Web the service worker will manage caching file instead.
@@ -67,6 +77,7 @@ export const AppUpdater = {
     try {
       // Get the currently installed release version.
       let activeRelease = await getCurrentRelease();
+      statusCallback(HotUpdateStatus.CHECKING_FOR_UPDATE);
       console.debug(
         "🚀 ~ file: AppUpdater.ts.ts:91 ~ activeRelease:",
         JSON.stringify(activeRelease)
@@ -74,6 +85,7 @@ export const AppUpdater = {
 
       // Build the initial release from the app bundle if no release has been installed.
       if (!activeRelease) {
+        statusCallback(HotUpdateStatus.COPY_FROM_BUNDLE);
         buildReleaseFromBundle();
         console.debug("copying the files from bundle in background");
         return false;
@@ -94,11 +106,13 @@ export const AppUpdater = {
       );
 
       if (!serverChecksumVersion) {
+        statusCallback(HotUpdateStatus.ERROR);
         throw "Unable to get checksum-version from server";
       }
 
       // Check that latest release is not already installed.
       if (activeRelease.checksum.id === serverChecksumVersion.id) {
+        statusCallback(HotUpdateStatus.ALREADY_UPDATED);
         // Nothing changed, reset the update check timestamp so that we don't check again unnecessarily.
         await setCurrentRelease(serverChecksumVersion.id, new Date());
 
@@ -108,13 +122,14 @@ export const AppUpdater = {
         webServerURL + "/checksum.json"
       );
       if (!serverChecksum) {
+        statusCallback(HotUpdateStatus.ERROR);
         throw "Unable to get checksum from server";
       }
+      statusCallback(HotUpdateStatus.FOUND_UPDATE);
 
       // Prepare to download a new release.
       await createDir("releases", Directory.Data);
       await removeDir("releases/next", Directory.Data);
-
       // Create the empty directory structure for each of the files in the new release package.
       const paths = [
         ...new Set(
@@ -128,6 +143,7 @@ export const AppUpdater = {
         await createDir(`releases/next/${path}`, Directory.Data);
       }
 
+      statusCallback(HotUpdateStatus.DOWNLOADING_THE_UPDATES);
       // Download the new release files from the web server.
       const downloadTasks: Promise<any>[] = [];
 
