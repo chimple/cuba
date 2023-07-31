@@ -20,6 +20,7 @@ import { Util } from "../utility/util";
 import User from "../models/user";
 import BackButton from "../components/common/BackButton";
 import { Toast } from "@capacitor/toast";
+import { title } from "process";
 
 
 declare global {
@@ -79,11 +80,12 @@ const Login: React.FC = () => {
   const [allowSubmittingOtpCounter, setAllowSubmittingOtpCounter] = useState<number>(0);
   const [disableOtpButtonIfSameNumber, setDisableOtpButtonIfSameNumber] = useState<boolean>(false);
   const [currentPhone, setCurrentPhone] = useState<any>();
+  const [title, setTitle] = React.useState("");
   useEffect(() => {
     init();
     setIsLoading(true);
     setIsInvalidCode(verificationCodeMessageFlags);
-
+  
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
         console.log("info", JSON.stringify(info));
@@ -101,6 +103,7 @@ const Login: React.FC = () => {
         setIsInputFocus(false);
       });
     }
+
     const authHandler = ServiceConfig.getI().authHandler;
     authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
       const apiHandler = ServiceConfig.getI().apiHandler;
@@ -179,6 +182,9 @@ const Login: React.FC = () => {
   useEffect(() => {
     console.log("Testing: " + allowSubmittingOtpCounter);
     disableOtpButtonIfSameNumber && allowSubmittingOtpCounter > 0 && setTimeout(() => setAllowSubmittingOtpCounter(allowSubmittingOtpCounter - 1), 1000);
+    let str = t(`Sent OTP button will be enabled in x seconds`)
+    .replace(`x`, allowSubmittingOtpCounter.toString());
+  setTitle(str);
   }, [allowSubmittingOtpCounter]);
 
   const onPhoneNumberSubmit = async () => {
@@ -186,7 +192,7 @@ const Login: React.FC = () => {
       if (currentPhone == phoneNumber) {
         if (allowSubmittingOtpCounter > 0) {
           await Toast.show({
-            text: "Sent OTP button will be enabled in " + allowSubmittingOtpCounter + " seconds",
+            text: title,
             duration: "long",
           });
           return;
