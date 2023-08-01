@@ -35,19 +35,9 @@ const DisplayStudents: FC<{}> = () => {
       history.replace(PAGES.CREATE_STUDENT, {
         showBackButton: true,
       });
+      return;
     }
     setStudents(students);
-
-    // if (students && students.length > 0) {
-    //   history.replace(PAGES.DISPLAY_STUDENT, {
-    //     showBackButton: true,
-    //   });
-    // } else {
-    //   history.replace(PAGES.CREATE_STUDENT, {
-    //     showBackButton: false,
-    //   });
-    // }
-    // setStudents(students);
     // setStudents([students[0]]);
 
     // setStudents([...students, students[0]]);
