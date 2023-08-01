@@ -107,7 +107,7 @@ const Leaderboard: React.FC = () => {
     console.log(
       "leaderboardDataInfo.weekly.length <= 0 leaderboardDataInfo.allTime.length <= 0",
       leaderboardDataInfo.weekly.length <= 0 ||
-        leaderboardDataInfo.allTime.length <= 0,
+      leaderboardDataInfo.allTime.length <= 0,
       isWeeklyFlag
         ? "leaderboardDataInfo.weekly"
         : "leaderboardDataInfo.allTime"
@@ -318,15 +318,15 @@ const Leaderboard: React.FC = () => {
                       ? "rgb(200 200 200)"
                       : Number(currentUserDataContent[0][1]) ===
                         headerRowIndicator
-                      ? "#FF7925"
-                      : "",
+                        ? "#FF7925"
+                        : "",
                   padding:
                     headerRowIndicator === 0
                       ? "1vh 2vh"
                       : Number(currentUserDataContent[0][1]) ===
                         headerRowIndicator
-                      ? "0vh 2vh"
-                      : "1vh 2vh ",
+                        ? "0vh 2vh"
+                        : "1vh 2vh ",
                   position: "sticky",
                   zIndex: headerRowIndicator === 0 ? "3" : "0",
                   top: "0px",
@@ -456,10 +456,10 @@ const Leaderboard: React.FC = () => {
                     value={LEADERBOARDHEADERLIST.LEADERBOARD}
                     label={t(LEADERBOARDHEADERLIST.LEADERBOARD)}
                     id="parent-page-tab-bar"
-                    // sx={{
-                    //   // fontSize:"5vh"
-                    //   marginRight: "5vw",
-                    // }}
+                  // sx={{
+                  //   // fontSize:"5vh"
+                  //   marginRight: "5vw",
+                  // }}
                   />
                   <Tab
                     id="parent-page-tab-bar"
@@ -471,7 +471,7 @@ const Leaderboard: React.FC = () => {
             </Box>
             <div>
               <IconButton
-                name={t("Switch")}
+                name={t("Switch Profile")}
                 iconSrc="assets/icons/SignOutIcon.svg"
                 onClick={async () => {
                   localStorage.removeItem(CURRENT_STUDENT);
