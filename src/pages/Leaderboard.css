@@ -50,6 +50,8 @@
   border-radius: 4vh;
   overflow-y: scroll;
   text-align: center;
+  overflow: hidden;
+  /* Hide scrollbars */
 }
 
 #leaderboard-right-UI-content {

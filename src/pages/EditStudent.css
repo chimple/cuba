@@ -3,6 +3,8 @@
   margin-top: 9vh;
   margin-bottom: 16vh;
   background-color: #e2dede;
+  overflow: hidden;
+  /* Hide scrollbars */
 }
 
 .button-round {
