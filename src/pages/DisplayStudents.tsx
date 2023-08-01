@@ -30,6 +30,20 @@ const DisplayStudents: FC<{}> = () => {
       "🚀 ~ file: DisplayStudents.tsx:13 ~ getStudents ~ students:",
       students
     );
+    console.log("checking displayStudent");
+    setStudents(students);
+    setIsLoading(false);
+    if (students && students.length > 0) {
+      console.log("test1 displaystudent");
+      history.replace(PAGES.DISPLAY_STUDENT, {
+        showBackButton: true,
+      });
+    } else {
+      console.log("test1 displaystudent");
+      history.replace(PAGES.CREATE_STUDENT, {
+        showBackButton: false,
+      });
+    }
     setStudents(students);
     // setStudents([students[0]]);
 
@@ -71,11 +85,11 @@ const DisplayStudents: FC<{}> = () => {
     }
   };
   const onCreateNewStudent = () => {
-    // history.push(PAGES.CREATE_STUDENT);
-    history.push(PAGES.CREATE_STUDENT, {
-      showBackButton: true,
-    });
+    const isProfilesExist = students && students.length > 0;
+    const locationState = isProfilesExist ? { showBackButton: true } : undefined;
+    history.replace(PAGES.CREATE_STUDENT, locationState);
   };
+
   return (
     <IonPage id="display-students">
       {/* <IonContent> */}

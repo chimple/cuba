@@ -418,7 +418,15 @@ const Parent: React.FC = () => {
   };
 
   const handleBackButton = () => {
-    history.replace(PAGES.DISPLAY_STUDENT);
+    if (userProfile[0] == null || undefined) {
+      history.replace(PAGES.CREATE_STUDENT, {
+        showBackButton: false,
+      });
+    } else {
+      history.replace(PAGES.DISPLAY_STUDENT, {
+        showBackButton: true,
+      });
+    }
   };
 
   useEffect(() => {
