@@ -30,16 +30,13 @@ const DisplayStudents: FC<{}> = () => {
       "🚀 ~ file: DisplayStudents.tsx:13 ~ getStudents ~ students:",
       students
     );
-    console.log("checking displayStudent");
     setStudents(students);
     setIsLoading(false);
     if (students && students.length > 0) {
-      console.log("test1 displaystudent");
       history.replace(PAGES.DISPLAY_STUDENT, {
         showBackButton: true,
       });
     } else {
-      console.log("test1 displaystudent");
       history.replace(PAGES.CREATE_STUDENT, {
         showBackButton: false,
       });
