@@ -30,18 +30,24 @@ const DisplayStudents: FC<{}> = () => {
       "🚀 ~ file: DisplayStudents.tsx:13 ~ getStudents ~ students:",
       students
     );
-    setStudents(students);
-    setIsLoading(false);
-    if (students && students.length > 0) {
-      history.replace(PAGES.DISPLAY_STUDENT, {
-        showBackButton: true,
-      });
-    } else {
+
+    if (!students || students.length < 1) {
       history.replace(PAGES.CREATE_STUDENT, {
-        showBackButton: false,
+        showBackButton: true,
       });
     }
     setStudents(students);
+
+    // if (students && students.length > 0) {
+    //   history.replace(PAGES.DISPLAY_STUDENT, {
+    //     showBackButton: true,
+    //   });
+    // } else {
+    //   history.replace(PAGES.CREATE_STUDENT, {
+    //     showBackButton: false,
+    //   });
+    // }
+    // setStudents(students);
     // setStudents([students[0]]);
 
     // setStudents([...students, students[0]]);
