@@ -77,7 +77,7 @@
 
 #leaderboard-student-name{
   white-space: nowrap;
-  max-width: 11vw;
+  max-width: 10.0vw;
   text-overflow: ellipsis;
   overflow: hidden;
 }
