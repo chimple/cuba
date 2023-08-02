@@ -50,7 +50,10 @@
   border-radius: 4vh;
   overflow-y: scroll;
   text-align: center;
-  overflow: hidden;
+}
+
+#leaderboard-right-UI::-webkit-scrollbar {
+  display: none;
 }
 
 #leaderboard-right-UI-content {

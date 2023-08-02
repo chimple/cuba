@@ -21,11 +21,13 @@
   width: 18.5%;
   height: 10vh;
 }
-
 .subjects-content {
   align-self: center;
   overflow-y: scroll;
-  overflow-y: auto;
+}
+
+.subjects-content::-webkit-scrollbar {
+  display: none;
 }
 
 .slider-container {
@@ -33,7 +35,6 @@
   align-items: center;
   height: 100vh;
 }
-
 #back-button-container {
   width: 18.5%;
 }
