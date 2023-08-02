@@ -101,7 +101,7 @@ const Leaderboard: React.FC = () => {
     console.log(
       "leaderboardDataInfo.weekly.length <= 0 leaderboardDataInfo.allTime.length <= 0",
       leaderboardDataInfo.weekly.length <= 0 ||
-      leaderboardDataInfo.allTime.length <= 0,
+        leaderboardDataInfo.allTime.length <= 0,
       isWeeklyFlag
         ? "leaderboardDataInfo.weekly"
         : "leaderboardDataInfo.allTime"
@@ -213,7 +213,6 @@ const Leaderboard: React.FC = () => {
                 );
                 //  }
               }
-
             }}
           ></RectangularOutlineDropDown>
           <div
@@ -313,18 +312,18 @@ const Leaderboard: React.FC = () => {
                       ? "rgb(200 200 200)"
                       : Number(currentUserDataContent[0][1]) ===
                         headerRowIndicator
-                        ? "#FF7925"
-                        : "",
-                  padding: headerRowIndicator === 0
-                    ? "1vh 2vh"
-                    : Number(currentUserDataContent[0][1]) ===
-                      headerRowIndicator
+                      ? "#FF7925"
+                      : "",
+                  padding:
+                    headerRowIndicator === 0
+                      ? "1vh 2vh"
+                      : Number(currentUserDataContent[0][1]) ===
+                        headerRowIndicator
                       ? "0vh 2vh"
                       : "1vh 2vh ",
                   position: "sticky",
                   zIndex: headerRowIndicator === 0 ? "3" : "0",
                   top: "0px",
-
                 }}
               >
                 {e.map((d) => {
@@ -335,15 +334,25 @@ const Leaderboard: React.FC = () => {
                       <p
                         style={{
                           color:
-                            i === 0 && headerRowIndicator != 0 ? Number(currentUserDataContent[0][1]) ===
-                              headerRowIndicator ? "black" : "white" : "",
+                            i === 0 && headerRowIndicator != 0
+                              ? Number(currentUserDataContent[0][1]) ===
+                                headerRowIndicator
+                                ? "black"
+                                : "white"
+                              : "",
                           backgroundColor:
-                            i === 0 && headerRowIndicator != 0 ? Number(currentUserDataContent[0][1]) ===
-                              headerRowIndicator ? "white" : rankColors[Number(e[0])] || rankColors[4]
+                            i === 0 && headerRowIndicator != 0
+                              ? Number(currentUserDataContent[0][1]) ===
+                                headerRowIndicator
+                                ? "white"
+                                : rankColors[Number(e[0])] || rankColors[4]
                               : "",
                           borderRadius:
                             i === 0 && headerRowIndicator != 0 ? "100vw" : "",
-                          height: i === 0 && headerRowIndicator != 0 ? columnWidth[i] : "",
+                          height:
+                            i === 0 && headerRowIndicator != 0
+                              ? columnWidth[i]
+                              : "",
                           fontSize: "1.5vw",
                           width: columnWidth[i],
                           textAlign: i === 0 ? "center" : "left",
@@ -406,7 +415,7 @@ const Leaderboard: React.FC = () => {
                 flexDirection: "inherit",
                 justifyContent: "space-between",
                 padding: "1vh 1vw",
-                backgroundColor: "#cbdcff !important",
+                backgroundColor: "#E2DEDE !important",
                 boxShadow: "0px 0px 0px 0px !important",
               }}
             >
@@ -439,10 +448,10 @@ const Leaderboard: React.FC = () => {
                   value={LEADERBOARDHEADERLIST.LEADERBOARD}
                   label={t(LEADERBOARDHEADERLIST.LEADERBOARD)}
                   id="parent-page-tab-bar"
-                // sx={{
-                //   // fontSize:"5vh"
-                //   marginRight: "5vw",
-                // }}
+                  // sx={{
+                  //   // fontSize:"5vh"
+                  //   marginRight: "5vw",
+                  // }}
                 />
                 <Tab
                   id="parent-page-tab-bar"
@@ -459,11 +468,7 @@ const Leaderboard: React.FC = () => {
                 <div>{leaderboardUI()}</div>
               </Box>
             )}
-            {tabIndex === LEADERBOARDHEADERLIST.EVENTS && (
-              <Box>
-
-              </Box>
-            )}
+            {tabIndex === LEADERBOARDHEADERLIST.EVENTS && <Box></Box>}
           </Box>
         </Box>
       ) : null}

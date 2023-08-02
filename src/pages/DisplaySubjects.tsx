@@ -59,6 +59,22 @@ const DisplaySubjects: FC<{}> = () => {
   useEffect(() => {
     init();
   }, []);
+  useEffect(() => {
+    console.log("chapters", currentCourse);
+    console.log("local grade map", localGradeMap);
+    if (!localGradeMap || !localGradeMap.grades) {
+      if (currentCourse) {
+        setIsLoading(true);
+        api.getDifferentGradesForCourse(currentCourse).then(({ grades }) => {
+          localData.gradesMap = { grades, courses: [currentCourse] };
+          setLocalGradeMap({ grades, courses: [currentCourse] });
+          setIsLoading(false);
+        });
+      }
+    }
+  }, [localGradeMap, currentCourse]);
+
+
   const init = async () => {
     const urlParams = new URLSearchParams(location.search);
     console.log(
@@ -80,7 +96,18 @@ const DisplaySubjects: FC<{}> = () => {
       setCurrentGrade(localData.currentGrade);
       setCurrentCourse(localData.currentCourse);
       setCurrentChapter(localData.currentChapter);
-      setLessonResultMap(localData.lessonResultMap);
+      if (localData.lessonResultMap) {
+        setLessonResultMap(localData.lessonResultMap);
+      } else {
+        const currentStudent = Util.getCurrentStudent();
+        if (currentStudent) {
+          //loading student result cache (seems like a new user)
+          const result = await api.getStudentResult(currentStudent.docId, true);
+          const lessons = result?.lessons;
+          localData.lessonResultMap = lessons;
+          setLessonResultMap(lessons);
+        }
+      }
       setStage(STAGES.LESSONS);
       setIsLoading(false);
     } else {
@@ -107,7 +134,6 @@ const DisplaySubjects: FC<{}> = () => {
       localData.lessonResultMap = res;
       setLessonResultMap(res);
     });
-    function getCurrentMode() {}
     const currMode = await schoolUtil.getCurrMode();
 
     const courses = await (currMode === MODES.SCHOOL && !!currClass
@@ -189,8 +215,8 @@ const DisplaySubjects: FC<{}> = () => {
           {stage === STAGES.SUBJECTS
             ? t("Subjects")
             : stage === STAGES.CHAPTERS
-            ? currentCourse?.title
-            : currentChapter?.title}
+              ? currentCourse?.title
+              : currentChapter?.title}
         </div>
         {gradesMap && currentGrade && stage === STAGES.CHAPTERS && (
           <DropDown

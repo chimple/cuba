@@ -42,14 +42,31 @@ import { DocumentReference } from "firebase/firestore";
 import LeaderBoardButton from "./LeaderBoardButton";
 import Class from "../models/class";
 import { schoolUtil } from "../utility/schoolUtil";
-import { AppBar, Box, Tab, Tabs } from '@mui/material';
+import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import { auto } from "@popperjs/core";
 import { margin } from "@mui/system";
 import { push } from "ionicons/icons";
 import { t } from "i18next";
+import { App, URLOpenListenerEvent } from "@capacitor/app";
 
+const sortPlayedLessonsByDate = (
+  lessons: Lesson[],
+  lessonResultMap: { [lessonDocId: string]: StudentLessonResult }
+): Lesson[] => {
+  const sortedLessons = lessons.slice().sort((a, b) => {
+    const lessonResultA = lessonResultMap?.[a.docId];
+    const lessonResultB = lessonResultMap?.[b.docId];
+
+    if (!lessonResultA || !lessonResultB) {
+      return 0;
+    }
+
+    return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
+  });
+
+  return sortedLessons;
+};
 const Home: FC = () => {
-
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentStudent, setCurrentStudent] = useState<User>();
@@ -67,6 +84,7 @@ const Home: FC = () => {
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
   const [levelChapter, setLevelChapter] = useState<Chapter>();
   const [gradeMap, setGradeMap] = useState<any>({});
+  const [PlayedLessonsList, setPlayedLessonsList] = useState<Lesson[]>([]);
 
   const history = useHistory();
 
@@ -74,7 +92,19 @@ const Home: FC = () => {
     setCurrentHeader(HOMEHEADERLIST.HOME);
     setCourse(HOMEHEADERLIST.HOME);
     setValue(SUBTAB.SUGGESTIONS);
+    getHistory();
+    urlOpenListenerEvent();
   }, []);
+
+  function urlOpenListenerEvent() {
+    App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
+      
+      const slug = event.url.split(".cc").pop();
+      if (slug) {
+        history.push(slug);
+      }
+    });
+  }
 
   const api = ServiceConfig.getI().apiHandler;
 
@@ -151,13 +181,15 @@ const Home: FC = () => {
     HISTORY,
   }
   const [value, setValue] = useState(SUBTAB.SUGGESTIONS);
-  const handleChange = (event: React.SyntheticEvent, newValue: SUBTAB.SUGGESTIONS) => {
+  const handleChange = (
+    event: React.SyntheticEvent,
+    newValue: SUBTAB.SUGGESTIONS
+  ) => {
     setValue(newValue);
     console.log("Changing...", newValue);
-
   };
   const handleHomeIconClick = () => {
-    setValue(SUBTAB.SUGGESTIONS)
+    setValue(SUBTAB.SUGGESTIONS);
   };
 
   const getLessonsForChapter = async (chapter: Chapter): Promise<Lesson[]> => {
@@ -170,6 +202,35 @@ const Home: FC = () => {
     setLessons(lessons);
     setIsLoading(false);
     return lessons;
+  };
+
+  const getHistory = async () => {
+    setIsLoading(true);
+
+    const currentStudent = await Util.getCurrentStudent();
+    if (!currentStudent) {
+      return;
+    }
+
+    const studentResult = await api.getStudentResult(currentStudent.docId);
+
+    if (studentResult?.lessons) {
+      const playedLessonIds = Object.keys(studentResult.lessons);
+      const lessonPromises = playedLessonIds.map((lessonId) =>
+        api.getLesson(lessonId)
+      );
+      const lessons: (Lesson | undefined)[] = await Promise.all(lessonPromises);
+      const validLessons: Lesson[] = lessons.filter(
+        (lesson): lesson is Lesson => lesson !== undefined
+      );
+
+      const sortedPlayedLessonsList = sortPlayedLessonsByDate(
+        validLessons,
+        lessonResultMap || {}
+      );
+      setPlayedLessonsList(sortedPlayedLessonsList);
+    }
+    setIsLoading(false);
   };
 
   let reqLes: Lesson[] = [];
@@ -212,8 +273,8 @@ const Home: FC = () => {
     console.log(currMode);
     let sortLessonResultMap:
       | {
-        [lessonDocId: string]: StudentLessonResult;
-      }
+          [lessonDocId: string]: StudentLessonResult;
+        }
       | undefined;
     api.getStudentResult(currentStudent.docId).then(async (res) => {
       console.log("tempResultLessonMap = res;", JSON.stringify(res));
@@ -234,6 +295,10 @@ const Home: FC = () => {
     for (const tempCourse of courses) {
       setIsLoading(true);
       let islessonPushed = false;
+      if (tempCourse.chapters.length <= 0) {
+        console.log("Chapter are empty", tempCourse);
+        continue;
+      }
       if (
         tempResultLessonMap === undefined &&
         tempCourse.chapters[0].id === tempCourse.courseCode + "_quiz"
@@ -390,13 +455,27 @@ const Home: FC = () => {
         history.push(PAGES.ASSIGNMENT);
         break;
       case HOMEHEADERLIST.QUIZ:
-        history.push(PAGES.HOME)
+        history.push(PAGES.HOME);
         break;
       default:
         break;
     }
   }
-
+  const getLovedLessons = () => {
+    return PlayedLessonsList.filter((lesson) => {
+      const lessonResult = lessonResultMap?.[lesson.docId];
+      return lessonResult?.isLoved ?? false;
+    }).sort((a, b) => {
+      const lessonResultA = lessonResultMap?.[a.docId];
+      const lessonResultB = lessonResultMap?.[b.docId];
+      if (!lessonResultA || !lessonResultB) return 0;
+      return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
+    });
+  };
+  const sortedPlayedLessonsList = sortPlayedLessonsByDate(
+    PlayedLessonsList,
+    lessonResultMap || {}
+  );
   return (
     <IonPage id="home-page">
       <IonHeader id="home-header">
@@ -418,10 +497,34 @@ const Home: FC = () => {
                   startIndex={0}
                   showSubjectName={true}
                 />
-
               </div>
-            ) : (
-              <div style={{ marginTop: "2.6%" }}></div>
+            ) : // <div style={{ marginTop: "2.6%" }}></div>
+            null}
+
+            {currentHeader === HOMEHEADERLIST.FAVOURITES && (
+              <div>
+                <LessonSlider
+                  lessonData={getLovedLessons()}
+                  isHome={true}
+                  course={undefined}
+                  lessonsScoreMap={lessonResultMap || {}}
+                  startIndex={0}
+                  showSubjectName={true}
+                />
+              </div>
+            )}
+
+            {currentHeader === HOMEHEADERLIST.HISTORY && (
+              <div>
+                <LessonSlider
+                  lessonData={sortedPlayedLessonsList}
+                  isHome={true}
+                  course={undefined}
+                  lessonsScoreMap={lessonResultMap || {}}
+                  startIndex={0}
+                  showSubjectName={true}
+                />
+              </div>
             )}
 
             {/* To show lesson cards after clicking on header icon  */}
@@ -490,36 +593,45 @@ const Home: FC = () => {
               />
             */}
             {currentHeader !== HOMEHEADERLIST.QUIZ && (
-              <div id="home-page-bottom" >
-                <AppBar className="home-page-app-bar"
-                >
+              <div id="home-page-bottom">
+                <AppBar className="home-page-app-bar">
                   <Box>
                     <Tabs
                       value={value}
                       onChange={handleChange}
-                      TabIndicatorProps={{ style: { display: 'none' } }}
+                      TabIndicatorProps={{ style: { display: "none" } }}
                       sx={{
-                        '& .MuiTab-root': {
+                        "& .MuiTab-root": {
                           color: "black",
-                          borderRadius: '5vh',
+                          borderRadius: "5vh",
                           padding: "0 3vw",
                           margin: "1vh 1vh",
                           minHeight: "37px",
                         },
-                        '& .Mui-selected': {
-                          backgroundColor: '#FF7925',
-                          borderRadius: '8vh',
+                        "& .Mui-selected": {
+                          backgroundColor: "#FF7925",
+                          borderRadius: "8vh",
                           color: "#FFFFFF !important",
                           minHeight: "37px",
                         },
                       }}
                     >
-                      <Tab id='home-page-sub-tab' label={t("Suggestion")}
+                      <Tab
+                        id="home-page-sub-tab"
+                        label={t("Suggestion")}
                         onClick={() => setCurrentHeader(HOMEHEADERLIST.HOME)}
                       />
-                      <Tab id='home-page-sub-tab' label={t("Favourite")} onClick={() => setCurrentHeader("")} />
+                      <Tab
+                        id="home-page-sub-tab"
+                        label={t("Favourite")}
+                        onClick={() => setCurrentHeader(HOMEHEADERLIST.FAVOURITES)}
+                      />
 
-                      <Tab id='home-page-sub-tab' label={t("History")} onClick={() => setCurrentHeader("")} />
+                      <Tab
+                        id="home-page-sub-tab"
+                        label={t("History")}
+                        onClick={() => setCurrentHeader(HOMEHEADERLIST.HISTORY)}
+                      />
                     </Tabs>
                   </Box>
                 </AppBar>

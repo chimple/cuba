@@ -29,10 +29,6 @@ jobs:
       - name: Install app dependencies
         run: npm install
 
-      # - name: Store variables
-      #   run: |
-      #     touch .env
-      #     echo 'REACT_APP_GITHUB_BASE=/cuba' >> .env
       - name: Create Google Services JSON File and key.jks
         working-directory: ./android/app/
         env:
@@ -54,6 +50,8 @@ jobs:
           REACT_APP_MEASUREMENT_ID: ${{ secrets.REACT_APP_MEASUREMENT_ID}}
           REACT_APP_ALGOLIA_APP_ID: ${{ secrets.REACT_APP_ALGOLIA_APP_ID }}
           REACT_APP_ALGOLIA_API_KEY: ${{ secrets.REACT_APP_ALGOLIA_API_KEY }}
+          REACT_APP_HOT_UPDATE_SERVER: ${{ secrets.MASTER_HOT_UPDATE_SERVER }}
+
         run: npm run build
 
       - name: Deploy to Firebase
@@ -62,12 +60,6 @@ jobs:
           args: deploy --only hosting:cuba-stage
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-
-      # - name: deploy web
-      #   uses: peaceiris/actions-gh-pages@v3
-      #   with:
-      #     github_token: ${{ secrets.ACCESS_TOKEN }}
-      #     publish_dir: ./build
 
       - name: Make gradlew executable
         working-directory: ./android/
@@ -91,3 +83,15 @@ jobs:
           #git push --force secure-origin apk
           #git push --set-upstream origin gh-pages
           git push origin apk -f
+          
+      # - name: Pushes to Hot update
+      #   uses: cpina/github-action-push-to-another-repository@main
+      #   env:
+      #     API_TOKEN_GITHUB: ${{ secrets.ACCESS_TOKEN }}
+      #   with:
+      #     source-directory: "build"
+      #     target-directory: "public/v1"
+      #     destination-github-username: "chimple"
+      #     destination-repository-name: "cuba-hot-update"
+      #     user-email: prakash@sutara.org
+      #     target-branch: main
