@@ -1,13 +1,15 @@
+// LovedIcon.tsx
 import { AiTwotoneHeart } from "react-icons/ai";
 import "./LovedIcon.css";
 
 const LovedIcon: React.FC<{
   isLoved: boolean | undefined;
-}> = ({ isLoved }) => {
+  hasChapterTitle: boolean;
+}> = ({ isLoved, hasChapterTitle }) => {
   return (
     <div>
       {isLoved && (
-        <div className="fav-icon">
+        <div className={`fav-icon ${hasChapterTitle ? 'with-chapter-title' : ''}`}>
           <AiTwotoneHeart
             className="fav-icon-image"
             id="fav-icon-image"
@@ -17,4 +19,5 @@ const LovedIcon: React.FC<{
     </div>
   );
 };
+
 export default LovedIcon;

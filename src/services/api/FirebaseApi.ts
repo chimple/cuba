@@ -537,14 +537,19 @@ export class FirebaseApi implements ServiceApi {
         if (chapter.lessons && chapter.lessons.length > 0) {
           for (let lesson of chapter.lessons) {
             if (lesson.id === lessonId) {
+              const chapTitle = chapter.title;
               // console.log("lesson id Found", lesson);
               if (lesson instanceof DocumentReference) {
                 const lessonObj = await this.getLesson(lesson.id);
                 if (lessonObj) {
-                  lesMap[lesson.id] = lessonObj as Lesson;
+                  let tmpLes : Lesson = lessonObj as Lesson;
+                  tmpLes.chapterTitle = chapTitle;
+                  lesMap[lesson.id] = tmpLes;
                 }
               } else {
-                lesMap[lesson.id] = lesson as Lesson;
+                let tmpLes : Lesson = lesson as Lesson;
+                tmpLes.chapterTitle = chapTitle;
+                lesMap[lesson.id] = tmpLes;
               }
               // console.log("lesMap", lesMap);
               lessons[course.courseCode] = lesMap;
