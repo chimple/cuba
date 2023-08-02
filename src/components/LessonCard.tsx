@@ -28,6 +28,8 @@ const LessonCard: React.FC<{
   isLoved: boolean | undefined;
   lessonData: Lesson[];
   startIndex: number;
+  setSwipeIndex: Function;
+  currentCardIndex: number;
 }> = ({
   width,
   height,
@@ -43,6 +45,8 @@ const LessonCard: React.FC<{
   isLoved,
   lessonData,
   startIndex,
+  setSwipeIndex,
+  currentCardIndex,
 }) => {
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
@@ -109,6 +113,7 @@ const LessonCard: React.FC<{
             parmas,
             Lesson.toJson(lesson)
           );
+          setSwipeIndex(currentCardIndex);
           history.push(PAGES.GAME + parmas, {
             url: "chimple-lib/index.html" + parmas,
             lessonId: lesson.id,

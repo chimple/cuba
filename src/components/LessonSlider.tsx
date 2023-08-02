@@ -7,6 +7,8 @@ import Lesson from "../models/lesson";
 import Course from "../models/course";
 import { StudentLessonResult } from "../common/courseConstants";
 
+
+let localData : any = {};
 const LessonSlider: React.FC<{
   lessonData: Lesson[];
   course: Course | undefined;
@@ -27,7 +29,13 @@ const LessonSlider: React.FC<{
   let height: string;
   width = "45.5vh";
   height = "35vh";
+
+  function setSwipeIndex(index : number){
+    localData.cIndex = index;
+    console.log("lessonSlider line_35" + index);
+  }
   useEffect(() => {
+    startIndex = localData?. cIndex ? localData.cIndex :startIndex
     // console.log("lessonsScoreMap", lessonsScoreMap);
     lessonSwiperRef?.go(0);
     setTimeout(() => {
@@ -78,6 +86,8 @@ const LessonSlider: React.FC<{
                 score={lessonsScoreMap[m.docId]?.score}
                 lessonData={lessonData}
                 startIndex={startIndex === -1 ? startIndex + 1 : startIndex}
+                currentCardIndex = {i}
+                setSwipeIndex={setSwipeIndex}
               />
             </SplideSlide>
           );
@@ -128,6 +138,8 @@ const LessonSlider: React.FC<{
                 score={lessonsScoreMap[m.docId]?.score}
                 lessonData={lessonData}
                 startIndex={startIndex === -1 ? startIndex + 1 : startIndex}
+                currentCardIndex = {i}
+                setSwipeIndex={setSwipeIndex}
               />
             </SplideSlide>
           );
