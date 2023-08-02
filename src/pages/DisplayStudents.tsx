@@ -33,7 +33,7 @@ const DisplayStudents: FC<{}> = () => {
 
     if (!students || students.length < 1) {
       history.replace(PAGES.CREATE_STUDENT, {
-        showBackButton: true,
+        showBackButton: false,
       });
       return;
     }
