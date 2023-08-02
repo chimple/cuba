@@ -101,10 +101,6 @@
   top: 0%;
 }
 
-.lessonCardText{
-  display: flex;
-  flex-direction: column;
-}
 #chapter-title {
   color: var(--text-color);
   font-size: var(--text-size);

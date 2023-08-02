@@ -210,14 +210,12 @@ const LessonCard: React.FC<{
           </div>
         </div>
       </div>
-      <div className="lessonCardText">
       {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
       {lesson.chapterTitle &&
         <div id="chapter-title">
           {lesson.chapterTitle}
         </div>
       }
-      </div>
     </IonCard>
   );
 };

@@ -74,10 +74,3 @@
   text-overflow: ellipsis;
   overflow: hidden;
 }
-
-#leaderboard-student-name{
-  white-space: nowrap;
-  max-width: 10.0vw;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}

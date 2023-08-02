@@ -13,7 +13,7 @@
 
 .child-Name {
   white-space: nowrap;
-  max-width: 10vw;
+  max-width: 11vw;
   text-overflow: ellipsis;
   overflow: hidden;
 }

@@ -147,7 +147,7 @@ const Leaderboard: React.FC = () => {
       var result = element.timeSpent % 60;
       tempLeaderboardDataArray.push([
         i + 1,
-        <p id="leaderboard-student-name">{ element.name}</p>,
+        element.name,
         element.lessonsPlayed,
         element.score,
         computeMinutes + "min" + " " + result + " " + "sec",
@@ -176,7 +176,7 @@ const Leaderboard: React.FC = () => {
       ];
       tempLeaderboardDataArray.push([
         "--",
-       <p id="leaderboard-student-name">{ currentStudent.name}</p>,
+       currentStudent.name,
         "--",
         "--",
         "--" + t("min") + " --" + t("sec"),
