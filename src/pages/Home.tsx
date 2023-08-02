@@ -98,7 +98,7 @@ const Home: FC = () => {
 
   function urlOpenListenerEvent() {
     App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
-      
+
       const slug = event.url.split(".cc").pop();
       if (slug) {
         history.push(slug);
@@ -273,8 +273,8 @@ const Home: FC = () => {
     console.log(currMode);
     let sortLessonResultMap:
       | {
-          [lessonDocId: string]: StudentLessonResult;
-        }
+        [lessonDocId: string]: StudentLessonResult;
+      }
       | undefined;
     api.getStudentResult(currentStudent.docId).then(async (res) => {
       console.log("tempResultLessonMap = res;", JSON.stringify(res));
@@ -446,7 +446,7 @@ const Home: FC = () => {
         }
         break;
       case HOMEHEADERLIST.PROFILE:
-        history.push(PAGES.PROFILE);
+        history.push(PAGES.LEADERBOARD);
         break;
       case HOMEHEADERLIST.SEARCH:
         history.push(PAGES.SEARCH);
@@ -499,7 +499,7 @@ const Home: FC = () => {
                 />
               </div>
             ) : // <div style={{ marginTop: "2.6%" }}></div>
-            null}
+              null}
 
             {currentHeader === HOMEHEADERLIST.FAVOURITES && (
               <div>
@@ -637,7 +637,7 @@ const Home: FC = () => {
                 </AppBar>
               </div>
             )}
-            <div id="home-leaderboard-button">
+            {/* <div id="home-leaderboard-button">
               <LeaderBoardButton
                 iconSrc={"assets/icons/LeaderboardIcon.svg"}
                 // name={"Leaderboard"}
@@ -648,7 +648,7 @@ const Home: FC = () => {
                   // }
                 }}
               />
-            </div>
+            </div> */}
           </div>
         ) : null}
         <Loading isLoading={isLoading} />
