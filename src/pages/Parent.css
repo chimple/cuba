@@ -28,7 +28,7 @@
   padding: 3vh 2vh;
   font-weight: bold;
   font-size: var(--text-size);
-
+  color: var(--text-color);
   cursor: pointer;
 }
 
