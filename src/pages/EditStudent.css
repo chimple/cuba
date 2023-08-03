@@ -5,6 +5,10 @@
   background-color: #e2dede;
 }
 
+.content::-webkit-scrollbar {
+  display: none;
+}
+
 .button-round {
   --padding-start: min(13px, 2vw);
   --padding-end: min(5px, 2vw);

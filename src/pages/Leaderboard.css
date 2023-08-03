@@ -52,6 +52,10 @@
   text-align: center;
 }
 
+#leaderboard-right-UI::-webkit-scrollbar {
+  display: none;
+}
+
 #leaderboard-right-UI-content {
   /* width: 10vw; */
   /* text-align: left; */
