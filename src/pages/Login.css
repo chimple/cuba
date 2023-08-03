@@ -175,6 +175,10 @@ p {
   overflow: scroll;
 }
 
+.scroll-header::-webkit-scrollbar {
+  display: none;
+}
+
 #login-resend-otp {
   display: flex;
   justify-content: space-between;

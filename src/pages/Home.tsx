@@ -48,8 +48,6 @@ import { auto } from "@popperjs/core";
 import { margin } from "@mui/system";
 import { push } from "ionicons/icons";
 import { t } from "i18next";
-import { App, URLOpenListenerEvent } from "@capacitor/app";
-
 
 const sortPlayedLessonsByDate = (
   lessons: Lesson[],
@@ -98,18 +96,9 @@ const sortPlayedLessonsByDate = (
     setCourse(HOMEHEADERLIST.HOME);
     setValue(SUBTAB.SUGGESTIONS);
     getHistory();
-    urlOpenListenerEvent();
+
   }, []);
 
-  function urlOpenListenerEvent() {
-    App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
-
-      const slug = event.url.split(".cc").pop();
-      if (slug) {
-        history.push(slug);
-      }
-    });
-  }
   const api = ServiceConfig.getI().apiHandler;
   async function getLessonFromCourses(courseId: string | undefined, lesssonId: string): Promise<Lesson | undefined> {
     if (!localData.allCourses) {
@@ -521,7 +510,7 @@ const sortPlayedLessonsByDate = (
         }
         break;
       case HOMEHEADERLIST.PROFILE:
-        history.push(PAGES.LEADERBOARD);
+        history.replace(PAGES.LEADERBOARD);
         break;
       case HOMEHEADERLIST.SEARCH:
         history.push(PAGES.SEARCH);
