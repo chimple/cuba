@@ -104,7 +104,7 @@ const sortPlayedLessonsByDate = (
 
   function urlOpenListenerEvent() {
     App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
-      
+
       const slug = event.url.split(".cc").pop();
       if (slug) {
         history.push(slug);
@@ -112,7 +112,35 @@ const sortPlayedLessonsByDate = (
     });
   }
 
+
   const api = ServiceConfig.getI().apiHandler;
+
+
+  async function getLessonFromCourses(courseId: string | undefined, lesssonId: string): Promise<Lesson | undefined> {
+    if (!localData.allCourses) {
+      let tempAllCourses = await api.getAllCourses();
+      localData.allCourses = tempAllCourses;
+    }
+    if (courseId) {
+      let locCourse: Course | undefined =  localData.allCourses?.find((cour) => cour.docId === courseId);
+      if (locCourse) {
+        let tmpLess: Lesson | undefined = await api.getLessonFromCourse(locCourse, lesssonId);
+        if (tmpLess) {
+          return tmpLess;
+        }
+      }
+    } else {
+      let tmpLess: Lesson | undefined;
+
+      for (let cour of localData.allCourses) {
+        tmpLess = await api.getLessonFromCourse(cour, lesssonId);
+        if (tmpLess)
+          return tmpLess;
+      }
+    }
+    return await api.getLesson(lesssonId);
+  }
+
   const getAssignments = async () => {
     setIsLoading(true);
     const student = await Util.getCurrentStudent();
@@ -138,11 +166,10 @@ const sortPlayedLessonsByDate = (
       let count = 0;
       await Promise.all(
         allAssignments.map(async (_assignment) => {
-          const res = await api.getLesson(_assignment.lesson.id);
+          const res = await getLessonFromCourses(_assignment.course.id, _assignment.lesson.id);
           if (!!res) {
             count++;
             res.assignment = _assignment;
-            res.chapterTitle = getChapterTitle(_assignment.course.id, res.docId);
             reqLes.push(res);
           }
         })
@@ -155,34 +182,6 @@ const sortPlayedLessonsByDate = (
       setIsLoading(false);
     }
   };
-
-  function getChapterTitle(courseId: string | undefined, lesssonId: string) {
-    let chapT: string = "";
-    if (courseId) {
-      let locCourse: Course | undefined = localData.allCourses?.find((cour) => cour.docId === courseId);
-      locCourse ? getChaptitle(locCourse) : localData.allCourses?.find((c) => getChaptitle(c));
-    } else {
-      localData.allCourses?.find((c) => getChaptitle(c));
-    }
-    function getChaptitle(aCourse: Course) {
-      aCourse.chapters.forEach((chap) => {
-        chap.lessons.forEach((le) => {
-          if (le.id === lesssonId) {
-            console.log("Chapter Found :" + chap.title);
-            chapT = chap.title;
-            return;
-          }
-        })
-        if (chapT) return;
-        console.log("Chapther MAP")
-      });
-    }
-
-    function getC(course: Course) {
-      return courseId === course.docId;
-    }
-    return chapT;
-  }
 
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
@@ -202,10 +201,7 @@ const sortPlayedLessonsByDate = (
     if (subjectCode === HOMEHEADERLIST.HOME) {
       // let r = api.getStudentResultInMap(currentStudent.docId);
       // console.log("r = api.getStudentResultInMap(currentStudent.docId);", r);
-      if( !localData.allCourses){
-        let tempAllCourses = await api.getAllCourses();
-      localData.allCourses = tempAllCourses;
-      }
+      
       await getAssignments();
       getRecommendationLessons(currentStudent, currClass).then(() => {
         console.log("Final RECOMMENDATION List ", reqLes);
@@ -299,7 +295,7 @@ const sortPlayedLessonsByDate = (
     if (studentResult?.lessons) {
       const playedLessonIds = Object.keys(studentResult.lessons);
       const lessonPromises = playedLessonIds.map((lessonId) =>
-        api.getLesson(lessonId)
+        getLessonFromCourses(undefined, lessonId)
       );
       const lessons: (Lesson | undefined)[] = await Promise.all(lessonPromises);
       const validLessons: Lesson[] = lessons.filter(
@@ -355,8 +351,8 @@ const sortPlayedLessonsByDate = (
     console.log(currMode);
     let sortLessonResultMap:
       | {
-          [lessonDocId: string]: StudentLessonResult;
-        }
+        [lessonDocId: string]: StudentLessonResult;
+      }
       | undefined;
     api.getStudentResult(currentStudent.docId).then(async (res) => {
       console.log("tempResultLessonMap = res;", JSON.stringify(res));
@@ -394,8 +390,6 @@ const sortPlayedLessonsByDate = (
             );
             // await res.lessons[tempCourse.courseCode][l.id];
             if (lessonObj) {
-              let chapterTitle = tempCourse.chapters[0].title;
-              lessonObj.chapterTitle = chapterTitle;
               console.log(lessonObj, "lessons pushed");
               reqLes.push(lessonObj as Lesson);
               setDataCourse(reqLes);
@@ -433,8 +427,6 @@ const sortPlayedLessonsByDate = (
               // );
 
               if (lessonObj) {
-                let chapterTitle = chapter.title;
-                lessonObj.chapterTitle = chapterTitle;
                 console.log(lessonObj, "lessons pushed");
                 reqLes.push(lessonObj as Lesson);
               }
@@ -482,7 +474,7 @@ const sortPlayedLessonsByDate = (
     setIsLoading(false);
   }
 
- 
+
   async function getDataForSubject(course: Course): Promise<{
     chapters: Chapter[];
     lessons: {
@@ -534,7 +526,7 @@ const sortPlayedLessonsByDate = (
         }
         break;
       case HOMEHEADERLIST.PROFILE:
-        history.replace(PAGES.LEADERBOARD);
+        history.push(PAGES.LEADERBOARD);
         break;
       case HOMEHEADERLIST.SEARCH:
         history.push(PAGES.SEARCH);
@@ -577,7 +569,7 @@ const sortPlayedLessonsByDate = (
 
   const getLovedLessons = () => {
     return PlayedLessonsList.filter((lesson) => {
-      lesson.chapterTitle = getChapterTitle(undefined, lesson.docId);
+
       const lessonResult = lessonResultMap?.[lesson.docId];
       return lessonResult?.isLoved ?? false;
     }).sort((a, b) => {
@@ -616,7 +608,7 @@ const sortPlayedLessonsByDate = (
                 />
               </div>
             ) : // <div style={{ marginTop: "2.6%" }}></div>
-            null}
+              null}
 
             {currentHeader === HOMEHEADERLIST.FAVOURITES && (
               <div>
