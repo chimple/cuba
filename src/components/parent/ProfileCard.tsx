@@ -110,11 +110,11 @@ const ProfileCard: React.FC<{
           width={"40vw"}
           height={"30vh"}
           message={t(
-            "You can edit or delete user by clicking on the below buttons"
+            "You can edit or delete Profile by clicking on the below buttons"
           )}
           showDialogBox={showDialogBox}
-          yesText={t("Delete User")}
-          noText={t("Edit User")}
+          yesText={t("Delete Profile")}
+          noText={t("Edit Profile")}
           handleClose={() => {
             setShowDialogBox(false);
             console.log("Close", false);
