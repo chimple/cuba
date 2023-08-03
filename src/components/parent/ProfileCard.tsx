@@ -11,6 +11,7 @@ import { Util } from '../../utility/util';
 import DialogBoxButtons from "./DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
+import Loading from "../Loading";
 
 const ProfileCard: React.FC<{
   width: string;
@@ -25,6 +26,7 @@ const ProfileCard: React.FC<{
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [showWarningDialogBox, setShowWarningDialogBox] =
     useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
   return (
     <IonCard
@@ -148,8 +150,11 @@ const ProfileCard: React.FC<{
             console.log(`Show warning yes:`, user.docId);
             setShowWarningDialogBox(false);
             setShowDialogBox(false);
+            setIsLoading(true)
+            setReloadProfiles(false);
             await ServiceConfig.getI().apiHandler.deleteProfile(user.docId);
             await setReloadProfiles (true);
+            setIsLoading(false);
             Util.logEvent(EVENTS.USER_PROFILE,{
               user_id: user.docId,
               user_type: user.role,
@@ -168,6 +173,7 @@ const ProfileCard: React.FC<{
           }}
         ></DialogBoxButtons>
       ) : null}
+      <Loading isLoading={isLoading} />
     </IonCard>
   );
 };
