@@ -535,7 +535,7 @@ const sortPlayedLessonsByDate = (
         history.push(PAGES.ASSIGNMENT);
         break;
       case HOMEHEADERLIST.QUIZ:
-        history.push(PAGES.HOME);
+        history.replace(PAGES.LEADERBOARD);
         break;
       default:
         break;

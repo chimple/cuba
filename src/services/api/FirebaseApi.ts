@@ -491,9 +491,11 @@ export class FirebaseApi implements ServiceApi {
           if (lesson instanceof DocumentReference) {
             const lessonObj = await this.getLesson(lesson.id);
             if (lessonObj) {
+              lessonObj.chapterTitle = chapter.title;
               lesMap[lesson.id] = lessonObj as Lesson;
             }
           } else {
+            lesson.chapterTitle = chapter.title;
             lesMap[lesson.id] = lesson as Lesson;
           }
         }
@@ -538,6 +540,7 @@ export class FirebaseApi implements ServiceApi {
           for (let lesson of chapter.lessons) {
             if (lesson.id === lessonId) {
               let chapTitle = chapter.title;
+              console.log(chapTitle,"chapTitel");
               // console.log("lesson id Found", lesson);
               if (lesson instanceof DocumentReference) {
                 const lessonObj = await this.getLesson(lesson.id);
