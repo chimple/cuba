@@ -424,7 +424,6 @@ export class FirebaseApi implements ServiceApi {
     return this.sortSubject(subjects);
   }
 
-
   async getLesson(id: string, chapter: Chapter | undefined = undefined, loadChapterTitle: boolean = false): Promise<Lesson | undefined> {
     try {
       const lessonDoc = await getDoc(
@@ -437,33 +436,15 @@ export class FirebaseApi implements ServiceApi {
       if (!!chapter)
         lesson.chapterTitle = chapter.title;
       else if (loadChapterTitle) {
-        console.log("---------ashokredd")
+
         if (!this._allCourses) {
-          console.log("---------ashokre")
           this._allCourses = await this.getAllCourses();
         }
-        this._allCourses.forEach((aCourse) => {
-          if (aCourse.courseCode === lesson.cocosSubjectCode) {
-            aCourse.chapters.forEach((chap) => {
-              if (chap.id === lesson.cocosChapterCode) {
-                chap.lessons.forEach((le) => {
-                  console.log("MSDFSDG");
-                  if (le.id === lesson.docId) {
-                    console.log("Chapter Found :" + chap.title);
-                    lesson.chapterTitle = chap.title;
-                    return;
-                  }
-                })
-                if (!!lesson.chapterTitle) return;
-                console.log("Chapther MAP")
-              }
-            }
-            )
-          }
-        }
-        );
-      }
+        const tmpChapter = this._allCourses?.find(course => course.courseCode === lesson.cocosSubjectCode);
+        const chapter = tmpChapter?.chapters.find(chapter => chapter.id === lesson.cocosChapterCode);
+        lesson.chapterTitle = chapter?.title;
 
+      }
 
       return lesson;
     } catch (error) {
@@ -473,9 +454,6 @@ export class FirebaseApi implements ServiceApi {
       );
     }
   }
-
-
-
   async getLessonsForChapter(chapter: Chapter): Promise<Lesson[]> {
     const lessons: Lesson[] = [];
     try {

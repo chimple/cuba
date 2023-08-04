@@ -207,7 +207,7 @@ function SearchLesson() {
         lessonsScoreMap={lessonResultMap || {}}
         startIndex={0}
         showSubjectName={true}
-        showChapterName = {true}
+        showChapterName = {false}
       />
       <div className="search-bottom"></div>
     </div>
