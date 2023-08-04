@@ -162,6 +162,7 @@ const AssignmentPage: React.FC = () => {
                       lessonsScoreMap={lessonResultMap || {}}
                       startIndex={0}
                       showSubjectName={true}
+                      showChapterName= {true}
                     />
                   ) : (
                     <div className="pending-assignment">

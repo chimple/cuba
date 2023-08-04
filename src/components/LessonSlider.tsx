@@ -15,6 +15,7 @@ const LessonSlider: React.FC<{
   lessonsScoreMap: { [lessonDocId: string]: StudentLessonResult };
   startIndex: number;
   showSubjectName: boolean;
+  showChapterName : boolean;
 }> = ({
   lessonData,
   course,
@@ -22,6 +23,7 @@ const LessonSlider: React.FC<{
   lessonsScoreMap,
   startIndex,
   showSubjectName = false,
+  showChapterName = false,
 }) => {
     const [lessonSwiperRef, setLessonSwiperRef] = useState<any>();
     let width: string;
@@ -97,6 +99,7 @@ const LessonSlider: React.FC<{
                   score={lessonsScoreMap[m.docId]?.score}
                   lessonData={lessonData}
                   startIndex={startIndex === -1 ? startIndex + 1 : startIndex}
+                  showChapterName = {showChapterName}
                 />
               </SplideSlide>
             );
@@ -147,6 +150,7 @@ const LessonSlider: React.FC<{
                   score={lessonsScoreMap[m.docId]?.score}
                   lessonData={lessonData}
                   startIndex={startIndex === -1 ? startIndex + 1 : startIndex}
+                  showChapterName = {showChapterName}
                 />
               </SplideSlide>
             );

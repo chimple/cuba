@@ -61,7 +61,8 @@ export class FirebaseApi implements ServiceApi {
   private _studentResultCache: { [key: string]: StudentProfile } = {};
   private _schoolsCache: { [userId: string]: School[] } = {};
   private _currentMode: MODES;
-  private constructor() {}
+  private _allCourses: Course[];
+  private constructor() { }
 
   public static getInstance(): FirebaseApi {
     if (!FirebaseApi.i) {
@@ -423,7 +424,8 @@ export class FirebaseApi implements ServiceApi {
     return this.sortSubject(subjects);
   }
 
-  async getLesson(id: string): Promise<Lesson | undefined> {
+
+  async getLesson(id: string, chapter: Chapter | undefined = undefined, loadChapterTitle: boolean = false): Promise<Lesson | undefined> {
     try {
       const lessonDoc = await getDoc(
         doc(this._db, `${CollectionIds.LESSON}/${id}`)
@@ -431,6 +433,38 @@ export class FirebaseApi implements ServiceApi {
       if (!lessonDoc.exists) return;
       const lesson = lessonDoc.data() as Lesson;
       lesson.docId = lessonDoc.id;
+
+      if (!!chapter)
+        lesson.chapterTitle = chapter.title;
+      else if (loadChapterTitle) {
+        console.log("---------ashokredd")
+        if (!this._allCourses) {
+          console.log("---------ashokre")
+          this._allCourses = await this.getAllCourses();
+        }
+        this._allCourses.forEach((aCourse) => {
+          if (aCourse.courseCode === lesson.cocosSubjectCode) {
+            aCourse.chapters.forEach((chap) => {
+              if (chap.id === lesson.cocosChapterCode) {
+                chap.lessons.forEach((le) => {
+                  console.log("MSDFSDG");
+                  if (le.id === lesson.docId) {
+                    console.log("Chapter Found :" + chap.title);
+                    lesson.chapterTitle = chap.title;
+                    return;
+                  }
+                })
+                if (!!lesson.chapterTitle) return;
+                console.log("Chapther MAP")
+              }
+            }
+            )
+          }
+        }
+        );
+      }
+
+
       return lesson;
     } catch (error) {
       console.log(
@@ -440,13 +474,15 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
+
+
   async getLessonsForChapter(chapter: Chapter): Promise<Lesson[]> {
     const lessons: Lesson[] = [];
     try {
       if (chapter.lessons && chapter.lessons.length > 0) {
         for (let lesson of chapter.lessons) {
           if (lesson instanceof DocumentReference) {
-            const lessonObj = await this.getLesson(lesson.id);
+            const lessonObj = await this.getLesson(lesson.id, chapter);
             if (lessonObj) {
               lessons.push(lessonObj);
             }
@@ -489,13 +525,11 @@ export class FirebaseApi implements ServiceApi {
       if (chapter.lessons && chapter.lessons.length > 0) {
         for (let lesson of chapter.lessons) {
           if (lesson instanceof DocumentReference) {
-            const lessonObj = await this.getLesson(lesson.id);
+            const lessonObj = await this.getLesson(lesson.id, chapter);
             if (lessonObj) {
-              lessonObj.chapterTitle = chapter.title;
               lesMap[lesson.id] = lessonObj as Lesson;
             }
           } else {
-            lesson.chapterTitle = chapter.title;
             lesMap[lesson.id] = lesson as Lesson;
           }
         }
@@ -539,20 +573,14 @@ export class FirebaseApi implements ServiceApi {
         if (chapter.lessons && chapter.lessons.length > 0) {
           for (let lesson of chapter.lessons) {
             if (lesson.id === lessonId) {
-              let chapTitle = chapter.title;
-              console.log(chapTitle,"chapTitel");
               // console.log("lesson id Found", lesson);
               if (lesson instanceof DocumentReference) {
-                const lessonObj = await this.getLesson(lesson.id);
+                const lessonObj = await this.getLesson(lesson.id, chapter);
                 if (lessonObj) {
-                  let tmpLes : Lesson = lessonObj as Lesson;
-                  tmpLes.chapterTitle = chapTitle;
-                  lesMap[lesson.id] = tmpLes;
+                  lesMap[lesson.id] = lessonObj as Lesson;
                 }
               } else {
-                let tmpLes : Lesson = lesson as Lesson;
-                tmpLes.chapterTitle = chapTitle;
-                lesMap[lesson.id] = tmpLes;
+                lesMap[lesson.id] = lesson as Lesson;
               }
               // console.log("lesMap", lesMap);
               lessons[course.courseCode] = lesMap;

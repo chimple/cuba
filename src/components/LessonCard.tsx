@@ -28,6 +28,7 @@ const LessonCard: React.FC<{
   isLoved: boolean | undefined;
   lessonData: Lesson[];
   startIndex: number;
+  showChapterName : boolean;
 }> = ({
   width,
   height,
@@ -43,6 +44,7 @@ const LessonCard: React.FC<{
   isLoved,
   lessonData,
   startIndex,
+  showChapterName = false,
 }) => {
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
@@ -211,7 +213,7 @@ const LessonCard: React.FC<{
         </div>
       </div>
       {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
-      {lesson.chapterTitle &&
+      {showChapterName && lesson.chapterTitle &&
         <div id="chapter-title">
           {lesson.chapterTitle}
         </div>
