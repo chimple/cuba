@@ -440,12 +440,10 @@ export class FirebaseApi implements ServiceApi {
         if (!this._allCourses) {
           this._allCourses = await this.getAllCourses();
         }
-        const tmpChapter = this._allCourses?.find(course => course.courseCode === lesson.cocosSubjectCode);
-        const chapter = tmpChapter?.chapters.find(chapter => chapter.id === lesson.cocosChapterCode);
+        const tmpCourse = this._allCourses?.find(course => course.courseCode === lesson.cocosSubjectCode);
+        const chapter = tmpCourse?.chapters.find(chapter => chapter.id === lesson.cocosChapterCode);
         lesson.chapterTitle = chapter?.title;
-
       }
-
       return lesson;
     } catch (error) {
       console.log(
