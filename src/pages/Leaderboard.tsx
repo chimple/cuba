@@ -240,9 +240,7 @@ const Leaderboard: React.FC = () => {
             <img
               className="avatar-img"
               src={
-                "assets/avatars/" +
-                (currentStudent?.avatar ?? AVATARS[0]) +
-                ".png"
+                currentStudent?.image || ("assets/avatars/" + (currentStudent?.avatar ?? AVATARS[0]) + ".png")
               }
               alt=""
             />

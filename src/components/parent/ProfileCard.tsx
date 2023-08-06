@@ -68,7 +68,7 @@ const ProfileCard: React.FC<{
           <img
             id="profile-card-image"
             loading="lazy"
-            src={"assets/avatars/" + (user.avatar ?? AVATARS[0]) + ".png"}
+            src={ user.image || "assets/avatars/" + (user.avatar ?? AVATARS[0]) + ".png"}
             alt=""
           />
           <p id="profile-card-user-name">{user.name}</p>

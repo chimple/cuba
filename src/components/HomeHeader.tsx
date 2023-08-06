@@ -100,7 +100,7 @@ const HomeHeader: React.FC<{
 
       <HeaderIcon
         headerName={student?.name ?? "Profile"}
-        iconSrc={"assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png"}
+        iconSrc={student?.image || ("assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png")}
         currentHeader={currentHeader}
         headerList={HOMEHEADERLIST.PROFILE}
         pendingAssignmentCount={0}
