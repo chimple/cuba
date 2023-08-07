@@ -117,9 +117,7 @@ const DisplayStudents: FC<{}> = () => {
               >
                 <img
                   className="avatar-img"
-                  src={
-                    "assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png"
-                  }
+                  src={student.image || ("assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png")}
                   alt=""
                 />
                 <span className="student-name">{student.name}</span>
