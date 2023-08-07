@@ -50,7 +50,6 @@ import { push } from "ionicons/icons";
 import { t } from "i18next";
 import { App, URLOpenListenerEvent } from "@capacitor/app";
 
-
 const sortPlayedLessonsByDate = (
   lessons: Lesson[],
   lessonResultMap: { [lessonDocId: string]: StudentLessonResult }
@@ -88,23 +87,21 @@ const Home: FC = () => {
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
   const [levelChapter, setLevelChapter] = useState<Chapter>();
   const [gradeMap, setGradeMap] = useState<any>({});
-  const [pendingAssignmentsCount, setPendingAssignmentsCount] = useState<number>(0);
+  const [pendingAssignmentsCount, setPendingAssignmentsCount] =
+    useState<number>(0);
   const history = useHistory();
   const [PlayedLessonsList, setPlayedLessonsList] = useState<Lesson[]>([]);
-
 
   useEffect(() => {
     setCurrentHeader(HOMEHEADERLIST.HOME);
     setCourse(HOMEHEADERLIST.HOME);
     setValue(SUBTAB.SUGGESTIONS);
     getHistory();
-
     urlOpenListenerEvent();
   }, []);
 
   function urlOpenListenerEvent() {
     App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
-
       const slug = event.url.split(".cc").pop();
       if (slug) {
         history.push(slug);
@@ -138,7 +135,11 @@ const Home: FC = () => {
       let count = 0;
       await Promise.all(
         allAssignments.map(async (_assignment) => {
-          const res = await api.getLesson(_assignment.lesson.id, undefined, true);
+          const res = await api.getLesson(
+            _assignment.lesson.id,
+            undefined,
+            true
+          );
           console.log(res);
           if (!!res) {
             count++;
@@ -155,7 +156,6 @@ const Home: FC = () => {
       setIsLoading(false);
     }
   };
-
 
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
@@ -184,7 +184,6 @@ const Home: FC = () => {
         console.log("Final RECOMMENDATION List ", reqLes);
         setDataCourse(reqLes);
       });
-
     }
 
     /// Below code to show lessons card and chapters bar
@@ -328,8 +327,8 @@ const Home: FC = () => {
     console.log(currMode);
     let sortLessonResultMap:
       | {
-        [lessonDocId: string]: StudentLessonResult;
-      }
+          [lessonDocId: string]: StudentLessonResult;
+        }
       | undefined;
     api.getStudentResult(currentStudent.docId).then(async (res) => {
       console.log("tempResultLessonMap = res;", JSON.stringify(res));
@@ -374,7 +373,7 @@ const Home: FC = () => {
               setDataCourse(reqLes);
             }
           } else {
-            console.log("Wrong place")
+            console.log("Wrong place");
             console.log(element, "lessons pushed");
             reqLes.push(element as Lesson);
             setDataCourse(reqLes);
@@ -415,7 +414,7 @@ const Home: FC = () => {
               //   console.log(lesson, "lessons pushed");
               //   reqLes.push(lesson);
               // }
-              console.log("DWSGSGSG")
+              console.log("DWSGSGSG");
               setDataCourse(reqLes);
               islessonPushed = true;
               break;
@@ -428,7 +427,7 @@ const Home: FC = () => {
       //Last Played Lessons
       islessonPushed = false;
       if (!sortLessonResultMap) {
-        console.log("ERERERER")
+        console.log("ERERERER");
         setDataCourse(reqLes);
         setIsLoading(false);
         continue;
@@ -454,7 +453,6 @@ const Home: FC = () => {
     setDataCourse(reqLes);
     setIsLoading(false);
   }
-
 
   async function getDataForSubject(course: Course): Promise<{
     chapters: Chapter[];
@@ -563,7 +561,6 @@ const Home: FC = () => {
     PlayedLessonsList,
     lessonResultMap || {}
   );
-
   return (
     <IonPage id="home-page">
       <IonHeader id="home-header">
@@ -585,11 +582,11 @@ const Home: FC = () => {
                   lessonsScoreMap={lessonResultMap || {}}
                   startIndex={0}
                   showSubjectName={true}
-                  showChapterName = {true}
+                  showChapterName={true}
                 />
               </div>
             ) : // <div style={{ marginTop: "2.6%" }}></div>
-              null}
+            null}
 
             {currentHeader === HOMEHEADERLIST.FAVOURITES && (
               <div>
@@ -600,7 +597,7 @@ const Home: FC = () => {
                   lessonsScoreMap={lessonResultMap || {}}
                   startIndex={0}
                   showSubjectName={true}
-                  showChapterName = {true}
+                  showChapterName={true}
                 />
               </div>
             )}
@@ -614,7 +611,7 @@ const Home: FC = () => {
                   lessonsScoreMap={lessonResultMap || {}}
                   startIndex={0}
                   showSubjectName={true}
-                  showChapterName = {true}
+                  showChapterName={true}
                 />
               </div>
             )}

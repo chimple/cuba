@@ -153,9 +153,9 @@ const ProfileCard: React.FC<{
             setIsLoading(true)
             setReloadProfiles(false);
             await ServiceConfig.getI().apiHandler.deleteProfile(user.docId);
-            setReloadProfiles(true);
-            setIsLoading(false)
-            Util.logEvent(EVENTS.USER_PROFILE, {
+            await setReloadProfiles (true);
+            setIsLoading(false);
+            Util.logEvent(EVENTS.USER_PROFILE,{
               user_id: user.docId,
               user_type: user.role,
               user_name: user.name,

@@ -486,6 +486,10 @@ export class Util {
       window.location.pathname !== PAGES.LOGIN
     ) {
       window.location.reload();
+    } else if (isActive) {
+      const url = new URL(window.location.toString());
+      url.searchParams.set("isReload", "true");
+      window.history.pushState(window.history.state, "", url.toString());
     }
   };
   public static setCurrentStudent = async (

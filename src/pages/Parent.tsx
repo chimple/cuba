@@ -406,7 +406,6 @@ const Parent: React.FC = () => {
     );
   }
 
-
   const handleChange = (newValue: string) => {
     const selectedHeader = parentHeaderIconList.find(
       (item) => item.header === newValue
