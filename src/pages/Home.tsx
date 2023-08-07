@@ -69,8 +69,8 @@ const sortPlayedLessonsByDate = (
   return sortedLessons;
 };
 
-  const localData: any = {};
-  const Home: FC = () => {
+const localData: any = {};
+const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentStudent, setCurrentStudent] = useState<User>();
@@ -104,7 +104,7 @@ const sortPlayedLessonsByDate = (
 
   function urlOpenListenerEvent() {
     App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
-      
+
       const slug = event.url.split(".cc").pop();
       if (slug) {
         history.push(slug);
@@ -138,11 +138,11 @@ const sortPlayedLessonsByDate = (
       let count = 0;
       await Promise.all(
         allAssignments.map(async (_assignment) => {
-          const res = await api.getLesson(_assignment.lesson.id);
+          const res = await api.getLesson(_assignment.lesson.id, undefined, true);
+          console.log(res);
           if (!!res) {
             count++;
             res.assignment = _assignment;
-            res.chapterTitle = getChapterTitle(_assignment.course.id, res.docId);
             reqLes.push(res);
           }
         })
@@ -156,33 +156,6 @@ const sortPlayedLessonsByDate = (
     }
   };
 
-  function getChapterTitle(courseId: string | undefined, lesssonId: string) {
-    let chapT: string = "";
-    if (courseId) {
-      let locCourse: Course | undefined = localData.allCourses?.find((cour) => cour.docId === courseId);
-      locCourse ? getChaptitle(locCourse) : localData.allCourses?.find((c) => getChaptitle(c));
-    } else {
-      localData.allCourses?.find((c) => getChaptitle(c));
-    }
-    function getChaptitle(aCourse: Course) {
-      aCourse.chapters.forEach((chap) => {
-        chap.lessons.forEach((le) => {
-          if (le.id === lesssonId) {
-            console.log("Chapter Found :" + chap.title);
-            chapT = chap.title;
-            return;
-          }
-        })
-        if (chapT) return;
-        console.log("Chapther MAP")
-      });
-    }
-
-    function getC(course: Course) {
-      return courseId === course.docId;
-    }
-    return chapT;
-  }
 
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
@@ -202,9 +175,9 @@ const sortPlayedLessonsByDate = (
     if (subjectCode === HOMEHEADERLIST.HOME) {
       // let r = api.getStudentResultInMap(currentStudent.docId);
       // console.log("r = api.getStudentResultInMap(currentStudent.docId);", r);
-      if( !localData.allCourses){
+      if (!localData.allCourses) {
         let tempAllCourses = await api.getAllCourses();
-      localData.allCourses = tempAllCourses;
+        localData.allCourses = tempAllCourses;
       }
       await getAssignments();
       getRecommendationLessons(currentStudent, currClass).then(() => {
@@ -299,7 +272,7 @@ const sortPlayedLessonsByDate = (
     if (studentResult?.lessons) {
       const playedLessonIds = Object.keys(studentResult.lessons);
       const lessonPromises = playedLessonIds.map((lessonId) =>
-        api.getLesson(lessonId)
+        api.getLesson(lessonId, undefined, true)
       );
       const lessons: (Lesson | undefined)[] = await Promise.all(lessonPromises);
       const validLessons: Lesson[] = lessons.filter(
@@ -355,8 +328,8 @@ const sortPlayedLessonsByDate = (
     console.log(currMode);
     let sortLessonResultMap:
       | {
-          [lessonDocId: string]: StudentLessonResult;
-        }
+        [lessonDocId: string]: StudentLessonResult;
+      }
       | undefined;
     api.getStudentResult(currentStudent.docId).then(async (res) => {
       console.log("tempResultLessonMap = res;", JSON.stringify(res));
@@ -482,7 +455,7 @@ const sortPlayedLessonsByDate = (
     setIsLoading(false);
   }
 
- 
+
   async function getDataForSubject(course: Course): Promise<{
     chapters: Chapter[];
     lessons: {
@@ -577,7 +550,6 @@ const sortPlayedLessonsByDate = (
 
   const getLovedLessons = () => {
     return PlayedLessonsList.filter((lesson) => {
-      lesson.chapterTitle = getChapterTitle(undefined, lesson.docId);
       const lessonResult = lessonResultMap?.[lesson.docId];
       return lessonResult?.isLoved ?? false;
     }).sort((a, b) => {
@@ -613,10 +585,11 @@ const sortPlayedLessonsByDate = (
                   lessonsScoreMap={lessonResultMap || {}}
                   startIndex={0}
                   showSubjectName={true}
+                  showChapterName = {true}
                 />
               </div>
             ) : // <div style={{ marginTop: "2.6%" }}></div>
-            null}
+              null}
 
             {currentHeader === HOMEHEADERLIST.FAVOURITES && (
               <div>
@@ -627,6 +600,7 @@ const sortPlayedLessonsByDate = (
                   lessonsScoreMap={lessonResultMap || {}}
                   startIndex={0}
                   showSubjectName={true}
+                  showChapterName = {true}
                 />
               </div>
             )}
@@ -640,6 +614,7 @@ const sortPlayedLessonsByDate = (
                   lessonsScoreMap={lessonResultMap || {}}
                   startIndex={0}
                   showSubjectName={true}
+                  showChapterName = {true}
                 />
               </div>
             )}

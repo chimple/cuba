@@ -61,7 +61,8 @@ export class FirebaseApi implements ServiceApi {
   private _studentResultCache: { [key: string]: StudentProfile } = {};
   private _schoolsCache: { [userId: string]: School[] } = {};
   private _currentMode: MODES;
-  private constructor() {}
+  private _allCourses: Course[];
+  private constructor() { }
 
   public static getInstance(): FirebaseApi {
     if (!FirebaseApi.i) {
@@ -423,7 +424,7 @@ export class FirebaseApi implements ServiceApi {
     return this.sortSubject(subjects);
   }
 
-  async getLesson(id: string): Promise<Lesson | undefined> {
+  async getLesson(id: string, chapter: Chapter | undefined = undefined, loadChapterTitle: boolean = false): Promise<Lesson | undefined> {
     try {
       const lessonDoc = await getDoc(
         doc(this._db, `${CollectionIds.LESSON}/${id}`)
@@ -431,6 +432,18 @@ export class FirebaseApi implements ServiceApi {
       if (!lessonDoc.exists) return;
       const lesson = lessonDoc.data() as Lesson;
       lesson.docId = lessonDoc.id;
+
+      if (!!chapter)
+        lesson.chapterTitle = chapter.title;
+      else if (loadChapterTitle) {
+
+        if (!this._allCourses) {
+          this._allCourses = await this.getAllCourses();
+        }
+        const tmpCourse = this._allCourses?.find(course => course.courseCode === lesson.cocosSubjectCode);
+        const chapter = tmpCourse?.chapters.find(chapter => chapter.id === lesson.cocosChapterCode);
+        lesson.chapterTitle = chapter?.title;
+      }
       return lesson;
     } catch (error) {
       console.log(
@@ -439,14 +452,13 @@ export class FirebaseApi implements ServiceApi {
       );
     }
   }
-
   async getLessonsForChapter(chapter: Chapter): Promise<Lesson[]> {
     const lessons: Lesson[] = [];
     try {
       if (chapter.lessons && chapter.lessons.length > 0) {
         for (let lesson of chapter.lessons) {
           if (lesson instanceof DocumentReference) {
-            const lessonObj = await this.getLesson(lesson.id);
+            const lessonObj = await this.getLesson(lesson.id, chapter);
             if (lessonObj) {
               lessons.push(lessonObj);
             }
@@ -489,7 +501,7 @@ export class FirebaseApi implements ServiceApi {
       if (chapter.lessons && chapter.lessons.length > 0) {
         for (let lesson of chapter.lessons) {
           if (lesson instanceof DocumentReference) {
-            const lessonObj = await this.getLesson(lesson.id);
+            const lessonObj = await this.getLesson(lesson.id, chapter);
             if (lessonObj) {
               lesMap[lesson.id] = lessonObj as Lesson;
             }
@@ -539,7 +551,7 @@ export class FirebaseApi implements ServiceApi {
             if (lesson.id === lessonId) {
               // console.log("lesson id Found", lesson);
               if (lesson instanceof DocumentReference) {
-                const lessonObj = await this.getLesson(lesson.id);
+                const lessonObj = await this.getLesson(lesson.id, chapter);
                 if (lessonObj) {
                   lesMap[lesson.id] = lessonObj as Lesson;
                 }

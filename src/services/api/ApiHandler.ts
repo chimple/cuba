@@ -152,8 +152,8 @@ export class ApiHandler implements ServiceApi {
   public async getCoursesForClassStudent(currClass: Class): Promise<Course[]> {
     return await this.s.getCoursesForClassStudent(currClass);
   }
-  public async getLesson(id: string): Promise<Lesson | undefined> {
-    return await this.s.getLesson(id);
+  public async getLesson(id: string, chapter : Chapter | undefined = undefined, loadChapterTitle : boolean = false): Promise<Lesson | undefined> {
+    return await this.s.getLesson(id, chapter, loadChapterTitle);
   }
 
   public async getLessonsForChapter(chapter: Chapter): Promise<Lesson[]> {
