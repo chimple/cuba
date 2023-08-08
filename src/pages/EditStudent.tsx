@@ -6,7 +6,14 @@ import { useEffect, useState } from "react";
 import GenderAndAge from "../components/editStudent/GenderAndAge";
 import SelectAvatar from "../components/editStudent/SelectAvatar";
 import GradeBoardAndLangDropdown from "../components/editStudent/GradeBoardAndLangDropdown";
-import {  ACTION, LANGUAGE, CURRENT_STUDENT, EVENTS, GENDER, PAGES } from "../common/constants";
+import {
+  ACTION,
+  LANGUAGE,
+  CURRENT_STUDENT,
+  EVENTS,
+  GENDER,
+  PAGES,
+} from "../common/constants";
 import { chevronForward } from "ionicons/icons";
 import Curriculum from "../models/curriculum";
 import Grade from "../models/grade";
@@ -86,7 +93,7 @@ const EditStudent = () => {
           grade ?? currentStudent.grade?.id!,
           language ?? currentStudent.language?.id!
         );
-        Util.logEvent(EVENTS.USER_PROFILE,{
+        Util.logEvent(EVENTS.USER_PROFILE, {
           user_id: currentStudent.docId,
           user_type: currentStudent.role,
           user_name: studentName!,
@@ -95,7 +102,7 @@ const EditStudent = () => {
           phone_number: currentStudent.username,
           parent_username: currentStudent.username,
           parent_id: currentStudent.uid,
-          action_type: ACTION.UPDATE
+          action_type: ACTION.UPDATE,
         });
       } else {
         student = await api.createProfile(
@@ -108,9 +115,8 @@ const EditStudent = () => {
           grade,
           language
         );
-
-        Util.logEvent(EVENTS.USER_PROFILE,
-          {user_id: student.docId,
+        const eventParams = {
+          user_id: student.docId,
           user_type: student.role,
           user_name: student.name!,
           user_gender: student.gender,
@@ -118,8 +124,15 @@ const EditStudent = () => {
           phone_number: student.username,
           parent_username: student.username,
           parent_id: student.uid,
-          action_type: ACTION.CREATE}
-      );
+          action_type: ACTION.CREATE,
+        };
+        console.log(
+          "Util.logEvent(EVENTS.USER_PROFILE, eventParams);",
+          EVENTS.USER_PROFILE,
+          eventParams
+        );
+
+        Util.logEvent(EVENTS.USER_PROFILE, eventParams);
         //Setting the Current Student
         const langIndex = languages?.findIndex(
           (lang) => lang.docId === language
