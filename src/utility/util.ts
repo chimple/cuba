@@ -97,6 +97,8 @@ export class Util {
     if (!!currentStudent.board)
       currentStudent.board = getRef(currentStudent.board);
     api.currentStudent = currentStudent;
+
+    this.logCurrentPageEvents(currentStudent);
     return currentStudent;
   }
   public static getCurrentSound(): boolean {
@@ -465,7 +467,6 @@ export class Util {
     }
   ) {
     try {
-
       //Setting User Id in User Properites
       await FirebaseAnalytics.setUserId({
         userId: params.user_id,
@@ -491,6 +492,19 @@ export class Util {
     }
   }
 
+  public static async logCurrentPageEvents(user: User) {
+    //Setting User Id in User Properites
+    await FirebaseAnalytics.setUserId({
+      userId: user.docId,
+    });
+
+    //Setting Screen Name
+    await FirebaseAnalytics.setScreenName({
+      screenName: window.location.pathname,
+      nameOverride: window.location.pathname,
+    });
+  }
+
   public static onAppStateChange = ({ isActive }) => {
     if (
       Capacitor.isNativePlatform() &&
@@ -513,11 +527,6 @@ export class Util {
   ) => {
     const api = ServiceConfig.getI().apiHandler;
     api.currentStudent = student;
-
-    //Setting Student Id in User Properites
-    await FirebaseAnalytics.setUserId({
-      userId: student?.docId,
-    });
 
     localStorage.setItem(
       CURRENT_STUDENT,
@@ -550,6 +559,11 @@ export class Util {
     const tempLangCode = languageCode ?? LANG.ENGLISH;
     if (!!langFlag) localStorage.setItem(LANGUAGE, tempLangCode);
     if (!!isStudent) await i18n.changeLanguage(tempLangCode);
+
+    //Setting Student Id in User Properites
+    await FirebaseAnalytics.setUserId({
+      userId: student?.docId,
+    });
   };
 
   public static randomBetween(min, max) {
