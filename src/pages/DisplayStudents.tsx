@@ -11,6 +11,7 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
 import { Util } from "../utility/util";
 import ParentalLock from "../components/parent/ParentalLock";
+import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 // import { FirebaseApi } from "../services/api/FirebaseApi";
 // import { FirebaseAuth } from "../services/auth/FirebaseAuth";
 
@@ -38,6 +39,16 @@ const DisplayStudents: FC<{}> = () => {
       return;
     }
     setStudents(students);
+
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!currentUser) {
+      return;
+    }
+
+    await FirebaseAnalytics.setUserId({
+      userId: currentUser?.docId,
+    });
+
     // setStudents([students[0]]);
 
     // setStudents([...students, students[0]]);

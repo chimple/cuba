@@ -74,7 +74,6 @@ const DisplaySubjects: FC<{}> = () => {
     }
   }, [localGradeMap, currentCourse]);
 
-
   const init = async () => {
     const urlParams = new URLSearchParams(location.search);
     console.log(
@@ -99,7 +98,7 @@ const DisplaySubjects: FC<{}> = () => {
       if (localData.lessonResultMap) {
         setLessonResultMap(localData.lessonResultMap);
       } else {
-        const currentStudent = Util.getCurrentStudent();
+        const currentStudent = await Util.getCurrentStudent();
         if (currentStudent) {
           //loading student result cache (seems like a new user)
           const result = await api.getStudentResult(currentStudent.docId, true);
