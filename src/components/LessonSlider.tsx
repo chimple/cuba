@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import Lesson from "../models/lesson";
 import Course from "../models/course";
 import { StudentLessonResult } from "../common/courseConstants";
-import { Timestamp } from "@firebase/firestore";
+
 
 const LessonSlider: React.FC<{
   lessonData: Lesson[];
@@ -28,25 +28,9 @@ const LessonSlider: React.FC<{
     let height: string;
     width = "45.5vh";
     height = "35vh";
-    let lastPlayedData = () => {
-      let lastPlayedLessonDate: Timestamp;
-      lessonData.forEach((less: Lesson, i: number) => {
-        const studentResultOfLess = lessonsScoreMap[less.docId];
-        if (!!studentResultOfLess) {
-          if (!lastPlayedLessonDate) {
-            lastPlayedLessonDate = lessonsScoreMap[less.docId].date;
-            startIndex = i;
-          } else {
-            if (lessonsScoreMap[less.docId].date > lastPlayedLessonDate) {
-              lastPlayedLessonDate = studentResultOfLess.date;
-              startIndex = i;
-            }
-          }
-        }
-      })
-    }
+
     useEffect(() => {
-      lastPlayedData();
+
       // console.log("lessonsScoreMap", lessonsScoreMap);
       lessonSwiperRef?.go(0);
       setTimeout(() => {
