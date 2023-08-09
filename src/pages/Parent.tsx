@@ -33,16 +33,17 @@ import BackButton from "../components/common/BackButton";
 import { useHistory } from "react-router-dom";
 import CustomAppBar from "../components/studentProgress/CustomAppBar";
 import DeleteParentAccount from "../components/parent/DeleteParentAccount";
+import { TrueFalseEnum } from "../interface/modelInterfaces";
+import { Util } from "../utility/util";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
-
 const Parent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [soundFlag, setSoundFlag] = useState<boolean>();
   const [musicFlag, setMusicFlag] = useState<boolean>();
-  const [userProfile, setUserProfile] = useState<any[]>([]);
+  const [userProfile, setUserProfile] = useState<User[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
 
   const [langList, setLangList] = useState<
@@ -54,7 +55,7 @@ const Parent: React.FC = () => {
   const [langDocIds, setLangDocIds] = useState<Map<string, string>>(new Map());
   const [currentAppLang, setCurrentAppLang] = useState<string>();
   //  const [localLangDocId, setLocalLangDocId] = useState<any>();
-  const [reloadProfiles , setReloadProfiles] = useState<boolean>(false);
+  const [reloadProfiles, setReloadProfiles] = useState<boolean>(false);
   let tempLangList: {
     id: string;
     displayName: string;
@@ -75,30 +76,27 @@ const Parent: React.FC = () => {
     inti();
     getStudentProfile();
   }, [reloadProfiles]);
-  
-  function getStudentProfile(){ 
+
+
+  async function getStudentProfile() {
     console.log("getStudentProfile");
-    const userProfilePromise: Promise<User[]> =
-    ServiceConfig.getI().apiHandler.getParentStudentProfiles();
+    const userProfilePromise: User[] = await
+      ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     let finalUser: any[] = [];
-  userProfilePromise.then((u) => {
     for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
-      if (u[i]) {
-        finalUser.push(u[i]);
-      } else {
-        finalUser.push(undefined);
-      }
+      finalUser.push(userProfilePromise[i]);
     }
     setUserProfile(finalUser);
-    
-  });
+    // });
   }
   async function inti(): Promise<void> {
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (parentUser != undefined) {
-      console.log("User ", parentUser);
-      setSoundFlag(parentUser?.soundFlag!);
-      setMusicFlag(parentUser?.musicFlag!);
+      console.log("User ", parentUser?.musicFlag!);
+      const sound = Util.getCurrentSound();
+      const music = Util.getCurrentMusic();
+      setSoundFlag(sound);
+      setMusicFlag(music);
 
       const allLang = await ServiceConfig.getI().apiHandler.getAllLanguages();
       let tempLangDocIds: Map<string, string> = new Map();
@@ -141,16 +139,15 @@ const Parent: React.FC = () => {
   }
 
   function profileUI() {
-   
     // setIsLoading(false);
 
     return (
       <div id="parent-page-profile">
         {userProfile.map((element) => {
-          console.log("userProfile",userProfile)
+          console.log("userProfile", userProfile);
           let studentUserType: boolean = true;
-          if  (element === undefined  ){
-            console.log("element",element)
+          if (element === undefined) {
+            console.log("element", element);
             studentUserType = false;
           }
           return (
@@ -223,7 +220,7 @@ const Parent: React.FC = () => {
                 setSoundFlag(v.detail?.checked);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
-
+                Util.setCurrentSound(v.detail?.checked);
                 if (currentUser) {
                   ServiceConfig.getI().apiHandler.updateSoundFlag(
                     currentUser,
@@ -241,7 +238,7 @@ const Parent: React.FC = () => {
                 setMusicFlag(v.detail?.checked);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
-
+                Util.setCurrentMusic(v.detail?.checked);
                 if (currentUser) {
                   ServiceConfig.getI().apiHandler.updateMusicFlag(
                     currentUser,
@@ -331,7 +328,7 @@ const Parent: React.FC = () => {
                   title="YouTube video player"
                   // frameborder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  // allowfullscreen
+                // allowfullscreen
                 ></iframe>
               </div>
             </div>
@@ -396,6 +393,18 @@ const Parent: React.FC = () => {
       </div>
     );
   }
+  function faqUI() {
+    return (
+      <div id="faq-page"
+        onClick={() => {
+          window.open('https://www.chimple.org/in-school-guide-for-teachers', "_system");
+        }}
+      >
+        <p>{t("Please Visit Our Website")}</p>
+        <TfiWorld size={"3vw"} />
+      </div>
+    );
+  }
 
   const handleChange = (newValue: string) => {
     const selectedHeader = parentHeaderIconList.find(
@@ -429,7 +438,7 @@ const Parent: React.FC = () => {
         {tabIndex === t("profile") && <div>{profileUI()}</div>}
         {tabIndex === t("setting") && <div>{settingUI()}</div>}
         {tabIndex === t("help") && <div>{helpUI()}</div>}
-        {tabIndex === t("faq") && <div></div>}
+        {tabIndex === t("faq") && <div>{faqUI()}</div>}
       </div>
     </Box>
   );

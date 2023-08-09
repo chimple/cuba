@@ -50,7 +50,11 @@ export class RemoteConfig {
       const { value } = await FirebaseRemoteConfig.getBoolean({
         key: key,
       });
-      return value ?? REMOTE_CONFIG_DEFAULTS[key];
+      console.log(
+        "🚀 ~ file: RemoteConfig.ts:53 ~ RemoteConfig ~ getBoolean ~ value:",
+        value
+      );
+      return value || REMOTE_CONFIG_DEFAULTS[key];
     } catch (error) {
       console.log(
         "🚀 ~ file: RemoteConfig.ts:50 ~ RemoteConfig ~ getBoolean ~ error:",
@@ -62,9 +66,15 @@ export class RemoteConfig {
 }
 
 export enum REMOTE_CONFIG_KEYS {
-  TEST_NUM = "test_num",
+  CAN_HOT_UPDATE = "can_hot_update",
+  BUNDLE_ZIP_URLS = "bundle_zip_urls",
 }
 
 export const REMOTE_CONFIG_DEFAULTS: { [key: string]: any } = {
-  [REMOTE_CONFIG_KEYS.TEST_NUM]: 60,
+  [REMOTE_CONFIG_KEYS.CAN_HOT_UPDATE]: true,
+  [REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS]: [
+    "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/",
+    "https://cuba-stage-zip-bundle.web.app/",
+    "https://raw.githubusercontent.com/chimple/chimple-zips/main/",
+  ],
 };

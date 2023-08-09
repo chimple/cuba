@@ -1,7 +1,12 @@
 .content {
   overflow: hidden scroll;
   margin-top: 9vh;
-  margin-bottom: 9vh;
+  margin-bottom: 12vh;
+  background-color: #e2dede;
+}
+
+.content::-webkit-scrollbar {
+  display: none;
 }
 
 .button-round {

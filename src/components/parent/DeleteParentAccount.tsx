@@ -5,7 +5,7 @@ import { useState } from "react";
 import DialogBoxButtons from "./DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { useHistory } from "react-router";
-import { PAGES } from "../../common/constants";
+import { ACTION, EVENTS, PAGES } from "../../common/constants";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import Loading from "../Loading";
@@ -18,9 +18,28 @@ const DeleteParentAccount: React.FC<{}> = ({}) => {
     setIsLoading(true);
     const auth = ServiceConfig.getI().authHandler;
     const api = ServiceConfig.getI().apiHandler;
+    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
     await api.deleteAllUserData();
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
+    const eventParams = {
+      user_id: user?.docId,
+      user_type: user?.role,
+      user_name: user?.name,
+      user_gender: user?.gender!,
+      user_age: user?.age!,
+      phone_number: user?.username,
+      parent_id: user?.uid,
+      parent_username: user?.username,
+      action_type: ACTION.DELETE,
+    };
+    console.log(
+      "Util.logEvent(EVENTS.USER_PROFILE, eventParams);",
+      EVENTS.USER_PROFILE,
+      eventParams
+    );
+
+    Util.logEvent(EVENTS.USER_PROFILE, eventParams);
     setIsLoading(false);
     history.replace(PAGES.APP_LANG_SELECTION);
     if (Capacitor.isNativePlatform()) window.location.reload();

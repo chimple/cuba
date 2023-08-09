@@ -55,18 +55,15 @@ function SearchLesson() {
     [lessonDocId: string]: StudentLessonResult;
   }>();
   const [currentStudent, setStudent] = useState<User>();
-  useEffect(() => {
-    async function init() {
-      const currentStudent = await Util.getCurrentStudent();
-      if (!currentStudent) {
-        history.replace(PAGES.HOME);
-        return;
-      }
 
-      setStudent(currentStudent);
+  async function init() {
+    const currentStudent = await Util.getCurrentStudent();
+    if (!currentStudent) {
+      history.replace(PAGES.HOME);
+      return;
     }
 
-    // const currentStudent = await Util.getCurrentStudent();
+    setStudent(currentStudent);
     if (currentStudent) {
       const api = ServiceConfig.getI().apiHandler;
       // const currentStudent =await Util.getCurrentStudent();
@@ -74,17 +71,47 @@ function SearchLesson() {
         history.replace(PAGES.DISPLAY_STUDENT);
         return;
       }
-      api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
+      if (!dataToContinue.lessonResultMap) {
+        const res = await api.getStudentResultInMap(currentStudent.docId);
         console.log("tempResultLessonMap = res;", res);
+        dataToContinue.lessonResultMap = res;
         setLessonResultMap(res);
-      });
-      const urlParams = new URLSearchParams(location.search);
-      if (!!urlParams.get("continue") && !!dataToContinue.lessons) {
-        setLessons(dataToContinue.lessons);
-        setSearchTerm(dataToContinue.search);
       }
+      // api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
+      //   console.log("tempResultLessonMap = res;", res);
+      //   setLessonResultMap(res);
+      // });
     }
-  }, []);
+  }
+
+  // useEffect(() => {
+  //   init();
+  //   // const currentStudent = await Util.getCurrentStudent();
+  //   const urlParams = new URLSearchParams(location.search);
+  //   if (!!urlParams.get("continue") && !!dataToContinue.lessons) {
+  //     setLessons(dataToContinue.lessons);
+  //     setSearchTerm(dataToContinue.search);
+  //   }
+  // }, []);
+  useEffect(() => {
+    init();
+
+    const urlParams = new URLSearchParams(location.search);
+    if (!!urlParams.get("continue") && !!dataToContinue.lessons) {
+      setLessons(dataToContinue.lessons);
+      setSearchTerm(dataToContinue.search);
+      setLessonResultMap(dataToContinue.lessonResultMap);
+    }
+    const savedSearchTerm = localStorage.getItem("searchTerm");
+    if (savedSearchTerm !== null) {
+      setSearchTerm(savedSearchTerm);
+      onSearch(savedSearchTerm);
+    }
+    localStorage.setItem("searchTerm", searchTerm);
+    return () => {
+      localStorage.removeItem("searchTerm");
+    };
+  }, [searchTerm]);
 
   const plugins = useMemo(() => {
     const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
@@ -180,6 +207,7 @@ function SearchLesson() {
         lessonsScoreMap={lessonResultMap || {}}
         startIndex={0}
         showSubjectName={true}
+        showChapterName = {false}
       />
       <div className="search-bottom"></div>
     </div>

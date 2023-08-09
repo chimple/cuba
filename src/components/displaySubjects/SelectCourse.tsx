@@ -21,7 +21,7 @@ const SelectCourse: FC<{
           >
             <div className="course-icon">
               <SelectIconImage
-                localSrc={"assets/icons/EnglishIco.svg"}
+                localSrc={`courses/chapter_icons/${course.courseCode}.png`}
                 defaultSrc={"courses/" + "maths" + "/icons/" + "maths10.png"}
                 webSrc={course.thumbnail}
               />

@@ -4,17 +4,19 @@ import "./Loading.css";
 
 const Loading: React.FC<{ isLoading: boolean; msg?: string }> = ({
   isLoading,
-  msg = "loading",
+  msg = "",
 }) => {
-  // const { t } = useTranslation();
-  // const tMsg = t(msg);
   return isLoading ? (
     <div>
       <IonLoading
         isOpen={isLoading}
         spinner={null}
-        message={`<img class="loading" src="assets/loading.gif">`}
-      ></IonLoading>
+        message={
+          '<img class="loading" src="assets/loading.gif"></img> <br/><p>' +
+          msg +
+          "<p/>"
+        }
+      />
     </div>
   ) : null;
 };

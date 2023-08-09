@@ -4,7 +4,7 @@
   margin: var(--margin);
   margin-bottom: 0;
   justify-content: space-between;
-  /* align-items: center; */
+  align-items: center;
 }
 
 .subject-name {
@@ -14,10 +14,11 @@
   justify-content: center;
   font-size: clamp(18px, 3.1vh, 25px);
   font-weight: bold;
+  /* margin-left: 13vw; */
 }
 
 .button-right {
-  width: 10vh;
+  width: 18.5%;
   height: 10vh;
 }
 .subjects-content {
@@ -25,8 +26,15 @@
   overflow-y: scroll;
 }
 
+.subjects-content::-webkit-scrollbar {
+  display: none;
+}
+
 .slider-container {
   display: flex;
   align-items: center;
   height: 100vh;
+}
+#back-button-container {
+  width: 18.5%;
 }

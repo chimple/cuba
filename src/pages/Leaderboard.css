@@ -4,20 +4,22 @@
   /* margin: var(--margin); */
   /* margin-bottom: 0; */
 }
-#LeaderBoard-header{
-  margin: var(--margin);
-  margin-bottom: 0;
-  /* padding: 1vh 1vw; */
-}
-#LeaderBoard-AppBar{
+
+#LeaderBoard-AppBar {
   /* padding: 1vh 1vw; */
   padding: 0%;
- 
+}
+
+#LeaderBoard-Header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin: var(--margin);
+  margin-bottom: 0;
 }
 
 #leaderboard-UI {
   display: flex;
-  margin: 1% 0% 0% 2%;
   align-items: center;
   font-size: var(--text-size);
   color: black;
@@ -50,6 +52,10 @@
   text-align: center;
 }
 
+#leaderboard-right-UI::-webkit-scrollbar {
+  display: none;
+}
+
 #leaderboard-right-UI-content {
   /* width: 10vw; */
   /* text-align: left; */
@@ -66,7 +72,7 @@
   padding: 5% 0%;
 }
 
-#leaderboard-student-name{
+#leaderboard-student-name {
   max-width: 20vh;
   white-space: nowrap;
   text-overflow: ellipsis;
