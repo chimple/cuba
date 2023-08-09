@@ -97,10 +97,11 @@ const HomeHeader: React.FC<{
             );
           })}
       </div>
+
       <div id="home-header-profile-icon">
         <HeaderIcon
           headerName={student?.name ?? "Profile"}
-          iconSrc={"assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png"}
+          iconSrc={student?.image || ("assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png")}
           currentHeader={currentHeader}
           headerList={HOMEHEADERLIST.PROFILE}
           pendingAssignmentCount={0}
@@ -111,6 +112,9 @@ const HomeHeader: React.FC<{
           }}
         ></HeaderIcon>
       </div>
+
+
+
     </div>
   );
 };

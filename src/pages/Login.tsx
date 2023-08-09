@@ -19,6 +19,9 @@ import { init, t } from "i18next";
 import { Util } from "../utility/util";
 import User from "../models/user";
 import BackButton from "../components/common/BackButton";
+import { Toast } from "@capacitor/toast";
+import { title } from "process";
+
 
 declare global {
   // eslint-disable-next-line no-var
@@ -72,13 +75,17 @@ const Login: React.FC = () => {
   const phoneNumberErrorRef = useRef<any>();
   let verificationCodeMessageFlags = {
     isInvalidCode: false,
-    isInvalidCodeLength: false,
-  };
+    isInvalidCodeLength: false
+  }
+  const [allowSubmittingOtpCounter, setAllowSubmittingOtpCounter] = useState<number>(0);
+  const [disableOtpButtonIfSameNumber, setDisableOtpButtonIfSameNumber] = useState<boolean>(false);
+  const [currentPhone, setCurrentPhone] = useState<any>();
+  const [title, setTitle] = React.useState("");
   useEffect(() => {
     init();
     setIsLoading(true);
     setIsInvalidCode(verificationCodeMessageFlags);
-
+  
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
         console.log("info", JSON.stringify(info));
@@ -96,6 +103,7 @@ const Login: React.FC = () => {
         setIsInputFocus(false);
       });
     }
+
     const authHandler = ServiceConfig.getI().authHandler;
     authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
       const apiHandler = ServiceConfig.getI().apiHandler;
@@ -171,9 +179,28 @@ const Login: React.FC = () => {
     }
     showTimer && counter > 0 && setTimeout(() => setCounter(counter - 1), 1000);
   }, [counter, showTimer]);
+  useEffect(() => {
+    console.log("Testing: " + allowSubmittingOtpCounter);
+    disableOtpButtonIfSameNumber && allowSubmittingOtpCounter > 0 && setTimeout(() => setAllowSubmittingOtpCounter(allowSubmittingOtpCounter - 1), 1000);
+    let str = t(`Sent OTP button will be enabled in x seconds`)
+    .replace(`x`, allowSubmittingOtpCounter.toString());
+  setTitle(str);
+  }, [allowSubmittingOtpCounter]);
 
   const onPhoneNumberSubmit = async () => {
     try {
+      if (currentPhone == phoneNumber) {
+        if (allowSubmittingOtpCounter > 0) {
+          await Toast.show({
+            text: title,
+            duration: "long",
+          });
+          return;
+        }
+      } else {
+        setDisableOtpButtonIfSameNumber(false);
+        setAllowSubmittingOtpCounter(0);
+      }
       setSentOtpLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
       if (phoneNumber.length != 10) {
@@ -329,12 +356,16 @@ const Login: React.FC = () => {
               setVerificationCode("");
               setShowResendOtp(false);
               setShowTimer(false);
+              setCurrentPhone(phoneNumber);
+              setDisableOtpButtonIfSameNumber(true);
+              setAllowSubmittingOtpCounter(counter);
               setIsInvalidCode({
                 isInvalidCode: false,
                 isInvalidCodeLength: false
               });
 
             }}
+
           />
         </div>
       )}
@@ -409,7 +440,7 @@ const Login: React.FC = () => {
                         recaptchaVerifier
                       );
 
-                      setSpinnerLoading(true);
+                      // setSpinnerLoading(true);
                       if (phoneNumber.length === 10) {
                         await onPhoneNumberSubmit();
                       } else {
@@ -466,7 +497,9 @@ const Login: React.FC = () => {
               </div>
             ) : !showNameInput && startResendOtpCounter() ? (
               <div>
-                <p id="login-otp-sent">{t("Otp Sent To The")}{countryCode + phoneNumber}</p>
+                <p id="login-otp-sent">
+                  {t("OTP Sent To The")} {countryCode + phoneNumber}
+                </p>
                 <div id="login-text-box">
                   <div>
                     <TextBox
@@ -476,8 +509,12 @@ const Login: React.FC = () => {
                       inputValue={verificationCode.trim()}
                       onChange={(input) => {
                         if (input.target.value) {
-                          setVerificationCode(input.target.value);
+                          setVerificationCode(input.target.value.trim());
                           console.log(input.target.value);
+                          setIsInvalidCode({
+                            isInvalidCode: false,
+                            isInvalidCodeLength: false,
+                          });
                           let otpBtnBgColor =
                             getOtpBtnRef.current.style.backgroundColor;
                           if (input.target.value.length === 6) {
@@ -500,10 +537,16 @@ const Login: React.FC = () => {
                       }}
                     ></TextBox>
                   </div>
-                  {isInvalidCode?.isInvalidCodeLength &&
-                    <p className="login-verification-error-message">{t("Please Enter 6 Digit Code")}</p>}
-                  {isInvalidCode?.isInvalidCode &&
-                    <p className="login-verification-error-message">{t("Please Enter Valid Code")}</p>}
+                  {isInvalidCode?.isInvalidCodeLength && (
+                    <p className="login-verification-error-message">
+                      {t("Please Enter 6 Digit Code")}
+                    </p>
+                  )}
+                  {isInvalidCode?.isInvalidCode && (
+                    <p className="login-verification-error-message">
+                      {t("Please Enter Valid Code")}
+                    </p>
+                  )}
                 </div>
                 <div ref={getOtpBtnRef} id="login-otp-button">
                   <div
@@ -523,16 +566,35 @@ const Login: React.FC = () => {
                       // history.push(PAGES.PARENT);
                       else {
                         onVerificationCodeSubmit();
+                        setIsInvalidCode({
+                          isInvalidCode: false,
+                          isInvalidCodeLength: false
+                        });
                       }
                     }}
                   >
-                    <div>Get Started</div>
+                    <div>{t("Get Started")}</div>
                   </div>
                   <div id="login-resend-otp">
                     <div>
-                      <span style={!showResendOtp ? { color: "red" } : { color: "grey" }} id="login-time-remaining">{t("Time Remaining :")} {counter}</span>
+                      <span
+                        style={
+                          !showResendOtp ? { color: "red" } : { color: "grey" }
+                        }
+                        id="login-time-remaining"
+                      >
+                        {t("Time Remaining :")} {counter}
+                      </span>
                     </div>
-                    <span id="login-resend-otp-text" onClick={resendOtpHandler} style={showResendOtp ? { color: "green" } : { color: "grey" }}>{t("Resend OTP")}</span>
+                    <span
+                      id="login-resend-otp-text"
+                      onClick={resendOtpHandler}
+                      style={
+                        showResendOtp ? { color: "green" } : { color: "grey" }
+                      }
+                    >
+                      {t("Resend OTP")}
+                    </span>
                   </div>
                 </div>
                 {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
