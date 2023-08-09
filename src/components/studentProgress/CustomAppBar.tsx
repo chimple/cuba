@@ -22,7 +22,7 @@ const CustomAppBar: React.FC<TabBarProps> = ({
   const history: any = useHistory();
 
   return (
-    <div className="progess-report-page-header">
+    <div>
       <div className="back-button-in-custom-app-bar">
         <BackButton onClicked={handleBackButton} />
       </div>
