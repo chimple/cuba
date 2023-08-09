@@ -26,6 +26,7 @@ import { Util } from "../utility/util";
 import Class from "../models/class";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
+import { Timestamp } from "firebase/firestore";
 
 const localData: any = {};
 const DisplaySubjects: FC<{}> = () => {
@@ -205,6 +206,29 @@ const DisplaySubjects: FC<{}> = () => {
     setCurrentChapter(chapter);
     setStage(STAGES.LESSONS);
   };
+
+  function getLastPlayedLessonIndex() {
+    let lastPlayedLessonDate: Timestamp;
+    let startIndex = 0;
+    if (!!lessonResultMap)
+      lessons?.forEach((less: Lesson, i: number) => {
+        const studentResultOfLess = lessonResultMap[less.docId];
+        if (!!studentResultOfLess) {
+          if (!lastPlayedLessonDate) {
+            lastPlayedLessonDate = lessonResultMap[less.docId].date;
+            startIndex = i;
+          } else {
+            if (lessonResultMap[less.docId].date > lastPlayedLessonDate) {
+              lastPlayedLessonDate = studentResultOfLess.date;
+              startIndex = i;
+            }
+          }
+        }
+      })
+
+    return startIndex;
+  }
+
   return (
     <IonPage id="display-subjects-page">
       <Loading isLoading={isLoading} />
@@ -216,8 +240,8 @@ const DisplaySubjects: FC<{}> = () => {
           {stage === STAGES.SUBJECTS
             ? t("Subjects")
             : stage === STAGES.CHAPTERS
-            ? currentCourse?.title
-            : currentChapter?.title}
+              ? currentCourse?.title
+              : currentChapter?.title}
         </div>
         {localGradeMap && currentGrade && stage === STAGES.CHAPTERS && (
           <DropDown
@@ -270,7 +294,7 @@ const DisplaySubjects: FC<{}> = () => {
             isHome={true}
             course={currentCourse!}
             lessonsScoreMap={lessonResultMap || {}}
-            startIndex={0}
+            startIndex={getLastPlayedLessonIndex()}
             showSubjectName={false}
             showChapterName = {true}
           />
