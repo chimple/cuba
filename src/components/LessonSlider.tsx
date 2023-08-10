@@ -41,7 +41,7 @@ const LessonSlider: React.FC<{
     });
     // console.log("REFERENCE", startIndex);
     return isHome ? (
-      <div className="content">
+      <div className="slide-content">
         <Splide
           ref={setLessonSwiperRef}
           hasTrack={true}
@@ -91,7 +91,7 @@ const LessonSlider: React.FC<{
         </Splide>
       </div>
     ) : (
-      <div className="content">
+      <div className="slide-content">
         <Splide
           ref={setLessonSwiperRef}
           hasTrack={true}
