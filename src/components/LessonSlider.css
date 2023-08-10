@@ -1,7 +1,10 @@
-.content {
+.slide-content {
   text-align: -webkit-center;
-  margin-top: 0vh !important;
+  overflow: hidden scroll;
+  margin-top: 1vh;
+  margin-bottom: 12vh;
 }
+
 .slide {
   max-width: fit-content;
 }
