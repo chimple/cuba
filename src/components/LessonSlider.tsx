@@ -15,7 +15,7 @@ const LessonSlider: React.FC<{
   lessonsScoreMap: { [lessonDocId: string]: StudentLessonResult };
   startIndex: number;
   showSubjectName: boolean;
-  showChapterName : boolean;
+  showChapterName: boolean;
 }> = ({
   lessonData,
   course,
@@ -41,7 +41,7 @@ const LessonSlider: React.FC<{
     });
     // console.log("REFERENCE", startIndex);
     return isHome ? (
-      <div className="content">
+      <div className="slide-content">
         <Splide
           ref={setLessonSwiperRef}
           hasTrack={true}
@@ -83,7 +83,7 @@ const LessonSlider: React.FC<{
                   score={lessonsScoreMap[m.docId]?.score}
                   lessonData={lessonData}
                   startIndex={startIndex === -1 ? startIndex + 1 : startIndex}
-                  showChapterName = {showChapterName}
+                  showChapterName={showChapterName}
                 />
               </SplideSlide>
             );
@@ -91,7 +91,7 @@ const LessonSlider: React.FC<{
         </Splide>
       </div>
     ) : (
-      <div className="content">
+      <div className="slide-content">
         <Splide
           ref={setLessonSwiperRef}
           hasTrack={true}
@@ -134,7 +134,7 @@ const LessonSlider: React.FC<{
                   score={lessonsScoreMap[m.docId]?.score}
                   lessonData={lessonData}
                   startIndex={startIndex === -1 ? startIndex + 1 : startIndex}
-                  showChapterName = {showChapterName}
+                  showChapterName={showChapterName}
                 />
               </SplideSlide>
             );
