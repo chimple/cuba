@@ -73,10 +73,14 @@ const StudentProgress: React.FC = () => {
         // console.log(courses[0].title);
       }
 
-      api.getLessonResultsForStudent(currentStudent.docId).then((res) => {
-        setLessonsResults(res || new Map());
-        getResultsForStudentForSelectedHeader(courses[0], res || new Map());
-      });
+      const res = await api.getLessonResultsForStudent(currentStudent.docId);
+      setLessonsResults(res || new Map());
+
+      if (res && res.size > 0) {
+        console.log("result...");
+
+        await getResultsForStudentForSelectedHeader(courses[0], res);
+      }
 
       setIsLoading(false);
     }
@@ -125,6 +129,7 @@ const StudentProgress: React.FC = () => {
             );
           })}
         </div>
+        <Loading isLoading={isLoading} />
       </div>
     );
   }

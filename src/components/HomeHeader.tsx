@@ -98,18 +98,23 @@ const HomeHeader: React.FC<{
           })}
       </div>
 
-      <HeaderIcon
-        headerName={student?.name ?? "Profile"}
-        iconSrc={student?.image || ("assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png")}
-        currentHeader={currentHeader}
-        headerList={HOMEHEADERLIST.PROFILE}
-        pendingAssignmentCount={0}
-        onHeaderIconClick={() => {
-          if (currentHeader != HOMEHEADERLIST.PROFILE) {
-            onHeaderIconClick(HOMEHEADERLIST.PROFILE);
-          }
-        }}
-      ></HeaderIcon>
+      <div id="home-header-profile-icon">
+        <HeaderIcon
+          headerName={student?.name ?? "Profile"}
+          iconSrc={student?.image || ("assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png")}
+          currentHeader={currentHeader}
+          headerList={HOMEHEADERLIST.PROFILE}
+          pendingAssignmentCount={0}
+          onHeaderIconClick={() => {
+            if (currentHeader != HOMEHEADERLIST.PROFILE) {
+              onHeaderIconClick(HOMEHEADERLIST.PROFILE);
+            }
+          }}
+        ></HeaderIcon>
+      </div>
+
+
+
     </div>
   );
 };
