@@ -21,13 +21,14 @@ const ProfileCard: React.FC<{
   user: User;
   showText?: boolean;
   setReloadProfiles: (event: boolean) => void;
-}> = ({ width, height, userType, user, setReloadProfiles }) => {
+  profiles?: User[];
+}> = ({ width, height, userType, user, setReloadProfiles, profiles }) => {
   const history = useHistory();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [showWarningDialogBox, setShowWarningDialogBox] =
     useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
+  const areprofilesAvailable = profiles && profiles[0] == null || undefined;
   return (
     <IonCard
       id="profile-card"
@@ -80,7 +81,7 @@ const ProfileCard: React.FC<{
             size={"16vw"}
             onClick={() => {
               history.replace(PAGES.CREATE_STUDENT, {
-                showBackButton: true,
+                showBackButton: !areprofilesAvailable,
               });
             }}
           ></HiPlusCircle>
