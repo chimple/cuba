@@ -68,7 +68,7 @@ const ProfileCard: React.FC<{
           <img
             id="profile-card-image"
             loading="lazy"
-            src={"assets/avatars/" + (user.avatar ?? AVATARS[0]) + ".png"}
+            src={ user.image || "assets/avatars/" + (user.avatar ?? AVATARS[0]) + ".png"}
             alt=""
           />
           <p id="profile-card-user-name">{user.name}</p>
@@ -84,7 +84,7 @@ const ProfileCard: React.FC<{
               });
             }}
           ></HiPlusCircle>
-          <p>{t("New User")}</p>
+          <p>{t("New Profile")}</p>
         </div>
       )}
 
@@ -110,20 +110,20 @@ const ProfileCard: React.FC<{
           width={"40vw"}
           height={"30vh"}
           message={t(
-            "You can edit or delete user by clicking on the below buttons"
+            "You can edit or delete Profile by clicking on the below buttons"
           )}
           showDialogBox={showDialogBox}
-          yesText={t("Delete User")}
-          noText={t("Edit User")}
+          yesText={t("Delete Profile")}
+          noText={t("Edit Profile")}
           handleClose={() => {
             setShowDialogBox(false);
             console.log("Close", false);
           }}
-          onYesButtonClicked={async ({}) => {
+          onYesButtonClicked={async ({ }) => {
             console.log(`Delete Profile`, "yes", user.docId);
             setShowWarningDialogBox(true);
           }}
-          onNoButtonClicked={async ({}) => {
+          onNoButtonClicked={async ({ }) => {
             console.log(`Edit Profile`, "no", user.docId);
             const api = ServiceConfig.getI().apiHandler;
             await Util.setCurrentStudent(user, undefined, false);
@@ -138,7 +138,7 @@ const ProfileCard: React.FC<{
         <DialogBoxButtons
           width={"40vw"}
           height={"30vh"}
-          message={t("Do you want to delete the user?")}
+          message={t("Do you want to delete the Profile?")}
           showDialogBox={showDialogBox}
           yesText={t("Yes")}
           noText={t("No")}
@@ -146,7 +146,7 @@ const ProfileCard: React.FC<{
             setShowDialogBox(false);
             console.log("Close", false);
           }}
-          onYesButtonClicked={async ({}) => {
+          onYesButtonClicked={async ({ }) => {
             console.log(`Show warning yes:`, user.docId);
             setShowWarningDialogBox(false);
             setShowDialogBox(false);
@@ -173,7 +173,7 @@ const ProfileCard: React.FC<{
             Util.logEvent(EVENTS.USER_PROFILE, eventParams);
             setIsLoading(false);
           }}
-          onNoButtonClicked={async ({}) => {
+          onNoButtonClicked={async ({ }) => {
             console.log(`Show warning No:`);
             setShowWarningDialogBox(false);
           }}

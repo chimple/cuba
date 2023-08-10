@@ -31,6 +31,13 @@ const DisplayStudents: FC<{}> = () => {
       "🚀 ~ file: DisplayStudents.tsx:13 ~ getStudents ~ students:",
       students
     );
+
+    if (!students || students.length < 1) {
+      history.replace(PAGES.CREATE_STUDENT, {
+        showBackButton: false,
+      });
+      return;
+    }
     setStudents(students);
 
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -82,11 +89,11 @@ const DisplayStudents: FC<{}> = () => {
     }
   };
   const onCreateNewStudent = () => {
-    // history.push(PAGES.CREATE_STUDENT);
-    history.push(PAGES.CREATE_STUDENT, {
-      showBackButton: true,
-    });
+    const isProfilesExist = students && students.length > 0;
+    const locationState = isProfilesExist ? { showBackButton: true } : undefined;
+    history.replace(PAGES.CREATE_STUDENT, locationState);
   };
+
   return (
     <IonPage id="display-students">
       {/* <IonContent> */}
@@ -121,9 +128,7 @@ const DisplayStudents: FC<{}> = () => {
               >
                 <img
                   className="avatar-img"
-                  src={
-                    "assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png"
-                  }
+                  src={student.image || ("assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png")}
                   alt=""
                 />
                 <span className="student-name">{student.name}</span>

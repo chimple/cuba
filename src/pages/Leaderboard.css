@@ -5,6 +5,11 @@
   /* margin-bottom: 0; */
 }
 
+#LeaderBoard-AppBar {
+  /* padding: 1vh 1vw; */
+  padding: 0%;
+}
+
 #LeaderBoard-Header {
   display: flex;
   flex-direction: row;
@@ -13,15 +18,8 @@
   margin-bottom: 0;
 }
 
-#LeaderBoard-AppBar {
-  /* padding: 1vh 1vw; */
-  padding: 0%;
-
-}
-
 #leaderboard-UI {
   display: flex;
-  /* margin: 1% 0% 0% 2%; */
   align-items: center;
   font-size: var(--text-size);
   color: black;
@@ -52,6 +50,10 @@
   border-radius: 4vh;
   overflow-y: scroll;
   text-align: center;
+}
+
+#leaderboard-right-UI::-webkit-scrollbar {
+  display: none;
 }
 
 #leaderboard-right-UI-content {

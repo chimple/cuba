@@ -12,6 +12,7 @@ import Class from "../../models/class";
 import School from "../../models/school";
 import Assignment from "../../models/assignment";
 import { MODES } from "../../common/constants";
+import { FaUnderline } from "react-icons/fa";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -115,7 +116,7 @@ export interface ServiceApi {
    * @param {string} id - Lesson firebase doc id
    * @returns {Lesson | undefined}`Lesson` or `undefined` if it could not find the lesson with given `id`
    */
-  getLesson(id: string): Promise<Lesson | undefined>;
+  getLesson(id: string, chapter : Chapter | undefined, loadChapterTitle : boolean): Promise<Lesson | undefined>;
 
   /**
    * Gives Array of `Lesson` objects for a given `chapter`

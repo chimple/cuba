@@ -43,7 +43,7 @@ const Parent: React.FC = () => {
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [soundFlag, setSoundFlag] = useState<boolean>();
   const [musicFlag, setMusicFlag] = useState<boolean>();
-  const [userProfile, setUserProfile] = useState<any[]>([]);
+  const [userProfile, setUserProfile] = useState<User[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
 
   const [langList, setLangList] = useState<
@@ -77,21 +77,17 @@ const Parent: React.FC = () => {
     getStudentProfile();
   }, [reloadProfiles]);
 
-  function getStudentProfile() {
+
+  async function getStudentProfile() {
     console.log("getStudentProfile");
-    const userProfilePromise: Promise<User[]> =
+    const userProfilePromise: User[] = await
       ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     let finalUser: any[] = [];
-    userProfilePromise.then((u) => {
-      for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
-        if (u[i]) {
-          finalUser.push(u[i]);
-        } else {
-          finalUser.push(undefined);
-        }
-      }
-      setUserProfile(finalUser);
-    });
+    for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
+      finalUser.push(userProfilePromise[i]);
+    }
+    setUserProfile(finalUser);
+    // });
   }
   async function inti(): Promise<void> {
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();

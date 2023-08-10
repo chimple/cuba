@@ -29,8 +29,10 @@ import { t } from "i18next";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 import { Util } from "../utility/util";
+// import auth from "../models/auth";
 import i18n from "../i18n";
 import IconButton from "../components/IconButton";
+import { App } from "@capacitor/app";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -47,7 +49,6 @@ const Leaderboard: React.FC = () => {
   >([]);
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
-
   const history = useHistory();
 
   const [weeklyList, setWeeklyList] = useState<
@@ -59,9 +60,18 @@ const Leaderboard: React.FC = () => {
   const [weeklySelectedValue, setWeeklySelectedValue] = useState<string>();
   const [currentClass, setCurrentClass] = useState<StudentProfile>();
 
+  function BackButtonListener() {
+      history.replace(PAGES.HOME);
+  }
+
   useEffect(() => {
     setIsLoading(true);
     inti();
+    App.addListener("backButton", BackButtonListener);
+    return ()=>{
+      App.removeAllListeners();
+    }
+
   }, []);
 
   async function inti() {
@@ -157,7 +167,7 @@ const Leaderboard: React.FC = () => {
         tempCurrentUserDataContent = [
           // ["Name", element.name],
           [t("Rank"), i + 1],
-          [t("Last Played"), element.lessonsPlayed],
+          [t("Lesson Played"), element.lessonsPlayed],
           [t("Score"), element.score],
           [
             t("Time Spent"),
@@ -170,7 +180,7 @@ const Leaderboard: React.FC = () => {
       tempCurrentUserDataContent = [
         // ["Name", element.name],
         [t("Rank"), "--"],
-        [t("Last Played"), "--"],
+        [t("Lesson Played"), "--"],
         [t("Score"), "--"],
         [t("Time Spent"), "--" + t("min") + " --" + t("sec")],
       ];
@@ -230,9 +240,7 @@ const Leaderboard: React.FC = () => {
             <img
               className="avatar-img"
               src={
-                "assets/avatars/" +
-                (currentStudent?.avatar ?? AVATARS[0]) +
-                ".png"
+                currentStudent?.image || ("assets/avatars/" + (currentStudent?.avatar ?? AVATARS[0]) + ".png")
               }
               alt=""
             />
@@ -415,6 +423,7 @@ const Leaderboard: React.FC = () => {
         <Box>
           <div id="LeaderBoard-Header">
             <BackButton
+              // iconSize={"8vh"}
               onClicked={() => {
                 history.replace(PAGES.HOME);
               }}
@@ -427,11 +436,10 @@ const Leaderboard: React.FC = () => {
                   flexDirection: "inherit",
                   justifyContent: "space-between",
                   padding: "1vh 1vw",
-                  backgroundColor: "#E2DEDE !important",
+                  backgroundColor: "#e2dede !important",
                   boxShadow: "0px 0px 0px 0px !important",
                 }}
               >
-
                 <Tabs
                   value={tabIndex}
                   onChange={handleChange}
@@ -446,7 +454,7 @@ const Leaderboard: React.FC = () => {
                     // "& .MuiAppBar-root": { backgroundColor: "#FF7925 !important" },
                     "& .MuiTabs-indicator": {
                       backgroundColor: "#000000 !important",
-                      bottom: "15% !important"
+                      bottom: "15% !important",
                     },
                     "& .MuiTab-root": { color: "#000000 !important" },
                     "& .Mui-selected": { color: "#000000 !important" },
@@ -477,7 +485,9 @@ const Leaderboard: React.FC = () => {
                   localStorage.removeItem(CURRENT_STUDENT);
                   const user = await auth.getCurrentUser();
                   if (!!user && !!user.language?.id) {
-                    const langDoc = await api.getLanguageWithId(user.language.id);
+                    const langDoc = await api.getLanguageWithId(
+                      user.language.id
+                    );
                     if (langDoc) {
                       const tempLangCode = langDoc.code ?? LANG.ENGLISH;
                       await i18n.changeLanguage(tempLangCode);

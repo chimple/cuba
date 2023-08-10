@@ -102,7 +102,7 @@ const JoinClass: FC<{
     <div className="join-class-main-header">
       <div className="join-class-header">
         <div className="join-class-title">
-          {t("Enter the code your teacher has given to join the class")}
+          {t("Enter the 6 digit code your teacher has given to join the class")}
         </div>
         <input
           onChange={(evt) => {
@@ -142,7 +142,7 @@ const JoinClass: FC<{
         message={
           t("You are Joining ") +
           (!!codeResult
-            ? codeResult["schoolName"] + ", " + codeResult["data"]["name"] ?? ""
+            ? t("School") + ": " + codeResult["schoolName"] + ", " + t("Class") + ": " + codeResult["data"]["name"] ?? ""
             : "")
         }
         showDialogBox={showDialogBox}
@@ -153,6 +153,7 @@ const JoinClass: FC<{
         }}
         onYesButtonClicked={() => {
           setShowDialogBox(false);
+
         }}
         onNoButtonClicked={async () => {
           await onJoin();

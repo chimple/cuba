@@ -42,6 +42,7 @@ import { DocumentReference } from "firebase/firestore";
 import LeaderBoardButton from "./LeaderBoardButton";
 import Class from "../models/class";
 import { schoolUtil } from "../utility/schoolUtil";
+import Assignment from "../models/assignment";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import { auto } from "@popperjs/core";
 import { margin } from "@mui/system";
@@ -66,6 +67,8 @@ const sortPlayedLessonsByDate = (
 
   return sortedLessons;
 };
+
+const localData: any = {};
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -84,9 +87,10 @@ const Home: FC = () => {
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
   const [levelChapter, setLevelChapter] = useState<Chapter>();
   const [gradeMap, setGradeMap] = useState<any>({});
-  const [PlayedLessonsList, setPlayedLessonsList] = useState<Lesson[]>([]);
-
+  const [pendingAssignmentsCount, setPendingAssignmentsCount] =
+    useState<number>(0);
   const history = useHistory();
+  const [PlayedLessonsList, setPlayedLessonsList] = useState<Lesson[]>([]);
 
   useEffect(() => {
     setCurrentHeader(HOMEHEADERLIST.HOME);
@@ -98,7 +102,6 @@ const Home: FC = () => {
 
   function urlOpenListenerEvent() {
     App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
-
       const slug = event.url.split(".cc").pop();
       if (slug) {
         history.push(slug);
@@ -107,6 +110,52 @@ const Home: FC = () => {
   }
 
   const api = ServiceConfig.getI().apiHandler;
+  const getAssignments = async () => {
+    setIsLoading(true);
+    const student = await Util.getCurrentStudent();
+
+    if (!student) {
+      history.replace(PAGES.SELECT_MODE);
+      return;
+    }
+    const studentResult = await api.getStudentResult(student.docId);
+    if (
+      !!studentResult &&
+      !!studentResult.classes &&
+      studentResult.classes.length > 0
+    ) {
+      const allAssignments: Assignment[] = [];
+
+      await Promise.all(
+        studentResult.classes.map(async (_class) => {
+          const res = await api.getPendingAssignments(_class, student.docId);
+          allAssignments.push(...res);
+        })
+      );
+      let count = 0;
+      await Promise.all(
+        allAssignments.map(async (_assignment) => {
+          const res = await api.getLesson(
+            _assignment.lesson.id,
+            undefined,
+            true
+          );
+          console.log(res);
+          if (!!res) {
+            count++;
+            res.assignment = _assignment;
+            reqLes.push(res);
+          }
+        })
+      );
+      setPendingAssignmentsCount(count);
+
+      setDataCourse(reqLes);
+      setIsLoading(true);
+    } else {
+      setIsLoading(false);
+    }
+  };
 
   async function setCourse(subjectCode: string) {
     setIsLoading(true);
@@ -126,6 +175,11 @@ const Home: FC = () => {
     if (subjectCode === HOMEHEADERLIST.HOME) {
       // let r = api.getStudentResultInMap(currentStudent.docId);
       // console.log("r = api.getStudentResultInMap(currentStudent.docId);", r);
+      if (!localData.allCourses) {
+        let tempAllCourses = await api.getAllCourses();
+        localData.allCourses = tempAllCourses;
+      }
+      await getAssignments();
       getRecommendationLessons(currentStudent, currClass).then(() => {
         console.log("Final RECOMMENDATION List ", reqLes);
         setDataCourse(reqLes);
@@ -217,7 +271,7 @@ const Home: FC = () => {
     if (studentResult?.lessons) {
       const playedLessonIds = Object.keys(studentResult.lessons);
       const lessonPromises = playedLessonIds.map((lessonId) =>
-        api.getLesson(lessonId)
+        api.getLesson(lessonId, undefined, true)
       );
       const lessons: (Lesson | undefined)[] = await Promise.all(lessonPromises);
       const validLessons: Lesson[] = lessons.filter(
@@ -273,8 +327,8 @@ const Home: FC = () => {
     console.log(currMode);
     let sortLessonResultMap:
       | {
-        [lessonDocId: string]: StudentLessonResult;
-      }
+          [lessonDocId: string]: StudentLessonResult;
+        }
       | undefined;
     api.getStudentResult(currentStudent.docId).then(async (res) => {
       console.log("tempResultLessonMap = res;", JSON.stringify(res));
@@ -291,7 +345,6 @@ const Home: FC = () => {
       ? api.getCoursesForClassStudent(currClass)
       : api.getCoursesForParentsStudent(currentStudent));
     setCourses(courses);
-
     for (const tempCourse of courses) {
       setIsLoading(true);
       let islessonPushed = false;
@@ -313,11 +366,14 @@ const Home: FC = () => {
             );
             // await res.lessons[tempCourse.courseCode][l.id];
             if (lessonObj) {
+              let chapterTitle = tempCourse.chapters[0].title;
+              lessonObj.chapterTitle = chapterTitle;
               console.log(lessonObj, "lessons pushed");
               reqLes.push(lessonObj as Lesson);
               setDataCourse(reqLes);
             }
           } else {
+            console.log("Wrong place");
             console.log(element, "lessons pushed");
             reqLes.push(element as Lesson);
             setDataCourse(reqLes);
@@ -349,6 +405,8 @@ const Home: FC = () => {
               // );
 
               if (lessonObj) {
+                let chapterTitle = chapter.title;
+                lessonObj.chapterTitle = chapterTitle;
                 console.log(lessonObj, "lessons pushed");
                 reqLes.push(lessonObj as Lesson);
               }
@@ -356,6 +414,7 @@ const Home: FC = () => {
               //   console.log(lesson, "lessons pushed");
               //   reqLes.push(lesson);
               // }
+              console.log("DWSGSGSG");
               setDataCourse(reqLes);
               islessonPushed = true;
               break;
@@ -368,6 +427,7 @@ const Home: FC = () => {
       //Last Played Lessons
       islessonPushed = false;
       if (!sortLessonResultMap) {
+        console.log("ERERERER");
         setDataCourse(reqLes);
         setIsLoading(false);
         continue;
@@ -383,7 +443,6 @@ const Home: FC = () => {
           islessonPushed = true;
           // break;
           console.log("reqLes.", reqLes);
-
           setDataCourse(reqLes);
           // return;
         }
@@ -446,7 +505,7 @@ const Home: FC = () => {
         }
         break;
       case HOMEHEADERLIST.PROFILE:
-        history.push(PAGES.LEADERBOARD);
+        history.replace(PAGES.LEADERBOARD);
         break;
       case HOMEHEADERLIST.SEARCH:
         history.push(PAGES.SEARCH);
@@ -461,6 +520,32 @@ const Home: FC = () => {
         break;
     }
   }
+  // const sortedPlayedLessonsList = PlayedLessonsList.sort((a, b) => {
+  //   const lessonResultA = lessonResultMap?.[a.docId];
+  //   const lessonResultB = lessonResultMap?.[b.docId];
+
+  //   if (!lessonResultA || !lessonResultB) {
+  //     return 0;
+  //   }
+
+  //   return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
+  // });
+  // setPlayedLessonsList(sortedPlayedLessonsList);
+  // function sortPlayedLessonsByDate(lessons: Lesson[], lessonResultMap: any): Lesson[] {
+  //   const sortedLessons = lessons.slice().sort((a, b) => {
+  //     const lessonResultA = lessonResultMap?.[a.docId];
+  //     const lessonResultB = lessonResultMap?.[b.docId];
+
+  //     if (!lessonResultA || !lessonResultB) {
+  //       return 0;
+  //     }
+
+  //     return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
+  //   });
+
+  //   return sortedLessons;
+  // }
+
   const getLovedLessons = () => {
     return PlayedLessonsList.filter((lesson) => {
       const lessonResult = lessonResultMap?.[lesson.docId];
@@ -482,6 +567,7 @@ const Home: FC = () => {
         <HomeHeader
           currentHeader={currentHeader}
           onHeaderIconClick={onHeaderIconClick}
+          pendingAssignmentCount={pendingAssignmentsCount}
         ></HomeHeader>
       </IonHeader>
       <div className="slider-content">
@@ -496,10 +582,11 @@ const Home: FC = () => {
                   lessonsScoreMap={lessonResultMap || {}}
                   startIndex={0}
                   showSubjectName={true}
+                  showChapterName={true}
                 />
               </div>
             ) : // <div style={{ marginTop: "2.6%" }}></div>
-              null}
+            null}
 
             {currentHeader === HOMEHEADERLIST.FAVOURITES && (
               <div>
@@ -510,6 +597,7 @@ const Home: FC = () => {
                   lessonsScoreMap={lessonResultMap || {}}
                   startIndex={0}
                   showSubjectName={true}
+                  showChapterName={true}
                 />
               </div>
             )}
@@ -523,6 +611,7 @@ const Home: FC = () => {
                   lessonsScoreMap={lessonResultMap || {}}
                   startIndex={0}
                   showSubjectName={true}
+                  showChapterName={true}
                 />
               </div>
             )}
@@ -624,9 +713,10 @@ const Home: FC = () => {
                       <Tab
                         id="home-page-sub-tab"
                         label={t("Favourite")}
-                        onClick={() => setCurrentHeader(HOMEHEADERLIST.FAVOURITES)}
+                        onClick={() =>
+                          setCurrentHeader(HOMEHEADERLIST.FAVOURITES)
+                        }
                       />
-
                       <Tab
                         id="home-page-sub-tab"
                         label={t("History")}
@@ -637,18 +727,6 @@ const Home: FC = () => {
                 </AppBar>
               </div>
             )}
-            {/* <div id="home-leaderboard-button">
-              <LeaderBoardButton
-                iconSrc={"assets/icons/LeaderboardIcon.svg"}
-                // name={"Leaderboard"}
-                onHeaderIconClick={() => {
-                  history.replace(PAGES.LEADERBOARD);
-                  // if (currentHeader != element.header) {
-                  //   onHeaderIconClick(element.header);
-                  // }
-                }}
-              />
-            </div> */}
           </div>
         ) : null}
         <Loading isLoading={isLoading} />
