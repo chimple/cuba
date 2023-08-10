@@ -1272,6 +1272,7 @@ export class FirebaseApi implements ServiceApi {
     let doc: DocumentSnapshot<DocumentData>;
     try {
       doc = await getDocFromCache(reference);
+      if (!doc.exists() || !doc.data()) throw "not found in cache";
     } catch (error) {
       doc = await getDoc(reference);
     }
@@ -1282,6 +1283,7 @@ export class FirebaseApi implements ServiceApi {
     let querySnapshot: QuerySnapshot<DocumentData>;
     try {
       querySnapshot = await getDocsFromCache(query);
+      if (querySnapshot.empty) throw "not found in cache";
     } catch (er) {
       querySnapshot = await getDocs(query);
     }
