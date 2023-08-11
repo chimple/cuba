@@ -399,6 +399,11 @@ const Login: React.FC = () => {
                         inputValue={phoneNumber}
                         onChange={(input) => {
                           if (input.target.value) {
+
+                            if (isNaN(Number(input.target.value))) {
+                              return;
+                            }
+
                             setPhoneNumber(input.target.value);
                             console.log(countryCode + input.target.value);
 
