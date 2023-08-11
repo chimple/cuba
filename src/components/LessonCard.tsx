@@ -183,9 +183,9 @@ const LessonCard: React.FC<{
                 lesson.cocosSubjectCode +
                 "/icons/" +
                 lesson.id +
-                ".png"
+                ".webp"
               }
-              defaultSrc={"courses/" + "en" + "/icons/" + "en33.png"}
+              defaultSrc={"courses/" + "en" + "/icons/" + "en33.webp"}
               webSrc={lesson.thumbnail}
             />
             {!isUnlocked ? (
