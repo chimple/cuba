@@ -512,6 +512,11 @@ export class Util {
       window.location.pathname !== PAGES.GAME &&
       window.location.pathname !== PAGES.LOGIN
     ) {
+      if (window.location.pathname === PAGES.DISPLAY_SUBJECTS) {
+        const url = new URL(window.location.toString());
+        url.searchParams.set("isReload", "true");
+        window.history.pushState(window.history.state, "", url.toString());
+      }
       window.location.reload();
     } else if (isActive) {
       const url = new URL(window.location.toString());
