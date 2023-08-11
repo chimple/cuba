@@ -126,12 +126,14 @@ const DisplaySubjects: FC<{}> = () => {
         localStorageData = JSON.parse(strLocalStoreData);
 
         if (!!localStorageData.courses) {
-          let tmpCourses: Course[] = convertCourses(localStorageData.courses);
+          let tmpCourses: Course[] = Util.convertCourses(localStorageData.courses);
           localData.courses = tmpCourses;
 
           setCourses(tmpCourses);
 
-          if (localStorageData.stage !== STAGES.SUBJECTS && !!localStorageData.currentCourseId) {
+          if (!!localStorageData.stage && localStorageData.stage !== STAGES.SUBJECTS && !!localStorageData.currentCourseId) {
+
+            setStage(localStorageData.stage);
             let cc: Course = localData.courses.find(cour => localStorageData.currentCourseId === cour.docId)
             localData.currentCourse = cc;
             setCurrentCourse(cc);
@@ -156,24 +158,19 @@ const DisplaySubjects: FC<{}> = () => {
               let tmpStdMap: { [lessonDocId: string]: StudentLessonResult } = localStorageData.lessonResultMap;
               for (const value of Object.values(tmpStdMap)) {
                 if (!!value.course)
-                  value.course = getRef(value.course);
+                  value.course = Util.getRef(value.course);
               }
               localData.lessonResultMap = tmpStdMap;
               setLessonResultMap(tmpStdMap);
             }
 
-            if (!!localStorageData.stage) {
-              if (localStorageData.stage === STAGES.LESSONS) {
-                await getLessonsForChapter(localData.currentChapter);
-              }
+            if (localStorageData.stage === STAGES.LESSONS) {
+              getLessonsForChapter(localData.currentChapter);
             } else {
-              await getLessonsForChapter(localData.currentChapter);
+              setIsLoading(false);
             }
-
-            if (!!localStorageData.stage)
-              setStage(localStorageData.stage);
           }
-          setIsLoading(false);
+
         } else {
           await getCourses();
           console.log("🚀 ~ file: DisplaySubjects.tsx:127 ~ init ~ getCourses:");
@@ -192,39 +189,7 @@ const DisplaySubjects: FC<{}> = () => {
     if (!!map) setLocalGradeMap(JSON.parse(map));
   };
 
-  function getRef(ref): DocumentReference {
-    const db = getFirestore();
-    const newCourseRef = doc(
-      db,
-      ref["_key"].path.segments.at(-2),
-      ref["_key"].path.segments.at(-1)
-    );
-    return newCourseRef;
-  }
 
-  function convertDoc(refs: any[]): DocumentReference[] {
-    const data: DocumentReference[] = [];
-    for (let ref of refs) {
-      const newCourseRef = getRef(ref);
-      data.push(newCourseRef);
-    }
-    return data;
-  }
-
-  function convertCourses(_courses: Course[]): Course[] {
-    let courses: Course[] = [];
-    _courses.forEach(course => {
-      course.chapters.forEach(chapter => {
-        chapter.lessons = convertDoc(chapter.lessons);
-      })
-
-      course.curriculum = getRef(course.curriculum);
-      course.grade = getRef(course.grade);
-      course.subject = getRef(course.subject);
-
-    })
-    return _courses;
-  }
 
   function addDataToLocalStorage() {
     localStorage.setItem(DISPLAY_SUBJECTS_STORE, JSON.stringify(localStorageData));
