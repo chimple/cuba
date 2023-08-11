@@ -1,11 +1,16 @@
 import "./IconButton.css";
+import { Util } from "../utility/util";
+
 const IconButton: React.FC<{
   iconSrc: string;
   name: string;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
 }> = ({ iconSrc, name, onClick }) => {
+  const student = Util.getCurrentStudent();
+  const iconButtonClass = `icon-button${iconSrc === student?.image ? ' circular-icon' : ''}`;
+
   return (
-    <div className="icon-button" onClick={onClick}>
+    <div className={iconButtonClass} onClick={onClick}>
       <div>
         <img className="img" alt={iconSrc} src={iconSrc} />
       </div>
@@ -13,4 +18,5 @@ const IconButton: React.FC<{
     </div>
   );
 };
+
 export default IconButton;
