@@ -28,7 +28,7 @@ const ProfileCard: React.FC<{
   const [showWarningDialogBox, setShowWarningDialogBox] =
     useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const areprofilesAvailable = profiles && profiles[0] == null || undefined;
+  const areProfilesAvailable = profiles && profiles[0] == null || undefined;
   return (
     <IonCard
       id="profile-card"
@@ -81,7 +81,7 @@ const ProfileCard: React.FC<{
             size={"16vw"}
             onClick={() => {
               history.replace(PAGES.CREATE_STUDENT, {
-                showBackButton: !areprofilesAvailable,
+                showBackButton: !areProfilesAvailable,
               });
             }}
           ></HiPlusCircle>
