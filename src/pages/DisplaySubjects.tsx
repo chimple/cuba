@@ -27,7 +27,6 @@ import { Util } from "../utility/util";
 import Class from "../models/class";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
-import { DocumentReference, doc, getFirestore } from "firebase/firestore";
 
 const localData: any = {};
 let localStorageData: any = {};
