@@ -157,7 +157,7 @@ const Leaderboard: React.FC = () => {
       var result = element.timeSpent % 60;
       tempLeaderboardDataArray.push([
         i + 1,
-        element.name,
+        Util.cutAString(element.name),
         element.lessonsPlayed,
         element.score,
         computeMinutes + "min" + " " + result + " " + "sec",
@@ -186,7 +186,7 @@ const Leaderboard: React.FC = () => {
       ];
       tempLeaderboardDataArray.push([
         "--",
-        currentStudent.name,
+        Util.cutAString(currentStudent.name),
         "--",
         "--",
         "--" + t("min") + " --" + t("sec"),
@@ -244,7 +244,7 @@ const Leaderboard: React.FC = () => {
               }
               alt=""
             />
-            <span id="leaderboard-student-name">{currentStudent?.name}</span>
+            {Util.cutAString(currentStudent?.name)}
           </div>
           <div>
             {currentUserDataContent.map((e) => {

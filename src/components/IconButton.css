@@ -11,13 +11,6 @@
   /* min-height: 30px; */
 }
 
-.child-Name {
-  white-space: nowrap;
-  max-width: 14vw;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
-
 .badge-notification {
   color: white;
   background-color: green;

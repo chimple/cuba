@@ -48,14 +48,6 @@
   color: #05342f;
 }
 
-.student-name {
-  white-space: nowrap;
-  display: block;
-  max-width: 20vh;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
-
 .avatar-container {
   margin: 0.4vh;
   gap: 10vh;

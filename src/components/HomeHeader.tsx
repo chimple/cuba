@@ -100,7 +100,7 @@ const HomeHeader: React.FC<{
 
       <div id="home-header-profile-icon">
         <HeaderIcon
-          headerName={student?.name ?? "Profile"}
+          headerName={Util.cutAString(student?.name) ?? "Profile"}
           iconSrc={student?.image || ("assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png")}
           currentHeader={currentHeader}
           headerList={HOMEHEADERLIST.PROFILE}

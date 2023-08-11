@@ -71,7 +71,7 @@ const ProfileCard: React.FC<{
             src={ user.image || "assets/avatars/" + (user.avatar ?? AVATARS[0]) + ".png"}
             alt=""
           />
-          <p id="profile-card-user-name">{user.name}</p>
+          <p>{ Util.cutAString(user.name)}</p>
         </div>
       ) : (
         <div id="profile-card-new-user">
