@@ -1,7 +1,14 @@
-.content {
+.Lesson-slider-content {
   text-align: -webkit-center;
-  margin-top: 0vh !important;
+  overflow: hidden scroll;
+  margin-top: 1vh;
+  margin-bottom: 12vh;
 }
+
+.Lesson-slider-content::-webkit-scrollbar {
+  display: none;
+}
+
 .slide {
   max-width: fit-content;
 }
