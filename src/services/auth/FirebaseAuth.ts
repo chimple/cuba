@@ -29,6 +29,7 @@ import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { CollectionIds } from "../../common/courseConstants";
 import { ACTION, EVENTS } from "../../common/constants";
+import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 
 export class FirebaseAuth implements ServiceAuth {
   public static i: FirebaseAuth;
@@ -502,6 +503,9 @@ export class FirebaseAuth implements ServiceAuth {
         user
       );
       if (!!user) {
+        await FirebaseAnalytics.setUserId({
+          userId: user.uid,
+        });
         return true;
       }
     }
