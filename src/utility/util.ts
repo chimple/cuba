@@ -189,7 +189,7 @@ export class Util {
         });
         const path =
           (localStorage.getItem("gameUrl") ??
-            "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.cuba/files/") +
+            "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
           lessonId +
           "/index.js";
         console.log("cheching path..", "path", path);
