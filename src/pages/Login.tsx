@@ -400,7 +400,8 @@ const Login: React.FC = () => {
                         onChange={(input) => {
                           if (input.target.value) {
 
-                            if (isNaN(Number(input.target.value))) {
+                            const numberRegex = /^[0-9\b]+$/;
+                            if (!numberRegex.test(input.target.value)) {
                               return;
                             }
 
