@@ -158,6 +158,7 @@ const Parent: React.FC = () => {
               user={element}
               showText={true}
               setReloadProfiles={setReloadProfiles}
+              profiles={userProfile}
             />
           );
         })}
