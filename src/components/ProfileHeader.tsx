@@ -39,7 +39,7 @@ const ProfileHeader: React.FC = () => {
       />
 
       <IconButton
-        name={Util.cutAString(student?.name) ?? "Chimp"}
+        name={student?.name ?? "Chimp"}
         iconSrc={"assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png"}
       />
       <IconButton

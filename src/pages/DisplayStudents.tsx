@@ -131,7 +131,7 @@ const DisplayStudents: FC<{}> = () => {
                   src={student.image || ("assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png")}
                   alt=""
                 />
-                {Util.cutAString(student.name)}
+                <span className="student-name">{student.name}</span>
               </div>
             ))}
           </div>

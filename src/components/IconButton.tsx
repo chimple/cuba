@@ -9,7 +9,7 @@ const IconButton: React.FC<{
       <div>
         <img className="img" alt={iconSrc} src={iconSrc} />
       </div>
-      {name}
+      <p className="child-Name">{name}</p>
     </div>
   );
 };

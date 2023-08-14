@@ -826,17 +826,6 @@ export class Util {
     }
   }
 
-  public static cutAString(text: string | undefined, limit: number = 14) {
-
-    if (!text)
-      return text;
-
-    if (text.length > 14) 
-      return text.slice(0, limit) + "...";
-    
-    return text;
-  }
-
   public static async migrate() {
     if (
       !Capacitor.isNativePlatform() ||
