@@ -74,7 +74,7 @@ const AssignmentPage: React.FC = () => {
       const _lessons: Lesson[] = [];
       await Promise.all(
         allAssignments.map(async (_assignment) => {
-          const res = await api.getLesson(_assignment.lesson.id);
+          const res = await api.getLesson(_assignment.lesson.id, undefined, true);
           if (!!res) {
             res.assignment = _assignment;
             _lessons.push(res);
@@ -162,7 +162,7 @@ const AssignmentPage: React.FC = () => {
                       lessonsScoreMap={lessonResultMap || {}}
                       startIndex={0}
                       showSubjectName={true}
-                      showChapterName= {false}
+                      showChapterName= {true}
                     />
                   ) : (
                     <div className="pending-assignment">
