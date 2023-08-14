@@ -25,6 +25,7 @@ import {
   // APP_LANG,
 } from "../common/constants";
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
+import Course1 from "../models/course";
 import { GUIDRef } from "../interface/modelInterfaces";
 import Result from "../models/result";
 import { OneRosterApi } from "../services/api/OneRosterApi";
@@ -62,6 +63,43 @@ declare global {
 export class Util {
   public static port: PortPlugin;
 
+  public static convertCourses(_courses: Course1[]): Course1[] {
+    let courses: Course1[] = [];
+    _courses.forEach(course => {
+      course.chapters.forEach(chapter => {
+        chapter.lessons = this.convertDoc(chapter.lessons);
+      })
+
+      course.curriculum = Util.getRef(course.curriculum);
+      course.grade = Util.getRef(course.grade);
+      course.subject = Util.getRef(course.subject);
+
+    })
+    return _courses;
+  }
+
+
+  public static convertDoc(refs: any[]): DocumentReference[] {
+    const data: DocumentReference[] = [];
+    for (let ref of refs) {
+      const newCourseRef = Util.getRef(ref);
+
+      data.push(newCourseRef);
+    }
+    return data;
+  }
+
+  public static getRef(ref): DocumentReference {
+    const db = getFirestore();
+    const newCourseRef = doc(
+      db,
+      ref["_key"].path.segments.at(-2),
+      ref["_key"].path.segments.at(-1)
+    );
+    return newCourseRef;
+  }
+
+
   public static getCurrentStudent(): User | undefined {
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentStudent) return api.currentStudent;
@@ -69,33 +107,16 @@ export class Util {
 
     if (!temp) return;
     const currentStudent = JSON.parse(temp) as User;
-    function getRef(ref): DocumentReference {
-      const db = getFirestore();
-      const newCourseRef = doc(
-        db,
-        ref["_key"].path.segments.at(-2),
-        ref["_key"].path.segments.at(-1)
-      );
-      return newCourseRef;
-    }
 
-    function convertDoc(refs: any[]): DocumentReference[] {
-      const data: DocumentReference[] = [];
-      for (let ref of refs) {
-        const newCourseRef = getRef(ref);
 
-        data.push(newCourseRef);
-      }
-      return data;
-    }
-    currentStudent.courses = convertDoc(currentStudent.courses);
-    currentStudent.users = convertDoc(currentStudent.users);
+    currentStudent.courses = Util.convertDoc(currentStudent.courses);
+    currentStudent.users = Util.convertDoc(currentStudent.users);
     if (!!currentStudent.grade)
-      currentStudent.grade = getRef(currentStudent.grade);
+      currentStudent.grade = Util.getRef(currentStudent.grade);
     if (!!currentStudent.language)
-      currentStudent.language = getRef(currentStudent.language);
+      currentStudent.language = Util.getRef(currentStudent.language);
     if (!!currentStudent.board)
-      currentStudent.board = getRef(currentStudent.board);
+      currentStudent.board = Util.getRef(currentStudent.board);
     api.currentStudent = currentStudent;
 
     this.logCurrentPageEvents(currentStudent);
@@ -180,9 +201,9 @@ export class Util {
 
         console.log(
           "before local lesson Bundle http url:" +
-            "assets/" +
-            lessonId +
-            "/index.js"
+          "assets/" +
+          lessonId +
+          "/index.js"
         );
 
         const fetchingLocalBundle = await fetch(
@@ -190,9 +211,9 @@ export class Util {
         );
         console.log(
           "after local lesson Bundle fetch url:" +
-            "assets/" +
-            lessonId +
-            "/index.js",
+          "assets/" +
+          lessonId +
+          "/index.js",
           fetchingLocalBundle.ok,
           fetchingLocalBundle.json,
           fetchingLocalBundle
@@ -512,6 +533,11 @@ export class Util {
       window.location.pathname !== PAGES.GAME &&
       window.location.pathname !== PAGES.LOGIN
     ) {
+      if (window.location.pathname === PAGES.DISPLAY_SUBJECTS) {
+        const url = new URL(window.location.toString());
+        url.searchParams.set("isReload", "true");
+        window.history.pushState(window.history.state, "", url.toString());
+      }
       window.location.reload();
     } else if (isActive) {
       const url = new URL(window.location.toString());
