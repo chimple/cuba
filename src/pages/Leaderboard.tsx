@@ -373,7 +373,7 @@ const Leaderboard: React.FC = () => {
                         }}
                         id="leaderboard-right-UI-content"
                       >
-                        {d}
+                        {i === 1 ? <p id="leaderboard-profile-name">{d}</p> : d}
                       </p>
                     </IonCol>
                   );
