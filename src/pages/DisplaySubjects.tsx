@@ -389,7 +389,7 @@ const DisplaySubjects: FC<{}> = () => {
             lessonsScoreMap={lessonResultMap || {}}
             startIndex={getLastPlayedLessonIndex()}
             showSubjectName={false}
-            showChapterName = {true}
+            showChapterName = {false}
           />
         </div>
       )}
