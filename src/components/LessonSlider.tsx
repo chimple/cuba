@@ -15,7 +15,6 @@ const LessonSlider: React.FC<{
   startIndex: number;
   showSubjectName: boolean;
   onEndReached?: () => void;
-  handleScrollBack?: () => void;
   onMoved?: (splide: any) => void;
 }> = ({
   lessonData,
@@ -25,7 +24,6 @@ const LessonSlider: React.FC<{
   startIndex,
   showSubjectName = false,
   onEndReached,
-  handleScrollBack,
   onMoved,
 }) => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
@@ -40,12 +38,10 @@ const LessonSlider: React.FC<{
       lessonSwiperRef.current.go(startIndex);
     }
   }, [startIndex]);
-
   const handleMoved = (splide) => {
     const newIndex = splide.index;
     setCurrentSlideIndex(newIndex);
 
-    // Load new lessons when scrolling forward
     if (newIndex >= lessonData.length - 1) {
       const nextIndex = loadedLessons.length;
       const nextTenLessons = lessonData.slice(nextIndex, nextIndex + 10);
@@ -55,12 +51,7 @@ const LessonSlider: React.FC<{
         onEndReached();
       }
     }
-
-    if (newIndex === 0 && handleScrollBack) {
-      handleScrollBack(); 
-    }
   };
-  // console.log("REFERENCE", startIndex);
   return isHome ? (
     <div className="content">
       <Splide
@@ -116,7 +107,7 @@ const LessonSlider: React.FC<{
       <Splide
         ref={lessonSwiperRef}
         hasTrack={true}
-        onMoved = {handleMoved}
+        onMoved={handleMoved}
         options={{
           arrows: false,
           wheel: true,

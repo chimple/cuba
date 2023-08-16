@@ -49,13 +49,13 @@ import { push } from "ionicons/icons";
 import { t } from "i18next";
 import { App, URLOpenListenerEvent } from "@capacitor/app";
 
-const sortPlayedLessonsByDate = (
-  lessons: Lesson[],
+const sortValidLessonsByDate = (
+  lessonIds: string[],
   lessonResultMap: { [lessonDocId: string]: StudentLessonResult }
-): Lesson[] => {
-  const sortedLessons = lessons.slice().sort((a, b) => {
-    const lessonResultA = lessonResultMap?.[a.docId];
-    const lessonResultB = lessonResultMap?.[b.docId];
+): string[] => {
+  return lessonIds.sort((a, b) => {
+    const lessonResultA = lessonResultMap[a];
+    const lessonResultB = lessonResultMap[b];
 
     if (!lessonResultA || !lessonResultB) {
       return 0;
@@ -63,9 +63,8 @@ const sortPlayedLessonsByDate = (
 
     return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
   });
-
-  return sortedLessons;
 };
+
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -84,23 +83,18 @@ const Home: FC = () => {
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
   const [levelChapter, setLevelChapter] = useState<Chapter>();
   const [gradeMap, setGradeMap] = useState<any>({});
-  const [PlayedLessonsList, setPlayedLessonsList] = useState<Lesson[]>([]);
   const [favouriteLessons, setFavouriteLessons] = useState<Lesson[]>([]);
-  const [favouritesPageSize, setFavouritesPageSize] = useState<number>(10); // Replace '10' with your desired page size
+  const [favouritesPageSize, setFavouritesPageSize] = useState<number>(10); 
   const [favouritesPageNumber, setFavouritesPageNumber] = useState<number>(1);
   const [historyPageNumber, setHistoryPageNumber] = useState<number>(1);
-  const [removedHistoryLessons, setRemovedHistoryLessons] = useState<Lesson[]>(
-    []
-  );
   const [initialFavoriteLessons, setInitialFavoriteLessons] = useState<
     Lesson[]
   >([]);
   const [initialHistoryLessons, setInitialHistoryLessons] = useState<Lesson[]>(
     []
   );
-
-  const [favoritePageNumber, setFavoritePageNumber] = useState<number>(1);
   const [historyLessons, setHistoryLessons] = useState<Lesson[]>([]);
+  const [validLessonIds, setValidLessonIds] = useState<string[]>([]);
 
   const history = useHistory();
 
@@ -109,49 +103,50 @@ const Home: FC = () => {
   };
 
   useEffect(() => {
-    const updateHistoryLessons = () => {
-      if (!lessonResultMap || !PlayedLessonsList) {
+    const updateHistoryLessons = async () => {
+      const currentStudent = await Util.getCurrentStudent();
+      if (!currentStudent || !lessonResultMap) {
         return;
       }
-
+  
+      const lessonPromises = validLessonIds.map((lessonId) =>
+        api.getLesson(lessonId)
+      );
+      const lessons: (Lesson | undefined)[] = await Promise.all(lessonPromises);
+      const validLessons: Lesson[] = lessons.filter(
+        (lesson): lesson is Lesson => lesson !== undefined
+      );
+  
+      const sortedValidLessons = validLessons
+        .sort((a, b) => {
+          const lessonResultA = lessonResultMap[a.docId];
+          const lessonResultB = lessonResultMap[b.docId];
+  
+          if (!lessonResultA || !lessonResultB) {
+            return 0;
+          }
+  
+          return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
+        });
+  
       const startIndex = (historyPageNumber - 1) * favouritesPageSize;
       const endIndex = startIndex + favouritesPageSize;
-
-      const newHistoryLessonsForPage = PlayedLessonsList.slice(
-        startIndex,
-        endIndex
-      ).sort((a, b) => {
-        const lessonResultA = lessonResultMap[a.docId];
-        const lessonResultB = lessonResultMap[b.docId];
-
-        if (!lessonResultA || !lessonResultB) {
-          return 0;
-        }
-
-        return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
-      });
-
+  
+      const newHistoryLessonsForPage = sortedValidLessons
+        .slice(startIndex, endIndex);
+  
       const updatedHistoryLessons = [
-        ...newHistoryLessonsForPage,
         ...historyLessons,
-      ].sort((a, b) => {
-        const lessonResultA = lessonResultMap[a.docId];
-        const lessonResultB = lessonResultMap[b.docId];
-
-        if (!lessonResultA || !lessonResultB) {
-          return 0;
-        }
-
-        return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
-      });
-
+        ...newHistoryLessonsForPage,
+       
+      ];
+  
       setHistoryLessons(updatedHistoryLessons);
       setInitialHistoryLessons([...newHistoryLessonsForPage]);
     };
-    // Update historyLessons whenever historyPageNumber or PlayedLessonsList changes
     updateHistoryLessons();
-  }, [historyPageNumber, PlayedLessonsList]);
-
+  }, [historyPageNumber, lessonResultMap]);
+ 
   const handleLoadMoreLessons = () => {
     if (currentHeader === HOMEHEADERLIST.FAVOURITES) {
       setFavouritesPageNumber((prevPageNumber) => prevPageNumber + 1);
@@ -270,24 +265,16 @@ const Home: FC = () => {
     setValue(newValue);
     if (newValue === SUBTAB.HISTORY) {
       if (lessonResultMap) {
+       
         const startIndex = (historyPageNumber - 1) * favouritesPageSize;
         const endIndex = startIndex + favouritesPageSize;
+        
 
         const initialHistoryLessonsSlice = initialHistoryLessons
-          .slice(startIndex, endIndex)
-          .sort((a, b) => {
-            const lessonResultA = lessonResultMap[a.docId];
-            const lessonResultB = lessonResultMap[b.docId];
-
-            if (!lessonResultA || !lessonResultB) {
-              return 0;
-            }
-
-            return (
-              lessonResultB.date.toMillis() - lessonResultA.date.toMillis()
-            );
-          });
+          .slice(startIndex, endIndex);
+        
         setHistoryLessons([...initialHistoryLessonsSlice]);
+        console.log("handlechange history", initialHistoryLessonsSlice );
       }
       setHistoryPageNumber(1);
     } else if (newValue === SUBTAB.FAVOURITES) {
@@ -297,19 +284,7 @@ const Home: FC = () => {
         const endIndex = startIndex + favouritesPageSize;
 
         const initialFavouriteLessonsSlice = initialFavoriteLessons
-          .slice(startIndex, endIndex)
-          .sort((a, b) => {
-            const lessonResultA = lessonResultMap[a.docId];
-            const lessonResultB = lessonResultMap[b.docId];
-
-            if (!lessonResultA || !lessonResultB) {
-              return 0;
-            }
-
-            return (
-              lessonResultB.date.toMillis() - lessonResultA.date.toMillis()
-            );
-          });
+          .slice(startIndex, endIndex);
 
         setFavouriteLessons([...initialFavouriteLessonsSlice]);
         console.log("handlechange favourite", favouriteLessons);
@@ -320,11 +295,6 @@ const Home: FC = () => {
   };
   const handleHomeIconClick = () => {
     setValue(SUBTAB.SUGGESTIONS);
-    //   const startIndex = (favouritesPageNumber - 1) * favouritesPageSize;
-    // const endIndex = startIndex + favouritesPageSize;
-    // const initialFavouriteLessonsSlice = initialFavoriteLessons.slice(startIndex, endIndex);
-
-    // setFavouriteLessons([...initialFavouriteLessonsSlice]);
   };
 
   const getLessonsForChapter = async (chapter: Chapter): Promise<Lesson[]> => {
@@ -351,19 +321,15 @@ const Home: FC = () => {
 
     if (studentResult?.lessons) {
       const playedLessonIds = Object.keys(studentResult.lessons);
-      const lessonPromises = playedLessonIds.map((lessonId) =>
-        api.getLesson(lessonId)
-      );
-      const lessons: (Lesson | undefined)[] = await Promise.all(lessonPromises);
-      const validLessons: Lesson[] = lessons.filter(
-        (lesson): lesson is Lesson => lesson !== undefined
+      const validLessonIds = playedLessonIds.filter(
+        (lessonId) => lessonId !== undefined
       );
 
-      const sortedPlayedLessonsList = sortPlayedLessonsByDate(
-        validLessons,
+      const sortedPlayedLessonsList = sortValidLessonsByDate(
+        validLessonIds,
         lessonResultMap || {}
       );
-      setPlayedLessonsList(sortedPlayedLessonsList);
+      setValidLessonIds(sortedPlayedLessonsList);
     }
     setIsLoading(false);
   };
@@ -596,78 +562,57 @@ const Home: FC = () => {
         break;
     }
   }
-  // const getLovedLessons = () => {
-  //   if (!lessonResultMap || !PlayedLessonsList) {
-  //     return [];
-  //   }
 
-  //   const startIndex = (favouritesPageNumber - 1) * favouritesPageSize;
-  //   const endIndex = startIndex + favouritesPageSize;
-
-  //   // Get the new set of loved lessons for the current page
-  //   const newLovedLessonsForPage = PlayedLessonsList.filter((lesson) => {
-  //     const lessonResult = lessonResultMap[lesson.docId];
-  //     return lessonResult?.isLoved ?? false;
-  //   }).slice(startIndex, endIndex);
-
-  //   // const allLovedLessons = [...favouriteLessons, ...newLovedLessonsForPage];
-  //   // console.log("allLovedLessons",allLovedLessons)
-  //   // setFavouriteLessons([...newLovedLessonsForPage]);
-  //   setFavouriteLessons((prevFavourites) => [...prevFavourites, ...newLovedLessonsForPage]);
-  //   console.log("allLovedLessons",favouriteLessons);
-  //   return favouriteLessons;
-  // };
-  useEffect(() => {
-    // Function to update the favouriteLessons state
-    const updateFavouriteLessons = () => {
-      if (!lessonResultMap || !PlayedLessonsList) {
-        return;
-      }
-
-      const startIndex = (favouritesPageNumber - 1) * favouritesPageSize;
-      const endIndex = startIndex + favouritesPageSize;
-
-      const newLovedLessonsForPage = PlayedLessonsList.filter((lesson) => {
-        const lessonResult = lessonResultMap[lesson.docId];
-        return lessonResult?.isLoved ?? false;
-      })
-        .slice(startIndex, endIndex)
-        .sort((a, b) => {
-          const lessonResultA = lessonResultMap[a.docId];
-          const lessonResultB = lessonResultMap[b.docId];
-
-          if (!lessonResultA || !lessonResultB) {
-            return 0;
-          }
-
-          return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
-        });
-
-      const updatedFavouriteLessons = [
-        ...newLovedLessonsForPage,
-        ...favouriteLessons,
-      ].sort((a, b) => {
+useEffect(() => {
+  // Function to update the favouriteLessons state
+  const updateFavouriteLessons = async () => {
+    const currentStudent = await Util.getCurrentStudent();
+    if (!currentStudent || !lessonResultMap) {
+      return;
+    }
+  
+    const lessonPromises = validLessonIds.map((lessonId) =>
+      api.getLesson(lessonId)
+    );
+    const lessons: (Lesson | undefined)[] = await Promise.all(lessonPromises);
+    const validLessons: Lesson[] = lessons.filter(
+      (lesson): lesson is Lesson => lesson !== undefined
+    );
+  
+    const sortedValidLessons = validLessons
+      .sort((a, b) => {
         const lessonResultA = lessonResultMap[a.docId];
         const lessonResultB = lessonResultMap[b.docId];
-
+  
         if (!lessonResultA || !lessonResultB) {
           return 0;
         }
-
+  
         return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
       });
+  
+    const startIndex = (favouritesPageNumber - 1) * favouritesPageSize;
+    const endIndex = startIndex + favouritesPageSize;
+  
+    const newLovedLessonsForPage = sortedValidLessons
+      .filter((lesson) => {
+        const lessonResult = lessonResultMap?.[lesson.docId];
+        return lessonResult?.isLoved ?? false;
+      })
+      .slice(startIndex, endIndex);
+  
+    const updatedFavouriteLessons = [
+      ...favouriteLessons,
+      ...newLovedLessonsForPage,
+      
+    ];
+  
+    setFavouriteLessons(updatedFavouriteLessons);
+    setInitialFavoriteLessons([...newLovedLessonsForPage]);
+  };
+  updateFavouriteLessons();
+}, [favouritesPageNumber, lessonResultMap]);
 
-      setFavouriteLessons(updatedFavouriteLessons);
-      setInitialFavoriteLessons([...newLovedLessonsForPage]);
-    };
-    // Update favouriteLessons whenever favouritesPageNumber or PlayedLessonsList changes
-    updateFavouriteLessons();
-  }, [favouritesPageNumber, lessonResultMap, PlayedLessonsList]);
-
-  const sortedPlayedLessonsList = sortPlayedLessonsByDate(
-    PlayedLessonsList,
-    lessonResultMap || {}
-  );
   return (
     <IonPage id="home-page">
       <IonHeader id="home-header">
