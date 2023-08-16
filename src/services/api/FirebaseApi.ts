@@ -19,6 +19,7 @@ import {
   getDocsFromCache,
   QuerySnapshot,
   Query,
+  setDoc,
 } from "firebase/firestore";
 import {
   LeaderboardInfo,
@@ -342,11 +343,18 @@ export class FirebaseApi implements ServiceApi {
   };
 
   async getLanguageWithId(id: string): Promise<Language | undefined> {
-    const result = await getDoc(
-      doc(this._db, `${CollectionIds.LANGUAGE}/${id}`)
-    );
-    if (!result.data()) return;
-    return result.data() as Language;
+    try {
+      const result = await getDoc(
+        doc(this._db, `${CollectionIds.LANGUAGE}/${id}`)
+      );
+      if (!result.data()) return;
+      return result.data() as Language;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:360 ~ FirebaseApi ~ getLanguageWithId ~ error:",
+        error
+      );
+    }
   }
   async sortSubject(subjects) {
     subjects.sort(
@@ -412,18 +420,26 @@ export class FirebaseApi implements ServiceApi {
 
   async getCoursesForClassStudent(currClass: Class): Promise<Course[]> {
     const subjects: Course[] = [];
-    if (!currClass?.courses || currClass.courses.length < 1) return subjects;
-    const courseDocs = await Promise.all(
-      currClass.courses.map((course) => getDoc(doc(this._db, course)))
-    );
-    courseDocs.forEach((courseDoc) => {
-      if (courseDoc && courseDoc.data) {
-        const course = courseDoc.data() as Course;
-        course.docId = courseDoc.id;
-        subjects.push(course);
-      }
-    });
-    return this.sortSubject(subjects);
+    try {
+      if (!currClass?.courses || currClass.courses.length < 1) return subjects;
+      const courseDocs = await Promise.all(
+        currClass.courses.map((course) => getDoc(doc(this._db, course)))
+      );
+      courseDocs.forEach((courseDoc) => {
+        if (courseDoc && courseDoc.data) {
+          const course = courseDoc.data() as Course;
+          course.docId = courseDoc.id;
+          subjects.push(course);
+        }
+      });
+      return this.sortSubject(subjects);
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:444 ~ FirebaseApi ~ getCoursesForClassStudent ~ error:",
+        error
+      );
+      return [];
+    }
   }
 
   async getLesson(id: string): Promise<Lesson | undefined> {
@@ -648,14 +664,12 @@ export class FirebaseApi implements ServiceApi {
       null!,
       isLoved
     );
-    const resultDoc = await addDoc(
-      collection(this._db, CollectionIds.RESULT),
-      result.toJson()
-    );
-    console.log(
-      "🚀 ~ file: FirebaseApi.ts:330 ~ FirebaseApi ~ resultDoc:",
-      resultDoc
-    );
+    const resultDoc = doc(collection(this._db, CollectionIds.RESULT));
+    if (navigator.onLine) {
+      await setDoc(resultDoc, result.toJson());
+    } else {
+      setDoc(resultDoc, result.toJson());
+    }
     result.docId = resultDoc.id;
     let playedResult: StudentLessonResult = {
       date: result.updatedAt,
