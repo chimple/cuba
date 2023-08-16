@@ -16,14 +16,19 @@ export enum SL_GRADES {
 
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
+
+
+
 export enum HOMEHEADERLIST {
+  SUBJECTS = "SUBJECTS",
   HOME = "HOME",
-  RECOMMENDATION = "RECOMMENDATION",
   ASSIGNMENT = "ASSIGNMENT",
-  FAVORITE = "FAVORITE",
   CHALLENGES = "CHALLENGES",
   SEARCH = "SEARCH",
+  QUIZ = "QUIZ",
   PROFILE = "PROFILE",
+  HISTORY = "HISTORY",
+  FAVOURITES = "FAVOURITES"
 }
 
 export enum PARENTHEADERLIST {
@@ -32,6 +37,7 @@ export enum PARENTHEADERLIST {
   HELP = "HELP",
   FAQ = "FAQ",
 }
+
 export enum LEADERBOARDHEADERLIST {
   LEADERBOARD = "LEADERBOARD",
   EVENTS = "EVENTS",
@@ -69,27 +75,19 @@ export interface HeaderIconConfig {
 export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
   new Map<HOMEHEADERLIST, HeaderIconConfig>([
     [
-      HOMEHEADERLIST.RECOMMENDATION,
+      HOMEHEADERLIST.SUBJECTS,
       {
-        displayName: "Suggestion",
-        iconSrc: "/assets/icons/suggestionIcon.svg",
-        headerList: HOMEHEADERLIST.RECOMMENDATION,
+        displayName: "Subjects",
+        iconSrc: "/assets/icons/subject_icon.svg",
+        headerList: HOMEHEADERLIST.SUBJECTS,
       },
     ],
     [
       HOMEHEADERLIST.ASSIGNMENT,
       {
         displayName: "Home work",
-        iconSrc: "/assets/icons/homeworkIcon.svg",
+        iconSrc: "/assets/icons/homework_icon.svg",
         headerList: HOMEHEADERLIST.ASSIGNMENT,
-      },
-    ],
-    [
-      HOMEHEADERLIST.FAVORITE,
-      {
-        displayName: "Favourite",
-        iconSrc: "/assets/icons/favoruiteIcon.svg",
-        headerList: HOMEHEADERLIST.FAVORITE,
       },
     ],
     // [
@@ -104,10 +102,18 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
       HOMEHEADERLIST.SEARCH,
       {
         displayName: "Search",
-        iconSrc: "/assets/icons/searchIcon.svg",
+        iconSrc: "/assets/icons/search_icon.svg",
         headerList: HOMEHEADERLIST.SEARCH,
       },
     ],
+    // [
+    //   HOMEHEADERLIST.QUIZ,
+    //   {
+    //     displayName: "Quiz",
+    //     iconSrc: "/assets/icons/quiz_icon.svg",
+    //     headerList: HOMEHEADERLIST.QUIZ,
+    //   },
+    // ],
   ]);
 
 // export const HEADERLIST = [HOME_CONFIG, LANG_CONFIGS, PROFILE_CONFIG]
@@ -122,7 +128,8 @@ export const LESSON_CARD_COLORS = [
 ];
 
 export enum PAGES {
-  HOME = "/",
+  APP_UPDATE = "/",
+  HOME = "/home",
   LOGIN = "/login",
   GAME = "/game",
   END = "/end",
@@ -137,6 +144,8 @@ export enum PAGES {
   SEARCH = "/search",
   LEADERBOARD = "/leaderboard",
   ASSIGNMENT = "/assignment",
+  JOIN_CLASS = "/join-class",
+  SELECT_MODE = "/select-mode",
 }
 
 export enum LANG {
@@ -164,10 +173,17 @@ export const PREVIOUS_PLAYED_COURSE = () =>
 export const PREVIOUS_SELECTED_COURSE = () =>
   `${Auth.i.sourcedId}-previousSelectedCourse`;
 export const SELECTED_GRADE = () => `${Auth.i.sourcedId}-selectedGrade`;
-export const APP_LANG = "appLang";
+// export const APP_LANG = "appLang";
+export const CURRENT_SCHOOL = "currentSchool";
+export const CURRENT_MODE = "currentMode";
+export const CURRENT_CLASS = "currentClass";
 export const LANGUAGE = "language";
 export const EXAM = "exam";
 export const PRE_QUIZ = "PreQuiz";
+export const GRADE_MAP = "GradeMap";
+export const DISPLAY_SUBJECTS_STORE = "DispSubStore";
+export const SOUND = "sound";
+export const MUSIC = "music";
 export const GAME_URL = "gameUrl";
 export const BASE_NAME =
   !Capacitor.isNativePlatform() && !!process.env.REACT_APP_GITHUB_BASE
@@ -179,6 +195,7 @@ export const BUNDLE_URL =
   "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/";
 export interface PortPlugin {
   getPort(): Promise<{ port: number }>;
+  getMigrateUsers(): Promise<{ users: any }>;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_COURSE_IDS = [
@@ -192,9 +209,9 @@ export const LANGUAGE_COURSE_MAP = {
 };
 
 export enum GENDER {
-  BOY = "boy",
-  GIRL = "girl",
-  OTHER = "other",
+  BOY = "male",
+  GIRL = "female",
+  OTHER = "unspecified",
 }
 
 export const AVATARS: string[] = [
@@ -255,6 +272,41 @@ export const NUMBER_NAME = [
 export const MAX_STUDENTS_ALLOWED = 3;
 export const INSTANT_SEARCH_INDEX_NAME = "lesson_cuba";
 
-export enum EVENTS {
-  LESSON_END = "lessonEnd",
+export enum MODES {
+  PARENT = "PARENT",
+  SCHOOL = "SCHOOL",
 }
+
+export enum ACTION {
+  CREATE = "create",
+  UPDATE = "update",
+  DELETE = "delete",
+}
+
+export const CURRENT_STUDENT = "currentStudent";
+export enum EVENTS {
+  LESSON_END = "lesson_end",
+  LESSON_INCOMPLETE = "lesson_incomplete",
+  USER_PROFILE = "user_profile",
+}
+
+export const FCM_TOKENS = "fcmTokens";
+
+export const LAST_UPDATE_CHECKED = "lastUpdateChecked";
+
+export const LAST_PERMISSION_CHECKED = "lastPermissionChecked";
+
+export const CACHE_IMAGE = "cacheImage";
+
+export const IS_MIGRATION_CHECKED = "isMigrationChecked";
+
+export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
+
+export const COPIED_BUNDLE_FILES_INDEX = "copiedBundleFilesIndex";
+
+export const courseSortIndex = {
+  en: 1,
+  maths: 2,
+  puzzle: 3,
+  hi: 4,
+};

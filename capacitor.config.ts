@@ -19,6 +19,9 @@ const config: CapacitorConfig = {
       // style: KeyboardStyle.Dark,
       // resizeOnFullScreen: true,
     },
+    LocalNotifications: {
+      smallIcon: "chimple_monkey_icon",
+    },
   },
 };
 

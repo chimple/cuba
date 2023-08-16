@@ -1,6 +1,8 @@
 .content {
   overflow: hidden scroll;
-  margin-top: 9vh;
+  /* margin-top: 9vh;
+  margin-bottom: 9vh; */
+  background-color: #e2dede;
 }
 
 .button-round {
@@ -8,16 +10,19 @@
   --padding-end: min(5px, 2vw);
   /* --padding-top: 0.6vh; */
 }
-#common-div{
+
+#common-div {
   display: flex;
   justify-content: center;
   flex-direction: row;
+  font-size: var(--text-size);
 }
 
-#next-button{
+#next-button {
   position: absolute;
   right: 0px;
 }
+
 .arrow-icon {
   padding-left: 0;
   padding-right: 0.5vw;
@@ -32,14 +37,28 @@
   justify-content: start;
   /* overflow: scroll; */
 }
-#Edit-student-page{
+
+#Edit-student-page {
   margin: var(--margin);
   margin-bottom: 0;
 }
 
-.button-inner{
+#Edit-student-back-button {
+  position: absolute;
+  margin: clamp(0px, 5vh, 0px);
+}
+
+.button-inner {
   justify-content: space-between !important;
 }
-.scroll-header{
+
+.scroll-header {
   overflow: scroll;
+}
+
+.avatar-title {
+  font-size: var(--text-size);
+  text-align: center;
+  margin-bottom: 1.5vh;
+  color: #05342f;
 }

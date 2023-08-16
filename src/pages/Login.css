@@ -12,8 +12,8 @@ p {
     margin-left: calc(33vw);
     margin-top: 2%; */
   text-align: center;
-  width: 12vw;
-  height: 19vh;
+  width: 11.5vw;
+  height: 18vh;
   margin-top: 2%;
   /* height: 28%;
     position: absolute;
@@ -56,13 +56,13 @@ p {
   /* transform: translateX(50%); */
   margin: 1% 0% 2% 32.7vw;
   width: 30px;
-  height: auto;
+  height: 10vh;
   line-height: 6vh;
 }
 
 #login-text-box {
   text-align: center;
-  margin: 0% 0% 4% 32.5vw;
+  margin: 0% 0% 1% 32.5vw;
 }
 
 #login-continue-button {
@@ -75,12 +75,25 @@ p {
   color: white;
   width: 26vw;
   height: 5.5vw;
-  background: yellowgreen;
+  background: grey;
   border-radius: var(--border-radius);
   text-align: center;
   line-height: 6vw;
   font-size: 1.9vw;
-  margin: 2% 0% 2% 36.8vw;
+  margin: 3.5% 0% 2% 36.8vw;
+}
+
+#login-otp-button {
+  transform: translateY(-15%);
+  color: white;
+  width: 26vw;
+  height: 5.5vw;
+  background: grey;
+  border-radius: var(--border-radius);
+  text-align: center;
+  line-height: 6vw;
+  font-size: 1.9vw;
+  margin: 4% 0% 2% 36.8vw;
 }
 
 #login-google-icon-text {
@@ -98,13 +111,13 @@ p {
   /* position: absolute;
     top: 89%;
     left: 50%; */
-  height: 10vh;
+  height: 9vh;
   width: auto;
   /* text-align: center; */
   /* transform: translateY(-5%) translateX(-50%); */
   margin-top: 0%;
-
 }
+
 #Google-horizontal-line {
   width: 6vw;
   height: 0.1vh;
@@ -114,6 +127,7 @@ p {
   margin-left: 37.5%;
   margin-top: -1%;
 }
+
 #Google-horizontal-line2 {
   width: 6vw;
   height: 0.1vh;
@@ -123,6 +137,7 @@ p {
   margin-left: 56.5%;
   margin-top: 0%;
 }
+
 #login-button-img {
   height: 38px;
   width: auto;
@@ -131,6 +146,54 @@ p {
 #custom-loading {
   --background: #e3edff;
   --spinner-color: white;
-
   color: white;
+}
+
+.login-error-message {
+  display: flex;
+  width: 35vw;
+  color: red;
+  font-size: 2vh;
+}
+
+#login-screen-input {
+  display: grid;
+  gap: 1vw;
+}
+
+#login-otp-sent {
+  font-size: 1.5vw;
+  color: #565656;
+}
+
+.login-class-header {
+  position: absolute;
+  margin: var(--margin);
+}
+
+.scroll-header {
+  overflow: scroll;
+}
+
+#login-resend-otp {
+  display: flex;
+  justify-content: space-between;
+  line-height: 3vw;
+}
+
+#login-time-remaining {
+  font-size: 1.5vw;
+}
+
+#login-resend-otp-text {
+  font-size: 2vw;
+  font-weight: bold;
+}
+
+
+.login-verification-error-message {
+  width: 35vw;
+  color: red;
+  font-size: 1.5vw;
+
 }

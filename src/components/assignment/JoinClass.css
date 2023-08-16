@@ -3,6 +3,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  margin-top: 15vh;
 }
 
 .join-class-title {
@@ -20,6 +22,7 @@
   background-color: white;
   color: #05342f;
 }
+
 .error-text {
   color: red;
   font-size: var(--text-size);
@@ -33,9 +36,10 @@
   font-size: var(--text-size);
   text-align: center;
   background-color: #83c327;
-  margin-top: 10%;
+  margin-top: 5%;
   cursor: pointer;
 }
-.okay-button:disabled{
+
+.okay-button:disabled {
   opacity: 0.5;
 }

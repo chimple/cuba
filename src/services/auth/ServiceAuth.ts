@@ -1,7 +1,7 @@
 import { DocumentReference } from "firebase/firestore";
 import User from "../../models/user";
 import { ConfirmationResult } from "@firebase/auth";
-import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
+// import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 
 export interface ServiceAuth {
   googleSign(): Promise<boolean>;
@@ -12,15 +12,12 @@ export interface ServiceAuth {
 
   isUserLoggedIn(): Promise<boolean>;
 
-  phoneNumberSignIn(
-    phoneNumber,
-    recaptchaVerifier
-  ): Promise<ConfirmationResult | SignInWithPhoneNumberResult | undefined>;
+  phoneNumberSignIn(phoneNumber, recaptchaVerifier): Promise<any>;
 
   proceedWithVerificationCode(
     verificationId,
     verificationCode
-  ): Promise<boolean>;
+  ): Promise<{ user: any; isUserExist: boolean } | undefined>;
 
   logOut(): Promise<void>;
 }

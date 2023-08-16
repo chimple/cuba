@@ -3,15 +3,8 @@
   text-align: -webkit-center;
 }
 
-.avatar-title {
-  font-size: var(--text-size);
-  text-align: center;
-  margin-bottom: 1.5vh;
-  color: #05342f;
-}
-
 .avatar-img {
-  width: 20vh;
+  width: 16vh;
   padding: 0.5vh;
 }
 

@@ -1,5 +1,5 @@
 import { HttpHeaders } from "@capacitor-community/http";
-import { COURSES } from "../../common/constants";
+import { COURSES, MODES } from "../../common/constants";
 import { Chapter } from "../../interface/curriculumInterfaces";
 import Assignment from "../../models/assignment";
 import Auth from "../../models/auth";
@@ -8,7 +8,6 @@ import CurriculumController from "../../models/curriculumController";
 import Result from "../../models/result";
 import User from "../../models/user";
 import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
-import { DocumentReference, DocumentData } from "firebase/firestore";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
 import Language from "../../models/language";
@@ -19,6 +18,7 @@ import { StudentLessonResult } from "../../common/courseConstants";
 import Subject from "../../models/subject";
 import StudentProfile from "../../models/studentProfile";
 import school from "../../models/school";
+import School from "../../models/school";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -29,6 +29,10 @@ export class OneRosterApi implements ServiceApi {
   getCoursesForParentsStudent(student: User): Promise<Course[]> {
     throw new Error("Method not implemented.");
   }
+  getCoursesForClassStudent(currClass: Class): Promise<Course[]> {
+    throw new Error("Method not implemented.");
+  }
+
   getLesson(id: string): Promise<Lesson | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -41,6 +45,10 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
+
+  deleteAllUserData(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
   getAllCourses(): Promise<Course[]> {
     throw new Error("Method not implemented.");
   }
@@ -80,6 +88,11 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<StudentProfile | undefined> {
     throw new Error("Method not implemented.");
   }
+  getStudentResultInMap(
+    studentId: string
+  ): Promise<{ [lessonDocId: string]: StudentLessonResult } | undefined> {
+    throw new Error("Method not implemented.");
+  }
   getClassById(id: string): Promise<Class | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -92,6 +105,26 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<Assignment[]> {
     throw new Error("Method not implemented.");
   }
+  getSchoolsForUser(user: User): Promise<School[]> {
+    throw new Error("Method not implemented.");
+  }
+  isUserTeacher(user: User): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  getClassesForSchool(school: School, user: User): Promise<Class[]> {
+    throw new Error("Method not implemented.");
+  }
+  getStudentsForClass(classId: string): Promise<User[]> {
+    throw new Error("Method not implemented.");
+  }
+  get currentMode(): MODES {
+    throw new Error("Method not implemented.");
+  }
+
+  set currentMode(value: MODES) {
+    throw new Error("Method not implemented.");
+  }
+
   getSubject(id: string): Promise<Subject | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -125,7 +158,8 @@ export class OneRosterApi implements ServiceApi {
     score: number,
     correctMoves: number,
     wrongMoves: number,
-    timeSpent: number
+    timeSpent: number,
+    isLoved:boolean,
   ): Promise<Result> {
     throw new Error("Method not implemented.");
   }
@@ -159,6 +193,18 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   set currentStudent(value: User | undefined) {
+    throw new Error("Method not implemented.");
+  }
+  get currentClass(): Class | undefined {
+    throw new Error("Method not implemented.");
+  }
+  set currentClass(value: Class | undefined) {
+    throw new Error("Method not implemented.");
+  }
+  get currentSchool(): School | undefined {
+    throw new Error("Method not implemented.");
+  }
+  set currentSchool(value: School | undefined) {
     throw new Error("Method not implemented.");
   }
   createProfile(
@@ -284,7 +330,7 @@ export class OneRosterApi implements ServiceApi {
     //     const result = {
     //       sourcedId: "..String..",
     //       status: "active",
-    //       dateLastModified: "..Date/Time..",
+    //       updatedAt: "..Date/Time..",
     //       metaData: {
     //         lessonId: lessonId,
     //       },
@@ -667,7 +713,7 @@ export class OneRosterApi implements ServiceApi {
     //   const date = new Date().toISOString();
     //   let preQuizResult: Result;
     //   if (preQuiz) {
-    //     preQuiz.dateLastModified = date;
+    //     preQuiz.updatedAt = date;
     //     preQuiz.score = Math.max(score, preQuiz.score);
     //     preQuizResult = preQuiz;
     //   } else {

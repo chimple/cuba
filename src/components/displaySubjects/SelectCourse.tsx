@@ -1,7 +1,8 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import Course from "../../models/course";
 import "./SelectCourse.css";
 import { t } from "i18next";
+import SelectIconImage from "./SelectIconImage";
 
 const SelectCourse: FC<{
   courses: Course[];
@@ -19,13 +20,14 @@ const SelectCourse: FC<{
             key={course.docId}
           >
             <div className="course-icon">
-              <img
-                className="course-img"
-                src={course.thumbnail ?? "assets/icons/EnglishIcon.svg"}
-                alt={course.thumbnail ?? "assets/icons/EnglishIcon.svg"}
+              <SelectIconImage
+                localSrc={`courses/chapter_icons/${course.courseCode}.png`}
+                defaultSrc={"courses/" + "maths" + "/icons/" + "maths10.png"}
+                webSrc={course.thumbnail}
               />
             </div>
-            {t(course.title)}
+            {/* {t(course.title)} */}
+            {course.title === "English" ? course.title : t(course.title)}
           </div>
         );
       })}

@@ -1,9 +1,10 @@
 import { autocomplete } from "@algolia/autocomplete-js";
 import { createElement, Fragment, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
+import "./Autocomplete.css";
 
 export function Autocomplete(props) {
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const panelRootRef = useRef<any>(null);
   const rootRef = useRef<any>(null);
 
@@ -28,10 +29,17 @@ export function Autocomplete(props) {
       ...props,
     });
 
+    const inputElement = containerRef.current.querySelector("input");
+    if (!!inputElement && inputElement.value === "") {
+      setTimeout(() => {
+        inputElement.focus();
+      }, 500);
+    }
+
     return () => {
       search.destroy();
     };
   }, [props]);
 
-  return <div className="auto-complete" ref={containerRef} />;
+  return <div className="auto-complete" ref={containerRef}></div>;
 }

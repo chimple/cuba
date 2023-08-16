@@ -19,7 +19,7 @@ import {
 import { RoleType } from "../../interface/modelInterfaces";
 import {
   FirebaseAuthentication,
-  SignInWithPhoneNumberResult,
+  // SignInWithPhoneNumberResult,
 } from "@capacitor-firebase/authentication";
 // import { cfaSignIn } from "capacitor-firebase-auth-x";
 // import { FirebaseAuthentication } from "@awesome-cordova-plugins/firebase-authentication";
@@ -28,6 +28,8 @@ import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { CollectionIds } from "../../common/courseConstants";
+import { ACTION, EVENTS } from "../../common/constants";
+import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 
 export class FirebaseAuth implements ServiceAuth {
   public static i: FirebaseAuth;
@@ -73,6 +75,14 @@ export class FirebaseAuth implements ServiceAuth {
       const userRef = doc(this._db, "User", user.uid);
       if (additionalUserInfo?.isNewUser) {
         await this._createUserDoc(user);
+        Util.logEvent(EVENTS.USER_PROFILE, {
+          user_id: user.uid,
+          user_name: user.displayName,
+          user_username: user.email,
+          phone_number: user.email ?? user.phoneNumber!,
+          user_type: RoleType.PARENT,
+          action_type: ACTION.CREATE,
+        });
       } else {
         const tempUserDoc = await getDoc(userRef);
         if (!tempUserDoc.exists) {
@@ -80,10 +90,22 @@ export class FirebaseAuth implements ServiceAuth {
         } else {
           this._currentUser = tempUserDoc.data() as User;
           this._currentUser.docId = tempUserDoc.id;
+          Util.subscribeToClassTopicForAllStudents(this._currentUser);
         }
       }
       App.addListener("appStateChange", Util.onAppStateChange);
       this.updateUserFcm(user.uid);
+      const migrateRes = await Util.migrate();
+      if (
+        migrateRes?.migrated &&
+        this._currentUser &&
+        !!migrateRes.newStudents
+      ) {
+        if (!this._currentUser.users) {
+          this._currentUser.users = [];
+        }
+        this._currentUser.users.push(...migrateRes.newStudents);
+      }
       return true;
     } catch (error) {
       console.log(
@@ -127,13 +149,15 @@ export class FirebaseAuth implements ServiceAuth {
 
   public async getCurrentUser(): Promise<User | undefined> {
     if (this._currentUser) return this._currentUser;
-    let currentUser: any = (await FirebaseAuthentication.getCurrentUser()).user;
-    console.log("let currentUser", currentUser);
+    const currentUser = this._auth.currentUser;
+    console.log("🚀 ~ file: FirebaseAuth.ts:153 ~ currentUser:", currentUser);
+    // let currentUser: any = (await FirebaseAuthentication.getCurrentUser()).user;
+    // console.log("let currentUser", currentUser);
 
-    if (!currentUser) {
-      currentUser = getAuth().currentUser;
-      console.log("currentUser in if (!currentUser) {", currentUser);
-    }
+    // if (!currentUser) {
+    //   currentUser = getAuth().currentUser;
+    //   console.log("currentUser in if (!currentUser) {", currentUser);
+    // }
     if (!currentUser) return;
     const tempUserDoc = await getDoc(doc(this._db, "User", currentUser.uid));
     this._currentUser = (tempUserDoc.data() || tempUserDoc) as User;
@@ -153,10 +177,7 @@ export class FirebaseAuth implements ServiceAuth {
   //     this._currentUser = user;
   // }
 
-  public async phoneNumberSignIn(
-    phoneNumber,
-    recaptchaVerifier
-  ): Promise<ConfirmationResult | SignInWithPhoneNumberResult | undefined> {
+  public async phoneNumberSignIn(phoneNumber, recaptchaVerifier): Promise<any> {
     try {
       let verificationId;
       console.log(
@@ -164,56 +185,124 @@ export class FirebaseAuth implements ServiceAuth {
         phoneNumber,
         Capacitor.isNativePlatform()
       );
-      let result: ConfirmationResult | SignInWithPhoneNumberResult;
+      let result: any;
       if (Capacitor.isNativePlatform()) {
-        console.log("if (Capacitor.isNativePlatform()) {");
-        // let res = await FirebaseAuthentication.verifyPhoneNumber(
-        //   phoneNumber,
-        //   0
-        // ).then((verificationId) => {
-        //   console.log("in then verificationId", verificationId, res);
-        // });
+        try {
+          console.log("if (Capacitor.isNativePlatform()) {", phoneNumber);
+          // let res = await FirebaseAuthentication.verifyPhoneNumber(
+          //   phoneNumber,
+          //   0
+          // ).then((verificationId) => {
+          //   console.log("in then verificationId", verificationId, res);
+          // });
 
-        result = await FirebaseAuthentication.signInWithPhoneNumber({
-          phoneNumber,
-        });
-        App.addListener("appStateChange", Util.onAppStateChange);
+          const signInWithPhoneNumber = async () => {
+            return new Promise(async (resolve, reject) => {
+              try {
+                // Attach `phoneCodeSent` listener to be notified as soon as the SMS is sent
+                await FirebaseAuthentication.addListener(
+                  "phoneCodeSent",
+                  async (event) => {
+                    console.log("phoneCodeSent event ", JSON.stringify(event));
 
-        // .then((verificationId) => {
-        //   console.log("verificationId in verifyphonenumber", verificationId);
+                    resolve(event);
+                  }
+                );
 
-        //   // var code = prompt("Enter verification code");
-        //   // if (code) {
-        //   FirebaseAuthentication.signInWithVerificationId(
-        //     verificationId,
-        //     "code"
-        //   );
-        //   // }
-        // })
-        // .catch((err) => {
-        //   console.error("Phone number verification failed", err);
-        // });
+                // // Attach `phoneCodeSent` listener to be notified as soon as the SMS is sent
+                // await FirebaseAuthentication.addListener(
+                //   "authStateChange",
+                //   async (event) => {
+                //     console.log("authStateChange event ", event);
 
-        // result = cfaSignIn("phone", { phone: phoneNumber }).subscribe((user) =>
-        //   console.log(user.phoneNumber)
-        // );
-        // // Android and iOS
-        // cfaSignInPhoneOnCodeSent().subscribe((verificationId) => {
-        //   console.log(verificationId);
-        // });
-        // // Android Only
-        // cfaSignInPhoneOnCodeReceived().subscribe(
-        //   (event: { verificationId: string; verificationCode: string }) => {
-        //     console.log(`${event.verificationId}:${event.verificationCode}`);
-        //     return event;
-        //   }
-        // );
-        // result = await FirebaseAuthentication.signInWithPhoneNumber({
-        //   phoneNumber,
-        // });
-        // console.log("if (Capacitor.isNativePlatform()) { result ", result);
-        console.log("FirebaseAuthentication.verifyPhoneNumber res", result);
-        return result;
+                //     resolve(event);
+                //   }
+                // );
+
+                await FirebaseAuthentication.addListener(
+                  "phoneVerificationFailed",
+                  async (event) => {
+                    console.log(
+                      "FirebaseAuth.ts:196 ~ phoneVerificationFailed event ",
+                      JSON.stringify(event)
+                    );
+
+                    reject(event.message);
+                  }
+                );
+
+                // Attach `phoneVerificationCompleted` listener to be notified if phone verification could be finished automatically
+                await FirebaseAuthentication.addListener(
+                  "phoneVerificationCompleted",
+                  async (event) => {
+                    console.log(
+                      "`phoneVerificationCompleted` listener to be notified if phone verification could be finished automatically"
+                    );
+
+                    if (event.user) {
+                      console.log(
+                        "instant verification ",
+                        JSON.stringify(event)
+                      );
+                      const user = event.user;
+                      console.log("res user", user);
+                      this.updateUserFcm(event.user.uid);
+                      const userRef = doc(this._db, "User", user.uid);
+                      console.log("userRef", userRef);
+                      const tempUserDoc = await getDoc(userRef);
+                      console.log(
+                        "const tempUserDoc",
+                        JSON.stringify(tempUserDoc)
+                      );
+                      console.log(
+                        "return result",
+                        JSON.stringify({
+                          user: user,
+                          isUserExist: tempUserDoc.exists(),
+                        })
+                      );
+                      if (tempUserDoc.exists() && !!tempUserDoc.data()) {
+                        const userDoc = tempUserDoc.data() as User;
+                        userDoc.docId = tempUserDoc.id;
+                        Util.subscribeToClassTopicForAllStudents(userDoc);
+                      }
+                      await Util.migrate();
+                      resolve(event);
+                    } else {
+                      console.log("instant verification");
+
+                      reject(event);
+                    }
+                  }
+                );
+
+                // Start sign in with phone number and send the SMS
+                await FirebaseAuthentication.signInWithPhoneNumber({
+                  phoneNumber: phoneNumber,
+                });
+              } catch (error) {
+                console.log(
+                  "🚀 ~ file: FirebaseAuth.ts:231 ~ FirebaseAuth ~ phoneNumberSignin ~ error:",
+                  error
+                );
+                throw error;
+              }
+              console.log("signInWithPhoneNumber exicuted ");
+            });
+          };
+          result = await signInWithPhoneNumber();
+          console.log("result = await signInWithPhoneNumber();", result);
+
+          App.addListener("appStateChange", Util.onAppStateChange);
+          console.log("result = await signInWithPhoneNumber();", result);
+          return result;
+        } catch (error) {
+          console.log(
+            "🚀 ~ file: FirebaseAuth.ts:167 ~ FirebaseAuth ~ phoneNumberSignin ~ error:",
+            error
+          );
+          throw error;
+        }
       } else {
         result = await signInWithPhoneNumber(
           this._auth,
@@ -236,60 +325,111 @@ export class FirebaseAuth implements ServiceAuth {
         error
       );
       throw error;
-      return;
     }
   }
 
   public async proceedWithVerificationCode(
     result,
     verificationCode
-  ): Promise<any> {
+  ): Promise<{ user: any; isUserExist: boolean } | undefined> {
     try {
       // const verificationCode = e.detail.data.values[0];
       console.log("verificationCode", verificationCode);
       if (!verificationCode || !result || verificationCode.length < 6) {
         return;
       }
+
+      // Confirm the verification code
+      // const credential =
+      //   await FirebaseAuthentication.confirmVerificationCode({
+      //     verificationId: result.verificationId,
+      //     verificationCode,
+      //   });
+      // if (!confirmVerificationCredential.credential) {
+      //   return;
+      // }
+      // console.log(
+      //   "confirmVerificationCredential",
+      //   JSON.stringify(credential)
+      // );
+
+      console.log(
+        "result.verificationId!,",
+        JSON.stringify(result.verificationId),
+        JSON.stringify(verificationCode)
+      );
+
       const credential = PhoneAuthProvider.credential(
-        result.verificationId!,
+        result.verificationId,
         verificationCode
       );
-      console.log("credential", this._auth, credential);
 
-      let res = await signInWithCredential(this._auth, credential);
-      console.log("signInWithCredential Success!", res);
+      const auth = await getAuth();
+      console.log(
+        "credential",
+        JSON.stringify(auth),
+        JSON.stringify(credential)
+      );
+      let res = await signInWithCredential(auth, credential);
+      const u = await FirebaseAuthentication.getCurrentUser();
+      console.log(
+        "line ni 316 before FirebaseAuthentication.getCurrentUser()",
+        JSON.stringify(u.user)
+      );
+      console.log(
+        "line ni 320 before JSON.stringify(auth.currentUser)",
+        JSON.stringify(auth.currentUser)
+      );
+
+      console.log("signInWithCredential Success!", JSON.stringify(credential));
       // Success!
 
+      // await FirebaseAuthentication.confirmVerificationCode({
+      //   verificationId: result.verificationId,
+      //   verificationCode,
+      // });
+
+      // console.log(
+      //   "line ni 316 FirebaseAuthentication.getCurrentUser()",
+      //   JSON.stringify(u.user)
+      // );
+      // console.log(
+      //   "line ni 320 JSON.stringify(auth.currentUser)",
+      //   JSON.stringify(auth.currentUser)
+      // );
+
+      if (!res.user) {
+        throw Error("Verification Failed");
+      }
       const user = res.user;
       console.log("res user", user);
-      // const userRef = doc(this._db, "User", user.uid);
-      // // if (res.additionalUserInfo?.isNewUser) {
-      // //   await this._createUserDoc(user);
-      // // } else {
-      // console.log("userRef", userRef);
-      // const tempUserDoc = await getDoc(userRef);
-      // console.log("tempUserDoc", tempUserDoc);
-      // // if (tempUserDoc.exists()) {
-      // let u = await this._createUserDoc(user);
-      // console.log("created user", u);
-      // // } else {
-      // //   this._currentUser = tempUserDoc.data() as User;
-      // //   console.log("this._currentUser", tempUserDoc.data() as User);
-      // // }
-      // // }
-      // // // App.addListener("appStateChange", Util.onAppStateChange);
       this.updateUserFcm(res.user.uid);
-      return user;
-    } catch (err) {
+      const userRef = doc(this._db, "User", user.uid);
+      console.log("userRef", userRef);
+      const tempUserDoc = await getDoc(userRef);
+      console.log("const tempUserDoc", JSON.stringify(tempUserDoc));
+      console.log(
+        "return result",
+        JSON.stringify({ user: user, isUserExist: tempUserDoc.exists() })
+      );
+      if (tempUserDoc.exists() && !!tempUserDoc.data()) {
+        const userDoc = tempUserDoc.data() as User;
+        userDoc.docId = tempUserDoc.id;
+        Util.subscribeToClassTopicForAllStudents(userDoc);
+      }
+      await Util.migrate();
+      return { user: user, isUserExist: tempUserDoc.exists() };
+      // return user;
+    } catch (error) {
       // Failure!
-      console.log("signInWithCredential Failure!", err);
-      return;
+      console.log("signInWithCredential Failure!", error);
+      throw error;
     }
   }
 
-  public async createPhoneAuthUser(userData, result): Promise<any> {
+  public async createPhoneAuthUser(userData): Promise<any> {
     try {
-      const additionalUserInfo = result.additionalUserInfo;
+      // const additionalUserInfo = result.additionalUserInfo;
       // const additionalUserInfo = getAdditionalUserInfo(result)
       if (!userData) return false;
       const userRef = doc(this._db, "User", userData.uid);
@@ -308,9 +448,30 @@ export class FirebaseAuth implements ServiceAuth {
       if (!tempUserDoc.exists()) {
         let u = await this._createUserDoc(userData);
         console.log("created user", u);
+        Util.logEvent(EVENTS.USER_PROFILE, {
+          user_id: u.uid,
+          user_name: u.name,
+          user_username: u.username,
+          phone_number: u.username,
+          user_type: RoleType.PARENT,
+          action_type: ACTION.CREATE,
+        });
       } else {
         this._currentUser = tempUserDoc.data() as User;
         this._currentUser.docId = tempUserDoc.id;
+        Util.subscribeToClassTopicForAllStudents(this._currentUser);
+      }
+      // await Util.migrate();
+      const migrateRes = await Util.migrate();
+      if (
+        migrateRes?.migrated &&
+        this._currentUser &&
+        !!migrateRes.newStudents
+      ) {
+        if (!this._currentUser.users) {
+          this._currentUser.users = [];
+        }
+        this._currentUser.users.push(...migrateRes.newStudents);
       }
       // }
       this.updateUserFcm(userData.uid);
@@ -342,6 +503,9 @@ export class FirebaseAuth implements ServiceAuth {
         user
       );
       if (!!user) {
+        await FirebaseAnalytics.setUserId({
+          userId: user.uid,
+        });
         return true;
       }
     }
@@ -364,7 +528,7 @@ export class FirebaseAuth implements ServiceAuth {
     if (!!token) {
       await updateDoc(doc(this._db, `${CollectionIds.USER}/${userId}`), {
         fcm: token,
-        dateLastModified: Timestamp.now(),
+        updatedAt: Timestamp.now(),
       });
     }
   };

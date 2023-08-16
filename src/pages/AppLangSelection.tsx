@@ -2,7 +2,7 @@ import { IonButton, IonIcon, IonPage } from "@ionic/react";
 import { useEffect, useState } from "react";
 import "./AppLangSelection.css";
 import { useHistory } from "react-router-dom";
-import { APP_LANG, LANG, PAGES } from "../common/constants";
+import { LANGUAGE, LANG, PAGES } from "../common/constants";
 import React from "react";
 import Loading from "../components/Loading";
 import RectangularOutlineDropDown from "../components/parent/RectangularOutlineDropDown";
@@ -18,10 +18,12 @@ import NextButton from "../components/common/NextButton";
 const AppLangSelection: React.FC = () => {
   const history = useHistory();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [langList, setLangList] = useState<{
-    id: string;
-    displayName: string;
-  }[]>([]);
+  const [langList, setLangList] = useState<
+    {
+      id: string;
+      displayName: string;
+    }[]
+  >([]);
   const [currentAppLang, setCurrentAppLang] = useState<string>();
 
   useEffect(() => {
@@ -53,10 +55,10 @@ const AppLangSelection: React.FC = () => {
               disabled={false}
               onClicked={async () => {
                 history.replace(PAGES.LOGIN);
-                const appLang = localStorage.getItem(APP_LANG);
+                const appLang = localStorage.getItem(LANGUAGE);
                 if (!appLang) {
                   const tempLangCode = LANG.ENGLISH;
-                  localStorage.setItem(APP_LANG, tempLangCode);
+                  localStorage.setItem(LANGUAGE, tempLangCode);
                   await i18n.changeLanguage(tempLangCode);
                 }
               }}
@@ -73,7 +75,7 @@ const AppLangSelection: React.FC = () => {
           </div>
 
           <div id="app-lang-element">
-            <p id="app-lang-text">{t("Select App Language")}</p>
+            <p id="app-lang-text">{t("Choose your language")}</p>
             <RectangularOutlineDropDown
               placeholder=""
               optionList={langList}
@@ -81,11 +83,12 @@ const AppLangSelection: React.FC = () => {
               width="26vw"
               onValueChange={async (selectedLang) => {
                 console.log("selected Langauage", selectedLang);
-                const tempLangCode = selectedLang
-                console.log("tempLangCode", tempLangCode, langList)
+                const tempLangCode = selectedLang;
+                console.log("tempLangCode", tempLangCode, langList);
                 if (!tempLangCode) return;
-                localStorage.setItem(APP_LANG, tempLangCode);
+                localStorage.setItem(LANGUAGE, tempLangCode);
                 setCurrentAppLang(tempLangCode);
+                console.log("this is the selected lang" + tempLangCode);
                 await i18n.changeLanguage(tempLangCode);
                 // history.replace(PAGES.LOGIN);
               }}
@@ -96,7 +99,6 @@ const AppLangSelection: React.FC = () => {
       <Loading isLoading={isLoading} />
       {/* </IonInfiniteScrollContent> */}
       {/* </IonInfiniteScroll> */}
-
     </IonPage>
   );
 };

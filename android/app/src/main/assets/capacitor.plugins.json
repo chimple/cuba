@@ -1,11 +1,11 @@
 [
 	{
-		"pkg": "@capacitor-community/http",
-		"classpath": "com.getcapacitor.plugin.http.Http"
+		"pkg": "@capacitor-community/firebase-analytics",
+		"classpath": "com.getcapacitor.community.firebaseanalytics.FirebaseAnalytics"
 	},
 	{
-		"pkg": "@capacitor-firebase/analytics",
-		"classpath": "io.capawesome.capacitorjs.plugins.firebase.analytics.FirebaseAnalyticsPlugin"
+		"pkg": "@capacitor-community/http",
+		"classpath": "com.getcapacitor.plugin.http.Http"
 	},
 	{
 		"pkg": "@capacitor-firebase/authentication",
@@ -16,8 +16,16 @@
 		"classpath": "io.capawesome.capacitorjs.plugins.firebase.messaging.FirebaseMessagingPlugin"
 	},
 	{
+		"pkg": "@capacitor-firebase/remote-config",
+		"classpath": "io.capawesome.capacitorjs.plugins.firebase.remoteconfig.FirebaseRemoteConfigPlugin"
+	},
+	{
 		"pkg": "@capacitor/app",
 		"classpath": "com.capacitorjs.plugins.app.AppPlugin"
+	},
+	{
+		"pkg": "@capacitor/device",
+		"classpath": "com.capacitorjs.plugins.device.DevicePlugin"
 	},
 	{
 		"pkg": "@capacitor/filesystem",
@@ -32,6 +40,10 @@
 		"classpath": "com.capacitorjs.plugins.keyboard.KeyboardPlugin"
 	},
 	{
+		"pkg": "@capacitor/local-notifications",
+		"classpath": "com.capacitorjs.plugins.localnotifications.LocalNotificationsPlugin"
+	},
+	{
 		"pkg": "@capacitor/status-bar",
 		"classpath": "com.capacitorjs.plugins.statusbar.StatusBarPlugin"
 	},
@@ -40,7 +52,11 @@
 		"classpath": "com.capacitorjs.plugins.toast.ToastPlugin"
 	},
 	{
-		"pkg": "account-manager",
-		"classpath": "org.chimple.accountmanager.AccountManagerPlugin"
+		"pkg": "@capawesome/capacitor-app-update",
+		"classpath": "io.capawesome.capacitorjs.plugins.appupdate.AppUpdatePlugin"
+	},
+	{
+		"pkg": "capacitor-rate-app",
+		"classpath": "com.capacitor.rateApp.CapacitorRateAppPlugin"
 	}
 ]

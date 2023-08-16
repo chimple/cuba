@@ -31,11 +31,11 @@ import Login from "./pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
 import { App as CapApp } from "@capacitor/app";
 import {
+  // APP_LANG,
   BASE_NAME,
+  CACHE_IMAGE,
   GAME_URL,
   IS_CUBA,
-  LANG,
-  LANGUAGE,
   PAGES,
 } from "./common/constants";
 import { Util } from "./utility/util";
@@ -50,13 +50,16 @@ import StudentProgress from "./pages/StudentProgress";
 import SearchLesson from "./pages/SearchLesson";
 import Leaderboard from "./pages/Leaderboard";
 import AssignmentPage from "./pages/Assignment";
+import SelectMode from "./pages/SelectMode";
+import { FirebaseRemoteConfig } from "@capacitor-firebase/remote-config";
+import HotUpdate from "./pages/HotUpdate";
 
 setupIonicReact();
 
 const App: React.FC = () => {
   useEffect(() => {
     console.log("fetching...");
-    localStorage.setItem(LANGUAGE, LANG.ENGLISH);
+    // localStorage.setItem(LANGUAGE, LANG.ENGLISH);
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({
@@ -78,6 +81,23 @@ const App: React.FC = () => {
       CapApp.addListener("appStateChange", Util.onAppStateChange);
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
     }
+
+    Filesystem.mkdir({
+      path: CACHE_IMAGE,
+      directory: Directory.Cache,
+    }).catch((_) => {});
+
+    //Checking for flexible update in play-store
+    Util.startFlexibleUpdate();
+
+    //Checking for Notification permissions
+    Util.checkNotificationPermissions();
+
+    //Listen to network change
+    Util.listenToNetwork();
+
+    //Initialize firebase remote config
+    FirebaseRemoteConfig.fetchAndActivate();
   }, []);
 
   return (
@@ -85,6 +105,9 @@ const App: React.FC = () => {
       <IonReactRouter basename={BASE_NAME}>
         <IonRouterOutlet>
           <Switch>
+            <Route path={PAGES.APP_UPDATE} exact={true}>
+              <HotUpdate />
+            </Route>
             <ProtectedRoute path={PAGES.HOME} exact={true}>
               <Home />
             </ProtectedRoute>
@@ -129,6 +152,12 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.ASSIGNMENT} exact={true}>
               <AssignmentPage />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.JOIN_CLASS} exact={true}>
+              <AssignmentPage />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
+              <SelectMode />
             </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>

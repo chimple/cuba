@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import "./Leaderboard.css";
 import {
   AVATARS,
+  CURRENT_STUDENT,
+  LANG,
   LEADERBOARDHEADERLIST,
   PAGES,
   PARENTHEADERLIST,
@@ -23,8 +25,12 @@ import {
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import StudentProfile from "../models/studentProfile";
+import { t } from "i18next";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
+import { Util } from "../utility/util";
+import i18n from "../i18n";
+import IconButton from "../components/IconButton";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -39,6 +45,8 @@ const Leaderboard: React.FC = () => {
   const [currentUserDataContent, setCurrentUserDataContent] = useState<
     string[][]
   >([]);
+  const api = ServiceConfig.getI().apiHandler;
+  const auth = ServiceConfig.getI().authHandler;
 
   const history = useHistory();
 
@@ -58,7 +66,7 @@ const Leaderboard: React.FC = () => {
 
   async function inti() {
     console.log("init method called");
-    const weekOptions = ["Weekly", "ALL Time"];
+    const weekOptions = [t("Weekly"), t("ALL Time")];
     let weekOptionsList: {
       id: string;
       displayName: string;
@@ -70,9 +78,8 @@ const Leaderboard: React.FC = () => {
       });
     });
     setWeeklyList(weekOptionsList);
-    const api = ServiceConfig.getI().apiHandler;
-    const currentStudent = await api.currentStudent;
-    console.log("currentStudent ", currentStudent);
+    // const api = ServiceConfig.getI().apiHandler;
+    const currentStudent = await Util.getCurrentStudent();
     if (currentStudent != undefined) {
       const getClass = await FirebaseApi.i.getStudentResult(
         currentStudent.docId
@@ -100,7 +107,7 @@ const Leaderboard: React.FC = () => {
     console.log(
       "leaderboardDataInfo.weekly.length <= 0 leaderboardDataInfo.allTime.length <= 0",
       leaderboardDataInfo.weekly.length <= 0 ||
-        leaderboardDataInfo.allTime.length <= 0,
+      leaderboardDataInfo.allTime.length <= 0,
       isWeeklyFlag
         ? "leaderboardDataInfo.weekly"
         : "leaderboardDataInfo.allTime"
@@ -128,10 +135,10 @@ const Leaderboard: React.FC = () => {
     let tempCurrentUserDataContent: any[][] = [];
     tempLeaderboardDataArray.push([
       "#",
-      "Name",
-      "Lesson Played",
-      "Score",
-      "Time Spent",
+      t("Name"),
+      t("Lesson Played"),
+      t("Score"),
+      t("Time Spent"),
     ]);
 
     for (let i = 0; i < tempData.length; i++) {
@@ -143,33 +150,36 @@ const Leaderboard: React.FC = () => {
         element.name,
         element.lessonsPlayed,
         element.score,
-        computeMinutes + "min " + result + " sec",
+        computeMinutes + "min" + " " + result + " " + "sec",
       ]);
 
       if (currentStudent.docId == element.userId) {
         tempCurrentUserDataContent = [
           // ["Name", element.name],
-          ["Rank", i + 1],
-          ["Last Played", element.lessonsPlayed],
-          ["Score", element.score],
-          ["Time Spent", computeMinutes + "min " + result + " sec"],
+          [t("Rank"), i + 1],
+          [t("Last Played"), element.lessonsPlayed],
+          [t("Score"), element.score],
+          [
+            t("Time Spent"),
+            computeMinutes + t("min") + result + " " + t("sec"),
+          ],
         ];
       }
     }
     if (tempCurrentUserDataContent.length <= 0) {
       tempCurrentUserDataContent = [
         // ["Name", element.name],
-        ["Rank", "--"],
-        ["Last Played", "--"],
-        ["Score", "--"],
-        ["Time Spent", "--min " + "--sec"],
+        [t("Rank"), "--"],
+        [t("Last Played"), "--"],
+        [t("Score"), "--"],
+        [t("Time Spent"), "--" + t("min") + " --" + t("sec")],
       ];
       tempLeaderboardDataArray.push([
         "--",
         currentStudent.name,
         "--",
         "--",
-        "--min " + "--sec",
+        "--" + t("min") + " --" + t("sec"),
       ]);
     }
     setCurrentUserDataContent(tempCurrentUserDataContent);
@@ -189,7 +199,7 @@ const Leaderboard: React.FC = () => {
           <RectangularOutlineDropDown
             placeholder={weeklySelectedValue || weeklyList[0]?.displayName}
             optionList={weeklyList}
-            currentValue={weeklySelectedValue || weeklyList[0]?.displayName}
+            currentValue={weeklySelectedValue || weeklyList[0]?.id}
             width="26vw"
             onValueChange={(selectedValue) => {
               // if (weekOptionsList[0] != weekOptionsList[selectedValue]) {
@@ -201,14 +211,14 @@ const Leaderboard: React.FC = () => {
                   weeklyList[selectedValue]?.displayName,
                   weeklyList[0] === weeklyList[selectedValue]
                 );
-                setWeeklySelectedValue(weeklyList[selectedValue]?.displayName);
+                setWeeklySelectedValue(weeklyList[selectedValue]?.id);
                 fetchLeaderBoardData(
                   currentStudent!,
                   weeklyList[0] === weeklyList[selectedValue],
                   currentClass?.classes[0] || ""
                 );
+                //  }
               }
-              // }
             }}
           ></RectangularOutlineDropDown>
           <div
@@ -282,7 +292,7 @@ const Leaderboard: React.FC = () => {
         </div>
         <div id="leaderboard-right-UI">
           {leaderboardData.map((e) => {
-            let columnWidth = ["2.5vw", "18vw", "9vw", "9vw", "12vw"];
+            let columnWidth = ["3vw", "14vw", "15vw", "7vw", "14vw"];
             let rankColors = ["", "#FFC32C", "#C4C4C4", "#D39A66", "#959595"];
             let i = -1;
             headerRowIndicator++;
@@ -305,12 +315,21 @@ const Leaderboard: React.FC = () => {
                 style={{
                   backgroundColor:
                     headerRowIndicator === 0
-                      ? "#959595"
+                      ? "rgb(200 200 200)"
                       : Number(currentUserDataContent[0][1]) ===
                         headerRowIndicator
-                      ? "#FF7925"
-                      : "",
-                  padding: "1vh 2vh",
+                        ? "#FF7925"
+                        : "",
+                  padding:
+                    headerRowIndicator === 0
+                      ? "1vh 2vh"
+                      : Number(currentUserDataContent[0][1]) ===
+                        headerRowIndicator
+                        ? "0vh 2vh"
+                        : "1vh 2vh ",
+                  position: "sticky",
+                  zIndex: headerRowIndicator === 0 ? "3" : "0",
+                  top: "0px",
                 }}
               >
                 {e.map((d) => {
@@ -321,13 +340,26 @@ const Leaderboard: React.FC = () => {
                       <p
                         style={{
                           color:
-                            i === 0 && headerRowIndicator != 0 ? "white" : "",
+                            i === 0 && headerRowIndicator != 0
+                              ? Number(currentUserDataContent[0][1]) ===
+                                headerRowIndicator
+                                ? "black"
+                                : "white"
+                              : "",
                           backgroundColor:
                             i === 0 && headerRowIndicator != 0
-                              ? rankColors[Number(e[0])] || rankColors[4]
+                              ? Number(currentUserDataContent[0][1]) ===
+                                headerRowIndicator
+                                ? "white"
+                                : rankColors[Number(e[0])] || rankColors[4]
                               : "",
                           borderRadius:
                             i === 0 && headerRowIndicator != 0 ? "100vw" : "",
+                          height:
+                            i === 0 && headerRowIndicator != 0
+                              ? columnWidth[i]
+                              : "",
+                          fontSize: "1.5vw",
                           width: columnWidth[i],
                           textAlign: i === 0 ? "center" : "left",
                         }}
@@ -381,71 +413,89 @@ const Leaderboard: React.FC = () => {
     <IonPage>
       {!isLoading ? (
         <Box>
-          <Box id="LeaderBoard-header">
-            <AppBar id="LeaderBoard-AppBar"
-              position="static"
-              sx={{
-                flexDirection: "inherit",
-                justifyContent: "space-between",
-                padding: "1vh 1vw",
-                backgroundColor: "#cbdcff !important",
-                boxShadow: "0px 0px 0px 0px !important",
+          <div id="LeaderBoard-Header">
+            <BackButton
+              onClicked={() => {
+                history.replace(PAGES.HOME);
               }}
-            >
-              <BackButton
-                // iconSize={"8vh"}
-                onClicked={() => {
-                  history.replace(PAGES.HOME);
-                }}
-              ></BackButton>
-              <Tabs
-                value={tabIndex}
-                onChange={handleChange}
-                textColor="secondary"
-                indicatorColor="secondary"
-                aria-label="secondary tabs example"
-                // variant="scrollable"
-                scrollButtons="auto"
-                // aria-label="scrollable auto tabs example"
-                centered
+            ></BackButton>
+            <Box>
+              <AppBar
+                id="LeaderBoard-AppBar"
+                position="static"
                 sx={{
-                  // "& .MuiAppBar-root": { backgroundColor: "#FF7925 !important" },
-                  "& .MuiTabs-indicator": {
-                    backgroundColor: "#000000 !important",
-                  },
-                  "& .MuiTab-root": { color: "#000000 !important" },
-                  "& .Mui-selected": { color: "#000000 !important" },
+                  flexDirection: "inherit",
+                  justifyContent: "space-between",
+                  padding: "1vh 1vw",
+                  backgroundColor: "#E2DEDE !important",
+                  boxShadow: "0px 0px 0px 0px !important",
                 }}
               >
-                <Tab
-                  value={LEADERBOARDHEADERLIST.LEADERBOARD}
-                  label={LEADERBOARDHEADERLIST.LEADERBOARD}
-                  id="parent-page-tab-bar"
+
+                <Tabs
+                  value={tabIndex}
+                  onChange={handleChange}
+                  textColor="secondary"
+                  indicatorColor="secondary"
+                  aria-label="secondary tabs example"
+                  // variant="scrollable"
+                  scrollButtons="auto"
+                  // aria-label="scrollable auto tabs example"
+                  centered
+                  sx={{
+                    // "& .MuiAppBar-root": { backgroundColor: "#FF7925 !important" },
+                    "& .MuiTabs-indicator": {
+                      backgroundColor: "#000000 !important",
+                      bottom: "15% !important"
+                    },
+                    "& .MuiTab-root": { color: "#000000 !important" },
+                    "& .Mui-selected": { color: "#000000 !important" },
+                  }}
+                >
+                  <Tab
+                    value={LEADERBOARDHEADERLIST.LEADERBOARD}
+                    label={t(LEADERBOARDHEADERLIST.LEADERBOARD)}
+                    id="parent-page-tab-bar"
                   // sx={{
                   //   // fontSize:"5vh"
                   //   marginRight: "5vw",
                   // }}
-                />
-                <Tab
-                  id="parent-page-tab-bar"
-                  value={LEADERBOARDHEADERLIST.EVENTS}
-                  label={LEADERBOARDHEADERLIST.EVENTS}
-                />
-              </Tabs>
-              <div></div>
-            </AppBar>
-          </Box>
+                  />
+                  <Tab
+                    id="parent-page-tab-bar"
+                    value={LEADERBOARDHEADERLIST.EVENTS}
+                    label={t(LEADERBOARDHEADERLIST.EVENTS)}
+                  />
+                </Tabs>
+              </AppBar>
+            </Box>
+            <div>
+              <IconButton
+                name={t("Switch Profile")}
+                iconSrc="assets/icons/SignOutIcon.svg"
+                onClick={async () => {
+                  localStorage.removeItem(CURRENT_STUDENT);
+                  const user = await auth.getCurrentUser();
+                  if (!!user && !!user.language?.id) {
+                    const langDoc = await api.getLanguageWithId(user.language.id);
+                    if (langDoc) {
+                      const tempLangCode = langDoc.code ?? LANG.ENGLISH;
+                      await i18n.changeLanguage(tempLangCode);
+                    }
+                  }
+                  // history.replace(PAGES.DISPLAY_STUDENT);
+                  history.replace(PAGES.SELECT_MODE);
+                }}
+              />
+            </div>
+          </div>
           <Box sx={{}}>
             {tabIndex === LEADERBOARDHEADERLIST.LEADERBOARD && (
               <Box>
                 <div>{leaderboardUI()}</div>
               </Box>
             )}
-            {tabIndex === LEADERBOARDHEADERLIST.EVENTS && (
-              <Box>
-                <div>{}</div>
-              </Box>
-            )}
+            {tabIndex === LEADERBOARDHEADERLIST.EVENTS && <Box></Box>}
           </Box>
         </Box>
       ) : null}

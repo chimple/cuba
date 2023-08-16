@@ -1,6 +1,5 @@
 #home-header {
   position: initial !important;
-  /* margin: clamp(10px,10vh,20px); */
 }
 
 div p {
@@ -9,12 +8,11 @@ div p {
 
 .slider-content {
   height: 100%;
-  margin: 0 1%;
 }
 
 .space-between {
   height: 100%;
-  width: 100%; 
+  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
@@ -23,8 +21,41 @@ div p {
 #home-leaderboard-button {
   position: absolute;
   bottom: 0;
-  left: 0;
+  right: 0;
   font-size: var(--text-size);
   color: var(--text-color);
-  margin-left: 1vw;
+  margin-right: 2vw;
+}
+
+#home-page-sub-tab {
+  text-transform: none;
+  font-family: BalooRegular;
+  font-size: var(--text-size);
+}
+
+.MuiTabs-flexContainer {
+  justify-content: space-between;
+}
+
+.Mui-selected {
+  color: white;
+}
+
+.MuiTabs-root {
+  min-height: fit-content !important;
+}
+
+.home-page-app-bar {
+  border-radius: 10vh;
+  background-color: #CCCCCC !important;
+  box-shadow: none !important;
+  width: fit-content !important;
+  margin: auto !important;
+  position: static !important;
+}
+
+#home-page-bottom {
+  position: fixed;
+  width: 100%;
+  bottom: 3vh;
 }

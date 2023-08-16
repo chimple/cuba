@@ -37,7 +37,7 @@ export default class Lesson extends BaseObject {
     topic,
     type,
     title,
-    dateLastModified,
+    updatedAt,
     createdAt,
     docId,
     cocosChapterCode,
@@ -57,13 +57,13 @@ export default class Lesson extends BaseObject {
     topic: DocumentReference;
     type: string;
     title: string;
-    dateLastModified: Timestamp;
+    updatedAt: Timestamp;
     createdAt: Timestamp;
     docId: string;
     cocosChapterCode: string | undefined;
     cocosSubjectCode: string | undefined;
   }) {
-    super(dateLastModified, createdAt, docId);
+    super(updatedAt, createdAt, docId);
     this._clonedFrom = clonedFrom;
     this._createdBy = createdBy;
     this._id = id;
