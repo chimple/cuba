@@ -623,7 +623,7 @@ const Home: FC = () => {
                       />
                       <Tab
                         id="home-page-sub-tab"
-                        label={t("Favourite")}
+                        label={t("Favourite  ")}
                         onClick={() => setCurrentHeader(HOMEHEADERLIST.FAVOURITES)}
                       />
 
