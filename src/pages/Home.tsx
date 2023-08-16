@@ -48,6 +48,7 @@ import { auto } from "@popperjs/core";
 import { margin } from "@mui/system";
 import { push } from "ionicons/icons";
 import { t } from "i18next";
+import RiveCharacter from "../components/animation/RiveCharacter";
 
 const sortPlayedLessonsByDate = (
   lessons: Lesson[],
@@ -561,15 +562,34 @@ const Home: FC = () => {
             null}
 
             {currentHeader === HOMEHEADERLIST.FAVOURITES && (
-              <div>
-                <LessonSlider
-                  lessonData={getLovedLessons()}
-                  isHome={true}
-                  course={undefined}
-                  lessonsScoreMap={lessonResultMap || {}}
-                  startIndex={0}
-                  showSubjectName={true}
-                />
+              <div
+                style={{
+                  height: "50vh",
+                  width: "auto",
+                  // marginLeft: "40vw",
+                  marginBottom: "15vh",
+                  display: "flex",
+                  justifyContent: "inherit",
+                }}
+              >
+                <RiveCharacter
+                  style={{
+                    height: "50vh",
+                    width: "25vw",
+                  }}
+                ></RiveCharacter>
+                <RiveCharacter
+                  style={{
+                    height: "50vh",
+                    width: "25vw",
+                  }}
+                ></RiveCharacter>
+                <RiveCharacter
+                  style={{
+                    height: "50vh",
+                    width: "25vw",
+                  }}
+                ></RiveCharacter>
               </div>
             )}
 
