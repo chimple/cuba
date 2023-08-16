@@ -140,9 +140,9 @@ const Home: FC = () => {
         ...newHistoryLessonsForPage,
        
       ];
-  
+      const latestTenPlayedLessons = updatedHistoryLessons.slice(0,10);
       setHistoryLessons(updatedHistoryLessons);
-      setInitialHistoryLessons([...newHistoryLessonsForPage]);
+      setInitialHistoryLessons([...latestTenPlayedLessons]);
     };
     updateHistoryLessons();
   }, [historyPageNumber, lessonResultMap]);
@@ -272,9 +272,7 @@ const Home: FC = () => {
 
         const initialHistoryLessonsSlice = initialHistoryLessons
           .slice(startIndex, endIndex);
-        
         setHistoryLessons([...initialHistoryLessonsSlice]);
-        console.log("handlechange history", initialHistoryLessonsSlice );
       }
       setHistoryPageNumber(1);
     } else if (newValue === SUBTAB.FAVOURITES) {
@@ -285,9 +283,7 @@ const Home: FC = () => {
 
         const initialFavouriteLessonsSlice = initialFavoriteLessons
           .slice(startIndex, endIndex);
-
         setFavouriteLessons([...initialFavouriteLessonsSlice]);
-        console.log("handlechange favourite", favouriteLessons);
       }
       setFavouritesPageNumber(1);
     }
@@ -606,9 +602,10 @@ useEffect(() => {
       ...newLovedLessonsForPage,
       
     ];
-  
+    const latestTenFavouriteLessons = updatedFavouriteLessons.slice(0, 10);
+    console.log("updatedFavouriteLessons", updatedFavouriteLessons);
     setFavouriteLessons(updatedFavouriteLessons);
-    setInitialFavoriteLessons([...newLovedLessonsForPage]);
+    setInitialFavoriteLessons([...latestTenFavouriteLessons]);
   };
   updateFavouriteLessons();
 }, [favouritesPageNumber, lessonResultMap]);
