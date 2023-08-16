@@ -14,6 +14,11 @@ import {
   DocumentData,
   limit,
   orderBy,
+  getDocFromCache,
+  DocumentSnapshot,
+  getDocsFromCache,
+  QuerySnapshot,
+  Query,
 } from "firebase/firestore";
 import {
   LeaderboardInfo,
@@ -61,7 +66,8 @@ export class FirebaseApi implements ServiceApi {
   private _studentResultCache: { [key: string]: StudentProfile } = {};
   private _schoolsCache: { [userId: string]: School[] } = {};
   private _currentMode: MODES;
-  private constructor() {}
+  private _allCourses: Course[];
+  private constructor() { }
 
   public static getInstance(): FirebaseApi {
     if (!FirebaseApi.i) {
@@ -197,7 +203,7 @@ export class FirebaseApi implements ServiceApi {
 
   public async getAllCurriculums(): Promise<Curriculum[]> {
     try {
-      const querySnapshot = await getDocs(
+      const querySnapshot = await this.getDocsFromOffline(
         collection(this._db, CollectionIds.CURRICULUM)
       );
       const curriculums: Curriculum[] = [];
@@ -219,7 +225,7 @@ export class FirebaseApi implements ServiceApi {
 
   public async getAllGrades(): Promise<Grade[]> {
     try {
-      const querySnapshot = await getDocs(
+      const querySnapshot = await this.getDocsFromOffline(
         collection(this._db, CollectionIds.GRADE)
       );
       const grades: Grade[] = [];
@@ -241,7 +247,7 @@ export class FirebaseApi implements ServiceApi {
 
   public async getAllLanguages(): Promise<Language[]> {
     try {
-      const querySnapshot = await getDocs(
+      const querySnapshot = await this.getDocsFromOffline(
         collection(this._db, CollectionIds.LANGUAGE)
       );
       const languages: Language[] = [];
@@ -363,7 +369,7 @@ export class FirebaseApi implements ServiceApi {
       const subjects: Course[] = [];
       if (!student?.courses || student.courses.length < 1) return subjects;
       const courseDocs = await Promise.all(
-        student.courses.map((course) => getDoc(course))
+        student.courses.map((course) => this.getDocFromOffline(course))
       );
       courseDocs.forEach((courseDoc) => {
         if (courseDoc && courseDoc.data()) {
@@ -372,6 +378,7 @@ export class FirebaseApi implements ServiceApi {
           subjects.push(course);
         }
       });
+      return this.sortSubject(subjects);
       return this.sortSubject(subjects);
     } catch (error) {
       console.log(
@@ -422,14 +429,26 @@ export class FirebaseApi implements ServiceApi {
     return this.sortSubject(subjects);
   }
 
-  async getLesson(id: string): Promise<Lesson | undefined> {
+  async getLesson(id: string, chapter: Chapter | undefined = undefined, loadChapterTitle: boolean = false): Promise<Lesson | undefined> {
     try {
-      const lessonDoc = await getDoc(
+      const lessonDoc = await this.getDocFromOffline(
         doc(this._db, `${CollectionIds.LESSON}/${id}`)
       );
       if (!lessonDoc.exists) return;
       const lesson = lessonDoc.data() as Lesson;
       lesson.docId = lessonDoc.id;
+
+      if (!!chapter)
+        lesson.chapterTitle = chapter.title;
+      else if (loadChapterTitle) {
+
+        if (!this._allCourses) {
+          this._allCourses = await this.getAllCourses();
+        }
+        const tmpCourse = this._allCourses?.find(course => course.courseCode === lesson.cocosSubjectCode);
+        const chapter = tmpCourse?.chapters.find(chapter => chapter.id === lesson.cocosChapterCode);
+        lesson.chapterTitle = chapter?.title;
+      }
       return lesson;
     } catch (error) {
       console.log(
@@ -438,14 +457,13 @@ export class FirebaseApi implements ServiceApi {
       );
     }
   }
-
   async getLessonsForChapter(chapter: Chapter): Promise<Lesson[]> {
     const lessons: Lesson[] = [];
     try {
       if (chapter.lessons && chapter.lessons.length > 0) {
         for (let lesson of chapter.lessons) {
           if (lesson instanceof DocumentReference) {
-            const lessonObj = await this.getLesson(lesson.id);
+            const lessonObj = await this.getLesson(lesson.id, chapter);
             if (lessonObj) {
               lessons.push(lessonObj);
             }
@@ -488,7 +506,7 @@ export class FirebaseApi implements ServiceApi {
       if (chapter.lessons && chapter.lessons.length > 0) {
         for (let lesson of chapter.lessons) {
           if (lesson instanceof DocumentReference) {
-            const lessonObj = await this.getLesson(lesson.id);
+            const lessonObj = await this.getLesson(lesson.id, chapter);
             if (lessonObj) {
               lesMap[lesson.id] = lessonObj as Lesson;
             }
@@ -538,7 +556,7 @@ export class FirebaseApi implements ServiceApi {
             if (lesson.id === lessonId) {
               // console.log("lesson id Found", lesson);
               if (lesson instanceof DocumentReference) {
-                const lessonObj = await this.getLesson(lesson.id);
+                const lessonObj = await this.getLesson(lesson.id, chapter);
                 if (lessonObj) {
                   lesMap[lesson.id] = lessonObj as Lesson;
                 }
@@ -571,7 +589,7 @@ export class FirebaseApi implements ServiceApi {
       where("subject", "==", course.subject),
       where("curriculum", "==", course.curriculum)
     );
-    const queryResult = await getDocs(q);
+    const queryResult = await this.getDocsFromOffline(q);
     const gradeMap: {
       grades: Grade[];
       courses: Course[];
@@ -583,7 +601,7 @@ export class FirebaseApi implements ServiceApi {
         ): Promise<{ grade: Grade; course: Course } | undefined> => {
           const course = courseDoc.data() as Course;
           course.docId = courseDoc.id;
-          const gradeDoc = await getDoc(course.grade);
+          const gradeDoc = await this.getDocFromOffline(course.grade);
           const grade = gradeDoc.data() as Grade;
           const gradeAlreadyExists = gradeMap.grades.find(
             (_grade) => _grade.docId === gradeDoc.id
@@ -753,7 +771,9 @@ export class FirebaseApi implements ServiceApi {
   async getSubject(id: string): Promise<Subject | undefined> {
     try {
       if (!!this._subjectsCache[id]) return this._subjectsCache[id];
-      const subjectDoc = await getDoc(doc(this._db, CollectionIds.SUBJECT, id));
+      const subjectDoc = await this.getDocFromOffline(
+        doc(this._db, CollectionIds.SUBJECT, id)
+      );
       if (!subjectDoc.exists) return;
       const subject = subjectDoc.data() as Subject;
       if (!subject) return;
@@ -837,7 +857,9 @@ export class FirebaseApi implements ServiceApi {
   async getClassById(id: string): Promise<Class | undefined> {
     try {
       if (!!this._classCache[id]) return this._classCache[id];
-      const classDoc = await getDoc(doc(this._db, CollectionIds.CLASS, id));
+      const classDoc = await this.getDocFromOffline(
+        doc(this._db, CollectionIds.CLASS, id)
+      );
       if (!classDoc.exists) return;
       const classData = classDoc.data() as Class;
       classData.docId = id;
@@ -854,7 +876,9 @@ export class FirebaseApi implements ServiceApi {
   async getSchoolById(id: string): Promise<School | undefined> {
     try {
       if (!!this._schoolCache[id]) return this._schoolCache[id];
-      const schoolDoc = await getDoc(doc(this._db, CollectionIds.SCHOOL, id));
+      const schoolDoc = await this.getDocFromOffline(
+        doc(this._db, CollectionIds.SCHOOL, id)
+      );
       if (!schoolDoc.exists) return;
       const schoolData = schoolDoc.data() as School;
       schoolData.docId = id;
@@ -1196,7 +1220,7 @@ export class FirebaseApi implements ServiceApi {
 
   public async getAllCourses(): Promise<Course[]> {
     try {
-      const querySnapshot = await getDocs(
+      const querySnapshot = await this.getDocsFromOffline(
         collection(this._db, CollectionIds.COURSE)
       );
       const courses: Course[] = [];
@@ -1240,5 +1264,29 @@ export class FirebaseApi implements ServiceApi {
   }
   set currentSchool(value: School | undefined) {
     this._currentSchool = value;
+  }
+
+  private async getDocFromOffline(
+    reference: DocumentReference<DocumentData>
+  ): Promise<DocumentSnapshot<DocumentData>> {
+    let doc: DocumentSnapshot<DocumentData>;
+    try {
+      doc = await getDocFromCache(reference);
+      if (!doc.exists() || !doc.data()) throw "not found in cache";
+    } catch (error) {
+      doc = await getDoc(reference);
+    }
+    return doc;
+  }
+
+  private async getDocsFromOffline(query: Query<DocumentData>) {
+    let querySnapshot: QuerySnapshot<DocumentData>;
+    try {
+      querySnapshot = await getDocsFromCache(query);
+      if (querySnapshot.empty) throw "not found in cache";
+    } catch (er) {
+      querySnapshot = await getDocs(query);
+    }
+    return querySnapshot;
   }
 }

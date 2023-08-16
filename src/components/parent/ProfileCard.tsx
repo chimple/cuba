@@ -7,7 +7,7 @@ import { FcPlus } from "react-icons/fc";
 import { HiPlusCircle } from "react-icons/hi";
 import User from "../../models/user";
 import { ACTION, AVATARS, EVENTS, PAGES } from "../../common/constants";
-import { Util } from '../../utility/util';
+import { Util } from "../../utility/util";
 import DialogBoxButtons from "./DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
@@ -21,13 +21,14 @@ const ProfileCard: React.FC<{
   user: User;
   showText?: boolean;
   setReloadProfiles: (event: boolean) => void;
-}> = ({ width, height, userType, user, setReloadProfiles }) => {
+  profiles?: User[];
+}> = ({ width, height, userType, user, setReloadProfiles, profiles }) => {
   const history = useHistory();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [showWarningDialogBox, setShowWarningDialogBox] =
     useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
+  const areProfilesAvailable = profiles && profiles[0] == null || undefined;
   return (
     <IonCard
       id="profile-card"
@@ -68,7 +69,7 @@ const ProfileCard: React.FC<{
           <img
             id="profile-card-image"
             loading="lazy"
-            src={"assets/avatars/" + (user.avatar ?? AVATARS[0]) + ".png"}
+            src={ user.image || "assets/avatars/" + (user.avatar ?? AVATARS[0]) + ".png"}
             alt=""
           />
           <p id="profile-card-user-name">{user.name}</p>
@@ -80,11 +81,11 @@ const ProfileCard: React.FC<{
             size={"16vw"}
             onClick={() => {
               history.replace(PAGES.CREATE_STUDENT, {
-                showBackButton: true,
+                showBackButton: !areProfilesAvailable,
               });
             }}
           ></HiPlusCircle>
-          <p>{t("New User")}</p>
+          <p>{t("New Profile")}</p>
         </div>
       )}
 
@@ -110,11 +111,11 @@ const ProfileCard: React.FC<{
           width={"40vw"}
           height={"30vh"}
           message={t(
-            "You can edit or delete user by clicking on the below buttons"
+            "You can edit or delete Profile by clicking on the below buttons"
           )}
           showDialogBox={showDialogBox}
-          yesText={t("Delete User")}
-          noText={t("Edit User")}
+          yesText={t("Delete Profile")}
+          noText={t("Edit Profile")}
           handleClose={() => {
             setShowDialogBox(false);
             console.log("Close", false);
@@ -138,7 +139,7 @@ const ProfileCard: React.FC<{
         <DialogBoxButtons
           width={"40vw"}
           height={"30vh"}
-          message={t("Do you want to delete the user?")}
+          message={t("Do you want to delete the Profile?")}
           showDialogBox={showDialogBox}
           yesText={t("Yes")}
           noText={t("No")}
@@ -150,12 +151,11 @@ const ProfileCard: React.FC<{
             console.log(`Show warning yes:`, user.docId);
             setShowWarningDialogBox(false);
             setShowDialogBox(false);
-            setIsLoading(true)
+            setIsLoading(true);
             setReloadProfiles(false);
             await ServiceConfig.getI().apiHandler.deleteProfile(user.docId);
-            setReloadProfiles(true);
-            setIsLoading(false)
-            Util.logEvent(EVENTS.USER_PROFILE,{
+            await setReloadProfiles(true);
+            const eventParams = {
               user_id: user.docId,
               user_type: user.role,
               user_name: user.name,
@@ -164,8 +164,15 @@ const ProfileCard: React.FC<{
               phone_number: user.username,
               parent_id: user.uid,
               parent_username: user.username,
-              action_type: ACTION.DELETE
-            });
+              action_type: ACTION.DELETE,
+            };
+            console.log(
+              "Util.logEvent(EVENTS.USER_PROFILE, eventParams);",
+              EVENTS.USER_PROFILE,
+              eventParams
+            );
+            Util.logEvent(EVENTS.USER_PROFILE, eventParams);
+            setIsLoading(false);
           }}
           onNoButtonClicked={async ({ }) => {
             console.log(`Show warning No:`);

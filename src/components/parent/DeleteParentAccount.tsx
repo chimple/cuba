@@ -18,12 +18,11 @@ const DeleteParentAccount: React.FC<{}> = ({}) => {
     setIsLoading(true);
     const auth = ServiceConfig.getI().authHandler;
     const api = ServiceConfig.getI().apiHandler;
-    const user =
-      await ServiceConfig.getI().authHandler.getCurrentUser();
+    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
     await api.deleteAllUserData();
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
-    Util.logEvent(EVENTS.USER_PROFILE,{
+    const eventParams = {
       user_id: user?.docId,
       user_type: user?.role,
       user_name: user?.name,
@@ -32,8 +31,15 @@ const DeleteParentAccount: React.FC<{}> = ({}) => {
       phone_number: user?.username,
       parent_id: user?.uid,
       parent_username: user?.username,
-      action_type: ACTION.DELETE
-    });
+      action_type: ACTION.DELETE,
+    };
+    console.log(
+      "Util.logEvent(EVENTS.USER_PROFILE, eventParams);",
+      EVENTS.USER_PROFILE,
+      eventParams
+    );
+
+    Util.logEvent(EVENTS.USER_PROFILE, eventParams);
     setIsLoading(false);
     history.replace(PAGES.APP_LANG_SELECTION);
     if (Capacitor.isNativePlatform()) window.location.reload();

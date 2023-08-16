@@ -16,6 +16,9 @@ export enum SL_GRADES {
 
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
+
+
+
 export enum HOMEHEADERLIST {
   SUBJECTS = "SUBJECTS",
   HOME = "HOME",
@@ -24,8 +27,8 @@ export enum HOMEHEADERLIST {
   SEARCH = "SEARCH",
   QUIZ = "QUIZ",
   PROFILE = "PROFILE",
-  FAVOURITES = "FAVOURITES",
   HISTORY = "HISTORY",
+  FAVOURITES = "FAVOURITES"
 }
 
 export enum PARENTHEADERLIST {
@@ -141,6 +144,7 @@ export enum PAGES {
   SEARCH = "/search",
   LEADERBOARD = "/leaderboard",
   ASSIGNMENT = "/assignment",
+  JOIN_CLASS = "/join-class",
   SELECT_MODE = "/select-mode",
 }
 
@@ -178,6 +182,7 @@ export const LANGUAGE = "language";
 export const EXAM = "exam";
 export const PRE_QUIZ = "PreQuiz";
 export const GRADE_MAP = "GradeMap";
+export const DISPLAY_SUBJECTS_STORE = "DispSubStore";
 export const SOUND = "sound";
 export const MUSIC = "music";
 export const GAME_URL = "gameUrl";
@@ -296,12 +301,13 @@ export const CACHE_IMAGE = "cacheImage";
 
 export const IS_MIGRATION_CHECKED = "isMigrationChecked";
 
+export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
+
+export const COPIED_BUNDLE_FILES_INDEX = "copiedBundleFilesIndex";
+
 export const courseSortIndex = {
   en: 1,
   maths: 2,
   puzzle: 3,
+  hi: 4,
 };
-
-export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
-
-export const COPIED_BUNDLE_FILES_INDEX = "copiedBundleFilesIndex";

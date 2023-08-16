@@ -49,6 +49,7 @@ import { margin } from "@mui/system";
 import { push } from "ionicons/icons";
 import { t } from "i18next";
 import RiveCharacter from "../components/animation/RiveCharacter";
+import { App, URLOpenListenerEvent } from "@capacitor/app";
 
 const sortPlayedLessonsByDate = (
   lessons: Lesson[],
@@ -68,6 +69,7 @@ const sortPlayedLessonsByDate = (
   return sortedLessons;
 };
 
+const localData: any = {};
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -96,7 +98,17 @@ const Home: FC = () => {
     setCourse(HOMEHEADERLIST.HOME);
     setValue(SUBTAB.SUGGESTIONS);
     getHistory();
+    urlOpenListenerEvent();
   }, []);
+
+  function urlOpenListenerEvent() {
+    App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
+      const slug = event.url.split(".cc").pop();
+      if (slug) {
+        history.push(slug);
+      }
+    });
+  }
 
   const api = ServiceConfig.getI().apiHandler;
   const getAssignments = async () => {
@@ -124,7 +136,12 @@ const Home: FC = () => {
       let count = 0;
       await Promise.all(
         allAssignments.map(async (_assignment) => {
-          const res = await api.getLesson(_assignment.lesson.id);
+          const res = await api.getLesson(
+            _assignment.lesson.id,
+            undefined,
+            true
+          );
+          console.log(res);
           if (!!res) {
             count++;
             res.assignment = _assignment;
@@ -159,6 +176,10 @@ const Home: FC = () => {
     if (subjectCode === HOMEHEADERLIST.HOME) {
       // let r = api.getStudentResultInMap(currentStudent.docId);
       // console.log("r = api.getStudentResultInMap(currentStudent.docId);", r);
+      if (!localData.allCourses) {
+        let tempAllCourses = await api.getAllCourses();
+        localData.allCourses = tempAllCourses;
+      }
       await getAssignments();
       getRecommendationLessons(currentStudent, currClass).then(() => {
         console.log("Final RECOMMENDATION List ", reqLes);
@@ -251,7 +272,7 @@ const Home: FC = () => {
     if (studentResult?.lessons) {
       const playedLessonIds = Object.keys(studentResult.lessons);
       const lessonPromises = playedLessonIds.map((lessonId) =>
-        api.getLesson(lessonId)
+        api.getLesson(lessonId, undefined, true)
       );
       const lessons: (Lesson | undefined)[] = await Promise.all(lessonPromises);
       const validLessons: Lesson[] = lessons.filter(
@@ -332,6 +353,10 @@ const Home: FC = () => {
         continue;
       }
       let islessonPushed = false;
+      if (tempCourse.chapters.length <= 0) {
+        console.log("Chapter are empty", tempCourse);
+        continue;
+      }
       if (
         tempResultLessonMap === undefined &&
         tempCourse.chapters[0].id === tempCourse.courseCode + "_quiz"
@@ -346,11 +371,14 @@ const Home: FC = () => {
             );
             // await res.lessons[tempCourse.courseCode][l.id];
             if (lessonObj) {
+              let chapterTitle = tempCourse.chapters[0].title;
+              lessonObj.chapterTitle = chapterTitle;
               console.log(lessonObj, "lessons pushed");
               reqLes.push(lessonObj as Lesson);
               setDataCourse(reqLes);
             }
           } else {
+            console.log("Wrong place");
             console.log(element, "lessons pushed");
             reqLes.push(element as Lesson);
             setDataCourse(reqLes);
@@ -382,6 +410,8 @@ const Home: FC = () => {
               // );
 
               if (lessonObj) {
+                let chapterTitle = chapter.title;
+                lessonObj.chapterTitle = chapterTitle;
                 console.log(lessonObj, "lessons pushed");
                 reqLes.push(lessonObj as Lesson);
               }
@@ -389,6 +419,7 @@ const Home: FC = () => {
               //   console.log(lesson, "lessons pushed");
               //   reqLes.push(lesson);
               // }
+              console.log("DWSGSGSG");
               setDataCourse(reqLes);
               islessonPushed = true;
               break;
@@ -401,6 +432,7 @@ const Home: FC = () => {
       //Last Played Lessons
       islessonPushed = false;
       if (!sortLessonResultMap) {
+        console.log("ERERERER");
         setDataCourse(reqLes);
         setIsLoading(false);
         continue;
@@ -478,7 +510,7 @@ const Home: FC = () => {
         }
         break;
       case HOMEHEADERLIST.PROFILE:
-        history.push(PAGES.LEADERBOARD);
+        history.replace(PAGES.LEADERBOARD);
         break;
       case HOMEHEADERLIST.SEARCH:
         history.push(PAGES.SEARCH);
@@ -534,7 +566,6 @@ const Home: FC = () => {
     PlayedLessonsList,
     lessonResultMap || {}
   );
-
   return (
     <IonPage id="home-page">
       <IonHeader id="home-header">
@@ -556,6 +587,7 @@ const Home: FC = () => {
                   lessonsScoreMap={lessonResultMap || {}}
                   startIndex={0}
                   showSubjectName={true}
+                  showChapterName={true}
                 />
               </div>
             ) : // <div style={{ marginTop: "2.6%" }}></div>
@@ -590,6 +622,16 @@ const Home: FC = () => {
                     width: "25vw",
                   }}
                 ></RiveCharacter>
+              <div>
+                <LessonSlider
+                  lessonData={getLovedLessons()}
+                  isHome={true}
+                  course={undefined}
+                  lessonsScoreMap={lessonResultMap || {}}
+                  startIndex={0}
+                  showSubjectName={true}
+                  showChapterName={true}
+                />
               </div>
             )}
 
@@ -602,6 +644,7 @@ const Home: FC = () => {
                   lessonsScoreMap={lessonResultMap || {}}
                   startIndex={0}
                   showSubjectName={true}
+                  showChapterName={true}
                 />
               </div>
             )}

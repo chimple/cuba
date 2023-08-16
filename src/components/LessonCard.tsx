@@ -28,6 +28,7 @@ const LessonCard: React.FC<{
   isLoved: boolean | undefined;
   lessonData: Lesson[];
   startIndex: number;
+  showChapterName : boolean;
 }> = ({
   width,
   height,
@@ -43,6 +44,7 @@ const LessonCard: React.FC<{
   isLoved,
   lessonData,
   startIndex,
+  showChapterName = false,
 }) => {
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
@@ -181,9 +183,9 @@ const LessonCard: React.FC<{
                 lesson.cocosSubjectCode +
                 "/icons/" +
                 lesson.id +
-                ".png"
+                ".webp"
               }
-              defaultSrc={"courses/" + "en" + "/icons/" + "en33.png"}
+              defaultSrc={"courses/" + "en" + "/icons/" + "en33.webp"}
               webSrc={lesson.thumbnail}
             />
             {!isUnlocked ? (
@@ -206,11 +208,16 @@ const LessonCard: React.FC<{
             ) : (
               <div />
             )}
-            {isLoved && <LovedIcon isLoved={isLoved} />}
+           {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle} />}
           </div>
         </div>
       </div>
       {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
+      {showChapterName && lesson.chapterTitle &&
+        <div id="chapter-title">
+          {lesson.chapterTitle}
+        </div>
+      }
     </IonCard>
   );
 };

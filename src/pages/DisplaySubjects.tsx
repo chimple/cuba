@@ -8,6 +8,7 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import {
   CURRENT_CLASS,
   CURRENT_MODE,
+  DISPLAY_SUBJECTS_STORE,
   GRADE_MAP,
   MODES,
   PAGES,
@@ -26,8 +27,10 @@ import { Util } from "../utility/util";
 import Class from "../models/class";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
+import { Timestamp } from "firebase/firestore";
 
 const localData: any = {};
+let localStorageData: any = {};
 const DisplaySubjects: FC<{}> = () => {
   enum STAGES {
     SUBJECTS,
@@ -67,13 +70,14 @@ const DisplaySubjects: FC<{}> = () => {
         setIsLoading(true);
         api.getDifferentGradesForCourse(currentCourse).then(({ grades }) => {
           localData.gradesMap = { grades, courses: [currentCourse] };
+          localStorageData.gradesMap = localData.gradesMap;
+          addDataToLocalStorage();
           setLocalGradeMap({ grades, courses: [currentCourse] });
           setIsLoading(false);
         });
       }
     }
   }, [localGradeMap, currentCourse]);
-
 
   const init = async () => {
     const urlParams = new URLSearchParams(location.search);
@@ -99,7 +103,7 @@ const DisplaySubjects: FC<{}> = () => {
       if (localData.lessonResultMap) {
         setLessonResultMap(localData.lessonResultMap);
       } else {
-        const currentStudent = Util.getCurrentStudent();
+        const currentStudent = await Util.getCurrentStudent();
         if (currentStudent) {
           //loading student result cache (seems like a new user)
           const result = await api.getStudentResult(currentStudent.docId, true);
@@ -108,17 +112,90 @@ const DisplaySubjects: FC<{}> = () => {
           setLessonResultMap(lessons);
         }
       }
+
+      localStorageData.lessonResultMap = localData.lessonResultMap;
+      localStorageData.stage = STAGES.LESSONS;
+      addDataToLocalStorage();
       setStage(STAGES.LESSONS);
+
       setIsLoading(false);
+    } else if (!!urlParams.get("isReload")) {
+
+      let strLocalStoreData = localStorage.getItem(DISPLAY_SUBJECTS_STORE);
+      if (!!strLocalStoreData) {
+        localStorageData = JSON.parse(strLocalStoreData);
+
+        if (!!localStorageData.courses) {
+          let tmpCourses: Course[] = Util.convertCourses(localStorageData.courses);
+          localData.courses = tmpCourses;
+
+          setCourses(tmpCourses);
+
+          if (!!localStorageData.stage && localStorageData.stage !== STAGES.SUBJECTS && !!localStorageData.currentCourseId) {
+
+            setStage(localStorageData.stage);
+            let cc: Course = localData.courses.find(cour => localStorageData.currentCourseId === cour.docId)
+            localData.currentCourse = cc;
+            setCurrentCourse(cc);
+
+            if (!!localStorageData.localGradeMap) {
+              localData.localGradeMap = localStorageData.localGradeMap;
+              setLocalGradeMap(localStorageData.localGradeMap);
+            }
+
+            if (!!localStorageData.currentGrade) {
+              localData.currentGrade = localStorageData.currentGrade;
+              setCurrentGrade(localStorageData.currentGrade);
+            }
+
+            if (!!localStorageData.currentChapterId) {
+              let cChap: Chapter = localData.currentCourse.chapters.find(chap => localStorageData.currentChapterId === chap.id)
+              localData.currentChapter = cChap;
+              setCurrentChapter(cChap);
+            }
+
+            if (!!localStorageData.lessonResultMap) {
+              let tmpStdMap: { [lessonDocId: string]: StudentLessonResult } = localStorageData.lessonResultMap;
+              for (const value of Object.values(tmpStdMap)) {
+                if (!!value.course)
+                  value.course = Util.getRef(value.course);
+              }
+              localData.lessonResultMap = tmpStdMap;
+              setLessonResultMap(tmpStdMap);
+            }
+
+            if (localStorageData.stage === STAGES.LESSONS) {
+              getLessonsForChapter(localData.currentChapter);
+            } else {
+              setIsLoading(false);
+            }
+          }
+
+        } else {
+          await getCourses();
+          console.log("🚀 ~ file: DisplaySubjects.tsx:127 ~ init ~ getCourses:");
+        }
+
+      } else {
+        await getCourses();
+        console.log("🚀 ~ file: DisplaySubjects.tsx:126 ~ init ~ getCourses:");
+      }
+
     } else {
       await getCourses();
-      console.log("🚀 ~ file: DisplaySubjects.tsx:70 ~ init ~ getCourses:");
+      console.log("🚀 ~ file: DisplaySubjects.tsx:131 ~ init ~ getCourses:");
     }
     let map = localStorage.getItem(GRADE_MAP);
     if (!!map) {
       setLocalGradeMap(JSON.parse(map));
     };
   };
+
+
+
+  function addDataToLocalStorage() {
+    localStorage.setItem(DISPLAY_SUBJECTS_STORE, JSON.stringify(localStorageData));
+  }
 
   const getCourses = async (): Promise<Course[]> => {
     setIsLoading(true);
@@ -134,6 +211,7 @@ const DisplaySubjects: FC<{}> = () => {
     api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
       console.log("tempResultLessonMap = res;", res);
       localData.lessonResultMap = res;
+      localStorageData.lessonResultMap = res;
       setLessonResultMap(res);
     });
     const currMode = await schoolUtil.getCurrMode();
@@ -142,7 +220,9 @@ const DisplaySubjects: FC<{}> = () => {
       ? api.getCoursesForClassStudent(currClass)
       : api.getCoursesForParentsStudent(currentStudent));
     localData.courses = courses;
+    localStorageData.courses = courses;
     setCourses(courses);
+    addDataToLocalStorage();
     setIsLoading(false);
     return courses;
   };
@@ -163,13 +243,19 @@ const DisplaySubjects: FC<{}> = () => {
   const onBackButton = () => {
     switch (stage) {
       case STAGES.SUBJECTS:
+        localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
         history.replace(PAGES.HOME);
         break;
       case STAGES.CHAPTERS:
+        localStorageData.stage = STAGES.SUBJECTS;
+        addDataToLocalStorage();
         setStage(STAGES.SUBJECTS);
         break;
       case STAGES.LESSONS:
+        localStorageData.stage = STAGES.CHAPTERS;
+        addDataToLocalStorage();
         setStage(STAGES.CHAPTERS);
+
         break;
       default:
         break;
@@ -188,6 +274,8 @@ const DisplaySubjects: FC<{}> = () => {
     setCurrentGrade(currentGrade ?? localGradeMap.grades[0]);
     setLocalGradeMap(localGradeMap);
     setCurrentCourse(course);
+    localStorageData.stage = STAGES.CHAPTERS;
+    addDataToLocalStorage();
     setStage(STAGES.CHAPTERS);
   };
 
@@ -196,6 +284,8 @@ const DisplaySubjects: FC<{}> = () => {
       (course) => course.grade.id === grade.docId
     );
     localData.currentGrade = grade;
+    localStorageData.currentGrade = grade;
+    addDataToLocalStorage();
     setCurrentGrade(grade);
     setCurrentCourse(currentCourse);
   };
@@ -203,9 +293,35 @@ const DisplaySubjects: FC<{}> = () => {
   const onChapterChange = async (chapter: Chapter) => {
     await getLessonsForChapter(chapter);
     localData.currentChapter = chapter;
+    localStorageData.currentChapterId = chapter.id;
     setCurrentChapter(chapter);
+    localStorageData.stage = STAGES.LESSONS;
+    addDataToLocalStorage();
     setStage(STAGES.LESSONS);
   };
+
+  function getLastPlayedLessonIndex() {
+    let lastPlayedLessonDate: Timestamp;
+    let startIndex = 0;
+    if (!!lessonResultMap)
+      lessons?.forEach((less: Lesson, i: number) => {
+        const studentResultOfLess = lessonResultMap[less.docId];
+        if (!!studentResultOfLess) {
+          if (!lastPlayedLessonDate) {
+            lastPlayedLessonDate = lessonResultMap[less.docId].date;
+            startIndex = i;
+          } else {
+            if (lessonResultMap[less.docId].date > lastPlayedLessonDate) {
+              lastPlayedLessonDate = studentResultOfLess.date;
+              startIndex = i;
+            }
+          }
+        }
+      })
+
+    return startIndex;
+  }
+
   return (
     <IonPage id="display-subjects-page">
       <Loading isLoading={isLoading} />
@@ -271,8 +387,9 @@ const DisplaySubjects: FC<{}> = () => {
             isHome={true}
             course={currentCourse!}
             lessonsScoreMap={lessonResultMap || {}}
-            startIndex={0}
+            startIndex={getLastPlayedLessonIndex()}
             showSubjectName={false}
+            showChapterName = {false}
           />
         </div>
       )}

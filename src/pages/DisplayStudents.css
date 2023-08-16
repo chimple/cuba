@@ -84,3 +84,7 @@
 .ion-page {
   justify-content: start;
 }
+
+.avatar-img{
+  border-radius: 50%;
+}
