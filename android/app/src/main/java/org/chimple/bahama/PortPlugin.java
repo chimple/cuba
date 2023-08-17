@@ -1,4 +1,4 @@
-package org.chimple.cuba;
+package org.chimple.bahama;
 
 import android.annotation.SuppressLint;
 import android.database.Cursor;
@@ -45,7 +45,7 @@ public class PortPlugin extends Plugin {
     @PluginMethod()
     public void getMigrateUsers(PluginCall call) {
         String TAG_NAME = "getMigrateFile";
-        String DB_PATH = "/data/data/org.chimple.cuba/databases/";
+        String DB_PATH = "/data/data/org.chimple.bahama/databases/";
         Log.d(TAG_NAME, DB_PATH);
         String DB_NAME = "jsb.sqlite";
         Log.d(TAG_NAME, DB_NAME);
