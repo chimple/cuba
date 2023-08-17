@@ -73,8 +73,8 @@ const App: React.FC = () => {
           console.log("path ", path, "uri", path?.uri);
 
           if (path instanceof Object) {
-            const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.cuba/cache
-            console.log("uri", uri); //http://localhost/_capacitor_file_/data/user/0/org.chimple.cuba/cache
+            const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.bahama/cache
+            console.log("uri", uri); //http://localhost/_capacitor_file_/data/user/0/org.chimple.bahama/cache
             localStorage.setItem(GAME_URL, uri + "/");
           }
         });

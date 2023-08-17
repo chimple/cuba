@@ -185,7 +185,7 @@ const LessonCard: React.FC<{
                 lesson.id +
                 ".webp"
               }
-              defaultSrc={"courses/" + "en" + "/icons/" + "en33.webp"}
+              defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
               webSrc={lesson.thumbnail}
             />
             {!isUnlocked ? (

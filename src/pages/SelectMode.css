@@ -102,3 +102,7 @@
   text-overflow: ellipsis;
   overflow: hidden;
 }
+
+.class-avatar-img{
+  border-radius: 50%;
+}

@@ -148,26 +148,30 @@ export class FirebaseAuth implements ServiceAuth {
   }
 
   public async getCurrentUser(): Promise<User | undefined> {
-    if (this._currentUser) return this._currentUser;
-    const currentUser = this._auth.currentUser;
-    console.log("🚀 ~ file: FirebaseAuth.ts:153 ~ currentUser:", currentUser);
-    // let currentUser: any = (await FirebaseAuthentication.getCurrentUser()).user;
-    // console.log("let currentUser", currentUser);
+    try {
+      if (this._currentUser) return this._currentUser;
+      const currentUser = this._auth.currentUser;
+      console.log("🚀 ~ file: FirebaseAuth.ts:153 ~ currentUser:", currentUser);
+      // let currentUser: any = (await FirebaseAuthentication.getCurrentUser()).user;
+      // console.log("let currentUser", currentUser);
 
-    // if (!currentUser) {
-    //   currentUser = getAuth().currentUser;
-    //   console.log("currentUser in if (!currentUser) {", currentUser);
-    // }
-    if (!currentUser) return;
-    const tempUserDoc = await getDoc(doc(this._db, "User", currentUser.uid));
-    this._currentUser = (tempUserDoc.data() || tempUserDoc) as User;
-    console.log(
-      "currentUser in if (!currentUser) {",
-      tempUserDoc,
-      this._currentUser
-    );
-    this._currentUser.docId = tempUserDoc.id;
-    return this._currentUser;
+      // if (!currentUser) {
+      //   currentUser = getAuth().currentUser;
+      //   console.log("currentUser in if (!currentUser) {", currentUser);
+      // }
+      if (!currentUser) return;
+      const tempUserDoc = await getDoc(doc(this._db, "User", currentUser.uid));
+      this._currentUser = (tempUserDoc.data() || tempUserDoc) as User;
+      console.log(
+        "currentUser in if (!currentUser) {",
+        tempUserDoc,
+        this._currentUser
+      );
+      this._currentUser.docId = tempUserDoc.id;
+      return this._currentUser;
+    } catch (error) {
+      console.log("🚀 ~ file: FirebaseAuth.ts:175 ~ error:", error);
+    }
   }
 
   public set currentUser(value: User) {

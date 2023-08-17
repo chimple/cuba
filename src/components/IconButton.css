@@ -13,7 +13,8 @@
 
 .child-Name {
   white-space: nowrap;
-  max-width: 14vw;
+  display: block;
+  max-width: 20vh;
   text-overflow: ellipsis;
   overflow: hidden;
 }
@@ -36,4 +37,8 @@
 #homework-notification {
   display: flex;
   justify-content: center;
+}
+
+.circular-icon .img {
+  border-radius: 50%;
 }
