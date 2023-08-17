@@ -247,11 +247,16 @@ const DisplaySubjects: FC<{}> = () => {
         history.replace(PAGES.HOME);
         break;
       case STAGES.CHAPTERS:
+        delete localData.currentChapter;
+        delete localStorageData.currentChapterId;
+        setCurrentChapter(undefined);
         localStorageData.stage = STAGES.SUBJECTS;
         addDataToLocalStorage();
         setStage(STAGES.SUBJECTS);
         break;
       case STAGES.LESSONS:
+        delete localData.lessons;
+        setLessons(undefined);
         localStorageData.stage = STAGES.CHAPTERS;
         addDataToLocalStorage();
         setStage(STAGES.CHAPTERS);
@@ -377,6 +382,7 @@ const DisplaySubjects: FC<{}> = () => {
               grades={!!localGradeMap ? localGradeMap.grades : localGradeMap}
               onGradeChange={onGradeChanges}
               course={currentCourse}
+              currentChapterId={currentChapter?.id}
             />
           )}
       </div>
