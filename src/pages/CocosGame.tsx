@@ -60,11 +60,17 @@ const CocosGame: React.FC = () => {
 
   const push = () => {
     const urlParams = new URLSearchParams(window.location.search);
+    let fromPath: string = state?.from;
     if (!!urlParams.get("isReload")) {
-      history.replace(state.from + "&isReload=true" ?? PAGES.HOME);
+      if (!!fromPath) {
+        if (fromPath.includes("?"))
+          history.replace(fromPath + "&isReload=true" ?? PAGES.HOME);
+        else
+          history.replace(fromPath + "?isReload=true" ?? PAGES.HOME);
+      }
       window.location.reload();
     } else {
-      history.replace(state.from ?? PAGES.HOME);
+      history.replace(fromPath ?? PAGES.HOME);
     }
     setIsLoading(false);
   };
