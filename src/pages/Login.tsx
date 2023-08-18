@@ -182,7 +182,7 @@ const Login: React.FC = () => {
   useEffect(() => {
     console.log("Testing: " + allowSubmittingOtpCounter);
     disableOtpButtonIfSameNumber && allowSubmittingOtpCounter > 0 && setTimeout(() => setAllowSubmittingOtpCounter(allowSubmittingOtpCounter - 1), 1000);
-    let str = t(`Sent OTP button will be enabled in x seconds`)
+    let str = t(`Send OTP button will be enabled in x seconds`)
     .replace(`x`, allowSubmittingOtpCounter.toString());
   setTitle(str);
   }, [allowSubmittingOtpCounter]);
