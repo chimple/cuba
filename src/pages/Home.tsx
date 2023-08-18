@@ -259,7 +259,7 @@ const Home: FC = () => {
   };
 
   const getHistory = async () => {
-    setIsLoading(true);
+    // setIsLoading(true);
 
     const currentStudent = await Util.getCurrentStudent();
     if (!currentStudent) {
@@ -284,7 +284,7 @@ const Home: FC = () => {
       );
       setPlayedLessonsList(sortedPlayedLessonsList);
     }
-    setIsLoading(false);
+    // setIsLoading(false);
   };
 
   let reqLes: Lesson[] = [];
