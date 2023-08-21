@@ -26,8 +26,8 @@ const SelectChapter: FC<{
   let currentChapterRef = useRef<any>();
 
   useEffect(() => {
-    currentChapterRef.current?.scrollIntoView({ behavior: 'smooth' });
-  });
+    currentChapterRef.current?.scrollIntoView({ behavior: 'instant' });
+  }, []);
   return (
     <div>
       <div className="grade-container" />
