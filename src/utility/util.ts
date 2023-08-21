@@ -52,6 +52,7 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 import { CollectionIds } from "../common/courseConstants";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { Router } from "react-router-dom";
+import { App, BackButtonListenerEvent } from "@capacitor/app";
 
 declare global {
   interface Window {
@@ -124,6 +125,18 @@ export class Util {
     }
     localStorage.setItem(SOUND, currSound.toString());
   };
+
+  public static backButton(event: BackButtonListenerEvent){
+    throw new Error("Function not implemented.");
+  }
+
+  public static disableBackButton(){
+    App.addListener("backButton", Util.backButton)
+
+    return ()=>{
+      App.removeAllListeners();
+    }
+  }
 
   public static getCurrentMusic(): boolean {
     const auth = ServiceConfig.getI().authHandler;

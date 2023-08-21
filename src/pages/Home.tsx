@@ -492,7 +492,7 @@ const Home: FC = () => {
     HEADER_ICON_CONFIGS.get(selectedHeader);
     switch (selectedHeader) {
       case HOMEHEADERLIST.SUBJECTS:
-        history.push(PAGES.DISPLAY_SUBJECTS);
+        history.replace(PAGES.DISPLAY_SUBJECTS);
         break;
       case HOMEHEADERLIST.HOME:
         handleHomeIconClick();
