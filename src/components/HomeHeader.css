@@ -1,6 +1,6 @@
 #home-header-icons {
     display: flex;
-    margin: 0 2vw 0 4vw;
+    margin: 0 0vw 0 0.5vw;
     justify-content: space-between;
     align-items: center;
 }
@@ -30,7 +30,7 @@
     margin-right: 1vw;
 }
 
-#home-header-profile-icon{
+.home-header-outer-icon{
     width: 10vw;
     border: 0 none;
 }
