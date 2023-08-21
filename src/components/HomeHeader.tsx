@@ -64,18 +64,20 @@ const HomeHeader: React.FC<{
   // const student =await Util.getCurrentStudent();
   return (
     <div id="home-header-icons">
-      <HeaderIcon
-        headerName={t("Home")}
-        iconSrc="assets/icons/home_icon.svg"
-        currentHeader={currentHeader}
-        headerList={HOMEHEADERLIST.HOME}
-        pendingAssignmentCount={0}
-        onHeaderIconClick={() => {
-          if (currentHeader != HOMEHEADERLIST.HOME) {
-            onHeaderIconClick(HOMEHEADERLIST.HOME);
-          }
-        }}
-      ></HeaderIcon>
+      <div className="home-header-outer-icon">
+        <HeaderIcon
+          headerName={t("Home")}
+          iconSrc="assets/icons/home_icon.svg"
+          currentHeader={currentHeader}
+          headerList={HOMEHEADERLIST.HOME}
+          pendingAssignmentCount={0}
+          onHeaderIconClick={() => {
+            if (currentHeader != HOMEHEADERLIST.HOME) {
+              onHeaderIconClick(HOMEHEADERLIST.HOME);
+            }
+          }}
+        ></HeaderIcon>
+      </div>
 
       <div id="home-header-middle-icons">
         {!!currentHeaderIconList &&
@@ -98,7 +100,7 @@ const HomeHeader: React.FC<{
           })}
       </div>
 
-      <div id="home-header-profile-icon">
+      <div className="home-header-outer-icon">
         <HeaderIcon
           headerName={student?.name ?? "Profile"}
           iconSrc={student?.image || ("assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png")}
