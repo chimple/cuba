@@ -52,7 +52,6 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 import { CollectionIds } from "../common/courseConstants";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { Router } from "react-router-dom";
-import { App, BackButtonListenerEvent } from "@capacitor/app";
 
 declare global {
   interface Window {
