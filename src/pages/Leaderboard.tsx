@@ -61,14 +61,14 @@ const Leaderboard: React.FC = () => {
   const [currentClass, setCurrentClass] = useState<StudentProfile>();
 
   function BackButtonListener() {
-      history.replace(PAGES.HOME);
+    history.replace(PAGES.HOME);
   }
 
   useEffect(() => {
     setIsLoading(true);
     inti();
     App.addListener("backButton", BackButtonListener);
-    return ()=>{
+    return () => {
       App.removeAllListeners();
     }
 
@@ -373,7 +373,14 @@ const Leaderboard: React.FC = () => {
                         }}
                         id="leaderboard-right-UI-content"
                       >
-                        {i === 1 ? <p id="leaderboard-profile-name">{d}</p> : d}
+                        {i === 1 ?
+                          <p id="leaderboard-profile-name">
+                            {Number(currentUserDataContent[0][1]) === headerRowIndicator && currentStudent?.name
+                              ? currentStudent?.name
+                              : d
+                            }
+                          </p>
+                          : d}
                       </p>
                     </IonCol>
                   );
