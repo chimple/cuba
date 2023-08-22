@@ -96,7 +96,7 @@ const ProfileCard: React.FC<{
             // const api = ServiceConfig.getI().apiHandler;
             // api.currentStudent = user;
 
-            history.push(PAGES.STUDENT_PROGRESS);
+            history.replace(PAGES.STUDENT_PROGRESS);
           }}
         >
           {t("Progress Report")}

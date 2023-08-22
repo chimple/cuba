@@ -126,18 +126,6 @@ export class Util {
     localStorage.setItem(SOUND, currSound.toString());
   };
 
-  public static backButton(event: BackButtonListenerEvent){
-    throw new Error("Function not implemented.");
-  }
-
-  public static disableBackButton(){
-    App.addListener("backButton", Util.backButton)
-
-    return ()=>{
-      App.removeAllListeners();
-    }
-  }
-
   public static getCurrentMusic(): boolean {
     const auth = ServiceConfig.getI().authHandler;
     const currUser = auth.currentUser;
