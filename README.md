@@ -78,3 +78,26 @@ Now we can find the apk on `android/app/build/outputs/apk/debug/app-debug.apk`
 ```sh
 $ chmod +x ./gradlew
 ```
+
+# Analytics Dashboard
+
+## Chimple Generic Dashboard:
+
+For Chimple Generic Dashboard link [Click Here](https://lookerstudio.google.com/reporting/9b016b62-2bd2-4d4c-bf4d-1168cd640842/page/W5YXC)
+
+
+## Step to See New School data on Generic Dashboard:
+
+1.This Dasboard requires permission to access the current viewer's email address in order to personalize the data shown to that viewer. When you consent to sharing your address with that report, the underlying data source can use that to return only the data associated with that address.
+
+<img width="953" alt="Screenshot 2023-08-17 110918" src="https://github.com/chimple/cuba/assets/62737989/6192f948-af13-439c-aeb2-a5cfe723037d">
+
+2. After creating schools and classes in malta. we have to push school information in scool table only once
+3. we need to add user Email id and school ID into Teacher Table ( this step is not required  after we release Malta APP). with this step user is part of this particular school
+
+   Use below Query to add Email id along with user Info
+   
+```sh
+INSERT INTO `bahama-stage.proc.teacher` values ('20230802','2023-08-02 05:14:57.932000 UTC','UUID','User Name','School Name','SchoolId','CSeI4m0bA3psWz3Kf62','emailId@gmail.org')
+```
+
