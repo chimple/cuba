@@ -33,6 +33,7 @@ import { Util } from "../utility/util";
 // import auth from "../models/auth";
 import i18n from "../i18n";
 import IconButton from "../components/IconButton";
+
 import { App } from "@capacitor/app";
 import { schoolUtil } from "../utility/schoolUtil";
 
@@ -75,6 +76,9 @@ const Leaderboard: React.FC = () => {
       App.removeAllListeners();
     }
 
+  useEffect(() => {
+    setIsLoading(true);
+    inti();
   }, []);
 
   async function inti() {
@@ -378,7 +382,14 @@ const Leaderboard: React.FC = () => {
                         }}
                         id="leaderboard-right-UI-content"
                       >
-                        {i === 1 ? <p id="leaderboard-profile-name">{d}</p> : d}
+                        {i === 1 ?
+                          <p id="leaderboard-profile-name">
+                            {Number(currentUserDataContent[0][1]) === headerRowIndicator && currentStudent?.name
+                              ? currentStudent?.name
+                              : d
+                            }
+                          </p>
+                          : d}
                       </p>
                     </IonCol>
                   );
