@@ -59,17 +59,9 @@ const Leaderboard: React.FC = () => {
   const [weeklySelectedValue, setWeeklySelectedValue] = useState<string>();
   const [currentClass, setCurrentClass] = useState<StudentProfile>();
 
-  function BackButtonListener() {
-    history.replace(PAGES.HOME);
-  }
-
   useEffect(() => {
     setIsLoading(true);
     inti();
-    App.addListener("backButton", BackButtonListener);
-    return () => {
-      App.removeAllListeners();
-    }
   }, []);
 
   async function inti() {
