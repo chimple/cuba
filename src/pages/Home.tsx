@@ -50,6 +50,7 @@ import { push } from "ionicons/icons";
 import { t } from "i18next";
 import RiveCharacter from "../components/animation/RiveCharacter";
 import { App, URLOpenListenerEvent } from "@capacitor/app";
+import ChimpSuggestionPage from "../components/animation/ChimpSuggestionPage";
 
 const sortPlayedLessonsByDate = (
   lessons: Lesson[],
@@ -594,7 +595,7 @@ const Home: FC = () => {
             null}
 
             {currentHeader === HOMEHEADERLIST.FAVOURITES && (
-              <div
+              <ChimpSuggestionPage
                 style={{
                   height: "50vh",
                   width: "auto",
@@ -603,36 +604,32 @@ const Home: FC = () => {
                   display: "flex",
                   justifyContent: "inherit",
                 }}
-              >
-                <RiveCharacter
-                  style={{
-                    height: "50vh",
-                    width: "25vw",
-                  }}
-                ></RiveCharacter>
-                <RiveCharacter
-                  style={{
-                    height: "50vh",
-                    width: "25vw",
-                  }}
-                ></RiveCharacter>
-                <RiveCharacter
-                  style={{
-                    height: "50vh",
-                    width: "25vw",
-                  }}
-                ></RiveCharacter>
-              <div>
-                <LessonSlider
-                  lessonData={getLovedLessons()}
-                  isHome={true}
-                  course={undefined}
-                  lessonsScoreMap={lessonResultMap || {}}
-                  startIndex={0}
-                  showSubjectName={true}
-                  showChapterName={true}
-                />
-              </div>
+              ></ChimpSuggestionPage>
+              // <div
+              //   style={{
+              //     height: "50vh",
+              //     width: "auto",
+              //     // marginLeft: "40vw",
+              //     marginBottom: "15vh",
+              //     display: "flex",
+              //     justifyContent: "inherit",
+              //   }}
+              // >
+              //   <ChimpSuggestionPage
+              //     style={{ height: "50vh", width: "auto" }}
+              //   ></ChimpSuggestionPage>
+              //   {/* <div>
+              //     <LessonSlider
+              //       lessonData={getLovedLessons()}
+              //       isHome={true}
+              //       course={undefined}
+              //       lessonsScoreMap={lessonResultMap || {}}
+              //       startIndex={0}
+              //       showSubjectName={true}
+              //       showChapterName={true}
+              //     />
+              //   </div> */}
+              // </div>
             )}
 
             {currentHeader === HOMEHEADERLIST.HISTORY && (
