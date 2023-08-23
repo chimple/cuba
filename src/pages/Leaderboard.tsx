@@ -32,7 +32,6 @@ import { Util } from "../utility/util";
 // import auth from "../models/auth";
 import i18n from "../i18n";
 import IconButton from "../components/IconButton";
-import { App } from "@capacitor/app";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -71,7 +70,6 @@ const Leaderboard: React.FC = () => {
     return () => {
       App.removeAllListeners();
     }
-
   }, []);
 
   async function inti() {

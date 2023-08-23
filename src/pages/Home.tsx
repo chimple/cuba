@@ -104,7 +104,7 @@ const Home: FC = () => {
     App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
       const slug = event.url.split(".cc").pop();
       if (slug) {
-        history.push(slug);
+        history.replace(slug);
       }
     });
   }
@@ -492,7 +492,7 @@ const Home: FC = () => {
     HEADER_ICON_CONFIGS.get(selectedHeader);
     switch (selectedHeader) {
       case HOMEHEADERLIST.SUBJECTS:
-        history.push(PAGES.DISPLAY_SUBJECTS);
+        history.replace(PAGES.DISPLAY_SUBJECTS);
         break;
       case HOMEHEADERLIST.HOME:
         handleHomeIconClick();
@@ -508,13 +508,13 @@ const Home: FC = () => {
         history.replace(PAGES.LEADERBOARD);
         break;
       case HOMEHEADERLIST.SEARCH:
-        history.push(PAGES.SEARCH);
+        history.replace(PAGES.SEARCH);
         break;
       case HOMEHEADERLIST.ASSIGNMENT:
-        history.push(PAGES.ASSIGNMENT);
+        history.replace(PAGES.ASSIGNMENT);
         break;
       case HOMEHEADERLIST.QUIZ:
-        history.push(PAGES.HOME);
+        history.replace(PAGES.HOME);
         break;
       default:
         break;

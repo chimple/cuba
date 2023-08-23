@@ -128,7 +128,7 @@ const ProfileCard: React.FC<{
             console.log(`Edit Profile`, "no", user.docId);
             const api = ServiceConfig.getI().apiHandler;
             await Util.setCurrentStudent(user, undefined, false);
-            history.push(PAGES.EDIT_STUDENT, {
+            history.replace(PAGES.EDIT_STUDENT, {
               from: history.location.pathname,
             });
             setShowDialogBox(false);
