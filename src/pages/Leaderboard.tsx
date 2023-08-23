@@ -7,6 +7,7 @@ import {
   LEADERBOARDHEADERLIST,
   PAGES,
   PARENTHEADERLIST,
+  MODES
 } from "../common/constants";
 // import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -33,6 +34,7 @@ import { Util } from "../utility/util";
 import i18n from "../i18n";
 import IconButton from "../components/IconButton";
 import { App } from "@capacitor/app";
+import { schoolUtil } from "../utility/schoolUtil";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -47,6 +49,7 @@ const Leaderboard: React.FC = () => {
   const [currentUserDataContent, setCurrentUserDataContent] = useState<
     string[][]
   >([]);
+  const [studentMode, setStudentMode] = useState<string | undefined>();
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
@@ -61,14 +64,14 @@ const Leaderboard: React.FC = () => {
   const [currentClass, setCurrentClass] = useState<StudentProfile>();
 
   function BackButtonListener() {
-      history.replace(PAGES.HOME);
+    history.replace(PAGES.HOME);
   }
 
   useEffect(() => {
     setIsLoading(true);
     inti();
     App.addListener("backButton", BackButtonListener);
-    return ()=>{
+    return () => {
       App.removeAllListeners();
     }
 
@@ -94,6 +97,8 @@ const Leaderboard: React.FC = () => {
       const getClass = await FirebaseApi.i.getStudentResult(
         currentStudent.docId
       );
+      const currMode = await schoolUtil.getCurrMode();
+      setStudentMode(currMode);
       if (getClass?.classes != undefined) {
         fetchLeaderBoardData(currentStudent, true, getClass?.classes[0]);
         setCurrentClass(getClass);
@@ -240,7 +245,7 @@ const Leaderboard: React.FC = () => {
             <img
               className="avatar-img"
               src={
-                currentStudent?.image || ("assets/avatars/" + (currentStudent?.avatar ?? AVATARS[0]) + ".png")
+                (studentMode === MODES.SCHOOL && currentStudent?.image) || ("assets/avatars/" + (currentStudent?.avatar ?? AVATARS[0]) + ".png")
               }
               alt=""
             />

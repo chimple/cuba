@@ -4,7 +4,7 @@ import ChimpleLogo from "../components/ChimpleLogo";
 import "./DisplayStudents.css";
 import Loading from "../components/Loading";
 import User from "../models/user";
-import { AVATARS, MAX_STUDENTS_ALLOWED, PAGES } from "../common/constants";
+import { AVATARS, MAX_STUDENTS_ALLOWED, PAGES, MODES } from "../common/constants";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { useHistory } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -12,6 +12,7 @@ import { t } from "i18next";
 import { Util } from "../utility/util";
 import ParentalLock from "../components/parent/ParentalLock";
 import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
+import { schoolUtil } from "../utility/schoolUtil";
 // import { FirebaseApi } from "../services/api/FirebaseApi";
 // import { FirebaseAuth } from "../services/auth/FirebaseAuth";
 
@@ -19,12 +20,15 @@ const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<User[]>();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
+  const [studentMode, setStudentMode] = useState<string | undefined>();
   const history = useHistory();
 
   useEffect(() => {
     getStudents();
   }, []);
   const getStudents = async () => {
+    const currMode = await schoolUtil.getCurrMode();
+    setStudentMode(currMode);
     const students =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     console.log(
@@ -128,7 +132,7 @@ const DisplayStudents: FC<{}> = () => {
               >
                 <img
                   className="avatar-img"
-                  src={student.image || ("assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png")}
+                  src={(studentMode === MODES.SCHOOL && student.image) || ("assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png")}
                   alt=""
                 />
                 <span className="student-name">{student.name}</span>
