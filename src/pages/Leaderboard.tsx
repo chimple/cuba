@@ -34,7 +34,6 @@ import { Util } from "../utility/util";
 import i18n from "../i18n";
 import IconButton from "../components/IconButton";
 
-import { App } from "@capacitor/app";
 import { schoolUtil } from "../utility/schoolUtil";
 
 const Leaderboard: React.FC = () => {
