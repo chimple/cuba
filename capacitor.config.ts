@@ -1,7 +1,8 @@
 import { CapacitorConfig } from "@capacitor/cli";
+import { KeyboardResize, KeyboardStyle } from "@capacitor/keyboard";
 
 const config: CapacitorConfig = {
-  appId: "org.chimple.bahama",
+  appId: "org.chimple.cuba",
   appName: "Chimple",
   webDir: "build",
   bundledWebRuntime: false,

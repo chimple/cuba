@@ -1,4 +1,4 @@
-package org.chimple.bahama;
+package org.chimple.cuba;
 
 import android.content.ComponentName;
 import android.content.Context;
