@@ -65,19 +65,17 @@ export class Util {
 
   public static convertCourses(_courses: Course1[]): Course1[] {
     let courses: Course1[] = [];
-    _courses.forEach(course => {
-      course.chapters.forEach(chapter => {
+    _courses.forEach((course) => {
+      course.chapters.forEach((chapter) => {
         chapter.lessons = this.convertDoc(chapter.lessons);
-      })
+      });
 
       course.curriculum = Util.getRef(course.curriculum);
       course.grade = Util.getRef(course.grade);
       course.subject = Util.getRef(course.subject);
-
-    })
+    });
     return _courses;
   }
-
 
   public static convertDoc(refs: any[]): DocumentReference[] {
     const data: DocumentReference[] = [];
@@ -99,7 +97,6 @@ export class Util {
     return newCourseRef;
   }
 
-
   public static getCurrentStudent(): User | undefined {
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentStudent) return api.currentStudent;
@@ -107,7 +104,6 @@ export class Util {
 
     if (!temp) return;
     const currentStudent = JSON.parse(temp) as User;
-
 
     currentStudent.courses = Util.convertDoc(currentStudent.courses);
     currentStudent.users = Util.convertDoc(currentStudent.users);
@@ -201,9 +197,9 @@ export class Util {
 
         console.log(
           "before local lesson Bundle http url:" +
-          "assets/" +
-          lessonId +
-          "/index.js"
+            "assets/" +
+            lessonId +
+            "/index.js"
         );
 
         const fetchingLocalBundle = await fetch(
@@ -211,9 +207,9 @@ export class Util {
         );
         console.log(
           "after local lesson Bundle fetch url:" +
-          "assets/" +
-          lessonId +
-          "/index.js",
+            "assets/" +
+            lessonId +
+            "/index.js",
           fetchingLocalBundle.ok,
           fetchingLocalBundle.json,
           fetchingLocalBundle
@@ -512,12 +508,40 @@ export class Util {
       );
     }
   }
+  public static async setUserProperties(currentUser: User) {
+    await FirebaseAnalytics.setUserProperty({
+      name: "userId",
+      value: currentUser.docId,
+    });
+    await FirebaseAnalytics.setUserProperty({
+      name: "name",
+      value: currentUser.name,
+    });
+    await FirebaseAnalytics.setUserProperty({
+      name: "age",
+      value: currentUser.age?.toLocaleString() || "",
+    });
+    await FirebaseAnalytics.setUserProperty({
+      name: "gender",
+      value: currentUser.gender?.toLocaleString() || "",
+    });
+    await FirebaseAnalytics.setUserProperty({
+      name: "role",
+      value: currentUser.role,
+    });
+    await FirebaseAnalytics.setUserProperty({
+      name: "username",
+      value: currentUser.username,
+    });
+  }
 
   public static async logCurrentPageEvents(user: User) {
     //Setting User Id in User Properites
     await FirebaseAnalytics.setUserId({
       userId: user.docId,
     });
+
+    await Util.setUserProperties(user);
 
     //Setting Screen Name
     await FirebaseAnalytics.setScreenName({
@@ -590,6 +614,7 @@ export class Util {
     await FirebaseAnalytics.setUserId({
       userId: student?.docId,
     });
+    await Util.setUserProperties(student);
   };
 
   public static randomBetween(min, max) {
