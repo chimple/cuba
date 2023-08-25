@@ -75,14 +75,6 @@ export class FirebaseAuth implements ServiceAuth {
       const userRef = doc(this._db, "User", user.uid);
       if (additionalUserInfo?.isNewUser) {
         await this._createUserDoc(user);
-        Util.logEvent(EVENTS.USER_PROFILE, {
-          user_id: user.uid,
-          user_name: user.displayName,
-          user_username: user.email,
-          phone_number: user.email ?? user.phoneNumber!,
-          user_type: RoleType.PARENT,
-          action_type: ACTION.CREATE,
-        });
       } else {
         const tempUserDoc = await getDoc(userRef);
         if (!tempUserDoc.exists) {
@@ -144,6 +136,15 @@ export class FirebaseAuth implements ServiceAuth {
     await setDoc(userRef, tempUser.toJson());
     this._currentUser = tempUser;
     this._currentUser.docId = user.uid;
+    Util.logEvent(EVENTS.USER_PROFILE, {
+      user_id: tempUser.uid,
+      user_name: tempUser.name,
+      user_username: tempUser.username,
+      phone_number: tempUser.username,
+      user_type: RoleType.PARENT,
+      action_type: ACTION.CREATE,
+    });
+
     return this._currentUser;
   }
 
@@ -452,14 +453,6 @@ export class FirebaseAuth implements ServiceAuth {
       if (!tempUserDoc.exists()) {
         let u = await this._createUserDoc(userData);
         console.log("created user", u);
-        Util.logEvent(EVENTS.USER_PROFILE, {
-          user_id: u.uid,
-          user_name: u.name,
-          user_username: u.username,
-          phone_number: u.username,
-          user_type: RoleType.PARENT,
-          action_type: ACTION.CREATE,
-        });
       } else {
         this._currentUser = tempUserDoc.data() as User;
         this._currentUser.docId = tempUserDoc.id;
@@ -510,6 +503,7 @@ export class FirebaseAuth implements ServiceAuth {
         await FirebaseAnalytics.setUserId({
           userId: user.uid,
         });
+        Util.setUserProperties(user);
         return true;
       }
     }
