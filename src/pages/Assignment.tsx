@@ -44,17 +44,19 @@ const AssignmentPage: React.FC = () => {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
-    api.getStudentResultInMap(student.docId).then(async (res) => {
-      console.log("tempResultLessonMap = res;", res);
-      setLessonResultMap(res);
-    });
+
+    const studentResult = await api.getStudentResult(student.docId);
+    if (!!studentResult) {
+      console.log("tempResultLessonMap = res;", studentResult.lessons);
+      setLessonResultMap(studentResult.lessons);
+    }
+
     const linked = await api.isStudentLinked(student.docId, fromCache);
     if (!linked) {
       setIsLinked(false);
       setLoading(false);
       return;
     }
-    const studentResult = await api.getStudentResult(student.docId);
 
     if (
       !!studentResult &&
@@ -162,7 +164,7 @@ const AssignmentPage: React.FC = () => {
                       lessonsScoreMap={lessonResultMap || {}}
                       startIndex={0}
                       showSubjectName={true}
-                      showChapterName= {true}
+                      showChapterName={true}
                     />
                   ) : (
                     <div className="pending-assignment">
