@@ -62,10 +62,8 @@ const CocosGame: React.FC = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
     if (!!urlParams.get("isReload")) {
-      if (fromPath.includes("?"))
-        history.replace(fromPath + "&isReload=true");
-      else
-        history.replace(fromPath + "?isReload=true");
+      if (fromPath.includes("?")) history.replace(fromPath + "&isReload=true");
+      else history.replace(fromPath + "?isReload=true");
       window.location.reload();
     } else {
       history.replace(fromPath);
@@ -76,7 +74,6 @@ const CocosGame: React.FC = () => {
   const gameExit = async (e: any) => {
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
-    console.log("GameExit LessonData ", e.detail);
     killGame(e);
     Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
       user_id: api.currentStudent!.docId,
@@ -183,7 +180,7 @@ const CocosGame: React.FC = () => {
       classId,
       schoolId
     );
-    Util.logEvent(EVENTS.LESSON_END, {
+    await Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.docId,
       assignment_id: lesson.assignment?.docId,
       chapter_id: data.chapterId,
