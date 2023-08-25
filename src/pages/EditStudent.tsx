@@ -140,7 +140,6 @@ const EditStudent = () => {
         await Util.setCurrentStudent(
           student,
           langIndex && languages ? languages[langIndex]?.code : undefined,
-          false,
           false
         );
       }
