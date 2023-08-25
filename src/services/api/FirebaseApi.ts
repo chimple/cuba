@@ -1284,6 +1284,7 @@ export class FirebaseApi implements ServiceApi {
     try {
       querySnapshot = await getDocsFromCache(query);
       if (querySnapshot.empty) throw "not found in cache";
+      getDocs(query);
     } catch (er) {
       querySnapshot = await getDocs(query);
     }
