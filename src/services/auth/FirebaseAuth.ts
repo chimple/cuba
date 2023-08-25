@@ -136,7 +136,7 @@ export class FirebaseAuth implements ServiceAuth {
     await setDoc(userRef, tempUser.toJson());
     this._currentUser = tempUser;
     this._currentUser.docId = user.uid;
-    await Util.logEvent(EVENTS.USER_PROFILE, {
+    Util.logEvent(EVENTS.USER_PROFILE, {
       user_id: tempUser.uid,
       user_name: tempUser.name,
       user_username: tempUser.username,
@@ -503,7 +503,7 @@ export class FirebaseAuth implements ServiceAuth {
         await FirebaseAnalytics.setUserId({
           userId: user.uid,
         });
-        await Util.setUserProperties(user);
+        Util.setUserProperties(user);
         return true;
       }
     }

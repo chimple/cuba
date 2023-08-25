@@ -93,7 +93,7 @@ const EditStudent = () => {
           grade ?? currentStudent.grade?.id!,
           language ?? currentStudent.language?.id!
         );
-        await Util.logEvent(EVENTS.USER_PROFILE, {
+        Util.logEvent(EVENTS.USER_PROFILE, {
           user_id: currentStudent.docId,
           user_type: currentStudent.role,
           user_name: studentName!,
@@ -132,7 +132,7 @@ const EditStudent = () => {
           eventParams
         );
 
-        await Util.logEvent(EVENTS.USER_PROFILE, eventParams);
+        Util.logEvent(EVENTS.USER_PROFILE, eventParams);
         //Setting the Current Student
         const langIndex = languages?.findIndex(
           (lang) => lang.docId === language

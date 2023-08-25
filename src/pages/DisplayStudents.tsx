@@ -42,7 +42,7 @@ const DisplayStudents: FC<{}> = () => {
       userId: currentUser.docId,
     });
 
-    await Util.setUserProperties(currentUser);
+    Util.setUserProperties(currentUser);
 
     // setStudents([students[0]]);
 

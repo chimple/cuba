@@ -180,7 +180,7 @@ const CocosGame: React.FC = () => {
       classId,
       schoolId
     );
-    await Util.logEvent(EVENTS.LESSON_END, {
+    Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.docId,
       assignment_id: lesson.assignment?.docId,
       chapter_id: data.chapterId,

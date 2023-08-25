@@ -170,7 +170,7 @@ const ProfileCard: React.FC<{
               EVENTS.USER_PROFILE,
               eventParams
             );
-            await Util.logEvent(EVENTS.USER_PROFILE, eventParams);
+            Util.logEvent(EVENTS.USER_PROFILE, eventParams);
             setIsLoading(false);
           }}
           onNoButtonClicked={async ({}) => {

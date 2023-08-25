@@ -39,7 +39,7 @@ const DeleteParentAccount: React.FC<{}> = ({}) => {
       eventParams
     );
 
-    await Util.logEvent(EVENTS.USER_PROFILE, eventParams);
+    Util.logEvent(EVENTS.USER_PROFILE, eventParams);
     setIsLoading(false);
     history.replace(PAGES.APP_LANG_SELECTION);
     if (Capacitor.isNativePlatform()) window.location.reload();
