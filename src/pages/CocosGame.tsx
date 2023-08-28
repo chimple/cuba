@@ -35,7 +35,6 @@ const CocosGame: React.FC = () => {
   const [gameResult, setGameResult] = useState<any>();
   const currentStudent = Util.getCurrentStudent();
   const CourseDetail: Course = JSON.parse(state.course);
-  let ChapterDetail: Chapter;
   const lessonDetail: Lesson = JSON.parse(state.lesson);
 
   const presentToast = async () => {
@@ -76,6 +75,16 @@ const CocosGame: React.FC = () => {
   };
 
   const gameExit = async (e: any) => {
+    let ChapterDetail: Chapter | undefined;
+    if (!!lessonDetail.cocosChapterCode) {
+      let cChap = CourseDetail.chapters.find(
+        (chap) => lessonDetail.cocosChapterCode === chap.id
+      );
+      if (cChap) {
+        ChapterDetail = cChap;
+        console.log("Current Chapter ", ChapterDetail);
+      }
+    }
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
     killGame(e);
@@ -85,7 +94,7 @@ const CocosGame: React.FC = () => {
       left_game_no: data.currentGameNumber,
       left_game_name: data.gameName,
       chapter_id: data.chapterId,
-      chapter_name: ChapterDetail.title,
+      chapter_name: ChapterDetail ? ChapterDetail.title : "",
       lesson_id: data.lessonId,
       lesson_name: lessonDetail.title,
       lesson_type: data.lessonType,
@@ -113,15 +122,6 @@ const CocosGame: React.FC = () => {
 
   async function init() {
     setIsLoading(true);
-    if (!!lessonDetail.cocosChapterCode) {
-      let cChap = CourseDetail.chapters.find(
-        (chap) => lessonDetail.cocosChapterCode === chap.id
-      );
-      if (cChap) {
-        ChapterDetail = cChap;
-        console.log("Current Chapter ", ChapterDetail);
-      }
-    }
     const lessonId: string = state.lessonId;
     const lessonIds: string[] = [];
     lessonIds.push(lessonId);
@@ -193,11 +193,21 @@ const CocosGame: React.FC = () => {
       classId,
       schoolId
     );
+    let ChapterDetail: Chapter | undefined;
+    if (!!lessonDetail.cocosChapterCode) {
+      let cChap = CourseDetail.chapters.find(
+        (chap) => lessonDetail.cocosChapterCode === chap.id
+      );
+      if (cChap) {
+        ChapterDetail = cChap;
+        console.log("Current Chapter ", ChapterDetail);
+      }
+    }
     Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.docId,
       assignment_id: lesson.assignment?.docId,
       chapter_id: data.chapterId,
-      chapter_name: ChapterDetail.title,
+      chapter_name: ChapterDetail ? ChapterDetail.title : "",
       lesson_id: data.lessonId,
       lesson_name: lesson.title,
       lesson_type: data.lessonType,
