@@ -99,6 +99,9 @@ const LessonCard: React.FC<{
           //     from: history.location.pathname,
           //   });
           // } else {
+          if (!course) {
+            return;
+          }
           const parmas = `?courseid=${lesson.cocosSubjectCode}&chapterid=${lesson.cocosChapterCode}&lessonid=${lesson.id}`;
           console.log(
             "🚀 ~ file: LessonCard.tsx:73 ~ parmas:",
@@ -109,6 +112,7 @@ const LessonCard: React.FC<{
             url: "chimple-lib/index.html" + parmas,
             lessonId: lesson.id,
             courseDocId: course?.docId ?? lesson?.assignment?.course?.id,
+            course: JSON.stringify(Course.toJson(course)),
             lesson: JSON.stringify(Lesson.toJson(lesson)),
             from: history.location.pathname + "?continue=true",
           });
