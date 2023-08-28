@@ -25,6 +25,11 @@ const DisplayStudents: FC<{}> = () => {
 
   useEffect(() => {
     getStudents();
+
+    // Clean up the loading state when the component navigate away
+    return () => {
+      setIsLoading(false);
+    };
   }, []);
   const getStudents = async () => {
     const currMode = await schoolUtil.getCurrMode();
