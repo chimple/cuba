@@ -100,9 +100,6 @@ const AppLangSelection: React.FC = () => {
             </div>
           </div>
         )}
-      <Loading isLoading={isLoading} />
-      {/* </IonInfiniteScrollContent> */}
-      {/* </IonInfiniteScroll> */}
     </IonPage>
   );
 };
