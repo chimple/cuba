@@ -492,7 +492,7 @@ export class FirebaseAuth implements ServiceAuth {
     );
     // if (!user && Capacitor.isNativePlatform()) return false;
 
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 20; i++) {
       await new Promise((res) => setTimeout(res, 200));
       const user = await this.getCurrentUser();
       console.log(

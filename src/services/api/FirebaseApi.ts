@@ -61,6 +61,7 @@ export class FirebaseApi implements ServiceApi {
   private _currentClass: Class | undefined;
   private _currentSchool: School | undefined;
   private _subjectsCache: { [key: string]: Subject } = {};
+  private _CourseCache: { [key: string]: Course } = {};
   private _classCache: { [key: string]: Class } = {};
   private _schoolCache: { [key: string]: School } = {};
   private _studentResultCache: { [key: string]: StudentProfile } = {};
@@ -780,6 +781,27 @@ export class FirebaseApi implements ServiceApi {
       subject.docId = id;
       this._subjectsCache[id] = subject;
       return subject;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:623 ~ FirebaseApi ~ getSubject ~ error:",
+        JSON.stringify(error)
+      );
+      return;
+    }
+  }
+
+  async getCourse(id: string): Promise<Course | undefined> {
+    try {
+      if (!!this._CourseCache[id]) return this._CourseCache[id];
+      const CourseDoc = await this.getDocFromOffline(
+        doc(this._db, CollectionIds.COURSE, id)
+      );
+      if (!CourseDoc.exists) return;
+      const course = CourseDoc.data() as Course;
+      if (!course) return;
+      course.docId = id;
+      this._CourseCache[id] = course;
+      return course;
     } catch (error) {
       console.log(
         "🚀 ~ file: FirebaseApi.ts:623 ~ FirebaseApi ~ getSubject ~ error:",
