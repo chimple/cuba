@@ -125,7 +125,7 @@ export class ApiHandler implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    isLoved: boolean | undefined,
+    isLoved : boolean | undefined,
     assignmentId: string | undefined,
     classId: string | undefined,
     schoolId: string | undefined
@@ -252,10 +252,6 @@ export class ApiHandler implements ServiceApi {
 
   public async getSubject(id: string): Promise<Subject | undefined> {
     return await this.s.getSubject(id);
-  }
-
-  public async getCourse(id: string): Promise<Course | undefined> {
-    return await this.s.getCourse(id);
   }
 
   public async getLeaderboardResults(

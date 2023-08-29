@@ -509,34 +509,30 @@ export class Util {
     }
   }
   public static async setUserProperties(currentUser: User) {
-    try {
-      await FirebaseAnalytics.setUserProperty({
-        name: "parent user_id",
-        value: currentUser.docId,
-      });
-      await FirebaseAnalytics.setUserProperty({
-        name: "name",
-        value: currentUser.name,
-      });
-      await FirebaseAnalytics.setUserProperty({
-        name: "age",
-        value: currentUser.age?.toLocaleString() || "",
-      });
-      await FirebaseAnalytics.setUserProperty({
-        name: "gender",
-        value: currentUser.gender?.toLocaleString() || "",
-      });
-      await FirebaseAnalytics.setUserProperty({
-        name: "user_type",
-        value: currentUser.role,
-      });
-      await FirebaseAnalytics.setUserProperty({
-        name: "username",
-        value: currentUser.username,
-      });
-    } catch (error) {
-      console.log("Set User Properties Error ", error);
-    }
+    await FirebaseAnalytics.setUserProperty({
+      name: "userId",
+      value: currentUser.docId,
+    });
+    await FirebaseAnalytics.setUserProperty({
+      name: "name",
+      value: currentUser.name,
+    });
+    await FirebaseAnalytics.setUserProperty({
+      name: "age",
+      value: currentUser.age?.toLocaleString() || "",
+    });
+    await FirebaseAnalytics.setUserProperty({
+      name: "gender",
+      value: currentUser.gender?.toLocaleString() || "",
+    });
+    await FirebaseAnalytics.setUserProperty({
+      name: "role",
+      value: currentUser.role,
+    });
+    await FirebaseAnalytics.setUserProperty({
+      name: "username",
+      value: currentUser.username,
+    });
   }
 
   public static async logCurrentPageEvents(user: User) {

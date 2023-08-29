@@ -492,8 +492,8 @@ export class FirebaseAuth implements ServiceAuth {
     );
     // if (!user && Capacitor.isNativePlatform()) return false;
 
-    for (var i = 0; i < 20; i++) {
-      await new Promise((res) => setTimeout(res, 200));
+    for (var i = 0; i < 10; i++) {
+      await new Promise((res) => setTimeout(res, 100));
       const user = await this.getCurrentUser();
       console.log(
         "🚀 ~ file: FirebaseAuth.ts:146 ~ FirebaseAuth ~ isUserLoggedIn ~ user:",
@@ -507,7 +507,7 @@ export class FirebaseAuth implements ServiceAuth {
         return true;
       }
     }
-    if (!user) return false;
+    if (!user && Capacitor.isNativePlatform()) return false;
     return false;
   }
 

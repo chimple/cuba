@@ -44,7 +44,6 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<{ grades: Grade[]; courses: Course[] }> {
     throw new Error("Method not implemented.");
   }
-
   private constructor() {}
 
   deleteAllUserData(): Promise<void> {
@@ -130,10 +129,6 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getCourse(id: string): Promise<Course | undefined> {
-    throw new Error("Method not implemented.");
-  }
-
   deleteProfile(studentId: string) {
     throw new Error("Method not implemented.");
   }
@@ -164,7 +159,7 @@ export class OneRosterApi implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    isLoved: boolean
+    isLoved:boolean,
   ): Promise<Result> {
     throw new Error("Method not implemented.");
   }
