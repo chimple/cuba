@@ -201,6 +201,13 @@ export interface ServiceApi {
   getSubject(id: string): Promise<Subject | undefined>;
 
   /**
+   * Gives Course for given a Course firebase doc Id
+   * @param {string} id - Course firebase doc id
+   * @returns {Course | undefined}`Course` or `undefined` if it could not find the Course with given `id`
+   */
+  getCourse(id: string): Promise<Course | undefined>;
+
+  /**
    * Gives StudentProfile for given a Student firebase doc Id
    * @param {string} id - Student firebase doc id
    * @param {boolean} fromCache - If true, it will try to fetch the data from the cache. If the data is not found in the cache, it will look in the database.
