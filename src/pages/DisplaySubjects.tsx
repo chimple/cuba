@@ -169,6 +169,8 @@ const DisplaySubjects: FC<{}> = () => {
             } else {
               setIsLoading(false);
             }
+          } else {
+            setIsLoading(false);
           }
 
         } else {

@@ -95,4 +95,16 @@ export default class Course extends BaseObject {
   public set thumbnail(value: string | undefined) {
     this._thumbnail = value;
   }
+  public static toJson(course: Course) {
+    return {
+      chapters: course.chapters,
+      courseCode: course.courseCode,
+      curriculum: course.curriculum,
+      grade: course.grade,
+      status: course.status,
+      subject: course.subject,
+      title: course.title,
+      thumbnail: course.thumbnail,
+    };
+  }
 }
