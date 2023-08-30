@@ -87,9 +87,12 @@ export class FirebaseApi implements ServiceApi {
     gradeDocId: string | undefined,
     languageDocId: string | undefined
   ): Promise<User> {
-    const _currentUser =
-      await ServiceConfig.getI().authHandler.getCurrentUser();
+    const _currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
+  
+    // Created a variable to check the username is defined or an empty
+    const username = _currentUser.username || '';
+  
     let courseIds: DocumentReference[] = [];
     const courses = await this.getAllCourses();
     if (!!courses && courses.length > 0) {
@@ -112,6 +115,7 @@ export class FirebaseApi implements ServiceApi {
     //     )
     //   );
     // }
+
     const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
     const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
     const languageRef = doc(
@@ -119,7 +123,7 @@ export class FirebaseApi implements ServiceApi {
       `${CollectionIds.LANGUAGE}/${languageDocId}`
     );
     const student = new User(
-      _currentUser?.username,
+      username,
       [],
       name,
       RoleType.STUDENT,
