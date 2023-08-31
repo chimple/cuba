@@ -76,7 +76,7 @@ const EditStudent = () => {
     setIsLoading(true);
     const stagesLength = Object.keys(STAGES).length / 2;
     const newStage = stage + 1;
-    let _studentName = studentName!.trim();
+    let _studentName = studentName?.trim();
     //Completed all stages
     if (stagesLength === newStage) {
       //Creating Profile for the Student
