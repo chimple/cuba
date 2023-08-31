@@ -310,7 +310,6 @@ const Login: React.FC = () => {
 
   function startResendOtpCounter() {
     !showTimer && setShowTimer(true);
- 
     return true;
   }
 
