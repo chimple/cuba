@@ -61,7 +61,10 @@ const sortValidLessonsByDate = (
       return 0;
     }
 
-    return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
+    const dateA = lessonResultA.date?.toMillis() || 0; 
+    const dateB = lessonResultB.date?.toMillis() || 0; 
+
+    return dateB - dateA;
   });
 };
 
@@ -336,18 +339,19 @@ const Home: FC = () => {
           [lessonDocId: string]: StudentLessonResult;
         }
       | undefined;
-    const res = await api
-      .getStudentResult(currentStudent.docId)
-      .then(async (res) => {
-        console.log("tempResultLessonMap = res;", JSON.stringify(res));
-        tempResultLessonMap = res?.lessons;
-        setLessonResultMap(res?.lessons);
-        if (tempResultLessonMap) {
-          console.log("tempResultLessonMap", tempResultLessonMap);
-          sortLessonResultMap = sortLessonResultByDate(tempResultLessonMap);
-          console.log("sortLessonResultMap ", sortLessonResultMap);
-        }
-      });
+
+    const res = await api.getStudentResult(currentStudent.docId);
+
+    console.log("tempResultLessonMap = res;", JSON.stringify(res));
+
+    tempResultLessonMap = res?.lessons;
+    setLessonResultMap(res?.lessons);
+
+    if (tempResultLessonMap) {
+      console.log("tempResultLessonMap", tempResultLessonMap);
+      sortLessonResultMap = sortLessonResultByDate(tempResultLessonMap);
+      console.log("sortLessonResultMap ", sortLessonResultMap);
+    }
 
     const courses: Course[] = await (currMode === MODES.SCHOOL && !!currClass
       ? api.getCoursesForClassStudent(currClass)
@@ -559,12 +563,15 @@ const Home: FC = () => {
       lessonPromisesForFavourite
     );
 
-    const validLessonsForFavourite: Lesson[] = lessonsForFavourite
-      .filter((lesson): lesson is Lesson => lesson !== undefined)
-      .filter((lesson) => {
+    const validLessonsForFavourite: Lesson[] = lessonsForFavourite.filter(
+      (lesson): lesson is Lesson => {
+        if (lesson === undefined) {
+          return false;
+        }
         const lessonResult = lessonResultMap?.[lesson.docId];
         return lessonResult?.isLoved ?? false;
-      });
+      }
+    );
 
     const latestTenFavouriteLessons = favouriteLessons.slice(0, 10);
     setValidLessonIds(allLessonIds);
