@@ -183,8 +183,8 @@ const Login: React.FC = () => {
     console.log("Testing: " + allowSubmittingOtpCounter);
     disableOtpButtonIfSameNumber && allowSubmittingOtpCounter > 0 && setTimeout(() => setAllowSubmittingOtpCounter(allowSubmittingOtpCounter - 1), 1000);
     let str = t(`Send OTP button will be enabled in x seconds`)
-    .replace(`x`, allowSubmittingOtpCounter.toString());
-  setTitle(str);
+      .replace(`x`, allowSubmittingOtpCounter.toString());
+    setTitle(str);
   }, [allowSubmittingOtpCounter]);
 
   const onPhoneNumberSubmit = async () => {
@@ -315,7 +315,7 @@ const Login: React.FC = () => {
 
   async function resendOtpHandler() {
     try {
-      if(!(counter<=0)){
+      if (!(counter <= 0)) {
         return;
       }
       setSentOtpLoading(true);
