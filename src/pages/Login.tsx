@@ -85,7 +85,7 @@ const Login: React.FC = () => {
     init();
     setIsLoading(true);
     setIsInvalidCode(verificationCodeMessageFlags);
-  
+
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
         console.log("info", JSON.stringify(info));
@@ -183,8 +183,8 @@ const Login: React.FC = () => {
     console.log("Testing: " + allowSubmittingOtpCounter);
     disableOtpButtonIfSameNumber && allowSubmittingOtpCounter > 0 && setTimeout(() => setAllowSubmittingOtpCounter(allowSubmittingOtpCounter - 1), 1000);
     let str = t(`Send OTP button will be enabled in x seconds`)
-    .replace(`x`, allowSubmittingOtpCounter.toString());
-  setTitle(str);
+      .replace(`x`, allowSubmittingOtpCounter.toString());
+    setTitle(str);
   }, [allowSubmittingOtpCounter]);
 
   const onPhoneNumberSubmit = async () => {
@@ -432,7 +432,7 @@ const Login: React.FC = () => {
                       style={{ display: "none" }}
                       className="login-error-message"
                     >
-                     {t("Please Enter 10 digit Mobile Number")}
+                      {t("Please Enter 10 digit Mobile Number")}
                     </p>
                   </div>
                   <div id="recaptcha-container" />
@@ -515,6 +515,10 @@ const Login: React.FC = () => {
                       inputValue={verificationCode.trim()}
                       onChange={(input) => {
                         if (input.target.value) {
+                          const numberRegex = /^[0-9\b]+$/;
+                          if (!numberRegex.test(input.target.value)) {
+                            return;
+                          }
                           setVerificationCode(input.target.value.trim());
                           console.log(input.target.value);
                           setIsInvalidCode({
