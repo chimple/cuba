@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Fit, Layout, useRive, useStateMachineInput } from "rive-react";
 
-export default function RiveCharacter({ style }) {
+export default function ChimpleAvatarCharacterComponent({ style }) {
   const State_Machine = "State Machine 1";
   // const inputName = "look_idle";
 

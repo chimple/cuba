@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { HiSpeakerWave } from "react-icons/hi2";
 
-export default function AudioComponenet({ style, audioSrc }) {
+export default function AudioButtonComponent({ style, audioSrc }) {
   useEffect(() => {
     audio.addEventListener("ended", () => setPlaying(false));
     return () => {

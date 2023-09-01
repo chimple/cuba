@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { HiSpeakerWave } from "react-icons/hi2";
-import AudioComponent from "./AudioComponent";
-
+import AudioComponent from "./AudioButtonComponent";
 
 export default function TextBoxWithAudioButton({ message }) {
   return (

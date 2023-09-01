@@ -48,9 +48,8 @@ import { auto } from "@popperjs/core";
 import { margin } from "@mui/system";
 import { push } from "ionicons/icons";
 import { t } from "i18next";
-import RiveCharacter from "../components/animation/RiveCharacter";
 import { App, URLOpenListenerEvent } from "@capacitor/app";
-import ChimpSuggestionPage from "../components/animation/ChimpSuggestionPage";
+import ChimpleAvatarPage from "../components/animation/ChimpleAvatarPage";
 
 const sortPlayedLessonsByDate = (
   lessons: Lesson[],
@@ -580,9 +579,31 @@ const Home: FC = () => {
         {!isLoading ? (
           <div className="space-between">
             {currentHeader === HOMEHEADERLIST.HOME ? (
+              <ChimpleAvatarPage
+                style={{
+                  marginBottom: "15vh",
+                  display: "flex",
+                  justifyContent: "space-around",
+                }}
+              ></ChimpleAvatarPage>
+            ) : // <div>
+            //   <LessonSlider
+            //     lessonData={dataCourse}
+            //     isHome={true}
+            //     course={undefined}
+            //     lessonsScoreMap={lessonResultMap || {}}
+            //     startIndex={0}
+            //     showSubjectName={true}
+            //     showChapterName={true}
+            //   />
+            // </div>
+            // <div style={{ marginTop: "2.6%" }}></div>
+            null}
+
+            {currentHeader === HOMEHEADERLIST.FAVOURITES && (
               <div>
                 <LessonSlider
-                  lessonData={dataCourse}
+                  lessonData={getLovedLessons()}
                   isHome={true}
                   course={undefined}
                   lessonsScoreMap={lessonResultMap || {}}
@@ -591,45 +612,6 @@ const Home: FC = () => {
                   showChapterName={true}
                 />
               </div>
-            ) : // <div style={{ marginTop: "2.6%" }}></div>
-            null}
-
-            {currentHeader === HOMEHEADERLIST.FAVOURITES && (
-              <ChimpSuggestionPage
-                style={{
-                  height: "50vh",
-                  width: "auto",
-                  // marginLeft: "40vw",
-                  marginBottom: "15vh",
-                  display: "flex",
-                  justifyContent: "inherit",
-                }}
-              ></ChimpSuggestionPage>
-              // <div
-              //   style={{
-              //     height: "50vh",
-              //     width: "auto",
-              //     // marginLeft: "40vw",
-              //     marginBottom: "15vh",
-              //     display: "flex",
-              //     justifyContent: "inherit",
-              //   }}
-              // >
-              //   <ChimpSuggestionPage
-              //     style={{ height: "50vh", width: "auto" }}
-              //   ></ChimpSuggestionPage>
-              //   {/* <div>
-              //     <LessonSlider
-              //       lessonData={getLovedLessons()}
-              //       isHome={true}
-              //       course={undefined}
-              //       lessonsScoreMap={lessonResultMap || {}}
-              //       startIndex={0}
-              //       showSubjectName={true}
-              //       showChapterName={true}
-              //     />
-              //   </div> */}
-              // </div>
             )}
 
             {currentHeader === HOMEHEADERLIST.HISTORY && (
@@ -711,52 +693,55 @@ const Home: FC = () => {
                 showSubjectName={currentHeader === HEADERLIST.RECOMMENDATION}
               />
             */}
-            {currentHeader !== HOMEHEADERLIST.QUIZ && (
-              <div id="home-page-bottom">
-                <AppBar className="home-page-app-bar">
-                  <Box>
-                    <Tabs
-                      value={value}
-                      onChange={handleChange}
-                      TabIndicatorProps={{ style: { display: "none" } }}
-                      sx={{
-                        "& .MuiTab-root": {
-                          color: "black",
-                          borderRadius: "5vh",
-                          padding: "0 3vw",
-                          margin: "1vh 1vh",
-                          minHeight: "37px",
-                        },
-                        "& .Mui-selected": {
-                          backgroundColor: "#FF7925",
-                          borderRadius: "8vh",
-                          color: "#FFFFFF !important",
-                          minHeight: "37px",
-                        },
-                      }}
-                    >
-                      <Tab
-                        id="home-page-sub-tab"
-                        label={t("Suggestion")}
-                        onClick={() => setCurrentHeader(HOMEHEADERLIST.HOME)}
-                      />
-                      <Tab
-                        id="home-page-sub-tab"
-                        label={t("Favourite")}
-                        onClick={() =>
-                          setCurrentHeader(HOMEHEADERLIST.FAVOURITES)
-                        }
-                      />
-                      <Tab
-                        id="home-page-sub-tab"
-                        label={t("History")}
-                        onClick={() => setCurrentHeader(HOMEHEADERLIST.HISTORY)}
-                      />
-                    </Tabs>
-                  </Box>
-                </AppBar>
-              </div>
-            )}
+            {currentHeader !== HOMEHEADERLIST.QUIZ &&
+              currentHeader !== HOMEHEADERLIST.HOME && (
+                <div id="home-page-bottom">
+                  <AppBar className="home-page-app-bar">
+                    <Box>
+                      <Tabs
+                        value={value}
+                        onChange={handleChange}
+                        TabIndicatorProps={{ style: { display: "none" } }}
+                        sx={{
+                          "& .MuiTab-root": {
+                            color: "black",
+                            borderRadius: "5vh",
+                            padding: "0 3vw",
+                            margin: "1vh 1vh",
+                            minHeight: "37px",
+                          },
+                          "& .Mui-selected": {
+                            backgroundColor: "#FF7925",
+                            borderRadius: "8vh",
+                            color: "#FFFFFF !important",
+                            minHeight: "37px",
+                          },
+                        }}
+                      >
+                        <Tab
+                          id="home-page-sub-tab"
+                          label={t("Suggestion")}
+                          onClick={() => setCurrentHeader(HOMEHEADERLIST.HOME)}
+                        />
+                        <Tab
+                          id="home-page-sub-tab"
+                          label={t("Favourite")}
+                          onClick={() =>
+                            setCurrentHeader(HOMEHEADERLIST.FAVOURITES)
+                          }
+                        />
+                        <Tab
+                          id="home-page-sub-tab"
+                          label={t("History")}
+                          onClick={() =>
+                            setCurrentHeader(HOMEHEADERLIST.HISTORY)
+                          }
+                        />
+                      </Tabs>
+                    </Box>
+                  </AppBar>
+                </div>
+              )}
           </div>
         ) : null}
         <Loading isLoading={isLoading} />
