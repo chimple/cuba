@@ -13,12 +13,14 @@ import { Util } from "../utility/util";
 import Lesson from "../models/lesson";
 import {
   ASSIGNMENT_COMPLETED_IDS,
+  Chapter,
   CocosLessonData,
 } from "../common/courseConstants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import ScoreCard from "../components/parent/ScoreCard";
 import { t } from "i18next";
 import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
+import Course from "../models/course";
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -32,6 +34,7 @@ const CocosGame: React.FC = () => {
   // let gameResult : any;
   const [gameResult, setGameResult] = useState<any>();
   const currentStudent = Util.getCurrentStudent();
+  const CourseDetail: Course = JSON.parse(state.course);
   const lessonDetail: Lesson = JSON.parse(state.lesson);
 
   const presentToast = async () => {
@@ -60,17 +63,30 @@ const CocosGame: React.FC = () => {
 
   const push = () => {
     const urlParams = new URLSearchParams(window.location.search);
-    history.replace(state.from ?? PAGES.HOME);
+    const fromPath: string = state?.from ?? PAGES.HOME;
     if (!!urlParams.get("isReload")) {
+      if (fromPath.includes("?")) history.replace(fromPath + "&isReload=true");
+      else history.replace(fromPath + "?isReload=true");
       window.location.reload();
+    } else {
+      history.replace(fromPath);
     }
     setIsLoading(false);
   };
 
   const gameExit = async (e: any) => {
+    let ChapterDetail: Chapter | undefined;
+    if (!!lessonDetail.cocosChapterCode) {
+      let cChap = CourseDetail.chapters.find(
+        (chap) => lessonDetail.cocosChapterCode === chap.id
+      );
+      if (cChap) {
+        ChapterDetail = cChap;
+        console.log("Current Chapter ", ChapterDetail);
+      }
+    }
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
-    console.log("GameExit LessonData ", e.detail);
     killGame(e);
     Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
       user_id: api.currentStudent!.docId,
@@ -78,7 +94,7 @@ const CocosGame: React.FC = () => {
       left_game_no: data.currentGameNumber,
       left_game_name: data.gameName,
       chapter_id: data.chapterId,
-      chapter_name: lessonDetail.cocosChapterCode,
+      chapter_name: ChapterDetail ? ChapterDetail.title : "",
       lesson_id: data.lessonId,
       lesson_name: lessonDetail.title,
       lesson_type: data.lessonType,
@@ -87,7 +103,7 @@ const CocosGame: React.FC = () => {
       ml_class_id: data.mlClassId,
       ml_student_id: data.mlStudentId,
       course_id: data.courseId,
-      course_name: data.courseName,
+      course_name: CourseDetail.title,
       time_spent: data.timeSpent,
       total_moves: data.totalMoves,
       total_games: data.totalGames,
@@ -177,11 +193,21 @@ const CocosGame: React.FC = () => {
       classId,
       schoolId
     );
+    let ChapterDetail: Chapter | undefined;
+    if (!!lessonDetail.cocosChapterCode) {
+      let cChap = CourseDetail.chapters.find(
+        (chap) => lessonDetail.cocosChapterCode === chap.id
+      );
+      if (cChap) {
+        ChapterDetail = cChap;
+        console.log("Current Chapter ", ChapterDetail);
+      }
+    }
     Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.docId,
       assignment_id: lesson.assignment?.docId,
       chapter_id: data.chapterId,
-      chapter_name: lesson.cocosChapterCode,
+      chapter_name: ChapterDetail ? ChapterDetail.title : "",
       lesson_id: data.lessonId,
       lesson_name: lesson.title,
       lesson_type: data.lessonType,
@@ -190,7 +216,7 @@ const CocosGame: React.FC = () => {
       ml_class_id: data.mlClassId,
       ml_student_id: data.mlStudentId,
       course_id: data.courseId,
-      course_name: data.courseName,
+      course_name: CourseDetail.title,
       time_spent: data.timeSpent,
       total_moves: data.totalMoves,
       total_games: data.totalGames,

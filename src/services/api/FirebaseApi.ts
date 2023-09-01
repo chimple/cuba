@@ -19,6 +19,7 @@ import {
   getDocsFromCache,
   QuerySnapshot,
   Query,
+  setDoc,
 } from "firebase/firestore";
 import {
   LeaderboardInfo,
@@ -60,6 +61,7 @@ export class FirebaseApi implements ServiceApi {
   private _currentClass: Class | undefined;
   private _currentSchool: School | undefined;
   private _subjectsCache: { [key: string]: Subject } = {};
+  private _CourseCache: { [key: string]: Course } = {};
   private _classCache: { [key: string]: Class } = {};
   private _schoolCache: { [key: string]: School } = {};
   private _studentResultCache: { [key: string]: StudentProfile } = {};
@@ -342,11 +344,18 @@ export class FirebaseApi implements ServiceApi {
   };
 
   async getLanguageWithId(id: string): Promise<Language | undefined> {
-    const result = await getDoc(
-      doc(this._db, `${CollectionIds.LANGUAGE}/${id}`)
-    );
-    if (!result.data()) return;
-    return result.data() as Language;
+    try {
+      const result = await getDoc(
+        doc(this._db, `${CollectionIds.LANGUAGE}/${id}`)
+      );
+      if (!result.data()) return;
+      return result.data() as Language;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:360 ~ FirebaseApi ~ getLanguageWithId ~ error:",
+        error
+      );
+    }
   }
   async sortSubject(subjects) {
     subjects.sort(
@@ -412,18 +421,26 @@ export class FirebaseApi implements ServiceApi {
 
   async getCoursesForClassStudent(currClass: Class): Promise<Course[]> {
     const subjects: Course[] = [];
-    if (!currClass?.courses || currClass.courses.length < 1) return subjects;
-    const courseDocs = await Promise.all(
-      currClass.courses.map((course) => getDoc(doc(this._db, course)))
-    );
-    courseDocs.forEach((courseDoc) => {
-      if (courseDoc && courseDoc.data) {
-        const course = courseDoc.data() as Course;
-        course.docId = courseDoc.id;
-        subjects.push(course);
-      }
-    });
-    return this.sortSubject(subjects);
+    try {
+      if (!currClass?.courses || currClass.courses.length < 1) return subjects;
+      const courseDocs = await Promise.all(
+        currClass.courses.map((course) => getDoc(doc(this._db, course)))
+      );
+      courseDocs.forEach((courseDoc) => {
+        if (courseDoc && courseDoc.data) {
+          const course = courseDoc.data() as Course;
+          course.docId = courseDoc.id;
+          subjects.push(course);
+        }
+      });
+      return this.sortSubject(subjects);
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:444 ~ FirebaseApi ~ getCoursesForClassStudent ~ error:",
+        error
+      );
+      return [];
+    }
   }
 
   async getLesson(id: string): Promise<Lesson | undefined> {
@@ -648,14 +665,12 @@ export class FirebaseApi implements ServiceApi {
       null!,
       isLoved
     );
-    const resultDoc = await addDoc(
-      collection(this._db, CollectionIds.RESULT),
-      result.toJson()
-    );
-    console.log(
-      "🚀 ~ file: FirebaseApi.ts:330 ~ FirebaseApi ~ resultDoc:",
-      resultDoc
-    );
+    const resultDoc = doc(collection(this._db, CollectionIds.RESULT));
+    if (navigator.onLine) {
+      await setDoc(resultDoc, result.toJson());
+    } else {
+      setDoc(resultDoc, result.toJson());
+    }
     result.docId = resultDoc.id;
     let playedResult: StudentLessonResult = {
       date: result.updatedAt,
@@ -766,6 +781,27 @@ export class FirebaseApi implements ServiceApi {
       subject.docId = id;
       this._subjectsCache[id] = subject;
       return subject;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:623 ~ FirebaseApi ~ getSubject ~ error:",
+        JSON.stringify(error)
+      );
+      return;
+    }
+  }
+
+  async getCourse(id: string): Promise<Course | undefined> {
+    try {
+      if (!!this._CourseCache[id]) return this._CourseCache[id];
+      const CourseDoc = await this.getDocFromOffline(
+        doc(this._db, CollectionIds.COURSE, id)
+      );
+      if (!CourseDoc.exists) return;
+      const course = CourseDoc.data() as Course;
+      if (!course) return;
+      course.docId = id;
+      this._CourseCache[id] = course;
+      return course;
     } catch (error) {
       console.log(
         "🚀 ~ file: FirebaseApi.ts:623 ~ FirebaseApi ~ getSubject ~ error:",
@@ -1270,6 +1306,7 @@ export class FirebaseApi implements ServiceApi {
     try {
       querySnapshot = await getDocsFromCache(query);
       if (querySnapshot.empty) throw "not found in cache";
+      getDocs(query);
     } catch (er) {
       querySnapshot = await getDocs(query);
     }

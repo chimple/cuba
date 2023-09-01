@@ -39,8 +39,10 @@ const DisplayStudents: FC<{}> = () => {
     }
 
     await FirebaseAnalytics.setUserId({
-      userId: currentUser?.docId,
+      userId: currentUser.docId,
     });
+
+    Util.setUserProperties(currentUser);
 
     // setStudents([students[0]]);
 

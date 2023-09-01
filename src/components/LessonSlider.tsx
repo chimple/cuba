@@ -2,7 +2,7 @@ import "./LessonSlider.css";
 import "./LessonCard.css";
 import LessonCard from "./LessonCard";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Lesson from "../models/lesson";
 import Course from "../models/course";
 import { StudentLessonResult } from "../common/courseConstants";
@@ -14,6 +14,8 @@ const LessonSlider: React.FC<{
   lessonsScoreMap: { [lessonDocId: string]: StudentLessonResult };
   startIndex: number;
   showSubjectName: boolean;
+  onEndReached? : () => void;
+  onMoved? : (splide: any) => any;
 }> = ({
   lessonData,
   course,
@@ -21,25 +23,43 @@ const LessonSlider: React.FC<{
   lessonsScoreMap,
   startIndex,
   showSubjectName = false,
+  onEndReached,
+  onMoved,
 }) => {
-    const [lessonSwiperRef, setLessonSwiperRef] = useState<any>();
+  const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
+  const [loadedLessons, setLoadedLessons] = useState<Lesson[]>([]);
     let width: string;
     let height: string;
     width = "45.5vh";
     height = "35vh";
+    const lessonSwiperRef = useRef<any>(null);
     useEffect(() => {
-      // console.log("lessonsScoreMap", lessonsScoreMap);
-      lessonSwiperRef?.go(0);
-      setTimeout(() => {
-        if (startIndex) lessonSwiperRef?.go(startIndex);
-      }, 100);
-    });
+      if (lessonSwiperRef.current) {
+        lessonSwiperRef.current.go(startIndex);
+      }
+    }, [startIndex]);
+
+    const handleMoved = (splide) => {
+      const newIndex = splide.index;
+      setCurrentSlideIndex(newIndex);
+
+      if (newIndex >= lessonData.length - 1) {
+        const nextIndex = loadedLessons.length;
+        const nextTenLessons = lessonData.slice(nextIndex, nextIndex + 10);
+        setLoadedLessons(nextTenLessons);
+
+        if (onEndReached) {
+          onEndReached();
+        }
+      }
+    };
     // console.log("REFERENCE", startIndex);
     return isHome ? (
       <div className="Lesson-slider-content">
         <Splide
-          ref={setLessonSwiperRef}
+          ref={lessonSwiperRef}
           hasTrack={true}
+          onMoved={handleMoved}
           options={{
             arrows: false,
             wheel: true,
@@ -87,8 +107,9 @@ const LessonSlider: React.FC<{
     ) : (
       <div className="Lesson-slider-content">
         <Splide
-          ref={setLessonSwiperRef}
+          ref={lessonSwiperRef}
           hasTrack={true}
+          onMoved={handleMoved}
           options={{
             arrows: false,
             wheel: true,
@@ -111,7 +132,7 @@ const LessonSlider: React.FC<{
           {lessonData.map((m: Lesson, i: number) => {
             if (!m) return;
             const isPlayed =
-              !!lessonsScoreMap[m.docId] && lessonsScoreMap[m.docId]?.score! > 0;
+              !!lessonsScoreMap[m.docId]  && lessonsScoreMap[m.docId]?.score! > 0;
             return (
               <SplideSlide className="slide" key={i}>
                 <LessonCard

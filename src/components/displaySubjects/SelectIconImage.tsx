@@ -19,6 +19,7 @@ const SelectIconImage: FC<{
       {loadIcon === LoadIcon.Local ? (
         <img
           src={localSrc}
+          loading="lazy"
           alt=""
           onError={() => {
             setLoadIcon(LoadIcon.Web);
