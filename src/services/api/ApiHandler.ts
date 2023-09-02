@@ -20,7 +20,7 @@ export class ApiHandler implements ServiceApi {
 
   private s: ServiceApi;
 
-  private constructor() {}
+  private constructor() { }
   public async getSchoolsForUser(user: User): Promise<school[]> {
     return await this.s.getSchoolsForUser(user);
   }
@@ -125,7 +125,7 @@ export class ApiHandler implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    isLoved : boolean | undefined,
+    isLoved: boolean | undefined,
     assignmentId: string | undefined,
     classId: string | undefined,
     schoolId: string | undefined
@@ -152,7 +152,7 @@ export class ApiHandler implements ServiceApi {
   public async getCoursesForClassStudent(currClass: Class): Promise<Course[]> {
     return await this.s.getCoursesForClassStudent(currClass);
   }
-  public async getLesson(id: string, chapter : Chapter | undefined = undefined, loadChapterTitle : boolean = false): Promise<Lesson | undefined> {
+  public async getLesson(id: string, chapter: Chapter | undefined = undefined, loadChapterTitle: boolean = false): Promise<Lesson | undefined> {
     return await this.s.getLesson(id, chapter, loadChapterTitle);
   }
 
@@ -188,6 +188,9 @@ export class ApiHandler implements ServiceApi {
 
   updateMusicFlag(user: User, value: boolean) {
     return this.s.updateMusicFlag(user, value);
+  }
+  updateTcAccept(user: User, value: boolean) {
+    return this.s.updateTcAccept(user, value);
   }
   public get currentStudent(): User | undefined {
     return this.s.currentStudent;

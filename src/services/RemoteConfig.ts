@@ -1,7 +1,7 @@
 import { FirebaseRemoteConfig } from "@capacitor-firebase/remote-config";
 
 export class RemoteConfig {
-  private constructor() {}
+  private constructor() { }
   public static async getString(key: REMOTE_CONFIG_KEYS): Promise<string> {
     try {
       const { value } = await FirebaseRemoteConfig.getString({
@@ -68,6 +68,7 @@ export class RemoteConfig {
 export enum REMOTE_CONFIG_KEYS {
   CAN_HOT_UPDATE = "can_hot_update",
   BUNDLE_ZIP_URLS = "bundle_zip_urls",
+  TERMS_AND_CONDITIONS_URL = "termsAndConditionsUrl",
 }
 
 export const REMOTE_CONFIG_DEFAULTS: { [key: string]: any } = {
@@ -76,5 +77,8 @@ export const REMOTE_CONFIG_DEFAULTS: { [key: string]: any } = {
     "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/",
     "https://cuba-stage-zip-bundle.web.app/",
     "https://raw.githubusercontent.com/chimple/chimple-zips/main/",
+  ],
+  [REMOTE_CONFIG_KEYS.TERMS_AND_CONDITIONS_URL]: [
+    "https://www.chimple.org/privacy-policy"
   ],
 };
