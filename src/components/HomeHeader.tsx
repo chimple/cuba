@@ -10,7 +10,7 @@ import {
 } from "../common/constants";
 import "./HomeHeader.css";
 import HeaderIcon from "./HeaderIcon";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Util } from "../utility/util";
 import User from "../models/user";
@@ -29,6 +29,7 @@ const HomeHeader: React.FC<{
 
   const history = useHistory();
   const [student, setStudent] = useState<User>();
+  const [studentMode, setStudentMode] = useState<string | undefined>();
   async function init() {
     const student = await Util.getCurrentStudent();
     if (!student) {
@@ -36,6 +37,7 @@ const HomeHeader: React.FC<{
       return;
     }
     const currMode = await schoolUtil.getCurrMode();
+    setStudentMode(currMode);
     HEADER_ICON_CONFIGS.forEach((element) => {
       // console.log("elements", element);
 
@@ -103,7 +105,7 @@ const HomeHeader: React.FC<{
       <div className="home-header-outer-icon">
         <HeaderIcon
           headerName={student?.name ?? "Profile"}
-          iconSrc={student?.image || ("assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png")}
+          iconSrc={(studentMode === MODES.SCHOOL && student?.image) || ("assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png")}
           currentHeader={currentHeader}
           headerList={HOMEHEADERLIST.PROFILE}
           pendingAssignmentCount={0}

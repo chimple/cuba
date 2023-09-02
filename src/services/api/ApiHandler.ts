@@ -257,6 +257,10 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getSubject(id);
   }
 
+  public async getCourse(id: string): Promise<Course | undefined> {
+    return await this.s.getCourse(id);
+  }
+
   public async getLeaderboardResults(
     sectionId: string,
     isWeeklyData: boolean

@@ -62,6 +62,7 @@ export class FirebaseApi implements ServiceApi {
   private _currentClass: Class | undefined;
   private _currentSchool: School | undefined;
   private _subjectsCache: { [key: string]: Subject } = {};
+  private _CourseCache: { [key: string]: Course } = {};
   private _classCache: { [key: string]: Class } = {};
   private _schoolCache: { [key: string]: School } = {};
   private _studentResultCache: { [key: string]: StudentProfile } = {};
@@ -87,9 +88,12 @@ export class FirebaseApi implements ServiceApi {
     gradeDocId: string | undefined,
     languageDocId: string | undefined
   ): Promise<User> {
-    const _currentUser =
-      await ServiceConfig.getI().authHandler.getCurrentUser();
+    const _currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
+  
+    // Created a variable to check the username is defined or an empty
+    const username = _currentUser.username || '';
+  
     let courseIds: DocumentReference[] = [];
     const courses = await this.getAllCourses();
     if (!!courses && courses.length > 0) {
@@ -112,6 +116,7 @@ export class FirebaseApi implements ServiceApi {
     //     )
     //   );
     // }
+
     const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
     const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
     const languageRef = doc(
@@ -119,7 +124,7 @@ export class FirebaseApi implements ServiceApi {
       `${CollectionIds.LANGUAGE}/${languageDocId}`
     );
     const student = new User(
-      _currentUser?.username,
+      username,
       [],
       name,
       RoleType.STUDENT,
@@ -819,6 +824,27 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
+  async getCourse(id: string): Promise<Course | undefined> {
+    try {
+      if (!!this._CourseCache[id]) return this._CourseCache[id];
+      const CourseDoc = await this.getDocFromOffline(
+        doc(this._db, CollectionIds.COURSE, id)
+      );
+      if (!CourseDoc.exists) return;
+      const course = CourseDoc.data() as Course;
+      if (!course) return;
+      course.docId = id;
+      this._CourseCache[id] = course;
+      return course;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:623 ~ FirebaseApi ~ getSubject ~ error:",
+        JSON.stringify(error)
+      );
+      return;
+    }
+  }
+
   async getDataByInviteCode(inviteCode: number): Promise<any> {
     const functions = getFunctions();
     const generateInviteCode = httpsCallable(functions, "GetDataByInviteCode");
@@ -855,6 +881,8 @@ export class FirebaseApi implements ServiceApi {
       console.log("studentProfile", studentProfile);
       if (studentProfile === undefined) return;
       studentProfile.docId = studentId;
+      if (!studentProfile.lessons)
+        studentProfile.lessons = {};
       this._studentResultCache[studentId] = studentProfile;
       return studentProfile;
     } catch (error) {
