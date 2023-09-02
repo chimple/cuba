@@ -19,6 +19,7 @@ export default class User extends BaseObject {
   private _soundFlag: boolean | undefined;
   private _musicFlag: boolean | undefined;
   static avatar: string;
+  private _tcAccept:boolean| undefined;
 
   constructor(
     username: string,
@@ -38,7 +39,9 @@ export default class User extends BaseObject {
     createdAt: Timestamp,
     docId: string,
     soundFlag: boolean = true,
-    musicFlag: boolean = true
+    musicFlag: boolean = true,
+    tcAccept: boolean = false
+
   ) {
     super(updatedAt, createdAt, docId);
     this._username = username;
@@ -56,6 +59,7 @@ export default class User extends BaseObject {
     this._avatar = avatar;
     this._soundFlag = soundFlag;
     this._musicFlag = musicFlag;
+    this._tcAccept=tcAccept;
   }
   public get username(): string {
     return this._username;
@@ -149,6 +153,12 @@ export default class User extends BaseObject {
   public set avatar(value: string | undefined) {
     this._avatar = value;
   }
+  public get tcAccept(): boolean | undefined {
+    return this._tcAccept;
+  }
+  public set tcAccept(value: boolean | undefined) {
+    this._tcAccept = value;
+  }
 
   public toJson() {
     return {
@@ -167,6 +177,7 @@ export default class User extends BaseObject {
       uid: this.uid,
       username: this.username,
       users: this.users,
+      tcAccept:this.tcAccept,
       // docId: this.docId,
     };
   }
