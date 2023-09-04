@@ -107,7 +107,7 @@ const Leaderboard: React.FC = () => {
     console.log(
       "leaderboardDataInfo.weekly.length <= 0 leaderboardDataInfo.allTime.length <= 0",
       leaderboardDataInfo.weekly.length <= 0 ||
-      leaderboardDataInfo.allTime.length <= 0,
+        leaderboardDataInfo.allTime.length <= 0,
       isWeeklyFlag
         ? "leaderboardDataInfo.weekly"
         : "leaderboardDataInfo.allTime"
@@ -150,7 +150,7 @@ const Leaderboard: React.FC = () => {
         element.name,
         element.lessonsPlayed,
         element.score,
-        computeMinutes + "min" + " " + result + " " + "sec",
+        computeMinutes + t("min") + " " + result + " " + t("sec"),
       ]);
 
       if (currentStudent.docId == element.userId) {
@@ -318,15 +318,15 @@ const Leaderboard: React.FC = () => {
                       ? "rgb(200 200 200)"
                       : Number(currentUserDataContent[0][1]) ===
                         headerRowIndicator
-                        ? "#FF7925"
-                        : "",
+                      ? "#FF7925"
+                      : "",
                   padding:
                     headerRowIndicator === 0
                       ? "1vh 2vh"
                       : Number(currentUserDataContent[0][1]) ===
                         headerRowIndicator
-                        ? "0vh 2vh"
-                        : "1vh 2vh ",
+                      ? "0vh 2vh"
+                      : "1vh 2vh ",
                   position: "sticky",
                   zIndex: headerRowIndicator === 0 ? "3" : "0",
                   top: "0px",
@@ -431,7 +431,6 @@ const Leaderboard: React.FC = () => {
                   boxShadow: "0px 0px 0px 0px !important",
                 }}
               >
-
                 <Tabs
                   value={tabIndex}
                   onChange={handleChange}
@@ -446,7 +445,7 @@ const Leaderboard: React.FC = () => {
                     // "& .MuiAppBar-root": { backgroundColor: "#FF7925 !important" },
                     "& .MuiTabs-indicator": {
                       backgroundColor: "#000000 !important",
-                      bottom: "15% !important"
+                      bottom: "15% !important",
                     },
                     "& .MuiTab-root": { color: "#000000 !important" },
                     "& .Mui-selected": { color: "#000000 !important" },
@@ -456,10 +455,10 @@ const Leaderboard: React.FC = () => {
                     value={LEADERBOARDHEADERLIST.LEADERBOARD}
                     label={t(LEADERBOARDHEADERLIST.LEADERBOARD)}
                     id="parent-page-tab-bar"
-                  // sx={{
-                  //   // fontSize:"5vh"
-                  //   marginRight: "5vw",
-                  // }}
+                    // sx={{
+                    //   // fontSize:"5vh"
+                    //   marginRight: "5vw",
+                    // }}
                   />
                   <Tab
                     id="parent-page-tab-bar"
@@ -477,7 +476,9 @@ const Leaderboard: React.FC = () => {
                   localStorage.removeItem(CURRENT_STUDENT);
                   const user = await auth.getCurrentUser();
                   if (!!user && !!user.language?.id) {
-                    const langDoc = await api.getLanguageWithId(user.language.id);
+                    const langDoc = await api.getLanguageWithId(
+                      user.language.id
+                    );
                     if (langDoc) {
                       const tempLangCode = langDoc.code ?? LANG.ENGLISH;
                       await i18n.changeLanguage(tempLangCode);

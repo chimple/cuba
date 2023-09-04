@@ -24,7 +24,7 @@ const HeaderIcon: React.FC<{
         <p className="home-header-indicator">&nbsp;</p>
       )}
       <IconButton
-        name={t(headerName)}
+        name={headerName}
         iconSrc={iconSrc}
         onClick={() => {
           if (currentHeader != headerList) {
