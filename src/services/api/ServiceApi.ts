@@ -90,6 +90,7 @@ export interface ServiceApi {
   updateSoundFlag(user: User, value: boolean);
   updateMusicFlag(user: User, value: boolean);
   updateLanguage(user: User, value: string);
+  updateTcAccept(user: User, value: boolean);
 
   /**
    * Gives Language for given a language firebase doc Id
@@ -116,7 +117,7 @@ export interface ServiceApi {
    * @param {string} id - Lesson firebase doc id
    * @returns {Lesson | undefined}`Lesson` or `undefined` if it could not find the lesson with given `id`
    */
-  getLesson(id: string, chapter : Chapter | undefined, loadChapterTitle : boolean): Promise<Lesson | undefined>;
+  getLesson(id: string, chapter: Chapter | undefined, loadChapterTitle: boolean): Promise<Lesson | undefined>;
 
   /**
    * Gives Array of `Lesson` objects for a given `chapter`

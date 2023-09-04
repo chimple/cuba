@@ -1,0 +1,24 @@
+.tc-agree-button {
+    width: 20vw;
+    height: 10vh;
+    cursor: pointer;
+    background-color: #83c327;
+    border-radius: 5vh;
+}
+
+.agree-text {
+    line-height: 4vh;
+    color: white;
+    padding: 3vh 0;
+    font-size: var(--text-size);
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    align-items: center;
+}
+
+.button-content {
+    display: flex;
+    align-items: center;
+    margin: 4vh 40vw;
+}
