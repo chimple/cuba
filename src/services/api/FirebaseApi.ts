@@ -100,12 +100,8 @@ export class FirebaseApi implements ServiceApi {
       // courses.forEach((course) => {
       //   courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
       // });
-      if (
-        gradeDocId === belowGrade1 ||
-        gradeDocId === grade1
-      ) {
+      if (gradeDocId === belowGrade1 || gradeDocId === grade1) {
         courses.forEach((course) => {
-
           //here it repeat all courses but adding only g1 and puzzle
           if (
             course.grade.id === grade1 ||
@@ -784,6 +780,41 @@ export class FirebaseApi implements ServiceApi {
     gradeDocId: string,
     languageDocId: string
   ): Promise<User> {
+    if (!student.courses && gradeDocId) {
+      let courseIds: DocumentReference[] = [];
+      const courses = await this.getAllCourses();
+
+      if (!!courses && courses.length > 0) {
+        if (gradeDocId === belowGrade1 || gradeDocId === grade1) {
+          courses.forEach((course) => {
+            if (
+              course.grade.id === grade1 ||
+              course.courseCode === COURSES.PUZZLE
+            ) {
+              courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+            }
+          });
+        } else if (
+          gradeDocId === grade2 ||
+          gradeDocId === grade3 ||
+          gradeDocId === aboveGrade3
+        ) {
+          courses.forEach((course) => {
+            if (
+              course.grade.id === grade2 ||
+              course.courseCode === COURSES.PUZZLE
+            ) {
+              courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+            }
+          });
+        }
+      } else {
+        courseIds = DEFAULT_COURSE_IDS.map((id) =>
+          doc(this._db, `${CollectionIds.COURSE}/${id}`)
+        );
+      }
+    }
+
     const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
     const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
     const languageRef = doc(
