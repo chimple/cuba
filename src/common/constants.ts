@@ -40,6 +40,12 @@ export enum LEADERBOARDHEADERLIST {
   EVENTS = "EVENTS",
 }
 
+export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu"
+export const grade1 = "R5sDh8LKKBx7D7o1MMl0"
+export const grade2 = "al0OqObeTBK3OFWSyDOg"
+export const grade3 = "i1paELqh4uwET2OQQl1E"
+export const aboveGrade3 = "rhuiXCmMzmJM1dkN8UNu"
+
 export const parentHeaderIconList: HeaderIconConfig[] = [
   {
     displayName: "User",
