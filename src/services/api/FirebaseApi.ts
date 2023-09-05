@@ -30,7 +30,13 @@ import {
   COURSES,
   DEFAULT_COURSE_IDS,
   MODES,
+  aboveGrade3,
+  belowGrade1,
+  courseDigitalSkills,
   courseSortIndex,
+  grade1,
+  grade2,
+  grade3,
 } from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
 import User from "../../models/user";
@@ -92,9 +98,38 @@ export class FirebaseApi implements ServiceApi {
     let courseIds: DocumentReference[] = [];
     const courses = await this.getAllCourses();
     if (!!courses && courses.length > 0) {
-      courses.forEach((course) => {
-        courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
-      });
+      // courses.forEach((course) => {
+      //   courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+      // });
+      if (
+        gradeDocId === belowGrade1 ||
+        gradeDocId === grade1
+      ) {
+        courses.forEach((course) => {
+
+          //here it repeat all courses but adding only g1 and puzzle
+          if (
+            course.grade.id === grade1 ||
+            course.courseCode === courseDigitalSkills
+          ) {
+            courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+          }
+        });
+      } else if (
+        gradeDocId === grade2 ||
+        gradeDocId === grade3 ||
+        gradeDocId === aboveGrade3
+      ) {
+        courses.forEach((course) => {
+          //here it repeat all courses but adding only g2 and puzzle
+          if (
+            course.grade.id === grade2 ||
+            course.courseCode === courseDigitalSkills
+          ) {
+            courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+          }
+        });
+      }
     } else {
       courseIds = DEFAULT_COURSE_IDS.map((id) =>
         doc(this._db, `${CollectionIds.COURSE}/${id}`)

@@ -112,6 +112,7 @@ const DisplaySubjects: FC<{}> = () => {
         }
       }
 
+      
       localStorageData.lessonResultMap = localData.lessonResultMap;
       localStorageData.stage = STAGES.LESSONS;
       addDataToLocalStorage();
@@ -326,7 +327,7 @@ const DisplaySubjects: FC<{}> = () => {
             onValueChange={(evt) => {
               {
                 const tempGrade = gradesMap.grades.find(
-                  (grade) => grade.docId === evt.detail.value
+                  (grade) => grade.docId === evt
                 );
                 onGradeChanges(tempGrade ?? currentGrade);
               }
