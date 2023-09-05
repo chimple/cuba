@@ -43,10 +43,10 @@ const DisplaySubjects: FC<{}> = () => {
   const [currentChapter, setCurrentChapter] = useState<Chapter>();
   const [currentClass, setCurrentClass] = useState<Class>();
   const [lessons, setLessons] = useState<Lesson[]>();
-  const [gradesMap, setGradesMap] = useState<{
-    grades: Grade[];
-    courses: Course[];
-  }>();
+  // const [gradesMap, setGradesMap] = useState<{
+  //   grades: Grade[];
+  //   courses: Course[];
+  // }>();
   const [localGradeMap, setLocalGradeMap] = useState<{
     grades: Grade[];
     courses: Course[];
@@ -283,7 +283,7 @@ const DisplaySubjects: FC<{}> = () => {
     localData.currentCourse = course;
     localStorageData.currentCourseId = course.docId;
     setCurrentGrade(currentGrade ?? gradesMap.grades[0]);
-    setGradesMap(gradesMap);
+    setLocalGradeMap(gradesMap);
     setCurrentCourse(course);
     localStorageData.stage = STAGES.CHAPTERS;
     addDataToLocalStorage();
@@ -291,7 +291,7 @@ const DisplaySubjects: FC<{}> = () => {
   };
 
   const onGradeChanges = async (grade: Grade) => {
-    const currentCourse = gradesMap?.courses.find(
+    const currentCourse = localGradeMap?.courses.find(
       (course) => course.grade.id === grade.docId
     );
     localData.currentGrade = grade;
@@ -324,17 +324,17 @@ const DisplaySubjects: FC<{}> = () => {
               ? currentCourse?.title
               : currentChapter?.title}
         </div>
-        {gradesMap && currentGrade && stage === STAGES.CHAPTERS && (
+        {localGradeMap && currentGrade && stage === STAGES.CHAPTERS && (
           <DropDown
             currentValue={currentGrade?.docId}
-            optionList={gradesMap.grades.map((grade) => ({
+            optionList={localGradeMap.grades.map((grade) => ({
               displayName: grade.title,
               id: grade.docId,
             }))}
             placeholder=""
             onValueChange={(evt) => {
               {
-                const tempGrade = gradesMap.grades.find(
+                const tempGrade = localGradeMap.grades.find(
                   (grade) => grade.docId === evt
                 );
                 onGradeChanges(tempGrade ?? currentGrade);
@@ -362,7 +362,7 @@ const DisplaySubjects: FC<{}> = () => {
               chapters={currentCourse.chapters}
               onChapterChange={onChapterChange}
               currentGrade={currentGrade}
-              grades={!!gradesMap ? gradesMap.grades : localGradeMap.grades}
+              grades={!!localGradeMap ? localGradeMap.grades : localGradeMap}
               onGradeChange={onGradeChanges}
               course={currentCourse}
             />
