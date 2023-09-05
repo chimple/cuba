@@ -69,7 +69,7 @@ export class FirebaseApi implements ServiceApi {
   private _schoolsCache: { [userId: string]: School[] } = {};
   private _currentMode: MODES;
   private _allCourses: Course[];
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): FirebaseApi {
     if (!FirebaseApi.i) {
@@ -88,18 +88,60 @@ export class FirebaseApi implements ServiceApi {
     gradeDocId: string | undefined,
     languageDocId: string | undefined
   ): Promise<User> {
-    const _currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
-  
+    let count = true;
+
     // Created a variable to check the username is defined or an empty
-    const username = _currentUser.username || '';
-  
+    const username = _currentUser.username || "";
+
     let courseIds: DocumentReference[] = [];
+    console.log("-----------------------line 98 grade doc id", gradeDocId);
     const courses = await this.getAllCourses();
+    // if (!!courses && courses.length > 0 ) {
+    //   courses.forEach((course) => {
+    //     if(gradeDocId === course.grade.id || course.courseCode === "puzzle" ){
+    //       courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+
+    //     }
+    //   });
+    // } else {
+    //   courseIds = DEFAULT_COURSE_IDS.map((id) =>
+    //     doc(this._db, `${CollectionIds.COURSE}/${id}`)
+    //   );
+    // }
+
     if (!!courses && courses.length > 0) {
-      courses.forEach((course) => {
-        courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
-      });
+      if (
+        gradeDocId === "R5sDh8LKKBx7D7o1MMl0" ||
+        gradeDocId === "NIAdGIaaRXi8BOl87MEu"
+      ) {
+        courses.forEach((course) => {
+
+          //here it repeat all courses but adding only g1 and puzzle
+          if (
+            course.grade.id === "R5sDh8LKKBx7D7o1MMl0" ||
+            course.courseCode === "puzzle"
+          ) {
+            courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+          }
+        });
+      } else if (
+        gradeDocId === "al0OqObeTBK3OFWSyDOg" ||
+        gradeDocId === "i1paELqh4uwET2OQQl1E" ||
+        gradeDocId === "rhuiXCmMzmJM1dkN8UNu"
+      ) {
+        courses.forEach((course) => {
+          //here it repeat all courses but adding only g2 and puzzle
+          if (
+            course.grade.id === "al0OqObeTBK3OFWSyDOg" ||
+            course.courseCode === "puzzle"
+          ) {
+            courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+          }
+        });
+      }
     } else {
       courseIds = DEFAULT_COURSE_IDS.map((id) =>
         doc(this._db, `${CollectionIds.COURSE}/${id}`)
@@ -881,8 +923,7 @@ export class FirebaseApi implements ServiceApi {
       console.log("studentProfile", studentProfile);
       if (studentProfile === undefined) return;
       studentProfile.docId = studentId;
-      if (!studentProfile.lessons)
-        studentProfile.lessons = {};
+      if (!studentProfile.lessons) studentProfile.lessons = {};
       this._studentResultCache[studentId] = studentProfile;
       return studentProfile;
     } catch (error) {
