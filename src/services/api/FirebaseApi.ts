@@ -112,31 +112,39 @@ export class FirebaseApi implements ServiceApi {
     //   );
     // }
 
+    const belowGrade1 = "NIAdGIaaRXi8BOl87MEu"
+    const grade1 = "R5sDh8LKKBx7D7o1MMl0"
+    const grade2 = "al0OqObeTBK3OFWSyDOg"
+    const grade3 = "i1paELqh4uwET2OQQl1E"
+    const aboveGrade3 = "rhuiXCmMzmJM1dkN8UNu"
+
+    const courseDigitalSkills = "puzzle"
+
     if (!!courses && courses.length > 0) {
       if (
-        gradeDocId === "R5sDh8LKKBx7D7o1MMl0" ||
-        gradeDocId === "NIAdGIaaRXi8BOl87MEu"
+        gradeDocId === belowGrade1 ||
+        gradeDocId === grade1
       ) {
         courses.forEach((course) => {
 
           //here it repeat all courses but adding only g1 and puzzle
           if (
-            course.grade.id === "R5sDh8LKKBx7D7o1MMl0" ||
-            course.courseCode === "puzzle"
+            course.grade.id === grade1 ||
+            course.courseCode === courseDigitalSkills
           ) {
             courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
           }
         });
       } else if (
-        gradeDocId === "al0OqObeTBK3OFWSyDOg" ||
-        gradeDocId === "i1paELqh4uwET2OQQl1E" ||
-        gradeDocId === "rhuiXCmMzmJM1dkN8UNu"
+        gradeDocId === grade2 ||
+        gradeDocId === grade3 ||
+        gradeDocId === aboveGrade3
       ) {
         courses.forEach((course) => {
           //here it repeat all courses but adding only g2 and puzzle
           if (
-            course.grade.id === "al0OqObeTBK3OFWSyDOg" ||
-            course.courseCode === "puzzle"
+            course.grade.id === grade2 ||
+            course.courseCode === courseDigitalSkills
           ) {
             courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
           }
