@@ -2,7 +2,7 @@ import { IonLoading, IonPage } from "@ionic/react";
 import { useEffect, useRef, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
-import { LANGUAGE, PAGES } from "../common/constants";
+import { LANGUAGE, NUMBER_REGEX, PAGES } from "../common/constants";
 import { Capacitor } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
 import TextBox from "../components/TextBox";
@@ -400,8 +400,7 @@ const Login: React.FC = () => {
                         onChange={(input) => {
                           if (input.target.value) {
 
-                            const numberRegex = /^[0-9\b]+$/;
-                            if (!numberRegex.test(input.target.value)) {
+                            if (!NUMBER_REGEX.test(input.target.value)) {
                               return;
                             }
 
@@ -515,8 +514,7 @@ const Login: React.FC = () => {
                       inputValue={verificationCode.trim()}
                       onChange={(input) => {
                         if (input.target.value) {
-                          const numberRegex = /^[0-9\b]+$/;
-                          if (!numberRegex.test(input.target.value)) {
+                          if (!NUMBER_REGEX.test(input.target.value)) {
                             return;
                           }
                           setVerificationCode(input.target.value.trim());
