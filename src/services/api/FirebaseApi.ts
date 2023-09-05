@@ -30,7 +30,13 @@ import {
   COURSES,
   DEFAULT_COURSE_IDS,
   MODES,
+  aboveGrade3,
+  belowGrade1,
+  courseDigitalSkills,
   courseSortIndex,
+  grade1,
+  grade2,
+  grade3,
 } from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
 import User from "../../models/user";
@@ -112,13 +118,6 @@ export class FirebaseApi implements ServiceApi {
     //   );
     // }
 
-    const belowGrade1 = "NIAdGIaaRXi8BOl87MEu"
-    const grade1 = "R5sDh8LKKBx7D7o1MMl0"
-    const grade2 = "al0OqObeTBK3OFWSyDOg"
-    const grade3 = "i1paELqh4uwET2OQQl1E"
-    const aboveGrade3 = "rhuiXCmMzmJM1dkN8UNu"
-
-    const courseDigitalSkills = "puzzle"
 
     if (!!courses && courses.length > 0) {
       if (
