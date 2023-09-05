@@ -9,21 +9,21 @@ import { REMOTE_CONFIG_KEYS, RemoteConfig } from '../services/RemoteConfig';
 
 const TermsAndConditions: React.FC = () => {
   const history = useHistory();
-  const [iframeSrc, setIframeSrc] = useState('');
-  const setIframeSrcAsync = async () => {
-    try {
-      const tcUrl = await RemoteConfig.getString(
-        REMOTE_CONFIG_KEYS.TERMS_AND_CONDITIONS_URL
-      );
-      setIframeSrc(tcUrl);
-    } catch (error) {
-      console.error('Error fetching URL:', error);
-    }
-  };
+  // const [iframeSrc, setIframeSrc] = useState('');
+  // const setIframeSrcAsync = async () => {
+  //   try {
+  //     const tcUrl = await RemoteConfig.getString(
+  //       REMOTE_CONFIG_KEYS.TERMS_AND_CONDITIONS_URL
+  //     );
+  //     setIframeSrc(tcUrl);
+  //   } catch (error) {
+  //     console.error('Error fetching URL:', error);
+  //   }
+  // };
 
   useEffect(() => {
     checkAuth();
-    setIframeSrcAsync();
+    // setIframeSrcAsync();
   }, []);
   const checkAuth = async () => {
     try {
@@ -61,10 +61,10 @@ const TermsAndConditions: React.FC = () => {
     <div>
       <div className='tc-content'>
         <iframe
-          src={iframeSrc}
+          src="assets/termsandconditions/TermsandConditionsofChimple.html"
           title="Web Page"
           allowFullScreen={true}
-          style={{ height: "80vh", width: "100%" }}
+          style={{ height: "80vh", width: "100%", border: "none" }}
         />
       </div>
       <div className='button-content'>
