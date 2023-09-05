@@ -354,7 +354,7 @@ const DisplaySubjects: FC<{}> = () => {
             onValueChange={(evt) => {
               {
                 const tempGrade = localGradeMap.grades.find(
-                  (grade) => grade.docId === evt.detail.value
+                  (grade) => grade.docId === evt
                 );
                 onGradeChanges(tempGrade ?? currentGrade);
               }
