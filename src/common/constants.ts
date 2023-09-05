@@ -149,6 +149,7 @@ export enum PAGES {
   ASSIGNMENT = "/assignment",
   JOIN_CLASS = "/join-class",
   SELECT_MODE = "/select-mode",
+  TERMS_AND_CONDITIONS = "/terms-and-conditions",
 }
 
 export enum LANG {
@@ -188,6 +189,7 @@ export const DISPLAY_SUBJECTS_STORE = "DispSubStore";
 export const SOUND = "sound";
 export const MUSIC = "music";
 export const GAME_URL = "gameUrl";
+export const TC_ACCEPT = "tcAccept";
 export const BASE_NAME =
   !Capacitor.isNativePlatform() && !!process.env.REACT_APP_GITHUB_BASE
     ? process.env.REACT_APP_GITHUB_BASE

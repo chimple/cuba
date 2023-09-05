@@ -352,6 +352,17 @@ export class FirebaseApi implements ServiceApi {
       ServiceConfig.getI().authHandler.currentUser = user;
     }
   };
+  public updateTcAccept = async (user: User, value: boolean) => {
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (currentUser) {
+      await updateDoc(doc(this._db, `User/${user.uid}`), {
+        tcAccept: value,
+        updatedAt: Timestamp.now(),
+      });
+      user.tcAccept = value;
+      ServiceConfig.getI().authHandler.currentUser = user;
+    }
+  };
 
   public updateMusicFlag = async (user: User, value: boolean) => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
