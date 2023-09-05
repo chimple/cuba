@@ -32,7 +32,6 @@ import {
   MODES,
   aboveGrade3,
   belowGrade1,
-  courseDigitalSkills,
   courseSortIndex,
   grade1,
   grade2,
@@ -110,7 +109,7 @@ export class FirebaseApi implements ServiceApi {
           //here it repeat all courses but adding only g1 and puzzle
           if (
             course.grade.id === grade1 ||
-            course.courseCode === courseDigitalSkills
+            course.courseCode === COURSES.PUZZLE
           ) {
             courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
           }
@@ -124,7 +123,7 @@ export class FirebaseApi implements ServiceApi {
           //here it repeat all courses but adding only g2 and puzzle
           if (
             course.grade.id === grade2 ||
-            course.courseCode === courseDigitalSkills
+            course.courseCode === COURSES.PUZZLE
           ) {
             courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
           }
