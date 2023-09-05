@@ -112,7 +112,7 @@ const DisplaySubjects: FC<{}> = () => {
         }
       }
 
-      
+      !!localData.localGradeMap && setLocalGradeMap(localData.localGradeMap);
       localStorageData.lessonResultMap = localData.lessonResultMap;
       localStorageData.stage = STAGES.LESSONS;
       addDataToLocalStorage();
@@ -188,7 +188,15 @@ const DisplaySubjects: FC<{}> = () => {
       console.log("🚀 ~ file: DisplaySubjects.tsx:131 ~ init ~ getCourses:");
     }
     let map = localStorage.getItem(GRADE_MAP);
-    if (!!map) setLocalGradeMap(JSON.parse(map));
+    if (!!map) {
+      let _localMap: {
+        grades: Grade[];
+        courses: Course[];
+      } = JSON.parse(map);
+      let convertedCourses = Util.convertCourses(_localMap.courses);
+      _localMap.courses = convertedCourses;
+      setLocalGradeMap(_localMap);
+    };
   };
 
 
