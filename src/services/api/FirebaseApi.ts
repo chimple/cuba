@@ -847,6 +847,8 @@ export class FirebaseApi implements ServiceApi {
       console.log("studentProfile", studentProfile);
       if (studentProfile === undefined) return;
       studentProfile.docId = studentId;
+      if (!studentProfile.lessons)
+        studentProfile.lessons = {};
       this._studentResultCache[studentId] = studentProfile;
       return studentProfile;
     } catch (error) {
