@@ -81,7 +81,9 @@ export class FirebaseApi implements ServiceApi {
     return FirebaseApi.i;
   }
 
-  public async getCourseBygradeId(gradeDocId: string | undefined): Promise<DocumentReference<DocumentData>[]> {
+  public async getCourseByGradeId(
+    gradeDocId: string | undefined
+  ): Promise<DocumentReference<DocumentData>[]> {
     let courseIds: DocumentReference[] = [];
     const courses = await this.getAllCourses();
     if (!!courses && courses.length > 0) {
@@ -131,7 +133,9 @@ export class FirebaseApi implements ServiceApi {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
-    let courseIds: DocumentReference[] = await this.getCourseBygradeId(gradeDocId);
+    let courseIds: DocumentReference[] = await this.getCourseByGradeId(
+      gradeDocId
+    );
 
     // if (!!languageDocId && !!LANGUAGE_COURSE_MAP[languageDocId]) {
     //   courseIds.splice(
@@ -786,8 +790,10 @@ export class FirebaseApi implements ServiceApi {
     gradeDocId: string,
     languageDocId: string
   ): Promise<User> {
-    if (!student.courses && gradeDocId) await this.getCourseBygradeId(gradeDocId);
-
+    let tempCourse;
+    if (!student.courses && gradeDocId) {
+      tempCourse = await this.getCourseByGradeId(gradeDocId);
+    }
     const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
     const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
     const languageRef = doc(
@@ -795,7 +801,7 @@ export class FirebaseApi implements ServiceApi {
       `${CollectionIds.LANGUAGE}/${languageDocId}`
     );
     const now = Timestamp.now();
-    await updateDoc(doc(this._db, `${CollectionIds.USER}/${student.docId}`), {
+    const updateDocWithCourse: any = {
       age: age,
       avatar: avatar,
       board: boardRef,
@@ -805,7 +811,14 @@ export class FirebaseApi implements ServiceApi {
       image: image ?? null,
       language: languageRef,
       name: name,
-    });
+    };
+    if (!!tempCourse) {
+      updateDocWithCourse.courses = tempCourse;
+    }
+    await updateDoc(
+      doc(this._db, `${CollectionIds.USER}/${student.docId}`),
+      updateDocWithCourse
+    );
     student.age = age;
     student.avatar = avatar;
     student.board = boardRef;
@@ -815,6 +828,7 @@ export class FirebaseApi implements ServiceApi {
     student.image = image;
     student.language = languageRef;
     student.name = name;
+    student.courses = tempCourse;
     return student;
   }
 
