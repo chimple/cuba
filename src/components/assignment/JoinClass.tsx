@@ -121,7 +121,7 @@ const JoinClass: FC<{
           }}
           className="join-class-text-box"
           defaultValue={inviteCode ?? ""}
-          type="number"
+          type="tel"
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               getClassData();
