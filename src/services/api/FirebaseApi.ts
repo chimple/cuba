@@ -81,31 +81,14 @@ export class FirebaseApi implements ServiceApi {
     return FirebaseApi.i;
   }
 
-  public async createProfile(
-    name: string,
-    age: number | undefined,
-    gender: string | undefined,
-    avatar: string | undefined,
-    image: string | undefined,
-    boardDocId: string | undefined,
-    gradeDocId: string | undefined,
-    languageDocId: string | undefined
-  ): Promise<User> {
-    const _currentUser =
-      await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!_currentUser) throw "User is not Logged in";
+  public async getCourseByGradeId(
+    gradeDocId: string | undefined
+  ): Promise<DocumentReference<DocumentData>[]> {
     let courseIds: DocumentReference[] = [];
     const courses = await this.getAllCourses();
     if (!!courses && courses.length > 0) {
-      // courses.forEach((course) => {
-      //   courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
-      // });
-      if (
-        gradeDocId === belowGrade1 ||
-        gradeDocId === grade1
-      ) {
+      if (gradeDocId === belowGrade1 || gradeDocId === grade1) {
         courses.forEach((course) => {
-
           //here it repeat all courses but adding only g1 and puzzle
           if (
             course.grade.id === grade1 ||
@@ -134,6 +117,25 @@ export class FirebaseApi implements ServiceApi {
         doc(this._db, `${CollectionIds.COURSE}/${id}`)
       );
     }
+    return courseIds;
+  }
+
+  public async createProfile(
+    name: string,
+    age: number | undefined,
+    gender: string | undefined,
+    avatar: string | undefined,
+    image: string | undefined,
+    boardDocId: string | undefined,
+    gradeDocId: string | undefined,
+    languageDocId: string | undefined
+  ): Promise<User> {
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
+    let courseIds: DocumentReference[] = await this.getCourseByGradeId(
+      gradeDocId
+    );
 
     // if (!!languageDocId && !!LANGUAGE_COURSE_MAP[languageDocId]) {
     //   courseIds.splice(
@@ -256,6 +258,10 @@ export class FirebaseApi implements ServiceApi {
       return [];
     }
   }
+
+  // public async getCoursesByGradeId(): Promise<COURSES[]>{
+
+  // }
 
   public async getAllGrades(): Promise<Grade[]> {
     try {
@@ -784,6 +790,10 @@ export class FirebaseApi implements ServiceApi {
     gradeDocId: string,
     languageDocId: string
   ): Promise<User> {
+    let tempCourse;
+    if (!student.courses && gradeDocId) {
+      tempCourse = await this.getCourseByGradeId(gradeDocId);
+    }
     const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
     const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
     const languageRef = doc(
@@ -791,7 +801,7 @@ export class FirebaseApi implements ServiceApi {
       `${CollectionIds.LANGUAGE}/${languageDocId}`
     );
     const now = Timestamp.now();
-    await updateDoc(doc(this._db, `${CollectionIds.USER}/${student.docId}`), {
+    const updateDocWithCourse: any = {
       age: age,
       avatar: avatar,
       board: boardRef,
@@ -801,7 +811,15 @@ export class FirebaseApi implements ServiceApi {
       image: image ?? null,
       language: languageRef,
       name: name,
-    });
+    };
+    if (!!tempCourse) {
+      updateDocWithCourse.courses = tempCourse;
+      student.courses = tempCourse;
+    }
+    await updateDoc(
+      doc(this._db, `${CollectionIds.USER}/${student.docId}`),
+      updateDocWithCourse
+    );
     student.age = age;
     student.avatar = avatar;
     student.board = boardRef;

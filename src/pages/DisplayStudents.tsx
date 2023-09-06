@@ -75,7 +75,7 @@ const DisplayStudents: FC<{}> = () => {
     );
     await Util.setCurrentStudent(student, undefined, false);
 
-    if (!student.board || !student.language || !student.grade) {
+    if (!student.board || !student.language || !student.grade || !student.courses) {
       history.push(PAGES.EDIT_STUDENT, {
         from: history.location.pathname,
       });
