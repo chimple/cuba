@@ -814,6 +814,7 @@ export class FirebaseApi implements ServiceApi {
     };
     if (!!tempCourse) {
       updateDocWithCourse.courses = tempCourse;
+      student.courses = tempCourse;
     }
     await updateDoc(
       doc(this._db, `${CollectionIds.USER}/${student.docId}`),
@@ -828,7 +829,6 @@ export class FirebaseApi implements ServiceApi {
     student.image = image;
     student.language = languageRef;
     student.name = name;
-    student.courses = tempCourse;
     return student;
   }
 
