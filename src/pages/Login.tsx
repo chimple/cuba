@@ -133,9 +133,8 @@ const Login: React.FC = () => {
         history.replace(PAGES.DISPLAY_STUDENT);
       }
       if (isUserLoggedIn) {
-        console.log("navigating to app lang");
         setIsLoading(false);
-        history.replace(PAGES.HOME);
+        history.replace(PAGES.SELECT_MODE);
       }
       setIsLoading(false);
     });
