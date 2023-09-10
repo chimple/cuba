@@ -81,7 +81,7 @@ export class FirebaseApi implements ServiceApi {
     return FirebaseApi.i;
   }
 
-  public async getCourseByGradeId(
+  public async getCourseByUserGradeId(
     gradeDocId: string | undefined
   ): Promise<DocumentReference<DocumentData>[]> {
     let courseIds: DocumentReference[] = [];
@@ -141,7 +141,7 @@ export class FirebaseApi implements ServiceApi {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
-    let courseIds: DocumentReference[] = await this.getCourseByGradeId(
+    let courseIds: DocumentReference[] = await this.getCourseByUserGradeId(
       gradeDocId
     );
 
@@ -800,7 +800,7 @@ export class FirebaseApi implements ServiceApi {
   ): Promise<User> {
     let tempCourse;
     if (!student.courses && gradeDocId) {
-      tempCourse = await this.getCourseByGradeId(gradeDocId);
+      tempCourse = await this.getCourseByUserGradeId(gradeDocId);
     }
     const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
     const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
