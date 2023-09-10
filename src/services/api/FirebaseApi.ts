@@ -85,38 +85,46 @@ export class FirebaseApi implements ServiceApi {
     gradeDocId: string | undefined
   ): Promise<DocumentReference<DocumentData>[]> {
     let courseIds: DocumentReference[] = [];
-    const courses = await this.getAllCourses();
-    if (!!courses && courses.length > 0) {
-      if (gradeDocId === belowGrade1 || gradeDocId === grade1) {
-        courses.forEach((course) => {
-          //here it repeat all courses but adding only g1 and puzzle
-          if (
-            course.grade.id === grade1 ||
-            course.courseCode === COURSES.PUZZLE
-          ) {
-            courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
-          }
-        });
+
+    if (gradeDocId) {
+      // Initialize isGrade1 and isGrade2
+      let isGrade1: string | boolean = false;
+      let isGrade2: string | boolean = false;
+
+      // Check if gradeDocId matches any of the specified grades and assign the value to isGrade1 or isGrade2
+      if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
+        isGrade1 = true;
       } else if (
         gradeDocId === grade2 ||
         gradeDocId === grade3 ||
         gradeDocId === aboveGrade3
       ) {
-        courses.forEach((course) => {
-          //here it repeat all courses but adding only g2 and puzzle
-          if (
-            course.grade.id === grade2 ||
-            course.courseCode === COURSES.PUZZLE
-          ) {
-            courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
-          }
+        isGrade2 = true;
+      }
+
+      if (isGrade1 || isGrade2) {
+        // Use the value of isGrade1 or isGrade2 as the gradeDocId when fetching courses
+        const gradeCourses = await this.getCoursesByGrade(
+          isGrade1 ? grade1 : isGrade2 ? grade2 : gradeDocId
+        );
+        console.log(
+          "----------------line 182 courses related to grades",
+          gradeCourses
+        );
+
+        gradeCourses.forEach((course) => {
+          courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
         });
       }
-    } else {
+    }
+
+    if (courseIds.length === 0) {
+      // If no courses were added, use the default course IDs
       courseIds = DEFAULT_COURSE_IDS.map((id) =>
         doc(this._db, `${CollectionIds.COURSE}/${id}`)
       );
     }
+
     return courseIds;
   }
 
@@ -910,8 +918,7 @@ export class FirebaseApi implements ServiceApi {
       console.log("studentProfile", studentProfile);
       if (studentProfile === undefined) return;
       studentProfile.docId = studentId;
-      if (!studentProfile.lessons)
-        studentProfile.lessons = {};
+      if (!studentProfile.lessons) studentProfile.lessons = {};
       this._studentResultCache[studentId] = studentProfile;
       return studentProfile;
     } catch (error) {
@@ -1302,6 +1309,38 @@ export class FirebaseApi implements ServiceApi {
         "🚀 ~ file: FirebaseApi.ts:971 ~ FirebaseApi ~ error:",
         JSON.stringify(error)
       );
+    }
+  }
+
+  public async getCoursesByGrade(gradeDocId: any): Promise<Course[]> {
+    try {
+      const gradeQuerySnapshot = await this.getDocsFromOffline(
+        query(
+          collection(this._db, CollectionIds.COURSE),
+          where("grade", "==", doc(this._db, CollectionIds.GRADE, gradeDocId))
+        )
+      );
+      const puzzleQuerySnapshot = await this.getDocsFromOffline(
+        query(
+          collection(this._db, CollectionIds.COURSE),
+          where("courseCode", "==", COURSES.PUZZLE)
+        )
+      );
+      const courses: Course[] = [];
+      gradeQuerySnapshot.forEach((doc) => {
+        const course = doc.data() as Course;
+        course.docId = doc.id;
+        courses.push(course);
+      });
+      puzzleQuerySnapshot.forEach((doc) => {
+        const course = doc.data() as Course;
+        course.docId = doc.id;
+        courses.push(course);
+      });
+      return courses;
+    } catch (error) {
+      console.error("Error fetching courses by grade:", error);
+      return [];
     }
   }
 
