@@ -87,7 +87,7 @@ const HomeHeader: React.FC<{
             return (
               <HeaderIcon
                 key={index}
-                headerName={element.displayName}
+                headerName={t(element.displayName)}
                 iconSrc={element.iconSrc}
                 currentHeader={currentHeader}
                 headerList={element.headerList}

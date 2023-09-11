@@ -50,22 +50,23 @@ import { push } from "ionicons/icons";
 import { t } from "i18next";
 import { App, URLOpenListenerEvent } from "@capacitor/app";
 
-const sortPlayedLessonsByDate = (
-  lessons: Lesson[],
+const sortValidLessonsByDate = (
+  lessonIds: string[],
   lessonResultMap: { [lessonDocId: string]: StudentLessonResult }
-): Lesson[] => {
-  const sortedLessons = lessons.slice().sort((a, b) => {
-    const lessonResultA = lessonResultMap?.[a.docId];
-    const lessonResultB = lessonResultMap?.[b.docId];
+): string[] => {
+  return lessonIds.sort((a, b) => {
+    const lessonResultA = lessonResultMap[a];
+    const lessonResultB = lessonResultMap[b];
 
     if (!lessonResultA || !lessonResultB) {
       return 0;
     }
 
-    return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
-  });
+    const dateA = lessonResultA.date?.toMillis() || 0;
+    const dateB = lessonResultB.date?.toMillis() || 0;
 
-  return sortedLessons;
+    return dateB - dateA;
+  });
 };
 
 const localData: any = {};
@@ -79,9 +80,6 @@ const Home: FC = () => {
   }>();
   const [courses, setCourses] = useState<Course[]>();
   const [lessons, setLessons] = useState<Lesson[]>();
-  const [nextChapter, setNextChapter] = useState<Chapter>();
-  const [previousChapter, setPreviousChapter] = useState<Chapter>();
-  const [chaptersMap, setChaptersMap] = useState<any>();
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [lessonsScoreMap, setLessonsScoreMap] = useState<any>();
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
@@ -91,14 +89,36 @@ const Home: FC = () => {
     useState<number>(0);
   const history = useHistory();
   const [PlayedLessonsList, setPlayedLessonsList] = useState<Lesson[]>([]);
+  const [favouriteLessons, setFavouriteLessons] = useState<Lesson[]>([]);
+  const [favouritesPageSize, setFavouritesPageSize] = useState<number>(10);
+
+  const [initialFavoriteLessons, setInitialFavoriteLessons] = useState<
+    Lesson[]
+  >([]);
+  const [initialHistoryLessons, setInitialHistoryLessons] = useState<Lesson[]>(
+    []
+  );
+  const [historyLessons, setHistoryLessons] = useState<Lesson[]>([]);
+  const [validLessonIds, setValidLessonIds] = useState<string[]>([]);
+
+  let allPlayedLessonIds: string[] = [];
+  let tempPageNumber = 1;
 
   useEffect(() => {
     setCurrentHeader(HOMEHEADERLIST.HOME);
-    setCourse(HOMEHEADERLIST.HOME);
     setValue(SUBTAB.SUGGESTIONS);
-    getHistory();
+    fetchData();
     urlOpenListenerEvent();
   }, []);
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    const lessonResult = await setCourse(HOMEHEADERLIST.HOME);
+    console.log("resultTemp", lessonResult);
+    const allLessonIds = await getHistory(lessonResult);
+    if (allLessonIds) setValidLessonIds(allLessonIds);
+    setIsLoading(false);
+  };
 
   function urlOpenListenerEvent() {
     App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
@@ -180,10 +200,19 @@ const Home: FC = () => {
         localData.allCourses = tempAllCourses;
       }
       await getAssignments();
-      getRecommendationLessons(currentStudent, currClass).then(() => {
+      // getRecommendationLessons(currentStudent, currClass).then(() => {
+      try {
+        const recommendationResult = await getRecommendationLessons(
+          currentStudent,
+          currClass
+        );
         console.log("Final RECOMMENDATION List ", reqLes);
         setDataCourse(reqLes);
-      });
+        console.log("recommendationResult", recommendationResult);
+        return recommendationResult;
+      } catch (error) {
+        console.error("Error fetching recommendation:", error);
+      }
     }
 
     /// Below code to show lessons card and chapters bar
@@ -235,11 +264,45 @@ const Home: FC = () => {
     HISTORY,
   }
   const [value, setValue] = useState(SUBTAB.SUGGESTIONS);
-  const handleChange = (
+
+  const handleChange = async (
     event: React.SyntheticEvent,
-    newValue: SUBTAB.SUGGESTIONS
+    newValue: SUBTAB
   ) => {
     setValue(newValue);
+    if (newValue === SUBTAB.HISTORY) {
+      // setIsLoading(true);
+      if (lessonResultMap) {
+        // const startIndex = (tempPageNumber - 1) * favouritesPageSize;
+        // const endIndex = startIndex + favouritesPageSize;
+
+        // const initialHistoryLessonsSlice = initialHistoryLessons.slice(
+        //   startIndex,
+        //   endIndex
+        // );
+        // setHistoryLessons(initialHistoryLessonsSlice);
+        setFavouriteLessons([]);
+      }
+      tempPageNumber = 1;
+      await updateHistoryLessons(validLessonIds);
+      // setIsLoading(false);
+    } else if (newValue === SUBTAB.FAVOURITES) {
+      setHistoryLessons([]);
+      if (lessonResultMap) {
+        // const startIndex = (tempPageNumber - 1) * favouritesPageSize;
+        // const endIndex = startIndex + favouritesPageSize;
+        // console.log("initial history lessons", initialHistoryLessons);
+        // const initialFavouriteLessonsSlice = initialFavoriteLessons.slice(
+        //   startIndex,
+        //   endIndex
+        // );
+        await updateFavouriteLessons(validLessonIds);
+      }
+      tempPageNumber = 1;
+    } else {
+      setHistoryLessons([]);
+      setFavouriteLessons([]);
+    }
     console.log("Changing...", newValue);
   };
   const handleHomeIconClick = () => {
@@ -258,33 +321,26 @@ const Home: FC = () => {
     return lessons;
   };
 
-  const getHistory = async () => {
-    // setIsLoading(true);
-
-    const currentStudent = await Util.getCurrentStudent();
+  const getHistory = async (lessonResult) => {
+    const currentStudent = Util.getCurrentStudent();
     if (!currentStudent) {
       return;
     }
-
     const studentResult = await api.getStudentResult(currentStudent.docId);
 
     if (studentResult?.lessons) {
       const playedLessonIds = Object.keys(studentResult.lessons);
-      const lessonPromises = playedLessonIds.map((lessonId) =>
-        api.getLesson(lessonId, undefined, true)
+      // const lessonPromises = playedLessonIds.map((lessonId) =>
+      //   api.getLesson(lessonId, undefined, true)
+      const validLessonIds = playedLessonIds.filter(
+        (lessonId) => lessonId !== undefined
       );
-      const lessons: (Lesson | undefined)[] = await Promise.all(lessonPromises);
-      const validLessons: Lesson[] = lessons.filter(
-        (lesson): lesson is Lesson => lesson !== undefined
+      allPlayedLessonIds = sortValidLessonsByDate(
+        validLessonIds,
+        lessonResult || {}
       );
-
-      const sortedPlayedLessonsList = sortPlayedLessonsByDate(
-        validLessons,
-        lessonResultMap || {}
-      );
-      setPlayedLessonsList(sortedPlayedLessonsList);
+      return allPlayedLessonIds;
     }
-    // setIsLoading(false);
   };
 
   let reqLes: Lesson[] = [];
@@ -330,16 +386,15 @@ const Home: FC = () => {
           [lessonDocId: string]: StudentLessonResult;
         }
       | undefined;
-    api.getStudentResult(currentStudent.docId).then(async (res) => {
-      console.log("tempResultLessonMap = res;", JSON.stringify(res));
-      tempResultLessonMap = res?.lessons;
-      setLessonResultMap(res?.lessons);
-      if (tempResultLessonMap) {
-        console.log("tempResultLessonMap", tempResultLessonMap);
-        sortLessonResultMap = sortLessonResultByDate(tempResultLessonMap);
-        console.log("sortLessonResultMap ", sortLessonResultMap);
-      }
-    });
+    const res = await api.getStudentResult(currentStudent.docId);
+    console.log("tempResultLessonMap = res;", JSON.stringify(res));
+    tempResultLessonMap = res?.lessons;
+    setLessonResultMap(res?.lessons);
+    if (tempResultLessonMap) {
+      console.log("tempResultLessonMap", tempResultLessonMap);
+      sortLessonResultMap = sortLessonResultByDate(tempResultLessonMap);
+      console.log("sortLessonResultMap ", sortLessonResultMap);
+    }
 
     const courses: Course[] = await (currMode === MODES.SCHOOL && !!currClass
       ? api.getCoursesForClassStudent(currClass)
@@ -452,6 +507,7 @@ const Home: FC = () => {
     console.log("reqLes outside.", reqLes);
     setDataCourse(reqLes);
     setIsLoading(false);
+    return sortLessonResultMap;
   }
 
   async function getDataForSubject(course: Course): Promise<{
@@ -557,10 +613,91 @@ const Home: FC = () => {
       return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
     });
   };
-  const sortedPlayedLessonsList = sortPlayedLessonsByDate(
-    PlayedLessonsList,
-    lessonResultMap || {}
-  );
+
+  const handleLoadMoreHistoryLessons = async () => {
+    tempPageNumber = tempPageNumber + 1;
+    await updateHistoryLessons(validLessonIds);
+  };
+
+  const handleLoadMoreLessons = async () => {
+    if (currentHeader === HOMEHEADERLIST.FAVOURITES) {
+      tempPageNumber = tempPageNumber + 1;
+      await updateFavouriteLessons(validLessonIds);
+    }
+  };
+
+  const updateFavouriteLessons = async (allLessonIds) => {
+    const currentStudent = Util.getCurrentStudent();
+    if (!currentStudent || !lessonResultMap) {
+      return;
+    }
+
+    const favouritesStartIndex = (tempPageNumber - 1) * favouritesPageSize;
+    const favouritesEndIndex = favouritesStartIndex + favouritesPageSize;
+
+    const slicedLessonIdsForFavourite = validLessonIds.slice(
+      favouritesStartIndex,
+      favouritesEndIndex
+    );
+
+    const lessonPromisesForFavourite = slicedLessonIdsForFavourite.map(
+      (lessonId) => api.getLesson(lessonId)
+    );
+
+    const lessonsForFavourite: (Lesson | undefined)[] = await Promise.all(
+      lessonPromisesForFavourite
+    );
+
+    const validLessonsForFavourite: Lesson[] = lessonsForFavourite.filter(
+      (lesson): lesson is Lesson => {
+        if (lesson === undefined) {
+          return false;
+        }
+        const lessonResult = lessonResultMap?.[lesson.docId];
+        return lessonResult?.isLoved ?? false;
+      }
+    );
+
+    const latestTenFavouriteLessons = favouriteLessons.slice(0, 10);
+    setValidLessonIds(allLessonIds);
+    favouriteLessons.push(...validLessonsForFavourite);
+    setInitialFavoriteLessons(latestTenFavouriteLessons);
+  };
+
+  const updateHistoryLessons = async (allLessonIds) => {
+    const currentStudent = Util.getCurrentStudent();
+    if (!currentStudent || !lessonResultMap) {
+      return;
+    }
+
+    const historyStartIndex = (tempPageNumber - 1) * favouritesPageSize;
+    const historyEndIndex = historyStartIndex + favouritesPageSize;
+
+    const slicedLessonIdsForHistory = validLessonIds.slice(
+      historyStartIndex,
+      historyEndIndex
+    );
+
+    const lessonPromisesForHistory = slicedLessonIdsForHistory.map((lessonId) =>
+      api.getLesson(lessonId)
+    );
+
+    const lessonsForHistory: (Lesson | undefined)[] = await Promise.all(
+      lessonPromisesForHistory
+    );
+    const validLessonsForHIstory: Lesson[] = lessonsForHistory.filter(
+      (lesson): lesson is Lesson => lesson !== undefined
+    );
+
+    const latestTenPlayedLessons = historyLessons.slice(0, 10);
+    setValidLessonIds(allLessonIds);
+    historyLessons.push(...validLessonsForHIstory);
+    setInitialHistoryLessons(latestTenPlayedLessons);
+  };
+
+  console.log("lesson slider favourite", favouriteLessons);
+  console.log("lesson slider history", historyLessons);
+
   return (
     <IonPage id="home-page">
       <IonHeader id="home-header">
@@ -591,13 +728,14 @@ const Home: FC = () => {
             {currentHeader === HOMEHEADERLIST.FAVOURITES && (
               <div>
                 <LessonSlider
-                  lessonData={getLovedLessons()}
+                  lessonData={favouriteLessons}
                   isHome={true}
                   course={undefined}
                   lessonsScoreMap={lessonResultMap || {}}
                   startIndex={0}
                   showSubjectName={true}
                   showChapterName={true}
+                  onEndReached={handleLoadMoreLessons}
                 />
               </div>
             )}
@@ -605,13 +743,14 @@ const Home: FC = () => {
             {currentHeader === HOMEHEADERLIST.HISTORY && (
               <div>
                 <LessonSlider
-                  lessonData={sortedPlayedLessonsList}
+                  lessonData={historyLessons}
                   isHome={true}
                   course={undefined}
                   lessonsScoreMap={lessonResultMap || {}}
                   startIndex={0}
                   showSubjectName={true}
                   showChapterName={true}
+                  onEndReached={handleLoadMoreHistoryLessons}
                 />
               </div>
             )}

@@ -44,10 +44,10 @@ const DisplaySubjects: FC<{}> = () => {
   const [currentChapter, setCurrentChapter] = useState<Chapter>();
   const [currentClass, setCurrentClass] = useState<Class>();
   const [lessons, setLessons] = useState<Lesson[]>();
-  /* const [gradesMap, setGradesMap] = useState<{
-     grades: Grade[];
-     courses: Course[];
-   }>();*/
+  // const [gradesMap, setGradesMap] = useState<{
+  //   grades: Grade[];
+  //   courses: Course[];
+  // }>();
   const [localGradeMap, setLocalGradeMap] = useState<{
     grades: Grade[];
     courses: Course[];
@@ -113,6 +113,7 @@ const DisplaySubjects: FC<{}> = () => {
         }
       }
 
+      !!localData.localGradeMap && setLocalGradeMap(localData.localGradeMap);
       localStorageData.lessonResultMap = localData.lessonResultMap;
       localStorageData.stage = STAGES.LESSONS;
       addDataToLocalStorage();
@@ -189,7 +190,13 @@ const DisplaySubjects: FC<{}> = () => {
     }
     let map = localStorage.getItem(GRADE_MAP);
     if (!!map) {
-      setLocalGradeMap(JSON.parse(map));
+      let _localMap: {
+        grades: Grade[];
+        courses: Course[];
+      } = JSON.parse(map);
+      let convertedCourses = Util.convertCourses(_localMap.courses);
+      _localMap.courses = convertedCourses;
+      setLocalGradeMap(_localMap);
     };
   };
 

@@ -16,9 +16,6 @@ export enum SL_GRADES {
 
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
-
-
-
 export enum HOMEHEADERLIST {
   SUBJECTS = "SUBJECTS",
   HOME = "HOME",
@@ -28,7 +25,7 @@ export enum HOMEHEADERLIST {
   QUIZ = "QUIZ",
   PROFILE = "PROFILE",
   HISTORY = "HISTORY",
-  FAVOURITES = "FAVOURITES"
+  FAVOURITES = "FAVOURITES",
 }
 
 export enum PARENTHEADERLIST {
@@ -42,6 +39,12 @@ export enum LEADERBOARDHEADERLIST {
   LEADERBOARD = "LEADERBOARD",
   EVENTS = "EVENTS",
 }
+
+export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu"
+export const grade1 = "R5sDh8LKKBx7D7o1MMl0"
+export const grade2 = "al0OqObeTBK3OFWSyDOg"
+export const grade3 = "i1paELqh4uwET2OQQl1E"
+export const aboveGrade3 = "rhuiXCmMzmJM1dkN8UNu"
 
 export const parentHeaderIconList: HeaderIconConfig[] = [
   {
@@ -273,7 +276,8 @@ export const NUMBER_NAME = [
 ];
 
 export const MAX_STUDENTS_ALLOWED = 3;
-export const INSTANT_SEARCH_INDEX_NAME = "lesson_cuba";
+export const INSTANT_SEARCH_INDEX_NAME =
+  process.env.REACT_APP_ALGOLIA_INDEX_NAME ?? "";
 
 export enum MODES {
   PARENT = "PARENT",
