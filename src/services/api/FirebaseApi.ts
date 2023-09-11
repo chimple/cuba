@@ -100,6 +100,9 @@ export class FirebaseApi implements ServiceApi {
         gradeDocId === aboveGrade3
       ) {
         isGrade2 = true;
+      } else {
+        // If it's neither grade1 nor grade2, assume grade2
+        isGrade2 = true;
       }
 
       if (isGrade1 || isGrade2) {
@@ -1314,13 +1317,13 @@ export class FirebaseApi implements ServiceApi {
 
   public async getCoursesByGrade(gradeDocId: any): Promise<Course[]> {
     try {
-      const gradeQuerySnapshot = await this.getDocsFromOffline(
+      const gradeQuerySnapshot = await getDocs(
         query(
           collection(this._db, CollectionIds.COURSE),
           where("grade", "==", doc(this._db, CollectionIds.GRADE, gradeDocId))
         )
       );
-      const puzzleQuerySnapshot = await this.getDocsFromOffline(
+      const puzzleQuerySnapshot = await getDocs(
         query(
           collection(this._db, CollectionIds.COURSE),
           where("courseCode", "==", COURSES.PUZZLE)
