@@ -30,7 +30,12 @@ import {
   COURSES,
   DEFAULT_COURSE_IDS,
   MODES,
+  aboveGrade3,
+  belowGrade1,
   courseSortIndex,
+  grade1,
+  grade2,
+  grade3,
 } from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
 import User from "../../models/user";
@@ -78,6 +83,45 @@ export class FirebaseApi implements ServiceApi {
     return FirebaseApi.i;
   }
 
+  public async getCourseByGradeId(
+    gradeDocId: string | undefined
+  ): Promise<DocumentReference<DocumentData>[]> {
+    let courseIds: DocumentReference[] = [];
+    const courses = await this.getAllCourses();
+    if (!!courses && courses.length > 0) {
+      if (gradeDocId === belowGrade1 || gradeDocId === grade1) {
+        courses.forEach((course) => {
+          //here it repeat all courses but adding only g1 and puzzle
+          if (
+            course.grade.id === grade1 ||
+            course.courseCode === COURSES.PUZZLE
+          ) {
+            courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+          }
+        });
+      } else if (
+        gradeDocId === grade2 ||
+        gradeDocId === grade3 ||
+        gradeDocId === aboveGrade3
+      ) {
+        courses.forEach((course) => {
+          //here it repeat all courses but adding only g2 and puzzle
+          if (
+            course.grade.id === grade2 ||
+            course.courseCode === COURSES.PUZZLE
+          ) {
+            courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+          }
+        });
+      }
+    } else {
+      courseIds = DEFAULT_COURSE_IDS.map((id) =>
+        doc(this._db, `${CollectionIds.COURSE}/${id}`)
+      );
+    }
+    return courseIds;
+  }
+
   public async createProfile(
     name: string,
     age: number | undefined,
@@ -94,17 +138,20 @@ export class FirebaseApi implements ServiceApi {
     // Created a variable to check the username is defined or an empty
     const username = _currentUser.username || '';
   
-    let courseIds: DocumentReference[] = [];
-    const courses = await this.getAllCourses();
-    if (!!courses && courses.length > 0) {
-      courses.forEach((course) => {
-        courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
-      });
-    } else {
-      courseIds = DEFAULT_COURSE_IDS.map((id) =>
-        doc(this._db, `${CollectionIds.COURSE}/${id}`)
-      );
-    }
+    // let courseIds: DocumentReference[] = [];
+    // const courses = await this.getAllCourses();
+    // if (!!courses && courses.length > 0) {
+    //   courses.forEach((course) => {
+    //     courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+    //   });
+    // } else {
+    //   courseIds = DEFAULT_COURSE_IDS.map((id) =>
+    //     doc(this._db, `${CollectionIds.COURSE}/${id}`)
+    //   );
+    // }
+    let courseIds: DocumentReference[] = await this.getCourseByGradeId(
+      gradeDocId
+    );
 
     // if (!!languageDocId && !!LANGUAGE_COURSE_MAP[languageDocId]) {
     //   courseIds.splice(
@@ -228,6 +275,10 @@ export class FirebaseApi implements ServiceApi {
       return [];
     }
   }
+
+  // public async getCoursesByGradeId(): Promise<COURSES[]>{
+
+  // }
 
   public async getAllGrades(): Promise<Grade[]> {
     try {
@@ -773,6 +824,10 @@ export class FirebaseApi implements ServiceApi {
     gradeDocId: string,
     languageDocId: string
   ): Promise<User> {
+    let tempCourse;
+    if (!student.courses && gradeDocId) {
+      tempCourse = await this.getCourseByGradeId(gradeDocId);
+    }
     const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
     const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
     const languageRef = doc(
@@ -780,7 +835,7 @@ export class FirebaseApi implements ServiceApi {
       `${CollectionIds.LANGUAGE}/${languageDocId}`
     );
     const now = Timestamp.now();
-    await updateDoc(doc(this._db, `${CollectionIds.USER}/${student.docId}`), {
+    const updateDocWithCourse: any = {
       age: age,
       avatar: avatar,
       board: boardRef,
@@ -790,7 +845,15 @@ export class FirebaseApi implements ServiceApi {
       image: image ?? null,
       language: languageRef,
       name: name,
-    });
+    };
+    if (!!tempCourse) {
+      updateDocWithCourse.courses = tempCourse;
+      student.courses = tempCourse;
+    }
+    await updateDoc(
+      doc(this._db, `${CollectionIds.USER}/${student.docId}`),
+      updateDocWithCourse
+    );
     student.age = age;
     student.avatar = avatar;
     student.board = boardRef;

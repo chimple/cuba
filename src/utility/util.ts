@@ -105,8 +105,10 @@ export class Util {
     if (!temp) return;
     const currentStudent = JSON.parse(temp) as User;
 
-    currentStudent.courses = Util.convertDoc(currentStudent.courses);
-    currentStudent.users = Util.convertDoc(currentStudent.users);
+    if (!!currentStudent.users)
+      currentStudent.users = Util.convertDoc(currentStudent.users);
+    if (!!currentStudent.courses)
+      currentStudent.courses = Util.convertDoc(currentStudent.courses);
     if (!!currentStudent.grade)
       currentStudent.grade = Util.getRef(currentStudent.grade);
     if (!!currentStudent.language)

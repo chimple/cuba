@@ -315,6 +315,9 @@ const Login: React.FC = () => {
   async function resendOtpHandler() {
 
     try {
+      if (!(counter <= 0)) {
+        return;
+      }
       setSentOtpLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
       setRecaptchaVerifier(undefined);
