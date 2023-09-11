@@ -2,7 +2,7 @@ import { IonLoading, IonPage } from "@ionic/react";
 import { useEffect, useRef, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
-import { LANGUAGE, NUMBER_REGEX, PAGES } from "../common/constants";
+import { CURRENT_USER, LANGUAGE, NUMBER_REGEX, PAGES } from "../common/constants";
 import { Capacitor } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
 import TextBox from "../components/TextBox";
@@ -280,6 +280,9 @@ const Login: React.FC = () => {
       if (res.isUserExist) {
         setIsLoading(false);
         history.replace(PAGES.SELECT_MODE);
+        localStorage.setItem(CURRENT_USER, JSON.stringify(res.user));
+        console.log("isUserExist", localStorage.getItem(CURRENT_USER));
+
         // setShowNameInput(true);
       } else if (!res.isUserExist) {
         setIsLoading(false);
@@ -289,6 +292,9 @@ const Login: React.FC = () => {
         if (phoneAuthResult) {
           // history.push(PAGES.DISPLAY_STUDENT);
           history.replace(PAGES.SELECT_MODE);
+          localStorage.setItem(CURRENT_USER, JSON.stringify(phoneAuthResult));
+          console.log("new user", localStorage.getItem(CURRENT_USER));
+
         }
       } else {
         setIsLoading(false);
@@ -489,6 +495,8 @@ const Login: React.FC = () => {
                         setIsLoading(false);
                         // history.replace(PAGES.DISPLAY_STUDENT);
                         history.replace(PAGES.SELECT_MODE);
+                        localStorage.setItem(CURRENT_USER, JSON.stringify(result));
+                        console.log("google...", localStorage.getItem(CURRENT_USER));
                       } else {
                         setIsLoading(false);
                       }

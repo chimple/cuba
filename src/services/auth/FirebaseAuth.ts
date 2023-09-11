@@ -28,7 +28,7 @@ import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { CollectionIds } from "../../common/courseConstants";
-import { ACTION, EVENTS } from "../../common/constants";
+import { ACTION, CURRENT_USER, EVENTS } from "../../common/constants";
 import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 
 export class FirebaseAuth implements ServiceAuth {
@@ -38,7 +38,7 @@ export class FirebaseAuth implements ServiceAuth {
   private _db = getFirestore();
   private _auth = getAuth(); //FirebaseAuth.whichAuth();
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): FirebaseAuth {
     if (!FirebaseAuth.i) {
@@ -492,6 +492,9 @@ export class FirebaseAuth implements ServiceAuth {
     );
     // if (!user && Capacitor.isNativePlatform()) return false;
 
+    const res = localStorage.getItem(CURRENT_USER);
+    console.log("res...", res);
+    if (!res) return false;
     for (var i = 0; i < 20; i++) {
       await new Promise((res) => setTimeout(res, 200));
       const user = await this.getCurrentUser();
@@ -507,6 +510,7 @@ export class FirebaseAuth implements ServiceAuth {
         return true;
       }
     }
+    localStorage.removeItem(CURRENT_USER);
     if (!user) return false;
     return false;
   }
