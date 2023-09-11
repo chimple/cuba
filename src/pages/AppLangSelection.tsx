@@ -27,11 +27,14 @@ const AppLangSelection: React.FC = () => {
   const [currentAppLang, setCurrentAppLang] = useState<string>();
 
   useEffect(() => {
+    getLangList();
+  }, []);
+  async function getLangList() {
     let tempLangList: {
       id: string;
       displayName: string;
     }[] = [];
-    ServiceConfig.getI()
+    await ServiceConfig.getI()
       .apiHandler.getAllLanguages()
       .then(async (l) => {
         l.forEach((element) => {
@@ -43,7 +46,7 @@ const AppLangSelection: React.FC = () => {
         await setLangList(tempLangList);
         setIsLoading(false);
       });
-  }, []);
+  }
 
   // const currentAppLang = localStorage.getItem(APP_LANG) || LANG.ENGLISH;
 
@@ -104,5 +107,4 @@ const AppLangSelection: React.FC = () => {
     </IonPage>
   );
 };
-
 export default AppLangSelection;
