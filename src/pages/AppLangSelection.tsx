@@ -17,7 +17,7 @@ import NextButton from "../components/common/NextButton";
 
 const AppLangSelection: React.FC = () => {
   const history = useHistory();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [langList, setLangList] = useState<
     {
       id: string;
@@ -33,14 +33,15 @@ const AppLangSelection: React.FC = () => {
     }[] = [];
     ServiceConfig.getI()
       .apiHandler.getAllLanguages()
-      .then((l) => {
+      .then(async (l) => {
         l.forEach((element) => {
           tempLangList.push({
             id: element.code,
             displayName: element.title,
           });
         });
-        setLangList(tempLangList);
+        await setLangList(tempLangList);
+        setIsLoading(false);
       });
   }, []);
 
@@ -91,6 +92,7 @@ const AppLangSelection: React.FC = () => {
                 console.log("this is the selected lang" + tempLangCode);
                 await i18n.changeLanguage(tempLangCode);
                 // history.replace(PAGES.LOGIN);
+                setIsLoading(true);
               }}
             ></RectangularOutlineDropDown>
           </div>
