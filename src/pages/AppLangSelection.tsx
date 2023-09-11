@@ -30,6 +30,7 @@ const AppLangSelection: React.FC = () => {
     getLangList();
   }, []);
   async function getLangList() {
+    setIsLoading(true);
     let tempLangList: {
       id: string;
       displayName: string;
@@ -41,7 +42,6 @@ const AppLangSelection: React.FC = () => {
         displayName: element.title,
       });
     });
-    setIsLoading(true);
     setLangList(tempLangList);
     setIsLoading(false);
   }
