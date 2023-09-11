@@ -34,18 +34,16 @@ const AppLangSelection: React.FC = () => {
       id: string;
       displayName: string;
     }[] = [];
-    await ServiceConfig.getI()
-      .apiHandler.getAllLanguages()
-      .then(async (l) => {
-        l.forEach((element) => {
-          tempLangList.push({
-            id: element.code,
-            displayName: element.title,
-          });
-        });
-        await setLangList(tempLangList);
-        setIsLoading(false);
+    const languages = await ServiceConfig.getI().apiHandler.getAllLanguages();
+    languages.forEach((element) => {
+      tempLangList.push({
+        id: element.code,
+        displayName: element.title,
       });
+    });
+    setIsLoading(true);
+    setLangList(tempLangList);
+    setIsLoading(false);
   }
 
   // const currentAppLang = localStorage.getItem(APP_LANG) || LANG.ENGLISH;
@@ -95,7 +93,6 @@ const AppLangSelection: React.FC = () => {
                 console.log("this is the selected lang" + tempLangCode);
                 await i18n.changeLanguage(tempLangCode);
                 // history.replace(PAGES.LOGIN);
-                setIsLoading(true);
               }}
             ></RectangularOutlineDropDown>
           </div>
@@ -107,4 +104,5 @@ const AppLangSelection: React.FC = () => {
     </IonPage>
   );
 };
+
 export default AppLangSelection;
