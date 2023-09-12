@@ -17,7 +17,7 @@ import NextButton from "../components/common/NextButton";
 
 const AppLangSelection: React.FC = () => {
   const history = useHistory();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [langList, setLangList] = useState<
     {
       id: string;
@@ -27,22 +27,24 @@ const AppLangSelection: React.FC = () => {
   const [currentAppLang, setCurrentAppLang] = useState<string>();
 
   useEffect(() => {
+    getLangList();
+  }, []);
+  async function getLangList() {
+    setIsLoading(true);
     let tempLangList: {
       id: string;
       displayName: string;
     }[] = [];
-    ServiceConfig.getI()
-      .apiHandler.getAllLanguages()
-      .then((l) => {
-        l.forEach((element) => {
-          tempLangList.push({
-            id: element.code,
-            displayName: element.title,
-          });
-        });
-        setLangList(tempLangList);
+    const languages = await ServiceConfig.getI().apiHandler.getAllLanguages();
+    languages.forEach((element) => {
+      tempLangList.push({
+        id: element.code,
+        displayName: element.title,
       });
-  }, []);
+    });
+    setLangList(tempLangList);
+    setIsLoading(false);
+  }
 
   // const currentAppLang = localStorage.getItem(APP_LANG) || LANG.ENGLISH;
 
