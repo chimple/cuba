@@ -495,8 +495,8 @@ export class FirebaseAuth implements ServiceAuth {
     const res = localStorage.getItem(CURRENT_USER);
     console.log("res...", res);
     if (!res) return false;
-    for (var i = 0; i < 50; i++) {
-      await new Promise((res) => setTimeout(res, 100));
+    for (var i = 0; i < 20; i++) {
+      await new Promise((res) => setTimeout(res, 200));
       const user = await this.getCurrentUser();
       console.log(
         "🚀 ~ file: FirebaseAuth.ts:146 ~ FirebaseAuth ~ isUserLoggedIn ~ user:",
