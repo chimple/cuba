@@ -53,6 +53,7 @@ import Class from "../../models/class";
 import School from "../../models/school";
 import Assignment from "../../models/assignment";
 import { sort } from "semver";
+import Avatar from "../../models/avatar";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
@@ -67,7 +68,7 @@ export class FirebaseApi implements ServiceApi {
   private _schoolsCache: { [userId: string]: School[] } = {};
   private _currentMode: MODES;
   private _allCourses: Course[];
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): FirebaseApi {
     if (!FirebaseApi.i) {
@@ -242,6 +243,29 @@ export class FirebaseApi implements ServiceApi {
         JSON.stringify(error)
       );
       return [];
+    }
+  }
+
+  public async getAvatarInfo(): Promise<Avatar | undefined> {
+    try {
+      const avatarDocId = "AvatarInfo";
+      console.log(
+        "getAvatarInfo(): entred",
+        doc(this._db, CollectionIds.AVATAR + "/" + avatarDocId)
+      );
+      const documentSnapshot = await this.getDocFromOffline(
+        doc(this._db, CollectionIds.AVATAR + "/" + avatarDocId)
+      );
+      const avatarInfoData = documentSnapshot.data() as Avatar;
+      console.log("const avatarInfoData", avatarInfoData);
+
+      return avatarInfoData;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:262 ~ FirebaseApi ~ getAvatarInfo ~ error:",
+        JSON.stringify(error)
+      );
+      return;
     }
   }
 
@@ -429,7 +453,11 @@ export class FirebaseApi implements ServiceApi {
     return this.sortSubject(subjects);
   }
 
-  async getLesson(id: string, chapter: Chapter | undefined = undefined, loadChapterTitle: boolean = false): Promise<Lesson | undefined> {
+  async getLesson(
+    id: string,
+    chapter: Chapter | undefined = undefined,
+    loadChapterTitle: boolean = false
+  ): Promise<Lesson | undefined> {
     try {
       const lessonDoc = await this.getDocFromOffline(
         doc(this._db, `${CollectionIds.LESSON}/${id}`)
@@ -438,15 +466,17 @@ export class FirebaseApi implements ServiceApi {
       const lesson = lessonDoc.data() as Lesson;
       lesson.docId = lessonDoc.id;
 
-      if (!!chapter)
-        lesson.chapterTitle = chapter.title;
+      if (!!chapter) lesson.chapterTitle = chapter.title;
       else if (loadChapterTitle) {
-
         if (!this._allCourses) {
           this._allCourses = await this.getAllCourses();
         }
-        const tmpCourse = this._allCourses?.find(course => course.courseCode === lesson.cocosSubjectCode);
-        const chapter = tmpCourse?.chapters.find(chapter => chapter.id === lesson.cocosChapterCode);
+        const tmpCourse = this._allCourses?.find(
+          (course) => course.courseCode === lesson.cocosSubjectCode
+        );
+        const chapter = tmpCourse?.chapters.find(
+          (chapter) => chapter.id === lesson.cocosChapterCode
+        );
         lesson.chapterTitle = chapter?.title;
       }
       return lesson;

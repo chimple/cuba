@@ -19,6 +19,7 @@ import Subject from "../../models/subject";
 import StudentProfile from "../../models/studentProfile";
 import school from "../../models/school";
 import School from "../../models/school";
+import Avatar from "../../models/avatar";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -45,6 +46,9 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
+  getAvatarInfo(): Promise<Avatar | undefined> {
+    throw new Error("Method not implemented.");
+  }
 
   deleteAllUserData(): Promise<void> {
     throw new Error("Method not implemented.");
@@ -159,7 +163,7 @@ export class OneRosterApi implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    isLoved:boolean,
+    isLoved: boolean
   ): Promise<Result> {
     throw new Error("Method not implemented.");
   }

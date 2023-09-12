@@ -159,6 +159,10 @@ const Home: FC = () => {
   };
 
   async function setCourse(subjectCode: string) {
+    let avatarInfo = await ServiceConfig.getI().apiHandler.getAvatarInfo();
+
+    console.log("avatarInfo ", avatarInfo);
+
     setIsLoading(true);
     const currentStudent = await Util.getCurrentStudent();
 
@@ -566,6 +570,7 @@ const Home: FC = () => {
     PlayedLessonsList,
     lessonResultMap || {}
   );
+
   return (
     <IonPage id="home-page">
       <IonHeader id="home-header">
