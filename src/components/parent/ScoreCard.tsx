@@ -19,8 +19,6 @@ import { GrFormNext } from "react-icons/gr";
 import ScoreCardStarIcons from "./ScoreCardStarIcons";
 
 const ScoreCard: React.FC<{
-  width: string;
-  height: string;
   showDialogBox: boolean;
   title: string;
   score: number;
@@ -32,8 +30,6 @@ const ScoreCard: React.FC<{
   onYesButtonClicked: MouseEventHandler<HTMLDivElement>;
   onContinueButtonClicked: MouseEventHandler<HTMLDivElement>;
 }> = ({
-  width,
-  height,
   showDialogBox,
   message,
   lessonName,
@@ -56,6 +52,7 @@ const ScoreCard: React.FC<{
           "& .MuiDialogActions-root": {
             color: "white",
             padding: "0% !important",
+            gap: "6%",
           },
           "& .MuiDialogContent-root": { padding: "0vh 6vh !important" },
           "& .MuiDialogActions-spacing": { justifyContent: "space-between !important" },
@@ -65,8 +62,6 @@ const ScoreCard: React.FC<{
           style={{
             // padding: "8% 5%",
             textAlign: "center",
-            width: width,
-            height: height,
             overflow: "hidden",
           }}
         >

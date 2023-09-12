@@ -28,6 +28,7 @@
   align-items: center;
   flex-direction: column;
   margin-top: 1.5vh;
+  font-size: 2vw;
 }
 
 .score-card-content-lesson-name {
@@ -35,10 +36,12 @@
 }
 #noButton {
   background-color: #ccc !important;
+  font-size: 3.7vh;
 }
 
 #yesButton {
   background: #ccc !important;
+  font-size: 3.7vh;
 }
 
 .title-scoreCard {
@@ -48,8 +51,8 @@
 }
 
 .image-icon {
-  height: 18vh;
-  width: 18vh;
+  height: 22vh;
+  width: 22vh;
   transform: translateY(5vh);
 }
 
