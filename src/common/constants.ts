@@ -291,6 +291,7 @@ export enum ACTION {
 }
 
 export const CURRENT_STUDENT = "currentStudent";
+export const CURRENT_USER = "currentUser";
 export enum EVENTS {
   LESSON_END = "lesson_end",
   LESSON_INCOMPLETE = "lesson_incomplete",
