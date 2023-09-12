@@ -46,6 +46,10 @@ export class ApiHandler implements ServiceApi {
     return await this.s.deleteAllUserData();
   }
 
+  public async getCoursesByGrade(gradeDocId: any): Promise<Course[]> {
+    return await this.s.getCoursesByGrade(gradeDocId);
+  }
+
   public async getAllCourses(): Promise<Course[]> {
     return await this.s.getAllCourses();
   }

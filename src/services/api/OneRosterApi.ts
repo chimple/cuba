@@ -52,6 +52,10 @@ export class OneRosterApi implements ServiceApi {
   deleteAllUserData(): Promise<void> {
     throw new Error("Method not implemented.");
   }
+
+  getCoursesByGrade(gradeDocId: any): Promise<Course[]>{
+    throw new Error("Method not implemented.");
+  }
   getAllCourses(): Promise<Course[]> {
     throw new Error("Method not implemented.");
   }

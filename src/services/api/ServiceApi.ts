@@ -359,6 +359,7 @@ export interface ServiceApi {
    * Gives all `Course` available on database
    * @returns {Course[]} Array of `Course` objects
    */
+  getCoursesByGrade(gradeDocId: any): Promise<Course[]>;
   getAllCourses(): Promise<Course[]>;
 
   /**
