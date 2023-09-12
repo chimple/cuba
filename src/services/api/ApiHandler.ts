@@ -50,6 +50,10 @@ export class ApiHandler implements ServiceApi {
     return await this.s.deleteAllUserData();
   }
 
+  public async getCoursesByGrade(gradeDocId: any): Promise<Course[]> {
+    return await this.s.getCoursesByGrade(gradeDocId);
+  }
+
   public async getAllCourses(): Promise<Course[]> {
     return await this.s.getAllCourses();
   }
@@ -197,6 +201,9 @@ export class ApiHandler implements ServiceApi {
   updateMusicFlag(user: User, value: boolean) {
     return this.s.updateMusicFlag(user, value);
   }
+  updateTcAccept(user: User, value: boolean) {
+    return this.s.updateTcAccept(user, value);
+  }
   public get currentStudent(): User | undefined {
     return this.s.currentStudent;
   }
@@ -260,6 +267,10 @@ export class ApiHandler implements ServiceApi {
 
   public async getSubject(id: string): Promise<Subject | undefined> {
     return await this.s.getSubject(id);
+  }
+
+  public async getCourse(id: string): Promise<Course | undefined> {
+    return await this.s.getCourse(id);
   }
 
   public async getLeaderboardResults(

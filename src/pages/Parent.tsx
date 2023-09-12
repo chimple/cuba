@@ -35,6 +35,7 @@ import CustomAppBar from "../components/studentProgress/CustomAppBar";
 import DeleteParentAccount from "../components/parent/DeleteParentAccount";
 import { TrueFalseEnum } from "../interface/modelInterfaces";
 import { Util } from "../utility/util";
+import { schoolUtil } from "../utility/schoolUtil";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
@@ -56,6 +57,7 @@ const Parent: React.FC = () => {
   const [currentAppLang, setCurrentAppLang] = useState<string>();
   //  const [localLangDocId, setLocalLangDocId] = useState<any>();
   const [reloadProfiles, setReloadProfiles] = useState<boolean>(false);
+  const [studentMode, setStudentMode] = useState<string | undefined>();
   let tempLangList: {
     id: string;
     displayName: string;
@@ -92,6 +94,8 @@ const Parent: React.FC = () => {
   async function inti(): Promise<void> {
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (parentUser != undefined) {
+      const currMode = await schoolUtil.getCurrMode();
+      setStudentMode(currMode);
       console.log("User ", parentUser?.musicFlag!);
       const sound = Util.getCurrentSound();
       const music = Util.getCurrentMusic();
@@ -159,6 +163,7 @@ const Parent: React.FC = () => {
               showText={true}
               setReloadProfiles={setReloadProfiles}
               profiles={userProfile}
+              studentCurrMode= {studentMode}
             />
           );
         })}
@@ -254,9 +259,9 @@ const Parent: React.FC = () => {
           <div id="parent-logout">
             <ParentLogout />
           </div>
-          <div id="parent-delete">
+          {/* <div id="parent-delete">
             <DeleteParentAccount />
-          </div>
+          </div> */}
         </div>
       </div>
     );

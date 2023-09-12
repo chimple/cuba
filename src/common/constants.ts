@@ -16,9 +16,6 @@ export enum SL_GRADES {
 
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
-
-
-
 export enum HOMEHEADERLIST {
   SUBJECTS = "SUBJECTS",
   HOME = "HOME",
@@ -28,7 +25,7 @@ export enum HOMEHEADERLIST {
   QUIZ = "QUIZ",
   PROFILE = "PROFILE",
   HISTORY = "HISTORY",
-  FAVOURITES = "FAVOURITES"
+  FAVOURITES = "FAVOURITES",
 }
 
 export enum PARENTHEADERLIST {
@@ -42,6 +39,12 @@ export enum LEADERBOARDHEADERLIST {
   LEADERBOARD = "LEADERBOARD",
   EVENTS = "EVENTS",
 }
+
+export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu"
+export const grade1 = "R5sDh8LKKBx7D7o1MMl0"
+export const grade2 = "al0OqObeTBK3OFWSyDOg"
+export const grade3 = "i1paELqh4uwET2OQQl1E"
+export const aboveGrade3 = "rhuiXCmMzmJM1dkN8UNu"
 
 export const parentHeaderIconList: HeaderIconConfig[] = [
   {
@@ -146,6 +149,7 @@ export enum PAGES {
   ASSIGNMENT = "/assignment",
   JOIN_CLASS = "/join-class",
   SELECT_MODE = "/select-mode",
+  TERMS_AND_CONDITIONS = "/terms-and-conditions",
 }
 
 export enum LANG {
@@ -186,6 +190,7 @@ export const DISPLAY_SUBJECTS_STORE = "DispSubStore";
 export const SOUND = "sound";
 export const MUSIC = "music";
 export const GAME_URL = "gameUrl";
+export const TC_ACCEPT = "tcAccept";
 export const BASE_NAME =
   !Capacitor.isNativePlatform() && !!process.env.REACT_APP_GITHUB_BASE
     ? process.env.REACT_APP_GITHUB_BASE
@@ -271,7 +276,8 @@ export const NUMBER_NAME = [
 ];
 
 export const MAX_STUDENTS_ALLOWED = 3;
-export const INSTANT_SEARCH_INDEX_NAME = "lesson_cuba";
+export const INSTANT_SEARCH_INDEX_NAME =
+  process.env.REACT_APP_ALGOLIA_INDEX_NAME ?? "";
 
 export enum MODES {
   PARENT = "PARENT",
@@ -285,6 +291,7 @@ export enum ACTION {
 }
 
 export const CURRENT_STUDENT = "currentStudent";
+export const CURRENT_USER = "currentUser";
 export enum EVENTS {
   LESSON_END = "lesson_end",
   LESSON_INCOMPLETE = "lesson_incomplete",
@@ -304,6 +311,8 @@ export const IS_MIGRATION_CHECKED = "isMigrationChecked";
 export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
 
 export const COPIED_BUNDLE_FILES_INDEX = "copiedBundleFilesIndex";
+
+export const NUMBER_REGEX = /^[0-9]+$/;
 
 export const courseSortIndex = {
   en: 1,

@@ -49,8 +49,15 @@ export class OneRosterApi implements ServiceApi {
   getAvatarInfo(): Promise<Avatar | undefined> {
     throw new Error("Method not implemented.");
   }
+  updateTcAccept(user: User, value: boolean) {
+    throw new Error("Method not implemented.");
+  }
 
   deleteAllUserData(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  getCoursesByGrade(gradeDocId: any): Promise<Course[]> {
     throw new Error("Method not implemented.");
   }
   getAllCourses(): Promise<Course[]> {
@@ -130,6 +137,10 @@ export class OneRosterApi implements ServiceApi {
   }
 
   getSubject(id: string): Promise<Subject | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
+  getCourse(id: string): Promise<Course | undefined> {
     throw new Error("Method not implemented.");
   }
 

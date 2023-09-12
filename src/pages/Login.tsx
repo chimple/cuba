@@ -2,7 +2,7 @@ import { IonLoading, IonPage } from "@ionic/react";
 import { useEffect, useRef, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
-import { LANGUAGE, PAGES } from "../common/constants";
+import { CURRENT_USER, LANGUAGE, NUMBER_REGEX, PAGES } from "../common/constants";
 import { Capacitor } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
 import TextBox from "../components/TextBox";
@@ -85,7 +85,7 @@ const Login: React.FC = () => {
     init();
     setIsLoading(true);
     setIsInvalidCode(verificationCodeMessageFlags);
-  
+
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
         console.log("info", JSON.stringify(info));
@@ -133,9 +133,8 @@ const Login: React.FC = () => {
         history.replace(PAGES.DISPLAY_STUDENT);
       }
       if (isUserLoggedIn) {
-        console.log("navigating to app lang");
         setIsLoading(false);
-        history.replace(PAGES.HOME);
+        history.replace(PAGES.SELECT_MODE);
       }
       setIsLoading(false);
     });
@@ -182,9 +181,9 @@ const Login: React.FC = () => {
   useEffect(() => {
     console.log("Testing: " + allowSubmittingOtpCounter);
     disableOtpButtonIfSameNumber && allowSubmittingOtpCounter > 0 && setTimeout(() => setAllowSubmittingOtpCounter(allowSubmittingOtpCounter - 1), 1000);
-    let str = t(`Sent OTP button will be enabled in x seconds`)
-    .replace(`x`, allowSubmittingOtpCounter.toString());
-  setTitle(str);
+    let str = t(`Send OTP button will be enabled in x seconds`)
+      .replace(`x`, allowSubmittingOtpCounter.toString());
+    setTitle(str);
   }, [allowSubmittingOtpCounter]);
 
   const onPhoneNumberSubmit = async () => {
@@ -281,6 +280,9 @@ const Login: React.FC = () => {
       if (res.isUserExist) {
         setIsLoading(false);
         history.replace(PAGES.SELECT_MODE);
+        localStorage.setItem(CURRENT_USER, JSON.stringify(res.user));
+        console.log("isUserExist", localStorage.getItem(CURRENT_USER));
+
         // setShowNameInput(true);
       } else if (!res.isUserExist) {
         setIsLoading(false);
@@ -290,6 +292,9 @@ const Login: React.FC = () => {
         if (phoneAuthResult) {
           // history.push(PAGES.DISPLAY_STUDENT);
           history.replace(PAGES.SELECT_MODE);
+          localStorage.setItem(CURRENT_USER, JSON.stringify(phoneAuthResult));
+          console.log("new user", localStorage.getItem(CURRENT_USER));
+
         }
       } else {
         setIsLoading(false);
@@ -316,6 +321,9 @@ const Login: React.FC = () => {
   async function resendOtpHandler() {
 
     try {
+      if (!(counter <= 0)) {
+        return;
+      }
       setSentOtpLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
       setRecaptchaVerifier(undefined);
@@ -400,8 +408,7 @@ const Login: React.FC = () => {
                         onChange={(input) => {
                           if (input.target.value) {
 
-                            const numberRegex = /^[0-9\b]+$/;
-                            if (!numberRegex.test(input.target.value)) {
+                            if (!NUMBER_REGEX.test(input.target.value)) {
                               return;
                             }
 
@@ -432,7 +439,7 @@ const Login: React.FC = () => {
                       style={{ display: "none" }}
                       className="login-error-message"
                     >
-                     {t("Please Enter 10 digit Mobile Number")}
+                      {t("Please Enter 10 digit Mobile Number")}
                     </p>
                   </div>
                   <div id="recaptcha-container" />
@@ -491,6 +498,8 @@ const Login: React.FC = () => {
                         setIsLoading(false);
                         // history.replace(PAGES.DISPLAY_STUDENT);
                         history.replace(PAGES.SELECT_MODE);
+                        localStorage.setItem(CURRENT_USER, JSON.stringify(result));
+                        console.log("google...", localStorage.getItem(CURRENT_USER));
                       } else {
                         setIsLoading(false);
                       }
@@ -515,6 +524,9 @@ const Login: React.FC = () => {
                       inputValue={verificationCode.trim()}
                       onChange={(input) => {
                         if (input.target.value) {
+                          if (!NUMBER_REGEX.test(input.target.value)) {
+                            return;
+                          }
                           setVerificationCode(input.target.value.trim());
                           console.log(input.target.value);
                           setIsInvalidCode({

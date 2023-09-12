@@ -22,12 +22,12 @@ const SelectCourse: FC<{
             <div className="course-icon">
               <SelectIconImage
                 localSrc={`courses/chapter_icons/${course.courseCode}.webp`}
-                defaultSrc={"courses/" + "maths" + "/icons/" + "maths10.webp"}
+                defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
                 webSrc={course.thumbnail}
               />
             </div>
             {/* {t(course.title)} */}
-            {course.title === "English" ? course.title : t(course.title)}
+            {course.title === "English" ? course.title : course.title}
           </div>
         );
       })}

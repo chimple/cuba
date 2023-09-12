@@ -7,9 +7,9 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { Keyboard } from "@capacitor/keyboard";
-import { PAGES } from "../../common/constants";
+import { NUMBER_REGEX, PAGES } from "../../common/constants";
 import { useLocation } from "react-router";
-const urlClassCode:any={};
+const urlClassCode: any = {};
 
 const JoinClass: FC<{
   onClassJoin: () => void,
@@ -26,7 +26,7 @@ const JoinClass: FC<{
   const api = ServiceConfig.getI().apiHandler;
 
   const isNextButtonEnabled = () => {
-    let tempInviteCode=urlClassCode.inviteCode ? urlClassCode.inviteCode : inviteCode;
+    let tempInviteCode = urlClassCode.inviteCode ? urlClassCode.inviteCode : inviteCode;
     return !!tempInviteCode && tempInviteCode.toString().length === 6;
   };
 
@@ -84,14 +84,14 @@ const JoinClass: FC<{
     const joinClassParam = urlParams.get('join-class');
     const classCode = urlParams.get('classCode');
 
-    if(classCode!=""){
-      let tempClassCode =!!classCode && !isNaN(parseInt(classCode))
-      ? parseInt(classCode)
-      : undefined
+    if (classCode != "") {
+      let tempClassCode = !!classCode && !isNaN(parseInt(classCode))
+        ? parseInt(classCode)
+        : undefined
       setInviteCode(
         tempClassCode
       );
-      urlClassCode.inviteCode=tempClassCode;
+      urlClassCode.inviteCode = tempClassCode;
       if (classCode != "") {
         getClassData();
       }
@@ -107,21 +107,27 @@ const JoinClass: FC<{
         <input
           onChange={(evt) => {
             const inviteCode = evt.target.value.slice(0, 6);
+            if (!inviteCode) {
+              setInviteCode(undefined);
+              return;
+            }
+            if (!NUMBER_REGEX.test(inviteCode)) {
+              return;
+            }
+
             setInviteCode(
-              !!inviteCode && !isNaN(parseInt(inviteCode))
-                ? parseInt(inviteCode)
-                : undefined
+              parseInt(inviteCode)
             );
           }}
           className="join-class-text-box"
-          defaultValue={inviteCode}
-          type="number"
+          defaultValue={inviteCode ?? ""}
+          type="tel"
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               getClassData();
             }
           }}
-          value={inviteCode}
+          value={inviteCode ?? ""}
         />
         <p className={"error-text "}>{error}</p>
         <button

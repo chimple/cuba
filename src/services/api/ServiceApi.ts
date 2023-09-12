@@ -91,6 +91,7 @@ export interface ServiceApi {
   updateSoundFlag(user: User, value: boolean);
   updateMusicFlag(user: User, value: boolean);
   updateLanguage(user: User, value: string);
+  updateTcAccept(user: User, value: boolean);
 
   /**
    * Gives Language for given a language firebase doc Id
@@ -211,6 +212,13 @@ export interface ServiceApi {
    * @returns {Subject | undefined}`Subject` or `undefined` if it could not find the Subject with given `id`
    */
   getSubject(id: string): Promise<Subject | undefined>;
+
+  /**
+   * Gives Course for given a Course firebase doc Id
+   * @param {string} id - Course firebase doc id
+   * @returns {Course | undefined}`Course` or `undefined` if it could not find the Course with given `id`
+   */
+  getCourse(id: string): Promise<Course | undefined>;
 
   /**
    * Gives StudentProfile for given a Student firebase doc Id
@@ -362,6 +370,7 @@ export interface ServiceApi {
    * Gives all `Course` available on database
    * @returns {Course[]} Array of `Course` objects
    */
+  getCoursesByGrade(gradeDocId: any): Promise<Course[]>;
   getAllCourses(): Promise<Course[]>;
 
   /**

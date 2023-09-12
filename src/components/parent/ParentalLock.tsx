@@ -42,7 +42,7 @@ const ParentalLock: React.FC<{
       console.log("User swipeDirection", swipeDirection);
 
       if (swipeDirection.length > 0 && userDirection === swipeDirection) {
-        history.push(PAGES.PARENT);
+        history.replace(PAGES.PARENT);
       } else {
         console.log('not matched');
       }

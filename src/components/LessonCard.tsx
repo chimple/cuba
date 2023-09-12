@@ -12,6 +12,7 @@ import Subject from "../models/subject";
 import { t } from "i18next";
 import LovedIcon from "./LovedIcon";
 import SelectIconImage from "./displaySubjects/SelectIconImage";
+import { Util } from "../utility/util";
 
 const LessonCard: React.FC<{
   width: string;
@@ -49,25 +50,51 @@ const LessonCard: React.FC<{
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
   const [subject, setSubject] = useState<Subject>();
+  // const [subject, setSubject] = useState<Subject>();
+  const [currentCourse, setCurrentCourse] = useState<Course>();
 
   const hideImg = (event: any) => {
     setShowImage(false);
   };
   // const subjectCode = lesson.chapter.course.id;
   useEffect(() => {
-    if (showSubjectName) getSubject();
+    // getSubject();
+    getCurrentCourse();
   }, [lesson]);
 
-  const getSubject = async () => {
-    const subjectId = lesson?.subject?.toString()?.split("/")?.at(-1);
-    if (!subjectId) return;
-    let subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
-    if (!subject) {
-      const subjectId = lesson?.subject.path?.toString()?.split("/")?.at(-1);
-      if (!subjectId) return;
-      subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
+  // const getSubject = async () => {
+  //   const subjectId = lesson?.subject?.toString()?.split("/")?.at(-1);
+  //   if (!subjectId) return;
+  //   let subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
+  //   if (!subject) {
+  //     const subjectId = lesson?.subject.path?.toString()?.split("/")?.at(-1);
+  //     if (!subjectId) return;
+  //     subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
+  //   }
+  //   setSubject(subject);
+  // };
+
+  const getCurrentCourse = async () => {
+    const currentStudent = Util.getCurrentStudent();
+    if (!currentStudent) {
+      return;
     }
-    setSubject(subject);
+    const courses =
+      await ServiceConfig.getI().apiHandler.getCoursesForParentsStudent(
+        currentStudent
+      );
+    console.log("Student Courses ", courses);
+
+    let currentCourse = courses.find(
+      (course) => lesson.cocosSubjectCode === course.courseCode
+    );
+
+    console.log("current Course ", currentCourse);
+    if (!currentCourse) {
+      return;
+    }
+
+    setCurrentCourse(currentCourse);
   };
 
   // const lessonCardColor =
@@ -88,7 +115,7 @@ const LessonCard: React.FC<{
         width: width,
         height: "auto",
       }}
-      onClick={() => {
+      onClick={async () => {
         if (isUnlocked) {
           // if (
           //   lesson.chapter.course.isCourseMapped &&
@@ -105,6 +132,9 @@ const LessonCard: React.FC<{
           //     from: history.location.pathname,
           //   });
           // } else {
+          // console.log("LessonCard course: subject,", subject);
+          console.log("LessonCard course: course,", currentCourse);
+
           const parmas = `?courseid=${lesson.cocosSubjectCode}&chapterid=${lesson.cocosChapterCode}&lessonid=${lesson.id}`;
           console.log(
             "🚀 ~ file: LessonCard.tsx:73 ~ parmas:",
@@ -115,6 +145,7 @@ const LessonCard: React.FC<{
             url: "chimple-lib/index.html" + parmas,
             lessonId: lesson.id,
             courseDocId: course?.docId ?? lesson?.assignment?.course?.id,
+            course: JSON.stringify(Course.toJson(currentCourse!)),
             lesson: JSON.stringify(Lesson.toJson(lesson)),
             from: history.location.pathname + "?continue=true",
           });
@@ -153,10 +184,10 @@ const LessonCard: React.FC<{
               </div>
             ) : null}
           </div>
-          {showSubjectName && subject?.title ? (
+          {showSubjectName && currentCourse?.title ? (
             <div id="lesson-card-subject-name">
               <p>
-                {subject?.title}
+                {currentCourse?.title}
                 {/* {subject.title==="English"?subject.title:t(subject.title)} */}
               </p>
             </div>
@@ -185,7 +216,7 @@ const LessonCard: React.FC<{
                 lesson.id +
                 ".webp"
               }
-              defaultSrc={"courses/" + "en" + "/icons/" + "en33.webp"}
+              defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
               webSrc={lesson.thumbnail}
             />
             {!isUnlocked ? (

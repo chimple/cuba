@@ -41,6 +41,10 @@
   cursor: pointer;
 }
 
+.okay-btn-disabled {
+  background-color: grey;
+}
+
 .class-main {
   display: flex;
   flex-direction: column;

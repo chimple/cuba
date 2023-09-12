@@ -7,6 +7,7 @@ import {
   LEADERBOARDHEADERLIST,
   PAGES,
   PARENTHEADERLIST,
+  MODES
 } from "../common/constants";
 // import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -32,7 +33,8 @@ import { Util } from "../utility/util";
 // import auth from "../models/auth";
 import i18n from "../i18n";
 import IconButton from "../components/IconButton";
-import { App } from "@capacitor/app";
+
+import { schoolUtil } from "../utility/schoolUtil";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -47,6 +49,7 @@ const Leaderboard: React.FC = () => {
   const [currentUserDataContent, setCurrentUserDataContent] = useState<
     string[][]
   >([]);
+  const [studentMode, setStudentMode] = useState<string | undefined>();
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
@@ -60,18 +63,9 @@ const Leaderboard: React.FC = () => {
   const [weeklySelectedValue, setWeeklySelectedValue] = useState<string>();
   const [currentClass, setCurrentClass] = useState<StudentProfile>();
 
-  function BackButtonListener() {
-      history.replace(PAGES.HOME);
-  }
-
   useEffect(() => {
     setIsLoading(true);
     inti();
-    App.addListener("backButton", BackButtonListener);
-    return ()=>{
-      App.removeAllListeners();
-    }
-
   }, []);
 
   async function inti() {
@@ -94,6 +88,8 @@ const Leaderboard: React.FC = () => {
       const getClass = await FirebaseApi.i.getStudentResult(
         currentStudent.docId
       );
+      const currMode = await schoolUtil.getCurrMode();
+      setStudentMode(currMode);
       if (getClass?.classes != undefined) {
         fetchLeaderBoardData(currentStudent, true, getClass?.classes[0]);
         setCurrentClass(getClass);
@@ -117,7 +113,7 @@ const Leaderboard: React.FC = () => {
     console.log(
       "leaderboardDataInfo.weekly.length <= 0 leaderboardDataInfo.allTime.length <= 0",
       leaderboardDataInfo.weekly.length <= 0 ||
-      leaderboardDataInfo.allTime.length <= 0,
+        leaderboardDataInfo.allTime.length <= 0,
       isWeeklyFlag
         ? "leaderboardDataInfo.weekly"
         : "leaderboardDataInfo.allTime"
@@ -160,7 +156,7 @@ const Leaderboard: React.FC = () => {
         element.name,
         element.lessonsPlayed,
         element.score,
-        computeMinutes + "min" + " " + result + " " + "sec",
+        computeMinutes + t("min") + " " + result + " " + t("sec"),
       ]);
 
       if (currentStudent.docId == element.userId) {
@@ -240,7 +236,7 @@ const Leaderboard: React.FC = () => {
             <img
               className="avatar-img"
               src={
-                currentStudent?.image || ("assets/avatars/" + (currentStudent?.avatar ?? AVATARS[0]) + ".png")
+                (studentMode === MODES.SCHOOL && currentStudent?.image) || ("assets/avatars/" + (currentStudent?.avatar ?? AVATARS[0]) + ".png")
               }
               alt=""
             />
@@ -326,15 +322,15 @@ const Leaderboard: React.FC = () => {
                       ? "rgb(200 200 200)"
                       : Number(currentUserDataContent[0][1]) ===
                         headerRowIndicator
-                        ? "#FF7925"
-                        : "",
+                      ? "#FF7925"
+                      : "",
                   padding:
                     headerRowIndicator === 0
                       ? "1vh 2vh"
                       : Number(currentUserDataContent[0][1]) ===
                         headerRowIndicator
-                        ? "0vh 2vh"
-                        : "1vh 2vh ",
+                      ? "0vh 2vh"
+                      : "1vh 2vh ",
                   position: "sticky",
                   zIndex: headerRowIndicator === 0 ? "3" : "0",
                   top: "0px",
@@ -373,7 +369,14 @@ const Leaderboard: React.FC = () => {
                         }}
                         id="leaderboard-right-UI-content"
                       >
-                        {i === 1 ? <p id="leaderboard-profile-name">{d}</p> : d}
+                        {i === 1 ?
+                          <p id="leaderboard-profile-name">
+                            {Number(currentUserDataContent[0][1]) === headerRowIndicator && currentStudent?.name
+                              ? currentStudent?.name
+                              : d
+                            }
+                          </p>
+                          : d}
                       </p>
                     </IonCol>
                   );
@@ -464,10 +467,10 @@ const Leaderboard: React.FC = () => {
                     value={LEADERBOARDHEADERLIST.LEADERBOARD}
                     label={t(LEADERBOARDHEADERLIST.LEADERBOARD)}
                     id="parent-page-tab-bar"
-                  // sx={{
-                  //   // fontSize:"5vh"
-                  //   marginRight: "5vw",
-                  // }}
+                    // sx={{
+                    //   // fontSize:"5vh"
+                    //   marginRight: "5vw",
+                    // }}
                   />
                   <Tab
                     id="parent-page-tab-bar"
@@ -493,8 +496,8 @@ const Leaderboard: React.FC = () => {
                       await i18n.changeLanguage(tempLangCode);
                     }
                   }
-                  // history.replace(PAGES.DISPLAY_STUDENT);
-                  history.replace(PAGES.SELECT_MODE);
+                  history.replace(PAGES.DISPLAY_STUDENT);
+                  // history.replace(PAGES.SELECT_MODE);
                 }}
               />
             </div>

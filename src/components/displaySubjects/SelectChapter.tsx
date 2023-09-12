@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { Chapter } from "../../common/courseConstants";
 import "./SelectChapter.css";
 import Grade from "../../models/grade";
@@ -13,6 +13,7 @@ const SelectChapter: FC<{
   course: Course;
   currentGrade: Grade;
   onGradeChange: (grade: Grade) => void;
+  currentChapterId : string | undefined;
 }> = ({
   chapters,
   onChapterChange,
@@ -20,7 +21,13 @@ const SelectChapter: FC<{
   currentGrade,
   onGradeChange,
   course,
+  currentChapterId,
 }) => {
+  let currentChapterRef = useRef<any>();
+
+  useEffect(() => {
+    currentChapterRef.current?.scrollIntoView({ behavior: 'instant' });
+  }, []);
   return (
     <div>
       <div className="grade-container" />
@@ -28,6 +35,7 @@ const SelectChapter: FC<{
         {chapters.map((chapter) => {
           return (
             <div
+              ref = {currentChapterId === chapter.id ? currentChapterRef : undefined}
               onClick={() => {
                 onChapterChange(chapter);
               }}
@@ -37,7 +45,7 @@ const SelectChapter: FC<{
               <div className="chapter-icon">
                 <SelectIconImage
                   localSrc={`courses/${course.courseCode}/icons/${chapter.id}.webp`}
-                  defaultSrc={"courses/" + "en" + "/icons/" + "en33.webp"}
+                  defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
                   webSrc={chapter.thumbnail}
                 />
               </div>

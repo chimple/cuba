@@ -5,6 +5,7 @@ import {
   CACHE_SIZE_UNLIMITED,
   initializeFirestore,
   persistentLocalCache,
+  persistentMultipleTabManager,
 } from "firebase/firestore";
 
 export const initializeFireBase = async () => {
@@ -26,7 +27,10 @@ export const initializeFireBase = async () => {
   // const db = getFirestore(app)
 
   initializeFirestore(app, {
-    localCache: persistentLocalCache({ cacheSizeBytes: CACHE_SIZE_UNLIMITED }),
+    localCache: persistentLocalCache({
+      cacheSizeBytes: CACHE_SIZE_UNLIMITED,
+      tabManager: persistentMultipleTabManager(),
+    }),
   });
 
   var deviceInfo = await Device.getInfo();

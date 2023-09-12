@@ -6,7 +6,7 @@ import { MdModeEditOutline } from "react-icons/md";
 import { FcPlus } from "react-icons/fc";
 import { HiPlusCircle } from "react-icons/hi";
 import User from "../../models/user";
-import { ACTION, AVATARS, EVENTS, PAGES } from "../../common/constants";
+import { ACTION, AVATARS, EVENTS, PAGES, MODES } from "../../common/constants";
 import { Util } from "../../utility/util";
 import DialogBoxButtons from "./DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
@@ -22,7 +22,8 @@ const ProfileCard: React.FC<{
   showText?: boolean;
   setReloadProfiles: (event: boolean) => void;
   profiles?: User[];
-}> = ({ width, height, userType, user, setReloadProfiles, profiles }) => {
+  studentCurrMode: string | undefined;
+}> = ({ width, height, userType, user, setReloadProfiles, profiles, studentCurrMode }) => {
   const history = useHistory();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [showWarningDialogBox, setShowWarningDialogBox] =
@@ -69,7 +70,7 @@ const ProfileCard: React.FC<{
           <img
             id="profile-card-image"
             loading="lazy"
-            src={ user.image || "assets/avatars/" + (user.avatar ?? AVATARS[0]) + ".png"}
+            src={(studentCurrMode === MODES.SCHOOL && user.image) || "assets/avatars/" + (user.avatar ?? AVATARS[0]) + ".png"}
             alt=""
           />
           <p id="profile-card-user-name">{user.name}</p>
@@ -128,7 +129,7 @@ const ProfileCard: React.FC<{
             console.log(`Edit Profile`, "no", user.docId);
             const api = ServiceConfig.getI().apiHandler;
             await Util.setCurrentStudent(user, undefined, false);
-            history.push(PAGES.EDIT_STUDENT, {
+            history.replace(PAGES.EDIT_STUDENT, {
               from: history.location.pathname,
             });
             setShowDialogBox(false);

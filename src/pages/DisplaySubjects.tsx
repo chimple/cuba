@@ -44,10 +44,10 @@ const DisplaySubjects: FC<{}> = () => {
   const [currentChapter, setCurrentChapter] = useState<Chapter>();
   const [currentClass, setCurrentClass] = useState<Class>();
   const [lessons, setLessons] = useState<Lesson[]>();
-  /* const [gradesMap, setGradesMap] = useState<{
-     grades: Grade[];
-     courses: Course[];
-   }>();*/
+  // const [gradesMap, setGradesMap] = useState<{
+  //   grades: Grade[];
+  //   courses: Course[];
+  // }>();
   const [localGradeMap, setLocalGradeMap] = useState<{
     grades: Grade[];
     courses: Course[];
@@ -113,6 +113,7 @@ const DisplaySubjects: FC<{}> = () => {
         }
       }
 
+      !!localData.localGradeMap && setLocalGradeMap(localData.localGradeMap);
       localStorageData.lessonResultMap = localData.lessonResultMap;
       localStorageData.stage = STAGES.LESSONS;
       addDataToLocalStorage();
@@ -169,6 +170,8 @@ const DisplaySubjects: FC<{}> = () => {
             } else {
               setIsLoading(false);
             }
+          } else {
+            setIsLoading(false);
           }
 
         } else {
@@ -187,7 +190,13 @@ const DisplaySubjects: FC<{}> = () => {
     }
     let map = localStorage.getItem(GRADE_MAP);
     if (!!map) {
-      setLocalGradeMap(JSON.parse(map));
+      let _localMap: {
+        grades: Grade[];
+        courses: Course[];
+      } = JSON.parse(map);
+      let convertedCourses = Util.convertCourses(_localMap.courses);
+      _localMap.courses = convertedCourses;
+      setLocalGradeMap(_localMap);
     };
   };
 
@@ -247,11 +256,16 @@ const DisplaySubjects: FC<{}> = () => {
         history.replace(PAGES.HOME);
         break;
       case STAGES.CHAPTERS:
+        delete localData.currentChapter;
+        delete localStorageData.currentChapterId;
+        setCurrentChapter(undefined);
         localStorageData.stage = STAGES.SUBJECTS;
         addDataToLocalStorage();
         setStage(STAGES.SUBJECTS);
         break;
       case STAGES.LESSONS:
+        delete localData.lessons;
+        setLessons(undefined);
         localStorageData.stage = STAGES.CHAPTERS;
         addDataToLocalStorage();
         setStage(STAGES.CHAPTERS);
@@ -347,7 +361,7 @@ const DisplaySubjects: FC<{}> = () => {
             onValueChange={(evt) => {
               {
                 const tempGrade = localGradeMap.grades.find(
-                  (grade) => grade.docId === evt.detail.value
+                  (grade) => grade.docId === evt
                 );
                 onGradeChanges(tempGrade ?? currentGrade);
               }
@@ -377,6 +391,7 @@ const DisplaySubjects: FC<{}> = () => {
               grades={!!localGradeMap ? localGradeMap.grades : localGradeMap}
               onGradeChange={onGradeChanges}
               course={currentCourse}
+              currentChapterId={currentChapter?.id}
             />
           )}
       </div>
