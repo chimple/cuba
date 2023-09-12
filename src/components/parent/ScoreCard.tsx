@@ -67,6 +67,7 @@ const ScoreCard: React.FC<{
             textAlign: "center",
             width: width,
             height: height,
+            overflow: "hidden",
           }}
         >
           <DialogContentText className="dialog-content-text">
