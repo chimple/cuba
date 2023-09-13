@@ -265,8 +265,6 @@ const CocosGame: React.FC = () => {
         {showDialogBox && (
           <div>
             <ScoreCard
-              width={"50vw"}
-              height={"60vh"}
               title={t("🎉Congratulations🎊")}
               score={gameResult.detail.score}
               message={t("You Completed the Lesson:")}
