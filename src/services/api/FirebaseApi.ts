@@ -59,6 +59,7 @@ import Class from "../../models/class";
 import School from "../../models/school";
 import Assignment from "../../models/assignment";
 import { sort } from "semver";
+import Avatar from "../../models/avatar";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
@@ -74,7 +75,7 @@ export class FirebaseApi implements ServiceApi {
   private _schoolsCache: { [userId: string]: School[] } = {};
   private _currentMode: MODES;
   private _allCourses: Course[];
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): FirebaseApi {
     if (!FirebaseApi.i) {
@@ -311,6 +312,29 @@ export class FirebaseApi implements ServiceApi {
         JSON.stringify(error)
       );
       return [];
+    }
+  }
+
+  public async getAvatarInfo(): Promise<Avatar | undefined> {
+    try {
+      const avatarDocId = "AvatarInfo";
+      console.log(
+        "getAvatarInfo(): entred",
+        doc(this._db, CollectionIds.AVATAR + "/" + avatarDocId)
+      );
+      const documentSnapshot = await this.getDocFromOffline(
+        doc(this._db, CollectionIds.AVATAR + "/" + avatarDocId)
+      );
+      const avatarInfoData = documentSnapshot.data() as Avatar;
+      console.log("const avatarInfoData", avatarInfoData);
+
+      return avatarInfoData;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:262 ~ FirebaseApi ~ getAvatarInfo ~ error:",
+        JSON.stringify(error)
+      );
+      return;
     }
   }
 
