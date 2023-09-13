@@ -10,9 +10,20 @@ export enum COURSES {
 }
 
 export enum SL_GRADES {
+  BELOWGRADE1 = "Below Grade 1",
   GRADE1 = "Grade 1",
   GRADE2 = "Grade 2",
+  GRADE3 = "Grade 3",
+  ABOVEGRADE3 = "Above Grade 3",
 }
+
+export const SL_GRADES_NUMERIC = {
+  [SL_GRADES.BELOWGRADE1]: 1,
+  [SL_GRADES.GRADE1]: 2,
+  [SL_GRADES.GRADE2]: 3,
+  [SL_GRADES.GRADE3]: 4,
+  [SL_GRADES.ABOVEGRADE3]: 5,
+};
 
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
