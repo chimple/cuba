@@ -82,7 +82,7 @@
   left: 0vh;
   top: 0vh;
   padding: 0px 1px;
-  background: #ccdeff;
+  background: #f2d9ca00;
   color: #323840;
   transition: 0.2s ease all;
   -moz-transition: 0.2s ease all;
@@ -96,7 +96,7 @@
   height: 6vh;
   padding: 0px 0vw;
   margin: 0vh 0vh 5vh 0vh;
-  background: #ccdeff;
+  background: #f2d9ca00;
   color: #323840;
   border: 0px none;
   border-radius: 0px;
