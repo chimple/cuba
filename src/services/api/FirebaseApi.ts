@@ -36,7 +36,6 @@ import {
   grade1,
   grade2,
   grade3,
-  GRADES_NUMERIC,
 } from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
 import User from "../../models/user";
@@ -679,6 +678,7 @@ export class FirebaseApi implements ServiceApi {
       where("curriculum", "==", course.curriculum)
     );
     const queryResult = await this.getDocsFromOffline(q);
+    const allGrades = await this.getAllGrades();
     const gradeMap: {
       grades: Grade[];
       courses: Course[];
@@ -703,8 +703,11 @@ export class FirebaseApi implements ServiceApi {
         }
       )
     );
-    gradeMap.grades.sort((a, b) => GRADES_NUMERIC[a.title] - GRADES_NUMERIC[b.title]);
-    
+    gradeMap.grades.sort((a, b) => {
+      const aIndex = allGrades.findIndex((grade) => grade.docId === a.docId);
+      const bIndex = allGrades.findIndex((grade) => grade.docId === b.docId);
+      return aIndex - bIndex;
+    });
     return gradeMap;
   }
 
