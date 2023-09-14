@@ -33,10 +33,10 @@ import {
   aboveGrade3,
   belowGrade1,
   courseSortIndex,
-  SL_GRADES_NUMERIC,
   grade1,
   grade2,
   grade3,
+  GRADES_NUMERIC,
 } from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
 import User from "../../models/user";
@@ -703,7 +703,7 @@ export class FirebaseApi implements ServiceApi {
         }
       )
     );
-    gradeMap.grades.sort((a, b) => SL_GRADES_NUMERIC[a.title] - SL_GRADES_NUMERIC[b.title]);
+    gradeMap.grades.sort((a, b) => GRADES_NUMERIC[a.title] - GRADES_NUMERIC[b.title]);
     
     return gradeMap;
   }

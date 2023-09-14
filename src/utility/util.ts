@@ -18,7 +18,7 @@ import {
   PortPlugin,
   PRE_QUIZ,
   SELECTED_GRADE,
-  SL_GRADES,
+  GRADES,
   IS_MIGRATION_CHECKED,
   SOUND,
   MUSIC,
@@ -445,7 +445,7 @@ export class Util {
     let selectedGrade = localStorage.getItem(SELECTED_GRADE());
     let gradeMap = {};
     if (!selectedGrade) {
-      gradeMap = { en: SL_GRADES.GRADE1, maths: SL_GRADES.GRADE1 };
+      gradeMap = { en: GRADES.GRADE1, maths: GRADES.GRADE1 };
       console.log("in util if (!selectedGrade) {", gradeMap);
     } else {
       gradeMap = JSON.parse(selectedGrade);
