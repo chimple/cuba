@@ -49,6 +49,7 @@ import { margin } from "@mui/system";
 import { push } from "ionicons/icons";
 import { t } from "i18next";
 import { App, URLOpenListenerEvent } from "@capacitor/app";
+import ChimpleAvatarPage from "../components/animation/ChimpleAvatarPage";
 
 const sortValidLessonsByDate = (
   lessonIds: string[],
@@ -178,6 +179,10 @@ const Home: FC = () => {
   };
 
   async function setCourse(subjectCode: string) {
+    let avatarInfo = await ServiceConfig.getI().apiHandler.getAvatarInfo();
+
+    console.log("avatarInfo ", avatarInfo);
+
     setIsLoading(true);
     const currentStudent = await Util.getCurrentStudent();
 
@@ -402,6 +407,10 @@ const Home: FC = () => {
     setCourses(courses);
     for (const tempCourse of courses) {
       setIsLoading(true);
+      if (tempCourse.chapters.length <= 0) {
+        console.log("Chapters are empty", tempCourse);
+        continue;
+      }
       let islessonPushed = false;
       if (tempCourse.chapters.length <= 0) {
         console.log("Chapter are empty", tempCourse);
@@ -711,18 +720,25 @@ const Home: FC = () => {
         {!isLoading ? (
           <div className="space-between">
             {currentHeader === HOMEHEADERLIST.HOME ? (
-              <div>
-                <LessonSlider
-                  lessonData={dataCourse}
-                  isHome={true}
-                  course={undefined}
-                  lessonsScoreMap={lessonResultMap || {}}
-                  startIndex={0}
-                  showSubjectName={true}
-                  showChapterName={true}
-                />
-              </div>
-            ) : // <div style={{ marginTop: "2.6%" }}></div>
+              <ChimpleAvatarPage
+                style={{
+                  marginBottom: "15vh",
+                  display: "flex",
+                  justifyContent: "space-around",
+                }}
+              ></ChimpleAvatarPage>
+            ) : // <div>
+            //   <LessonSlider
+            //     lessonData={dataCourse}
+            //     isHome={true}
+            //     course={undefined}
+            //     lessonsScoreMap={lessonResultMap || {}}
+            //     startIndex={0}
+            //     showSubjectName={true}
+            //     showChapterName={true}
+            //   />
+            // </div>
+            // <div style={{ marginTop: "2.6%" }}></div>
             null}
 
             {currentHeader === HOMEHEADERLIST.FAVOURITES && (
@@ -820,52 +836,55 @@ const Home: FC = () => {
                 showSubjectName={currentHeader === HEADERLIST.RECOMMENDATION}
               />
             */}
-            {currentHeader !== HOMEHEADERLIST.QUIZ && (
-              <div id="home-page-bottom">
-                <AppBar className="home-page-app-bar">
-                  <Box>
-                    <Tabs
-                      value={value}
-                      onChange={handleChange}
-                      TabIndicatorProps={{ style: { display: "none" } }}
-                      sx={{
-                        "& .MuiTab-root": {
-                          color: "black",
-                          borderRadius: "5vh",
-                          padding: "0 3vw",
-                          margin: "1vh 1vh",
-                          minHeight: "37px",
-                        },
-                        "& .Mui-selected": {
-                          backgroundColor: "#FF7925",
-                          borderRadius: "8vh",
-                          color: "#FFFFFF !important",
-                          minHeight: "37px",
-                        },
-                      }}
-                    >
-                      <Tab
-                        id="home-page-sub-tab"
-                        label={t("Suggestion")}
-                        onClick={() => setCurrentHeader(HOMEHEADERLIST.HOME)}
-                      />
-                      <Tab
-                        id="home-page-sub-tab"
-                        label={t("Favourite")}
-                        onClick={() =>
-                          setCurrentHeader(HOMEHEADERLIST.FAVOURITES)
-                        }
-                      />
-                      <Tab
-                        id="home-page-sub-tab"
-                        label={t("History")}
-                        onClick={() => setCurrentHeader(HOMEHEADERLIST.HISTORY)}
-                      />
-                    </Tabs>
-                  </Box>
-                </AppBar>
-              </div>
-            )}
+            {currentHeader !== HOMEHEADERLIST.QUIZ &&
+              currentHeader !== HOMEHEADERLIST.HOME && (
+                <div id="home-page-bottom">
+                  <AppBar className="home-page-app-bar">
+                    <Box>
+                      <Tabs
+                        value={value}
+                        onChange={handleChange}
+                        TabIndicatorProps={{ style: { display: "none" } }}
+                        sx={{
+                          "& .MuiTab-root": {
+                            color: "black",
+                            borderRadius: "5vh",
+                            padding: "0 3vw",
+                            margin: "1vh 1vh",
+                            minHeight: "37px",
+                          },
+                          "& .Mui-selected": {
+                            backgroundColor: "#FF7925",
+                            borderRadius: "8vh",
+                            color: "#FFFFFF !important",
+                            minHeight: "37px",
+                          },
+                        }}
+                      >
+                        <Tab
+                          id="home-page-sub-tab"
+                          label={t("Suggestion")}
+                          onClick={() => setCurrentHeader(HOMEHEADERLIST.HOME)}
+                        />
+                        <Tab
+                          id="home-page-sub-tab"
+                          label={t("Favourite")}
+                          onClick={() =>
+                            setCurrentHeader(HOMEHEADERLIST.FAVOURITES)
+                          }
+                        />
+                        <Tab
+                          id="home-page-sub-tab"
+                          label={t("History")}
+                          onClick={() =>
+                            setCurrentHeader(HOMEHEADERLIST.HISTORY)
+                          }
+                        />
+                      </Tabs>
+                    </Box>
+                  </AppBar>
+                </div>
+              )}
           </div>
         ) : null}
         <Loading isLoading={isLoading} />

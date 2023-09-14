@@ -239,7 +239,7 @@ const LessonCard: React.FC<{
             ) : (
               <div />
             )}
-           {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle} />}
+           {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />}
           </div>
         </div>
       </div>
