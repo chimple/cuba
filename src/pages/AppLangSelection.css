@@ -1,38 +1,129 @@
 #app-lang {
-    /* background-color: ; */
-    text-align: center;
-    margin: var(--margin);
-    margin-bottom: 0;
-    
+  text-align: center;
+  margin: var(--margin);
+  margin-bottom: 0;
+  position: absolute;
+  
 }
 #App-lang-nextButton{
-    right: 0;
-    position: absolute
+  right: 0;
+  position: absolute
 }
 #app-lang-chimple-logo {
-    /* margin-top: 1%; */
-    text-align: center;
-    width: auto;
-    height: 25vh;
+  text-align: center;
+  width: auto;
+  height: 25vh;
 }
 
 #app-lang-element {
-   
-    /* text-align:initial;
-    margin-left: 38vw;
-    gap: 5vw; */
-    display: flex;
-    /* width: 22vw; */
-    flex-direction: column;
-    align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 #app-lang-text {
-    /* color: white; */
-    font-size: var(--text-size);
-    padding-top: 4vh;
-    color: var(--text-color);
-    margin-bottom: 2vh;
+  font-size: var(--text-size);
+  padding-top: 4vh;
+  color: var(--text-color);
+  margin-bottom: 2vh;
 }
 
 
+.app-container {
+  position: relative;
+  text-align: center;
+}
+
+.skip-button {
+  justify-content: space-between;
+  padding-left: min(10px,2vw);
+  right: 0;
+  color: #05342f;
+  font-size: var(--text-size);
+  height: 7vh;
+  width: clamp(95px,10vh,110px);
+  height: clamp(40px,8vh,45px);
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border-radius: 64px;
+}
+
+.navigation-dots {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  
+}
+#text{
+  margin-top: 2vh;
+  user-select: none;
+}
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 0 5px;
+  border-radius: 50%;
+  background-color: #ccc;
+  cursor: pointer;
+}
+#header-text{
+  font-size: clamp(18px,4vh,20vh);
+  font-weight: bold;
+  
+}
+
+.dot.active {
+  background-color: #007bff;
+}
+
+.intro-text {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-size) ;
+  color: var(--text-color);
+  align-content: center;    
+}
+
+.intro-text2{
+  line-height: 4vh;
+}
+
+.skip-button{
+  text-align: center;
+  background-color: grey;
+}
+.skip-next{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+#profile-logo{
+  width: 35vw;
+  height: 41vh;
+}
+
+#advance-home-logo{
+  width: 32vw;
+  height: 38vh;
+}
+
+#login-logo-outer-box{
+  margin-top: 1vh;
+}
+
+#login{
+  width: 60vw;
+  height: 45vh;
+}
+
+#profile-logo-outer-box{
+  margin-top: 6vh;
+}
+
+#advance-home-logo-outer-box {
+  margin-top: 0vh;
+}
