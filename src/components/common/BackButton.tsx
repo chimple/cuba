@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import "./BackButton.css";
 import { IoIosArrowBack } from "react-icons/io";
 import { App } from "@capacitor/app";
+import { Util } from "../../utility/util";
+import { Capacitor } from "@capacitor/core";
 
 const BackButton: React.FC<{
 
@@ -11,14 +13,16 @@ const BackButton: React.FC<{
     const backButtonHandler = () => {
       onClicked();
     };
-  
     App.addListener("backButton", backButtonHandler);
-  
+
     return () => {
       App.removeAllListeners();
+      if (Capacitor.isNativePlatform()) {
+        App.addListener("appStateChange", Util.onAppStateChange);
+      }
     };
   }, [onClicked]);
-  
+
   return (
     <IoIosArrowBack
       id="common-back-button"
