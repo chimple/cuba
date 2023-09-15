@@ -851,8 +851,9 @@ const Home: FC = () => {
                 showSubjectName={currentHeader === HEADERLIST.RECOMMENDATION}
               />
             */}
-            {currentHeader !== HOMEHEADERLIST.QUIZ &&
-              currentHeader !== HOMEHEADERLIST.HOME && (
+            {(currentHeader === HOMEHEADERLIST.SUGGESTIONS ||
+            currentHeader === HOMEHEADERLIST.FAVOURITES ||
+            currentHeader === HOMEHEADERLIST.HISTORY )&&(
                 <div id="home-page-bottom">
                   <AppBar className="home-page-app-bar">
                     <Box>
@@ -879,7 +880,7 @@ const Home: FC = () => {
                         <Tab
                           id="home-page-sub-tab"
                           label={t("Suggestion")}
-                          onClick={() => setCurrentHeader(HOMEHEADERLIST.HOME)}
+                          onClick={() => setCurrentHeader(HOMEHEADERLIST.SUGGESTIONS)}
                         />
                         <Tab
                           id="home-page-sub-tab"
