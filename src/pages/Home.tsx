@@ -741,6 +741,21 @@ const Home: FC = () => {
             // <div style={{ marginTop: "2.6%" }}></div>
             null}
 
+            {currentHeader === HOMEHEADERLIST.SUGGESTIONS ? (
+              <div>
+                <LessonSlider
+                  lessonData={dataCourse}
+                  isHome={true}
+                  course={undefined}
+                  lessonsScoreMap={lessonResultMap || {}}
+                  startIndex={0}
+                  showSubjectName={true}
+                  showChapterName={true}
+                />
+              </div>
+            ) : // <div style={{ marginTop: "2.6%" }}></div>
+            null}
+
             {currentHeader === HOMEHEADERLIST.FAVOURITES && (
               <div>
                 <LessonSlider

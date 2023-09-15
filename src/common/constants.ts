@@ -17,6 +17,7 @@ export enum SL_GRADES {
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
 export enum HOMEHEADERLIST {
+  SUGGESTIONS = "SUGGESTIONS",
   SUBJECTS = "SUBJECTS",
   HOME = "HOME",
   ASSIGNMENT = "ASSIGNMENT",
@@ -77,6 +78,14 @@ export interface HeaderIconConfig {
 
 export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
   new Map<HOMEHEADERLIST, HeaderIconConfig>([
+    [
+      HOMEHEADERLIST.SUGGESTIONS,
+      {
+        displayName: "Suggestions",
+        iconSrc: "/assets/icons/suggestionIcon.svg",
+        headerList: HOMEHEADERLIST.SUGGESTIONS,
+      },
+    ],
     [
       HOMEHEADERLIST.SUBJECTS,
       {
