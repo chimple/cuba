@@ -36,6 +36,7 @@ import {
   grade1,
   grade2,
   grade3,
+  GRADES_ORDER,
 } from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
 import User from "../../models/user";
@@ -279,7 +280,6 @@ export class FirebaseApi implements ServiceApi {
   // public async getCoursesByGradeId(): Promise<COURSES[]>{
 
   // }
-
   public async getAllGrades(): Promise<Grade[]> {
     try {
       const querySnapshot = await this.getDocsFromOffline(
@@ -678,7 +678,6 @@ export class FirebaseApi implements ServiceApi {
       where("curriculum", "==", course.curriculum)
     );
     const queryResult = await this.getDocsFromOffline(q);
-    const allGrades = await this.getAllGrades();
     const gradeMap: {
       grades: Grade[];
       courses: Course[];
@@ -703,10 +702,11 @@ export class FirebaseApi implements ServiceApi {
         }
       )
     );
-    gradeMap.grades.sort((a, b) => {
-      const aIndex = allGrades.findIndex((grade) => grade.docId === a.docId);
-      const bIndex = allGrades.findIndex((grade) => grade.docId === b.docId);
-      return aIndex - bIndex;
+    gradeMap.grades.sort((gradeA, gradeB) => {
+      //Number.MAX_SAFE_INTEGER is using when grade is not found GRADES_ORDER (i.e it gives default value)
+      const orderA = GRADES_ORDER[gradeA.docId] || Number.MAX_SAFE_INTEGER;
+      const orderB = GRADES_ORDER[gradeB.docId] || Number.MAX_SAFE_INTEGER;
+      return orderA - orderB;
     });
     return gradeMap;
   }
