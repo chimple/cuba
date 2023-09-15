@@ -81,8 +81,8 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
     [
       HOMEHEADERLIST.SUGGESTIONS,
       {
-        displayName: "Suggestions",
-        iconSrc: "/assets/icons/suggestionIcon.svg",
+        displayName: "Suggestion",
+        iconSrc: "/assets/icons/SuggestionIcon.svg",
         headerList: HOMEHEADERLIST.SUGGESTIONS,
       },
     ],
