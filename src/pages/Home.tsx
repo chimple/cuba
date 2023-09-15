@@ -879,7 +879,7 @@ const Home: FC = () => {
                       >
                         <Tab
                           id="home-page-sub-tab"
-                          label={t("Suggestion")}
+                          label={t("For You")}
                           onClick={() => setCurrentHeader(HOMEHEADERLIST.SUGGESTIONS)}
                         />
                         <Tab
