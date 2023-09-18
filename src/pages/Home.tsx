@@ -741,6 +741,21 @@ const Home: FC = () => {
             // <div style={{ marginTop: "2.6%" }}></div>
             null}
 
+            {currentHeader === HOMEHEADERLIST.SUGGESTIONS ? (
+              <div>
+                <LessonSlider
+                  lessonData={dataCourse}
+                  isHome={true}
+                  course={undefined}
+                  lessonsScoreMap={lessonResultMap || {}}
+                  startIndex={0}
+                  showSubjectName={true}
+                  showChapterName={true}
+                />
+              </div>
+            ) : // <div style={{ marginTop: "2.6%" }}></div>
+            null}
+
             {currentHeader === HOMEHEADERLIST.FAVOURITES && (
               <div>
                 <LessonSlider
@@ -836,8 +851,9 @@ const Home: FC = () => {
                 showSubjectName={currentHeader === HEADERLIST.RECOMMENDATION}
               />
             */}
-            {currentHeader !== HOMEHEADERLIST.QUIZ &&
-              currentHeader !== HOMEHEADERLIST.HOME && (
+            {(currentHeader === HOMEHEADERLIST.SUGGESTIONS ||
+            currentHeader === HOMEHEADERLIST.FAVOURITES ||
+            currentHeader === HOMEHEADERLIST.HISTORY )&&(
                 <div id="home-page-bottom">
                   <AppBar className="home-page-app-bar">
                     <Box>
@@ -863,8 +879,8 @@ const Home: FC = () => {
                       >
                         <Tab
                           id="home-page-sub-tab"
-                          label={t("Suggestion")}
-                          onClick={() => setCurrentHeader(HOMEHEADERLIST.HOME)}
+                          label={t("For You")}
+                          onClick={() => setCurrentHeader(HOMEHEADERLIST.SUGGESTIONS)}
                         />
                         <Tab
                           id="home-page-sub-tab"
