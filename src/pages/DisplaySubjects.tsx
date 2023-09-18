@@ -129,11 +129,8 @@ const DisplaySubjects: FC<{}> = () => {
         if (!!localStorageData.courses) {
           let tmpCourses: Course[] = Util.convertCourses(localStorageData.courses);
           localData.courses = tmpCourses;
-
           setCourses(tmpCourses);
-
           if (!!localStorageData.stage && localStorageData.stage !== STAGES.SUBJECTS && !!localStorageData.currentCourseId) {
-
             setStage(localStorageData.stage);
             let cc: Course = localData.courses.find(cour => localStorageData.currentCourseId === cour.docId)
             localData.currentCourse = cc;
@@ -276,17 +273,20 @@ const DisplaySubjects: FC<{}> = () => {
     }
   };
   const onCourseChanges = async (course: Course) => {
-    const localGradeMap: { grades: Grade[]; courses: Course[] } =
+    const gradesMap: { grades: Grade[]; courses: Course[] } =
       await api.getDifferentGradesForCourse(course);
-    const currentGrade = localGradeMap.grades.find(
+    const currentGrade = gradesMap.grades.find(
       (grade) => grade.docId === course.grade.id
     );
-    localStorage.setItem(GRADE_MAP, JSON.stringify(localGradeMap));
-    localData.currentGrade = currentGrade ?? localGradeMap.grades[0];
-    localData.localGradeMap = localGradeMap;
+    localStorage.setItem(GRADE_MAP, JSON.stringify(gradesMap));
+    localData.currentGrade = currentGrade ?? gradesMap.grades[0];
+    localStorageData.currentGrade = localData.currentGrade;
+    localData.gradesMap = gradesMap;
+    localStorageData.gradesMap = localData.gradesMap;
     localData.currentCourse = course;
-    setCurrentGrade(currentGrade ?? localGradeMap.grades[0]);
-    setLocalGradeMap(localGradeMap);
+    localStorageData.currentCourseId = course.docId;
+    setCurrentGrade(currentGrade ?? gradesMap.grades[0]);
+    setLocalGradeMap(gradesMap);
     setCurrentCourse(course);
     localStorageData.stage = STAGES.CHAPTERS;
     addDataToLocalStorage();
@@ -404,7 +404,7 @@ const DisplaySubjects: FC<{}> = () => {
             lessonsScoreMap={lessonResultMap || {}}
             startIndex={getLastPlayedLessonIndex()}
             showSubjectName={false}
-            showChapterName = {false}
+            showChapterName={false}
           />
         </div>
       )}
