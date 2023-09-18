@@ -461,17 +461,23 @@ export class FirebaseApi implements ServiceApi {
       );
     }
   }
+  // async sortSubject(subjects) {
+  //   subjects.sort(
+  //     (a, b) => courseSortIndex[a.courseCode] - courseSortIndex[b.courseCode]
+  //   );
+  //   const indexOfDigitalSkill = subjects
+  //     .map((e) => e.courseCode)
+  //     .indexOf(COURSES.PUZZLE);
+  //   if (indexOfDigitalSkill) {
+  //     const digitalSkills = subjects.splice(indexOfDigitalSkill, 1)[0];
+  //     subjects.push(digitalSkills);
+  //   }
+  //   return subjects;
+  // }
   async sortSubject(subjects) {
     subjects.sort(
-      (a, b) => courseSortIndex[a.courseCode] - courseSortIndex[b.courseCode]
+      (a, b) => a.sortIndex - b.sortIndex
     );
-    const indexOfDigitalSkill = subjects
-      .map((e) => e.courseCode)
-      .indexOf(COURSES.PUZZLE);
-    if (indexOfDigitalSkill) {
-      const digitalSkills = subjects.splice(indexOfDigitalSkill, 1)[0];
-      subjects.push(digitalSkills);
-    }
     return subjects;
   }
 
@@ -738,6 +744,7 @@ export class FirebaseApi implements ServiceApi {
         }
       )
     );
+    gradeMap.grades.sort((a, b) => a.sortIndex - b.sortIndex);
     return gradeMap;
   }
 

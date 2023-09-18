@@ -8,6 +8,7 @@ export default class Course extends BaseObject {
   private _courseCode: string;
   private _curriculum: DocumentReference;
   private _grade: DocumentReference;
+  private _sortIndex: number;
   private _status: string;
   private _subject: DocumentReference;
   private _thumbnail: string | undefined;
@@ -17,6 +18,7 @@ export default class Course extends BaseObject {
     courseCode,
     curriculum,
     grade,
+    sortIndex,
     status,
     subject,
     title,
@@ -29,6 +31,7 @@ export default class Course extends BaseObject {
     courseCode: string;
     curriculum: DocumentReference;
     grade: DocumentReference;
+    sortIndex: number;
     status: string;
     subject: DocumentReference;
     title: string;
@@ -42,6 +45,7 @@ export default class Course extends BaseObject {
     this._courseCode = courseCode;
     this._curriculum = curriculum;
     this._grade = grade;
+    this._sortIndex = sortIndex;
     this._status = status;
     this._subject = subject;
     this._title = title;
@@ -70,6 +74,12 @@ export default class Course extends BaseObject {
   }
   public set grade(value: DocumentReference) {
     this._grade = value;
+  }
+  public get sortIndex(): number {
+    return this._sortIndex;
+  }
+  public set sortIndex(value: number) {
+    this._sortIndex = value;
   }
   public get status(): string {
     return this._status;
@@ -101,6 +111,7 @@ export default class Course extends BaseObject {
       courseCode: course.courseCode,
       curriculum: course.curriculum,
       grade: course.grade,
+      sortIndex: course.sortIndex,
       status: course.status,
       subject: course.subject,
       title: course.title,
