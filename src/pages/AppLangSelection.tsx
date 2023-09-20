@@ -23,6 +23,7 @@ const AppLangSelection: React.FC = () => {
     }[]
   >([]);
   const [currentAppLang, setCurrentAppLang] = useState<string>();
+  // const [currentAppLang, setCurrentAppLang] = useState<string>(langList[0]?.id);
   const [currentPage, setCurrentPage] = useState<number>(-1);
 
   useEffect(() => {
@@ -151,15 +152,27 @@ const AppLangSelection: React.FC = () => {
   const handleNextClick = async () => {
     if (currentPage === -1) {
       setCurrentPage(0);
-    } else if (currentPage < intermediatePages.length - 1) {
+    } else  if (currentPage < intermediatePages.length - 1) {
       setCurrentPage(currentPage + 1);
     } else {
       history.replace(PAGES.LOGIN);
+      const appLang = localStorage.getItem(LANGUAGE);
+      if (!appLang) {
+        const tempLangCode = LANG.ENGLISH;
+        localStorage.setItem(LANGUAGE, tempLangCode);
+        await i18n.changeLanguage(tempLangCode);
+      }
     }
   };
 
-  const handleSkipClick = () => {
+  const handleSkipClick = async () => {
     history.replace(PAGES.LOGIN);
+    const appLang = localStorage.getItem(LANGUAGE);
+    if (!appLang) {
+      const tempLangCode = LANG.ENGLISH;
+      localStorage.setItem(LANGUAGE, tempLangCode);
+      await i18n.changeLanguage(tempLangCode);
+    }
   };
 
   return (
