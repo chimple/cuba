@@ -32,7 +32,6 @@ import {
   MODES,
   aboveGrade3,
   belowGrade1,
-  courseSortIndex,
   grade1,
   grade2,
   grade3,
@@ -144,12 +143,13 @@ export class FirebaseApi implements ServiceApi {
     gradeDocId: string | undefined,
     languageDocId: string | undefined
   ): Promise<User> {
-    const _currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
-  
+
     // Created a variable to check the username is defined or an empty
-    const username = _currentUser.username || '';
-  
+    const username = _currentUser.username || "";
+
     // let courseIds: DocumentReference[] = [];
     // const courses = await this.getAllCourses();
     // if (!!courses && courses.length > 0) {
@@ -461,17 +461,15 @@ export class FirebaseApi implements ServiceApi {
       );
     }
   }
+
   async sortSubject(subjects) {
-    subjects.sort(
-      (a, b) => courseSortIndex[a.courseCode] - courseSortIndex[b.courseCode]
-    );
-    const indexOfDigitalSkill = subjects
-      .map((e) => e.courseCode)
-      .indexOf(COURSES.PUZZLE);
-    if (indexOfDigitalSkill) {
-      const digitalSkills = subjects.splice(indexOfDigitalSkill, 1)[0];
-      subjects.push(digitalSkills);
-    }
+    subjects.sort((a, b) => {
+      //Number.MAX_SAFE_INTEGER is using when sortIndex is not found COURSES (i.e it gives default value)
+      const sortIndexA = a.sortIndex || Number.MAX_SAFE_INTEGER;
+      const sortIndexB = b.sortIndex || Number.MAX_SAFE_INTEGER;
+
+      return sortIndexA - sortIndexB;
+    });
     return subjects;
   }
 
@@ -738,6 +736,13 @@ export class FirebaseApi implements ServiceApi {
         }
       )
     );
+    gradeMap.grades.sort((a, b) => {
+      //Number.MAX_SAFE_INTEGER is using when sortIndex is not found GRADES (i.e it gives default value)
+      const sortIndexA = a.sortIndex || Number.MAX_SAFE_INTEGER;
+      const sortIndexB = b.sortIndex || Number.MAX_SAFE_INTEGER;
+
+      return sortIndexA - sortIndexB;
+    });
     return gradeMap;
   }
 
