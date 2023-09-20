@@ -137,5 +137,23 @@
   "Yes": "Yes",
   "You are Joining ": "You are Joining ",
   "You can edit or delete user by clicking on the below buttons": "You can edit or delete user by clicking on the below buttons",
-  "You Completed the Lesson:": "You Completed the Lesson:"
+  "You Completed the Lesson:": "You Completed the Lesson:",
+  "Skip" : "Skip",
+  "Login with Phone number or Gmail" : "Login with Phone number or Gmail",
+  "Users can now log in using their phone number or Gmail address." : "Users can now log in using their phone number or Gmail address.",
+  "This allows seamless login across multiple devices" : "This allows seamless login across multiple devices",
+  "using the same credentials. Progress synchronized to the" : "using the same credentials. Progress synchronized to the",
+  "associated account and remains consistent even when switching devices." : "associated account and remains consistent even when switching devices.",
+  "Advance Home Screen" : "Advance Home Screen",
+  "The home screen features three tabs:\"For You\",\"Liked\" and \"Played\"." : "The home screen features three tabs:\"For You\",\"Liked\" and \"Played\".",
+  "The \"For You\" tab offers lesson suggestions based on learning progress." : "The \"For You\" tab offers lesson suggestions based on learning progress.",
+  "The \"liked\" tab displays lessons the child liked after playing, while the played" : "The \"liked\" tab displays lessons the child liked after playing, while the played",
+  "tab lists all the child has completed lessons. These tabs collectively guide the child's" : "tab lists all the child has completed lessons. These tabs collectively guide the child's",
+  "learning journey by indicating what they need to learn and have already played." : "learning journey by indicating what they need to learn and have already played.",
+  "Enhanced kids profile creation" : "Enhanced kids profile creation",
+  "Children now have the option to personalise their profile" : "Children now have the option to personalise their profile",
+  "beyond the usual details of Name, Age, Avatar, and Gender." : "beyond the usual details of Name, Age, Avatar, and Gender.",
+  "They can also select their Class, Medium of Instruction,"  : "They can also select their Class, Medium of Instruction,",
+  "and Board, which will tailor the learning curriculum accordingly." : "and Board, which will tailor the learning curriculum accordingly."
+
 }
