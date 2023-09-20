@@ -23,6 +23,7 @@ const AppLangSelection: React.FC = () => {
     }[]
   >([]);
   const [currentAppLang, setCurrentAppLang] = useState<string>();
+  // const [currentAppLang, setCurrentAppLang] = useState<string>(langList[0]?.id);
   const [currentPage, setCurrentPage] = useState<number>(-1);
 
   useEffect(() => {
