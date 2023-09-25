@@ -141,5 +141,24 @@
   "Yes": "हाँ",
   "You are Joining ": "आप शामिल हो रहे हैं ",
   "You can edit or delete Profile by clicking on the below buttons": "आप नीचे दिए गए बटनों पर क्लिक करके प्रोफ़ाइल को संपादित या हटा सकते हैं",
-  "You Completed the Lesson:": "आपने पाठ पूरा कर लिया:"
+  "You can edit or delete user by clicking on the below buttons": "आप नीचे दिए गए बटनों पर क्लिक करके उपयोगकर्ता को संपादित या हटा सकते हैं",
+  "You Completed the Lesson:": "आपने पाठ पूरा कर लिया:",
+  "Skip" : "छोडना",
+  "Login with Phone number or Gmail" : "फ़ोन नंबर या जीमेल से लॉगिन करें।",
+  "Users can now log in using their phone number or Gmail address." : "उपयोगकर्ता अब अपने फ़ोन नंबर या जीमेल पते का उपयोग करके लॉग इन कर सकते हैं।",
+  "This allows seamless login across multiple devices" : "यह कई डिवाइसों पर निर्बाध लॉगिन की अनुमति देता है",
+  "using the same credentials. Progress synchronized to the" : "समान क्रेडेंशियल्स का उपयोग करना। प्रगति समकालिक है",
+  "associated account and remains consistent even when switching devices." : "संबद्ध खाता और डिवाइस स्विच करते समय भी सुसंगत रहता है।",
+  "Advance Home Screen" : "एडवांस होम स्क्रीन",
+  "The home screen features three tabs:\"For You\",\"Liked\" and \"Played\"." : "होम स्क्रीन में तीन टैब हैं: \"आपके लिए\", \"पसंद आया\" और \"चलाया\"।",
+  "The \"For You\" tab offers lesson suggestions based on learning progress." : "\"आपके लिए\" टैब सीखने की प्रगति के आधार पर पाठ सुझाव प्रदान करता है।",
+  "The \"liked\" tab displays lessons the child liked after playing, while the played" : "\"पसंद\" टैब उन पाठों को प्रदर्शित करता है जो बच्चे को खेलने के बाद, खेलते समय पसंद आए",
+  "tab lists all the child has completed lessons. These tabs collectively guide the child's" : "टैब उन सभी पाठों को सूचीबद्ध करता है जिन्हें बच्चे ने पूरा कर लिया है। ये टैब सामूहिक रूप से बच्चे का मार्गदर्शन करते हैं",
+  "learning journey by indicating what they need to learn and have already played." : "सीखने की यात्रा यह दर्शाते हुए कि उन्हें क्या सीखने की आवश्यकता है और वे पहले ही खेल चुके हैं।",
+  "Enhanced kids profile creation" : "उन्नत बच्चों की प्रोफ़ाइल निर्माण",
+  "Children now have the option to personalise their profile" : "बच्चों के पास अब अपनी प्रोफ़ाइल को निजीकृत करने का विकल्प है",
+  "beyond the usual details of Name, Age, Avatar, and Gender." : "नाम, आयु, अवतार और लिंग के सामान्य विवरण से परे।",
+  "They can also select their Class, Medium of Instruction,"  : "वे अपनी कक्षा, शिक्षा का माध्यम भी चुन सकते हैं।",
+  "and Board, which will tailor the learning curriculum accordingly." : "और बोर्ड, जो शिक्षण पाठ्यक्रम को तदनुसार तैयार करेगा।"
+
 }

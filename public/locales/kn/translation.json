@@ -136,5 +136,22 @@
     "Yes": "ಹೌದು",
     "You are Joining ": "ನೀವು ಸೇರುತ್ತಿರುವಿರಿ",
     "You can edit or delete user by clicking on the below buttons": "ಕೆಳಗಿನ ಬಟನ್‌ಗಳನ್ನು ಕ್ಲಿಕ್ ಮಾಡುವ ಮೂಲಕ ನೀವು ಬಳಕೆದಾರರನ್ನು ತಿದ್ದಬಹುದು ಅಥವಾ ಅಳಿಸಬಹುದು",
-    "You Completed the Lesson:": "ನೀವು ಪಾಠವನ್ನು ಪೂರ್ಣಗೊಳಿಸಿದ್ದೀರಿ:"
+    "You Completed the Lesson:": "ನೀವು ಪಾಠವನ್ನು ಪೂರ್ಣಗೊಳಿಸಿದ್ದೀರಿ:",
+    "Skip" : "ಬಿಟ್ಟುಬಿಡಿ",
+    "Login with Phone number or Gmail" : "ಫೋನ್ ಸಂಖ್ಯೆ ಅಥವಾ Gmail ಮೂಲಕ ಲಾಗಿನ್ ಮಾಡಿ",
+    "Users can now log in using their phone number or Gmail address." : "ಬಳಕೆದಾರರು ಈಗ ತಮ್ಮ ಫೋನ್ ಸಂಖ್ಯೆ ಅಥವಾ Gmail ವಿಳಾಸವನ್ನು ಬಳಸಿಕೊಂಡು ಲಾಗ್ ಇನ್ ಮಾಡಬಹುದು.",
+    "This allows seamless login across multiple devices" : "ಇದು ಬಹು ಸಾಧನಗಳಲ್ಲಿ ತಡೆರಹಿತ ಲಾಗಿನ್ ಅನ್ನು ಅನುಮತಿಸುತ್ತದೆ",
+    "using the same credentials. Progress synchronized to the" : "ಅದೇ ರುಜುವಾತುಗಳನ್ನು ಬಳಸುವುದು. ಗೆ ಪ್ರಗತಿಯನ್ನು ಸಿಂಕ್ರೊನೈಸ್ ಮಾಡಲಾಗಿದೆ",
+    "associated account and remains consistent even when switching devices." : "ಸಂಬಂಧಿಸಿದ ಖಾತೆ ಮತ್ತು ಸಾಧನಗಳನ್ನು ಬದಲಾಯಿಸುವಾಗಲೂ ಸ್ಥಿರವಾಗಿರುತ್ತದೆ.",
+    "Advance Home Screen" : "ಅಡ್ವಾನ್ಸ್ ಹೋಮ್ ಸ್ಕ್ರೀನ್",
+    "The home screen features three tabs:\"For You\",\"Liked\" and \"Played\"." : "ಹೋಮ್ ಸ್ಕ್ರೀನ್ ಮೂರು ಟ್ಯಾಬ್‌ಗಳನ್ನು ಹೊಂದಿದೆ: \"ನಿಮಗಾಗಿ\", \"ಇಷ್ಟಪಟ್ಟಿದೆ\" ಮತ್ತು \"ಪ್ಲೇಡ್\".",
+    "The \"For You\" tab offers lesson suggestions based on learning progress." : "\"ನಿಮಗಾಗಿ\" ಟ್ಯಾಬ್ ಕಲಿಕೆಯ ಪ್ರಗತಿಯನ್ನು ಆಧರಿಸಿ ಪಾಠ ಸಲಹೆಗಳನ್ನು ನೀಡುತ್ತದೆ.",
+    "The \"liked\" tab displays lessons the child liked after playing, while the played" : "\"ಇಷ್ಟಪಟ್ಟ\" ಟ್ಯಾಬ್ ಮಗು ಆಡಿದ ನಂತರ ಇಷ್ಟಪಟ್ಟ ಪಾಠಗಳನ್ನು ಪ್ರದರ್ಶಿಸುತ್ತದೆ",
+   "tab lists all the child has completed lessons. These tabs collectively guide the child's" : "ಟ್ಯಾಬ್ ಮಗು ಎಲ್ಲಾ ಪಾಠಗಳನ್ನು ಪೂರ್ಣಗೊಳಿಸಿದೆ ಎಂದು ಪಟ್ಟಿ ಮಾಡುತ್ತದೆ. ಈ ಟ್ಯಾಬ್‌ಗಳು ಒಟ್ಟಾರೆಯಾಗಿ ಮಗುವಿಗೆ ಮಾರ್ಗದರ್ಶನ ನೀಡುತ್ತವೆ",
+   "learning journey by indicating what they need to learn and have already played." : "ಅವರು ಕಲಿಯಬೇಕಾದದ್ದು ಮತ್ತು ಈಗಾಗಲೇ ಆಡಿರುವುದನ್ನು ಸೂಚಿಸುವ ಮೂಲಕ ಪ್ರಯಾಣವನ್ನು ಕಲಿಯುವುದು.",
+   "Enhanced kids profile creation" : "ಸುಧಾರಿತ ಮಕ್ಕಳ ಪ್ರೊಫೈಲ್ ರಚನೆ",
+   "Children now have the option to personalise their profile" : "ಮಕ್ಕಳು ಈಗ ತಮ್ಮ ಪ್ರೊಫೈಲ್ ಅನ್ನು ವೈಯಕ್ತೀಕರಿಸುವ ಆಯ್ಕೆಯನ್ನು ಹೊಂದಿದ್ದಾರೆ",
+   "beyond the usual details of Name, Age, Avatar, and Gender." : "ಹೆಸರು, ವಯಸ್ಸು, ಅವತಾರ ಮತ್ತು ಲಿಂಗದ ಸಾಮಾನ್ಯ ವಿವರಗಳನ್ನು ಮೀರಿ.",
+   "They can also select their Class, Medium of Instruction,"  : "ಅವರು ತಮ್ಮ ವರ್ಗ, ಬೋಧನಾ ಮಾಧ್ಯಮವನ್ನು ಸಹ ಆಯ್ಕೆ ಮಾಡಬಹುದು,",
+   "and Board, which will tailor the learning curriculum accordingly." : "ಮತ್ತು ಬೋರ್ಡ್, ಇದು ಕಲಿಕೆಯ ಪಠ್ಯಕ್ರಮವನ್ನು ತಕ್ಕಂತೆ ರೂಪಿಸುತ್ತದೆ."
   }
