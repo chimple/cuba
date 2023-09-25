@@ -679,6 +679,11 @@ export class FirebaseApi implements ServiceApi {
         }
       )
     );
+    gradeMap.grades.sort((a, b) => {
+      const sortIndexA = a.sortIndex || Number.MAX_SAFE_INTEGER;
+      const sortIndexB = b.sortIndex || Number.MAX_SAFE_INTEGER;
+      return sortIndexA - sortIndexB;
+    });
     return gradeMap;
   }
 
@@ -1411,7 +1416,7 @@ export class FirebaseApi implements ServiceApi {
   private async getDocsFromOffline(query: Query<DocumentData>) {
     let querySnapshot: QuerySnapshot<DocumentData>;
     try {
-      querySnapshot = await getDocsFromCache(query);
+      querySnapshot = await getDocs(query);
       if (querySnapshot.empty) throw "not found in cache";
       getDocs(query);
     } catch (er) {

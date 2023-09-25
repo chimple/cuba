@@ -4,6 +4,7 @@ import BaseObject from "./baseObject";
 export default class Grade extends BaseObject {
   private _description: string;
   private _title: string;
+  sortIndex: number;
 
   constructor(
     description: string,
