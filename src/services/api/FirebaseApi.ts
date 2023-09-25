@@ -654,7 +654,7 @@ export class FirebaseApi implements ServiceApi {
       where("subject", "==", course.subject),
       where("curriculum", "==", course.curriculum)
     );
-    const queryResult = await this.getDocsFromOffline(q);
+    const queryResult = await getDocs(q);
     const gradeMap: {
       grades: Grade[];
       courses: Course[];
@@ -1416,7 +1416,7 @@ export class FirebaseApi implements ServiceApi {
   private async getDocsFromOffline(query: Query<DocumentData>) {
     let querySnapshot: QuerySnapshot<DocumentData>;
     try {
-      querySnapshot = await getDocs(query);
+      querySnapshot = await getDocsFromCache(query);
       if (querySnapshot.empty) throw "not found in cache";
       getDocs(query);
     } catch (er) {
