@@ -26,6 +26,10 @@
   overflow-y: scroll;
 }
 
+.subjects-content::-webkit-scrollbar {
+  display: none;
+}
+
 .slider-container {
   display: flex;
   align-items: center;

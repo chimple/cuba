@@ -5,6 +5,10 @@
   margin-bottom: 12vh;
 }
 
+.Lesson-slider-content::-webkit-scrollbar {
+  display: none;
+}
+
 .slide {
   max-width: fit-content;
 }

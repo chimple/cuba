@@ -59,6 +59,9 @@ const SelectMode: FC = () => {
   useEffect(() => {
     init();
     changeLanguage();
+    return () => {
+      setIsLoading(false);
+    };
   }, []);
   // const api = FirebaseApi.getInstance();
   const api = ServiceConfig.getI().apiHandler;
@@ -66,8 +69,8 @@ const SelectMode: FC = () => {
   const history = useHistory();
 
   const [stage, setStage] = useState(STAGES.MODE);
+  const [isOkayButtonDisabled, setIsOkayButtonDisabled] = useState(true);
   const init = async () => {
-    setIsLoading(true);
     const currUser = await auth.getCurrentUser();
     if (!currUser) return;
     const allSchool = await api.getSchoolsForUser(currUser);
@@ -194,12 +197,15 @@ const SelectMode: FC = () => {
                       (element) => element.id === selectedSchoolDocId
                     )?.school;
 
-                    if (!currSchool) return;
+                    if (!currSchool) {
+                      setIsOkayButtonDisabled(true);
+                      return;
+                    }
                     console.log(currSchool);
                     setCurrentSchool(currSchool);
                     setCurrentSchoolName(currSchool.name);
                     setCurrentSchoolId(currSchool.docId);
-
+                    setIsOkayButtonDisabled(false);
                     schoolUtil.setCurrentSchool(currSchool);
                   }}
                   optionList={schoolList}
@@ -207,15 +213,16 @@ const SelectMode: FC = () => {
                   currentValue={currentSchoolId}
                 />
                 <button
-                  className={"okay-btn"}
+                  className={`okay-btn ${
+                    isOkayButtonDisabled ? "okay-btn-disabled" : ""
+                  }`}
                   onClick={async function () {
                     // history.replace(PAGES.SELECT_CLASS);
                     await displayClasses();
-
                     setStage(STAGES.CLASS);
-
                     return;
                   }}
+                  disabled={isOkayButtonDisabled}
                 >
                   {t("Okay")}
                 </button>

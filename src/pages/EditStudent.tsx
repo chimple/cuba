@@ -76,6 +76,7 @@ const EditStudent = () => {
     setIsLoading(true);
     const stagesLength = Object.keys(STAGES).length / 2;
     const newStage = stage + 1;
+    let _studentName = studentName?.trim();
     //Completed all stages
     if (stagesLength === newStage) {
       //Creating Profile for the Student
@@ -84,7 +85,7 @@ const EditStudent = () => {
       if (isEdit && !!currentStudent && !!currentStudent.docId) {
         student = await api.updateStudent(
           currentStudent,
-          studentName!,
+         _studentName!,
           age ?? currentStudent.age!,
           gender ?? currentStudent.gender!,
           avatar ?? currentStudent.avatar!,
@@ -106,7 +107,7 @@ const EditStudent = () => {
         });
       } else {
         student = await api.createProfile(
-          studentName!,
+          _studentName!,
           age,
           gender,
           avatar,
@@ -141,7 +142,6 @@ const EditStudent = () => {
           student,
           langIndex && languages ? languages[langIndex]?.code : undefined,
           false,
-          false
         );
       }
       console.log(
@@ -174,7 +174,7 @@ const EditStudent = () => {
   const isNextButtonEnabled = () => {
     switch (stage) {
       case STAGES.NAME:
-        return !!studentName;
+        return !!studentName.trim();
       case STAGES.GENDER_AND_AGE:
         return !!gender && !!age;
       case STAGES.AVATAR:
@@ -239,7 +239,7 @@ const EditStudent = () => {
           <StudentNameBox
             studentName={studentName!}
             onValueChange={setStudentName}
-            onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
+            onEnterDown={isNextButtonEnabled() ? onNextButton : () => { }}
           />
         )}
       </div>

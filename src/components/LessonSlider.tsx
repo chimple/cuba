@@ -7,6 +7,7 @@ import Lesson from "../models/lesson";
 import Course from "../models/course";
 import { StudentLessonResult } from "../common/courseConstants";
 
+
 const LessonSlider: React.FC<{
   lessonData: Lesson[];
   course: Course | undefined;
@@ -14,6 +15,7 @@ const LessonSlider: React.FC<{
   lessonsScoreMap: { [lessonDocId: string]: StudentLessonResult };
   startIndex: number;
   showSubjectName: boolean;
+  showChapterName: boolean;
   onEndReached? : () => void;
   onMoved? : (splide: any) => any;
 }> = ({
@@ -23,6 +25,7 @@ const LessonSlider: React.FC<{
   lessonsScoreMap,
   startIndex,
   showSubjectName = false,
+  showChapterName = false,
   onEndReached,
   onMoved,
 }) => {
@@ -98,6 +101,7 @@ const LessonSlider: React.FC<{
                   score={lessonsScoreMap[m.docId]?.score}
                   lessonData={lessonData}
                   startIndex={startIndex === -1 ? startIndex + 1 : startIndex}
+                  showChapterName={showChapterName}
                 />
               </SplideSlide>
             );
@@ -149,6 +153,7 @@ const LessonSlider: React.FC<{
                   score={lessonsScoreMap[m.docId]?.score}
                   lessonData={lessonData}
                   startIndex={startIndex === -1 ? startIndex + 1 : startIndex}
+                  showChapterName={showChapterName}
                 />
               </SplideSlide>
             );

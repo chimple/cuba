@@ -12,8 +12,8 @@ p {
     margin-left: calc(33vw);
     margin-top: 2%; */
   text-align: center;
-  width: 11.5vw;
-  height: 18vh;
+  width: 11vw;
+  height: 15vh;
   margin-top: 2%;
   /* height: 28%;
     position: absolute;
@@ -175,6 +175,10 @@ p {
   overflow: scroll;
 }
 
+.scroll-header::-webkit-scrollbar {
+  display: none;
+}
+
 #login-resend-otp {
   display: flex;
   justify-content: space-between;
@@ -186,10 +190,14 @@ p {
 }
 
 #login-resend-otp-text {
+  font-size: 1.5vw;
+}
+
+
+#login-resend-otp-text {
   font-size: 2vw;
   font-weight: bold;
 }
-
 
 .login-verification-error-message {
   width: 35vw;

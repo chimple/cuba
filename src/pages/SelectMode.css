@@ -41,6 +41,10 @@
   cursor: pointer;
 }
 
+.okay-btn-disabled {
+  background-color: grey;
+}
+
 .class-main {
   display: flex;
   flex-direction: column;
@@ -101,4 +105,8 @@
   max-width: 20vh;
   text-overflow: ellipsis;
   overflow: hidden;
+}
+
+.class-avatar-img{
+  border-radius: 50%;
 }

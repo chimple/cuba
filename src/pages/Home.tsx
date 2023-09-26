@@ -42,12 +42,14 @@ import { DocumentReference } from "firebase/firestore";
 import LeaderBoardButton from "./LeaderBoardButton";
 import Class from "../models/class";
 import { schoolUtil } from "../utility/schoolUtil";
+import Assignment from "../models/assignment";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import { auto } from "@popperjs/core";
 import { margin } from "@mui/system";
 import { push } from "ionicons/icons";
 import { t } from "i18next";
 import { App, URLOpenListenerEvent } from "@capacitor/app";
+import ChimpleAvatarPage from "../components/animation/ChimpleAvatarPage";
 
 const sortValidLessonsByDate = (
   lessonIds: string[],
@@ -68,6 +70,7 @@ const sortValidLessonsByDate = (
   });
 };
 
+const localData: any = {};
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -79,6 +82,14 @@ const Home: FC = () => {
   const [courses, setCourses] = useState<Course[]>();
   const [lessons, setLessons] = useState<Lesson[]>();
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
+  const [lessonsScoreMap, setLessonsScoreMap] = useState<any>();
+  const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
+  const [levelChapter, setLevelChapter] = useState<Chapter>();
+  const [gradeMap, setGradeMap] = useState<any>({});
+  const [pendingAssignmentsCount, setPendingAssignmentsCount] =
+    useState<number>(0);
+  const history = useHistory();
+  const [PlayedLessonsList, setPlayedLessonsList] = useState<Lesson[]>([]);
   const [favouriteLessons, setFavouriteLessons] = useState<Lesson[]>([]);
   const [favouritesPageSize, setFavouritesPageSize] = useState<number>(10);
 
@@ -91,7 +102,6 @@ const Home: FC = () => {
   const [historyLessons, setHistoryLessons] = useState<Lesson[]>([]);
   const [validLessonIds, setValidLessonIds] = useState<string[]>([]);
 
-  const history = useHistory();
   let allPlayedLessonIds: string[] = [];
   let tempPageNumber = 1;
 
@@ -115,14 +125,64 @@ const Home: FC = () => {
     App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
       const slug = event.url.split(".cc").pop();
       if (slug) {
-        history.push(slug);
+        history.replace(slug);
       }
     });
   }
 
   const api = ServiceConfig.getI().apiHandler;
+  const getAssignments = async () => {
+    setIsLoading(true);
+    const student = await Util.getCurrentStudent();
+
+    if (!student) {
+      history.replace(PAGES.SELECT_MODE);
+      return;
+    }
+    const studentResult = await api.getStudentResult(student.docId);
+    if (
+      !!studentResult &&
+      !!studentResult.classes &&
+      studentResult.classes.length > 0
+    ) {
+      const allAssignments: Assignment[] = [];
+
+      await Promise.all(
+        studentResult.classes.map(async (_class) => {
+          const res = await api.getPendingAssignments(_class, student.docId);
+          allAssignments.push(...res);
+        })
+      );
+      let count = 0;
+      await Promise.all(
+        allAssignments.map(async (_assignment) => {
+          const res = await api.getLesson(
+            _assignment.lesson.id,
+            undefined,
+            true
+          );
+          console.log(res);
+          if (!!res) {
+            count++;
+            res.assignment = _assignment;
+            reqLes.push(res);
+          }
+        })
+      );
+      setPendingAssignmentsCount(count);
+
+      setDataCourse(reqLes);
+      setIsLoading(true);
+    } else {
+      setIsLoading(false);
+    }
+  };
 
   async function setCourse(subjectCode: string) {
+    let avatarInfo = await ServiceConfig.getI().apiHandler.getAvatarInfo();
+
+    console.log("avatarInfo ", avatarInfo);
+
     setIsLoading(true);
     const currentStudent = await Util.getCurrentStudent();
 
@@ -140,6 +200,12 @@ const Home: FC = () => {
     if (subjectCode === HOMEHEADERLIST.HOME) {
       // let r = api.getStudentResultInMap(currentStudent.docId);
       // console.log("r = api.getStudentResultInMap(currentStudent.docId);", r);
+      if (!localData.allCourses) {
+        let tempAllCourses = await api.getAllCourses();
+        localData.allCourses = tempAllCourses;
+      }
+      await getAssignments();
+      // getRecommendationLessons(currentStudent, currClass).then(() => {
       try {
         const recommendationResult = await getRecommendationLessons(
           currentStudent,
@@ -269,6 +335,8 @@ const Home: FC = () => {
 
     if (studentResult?.lessons) {
       const playedLessonIds = Object.keys(studentResult.lessons);
+      // const lessonPromises = playedLessonIds.map((lessonId) =>
+      //   api.getLesson(lessonId, undefined, true)
       const validLessonIds = playedLessonIds.filter(
         (lessonId) => lessonId !== undefined
       );
@@ -337,9 +405,12 @@ const Home: FC = () => {
       ? api.getCoursesForClassStudent(currClass)
       : api.getCoursesForParentsStudent(currentStudent));
     setCourses(courses);
-
     for (const tempCourse of courses) {
       setIsLoading(true);
+      if (tempCourse.chapters.length <= 0) {
+        console.log("Chapters are empty", tempCourse);
+        continue;
+      }
       let islessonPushed = false;
       if (tempCourse.chapters.length <= 0) {
         console.log("Chapter are empty", tempCourse);
@@ -359,11 +430,14 @@ const Home: FC = () => {
             );
             // await res.lessons[tempCourse.courseCode][l.id];
             if (lessonObj) {
+              let chapterTitle = tempCourse.chapters[0].title;
+              lessonObj.chapterTitle = chapterTitle;
               console.log(lessonObj, "lessons pushed");
               reqLes.push(lessonObj as Lesson);
               setDataCourse(reqLes);
             }
           } else {
+            console.log("Wrong place");
             console.log(element, "lessons pushed");
             reqLes.push(element as Lesson);
             setDataCourse(reqLes);
@@ -395,6 +469,8 @@ const Home: FC = () => {
               // );
 
               if (lessonObj) {
+                let chapterTitle = chapter.title;
+                lessonObj.chapterTitle = chapterTitle;
                 console.log(lessonObj, "lessons pushed");
                 reqLes.push(lessonObj as Lesson);
               }
@@ -402,6 +478,7 @@ const Home: FC = () => {
               //   console.log(lesson, "lessons pushed");
               //   reqLes.push(lesson);
               // }
+              console.log("DWSGSGSG");
               setDataCourse(reqLes);
               islessonPushed = true;
               break;
@@ -414,6 +491,7 @@ const Home: FC = () => {
       //Last Played Lessons
       islessonPushed = false;
       if (!sortLessonResultMap) {
+        console.log("ERERERER");
         setDataCourse(reqLes);
         setIsLoading(false);
         continue;
@@ -429,7 +507,6 @@ const Home: FC = () => {
           islessonPushed = true;
           // break;
           console.log("reqLes.", reqLes);
-
           setDataCourse(reqLes);
           // return;
         }
@@ -480,7 +557,7 @@ const Home: FC = () => {
     HEADER_ICON_CONFIGS.get(selectedHeader);
     switch (selectedHeader) {
       case HOMEHEADERLIST.SUBJECTS:
-        history.push(PAGES.DISPLAY_SUBJECTS);
+        history.replace(PAGES.DISPLAY_SUBJECTS);
         break;
       case HOMEHEADERLIST.HOME:
         handleHomeIconClick();
@@ -493,21 +570,58 @@ const Home: FC = () => {
         }
         break;
       case HOMEHEADERLIST.PROFILE:
-        history.push(PAGES.LEADERBOARD);
+        history.replace(PAGES.LEADERBOARD);
         break;
       case HOMEHEADERLIST.SEARCH:
-        history.push(PAGES.SEARCH);
+        history.replace(PAGES.SEARCH);
         break;
       case HOMEHEADERLIST.ASSIGNMENT:
-        history.push(PAGES.ASSIGNMENT);
+        history.replace(PAGES.ASSIGNMENT);
         break;
       case HOMEHEADERLIST.QUIZ:
-        history.push(PAGES.HOME);
+        history.replace(PAGES.HOME);
         break;
       default:
         break;
     }
   }
+  // const sortedPlayedLessonsList = PlayedLessonsList.sort((a, b) => {
+  //   const lessonResultA = lessonResultMap?.[a.docId];
+  //   const lessonResultB = lessonResultMap?.[b.docId];
+
+  //   if (!lessonResultA || !lessonResultB) {
+  //     return 0;
+  //   }
+
+  //   return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
+  // });
+  // setPlayedLessonsList(sortedPlayedLessonsList);
+  // function sortPlayedLessonsByDate(lessons: Lesson[], lessonResultMap: any): Lesson[] {
+  //   const sortedLessons = lessons.slice().sort((a, b) => {
+  //     const lessonResultA = lessonResultMap?.[a.docId];
+  //     const lessonResultB = lessonResultMap?.[b.docId];
+
+  //     if (!lessonResultA || !lessonResultB) {
+  //       return 0;
+  //     }
+
+  //     return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
+  //   });
+
+  //   return sortedLessons;
+  // }
+
+  const getLovedLessons = () => {
+    return PlayedLessonsList.filter((lesson) => {
+      const lessonResult = lessonResultMap?.[lesson.docId];
+      return lessonResult?.isLoved ?? false;
+    }).sort((a, b) => {
+      const lessonResultA = lessonResultMap?.[a.docId];
+      const lessonResultB = lessonResultMap?.[b.docId];
+      if (!lessonResultA || !lessonResultB) return 0;
+      return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
+    });
+  };
 
   const handleLoadMoreHistoryLessons = async () => {
     tempPageNumber = tempPageNumber + 1;
@@ -599,12 +713,35 @@ const Home: FC = () => {
         <HomeHeader
           currentHeader={currentHeader}
           onHeaderIconClick={onHeaderIconClick}
+          pendingAssignmentCount={pendingAssignmentsCount}
         ></HomeHeader>
       </IonHeader>
       <div className="slider-content">
         {!isLoading ? (
           <div className="space-between">
             {currentHeader === HOMEHEADERLIST.HOME ? (
+              <ChimpleAvatarPage
+                style={{
+                  marginBottom: "15vh",
+                  display: "flex",
+                  justifyContent: "space-around",
+                }}
+              ></ChimpleAvatarPage>
+            ) : // <div>
+            //   <LessonSlider
+            //     lessonData={dataCourse}
+            //     isHome={true}
+            //     course={undefined}
+            //     lessonsScoreMap={lessonResultMap || {}}
+            //     startIndex={0}
+            //     showSubjectName={true}
+            //     showChapterName={true}
+            //   />
+            // </div>
+            // <div style={{ marginTop: "2.6%" }}></div>
+            null}
+
+            {currentHeader === HOMEHEADERLIST.SUGGESTIONS ? (
               <div>
                 <LessonSlider
                   lessonData={dataCourse}
@@ -613,6 +750,7 @@ const Home: FC = () => {
                   lessonsScoreMap={lessonResultMap || {}}
                   startIndex={0}
                   showSubjectName={true}
+                  showChapterName={true}
                 />
               </div>
             ) : // <div style={{ marginTop: "2.6%" }}></div>
@@ -627,6 +765,7 @@ const Home: FC = () => {
                   lessonsScoreMap={lessonResultMap || {}}
                   startIndex={0}
                   showSubjectName={true}
+                  showChapterName={true}
                   onEndReached={handleLoadMoreLessons}
                 />
               </div>
@@ -641,6 +780,7 @@ const Home: FC = () => {
                   lessonsScoreMap={lessonResultMap || {}}
                   startIndex={0}
                   showSubjectName={true}
+                  showChapterName={true}
                   onEndReached={handleLoadMoreHistoryLessons}
                 />
               </div>
@@ -711,65 +851,56 @@ const Home: FC = () => {
                 showSubjectName={currentHeader === HEADERLIST.RECOMMENDATION}
               />
             */}
-            {currentHeader !== HOMEHEADERLIST.QUIZ && (
-              <div id="home-page-bottom">
-                <AppBar className="home-page-app-bar">
-                  <Box>
-                    <Tabs
-                      value={value}
-                      onChange={handleChange}
-                      TabIndicatorProps={{ style: { display: "none" } }}
-                      sx={{
-                        "& .MuiTab-root": {
-                          color: "black",
-                          borderRadius: "5vh",
-                          padding: "0 3vw",
-                          margin: "1vh 1vh",
-                          minHeight: "37px",
-                        },
-                        "& .Mui-selected": {
-                          backgroundColor: "#FF7925",
-                          borderRadius: "8vh",
-                          color: "#FFFFFF !important",
-                          minHeight: "37px",
-                        },
-                      }}
-                    >
-                      <Tab
-                        id="home-page-sub-tab"
-                        label={t("Suggestion")}
-                        onClick={() => setCurrentHeader(HOMEHEADERLIST.HOME)}
-                      />
-                      <Tab
-                        id="home-page-sub-tab"
-                        label={t("Favourite")}
-                        onClick={() =>
-                          setCurrentHeader(HOMEHEADERLIST.FAVOURITES)
-                        }
-                      />
-
-                      <Tab
-                        id="home-page-sub-tab"
-                        label={t("History")}
-                        onClick={() => setCurrentHeader(HOMEHEADERLIST.HISTORY)}
-                      />
-                    </Tabs>
-                  </Box>
-                </AppBar>
-              </div>
-            )}
-            {/* <div id="home-leaderboard-button">
-              <LeaderBoardButton
-                iconSrc={"assets/icons/LeaderboardIcon.svg"}
-                // name={"Leaderboard"}
-                onHeaderIconClick={() => {
-                  history.replace(PAGES.LEADERBOARD);
-                  // if (currentHeader != element.header) {
-                  //   onHeaderIconClick(element.header);
-                  // }
-                }}
-              />
-            </div> */}
+            {(currentHeader === HOMEHEADERLIST.SUGGESTIONS ||
+            currentHeader === HOMEHEADERLIST.FAVOURITES ||
+            currentHeader === HOMEHEADERLIST.HISTORY )&&(
+                <div id="home-page-bottom">
+                  <AppBar className="home-page-app-bar">
+                    <Box>
+                      <Tabs
+                        value={value}
+                        onChange={handleChange}
+                        TabIndicatorProps={{ style: { display: "none" } }}
+                        sx={{
+                          "& .MuiTab-root": {
+                            color: "black",
+                            borderRadius: "5vh",
+                            padding: "0 3vw",
+                            margin: "1vh 1vh",
+                            minHeight: "37px",
+                          },
+                          "& .Mui-selected": {
+                            backgroundColor: "#FF7925",
+                            borderRadius: "8vh",
+                            color: "#FFFFFF !important",
+                            minHeight: "37px",
+                          },
+                        }}
+                      >
+                        <Tab
+                          id="home-page-sub-tab"
+                          label={t("For You")}
+                          onClick={() => setCurrentHeader(HOMEHEADERLIST.SUGGESTIONS)}
+                        />
+                        <Tab
+                          id="home-page-sub-tab"
+                          label={t("Favourite")}
+                          onClick={() =>
+                            setCurrentHeader(HOMEHEADERLIST.FAVOURITES)
+                          }
+                        />
+                        <Tab
+                          id="home-page-sub-tab"
+                          label={t("History")}
+                          onClick={() =>
+                            setCurrentHeader(HOMEHEADERLIST.HISTORY)
+                          }
+                        />
+                      </Tabs>
+                    </Box>
+                  </AppBar>
+                </div>
+              )}
           </div>
         ) : null}
         <Loading isLoading={isLoading} />
