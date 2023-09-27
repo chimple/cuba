@@ -239,8 +239,8 @@ const LessonCard: React.FC<{
             ) : (
               <div />
             )}
-           {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />}
           </div>
+          {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />}
         </div>
       </div>
       {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
