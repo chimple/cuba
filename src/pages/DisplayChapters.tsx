@@ -77,25 +77,19 @@ const DisplayChapters: FC<{}> = () => {
   useEffect(() => {
     console.log("chapters", currentCourse);
     console.log("local grade map", localGradeMap);
-
-    fetchLocalGradeMap();
-  }, [localGradeMap, currentCourse]);
-
-  const fetchLocalGradeMap = async () => {
     if (!localGradeMap || !localGradeMap.grades) {
       if (currentCourse) {
         setIsLoading(true);
-        const { grades } = await api.getDifferentGradesForCourse(
-          currentCourse
-        );
-        localData.gradesMap = { grades, courses: [currentCourse] };
-        localStorageData.gradesMap = localData.gradesMap;
-        addDataToLocalStorage();
-        setLocalGradeMap({ grades, courses: [currentCourse] });
-        setIsLoading(false);
+        api.getDifferentGradesForCourse(currentCourse).then(({ grades }) => {
+          localData.gradesMap = { grades, courses: [currentCourse] };
+          localStorageData.gradesMap = localData.gradesMap;
+          addDataToLocalStorage();
+          setLocalGradeMap({ grades, courses: [currentCourse] });
+          setIsLoading(false);
+        });
       }
     }
-  };
+  }, [localGradeMap, currentCourse]);
 
   const init = async () => {
     const urlParams = new URLSearchParams(location.search);
@@ -238,17 +232,15 @@ const DisplayChapters: FC<{}> = () => {
       history.replace(PAGES.SELECT_MODE);
       return [];
     }
-
     // const currClass = localStorage.getItem(CURRENT_CLASS);
     const currClass = schoolUtil.getCurrentClass();
     if (!!currClass) setCurrentClass(currClass);
-
-    const res = await api.getStudentResultInMap(currentStudent.docId);
-    console.log("tempResultLessonMap = res;", res);
-    localData.lessonResultMap = res;
-    localStorageData.lessonResultMap = res;
-    setLessonResultMap(res);
-
+    api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
+      console.log("tempResultLessonMap = res;", res);
+      localData.lessonResultMap = res;
+      localStorageData.lessonResultMap = res;
+      setLessonResultMap(res);
+    });
     const currMode = await schoolUtil.getCurrMode();
 
     const courses = await (currMode === MODES.SCHOOL && !!currClass
@@ -373,10 +365,7 @@ const DisplayChapters: FC<{}> = () => {
         <div id="back-button-container">
           <BackButton onClicked={onBackButton} />
         </div>
-        <IonList
-          mode="ios"
-          style={{ width: "20%", display: "flex", justifyContent: "center" }}
-        >
+        <IonList mode="ios" style={{ width: "20%", display: "flex", justifyContent: "center",  }}>
           <IonItem lines="none">
             <div className="chapter-name">
               {stage === STAGES.CHAPTERS
