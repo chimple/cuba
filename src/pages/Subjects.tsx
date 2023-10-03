@@ -200,15 +200,17 @@ const Subjects: React.FC<{}> = ({}) => {
       history.replace(PAGES.SELECT_MODE);
       return [];
     }
+
     // const currClass = localStorage.getItem(CURRENT_CLASS);
     const currClass = schoolUtil.getCurrentClass();
     if (!!currClass) setCurrentClass(currClass);
-    api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
-      console.log("tempResultLessonMap = res;", res);
-      localData.lessonResultMap = res;
-      localStorageData.lessonResultMap = res;
-      setLessonResultMap(res);
-    });
+
+    const res = await api.getStudentResultInMap(currentStudent.docId);
+    console.log("tempResultLessonMap = res;", res);
+    localData.lessonResultMap = res;
+    localStorageData.lessonResultMap = res;
+    setLessonResultMap(res);
+
     const currMode = await schoolUtil.getCurrMode();
 
     const courses = await (currMode === MODES.SCHOOL && !!currClass
@@ -216,7 +218,7 @@ const Subjects: React.FC<{}> = ({}) => {
       : api.getCoursesForParentsStudent(currentStudent));
     localData.courses = courses;
     localStorageData.courses = courses;
-    setCourses(courses)
+    setCourses(courses);
     addDataToLocalStorage();
     setIsLoading(false);
     return courses;
