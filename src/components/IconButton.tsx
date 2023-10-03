@@ -5,9 +5,10 @@ const IconButton: React.FC<{
   iconSrc: string;
   name: string;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
-}> = ({ iconSrc, name, onClick }) => {
+  isGrayscale: boolean;
+}> = ({ iconSrc, name, onClick, isGrayscale }) => {
   const student = Util.getCurrentStudent();
-  const iconButtonClass = `icon-button${iconSrc === student?.image ? ' circular-icon' : ''}`;
+  const iconButtonClass = `icon-button${iconSrc === student?.image ? ' circular-icon' : ''}${isGrayscale ? ' grayscale' : ''}`;
 
   return (
     <div className={iconButtonClass} onClick={onClick}>

@@ -165,11 +165,6 @@ function SearchLesson() {
   return (
     <div className="search-container">
       <div className="search-header">
-        <BackButton
-          onClicked={() => {
-            history.replace(PAGES.HOME);
-          }}
-        />
         <InstantSearch
           searchClient={searchClient}
           indexName={INSTANT_SEARCH_INDEX_NAME}
@@ -183,7 +178,7 @@ function SearchLesson() {
           {/* A virtual search box is required for InstantSearch to understand the `query` search state property */}
           <VirtualSearchBox />
           <Autocomplete
-            placeholder="Search..."
+            placeholder="Search for the Lesson..."
             detachedMediaQuery="none"
             initialState={{
               query: searchTerm,

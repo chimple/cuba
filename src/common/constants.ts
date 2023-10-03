@@ -151,6 +151,7 @@ export enum PAGES {
   EDIT_STUDENT = "/edit-student",
   DISPLAY_STUDENT = "/display-students",
   DISPLAY_SUBJECTS = "/display-subjects",
+  DISPLAY_CHAPTERS = "/display-chapters",
   APP_LANG_SELECTION = "/app-lang-selection",
   STUDENT_PROGRESS = "/student-progress",
   SEARCH = "/search",

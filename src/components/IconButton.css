@@ -11,6 +11,10 @@
   /* min-height: 30px; */
 }
 
+.icon-button.grayscale img {
+  filter: grayscale(100%);
+}
+
 .child-Name {
   white-space: nowrap;
   display: block;
