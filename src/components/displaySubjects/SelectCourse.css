@@ -8,34 +8,30 @@
   margin-bottom: 0;
   color: var(--text-color);
 }
-.subject-container1 {
-  display: inline;
-  justify-content: center;
+
+.subject-container {
+  margin: 0.4vh;
+  gap: 2vh;
+  margin-top: 6vh;
+  margin-left: 1.5em;
   align-items: center;
-  width: 100vw;
-  height: 100vh;
+  justify-items: center;
+  flex: 1 0 21%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  white-space: nowrap;
 }
+
 .course-icon {
-  /* width: min(30vh, 136px);
+  width: min(30vh, 136px);
   height: min(30vh, 136px);
   background-color: white;
-  background-repeat: no-repeat; */
-  /* width: clamp(120px, 16.5vw, 400px);
-  height: clamp(40px, 65vw, 254px); */
-  margin-top: 3vh;
-  width: clamp(20vh, 61vh, 37vh);
-  height: clamp(13vh, 61vh, 71vh);
-  border-radius: 4vh;
-  background-color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background-repeat: no-repeat;
+  border-radius: 50%;
 }
 .course-img {
   object-fit: contain;
   min-width: 100%;
   min-height: 100%;
-}
-.slide {
-  max-width: fit-content;
 }

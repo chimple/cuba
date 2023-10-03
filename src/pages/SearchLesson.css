@@ -4,9 +4,9 @@
   justify-content: center;
   margin: var(--margin);
   margin-bottom: 0;
-  margin-top: 5vh;
+  /* margin-top: 2vh; */
   flex-direction: row;
-  /* justify-content: space-between; */
+  justify-content: space-between;
   /* margin-left: 1vh; */
   align-items: center;
 }

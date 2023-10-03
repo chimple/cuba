@@ -2,12 +2,14 @@
   display: grid;
   gap: min(10px, 1vh);
   justify-items: center;
+
   margin: 2%;
   grid-template-columns: repeat(
     auto-fill,
     minmax(clamp(150px, 40vh, 200px), 1fr)
   );
 }
+
 .chapter-button {
   font-size: var(--text-size);
   display: flex;
@@ -19,15 +21,16 @@
   text-align: center;
   white-space: nowrap;
 }
+
 .chapter-icon {
   background-color: white;
-  /* clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%); */
+  clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%);
   background-repeat: no-repeat;
   background-position: 50%;
   width: min(70vh, 130px);
   height: min(70vh, 130px);
-  border-radius: 50%;
 }
+
 .grade-container {
   display: flex;
   flex-direction: row;
@@ -37,6 +40,7 @@
   margin-right: 3vh;
   margin-top: 1vh;
 }
+
 .chapter-img {
   min-width: 100%;
   min-height: 100%;

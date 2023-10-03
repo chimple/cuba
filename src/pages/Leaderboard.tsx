@@ -499,7 +499,6 @@ const Leaderboard: React.FC = () => {
                   history.replace(PAGES.DISPLAY_STUDENT);
                   // history.replace(PAGES.SELECT_MODE);
                 }}
-                isGrayscale={false}
               />
             </div>
           </div>

@@ -1,16 +1,8 @@
 .assignment-main {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   background: var(--ion-background-color);
-}
-
-.assignment-main-join-class{
-  display: flex;
-  flex-direction: column;
-  height: 110vh;
-  background: var(--ion-background-color);
-  font-weight: bold;
 }
 
 .lesson-body {
@@ -27,9 +19,7 @@
 }
 
 .assignment-body {
-  /* margin-top: 10vh; */
-  position: relative;
-  bottom: 2%;
+  margin-top: 10vh;
 }
 
 .assignment-header {
@@ -67,5 +57,5 @@
 
 .scroll-header {
   overflow: scroll;
-  /* height: 70vh; */
+ 
 }

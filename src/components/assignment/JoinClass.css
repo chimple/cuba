@@ -3,9 +3,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* position: relative;
-  /* margin-top: 15vh; 
-  height: 60vh; */
+  position: relative;
+  margin-top: 15vh;
 }
 
 .join-class-title {

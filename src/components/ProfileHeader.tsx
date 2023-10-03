@@ -16,7 +16,6 @@ const ProfileHeader: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const [student, setStudent] = useState<User>();
-
   async function init() {
     const student = await Util.getCurrentStudent();
     if (!student) {
@@ -42,7 +41,6 @@ const ProfileHeader: React.FC = () => {
       <IconButton
         name={student?.name ?? "Chimp"}
         iconSrc={"assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png"}
-        isGrayscale={false} // Set isGrayscale to false to keep the icon in color
       />
       <IconButton
         name={t("Sign Out")}
@@ -60,10 +58,8 @@ const ProfileHeader: React.FC = () => {
           // history.replace(PAGES.DISPLAY_STUDENT);
           history.replace(PAGES.SELECT_MODE);
         }}
-        isGrayscale={false}
       />
     </div>
   );
 };
-
 export default ProfileHeader;
