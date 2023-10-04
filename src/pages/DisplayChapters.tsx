@@ -71,31 +71,29 @@ const DisplayChapters: FC<{}> = () => {
   }, []);
   useEffect(() => {
     if (getCourseByUrl && !currentCourse) {
+      //as url params change(course.docId) and currentCourse empty they we are using this
       onCourseChanges(getCourseByUrl);
     }
-  }, [getCourseByUrl]);
-  useEffect(() => {
-    console.log("chapters", currentCourse);
-    console.log("local grade map", localGradeMap);
-
-    getLocalGradeMap();
-  }, [localGradeMap, currentCourse]);
-
-  const getLocalGradeMap = async () => {
+  
     if (!localGradeMap || !localGradeMap.grades) {
       if (currentCourse) {
         setIsLoading(true);
-        const { grades } = await api.getDifferentGradesForCourse(
-          currentCourse
-        );
-        localData.gradesMap = { grades, courses: [currentCourse] };
-        localStorageData.gradesMap = localData.gradesMap;
-        addDataToLocalStorage();
-        setLocalGradeMap({ grades, courses: [currentCourse] });
-        setIsLoading(false);
+        const getLocalGradeMap = async () => {
+          const { grades } = await api.getDifferentGradesForCourse(currentCourse);
+          localData.gradesMap = { grades, courses: [currentCourse] };
+          localStorageData.gradesMap = localData.gradesMap;
+          addDataToLocalStorage();
+          setLocalGradeMap({ grades, courses: [currentCourse] });
+          setIsLoading(false);
+        };
+        getLocalGradeMap();
       }
     }
-  };
+  
+    console.log("chapters", currentCourse);
+    console.log("local grade map", localGradeMap);
+  }, [getCourseByUrl, localGradeMap, currentCourse]);
+  
 
   const init = async () => {
     const urlParams = new URLSearchParams(location.search);
