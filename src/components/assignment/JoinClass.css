@@ -14,9 +14,11 @@
 
 .join-class-text-box {
   width: 100%;
-  height: max(6vh, 5vw);
+  /* height: max(6vh, 5vw); */
+  height: 10vh;
   padding: 2vh;
-  border-radius: 1.1vw;
+  padding-left: 4vh;
+  border-radius: 4vw;
   border: hidden;
   outline: none;
   margin-top: 1vh;
@@ -39,6 +41,11 @@
   background-color: #83c327;
   margin-top: 5%;
   cursor: pointer;
+  width: 20vw;
+  height: 10vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .okay-button:disabled {
