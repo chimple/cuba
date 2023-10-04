@@ -53,7 +53,13 @@ const EditStudent = () => {
       : undefined
   );
   const [age, setAge] = useState<number | undefined>(
-    isEdit ? currentStudent?.age : undefined
+    isEdit
+      ? !!currentStudent?.age
+        ? currentStudent.age < 4
+          ? 4
+          : currentStudent.age
+        : undefined
+      : undefined
   );
   const [avatar, setAvatar] = useState<string | undefined>(
     isEdit ? currentStudent?.avatar : undefined
@@ -85,7 +91,7 @@ const EditStudent = () => {
       if (isEdit && !!currentStudent && !!currentStudent.docId) {
         student = await api.updateStudent(
           currentStudent,
-         _studentName!,
+          _studentName!,
           age ?? currentStudent.age!,
           gender ?? currentStudent.gender!,
           avatar ?? currentStudent.avatar!,
@@ -141,7 +147,7 @@ const EditStudent = () => {
         await Util.setCurrentStudent(
           student,
           langIndex && languages ? languages[langIndex]?.code : undefined,
-          false,
+          false
         );
       }
       console.log(
@@ -239,7 +245,7 @@ const EditStudent = () => {
           <StudentNameBox
             studentName={studentName!}
             onValueChange={setStudentName}
-            onEnterDown={isNextButtonEnabled() ? onNextButton : () => { }}
+            onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
           />
         )}
       </div>
