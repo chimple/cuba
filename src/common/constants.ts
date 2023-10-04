@@ -191,6 +191,7 @@ export const SOUND = "sound";
 export const MUSIC = "music";
 export const GAME_URL = "gameUrl";
 export const TC_ACCEPT = "tcAccept";
+export const RECOMMENDATIONS = "recommendations";
 export const BASE_NAME =
   !Capacitor.isNativePlatform() && !!process.env.REACT_APP_GITHUB_BASE
     ? process.env.REACT_APP_GITHUB_BASE

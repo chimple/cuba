@@ -17,6 +17,7 @@ import {
   CURRENT_CLASS,
   MODES,
   CURRENT_MODE,
+  RECOMMENDATIONS,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -348,6 +349,50 @@ const Home: FC = () => {
     }
   };
 
+  const currentStudentDocId = Util.getCurrentStudent()?.docId;
+  const storeRecommendationsInLocalStorage = (recommendations) => {
+    try {
+      const existingRecommendationsString = localStorage.getItem(currentStudentDocId + "-" + RECOMMENDATIONS);
+
+      let existingRecommendations: any[];
+
+      if (existingRecommendationsString !== null) {
+        existingRecommendations = JSON.parse(existingRecommendationsString);
+      } else {
+        existingRecommendations = [];
+      }
+
+      console.log("local storage....", existingRecommendations);
+      console.log("home page", typeof existingRecommendations);
+      const recommendationsMap = new Map();
+      const simplifiedMap = {};
+
+      if (currentStudentDocId) {
+        simplifiedMap['currentStudentDocId'] = currentStudentDocId;
+      }
+
+      existingRecommendations.forEach(lesson => {
+        if (lesson.cocosSubjectCode && lesson.id) {
+          recommendationsMap.set(lesson.cocosSubjectCode, lesson.id);
+          simplifiedMap[lesson.cocosSubjectCode] = lesson.id;
+        }
+      });
+
+      console.log("simplifiedMap", simplifiedMap);
+      localStorage.setItem(currentStudentDocId + "-" + RECOMMENDATIONS, JSON.stringify(simplifiedMap));
+
+      if (!lessonResultMap && existingRecommendations.length === 0) {
+        localStorage.setItem(currentStudentDocId + "-" + RECOMMENDATIONS, JSON.stringify(recommendations));
+        console.log("local storage1", localStorage.getItem(currentStudentDocId + "-" + RECOMMENDATIONS));
+      }
+      setDataCourse(existingRecommendations);
+      console.log("existingRecommendations", existingRecommendations);
+
+    } catch (error) {
+      console.error('Error storing recommendations in local storage:', error);
+    }
+  };
+
   let reqLes: Lesson[] = [];
   async function getRecommendationLessons(
     currentStudent: User,
@@ -383,13 +428,12 @@ const Home: FC = () => {
       lesList.forEach((res) => (tempLesMap[res[0]] = res[1]));
       return tempLesMap;
     };
-
     const currMode = await schoolUtil.getCurrMode();
     console.log(currMode);
     let sortLessonResultMap:
       | {
-          [lessonDocId: string]: StudentLessonResult;
-        }
+        [lessonDocId: string]: StudentLessonResult;
+      }
       | undefined;
     const res = await api.getStudentResult(currentStudent.docId);
     console.log("tempResultLessonMap = res;", JSON.stringify(res));
@@ -515,6 +559,7 @@ const Home: FC = () => {
     }
     console.log("reqLes outside.", reqLes);
     setDataCourse(reqLes);
+    storeRecommendationsInLocalStorage(reqLes);
     setIsLoading(false);
     return sortLessonResultMap;
   }
@@ -728,18 +773,18 @@ const Home: FC = () => {
                 }}
               ></ChimpleAvatarPage>
             ) : // <div>
-            //   <LessonSlider
-            //     lessonData={dataCourse}
-            //     isHome={true}
-            //     course={undefined}
-            //     lessonsScoreMap={lessonResultMap || {}}
-            //     startIndex={0}
-            //     showSubjectName={true}
-            //     showChapterName={true}
-            //   />
-            // </div>
-            // <div style={{ marginTop: "2.6%" }}></div>
-            null}
+              //   <LessonSlider
+              //     lessonData={dataCourse}
+              //     isHome={true}
+              //     course={undefined}
+              //     lessonsScoreMap={lessonResultMap || {}}
+              //     startIndex={0}
+              //     showSubjectName={true}
+              //     showChapterName={true}
+              //   />
+              // </div>
+              // <div style={{ marginTop: "2.6%" }}></div>
+              null}
 
             {currentHeader === HOMEHEADERLIST.FAVOURITES && (
               <div>

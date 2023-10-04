@@ -8,6 +8,7 @@ import {
   LESSONS_PLAYED_COUNT,
   LESSON_END,
   PAGES,
+  RECOMMENDATIONS,
 } from "../common/constants";
 import Loading from "../components/Loading";
 import { Util } from "../utility/util";
@@ -22,6 +23,7 @@ import ScoreCard from "../components/parent/ScoreCard";
 import { t } from "i18next";
 import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
 import Course from "../models/course";
+
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -163,6 +165,62 @@ const CocosGame: React.FC = () => {
 
     // document.body.addEventListener("problemEnd", onProblemEnd);
   }
+  const currentStudentDocId = Util.getCurrentStudent()?.docId;
+
+  let ChapterDetail: Chapter | undefined;
+  const api = ServiceConfig.getI().apiHandler;
+  const lesson: Lesson = JSON.parse(state.lesson);
+
+  async function getNextLessonInChapter(chapters, currentChapterId, currentLessonId) {
+
+    const currentChapter = ChapterDetail;
+    console.log("currentChapter", currentChapter);
+
+    if (!currentChapter) return undefined;
+    let currentLessonIndex;
+
+    currentChapter.lessons = Util.convertDoc(currentChapter.lessons)
+    const cChapter = await api.getLessonsForChapter(currentChapter);
+    console.log("cchpater", cChapter);
+
+    for (let i = 0; i < cChapter.length - 1; i++) {
+      const currentLesson1 = cChapter[i];
+      console.log(`Checking lesson at index ${i}:`, currentLesson1);
+      console.log("currentlesson id:", currentLesson1.id);
+      if (currentLesson1.id === currentLessonId) {
+        currentLessonIndex = i;
+        break;
+      }
+    }
+
+    console.log("currentLessonIndex", currentLessonIndex);
+
+    if (currentLessonIndex < currentChapter.lessons.length - 1) {
+      console.log("length of current chapter lessons", currentChapter.lessons.length);
+
+      const nextLesson = currentChapter.lessons[currentLessonIndex + 1];
+      console.log("Next lesson", nextLesson);
+      const lessonObj = await api.getLesson(nextLesson.id) as Lesson;
+      console.log("lessonObj", lessonObj);
+      if (lessonObj) {
+        console.log("nextLesson", lessonObj);
+        return lessonObj;
+      }
+    }
+
+    const nextChapterIndex = chapters.findIndex(chapter => chapter.id === currentChapterId) + 1;
+    if (nextChapterIndex < chapters.length) {
+      const nextChapter = chapters[nextChapterIndex];
+      const firstLessonId = nextChapter.lessons[0];
+      if (firstLessonId instanceof Lesson) {
+        console.log("firstLessonId", firstLessonId);
+        return firstLessonId;
+      }
+      return undefined;
+    }
+  };
+
+
   const saveTempData = async (
     lessonData: CocosLessonData,
     isLoved: boolean | undefined
@@ -199,7 +257,6 @@ const CocosGame: React.FC = () => {
       classId,
       schoolId
     );
-    let ChapterDetail: Chapter | undefined;
     if (!!lessonDetail.cocosChapterCode) {
       let cChap = CourseDetail.chapters.find(
         (chap) => lessonDetail.cocosChapterCode === chap.id
@@ -208,6 +265,25 @@ const CocosGame: React.FC = () => {
         ChapterDetail = cChap;
         console.log("Current Chapter ", ChapterDetail);
       }
+
+      let existing: string | any | null = localStorage.getItem(currentStudentDocId + "-" + RECOMMENDATIONS);
+      console.log("existing", existing);
+      if (existing === null) {
+        existing = {};
+      } else {
+        existing = JSON.parse(existing);
+        console.log("existing", existing);
+      }
+      const finalLesson = await getNextLessonInChapter(CourseDetail.chapters, lessonData.chapterId, lesson.id)
+
+      console.log("arg1", CourseDetail.chapters);
+      console.log("arg2", lessonData.chapterId);
+      console.log("arg3", lesson.id);
+      console.log("final lesson", finalLesson);
+      console.log("currentStudentDocId", currentStudentDocId);
+      existing[CourseDetail.courseCode] = finalLesson?.id;
+      localStorage.setItem(currentStudentDocId + "-" + RECOMMENDATIONS, JSON.stringify(existing));
+
     }
     Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.docId,
@@ -279,7 +355,7 @@ const CocosGame: React.FC = () => {
               }}
               onYesButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
-                console.log("--------------line 200 game result",gameResult);
+                console.log("--------------line 200 game result", gameResult);
                 setIsLoading(true);
                 await saveTempData(gameResult.detail, true);
                 console.log(
