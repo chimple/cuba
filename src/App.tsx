@@ -54,6 +54,7 @@ import SelectMode from "./pages/SelectMode";
 import { FirebaseRemoteConfig } from "@capacitor-firebase/remote-config";
 import HotUpdate from "./pages/HotUpdate";
 import TermsAndConditions from "./pages/TermsAndConditions";
+import DisplayChapters from "./pages/DisplayChapters";
 
 setupIonicReact();
 
@@ -141,6 +142,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.DISPLAY_SUBJECTS} exact={true}>
               <DisplaySubjects />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.DISPLAY_CHAPTERS} exact={true}>
+              <DisplayChapters />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.STUDENT_PROGRESS} exact={true}>
               <StudentProgress />

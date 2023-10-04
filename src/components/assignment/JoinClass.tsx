@@ -78,7 +78,7 @@ const JoinClass: FC<{
   const location = useLocation();
 
   useEffect(() => {
-    Util.isTextFieldFocus(scollToRef, setIsInputFocus);
+    //Util.isTextFieldFocus(scollToRef, setIsInputFocus);
 
     const urlParams = new URLSearchParams(location.search);
     const joinClassParam = urlParams.get('join-class');
