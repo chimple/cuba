@@ -32,7 +32,6 @@ import {
   MODES,
   aboveGrade3,
   belowGrade1,
-  courseSortIndex,
   grade1,
   grade2,
   grade3,
@@ -58,6 +57,8 @@ import StudentProfile from "../../models/studentProfile";
 import Class from "../../models/class";
 import School from "../../models/school";
 import Assignment from "../../models/assignment";
+import { sort } from "semver";
+import Avatar from "../../models/avatar";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
@@ -72,6 +73,7 @@ export class FirebaseApi implements ServiceApi {
   private _studentResultCache: { [key: string]: StudentProfile } = {};
   private _schoolsCache: { [userId: string]: School[] } = {};
   private _currentMode: MODES;
+  private _allCourses: Course[];
   private constructor() {}
 
   public static getInstance(): FirebaseApi {
@@ -144,6 +146,22 @@ export class FirebaseApi implements ServiceApi {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
+
+    // Created a variable to check the username is defined or an empty
+    const username = _currentUser.username || "";
+
+    // let courseIds: DocumentReference[] = [];
+    // const courses = await this.getAllCourses();
+    // if (!!courses && courses.length > 0) {
+    //   courses.forEach((course) => {
+    //     courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+    //   });
+    // } else {
+    //   courseIds = DEFAULT_COURSE_IDS.map((id) =>
+    //     doc(this._db, `${CollectionIds.COURSE}/${id}`)
+    //   );
+    // }
+    // let courseIds: DocumentReference[] = await this.getCourseByGradeId(
     let courseIds: DocumentReference[] = await this.getCourseByUserGradeId(
       gradeDocId
     );
@@ -158,6 +176,7 @@ export class FirebaseApi implements ServiceApi {
     //     )
     //   );
     // }
+
     const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
     const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
     const languageRef = doc(
@@ -165,7 +184,7 @@ export class FirebaseApi implements ServiceApi {
       `${CollectionIds.LANGUAGE}/${languageDocId}`
     );
     const student = new User(
-      _currentUser?.username,
+      username,
       [],
       name,
       RoleType.STUDENT,
@@ -296,6 +315,29 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
+  public async getAvatarInfo(): Promise<Avatar | undefined> {
+    try {
+      const avatarDocId = "AvatarInfo";
+      console.log(
+        "getAvatarInfo(): entred",
+        doc(this._db, CollectionIds.AVATAR + "/" + avatarDocId)
+      );
+      const documentSnapshot = await this.getDocFromOffline(
+        doc(this._db, CollectionIds.AVATAR + "/" + avatarDocId)
+      );
+      const avatarInfoData = documentSnapshot.data() as Avatar;
+      console.log("const avatarInfoData", avatarInfoData);
+
+      return avatarInfoData;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:262 ~ FirebaseApi ~ getAvatarInfo ~ error:",
+        JSON.stringify(error)
+      );
+      return;
+    }
+  }
+
   public async getAllLanguages(): Promise<Language[]> {
     try {
       const querySnapshot = await this.getDocsFromOffline(
@@ -419,21 +461,18 @@ export class FirebaseApi implements ServiceApi {
       );
     }
   }
+
   async sortSubject(subjects) {
-    subjects.sort(
-      (a, b) => courseSortIndex[a.courseCode] - courseSortIndex[b.courseCode]
-    );
-    console.log("1234", courseSortIndex["en"]);
-    const indexOfDigitalSkill = subjects
-      .map((e) => e.courseCode)
-      .indexOf("puzzle");
-    if (indexOfDigitalSkill) {
-      console.log("12345", subjects);
-      const digitalSkills = subjects.splice(indexOfDigitalSkill, 1)[0];
-      subjects.push(digitalSkills);
-    }
+    subjects.sort((a, b) => {
+      //Number.MAX_SAFE_INTEGER is using when sortIndex is not found COURSES (i.e it gives default value)
+      const sortIndexA = a.sortIndex || Number.MAX_SAFE_INTEGER;
+      const sortIndexB = b.sortIndex || Number.MAX_SAFE_INTEGER;
+
+      return sortIndexA - sortIndexB;
+    });
     return subjects;
   }
+
   async getCoursesForParentsStudent(student: User): Promise<Course[]> {
     try {
       const subjects: Course[] = [];
@@ -448,6 +487,7 @@ export class FirebaseApi implements ServiceApi {
           subjects.push(course);
         }
       });
+      return this.sortSubject(subjects);
       return this.sortSubject(subjects);
     } catch (error) {
       console.log(
@@ -505,7 +545,11 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  async getLesson(id: string): Promise<Lesson | undefined> {
+  async getLesson(
+    id: string,
+    chapter: Chapter | undefined = undefined,
+    loadChapterTitle: boolean = false
+  ): Promise<Lesson | undefined> {
     try {
       const lessonDoc = await this.getDocFromOffline(
         doc(this._db, `${CollectionIds.LESSON}/${id}`)
@@ -513,6 +557,20 @@ export class FirebaseApi implements ServiceApi {
       if (!lessonDoc.exists) return;
       const lesson = lessonDoc.data() as Lesson;
       lesson.docId = lessonDoc.id;
+
+      if (!!chapter) lesson.chapterTitle = chapter.title;
+      else if (loadChapterTitle) {
+        if (!this._allCourses) {
+          this._allCourses = await this.getAllCourses();
+        }
+        const tmpCourse = this._allCourses?.find(
+          (course) => course.courseCode === lesson.cocosSubjectCode
+        );
+        const chapter = tmpCourse?.chapters.find(
+          (chapter) => chapter.id === lesson.cocosChapterCode
+        );
+        lesson.chapterTitle = chapter?.title;
+      }
       return lesson;
     } catch (error) {
       console.log(
@@ -521,14 +579,13 @@ export class FirebaseApi implements ServiceApi {
       );
     }
   }
-
   async getLessonsForChapter(chapter: Chapter): Promise<Lesson[]> {
     const lessons: Lesson[] = [];
     try {
       if (chapter.lessons && chapter.lessons.length > 0) {
         for (let lesson of chapter.lessons) {
           if (lesson instanceof DocumentReference) {
-            const lessonObj = await this.getLesson(lesson.id);
+            const lessonObj = await this.getLesson(lesson.id, chapter);
             if (lessonObj) {
               lessons.push(lessonObj);
             }
@@ -571,7 +628,7 @@ export class FirebaseApi implements ServiceApi {
       if (chapter.lessons && chapter.lessons.length > 0) {
         for (let lesson of chapter.lessons) {
           if (lesson instanceof DocumentReference) {
-            const lessonObj = await this.getLesson(lesson.id);
+            const lessonObj = await this.getLesson(lesson.id, chapter);
             if (lessonObj) {
               lesMap[lesson.id] = lessonObj as Lesson;
             }
@@ -621,7 +678,7 @@ export class FirebaseApi implements ServiceApi {
             if (lesson.id === lessonId) {
               // console.log("lesson id Found", lesson);
               if (lesson instanceof DocumentReference) {
-                const lessonObj = await this.getLesson(lesson.id);
+                const lessonObj = await this.getLesson(lesson.id, chapter);
                 if (lessonObj) {
                   lesMap[lesson.id] = lessonObj as Lesson;
                 }
@@ -679,6 +736,13 @@ export class FirebaseApi implements ServiceApi {
         }
       )
     );
+    gradeMap.grades.sort((a, b) => {
+      //Number.MAX_SAFE_INTEGER is using when sortIndex is not found GRADES (i.e it gives default value)
+      const sortIndexA = a.sortIndex || Number.MAX_SAFE_INTEGER;
+      const sortIndexB = b.sortIndex || Number.MAX_SAFE_INTEGER;
+
+      return sortIndexA - sortIndexB;
+    });
     return gradeMap;
   }
 

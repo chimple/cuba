@@ -53,7 +53,13 @@ const EditStudent = () => {
       : undefined
   );
   const [age, setAge] = useState<number | undefined>(
-    isEdit ? currentStudent?.age : undefined
+    isEdit
+      ? !!currentStudent?.age
+        ? currentStudent.age < 4
+          ? 4
+          : currentStudent.age
+        : undefined
+      : undefined
   );
   const [avatar, setAvatar] = useState<string | undefined>(
     isEdit ? currentStudent?.avatar : undefined
@@ -76,6 +82,7 @@ const EditStudent = () => {
     setIsLoading(true);
     const stagesLength = Object.keys(STAGES).length / 2;
     const newStage = stage + 1;
+    let _studentName = studentName?.trim();
     //Completed all stages
     if (stagesLength === newStage) {
       //Creating Profile for the Student
@@ -84,7 +91,7 @@ const EditStudent = () => {
       if (isEdit && !!currentStudent && !!currentStudent.docId) {
         student = await api.updateStudent(
           currentStudent,
-          studentName!,
+          _studentName!,
           age ?? currentStudent.age!,
           gender ?? currentStudent.gender!,
           avatar ?? currentStudent.avatar!,
@@ -106,7 +113,7 @@ const EditStudent = () => {
         });
       } else {
         student = await api.createProfile(
-          studentName!,
+          _studentName!,
           age,
           gender,
           avatar,
@@ -140,7 +147,6 @@ const EditStudent = () => {
         await Util.setCurrentStudent(
           student,
           langIndex && languages ? languages[langIndex]?.code : undefined,
-          false,
           false
         );
       }
@@ -174,7 +180,7 @@ const EditStudent = () => {
   const isNextButtonEnabled = () => {
     switch (stage) {
       case STAGES.NAME:
-        return !!studentName;
+        return !!studentName.trim();
       case STAGES.GENDER_AND_AGE:
         return !!gender && !!age;
       case STAGES.AVATAR:

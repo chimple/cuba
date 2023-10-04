@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { IonIcon, IonPage } from "@ionic/react";
+import { useEffect, useState } from "react";
+import "./AppLangSelection.css";
 import { useHistory } from "react-router-dom";
 import { LANGUAGE, LANG, PAGES } from "../common/constants";
 import Loading from "../components/Loading";
@@ -6,7 +8,6 @@ import RectangularOutlineDropDown from "../components/parent/RectangularOutlineD
 import i18n from "../i18n";
 import NextButton from "../components/common/NextButton";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { IonIcon, IonPage } from "@ionic/react";
 import "./AppLangSelection.css";
 import { t } from "i18next";
 import "./AppLangSelection.css"; 

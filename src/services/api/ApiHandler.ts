@@ -14,13 +14,17 @@ import StudentProfile from "../../models/studentProfile";
 import school from "../../models/school";
 import { MODES } from "../../common/constants";
 import School from "../../models/school";
+import Avatar from "../../models/avatar";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
 
   private s: ServiceApi;
 
-  private constructor() { }
+  private constructor() {}
+  public async getAvatarInfo(): Promise<Avatar | undefined> {
+    return await this.s.getAvatarInfo();
+  }
   public async getSchoolsForUser(user: User): Promise<school[]> {
     return await this.s.getSchoolsForUser(user);
   }
@@ -156,8 +160,12 @@ export class ApiHandler implements ServiceApi {
   public async getCoursesForClassStudent(currClass: Class): Promise<Course[]> {
     return await this.s.getCoursesForClassStudent(currClass);
   }
-  public async getLesson(id: string): Promise<Lesson | undefined> {
-    return await this.s.getLesson(id);
+  public async getLesson(
+    id: string,
+    chapter: Chapter | undefined = undefined,
+    loadChapterTitle: boolean = false
+  ): Promise<Lesson | undefined> {
+    return await this.s.getLesson(id, chapter, loadChapterTitle);
   }
 
   public async getLessonsForChapter(chapter: Chapter): Promise<Lesson[]> {

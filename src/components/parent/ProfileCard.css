@@ -17,6 +17,7 @@
 #profile-card-image {
     width: 35%;
     height: auto;
+    border-radius: 50%;
 }
 
 #profile-card-user-name{

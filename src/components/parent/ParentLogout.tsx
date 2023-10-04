@@ -5,17 +5,18 @@ import { useState } from "react";
 import DialogBoxButtons from "./DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { useHistory } from "react-router";
-import { PAGES } from "../../common/constants";
+import { CURRENT_STUDENT, CURRENT_USER, PAGES } from "../../common/constants";
 import { Capacitor } from "@capacitor/core";
 import { Util } from "../../utility/util";
 
-const ParentLogout: React.FC<{}> = ({}) => {
+const ParentLogout: React.FC<{}> = ({ }) => {
   const [showDialogBox, setShowDialogBox] = useState(false);
   const history = useHistory();
   const onSignOut = async () => {
     const auth = ServiceConfig.getI().authHandler;
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
+    localStorage.removeItem(CURRENT_USER);
     history.replace(PAGES.APP_LANG_SELECTION);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };

@@ -29,6 +29,7 @@ const LessonCard: React.FC<{
   isLoved: boolean | undefined;
   lessonData: Lesson[];
   startIndex: number;
+  showChapterName : boolean;
 }> = ({
   width,
   height,
@@ -44,11 +45,17 @@ const LessonCard: React.FC<{
   isLoved,
   lessonData,
   startIndex,
+  showChapterName = false,
 }) => {
   const history = useHistory();
+  const [showImage, setShowImage] = useState(true);
+  const [subject, setSubject] = useState<Subject>();
   // const [subject, setSubject] = useState<Subject>();
   const [currentCourse, setCurrentCourse] = useState<Course>();
 
+  const hideImg = (event: any) => {
+    setShowImage(false);
+  };
   // const subjectCode = lesson.chapter.course.id;
   useEffect(() => {
     // getSubject();
@@ -167,6 +174,16 @@ const LessonCard: React.FC<{
           }}
           color={lessonCardColor}
         >
+          <div id="lesson-card-homework-icon">
+            {lesson.assignment != undefined ? (
+              <div>
+                <img
+                  src="assets/icons/homework_icon.svg"
+                  className="lesson-card-homework-indicator"
+                />
+              </div>
+            ) : null}
+          </div>
           {showSubjectName && currentCourse?.title ? (
             <div id="lesson-card-subject-name">
               <p>
@@ -222,11 +239,16 @@ const LessonCard: React.FC<{
             ) : (
               <div />
             )}
-            {isLoved && <LovedIcon isLoved={isLoved} />}
+           {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />}
           </div>
         </div>
       </div>
       {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
+      {showChapterName && lesson.chapterTitle &&
+        <div id="chapter-title">
+          {lesson.chapterTitle}
+        </div>
+      }
     </IonCard>
   );
 };

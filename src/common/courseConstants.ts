@@ -10,6 +10,7 @@ export interface Chapter {
 
 export enum CollectionIds {
   ASSIGNMENT = "Assignment",
+  AVATAR = "Avatar",
   CLASS = "Class",
   CONNECTION = "Connection",
   COURSE = "Course",
@@ -33,7 +34,7 @@ export interface StudentLessonResult {
   course: DocumentReference;
   score: number;
   timeSpent: number;
-  isLoved : boolean;
+  isLoved: boolean;
 }
 
 export interface CocosLessonData {
@@ -53,7 +54,7 @@ export interface CocosLessonData {
   totalMoves: number;
   correctMoves: number;
   correct: number;
-  isLoved:boolean;
+  isLoved: boolean;
   wrongMoves: number;
   gameCompleted: boolean;
   quizCompleted: boolean;

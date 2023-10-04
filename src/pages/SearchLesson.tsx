@@ -64,7 +64,6 @@ function SearchLesson() {
     }
 
     setStudent(currentStudent);
-
     if (currentStudent) {
       const api = ServiceConfig.getI().apiHandler;
       // const currentStudent =await Util.getCurrentStudent();
@@ -96,7 +95,7 @@ function SearchLesson() {
   // }, []);
   useEffect(() => {
     init();
-    // const currentStudent = await Util.getCurrentStudent();
+
     const urlParams = new URLSearchParams(location.search);
     if (!!urlParams.get("continue") && !!dataToContinue.lessons) {
       setLessons(dataToContinue.lessons);
@@ -208,6 +207,7 @@ function SearchLesson() {
         lessonsScoreMap={lessonResultMap || {}}
         startIndex={0}
         showSubjectName={true}
+        showChapterName = {false}
       />
       <div className="search-bottom"></div>
     </div>

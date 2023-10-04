@@ -12,6 +12,8 @@ import Class from "../../models/class";
 import School from "../../models/school";
 import Assignment from "../../models/assignment";
 import { MODES } from "../../common/constants";
+import { FaUnderline } from "react-icons/fa";
+import Avatar from "../../models/avatar";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -116,7 +118,11 @@ export interface ServiceApi {
    * @param {string} id - Lesson firebase doc id
    * @returns {Lesson | undefined}`Lesson` or `undefined` if it could not find the lesson with given `id`
    */
-  getLesson(id: string): Promise<Lesson | undefined>;
+  getLesson(
+    id: string,
+    chapter: Chapter | undefined,
+    loadChapterTitle: boolean
+  ): Promise<Lesson | undefined>;
 
   /**
    * Gives Array of `Lesson` objects for a given `chapter`
@@ -133,6 +139,12 @@ export interface ServiceApi {
   getDifferentGradesForCourse(
     course: Course
   ): Promise<{ grades: Grade[]; courses: Course[] }>;
+
+  /**
+   * Gives all Avatar info like mode, audio list
+   * @returns {Avatar} `Avatar` Object
+   */
+  getAvatarInfo(): Promise<Avatar | undefined>;
 
   /**
    * Gives all lesson results for given student id

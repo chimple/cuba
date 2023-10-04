@@ -35,6 +35,7 @@ import CustomAppBar from "../components/studentProgress/CustomAppBar";
 import DeleteParentAccount from "../components/parent/DeleteParentAccount";
 import { TrueFalseEnum } from "../interface/modelInterfaces";
 import { Util } from "../utility/util";
+import { schoolUtil } from "../utility/schoolUtil";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
@@ -43,7 +44,7 @@ const Parent: React.FC = () => {
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [soundFlag, setSoundFlag] = useState<boolean>();
   const [musicFlag, setMusicFlag] = useState<boolean>();
-  const [userProfile, setUserProfile] = useState<any[]>([]);
+  const [userProfile, setUserProfile] = useState<User[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
 
   const [langList, setLangList] = useState<
@@ -56,6 +57,7 @@ const Parent: React.FC = () => {
   const [currentAppLang, setCurrentAppLang] = useState<string>();
   //  const [localLangDocId, setLocalLangDocId] = useState<any>();
   const [reloadProfiles, setReloadProfiles] = useState<boolean>(false);
+  const [studentMode, setStudentMode] = useState<string | undefined>();
   let tempLangList: {
     id: string;
     displayName: string;
@@ -77,25 +79,23 @@ const Parent: React.FC = () => {
     getStudentProfile();
   }, [reloadProfiles]);
 
-  function getStudentProfile() {
+
+  async function getStudentProfile() {
     console.log("getStudentProfile");
-    const userProfilePromise: Promise<User[]> =
+    const userProfilePromise: User[] = await
       ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     let finalUser: any[] = [];
-    userProfilePromise.then((u) => {
-      for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
-        if (u[i]) {
-          finalUser.push(u[i]);
-        } else {
-          finalUser.push(undefined);
-        }
-      }
-      setUserProfile(finalUser);
-    });
+    for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
+      finalUser.push(userProfilePromise[i]);
+    }
+    setUserProfile(finalUser);
+    // });
   }
   async function inti(): Promise<void> {
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (parentUser != undefined) {
+      const currMode = await schoolUtil.getCurrMode();
+      setStudentMode(currMode);
       console.log("User ", parentUser?.musicFlag!);
       const sound = Util.getCurrentSound();
       const music = Util.getCurrentMusic();
@@ -162,6 +162,8 @@ const Parent: React.FC = () => {
               user={element}
               showText={true}
               setReloadProfiles={setReloadProfiles}
+              profiles={userProfile}
+              studentCurrMode= {studentMode}
             />
           );
         })}
