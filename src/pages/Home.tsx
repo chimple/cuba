@@ -116,23 +116,19 @@ const Home: FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    console.log("---------------line 113 in home use effect");
     setCurrentHeader(HOMEHEADERLIST.HOME);
-    console.log("--------------------current header sets to", currentHeader);
     setValue(SUBTAB.SUGGESTIONS);
     fetchData();
     urlOpenListenerEvent();
     const urlParams = new URLSearchParams(location.search);
     
     if (!!urlParams.get("continue")) {
-      console.log("-------------line 126 current header", currentHeader);
       setCurrentHeader(currentHeader);
     }
   }, []);
 
   useEffect(() => {
     setCurrentHeader(currentHeader === HOMEHEADERLIST.PROFILE?HOMEHEADERLIST.HOME:currentHeader);
-    console.log("--------------line133 localstorage header",currentHeader);
     localStorage.setItem('currentHeader', currentHeader);
   }, [currentHeader]);
   

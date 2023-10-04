@@ -30,6 +30,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  max-Width:22vw;
+  padding:0% 4% 0% 4%;
 }
 .course-img {
   object-fit: contain;

@@ -5,17 +5,12 @@ import { t } from "i18next";
 import SelectIconImage from "./SelectIconImage";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
+import { CHAPTER_CARD_COLOURS } from "../../common/constants";
 const SelectCourse: FC<{
   courses: Course[];
   onCourseChange: (course: Course) => void;
 }> = ({ courses, onCourseChange }) => {
-  const chapterCardColors = [
-    "#F99500",
-    "#0090D3",
-    "#F3609B",
-    "#8F5AA5",
-    "#009948",
-  ];
+
   return (
     <Splide
       hasTrack={true}
@@ -40,9 +35,7 @@ const SelectCourse: FC<{
               <div
                 className="course-icon"
                 style={{
-                  backgroundColor: chapterCardColors[index],
-                  maxWidth:"22vw",
-                  padding:"0% 4% 0% 4%"
+                  backgroundColor: CHAPTER_CARD_COLOURS[index],
                 }}
               >
                 <SelectIconImage
@@ -64,9 +57,6 @@ const SelectCourse: FC<{
               className="course-icon"
               style={{
                 backgroundColor: "#8F5AA5",
-                // opacity: "0.1",
-                maxWidth:"22vw",
-                padding:"0% 4% 4% 0%"
               }}
             >
               <IoAddCircleSharp color="white" size="20vh" onClick={() => {}} />

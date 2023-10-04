@@ -250,6 +250,14 @@ export const LESSON_CARD_COLORS = [
   "#AC82CF",
 ];
 
+export const CHAPTER_CARD_COLOURS = [
+  "#F99500",
+  "#0090D3",
+  "#F3609B",
+  "#8F5AA5",
+  "#009948",
+];
+
 export enum PAGES {
   APP_UPDATE = "/",
   HOME = "/home",
