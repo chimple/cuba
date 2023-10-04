@@ -1,27 +1,29 @@
 .fav-icon {
   display: flex;
-  position: absolute;
-  left: 87%;
-  bottom: 14%;
-  right: 3%;
-  background: rgb(220, 213, 213);
-  border-radius: 62%;
-  padding: 1% 0.5% 1% 0.5%;
+  height: 3vw;
+  width: 3vw;
+  background-color: rgb(220, 213, 213);
+  border-radius: 30vw;
+  justify-content: space-around;
+  margin-top: -9vh;
+  margin-right: 2vw;
+  float: right;
 }
 
 .fav-icon-image {
-  width: 5vw;
-  height: 5vh;
   color: red;
+  height: 3.1vw;
+  width: 2.7vw;
 }
 
-.with-chapter-title{
+.with-chapter-title {
   display: flex;
-  position: absolute;
-  left: 87%;
-  bottom: 19.5%;
-  right: 3%;
-  background: rgb(220, 213, 213);
-  border-radius: 62%;
-  padding: 1% 0.5% 1% 0.5%;
+  height: 3vw;
+  width: 3vw;
+  background-color: rgb(220, 213, 213);
+  border-radius: 30vw;
+  justify-content: space-around;
+  margin-top: -9vh;
+  margin-right: 2vw;
+  float: right;
 }

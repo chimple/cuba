@@ -17,6 +17,7 @@ export enum SL_GRADES {
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
 export enum HOMEHEADERLIST {
+  SUGGESTIONS = "SUGGESTIONS",
   SUBJECTS = "SUBJECTS",
   HOME = "HOME",
   ASSIGNMENT = "ASSIGNMENT",
@@ -77,6 +78,14 @@ export interface HeaderIconConfig {
 
 export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
   new Map<HOMEHEADERLIST, HeaderIconConfig>([
+    [
+      HOMEHEADERLIST.SUGGESTIONS,
+      {
+        displayName: "Suggestion",
+        iconSrc: "/assets/icons/suggestion_icon.svg",
+        headerList: HOMEHEADERLIST.SUGGESTIONS,
+      },
+    ],
     [
       HOMEHEADERLIST.SUBJECTS,
       {
@@ -314,10 +323,3 @@ export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
 export const COPIED_BUNDLE_FILES_INDEX = "copiedBundleFilesIndex";
 
 export const NUMBER_REGEX = /^[0-9]+$/;
-
-export const courseSortIndex = {
-  en: 1,
-  maths: 2,
-  puzzle: 3,
-  hi: 4,
-};
