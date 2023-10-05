@@ -294,4 +294,8 @@ export class ApiHandler implements ServiceApi {
   ): Promise<Lesson | undefined> {
     return this.s.getLessonFromCourse(course, lessonId);
   }
+
+  public async getCourseFromLesson(lesson: Lesson): Promise<Course | undefined> {
+    return this.s.getCourseFromLesson(lesson);
+  }
 }
