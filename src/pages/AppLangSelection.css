@@ -59,6 +59,7 @@
 #text{
   margin-top: 2vh;
   user-select: none;
+  height: 70vh;
 }
 .dot {
   display: inline-block;
@@ -69,12 +70,23 @@
   background-color: #ccc;
   cursor: pointer;
 }
-#header-text{
+#header-text1{
   font-size: clamp(18px,4vh,20vh);
   font-weight: bold;
-  
+  color: #FFBA00;
 }
 
+#header-text2{
+  font-size: clamp(18px,4vh,20vh);
+  font-weight: bold;
+  color: #88C327;
+}
+
+#header-text3{
+  font-size: clamp(18px,4vh,20vh);
+  font-weight: bold;
+  color: #FF5500;
+}
 .dot.active {
   background-color: #007bff;
 }
@@ -93,7 +105,7 @@
 
 .skip-button{
   text-align: center;
-  background-color: grey;
+  background-color: #CCCCCC;
 }
 .skip-next{
   display: flex;
@@ -101,29 +113,21 @@
   justify-content: space-between;
 }
 
+#intro-logo{
+  height: 48vh;
+}
+#login{
+  width: 60vw;
+  height: 57vh;
+}
+
 #profile-logo{
   width: 35vw;
-  height: 41vh;
+  height: 55vh;
 }
 
 #advance-home-logo{
-  width: 32vw;
-  height: 38vh;
+  width: 37vw;
+  height: auto;
 }
 
-#login-logo-outer-box{
-  margin-top: 1vh;
-}
-
-#login{
-  width: 60vw;
-  height: 45vh;
-}
-
-#profile-logo-outer-box{
-  margin-top: 6vh;
-}
-
-#advance-home-logo-outer-box {
-  margin-top: 0vh;
-}

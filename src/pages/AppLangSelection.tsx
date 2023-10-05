@@ -51,15 +51,15 @@ const AppLangSelection: React.FC = () => {
     {
       text: (
         <div className="intro-text">
-           <div id="login-logo-outer-box">
+           {/* <div id="login-logo-outer-box"> */}
           <img
-                id="login"
+                id="intro-logo"
                 alt="Home Screen"
-                src="assets/icons/Login.png"
+                src="assets/icons/intro1.svg"
               />
-          </div>
+          {/* </div> */}
           <div id="text">
-          <p id="header-text">
+          <p id="header-text1">
             {t("Login with Phone number or Gmail")}
           </p>
           <div className="intro-text2">
@@ -84,15 +84,15 @@ const AppLangSelection: React.FC = () => {
     {
       text: (
         <div className="intro-text">
-          <div id="profile-logo-outer-box">
+          {/* <div id="profile-logo-outer-box"> */}
           <img
-                id="profile-logo"
+                id="intro-logo"
                 alt="Home Screen"
-                src="assets/icons/Profile.png"
+                src="assets/icons/intro2.svg"
               />
-          </div>
+          {/* </div> */}
           <div id="text">
-          <p id="header-text">
+          <p id="header-text2">
           {t("Enhanced kids profile creation")}
           </p>
           <div className="intro-text2">
@@ -116,15 +116,15 @@ const AppLangSelection: React.FC = () => {
     {
       text: (
         <div className="intro-text">
-          <div id="advance-home-logo-outer-box">
+          {/* <div id="advance-home-logo-outer-box"> */}
           <img
-                id="advance-home-logo"
+                id="intro-logo"
                 alt="Home Screen"
-                src="assets/icons/Homescreen.png"
+                src="assets/icons/intro3.svg"
               />
-          </div>
+          {/* </div> */}
           <div id="text">
-          <p id="header-text">
+          <p id="header-text3">
           {t("Advance Home Screen")}
           </p>
           <div className="intro-text2">
