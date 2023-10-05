@@ -17,6 +17,7 @@ import {
   ASSIGNMENT_COMPLETED_IDS,
   Chapter,
   CocosLessonData,
+  StudentLessonResult,
 } from "../common/courseConstants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import ScoreCard from "../components/parent/ScoreCard";
@@ -165,7 +166,7 @@ const CocosGame: React.FC = () => {
 
     // document.body.addEventListener("problemEnd", onProblemEnd);
   }
-  const currentStudentDocId = Util.getCurrentStudent()?.docId;
+  const currentStudentDocId: string = Util.getCurrentStudent()?.docId || '';
 
   let ChapterDetail: Chapter | undefined;
   const api = ServiceConfig.getI().apiHandler;
@@ -181,13 +182,12 @@ const CocosGame: React.FC = () => {
 
     currentChapter.lessons = Util.convertDoc(currentChapter.lessons)
     const cChapter = await api.getLessonsForChapter(currentChapter);
-    console.log("cchpater", cChapter);
 
     for (let i = 0; i < cChapter.length - 1; i++) {
-      const currentLesson1 = cChapter[i];
-      console.log(`Checking lesson at index ${i}:`, currentLesson1);
-      console.log("currentlesson id:", currentLesson1.id);
-      if (currentLesson1.id === currentLessonId) {
+      const currentLesson = cChapter[i];
+      console.log(`Checking lesson at index ${i}:`, currentLesson);
+      console.log("currentlesson id:", currentLesson.id);
+      if (currentLesson.id === currentLessonId) {
         currentLessonIndex = i;
         break;
       }
@@ -196,14 +196,22 @@ const CocosGame: React.FC = () => {
     console.log("currentLessonIndex", currentLessonIndex);
 
     if (currentLessonIndex < currentChapter.lessons.length - 1) {
-      console.log("length of current chapter lessons", currentChapter.lessons.length);
 
-      const nextLesson = currentChapter.lessons[currentLessonIndex + 1];
-      console.log("Next lesson", nextLesson);
+      let nextLesson = currentChapter.lessons[currentLessonIndex + 1];
+      let lessonId = nextLesson.id;
+      let studentResult: { [lessonDocId: string]: StudentLessonResult } | undefined = {};
+      const studentProfile = await api.getStudentResult(currentStudentDocId);
+      studentResult = studentProfile?.lessons;
+
+      if (!studentResult) return undefined;
+      while (studentResult && studentResult[lessonId]) {
+        currentLessonIndex += 1;
+        nextLesson = currentChapter.lessons[currentLessonIndex + 1];
+        lessonId = nextLesson.id;
+      }
       const lessonObj = await api.getLesson(nextLesson.id) as Lesson;
       console.log("lessonObj", lessonObj);
       if (lessonObj) {
-        console.log("nextLesson", lessonObj);
         return lessonObj;
       }
     }
@@ -213,7 +221,6 @@ const CocosGame: React.FC = () => {
       const nextChapter = chapters[nextChapterIndex];
       const firstLessonId = nextChapter.lessons[0];
       if (firstLessonId instanceof Lesson) {
-        console.log("firstLessonId", firstLessonId);
         return firstLessonId;
       }
       return undefined;
@@ -238,7 +245,6 @@ const CocosGame: React.FC = () => {
     let schoolId;
     if (isStudentLinked) {
       const studentResult = await api.getStudentResult(currentStudent.docId);
-
       if (!!studentResult && studentResult.classes.length > 0) {
         classId = studentResult.classes[0];
         schoolId = studentResult.schools[0];
@@ -266,24 +272,16 @@ const CocosGame: React.FC = () => {
         console.log("Current Chapter ", ChapterDetail);
       }
 
-      let existing: string | any | null = localStorage.getItem(currentStudentDocId + "-" + RECOMMENDATIONS);
-      console.log("existing", existing);
-      if (existing === null) {
-        existing = {};
-      } else {
-        existing = JSON.parse(existing);
-        console.log("existing", existing);
-      }
+      let existing = localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`) || '{}';
+      existing = JSON.parse(existing);
       const finalLesson = await getNextLessonInChapter(CourseDetail.chapters, lessonData.chapterId, lesson.id)
-
-      console.log("arg1", CourseDetail.chapters);
-      console.log("arg2", lessonData.chapterId);
-      console.log("arg3", lesson.id);
       console.log("final lesson", finalLesson);
-      console.log("currentStudentDocId", currentStudentDocId);
-      existing[CourseDetail.courseCode] = finalLesson?.id;
-      localStorage.setItem(currentStudentDocId + "-" + RECOMMENDATIONS, JSON.stringify(existing));
+      existing[CourseDetail.courseCode] = {
+        finalLessonId: finalLesson?.id,
+        lessonId: lesson.id
+      };
 
+      localStorage.setItem(`${currentStudentDocId}-${RECOMMENDATIONS}`, JSON.stringify(existing));
     }
     Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.docId,

@@ -173,6 +173,7 @@ const Home: FC = () => {
       setPendingAssignmentsCount(count);
 
       setDataCourse(reqLes);
+      storeRecommendationsInLocalStorage(reqLes);
       setIsLoading(true);
     } else {
       setIsLoading(false);
@@ -350,48 +351,35 @@ const Home: FC = () => {
   };
 
   const currentStudentDocId = Util.getCurrentStudent()?.docId;
-  const storeRecommendationsInLocalStorage = (recommendations) => {
-    try {
-      const existingRecommendationsString = localStorage.getItem(currentStudentDocId + "-" + RECOMMENDATIONS);
+  const storeRecommendationsInLocalStorage = (recommendations: any[]) => {
+    const recommendationsInLocal = localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`);
+    let existingRecommendations: any[] = [];
 
-      let existingRecommendations: any[];
+    if (recommendationsInLocal !== null) {
+      existingRecommendations = JSON.parse(recommendationsInLocal);
+    }
 
-      if (existingRecommendationsString !== null) {
-        existingRecommendations = JSON.parse(existingRecommendationsString);
-      } else {
-        existingRecommendations = [];
-      }
+    if (!lessonResultMap && existingRecommendations.length === 0) {
+      let lessonMap = {};
 
-      console.log("local storage....", existingRecommendations);
-      console.log("home page", typeof existingRecommendations);
-      const recommendationsMap = new Map();
-      const simplifiedMap = {};
-
-      if (currentStudentDocId) {
-        simplifiedMap['currentStudentDocId'] = currentStudentDocId;
-      }
-
-      existingRecommendations.forEach(lesson => {
+      for (let i = 0; i < recommendations.length; i++) {
+        const lesson = recommendations[i];
         if (lesson.cocosSubjectCode && lesson.id) {
-          recommendationsMap.set(lesson.cocosSubjectCode, lesson.id);
-          simplifiedMap[lesson.cocosSubjectCode] = lesson.id;
+          lessonMap[lesson.cocosSubjectCode] = lesson.id;
         }
-      });
-
-      console.log("simplifiedMap", simplifiedMap);
-      localStorage.setItem(currentStudentDocId + "-" + RECOMMENDATIONS, JSON.stringify(simplifiedMap));
-
-      if (!lessonResultMap && existingRecommendations.length === 0) {
-        localStorage.setItem(currentStudentDocId + "-" + RECOMMENDATIONS, JSON.stringify(recommendations));
-        console.log("local storage1", localStorage.getItem(currentStudentDocId + "-" + RECOMMENDATIONS));
       }
-      setDataCourse(existingRecommendations);
-      console.log("existingRecommendations", existingRecommendations);
 
-    } catch (error) {
-      console.error('Error storing recommendations in local storage:', error);
+      localStorage.setItem(`${currentStudentDocId}-${RECOMMENDATIONS}`, JSON.stringify(lessonMap));
+      setDataCourse(existingRecommendations.concat(lessonMap) as Lesson[]);
+
+    } else {
+      setDataCourse(existingRecommendations);
     }
   };
+
+
+
+
 
   let reqLes: Lesson[] = [];
   async function getRecommendationLessons(
@@ -611,6 +599,7 @@ const Home: FC = () => {
           getRecommendationLessons(currentStudent, currentClass).then(() => {
             console.log("Final RECOMMENDATION List ", reqLes);
             setDataCourse(reqLes);
+            storeRecommendationsInLocalStorage(reqLes);
           });
         }
         break;
@@ -799,7 +788,7 @@ const Home: FC = () => {
                 />
               </div>
             ) : // <div style={{ marginTop: "2.6%" }}></div>
-            null}
+              null}
 
             {currentHeader === HOMEHEADERLIST.FAVOURITES && (
               <div>
@@ -897,8 +886,8 @@ const Home: FC = () => {
               />
             */}
             {(currentHeader === HOMEHEADERLIST.SUGGESTIONS ||
-            currentHeader === HOMEHEADERLIST.FAVOURITES ||
-            currentHeader === HOMEHEADERLIST.HISTORY )&&(
+              currentHeader === HOMEHEADERLIST.FAVOURITES ||
+              currentHeader === HOMEHEADERLIST.HISTORY) && (
                 <div id="home-page-bottom">
                   <AppBar className="home-page-app-bar">
                     <Box>
