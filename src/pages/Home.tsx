@@ -17,6 +17,7 @@ import {
   CURRENT_CLASS,
   MODES,
   CURRENT_MODE,
+  RECOMMENDATIONS,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -193,6 +194,7 @@ const Home: FC = () => {
       setPendingAssignmentsCount(count);
 
       setDataCourse(reqLes);
+      storeRecommendationsInLocalStorage(reqLes);
       setIsLoading(true);
     } else {
       setIsLoading(false);
@@ -369,6 +371,37 @@ const Home: FC = () => {
     }
   };
 
+  const currentStudentDocId = Util.getCurrentStudent()?.docId;
+  const storeRecommendationsInLocalStorage = (recommendations: any[]) => {
+    const recommendationsInLocal = localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`);
+    let existingRecommendations: any[] = [];
+
+    if (recommendationsInLocal !== null) {
+      existingRecommendations = JSON.parse(recommendationsInLocal);
+    }
+
+    if (!lessonResultMap && existingRecommendations.length === 0) {
+      let lessonMap = new Map();
+
+      for (let i = 0; i < recommendations.length; i++) {
+        const lesson = recommendations[i];
+        if (lesson.cocosSubjectCode && lesson.id) {
+          lessonMap[lesson.cocosSubjectCode] = lesson.id;
+        }
+      }
+
+      localStorage.setItem(`${currentStudentDocId}-${RECOMMENDATIONS}`, JSON.stringify(lessonMap));
+      setDataCourse(existingRecommendations.concat(lessonMap) as Lesson[]);
+
+    } else {
+      setDataCourse(existingRecommendations);
+    }
+  };
+
+
+
+
+
   let reqLes: Lesson[] = [];
   async function getRecommendationLessons(
     currentStudent: User,
@@ -404,13 +437,12 @@ const Home: FC = () => {
       lesList.forEach((res) => (tempLesMap[res[0]] = res[1]));
       return tempLesMap;
     };
-
     const currMode = await schoolUtil.getCurrMode();
     console.log(currMode);
     let sortLessonResultMap:
       | {
-          [lessonDocId: string]: StudentLessonResult;
-        }
+        [lessonDocId: string]: StudentLessonResult;
+      }
       | undefined;
     const res = await api.getStudentResult(currentStudent.docId);
     console.log("tempResultLessonMap = res;", JSON.stringify(res));
@@ -536,6 +568,7 @@ const Home: FC = () => {
     }
     console.log("reqLes outside.", reqLes);
     setDataCourse(reqLes);
+    storeRecommendationsInLocalStorage(reqLes);
     setIsLoading(false);
     return sortLessonResultMap;
   }
@@ -588,6 +621,7 @@ const Home: FC = () => {
           getRecommendationLessons(currentStudent, currentClass).then(() => {
             console.log("Final RECOMMENDATION List ", reqLes);
             setDataCourse(reqLes);
+            storeRecommendationsInLocalStorage(reqLes);
           });
         }
         break;
@@ -750,18 +784,18 @@ const Home: FC = () => {
                 }}
               ></ChimpleAvatarPage>
             ) : // <div>
-            //   <LessonSlider
-            //     lessonData={dataCourse}
-            //     isHome={true}
-            //     course={undefined}
-            //     lessonsScoreMap={lessonResultMap || {}}
-            //     startIndex={0}
-            //     showSubjectName={true}
-            //     showChapterName={true}
-            //   />
-            // </div>
-            // <div style={{ marginTop: "2.6%" }}></div>
-            null}
+              //   <LessonSlider
+              //     lessonData={dataCourse}
+              //     isHome={true}
+              //     course={undefined}
+              //     lessonsScoreMap={lessonResultMap || {}}
+              //     startIndex={0}
+              //     showSubjectName={true}
+              //     showChapterName={true}
+              //   />
+              // </div>
+              // <div style={{ marginTop: "2.6%" }}></div>
+              null}
 
             {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
 
@@ -782,7 +816,7 @@ const Home: FC = () => {
                 />
               </div>
             ) : // <div style={{ marginTop: "2.6%" }}></div>
-            null}
+              null}
 
             {(value === SUBTAB.FAVOURITES && currentHeader === HOMEHEADERLIST.SUGGESTIONS )&& (
               <div>
