@@ -271,13 +271,15 @@ const CocosGame: React.FC = () => {
         ChapterDetail = cChap;
         console.log("Current Chapter ", ChapterDetail);
       }
-
-      let existing = localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`) || '{}';
-      existing = JSON.parse(existing);
-      const finalLesson = await getNextLessonInChapter(CourseDetail.chapters, lessonData.chapterId, lesson.id)
+      let existing = new Map();
+      let res: { [key: string]: string } = JSON.parse(localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`) || '{}');
+      const finalLesson = await getNextLessonInChapter(CourseDetail.chapters, lessonData.chapterId, lesson.id);
       console.log("final lesson", finalLesson);
-      existing[CourseDetail.courseCode] = [finalLesson?.id, lesson.id];
-      localStorage.setItem(`${currentStudentDocId}-${RECOMMENDATIONS}`, JSON.stringify(existing));
+      existing.set(CourseDetail.courseCode, finalLesson?.id);
+      for (let [key, value] of existing) {
+        res[key] = value;
+      }
+      localStorage.setItem(`${currentStudentDocId}-${RECOMMENDATIONS}`, JSON.stringify(res));
     }
     Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.docId,

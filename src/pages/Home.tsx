@@ -360,7 +360,7 @@ const Home: FC = () => {
     }
 
     if (!lessonResultMap && existingRecommendations.length === 0) {
-      let lessonMap = {};
+      let lessonMap = new Map();
 
       for (let i = 0; i < recommendations.length; i++) {
         const lesson = recommendations[i];
