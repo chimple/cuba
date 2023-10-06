@@ -136,7 +136,8 @@ export class ApiHandler implements ServiceApi {
     isLoved: boolean | undefined,
     assignmentId: string | undefined,
     classId: string | undefined,
-    schoolId: string | undefined
+    schoolId: string | undefined,
+    attempts: number | undefined
   ): Promise<Result> {
     return await this.s.updateResult(
       student,
@@ -149,7 +150,8 @@ export class ApiHandler implements ServiceApi {
       isLoved,
       assignmentId,
       classId,
-      schoolId
+      schoolId,
+      attempts
     );
   }
 

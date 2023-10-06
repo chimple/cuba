@@ -757,7 +757,8 @@ export class FirebaseApi implements ServiceApi {
     isLoved: boolean,
     assignmentId: string | undefined,
     classId: string | undefined,
-    schoolId: string | undefined
+    schoolId: string | undefined,
+    attemtps: number | undefined
   ): Promise<Result> {
     const courseRef = courseId
       ? doc(this._db, CollectionIds.COURSE, courseId)
@@ -804,8 +805,13 @@ export class FirebaseApi implements ServiceApi {
       score: result.score,
       isLoved: result.isLoved,
       timeSpent: result.timeSpent,
+      attempts: attemtps ? attemtps + 1 : 1,
     };
-    console.log("playedResult", result.lesson.id, JSON.stringify(playedResult));
+    console.log(
+      "playedResult",
+      attemtps ? attemtps + 1 : 1,
+      playedResult
+    );
 
     if (this._studentResultCache[student.docId] === undefined) {
       const studentProfileData = await this.getStudentResult(student.docId);
@@ -846,10 +852,10 @@ export class FirebaseApi implements ServiceApi {
       this._studentResultCache[student.docId].lessons[result.lesson.id] =
         playedResult;
     }
-    console.log(
-      "this._studentResultCache[student.docId] ",
-      JSON.stringify(this._studentResultCache[student.docId])
-    );
+    // console.log(
+    //   "this._studentResultCache[student.docId] ",
+    //   JSON.stringify(this._studentResultCache[student.docId])
+    // );
 
     return result;
   }

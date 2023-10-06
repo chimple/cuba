@@ -178,13 +178,26 @@ const CocosGame: React.FC = () => {
     const isStudentLinked = await api.isStudentLinked(currentStudent.docId);
     let classId;
     let schoolId;
+    let attempts;
     if (isStudentLinked) {
       const studentResult = await api.getStudentResult(currentStudent.docId);
-
       if (!!studentResult && studentResult.classes.length > 0) {
         classId = studentResult.classes[0];
         schoolId = studentResult.schools[0];
       }
+
+      const previouslyPlayedResult = studentResult?.lessons[lesson.docId];
+
+      console.log(
+        "studentResult?.lessons[lessonData.lessonId]",
+        lesson.docId,
+        studentResult?.lessons,
+        previouslyPlayedResult
+      );
+
+      if (previouslyPlayedResult)
+        attempts = studentResult?.lessons[lessonData.lessonId].attempts;
+      else attempts = 0;
     }
     const result = await api.updateResult(
       currentStudent,
@@ -197,7 +210,8 @@ const CocosGame: React.FC = () => {
       isLoved,
       lesson.assignment?.docId,
       classId,
-      schoolId
+      schoolId,
+      attempts
     );
     let ChapterDetail: Chapter | undefined;
     if (!!lessonDetail.cocosChapterCode) {
@@ -235,6 +249,7 @@ const CocosGame: React.FC = () => {
       game_time_spent: data.gameTimeSpent,
       quiz_time_spent: data.quizTimeSpent,
       score: data.score,
+      attempts: attempts,
     });
     console.log("🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:", result);
     let tempAssignmentCompletedIds = localStorage.getItem(

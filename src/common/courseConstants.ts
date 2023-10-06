@@ -35,6 +35,7 @@ export interface StudentLessonResult {
   score: number;
   timeSpent: number;
   isLoved: boolean;
+  attempts: number;
 }
 
 export interface CocosLessonData {

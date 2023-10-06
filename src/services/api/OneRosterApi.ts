@@ -168,13 +168,17 @@ export class OneRosterApi implements ServiceApi {
   }
   updateResult(
     student: User,
-    courseId: string,
+    courseId: string | undefined,
     lessonId: string,
     score: number,
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    isLoved: boolean
+    isLoved: boolean | undefined,
+    assignmentId: string | undefined,
+    classId: string | undefined,
+    schoolId: string | undefined,
+    attempts: number | undefined
   ): Promise<Result> {
     throw new Error("Method not implemented.");
   }
