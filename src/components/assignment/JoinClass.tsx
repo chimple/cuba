@@ -78,7 +78,7 @@ const JoinClass: FC<{
   const location = useLocation();
 
   useEffect(() => {
-    Util.isTextFieldFocus(scollToRef, setIsInputFocus);
+    //Util.isTextFieldFocus(scollToRef, setIsInputFocus);
 
     const urlParams = new URLSearchParams(location.search);
     const joinClassParam = urlParams.get('join-class');
@@ -101,9 +101,9 @@ const JoinClass: FC<{
   return (
     <div className="join-class-main-header">
       <div className="join-class-header">
-        <div className="join-class-title">
+        {/* <div className="join-class-title">
           {t("Enter the 6 digit code your teacher has given to join the class")}
-        </div>
+        </div> */}
         <input
           onChange={(evt) => {
             const inviteCode = evt.target.value.slice(0, 6);
@@ -122,12 +122,14 @@ const JoinClass: FC<{
           className="join-class-text-box"
           defaultValue={inviteCode ?? ""}
           type="tel"
+          placeholder={t("Enter the class code to join the class") as string}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               getClassData();
             }
           }}
           value={inviteCode ?? ""}
+          style={{width:"63vw"}}
         />
         <p className={"error-text "}>{error}</p>
         <button

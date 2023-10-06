@@ -76,6 +76,119 @@ export interface HeaderIconConfig {
   headerList: any;
 }
 
+export const ACTIVE_HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
+  new Map<HOMEHEADERLIST, HeaderIconConfig>([
+    [
+      HOMEHEADERLIST.HOME,
+      {
+        displayName: "Home",
+        iconSrc: "/assets/icons/homeIcon.svg",
+        headerList: HOMEHEADERLIST.HOME,
+      },
+    ],
+    [
+      HOMEHEADERLIST.SUGGESTIONS,
+      {
+        displayName: "Suggestion",
+        iconSrc: "/assets/icons/suggestionIcon_icon.svg",
+        headerList: HOMEHEADERLIST.SUGGESTIONS,
+      },
+    ],
+    [
+      HOMEHEADERLIST.SUBJECTS,
+      {
+        displayName: "Subjects",
+        iconSrc: "/assets/icons/subjectIcon.svg",
+        headerList: HOMEHEADERLIST.SUBJECTS,
+      },
+    ],
+    [
+      HOMEHEADERLIST.ASSIGNMENT,
+      {
+        displayName: "Home work",
+        iconSrc: "/assets/icons/homeworkIcon.svg",
+        headerList: HOMEHEADERLIST.ASSIGNMENT,
+      },
+    ],
+    // [
+    //   HOMEHEADERLIST.CHALLENGES,
+    //   {
+    //     displayName: "Challenges",
+    //     iconSrc: "/assets/icons/MathsIcon.svg",
+    //     headerList: HOMEHEADERLIST.CHALLENGES,
+    //   },
+    // ],
+    [
+      HOMEHEADERLIST.SEARCH,
+      {
+        displayName: "Search",
+        iconSrc: "/assets/icons/searchIcon.svg",
+        headerList: HOMEHEADERLIST.SEARCH,
+      },
+    ],
+    // [
+    //   HOMEHEADERLIST.QUIZ,
+    //   {
+    //     displayName: "Quiz",
+    //     iconSrc: "/assets/icons/quiz_icon.svg",
+    //     headerList: HOMEHEADERLIST.QUIZ,
+    //   },
+    // ],
+  ]);
+
+export const DEFAULT_HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
+  new Map<HOMEHEADERLIST, HeaderIconConfig>([
+    [
+      HOMEHEADERLIST.SUGGESTIONS,
+      {
+        displayName: "Suggestion",
+        iconSrc: "/assets/icons/suggestionInactiveIcon.svg",
+        headerList: HOMEHEADERLIST.SUGGESTIONS,
+      },
+    ],
+    [
+      HOMEHEADERLIST.SUBJECTS,
+      {
+        displayName: "Subjects",
+        iconSrc: "/assets/icons/subjectInactiveIcon.svg",
+        headerList: HOMEHEADERLIST.SUBJECTS,
+      },
+    ],
+    [
+      HOMEHEADERLIST.ASSIGNMENT,
+      {
+        displayName: "Home work",
+        iconSrc: "/assets/icons/homeworkInactiveIcon.svg",
+        headerList: HOMEHEADERLIST.ASSIGNMENT,
+      },
+    ],
+    // [
+    //   HOMEHEADERLIST.CHALLENGES,
+    //   {
+    //     displayName: "Challenges",
+    //     iconSrc: "/assets/icons/MathsIcon.svg",
+    //     headerList: HOMEHEADERLIST.CHALLENGES,
+    //   },
+    // ],
+    [
+      HOMEHEADERLIST.SEARCH,
+      {
+        displayName: "Search",
+        iconSrc: "/assets/icons/searchInactiveIcon.svg",
+        headerList: HOMEHEADERLIST.SEARCH,
+      },
+    ],
+    // [
+    //   HOMEHEADERLIST.QUIZ,
+    //   {
+    //     displayName: "Quiz",
+    //     iconSrc: "/assets/icons/quiz_icon.svg",
+    //     headerList: HOMEHEADERLIST.QUIZ,
+    //   },
+    // ],
+  ]);
+
+// export const HEADERLIST = [HOME_CONFIG, LANG_CONFIGS, PROFILE_CONFIG]
 export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
   new Map<HOMEHEADERLIST, HeaderIconConfig>([
     [
@@ -128,8 +241,6 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
     // ],
   ]);
 
-// export const HEADERLIST = [HOME_CONFIG, LANG_CONFIGS, PROFILE_CONFIG]
-
 export const LESSON_CARD_COLORS = [
   "#FF7925",
   "#FFC000",
@@ -137,6 +248,14 @@ export const LESSON_CARD_COLORS = [
   "#008CD2",
   "#FF94B5",
   "#AC82CF",
+];
+
+export const CHAPTER_CARD_COLOURS = [
+  "#F99500",
+  "#0090D3",
+  "#F3609B",
+  "#8F5AA5",
+  "#009948",
 ];
 
 export enum PAGES {
@@ -151,6 +270,7 @@ export enum PAGES {
   EDIT_STUDENT = "/edit-student",
   DISPLAY_STUDENT = "/display-students",
   DISPLAY_SUBJECTS = "/display-subjects",
+  DISPLAY_CHAPTERS = "/display-chapters",
   APP_LANG_SELECTION = "/app-lang-selection",
   STUDENT_PROGRESS = "/student-progress",
   SEARCH = "/search",
