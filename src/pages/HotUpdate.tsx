@@ -2,7 +2,7 @@ import { IonPage } from "@ionic/react";
 import { FC, useEffect, useState } from "react";
 import { AppUpdater, HotUpdateStatus } from "../services/AppUpdater";
 import { useHistory } from "react-router";
-import { HOT_UPDATE_SERVER, PAGES } from "../common/constants";
+import { HOT_UPDATE_SERVER, LANGUAGE, PAGES } from "../common/constants";
 import { t } from "i18next";
 import "./HotUpdate.css";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
@@ -52,7 +52,11 @@ const HotUpdate: FC<{}> = () => {
     }
   };
   const push = () => {
-    history.replace(PAGES.HOME);
+    const appLang = localStorage.getItem(LANGUAGE);
+    if (appLang == undefined) {
+      history.replace(PAGES.APP_LANG_SELECTION);
+    } else
+      history.replace(PAGES.HOME);
   };
   useEffect(() => {
     init();

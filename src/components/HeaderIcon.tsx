@@ -1,52 +1,57 @@
 import { t } from "i18next";
-import { COURSES, HEADER_ICON_CONFIGS, HOMEHEADERLIST } from "../common/constants";
+import {
+  ACTIVE_HEADER_ICON_CONFIGS,
+  DEFAULT_HEADER_ICON_CONFIGS,
+  HOMEHEADERLIST,
+  HeaderIconConfig,
+} from "../common/constants";
 import IconButton from "./IconButton";
-import "./IconButton.css";
-import React from "react";
 import { IonBadge } from "@ionic/react";
+
 const HeaderIcon: React.FC<{
-  iconSrc: string;
-  headerName: string;
+  headerConfig: any;
   currentHeader: string;
-  headerList: HOMEHEADERLIST;
   pendingAssignmentCount: number | undefined;
   onHeaderIconClick: Function;
 }> = ({
-  iconSrc,
-  headerName,
+  headerConfig,
   currentHeader,
-  headerList,
   pendingAssignmentCount,
   onHeaderIconClick,
 }) => {
+  const isCurrentHeaderActive = currentHeader === headerConfig.headerList;
 
-    return (
-      <div>
-        {currentHeader == headerList ? (
-          <p className="home-header-indicator">&#9679;</p>
-        ) : (
-          <p className="home-header-indicator">&nbsp;</p>
-        )}
-        {
-          headerName == HEADER_ICON_CONFIGS.get(HOMEHEADERLIST.ASSIGNMENT)?.displayName && (pendingAssignmentCount != undefined && pendingAssignmentCount > 0) &&
+  return (
+    <div>
+      {isCurrentHeaderActive ? (
+        <p className="home-header-indicator">&#9679;</p>
+      ) : (
+        <p className="home-header-indicator">&nbsp;</p>
+      )}
+      {headerConfig.headerList === HOMEHEADERLIST.ASSIGNMENT &&
+        pendingAssignmentCount !== undefined &&
+        pendingAssignmentCount > 0 && (
           <div id="homework-notification">
             <IonBadge class="badge-notification">
-              {
-                pendingAssignmentCount
-              }
+              {pendingAssignmentCount}
             </IonBadge>
           </div>
+        )}
+      <IconButton
+        name={t(headerConfig.displayName)}
+        iconSrc={
+          !isCurrentHeaderActive
+            ? headerConfig.iconSrc
+            : ACTIVE_HEADER_ICON_CONFIGS.get(headerConfig.headerList)?.iconSrc
         }
-        <IconButton
-          name={t(headerName)}
-          iconSrc={iconSrc}
-          onClick={() => {
-            if (currentHeader != headerList) {
-              onHeaderIconClick(headerList);
-            }
-          }}
-        ></IconButton>
-      </div>
-    );
-  };
+        onClick={() => {
+          if (!isCurrentHeaderActive) {
+            onHeaderIconClick(headerConfig.headerList);
+          }
+        }}
+      />
+    </div>
+  );
+};
+
 export default HeaderIcon;

@@ -20,6 +20,7 @@ import BackButton from "../components/common/BackButton";
 import { Util } from "../utility/util";
 import { StudentLessonResult } from "../common/courseConstants";
 import User from "../models/user";
+import { t } from "i18next";
 
 const searchClient = algoliasearch(
   process.env.REACT_APP_ALGOLIA_APP_ID!,
@@ -165,11 +166,11 @@ function SearchLesson() {
   return (
     <div className="search-container">
       <div className="search-header">
-        <BackButton
+        {/* <BackButton
           onClicked={() => {
             history.replace(PAGES.HOME);
           }}
-        />
+        /> */}
         <InstantSearch
           searchClient={searchClient}
           indexName={INSTANT_SEARCH_INDEX_NAME}
@@ -183,7 +184,7 @@ function SearchLesson() {
           {/* A virtual search box is required for InstantSearch to understand the `query` search state property */}
           <VirtualSearchBox />
           <Autocomplete
-            placeholder="Search..."
+            placeholder={t("Search for Lesson...")}
             detachedMediaQuery="none"
             initialState={{
               query: searchTerm,

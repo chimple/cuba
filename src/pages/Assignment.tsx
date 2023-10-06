@@ -115,15 +115,15 @@ const AssignmentPage: React.FC = () => {
     }
   }, []);
   return (
-    <IonPage>
-      <div className="assignment-main">
-        <div id="assignment-back-button">
+    <div>
+      <div className={`assignment-main${isLinked ? "" : "-join-class"}`}>
+        {/* <div id="assignment-back-button" style={{display:"none"}}>
           <BackButton
             onClicked={() => {
               history.replace(PAGES.HOME);
             }}
           />
-        </div>
+        </div> */}
 
         <div
           className={
@@ -178,7 +178,7 @@ const AssignmentPage: React.FC = () => {
         </div>
       </div>
       <Loading isLoading={loading} />
-    </IonPage>
+    </div>
   );
 };
 export default AssignmentPage;

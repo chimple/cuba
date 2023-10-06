@@ -12,11 +12,12 @@ import {
   SL_GRADES,
   SELECTED_GRADE,
   HeaderIconConfig,
-  HEADER_ICON_CONFIGS,
+  DEFAULT_HEADER_ICON_CONFIGS,
   CURRENT_STUDENT,
   CURRENT_CLASS,
   MODES,
   CURRENT_MODE,
+  RECOMMENDATIONS,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -24,7 +25,7 @@ import LessonSlider from "../components/LessonSlider";
 import Loading from "../components/Loading";
 import { Splide } from "@splidejs/react-splide";
 import HomeHeader from "../components/HomeHeader";
-import { useHistory } from "react-router";
+import { useHistory, useLocation } from "react-router";
 // Default theme
 import "@splidejs/react-splide/css";
 // or only core styles
@@ -50,6 +51,11 @@ import { push } from "ionicons/icons";
 import { t } from "i18next";
 import { App, URLOpenListenerEvent } from "@capacitor/app";
 import ChimpleAvatarPage from "../components/animation/ChimpleAvatarPage";
+import DisplaySubjects from "./DisplaySubjects";
+import SearchLesson from "./SearchLesson";
+import AssignmentPage from "./Assignment";
+import { Console } from "console";
+import Subjects from "./Subjects";
 
 const sortValidLessonsByDate = (
   lessonIds: string[],
@@ -81,7 +87,11 @@ const Home: FC = () => {
   }>();
   const [courses, setCourses] = useState<Course[]>();
   const [lessons, setLessons] = useState<Lesson[]>();
-  const [currentHeader, setCurrentHeader] = useState<any>(undefined);
+  //const [currentHeader, setCurrentHeader] = useState<any>(undefined);
+  const [currentHeader, setCurrentHeader] = useState<any>(() => {
+    //Initialize with the value from local storage (if available)
+    return localStorage.getItem('currentHeader') || HOMEHEADERLIST.HOME;
+  });
   const [lessonsScoreMap, setLessonsScoreMap] = useState<any>();
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
   const [levelChapter, setLevelChapter] = useState<Chapter>();
@@ -104,14 +114,26 @@ const Home: FC = () => {
 
   let allPlayedLessonIds: string[] = [];
   let tempPageNumber = 1;
+  const location = useLocation();
 
   useEffect(() => {
     setCurrentHeader(HOMEHEADERLIST.HOME);
     setValue(SUBTAB.SUGGESTIONS);
     fetchData();
     urlOpenListenerEvent();
+    const urlParams = new URLSearchParams(location.search);
+    
+    if (!!urlParams.get("continue")) {
+      setCurrentHeader(currentHeader);
+    }
   }, []);
 
+  useEffect(() => {
+    setCurrentHeader(currentHeader === HOMEHEADERLIST.PROFILE?HOMEHEADERLIST.HOME:currentHeader);
+    localStorage.setItem('currentHeader', currentHeader);
+  }, [currentHeader]);
+  
+  
   const fetchData = async () => {
     setIsLoading(true);
     const lessonResult = await setCourse(HOMEHEADERLIST.HOME);
@@ -172,6 +194,7 @@ const Home: FC = () => {
       setPendingAssignmentsCount(count);
 
       setDataCourse(reqLes);
+      storeRecommendationsInLocalStorage(reqLes);
       setIsLoading(true);
     } else {
       setIsLoading(false);
@@ -348,6 +371,37 @@ const Home: FC = () => {
     }
   };
 
+  const currentStudentDocId = Util.getCurrentStudent()?.docId;
+  const storeRecommendationsInLocalStorage = (recommendations: any[]) => {
+    const recommendationsInLocal = localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`);
+    let existingRecommendations: any[] = [];
+
+    if (recommendationsInLocal !== null) {
+      existingRecommendations = JSON.parse(recommendationsInLocal);
+    }
+
+    if (!lessonResultMap && existingRecommendations.length === 0) {
+      let lessonMap = new Map();
+
+      for (let i = 0; i < recommendations.length; i++) {
+        const lesson = recommendations[i];
+        if (lesson.cocosSubjectCode && lesson.id) {
+          lessonMap[lesson.cocosSubjectCode] = lesson.id;
+        }
+      }
+
+      localStorage.setItem(`${currentStudentDocId}-${RECOMMENDATIONS}`, JSON.stringify(lessonMap));
+      setDataCourse(existingRecommendations.concat(lessonMap) as Lesson[]);
+
+    } else {
+      setDataCourse(existingRecommendations);
+    }
+  };
+
+
+
+
+
   let reqLes: Lesson[] = [];
   async function getRecommendationLessons(
     currentStudent: User,
@@ -383,13 +437,12 @@ const Home: FC = () => {
       lesList.forEach((res) => (tempLesMap[res[0]] = res[1]));
       return tempLesMap;
     };
-
     const currMode = await schoolUtil.getCurrMode();
     console.log(currMode);
     let sortLessonResultMap:
       | {
-          [lessonDocId: string]: StudentLessonResult;
-        }
+        [lessonDocId: string]: StudentLessonResult;
+      }
       | undefined;
     const res = await api.getStudentResult(currentStudent.docId);
     console.log("tempResultLessonMap = res;", JSON.stringify(res));
@@ -515,6 +568,7 @@ const Home: FC = () => {
     }
     console.log("reqLes outside.", reqLes);
     setDataCourse(reqLes);
+    storeRecommendationsInLocalStorage(reqLes);
     setIsLoading(false);
     return sortLessonResultMap;
   }
@@ -548,17 +602,18 @@ const Home: FC = () => {
   }
   function onHeaderIconClick(selectedHeader: any) {
     var headerIconList: HeaderIconConfig[] = [];
-    HEADER_ICON_CONFIGS.forEach((element) => {
+    DEFAULT_HEADER_ICON_CONFIGS.forEach((element) => {
       //  console.log("elements", element);
       headerIconList.push(element);
     });
     setCurrentHeader(selectedHeader);
+    localStorage.setItem('currentHeader', selectedHeader);
     localStorage.setItem(PREVIOUS_SELECTED_COURSE(), selectedHeader);
-    HEADER_ICON_CONFIGS.get(selectedHeader);
+    DEFAULT_HEADER_ICON_CONFIGS.get(selectedHeader);
     switch (selectedHeader) {
-      case HOMEHEADERLIST.SUBJECTS:
-        history.replace(PAGES.DISPLAY_SUBJECTS);
-        break;
+      // case HOMEHEADERLIST.SUBJECTS:
+      //   history.replace(PAGES.DISPLAY_SUBJECTS);
+      //   break;
       case HOMEHEADERLIST.HOME:
         handleHomeIconClick();
         // setCourse(HOMEHEADERLIST.RECOMMENDATION);
@@ -566,20 +621,21 @@ const Home: FC = () => {
           getRecommendationLessons(currentStudent, currentClass).then(() => {
             console.log("Final RECOMMENDATION List ", reqLes);
             setDataCourse(reqLes);
+            storeRecommendationsInLocalStorage(reqLes);
           });
         }
         break;
       case HOMEHEADERLIST.PROFILE:
         history.replace(PAGES.LEADERBOARD);
         break;
-      case HOMEHEADERLIST.SEARCH:
-        history.replace(PAGES.SEARCH);
-        break;
-      case HOMEHEADERLIST.ASSIGNMENT:
-        history.replace(PAGES.ASSIGNMENT);
-        break;
-      case HOMEHEADERLIST.QUIZ:
-        history.replace(PAGES.HOME);
+        // case HOMEHEADERLIST.SEARCH:
+        //   history.replace(PAGES.SEARCH);
+        //   break;
+        // case HOMEHEADERLIST.ASSIGNMENT:
+        //   history.replace(PAGES.ASSIGNMENT);
+        //   break;
+        // case HOMEHEADERLIST.QUIZ:
+        //   history.replace(PAGES.HOME);
         break;
       default:
         break;
@@ -728,20 +784,26 @@ const Home: FC = () => {
                 }}
               ></ChimpleAvatarPage>
             ) : // <div>
-            //   <LessonSlider
-            //     lessonData={dataCourse}
-            //     isHome={true}
-            //     course={undefined}
-            //     lessonsScoreMap={lessonResultMap || {}}
-            //     startIndex={0}
-            //     showSubjectName={true}
-            //     showChapterName={true}
-            //   />
-            // </div>
-            // <div style={{ marginTop: "2.6%" }}></div>
-            null}
+              //   <LessonSlider
+              //     lessonData={dataCourse}
+              //     isHome={true}
+              //     course={undefined}
+              //     lessonsScoreMap={lessonResultMap || {}}
+              //     startIndex={0}
+              //     showSubjectName={true}
+              //     showChapterName={true}
+              //   />
+              // </div>
+              // <div style={{ marginTop: "2.6%" }}></div>
+              null}
 
-            {currentHeader === HOMEHEADERLIST.SUGGESTIONS ? (
+            {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
+
+            {currentHeader === HOMEHEADERLIST.ASSIGNMENT && <AssignmentPage />}
+
+            {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
+
+            {(value === SUBTAB.SUGGESTIONS && currentHeader === HOMEHEADERLIST.SUGGESTIONS )? (
               <div>
                 <LessonSlider
                   lessonData={dataCourse}
@@ -754,9 +816,9 @@ const Home: FC = () => {
                 />
               </div>
             ) : // <div style={{ marginTop: "2.6%" }}></div>
-            null}
+              null}
 
-            {currentHeader === HOMEHEADERLIST.FAVOURITES && (
+            {(value === SUBTAB.FAVOURITES && currentHeader === HOMEHEADERLIST.SUGGESTIONS )&& (
               <div>
                 <LessonSlider
                   lessonData={favouriteLessons}
@@ -771,7 +833,7 @@ const Home: FC = () => {
               </div>
             )}
 
-            {currentHeader === HOMEHEADERLIST.HISTORY && (
+            {(value === SUBTAB.HISTORY && currentHeader === HOMEHEADERLIST.SUGGESTIONS) && (
               <div>
                 <LessonSlider
                   lessonData={historyLessons}
@@ -852,55 +914,63 @@ const Home: FC = () => {
               />
             */}
             {(currentHeader === HOMEHEADERLIST.SUGGESTIONS ||
-            currentHeader === HOMEHEADERLIST.FAVOURITES ||
-            currentHeader === HOMEHEADERLIST.HISTORY )&&(
-                <div id="home-page-bottom">
-                  <AppBar className="home-page-app-bar">
-                    <Box>
-                      <Tabs
-                        value={value}
-                        onChange={handleChange}
-                        TabIndicatorProps={{ style: { display: "none" } }}
-                        sx={{
-                          "& .MuiTab-root": {
-                            color: "black",
-                            borderRadius: "5vh",
-                            padding: "0 3vw",
-                            margin: "1vh 1vh",
-                            minHeight: "37px",
-                          },
-                          "& .Mui-selected": {
-                            backgroundColor: "#FF7925",
-                            borderRadius: "8vh",
-                            color: "#FFFFFF !important",
-                            minHeight: "37px",
-                          },
-                        }}
-                      >
-                        <Tab
-                          id="home-page-sub-tab"
-                          label={t("For You")}
-                          onClick={() => setCurrentHeader(HOMEHEADERLIST.SUGGESTIONS)}
-                        />
-                        <Tab
-                          id="home-page-sub-tab"
-                          label={t("Favourite")}
-                          onClick={() =>
-                            setCurrentHeader(HOMEHEADERLIST.FAVOURITES)
-                          }
-                        />
-                        <Tab
-                          id="home-page-sub-tab"
-                          label={t("History")}
-                          onClick={() =>
-                            setCurrentHeader(HOMEHEADERLIST.HISTORY)
-                          }
-                        />
-                      </Tabs>
-                    </Box>
-                  </AppBar>
-                </div>
-              )}
+              currentHeader === HOMEHEADERLIST.FAVOURITES ||
+              currentHeader === HOMEHEADERLIST.HISTORY) && (
+              <div id="home-page-bottom">
+                <AppBar className="home-page-app-bar">
+                  <Box>
+                    <Tabs
+                      value={value}
+                      onChange={handleChange}
+                      TabIndicatorProps={{ style: { display: "none" } }}
+                      sx={{
+                        "& .MuiTab-root": {
+                          color: "black",
+                          borderRadius: "5vh",
+                          padding: "0 3vw",
+                          margin: "1vh 1vh",
+                          minHeight: "37px",
+                        },
+                        "& .Mui-selected": {
+                          backgroundColor: "#FF7925",
+                          borderRadius: "8vh",
+                          color: "#FFFFFF !important",
+                          minHeight: "37px",
+                        },
+                      }}
+                    >
+                      <Tab
+                        id="home-page-sub-tab"
+                        label={t("For You")}
+                        onClick={() => {
+                          setCurrentHeader(HOMEHEADERLIST.SUGGESTIONS);
+                          setValue(SUBTAB.SUGGESTIONS);
+                        }
+                        }
+                      />
+                      <Tab
+                        id="home-page-sub-tab"
+                        label={t("Favourite")}
+                        onClick={() => {
+                          setCurrentHeader(HOMEHEADERLIST.SUGGESTIONS);
+                          setValue(SUBTAB.FAVOURITES);
+                        }
+                        }
+                      />
+                      <Tab
+                        id="home-page-sub-tab"
+                        label={t("History")}
+                        onClick={() => {
+                          setCurrentHeader(HOMEHEADERLIST.SUGGESTIONS);
+                          setValue(SUBTAB.HISTORY);
+                        }
+                        }
+                      />
+                    </Tabs>
+                  </Box>
+                </AppBar>
+              </div>
+            )}
           </div>
         ) : null}
         <Loading isLoading={isLoading} />
@@ -909,3 +979,4 @@ const Home: FC = () => {
   );
 };
 export default Home;
+

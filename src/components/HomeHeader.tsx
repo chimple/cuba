@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import {
   HOMEHEADERLIST,
   AVATARS,
-  HEADER_ICON_CONFIGS,
+  DEFAULT_HEADER_ICON_CONFIGS,
   HeaderIconConfig,
   PAGES,
   MODES,
@@ -38,7 +38,7 @@ const HomeHeader: React.FC<{
     }
     const currMode = await schoolUtil.getCurrMode();
     setStudentMode(currMode);
-    HEADER_ICON_CONFIGS.forEach((element) => {
+    DEFAULT_HEADER_ICON_CONFIGS.forEach((element) => {
       // console.log("elements", element);
 
       console.log(currMode);
@@ -68,17 +68,19 @@ const HomeHeader: React.FC<{
     <div id="home-header-icons">
       <div className="home-header-outer-icon">
         <HeaderIcon
-          headerName={t("Home")}
-          iconSrc="assets/icons/home_icon.svg"
+          headerConfig={{
+            displayName: t("Home"),
+            iconSrc: "assets/icons/homeInactiveIcon.svg",
+            headerList: HOMEHEADERLIST.HOME,
+          }}
           currentHeader={currentHeader}
-          headerList={HOMEHEADERLIST.HOME}
           pendingAssignmentCount={0}
           onHeaderIconClick={() => {
             if (currentHeader != HOMEHEADERLIST.HOME) {
               onHeaderIconClick(HOMEHEADERLIST.HOME);
             }
           }}
-        ></HeaderIcon>
+        />
       </div>
 
       <div id="home-header-middle-icons">
@@ -87,38 +89,38 @@ const HomeHeader: React.FC<{
             return (
               <HeaderIcon
                 key={index}
-                headerName={t(element.displayName)}
-                iconSrc={element.iconSrc}
+                headerConfig={element}
                 currentHeader={currentHeader}
-                headerList={element.headerList}
                 pendingAssignmentCount={pendingAssignmentCount}
                 onHeaderIconClick={() => {
                   if (currentHeader != element.headerList) {
                     onHeaderIconClick(element.headerList);
                   }
                 }}
-              ></HeaderIcon>
+              />
             );
           })}
       </div>
 
       <div className="home-header-outer-icon">
         <HeaderIcon
-          headerName={student?.name ?? "Profile"}
-          iconSrc={(studentMode === MODES.SCHOOL && student?.image) || ("assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png")}
+          headerConfig={{
+            displayName: student?.name ?? "Profile",
+            iconSrc:
+              (studentMode === MODES.SCHOOL &&
+                student?.image) ||
+              `assets/avatars/${student?.avatar ?? AVATARS[0]}.png`,
+            headerList: HOMEHEADERLIST.PROFILE,
+          }}
           currentHeader={currentHeader}
-          headerList={HOMEHEADERLIST.PROFILE}
           pendingAssignmentCount={0}
           onHeaderIconClick={() => {
             if (currentHeader != HOMEHEADERLIST.PROFILE) {
               onHeaderIconClick(HOMEHEADERLIST.PROFILE);
             }
           }}
-        ></HeaderIcon>
+        />
       </div>
-
-
-
     </div>
   );
 };
