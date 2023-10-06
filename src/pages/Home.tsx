@@ -116,10 +116,10 @@ const Home: FC = () => {
   const location = useLocation();
 
   useEffect(() => {
+    urlOpenListenerEvent();
     setCurrentHeader(HOMEHEADERLIST.HOME);
     setValue(SUBTAB.SUGGESTIONS);
     fetchData();
-    urlOpenListenerEvent();
     const urlParams = new URLSearchParams(location.search);
     
     if (!!urlParams.get("continue")) {
@@ -141,11 +141,12 @@ const Home: FC = () => {
     if (allLessonIds) setValidLessonIds(allLessonIds);
     setIsLoading(false);
   };
-
+  
   function urlOpenListenerEvent() {
     App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
       const slug = event.url.split(".cc").pop();
       if (slug) {
+        setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
         history.replace(slug);
       }
     });
