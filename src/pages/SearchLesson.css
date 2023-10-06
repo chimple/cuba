@@ -1,14 +1,14 @@
 .search-header {
   display: flex;
   align-items: center;
-  justify-content: center;
   margin: var(--margin);
   margin-bottom: 0;
-  /* margin-top: 2vh; */
-  flex-direction: row;
-  justify-content: space-between;
+  margin-top: 5vh;
   /* margin-left: 1vh; */
   align-items: center;
+  justify-content: center;
+  align-content: center;
+  flex-direction: column;
 }
 
 .search-container {
