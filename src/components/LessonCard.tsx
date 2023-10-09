@@ -79,22 +79,27 @@ const LessonCard: React.FC<{
     if (!currentStudent) {
       return;
     }
-    const courses =
-      await ServiceConfig.getI().apiHandler.getCoursesForParentsStudent(
-        currentStudent
+    const api = ServiceConfig.getI().apiHandler;
+      const courses =
+        await api.getCoursesForParentsStudent(
+          currentStudent
+        );
+      console.log("Student Courses ", courses);
+
+      let currentCourse = courses.find(
+        (course) => lesson.cocosSubjectCode === course.courseCode
       );
-    console.log("Student Courses ", courses);
 
-    let currentCourse = courses.find(
-      (course) => lesson.cocosSubjectCode === course.courseCode
-    );
-
-    console.log("current Course ", currentCourse);
-    if (!currentCourse) {
-      return;
-    }
-
-    setCurrentCourse(currentCourse);
+      console.log("current Course ", currentCourse);
+      if (!currentCourse) {
+        let lessonCourse = await api.getCourseFromLesson(lesson);
+        if (!!lessonCourse) {
+          console.log("current Course from all courses ", lessonCourse);
+          setCurrentCourse(lessonCourse)
+        }
+      } else {
+        setCurrentCourse(currentCourse);
+      }
   };
 
   // const lessonCardColor =

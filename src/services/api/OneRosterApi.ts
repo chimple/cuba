@@ -825,4 +825,8 @@ export class OneRosterApi implements ServiceApi {
     );
     return chapters[Math.min(index, chapters.length - 1)] ?? chapters[1];
   }
+
+  public async getCourseFromLesson(lesson: Lesson): Promise<Course | undefined> {
+    throw new Error("Method not implemented.");
+  }
 }
