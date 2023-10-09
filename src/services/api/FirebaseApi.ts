@@ -74,7 +74,7 @@ export class FirebaseApi implements ServiceApi {
   private _schoolsCache: { [userId: string]: School[] } = {};
   private _currentMode: MODES;
   private _allCourses: Course[];
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): FirebaseApi {
     if (!FirebaseApi.i) {
@@ -1482,5 +1482,17 @@ export class FirebaseApi implements ServiceApi {
       querySnapshot = await getDocs(query);
     }
     return querySnapshot;
+  }
+
+  public async getCourseFromLesson(lesson: Lesson): Promise<Course | undefined> {
+    if (!this._allCourses) {
+      this._allCourses = await this.getAllCourses();
+    }
+
+    const tmpCourse = this._allCourses?.find(
+      (course) => course.courseCode === lesson.cocosSubjectCode
+    );
+    return tmpCourse;
+
   }
 }

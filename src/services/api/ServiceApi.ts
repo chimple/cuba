@@ -377,4 +377,10 @@ export interface ServiceApi {
    * Deletes all the data related to user from database.
    */
   deleteAllUserData(): Promise<void>;
+
+  /**
+   * 
+   * It will get Course Object using lesson cocosSubjectcode from all courses 
+   */
+  getCourseFromLesson(lesson: Lesson): Promise<Course | undefined>;
 }
