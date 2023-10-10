@@ -51,29 +51,21 @@ const AppLangSelection: React.FC = () => {
     {
       text: (
         <div className="intro-text">
-           {/* <div id="login-logo-outer-box"> */}
           <img
                 id="intro-logo"
                 alt="Home Screen"
                 src="assets/icons/intro1.svg"
               />
-          {/* </div> */}
           <div id="text">
           <p id="header-text1">
             {t("Login with Phone number or Gmail")}
           </p>
           <div className="intro-text2">
           <p>
-          {t("Users can now log in using their phone number or Gmail address.")}
+          {t("Users can now log in with their phone number or Gmail for easy access on different devices.")}
           </p>
           <p>
-          {t("This allows seamless login across multiple devices")}
-          </p>
-          <p>
-          {t("using the same credentials. Progress synchronized to the")}
-          </p>
-          <p>
-          {t("associated account and remains consistent even when switching devices.")}
+          {t("Your progress stays synced and consistent across all devices.")}
           </p>
           </div>
           </div>
@@ -84,29 +76,21 @@ const AppLangSelection: React.FC = () => {
     {
       text: (
         <div className="intro-text">
-          {/* <div id="profile-logo-outer-box"> */}
           <img
                 id="intro-logo"
                 alt="Home Screen"
                 src="assets/icons/intro2.svg"
               />
-          {/* </div> */}
           <div id="text">
           <p id="header-text2">
           {t("Enhanced kids profile creation")}
           </p>
           <div className="intro-text2">
           <p>
-          {t("Children now have the option to personalise their profile")}
+          {t("Kids can now customise their profiles with their class, language of")}
           </p>
           <p>
-          {t("beyond the usual details of Name, Age, Avatar, and Gender.")}
-          </p>
-          <p>
-          {t("They can also select their Class, Medium of Instruction,")}           
-          </p>
-          <p>
-          {t("and Board, which will tailor the learning curriculum accordingly.")}
+          {t("instruction, and school board to match their learning needs.")}
           </p>
           </div>
           </div>
@@ -116,32 +100,21 @@ const AppLangSelection: React.FC = () => {
     {
       text: (
         <div className="intro-text">
-          {/* <div id="advance-home-logo-outer-box"> */}
           <img
                 id="intro-logo"
                 alt="Home Screen"
                 src="assets/icons/intro3.svg"
               />
-          {/* </div> */}
           <div id="text">
           <p id="header-text3">
           {t("Advance Home Screen")}
           </p>
           <div className="intro-text2">
           <p>
-          {t("The home screen features three tabs:\"For You\",\"Liked\" and \"Played\".")}
+          {t("The home screen has three tabs: \"For You\" suggests lessons based on")}
           </p>
           <p>
-          {t("The \"For You\" tab offers lesson suggestions based on learning progress.")}
-          </p>
-          <p>
-          {t("The \"liked\" tab displays lessons the child liked after playing, while the played")}
-          </p>
-          <p>
-          {t("tab lists all the child has completed lessons. These tabs collectively guide the child's")}           
-          </p>
-          <p>
-          {t("learning journey by indicating what they need to learn and have already played.")}
+          {t("progress, \"Liked\" shows liked lessons, and \"Played\" lists completed ones.")}
           </p>
           </div>
           </div>
