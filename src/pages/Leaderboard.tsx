@@ -7,7 +7,8 @@ import {
   LEADERBOARDHEADERLIST,
   PAGES,
   PARENTHEADERLIST,
-  MODES
+  MODES,
+  LANGUAGE
 } from "../common/constants";
 // import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -493,6 +494,7 @@ const Leaderboard: React.FC = () => {
                     );
                     if (langDoc) {
                       const tempLangCode = langDoc.code ?? LANG.ENGLISH;
+                      localStorage.setItem(LANGUAGE, tempLangCode)
                       await i18n.changeLanguage(tempLangCode);
                     }
                   }
