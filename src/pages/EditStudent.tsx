@@ -186,7 +186,10 @@ const EditStudent = () => {
       case STAGES.NAME:
         return !!studentName.trim();
       case STAGES.GENDER_AND_AGE:
-        return !!gender && !!age;
+        if(gender===GENDER.BOY || gender===GENDER.GIRL){
+          return !!gender && !!age;
+        }
+        return false;
       case STAGES.AVATAR:
         return !!avatar;
       case STAGES.GRADE:

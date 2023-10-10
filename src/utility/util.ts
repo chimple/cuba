@@ -563,7 +563,7 @@ export class Util {
       window.location.pathname !== PAGES.GAME &&
       window.location.pathname !== PAGES.LOGIN
     ) {
-      if (window.location.pathname === PAGES.DISPLAY_SUBJECTS) {
+      if (window.location.pathname === PAGES.DISPLAY_SUBJECTS || window.location.pathname === PAGES.DISPLAY_CHAPTERS) {
         const url = new URL(window.location.toString());
         url.searchParams.set("isReload", "true");
         window.history.pushState(window.history.state, "", url.toString());
