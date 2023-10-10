@@ -60,6 +60,7 @@
   margin-top: 2vh;
   user-select: none;
   height: 70vh;
+  padding-top: 6vh;
 }
 .dot {
   display: inline-block;
@@ -114,7 +115,7 @@
 }
 
 #intro-logo{
-  height: 48vh;
+  height: 54vh;
 }
 #login{
   width: 60vw;
