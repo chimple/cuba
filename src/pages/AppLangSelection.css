@@ -57,9 +57,6 @@
   
 }
 #text{
-  margin-top: 2vh;
-  user-select: none;
-  height: 70vh;
   padding-top: 6vh;
 }
 .dot {
@@ -101,7 +98,7 @@
 }
 
 .intro-text2{
-  line-height: 4vh;
+  line-height: 5vh;
 }
 
 .skip-button{
@@ -116,6 +113,7 @@
 
 #intro-logo{
   height: 54vh;
+  position: sticky;
 }
 #login{
   width: 60vw;
