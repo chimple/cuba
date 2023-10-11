@@ -83,6 +83,10 @@ const EditStudent = () => {
     const stagesLength = Object.keys(STAGES).length / 2;
     const newStage = stage + 1;
     let _studentName = studentName?.trim();
+
+    const state = history.location.state as any;
+    const tmpPath = state?.from ?? PAGES.HOME;
+    
     //Completed all stages
     if (stagesLength === newStage) {
       //Creating Profile for the Student
@@ -147,7 +151,7 @@ const EditStudent = () => {
         await Util.setCurrentStudent(
           student,
           langIndex && languages ? languages[langIndex]?.code : undefined,
-          false
+          tmpPath === PAGES.HOME ? true : false
         );
       }
       console.log(
@@ -155,8 +159,8 @@ const EditStudent = () => {
         student
       );
 
-      const state = history.location.state as any;
-      history.replace(state?.from ?? PAGES.HOME);
+     
+      history.replace(tmpPath);
     } else {
       if (newStage === STAGES.GRADE) {
         const results = await Promise.all([

@@ -149,7 +149,7 @@ const SelectMode: FC = () => {
       "🚀 ~ file: DisplayStudents.tsx:30 ~ onStudentClick:student",
       student
     );
-    await Util.setCurrentStudent(student, undefined, false);
+    await Util.setCurrentStudent(student, undefined, true);
     history.replace(PAGES.HOME);
   };
   function randomValue() {

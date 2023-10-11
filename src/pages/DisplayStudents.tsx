@@ -89,7 +89,7 @@ const DisplayStudents: FC<{}> = () => {
       "🚀 ~ file: DisplayStudents.tsx:30 ~ onStudentClick:student",
       student
     );
-    await Util.setCurrentStudent(student, undefined, false);
+    await Util.setCurrentStudent(student, undefined, true);
 
     if (!student.board || !student.language || !student.grade || !student.courses) {
       history.push(PAGES.EDIT_STUDENT, {
