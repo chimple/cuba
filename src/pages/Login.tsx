@@ -2,7 +2,7 @@ import { IonLoading, IonPage } from "@ionic/react";
 import { useEffect, useRef, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
-import { CURRENT_USER, LANGUAGE, NUMBER_REGEX, PAGES } from "../common/constants";
+import { CURRENT_USER, LANGUAGE, PAGES } from "../common/constants";
 import { Capacitor } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
 import TextBox from "../components/TextBox";
