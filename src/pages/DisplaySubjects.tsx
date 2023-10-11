@@ -133,18 +133,24 @@ const DisplaySubjects: FC<{}> = () => {
           if (!!localStorageData.stage && localStorageData.stage !== STAGES.SUBJECTS && !!localStorageData.currentCourseId) {
             setStage(localStorageData.stage);
             let cc: Course = localData.courses.find(cour => localStorageData.currentCourseId === cour.docId)
+
+            let _localMap = getLocalGradeMap();
+
+            if (!!_localMap) {
+              if (!!localStorageData.currentGrade) {
+                localData.currentGrade = localStorageData.currentGrade;
+                setCurrentGrade(localStorageData.currentGrade);
+                const tmpCurrentCourse = _localMap?.courses.find(
+                  (course) => course.grade.id === localData.currentGrade.docId
+                );
+
+                if (!!tmpCurrentCourse)
+                  cc = tmpCurrentCourse;
+              }
+            };
+
             localData.currentCourse = cc;
             setCurrentCourse(cc);
-
-            if (!!localStorageData.localGradeMap) {
-              localData.localGradeMap = localStorageData.localGradeMap;
-              setLocalGradeMap(localStorageData.localGradeMap);
-            }
-
-            if (!!localStorageData.currentGrade) {
-              localData.currentGrade = localStorageData.currentGrade;
-              setCurrentGrade(localStorageData.currentGrade);
-            }
 
             if (!!localStorageData.currentChapterId) {
               let cChap: Chapter = localData.currentCourse.chapters.find(chap => localStorageData.currentChapterId === chap.id)
@@ -185,6 +191,13 @@ const DisplaySubjects: FC<{}> = () => {
       await getCourses();
       console.log("🚀 ~ file: DisplaySubjects.tsx:131 ~ init ~ getCourses:");
     }
+    getLocalGradeMap();
+  };
+
+  function getLocalGradeMap(): {
+    grades: Grade[];
+    courses: Course[];
+  } | undefined {
     let map = localStorage.getItem(GRADE_MAP);
     if (!!map) {
       let _localMap: {
@@ -194,9 +207,9 @@ const DisplaySubjects: FC<{}> = () => {
       let convertedCourses = Util.convertCourses(_localMap.courses);
       _localMap.courses = convertedCourses;
       setLocalGradeMap(_localMap);
-    };
-  };
-
+      return _localMap;
+    }
+  }
 
 
   function addDataToLocalStorage() {
