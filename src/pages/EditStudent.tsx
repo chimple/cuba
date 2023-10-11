@@ -53,7 +53,13 @@ const EditStudent = () => {
       : undefined
   );
   const [age, setAge] = useState<number | undefined>(
-    isEdit ? currentStudent?.age : undefined
+    isEdit
+      ? !!currentStudent?.age
+        ? currentStudent.age < 4
+          ? 4
+          : currentStudent.age
+        : undefined
+      : undefined
   );
   const [avatar, setAvatar] = useState<string | undefined>(
     isEdit ? currentStudent?.avatar : undefined
