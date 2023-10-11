@@ -90,7 +90,7 @@ const AppLangSelection: React.FC = () => {
           {t("Kids can now customise their profiles with their class, language of")}
           </p>
           <p>
-          {t("instruction, and school board to match their learning needs.")}
+          {t("instruction and school board to match their learning needs.")}
           </p>
           </div>
           </div>
@@ -114,7 +114,7 @@ const AppLangSelection: React.FC = () => {
           {t("The home screen has three tabs: \"For You\" suggests lessons based on")}
           </p>
           <p>
-          {t("progress, \"Liked\" shows liked lessons, and \"Played\" lists completed ones.")}
+          {t("progress, \"Liked\" shows liked lessons and \"Played\" lists completed ones.")}
           </p>
           </div>
           </div>
