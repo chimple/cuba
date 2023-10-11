@@ -622,7 +622,6 @@ const Home: FC = () => {
           getRecommendationLessons(currentStudent, currentClass).then(() => {
             console.log("Final RECOMMENDATION List ", reqLes);
             setDataCourse(reqLes);
-            storeRecommendationsInLocalStorage(reqLes);
           });
         }
         break;
