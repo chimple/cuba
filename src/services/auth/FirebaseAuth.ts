@@ -9,6 +9,7 @@ import {
 } from "firebase/auth";
 import User from "../../models/user";
 import {
+  DocumentReference,
   Timestamp,
   doc,
   getDoc,
@@ -28,8 +29,9 @@ import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { CollectionIds } from "../../common/courseConstants";
-import { ACTION, CURRENT_USER, EVENTS } from "../../common/constants";
+import { ACTION, CURRENT_USER, EVENTS, LANGUAGE } from "../../common/constants";
 import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
+import { ServiceConfig } from "../ServiceConfig";
 
 export class FirebaseAuth implements ServiceAuth {
   public static i: FirebaseAuth;
@@ -58,6 +60,31 @@ export class FirebaseAuth implements ServiceAuth {
   //   }
   //   return auth;
   // }
+
+  private async updateUserPreferenceLanguage() {
+
+    if (!!this._currentUser) {
+      const appLang = localStorage.getItem(LANGUAGE);
+      if (!!appLang) {
+        const languages = await ServiceConfig.getI().apiHandler.getAllLanguages();
+        const langDocId = languages.find(lang => lang.code === appLang)?.docId;
+        if (!!langDocId) {
+          const langDoc = doc(
+            this._db,
+            `${CollectionIds.LANGUAGE}/${langDocId}`
+          );
+
+          if (!!langDoc && this._currentUser.language?.id != langDoc?.id) {
+            this._currentUser.language = langDoc;
+            await updateDoc(doc(this._db, `${CollectionIds.USER}/${this._currentUser.uid}`), {
+              language: this._currentUser.language,
+              updatedAt: Timestamp.now(),
+            });
+          }
+        }
+      }
+    }
+  }
 
   public async googleSign(): Promise<boolean> {
     try {
@@ -98,6 +125,8 @@ export class FirebaseAuth implements ServiceAuth {
         }
         this._currentUser.users.push(...migrateRes.newStudents);
       }
+      this.updateUserPreferenceLanguage();
+
       return true;
     } catch (error) {
       console.log(
@@ -107,6 +136,7 @@ export class FirebaseAuth implements ServiceAuth {
       return false;
     }
   }
+
 
   private async _createUserDoc(user): Promise<User> {
     // const courseIds: DocumentReference[] = DEFAULT_COURSE_IDS.map((id) =>
@@ -162,6 +192,7 @@ export class FirebaseAuth implements ServiceAuth {
       // }
       if (!currentUser) return;
       const tempUserDoc = await getDoc(doc(this._db, "User", currentUser.uid));
+      this.updateUserPreferenceLanguage();
       this._currentUser = (tempUserDoc.data() || tempUserDoc) as User;
       console.log(
         "currentUser in if (!currentUser) {",
@@ -471,6 +502,7 @@ export class FirebaseAuth implements ServiceAuth {
         this._currentUser.users.push(...migrateRes.newStudents);
       }
       // }
+      this.updateUserPreferenceLanguage();
       this.updateUserFcm(userData.uid);
       return true;
     } catch (error) {
