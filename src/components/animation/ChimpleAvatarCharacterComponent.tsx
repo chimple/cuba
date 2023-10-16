@@ -5,10 +5,10 @@ export default function ChimpleAvatarCharacterComponent({ style }) {
   const State_Machine = "State Machine 1";
   // const inputName = "look_idle";
 
-  const [riveCharHandsUp, setRiveCharHandsUp] = useState("look_idle");
+  const [riveCharHandsUp, setRiveCharHandsUp] = useState("Idle");
 
   const { rive, RiveComponent } = useRive({
-    src: "/assets/animation/login_screen_character.riv",
+    src: "/assets/animation/chimplecharacter.riv",
     stateMachines: State_Machine,
     layout: new Layout({ fit: Fit.Cover }),
     animations: riveCharHandsUp,
@@ -25,12 +25,16 @@ export default function ChimpleAvatarCharacterComponent({ style }) {
     <RiveComponent
       style={style}
       onClick={(e) => {
-        if (riveCharHandsUp === "hands_up") {
-          setRiveCharHandsUp("hands_down");
+
+        if (riveCharHandsUp === "Success") {
+          setRiveCharHandsUp("Idle");
         } else {
           // onclickInput && onclickInput?.fire();
-          setRiveCharHandsUp("hands_up");
+          setRiveCharHandsUp("Success");
         }
+
+        console.log("riveCharHandsUp", riveCharHandsUp);
+
         // onclickInput && onclickInput?.fire();
 
         // const randomNumber = Math.floor(Math.random() * 7) + 0;
