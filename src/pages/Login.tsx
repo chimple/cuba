@@ -82,7 +82,7 @@ const Login: React.FC = () => {
   const [currentPhone, setCurrentPhone] = useState<any>();
   const [title, setTitle] = React.useState("");
   useEffect(() => {
-    init();
+    // init();
     setIsLoading(true);
     setIsInvalidCode(verificationCodeMessageFlags);
 
