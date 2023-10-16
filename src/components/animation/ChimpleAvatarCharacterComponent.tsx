@@ -5,7 +5,7 @@ export default function ChimpleAvatarCharacterComponent({ style }) {
   const State_Machine = "State Machine 1";
   // const inputName = "look_idle";
 
-  const [riveCharHandsUp, setRiveCharHandsUp] = useState("Idle");
+  const [riveCharHandsUp, setRiveCharHandsUp] = useState("Fail");
 
   const { rive, RiveComponent } = useRive({
     src: "/assets/animation/chimplecharacter.riv",
@@ -25,17 +25,17 @@ export default function ChimpleAvatarCharacterComponent({ style }) {
     <RiveComponent
       style={style}
       onClick={(e) => {
-
-        if (riveCharHandsUp === "Success") {
-          setRiveCharHandsUp("Idle");
-        } else {
-          // onclickInput && onclickInput?.fire();
+        if (riveCharHandsUp === "Idle") {
           setRiveCharHandsUp("Success");
+        } else if (riveCharHandsUp === "Success") {
+          setRiveCharHandsUp("Fail");
+        } else {
+          setRiveCharHandsUp("Idle");
         }
 
         console.log("riveCharHandsUp", riveCharHandsUp);
 
-        // onclickInput && onclickInput?.fire();
+        onclickInput && onclickInput?.fire();
 
         // const randomNumber = Math.floor(Math.random() * 7) + 0;
         // console.log("RiveComponent onclick", randomNumber);
