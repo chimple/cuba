@@ -6,7 +6,7 @@ const LovedIcon: React.FC<{
   hasChapterTitle: boolean;
 }> = ({ isLoved, hasChapterTitle }) => {
   return (
-    <div>
+    <div className="lovediocn">
       {isLoved && (
         <div className={`fav-icon ${hasChapterTitle ? 'with-chapter-title' : ''}`}>
           <AiTwotoneHeart

@@ -1,13 +1,12 @@
 .fav-icon {
-  display: flex;
+  float: left;
+  position: relative;
+  background-color: rgb(220, 213, 213);
   height: 3vw;
   width: 3vw;
-  background-color: rgb(220, 213, 213);
-  border-radius: 30vw;
-  justify-content: space-around;
-  margin-top: -9vh;
-  margin-right: 2vw;
-  float: right;
+  top: -115%;
+  left: 88%;
+  border-radius: 30vh;
 }
 
 .fav-icon-image {
@@ -17,13 +16,16 @@
 }
 
 .with-chapter-title {
-  display: flex;
+  float: left;
+  position: relative;
+  background-color: rgb(220, 213, 213);
   height: 3vw;
   width: 3vw;
-  background-color: rgb(220, 213, 213);
-  border-radius: 30vw;
-  justify-content: space-around;
-  margin-top: -9vh;
-  margin-right: 2vw;
-  float: right;
+  top: -115%;
+  left: 88%;
+  border-radius: 30vh;
+}
+
+.lovediocn {
+  margin-bottom: -3vw;
 }
