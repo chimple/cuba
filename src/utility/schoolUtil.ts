@@ -25,20 +25,11 @@ export class schoolUtil {
 
     if (!temp) return;
     const currentClass = JSON.parse(temp) as Class;
-    function getRef(ref): DocumentReference {
-      const db = getFirestore();
-      const newCourseRef = doc(
-        db,
-        ref["_key"].path.segments.at(-2),
-        ref["_key"].path.segments.at(-1)
-      );
-      return newCourseRef;
-    }
 
     function convertDoc(
       refs: DocumentReference<DocumentData>
     ): DocumentReference {
-      const newCourseRef = getRef(refs);
+      const newCourseRef = Util.getRef(refs);
       return newCourseRef;
     }
 
@@ -75,20 +66,11 @@ export class schoolUtil {
 
     if (!temp) return;
     const currentSchool = JSON.parse(temp) as School;
-    function getRef(ref): DocumentReference {
-      const db = getFirestore();
-      const newCourseRef = doc(
-        db,
-        ref["_key"].path.segments.at(-2),
-        ref["_key"].path.segments.at(-1)
-      );
-      return newCourseRef;
-    }
 
     function convertDoc(
       refs: DocumentReference<DocumentData>
     ): DocumentReference {
-      const newCourseRef = getRef(refs);
+      const newCourseRef = Util.getRef(refs);
       return newCourseRef;
     }
 
