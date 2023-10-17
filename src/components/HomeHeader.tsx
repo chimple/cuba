@@ -49,8 +49,8 @@ const HomeHeader: React.FC<{
       if (
         !(
           (currMode === MODES.SCHOOL && element.headerList === HOMEHEADERLIST.ASSIGNMENT) ||
-          (await canShowSuggestions === false && element.headerList === HOMEHEADERLIST.SUGGESTIONS)
-          //comparing canShowSuggestions boolean value with !false (if it is the case removing suggestions header from headerIconList)
+          (!(await canShowSuggestions) && element.headerList === HOMEHEADERLIST.SUGGESTIONS)
+          //if Avatar is showing in home Screen then only sugesstions icons visible
         )
       ) {
         headerIconList.push(element);
