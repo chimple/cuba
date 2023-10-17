@@ -88,13 +88,23 @@ export class Util {
   }
 
   public static getRef(ref): DocumentReference {
-    const db = getFirestore();
-    const newCourseRef = doc(
-      db,
-      ref["_key"].path.segments.at(-2),
-      ref["_key"].path.segments.at(-1)
-    );
-    return newCourseRef;
+    try {
+      if (!ref || !ref["_key"] || !ref["_key"].path || !ref["_key"].path.segments) {
+        return ref;
+      }
+      const db = getFirestore();
+      const tempSegments = ref["_key"].path.segments;
+      const newCourseRef = doc(
+        db,
+        tempSegments[tempSegments.length - 2],
+        tempSegments[tempSegments.length - 1]
+      );
+      return newCourseRef;
+    }
+    catch (error) {
+      console.log("error", error);
+      return ref;
+    }
   }
 
   public static getCurrentStudent(): User | undefined {
@@ -199,9 +209,9 @@ export class Util {
 
         console.log(
           "before local lesson Bundle http url:" +
-            "assets/" +
-            lessonId +
-            "/index.js"
+          "assets/" +
+          lessonId +
+          "/index.js"
         );
 
         const fetchingLocalBundle = await fetch(
@@ -209,9 +219,9 @@ export class Util {
         );
         console.log(
           "after local lesson Bundle fetch url:" +
-            "assets/" +
-            lessonId +
-            "/index.js",
+          "assets/" +
+          lessonId +
+          "/index.js",
           fetchingLocalBundle.ok,
           fetchingLocalBundle.json,
           fetchingLocalBundle
