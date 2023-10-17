@@ -16,6 +16,7 @@ import { Util } from "../utility/util";
 import User from "../models/user";
 import { useHistory } from "react-router";
 import { schoolUtil } from "../utility/schoolUtil";
+import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 
 const HomeHeader: React.FC<{
   currentHeader: string;
@@ -30,6 +31,9 @@ const HomeHeader: React.FC<{
   const history = useHistory();
   const [student, setStudent] = useState<User>();
   const [studentMode, setStudentMode] = useState<string | undefined>();
+  const canShowSuggestions = RemoteConfig.getBoolean(
+    REMOTE_CONFIG_KEYS.CAN_SHOW_AVATAR
+  )
   async function init() {
     const student = await Util.getCurrentStudent();
     if (!student) {
@@ -38,14 +42,15 @@ const HomeHeader: React.FC<{
     }
     const currMode = await schoolUtil.getCurrMode();
     setStudentMode(currMode);
-    DEFAULT_HEADER_ICON_CONFIGS.forEach((element) => {
+    DEFAULT_HEADER_ICON_CONFIGS.forEach(async (element) => {
       // console.log("elements", element);
 
       console.log(currMode);
       if (
         !(
-          currMode === MODES.SCHOOL &&
-          element.headerList === HOMEHEADERLIST.ASSIGNMENT
+          (currMode === MODES.SCHOOL && element.headerList === HOMEHEADERLIST.ASSIGNMENT) ||
+          (await canShowSuggestions === false && element.headerList === HOMEHEADERLIST.SUGGESTIONS)
+          //comparing canShowSuggestions boolean value with !false (if it is the case removing suggestions header from headerIconList)
         )
       ) {
         headerIconList.push(element);
