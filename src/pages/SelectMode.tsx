@@ -26,6 +26,7 @@ import School from "../models/school";
 import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
 import i18n from "../i18n";
+import DropDown from "../components/DropDown";
 
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -190,7 +191,7 @@ const SelectMode: FC = () => {
                 <span className="select-school-text">
                   {t("Choose the School")}
                 </span>
-                <RectangularOutlineDropDown
+                <DropDown
                   placeholder={t("Select School").toString()}
                   onValueChange={async (selectedSchoolDocId) => {
                     const currSchool = schoolList.find(
@@ -213,9 +214,8 @@ const SelectMode: FC = () => {
                   currentValue={currentSchoolId}
                 />
                 <button
-                  className={`okay-btn ${
-                    isOkayButtonDisabled ? "okay-btn-disabled" : ""
-                  }`}
+                  className={`okay-btn ${isOkayButtonDisabled ? "okay-btn-disabled" : ""
+                    }`}
                   onClick={async function () {
                     // history.replace(PAGES.SELECT_CLASS);
                     await displayClasses();

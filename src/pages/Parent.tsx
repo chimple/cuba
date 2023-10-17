@@ -36,6 +36,7 @@ import DeleteParentAccount from "../components/parent/DeleteParentAccount";
 import { TrueFalseEnum } from "../interface/modelInterfaces";
 import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
+import DropDown from "../components/DropDown";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
@@ -177,7 +178,7 @@ const Parent: React.FC = () => {
         <div id="parent-page-setting">
           <div id="parent-page-setting-div">
             <p id="parent-page-setting-lang-text">{t("Language")}</p>
-            <RectangularOutlineDropDown
+            <DropDown
               currentValue={currentAppLang}
               optionList={langList}
               placeholder="Select Language"
