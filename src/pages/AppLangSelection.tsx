@@ -4,7 +4,6 @@ import "./AppLangSelection.css";
 import { useHistory } from "react-router-dom";
 import { LANGUAGE, LANG, PAGES } from "../common/constants";
 import Loading from "../components/Loading";
-import RectangularOutlineDropDown from "../components/parent/RectangularOutlineDropDown";
 import i18n from "../i18n";
 import NextButton from "../components/common/NextButton";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -12,6 +11,7 @@ import "./AppLangSelection.css";
 import { t } from "i18next";
 import "./AppLangSelection.css";
 import { chevronForward } from "ionicons/icons";
+import DropDown from "../components/DropDown";
 
 
 const AppLangSelection: React.FC = () => {
@@ -198,7 +198,7 @@ const AppLangSelection: React.FC = () => {
               />
               <div id="app-lang-element">
                 <p id="app-lang-text">{t("Choose your language")}</p>
-                <RectangularOutlineDropDown
+                <DropDown
                   placeholder=""
                   optionList={langList}
                   currentValue={currentAppLang || langList[0]?.id}
@@ -212,7 +212,7 @@ const AppLangSelection: React.FC = () => {
                     await i18n.changeLanguage(tempLangCode);
                     setCurrentAppLang(tempLangCode);
                   }}
-                ></RectangularOutlineDropDown>
+                />
               </div>
             </div>
           )}
