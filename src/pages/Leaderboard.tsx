@@ -17,7 +17,6 @@ import { useHistory } from "react-router-dom";
 import Loading from "../components/Loading";
 import { IonCol, IonGrid, IonPage, IonRow } from "@ionic/react";
 import User from "../models/user";
-import RectangularOutlineDropDown from "../components/parent/RectangularOutlineDropDown";
 import React from "react";
 import { FirebaseApi } from "../services/api/FirebaseApi";
 import {
@@ -36,6 +35,7 @@ import i18n from "../i18n";
 import IconButton from "../components/IconButton";
 
 import { schoolUtil } from "../utility/schoolUtil";
+import DropDown from "../components/DropDown";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -203,7 +203,7 @@ const Leaderboard: React.FC = () => {
     return (
       <div id="leaderboard-UI">
         <div id="leaderboard-left-UI">
-          <RectangularOutlineDropDown
+          <DropDown
             placeholder={weeklySelectedValue || weeklyList[0]?.displayName}
             optionList={weeklyList}
             currentValue={weeklySelectedValue || weeklyList[0]?.id}
@@ -227,7 +227,7 @@ const Leaderboard: React.FC = () => {
                 //  }
               }
             }}
-          ></RectangularOutlineDropDown>
+          ></DropDown>
           <div
             key={currentStudent?.docId}
             // onClick={() => onStudentClick(student)}
