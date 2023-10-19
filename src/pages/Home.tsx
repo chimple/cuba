@@ -91,7 +91,7 @@ const Home: FC = () => {
   //const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [currentHeader, setCurrentHeader] = useState<any>(() => {
     //Initialize with the value from local storage (if available)
-    return localStorage.getItem('currentHeader') || HOMEHEADERLIST.HOME;
+    return localStorage.getItem("currentHeader") || HOMEHEADERLIST.HOME;
   });
   const [lessonsScoreMap, setLessonsScoreMap] = useState<any>();
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
@@ -119,7 +119,9 @@ const Home: FC = () => {
   const getCanShowAvatar = async () => {
     const canShowAvatarValue = await RemoteConfig.getBoolean(
       REMOTE_CONFIG_KEYS.CAN_SHOW_AVATAR
-     );
+    );
+    console.log("const canShowAvatarValue in home ", canShowAvatarValue);
+
     setCanShowAvatar(canShowAvatarValue);
   };
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
@@ -131,18 +133,21 @@ const Home: FC = () => {
     fetchData();
     getCanShowAvatar();
     const urlParams = new URLSearchParams(location.search);
-    
+
     if (!!urlParams.get("continue")) {
       setCurrentHeader(currentHeader);
     }
   }, []);
 
   useEffect(() => {
-    setCurrentHeader(currentHeader === HOMEHEADERLIST.PROFILE?HOMEHEADERLIST.HOME:currentHeader);
-    localStorage.setItem('currentHeader', currentHeader);
+    setCurrentHeader(
+      currentHeader === HOMEHEADERLIST.PROFILE
+        ? HOMEHEADERLIST.HOME
+        : currentHeader
+    );
+    localStorage.setItem("currentHeader", currentHeader);
   }, [currentHeader]);
-  
-  
+
   const fetchData = async () => {
     setIsLoading(true);
     const lessonResult = await setCourse(HOMEHEADERLIST.HOME);
@@ -151,7 +156,7 @@ const Home: FC = () => {
     if (allLessonIds) setValidLessonIds(allLessonIds);
     setIsLoading(false);
   };
-  
+
   function urlOpenListenerEvent() {
     App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
       const slug = event.url.split(".cc").pop();
@@ -383,7 +388,9 @@ const Home: FC = () => {
 
   const currentStudentDocId = Util.getCurrentStudent()?.docId;
   const storeRecommendationsInLocalStorage = (recommendations: any[]) => {
-    const recommendationsInLocal = localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`);
+    const recommendationsInLocal = localStorage.getItem(
+      `${currentStudentDocId}-${RECOMMENDATIONS}`
+    );
     let existingRecommendations: any[] = [];
 
     if (recommendationsInLocal !== null) {
@@ -400,17 +407,15 @@ const Home: FC = () => {
         }
       }
 
-      localStorage.setItem(`${currentStudentDocId}-${RECOMMENDATIONS}`, JSON.stringify(lessonMap));
+      localStorage.setItem(
+        `${currentStudentDocId}-${RECOMMENDATIONS}`,
+        JSON.stringify(lessonMap)
+      );
       setDataCourse(existingRecommendations.concat(lessonMap) as Lesson[]);
-
     } else {
       setDataCourse(existingRecommendations);
     }
   };
-
-
-
-
 
   let reqLes: Lesson[] = [];
   async function getRecommendationLessons(
@@ -451,8 +456,8 @@ const Home: FC = () => {
     console.log(currMode);
     let sortLessonResultMap:
       | {
-        [lessonDocId: string]: StudentLessonResult;
-      }
+          [lessonDocId: string]: StudentLessonResult;
+        }
       | undefined;
     const res = await api.getStudentResult(currentStudent.docId);
     console.log("tempResultLessonMap = res;", JSON.stringify(res));
@@ -617,7 +622,7 @@ const Home: FC = () => {
       headerIconList.push(element);
     });
     setCurrentHeader(selectedHeader);
-    localStorage.setItem('currentHeader', selectedHeader);
+    localStorage.setItem("currentHeader", selectedHeader);
     localStorage.setItem(PREVIOUS_SELECTED_COURSE(), selectedHeader);
     DEFAULT_HEADER_ICON_CONFIGS.get(selectedHeader);
     switch (selectedHeader) {
@@ -785,22 +790,22 @@ const Home: FC = () => {
       <div className="slider-content">
         {!isLoading ? (
           <div className="space-between">
-            {currentHeader === HOMEHEADERLIST.HOME && !!canShowAvatar &&  (
+            {currentHeader === HOMEHEADERLIST.HOME && !!canShowAvatar && (
               <ChimpleAvatarPage
-              style={{
-                marginBottom: "15vh",
-                display: "flex",
-                justifyContent: "space-around",
-              }}
-            ></ChimpleAvatarPage>
+                style={{
+                  marginBottom: "15vh",
+                  display: "flex",
+                  justifyContent: "space-around",
+                }}
+              ></ChimpleAvatarPage>
             )}
-  
+
             {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
-  
+
             {currentHeader === HOMEHEADERLIST.ASSIGNMENT && <AssignmentPage />}
-  
+
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
-  
+
             {/* 
             {value === SUBTAB.SUGGESTIONS &&
             currentHeader === HOMEHEADERLIST.SUGGESTIONS ? (
@@ -851,14 +856,13 @@ const Home: FC = () => {
               )
             }
             */}
-  
+
             {(value === SUBTAB.SUGGESTIONS ||
               value === SUBTAB.FAVOURITES ||
               value === SUBTAB.HISTORY) &&
               ((canShowAvatar &&
                 currentHeader === HOMEHEADERLIST.SUGGESTIONS) ||
-                (!canShowAvatar &&
-                  currentHeader === HOMEHEADERLIST.HOME)) && (
+                (!canShowAvatar && currentHeader === HOMEHEADERLIST.HOME)) && (
                 <div>
                   {value === SUBTAB.SUGGESTIONS && (
                     <LessonSlider
@@ -871,7 +875,7 @@ const Home: FC = () => {
                       showChapterName={true}
                     />
                   )}
-  
+
                   {value === SUBTAB.FAVOURITES && (
                     <LessonSlider
                       lessonData={favouriteLessons}
@@ -884,7 +888,7 @@ const Home: FC = () => {
                       onEndReached={handleLoadMoreLessons}
                     />
                   )}
-  
+
                   {value === SUBTAB.HISTORY && (
                     <LessonSlider
                       lessonData={historyLessons}
@@ -899,9 +903,9 @@ const Home: FC = () => {
                   )}
                 </div>
               )}
-  
+
             {/* To show lesson cards after clicking on the header icon  */}
-  
+
             {/* 
             {currentHeader !== HEADERLIST.RECOMMENDATION ? (
               // <ChapterSlider
@@ -970,8 +974,7 @@ const Home: FC = () => {
             {(currentHeader === HOMEHEADERLIST.SUGGESTIONS ||
               currentHeader === HOMEHEADERLIST.FAVOURITES ||
               currentHeader === HOMEHEADERLIST.HISTORY ||
-              (!canShowAvatar &&
-                currentHeader === HOMEHEADERLIST.HOME)) && (
+              (!canShowAvatar && currentHeader === HOMEHEADERLIST.HOME)) && (
               <div id="home-page-bottom">
                 <AppBar className="home-page-app-bar">
                   <Box>
@@ -1041,6 +1044,6 @@ const Home: FC = () => {
         <Loading isLoading={isLoading} />
       </div>
     </IonPage>
-  );  
+  );
 };
 export default Home;

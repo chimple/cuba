@@ -1,7 +1,7 @@
 import { FirebaseRemoteConfig } from "@capacitor-firebase/remote-config";
 
 export class RemoteConfig {
-  private constructor() { }
+  private constructor() {}
   public static async getString(key: REMOTE_CONFIG_KEYS): Promise<string> {
     try {
       const { value } = await FirebaseRemoteConfig.getString({
@@ -52,7 +52,9 @@ export class RemoteConfig {
       });
       console.log(
         "🚀 ~ file: RemoteConfig.ts:53 ~ RemoteConfig ~ getBoolean ~ value:",
-        value
+        key,
+        value,
+        value || REMOTE_CONFIG_DEFAULTS[key]
       );
       return value || REMOTE_CONFIG_DEFAULTS[key];
     } catch (error) {
