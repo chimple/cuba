@@ -100,8 +100,14 @@ export interface ServiceApi {
    * @returns {Language | undefined}`Language` or `undefined` if it could not find the Language with given `id`
    */
   getLanguageWithId(id: string): Promise<Language | undefined>;
-    
-  getLessonFromLessonId(lessonId: string): Promise<Lesson | null>;
+
+  /**
+   * Gives Lesson for a given CocosLesson Id 
+   * @param lessonId - Cocos Lesson Id 
+   * Here lessonId is - In Firebase we have Lesson collection in that collection each doc is one lesson in that lesson we have ID
+   */
+  getLessonWithCocosLessonId(lessonId: string): Promise<Lesson | null>;
+
   /**
    * Gives List of subjects for given a student for Home user
    * @param {User} student - Student User object

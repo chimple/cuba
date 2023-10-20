@@ -38,6 +38,9 @@ export default function ChimpleAvatarCharacterComponent({ style, userChoice, cli
       } else if(userChoice === "Success1"){
         setRiveCharHandsUp("Success");
         onclickInput.fire();
+      }else if (userChoice=== "Fail1") {
+        setRiveCharHandsUp("Fail");
+        onclickInput.fire();
       } else {
         setRiveCharHandsUp("Idle");
         onclickInput.fire();

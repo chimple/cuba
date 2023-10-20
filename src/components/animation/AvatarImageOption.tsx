@@ -8,6 +8,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { CHAPTER_CARD_COLOURS, PAGES } from "../../common/constants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
+import "./AvatarImageOption.css";
 
 const AvatarImageOption: React.FC<{
   imageWidth?: number;
@@ -21,7 +22,7 @@ const AvatarImageOption: React.FC<{
   cuRecLesson?: any;
   isUnlocked?: boolean;
 }> = ({ imageWidth,
-  webSrc, localSrc, defaultSrc, currentMode, currentCourse, cuReChapter, cuRecLesson, isUnlocked
+   currentMode, currentCourse, cuReChapter, cuRecLesson, isUnlocked
 }) => {
 
     const history = useHistory();
@@ -54,13 +55,6 @@ const AvatarImageOption: React.FC<{
             className="course-icon"
             style={{
               backgroundColor: CHAPTER_CARD_COLOURS[index],
-              //   display: "flex", // Add flex display
-              // alignItems: "center", // Center vertically
-              // justifyContent: "center", // Center horizontally
-              marginLeft: "auto",
-              marginRight: "auto",
-              // maxHeight: "43vh",
-              maxHeight: "39vh",
 
             }}
           >
@@ -75,11 +69,6 @@ const AvatarImageOption: React.FC<{
       case AvatarModes.ChapterSuggestion:
         content = (
           <div className="chapter-icon"
-            style={{
-
-              marginLeft: "auto",
-              marginRight: "auto",
-            }}
           >
             <SelectIconImage
               localSrc={`courses/${currentCourse.courseCode}/icons/${cuReChapter.id}.webp`}
@@ -92,26 +81,17 @@ const AvatarImageOption: React.FC<{
       case AvatarModes.LessonSuggestion:
         content = (
           <div className="chapter-icon-in-avatar-image-option">
-            <div style={{ width: imageWidth + "vw", height: "auto" }}>
+            <div 
+            style={{ width: imageWidth + "vw", height: "auto" }}>
 
-              <div
+              <div 
                 style={{
                   display: "grid",
                 }}
               >
-                <div
+                <div className="chapter-card-in-avatar-box"
                   style={{
                     background: CHAPTER_CARD_COLOURS[index],
-                    borderRadius: "7vh",
-                    width: 45.5 + "vh",
-                    height: 35 + "vh",
-                    display: "grid",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gridArea: "1/1",
-                    marginLeft: "auto",
-                    marginRight: "auto",
-                    maxHeight: "43vh",
                   }}
                 >
                   <SelectIconImage
@@ -148,11 +128,6 @@ const AvatarImageOption: React.FC<{
       default:
         content = (
           <div className="chapter-icon"
-            style={{
-
-              marginLeft: "auto",
-              marginRight: "auto",
-            }}
           >
             <SelectIconImage
               localSrc={""}

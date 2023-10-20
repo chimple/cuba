@@ -12,7 +12,7 @@ export default class Course extends BaseObject {
   private _status: string;
   private _subject: DocumentReference;
   private _thumbnail: string | undefined;
-  static courseCode: any;
+  // static courseCode: any;
 
   constructor({
     chapters,

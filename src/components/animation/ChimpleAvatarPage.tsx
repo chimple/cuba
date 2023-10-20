@@ -14,6 +14,7 @@ import { relative } from "path";
 import DisplayStudents from "../../pages/DisplayStudents";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
+import "./ChimpleAvatarPage.css";
 
 import { Chapter } from "../../common/courseConstants";
 // import { getFirestore } from "@firebase/firestore";
@@ -292,7 +293,7 @@ const ChimpleAvatarPage: FC<{
 
               // const res = await api.getLesson(recommendedLessonId, undefined, true);
               // const ans = await api.getLesson(recommendedLessonId.toLowerCase());
-              const tempLesson = await api.getLessonFromLessonId(recommendedLessonId);
+              const tempLesson = await api. getLessonWithCocosLessonId(recommendedLessonId);
               // const lessonObj = await api.getLessonFromCourse(
               //   matchingCourse,
               //   recommendedLessonId.toLowerCase()
@@ -390,7 +391,7 @@ const ChimpleAvatarPage: FC<{
           setCurrentMode(AvatarModes.LessonSuggestion);
         } else if (choice === "no") {
 
-          setUserChoice("Fail");
+          setUserChoice("Fail1");
           const nextLanguageIndex = currentLanguageIndex + 1;
           if (nextLanguageIndex < localRecommendData.length) {
             // Ask about the next language course
@@ -520,16 +521,7 @@ const ChimpleAvatarPage: FC<{
         userChoice={userChoice}
         clickHandler={() => handleButtonClick(userChoice)}
       />
-      <div
-        style={{
-          // height: "68vh",
-          width: "auto",
-          borderRadius: "20px",
-          backgroundColor: "white",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-        }}
+      <div className="avatar-option-box-background"
       >
         <div
         >
@@ -547,21 +539,11 @@ const ChimpleAvatarPage: FC<{
             cuReChapter={cuReChapter}
             cuRecLesson={cuRecLesson}
           ></AvatarImageOption>
-          <div
+          <div className="buttons-in-avatar-option-box"
             style={{
-              width: "38vw",
-              display: "flex",
               flexWrap:
                 buttons.length === 4
                   ? "wrap" : "wrap",
-              alignItems: "center",
-              paddingBottom: "3vh",
-              paddingTop: "2vh",
-              paddingLeft: "2vw",
-              paddingRight: "3vw",
-              marginTop: "3vh",
-              // position: "fixed",
-              // top: "72vh",
               justifyContent:
                 buttons.length === 1
                   ? "center"
@@ -575,12 +557,6 @@ const ChimpleAvatarPage: FC<{
             {buttons.map((button, index) => (
               <div
                 key={index}
-                style={{
-                  // margin: "3vh 6vh", // Add some margin between the buttons
-                  // flexBasis: buttons.length === 1 ? "auto" : "45%", // Adjust flexBasis based on the number of buttons
-                  // flex: "wrap",
-
-                }}
               >
                 <RectangularTextButton
 

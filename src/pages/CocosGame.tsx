@@ -215,7 +215,7 @@ const CocosGame: React.FC = () => {
       }
       let existing = new Map();
       let res: { [key: string]: string } = JSON.parse(localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`) || '{}');
-      const finalLesson = await Util.getNextLessonInChapter(CourseDetail.chapters, lessonData.chapterId, lesson.id, ChapterDetail);
+      const finalLesson = await Util.getNextLessonFromGivenChapter(CourseDetail.chapters, lessonData.chapterId, lesson.id, ChapterDetail);
       console.log("final lesson", finalLesson);
       existing.set(CourseDetail.courseCode, finalLesson?.id);
       for (let [key, value] of existing) {

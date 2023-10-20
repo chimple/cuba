@@ -1413,9 +1413,9 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  public async getLessonFromLessonId(lessonId: string): Promise<Lesson | null> {
+  public async getLessonWithCocosLessonId(lessonId: string): Promise<Lesson | null> {
     try {
-      const lessonQuerySnapshot = await getDocs(
+      const lessonQuerySnapshot = await this.getDocsFromOffline(
         query(collection(this._db, CollectionIds.LESSON), where("id", "==", lessonId))
       );
   

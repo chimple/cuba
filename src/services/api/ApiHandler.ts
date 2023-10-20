@@ -158,8 +158,8 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getCoursesForParentsStudent(student);
   }
 
-  public async getLessonFromLessonId(lessonId: string): Promise<Lesson | null> {
-    return await this.s.getLessonFromLessonId(lessonId);
+  public async getLessonWithCocosLessonId(lessonId: string): Promise<Lesson | null> {
+    return await this.s.getLessonWithCocosLessonId(lessonId);
   }
 
   public async getCoursesForClassStudent(currClass: Class): Promise<Course[]> {

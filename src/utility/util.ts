@@ -81,7 +81,7 @@ export class Util {
 
   
 
-  public static async getNextLessonInChapter(chapters, currentChapterId, currentLessonId, ChapterDetail) {
+  public static async getNextLessonFromGivenChapter(chapters, currentChapterId, currentLessonId, ChapterDetail) {
     const api = ServiceConfig.getI().apiHandler;
     // let ChapterDetail: Chapter | undefined;
     const currentChapter = ChapterDetail;
