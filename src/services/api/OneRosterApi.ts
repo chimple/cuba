@@ -20,6 +20,7 @@ import StudentProfile from "../../models/studentProfile";
 import school from "../../models/school";
 import School from "../../models/school";
 import Avatar from "../../models/avatar";
+import { QueryDocumentSnapshot } from "@firebase/firestore";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -31,6 +32,10 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   getCoursesForClassStudent(currClass: Class): Promise<Course[]> {
+    throw new Error("Method not implemented.");
+  }
+
+  getLessonFromLessonId(lessonId: string): Promise<Lesson | null> {
     throw new Error("Method not implemented.");
   }
 

@@ -22,6 +22,7 @@ export default class Lesson extends BaseObject {
   private _cocosSubjectCode: string | undefined;
   private _assignment: Assignment | undefined;
   private _chapterTitle: string | undefined;
+  static cocosSubjectCode: string;
 
   constructor({
     clonedFrom,

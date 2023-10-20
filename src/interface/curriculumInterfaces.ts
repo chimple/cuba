@@ -1,3 +1,4 @@
+import { DocumentReference } from "firebase/firestore";
 
 export interface Course {
     chapters: Chapter[];

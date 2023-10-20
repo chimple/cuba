@@ -778,7 +778,7 @@ const Home: FC = () => {
             {currentHeader === HOMEHEADERLIST.HOME ? (
               <ChimpleAvatarPage
                 style={{
-                  marginBottom: "15vh",
+                  marginBottom: "2vh",
                   display: "flex",
                   justifyContent: "space-around",
                 }}

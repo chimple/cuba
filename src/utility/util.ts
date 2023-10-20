@@ -24,7 +24,7 @@ import {
   MUSIC,
   // APP_LANG,
 } from "../common/constants";
-import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
+import { Chapter as curriculamInterfaceChapter, Course as curriculamInterfaceCourse , Lesson } from "../interface/curriculumInterfaces";
 import Course1 from "../models/course";
 import { GUIDRef } from "../interface/modelInterfaces";
 import Result from "../models/result";
@@ -50,9 +50,11 @@ import {
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { RateApp } from "capacitor-rate-app";
 import { getFunctions, httpsCallable } from "firebase/functions";
-import { CollectionIds } from "../common/courseConstants";
+import { Chapter, CollectionIds, StudentLessonResult} from "../common/courseConstants";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { Router } from "react-router-dom";
+import lesson from "../models/lesson";
+
 
 declare global {
   interface Window {
@@ -76,6 +78,66 @@ export class Util {
     });
     return _courses;
   }
+
+  
+
+  public static async getNextLessonInChapter(chapters, currentChapterId, currentLessonId, ChapterDetail) {
+    const api = ServiceConfig.getI().apiHandler;
+    // let ChapterDetail: Chapter | undefined;
+    const currentChapter = ChapterDetail;
+   const currentStudentDocId: string = Util.getCurrentStudent()?.docId || '';
+
+    console.log("currentChapter", currentChapter);
+
+    if (!currentChapter) return undefined;
+    let currentLessonIndex;
+
+    currentChapter.lessons = Util.convertDoc(currentChapter.lessons)
+    const cChapter = await api.getLessonsForChapter(currentChapter);
+
+    for (let i = 0; i < cChapter.length - 1; i++) {
+      const currentLesson = cChapter[i];
+      console.log(`Checking lesson at index ${i}:`, currentLesson);
+      console.log("currentlesson id:", currentLesson.id);
+      if (currentLesson.id === currentLessonId) {
+        currentLessonIndex = i;
+        break;
+      }
+    }
+
+    console.log("currentLessonIndex", currentLessonIndex);
+
+    if (currentLessonIndex < currentChapter.lessons.length - 1) {
+
+      let nextLesson = currentChapter.lessons[currentLessonIndex + 1];
+      let lessonId = nextLesson.id;
+      let studentResult: { [lessonDocId: string]: StudentLessonResult } | undefined = {};
+      const studentProfile = await api.getStudentResult(currentStudentDocId);
+      studentResult = studentProfile?.lessons;
+
+      if (!studentResult) return undefined;
+      while (studentResult && studentResult[lessonId]) {
+        currentLessonIndex += 1;
+        nextLesson = currentChapter.lessons[currentLessonIndex + 1];
+        lessonId = nextLesson.id;
+      }
+      const lessonObj = await api.getLesson(nextLesson.id) as lesson;
+      console.log("lessonObj", lessonObj);
+      if (lessonObj) {
+        return lessonObj;
+      }
+    }
+
+    const nextChapterIndex = chapters.findIndex(chapter => chapter.id === currentChapterId) + 1;
+    if (nextChapterIndex < chapters.length) {
+      const nextChapter = chapters[nextChapterIndex];
+      const firstLessonId = nextChapter.lessons[0];
+      if (firstLessonId instanceof lesson) {
+        return firstLessonId;
+      }
+      return undefined;
+    }
+  };
 
   public static convertDoc(refs: any[]): DocumentReference[] {
     const data: DocumentReference[] = [];
@@ -286,11 +348,11 @@ export class Util {
   // To parse this data:
   //   const course = Convert.toCourse(json);
 
-  public static toCourse(json: string): Course {
+  public static toCourse(json: string): curriculamInterfaceCourse {
     return JSON.parse(JSON.stringify(json));
   }
 
-  public static courseToJson(value: Course): string {
+  public static courseToJson(value: curriculamInterfaceCourse): string {
     return JSON.stringify(value);
   }
 
@@ -333,6 +395,8 @@ export class Util {
     });
   }
 
+  
+
   public static killCocosGame(): void {
     if (!window.cc) {
       return;
@@ -354,7 +418,7 @@ export class Util {
   public static async getLastPlayedLessonIndex(
     subjectCode: string,
     lessons: Lesson[],
-    chapters: Chapter[] = [],
+    chapters: curriculamInterfaceChapter[] = [],
     lessonResultMap: { [key: string]: Result } = {}
   ): Promise<number> {
     const currentLessonJson = localStorage.getItem(CURRENT_LESSON_LEVEL());

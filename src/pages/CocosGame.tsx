@@ -40,9 +40,7 @@ const CocosGame: React.FC = () => {
   const currentStudent = Util.getCurrentStudent();
   const CourseDetail: Course = JSON.parse(state.course);
   const lessonDetail: Lesson = JSON.parse(state.lesson);
-
   let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
-
   const presentToast = async () => {
     await present({
       message: "Something went wrong!",
@@ -172,62 +170,6 @@ const CocosGame: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const lesson: Lesson = JSON.parse(state.lesson);
 
-  async function getNextLessonInChapter(chapters, currentChapterId, currentLessonId) {
-
-    const currentChapter = ChapterDetail;
-    console.log("currentChapter", currentChapter);
-
-    if (!currentChapter) return undefined;
-    let currentLessonIndex;
-
-    currentChapter.lessons = Util.convertDoc(currentChapter.lessons)
-    const cChapter = await api.getLessonsForChapter(currentChapter);
-
-    for (let i = 0; i < cChapter.length - 1; i++) {
-      const currentLesson = cChapter[i];
-      console.log(`Checking lesson at index ${i}:`, currentLesson);
-      console.log("currentlesson id:", currentLesson.id);
-      if (currentLesson.id === currentLessonId) {
-        currentLessonIndex = i;
-        break;
-      }
-    }
-
-    console.log("currentLessonIndex", currentLessonIndex);
-
-    if (currentLessonIndex < currentChapter.lessons.length - 1) {
-
-      let nextLesson = currentChapter.lessons[currentLessonIndex + 1];
-      let lessonId = nextLesson.id;
-      let studentResult: { [lessonDocId: string]: StudentLessonResult } | undefined = {};
-      const studentProfile = await api.getStudentResult(currentStudentDocId);
-      studentResult = studentProfile?.lessons;
-
-      if (!studentResult) return undefined;
-      while (studentResult && studentResult[lessonId]) {
-        currentLessonIndex += 1;
-        nextLesson = currentChapter.lessons[currentLessonIndex + 1];
-        lessonId = nextLesson.id;
-      }
-      const lessonObj = await api.getLesson(nextLesson.id) as Lesson;
-      console.log("lessonObj", lessonObj);
-      if (lessonObj) {
-        return lessonObj;
-      }
-    }
-
-    const nextChapterIndex = chapters.findIndex(chapter => chapter.id === currentChapterId) + 1;
-    if (nextChapterIndex < chapters.length) {
-      const nextChapter = chapters[nextChapterIndex];
-      const firstLessonId = nextChapter.lessons[0];
-      if (firstLessonId instanceof Lesson) {
-        return firstLessonId;
-      }
-      return undefined;
-    }
-  };
-
-
   const saveTempData = async (
     lessonData: CocosLessonData,
     isLoved: boolean | undefined
@@ -273,7 +215,7 @@ const CocosGame: React.FC = () => {
       }
       let existing = new Map();
       let res: { [key: string]: string } = JSON.parse(localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`) || '{}');
-      const finalLesson = await getNextLessonInChapter(CourseDetail.chapters, lessonData.chapterId, lesson.id);
+      const finalLesson = await Util.getNextLessonInChapter(CourseDetail.chapters, lessonData.chapterId, lesson.id, ChapterDetail);
       console.log("final lesson", finalLesson);
       existing.set(CourseDetail.courseCode, finalLesson?.id);
       for (let [key, value] of existing) {

@@ -28,6 +28,16 @@
   height: min(70vh, 130px);
   border-radius: 50%;
 }
+
+.chapter-icon-in-avatar-image-option {
+  background-color: white;
+  /* clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%); */
+  background-repeat: no-repeat;
+  background-position: 50%;
+  width: min(70vh, 130px);
+  /* height: min(70vh, 130px); */
+  border-radius: 50%;
+}
 .grade-container {
   display: flex;
   flex-direction: row;
