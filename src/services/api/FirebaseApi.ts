@@ -20,6 +20,7 @@ import {
   QuerySnapshot,
   Query,
   setDoc,
+  QueryDocumentSnapshot,
 } from "firebase/firestore";
 import {
   LeaderboardInfo,
@@ -59,6 +60,7 @@ import School from "../../models/school";
 import Assignment from "../../models/assignment";
 import { sort } from "semver";
 import Avatar from "../../models/avatar";
+import { any } from "prop-types";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
@@ -82,7 +84,7 @@ export class FirebaseApi implements ServiceApi {
     }
     return FirebaseApi.i;
   }
-
+  
   public async getCourseByUserGradeId(
     gradeDocId: string | undefined
   ): Promise<DocumentReference<DocumentData>[]> {
@@ -1410,6 +1412,29 @@ export class FirebaseApi implements ServiceApi {
       return [];
     }
   }
+
+  public async getLessonWithCocosLessonId(lessonId: string): Promise<Lesson | null> {
+    try {
+      const lessonQuerySnapshot = await this.getDocsFromOffline(
+        query(collection(this._db, CollectionIds.LESSON), where("id", "==", lessonId))
+      );
+  
+      if (!lessonQuerySnapshot.empty) {
+        // If there is a matching lesson, return it
+        const lessonDoc = lessonQuerySnapshot.docs[0];
+        const lesson = lessonDoc.data() as Lesson;
+        lesson.docId = lessonDoc.id;
+        return lesson;
+      } else {
+        // Lesson not found
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching lesson by ID:", error);
+      return null;
+    }
+  }
+  
 
   public async getAllCourses(): Promise<Course[]> {
     try {

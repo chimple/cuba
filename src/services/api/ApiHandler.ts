@@ -15,6 +15,7 @@ import school from "../../models/school";
 import { MODES } from "../../common/constants";
 import School from "../../models/school";
 import Avatar from "../../models/avatar";
+import { QueryDocumentSnapshot } from "@firebase/firestore";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -155,6 +156,10 @@ export class ApiHandler implements ServiceApi {
 
   public async getCoursesForParentsStudent(student: User): Promise<Course[]> {
     return await this.s.getCoursesForParentsStudent(student);
+  }
+
+  public async getLessonWithCocosLessonId(lessonId: string): Promise<Lesson | null> {
+    return await this.s.getLessonWithCocosLessonId(lessonId);
   }
 
   public async getCoursesForClassStudent(currClass: Class): Promise<Course[]> {

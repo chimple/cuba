@@ -1,4 +1,4 @@
-  {
+{
     " OFF ": " OFF ",
     " ON ": " ON ",
     "🎉Congratulations🎊": "🎉Congratulations🎊",
@@ -34,6 +34,9 @@
     "Discovering the joy of learning with": "Discovering the joy of learning with",
     "Do you want to delete the parent account": "Do you want to delete the parent account",
     "Do you want to delete the Profile?": "Do you want to delete the Profile?",
+    "Do you want to play x3 lesson?" : "Do you want to play x3 lesson?",
+    "Do you want to play x2 chapter?" : "Do you want to play x2 chapter?",
+    "Do you want to play x1 course" : "Do you want to play x1 course?",
     "Do you want to sign out": "Do you want to sign out",
     "DOWN": "DOWN",
     "Downloading the latest updates": "Downloading the latest updates",
@@ -60,6 +63,7 @@
     "Girl": "Girl",
     "Help Video": "Help Video",
     "help": "Help",
+    "Hi! Welcome to Chimple" : "Hi! Welcome to Chimple",
     "Hindi": "Hindi",
     "History": "Played",
     "Home work": "Home work",
@@ -126,6 +130,7 @@
     "Skip": "Skip",
     "Something went wrong": "Something went wrong",
     "Sound": "Sound",
+    "Start" : "Start",
     "Subjects": "Subjects",
     "Suggestion": "Suggestion",
     "Swipe x to Unlock": "Swipe x to Unlock",

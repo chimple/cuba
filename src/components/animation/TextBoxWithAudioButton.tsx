@@ -9,11 +9,17 @@ export default function TextBoxWithAudioButton({ message }) {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "5vw",
+          gap: "2vw",
           borderRadius: "2vh",
-          backgroundColor: "white",
-          outline: "auto",
-          padding: "1vw 3vw",
+          // backgroundColor: "white",
+          // outline: "auto",
+          padding: "1vw 1vw",
+          color:"black",
+          // flexWrap: "wrap", 
+          width:"100%",
+          maxWidth: "38vw", // Set a maximum width for the container
+          lineHeight: "4vh",
+          // fontSize: "1vw",
         }}
       >
         <AudioComponent
@@ -23,7 +29,12 @@ export default function TextBoxWithAudioButton({ message }) {
           audioSrc={"assets/audios/my_name_is_chimple.mp3"}
           // audioSrc={"https://samplelib.com/lib/preview/mp3/sample-6s.mp3"}
         ></AudioComponent>
-        <p>{message}</p>
+        <p
+        style={{
+            fontSize: "var(--text-size)",
+
+        }}
+        >{message}</p>
       </div>
     </div>
   );

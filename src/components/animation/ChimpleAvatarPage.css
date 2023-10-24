@@ -1,0 +1,21 @@
+.avatar-option-box-background{
+    width: auto;
+    border-radius: 20px;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    
+    
+}
+
+.buttons-in-avatar-option-box{
+    width: 38vw;
+    display: flex;
+    align-items: center;
+    padding-bottom: 3vh;
+    padding-top: 2vh;
+    padding-left: 2vw;
+    padding-right: 3vw;
+    margin-top: 3vh;
+}
