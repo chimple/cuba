@@ -475,10 +475,13 @@ const Login: React.FC = () => {
                   isOpen={spinnerLoading}
                 />
 
-                <div id="Google-horizontal-line"></div>
-                <div id="Google-horizontal-line2"></div>
-                <div id="login-google-icon-text">
-                  {t("Continue with Google")}
+                <div id="Google-horizontal-line-main-container">
+                  <div id="Google-horizontal-line"></div>
+                  <div id="login-google-icon-text">
+                    {t("Continue with Google")}
+                  </div>
+                  <div id="Google-horizontal-line2"></div>
+
                 </div>
                 <img
                   id="login-google-icon"
