@@ -29,6 +29,8 @@ import { Keyboard } from "@capacitor/keyboard";
 import BackButton from "../components/common/BackButton";
 import i18n from "../i18n";
 
+let localStoreData: any = {};
+
 const EditStudent = () => {
   const history = useHistory();
   const location = useLocation();
@@ -86,7 +88,7 @@ const EditStudent = () => {
 
     const state = history.location.state as any;
     const tmpPath = state?.from ?? PAGES.HOME;
-    
+
     //Completed all stages
     if (stagesLength === newStage) {
       //Creating Profile for the Student
@@ -159,7 +161,7 @@ const EditStudent = () => {
         student
       );
 
-     
+
       history.replace(tmpPath);
     } else {
       if (newStage === STAGES.GRADE) {
@@ -176,8 +178,16 @@ const EditStudent = () => {
           "🚀 ~ file: EditStudent.tsx:51 ~ isNextButtonEnabled ~ docs:",
           results
         );
-      }
+        localStoreData.avatar = avatar;
+      } else if (newStage === STAGES.AVATAR) {
+        localStoreData.age = age;
+        localStoreData.gender = gender;
+      } 
+     
+      localStoreData.stage = newStage;
+      localStoreData.studentName = _studentName;
       setStage(newStage);
+      addDataToLocalStorage();
     }
     setIsLoading(false);
   };
@@ -186,7 +196,7 @@ const EditStudent = () => {
       case STAGES.NAME:
         return !!studentName.trim();
       case STAGES.GENDER_AND_AGE:
-        if(gender===GENDER.BOY || gender===GENDER.GIRL){
+        if (gender === GENDER.BOY || gender === GENDER.GIRL) {
           return !!gender && !!age;
         }
         return false;
@@ -210,7 +220,41 @@ const EditStudent = () => {
       });
     }
     changeLanguage();
+    init();
   }, []);
+
+  async function init() {
+    const urlParams = new URLSearchParams(location.search);
+    console.log(
+      "🚀 ~ file: DisplaySubjects.tsx:47 ~ init ~ urlParams:",
+      urlParams.get("isReload")
+    );
+    if (!!urlParams.get("isReload")) {
+      let locData: any = localStorage.getItem("editSt");
+      if (!!locData) {
+        localStoreData = JSON.parse(locData);
+
+        if (!!localStoreData.stage) {
+          setStage(localStoreData.stage);
+          setStudentName(localStoreData.studentName);
+
+
+          !!localStoreData.age && setAge(localStoreData.age);
+          !!localStoreData.gender && setGender(localStoreData.gender);
+          !!localStoreData.avatar && setAvatar(localStoreData.avatar);
+
+        }
+      }
+    }
+  }
+
+  function addDataToLocalStorage() {
+    localStorage.setItem(
+      "editSt",
+      JSON.stringify(localStoreData)
+    );
+  }
+
   async function changeLanguage() {
     const languageDocId = localStorage.getItem(LANGUAGE);
     console.log("This is the lang " + languageDocId);
@@ -222,6 +266,7 @@ const EditStudent = () => {
         {!isEdit && !state?.showBackButton ? null : (
           <BackButton
             onClicked={() => {
+              localStorage.removeItem("editSt");
               history.replace(PAGES.DISPLAY_STUDENT);
             }}
           />
@@ -252,7 +297,7 @@ const EditStudent = () => {
           <StudentNameBox
             studentName={studentName!}
             onValueChange={setStudentName}
-            onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
+            onEnterDown={isNextButtonEnabled() ? onNextButton : () => { }}
           />
         )}
       </div>
@@ -262,6 +307,8 @@ const EditStudent = () => {
             <div id="Edit-student-back-button">
               <BackButton
                 onClicked={() => {
+                  localStoreData.stage = STAGES.GENDER_AND_AGE;
+                  addDataToLocalStorage();
                   setStage(STAGES.GENDER_AND_AGE);
                 }}
               />
@@ -282,6 +329,8 @@ const EditStudent = () => {
             <div id="Edit-student-back-button">
               <BackButton
                 onClicked={() => {
+                  localStoreData.stage = STAGES.NAME;
+                  addDataToLocalStorage();
                   setStage(STAGES.NAME);
                 }}
               />
@@ -310,6 +359,8 @@ const EditStudent = () => {
               <div id="Edit-student-back-button">
                 <BackButton
                   onClicked={() => {
+                    localStoreData.stage = STAGES.AVATAR;
+                    addDataToLocalStorage();
                     setStage(STAGES.AVATAR);
                   }}
                 />
