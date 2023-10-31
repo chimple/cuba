@@ -38,7 +38,6 @@ import { language } from "ionicons/icons";
 import { string } from "yargs";
 import { t } from "i18next";
 
-
 interface RecommendedCourse {
   title?: string;
   chapters?: string[];
@@ -49,9 +48,6 @@ interface Chapters {
   id: string;
   title: string;
 }
-
-
-
 
 export enum AvatarModes {
   Welcome,
@@ -67,14 +63,14 @@ export enum AvatarModes {
   // scores < 70
   BadProgress,
   Welcomedummy,
-  Welcomedummy2
+  Welcomedummy2,
 }
 
 export enum CourseNames {
   en = "English",
   maths = "Maths",
   hi = "Hindi",
-  puzzle = "Puzzle"
+  puzzle = "Puzzle",
 }
 
 const ChimpleAvatarPage: FC<{
@@ -83,13 +79,15 @@ const ChimpleAvatarPage: FC<{
   // lesson: Lesson;
   // course: Course | undefined;
 }> = ({ style, isUnlocked }) => {
-
   const [currentMode, setCurrentMode] = useState<AvatarModes>(
     AvatarModes.Welcome
   );
   const [courses, setCourses] = useState<Course[]>([]);
-  const [currentChaptersList, setCurrentChaptersList] = useState<string | null>(null);
-  const [currentCourseTitle, setCurrentCourseTitle] = useState<RecommendedCourse | null>(null);
+  const [currentChaptersList, setCurrentChaptersList] = useState<string | null>(
+    null
+  );
+  const [currentCourseTitle, setCurrentCourseTitle] =
+    useState<RecommendedCourse | null>(null);
   const [currentLessonTitle, setCurrentLessonTitle] = useState<any>();
   const [userChoice, setUserChoice] = useState<any>();
   const [currentImgCode, setCurrentImgCode] = useState<any>();
@@ -102,8 +100,6 @@ const ChimpleAvatarPage: FC<{
   const [cuRecLessonId, setCuRecLessonId] = useState<any>();
   const [cuRecLessons, setCuRecLessons] = useState<any>();
   const [cuRecLesson, setCuRecLesson] = useState<any>();
-
-
 
   const [currentChapter, setCurrentChapter] = useState<any>(null);
   const [currentLesson, setCurrentLesson] = useState<string | null>(null);
@@ -154,7 +150,6 @@ const ChimpleAvatarPage: FC<{
     // setIsLoading(false);
     return lessons;
   };
-
 
   // const COMMON_AUDIOS = [
   //   "let_us_start_our_learning_journey",
@@ -230,15 +225,16 @@ const ChimpleAvatarPage: FC<{
   let chapters1: Chapters[] = [];
 
   const currentStudentDocId = Util.getCurrentStudent()?.docId;
-  const recommendationsInLocal = localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`);
+  const recommendationsInLocal = localStorage.getItem(
+    `${currentStudentDocId}-${RECOMMENDATIONS}`
+  );
   const recommendations = recommendationsInLocal
     ? JSON.parse(recommendationsInLocal)
     : {};
   console.log("Avatar data", recommendations);
 
-
   const handleButtonClick = async (choice: string) => {
-    console.log("choicechoicechoicechoice", choice)
+    console.log("choicechoicechoicechoice", choice);
     // Handle button clicks based on the current mode
     switch (currentMode) {
       case AvatarModes.Welcome:
@@ -247,7 +243,9 @@ const ChimpleAvatarPage: FC<{
           const languages = Object.keys(recommendations);
           localRecommendData = Object.keys(recommendations);
           currentCourseCode = languages[0];
-          const selectedCourse = courses1.find((course) => course.courseCode === currentCourseCode);
+          const selectedCourse = courses1.find(
+            (course) => course.courseCode === currentCourseCode
+          );
 
           setCurrentCourse(selectedCourse);
 
@@ -271,17 +269,20 @@ const ChimpleAvatarPage: FC<{
         }, 5);
         break;
       case AvatarModes.CourseSuggestion:
-
         console.log("entered course suggestion", currentCCodeOfRec);
         let languages = Object.keys(recommendations);
-        currentLanguageIndex = languages.findIndex(lang => lang === currentCCodeOfRec);
+        currentLanguageIndex = languages.findIndex(
+          (lang) => lang === currentCCodeOfRec
+        );
         if (choice === "yes") {
           setUserChoice("Success1");
           const recommendedLessonId = recommendations[currentCCodeOfRec];
           console.log("reommendedLessonId", recommendedLessonId);
           setCuRecLessonId(recommendedLessonId);
           if (recommendedLessonId) {
-            const matchingCourse = courses1.find(course => course.courseCode === currentCCodeOfRec);
+            const matchingCourse = courses1.find(
+              (course) => course.courseCode === currentCCodeOfRec
+            );
             console.log("matchingCourse", matchingCourse);
 
             if (matchingCourse) {
@@ -293,31 +294,38 @@ const ChimpleAvatarPage: FC<{
 
               // const res = await api.getLesson(recommendedLessonId, undefined, true);
               // const ans = await api.getLesson(recommendedLessonId.toLowerCase());
-              const tempLesson = await api. getLessonWithCocosLessonId(recommendedLessonId);
+              const tempLesson = await api.getLessonWithCocosLessonId(
+                recommendedLessonId
+              );
               // const lessonObj = await api.getLessonFromCourse(
               //   matchingCourse,
               //   recommendedLessonId.toLowerCase()
               // );
               console.log("res in avatar", tempLesson);
 
-              let matchingChapter = chapters.find(chapter =>
-                chapter.id.toLowerCase() === recommendedLessonId.toLowerCase()
+              let matchingChapter = chapters.find(
+                (chapter) =>
+                  chapter.id.toLowerCase() === recommendedLessonId.toLowerCase()
               );
 
               if (matchingChapter === undefined) {
                 if (tempLesson && tempLesson.id === recommendedLessonId) {
                   const cocosChapterCode = tempLesson.cocosChapterCode;
-                  console.log('cocosChapterCode:', cocosChapterCode);
+                  console.log("cocosChapterCode:", cocosChapterCode);
                   if (cocosChapterCode)
-                    matchingChapter = chapters.find(chapter =>
-                      chapter.id.toLowerCase() === cocosChapterCode.toLowerCase()
+                    matchingChapter = chapters.find(
+                      (chapter) =>
+                        chapter.id.toLowerCase() ===
+                        cocosChapterCode.toLowerCase()
                     );
                   // Do something with the cocosChapterCode
                 } else {
                   // Handle the case where the tempLesson with the matching ID is not found
-                  console.log('Temp lesson not found for the recommendedLessonId:', recommendedLessonId);
+                  console.log(
+                    "Temp lesson not found for the recommendedLessonId:",
+                    recommendedLessonId
+                  );
                 }
-
               }
 
               setCuReChapter(matchingChapter);
@@ -325,7 +333,10 @@ const ChimpleAvatarPage: FC<{
               console.log("matchingChapter", matchingChapter);
 
               if (matchingChapter) {
-                console.log("currentChapter in recommendedChapter", matchingChapter.title);
+                console.log(
+                  "currentChapter in recommendedChapter",
+                  matchingChapter.title
+                );
                 setCurrentChapter(matchingChapter.title);
               }
             }
@@ -336,16 +347,16 @@ const ChimpleAvatarPage: FC<{
           }, 2000);
           // setCurrentMode(AvatarModes.ChapterSuggestion);
         } else if (choice === "no") {
-
           setUserChoice("Fail");
           const languages = Object.keys(recommendations);
           const nextIndex = currentLanguageIndex + 1;
           if (nextIndex < languages.length) {
             const nextLanguage = languages[nextIndex];
             setCurrentCCodeRec(nextLanguage);
-            const selectedCourse = courses1.find((course) => course.courseCode === nextLanguage);
+            const selectedCourse = courses1.find(
+              (course) => course.courseCode === nextLanguage
+            );
             setCurrentCourse(selectedCourse);
-
           }
           setTimeout(() => {
             setUserChoice("Success");
@@ -373,9 +384,10 @@ const ChimpleAvatarPage: FC<{
         console.log("currentchapter in chapterSuggestion", currentChapter);
         console.log("currentcourse in chapterSuggestion", currentCourse);
 
-        currentLanguageIndex = localRecommendData.findIndex(lang => lang === currentCourseTitle?.language);
+        currentLanguageIndex = localRecommendData.findIndex(
+          (lang) => lang === currentCourseTitle?.language
+        );
         if (choice === "yes") {
-
           setUserChoice("Success");
 
           const recommendedLessonId = recommendations[currentCCodeOfRec];
@@ -384,19 +396,26 @@ const ChimpleAvatarPage: FC<{
           // const finalLesson = await  Util.getNextLessonInChapter(currentCourse.chapters, cuReChapter.chapterId, recommendedLessonId, cuReChapter);
           console.log("cuReChapter in chaptersuggestion", cuReChapter);
           const RecLessons = await getLessonsForChapter(cuReChapter);
-          const matchingLesson = RecLessons.find(lesson => lesson.id === cuRecLessonId);
-          console.log("matchingLesson in chaptersuggestion", matchingLesson?.title);
+          const matchingLesson = RecLessons.find(
+            (lesson) => lesson.id === cuRecLessonId
+          );
+          console.log(
+            "matchingLesson in chaptersuggestion",
+            matchingLesson?.title
+          );
 
           setCuRecLesson(matchingLesson);
           setCurrentMode(AvatarModes.LessonSuggestion);
         } else if (choice === "no") {
-
           setUserChoice("Fail1");
           const nextLanguageIndex = currentLanguageIndex + 1;
           if (nextLanguageIndex < localRecommendData.length) {
             // Ask about the next language course
             console.log("hehe", localRecommendData[nextLanguageIndex]);
-            setCurrentCourseTitle(prevCourse => ({ ...prevCourse, language: localRecommendData[nextLanguageIndex] }));
+            setCurrentCourseTitle((prevCourse) => ({
+              ...prevCourse,
+              language: localRecommendData[nextLanguageIndex],
+            }));
           }
         }
         // }
@@ -422,7 +441,6 @@ const ChimpleAvatarPage: FC<{
               lesson: JSON.stringify(Lesson.toJson(cuRecLesson)),
               from: history.location.pathname + "?continue=true",
             });
-
           } else {
             console.log(cuRecLesson?.title, "lesson is locked");
           }
@@ -459,7 +477,7 @@ const ChimpleAvatarPage: FC<{
     case AvatarModes.CourseSuggestion:
       const x1 = currentCourse?.title;
 
-      message = t(`Do you want to play x1 course?`).replace('x1', x1);
+      message = t(`Do you want to play x1 course?`).replace("x1", x1);
       buttons = [
         { label: t("Yes"), onClick: () => handleButtonClick("yes") },
         { label: t("No"), onClick: () => handleButtonClick("no") },
@@ -467,7 +485,7 @@ const ChimpleAvatarPage: FC<{
       break;
     case AvatarModes.ChapterSuggestion:
       const x2 = currentChapter;
-      message = t(`Do you want to play 'x2 chapter?`).replace('x2', x2);
+      message = t(`Do you want to play 'x2 chapter?`).replace("x2", x2);
 
       buttons = [
         { label: t("Yes"), onClick: () => handleButtonClick("yes") },
@@ -476,7 +494,7 @@ const ChimpleAvatarPage: FC<{
       break;
     case AvatarModes.LessonSuggestion:
       const x3 = cuRecLesson.title;
-      message = t(`Do you want to play x3 lesson?`).replace('x3', x3);
+      message = t(`Do you want to play x3 lesson?`).replace("x3", x3);
 
       buttons = [
         { label: t("Yes"), onClick: () => handleButtonClick("yes") },
@@ -515,19 +533,15 @@ const ChimpleAvatarPage: FC<{
     <div style={style}>
       <ChimpleAvatarCharacterComponent
         style={{
-          height: "50vh",
-          width: "25vw",
+          width: "35vw",
+          height: "70vh",
         }}
         userChoice={userChoice}
         clickHandler={() => handleButtonClick(userChoice)}
       />
-      <div className="avatar-option-box-background"
-      >
-        <div
-        >
-          <TextBoxWithAudioButton
-            message={message}
-          ></TextBoxWithAudioButton>
+      <div className="avatar-option-box-background">
+        <div>
+          <TextBoxWithAudioButton message={message}></TextBoxWithAudioButton>
           <AvatarImageOption
             imageWidth={38}
             localSrc={`courses/${currentImgCode}/icons/${currentImgCode}.webp`}
@@ -539,41 +553,38 @@ const ChimpleAvatarPage: FC<{
             cuReChapter={cuReChapter}
             cuRecLesson={cuRecLesson}
           ></AvatarImageOption>
-          <div className="buttons-in-avatar-option-box"
+          <div
+            className="buttons-in-avatar-option-box"
             style={{
-              flexWrap:
-                buttons.length === 4
-                  ? "wrap" : "wrap",
+              flexWrap: buttons.length === 4 ? "wrap" : "wrap",
               justifyContent:
                 buttons.length === 1
                   ? "center"
                   : buttons.length === 2
-                    ? "space-evenly"
-                    : buttons.length === 4
-                      ? "space-between"
-                      : "space-between"
+                  ? "space-evenly"
+                  : buttons.length === 4
+                  ? "space-between"
+                  : "space-between",
             }}
           >
             {buttons.map((button, index) => (
-              <div
-                key={index}
-              >
+              <div key={index}>
                 <RectangularTextButton
-
-                  buttonWidth={11}
-                  buttonHeight={5}
+                  buttonWidth={15}
+                  buttonHeight={7}
                   text={button.label}
-                  fontSize={3}
+                  fontSize={4}
                   onHeaderIconClick={() => {
-                    button.onClick()
-                    handleButtonClick(userChoice)
+                    button.onClick();
+                    handleButtonClick(userChoice);
                   }}
-                  className={button.label === 'No' ? 'red-button' : 'green-button'}
+                  className={
+                    button.label === "No" ? "red-button" : "green-button"
+                  }
                 ></RectangularTextButton>
               </div>
             ))}
           </div>
-
         </div>
       </div>
     </div>

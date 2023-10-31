@@ -29,7 +29,7 @@ const LessonCard: React.FC<{
   isLoved: boolean | undefined;
   lessonData: Lesson[];
   startIndex: number;
-  showChapterName : boolean;
+  showChapterName: boolean;
 }> = ({
   width,
   height,
@@ -80,26 +80,23 @@ const LessonCard: React.FC<{
       return;
     }
     const api = ServiceConfig.getI().apiHandler;
-      const courses =
-        await api.getCoursesForParentsStudent(
-          currentStudent
-        );
-      console.log("Student Courses ", courses);
+    const courses = await api.getCoursesForParentsStudent(currentStudent);
+    console.log("Student Courses ", courses);
 
-      let currentCourse = courses.find(
-        (course) => lesson.cocosSubjectCode === course.courseCode
-      );
+    let currentCourse = courses.find(
+      (course) => lesson.cocosSubjectCode === course.courseCode
+    );
 
-      console.log("current Course ", currentCourse);
-      if (!currentCourse) {
-        let lessonCourse = await api.getCourseFromLesson(lesson);
-        if (!!lessonCourse) {
-          console.log("current Course from all courses ", lessonCourse);
-          setCurrentCourse(lessonCourse)
-        }
-      } else {
-        setCurrentCourse(currentCourse);
+    console.log("current Course ", currentCourse);
+    if (!currentCourse) {
+      let lessonCourse = await api.getCourseFromLesson(lesson);
+      if (!!lessonCourse) {
+        console.log("current Course from all courses ", lessonCourse);
+        setCurrentCourse(lessonCourse);
       }
+    } else {
+      setCurrentCourse(currentCourse);
+    }
   };
 
   // const lessonCardColor =
@@ -209,6 +206,8 @@ const LessonCard: React.FC<{
               webSrc={
                 "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/lesson_thumbnails%2FlessonCaredPattern%2FChallengePattern.png?alt=media&token=be64aec1-f70f-43c3-95de-fd4b1afe5806"
               }
+              imageWidth={"100"}
+              imageHeight={"100"}
             />
           </div>
 
@@ -223,6 +222,8 @@ const LessonCard: React.FC<{
               }
               defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
               webSrc={lesson.thumbnail}
+              imageWidth={"100"}
+              imageHeight={"100"}
             />
             {!isUnlocked ? (
               <div id="lesson-card-status-icon">
@@ -246,14 +247,17 @@ const LessonCard: React.FC<{
             )}
           </div>
         </div>
-        {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />}
+        {isLoved && (
+          <LovedIcon
+            isLoved={isLoved}
+            hasChapterTitle={!!lesson.chapterTitle && showChapterName}
+          />
+        )}
       </div>
       {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
-      {showChapterName && lesson.chapterTitle &&
-        <div id="chapter-title">
-          {lesson.chapterTitle}
-        </div>
-      }
+      {showChapterName && lesson.chapterTitle && (
+        <div id="chapter-title">{lesson.chapterTitle}</div>
+      )}
     </IonCard>
   );
 };

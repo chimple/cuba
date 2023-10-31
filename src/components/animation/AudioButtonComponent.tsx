@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { HiSpeakerWave } from "react-icons/hi2";
+import { PiSpeakerHighBold } from "react-icons/pi";
 
 export default function AudioButtonComponent({ style, audioSrc }) {
   useEffect(() => {
@@ -18,7 +18,7 @@ export default function AudioButtonComponent({ style, audioSrc }) {
   };
 
   return (
-    <HiSpeakerWave
+    <PiSpeakerHighBold
       style={style}
       onClick={() => {
         console.log("Play Audio File", audioSrc);
@@ -29,6 +29,6 @@ export default function AudioButtonComponent({ style, audioSrc }) {
           console.log("Audio is playing ", audioSrc);
         }
       }}
-    ></HiSpeakerWave>
+    ></PiSpeakerHighBold>
   );
 }

@@ -7,8 +7,15 @@ const RectangularTextButton: React.FC<{
   fontSize: number;
   className: string;
   onHeaderIconClick: React.MouseEventHandler<HTMLDivElement>;
-}> = ({ buttonWidth, buttonHeight, text, fontSize, onHeaderIconClick, className }) => {
-  console.log(className)
+}> = ({
+  buttonWidth,
+  buttonHeight,
+  text,
+  fontSize,
+  onHeaderIconClick,
+  className,
+}) => {
+  console.log(className);
   return (
     <div
       // id="rectangular-text-button"
@@ -23,6 +30,7 @@ const RectangularTextButton: React.FC<{
       <p
         style={{
           fontSize: fontSize + "vh",
+          // fontSize: "var(--text-size)",
         }}
       >
         {t(text)}

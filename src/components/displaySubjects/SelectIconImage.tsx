@@ -6,7 +6,9 @@ const SelectIconImage: FC<{
   localSrc: any;
   defaultSrc: any;
   webSrc: any;
-}> = ({ localSrc, defaultSrc, webSrc }) => {
+  imageWidth: string;
+  imageHeight: string;
+}> = ({ localSrc, defaultSrc, webSrc, imageWidth, imageHeight }) => {
   enum LoadIcon {
     Local,
     Web,
@@ -18,6 +20,10 @@ const SelectIconImage: FC<{
     <div>
       {loadIcon === LoadIcon.Local ? (
         <img
+          style={{
+            width: imageWidth + "%",
+            height: imageHeight + "%",
+          }}
           src={localSrc}
           loading="lazy"
           alt=""
