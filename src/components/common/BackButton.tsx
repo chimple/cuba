@@ -17,7 +17,8 @@ const BackButton: React.FC<{
 
     return () => {
       App.removeAllListeners();
-      if (Capacitor.isNativePlatform()) {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get("continue") && Capacitor.isNativePlatform()) {
         App.addListener("appStateChange", Util.onAppStateChange);
       }
     };
