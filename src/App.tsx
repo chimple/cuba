@@ -80,14 +80,18 @@ const App: React.FC = () => {
             localStorage.setItem(GAME_URL, uri + "/");
           }
         });
-      CapApp.addListener("appStateChange", Util.onAppStateChange);
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get("continue")) {
+        CapApp.addListener("appStateChange", Util.onAppStateChange);
+      }
+      //CapApp.addListener("appStateChange", Util.onAppStateChange);
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
     }
 
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,
-    }).catch((_) => { });
+    }).catch((_) => {});
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
