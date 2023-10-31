@@ -206,8 +206,8 @@ const LessonCard: React.FC<{
               webSrc={
                 "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/lesson_thumbnails%2FlessonCaredPattern%2FChallengePattern.png?alt=media&token=be64aec1-f70f-43c3-95de-fd4b1afe5806"
               }
-              imageWidth={"100"}
-              imageHeight={"100"}
+              imageWidth={"100%"}
+              imageHeight={"100%"}
             />
           </div>
 

@@ -82,7 +82,14 @@ const AvatarImageOption: React.FC<{
       break;
     default:
       content = (
-        <div className="chapter-icon">
+        <div
+          style={{
+            width: "30vh",
+            margin: "0% 0% 0% 33%",
+            // flexWrap: "wrap",
+            // justifyContent: "center",
+          }}
+        >
           <SelectIconImage
             localSrc={""}
             defaultSrc={""}
@@ -91,8 +98,8 @@ const AvatarImageOption: React.FC<{
               // "https://i.ytimg.com/vi/Ez9oouE2pOE/hqdefault.jpg"
               "https://play-lh.googleusercontent.com/sSy91b6MppWNW7T7O7B9WTtqdFuvI5ZPemzxatFxLckENyiDY7p_NpaOGnGcKLBoNA"
             }
-            imageWidth={"100"}
-            imageHeight={"80"}
+            imageWidth={"100%"}
+            imageHeight={"80%"}
           />
         </div>
       );
@@ -140,8 +147,8 @@ const AvatarImageOption: React.FC<{
             webSrc={
               "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/lesson_thumbnails%2FlessonCaredPattern%2FChallengePattern.png?alt=media&token=be64aec1-f70f-43c3-95de-fd4b1afe5806"
             }
-            imageWidth={"100"}
-            imageHeight={"80"}
+            imageWidth={"100%"}
+            imageHeight={"80%"}
           />
         </div>
 
@@ -167,8 +174,8 @@ const AvatarImageOption: React.FC<{
             localSrc={localSrc}
             defaultSrc={defalutSrc}
             webSrc={webSrc}
-            imageWidth={"100"}
-            imageHeight={"80"}
+            imageWidth={"100%"}
+            imageHeight={"80%"}
           />
         </div>
       </div>
@@ -177,7 +184,7 @@ const AvatarImageOption: React.FC<{
 
   return (
     // <div style={{ width: imageWidth + "vw", height: "auto", padding: "0%" }}>
-    <div>{content}</div>
+    content
   );
 };
 export default AvatarImageOption;

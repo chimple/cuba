@@ -1,7 +1,7 @@
 import { useState } from "react";
 import AudioComponent from "./AudioButtonComponent";
 
-export default function TextBoxWithAudioButton({ message }) {
+export default function TextBoxWithAudioButton({ message, fontSize }) {
   return (
     <div>
       <div
@@ -12,7 +12,7 @@ export default function TextBoxWithAudioButton({ message }) {
           borderRadius: "2vh",
           // backgroundColor: "white",
           // outline: "auto",
-          padding: "1vw 1vw",
+          padding: "0vw 1vw 1vw 1vw",
           color: "black",
           // flexWrap: "wrap",
           width: "100%",
@@ -23,18 +23,17 @@ export default function TextBoxWithAudioButton({ message }) {
       >
         <AudioComponent
           style={{
-            fontsize: "10vh",
-            // border-radius: 10%;
-            // background-color: gray;
-            // margin: 0% 2%;
-            // font-size: xxx-large;
+            fontSize: "5vw",
+            padding: "1%",
+            backgroundColor: "#92949c",
+            borderRadius: "100%",
           }}
           audioSrc={"assets/audios/my_name_is_chimple.mp3"}
           // audioSrc={"https://samplelib.com/lib/preview/mp3/sample-6s.mp3"}
         ></AudioComponent>
         <p
           style={{
-            fontSize: "var(--text-size)",
+            fontSize: fontSize,
           }}
         >
           {message}

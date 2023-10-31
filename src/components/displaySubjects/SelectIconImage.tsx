@@ -21,8 +21,8 @@ const SelectIconImage: FC<{
       {loadIcon === LoadIcon.Local ? (
         <img
           style={{
-            width: imageWidth + "%",
-            height: imageHeight + "%",
+            width: imageWidth,
+            height: imageHeight,
           }}
           src={localSrc}
           loading="lazy"

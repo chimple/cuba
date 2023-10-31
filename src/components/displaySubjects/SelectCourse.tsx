@@ -41,8 +41,8 @@ const SelectCourse: FC<{
                   localSrc={`courses/chapter_icons/${course.courseCode}.png`}
                   defaultSrc={"courses/" + "maths" + "/icons/" + "maths10.png"}
                   webSrc={course.thumbnail}
-                  imageWidth={"100"}
-                  imageHeight={"100"}
+                  imageWidth={"100%"}
+                  imageHeight={"100%"}
                 />
               </div>
               {/* {t(course.title)} */}

@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { HiSpeakerWave } from "react-icons/hi2";
 import ChimpleAvatarCharacterComponent from "./ChimpleAvatarCharacterComponent";
 import AudioComponent from "./AudioButtonComponent";
@@ -18,19 +18,6 @@ import "./ChimpleAvatarPage.css";
 
 import { Chapter } from "../../common/courseConstants";
 // import { getFirestore } from "@firebase/firestore";
-import {
-  DocumentReference,
-  doc,
-  getFirestore,
-  enableNetwork,
-  disableNetwork,
-  query,
-  where,
-  getDoc,
-  collection,
-  getDocs,
-  DocumentData,
-} from "firebase/firestore";
 import { any } from "prop-types";
 import { async } from "q";
 import { useHistory } from "react-router";
@@ -84,7 +71,7 @@ const ChimpleAvatarPage: FC<{
   const [userChoice, setUserChoice] = useState<boolean>();
 
   const history = useHistory();
-  console.log("cocos game", history.location.state);
+  // console.log("cocos game", history.location.state);
 
   useEffect(() => {
     fetchCoursesForStudent();
@@ -98,7 +85,7 @@ const ChimpleAvatarPage: FC<{
     const currentStudent = Util.getCurrentStudent();
     if (currentStudent) {
       let courses = await api.getCoursesForParentsStudent(currentStudent);
-      console.log("Student Courses chimpleavatarpage ", courses);
+      // console.log("Student Courses chimpleavatarpage ", courses);
       if (courses) setAllCourses(courses);
       else setAllCourses([]);
       const recommendationsInLocal = localStorage.getItem(
@@ -107,7 +94,7 @@ const ChimpleAvatarPage: FC<{
       recommendations = recommendationsInLocal
         ? JSON.parse(recommendationsInLocal)
         : {};
-      console.log("Avatar data", recommendations);
+      // console.log("Avatar data", recommendations);
 
       setCurrentCourse(allCourses[0]);
     }
@@ -115,14 +102,16 @@ const ChimpleAvatarPage: FC<{
 
   let cCourse: Course, cChapter: Chapter, cLesson: Lesson | undefined;
   const handleButtonClick = async (choice: boolean) => {
-    console.log("choicechoicechoicechoice", choice);
+    setUserChoice(choice);
+
+    // console.log("choicechoicechoicechoice", choice);
     // Handle button clicks based on the current mode
 
-    console.log("cChapter", cChapter);
+    // console.log("cChapter", cChapter);
 
     switch (currentMode) {
       case AvatarModes.Welcome:
-        console.log("AvatarModes.Welcome", choice);
+        // console.log("AvatarModes.Welcome", choice);
         // cChapter = await getRecommendedChapter(cCourse);
         // setCurrentChapter(cChapter);
         if (choice) {
@@ -132,7 +121,7 @@ const ChimpleAvatarPage: FC<{
         }
         break;
       case AvatarModes.CourseSuggestion:
-        console.log("AvatarModes.CourseSuggestion", choice);
+        // console.log("AvatarModes.CourseSuggestion", choice);
         if (choice) {
           cChapter = await getRecommendedChapter(cCourse || currentCourse);
           setCurrentChapter(cChapter);
@@ -157,13 +146,13 @@ const ChimpleAvatarPage: FC<{
       case AvatarModes.LessonSuggestion:
         if (choice) {
           if (currentLesson && currentCourse) {
-            console.log("LessonCard course: course,", currentCourse);
+            // console.log("LessonCard course: course,", currentCourse);
             const parmas = `?courseid=${currentLesson.cocosSubjectCode}&chapterid=${currentLesson.cocosChapterCode}&lessonid=${currentLesson.id}`;
-            console.log(
-              "🚀 ~ file: LessonCard.tsx:73 ~ parmas:",
-              parmas,
-              Lesson.toJson(currentLesson)
-            );
+            // console.log(
+            //   "🚀 ~ file: LessonCard.tsx:73 ~ parmas:",
+            //   parmas,
+            //   Lesson.toJson(currentLesson)
+            // );
             history.push(PAGES.GAME + parmas, {
               url: "chimple-lib/index.html" + parmas,
               lessonId: currentLesson.id,
@@ -190,12 +179,11 @@ const ChimpleAvatarPage: FC<{
         break;
     }
     buttons = [];
-    setUserChoice(choice);
     // userChoice = choice;
   };
 
   async function getRecommendedCourse() {
-    console.log("getRecommendedCourse called");
+    // console.log("getRecommendedCourse called");
 
     if (!allCourses) {
       await fetchCoursesForStudent();
@@ -204,11 +192,11 @@ const ChimpleAvatarPage: FC<{
       const courseIndex = allCourses.findIndex(
         (course) => course.courseCode === currentCourse?.courseCode
       );
-      console.log(
-        "getRecommendedCourse() {",
-        courseIndex,
-        allCourses[courseIndex + 1] || allCourses[0]
-      );
+      // console.log(
+      //   "getRecommendedCourse() {",
+      //   courseIndex,
+      //   allCourses[courseIndex + 1] || allCourses[0]
+      // );
       return allCourses[courseIndex + 1] || allCourses[0];
     } else {
       return allCourses[0];
@@ -216,26 +204,26 @@ const ChimpleAvatarPage: FC<{
   }
 
   async function getRecommendedChapter(course: Course) {
-    console.log("getRecommendedChapter", course.title, currentChapter);
+    // console.log("getRecommendedChapter", course.title, currentChapter);
 
     if (currentChapter) {
       const chapterIndex = course.chapters.findIndex(
         (chapter) => chapter.id === currentChapter?.id
       );
-      console.log(
-        "currentChapter",
-        chapterIndex + 1,
-        course.chapters[chapterIndex + 1].title
-      );
+      // console.log(
+      //   "currentChapter",
+      //   chapterIndex + 1,
+      //   course.chapters[chapterIndex + 1].title
+      // );
       return course.chapters[chapterIndex + 1];
     } else {
-      console.log("currentChapter else", course.chapters[0].title);
+      // console.log("currentChapter else", course.chapters[0].title);
       return course.chapters[0];
     }
   }
 
   async function getRecommendedLesson(chapter: Chapter) {
-    console.log("getRecommendedLesson(chapter", chapter, currentLesson);
+    // console.log("getRecommendedLesson(chapter", chapter, currentLesson);
 
     if (currentLesson && chapter) {
       const lessonIndex = chapter.lessons.findIndex(
@@ -243,24 +231,24 @@ const ChimpleAvatarPage: FC<{
       );
       const cLessonRef = chapter.lessons[lessonIndex + 1].id;
       const cLesson = await api.getLesson(cLessonRef);
-      console.log(
-        "getRecommendedLesson() cLesson?.title ",
-        lessonIndex,
-        cLessonRef,
-        cLesson?.title
-      );
+      // console.log(
+      //   "getRecommendedLesson() cLesson?.title ",
+      //   lessonIndex,
+      //   cLessonRef,
+      //   cLesson?.title
+      // );
       return cLesson;
     } else {
-      console.log(
-        "const cLessonRef = chapter.lessons[0].id;",
-        chapter,
-        chapter.lessons,
-        chapter.lessons[0].id
-      );
+      // console.log(
+      //   "const cLessonRef = chapter.lessons[0].id;",
+      //   chapter,
+      //   chapter.lessons,
+      //   chapter.lessons[0].id
+      // );
 
       const cLessonRef = chapter.lessons[0].id;
       const cLesson = await api.getLesson(cLessonRef);
-      console.log("getRecommendedLesson() ", cLesson);
+      // console.log("getRecommendedLesson() ", cLesson);
       return cLesson;
     }
   }
@@ -273,7 +261,7 @@ const ChimpleAvatarPage: FC<{
 
   switch (currentMode) {
     case AvatarModes.Welcome:
-      console.log("AvatarModes.Welcome");
+      // console.log("AvatarModes.Welcome");
       message = t("Hi! Welcome to Chimple");
       // setButtons([{ label: "Start", onClick: () => handleButtonClick(true) }]);
       buttons = [{ label: "Start", onClick: () => handleButtonClick(true) }];
@@ -350,7 +338,10 @@ const ChimpleAvatarPage: FC<{
       />
       <div className="avatar-option-box-background">
         <div>
-          <TextBoxWithAudioButton message={message}></TextBoxWithAudioButton>
+          <TextBoxWithAudioButton
+            message={message}
+            fontSize={"2vw"}
+          ></TextBoxWithAudioButton>
           <AvatarImageOption
             currentMode={currentMode}
             currentCourse={currentCourse}
@@ -377,7 +368,7 @@ const ChimpleAvatarPage: FC<{
                   buttonWidth={15}
                   buttonHeight={7}
                   text={button.label}
-                  fontSize={4}
+                  fontSize={"2vw"}
                   onHeaderIconClick={() => {
                     button.onClick();
                   }}
