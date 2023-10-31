@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
-import { Fit, Layout, StateMachineInput, useRive, useStateMachineInput } from "rive-react";
+import {
+  Fit,
+  Layout,
+  StateMachineInput,
+  useRive,
+  useStateMachineInput,
+} from "rive-react";
 
-export default function ChimpleAvatarCharacterComponent({ style, userChoice, clickHandler }) {
+export default function ChimpleAvatarCharacterComponent({ style, userChoice }) {
   const State_Machine = "State Machine 1";
   // const inputName = "look_idle";
 
@@ -19,12 +25,12 @@ export default function ChimpleAvatarCharacterComponent({ style, userChoice, cli
     State_Machine,
     riveCharHandsUp
   );
-  console.log("riveCharHandsUp outside onclick", userChoice);
+  // console.log("riveCharHandsUp outside onclick", userChoice);
   useEffect(() => {
-    console.log("riveCharHandsUp inside useEffect", userChoice);
-    console.log("onclickInput", onclickInput);
-    console.log("rive", rive);
-    console.log("riveCharHandsUpriveCharHandsUp", riveCharHandsUp);
+    // console.log("riveCharHandsUp inside useEffect", userChoice);
+    // console.log("onclickInput", onclickInput);
+    // console.log("rive", rive);
+    // console.log("riveCharHandsUpriveCharHandsUp", riveCharHandsUp);
     if (onclickInput) {
       if (userChoice === "Success") {
         setRiveCharHandsUp("Success");
@@ -32,13 +38,13 @@ export default function ChimpleAvatarCharacterComponent({ style, userChoice, cli
           onclickInput.fire();
         }, 100);
         // onclickInput.fire();
-      } else if (userChoice=== "Fail") {
+      } else if (userChoice === "Fail") {
         setRiveCharHandsUp("Fail");
         onclickInput.fire();
-      } else if(userChoice === "Success1"){
+      } else if (userChoice === "Success1") {
         setRiveCharHandsUp("Success");
         onclickInput.fire();
-      }else if (userChoice=== "Fail1") {
+      } else if (userChoice === "Fail1") {
         setRiveCharHandsUp("Fail");
         onclickInput.fire();
       } else {
@@ -46,16 +52,15 @@ export default function ChimpleAvatarCharacterComponent({ style, userChoice, cli
         onclickInput.fire();
       }
       onclickInput.fire();
-      clickHandler && clickHandler();
+      // clickHandler && clickHandler();
     }
-
   }, [userChoice, riveCharHandsUp, onclickInput, rive]);
- 
+
   return (
     <RiveComponent
       style={style}
       onClick={(e) => {
-        console.log("riveCharHandsUp in onclick", userChoice);    
+        // console.log("riveCharHandsUp in onclick", userChoice);
         //   if (riveCharHandsUp === "Idle") {
         //     setRiveCharHandsUp("Success");
         //   } else if (riveCharHandsUp === "Success") {
@@ -64,8 +69,6 @@ export default function ChimpleAvatarCharacterComponent({ style, userChoice, cli
         //     setRiveCharHandsUp("Idle");
         //   }
         // onclickInput && onclickInput?.fire();
-
-
         // const randomNumber = Math.floor(Math.random() * 7) + 0;
         // console.log("RiveComponent onclick", randomNumber);
         // switch (randomNumber) {
@@ -93,7 +96,6 @@ export default function ChimpleAvatarCharacterComponent({ style, userChoice, cli
         //   case 7:
         //     setRiveCharHandsUp("idle");
         //     break;
-
         //   default:
         //     break;
         // }

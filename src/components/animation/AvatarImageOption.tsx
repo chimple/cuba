@@ -14,26 +14,14 @@ import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import "./AvatarImageOption.css";
 import { IonCard } from "@ionic/react";
+import { Chapter } from "../../common/courseConstants";
 
 const AvatarImageOption: React.FC<{
-  imageWidth?: number;
-  imageSrc?: string;
-  localSrc?: any;
-  defaultSrc?: any;
-  webSrc?: any;
-  currentMode?: any;
-  currentCourse?: any;
-  cuReChapter?: any;
-  cuRecLesson?: any;
-  isUnlocked?: boolean;
-}> = ({
-  imageWidth,
-  currentMode,
-  currentCourse,
-  cuReChapter,
-  cuRecLesson,
-  isUnlocked,
-}) => {
+  currentMode?: AvatarModes;
+  currentCourse?: Course;
+  currentChapter?: Chapter;
+  currentLesson?: Lesson;
+}> = ({ currentMode, currentCourse, currentChapter, currentLesson }) => {
   const history = useHistory();
   let content: ReactNode | null = null;
   const [index, setIndex] = useState<number>(0);
@@ -45,7 +33,7 @@ const AvatarImageOption: React.FC<{
       LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)]
     );
     setIndex(randomIndex);
-  }, [currentCourse]);
+  }, []);
 
   // const containerStyle = {
   //   width: imageWidth + "vw",
@@ -62,52 +50,35 @@ const AvatarImageOption: React.FC<{
 
   switch (currentMode) {
     case AvatarModes.CourseSuggestion:
-      content = cardContent(
-        `courses/chapter_icons/${currentCourse.courseCode}.png`,
-        "courses/maths/icons/maths10.png",
-        currentCourse.thumbnail
-      );
-      // content = (
-      //   <div
-      //     className="course-icon"
-      //     style={{
-      //       backgroundColor: CHAPTER_CARD_COLOURS[index],
-      //     }}
-      //   >
-      //     <SelectIconImage
-      //       localSrc={`courses/chapter_icons/${currentCourse.courseCode}.png`}
-      //       defaultSrc={"courses/" + "maths" + "/icons/" + "maths10.png"}
-      //       webSrc={currentCourse.thumbnail}
-      //     />
-      //   </div>
-      // );
+      if (currentCourse) {
+        content = cardContent(
+          `courses/chapter_icons/${currentCourse.courseCode}.png`,
+          "courses/maths/icons/maths10.png",
+          currentCourse.thumbnail ?? ""
+        );
+      }
       break;
     case AvatarModes.ChapterSuggestion:
-      content = cardContent(
-        `courses/${currentCourse.courseCode}/icons/${cuReChapter.id}.webp`,
-        "courses/en/icons/en38.webp",
-        cuReChapter.thumbnail
-      );
-      // content = (
-      //   <div className="chapter-icon">
-      //     <SelectIconImage
-      //       localSrc={`courses/${currentCourse.courseCode}/icons/${cuReChapter.id}.webp`}
-      //       defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
-      //       webSrc={cuReChapter.thumbnail}
-      //     />
-      //   </div>
-      // );
+      if (currentCourse && currentChapter) {
+        content = cardContent(
+          `courses/${currentCourse.courseCode}/icons/${currentChapter.id}.webp`,
+          "courses/en/icons/en38.webp",
+          currentChapter.thumbnail
+        );
+      }
       break;
     case AvatarModes.LessonSuggestion:
-      content = cardContent(
-        "courses/" +
-          cuRecLesson.cocosSubjectCode +
-          "/icons/" +
-          cuRecLesson.id +
-          ".webp",
-        "courses/en/icons/en38.webp",
-        cuRecLesson.thumbnail
-      );
+      if (currentCourse && currentChapter && currentLesson) {
+        content = cardContent(
+          "courses/" +
+            currentLesson.cocosSubjectCode +
+            "/icons/" +
+            currentLesson.id +
+            ".webp",
+          "courses/en/icons/en38.webp",
+          currentLesson.thumbnail
+        );
+      }
       break;
     default:
       content = (
