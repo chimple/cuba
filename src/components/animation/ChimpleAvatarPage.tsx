@@ -81,7 +81,7 @@ const ChimpleAvatarPage: FC<{
   const [currentChapter, setCurrentChapter] = useState<Chapter>();
   const [currentLesson, setCurrentLesson] = useState<Lesson>();
 
-  // const [userChoice, setUserChoice] = useState<boolean>(false);
+  const [userChoice, setUserChoice] = useState<boolean>();
 
   const history = useHistory();
   console.log("cocos game", history.location.state);
@@ -92,7 +92,7 @@ const ChimpleAvatarPage: FC<{
 
   const api = ServiceConfig.getI().apiHandler;
   let recommendations;
-  let userChoice;
+  // let userChoice;
 
   const fetchCoursesForStudent = async () => {
     const currentStudent = Util.getCurrentStudent();
@@ -190,7 +190,8 @@ const ChimpleAvatarPage: FC<{
         break;
     }
     buttons = [];
-    userChoice = choice;
+    setUserChoice(choice);
+    // userChoice = choice;
   };
 
   async function getRecommendedCourse() {

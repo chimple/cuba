@@ -27,34 +27,34 @@ export default function ChimpleAvatarCharacterComponent({ style, userChoice }) {
   );
   // console.log("riveCharHandsUp outside onclick", userChoice);
   useEffect(() => {
-    // console.log("riveCharHandsUp inside useEffect", userChoice);
+    console.log(
+      "riveCharHandsUp inside useEffect",
+      userChoice,
+      riveCharHandsUp
+    );
     // console.log("onclickInput", onclickInput);
     // console.log("rive", rive);
     // console.log("riveCharHandsUpriveCharHandsUp", riveCharHandsUp);
     if (onclickInput) {
-      if (userChoice === "Success") {
+      if (userChoice) {
         setRiveCharHandsUp("Success");
-        setTimeout(() => {
-          onclickInput.fire();
-        }, 100);
+        // setTimeout(() => {
+        onclickInput.fire();
+        // }, 100);
         // onclickInput.fire();
-      } else if (userChoice === "Fail") {
-        setRiveCharHandsUp("Fail");
-        onclickInput.fire();
-      } else if (userChoice === "Success1") {
-        setRiveCharHandsUp("Success");
-        onclickInput.fire();
-      } else if (userChoice === "Fail1") {
+      } else if (!userChoice) {
         setRiveCharHandsUp("Fail");
         onclickInput.fire();
       } else {
         setRiveCharHandsUp("Idle");
-        onclickInput.fire();
       }
       onclickInput.fire();
       // clickHandler && clickHandler();
     }
-  }, [userChoice, riveCharHandsUp, onclickInput, rive]);
+
+    userChoice = undefined;
+    console.log("userChoice = undefined;", userChoice);
+  }, [userChoice]);
 
   return (
     <RiveComponent
