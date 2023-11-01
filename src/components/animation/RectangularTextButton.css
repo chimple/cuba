@@ -1,5 +1,5 @@
-#rectangular-text-button {
-  background-color: white;
+.rectangular-text-button {
+  /* background-color: #eaeaea !important; */
   color: black;
   border-radius: var(--border-radius) !important;
   text-align: center;
@@ -9,16 +9,17 @@
 
 #rectangular-text-button :hover {
   background-color: #83c327;
-  border-radius: var(--border-radius) !important;
+}
+
+#rectangular-text-button :focus {
+  background-color: #eaeaea;
 }
 
 #rectangular-text-button :active {
-  background-color: #83c327;
-  border-radius: var(--border-radius) !important;
+  background-color: #eaeaea;
 }
 
 .green-button {
-  background-color: white;
   color: black;
   border-radius: var(--border-radius) !important;
   text-align: center;
@@ -26,7 +27,6 @@
   /* cursor: pointer; */
 }
 .red-button {
-  background-color: white;
   color: black;
   border-radius: var(--border-radius) !important;
   text-align: center;
@@ -34,9 +34,10 @@
   /* cursor: pointer; */
 }
 
-.green-button:active {
+/* .green-button:active {
   background-color: #eaeaea !important;
-}
+} */
+
 .green-button:hover {
   background-color: #83c327 !important;
 }
@@ -44,6 +45,6 @@
 .red-button:hover {
   background-color: red !important;
 }
-.red-button:active {
+/* .red-button:active {
   background-color: #eaeaea !important;
-}
+} */

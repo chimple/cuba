@@ -3,42 +3,40 @@ import AudioComponent from "./AudioButtonComponent";
 
 export default function TextBoxWithAudioButton({ message, fontSize }) {
   return (
-    <div>
-      <div
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "2vw",
+        borderRadius: "2vh",
+        // backgroundColor: "white",
+        // outline: "auto",
+        padding: "0vw 1vw 1vw 1vw",
+        color: "black",
+        // flexWrap: "wrap",
+        width: "100%",
+        // maxWidth: "38vw", // Set a maximum width for the container
+        // lineHeight: "4vh",
+        // fontSize: "1vw",
+      }}
+    >
+      <AudioComponent
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "2vw",
-          borderRadius: "2vh",
-          // backgroundColor: "white",
-          // outline: "auto",
-          padding: "0vw 1vw 1vw 1vw",
-          color: "black",
-          // flexWrap: "wrap",
-          width: "100%",
-          // maxWidth: "38vw", // Set a maximum width for the container
-          // lineHeight: "4vh",
-          // fontSize: "1vw",
+          fontSize: "5vw",
+          padding: "1%",
+          backgroundColor: "#EAEAEA",
+          borderRadius: "100%",
+        }}
+        audioSrc={"assets/audios/my_name_is_chimple.mp3"}
+        // audioSrc={"https://samplelib.com/lib/preview/mp3/sample-6s.mp3"}
+      ></AudioComponent>
+      <p
+        style={{
+          fontSize: fontSize,
         }}
       >
-        <AudioComponent
-          style={{
-            fontSize: "5vw",
-            padding: "1%",
-            backgroundColor: "#92949c",
-            borderRadius: "100%",
-          }}
-          audioSrc={"assets/audios/my_name_is_chimple.mp3"}
-          // audioSrc={"https://samplelib.com/lib/preview/mp3/sample-6s.mp3"}
-        ></AudioComponent>
-        <p
-          style={{
-            fontSize: fontSize,
-          }}
-        >
-          {message}
-        </p>
-      </div>
+        {message}
+      </p>
     </div>
   );
 }

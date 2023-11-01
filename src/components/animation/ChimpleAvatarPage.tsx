@@ -68,7 +68,7 @@ const ChimpleAvatarPage: FC<{
   const [currentChapter, setCurrentChapter] = useState<Chapter>();
   const [currentLesson, setCurrentLesson] = useState<Lesson>();
 
-  const [userChoice, setUserChoice] = useState<boolean>();
+  const [userChoice, setUserChoice] = useState<boolean>(false);
 
   const history = useHistory();
   // console.log("cocos game", history.location.state);
@@ -179,6 +179,7 @@ const ChimpleAvatarPage: FC<{
         break;
     }
     buttons = [];
+    setRectangularButtonClassName(choice ? "red-button" : "green-button");
     // userChoice = choice;
   };
 
@@ -259,6 +260,8 @@ const ChimpleAvatarPage: FC<{
   // >([]);
   let buttons: { label: string; onClick: () => void }[] = [];
 
+  const [rectangularButtonClassName, setRectangularButtonClassName] =
+    useState<string>("defalut");
   switch (currentMode) {
     case AvatarModes.Welcome:
       // console.log("AvatarModes.Welcome");
@@ -365,16 +368,16 @@ const ChimpleAvatarPage: FC<{
             {buttons.map((button, index) => (
               <div key={index}>
                 <RectangularTextButton
-                  buttonWidth={15}
-                  buttonHeight={7}
+                  buttonWidth={"15vw"}
+                  buttonHeight={"7vh"}
                   text={button.label}
                   fontSize={"2vw"}
+                  // onHeaderIconClick={button.onClick()}
+
                   onHeaderIconClick={() => {
                     button.onClick();
                   }}
-                  className={
-                    button.label === "No" ? "red-button" : "green-button"
-                  }
+                  userChoice={userChoice}
                 ></RectangularTextButton>
               </div>
             ))}
