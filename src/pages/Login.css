@@ -101,7 +101,7 @@ p {
     top: 83%;
     left: 50%;
     transform: translateY(-5%) translateX(-50%); */
-  margin: -1.2% 0% 0% 0%;
+  margin: -2% 1% 0% 1%;
   font-size: var(--text-size);
   color: var(--text-color);
   font-size: 1.4vw;
@@ -119,23 +119,27 @@ p {
 }
 
 #Google-horizontal-line {
-  width: 6vw;
+  flex: auto;
   height: 0.1vh;
   margin-top: 2%;
   background-color: gray;
-  display: block;
-  margin-left: 37.5%;
-  margin-top: -1%;
+
+
+
+}
+
+#Google-horizontal-line-main-container {
+  display: flex;
+  width: 26vw;
+  margin-left: 36.9%;
+  margin-top: -2%;
 }
 
 #Google-horizontal-line2 {
-  width: 6vw;
+  flex: auto;
   height: 0.1vh;
   margin-top: 2%;
   background-color: gray;
-  display: block;
-  margin-left: 56.5%;
-  margin-top: 0%;
 }
 
 #login-button-img {
@@ -173,6 +177,7 @@ p {
 
 .scroll-header {
   overflow: scroll;
+
 }
 
 .scroll-header::-webkit-scrollbar {
