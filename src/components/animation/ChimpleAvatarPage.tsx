@@ -155,7 +155,8 @@ const ChimpleAvatarPage: FC<{
         if (choice) {
           rive?.play("Success");
           cLesson = await getRecommendedLesson(
-            currentChapter || cCourse.chapters[0]
+            currentChapter || cCourse.chapters[0],
+            cCourse || currentCourse
           );
           setCurrentLesson(cLesson);
           setCurrentMode(AvatarModes.LessonSuggestion);
@@ -188,7 +189,8 @@ const ChimpleAvatarPage: FC<{
         } else {
           rive?.play("Fail");
           cLesson = await getRecommendedLesson(
-            currentChapter || cCourse.chapters[0]
+            currentChapter || cCourse.chapters[0],
+            cCourse || currentCourse
           );
           setCurrentLesson(cLesson);
         }
@@ -248,22 +250,48 @@ const ChimpleAvatarPage: FC<{
     }
   }
 
-  async function getRecommendedLesson(chapter: Chapter) {
+  async function getRecommendedLesson(cChapter: Chapter, cCourse: Course) {
     // console.log("getRecommendedLesson(chapter", chapter, currentLesson);
 
-    if (currentLesson && chapter) {
-      const lessonIndex = chapter.lessons.findIndex(
+    if (currentLesson && cChapter) {
+      const lessonIndex = cChapter.lessons.findIndex(
         (lesson) => lesson.id === currentLesson?.docId
       );
-      const cLessonRef = chapter.lessons[lessonIndex + 1].id;
-      const cLesson = await api.getLesson(cLessonRef);
-      // console.log(
-      //   "getRecommendedLesson() cLesson?.title ",
-      //   lessonIndex,
-      //   cLessonRef,
-      //   cLesson?.title
-      // );
-      return cLesson;
+      console.log(
+        "lessonIndex === cChapter.lessons.length",
+        lessonIndex,
+        cChapter.lessons.length,
+        lessonIndex === cChapter.lessons.length - 1
+      );
+
+      if (lessonIndex === cChapter.lessons.length - 1) {
+        console.log("reached last lesson in chapter ", cChapter);
+        const chapterIndex = cCourse.chapters.findIndex(
+          (chapter) => chapter.id === cChapter.id
+        );
+        setCurrentChapter(cCourse.chapters[chapterIndex + 1]);
+        const cLessonRef = cCourse.chapters[chapterIndex + 1].lessons[0].id;
+        const cLesson = await api.getLesson(cLessonRef);
+        console.log(
+          "getRecommendedLesson() next cLesson from next chapter ",
+          chapterIndex,
+          cCourse.chapters[chapterIndex + 1],
+          cLessonRef,
+          cLesson?.title
+        );
+        return cLesson;
+      } else {
+        const cLessonRef = cChapter.lessons[lessonIndex + 1].id;
+        const cLesson = await api.getLesson(cLessonRef);
+
+        console.log(
+          "getRecommendedLesson() cLesson?.title ",
+          lessonIndex,
+          cLessonRef,
+          cLesson?.title
+        );
+        return cLesson;
+      }
     } else {
       // console.log(
       //   "const cLessonRef = chapter.lessons[0].id;",
@@ -272,7 +300,7 @@ const ChimpleAvatarPage: FC<{
       //   chapter.lessons[0].id
       // );
 
-      const cLessonRef = chapter.lessons[0].id;
+      const cLessonRef = cChapter.lessons[0].id;
       const cLesson = await api.getLesson(cLessonRef);
       // console.log("getRecommendedLesson() ", cLesson);
       return cLesson;
