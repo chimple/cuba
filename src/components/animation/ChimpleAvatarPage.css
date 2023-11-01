@@ -1,11 +1,12 @@
 .avatar-option-box-background {
   width: 50vw;
   height: 65vh;
-  border-radius: 1.5vh;
+  border-radius: 6vh;
   background-color: white;
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
+  box-shadow: 10px 10px 5px lightslategray;
 }
 
 .buttons-in-avatar-option-box {

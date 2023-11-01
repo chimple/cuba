@@ -38,12 +38,14 @@ export default function ChimpleAvatarCharacterComponent({ style, userChoice }) {
     if (onclickInput) {
       if (userChoice) {
         setRiveCharHandsUp("Success");
+        // rive?.play("Success");
         // setTimeout(() => {
         onclickInput.fire();
         // }, 100);
         // onclickInput.fire();
       } else if (!userChoice) {
         setRiveCharHandsUp("Fail");
+        // rive?.play("Success");
         onclickInput.fire();
       } else {
         setRiveCharHandsUp("Idle");
@@ -52,14 +54,17 @@ export default function ChimpleAvatarCharacterComponent({ style, userChoice }) {
       // clickHandler && clickHandler();
     }
 
-    userChoice = undefined;
-    console.log("userChoice = undefined;", userChoice);
+    // userChoice = undefined;
+    console.log("userChoice = undefined;", userChoice, rive?.isStopped);
   }, [userChoice]);
 
   return (
     <RiveComponent
       style={style}
       onClick={(e) => {
+        // rive?.play("Success");
+        rive?.play("Fail");
+        onclickInput?.fire();
         // console.log("riveCharHandsUp in onclick", userChoice);
         //   if (riveCharHandsUp === "Idle") {
         //     setRiveCharHandsUp("Success");

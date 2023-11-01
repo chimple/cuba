@@ -21,7 +21,7 @@ const RectangularTextButton: React.FC<{
   const defaultColor = {
     width: buttonWidth,
     height: buttonHeight,
-    backgroundColor: "#EAEAEA",
+    backgroundColor: "lightgray",
   };
 
   const greenColor = {

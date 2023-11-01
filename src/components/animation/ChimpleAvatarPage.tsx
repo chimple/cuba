@@ -24,6 +24,7 @@ import { useHistory } from "react-router";
 import { language } from "ionicons/icons";
 import { string } from "yargs";
 import { t } from "i18next";
+import { useRive, Layout, Fit, useStateMachineInput } from "rive-react";
 
 interface RecommendedCourse {
   title?: string;
@@ -73,6 +74,22 @@ const ChimpleAvatarPage: FC<{
   const history = useHistory();
   // console.log("cocos game", history.location.state);
 
+  const [riveCharHandsUp, setRiveCharHandsUp] = useState("Fail");
+  const State_Machine = "State Machine 1";
+
+  const { rive, RiveComponent } = useRive({
+    src: "/assets/animation/chimplecharacter.riv",
+    stateMachines: State_Machine,
+    layout: new Layout({ fit: Fit.Cover }),
+    animations: riveCharHandsUp,
+    autoplay: true,
+  });
+  const onclickInput = useStateMachineInput(
+    rive,
+    State_Machine,
+    riveCharHandsUp
+  );
+
   useEffect(() => {
     fetchCoursesForStudent();
   }, []);
@@ -115,6 +132,7 @@ const ChimpleAvatarPage: FC<{
         // cChapter = await getRecommendedChapter(cCourse);
         // setCurrentChapter(cChapter);
         if (choice) {
+          rive?.play("Success");
           cCourse = await getRecommendedCourse();
           setCurrentCourse(cCourse);
           setCurrentMode(AvatarModes.CourseSuggestion);
@@ -123,28 +141,33 @@ const ChimpleAvatarPage: FC<{
       case AvatarModes.CourseSuggestion:
         // console.log("AvatarModes.CourseSuggestion", choice);
         if (choice) {
+          rive?.play("Success");
           cChapter = await getRecommendedChapter(cCourse || currentCourse);
           setCurrentChapter(cChapter);
           setCurrentMode(AvatarModes.ChapterSuggestion);
         } else {
+          rive?.play("Fail");
           cCourse = await getRecommendedCourse();
           setCurrentCourse(cCourse);
         }
         break;
       case AvatarModes.ChapterSuggestion:
         if (choice) {
+          rive?.play("Success");
           cLesson = await getRecommendedLesson(
             currentChapter || cCourse.chapters[0]
           );
           setCurrentLesson(cLesson);
           setCurrentMode(AvatarModes.LessonSuggestion);
         } else {
+          rive?.play("Fail");
           cChapter = await getRecommendedChapter(cCourse || currentCourse);
           setCurrentChapter(cChapter);
         }
         break;
       case AvatarModes.LessonSuggestion:
         if (choice) {
+          rive?.play("Success");
           if (currentLesson && currentCourse) {
             // console.log("LessonCard course: course,", currentCourse);
             const parmas = `?courseid=${currentLesson.cocosSubjectCode}&chapterid=${currentLesson.cocosChapterCode}&lessonid=${currentLesson.id}`;
@@ -163,6 +186,7 @@ const ChimpleAvatarPage: FC<{
             });
           }
         } else {
+          rive?.play("Fail");
           cLesson = await getRecommendedLesson(
             currentChapter || cCourse.chapters[0]
           );
@@ -179,6 +203,7 @@ const ChimpleAvatarPage: FC<{
         break;
     }
     buttons = [];
+    onclickInput?.fire();
     setRectangularButtonClassName(choice ? "red-button" : "green-button");
     // userChoice = choice;
   };
@@ -331,12 +356,11 @@ const ChimpleAvatarPage: FC<{
 
   return (
     <div style={style}>
-      <ChimpleAvatarCharacterComponent
+      <RiveComponent
         style={{
           width: "35vw",
           height: "70vh",
         }}
-        userChoice={userChoice}
         // clickHandler={() => handleButtonClick(userChoice)}
       />
       <div className="avatar-option-box-background">

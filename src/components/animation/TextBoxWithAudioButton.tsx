@@ -24,7 +24,8 @@ export default function TextBoxWithAudioButton({ message, fontSize }) {
         style={{
           fontSize: "5vw",
           padding: "1%",
-          backgroundColor: "#EAEAEA",
+          color: "white",
+          backgroundColor: "lightgray",
           borderRadius: "100%",
         }}
         audioSrc={"assets/audios/my_name_is_chimple.mp3"}
