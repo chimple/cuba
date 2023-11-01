@@ -392,16 +392,17 @@ const ChimpleAvatarPage: FC<{
             {buttons.map((button, index) => (
               <div key={index}>
                 <RectangularTextButton
-                  buttonWidth={"15vw"}
-                  buttonHeight={"7vh"}
+                  buttonWidth={11}
+                  buttonHeight={5}
                   text={button.label}
-                  fontSize={"2vw"}
+                  fontSize={3}
                   // onHeaderIconClick={button.onClick()}
 
                   onHeaderIconClick={() => {
                     button.onClick();
                   }}
                   userChoice={userChoice}
+                  className={button.label === 'No' ? 'red-button' : 'green-button'}
                 ></RectangularTextButton>
               </div>
             ))}

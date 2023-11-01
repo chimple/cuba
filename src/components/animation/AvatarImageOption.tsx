@@ -85,7 +85,9 @@ const AvatarImageOption: React.FC<{
         <div
           style={{
             width: "40vh",
-            margin: "0% 0% 0% 26%",
+            // margin: "0% 0% 0% 26%",
+            marginLeft: "auto",
+            marginRight: "auto",
             // flexWrap: "wrap",
             // justifyContent: "center",
           }}
