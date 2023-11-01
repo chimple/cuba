@@ -5,7 +5,7 @@
   background: var(--ion-background-color);
 }
 
-.assignment-main-join-class{
+.assignment-main-join-class {
   display: flex;
   flex-direction: column;
   height: 110vh;
@@ -57,7 +57,7 @@
   display: flex;
   gap: 1vw;
   padding-left: 42vw;
-  color:black;
+  color: black;
 }
 
 #assignment-back-button {
@@ -67,5 +67,5 @@
 
 .scroll-header {
   overflow: scroll;
-  /* height: 70vh; */
+  height: 100vh;
 }
