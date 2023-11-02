@@ -13,6 +13,7 @@ import {
   EVENTS,
   GENDER,
   PAGES,
+  EDIT_STUDENT_STORE,
 } from "../common/constants";
 import { chevronForward } from "ionicons/icons";
 import Curriculum from "../models/curriculum";
@@ -92,6 +93,7 @@ const EditStudent = () => {
     //Completed all stages
     if (stagesLength === newStage) {
       //Creating Profile for the Student
+      localStoreData.removeItem(EDIT_STUDENT_STORE);
       let student;
       const currentStudent = await Util.getCurrentStudent();
       if (isEdit && !!currentStudent && !!currentStudent.docId) {
@@ -230,7 +232,7 @@ const EditStudent = () => {
       urlParams.get("isReload")
     );
     if (!!urlParams.get("isReload")) {
-      let locData: any = localStorage.getItem("editSt");
+      let locData: any = localStorage.getItem(EDIT_STUDENT_STORE);
       if (!!locData) {
         localStoreData = JSON.parse(locData);
 
@@ -250,7 +252,7 @@ const EditStudent = () => {
 
   function addDataToLocalStorage() {
     localStorage.setItem(
-      "editSt",
+      EDIT_STUDENT_STORE,
       JSON.stringify(localStoreData)
     );
   }
@@ -266,7 +268,7 @@ const EditStudent = () => {
         {!isEdit && !state?.showBackButton ? null : (
           <BackButton
             onClicked={() => {
-              localStorage.removeItem("editSt");
+              localStorage.removeItem(EDIT_STUDENT_STORE);
               history.replace(PAGES.DISPLAY_STUDENT);
             }}
           />
