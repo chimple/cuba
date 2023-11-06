@@ -650,6 +650,15 @@ export class Util {
         window.history.pushState(window.history.state, "", url.toString());
         window.location.reload();
       } else {
+    if (
+      Capacitor.isNativePlatform() &&
+      isActive &&
+      window.location.pathname !== PAGES.GAME &&
+      window.location.pathname !== PAGES.LOGIN&&
+      window.location.pathname !== PAGES.EDIT_STUDENT
+    ) {
+      if (window.location.pathname === PAGES.DISPLAY_SUBJECTS || window.location.pathname === PAGES.DISPLAY_CHAPTERS || PAGES.EDIT_STUDENT) {
+        const url = new URL(window.location.toString());
         url.searchParams.set("isReload", "true");
         url.searchParams.delete("continue");
         window.history.pushState(window.history.state, "", url.toString());

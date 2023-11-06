@@ -316,6 +316,7 @@ export const EXAM = "exam";
 export const PRE_QUIZ = "PreQuiz";
 export const GRADE_MAP = "GradeMap";
 export const DISPLAY_SUBJECTS_STORE = "DispSubStore";
+export const EDIT_STUDENT_STORE = "EditStudentStorage";
 export const SOUND = "sound";
 export const MUSIC = "music";
 export const GAME_URL = "gameUrl";
