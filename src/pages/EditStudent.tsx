@@ -93,7 +93,7 @@ const EditStudent = () => {
     //Completed all stages
     if (stagesLength === newStage) {
       //Creating Profile for the Student
-      localStoreData.removeItem(EDIT_STUDENT_STORE);
+      localStorage.removeItem(EDIT_STUDENT_STORE);
       let student;
       const currentStudent = await Util.getCurrentStudent();
       if (isEdit && !!currentStudent && !!currentStudent.docId) {
