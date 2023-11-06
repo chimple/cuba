@@ -1,6 +1,6 @@
 import React, { MouseEventHandler, useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { PAGES } from "../../common/constants";
+import { CONTINUE, PAGES } from "../../common/constants";
 import { Dialog, DialogContent } from "@mui/material";
 import { IoCloseCircle } from "react-icons/io5";
 import { OverlayEventDetail } from "@ionic/react/dist/types/components/react-component-lib/interfaces";
@@ -43,7 +43,7 @@ const ParentalLock: React.FC<{
 
       if (swipeDirection.length > 0 && userDirection === swipeDirection) {
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get("continue")) {
+        if (urlParams.get(CONTINUE)) {
           history.replace(PAGES.PARENT + "?continue=true");
         } else {
           history.replace(PAGES.PARENT);

@@ -6,6 +6,7 @@ import { Chapter, StudentLessonResult } from "../common/courseConstants";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
+  CONTINUE,
   CURRENT_CLASS,
   CURRENT_MODE,
   DISPLAY_SUBJECTS_STORE,
@@ -70,14 +71,14 @@ const Subjects: React.FC<{}> = ({}) => {
   const init = async () => {
     console.log(
       "🚀 ~ file: DisplaySubjects.tsx:47 ~ init ~ urlParams:",
-      urlParams.get("continue")
+      urlParams.get(CONTINUE)
     );
     console.log(
       "🚀 ~ file: DisplaySubjects.tsx:68 ~ init ~ localData:",
       localData
     );
     if (
-      !!urlParams.get("continue") &&
+      !!urlParams.get(CONTINUE) &&
       !!localData.currentCourse &&
       !!localData.currentGrade &&
       !!localData.currentChapter
@@ -244,7 +245,7 @@ const Subjects: React.FC<{}> = ({}) => {
     addDataToLocalStorage();
     const params = `courseDocId=${course.docId}`;
     // history.replace(PAGES.DISPLAY_CHAPTERS + params);
-    if (urlParams.get("continue")) {
+    if (urlParams.get(CONTINUE)) {
       history.replace(PAGES.DISPLAY_CHAPTERS + "?continue=true" +"&"+ params );
     } else {
       history.replace(PAGES.DISPLAY_CHAPTERS + "?" + params);

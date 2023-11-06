@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import {
   parentHeaderIconList,
   PAGES,
+  CONTINUE,
 } from "../../common/constants";
 import "./ParentHeader.css";
 import React from "react";
@@ -21,7 +22,7 @@ const ParentHeader: React.FC<{
       <BackButton
         onClicked={() => {
           const urlParams = new URLSearchParams(window.location.search);
-          if (urlParams.get("continue")) {
+          if (urlParams.get(CONTINUE)) {
             history.replace(PAGES.DISPLAY_STUDENT + "?continue=true");
           } else {
             history.replace(PAGES.DISPLAY_STUDENT);

@@ -34,6 +34,7 @@ import {
   // APP_LANG,
   BASE_NAME,
   CACHE_IMAGE,
+  CONTINUE,
   GAME_URL,
   IS_CUBA,
   PAGES,
@@ -63,8 +64,8 @@ const App: React.FC = () => {
     console.log("fetching...");
     // localStorage.setItem(LANGUAGE, LANG.ENGLISH);
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("continue") || PAGES.APP_UPDATE) {
-      urlParams.delete("continue");
+    if (urlParams.get(CONTINUE) || PAGES.APP_UPDATE) {
+      urlParams.delete(CONTINUE);
       CapApp.addListener("appStateChange", Util.onAppStateChange);
     }
     localStorage.setItem(IS_CUBA, "1");

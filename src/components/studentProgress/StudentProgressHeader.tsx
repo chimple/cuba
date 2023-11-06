@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { PAGES } from "../../common/constants";
+import { CONTINUE, PAGES } from "../../common/constants";
 import "./StudentProgressHeader.css";
 import React from "react";
 import { useHistory } from "react-router-dom";
@@ -28,7 +28,7 @@ const StudentProgressHeader: React.FC<{
         //iconSize={"8vh"}
         onClicked={() => {
           const urlParams = new URLSearchParams(window.location.search);
-          if (urlParams.get("continue")) {
+          if (urlParams.get(CONTINUE)) {
             history.replace(PAGES.PARENT + "?continue=true");
           } else {
             history.replace(PAGES.PARENT);

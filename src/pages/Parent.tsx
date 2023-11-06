@@ -6,6 +6,7 @@ import {
   MAX_STUDENTS_ALLOWED,
   PAGES,
   PARENTHEADERLIST,
+  CONTINUE,
 } from "../common/constants";
 import ProfileCard from "../components/parent/ProfileCard";
 import User from "../models/user";
@@ -424,7 +425,7 @@ const Parent: React.FC = () => {
 
   const handleBackButton = () => {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("continue")) {
+    if (urlParams.get(CONTINUE)) {
       history.replace(PAGES.DISPLAY_STUDENT + "?continue=true");
     } else {
       history.replace(PAGES.DISPLAY_STUDENT);

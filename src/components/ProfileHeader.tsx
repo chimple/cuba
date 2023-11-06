@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router";
-import { CURRENT_STUDENT, AVATARS, LANG, PAGES } from "../common/constants";
+import { CURRENT_STUDENT, AVATARS, LANG, PAGES, CONTINUE } from "../common/constants";
 import IconButton from "./IconButton";
 import "./ProfileHeader.css";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -35,7 +35,7 @@ const ProfileHeader: React.FC = () => {
       <BackButton
         onClicked={() => {
           const urlParams = new URLSearchParams(window.location.search);
-          if (urlParams.get("continue")) {
+          if (urlParams.get(CONTINUE)) {
             history.replace(PAGES.HOME + "?continue=true");
           } else {
             history.replace(PAGES.HOME);

@@ -9,6 +9,7 @@ import {
   PARENTHEADERLIST,
   MODES,
   LANGUAGE,
+  CONTINUE,
 } from "../common/constants";
 // import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -435,7 +436,7 @@ const Leaderboard: React.FC = () => {
               // iconSize={"8vh"}
               onClicked={() => {
                 const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get("continue")) {
+                if (urlParams.get(CONTINUE)) {
                   history.replace(PAGES.HOME + "?continue=true");
                 } else {
                   history.replace(PAGES.HOME);
@@ -509,7 +510,7 @@ const Leaderboard: React.FC = () => {
                     }
                   }
                   const urlParams = new URLSearchParams(window.location.search);
-                  if (urlParams.get("continue")) {
+                  if (urlParams.get(CONTINUE)) {
                     history.replace(PAGES.DISPLAY_STUDENT + "?continue=true");
                   } else {
                     history.replace(PAGES.DISPLAY_STUDENT);

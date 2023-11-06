@@ -22,6 +22,7 @@ import {
   IS_MIGRATION_CHECKED,
   SOUND,
   MUSIC,
+  CONTINUE,
   // APP_LANG,
 } from "../common/constants";
 import {
@@ -636,7 +637,7 @@ export class Util {
     if (isActive) {
       if (
         Capacitor.isNativePlatform() &&
-        url.searchParams.get("continue") === "true" &&
+        url.searchParams.get(CONTINUE) === "true" &&
         url.pathname !== PAGES.GAME &&
         url.pathname !== PAGES.LOGIN
       ) {
@@ -650,18 +651,24 @@ export class Util {
         window.history.pushState(window.history.state, "", url.toString());
         window.location.reload();
       } else {
-    if (
-      Capacitor.isNativePlatform() &&
-      isActive &&
-      window.location.pathname !== PAGES.GAME &&
-      window.location.pathname !== PAGES.LOGIN&&
-      window.location.pathname !== PAGES.EDIT_STUDENT
-    ) {
-      if (window.location.pathname === PAGES.DISPLAY_SUBJECTS || window.location.pathname === PAGES.DISPLAY_CHAPTERS || PAGES.EDIT_STUDENT) {
-        const url = new URL(window.location.toString());
-        url.searchParams.set("isReload", "true");
-        url.searchParams.delete("continue");
-        window.history.pushState(window.history.state, "", url.toString());
+        if (
+          Capacitor.isNativePlatform() &&
+          isActive &&
+          window.location.pathname !== PAGES.GAME &&
+          window.location.pathname !== PAGES.LOGIN &&
+          window.location.pathname !== PAGES.EDIT_STUDENT
+        ) {
+          if (
+            window.location.pathname === PAGES.DISPLAY_SUBJECTS ||
+            window.location.pathname === PAGES.DISPLAY_CHAPTERS ||
+            PAGES.EDIT_STUDENT
+          ) {
+            const url = new URL(window.location.toString());
+            url.searchParams.set("isReload", "true");
+            url.searchParams.delete("continue");
+            window.history.pushState(window.history.state, "", url.toString());
+          }
+        }
       }
     }
   };

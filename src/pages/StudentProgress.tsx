@@ -4,7 +4,7 @@ import { SyntheticEvent } from "react";
 import Loading from "../components/Loading";
 import "../components/studentProgress/CustomAppBar.css";
 import "./StudentProgress.css";
-import { PAGES } from "../common/constants";
+import { CONTINUE, PAGES } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import StudentProgressHeader from "../components/studentProgress/StudentProgressHeader";
 import Course from "../models/course";
@@ -48,7 +48,7 @@ const StudentProgress: React.FC = () => {
   }
   const handleBackButton = () => {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("continue")) {
+    if (urlParams.get(CONTINUE)) {
       history.replace(PAGES.PARENT + "?continue=true");
     } else {
       history.replace(PAGES.PARENT);

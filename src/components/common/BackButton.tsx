@@ -4,6 +4,7 @@ import { IoIosArrowBack } from "react-icons/io";
 import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
+import { CONTINUE } from "../../common/constants";
 
 const BackButton: React.FC<{
 
@@ -18,7 +19,7 @@ const BackButton: React.FC<{
     return () => {
       App.removeAllListeners();
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get("continue") && Capacitor.isNativePlatform()) {
+      if (urlParams.get(CONTINUE) && Capacitor.isNativePlatform()) {
         App.addListener("appStateChange", Util.onAppStateChange);
       }
     };

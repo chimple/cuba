@@ -18,6 +18,7 @@ import {
   MODES,
   CURRENT_MODE,
   RECOMMENDATIONS,
+  CONTINUE,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -123,8 +124,8 @@ const Home: FC = () => {
     fetchData();
     const urlParams = new URLSearchParams(location.search);
 
-    if (!!urlParams.get("continue")) {
-      urlParams.delete("continue");
+    if (!!urlParams.get(CONTINUE)) {
+      urlParams.delete(CONTINUE);
       App.addListener("appStateChange", Util.onAppStateChange);
       setCurrentHeader(currentHeader);
     }
@@ -632,7 +633,7 @@ const Home: FC = () => {
         break;
       case HOMEHEADERLIST.PROFILE:
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get("continue")) {
+        if (urlParams.get(CONTINUE)) {
           history.replace(PAGES.LEADERBOARD + "?continue=true");
         } else {
           history.replace(PAGES.LEADERBOARD);

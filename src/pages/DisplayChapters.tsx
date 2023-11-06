@@ -6,6 +6,7 @@ import { Chapter, StudentLessonResult } from "../common/courseConstants";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
+  CONTINUE,
   CURRENT_CLASS,
   CURRENT_MODE,
   DISPLAY_SUBJECTS_STORE,
@@ -99,14 +100,14 @@ const DisplayChapters: FC<{}> = () => {
     const urlParams = new URLSearchParams(location.search);
     console.log(
       "🚀 ~ file: DisplaySubjects.tsx:47 ~ init ~ urlParams:",
-      urlParams.get("continue")
+      urlParams.get(CONTINUE)
     );
     console.log(
       "🚀 ~ file: DisplaySubjects.tsx:68 ~ init ~ localData:",
       localData
     );
     if (
-      !!urlParams.get("continue") &&
+      !!urlParams.get(CONTINUE) &&
       !!localData.currentCourse &&
       !!localData.currentGrade &&
       !!localData.currentChapter
@@ -290,7 +291,7 @@ const DisplayChapters: FC<{}> = () => {
         addDataToLocalStorage();
         localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
         const urlParams = new URLSearchParams(window.location.search);
-        if(urlParams.get("continue")){
+        if(urlParams.get(CONTINUE)){
           history.replace(PAGES.HOME+"?continue=true");
         }else {
         history.replace(PAGES.HOME);
