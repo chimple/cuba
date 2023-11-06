@@ -634,7 +634,7 @@ const Home: FC = () => {
       case HOMEHEADERLIST.PROFILE:
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get(CONTINUE)) {
-          history.replace(PAGES.LEADERBOARD + "?continue=true");
+          history.replace(PAGES.LEADERBOARD + `?${CONTINUE}=true`);
         } else {
           history.replace(PAGES.LEADERBOARD);
         }

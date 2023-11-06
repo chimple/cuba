@@ -49,7 +49,7 @@ const StudentProgress: React.FC = () => {
   const handleBackButton = () => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get(CONTINUE)) {
-      history.replace(PAGES.PARENT + "?continue=true");
+      history.replace(PAGES.PARENT + `?${CONTINUE}=true`);
     } else {
       history.replace(PAGES.PARENT);
     }

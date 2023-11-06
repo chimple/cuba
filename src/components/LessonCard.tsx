@@ -1,7 +1,7 @@
 import { IonCard } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { LESSON_CARD_COLORS, PAGES } from "../common/constants";
+import { CONTINUE, LESSON_CARD_COLORS, PAGES } from "../common/constants";
 import "./LessonCard.css";
 import LessonCardStarIcons from "./LessonCardStarIcons";
 import React from "react";
@@ -152,7 +152,7 @@ const LessonCard: React.FC<{
             courseDocId: course?.docId ?? lesson?.assignment?.course?.id,
             course: JSON.stringify(Course.toJson(currentCourse!)),
             lesson: JSON.stringify(Lesson.toJson(lesson)),
-            from: history.location.pathname + "?continue=true",
+            from: history.location.pathname + `?${CONTINUE}=true`,
           });
           // }
         } else {

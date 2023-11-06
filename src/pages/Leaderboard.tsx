@@ -437,7 +437,7 @@ const Leaderboard: React.FC = () => {
               onClicked={() => {
                 const urlParams = new URLSearchParams(window.location.search);
                 if (urlParams.get(CONTINUE)) {
-                  history.replace(PAGES.HOME + "?continue=true");
+                  history.replace(PAGES.HOME + `?${CONTINUE}=true`);
                 } else {
                   history.replace(PAGES.HOME);
                 }
@@ -511,7 +511,7 @@ const Leaderboard: React.FC = () => {
                   }
                   const urlParams = new URLSearchParams(window.location.search);
                   if (urlParams.get(CONTINUE)) {
-                    history.replace(PAGES.DISPLAY_STUDENT + "?continue=true");
+                    history.replace(PAGES.DISPLAY_STUDENT + `?${CONTINUE}=true`);
                   } else {
                     history.replace(PAGES.DISPLAY_STUDENT);
                   }

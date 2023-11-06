@@ -246,7 +246,7 @@ const Subjects: React.FC<{}> = ({}) => {
     const params = `courseDocId=${course.docId}`;
     // history.replace(PAGES.DISPLAY_CHAPTERS + params);
     if (urlParams.get(CONTINUE)) {
-      history.replace(PAGES.DISPLAY_CHAPTERS + "?continue=true" +"&"+ params );
+      history.replace(PAGES.DISPLAY_CHAPTERS + `?${CONTINUE}=true` +"&"+ params );
     } else {
       history.replace(PAGES.DISPLAY_CHAPTERS + "?" + params);
     }

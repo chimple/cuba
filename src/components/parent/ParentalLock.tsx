@@ -44,7 +44,7 @@ const ParentalLock: React.FC<{
       if (swipeDirection.length > 0 && userDirection === swipeDirection) {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get(CONTINUE)) {
-          history.replace(PAGES.PARENT + "?continue=true");
+          history.replace(PAGES.PARENT + `?${CONTINUE}=true`);
         } else {
           history.replace(PAGES.PARENT);
         }

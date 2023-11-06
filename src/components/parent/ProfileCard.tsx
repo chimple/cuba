@@ -100,7 +100,7 @@ const ProfileCard: React.FC<{
 
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get(CONTINUE)) {
-            history.replace(PAGES.STUDENT_PROGRESS + "?continue=true");
+            history.replace(PAGES.STUDENT_PROGRESS + `?${CONTINUE}=true`);
             } else {
             history.replace(PAGES.STUDENT_PROGRESS);
            }
