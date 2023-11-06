@@ -8,7 +8,7 @@ import {
   PAGES,
   PARENTHEADERLIST,
   MODES,
-  LANGUAGE
+  LANGUAGE,
 } from "../common/constants";
 // import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -237,7 +237,10 @@ const Leaderboard: React.FC = () => {
             <img
               className="avatar-img"
               src={
-                (studentMode === MODES.SCHOOL && currentStudent?.image) || ("assets/avatars/" + (currentStudent?.avatar ?? AVATARS[0]) + ".png")
+                (studentMode === MODES.SCHOOL && currentStudent?.image) ||
+                "assets/avatars/" +
+                  (currentStudent?.avatar ?? AVATARS[0]) +
+                  ".png"
               }
               alt=""
             />
@@ -370,14 +373,16 @@ const Leaderboard: React.FC = () => {
                         }}
                         id="leaderboard-right-UI-content"
                       >
-                        {i === 1 ?
+                        {i === 1 ? (
                           <p id="leaderboard-profile-name">
-                            {Number(currentUserDataContent[0][1]) === headerRowIndicator && currentStudent?.name
+                            {Number(currentUserDataContent[0][1]) ===
+                              headerRowIndicator && currentStudent?.name
                               ? currentStudent?.name
-                              : d
-                            }
+                              : d}
                           </p>
-                          : d}
+                        ) : (
+                          d
+                        )}
                       </p>
                     </IonCol>
                   );
@@ -429,7 +434,12 @@ const Leaderboard: React.FC = () => {
             <BackButton
               // iconSize={"8vh"}
               onClicked={() => {
-                history.replace(PAGES.HOME);
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get("continue")) {
+                  history.replace(PAGES.HOME + "?continue=true");
+                } else {
+                  history.replace(PAGES.HOME);
+                }
               }}
             ></BackButton>
             <Box>
@@ -494,11 +504,16 @@ const Leaderboard: React.FC = () => {
                     );
                     if (langDoc) {
                       const tempLangCode = langDoc.code ?? LANG.ENGLISH;
-                      localStorage.setItem(LANGUAGE, tempLangCode)
+                      localStorage.setItem(LANGUAGE, tempLangCode);
                       await i18n.changeLanguage(tempLangCode);
                     }
                   }
-                  history.replace(PAGES.DISPLAY_STUDENT);
+                  const urlParams = new URLSearchParams(window.location.search);
+                  if (urlParams.get("continue")) {
+                    history.replace(PAGES.DISPLAY_STUDENT + "?continue=true");
+                  } else {
+                    history.replace(PAGES.DISPLAY_STUDENT);
+                  }
                   // history.replace(PAGES.SELECT_MODE);
                 }}
               />

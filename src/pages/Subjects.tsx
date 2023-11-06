@@ -61,13 +61,13 @@ const Subjects: React.FC<{}> = ({}) => {
   const history = useHistory();
   const location = useLocation();
   const api = ServiceConfig.getI().apiHandler;
+  const urlParams = new URLSearchParams(location.search);
 
   useEffect(() => {
     init();
   }, []);
 
   const init = async () => {
-    const urlParams = new URLSearchParams(location.search);
     console.log(
       "🚀 ~ file: DisplaySubjects.tsx:47 ~ init ~ urlParams:",
       urlParams.get("continue")
@@ -242,8 +242,13 @@ const Subjects: React.FC<{}> = ({}) => {
     setCurrentCourse(course);
     // localStorageData.stage = STAGES.CHAPTERS;
     addDataToLocalStorage();
-    const params = `?courseDocId=${course.docId}`;
-    history.replace(PAGES.DISPLAY_CHAPTERS + params);
+    const params = `courseDocId=${course.docId}`;
+    // history.replace(PAGES.DISPLAY_CHAPTERS + params);
+    if (urlParams.get("continue")) {
+      history.replace(PAGES.DISPLAY_CHAPTERS + "?continue=true" +"&"+ params );
+    } else {
+      history.replace(PAGES.DISPLAY_CHAPTERS + "?" + params);
+    }
   };
 
   function addDataToLocalStorage() {

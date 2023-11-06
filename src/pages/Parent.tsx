@@ -423,7 +423,12 @@ const Parent: React.FC = () => {
   };
 
   const handleBackButton = () => {
-    history.replace(PAGES.DISPLAY_STUDENT);
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("continue")) {
+      history.replace(PAGES.DISPLAY_STUDENT + "?continue=true");
+    } else {
+      history.replace(PAGES.DISPLAY_STUDENT);
+    }
   };
 
   useEffect(() => {

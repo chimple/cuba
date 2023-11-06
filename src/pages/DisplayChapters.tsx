@@ -289,7 +289,12 @@ const DisplayChapters: FC<{}> = () => {
         localStorageData.stage = STAGES.SUBJECTS;
         addDataToLocalStorage();
         localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.get("continue")){
+          history.replace(PAGES.HOME+"?continue=true");
+        }else {
         history.replace(PAGES.HOME);
+        }
         break;
       case STAGES.LESSONS:
         delete localData.lessons;

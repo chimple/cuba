@@ -98,7 +98,12 @@ const ProfileCard: React.FC<{
             // const api = ServiceConfig.getI().apiHandler;
             // api.currentStudent = user;
 
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get("continue")) {
+            history.replace(PAGES.STUDENT_PROGRESS + "?continue=true");
+            } else {
             history.replace(PAGES.STUDENT_PROGRESS);
+           }
           }}
         >
           {t("Progress Report")}

@@ -47,7 +47,12 @@ const StudentProgress: React.FC = () => {
     course: Course;
   }
   const handleBackButton = () => {
-    history.replace(PAGES.PARENT);
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("continue")) {
+      history.replace(PAGES.PARENT + "?continue=true");
+    } else {
+      history.replace(PAGES.PARENT);
+    }
   };
 
   async function inti() {

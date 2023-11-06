@@ -62,6 +62,11 @@ const App: React.FC = () => {
   useEffect(() => {
     console.log("fetching...");
     // localStorage.setItem(LANGUAGE, LANG.ENGLISH);
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("continue") || PAGES.APP_UPDATE) {
+      urlParams.delete("continue");
+      CapApp.addListener("appStateChange", Util.onAppStateChange);
+    }
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({
@@ -80,10 +85,6 @@ const App: React.FC = () => {
             localStorage.setItem(GAME_URL, uri + "/");
           }
         });
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get("continue")) {
-        CapApp.addListener("appStateChange", Util.onAppStateChange);
-      }
       //CapApp.addListener("appStateChange", Util.onAppStateChange);
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
     }

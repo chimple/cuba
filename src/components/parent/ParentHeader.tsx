@@ -20,7 +20,12 @@ const ParentHeader: React.FC<{
     <div id="parent-header-icons">
       <BackButton
         onClicked={() => {
-          history.replace(PAGES.DISPLAY_STUDENT);
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get("continue")) {
+            history.replace(PAGES.DISPLAY_STUDENT + "?continue=true");
+          } else {
+            history.replace(PAGES.DISPLAY_STUDENT);
+          }
         }}
       ></BackButton>
       <div id="parent-header-middle-icons">

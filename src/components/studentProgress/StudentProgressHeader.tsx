@@ -27,7 +27,12 @@ const StudentProgressHeader: React.FC<{
       <BackButton
         //iconSize={"8vh"}
         onClicked={() => {
-          history.replace(PAGES.PARENT);
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get("continue")) {
+            history.replace(PAGES.PARENT + "?continue=true");
+          } else {
+            history.replace(PAGES.PARENT);
+          }
         }}
       ></BackButton>
       <div id="student-progress-header-middle-icons">
