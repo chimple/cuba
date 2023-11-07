@@ -425,11 +425,7 @@ const Parent: React.FC = () => {
 
   const handleBackButton = () => {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get(CONTINUE)) {
-      history.replace(PAGES.DISPLAY_STUDENT + `?${CONTINUE}=true`);
-    } else {
-      history.replace(PAGES.DISPLAY_STUDENT);
-    }
+    Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history, urlParams);
   };
 
   useEffect(() => {

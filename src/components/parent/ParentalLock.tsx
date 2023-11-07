@@ -7,6 +7,7 @@ import { OverlayEventDetail } from "@ionic/react/dist/types/components/react-com
 import { changeLanguage, t } from "i18next";
 import "./ParentalLock.css";
 import { FcLock } from "react-icons/fc";
+import { Util } from "../../utility/util";
 
 const ParentalLock: React.FC<{
   showDialogBox: boolean;
@@ -43,11 +44,7 @@ const ParentalLock: React.FC<{
 
       if (swipeDirection.length > 0 && userDirection === swipeDirection) {
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get(CONTINUE)) {
-          history.replace(PAGES.PARENT + `?${CONTINUE}=true`);
-        } else {
-          history.replace(PAGES.PARENT);
-        }
+        Util.setPathToBackButton(PAGES.PARENT, history, urlParams);
       } else {
         console.log('not matched');
       }

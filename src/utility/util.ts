@@ -637,7 +637,7 @@ export class Util {
     if (isActive) {
       if (
         Capacitor.isNativePlatform() &&
-        url.searchParams.get("continue") === "true" &&
+        url.searchParams.get(CONTINUE) === "true" &&
         url.pathname !== PAGES.GAME &&
         url.pathname !== PAGES.LOGIN &&
         url.pathname !== PAGES.EDIT_STUDENT
@@ -648,17 +648,24 @@ export class Util {
         ) {
           url.searchParams.set("isReload", "true");
         }
-        url.searchParams.delete("continue");
+        url.searchParams.delete(CONTINUE);
         window.history.pushState(window.history.state, "", url.toString());
         window.location.reload();
       } else {
         url.searchParams.set("isReload", "true");
-        url.searchParams.delete("continue");
+        url.searchParams.delete(CONTINUE);
         window.history.pushState(window.history.state, "", url.toString());
       }
     }
   };
   
+  public static setPathToBackButton(path:string, history:any, url:any){
+    if(url.get(CONTINUE)){
+      history.replace(`${path}?${CONTINUE}=true`);
+    }else{
+      history.replace(path);
+    }
+  }
 
   public static setCurrentStudent = async (
     student: User,

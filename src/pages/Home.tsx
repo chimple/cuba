@@ -633,11 +633,7 @@ const Home: FC = () => {
         break;
       case HOMEHEADERLIST.PROFILE:
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get(CONTINUE)) {
-          history.replace(PAGES.LEADERBOARD + `?${CONTINUE}=true`);
-        } else {
-          history.replace(PAGES.LEADERBOARD);
-        }
+        Util.setPathToBackButton(PAGES.LEADERBOARD, history, urlParams);
         break;
         // case HOMEHEADERLIST.SEARCH:
         //   history.replace(PAGES.SEARCH);

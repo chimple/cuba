@@ -6,6 +6,7 @@ import { useHistory } from "react-router-dom";
 import BackButton from "../common/BackButton";
 import RectangularIconButton from "../parent/RectangularIconButton";
 import Course from "../../models/course";
+import { Util } from "../../utility/util";
 
 interface HeaderIconConfig {
   displayName: string;
@@ -28,11 +29,7 @@ const StudentProgressHeader: React.FC<{
         //iconSize={"8vh"}
         onClicked={() => {
           const urlParams = new URLSearchParams(window.location.search);
-          if (urlParams.get(CONTINUE)) {
-            history.replace(PAGES.PARENT + `?${CONTINUE}=true`);
-          } else {
-            history.replace(PAGES.PARENT);
-          }
+          Util.setPathToBackButton(PAGES.PARENT, history, urlParams);
         }}
       ></BackButton>
       <div id="student-progress-header-middle-icons">

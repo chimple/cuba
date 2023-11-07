@@ -9,6 +9,7 @@ import React from "react";
 import RectangularIconButton from "./RectangularIconButton";
 import { useHistory } from "react-router-dom";
 import BackButton from "../common/BackButton";
+import { Util } from "../../utility/util";
 
 const ParentHeader: React.FC<{
   currentHeader: string;
@@ -22,11 +23,7 @@ const ParentHeader: React.FC<{
       <BackButton
         onClicked={() => {
           const urlParams = new URLSearchParams(window.location.search);
-          if (urlParams.get(CONTINUE)) {
-            history.replace(PAGES.DISPLAY_STUDENT + `?${CONTINUE}=true`);
-          } else {
-            history.replace(PAGES.DISPLAY_STUDENT);
-          }
+          Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history, urlParams);
         }}
       ></BackButton>
       <div id="parent-header-middle-icons">
