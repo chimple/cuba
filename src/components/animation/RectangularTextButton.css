@@ -1,50 +1,82 @@
-.rectangular-text-button {
-  /* background-color: #eaeaea !important; */
-  color: black;
-  border-radius: var(--border-radius) !important;
-  text-align: center;
-  /* margin: 1vh 6vw 1vh 6vw; */
-  /* margin: 0vh 3vw 1vh 7vw; */
-}
-
-#rectangular-text-button :hover {
-  background-color: #83c327;
-}
-
-#rectangular-text-button :focus {
-  background-color: #eaeaea;
-}
-
-#rectangular-text-button :active {
-  background-color: #eaeaea;
-}
-
 .green-button {
   color: black;
-  border-radius: var(--border-radius) !important;
+  border-radius: var(--border-radius);
   text-align: center;
-  /* transition: background-color 0.3s; */
-  /* cursor: pointer; */
+  transition: background-color 0.3s, transform 0.2s;
+  cursor: pointer;
+  border: 1px solid #BDBDBD;
+  border-bottom: 4.5px solid #BDBDBD;
 }
+
 .red-button {
   color: black;
-  border-radius: var(--border-radius) !important;
+  border-radius: var(--border-radius);
   text-align: center;
-  /* transition: background-color 0.3s; */
-  /* cursor: pointer; */
+  transition: background-color 0.3s, transform 0.2s;
+  cursor: pointer;
+  border: 1px solid #BDBDBD;
+  border-bottom: 4.5px solid #BDBDBD;
 }
 
-/* .green-button:active {
-  background-color: #eaeaea !important;
+/* .green-button:focus {
+  background-color: #EAEAEA !important;
 } */
 
-.green-button:hover {
-  background-color: #83c327 !important;
+
+/* Styles for desktop and laptop devices (hover effect) */
+@media only screen and (min-width: 900px) {
+  .green-button:hover {
+    background-color: #83c327;
+    color: White;
+    border-bottom: 4.5px solid #678E21;
+    transform: scale(1.05);
+
+  }
+
+  .red-button:hover {
+    background-color: #F22A55;
+    color: White;
+    border-bottom: 4.5px solid #BB254D;
+    transform: scale(1.05);
+  }
 }
 
-.red-button:hover {
-  background-color: red !important;
+/* @media only screen and (max-width: 900px){
+  .green-button:active {
+    background-color: #83c327;
+    color: White;
+    border-bottom: 4.5px solid #678E21;
+    transform: scale(1.05);
+
+  }
 }
-/* .red-button:active {
-  background-color: #eaeaea !important;
+@media only screen and (max-width: 900px){
+  .red-button:active {
+    background-color: #F22A55;
+    color: White;
+    border-bottom: 4.5px solid #BB254D;
+    transform: scale(1.05);
+
+  }
 } */
+
+
+@media (pointer: coarse) {
+  .green-button:active {
+    background-color: #83c327;
+    color: White;
+    border-bottom: 4.5px solid #678E21;
+    transform: scale(1.05);
+
+  }
+}
+
+@media (pointer: coarse) {
+  .red-button:active {
+    background-color: #F22A55;
+    color: White;
+    border-bottom: 4.5px solid #BB254D;
+    transform: scale(1.05);
+
+  }
+}

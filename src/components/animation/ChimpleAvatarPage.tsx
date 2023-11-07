@@ -70,6 +70,7 @@ const ChimpleAvatarPage: FC<{
   const [currentLesson, setCurrentLesson] = useState<Lesson>();
 
   const [userChoice, setUserChoice] = useState<boolean>(false);
+  const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(true);
 
   const history = useHistory();
   // console.log("cocos game", history.location.state);
@@ -92,7 +93,9 @@ const ChimpleAvatarPage: FC<{
 
   useEffect(() => {
     fetchCoursesForStudent();
-  }, []);
+    console.log("btnDisabled in useEffect" ,buttonsDisabled);
+    setButtonsDisabled(true);
+  }, [currentMode]);
 
   const api = ServiceConfig.getI().apiHandler;
   let recommendations;
@@ -120,6 +123,10 @@ const ChimpleAvatarPage: FC<{
   let cCourse: Course, cChapter: Chapter, cLesson: Lesson | undefined;
   const handleButtonClick = async (choice: boolean) => {
     setUserChoice(choice);
+    if (!buttonsDisabled) {
+      // If buttons are already disabled, don't proceed
+      return;
+    }
 
     // console.log("choicechoicechoicechoice", choice);
     // Handle button clicks based on the current mode
@@ -131,28 +138,48 @@ const ChimpleAvatarPage: FC<{
         // console.log("AvatarModes.Welcome", choice);
         // cChapter = await getRecommendedChapter(cCourse);
         // setCurrentChapter(cChapter);
+    console.log("btnDisabled in Welcome" ,buttonsDisabled);
+
         if (choice) {
+        setButtonsDisabled(false);
+
           rive?.play("Success");
           cCourse = await getRecommendedCourse();
           setCurrentCourse(cCourse);
           setCurrentMode(AvatarModes.CourseSuggestion);
         }
+        setButtonsDisabled(true);
+
         break;
+        
       case AvatarModes.CourseSuggestion:
         // console.log("AvatarModes.CourseSuggestion", choice);
+    console.log("btnDisabled in course" ,buttonsDisabled);
+
+
         if (choice) {
+        setButtonsDisabled(false);
+
           rive?.play("Success");
           cChapter = await getRecommendedChapter(cCourse || currentCourse);
           setCurrentChapter(cChapter);
           setCurrentMode(AvatarModes.ChapterSuggestion);
         } else {
+         setButtonsDisabled(false);
           rive?.play("Fail");
           cCourse = await getRecommendedCourse();
           setCurrentCourse(cCourse);
         }
+        setButtonsDisabled(true);
+
         break;
       case AvatarModes.ChapterSuggestion:
+    console.log("btnDisabled in chapter" ,buttonsDisabled);
+
+
         if (choice) {
+        setButtonsDisabled(false);
+
           rive?.play("Success");
           cLesson = await getRecommendedLesson(
             currentChapter || cCourse.chapters[0],
@@ -161,13 +188,22 @@ const ChimpleAvatarPage: FC<{
           setCurrentLesson(cLesson);
           setCurrentMode(AvatarModes.LessonSuggestion);
         } else {
+         setButtonsDisabled(false);
+
           rive?.play("Fail");
           cChapter = await getRecommendedChapter(cCourse || currentCourse);
           setCurrentChapter(cChapter);
         }
+        setButtonsDisabled(true);
+
         break;
       case AvatarModes.LessonSuggestion:
+    console.log("btnDisabled in lesson" ,buttonsDisabled);
+
+
         if (choice) {
+        setButtonsDisabled(false);
+
           rive?.play("Success");
           if (currentLesson && currentCourse) {
             // console.log("LessonCard course: course,", currentCourse);
@@ -391,7 +427,7 @@ const ChimpleAvatarPage: FC<{
         }}
         // clickHandler={() => handleButtonClick(userChoice)}
       />
-      <div className="avatar-option-box-background">
+      <div className="avatar-option-box-background left-corner">
         <div>
           <TextBoxWithAudioButton
             message={message}
@@ -421,9 +457,10 @@ const ChimpleAvatarPage: FC<{
               <div key={index}>
                 <RectangularTextButton
                   buttonWidth={11}
-                  buttonHeight={5}
+                  buttonHeight={8}
+                  padding = {1}
                   text={button.label}
-                  fontSize={3}
+                  fontSize={3.2}
                   // onHeaderIconClick={button.onClick()}
 
                   onHeaderIconClick={() => {

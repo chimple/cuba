@@ -8,6 +8,7 @@ const RectangularTextButton: React.FC<{
   fontSize: number;
   userChoice: boolean;
   className : string;
+  padding: number;
   onHeaderIconClick: React.MouseEventHandler<HTMLDivElement>;
 }> = ({
   buttonWidth,
@@ -17,6 +18,7 @@ const RectangularTextButton: React.FC<{
   onHeaderIconClick,
   className,
   userChoice,
+  padding,
 }) => {
   // console.log(className);
   // const [bgColor, setbgColor] = useState<string>("#EAEAEA");
@@ -62,14 +64,15 @@ const RectangularTextButton: React.FC<{
       style={{
         width: buttonWidth + "vw",
         height: buttonHeight + "vh",
-        background: "#EAEAEA",
+        padding: padding + "vh",
+        // background: "white",
       }}
 
     >
       <p
         style={{
           fontSize: fontSize + "vh",
-          padding: "0.2vh",
+          // padding: "0.2vh",
           // fontSize: "var(--text-size)",
         }}
       >

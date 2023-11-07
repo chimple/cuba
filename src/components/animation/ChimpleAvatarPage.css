@@ -7,13 +7,31 @@
   flex-direction: column;
   justify-content: space-evenly;
   box-shadow: 10px 10px 5px #dbdbdb;
+  position: relative;
 }
 
+.left-corner:before {
+  content: "";
+  width: 1vw;
+  height: 1vh;
+  position: absolute;
+  border-left: 1vw solid white;
+  border-right: 1vw solid white;
+  border-top: 1vh solid white;
+  border-bottom: 3vh solid white;
+  /* left: 0vw; */
+  top: 6.5vh;
+  clip-path: polygon(0 100%, 100% 0, 100% 75%);
+  right: 50vw;
+}
+  
+
 .buttons-in-avatar-option-box {
-  margin: 2% 0 0% 0;
+  margin: 2% 0 2% 0;
   /* width: 38vw; */
   display: flex;
   align-items: center;
+  
   /* padding-bottom: 3vh;
     padding-top: 2vh;
     padding-left: 2vw;
