@@ -117,9 +117,7 @@ const Home: FC = () => {
   let tempPageNumber = 1;
   const location = useLocation();
   const getCanShowAvatar = async () => {
-    const canShowAvatarValue = await RemoteConfig.getBoolean(
-      REMOTE_CONFIG_KEYS.CAN_SHOW_AVATAR
-    );
+    const canShowAvatarValue = await Util.getCanShowAvatar();
     console.log("const canShowAvatarValue in home ", canShowAvatarValue);
 
     setCanShowAvatar(canShowAvatarValue);

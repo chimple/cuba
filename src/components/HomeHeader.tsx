@@ -31,10 +31,13 @@ const HomeHeader: React.FC<{
   const history = useHistory();
   const [student, setStudent] = useState<User>();
   const [studentMode, setStudentMode] = useState<string | undefined>();
-  const canShowSuggestions = RemoteConfig.getBoolean(
-    REMOTE_CONFIG_KEYS.CAN_SHOW_AVATAR
-  )
+  const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
+
   async function init() {
+    const canShowAvatarValue = await Util.getCanShowAvatar();
+    console.log("const canShowAvatarValue in homeHeader ", canShowAvatarValue);
+
+    setCanShowAvatar(canShowAvatarValue);
     const student = await Util.getCurrentStudent();
     if (!student) {
       history.replace(PAGES.HOME);
@@ -45,12 +48,13 @@ const HomeHeader: React.FC<{
     DEFAULT_HEADER_ICON_CONFIGS.forEach(async (element) => {
       // console.log("elements", element);
 
-      console.log(currMode);
+      console.log("element.headerList", element.headerList);
       if (
         !(
-          (currMode === MODES.SCHOOL && element.headerList === HOMEHEADERLIST.ASSIGNMENT) ||
-          (!(await canShowSuggestions) && element.headerList === HOMEHEADERLIST.SUGGESTIONS)
-          //if Avatar is showing in home Screen then only sugesstions icons visible
+          (currMode === MODES.SCHOOL &&
+            element.headerList === HOMEHEADERLIST.ASSIGNMENT) ||
+          (!canShowAvatarValue &&
+            element.headerList === HOMEHEADERLIST.SUGGESTIONS)
         )
       ) {
         headerIconList.push(element);
@@ -112,8 +116,7 @@ const HomeHeader: React.FC<{
           headerConfig={{
             displayName: student?.name ?? "Profile",
             iconSrc:
-              (studentMode === MODES.SCHOOL &&
-                student?.image) ||
+              (studentMode === MODES.SCHOOL && student?.image) ||
               `assets/avatars/${student?.avatar ?? AVATARS[0]}.png`,
             headerList: HOMEHEADERLIST.PROFILE,
           }}

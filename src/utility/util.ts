@@ -22,6 +22,7 @@ import {
   IS_MIGRATION_CHECKED,
   SOUND,
   MUSIC,
+  MODES,
   // APP_LANG,
 } from "../common/constants";
 import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
@@ -53,6 +54,7 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 import { CollectionIds } from "../common/courseConstants";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { Router } from "react-router-dom";
+import { schoolUtil } from "./schoolUtil";
 
 declare global {
   interface Window {
@@ -929,5 +931,28 @@ export class Util {
       console.log("🚀 ~ file: util.ts:707 ~ migrate ~ error:", error);
       return { migrated: false };
     }
+  }
+
+  public static async getCanShowAvatar(): Promise<boolean> {
+    //If mode is school then returning true
+    const currMode = await schoolUtil.getCurrMode();
+    if (currMode === MODES.SCHOOL) return true;
+
+    const student = await Util.getCurrentStudent();
+    if (!student) {
+      return false;
+    }
+    const api = ServiceConfig.getI().apiHandler;
+    const studentResult = await api.getStudentResult(student.docId);
+    if (!studentResult) return false;
+
+    //If user connected any class then returning true
+    if (studentResult.classes.length > 0) return true;
+
+    //fetching the CAN_SHOW_AVATAR from REMOTE CONFIG
+    const canShowAvatarValue = await RemoteConfig.getBoolean(
+      REMOTE_CONFIG_KEYS.CAN_SHOW_AVATAR
+    );
+    return canShowAvatarValue;
   }
 }
