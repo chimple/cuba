@@ -96,8 +96,7 @@ const DisplayStudents: FC<{}> = () => {
         from: history.location.pathname,
       });
     } else {
-      const urlParams = new URLSearchParams(window.location.search);
-      Util.setPathToBackButton(PAGES.HOME, history, urlParams);
+      Util.setPathToBackButton(PAGES.HOME, history);
     }
   };
   const onCreateNewStudent = () => {

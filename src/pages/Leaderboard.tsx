@@ -435,8 +435,7 @@ const Leaderboard: React.FC = () => {
             <BackButton
               // iconSize={"8vh"}
               onClicked={() => {
-                const urlParams = new URLSearchParams(window.location.search);
-                Util.setPathToBackButton(PAGES.HOME, history, urlParams);
+                Util.setPathToBackButton(PAGES.HOME, history);
               }}
             ></BackButton>
             <Box>
@@ -505,8 +504,7 @@ const Leaderboard: React.FC = () => {
                       await i18n.changeLanguage(tempLangCode);
                     }
                   }
-                  const urlParams = new URLSearchParams(window.location.search);
-                  Util.setPathToBackButton(PAGES.DISPLAY_STUDENT,history, urlParams);
+                  Util.setPathToBackButton(PAGES.DISPLAY_STUDENT,history);
                   // history.replace(PAGES.SELECT_MODE);
                 }}
               />

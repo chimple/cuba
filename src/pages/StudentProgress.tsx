@@ -47,8 +47,7 @@ const StudentProgress: React.FC = () => {
     course: Course;
   }
   const handleBackButton = () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    Util.setPathToBackButton(PAGES.PARENT, history, urlParams);
+    Util.setPathToBackButton(PAGES.PARENT, history);
   };
 
   async function inti() {

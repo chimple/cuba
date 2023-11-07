@@ -34,8 +34,7 @@ const ProfileHeader: React.FC = () => {
     <div className="header">
       <BackButton
         onClicked={() => {
-          const urlParams = new URLSearchParams(window.location.search);
-          Util.setPathToBackButton(PAGES.HOME, history, urlParams);
+          Util.setPathToBackButton(PAGES.HOME, history);
         }}
       />
 

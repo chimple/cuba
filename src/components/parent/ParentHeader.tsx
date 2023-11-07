@@ -22,8 +22,7 @@ const ParentHeader: React.FC<{
     <div id="parent-header-icons">
       <BackButton
         onClicked={() => {
-          const urlParams = new URLSearchParams(window.location.search);
-          Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history, urlParams);
+          Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
         }}
       ></BackButton>
       <div id="parent-header-middle-icons">

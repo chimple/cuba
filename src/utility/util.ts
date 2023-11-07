@@ -659,7 +659,8 @@ export class Util {
     }
   };
   
-  public static setPathToBackButton(path:string, history:any, url:any){
+  public static setPathToBackButton(path:string, history:any ){
+    const url = new URLSearchParams(window.location.search);
     if(url.get(CONTINUE)){
       history.replace(`${path}?${CONTINUE}=true`);
     }else{

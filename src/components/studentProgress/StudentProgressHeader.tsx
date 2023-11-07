@@ -28,8 +28,7 @@ const StudentProgressHeader: React.FC<{
       <BackButton
         //iconSize={"8vh"}
         onClicked={() => {
-          const urlParams = new URLSearchParams(window.location.search);
-          Util.setPathToBackButton(PAGES.PARENT, history, urlParams);
+          Util.setPathToBackButton(PAGES.PARENT, history);
         }}
       ></BackButton>
       <div id="student-progress-header-middle-icons">

@@ -424,8 +424,7 @@ const Parent: React.FC = () => {
   };
 
   const handleBackButton = () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history, urlParams);
+    Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
   };
 
   useEffect(() => {

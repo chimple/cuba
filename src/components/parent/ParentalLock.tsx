@@ -43,8 +43,7 @@ const ParentalLock: React.FC<{
       console.log("User swipeDirection", swipeDirection);
 
       if (swipeDirection.length > 0 && userDirection === swipeDirection) {
-        const urlParams = new URLSearchParams(window.location.search);
-        Util.setPathToBackButton(PAGES.PARENT, history, urlParams);
+        Util.setPathToBackButton(PAGES.PARENT, history);
       } else {
         console.log('not matched');
       }

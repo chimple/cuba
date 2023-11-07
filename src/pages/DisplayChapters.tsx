@@ -290,8 +290,7 @@ const DisplayChapters: FC<{}> = () => {
         localStorageData.stage = STAGES.SUBJECTS;
         addDataToLocalStorage();
         localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
-        const urlParams = new URLSearchParams(window.location.search);
-        Util.setPathToBackButton(PAGES.HOME, history, urlParams);
+        Util.setPathToBackButton(PAGES.HOME, history);
         break;
       case STAGES.LESSONS:
         delete localData.lessons;
