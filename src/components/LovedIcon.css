@@ -1,21 +1,31 @@
 .fav-icon {
-  float: left;
+  /* float: left;
   position: relative;
   background-color: rgb(220, 213, 213);
   height: 3vw;
   width: 3vw;
   top: -115%;
   left: 88%;
-  border-radius: 30vh;
+  border-radius: 30vh; */
+  background-color: rgb(220, 213, 213);
+  height: clamp(3vw, 8vh, 5vw);
+  width: clamp(3vw, 8vh, 5vw);
+  /* top: -115%; */
+  /* left: 88%; */
+  border-radius: 30vh
 }
 
 .fav-icon-image {
   color: red;
-  height: 3.1vw;
-  width: 2.7vw;
+  /* height: 3.1vw;
+  width: 2.7vw; */
+  /* height: clamp(7vh, 10vh, 8vh);
+  width: clamp(4vh, 5vh, 6vh); */
+  height: clamp(8vh, 11vh, 8vh);
+  width: clamp(5vh, 6vh, 6vh);
 }
 
-.with-chapter-title {
+/* .with-chapter-title {
   float: left;
   position: relative;
   background-color: rgb(220, 213, 213);
@@ -24,8 +34,13 @@
   top: -115%;
   left: 88%;
   border-radius: 30vh;
-}
+} */
 
 .lovedicon {
-  margin-bottom: -3vw;
+  /* margin-bottom: -3vw; */
+  display: flex;
+  position: relative;
+  justify-content: flex-end;
+  bottom: 10vh;
+  right: 2vh;
 }
