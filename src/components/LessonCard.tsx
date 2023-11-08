@@ -29,7 +29,7 @@ const LessonCard: React.FC<{
   isLoved: boolean | undefined;
   lessonData: Lesson[];
   startIndex: number;
-  showChapterName : boolean;
+  showChapterName: boolean;
 }> = ({
   width,
   height,
@@ -80,26 +80,23 @@ const LessonCard: React.FC<{
       return;
     }
     const api = ServiceConfig.getI().apiHandler;
-      const courses =
-        await api.getCoursesForParentsStudent(
-          currentStudent
-        );
-      console.log("Student Courses ", courses);
+    const courses = await api.getCoursesForParentsStudent(currentStudent);
+    console.log("Student Courses ", courses);
 
-      let currentCourse = courses.find(
-        (course) => lesson.cocosSubjectCode === course.courseCode
-      );
+    let currentCourse = courses.find(
+      (course) => lesson.cocosSubjectCode === course.courseCode
+    );
 
-      console.log("current Course ", currentCourse);
-      if (!currentCourse) {
-        let lessonCourse = await api.getCourseFromLesson(lesson);
-        if (!!lessonCourse) {
-          console.log("current Course from all courses ", lessonCourse);
-          setCurrentCourse(lessonCourse)
-        }
-      } else {
-        setCurrentCourse(currentCourse);
+    console.log("current Course ", currentCourse);
+    if (!currentCourse) {
+      let lessonCourse = await api.getCourseFromLesson(lesson);
+      if (!!lessonCourse) {
+        console.log("current Course from all courses ", lessonCourse);
+        setCurrentCourse(lessonCourse);
       }
+    } else {
+      setCurrentCourse(currentCourse);
+    }
   };
 
   // const lessonCardColor =
@@ -235,8 +232,11 @@ const LessonCard: React.FC<{
               </div>
             ) : isPlayed ? (
               showScoreCard ? (
-                <div id="lesson-card-score">
-                  <LessonCardStarIcons score={score}></LessonCardStarIcons>
+                <div>
+                  <div id="lesson-card-score">
+                    <LessonCardStarIcons score={score}></LessonCardStarIcons>
+                  </div>
+                  {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
                 </div>
               ) : (
                 <></>
@@ -245,15 +245,21 @@ const LessonCard: React.FC<{
               <div />
             )}
           </div>
+          {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
         </div>
-        {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />}
+        {isLoved && (
+          <LovedIcon
+            isLoved={isLoved}
+            hasChapterTitle={!!lesson.chapterTitle && showChapterName}
+          />
+        )}
       </div>
-      {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
-      {showChapterName && lesson.chapterTitle &&
-        <div id="chapter-title">
-          {lesson.chapterTitle}
-        </div>
-      }
+      <div>
+        {showText ? <p id={`lesson-card-name${isLoved ? '-fav-icon' : ''}`}>{t(lesson?.title)}</p> : null}
+        {showChapterName && lesson.chapterTitle && (
+          <div id={`chapter-title${isLoved ? '-fav-icon' : ''}`}>{lesson.chapterTitle}</div>
+        )}
+      </div>
     </IonCard>
   );
 };
