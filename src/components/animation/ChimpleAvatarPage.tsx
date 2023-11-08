@@ -93,7 +93,7 @@ const ChimpleAvatarPage: FC<{
 
   useEffect(() => {
     fetchCoursesForStudent();
-    console.log("btnDisabled in useEffect" ,buttonsDisabled);
+    console.log("btnDisabled in useEffect", buttonsDisabled);
     setButtonsDisabled(true);
   }, [currentMode]);
 
@@ -115,8 +115,7 @@ const ChimpleAvatarPage: FC<{
         ? JSON.parse(recommendationsInLocal)
         : {};
       // console.log("Avatar data", recommendations);
-
-      setCurrentCourse(allCourses[0]);
+      if (!currentCourse) setCurrentCourse(allCourses[0]);
     }
   };
 
@@ -138,10 +137,10 @@ const ChimpleAvatarPage: FC<{
         // console.log("AvatarModes.Welcome", choice);
         // cChapter = await getRecommendedChapter(cCourse);
         // setCurrentChapter(cChapter);
-    console.log("btnDisabled in Welcome" ,buttonsDisabled);
+        console.log("btnDisabled in Welcome", buttonsDisabled);
 
         if (choice) {
-        setButtonsDisabled(false);
+          setButtonsDisabled(false);
 
           rive?.play("Success");
           cCourse = await getRecommendedCourse();
@@ -151,21 +150,20 @@ const ChimpleAvatarPage: FC<{
         setButtonsDisabled(true);
 
         break;
-        
+
       case AvatarModes.CourseSuggestion:
         // console.log("AvatarModes.CourseSuggestion", choice);
-    console.log("btnDisabled in course" ,buttonsDisabled);
-
+        console.log("btnDisabled in course", buttonsDisabled);
 
         if (choice) {
-        setButtonsDisabled(false);
+          setButtonsDisabled(false);
 
           rive?.play("Success");
           cChapter = await getRecommendedChapter(cCourse || currentCourse);
           setCurrentChapter(cChapter);
           setCurrentMode(AvatarModes.ChapterSuggestion);
         } else {
-         setButtonsDisabled(false);
+          setButtonsDisabled(false);
           rive?.play("Fail");
           cCourse = await getRecommendedCourse();
           setCurrentCourse(cCourse);
@@ -174,11 +172,10 @@ const ChimpleAvatarPage: FC<{
 
         break;
       case AvatarModes.ChapterSuggestion:
-    console.log("btnDisabled in chapter" ,buttonsDisabled);
-
+        console.log("btnDisabled in chapter", buttonsDisabled);
 
         if (choice) {
-        setButtonsDisabled(false);
+          setButtonsDisabled(false);
 
           rive?.play("Success");
           cLesson = await getRecommendedLesson(
@@ -188,7 +185,7 @@ const ChimpleAvatarPage: FC<{
           setCurrentLesson(cLesson);
           setCurrentMode(AvatarModes.LessonSuggestion);
         } else {
-         setButtonsDisabled(false);
+          setButtonsDisabled(false);
 
           rive?.play("Fail");
           cChapter = await getRecommendedChapter(cCourse || currentCourse);
@@ -198,11 +195,10 @@ const ChimpleAvatarPage: FC<{
 
         break;
       case AvatarModes.LessonSuggestion:
-    console.log("btnDisabled in lesson" ,buttonsDisabled);
-
+        console.log("btnDisabled in lesson", buttonsDisabled);
 
         if (choice) {
-        setButtonsDisabled(false);
+          setButtonsDisabled(false);
 
           rive?.play("Success");
           if (currentLesson && currentCourse) {
@@ -458,7 +454,7 @@ const ChimpleAvatarPage: FC<{
                 <RectangularTextButton
                   buttonWidth={11}
                   buttonHeight={8}
-                  padding = {1}
+                  padding={1}
                   text={button.label}
                   fontSize={3.2}
                   // onHeaderIconClick={button.onClick()}
@@ -467,7 +463,9 @@ const ChimpleAvatarPage: FC<{
                     button.onClick();
                   }}
                   userChoice={userChoice}
-                  className={button.label === 'No' ? 'red-button' : 'green-button'}
+                  className={
+                    button.label === "No" ? "red-button" : "green-button"
+                  }
                 ></RectangularTextButton>
               </div>
             ))}
