@@ -361,7 +361,7 @@ const ChimpleAvatarPage: FC<{
     case AvatarModes.CourseSuggestion:
       const x1 = currentCourse?.title || "";
 
-      message = t(`Do you want to play x1 course?`).replace("x1", x1);
+      message = t(`Do you want to play 'x1' course?`).replace("x1", x1);
       // setButtons([
       //   { label: t("Yes"), onClick: () => handleButtonClick(true) },
       //   { label: t("No"), onClick: () => handleButtonClick(false) },
@@ -373,7 +373,7 @@ const ChimpleAvatarPage: FC<{
       break;
     case AvatarModes.ChapterSuggestion:
       const x2 = currentChapter?.title || "";
-      message = t(`Do you want to play 'x2 chapter?`).replace("x2", x2);
+      message = t(`Do you want to play 'x2' chapter?`).replace("x2", x2);
 
       // setButtons([
       //   { label: t("Yes"), onClick: () => handleButtonClick(true) },
@@ -386,7 +386,7 @@ const ChimpleAvatarPage: FC<{
       break;
     case AvatarModes.LessonSuggestion:
       const x3 = currentLesson?.title || "";
-      message = t(`Do you want to play x3 lesson?`).replace("x3", x3);
+      message = t(`Do you want to play 'x3' lesson?`).replace("x3", x3);
 
       // setButtons([
       //   { label: t("Yes"), onClick: () => handleButtonClick(true) },
