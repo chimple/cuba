@@ -22,9 +22,14 @@ import {
   IS_MIGRATION_CHECKED,
   SOUND,
   MUSIC,
+  CONTINUE,
   // APP_LANG,
 } from "../common/constants";
-import { Chapter as curriculamInterfaceChapter, Course as curriculamInterfaceCourse , Lesson } from "../interface/curriculumInterfaces";
+import {
+  Chapter as curriculamInterfaceChapter,
+  Course as curriculamInterfaceCourse,
+  Lesson,
+} from "../interface/curriculumInterfaces";
 import Course1 from "../models/course";
 import { GUIDRef } from "../interface/modelInterfaces";
 import Result from "../models/result";
@@ -50,11 +55,14 @@ import {
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { RateApp } from "capacitor-rate-app";
 import { getFunctions, httpsCallable } from "firebase/functions";
-import { Chapter, CollectionIds, StudentLessonResult} from "../common/courseConstants";
+import {
+  Chapter,
+  CollectionIds,
+  StudentLessonResult,
+} from "../common/courseConstants";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { Router } from "react-router-dom";
 import lesson from "../models/lesson";
-
 
 declare global {
   interface Window {
@@ -79,20 +87,23 @@ export class Util {
     return _courses;
   }
 
-  
-
-  public static async getNextLessonFromGivenChapter(chapters, currentChapterId, currentLessonId, ChapterDetail) {
+  public static async getNextLessonFromGivenChapter(
+    chapters,
+    currentChapterId,
+    currentLessonId,
+    ChapterDetail
+  ) {
     const api = ServiceConfig.getI().apiHandler;
     // let ChapterDetail: Chapter | undefined;
     const currentChapter = ChapterDetail;
-   const currentStudentDocId: string = Util.getCurrentStudent()?.docId || '';
+    const currentStudentDocId: string = Util.getCurrentStudent()?.docId || "";
 
     console.log("currentChapter", currentChapter);
 
     if (!currentChapter) return undefined;
     let currentLessonIndex;
 
-    currentChapter.lessons = Util.convertDoc(currentChapter.lessons)
+    currentChapter.lessons = Util.convertDoc(currentChapter.lessons);
     const cChapter = await api.getLessonsForChapter(currentChapter);
 
     for (let i = 0; i < cChapter.length - 1; i++) {
@@ -108,10 +119,11 @@ export class Util {
     console.log("currentLessonIndex", currentLessonIndex);
 
     if (currentLessonIndex < currentChapter.lessons.length - 1) {
-
       let nextLesson = currentChapter.lessons[currentLessonIndex + 1];
       let lessonId = nextLesson.id;
-      let studentResult: { [lessonDocId: string]: StudentLessonResult } | undefined = {};
+      let studentResult:
+        | { [lessonDocId: string]: StudentLessonResult }
+        | undefined = {};
       const studentProfile = await api.getStudentResult(currentStudentDocId);
       studentResult = studentProfile?.lessons;
 
@@ -121,14 +133,15 @@ export class Util {
         nextLesson = currentChapter.lessons[currentLessonIndex + 1];
         lessonId = nextLesson.id;
       }
-      const lessonObj = await api.getLesson(nextLesson.id) as lesson;
+      const lessonObj = (await api.getLesson(nextLesson.id)) as lesson;
       console.log("lessonObj", lessonObj);
       if (lessonObj) {
         return lessonObj;
       }
     }
 
-    const nextChapterIndex = chapters.findIndex(chapter => chapter.id === currentChapterId) + 1;
+    const nextChapterIndex =
+      chapters.findIndex((chapter) => chapter.id === currentChapterId) + 1;
     if (nextChapterIndex < chapters.length) {
       const nextChapter = chapters[nextChapterIndex];
       const firstLessonId = nextChapter.lessons[0];
@@ -137,7 +150,7 @@ export class Util {
       }
       return undefined;
     }
-  };
+  }
 
   public static convertDoc(refs: any[]): DocumentReference[] {
     const data: DocumentReference[] = [];
@@ -395,8 +408,6 @@ export class Util {
     });
   }
 
-  
-
   public static killCocosGame(): void {
     if (!window.cc) {
       return;
@@ -621,25 +632,42 @@ export class Util {
   }
 
   public static onAppStateChange = ({ isActive }) => {
-    if (
-      Capacitor.isNativePlatform() &&
-      isActive &&
-      window.location.pathname !== PAGES.GAME &&
-      window.location.pathname !== PAGES.LOGIN&&
-      window.location.pathname !== PAGES.EDIT_STUDENT
-    ) {
-      if (window.location.pathname === PAGES.DISPLAY_SUBJECTS || window.location.pathname === PAGES.DISPLAY_CHAPTERS || PAGES.EDIT_STUDENT) {
-        const url = new URL(window.location.toString());
+    const url = new URL(window.location.toString());
+
+    if (isActive) {
+      if (
+        Capacitor.isNativePlatform() &&
+        url.searchParams.get(CONTINUE) === "true" &&
+        url.pathname !== PAGES.GAME &&
+        url.pathname !== PAGES.LOGIN &&
+        url.pathname !== PAGES.EDIT_STUDENT
+      ) {
+        if (
+          url.pathname === PAGES.DISPLAY_SUBJECTS ||
+          url.pathname === PAGES.DISPLAY_CHAPTERS
+        ) {
+          url.searchParams.set("isReload", "true");
+        }
+        url.searchParams.delete(CONTINUE);
+        window.history.pushState(window.history.state, "", url.toString());
+        window.location.reload();
+      } else {
         url.searchParams.set("isReload", "true");
+        url.searchParams.delete(CONTINUE);
         window.history.pushState(window.history.state, "", url.toString());
       }
-      window.location.reload();
-    } else if (isActive) {
-      const url = new URL(window.location.toString());
-      url.searchParams.set("isReload", "true");
-      window.history.pushState(window.history.state, "", url.toString());
     }
   };
+  
+  public static setPathToBackButton(path:string, history:any ){
+    const url = new URLSearchParams(window.location.search);
+    if(url.get(CONTINUE)){
+      history.replace(`${path}?${CONTINUE}=true`);
+    }else{
+      history.replace(path);
+    }
+  }
+
   public static setCurrentStudent = async (
     student: User,
     languageCode: string | undefined = undefined,

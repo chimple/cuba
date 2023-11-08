@@ -8,7 +8,8 @@ import {
   PAGES,
   PARENTHEADERLIST,
   MODES,
-  LANGUAGE
+  LANGUAGE,
+  CONTINUE,
 } from "../common/constants";
 // import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -237,7 +238,10 @@ const Leaderboard: React.FC = () => {
             <img
               className="avatar-img"
               src={
-                (studentMode === MODES.SCHOOL && currentStudent?.image) || ("assets/avatars/" + (currentStudent?.avatar ?? AVATARS[0]) + ".png")
+                (studentMode === MODES.SCHOOL && currentStudent?.image) ||
+                "assets/avatars/" +
+                  (currentStudent?.avatar ?? AVATARS[0]) +
+                  ".png"
               }
               alt=""
             />
@@ -370,14 +374,16 @@ const Leaderboard: React.FC = () => {
                         }}
                         id="leaderboard-right-UI-content"
                       >
-                        {i === 1 ?
+                        {i === 1 ? (
                           <p id="leaderboard-profile-name">
-                            {Number(currentUserDataContent[0][1]) === headerRowIndicator && currentStudent?.name
+                            {Number(currentUserDataContent[0][1]) ===
+                              headerRowIndicator && currentStudent?.name
                               ? currentStudent?.name
-                              : d
-                            }
+                              : d}
                           </p>
-                          : d}
+                        ) : (
+                          d
+                        )}
                       </p>
                     </IonCol>
                   );
@@ -429,7 +435,7 @@ const Leaderboard: React.FC = () => {
             <BackButton
               // iconSize={"8vh"}
               onClicked={() => {
-                history.replace(PAGES.HOME);
+                Util.setPathToBackButton(PAGES.HOME, history);
               }}
             ></BackButton>
             <Box>
@@ -494,11 +500,11 @@ const Leaderboard: React.FC = () => {
                     );
                     if (langDoc) {
                       const tempLangCode = langDoc.code ?? LANG.ENGLISH;
-                      localStorage.setItem(LANGUAGE, tempLangCode)
+                      localStorage.setItem(LANGUAGE, tempLangCode);
                       await i18n.changeLanguage(tempLangCode);
                     }
                   }
-                  history.replace(PAGES.DISPLAY_STUDENT);
+                  Util.setPathToBackButton(PAGES.DISPLAY_STUDENT,history);
                   // history.replace(PAGES.SELECT_MODE);
                 }}
               />

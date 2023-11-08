@@ -4,7 +4,7 @@ import { SyntheticEvent } from "react";
 import Loading from "../components/Loading";
 import "../components/studentProgress/CustomAppBar.css";
 import "./StudentProgress.css";
-import { PAGES } from "../common/constants";
+import { CONTINUE, PAGES } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import StudentProgressHeader from "../components/studentProgress/StudentProgressHeader";
 import Course from "../models/course";
@@ -47,7 +47,7 @@ const StudentProgress: React.FC = () => {
     course: Course;
   }
   const handleBackButton = () => {
-    history.replace(PAGES.PARENT);
+    Util.setPathToBackButton(PAGES.PARENT, history);
   };
 
   async function inti() {

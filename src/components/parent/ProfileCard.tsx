@@ -6,7 +6,7 @@ import { MdModeEditOutline } from "react-icons/md";
 import { FcPlus } from "react-icons/fc";
 import { HiPlusCircle } from "react-icons/hi";
 import User from "../../models/user";
-import { ACTION, AVATARS, EVENTS, PAGES, MODES } from "../../common/constants";
+import { ACTION, AVATARS, EVENTS, PAGES, MODES, CONTINUE } from "../../common/constants";
 import { Util } from "../../utility/util";
 import DialogBoxButtons from "./DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
@@ -98,7 +98,7 @@ const ProfileCard: React.FC<{
             // const api = ServiceConfig.getI().apiHandler;
             // api.currentStudent = user;
 
-            history.replace(PAGES.STUDENT_PROGRESS);
+            Util.setPathToBackButton(PAGES.STUDENT_PROGRESS, history);
           }}
         >
           {t("Progress Report")}

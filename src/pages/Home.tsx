@@ -18,6 +18,7 @@ import {
   MODES,
   CURRENT_MODE,
   RECOMMENDATIONS,
+  CONTINUE,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -90,7 +91,7 @@ const Home: FC = () => {
   //const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [currentHeader, setCurrentHeader] = useState<any>(() => {
     //Initialize with the value from local storage (if available)
-    return localStorage.getItem('currentHeader') || HOMEHEADERLIST.HOME;
+    return localStorage.getItem("currentHeader") || HOMEHEADERLIST.HOME;
   });
   const [lessonsScoreMap, setLessonsScoreMap] = useState<any>();
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
@@ -122,18 +123,23 @@ const Home: FC = () => {
     setValue(SUBTAB.SUGGESTIONS);
     fetchData();
     const urlParams = new URLSearchParams(location.search);
-    
-    if (!!urlParams.get("continue")) {
+
+    if (!!urlParams.get(CONTINUE)) {
+      urlParams.delete(CONTINUE);
+      App.addListener("appStateChange", Util.onAppStateChange);
       setCurrentHeader(currentHeader);
     }
   }, []);
 
   useEffect(() => {
-    setCurrentHeader(currentHeader === HOMEHEADERLIST.PROFILE?HOMEHEADERLIST.HOME:currentHeader);
-    localStorage.setItem('currentHeader', currentHeader);
+    setCurrentHeader(
+      currentHeader === HOMEHEADERLIST.PROFILE
+        ? HOMEHEADERLIST.HOME
+        : currentHeader
+    );
+    localStorage.setItem("currentHeader", currentHeader);
   }, [currentHeader]);
-  
-  
+
   const fetchData = async () => {
     setIsLoading(true);
     const lessonResult = await setCourse(HOMEHEADERLIST.HOME);
@@ -142,7 +148,7 @@ const Home: FC = () => {
     if (allLessonIds) setValidLessonIds(allLessonIds);
     setIsLoading(false);
   };
-  
+
   function urlOpenListenerEvent() {
     App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
       const slug = event.url.split(".cc").pop();
@@ -374,7 +380,9 @@ const Home: FC = () => {
 
   const currentStudentDocId = Util.getCurrentStudent()?.docId;
   const storeRecommendationsInLocalStorage = (recommendations: any[]) => {
-    const recommendationsInLocal = localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`);
+    const recommendationsInLocal = localStorage.getItem(
+      `${currentStudentDocId}-${RECOMMENDATIONS}`
+    );
     let existingRecommendations: any[] = [];
 
     if (recommendationsInLocal !== null) {
@@ -391,17 +399,15 @@ const Home: FC = () => {
         }
       }
 
-      localStorage.setItem(`${currentStudentDocId}-${RECOMMENDATIONS}`, JSON.stringify(lessonMap));
+      localStorage.setItem(
+        `${currentStudentDocId}-${RECOMMENDATIONS}`,
+        JSON.stringify(lessonMap)
+      );
       setDataCourse(existingRecommendations.concat(lessonMap) as Lesson[]);
-
     } else {
       setDataCourse(existingRecommendations);
     }
   };
-
-
-
-
 
   let reqLes: Lesson[] = [];
   async function getRecommendationLessons(
@@ -442,8 +448,8 @@ const Home: FC = () => {
     console.log(currMode);
     let sortLessonResultMap:
       | {
-        [lessonDocId: string]: StudentLessonResult;
-      }
+          [lessonDocId: string]: StudentLessonResult;
+        }
       | undefined;
     const res = await api.getStudentResult(currentStudent.docId);
     console.log("tempResultLessonMap = res;", JSON.stringify(res));
@@ -608,7 +614,7 @@ const Home: FC = () => {
       headerIconList.push(element);
     });
     setCurrentHeader(selectedHeader);
-    localStorage.setItem('currentHeader', selectedHeader);
+    localStorage.setItem("currentHeader", selectedHeader);
     localStorage.setItem(PREVIOUS_SELECTED_COURSE(), selectedHeader);
     DEFAULT_HEADER_ICON_CONFIGS.get(selectedHeader);
     switch (selectedHeader) {
@@ -626,7 +632,7 @@ const Home: FC = () => {
         }
         break;
       case HOMEHEADERLIST.PROFILE:
-        history.replace(PAGES.LEADERBOARD);
+        Util.setPathToBackButton(PAGES.LEADERBOARD, history);
         break;
         // case HOMEHEADERLIST.SEARCH:
         //   history.replace(PAGES.SEARCH);
@@ -784,18 +790,18 @@ const Home: FC = () => {
                 }}
               ></ChimpleAvatarPage>
             ) : // <div>
-              //   <LessonSlider
-              //     lessonData={dataCourse}
-              //     isHome={true}
-              //     course={undefined}
-              //     lessonsScoreMap={lessonResultMap || {}}
-              //     startIndex={0}
-              //     showSubjectName={true}
-              //     showChapterName={true}
-              //   />
-              // </div>
-              // <div style={{ marginTop: "2.6%" }}></div>
-              null}
+            //   <LessonSlider
+            //     lessonData={dataCourse}
+            //     isHome={true}
+            //     course={undefined}
+            //     lessonsScoreMap={lessonResultMap || {}}
+            //     startIndex={0}
+            //     showSubjectName={true}
+            //     showChapterName={true}
+            //   />
+            // </div>
+            // <div style={{ marginTop: "2.6%" }}></div>
+            null}
 
             {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
 
@@ -803,7 +809,8 @@ const Home: FC = () => {
 
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
 
-            {(value === SUBTAB.SUGGESTIONS && currentHeader === HOMEHEADERLIST.SUGGESTIONS )? (
+            {value === SUBTAB.SUGGESTIONS &&
+            currentHeader === HOMEHEADERLIST.SUGGESTIONS ? (
               <div>
                 <LessonSlider
                   lessonData={dataCourse}
@@ -816,37 +823,39 @@ const Home: FC = () => {
                 />
               </div>
             ) : // <div style={{ marginTop: "2.6%" }}></div>
-              null}
+            null}
 
-            {(value === SUBTAB.FAVOURITES && currentHeader === HOMEHEADERLIST.SUGGESTIONS )&& (
-              <div>
-                <LessonSlider
-                  lessonData={favouriteLessons}
-                  isHome={true}
-                  course={undefined}
-                  lessonsScoreMap={lessonResultMap || {}}
-                  startIndex={0}
-                  showSubjectName={true}
-                  showChapterName={true}
-                  onEndReached={handleLoadMoreLessons}
-                />
-              </div>
-            )}
+            {value === SUBTAB.FAVOURITES &&
+              currentHeader === HOMEHEADERLIST.SUGGESTIONS && (
+                <div>
+                  <LessonSlider
+                    lessonData={favouriteLessons}
+                    isHome={true}
+                    course={undefined}
+                    lessonsScoreMap={lessonResultMap || {}}
+                    startIndex={0}
+                    showSubjectName={true}
+                    showChapterName={true}
+                    onEndReached={handleLoadMoreLessons}
+                  />
+                </div>
+              )}
 
-            {(value === SUBTAB.HISTORY && currentHeader === HOMEHEADERLIST.SUGGESTIONS) && (
-              <div>
-                <LessonSlider
-                  lessonData={historyLessons}
-                  isHome={true}
-                  course={undefined}
-                  lessonsScoreMap={lessonResultMap || {}}
-                  startIndex={0}
-                  showSubjectName={true}
-                  showChapterName={true}
-                  onEndReached={handleLoadMoreHistoryLessons}
-                />
-              </div>
-            )}
+            {value === SUBTAB.HISTORY &&
+              currentHeader === HOMEHEADERLIST.SUGGESTIONS && (
+                <div>
+                  <LessonSlider
+                    lessonData={historyLessons}
+                    isHome={true}
+                    course={undefined}
+                    lessonsScoreMap={lessonResultMap || {}}
+                    startIndex={0}
+                    showSubjectName={true}
+                    showChapterName={true}
+                    onEndReached={handleLoadMoreHistoryLessons}
+                  />
+                </div>
+              )}
 
             {/* To show lesson cards after clicking on header icon  */}
 
@@ -945,8 +954,7 @@ const Home: FC = () => {
                         onClick={() => {
                           setCurrentHeader(HOMEHEADERLIST.SUGGESTIONS);
                           setValue(SUBTAB.SUGGESTIONS);
-                        }
-                        }
+                        }}
                       />
                       <Tab
                         id="home-page-sub-tab"
@@ -954,8 +962,7 @@ const Home: FC = () => {
                         onClick={() => {
                           setCurrentHeader(HOMEHEADERLIST.SUGGESTIONS);
                           setValue(SUBTAB.FAVOURITES);
-                        }
-                        }
+                        }}
                       />
                       <Tab
                         id="home-page-sub-tab"
@@ -963,8 +970,7 @@ const Home: FC = () => {
                         onClick={() => {
                           setCurrentHeader(HOMEHEADERLIST.SUGGESTIONS);
                           setValue(SUBTAB.HISTORY);
-                        }
-                        }
+                        }}
                       />
                     </Tabs>
                   </Box>
@@ -979,4 +985,3 @@ const Home: FC = () => {
   );
 };
 export default Home;
-
