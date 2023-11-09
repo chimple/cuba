@@ -247,6 +247,11 @@ export class Util {
   }
 
   public static async downloadZipBundle(lessonIds: string[]): Promise<boolean> {
+    const storeId = (id: string, storageKey: string) => {
+      const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
+      const updatedItems = [...storedItems, id];
+      localStorage.setItem(storageKey, JSON.stringify(updatedItems));
+    };
     for (let lessonId of lessonIds) {
       try {
         if (!Capacitor.isNativePlatform()) return true;
@@ -345,6 +350,7 @@ export class Util {
           });
 
           console.log("un  zip done");
+          storeId(lessonId, "lessonItems");
         }
         console.log("zip ", zip);
       } catch (error) {
@@ -356,6 +362,52 @@ export class Util {
       }
     }
     return true;
+  }
+  public static async deleteDownloadedLesson(
+    lessonId: string
+  ): Promise<boolean> {
+    try {
+      if (!Capacitor.isNativePlatform()) return true;
+
+      await Filesystem.rmdir({
+        path: `${lessonId}`,
+        directory: Directory.External,
+        recursive: true,
+      });
+      console.log("lessonIDD", lessonId);
+    } catch (error) {
+      console.log("Error deleting lesson:", error);
+    }
+    return true;
+  }
+
+  public static async checkDownloadedLessons() {
+    try {
+      if (!Capacitor.isNativePlatform()) return null;
+
+      const contents = await Filesystem.readdir({
+        path: "",
+        directory: Directory.External,
+      });
+      const storeId = (id: string, storageKey: string) => {
+        const storedItems = JSON.parse(
+          localStorage.getItem(storageKey) || "[]"
+        );
+        const updatedItems = [...storedItems, id];
+        localStorage.setItem(storageKey, JSON.stringify(updatedItems));
+      };
+      const folderNamesArray: string[] = [];
+      const folderNames = contents.files;
+      for (let i = 0; i < folderNames.length; i++) {
+        console.log("Processing folder:", folderNames[i].name);
+        storeId(folderNames[i].name, "lessonItems");
+        folderNamesArray.push(folderNames[i].name);
+      }
+      return folderNamesArray;
+    } catch (error) {
+      console.error("Error listing folders:", error);
+    }
+    return null;
   }
 
   // To parse this data:
@@ -658,12 +710,12 @@ export class Util {
       }
     }
   };
-  
-  public static setPathToBackButton(path:string, history:any ){
+
+  public static setPathToBackButton(path: string, history: any) {
     const url = new URLSearchParams(window.location.search);
-    if(url.get(CONTINUE)){
+    if (url.get(CONTINUE)) {
       history.replace(`${path}?${CONTINUE}=true`);
-    }else{
+    } else {
       history.replace(path);
     }
   }

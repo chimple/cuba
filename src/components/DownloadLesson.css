@@ -1,0 +1,28 @@
+.downloadButton {
+  height: clamp(3vw, 8vh, 5vw);
+  width: clamp(3vw, 8vh, 5vw);
+  border-radius: 30vh;
+}
+
+.img {
+  height: clamp(8vh, 11vh, 8vh);
+  width: clamp(5vh, 6vh, 6vh);
+}
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgb(159, 152, 152);
+  border-top-color: #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

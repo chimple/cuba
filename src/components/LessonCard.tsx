@@ -13,6 +13,7 @@ import { t } from "i18next";
 import LovedIcon from "./LovedIcon";
 import SelectIconImage from "./displaySubjects/SelectIconImage";
 import { Util } from "../utility/util";
+import DownloadLesson from "./DownloadLesson";
 
 const LessonCard: React.FC<{
   width: string;
@@ -247,6 +248,9 @@ const LessonCard: React.FC<{
           </div>
           {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
         </div>
+        <div className="icons">
+          <DownloadLesson lessonID={lesson.id} />
+        </div>
         {isLoved && (
           <LovedIcon
             isLoved={isLoved}
@@ -254,10 +258,16 @@ const LessonCard: React.FC<{
           />
         )}
       </div>
-      <div>
-        {showText ? <p id={`lesson-card-name${isLoved ? '-fav-icon' : ''}`}>{t(lesson?.title)}</p> : null}
+      <div className="titles">
+        {showText ? (
+          <p id={`lesson-card-name${isLoved ? "-fav-icon" : ""}`}>
+            {t(lesson?.title)}
+          </p>
+        ) : null}
         {showChapterName && lesson.chapterTitle && (
-          <div id={`chapter-title${isLoved ? '-fav-icon' : ''}`}>{lesson.chapterTitle}</div>
+          <div id={`chapter-title${isLoved ? "-fav-icon" : ""}`}>
+            {lesson.chapterTitle}
+          </div>
         )}
       </div>
     </IonCard>

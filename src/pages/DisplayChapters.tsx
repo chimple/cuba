@@ -29,6 +29,7 @@ import Class from "../models/class";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
 import { Timestamp } from "firebase/firestore";
+import { ToastContainer } from "react-toastify";
 
 const localData: any = {};
 let localStorageData: any = {};
@@ -80,7 +81,9 @@ const DisplayChapters: FC<{}> = () => {
       if (currentCourse) {
         setIsLoading(true);
         const getLocalGradeMap = async () => {
-          const { grades } = await api.getDifferentGradesForCourse(currentCourse);
+          const { grades } = await api.getDifferentGradesForCourse(
+            currentCourse
+          );
           localData.gradesMap = { grades, courses: [currentCourse] };
           localStorageData.gradesMap = localData.gradesMap;
           addDataToLocalStorage();
@@ -94,7 +97,6 @@ const DisplayChapters: FC<{}> = () => {
     console.log("chapters", currentCourse);
     console.log("local grade map", localGradeMap);
   }, [getCourseByUrl, localGradeMap, currentCourse]);
-
 
   const init = async () => {
     const urlParams = new URLSearchParams(location.search);
@@ -138,18 +140,25 @@ const DisplayChapters: FC<{}> = () => {
 
       setIsLoading(false);
     } else if (!!urlParams.get("isReload")) {
-
       let strLocalStoreData = localStorage.getItem(DISPLAY_SUBJECTS_STORE);
       if (!!strLocalStoreData) {
         localStorageData = JSON.parse(strLocalStoreData);
 
         if (!!localStorageData.courses) {
-          let tmpCourses: Course[] = Util.convertCourses(localStorageData.courses);
+          let tmpCourses: Course[] = Util.convertCourses(
+            localStorageData.courses
+          );
           localData.courses = tmpCourses;
           setCourses(tmpCourses);
-          if (!!localStorageData.stage && localStorageData.stage !== STAGES.SUBJECTS && !!localStorageData.currentCourseId) {
+          if (
+            !!localStorageData.stage &&
+            localStorageData.stage !== STAGES.SUBJECTS &&
+            !!localStorageData.currentCourseId
+          ) {
             setStage(localStorageData.stage);
-            let cc: Course = localData.courses.find(cour => localStorageData.currentCourseId === cour.docId)
+            let cc: Course = localData.courses.find(
+              (cour) => localStorageData.currentCourseId === cour.docId
+            );
 
             let _localMap = getLocalGradeMap();
 
@@ -161,25 +170,26 @@ const DisplayChapters: FC<{}> = () => {
                   (course) => course.grade.id === localData.currentGrade.docId
                 );
 
-                if (!!tmpCurrentCourse)
-                  cc = tmpCurrentCourse;
+                if (!!tmpCurrentCourse) cc = tmpCurrentCourse;
               }
-            };
+            }
 
             localData.currentCourse = cc;
             setCurrentCourse(cc);
 
             if (!!localStorageData.currentChapterId) {
-              let cChap: Chapter = localData.currentCourse.chapters.find(chap => localStorageData.currentChapterId === chap.id)
+              let cChap: Chapter = localData.currentCourse.chapters.find(
+                (chap) => localStorageData.currentChapterId === chap.id
+              );
               localData.currentChapter = cChap;
               setCurrentChapter(cChap);
             }
 
             if (!!localStorageData.lessonResultMap) {
-              let tmpStdMap: { [lessonDocId: string]: StudentLessonResult } = localStorageData.lessonResultMap;
+              let tmpStdMap: { [lessonDocId: string]: StudentLessonResult } =
+                localStorageData.lessonResultMap;
               for (const value of Object.values(tmpStdMap)) {
-                if (!!value.course)
-                  value.course = Util.getRef(value.course);
+                if (!!value.course) value.course = Util.getRef(value.course);
               }
               localData.lessonResultMap = tmpStdMap;
               setLessonResultMap(tmpStdMap);
@@ -195,7 +205,9 @@ const DisplayChapters: FC<{}> = () => {
           }
         } else {
           await getCourses();
-          console.log("🚀 ~ file: DisplaySubjects.tsx:127 ~ init ~ getCourses:");
+          console.log(
+            "🚀 ~ file: DisplaySubjects.tsx:127 ~ init ~ getCourses:"
+          );
         }
       } else {
         await getCourses();
@@ -208,10 +220,12 @@ const DisplayChapters: FC<{}> = () => {
     getLocalGradeMap();
   };
 
-  function getLocalGradeMap(): {
-    grades: Grade[];
-    courses: Course[];
-  } | undefined {
+  function getLocalGradeMap():
+    | {
+        grades: Grade[];
+        courses: Course[];
+      }
+    | undefined {
     let map = localStorage.getItem(GRADE_MAP);
     if (!!map) {
       let _localMap: {
@@ -422,15 +436,18 @@ const DisplayChapters: FC<{}> = () => {
           currentCourse &&
           localGradeMap &&
           currentGrade && (
-            <SelectChapter
-              chapters={currentCourse.chapters}
-              onChapterChange={onChapterChange}
-              currentGrade={currentGrade}
-              grades={!!localGradeMap ? localGradeMap.grades : localGradeMap}
-              onGradeChange={onGradeChanges}
-              course={currentCourse}
-              currentChapterId={currentChapter?.id}
-            />
+            <div>
+              <SelectChapter
+                chapters={currentCourse.chapters}
+                onChapterChange={onChapterChange}
+                currentGrade={currentGrade}
+                grades={!!localGradeMap ? localGradeMap.grades : localGradeMap}
+                onGradeChange={onGradeChanges}
+                course={currentCourse}
+                currentChapterId={currentChapter?.id}
+              />
+              <ToastContainer />
+            </div>
           )}
       </div>
       {!isLoading && stage === STAGES.LESSONS && lessons && (
@@ -444,6 +461,7 @@ const DisplayChapters: FC<{}> = () => {
             showSubjectName={false}
             showChapterName={false}
           />
+          <ToastContainer />
         </div>
       )}
     </IonPage>

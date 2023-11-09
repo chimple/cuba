@@ -119,6 +119,7 @@ const Home: FC = () => {
 
   useEffect(() => {
     urlOpenListenerEvent();
+    checkLesson();
     setCurrentHeader(HOMEHEADERLIST.HOME);
     setValue(SUBTAB.SUGGESTIONS);
     fetchData();
@@ -768,6 +769,10 @@ const Home: FC = () => {
 
   console.log("lesson slider favourite", favouriteLessons);
   console.log("lesson slider history", historyLessons);
+  async function checkLesson() {
+    const dow = await Util.checkDownloadedLessons();
+    console.log("downloaddata", dow);
+  }
 
   return (
     <IonPage id="home-page">
