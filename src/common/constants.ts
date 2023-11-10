@@ -41,13 +41,12 @@ export enum LEADERBOARDHEADERLIST {
   EVENTS = "EVENTS",
 }
 
-export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu"
-export const grade1 = "R5sDh8LKKBx7D7o1MMl0"
-export const grade2 = "al0OqObeTBK3OFWSyDOg"
-export const grade3 = "i1paELqh4uwET2OQQl1E"
-export const aboveGrade3 = "rhuiXCmMzmJM1dkN8UNu"
-export const CONTINUE = "continue"
-
+export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu";
+export const grade1 = "R5sDh8LKKBx7D7o1MMl0";
+export const grade2 = "al0OqObeTBK3OFWSyDOg";
+export const grade3 = "i1paELqh4uwET2OQQl1E";
+export const aboveGrade3 = "rhuiXCmMzmJM1dkN8UNu";
+export const CONTINUE = "continue";
 
 export const parentHeaderIconList: HeaderIconConfig[] = [
   {
@@ -138,57 +137,59 @@ export const ACTIVE_HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
     // ],
   ]);
 
-export const DEFAULT_HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
-  new Map<HOMEHEADERLIST, HeaderIconConfig>([
-    [
-      HOMEHEADERLIST.SUGGESTIONS,
-      {
-        displayName: "Suggestion",
-        iconSrc: "/assets/icons/suggestionInactiveIcon.svg",
-        headerList: HOMEHEADERLIST.SUGGESTIONS,
-      },
-    ],
-    [
-      HOMEHEADERLIST.SUBJECTS,
-      {
-        displayName: "Subjects",
-        iconSrc: "/assets/icons/subjectInactiveIcon.svg",
-        headerList: HOMEHEADERLIST.SUBJECTS,
-      },
-    ],
-    [
-      HOMEHEADERLIST.ASSIGNMENT,
-      {
-        displayName: "Home work",
-        iconSrc: "/assets/icons/homeworkInactiveIcon.svg",
-        headerList: HOMEHEADERLIST.ASSIGNMENT,
-      },
-    ],
-    // [
-    //   HOMEHEADERLIST.CHALLENGES,
-    //   {
-    //     displayName: "Challenges",
-    //     iconSrc: "/assets/icons/MathsIcon.svg",
-    //     headerList: HOMEHEADERLIST.CHALLENGES,
-    //   },
-    // ],
-    [
-      HOMEHEADERLIST.SEARCH,
-      {
-        displayName: "Search",
-        iconSrc: "/assets/icons/searchInactiveIcon.svg",
-        headerList: HOMEHEADERLIST.SEARCH,
-      },
-    ],
-    // [
-    //   HOMEHEADERLIST.QUIZ,
-    //   {
-    //     displayName: "Quiz",
-    //     iconSrc: "/assets/icons/quiz_icon.svg",
-    //     headerList: HOMEHEADERLIST.QUIZ,
-    //   },
-    // ],
-  ]);
+export const DEFAULT_HEADER_ICON_CONFIGS: Map<
+  HOMEHEADERLIST,
+  HeaderIconConfig
+> = new Map<HOMEHEADERLIST, HeaderIconConfig>([
+  [
+    HOMEHEADERLIST.SUGGESTIONS,
+    {
+      displayName: "Suggestion",
+      iconSrc: "/assets/icons/suggestionInactiveIcon.svg",
+      headerList: HOMEHEADERLIST.SUGGESTIONS,
+    },
+  ],
+  [
+    HOMEHEADERLIST.SUBJECTS,
+    {
+      displayName: "Subjects",
+      iconSrc: "/assets/icons/subjectInactiveIcon.svg",
+      headerList: HOMEHEADERLIST.SUBJECTS,
+    },
+  ],
+  [
+    HOMEHEADERLIST.ASSIGNMENT,
+    {
+      displayName: "Home work",
+      iconSrc: "/assets/icons/homeworkInactiveIcon.svg",
+      headerList: HOMEHEADERLIST.ASSIGNMENT,
+    },
+  ],
+  // [
+  //   HOMEHEADERLIST.CHALLENGES,
+  //   {
+  //     displayName: "Challenges",
+  //     iconSrc: "/assets/icons/MathsIcon.svg",
+  //     headerList: HOMEHEADERLIST.CHALLENGES,
+  //   },
+  // ],
+  [
+    HOMEHEADERLIST.SEARCH,
+    {
+      displayName: "Search",
+      iconSrc: "/assets/icons/searchInactiveIcon.svg",
+      headerList: HOMEHEADERLIST.SEARCH,
+    },
+  ],
+  // [
+  //   HOMEHEADERLIST.QUIZ,
+  //   {
+  //     displayName: "Quiz",
+  //     iconSrc: "/assets/icons/quiz_icon.svg",
+  //     headerList: HOMEHEADERLIST.QUIZ,
+  //   },
+  // ],
+]);
 
 // export const HEADERLIST = [HOME_CONFIG, LANG_CONFIGS, PROFILE_CONFIG]
 export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
@@ -446,3 +447,10 @@ export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
 export const COPIED_BUNDLE_FILES_INDEX = "copiedBundleFilesIndex";
 
 export const NUMBER_REGEX = /^[0-9]+$/;
+export const LESSON_ITEM = "lessonItems";
+export const CHAPTER_ITEM = "chapterItems";
+export enum SnackbarType {
+  Success = "success",
+  Error = "error",
+}
+export const LAST_RENDERED_KEY = "lastRendered";

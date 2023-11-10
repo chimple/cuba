@@ -52,3 +52,8 @@
   min-height: 100%;
   object-fit: fill;
 }
+.chapter-download {
+  position: relative;
+  right: 39%;
+  bottom: 35%;
+}

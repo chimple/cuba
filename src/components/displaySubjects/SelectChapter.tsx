@@ -53,7 +53,9 @@ const SelectChapter: FC<{
                 />
               </div>
               {chapter.title}
-              <DownloadLesson chapters={chapter} />
+              <div className="chapter-download">
+                <DownloadLesson chapters={chapter} />
+              </div>
             </div>
           );
         })}

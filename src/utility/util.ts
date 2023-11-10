@@ -23,6 +23,7 @@ import {
   SOUND,
   MUSIC,
   CONTINUE,
+  LESSON_ITEM,
   // APP_LANG,
 } from "../common/constants";
 import {
@@ -350,7 +351,7 @@ export class Util {
           });
 
           console.log("un  zip done");
-          storeId(lessonId, "lessonItems");
+          storeId(lessonId, LESSON_ITEM);
         }
         console.log("zip ", zip);
       } catch (error) {
@@ -378,7 +379,7 @@ export class Util {
     } catch (error) {
       console.log("Error deleting lesson:", error);
     }
-    return true;
+    return false;
   }
 
   public static async checkDownloadedLessons() {
@@ -398,11 +399,14 @@ export class Util {
       };
       const folderNamesArray: string[] = [];
       const folderNames = contents.files;
+
       for (let i = 0; i < folderNames.length; i++) {
         console.log("Processing folder:", folderNames[i].name);
-        storeId(folderNames[i].name, "lessonItems");
         folderNamesArray.push(folderNames[i].name);
       }
+      folderNamesArray.forEach((folderName) => {
+        storeId(folderName, LESSON_ITEM);
+      });
       return folderNamesArray;
     } catch (error) {
       console.error("Error listing folders:", error);

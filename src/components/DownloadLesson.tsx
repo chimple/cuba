@@ -7,12 +7,14 @@ import { t } from "i18next";
 import DialogBoxButtons from "./parent/DialogBoxButtons​";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { CHAPTER_ITEM, LESSON_ITEM, SnackbarType } from "../common/constants";
 
 const DownloadLesson: React.FC<{
   lessonID?: any;
   chapters?: any;
-  lessonDoc?: any;
+  lessonDoc?: Lesson[];
 }> = ({ lessonID, chapters, lessonDoc }) => {
+  console.log("chaptersss", lessonDoc);
   const [showIcon, setShowIcon] = useState(true);
   const [showDialogBox, setShowDialogBox] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
@@ -33,14 +35,14 @@ const DownloadLesson: React.FC<{
     window.addEventListener("online", handleOnlineEvent);
     window.addEventListener("offline", handleOfflineEvent);
 
-    if (isStored(lessonID, "lessonItems")) {
+    if (isStored(lessonID, LESSON_ITEM)) {
       setShowIcon(false);
     }
 
-    if (chapters && isStored(chapters.id, "chapterItems")) {
+    if (chapters && isStored(chapters.id, CHAPTER_ITEM)) {
       setShowIcon(false);
     }
-  }, [lessonID, chapters]);
+  }, []);
 
   const isStored = (id: string, storageKey: string): boolean => {
     const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
@@ -62,70 +64,90 @@ const DownloadLesson: React.FC<{
     if (loading) return;
     setLoading(true);
 
-    setTimeout(async () => {
-      if (!online) {
-        showSnackbar(
-          `Device is offline. Cannot download  ${
-            chapters ? "Chapter" : "Lesson"
-          }`,
-          "error"
-        );
-        setLoading(false);
-      } else {
-        if (chapters) {
-          if (!isStored(chapters.id, "chapterItems")) {
-            storeId(chapters.id, "chapterItems");
-            await downloadLesson(chapters.id);
-          }
-
-          const lessons: Lesson[] = await api.getLessonsForChapter(chapters);
-          for (const e of lessons) {
-            if (!isStored(e.id, "lessonItems")) {
-              storeId(e.id, "lessonItems");
-              await downloadLesson(e.id);
-            }
-          }
-          setShowIcon(false);
-        } else if (lessonID) {
-          if (!isStored(lessonID, "lessonItems")) {
-            storeId(lessonID, "lessonItems");
-            await downloadLesson(lessonID);
-          }
-          setShowIcon(false);
-        }
-      }
-
+    if (!online) {
+      showSnackbar(
+        `Device is offline. Cannot download  ${
+          chapters ? "Chapter" : "Lesson"
+        }`,
+        SnackbarType.Error
+      );
       setLoading(false);
-    }, 3000);
+    } else {
+      if (chapters) {
+        if (!isStored(chapters.id, CHAPTER_ITEM)) {
+          storeId(chapters.id, CHAPTER_ITEM);
+          await downloadLesson(chapters.id);
+        }
+
+        const lessons: Lesson[] = await api.getLessonsForChapter(chapters);
+        for (const e of lessons) {
+          if (!isStored(e.id, LESSON_ITEM)) {
+            storeId(e.id, LESSON_ITEM);
+            await downloadLesson(e.id);
+          }
+        }
+        setShowIcon(false);
+      } else if (lessonID) {
+        if (!isStored(lessonID, LESSON_ITEM)) {
+          storeId(lessonID, LESSON_ITEM);
+          await downloadLesson(lessonID);
+        }
+        setShowIcon(false);
+      }
+    }
+
+    setLoading(false);
   };
+  async function checkLessonForChapter() {
+    if (lessonDoc) {
+      for (const e of lessonDoc) {
+        console.log("idsssss", e.id);
+        if (!isIdPresentInLocalStorage(e.id, LESSON_ITEM)) {
+          removeFromStorage(e.cocosChapterCode!, CHAPTER_ITEM);
+          return false;
+        }
+
+        storeId(e.cocosChapterCode!, CHAPTER_ITEM);
+      }
+      return true;
+    }
+    console.log("sucess2");
+    return false;
+  }
+
+  const isIdPresentInLocalStorage = (id, storageKey) => {
+    const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
+    return storedItems.includes(id);
+  };
+
+  checkLessonForChapter();
 
   const handleDelete = async () => {
     if (loading) return;
     setLoading(true);
-    setTimeout(async () => {
-      if (chapters) {
-        removeFromStorage(chapters.id, "chapterItems");
-        await deleteLessons(chapters.id);
 
-        const lessons: Lesson[] = await api.getLessonsForChapter(chapters);
-        for (const e of lessons) {
-          removeFromStorage(e.id, "lessonItems");
-          await deleteLessons(e.id);
-          if (!isStored(e.id, "lessonItems")) {
-            setShowIcon(true);
-          }
-        }
-      } else if (lessonID) {
-        removeFromStorage(lessonID, "lessonItems");
-        setShowIcon(false);
-        await deleteLessons(lessonID);
-        if (!isStored(lessonID, "lessonItems")) {
+    if (chapters) {
+      removeFromStorage(chapters.id, CHAPTER_ITEM);
+      await deleteLessons(chapters.id);
+
+      const lessons: Lesson[] = await api.getLessonsForChapter(chapters);
+      for (const e of lessons) {
+        removeFromStorage(e.id, LESSON_ITEM);
+        await deleteLessons(e.id);
+        if (!isStored(e.id, LESSON_ITEM)) {
           setShowIcon(true);
         }
       }
+    } else if (lessonID) {
+      removeFromStorage(lessonID, LESSON_ITEM);
+      setShowIcon(false);
+      await deleteLessons(lessonID);
+      if (!isStored(lessonID, LESSON_ITEM)) {
+        setShowIcon(true);
+      }
+    }
 
-      setLoading(false);
-    }, 2000);
+    setLoading(false);
   };
 
   async function deleteLessons(lesson: string) {
@@ -153,12 +175,12 @@ const DownloadLesson: React.FC<{
     console.log("downloaded ", dow);
   }
 
-  const showSnackbar = (message, type) => {
+  const showSnackbar = (message: string, type: SnackbarType) => {
     switch (type) {
-      case "success":
+      case SnackbarType.Success:
         toast.success(message);
         break;
-      case "error":
+      case SnackbarType.Error:
         toast.error(message);
         break;
       default:
