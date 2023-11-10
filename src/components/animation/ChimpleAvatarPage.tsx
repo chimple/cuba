@@ -25,6 +25,7 @@ import { language } from "ionicons/icons";
 import { string } from "yargs";
 import { t } from "i18next";
 import { useRive, Layout, Fit, useStateMachineInput } from "rive-react";
+import { useAudioPlayer} from "./animationUtils";
 
 interface RecommendedCourse {
   title?: string;
@@ -60,7 +61,8 @@ export enum CourseNames {
 const ChimpleAvatarPage: FC<{
   style;
   isUnlocked?: boolean;
-}> = ({ style }) => {
+  audioSrc: string;
+}> = ({ style, audioSrc }) => {
   const [currentMode, setCurrentMode] = useState<AvatarModes>(
     AvatarModes.Welcome
   );
@@ -68,9 +70,11 @@ const ChimpleAvatarPage: FC<{
   const [currentCourse, setCurrentCourse] = useState<Course>();
   const [currentChapter, setCurrentChapter] = useState<Chapter>();
   const [currentLesson, setCurrentLesson] = useState<Lesson>();
-
+  // const [playing, setPlaying] = useState(false);
   const [userChoice, setUserChoice] = useState<boolean>(false);
   const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(true);
+  const { playAudio, playing} = useAudioPlayer(audioSrc);
+
 
   const history = useHistory();
   // console.log("cocos game", history.location.state);
@@ -93,7 +97,6 @@ const ChimpleAvatarPage: FC<{
 
   useEffect(() => {
     fetchCoursesForStudent();
-    console.log("btnDisabled in useEffect", buttonsDisabled);
     setButtonsDisabled(true);
   }, [currentMode]);
 
@@ -421,6 +424,8 @@ const ChimpleAvatarPage: FC<{
           width: "35vw",
           height: "70vh",
         }}
+        onClick={playAudio}
+        // onDoubleClick={handleDoubleClick}
         // clickHandler={() => handleButtonClick(userChoice)}
       />
       <div className="avatar-option-box-background left-corner">

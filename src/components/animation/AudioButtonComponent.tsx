@@ -1,34 +1,20 @@
-import { useEffect, useState } from "react";
-import { PiSpeakerHighBold } from "react-icons/pi";
+import React from 'react';
+import { useAudioPlayer } from './animationUtils';
+import { PiSpeakerHighBold } from 'react-icons/pi';
 
-export default function AudioButtonComponent({ style, audioSrc }) {
-  useEffect(() => {
-    audio.addEventListener("ended", () => setPlaying(false));
-    return () => {
-      audio.removeEventListener("ended", () => setPlaying(false));
-    };
-  }, []);
+interface AudioButtonProps {
+  style: React.CSSProperties;
+  audioSrc: string;
+}
 
-  const [audio, setAudio] = useState<HTMLAudioElement>(new Audio(audioSrc));
-
-  const [playing, setPlaying] = useState(false);
-
-  const loadAudio = (audioSrc) => {
-    return new Audio(audioSrc); // Audio can pick from network and locale
-  };
+function AudioButtonComponent({ style, audioSrc }: AudioButtonProps) {
+  const { playAudio, playing } = useAudioPlayer(audioSrc);
 
   return (
-    <PiSpeakerHighBold
-      style={style}
-      onClick={() => {
-        console.log("Play Audio File", audioSrc);
-        setAudio(loadAudio(audioSrc));
-        setPlaying(true);
-        if (!playing) {
-          audio.play();
-          console.log("Audio is playing ", audioSrc);
-        }
-      }}
-    ></PiSpeakerHighBold>
+    <div>
+      <PiSpeakerHighBold style={style} onClick={playAudio} />
+    </div>
   );
 }
+
+export default AudioButtonComponent;
