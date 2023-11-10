@@ -174,20 +174,21 @@ const EditStudent = () => {
         ]);
 
         setBoards(results[0]);
+        localStoreData.boards = results[0];
         setGrades(results[1]);
+        localStoreData.grades = results[1];
         setLanguages(results[2]);
+        localStoreData.languages = results[2];
+
         console.log(
           "🚀 ~ file: EditStudent.tsx:51 ~ isNextButtonEnabled ~ docs:",
           results
         );
-        localStoreData.avatar = avatar;
-      } else if (newStage === STAGES.AVATAR) {
-        localStoreData.age = age;
-        localStoreData.gender = gender;
-      } 
-     
+
+      }
+
       localStoreData.stage = newStage;
-      localStoreData.studentName = _studentName;
+
       setStage(newStage);
       addDataToLocalStorage();
     }
@@ -244,6 +245,12 @@ const EditStudent = () => {
           !!localStoreData.age && setAge(localStoreData.age);
           !!localStoreData.gender && setGender(localStoreData.gender);
           !!localStoreData.avatar && setAvatar(localStoreData.avatar);
+          !!localStoreData.boards && setBoards(localStoreData.boards);
+          !!localStoreData.grades && setGrades(localStoreData.grades);
+          !!localStoreData.languages && setLanguages(localStoreData.languages);
+          !!localStoreData.board && setBoard(localStoreData.board);
+          !!localStoreData.grade && setGrade(localStoreData.grade);
+          !!localStoreData.language && setLanguage(localStoreData.language);
 
         }
       }
@@ -262,6 +269,13 @@ const EditStudent = () => {
     console.log("This is the lang " + languageDocId);
     if (!!languageDocId) await i18n.changeLanguage(languageDocId);
   }
+
+  function handleValueChange(name: string, val: any, stateFunc: Function) {
+    stateFunc(val);
+    localStoreData[name] = val;
+    addDataToLocalStorage();
+  }
+
   return (
     <IonPage id="Edit-student-page">
       <div id="Edit-student-back-button">
@@ -298,7 +312,7 @@ const EditStudent = () => {
         {stage === STAGES.NAME && (
           <StudentNameBox
             studentName={studentName!}
-            onValueChange={setStudentName}
+            onValueChange={(val) => handleValueChange("studentName", val, setStudentName)}
             onEnterDown={isNextButtonEnabled() ? onNextButton : () => { }}
           />
         )}
@@ -346,14 +360,14 @@ const EditStudent = () => {
               <GenderAndAge
                 age={age}
                 gender={gender}
-                onAgeChange={setAge}
-                onGenderChange={setGender}
+                onAgeChange={(val) => handleValueChange("age", val, setAge)}
+                onGenderChange={(val) => handleValueChange("gender", val, setGender)}
               />
             </>
           </>
         )}
         {stage === STAGES.AVATAR && (
-          <SelectAvatar avatar={avatar} onAvatarChange={setAvatar} />
+          <SelectAvatar avatar={avatar} onAvatarChange={(val) => handleValueChange("avatar", val, setAvatar)} />
         )}
         {stage === STAGES.GRADE && (
           <>
@@ -382,9 +396,9 @@ const EditStudent = () => {
                   boards={boards}
                   grades={grades}
                   languages={languages}
-                  onBoardChange={setBoard}
-                  onGradeChange={setGrade}
-                  onLangChange={setLanguage}
+                  onBoardChange={(val) => handleValueChange("board", val, setBoard)}
+                  onGradeChange={(val) => handleValueChange("grade", val, setGrade)}
+                  onLangChange={(val) => handleValueChange("language", val, setLanguage)}
                   currentlySelectedBoard={board}
                   currentlySelectedGrade={grade}
                   currentlySelectedLang={language}
