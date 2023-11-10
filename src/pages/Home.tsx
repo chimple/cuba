@@ -782,6 +782,7 @@ const Home: FC = () => {
                   display: "flex",
                   justifyContent: "space-around",
                 }}
+                audioSrc={"assets/audios/my_name_is_chimple.mp3"}
               ></ChimpleAvatarPage>
             ) : // <div>
               //   <LessonSlider
