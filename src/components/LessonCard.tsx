@@ -249,7 +249,7 @@ const LessonCard: React.FC<{
           {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
         </div>
         <div className="icons">
-          <DownloadLesson lessonID={lesson.id} lessonDoc={lessonData} />
+          <DownloadLesson lessonID={lesson.id} lessonData={lessonData} />
         </div>
         {isLoved && (
           <LovedIcon

@@ -5,16 +5,17 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import "./DownloadLesson.css";
 import { t } from "i18next";
 import DialogBoxButtons from "./parent/DialogBoxButtons​";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { CHAPTER_ITEM, LESSON_ITEM, SnackbarType } from "../common/constants";
+import { Capacitor } from "@capacitor/core";
 
 const DownloadLesson: React.FC<{
   lessonID?: any;
   chapters?: any;
-  lessonDoc?: Lesson[];
-}> = ({ lessonID, chapters, lessonDoc }) => {
-  console.log("chaptersss", lessonDoc);
+  lessonData?: any;
+}> = ({ lessonID, chapters, lessonData }) => {
+  console.log("chaptersss", lessonData);
   const [showIcon, setShowIcon] = useState(true);
   const [showDialogBox, setShowDialogBox] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
@@ -23,7 +24,6 @@ const DownloadLesson: React.FC<{
 
   useEffect(() => {
     setOnline(navigator.onLine);
-
     function handleOnlineEvent() {
       setOnline(true);
     }
@@ -52,13 +52,18 @@ const DownloadLesson: React.FC<{
   const storeId = (id: string, storageKey: string) => {
     const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
     const updatedItems = [...storedItems, id];
-    localStorage.setItem(storageKey, JSON.stringify(updatedItems));
+    if (updatedItems) {
+      localStorage.setItem(storageKey, JSON.stringify(updatedItems));
+    } else return;
   };
+
   const removeFromStorage = (id: string, storageKey: string) => {
     const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
     const updatedItems = storedItems.filter((item: string) => item !== id);
-    localStorage.setItem(storageKey, JSON.stringify(updatedItems));
-    console.log("lesson is deleted");
+    if (updatedItems) {
+      localStorage.setItem(storageKey, JSON.stringify(updatedItems));
+      console.log("lesson is deleted");
+    } else return;
   };
   const fetchData = async () => {
     if (loading) return;
@@ -98,29 +103,12 @@ const DownloadLesson: React.FC<{
 
     setLoading(false);
   };
-  async function checkLessonForChapter() {
-    if (lessonDoc) {
-      for (const e of lessonDoc) {
-        console.log("idsssss", e.id);
-        if (!isIdPresentInLocalStorage(e.id, LESSON_ITEM)) {
-          removeFromStorage(e.cocosChapterCode!, CHAPTER_ITEM);
-          return false;
-        }
-
-        storeId(e.cocosChapterCode!, CHAPTER_ITEM);
-      }
-      return true;
-    }
-    console.log("sucess2");
-    return false;
+  async function updateLessonAndChapterStatus() {
+    const status = Util.checkLessonForChapter(lessonData);
+    if (!status) {
+      return;
+    } else console.log("Lessons and Chapters status updated ");
   }
-
-  const isIdPresentInLocalStorage = (id, storageKey) => {
-    const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
-    return storedItems.includes(id);
-  };
-
-  checkLessonForChapter();
 
   const handleDelete = async () => {
     if (loading) return;
@@ -153,22 +141,17 @@ const DownloadLesson: React.FC<{
   async function deleteLessons(lesson: string) {
     const lessonId: string = lesson;
     const dow = await Util.deleteDownloadedLesson(lessonId);
+    updateLessonAndChapterStatus();
     if (!dow) {
       return;
     }
     console.log("deleteLessons", dow);
   }
 
-  // async function checkLesson() {
-  //   const dow = await Util.checkDownloadedLessons();
-  //   console.log("downloaddata", dow);
-  // }
-
   async function downloadLesson(lesson: string) {
     const lessonId: string = lesson;
-    console.log("lessom-id2", lessonID);
     const dow = await Util.downloadZipBundle([lessonId]);
-
+    updateLessonAndChapterStatus();
     if (!dow) {
       return;
     }
@@ -188,7 +171,7 @@ const DownloadLesson: React.FC<{
     }
   };
 
-  return (
+  return Capacitor.isNativePlatform() ? (
     <div
       className="downloadButton"
       style={{
@@ -246,7 +229,7 @@ const DownloadLesson: React.FC<{
         </div>
       )}
     </div>
-  );
+  ) : null;
 };
 
 export default DownloadLesson;

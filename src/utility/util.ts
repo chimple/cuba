@@ -24,12 +24,13 @@ import {
   MUSIC,
   CONTINUE,
   LESSON_ITEM,
+  CHAPTER_ITEM,
   // APP_LANG,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
   Course as curriculamInterfaceCourse,
-  Lesson,
+  Lesson as curriculamInterfaceLesson,
 } from "../interface/curriculumInterfaces";
 import Course1 from "../models/course";
 import { GUIDRef } from "../interface/modelInterfaces";
@@ -64,6 +65,7 @@ import {
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { Router } from "react-router-dom";
 import lesson from "../models/lesson";
+import Lesson from "../models/lesson";
 
 declare global {
   interface Window {
@@ -71,6 +73,27 @@ declare global {
     _CCSettings: any;
   }
 }
+const storeId = (id: string, storageKey: string) => {
+  const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
+  const updatedItems = [...storedItems, id];
+  if (updatedItems) {
+    localStorage.setItem(storageKey, JSON.stringify(updatedItems));
+  } else return;
+};
+
+const removeFromStorage = (id: string, storageKey: string) => {
+  const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
+  const updatedItems = storedItems.filter((item: string) => item !== id);
+  if (updatedItems) {
+    localStorage.setItem(storageKey, JSON.stringify(updatedItems));
+    console.log("lesson is deleted");
+  } else return;
+};
+const isIdPresentInLocalStorage = (id, storageKey) => {
+  const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
+  return storedItems.includes(id);
+};
+
 export class Util {
   public static port: PortPlugin;
 
@@ -251,7 +274,9 @@ export class Util {
     const storeId = (id: string, storageKey: string) => {
       const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
       const updatedItems = [...storedItems, id];
-      localStorage.setItem(storageKey, JSON.stringify(updatedItems));
+      if (updatedItems) {
+        localStorage.setItem(storageKey, JSON.stringify(updatedItems));
+      } else return;
     };
     for (let lessonId of lessonIds) {
       try {
@@ -349,7 +374,6 @@ export class Util {
               ),
             data: buffer,
           });
-
           console.log("un  zip done");
           storeId(lessonId, LESSON_ITEM);
         }
@@ -369,13 +393,11 @@ export class Util {
   ): Promise<boolean> {
     try {
       if (!Capacitor.isNativePlatform()) return true;
-
       await Filesystem.rmdir({
         path: `${lessonId}`,
         directory: Directory.External,
         recursive: true,
       });
-      console.log("lessonIDD", lessonId);
     } catch (error) {
       console.log("Error deleting lesson:", error);
     }
@@ -404,14 +426,32 @@ export class Util {
         console.log("Processing folder:", folderNames[i].name);
         folderNamesArray.push(folderNames[i].name);
       }
+      localStorage.removeItem(LESSON_ITEM);
       folderNamesArray.forEach((folderName) => {
         storeId(folderName, LESSON_ITEM);
       });
+
       return folderNamesArray;
     } catch (error) {
       console.error("Error listing folders:", error);
     }
     return null;
+  }
+
+  public static async checkLessonForChapter(
+    lessonId: Lesson[] | undefined
+  ): Promise<boolean> {
+    if (lessonId) {
+      for (const e of lessonId) {
+        if (!isIdPresentInLocalStorage(e.id, LESSON_ITEM)) {
+          removeFromStorage(e.cocosChapterCode!, CHAPTER_ITEM);
+          return false;
+        }
+        storeId(e.cocosChapterCode!, CHAPTER_ITEM);
+      }
+      return true;
+    }
+    return false;
   }
 
   // To parse this data:
@@ -484,7 +524,7 @@ export class Util {
 
   public static async getLastPlayedLessonIndex(
     subjectCode: string,
-    lessons: Lesson[],
+    lessons: curriculamInterfaceLesson[],
     chapters: curriculamInterfaceChapter[] = [],
     lessonResultMap: { [key: string]: Result } = {}
   ): Promise<number> {
@@ -542,7 +582,7 @@ export class Util {
   }
 
   public static getLastPlayedLessonIndexForLessons(
-    lessons: Lesson[],
+    lessons: curriculamInterfaceLesson[],
     lessonResultMap: { [key: string]: Result } = {}
   ): number {
     let tempCurrentIndex = 0;

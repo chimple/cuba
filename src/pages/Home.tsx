@@ -118,11 +118,10 @@ const Home: FC = () => {
   let tempPageNumber = 1;
   const location = useLocation();
 
-  function RenderLessonsFromLocal() {
+  function storeLessonsIDFromLocal() {
     const storedLastRendered = localStorage.getItem(LAST_RENDERED_KEY);
     if (!storedLastRendered) {
       checkLessonFromLocal();
-      console.log("render1");
     }
     const initialLastRendered = storedLastRendered
       ? parseInt(storedLastRendered)
@@ -132,15 +131,14 @@ const Home: FC = () => {
     let lastRendered = initialLastRendered;
     if (currentTime - lastRendered > 60 * 60 * 1000) {
       checkLessonFromLocal();
-      console.log("render2");
       lastRendered = currentTime;
     }
     localStorage.setItem(LAST_RENDERED_KEY, currentTime.toString());
   }
-  RenderLessonsFromLocal();
 
   useEffect(() => {
     urlOpenListenerEvent();
+    storeLessonsIDFromLocal();
     setCurrentHeader(HOMEHEADERLIST.HOME);
     setValue(SUBTAB.SUGGESTIONS);
     fetchData();
@@ -795,21 +793,6 @@ const Home: FC = () => {
     const dow = await Util.checkDownloadedLessons();
     console.log("downloaddata", dow);
   }
-  // async function RenderLessonsFromLocal() {
-  //   const [lastRendered, setLastRendered] = useState(
-  //     parseInt(localStorage.getItem(LAST_RENDERED_KEY) || "0")
-  //   );
-  //   useEffect(() => {
-  //     const currentTime = new Date().getTime();
-
-  //     if (currentTime - lastRendered > 60 * 60 * 1000) {
-  //       checkLessonFromLocal();
-  //       setLastRendered(currentTime);
-  //     }
-  //   }, [lastRendered]);
-  // }
-  // RenderLessonsFromLocal();
-
   return (
     <IonPage id="home-page">
       <IonHeader id="home-header">
