@@ -33,53 +33,47 @@ const HomeHeader: React.FC<{
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
 
-  function init() {
-    Promise.all([
-      Util.getCanShowAvatar(),
-      Util.getCurrentStudent(),
-      schoolUtil.getCurrMode(),
-    ])
-      .then(([canShowAvatarValue, student, currMode]) => {
-        console.log(
-          "const canShowAvatarValue in homeHeader ",
-          canShowAvatarValue
-        );
-
-        setCanShowAvatar(canShowAvatarValue);
-
-        if (!student) {
-          history.replace(PAGES.HOME);
-          return Promise.reject("No student found");
+  async function init() {
+    try {
+      const [canShowAvatarValue, student, currMode] = await Promise.all([
+        Util.getCanShowAvatar(),
+        Util.getCurrentStudent(),
+        schoolUtil.getCurrMode(),
+      ]);
+  
+      console.log("const canShowAvatarValue in homeHeader ", canShowAvatarValue);
+      setCanShowAvatar(canShowAvatarValue);
+  
+      if (!student) {
+        history.replace(PAGES.HOME);
+        throw new Error("No student found");
+      }
+  
+      setStudentMode(currMode);
+  
+      DEFAULT_HEADER_ICON_CONFIGS.forEach(async (element) => {
+        console.log("element.headerList", element.headerList);
+        if (
+          !(
+            (currMode === MODES.SCHOOL &&
+              element.headerList === HOMEHEADERLIST.ASSIGNMENT) ||
+            (canShowAvatarValue === false &&
+              element.headerList === HOMEHEADERLIST.SUGGESTIONS)
+          )
+        ) {
+          headerIconList.push(element);
         }
-
-        setStudentMode(currMode);
-
-        DEFAULT_HEADER_ICON_CONFIGS.forEach(async (element) => {
-          // console.log("elements", element);
-
-          console.log("element.headerList", element.headerList);
-          if (
-            !(
-              (currMode === MODES.SCHOOL &&
-                element.headerList === HOMEHEADERLIST.ASSIGNMENT) ||
-              (canShowAvatarValue === false &&
-                element.headerList === HOMEHEADERLIST.SUGGESTIONS)
-            )
-          ) {
-            headerIconList.push(element);
-          }
-        });
-        if (!headerIconList) return;
-
-        setCurrentHeaderIconList(headerIconList);
-
-        setStudent(student);
-      })
-      .catch((error) => {
-        console.error("Error in init:", error);
       });
+  
+      if (!headerIconList) return;
+  
+      setCurrentHeaderIconList(headerIconList);
+      setStudent(student);
+    } catch (error) {
+      console.error("Error in init:", error);
+    }
   }
-
+  
   useEffect(() => {
     init();
   }, []);
