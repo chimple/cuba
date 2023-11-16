@@ -934,20 +934,6 @@ export class Util {
   }
 
   public static async getCanShowAvatar(): Promise<boolean> {
-    //If mode is school then returning true
-    const currMode = await schoolUtil.getCurrMode();
-    if (currMode === MODES.SCHOOL) return true;
-
-    const student = await Util.getCurrentStudent();
-    if (!student) {
-      return false;
-    }
-    const api = ServiceConfig.getI().apiHandler;
-    const studentResult = await api.getStudentResult(student.docId);
-    if (!studentResult) return false;
-
-    //If user connected any class then returning true
-    if (studentResult.classes.length > 0) return true;
 
     //fetching the CAN_SHOW_AVATAR from REMOTE CONFIG
     const canShowAvatarValue = await RemoteConfig.getBoolean(
