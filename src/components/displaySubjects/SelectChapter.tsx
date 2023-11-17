@@ -5,7 +5,7 @@ import Grade from "../../models/grade";
 import DropDown from "../DropDown";
 import Course from "../../models/course";
 import SelectIconImage from "./SelectIconImage";
-import DownloadLesson from "../DownloadLesson";
+import DownloadLesson from "../DownloadChapterAndLesson";
 
 const SelectChapter: FC<{
   chapters: Chapter[];

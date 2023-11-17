@@ -23,8 +23,8 @@ import {
   SOUND,
   MUSIC,
   CONTINUE,
-  LESSON_ITEM,
-  CHAPTER_ITEM,
+  LESSON_ID,
+  CHAPTER_ID,
   // APP_LANG,
 } from "../common/constants";
 import {
@@ -73,17 +73,38 @@ declare global {
     _CCSettings: any;
   }
 }
-const storeId = (id: string, storageKey: string) => {
-  const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
-  const updatedItems = [...storedItems, id];
-  if (updatedItems) {
-    localStorage.setItem(storageKey, JSON.stringify(updatedItems));
-  } else return;
+const storeIdToLocalStorage = (
+  id: string | string[],
+  lessonAndChapterIdStorageKey: string
+) => {
+  const storedItems = JSON.parse(
+    localStorage.getItem(lessonAndChapterIdStorageKey) || "[]"
+  );
+  if (Array.isArray(id)) {
+    const updatedItems = [...storedItems, ...id];
+    if (updatedItems) {
+      localStorage.setItem(
+        lessonAndChapterIdStorageKey,
+        JSON.stringify(updatedItems)
+      );
+    } else return;
+  } else {
+    const updatedItems = [...storedItems, id];
+    if (updatedItems) {
+      localStorage.setItem(
+        lessonAndChapterIdStorageKey,
+        JSON.stringify(updatedItems)
+      );
+    } else return;
+  }
 };
 
-const removeFromStorage = (id: string, storageKey: string) => {
+const removeIdFromLocalStorage = (
+  id: string | string[],
+  storageKey: string
+) => {
   const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
-  const updatedItems = storedItems.filter((item: string) => item !== id);
+  const updatedItems = storedItems.filter((item: string) => !id.includes(item));
   if (updatedItems) {
     localStorage.setItem(storageKey, JSON.stringify(updatedItems));
     console.log("lesson is deleted");
@@ -375,7 +396,7 @@ export class Util {
             data: buffer,
           });
           console.log("un  zip done");
-          storeId(lessonId, LESSON_ITEM);
+          storeId(lessonId, LESSON_ID);
         }
         console.log("zip ", zip);
       } catch (error) {
@@ -412,13 +433,6 @@ export class Util {
         path: "",
         directory: Directory.External,
       });
-      const storeId = (id: string, storageKey: string) => {
-        const storedItems = JSON.parse(
-          localStorage.getItem(storageKey) || "[]"
-        );
-        const updatedItems = [...storedItems, id];
-        localStorage.setItem(storageKey, JSON.stringify(updatedItems));
-      };
       const folderNamesArray: string[] = [];
       const folderNames = contents.files;
 
@@ -426,10 +440,9 @@ export class Util {
         console.log("Processing folder:", folderNames[i].name);
         folderNamesArray.push(folderNames[i].name);
       }
-      localStorage.removeItem(LESSON_ITEM);
-      folderNamesArray.forEach((folderName) => {
-        storeId(folderName, LESSON_ITEM);
-      });
+      localStorage.removeItem(LESSON_ID);
+
+      storeIdToLocalStorage(folderNamesArray, LESSON_ID);
 
       return folderNamesArray;
     } catch (error) {
@@ -442,18 +455,27 @@ export class Util {
     lessonId: Lesson[] | undefined
   ): Promise<boolean> {
     if (lessonId) {
-      for (const e of lessonId) {
-        if (!isIdPresentInLocalStorage(e.id, LESSON_ITEM)) {
-          removeFromStorage(e.cocosChapterCode!, CHAPTER_ITEM);
-          return false;
-        }
-        storeId(e.cocosChapterCode!, CHAPTER_ITEM);
+      const allIdsPresent = lessonId.every((e) =>
+        isIdPresentInLocalStorage(e.id, LESSON_ID)
+      );
+
+      if (!allIdsPresent) {
+        const chaptersToRemove = lessonId.reduce(
+          (newArray, lesson) => newArray.concat(lesson.cocosChapterCode!),
+          [] as string[]
+        );
+        removeIdFromLocalStorage(chaptersToRemove, CHAPTER_ID);
+        return false;
       }
+      const chaptersToStore = lessonId.reduce(
+        (newArray, lesson) => newArray.concat(lesson.cocosChapterCode!),
+        [] as string[]
+      );
+      storeIdToLocalStorage(chaptersToStore, CHAPTER_ID);
       return true;
     }
     return false;
   }
-
   // To parse this data:
   //   const course = Convert.toCourse(json);
 

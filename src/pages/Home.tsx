@@ -131,6 +131,7 @@ const Home: FC = () => {
     let lastRendered = initialLastRendered;
     if (currentTime - lastRendered > 60 * 60 * 1000) {
       checkLessonFromLocal();
+
       lastRendered = currentTime;
     }
     localStorage.setItem(LAST_RENDERED_KEY, currentTime.toString());

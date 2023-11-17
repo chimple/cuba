@@ -13,7 +13,7 @@ import { t } from "i18next";
 import LovedIcon from "./LovedIcon";
 import SelectIconImage from "./displaySubjects/SelectIconImage";
 import { Util } from "../utility/util";
-import DownloadLesson from "./DownloadLesson";
+import DownloadLesson from "./DownloadChapterAndLesson";
 
 const LessonCard: React.FC<{
   width: string;
