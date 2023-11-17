@@ -8,6 +8,30 @@
   justify-content: space-evenly;
   box-shadow: 10px 10px 5px #dbdbdb;
   position: relative;
+
+}
+
+@keyframes burst {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes scale {
+  from {
+    transform: scale(0);
+  }
+}
+
+.burst {
+  animation: burst 0.9s ease-in alternate-reverse 1s;
 }
 
 .left-corner:before {
@@ -24,14 +48,14 @@
   clip-path: polygon(0 100%, 100% 0, 100% 75%);
   right: 50vw;
 }
-  
+
 
 .buttons-in-avatar-option-box {
   margin: 2% 0 2% 0;
   /* width: 38vw; */
   display: flex;
   align-items: center;
-  
+
   /* padding-bottom: 3vh;
     padding-top: 2vh;
     padding-left: 2vw;

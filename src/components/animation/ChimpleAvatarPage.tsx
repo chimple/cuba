@@ -25,7 +25,7 @@ import { language } from "ionicons/icons";
 import { string } from "yargs";
 import { t } from "i18next";
 import { useRive, Layout, Fit, useStateMachineInput } from "rive-react";
-import { useAudioPlayer} from "./animationUtils";
+import { useAudioPlayer } from "./animationUtils";
 
 interface RecommendedCourse {
   title?: string;
@@ -73,8 +73,8 @@ const ChimpleAvatarPage: FC<{
   // const [playing, setPlaying] = useState(false);
   const [userChoice, setUserChoice] = useState<boolean>(false);
   const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(true);
-  const { playAudio, playing} = useAudioPlayer(audioSrc);
-
+  const { playAudio, playing } = useAudioPlayer(audioSrc);
+  const [isBurst, setIsBurst] = useState(false);
 
   const history = useHistory();
   // console.log("cocos game", history.location.state);
@@ -123,8 +123,11 @@ const ChimpleAvatarPage: FC<{
   };
 
   let cCourse: Course, cChapter: Chapter, cLesson: Lesson | undefined;
+
   const handleButtonClick = async (choice: boolean) => {
     setUserChoice(choice);
+    setIsBurst(true);
+    // setIsFloating(prevState => !prevState);
     if (!buttonsDisabled) {
       // If buttons are already disabled, don't proceed
       return;
@@ -242,7 +245,9 @@ const ChimpleAvatarPage: FC<{
     buttons = [];
     onclickInput?.fire();
     setRectangularButtonClassName(choice ? "red-button" : "green-button");
-    // userChoice = choice;
+    setTimeout(() => {
+      setIsBurst(false);
+    }, 1900);
   };
 
   async function getRecommendedCourse() {
@@ -416,7 +421,7 @@ const ChimpleAvatarPage: FC<{
     default:
       break;
   }
-
+  console.log("floating", isBurst);
   return (
     <div style={style}>
       <RiveComponent
@@ -425,10 +430,12 @@ const ChimpleAvatarPage: FC<{
           height: "70vh",
         }}
         onClick={playAudio}
-        // onDoubleClick={handleDoubleClick}
-        // clickHandler={() => handleButtonClick(userChoice)}
+      // onDoubleClick={handleDoubleClick}
+      // clickHandler={() => handleButtonClick(userChoice)}
       />
-      <div className="avatar-option-box-background left-corner">
+      <div className={`avatar-option-box-background left-corner ${isBurst ? 'burst' : ''
+        }`}
+      >
         <div>
           <TextBoxWithAudioButton
             message={message}
@@ -448,10 +455,10 @@ const ChimpleAvatarPage: FC<{
                 buttons.length === 1
                   ? "center"
                   : buttons.length === 2
-                  ? "space-evenly"
-                  : buttons.length === 4
-                  ? "space-between"
-                  : "space-between",
+                    ? "space-evenly"
+                    : buttons.length === 4
+                      ? "space-between"
+                      : "space-between",
             }}
           >
             {buttons.map((button, index) => (

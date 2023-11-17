@@ -7,7 +7,7 @@ const RectangularTextButton: React.FC<{
   text: string;
   fontSize: number;
   userChoice: boolean;
-  className : string;
+  className: string;
   padding: number;
   onHeaderIconClick: React.MouseEventHandler<HTMLDivElement>;
 }> = ({
@@ -20,35 +20,12 @@ const RectangularTextButton: React.FC<{
   userChoice,
   padding,
 }) => {
-  // console.log(className);
-  // const [bgColor, setbgColor] = useState<string>("#EAEAEA");
-  // const defaultColor = {
-  //   width: buttonWidth,
-  //   height: buttonHeight,
-  //   backgroundColor: "lightgray",
-  // };
-
-  // const greenColor = {
-  //   width: buttonWidth,
-  //   height: buttonHeight,
-  //   backgroundColor: "#83c327",
-  // };
-
-  // const redColor = {
-  //   width: buttonWidth,
-  //   height: buttonHeight,
-  //   backgroundColor: "red",
-  // };
-  // const [dyStyle, setDyStyle] = useState(defaultColor);
-  // useEffect(() => {
-  //   console.log("className ===", userChoice);
-  // }, []);
-  return (
-    <div
-      // id="rectangular-text-button"
-      className={className}
-      onClick={onHeaderIconClick}
-      // onMouseEnter={() => {
+    return (
+      <div
+        // id="rectangular-text-button"
+        className={className}
+        onClick={onHeaderIconClick}
+        // onMouseEnter={() => {
         // setDyStyle(greentColor);
         // if (!userChoice) {
         //   setDyStyle(greenColor);
@@ -59,26 +36,26 @@ const RectangularTextButton: React.FC<{
         //   setDyStyle(defaultColor);
         // }, 500);
         // console.log("onMouseEnter={()", dyStyle);
-      // }}
-      // style={dyStyle}
-      style={{
-        width: buttonWidth + "vw",
-        height: buttonHeight + "vh",
-        padding: padding + "vh",
-        // background: "white",
-      }}
-
-    >
-      <p
+        // }}
+        // style={dyStyle}
         style={{
-          fontSize: fontSize + "vh",
-          // padding: "0.2vh",
-          // fontSize: "var(--text-size)",
+          width: buttonWidth + "vw",
+          height: buttonHeight + "vh",
+          padding: padding + "vh",
+          // background: "white",
         }}
+
       >
-        {t(text)}
-      </p>
-    </div>
-  );
-};
+        <p
+          style={{
+            fontSize: fontSize + "vh",
+            // padding: "0.2vh",
+            // fontSize: "var(--text-size)",
+          }}
+        >
+          {t(text)}
+        </p>
+      </div>
+    );
+  };
 export default RectangularTextButton;
