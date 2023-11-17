@@ -92,28 +92,18 @@ const ChimpleAvatar: FC<{
   }
 
   async function loadNextSuggestion(choice: boolean) {
-    if (
-      currentMode === AvatarModes.CourseSuggestion ||
-      currentMode === AvatarModes.RecommededLesson
-    ) {
-    } else {
-      const currentAvatarSuggestionNoFromLocal =
-        Number(localStorage.getItem(CURRENT_AVATAR_SUGGESTION_NO)) ||
-        avatarObj.currentSuggestionNumber;
+    avatarObj.loadAvatarDataOnIndex();
 
-      avatarObj.loadAvatarDataOnIndex(currentAvatarSuggestionNoFromLocal);
+    setCurrentMode(avatarObj.mode);
+    setButtonsDisabled(true);
+    // if (avatarObj.mode === AvatarModes.RecommededLesson) {
+    //   console.log(
+    //     "setCurrentLesson(recommadedSuggestion[0]);",
+    //     recommadedSuggestion[0]
+    //   );
 
-      setCurrentMode(avatarObj.mode);
-      setButtonsDisabled(true);
-      if (avatarObj.mode === AvatarModes.RecommededLesson) {
-        console.log(
-          "setCurrentLesson(recommadedSuggestion[0]);",
-          recommadedSuggestion[0]
-        );
-
-        setCurrentLesson(await getRecommendedLesson(cChapter, currentCourse));
-      }
-    }
+    //   setCurrentLesson(await getRecommendedLesson(cChapter, currentCourse));
+    // }
   }
 
   const fetchCoursesForStudent = async () => {
@@ -134,43 +124,24 @@ const ChimpleAvatar: FC<{
   };
 
   async function onClickYes() {
-    if (
-      (currentMode === AvatarModes.CourseSuggestion &&
-        currentStageMode != AvatarModes.LessonSuggestion) ||
-      currentMode === AvatarModes.RecommededLesson
-    ) {
-      console.log("getCourseSuggestion ");
+    // setButtonsDisabled(false);
+    console.log("avatar Animation ", avatarObj.yesAnimation);
 
-      // getCourseSuggestion();
-    } else {
-      if (
-        avatarObj.currentSuggestionNumber === avatarObj.allSuggestions.length
-      ) {
-        avatarObj.currentSuggestionNumber = 0;
-      } else {
-        avatarObj.currentSuggestionNumber++;
-      }
-      loadNextSuggestion(true);
-    }
-
-    setButtonsDisabled(false);
     rive?.play(avatarObj.yesAnimation);
     buttons = [];
     onclickInput?.fire();
   }
 
   function onClickNo() {
-    console.log("onclickNo", avatarObj.noAnimation);
-    setButtonsDisabled(false);
+    console.log("avatar Animation ", avatarObj.noAnimation);
+    // setButtonsDisabled(false);
     rive?.play(avatarObj.noAnimation);
     buttons = [];
     onclickInput?.fire();
-    loadNextSuggestion(false);
-    setButtonsDisabled(true);
   }
 
   let cCourse: Course, cChapter: Chapter, cLesson: Lesson | undefined;
-  const handleButtonClick = async (choice: boolean) => {
+  const handleButtonClick = async (choice: boolean, option = "") => {
     if (!buttonsDisabled) {
       // If buttons are already disabled, don't proceed
       return;
@@ -180,9 +151,11 @@ const ChimpleAvatar: FC<{
     switch (currentMode) {
       case AvatarModes.Welcome:
         if (choice) {
-          onClickYes();
+          rive?.play(avatarObj.avatarAnimation);
+          buttons = [];
+          onclickInput?.fire();
+          loadNextSuggestion(true);
         }
-        setButtonsDisabled(true);
 
         break;
 
@@ -228,6 +201,7 @@ const ChimpleAvatar: FC<{
               setButtonsDisabled(false);
               onClickYes();
               playCurrentLesson();
+              loadNextSuggestion(true);
             } else {
               onClickNo();
               cLesson = await getRecommendedLesson(
@@ -242,9 +216,25 @@ const ChimpleAvatar: FC<{
         break;
 
       case AvatarModes.TwoOptionQuestion:
+        choice = option === avatarObj.answer;
+        console.log("AvatarModes.TwoOptionQuestion ", option, choice);
+
         if (choice) {
-        } else if (choice) {
-          setCurrentMode(AvatarModes.FourOptionQuestion);
+          onClickYes();
+          loadNextSuggestion(true);
+        } else {
+          onClickNo();
+        }
+        break;
+      case AvatarModes.FourOptionQuestion:
+        choice = option === avatarObj.answer;
+        console.log("AvatarModes.FourOptionQuestion ", option, choice);
+
+        if (choice) {
+          onClickYes();
+          loadNextSuggestion(true);
+        } else {
+          onClickNo();
         }
         break;
 
@@ -438,20 +428,36 @@ const ChimpleAvatar: FC<{
       }
       break;
     case AvatarModes.TwoOptionQuestion:
-      // message = `Guess the Animal ?`;
-      // setButtons([
-      //   // { label: "1", onClick: () => handleButtonClick("1") },
-      //   // { label: "2", onClick: () => handleButtonClick("2") },
-      // ]);
+      buttons = [
+        {
+          label: t(avatarObj.option1 || ""),
+          onClick: () => handleButtonClick(true, avatarObj.option1 || ""),
+        },
+        {
+          label: t(avatarObj.option2 || ""),
+          onClick: () => handleButtonClick(false, avatarObj.option2 || ""),
+        },
+      ];
       break;
     case AvatarModes.FourOptionQuestion:
-      // message = `Guess the Animal 4 optionsF?`;
-      // setButtons([
-      //   // { label: "1", onClick: () => handleButtonClick("1") },
-      //   // { label: "2", onClick: () => handleButtonClick("2") },
-      //   // { label: "3", onClick: () => handleButtonClick("3") },
-      //   // { label: "4", onClick: () => handleButtonClick("4") },
-      // ]);
+      buttons = [
+        {
+          label: t(avatarObj.option1 || ""),
+          onClick: () => handleButtonClick(true, avatarObj.option1 || ""),
+        },
+        {
+          label: t(avatarObj.option1 || ""),
+          onClick: () => handleButtonClick(false, avatarObj.option2 || ""),
+        },
+        {
+          label: t(avatarObj.option3 || ""),
+          onClick: () => handleButtonClick(true, avatarObj.option3 || ""),
+        },
+        {
+          label: t(avatarObj.option4 || ""),
+          onClick: () => handleButtonClick(false, avatarObj.option4 || ""),
+        },
+      ];
       break;
     case AvatarModes.RecommededLesson:
       console.log("const x1 = currentLesson?.title || ", currentLesson?.title);
@@ -501,9 +507,10 @@ const ChimpleAvatar: FC<{
                   ? "center"
                   : buttons.length === 2
                   ? "space-evenly"
-                  : buttons.length === 4
-                  ? "space-between"
-                  : "space-between",
+                  : "center",
+              gap: ".5em",
+              display: buttons.length > 2 ? "grid" : "",
+              gridTemplateColumns: buttons.length > 2 ? "35% 70px" : "",
             }}
           >
             {buttons.map((button, index) => (

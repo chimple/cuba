@@ -14,7 +14,8 @@ import Lesson from "../../models/lesson";
 import "./AvatarImageOption.css";
 import { IonCard } from "@ionic/react";
 import { Chapter } from "../../common/courseConstants";
-import { AvatarModes } from "./Avatar";
+import { AvatarModes, AvatarObj } from "./Avatar";
+import CachedImage from "../common/CachedImage";
 
 const AvatarImageOption: React.FC<{
   currentMode?: AvatarModes;
@@ -79,6 +80,10 @@ const AvatarImageOption: React.FC<{
       }
       break;
     case AvatarModes.TwoOptionQuestion:
+      content = cardContent("", "", AvatarObj._i.imageSrc || "");
+      break;
+    case AvatarModes.FourOptionQuestion:
+      content = cardContent("", "", AvatarObj._i.imageSrc || "");
       break;
     case AvatarModes.RecommededLesson:
       if (currentLesson) {
@@ -107,17 +112,17 @@ const AvatarImageOption: React.FC<{
             // justifyContent: "center",
           }}
         >
-          <SelectIconImage
-            localSrc={""}
-            defaultSrc={""}
-            webSrc={
-              // "https://www.cambridgeblog.org/wp-content/uploads/2015/05/What-is-an-Animal.jpg"
-              // "https://i.ytimg.com/vi/Ez9oouE2pOE/hqdefault.jpg"
-              "https://play-lh.googleusercontent.com/sSy91b6MppWNW7T7O7B9WTtqdFuvI5ZPemzxatFxLckENyiDY7p_NpaOGnGcKLBoNA"
-            }
-            imageWidth={"100%"}
-            imageHeight={"80%"}
-          />
+          <CachedImage
+            // style={{
+            //   width: "50%",
+            //   height: "100%",
+            // }}
+            src="https://play-lh.googleusercontent.com/sSy91b6MppWNW7T7O7B9WTtqdFuvI5ZPemzxatFxLckENyiDY7p_NpaOGnGcKLBoNA"
+            alt=""
+            onError={() => {
+              // setLoadIcon(LoadIcon.Default);
+            }}
+          ></CachedImage>
         </div>
       );
   }
@@ -177,6 +182,7 @@ const AvatarImageOption: React.FC<{
             justifyContent: "center",
             alignItems: "center",
             gridArea: "1/1 / span 2 / span 2",
+            textAlign: "center",
             //           max-width: 100%;
             // height: auto;
             // width: auto;
@@ -191,8 +197,15 @@ const AvatarImageOption: React.FC<{
             localSrc={localSrc}
             defaultSrc={defalutSrc}
             webSrc={webSrc}
-            imageWidth={"100%"}
+            imageWidth={"80%"}
             imageHeight={"80%"}
+            webImageWidth={
+              currentMode === AvatarModes.FourOptionQuestion ||
+              currentMode === AvatarModes.TwoOptionQuestion
+                ? "50%"
+                : "100%"
+            }
+            webImageHeight="100%"
           />
         </div>
       </div>

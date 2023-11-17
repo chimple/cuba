@@ -206,8 +206,6 @@ const LessonCard: React.FC<{
               webSrc={
                 "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/lesson_thumbnails%2FlessonCaredPattern%2FChallengePattern.png?alt=media&token=be64aec1-f70f-43c3-95de-fd4b1afe5806"
               }
-              imageWidth={"100%"}
-              imageHeight={"100%"}
             />
           </div>
 
@@ -222,8 +220,8 @@ const LessonCard: React.FC<{
               }
               defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
               webSrc={lesson.thumbnail}
-              imageWidth={"100"}
-              imageHeight={"100"}
+              imageWidth={"100%"}
+              imageHeight={"100%"}
             />
             {!isUnlocked ? (
               <div id="lesson-card-status-icon">
@@ -259,9 +257,15 @@ const LessonCard: React.FC<{
         )}
       </div>
       <div>
-        {showText ? <p id={`lesson-card-name${isLoved ? '-fav-icon' : ''}`}>{t(lesson?.title)}</p> : null}
+        {showText ? (
+          <p id={`lesson-card-name${isLoved ? "-fav-icon" : ""}`}>
+            {t(lesson?.title)}
+          </p>
+        ) : null}
         {showChapterName && lesson.chapterTitle && (
-          <div id={`chapter-title${isLoved ? '-fav-icon' : ''}`}>{lesson.chapterTitle}</div>
+          <div id={`chapter-title${isLoved ? "-fav-icon" : ""}`}>
+            {lesson.chapterTitle}
+          </div>
         )}
       </div>
     </IonCard>

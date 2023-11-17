@@ -49,8 +49,6 @@ const SelectChapter: FC<{
                   localSrc={`courses/${course.courseCode}/icons/${chapter.id}.webp`}
                   defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
                   webSrc={chapter.thumbnail}
-                  imageWidth="100%"
-                  imageHeight="100%"
                 />
               </div>
               {chapter.title}

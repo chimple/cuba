@@ -158,7 +158,7 @@ export class AvatarObj {
       }
 
       let response = await fetch(
-        "https://mocki.io/v1/50406419-f560-42d0-9261-36eeb4063d5e"
+        "https://mocki.io/v1/2363f744-be60-4072-9a12-2113757a3287"
       );
 
       let suggesstionJson = await response.json();
@@ -191,8 +191,27 @@ export class AvatarObj {
     console.log(" AvatarObj in Avatar page ", AvatarObj.getInstance());
   }
 
-  public async loadAvatarDataOnIndex(currentSugNo: number) {
-    let currentSuggestionInJson = this._allSuggestions[currentSugNo];
+  public async loadAvatarDataOnIndex() {
+    console.log(
+      "if (this.currentSuggestionNumber === this.allSuggestions.length) {",
+      this._currentSuggestionNumber === this._allSuggestions.length - 1
+    );
+
+    if (this._currentSuggestionNumber === this._allSuggestions.length - 1) {
+      this._currentSuggestionNumber = 0;
+      console.log(
+        "resetting the Avatar Suggestions",
+        this._currentSuggestionNumber
+      );
+    } else {
+      this.currentSuggestionNumber++;
+      console.log(
+        "Avatar Suggestions incremented",
+        this._currentSuggestionNumber
+      );
+    }
+    let currentSuggestionInJson =
+      this._allSuggestions[this._currentSuggestionNumber];
     this._mode = AvatarModes[currentSuggestionInJson[0]];
     this._message = currentSuggestionInJson[1];
     this._imageSrc = currentSuggestionInJson[2];
