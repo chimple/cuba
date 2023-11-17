@@ -6,7 +6,6 @@ const RectangularTextButton: React.FC<{
   buttonHeight: number;
   text: string;
   fontSize: number;
-  userChoice: boolean;
   className: string;
   padding: number;
   onHeaderIconClick: React.MouseEventHandler<HTMLDivElement>;
@@ -17,45 +16,28 @@ const RectangularTextButton: React.FC<{
   fontSize,
   onHeaderIconClick,
   className,
-  userChoice,
   padding,
 }) => {
-    return (
-      <div
-        // id="rectangular-text-button"
-        className={className}
-        onClick={onHeaderIconClick}
-        // onMouseEnter={() => {
-        // setDyStyle(greentColor);
-        // if (!userChoice) {
-        //   setDyStyle(greenColor);
-        // } else {
-        //   setDyStyle(redColor);
-        // }
-        // setTimeout(() => {
-        //   setDyStyle(defaultColor);
-        // }, 500);
-        // console.log("onMouseEnter={()", dyStyle);
-        // }}
-        // style={dyStyle}
+  return (
+    <div
+      // id="rectangular-text-button"
+      className={className}
+      onClick={onHeaderIconClick}
+      style={{
+        width: buttonWidth + "vw",
+        height: buttonHeight + "vh",
+        padding: padding + "vh",
+        // background: "white",
+      }}
+    >
+      <p
         style={{
-          width: buttonWidth + "vw",
-          height: buttonHeight + "vh",
-          padding: padding + "vh",
-          // background: "white",
+          fontSize: fontSize + "vh",
         }}
-
       >
-        <p
-          style={{
-            fontSize: fontSize + "vh",
-            // padding: "0.2vh",
-            // fontSize: "var(--text-size)",
-          }}
-        >
-          {t(text)}
-        </p>
-      </div>
-    );
-  };
+        {t(text)}
+      </p>
+    </div>
+  );
+};
 export default RectangularTextButton;

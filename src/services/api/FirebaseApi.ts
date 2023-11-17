@@ -59,7 +59,7 @@ import Class from "../../models/class";
 import School from "../../models/school";
 import Assignment from "../../models/assignment";
 import { sort } from "semver";
-import Avatar from "../../models/avatar";
+import { AvatarObj } from "../../components/animation/Avatar";
 import { any } from "prop-types";
 
 export class FirebaseApi implements ServiceApi {
@@ -76,7 +76,7 @@ export class FirebaseApi implements ServiceApi {
   private _schoolsCache: { [userId: string]: School[] } = {};
   private _currentMode: MODES;
   private _allCourses: Course[];
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): FirebaseApi {
     if (!FirebaseApi.i) {
@@ -84,7 +84,7 @@ export class FirebaseApi implements ServiceApi {
     }
     return FirebaseApi.i;
   }
-  
+
   public async getCourseByUserGradeId(
     gradeDocId: string | undefined
   ): Promise<DocumentReference<DocumentData>[]> {
@@ -317,8 +317,18 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  public async getAvatarInfo(): Promise<Avatar | undefined> {
+  public async getAvatarInfo(): Promise<AvatarObj | undefined> {
     try {
+      // let response = await fetch(
+      //   "https://raw.githubusercontent.com/chimple/course-kn/main/kn0001/res/kn0001.json"
+      // );
+
+      let response = await fetch(
+        "/public/assets/animation/avatarSugguestions.json"
+      );
+      let responseJson = await response.json();
+      console.log("Avatar Sugguestion Json ", responseJson);
+
       const avatarDocId = "AvatarInfo";
       console.log(
         "getAvatarInfo(): entred",
@@ -327,7 +337,7 @@ export class FirebaseApi implements ServiceApi {
       const documentSnapshot = await this.getDocFromOffline(
         doc(this._db, CollectionIds.AVATAR + "/" + avatarDocId)
       );
-      const avatarInfoData = documentSnapshot.data() as Avatar;
+      const avatarInfoData = documentSnapshot.data() as AvatarObj;
       console.log("const avatarInfoData", avatarInfoData);
 
       return avatarInfoData;
@@ -1413,12 +1423,17 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  public async getLessonWithCocosLessonId(lessonId: string): Promise<Lesson | null> {
+  public async getLessonWithCocosLessonId(
+    lessonId: string
+  ): Promise<Lesson | null> {
     try {
       const lessonQuerySnapshot = await this.getDocsFromOffline(
-        query(collection(this._db, CollectionIds.LESSON), where("id", "==", lessonId))
+        query(
+          collection(this._db, CollectionIds.LESSON),
+          where("id", "==", lessonId)
+        )
       );
-  
+
       if (!lessonQuerySnapshot.empty) {
         // If there is a matching lesson, return it
         const lessonDoc = lessonQuerySnapshot.docs[0];
@@ -1434,7 +1449,6 @@ export class FirebaseApi implements ServiceApi {
       return null;
     }
   }
-  
 
   public async getAllCourses(): Promise<Course[]> {
     try {
@@ -1509,7 +1523,9 @@ export class FirebaseApi implements ServiceApi {
     return querySnapshot;
   }
 
-  public async getCourseFromLesson(lesson: Lesson): Promise<Course | undefined> {
+  public async getCourseFromLesson(
+    lesson: Lesson
+  ): Promise<Course | undefined> {
     if (!this._allCourses) {
       this._allCourses = await this.getAllCourses();
     }
@@ -1518,6 +1534,5 @@ export class FirebaseApi implements ServiceApi {
       (course) => course.courseCode === lesson.cocosSubjectCode
     );
     return tmpCourse;
-
   }
 }

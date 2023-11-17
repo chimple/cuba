@@ -19,8 +19,8 @@ import Subject from "../../models/subject";
 import StudentProfile from "../../models/studentProfile";
 import school from "../../models/school";
 import School from "../../models/school";
-import Avatar from "../../models/avatar";
 import { QueryDocumentSnapshot } from "@firebase/firestore";
+import { AvatarObj } from "../../components/animation/Avatar";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -51,7 +51,7 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
-  getAvatarInfo(): Promise<Avatar | undefined> {
+  getAvatarInfo(): Promise<AvatarObj | undefined> {
     throw new Error("Method not implemented.");
   }
   updateTcAccept(user: User, value: boolean) {

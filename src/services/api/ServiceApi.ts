@@ -13,8 +13,8 @@ import School from "../../models/school";
 import Assignment from "../../models/assignment";
 import { MODES } from "../../common/constants";
 import { FaUnderline } from "react-icons/fa";
-import Avatar from "../../models/avatar";
 import { QueryDocumentSnapshot } from "@firebase/firestore";
+import { AvatarObj } from "../../components/animation/Avatar";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -150,9 +150,9 @@ export interface ServiceApi {
 
   /**
    * Gives all Avatar info like mode, audio list
-   * @returns {Avatar} `Avatar` Object
+   * @returns {AvatarObj} `Avatar` Object
    */
-  getAvatarInfo(): Promise<Avatar | undefined>;
+  getAvatarInfo(): Promise<AvatarObj | undefined>;
 
   /**
    * Gives all lesson results for given student id

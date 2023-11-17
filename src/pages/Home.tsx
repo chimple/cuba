@@ -51,7 +51,7 @@ import { margin } from "@mui/system";
 import { push } from "ionicons/icons";
 import { t } from "i18next";
 import { App, URLOpenListenerEvent } from "@capacitor/app";
-import ChimpleAvatarPage from "../components/animation/ChimpleAvatarPage";
+import ChimpleAvatar from "../components/animation/ChimpleAvatar";
 import DisplaySubjects from "./DisplaySubjects";
 import SearchLesson from "./SearchLesson";
 import AssignmentPage from "./Assignment";
@@ -782,14 +782,14 @@ const Home: FC = () => {
         {!isLoading ? (
           <div className="space-between">
             {currentHeader === HOMEHEADERLIST.HOME ? (
-              <ChimpleAvatarPage
+              <ChimpleAvatar
+                recommadedSuggestion={dataCourse}
                 style={{
                   marginBottom: "2vh",
                   display: "flex",
                   justifyContent: "space-around",
                 }}
-                audioSrc={"assets/audios/my_name_is_chimple.mp3"}
-              ></ChimpleAvatarPage>
+              ></ChimpleAvatar>
             ) : // <div>
             //   <LessonSlider
             //     lessonData={dataCourse}
