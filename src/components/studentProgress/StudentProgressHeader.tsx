@@ -1,11 +1,12 @@
 import { useTranslation } from "react-i18next";
-import { PAGES } from "../../common/constants";
+import { CONTINUE, PAGES } from "../../common/constants";
 import "./StudentProgressHeader.css";
 import React from "react";
 import { useHistory } from "react-router-dom";
 import BackButton from "../common/BackButton";
 import RectangularIconButton from "../parent/RectangularIconButton";
 import Course from "../../models/course";
+import { Util } from "../../utility/util";
 
 interface HeaderIconConfig {
   displayName: string;
@@ -27,7 +28,7 @@ const StudentProgressHeader: React.FC<{
       <BackButton
         //iconSize={"8vh"}
         onClicked={() => {
-          history.replace(PAGES.PARENT);
+          Util.setPathToBackButton(PAGES.PARENT, history);
         }}
       ></BackButton>
       <div id="student-progress-header-middle-icons">

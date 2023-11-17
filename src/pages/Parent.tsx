@@ -6,6 +6,7 @@ import {
   MAX_STUDENTS_ALLOWED,
   PAGES,
   PARENTHEADERLIST,
+  CONTINUE,
 } from "../common/constants";
 import ProfileCard from "../components/parent/ProfileCard";
 import User from "../models/user";
@@ -423,7 +424,7 @@ const Parent: React.FC = () => {
   };
 
   const handleBackButton = () => {
-    history.replace(PAGES.DISPLAY_STUDENT);
+    Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
   };
 
   useEffect(() => {

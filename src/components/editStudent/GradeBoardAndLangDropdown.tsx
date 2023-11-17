@@ -44,7 +44,7 @@ const GradeBoardAndLangDropdown: FC<{
   return (
     <div className="dropdown-header">
       <div id="drop-down-board">
-        <p id="drop-down-head">Board</p>
+        <p id="drop-down-head">{t('Board')}</p>
            <DropDown
       currentValue={currentlySelectedBoard!}
         // currentlySelected={currentlySelectedBoard}
@@ -57,7 +57,7 @@ const GradeBoardAndLangDropdown: FC<{
       />
       </div>
       <div id="drop-down-grade">
-      <p id="drop-down-head">Grade</p>
+      <p id="drop-down-head">{t('Grade')}</p>
       <DropDown
        currentValue={currentlySelectedGrade!}
        
@@ -68,7 +68,7 @@ const GradeBoardAndLangDropdown: FC<{
       />
       </div>
       <div id="drop-down-Medium-of-instruction">
-        <p id="drop-down-head">Medium of instruction</p>
+        <p id="drop-down-head">{t('Medium of instruction')}</p>
         <DropDown
        currentValue={currentlySelectedLang}
        placeholder={t("Select").toString()}

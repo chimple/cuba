@@ -9,7 +9,7 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import lesson from "../../models/lesson";
 import { Util } from "../../utility/util";
 // import Course from "../../models/course";
-import { COURSES, PAGES, RECOMMENDATIONS } from "../../common/constants";
+import { CONTINUE, COURSES, PAGES, RECOMMENDATIONS } from "../../common/constants";
 import { relative } from "path";
 import DisplayStudents from "../../pages/DisplayStudents";
 import Course from "../../models/course";
@@ -221,7 +221,7 @@ const ChimpleAvatarPage: FC<{
               courseDocId: currentCourse.docId,
               course: JSON.stringify(Course.toJson(currentCourse!)),
               lesson: JSON.stringify(Lesson.toJson(currentLesson)),
-              from: history.location.pathname + "?continue=true",
+              from: history.location.pathname + `?${CONTINUE}=true`,
             });
           }
         } else {

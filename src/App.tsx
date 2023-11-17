@@ -34,6 +34,7 @@ import {
   // APP_LANG,
   BASE_NAME,
   CACHE_IMAGE,
+  CONTINUE,
   GAME_URL,
   IS_CUBA,
   PAGES,
@@ -62,6 +63,11 @@ const App: React.FC = () => {
   useEffect(() => {
     console.log("fetching...");
     // localStorage.setItem(LANGUAGE, LANG.ENGLISH);
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get(CONTINUE) || PAGES.APP_UPDATE) {
+      urlParams.delete(CONTINUE);
+      CapApp.addListener("appStateChange", Util.onAppStateChange);
+    }
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({
@@ -80,14 +86,14 @@ const App: React.FC = () => {
             localStorage.setItem(GAME_URL, uri + "/");
           }
         });
-      CapApp.addListener("appStateChange", Util.onAppStateChange);
+      //CapApp.addListener("appStateChange", Util.onAppStateChange);
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
     }
 
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,
-    }).catch((_) => { });
+    }).catch((_) => {});
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();

@@ -4,7 +4,7 @@ import ChimpleLogo from "../components/ChimpleLogo";
 import "./DisplayStudents.css";
 import Loading from "../components/Loading";
 import User from "../models/user";
-import { AVATARS, MAX_STUDENTS_ALLOWED, PAGES, MODES } from "../common/constants";
+import { AVATARS, MAX_STUDENTS_ALLOWED, PAGES, MODES, CONTINUE } from "../common/constants";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { useHistory } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -96,7 +96,7 @@ const DisplayStudents: FC<{}> = () => {
         from: history.location.pathname,
       });
     } else {
-      history.replace(PAGES.HOME);
+      Util.setPathToBackButton(PAGES.HOME, history);
     }
   };
   const onCreateNewStudent = () => {

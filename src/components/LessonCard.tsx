@@ -1,7 +1,7 @@
 import { IonCard } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { LESSON_CARD_COLORS, PAGES } from "../common/constants";
+import { CONTINUE, LESSON_CARD_COLORS, PAGES } from "../common/constants";
 import "./LessonCard.css";
 import LessonCardStarIcons from "./LessonCardStarIcons";
 import React from "react";
@@ -149,7 +149,7 @@ const LessonCard: React.FC<{
             courseDocId: course?.docId ?? lesson?.assignment?.course?.id,
             course: JSON.stringify(Course.toJson(currentCourse!)),
             lesson: JSON.stringify(Lesson.toJson(lesson)),
-            from: history.location.pathname + "?continue=true",
+            from: history.location.pathname + `?${CONTINUE}=true`,
           });
           // }
         } else {
@@ -236,8 +236,11 @@ const LessonCard: React.FC<{
               </div>
             ) : isPlayed ? (
               showScoreCard ? (
-                <div id="lesson-card-score">
-                  <LessonCardStarIcons score={score}></LessonCardStarIcons>
+                <div>
+                  <div id="lesson-card-score">
+                    <LessonCardStarIcons score={score}></LessonCardStarIcons>
+                  </div>
+                  {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
                 </div>
               ) : (
                 <></>
@@ -246,6 +249,7 @@ const LessonCard: React.FC<{
               <div />
             )}
           </div>
+          {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
         </div>
         {isLoved && (
           <LovedIcon
@@ -254,10 +258,12 @@ const LessonCard: React.FC<{
           />
         )}
       </div>
-      {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
-      {showChapterName && lesson.chapterTitle && (
-        <div id="chapter-title">{lesson.chapterTitle}</div>
-      )}
+      <div>
+        {showText ? <p id={`lesson-card-name${isLoved ? '-fav-icon' : ''}`}>{t(lesson?.title)}</p> : null}
+        {showChapterName && lesson.chapterTitle && (
+          <div id={`chapter-title${isLoved ? '-fav-icon' : ''}`}>{lesson.chapterTitle}</div>
+        )}
+      </div>
     </IonCard>
   );
 };
