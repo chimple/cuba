@@ -42,7 +42,7 @@ const ChimpleAvatar: FC<{
   const [currentCourse, setCurrentCourse] = useState<Course>(allCourses[0]);
   const [currentChapter, setCurrentChapter] = useState<Chapter>();
   const [currentLesson, setCurrentLesson] = useState<Lesson>();
-
+  const [isBurst, setIsBurst] = useState(false);
   const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(true);
   const [riveCharHandsUp, setRiveCharHandsUp] = useState("Fail");
 
@@ -171,6 +171,7 @@ const ChimpleAvatar: FC<{
 
   let cCourse: Course, cChapter: Chapter, cLesson: Lesson | undefined;
   const handleButtonClick = async (choice: boolean) => {
+    setIsBurst(true);
     if (!buttonsDisabled) {
       // If buttons are already disabled, don't proceed
       return;
@@ -261,6 +262,9 @@ const ChimpleAvatar: FC<{
       default:
         break;
     }
+    setTimeout(() => {
+      setIsBurst(false);
+    }, 1900);
   };
 
   async function playCurrentLesson() {
@@ -479,7 +483,8 @@ const ChimpleAvatar: FC<{
         }}
         // clickHandler={() => handleButtonClick(userChoice)}
       />
-      <div className="avatar-option-box-background left-corner">
+      <div className={`avatar-option-box-background left-corner ${isBurst ? 'burst' : ''
+        }`}>
         <div>
           <TextBoxWithAudioButton
             message={avatarObj.message}
