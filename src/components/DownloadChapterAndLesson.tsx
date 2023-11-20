@@ -142,14 +142,14 @@ const DownloadLesson: React.FC<{
       case SnackbarType.Error:
         Toast.show({
           text: message,
-          duration: "short",
+          duration: "long",
           position: "bottom",
         });
         break;
       default:
         Toast.show({
           text: message,
-          duration: "short",
+          duration: "long",
           position: "bottom",
         });
     }
@@ -193,25 +193,19 @@ const DownloadLesson: React.FC<{
       )}
 
       {loading ? (
-        <div className="loading-spinner">
-          <div className="spinner-container">
-            <div className="spinner"></div>
-          </div>
+        <div className="loadingButton-container">
+          <div className="loadingButton"></div>
         </div>
       ) : showIcon ? (
-        <div className="download">
-          <TfiDownload className="downloadButton" />
-        </div>
+        <TfiDownload className="lessonOrChapterDeleteIcon" />
       ) : (
         <div
-          className="delete"
           onClick={(event) => {
             event.stopPropagation();
             setShowDialogBox(!showDialogBox);
           }}
         >
-          {" "}
-          <TfiTrash className="deleteButton" />
+          <TfiTrash className="lessonOrChapterDownloadIcon " />
         </div>
       )}
     </div>
