@@ -242,21 +242,32 @@ const Login: React.FC = () => {
         setSentOtpLoading(false);
         alert("Phone Number signin Failed " + authRes);
       }
-    } catch (error) {
-      console.log("Phone Number signin Failed ");
-      setSpinnerLoading(false);
-      setSentOtpLoading(false);
-      alert("Phone Number signin Failed " + error);
-      console.log(
-        "window.recaptchaVerifier",
-        // window.recaptchaVerifier,
-        recaptchaVerifier!
-      );
-
-      // //@ts-ignore
-      recaptchaVerifier!.clear();
-      // //@ts-ignore
-      // window.recaptchaVerifier.clear();
+    }catch (error) {
+        console.log("Phone Number signin Failed ");
+        setSpinnerLoading(false);
+        setSentOtpLoading(false);
+    
+        if (typeof error === 'string') {
+            // Handle the error as a string
+            let errorMessage = "Phone Number signin Failed. Something went wrong. Please try again later.";
+    
+            if (error.includes("blocked all requests")) {
+                errorMessage = "Hi, Something went wrong. Please try again later in sometime.";
+            } else if (error.includes("E.164 format")) {
+                errorMessage = "Sorry, this is the incorrect phone number format. Please check and re-enter again";
+            }
+    
+            alert(t(errorMessage));
+        } else {
+            // Default error message for non-string errors
+            alert("Phone Number signin Failed. Something went wrong. Please try again later.");
+        }
+    
+        console.log("window.recaptchaVerifier", recaptchaVerifier!);
+        //@ts-ignore
+        recaptchaVerifier!.clear();
+        //@ts-ignore
+        // window.recaptchaVerifier.clear();
     }
   };
 
@@ -347,7 +358,8 @@ const Login: React.FC = () => {
     } catch (error) {
       console.log("Resend Otp Failed With Error " + error);
       setSentOtpLoading(false);
-      alert("Resend Otp Failed " + error);
+      //When Resend OTP Failed
+      alert(t("Resend Otp Failed!! You have entered the OTP incorrectly many times. Please try again after some time."));
       recaptchaVerifier!.clear();
     }
   }
