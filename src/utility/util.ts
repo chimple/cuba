@@ -431,7 +431,7 @@ export class Util {
 
     const currentTime = new Date().getTime();
 
-    if (!storedLastRendered || currentTime - lastRendered > 60 * 1000) {
+    if (!storedLastRendered || currentTime - lastRendered > 60 * 60 * 1000) {
       try {
         if (!Capacitor.isNativePlatform()) return null;
 
