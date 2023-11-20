@@ -29,7 +29,6 @@ import Class from "../models/class";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
 import { Timestamp } from "firebase/firestore";
-import { ToastContainer } from "react-toastify";
 
 const localData: any = {};
 let localStorageData: any = {};
@@ -68,7 +67,7 @@ const DisplayChapters: FC<{}> = () => {
     (course) => courseDocId == course.docId
   );
   useEffect(() => {
-    Util.checkLessonForChapter(lessons);
+    Util.updateChapterOrLessonDownloadStatus(lessons);
     init();
   }, []);
   useEffect(() => {
@@ -446,7 +445,6 @@ const DisplayChapters: FC<{}> = () => {
                 course={currentCourse}
                 currentChapterId={currentChapter?.id}
               />
-              <ToastContainer />
             </div>
           )}
       </div>
@@ -461,7 +459,6 @@ const DisplayChapters: FC<{}> = () => {
             showSubjectName={false}
             showChapterName={false}
           />
-          <ToastContainer />
         </div>
       )}
     </IonPage>

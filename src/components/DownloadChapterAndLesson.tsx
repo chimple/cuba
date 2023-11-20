@@ -5,11 +5,10 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import "./DownloadChapterAndLesson.css";
 import { t } from "i18next";
 import DialogBoxButtons from "./parent/DialogBoxButtons​";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { Toast } from "@capacitor/toast";
 import { CHAPTER_ID, LESSON_ID, SnackbarType } from "../common/constants";
-import { Capacitor } from "@capacitor/core";
 import { TfiDownload, TfiTrash } from "react-icons/tfi";
+import { Capacitor } from "@capacitor/core";
 
 const DownloadLesson: React.FC<{
   lessonID?: any;
@@ -56,7 +55,7 @@ const DownloadLesson: React.FC<{
   };
 
   async function init() {
-    const lesson = Util.checkLessonForChapter(lessonData);
+    const lesson = Util.updateChapterOrLessonDownloadStatus(lessonData);
     if (!lesson) {
       return;
     }
@@ -130,23 +129,37 @@ const DownloadLesson: React.FC<{
     }
     setLoading(false);
   };
+
   const showSnackbar = (message: string, type: SnackbarType) => {
     switch (type) {
       case SnackbarType.Success:
-        toast.success(message);
+        Toast.show({
+          text: message,
+          duration: "short",
+          position: "bottom",
+        });
         break;
       case SnackbarType.Error:
-        toast.error(message);
+        Toast.show({
+          text: message,
+          duration: "short",
+          position: "bottom",
+        });
         break;
       default:
-        toast(message);
+        Toast.show({
+          text: message,
+          duration: "short",
+          position: "bottom",
+        });
     }
   };
+
   useEffect(() => {
     init();
   }, [handleDownload, handleDelete]);
 
-  return (
+  return Capacitor.isNativePlatform() ? (
     <div
       className="downloadAndDeleteButton"
       onClick={(event) => {
@@ -202,7 +215,7 @@ const DownloadLesson: React.FC<{
         </div>
       )}
     </div>
-  );
+  ) : null;
 };
 
 export default DownloadLesson;

@@ -422,7 +422,7 @@ export class Util {
     return false;
   }
 
-  public static async checkDownloadedLessons() {
+  public static async checkDownloadedLessonsFromLocal() {
     const storedLastRendered = localStorage.getItem(LAST_FUNCTION_CALL);
 
     let lastRendered = storedLastRendered
@@ -460,11 +460,10 @@ export class Util {
     return lastRendered;
   }
 
-  public static async checkLessonForChapter(
+  public static async updateChapterOrLessonDownloadStatus(
     lessonId: Lesson[] | undefined
   ): Promise<boolean> {
     if (lessonId) {
-      console.log("in here3");
       const allIdsPresent = lessonId.every((e) =>
         this.isIdPresentInLocalStorage(e.id, LESSON_ID)
       );

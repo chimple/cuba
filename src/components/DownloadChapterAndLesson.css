@@ -5,19 +5,14 @@
   background-color: rgba(251, 250, 250);
   cursor: "pointer";
 }
-
-.img {
-  height: clamp(8vh, 11vh, 8vh);
-  width: clamp(5vh, 6vh, 6vh);
-}
 .spinner-container {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 .spinner {
-  width: 30px;
-  height: 30px;
+  width: 33px;
+  height: 33px;
   border: 3px solid rgb(71, 69, 69);
   border-top-color: #007bff;
   border-radius: 50%;

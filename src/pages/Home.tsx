@@ -118,7 +118,7 @@ const Home: FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    Util.checkDownloadedLessons();
+    Util.checkDownloadedLessonsFromLocal();
 
     urlOpenListenerEvent();
     setCurrentHeader(HOMEHEADERLIST.HOME);
@@ -772,7 +772,7 @@ const Home: FC = () => {
   console.log("lesson slider history", historyLessons);
 
   async function checkLessonFromLocal() {
-    const dow = await Util.checkDownloadedLessons();
+    const dow = await Util.checkDownloadedLessonsFromLocal();
     console.log("downloaddata", dow);
   }
   return (
