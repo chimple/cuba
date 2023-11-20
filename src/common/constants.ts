@@ -453,4 +453,4 @@ export enum SnackbarType {
   Success = "success",
   Error = "error",
 }
-export const LAST_RENDERED_KEY = "lastRendered";
+export const LAST_FUNCTION_CALL = "lastFunctionCall";

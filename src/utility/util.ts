@@ -25,6 +25,7 @@ import {
   CONTINUE,
   LESSON_ID,
   CHAPTER_ID,
+  LAST_FUNCTION_CALL,
   // APP_LANG,
 } from "../common/constants";
 import {
@@ -73,47 +74,6 @@ declare global {
     _CCSettings: any;
   }
 }
-const storeIdToLocalStorage = (
-  id: string | string[],
-  lessonAndChapterIdStorageKey: string
-) => {
-  const storedItems = JSON.parse(
-    localStorage.getItem(lessonAndChapterIdStorageKey) || "[]"
-  );
-  if (Array.isArray(id)) {
-    const updatedItems = [...storedItems, ...id];
-    if (updatedItems) {
-      localStorage.setItem(
-        lessonAndChapterIdStorageKey,
-        JSON.stringify(updatedItems)
-      );
-    } else return;
-  } else {
-    const updatedItems = [...storedItems, id];
-    if (updatedItems) {
-      localStorage.setItem(
-        lessonAndChapterIdStorageKey,
-        JSON.stringify(updatedItems)
-      );
-    } else return;
-  }
-};
-
-const removeIdFromLocalStorage = (
-  id: string | string[],
-  storageKey: string
-) => {
-  const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
-  const updatedItems = storedItems.filter((item: string) => !id.includes(item));
-  if (updatedItems) {
-    localStorage.setItem(storageKey, JSON.stringify(updatedItems));
-    console.log("lesson is deleted");
-  } else return;
-};
-const isIdPresentInLocalStorage = (id, storageKey) => {
-  const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
-  return storedItems.includes(id);
-};
 
 export class Util {
   public static port: PortPlugin;
@@ -291,14 +251,51 @@ export class Util {
     return { href: map?.href, sourcedId: map?.sourcedId, type: map?.type };
   }
 
-  public static async downloadZipBundle(lessonIds: string[]): Promise<boolean> {
-    const storeId = (id: string, storageKey: string) => {
-      const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
+  public static storeIdToLocalStorage = (
+    id: string | string[],
+    lessonAndChapterIdStorageKey: string
+  ) => {
+    const storedItems = JSON.parse(
+      localStorage.getItem(lessonAndChapterIdStorageKey) || "[]"
+    );
+    if (Array.isArray(id)) {
+      const updatedItems = [...storedItems, ...id];
+      if (updatedItems) {
+        localStorage.setItem(
+          lessonAndChapterIdStorageKey,
+          JSON.stringify(updatedItems)
+        );
+      } else return;
+    } else {
       const updatedItems = [...storedItems, id];
       if (updatedItems) {
-        localStorage.setItem(storageKey, JSON.stringify(updatedItems));
+        localStorage.setItem(
+          lessonAndChapterIdStorageKey,
+          JSON.stringify(updatedItems)
+        );
       } else return;
-    };
+    }
+  };
+
+  public static removeIdFromLocalStorage = (
+    id: string | string[],
+    storageKey: string
+  ) => {
+    const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
+    const updatedItems = storedItems.filter(
+      (item: string) => !id.includes(item)
+    );
+    if (updatedItems) {
+      localStorage.setItem(storageKey, JSON.stringify(updatedItems));
+      console.log("lesson is deleted");
+    } else return;
+  };
+  public static isIdPresentInLocalStorage = (id, storageKey) => {
+    const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
+    return storedItems.includes(id);
+  };
+
+  public static async downloadZipBundle(lessonIds: string[]): Promise<boolean> {
     for (let lessonId of lessonIds) {
       try {
         if (!Capacitor.isNativePlatform()) return true;
@@ -396,7 +393,7 @@ export class Util {
             data: buffer,
           });
           console.log("un  zip done");
-          storeId(lessonId, LESSON_ID);
+          this.storeIdToLocalStorage(lessonId, LESSON_ID);
         }
         console.log("zip ", zip);
       } catch (error) {
@@ -426,52 +423,71 @@ export class Util {
   }
 
   public static async checkDownloadedLessons() {
-    try {
-      if (!Capacitor.isNativePlatform()) return null;
+    const storedLastRendered = localStorage.getItem(LAST_FUNCTION_CALL);
 
-      const contents = await Filesystem.readdir({
-        path: "",
-        directory: Directory.External,
-      });
-      const folderNamesArray: string[] = [];
-      const folderNames = contents.files;
+    let lastRendered = storedLastRendered
+      ? parseInt(storedLastRendered)
+      : new Date().getTime();
 
-      for (let i = 0; i < folderNames.length; i++) {
-        console.log("Processing folder:", folderNames[i].name);
-        folderNamesArray.push(folderNames[i].name);
+    const currentTime = new Date().getTime();
+
+    if (!storedLastRendered || currentTime - lastRendered > 60 * 1000) {
+      try {
+        if (!Capacitor.isNativePlatform()) return null;
+
+        const contents = await Filesystem.readdir({
+          path: "",
+          directory: Directory.External,
+        });
+
+        const folderNamesArray: string[] = [];
+
+        for (let i = 0; i < contents.files.length; i++) {
+          console.log("Processing folder:", contents.files[i].name);
+          folderNamesArray.push(contents.files[i].name);
+        }
+
+        localStorage.removeItem(LESSON_ID);
+        this.storeIdToLocalStorage(folderNamesArray, LESSON_ID);
+
+        lastRendered = currentTime;
+      } catch (error) {
+        console.error("Error listing folders:", error);
+        return null;
       }
-      localStorage.removeItem(LESSON_ID);
-
-      storeIdToLocalStorage(folderNamesArray, LESSON_ID);
-
-      return folderNamesArray;
-    } catch (error) {
-      console.error("Error listing folders:", error);
     }
-    return null;
+    localStorage.setItem(LAST_FUNCTION_CALL, lastRendered.toString());
+    return lastRendered;
   }
 
   public static async checkLessonForChapter(
     lessonId: Lesson[] | undefined
   ): Promise<boolean> {
     if (lessonId) {
+      console.log("in here3");
       const allIdsPresent = lessonId.every((e) =>
-        isIdPresentInLocalStorage(e.id, LESSON_ID)
+        this.isIdPresentInLocalStorage(e.id, LESSON_ID)
       );
 
       if (!allIdsPresent) {
-        const chaptersToRemove = lessonId.reduce(
-          (newArray, lesson) => newArray.concat(lesson.cocosChapterCode!),
-          [] as string[]
-        );
-        removeIdFromLocalStorage(chaptersToRemove, CHAPTER_ID);
+        const chaptersToRemove = lessonId.reduce((newArray, lesson) => {
+          if (lesson.cocosChapterCode) {
+            newArray.push(lesson.cocosChapterCode);
+          }
+          return newArray;
+        }, [] as string[]);
+
+        this.removeIdFromLocalStorage(chaptersToRemove, CHAPTER_ID);
         return false;
       }
-      const chaptersToStore = lessonId.reduce(
-        (newArray, lesson) => newArray.concat(lesson.cocosChapterCode!),
-        [] as string[]
-      );
-      storeIdToLocalStorage(chaptersToStore, CHAPTER_ID);
+      const chaptersToStore = lessonId.reduce((newArray, lesson) => {
+        if (lesson.cocosChapterCode) {
+          newArray.push(lesson.cocosChapterCode);
+        }
+        return newArray;
+      }, [] as string[]);
+
+      this.storeIdToLocalStorage(chaptersToStore, CHAPTER_ID);
       return true;
     }
     return false;

@@ -19,7 +19,6 @@ import {
   CURRENT_MODE,
   RECOMMENDATIONS,
   CONTINUE,
-  LAST_RENDERED_KEY,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -118,28 +117,10 @@ const Home: FC = () => {
   let tempPageNumber = 1;
   const location = useLocation();
 
-  function storeLessonsIDFromLocal() {
-    const storedLastRendered = localStorage.getItem(LAST_RENDERED_KEY);
-    if (!storedLastRendered) {
-      checkLessonFromLocal();
-    }
-    const initialLastRendered = storedLastRendered
-      ? parseInt(storedLastRendered)
-      : new Date().getTime();
-
-    let currentTime = new Date().getTime();
-    let lastRendered = initialLastRendered;
-    if (currentTime - lastRendered > 60 * 60 * 1000) {
-      checkLessonFromLocal();
-
-      lastRendered = currentTime;
-    }
-    localStorage.setItem(LAST_RENDERED_KEY, currentTime.toString());
-  }
-
   useEffect(() => {
+    Util.checkDownloadedLessons();
+
     urlOpenListenerEvent();
-    storeLessonsIDFromLocal();
     setCurrentHeader(HOMEHEADERLIST.HOME);
     setValue(SUBTAB.SUGGESTIONS);
     fetchData();

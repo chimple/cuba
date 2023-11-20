@@ -55,52 +55,12 @@ const DownloadLesson: React.FC<{
     return storedItems.includes(id);
   };
 
-  const storeLessonAndChapterId = (
-    id: string | string[],
-    lessonOrChapterIdStorageKey: string
-  ) => {
-    const storedItems = JSON.parse(
-      localStorage.getItem(lessonOrChapterIdStorageKey) || "[]"
-    );
-    if (Array.isArray(id)) {
-      const updatedItems = [...storedItems, ...id];
-      if (updatedItems) {
-        localStorage.setItem(
-          lessonOrChapterIdStorageKey,
-          JSON.stringify(updatedItems)
-        );
-      } else return;
-    } else {
-      const updatedItems = [...storedItems, id];
-      if (updatedItems) {
-        localStorage.setItem(
-          lessonOrChapterIdStorageKey,
-          JSON.stringify(updatedItems)
-        );
-      } else return;
+  async function init() {
+    const lesson = Util.checkLessonForChapter(lessonData);
+    if (!lesson) {
+      return;
     }
-  };
-  const removeLessonAndChapterId = (
-    ids: string | string[],
-    lessonOrChapterIdStorageKey: string
-  ) => {
-    const storedItems = JSON.parse(
-      localStorage.getItem(lessonOrChapterIdStorageKey) || "[]"
-    );
-    const updatedItems = storedItems.filter(
-      (item: string) => !ids.includes(item)
-    );
-
-    if (updatedItems) {
-      localStorage.setItem(
-        lessonOrChapterIdStorageKey,
-        JSON.stringify(updatedItems)
-      );
-      console.log("Items are deleted");
-    } else {
-      console.error("Failed to update storage");
-    }
-  };
+  }
 
   const handleDownload = async () => {
     if (loading) return;
@@ -116,89 +76,60 @@ const DownloadLesson: React.FC<{
         SnackbarType.Error
       );
       setLoading(false);
-    } else {
-      if (chapters) {
-        if (!isStored(chapters.id, CHAPTER_ID)) {
-          storeLessonAndChapterId(chapters.id, CHAPTER_ID);
-        }
+      return;
+    }
+
+    const storeLessonID: string[] = [];
+
+    if (chapters) {
+      if (!isStored(chapters.id, CHAPTER_ID)) {
         const lessons: Lesson[] = await api.getLessonsForChapter(chapters);
-        const storeLessonID: string[] = [];
+
         for (const e of lessons) {
           if (!isStored(e.id, LESSON_ID)) {
             storeLessonID.push(e.id);
-            await downloadLessonAndChapter(e.id);
+            await Util.downloadZipBundle([e.id]);
           }
         }
-        storeLessonAndChapterId(storeLessonID, LESSON_ID);
 
-        setShowIcon(false);
-      } else if (lessonID) {
-        if (!isStored(lessonID, LESSON_ID)) {
-          storeLessonAndChapterId(lessonID, LESSON_ID);
-          await downloadLessonAndChapter(lessonID);
-        }
-        setShowIcon(false);
+        Util.storeIdToLocalStorage(storeLessonID, LESSON_ID);
+        Util.storeIdToLocalStorage(chapters.id, CHAPTER_ID);
+      }
+    } else {
+      if (!isStored(lessonID, LESSON_ID)) {
+        await Util.downloadZipBundle([lessonID]);
+        Util.storeIdToLocalStorage(lessonID, LESSON_ID);
       }
     }
-
+    setShowIcon(false);
     setLoading(false);
   };
-  async function updateLessonAndChapterStatus() {
-    const status = Util.checkLessonForChapter(lessonData);
-    if (!status) {
-      return;
-    } else console.log("Lessons and Chapters status updated");
-  }
 
   const handleDelete = async () => {
     if (loading) return;
     setLoading(true);
-
     if (chapters) {
-      removeLessonAndChapterId(chapters.id, CHAPTER_ID);
-      deleteLessonsAndChapter(chapters.id);
-
       const lessons: Lesson[] = await api.getLessonsForChapter(chapters);
       const storeLessonID: string[] = [];
       lessons.forEach(async (e) => {
         storeLessonID.push(e.id);
-        await deleteLessonsAndChapter(e.id);
+        await Util.deleteDownloadedLesson(e.id);
         if (!isStored(e.id, LESSON_ID)) {
           setShowIcon(true);
         }
       });
-      removeLessonAndChapterId(storeLessonID, LESSON_ID);
+      Util.removeIdFromLocalStorage(chapters.id, CHAPTER_ID);
+      Util.removeIdFromLocalStorage(storeLessonID, LESSON_ID);
     } else if (lessonID) {
-      removeLessonAndChapterId(lessonID, LESSON_ID);
+      Util.removeIdFromLocalStorage(lessonID, LESSON_ID);
       setShowIcon(false);
-      await deleteLessonsAndChapter(lessonID);
+      await Util.deleteDownloadedLesson(lessonID);
       if (!isStored(lessonID, LESSON_ID)) {
         setShowIcon(true);
       }
     }
     setLoading(false);
   };
-
-  async function deleteLessonsAndChapter(lesson: string) {
-    const lessonId: string = lesson;
-    const dow = await Util.deleteDownloadedLesson(lessonId);
-    updateLessonAndChapterStatus();
-    if (!dow) {
-      return;
-    }
-    console.log("deleteLessons", dow);
-  }
-
-  async function downloadLessonAndChapter(lesson: string) {
-    const lessonId: string = lesson;
-    const dow = await Util.downloadZipBundle([lessonId]);
-    updateLessonAndChapterStatus();
-    if (!dow) {
-      return;
-    }
-    console.log("downloaded ", dow);
-  }
-
   const showSnackbar = (message: string, type: SnackbarType) => {
     switch (type) {
       case SnackbarType.Success:
@@ -211,6 +142,9 @@ const DownloadLesson: React.FC<{
         toast(message);
     }
   };
+  useEffect(() => {
+    init();
+  }, [handleDownload, handleDelete]);
 
   return (
     <div
@@ -263,6 +197,7 @@ const DownloadLesson: React.FC<{
             setShowDialogBox(!showDialogBox);
           }}
         >
+          {" "}
           <TfiTrash className="deleteButton" />
         </div>
       )}

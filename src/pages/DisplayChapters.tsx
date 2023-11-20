@@ -67,15 +67,8 @@ const DisplayChapters: FC<{}> = () => {
   const getCourseByUrl = localGradeMap?.courses.find(
     (course) => courseDocId == course.docId
   );
-  async function checkDownloadedLessons() {
-    const lesson = Util.checkLessonForChapter(lessons);
-    if (!lesson) {
-      return;
-    }
-  }
-  checkDownloadedLessons();
-
   useEffect(() => {
+    Util.checkLessonForChapter(lessons);
     init();
   }, []);
   useEffect(() => {
