@@ -2,7 +2,7 @@ import { IonLoading, IonPage } from "@ionic/react";
 import { useEffect, useRef, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
-import { CURRENT_USER, LANGUAGE, NUMBER_REGEX, PAGES } from "../common/constants";
+import { CURRENT_USER, HI_SOMETHING_WENT_WRONG_PLEASE_TRY_AGAIN_LATER_IN_SOMETIME, LANGUAGE, NUMBER_REGEX, PAGES } from "../common/constants";
 import { Capacitor } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
 import TextBox from "../components/TextBox";
@@ -247,22 +247,24 @@ const Login: React.FC = () => {
         setSpinnerLoading(false);
         setSentOtpLoading(false);
     
+        let errorMessage;
         if (typeof error === 'string') {
             // Handle the error as a string
-            let errorMessage = "Phone Number signin Failed. Something went wrong. Please try again later.";
+            // errorMessage = "Phone Number signin Failed. Something went wrong. Please try again later.";
     
             if (error.includes("blocked all requests")) {
-                errorMessage = "Hi, Something went wrong. Please try again later in sometime.";
+                errorMessage = HI_SOMETHING_WENT_WRONG_PLEASE_TRY_AGAIN_LATER_IN_SOMETIME;
             } else if (error.includes("E.164 format")) {
                 errorMessage = "Sorry, this is the incorrect phone number format. Please check and re-enter again";
             }
     
-            alert(t(errorMessage));
+            //alert(t(errorMessage));
         } else {
             // Default error message for non-string errors
-            alert("Phone Number signin Failed. Something went wrong. Please try again later.");
+            errorMessage = "Phone Number signin Failed. Something went wrong. Please try again later."
         }
     
+        alert(t(errorMessage));
         console.log("window.recaptchaVerifier", recaptchaVerifier!);
         //@ts-ignore
         recaptchaVerifier!.clear();
