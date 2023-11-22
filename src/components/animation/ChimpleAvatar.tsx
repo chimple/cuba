@@ -145,7 +145,7 @@ const ChimpleAvatar: FC<{
 
       return;
     }
-    // await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     rive?.play(avatarObj.yesAnimation);
     buttons = [];
@@ -157,7 +157,7 @@ const ChimpleAvatar: FC<{
       console.log("if (currentStageMode === AvatarModes.LessonSuggestion) {");
       return;
     }
-    // await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     // setButtonsDisabled(false);
     rive?.play(avatarObj.noAnimation);
     buttons = [];
@@ -179,7 +179,7 @@ const ChimpleAvatar: FC<{
     switch (currentMode) {
       case AvatarModes.Welcome:
         if (choice) {
-          // await new Promise((resolve) => setTimeout(resolve, 1000));
+          await new Promise((resolve) => setTimeout(resolve, 1000));
           rive?.play(avatarObj.avatarAnimation);
           buttons = [];
           onclickInput?.fire();
@@ -413,14 +413,12 @@ const ChimpleAvatar: FC<{
       console.log(
         "currentStageIndex++;",
         avatarObj.currentRecommededLessonIndex,
-        recommadedSuggestion.length - 1,
-        avatarObj.currentRecommededLessonIndex ===
-          recommadedSuggestion.length - 1
+        recommadedSuggestion.length,
+        avatarObj.currentRecommededLessonIndex === recommadedSuggestion.length
       );
 
       if (
-        avatarObj.currentRecommededLessonIndex ===
-        recommadedSuggestion.length - 1
+        avatarObj.currentRecommededLessonIndex === recommadedSuggestion.length
       ) {
         avatarObj.currentRecommededLessonIndex = 0;
       }
@@ -518,7 +516,7 @@ const ChimpleAvatar: FC<{
       break;
     case AvatarModes.RecommendedLesson:
       const x1 = currentLesson?.title || cLesson?.title || "";
-      avatarObj.message = t(`Do you want to play 'x1' course?`).replace(
+      avatarObj.message = t(`Do you want to play 'x1' Lesson?`).replace(
         "x1",
         x1
       );
