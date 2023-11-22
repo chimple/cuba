@@ -6,7 +6,7 @@ import Lesson from "../../models/lesson";
 export enum AvatarModes {
   Welcome,
   CourseSuggestion,
-  RecommededLesson,
+  RecommendedLesson,
   ChapterSuggestion,
   LessonSuggestion,
   TwoOptionQuestion,
@@ -42,6 +42,7 @@ export class AvatarObj {
   currentCourse: Course;
   currentChapter: Chapter;
   currentLesson: Lesson | undefined;
+  currentRecommededLessonIndex: number;
 
   private constructor() {}
 
@@ -158,8 +159,11 @@ export class AvatarObj {
       }
 
       let response = await fetch(
-        "https://mocki.io/v1/2363f744-be60-4072-9a12-2113757a3287"
+        "https://mocki.io/v1/9c756d54-4d5f-44c3-b1e9-eaaefd3f8475"
       );
+
+      // let response =
+      //   await require("json!public\\assets\\animation\\avatarSugguestions.json");
 
       let suggesstionJson = await response.json();
       console.log("Avatar Sugguestion Json ", suggesstionJson);

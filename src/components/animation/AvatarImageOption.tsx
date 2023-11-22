@@ -85,7 +85,7 @@ const AvatarImageOption: React.FC<{
     case AvatarModes.FourOptionQuestion:
       content = cardContent("", "", AvatarObj._i.imageSrc || "");
       break;
-    case AvatarModes.RecommededLesson:
+    case AvatarModes.RecommendedLesson:
       if (currentLesson) {
         content = cardContent(
           "courses/" +

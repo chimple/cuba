@@ -37,7 +37,6 @@ const ChimpleAvatar: FC<{
     avatarObj.mode || AvatarModes.Welcome
   );
   const [currentStageMode, setCurrentStageMode] = useState<AvatarModes>();
-  let currentStageIndex = 0;
   const [allCourses, setAllCourses] = useState<Course[]>([]);
   const [currentCourse, setCurrentCourse] = useState<Course>(allCourses[0]);
   const [currentChapter, setCurrentChapter] = useState<Chapter>();
@@ -78,40 +77,51 @@ const ChimpleAvatar: FC<{
     await avatarObj.loadAvatarData();
     setCurrentMode(avatarObj.mode);
     if (avatarObj.mode === AvatarModes.CourseSuggestion) {
+      if (!allCourses || allCourses.length === 0) fetchCoursesForStudent();
       setCurrentStageMode(AvatarModes.CourseSuggestion);
       cCourse = await getRecommendedCourse();
       setCurrentCourse(cCourse);
+      console.log(
+        "if (avatarObj.mode === AvatarModes.CourseSuggestion) {",
+        cCourse
+      );
     }
-    if (avatarObj.mode === AvatarModes.RecommededLesson) {
+    if (avatarObj.mode === AvatarModes.RecommendedLesson) {
+      avatarObj.currentRecommededLessonIndex = 0;
       console.log(
         "setCurrentLesson(recommadedSuggestion[0]);",
-        recommadedSuggestion[0]
+        recommadedSuggestion[avatarObj.currentRecommededLessonIndex]
       );
-      setCurrentLesson(recommadedSuggestion[0]);
+      setCurrentLesson(
+        recommadedSuggestion[avatarObj.currentRecommededLessonIndex]
+      );
     }
   }
 
-  async function loadNextSuggestion(choice: boolean) {
-    avatarObj.loadAvatarDataOnIndex();
+  async function loadNextSuggestion() {
+    await avatarObj.loadAvatarDataOnIndex();
 
     setCurrentMode(avatarObj.mode);
     setButtonsDisabled(true);
-    // if (avatarObj.mode === AvatarModes.RecommededLesson) {
-    //   console.log(
-    //     "setCurrentLesson(recommadedSuggestion[0]);",
-    //     recommadedSuggestion[0]
-    //   );
-
-    //   setCurrentLesson(await getRecommendedLesson(cChapter, currentCourse));
-    // }
+    if (avatarObj.mode === AvatarModes.CourseSuggestion) {
+      setCurrentStageMode(AvatarModes.CourseSuggestion);
+      cCourse = await getRecommendedCourse();
+      setCurrentCourse(cCourse);
+      console.log("setCurrentLesson(CourseSuggestion);", cCourse);
+    }
   }
 
   const fetchCoursesForStudent = async () => {
+    if (cAllCourses) return;
+
     const currentStudent = Util.getCurrentStudent();
     if (currentStudent) {
       let courses = await api.getCoursesForParentsStudent(currentStudent);
       console.log("Student Courses chimpleavatarpage ", courses);
-      if (courses) setAllCourses(courses);
+      if (courses) {
+        setAllCourses(courses);
+        cAllCourses = courses;
+      }
       const recommendationsInLocal = localStorage.getItem(
         `${currentStudent.docId}-${RECOMMENDATIONS}`
       );
@@ -125,22 +135,39 @@ const ChimpleAvatar: FC<{
 
   async function onClickYes() {
     // setButtonsDisabled(false);
-    console.log("avatar Animation ", avatarObj.yesAnimation);
+
+    // if currentStageMode is AvatarModes.LessonSuggestion then skiping the avatar animation playing
+
+    if (currentStageMode === AvatarModes.LessonSuggestion) {
+      console.log(
+        "currentStageMode is AvatarModes.LessonSuggestion onClickYes"
+      );
+
+      return;
+    }
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
 
     rive?.play(avatarObj.yesAnimation);
     buttons = [];
     onclickInput?.fire();
   }
 
-  function onClickNo() {
-    console.log("avatar Animation ", avatarObj.noAnimation);
+  async function onClickNo() {
+    if (currentStageMode === AvatarModes.LessonSuggestion) {
+      console.log("if (currentStageMode === AvatarModes.LessonSuggestion) {");
+      return;
+    }
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
     // setButtonsDisabled(false);
     rive?.play(avatarObj.noAnimation);
     buttons = [];
     onclickInput?.fire();
   }
 
-  let cCourse: Course, cChapter: Chapter, cLesson: Lesson | undefined;
+  let cCourse: Course,
+    cChapter: Chapter,
+    cLesson: Lesson | undefined,
+    cAllCourses: Course[];
   const handleButtonClick = async (choice: boolean, option = "") => {
     if (!buttonsDisabled) {
       // If buttons are already disabled, don't proceed
@@ -151,10 +178,11 @@ const ChimpleAvatar: FC<{
     switch (currentMode) {
       case AvatarModes.Welcome:
         if (choice) {
+          // await new Promise((resolve) => setTimeout(resolve, 1000));
           rive?.play(avatarObj.avatarAnimation);
           buttons = [];
           onclickInput?.fire();
-          loadNextSuggestion(true);
+          await loadNextSuggestion();
         }
 
         break;
@@ -163,12 +191,12 @@ const ChimpleAvatar: FC<{
         switch (currentStageMode) {
           case AvatarModes.CourseSuggestion:
             if (choice) {
-              onClickYes();
+              await onClickYes();
               cChapter = await getRecommendedChapter(cCourse || currentCourse);
               setCurrentChapter(cChapter);
               setCurrentStageMode(AvatarModes.ChapterSuggestion);
             } else {
-              onClickNo();
+              await onClickNo();
               cCourse = await getRecommendedCourse();
               setCurrentCourse(cCourse);
             }
@@ -178,7 +206,7 @@ const ChimpleAvatar: FC<{
             console.log("btnDisabled in chapter", buttonsDisabled);
 
             if (choice) {
-              onClickYes();
+              await onClickYes();
               cLesson = await getRecommendedLesson(
                 currentChapter || cCourse.chapters[0],
                 cCourse || currentCourse
@@ -187,7 +215,7 @@ const ChimpleAvatar: FC<{
               // avatarObj.mode = AvatarModes.LessonSuggestion;
               setCurrentStageMode(AvatarModes.LessonSuggestion);
             } else {
-              onClickNo();
+              await onClickNo();
               cChapter = await getRecommendedChapter(cCourse || currentCourse);
               setCurrentChapter(cChapter);
             }
@@ -199,11 +227,11 @@ const ChimpleAvatar: FC<{
 
             if (choice) {
               setButtonsDisabled(false);
-              onClickYes();
+              await onClickYes();
               playCurrentLesson();
-              loadNextSuggestion(true);
+              await loadNextSuggestion();
             } else {
-              onClickNo();
+              await onClickNo();
               cLesson = await getRecommendedLesson(
                 currentChapter || cCourse.chapters[0],
                 cCourse || currentCourse
@@ -217,35 +245,48 @@ const ChimpleAvatar: FC<{
 
       case AvatarModes.TwoOptionQuestion:
         choice = option === avatarObj.answer;
-        console.log("AvatarModes.TwoOptionQuestion ", option, choice);
-
         if (choice) {
-          onClickYes();
-          loadNextSuggestion(true);
+          await onClickYes();
+          await loadNextSuggestion();
         } else {
-          onClickNo();
+          await onClickNo();
         }
         break;
       case AvatarModes.FourOptionQuestion:
         choice = option === avatarObj.answer;
-        console.log("AvatarModes.FourOptionQuestion ", option, choice);
+        if (avatarObj.questionType === "unanswered") choice = true;
+
+        console.log(
+          "AvatarModes.FourOptionQuestion ",
+          option,
+          choice,
+          avatarObj.questionType === "unanswered"
+        );
 
         if (choice) {
-          onClickYes();
-          loadNextSuggestion(true);
+          await onClickYes();
+          await loadNextSuggestion();
         } else {
-          onClickNo();
+          await onClickNo();
         }
         break;
 
-      case AvatarModes.RecommededLesson:
+      case AvatarModes.RecommendedLesson:
         if (choice) {
           setButtonsDisabled(false);
-          onClickYes();
+          await onClickYes();
           playCurrentLesson();
+          await loadNextSuggestion();
         } else {
-          onClickNo();
-          setCurrentLesson(await getRecommendedLesson(cChapter, currentCourse));
+          await onClickNo();
+          avatarObj.currentRecommededLessonIndex++;
+          console.log(
+            "currentStageIndex++;",
+            avatarObj.currentRecommededLessonIndex
+          );
+
+          let recomLesson = await getRecommendedLesson(cChapter, currentCourse);
+          setCurrentLesson(recomLesson);
         }
         break;
       default:
@@ -292,7 +333,7 @@ const ChimpleAvatar: FC<{
     } else {
       console.log("defalut course ", allCourses[0]);
 
-      return allCourses[0];
+      return allCourses[0] || cAllCourses[0];
     }
   }
 
@@ -318,7 +359,7 @@ const ChimpleAvatar: FC<{
   async function getRecommendedLesson(cChapter: Chapter, cCourse: Course) {
     // console.log("getRecommendedLesson(chapter", chapter, currentLesson);
 
-    if (currentMode == AvatarModes.CourseSuggestion) {
+    if (currentMode === AvatarModes.CourseSuggestion) {
       if (currentLesson && cChapter) {
         const lessonIndex = cChapter.lessons.findIndex(
           (lesson) => lesson.id === currentLesson?.docId
@@ -364,20 +405,32 @@ const ChimpleAvatar: FC<{
         // console.log("getRecommendedLesson() ", cLesson);
         return cLesson;
       }
-    } else if (currentMode == AvatarModes.RecommededLesson) {
-      currentStageIndex++;
-      if (currentStageIndex === recommadedSuggestion.length - 1) {
-        currentStageIndex = 0;
-      }
-      setCurrentLesson(recommadedSuggestion[currentStageIndex]);
+    } else if (currentMode === AvatarModes.RecommendedLesson) {
       console.log(
-        "recommadedSuggestion[currentStageIndex];",
-        recommadedSuggestion,
-        currentStageIndex,
-        recommadedSuggestion[currentStageIndex]
+        "currentStageIndex++;",
+        avatarObj.currentRecommededLessonIndex,
+        recommadedSuggestion.length - 1,
+        avatarObj.currentRecommededLessonIndex ===
+          recommadedSuggestion.length - 1
       );
 
-      return recommadedSuggestion[currentStageIndex];
+      if (
+        avatarObj.currentRecommededLessonIndex ===
+        recommadedSuggestion.length - 1
+      ) {
+        avatarObj.currentRecommededLessonIndex = 0;
+      }
+      setCurrentLesson(
+        recommadedSuggestion[avatarObj.currentRecommededLessonIndex]
+      );
+      console.log(
+        "recommadedSuggestion[currentStageIndex];",
+        // recommadedSuggestion,
+        avatarObj.currentRecommededLessonIndex,
+        recommadedSuggestion[avatarObj.currentRecommededLessonIndex]
+      );
+
+      return recommadedSuggestion[avatarObj.currentRecommededLessonIndex];
     }
   }
 
@@ -459,13 +512,12 @@ const ChimpleAvatar: FC<{
         },
       ];
       break;
-    case AvatarModes.RecommededLesson:
-      console.log("const x1 = currentLesson?.title || ", currentLesson?.title);
-
-      const x1 = currentLesson?.title || "";
-      let tempMessage = avatarObj.message;
-      tempMessage = t(tempMessage?.toString() || "").replace("x1", x1);
-      avatarObj.message = tempMessage;
+    case AvatarModes.RecommendedLesson:
+      const x1 = currentLesson?.title || cLesson?.title || "";
+      avatarObj.message = t(`Do you want to play 'x1' course?`).replace(
+        "x1",
+        x1
+      );
       buttons = [
         { label: t("Yes"), onClick: () => handleButtonClick(true) },
         { label: t("No"), onClick: () => handleButtonClick(false) },
