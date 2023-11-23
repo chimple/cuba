@@ -13,7 +13,7 @@ const SelectChapter: FC<{
   course: Course;
   currentGrade: Grade;
   onGradeChange: (grade: Grade) => void;
-  currentChapterId : string | undefined;
+  currentChapterId: string | undefined;
 }> = ({
   chapters,
   onChapterChange,
@@ -26,7 +26,7 @@ const SelectChapter: FC<{
   let currentChapterRef = useRef<any>();
 
   useEffect(() => {
-    currentChapterRef.current?.scrollIntoView({ behavior: 'instant' });
+    currentChapterRef.current?.scrollIntoView({ behavior: "instant" });
   }, []);
   return (
     <div>
@@ -35,7 +35,9 @@ const SelectChapter: FC<{
         {chapters.map((chapter) => {
           return (
             <div
-              ref = {currentChapterId === chapter.id ? currentChapterRef : undefined}
+              ref={
+                currentChapterId === chapter.id ? currentChapterRef : undefined
+              }
               onClick={() => {
                 onChapterChange(chapter);
               }}

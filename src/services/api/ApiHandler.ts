@@ -14,8 +14,8 @@ import StudentProfile from "../../models/studentProfile";
 import school from "../../models/school";
 import { MODES } from "../../common/constants";
 import School from "../../models/school";
-import Avatar from "../../models/avatar";
 import { QueryDocumentSnapshot } from "@firebase/firestore";
+import { AvatarObj } from "../../components/animation/Avatar";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -23,7 +23,7 @@ export class ApiHandler implements ServiceApi {
   private s: ServiceApi;
 
   private constructor() {}
-  public async getAvatarInfo(): Promise<Avatar | undefined> {
+  public async getAvatarInfo(): Promise<AvatarObj | undefined> {
     return await this.s.getAvatarInfo();
   }
   public async getSchoolsForUser(user: User): Promise<school[]> {
@@ -158,7 +158,9 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getCoursesForParentsStudent(student);
   }
 
-  public async getLessonWithCocosLessonId(lessonId: string): Promise<Lesson | null> {
+  public async getLessonWithCocosLessonId(
+    lessonId: string
+  ): Promise<Lesson | null> {
     return await this.s.getLessonWithCocosLessonId(lessonId);
   }
 
@@ -300,7 +302,9 @@ export class ApiHandler implements ServiceApi {
     return this.s.getLessonFromCourse(course, lessonId);
   }
 
-  public async getCourseFromLesson(lesson: Lesson): Promise<Course | undefined> {
+  public async getCourseFromLesson(
+    lesson: Lesson
+  ): Promise<Course | undefined> {
     return this.s.getCourseFromLesson(lesson);
   }
 }
