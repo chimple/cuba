@@ -65,10 +65,10 @@ const ChimpleAvatar: FC<{
   useEffect(() => {
     fetchCoursesForStudent();
     loadSuggestionsFromJson();
-    setButtonsDisabled(true);
+    // setButtonsDisabled(true);
   }, [currentMode]);
   useEffect(() => {
-    setButtonsDisabled(true);
+    // setButtonsDisabled(true);
   }, [currentStageMode]);
 
   const api = ServiceConfig.getI().apiHandler;
@@ -102,7 +102,6 @@ const ChimpleAvatar: FC<{
     await avatarObj.loadAvatarDataOnIndex();
 
     setCurrentMode(avatarObj.mode);
-    setButtonsDisabled(true);
     if (avatarObj.mode === AvatarModes.CourseSuggestion) {
       setCurrentStageMode(AvatarModes.CourseSuggestion);
       cCourse = await getRecommendedCourse();
@@ -134,7 +133,7 @@ const ChimpleAvatar: FC<{
   };
 
   async function onClickYes() {
-    // setButtonsDisabled(false);
+    setButtonsDisabled(false);
 
     // if currentStageMode is AvatarModes.LessonSuggestion then skiping the avatar animation playing
 
@@ -153,12 +152,12 @@ const ChimpleAvatar: FC<{
   }
 
   async function onClickNo() {
+    setButtonsDisabled(false);
     if (currentStageMode === AvatarModes.LessonSuggestion) {
       console.log("if (currentStageMode === AvatarModes.LessonSuggestion) {");
       return;
     }
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    // setButtonsDisabled(false);
     rive?.play(avatarObj.noAnimation);
     buttons = [];
     onclickInput?.fire();
@@ -169,16 +168,17 @@ const ChimpleAvatar: FC<{
     cLesson: Lesson | undefined,
     cAllCourses: Course[];
   const handleButtonClick = async (choice: boolean, option = "") => {
-    setIsBurst(true);
     if (!buttonsDisabled) {
       // If buttons are already disabled, don't proceed
       return;
     }
+    setIsBurst(true);
 
     console.log("handleButtonClick currentMode ", currentMode);
     switch (currentMode) {
       case AvatarModes.Welcome:
         if (choice) {
+          setButtonsDisabled(false);
           await new Promise((resolve) => setTimeout(resolve, 1000));
           rive?.play(avatarObj.avatarAnimation);
           buttons = [];
@@ -220,14 +220,12 @@ const ChimpleAvatar: FC<{
               cChapter = await getRecommendedChapter(cCourse || currentCourse);
               setCurrentChapter(cChapter);
             }
-            setButtonsDisabled(true);
 
             break;
           case AvatarModes.LessonSuggestion:
             console.log("btnDisabled in lesson", buttonsDisabled);
 
             if (choice) {
-              setButtonsDisabled(false);
               await onClickYes();
               playCurrentLesson();
               await loadNextSuggestion();
@@ -274,7 +272,6 @@ const ChimpleAvatar: FC<{
 
       case AvatarModes.RecommendedLesson:
         if (choice) {
-          setButtonsDisabled(false);
           await onClickYes();
           playCurrentLesson();
           await loadNextSuggestion();
@@ -295,6 +292,7 @@ const ChimpleAvatar: FC<{
     }
     setTimeout(() => {
       setIsBurst(false);
+      setButtonsDisabled(true);
     }, 1900);
   };
 
@@ -501,7 +499,7 @@ const ChimpleAvatar: FC<{
           onClick: () => handleButtonClick(true, avatarObj.option1 || ""),
         },
         {
-          label: t(avatarObj.option1 || ""),
+          label: t(avatarObj.option2 || ""),
           onClick: () => handleButtonClick(false, avatarObj.option2 || ""),
         },
         {

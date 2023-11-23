@@ -34,23 +34,23 @@
     ],
     [
       "TwoOptionQuestion",
-      "What is the answer to question 101001?",
+      "How many vowels are there in the English alphabet?",
       "https://play-lh.googleusercontent.com/sSy91b6MppWNW7T7O7B9WTtqdFuvI5ZPemzxatFxLckENyiDY7p_NpaOGnGcKLBoNA",
       "audio.mp3",
       "",
       "Success",
       "Fail",
       "",
-      "answer2",
-      "answer1",
-      "answer2",
+      "5",
+      "5",
+      "7",
       "",
       ""
     ],
     [
       "FourOptionQuestion",
-      "How are feeling?",
-      "https://play-lh.googleusercontent.com/sSy91b6MppWNW7T7O7B9WTtqdFuvI5ZPemzxatFxLckENyiDY7p_NpaOGnGcKLBoNA",
+      "How are you feeling?",
+      "https://m.media-amazon.com/images/I/91zmVzgspNL._AC_UF894,1000_QL80_.jpg",
       "audio.mp3",
       "",
       "Success",
@@ -80,18 +80,18 @@
     ],
     [
       "FourOptionQuestion",
-      "What is the answer to question 101002?",
-      "https://play-lh.googleusercontent.com/sSy91b6MppWNW7T7O7B9WTtqdFuvI5ZPemzxatFxLckENyiDY7p_NpaOGnGcKLBoNA",
+      "Which animal is the king of the jungle?",
+      "https://png.pngtree.com/png-clipart/20230507/ourmid/pngtree-lion-walking-wild-cat-in-transparent-background-png-image_7088509.png",
       "audio.mp3",
       "",
       "Success",
       "Fail",
       "answered",
-      "answer4",
-      "answer1",
-      "answer2",
-      "answer3",
-      "answer4"
+      "Lion",
+      "Tiger",
+      "Monkey",
+      "Lion",
+      "Elephant"
     ]
   ]
 }

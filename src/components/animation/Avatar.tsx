@@ -159,7 +159,7 @@ export class AvatarObj {
       }
 
       let response = await fetch(
-        "https://mocki.io/v1/9c756d54-4d5f-44c3-b1e9-eaaefd3f8475"
+        "https://mocki.io/v1/1ac6cd7e-a40c-47dd-9afc-f05e0941071a"
       );
 
       // let response =
