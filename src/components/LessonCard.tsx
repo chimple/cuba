@@ -221,6 +221,8 @@ const LessonCard: React.FC<{
               }
               defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
               webSrc={lesson.thumbnail}
+              imageWidth={"100%"}
+              imageHeight={"100%"}
             />
             {!isUnlocked ? (
               <div id="lesson-card-status-icon">
@@ -258,7 +260,7 @@ const LessonCard: React.FC<{
           />
         )}
       </div>
-      <div className="titles">
+      <div>
         {showText ? (
           <p id={`lesson-card-name${isLoved ? "-fav-icon" : ""}`}>
             {t(lesson?.title)}

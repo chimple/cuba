@@ -453,3 +453,5 @@ export enum SnackbarType {
   Error = "error",
 }
 export const LAST_FUNCTION_CALL = "lastFunctionCall";
+
+export const CURRENT_AVATAR_SUGGESTION_NO = "currentAvatarSuggestion";
