@@ -250,7 +250,7 @@ export class Util {
     return { href: map?.href, sourcedId: map?.sourcedId, type: map?.type };
   }
 
-  public static storeIdToLocalStorage = (
+  public static storeLessonOrChaterIdToLocalStorage = (
     id: string | string[],
     lessonAndChapterIdStorageKey: string,
     typeOfId: "lesson" | "chapter"
@@ -302,7 +302,7 @@ export class Util {
     return isLessonStored || isChapterStored;
   };
 
-  public static removeIdFromLocalStorage = (
+  public static removeLessonOrChapterIdFromLocalStorage = (
     id: string | string[],
     lessonAndChapterIdStorageKey: string
   ): void => {
@@ -436,7 +436,7 @@ export class Util {
             data: buffer,
           });
           console.log("un  zip done");
-          this.storeIdToLocalStorage(
+          this.storeLessonOrChaterIdToLocalStorage(
             lessonId,
             DOWNLOADED_LESSON_AND_CHAPTER_ID,
             "lesson"
@@ -495,7 +495,7 @@ export class Util {
         }
 
         localStorage.removeItem(DOWNLOADED_LESSON_AND_CHAPTER_ID);
-        this.storeIdToLocalStorage(
+        this.storeLessonOrChaterIdToLocalStorage(
           folderNamesArray,
           DOWNLOADED_LESSON_AND_CHAPTER_ID,
           "lesson"
@@ -527,7 +527,7 @@ export class Util {
           return newArray;
         }, [] as string[]);
 
-        this.removeIdFromLocalStorage(
+        this.removeLessonOrChapterIdFromLocalStorage(
           chaptersToRemove,
           DOWNLOADED_LESSON_AND_CHAPTER_ID
         );
@@ -540,7 +540,7 @@ export class Util {
         return newArray;
       }, [] as string[]);
 
-      this.storeIdToLocalStorage(
+      this.storeLessonOrChaterIdToLocalStorage(
         chaptersToStore,
         DOWNLOADED_LESSON_AND_CHAPTER_ID,
         "chapter"

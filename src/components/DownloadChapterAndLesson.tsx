@@ -96,12 +96,12 @@ const DownloadLesson: React.FC<{
           }
         }
 
-        Util.storeIdToLocalStorage(
+        Util.storeLessonOrChaterIdToLocalStorage(
           storeLessonID,
           DOWNLOADED_LESSON_AND_CHAPTER_ID,
           "lesson"
         );
-        Util.storeIdToLocalStorage(
+        Util.storeLessonOrChaterIdToLocalStorage(
           chapters.id,
           DOWNLOADED_LESSON_AND_CHAPTER_ID,
           "chapter"
@@ -110,7 +110,7 @@ const DownloadLesson: React.FC<{
     } else {
       if (!isStored(lessonID, DOWNLOADED_LESSON_AND_CHAPTER_ID)) {
         await Util.downloadZipBundle([lessonID]);
-        Util.storeIdToLocalStorage(
+        Util.storeLessonOrChaterIdToLocalStorage(
           lessonID,
           DOWNLOADED_LESSON_AND_CHAPTER_ID,
           "lesson"
@@ -134,17 +134,20 @@ const DownloadLesson: React.FC<{
           setShowIcon(true);
         }
       });
-      Util.removeIdFromLocalStorage(
+      Util.removeLessonOrChapterIdFromLocalStorage(
         chapters.id,
         DOWNLOADED_LESSON_AND_CHAPTER_ID
       );
-      Util.removeIdFromLocalStorage(
+      Util.removeLessonOrChapterIdFromLocalStorage(
         storeLessonID,
         DOWNLOADED_LESSON_AND_CHAPTER_ID
       );
     } else if (lessonID) {
       await Util.deleteDownloadedLesson(lessonID);
-      Util.removeIdFromLocalStorage(lessonID, DOWNLOADED_LESSON_AND_CHAPTER_ID);
+      Util.removeLessonOrChapterIdFromLocalStorage(
+        lessonID,
+        DOWNLOADED_LESSON_AND_CHAPTER_ID
+      );
       if (!isStored(lessonID, DOWNLOADED_LESSON_AND_CHAPTER_ID)) {
         setShowIcon(true);
       }
