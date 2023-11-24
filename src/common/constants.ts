@@ -447,8 +447,7 @@ export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
 export const COPIED_BUNDLE_FILES_INDEX = "copiedBundleFilesIndex";
 
 export const NUMBER_REGEX = /^[0-9]+$/;
-export const LESSON_ID = "lessonID";
-export const CHAPTER_ID = "chapterID";
+export const DOWNLOADED_LESSON_AND_CHAPTER_ID = "downloadedLessonAndChapterId";
 export enum SnackbarType {
   Success = "success",
   Error = "error",

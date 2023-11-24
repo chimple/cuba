@@ -23,8 +23,7 @@ import {
   SOUND,
   MUSIC,
   CONTINUE,
-  LESSON_ID,
-  CHAPTER_ID,
+  DOWNLOADED_LESSON_AND_CHAPTER_ID,
   LAST_FUNCTION_CALL,
   // APP_LANG,
 } from "../common/constants";
@@ -253,46 +252,90 @@ export class Util {
 
   public static storeIdToLocalStorage = (
     id: string | string[],
-    lessonAndChapterIdStorageKey: string
+    lessonAndChapterIdStorageKey: string,
+    typeOfId: "lesson" | "chapter"
   ) => {
     const storedItems = JSON.parse(
-      localStorage.getItem(lessonAndChapterIdStorageKey) || "[]"
+      localStorage.getItem(lessonAndChapterIdStorageKey) ||
+        '{"lesson":[], "chapter":[]}'
     );
-    if (Array.isArray(id)) {
-      const updatedItems = [...storedItems, ...id];
-      if (updatedItems) {
-        localStorage.setItem(
-          lessonAndChapterIdStorageKey,
-          JSON.stringify(updatedItems)
-        );
-      } else return;
-    } else {
-      const updatedItems = [...storedItems, id];
-      if (updatedItems) {
-        localStorage.setItem(
-          lessonAndChapterIdStorageKey,
-          JSON.stringify(updatedItems)
-        );
-      } else return;
+
+    const updatedItems = {
+      lesson:
+        typeOfId === "lesson"
+          ? [...storedItems.lesson, ...(Array.isArray(id) ? id : [id])]
+          : storedItems.lesson,
+      chapter:
+        typeOfId === "chapter"
+          ? [...storedItems.chapter, ...(Array.isArray(id) ? id : [id])]
+          : storedItems.chapter,
+    };
+
+    // Set the values outside the conditional statements
+    if (typeOfId === "chapter") {
+      updatedItems.lesson = storedItems.lesson;
     }
+
+    localStorage.setItem(
+      lessonAndChapterIdStorageKey,
+      JSON.stringify(updatedItems)
+    );
+  };
+
+  public static isStored = (
+    id: string,
+    lessonAndChapterIdStorageKey: string
+  ): boolean => {
+    const storedItems = JSON.parse(
+      localStorage.getItem(lessonAndChapterIdStorageKey) ||
+        JSON.stringify({ lesson: [], chapter: [] })
+    );
+
+    const isLessonStored =
+      // Array.isArray(storedItems.lesson) && storedItems.lesson.includes(id);
+      storedItems.lesson.includes(id);
+
+    const isChapterStored =
+      // Array.isArray(storedItems.chapter) && storedItems.chapter.includes(id);
+      storedItems.chapter.includes(id);
+
+    return isLessonStored || isChapterStored;
   };
 
   public static removeIdFromLocalStorage = (
     id: string | string[],
-    storageKey: string
-  ) => {
-    const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
-    const updatedItems = storedItems.filter(
-      (item: string) => !id.includes(item)
+    lessonAndChapterIdStorageKey: string
+  ): void => {
+    const storedItems = JSON.parse(
+      localStorage.getItem(lessonAndChapterIdStorageKey) ||
+        JSON.stringify({ lesson: [], chapter: [] })
     );
-    if (updatedItems) {
-      localStorage.setItem(storageKey, JSON.stringify(updatedItems));
-      console.log("lesson is deleted");
-    } else return;
-  };
-  public static isIdPresentInLocalStorage = (id, storageKey) => {
-    const storedItems = JSON.parse(localStorage.getItem(storageKey) || "[]");
-    return storedItems.includes(id);
+
+    let idsToRemove: string[];
+
+    if (Array.isArray(id)) {
+      idsToRemove = id;
+    } else {
+      idsToRemove = [id];
+    }
+
+    const updatedItems = {
+      lesson: Array.isArray(storedItems.lesson)
+        ? storedItems.lesson.filter(
+            (lessonId: string) => !idsToRemove.includes(lessonId)
+          )
+        : [],
+      chapter: Array.isArray(storedItems.chapter)
+        ? storedItems.chapter.filter(
+            (chapterId: string) => !idsToRemove.includes(chapterId)
+          )
+        : [],
+    };
+
+    localStorage.setItem(
+      lessonAndChapterIdStorageKey,
+      JSON.stringify(updatedItems)
+    );
   };
 
   public static async downloadZipBundle(lessonIds: string[]): Promise<boolean> {
@@ -393,7 +436,11 @@ export class Util {
             data: buffer,
           });
           console.log("un  zip done");
-          this.storeIdToLocalStorage(lessonId, LESSON_ID);
+          this.storeIdToLocalStorage(
+            lessonId,
+            DOWNLOADED_LESSON_AND_CHAPTER_ID,
+            "lesson"
+          );
         }
         console.log("zip ", zip);
       } catch (error) {
@@ -447,8 +494,12 @@ export class Util {
           folderNamesArray.push(contents.files[i].name);
         }
 
-        localStorage.removeItem(LESSON_ID);
-        this.storeIdToLocalStorage(folderNamesArray, LESSON_ID);
+        localStorage.removeItem(DOWNLOADED_LESSON_AND_CHAPTER_ID);
+        this.storeIdToLocalStorage(
+          folderNamesArray,
+          DOWNLOADED_LESSON_AND_CHAPTER_ID,
+          "lesson"
+        );
 
         lastRendered = currentTime;
       } catch (error) {
@@ -465,7 +516,7 @@ export class Util {
   ): Promise<boolean> {
     if (lessonId) {
       const allIdsPresent = lessonId.every((e) =>
-        this.isIdPresentInLocalStorage(e.id, LESSON_ID)
+        this.isStored(e.id, DOWNLOADED_LESSON_AND_CHAPTER_ID)
       );
 
       if (!allIdsPresent) {
@@ -476,7 +527,10 @@ export class Util {
           return newArray;
         }, [] as string[]);
 
-        this.removeIdFromLocalStorage(chaptersToRemove, CHAPTER_ID);
+        this.removeIdFromLocalStorage(
+          chaptersToRemove,
+          DOWNLOADED_LESSON_AND_CHAPTER_ID
+        );
         return false;
       }
       const chaptersToStore = lessonId.reduce((newArray, lesson) => {
@@ -486,7 +540,11 @@ export class Util {
         return newArray;
       }, [] as string[]);
 
-      this.storeIdToLocalStorage(chaptersToStore, CHAPTER_ID);
+      this.storeIdToLocalStorage(
+        chaptersToStore,
+        DOWNLOADED_LESSON_AND_CHAPTER_ID,
+        "chapter"
+      );
       return true;
     }
     return false;

@@ -135,7 +135,7 @@
   position: relative;
   bottom: 8vh;
 }
-.icons {
+.download-lesson-button-container {
   display: flex;
   position: relative;
   justify-content: flex-start;

@@ -6,7 +6,10 @@ import "./DownloadChapterAndLesson.css";
 import { t } from "i18next";
 import DialogBoxButtons from "./parent/DialogBoxButtons​";
 import { Toast } from "@capacitor/toast";
-import { CHAPTER_ID, LESSON_ID, SnackbarType } from "../common/constants";
+import {
+  DOWNLOADED_LESSON_AND_CHAPTER_ID,
+  SnackbarType,
+} from "../common/constants";
 import { TfiDownload, TfiTrash } from "react-icons/tfi";
 import { Capacitor } from "@capacitor/core";
 
@@ -35,23 +38,25 @@ const DownloadLesson: React.FC<{
     window.addEventListener("online", handleOnlineEvent);
     window.addEventListener("offline", handleOfflineEvent);
 
-    if (isStored(lessonID, LESSON_ID)) {
+    if (isStored(lessonID, DOWNLOADED_LESSON_AND_CHAPTER_ID)) {
       setShowIcon(false);
     }
 
-    if (chapters && isStored(chapters.id, CHAPTER_ID)) {
+    if (chapters && isStored(chapters.id, DOWNLOADED_LESSON_AND_CHAPTER_ID)) {
       setShowIcon(false);
     }
   }, []);
 
   const isStored = (
     id: string,
-    lessonOrChapterIdStorageKey: string
+    lessonAndChapterIdStorageKey: string
   ): boolean => {
     const storedItems = JSON.parse(
-      localStorage.getItem(lessonOrChapterIdStorageKey) || "[]"
+      localStorage.getItem(lessonAndChapterIdStorageKey) ||
+        JSON.stringify({ lesson: [], chapter: [] })
     );
-    return storedItems.includes(id);
+
+    return storedItems.lesson.includes(id) || storedItems.chapter.includes(id);
   };
 
   async function init() {
@@ -81,23 +86,35 @@ const DownloadLesson: React.FC<{
     const storeLessonID: string[] = [];
 
     if (chapters) {
-      if (!isStored(chapters.id, CHAPTER_ID)) {
+      if (!isStored(chapters.id, DOWNLOADED_LESSON_AND_CHAPTER_ID)) {
         const lessons: Lesson[] = await api.getLessonsForChapter(chapters);
 
         for (const e of lessons) {
-          if (!isStored(e.id, LESSON_ID)) {
+          if (!isStored(e.id, DOWNLOADED_LESSON_AND_CHAPTER_ID)) {
             storeLessonID.push(e.id);
             await Util.downloadZipBundle([e.id]);
           }
         }
 
-        Util.storeIdToLocalStorage(storeLessonID, LESSON_ID);
-        Util.storeIdToLocalStorage(chapters.id, CHAPTER_ID);
+        Util.storeIdToLocalStorage(
+          storeLessonID,
+          DOWNLOADED_LESSON_AND_CHAPTER_ID,
+          "lesson"
+        );
+        Util.storeIdToLocalStorage(
+          chapters.id,
+          DOWNLOADED_LESSON_AND_CHAPTER_ID,
+          "chapter"
+        );
       }
     } else {
-      if (!isStored(lessonID, LESSON_ID)) {
+      if (!isStored(lessonID, DOWNLOADED_LESSON_AND_CHAPTER_ID)) {
         await Util.downloadZipBundle([lessonID]);
-        Util.storeIdToLocalStorage(lessonID, LESSON_ID);
+        Util.storeIdToLocalStorage(
+          lessonID,
+          DOWNLOADED_LESSON_AND_CHAPTER_ID,
+          "lesson"
+        );
       }
     }
     setShowIcon(false);
@@ -113,17 +130,22 @@ const DownloadLesson: React.FC<{
       lessons.forEach(async (e) => {
         storeLessonID.push(e.id);
         await Util.deleteDownloadedLesson(e.id);
-        if (!isStored(e.id, LESSON_ID)) {
+        if (!isStored(e.id, DOWNLOADED_LESSON_AND_CHAPTER_ID)) {
           setShowIcon(true);
         }
       });
-      Util.removeIdFromLocalStorage(chapters.id, CHAPTER_ID);
-      Util.removeIdFromLocalStorage(storeLessonID, LESSON_ID);
+      Util.removeIdFromLocalStorage(
+        chapters.id,
+        DOWNLOADED_LESSON_AND_CHAPTER_ID
+      );
+      Util.removeIdFromLocalStorage(
+        storeLessonID,
+        DOWNLOADED_LESSON_AND_CHAPTER_ID
+      );
     } else if (lessonID) {
-      Util.removeIdFromLocalStorage(lessonID, LESSON_ID);
-      setShowIcon(false);
       await Util.deleteDownloadedLesson(lessonID);
-      if (!isStored(lessonID, LESSON_ID)) {
+      Util.removeIdFromLocalStorage(lessonID, DOWNLOADED_LESSON_AND_CHAPTER_ID);
+      if (!isStored(lessonID, DOWNLOADED_LESSON_AND_CHAPTER_ID)) {
         setShowIcon(true);
       }
     }
@@ -161,7 +183,7 @@ const DownloadLesson: React.FC<{
 
   return Capacitor.isNativePlatform() ? (
     <div
-      className="downloadAndDeleteButton"
+      className="download-or-delete-button"
       onClick={(event) => {
         event.stopPropagation();
         handleDownload();
@@ -193,11 +215,11 @@ const DownloadLesson: React.FC<{
       )}
 
       {loading ? (
-        <div className="loadingButton-container">
-          <div className="loadingButton"></div>
+        <div className="loading-button-container">
+          <div className="loading-button"></div>
         </div>
       ) : showIcon ? (
-        <TfiDownload className="lessonOrChapterDeleteIcon" />
+        <TfiDownload className="lesson-or-chapter-delete-icon" />
       ) : (
         <div
           onClick={(event) => {
@@ -205,7 +227,7 @@ const DownloadLesson: React.FC<{
             setShowDialogBox(!showDialogBox);
           }}
         >
-          <TfiTrash className="lessonOrChapterDownloadIcon " />
+          <TfiTrash className="lesson-or-chapter-download-icon" />
         </div>
       )}
     </div>
