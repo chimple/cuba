@@ -31,7 +31,7 @@
 }
 
 .burst {
-  animation: burst 0.9s ease-in alternate-reverse 1s;
+  animation: burst 0.9s ease-in alternate-reverse;
 }
 
 .left-corner:before {

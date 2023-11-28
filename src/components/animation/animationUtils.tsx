@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 export function useAudioPlayer(audioSrc: string) {
     const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
     const [playing, setPlaying] = useState<boolean>(false);
+    const [audioDuration, setAudioDuration] = useState<number>(0);
 
     useEffect(() => {
         if (audio) {
@@ -17,6 +18,7 @@ export function useAudioPlayer(audioSrc: string) {
         const newAudio = new Audio(audioSrc);
         newAudio.onloadedmetadata = () => {
             console.log("Audio duration: ", newAudio.duration);
+            setAudioDuration(newAudio.duration);
             setPlaying(true);
             if (!playing) {
                 newAudio.play();
@@ -32,6 +34,6 @@ export function useAudioPlayer(audioSrc: string) {
             audio.pause();
         }
     }
-
-    return { playAudio, playing , pauseAudio};
+    const getAudioDuration = () => audioDuration;
+    return { playAudio, playing, pauseAudio, getAudioDuration };
 }

@@ -10,6 +10,12 @@
   height: 100px;
 }
 
+.left-loading {
+  width: 100px;
+  height: 100px;
+  margin-right: 70vw;
+}
+
 .loading-content {
   display: flex;
   justify-content: center;
