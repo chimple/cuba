@@ -220,6 +220,8 @@ const LessonCard: React.FC<{
               }
               defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
               webSrc={lesson.thumbnail}
+              imageWidth={"100%"}
+              imageHeight={"100%"}
             />
             {!isUnlocked ? (
               <div id="lesson-card-status-icon">
@@ -255,9 +257,15 @@ const LessonCard: React.FC<{
         )}
       </div>
       <div>
-        {showText ? <p id={`lesson-card-name${isLoved ? '-fav-icon' : ''}`}>{t(lesson?.title)}</p> : null}
+        {showText ? (
+          <p id={`lesson-card-name${isLoved ? "-fav-icon" : ""}`}>
+            {t(lesson?.title)}
+          </p>
+        ) : null}
         {showChapterName && lesson.chapterTitle && (
-          <div id={`chapter-title${isLoved ? '-fav-icon' : ''}`}>{lesson.chapterTitle}</div>
+          <div id={`chapter-title${isLoved ? "-fav-icon" : ""}`}>
+            {lesson.chapterTitle}
+          </div>
         )}
       </div>
     </IonCard>

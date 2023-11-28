@@ -10,7 +10,6 @@ const SelectCourse: FC<{
   courses: Course[];
   onCourseChange: (course: Course) => void;
 }> = ({ courses, onCourseChange }) => {
-
   return (
     <Splide
       hasTrack={true}

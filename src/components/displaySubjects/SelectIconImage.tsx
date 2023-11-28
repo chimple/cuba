@@ -6,7 +6,19 @@ const SelectIconImage: FC<{
   localSrc: any;
   defaultSrc: any;
   webSrc: any;
-}> = ({ localSrc, defaultSrc, webSrc }) => {
+  imageWidth?: string;
+  imageHeight?: string;
+  webImageWidth?: string;
+  webImageHeight?: string;
+}> = ({
+  localSrc,
+  defaultSrc,
+  webSrc,
+  imageWidth = "100%",
+  imageHeight = "100%",
+  webImageWidth = "100%",
+  webImageHeight = "100%",
+}) => {
   enum LoadIcon {
     Local,
     Web,
@@ -18,6 +30,10 @@ const SelectIconImage: FC<{
     <div>
       {loadIcon === LoadIcon.Local ? (
         <img
+          style={{
+            width: imageWidth,
+            height: imageHeight,
+          }}
           src={localSrc}
           loading="lazy"
           alt=""
@@ -29,6 +45,10 @@ const SelectIconImage: FC<{
         (webSrc ?? defaultSrc) &&
         loadIcon === LoadIcon.Web ? (
         <CachedImage
+          style={{
+            width: webImageWidth,
+            height: webImageHeight,
+          }}
           src={webSrc}
           alt=""
           onError={() => {
@@ -36,7 +56,14 @@ const SelectIconImage: FC<{
           }}
         />
       ) : (
-        <img src={defaultSrc} alt="" />
+        <img
+          style={{
+            width: imageWidth,
+            height: imageHeight,
+          }}
+          src={defaultSrc}
+          alt=""
+        />
       )}
     </div>
   );

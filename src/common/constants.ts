@@ -138,57 +138,59 @@ export const ACTIVE_HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
     // ],
   ]);
 
-export const DEFAULT_HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
-  new Map<HOMEHEADERLIST, HeaderIconConfig>([
-    [
-      HOMEHEADERLIST.SUGGESTIONS,
-      {
-        displayName: "Suggestion",
-        iconSrc: "/assets/icons/suggestionInactiveIcon.svg",
-        headerList: HOMEHEADERLIST.SUGGESTIONS,
-      },
-    ],
-    [
-      HOMEHEADERLIST.SUBJECTS,
-      {
-        displayName: "Subjects",
-        iconSrc: "/assets/icons/subjectInactiveIcon.svg",
-        headerList: HOMEHEADERLIST.SUBJECTS,
-      },
-    ],
-    [
-      HOMEHEADERLIST.ASSIGNMENT,
-      {
-        displayName: "Home work",
-        iconSrc: "/assets/icons/homeworkInactiveIcon.svg",
-        headerList: HOMEHEADERLIST.ASSIGNMENT,
-      },
-    ],
-    // [
-    //   HOMEHEADERLIST.CHALLENGES,
-    //   {
-    //     displayName: "Challenges",
-    //     iconSrc: "/assets/icons/MathsIcon.svg",
-    //     headerList: HOMEHEADERLIST.CHALLENGES,
-    //   },
-    // ],
-    [
-      HOMEHEADERLIST.SEARCH,
-      {
-        displayName: "Search",
-        iconSrc: "/assets/icons/searchInactiveIcon.svg",
-        headerList: HOMEHEADERLIST.SEARCH,
-      },
-    ],
-    // [
-    //   HOMEHEADERLIST.QUIZ,
-    //   {
-    //     displayName: "Quiz",
-    //     iconSrc: "/assets/icons/quiz_icon.svg",
-    //     headerList: HOMEHEADERLIST.QUIZ,
-    //   },
-    // ],
-  ]);
+export const DEFAULT_HEADER_ICON_CONFIGS: Map<
+  HOMEHEADERLIST,
+  HeaderIconConfig
+> = new Map<HOMEHEADERLIST, HeaderIconConfig>([
+  [
+    HOMEHEADERLIST.SUGGESTIONS,
+    {
+      displayName: "Suggestion",
+      iconSrc: "/assets/icons/suggestionInactiveIcon.svg",
+      headerList: HOMEHEADERLIST.SUGGESTIONS,
+    },
+  ],
+  [
+    HOMEHEADERLIST.SUBJECTS,
+    {
+      displayName: "Subjects",
+      iconSrc: "/assets/icons/subjectInactiveIcon.svg",
+      headerList: HOMEHEADERLIST.SUBJECTS,
+    },
+  ],
+  [
+    HOMEHEADERLIST.ASSIGNMENT,
+    {
+      displayName: "Home work",
+      iconSrc: "/assets/icons/homeworkInactiveIcon.svg",
+      headerList: HOMEHEADERLIST.ASSIGNMENT,
+    },
+  ],
+  // [
+  //   HOMEHEADERLIST.CHALLENGES,
+  //   {
+  //     displayName: "Challenges",
+  //     iconSrc: "/assets/icons/MathsIcon.svg",
+  //     headerList: HOMEHEADERLIST.CHALLENGES,
+  //   },
+  // ],
+  [
+    HOMEHEADERLIST.SEARCH,
+    {
+      displayName: "Search",
+      iconSrc: "/assets/icons/searchInactiveIcon.svg",
+      headerList: HOMEHEADERLIST.SEARCH,
+    },
+  ],
+  // [
+  //   HOMEHEADERLIST.QUIZ,
+  //   {
+  //     displayName: "Quiz",
+  //     iconSrc: "/assets/icons/quiz_icon.svg",
+  //     headerList: HOMEHEADERLIST.QUIZ,
+  //   },
+  // ],
+]);
 
 // export const HEADERLIST = [HOME_CONFIG, LANG_CONFIGS, PROFILE_CONFIG]
 export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =

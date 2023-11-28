@@ -1,6 +1,7 @@
 import { MenuItem, Select } from "@mui/material";
 import "./DropDown.css";
 
+const placeholderTextItem = "placeholderText";
 const DropDown: React.FC<{
   optionList: {
     id: string;
@@ -10,12 +11,13 @@ const DropDown: React.FC<{
   onValueChange;
   placeholder: string | undefined;
   width: string;
-}> = ({ optionList, currentValue, onValueChange, width, placeholder }) => {
+}> = ({ optionList, currentValue = placeholderTextItem, onValueChange, width, placeholder }) => {
   return (
     <Select
-      placeholder={placeholder ?? ""}
+
       className="dropdown-outer"
       sx={{
+        color: currentValue === placeholderTextItem ? "gray" : "black",
         width: width,
         borderRadius: "0.8vw",
         fontFamily: "BalooRegular",
@@ -57,6 +59,10 @@ const DropDown: React.FC<{
       }
       }
     >
+      <MenuItem hidden={true} value={placeholderTextItem} >
+        {placeholder}
+      </MenuItem>
+
       {optionList.map((option, index) => (
 
         <MenuItem className="dropdown-item" sx={{ fontFamily: "BalooRegular", }} key={index} value={option.id}>
