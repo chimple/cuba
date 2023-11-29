@@ -63,13 +63,13 @@ const ChimpleAvatar: FC<{
   );
 
   useEffect(() => {
-    fetchCoursesForStudent();
     loadSuggestionsFromJson();
     // setButtonsDisabled(true);
   }, [currentMode]);
+  
   useEffect(() => {
-    // setButtonsDisabled(true);
-  }, [currentStageMode]);
+    fetchCoursesForStudent();
+  }, []);
 
   const api = ServiceConfig.getI().apiHandler;
 
@@ -99,7 +99,7 @@ const ChimpleAvatar: FC<{
   }
 
   async function loadNextSuggestion() {
-    await avatarObj.loadAvatarDataOnIndex();
+    await avatarObj.loadAvatarNextSuggestion();
 
     setCurrentMode(avatarObj.mode);
     if (avatarObj.mode === AvatarModes.CourseSuggestion) {
