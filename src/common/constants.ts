@@ -448,5 +448,3 @@ export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
 export const COPIED_BUNDLE_FILES_INDEX = "copiedBundleFilesIndex";
 
 export const NUMBER_REGEX = /^[0-9]+$/;
-
-export const CURRENT_AVATAR_SUGGESTION_NO = "currentAvatarSuggestion";
