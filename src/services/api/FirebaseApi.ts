@@ -30,6 +30,7 @@ import {
 import {
   COURSES,
   DEFAULT_COURSE_IDS,
+  LIVE_QUIZ,
   MODES,
   aboveGrade3,
   belowGrade1,
@@ -1523,7 +1524,7 @@ export class FirebaseApi implements ServiceApi {
     return querySnapshot;
   }
   //getting lessons for quiz
-  public async getQuizLessons(classId: string): Promise<Assignment[] | []> {
+  public async getLiveQuizLessons(classId: string): Promise<Assignment[] | []> {
     try {
       const now = new Date();
       const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
@@ -1531,32 +1532,33 @@ export class FirebaseApi implements ServiceApi {
       const q = query(
         collection(this._db, CollectionIds.ASSIGNMENT),
         where('class', "==", classDocRef),
-        where('type', '==', 'liveQuiz'),
+        where('type', '==', LIVE_QUIZ),
         where('startsAt', '<=', now),
         orderBy('startsAt', 'desc')
       );
-      console.log("Assignments Snapshot:", q);
+      console.log("query result:", q);
 
-      const quizLessons: Assignment[] = [];
-      const quizDocs = await getDocs(q);
-      console.log("quiz count", quizDocs.size);
-      if (quizDocs.size > 0) {
-        for (const quizDoc of quizDocs.docs) {
-          const endsAt = quizDoc.get('endsAt');
+      const liveQuizLessons: Assignment[] = [];
+      const LiveQuizDocs = await getDocs(q);
+      console.log("live quiz count", LiveQuizDocs.size);
+
+      if (LiveQuizDocs.size > 0) {
+        for (const LiveQuizDoc of LiveQuizDocs.docs) {
+          const endsAt = LiveQuizDoc.get('endsAt');
           const endsAtDate = endsAt.toDate();
           if (endsAtDate > now) {
-            quizLessons.push(quizDoc.data() as Assignment);
+            liveQuizLessons.push(LiveQuizDoc.data() as Assignment);
           } else {
-            console.log("Quiz has ended. Skipping.");
+            console.log("Live Quiz has ended. Skipping.");
           }
         }
       }
-      console.log("quizLessons", quizLessons);
-      return quizLessons;
+      console.log("Live quiz lessons", liveQuizLessons);
+      return liveQuizLessons;
 
     } catch (error) {
-      console.error('Error fetching quiz lessons:', error);
-      throw new Error('Error fetching quiz lessons');
+      console.error('Error fetching live quiz lessons:', error);
+      throw new Error('Error fetching live quiz lessons');
     }
   }
   public async getCourseFromLesson(

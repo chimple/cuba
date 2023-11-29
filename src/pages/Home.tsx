@@ -57,7 +57,7 @@ import SearchLesson from "./SearchLesson";
 import AssignmentPage from "./Assignment";
 import { Console } from "console";
 import Subjects from "./Subjects";
-import Quiz from "./Quiz";
+import LiveQuiz from "./LiveQuiz";
 
 const sortValidLessonsByDate = (
   lessonIds: string[],
@@ -794,7 +794,7 @@ const Home: FC = () => {
             {currentHeader === HOMEHEADERLIST.ASSIGNMENT && <AssignmentPage />}
 
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
-            {currentHeader === HOMEHEADERLIST.QUIZ && <Quiz />}
+            {currentHeader === HOMEHEADERLIST.QUIZ && <LiveQuiz />}
 
             {value === SUBTAB.SUGGESTIONS &&
               currentHeader === HOMEHEADERLIST.SUGGESTIONS ? (

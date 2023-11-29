@@ -126,7 +126,6 @@ export interface ServiceApi {
    * @param {string} id - Lesson firebase doc id
    * @returns {Lesson | undefined}`Lesson` or `undefined` if it could not find the lesson with given `id`
    */
-  getQuizLessons(classId: string): Promise<Assignment[]>;
   getLesson(
     id: string,
     chapter: Chapter | undefined,
@@ -163,6 +162,15 @@ export interface ServiceApi {
   getLessonResultsForStudent(
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined>;
+
+  /**
+  * This function gets all live quizzes from assignments for a student in a class.
+  * Gives Array of `Assignments` objects for a given `classID`
+  * @param {classId} classId firebase doc id
+  * @returns {Assignment[]} A promise that resolves to an array of assignments.
+  */
+  getLiveQuizLessons(classId: string): Promise<Assignment[]>;
+
   /**
    * Creates a Document in Result collection with the given params
    * student: User

@@ -8,14 +8,14 @@ import Assignment from '../models/assignment';
 import Lesson from '../models/lesson';
 import { t } from 'i18next';
 import LessonSlider from '../components/LessonSlider';
-import "./Quiz.css";
+import "./LiveQuiz.css";
 import Loading from '../components/Loading';
 
 
-const Quiz: React.FC = () => {
+const LiveQuiz: React.FC = () => {
     const history = useHistory();
     const [loading, setLoading] = useState(true);
-    const [quizzes, setQuizzes] = useState<Lesson[]>([]);
+    const [liveQuizzes, setLiveQuizzes] = useState<Lesson[]>([]);
     const [lessonResultMap, setLessonResultMap] = useState<{
         [lessonDocId: string]: StudentLessonResult;
     }>();
@@ -51,16 +51,16 @@ const Quiz: React.FC = () => {
             studentResult.classes.length > 0
         ) {
             const classId = studentResult.classes[0];
-            const allQuizzes: Assignment[] = [];
+            const allLiveQuizzes: Assignment[] = [];
             await Promise.all(
                 studentResult.classes.map(async (_class) => {
-                    const res = await api.getQuizLessons(classId);
-                    allQuizzes.push(...res);
+                    const res = await api.getLiveQuizLessons(classId);
+                    allLiveQuizzes.push(...res);
                 })
             );
             const _lessons: Lesson[] = [];
             await Promise.all(
-                allQuizzes.map(async (_assignment) => {
+                allLiveQuizzes.map(async (_assignment) => {
                     const res = await api.getLesson(_assignment.lesson.id, undefined, true);
                     if (!!res) {
                         res.assignment = _assignment;
@@ -69,7 +69,7 @@ const Quiz: React.FC = () => {
                 })
             );
 
-            setQuizzes(_lessons);
+            setLiveQuizzes(_lessons);
             setLoading(false);
         } else {
             setLoading(false);
@@ -83,10 +83,10 @@ const Quiz: React.FC = () => {
                 <Loading isLoading={loading} />
             ) : (
                 <div>
-                    {quizzes.length > 0 ? (
+                    {liveQuizzes.length > 0 ? (
                         <div>
                             <LessonSlider
-                                lessonData={quizzes}
+                                lessonData={liveQuizzes}
                                 isHome={true}
                                 course={undefined}
                                 lessonsScoreMap={lessonResultMap || {}}
@@ -96,8 +96,8 @@ const Quiz: React.FC = () => {
                             />
                         </div>
                     ) : (
-                        <div className="pending-quiz">
-                            {t("There are no Quizzes for you.")}
+                        <div className="pending-live-quiz">
+                            {t("There are no Live Quizzes for you.")}
                         </div>
                     )}
                 </div>
@@ -105,4 +105,4 @@ const Quiz: React.FC = () => {
         </div>
     );
 };
-export default Quiz;
+export default LiveQuiz;

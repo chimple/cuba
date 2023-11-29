@@ -281,7 +281,7 @@ export enum PAGES {
   LEADERBOARD = "/leaderboard",
   ASSIGNMENT = "/assignment",
   JOIN_CLASS = "/join-class",
-  QUIZ = "/quiz",
+  LIVE_QUIZ = "/live-quiz",
   SELECT_MODE = "/select-mode",
   TERMS_AND_CONDITIONS = "/terms-and-conditions",
 }

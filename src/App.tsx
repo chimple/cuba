@@ -56,7 +56,7 @@ import { FirebaseRemoteConfig } from "@capacitor-firebase/remote-config";
 import HotUpdate from "./pages/HotUpdate";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import DisplayChapters from "./pages/DisplayChapters";
-import Quiz from "./pages/Quiz";
+import LiveQuiz from "./pages/LiveQuiz";
 
 setupIonicReact();
 
@@ -174,8 +174,8 @@ const App: React.FC = () => {
             <Route path={PAGES.TERMS_AND_CONDITIONS} exact={true}>
               <TermsAndConditions />
             </Route>
-            <Route path={PAGES.QUIZ} exact={true}>
-              <Quiz />
+            <Route path={PAGES.LIVE_QUIZ} exact={true}>
+              <LiveQuiz />
             </Route>
           </Switch>
         </IonRouterOutlet>

@@ -119,8 +119,8 @@ export class ApiHandler implements ServiceApi {
       languageDocId
     );
   }
-  public async getQuizLessons(classId: string): Promise<Assignment[]> {
-    return this.s.getQuizLessons(classId);
+  public async getLiveQuizLessons(classId: string): Promise<Assignment[]> {
+    return this.s.getLiveQuizLessons(classId);
   }
   public async getLessonResultsForStudent(
     studentId: string
