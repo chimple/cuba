@@ -6,49 +6,41 @@ import { Capacitor } from "@capacitor/core";
 
 interface AudioButtonProps {
   style: React.CSSProperties;
-  audioSrc: string;
+  message: string;
+  audioSrc: string | undefined;
 }
 
-function AudioButtonComponent({ style, audioSrc }: AudioButtonProps) {
-  // const { playAudio, playing } = useAudioPlayer(audioSrc);
-  const audioText = "नमस्ते! चिम्पल में आपका स्वागत है";
-  // const audioText = "Hi! welcome to Chimple";
+function AudioButtonComponent({ style, message, audioSrc }: AudioButtonProps) {
   const {
     speak,
     stop,
-    playing,
+    isTtsPlaying,
     getSupportedLanguages,
     getSupportedVoices,
     isLanguageSupported,
-  } = useTtsAudioPlayer(audioText, "hi-IN");
+  } = useTtsAudioPlayer(message);
+
+  const { playAudio, isAudioPlaying, pauseAudio } = useAudioPlayer(
+    audioSrc || ""
+  );
 
   return (
     <div>
       <PiSpeakerHighBold
         style={style}
         onClick={async () => {
-          if (!playing) {
-            if (Capacitor.isNativePlatform()) {
-              const inst = await TextToSpeech.openInstall();
-              console.log("await TextToSpeech.openInstall(); =", inst);
-              alert(
-                "await TextToSpeech.openInstall(); =" + JSON.stringify(inst)
-              );
+          console.log("if (audioSrc) {", audioSrc);
+
+          if (audioSrc) {
+            console.log("normal audio is playing", !isAudioPlaying);
+
+            if (!isAudioPlaying) {
+              await playAudio();
             }
-            const languages = await getSupportedLanguages();
-            console.log("await getSupportedLanguages() =", languages);
-            const voices = await getSupportedVoices();
-            console.log("const voices = await getSupportedVoices();", voices);
-            const isSupported = await isLanguageSupported("kn-IN");
-            console.log(
-              "const isSupported = await isLanguageSupported(kn-IN);",
-              isSupported
-            );
-            // alert("const languages =" + JSON.stringify(languages));
-            // alert(
-            //   "const languages.languages =" + JSON.stringify(languages.languages)
-            // );
-            await speak();
+          } else {
+            if (!isTtsPlaying) {
+              await speak();
+            }
           }
         }}
       />

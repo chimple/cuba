@@ -1,7 +1,14 @@
 import { useState } from "react";
 import AudioComponent from "./AudioButtonComponent";
+import { t } from "i18next";
 
-export default function TextBoxWithAudioButton({ message, fontSize }) {
+export default function TextBoxWithAudioButton({
+  message,
+  audioSrc,
+  fontSize,
+}) {
+  console.log("TextBoxWithAudioButton message", message);
+
   return (
     <div
       style={{
@@ -30,8 +37,9 @@ export default function TextBoxWithAudioButton({ message, fontSize }) {
           border: "2px solid #BDBDBD",
           borderBottom: "4.5px solid #BDBDBD",
         }}
-        audioSrc={"assets/audios/my_name_is_chimple.mp3"}
-      // audioSrc={"https://samplelib.com/lib/preview/mp3/sample-6s.mp3"}
+        message={message}
+        audioSrc={audioSrc}
+        // audioSrc={"https://samplelib.com/lib/preview/mp3/sample-6s.mp3"}
       ></AudioComponent>
       <p
         style={{

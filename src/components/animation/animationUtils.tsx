@@ -1,15 +1,17 @@
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { useState, useEffect } from "react";
+import { Util } from "../../utility/util";
+import { LANGUAGE } from "../../common/constants";
 
 export function useAudioPlayer(audioSrc: string) {
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
-  const [playing, setPlaying] = useState<boolean>(false);
+  const [isAudioPlaying, setIsAudioPlaying] = useState<boolean>(false);
 
   useEffect(() => {
     if (audio) {
-      audio.addEventListener("ended", () => setPlaying(false));
+      audio.addEventListener("ended", () => setIsAudioPlaying(false));
       return () => {
-        audio.removeEventListener("ended", () => setPlaying(false));
+        audio.removeEventListener("ended", () => setIsAudioPlaying(false));
       };
     }
   }, [audio]);
@@ -18,8 +20,8 @@ export function useAudioPlayer(audioSrc: string) {
     const newAudio = new Audio(audioSrc);
     newAudio.onloadedmetadata = () => {
       console.log("Audio duration: ", newAudio.duration);
-      setPlaying(true);
-      if (!playing) {
+      setIsAudioPlaying(true);
+      if (!isAudioPlaying) {
         newAudio.play();
         console.log("Audio is playing: ", audioSrc);
       }
@@ -29,24 +31,39 @@ export function useAudioPlayer(audioSrc: string) {
     setAudio(newAudio);
   };
   const pauseAudio = () => {
-    if (audio && !playing) {
+    if (audio && !isAudioPlaying) {
       audio.pause();
     }
   };
 
-  return { playAudio, playing, pauseAudio };
+  return { playAudio, isAudioPlaying, pauseAudio };
 }
 
-export function useTtsAudioPlayer(audioText: string, audioLang: string) {
-  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
-  const [playing, setPlaying] = useState<boolean>(false);
+export function useTtsAudioPlayer(
+  audioText: string,
+  audioLang: string = "en-IN"
+) {
+  const language = localStorage.getItem(LANGUAGE) || "en";
+  audioLang = language + "-IN";
+  const [isTtsPlaying, setIsTtsPlaying] = useState<boolean>(false);
 
   const speak = async () => {
     try {
-      console.log("speak method called ", playing, !playing);
+      console.log("speak method called ", isTtsPlaying, !isTtsPlaying);
 
-      setPlaying(true);
-      if (!playing) {
+      setIsTtsPlaying(true);
+      if (!isTtsPlaying) {
+        const isSupported = await isLanguageSupported(audioLang);
+        console.log(
+          "text: audioText,lang: audioLang, //",
+          audioText,
+          audioLang,
+          isSupported
+        );
+        if (!isSupported) {
+          alert(audioLang + " Language is not supported for you device");
+        }
+
         await TextToSpeech.speak({
           text: audioText, //"नमस्ते चिम्पल, आप सभी का स्वागत है",
           lang: audioLang, //"hi-IN",
@@ -55,17 +72,17 @@ export function useTtsAudioPlayer(audioText: string, audioLang: string) {
           volume: 1.0,
           category: "ambient",
         }).then(() => {
-          setPlaying(false);
+          setIsTtsPlaying(false);
         });
         console.log("Audio is playing: ", audioText);
       }
     } catch (error) {
-      console.log("TTS speech failed ", playing, error);
+      console.log("TTS speech failed ", isTtsPlaying, error);
     }
   };
 
   const stop = async () => {
-    if (!playing) {
+    if (!isTtsPlaying) {
       await TextToSpeech.stop();
     }
   };
@@ -88,7 +105,7 @@ export function useTtsAudioPlayer(audioText: string, audioLang: string) {
   return {
     speak,
     stop,
-    playing,
+    isTtsPlaying,
     getSupportedLanguages,
     getSupportedVoices,
     isLanguageSupported,
