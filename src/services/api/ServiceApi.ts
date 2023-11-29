@@ -126,6 +126,7 @@ export interface ServiceApi {
    * @param {string} id - Lesson firebase doc id
    * @returns {Lesson | undefined}`Lesson` or `undefined` if it could not find the lesson with given `id`
    */
+  getQuizLessons(classId: string): Promise<Assignment[]>;
   getLesson(
     id: string,
     chapter: Chapter | undefined,

@@ -76,7 +76,7 @@ export class FirebaseApi implements ServiceApi {
   private _schoolsCache: { [userId: string]: School[] } = {};
   private _currentMode: MODES;
   private _allCourses: Course[];
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): FirebaseApi {
     if (!FirebaseApi.i) {
@@ -1522,7 +1522,43 @@ export class FirebaseApi implements ServiceApi {
     }
     return querySnapshot;
   }
+  //getting lessons for quiz
+  public async getQuizLessons(classId: string): Promise<Assignment[] | []> {
+    try {
+      const now = new Date();
+      const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
 
+      const q = query(
+        collection(this._db, CollectionIds.ASSIGNMENT),
+        where('class', "==", classDocRef),
+        where('type', '==', 'liveQuiz'),
+        where('startsAt', '<=', now),
+        orderBy('startsAt', 'desc')
+      );
+      console.log("Assignments Snapshot:", q);
+
+      const quizLessons: Assignment[] = [];
+      const quizDocs = await getDocs(q);
+      console.log("quiz count", quizDocs.size);
+      if (quizDocs.size > 0) {
+        for (const quizDoc of quizDocs.docs) {
+          const endsAt = quizDoc.get('endsAt');
+          const endsAtDate = endsAt.toDate();
+          if (endsAtDate > now) {
+            quizLessons.push(quizDoc.data() as Assignment);
+          } else {
+            console.log("Quiz has ended. Skipping.");
+          }
+        }
+      }
+      console.log("quizLessons", quizLessons);
+      return quizLessons;
+
+    } catch (error) {
+      console.error('Error fetching quiz lessons:', error);
+      throw new Error('Error fetching quiz lessons');
+    }
+  }
   public async getCourseFromLesson(
     lesson: Lesson
   ): Promise<Course | undefined> {

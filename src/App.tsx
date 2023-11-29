@@ -56,6 +56,7 @@ import { FirebaseRemoteConfig } from "@capacitor-firebase/remote-config";
 import HotUpdate from "./pages/HotUpdate";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import DisplayChapters from "./pages/DisplayChapters";
+import Quiz from "./pages/Quiz";
 
 setupIonicReact();
 
@@ -93,7 +94,7 @@ const App: React.FC = () => {
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,
-    }).catch((_) => {});
+    }).catch((_) => { });
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
@@ -172,6 +173,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <Route path={PAGES.TERMS_AND_CONDITIONS} exact={true}>
               <TermsAndConditions />
+            </Route>
+            <Route path={PAGES.QUIZ} exact={true}>
+              <Quiz />
             </Route>
           </Switch>
         </IonRouterOutlet>
