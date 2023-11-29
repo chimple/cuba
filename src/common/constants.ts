@@ -454,4 +454,4 @@ export const COPIED_BUNDLE_FILES_INDEX = "copiedBundleFilesIndex";
 
 export const NUMBER_REGEX = /^[0-9]+$/;
 
-export const CURRENT_AVATAR_SUGGESTION_NO = "currentAvatarSuggestion";
+export const CURRENT_AVATAR_SUGGESTION_NO = "currentAvatarSuggestionNo";
