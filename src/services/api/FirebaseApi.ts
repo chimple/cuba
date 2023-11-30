@@ -77,7 +77,7 @@ export class FirebaseApi implements ServiceApi {
   private _schoolsCache: { [userId: string]: School[] } = {};
   private _currentMode: MODES;
   private _allCourses: Course[];
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): FirebaseApi {
     if (!FirebaseApi.i) {
@@ -1266,7 +1266,7 @@ export class FirebaseApi implements ServiceApi {
       if (classConnectionDoc.exists() && !!roles && roles.length > 0) {
         await Promise.all(
           roles.map(async (userId) => {
-            const userDoc = await getDocFromCache(
+            const userDoc = await this.getDocFromOffline(
               doc(this._db, CollectionIds.USER, userId)
             );
             if (userDoc.exists() && !!userDoc.id) {
@@ -1281,7 +1281,7 @@ export class FirebaseApi implements ServiceApi {
     } catch (error) {
       console.log(
         "🚀 ~ file: FirebaseApi.ts:1006 ~ FirebaseApi ~ getStudentsForClass ~ error:",
-        JSON.stringify(error)
+        error
       );
       return [];
     }
@@ -1530,10 +1530,10 @@ export class FirebaseApi implements ServiceApi {
 
       const q = query(
         collection(this._db, CollectionIds.ASSIGNMENT),
-        where('class', "==", classDocRef),
-        where('type', '==', LIVE_QUIZ),
-        where('startsAt', '<=', now),
-        orderBy('startsAt', 'desc')
+        where("class", "==", classDocRef),
+        where("type", "==", LIVE_QUIZ),
+        where("startsAt", "<=", now),
+        orderBy("startsAt", "desc")
       );
       console.log("query result:", q);
 
@@ -1543,10 +1543,12 @@ export class FirebaseApi implements ServiceApi {
 
       if (LiveQuizDocs.size > 0) {
         for (const LiveQuizDoc of LiveQuizDocs.docs) {
-          const endsAt = LiveQuizDoc.get('endsAt');
+          const endsAt = LiveQuizDoc.get("endsAt");
           const endsAtDate = endsAt.toDate();
           if (endsAtDate > now) {
-            liveQuizLessons.push(LiveQuizDoc.data() as Assignment);
+            const assignment = LiveQuizDoc.data() as Assignment;
+            assignment.docId = LiveQuizDoc.id;
+            liveQuizLessons.push(assignment);
           } else {
             console.log("Live Quiz has ended. Skipping.");
           }
@@ -1554,10 +1556,9 @@ export class FirebaseApi implements ServiceApi {
       }
       console.log("Live quiz lessons", liveQuizLessons);
       return liveQuizLessons;
-
     } catch (error) {
-      console.error('Error fetching live quiz lessons:', error);
-      throw new Error('Error fetching live quiz lessons');
+      console.error("Error fetching live quiz lessons:", error);
+      throw new Error("Error fetching live quiz lessons");
     }
   }
   public async getCourseFromLesson(

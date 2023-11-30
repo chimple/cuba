@@ -283,7 +283,7 @@ export enum PAGES {
   LIVE_QUIZ = "/live-quiz",
   SELECT_MODE = "/select-mode",
   TERMS_AND_CONDITIONS = "/terms-and-conditions",
-  LIVE_QUIZ = "/live-quiz",
+  LIVE_QUIZ_JOIN = "/live-quiz-join",
 }
 
 export enum LANG {
