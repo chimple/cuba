@@ -50,7 +50,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<{ grades: Grade[]; courses: Course[] }> {
     throw new Error("Method not implemented.");
   }
-  private constructor() {}
+  private constructor() { }
   getAvatarInfo(): Promise<AvatarObj | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -85,7 +85,9 @@ export class OneRosterApi implements ServiceApi {
   }> {
     throw new Error("Method not implemented.");
   }
-
+  getLiveQuizLessons(classId: string): Promise<Assignment[]> {
+    throw new Error("Method not implemented.");
+  }
   getLessonFromCourse(
     course: Course,
     lessonId: string
