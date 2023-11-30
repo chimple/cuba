@@ -3,7 +3,7 @@ import JoinClass from "../components/assignment/JoinClass";
 import "./Assignment.css";
 import { useEffect, useState } from "react";
 import BackButton from "../components/common/BackButton";
-import { CURRENT_LESSON_LEVEL, PAGES } from "../common/constants";
+import { CURRENT_LESSON_LEVEL, LIVE_QUIZ, PAGES, TYPE } from "../common/constants";
 import { useHistory } from "react-router";
 import Loading from "../components/Loading";
 import Class from "../models/class";
@@ -69,8 +69,11 @@ const AssignmentPage: React.FC = () => {
       const allAssignments: Assignment[] = [];
       await Promise.all(
         studentResult.classes.map(async (_class) => {
-          const res = await api.getPendingAssignments(_class, student.docId);
-          allAssignments.push(...res);
+          const assignments = await api.getPendingAssignments(_class, student.docId);
+          const filteredAssignments = assignments.filter((assignment) => { //filtering the assignments without live quiz
+            return !(TYPE in assignment) || assignment.type !== LIVE_QUIZ;
+          });
+          allAssignments.push(...filteredAssignments);
         })
       );
       const _lessons: Lesson[] = [];

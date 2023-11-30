@@ -63,13 +63,13 @@ const ChimpleAvatar: FC<{
   );
 
   useEffect(() => {
-    fetchCoursesForStudent();
     loadSuggestionsFromJson();
     // setButtonsDisabled(true);
   }, [currentMode]);
+  
   useEffect(() => {
-    // setButtonsDisabled(true);
-  }, [currentStageMode]);
+    fetchCoursesForStudent();
+  }, []);
 
   const api = ServiceConfig.getI().apiHandler;
 
@@ -99,7 +99,7 @@ const ChimpleAvatar: FC<{
   }
 
   async function loadNextSuggestion() {
-    await avatarObj.loadAvatarDataOnIndex();
+    await avatarObj.loadAvatarNextSuggestion();
 
     setCurrentMode(avatarObj.mode);
     if (avatarObj.mode === AvatarModes.CourseSuggestion) {
@@ -435,20 +435,20 @@ const ChimpleAvatar: FC<{
   }
 
   let buttons: { label: string; onClick: () => void }[] = [];
+  let message: string = "";
+  // const [message, setMessage] = useState<string>("");
 
   switch (currentMode) {
     case AvatarModes.Welcome:
+      message = t(avatarObj.message || "");
       buttons = [{ label: "Start", onClick: () => handleButtonClick(true) }];
       break;
     case AvatarModes.CourseSuggestion:
       switch (currentStageMode) {
         case AvatarModes.CourseSuggestion:
           const x1 = currentCourse?.title || "";
-
-          avatarObj.message = t(`Do you want to play 'x1' course?`).replace(
-            "x1",
-            x1
-          );
+          message = t(`Do you want to play 'x1' course?`).replace("x1", x1);
+          // setMessage(t(`Do you want to play 'x1' course?`).replace("x1", x1));
           buttons = [
             { label: t("Yes"), onClick: () => handleButtonClick(true) },
             { label: t("No"), onClick: () => handleButtonClick(false) },
@@ -456,11 +456,8 @@ const ChimpleAvatar: FC<{
           break;
         case AvatarModes.ChapterSuggestion:
           const x2 = currentChapter?.title || "";
-          avatarObj.message = t(`Do you want to play 'x2' chapter?`).replace(
-            "x2",
-            x2
-          );
-
+          message = t(`Do you want to play 'x2' chapter?`).replace("x2", x2);
+          // setMessage(t(`Do you want to play 'x2' chapter?`).replace("x2", x2));
           buttons = [
             { label: t("Yes"), onClick: () => handleButtonClick(true) },
             { label: t("No"), onClick: () => handleButtonClick(false) },
@@ -468,10 +465,12 @@ const ChimpleAvatar: FC<{
           break;
         case AvatarModes.LessonSuggestion:
           const x3 = currentLesson?.title || "";
-          avatarObj.message = t(`Do you want to play 'x3' lesson?`).replace(
-            "x3",
-            x3
+          console.log(
+            "t(`Do you want to play 'x3' lesson?`)",
+            t(`Do you want to play 'x3' lesson?`)
           );
+          message = t(`Do you want to play 'x3' lesson?`).replace("x3", x3);
+          // setMessage(t(`Do you want to play 'x3' lesson?`).replace("x3", x3));
 
           buttons = [
             { label: t("Yes"), onClick: () => handleButtonClick(true) },
@@ -481,6 +480,7 @@ const ChimpleAvatar: FC<{
       }
       break;
     case AvatarModes.TwoOptionQuestion:
+      message = t(avatarObj.message || "");
       buttons = [
         {
           label: t(avatarObj.option1 || ""),
@@ -493,6 +493,7 @@ const ChimpleAvatar: FC<{
       ];
       break;
     case AvatarModes.FourOptionQuestion:
+      message = t(avatarObj.message || "");
       buttons = [
         {
           label: t(avatarObj.option1 || ""),
@@ -513,11 +514,9 @@ const ChimpleAvatar: FC<{
       ];
       break;
     case AvatarModes.RecommendedLesson:
-      const x1 = currentLesson?.title || cLesson?.title || "";
-      avatarObj.message = t(`Do you want to play 'x1' Lesson?`).replace(
-        "x1",
-        x1
-      );
+      const x3 = currentLesson?.title || cLesson?.title || "";
+      message = t(`Do you want to play 'x3' lesson?`).replace("x3", x3);
+      // setMessage(t(`Do you want to play 'x1' Lesson?`).replace("x1", x1));
       buttons = [
         { label: t("Yes"), onClick: () => handleButtonClick(true) },
         { label: t("No"), onClick: () => handleButtonClick(false) },
@@ -544,7 +543,8 @@ const ChimpleAvatar: FC<{
       >
         <div>
           <TextBoxWithAudioButton
-            message={avatarObj.message}
+            message={message}
+            audioSrc={undefined}
             fontSize={"2vw"}
           ></TextBoxWithAudioButton>
           <AvatarImageOption

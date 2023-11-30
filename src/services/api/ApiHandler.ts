@@ -23,7 +23,6 @@ export class ApiHandler implements ServiceApi {
 
   private s: ServiceApi;
 
-  private constructor() {}
 
   public getAssignmentById(id: string): Promise<Assignment | undefined> {
     return this.s.getAssignmentById(id);
@@ -51,6 +50,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<string | undefined> {
     return this.s.joinLiveQuiz(studentId, assignmentId);
   }
+  private constructor() { }
   public async getAvatarInfo(): Promise<AvatarObj | undefined> {
     return await this.s.getAvatarInfo();
   }
@@ -147,7 +147,9 @@ export class ApiHandler implements ServiceApi {
       languageDocId
     );
   }
-
+  public async getLiveQuizLessons(classId: string): Promise<Assignment[]> {
+    return this.s.getLiveQuizLessons(classId);
+  }
   public async getLessonResultsForStudent(
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined> {
