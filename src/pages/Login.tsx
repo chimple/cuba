@@ -340,6 +340,17 @@ const Login: React.FC = () => {
         isInvalidCode: true,
         isInvalidCodeLength: false,
       });
+      if (typeof error === "string") {
+        if (error.includes("code-expired")) {
+          setIsInvalidCode({
+            isInvalidCode: false,
+            isInvalidCodeLength: false,
+          });
+          setErrorMessage(
+            t("Verification code has expired. Please request a new one")
+          );
+        }
+      }
     }
   };
 
@@ -596,7 +607,11 @@ const Login: React.FC = () => {
                       }}
                     ></TextBox>
                   </div>
-                  {isInvalidCode?.isInvalidCodeLength ? (
+                  {errorMessage ? (
+                    <p className="login-verification-error-message">
+                      {errorMessage}
+                    </p>
+                  ) : isInvalidCode?.isInvalidCodeLength ? (
                     <p className="login-verification-error-message">
                       {t("Please Enter 6 Digit Code")}
                     </p>
@@ -604,11 +619,7 @@ const Login: React.FC = () => {
                     <p className="login-verification-error-message">
                       {t("Please Enter Valid Code")}
                     </p>
-                  ) : (
-                    <p className="login-verification-error-message">
-                      {errorMessage}
-                    </p>
-                  )}
+                  ) : null}
                 </div>
                 <div ref={getOtpBtnRef} id="login-otp-button">
                   <div
