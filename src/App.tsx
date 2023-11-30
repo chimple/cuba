@@ -56,6 +56,7 @@ import { FirebaseRemoteConfig } from "@capacitor-firebase/remote-config";
 import HotUpdate from "./pages/HotUpdate";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import DisplayChapters from "./pages/DisplayChapters";
+import LiveQuizRoom from "./pages/LiveQuizRoom";
 
 setupIonicReact();
 
@@ -170,6 +171,9 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
               <SelectMode />
             </ProtectedRoute>
+            <Route path={PAGES.LIVE_QUIZ} exact={true}>
+              <LiveQuizRoom />
+            </Route>
             <Route path={PAGES.TERMS_AND_CONDITIONS} exact={true}>
               <TermsAndConditions />
             </Route>

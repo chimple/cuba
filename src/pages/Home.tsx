@@ -616,7 +616,7 @@ const Home: FC = () => {
         }
         break;
       case HOMEHEADERLIST.PROFILE:
-        Util.setPathToBackButton(PAGES.LEADERBOARD, history);
+        Util.setPathToBackButton(PAGES.LIVE_QUIZ, history);
         break;
         // case HOMEHEADERLIST.SEARCH:
         //   history.replace(PAGES.SEARCH);

@@ -14,8 +14,9 @@ import StudentProfile from "../../models/studentProfile";
 import school from "../../models/school";
 import { MODES } from "../../common/constants";
 import School from "../../models/school";
-import { QueryDocumentSnapshot } from "@firebase/firestore";
 import { AvatarObj } from "../../components/animation/Avatar";
+import { Unsubscribe } from "firebase/firestore";
+import LiveQuizRoomObject from "../../models/liveQuizRoom";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -23,6 +24,33 @@ export class ApiHandler implements ServiceApi {
   private s: ServiceApi;
 
   private constructor() {}
+
+  public getAssignmentById(id: string): Promise<Assignment | undefined> {
+    return this.s.getAssignmentById(id);
+  }
+
+  public liveQuizListener(
+    liveQuizRoomDocId: string,
+    onDataChange: (user: LiveQuizRoomObject) => void
+  ): Unsubscribe {
+    return this.s.liveQuizListener(liveQuizRoomDocId, onDataChange);
+  }
+
+  public async updateLiveQuiz(
+    roomDocId: string,
+    studentId: string,
+    score: number,
+    timeSpent: number
+  ): Promise<void> {
+    return this.s.updateLiveQuiz(roomDocId, studentId, score, timeSpent);
+  }
+
+  public async joinLiveQuiz(
+    studentId: string,
+    assignmentId: string
+  ): Promise<string | undefined> {
+    return this.s.joinLiveQuiz(studentId, assignmentId);
+  }
   public async getAvatarInfo(): Promise<AvatarObj | undefined> {
     return await this.s.getAvatarInfo();
   }
