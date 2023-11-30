@@ -225,6 +225,10 @@ export class AvatarObj {
         "resetting the Avatar Suggestions",
         this._currentSuggestionNumber
       );
+      localStorage.setItem(
+        this.suggestionConstant(),
+        this._currentSuggestionNumber.toString()
+      );
     } else {
       this.currentSuggestionNumber++;
       localStorage.setItem(
