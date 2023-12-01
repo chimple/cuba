@@ -4,8 +4,8 @@
   text-align: center;
   transition: background-color 0.3s, transform 0.2s;
   cursor: pointer;
-  border: 1px solid #BDBDBD;
-  border-bottom: 4.5px solid #BDBDBD;
+  border: 1px solid #474747;
+  border-bottom: 4.5px solid #474747;
 }
 
 .red-button {
@@ -14,29 +14,29 @@
   text-align: center;
   transition: background-color 0.3s, transform 0.2s;
   cursor: pointer;
-  border: 1px solid #BDBDBD;
-  border-bottom: 4.5px solid #BDBDBD;
+  border: 1px solid #474747;
+  border-bottom: 4.5px solid #474747;
 }
 
 /* .green-button:focus {
   background-color: #EAEAEA !important;
 } */
 
-
 /* Styles for desktop and laptop devices (hover effect) */
 @media only screen and (min-width: 1030px) {
   .green-button:hover {
     background-color: #83c327;
     color: White;
-    border-bottom: 4.5px solid #678E21;
+    border-bottom: 4.5px solid #678e21 !important;
+    border: #678e21;
     transform: scale(1.05);
-
   }
 
   .red-button:hover {
-    background-color: #F22A55;
+    background-color: #f22a55;
     color: White;
-    border-bottom: 4.5px solid #BB254D;
+    border-bottom: 4.5px solid #bb254d !important;
+    border: #bb254d;
     transform: scale(1.05);
   }
 }
@@ -60,23 +60,22 @@
   }
 } */
 
-
 @media (pointer: coarse) {
   .green-button:active {
     background-color: #83c327;
     color: White;
-    border-bottom: 4.5px solid #678E21;
+    border-bottom: 4.5px solid #678e21 !important;
+    border: #678e21;
     transform: scale(1.05);
-
   }
 }
 
 @media (pointer: coarse) {
   .red-button:active {
-    background-color: #F22A55;
+    background-color: #f22a55;
     color: White;
-    border-bottom: 4.5px solid #BB254D;
+    border-bottom: 4.5px solid #bb254d !important;
+    border: #bb254d;
     transform: scale(1.05);
-
   }
 }

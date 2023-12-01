@@ -4,8 +4,7 @@ import RectangularTextButton from "./RectangularTextButton";
 import AvatarImageOption from "./AvatarImageOption";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
-import { useAudioPlayer } from "./animationUtils";
-import Loading from "../Loading";
+import { useAudioPlayer, useTtsAudioPlayer } from "./animationUtils";
 import {
   CURRENT_AVATAR_SUGGESTION_NO,
   PAGES,
@@ -19,6 +18,7 @@ import { useHistory } from "react-router";
 import { t } from "i18next";
 import { useRive, Layout, Fit, useStateMachineInput } from "rive-react";
 import { AvatarModes, AvatarObj } from "./Avatar";
+import { IonLoading, IonPage } from "@ionic/react";
 // import { rows } from "../../../build/assets/animation/avatarSugguestions.json";
 
 export enum CourseNames {
@@ -32,8 +32,7 @@ const ChimpleAvatar: FC<{
   recommadedSuggestion: Lesson[];
   style;
   isUnlocked?: boolean;
-  audioSrc: string;
-}> = ({ recommadedSuggestion, style, audioSrc }) => {
+}> = ({ recommadedSuggestion, style }) => {
   let avatarObj = AvatarObj.getInstance();
 
   const [currentMode, setCurrentMode] = useState<AvatarModes>(
@@ -47,13 +46,9 @@ const ChimpleAvatar: FC<{
   const [isBurst, setIsBurst] = useState(false);
   const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(true);
   const [riveCharHandsUp, setRiveCharHandsUp] = useState("Fail");
-  const { playAudio, playing, getAudioDuration } = useAudioPlayer(audioSrc);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-
+  const [spinnerLoading, setSpinnerLoading] = useState<boolean>(true);
   const history = useHistory();
-
   const State_Machine = "State Machine 1";
-
   const { rive, RiveComponent } = useRive({
     src: "/assets/animation/chimplecharacter.riv",
     stateMachines: State_Machine,
@@ -61,8 +56,8 @@ const ChimpleAvatar: FC<{
     animations: riveCharHandsUp,
     autoplay: true,
     onLoad: () => {
-      console.log("onload");
-      setIsLoading(false);
+      console.log("RiveComponent loaded successfully", rive);
+      setSpinnerLoading(false);
     },
   });
   const onclickInput = useStateMachineInput(
@@ -75,11 +70,7 @@ const ChimpleAvatar: FC<{
     fetchCoursesForStudent();
     loadSuggestionsFromJson();
     // setButtonsDisabled(true);
-
   }, [currentMode]);
-  useEffect(() => {
-    // setButtonsDisabled(true);
-  }, [currentStageMode]);
 
   const api = ServiceConfig.getI().apiHandler;
 
@@ -107,10 +98,11 @@ const ChimpleAvatar: FC<{
       );
     }
   }
+  let buttons: { label: string; onClick: () => void }[] = [];
+  let message: string = "";
 
   async function loadNextSuggestion() {
     await avatarObj.loadAvatarDataOnIndex();
-
     setCurrentMode(avatarObj.mode);
     if (avatarObj.mode === AvatarModes.CourseSuggestion) {
       setCurrentStageMode(AvatarModes.CourseSuggestion);
@@ -144,7 +136,6 @@ const ChimpleAvatar: FC<{
 
   async function onClickYes() {
     setButtonsDisabled(false);
-
     // if currentStageMode is AvatarModes.LessonSuggestion then skiping the avatar animation playing
 
     if (currentStageMode === AvatarModes.LessonSuggestion) {
@@ -154,56 +145,56 @@ const ChimpleAvatar: FC<{
 
       return;
     }
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
     rive?.play(avatarObj.yesAnimation);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     if (rive) {
       const animation = avatarObj.yesAnimation;
-      const duration = getAudioDuration();
       rive?.play(avatarObj.yesAnimation);
-      console.log("jkjkj", duration);
       setTimeout(() => {
         rive?.stop(animation);
-      }, duration * 1000);
+      }, 1 * 1000);
     }
     buttons = [];
     onclickInput?.fire();
-
   }
 
-
-  async function playAndStopAnimation() {
-    if (rive) {
-      const animation = avatarObj.yesAnimation;
-      const audioDuration = getAudioDuration();
-      const animationDuration = 200;
-      const numberOfIterations = Math.ceil(audioDuration / (animationDuration / 1000));
-
-
-      for (let i = 0; i < numberOfIterations; i++) {
-        rive?.play(avatarObj.noAnimation);
-        console.log("Iteration:", numberOfIterations);
-        // Wait for the animation duration
-        await new Promise(resolve => setTimeout(resolve, animationDuration));
-        // rive?.stop(avatarObj.noAnimation);
-      }
+  const playAndStopAnimation = async () => {
+    const animation = avatarObj.yesAnimation;
+    const animationDuration = 100;
+    let i = 0;
+    while (i < 22) {
+      rive?.play(avatarObj.yesAnimation);
+      await new Promise((resolve) => setTimeout(resolve, animationDuration));
+      console.log("audio testing", isAudioPlaying, isTtsPlaying);
+      i++;
     }
-  }
+    rive?.stop(avatarObj.yesAnimation);
+  };
 
+  const onClickRiveComponent = async () => {
+    await avatarObj.loadAvatarDataOnIndex();
+    if (rive) {
+      playAndStopAnimation();
+    } else {
+      console.log("Rive component not fully initialized yet");
+    }
 
+    if (!isTtsPlaying) {
+      console.log("hjgdfhdsg");
+      await speak();
+    }
+  };
 
   async function onClickNo() {
     setButtonsDisabled(false);
-    if (currentStageMode === AvatarModes.LessonSuggestion) {
-      console.log("if (currentStageMode === AvatarModes.LessonSuggestion) {");
-      return;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    // playAndStopAnimation();
+    // if (currentStageMode === AvatarModes.LessonSuggestion) {
+    //   console.log("if (currentStageMode === AvatarModes.LessonSuggestion) {");
+    //   return;
+    // }
     rive?.play(avatarObj.noAnimation);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     buttons = [];
     onclickInput?.fire();
-
   }
 
   let cCourse: Course,
@@ -477,10 +468,6 @@ const ChimpleAvatar: FC<{
     }
   }
 
-  let buttons: { label: string; onClick: () => void }[] = [];
-  let message: string = "";
-  // const [message, setMessage] = useState<string>("");
-
   switch (currentMode) {
     case AvatarModes.Welcome:
       message = t(avatarObj.message || "");
@@ -491,7 +478,6 @@ const ChimpleAvatar: FC<{
         case AvatarModes.CourseSuggestion:
           const x1 = currentCourse?.title || "";
           message = t(`Do you want to play 'x1' course?`).replace("x1", x1);
-          // setMessage(t(`Do you want to play 'x1' course?`).replace("x1", x1));
           buttons = [
             { label: t("Yes"), onClick: () => handleButtonClick(true) },
             { label: t("No"), onClick: () => handleButtonClick(false) },
@@ -500,7 +486,6 @@ const ChimpleAvatar: FC<{
         case AvatarModes.ChapterSuggestion:
           const x2 = currentChapter?.title || "";
           message = t(`Do you want to play 'x2' chapter?`).replace("x2", x2);
-          // setMessage(t(`Do you want to play 'x2' chapter?`).replace("x2", x2));
           buttons = [
             { label: t("Yes"), onClick: () => handleButtonClick(true) },
             { label: t("No"), onClick: () => handleButtonClick(false) },
@@ -513,8 +498,6 @@ const ChimpleAvatar: FC<{
             t(`Do you want to play 'x3' lesson?`)
           );
           message = t(`Do you want to play 'x3' lesson?`).replace("x3", x3);
-          // setMessage(t(`Do you want to play 'x3' lesson?`).replace("x3", x3));
-
           buttons = [
             { label: t("Yes"), onClick: () => handleButtonClick(true) },
             { label: t("No"), onClick: () => handleButtonClick(false) },
@@ -569,28 +552,39 @@ const ChimpleAvatar: FC<{
     default:
       break;
   }
-
+  const {
+    speak,
+    stop,
+    isTtsPlaying,
+    getSupportedLanguages,
+    getSupportedVoices,
+    isLanguageSupported,
+  } = useTtsAudioPlayer(message || "");
+  const { playAudio, isAudioPlaying, pauseAudio } = useAudioPlayer(
+    avatarObj.audioSrc || ""
+  );
   return (
     <div style={style}>
       <div>
-        <Loading isLoading={isLoading} className="left-loading" />
-        <RiveComponent
-          style={{
-            width: "35vw",
-            height: "70vh",
-          }}
-          onClick={playAudio}
-        />
+        <IonLoading id="custom-loading-for-avatar" isOpen={spinnerLoading} />
+        <div className="rive-container">
+          <RiveComponent
+            className="rive-component"
+            onClick={onClickRiveComponent}
+          />
+          <div className="avatar-shadow" />
+        </div>
       </div>
       <div
-        className={`avatar-option-box-background left-corner ${isBurst ? "burst" : ""
-          }`}
+        className={`avatar-option-box-background left-corner ${
+          isBurst ? "burst" : ""
+        }`}
       >
         <div>
           <TextBoxWithAudioButton
             message={message}
-            audioSrc={undefined}
             fontSize={"2vw"}
+            onClick={onClickRiveComponent}
           ></TextBoxWithAudioButton>
           <AvatarImageOption
             currentMode={currentMode}
@@ -607,8 +601,8 @@ const ChimpleAvatar: FC<{
                 buttons.length === 1
                   ? "center"
                   : buttons.length === 2
-                    ? "space-evenly"
-                    : "center",
+                  ? "space-evenly"
+                  : "center",
               gap: ".5em",
               display: buttons.length > 2 ? "grid" : "",
               gridTemplateColumns: buttons.length > 2 ? "35% 70px" : "",
@@ -631,7 +625,9 @@ const ChimpleAvatar: FC<{
                   //   (button.label === "No" && avatarObj.option2) || avatarObj.option4 ? "red-button" : "green-button"
                   // }
                   className={
-                    button.onClick.toString().includes('true') ? "green-button" : "red-button"
+                    button.onClick.toString().includes("true")
+                      ? "green-button"
+                      : "red-button"
                   }
                 ></RectangularTextButton>
               </div>

@@ -193,6 +193,7 @@ export class AvatarObj {
     // this._nextMode = currentSuggestionInJson[13];
 
     console.log(" AvatarObj in Avatar page ", AvatarObj.getInstance());
+    console.log(" AvatarObj in Avatar page32432 ",this._yesAnimation );
   }
 
   public async loadAvatarDataOnIndex() {

@@ -5,14 +5,12 @@ import "./Loading.css";
 interface LoadingProps extends LoadingOptions {
   isLoading: boolean;
   msg?: string;
-  className?: string;
 }
 
 const Loading: React.FC<LoadingProps> = ({
   isLoading,
   msg = "",
-  className = "loading",
-  ...loadingOptions
+
 }) => {
   return isLoading ? (
     <div>
@@ -20,9 +18,8 @@ const Loading: React.FC<LoadingProps> = ({
         isOpen={isLoading}
         spinner={null}
         message={
-          `<img class="${className}" src="assets/loading.gif"></img> <br/><p>${msg}</p>`
+          `<img class="loading" src="assets/loading.gif"></img> <br/><p>${msg}</p>`
         }
-        {...(loadingOptions as any)}
       />
     </div>
   ) : null;
