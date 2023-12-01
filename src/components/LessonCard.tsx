@@ -1,7 +1,14 @@
 import { IonCard } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { CONTINUE, LESSON_CARD_COLORS, PAGES } from "../common/constants";
+import {
+  COCOS,
+  CONTINUE,
+  LESSON_CARD_COLORS,
+  LIVE_QUIZ,
+  PAGES,
+  TYPE,
+} from "../common/constants";
 import "./LessonCard.css";
 import LessonCardStarIcons from "./LessonCardStarIcons";
 import React from "react";
@@ -136,24 +143,30 @@ const LessonCard: React.FC<{
           // } else {
           // console.log("LessonCard course: subject,", subject);
           console.log("LessonCard course: course,", currentCourse);
-
-          const parmas = `?courseid=${lesson.cocosSubjectCode}&chapterid=${lesson.cocosChapterCode}&lessonid=${lesson.id}`;
-          console.log(
-            "🚀 ~ file: LessonCard.tsx:73 ~ parmas:",
-            parmas,
-            Lesson.toJson(lesson)
-          );
-          history.push(PAGES.GAME + parmas, {
-            url: "chimple-lib/index.html" + parmas,
-            lessonId: lesson.id,
-            courseDocId: course?.docId ?? lesson?.assignment?.course?.id,
-            course: JSON.stringify(Course.toJson(currentCourse!)),
-            lesson: JSON.stringify(Lesson.toJson(lesson)),
-            from: history.location.pathname + `?${CONTINUE}=true`,
-          });
-          // }
-        } else {
-          console.log(lesson?.title, "lesson is locked");
+          if (lesson.pluginType === COCOS) {
+            const parmas = `?courseid=${lesson.cocosSubjectCode}&chapterid=${lesson.cocosChapterCode}&lessonid=${lesson.id}`;
+            console.log(
+              "🚀 ~ file: LessonCard.tsx:73 ~ parmas:",
+              parmas,
+              Lesson.toJson(lesson)
+            );
+            history.push(PAGES.GAME + parmas, {
+              url: "chimple-lib/index.html" + parmas,
+              lessonId: lesson.id,
+              courseDocId: course?.docId ?? lesson?.assignment?.course?.id,
+              course: JSON.stringify(Course.toJson(currentCourse!)),
+              lesson: JSON.stringify(Lesson.toJson(lesson)),
+              from: history.location.pathname + `?${CONTINUE}=true`,
+            });
+          } else {
+            history.replace(
+              PAGES.LIVE_QUIZ_JOIN +
+                `?assignmentId=${lesson?.assignment?.docId}`,
+              {
+                assignment: JSON.stringify(lesson?.assignment),
+              }
+            );
+          }
         }
       }}
       // disabled={!isUnlocked}
@@ -177,15 +190,27 @@ const LessonCard: React.FC<{
           color={lessonCardColor}
         >
           <div id="lesson-card-homework-icon">
-            {lesson.assignment != undefined ? (
-              <div>
-                <img
-                  src="assets/icons/homework_icon.svg"
-                  className="lesson-card-homework-indicator"
-                />
-              </div>
-            ) : null}
+            {lesson.assignment !== undefined &&
+              (!(TYPE in lesson.assignment) ||
+              lesson.assignment.type !== LIVE_QUIZ ? (
+                <div>
+                  <img
+                    src="assets/icons/homework_icon.svg"
+                    className="lesson-card-homework-indicator"
+                    alt="Homework Icon"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <img
+                    src="/assets/icons/quiz_icon.svg"
+                    className="lesson-card-homework-indicator"
+                    alt="Quiz Icon"
+                  />
+                </div>
+              ))}
           </div>
+
           {showSubjectName && currentCourse?.title ? (
             <div id="lesson-card-subject-name">
               <p>

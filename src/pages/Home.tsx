@@ -57,6 +57,7 @@ import SearchLesson from "./SearchLesson";
 import AssignmentPage from "./Assignment";
 import { Console } from "console";
 import Subjects from "./Subjects";
+import LiveQuiz from "./LiveQuiz";
 
 const sortValidLessonsByDate = (
   lessonIds: string[],
@@ -620,15 +621,15 @@ const Home: FC = () => {
       case HOMEHEADERLIST.PROFILE:
         Util.setPathToBackButton(PAGES.LEADERBOARD, history);
         break;
-        // case HOMEHEADERLIST.SEARCH:
-        //   history.replace(PAGES.SEARCH);
-        //   break;
-        // case HOMEHEADERLIST.ASSIGNMENT:
-        //   history.replace(PAGES.ASSIGNMENT);
-        //   break;
-        // case HOMEHEADERLIST.QUIZ:
-        //   history.replace(PAGES.HOME);
-        break;
+      // case HOMEHEADERLIST.SEARCH:
+      //   history.replace(PAGES.SEARCH);
+      //   break;
+      // case HOMEHEADERLIST.ASSIGNMENT:
+      //   history.replace(PAGES.ASSIGNMENT);
+      //   break;
+      // case HOMEHEADERLIST.QUIZ:
+      //   history.replace(PAGES.HOME);
+      // break;
       default:
         break;
     }
@@ -795,6 +796,7 @@ const Home: FC = () => {
             {currentHeader === HOMEHEADERLIST.ASSIGNMENT && <AssignmentPage />}
 
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
+            {currentHeader === HOMEHEADERLIST.QUIZ && <LiveQuiz />}
 
             {value === SUBTAB.SUGGESTIONS &&
               currentHeader === HOMEHEADERLIST.SUGGESTIONS ? (
