@@ -14,6 +14,8 @@ type LiveQuizOption = {
 };
 
 type LiveQuizQuestion = {
+  id: string;
+} & {
   [K in OptionOrQuestionType]?: string;
 };
 
@@ -29,11 +31,11 @@ enum LiveQuizType {
 }
 
 export default class LiveQuiz extends BaseObject {
-  private _data: LiveQuizData;
+  private _data: LiveQuizData[];
   private _type: LiveQuizType;
 
   constructor(
-    data: LiveQuizData,
+    data: LiveQuizData[],
     type: LiveQuizType,
     updatedAt: Timestamp,
     createdAt: Timestamp,
@@ -44,11 +46,11 @@ export default class LiveQuiz extends BaseObject {
     this._type = type;
   }
 
-  public get data(): LiveQuizData {
+  public get data(): LiveQuizData[] {
     return this._data;
   }
 
-  public set data(value: LiveQuizData) {
+  public set data(value: LiveQuizData[]) {
     this._data = value;
   }
 
