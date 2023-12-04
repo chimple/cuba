@@ -1523,7 +1523,10 @@ export class FirebaseApi implements ServiceApi {
     return querySnapshot;
   }
   //getting lessons for quiz
-  public async getLiveQuizLessons(classId: string): Promise<Assignment[] | []> {
+  public async getLiveQuizLessons(
+    classId: string,
+    studentId: string
+  ): Promise<Assignment[] | []> {
     try {
       const now = new Date();
       const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
@@ -1538,21 +1541,40 @@ export class FirebaseApi implements ServiceApi {
       console.log("query result:", q);
 
       const liveQuizLessons: Assignment[] = [];
-      const LiveQuizDocs = await getDocs(q);
-      console.log("live quiz count", LiveQuizDocs.size);
+      const liveQuizDocs = await getDocs(q);
+      console.log("live quiz count", liveQuizDocs.size);
 
-      if (LiveQuizDocs.size > 0) {
-        for (const LiveQuizDoc of LiveQuizDocs.docs) {
-          const endsAt = LiveQuizDoc.get("endsAt");
+      if (liveQuizDocs.size > 0) {
+        liveQuizDocs.docs.forEach((_assignment) => {
+          const endsAt = _assignment.get("endsAt");
           const endsAtDate = endsAt.toDate();
           if (endsAtDate > now) {
-            const assignment = LiveQuizDoc.data() as Assignment;
-            assignment.docId = LiveQuizDoc.id;
-            liveQuizLessons.push(assignment);
-          } else {
-            console.log("Live Quiz has ended. Skipping.");
+            const assignment = _assignment.data() as Assignment;
+            assignment.docId = _assignment.id;
+            const liveQuiz = _assignment.data() as Assignment;
+            liveQuiz.docId = _assignment.id;
+            const doneLiveQuiz = liveQuiz.completedStudents?.find(
+              (data) => data === studentId
+            );
+            let tempLiveQuizCompletedIds = localStorage.getItem(
+              ASSIGNMENT_COMPLETED_IDS
+            );
+            let liveQuizcompletedIds = JSON.parse(
+              tempLiveQuizCompletedIds ?? "{}"
+            );
+            console.log("liveQuizcompletedIds:", liveQuizcompletedIds);
+
+            const doneliveQuizLocally = liveQuizcompletedIds[studentId]?.find(
+              (assignmentId) => assignmentId === liveQuiz.docId
+            );
+            console.log("doneliveQuizLocally:", doneliveQuizLocally);
+
+            if (!doneLiveQuiz && !doneliveQuizLocally)
+              liveQuizLessons.push(liveQuiz);
           }
-        }
+        });
+      } else {
+        console.log("Live Quiz has ended. Skipping.");
       }
       console.log("Live quiz lessons", liveQuizLessons);
       return liveQuizLessons;
