@@ -21,7 +21,7 @@
   z-index: 1;
 }
 
-.avatar-shadow {
+#rive-avatar-shadow {
   content: "";
   position: absolute;
   bottom: 0;

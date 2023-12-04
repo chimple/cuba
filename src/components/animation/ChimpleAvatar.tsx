@@ -142,13 +142,13 @@ const ChimpleAvatar: FC<{
     setButtonsDisabled(false);
     // if currentStageMode is AvatarModes.LessonSuggestion then skiping the avatar animation playing
 
-    if (currentStageMode === AvatarModes.LessonSuggestion) {
-      console.log(
-        "currentStageMode is AvatarModes.LessonSuggestion onClickYes"
-      );
+    // if (currentStageMode === AvatarModes.LessonSuggestion) {
+    //   console.log(
+    //     "currentStageMode is AvatarModes.LessonSuggestion onClickYes"
+    //   );
 
-      return;
-    }
+    //   return;
+    // }
     rive?.play(avatarObj.yesAnimation);
     await new Promise((resolve) => setTimeout(resolve, 1000));
     if (rive) {
@@ -176,7 +176,7 @@ const ChimpleAvatar: FC<{
   };
 
   const onClickRiveComponent = async () => {
-    await avatarObj.loadAvatarDataOnIndex();
+    await avatarObj.loadAvatarNextSuggestion();
     if (rive) {
       playAndStopAnimation();
     } else {
@@ -576,7 +576,7 @@ const ChimpleAvatar: FC<{
             className="rive-component"
             onClick={onClickRiveComponent}
           />
-          <div className="avatar-shadow" />
+          <div id="rive-avatar-shadow" />
         </div>
       </div>
       <div
