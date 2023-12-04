@@ -150,7 +150,13 @@ p {
 #custom-loading {
   --background: #e3edff;
   --spinner-color: white;
-  color: white;
+   color: white;
+}
+#custom-loading-for-avatar{
+  --background: #e3edff;
+  --spinner-color: #ff5500;
+    color: white;
+    padding-right: 50vw;
 }
 
 .login-error-message {
