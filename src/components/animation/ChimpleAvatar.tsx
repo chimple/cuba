@@ -172,7 +172,6 @@ const ChimpleAvatar: FC<{
       console.log("audio testing", isAudioPlaying, isTtsPlaying);
       i++;
     }
-    rive?.stop(avatarObj.yesAnimation);
   };
 
   const onClickRiveComponent = async () => {
