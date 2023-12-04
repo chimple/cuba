@@ -162,7 +162,7 @@ const ChimpleAvatar: FC<{
     onclickInput?.fire();
   }
 
-  const playAndStopAnimation = async () => {
+  const speakAnimationUntilaudio = async () => {
     const animation = avatarObj.yesAnimation;
     const animationDuration = 100;
     let i = 0;
@@ -178,7 +178,7 @@ const ChimpleAvatar: FC<{
   const onClickRiveComponent = async () => {
     await avatarObj.loadAvatarNextSuggestion();
     if (rive) {
-      playAndStopAnimation();
+      speakAnimationUntilaudio();
     } else {
       console.log("Rive component not fully initialized yet");
     }
