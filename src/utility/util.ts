@@ -1,5 +1,5 @@
 import { Capacitor, CapacitorHttp, registerPlugin } from "@capacitor/core";
-import { Directory, Filesystem } from "@capacitor/filesystem";
+import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
@@ -63,6 +63,7 @@ import {
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { Router } from "react-router-dom";
 import lesson from "../models/lesson";
+import { AvatarObj } from "../components/animation/Avatar";
 
 declare global {
   interface Window {
@@ -658,12 +659,12 @@ export class Util {
       }
     }
   };
-  
-  public static setPathToBackButton(path:string, history:any ){
+
+  public static setPathToBackButton(path: string, history: any) {
     const url = new URLSearchParams(window.location.search);
-    if(url.get(CONTINUE)){
+    if (url.get(CONTINUE)) {
       history.replace(`${path}?${CONTINUE}=true`);
-    }else{
+    } else {
       history.replace(path);
     }
   }
@@ -1021,6 +1022,70 @@ export class Util {
     } catch (error) {
       console.log("🚀 ~ file: util.ts:707 ~ migrate ~ error:", error);
       return { migrated: false };
+    }
+  }
+
+  public static async migrateLocalJsonFile(
+    newFileURL: string,
+    oldFilePath: string,
+    newFilePathLocation: string,
+    localStorageNameForFilePath: string
+  ) {
+    try {
+      console.log("Migrate existing Json File ");
+      // if (!Capacitor.isNativePlatform()) {
+      //   console.log("Not a native platform. JSON migration skipped.");
+      //   return;
+      // }
+
+      if (!newFileURL) {
+        console.log("new avatar newFileURL is undefined ", newFileURL);
+
+        return;
+      }
+
+      let newFileResponse = await fetch(newFileURL);
+
+      let newFileJson = await newFileResponse.json();
+      console.log("newAvatarSuggesstionJson ", newFileJson);
+
+      let oldFileResponse = await fetch(oldFilePath);
+
+      let oldFileJson = await oldFileResponse.json();
+
+      console.log("newAvatarSuggesstionJson.data", oldFileJson);
+      console.log(
+        "oldFileJson.version >= newFileJson.version",
+        oldFileJson.version,
+        newFileJson.version,
+        oldFileJson.version >= newFileJson.version
+      );
+
+      if (oldFileJson.version >= newFileJson.version) {
+        console.log("No need to migrate. Current version is up to date.");
+        return;
+      }
+
+      let res = await Filesystem.writeFile({
+        path: newFilePathLocation,
+        directory: Directory.Data,
+        data: JSON.stringify(newFileJson),
+        encoding: Encoding.UTF8,
+        recursive: true,
+      });
+      console.log(
+        "const res = await Filesystem.writeFile({ slice",
+        res.uri //.slice(1, res.uri.length)
+      );
+      localStorage.setItem(
+        localStorageNameForFilePath,
+        res.uri
+        // res.uri.slice(1, res.uri.length)
+      );
+    } catch (error) {
+      console.error("Json File Migration failed ", error);
+
+      throw error;
     }
   }
 }

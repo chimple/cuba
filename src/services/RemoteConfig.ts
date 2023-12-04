@@ -1,7 +1,7 @@
 import { FirebaseRemoteConfig } from "@capacitor-firebase/remote-config";
 
 export class RemoteConfig {
-  private constructor() { }
+  private constructor() {}
   public static async getString(key: REMOTE_CONFIG_KEYS): Promise<string> {
     try {
       const { value } = await FirebaseRemoteConfig.getString({
@@ -68,6 +68,7 @@ export class RemoteConfig {
 export enum REMOTE_CONFIG_KEYS {
   CAN_HOT_UPDATE = "can_hot_update",
   BUNDLE_ZIP_URLS = "bundle_zip_urls",
+  CAN_UPDATED_AVATAR_SUGGESTION_URL = "can_updated_avatar_suggestion_url",
   // TERMS_AND_CONDITIONS_URL = "termsAndConditionsUrl",
 }
 

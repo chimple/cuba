@@ -1,3 +1,4 @@
+import { Filesystem } from "@capacitor/filesystem";
 import { CURRENT_AVATAR_SUGGESTION_NO } from "../../common/constants";
 import { Chapter } from "../../common/courseConstants";
 import Course from "../../models/course";
@@ -179,13 +180,41 @@ export class AvatarObj {
         if (!this._currentSuggestionNumber) {
           this._currentSuggestionNumber = 0;
         }
+        const path = "assets/animation/avatarSugguestions.json";
+        // localStorage.getItem("avatarSuggestionJsonLocation") ||
+        // "assets/animation/avatarSugguestions.json";
 
-        let response = await fetch("assets/animation/avatarSugguestions.json");
+        // let response = await fetch(path);
+        let response;
+        // try {
+        //   response = await Filesystem.readFile({
+        //     path: path,
+        //   });
+        //   let suggesstionJson = await response.data;
+        //   console.log("Avatar Sugguestion Json ", suggesstionJson);
 
+        //   console.log(
+        //     "Avatar suggesstionJson.data ",
+        //     suggesstionJson,
+        //     JSON.parse(suggesstionJson).data
+        //   );
+
+        //   this._allSuggestions = JSON.parse(suggesstionJson).data;
+        // } catch (error) {
+        //   console.log("await Filesystem.readFile({ failed");
+
+        response = await fetch(path);
         let suggesstionJson = await response.json();
         console.log("Avatar Sugguestion Json ", suggesstionJson);
 
+        console.log(
+          "Avatar suggesstionJson.data ",
+          suggesstionJson,
+          suggesstionJson.data
+        );
+
         this._allSuggestions = suggesstionJson.data;
+        // }
       }
 
       const currentAvatarSuggestionNoFromLocal = this.getCurrentSuggestionNo();

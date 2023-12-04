@@ -58,6 +58,8 @@ import TermsAndConditions from "./pages/TermsAndConditions";
 import DisplayChapters from "./pages/DisplayChapters";
 import LiveQuizRoom from "./pages/LiveQuizRoom";
 import LiveQuiz from "./pages/LiveQuiz";
+import { AvatarObj } from "./components/animation/Avatar";
+import { REMOTE_CONFIG_KEYS, RemoteConfig } from "./services/RemoteConfig";
 
 setupIonicReact();
 
@@ -106,9 +108,31 @@ const App: React.FC = () => {
     //Listen to network change
     Util.listenToNetwork();
 
-    //Initialize firebase remote config
-    FirebaseRemoteConfig.fetchAndActivate();
+    updateAvatarSuggestionJson();
   }, []);
+
+  async function updateAvatarSuggestionJson() {
+    // Update Avatar Suggestion local Json
+    try {
+      //Initialize firebase remote config
+      await FirebaseRemoteConfig.fetchAndActivate();
+
+      const CAN_UPDATE_AVATAR_SUGGESTION_JSON = await RemoteConfig.getString(
+        REMOTE_CONFIG_KEYS.CAN_UPDATED_AVATAR_SUGGESTION_URL
+      );
+
+      Util.migrateLocalJsonFile(
+        // "assets/animation/avatarSugguestions.json",
+        CAN_UPDATE_AVATAR_SUGGESTION_JSON,
+        "assets/animation/avatarSugguestions.json",
+        "assets/avatarSugguestions.json",
+        "avatarSuggestionJsonLocation"
+      );
+      // localStorage.setItem(AvatarObj._i.suggestionConstant(), "0");
+    } catch (error) {
+      console.error("Util.migrateLocalJsonFile failed ", error);
+    }
+  }
 
   return (
     <IonApp>
