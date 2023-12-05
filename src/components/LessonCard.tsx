@@ -158,7 +158,10 @@ const LessonCard: React.FC<{
               lesson: JSON.stringify(Lesson.toJson(lesson)),
               from: history.location.pathname + `?${CONTINUE}=true`,
             });
-          } else {
+          } else if (
+            !!lesson?.assignment?.docId &&
+            lesson.pluginType === LIVE_QUIZ
+          ) {
             history.replace(
               PAGES.LIVE_QUIZ_JOIN +
                 `?assignmentId=${lesson?.assignment?.docId}`,
