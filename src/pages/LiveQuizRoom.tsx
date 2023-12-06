@@ -6,6 +6,7 @@ import User from "../models/user";
 import { useHistory } from "react-router";
 import Assignment from "../models/assignment";
 import StudentAvatar from "../components/common/StudentAvatar";
+import { PAGES } from "../common/constants";
 
 const LiveQuizRoom: React.FC = () => {
   const [students, setStudents] = useState(new Map<String, User>());
@@ -119,8 +120,9 @@ const LiveQuizRoom: React.FC = () => {
     setIsJoining(true);
     const res = await api.joinLiveQuiz(studentId, assignmentId);
     console.log("🚀 ~ file: LiveQuizRoom.tsx:108 ~ joinQuiz ~ res:", res);
+    history.replace(PAGES.LIVE_QUIZ_GAME + "?liveRoomId=" + res);
     setIsJoining(false);
-    //push to live quiz
+    return;
   };
 
   return (
