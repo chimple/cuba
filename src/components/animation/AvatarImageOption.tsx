@@ -202,8 +202,8 @@ const AvatarImageOption: React.FC<{
             webImageWidth={
               currentMode === AvatarModes.FourOptionQuestion ||
               currentMode === AvatarModes.TwoOptionQuestion
-                ? "50%"
-                : "100%"
+                ? "16vw"
+                : "15vw"
             }
             webImageHeight="100%"
           />
