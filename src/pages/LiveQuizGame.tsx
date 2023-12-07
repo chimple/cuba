@@ -7,6 +7,8 @@ import { PAGES } from "../common/constants";
 import "./LiveQuizGame.css";
 import LiveQuizCountdownTimer from "../components/liveQuiz/LiveQuizCountdownTimer";
 import LiveQizHeader from "../components/liveQuiz/liveQuizHeader";
+import LiveQuizQuestion from "../components/liveQuiz/LiveQuizQuestion";
+import LiveQuiz from "../models/liveQuiz";
 
 const LiveQuizGame: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -15,6 +17,7 @@ const LiveQuizGame: FC = () => {
   const paramLiveRoomId = urlSearchParams.get("liveRoomId");
   const [roomDoc, setRoomDoc] = useState<LiveQuizRoomObject>();
   const [isTimeOut, setIsTimeOut] = useState(false);
+  const [liveQuizConfig, setLiveQuizConfig] = useState<LiveQuiz>();
 
   useEffect(() => {
     if (!paramLiveRoomId) {
@@ -47,7 +50,22 @@ const LiveQuizGame: FC = () => {
               }}
             />
           )}
-          {isTimeOut && <p>Show Quiz</p>}
+          {isTimeOut && roomDoc && (
+            <LiveQuizQuestion
+              roomDoc={roomDoc}
+              onNewQuestionChange={(newQuestionIndex) => {
+                console.log(
+                  "🚀 ~ file: LiveQuizGame.tsx:54 ~ newQuestionIndex:",
+                  newQuestionIndex,
+                  liveQuizConfig?.data[newQuestionIndex]
+                );
+              }}
+              onConfigLoaded={setLiveQuizConfig}
+              onQuizEnd={() => {
+                console.log("🚀 ~ file: LiveQuizGame.tsx:65 ~ onQuizEnd:");
+              }}
+            />
+          )}
         </div>
       </div>
     </IonPage>

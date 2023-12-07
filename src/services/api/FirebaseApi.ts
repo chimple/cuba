@@ -1664,4 +1664,27 @@ export class FirebaseApi implements ServiceApi {
       );
     }
   }
+
+  public async updateLiveQuizScore(
+    roomDocId: string,
+    studentId: string,
+    questionId: string,
+    timeSpent: number,
+    score: number
+  ) {
+    try {
+      await updateDoc(doc(this._db, CollectionIds.LIVE_QUIZ_ROOM, roomDocId), {
+        [`results.${studentId}`]: arrayUnion({
+          score: score,
+          timeSpent: timeSpent,
+          id: questionId,
+        }),
+      });
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:1571 ~ FirebaseApi ~ error:",
+        error
+      );
+    }
+  }
 }

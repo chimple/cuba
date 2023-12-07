@@ -1,32 +1,34 @@
 import { Timestamp } from "firebase/firestore";
 import BaseObject from "./baseObject";
 
-enum OptionOrQuestionType {
+export const LIVE_QUIZ_QUESTION_TIME = 30;
+
+export enum OptionOrQuestionType {
   AUDIO = "audio",
   IMAGE = "image",
   TEXT = "text",
 }
 
-type LiveQuizOption = {
+export type LiveQuizOption = {
   isCorrect?: boolean;
 } & {
   [K in OptionOrQuestionType]?: string;
 };
 
-type LiveQuizQuestion = {
+export type LiveQuizQuestion = {
   id: string;
 } & {
   [K in OptionOrQuestionType]?: string;
 };
 
-type LiveQuizData = {
+export type LiveQuizData = {
   options: LiveQuizOption[];
   optionsType: string;
   question: LiveQuizQuestion;
   questionType: string;
 };
 
-enum LiveQuizType {
+export enum LiveQuizType {
   MULTI_OPTIONS = "multiOptions",
 }
 
