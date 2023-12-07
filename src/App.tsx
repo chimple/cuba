@@ -60,6 +60,7 @@ import LiveQuizRoom from "./pages/LiveQuizRoom";
 import LiveQuiz from "./pages/LiveQuiz";
 import { AvatarObj } from "./components/animation/Avatar";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "./services/RemoteConfig";
+import LiveQuizGame from "./pages/LiveQuizGame";
 
 setupIonicReact();
 
@@ -196,12 +197,15 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
               <SelectMode />
             </ProtectedRoute>
-            <Route path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
+            <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
               <LiveQuizRoom />
-            </Route>
-            <Route path={PAGES.TERMS_AND_CONDITIONS} exact={true}>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.LIVE_QUIZ_GAME} exact={true}>
+              <LiveQuizGame />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.TERMS_AND_CONDITIONS} exact={true}>
               <TermsAndConditions />
-            </Route>
+            </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
       </IonReactRouter>

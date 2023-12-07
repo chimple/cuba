@@ -265,7 +265,7 @@ export class Util {
           (localStorage.getItem("gameUrl") ??
             "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
           lessonId +
-          "/index.js";
+          "/config.json";
         console.log("cheching path..", "path", path);
         const res = await fetch(path);
         const isExists = res.ok;
@@ -277,17 +277,17 @@ export class Util {
           "before local lesson Bundle http url:" +
             "assets/" +
             lessonId +
-            "/index.js"
+            "/config.json"
         );
 
         const fetchingLocalBundle = await fetch(
-          "assets/" + lessonId + "/index.js"
+          "assets/" + lessonId + "/config.json"
         );
         console.log(
           "after local lesson Bundle fetch url:" +
             "assets/" +
             lessonId +
-            "/index.js",
+            "/config.json",
           fetchingLocalBundle.ok,
           fetchingLocalBundle.json,
           fetchingLocalBundle
