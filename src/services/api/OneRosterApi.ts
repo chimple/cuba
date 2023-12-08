@@ -63,6 +63,7 @@ export class OneRosterApi implements ServiceApi {
   updateLiveQuiz(
     roomDocId: string,
     studentId: string,
+    questionId: string,
     score: number,
     timeSpent: number
   ): Promise<void> {

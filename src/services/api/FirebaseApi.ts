@@ -1604,7 +1604,9 @@ export class FirebaseApi implements ServiceApi {
       doc(this._db, CollectionIds.LIVE_QUIZ_ROOM, liveQuizRoomDocId),
       (doc) => {
         console.log("Current data: ", doc.data());
-        onDataChange(doc.data() as LiveQuizRoomObject);
+        const roomDoc = doc.data() as LiveQuizRoomObject;
+        roomDoc.docId = doc.id;
+        onDataChange(roomDoc);
       }
     );
     return unSub;
@@ -1612,14 +1614,16 @@ export class FirebaseApi implements ServiceApi {
   public async updateLiveQuiz(
     roomDocId: string,
     studentId: string,
-    score: number,
-    timeSpent: number
+    questionId: string,
+    timeSpent: number,
+    score: number
   ): Promise<void> {
     try {
       await updateDoc(doc(this._db, CollectionIds.LIVE_QUIZ_ROOM, roomDocId), {
         [`results.${studentId}`]: arrayUnion({
-          score,
-          timeSpent,
+          score: score,
+          timeSpent: timeSpent,
+          id: questionId,
         }),
       });
     } catch (error) {
@@ -1660,29 +1664,6 @@ export class FirebaseApi implements ServiceApi {
     } catch (error) {
       console.log(
         "🚀 ~ file: FirebaseApi.ts:1600 ~ FirebaseApi ~ getAssignmentById ~ error:",
-        error
-      );
-    }
-  }
-
-  public async updateLiveQuizScore(
-    roomDocId: string,
-    studentId: string,
-    questionId: string,
-    timeSpent: number,
-    score: number
-  ) {
-    try {
-      await updateDoc(doc(this._db, CollectionIds.LIVE_QUIZ_ROOM, roomDocId), {
-        [`results.${studentId}`]: arrayUnion({
-          score: score,
-          timeSpent: timeSpent,
-          id: questionId,
-        }),
-      });
-    } catch (error) {
-      console.log(
-        "🚀 ~ file: FirebaseApi.ts:1571 ~ FirebaseApi ~ error:",
         error
       );
     }

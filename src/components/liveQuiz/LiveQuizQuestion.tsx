@@ -1,11 +1,12 @@
 import { FC, useEffect, useState } from "react";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
-import LiveQuiz, {
-  LIVE_QUIZ_QUESTION_TIME,
-  LiveQuizData,
-} from "../../models/liveQuiz";
+import LiveQuiz, { LIVE_QUIZ_QUESTION_TIME } from "../../models/liveQuiz";
 import "./LiveQuizQuestion.css";
 import { Capacitor } from "@capacitor/core";
+import { Util } from "../../utility/util";
+import { PAGES } from "../../common/constants";
+import { useHistory } from "react-router";
+import { ServiceConfig } from "../../services/ServiceConfig";
 
 let questionInterval;
 const LiveQuizQuestion: FC<{
@@ -22,14 +23,26 @@ const LiveQuizQuestion: FC<{
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();
   const [remainingTime, setRemainingTime] = useState(LIVE_QUIZ_QUESTION_TIME);
   const [canAnswer, setCanAnswer] = useState(true);
+  const history = useHistory();
+  const student = Util.getCurrentStudent();
 
   useEffect(() => {
     if (!roomDoc) return;
+    if (!student) {
+      history.replace(PAGES.HOME);
+      return;
+    }
+
     getConfigJson();
   }, []);
   useEffect(() => {
     onQuestionChange();
   }, [currentQuestionIndex]);
+
+  useEffect(() => {
+    handleRoomChange();
+  }, [roomDoc]);
+
   const getConfigJson = async () => {
     if (liveQuizConfig) return liveQuizConfig;
     if (!Capacitor.isNativePlatform()) {
@@ -174,6 +187,30 @@ const LiveQuizQuestion: FC<{
     return configFile;
   };
 
+  const handleRoomChange = () => {
+    if (!roomDoc || currentQuestionIndex === undefined) return;
+    const results = roomDoc.results;
+    if (!results) return;
+    const participantsPlayedCount = Object.values(results).reduce(
+      (accumulator, liveQuizResult) => {
+        const lastQuestionId = liveQuizResult[liveQuizResult.length - 1].id;
+        if (
+          lastQuestionId ===
+          liveQuizConfig?.data[currentQuestionIndex].question.id
+        ) {
+          return accumulator + 1;
+        }
+        return accumulator;
+      },
+      0
+    );
+    if (participantsPlayedCount === roomDoc.participants.length) {
+      clearInterval(questionInterval);
+      setTimeout(() => {
+        changeQuestion();
+      }, 1000);
+    }
+  };
   const onTimeOut = (_liveQuizConfig?: LiveQuiz) => {
     console.log("🚀 ~ file: LiveQuizQuestion.tsx:168 ~ onTimeOut ~ onTimeOut:");
     changeQuestion(_liveQuizConfig);
@@ -193,11 +230,6 @@ const LiveQuizQuestion: FC<{
       return _currentQuestionIndex == null ? 0 : _currentQuestionIndex + 1;
     });
   };
-
-  console.log(
-    "🚀 ~ file: LiveQuizQuestion.tsx:196 ~ questionInterval:",
-    questionInterval
-  );
   const onQuestionChange = () => {
     if (currentQuestionIndex == null) return;
     if (onNewQuestionChange) onNewQuestionChange(currentQuestionIndex);
@@ -253,43 +285,44 @@ const LiveQuizQuestion: FC<{
                   <div
                     key={index}
                     aria-disabled={!canAnswer}
-                    onClick={() => {
-                      console.log(
-                        "🚀 ~ file: LiveQuizQuestion.tsx:246 ~ onClick:",
-                        canAnswer
-                      );
+                    onClick={async () => {
                       if (!canAnswer) return;
-                      clearInterval(questionInterval);
-                      console.log(
-                        "🚀 ~ file: LiveQuizQuestion.tsx:252 ~ option.isCorrect:",
-                        option.isCorrect
+                      // clearInterval(questionInterval);
+                      setCanAnswer(false);
+                      const score = calculateScoreForQuestion(
+                        option.isCorrect === true,
+                        liveQuizConfig.data.length,
+                        LIVE_QUIZ_QUESTION_TIME - remainingTime
                       );
 
-                      if (option.isCorrect) {
-                        const score = calculateScoreForQuestion(
-                          true,
-                          liveQuizConfig.data.length,
-                          LIVE_QUIZ_QUESTION_TIME - remainingTime
-                        );
-                        console.log(
-                          "🚀 ~ file: LiveQuizQuestion.tsx:249 ~ score:",
-                          score
-                        );
-                      } else {
-                        const score = calculateScoreForQuestion(
-                          false,
-                          liveQuizConfig.data.length,
-                          LIVE_QUIZ_QUESTION_TIME - remainingTime
-                        );
-                        console.log(
-                          "🚀 ~ file: LiveQuizQuestion.tsx:252 ~ score:",
-                          score
-                        );
-                      }
-                      setCanAnswer(false);
-                      setTimeout(() => {
-                        changeQuestion();
-                      }, 2000);
+                      console.log(
+                        "🚀 ~ file: LiveQuizQuestion.tsx:284 ~ onClick={ ~ FirebaseApi:",
+                        roomDoc.docId,
+                        student?.docId!,
+                        liveQuizConfig.data[currentQuestionIndex].question.id,
+                        LIVE_QUIZ_QUESTION_TIME - remainingTime,
+                        score
+                      );
+                      const api = ServiceConfig.getI().apiHandler;
+                      await api.updateLiveQuiz(
+                        roomDoc.docId,
+                        student?.docId!,
+                        liveQuizConfig.data[currentQuestionIndex].question.id,
+                        LIVE_QUIZ_QUESTION_TIME - remainingTime,
+                        score
+                      );
+                      console.log(
+                        "🚀 ~ file: LiveQuizQuestion.tsx:284 ~ onClick={ ~ FirebaseApi:",
+                        roomDoc.docId,
+                        student?.docId!,
+                        liveQuizConfig.data[currentQuestionIndex].question.id,
+                        LIVE_QUIZ_QUESTION_TIME - remainingTime,
+                        score
+                      );
+
+                      // setTimeout(() => {
+                      //   changeQuestion();
+                      // }, 2000);
                     }}
                     className="live-quiz-option-box"
                   >

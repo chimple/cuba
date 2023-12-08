@@ -14,7 +14,7 @@ interface LiveQuizRoomSchema {
 interface LiveQuizResult {
   score: number;
   timeSpent: number;
-  questionId: string;
+  id: string;
 }
 
 interface LiveQuizResults {
