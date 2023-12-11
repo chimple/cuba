@@ -6,6 +6,7 @@ import { Chapter, StudentLessonResult } from "../common/courseConstants";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
+  CHAPTER_LESSON_MAP,
   CONTINUE,
   CURRENT_CLASS,
   CURRENT_MODE,
@@ -279,15 +280,37 @@ const DisplayChapters: FC<{}> = () => {
 
   const getLessonsForChapter = async (chapter: Chapter): Promise<Lesson[]> => {
     setIsLoading(true);
+
     if (!chapter) {
       setIsLoading(false);
       return [];
     }
-    const lessons = await api.getLessonsForChapter(chapter);
-    localData.lessons = lessons;
-    setLessons(lessons);
-    setIsLoading(false);
-    return lessons;
+
+    try {
+      const lessons = await api.getLessonsForChapter(chapter);
+      // Retrieve existing data from local storage
+      const storedChapterLessonMap = localStorage.getItem(CHAPTER_LESSON_MAP);
+      const storedChapterLessonId = storedChapterLessonMap
+        ? JSON.parse(storedChapterLessonMap)
+        : {};
+      storedChapterLessonId[chapter.id] = lessons.map((lesson) => lesson.id);
+
+      // Store the updated map in local storage
+      localStorage.setItem(
+        CHAPTER_LESSON_MAP,
+        JSON.stringify(storedChapterLessonId)
+      );
+
+      localData.lessons = lessons;
+      setLessons(lessons);
+      setIsLoading(false);
+      return lessons;
+    } catch (error) {
+      // Handle errors
+      console.error("Error fetching lessons:", error);
+      setIsLoading(false);
+      return [];
+    }
   };
 
   const onBackButton = () => {

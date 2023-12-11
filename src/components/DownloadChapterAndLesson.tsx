@@ -18,15 +18,16 @@ const DownloadLesson: React.FC<{
   chapters?: any;
   lessonData?: any;
 }> = ({ lessonID, chapters, lessonData }) => {
-  console.log("chaptersss", lessonData);
   const [showIcon, setShowIcon] = useState(true);
   const [showDialogBox, setShowDialogBox] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
   const [loading, setLoading] = useState(false);
+  const [storedLessonID, setStoredLessonID] = useState<string[]>([]);
   const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
     setOnline(navigator.onLine);
+
     function handleOnlineEvent() {
       setOnline(true);
     }
@@ -38,27 +39,18 @@ const DownloadLesson: React.FC<{
     window.addEventListener("online", handleOnlineEvent);
     window.addEventListener("offline", handleOfflineEvent);
 
-    if (isStored(lessonID, DOWNLOADED_LESSON_AND_CHAPTER_ID)) {
+    const storedLessonAndChapterIds = Util.getStoredLessonAndChapterIds();
+
+    if (lessonID && storedLessonAndChapterIds.lesson.includes(lessonID)) {
       setShowIcon(false);
     }
 
-    if (chapters && isStored(chapters.id, DOWNLOADED_LESSON_AND_CHAPTER_ID)) {
+    if (chapters && storedLessonAndChapterIds.chapter.includes(chapters.id)) {
       setShowIcon(false);
     }
   }, []);
 
-  const isStored = (
-    id: string,
-    lessonAndChapterIdStorageKey: string
-  ): boolean => {
-    const storedItems = JSON.parse(
-      localStorage.getItem(lessonAndChapterIdStorageKey) ||
-        JSON.stringify({ lesson: [], chapter: [] })
-    );
-
-    return storedItems.lesson.includes(id) || storedItems.chapter.includes(id);
-  };
-
+  Util.checkDownloadedLessonsFromLocal();
   async function init() {
     const lesson = Util.updateChapterOrLessonDownloadStatus(lessonData);
     if (!lesson) {
@@ -86,21 +78,16 @@ const DownloadLesson: React.FC<{
     const storeLessonID: string[] = [];
 
     if (chapters) {
-      if (!isStored(chapters.id, DOWNLOADED_LESSON_AND_CHAPTER_ID)) {
+      if (!storedLessonID.includes(chapters.id)) {
+        setStoredLessonID((prevIds) => [...prevIds, chapters.id]);
         const lessons: Lesson[] = await api.getLessonsForChapter(chapters);
 
         for (const e of lessons) {
-          if (!isStored(e.id, DOWNLOADED_LESSON_AND_CHAPTER_ID)) {
+          if (!storedLessonID.includes(e.id)) {
             storeLessonID.push(e.id);
-            await Util.downloadZipBundle([e.id]);
           }
         }
-
-        Util.storeLessonOrChaterIdToLocalStorage(
-          storeLessonID,
-          DOWNLOADED_LESSON_AND_CHAPTER_ID,
-          "lesson"
-        );
+        await Util.downloadZipBundle(storeLessonID);
         Util.storeLessonOrChaterIdToLocalStorage(
           chapters.id,
           DOWNLOADED_LESSON_AND_CHAPTER_ID,
@@ -108,13 +95,8 @@ const DownloadLesson: React.FC<{
         );
       }
     } else {
-      if (!isStored(lessonID, DOWNLOADED_LESSON_AND_CHAPTER_ID)) {
+      if (!storedLessonID.includes(lessonID)) {
         await Util.downloadZipBundle([lessonID]);
-        Util.storeLessonOrChaterIdToLocalStorage(
-          lessonID,
-          DOWNLOADED_LESSON_AND_CHAPTER_ID,
-          "lesson"
-        );
       }
     }
     setShowIcon(false);
@@ -129,26 +111,19 @@ const DownloadLesson: React.FC<{
       const storeLessonID: string[] = [];
       lessons.forEach(async (e) => {
         storeLessonID.push(e.id);
-        await Util.deleteDownloadedLesson(e.id);
-        if (!isStored(e.id, DOWNLOADED_LESSON_AND_CHAPTER_ID)) {
+        if (!storedLessonID.includes(e.id)) {
           setShowIcon(true);
         }
       });
+
+      await Util.deleteDownloadedLesson(storeLessonID);
       Util.removeLessonOrChapterIdFromLocalStorage(
         chapters.id,
         DOWNLOADED_LESSON_AND_CHAPTER_ID
       );
-      Util.removeLessonOrChapterIdFromLocalStorage(
-        storeLessonID,
-        DOWNLOADED_LESSON_AND_CHAPTER_ID
-      );
     } else if (lessonID) {
-      await Util.deleteDownloadedLesson(lessonID);
-      Util.removeLessonOrChapterIdFromLocalStorage(
-        lessonID,
-        DOWNLOADED_LESSON_AND_CHAPTER_ID
-      );
-      if (!isStored(lessonID, DOWNLOADED_LESSON_AND_CHAPTER_ID)) {
+      await Util.deleteDownloadedLesson([lessonID]);
+      if (!storedLessonID.includes(lessonID)) {
         setShowIcon(true);
       }
     }

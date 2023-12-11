@@ -25,6 +25,7 @@ import {
   CONTINUE,
   DOWNLOADED_LESSON_AND_CHAPTER_ID,
   LAST_FUNCTION_CALL,
+  CHAPTER_LESSON_MAP,
   // APP_LANG,
 } from "../common/constants";
 import {
@@ -281,7 +282,14 @@ export class Util {
       JSON.stringify(updatedItems)
     );
   };
+  public static getStoredLessonAndChapterIds = () => {
+    const storedItems = JSON.parse(
+      localStorage.getItem(DOWNLOADED_LESSON_AND_CHAPTER_ID) ||
+        JSON.stringify({ lesson: [], chapter: [] })
+    );
 
+    return storedItems;
+  };
   public static isStored = (
     id: string,
     lessonAndChapterIdStorageKey: string
@@ -403,6 +411,12 @@ export class Util {
               "🚀 ~ file: util.ts:219 ~ downloadZipBundle ~ zip:",
               zip.status
             );
+            this.storeLessonOrChaterIdToLocalStorage(
+              lessonId,
+              DOWNLOADED_LESSON_AND_CHAPTER_ID,
+              "lesson"
+            );
+
             if (!!zip && !!zip.data && zip.status === 200) break;
           } catch (error) {
             console.log(
@@ -454,17 +468,24 @@ export class Util {
     return true;
   }
   public static async deleteDownloadedLesson(
-    lessonId: string
+    lessonIds: string[]
   ): Promise<boolean> {
     try {
-      if (!Capacitor.isNativePlatform()) return true;
-      await Filesystem.rmdir({
-        path: `${lessonId}`,
-        directory: Directory.External,
-        recursive: true,
-      });
+      for (const lessonId of lessonIds) {
+        const lessonPath = `${lessonId}`;
+        await Filesystem.rmdir({
+          path: lessonPath,
+          directory: Directory.External,
+          recursive: true,
+        });
+        console.log("Lesson deleted successfully:", lessonId);
+        this.removeLessonOrChapterIdFromLocalStorage(
+          lessonId,
+          DOWNLOADED_LESSON_AND_CHAPTER_ID
+        );
+      }
     } catch (error) {
-      console.log("Error deleting lesson:", error);
+      console.error("Error deleting lesson:", error);
     }
     return false;
   }
@@ -476,9 +497,10 @@ export class Util {
       ? parseInt(storedLastRendered)
       : new Date().getTime();
 
-    const currentTime = new Date().getTime();
-
-    if (!storedLastRendered || currentTime - lastRendered > 60 * 60 * 1000) {
+    if (
+      !storedLastRendered ||
+      new Date().getTime() - lastRendered > 60 * 60 * 1000
+    ) {
       try {
         if (!Capacitor.isNativePlatform()) return null;
 
@@ -494,20 +516,56 @@ export class Util {
           folderNamesArray.push(contents.files[i].name);
         }
 
-        localStorage.removeItem(DOWNLOADED_LESSON_AND_CHAPTER_ID);
+        const storedLessonAndChapterIdMap = JSON.parse(
+          localStorage.getItem(CHAPTER_LESSON_MAP) ?? "null"
+        );
+        const downloadedLessonAndChapterId = JSON.parse(
+          localStorage.getItem(DOWNLOADED_LESSON_AND_CHAPTER_ID) ?? "null"
+        );
+
+        const downloadedChapterId = downloadedLessonAndChapterId.chapter || [];
+
+        for (const chapter of downloadedChapterId) {
+          const lessonIds = storedLessonAndChapterIdMap[chapter] || [];
+          if (!lessonIds) {
+            const api = ServiceConfig.getI().apiHandler;
+            const lessons = await api.getLessonsForChapter(chapter);
+            const storedDataString = localStorage.getItem(CHAPTER_LESSON_MAP);
+            const storedData = storedDataString
+              ? JSON.parse(storedDataString)
+              : {};
+            storedData[chapter.id] = lessons.map((lesson) => lesson.id);
+            localStorage.setItem(
+              CHAPTER_LESSON_MAP,
+              JSON.stringify(storedData)
+            );
+          }
+          const downloadedLessonID = downloadedChapterId.lesson || [];
+          const allElementsPresent = lessonIds.every((element) =>
+            downloadedLessonID.includes(element)
+          );
+          if (!allElementsPresent) {
+            await this.removeLessonOrChapterIdFromLocalStorage(
+              chapter,
+              DOWNLOADED_LESSON_AND_CHAPTER_ID
+            );
+          }
+        }
+
+        downloadedLessonAndChapterId.lesson = [];
         this.storeLessonOrChaterIdToLocalStorage(
           folderNamesArray,
           DOWNLOADED_LESSON_AND_CHAPTER_ID,
           "lesson"
         );
 
-        lastRendered = currentTime;
+        lastRendered = new Date().getTime();
+        localStorage.setItem(LAST_FUNCTION_CALL, lastRendered.toString());
       } catch (error) {
         console.error("Error listing folders:", error);
         return null;
       }
     }
-    localStorage.setItem(LAST_FUNCTION_CALL, lastRendered.toString());
     return lastRendered;
   }
 
@@ -518,7 +576,6 @@ export class Util {
       const allIdsPresent = lessonId.every((e) =>
         this.isStored(e.id, DOWNLOADED_LESSON_AND_CHAPTER_ID)
       );
-
       if (!allIdsPresent) {
         const chaptersToRemove = lessonId.reduce((newArray, lesson) => {
           if (lesson.cocosChapterCode) {

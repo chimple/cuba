@@ -453,5 +453,6 @@ export enum SnackbarType {
   Error = "error",
 }
 export const LAST_FUNCTION_CALL = "lastFunctionCall";
+export const CHAPTER_LESSON_MAP = "chapterLessonMap";
 
 export const CURRENT_AVATAR_SUGGESTION_NO = "currentAvatarSuggestion";

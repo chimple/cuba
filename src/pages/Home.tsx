@@ -19,6 +19,7 @@ import {
   CURRENT_MODE,
   RECOMMENDATIONS,
   CONTINUE,
+  CHAPTER_LESSON_MAP,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -310,6 +311,15 @@ const Home: FC = () => {
       return [];
     }
     const lessons = await api.getLessonsForChapter(chapter);
+    const storedChapterLessonMap = localStorage.getItem(CHAPTER_LESSON_MAP);
+    const storedChapterLessonId = storedChapterLessonMap
+      ? JSON.parse(storedChapterLessonMap)
+      : {};
+    storedChapterLessonId[chapter.id] = lessons.map((lesson) => lesson.id);
+    localStorage.setItem(
+      CHAPTER_LESSON_MAP,
+      JSON.stringify(storedChapterLessonId)
+    );
     setLessons(lessons);
     setIsLoading(false);
     return lessons;
@@ -755,10 +765,6 @@ const Home: FC = () => {
   console.log("lesson slider favourite", favouriteLessons);
   console.log("lesson slider history", historyLessons);
 
-  async function checkLessonFromLocal() {
-    const dow = await Util.checkDownloadedLessonsFromLocal();
-    console.log("downloaddata", dow);
-  }
   return (
     <IonPage id="home-page">
       <IonHeader id="home-header">
