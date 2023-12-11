@@ -5,6 +5,7 @@ interface LiveQuizRoomSchema {
   assignment: DocumentReference;
   class: DocumentReference;
   lesson: DocumentReference;
+  course: DocumentReference;
   participants: string[];
   school: DocumentReference;
   startsAt: Timestamp;
@@ -25,6 +26,7 @@ export default class LiveQuizRoomObject extends BaseObject {
   private _assignment: DocumentReference;
   private _class: DocumentReference;
   private _lesson: DocumentReference;
+  private _course: DocumentReference;
   private _participants: string[];
   private _school: DocumentReference;
   private _startsAt: Timestamp;
@@ -69,6 +71,14 @@ export default class LiveQuizRoomObject extends BaseObject {
   public set lesson(value: DocumentReference) {
     this._lesson = value;
   }
+
+  public get course(): DocumentReference {
+    return this._course;
+  }
+
+  public set course(value: DocumentReference) {
+    this._course = value;
+  } 
 
   public get participants(): string[] {
     return this._participants;

@@ -35,3 +35,11 @@
     display: flex;
     justify-content: center;
 }
+
+.live-quiz-option-box-correct {
+    background-color: #00ff00;
+}
+
+.live-quiz-option-box-incorrect {
+    background-color: #ff0000;
+}

@@ -23,8 +23,12 @@ const LiveQuizQuestion: FC<{
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();
   const [remainingTime, setRemainingTime] = useState(LIVE_QUIZ_QUESTION_TIME);
   const [canAnswer, setCanAnswer] = useState(true);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [selectedAnswerIndex, setSelectedAnswerIndex] = useState<number>();
+
   const history = useHistory();
   const student = Util.getCurrentStudent();
+  const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
     if (!roomDoc) return;
@@ -168,7 +172,7 @@ const LiveQuizQuestion: FC<{
       } as LiveQuiz;
       setLiveQuizConfig(config);
       if (onConfigLoaded) onConfigLoaded(config);
-      changeQuestion(config);
+      changeQuestion(config, true);
       return config;
     }
     const response = await fetch(quizPath + "/config.json");
@@ -206,25 +210,36 @@ const LiveQuizQuestion: FC<{
     );
     if (participantsPlayedCount === roomDoc.participants.length) {
       clearInterval(questionInterval);
-      setTimeout(() => {
-        changeQuestion();
-      }, 1000);
+      // setTimeout(() => {
+      changeQuestion();
+      // }, 1000);
     }
   };
   const onTimeOut = (_liveQuizConfig?: LiveQuiz) => {
     console.log("🚀 ~ file: LiveQuizQuestion.tsx:168 ~ onTimeOut ~ onTimeOut:");
     changeQuestion(_liveQuizConfig);
   };
-  const changeQuestion = (_liveQuizConfig?: LiveQuiz) => {
+  const changeQuestion = async (
+    _liveQuizConfig?: LiveQuiz,
+    isStart: boolean = false
+  ) => {
     const tempLiveQuizConfig = _liveQuizConfig || liveQuizConfig;
     if (!tempLiveQuizConfig) return;
+    if (!isStart) {
+      setShowAnswer(true);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+
     setCurrentQuestionIndex((_currentQuestionIndex) => {
       console.log(
         "🚀 ~ file: LiveQuizQuestion.tsx:177 ~ changeQuestion ~ _currentQuestionIndex:",
         _currentQuestionIndex
       );
       if (_currentQuestionIndex === tempLiveQuizConfig.data.length - 1) {
-        if (onQuizEnd) onQuizEnd();
+        if (onQuizEnd) {
+          onQuizEnd();
+          updateResult();
+        }
         return _currentQuestionIndex;
       }
       return _currentQuestionIndex == null ? 0 : _currentQuestionIndex + 1;
@@ -234,6 +249,8 @@ const LiveQuizQuestion: FC<{
     if (currentQuestionIndex == null) return;
     if (onNewQuestionChange) onNewQuestionChange(currentQuestionIndex);
     setCanAnswer(true);
+    setShowAnswer(false);
+    setSelectedAnswerIndex(undefined);
     setRemainingTime(LIVE_QUIZ_QUESTION_TIME);
     console.log(
       "🚀 ~ file: LiveQuizQuestion.tsx:203 ~ onQuestionChange ~ questionInterval:",
@@ -268,6 +285,33 @@ const LiveQuizQuestion: FC<{
     return totalScoreForQuestion;
   }
 
+  async function updateResult() {
+    let totalScore = 0;
+    let totalTimeSpent = 0;
+    const totalQuestions = liveQuizConfig?.data.length || 0;
+    let correctMoves = 0;
+    for (let result of roomDoc.results[student!.docId]) {
+      totalScore += result.score || 0;
+      totalTimeSpent += result.timeSpent || 0;
+      if (result.score > 0) {
+        correctMoves++;
+      }
+    }
+    await api.updateResult(
+      student!,
+      roomDoc.course.id,
+      roomDoc.lesson.id,
+      totalScore,
+      correctMoves,
+      totalQuestions - correctMoves,
+      totalTimeSpent,
+      undefined,
+      roomDoc.assignment.id,
+      roomDoc.class.id,
+      roomDoc.school.id
+    );
+  }
+
   return (
     <div>
       {liveQuizConfig && currentQuestionIndex != null && (
@@ -289,6 +333,7 @@ const LiveQuizQuestion: FC<{
                       if (!canAnswer) return;
                       // clearInterval(questionInterval);
                       setCanAnswer(false);
+                      setSelectedAnswerIndex(index);
                       const score = calculateScoreForQuestion(
                         option.isCorrect === true,
                         liveQuizConfig.data.length,
@@ -303,7 +348,6 @@ const LiveQuizQuestion: FC<{
                         LIVE_QUIZ_QUESTION_TIME - remainingTime,
                         score
                       );
-                      const api = ServiceConfig.getI().apiHandler;
                       await api.updateLiveQuiz(
                         roomDoc.docId,
                         student?.docId!,
@@ -324,7 +368,16 @@ const LiveQuizQuestion: FC<{
                       //   changeQuestion();
                       // }, 2000);
                     }}
-                    className="live-quiz-option-box"
+                    className={
+                      "live-quiz-option-box " +
+                      (showAnswer
+                        ? option.isCorrect
+                          ? "live-quiz-option-box-correct"
+                          : selectedAnswerIndex === index
+                          ? "live-quiz-option-box-incorrect"
+                          : ""
+                        : "")
+                    }
                   >
                     {option.text}
                   </div>
