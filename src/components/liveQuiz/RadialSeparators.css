@@ -1,0 +1,10 @@
+.radial-separator {
+    position: absolute;
+    height: 100%;
+}
+
+.radial-separator-child {
+    background: #fff;
+    width: 2px;
+    height: 10%;
+}

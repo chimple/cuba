@@ -22,11 +22,12 @@ export enum CollectionIds {
   SUBJECT = "Subject",
   TOPIC = "Topic",
   USER = "User",
-  STUDENTPROFILE = "StudentProfile",
+  STUDENT_PROFILE = "StudentProfile",
   RESULT = "Result",
   LEADERBOARD = "Leaderboard",
-  CLASSCONNECTION = "ClassConnection",
-  SCHOOLCONNECTION = "SchoolConnection",
+  CLASS_CONNECTION = "ClassConnection",
+  SCHOOL_CONNECTION = "SchoolConnection",
+  LIVE_QUIZ_ROOM = "LiveQuizRoom",
 }
 
 export interface StudentLessonResult {

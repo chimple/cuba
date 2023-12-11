@@ -19,8 +19,9 @@ import Subject from "../../models/subject";
 import StudentProfile from "../../models/studentProfile";
 import school from "../../models/school";
 import School from "../../models/school";
-import { QueryDocumentSnapshot } from "@firebase/firestore";
+import { Unsubscribe } from "@firebase/firestore";
 import { AvatarObj } from "../../components/animation/Avatar";
+import LiveQuizRoomObject from "../../models/liveQuizRoom";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -48,6 +49,29 @@ export class OneRosterApi implements ServiceApi {
   getDifferentGradesForCourse(
     course: Course
   ): Promise<{ grades: Grade[]; courses: Course[] }> {
+    throw new Error("Method not implemented.");
+  }
+  getAssignmentById(id: string): Promise<Assignment | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  liveQuizListener(
+    liveQuizRoomDocId: string,
+    onDataChange: (user: LiveQuizRoomObject) => void
+  ): Unsubscribe {
+    throw new Error("Method not implemented.");
+  }
+  updateLiveQuiz(
+    roomDocId: string,
+    studentId: string,
+    score: number,
+    timeSpent: number
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  joinLiveQuiz(
+    studentId: string,
+    assignmentId: string
+  ): Promise<string | undefined> {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
@@ -85,7 +109,12 @@ export class OneRosterApi implements ServiceApi {
   }> {
     throw new Error("Method not implemented.");
   }
-
+  getLiveQuizLessons(
+    classId: string,
+    studentId: string
+  ): Promise<Assignment[]> {
+    throw new Error("Method not implemented.");
+  }
   getLessonFromCourse(
     course: Course,
     lessonId: string
@@ -831,7 +860,9 @@ export class OneRosterApi implements ServiceApi {
     return chapters[Math.min(index, chapters.length - 1)] ?? chapters[1];
   }
 
-  public async getCourseFromLesson(lesson: Lesson): Promise<Course | undefined> {
+  public async getCourseFromLesson(
+    lesson: Lesson
+  ): Promise<Course | undefined> {
     throw new Error("Method not implemented.");
   }
 }

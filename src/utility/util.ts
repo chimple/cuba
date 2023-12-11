@@ -1,5 +1,5 @@
 import { Capacitor, CapacitorHttp, registerPlugin } from "@capacitor/core";
-import { Directory, Filesystem } from "@capacitor/filesystem";
+import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
@@ -364,7 +364,7 @@ export class Util {
           (localStorage.getItem("gameUrl") ??
             "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
           lessonId +
-          "/index.js";
+          "/config.json";
         console.log("cheching path..", "path", path);
         const res = await fetch(path);
         const isExists = res.ok;
@@ -376,17 +376,17 @@ export class Util {
           "before local lesson Bundle http url:" +
             "assets/" +
             lessonId +
-            "/index.js"
+            "/config.json"
         );
 
         const fetchingLocalBundle = await fetch(
-          "assets/" + lessonId + "/index.js"
+          "assets/" + lessonId + "/config.json"
         );
         console.log(
           "after local lesson Bundle fetch url:" +
             "assets/" +
             lessonId +
-            "/index.js",
+            "/config.json",
           fetchingLocalBundle.ok,
           fetchingLocalBundle.json,
           fetchingLocalBundle
@@ -1269,6 +1269,70 @@ export class Util {
     } catch (error) {
       console.log("🚀 ~ file: util.ts:707 ~ migrate ~ error:", error);
       return { migrated: false };
+    }
+  }
+
+  public static async migrateLocalJsonFile(
+    newFileURL: string,
+    oldFilePath: string,
+    newFilePathLocation: string,
+    localStorageNameForFilePath: string
+  ) {
+    try {
+      console.log("Migrate existing Json File ");
+      // if (!Capacitor.isNativePlatform()) {
+      //   console.log("Not a native platform. JSON migration skipped.");
+      //   return;
+      // }
+
+      if (!newFileURL) {
+        console.log("new avatar newFileURL is undefined ", newFileURL);
+
+        return;
+      }
+
+      let newFileResponse = await fetch(newFileURL);
+
+      let newFileJson = await newFileResponse.json();
+      console.log("newAvatarSuggesstionJson ", newFileJson);
+
+      let oldFileResponse = await fetch(oldFilePath);
+
+      let oldFileJson = await oldFileResponse.json();
+
+      console.log("newAvatarSuggesstionJson.data", oldFileJson);
+      console.log(
+        "oldFileJson.version >= newFileJson.version",
+        oldFileJson.version,
+        newFileJson.version,
+        oldFileJson.version >= newFileJson.version
+      );
+
+      if (oldFileJson.version >= newFileJson.version) {
+        console.log("No need to migrate. Current version is up to date.");
+        return;
+      }
+
+      let res = await Filesystem.writeFile({
+        path: newFilePathLocation,
+        directory: Directory.Data,
+        data: JSON.stringify(newFileJson),
+        encoding: Encoding.UTF8,
+        recursive: true,
+      });
+      console.log(
+        "const res = await Filesystem.writeFile({ slice",
+        res.uri //.slice(1, res.uri.length)
+      );
+      localStorage.setItem(
+        localStorageNameForFilePath,
+        res.uri
+        // res.uri.slice(1, res.uri.length)
+      );
+    } catch (error) {
+      console.error("Json File Migration failed ", error);
+
+      throw error;
     }
   }
 }

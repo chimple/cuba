@@ -20,7 +20,8 @@ import {
   QuerySnapshot,
   Query,
   setDoc,
-  QueryDocumentSnapshot,
+  onSnapshot,
+  Unsubscribe,
 } from "firebase/firestore";
 import {
   LeaderboardInfo,
@@ -30,6 +31,7 @@ import {
 import {
   COURSES,
   DEFAULT_COURSE_IDS,
+  LIVE_QUIZ,
   MODES,
   aboveGrade3,
   belowGrade1,
@@ -58,9 +60,8 @@ import StudentProfile from "../../models/studentProfile";
 import Class from "../../models/class";
 import School from "../../models/school";
 import Assignment from "../../models/assignment";
-import { sort } from "semver";
 import { AvatarObj } from "../../components/animation/Avatar";
-import { any } from "prop-types";
+import LiveQuizRoomObject from "../../models/liveQuizRoom";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
@@ -515,7 +516,7 @@ export class FirebaseApi implements ServiceApi {
   ): Promise<Map<string, StudentLessonResult> | undefined> {
     try {
       const studentLessons = await getDoc(
-        doc(this._db, `${CollectionIds.STUDENTPROFILE}/${studentId}`)
+        doc(this._db, `${CollectionIds.STUDENT_PROFILE}/${studentId}`)
       );
       const lessonsData: DocumentData = studentLessons.data()!;
       if (lessonsData == undefined || lessonsData.lessons == undefined) return;
@@ -988,7 +989,7 @@ export class FirebaseApi implements ServiceApi {
       if (!!this._studentResultCache[studentId] && fromCache)
         return this._studentResultCache[studentId];
       const studentProfileDoc = await getDoc(
-        doc(this._db, CollectionIds.STUDENTPROFILE, studentId)
+        doc(this._db, CollectionIds.STUDENT_PROFILE, studentId)
       );
       console.log("studentProfileDoc", studentProfileDoc);
 
@@ -1140,7 +1141,7 @@ export class FirebaseApi implements ServiceApi {
       if (!!this._schoolsCache[user.docId])
         return this._schoolsCache[user.docId];
       const q = query(
-        collection(this._db, CollectionIds.SCHOOLCONNECTION),
+        collection(this._db, CollectionIds.SCHOOL_CONNECTION),
         where("roles", "array-contains", user.docId)
       );
       const queryResult = await getDocs(q);
@@ -1208,7 +1209,7 @@ export class FirebaseApi implements ServiceApi {
       const isTeacher = school.role === RoleType.TEACHER;
       if (isTeacher) {
         const q = query(
-          collection(this._db, CollectionIds.CLASSCONNECTION),
+          collection(this._db, CollectionIds.CLASS_CONNECTION),
           where("roles", "array-contains", user.docId),
           where(
             "school",
@@ -1255,18 +1256,17 @@ export class FirebaseApi implements ServiceApi {
       return [];
     }
   }
-
   async getStudentsForClass(classId: string): Promise<User[]> {
     try {
       const students: User[] = [];
       const classConnectionDoc = await getDoc(
-        doc(this._db, CollectionIds.CLASSCONNECTION, "ST_" + classId)
+        doc(this._db, CollectionIds.CLASS_CONNECTION, "ST_" + classId)
       );
       const roles: string[] = classConnectionDoc.get("roles");
       if (classConnectionDoc.exists() && !!roles && roles.length > 0) {
         await Promise.all(
           roles.map(async (userId) => {
-            const userDoc = await getDoc(
+            const userDoc = await this.getDocFromOffline(
               doc(this._db, CollectionIds.USER, userId)
             );
             if (userDoc.exists() && !!userDoc.id) {
@@ -1281,7 +1281,7 @@ export class FirebaseApi implements ServiceApi {
     } catch (error) {
       console.log(
         "🚀 ~ file: FirebaseApi.ts:1006 ~ FirebaseApi ~ getStudentsForClass ~ error:",
-        JSON.stringify(error)
+        error
       );
       return [];
     }
@@ -1522,7 +1522,67 @@ export class FirebaseApi implements ServiceApi {
     }
     return querySnapshot;
   }
+  //getting lessons for quiz
+  public async getLiveQuizLessons(
+    classId: string,
+    studentId: string
+  ): Promise<Assignment[] | []> {
+    try {
+      const now = new Date();
+      const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
 
+      const q = query(
+        collection(this._db, CollectionIds.ASSIGNMENT),
+        where("class", "==", classDocRef),
+        where("type", "==", LIVE_QUIZ),
+        where("startsAt", "<=", now),
+        orderBy("startsAt", "desc")
+      );
+      console.log("query result:", q);
+
+      const liveQuizLessons: Assignment[] = [];
+      const liveQuizDocs = await getDocs(q);
+      console.log("live quiz count", liveQuizDocs.size);
+
+      if (liveQuizDocs.size > 0) {
+        liveQuizDocs.docs.forEach((_assignment) => {
+          const endsAt = _assignment.get("endsAt");
+          const endsAtDate = endsAt.toDate();
+          if (endsAtDate > now) {
+            const assignment = _assignment.data() as Assignment;
+            assignment.docId = _assignment.id;
+            const liveQuiz = _assignment.data() as Assignment;
+            liveQuiz.docId = _assignment.id;
+            const doneLiveQuiz = liveQuiz.completedStudents?.find(
+              (data) => data === studentId
+            );
+            let tempLiveQuizCompletedIds = localStorage.getItem(
+              ASSIGNMENT_COMPLETED_IDS
+            );
+            let liveQuizcompletedIds = JSON.parse(
+              tempLiveQuizCompletedIds ?? "{}"
+            );
+            console.log("liveQuizcompletedIds:", liveQuizcompletedIds);
+
+            const doneliveQuizLocally = liveQuizcompletedIds[studentId]?.find(
+              (assignmentId) => assignmentId === liveQuiz.docId
+            );
+            console.log("doneliveQuizLocally:", doneliveQuizLocally);
+
+            if (!doneLiveQuiz && !doneliveQuizLocally)
+              liveQuizLessons.push(liveQuiz);
+          }
+        });
+      } else {
+        console.log("Live Quiz has ended. Skipping.");
+      }
+      console.log("Live quiz lessons", liveQuizLessons);
+      return liveQuizLessons;
+    } catch (error) {
+      console.error("Error fetching live quiz lessons:", error);
+      throw new Error("Error fetching live quiz lessons");
+    }
+  }
   public async getCourseFromLesson(
     lesson: Lesson
   ): Promise<Course | undefined> {
@@ -1534,5 +1594,74 @@ export class FirebaseApi implements ServiceApi {
       (course) => course.courseCode === lesson.cocosSubjectCode
     );
     return tmpCourse;
+  }
+
+  public liveQuizListener(
+    liveQuizRoomDocId: string,
+    onDataChange: (roomDoc: LiveQuizRoomObject) => void
+  ): Unsubscribe {
+    const unSub = onSnapshot(
+      doc(this._db, CollectionIds.LIVE_QUIZ_ROOM, liveQuizRoomDocId),
+      (doc) => {
+        console.log("Current data: ", doc.data());
+        onDataChange(doc.data() as LiveQuizRoomObject);
+      }
+    );
+    return unSub;
+  }
+  public async updateLiveQuiz(
+    roomDocId: string,
+    studentId: string,
+    score: number,
+    timeSpent: number
+  ): Promise<void> {
+    try {
+      await updateDoc(doc(this._db, CollectionIds.LIVE_QUIZ_ROOM, roomDocId), {
+        [`results.${studentId}`]: arrayUnion({
+          score,
+          timeSpent,
+        }),
+      });
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:1571 ~ FirebaseApi ~ error:",
+        error
+      );
+    }
+  }
+  public async joinLiveQuiz(
+    studentId: string,
+    assignmentId: string
+  ): Promise<string | undefined> {
+    try {
+      const functions = getFunctions();
+      const joinLiveQuiz = httpsCallable(functions, "joinLiveQuiz");
+      const result = await joinLiveQuiz({
+        studentId,
+        assignmentId,
+      });
+      return result.data as string;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:1573 ~ FirebaseApi ~ error:",
+        error
+      );
+    }
+  }
+  public async getAssignmentById(id: string): Promise<Assignment | undefined> {
+    try {
+      const assignmentDoc = await getDoc(
+        doc(this._db, CollectionIds.ASSIGNMENT, id)
+      );
+      if (!assignmentDoc.exists) return;
+      const assignmentData = assignmentDoc.data() as Assignment;
+      assignmentData.docId = id;
+      return assignmentData;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:1600 ~ FirebaseApi ~ getAssignmentById ~ error:",
+        error
+      );
+    }
   }
 }

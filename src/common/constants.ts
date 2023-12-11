@@ -127,14 +127,14 @@ export const ACTIVE_HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
         headerList: HOMEHEADERLIST.SEARCH,
       },
     ],
-    // [
-    //   HOMEHEADERLIST.QUIZ,
-    //   {
-    //     displayName: "Quiz",
-    //     iconSrc: "/assets/icons/quiz_icon.svg",
-    //     headerList: HOMEHEADERLIST.QUIZ,
-    //   },
-    // ],
+    [
+      HOMEHEADERLIST.QUIZ,
+      {
+        displayName: "Quiz",
+        iconSrc: "/assets/icons/quiz_icon.svg",
+        headerList: HOMEHEADERLIST.QUIZ,
+      },
+    ],
   ]);
 
 export const DEFAULT_HEADER_ICON_CONFIGS: Map<
@@ -181,14 +181,14 @@ export const DEFAULT_HEADER_ICON_CONFIGS: Map<
       headerList: HOMEHEADERLIST.SEARCH,
     },
   ],
-  // [
-  //   HOMEHEADERLIST.QUIZ,
-  //   {
-  //     displayName: "Quiz",
-  //     iconSrc: "/assets/icons/quiz_icon.svg",
-  //     headerList: HOMEHEADERLIST.QUIZ,
-  //   },
-  // ],
+  [
+    HOMEHEADERLIST.QUIZ,
+    {
+      displayName: "Quiz",
+      iconSrc: "/assets/icons/quiz_icon.svg",
+      headerList: HOMEHEADERLIST.QUIZ,
+    },
+  ],
 ]);
 
 // export const HEADERLIST = [HOME_CONFIG, LANG_CONFIGS, PROFILE_CONFIG]
@@ -234,14 +234,14 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
         headerList: HOMEHEADERLIST.SEARCH,
       },
     ],
-    // [
-    //   HOMEHEADERLIST.QUIZ,
-    //   {
-    //     displayName: "Quiz",
-    //     iconSrc: "/assets/icons/quiz_icon.svg",
-    //     headerList: HOMEHEADERLIST.QUIZ,
-    //   },
-    // ],
+    [
+      HOMEHEADERLIST.QUIZ,
+      {
+        displayName: "Quiz",
+        iconSrc: "/assets/icons/quiz_icon.svg",
+        headerList: HOMEHEADERLIST.QUIZ,
+      },
+    ],
   ]);
 
 export const LESSON_CARD_COLORS = [
@@ -280,8 +280,11 @@ export enum PAGES {
   LEADERBOARD = "/leaderboard",
   ASSIGNMENT = "/assignment",
   JOIN_CLASS = "/join-class",
+  LIVE_QUIZ = "/live-quiz",
   SELECT_MODE = "/select-mode",
   TERMS_AND_CONDITIONS = "/terms-and-conditions",
+  LIVE_QUIZ_JOIN = "/live-quiz-join",
+  LIVE_QUIZ_GAME = "/live-quiz-game",
 }
 
 export enum LANG {
@@ -325,6 +328,10 @@ export const MUSIC = "music";
 export const GAME_URL = "gameUrl";
 export const TC_ACCEPT = "tcAccept";
 export const RECOMMENDATIONS = "recommendations";
+export const LIVE_QUIZ = "liveQuiz";
+export const COCOS = "cocos";
+export const TYPE = "type";
+
 export const BASE_NAME =
   !Capacitor.isNativePlatform() && !!process.env.REACT_APP_GITHUB_BASE
     ? process.env.REACT_APP_GITHUB_BASE

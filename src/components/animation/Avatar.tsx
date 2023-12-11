@@ -1,7 +1,9 @@
+import { Filesystem } from "@capacitor/filesystem";
 import { CURRENT_AVATAR_SUGGESTION_NO } from "../../common/constants";
 import { Chapter } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
+import { Util } from "../../utility/util";
 
 export enum AvatarModes {
   Welcome,
@@ -152,50 +154,95 @@ export class AvatarObj {
     this._allSuggestions = value;
   }
 
-  public async loadAvatarData() {
-    if (!this._allSuggestions) {
-      if (!this._currentSuggestionNumber) {
-        this._currentSuggestionNumber = 0;
-      }
+  suggestionConstant = () => {
+    const currentStudent = Util.getCurrentStudent();
+    console.log(
+      "currentStudent?.docId-CURRENT_AVATAR_SUGGESTION_NO",
+      currentStudent?.docId + "-" + CURRENT_AVATAR_SUGGESTION_NO
+    );
 
-      let response = await fetch(
-        "https://mocki.io/v1/1ac6cd7e-a40c-47dd-9afc-f05e0941071a"
-      );
+    return currentStudent?.docId + "-" + CURRENT_AVATAR_SUGGESTION_NO;
+  };
 
-      // let response =
-      //   await require("json!public\\assets\\animation\\avatarSugguestions.json");
+  public getCurrentSuggestionNo() {
+    let tempCurrentSugNo = Number(
+      localStorage.getItem(this.suggestionConstant())
+    );
+    this._currentSuggestionNumber = tempCurrentSugNo;
+    console.log("let tempCurrentSugNo =", tempCurrentSugNo);
 
-      let suggesstionJson = await response.json();
-      console.log("Avatar Sugguestion Json ", suggesstionJson);
-
-      this._allSuggestions = suggesstionJson.rows;
-    }
-
-    const currentAvatarSuggestionNoFromLocal =
-      Number(localStorage.getItem(CURRENT_AVATAR_SUGGESTION_NO)) ||
-      this._currentSuggestionNumber;
-
-    let currentSuggestionInJson =
-      this._allSuggestions[currentAvatarSuggestionNoFromLocal];
-    this._mode = AvatarModes[currentSuggestionInJson[0]];
-    this._message = currentSuggestionInJson[1];
-    this._imageSrc = currentSuggestionInJson[2];
-    this._audioSrc = currentSuggestionInJson[3];
-    this._avatarAnimation = currentSuggestionInJson[4];
-    this._yesAnimation = currentSuggestionInJson[5];
-    this._noAnimation = currentSuggestionInJson[6];
-    this._questionType = currentSuggestionInJson[7];
-    this._answer = currentSuggestionInJson[8];
-    this._option1 = currentSuggestionInJson[9];
-    this._option2 = currentSuggestionInJson[10];
-    this._option3 = currentSuggestionInJson[11];
-    this._option4 = currentSuggestionInJson[12];
-    // this._nextMode = currentSuggestionInJson[13];
-
-    console.log(" AvatarObj in Avatar page ", AvatarObj.getInstance());
+    return tempCurrentSugNo;
   }
 
-  public async loadAvatarDataOnIndex() {
+  public async loadAvatarData() {
+    try {
+      if (!this._allSuggestions) {
+        if (!this._currentSuggestionNumber) {
+          this._currentSuggestionNumber = 0;
+        }
+        const path = "assets/animation/avatarSugguestions.json";
+        // localStorage.getItem("avatarSuggestionJsonLocation") ||
+        // "assets/animation/avatarSugguestions.json";
+
+        // let response = await fetch(path);
+        let response;
+        // try {
+        //   response = await Filesystem.readFile({
+        //     path: path,
+        //   });
+        //   let suggesstionJson = await response.data;
+        //   console.log("Avatar Sugguestion Json ", suggesstionJson);
+
+        //   console.log(
+        //     "Avatar suggesstionJson.data ",
+        //     suggesstionJson,
+        //     JSON.parse(suggesstionJson).data
+        //   );
+
+        //   this._allSuggestions = JSON.parse(suggesstionJson).data;
+        // } catch (error) {
+        //   console.log("await Filesystem.readFile({ failed");
+
+        response = await fetch(path);
+        let suggesstionJson = await response.json();
+        console.log("Avatar Sugguestion Json ", suggesstionJson);
+
+        console.log(
+          "Avatar suggesstionJson.data ",
+          suggesstionJson,
+          suggesstionJson.data
+        );
+
+        this._allSuggestions = suggesstionJson.data;
+        // }
+      }
+
+      const currentAvatarSuggestionNoFromLocal = this.getCurrentSuggestionNo();
+
+      let currentSuggestionInJson =
+        this._allSuggestions[currentAvatarSuggestionNoFromLocal];
+      this._mode = AvatarModes[currentSuggestionInJson[0]];
+      this._message = currentSuggestionInJson[1];
+      this._imageSrc = currentSuggestionInJson[2];
+      this._audioSrc = currentSuggestionInJson[3];
+      this._avatarAnimation = currentSuggestionInJson[4];
+      this._yesAnimation = currentSuggestionInJson[5];
+      this._noAnimation = currentSuggestionInJson[6];
+      this._questionType = currentSuggestionInJson[7];
+      this._answer = currentSuggestionInJson[8];
+      this._option1 = currentSuggestionInJson[9];
+      this._option2 = currentSuggestionInJson[10];
+      this._option3 = currentSuggestionInJson[11];
+      this._option4 = currentSuggestionInJson[12];
+      // this._nextMode = currentSuggestionInJson[13];
+
+      console.log(" AvatarObj in Avatar page ", AvatarObj.getInstance());
+    } catch (error) {
+      console.log("Failed to load Avatar Data", error);
+    }
+  }
+
+  public async loadAvatarNextSuggestion() {
     console.log(
       "if (this.currentSuggestionNumber === this.allSuggestions.length) {",
       this._currentSuggestionNumber === this._allSuggestions.length - 1
@@ -207,8 +254,16 @@ export class AvatarObj {
         "resetting the Avatar Suggestions",
         this._currentSuggestionNumber
       );
+      localStorage.setItem(
+        this.suggestionConstant(),
+        this._currentSuggestionNumber.toString()
+      );
     } else {
       this.currentSuggestionNumber++;
+      localStorage.setItem(
+        this.suggestionConstant(),
+        this._currentSuggestionNumber.toString()
+      );
       console.log(
         "Avatar Suggestions incremented",
         this._currentSuggestionNumber
@@ -232,7 +287,7 @@ export class AvatarObj {
     // this._nextMode = currentSuggestionInJson[13];
 
     console.log(
-      " AvatarObj in Avatar page loadAvatarDataOnIndex( ",
+      " AvatarObj in Avatar page loadAvatarNextSuggestion( ",
       AvatarObj.getInstance()
     );
   }
