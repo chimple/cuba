@@ -19,6 +19,7 @@ import {
   CURRENT_MODE,
   RECOMMENDATIONS,
   CONTINUE,
+  CHAPTER_LESSON_MAP,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -119,6 +120,8 @@ const Home: FC = () => {
   const location = useLocation();
 
   useEffect(() => {
+    Util.checkDownloadedLessonsFromLocal();
+
     urlOpenListenerEvent();
     setCurrentHeader(HOMEHEADERLIST.HOME);
     setValue(SUBTAB.SUGGESTIONS);
@@ -311,6 +314,15 @@ const Home: FC = () => {
       return [];
     }
     const lessons = await api.getLessonsForChapter(chapter);
+    const storedChapterLessonMap = localStorage.getItem(CHAPTER_LESSON_MAP);
+    const storedChapterLessonId = storedChapterLessonMap
+      ? JSON.parse(storedChapterLessonMap)
+      : {};
+    storedChapterLessonId[chapter.id] = lessons.map((lesson) => lesson.id);
+    localStorage.setItem(
+      CHAPTER_LESSON_MAP,
+      JSON.stringify(storedChapterLessonId)
+    );
     setLessons(lessons);
     setIsLoading(false);
     return lessons;
