@@ -11,10 +11,17 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 let questionInterval;
 const LiveQuizQuestion: FC<{
   roomDoc: LiveQuizRoomObject;
+  showQuiz: boolean;
   onNewQuestionChange?: (newQuestionIndex: number) => void;
   onQuizEnd?: Function;
   onConfigLoaded?: (liveQuizConfig: LiveQuiz) => void;
-}> = ({ roomDoc, onNewQuestionChange, onQuizEnd, onConfigLoaded }) => {
+}> = ({
+  roomDoc,
+  onNewQuestionChange,
+  onQuizEnd,
+  onConfigLoaded,
+  showQuiz,
+}) => {
   const quizPath =
     (localStorage.getItem("gameUrl") ??
       "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
@@ -215,10 +222,12 @@ const LiveQuizQuestion: FC<{
       // }, 1000);
     }
   };
+
   const onTimeOut = (_liveQuizConfig?: LiveQuiz) => {
     console.log("🚀 ~ file: LiveQuizQuestion.tsx:168 ~ onTimeOut ~ onTimeOut:");
     changeQuestion(_liveQuizConfig);
   };
+
   const changeQuestion = async (
     _liveQuizConfig?: LiveQuiz,
     isStart: boolean = false
@@ -245,6 +254,7 @@ const LiveQuizQuestion: FC<{
       return _currentQuestionIndex == null ? 0 : _currentQuestionIndex + 1;
     });
   };
+
   const onQuestionChange = () => {
     if (currentQuestionIndex == null) return;
     if (onNewQuestionChange) onNewQuestionChange(currentQuestionIndex);
@@ -267,6 +277,7 @@ const LiveQuizQuestion: FC<{
       });
     }, 1000);
   };
+
   function calculateScoreForQuestion(
     correct: boolean,
     totalQuestions: number,
@@ -290,6 +301,7 @@ const LiveQuizQuestion: FC<{
     let totalTimeSpent = 0;
     const totalQuestions = liveQuizConfig?.data.length || 0;
     let correctMoves = 0;
+    if (!roomDoc.results) return;
     for (let result of roomDoc.results[student!.docId]) {
       totalScore += result.score || 0;
       totalTimeSpent += result.timeSpent || 0;
@@ -314,7 +326,7 @@ const LiveQuizQuestion: FC<{
 
   return (
     <div>
-      {liveQuizConfig && currentQuestionIndex != null && (
+      {showQuiz && liveQuizConfig && currentQuestionIndex != null && (
         <div>
           <p>{remainingTime}</p>
           <div className="live-quiz-question">

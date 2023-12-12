@@ -50,7 +50,7 @@ const LiveQuizGame: FC = () => {
               }}
             />
           )}
-          {isTimeOut && roomDoc && (
+          {roomDoc && (
             <LiveQuizQuestion
               roomDoc={roomDoc}
               onNewQuestionChange={(newQuestionIndex) => {
@@ -60,6 +60,7 @@ const LiveQuizGame: FC = () => {
                   liveQuizConfig?.data[newQuestionIndex]
                 );
               }}
+              showQuiz={isTimeOut}
               onConfigLoaded={setLiveQuizConfig}
               onQuizEnd={() => {
                 console.log("🚀 ~ file: LiveQuizGame.tsx:65 ~ onQuizEnd:");
