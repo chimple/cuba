@@ -60,7 +60,7 @@ const LiveQuizRoomResult: React.FC<{ liveQuizRoomDocId?: string }> = ({
     setStudents(tempStudentMap);
     console.log("all students", students);
 
-    const res = await api.getResultsOfLiveQuiz("0KtjEooS3ylz4VRhjHzJ");
+    const res = await api.getResultsOfLiveQuiz(liveQuizRoomDocId);
     const allStudentScoresData = res?.map((result: any) => ({
       studentDocId: result.studentDocId,
       totalScore: result.totalScore,

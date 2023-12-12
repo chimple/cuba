@@ -53,9 +53,7 @@ const LiveQuizLeaderBoard: React.FC<{ liveQuizRoomDocId?: string }> = ({
         tempStudentMap.set(student.docId, student);
       }
       setStudents(tempStudentMap);
-      const liveQuizRoomDocId = "0KtjEooS3ylz4VRhjHzJ";
       const res = await api.getResultsOfLiveQuiz(liveQuizRoomDocId);
-
       if (res) {
         const allStudentScoresData = res.map((result: any) => ({
           studentDocId: result.studentDocId,
