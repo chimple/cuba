@@ -5,6 +5,7 @@ import Grade from "../../models/grade";
 import DropDown from "../DropDown";
 import Course from "../../models/course";
 import SelectIconImage from "./SelectIconImage";
+import DownloadLesson from "../DownloadChapterAndLesson";
 
 const SelectChapter: FC<{
   chapters: Chapter[];
@@ -52,6 +53,9 @@ const SelectChapter: FC<{
                 />
               </div>
               {chapter.title}
+              <div className="chapter-download">
+                <DownloadLesson chapters={chapter} />
+              </div>
             </div>
           );
         })}

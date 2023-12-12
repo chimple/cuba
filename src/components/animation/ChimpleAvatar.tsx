@@ -73,6 +73,9 @@ const ChimpleAvatar: FC<{
   
   useEffect(() => {
     fetchCoursesForStudent();
+    return () => {
+      stop();
+    }
   }, []);
 
   const api = ServiceConfig.getI().apiHandler;
@@ -175,7 +178,6 @@ const ChimpleAvatar: FC<{
   };
 
   const onClickRiveComponent = async () => {
-    await avatarObj.loadAvatarNextSuggestion();
     if (rive) {
       speakAnimationUntilaudio();
     } else {

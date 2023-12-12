@@ -73,7 +73,7 @@
   font-weight: bold;
 }
 
-#lesson-card-name-fav-icon{
+#lesson-card-name-fav-icon {
   margin: 0px !important;
   color: var(--text-color);
   font-size: var(--text-size);
@@ -134,4 +134,11 @@
   text-align: center;
   position: relative;
   bottom: 8vh;
+}
+.download-lesson-button-container {
+  display: flex;
+  position: relative;
+  justify-content: flex-start;
+  bottom: 10vh;
+  left: 3vh;
 }
