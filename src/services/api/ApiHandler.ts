@@ -216,7 +216,9 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ grades: Grade[]; courses: Course[] }> {
     return await this.s.getDifferentGradesForCourse(course);
   }
-
+  public async getResultsOfLiveQuiz(liveQuizRoomDocId): Promise<{ studentDocId: string, totalScore: number }[] | undefined> {
+    return await this.s.getResultsOfLiveQuiz(liveQuizRoomDocId);
+  }
   public async getAllCurriculums(): Promise<Curriculum[]> {
     return await this.s.getAllCurriculums();
   }

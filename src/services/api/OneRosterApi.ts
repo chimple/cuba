@@ -115,6 +115,10 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<Assignment[]> {
     throw new Error("Method not implemented.");
   }
+  getResultsOfLiveQuiz(liveQuizRoomDocId: string): Promise<{ studentDocId: string, totalScore: number }[] | undefined>{
+    throw new Error("Method not implemented.");
+  }
+
   getLessonFromCourse(
     course: Course,
     lessonId: string

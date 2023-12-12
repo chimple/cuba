@@ -171,6 +171,14 @@ export interface ServiceApi {
    * @returns {Assignment[]} A promise that resolves to an array of assignments.
    */
   getLiveQuizLessons(classId: string, studentId: string): Promise<Assignment[]>;
+  /**
+   * This function gets the results of the current participants of live quiz
+   * @param liveQuizRoomDocId firebase doc id
+   * @return {{studentDocId: string ,totalScore: number }[]} A promise that resolves to an array of studentDocIds and total scores
+   */
+  getResultsOfLiveQuiz(
+    liveQuizRoomDocId: string
+  ): Promise<{ studentDocId: string; totalScore: number }[] | undefined>;
 
   /**
    * Creates a Document in Result collection with the given params
