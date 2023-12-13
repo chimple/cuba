@@ -1,14 +1,21 @@
 import { FC, useEffect, useState } from "react";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
-import LiveQuiz, { LIVE_QUIZ_QUESTION_TIME } from "../../models/liveQuiz";
+import LiveQuiz, {
+  LIVE_QUIZ_QUESTION_TIME,
+  LiveQuizOption,
+  LiveQuizQuestion as LiveQuizQuestionType,
+} from "../../models/liveQuiz";
 import "./LiveQuizQuestion.css";
 import { Capacitor } from "@capacitor/core";
 import { Util } from "../../utility/util";
 import { PAGES } from "../../common/constants";
 import { useHistory } from "react-router";
 import { ServiceConfig } from "../../services/ServiceConfig";
+import { PiSpeakerHighBold } from "react-icons/pi";
+import { TextToSpeech } from "@capacitor-community/text-to-speech";
 
 let questionInterval;
+let audiosMap: { [key: string]: HTMLAudioElement } = {};
 const LiveQuizQuestion: FC<{
   roomDoc: LiveQuizRoomObject;
   showQuiz: boolean;
@@ -36,16 +43,19 @@ const LiveQuizQuestion: FC<{
   const history = useHistory();
   const student = Util.getCurrentStudent();
   const api = ServiceConfig.getI().apiHandler;
-
   useEffect(() => {
     if (!roomDoc) return;
     if (!student) {
       history.replace(PAGES.HOME);
       return;
     }
-
+    audiosMap = {};
     getConfigJson();
+    return () => {
+      stopAllAudios();
+    };
   }, []);
+
   useEffect(() => {
     onQuestionChange();
   }, [currentQuestionIndex]);
@@ -53,6 +63,12 @@ const LiveQuizQuestion: FC<{
   useEffect(() => {
     handleRoomChange();
   }, [roomDoc]);
+
+  useEffect(() => {
+    if (showQuiz && currentQuestionIndex === undefined && liveQuizConfig) {
+      changeQuestion(liveQuizConfig, true);
+    }
+  }, [showQuiz]);
 
   const getConfigJson = async () => {
     if (liveQuizConfig) return liveQuizConfig;
@@ -78,9 +94,11 @@ const LiveQuizQuestion: FC<{
             optionsType: "text",
             question: {
               id: "question_1",
-              text: "What is 2+2?",
+              text: "Click on audio button to hear the question",
+              audio:
+                "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
             },
-            questionType: "text",
+            questionType: "audio",
           },
           {
             options: [
@@ -102,8 +120,10 @@ const LiveQuizQuestion: FC<{
             question: {
               id: "question_2",
               text: "What is 1+1?",
+              image:
+                "https://fastly.picsum.photos/id/1012/3973/2639.jpg?hmac=s2eybz51lnKy2ZHkE2wsgc6S81fVD1W2NKYOSh8bzDc",
             },
-            questionType: "text",
+            questionType: "image",
           },
           {
             options: [
@@ -124,27 +144,27 @@ const LiveQuizQuestion: FC<{
             optionsType: "text",
             question: {
               id: "question_3",
-              text: "What is the capital of France?",
+              image: "https://picsum.photos/200/300",
             },
-            questionType: "text",
+            questionType: "image",
           },
           {
             options: [
               {
-                text: "3",
+                image: "https://picsum.photos/200/300",
               },
               {
                 isCorrect: true,
-                text: "6",
+                image: "https://picsum.photos/200/300",
               },
               {
-                text: "9",
+                image: "https://picsum.photos/200/300",
               },
               {
-                text: "12",
+                image: "https://picsum.photos/200/300",
               },
             ],
-            optionsType: "text",
+            optionsType: "image",
             question: {
               id: "question_4",
               text: "What is 2 multiplied by 3?",
@@ -177,9 +197,11 @@ const LiveQuizQuestion: FC<{
         ],
         type: "multiOptions",
       } as LiveQuiz;
+      preLoadAudiosWithLiveQuizConfig(config);
       setLiveQuizConfig(config);
       if (onConfigLoaded) onConfigLoaded(config);
-      changeQuestion(config, true);
+      if (currentQuestionIndex == undefined && showQuiz)
+        changeQuestion(config, true);
       return config;
     }
     const response = await fetch(quizPath + "/config.json");
@@ -225,7 +247,7 @@ const LiveQuizQuestion: FC<{
 
   const onTimeOut = (_liveQuizConfig?: LiveQuiz) => {
     console.log("🚀 ~ file: LiveQuizQuestion.tsx:168 ~ onTimeOut ~ onTimeOut:");
-    changeQuestion(_liveQuizConfig);
+    // changeQuestion(_liveQuizConfig);
   };
 
   const changeQuestion = async (
@@ -234,11 +256,11 @@ const LiveQuizQuestion: FC<{
   ) => {
     const tempLiveQuizConfig = _liveQuizConfig || liveQuizConfig;
     if (!tempLiveQuizConfig) return;
+    await stopAllAudios();
     if (!isStart) {
       setShowAnswer(true);
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
-
     setCurrentQuestionIndex((_currentQuestionIndex) => {
       console.log(
         "🚀 ~ file: LiveQuizQuestion.tsx:177 ~ changeQuestion ~ _currentQuestionIndex:",
@@ -251,7 +273,13 @@ const LiveQuizQuestion: FC<{
         }
         return _currentQuestionIndex;
       }
-      return _currentQuestionIndex == null ? 0 : _currentQuestionIndex + 1;
+      const newQuestionIndex =
+        _currentQuestionIndex == null ? 0 : _currentQuestionIndex + 1;
+      const newQuestion = tempLiveQuizConfig.data[newQuestionIndex]?.question;
+      if (newQuestion?.audio) {
+        playLiveQuizAudio(newQuestion);
+      }
+      return newQuestionIndex;
     });
   };
 
@@ -324,14 +352,119 @@ const LiveQuizQuestion: FC<{
     );
   }
 
+  const playLiveQuizAudio = async (
+    data: LiveQuizOption | LiveQuizQuestionType
+  ) => {
+    try {
+      await stopAllAudios();
+      if (data.audio) {
+        if (audiosMap[data.audio]) {
+          await audiosMap[data.audio].play();
+        } else {
+          const audio = preLoadAudio(data.audio);
+          await audio.play();
+        }
+        audiosMap[data.audio].play();
+      } else if (data.text) {
+        await TextToSpeech.speak({
+          text: data.text,
+        });
+      }
+    } catch (error) {
+      console.log("🚀 ~ file: LiveQuizQuestion.tsx:348 ~ error:", error);
+    }
+  };
+
+  const preLoadAudiosWithLiveQuizConfig = async (_liveQuizConfig: LiveQuiz) => {
+    for (let question of _liveQuizConfig.data) {
+      if (question.question.audio) {
+        preLoadAudio(question.question.audio);
+        question.options.forEach((option) => {
+          if (option.audio) {
+            preLoadAudio(option.audio);
+          }
+        });
+      }
+    }
+  };
+
+  const preLoadAudio = (url: string): HTMLAudioElement => {
+    let newUrl = url;
+    if (Capacitor.isNativePlatform()) {
+      newUrl = quizPath + "/" + url;
+    }
+    const audio = new Audio(newUrl);
+    audio.preload = "auto";
+    audio.load();
+    audiosMap[url] = audio;
+    return audio;
+  };
+
+  const stopAllAudios = async () => {
+    try {
+      await TextToSpeech.stop();
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: LiveQuizQuestion.tsx:384 ~ stopAllAudios ~ error:",
+        error
+      );
+    }
+    if (!audiosMap) return;
+    try {
+      Object.values(audiosMap)?.forEach((audio) => {
+        audio.pause();
+        audio.currentTime = 0;
+      });
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: LiveQuizQuestion.tsx:393 ~ stopAllAudios ~ error:",
+        error
+      );
+    }
+  };
+
   return (
     <div>
       {showQuiz && liveQuizConfig && currentQuestionIndex != null && (
         <div>
           <p>{remainingTime}</p>
+
           <div className="live-quiz-question">
             <div className="live-quiz-question-box">
-              {liveQuizConfig.data[currentQuestionIndex]?.question.text}
+              {(liveQuizConfig.data[currentQuestionIndex].question.audio ||
+                liveQuizConfig.data[currentQuestionIndex].question.text) && (
+                <div className="live-quiz-audio-button-question">
+                  <PiSpeakerHighBold
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      playLiveQuizAudio(
+                        liveQuizConfig.data[currentQuestionIndex].question
+                      );
+                      console.log("on audio question click");
+                    }}
+                  />
+                </div>
+              )}
+              <p>
+                {!liveQuizConfig.data[currentQuestionIndex]?.question
+                  .isTextTTS &&
+                  liveQuizConfig.data[currentQuestionIndex]?.question.text}
+              </p>
+              {liveQuizConfig.data[currentQuestionIndex]?.question.image && (
+                <img
+                  className="live-quiz-question-image"
+                  src={
+                    Capacitor.isNativePlatform()
+                      ? quizPath +
+                        "/" +
+                        liveQuizConfig.data[currentQuestionIndex]?.question
+                          .image
+                      : liveQuizConfig.data[currentQuestionIndex]?.question
+                          .image
+                  }
+                  alt=""
+                />
+              )}
             </div>
           </div>
           <div className="live-quiz-options">
@@ -343,22 +476,12 @@ const LiveQuizQuestion: FC<{
                     aria-disabled={!canAnswer}
                     onClick={async () => {
                       if (!canAnswer) return;
-                      // clearInterval(questionInterval);
                       setCanAnswer(false);
                       setSelectedAnswerIndex(index);
                       const score = calculateScoreForQuestion(
                         option.isCorrect === true,
                         liveQuizConfig.data.length,
                         LIVE_QUIZ_QUESTION_TIME - remainingTime
-                      );
-
-                      console.log(
-                        "🚀 ~ file: LiveQuizQuestion.tsx:284 ~ onClick={ ~ FirebaseApi:",
-                        roomDoc.docId,
-                        student?.docId!,
-                        liveQuizConfig.data[currentQuestionIndex].question.id,
-                        LIVE_QUIZ_QUESTION_TIME - remainingTime,
-                        score
                       );
                       await api.updateLiveQuiz(
                         roomDoc.docId,
@@ -367,18 +490,6 @@ const LiveQuizQuestion: FC<{
                         LIVE_QUIZ_QUESTION_TIME - remainingTime,
                         score
                       );
-                      console.log(
-                        "🚀 ~ file: LiveQuizQuestion.tsx:284 ~ onClick={ ~ FirebaseApi:",
-                        roomDoc.docId,
-                        student?.docId!,
-                        liveQuizConfig.data[currentQuestionIndex].question.id,
-                        LIVE_QUIZ_QUESTION_TIME - remainingTime,
-                        score
-                      );
-
-                      // setTimeout(() => {
-                      //   changeQuestion();
-                      // }, 2000);
                     }}
                     className={
                       "live-quiz-option-box " +
@@ -391,7 +502,30 @@ const LiveQuizQuestion: FC<{
                         : "")
                     }
                   >
-                    {option.text}
+                    {(option.audio || option.text) && (
+                      <div className="live-quiz-audio-button-option">
+                        <PiSpeakerHighBold
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playLiveQuizAudio(option);
+                            console.log("on audio click");
+                          }}
+                        />
+                      </div>
+                    )}
+
+                    {!option.isTextTTS && !option.image && option.text}
+                    {option.image && (
+                      <img
+                        className="live-quiz-option-image"
+                        src={
+                          Capacitor.isNativePlatform()
+                            ? quizPath + "/" + option.image
+                            : option.image
+                        }
+                        alt=""
+                      />
+                    )}
                   </div>
                 );
               }

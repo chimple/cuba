@@ -126,7 +126,7 @@ const LiveQuizRoom: React.FC = () => {
   };
 
   return (
-    <IonPage>
+    <IonPage style={{ overFlow: "scroll" }}>
       <h1>Prev Students</h1>
       {prevPlayedStudents.map((student) => (
         <StudentAvatar

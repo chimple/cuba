@@ -11,12 +11,14 @@ export enum OptionOrQuestionType {
 
 export type LiveQuizOption = {
   isCorrect?: boolean;
+  isTextTTS?: boolean;
 } & {
   [K in OptionOrQuestionType]?: string;
 };
 
 export type LiveQuizQuestion = {
   id: string;
+  isTextTTS?: boolean;
 } & {
   [K in OptionOrQuestionType]?: string;
 };
