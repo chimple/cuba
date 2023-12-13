@@ -1584,53 +1584,19 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  public async getResultsOfLiveQuiz(
+  public async getLiveQuizRoomDoc(
     liveQuizRoomDocId: string
-  ): Promise<{ studentDocId: string, totalScore: number }[] | undefined> {
+  ): Promise<DocumentData | undefined> {
     try {
-      const queryResult = await getDoc(
+      const liveQuizRoomDoc = await getDoc(
         doc(this._db, `${CollectionIds.LIVE_QUIZ_ROOM}/${liveQuizRoomDocId}`)
       );
-      console.log("queryResult", queryResult);
 
-      if (queryResult.exists()) {
-        const liveQuizRoomResults = queryResult.get("results");
-        // const quizResults = quizRoomData;
-        type StudentResult = {
-          studentDocId: string;
-          totalScore: number;
-          totalTimeSpent: number;
-        };
-
-        const studentResults: StudentResult[] = [];
-
-        Object.keys(liveQuizRoomResults).forEach((studentDocId) => {
-          const studentResult = liveQuizRoomResults[studentDocId];
-          const totalScore = studentResult.reduce(
-            (acc: number, question: { score?: number }) =>
-              acc + (question.score || 0),
-            0
-          );
-          const totalTimeSpent = studentResult.reduce(
-            (acc: number, question: { timeSpent?: number }) =>
-              acc + (question.timeSpent || 0),
-            0
-          );
-          studentResults.push({ studentDocId, totalScore, totalTimeSpent });
-        });
-
-        studentResults.sort((a, b) => {
-          if (b.totalScore !== a.totalScore) {
-            return b.totalScore - a.totalScore;
-          } else {
-            return a.totalTimeSpent - b.totalTimeSpent;
-          }
-        });
-        console.log("studentResults..", studentResults);
-        return studentResults.map((result) => ({
-          studentDocId: result.studentDocId,
-          totalScore: result.totalScore,
-        }));
+      if (liveQuizRoomDoc.exists()) {
+        console.log("inside if..");
+        const res = liveQuizRoomDoc.data() as LiveQuizRoomObject;
+        console.log("res", res);
+        return res;
       }
     } catch (error) {
       console.error("Error fetching LiveQuizRoom data:", error);

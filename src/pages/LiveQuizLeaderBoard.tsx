@@ -1,69 +1,59 @@
 import React, { useEffect, useState } from "react";
 import { IonPage, IonRow, IonContent } from "@ionic/react";
-import "./LiveQuizLeaderBoard.css"; // Import your custom styles
+import "./LiveQuizLeaderBoard.css";
 import { ServiceConfig } from "../services/ServiceConfig";
 import User from "../models/user";
 import StudentAvatar from "../components/common/StudentAvatar";
 import { Util } from "../utility/util";
 import BackButton from "../components/common/BackButton";
 import { PAGES } from "../common/constants";
-import { useHistory } from "react-router";
 import { t } from "i18next";
-interface Participant {
-  studentDocId: string;
-  totalScore: number;
-}
+import { useHistory } from "react-router";
 
-const LiveQuizLeaderBoard: React.FC<{ liveQuizRoomDocId?: string }> = ({
-  liveQuizRoomDocId,
-}) => {
-  const [sortedStudentScores, setSortedStudentScores] = useState<Participant[]>(
-    []
-  );
+const LiveQuizLeaderBoard: React.FC = () => {
+  const [sortedStudentScores, setSortedStudentScores] = useState<any>([]);
   const [students, setStudents] = useState(new Map<String, User>());
+  const urlSearchParams = new URLSearchParams(window.location.search);
+  const paramAssignmentId = urlSearchParams.get("liveRoomId") ?? "";
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
 
   useEffect(() => {
-    fetchLiveQuizResults();
-  }, [students]);
-  const fetchLiveQuizResults = async () => {
+    init();
+  }, []);
+
+  const init = async () => {
     try {
-      const currentStudent = Util.getCurrentStudent();
+      const res = await api.getLiveQuizRoomDoc(paramAssignmentId);
+      const classRef = res?.class;
+      const classId = classRef?.id;
+      let tempStudentMap = new Map<String, User>();
+      if (!!classId) {
+        const allStudents = await api.getStudentsForClass(classId);
 
-      if (!currentStudent) return;
-
-      const linked = await api.isStudentLinked(currentStudent.docId, true);
-      if (!linked) return;
-
-      const studentResult = await api.getStudentResult(currentStudent.docId);
-      if (
-        !studentResult ||
-        !studentResult.classes ||
-        studentResult.classes.length < 1
-      )
-        return;
-
-      const classId = studentResult.classes[0];
-      if (!classId) return;
-
-      const studentsData = await api.getStudentsForClass(classId);
-      const tempStudentMap = new Map<String, User>();
-      for (let student of studentsData) {
-        tempStudentMap.set(student.docId, student);
+        for (let student of allStudents) {
+          tempStudentMap.set(student.docId, student);
+        }
+        setStudents(tempStudentMap);
       }
-      setStudents(tempStudentMap);
-      const res = await api.getResultsOfLiveQuiz(liveQuizRoomDocId);
-      if (res) {
-        const allStudentScoresData = res.map((result: any) => ({
-          studentDocId: result.studentDocId,
-          totalScore: result.totalScore,
-        }));
 
-        const sortedScores = allStudentScoresData.sort(
-          (a, b) => b.totalScore - a.totalScore
+      const assignmentId = res?.assignment.id;
+      const assignmentDoc = await api.getAssignmentById(assignmentId);
+
+      if (!!assignmentDoc && !!assignmentDoc.results) {
+        const scoresData = Object.entries(assignmentDoc.results).map(
+          ([studentDocId, result]) => ({
+            studentDocId,
+            totalScore: result.score,
+          })
         );
-        setSortedStudentScores(sortedScores);
+
+        scoresData.sort((a, b) => b.totalScore - a.totalScore);
+        const studentIdsInClass = Array.from(tempStudentMap.keys());
+        const filteredScores = scoresData.filter((score) =>
+          studentIdsInClass.includes(score.studentDocId)
+        ); //filtering only played students from class
+        setSortedStudentScores(filteredScores);
       }
     } catch (error) {
       console.error("Error fetching LiveQuizRoom data:", error);

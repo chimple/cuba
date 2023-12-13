@@ -1,96 +1,101 @@
 import React, { useEffect, useState } from "react";
-import "./LiveQuizRoomResult.css"; // Import your CSS styles
+import "./LiveQuizRoomResult.css";
 import { ServiceConfig } from "../services/ServiceConfig";
 import StudentAvatar from "../components/common/StudentAvatar";
 import User from "../models/user";
 import Confetti from "react-confetti";
-import { Util } from "../utility/util";
 import NextButton from "../components/common/NextButton";
 import { useHistory } from "react-router";
 import { PAGES } from "../common/constants";
 import { GiCrown } from "react-icons/gi";
+import { t } from "i18next";
 
-const LiveQuizRoomResult: React.FC<{ liveQuizRoomDocId?: string }> = ({
-  liveQuizRoomDocId,
-}) => {
+const LiveQuizRoomResult: React.FC = () => {
   const [topThreeStudents, setTopThreeStudents] = useState<User[]>([]);
   const [students, setStudents] = useState(new Map<String, User>());
   const [showConfetti, setShowConfetti] = useState(true);
-  const [allStudentScores, setAllStudentScores] = useState<
-    { studentDocId: string; totalScore: number }[] | undefined
-  >([]);
-  const [participants, setParticipants] = useState<User[]>([]);
   const history = useHistory();
-  const [sortedStudentScores, setSortedStudentScores] = useState<
-    { studentDocId: string; totalScore: number }[] | undefined
-  >([]);
-
+  const [sortedStudentScores, setSortedStudentScores] = useState<any>([]);
+  const [isCongratsVisible, setCongratsVisible] = useState(true);
+  const urlSearchParams = new URLSearchParams(window.location.search);
+  const paramLiveRoomId = urlSearchParams.get("liveRoomId") ?? "";
   const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
-    fetchData();
+    init();
     setTimeout(() => {
+      setCongratsVisible(false);
       setShowConfetti(false);
     }, 5000);
-  }, [students]);
-  const fetchData = async () => {
-    const currentStudent = Util.getCurrentStudent();
+  }, []);
 
-    if (!currentStudent) return;
+  async function init() {
+    try {
+      const liveQuizRoomDoc = await api.getLiveQuizRoomDoc(paramLiveRoomId);
+      const classRef = liveQuizRoomDoc?.class;
+      const classId = classRef?.id;
+      let tempStudentMap = new Map<String, User>();
+      if (!!classId) {
+        const studentsData = await api.getStudentsForClass(classId);
 
-    const linked = await api.isStudentLinked(currentStudent.docId, true);
-    if (!linked) return;
+        for (let student of studentsData) {
+          tempStudentMap.set(student.docId, student);
+        }
+        setStudents(tempStudentMap);
+      }
 
-    const studentResult = await api.getStudentResult(currentStudent.docId);
-    if (
-      !studentResult ||
-      !studentResult.classes ||
-      studentResult.classes.length < 1
-    )
-      return;
+      const liveQuizRoomResults = liveQuizRoomDoc?.results;
+      console.log("liveQuizRoomResults..", liveQuizRoomResults);
+      type Participant = {
+        studentDocId: string;
+        totalScore: number;
+        totalTimeSpent: number;
+      };
+      const studentResults: Participant[] = [];
+      if (liveQuizRoomResults) {
+        Object.keys(liveQuizRoomResults).forEach((studentDocId) => {
+          const studentResult = liveQuizRoomResults[studentDocId];
+          const totalScore = studentResult.reduce(
+            (acc: number, question) => acc + question.score,
+            0
+          );
+          console.log("totalScore!!", totalScore);
 
-    const classId = studentResult.classes[0];
-    if (!classId) return;
+          const totalTimeSpent = studentResult.reduce(
+            (acc: number, question) => acc + question.timeSpent,
+            0
+          );
+          console.log("totalTimeSpent!!", totalTimeSpent);
+          studentResults.push({
+            studentDocId,
+            totalScore,
+            totalTimeSpent,
+          });
+        });
 
-    const studentsData = await api.getStudentsForClass(classId);
-    const tempStudentMap = new Map<String, User>();
-    for (let student of studentsData) {
-      tempStudentMap.set(student.docId, student);
+        studentResults.sort((a, b) => {
+          if (b.totalScore !== a.totalScore) {
+            return b.totalScore - a.totalScore;
+          } else {
+            return a.totalTimeSpent - b.totalTimeSpent;
+          }
+        });
+        console.log("studentresults!!!", studentResults);
+
+        const sortedScores: Participant[] = studentResults;
+        setSortedStudentScores(sortedScores);
+
+        const topThreePerformers = sortedScores.slice(0, 3);
+        const topthreeStudents = topThreePerformers.map((perf) =>
+          tempStudentMap.get(perf.studentDocId)
+        ) as User[];
+        setTopThreeStudents(topthreeStudents);
+      }
+    } catch (error) {
+      console.error("Error fetching LiveQuizRoom data:", error);
     }
-    setStudents(tempStudentMap);
-    console.log("all students", students);
+  }
 
-    const res = await api.getResultsOfLiveQuiz(liveQuizRoomDocId);
-    const allStudentScoresData = res?.map((result: any) => ({
-      studentDocId: result.studentDocId,
-      totalScore: result.totalScore,
-    }));
-
-    console.log("allStudentScoresData", allStudentScoresData);
-
-    const sortedScores = allStudentScoresData?.sort(
-      (a, b) => b.totalScore - a.totalScore
-    );
-    setSortedStudentScores(sortedScores);
-    console.log("sortedScores", sortedScores);
-    const topThreePerformers = sortedScores?.slice(0, 3);
-    setTopThreeStudents(
-      topThreePerformers
-        ?.map((perf) => students.get(perf.studentDocId))
-        .filter(Boolean) as User[]
-    );
-    setAllStudentScores(sortedScores);
-
-    console.log("allStudentScores", allStudentScores);
-
-    //filtering participants to display all students with scores
-    const participantDocIds = res?.map((result: any) => result.studentDocId);
-    const participantStudents = Array.from(students.values()).filter(
-      (student) => participantDocIds?.includes(student.docId)
-    );
-    console.log("participantStudents..", participantStudents);
-    setParticipants(participantStudents);
-  };
   const handleNextClick = () => {
     history.replace(PAGES.LIVE_QUIZ_LEADERBOARD);
   };
@@ -101,7 +106,7 @@ const LiveQuizRoomResult: React.FC<{ liveQuizRoomDocId?: string }> = ({
   }
   return (
     <div className="result-page">
-      <div className="next-button">
+      <div id="next-button">
         <NextButton disabled={false} onClicked={handleNextClick} />
       </div>
 
@@ -113,9 +118,10 @@ const LiveQuizRoomResult: React.FC<{ liveQuizRoomDocId?: string }> = ({
                 <Confetti
                   recycle={false}
                   numberOfPieces={1000}
-                  initialVelocityY={{ min: 50, max: 100 }}
+                  initialVelocityY={{ min: 0, max: 100 }}
                 />
               )}
+
               <div className="student-avatar-container">
                 <StudentAvatar
                   key={student.docId}
@@ -130,7 +136,11 @@ const LiveQuizRoomResult: React.FC<{ liveQuizRoomDocId?: string }> = ({
             </div>
           ))}
         </div>
-
+        {showConfetti && isCongratsVisible && (
+          <p id="congrats-text">
+            <i>{t("Congratulations!")}</i>
+          </p>
+        )}
         <div className="top-performers-horizontal">
           {topThreeStudents.slice(1).map((student, index) => (
             <div key={index + 1} className={`performer-${index + 2}`}>

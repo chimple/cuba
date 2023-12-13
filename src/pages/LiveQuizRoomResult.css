@@ -20,6 +20,11 @@
   color: #fdd017;
   font-size: 4rem;
 }
+@media (max-width: 768px) {
+  #crown-icon {
+    font-size: 3rem;
+  }
+}
 .live-quiz-room-result-container {
   display: flex;
   flex-direction: column;
@@ -32,24 +37,11 @@
   margin-top: 6vh;
 }
 .all-students {
-  width: 90vw;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
   align-items: center;
 }
-/* Styles for smaller screens  */
-@media (max-width: 600px) {
-  .live-quiz-room-result-container {
-    overflow: auto;
-  }
-
-  .all-students {
-    width: 100%;
-    margin: 2vh 0;
-  }
-}
-
 .top-performers {
   display: flex;
   flex-direction: column;
@@ -75,6 +67,15 @@
   font-size: 4vh;
   font-weight: bold;
 }
+#congrats-text {
+  font-style: italic;
+  font-family: serif;
+  color: #9d6dde;
+  text-align: center;
+  font-size: 10vh;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
 
 .student-info {
   margin: 1vh;
@@ -89,7 +90,7 @@
   font-size: 3vh;
 }
 
-.next-button {
+#next-button {
   position: absolute;
   right: 2vw;
 }
