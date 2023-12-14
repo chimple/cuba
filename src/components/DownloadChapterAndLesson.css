@@ -1,9 +1,12 @@
 .download-or-delete-button {
-  height: 35px;
-  width: 36px;
+  height: clamp(3vw, 8vh, 5vw);
+  width: clamp(3vw, 8vh, 5vw);
   border-radius: 50%;
-  background-color: rgba(251, 250, 250);
+  background-color: rgb(220, 213, 213);
   cursor: "pointer";
+  position: relative;
+  bottom: 12vh;
+  left: 2vh;
 }
 .loading-button-container {
   display: flex;
@@ -11,9 +14,9 @@
   align-items: center;
 }
 .loading-button {
-  width: 33px;
-  height: 33px;
-  border: 3px solid rgb(244, 241, 241);
+  height: clamp(3vw, 8vh, 5vw);
+  width: clamp(3vw, 8vh, 5vw);
+  border: 3px solid rgb(220, 213, 213);
   border-top-color: #007bff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
