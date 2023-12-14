@@ -13,7 +13,7 @@ import School from "../../models/school";
 import Assignment from "../../models/assignment";
 import { MODES } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
-import { Unsubscribe } from "firebase/firestore";
+import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 
 export interface LeaderboardInfo {
@@ -171,7 +171,14 @@ export interface ServiceApi {
    * @returns {Assignment[]} A promise that resolves to an array of assignments.
    */
   getLiveQuizLessons(classId: string, studentId: string): Promise<Assignment[]>;
-
+  /**
+   * This function gets the document of the live quiz room
+   * @param liveQuizRoomDocId firebase doc id
+   * @return {DocumentData} A promise that returns the document of live quiz room
+   */
+  getLiveQuizRoomDoc(
+    liveQuizRoomDocId: string
+  ): Promise<DocumentData | undefined>;
   /**
    * Creates a Document in Result collection with the given params
    * student: User

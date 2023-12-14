@@ -22,6 +22,7 @@ import School from "../../models/school";
 import { Unsubscribe } from "@firebase/firestore";
 import { AvatarObj } from "../../components/animation/Avatar";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
+import { DocumentData } from "firebase/firestore";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -115,6 +116,12 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<Assignment[]> {
     throw new Error("Method not implemented.");
   }
+  getLiveQuizRoomDoc(
+    liveQuizRoomDocId: string
+  ): Promise<DocumentData | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
   getLessonFromCourse(
     course: Course,
     lessonId: string
