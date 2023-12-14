@@ -1,0 +1,55 @@
+.leaderboard-header {
+  text-align: center;
+  margin: var(--margin);
+  margin-bottom: 5vh;
+}
+.header-name {
+  color: var(--text-color);
+  font-weight: bold;
+  font-size: 5vh;
+}
+
+.leaderboard-container {
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+}
+
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1px 0;
+}
+.leaderboard-back-button {
+  position: absolute;
+}
+
+.even {
+  border-radius: 20vh 20vh;
+  background: #f3eaee;
+  border: 2px solid grey;
+}
+
+.odd {
+  border-radius: 20vh 20vh;
+  background: #ebe4f1;
+  border: 2px solid grey;
+}
+
+.rank-column,
+.name-column,
+.score-column {
+  flex: 1;
+  text-align: center;
+  font-weight: bold;
+}
+
+.leaderboard-header-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  color: var(--text-color);
+  font-size: 5vh;
+  font-weight: bold;
+}

@@ -10,7 +10,7 @@ interface AudioButtonProps {
 function AudioButtonComponent({ style, onClick }: AudioButtonProps) {
   return (
     <div>
-      <PiSpeakerHighBold style={style} onClick={onClick} />
+      <PiSpeakerHighBold style={style} className="audio-icon" onClick={onClick} />
     </div>
   );
 }

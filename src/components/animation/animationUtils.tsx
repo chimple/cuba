@@ -67,7 +67,7 @@ export function useTtsAudioPlayer(
         await TextToSpeech.speak({
           text: audioText, //"नमस्ते चिम्पल, आप सभी का स्वागत है",
           lang: audioLang, //"hi-IN",
-          rate: 1.0,
+          rate: 0.8,
           pitch: 1.0,
           volume: 1.0,
           category: "ambient",

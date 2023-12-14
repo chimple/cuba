@@ -808,7 +808,7 @@ const Home: FC = () => {
             {currentHeader === HOMEHEADERLIST.ASSIGNMENT && <AssignmentPage />}
 
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
-            {currentHeader === HOMEHEADERLIST.QUIZ && <LiveQuiz />}
+            {currentHeader === HOMEHEADERLIST.LIVEQUIZ && <LiveQuiz />}
 
             {value === SUBTAB.SUGGESTIONS &&
               currentHeader === HOMEHEADERLIST.SUGGESTIONS ? (

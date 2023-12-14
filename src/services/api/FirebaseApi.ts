@@ -1583,6 +1583,28 @@ export class FirebaseApi implements ServiceApi {
       throw new Error("Error fetching live quiz lessons");
     }
   }
+
+  public async getLiveQuizRoomDoc(
+    liveQuizRoomDocId: string
+  ): Promise<DocumentData | undefined> {
+    try {
+      const liveQuizRoomDoc = await getDoc(
+        doc(this._db, `${CollectionIds.LIVE_QUIZ_ROOM}/${liveQuizRoomDocId}`)
+      );
+
+      if (liveQuizRoomDoc.exists()) {
+        console.log("inside if..");
+        const res = liveQuizRoomDoc.data() as LiveQuizRoomObject;
+        console.log("res", res);
+        return res;
+      }
+    } catch (error) {
+      console.error("Error fetching LiveQuizRoom data:", error);
+      throw error;
+    }
+    return undefined;
+  }
+
   public async getCourseFromLesson(
     lesson: Lesson
   ): Promise<Course | undefined> {
