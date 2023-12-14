@@ -15,7 +15,7 @@ import school from "../../models/school";
 import { MODES } from "../../common/constants";
 import School from "../../models/school";
 import { AvatarObj } from "../../components/animation/Avatar";
-import { Unsubscribe } from "firebase/firestore";
+import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 
 export class ApiHandler implements ServiceApi {
@@ -216,7 +216,11 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ grades: Grade[]; courses: Course[] }> {
     return await this.s.getDifferentGradesForCourse(course);
   }
-
+  public async getLiveQuizRoomDoc(
+    liveQuizRoomDocId: string
+  ): Promise<DocumentData | undefined> {
+    return await this.s.getLiveQuizRoomDoc(liveQuizRoomDocId);
+  }
   public async getAllCurriculums(): Promise<Curriculum[]> {
     return await this.s.getAllCurriculums();
   }
