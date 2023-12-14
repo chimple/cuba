@@ -73,6 +73,7 @@ const LiveQuizQuestion: FC<{
   const getConfigJson = async () => {
     if (liveQuizConfig) return liveQuizConfig;
     if (!Capacitor.isNativePlatform()) {
+      //TODO remove FOR testing
       const config = {
         data: [
           {

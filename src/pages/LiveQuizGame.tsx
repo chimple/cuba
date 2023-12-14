@@ -64,6 +64,9 @@ const LiveQuizGame: FC = () => {
               onConfigLoaded={setLiveQuizConfig}
               onQuizEnd={() => {
                 console.log("🚀 ~ file: LiveQuizGame.tsx:65 ~ onQuizEnd:");
+                history.replace(
+                  PAGES.LIVE_QUIZ_ROOM_RESULT + "?liveRoomId=" + paramLiveRoomId
+                );
               }}
             />
           )}
