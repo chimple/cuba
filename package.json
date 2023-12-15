@@ -12,7 +12,7 @@
     "@capacitor-community/firebase-analytics": "^5.0.1",
     "@capacitor-community/http": "^2.0.0-0",
     "@capacitor-community/text-to-speech": "^3.0.1",
-    "@capacitor-firebase/authentication": "^5.2.0",
+    "@capacitor-firebase/authentication": "^5.3.0",
     "@capacitor-firebase/messaging": "^5.0.0",
     "@capacitor-firebase/remote-config": "^5.0.1",
     "@capacitor/android": "^5.0.0",
