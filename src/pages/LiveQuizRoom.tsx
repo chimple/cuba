@@ -126,24 +126,30 @@ const LiveQuizRoom: React.FC = () => {
   };
 
   return (
-    <IonPage>
+    <IonPage style={{ overFlow: "scroll" }}>
       <h1>Prev Students</h1>
-      {prevPlayedStudents.map((student) => (
-        <StudentAvatar
-          key={student.docId}
-          student={student}
-          onClicked={() => {}}
-        />
-      ))}
+      <div style={{ display: "flex", overflow: "scroll" }}>
+        {prevPlayedStudents.map((student) => (
+          <StudentAvatar
+            key={student.docId}
+            student={student}
+            onClicked={() => {}}
+            width={"20vh"}
+          />
+        ))}
+      </div>
 
       <h1>Not Played Students</h1>
-      {notPlayedStudents.map((student) => (
-        <StudentAvatar
-          key={student.docId}
-          student={student}
-          onClicked={() => {}}
-        />
-      ))}
+      <div style={{ display: "flex", overflow: "scroll" }}>
+        {notPlayedStudents.map((student) => (
+          <StudentAvatar
+            key={student.docId}
+            student={student}
+            onClicked={() => {}}
+            width={"20vh"}
+          />
+        ))}
+      </div>
       <IonButton
         disabled={!isDownloaded || isJoining}
         onClick={() => {

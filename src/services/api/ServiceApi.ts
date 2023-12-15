@@ -427,6 +427,7 @@ export interface ServiceApi {
    *
    * @param roomDocId - The unique identifier of the live quiz room document.
    * @param studentId - The unique identifier of the student for whom the results are being updated.
+   * @param questionId - The ID of the question.
    * @param score - The new score achieved by the student in the quiz.
    * @param timeSpent - The new amount of time spent by the student on the quiz.
    * @returns A promise that resolves when the update is successful and rejects if an error occurs.
@@ -434,8 +435,9 @@ export interface ServiceApi {
   updateLiveQuiz(
     roomDocId: string,
     studentId: string,
-    score: number,
-    timeSpent: number
+    questionId: string,
+    timeSpent: number,
+    score: number
   ): Promise<void>;
 
   /**

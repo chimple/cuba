@@ -1626,7 +1626,9 @@ export class FirebaseApi implements ServiceApi {
       doc(this._db, CollectionIds.LIVE_QUIZ_ROOM, liveQuizRoomDocId),
       (doc) => {
         console.log("Current data: ", doc.data());
-        onDataChange(doc.data() as LiveQuizRoomObject);
+        const roomDoc = doc.data() as LiveQuizRoomObject;
+        roomDoc.docId = doc.id;
+        onDataChange(roomDoc);
       }
     );
     return unSub;
@@ -1634,14 +1636,16 @@ export class FirebaseApi implements ServiceApi {
   public async updateLiveQuiz(
     roomDocId: string,
     studentId: string,
-    score: number,
-    timeSpent: number
+    questionId: string,
+    timeSpent: number,
+    score: number
   ): Promise<void> {
     try {
       await updateDoc(doc(this._db, CollectionIds.LIVE_QUIZ_ROOM, roomDocId), {
         [`results.${studentId}`]: arrayUnion({
-          score,
-          timeSpent,
+          score: score,
+          timeSpent: timeSpent,
+          id: questionId,
         }),
       });
     } catch (error) {

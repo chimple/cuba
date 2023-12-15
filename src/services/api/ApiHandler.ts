@@ -37,10 +37,17 @@ export class ApiHandler implements ServiceApi {
   public async updateLiveQuiz(
     roomDocId: string,
     studentId: string,
-    score: number,
-    timeSpent: number
+    questionId: string,
+    timeSpent: number,
+    score: number
   ): Promise<void> {
-    return this.s.updateLiveQuiz(roomDocId, studentId, score, timeSpent);
+    return this.s.updateLiveQuiz(
+      roomDocId,
+      studentId,
+      questionId,
+      timeSpent,
+      score
+    );
   }
 
   public async joinLiveQuiz(

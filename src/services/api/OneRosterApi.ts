@@ -64,8 +64,9 @@ export class OneRosterApi implements ServiceApi {
   updateLiveQuiz(
     roomDocId: string,
     studentId: string,
-    score: number,
-    timeSpent: number
+    questionId: string,
+    timeSpent: number,
+    score: number
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
