@@ -14,7 +14,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
   const [sortedStudentScores, setSortedStudentScores] = useState<any>([]);
   const [students, setStudents] = useState(new Map<String, User>());
   const urlSearchParams = new URLSearchParams(window.location.search);
-  const paramAssignmentId = urlSearchParams.get("liveRoomId") ?? "";
+  const paramLiveRoomId = urlSearchParams.get("liveRoomId") ?? "";
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
 
@@ -24,7 +24,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
 
   const init = async () => {
     try {
-      const res = await api.getLiveQuizRoomDoc(paramAssignmentId);
+      const res = await api.getLiveQuizRoomDoc(paramLiveRoomId);
       const classRef = res?.class;
       const classId = classRef?.id;
       let tempStudentMap = new Map<String, User>();
