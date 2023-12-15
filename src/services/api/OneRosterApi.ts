@@ -65,8 +65,8 @@ export class OneRosterApi implements ServiceApi {
     roomDocId: string,
     studentId: string,
     questionId: string,
-    score: number,
-    timeSpent: number
+    timeSpent: number,
+    score: number
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }

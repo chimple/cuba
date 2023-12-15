@@ -38,15 +38,15 @@ export class ApiHandler implements ServiceApi {
     roomDocId: string,
     studentId: string,
     questionId: string,
-    score: number,
-    timeSpent: number
+    timeSpent: number,
+    score: number
   ): Promise<void> {
     return this.s.updateLiveQuiz(
       roomDocId,
       studentId,
       questionId,
-      score,
-      timeSpent
+      timeSpent,
+      score
     );
   }
 
