@@ -205,9 +205,9 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.LIVE_QUIZ_GAME} exact={true}>
               <LiveQuizGame />
             </ProtectedRoute>
-            <ProtectedRoute path={PAGES.TERMS_AND_CONDITIONS} exact={true}>
+            <Route path={PAGES.TERMS_AND_CONDITIONS} exact={true}>
               <TermsAndConditions />
-            </ProtectedRoute>
+            </Route>
             <ProtectedRoute path={PAGES.LIVE_QUIZ_ROOM_RESULT} exact={true}>
               <LiveQuizRoomResult />
             </ProtectedRoute>
