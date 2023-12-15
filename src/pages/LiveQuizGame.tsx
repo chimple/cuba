@@ -6,9 +6,9 @@ import LiveQuizRoomObject from "../models/liveQuizRoom";
 import { PAGES } from "../common/constants";
 import "./LiveQuizGame.css";
 import LiveQuizCountdownTimer from "../components/liveQuiz/LiveQuizCountdownTimer";
-import LiveQizHeader from "../components/liveQuiz/liveQuizHeader";
 import LiveQuizQuestion from "../components/liveQuiz/LiveQuizQuestion";
 import LiveQuiz from "../models/liveQuiz";
+import LiveQuizHeader from "../components/liveQuiz/LiveQuizHeader";
 
 const LiveQuizGame: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -39,7 +39,7 @@ const LiveQuizGame: FC = () => {
     <IonPage>
       <div className="live-quiz-container">
         <div className="live-quiz-top-div">
-          {roomDoc && <LiveQizHeader roomDoc={roomDoc} />}
+          {roomDoc && <LiveQuizHeader roomDoc={roomDoc} />}
         </div>
         <div className="live-quiz-center-div">
           {roomDoc && !isTimeOut && (
