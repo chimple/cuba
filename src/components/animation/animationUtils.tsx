@@ -47,11 +47,10 @@ export function useTtsAudioPlayer(
   audioLang = language + "-IN";
   const [isTtsPlaying, setIsTtsPlaying] = useState<boolean>(false);
 
-  const speak = async () => {
+  const speak = async (updatedMessage?: string) => {
+    audioText = updatedMessage || audioText;
     try {
       console.log("speak method called ", isTtsPlaying, !isTtsPlaying);
-
-      setIsTtsPlaying(true);
       if (!isTtsPlaying) {
         const isSupported = await isLanguageSupported(audioLang);
         console.log(
