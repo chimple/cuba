@@ -23,10 +23,6 @@ const LiveQuizRoomResult: React.FC = () => {
 
   useEffect(() => {
     init();
-    setTimeout(() => {
-      setCongratsVisible(false);
-      setShowConfetti(false);
-    }, 5000);
   }, []);
 
   async function init() {
@@ -94,10 +90,16 @@ const LiveQuizRoomResult: React.FC = () => {
     } catch (error) {
       console.error("Error fetching LiveQuizRoom data:", error);
     }
+    setTimeout(() => {
+      setCongratsVisible(false);
+      setShowConfetti(false);
+    }, 5000);
   }
 
   const handleNextClick = () => {
-    history.replace(PAGES.LIVE_QUIZ_LEADERBOARD);
+    history.replace(
+      PAGES.LIVE_QUIZ_LEADERBOARD + "?liveRoomId=" + paramLiveRoomId
+    );
   };
   function getOrdinal(number: number): string {
     const suffixes = ["th", "st", "nd", "rd"];
@@ -117,7 +119,7 @@ const LiveQuizRoomResult: React.FC = () => {
               {showConfetti && (
                 <Confetti
                   recycle={false}
-                  numberOfPieces={1000}
+                  numberOfPieces={500}
                   initialVelocityY={{ min: 0, max: 100 }}
                 />
               )}

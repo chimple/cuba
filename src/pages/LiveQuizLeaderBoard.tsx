@@ -36,7 +36,6 @@ const LiveQuizLeaderBoard: React.FC = () => {
         }
         setStudents(tempStudentMap);
       }
-
       const assignmentId = res?.assignment.id;
       const assignmentDoc = await api.getAssignmentById(assignmentId);
 
@@ -67,7 +66,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
           <div className="leaderboard-back-button">
             <BackButton
               onClicked={() => {
-                Util.setPathToBackButton(PAGES.LIVE_QUIZ_ROOM_RESULT, history);
+                Util.setPathToBackButton(PAGES.HOME, history);
               }}
             />
           </div>
