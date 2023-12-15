@@ -142,3 +142,7 @@
   bottom: 10vh;
   left: 3vh;
 }
+.lesson-download-button-container {
+  position: fixed;
+  top: 52vh;
+}

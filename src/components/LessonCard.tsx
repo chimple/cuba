@@ -267,6 +267,7 @@ const LessonCard: React.FC<{
                   <div id="lesson-card-score">
                     <LessonCardStarIcons score={score}></LessonCardStarIcons>
                   </div>
+
                   {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
                 </div>
               ) : (
@@ -276,10 +277,10 @@ const LessonCard: React.FC<{
               <div />
             )}
           </div>
+          <div className="lesson-download-button-container">
+            <DownloadLesson lessonID={lesson.id} lessonData={lessonData} />
+          </div>
           {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
-        </div>
-        <div className="download-lesson-button-container">
-          <DownloadLesson lessonID={lesson.id} lessonData={lessonData} />
         </div>
         {isLoved && (
           <LovedIcon

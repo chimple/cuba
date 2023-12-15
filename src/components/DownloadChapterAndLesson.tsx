@@ -5,18 +5,16 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import "./DownloadChapterAndLesson.css";
 import { t } from "i18next";
 import DialogBoxButtons from "./parent/DialogBoxButtons​";
-import { Toast } from "@capacitor/toast";
-import {
-  DOWNLOADED_LESSON_AND_CHAPTER_ID,
-  SnackbarType,
-} from "../common/constants";
+import { useIonToast } from "@ionic/react";
+import { DOWNLOADED_LESSON_AND_CHAPTER_ID } from "../common/constants";
 import { TfiDownload, TfiTrash } from "react-icons/tfi";
 import { Capacitor } from "@capacitor/core";
+import { Chapter } from "../common/courseConstants";
 
 const DownloadLesson: React.FC<{
-  lessonID?: any;
-  chapters?: any;
-  lessonData?: any;
+  lessonID?: string;
+  chapters?: Chapter;
+  lessonData?: Lesson[];
 }> = ({ lessonID, chapters, lessonData }) => {
   const [showIcon, setShowIcon] = useState(true);
   const [showDialogBox, setShowDialogBox] = useState(false);
@@ -24,7 +22,23 @@ const DownloadLesson: React.FC<{
   const [loading, setLoading] = useState(false);
   const [storedLessonID, setStoredLessonID] = useState<string[]>([]);
   const api = ServiceConfig.getI().apiHandler;
-
+  const [present] = useIonToast();
+  const presentToast = async () => {
+    await present({
+      message: t(
+        `Device is offline. Cannot download ${chapters ? "Chapter" : "Lesson"}`
+      ),
+      color: "danger",
+      duration: 3000,
+      position: "bottom",
+      buttons: [
+        {
+          text: t("Dismiss"),
+          role: "cancel",
+        },
+      ],
+    });
+  };
   useEffect(() => {
     setOnline(navigator.onLine);
 
@@ -49,8 +63,6 @@ const DownloadLesson: React.FC<{
       setShowIcon(false);
     }
   }, []);
-
-  Util.checkDownloadedLessonsFromLocal();
   async function init() {
     const lesson = Util.updateChapterOrLessonDownloadStatus(lessonData);
     if (!lesson) {
@@ -61,16 +73,8 @@ const DownloadLesson: React.FC<{
   const handleDownload = async () => {
     if (loading) return;
     setLoading(true);
-
     if (!online) {
-      showSnackbar(
-        t(
-          `Device is offline. Cannot download ${
-            chapters ? "Chapter" : "Lesson"
-          }`
-        ),
-        SnackbarType.Error
-      );
+      presentToast();
       setLoading(false);
       return;
     }
@@ -95,8 +99,10 @@ const DownloadLesson: React.FC<{
         );
       }
     } else {
-      if (!storedLessonID.includes(lessonID)) {
-        await Util.downloadZipBundle([lessonID]);
+      if (lessonID) {
+        if (!storedLessonID.includes(lessonID)) {
+          await Util.downloadZipBundle([lessonID]);
+        }
       }
     }
     setShowIcon(false);
@@ -128,31 +134,6 @@ const DownloadLesson: React.FC<{
       }
     }
     setLoading(false);
-  };
-
-  const showSnackbar = (message: string, type: SnackbarType) => {
-    switch (type) {
-      case SnackbarType.Success:
-        Toast.show({
-          text: message,
-          duration: "short",
-          position: "bottom",
-        });
-        break;
-      case SnackbarType.Error:
-        Toast.show({
-          text: message,
-          duration: "long",
-          position: "bottom",
-        });
-        break;
-      default:
-        Toast.show({
-          text: message,
-          duration: "long",
-          position: "bottom",
-        });
-    }
   };
 
   useEffect(() => {
