@@ -65,6 +65,19 @@ const ChimpleAvatar: FC<{
     State_Machine,
     riveCharHandsUp
   );
+  const requestBurstAnimation = () => {
+    const burstElement = document.querySelector(".burst");
+    if (burstElement) {
+      burstElement.addEventListener(
+        "animationend",
+        () => {
+          setIsBurst(false);
+          setButtonsDisabled(true);
+        },
+        { once: true }
+      );
+    }
+  };
 
   useEffect(() => {
     loadSuggestionsFromJson();
@@ -152,14 +165,7 @@ const ChimpleAvatar: FC<{
     //   return;
     // }
     rive?.play(avatarObj.yesAnimation);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    if (rive) {
-      const animation = avatarObj.yesAnimation;
-      rive?.play(avatarObj.yesAnimation);
-      setTimeout(() => {
-        rive?.stop(animation);
-      }, 1 * 1000);
-    }
+    requestBurstAnimation();
     buttons = [];
     onclickInput?.fire();
   }
@@ -170,7 +176,8 @@ const ChimpleAvatar: FC<{
     let i = 0;
     while (i < 22) {
       rive?.play(avatarObj.yesAnimation);
-      await new Promise((resolve) => setTimeout(resolve, animationDuration));
+      requestBurstAnimation();
+
       console.log("audio testing", isAudioPlaying, isTtsPlaying);
       i++;
     }
@@ -195,7 +202,7 @@ const ChimpleAvatar: FC<{
     //   return;
     // }
     rive?.play(avatarObj.noAnimation);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    requestBurstAnimation();
     buttons = [];
     onclickInput?.fire();
   }
@@ -215,7 +222,7 @@ const ChimpleAvatar: FC<{
       case AvatarModes.Welcome:
         if (choice) {
           setButtonsDisabled(false);
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          requestBurstAnimation();
           rive?.play(avatarObj.avatarAnimation);
           buttons = [];
           onclickInput?.fire();
@@ -319,10 +326,7 @@ const ChimpleAvatar: FC<{
       default:
         break;
     }
-    setTimeout(() => {
-      setIsBurst(false);
-      setButtonsDisabled(true);
-    }, 50);
+    requestBurstAnimation();
   };
 
   async function playCurrentLesson() {
