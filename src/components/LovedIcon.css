@@ -12,7 +12,7 @@
   width: clamp(3vw, 8vh, 5vw);
   /* top: -115%; */
   /* left: 88%; */
-  border-radius: 30vh
+  border-radius: 30vh;
 }
 
 .fav-icon-image {
@@ -43,4 +43,5 @@
   justify-content: flex-end;
   bottom: 10vh;
   right: 2vh;
+  margin-left: auto;
 }
