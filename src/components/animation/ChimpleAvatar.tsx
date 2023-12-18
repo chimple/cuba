@@ -48,7 +48,6 @@ const ChimpleAvatar: FC<{
   const [riveCharHandsUp, setRiveCharHandsUp] = useState("Fail");
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(true);
   const history = useHistory();
-  const burstElementRef = useRef<HTMLDivElement | null>(null);
   const State_Machine = "State Machine 1";
   const { rive, RiveComponent } = useRive({
     src: "/assets/animation/chimplecharacter.riv",
@@ -66,18 +65,6 @@ const ChimpleAvatar: FC<{
     State_Machine,
     riveCharHandsUp
   );
-  const requestBurstAnimation = () => {
-    if (burstElementRef.current) {
-      burstElementRef.current.addEventListener(
-        "animationend",
-        () => {
-          setIsBurst(false);
-          setButtonsDisabled(true);
-        },
-        { once: true }
-      );
-    }
-  };
 
   useEffect(() => {
     loadSuggestionsFromJson();
@@ -165,7 +152,6 @@ const ChimpleAvatar: FC<{
     //   return;
     // }
     rive?.play(avatarObj.yesAnimation);
-    requestBurstAnimation();
     buttons = [];
     onclickInput?.fire();
   }
@@ -176,7 +162,6 @@ const ChimpleAvatar: FC<{
     let i = 0;
     while (i < 22) {
       rive?.play(avatarObj.yesAnimation);
-      requestBurstAnimation();
 
       console.log("audio testing", isAudioPlaying, isTtsPlaying);
       i++;
@@ -202,7 +187,6 @@ const ChimpleAvatar: FC<{
     //   return;
     // }
     rive?.play(avatarObj.noAnimation);
-    requestBurstAnimation();
     buttons = [];
     onclickInput?.fire();
   }
@@ -222,7 +206,6 @@ const ChimpleAvatar: FC<{
       case AvatarModes.Welcome:
         if (choice) {
           setButtonsDisabled(false);
-          requestBurstAnimation();
           rive?.play(avatarObj.avatarAnimation);
           buttons = [];
           onclickInput?.fire();
@@ -326,7 +309,6 @@ const ChimpleAvatar: FC<{
       default:
         break;
     }
-    requestBurstAnimation();
   };
 
   async function playCurrentLesson() {
@@ -658,7 +640,10 @@ const ChimpleAvatar: FC<{
         className={`avatar-option-box-background left-corner ${
           isBurst ? "burst" : ""
         }`}
-        ref={burstElementRef}
+        onAnimationEnd={() => {
+          setIsBurst(false);
+          setButtonsDisabled(true);
+        }}
       >
         <div>
           <TextBoxWithAudioButton
