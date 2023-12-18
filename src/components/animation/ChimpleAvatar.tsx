@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import TextBoxWithAudioButton from "./TextBoxWithAudioButton";
 import RectangularTextButton from "./RectangularTextButton";
 import AvatarImageOption from "./AvatarImageOption";
@@ -48,6 +48,7 @@ const ChimpleAvatar: FC<{
   const [riveCharHandsUp, setRiveCharHandsUp] = useState("Fail");
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(true);
   const history = useHistory();
+  const burstElementRef = useRef<HTMLDivElement | null>(null);
   const State_Machine = "State Machine 1";
   const { rive, RiveComponent } = useRive({
     src: "/assets/animation/chimplecharacter.riv",
@@ -66,9 +67,8 @@ const ChimpleAvatar: FC<{
     riveCharHandsUp
   );
   const requestBurstAnimation = () => {
-    const burstElement = document.querySelector(".burst");
-    if (burstElement) {
-      burstElement.addEventListener(
+    if (burstElementRef.current) {
+      burstElementRef.current.addEventListener(
         "animationend",
         () => {
           setIsBurst(false);
@@ -658,6 +658,7 @@ const ChimpleAvatar: FC<{
         className={`avatar-option-box-background left-corner ${
           isBurst ? "burst" : ""
         }`}
+        ref={burstElementRef}
       >
         <div>
           <TextBoxWithAudioButton
