@@ -248,7 +248,7 @@ const LiveQuizQuestion: FC<{
 
   const onTimeOut = (_liveQuizConfig?: LiveQuiz) => {
     console.log("🚀 ~ file: LiveQuizQuestion.tsx:168 ~ onTimeOut ~ onTimeOut:");
-    // changeQuestion(_liveQuizConfig);
+    changeQuestion(_liveQuizConfig);
   };
 
   const changeQuestion = async (
