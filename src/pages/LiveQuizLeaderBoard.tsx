@@ -4,11 +4,10 @@ import "./LiveQuizLeaderBoard.css";
 import { ServiceConfig } from "../services/ServiceConfig";
 import User from "../models/user";
 import StudentAvatar from "../components/common/StudentAvatar";
-import { Util } from "../utility/util";
-import BackButton from "../components/common/BackButton";
 import { PAGES } from "../common/constants";
 import { t } from "i18next";
 import { useHistory } from "react-router";
+import NextButton from "../components/common/NextButton";
 
 const LiveQuizLeaderBoard: React.FC = () => {
   const [sortedStudentScores, setSortedStudentScores] = useState<any>([]);
@@ -43,7 +42,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
         const scoresData = Object.entries(assignmentDoc.results).map(
           ([studentDocId, result]) => ({
             studentDocId,
-            totalScore: result.score,
+            totalScore: Math.floor(result.score),
           })
         );
 
@@ -63,15 +62,17 @@ const LiveQuizLeaderBoard: React.FC = () => {
     <IonPage>
       <IonContent>
         <div className="leaderboard-header">
-          <div className="leaderboard-back-button">
-            <BackButton
-              onClicked={() => {
-                Util.setPathToBackButton(PAGES.HOME, history);
-              }}
-            />
-          </div>
+          <div className="empty"></div>
 
           <p className="header-name">{t("Live Quiz Leaderboard")}</p>
+          <div id="leaderboard-next-button">
+            <NextButton
+              onClicked={() => {
+                history.replace(PAGES.HOME);
+              }}
+              disabled={false}
+            />
+          </div>
         </div>
         <div className="leaderboard-header-row">
           <div>{t("Rank")}</div>
