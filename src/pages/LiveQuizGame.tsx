@@ -9,6 +9,7 @@ import LiveQuizCountdownTimer from "../components/liveQuiz/LiveQuizCountdownTime
 import LiveQuizQuestion from "../components/liveQuiz/LiveQuizQuestion";
 import LiveQuiz from "../models/liveQuiz";
 import LiveQuizHeader from "../components/liveQuiz/LiveQuizHeader";
+import LiveQuizNavigationDots from "../components/liveQuiz/LiveQuizNavigationDots";
 
 const LiveQuizGame: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -18,6 +19,7 @@ const LiveQuizGame: FC = () => {
   const [roomDoc, setRoomDoc] = useState<LiveQuizRoomObject>();
   const [isTimeOut, setIsTimeOut] = useState(false);
   const [liveQuizConfig, setLiveQuizConfig] = useState<LiveQuiz>();
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();
 
   useEffect(() => {
     if (!paramLiveRoomId) {
@@ -59,6 +61,7 @@ const LiveQuizGame: FC = () => {
                   newQuestionIndex,
                   liveQuizConfig?.data[newQuestionIndex]
                 );
+                setCurrentQuestionIndex(newQuestionIndex);
               }}
               showQuiz={isTimeOut}
               onConfigLoaded={setLiveQuizConfig}
@@ -71,6 +74,14 @@ const LiveQuizGame: FC = () => {
             />
           )}
         </div>
+      </div>
+      <div className="live-quiz-bottom-dots">
+        {isTimeOut && liveQuizConfig && currentQuestionIndex != null && (
+          <LiveQuizNavigationDots
+            totalDots={liveQuizConfig.data.length}
+            currentDot={currentQuestionIndex}
+          />
+        )}
       </div>
     </IonPage>
   );
