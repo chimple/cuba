@@ -167,7 +167,7 @@ const LiveQuizRoom: React.FC = () => {
               </div>
             ))
           ) : (
-            <p>{t("No students have played yet.")}</p>
+            <p id="container-text">{t("No students have played yet.")}</p>
           )}
         </div>
       </div>
