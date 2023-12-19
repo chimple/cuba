@@ -1,7 +1,11 @@
 .leaderboard-header {
   text-align: center;
   margin: var(--margin);
-  margin-bottom: 5vh;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-left: 10vw;
 }
 .header-name {
   color: var(--text-color);
@@ -20,9 +24,6 @@
   align-items: center;
   justify-content: center;
   margin: 1px 0;
-}
-.leaderboard-back-button {
-  position: absolute;
 }
 
 .even {

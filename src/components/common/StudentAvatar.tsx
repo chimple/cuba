@@ -27,7 +27,7 @@ const StudentAvatar: React.FC<{
         : "block",
     textOverflow: "ellipsis",
     overflow: "hidden",
-    marginLeft: namePosition === "right" ? "10vw" : "0",
+    marginLeft: namePosition === "right" ? "7.8vw" : "0",
   };
 
   return (

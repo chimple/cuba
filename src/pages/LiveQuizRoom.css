@@ -1,0 +1,87 @@
+.live-quiz-room-page {
+  margin: var(--margin);
+  margin-bottom: 0;
+}
+.played-students {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 2vh;
+}
+.not-played-students {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 2vh;
+}
+#container-text {
+  font-size: x-large;
+  font-weight: bold;
+  color: var(--text-color);
+  margin-bottom: 1vh;
+  display: flex;
+  align-items: center;
+  width: 22vw;
+  padding-right: 1vw;
+  justify-content: flex-end;
+}
+.student-score {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  color: var(--text-color);
+  font-weight: bold;
+  font-size: 3vh;
+}
+#header-text {
+  font-size: x-large;
+  font-weight: bold;
+  color: var(--text-color);
+  margin-bottom: 1vh;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  justify-content: flex-end;
+}
+.live-quiz-room-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+.join-button {
+  box-shadow: 0;
+  display: flex;
+  justify-content: center;
+}
+.button-container {
+  display: flex;
+  justify-content: center;
+}
+#button-inner {
+  display: flex;
+  position: relative;
+  flex-flow: row;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  color: var(--text-color);
+  background: rgb(95, 226, 54);
+  width: 26vw;
+  height: 12vh;
+  border-radius: 8vh;
+  font-size: 5vh;
+  font-weight: bold;
+}
+#student-container-1 {
+  display: flex;
+  overflow-x: scroll;
+  border: 2px solid rgb(95, 226, 54);
+  border-radius: 6vh;
+  padding: 10px;
+}
+#student-container-2 {
+  display: flex;
+  overflow-x: scroll;
+  border: 2px solid grey;
+  border-radius: 6vh;
+  padding: 10px;
+}

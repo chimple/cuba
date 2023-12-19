@@ -8,11 +8,11 @@
 }
 
 .student-avatar-img {
-  border-radius: 50%;
+  border-radius: 9vw;
 }
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
   .student-avatar-img {
-    max-width: 58%;
+    max-width: 8vw;
   }
 }
 .student-avatar-name {

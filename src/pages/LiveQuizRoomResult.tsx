@@ -9,6 +9,7 @@ import { useHistory } from "react-router";
 import { PAGES } from "../common/constants";
 import { GiCrown } from "react-icons/gi";
 import { t } from "i18next";
+import { IonContent, IonPage } from "@ionic/react";
 
 const LiveQuizRoomResult: React.FC = () => {
   const [topThreeStudents, setTopThreeStudents] = useState<User[]>([]);
@@ -107,78 +108,80 @@ const LiveQuizRoomResult: React.FC = () => {
     return v + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
   }
   return (
-    <div className="result-page">
-      <div id="next-button">
-        <NextButton disabled={false} onClicked={handleNextClick} />
-      </div>
-
-      <div className="live-quiz-room-result-container">
-        <div className="top-performers">
-          {topThreeStudents.slice(0, 1).map((student, index) => (
-            <div key={index} className={`performer-${index + 1}`}>
-              {showConfetti && (
-                <Confetti
-                  recycle={false}
-                  numberOfPieces={500}
-                  initialVelocityY={{ min: 0, max: 100 }}
-                />
-              )}
-
-              <div className="student-avatar-container">
-                <StudentAvatar
-                  key={student.docId}
-                  student={student}
-                  onClicked={() => {}}
-                  nameLabel="1st"
-                />
-                <div className="crown-container">
-                  <GiCrown id="crown-icon" />
-                </div>
-              </div>
-            </div>
-          ))}
+    <IonPage className="result-page">
+      <IonContent>
+        <div id="next-button">
+          <NextButton disabled={false} onClicked={handleNextClick} />
         </div>
-        {showConfetti && isCongratsVisible && (
-          <p id="congrats-text">
-            <i>{t("Congratulations!")}</i>
-          </p>
-        )}
-        <div className="top-performers-horizontal">
-          {topThreeStudents.slice(1).map((student, index) => (
-            <div key={index + 1} className={`performer-${index + 2}`}>
-              <StudentAvatar
-                key={student.docId}
-                student={student}
-                onClicked={() => {}}
-                nameLabel={getOrdinal(index + 2)}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
 
-      <div className="score-container">
-        <div className="all-students">
-          {sortedStudentScores?.map((scoreData) => {
-            const student = students.get(scoreData.studentDocId);
-            return (
-              <div key={scoreData.studentDocId} className="student-info">
-                {student && (
+        <div className="live-quiz-room-result-container">
+          <div className="top-performers">
+            {topThreeStudents.slice(0, 1).map((student, index) => (
+              <div key={index} className={`performer-${index + 1}`}>
+                {showConfetti && (
+                  <Confetti
+                    recycle={false}
+                    numberOfPieces={500}
+                    initialVelocityY={{ min: 0, max: 100 }}
+                  />
+                )}
+
+                <div className="student-avatar-container">
                   <StudentAvatar
                     key={student.docId}
                     student={student}
                     onClicked={() => {}}
-                    namePosition="above"
-                    width={70}
+                    nameLabel="1st"
                   />
-                )}
-                <div className="student-score">{scoreData.totalScore}</div>
+                  <div className="crown-container">
+                    <GiCrown id="crown-icon" />
+                  </div>
+                </div>
               </div>
-            );
-          })}
+            ))}
+          </div>
+          {showConfetti && isCongratsVisible && (
+            <p id="congrats-text">
+              <i>{t("Congratulations!")}</i>
+            </p>
+          )}
+          <div className="top-performers-horizontal">
+            {topThreeStudents.slice(1).map((student, index) => (
+              <div key={index + 1} className={`performer-${index + 2}`}>
+                <StudentAvatar
+                  key={student.docId}
+                  student={student}
+                  onClicked={() => {}}
+                  nameLabel={getOrdinal(index + 2)}
+                />
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-    </div>
+
+        <div className="score-container">
+          <div className="all-students">
+            {sortedStudentScores?.map((scoreData) => {
+              const student = students.get(scoreData.studentDocId);
+              return (
+                <div key={scoreData.studentDocId} className="student-info">
+                  {student && (
+                    <StudentAvatar
+                      key={student.docId}
+                      student={student}
+                      onClicked={() => {}}
+                      namePosition="above"
+                      width={70}
+                    />
+                  )}
+                  <div className="student-score">{scoreData.totalScore}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </IonContent>
+    </IonPage>
   );
 };
 
