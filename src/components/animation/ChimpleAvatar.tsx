@@ -34,7 +34,6 @@ const ChimpleAvatar: FC<{
   isUnlocked?: boolean;
 }> = ({ recommadedSuggestion, style }) => {
   let avatarObj = AvatarObj.getInstance();
-
   const [currentMode, setCurrentMode] = useState<AvatarModes>(
     avatarObj.mode || AvatarModes.Welcome
   );
@@ -76,7 +75,6 @@ const ChimpleAvatar: FC<{
       stop();
     };
   }, []);
-
   const api = ServiceConfig.getI().apiHandler;
 
   async function loadSuggestionsFromJson() {
@@ -91,8 +89,10 @@ const ChimpleAvatar: FC<{
         "if (avatarObj.mode === AvatarModes.CourseSuggestion) {",
         cCourse
       );
-    }
-    if (avatarObj.mode === AvatarModes.RecommendedLesson) {
+      const x1 = cCourse?.title || "";
+      message = t(`Do you want to play 'x1' course?`).replace("x1", x1);
+      await speak(message);
+    } else if (avatarObj.mode === AvatarModes.RecommendedLesson) {
       avatarObj.currentRecommededLessonIndex = 0;
       console.log(
         "setCurrentLesson(recommadedSuggestion[0]);",
@@ -101,6 +101,16 @@ const ChimpleAvatar: FC<{
       setCurrentLesson(
         recommadedSuggestion[avatarObj.currentRecommededLessonIndex]
       );
+      const x3 =
+        recommadedSuggestion[avatarObj.currentRecommededLessonIndex]?.title ||
+        "";
+      message = t(`Do you want to play 'x3' lesson?`).replace("x3", x3);
+      await speak(message);
+    } else {
+      if (!message) {
+        message = t("Hi! Welcome to Chimple");
+      }
+      await speak(message);
     }
   }
   let buttons: { label: string; onClick: () => void; isTrue?: boolean }[] = [];
@@ -184,7 +194,6 @@ const ChimpleAvatar: FC<{
     }
 
     if (!isTtsPlaying) {
-      console.log("hjgdfhdsg");
       await speak();
     }
   };
@@ -231,10 +240,19 @@ const ChimpleAvatar: FC<{
               cChapter = await getRecommendedChapter(cCourse || currentCourse);
               setCurrentChapter(cChapter);
               setCurrentStageMode(AvatarModes.ChapterSuggestion);
+              const x2 = cChapter?.title || "";
+              message = t(`Do you want to play 'x2' chapter?`).replace(
+                "x2",
+                x2
+              );
+              await speak(message);
             } else {
               await onClickNo();
               cCourse = await getRecommendedCourse();
               setCurrentCourse(cCourse);
+              const x1 = cCourse?.title || "";
+              message = t(`Do you want to play 'x1' course?`).replace("x1", x1);
+              await speak(message);
             }
             break;
           case AvatarModes.ChapterSuggestion:
@@ -246,12 +264,25 @@ const ChimpleAvatar: FC<{
                 cCourse || currentCourse
               );
               setCurrentLesson(cLesson);
+              console.log("lesson after chapter", cLesson?.title);
+              const x3 = cLesson?.title || "";
+              message = t(`Do you want to play 'x3' lesson`).replace(
+                "x3",
+                x3
+              );
+              await speak(message);
               // avatarObj.mode = AvatarModes.LessonSuggestion;
               setCurrentStageMode(AvatarModes.LessonSuggestion);
             } else {
               await onClickNo();
               cChapter = await getRecommendedChapter(cCourse || currentCourse);
               setCurrentChapter(cChapter);
+              const x2 = cChapter?.title || "";
+              message = t(`Do you want to play 'x2' chapter?`).replace(
+                "x2",
+                x2
+              );
+              await speak(message);
             }
             break;
           case AvatarModes.LessonSuggestion:
@@ -267,6 +298,9 @@ const ChimpleAvatar: FC<{
                 cCourse || currentCourse
               );
               setCurrentLesson(cLesson);
+              const x3 = cLesson?.title || "";
+              message = t(`Do you want to play 'x3' lesson?`).replace("x3", x3);
+              await speak(message);
             }
             break;
         }
@@ -279,6 +313,7 @@ const ChimpleAvatar: FC<{
           await loadNextSuggestion();
         } else {
           await onClickNo();
+          await speak();
         }
         break;
       case AvatarModes.FourOptionQuestion:
@@ -314,6 +349,10 @@ const ChimpleAvatar: FC<{
 
           let recomLesson = await getRecommendedLesson(cChapter, currentCourse);
           setCurrentLesson(recomLesson);
+          console.log("14", message);
+          const x3 = recomLesson?.title || "";
+          message = t(`Do you want to play 'x3' lesson?`).replace("x2", x3);
+          await speak(message);
         }
         break;
       default:
