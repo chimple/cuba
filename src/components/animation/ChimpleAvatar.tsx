@@ -264,10 +264,11 @@ const ChimpleAvatar: FC<{
                 cCourse || currentCourse
               );
               setCurrentLesson(cLesson);
-              const x2 = cLesson?.title || "";
-              message = t(`Do you want to play 'x2' chapter?`).replace(
-                "x2",
-                x2
+              console.log("lesson after chapter", cLesson?.title);
+              const x3 = cLesson?.title || "";
+              message = t(`Do you want to play 'x3' lesson`).replace(
+                "x3",
+                x3
               );
               await speak(message);
               // avatarObj.mode = AvatarModes.LessonSuggestion;

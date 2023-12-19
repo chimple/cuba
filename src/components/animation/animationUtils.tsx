@@ -41,18 +41,18 @@ export function useAudioPlayer(audioSrc: string) {
 
 export function useTtsAudioPlayer(
   audioText: string,
-  audioLang: string = "en-IN"
 ) {
-  const language = localStorage.getItem(LANGUAGE) || "en";
-  audioLang = language + "-IN";
+  
   const [isTtsPlaying, setIsTtsPlaying] = useState<boolean>(false);
   useEffect(() => {
     if (isTtsPlaying) {
       speak();
     }
   }, [isTtsPlaying]);
-  const speak = async (updatedMessage?: string) => {
-    audioText = updatedMessage || audioText;
+  const speak = async (audioMessage?: string, audioLang: string = "en-IN") => {
+    audioText = audioMessage || audioText;
+    const language = localStorage.getItem(LANGUAGE) || "en";
+    audioLang = language + "-IN";
     try {
       console.log("speak method called ", isTtsPlaying, !isTtsPlaying);
       setIsTtsPlaying(true);
