@@ -159,7 +159,7 @@ const LiveQuizRoom: React.FC = () => {
                   width={70}
                   namePosition={"above"}
                 />
-                {currentAssignment?.results && (
+                {!!currentAssignment?.results && (
                   <p className="student-score">
                     {currentAssignment.results[student.docId]?.score}
                   </p>
@@ -188,15 +188,15 @@ const LiveQuizRoom: React.FC = () => {
       </div>
 
       <div className="button-container">
-        {isDownloaded ? (
+        {!!isDownloaded ? (
           <IonButton
             size="default"
             color="green"
             shape="round"
             id="button-inner"
-            disabled={isJoining}
+            disabled={!isDownloaded || isJoining}
             onClick={() => {
-              if (currentAssignment?.docId) {
+              if (!!currentAssignment?.docId) {
                 joinQuiz(
                   Util.getCurrentStudent()?.docId!,
                   currentAssignment.docId
@@ -211,7 +211,7 @@ const LiveQuizRoom: React.FC = () => {
             color="rgb(95, 226, 54)"
             height={26}
             width={143}
-            loading={isDownloaded}
+            loading={!isDownloaded}
           />
         )}
       </div>
