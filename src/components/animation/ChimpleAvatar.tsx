@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import TextBoxWithAudioButton from "./TextBoxWithAudioButton";
 import RectangularTextButton from "./RectangularTextButton";
 import AvatarImageOption from "./AvatarImageOption";
@@ -162,14 +162,6 @@ const ChimpleAvatar: FC<{
     //   return;
     // }
     rive?.play(avatarObj.yesAnimation);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    if (rive) {
-      const animation = avatarObj.yesAnimation;
-      rive?.play(avatarObj.yesAnimation);
-      setTimeout(() => {
-        rive?.stop(animation);
-      }, 1 * 1000);
-    }
     buttons = [];
     onclickInput?.fire();
   }
@@ -180,7 +172,7 @@ const ChimpleAvatar: FC<{
     let i = 0;
     while (i < 22) {
       rive?.play(avatarObj.yesAnimation);
-      await new Promise((resolve) => setTimeout(resolve, animationDuration));
+
       console.log("audio testing", isAudioPlaying, isTtsPlaying);
       i++;
     }
@@ -204,7 +196,6 @@ const ChimpleAvatar: FC<{
     //   return;
     // }
     rive?.play(avatarObj.noAnimation);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
     buttons = [];
     onclickInput?.fire();
   }
@@ -224,7 +215,6 @@ const ChimpleAvatar: FC<{
       case AvatarModes.Welcome:
         if (choice) {
           setButtonsDisabled(false);
-          await new Promise((resolve) => setTimeout(resolve, 1000));
           rive?.play(avatarObj.avatarAnimation);
           buttons = [];
           onclickInput?.fire();
@@ -358,10 +348,6 @@ const ChimpleAvatar: FC<{
       default:
         break;
     }
-    setTimeout(() => {
-      setIsBurst(false);
-      setButtonsDisabled(true);
-    }, 50);
   };
 
   async function playCurrentLesson() {
@@ -693,6 +679,10 @@ const ChimpleAvatar: FC<{
         className={`avatar-option-box-background left-corner ${
           isBurst ? "burst" : ""
         }`}
+        onAnimationEnd={() => {
+          setIsBurst(false);
+          setButtonsDisabled(true);
+        }}
       >
         <div>
           <TextBoxWithAudioButton
