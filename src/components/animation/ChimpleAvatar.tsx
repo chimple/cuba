@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import TextBoxWithAudioButton from "./TextBoxWithAudioButton";
 import RectangularTextButton from "./RectangularTextButton";
 import AvatarImageOption from "./AvatarImageOption";
@@ -341,7 +341,7 @@ const ChimpleAvatar: FC<{
           setCurrentLesson(recomLesson);
           console.log("14", message);
           const x3 = recomLesson?.title || "";
-          message = t(`Do you want to play 'x3' lesson?`).replace("x2", x3);
+          message = t(`Do you want to play 'x3' lesson?`).replace("x3", x3);
           await speak(message);
         }
         break;
