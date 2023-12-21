@@ -20,6 +20,7 @@ import {
   RECOMMENDATIONS,
   CONTINUE,
   CHAPTER_LESSON_MAP,
+  LIVE_QUIZ,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -188,7 +189,30 @@ const Home: FC = () => {
       await Promise.all(
         studentResult.classes.map(async (_class) => {
           const res = await api.getPendingAssignments(_class, student.docId);
-          allAssignments.push(...res);
+          const currentTimestamp = new Date().getTime();
+          const filteredAssignments = res.filter((assignment) => {
+            if (!!assignment && (assignment as any)?.type === LIVE_QUIZ) {
+              if (
+                (assignment as any)?.startsAt &&
+                (assignment as any)?.endsAt
+              ) {
+                const startsAtTimestamp = (assignment as any).startsAt
+                  .toDate()
+                  .getTime();
+                if (startsAtTimestamp <= currentTimestamp) {
+                  const endsAtTimestamp = (assignment as any).endsAt
+                    .toDate()
+                    .getTime();
+                  return endsAtTimestamp >= currentTimestamp;
+                }
+                return false;
+              }
+            }
+            return true;
+          });
+          console.log("Filtered assignments....", filteredAssignments);
+
+          allAssignments.push(...filteredAssignments);
         })
       );
       let count = 0;
@@ -444,8 +468,8 @@ const Home: FC = () => {
     console.log(currMode);
     let sortLessonResultMap:
       | {
-        [lessonDocId: string]: StudentLessonResult;
-      }
+          [lessonDocId: string]: StudentLessonResult;
+        }
       | undefined;
     const res = await api.getStudentResult(currentStudent.docId);
     console.log("tempResultLessonMap = res;", JSON.stringify(res));
@@ -790,18 +814,18 @@ const Home: FC = () => {
                 }}
               ></ChimpleAvatar>
             ) : // <div>
-              //   <LessonSlider
-              //     lessonData={dataCourse}
-              //     isHome={true}
-              //     course={undefined}
-              //     lessonsScoreMap={lessonResultMap || {}}
-              //     startIndex={0}
-              //     showSubjectName={true}
-              //     showChapterName={true}
-              //   />
-              // </div>
-              // <div style={{ marginTop: "2.6%" }}></div>
-              null}
+            //   <LessonSlider
+            //     lessonData={dataCourse}
+            //     isHome={true}
+            //     course={undefined}
+            //     lessonsScoreMap={lessonResultMap || {}}
+            //     startIndex={0}
+            //     showSubjectName={true}
+            //     showChapterName={true}
+            //   />
+            // </div>
+            // <div style={{ marginTop: "2.6%" }}></div>
+            null}
 
             {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
 
@@ -811,7 +835,7 @@ const Home: FC = () => {
             {currentHeader === HOMEHEADERLIST.LIVEQUIZ && <LiveQuiz />}
 
             {value === SUBTAB.SUGGESTIONS &&
-              currentHeader === HOMEHEADERLIST.SUGGESTIONS ? (
+            currentHeader === HOMEHEADERLIST.SUGGESTIONS ? (
               <div>
                 <LessonSlider
                   lessonData={dataCourse}
@@ -824,7 +848,7 @@ const Home: FC = () => {
                 />
               </div>
             ) : // <div style={{ marginTop: "2.6%" }}></div>
-              null}
+            null}
 
             {value === SUBTAB.FAVOURITES &&
               currentHeader === HOMEHEADERLIST.SUGGESTIONS && (
@@ -926,58 +950,58 @@ const Home: FC = () => {
             {(currentHeader === HOMEHEADERLIST.SUGGESTIONS ||
               currentHeader === HOMEHEADERLIST.FAVOURITES ||
               currentHeader === HOMEHEADERLIST.HISTORY) && (
-                <div id="home-page-bottom">
-                  <AppBar className="home-page-app-bar">
-                    <Box>
-                      <Tabs
-                        value={value}
-                        onChange={handleChange}
-                        TabIndicatorProps={{ style: { display: "none" } }}
-                        sx={{
-                          "& .MuiTab-root": {
-                            color: "black",
-                            borderRadius: "5vh",
-                            padding: "0 3vw",
-                            margin: "1vh 1vh",
-                            minHeight: "37px",
-                          },
-                          "& .Mui-selected": {
-                            backgroundColor: "#FF7925",
-                            borderRadius: "8vh",
-                            color: "#FFFFFF !important",
-                            minHeight: "37px",
-                          },
+              <div id="home-page-bottom">
+                <AppBar className="home-page-app-bar">
+                  <Box>
+                    <Tabs
+                      value={value}
+                      onChange={handleChange}
+                      TabIndicatorProps={{ style: { display: "none" } }}
+                      sx={{
+                        "& .MuiTab-root": {
+                          color: "black",
+                          borderRadius: "5vh",
+                          padding: "0 3vw",
+                          margin: "1vh 1vh",
+                          minHeight: "37px",
+                        },
+                        "& .Mui-selected": {
+                          backgroundColor: "#FF7925",
+                          borderRadius: "8vh",
+                          color: "#FFFFFF !important",
+                          minHeight: "37px",
+                        },
+                      }}
+                    >
+                      <Tab
+                        id="home-page-sub-tab"
+                        label={t("For You")}
+                        onClick={() => {
+                          setCurrentHeader(HOMEHEADERLIST.SUGGESTIONS);
+                          setValue(SUBTAB.SUGGESTIONS);
                         }}
-                      >
-                        <Tab
-                          id="home-page-sub-tab"
-                          label={t("For You")}
-                          onClick={() => {
-                            setCurrentHeader(HOMEHEADERLIST.SUGGESTIONS);
-                            setValue(SUBTAB.SUGGESTIONS);
-                          }}
-                        />
-                        <Tab
-                          id="home-page-sub-tab"
-                          label={t("Favourite")}
-                          onClick={() => {
-                            setCurrentHeader(HOMEHEADERLIST.SUGGESTIONS);
-                            setValue(SUBTAB.FAVOURITES);
-                          }}
-                        />
-                        <Tab
-                          id="home-page-sub-tab"
-                          label={t("History")}
-                          onClick={() => {
-                            setCurrentHeader(HOMEHEADERLIST.SUGGESTIONS);
-                            setValue(SUBTAB.HISTORY);
-                          }}
-                        />
-                      </Tabs>
-                    </Box>
-                  </AppBar>
-                </div>
-              )}
+                      />
+                      <Tab
+                        id="home-page-sub-tab"
+                        label={t("Favourite")}
+                        onClick={() => {
+                          setCurrentHeader(HOMEHEADERLIST.SUGGESTIONS);
+                          setValue(SUBTAB.FAVOURITES);
+                        }}
+                      />
+                      <Tab
+                        id="home-page-sub-tab"
+                        label={t("History")}
+                        onClick={() => {
+                          setCurrentHeader(HOMEHEADERLIST.SUGGESTIONS);
+                          setValue(SUBTAB.HISTORY);
+                        }}
+                      />
+                    </Tabs>
+                  </Box>
+                </AppBar>
+              </div>
+            )}
           </div>
         ) : null}
         <Loading isLoading={isLoading} />

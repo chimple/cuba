@@ -24,6 +24,7 @@ const LiveQuizRoom: React.FC = () => {
   const [isJoining, setIsJoining] = useState(false);
   const [lessonName, setLessonName] = useState<string | undefined>();
   const [courseName, setCourseName] = useState<string | undefined>();
+  const [quizOutCome, setQuizOutCome] = useState<string | undefined>();
   let lessonRef;
   let courseRef;
 
@@ -60,8 +61,12 @@ const LiveQuizRoom: React.FC = () => {
     lessonRef = assignment?.lesson;
     courseRef = assignment?.course;
     const lesson = await api.getLesson(lessonRef.id);
-    setLessonName(lesson?.title);
-
+    if (!!lesson) {
+      setLessonName(lesson?.title);
+      const tempOutcome = lesson?.outcome;
+      console.log("outcome..", tempOutcome);
+      setQuizOutCome(tempOutcome);
+    }
     const course = await api.getCourse(courseRef?.id);
     setCourseName(course?.title);
 
@@ -147,43 +152,52 @@ const LiveQuizRoom: React.FC = () => {
         <p id="header-text">{(lessonName && lessonName) ?? ""}</p>
       </div>
 
-      <div className="played-students">
-        <p id="container-text">{t("Played")}</p>
-        <div id="student-container-1">
-          {prevPlayedStudents.length > 0 ? (
-            prevPlayedStudents.map((student) => (
-              <div key={student.docId} className="student-avatar-container">
-                <StudentAvatar
-                  student={student}
-                  onClicked={() => {}}
-                  width={70}
-                  namePosition={"above"}
-                />
-                {!!currentAssignment?.results && (
-                  <p className="student-score">
-                    {currentAssignment.results[student.docId]?.score}
-                  </p>
-                )}
-              </div>
-            ))
-          ) : (
-            <p id="container-text">{t("No students have played yet.")}</p>
-          )}
-        </div>
+      <div className="outcome">
+        <p id="outcome-text">{(quizOutCome && quizOutCome) ?? ""}</p>
       </div>
 
-      <div className="not-played-students">
-        <p id="container-text">{t("Not Played")}</p>
-        <div id="student-container-2">
-          {notPlayedStudents.map((student) => (
-            <StudentAvatar
-              key={student.docId}
-              student={student}
-              onClicked={() => {}}
-              width={70}
-              namePosition={"above"}
-            />
-          ))}
+      <div className="students-container">
+        <div className="left-text">
+          <p id="container-text">{t("Played")}</p>
+          <p id="container-text">{t("Not Played")}</p>
+        </div>
+
+        <div className="played-students">
+          <div className="student-container-1">
+            {prevPlayedStudents.length > 0 ? (
+              prevPlayedStudents.map((student) => (
+                <div key={student.docId} className="student-avatar-container">
+                  <StudentAvatar
+                    student={student}
+                    onClicked={() => {}}
+                    width={70}
+                    namePosition={"above"}
+                  />
+                  {!!currentAssignment?.results && (
+                    <p className="student-score">
+                      {Math.floor(
+                        currentAssignment.results[student.docId]?.score
+                      )}
+                    </p>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p id="container-text">{t("No students have played yet.")}</p>
+            )}
+          </div>
+
+          <div className="student-container-2">
+            {notPlayedStudents.map((student) => (
+              <StudentAvatar
+                key={student.docId}
+                student={student}
+                onClicked={() => {}}
+                width={70}
+                namePosition={"above"}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
