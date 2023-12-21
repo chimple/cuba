@@ -165,7 +165,7 @@ const StudentProgress: React.FC = () => {
               tempDataContent.push([
                 lessonDetail.title,
                 chapter.title,
-                Math.floor(lessonRes.score) + "",
+                Math.floor(lessonRes.score).toString(),
                 computeMinutes + ":" + result,
               ]);
             }
