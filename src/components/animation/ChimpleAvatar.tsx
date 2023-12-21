@@ -676,14 +676,19 @@ const ChimpleAvatar: FC<{
         </div>
       </div>
       <div
-        className={`avatar-option-box-background left-corner ${
+        className={`avatar-option-box-background ${
           isBurst ? "burst" : ""
         }`}
         onAnimationEnd={() => {
           setIsBurst(false);
           setButtonsDisabled(true);
         }}
+        // id="temp"
       >
+        <div className="chatbox-bubble"></div>
+        <div className="chatbox-bubble2"></div>
+        <div className="chatbox-bubble3"></div>
+        <div className="chatbox-bubble4"></div>
         <div>
           <TextBoxWithAudioButton
             message={message}
