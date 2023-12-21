@@ -20,6 +20,7 @@ import { t } from "i18next";
 import LovedIcon from "./LovedIcon";
 import SelectIconImage from "./displaySubjects/SelectIconImage";
 import { Util } from "../utility/util";
+import DownloadLesson from "./DownloadChapterAndLesson";
 
 const LessonCard: React.FC<{
   width: string;
@@ -158,7 +159,10 @@ const LessonCard: React.FC<{
               lesson: JSON.stringify(Lesson.toJson(lesson)),
               from: history.location.pathname + `?${CONTINUE}=true`,
             });
-          } else {
+          } else if (
+            !!lesson?.assignment?.docId &&
+            lesson.pluginType === LIVE_QUIZ
+          ) {
             history.replace(
               PAGES.LIVE_QUIZ_JOIN +
                 `?assignmentId=${lesson?.assignment?.docId}`,
@@ -263,6 +267,7 @@ const LessonCard: React.FC<{
                   <div id="lesson-card-score">
                     <LessonCardStarIcons score={score}></LessonCardStarIcons>
                   </div>
+
                   {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
                 </div>
               ) : (
@@ -272,7 +277,11 @@ const LessonCard: React.FC<{
               <div />
             )}
           </div>
+
           {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
+        </div>
+        <div className="lesson-download-button-container">
+          <DownloadLesson lessonID={lesson.id} lessonData={lessonData} />
         </div>
         {isLoved && (
           <LovedIcon

@@ -22,3 +22,45 @@
     margin-right: auto;
     max-height: 39vh;
 }
+
+
+@media only screen and (min-width: 1030px)  {
+  .audio-icon:hover{
+    cursor: pointer;
+    transform: scale(1.05);
+  }
+}
+
+@media only screen and (min-width: 1030px) {
+  .audio-icon-container:hover{
+    transform: scale(1.05);
+  }
+}
+
+@media (pointer: coarse)  {
+  .audio-icon:active{
+    transform: scale(1.05);
+  }
+}
+
+@media (pointer: coarse) {
+  .audio-icon-container:active{
+    transform: scale(1.05);
+  }
+}
+
+
+ .audio-icon{
+    color: #474747 ;
+    background-color: #678e21;
+ }
+  
+  .audio-icon-container{
+    font-size: 4vw;
+    padding: 1%;
+    color: #474747;
+    background-color: white;
+    border-radius: 100%;
+    border: 2px solid #474747;
+    border-bottom: 4.5px solid #474747;
+  }

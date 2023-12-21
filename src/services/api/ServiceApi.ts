@@ -13,7 +13,7 @@ import School from "../../models/school";
 import Assignment from "../../models/assignment";
 import { MODES } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
-import { Unsubscribe } from "firebase/firestore";
+import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 
 export interface LeaderboardInfo {
@@ -164,13 +164,21 @@ export interface ServiceApi {
   ): Promise<Map<string, StudentLessonResult> | undefined>;
 
   /**
-  * This function gets all live quizzes from assignments for a student in a class.
-  * Gives Array of `Assignments` objects for a given `classID`
-  * @param {classId} classId firebase doc id
-  * @returns {Assignment[]} A promise that resolves to an array of assignments.
-  */
-  getLiveQuizLessons(classId: string): Promise<Assignment[]>;
-
+   * This function gets all live quizzes from assignments for a student in a class.
+   * Gives Array of `Assignments` objects for a given `classID`
+   * @param {classId} classId firebase doc id
+   * @param {studentId} studentId firebase doc id
+   * @returns {Assignment[]} A promise that resolves to an array of assignments.
+   */
+  getLiveQuizLessons(classId: string, studentId: string): Promise<Assignment[]>;
+  /**
+   * This function gets the document of the live quiz room
+   * @param liveQuizRoomDocId firebase doc id
+   * @return {DocumentData} A promise that returns the document of live quiz room
+   */
+  getLiveQuizRoomDoc(
+    liveQuizRoomDocId: string
+  ): Promise<DocumentData | undefined>;
   /**
    * Creates a Document in Result collection with the given params
    * student: User
@@ -419,6 +427,7 @@ export interface ServiceApi {
    *
    * @param roomDocId - The unique identifier of the live quiz room document.
    * @param studentId - The unique identifier of the student for whom the results are being updated.
+   * @param questionId - The ID of the question.
    * @param score - The new score achieved by the student in the quiz.
    * @param timeSpent - The new amount of time spent by the student on the quiz.
    * @returns A promise that resolves when the update is successful and rejects if an error occurs.
@@ -426,8 +435,9 @@ export interface ServiceApi {
   updateLiveQuiz(
     roomDocId: string,
     studentId: string,
-    score: number,
-    timeSpent: number
+    questionId: string,
+    timeSpent: number,
+    score: number
   ): Promise<void>;
 
   /**

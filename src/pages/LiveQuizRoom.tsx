@@ -6,6 +6,10 @@ import User from "../models/user";
 import { useHistory } from "react-router";
 import Assignment from "../models/assignment";
 import StudentAvatar from "../components/common/StudentAvatar";
+import { PAGES } from "../common/constants";
+import "./LiveQuizRoom.css";
+import { t } from "i18next";
+import BarLoader from "react-spinners/BarLoader";
 
 const LiveQuizRoom: React.FC = () => {
   const [students, setStudents] = useState(new Map<String, User>());
@@ -18,6 +22,10 @@ const LiveQuizRoom: React.FC = () => {
   const paramAssignmentId = urlSearchParams.get("assignmentId") ?? "";
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+  const [lessonName, setLessonName] = useState<string | undefined>();
+  const [courseName, setCourseName] = useState<string | undefined>();
+  let lessonRef;
+  let courseRef;
 
   const state = (history.location.state as any) ?? {};
   useEffect(() => {
@@ -49,6 +57,14 @@ const LiveQuizRoom: React.FC = () => {
     if (!assignment) {
       assignment = await api.getAssignmentById(paramAssignmentId);
     }
+    lessonRef = assignment?.lesson;
+    courseRef = assignment?.course;
+    const lesson = await api.getLesson(lessonRef.id);
+    setLessonName(lesson?.title);
+
+    const course = await api.getCourse(courseRef?.id);
+    setCourseName(course?.title);
+
     if (!assignment?.lesson?.id) return;
     setCurrentAssignment(assignment);
     downloadQuiz(assignment.lesson.id);
@@ -119,44 +135,88 @@ const LiveQuizRoom: React.FC = () => {
     setIsJoining(true);
     const res = await api.joinLiveQuiz(studentId, assignmentId);
     console.log("🚀 ~ file: LiveQuizRoom.tsx:108 ~ joinQuiz ~ res:", res);
+    history.replace(PAGES.LIVE_QUIZ_GAME + "?liveRoomId=" + res);
     setIsJoining(false);
-    //push to live quiz
+    return;
   };
 
   return (
-    <IonPage>
-      <h1>Prev Students</h1>
-      {prevPlayedStudents.map((student) => (
-        <StudentAvatar
-          key={student.docId}
-          student={student}
-          onClicked={() => {}}
-        />
-      ))}
+    <IonPage className="live-quiz-room-page">
+      <div className="live-quiz-room-header">
+        <p id="header-text">{(courseName && courseName + " ⇒") ?? ""}</p>
+        <p id="header-text">{(lessonName && lessonName) ?? ""}</p>
+      </div>
 
-      <h1>Not Played Students</h1>
-      {notPlayedStudents.map((student) => (
-        <StudentAvatar
-          key={student.docId}
-          student={student}
-          onClicked={() => {}}
-        />
-      ))}
-      <IonButton
-        disabled={!isDownloaded || isJoining}
-        onClick={() => {
-          if (!!currentAssignment?.docId) {
-            joinQuiz(Util.getCurrentStudent()?.docId!, currentAssignment.docId);
-          }
-        }}
-      >
-        {isDownloaded
-          ? isJoining
-            ? "Joining..."
-            : "join Now"
-          : "Downloading..."}
-      </IonButton>
+      <div className="played-students">
+        <p id="container-text">{t("Played")}</p>
+        <div id="student-container-1">
+          {prevPlayedStudents.length > 0 ? (
+            prevPlayedStudents.map((student) => (
+              <div key={student.docId} className="student-avatar-container">
+                <StudentAvatar
+                  student={student}
+                  onClicked={() => {}}
+                  width={70}
+                  namePosition={"above"}
+                />
+                {!!currentAssignment?.results && (
+                  <p className="student-score">
+                    {currentAssignment.results[student.docId]?.score}
+                  </p>
+                )}
+              </div>
+            ))
+          ) : (
+            <p id="container-text">{t("No students have played yet.")}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="not-played-students">
+        <p id="container-text">{t("Not Played")}</p>
+        <div id="student-container-2">
+          {notPlayedStudents.map((student) => (
+            <StudentAvatar
+              key={student.docId}
+              student={student}
+              onClicked={() => {}}
+              width={70}
+              namePosition={"above"}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="button-container">
+        {!!isDownloaded ? (
+          <IonButton
+            size="default"
+            color="green"
+            shape="round"
+            id="button-inner"
+            disabled={!isDownloaded || isJoining}
+            onClick={() => {
+              if (!!currentAssignment?.docId) {
+                joinQuiz(
+                  Util.getCurrentStudent()?.docId!,
+                  currentAssignment.docId
+                );
+              }
+            }}
+          >
+            {isJoining ? t("Joining...") : t("Join Now")}
+          </IonButton>
+        ) : (
+          <BarLoader
+            color="rgb(95, 226, 54)"
+            height={26}
+            width={143}
+            loading={!isDownloaded}
+          />
+        )}
+      </div>
     </IonPage>
   );
 };
+
 export default LiveQuizRoom;

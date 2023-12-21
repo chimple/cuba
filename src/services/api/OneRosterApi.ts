@@ -22,6 +22,7 @@ import School from "../../models/school";
 import { Unsubscribe } from "@firebase/firestore";
 import { AvatarObj } from "../../components/animation/Avatar";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
+import { DocumentData } from "firebase/firestore";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -63,8 +64,9 @@ export class OneRosterApi implements ServiceApi {
   updateLiveQuiz(
     roomDocId: string,
     studentId: string,
-    score: number,
-    timeSpent: number
+    questionId: string,
+    timeSpent: number,
+    score: number
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
@@ -74,7 +76,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<string | undefined> {
     throw new Error("Method not implemented.");
   }
-  private constructor() { }
+  private constructor() {}
   getAvatarInfo(): Promise<AvatarObj | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -109,9 +111,18 @@ export class OneRosterApi implements ServiceApi {
   }> {
     throw new Error("Method not implemented.");
   }
-  getLiveQuizLessons(classId: string): Promise<Assignment[]> {
+  getLiveQuizLessons(
+    classId: string,
+    studentId: string
+  ): Promise<Assignment[]> {
     throw new Error("Method not implemented.");
   }
+  getLiveQuizRoomDoc(
+    liveQuizRoomDocId: string
+  ): Promise<DocumentData | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
   getLessonFromCourse(
     course: Course,
     lessonId: string

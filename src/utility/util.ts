@@ -23,12 +23,15 @@ import {
   SOUND,
   MUSIC,
   CONTINUE,
+  DOWNLOADED_LESSON_AND_CHAPTER_ID,
+  LAST_FUNCTION_CALL,
+  CHAPTER_LESSON_MAP,
   // APP_LANG,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
   Course as curriculamInterfaceCourse,
-  Lesson,
+  Lesson as curriculamInterfaceLesson,
 } from "../interface/curriculumInterfaces";
 import Course1 from "../models/course";
 import { GUIDRef } from "../interface/modelInterfaces";
@@ -63,7 +66,7 @@ import {
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { Router } from "react-router-dom";
 import lesson from "../models/lesson";
-import { AvatarObj } from "../components/animation/Avatar";
+import Lesson from "../models/lesson";
 
 declare global {
   interface Window {
@@ -71,6 +74,7 @@ declare global {
     _CCSettings: any;
   }
 }
+
 export class Util {
   public static port: PortPlugin;
 
@@ -247,6 +251,101 @@ export class Util {
     return { href: map?.href, sourcedId: map?.sourcedId, type: map?.type };
   }
 
+  public static storeLessonOrChaterIdToLocalStorage = (
+    id: string | string[],
+    lessonAndChapterIdStorageKey: string,
+    typeOfId: "lesson" | "chapter"
+  ) => {
+    const storedItems = JSON.parse(
+      localStorage.getItem(lessonAndChapterIdStorageKey) ||
+        '{"lesson":[], "chapter":[]}'
+    );
+
+    const updatedItems = {
+      lesson:
+        typeOfId === "lesson"
+          ? [...storedItems.lesson, ...(Array.isArray(id) ? id : [id])]
+          : storedItems.lesson,
+      chapter:
+        typeOfId === "chapter"
+          ? [...storedItems.chapter, ...(Array.isArray(id) ? id : [id])]
+          : storedItems.chapter,
+    };
+
+    // Set the values outside the conditional statements
+    if (typeOfId === "chapter") {
+      updatedItems.lesson = storedItems.lesson;
+    }
+
+    localStorage.setItem(
+      lessonAndChapterIdStorageKey,
+      JSON.stringify(updatedItems)
+    );
+  };
+  public static getStoredLessonAndChapterIds = () => {
+    const storedItems = JSON.parse(
+      localStorage.getItem(DOWNLOADED_LESSON_AND_CHAPTER_ID) ||
+        JSON.stringify({ lesson: [], chapter: [] })
+    );
+
+    return storedItems;
+  };
+  public static isStored = (
+    id: string,
+    lessonAndChapterIdStorageKey: string
+  ): boolean => {
+    const storedItems = JSON.parse(
+      localStorage.getItem(lessonAndChapterIdStorageKey) ||
+        JSON.stringify({ lesson: [], chapter: [] })
+    );
+
+    const isLessonStored =
+      // Array.isArray(storedItems.lesson) && storedItems.lesson.includes(id);
+      storedItems.lesson.includes(id);
+
+    const isChapterStored =
+      // Array.isArray(storedItems.chapter) && storedItems.chapter.includes(id);
+      storedItems.chapter.includes(id);
+
+    return isLessonStored || isChapterStored;
+  };
+
+  public static removeLessonOrChapterIdFromLocalStorage = (
+    id: string | string[],
+    lessonAndChapterIdStorageKey: string
+  ): void => {
+    const storedItems = JSON.parse(
+      localStorage.getItem(lessonAndChapterIdStorageKey) ||
+        JSON.stringify({ lesson: [], chapter: [] })
+    );
+
+    let idsToRemove: string[];
+
+    if (Array.isArray(id)) {
+      idsToRemove = id;
+    } else {
+      idsToRemove = [id];
+    }
+
+    const updatedItems = {
+      lesson: Array.isArray(storedItems.lesson)
+        ? storedItems.lesson.filter(
+            (lessonId: string) => !idsToRemove.includes(lessonId)
+          )
+        : [],
+      chapter: Array.isArray(storedItems.chapter)
+        ? storedItems.chapter.filter(
+            (chapterId: string) => !idsToRemove.includes(chapterId)
+          )
+        : [],
+    };
+
+    localStorage.setItem(
+      lessonAndChapterIdStorageKey,
+      JSON.stringify(updatedItems)
+    );
+  };
+
   public static async downloadZipBundle(lessonIds: string[]): Promise<boolean> {
     for (let lessonId of lessonIds) {
       try {
@@ -265,7 +364,7 @@ export class Util {
           (localStorage.getItem("gameUrl") ??
             "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
           lessonId +
-          "/index.js";
+          "/config.json";
         console.log("cheching path..", "path", path);
         const res = await fetch(path);
         const isExists = res.ok;
@@ -277,17 +376,17 @@ export class Util {
           "before local lesson Bundle http url:" +
             "assets/" +
             lessonId +
-            "/index.js"
+            "/config.json"
         );
 
         const fetchingLocalBundle = await fetch(
-          "assets/" + lessonId + "/index.js"
+          "assets/" + lessonId + "/config.json"
         );
         console.log(
           "after local lesson Bundle fetch url:" +
             "assets/" +
             lessonId +
-            "/index.js",
+            "/config.json",
           fetchingLocalBundle.ok,
           fetchingLocalBundle.json,
           fetchingLocalBundle
@@ -312,6 +411,12 @@ export class Util {
               "🚀 ~ file: util.ts:219 ~ downloadZipBundle ~ zip:",
               zip.status
             );
+            this.storeLessonOrChaterIdToLocalStorage(
+              lessonId,
+              DOWNLOADED_LESSON_AND_CHAPTER_ID,
+              "lesson"
+            );
+
             if (!!zip && !!zip.data && zip.status === 200) break;
           } catch (error) {
             console.log(
@@ -344,8 +449,12 @@ export class Util {
               ),
             data: buffer,
           });
-
           console.log("un  zip done");
+          this.storeLessonOrChaterIdToLocalStorage(
+            lessonId,
+            DOWNLOADED_LESSON_AND_CHAPTER_ID,
+            "lesson"
+          );
         }
         console.log("zip ", zip);
       } catch (error) {
@@ -358,7 +467,145 @@ export class Util {
     }
     return true;
   }
+  public static async deleteDownloadedLesson(
+    lessonIds: string[]
+  ): Promise<boolean> {
+    try {
+      for (const lessonId of lessonIds) {
+        const lessonPath = `${lessonId}`;
+        await Filesystem.rmdir({
+          path: lessonPath,
+          directory: Directory.External,
+          recursive: true,
+        });
+        console.log("Lesson deleted successfully:", lessonId);
+        this.removeLessonOrChapterIdFromLocalStorage(
+          lessonId,
+          DOWNLOADED_LESSON_AND_CHAPTER_ID
+        );
+      }
+    } catch (error) {
+      console.error("Error deleting lesson:", error);
+    }
+    return false;
+  }
 
+  public static async checkDownloadedLessonsFromLocal() {
+    const storedLastRendered = localStorage.getItem(LAST_FUNCTION_CALL);
+
+    let lastRendered = storedLastRendered
+      ? parseInt(storedLastRendered)
+      : new Date().getTime();
+
+    if (
+      !storedLastRendered ||
+      new Date().getTime() - lastRendered > 60 * 60 * 1000
+    ) {
+      try {
+        if (!Capacitor.isNativePlatform()) return null;
+
+        const contents = await Filesystem.readdir({
+          path: "",
+          directory: Directory.External,
+        });
+
+        const folderNamesArray: string[] = [];
+
+        for (let i = 0; i < contents.files.length; i++) {
+          console.log("Processing folder:", contents.files[i].name);
+          folderNamesArray.push(contents.files[i].name);
+        }
+
+        const storedLessonAndChapterIdMap = JSON.parse(
+          localStorage.getItem(CHAPTER_LESSON_MAP) ?? "null"
+        );
+        const downloadedLessonAndChapterId = JSON.parse(
+          localStorage.getItem(DOWNLOADED_LESSON_AND_CHAPTER_ID) ?? "null"
+        );
+
+        const downloadedChapterId = downloadedLessonAndChapterId.chapter || [];
+
+        for (const chapter of downloadedChapterId) {
+          const lessonIds = storedLessonAndChapterIdMap[chapter] || [];
+          if (!lessonIds) {
+            const api = ServiceConfig.getI().apiHandler;
+            const lessons = await api.getLessonsForChapter(chapter);
+            const storedDataString = localStorage.getItem(CHAPTER_LESSON_MAP);
+            const storedData = storedDataString
+              ? JSON.parse(storedDataString)
+              : {};
+            storedData[chapter.id] = lessons.map((lesson) => lesson.id);
+            localStorage.setItem(
+              CHAPTER_LESSON_MAP,
+              JSON.stringify(storedData)
+            );
+          }
+          const downloadedLessonID = downloadedChapterId.lesson || [];
+          const allElementsPresent = lessonIds.every((element) =>
+            downloadedLessonID.includes(element)
+          );
+          if (!allElementsPresent) {
+            await this.removeLessonOrChapterIdFromLocalStorage(
+              chapter,
+              DOWNLOADED_LESSON_AND_CHAPTER_ID
+            );
+          }
+        }
+
+        downloadedLessonAndChapterId.lesson = [];
+        this.storeLessonOrChaterIdToLocalStorage(
+          folderNamesArray,
+          DOWNLOADED_LESSON_AND_CHAPTER_ID,
+          "lesson"
+        );
+
+        lastRendered = new Date().getTime();
+        localStorage.setItem(LAST_FUNCTION_CALL, lastRendered.toString());
+      } catch (error) {
+        console.error("Error listing folders:", error);
+        return null;
+      }
+    }
+    return lastRendered;
+  }
+
+  public static async updateChapterOrLessonDownloadStatus(
+    lessonId: Lesson[] | undefined
+  ): Promise<boolean> {
+    if (lessonId) {
+      const allIdsPresent = lessonId.every((e) =>
+        this.isStored(e.id, DOWNLOADED_LESSON_AND_CHAPTER_ID)
+      );
+      if (!allIdsPresent) {
+        const chaptersToRemove = lessonId.reduce((newArray, lesson) => {
+          if (lesson.cocosChapterCode) {
+            newArray.push(lesson.cocosChapterCode);
+          }
+          return newArray;
+        }, [] as string[]);
+
+        this.removeLessonOrChapterIdFromLocalStorage(
+          chaptersToRemove,
+          DOWNLOADED_LESSON_AND_CHAPTER_ID
+        );
+        return false;
+      }
+      const chaptersToStore = lessonId.reduce((newArray, lesson) => {
+        if (lesson.cocosChapterCode) {
+          newArray.push(lesson.cocosChapterCode);
+        }
+        return newArray;
+      }, [] as string[]);
+
+      this.storeLessonOrChaterIdToLocalStorage(
+        chaptersToStore,
+        DOWNLOADED_LESSON_AND_CHAPTER_ID,
+        "chapter"
+      );
+      return true;
+    }
+    return false;
+  }
   // To parse this data:
   //   const course = Convert.toCourse(json);
 
@@ -429,7 +676,7 @@ export class Util {
 
   public static async getLastPlayedLessonIndex(
     subjectCode: string,
-    lessons: Lesson[],
+    lessons: curriculamInterfaceLesson[],
     chapters: curriculamInterfaceChapter[] = [],
     lessonResultMap: { [key: string]: Result } = {}
   ): Promise<number> {
@@ -487,7 +734,7 @@ export class Util {
   }
 
   public static getLastPlayedLessonIndexForLessons(
-    lessons: Lesson[],
+    lessons: curriculamInterfaceLesson[],
     lessonResultMap: { [key: string]: Result } = {}
   ): number {
     let tempCurrentIndex = 0;

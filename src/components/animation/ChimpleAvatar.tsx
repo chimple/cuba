@@ -1,9 +1,10 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import TextBoxWithAudioButton from "./TextBoxWithAudioButton";
 import RectangularTextButton from "./RectangularTextButton";
 import AvatarImageOption from "./AvatarImageOption";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
+import { useAudioPlayer, useTtsAudioPlayer } from "./animationUtils";
 import {
   CURRENT_AVATAR_SUGGESTION_NO,
   PAGES,
@@ -17,6 +18,7 @@ import { useHistory } from "react-router";
 import { t } from "i18next";
 import { useRive, Layout, Fit, useStateMachineInput } from "rive-react";
 import { AvatarModes, AvatarObj } from "./Avatar";
+import { IonLoading, IonPage } from "@ionic/react";
 // import { rows } from "../../../build/assets/animation/avatarSugguestions.json";
 
 export enum CourseNames {
@@ -32,7 +34,6 @@ const ChimpleAvatar: FC<{
   isUnlocked?: boolean;
 }> = ({ recommadedSuggestion, style }) => {
   let avatarObj = AvatarObj.getInstance();
-
   const [currentMode, setCurrentMode] = useState<AvatarModes>(
     avatarObj.mode || AvatarModes.Welcome
   );
@@ -44,17 +45,19 @@ const ChimpleAvatar: FC<{
   const [isBurst, setIsBurst] = useState(false);
   const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(true);
   const [riveCharHandsUp, setRiveCharHandsUp] = useState("Fail");
-
+  const [spinnerLoading, setSpinnerLoading] = useState<boolean>(true);
   const history = useHistory();
-
   const State_Machine = "State Machine 1";
-
   const { rive, RiveComponent } = useRive({
     src: "/assets/animation/chimplecharacter.riv",
     stateMachines: State_Machine,
     layout: new Layout({ fit: Fit.Cover }),
     animations: riveCharHandsUp,
     autoplay: true,
+    onLoad: () => {
+      console.log("RiveComponent loaded successfully", rive);
+      setSpinnerLoading(false);
+    },
   });
   const onclickInput = useStateMachineInput(
     rive,
@@ -66,11 +69,12 @@ const ChimpleAvatar: FC<{
     loadSuggestionsFromJson();
     // setButtonsDisabled(true);
   }, [currentMode]);
-  
   useEffect(() => {
     fetchCoursesForStudent();
+    return () => {
+      stop();
+    };
   }, []);
-
   const api = ServiceConfig.getI().apiHandler;
 
   async function loadSuggestionsFromJson() {
@@ -85,8 +89,10 @@ const ChimpleAvatar: FC<{
         "if (avatarObj.mode === AvatarModes.CourseSuggestion) {",
         cCourse
       );
-    }
-    if (avatarObj.mode === AvatarModes.RecommendedLesson) {
+      const x1 = cCourse?.title || "";
+      message = t(`Do you want to play 'x1' course?`).replace("x1", x1);
+      await speak(message);
+    } else if (avatarObj.mode === AvatarModes.RecommendedLesson) {
       avatarObj.currentRecommededLessonIndex = 0;
       console.log(
         "setCurrentLesson(recommadedSuggestion[0]);",
@@ -95,8 +101,20 @@ const ChimpleAvatar: FC<{
       setCurrentLesson(
         recommadedSuggestion[avatarObj.currentRecommededLessonIndex]
       );
+      const x3 =
+        recommadedSuggestion[avatarObj.currentRecommededLessonIndex]?.title ||
+        "";
+      message = t(`Do you want to play 'x3' lesson?`).replace("x3", x3);
+      await speak(message);
+    } else {
+      if (!message) {
+        message = t("Hi! Welcome to Chimple");
+      }
+      await speak(message);
     }
   }
+  let buttons: { label: string; onClick: () => void; isTrue?: boolean }[] = [];
+  let message: string = "";
 
   async function loadNextSuggestion() {
     await avatarObj.loadAvatarNextSuggestion();
@@ -134,30 +152,49 @@ const ChimpleAvatar: FC<{
 
   async function onClickYes() {
     setButtonsDisabled(false);
-
     // if currentStageMode is AvatarModes.LessonSuggestion then skiping the avatar animation playing
 
-    if (currentStageMode === AvatarModes.LessonSuggestion) {
-      console.log(
-        "currentStageMode is AvatarModes.LessonSuggestion onClickYes"
-      );
+    // if (currentStageMode === AvatarModes.LessonSuggestion) {
+    //   console.log(
+    //     "currentStageMode is AvatarModes.LessonSuggestion onClickYes"
+    //   );
 
-      return;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
+    //   return;
+    // }
     rive?.play(avatarObj.yesAnimation);
     buttons = [];
     onclickInput?.fire();
   }
 
+  const speakAnimationUntilaudio = async () => {
+    const animation = avatarObj.yesAnimation;
+    const animationDuration = 100;
+    let i = 0;
+    while (i < 22) {
+      rive?.play(avatarObj.yesAnimation);
+
+      console.log("audio testing", isAudioPlaying, isTtsPlaying);
+      i++;
+    }
+  };
+
+  const onClickRiveComponent = async () => {
+    if (rive) {
+      speakAnimationUntilaudio();
+    } else {
+      console.log("Rive component not fully initialized yet");
+    }
+
+    if (!isTtsPlaying) {
+      await speak();
+    }
+  };
   async function onClickNo() {
     setButtonsDisabled(false);
-    if (currentStageMode === AvatarModes.LessonSuggestion) {
-      console.log("if (currentStageMode === AvatarModes.LessonSuggestion) {");
-      return;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // if (currentStageMode === AvatarModes.LessonSuggestion) {
+    //   console.log("if (currentStageMode === AvatarModes.LessonSuggestion) {");
+    //   return;
+    // }
     rive?.play(avatarObj.noAnimation);
     buttons = [];
     onclickInput?.fire();
@@ -173,19 +210,16 @@ const ChimpleAvatar: FC<{
       return;
     }
     setIsBurst(true);
-
     console.log("handleButtonClick currentMode ", currentMode);
     switch (currentMode) {
       case AvatarModes.Welcome:
         if (choice) {
           setButtonsDisabled(false);
-          await new Promise((resolve) => setTimeout(resolve, 1000));
           rive?.play(avatarObj.avatarAnimation);
           buttons = [];
           onclickInput?.fire();
           await loadNextSuggestion();
         }
-
         break;
 
       case AvatarModes.CourseSuggestion:
@@ -196,16 +230,23 @@ const ChimpleAvatar: FC<{
               cChapter = await getRecommendedChapter(cCourse || currentCourse);
               setCurrentChapter(cChapter);
               setCurrentStageMode(AvatarModes.ChapterSuggestion);
+              const x2 = cChapter?.title || "";
+              message = t(`Do you want to play 'x2' chapter?`).replace(
+                "x2",
+                x2
+              );
+              await speak(message);
             } else {
               await onClickNo();
               cCourse = await getRecommendedCourse();
               setCurrentCourse(cCourse);
+              const x1 = cCourse?.title || "";
+              message = t(`Do you want to play 'x1' course?`).replace("x1", x1);
+              await speak(message);
             }
-
             break;
           case AvatarModes.ChapterSuggestion:
             console.log("btnDisabled in chapter", buttonsDisabled);
-
             if (choice) {
               await onClickYes();
               cLesson = await getRecommendedLesson(
@@ -213,18 +254,29 @@ const ChimpleAvatar: FC<{
                 cCourse || currentCourse
               );
               setCurrentLesson(cLesson);
+              console.log("lesson after chapter", cLesson?.title);
+              const x3 = cLesson?.title || "";
+              message = t(`Do you want to play 'x3' lesson`).replace(
+                "x3",
+                x3
+              );
+              await speak(message);
               // avatarObj.mode = AvatarModes.LessonSuggestion;
               setCurrentStageMode(AvatarModes.LessonSuggestion);
             } else {
               await onClickNo();
               cChapter = await getRecommendedChapter(cCourse || currentCourse);
               setCurrentChapter(cChapter);
+              const x2 = cChapter?.title || "";
+              message = t(`Do you want to play 'x2' chapter?`).replace(
+                "x2",
+                x2
+              );
+              await speak(message);
             }
-
             break;
           case AvatarModes.LessonSuggestion:
             console.log("btnDisabled in lesson", buttonsDisabled);
-
             if (choice) {
               await onClickYes();
               playCurrentLesson();
@@ -236,10 +288,12 @@ const ChimpleAvatar: FC<{
                 cCourse || currentCourse
               );
               setCurrentLesson(cLesson);
+              const x3 = cLesson?.title || "";
+              message = t(`Do you want to play 'x3' lesson?`).replace("x3", x3);
+              await speak(message);
             }
             break;
         }
-
         break;
 
       case AvatarModes.TwoOptionQuestion:
@@ -249,6 +303,7 @@ const ChimpleAvatar: FC<{
           await loadNextSuggestion();
         } else {
           await onClickNo();
+          await speak();
         }
         break;
       case AvatarModes.FourOptionQuestion:
@@ -261,7 +316,6 @@ const ChimpleAvatar: FC<{
           choice,
           avatarObj.questionType === "unanswered"
         );
-
         if (choice) {
           await onClickYes();
           await loadNextSuggestion();
@@ -285,15 +339,15 @@ const ChimpleAvatar: FC<{
 
           let recomLesson = await getRecommendedLesson(cChapter, currentCourse);
           setCurrentLesson(recomLesson);
+          console.log("14", message);
+          const x3 = recomLesson?.title || "";
+          message = t(`Do you want to play 'x3' lesson?`).replace("x2", x3);
+          await speak(message);
         }
         break;
       default:
         break;
     }
-    setTimeout(() => {
-      setIsBurst(false);
-      setButtonsDisabled(true);
-    }, 1900);
   };
 
   async function playCurrentLesson() {
@@ -434,33 +488,49 @@ const ChimpleAvatar: FC<{
     }
   }
 
-  let buttons: { label: string; onClick: () => void }[] = [];
-  let message: string = "";
-  // const [message, setMessage] = useState<string>("");
-
   switch (currentMode) {
     case AvatarModes.Welcome:
       message = t(avatarObj.message || "");
-      buttons = [{ label: "Start", onClick: () => handleButtonClick(true) }];
+      buttons = [
+        {
+          label: "Start",
+          onClick: () => handleButtonClick(true),
+          isTrue: true,
+        },
+      ];
       break;
     case AvatarModes.CourseSuggestion:
       switch (currentStageMode) {
         case AvatarModes.CourseSuggestion:
           const x1 = currentCourse?.title || "";
           message = t(`Do you want to play 'x1' course?`).replace("x1", x1);
-          // setMessage(t(`Do you want to play 'x1' course?`).replace("x1", x1));
           buttons = [
-            { label: t("Yes"), onClick: () => handleButtonClick(true) },
-            { label: t("No"), onClick: () => handleButtonClick(false) },
+            {
+              label: t("Yes"),
+              onClick: () => handleButtonClick(true),
+              isTrue: true,
+            },
+            {
+              label: t("No"),
+              onClick: () => handleButtonClick(false),
+              isTrue: false,
+            },
           ];
           break;
         case AvatarModes.ChapterSuggestion:
           const x2 = currentChapter?.title || "";
           message = t(`Do you want to play 'x2' chapter?`).replace("x2", x2);
-          // setMessage(t(`Do you want to play 'x2' chapter?`).replace("x2", x2));
           buttons = [
-            { label: t("Yes"), onClick: () => handleButtonClick(true) },
-            { label: t("No"), onClick: () => handleButtonClick(false) },
+            {
+              label: t("Yes"),
+              onClick: () => handleButtonClick(true),
+              isTrue: true,
+            },
+            {
+              label: t("No"),
+              onClick: () => handleButtonClick(false),
+              isTrue: false,
+            },
           ];
           break;
         case AvatarModes.LessonSuggestion:
@@ -470,11 +540,17 @@ const ChimpleAvatar: FC<{
             t(`Do you want to play 'x3' lesson?`)
           );
           message = t(`Do you want to play 'x3' lesson?`).replace("x3", x3);
-          // setMessage(t(`Do you want to play 'x3' lesson?`).replace("x3", x3));
-
           buttons = [
-            { label: t("Yes"), onClick: () => handleButtonClick(true) },
-            { label: t("No"), onClick: () => handleButtonClick(false) },
+            {
+              label: t("Yes"),
+              onClick: () => handleButtonClick(true),
+              isTrue: true,
+            },
+            {
+              label: t("No"),
+              onClick: () => handleButtonClick(false),
+              isTrue: false,
+            },
           ];
           break;
       }
@@ -484,11 +560,25 @@ const ChimpleAvatar: FC<{
       buttons = [
         {
           label: t(avatarObj.option1 || ""),
-          onClick: () => handleButtonClick(true, avatarObj.option1 || ""),
+          onClick: () =>
+            handleButtonClick(
+              avatarObj.option1 === avatarObj.answer,
+              avatarObj.option1 || ""
+            ),
+          isTrue:
+            avatarObj.questionType === "unanswered" ||
+            avatarObj.option1 === avatarObj.answer,
         },
         {
           label: t(avatarObj.option2 || ""),
-          onClick: () => handleButtonClick(false, avatarObj.option2 || ""),
+          onClick: () =>
+            handleButtonClick(
+              avatarObj.option2 === avatarObj.answer,
+              avatarObj.option2 || ""
+            ),
+          isTrue:
+            avatarObj.questionType === "unanswered" ||
+            avatarObj.option2 === avatarObj.answer,
         },
       ];
       break;
@@ -497,19 +587,47 @@ const ChimpleAvatar: FC<{
       buttons = [
         {
           label: t(avatarObj.option1 || ""),
-          onClick: () => handleButtonClick(true, avatarObj.option1 || ""),
+          onClick: () =>
+            handleButtonClick(
+              avatarObj.option1 === avatarObj.answer,
+              avatarObj.option1 || ""
+            ),
+          isTrue:
+            avatarObj.questionType === "unanswered" ||
+            avatarObj.option1 === avatarObj.answer,
         },
         {
           label: t(avatarObj.option2 || ""),
-          onClick: () => handleButtonClick(false, avatarObj.option2 || ""),
+          onClick: () =>
+            handleButtonClick(
+              avatarObj.option2 === avatarObj.answer,
+              avatarObj.option2 || ""
+            ),
+          isTrue:
+            avatarObj.questionType === "unanswered" ||
+            avatarObj.option2 === avatarObj.answer,
         },
         {
           label: t(avatarObj.option3 || ""),
-          onClick: () => handleButtonClick(true, avatarObj.option3 || ""),
+          onClick: () =>
+            handleButtonClick(
+              avatarObj.option3 === avatarObj.answer,
+              avatarObj.option3 || ""
+            ),
+          isTrue:
+            avatarObj.questionType === "unanswered" ||
+            avatarObj.option3 === avatarObj.answer,
         },
         {
           label: t(avatarObj.option4 || ""),
-          onClick: () => handleButtonClick(false, avatarObj.option4 || ""),
+          onClick: () =>
+            handleButtonClick(
+              avatarObj.option4 === avatarObj.answer,
+              avatarObj.option4 || ""
+            ),
+          isTrue:
+            avatarObj.questionType === "unanswered" ||
+            avatarObj.option4 === avatarObj.answer,
         },
       ];
       break;
@@ -518,34 +636,61 @@ const ChimpleAvatar: FC<{
       message = t(`Do you want to play 'x3' lesson?`).replace("x3", x3);
       // setMessage(t(`Do you want to play 'x1' Lesson?`).replace("x1", x1));
       buttons = [
-        { label: t("Yes"), onClick: () => handleButtonClick(true) },
-        { label: t("No"), onClick: () => handleButtonClick(false) },
+        {
+          label: t("Yes"),
+          onClick: () => handleButtonClick(true),
+          isTrue: true,
+        },
+        {
+          label: t("No"),
+          onClick: () => handleButtonClick(false),
+          isTrue: false,
+        },
       ];
       break;
     // Add more cases for other modes if needed
     default:
       break;
   }
-
+  const {
+    speak,
+    stop,
+    isTtsPlaying,
+    getSupportedLanguages,
+    getSupportedVoices,
+    isLanguageSupported,
+  } = useTtsAudioPlayer(message || "");
+  const { playAudio, isAudioPlaying, pauseAudio } = useAudioPlayer(
+    avatarObj.audioSrc || ""
+  );
   return (
     <div style={style}>
-      <RiveComponent
-        style={{
-          width: "35vw",
-          height: "70vh",
-        }}
-        // clickHandler={() => handleButtonClick(userChoice)}
-      />
+      <div>
+        <IonLoading id="custom-loading-for-avatar" isOpen={spinnerLoading} />
+        <div className="rive-container">
+          <RiveComponent
+            className="rive-component"
+            onClick={onClickRiveComponent}
+          />
+          <div id="rive-avatar-shadow" />
+        </div>
+      </div>
       <div
         className={`avatar-option-box-background left-corner ${
           isBurst ? "burst" : ""
         }`}
+        onAnimationEnd={() => {
+          setIsBurst(false);
+          setButtonsDisabled(true);
+        }}
       >
         <div>
           <TextBoxWithAudioButton
             message={message}
-            audioSrc={undefined}
             fontSize={"2vw"}
+            onClick={() => {
+              onClickRiveComponent();
+            }}
           ></TextBoxWithAudioButton>
           <AvatarImageOption
             currentMode={currentMode}
@@ -577,14 +722,10 @@ const ChimpleAvatar: FC<{
                   padding={1}
                   text={button.label}
                   fontSize={3.2}
-                  // onHeaderIconClick={button.onClick()}
-
                   onHeaderIconClick={() => {
                     button.onClick();
                   }}
-                  className={
-                    button.label === "No" ? "red-button" : "green-button"
-                  }
+                  className={button.isTrue ? "green-button" : "red-button"}
                 ></RectangularTextButton>
               </div>
             ))}

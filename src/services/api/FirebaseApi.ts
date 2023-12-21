@@ -1523,7 +1523,10 @@ export class FirebaseApi implements ServiceApi {
     return querySnapshot;
   }
   //getting lessons for quiz
-  public async getLiveQuizLessons(classId: string): Promise<Assignment[] | []> {
+  public async getLiveQuizLessons(
+    classId: string,
+    studentId: string
+  ): Promise<Assignment[] | []> {
     try {
       const now = new Date();
       const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
@@ -1538,21 +1541,40 @@ export class FirebaseApi implements ServiceApi {
       console.log("query result:", q);
 
       const liveQuizLessons: Assignment[] = [];
-      const LiveQuizDocs = await getDocs(q);
-      console.log("live quiz count", LiveQuizDocs.size);
+      const liveQuizDocs = await getDocs(q);
+      console.log("live quiz count", liveQuizDocs.size);
 
-      if (LiveQuizDocs.size > 0) {
-        for (const LiveQuizDoc of LiveQuizDocs.docs) {
-          const endsAt = LiveQuizDoc.get("endsAt");
+      if (liveQuizDocs.size > 0) {
+        liveQuizDocs.docs.forEach((_assignment) => {
+          const endsAt = _assignment.get("endsAt");
           const endsAtDate = endsAt.toDate();
           if (endsAtDate > now) {
-            const assignment = LiveQuizDoc.data() as Assignment;
-            assignment.docId = LiveQuizDoc.id;
-            liveQuizLessons.push(assignment);
-          } else {
-            console.log("Live Quiz has ended. Skipping.");
+            const assignment = _assignment.data() as Assignment;
+            assignment.docId = _assignment.id;
+            const liveQuiz = _assignment.data() as Assignment;
+            liveQuiz.docId = _assignment.id;
+            const doneLiveQuiz = liveQuiz.completedStudents?.find(
+              (data) => data === studentId
+            );
+            let tempLiveQuizCompletedIds = localStorage.getItem(
+              ASSIGNMENT_COMPLETED_IDS
+            );
+            let liveQuizcompletedIds = JSON.parse(
+              tempLiveQuizCompletedIds ?? "{}"
+            );
+            console.log("liveQuizcompletedIds:", liveQuizcompletedIds);
+
+            const doneliveQuizLocally = liveQuizcompletedIds[studentId]?.find(
+              (assignmentId) => assignmentId === liveQuiz.docId
+            );
+            console.log("doneliveQuizLocally:", doneliveQuizLocally);
+
+            if (!doneLiveQuiz && !doneliveQuizLocally)
+              liveQuizLessons.push(liveQuiz);
           }
-        }
+        });
+      } else {
+        console.log("Live Quiz has ended. Skipping.");
       }
       console.log("Live quiz lessons", liveQuizLessons);
       return liveQuizLessons;
@@ -1561,6 +1583,28 @@ export class FirebaseApi implements ServiceApi {
       throw new Error("Error fetching live quiz lessons");
     }
   }
+
+  public async getLiveQuizRoomDoc(
+    liveQuizRoomDocId: string
+  ): Promise<DocumentData | undefined> {
+    try {
+      const liveQuizRoomDoc = await getDoc(
+        doc(this._db, `${CollectionIds.LIVE_QUIZ_ROOM}/${liveQuizRoomDocId}`)
+      );
+
+      if (liveQuizRoomDoc.exists()) {
+        console.log("inside if..");
+        const res = liveQuizRoomDoc.data() as LiveQuizRoomObject;
+        console.log("res", res);
+        return res;
+      }
+    } catch (error) {
+      console.error("Error fetching LiveQuizRoom data:", error);
+      throw error;
+    }
+    return undefined;
+  }
+
   public async getCourseFromLesson(
     lesson: Lesson
   ): Promise<Course | undefined> {
@@ -1582,7 +1626,9 @@ export class FirebaseApi implements ServiceApi {
       doc(this._db, CollectionIds.LIVE_QUIZ_ROOM, liveQuizRoomDocId),
       (doc) => {
         console.log("Current data: ", doc.data());
-        onDataChange(doc.data() as LiveQuizRoomObject);
+        const roomDoc = doc.data() as LiveQuizRoomObject;
+        roomDoc.docId = doc.id;
+        onDataChange(roomDoc);
       }
     );
     return unSub;
@@ -1590,14 +1636,16 @@ export class FirebaseApi implements ServiceApi {
   public async updateLiveQuiz(
     roomDocId: string,
     studentId: string,
-    score: number,
-    timeSpent: number
+    questionId: string,
+    timeSpent: number,
+    score: number
   ): Promise<void> {
     try {
       await updateDoc(doc(this._db, CollectionIds.LIVE_QUIZ_ROOM, roomDocId), {
         [`results.${studentId}`]: arrayUnion({
-          score,
-          timeSpent,
+          score: score,
+          timeSpent: timeSpent,
+          id: questionId,
         }),
       });
     } catch (error) {
