@@ -256,10 +256,7 @@ const ChimpleAvatar: FC<{
               setCurrentLesson(cLesson);
               console.log("lesson after chapter", cLesson?.title);
               const x3 = cLesson?.title || "";
-              message = t(`Do you want to play 'x3' lesson`).replace(
-                "x3",
-                x3
-              );
+              message = t(`Do you want to play 'x3' lesson`).replace("x3", x3);
               await speak(message);
               // avatarObj.mode = AvatarModes.LessonSuggestion;
               setCurrentStageMode(AvatarModes.LessonSuggestion);
@@ -664,9 +661,15 @@ const ChimpleAvatar: FC<{
     avatarObj.audioSrc || ""
   );
   const numOfBubbles = 4;
-  const chimpleAvatarChatboxBubbles = Array.from({ length: numOfBubbles }, (_, index) => (
-    <div key={index} className={`chimple-avatar-chatbox-bubble${index + 1}`}></div>
-  ));
+  const chimpleAvatarChatboxBubbles = Array.from(
+    { length: numOfBubbles },
+    (_, index) => (
+      <div
+        key={index}
+        className={`chimple-avatar-chatbox-bubble${index + 1}`}
+      ></div>
+    )
+  );
   return (
     <div style={style}>
       <div>
@@ -680,9 +683,7 @@ const ChimpleAvatar: FC<{
         </div>
       </div>
       <div
-        className={`avatar-option-box-background ${
-          isBurst ? "burst" : ""
-        }`}
+        className={`avatar-option-box-background ${isBurst ? "burst" : ""}`}
         onAnimationEnd={() => {
           setIsBurst(false);
           setButtonsDisabled(true);
