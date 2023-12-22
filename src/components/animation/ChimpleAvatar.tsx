@@ -663,6 +663,10 @@ const ChimpleAvatar: FC<{
   const { playAudio, isAudioPlaying, pauseAudio } = useAudioPlayer(
     avatarObj.audioSrc || ""
   );
+  const numOfBubbles = 4;
+  const chimpleAvatarChatboxBubbles = Array.from({ length: numOfBubbles }, (_, index) => (
+    <div key={index} className={`chimple-avatar-chatbox-bubble${index + 1}`}></div>
+  ));
   return (
     <div style={style}>
       <div>
@@ -685,10 +689,7 @@ const ChimpleAvatar: FC<{
         }}
         // id="temp"
       >
-        <div className="chatbox-bubble"></div>
-        <div className="chatbox-bubble2"></div>
-        <div className="chatbox-bubble3"></div>
-        <div className="chatbox-bubble4"></div>
+        {chimpleAvatarChatboxBubbles}
         <div>
           <TextBoxWithAudioButton
             message={message}
