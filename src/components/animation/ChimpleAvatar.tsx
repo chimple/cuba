@@ -260,9 +260,9 @@ const ChimpleAvatar: FC<{
                 "x3",
                 x3
               );
-              await speak(message);
               // avatarObj.mode = AvatarModes.LessonSuggestion;
               setCurrentStageMode(AvatarModes.LessonSuggestion);
+              await speak(message);
             } else {
               await onClickNo();
               cChapter = await getRecommendedChapter(cCourse || currentCourse);
