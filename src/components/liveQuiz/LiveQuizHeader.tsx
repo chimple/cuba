@@ -7,13 +7,24 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { useHistory } from "react-router";
 import { PAGES } from "../../common/constants";
 import LiveQuizStudentAvatar from "./LiveQuizStudentAvatar";
+import {
+  LIVE_QUIZ_QUESTION_TIME,
+  LiveQuizQuestion,
+} from "../../models/liveQuiz";
 
 const LiveQuizHeader: FC<{
   roomDoc: LiveQuizRoomObject;
-}> = ({ roomDoc }) => {
+  remainingTime: number | undefined;
+  showAnswer: boolean;
+  currentQuestion: LiveQuizQuestion | undefined;
+}> = ({ roomDoc, remainingTime, showAnswer, currentQuestion }) => {
   const [studentIdMap, setStudentIdMap] = useState<{ [id: string]: User }>();
-  const [sortedStudents, setSortedStudents] =
-    useState<{ student: User; score: number }[]>();
+  const [sortedStudents, setSortedStudents] = useState<
+    {
+      student: User;
+      score: number;
+    }[]
+  >();
 
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
@@ -31,7 +42,7 @@ const LiveQuizHeader: FC<{
     if (studentIdMap) {
       sortedStudentsWithScore(studentIdMap);
     }
-  }, [roomDoc]);
+  }, [roomDoc, showAnswer]);
   const getStudents = async () => {
     const students = await api.getStudentsForClass(roomDoc.class.id);
     const tempStudentsMap = {};
@@ -40,14 +51,14 @@ const LiveQuizHeader: FC<{
     });
     setStudentIdMap(tempStudentsMap);
     sortedStudentsWithScore(tempStudentsMap);
-    console.log(
-      "🚀 ~ file: LiveQuizHeader.tsx:37 ~ getStudents ~ tempStudentsMap:",
-      tempStudentsMap
-    );
   };
 
   const sortedStudentsWithScore = (studentIdMap: { [id: string]: User }) => {
-    const tempSortedStudents: { student: User; score: number }[] = [];
+    const tempSortedStudents: {
+      student: User;
+      score: number;
+      lastQuestionId: string;
+    }[] = [];
     roomDoc.participants.forEach((studentId: string) => {
       const studentResult = roomDoc.results?.[studentId];
       const totalScore =
@@ -57,7 +68,12 @@ const LiveQuizHeader: FC<{
         ) ?? 0;
       tempSortedStudents.push({
         student: studentIdMap[studentId],
-        score: Number(totalScore.toFixed(1)),
+        score: showAnswer
+          ? Number(totalScore.toFixed(1))
+          : sortedStudents?.find(
+              (student) => student.student.docId === studentId
+            )?.score ?? 0,
+        lastQuestionId: studentResult?.[studentResult.length - 1]?.id,
       });
     });
     tempSortedStudents.sort((a, b) => {
@@ -76,13 +92,37 @@ const LiveQuizHeader: FC<{
     <div>
       <div className="live-quiz-header">
         {sortedStudents &&
-          sortedStudents.map((studentMap) => (
-            <LiveQuizStudentAvatar
-              student={studentMap.student}
-              score={studentMap.score}
-              key={studentMap.student.docId}
-            />
-          ))}
+          sortedStudents.map((studentMap) => {
+            const studentResult = roomDoc.results?.[studentMap.student.docId];
+            const lastAnswer = studentResult?.[studentResult.length - 1];
+            const currentQuestionResult = currentQuestion
+              ? studentResult?.find(
+                  (result) => result.id === currentQuestion.id
+                )
+              : null;
+            return (
+              <LiveQuizStudentAvatar
+                student={studentMap.student}
+                score={studentMap.score}
+                key={studentMap.student.docId}
+                isCorrect={
+                  !showAnswer
+                    ? undefined
+                    : currentQuestionResult != null &&
+                      currentQuestionResult.score > 0
+                }
+                percentage={
+                  !currentQuestion ||
+                  currentQuestion.id === lastAnswer?.id ||
+                  !remainingTime
+                    ? undefined
+                    : ((LIVE_QUIZ_QUESTION_TIME - remainingTime) /
+                        LIVE_QUIZ_QUESTION_TIME) *
+                      100
+                }
+              />
+            );
+          })}
       </div>
     </div>
   );

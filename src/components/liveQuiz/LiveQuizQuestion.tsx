@@ -22,12 +22,16 @@ const LiveQuizQuestion: FC<{
   onNewQuestionChange?: (newQuestionIndex: number) => void;
   onQuizEnd?: Function;
   onConfigLoaded?: (liveQuizConfig: LiveQuiz) => void;
+  onRemainingTimeChange?: (remainingTime: number) => void;
+  onShowAnswer?: (canShow: boolean) => void;
 }> = ({
   roomDoc,
   onNewQuestionChange,
   onQuizEnd,
   onConfigLoaded,
   showQuiz,
+  onRemainingTimeChange,
+  onShowAnswer,
 }) => {
   const quizPath =
     (localStorage.getItem("gameUrl") ??
@@ -260,13 +264,10 @@ const LiveQuizQuestion: FC<{
     await stopAllAudios();
     if (!isStart) {
       setShowAnswer(true);
+      if (onShowAnswer) onShowAnswer(true);
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
     setCurrentQuestionIndex((_currentQuestionIndex) => {
-      console.log(
-        "🚀 ~ file: LiveQuizQuestion.tsx:177 ~ changeQuestion ~ _currentQuestionIndex:",
-        _currentQuestionIndex
-      );
       if (_currentQuestionIndex === tempLiveQuizConfig.data.length - 1) {
         if (onQuizEnd) {
           onQuizEnd();
@@ -289,8 +290,10 @@ const LiveQuizQuestion: FC<{
     if (onNewQuestionChange) onNewQuestionChange(currentQuestionIndex);
     setCanAnswer(true);
     setShowAnswer(false);
+    if (onShowAnswer) onShowAnswer(false);
     setSelectedAnswerIndex(undefined);
     setRemainingTime(LIVE_QUIZ_QUESTION_TIME);
+    if (onRemainingTimeChange) onRemainingTimeChange(LIVE_QUIZ_QUESTION_TIME);
     console.log(
       "🚀 ~ file: LiveQuizQuestion.tsx:203 ~ onQuestionChange ~ questionInterval:",
       questionInterval
@@ -302,7 +305,9 @@ const LiveQuizQuestion: FC<{
           clearInterval(questionInterval);
           onTimeOut();
         }
-        return remainingTime - 1;
+        const newTime = remainingTime - 1;
+        if (onRemainingTimeChange) onRemainingTimeChange(newTime);
+        return newTime;
       });
     }, 1000);
   };
@@ -428,8 +433,6 @@ const LiveQuizQuestion: FC<{
     <div>
       {showQuiz && liveQuizConfig && currentQuestionIndex != null && (
         <div>
-          <p>{remainingTime}</p>
-
           <div className="live-quiz-question">
             <div className="live-quiz-question-box">
               {(liveQuizConfig.data[currentQuestionIndex].question.audio ||
