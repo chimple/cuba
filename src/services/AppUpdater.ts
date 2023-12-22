@@ -702,7 +702,8 @@ export async function downloadFileFromAppBundle(
         const reader = new FileReader();
         reader.onerror = reject;
         reader.onload = (): void => {
-          resolve(reader.result as string);
+          const Base64 = btoa(reader.result as string);
+          resolve(Base64);
         };
         reader.readAsDataURL(blob);
       });
@@ -718,11 +719,16 @@ export async function downloadFileFromAppBundle(
       console.log("🚀 ~ file: AppUpdater.ts.ts:690 ~ x:", svgWrite.uri);
     } else {
       try {
-        await Filesystem.writeFile({
-          path: path,
-          directory: directory,
-          data: base64Data,
-        });
+        const chunkSize = 1024 * 1024; // Adjust the chunk size as needed( 1024 * 1024=1MB)
+        for (let i = 0; i < base64Data.length; i += chunkSize) {
+          const chunk = base64Data.substring(i, i + chunkSize);
+
+          await Filesystem.writeFile({
+            path: path,
+            directory: directory,
+            data: chunk,
+          });
+        }
       } catch (error) {
         console.log("🚀 ~ file: AppUpdater.ts:713 ~ error:", error);
       }
