@@ -256,10 +256,13 @@ const ChimpleAvatar: FC<{
               setCurrentLesson(cLesson);
               console.log("lesson after chapter", cLesson?.title);
               const x3 = cLesson?.title || "";
-              message = t(`Do you want to play 'x3' lesson`).replace("x3", x3);
-              await speak(message);
+              message = t(`Do you want to play 'x3' lesson`).replace(
+                "x3",
+                x3
+              );
               // avatarObj.mode = AvatarModes.LessonSuggestion;
               setCurrentStageMode(AvatarModes.LessonSuggestion);
+              await speak(message);
             } else {
               await onClickNo();
               cChapter = await getRecommendedChapter(cCourse || currentCourse);
