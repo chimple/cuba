@@ -10,6 +10,8 @@ import { PAGES } from "../common/constants";
 import "./LiveQuizRoom.css";
 import { t } from "i18next";
 import BarLoader from "react-spinners/BarLoader";
+import Lesson from "../models/lesson";
+import Course from "../models/course";
 
 const LiveQuizRoom: React.FC = () => {
   const [students, setStudents] = useState(new Map<String, User>());
@@ -22,9 +24,8 @@ const LiveQuizRoom: React.FC = () => {
   const paramAssignmentId = urlSearchParams.get("assignmentId") ?? "";
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
-  const [lessonName, setLessonName] = useState<string | undefined>();
-  const [courseName, setCourseName] = useState<string | undefined>();
-  const [quizOutCome, setQuizOutCome] = useState<string | undefined>();
+  const [lesson, setLesson] = useState<Lesson | undefined>();
+  const [course, setCourse] = useState<Course | undefined>();
   let lessonRef;
   let courseRef;
 
@@ -60,15 +61,14 @@ const LiveQuizRoom: React.FC = () => {
     }
     lessonRef = assignment?.lesson;
     courseRef = assignment?.course;
-    const lesson = await api.getLesson(lessonRef.id);
-    if (!!lesson) {
-      setLessonName(lesson?.title);
-      const tempOutcome = lesson?.outcome;
-      console.log("outcome..", tempOutcome);
-      setQuizOutCome(tempOutcome);
+    const tempLesson = await api.getLesson(lessonRef.id);
+    if (!!tempLesson) {
+      setLesson(tempLesson);
     }
-    const course = await api.getCourse(courseRef?.id);
-    setCourseName(course?.title);
+    const tempCourse = await api.getCourse(courseRef?.id);
+    if (!!tempCourse) {
+      setCourse(tempCourse);
+    }
 
     if (!assignment?.lesson?.id) return;
     setCurrentAssignment(assignment);
@@ -148,12 +148,12 @@ const LiveQuizRoom: React.FC = () => {
   return (
     <IonPage className="live-quiz-room-page">
       <div className="live-quiz-room-header">
-        <p id="header-text">{(courseName && courseName + " ⇒") ?? ""}</p>
-        <p id="header-text">{(lessonName && lessonName) ?? ""}</p>
+        <p id="header-text">{course?.title + " ⇒"}</p>
+        <p id="header-text">{lesson?.title} </p>
       </div>
 
       <div className="outcome">
-        <p id="outcome-text">{(quizOutCome && quizOutCome) ?? ""}</p>
+        <p id="outcome-text">{lesson?.outcome}</p>
       </div>
 
       <div className="students-container">

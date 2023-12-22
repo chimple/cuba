@@ -191,18 +191,13 @@ const Home: FC = () => {
           const res = await api.getPendingAssignments(_class, student.docId);
           const currentTimestamp = new Date().getTime();
           const filteredAssignments = res.filter((assignment) => {
-            if (!!assignment && (assignment as any)?.type === LIVE_QUIZ) {
-              if (
-                (assignment as any)?.startsAt &&
-                (assignment as any)?.endsAt
-              ) {
-                const startsAtTimestamp = (assignment as any).startsAt
+            if (!!assignment && assignment.type === LIVE_QUIZ) {
+              if (assignment.startsAt && assignment.endsAt) {
+                const startsAtTimestamp = assignment.startsAt
                   .toDate()
                   .getTime();
                 if (startsAtTimestamp <= currentTimestamp) {
-                  const endsAtTimestamp = (assignment as any).endsAt
-                    .toDate()
-                    .getTime();
+                  const endsAtTimestamp = assignment.endsAt.toDate().getTime();
                   return endsAtTimestamp >= currentTimestamp;
                 }
                 return false;
