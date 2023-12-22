@@ -1126,7 +1126,24 @@ export class FirebaseApi implements ServiceApi {
         "🚀 ~ file: FirebaseApi.ts:533 ~ FirebaseApi ~ assignments:",
         assignments
       );
-      return assignments;
+      const currentTimestamp = new Date().getTime();
+
+      const filteredAssignments = assignments.filter((assignment) => {
+        if (!!assignment && assignment.type === LIVE_QUIZ) {
+          if (assignment.startsAt && assignment.endsAt) {
+            const startsAtTimestamp = assignment.startsAt.toDate().getTime();
+            if (startsAtTimestamp <= currentTimestamp) {
+              const endsAtTimestamp = assignment.endsAt.toDate().getTime();
+              return endsAtTimestamp >= currentTimestamp;
+            }
+            return false;
+          }
+        }
+        return true;
+      });
+      console.log("Filtered assignments....", filteredAssignments);
+
+      return filteredAssignments;
     } catch (error) {
       console.log(
         "🚀 ~ file: FirebaseApi.ts:856 ~ FirebaseApi ~ error:",
