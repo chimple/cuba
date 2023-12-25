@@ -5,7 +5,7 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  margin-left: 10vw;
+  margin-left: 14vw;
 }
 .header-name {
   color: var(--text-color);
