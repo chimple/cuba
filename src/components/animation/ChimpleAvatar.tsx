@@ -663,6 +663,16 @@ const ChimpleAvatar: FC<{
   const { playAudio, isAudioPlaying, pauseAudio } = useAudioPlayer(
     avatarObj.audioSrc || ""
   );
+  const numOfBubbles = 4;
+  const chimpleAvatarChatboxBubbles = Array.from(
+    { length: numOfBubbles },
+    (_, index) => (
+      <div
+        key={index}
+        className={`chimple-avatar-chatbox-bubble${index + 1}`}
+      ></div>
+    )
+  );
   return (
     <div style={style}>
       <div>
@@ -676,14 +686,14 @@ const ChimpleAvatar: FC<{
         </div>
       </div>
       <div
-        className={`avatar-option-box-background left-corner ${
-          isBurst ? "burst" : ""
-        }`}
+        className={`avatar-option-box-background ${isBurst ? "burst" : ""}`}
         onAnimationEnd={() => {
           setIsBurst(false);
           setButtonsDisabled(true);
         }}
+        // id="temp"
       >
+        {chimpleAvatarChatboxBubbles}
         <div>
           <TextBoxWithAudioButton
             message={message}
