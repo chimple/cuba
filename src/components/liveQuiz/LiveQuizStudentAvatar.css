@@ -19,7 +19,8 @@
 
 .live-quiz-student-image {
     border-radius: 50%;
-    height: 20vh;
+    /* height: 20vh; */
+    z-index: -1
 }
 
 .live-quiz-student-score {
