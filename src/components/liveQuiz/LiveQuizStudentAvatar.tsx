@@ -41,7 +41,7 @@ const LiveQuizStudentAvatar: FC<{
         )}
       </div>
 
-      <p className="live-quiz-student-score">{score}</p>
+      <p className="live-quiz-student-score">{Math.round(score)}</p>
     </div>
   );
 };
