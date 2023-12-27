@@ -40,17 +40,21 @@ const HomeHeader: React.FC<{
         Util.getCurrentStudent(),
         schoolUtil.getCurrMode(),
       ]);
-  
-      console.log("const canShowAvatarValue in homeHeader ", canShowAvatarValue);
+
+      console.log(
+        "const canShowAvatarValue in homeHeader ",
+        canShowAvatarValue,
+        await Util.getCanShowAvatar()
+      );
       setCanShowAvatar(canShowAvatarValue);
-  
+
       if (!student) {
         history.replace(PAGES.HOME);
         throw new Error("No student found");
       }
-  
+
       setStudentMode(currMode);
-  
+
       DEFAULT_HEADER_ICON_CONFIGS.forEach(async (element) => {
         console.log("element.headerList", element.headerList);
         if (
@@ -64,16 +68,16 @@ const HomeHeader: React.FC<{
           headerIconList.push(element);
         }
       });
-  
+
       if (!headerIconList) return;
-  
+
       setCurrentHeaderIconList(headerIconList);
       setStudent(student);
     } catch (error) {
       console.error("Error in init:", error);
     }
   }
-  
+
   useEffect(() => {
     init();
   }, []);
