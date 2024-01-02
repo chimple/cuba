@@ -25,7 +25,7 @@ const LiveQuizGame: FC = () => {
 
   useEffect(() => {
     if (!paramLiveRoomId) {
-      history.push(PAGES.HOME);
+      history.replace(PAGES.HOME);
       return;
     }
 

@@ -256,10 +256,7 @@ const ChimpleAvatar: FC<{
               setCurrentLesson(cLesson);
               console.log("lesson after chapter", cLesson?.title);
               const x3 = cLesson?.title || "";
-              message = t(`Do you want to play 'x3' lesson`).replace(
-                "x3",
-                x3
-              );
+              message = t(`Do you want to play 'x3' lesson`).replace("x3", x3);
               // avatarObj.mode = AvatarModes.LessonSuggestion;
               setCurrentStageMode(AvatarModes.LessonSuggestion);
               await speak(message);
@@ -359,7 +356,7 @@ const ChimpleAvatar: FC<{
           (await api.getCourseFromLesson(currentLesson)) || currentCourse;
       }
       const parmas = `?courseid=${currentLesson.cocosSubjectCode}&chapterid=${currentLesson.cocosChapterCode}&lessonid=${currentLesson.id}`;
-      history.push(PAGES.GAME + parmas, {
+      history.replace(PAGES.GAME + parmas, {
         url: "chimple-lib/index.html" + parmas,
         lessonId: currentLesson.id,
         courseDocId: lessonCourse.docId,
