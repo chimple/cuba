@@ -968,6 +968,11 @@ export class Util {
     return Math.floor(Math.random() * (max - min) + min);
   }
 
+  public static isEmail(username) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isValid = emailRegex.test(username);
+    return isValid;
+  }
   public static async subscribeToClassTopic(
     classId: string,
     schoolId: string
