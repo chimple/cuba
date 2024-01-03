@@ -28,7 +28,7 @@
   padding: 3vh 2vh;
   font-weight: bold;
   font-size: var(--text-size);
-
+  color: var(--text-color);
   cursor: pointer;
 }
 
@@ -185,11 +185,11 @@
 
 #parent-page-tab-bar {
   margin-right: 2vh;
-  font-size: var(--text-size);
+  font-size: 1.5vw;
   font-weight: bold;
   width: 19vw;
   font-family: "BalooRegular";
-  justify-content: space-evenly;
+  justify-content: space-between;
   white-space: nowrap;
 }
 

@@ -51,6 +51,7 @@ import { RateApp } from "capacitor-rate-app";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { CollectionIds } from "../common/courseConstants";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
+import { Router } from "react-router-dom";
 
 declare global {
   interface Window {
@@ -96,6 +97,8 @@ export class Util {
     if (!!currentStudent.board)
       currentStudent.board = getRef(currentStudent.board);
     api.currentStudent = currentStudent;
+
+    this.logCurrentPageEvents(currentStudent);
     return currentStudent;
   }
   public static getCurrentSound(): boolean {
@@ -464,6 +467,17 @@ export class Util {
     }
   ) {
     try {
+      //Setting User Id in User Properites
+      await FirebaseAnalytics.setUserId({
+        userId: params.user_id,
+      });
+
+      await FirebaseAnalytics.setScreenName({
+        screenName: window.location.pathname,
+        nameOverride: window.location.pathname,
+      });
+
+      console.log("FirebaseAnalytics.setUserId({", FirebaseAnalytics);
       await FirebaseAnalytics.logEvent({
         name: eventName,
         params: params,
@@ -476,6 +490,19 @@ export class Util {
         error
       );
     }
+  }
+
+  public static async logCurrentPageEvents(user: User) {
+    //Setting User Id in User Properites
+    await FirebaseAnalytics.setUserId({
+      userId: user.docId,
+    });
+
+    //Setting Screen Name
+    await FirebaseAnalytics.setScreenName({
+      screenName: window.location.pathname,
+      nameOverride: window.location.pathname,
+    });
   }
 
   public static onAppStateChange = ({ isActive }) => {
@@ -532,6 +559,11 @@ export class Util {
     const tempLangCode = languageCode ?? LANG.ENGLISH;
     if (!!langFlag) localStorage.setItem(LANGUAGE, tempLangCode);
     if (!!isStudent) await i18n.changeLanguage(tempLangCode);
+
+    //Setting Student Id in User Properites
+    await FirebaseAnalytics.setUserId({
+      userId: student?.docId,
+    });
   };
 
   public static randomBetween(min, max) {

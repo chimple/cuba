@@ -6,18 +6,6 @@ import {
   initializeFirestore,
   persistentLocalCache,
 } from "firebase/firestore";
-import {
-  getToken,
-  initializeAppCheck,
-  ReCaptchaV3Provider,
-  setTokenAutoRefreshEnabled,
-} from "firebase/app-check";
-// import firebase from "firebase/app-check";
-
-// declare global {
-//   // eslint-disable-next-line no-var
-//   var FIREBASE_APPCHECK_DEBUG_TOKEN: boolean | string | undefined;
-// }\
 
 export const initializeFireBase = async () => {
   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -28,7 +16,7 @@ export const initializeFireBase = async () => {
     storageBucket: process.env.REACT_APP_STORAGE_BUCKET!,
     messagingSenderId: process.env.REACT_APP_MESSAGING_SENDER_ID!,
     appId: process.env.REACT_APP_APP_ID!,
-    measurementId: process.env.REACT_APP_MEASUREMENT_ID!
+    measurementId: process.env.REACT_APP_MEASUREMENT_ID!,
   };
 
   // Initialize Firebase
@@ -40,9 +28,12 @@ export const initializeFireBase = async () => {
   initializeFirestore(app, {
     localCache: persistentLocalCache({ cacheSizeBytes: CACHE_SIZE_UNLIMITED }),
   });
-  if((await Device.getInfo()).platform === 'web') {
+
+  var deviceInfo = await Device.getInfo();
+
+  if (deviceInfo.platform === "web") {
     FirebaseAnalytics.initializeFirebase(firebaseConfig);
-    console.log('Web firebase analytics initialized');
+    console.log("Web firebase analytics initialized", FirebaseAnalytics);
   }
 
 };
