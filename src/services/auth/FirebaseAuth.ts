@@ -28,8 +28,9 @@ import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { CollectionIds } from "../../common/courseConstants";
-import { ACTION, EVENTS } from "../../common/constants";
+import { ACTION, CURRENT_USER, EVENTS, LANGUAGE } from "../../common/constants";
 import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
+import { ServiceConfig } from "../ServiceConfig";
 
 export class FirebaseAuth implements ServiceAuth {
   public static i: FirebaseAuth;
@@ -38,7 +39,7 @@ export class FirebaseAuth implements ServiceAuth {
   private _db = getFirestore();
   private _auth = getAuth(); //FirebaseAuth.whichAuth();
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): FirebaseAuth {
     if (!FirebaseAuth.i) {
@@ -58,6 +59,31 @@ export class FirebaseAuth implements ServiceAuth {
   //   }
   //   return auth;
   // }
+  private async updateUserPreferenceLanguage() {
+
+    if (!!this._currentUser) {
+      const appLang = localStorage.getItem(LANGUAGE);
+      if (!!appLang) {
+        const languages = await ServiceConfig.getI().apiHandler.getAllLanguages();
+        const langDocId = languages.find(lang => lang.code === appLang)?.docId;
+        if (!!langDocId) {
+          const langDoc = doc(
+            this._db,
+            `${CollectionIds.LANGUAGE}/${langDocId}`
+          );
+
+          if (!!langDoc && this._currentUser.language?.id != langDoc?.id) {
+            this._currentUser.language = langDoc;
+            await updateDoc(doc(this._db, `${CollectionIds.USER}/${this._currentUser.uid}`), {
+              language: this._currentUser.language,
+              updatedAt: Timestamp.now(),
+            });
+          }
+        }
+      }
+    }
+  }
+
 
   public async googleSign(): Promise<boolean> {
     try {
@@ -75,14 +101,6 @@ export class FirebaseAuth implements ServiceAuth {
       const userRef = doc(this._db, "User", user.uid);
       if (additionalUserInfo?.isNewUser) {
         await this._createUserDoc(user);
-        Util.logEvent(EVENTS.USER_PROFILE, {
-          user_id: user.uid,
-          user_name: user.displayName,
-          user_username: user.email,
-          phone_number: user.email ?? user.phoneNumber!,
-          user_type: RoleType.PARENT,
-          action_type: ACTION.CREATE,
-        });
       } else {
         const tempUserDoc = await getDoc(userRef);
         if (!tempUserDoc.exists) {
@@ -106,6 +124,7 @@ export class FirebaseAuth implements ServiceAuth {
         }
         this._currentUser.users.push(...migrateRes.newStudents);
       }
+      this.updateUserPreferenceLanguage();
       return true;
     } catch (error) {
       console.log(
@@ -144,30 +163,44 @@ export class FirebaseAuth implements ServiceAuth {
     await setDoc(userRef, tempUser.toJson());
     this._currentUser = tempUser;
     this._currentUser.docId = user.uid;
+    Util.logEvent(EVENTS.USER_PROFILE, {
+      user_id: tempUser.uid,
+      user_name: tempUser.name,
+      user_username: tempUser.username,
+      phone_number: tempUser.username,
+      user_type: RoleType.PARENT,
+      action_type: ACTION.CREATE,
+    });
+
     return this._currentUser;
   }
 
   public async getCurrentUser(): Promise<User | undefined> {
-    if (this._currentUser) return this._currentUser;
-    const currentUser = this._auth.currentUser;
-    console.log("🚀 ~ file: FirebaseAuth.ts:153 ~ currentUser:", currentUser);
-    // let currentUser: any = (await FirebaseAuthentication.getCurrentUser()).user;
-    // console.log("let currentUser", currentUser);
+    try {
+      if (this._currentUser) return this._currentUser;
+      const currentUser = this._auth.currentUser;
+      console.log("🚀 ~ file: FirebaseAuth.ts:153 ~ currentUser:", currentUser);
+      // let currentUser: any = (await FirebaseAuthentication.getCurrentUser()).user;
+      // console.log("let currentUser", currentUser);
 
-    // if (!currentUser) {
-    //   currentUser = getAuth().currentUser;
-    //   console.log("currentUser in if (!currentUser) {", currentUser);
-    // }
-    if (!currentUser) return;
-    const tempUserDoc = await getDoc(doc(this._db, "User", currentUser.uid));
-    this._currentUser = (tempUserDoc.data() || tempUserDoc) as User;
-    console.log(
-      "currentUser in if (!currentUser) {",
-      tempUserDoc,
-      this._currentUser
-    );
-    this._currentUser.docId = tempUserDoc.id;
-    return this._currentUser;
+      // if (!currentUser) {
+      //   currentUser = getAuth().currentUser;
+      //   console.log("currentUser in if (!currentUser) {", currentUser);
+      // }
+      if (!currentUser) return;
+      const tempUserDoc = await getDoc(doc(this._db, "User", currentUser.uid));
+      this.updateUserPreferenceLanguage();
+      this._currentUser = (tempUserDoc.data() || tempUserDoc) as User;
+      console.log(
+        "currentUser in if (!currentUser) {",
+        tempUserDoc,
+        this._currentUser
+      );
+      this._currentUser.docId = tempUserDoc.id;
+      return this._currentUser;
+    } catch (error) {
+      console.log("🚀 ~ file: FirebaseAuth.ts:175 ~ error:", error);
+    }
   }
 
   public set currentUser(value: User) {
@@ -448,14 +481,6 @@ export class FirebaseAuth implements ServiceAuth {
       if (!tempUserDoc.exists()) {
         let u = await this._createUserDoc(userData);
         console.log("created user", u);
-        Util.logEvent(EVENTS.USER_PROFILE, {
-          user_id: u.uid,
-          user_name: u.name,
-          user_username: u.username,
-          phone_number: u.username,
-          user_type: RoleType.PARENT,
-          action_type: ACTION.CREATE,
-        });
       } else {
         this._currentUser = tempUserDoc.data() as User;
         this._currentUser.docId = tempUserDoc.id;
@@ -474,6 +499,7 @@ export class FirebaseAuth implements ServiceAuth {
         this._currentUser.users.push(...migrateRes.newStudents);
       }
       // }
+      this.updateUserPreferenceLanguage();
       this.updateUserFcm(userData.uid);
       return true;
     } catch (error) {
@@ -495,7 +521,10 @@ export class FirebaseAuth implements ServiceAuth {
     );
     // if (!user && Capacitor.isNativePlatform()) return false;
 
-    for (var i = 0; i < 10; i++) {
+    const res = localStorage.getItem(CURRENT_USER);
+    console.log("res...", res);
+    if (!res) return false;
+    for (var i = 0; i < 1000; i++) {
       await new Promise((res) => setTimeout(res, 100));
       const user = await this.getCurrentUser();
       console.log(
@@ -506,10 +535,12 @@ export class FirebaseAuth implements ServiceAuth {
         await FirebaseAnalytics.setUserId({
           userId: user.uid,
         });
+        Util.setUserProperties(user);
         return true;
       }
     }
-    if (!user && Capacitor.isNativePlatform()) return false;
+    localStorage.removeItem(CURRENT_USER);
+    if (!user) return false;
     return false;
   }
 

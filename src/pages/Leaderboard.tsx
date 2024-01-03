@@ -7,6 +7,9 @@ import {
   LEADERBOARDHEADERLIST,
   PAGES,
   PARENTHEADERLIST,
+  MODES,
+  LANGUAGE,
+  CONTINUE,
 } from "../common/constants";
 // import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -15,7 +18,6 @@ import { useHistory } from "react-router-dom";
 import Loading from "../components/Loading";
 import { IonCol, IonGrid, IonPage, IonRow } from "@ionic/react";
 import User from "../models/user";
-import RectangularOutlineDropDown from "../components/parent/RectangularOutlineDropDown";
 import React from "react";
 import { FirebaseApi } from "../services/api/FirebaseApi";
 import {
@@ -29,8 +31,12 @@ import { t } from "i18next";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 import { Util } from "../utility/util";
+// import auth from "../models/auth";
 import i18n from "../i18n";
 import IconButton from "../components/IconButton";
+
+import { schoolUtil } from "../utility/schoolUtil";
+import DropDown from "../components/DropDown";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -45,9 +51,9 @@ const Leaderboard: React.FC = () => {
   const [currentUserDataContent, setCurrentUserDataContent] = useState<
     string[][]
   >([]);
+  const [studentMode, setStudentMode] = useState<string | undefined>();
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
-
   const history = useHistory();
 
   const [weeklyList, setWeeklyList] = useState<
@@ -84,6 +90,8 @@ const Leaderboard: React.FC = () => {
       const getClass = await FirebaseApi.i.getStudentResult(
         currentStudent.docId
       );
+      const currMode = await schoolUtil.getCurrMode();
+      setStudentMode(currMode);
       if (getClass?.classes != undefined) {
         fetchLeaderBoardData(currentStudent, true, getClass?.classes[0]);
         setCurrentClass(getClass);
@@ -107,7 +115,7 @@ const Leaderboard: React.FC = () => {
     console.log(
       "leaderboardDataInfo.weekly.length <= 0 leaderboardDataInfo.allTime.length <= 0",
       leaderboardDataInfo.weekly.length <= 0 ||
-      leaderboardDataInfo.allTime.length <= 0,
+        leaderboardDataInfo.allTime.length <= 0,
       isWeeklyFlag
         ? "leaderboardDataInfo.weekly"
         : "leaderboardDataInfo.allTime"
@@ -149,16 +157,16 @@ const Leaderboard: React.FC = () => {
         i + 1,
         element.name,
         element.lessonsPlayed,
-        element.score,
-        computeMinutes + "min" + " " + result + " " + "sec",
+        Math.floor(element.score),
+        computeMinutes + t("min") + " " + result + " " + t("sec"),
       ]);
 
       if (currentStudent.docId == element.userId) {
         tempCurrentUserDataContent = [
           // ["Name", element.name],
           [t("Rank"), i + 1],
-          [t("Last Played"), element.lessonsPlayed],
-          [t("Score"), element.score],
+          [t("Lesson Played"), element.lessonsPlayed],
+          [t("Score"), Math.floor(element.score)],
           [
             t("Time Spent"),
             computeMinutes + t("min") + result + " " + t("sec"),
@@ -170,7 +178,7 @@ const Leaderboard: React.FC = () => {
       tempCurrentUserDataContent = [
         // ["Name", element.name],
         [t("Rank"), "--"],
-        [t("Last Played"), "--"],
+        [t("Lesson Played"), "--"],
         [t("Score"), "--"],
         [t("Time Spent"), "--" + t("min") + " --" + t("sec")],
       ];
@@ -196,7 +204,7 @@ const Leaderboard: React.FC = () => {
     return (
       <div id="leaderboard-UI">
         <div id="leaderboard-left-UI">
-          <RectangularOutlineDropDown
+          <DropDown
             placeholder={weeklySelectedValue || weeklyList[0]?.displayName}
             optionList={weeklyList}
             currentValue={weeklySelectedValue || weeklyList[0]?.id}
@@ -220,7 +228,7 @@ const Leaderboard: React.FC = () => {
                 //  }
               }
             }}
-          ></RectangularOutlineDropDown>
+          ></DropDown>
           <div
             key={currentStudent?.docId}
             // onClick={() => onStudentClick(student)}
@@ -230,9 +238,10 @@ const Leaderboard: React.FC = () => {
             <img
               className="avatar-img"
               src={
+                (studentMode === MODES.SCHOOL && currentStudent?.image) ||
                 "assets/avatars/" +
-                (currentStudent?.avatar ?? AVATARS[0]) +
-                ".png"
+                  (currentStudent?.avatar ?? AVATARS[0]) +
+                  ".png"
               }
               alt=""
             />
@@ -318,15 +327,15 @@ const Leaderboard: React.FC = () => {
                       ? "rgb(200 200 200)"
                       : Number(currentUserDataContent[0][1]) ===
                         headerRowIndicator
-                        ? "#FF7925"
-                        : "",
+                      ? "#FF7925"
+                      : "",
                   padding:
                     headerRowIndicator === 0
                       ? "1vh 2vh"
                       : Number(currentUserDataContent[0][1]) ===
                         headerRowIndicator
-                        ? "0vh 2vh"
-                        : "1vh 2vh ",
+                      ? "0vh 2vh"
+                      : "1vh 2vh ",
                   position: "sticky",
                   zIndex: headerRowIndicator === 0 ? "3" : "0",
                   top: "0px",
@@ -365,7 +374,16 @@ const Leaderboard: React.FC = () => {
                         }}
                         id="leaderboard-right-UI-content"
                       >
-                        {d}
+                        {i === 1 ? (
+                          <p id="leaderboard-profile-name">
+                            {Number(currentUserDataContent[0][1]) ===
+                              headerRowIndicator && currentStudent?.name
+                              ? currentStudent?.name
+                              : d}
+                          </p>
+                        ) : (
+                          d
+                        )}
                       </p>
                     </IonCol>
                   );
@@ -415,8 +433,9 @@ const Leaderboard: React.FC = () => {
         <Box>
           <div id="LeaderBoard-Header">
             <BackButton
+              // iconSize={"8vh"}
               onClicked={() => {
-                history.replace(PAGES.HOME);
+                Util.setPathToBackButton(PAGES.HOME, history);
               }}
             ></BackButton>
             <Box>
@@ -427,11 +446,10 @@ const Leaderboard: React.FC = () => {
                   flexDirection: "inherit",
                   justifyContent: "space-between",
                   padding: "1vh 1vw",
-                  backgroundColor: "#E2DEDE !important",
+                  backgroundColor: "#e2dede !important",
                   boxShadow: "0px 0px 0px 0px !important",
                 }}
               >
-
                 <Tabs
                   value={tabIndex}
                   onChange={handleChange}
@@ -446,7 +464,7 @@ const Leaderboard: React.FC = () => {
                     // "& .MuiAppBar-root": { backgroundColor: "#FF7925 !important" },
                     "& .MuiTabs-indicator": {
                       backgroundColor: "#000000 !important",
-                      bottom: "15% !important"
+                      bottom: "15% !important",
                     },
                     "& .MuiTab-root": { color: "#000000 !important" },
                     "& .Mui-selected": { color: "#000000 !important" },
@@ -456,10 +474,10 @@ const Leaderboard: React.FC = () => {
                     value={LEADERBOARDHEADERLIST.LEADERBOARD}
                     label={t(LEADERBOARDHEADERLIST.LEADERBOARD)}
                     id="parent-page-tab-bar"
-                  // sx={{
-                  //   // fontSize:"5vh"
-                  //   marginRight: "5vw",
-                  // }}
+                    // sx={{
+                    //   // fontSize:"5vh"
+                    //   marginRight: "5vw",
+                    // }}
                   />
                   <Tab
                     id="parent-page-tab-bar"
@@ -477,14 +495,17 @@ const Leaderboard: React.FC = () => {
                   localStorage.removeItem(CURRENT_STUDENT);
                   const user = await auth.getCurrentUser();
                   if (!!user && !!user.language?.id) {
-                    const langDoc = await api.getLanguageWithId(user.language.id);
+                    const langDoc = await api.getLanguageWithId(
+                      user.language.id
+                    );
                     if (langDoc) {
                       const tempLangCode = langDoc.code ?? LANG.ENGLISH;
+                      localStorage.setItem(LANGUAGE, tempLangCode);
                       await i18n.changeLanguage(tempLangCode);
                     }
                   }
-                  // history.replace(PAGES.DISPLAY_STUDENT);
-                  history.replace(PAGES.SELECT_MODE);
+                  Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
+                  // history.replace(PAGES.SELECT_MODE);
                 }}
               />
             </div>

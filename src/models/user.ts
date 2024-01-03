@@ -1,9 +1,12 @@
 import { DocumentReference, Timestamp } from "firebase/firestore";
 import { RoleType } from "../interface/modelInterfaces";
 import BaseObject from "./baseObject";
+import { Util } from "../utility/util";
 
 export default class User extends BaseObject {
   private _username: string;
+  private _usernamePhone: string;
+  private _usernameMail: string;
   private _users: DocumentReference[];
   private _name: string;
   private _role: RoleType;
@@ -19,6 +22,7 @@ export default class User extends BaseObject {
   private _soundFlag: boolean | undefined;
   private _musicFlag: boolean | undefined;
   static avatar: string;
+  private _tcAccept: boolean | undefined;
 
   constructor(
     username: string,
@@ -38,10 +42,16 @@ export default class User extends BaseObject {
     createdAt: Timestamp,
     docId: string,
     soundFlag: boolean = true,
-    musicFlag: boolean = true
+    musicFlag: boolean = true,
+    tcAccept: boolean = false
   ) {
     super(updatedAt, createdAt, docId);
     this._username = username;
+    if (Util.isEmail(username)) {
+      this._usernameMail = username;
+    } else {
+      this._usernamePhone = username;
+    }
     this._users = users;
     this._name = name;
     this._role = role;
@@ -56,9 +66,22 @@ export default class User extends BaseObject {
     this._avatar = avatar;
     this._soundFlag = soundFlag;
     this._musicFlag = musicFlag;
+    this._tcAccept = tcAccept;
   }
   public get username(): string {
     return this._username;
+  }
+  public set usernamePhone(value: string) {
+    this._usernamePhone = value;
+  }
+  public get usernamePhone(): string {
+    return this._usernamePhone;
+  }
+  public set usernameMail(value: string) {
+    this._usernameMail = value;
+  }
+  public get usernameMail(): string {
+    return this._usernameMail;
   }
   public set username(value: string) {
     this._username = value;
@@ -149,6 +172,12 @@ export default class User extends BaseObject {
   public set avatar(value: string | undefined) {
     this._avatar = value;
   }
+  public get tcAccept(): boolean | undefined {
+    return this._tcAccept;
+  }
+  public set tcAccept(value: boolean | undefined) {
+    this._tcAccept = value;
+  }
 
   public toJson() {
     return {
@@ -166,7 +195,10 @@ export default class User extends BaseObject {
       role: this.role,
       uid: this.uid,
       username: this.username,
+      usernamePhone: this.usernamePhone ?? null,
+      usernameMail:this.usernameMail ?? null,
       users: this.users,
+      tcAccept: this.tcAccept,
       // docId: this.docId,
     };
   }

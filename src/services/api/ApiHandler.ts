@@ -14,13 +14,52 @@ import StudentProfile from "../../models/studentProfile";
 import school from "../../models/school";
 import { MODES } from "../../common/constants";
 import School from "../../models/school";
+import { AvatarObj } from "../../components/animation/Avatar";
+import { DocumentData, Unsubscribe } from "firebase/firestore";
+import LiveQuizRoomObject from "../../models/liveQuizRoom";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
 
   private s: ServiceApi;
 
+  public getAssignmentById(id: string): Promise<Assignment | undefined> {
+    return this.s.getAssignmentById(id);
+  }
+
+  public liveQuizListener(
+    liveQuizRoomDocId: string,
+    onDataChange: (user: LiveQuizRoomObject) => void
+  ): Unsubscribe {
+    return this.s.liveQuizListener(liveQuizRoomDocId, onDataChange);
+  }
+
+  public async updateLiveQuiz(
+    roomDocId: string,
+    studentId: string,
+    questionId: string,
+    timeSpent: number,
+    score: number
+  ): Promise<void> {
+    return this.s.updateLiveQuiz(
+      roomDocId,
+      studentId,
+      questionId,
+      timeSpent,
+      score
+    );
+  }
+
+  public async joinLiveQuiz(
+    studentId: string,
+    assignmentId: string
+  ): Promise<string | undefined> {
+    return this.s.joinLiveQuiz(studentId, assignmentId);
+  }
   private constructor() {}
+  public async getAvatarInfo(): Promise<AvatarObj | undefined> {
+    return await this.s.getAvatarInfo();
+  }
   public async getSchoolsForUser(user: User): Promise<school[]> {
     return await this.s.getSchoolsForUser(user);
   }
@@ -44,6 +83,10 @@ export class ApiHandler implements ServiceApi {
   }
   public async deleteAllUserData(): Promise<void> {
     return await this.s.deleteAllUserData();
+  }
+
+  public async getCoursesByGrade(gradeDocId: any): Promise<Course[]> {
+    return await this.s.getCoursesByGrade(gradeDocId);
   }
 
   public async getAllCourses(): Promise<Course[]> {
@@ -110,7 +153,12 @@ export class ApiHandler implements ServiceApi {
       languageDocId
     );
   }
-
+  public async getLiveQuizLessons(
+    classId: string,
+    studentId: string
+  ): Promise<Assignment[] | []> {
+    return this.s.getLiveQuizLessons(classId, studentId);
+  }
   public async getLessonResultsForStudent(
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined> {
@@ -125,7 +173,7 @@ export class ApiHandler implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    isLoved : boolean | undefined,
+    isLoved: boolean | undefined,
     assignmentId: string | undefined,
     classId: string | undefined,
     schoolId: string | undefined
@@ -149,11 +197,21 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getCoursesForParentsStudent(student);
   }
 
+  public async getLessonWithCocosLessonId(
+    lessonId: string
+  ): Promise<Lesson | null> {
+    return await this.s.getLessonWithCocosLessonId(lessonId);
+  }
+
   public async getCoursesForClassStudent(currClass: Class): Promise<Course[]> {
     return await this.s.getCoursesForClassStudent(currClass);
   }
-  public async getLesson(id: string): Promise<Lesson | undefined> {
-    return await this.s.getLesson(id);
+  public async getLesson(
+    id: string,
+    chapter: Chapter | undefined = undefined,
+    loadChapterTitle: boolean = false
+  ): Promise<Lesson | undefined> {
+    return await this.s.getLesson(id, chapter, loadChapterTitle);
   }
 
   public async getLessonsForChapter(chapter: Chapter): Promise<Lesson[]> {
@@ -165,7 +223,11 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ grades: Grade[]; courses: Course[] }> {
     return await this.s.getDifferentGradesForCourse(course);
   }
-
+  public async getLiveQuizRoomDoc(
+    liveQuizRoomDocId: string
+  ): Promise<DocumentData | undefined> {
+    return await this.s.getLiveQuizRoomDoc(liveQuizRoomDocId);
+  }
   public async getAllCurriculums(): Promise<Curriculum[]> {
     return await this.s.getAllCurriculums();
   }
@@ -188,6 +250,9 @@ export class ApiHandler implements ServiceApi {
 
   updateMusicFlag(user: User, value: boolean) {
     return this.s.updateMusicFlag(user, value);
+  }
+  updateTcAccept(user: User, value: boolean) {
+    return this.s.updateTcAccept(user, value);
   }
   public get currentStudent(): User | undefined {
     return this.s.currentStudent;
@@ -254,6 +319,10 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getSubject(id);
   }
 
+  public async getCourse(id: string): Promise<Course | undefined> {
+    return await this.s.getCourse(id);
+  }
+
   public async getLeaderboardResults(
     sectionId: string,
     isWeeklyData: boolean
@@ -274,5 +343,11 @@ export class ApiHandler implements ServiceApi {
     lessonId: string
   ): Promise<Lesson | undefined> {
     return this.s.getLessonFromCourse(course, lessonId);
+  }
+
+  public async getCourseFromLesson(
+    lesson: Lesson
+  ): Promise<Course | undefined> {
+    return this.s.getCourseFromLesson(lesson);
   }
 }

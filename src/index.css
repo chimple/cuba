@@ -18,3 +18,9 @@
         url("/public/assets/fonts/Baloo/Baloo2-Regular.ttf") format("truetype");
     /* font-weight: bolder; */
 }
+
+/* Hide scrollbar for WebKit browsers */
+::-webkit-scrollbar {
+    width: 0;
+    background: transparent;
+}

@@ -2,7 +2,12 @@ import { IonLoading, IonPage } from "@ionic/react";
 import { useEffect, useRef, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
-import { LANGUAGE, PAGES } from "../common/constants";
+import {
+  CURRENT_USER,
+  LANGUAGE,
+  NUMBER_REGEX,
+  PAGES,
+} from "../common/constants";
 import { Capacitor } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
 import TextBox from "../components/TextBox";
@@ -22,7 +27,6 @@ import BackButton from "../components/common/BackButton";
 import { Toast } from "@capacitor/toast";
 import { title } from "process";
 
-
 declare global {
   // eslint-disable-next-line no-var
   var recaptchaVerifier: any;
@@ -31,6 +35,7 @@ declare global {
 const Login: React.FC = () => {
   const history = useHistory();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [sentOtpLoading, setSentOtpLoading] = useState<boolean>(false);
   const [showVerification, setShowVerification] = useState<boolean>(false);
   const [showBackButton, setShowBackButton] = useState<boolean>(false);
   const [showNameInput, setShowNameInput] = useState<boolean>(false);
@@ -53,7 +58,6 @@ const Login: React.FC = () => {
   const [showTimer, setShowTimer] = useState<boolean>(false);
   const [showResendOtp, setShowResendOtp] = useState<boolean>(false);
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
-  const [sentOtpLoading, setSentOtpLoading] = useState<boolean>(false);
   const [isInvalidCode, setIsInvalidCode] = useState<{
     isInvalidCode: boolean;
     isInvalidCodeLength: boolean;
@@ -75,17 +79,21 @@ const Login: React.FC = () => {
   const phoneNumberErrorRef = useRef<any>();
   let verificationCodeMessageFlags = {
     isInvalidCode: false,
-    isInvalidCodeLength: false
-  }
-  const [allowSubmittingOtpCounter, setAllowSubmittingOtpCounter] = useState<number>(0);
-  const [disableOtpButtonIfSameNumber, setDisableOtpButtonIfSameNumber] = useState<boolean>(false);
+    isInvalidCodeLength: false,
+  };
+  const [allowSubmittingOtpCounter, setAllowSubmittingOtpCounter] =
+    useState<number>(0);
+  const [disableOtpButtonIfSameNumber, setDisableOtpButtonIfSameNumber] =
+    useState<boolean>(false);
   const [currentPhone, setCurrentPhone] = useState<any>();
   const [title, setTitle] = React.useState("");
+  //let errorMessage;
+  const [errorMessage, setErrorMessage] = useState<string | null>();
   useEffect(() => {
-    init();
+    // init();
     setIsLoading(true);
     setIsInvalidCode(verificationCodeMessageFlags);
-  
+
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
         console.log("info", JSON.stringify(info));
@@ -133,9 +141,8 @@ const Login: React.FC = () => {
         history.replace(PAGES.DISPLAY_STUDENT);
       }
       if (isUserLoggedIn) {
-        console.log("navigating to app lang");
         setIsLoading(false);
-        history.replace(PAGES.HOME);
+        history.replace(PAGES.SELECT_MODE);
       }
       setIsLoading(false);
     });
@@ -181,10 +188,17 @@ const Login: React.FC = () => {
   }, [counter, showTimer]);
   useEffect(() => {
     console.log("Testing: " + allowSubmittingOtpCounter);
-    disableOtpButtonIfSameNumber && allowSubmittingOtpCounter > 0 && setTimeout(() => setAllowSubmittingOtpCounter(allowSubmittingOtpCounter - 1), 1000);
-    let str = t(`Sent OTP button will be enabled in x seconds`)
-    .replace(`x`, allowSubmittingOtpCounter.toString());
-  setTitle(str);
+    disableOtpButtonIfSameNumber &&
+      allowSubmittingOtpCounter > 0 &&
+      setTimeout(
+        () => setAllowSubmittingOtpCounter(allowSubmittingOtpCounter - 1),
+        1000
+      );
+    let str = t(`Send OTP button will be enabled in x seconds`).replace(
+      `x`,
+      allowSubmittingOtpCounter.toString()
+    );
+    setTitle(str);
   }, [allowSubmittingOtpCounter]);
 
   const onPhoneNumberSubmit = async () => {
@@ -204,8 +218,8 @@ const Login: React.FC = () => {
       setSentOtpLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
       if (phoneNumber.length != 10) {
-        setSpinnerLoading(false);
-        alert("Phone Number Invalid " + phoneNumber);
+        setErrorMessage(t("Incorrect phone number format"));
+        //alert("Phone Number Invalid " + phoneNumber);
         return;
       }
       console.log("window.recaptchaVerifier", window.recaptchaVerifier);
@@ -236,27 +250,42 @@ const Login: React.FC = () => {
         setCounter(59);
         setShowBackButton(true);
         setSpinnerLoading(false);
-        // setIsLoading(false);
       } else {
         console.log("Phone Number signin Failed ");
         setSpinnerLoading(false);
         setSentOtpLoading(false);
-        alert("Phone Number signin Failed " + authRes);
+        setErrorMessage(
+          t("Phone Number signin Failed. Please try again later")
+        );
+        //alert("Phone Number signin Failed " + authRes);
       }
     } catch (error) {
       console.log("Phone Number signin Failed ");
       setSpinnerLoading(false);
       setSentOtpLoading(false);
-      alert("Phone Number signin Failed " + error);
-      console.log(
-        "window.recaptchaVerifier",
-        // window.recaptchaVerifier,
-        recaptchaVerifier!
-      );
 
-      // //@ts-ignore
+      if (typeof error === "string") {
+        // Handle the error as a string
+        // errorMessage = "Phone Number signin Failed. Something went wrong. Please try again later.";
+
+        if (error.includes("blocked all requests")) {
+          setErrorMessage(
+            t("Something went wrong Please try again after some time")
+          );
+        } else if (error.includes("E.164 format")) {
+          setErrorMessage(t("Incorrect phone number format"));
+        }
+      } else {
+        // Default error message for non-string errors
+        setErrorMessage(
+          t("Phone Number signin Failed. Please try again later.")
+        );
+      }
+
+      console.log("window.recaptchaVerifier", recaptchaVerifier!);
+      //@ts-ignore
       recaptchaVerifier!.clear();
-      // //@ts-ignore
+      //@ts-ignore
       // window.recaptchaVerifier.clear();
     }
   };
@@ -272,7 +301,8 @@ const Login: React.FC = () => {
       if (!res) {
         setIsLoading(false);
         console.log("Verification Failed");
-        alert("Something went wrong Verification Failed");
+        setErrorMessage(t("Something went wrong Verification Failed"));
+        // alert("Something went wrong Verification Failed");
         return;
       }
       setUserData(res.user);
@@ -281,6 +311,9 @@ const Login: React.FC = () => {
       if (res.isUserExist) {
         setIsLoading(false);
         history.replace(PAGES.SELECT_MODE);
+        localStorage.setItem(CURRENT_USER, JSON.stringify(res.user));
+        console.log("isUserExist", localStorage.getItem(CURRENT_USER));
+
         // setShowNameInput(true);
       } else if (!res.isUserExist) {
         setIsLoading(false);
@@ -290,6 +323,8 @@ const Login: React.FC = () => {
         if (phoneAuthResult) {
           // history.push(PAGES.DISPLAY_STUDENT);
           history.replace(PAGES.SELECT_MODE);
+          localStorage.setItem(CURRENT_USER, JSON.stringify(phoneAuthResult));
+          console.log("new user", localStorage.getItem(CURRENT_USER));
         }
       } else {
         setIsLoading(false);
@@ -305,6 +340,17 @@ const Login: React.FC = () => {
         isInvalidCode: true,
         isInvalidCodeLength: false,
       });
+      if (typeof error === "string") {
+        if (error.includes("code-expired")) {
+          setIsInvalidCode({
+            isInvalidCode: false,
+            isInvalidCodeLength: false,
+          });
+          setErrorMessage(
+            t("Verification code has expired. Please request a new one")
+          );
+        }
+      }
     }
   };
 
@@ -315,6 +361,9 @@ const Login: React.FC = () => {
 
   async function resendOtpHandler() {
     try {
+      if (!(counter <= 0)) {
+        return;
+      }
       setSentOtpLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
       setRecaptchaVerifier(undefined);
@@ -336,6 +385,11 @@ const Login: React.FC = () => {
     } catch (error) {
       console.log("Resend Otp Failed With Error " + error);
       setSentOtpLoading(false);
+      //When Resend OTP Failed
+      setErrorMessage(
+        t("Resend Otp Failed!! Please try again after some time.")
+      );
+      //alert(t("Resend Otp Failed!! You have entered the OTP incorrectly many times. Please try again after some time."));
       recaptchaVerifier!.clear();
     }
   }
@@ -357,12 +411,10 @@ const Login: React.FC = () => {
               setAllowSubmittingOtpCounter(counter);
               setIsInvalidCode({
                 isInvalidCode: false,
-                isInvalidCodeLength: false
+                isInvalidCodeLength: false,
               });
-
-
+              setErrorMessage("");
             }}
-
           />
         </div>
       )}
@@ -395,12 +447,16 @@ const Login: React.FC = () => {
                         maxLength={10}
                         inputValue={phoneNumber}
                         onChange={(input) => {
-                          if (input.detail.value) {
-                            setPhoneNumber(input.detail.value);
-                            console.log(countryCode + input.detail.value);
+                          if (input.target.value) {
+                            if (!NUMBER_REGEX.test(input.target.value)) {
+                              return;
+                            }
+
+                            setPhoneNumber(input.target.value);
+                            console.log(countryCode + input.target.value);
 
                             let loginBtnBgColor = currentButtonColor;
-                            if (input.detail.value.length === 10) {
+                            if (input.target.value.length === 10) {
                               console.log(phoneNumber);
                               setCurrentButtonColor(Buttoncolors.Valid);
                               phoneNumberErrorRef.current.style.display =
@@ -412,10 +468,13 @@ const Login: React.FC = () => {
                             }
                           } else {
                             setPhoneNumber("");
-                            console.log(countryCode + input.detail.value);
+                            console.log(countryCode + input.target.value);
                           }
                         }}
                       ></TextBox>
+                      <p className="login-verification-error-message">
+                        {errorMessage}
+                      </p>
                     </div>
 
                     <p
@@ -445,6 +504,7 @@ const Login: React.FC = () => {
                       }
                       // setShowVerification(true);
                       setSpinnerLoading(false);
+                      setErrorMessage("");
                     }}
                   >
                     {t("Send OTP")}
@@ -459,10 +519,12 @@ const Login: React.FC = () => {
                   isOpen={spinnerLoading}
                 />
 
-                <div id="Google-horizontal-line"></div>
-                <div id="Google-horizontal-line2"></div>
-                <div id="login-google-icon-text">
-                  {t("Continue with Google")}
+                <div id="Google-horizontal-line-main-container">
+                  <div id="Google-horizontal-line"></div>
+                  <div id="login-google-icon-text">
+                    {t("Continue with Google")}
+                  </div>
+                  <div id="Google-horizontal-line2"></div>
                 </div>
                 <img
                   id="login-google-icon"
@@ -482,6 +544,14 @@ const Login: React.FC = () => {
                         setIsLoading(false);
                         // history.replace(PAGES.DISPLAY_STUDENT);
                         history.replace(PAGES.SELECT_MODE);
+                        localStorage.setItem(
+                          CURRENT_USER,
+                          JSON.stringify(result)
+                        );
+                        console.log(
+                          "google...",
+                          localStorage.getItem(CURRENT_USER)
+                        );
                       } else {
                         setIsLoading(false);
                       }
@@ -505,16 +575,19 @@ const Login: React.FC = () => {
                       maxLength={6}
                       inputValue={verificationCode.trim()}
                       onChange={(input) => {
-                        if (input.detail.value) {
-                          setVerificationCode(input.detail.value.trim());
-                          console.log(input.detail.value);
+                        if (input.target.value) {
+                          if (!NUMBER_REGEX.test(input.target.value)) {
+                            return;
+                          }
+                          setVerificationCode(input.target.value.trim());
+                          console.log(input.target.value);
                           setIsInvalidCode({
                             isInvalidCode: false,
                             isInvalidCodeLength: false,
                           });
                           let otpBtnBgColor =
                             getOtpBtnRef.current.style.backgroundColor;
-                          if (input.detail.value.length === 6) {
+                          if (input.target.value.length === 6) {
                             getOtpBtnRef.current.style.backgroundColor =
                               Buttoncolors.Valid;
                             setIsInvalidCode({
@@ -529,21 +602,24 @@ const Login: React.FC = () => {
                           }
                         } else {
                           setVerificationCode("");
-                          console.log(input.detail.value);
+                          console.log(input.target.value);
                         }
                       }}
                     ></TextBox>
                   </div>
-                  {isInvalidCode?.isInvalidCodeLength && (
+                  {errorMessage ? (
+                    <p className="login-verification-error-message">
+                      {errorMessage}
+                    </p>
+                  ) : isInvalidCode?.isInvalidCodeLength ? (
                     <p className="login-verification-error-message">
                       {t("Please Enter 6 Digit Code")}
                     </p>
-                  )}
-                  {isInvalidCode?.isInvalidCode && (
+                  ) : isInvalidCode?.isInvalidCode ? (
                     <p className="login-verification-error-message">
                       {t("Please Enter Valid Code")}
                     </p>
-                  )}
+                  ) : null}
                 </div>
                 <div ref={getOtpBtnRef} id="login-otp-button">
                   <div
@@ -565,9 +641,10 @@ const Login: React.FC = () => {
                         onVerificationCodeSubmit();
                         setIsInvalidCode({
                           isInvalidCode: false,
-                          isInvalidCodeLength: false
+                          isInvalidCodeLength: false,
                         });
                       }
+                      setErrorMessage("");
                     }}
                   >
                     <div>{t("Get Started")}</div>

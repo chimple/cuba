@@ -6,6 +6,7 @@ import {
   MAX_STUDENTS_ALLOWED,
   PAGES,
   PARENTHEADERLIST,
+  CONTINUE,
 } from "../common/constants";
 import ProfileCard from "../components/parent/ProfileCard";
 import User from "../models/user";
@@ -22,7 +23,6 @@ import {
 import { FaInstagramSquare } from "react-icons/fa";
 import { t } from "i18next";
 import { TfiWorld } from "react-icons/tfi";
-import RectangularOutlineDropDown from "../components/parent/RectangularOutlineDropDown";
 import i18n from "../i18n";
 import { ServiceConfig } from "../services/ServiceConfig";
 import ParentLogout from "../components/parent/ParentLogout";
@@ -35,6 +35,8 @@ import CustomAppBar from "../components/studentProgress/CustomAppBar";
 import DeleteParentAccount from "../components/parent/DeleteParentAccount";
 import { TrueFalseEnum } from "../interface/modelInterfaces";
 import { Util } from "../utility/util";
+import { schoolUtil } from "../utility/schoolUtil";
+import DropDown from "../components/DropDown";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
@@ -43,7 +45,7 @@ const Parent: React.FC = () => {
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [soundFlag, setSoundFlag] = useState<boolean>();
   const [musicFlag, setMusicFlag] = useState<boolean>();
-  const [userProfile, setUserProfile] = useState<any[]>([]);
+  const [userProfile, setUserProfile] = useState<User[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
 
   const [langList, setLangList] = useState<
@@ -56,6 +58,7 @@ const Parent: React.FC = () => {
   const [currentAppLang, setCurrentAppLang] = useState<string>();
   //  const [localLangDocId, setLocalLangDocId] = useState<any>();
   const [reloadProfiles, setReloadProfiles] = useState<boolean>(false);
+  const [studentMode, setStudentMode] = useState<string | undefined>();
   let tempLangList: {
     id: string;
     displayName: string;
@@ -77,25 +80,23 @@ const Parent: React.FC = () => {
     getStudentProfile();
   }, [reloadProfiles]);
 
-  function getStudentProfile() {
+
+  async function getStudentProfile() {
     console.log("getStudentProfile");
-    const userProfilePromise: Promise<User[]> =
+    const userProfilePromise: User[] = await
       ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     let finalUser: any[] = [];
-    userProfilePromise.then((u) => {
-      for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
-        if (u[i]) {
-          finalUser.push(u[i]);
-        } else {
-          finalUser.push(undefined);
-        }
-      }
-      setUserProfile(finalUser);
-    });
+    for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
+      finalUser.push(userProfilePromise[i]);
+    }
+    setUserProfile(finalUser);
+    // });
   }
   async function inti(): Promise<void> {
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (parentUser != undefined) {
+      const currMode = await schoolUtil.getCurrMode();
+      setStudentMode(currMode);
       console.log("User ", parentUser?.musicFlag!);
       const sound = Util.getCurrentSound();
       const music = Util.getCurrentMusic();
@@ -162,6 +163,8 @@ const Parent: React.FC = () => {
               user={element}
               showText={true}
               setReloadProfiles={setReloadProfiles}
+              profiles={userProfile}
+              studentCurrMode= {studentMode}
             />
           );
         })}
@@ -175,7 +178,7 @@ const Parent: React.FC = () => {
         <div id="parent-page-setting">
           <div id="parent-page-setting-div">
             <p id="parent-page-setting-lang-text">{t("Language")}</p>
-            <RectangularOutlineDropDown
+            <DropDown
               currentValue={currentAppLang}
               optionList={langList}
               placeholder="Select Language"
@@ -257,9 +260,9 @@ const Parent: React.FC = () => {
           <div id="parent-logout">
             <ParentLogout />
           </div>
-          <div id="parent-delete">
+          {/* <div id="parent-delete">
             <DeleteParentAccount />
-          </div>
+          </div> */}
         </div>
       </div>
     );
@@ -421,7 +424,7 @@ const Parent: React.FC = () => {
   };
 
   const handleBackButton = () => {
-    history.replace(PAGES.DISPLAY_STUDENT);
+    Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
   };
 
   useEffect(() => {

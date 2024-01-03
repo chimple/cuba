@@ -4,7 +4,7 @@ import ChimpleLogo from "../components/ChimpleLogo";
 import "./DisplayStudents.css";
 import Loading from "../components/Loading";
 import User from "../models/user";
-import { AVATARS, MAX_STUDENTS_ALLOWED, PAGES } from "../common/constants";
+import { AVATARS, MAX_STUDENTS_ALLOWED, PAGES, MODES, CONTINUE } from "../common/constants";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { useHistory } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -12,6 +12,7 @@ import { t } from "i18next";
 import { Util } from "../utility/util";
 import ParentalLock from "../components/parent/ParentalLock";
 import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
+import { schoolUtil } from "../utility/schoolUtil";
 // import { FirebaseApi } from "../services/api/FirebaseApi";
 // import { FirebaseAuth } from "../services/auth/FirebaseAuth";
 
@@ -19,18 +20,33 @@ const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<User[]>();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
+  const [studentMode, setStudentMode] = useState<string | undefined>();
   const history = useHistory();
 
   useEffect(() => {
     getStudents();
+
+    // Clean up the loading state when the component navigate away
+    return () => {
+      setIsLoading(false);
+    };
   }, []);
   const getStudents = async () => {
+    const currMode = await schoolUtil.getCurrMode();
+    setStudentMode(currMode);
     const students =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     console.log(
       "🚀 ~ file: DisplayStudents.tsx:13 ~ getStudents ~ students:",
       students
     );
+
+    if (!students || students.length < 1) {
+      history.replace(PAGES.CREATE_STUDENT, {
+        showBackButton: false,
+      });
+      return;
+    }
     setStudents(students);
 
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -39,8 +55,10 @@ const DisplayStudents: FC<{}> = () => {
     }
 
     await FirebaseAnalytics.setUserId({
-      userId: currentUser?.docId,
+      userId: currentUser.docId,
     });
+
+    Util.setUserProperties(currentUser);
 
     // setStudents([students[0]]);
 
@@ -71,22 +89,22 @@ const DisplayStudents: FC<{}> = () => {
       "🚀 ~ file: DisplayStudents.tsx:30 ~ onStudentClick:student",
       student
     );
-    await Util.setCurrentStudent(student, undefined, false);
+    await Util.setCurrentStudent(student, undefined, true);
 
-    if (!student.board || !student.language || !student.grade) {
+    if (!student.board || !student.language || !student.grade || !student.courses) {
       history.push(PAGES.EDIT_STUDENT, {
         from: history.location.pathname,
       });
     } else {
-      history.replace(PAGES.HOME);
+      Util.setPathToBackButton(PAGES.HOME, history);
     }
   };
   const onCreateNewStudent = () => {
-    // history.push(PAGES.CREATE_STUDENT);
-    history.push(PAGES.CREATE_STUDENT, {
-      showBackButton: true,
-    });
+    const isProfilesExist = students && students.length > 0;
+    const locationState = isProfilesExist ? { showBackButton: true } : undefined;
+    history.replace(PAGES.CREATE_STUDENT, locationState);
   };
+
   return (
     <IonPage id="display-students">
       {/* <IonContent> */}
@@ -121,9 +139,7 @@ const DisplayStudents: FC<{}> = () => {
               >
                 <img
                   className="avatar-img"
-                  src={
-                    "assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png"
-                  }
+                  src={(studentMode === MODES.SCHOOL && student.image) || ("assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png")}
                   alt=""
                 />
                 <span className="student-name">{student.name}</span>

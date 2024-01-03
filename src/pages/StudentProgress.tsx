@@ -4,7 +4,7 @@ import { SyntheticEvent } from "react";
 import Loading from "../components/Loading";
 import "../components/studentProgress/CustomAppBar.css";
 import "./StudentProgress.css";
-import { PAGES } from "../common/constants";
+import { CONTINUE, PAGES } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import StudentProgressHeader from "../components/studentProgress/StudentProgressHeader";
 import Course from "../models/course";
@@ -47,7 +47,7 @@ const StudentProgress: React.FC = () => {
     course: Course;
   }
   const handleBackButton = () => {
-    history.replace(PAGES.PARENT);
+    Util.setPathToBackButton(PAGES.PARENT, history);
   };
 
   async function inti() {
@@ -73,10 +73,14 @@ const StudentProgress: React.FC = () => {
         // console.log(courses[0].title);
       }
 
-      api.getLessonResultsForStudent(currentStudent.docId).then((res) => {
-        setLessonsResults(res || new Map());
-        getResultsForStudentForSelectedHeader(courses[0], res || new Map());
-      });
+      const res = await api.getLessonResultsForStudent(currentStudent.docId);
+      setLessonsResults(res || new Map());
+
+      if (res && res.size > 0) {
+        console.log("result...");
+
+        await getResultsForStudentForSelectedHeader(courses[0], res);
+      }
 
       setIsLoading(false);
     }
@@ -125,6 +129,7 @@ const StudentProgress: React.FC = () => {
             );
           })}
         </div>
+        <Loading isLoading={isLoading} />
       </div>
     );
   }
@@ -160,7 +165,7 @@ const StudentProgress: React.FC = () => {
               tempDataContent.push([
                 lessonDetail.title,
                 chapter.title,
-                lessonRes.score.toString(),
+                Math.floor(lessonRes.score).toString(),
                 computeMinutes + ":" + result,
               ]);
             }

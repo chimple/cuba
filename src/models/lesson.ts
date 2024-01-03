@@ -21,6 +21,8 @@ export default class Lesson extends BaseObject {
   private _cocosChapterCode: string | undefined;
   private _cocosSubjectCode: string | undefined;
   private _assignment: Assignment | undefined;
+  private _chapterTitle: string | undefined;
+  // static cocosSubjectCode: string;
 
   constructor({
     clonedFrom,
@@ -184,6 +186,13 @@ export default class Lesson extends BaseObject {
   }
   public set assignment(value: Assignment | undefined) {
     this._assignment = value;
+  }
+
+  public get chapterTitle(): string | undefined {
+    return this._chapterTitle;
+  }
+  public set chapterTitle(value: string | undefined) {
+    this._chapterTitle = value;
   }
 
   public static toJson(lesson: Lesson) {

@@ -3,7 +3,7 @@ import JoinClass from "../components/assignment/JoinClass";
 import "./Assignment.css";
 import { useEffect, useState } from "react";
 import BackButton from "../components/common/BackButton";
-import { CURRENT_LESSON_LEVEL, PAGES } from "../common/constants";
+import { CURRENT_LESSON_LEVEL, LIVE_QUIZ, PAGES, TYPE } from "../common/constants";
 import { useHistory } from "react-router";
 import Loading from "../components/Loading";
 import Class from "../models/class";
@@ -44,17 +44,19 @@ const AssignmentPage: React.FC = () => {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
-    api.getStudentResultInMap(student.docId).then(async (res) => {
-      console.log("tempResultLessonMap = res;", res);
-      setLessonResultMap(res);
-    });
+
+    const studentResult = await api.getStudentResult(student.docId);
+    if (!!studentResult) {
+      console.log("tempResultLessonMap = res;", studentResult.lessons);
+      setLessonResultMap(studentResult.lessons);
+    }
+
     const linked = await api.isStudentLinked(student.docId, fromCache);
     if (!linked) {
       setIsLinked(false);
       setLoading(false);
       return;
     }
-    const studentResult = await api.getStudentResult(student.docId);
 
     if (
       !!studentResult &&
@@ -67,14 +69,17 @@ const AssignmentPage: React.FC = () => {
       const allAssignments: Assignment[] = [];
       await Promise.all(
         studentResult.classes.map(async (_class) => {
-          const res = await api.getPendingAssignments(_class, student.docId);
-          allAssignments.push(...res);
+          const assignments = await api.getPendingAssignments(_class, student.docId);
+          const filteredAssignments = assignments.filter((assignment) => { //filtering the assignments without live quiz
+            return !(TYPE in assignment) || assignment.type !== LIVE_QUIZ;
+          });
+          allAssignments.push(...filteredAssignments);
         })
       );
       const _lessons: Lesson[] = [];
       await Promise.all(
         allAssignments.map(async (_assignment) => {
-          const res = await api.getLesson(_assignment.lesson.id);
+          const res = await api.getLesson(_assignment.lesson.id, undefined, true);
           if (!!res) {
             res.assignment = _assignment;
             _lessons.push(res);
@@ -113,15 +118,15 @@ const AssignmentPage: React.FC = () => {
     }
   }, []);
   return (
-    <IonPage>
-      <div className="assignment-main">
-        <div id="assignment-back-button">
+    <div>
+      <div className={`assignment-main${isLinked ? "" : "-join-class"}`}>
+        {/* <div id="assignment-back-button" style={{display:"none"}}>
           <BackButton
             onClicked={() => {
               history.replace(PAGES.HOME);
             }}
           />
-        </div>
+        </div> */}
 
         <div
           className={
@@ -162,6 +167,7 @@ const AssignmentPage: React.FC = () => {
                       lessonsScoreMap={lessonResultMap || {}}
                       startIndex={0}
                       showSubjectName={true}
+                      showChapterName={true}
                     />
                   ) : (
                     <div className="pending-assignment">
@@ -175,7 +181,7 @@ const AssignmentPage: React.FC = () => {
         </div>
       </div>
       <Loading isLoading={loading} />
-    </IonPage>
+    </div>
   );
 };
 export default AssignmentPage;

@@ -41,7 +41,7 @@ function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
     if (!!props.src) {
       getCachedImage(props.src)
         .then((src) => {
-          console.log("🚀 ~ file: CachedImage.tsx:11 ~ .then ~ src:", src);
+          // console.log("🚀 ~ file: CachedImage.tsx:11 ~ .then ~ src:", src);
           setImgSrc(src);
         })
         .catch((error) => {
@@ -53,6 +53,6 @@ function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
         });
     }
   }, [props]);
-  return !!imgSrc ? <img {...props} src={imgSrc} alt={imgSrc} /> : <div></div>;
+  return !!imgSrc ? <img loading="lazy" {...props} src={imgSrc} alt={imgSrc} /> : <div></div>;
 }
 export default CachedImage;

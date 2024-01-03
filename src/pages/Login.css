@@ -12,8 +12,8 @@ p {
     margin-left: calc(33vw);
     margin-top: 2%; */
   text-align: center;
-  width: 11.5vw;
-  height: 18vh;
+  width: 11vw;
+  height: 15vh;
   margin-top: 2%;
   /* height: 28%;
     position: absolute;
@@ -101,7 +101,7 @@ p {
     top: 83%;
     left: 50%;
     transform: translateY(-5%) translateX(-50%); */
-  margin: -1.2% 0% 0% 0%;
+  margin: -2% 1% 0% 1%;
   font-size: var(--text-size);
   color: var(--text-color);
   font-size: 1.4vw;
@@ -119,23 +119,27 @@ p {
 }
 
 #Google-horizontal-line {
-  width: 6vw;
+  flex: auto;
   height: 0.1vh;
   margin-top: 2%;
   background-color: gray;
-  display: block;
-  margin-left: 37.5%;
-  margin-top: -1%;
+
+
+
+}
+
+#Google-horizontal-line-main-container {
+  display: flex;
+  width: 26vw;
+  margin-left: 36.9%;
+  margin-top: -2%;
 }
 
 #Google-horizontal-line2 {
-  width: 6vw;
+  flex: auto;
   height: 0.1vh;
   margin-top: 2%;
   background-color: gray;
-  display: block;
-  margin-left: 56.5%;
-  margin-top: 0%;
 }
 
 #login-button-img {
@@ -146,7 +150,13 @@ p {
 #custom-loading {
   --background: #e3edff;
   --spinner-color: white;
-  color: white;
+   color: white;
+}
+#custom-loading-for-avatar{
+  --background: #e3edff;
+  --spinner-color: #ff5500;
+    color: white;
+    padding-right: 50vw;
 }
 
 .login-error-message {
@@ -173,6 +183,11 @@ p {
 
 .scroll-header {
   overflow: scroll;
+
+}
+
+.scroll-header::-webkit-scrollbar {
+  display: none;
 }
 
 #login-resend-otp {
@@ -186,10 +201,14 @@ p {
 }
 
 #login-resend-otp-text {
+  font-size: 1.5vw;
+}
+
+
+#login-resend-otp-text {
   font-size: 2vw;
   font-weight: bold;
 }
-
 
 .login-verification-error-message {
   width: 35vw;

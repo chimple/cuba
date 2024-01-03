@@ -68,6 +68,8 @@ export class RemoteConfig {
 export enum REMOTE_CONFIG_KEYS {
   CAN_HOT_UPDATE = "can_hot_update",
   BUNDLE_ZIP_URLS = "bundle_zip_urls",
+  CAN_UPDATED_AVATAR_SUGGESTION_URL = "can_updated_avatar_suggestion_url",
+  // TERMS_AND_CONDITIONS_URL = "termsAndConditionsUrl",
 }
 
 export const REMOTE_CONFIG_DEFAULTS: { [key: string]: any } = {
@@ -77,4 +79,7 @@ export const REMOTE_CONFIG_DEFAULTS: { [key: string]: any } = {
     "https://cuba-stage-zip-bundle.web.app/",
     "https://raw.githubusercontent.com/chimple/chimple-zips/main/",
   ],
+  // [REMOTE_CONFIG_KEYS.TERMS_AND_CONDITIONS_URL]: [
+  //   "https://www.chimple.org/privacy-policy"
+  // ],
 };

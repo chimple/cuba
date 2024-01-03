@@ -1,38 +1,57 @@
 import { t } from "i18next";
-import { COURSES, HOMEHEADERLIST } from "../common/constants";
+import {
+  ACTIVE_HEADER_ICON_CONFIGS,
+  DEFAULT_HEADER_ICON_CONFIGS,
+  HOMEHEADERLIST,
+  HeaderIconConfig,
+} from "../common/constants";
 import IconButton from "./IconButton";
-import "./IconButton.css";
-import React from "react";
+import { IonBadge } from "@ionic/react";
+
 const HeaderIcon: React.FC<{
-  iconSrc: string;
-  headerName: string;
+  headerConfig: any;
   currentHeader: string;
-  headerList: HOMEHEADERLIST;
+  pendingAssignmentCount: number | undefined;
   onHeaderIconClick: Function;
 }> = ({
-  iconSrc,
-  headerName,
+  headerConfig,
   currentHeader,
-  headerList,
+  pendingAssignmentCount,
   onHeaderIconClick,
 }) => {
+  const isCurrentHeaderActive = currentHeader === headerConfig.headerList;
+
   return (
     <div>
-      {currentHeader == headerList ? (
+      {isCurrentHeaderActive ? (
         <p className="home-header-indicator">&#9679;</p>
       ) : (
         <p className="home-header-indicator">&nbsp;</p>
       )}
+      {headerConfig.headerList === HOMEHEADERLIST.ASSIGNMENT &&
+        pendingAssignmentCount !== undefined &&
+        pendingAssignmentCount > 0 && (
+          <div id="homework-notification">
+            <IonBadge class="badge-notification">
+              {pendingAssignmentCount}
+            </IonBadge>
+          </div>
+        )}
       <IconButton
-        name={t(headerName)}
-        iconSrc={iconSrc}
+        name={t(headerConfig.displayName)}
+        iconSrc={
+          !isCurrentHeaderActive
+            ? headerConfig.iconSrc
+            : ACTIVE_HEADER_ICON_CONFIGS.get(headerConfig.headerList)?.iconSrc
+        }
         onClick={() => {
-          if (currentHeader != headerList) {
-            onHeaderIconClick(headerList);
+          if (!isCurrentHeaderActive) {
+            onHeaderIconClick(headerConfig.headerList);
           }
         }}
-      ></IconButton>
+      />
     </div>
   );
 };
+
 export default HeaderIcon;

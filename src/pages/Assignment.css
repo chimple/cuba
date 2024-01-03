@@ -1,8 +1,16 @@
 .assignment-main {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 100vh;
   background: var(--ion-background-color);
+}
+
+.assignment-main-join-class {
+  display: flex;
+  flex-direction: column;
+  height: 110vh;
+  background: var(--ion-background-color);
+  font-weight: bold;
 }
 
 .lesson-body {
@@ -19,7 +27,9 @@
 }
 
 .assignment-body {
-  margin-top: 10vh;
+  /* margin-top: 10vh; */
+  position: relative;
+  bottom: 2%;
 }
 
 .assignment-header {
@@ -47,7 +57,7 @@
   display: flex;
   gap: 1vw;
   padding-left: 42vw;
-  color:black;
+  color: black;
 }
 
 #assignment-back-button {
@@ -57,4 +67,5 @@
 
 .scroll-header {
   overflow: scroll;
+  height: 100vh;
 }

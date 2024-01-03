@@ -10,6 +10,7 @@ export interface Chapter {
 
 export enum CollectionIds {
   ASSIGNMENT = "Assignment",
+  AVATAR = "Avatar",
   CLASS = "Class",
   CONNECTION = "Connection",
   COURSE = "Course",
@@ -21,11 +22,12 @@ export enum CollectionIds {
   SUBJECT = "Subject",
   TOPIC = "Topic",
   USER = "User",
-  STUDENTPROFILE = "StudentProfile",
+  STUDENT_PROFILE = "StudentProfile",
   RESULT = "Result",
   LEADERBOARD = "Leaderboard",
-  CLASSCONNECTION = "ClassConnection",
-  SCHOOLCONNECTION = "SchoolConnection",
+  CLASS_CONNECTION = "ClassConnection",
+  SCHOOL_CONNECTION = "SchoolConnection",
+  LIVE_QUIZ_ROOM = "LiveQuizRoom",
 }
 
 export interface StudentLessonResult {
@@ -33,7 +35,7 @@ export interface StudentLessonResult {
   course: DocumentReference;
   score: number;
   timeSpent: number;
-  isLoved : boolean;
+  isLoved: boolean;
 }
 
 export interface CocosLessonData {
@@ -53,7 +55,7 @@ export interface CocosLessonData {
   totalMoves: number;
   correctMoves: number;
   correct: number;
-  isLoved:boolean;
+  isLoved: boolean;
   wrongMoves: number;
   gameCompleted: boolean;
   quizCompleted: boolean;

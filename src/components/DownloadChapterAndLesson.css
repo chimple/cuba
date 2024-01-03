@@ -1,0 +1,38 @@
+.download-or-delete-button {
+  height: clamp(3vw, 8vh, 5vw);
+  width: clamp(3vw, 8vh, 5vw);
+  border-radius: 50%;
+  background-color: rgb(220, 213, 213);
+  cursor: "pointer";
+  position: relative;
+  bottom: 12vh;
+  left: 2vh;
+}
+.loading-button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.loading-button {
+  height: clamp(3vw, 8vh, 5vw);
+  width: clamp(3vw, 8vh, 5vw);
+  border: 3px solid rgb(220, 213, 213);
+  border-top-color: #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.lesson-or-chapter-delete-icon {
+  margin-top: 1vh;
+  width: 60%;
+  height: 60%;
+}
+.lesson-or-chapter-download-icon {
+  margin-top: 1vh;
+  width: 60%;
+  height: 60%;
+}

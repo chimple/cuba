@@ -8,6 +8,10 @@
 		"classpath": "com.getcapacitor.plugin.http.Http"
 	},
 	{
+		"pkg": "@capacitor-community/text-to-speech",
+		"classpath": "com.getcapacitor.community.tts.TextToSpeechPlugin"
+	},
+	{
 		"pkg": "@capacitor-firebase/authentication",
 		"classpath": "io.capawesome.capacitorjs.plugins.firebase.authentication.FirebaseAuthenticationPlugin"
 	},

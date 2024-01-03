@@ -70,6 +70,20 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   text-align: center;
+  font-weight: bold;
+}
+
+#lesson-card-name-fav-icon {
+  margin: 0px !important;
+  color: var(--text-color);
+  font-size: var(--text-size);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: center;
+  font-weight: bold;
+  position: relative;
+  bottom: 8vh;
 }
 
 #lesson-card-subject-name {
@@ -81,4 +95,54 @@
   top: 4%;
   justify-self: center;
   width: 55%;
+}
+
+.lesson-card-homework-indicator {
+  height: 8.2vh;
+  width: 2vw;
+}
+
+#lesson-card-homework-icon {
+  justify-self: left;
+  position: absolute;
+  width: 20%;
+  left: 0%;
+  border-bottom-right-radius: 6vh;
+  border-top-left-radius: 6vh;
+  background-color: white;
+  opacity: 1;
+  top: 0%;
+}
+
+#chapter-title {
+  color: var(--text-color);
+  font-size: var(--text-size);
+  font-weight: bold;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+#chapter-title-fav-icon {
+  color: var(--text-color);
+  font-size: var(--text-size);
+  font-weight: bold;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: center;
+  position: relative;
+  bottom: 8vh;
+}
+.download-lesson-button-container {
+  display: flex;
+  position: relative;
+  justify-content: flex-start;
+  bottom: 10vh;
+  left: 3vh;
+}
+.lesson-download-button-container {
+  position: fixed;
+  top: 52vh;
 }

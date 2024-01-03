@@ -1,7 +1,14 @@
 import { IonCard } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { LESSON_CARD_COLORS, PAGES } from "../common/constants";
+import {
+  COCOS,
+  CONTINUE,
+  LESSON_CARD_COLORS,
+  LIVE_QUIZ,
+  PAGES,
+  TYPE,
+} from "../common/constants";
 import "./LessonCard.css";
 import LessonCardStarIcons from "./LessonCardStarIcons";
 import React from "react";
@@ -12,6 +19,8 @@ import Subject from "../models/subject";
 import { t } from "i18next";
 import LovedIcon from "./LovedIcon";
 import SelectIconImage from "./displaySubjects/SelectIconImage";
+import { Util } from "../utility/util";
+import DownloadLesson from "./DownloadChapterAndLesson";
 
 const LessonCard: React.FC<{
   width: string;
@@ -28,6 +37,7 @@ const LessonCard: React.FC<{
   isLoved: boolean | undefined;
   lessonData: Lesson[];
   startIndex: number;
+  showChapterName: boolean;
 }> = ({
   width,
   height,
@@ -43,25 +53,58 @@ const LessonCard: React.FC<{
   isLoved,
   lessonData,
   startIndex,
+  showChapterName = false,
 }) => {
   const history = useHistory();
+  const [showImage, setShowImage] = useState(true);
   const [subject, setSubject] = useState<Subject>();
+  // const [subject, setSubject] = useState<Subject>();
+  const [currentCourse, setCurrentCourse] = useState<Course>();
 
+  const hideImg = (event: any) => {
+    setShowImage(false);
+  };
   // const subjectCode = lesson.chapter.course.id;
   useEffect(() => {
-    if (showSubjectName) getSubject();
+    // getSubject();
+    getCurrentCourse();
   }, [lesson]);
 
-  const getSubject = async () => {
-    const subjectId = lesson?.subject?.toString()?.split("/")?.at(-1);
-    if (!subjectId) return;
-    let subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
-    if (!subject) {
-      const subjectId = lesson?.subject.path?.toString()?.split("/")?.at(-1);
-      if (!subjectId) return;
-      subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
+  // const getSubject = async () => {
+  //   const subjectId = lesson?.subject?.toString()?.split("/")?.at(-1);
+  //   if (!subjectId) return;
+  //   let subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
+  //   if (!subject) {
+  //     const subjectId = lesson?.subject.path?.toString()?.split("/")?.at(-1);
+  //     if (!subjectId) return;
+  //     subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
+  //   }
+  //   setSubject(subject);
+  // };
+
+  const getCurrentCourse = async () => {
+    const currentStudent = Util.getCurrentStudent();
+    if (!currentStudent) {
+      return;
     }
-    setSubject(subject);
+    const api = ServiceConfig.getI().apiHandler;
+    const courses = await api.getCoursesForParentsStudent(currentStudent);
+    console.log("Student Courses ", courses);
+
+    let currentCourse = courses.find(
+      (course) => lesson.cocosSubjectCode === course.courseCode
+    );
+
+    console.log("current Course ", currentCourse);
+    if (!currentCourse) {
+      let lessonCourse = await api.getCourseFromLesson(lesson);
+      if (!!lessonCourse) {
+        console.log("current Course from all courses ", lessonCourse);
+        setCurrentCourse(lessonCourse);
+      }
+    } else {
+      setCurrentCourse(currentCourse);
+    }
   };
 
   // const lessonCardColor =
@@ -82,7 +125,7 @@ const LessonCard: React.FC<{
         width: width,
         height: "auto",
       }}
-      onClick={() => {
+      onClick={async () => {
         if (isUnlocked) {
           // if (
           //   lesson.chapter.course.isCourseMapped &&
@@ -99,22 +142,35 @@ const LessonCard: React.FC<{
           //     from: history.location.pathname,
           //   });
           // } else {
-          const parmas = `?courseid=${lesson.cocosSubjectCode}&chapterid=${lesson.cocosChapterCode}&lessonid=${lesson.id}`;
-          console.log(
-            "🚀 ~ file: LessonCard.tsx:73 ~ parmas:",
-            parmas,
-            Lesson.toJson(lesson)
-          );
-          history.push(PAGES.GAME + parmas, {
-            url: "chimple-lib/index.html" + parmas,
-            lessonId: lesson.id,
-            courseDocId: course?.docId ?? lesson?.assignment?.course?.id,
-            lesson: JSON.stringify(Lesson.toJson(lesson)),
-            from: history.location.pathname + "?continue=true",
-          });
-          // }
-        } else {
-          console.log(lesson?.title, "lesson is locked");
+          // console.log("LessonCard course: subject,", subject);
+          console.log("LessonCard course: course,", currentCourse);
+          if (lesson.pluginType === COCOS) {
+            const parmas = `?courseid=${lesson.cocosSubjectCode}&chapterid=${lesson.cocosChapterCode}&lessonid=${lesson.id}`;
+            console.log(
+              "🚀 ~ file: LessonCard.tsx:73 ~ parmas:",
+              parmas,
+              Lesson.toJson(lesson)
+            );
+            history.replace(PAGES.GAME + parmas, {
+              url: "chimple-lib/index.html" + parmas,
+              lessonId: lesson.id,
+              courseDocId: course?.docId ?? lesson?.assignment?.course?.id,
+              course: JSON.stringify(Course.toJson(currentCourse!)),
+              lesson: JSON.stringify(Lesson.toJson(lesson)),
+              from: history.location.pathname + `?${CONTINUE}=true`,
+            });
+          } else if (
+            !!lesson?.assignment?.docId &&
+            lesson.pluginType === LIVE_QUIZ
+          ) {
+            history.replace(
+              PAGES.LIVE_QUIZ_JOIN +
+                `?assignmentId=${lesson?.assignment?.docId}`,
+              {
+                assignment: JSON.stringify(lesson?.assignment),
+              }
+            );
+          }
         }
       }}
       // disabled={!isUnlocked}
@@ -137,10 +193,32 @@ const LessonCard: React.FC<{
           }}
           color={lessonCardColor}
         >
-          {showSubjectName && subject?.title ? (
+          <div id="lesson-card-homework-icon">
+            {lesson.assignment !== undefined &&
+              (!(TYPE in lesson.assignment) ||
+              lesson.assignment.type !== LIVE_QUIZ ? (
+                <div>
+                  <img
+                    src="assets/icons/homework_icon.svg"
+                    className="lesson-card-homework-indicator"
+                    alt="Homework Icon"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <img
+                    src="/assets/icons/quiz_icon.svg"
+                    className="lesson-card-homework-indicator"
+                    alt="Quiz Icon"
+                  />
+                </div>
+              ))}
+          </div>
+
+          {showSubjectName && currentCourse?.title ? (
             <div id="lesson-card-subject-name">
               <p>
-                {subject?.title}
+                {currentCourse?.title}
                 {/* {subject.title==="English"?subject.title:t(subject.title)} */}
               </p>
             </div>
@@ -167,10 +245,12 @@ const LessonCard: React.FC<{
                 lesson.cocosSubjectCode +
                 "/icons/" +
                 lesson.id +
-                ".png"
+                ".webp"
               }
-              defaultSrc={"courses/" + "en" + "/icons/" + "en33.png"}
+              defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
               webSrc={lesson.thumbnail}
+              imageWidth={"100%"}
+              imageHeight={"100%"}
             />
             {!isUnlocked ? (
               <div id="lesson-card-status-icon">
@@ -183,8 +263,12 @@ const LessonCard: React.FC<{
               </div>
             ) : isPlayed ? (
               showScoreCard ? (
-                <div id="lesson-card-score">
-                  <LessonCardStarIcons score={score}></LessonCardStarIcons>
+                <div>
+                  <div id="lesson-card-score">
+                    <LessonCardStarIcons score={score}></LessonCardStarIcons>
+                  </div>
+
+                  {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
                 </div>
               ) : (
                 <></>
@@ -192,11 +276,32 @@ const LessonCard: React.FC<{
             ) : (
               <div />
             )}
-            {isLoved && <LovedIcon isLoved={isLoved} />}
           </div>
+
+          {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
         </div>
+        <div className="lesson-download-button-container">
+          <DownloadLesson lessonID={lesson.id} lessonData={lessonData} />
+        </div>
+        {isLoved && (
+          <LovedIcon
+            isLoved={isLoved}
+            hasChapterTitle={!!lesson.chapterTitle && showChapterName}
+          />
+        )}
       </div>
-      {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
+      <div>
+        {showText ? (
+          <p id={`lesson-card-name${isLoved ? "-fav-icon" : ""}`}>
+            {t(lesson?.title)}
+          </p>
+        ) : null}
+        {showChapterName && lesson.chapterTitle && (
+          <div id={`chapter-title${isLoved ? "-fav-icon" : ""}`}>
+            {lesson.chapterTitle}
+          </div>
+        )}
+      </div>
     </IonCard>
   );
 };

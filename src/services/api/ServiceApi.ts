@@ -12,6 +12,9 @@ import Class from "../../models/class";
 import School from "../../models/school";
 import Assignment from "../../models/assignment";
 import { MODES } from "../../common/constants";
+import { AvatarObj } from "../../components/animation/Avatar";
+import { DocumentData, Unsubscribe } from "firebase/firestore";
+import LiveQuizRoomObject from "../../models/liveQuizRoom";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -89,6 +92,7 @@ export interface ServiceApi {
   updateSoundFlag(user: User, value: boolean);
   updateMusicFlag(user: User, value: boolean);
   updateLanguage(user: User, value: string);
+  updateTcAccept(user: User, value: boolean);
 
   /**
    * Gives Language for given a language firebase doc Id
@@ -96,6 +100,13 @@ export interface ServiceApi {
    * @returns {Language | undefined}`Language` or `undefined` if it could not find the Language with given `id`
    */
   getLanguageWithId(id: string): Promise<Language | undefined>;
+
+  /**
+   * Gives Lesson for a given CocosLesson Id
+   * @param lessonId - Cocos Lesson Id
+   * Here lessonId is - In Firebase we have Lesson collection in that collection each doc is one lesson in that lesson we have ID
+   */
+  getLessonWithCocosLessonId(lessonId: string): Promise<Lesson | null>;
 
   /**
    * Gives List of subjects for given a student for Home user
@@ -115,7 +126,11 @@ export interface ServiceApi {
    * @param {string} id - Lesson firebase doc id
    * @returns {Lesson | undefined}`Lesson` or `undefined` if it could not find the lesson with given `id`
    */
-  getLesson(id: string): Promise<Lesson | undefined>;
+  getLesson(
+    id: string,
+    chapter: Chapter | undefined,
+    loadChapterTitle: boolean
+  ): Promise<Lesson | undefined>;
 
   /**
    * Gives Array of `Lesson` objects for a given `chapter`
@@ -134,6 +149,12 @@ export interface ServiceApi {
   ): Promise<{ grades: Grade[]; courses: Course[] }>;
 
   /**
+   * Gives all Avatar info like mode, audio list
+   * @returns {AvatarObj} `Avatar` Object
+   */
+  getAvatarInfo(): Promise<AvatarObj | undefined>;
+
+  /**
    * Gives all lesson results for given student id
    * @param {string } studentId - Student Id
    * @returns {{ Map<string, StudentLessonResult> }} Map of `StudentLessonResult` Objects
@@ -141,6 +162,23 @@ export interface ServiceApi {
   getLessonResultsForStudent(
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined>;
+
+  /**
+   * This function gets all live quizzes from assignments for a student in a class.
+   * Gives Array of `Assignments` objects for a given `classID`
+   * @param {classId} classId firebase doc id
+   * @param {studentId} studentId firebase doc id
+   * @returns {Assignment[]} A promise that resolves to an array of assignments.
+   */
+  getLiveQuizLessons(classId: string, studentId: string): Promise<Assignment[]>;
+  /**
+   * This function gets the document of the live quiz room
+   * @param liveQuizRoomDocId firebase doc id
+   * @return {DocumentData} A promise that returns the document of live quiz room
+   */
+  getLiveQuizRoomDoc(
+    liveQuizRoomDocId: string
+  ): Promise<DocumentData | undefined>;
   /**
    * Creates a Document in Result collection with the given params
    * student: User
@@ -199,6 +237,13 @@ export interface ServiceApi {
    * @returns {Subject | undefined}`Subject` or `undefined` if it could not find the Subject with given `id`
    */
   getSubject(id: string): Promise<Subject | undefined>;
+
+  /**
+   * Gives Course for given a Course firebase doc Id
+   * @param {string} id - Course firebase doc id
+   * @returns {Course | undefined}`Course` or `undefined` if it could not find the Course with given `id`
+   */
+  getCourse(id: string): Promise<Course | undefined>;
 
   /**
    * Gives StudentProfile for given a Student firebase doc Id
@@ -350,10 +395,68 @@ export interface ServiceApi {
    * Gives all `Course` available on database
    * @returns {Course[]} Array of `Course` objects
    */
+  getCoursesByGrade(gradeDocId: any): Promise<Course[]>;
   getAllCourses(): Promise<Course[]>;
 
   /**
    * Deletes all the data related to user from database.
    */
   deleteAllUserData(): Promise<void>;
+
+  /**
+   *
+   * It will get Course Object using lesson cocosSubjectcode from all courses
+   */
+  getCourseFromLesson(lesson: Lesson): Promise<Course | undefined>;
+
+  /**
+   * Establishes a real-time listener for changes in a live quiz room document.
+   *
+   * @param liveQuizRoomDocId - The unique identifier of the live quiz room document.
+   * @param onDataChange - A callback function to be executed when the data in the live quiz room document changes.
+   *                        It receives the updated LiveQuizRoom object as a parameter.
+   * @returns A function to unsubscribe from the real-time listener.
+   */
+  liveQuizListener(
+    liveQuizRoomDocId: string,
+    onDataChange: (user: LiveQuizRoomObject) => void
+  ): Unsubscribe;
+
+  /**
+   * Updates the live quiz results for a specific student in a live quiz room.
+   *
+   * @param roomDocId - The unique identifier of the live quiz room document.
+   * @param studentId - The unique identifier of the student for whom the results are being updated.
+   * @param questionId - The ID of the question.
+   * @param score - The new score achieved by the student in the quiz.
+   * @param timeSpent - The new amount of time spent by the student on the quiz.
+   * @returns A promise that resolves when the update is successful and rejects if an error occurs.
+   */
+  updateLiveQuiz(
+    roomDocId: string,
+    studentId: string,
+    questionId: string,
+    timeSpent: number,
+    score: number
+  ): Promise<void>;
+
+  /**
+   * Initiates the process for a student to join a live quiz.
+   *
+   * @param studentId - The unique identifier of the student joining the live quiz.
+   * @param assignmentId - The unique identifier of the assignment associated with the live quiz.
+   * @returns A promise that resolves with a live quiz Room doc id upon successful initiation,
+   *          or undefined if an error occurs during the process.
+   */
+  joinLiveQuiz(
+    studentId: string,
+    assignmentId: string
+  ): Promise<string | undefined>;
+
+  /**
+   * Gives Assignment for given a Assignment firebase doc Id
+   * @param {string} id - Assignment firebase doc id
+   * @returns {Assignment | undefined}`Assignment` or `undefined` if it could not find the Assignment with given `id`
+   */
+  getAssignmentById(id: string): Promise<Assignment | undefined>;
 }

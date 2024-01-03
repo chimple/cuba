@@ -1,12 +1,13 @@
 import React, { MouseEventHandler, useEffect, useRef, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { PAGES } from "../../common/constants";
+import { CONTINUE, PAGES } from "../../common/constants";
 import { Dialog, DialogContent } from "@mui/material";
 import { IoCloseCircle } from "react-icons/io5";
 import { OverlayEventDetail } from "@ionic/react/dist/types/components/react-component-lib/interfaces";
 import { changeLanguage, t } from "i18next";
 import "./ParentalLock.css";
 import { FcLock } from "react-icons/fc";
+import { Util } from "../../utility/util";
 
 const ParentalLock: React.FC<{
   showDialogBox: boolean;
@@ -42,7 +43,7 @@ const ParentalLock: React.FC<{
       console.log("User swipeDirection", swipeDirection);
 
       if (swipeDirection.length > 0 && userDirection === swipeDirection) {
-        history.push(PAGES.PARENT);
+        Util.setPathToBackButton(PAGES.PARENT, history);
       } else {
         console.log('not matched');
       }

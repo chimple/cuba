@@ -1,0 +1,24 @@
+.student-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  font-size: var(--text-size);
+  color: #05342f;
+}
+
+.student-avatar-img {
+  border-radius: 9vw;
+}
+@media (max-width: 1200px) {
+  .student-avatar-img {
+    max-width: 8vw;
+  }
+}
+.student-avatar-name {
+  white-space: nowrap;
+  display: block;
+  max-width: 20vh;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}

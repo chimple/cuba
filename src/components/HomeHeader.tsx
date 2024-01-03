@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import {
   HOMEHEADERLIST,
   AVATARS,
-  HEADER_ICON_CONFIGS,
+  DEFAULT_HEADER_ICON_CONFIGS,
   HeaderIconConfig,
   PAGES,
   MODES,
@@ -10,7 +10,7 @@ import {
 } from "../common/constants";
 import "./HomeHeader.css";
 import HeaderIcon from "./HeaderIcon";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Util } from "../utility/util";
 import User from "../models/user";
@@ -20,7 +20,8 @@ import { schoolUtil } from "../utility/schoolUtil";
 const HomeHeader: React.FC<{
   currentHeader: string;
   onHeaderIconClick: Function;
-}> = ({ currentHeader, onHeaderIconClick }) => {
+  pendingAssignmentCount: number;
+}> = ({ currentHeader, onHeaderIconClick, pendingAssignmentCount }) => {
   const { t } = useTranslation();
   const [currentHeaderIconList, setCurrentHeaderIconList] =
     useState<HeaderIconConfig[]>();
@@ -28,6 +29,7 @@ const HomeHeader: React.FC<{
 
   const history = useHistory();
   const [student, setStudent] = useState<User>();
+  const [studentMode, setStudentMode] = useState<string | undefined>();
   async function init() {
     const student = await Util.getCurrentStudent();
     if (!student) {
@@ -35,7 +37,8 @@ const HomeHeader: React.FC<{
       return;
     }
     const currMode = await schoolUtil.getCurrMode();
-    HEADER_ICON_CONFIGS.forEach((element) => {
+    setStudentMode(currMode);
+    DEFAULT_HEADER_ICON_CONFIGS.forEach((element) => {
       // console.log("elements", element);
 
       console.log(currMode);
@@ -63,17 +66,22 @@ const HomeHeader: React.FC<{
   // const student =await Util.getCurrentStudent();
   return (
     <div id="home-header-icons">
-      <HeaderIcon
-        headerName={t("Home")}
-        iconSrc="assets/icons/home_icon.svg"
-        currentHeader={currentHeader}
-        headerList={HOMEHEADERLIST.HOME}
-        onHeaderIconClick={() => {
-          if (currentHeader != HOMEHEADERLIST.HOME) {
-            onHeaderIconClick(HOMEHEADERLIST.HOME);
-          }
-        }}
-      ></HeaderIcon>
+      <div className="home-header-outer-icon">
+        <HeaderIcon
+          headerConfig={{
+            displayName: t("Home"),
+            iconSrc: "assets/icons/homeInactiveIcon.svg",
+            headerList: HOMEHEADERLIST.HOME,
+          }}
+          currentHeader={currentHeader}
+          pendingAssignmentCount={0}
+          onHeaderIconClick={() => {
+            if (currentHeader != HOMEHEADERLIST.HOME) {
+              onHeaderIconClick(HOMEHEADERLIST.HOME);
+            }
+          }}
+        />
+      </div>
 
       <div id="home-header-middle-icons">
         {!!currentHeaderIconList &&
@@ -81,31 +89,38 @@ const HomeHeader: React.FC<{
             return (
               <HeaderIcon
                 key={index}
-                headerName={element.displayName}
-                iconSrc={element.iconSrc}
+                headerConfig={element}
                 currentHeader={currentHeader}
-                headerList={element.headerList}
+                pendingAssignmentCount={pendingAssignmentCount}
                 onHeaderIconClick={() => {
                   if (currentHeader != element.headerList) {
                     onHeaderIconClick(element.headerList);
                   }
                 }}
-              ></HeaderIcon>
+              />
             );
           })}
       </div>
 
-      <HeaderIcon
-        headerName={student?.name ?? "Profile"}
-        iconSrc={"assets/avatars/" + (student?.avatar ?? AVATARS[0]) + ".png"}
-        currentHeader={currentHeader}
-        headerList={HOMEHEADERLIST.PROFILE}
-        onHeaderIconClick={() => {
-          if (currentHeader != HOMEHEADERLIST.PROFILE) {
-            onHeaderIconClick(HOMEHEADERLIST.PROFILE);
-          }
-        }}
-      ></HeaderIcon>
+      <div className="home-header-outer-icon">
+        <HeaderIcon
+          headerConfig={{
+            displayName: student?.name ?? "Profile",
+            iconSrc:
+              (studentMode === MODES.SCHOOL &&
+                student?.image) ||
+              `assets/avatars/${student?.avatar ?? AVATARS[0]}.png`,
+            headerList: HOMEHEADERLIST.PROFILE,
+          }}
+          currentHeader={currentHeader}
+          pendingAssignmentCount={0}
+          onHeaderIconClick={() => {
+            if (currentHeader != HOMEHEADERLIST.PROFILE) {
+              onHeaderIconClick(HOMEHEADERLIST.PROFILE);
+            }
+          }}
+        />
+      </div>
     </div>
   );
 };

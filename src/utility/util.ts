@@ -1,5 +1,5 @@
 import { Capacitor, CapacitorHttp, registerPlugin } from "@capacitor/core";
-import { Directory, Filesystem } from "@capacitor/filesystem";
+import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
@@ -22,9 +22,18 @@ import {
   IS_MIGRATION_CHECKED,
   SOUND,
   MUSIC,
+  CONTINUE,
+  DOWNLOADED_LESSON_AND_CHAPTER_ID,
+  LAST_FUNCTION_CALL,
+  CHAPTER_LESSON_MAP,
   // APP_LANG,
 } from "../common/constants";
-import { Chapter, Course, Lesson } from "../interface/curriculumInterfaces";
+import {
+  Chapter as curriculamInterfaceChapter,
+  Course as curriculamInterfaceCourse,
+  Lesson as curriculamInterfaceLesson,
+} from "../interface/curriculumInterfaces";
+import Course1 from "../models/course";
 import { GUIDRef } from "../interface/modelInterfaces";
 import Result from "../models/result";
 import { OneRosterApi } from "../services/api/OneRosterApi";
@@ -49,9 +58,15 @@ import {
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { RateApp } from "capacitor-rate-app";
 import { getFunctions, httpsCallable } from "firebase/functions";
-import { CollectionIds } from "../common/courseConstants";
+import {
+  Chapter,
+  CollectionIds,
+  StudentLessonResult,
+} from "../common/courseConstants";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { Router } from "react-router-dom";
+import lesson from "../models/lesson";
+import Lesson from "../models/lesson";
 
 declare global {
   interface Window {
@@ -59,8 +74,108 @@ declare global {
     _CCSettings: any;
   }
 }
+
 export class Util {
   public static port: PortPlugin;
+
+  public static convertCourses(_courses: Course1[]): Course1[] {
+    let courses: Course1[] = [];
+    _courses.forEach((course) => {
+      course.chapters.forEach((chapter) => {
+        chapter.lessons = this.convertDoc(chapter.lessons);
+      });
+
+      course.curriculum = Util.getRef(course.curriculum);
+      course.grade = Util.getRef(course.grade);
+      course.subject = Util.getRef(course.subject);
+    });
+    return _courses;
+  }
+
+  public static async getNextLessonFromGivenChapter(
+    chapters,
+    currentChapterId,
+    currentLessonId,
+    ChapterDetail
+  ) {
+    const api = ServiceConfig.getI().apiHandler;
+    // let ChapterDetail: Chapter | undefined;
+    const currentChapter = ChapterDetail;
+    const currentStudentDocId: string = Util.getCurrentStudent()?.docId || "";
+
+    console.log("currentChapter", currentChapter);
+
+    if (!currentChapter) return undefined;
+    let currentLessonIndex;
+
+    currentChapter.lessons = Util.convertDoc(currentChapter.lessons);
+    const cChapter = await api.getLessonsForChapter(currentChapter);
+
+    for (let i = 0; i < cChapter.length - 1; i++) {
+      const currentLesson = cChapter[i];
+      console.log(`Checking lesson at index ${i}:`, currentLesson);
+      console.log("currentlesson id:", currentLesson.id);
+      if (currentLesson.id === currentLessonId) {
+        currentLessonIndex = i;
+        break;
+      }
+    }
+
+    console.log("currentLessonIndex", currentLessonIndex);
+
+    if (currentLessonIndex < currentChapter.lessons.length - 1) {
+      let nextLesson = currentChapter.lessons[currentLessonIndex + 1];
+      let lessonId = nextLesson.id;
+      let studentResult:
+        | { [lessonDocId: string]: StudentLessonResult }
+        | undefined = {};
+      const studentProfile = await api.getStudentResult(currentStudentDocId);
+      studentResult = studentProfile?.lessons;
+
+      if (!studentResult) return undefined;
+      while (studentResult && studentResult[lessonId]) {
+        currentLessonIndex += 1;
+        nextLesson = currentChapter.lessons[currentLessonIndex + 1];
+        lessonId = nextLesson.id;
+      }
+      const lessonObj = (await api.getLesson(nextLesson.id)) as lesson;
+      console.log("lessonObj", lessonObj);
+      if (lessonObj) {
+        return lessonObj;
+      }
+    }
+
+    const nextChapterIndex =
+      chapters.findIndex((chapter) => chapter.id === currentChapterId) + 1;
+    if (nextChapterIndex < chapters.length) {
+      const nextChapter = chapters[nextChapterIndex];
+      const firstLessonId = nextChapter.lessons[0];
+      if (firstLessonId instanceof lesson) {
+        return firstLessonId;
+      }
+      return undefined;
+    }
+  }
+
+  public static convertDoc(refs: any[]): DocumentReference[] {
+    const data: DocumentReference[] = [];
+    for (let ref of refs) {
+      const newCourseRef = Util.getRef(ref);
+
+      data.push(newCourseRef);
+    }
+    return data;
+  }
+
+  public static getRef(ref): DocumentReference {
+    const db = getFirestore();
+    const newCourseRef = doc(
+      db,
+      ref["_key"].path.segments.at(-2),
+      ref["_key"].path.segments.at(-1)
+    );
+    return newCourseRef;
+  }
 
   public static getCurrentStudent(): User | undefined {
     const api = ServiceConfig.getI().apiHandler;
@@ -69,33 +184,17 @@ export class Util {
 
     if (!temp) return;
     const currentStudent = JSON.parse(temp) as User;
-    function getRef(ref): DocumentReference {
-      const db = getFirestore();
-      const newCourseRef = doc(
-        db,
-        ref["_key"].path.segments.at(-2),
-        ref["_key"].path.segments.at(-1)
-      );
-      return newCourseRef;
-    }
 
-    function convertDoc(refs: any[]): DocumentReference[] {
-      const data: DocumentReference[] = [];
-      for (let ref of refs) {
-        const newCourseRef = getRef(ref);
-
-        data.push(newCourseRef);
-      }
-      return data;
-    }
-    currentStudent.courses = convertDoc(currentStudent.courses);
-    currentStudent.users = convertDoc(currentStudent.users);
+    if (!!currentStudent.users)
+      currentStudent.users = Util.convertDoc(currentStudent.users);
+    if (!!currentStudent.courses)
+      currentStudent.courses = Util.convertDoc(currentStudent.courses);
     if (!!currentStudent.grade)
-      currentStudent.grade = getRef(currentStudent.grade);
+      currentStudent.grade = Util.getRef(currentStudent.grade);
     if (!!currentStudent.language)
-      currentStudent.language = getRef(currentStudent.language);
+      currentStudent.language = Util.getRef(currentStudent.language);
     if (!!currentStudent.board)
-      currentStudent.board = getRef(currentStudent.board);
+      currentStudent.board = Util.getRef(currentStudent.board);
     api.currentStudent = currentStudent;
 
     this.logCurrentPageEvents(currentStudent);
@@ -152,6 +251,101 @@ export class Util {
     return { href: map?.href, sourcedId: map?.sourcedId, type: map?.type };
   }
 
+  public static storeLessonOrChaterIdToLocalStorage = (
+    id: string | string[],
+    lessonAndChapterIdStorageKey: string,
+    typeOfId: "lesson" | "chapter"
+  ) => {
+    const storedItems = JSON.parse(
+      localStorage.getItem(lessonAndChapterIdStorageKey) ||
+        '{"lesson":[], "chapter":[]}'
+    );
+
+    const updatedItems = {
+      lesson:
+        typeOfId === "lesson"
+          ? [...storedItems.lesson, ...(Array.isArray(id) ? id : [id])]
+          : storedItems.lesson,
+      chapter:
+        typeOfId === "chapter"
+          ? [...storedItems.chapter, ...(Array.isArray(id) ? id : [id])]
+          : storedItems.chapter,
+    };
+
+    // Set the values outside the conditional statements
+    if (typeOfId === "chapter") {
+      updatedItems.lesson = storedItems.lesson;
+    }
+
+    localStorage.setItem(
+      lessonAndChapterIdStorageKey,
+      JSON.stringify(updatedItems)
+    );
+  };
+  public static getStoredLessonAndChapterIds = () => {
+    const storedItems = JSON.parse(
+      localStorage.getItem(DOWNLOADED_LESSON_AND_CHAPTER_ID) ||
+        JSON.stringify({ lesson: [], chapter: [] })
+    );
+
+    return storedItems;
+  };
+  public static isStored = (
+    id: string,
+    lessonAndChapterIdStorageKey: string
+  ): boolean => {
+    const storedItems = JSON.parse(
+      localStorage.getItem(lessonAndChapterIdStorageKey) ||
+        JSON.stringify({ lesson: [], chapter: [] })
+    );
+
+    const isLessonStored =
+      // Array.isArray(storedItems.lesson) && storedItems.lesson.includes(id);
+      storedItems.lesson.includes(id);
+
+    const isChapterStored =
+      // Array.isArray(storedItems.chapter) && storedItems.chapter.includes(id);
+      storedItems.chapter.includes(id);
+
+    return isLessonStored || isChapterStored;
+  };
+
+  public static removeLessonOrChapterIdFromLocalStorage = (
+    id: string | string[],
+    lessonAndChapterIdStorageKey: string
+  ): void => {
+    const storedItems = JSON.parse(
+      localStorage.getItem(lessonAndChapterIdStorageKey) ||
+        JSON.stringify({ lesson: [], chapter: [] })
+    );
+
+    let idsToRemove: string[];
+
+    if (Array.isArray(id)) {
+      idsToRemove = id;
+    } else {
+      idsToRemove = [id];
+    }
+
+    const updatedItems = {
+      lesson: Array.isArray(storedItems.lesson)
+        ? storedItems.lesson.filter(
+            (lessonId: string) => !idsToRemove.includes(lessonId)
+          )
+        : [],
+      chapter: Array.isArray(storedItems.chapter)
+        ? storedItems.chapter.filter(
+            (chapterId: string) => !idsToRemove.includes(chapterId)
+          )
+        : [],
+    };
+
+    localStorage.setItem(
+      lessonAndChapterIdStorageKey,
+      JSON.stringify(updatedItems)
+    );
+  };
+
   public static async downloadZipBundle(lessonIds: string[]): Promise<boolean> {
     for (let lessonId of lessonIds) {
       try {
@@ -168,9 +362,9 @@ export class Util {
         });
         const path =
           (localStorage.getItem("gameUrl") ??
-            "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.cuba/files/") +
+            "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
           lessonId +
-          "/index.js";
+          "/config.json";
         console.log("cheching path..", "path", path);
         const res = await fetch(path);
         const isExists = res.ok;
@@ -182,17 +376,17 @@ export class Util {
           "before local lesson Bundle http url:" +
             "assets/" +
             lessonId +
-            "/index.js"
+            "/config.json"
         );
 
         const fetchingLocalBundle = await fetch(
-          "assets/" + lessonId + "/index.js"
+          "assets/" + lessonId + "/config.json"
         );
         console.log(
           "after local lesson Bundle fetch url:" +
             "assets/" +
             lessonId +
-            "/index.js",
+            "/config.json",
           fetchingLocalBundle.ok,
           fetchingLocalBundle.json,
           fetchingLocalBundle
@@ -217,6 +411,12 @@ export class Util {
               "🚀 ~ file: util.ts:219 ~ downloadZipBundle ~ zip:",
               zip.status
             );
+            this.storeLessonOrChaterIdToLocalStorage(
+              lessonId,
+              DOWNLOADED_LESSON_AND_CHAPTER_ID,
+              "lesson"
+            );
+
             if (!!zip && !!zip.data && zip.status === 200) break;
           } catch (error) {
             console.log(
@@ -249,8 +449,12 @@ export class Util {
               ),
             data: buffer,
           });
-
           console.log("un  zip done");
+          this.storeLessonOrChaterIdToLocalStorage(
+            lessonId,
+            DOWNLOADED_LESSON_AND_CHAPTER_ID,
+            "lesson"
+          );
         }
         console.log("zip ", zip);
       } catch (error) {
@@ -263,15 +467,153 @@ export class Util {
     }
     return true;
   }
+  public static async deleteDownloadedLesson(
+    lessonIds: string[]
+  ): Promise<boolean> {
+    try {
+      for (const lessonId of lessonIds) {
+        const lessonPath = `${lessonId}`;
+        await Filesystem.rmdir({
+          path: lessonPath,
+          directory: Directory.External,
+          recursive: true,
+        });
+        console.log("Lesson deleted successfully:", lessonId);
+        this.removeLessonOrChapterIdFromLocalStorage(
+          lessonId,
+          DOWNLOADED_LESSON_AND_CHAPTER_ID
+        );
+      }
+    } catch (error) {
+      console.error("Error deleting lesson:", error);
+    }
+    return false;
+  }
 
+  public static async checkDownloadedLessonsFromLocal() {
+    const storedLastRendered = localStorage.getItem(LAST_FUNCTION_CALL);
+
+    let lastRendered = storedLastRendered
+      ? parseInt(storedLastRendered)
+      : new Date().getTime();
+
+    if (
+      !storedLastRendered ||
+      new Date().getTime() - lastRendered > 60 * 60 * 1000
+    ) {
+      try {
+        if (!Capacitor.isNativePlatform()) return null;
+
+        const contents = await Filesystem.readdir({
+          path: "",
+          directory: Directory.External,
+        });
+
+        const folderNamesArray: string[] = [];
+
+        for (let i = 0; i < contents.files.length; i++) {
+          console.log("Processing folder:", contents.files[i].name);
+          folderNamesArray.push(contents.files[i].name);
+        }
+
+        const storedLessonAndChapterIdMap = JSON.parse(
+          localStorage.getItem(CHAPTER_LESSON_MAP) ?? "null"
+        );
+        const downloadedLessonAndChapterId = JSON.parse(
+          localStorage.getItem(DOWNLOADED_LESSON_AND_CHAPTER_ID) ?? "null"
+        );
+
+        const downloadedChapterId = downloadedLessonAndChapterId.chapter || [];
+
+        for (const chapter of downloadedChapterId) {
+          const lessonIds = storedLessonAndChapterIdMap[chapter] || [];
+          if (!lessonIds) {
+            const api = ServiceConfig.getI().apiHandler;
+            const lessons = await api.getLessonsForChapter(chapter);
+            const storedDataString = localStorage.getItem(CHAPTER_LESSON_MAP);
+            const storedData = storedDataString
+              ? JSON.parse(storedDataString)
+              : {};
+            storedData[chapter.id] = lessons.map((lesson) => lesson.id);
+            localStorage.setItem(
+              CHAPTER_LESSON_MAP,
+              JSON.stringify(storedData)
+            );
+          }
+          const downloadedLessonID = downloadedChapterId.lesson || [];
+          const allElementsPresent = lessonIds.every((element) =>
+            downloadedLessonID.includes(element)
+          );
+          if (!allElementsPresent) {
+            await this.removeLessonOrChapterIdFromLocalStorage(
+              chapter,
+              DOWNLOADED_LESSON_AND_CHAPTER_ID
+            );
+          }
+        }
+
+        downloadedLessonAndChapterId.lesson = [];
+        this.storeLessonOrChaterIdToLocalStorage(
+          folderNamesArray,
+          DOWNLOADED_LESSON_AND_CHAPTER_ID,
+          "lesson"
+        );
+
+        lastRendered = new Date().getTime();
+        localStorage.setItem(LAST_FUNCTION_CALL, lastRendered.toString());
+      } catch (error) {
+        console.error("Error listing folders:", error);
+        return null;
+      }
+    }
+    return lastRendered;
+  }
+
+  public static async updateChapterOrLessonDownloadStatus(
+    lessonId: Lesson[] | undefined
+  ): Promise<boolean> {
+    if (lessonId) {
+      const allIdsPresent = lessonId.every((e) =>
+        this.isStored(e.id, DOWNLOADED_LESSON_AND_CHAPTER_ID)
+      );
+      if (!allIdsPresent) {
+        const chaptersToRemove = lessonId.reduce((newArray, lesson) => {
+          if (lesson.cocosChapterCode) {
+            newArray.push(lesson.cocosChapterCode);
+          }
+          return newArray;
+        }, [] as string[]);
+
+        this.removeLessonOrChapterIdFromLocalStorage(
+          chaptersToRemove,
+          DOWNLOADED_LESSON_AND_CHAPTER_ID
+        );
+        return false;
+      }
+      const chaptersToStore = lessonId.reduce((newArray, lesson) => {
+        if (lesson.cocosChapterCode) {
+          newArray.push(lesson.cocosChapterCode);
+        }
+        return newArray;
+      }, [] as string[]);
+
+      this.storeLessonOrChaterIdToLocalStorage(
+        chaptersToStore,
+        DOWNLOADED_LESSON_AND_CHAPTER_ID,
+        "chapter"
+      );
+      return true;
+    }
+    return false;
+  }
   // To parse this data:
   //   const course = Convert.toCourse(json);
 
-  public static toCourse(json: string): Course {
+  public static toCourse(json: string): curriculamInterfaceCourse {
     return JSON.parse(JSON.stringify(json));
   }
 
-  public static courseToJson(value: Course): string {
+  public static courseToJson(value: curriculamInterfaceCourse): string {
     return JSON.stringify(value);
   }
 
@@ -334,8 +676,8 @@ export class Util {
 
   public static async getLastPlayedLessonIndex(
     subjectCode: string,
-    lessons: Lesson[],
-    chapters: Chapter[] = [],
+    lessons: curriculamInterfaceLesson[],
+    chapters: curriculamInterfaceChapter[] = [],
     lessonResultMap: { [key: string]: Result } = {}
   ): Promise<number> {
     const currentLessonJson = localStorage.getItem(CURRENT_LESSON_LEVEL());
@@ -392,7 +734,7 @@ export class Util {
   }
 
   public static getLastPlayedLessonIndexForLessons(
-    lessons: Lesson[],
+    lessons: curriculamInterfaceLesson[],
     lessonResultMap: { [key: string]: Result } = {}
   ): number {
     let tempCurrentIndex = 0;
@@ -491,12 +833,44 @@ export class Util {
       );
     }
   }
+  public static async setUserProperties(currentUser: User) {
+    try {
+      await FirebaseAnalytics.setUserProperty({
+        name: "parent user_id",
+        value: currentUser.docId,
+      });
+      await FirebaseAnalytics.setUserProperty({
+        name: "name",
+        value: currentUser.name,
+      });
+      await FirebaseAnalytics.setUserProperty({
+        name: "age",
+        value: currentUser.age?.toLocaleString() || "",
+      });
+      await FirebaseAnalytics.setUserProperty({
+        name: "gender",
+        value: currentUser.gender?.toLocaleString() || "",
+      });
+      await FirebaseAnalytics.setUserProperty({
+        name: "user_type",
+        value: currentUser.role,
+      });
+      await FirebaseAnalytics.setUserProperty({
+        name: "username",
+        value: currentUser.username,
+      });
+    } catch (error) {
+      console.log("Set User Properties Error ", error);
+    }
+  }
 
   public static async logCurrentPageEvents(user: User) {
     //Setting User Id in User Properites
     await FirebaseAnalytics.setUserId({
       userId: user.docId,
     });
+
+    await Util.setUserProperties(user);
 
     //Setting Screen Name
     await FirebaseAnalytics.setScreenName({
@@ -506,19 +880,42 @@ export class Util {
   }
 
   public static onAppStateChange = ({ isActive }) => {
-    if (
-      Capacitor.isNativePlatform() &&
-      isActive &&
-      window.location.pathname !== PAGES.GAME &&
-      window.location.pathname !== PAGES.LOGIN
-    ) {
-      window.location.reload();
-    } else if (isActive) {
-      const url = new URL(window.location.toString());
-      url.searchParams.set("isReload", "true");
-      window.history.pushState(window.history.state, "", url.toString());
+    const url = new URL(window.location.toString());
+
+    if (isActive) {
+      if (
+        Capacitor.isNativePlatform() &&
+        url.searchParams.get(CONTINUE) === "true" &&
+        url.pathname !== PAGES.GAME &&
+        url.pathname !== PAGES.LOGIN &&
+        url.pathname !== PAGES.EDIT_STUDENT
+      ) {
+        if (
+          url.pathname === PAGES.DISPLAY_SUBJECTS ||
+          url.pathname === PAGES.DISPLAY_CHAPTERS
+        ) {
+          url.searchParams.set("isReload", "true");
+        }
+        url.searchParams.delete(CONTINUE);
+        window.history.pushState(window.history.state, "", url.toString());
+        window.location.reload();
+      } else {
+        url.searchParams.set("isReload", "true");
+        url.searchParams.delete(CONTINUE);
+        window.history.pushState(window.history.state, "", url.toString());
+      }
     }
   };
+
+  public static setPathToBackButton(path: string, history: any) {
+    const url = new URLSearchParams(window.location.search);
+    if (url.get(CONTINUE)) {
+      history.replace(`${path}?${CONTINUE}=true`);
+    } else {
+      history.replace(path);
+    }
+  }
+
   public static setCurrentStudent = async (
     student: User,
     languageCode: string | undefined = undefined,
@@ -564,12 +961,18 @@ export class Util {
     await FirebaseAnalytics.setUserId({
       userId: student?.docId,
     });
+    await Util.setUserProperties(student);
   };
 
   public static randomBetween(min, max) {
     return Math.floor(Math.random() * (max - min) + min);
   }
 
+  public static isEmail(username) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isValid = emailRegex.test(username);
+    return isValid;
+  }
   public static async subscribeToClassTopic(
     classId: string,
     schoolId: string
@@ -871,6 +1274,70 @@ export class Util {
     } catch (error) {
       console.log("🚀 ~ file: util.ts:707 ~ migrate ~ error:", error);
       return { migrated: false };
+    }
+  }
+
+  public static async migrateLocalJsonFile(
+    newFileURL: string,
+    oldFilePath: string,
+    newFilePathLocation: string,
+    localStorageNameForFilePath: string
+  ) {
+    try {
+      console.log("Migrate existing Json File ");
+      // if (!Capacitor.isNativePlatform()) {
+      //   console.log("Not a native platform. JSON migration skipped.");
+      //   return;
+      // }
+
+      if (!newFileURL) {
+        console.log("new avatar newFileURL is undefined ", newFileURL);
+
+        return;
+      }
+
+      let newFileResponse = await fetch(newFileURL);
+
+      let newFileJson = await newFileResponse.json();
+      console.log("newAvatarSuggesstionJson ", newFileJson);
+
+      let oldFileResponse = await fetch(oldFilePath);
+
+      let oldFileJson = await oldFileResponse.json();
+
+      console.log("newAvatarSuggesstionJson.data", oldFileJson);
+      console.log(
+        "oldFileJson.version >= newFileJson.version",
+        oldFileJson.version,
+        newFileJson.version,
+        oldFileJson.version >= newFileJson.version
+      );
+
+      if (oldFileJson.version >= newFileJson.version) {
+        console.log("No need to migrate. Current version is up to date.");
+        return;
+      }
+
+      let res = await Filesystem.writeFile({
+        path: newFilePathLocation,
+        directory: Directory.Data,
+        data: JSON.stringify(newFileJson),
+        encoding: Encoding.UTF8,
+        recursive: true,
+      });
+      console.log(
+        "const res = await Filesystem.writeFile({ slice",
+        res.uri //.slice(1, res.uri.length)
+      );
+      localStorage.setItem(
+        localStorageNameForFilePath,
+        res.uri
+        // res.uri.slice(1, res.uri.length)
+      );
+    } catch (error) {
+      console.error("Json File Migration failed ", error);
+
+      throw error;
     }
   }
 }

@@ -7,9 +7,9 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { Keyboard } from "@capacitor/keyboard";
-import { PAGES } from "../../common/constants";
+import { NUMBER_REGEX, PAGES } from "../../common/constants";
 import { useLocation } from "react-router";
-const urlClassCode:any={};
+const urlClassCode: any = {};
 
 const JoinClass: FC<{
   onClassJoin: () => void,
@@ -26,7 +26,7 @@ const JoinClass: FC<{
   const api = ServiceConfig.getI().apiHandler;
 
   const isNextButtonEnabled = () => {
-    let tempInviteCode=urlClassCode.inviteCode ? urlClassCode.inviteCode : inviteCode;
+    let tempInviteCode = urlClassCode.inviteCode ? urlClassCode.inviteCode : inviteCode;
     return !!tempInviteCode && tempInviteCode.toString().length === 6;
   };
 
@@ -78,20 +78,20 @@ const JoinClass: FC<{
   const location = useLocation();
 
   useEffect(() => {
-    Util.isTextFieldFocus(scollToRef, setIsInputFocus);
+    //Util.isTextFieldFocus(scollToRef, setIsInputFocus);
 
     const urlParams = new URLSearchParams(location.search);
     const joinClassParam = urlParams.get('join-class');
     const classCode = urlParams.get('classCode');
 
-    if(classCode!=""){
-      let tempClassCode =!!classCode && !isNaN(parseInt(classCode))
-      ? parseInt(classCode)
-      : undefined
+    if (classCode != "") {
+      let tempClassCode = !!classCode && !isNaN(parseInt(classCode))
+        ? parseInt(classCode)
+        : undefined
       setInviteCode(
         tempClassCode
       );
-      urlClassCode.inviteCode=tempClassCode;
+      urlClassCode.inviteCode = tempClassCode;
       if (classCode != "") {
         getClassData();
       }
@@ -101,27 +101,35 @@ const JoinClass: FC<{
   return (
     <div className="join-class-main-header">
       <div className="join-class-header">
-        <div className="join-class-title">
-          {t("Enter the code your teacher has given to join the class")}
-        </div>
+        {/* <div className="join-class-title">
+          {t("Enter the 6 digit code your teacher has given to join the class")}
+        </div> */}
         <input
           onChange={(evt) => {
             const inviteCode = evt.target.value.slice(0, 6);
+            if (!inviteCode) {
+              setInviteCode(undefined);
+              return;
+            }
+            if (!NUMBER_REGEX.test(inviteCode)) {
+              return;
+            }
+
             setInviteCode(
-              !!inviteCode && !isNaN(parseInt(inviteCode))
-                ? parseInt(inviteCode)
-                : undefined
+              parseInt(inviteCode)
             );
           }}
           className="join-class-text-box"
-          defaultValue={inviteCode}
-          type="number"
+          defaultValue={inviteCode ?? ""}
+          type="tel"
+          placeholder={t("Enter the class code to join the class") as string}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               getClassData();
             }
           }}
-          value={inviteCode}
+          value={inviteCode ?? ""}
+          style={{width:"63vw"}}
         />
         <p className={"error-text "}>{error}</p>
         <button
@@ -142,7 +150,7 @@ const JoinClass: FC<{
         message={
           t("You are Joining ") +
           (!!codeResult
-            ? codeResult["schoolName"] + ", " + codeResult["data"]["name"] ?? ""
+            ? t("School") + ": " + codeResult["schoolName"] + ", " + t("Class") + ": " + codeResult["data"]["name"] ?? ""
             : "")
         }
         showDialogBox={showDialogBox}
@@ -153,6 +161,7 @@ const JoinClass: FC<{
         }}
         onYesButtonClicked={() => {
           setShowDialogBox(false);
+
         }}
         onNoButtonClicked={async () => {
           await onJoin();

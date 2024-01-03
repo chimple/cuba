@@ -34,6 +34,7 @@ import {
   // APP_LANG,
   BASE_NAME,
   CACHE_IMAGE,
+  CONTINUE,
   GAME_URL,
   IS_CUBA,
   PAGES,
@@ -53,6 +54,15 @@ import AssignmentPage from "./pages/Assignment";
 import SelectMode from "./pages/SelectMode";
 import { FirebaseRemoteConfig } from "@capacitor-firebase/remote-config";
 import HotUpdate from "./pages/HotUpdate";
+import TermsAndConditions from "./pages/TermsAndConditions";
+import DisplayChapters from "./pages/DisplayChapters";
+import LiveQuizRoom from "./pages/LiveQuizRoom";
+import LiveQuiz from "./pages/LiveQuiz";
+import { AvatarObj } from "./components/animation/Avatar";
+import { REMOTE_CONFIG_KEYS, RemoteConfig } from "./services/RemoteConfig";
+import LiveQuizGame from "./pages/LiveQuizGame";
+import LiveQuizRoomResult from "./pages/LiveQuizRoomResult";
+import LiveQuizLeaderBoard from "./pages/LiveQuizLeaderBoard";
 
 setupIonicReact();
 
@@ -60,6 +70,11 @@ const App: React.FC = () => {
   useEffect(() => {
     console.log("fetching...");
     // localStorage.setItem(LANGUAGE, LANG.ENGLISH);
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get(CONTINUE) || PAGES.APP_UPDATE) {
+      urlParams.delete(CONTINUE);
+      CapApp.addListener("appStateChange", Util.onAppStateChange);
+    }
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({
@@ -73,12 +88,12 @@ const App: React.FC = () => {
           console.log("path ", path, "uri", path?.uri);
 
           if (path instanceof Object) {
-            const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.cuba/cache
-            console.log("uri", uri); //http://localhost/_capacitor_file_/data/user/0/org.chimple.cuba/cache
+            const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.bahama/cache
+            console.log("uri", uri); //http://localhost/_capacitor_file_/data/user/0/org.chimple.bahama/cache
             localStorage.setItem(GAME_URL, uri + "/");
           }
         });
-      CapApp.addListener("appStateChange", Util.onAppStateChange);
+      //CapApp.addListener("appStateChange", Util.onAppStateChange);
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
     }
 
@@ -96,9 +111,31 @@ const App: React.FC = () => {
     //Listen to network change
     Util.listenToNetwork();
 
-    //Initialize firebase remote config
-    FirebaseRemoteConfig.fetchAndActivate();
+    updateAvatarSuggestionJson();
   }, []);
+
+  async function updateAvatarSuggestionJson() {
+    // Update Avatar Suggestion local Json
+    try {
+      //Initialize firebase remote config
+      await FirebaseRemoteConfig.fetchAndActivate();
+
+      const CAN_UPDATE_AVATAR_SUGGESTION_JSON = await RemoteConfig.getString(
+        REMOTE_CONFIG_KEYS.CAN_UPDATED_AVATAR_SUGGESTION_URL
+      );
+
+      Util.migrateLocalJsonFile(
+        // "assets/animation/avatarSugguestions.json",
+        CAN_UPDATE_AVATAR_SUGGESTION_JSON,
+        "assets/animation/avatarSugguestions.json",
+        "assets/avatarSugguestions.json",
+        "avatarSuggestionJsonLocation"
+      );
+      // localStorage.setItem(AvatarObj._i.suggestionConstant(), "0");
+    } catch (error) {
+      console.error("Util.migrateLocalJsonFile failed ", error);
+    }
+  }
 
   return (
     <IonApp>
@@ -141,6 +178,9 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.DISPLAY_SUBJECTS} exact={true}>
               <DisplaySubjects />
             </ProtectedRoute>
+            <ProtectedRoute path={PAGES.DISPLAY_CHAPTERS} exact={true}>
+              <DisplayChapters />
+            </ProtectedRoute>
             <ProtectedRoute path={PAGES.STUDENT_PROGRESS} exact={true}>
               <StudentProgress />
             </ProtectedRoute>
@@ -151,13 +191,28 @@ const App: React.FC = () => {
               <Leaderboard />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.ASSIGNMENT} exact={true}>
-              <AssignmentPage />
+              <Home />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.JOIN_CLASS} exact={true}>
-              <AssignmentPage />
+              <Home />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
               <SelectMode />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
+              <LiveQuizRoom />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.LIVE_QUIZ_GAME} exact={true}>
+              <LiveQuizGame />
+            </ProtectedRoute>
+            <Route path={PAGES.TERMS_AND_CONDITIONS} exact={true}>
+              <TermsAndConditions />
+            </Route>
+            <ProtectedRoute path={PAGES.LIVE_QUIZ_ROOM_RESULT} exact={true}>
+              <LiveQuizRoomResult />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.LIVE_QUIZ_LEADERBOARD} exact={true}>
+              <LiveQuizLeaderBoard />
             </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
