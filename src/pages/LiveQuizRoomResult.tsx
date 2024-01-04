@@ -52,11 +52,12 @@ const LiveQuizRoomResult: React.FC = () => {
       if (liveQuizRoomResults) {
         Object.keys(liveQuizRoomResults).forEach((studentDocId) => {
           const studentResult = liveQuizRoomResults[studentDocId];
-          const totalScore = 
+          const totalScore = Math.round(
             studentResult.reduce(
               (acc: number, question) => acc + question.score,
               0
             )
+          );
           console.log("totalScore!!", totalScore);
 
           const totalTimeSpent = studentResult.reduce(

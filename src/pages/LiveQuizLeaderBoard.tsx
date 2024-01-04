@@ -42,7 +42,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
         const scoresData = Object.entries(assignmentDoc.results).map(
           ([studentDocId, result]) => ({
             studentDocId,
-            totalScore: result.score,
+            totalScore: Math.round(result.score),
           })
         );
 
