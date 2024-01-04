@@ -6,35 +6,25 @@ import {
   LANG,
   LEADERBOARDHEADERLIST,
   PAGES,
-  PARENTHEADERLIST,
   MODES,
   LANGUAGE,
-  CONTINUE,
+  LeaderboardDropdownList,
 } from "../common/constants";
-// import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import { ServiceConfig } from "../services/ServiceConfig";
 import BackButton from "../components/common/BackButton";
 import { useHistory } from "react-router-dom";
 import Loading from "../components/Loading";
-import { IonCol, IonGrid, IonPage, IonRow } from "@ionic/react";
+import { IonCol, IonPage, IonRow } from "@ionic/react";
 import User from "../models/user";
 import React from "react";
 import { FirebaseApi } from "../services/api/FirebaseApi";
-import {
-  LeaderboardInfo,
-  StudentLeaderboardInfo,
-} from "../services/api/ServiceApi";
+import { LeaderboardInfo } from "../services/api/ServiceApi";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
-import { grey } from "@mui/material/colors";
 import StudentProfile from "../models/studentProfile";
 import { t } from "i18next";
-// import { EmailComposer } from "@ionic-native/email-composer";
-// import Share from "react";
 import { Util } from "../utility/util";
-// import auth from "../models/auth";
 import i18n from "../i18n";
 import IconButton from "../components/IconButton";
-
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
 
@@ -46,6 +36,7 @@ const Leaderboard: React.FC = () => {
     useState<LeaderboardInfo>({
       weekly: [],
       allTime: [],
+      monthly: [],
     });
   const [leaderboardData, setLeaderboardData] = useState<any[][]>([]);
   const [currentUserDataContent, setCurrentUserDataContent] = useState<
@@ -60,6 +51,7 @@ const Leaderboard: React.FC = () => {
     {
       id: string;
       displayName: string;
+      type: LeaderboardDropdownList;
     }[]
   >([]);
   const [weeklySelectedValue, setWeeklySelectedValue] = useState<string>();
@@ -72,20 +64,26 @@ const Leaderboard: React.FC = () => {
 
   async function inti() {
     console.log("init method called");
-    const weekOptions = [t("Weekly"), t("ALL Time")];
+    const weekOptions = [
+      { text: t("Weekly"), type: LeaderboardDropdownList.WEEKLY },
+      { text: t("Monthly"), type: LeaderboardDropdownList.MONTHLY },
+      { text: t("ALL Time"), type: LeaderboardDropdownList.ALL_TIME },
+    ];
     let weekOptionsList: {
       id: string;
       displayName: string;
+      type: LeaderboardDropdownList;
     }[] = [];
     weekOptions.forEach((element, i) => {
       weekOptionsList.push({
         id: i.toString(),
-        displayName: element,
+        displayName: element.text,
+        type: element.type,
       });
     });
     setWeeklyList(weekOptionsList);
     // const api = ServiceConfig.getI().apiHandler;
-    const currentStudent = await Util.getCurrentStudent();
+    const currentStudent = Util.getCurrentStudent();
     if (currentStudent != undefined) {
       const getClass = await FirebaseApi.i.getStudentResult(
         currentStudent.docId
@@ -93,10 +91,18 @@ const Leaderboard: React.FC = () => {
       const currMode = await schoolUtil.getCurrMode();
       setStudentMode(currMode);
       if (getClass?.classes != undefined) {
-        fetchLeaderBoardData(currentStudent, true, getClass?.classes[0]);
+        fetchLeaderBoardData(
+          currentStudent,
+          LeaderboardDropdownList.WEEKLY,
+          getClass?.classes[0]
+        );
         setCurrentClass(getClass);
       } else {
-        fetchLeaderBoardData(currentStudent, true, "");
+        fetchLeaderBoardData(
+          currentStudent,
+          LeaderboardDropdownList.WEEKLY,
+          ""
+        );
       }
       console.log("currentStudent ", currentStudent);
       setCurrentStudent(currentStudent);
@@ -107,7 +113,7 @@ const Leaderboard: React.FC = () => {
 
   async function fetchLeaderBoardData(
     currentStudent: User,
-    isWeeklyFlag: boolean,
+    leaderboardDropdownType: LeaderboardDropdownList,
     classId: string
   ) {
     setIsLoading(true);
@@ -116,17 +122,20 @@ const Leaderboard: React.FC = () => {
       "leaderboardDataInfo.weekly.length <= 0 leaderboardDataInfo.allTime.length <= 0",
       leaderboardDataInfo.weekly.length <= 0 ||
         leaderboardDataInfo.allTime.length <= 0,
-      isWeeklyFlag
+      leaderboardDropdownType
         ? "leaderboardDataInfo.weekly"
         : "leaderboardDataInfo.allTime"
     );
 
     const tempLeaderboardData: LeaderboardInfo = (leaderboardDataInfo.weekly
-      .length <= 0 || leaderboardDataInfo.allTime.length <= 0
-      ? await api.getLeaderboardResults(classId, isWeeklyFlag)
+      .length <= 0 ||
+    leaderboardDataInfo.allTime.length <= 0 ||
+    leaderboardDataInfo.monthly.length <= 0
+      ? await api.getLeaderboardResults(classId, leaderboardDropdownType)
       : leaderboardDataInfo) || {
       weekly: [],
       allTime: [],
+      monthly: [],
     };
 
     // if (isWeeklyFlag) {
@@ -135,9 +144,12 @@ const Leaderboard: React.FC = () => {
     setLeaderboardDataInfo(tempLeaderboardData);
     // }
 
-    const tempData = isWeeklyFlag
-      ? tempLeaderboardData.weekly
-      : tempLeaderboardData.allTime;
+    const tempData =
+      leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
+        ? tempLeaderboardData.weekly
+        : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
+        ? tempLeaderboardData.monthly
+        : tempLeaderboardData.allTime;
 
     let tempLeaderboardDataArray: any[][] = [];
     let tempCurrentUserDataContent: any[][] = [];
@@ -222,7 +234,9 @@ const Leaderboard: React.FC = () => {
                 setWeeklySelectedValue(weeklyList[selectedValue]?.id);
                 fetchLeaderBoardData(
                   currentStudent!,
-                  weeklyList[0] === weeklyList[selectedValue],
+                  // weeklyList[0] === weeklyList[selectedValue],
+                  weeklyList[selectedValue].type ??
+                    LeaderboardDropdownList.WEEKLY,
                   currentClass?.classes[0] || ""
                 );
                 //  }

@@ -16,6 +16,12 @@ export enum SL_GRADES {
 
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
+export enum LeaderboardDropdownList {
+  WEEKLY = "WEEKLY",
+  MONTHLY = "MONTHLY",
+  ALL_TIME = "ALL_TIME",
+}
+
 export enum HOMEHEADERLIST {
   SUGGESTIONS = "SUGGESTIONS",
   SUBJECTS = "SUBJECTS",

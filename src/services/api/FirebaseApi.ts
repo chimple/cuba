@@ -32,6 +32,7 @@ import {
   COURSES,
   DEFAULT_COURSE_IDS,
   LIVE_QUIZ,
+  LeaderboardDropdownList,
   MODES,
   aboveGrade3,
   belowGrade1,
@@ -1306,16 +1307,13 @@ export class FirebaseApi implements ServiceApi {
 
   public async getLeaderboardResults(
     sectionId: string,
-    isWeeklyData: boolean
+    leaderboardDropdownType: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined> {
-    console.log(
-      "async getLeaderboard called",
-      isWeeklyData ? "weeklyScore" : "allTimeScore"
-    );
     try {
       const leaderBoardList: LeaderboardInfo = {
         weekly: [],
         allTime: [],
+        monthly: [],
       };
 
       if (sectionId === undefined || sectionId?.length <= 0) {
@@ -1324,21 +1322,36 @@ export class FirebaseApi implements ServiceApi {
             this._db,
             CollectionIds.LEADERBOARD + "/b2c/genericLeaderboard/"
           ),
-          orderBy(isWeeklyData ? "weeklyScore" : "allTimeScore", "desc"),
+          orderBy(
+            leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
+              ? "weeklyScore"
+              : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
+              ? "monthlyScore"
+              : "allTimeScore",
+            "desc"
+          ),
           limit(50)
         );
 
         const queryResult = await getDocs(q);
 
         for (const d of queryResult.docs) {
-          const res = d.data();
-          console.log("isWeeklyData", isWeeklyData);
-          if (isWeeklyData) {
+          if (leaderboardDropdownType === LeaderboardDropdownList.WEEKLY) {
             leaderBoardList.weekly.push({
               name: d.get("name"),
               score: d.get("weeklyScore"),
               timeSpent: d.get("weeklyTimeSpent"),
               lessonsPlayed: d.get("weeklyLessonPlayed"),
+              userId: d.id,
+            });
+          } else if (
+            leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
+          ) {
+            leaderBoardList.monthly.push({
+              name: d.get("name"),
+              score: d.get("monthlyScore"),
+              timeSpent: d.get("monthlyTimeSpent"),
+              lessonsPlayed: d.get("monthlyLessonPlayed"),
               userId: d.id,
             });
           } else {
@@ -1360,6 +1373,7 @@ export class FirebaseApi implements ServiceApi {
         if (!data) return;
         const weekly: StudentLeaderboardInfo[] = [];
         const allTime: StudentLeaderboardInfo[] = [];
+        const monthly: StudentLeaderboardInfo[] = [];
         console.log("school mode Data ", data, data.d, Object.keys(data));
         for (const i of Object.keys(data.d)) {
           console.log("Object.keys(data) ", i, data.d[i]);
@@ -1377,9 +1391,14 @@ export class FirebaseApi implements ServiceApi {
             lessonsPlayed: data.d[i].a.l,
             userId: i,
           });
+          monthly.push({
+            name: data.d[i].n,
+            score: data.d[i]?.m?.s ?? 0,
+            timeSpent: data.d[i]?.m?.t ?? 0,
+            lessonsPlayed: data.d[i]?.m?.l ?? 0,
+            userId: i,
+          });
         }
-        console.log("weekly", weekly, "allTime", allTime);
-
         const sortLeaderboard = (arr: Array<any>) =>
           arr.sort((a, b) => b.score - a.score);
         sortLeaderboard(weekly);
@@ -1387,10 +1406,12 @@ export class FirebaseApi implements ServiceApi {
         let result: LeaderboardInfo = {
           weekly: [],
           allTime: [],
+          monthly: [],
         };
         result = {
           weekly: weekly,
           allTime: allTime,
+          monthly: monthly,
         };
         console.log("result", result);
 
