@@ -42,7 +42,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
         const scoresData = Object.entries(assignmentDoc.results).map(
           ([studentDocId, result]) => ({
             studentDocId,
-            totalScore: Math.round(result.score),
+            totalScore: result.score,
           })
         );
 
@@ -96,7 +96,9 @@ const LiveQuizLeaderBoard: React.FC = () => {
                   />
                 )}
               </div>
-              <div className="score-column">{scoreData.totalScore}</div>
+              <div className="score-column">
+                {Math.round(scoreData.totalScore)}
+              </div>
             </IonRow>
           ))}
         </div>
