@@ -24,6 +24,7 @@ export default function TextBoxWithAudioButton({ message, fontSize, onClick }) {
         // maxWidth: "38vw", // Set a maximum width for the container
         lineHeight: "4vh",
         // fontSize: "1vw",
+        paddingBottom:"2vh"
       }}
     >
       <AudioComponent
