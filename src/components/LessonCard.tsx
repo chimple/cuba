@@ -151,7 +151,7 @@ const LessonCard: React.FC<{
               parmas,
               Lesson.toJson(lesson)
             );
-            history.push(PAGES.GAME + parmas, {
+            history.replace(PAGES.GAME + parmas, {
               url: "chimple-lib/index.html" + parmas,
               lessonId: lesson.id,
               courseDocId: course?.docId ?? lesson?.assignment?.course?.id,
