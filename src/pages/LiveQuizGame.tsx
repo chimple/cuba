@@ -20,10 +20,12 @@ const LiveQuizGame: FC = () => {
   const [isTimeOut, setIsTimeOut] = useState(false);
   const [liveQuizConfig, setLiveQuizConfig] = useState<LiveQuiz>();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();
+  const [remainingTime, setRemainingTime] = useState<number>();
+  const [showAnswer, setShowAnswer] = useState(false);
 
   useEffect(() => {
     if (!paramLiveRoomId) {
-      history.push(PAGES.HOME);
+      history.replace(PAGES.HOME);
       return;
     }
 
@@ -41,7 +43,18 @@ const LiveQuizGame: FC = () => {
     <IonPage>
       <div className="live-quiz-container">
         <div className="live-quiz-top-div">
-          {roomDoc && <LiveQuizHeader roomDoc={roomDoc} />}
+          {roomDoc && (
+            <LiveQuizHeader
+              roomDoc={roomDoc}
+              remainingTime={remainingTime}
+              showAnswer={showAnswer}
+              currentQuestion={
+                currentQuestionIndex != null
+                  ? liveQuizConfig?.data[currentQuestionIndex].question
+                  : undefined
+              }
+            />
+          )}
         </div>
         <div className="live-quiz-center-div">
           {roomDoc && !isTimeOut && (
@@ -63,6 +76,8 @@ const LiveQuizGame: FC = () => {
                 );
                 setCurrentQuestionIndex(newQuestionIndex);
               }}
+              onRemainingTimeChange={setRemainingTime}
+              onShowAnswer={setShowAnswer}
               showQuiz={isTimeOut}
               onConfigLoaded={setLiveQuizConfig}
               onQuizEnd={() => {

@@ -30,12 +30,16 @@ const HomeHeader: React.FC<{
   const history = useHistory();
   const [student, setStudent] = useState<User>();
   const [studentMode, setStudentMode] = useState<string | undefined>();
-  async function init() {
+  const [isLinked, setIsLinked] = useState(false);
+  const api = ServiceConfig.getI().apiHandler;
+  const init = async (fromCache: boolean = true) => {
     const student = await Util.getCurrentStudent();
     if (!student) {
       history.replace(PAGES.HOME);
       return;
     }
+    const linked = await api.isStudentLinked(student.docId, fromCache);
+    setIsLinked(linked);
     const currMode = await schoolUtil.getCurrMode();
     setStudentMode(currMode);
     DEFAULT_HEADER_ICON_CONFIGS.forEach((element) => {
@@ -57,7 +61,7 @@ const HomeHeader: React.FC<{
     setCurrentHeaderIconList(headerIconList);
 
     setStudent(student);
-  }
+  };
 
   useEffect(() => {
     init();
@@ -86,6 +90,9 @@ const HomeHeader: React.FC<{
       <div id="home-header-middle-icons">
         {!!currentHeaderIconList &&
           currentHeaderIconList.map((element, index) => {
+            if (!isLinked && element.headerList === HOMEHEADERLIST.LIVEQUIZ) {
+              return null;
+            }
             return (
               <HeaderIcon
                 key={index}
@@ -107,8 +114,7 @@ const HomeHeader: React.FC<{
           headerConfig={{
             displayName: student?.name ?? "Profile",
             iconSrc:
-              (studentMode === MODES.SCHOOL &&
-                student?.image) ||
+              (studentMode === MODES.SCHOOL && student?.image) ||
               `assets/avatars/${student?.avatar ?? AVATARS[0]}.png`,
             headerList: HOMEHEADERLIST.PROFILE,
           }}
