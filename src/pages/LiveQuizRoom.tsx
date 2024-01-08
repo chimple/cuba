@@ -175,7 +175,9 @@ const LiveQuizRoom: React.FC = () => {
                   />
                   {!!currentAssignment?.results && (
                     <p className="student-score">
-                      {currentAssignment.results[student.docId]?.score}
+                      {Math.round(
+                        currentAssignment.results[student.docId]?.score
+                      )}
                     </p>
                   )}
                 </div>

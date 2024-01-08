@@ -157,7 +157,7 @@ const Leaderboard: React.FC = () => {
         i + 1,
         element.name,
         element.lessonsPlayed,
-        Math.floor(element.score),
+        element.score,
         computeMinutes + t("min") + " " + result + " " + t("sec"),
       ]);
 
@@ -166,7 +166,7 @@ const Leaderboard: React.FC = () => {
           // ["Name", element.name],
           [t("Rank"), i + 1],
           [t("Lesson Played"), element.lessonsPlayed],
-          [t("Score"), Math.floor(element.score)],
+          [t("Score"), Math.round(element.score)],
           [
             t("Time Spent"),
             computeMinutes + t("min") + result + " " + t("sec"),
@@ -382,7 +382,7 @@ const Leaderboard: React.FC = () => {
                               : d}
                           </p>
                         ) : (
-                          d
+                          Math.round(d)
                         )}
                       </p>
                     </IonCol>

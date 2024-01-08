@@ -96,7 +96,9 @@ const LiveQuizLeaderBoard: React.FC = () => {
                   />
                 )}
               </div>
-              <div className="score-column">{scoreData.totalScore}</div>
+              <div className="score-column">
+                {Math.round(scoreData.totalScore)}
+              </div>
             </IonRow>
           ))}
         </div>
