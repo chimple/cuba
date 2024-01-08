@@ -48,6 +48,7 @@ const ChimpleAvatar: FC<{
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(true);
   const history = useHistory();
   const State_Machine = "State Machine 1";
+
   const { rive, RiveComponent } = useRive({
     src: "/assets/animation/chimplecharacter.riv",
     stateMachines: State_Machine,
@@ -117,6 +118,7 @@ const ChimpleAvatar: FC<{
   let message: string = "";
 
   async function loadNextSuggestion() {
+    avatarObj.wrongAttempts = 0;
     await avatarObj.loadAvatarNextSuggestion();
 
     setCurrentMode(avatarObj.mode);
@@ -189,7 +191,9 @@ const ChimpleAvatar: FC<{
       await speak();
     }
   };
+
   async function onClickNo() {
+    avatarObj.wrongAttempts++;
     setButtonsDisabled(false);
     // if (currentStageMode === AvatarModes.LessonSuggestion) {
     //   console.log("if (currentStageMode === AvatarModes.LessonSuggestion) {");
@@ -256,10 +260,7 @@ const ChimpleAvatar: FC<{
               setCurrentLesson(cLesson);
               console.log("lesson after chapter", cLesson?.title);
               const x3 = cLesson?.title || "";
-              message = t(`Do you want to play 'x3' lesson`).replace(
-                "x3",
-                x3
-              );
+              message = t(`Do you want to play 'x3' lesson`).replace("x3", x3);
               // avatarObj.mode = AvatarModes.LessonSuggestion;
               setCurrentStageMode(AvatarModes.LessonSuggestion);
               await speak(message);
@@ -283,6 +284,10 @@ const ChimpleAvatar: FC<{
               await loadNextSuggestion();
             } else {
               await onClickNo();
+              if (avatarObj.wrongAttempts >= 3) {
+                await loadNextSuggestion();
+                return;
+              }
               cLesson = await getRecommendedLesson(
                 currentChapter || cCourse.chapters[0],
                 cCourse || currentCourse
@@ -331,6 +336,10 @@ const ChimpleAvatar: FC<{
           await loadNextSuggestion();
         } else {
           await onClickNo();
+          if (avatarObj.wrongAttempts >= 3) {
+            await loadNextSuggestion();
+            return;
+          }
           avatarObj.currentRecommededLessonIndex++;
           console.log(
             "currentStageIndex++;",
