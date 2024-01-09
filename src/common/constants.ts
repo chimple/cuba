@@ -45,6 +45,12 @@ export enum PARENTHEADERLIST {
 export enum LEADERBOARDHEADERLIST {
   LEADERBOARD = "LEADERBOARD",
   EVENTS = "EVENTS",
+  REWARDS = "REWARDS",
+}
+
+export enum LEADERBOARD_REWARD_LIST {
+  BADGES = "BADGES",
+  BONUS = "BONUS",
 }
 
 export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu";
