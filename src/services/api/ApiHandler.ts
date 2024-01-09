@@ -12,7 +12,7 @@ import Assignment from "../../models/assignment";
 import Class from "../../models/class";
 import StudentProfile from "../../models/studentProfile";
 import school from "../../models/school";
-import { MODES } from "../../common/constants";
+import { LeaderboardDropdownList, MODES } from "../../common/constants";
 import School from "../../models/school";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -325,9 +325,12 @@ export class ApiHandler implements ServiceApi {
 
   public async getLeaderboardResults(
     sectionId: string,
-    isWeeklyData: boolean
+    leaderboardDropdownType: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined> {
-    return await this.s.getLeaderboardResults(sectionId, isWeeklyData);
+    return await this.s.getLeaderboardResults(
+      sectionId,
+      leaderboardDropdownType
+    );
   }
 
   getAllLessonsForCourse(course: Course): Promise<{
