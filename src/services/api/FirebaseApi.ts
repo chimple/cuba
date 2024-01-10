@@ -562,7 +562,8 @@ export class FirebaseApi implements ServiceApi {
   async getLesson(
     id: string,
     chapter: Chapter | undefined = undefined,
-    loadChapterTitle: boolean = false
+    loadChapterTitle: boolean = false,
+    assignment: Assignment | undefined = undefined
   ): Promise<Lesson | undefined> {
     try {
       const lessonDoc = await this.getDocFromOffline(
@@ -578,7 +579,7 @@ export class FirebaseApi implements ServiceApi {
           this._allCourses = await this.getAllCourses();
         }
         const tmpCourse = this._allCourses?.find(
-          (course) => course.courseCode === lesson.cocosSubjectCode
+          (course) => course.docId === assignment?.course.id
         );
         const chapter = tmpCourse?.chapters.find(
           (chapter) => chapter.id === lesson.cocosChapterCode
