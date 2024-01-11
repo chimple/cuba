@@ -897,12 +897,12 @@ export class Util {
           url.searchParams.set("isReload", "true");
         }
         url.searchParams.delete(CONTINUE);
-        window.history.pushState(window.history.state, "", url.toString());
+        window.history.replaceState(window.history.state, "", url.toString());
         window.location.reload();
       } else {
         url.searchParams.set("isReload", "true");
         url.searchParams.delete(CONTINUE);
-        window.history.pushState(window.history.state, "", url.toString());
+        window.history.replaceState(window.history.state, "", url.toString());
       }
     }
   };
