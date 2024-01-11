@@ -4,7 +4,13 @@ import ChimpleLogo from "../components/ChimpleLogo";
 import "./DisplayStudents.css";
 import Loading from "../components/Loading";
 import User from "../models/user";
-import { AVATARS, MAX_STUDENTS_ALLOWED, PAGES, MODES, CONTINUE } from "../common/constants";
+import {
+  AVATARS,
+  MAX_STUDENTS_ALLOWED,
+  PAGES,
+  MODES,
+  CONTINUE,
+} from "../common/constants";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { useHistory } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -91,8 +97,13 @@ const DisplayStudents: FC<{}> = () => {
     );
     await Util.setCurrentStudent(student, undefined, true);
 
-    if (!student.board || !student.language || !student.grade || !student.courses) {
-      history.push(PAGES.EDIT_STUDENT, {
+    if (
+      !student.board ||
+      !student.language ||
+      !student.grade ||
+      !student.courses
+    ) {
+      history.replace(PAGES.EDIT_STUDENT, {
         from: history.location.pathname,
       });
     } else {
@@ -101,7 +112,9 @@ const DisplayStudents: FC<{}> = () => {
   };
   const onCreateNewStudent = () => {
     const isProfilesExist = students && students.length > 0;
-    const locationState = isProfilesExist ? { showBackButton: true } : undefined;
+    const locationState = isProfilesExist
+      ? { showBackButton: true }
+      : undefined;
     history.replace(PAGES.CREATE_STUDENT, locationState);
   };
 
@@ -139,7 +152,10 @@ const DisplayStudents: FC<{}> = () => {
               >
                 <img
                   className="avatar-img"
-                  src={(studentMode === MODES.SCHOOL && student.image) || ("assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png")}
+                  src={
+                    (studentMode === MODES.SCHOOL && student.image) ||
+                    "assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png"
+                  }
                   alt=""
                 />
                 <span className="student-name">{student.name}</span>
