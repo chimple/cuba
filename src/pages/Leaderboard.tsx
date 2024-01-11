@@ -27,6 +27,7 @@ import i18n from "../i18n";
 import IconButton from "../components/IconButton";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
+import LeaderBoardRewards from "../components/leaderboard/LeaderRewards";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -498,6 +499,11 @@ const Leaderboard: React.FC = () => {
                     value={LEADERBOARDHEADERLIST.EVENTS}
                     label={t(LEADERBOARDHEADERLIST.EVENTS)}
                   />
+                  <Tab
+                    id="parent-page-tab-bar"
+                    value={LEADERBOARDHEADERLIST.REWARDS}
+                    label={t(LEADERBOARDHEADERLIST.REWARDS)}
+                  />
                 </Tabs>
               </AppBar>
             </Box>
@@ -519,7 +525,6 @@ const Leaderboard: React.FC = () => {
                     }
                   }
                   Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
-                  // history.replace(PAGES.SELECT_MODE);
                 }}
               />
             </div>
@@ -531,6 +536,11 @@ const Leaderboard: React.FC = () => {
               </Box>
             )}
             {tabIndex === LEADERBOARDHEADERLIST.EVENTS && <Box></Box>}
+            {tabIndex === LEADERBOARDHEADERLIST.REWARDS && (
+              <Box>
+                <LeaderBoardRewards />
+              </Box>
+            )}
           </Box>
         </Box>
       ) : null}
