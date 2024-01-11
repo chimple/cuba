@@ -198,7 +198,8 @@ const Home: FC = () => {
           const res = await api.getLesson(
             _assignment.lesson.id,
             undefined,
-            true
+            true,
+            _assignment
           );
           console.log(res);
           if (!!res) {

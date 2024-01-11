@@ -130,7 +130,8 @@ export interface ServiceApi {
   getLesson(
     id: string,
     chapter: Chapter | undefined,
-    loadChapterTitle: boolean
+    loadChapterTitle: boolean,
+    assignment: Assignment | undefined
   ): Promise<Lesson | undefined>;
 
   /**
