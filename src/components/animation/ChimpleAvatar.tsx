@@ -65,7 +65,6 @@ const ChimpleAvatar: FC<{
     State_Machine,
     riveCharHandsUp
   );
-
   useEffect(() => {
     loadSuggestionsFromJson();
     // setButtonsDisabled(true);
@@ -151,7 +150,6 @@ const ChimpleAvatar: FC<{
       if (!currentCourse) setCurrentCourse(allCourses[0]);
     }
   };
-
   async function onClickYes() {
     setButtonsDisabled(false);
     // if currentStageMode is AvatarModes.LessonSuggestion then skiping the avatar animation playing
@@ -186,14 +184,19 @@ const ChimpleAvatar: FC<{
     } else {
       console.log("Rive component not fully initialized yet");
     }
-
     if (!isTtsPlaying) {
       await speak();
     }
   };
 
   async function onClickNo() {
-    avatarObj.wrongAttempts++;
+    if (
+      currentStageMode === AvatarModes.LessonSuggestion ||
+      currentStageMode === AvatarModes.RecommendedLesson
+    ) {
+      avatarObj.wrongAttempts++;
+      console.log("wrongAttempt", avatarObj.wrongAttempts);
+    }
     setButtonsDisabled(false);
     // if (currentStageMode === AvatarModes.LessonSuggestion) {
     //   console.log("if (currentStageMode === AvatarModes.LessonSuggestion) {");
@@ -203,7 +206,6 @@ const ChimpleAvatar: FC<{
     buttons = [];
     onclickInput?.fire();
   }
-
   let cCourse: Course,
     cChapter: Chapter,
     cLesson: Lesson | undefined,
@@ -336,6 +338,7 @@ const ChimpleAvatar: FC<{
           await loadNextSuggestion();
         } else {
           await onClickNo();
+          avatarObj.wrongAttempts++;
           if (avatarObj.wrongAttempts >= 3) {
             await loadNextSuggestion();
             return;
@@ -345,7 +348,6 @@ const ChimpleAvatar: FC<{
             "currentStageIndex++;",
             avatarObj.currentRecommededLessonIndex
           );
-
           let recomLesson = await getRecommendedLesson(cChapter, currentCourse);
           setCurrentLesson(recomLesson);
           console.log("14", message);
@@ -368,7 +370,7 @@ const ChimpleAvatar: FC<{
           (await api.getCourseFromLesson(currentLesson)) || currentCourse;
       }
       const parmas = `?courseid=${currentLesson.cocosSubjectCode}&chapterid=${currentLesson.cocosChapterCode}&lessonid=${currentLesson.id}`;
-      history.push(PAGES.GAME + parmas, {
+      await history.push(PAGES.GAME + parmas, {
         url: "chimple-lib/index.html" + parmas,
         lessonId: currentLesson.id,
         courseDocId: lessonCourse.docId,
@@ -404,7 +406,6 @@ const ChimpleAvatar: FC<{
 
   async function getRecommendedChapter(course: Course) {
     // console.log("getRecommendedChapter", course.title, currentChapter);
-
     if (currentChapter) {
       const chapterIndex = course.chapters.findIndex(
         (chapter) => chapter.id === currentChapter?.id
@@ -682,6 +683,8 @@ const ChimpleAvatar: FC<{
       ></div>
     )
   );
+  console.log("wrongAttempts", avatarObj.wrongAttempts);
+  console.log("currentCourse_789798", currentCourse);
   return (
     <div style={style}>
       <div>
@@ -711,13 +714,28 @@ const ChimpleAvatar: FC<{
               onClickRiveComponent();
             }}
           ></TextBoxWithAudioButton>
-          <AvatarImageOption
-            currentMode={currentMode}
-            currtStageMode={currentStageMode || AvatarModes.CourseSuggestion}
-            currentCourse={currentCourse}
-            currentChapter={currentChapter}
-            currentLesson={currentLesson}
-          ></AvatarImageOption>
+          {spinnerLoading ||
+          (currentStageMode === AvatarModes.CourseSuggestion &&
+            currentCourse === undefined) ||
+          (currentStageMode === AvatarModes.ChapterSuggestion &&
+            currentChapter === undefined) ||
+          (currentStageMode === AvatarModes.LessonSuggestion &&
+            currentLesson === undefined) ? (
+            <div className="custom-spinner-outerbox">
+              <div
+                className="custom-spinner"
+              />
+            </div>
+          ) : (
+            <AvatarImageOption
+              currentCourse={currentCourse}
+              currentMode={currentMode}
+              currtStageMode={currentStageMode || AvatarModes.CourseSuggestion}
+              currentChapter={currentChapter}
+              currentLesson={currentLesson}
+            />
+          )}
+
           <div
             className="buttons-in-avatar-option-box"
             style={{
