@@ -12,7 +12,7 @@ import Assignment from "../../models/assignment";
 import Class from "../../models/class";
 import StudentProfile from "../../models/studentProfile";
 import school from "../../models/school";
-import { MODES } from "../../common/constants";
+import { LeaderboardDropdownList, MODES } from "../../common/constants";
 import School from "../../models/school";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -209,9 +209,10 @@ export class ApiHandler implements ServiceApi {
   public async getLesson(
     id: string,
     chapter: Chapter | undefined = undefined,
-    loadChapterTitle: boolean = false
+    loadChapterTitle: boolean = false,
+    assignment: Assignment | undefined = undefined
   ): Promise<Lesson | undefined> {
-    return await this.s.getLesson(id, chapter, loadChapterTitle);
+    return await this.s.getLesson(id, chapter, loadChapterTitle, assignment);
   }
 
   public async getLessonsForChapter(chapter: Chapter): Promise<Lesson[]> {
@@ -325,9 +326,12 @@ export class ApiHandler implements ServiceApi {
 
   public async getLeaderboardResults(
     sectionId: string,
-    isWeeklyData: boolean
+    leaderboardDropdownType: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined> {
-    return await this.s.getLeaderboardResults(sectionId, isWeeklyData);
+    return await this.s.getLeaderboardResults(
+      sectionId,
+      leaderboardDropdownType
+    );
   }
 
   getAllLessonsForCourse(course: Course): Promise<{

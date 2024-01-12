@@ -63,7 +63,8 @@ const LiveQuiz: React.FC = () => {
           const res = await api.getLesson(
             _assignment.lesson.id,
             undefined,
-            true
+            true,
+            _assignment
           );
           if (!!res) {
             res.assignment = _assignment;
