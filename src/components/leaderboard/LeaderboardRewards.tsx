@@ -2,8 +2,10 @@ import { FC, useState } from "react";
 import { LEADERBOARD_REWARD_LIST } from "../../common/constants";
 import { Box, Tab, Tabs } from "@mui/material";
 import { t } from "i18next";
+import LeaderboardBadges from "./LeaderboardBadges";
+import LeaderboardBonus from "./LeaderboardBonus";
 
-const LeaderBoardRewards: FC = () => {
+const LeaderboardRewards: FC = () => {
   const [tabIndex, setTabIndex] = useState(LEADERBOARD_REWARD_LIST.BADGES);
   const handleChange = (
     event: React.SyntheticEvent,
@@ -45,11 +47,19 @@ const LeaderBoardRewards: FC = () => {
           label={t(LEADERBOARD_REWARD_LIST.BONUS)}
         />
       </Tabs>
-      {tabIndex === LEADERBOARD_REWARD_LIST.BADGES && <Box>BADGES</Box>}
+      {tabIndex === LEADERBOARD_REWARD_LIST.BADGES && (
+        <Box>
+          <LeaderboardBadges />
+        </Box>
+      )}
 
-      {tabIndex === LEADERBOARD_REWARD_LIST.BONUS && <Box>BONUS</Box>}
+      {tabIndex === LEADERBOARD_REWARD_LIST.BONUS && (
+        <Box>
+          <LeaderboardBonus />
+        </Box>
+      )}
     </>
   );
 };
 
-export default LeaderBoardRewards;
+export default LeaderboardRewards;

@@ -17,6 +17,8 @@ import School from "../../models/school";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
+import Badge from "../../models/Badge";
+import Rewards from "../../models/Rewards";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -57,6 +59,13 @@ export class ApiHandler implements ServiceApi {
     return this.s.joinLiveQuiz(studentId, assignmentId);
   }
   private constructor() {}
+  
+  public async getRewardsById(id: string): Promise<Rewards | undefined> {
+    return this.s.getRewardsById(id);
+  }
+  public async getBadgeById(id: string): Promise<Badge | undefined> {
+    return this.s.getBadgeById(id);
+  }
   public async getAvatarInfo(): Promise<AvatarObj | undefined> {
     return await this.s.getAvatarInfo();
   }

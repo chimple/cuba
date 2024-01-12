@@ -1340,4 +1340,14 @@ export class Util {
       throw error;
     }
   }
+
+  public static getCurrentWeekNumber() {
+    const date = new Date();
+    date.setDate(14);
+    var firstWeekday =
+      new Date(date.getFullYear(), date.getMonth(), 1).getDay() - 1;
+    if (firstWeekday < 0) firstWeekday = 6;
+    var offsetDate = date.getDate() + firstWeekday - 1;
+    return Math.floor(offsetDate / 7) + 1;
+  }
 }
