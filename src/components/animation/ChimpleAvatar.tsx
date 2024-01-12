@@ -370,7 +370,7 @@ const ChimpleAvatar: FC<{
           (await api.getCourseFromLesson(currentLesson)) || currentCourse;
       }
       const parmas = `?courseid=${currentLesson.cocosSubjectCode}&chapterid=${currentLesson.cocosChapterCode}&lessonid=${currentLesson.id}`;
-      await history.push(PAGES.GAME + parmas, {
+      await history.replace(PAGES.GAME + parmas, {
         url: "chimple-lib/index.html" + parmas,
         lessonId: currentLesson.id,
         courseDocId: lessonCourse.docId,

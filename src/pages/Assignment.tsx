@@ -3,7 +3,7 @@ import JoinClass from "../components/assignment/JoinClass";
 import "./Assignment.css";
 import { useEffect, useState } from "react";
 import BackButton from "../components/common/BackButton";
-import { CURRENT_LESSON_LEVEL, LIVE_QUIZ, PAGES, TYPE } from "../common/constants";
+import { LIVE_QUIZ, PAGES, TYPE } from "../common/constants";
 import { useHistory } from "react-router";
 import Loading from "../components/Loading";
 import Class from "../models/class";
@@ -69,8 +69,12 @@ const AssignmentPage: React.FC = () => {
       const allAssignments: Assignment[] = [];
       await Promise.all(
         studentResult.classes.map(async (_class) => {
-          const assignments = await api.getPendingAssignments(_class, student.docId);
-          const filteredAssignments = assignments.filter((assignment) => { //filtering the assignments without live quiz
+          const assignments = await api.getPendingAssignments(
+            _class,
+            student.docId
+          );
+          const filteredAssignments = assignments.filter((assignment) => {
+            //filtering the assignments without live quiz
             return !(TYPE in assignment) || assignment.type !== LIVE_QUIZ;
           });
           allAssignments.push(...filteredAssignments);
@@ -79,7 +83,12 @@ const AssignmentPage: React.FC = () => {
       const _lessons: Lesson[] = [];
       await Promise.all(
         allAssignments.map(async (_assignment) => {
-          const res = await api.getLesson(_assignment.lesson.id, undefined, true);
+          const res = await api.getLesson(
+            _assignment.lesson.id,
+            undefined,
+            true,
+            _assignment
+          );
           if (!!res) {
             res.assignment = _assignment;
             _lessons.push(res);

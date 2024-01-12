@@ -897,12 +897,12 @@ export class Util {
           url.searchParams.set("isReload", "true");
         }
         url.searchParams.delete(CONTINUE);
-        window.history.pushState(window.history.state, "", url.toString());
+        window.history.replaceState(window.history.state, "", url.toString());
         window.location.reload();
       } else {
         url.searchParams.set("isReload", "true");
         url.searchParams.delete(CONTINUE);
-        window.history.pushState(window.history.state, "", url.toString());
+        window.history.replaceState(window.history.state, "", url.toString());
       }
     }
   };
@@ -968,6 +968,11 @@ export class Util {
     return Math.floor(Math.random() * (max - min) + min);
   }
 
+  public static isEmail(username) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isValid = emailRegex.test(username);
+    return isValid;
+  }
   public static async subscribeToClassTopic(
     classId: string,
     schoolId: string

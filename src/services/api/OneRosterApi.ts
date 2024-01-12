@@ -1,5 +1,9 @@
 import { HttpHeaders } from "@capacitor-community/http";
-import { COURSES, MODES } from "../../common/constants";
+import {
+  COURSES,
+  LeaderboardDropdownList,
+  MODES,
+} from "../../common/constants";
 import { Chapter } from "../../interface/curriculumInterfaces";
 import Assignment from "../../models/assignment";
 import Auth from "../../models/auth";
@@ -99,7 +103,7 @@ export class OneRosterApi implements ServiceApi {
   }
   getLeaderboardResults(
     sectionId: string,
-    isWeeklyData: boolean
+    isWeeklyData: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined> {
     throw new Error("Method not implemented.");
   }

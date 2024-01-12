@@ -11,13 +11,14 @@ import StudentProfile from "../../models/studentProfile";
 import Class from "../../models/class";
 import School from "../../models/school";
 import Assignment from "../../models/assignment";
-import { MODES } from "../../common/constants";
+import { LeaderboardDropdownList, MODES } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
+  monthly: StudentLeaderboardInfo[];
   allTime: StudentLeaderboardInfo[];
 }
 
@@ -129,7 +130,8 @@ export interface ServiceApi {
   getLesson(
     id: string,
     chapter: Chapter | undefined,
-    loadChapterTitle: boolean
+    loadChapterTitle: boolean,
+    assignment: Assignment | undefined
   ): Promise<Lesson | undefined>;
 
   /**
@@ -359,12 +361,12 @@ export interface ServiceApi {
    * This function gives Leaderboard results of b2c or b2b Users
    *
    * @param sectionId section ID of connected class. If user didn't Connected to class this function gives b2c user
-   * @param isWeeklyData If true, it will gives the weekly data from the Collection. False for it will gives the All Time data from the Collection
+   * @param leaderboardDropdownType If true, it will gives the weekly data from the Collection. False for it will gives the All Time data from the Collection
    * @returns A promise that resolves to the student.
    */
   getLeaderboardResults(
     sectionId: string,
-    isWeeklyData: boolean
+    leaderboardDropdownType: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined>;
 
   /**
