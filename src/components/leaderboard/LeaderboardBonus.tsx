@@ -3,6 +3,8 @@ import { Util } from "../../utility/util";
 import Lesson from "../../models/lesson";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { LeaderboardRewardsType } from "../../common/constants";
+import "./LeaderboardBonus.css";
+import LessonCard from "../LessonCard";
 
 interface BonusInfo {
   bonus: Lesson | undefined;
@@ -22,9 +24,7 @@ const LeaderboardBonus: FC = () => {
     if (!currentStudent) return;
 
     const unlockedBonuses = await getUnlockedBonus();
-    console.log("🚀 ~ init ~ unlockedBonuses:", unlockedBonuses);
     const prevBonuses = await getPrevBonus();
-    console.log("🚀 ~ init ~ prevBonuses:", prevBonuses);
     const bonusInfoArray: BonusInfo[] = [];
     const uniqueBonusIds = new Set<string>();
 
@@ -50,7 +50,6 @@ const LeaderboardBonus: FC = () => {
     }
 
     setBonuses(bonusInfoArray);
-    console.log("🚀 ~ init ~ bonusInfoArray:", bonusInfoArray);
   }
   const getUnlockedBonus = async (): Promise<(Lesson | undefined)[]> => {
     if (
@@ -77,7 +76,7 @@ const LeaderboardBonus: FC = () => {
       const weekNumber = parseInt(key);
       if (!isNaN(weekNumber) && weekNumber < currentMonth) {
         monthlyData[key].forEach((item) => {
-          if (item.type == LeaderboardRewardsType.BONUS) {
+          if (item.type === LeaderboardRewardsType.BONUS) {
             bonusIds.push(item.id);
           }
         });
@@ -90,21 +89,38 @@ const LeaderboardBonus: FC = () => {
   };
 
   return currentStudent ? (
-    <div>
-      {bonuses && bonuses.length > 0 && (
-        <div>
-          {bonuses.map((value, index) => (
-            <div
-              key={index}
-              style={{
-                color: value.isUnlocked ? "black" : "grey",
-              }}
-            >
-              {value.bonus?.title ?? "Bhanu"}
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="leaderboard-bonus-container">
+      {bonuses &&
+        bonuses.length > 0 &&
+        bonuses.map((value, index) => (
+          <div
+            key={index}
+            className={
+              "leaderboard-bonus-item " +
+              (value.isUnlocked ? "" : "leaderboard-bonus-disabled")
+            }
+          >
+            {value.bonus && (
+              <LessonCard
+                width={""}
+                height={""}
+                lesson={value.bonus}
+                course={undefined}
+                isPlayed={false}
+                isUnlocked={value.isUnlocked}
+                isHome={false}
+                showSubjectName={false}
+                score={undefined}
+                isLoved={undefined}
+                lessonData={[]}
+                startIndex={0}
+                // showScoreCard={false}
+                // showText={false}
+                showChapterName={false}
+              />
+            )}
+          </div>
+        ))}
     </div>
   ) : (
     <div></div>

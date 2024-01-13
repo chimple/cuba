@@ -4,6 +4,7 @@ import { Box, Tab, Tabs } from "@mui/material";
 import { t } from "i18next";
 import LeaderboardBadges from "./LeaderboardBadges";
 import LeaderboardBonus from "./LeaderboardBonus";
+import "./LeaderboardRewards.css";
 
 const LeaderboardRewards: FC = () => {
   const [tabIndex, setTabIndex] = useState(LEADERBOARD_REWARD_LIST.BADGES);
@@ -11,11 +12,10 @@ const LeaderboardRewards: FC = () => {
     event: React.SyntheticEvent,
     newValue: LEADERBOARD_REWARD_LIST
   ) => {
-    // setValue(newValue);
     setTabIndex(newValue);
   };
   return (
-    <>
+    <div className="leaderboard-rewards-container">
       <Tabs
         value={tabIndex}
         onChange={handleChange}
@@ -47,18 +47,10 @@ const LeaderboardRewards: FC = () => {
           label={t(LEADERBOARD_REWARD_LIST.BONUS)}
         />
       </Tabs>
-      {tabIndex === LEADERBOARD_REWARD_LIST.BADGES && (
-        <Box>
-          <LeaderboardBadges />
-        </Box>
-      )}
+      {tabIndex === LEADERBOARD_REWARD_LIST.BADGES && <LeaderboardBadges />}
 
-      {tabIndex === LEADERBOARD_REWARD_LIST.BONUS && (
-        <Box>
-          <LeaderboardBonus />
-        </Box>
-      )}
-    </>
+      {tabIndex === LEADERBOARD_REWARD_LIST.BONUS && <LeaderboardBonus />}
+    </div>
   );
 };
 

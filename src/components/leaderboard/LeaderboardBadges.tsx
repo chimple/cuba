@@ -3,6 +3,8 @@ import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import Badge from "../../models/Badge";
 import { LeaderboardRewardsType } from "../../common/constants";
+import CachedImage from "../common/CachedImage";
+import "./LeaderboardBadges.css";
 
 interface BadgeInfo {
   badge: Badge | undefined;
@@ -35,6 +37,7 @@ const LeaderboardBadges: FC = () => {
         uniqueBadgeIds.add(unlockedBadge.docId);
       }
     }
+
     for (const prevBadge of prevBadges) {
       if (prevBadge) {
         const isCommon = uniqueBadgeIds.has(prevBadge.docId);
@@ -86,22 +89,22 @@ const LeaderboardBadges: FC = () => {
     );
     return badgeDocs;
   };
+
   return currentStudent ? (
-    <div>
-      {badges && badges.length > 0 && (
-        <div>
-          {badges.map((value, index) => (
-            <div
-              key={index}
-              style={{
-                color: value.isUnlocked ? "black" : "grey",
-              }}
-            >
-              {value.badge?.name}
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="leaderboard-badge-container">
+      {badges &&
+        badges.length > 0 &&
+        badges.map((value, index) => (
+          <div
+            key={index}
+            className={
+              "leaderboard-badge-item " +
+              (value.isUnlocked ? "" : "leaderboard-badge-disabled")
+            }
+          >
+            <CachedImage src={value.badge?.image} />
+          </div>
+        ))}
     </div>
   ) : (
     <div></div>
