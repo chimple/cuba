@@ -941,6 +941,7 @@ export class Util {
         name: student.name,
         role: student.role,
         uid: student.uid,
+        rewards:student.rewards,
         username: student.username,
         users: student.users,
         docId: student.docId,
