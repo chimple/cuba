@@ -1344,7 +1344,6 @@ export class Util {
 
   public static getCurrentWeekNumber() {
     const date = new Date();
-    date.setDate(14);
     var firstWeekday =
       new Date(date.getFullYear(), date.getMonth(), 1).getDay() - 1;
     if (firstWeekday < 0) firstWeekday = 6;
