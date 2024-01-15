@@ -941,7 +941,7 @@ export class Util {
         name: student.name,
         role: student.role,
         uid: student.uid,
-        rewards:student.rewards,
+        rewards: student.rewards,
         username: student.username,
         users: student.users,
         docId: student.docId,
@@ -1349,5 +1349,20 @@ export class Util {
     if (firstWeekday < 0) firstWeekday = 6;
     var offsetDate = date.getDate() + firstWeekday - 1;
     return Math.floor(offsetDate / 7) + 1;
+  }
+
+  public static getCurrentMonthForLeaderboard() {
+    const date = new Date();
+    if (date.getDate() < 3) {
+      date.setMonth(date.getMonth() - 1);
+    }
+    return date.getMonth() + 1;
+  }
+  public static getCurrentYearForLeaderboard() {
+    const date = new Date();
+    if (date.getDate() < 3) {
+      date.setMonth(date.getMonth() - 1);
+    }
+    return date.getFullYear();
   }
 }
