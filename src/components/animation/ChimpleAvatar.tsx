@@ -523,7 +523,7 @@ const ChimpleAvatar: FC<{
       const x1 = "10";
       message =
         avatarObj.message ||
-        t(`' x1 ' minutes left to complete your goal`).replace("x1", x1);
+        t(`' x1 ' minutes left to complete your learning goal.`).replace("x1", x1);
       buttons = [
         {
           label: "Let's Play",
