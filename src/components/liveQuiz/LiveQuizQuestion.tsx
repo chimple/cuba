@@ -11,7 +11,7 @@ import { Util } from "../../utility/util";
 import { PAGES } from "../../common/constants";
 import { useHistory } from "react-router";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { PiSpeakerHighBold } from "react-icons/pi";
+import { HiSpeakerWave } from "react-icons/hi2";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 
 let questionInterval;
@@ -83,119 +83,143 @@ const LiveQuizQuestion: FC<{
           {
             options: [
               {
-                text: "4",
+                text: "Lion",
                 isCorrect: true,
               },
               {
-                text: "1",
+                text: "Tiger",
               },
               {
-                text: "2",
+                text: "Elephant",
               },
               {
-                text: "3",
+                text: "Giraffe",
               },
             ],
             optionsType: "text",
             question: {
               id: "question_1",
-              text: "Click on audio button to hear the question",
-              audio:
-                "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+              text: "Which animal is known as the king of the jungle?",
+              // audio:
+              //   "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
             },
             questionType: "audio",
           },
           {
             options: [
               {
-                text: "1",
+                text: "Blue",
               },
               {
+                text: "Orange",
+              },
+              {
+                text: "red",
                 isCorrect: true,
-                text: "2",
               },
               {
-                text: "4",
-              },
-              {
-                text: "2",
+                text: "Pink",
               },
             ],
             optionsType: "text",
             question: {
               id: "question_2",
-              text: "What is 1+1?",
-              image:
-                "https://fastly.picsum.photos/id/1012/3973/2639.jpg?hmac=s2eybz51lnKy2ZHkE2wsgc6S81fVD1W2NKYOSh8bzDc",
-            },
-            questionType: "image",
-          },
-          {
-            options: [
-              {
-                text: "Paris",
-                isCorrect: true,
-              },
-              {
-                text: "Berlin",
-              },
-              {
-                text: "London",
-              },
-              {
-                text: "Rome",
-              },
-            ],
-            optionsType: "text",
-            question: {
-              id: "question_3",
-              image: "https://picsum.photos/200/300",
-            },
-            questionType: "image",
-          },
-          {
-            options: [
-              {
-                image: "https://picsum.photos/200/300",
-              },
-              {
-                isCorrect: true,
-                image: "https://picsum.photos/200/300",
-              },
-              {
-                image: "https://picsum.photos/200/300",
-              },
-              {
-                image: "https://picsum.photos/200/300",
-              },
-            ],
-            optionsType: "image",
-            question: {
-              id: "question_4",
-              text: "What is 2 multiplied by 3?",
+              text: " What is the colour of an apple?",
+              // image:
+              // "https://fastly.picsum.photos/id/1012/3973/2639.jpg?hmac=s2eybz51lnKy2ZHkE2wsgc6S81fVD1W2NKYOSh8bzDc",
             },
             questionType: "text",
           },
           {
             options: [
               {
-                text: "Earth",
+                text: "7",
                 isCorrect: true,
               },
               {
-                text: "Mars",
+                text: "8",
               },
               {
-                text: "Jupiter",
+                text: "5",
               },
               {
-                text: "Saturn",
+                text: "6",
+              },
+            ],
+            optionsType: "text",
+            question: {
+              id: "question_3",
+              text: "How many days are there in a week?",
+              // image: "https://picsum.photos/200/300",
+            },
+            questionType: "text",
+          },
+          {
+            options: [
+              {
+                text: "X",
+              },
+              {
+                text: "T",
+              },
+              {
+                text: "K",
+                isCorrect: true,
+              },
+              {
+                text: "P",
+              },
+            ],
+            optionsType: "text",
+            question: {
+              id: "question_4",
+              text: "Fill in the blanks? H, I, J, _,L, M, N",
+            },
+            questionType: "text",
+          },
+          {
+            options: [
+              {
+                text: "E,K,S,T,P",
+              },
+              {
+                text: "A,E,I,O,U",
+                isCorrect: true,
+              },
+              {
+                text: "A,O,T,S,Y",
+              },
+              {
+                text: "O,I,V,Z,E",
               },
             ],
             optionsType: "text",
             question: {
               id: "question_5",
-              text: "Which planet do we live on?",
+              text: "Which are vowels?",
+            },
+            questionType: "text",
+          },
+          {
+            options: [
+              {
+                text: "Kitten",
+                isCorrect: true,
+              },
+              {
+                text: "Puppy",
+              },
+              {
+                text: "Cub",
+              },
+              {
+                text: "Joey",
+              },
+            ],
+            optionsType: "text",
+            question: {
+              id: "question_6",
+              text: "A baby cat is called _",
             },
             questionType: "text",
           },
@@ -438,7 +462,7 @@ const LiveQuizQuestion: FC<{
               {(liveQuizConfig.data[currentQuestionIndex].question.audio ||
                 liveQuizConfig.data[currentQuestionIndex].question.text) && (
                 <div className="live-quiz-audio-button-question">
-                  <PiSpeakerHighBold
+                  <HiSpeakerWave
                     onClick={(e) => {
                       e.stopPropagation();
                       playLiveQuizAudio(
@@ -449,7 +473,7 @@ const LiveQuizQuestion: FC<{
                   />
                 </div>
               )}
-              <p>
+              <p id="question-text">
                 {!liveQuizConfig.data[currentQuestionIndex]?.question
                   .isTextTTS &&
                   liveQuizConfig.data[currentQuestionIndex]?.question.text}
@@ -508,7 +532,7 @@ const LiveQuizQuestion: FC<{
                   >
                     {(option.audio || option.text) && (
                       <div className="live-quiz-audio-button-option">
-                        <PiSpeakerHighBold
+                        <HiSpeakerWave
                           onClick={(e) => {
                             e.stopPropagation();
                             playLiveQuizAudio(option);

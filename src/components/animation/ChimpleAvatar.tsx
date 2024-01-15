@@ -9,6 +9,7 @@ import {
   CURRENT_AVATAR_SUGGESTION_NO,
   PAGES,
   RECOMMENDATIONS,
+  SHOW_DAILY_PROGRESS_FLAG,
 } from "../../common/constants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
@@ -48,6 +49,7 @@ const ChimpleAvatar: FC<{
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(true);
   const history = useHistory();
   const State_Machine = "State Machine 1";
+
   const { rive, RiveComponent } = useRive({
     src: "/assets/animation/chimplecharacter.riv",
     stateMachines: State_Machine,
@@ -64,7 +66,6 @@ const ChimpleAvatar: FC<{
     State_Machine,
     riveCharHandsUp
   );
-
   useEffect(() => {
     loadSuggestionsFromJson();
     // setButtonsDisabled(true);
@@ -78,7 +79,13 @@ const ChimpleAvatar: FC<{
   const api = ServiceConfig.getI().apiHandler;
 
   async function loadSuggestionsFromJson() {
-    await avatarObj.loadAvatarData();
+    const showDailyProgress = localStorage.getItem(SHOW_DAILY_PROGRESS_FLAG);
+    console.log("localStorage.getItem(showDailyProgress) ", showDailyProgress);
+
+    if (showDailyProgress === "true")
+      await avatarObj.loadAvatarWeeklyProgressData();
+    else await avatarObj.loadAvatarData();
+
     setCurrentMode(avatarObj.mode);
     if (avatarObj.mode === AvatarModes.CourseSuggestion) {
       if (!allCourses || allCourses.length === 0) fetchCoursesForStudent();
@@ -117,6 +124,7 @@ const ChimpleAvatar: FC<{
   let message: string = "";
 
   async function loadNextSuggestion() {
+    avatarObj.wrongAttempts = 0;
     await avatarObj.loadAvatarNextSuggestion();
 
     setCurrentMode(avatarObj.mode);
@@ -149,7 +157,6 @@ const ChimpleAvatar: FC<{
       if (!currentCourse) setCurrentCourse(allCourses[0]);
     }
   };
-
   async function onClickYes() {
     setButtonsDisabled(false);
     // if currentStageMode is AvatarModes.LessonSuggestion then skiping the avatar animation playing
@@ -184,12 +191,19 @@ const ChimpleAvatar: FC<{
     } else {
       console.log("Rive component not fully initialized yet");
     }
-
     if (!isTtsPlaying) {
       await speak();
     }
   };
+
   async function onClickNo() {
+    if (
+      currentStageMode === AvatarModes.LessonSuggestion ||
+      currentStageMode === AvatarModes.RecommendedLesson
+    ) {
+      avatarObj.wrongAttempts++;
+      console.log("wrongAttempt", avatarObj.wrongAttempts);
+    }
     setButtonsDisabled(false);
     // if (currentStageMode === AvatarModes.LessonSuggestion) {
     //   console.log("if (currentStageMode === AvatarModes.LessonSuggestion) {");
@@ -199,7 +213,6 @@ const ChimpleAvatar: FC<{
     buttons = [];
     onclickInput?.fire();
   }
-
   let cCourse: Course,
     cChapter: Chapter,
     cLesson: Lesson | undefined,
@@ -212,6 +225,18 @@ const ChimpleAvatar: FC<{
     setIsBurst(true);
     console.log("handleButtonClick currentMode ", currentMode);
     switch (currentMode) {
+      case AvatarModes.ShowWeeklyProgress:
+        if (choice) {
+          setButtonsDisabled(false);
+          rive?.play(avatarObj.avatarAnimation);
+          buttons = [];
+          onclickInput?.fire();
+          // await loadNextSuggestion();
+          localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
+          await loadSuggestionsFromJson();
+        }
+        break;
+
       case AvatarModes.Welcome:
         if (choice) {
           setButtonsDisabled(false);
@@ -280,6 +305,10 @@ const ChimpleAvatar: FC<{
               await loadNextSuggestion();
             } else {
               await onClickNo();
+              if (avatarObj.wrongAttempts >= 3) {
+                await loadNextSuggestion();
+                return;
+              }
               cLesson = await getRecommendedLesson(
                 currentChapter || cCourse.chapters[0],
                 cCourse || currentCourse
@@ -328,12 +357,16 @@ const ChimpleAvatar: FC<{
           await loadNextSuggestion();
         } else {
           await onClickNo();
+          avatarObj.wrongAttempts++;
+          if (avatarObj.wrongAttempts >= 3) {
+            await loadNextSuggestion();
+            return;
+          }
           avatarObj.currentRecommededLessonIndex++;
           console.log(
             "currentStageIndex++;",
             avatarObj.currentRecommededLessonIndex
           );
-
           let recomLesson = await getRecommendedLesson(cChapter, currentCourse);
           setCurrentLesson(recomLesson);
           console.log("14", message);
@@ -356,7 +389,7 @@ const ChimpleAvatar: FC<{
           (await api.getCourseFromLesson(currentLesson)) || currentCourse;
       }
       const parmas = `?courseid=${currentLesson.cocosSubjectCode}&chapterid=${currentLesson.cocosChapterCode}&lessonid=${currentLesson.id}`;
-      history.replace(PAGES.GAME + parmas, {
+      await history.replace(PAGES.GAME + parmas, {
         url: "chimple-lib/index.html" + parmas,
         lessonId: currentLesson.id,
         courseDocId: lessonCourse.docId,
@@ -392,7 +425,6 @@ const ChimpleAvatar: FC<{
 
   async function getRecommendedChapter(course: Course) {
     // console.log("getRecommendedChapter", course.title, currentChapter);
-
     if (currentChapter) {
       const chapterIndex = course.chapters.findIndex(
         (chapter) => chapter.id === currentChapter?.id
@@ -486,6 +518,20 @@ const ChimpleAvatar: FC<{
   }
 
   switch (currentMode) {
+    case AvatarModes.ShowWeeklyProgress:
+      console.log("case AvatarModes.ShowWeeklyProgress: ");
+      const x1 = "10";
+      message =
+        avatarObj.message ||
+        t(`' x1 ' minutes left to complete your goal`).replace("x1", x1);
+      buttons = [
+        {
+          label: "Let's Play",
+          onClick: () => handleButtonClick(true),
+          isTrue: true,
+        },
+      ];
+      break;
     case AvatarModes.Welcome:
       message = t(avatarObj.message || "");
       buttons = [
@@ -670,6 +716,8 @@ const ChimpleAvatar: FC<{
       ></div>
     )
   );
+  console.log("wrongAttempts", avatarObj.wrongAttempts);
+  console.log("currentCourse_789798", currentCourse);
   return (
     <div style={style}>
       <div>
@@ -699,13 +747,29 @@ const ChimpleAvatar: FC<{
               onClickRiveComponent();
             }}
           ></TextBoxWithAudioButton>
-          <AvatarImageOption
-            currentMode={currentMode}
-            currtStageMode={currentStageMode || AvatarModes.CourseSuggestion}
-            currentCourse={currentCourse}
-            currentChapter={currentChapter}
-            currentLesson={currentLesson}
-          ></AvatarImageOption>
+          {spinnerLoading ||
+          (currentStageMode === AvatarModes.CourseSuggestion &&
+            currentCourse === undefined) ||
+          (currentStageMode === AvatarModes.ChapterSuggestion &&
+            currentChapter === undefined) ||
+          (currentStageMode === AvatarModes.LessonSuggestion &&
+            currentLesson === undefined) ? (
+            <div className="custom-spinner-outerbox">
+              <div className="custom-spinner" />
+            </div>
+          ) : (
+            <AvatarImageOption
+              currentCourse={currentCourse}
+              currentMode={currentMode}
+              currtStageMode={currentStageMode || AvatarModes.CourseSuggestion}
+              currentChapter={currentChapter}
+              currentLesson={currentLesson}
+              activitiesValue={avatarObj.weeklyPlayedLesson}
+              WeeklyProgressValue={avatarObj.weeklyTimeSpent}
+              WeeklyGoalValue={avatarObj.weeklyProgressGoal}
+            />
+          )}
+
           <div
             className="buttons-in-avatar-option-box"
             style={{

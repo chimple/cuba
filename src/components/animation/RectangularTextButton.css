@@ -2,7 +2,7 @@
   color: black;
   border-radius: var(--border-radius);
   text-align: center;
-  transition: background-color 0.3s, transform 0.2s;
+  transition: background-color 0s;
   cursor: pointer;
   border: 1px solid #474747;
   border-bottom: 4.5px solid #474747;
@@ -12,7 +12,7 @@
   color: black;
   border-radius: var(--border-radius);
   text-align: center;
-  transition: background-color 0.3s, transform 0.2s;
+  transition: background-color 0s;
   cursor: pointer;
   border: 1px solid #474747;
   border-bottom: 4.5px solid #474747;

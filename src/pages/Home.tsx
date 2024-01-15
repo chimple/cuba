@@ -21,6 +21,7 @@ import {
   CONTINUE,
   CHAPTER_LESSON_MAP,
   LIVE_QUIZ,
+  SHOW_DAILY_PROGRESS_FLAG,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -121,6 +122,7 @@ const Home: FC = () => {
   const location = useLocation();
 
   useEffect(() => {
+    localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
 
     urlOpenListenerEvent();

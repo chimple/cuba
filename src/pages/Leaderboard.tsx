@@ -396,6 +396,8 @@ const Leaderboard: React.FC = () => {
                               ? currentStudent?.name
                               : d}
                           </p>
+                        ) : isNaN(Math.round(d)) ? (
+                          d
                         ) : (
                           Math.round(d)
                         )}
