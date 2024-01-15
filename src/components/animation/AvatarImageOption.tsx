@@ -55,6 +55,7 @@ const AvatarImageOption: React.FC<{
       let percentage = Math.floor(
         (WeeklyProgressValue / WeeklyGoalValue) * 100
       );
+
       console.log(
         "let percentage",
         percentage,
@@ -73,7 +74,7 @@ const AvatarImageOption: React.FC<{
           }}
         >
           <CircularProgressbar
-            value={percentage}
+            value={100 - percentage}
             text={`${activitiesValue} Played`}
             styles={{
               // Customize the root svg element

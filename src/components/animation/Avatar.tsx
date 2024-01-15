@@ -346,6 +346,7 @@ export class AvatarObj {
 
           if (currentStudent.docId == element.userId) {
             var computeMinutes = Math.floor(element.timeSpent / 60);
+            var computeSec = element.timeSpent % 60;
             console.log(
               "current student result ",
               // i + 1,
@@ -363,9 +364,13 @@ export class AvatarObj {
               computeMinutes,
               finalProgressTimespent
             );
-            this.message = t(
-              `' x1 ' minutes left to complete your goal`
-            ).replace("x1", finalProgressTimespent.toString());
+            this.message = t(`' x1 ' left to complete your goal`).replace(
+              "x1",
+              finalProgressTimespent.toString() +
+                " Minutes " +
+                computeSec +
+                " Seconds"
+            );
 
             this.weeklyTimeSpent = finalProgressTimespent;
             this.weeklyPlayedLesson = element.lessonsPlayed;
@@ -403,6 +408,7 @@ export class AvatarObj {
 
           if (currentStudent.docId == element.userId) {
             var computeMinutes = Math.floor(element.timeSpent / 60);
+            var computeSec = element.timeSpent % 60;
             console.log(
               "current student result ",
               // i + 1,
@@ -422,7 +428,13 @@ export class AvatarObj {
             );
             this.message = t(
               `' x1 ' minutes left to complete your goal`
-            ).replace("x1", finalProgressTimespent.toString());
+            ).replace(
+              "x1",
+              finalProgressTimespent.toString() +
+                " Minutes " +
+                computeSec +
+                " Seconds"
+            );
 
             this.weeklyTimeSpent = finalProgressTimespent;
             this.weeklyPlayedLesson = element.lessonsPlayed;
