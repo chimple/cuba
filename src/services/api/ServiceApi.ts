@@ -15,6 +15,8 @@ import { LeaderboardDropdownList, MODES } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
+import Badge from "../../models/Badge";
+import Rewards from "../../models/Rewards";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -473,4 +475,18 @@ export interface ServiceApi {
    * @returns {Assignment | undefined}`Assignment` or `undefined` if it could not find the Assignment with given `id`
    */
   getAssignmentById(id: string): Promise<Assignment | undefined>;
+
+  /**
+   * Gives Badge for given a Badge firebase doc Id
+   * @param {string} id - Badge firebase doc id
+   * @returns {Badge | undefined}`Badge` or `undefined` if it could not find the Badge with given `id`
+   */
+  getBadgeById(id: string): Promise<Badge | undefined>;
+
+  /**
+   * Gives Rewards for given a Rewards firebase doc Id
+   * @param {string} id - Rewards firebase doc id
+   * @returns {Rewards | undefined}`Rewards` or `undefined` if it could not find the Rewards with given `id`
+   */
+  getRewardsById(id: string): Promise<Rewards | undefined>;
 }

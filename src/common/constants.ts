@@ -478,3 +478,23 @@ export const CHAPTER_LESSON_MAP = "chapterLessonMap";
 
 export const CURRENT_AVATAR_SUGGESTION_NO = "currentAvatarSuggestion";
 export const SHOW_DAILY_PROGRESS_FLAG = "showDailyProgress";
+
+export type LeaderboardBadge = {
+  id: string;
+  seen: boolean;
+};
+
+export type LeaderboardBonus = {
+  id: string;
+  seen: boolean;
+};
+
+export type LeaderboardRewards = {
+  badges: LeaderboardBadge[];
+  bonus: LeaderboardBonus[];
+};
+
+export enum LeaderboardRewardsType {
+  BADGE = "badge",
+  BONUS = "bonus",
+}

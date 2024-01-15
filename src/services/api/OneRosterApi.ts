@@ -27,6 +27,8 @@ import { Unsubscribe } from "@firebase/firestore";
 import { AvatarObj } from "../../components/animation/Avatar";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { DocumentData } from "firebase/firestore";
+import Badge from "../../models/Badge";
+import Rewards from "../../models/Rewards";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -82,6 +84,12 @@ export class OneRosterApi implements ServiceApi {
   }
   private constructor() {}
   getLeaderboardStudentResultFromB2CCollection(studentId: string, leaderboardDropdownType: LeaderboardDropdownList): Promise<LeaderboardInfo | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getRewardsById(id: string): Promise<Rewards | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getBadgeById(id: string): Promise<Badge | undefined> {
     throw new Error("Method not implemented.");
   }
   getAvatarInfo(): Promise<AvatarObj | undefined> {

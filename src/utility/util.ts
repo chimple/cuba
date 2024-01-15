@@ -941,6 +941,7 @@ export class Util {
         name: student.name,
         role: student.role,
         uid: student.uid,
+        rewards:student.rewards,
         username: student.username,
         users: student.users,
         docId: student.docId,
@@ -1339,5 +1340,15 @@ export class Util {
 
       throw error;
     }
+  }
+
+  public static getCurrentWeekNumber() {
+    const date = new Date();
+    date.setDate(14);
+    var firstWeekday =
+      new Date(date.getFullYear(), date.getMonth(), 1).getDay() - 1;
+    if (firstWeekday < 0) firstWeekday = 6;
+    var offsetDate = date.getDate() + firstWeekday - 1;
+    return Math.floor(offsetDate / 7) + 1;
   }
 }
