@@ -370,6 +370,18 @@ export interface ServiceApi {
   ): Promise<LeaderboardInfo | undefined>;
 
   /**
+   * This function gives b2c Leaderboard results of given studentId
+   *
+   * @param studentId The unique identifier of the student for whom the results are being updated.
+   * @param leaderboardDropdownType If true, it will gives the weekly data from the Collection. False for it will gives the All Time data from the Collection
+   * @returns A promise that resolves to the student.
+   */
+  getLeaderboardStudentResultFromB2CCollection(
+    studentId: string,
+    leaderboardDropdownType: LeaderboardDropdownList
+  ): Promise<LeaderboardInfo | undefined>;
+
+  /**
    * This function gives all chapter and lesson objects
    *
    * @param course Course object of the student

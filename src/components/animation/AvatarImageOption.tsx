@@ -16,6 +16,7 @@ import { IonCard } from "@ionic/react";
 import { Chapter } from "../../common/courseConstants";
 import { AvatarModes, AvatarObj } from "./Avatar";
 import CachedImage from "../common/CachedImage";
+import { CircularProgressbar } from "react-circular-progressbar";
 
 const AvatarImageOption: React.FC<{
   currentMode?: AvatarModes;
@@ -23,12 +24,18 @@ const AvatarImageOption: React.FC<{
   currentCourse?: Course;
   currentChapter?: Chapter;
   currentLesson?: Lesson;
+  activitiesValue: number;
+  WeeklyProgressValue: number;
+  WeeklyGoalValue: number;
 }> = ({
   currentMode,
   currtStageMode,
   currentCourse,
   currentChapter,
   currentLesson,
+  activitiesValue,
+  WeeklyProgressValue,
+  WeeklyGoalValue,
 }) => {
   const history = useHistory();
   let content: ReactNode | null = null;
@@ -44,6 +51,75 @@ const AvatarImageOption: React.FC<{
   }, []);
 
   switch (currentMode) {
+    case AvatarModes.ShowWeeklyProgress:
+      let percentage = Math.floor(
+        (WeeklyProgressValue / WeeklyGoalValue) * 100
+      );
+      console.log(
+        "let percentage",
+        percentage,
+        WeeklyProgressValue,
+        WeeklyGoalValue,
+        WeeklyProgressValue / WeeklyGoalValue,
+        WeeklyGoalValue / WeeklyProgressValue
+      );
+
+      content = (
+        <div
+          style={{
+            width: "40vh",
+            marginLeft: "auto",
+            marginRight: "auto",
+          }}
+        >
+          <CircularProgressbar
+            value={percentage}
+            text={`${activitiesValue} Played`}
+            styles={{
+              // Customize the root svg element
+              root: {},
+              // Customize the path, i.e. the "completed progress"
+              path: {
+                // Path color
+                stroke: `#678e21`,
+                // Whether to use rounded or flat corners on the ends - can use 'butt' or 'round'
+                strokeLinecap: "butt",
+                // Customize transition animation
+                transition: "stroke-dashoffset 0.5s ease 0s",
+                // Rotate the path
+                // transform: "rotate(0.25turn)",
+                transformOrigin: "center center",
+              },
+              // Customize the circle behind the path, i.e. the "total progress"
+              trail: {
+                // Trail color
+                stroke: "#d6d6d6",
+                // Whether to use rounded or flat corners on the ends - can use 'butt' or 'round'
+                strokeLinecap: "butt",
+                // Rotate the trail
+                transform: "rotate(0.25turn)",
+                transformOrigin: "center center",
+              },
+              // Customize the text
+              text: {
+                // Text color
+                fill: "#000",
+                // Text size
+                fontSize: "16px",
+              },
+              // Customize background - only used when the `background` prop is true
+              background: {
+                fill: "#3e98c7",
+              },
+            }}
+          />
+          <p
+            style={{ textAlign: "center" }}
+          >{`Weekly ${WeeklyGoalValue} Mins Goal`}</p>
+        </div>
+      );
+
+      break;
     case AvatarModes.CourseSuggestion:
       switch (currtStageMode) {
         case AvatarModes.CourseSuggestion:

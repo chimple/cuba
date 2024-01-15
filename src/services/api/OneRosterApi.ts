@@ -81,6 +81,9 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
+  getLeaderboardStudentResultFromB2CCollection(studentId: string, leaderboardDropdownType: LeaderboardDropdownList): Promise<LeaderboardInfo | undefined> {
+    throw new Error("Method not implemented.");
+  }
   getAvatarInfo(): Promise<AvatarObj | undefined> {
     throw new Error("Method not implemented.");
   }

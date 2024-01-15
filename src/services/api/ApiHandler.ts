@@ -57,6 +57,16 @@ export class ApiHandler implements ServiceApi {
     return this.s.joinLiveQuiz(studentId, assignmentId);
   }
   private constructor() {}
+  
+  public async getLeaderboardStudentResultFromB2CCollection(
+    studentId: string,
+    leaderboardDropdownType: LeaderboardDropdownList
+  ): Promise<LeaderboardInfo | undefined> {
+    return await this.s.getLeaderboardStudentResultFromB2CCollection(
+      studentId,
+      leaderboardDropdownType
+    );
+  }
   public async getAvatarInfo(): Promise<AvatarObj | undefined> {
     return await this.s.getAvatarInfo();
   }

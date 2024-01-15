@@ -1,9 +1,14 @@
 import { Filesystem } from "@capacitor/filesystem";
-import { CURRENT_AVATAR_SUGGESTION_NO } from "../../common/constants";
-import { Chapter } from "../../common/courseConstants";
+import {
+  CURRENT_AVATAR_SUGGESTION_NO,
+  LeaderboardDropdownList,
+} from "../../common/constants";
+import { Chapter, StudentLessonResult } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import { Util } from "../../utility/util";
+import { ServiceConfig } from "../../services/ServiceConfig";
+import { t } from "i18next";
 
 export enum AvatarModes {
   Welcome,
@@ -13,10 +18,9 @@ export enum AvatarModes {
   LessonSuggestion,
   TwoOptionQuestion,
   FourOptionQuestion,
-  ShowDailyProgress,
+  ShowWeeklyProgress,
   // scores >= 70
   GoodProgress,
-
   // scores < 70
   BadProgress,
 }
@@ -45,6 +49,9 @@ export class AvatarObj {
   currentChapter: Chapter;
   currentLesson: Lesson | undefined;
   currentRecommededLessonIndex: number;
+  weeklyProgressGoal: number = 10;
+  weeklyTimeSpent: number = 0;
+  weeklyPlayedLesson: number = 0;
 
   private constructor() {}
 
@@ -290,5 +297,145 @@ export class AvatarObj {
       " AvatarObj in Avatar page loadAvatarNextSuggestion( ",
       AvatarObj.getInstance()
     );
+  }
+
+  public async loadAvatarWeeklyProgressData() {
+    try {
+      console.log("loadAvatarWeeklyProgressData called ");
+
+      let isWeeklyProgressShowedToday = Boolean(
+        localStorage.getItem("isWeeklyProgressShowedToday")
+      );
+      // localStorage.setItem("isWeeklyProgressShowedToday", "true");
+      const currentStudent = await Util.getCurrentStudent();
+      if (isWeeklyProgressShowedToday || !currentStudent) {
+        this.message = undefined;
+        this.weeklyTimeSpent = 0;
+        this.weeklyPlayedLesson = 0;
+        return;
+      }
+      this._mode = AvatarModes.ShowWeeklyProgress;
+
+      const api = ServiceConfig.getI().apiHandler;
+      const studentProfile = await api.getStudentResult(currentStudent.docId);
+      console.log("const studentProfile", studentProfile);
+
+      if (studentProfile?.classes != undefined) {
+        const leaderboardData = await api.getLeaderboardResults(
+          studentProfile?.classes[0],
+          LeaderboardDropdownList.WEEKLY
+        );
+        let weeklyData = leaderboardData?.weekly;
+        console.log("weeklyReport ", weeklyData);
+        if (!weeklyData) {
+          this.message = undefined;
+          this.weeklyTimeSpent = 0;
+          this.weeklyPlayedLesson = 0;
+          return;
+        }
+
+        for (let i = 0; i < weeklyData.length; i++) {
+          const element = weeklyData[i];
+          console.log(
+            "currentStudent.docId == element.userId ",
+            currentStudent.docId,
+            element.userId,
+            currentStudent.docId == element.userId
+          );
+
+          if (currentStudent.docId == element.userId) {
+            var computeMinutes = Math.floor(element.timeSpent / 60);
+            console.log(
+              "current student result ",
+              // i + 1,
+              element.name,
+              element.lessonsPlayed,
+              "lessons played scores",
+              element.score,
+              computeMinutes
+              // computeMinutes + t("min") + " " + result + " " + t("sec")
+            );
+            let finalProgressTimespent =
+              this.weeklyProgressGoal - computeMinutes;
+            console.log(
+              "current computeMinutes ",
+              computeMinutes,
+              finalProgressTimespent
+            );
+            this.message = t(
+              `' x1 ' minutes left to complete your goal`
+            ).replace("x1", finalProgressTimespent.toString());
+
+            this.weeklyTimeSpent = finalProgressTimespent;
+            this.weeklyPlayedLesson = element.lessonsPlayed;
+            console.log(
+              "this.message ",
+              this.message,
+              this.weeklyPlayedLesson,
+              this.weeklyTimeSpent
+            );
+          }
+        }
+      } else {
+        const b2cResult =
+          await api.getLeaderboardStudentResultFromB2CCollection(
+            currentStudent.docId,
+            LeaderboardDropdownList.WEEKLY
+          );
+        let weeklyData = b2cResult?.weekly;
+        console.log("weeklyReport ", weeklyData);
+        if (!weeklyData) {
+          this.message = undefined;
+          this.weeklyTimeSpent = 0;
+          this.weeklyPlayedLesson = 0;
+          return;
+        }
+
+        for (let i = 0; i < weeklyData.length; i++) {
+          const element = weeklyData[i];
+          console.log(
+            "currentStudent.docId == element.userId ",
+            currentStudent.docId,
+            element.userId,
+            currentStudent.docId == element.userId
+          );
+
+          if (currentStudent.docId == element.userId) {
+            var computeMinutes = Math.floor(element.timeSpent / 60);
+            console.log(
+              "current student result ",
+              // i + 1,
+              element.name,
+              element.lessonsPlayed,
+              "lessons played scores",
+              element.score,
+              computeMinutes
+              // computeMinutes + t("min") + " " + result + " " + t("sec")
+            );
+            let finalProgressTimespent =
+              this.weeklyProgressGoal - computeMinutes;
+            console.log(
+              "current computeMinutes ",
+              computeMinutes,
+              finalProgressTimespent
+            );
+            this.message = t(
+              `' x1 ' minutes left to complete your goal`
+            ).replace("x1", finalProgressTimespent.toString());
+
+            this.weeklyTimeSpent = finalProgressTimespent;
+            this.weeklyPlayedLesson = element.lessonsPlayed;
+            console.log(
+              "this.message ",
+              this.message,
+              this.weeklyPlayedLesson,
+              this.weeklyTimeSpent
+            );
+          }
+        }
+      }
+    } catch (error) {
+      console.log("loadAvatarWeeklyProgressData error ", error);
+    }
   }
 }
