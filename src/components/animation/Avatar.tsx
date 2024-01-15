@@ -45,6 +45,7 @@ export class AvatarObj {
   currentChapter: Chapter;
   currentLesson: Lesson | undefined;
   currentRecommededLessonIndex: number;
+  wrongAttempts: number = 0;
 
   private constructor() {}
 
