@@ -27,7 +27,7 @@ import i18n from "../i18n";
 import IconButton from "../components/IconButton";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
-import LeaderBoardRewards from "../components/leaderboard/LeaderRewards";
+import LeaderboardRewards from "../components/leaderboard/LeaderboardRewards";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -538,7 +538,7 @@ const Leaderboard: React.FC = () => {
             {tabIndex === LEADERBOARDHEADERLIST.EVENTS && <Box></Box>}
             {tabIndex === LEADERBOARDHEADERLIST.REWARDS && (
               <Box>
-                <LeaderBoardRewards />
+                <LeaderboardRewards />
               </Box>
             )}
           </Box>

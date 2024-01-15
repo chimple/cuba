@@ -63,6 +63,8 @@ import School from "../../models/school";
 import Assignment from "../../models/assignment";
 import { AvatarObj } from "../../components/animation/Avatar";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
+import Badge from "../../models/Badge";
+import Rewards from "../../models/Rewards";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
@@ -1727,6 +1729,34 @@ export class FirebaseApi implements ServiceApi {
         "🚀 ~ file: FirebaseApi.ts:1600 ~ FirebaseApi ~ getAssignmentById ~ error:",
         error
       );
+    }
+  }
+
+  public async getBadgeById(id: string): Promise<Badge | undefined> {
+    try {
+      const badgeDoc = await this.getDocFromOffline(
+        doc(this._db, CollectionIds.BADGE, id)
+      );
+      if (!badgeDoc.exists) return;
+      const data = badgeDoc.data() as Badge;
+      data.docId = id;
+      return data;
+    } catch (error) {
+      console.log("🚀 ~ FirebaseApi ~ getBadgeById ~ error:", error);
+    }
+  }
+
+  public async getRewardsById(id: string): Promise<Rewards | undefined> {
+    try {
+      const rewardDoc = await this.getDocFromOffline(
+        doc(this._db, CollectionIds.REWARDS, id)
+      );
+      if (!rewardDoc.exists) return;
+      const data = rewardDoc.data() as Rewards;
+      data.docId = id;
+      return data;
+    } catch (error) {
+      console.log("🚀 ~ FirebaseApi ~ getRewardById ~ error:", error);
     }
   }
 }
