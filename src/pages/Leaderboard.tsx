@@ -496,11 +496,11 @@ const Leaderboard: React.FC = () => {
                     //   marginRight: "5vw",
                     // }}
                   />
-                  <Tab
+                  {/* <Tab
                     id="parent-page-tab-bar"
                     value={LEADERBOARDHEADERLIST.EVENTS}
                     label={t(LEADERBOARDHEADERLIST.EVENTS)}
-                  />
+                  /> */}
                   <Tab
                     id="parent-page-tab-bar"
                     value={LEADERBOARDHEADERLIST.REWARDS}
@@ -537,7 +537,7 @@ const Leaderboard: React.FC = () => {
                 <div>{leaderboardUI()}</div>
               </Box>
             )}
-            {tabIndex === LEADERBOARDHEADERLIST.EVENTS && <Box></Box>}
+            {/* {tabIndex === LEADERBOARDHEADERLIST.EVENTS && <Box></Box>} */}
             {tabIndex === LEADERBOARDHEADERLIST.REWARDS && (
               <Box>
                 <LeaderboardRewards />
