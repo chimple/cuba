@@ -25,6 +25,7 @@ const LeaderboardBonus: FC = () => {
 
     const unlockedBonuses = await getUnlockedBonus();
     const prevBonuses = await getPrevBonus();
+    // const currentBonus = await getCurrentBonus();
     const bonusInfoArray: BonusInfo[] = [];
     const uniqueBonusIds = new Set<string>();
 
@@ -65,11 +66,12 @@ const LeaderboardBonus: FC = () => {
     return unlockedBonus;
   };
 
-  const getPrevBonus = async () => {
-    const date = new Date();
-    const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
+  const getPrevBonus = async (): Promise<(Lesson | undefined)[]> => {
+    const rewardsDoc = await api.getRewardsById(
+      Util.getCurrentYearForLeaderboard().toString()
+    );
     if (!rewardsDoc) return [];
-    const currentMonth = new Date().getMonth();
+    const currentMonth = Util.getCurrentMonthForLeaderboard();
     const bonusIds: string[] = [];
     const monthlyData = rewardsDoc.monthly;
     for (const key in monthlyData) {
@@ -82,6 +84,25 @@ const LeaderboardBonus: FC = () => {
         });
       }
     }
+    const bonusDocs = await Promise.all(
+      bonusIds.map((value) => api.getLesson(value))
+    );
+    return bonusDocs;
+  };
+
+  const getCurrentBonus = async (): Promise<(Lesson | undefined)[]> => {
+    const rewardsDoc = await api.getRewardsById(
+      Util.getCurrentYearForLeaderboard().toString()
+    );
+    if (!rewardsDoc) return [];
+    const currentMonth = Util.getCurrentMonthForLeaderboard();
+    const bonusIds: string[] = [];
+    const monthlyData = rewardsDoc.monthly;
+    monthlyData[currentMonth.toString()].forEach((value) => {
+      if (value.type === LeaderboardRewardsType.BONUS) {
+        bonusIds.push(value.id);
+      }
+    });
     const bonusDocs = await Promise.all(
       bonusIds.map((value) => api.getLesson(value))
     );
