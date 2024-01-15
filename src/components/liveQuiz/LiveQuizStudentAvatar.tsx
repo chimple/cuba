@@ -16,7 +16,7 @@ const LiveQuizStudentAvatar: FC<{
   return (
     <div className="live-quiz-student-avatar">
       <p className="live-quiz-student-Name">{student.name}</p>
-      <div style={{ width: "21vh" }}>
+      <div>
         {percentage || isCorrect != null ? (
           <CircularProgressbarWithChildren
             value={isCorrect == null ? percentage ?? 0 : 100}
