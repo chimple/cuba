@@ -52,6 +52,7 @@ export class AvatarObj {
   weeklyProgressGoal: number = 10;
   weeklyTimeSpent: number = 0;
   weeklyPlayedLesson: number = 0;
+  wrongAttempts: number = 0;
 
   private constructor() {}
 

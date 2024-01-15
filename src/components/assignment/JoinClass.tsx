@@ -68,6 +68,7 @@ const JoinClass: FC<{
         );
       }
       onClassJoin();
+      window.location.reload();
     } catch (error) {
       console.log("🚀 ~ file: JoinClass.tsx:48 ~ onJoin ~ error:", error);
       if (error instanceof Object) setError(error.toString());

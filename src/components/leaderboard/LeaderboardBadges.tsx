@@ -25,6 +25,7 @@ const LeaderboardBadges: FC = () => {
 
     const unlockedBadges = await getUnlockedBadges();
     const prevBadges = await getPrevBadges();
+    // const currentBadges = await getCurrentBadges();
     const badgeInfoArray: BadgeInfo[] = [];
     const uniqueBadgeIds = new Set<string>();
 
@@ -67,7 +68,7 @@ const LeaderboardBadges: FC = () => {
     return unlockedBadges;
   };
 
-  const getPrevBadges = async () => {
+  const getPrevBadges = async (): Promise<(Badge | undefined)[]> => {
     const date = new Date();
     const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
     if (!rewardsDoc) return [];
@@ -84,6 +85,24 @@ const LeaderboardBadges: FC = () => {
         });
       }
     }
+    const badgeDocs = await Promise.all(
+      badgeIds.map((value) => api.getBadgeById(value))
+    );
+    return badgeDocs;
+  };
+
+  const getCurrentBadges = async (): Promise<(Badge | undefined)[]> => {
+    const date = new Date();
+    const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
+    if (!rewardsDoc) return [];
+    const currentWeek = Util.getCurrentWeekNumber();
+    const badgeIds: string[] = [];
+    const weeklyData = rewardsDoc.weekly;
+    weeklyData[currentWeek.toString()].forEach((value) => {
+      if (value.type === LeaderboardRewardsType.BADGE) {
+        badgeIds.push(value.id);
+      }
+    });
     const badgeDocs = await Promise.all(
       badgeIds.map((value) => api.getBadgeById(value))
     );
