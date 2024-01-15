@@ -1432,6 +1432,64 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
+  public async getLeaderboardStudentResultFromB2CCollection(
+    studentId: string,
+    leaderboardDropdownType: LeaderboardDropdownList
+  ): Promise<LeaderboardInfo | undefined> {
+    try {
+      const leaderBoardList: LeaderboardInfo = {
+        weekly: [],
+        allTime: [],
+        monthly: [],
+      };
+
+      const queryResult = await getDoc(
+        doc(
+          this._db,
+          CollectionIds.LEADERBOARD + "/b2c/genericLeaderboard/" + studentId
+        )
+      );
+      if (!queryResult.data()) return;
+      const data = queryResult.data();
+      if (!data) return;
+
+      if (leaderboardDropdownType === LeaderboardDropdownList.WEEKLY) {
+        leaderBoardList.weekly.push({
+          name: data.get("name"),
+          score: data.get("weeklyScore"),
+          timeSpent: data.get("weeklyTimeSpent"),
+          lessonsPlayed: data.get("weeklyLessonPlayed"),
+          userId: data.id,
+        });
+      } else if (leaderboardDropdownType === LeaderboardDropdownList.MONTHLY) {
+        leaderBoardList.monthly.push({
+          name: data.get("name"),
+          score: data.get("monthlyScore"),
+          timeSpent: data.get("monthlyTimeSpent"),
+          lessonsPlayed: data.get("monthlyLessonPlayed"),
+          userId: data.id,
+        });
+      } else {
+        leaderBoardList.allTime.push({
+          name: data.get("name"),
+          score: data.get("allTimeScore"),
+          timeSpent: data.get("allTimeTimeSpent"),
+          lessonsPlayed: data.get("allTimeLessonPlayed"),
+          userId: data.id,
+        });
+      }
+
+      console.log("result in FirebaseAPI", leaderBoardList, data);
+
+      return leaderBoardList;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:971 ~ FirebaseApi ~ error:",
+        JSON.stringify(error)
+      );
+    }
+  }
+
   public async getCoursesByGrade(gradeDocId: any): Promise<Course[]> {
     try {
       const gradeQuerySnapshot = await getDocs(

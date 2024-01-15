@@ -477,6 +477,7 @@ export const LAST_FUNCTION_CALL = "lastFunctionCall";
 export const CHAPTER_LESSON_MAP = "chapterLessonMap";
 
 export const CURRENT_AVATAR_SUGGESTION_NO = "currentAvatarSuggestion";
+export const SHOW_DAILY_PROGRESS_FLAG = "showDailyProgress";
 
 export type LeaderboardBadge = {
   id: string;
