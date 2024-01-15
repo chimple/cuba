@@ -11,7 +11,7 @@ import { Util } from "../../utility/util";
 import { PAGES } from "../../common/constants";
 import { useHistory } from "react-router";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { PiSpeakerHighBold } from "react-icons/pi";
+import { HiSpeakerWave } from "react-icons/hi2";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 
 let questionInterval;
@@ -125,8 +125,8 @@ const LiveQuizQuestion: FC<{
             question: {
               id: "question_2",
               text: "What is 1+1?",
-              image:
-                "https://fastly.picsum.photos/id/1012/3973/2639.jpg?hmac=s2eybz51lnKy2ZHkE2wsgc6S81fVD1W2NKYOSh8bzDc",
+              // image:
+              // "https://fastly.picsum.photos/id/1012/3973/2639.jpg?hmac=s2eybz51lnKy2ZHkE2wsgc6S81fVD1W2NKYOSh8bzDc",
             },
             questionType: "image",
           },
@@ -149,27 +149,28 @@ const LiveQuizQuestion: FC<{
             optionsType: "text",
             question: {
               id: "question_3",
-              image: "https://picsum.photos/200/300",
+              text: "What city is the capital of France?",
+              // image: "https://picsum.photos/200/300",
             },
-            questionType: "image",
+            questionType: "text",
           },
           {
             options: [
               {
-                image: "https://picsum.photos/200/300",
-              },
-              {
+                text: "6",
                 isCorrect: true,
-                image: "https://picsum.photos/200/300",
               },
               {
-                image: "https://picsum.photos/200/300",
+                text: "12",
               },
               {
-                image: "https://picsum.photos/200/300",
+                text: "5",
+              },
+              {
+                text: "8",
               },
             ],
-            optionsType: "image",
+            optionsType: "text",
             question: {
               id: "question_4",
               text: "What is 2 multiplied by 3?",
@@ -438,7 +439,7 @@ const LiveQuizQuestion: FC<{
               {(liveQuizConfig.data[currentQuestionIndex].question.audio ||
                 liveQuizConfig.data[currentQuestionIndex].question.text) && (
                 <div className="live-quiz-audio-button-question">
-                  <PiSpeakerHighBold
+                  <HiSpeakerWave
                     onClick={(e) => {
                       e.stopPropagation();
                       playLiveQuizAudio(
@@ -449,7 +450,7 @@ const LiveQuizQuestion: FC<{
                   />
                 </div>
               )}
-              <p>
+              <p id="question-text">
                 {!liveQuizConfig.data[currentQuestionIndex]?.question
                   .isTextTTS &&
                   liveQuizConfig.data[currentQuestionIndex]?.question.text}
@@ -508,7 +509,7 @@ const LiveQuizQuestion: FC<{
                   >
                     {(option.audio || option.text) && (
                       <div className="live-quiz-audio-button-option">
-                        <PiSpeakerHighBold
+                        <HiSpeakerWave
                           onClick={(e) => {
                             e.stopPropagation();
                             playLiveQuizAudio(option);
