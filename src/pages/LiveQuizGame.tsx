@@ -56,6 +56,14 @@ const LiveQuizGame: FC = () => {
             />
           )}
         </div>
+        <div className="live-quiz-navigation-dots">
+          {isTimeOut && liveQuizConfig && currentQuestionIndex != null && (
+            <LiveQuizNavigationDots
+              totalDots={liveQuizConfig.data.length}
+              currentDot={currentQuestionIndex}
+            />
+          )}
+        </div>
         <div className="live-quiz-center-div">
           {roomDoc && !isTimeOut && (
             <LiveQuizCountdownTimer
@@ -89,14 +97,6 @@ const LiveQuizGame: FC = () => {
             />
           )}
         </div>
-      </div>
-      <div className="live-quiz-bottom-dots">
-        {isTimeOut && liveQuizConfig && currentQuestionIndex != null && (
-          <LiveQuizNavigationDots
-            totalDots={liveQuizConfig.data.length}
-            currentDot={currentQuestionIndex}
-          />
-        )}
       </div>
     </IonPage>
   );
