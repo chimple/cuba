@@ -149,7 +149,7 @@ const LiveQuizQuestion: FC<{
             optionsType: "text",
             question: {
               id: "question_3",
-              text: "What city is the capital of France?",
+              text: "Which city is the capital of France?",
               // image: "https://picsum.photos/200/300",
             },
             questionType: "text",
