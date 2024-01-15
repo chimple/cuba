@@ -364,7 +364,7 @@ export class AvatarObj {
               computeMinutes,
               finalProgressTimespent
             );
-            this.message = t(`' x1 ' left to complete your goal`).replace(
+            this.message = t(`' x1 ' left to complete your learning goal.`).replace(
               "x1",
               finalProgressTimespent.toString() +
                 " Minutes " +
@@ -427,7 +427,7 @@ export class AvatarObj {
               finalProgressTimespent
             );
             this.message = t(
-              `' x1 ' minutes left to complete your goal`
+              `' x1 ' left to complete your learning goal.`
             ).replace(
               "x1",
               finalProgressTimespent.toString() +
