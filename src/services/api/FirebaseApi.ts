@@ -1405,6 +1405,7 @@ export class FirebaseApi implements ServiceApi {
         const sortLeaderboard = (arr: Array<any>) =>
           arr.sort((a, b) => b.score - a.score);
         sortLeaderboard(weekly);
+        sortLeaderboard(monthly);
         sortLeaderboard(allTime);
         let result: LeaderboardInfo = {
           weekly: [],
