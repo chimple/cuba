@@ -44,7 +44,7 @@ const SelectCourse: FC<{
                 />
               </div>
               {/* {t(course.title)} */}
-              {course.title === "English" ? course.title : t(course.title)}
+              {course.title === "English" ? course.title : (course.title)}
             </div>
           </SplideSlide>
         );
