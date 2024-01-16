@@ -12,7 +12,7 @@ import { useLocation } from "react-router";
 const urlClassCode: any = {};
 
 const JoinClass: FC<{
-  onClassJoin: () => void,
+  onClassJoin: () => void;
 }> = ({ onClassJoin }) => {
   const [loading, setLoading] = useState(false);
   const [showDialogBox, setShowDialogBox] = useState(false);
@@ -26,7 +26,9 @@ const JoinClass: FC<{
   const api = ServiceConfig.getI().apiHandler;
 
   const isNextButtonEnabled = () => {
-    let tempInviteCode = urlClassCode.inviteCode ? urlClassCode.inviteCode : inviteCode;
+    let tempInviteCode = urlClassCode.inviteCode
+      ? urlClassCode.inviteCode
+      : inviteCode;
     return !!tempInviteCode && tempInviteCode.toString().length === 6;
   };
 
@@ -36,7 +38,9 @@ const JoinClass: FC<{
     if (!isNextButtonEnabled()) return;
     setLoading(true);
     try {
-      const result = await api.getDataByInviteCode(urlClassCode.inviteCode ? urlClassCode.inviteCode : inviteCode);
+      const result = await api.getDataByInviteCode(
+        urlClassCode.inviteCode ? urlClassCode.inviteCode : inviteCode
+      );
       console.log(
         "🚀 ~ file: JoinClass.tsx:24 ~ getClassData ~ result:",
         result
@@ -68,7 +72,9 @@ const JoinClass: FC<{
         );
       }
       onClassJoin();
-      window.location.reload();
+      if (window.location.pathname !== "/") {
+        window.location.reload();
+      }
     } catch (error) {
       console.log("🚀 ~ file: JoinClass.tsx:48 ~ onJoin ~ error:", error);
       if (error instanceof Object) setError(error.toString());
@@ -82,16 +88,15 @@ const JoinClass: FC<{
     //Util.isTextFieldFocus(scollToRef, setIsInputFocus);
 
     const urlParams = new URLSearchParams(location.search);
-    const joinClassParam = urlParams.get('join-class');
-    const classCode = urlParams.get('classCode');
+    const joinClassParam = urlParams.get("join-class");
+    const classCode = urlParams.get("classCode");
 
     if (classCode != "") {
-      let tempClassCode = !!classCode && !isNaN(parseInt(classCode))
-        ? parseInt(classCode)
-        : undefined
-      setInviteCode(
-        tempClassCode
-      );
+      let tempClassCode =
+        !!classCode && !isNaN(parseInt(classCode))
+          ? parseInt(classCode)
+          : undefined;
+      setInviteCode(tempClassCode);
       urlClassCode.inviteCode = tempClassCode;
       if (classCode != "") {
         getClassData();
@@ -116,9 +121,7 @@ const JoinClass: FC<{
               return;
             }
 
-            setInviteCode(
-              parseInt(inviteCode)
-            );
+            setInviteCode(parseInt(inviteCode));
           }}
           className="join-class-text-box"
           defaultValue={inviteCode ?? ""}
@@ -130,7 +133,7 @@ const JoinClass: FC<{
             }
           }}
           value={inviteCode ?? ""}
-          style={{width:"63vw"}}
+          style={{ width: "63vw" }}
         />
         <p className={"error-text "}>{error}</p>
         <button
@@ -151,7 +154,13 @@ const JoinClass: FC<{
         message={
           t("You are Joining ") +
           (!!codeResult
-            ? t("School") + ": " + codeResult["schoolName"] + ", " + t("Class") + ": " + codeResult["data"]["name"] ?? ""
+            ? t("School") +
+                ": " +
+                codeResult["schoolName"] +
+                ", " +
+                t("Class") +
+                ": " +
+                codeResult["data"]["name"] ?? ""
             : "")
         }
         showDialogBox={showDialogBox}
@@ -162,7 +171,6 @@ const JoinClass: FC<{
         }}
         onYesButtonClicked={() => {
           setShowDialogBox(false);
-
         }}
         onNoButtonClicked={async () => {
           await onJoin();
