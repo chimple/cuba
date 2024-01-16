@@ -157,46 +157,51 @@ const LiveQuizRoom: React.FC = () => {
       </div>
 
       <div className="students-container">
-        <div className="left-text">
-          <p id="container-text">{t("Played")}</p>
-          <p id="container-text">{t("Not Played")}</p>
-        </div>
+        {/* <div className="left-text">
+  
+        </div> */}
 
-        <div className="played-students">
-          <div className="student-container-1">
-            {prevPlayedStudents.length > 0 ? (
-              prevPlayedStudents.map((student) => (
-                <div key={student.docId} className="student-avatar-container">
-                  <StudentAvatar
-                    student={student}
-                    onClicked={() => {}}
-                    width={70}
-                    namePosition={"above"}
-                  />
-                  {!!currentAssignment?.results && (
-                    <p className="student-score">
-                      {Math.round(
-                        currentAssignment.results[student.docId]?.score
-                      )}
-                    </p>
-                  )}
-                </div>
-              ))
-            ) : (
-              <p id="container-text">{t("No students have played yet.")}</p>
-            )}
+        <div className="student-containers">
+          <div className="played-students">
+            <p id="container-text">{t("Already Played")}</p>
+            <div className="student-container-1">
+              {prevPlayedStudents.length > 0 ? (
+                prevPlayedStudents.map((student) => (
+                  <div key={student.docId} className="student-avatar-container">
+                    <StudentAvatar
+                      student={student}
+                      onClicked={() => {}}
+                      width={70}
+                      namePosition={"above"}
+                    />
+                    {!!currentAssignment?.results && (
+                      <p className="student-score">
+                        {Math.round(
+                          currentAssignment.results[student.docId]?.score
+                        )}
+                      </p>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p id="container-text">{t("No students have played yet.")}</p>
+              )}
+            </div>
           </div>
 
-          <div className="student-container-2">
-            {notPlayedStudents.map((student) => (
-              <StudentAvatar
-                key={student.docId}
-                student={student}
-                onClicked={() => {}}
-                width={70}
-                namePosition={"above"}
-              />
-            ))}
+          <div className="not-played-students">
+            <p id="container-text">{t("Not Played")}</p>
+            <div className="student-container-2">
+              {notPlayedStudents.map((student) => (
+                <StudentAvatar
+                  key={student.docId}
+                  student={student}
+                  onClicked={() => {}}
+                  width={70}
+                  namePosition={"above"}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>

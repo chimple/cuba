@@ -25,7 +25,7 @@
 }
 .played-students {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
 }
 .not-played-students {
   display: flex;
