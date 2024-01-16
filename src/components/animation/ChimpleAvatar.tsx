@@ -92,7 +92,7 @@ const ChimpleAvatar: FC<{
       );
       if (
         avatarObj.weeklyTimeSpent * 60 >= 10 * 60 ||
-        avatarObj.weeklyTimeSpent <= 0
+        avatarObj.weeklyTimeSpent < 0
       ) {
         await avatarObj.loadAvatarData();
         localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
