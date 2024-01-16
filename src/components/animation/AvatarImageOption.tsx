@@ -52,16 +52,22 @@ const AvatarImageOption: React.FC<{
 
   switch (currentMode) {
     case AvatarModes.ShowWeeklyProgress:
+      let avatarObj = AvatarObj.i;
       let percentage = Math.floor(
         (WeeklyProgressValue / WeeklyGoalValue) * 100
       );
+      if (percentage <= 0) {
+        percentage = 100;
+      }
 
       console.log(
         "let percentage",
         percentage,
+        // avatarObj.weeklyTimeSpent,
         WeeklyProgressValue,
         WeeklyGoalValue,
         WeeklyProgressValue / WeeklyGoalValue,
+        (WeeklyProgressValue / WeeklyGoalValue) * 100,
         WeeklyGoalValue / WeeklyProgressValue
       );
 
