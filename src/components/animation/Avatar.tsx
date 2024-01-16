@@ -345,8 +345,17 @@ export class AvatarObj {
           );
 
           if (currentStudent.docId == element.userId) {
-            var computeMinutes = Math.floor(element.timeSpent / 60);
-            var computeSec = element.timeSpent % 60;
+            console.log(
+              "current student result ",
+              this.weeklyProgressGoal,
+              this.weeklyProgressGoal * 60,
+              element.timeSpent,
+              this.weeklyProgressGoal * 60 - element.timeSpent
+            );
+            let finalProgressTimespent =
+              this.weeklyProgressGoal * 60 - element.timeSpent;
+            var computeMinutes = Math.floor(finalProgressTimespent / 60);
+            var computeSec = finalProgressTimespent % 60;
             console.log(
               "current student result ",
               // i + 1,
@@ -357,22 +366,19 @@ export class AvatarObj {
               computeMinutes
               // computeMinutes + t("min") + " " + result + " " + t("sec")
             );
-            let finalProgressTimespent =
-              this.weeklyProgressGoal - computeMinutes;
             console.log(
               "current computeMinutes ",
               computeMinutes,
               finalProgressTimespent
             );
-            this.message = t(`' x1 ' left to complete your learning goal.`).replace(
+            this.message = t(
+              `' x1 ' left to complete your learning goal.`
+            ).replace(
               "x1",
-              finalProgressTimespent.toString() +
-                " Minutes " +
-                computeSec +
-                " Seconds"
+              computeMinutes.toString() + " Minutes " + computeSec + " Seconds"
             );
 
-            this.weeklyTimeSpent = finalProgressTimespent;
+            this.weeklyTimeSpent = computeMinutes;
             this.weeklyPlayedLesson = element.lessonsPlayed;
             console.log(
               "this.message ",
@@ -407,8 +413,17 @@ export class AvatarObj {
           );
 
           if (currentStudent.docId == element.userId) {
-            var computeMinutes = Math.floor(element.timeSpent / 60);
-            var computeSec = element.timeSpent % 60;
+            console.log(
+              "current student result ",
+              this.weeklyProgressGoal,
+              this.weeklyProgressGoal * 60,
+              element.timeSpent,
+              this.weeklyProgressGoal * 60 - element.timeSpent
+            );
+            let finalProgressTimespent =
+              this.weeklyProgressGoal * 60 - element.timeSpent;
+            var computeMinutes = Math.floor(finalProgressTimespent / 60);
+            var computeSec = finalProgressTimespent % 60;
             console.log(
               "current student result ",
               // i + 1,
@@ -419,8 +434,6 @@ export class AvatarObj {
               computeMinutes
               // computeMinutes + t("min") + " " + result + " " + t("sec")
             );
-            let finalProgressTimespent =
-              this.weeklyProgressGoal - computeMinutes;
             console.log(
               "current computeMinutes ",
               computeMinutes,
@@ -430,13 +443,10 @@ export class AvatarObj {
               `' x1 ' left to complete your learning goal.`
             ).replace(
               "x1",
-              finalProgressTimespent.toString() +
-                " Minutes " +
-                computeSec +
-                " Seconds"
+              computeMinutes.toString() + " Minutes " + computeSec + " Seconds"
             );
 
-            this.weeklyTimeSpent = finalProgressTimespent;
+            this.weeklyTimeSpent = computeMinutes;
             this.weeklyPlayedLesson = element.lessonsPlayed;
             console.log(
               "this.message ",
