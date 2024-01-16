@@ -26,10 +26,10 @@ const LiveQuizLeaderBoard: React.FC = () => {
       const res = await api.getLiveQuizRoomDoc(paramLiveRoomId);
       const classRef = res?.class;
       const classId = classRef?.id;
-      let tempStudentMap = new Map<String, User>();
+      let tempStudentMap = new Map<string, User>();
+
       if (!!classId) {
         const allStudents = await api.getStudentsForClass(classId);
-
         for (let student of allStudents) {
           tempStudentMap.set(student.docId, student);
         }
@@ -37,22 +37,23 @@ const LiveQuizLeaderBoard: React.FC = () => {
       }
       const assignmentId = res?.assignment.id;
       const assignmentDoc = await api.getAssignmentById(assignmentId);
+      console.log("AssignmentDoc:", assignmentDoc);
+      let scoresData: any;
 
       if (!!assignmentDoc && !!assignmentDoc.results) {
-        const scoresData = Object.entries(assignmentDoc.results).map(
-          ([studentDocId, result]) => ({
-            studentDocId,
-            totalScore: result.score,
-          })
-        );
+        const playedStudentIds = Object.keys(assignmentDoc.results);
+        console.log("Played Student IDs:", playedStudentIds);
 
-        scoresData.sort((a, b) => b.totalScore - a.totalScore);
-        const studentIdsInClass = Array.from(tempStudentMap.keys());
-        const filteredScores = scoresData.filter((score) =>
-          studentIdsInClass.includes(score.studentDocId)
-        ); //filtering only played students from class
-        setSortedStudentScores(filteredScores);
+        scoresData = playedStudentIds.map((studentDocId) => ({
+          studentDocId,
+          totalScore: assignmentDoc.results[studentDocId]?.score || 0,
+        }));
       }
+
+      scoresData.sort((a, b) => b.totalScore - a.totalScore);
+      console.log("Sorted Scores Data:", scoresData);
+
+      setSortedStudentScores(scoresData);
     } catch (error) {
       console.error("Error fetching LiveQuizRoom data:", error);
     }

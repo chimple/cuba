@@ -1405,6 +1405,7 @@ export class FirebaseApi implements ServiceApi {
         const sortLeaderboard = (arr: Array<any>) =>
           arr.sort((a, b) => b.score - a.score);
         sortLeaderboard(weekly);
+        sortLeaderboard(monthly);
         sortLeaderboard(allTime);
         let result: LeaderboardInfo = {
           weekly: [],
@@ -1449,35 +1450,39 @@ export class FirebaseApi implements ServiceApi {
           CollectionIds.LEADERBOARD + "/b2c/genericLeaderboard/" + studentId
         )
       );
+      console.log("if (!queryResult.data()) return;", queryResult);
       if (!queryResult.data()) return;
-      const data = queryResult.data();
-      if (!data) return;
 
-      if (leaderboardDropdownType === LeaderboardDropdownList.WEEKLY) {
-        leaderBoardList.weekly.push({
-          name: data.get("name"),
-          score: data.get("weeklyScore"),
-          timeSpent: data.get("weeklyTimeSpent"),
-          lessonsPlayed: data.get("weeklyLessonPlayed"),
-          userId: data.id,
-        });
-      } else if (leaderboardDropdownType === LeaderboardDropdownList.MONTHLY) {
-        leaderBoardList.monthly.push({
-          name: data.get("name"),
-          score: data.get("monthlyScore"),
-          timeSpent: data.get("monthlyTimeSpent"),
-          lessonsPlayed: data.get("monthlyLessonPlayed"),
-          userId: data.id,
-        });
-      } else {
-        leaderBoardList.allTime.push({
-          name: data.get("name"),
-          score: data.get("allTimeScore"),
-          timeSpent: data.get("allTimeTimeSpent"),
-          lessonsPlayed: data.get("allTimeLessonPlayed"),
-          userId: data.id,
-        });
-      }
+      const data = queryResult.data();
+      console.log("if (!queryResult.data()) const data ", data);
+      if (!data) return;
+      console.log("if (!data) return;", data.name);
+
+      leaderBoardList.weekly.push({
+        name: data.name,
+        score: data.weeklyScore,
+        timeSpent: data.weeklyTimeSpent,
+        lessonsPlayed: data.weeklyLessonPlayed,
+        userId: studentId,
+      });
+      console.log("leaderBoardList.weekly", leaderBoardList.weekly);
+
+      leaderBoardList.monthly.push({
+        name: data.name,
+        score: data.monthlyScore,
+        timeSpent: data.monthlyTimeSpent,
+        lessonsPlayed: data.monthlyLessonPlayed,
+        userId: studentId,
+      });
+      console.log("leaderBoardList.monthly", leaderBoardList.monthly);
+      leaderBoardList.allTime.push({
+        name: data.name,
+        score: data.allTimeScore,
+        timeSpent: data.allTimeTimeSpent,
+        lessonsPlayed: data.allTimeLessonPlayed,
+        userId: studentId,
+      });
+      console.log("leaderBoardList.allTime", leaderBoardList.allTime);
 
       console.log("result in FirebaseAPI", leaderBoardList, data);
 

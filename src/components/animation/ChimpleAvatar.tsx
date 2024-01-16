@@ -82,9 +82,22 @@ const ChimpleAvatar: FC<{
     const showDailyProgress = localStorage.getItem(SHOW_DAILY_PROGRESS_FLAG);
     console.log("localStorage.getItem(showDailyProgress) ", showDailyProgress);
 
-    if (showDailyProgress === "true")
+    if (showDailyProgress === "true") {
       await avatarObj.loadAvatarWeeklyProgressData();
-    else await avatarObj.loadAvatarData();
+      console.log(
+        "if (avatarObj.weeklyTimeSpent * 60 >= 10 * 60) {",
+        avatarObj.weeklyTimeSpent,
+        avatarObj.weeklyTimeSpent * 60,
+        10 * 60
+      );
+      if (
+        avatarObj.weeklyTimeSpent * 60 >= 10 * 60 ||
+        avatarObj.weeklyTimeSpent < 0
+      ) {
+        await avatarObj.loadAvatarData();
+        localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
+      }
+    } else await avatarObj.loadAvatarData();
 
     setCurrentMode(avatarObj.mode);
     if (avatarObj.mode === AvatarModes.CourseSuggestion) {
@@ -523,7 +536,10 @@ const ChimpleAvatar: FC<{
       const x1 = "10";
       message =
         avatarObj.message ||
-        t(`' x1 ' minutes left to complete your learning goal.`).replace("x1", x1);
+        t(`' x1 ' minutes left to complete your learning goal.`).replace(
+          "x1",
+          x1
+        );
       buttons = [
         {
           label: "Let's Play",
