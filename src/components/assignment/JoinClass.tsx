@@ -8,7 +8,7 @@ import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { Keyboard } from "@capacitor/keyboard";
 import { NUMBER_REGEX, PAGES } from "../../common/constants";
-import { useLocation } from "react-router";
+import { useHistory, useLocation } from "react-router";
 const urlClassCode: any = {};
 
 const JoinClass: FC<{
@@ -22,6 +22,7 @@ const JoinClass: FC<{
   const [schoolName, setSchoolName] = useState<string>();
   const [isInputFocus, setIsInputFocus] = useState(false);
   const scollToRef = useRef<null | HTMLDivElement>(null);
+  const history = useHistory();
 
   const api = ServiceConfig.getI().apiHandler;
 
@@ -72,9 +73,12 @@ const JoinClass: FC<{
         );
       }
       onClassJoin();
-      if (window.location.pathname !== "/") {
-        window.location.reload();
-      }
+      console.log(
+        "path....",
+        window.location.pathname,
+      );
+      history.replace('/');
+      window.location.reload();
     } catch (error) {
       console.log("🚀 ~ file: JoinClass.tsx:48 ~ onJoin ~ error:", error);
       if (error instanceof Object) setError(error.toString());
