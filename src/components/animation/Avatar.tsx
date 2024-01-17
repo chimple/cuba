@@ -391,8 +391,7 @@ export class AvatarObj {
       } else {
         const b2cResult =
           await api.getLeaderboardStudentResultFromB2CCollection(
-            currentStudent.docId,
-            LeaderboardDropdownList.WEEKLY
+            currentStudent.docId
           );
         let weeklyData = b2cResult?.weekly;
         console.log("weeklyReport ", weeklyData);
