@@ -157,51 +157,78 @@ const Leaderboard: React.FC = () => {
     tempLeaderboardDataArray.push([
       "#",
       t("Name"),
-      t("Lesson Played"),
+      t("Lessons Played"),
       t("Score"),
       t("Time Spent"),
     ]);
-
+    let isCurrentStudentDataFetched = false;
     for (let i = 0; i < tempData.length; i++) {
       const element = tempData[i];
       var computeMinutes = Math.floor(element.timeSpent / 60);
-      var result = element.timeSpent % 60;
+      var computeSeconds = element.timeSpent % 60;
       tempLeaderboardDataArray.push([
         i + 1,
         element.name,
         element.lessonsPlayed,
         element.score,
-        computeMinutes + t("min") + " " + result + " " + t("sec"),
+        computeMinutes + t(" min") + " " + computeSeconds + " " + t("sec"),
       ]);
 
       if (currentStudent.docId == element.userId) {
+        isCurrentStudentDataFetched = true;
         tempCurrentUserDataContent = [
           // ["Name", element.name],
           [t("Rank"), i + 1],
-          [t("Lesson Played"), element.lessonsPlayed],
+          [t("Lessons Played"), element.lessonsPlayed],
           [t("Score"), Math.round(element.score)],
           [
             t("Time Spent"),
-            computeMinutes + t("min") + result + " " + t("sec"),
+            computeMinutes + t(" min") + computeSeconds + " " + t("sec"),
           ],
         ];
       }
     }
-    if (tempCurrentUserDataContent.length <= 0) {
-      tempCurrentUserDataContent = [
-        // ["Name", element.name],
-        [t("Rank"), "--"],
-        [t("Lesson Played"), "--"],
-        [t("Score"), "--"],
-        [t("Time Spent"), "--" + t("min") + " --" + t("sec")],
-      ];
-      tempLeaderboardDataArray.push([
-        "--",
-        currentStudent.name,
-        "--",
-        "--",
-        "--" + t("min") + " --" + t("sec"),
-      ]);
+    if (!isCurrentStudentDataFetched && !classId) {
+      const b2cData = await api.getLeaderboardStudentResultFromB2CCollection(
+        currentStudent.docId
+      );
+      console.log(
+        "const b2cData = await api.getLeaderboardStudentResultFromB2CCollection(",
+        !isCurrentStudentDataFetched && !classId,
+        b2cData
+      );
+
+      if (b2cData) {
+        console.log("if (!b2cData) { return", b2cData);
+
+        const tempData =
+          leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
+            ? b2cData.weekly
+            : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
+            ? b2cData.monthly
+            : b2cData.allTime;
+
+        var computeMinutes = Math.floor(tempData[0].timeSpent / 60);
+        var computeSeconds = tempData[0].timeSpent % 60;
+        const cUserRank = tempLeaderboardDataArray.length.toString() + "+";
+        tempCurrentUserDataContent = [
+          // ["Name", element.name],
+          [t("Rank"), cUserRank],
+          [t("Lesson Played"), tempData[0].lessonsPlayed],
+          [t("Score"), tempData[0].score],
+          [
+            t("Time Spent"),
+            computeMinutes + t(" min") + " " + computeSeconds + " " + t("sec"),
+          ],
+        ];
+        tempLeaderboardDataArray.push([
+          cUserRank,
+          tempData[0].name,
+          tempData[0].lessonsPlayed,
+          tempData[0].score,
+          computeMinutes + t(" min") + " " + computeSeconds + " " + t("sec"),
+        ]);
+      }
     }
     setCurrentUserDataContent(tempCurrentUserDataContent);
     setLeaderboardData(tempLeaderboardDataArray);
@@ -295,7 +322,7 @@ const Leaderboard: React.FC = () => {
                                 : "",
                             width:
                               i === 1 && currentUserHeaderRowIndicator === 1
-                                ? "2.5vw"
+                                ? "3vw"
                                 : "",
                             textAlign:
                               i === 1 && currentUserHeaderRowIndicator === 1
@@ -326,7 +353,10 @@ const Leaderboard: React.FC = () => {
               currentUserDataContent[0][1],
               // i.toString(),
               Number(currentUserDataContent[0][1]),
-              Number(currentUserDataContent[0][1]) === headerRowIndicator
+              Number(currentUserDataContent[0][1]) === headerRowIndicator,
+              headerRowIndicator + "+",
+              Number(currentUserDataContent[0][1]) === headerRowIndicator ||
+                currentUserDataContent[0][1] === headerRowIndicator + "+"
             );
             // if (currentUserDataContent[0][1] === i.toString()) {
             //   console.log("User e", e);
@@ -341,14 +371,18 @@ const Leaderboard: React.FC = () => {
                     headerRowIndicator === 0
                       ? "rgb(200 200 200)"
                       : Number(currentUserDataContent[0][1]) ===
-                        headerRowIndicator
+                          headerRowIndicator ||
+                        currentUserDataContent[0][1] ===
+                          headerRowIndicator + "+"
                       ? "#FF7925"
                       : "",
                   padding:
                     headerRowIndicator === 0
                       ? "1vh 2vh"
                       : Number(currentUserDataContent[0][1]) ===
-                        headerRowIndicator
+                          headerRowIndicator ||
+                        currentUserDataContent[0][1] ===
+                          headerRowIndicator + "+"
                       ? "0vh 2vh"
                       : "1vh 2vh ",
                   position: "sticky",
@@ -509,26 +543,28 @@ const Leaderboard: React.FC = () => {
                 </Tabs>
               </AppBar>
             </Box>
-            <div>
-              <IconButton
-                name={t("Switch Profile")}
-                iconSrc="assets/icons/SignOutIcon.svg"
-                onClick={async () => {
-                  localStorage.removeItem(CURRENT_STUDENT);
-                  const user = await auth.getCurrentUser();
-                  if (!!user && !!user.language?.id) {
-                    const langDoc = await api.getLanguageWithId(
-                      user.language.id
-                    );
-                    if (langDoc) {
-                      const tempLangCode = langDoc.code ?? LANG.ENGLISH;
-                      localStorage.setItem(LANGUAGE, tempLangCode);
-                      await i18n.changeLanguage(tempLangCode);
-                    }
+            <div
+              id="leaderboard-switch-user-button"
+              onClick={async () => {
+                localStorage.removeItem(CURRENT_STUDENT);
+                const user = await auth.getCurrentUser();
+                if (!!user && !!user.language?.id) {
+                  const langDoc = await api.getLanguageWithId(user.language.id);
+                  if (langDoc) {
+                    const tempLangCode = langDoc.code ?? LANG.ENGLISH;
+                    localStorage.setItem(LANGUAGE, tempLangCode);
+                    await i18n.changeLanguage(tempLangCode);
                   }
-                  Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
-                }}
+                }
+                Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
+              }}
+            >
+              <img
+                id="leaderboard-switch-user-button-img"
+                alt={"assets/icons/SignOutIcon.svg"}
+                src={"assets/icons/SignOutIcon.svg"}
               />
+              <p className="child-Name">{t("Switch Profile")}</p>
             </div>
           </div>
           <Box sx={{}}>

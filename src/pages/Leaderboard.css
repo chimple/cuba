@@ -79,10 +79,23 @@
   overflow: hidden;
 }
 
-
 #leaderboard-profile-name {
   max-width: 22vh;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
 }
+
+#leaderboard-switch-user-button {
+  margin-top: -2vh;
+  cursor: pointer;
+  color: var(--text-color);
+  font-size: var(--text-size);
+  text-align: center;
+}
+
+#leaderboard-switch-user-button-img {
+  width: auto;
+  height: clamp(30px, 12vh, 44px);
+}
+

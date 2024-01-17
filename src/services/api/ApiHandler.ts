@@ -61,13 +61,9 @@ export class ApiHandler implements ServiceApi {
   private constructor() {}
 
   public async getLeaderboardStudentResultFromB2CCollection(
-    studentId: string,
-    leaderboardDropdownType: LeaderboardDropdownList
+    studentId: string
   ): Promise<LeaderboardInfo | undefined> {
-    return await this.s.getLeaderboardStudentResultFromB2CCollection(
-      studentId,
-      leaderboardDropdownType
-    );
+    return await this.s.getLeaderboardStudentResultFromB2CCollection(studentId);
   }
   public async getRewardsById(id: string): Promise<Rewards | undefined> {
     return this.s.getRewardsById(id);

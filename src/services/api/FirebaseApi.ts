@@ -1434,8 +1434,7 @@ export class FirebaseApi implements ServiceApi {
   }
 
   public async getLeaderboardStudentResultFromB2CCollection(
-    studentId: string,
-    leaderboardDropdownType: LeaderboardDropdownList
+    studentId: string
   ): Promise<LeaderboardInfo | undefined> {
     try {
       const leaderBoardList: LeaderboardInfo = {
