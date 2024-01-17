@@ -573,39 +573,54 @@ export class Util {
     lessonId: Lesson[] | undefined
   ): Promise<boolean> {
     if (lessonId) {
-      const allIdsPresent = lessonId.every((e) =>
-        this.isStored(e.id, DOWNLOADED_LESSON_AND_CHAPTER_ID)
-      );
-      if (!allIdsPresent) {
-        const chaptersToRemove = lessonId.reduce((newArray, lesson) => {
-          if (lesson.cocosChapterCode) {
-            newArray.push(lesson.cocosChapterCode);
-          }
-          return newArray;
-        }, [] as string[]);
-
-        this.removeLessonOrChapterIdFromLocalStorage(
-          chaptersToRemove,
+      const chapterIdToStore: string[] = [];
+      const areAllIdsStored = lessonId.every((e) => {
+        let isLessonIdStored = this.isStored(
+          e.id,
           DOWNLOADED_LESSON_AND_CHAPTER_ID
         );
+        if (isLessonIdStored) {
+          if (e.cocosChapterCode) {
+            chapterIdToStore.push(e.cocosChapterCode);
+          }
+
+          // Store the collected cocosChapterCode for stored items
+          this.storeLessonOrChaterIdToLocalStorage(
+            chapterIdToStore,
+            DOWNLOADED_LESSON_AND_CHAPTER_ID,
+            "chapter"
+          );
+        }
+        return true; // Continue checking other IDs
+      });
+      const chapterIdToremove: string[] = [];
+      const areAllIdsNotStored = lessonId.every((e) => {
+        let isLessonIdStored = this.isStored(
+          e.id,
+          DOWNLOADED_LESSON_AND_CHAPTER_ID
+        );
+        if (!isLessonIdStored) {
+          if (e.cocosChapterCode) {
+            chapterIdToremove.push(e.cocosChapterCode);
+          }
+        }
+
+        return true; // Continue checking other IDs
+      });
+      this.removeLessonOrChapterIdFromLocalStorage(
+        chapterIdToremove,
+        DOWNLOADED_LESSON_AND_CHAPTER_ID
+      );
+
+      if (!areAllIdsStored || !areAllIdsNotStored) {
         return false;
       }
-      const chaptersToStore = lessonId.reduce((newArray, lesson) => {
-        if (lesson.cocosChapterCode) {
-          newArray.push(lesson.cocosChapterCode);
-        }
-        return newArray;
-      }, [] as string[]);
-
-      this.storeLessonOrChaterIdToLocalStorage(
-        chaptersToStore,
-        DOWNLOADED_LESSON_AND_CHAPTER_ID,
-        "chapter"
-      );
       return true;
     }
+
     return false;
   }
+
   // To parse this data:
   //   const course = Convert.toCourse(json);
 

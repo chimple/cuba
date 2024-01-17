@@ -45,16 +45,18 @@ const SelectChapter: FC<{
               className="chapter-button"
               key={chapter.id}
             >
-              <div className="chapter-icon">
-                <SelectIconImage
-                  localSrc={`courses/${course.courseCode}/icons/${chapter.id}.webp`}
-                  defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
-                  webSrc={chapter.thumbnail}
-                />
-              </div>
-              {chapter.title}
-              <div className="chapter-download">
-                <DownloadLesson chapters={chapter} />
+              <div className="chapter-icon-and-chapter-download-container">
+                <div className="chapter-icon">
+                  <SelectIconImage
+                    localSrc={`courses/${course.courseCode}/icons/${chapter.id}.webp`}
+                    defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
+                    webSrc={chapter.thumbnail}
+                  />
+                </div>
+                <div>{chapter.title}</div>
+                <div className="chapter-download">
+                  <DownloadLesson chapters={chapter} />
+                </div>
               </div>
             </div>
           );
