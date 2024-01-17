@@ -230,6 +230,22 @@ const Leaderboard: React.FC = () => {
         ]);
       }
     }
+    if (tempCurrentUserDataContent.length <= 0) {
+      tempCurrentUserDataContent = [
+        // ["Name", element.name],
+        [t("Rank"), "--"],
+        [t("Lesson Played"), "--"],
+        [t("Score"), "--"],
+        [t("Time Spent"), "--" + t("min") + " --" + t("sec")],
+      ];
+      tempLeaderboardDataArray.push([
+        "--",
+        currentStudent.name,
+        "--",
+        "--",
+        "--" + t("min") + " --" + t("sec"),
+      ]);
+    }
     setCurrentUserDataContent(tempCurrentUserDataContent);
     setLeaderboardData(tempLeaderboardDataArray);
     setIsLoading(false);
@@ -350,8 +366,6 @@ const Leaderboard: React.FC = () => {
             console.log(
               "headerRowIndicator",
               headerRowIndicator,
-              currentUserDataContent[0][1],
-              // i.toString(),
               Number(currentUserDataContent[0][1]),
               Number(currentUserDataContent[0][1]) === headerRowIndicator,
               headerRowIndicator + "+",
