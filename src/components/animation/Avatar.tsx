@@ -2,6 +2,7 @@ import { Filesystem } from "@capacitor/filesystem";
 import {
   CURRENT_AVATAR_SUGGESTION_NO,
   LeaderboardDropdownList,
+  SHOW_DAILY_PROGRESS_FLAG,
 } from "../../common/constants";
 import { Chapter, StudentLessonResult } from "../../common/courseConstants";
 import Course from "../../models/course";
@@ -49,10 +50,11 @@ export class AvatarObj {
   currentChapter: Chapter;
   currentLesson: Lesson | undefined;
   currentRecommededLessonIndex: number;
-  weeklyProgressGoal: number = 10;
-  weeklyTimeSpent: number = 0;
+  weeklyProgressGoal: number = 25;
+  weeklyTimeSpent: {} = { min: 0, sec: 0 };
   weeklyPlayedLesson: number = 0;
   wrongAttempts: number = 0;
+  gamifyTimespentMessage = "Play ' x1 ' to win your weekly reward";
 
   private constructor() {}
 
@@ -304,14 +306,10 @@ export class AvatarObj {
     try {
       console.log("loadAvatarWeeklyProgressData called ");
 
-      let isWeeklyProgressShowedToday = Boolean(
-        localStorage.getItem("isWeeklyProgressShowedToday")
-      );
-      // localStorage.setItem("isWeeklyProgressShowedToday", "true");
       const currentStudent = await Util.getCurrentStudent();
-      if (isWeeklyProgressShowedToday || !currentStudent) {
-        this.message = undefined;
-        this.weeklyTimeSpent = 0;
+      if (!currentStudent) {
+        // this.message = undefined;
+        this.weeklyTimeSpent = { min: 0, sec: 0 };
         this.weeklyPlayedLesson = 0;
         return;
       }
@@ -329,8 +327,8 @@ export class AvatarObj {
         let weeklyData = leaderboardData?.weekly;
         console.log("weeklyReport ", weeklyData);
         if (!weeklyData) {
-          this.message = undefined;
-          this.weeklyTimeSpent = 0;
+          // this.message = undefined;
+          this.weeklyTimeSpent = { min: 0, sec: 0 };
           this.weeklyPlayedLesson = 0;
           return;
         }
@@ -352,8 +350,7 @@ export class AvatarObj {
               element.timeSpent,
               this.weeklyProgressGoal * 60 - element.timeSpent
             );
-            let finalProgressTimespent =
-              this.weeklyProgressGoal * 60 - element.timeSpent;
+            let finalProgressTimespent = element.timeSpent;
             var computeMinutes = Math.floor(finalProgressTimespent / 60);
             var computeSec = finalProgressTimespent % 60;
             console.log(
@@ -371,14 +368,13 @@ export class AvatarObj {
               computeMinutes,
               finalProgressTimespent
             );
-            this.message = t(
-              `' x1 ' left to complete your learning goal.`
-            ).replace(
-              "x1",
-              computeMinutes.toString() + " Minutes " + computeSec + " Seconds"
-            );
+            // this.message = t(this.gamifyTimespentMessage).replace(
+            //   "x1",
+            //   computeMinutes.toString() + " min and " + computeSec + " sec"
+            // );
 
-            this.weeklyTimeSpent = computeMinutes;
+            this.weeklyTimeSpent["min"] = computeMinutes;
+            this.weeklyTimeSpent["sec"] = computeSec;
             this.weeklyPlayedLesson = element.lessonsPlayed;
             console.log(
               "this.message ",
@@ -396,8 +392,8 @@ export class AvatarObj {
         let weeklyData = b2cResult?.weekly;
         console.log("weeklyReport ", weeklyData);
         if (!weeklyData) {
-          this.message = undefined;
-          this.weeklyTimeSpent = 0;
+          // this.message = undefined;
+          this.weeklyTimeSpent = { min: 0, sec: 0 };
           this.weeklyPlayedLesson = 0;
           return;
         }
@@ -419,8 +415,7 @@ export class AvatarObj {
               element.timeSpent,
               this.weeklyProgressGoal * 60 - element.timeSpent
             );
-            let finalProgressTimespent =
-              this.weeklyProgressGoal * 60 - element.timeSpent;
+            let finalProgressTimespent = element.timeSpent;
             var computeMinutes = Math.floor(finalProgressTimespent / 60);
             var computeSec = finalProgressTimespent % 60;
             console.log(
@@ -438,14 +433,12 @@ export class AvatarObj {
               computeMinutes,
               finalProgressTimespent
             );
-            this.message = t(
-              `' x1 ' left to complete your learning goal.`
-            ).replace(
-              "x1",
-              computeMinutes.toString() + " Minutes " + computeSec + " Seconds"
-            );
-
-            this.weeklyTimeSpent = computeMinutes;
+            // this.message = t(this.gamifyTimespentMessage).replace(
+            //   "x1",
+            //   computeMinutes.toString() + " min and " + computeSec + " sec"
+            // );
+            this.weeklyTimeSpent["min"] = computeMinutes;
+            this.weeklyTimeSpent["sec"] = computeSec;
             this.weeklyPlayedLesson = element.lessonsPlayed;
             console.log(
               "this.message ",

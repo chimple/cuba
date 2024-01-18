@@ -52,6 +52,15 @@
   text-align: center;
 }
 
+#leaderboard-left-note-message {
+  max-width: 30vw;
+  /* background-color: white; */
+  margin: 0vw 1vw;
+  font-size: 10px;
+  position: absolute;
+  top: 92vh;
+}
+
 #leaderboard-right-UI::-webkit-scrollbar {
   display: none;
 }
@@ -98,4 +107,3 @@
   width: auto;
   height: clamp(30px, 12vh, 44px);
 }
-
