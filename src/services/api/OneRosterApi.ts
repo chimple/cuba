@@ -29,6 +29,7 @@ import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { DocumentData } from "firebase/firestore";
 import Badge from "../../models/Badge";
 import Rewards from "../../models/Rewards";
+import Sticker from "../../models/Sticker";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -92,6 +93,9 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   getBadgeById(id: string): Promise<Badge | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getStickerById(id: string): Promise<Sticker | undefined> {
     throw new Error("Method not implemented.");
   }
   getAvatarInfo(): Promise<AvatarObj | undefined> {

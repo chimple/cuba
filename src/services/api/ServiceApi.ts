@@ -17,6 +17,7 @@ import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import Badge from "../../models/Badge";
 import Rewards from "../../models/Rewards";
+import Sticker from "../../models/Sticker";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -480,6 +481,13 @@ export interface ServiceApi {
    * @returns {Badge | undefined}`Badge` or `undefined` if it could not find the Badge with given `id`
    */
   getBadgeById(id: string): Promise<Badge | undefined>;
+
+  /**
+   * Gives Sticker for given a Sticker firebase doc Id
+   * @param {string} id - Sticker firebase doc id
+   * @returns {Badge | undefined}`Sticker` or `undefined` if it could not find the Sticker with given `id`
+   */
+  getStickerById(id: string): Promise<Sticker | undefined>;
 
   /**
    * Gives Rewards for given a Rewards firebase doc Id

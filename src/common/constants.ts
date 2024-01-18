@@ -51,6 +51,7 @@ export enum LEADERBOARDHEADERLIST {
 export enum LEADERBOARD_REWARD_LIST {
   BADGES = "BADGES",
   BONUS = "BONUS",
+  STICKER = "STICKER",
 }
 
 export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu";
@@ -492,9 +493,11 @@ export type LeaderboardBonus = {
 export type LeaderboardRewards = {
   badges: LeaderboardBadge[];
   bonus: LeaderboardBonus[];
+  sticker: LeaderboardBonus[];
 };
 
 export enum LeaderboardRewardsType {
   BADGE = "badge",
   BONUS = "bonus",
+  STICKER = "sticker",
 }

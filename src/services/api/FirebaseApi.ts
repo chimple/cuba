@@ -65,6 +65,7 @@ import { AvatarObj } from "../../components/animation/Avatar";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import Badge from "../../models/Badge";
 import Rewards from "../../models/Rewards";
+import Sticker from "../../models/Sticker";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
@@ -1805,6 +1806,20 @@ export class FirebaseApi implements ServiceApi {
       return data;
     } catch (error) {
       console.log("🚀 ~ FirebaseApi ~ getBadgeById ~ error:", error);
+    }
+  }
+
+  public async getStickerById(id: string): Promise<Sticker | undefined> {
+    try {
+      const badgeDoc = await this.getDocFromOffline(
+        doc(this._db, CollectionIds.STICKER, id)
+      );
+      if (!badgeDoc.exists) return;
+      const data = badgeDoc.data() as Sticker;
+      data.docId = id;
+      return data;
+    } catch (error) {
+      console.log("🚀 ~ FirebaseApi ~ getStickerById ~ error:", error);
     }
   }
 

@@ -20,6 +20,7 @@ export enum AvatarModes {
   TwoOptionQuestion,
   FourOptionQuestion,
   ShowWeeklyProgress,
+  collectReward,
   // scores >= 70
   GoodProgress,
   // scores < 70

@@ -231,7 +231,6 @@ const ChimpleAvatar: FC<{
       avatarObj.mode === AvatarModes.RecommendedLesson
     ) {
       avatarObj.wrongAttempts++;
-      console.log("wrongAttempt", avatarObj.wrongAttempts);
     }
     setButtonsDisabled(false);
     // if (currentStageMode === AvatarModes.LessonSuggestion) {
@@ -568,7 +567,7 @@ const ChimpleAvatar: FC<{
       const x1 = avatarObj.weeklyProgressGoal;
       message = t(avatarObj.gamifyTimespentMessage).replace(
         "x1",
-        " " + x1.toString() + " minute"
+        " " + x1.toString() + " minutes"
       );
       buttons = [
         {
