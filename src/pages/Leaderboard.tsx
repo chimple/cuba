@@ -61,7 +61,18 @@ const Leaderboard: React.FC = () => {
   useEffect(() => {
     setIsLoading(true);
     inti();
+    const urlParams = new URLSearchParams(window.location.search);
+    const rewardsTab = urlParams.get("tab");
+    let currentTab = LEADERBOARDHEADERLIST.LEADERBOARD;
+    if (rewardsTab) {
+      if (rewardsTab === LEADERBOARDHEADERLIST.REWARDS.toLowerCase()) {
+        currentTab = LEADERBOARDHEADERLIST.REWARDS;
+      }
+    }
+    setTabIndex(currentTab);
   }, []);
+
+  useEffect(() => {}, []);
 
   async function inti() {
     console.log("init method called");
