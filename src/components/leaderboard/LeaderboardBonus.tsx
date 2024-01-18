@@ -9,6 +9,7 @@ import LessonCard from "../LessonCard";
 interface BonusInfo {
   bonus: Lesson | undefined;
   isUnlocked: boolean;
+  isNextUnlock?: boolean;
 }
 const LeaderboardBonus: FC = () => {
   const currentStudent = Util.getCurrentStudent()!;
@@ -25,9 +26,21 @@ const LeaderboardBonus: FC = () => {
 
     const unlockedBonuses = await getUnlockedBonus();
     const prevBonuses = await getPrevBonus();
-    // const currentBonus = await getCurrentBonus();
+    const nextUnlockBonuses = await getNextUnlockBonus();
+    console.log("🚀 ~ init ~ nextUnlockBonuses:", nextUnlockBonuses);
     const bonusInfoArray: BonusInfo[] = [];
     const uniqueBonusIds = new Set<string>();
+
+    for (const unlockedBonus of nextUnlockBonuses) {
+      if (unlockedBonus) {
+        bonusInfoArray.push({
+          bonus: unlockedBonus,
+          isUnlocked: false,
+          isNextUnlock: true,
+        });
+        // uniqueBadgeIds.add(unlockedBonus.docId);
+      }
+    }
 
     for (const unlockedBonus of unlockedBonuses) {
       if (unlockedBonus) {
@@ -63,7 +76,7 @@ const LeaderboardBonus: FC = () => {
     const unlockedBonus = await Promise.all(
       currentStudent.rewards.bonus.map((value) => api.getLesson(value.id))
     );
-    return unlockedBonus;
+    return unlockedBonus?.reverse();
   };
 
   const getPrevBonus = async (): Promise<(Lesson | undefined)[]> => {
@@ -90,7 +103,7 @@ const LeaderboardBonus: FC = () => {
     return bonusDocs;
   };
 
-  const getCurrentBonus = async (): Promise<(Lesson | undefined)[]> => {
+  const getNextUnlockBonus = async (): Promise<(Lesson | undefined)[]> => {
     const rewardsDoc = await api.getRewardsById(
       Util.getCurrentYearForLeaderboard().toString()
     );

@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { LEADERBOARD_REWARD_LIST } from "../../common/constants";
 import { Box, Tab, Tabs } from "@mui/material";
 import { t } from "i18next";
@@ -15,6 +15,17 @@ const LeaderboardRewards: FC = () => {
   ) => {
     setTabIndex(newValue);
   };
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const rewardsTab = urlParams.get("rewards");
+    let currentTab = LEADERBOARD_REWARD_LIST.BADGES;
+    if (rewardsTab) {
+      if (rewardsTab === LEADERBOARD_REWARD_LIST.BONUS.toLowerCase()) {
+        currentTab = LEADERBOARD_REWARD_LIST.BONUS;
+      }
+    }
+    setTabIndex(currentTab);
+  }, []);
   return (
     <div className="leaderboard-rewards-container">
       <Tabs

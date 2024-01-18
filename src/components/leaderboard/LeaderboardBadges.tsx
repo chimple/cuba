@@ -9,6 +9,7 @@ import "./LeaderboardBadges.css";
 interface BadgeInfo {
   badge: Badge | undefined;
   isUnlocked: boolean;
+  isNextUnlock?: boolean;
 }
 
 const LeaderboardBadges: FC = () => {
@@ -25,9 +26,20 @@ const LeaderboardBadges: FC = () => {
 
     const unlockedBadges = await getUnlockedBadges();
     const prevBadges = await getPrevBadges();
-    // const currentBadges = await getCurrentBadges();
+    const nextUnlockBadges = await getNextUnlockBadges();
     const badgeInfoArray: BadgeInfo[] = [];
     const uniqueBadgeIds = new Set<string>();
+
+    for (const nextUnlockBadge of nextUnlockBadges) {
+      if (nextUnlockBadge) {
+        badgeInfoArray.push({
+          badge: nextUnlockBadge,
+          isUnlocked: false,
+          isNextUnlock: true,
+        });
+        // uniqueBadgeIds.add(nextUnlockBadge.docId);
+      }
+    }
 
     for (const unlockedBadge of unlockedBadges) {
       if (unlockedBadge) {
@@ -65,7 +77,7 @@ const LeaderboardBadges: FC = () => {
     const unlockedBadges = await Promise.all(
       currentStudent.rewards.badges.map((value) => api.getBadgeById(value.id))
     );
-    return unlockedBadges;
+    return unlockedBadges?.reverse();
   };
 
   const getPrevBadges = async (): Promise<(Badge | undefined)[]> => {
@@ -91,7 +103,7 @@ const LeaderboardBadges: FC = () => {
     return badgeDocs;
   };
 
-  const getCurrentBadges = async (): Promise<(Badge | undefined)[]> => {
+  const getNextUnlockBadges = async (): Promise<(Badge | undefined)[]> => {
     const date = new Date();
     const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
     if (!rewardsDoc) return [];
