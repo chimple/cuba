@@ -356,6 +356,9 @@ const Leaderboard: React.FC = () => {
               );
             })}
           </div>
+          <p id="leaderboard-left-note-message">
+            *** Win 3 more rewards to be the top performer in your class
+          </p>
         </div>
         <div id="leaderboard-right-UI">
           {leaderboardData.map((e) => {

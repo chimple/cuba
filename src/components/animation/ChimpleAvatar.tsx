@@ -67,6 +67,7 @@ const ChimpleAvatar: FC<{
     riveCharHandsUp
   );
   useEffect(() => {
+    avatarObj.loadAvatarData();
     loadSuggestionsFromJson();
     // setButtonsDisabled(true);
   }, [currentMode]);
@@ -79,24 +80,26 @@ const ChimpleAvatar: FC<{
   const api = ServiceConfig.getI().apiHandler;
 
   async function loadSuggestionsFromJson() {
+    avatarObj.wrongAttempts = 0;
     const showDailyProgress = localStorage.getItem(SHOW_DAILY_PROGRESS_FLAG);
     console.log("localStorage.getItem(showDailyProgress) ", showDailyProgress);
 
     if (showDailyProgress === "true") {
-      await avatarObj.loadAvatarWeeklyProgressData();
       console.log(
-        "if (avatarObj.weeklyTimeSpent * 60 >= 10 * 60) {",
+        "if (avatarObj.weeklyTimeSpent * 60 >= avatarObj.weeklyProgressGoal * 60) {",
         avatarObj.weeklyTimeSpent,
-        avatarObj.weeklyTimeSpent * 60,
-        10 * 60
+        avatarObj.weeklyTimeSpent["min"] * 60,
+        avatarObj.weeklyProgressGoal * 60
       );
       if (
-        avatarObj.weeklyTimeSpent * 60 >= 10 * 60 ||
-        avatarObj.weeklyTimeSpent < 0
+        avatarObj.weeklyTimeSpent["min"] * 60 >=
+          avatarObj.weeklyProgressGoal * 60 ||
+        avatarObj.weeklyTimeSpent["sec"] < 0
       ) {
         await avatarObj.loadAvatarData();
         localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
       }
+      await avatarObj.loadAvatarWeeklyProgressData();
     } else await avatarObj.loadAvatarData();
 
     setCurrentMode(avatarObj.mode);
@@ -110,7 +113,10 @@ const ChimpleAvatar: FC<{
         cCourse
       );
       const x1 = cCourse?.title || "";
-      message = t(`Do you want to play 'x1' course?`).replace("x1", x1);
+      message = t(`Do you want to play 'x1' course?`).replace(
+        "x1",
+        " " + x1 + " "
+      );
       await speak(message);
     } else if (avatarObj.mode === AvatarModes.RecommendedLesson) {
       avatarObj.currentRecommededLessonIndex = 0;
@@ -124,7 +130,14 @@ const ChimpleAvatar: FC<{
       const x3 =
         recommadedSuggestion[avatarObj.currentRecommededLessonIndex]?.title ||
         "";
-      message = t(`Do you want to play 'x3' lesson?`).replace("x3", x3);
+      message = t(`Do you want to play 'x3' lesson?`)
+        .replace("x3", " " + x3 + " ")
+        .replace(
+          "lesson?",
+          currentLesson?.assignment || cLesson?.assignment
+            ? "assignment"
+            : "lesson"
+        );
       await speak(message);
     } else {
       if (!message) {
@@ -182,6 +195,7 @@ const ChimpleAvatar: FC<{
     //   return;
     // }
     rive?.play(avatarObj.yesAnimation);
+    //
     buttons = [];
     onclickInput?.fire();
   }
@@ -211,8 +225,10 @@ const ChimpleAvatar: FC<{
 
   async function onClickNo() {
     if (
-      currentStageMode === AvatarModes.LessonSuggestion ||
-      currentStageMode === AvatarModes.RecommendedLesson
+      avatarObj.mode === AvatarModes.CourseSuggestion ||
+      avatarObj.mode === AvatarModes.ChapterSuggestion ||
+      avatarObj.mode === AvatarModes.LessonSuggestion ||
+      avatarObj.mode === AvatarModes.RecommendedLesson
     ) {
       avatarObj.wrongAttempts++;
       console.log("wrongAttempt", avatarObj.wrongAttempts);
@@ -225,6 +241,10 @@ const ChimpleAvatar: FC<{
     rive?.play(avatarObj.noAnimation);
     buttons = [];
     onclickInput?.fire();
+    if (avatarObj.wrongAttempts >= 3) {
+      await loadNextSuggestion();
+      return;
+    }
   }
   let cCourse: Course,
     cChapter: Chapter,
@@ -240,12 +260,12 @@ const ChimpleAvatar: FC<{
     switch (currentMode) {
       case AvatarModes.ShowWeeklyProgress:
         if (choice) {
+          localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
           setButtonsDisabled(false);
           rive?.play(avatarObj.avatarAnimation);
           buttons = [];
           onclickInput?.fire();
           // await loadNextSuggestion();
-          localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
           await loadSuggestionsFromJson();
         }
         break;
@@ -279,7 +299,10 @@ const ChimpleAvatar: FC<{
               cCourse = await getRecommendedCourse();
               setCurrentCourse(cCourse);
               const x1 = cCourse?.title || "";
-              message = t(`Do you want to play 'x1' course?`).replace("x1", x1);
+              message = t(`Do you want to play 'x1' course?`).replace(
+                "x1",
+                " " + x1 + " "
+              );
               await speak(message);
             }
             break;
@@ -294,7 +317,10 @@ const ChimpleAvatar: FC<{
               setCurrentLesson(cLesson);
               console.log("lesson after chapter", cLesson?.title);
               const x3 = cLesson?.title || "";
-              message = t(`Do you want to play 'x3' lesson`).replace("x3", x3);
+              message = t(`Do you want to play 'x3' lesson`).replace(
+                "x3",
+                " " + x3 + " "
+              );
               // avatarObj.mode = AvatarModes.LessonSuggestion;
               setCurrentStageMode(AvatarModes.LessonSuggestion);
               await speak(message);
@@ -305,7 +331,7 @@ const ChimpleAvatar: FC<{
               const x2 = cChapter?.title || "";
               message = t(`Do you want to play 'x2' chapter?`).replace(
                 "x2",
-                x2
+                " " + x2 + " "
               );
               await speak(message);
             }
@@ -318,17 +344,20 @@ const ChimpleAvatar: FC<{
               await loadNextSuggestion();
             } else {
               await onClickNo();
-              if (avatarObj.wrongAttempts >= 3) {
-                await loadNextSuggestion();
-                return;
-              }
+              // if (avatarObj.wrongAttempts >= 3) {
+              //   await loadNextSuggestion();
+              //   return;
+              // }
               cLesson = await getRecommendedLesson(
                 currentChapter || cCourse.chapters[0],
                 cCourse || currentCourse
               );
               setCurrentLesson(cLesson);
               const x3 = cLesson?.title || "";
-              message = t(`Do you want to play 'x3' lesson?`).replace("x3", x3);
+              message = t(`Do you want to play 'x3' lesson?`).replace(
+                "x3",
+                " " + x3 + " "
+              );
               await speak(message);
             }
             break;
@@ -370,11 +399,12 @@ const ChimpleAvatar: FC<{
           await loadNextSuggestion();
         } else {
           await onClickNo();
-          avatarObj.wrongAttempts++;
-          if (avatarObj.wrongAttempts >= 3) {
-            await loadNextSuggestion();
-            return;
-          }
+
+          // avatarObj.wrongAttempts++;
+          // if (avatarObj.wrongAttempts >= 3) {
+          //   await loadNextSuggestion();
+          //   return;
+          // }
           avatarObj.currentRecommededLessonIndex++;
           console.log(
             "currentStageIndex++;",
@@ -384,7 +414,10 @@ const ChimpleAvatar: FC<{
           setCurrentLesson(recomLesson);
           console.log("14", message);
           const x3 = recomLesson?.title || "";
-          message = t(`Do you want to play 'x3' lesson?`).replace("x3", x3);
+          message = t(`Do you want to play 'x3' lesson?`).replace(
+            "x3",
+            " " + x3 + " "
+          );
           await speak(message);
         }
         break;
@@ -532,14 +565,11 @@ const ChimpleAvatar: FC<{
 
   switch (currentMode) {
     case AvatarModes.ShowWeeklyProgress:
-      console.log("case AvatarModes.ShowWeeklyProgress: ");
-      const x1 = "10";
-      message =
-        avatarObj.message ||
-        t(`' x1 ' minutes left to complete your learning goal.`).replace(
-          "x1",
-          x1
-        );
+      const x1 = avatarObj.weeklyProgressGoal;
+      message = t(avatarObj.gamifyTimespentMessage).replace(
+        "x1",
+        " " + x1.toString() + " minute"
+      );
       buttons = [
         {
           label: "Let's Play",
@@ -562,7 +592,10 @@ const ChimpleAvatar: FC<{
       switch (currentStageMode) {
         case AvatarModes.CourseSuggestion:
           const x1 = currentCourse?.title || "";
-          message = t(`Do you want to play 'x1' course?`).replace("x1", x1);
+          message = t(`Do you want to play 'x1' course?`).replace(
+            "x1",
+            " " + x1 + " "
+          );
           buttons = [
             {
               label: t("Yes"),
@@ -578,7 +611,10 @@ const ChimpleAvatar: FC<{
           break;
         case AvatarModes.ChapterSuggestion:
           const x2 = currentChapter?.title || "";
-          message = t(`Do you want to play 'x2' chapter?`).replace("x2", x2);
+          message = t(`Do you want to play 'x2' chapter?`).replace(
+            "x2",
+            " " + x2 + " "
+          );
           buttons = [
             {
               label: t("Yes"),
@@ -598,7 +634,10 @@ const ChimpleAvatar: FC<{
             "t(`Do you want to play 'x3' lesson?`)",
             t(`Do you want to play 'x3' lesson?`)
           );
-          message = t(`Do you want to play 'x3' lesson?`).replace("x3", x3);
+          message = t(`Do you want to play 'x3' lesson?`).replace(
+            "x3",
+            " " + x3 + " "
+          );
           buttons = [
             {
               label: t("Yes"),
@@ -692,7 +731,14 @@ const ChimpleAvatar: FC<{
       break;
     case AvatarModes.RecommendedLesson:
       const x3 = currentLesson?.title || cLesson?.title || "";
-      message = t(`Do you want to play 'x3' lesson?`).replace("x3", x3);
+      message = t(`Do you want to play 'x3' lesson?`)
+        .replace("x3", " " + x3 + " ")
+        .replace(
+          "lesson?",
+          currentLesson?.assignment || cLesson?.assignment
+            ? "assignment"
+            : "lesson"
+        );
       // setMessage(t(`Do you want to play 'x1' Lesson?`).replace("x1", x1));
       buttons = [
         {

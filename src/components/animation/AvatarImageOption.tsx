@@ -25,7 +25,7 @@ const AvatarImageOption: React.FC<{
   currentChapter?: Chapter;
   currentLesson?: Lesson;
   activitiesValue: number;
-  WeeklyProgressValue: number;
+  WeeklyProgressValue: {};
   WeeklyGoalValue: number;
 }> = ({
   currentMode,
@@ -52,13 +52,12 @@ const AvatarImageOption: React.FC<{
 
   switch (currentMode) {
     case AvatarModes.ShowWeeklyProgress:
-      let avatarObj = AvatarObj.i;
-      let percentage = Math.floor(
-        (WeeklyProgressValue / WeeklyGoalValue) * 100
-      );
-      if (percentage <= 0) {
-        percentage = 100;
-      }
+      let percentage =
+        ((WeeklyProgressValue["min"] * 60 + WeeklyProgressValue["sec"]) /
+          (WeeklyGoalValue * 60)) *
+        100;
+
+      if (!percentage || percentage < 0) percentage = 0;
 
       console.log(
         "let percentage",
@@ -66,9 +65,13 @@ const AvatarImageOption: React.FC<{
         // avatarObj.weeklyTimeSpent,
         WeeklyProgressValue,
         WeeklyGoalValue,
-        WeeklyProgressValue / WeeklyGoalValue,
-        (WeeklyProgressValue / WeeklyGoalValue) * 100,
-        WeeklyGoalValue / WeeklyProgressValue
+        WeeklyProgressValue["min"] * 60,
+        WeeklyProgressValue["sec"],
+        (WeeklyProgressValue["min"] * 60 + WeeklyProgressValue["sec"],
+        WeeklyGoalValue * 60) * 100,
+        ((WeeklyProgressValue["min"] * 60 + WeeklyProgressValue["sec"]) /
+          (WeeklyGoalValue * 60)) *
+          100
       );
 
       content = (
@@ -80,8 +83,8 @@ const AvatarImageOption: React.FC<{
           }}
         >
           <CircularProgressbar
-            value={100 - percentage}
-            text={`${activitiesValue} Played`}
+            value={percentage}
+            text={`${WeeklyProgressValue["min"]} Min : ${WeeklyProgressValue["sec"]} Sec`}
             styles={{
               // Customize the root svg element
               root: {},
@@ -112,7 +115,7 @@ const AvatarImageOption: React.FC<{
                 // Text color
                 fill: "#000",
                 // Text size
-                fontSize: "16px",
+                fontSize: "12px",
               },
               // Customize background - only used when the `background` prop is true
               background: {
@@ -120,9 +123,9 @@ const AvatarImageOption: React.FC<{
               },
             }}
           />
-          <p
+          {/* <p
             style={{ textAlign: "center" }}
-          >{`Weekly ${WeeklyGoalValue} Mins Goal`}</p>
+          >{`Weekly ${WeeklyGoalValue} Mins Goal`}</p> */}
         </div>
       );
 
