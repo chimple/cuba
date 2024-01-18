@@ -7,6 +7,8 @@ import { Util } from "../../utility/util";
 import { useAudioPlayer, useTtsAudioPlayer } from "./animationUtils";
 import {
   CURRENT_AVATAR_SUGGESTION_NO,
+  LEADERBOARDHEADERLIST,
+  LEADERBOARD_REWARD_LIST,
   PAGES,
   RECOMMENDATIONS,
   SHOW_DAILY_PROGRESS_FLAG,
@@ -81,26 +83,8 @@ const ChimpleAvatar: FC<{
 
   async function loadSuggestionsFromJson() {
     avatarObj.wrongAttempts = 0;
-    const showDailyProgress = localStorage.getItem(SHOW_DAILY_PROGRESS_FLAG);
-    console.log("localStorage.getItem(showDailyProgress) ", showDailyProgress);
-
-    if (showDailyProgress === "true") {
-      console.log(
-        "if (avatarObj.weeklyTimeSpent * 60 >= avatarObj.weeklyProgressGoal * 60) {",
-        avatarObj.weeklyTimeSpent,
-        avatarObj.weeklyTimeSpent["min"] * 60,
-        avatarObj.weeklyProgressGoal * 60
-      );
-      if (
-        avatarObj.weeklyTimeSpent["min"] * 60 >=
-          avatarObj.weeklyProgressGoal * 60 ||
-        avatarObj.weeklyTimeSpent["sec"] < 0
-      ) {
-        await avatarObj.loadAvatarData();
-        localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
-      }
-      await avatarObj.loadAvatarWeeklyProgressData();
-    } else await avatarObj.loadAvatarData();
+    await avatarObj.loadAvatarData();
+    console.log("after avatarObj.loadAvatarData();", avatarObj);
 
     setCurrentMode(avatarObj.mode);
     if (avatarObj.mode === AvatarModes.CourseSuggestion) {
@@ -257,6 +241,18 @@ const ChimpleAvatar: FC<{
     setIsBurst(true);
     console.log("handleButtonClick currentMode ", currentMode);
     switch (currentMode) {
+      case AvatarModes.collectReward:
+        if (choice) {
+          setButtonsDisabled(false);
+          rive?.play(avatarObj.avatarAnimation);
+          buttons = [];
+          onclickInput?.fire();
+          history.replace(
+            PAGES.LEADERBOARD +
+              `?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${avatarObj.currentRewardInfo.leaderboardRewardList.toLowerCase()}`
+          );
+        }
+        break;
       case AvatarModes.ShowWeeklyProgress:
         if (choice) {
           localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
@@ -563,6 +559,20 @@ const ChimpleAvatar: FC<{
   }
 
   switch (currentMode) {
+    case AvatarModes.collectReward:
+      message = t(
+        "Congratulations on earning the " +
+          avatarObj.currentRewardInfo.type +
+          "!"
+      );
+      buttons = [
+        {
+          label: "Collect your reward",
+          onClick: () => handleButtonClick(true),
+          isTrue: true,
+        },
+      ];
+      break;
     case AvatarModes.ShowWeeklyProgress:
       const x1 = avatarObj.weeklyProgressGoal;
       message = t(avatarObj.gamifyTimespentMessage).replace(
@@ -825,9 +835,7 @@ const ChimpleAvatar: FC<{
               currtStageMode={currentStageMode || AvatarModes.CourseSuggestion}
               currentChapter={currentChapter}
               currentLesson={currentLesson}
-              activitiesValue={avatarObj.weeklyPlayedLesson}
-              WeeklyProgressValue={avatarObj.weeklyTimeSpent}
-              WeeklyGoalValue={avatarObj.weeklyProgressGoal}
+              avatarObj={avatarObj}
             />
           )}
 
@@ -843,14 +851,14 @@ const ChimpleAvatar: FC<{
                   : "center",
               gap: ".5em",
               display: buttons.length > 2 ? "grid" : "",
-              gridTemplateColumns: buttons.length > 2 ? "35% 70px" : "",
+              gridTemplateColumns: buttons.length > 2 ? "35% 95px" : "",
             }}
           >
             {buttons.map((button, index) => (
               <div key={index}>
                 <RectangularTextButton
-                  buttonWidth={11}
-                  buttonHeight={8}
+                  buttonWidth={"17vw"}
+                  buttonHeight={"8vh"}
                   padding={1}
                   text={button.label}
                   fontSize={3.2}

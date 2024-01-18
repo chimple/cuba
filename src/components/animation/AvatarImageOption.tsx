@@ -24,18 +24,14 @@ const AvatarImageOption: React.FC<{
   currentCourse?: Course;
   currentChapter?: Chapter;
   currentLesson?: Lesson;
-  activitiesValue: number;
-  WeeklyProgressValue: {};
-  WeeklyGoalValue: number;
+  avatarObj: AvatarObj;
 }> = ({
   currentMode,
   currtStageMode,
   currentCourse,
   currentChapter,
   currentLesson,
-  activitiesValue,
-  WeeklyProgressValue,
-  WeeklyGoalValue,
+  avatarObj,
 }) => {
   const history = useHistory();
   let content: ReactNode | null = null;
@@ -51,28 +47,22 @@ const AvatarImageOption: React.FC<{
   }, []);
 
   switch (currentMode) {
+    case AvatarModes.collectReward:
+      content = cardContent(
+        avatarObj.currentRewardInfo.image,
+        avatarObj.currentRewardInfo.image,
+        avatarObj.currentRewardInfo.image
+      );
+
+      break;
     case AvatarModes.ShowWeeklyProgress:
       let percentage =
-        ((WeeklyProgressValue["min"] * 60 + WeeklyProgressValue["sec"]) /
-          (WeeklyGoalValue * 60)) *
+        ((avatarObj.weeklyTimeSpent["min"] * 60 +
+          avatarObj.weeklyTimeSpent["sec"]) /
+          (avatarObj.weeklyProgressGoal * 60)) *
         100;
 
       if (!percentage || percentage < 0) percentage = 0;
-
-      console.log(
-        "let percentage",
-        percentage,
-        // avatarObj.weeklyTimeSpent,
-        WeeklyProgressValue,
-        WeeklyGoalValue,
-        WeeklyProgressValue["min"] * 60,
-        WeeklyProgressValue["sec"],
-        (WeeklyProgressValue["min"] * 60 + WeeklyProgressValue["sec"],
-        WeeklyGoalValue * 60) * 100,
-        ((WeeklyProgressValue["min"] * 60 + WeeklyProgressValue["sec"]) /
-          (WeeklyGoalValue * 60)) *
-          100
-      );
 
       content = (
         <div
@@ -84,7 +74,7 @@ const AvatarImageOption: React.FC<{
         >
           <CircularProgressbar
             value={percentage}
-            text={`${WeeklyProgressValue["min"]} Min : ${WeeklyProgressValue["sec"]} Sec`}
+            text={`${avatarObj.weeklyTimeSpent["min"]} Min : ${avatarObj.weeklyTimeSpent["sec"]} Sec`}
             styles={{
               // Customize the root svg element
               root: {},

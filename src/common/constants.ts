@@ -490,10 +490,15 @@ export type LeaderboardBonus = {
   seen: boolean;
 };
 
+export type LeaderboardSticker = {
+  id: string;
+  seen: boolean;
+};
+
 export type LeaderboardRewards = {
   badges: LeaderboardBadge[];
   bonus: LeaderboardBonus[];
-  sticker: LeaderboardBonus[];
+  sticker: LeaderboardSticker[];
 };
 
 export enum LeaderboardRewardsType {
