@@ -1836,4 +1836,25 @@ export class FirebaseApi implements ServiceApi {
       console.log("🚀 ~ FirebaseApi ~ getRewardById ~ error:", error);
     }
   }
+  public async updateRewardAsSeen(studentId: string): Promise<void> {
+    const studentDocRef = doc(this._db, CollectionIds.USER, studentId);
+    const studentDoc = await getDoc(studentDocRef);
+    if (!studentDoc || !studentDoc.data() || !studentDoc.get("rewards")) return;
+    const student: User = studentDoc.data() as User;
+    student.docId = studentDoc.id;
+    const rewards = student.rewards;
+    if (!rewards) return;
+    function markAllAsSeen(obj: any): any {
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          obj[key] = obj[key].map((item: any) => ({ ...item, seen: true }));
+        }
+      }
+      return obj;
+    }
+    const finalRewards = markAllAsSeen(rewards);
+    await updateDoc(studentDocRef, {
+      rewards: finalRewards,
+    });
+  }
 }

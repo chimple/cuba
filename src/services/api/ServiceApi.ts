@@ -495,4 +495,11 @@ export interface ServiceApi {
    * @returns {Rewards | undefined}`Rewards` or `undefined` if it could not find the Rewards with given `id`
    */
   getRewardsById(id: string): Promise<Rewards | undefined>;
+
+  /**
+   * Updates the rewards of a student, marking all rewards as seen.
+   * @param studentId - The ID of the student whose rewards need to be updated.
+   * @returns A Promise that resolves with void when the update is complete.
+   */
+  updateRewardAsSeen(studentId: string): Promise<void>;
 }

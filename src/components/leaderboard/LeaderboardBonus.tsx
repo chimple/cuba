@@ -73,9 +73,18 @@ const LeaderboardBonus: FC = () => {
     ) {
       return [];
     }
+    let isSeen = true;
     const unlockedBonus = await Promise.all(
-      currentStudent.rewards.bonus.map((value) => api.getLesson(value.id))
+      currentStudent.rewards.bonus.map((value) => {
+        if (!value.seen) {
+          isSeen = false;
+        }
+        return api.getLesson(value.id);
+      })
     );
+    if (!isSeen) {
+      api.updateRewardAsSeen(currentStudent.docId);
+    }
     return unlockedBonus?.reverse();
   };
 
