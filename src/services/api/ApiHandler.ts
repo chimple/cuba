@@ -59,6 +59,10 @@ export class ApiHandler implements ServiceApi {
     return this.s.joinLiveQuiz(studentId, assignmentId);
   }
   private constructor() {}
+  
+  public async updateRewardAsSeen(studentId: string): Promise<void> {
+    return await this.s.updateRewardAsSeen(studentId);
+  }
 
   public async getLeaderboardStudentResultFromB2CCollection(
     studentId: string

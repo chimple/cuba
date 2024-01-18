@@ -74,9 +74,18 @@ const LeaderboardBadges: FC = () => {
     ) {
       return [];
     }
+    let isSeen = true;
     const unlockedBadges = await Promise.all(
-      currentStudent.rewards.badges.map((value) => api.getBadgeById(value.id))
+      currentStudent.rewards.badges.map((value) => {
+        if (!value.seen) {
+          isSeen = false;
+        }
+        return api.getBadgeById(value.id);
+      })
     );
+    if (!isSeen) {
+      api.updateRewardAsSeen(currentStudent.docId);
+    }
     return unlockedBadges?.reverse();
   };
 

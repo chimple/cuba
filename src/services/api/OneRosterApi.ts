@@ -83,6 +83,9 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
+  updateRewardAsSeen(studentId: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
   getLeaderboardStudentResultFromB2CCollection(
     studentId: string
   ): Promise<LeaderboardInfo | undefined> {
