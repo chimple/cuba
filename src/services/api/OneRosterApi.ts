@@ -84,6 +84,10 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
+  
+  getUserByDocId(studentId: string): Promise<User | undefined> {
+    throw new Error("Method not implemented.");
+  }
   updateRewardAsSeen(studentId: string): Promise<void> {
     throw new Error("Method not implemented.");
   }

@@ -60,7 +60,11 @@ export class ApiHandler implements ServiceApi {
     return this.s.joinLiveQuiz(studentId, assignmentId);
   }
   private constructor() {}
-  
+
+  public async getUserByDocId(studentId: string): Promise<User | undefined> {
+    return await this.s.getUserByDocId(studentId);
+  }
+
   public async updateRewardAsSeen(studentId: string): Promise<void> {
     return await this.s.updateRewardAsSeen(studentId);
   }

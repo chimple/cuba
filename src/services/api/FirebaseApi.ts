@@ -1495,6 +1495,31 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
+  public async getUserByDocId(studentId: string): Promise<User | undefined> {
+    try {
+      console.log("getUserByDocId called");
+
+      const studentDocRef = doc(this._db, CollectionIds.USER, studentId);
+      const studentDoc = await getDoc(studentDocRef);
+      if (studentDoc.exists()) {
+        const studentData = studentDoc.data();
+        if (!studentData) return;
+        console.log("updated studentData as User", studentData as User);
+        let updatedStudent: User = studentData as User;
+        console.log(
+          "updated studentData as User",
+          updatedStudent,
+          studentDoc.id
+        );
+        updatedStudent.docId = studentDoc.id;
+        return updatedStudent;
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      return;
+    }
+  }
+
   public async getCoursesByGrade(gradeDocId: any): Promise<Course[]> {
     try {
       const gradeQuerySnapshot = await getDocs(

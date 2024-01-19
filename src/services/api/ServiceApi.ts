@@ -502,4 +502,11 @@ export interface ServiceApi {
    * @returns A Promise that resolves with void when the update is complete.
    */
   updateRewardAsSeen(studentId: string): Promise<void>;
+
+  /**
+   * gets student info from firestore
+   * @param studentId - The ID of the current student.
+   * @returns A Promise that resolves with void when the update is complete.
+   */
+  getUserByDocId(studentId: string): Promise<User | undefined>;
 }

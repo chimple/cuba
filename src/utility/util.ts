@@ -940,6 +940,8 @@ export class Util {
     langFlag: boolean = true,
     isStudent: boolean = true
   ) => {
+    console.log("setCurrentStudent called", student);
+
     const api = ServiceConfig.getI().apiHandler;
     api.currentStudent = student;
 
@@ -1383,6 +1385,22 @@ export class Util {
     }
     return date.getFullYear();
   }
+
+  public static async getStudentInfo() {
+    console.log("getStudentInfo called");
+
+    const api = ServiceConfig.getI().apiHandler;
+    let currentStudent = await Util.getCurrentStudent();
+    console.log("Util.getCurrentStudent() ", currentStudent);
+    if (!currentStudent) return;
+    console.log("Util.getCurrentStudent().docId ", currentStudent.docId);
+    const updatedStudent = await api.getUserByDocId(currentStudent.docId);
+    console.log("api.getUserByDocId(currentStudent.docId); ", updatedStudent);
+    if (updatedStudent) {
+      await Util.setCurrentStudent(updatedStudent);
+    }
+  }
+
   public static async getAllUnlockedRewards(): Promise<
     | {
         id: string;
@@ -1394,6 +1412,7 @@ export class Util {
     | undefined
   > {
     console.log("getAllUnlockedRewards() called");
+    await this.getStudentInfo();
 
     let allUnlockedRewards: {
       id: string;
@@ -1404,18 +1423,14 @@ export class Util {
     }[] = [];
     const api = ServiceConfig.getI().apiHandler;
     let currentStudent = this.getCurrentStudent();
-    // let currentStudent = api.currentStudent;
-    if (!currentStudent || !currentStudent.rewards) return;
-    console.log(
-      "if (!currentStudent || !currentStudent.rewards) return;",
-      currentStudent
-    );
+    if (!currentStudent) return;
+    if (!currentStudent.rewards) return;
 
     for (let i = 0; i < currentStudent.rewards.badges?.length; i++) {
       const element = currentStudent.rewards.badges[i];
       if (!element.seen) {
         let reward = await api.getBadgeById(element.id);
-        if (!reward) return;
+        if (!reward) continue;
         console.log(
           "allRewards.push(value); currentStudent.rewards.badges",
           element,
@@ -1434,7 +1449,7 @@ export class Util {
       const element = currentStudent.rewards.bonus[i];
       if (!element.seen) {
         let reward = await api.getLesson(element.id);
-        if (!reward) return;
+        if (!reward) continue;
         console.log(
           "allRewards.push(value); currentStudent.rewards.bonus ",
           element
@@ -1453,7 +1468,7 @@ export class Util {
       const element = currentStudent.rewards.sticker[i];
       if (!element.seen) {
         let reward = await api.getStickerById(element.id);
-        if (!reward) return;
+        if (!reward) continue;
         console.log(
           "allRewards.push(value); currentStudent.rewards.bonus ",
           element
