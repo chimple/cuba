@@ -652,14 +652,15 @@ const ChimpleAvatar: FC<{
           break;
         case AvatarModes.LessonSuggestion:
           const x3 = currentLesson?.title || "";
-          console.log(
-            "t(`Do you want to play 'x3' lesson?`)",
-            t(`Do you want to play 'x3' lesson?`)
-          );
-          message = t(`Do you want to play 'x3' lesson?`).replace(
-            "x3",
-            " " + x3 + " "
-          );
+          console.log("t(`Do you want to play 'x3' lesson?`)");
+          message = t(`Do you want to play 'x3' lesson?`)
+            .replace("x3", " " + x3 + " ")
+            .replace(
+              "lesson?",
+              currentLesson?.assignment || cLesson?.assignment
+                ? "assignment"
+                : "lesson"
+            );
           buttons = [
             {
               label: t("Yes"),
@@ -864,7 +865,7 @@ const ChimpleAvatar: FC<{
                   : "center",
               gap: ".5em",
               display: buttons.length > 2 ? "grid" : "",
-              gridTemplateColumns: buttons.length > 2 ? "35% 95px" : "",
+              gridTemplateColumns: buttons.length > 2 ? "35% 15vw" : "",
             }}
           >
             {buttons.map((button, index) => (

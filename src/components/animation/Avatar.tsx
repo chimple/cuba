@@ -203,7 +203,12 @@ export class AvatarObj {
       );
       let unlockedRewards = await Util.getAllUnlockedRewards();
       console.log("if (unlockedRewards) {", unlockedRewards);
-      if (showDailyProgress === "true") {
+      if (unlockedRewards && unlockedRewards?.length > 0) {
+        this.mode = AvatarModes.collectReward;
+        this.avatarAnimation = "Success";
+        this.currentRewardInfo = unlockedRewards[0];
+        return;
+      } else if (showDailyProgress === "true") {
         console.log(
           "if (avatarObj.weeklyTimeSpent * 60 >= avatarObj.weeklyProgressGoal * 60) {",
           this.weeklyTimeSpent,
@@ -221,11 +226,6 @@ export class AvatarObj {
         return;
         // }
         // localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
-      } else if (unlockedRewards && unlockedRewards?.length > 0) {
-        this.mode = AvatarModes.collectReward;
-        this.avatarAnimation = "Success";
-        this.currentRewardInfo = unlockedRewards[0];
-        return;
       } else if (!this._allSuggestions) {
         if (!this._currentSuggestionNumber) {
           this._currentSuggestionNumber = 0;
@@ -495,6 +495,9 @@ export class AvatarObj {
       ) {
         this._mode = AvatarModes.ShowWeeklyProgress;
       }
+      // if (this.weeklyTimeSpent["min"] * 60 >= this.weeklyProgressGoal * 60) {
+      //   // Util.updateUserStickerReward();
+      // }
     } catch (error) {
       console.log("loadAvatarWeeklyProgressData error ", error);
     }
