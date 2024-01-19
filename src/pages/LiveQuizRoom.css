@@ -10,9 +10,9 @@
   justify-content: space-evenly;
   margin-bottom: 0;
 }
-.students-container {
+/* .students-container {
   display: flex;
-}
+} */
 #outcome-text {
   color: var(--text-color);
   font-size: x-small;
@@ -94,7 +94,7 @@
   display: flex;
   overflow-x: scroll;
   border: 2px solid #8fc93c;
-  border-radius: 6vh;
+  border-radius: 35px;
   padding: 1vh;
   gap: 1vw;
   margin-bottom: 2vh;
@@ -104,7 +104,7 @@
   display: flex;
   overflow-x: scroll;
   border: 2px solid grey;
-  border-radius: 6vh;
+  border-radius: 35px;
   padding: 1vh;
   gap: 1vw;
   width: fit-content;
