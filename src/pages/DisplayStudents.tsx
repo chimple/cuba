@@ -112,7 +112,7 @@ const DisplayStudents: FC<{}> = () => {
   const onCreateNewStudent = () => {
     if (!online) {
       presentToast({
-        message: t(`Device is offline. Cannot create a new child profile `),
+        message: t(`Device is offline. Cannot create a new child profile`),
         color: "danger",
         duration: 3000,
         position: "bottom",

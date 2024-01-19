@@ -67,6 +67,23 @@ const ProfileCard: React.FC<{
             id="profile-card-edit-icon"
             size={"5%"}
             onClick={() => {
+              if (!online) {
+                presentToast({
+                  message: t(
+                    `Device is offline. Cannot edit or delete child profile`
+                  ),
+                  color: "danger",
+                  duration: 3000,
+                  position: "bottom",
+                  buttons: [
+                    {
+                      text: "Dismiss",
+                      role: "cancel",
+                    },
+                  ],
+                });
+                return;
+              }
               console.log("click on edit icon");
               setShowDialogBox(true);
             }}
@@ -104,7 +121,7 @@ const ProfileCard: React.FC<{
               if (!online) {
                 presentToast({
                   message: t(
-                    `Device is offline. Cannot create a new child profile `
+                    `Device is offline. Cannot create a new child profile`
                   ),
                   color: "danger",
                   duration: 3000,

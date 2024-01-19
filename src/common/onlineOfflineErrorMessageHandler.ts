@@ -37,6 +37,10 @@ export function useOnlineOfflineErrorMessageHandler(): OnlineOfflineHandlerResul
       ...options,
       message: t(options.message),
       position: options.position || "bottom",
+      buttons: options.buttons.map((button) => ({
+        ...button,
+        text: t(button.text),
+      })),
     });
   };
 
