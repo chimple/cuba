@@ -22,8 +22,10 @@
   width: 2.7vw; */
   /* height: clamp(7vh, 10vh, 8vh);
   width: clamp(4vh, 5vh, 6vh); */
-  height: clamp(25px, 12vh, 27px);
-  width: clamp(25px, 6vh, 27px);
+  /* height: clamp(25px, 12vh, 27px);
+  width: clamp(25px, 6vh, 27px); */
+  height: clamp(8vh, 11vh, 8vh);
+  width: clamp(5vh, 6vh, 6vh);
 }
 
 /* .with-chapter-title {
