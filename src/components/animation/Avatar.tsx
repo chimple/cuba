@@ -1,7 +1,9 @@
 import { Filesystem } from "@capacitor/filesystem";
 import {
   CURRENT_AVATAR_SUGGESTION_NO,
+  LEADERBOARD_REWARD_LIST,
   LeaderboardDropdownList,
+  LeaderboardRewardsType,
   SHOW_DAILY_PROGRESS_FLAG,
 } from "../../common/constants";
 import { Chapter, StudentLessonResult } from "../../common/courseConstants";
@@ -20,6 +22,7 @@ export enum AvatarModes {
   TwoOptionQuestion,
   FourOptionQuestion,
   ShowWeeklyProgress,
+  collectReward,
   // scores >= 70
   GoodProgress,
   // scores < 70
@@ -55,6 +58,13 @@ export class AvatarObj {
   weeklyPlayedLesson: number = 0;
   wrongAttempts: number = 0;
   gamifyTimespentMessage = "Play ' x1 ' to win your weekly reward";
+  currentRewardInfo: {
+    id: string;
+    type: LeaderboardRewardsType;
+    image: string;
+    name: string;
+    leaderboardRewardList: LEADERBOARD_REWARD_LIST;
+  };
 
   private constructor() {}
 
@@ -186,7 +196,37 @@ export class AvatarObj {
 
   public async loadAvatarData() {
     try {
-      if (!this._allSuggestions) {
+      const showDailyProgress = localStorage.getItem(SHOW_DAILY_PROGRESS_FLAG);
+      console.log(
+        "localStorage.getItem(showDailyProgress) ",
+        showDailyProgress
+      );
+      let unlockedRewards = await Util.getAllUnlockedRewards();
+      console.log("if (unlockedRewards) {", unlockedRewards);
+      if (showDailyProgress === "true") {
+        console.log(
+          "if (avatarObj.weeklyTimeSpent * 60 >= avatarObj.weeklyProgressGoal * 60) {",
+          this.weeklyTimeSpent,
+          this.weeklyTimeSpent["min"] * 60,
+          this.weeklyProgressGoal * 60
+        );
+        // if (
+        //   !(
+        //     this.weeklyTimeSpent["min"] * 60 >= this.weeklyProgressGoal * 60 ||
+        //     this.weeklyTimeSpent["sec"] < 0
+        //   )
+        // ) {
+        // await this.loadAvatarData();
+        await this.loadAvatarWeeklyProgressData();
+        return;
+        // }
+        // localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
+      } else if (unlockedRewards && unlockedRewards?.length > 0) {
+        this.mode = AvatarModes.collectReward;
+        this.avatarAnimation = "Success";
+        this.currentRewardInfo = unlockedRewards[0];
+        return;
+      } else if (!this._allSuggestions) {
         if (!this._currentSuggestionNumber) {
           this._currentSuggestionNumber = 0;
         }
@@ -308,12 +348,8 @@ export class AvatarObj {
 
       const currentStudent = await Util.getCurrentStudent();
       if (!currentStudent) {
-        // this.message = undefined;
-        this.weeklyTimeSpent = { min: 0, sec: 0 };
-        this.weeklyPlayedLesson = 0;
         return;
       }
-      this._mode = AvatarModes.ShowWeeklyProgress;
 
       const api = ServiceConfig.getI().apiHandler;
       const studentProfile = await api.getStudentResult(currentStudent.docId);
@@ -330,6 +366,7 @@ export class AvatarObj {
           // this.message = undefined;
           this.weeklyTimeSpent = { min: 0, sec: 0 };
           this.weeklyPlayedLesson = 0;
+          this._mode = AvatarModes.ShowWeeklyProgress;
           return;
         }
 
@@ -395,6 +432,7 @@ export class AvatarObj {
           // this.message = undefined;
           this.weeklyTimeSpent = { min: 0, sec: 0 };
           this.weeklyPlayedLesson = 0;
+          this._mode = AvatarModes.ShowWeeklyProgress;
           return;
         }
 
@@ -448,6 +486,14 @@ export class AvatarObj {
             );
           }
         }
+      }
+      if (
+        !(
+          this.weeklyTimeSpent["min"] * 60 >= this.weeklyProgressGoal * 60 ||
+          this.weeklyTimeSpent["sec"] < 0
+        )
+      ) {
+        this._mode = AvatarModes.ShowWeeklyProgress;
       }
     } catch (error) {
       console.log("loadAvatarWeeklyProgressData error ", error);
