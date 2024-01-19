@@ -9,6 +9,7 @@ import {
   CURRENT_AVATAR_SUGGESTION_NO,
   LEADERBOARDHEADERLIST,
   LEADERBOARD_REWARD_LIST,
+  LIVE_QUIZ,
   PAGES,
   RECOMMENDATIONS,
   SHOW_DAILY_PROGRESS_FLAG,
@@ -422,21 +423,34 @@ const ChimpleAvatar: FC<{
 
   async function playCurrentLesson() {
     if (currentLesson) {
-      let lessonCourse = currentCourse;
-      if (!currentCourse) {
-        console.log("playCurrentLesson() is undefined ", currentCourse);
-        lessonCourse =
-          (await api.getCourseFromLesson(currentLesson)) || currentCourse;
+      if (
+        !!currentLesson?.assignment?.docId &&
+        currentLesson.pluginType === LIVE_QUIZ
+      ) {
+        history.replace(
+          PAGES.LIVE_QUIZ_JOIN +
+            `?assignmentId=${currentLesson?.assignment?.docId}`,
+          {
+            assignment: JSON.stringify(currentLesson?.assignment),
+          }
+        );
+      } else {
+        let lessonCourse = currentCourse;
+        if (!currentCourse) {
+          console.log("playCurrentLesson() is undefined ", currentCourse);
+          lessonCourse =
+            (await api.getCourseFromLesson(currentLesson)) || currentCourse;
+        }
+        const parmas = `?courseid=${currentLesson.cocosSubjectCode}&chapterid=${currentLesson.cocosChapterCode}&lessonid=${currentLesson.id}`;
+        await history.replace(PAGES.GAME + parmas, {
+          url: "chimple-lib/index.html" + parmas,
+          lessonId: currentLesson.id,
+          courseDocId: lessonCourse.docId,
+          course: JSON.stringify(Course.toJson(lessonCourse)),
+          lesson: JSON.stringify(Lesson.toJson(currentLesson)),
+          from: history.location.pathname + "?continue=true",
+        });
       }
-      const parmas = `?courseid=${currentLesson.cocosSubjectCode}&chapterid=${currentLesson.cocosChapterCode}&lessonid=${currentLesson.id}`;
-      await history.replace(PAGES.GAME + parmas, {
-        url: "chimple-lib/index.html" + parmas,
-        lessonId: currentLesson.id,
-        courseDocId: lessonCourse.docId,
-        course: JSON.stringify(Course.toJson(lessonCourse)),
-        lesson: JSON.stringify(Lesson.toJson(currentLesson)),
-        from: history.location.pathname + "?continue=true",
-      });
     }
   }
 
