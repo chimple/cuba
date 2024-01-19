@@ -236,15 +236,15 @@ export class FirebaseAuth implements ServiceAuth {
           const signInWithPhoneNumber = async () => {
             return new Promise(async (resolve, reject) => {
               try {
-                setTimeout(() => {
+              var timeOut =  setTimeout(() => {
                   reject("Timed out waiting for SMS");
-                }, 20000);
+                }, 60000);
                 // Attach `phoneCodeSent` listener to be notified as soon as the SMS is sent
                 await FirebaseAuthentication.addListener(
                   "phoneCodeSent",
                   async (event) => {
                     console.log("phoneCodeSent event ", JSON.stringify(event));
-
+                    clearTimeout(timeOut)
                     resolve(event);
                   }
                 );
