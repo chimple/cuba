@@ -63,12 +63,19 @@ const LeaderboardStickers: FC = () => {
     ) {
       return [];
     }
-    const unlockedstickers = await Promise.all(
-      currentStudent.rewards.sticker.map((value) =>
-        api.getStickerById(value.id)
-      )
+    let isSeen = true;
+    const unlockedSticker = await Promise.all(
+      currentStudent.rewards.sticker.map((value) => {
+        if (!value.seen) {
+          isSeen = false;
+        }
+        return api.getStickerById(value.id);
+      })
     );
-    return unlockedstickers;
+    if (!isSeen) {
+      api.updateRewardAsSeen(currentStudent.docId);
+    }
+    return unlockedSticker?.reverse();
   };
 
   const getPrevstickers = async (): Promise<(Sticker | undefined)[]> => {
