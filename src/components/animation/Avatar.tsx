@@ -217,7 +217,6 @@ export class AvatarObj {
         //   )
         // ) {
         // await this.loadAvatarData();
-        // localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
         await this.loadAvatarWeeklyProgressData();
         return;
         // }

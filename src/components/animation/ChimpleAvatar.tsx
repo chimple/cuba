@@ -69,7 +69,6 @@ const ChimpleAvatar: FC<{
     riveCharHandsUp
   );
   useEffect(() => {
-    avatarObj.loadAvatarData();
     loadSuggestionsFromJson();
     // setButtonsDisabled(true);
   }, [currentMode]);
