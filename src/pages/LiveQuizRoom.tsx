@@ -102,9 +102,9 @@ const LiveQuizRoom: React.FC = () => {
         !!assignment.completedStudents &&
         assignment.completedStudents.length > 0
       ) {
-        tempPrevPlayedStudents = assignment.completedStudents.map(
-          (value) => allStudents.get(value)!
-        );
+        tempPrevPlayedStudents = assignment.completedStudents
+          .map((value) => allStudents.get(value))
+          .filter((student) => student !== undefined) as User[];
       }
     }
     console.log(
