@@ -33,8 +33,12 @@
   "Delete Profile": "ಪ್ರೊಫೈಲ್ ಅಳಿಸಿ",
   "Delete User": "ಬಳಕೆದಾರರನ್ನು ತೆಗೆಯಿರಿ",
   "Delete": "ಅಳಿಸಿ",
+  "Device is offline.": "ಸಾಧನವು ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿದೆ.",
+  "Device is offline. Cannot create a new child profile": "ಸಾಧನವು ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿದೆ. ಹೊಸ ಮಕ್ಕಳ ಪ್ರೊಫೈಲ್ ರಚಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ",
   "Device is offline. Cannot download Chapter": "ಸಾಧನವು ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿದೆ. ಅಧ್ಯಾಯವನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ",
   "Device is offline. Cannot download Lesson": "ಸಾಧನವು ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿದೆ. ಪಾಠವನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ",
+  "Device is offline. Cannot edit or delete child profile": "ಸಾಧನವು ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿದೆ. ಮಕ್ಕಳ ಪ್ರೊಫೈಲ್ ಅನ್ನು ಸಂಪಾದಿಸಲು ಅಥವಾ ಅಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ",
+  "Device is online.": "ಸಾಧನ ಆನ್‌ಲೈನ್‌ನಲ್ಲಿದೆ.",
   "Digital Skills": "ಡಿಜಿಟಲ್ ಕೌಶಲ್ಯಗಳು",
   "Discovering the joy of learning with": "ಕಲಿಕೆಯ ಸಂತೋಷವನ್ನು ಕಂಡುಹಿಡಿಯುವುದು",
   "Dismiss": "ವಜಾಗೊಳಿಸಿ",
@@ -175,5 +179,4 @@
   "You can edit or delete Profile by clicking on the below buttons": "ಕೆಳಗಿನ ಬಟನ್‌ಗಳನ್ನು ಕ್ಲಿಕ್ ಮಾಡುವ ಮೂಲಕ ನೀವು ಬಳಕೆದಾರರನ್ನು ತಿದ್ದಬಹುದು ಅಥವಾ ಅಳಿಸಬಹುದು",
   "You Completed the Lesson:": "ನೀವು ಪಾಠವನ್ನು ಪೂರ್ಣಗೊಳಿಸಿದ್ದೀರಿ:",
   "Your progress stays synced and consistent across all devices.": "ನಿಮ್ಮ ಪ್ರಗತಿಯು ಎಲ್ಲಾ ಸಾಧನಗಳಾದ್ಯಂತ ನವೀಕರಿಸಲ್ಪಡುತ್ತದೆ ಮತ್ತು ಸ್ಥಿರವಾಗಿರುತ್ತದೆ."
-
 }

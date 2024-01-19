@@ -1,4 +1,4 @@
-import { IonContent, IonPage } from "@ionic/react";
+import { IonContent, IonPage, useIonToast } from "@ionic/react";
 import { FC, useEffect, useState } from "react";
 import ChimpleLogo from "../components/ChimpleLogo";
 import "./DisplayStudents.css";
@@ -19,6 +19,7 @@ import { Util } from "../utility/util";
 import ParentalLock from "../components/parent/ParentalLock";
 import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 import { schoolUtil } from "../utility/schoolUtil";
+import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 // import { FirebaseApi } from "../services/api/FirebaseApi";
 // import { FirebaseAuth } from "../services/auth/FirebaseAuth";
 
@@ -28,11 +29,9 @@ const DisplayStudents: FC<{}> = () => {
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const history = useHistory();
-
+  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   useEffect(() => {
     getStudents();
-
-    // Clean up the loading state when the component navigate away
     return () => {
       setIsLoading(false);
     };
@@ -111,6 +110,22 @@ const DisplayStudents: FC<{}> = () => {
     }
   };
   const onCreateNewStudent = () => {
+    if (!online) {
+      presentToast({
+        message: t(`Device is offline. Cannot create a new child profile`),
+        color: "danger",
+        duration: 3000,
+        position: "bottom",
+        buttons: [
+          {
+            text: "Dismiss",
+            role: "cancel",
+          },
+        ],
+      });
+
+      return;
+    }
     const isProfilesExist = students && students.length > 0;
     const locationState = isProfilesExist
       ? { showBackButton: true }

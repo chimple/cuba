@@ -63,10 +63,40 @@ import { REMOTE_CONFIG_KEYS, RemoteConfig } from "./services/RemoteConfig";
 import LiveQuizGame from "./pages/LiveQuizGame";
 import LiveQuizRoomResult from "./pages/LiveQuizRoomResult";
 import LiveQuizLeaderBoard from "./pages/LiveQuizLeaderBoard";
+import { useOnlineOfflineErrorMessageHandler } from "./common/onlineOfflineErrorMessageHandler";
+import { t } from "i18next";
 
 setupIonicReact();
 
 const App: React.FC = () => {
+  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+  if (!online) {
+    presentToast({
+      message: t(`Device is offline.`),
+      color: "danger",
+      duration: 3000,
+      position: "bottom",
+      buttons: [
+        {
+          text: "Dismiss",
+          role: "cancel",
+        },
+      ],
+    });
+  } else {
+    presentToast({
+      message: t(`Device is online.`),
+      color: "success",
+      duration: 3000,
+      position: "bottom",
+      buttons: [
+        {
+          text: "Dismiss",
+          role: "cancel",
+        },
+      ],
+    });
+  }
   useEffect(() => {
     console.log("fetching...");
     // localStorage.setItem(LANGUAGE, LANG.ENGLISH);
