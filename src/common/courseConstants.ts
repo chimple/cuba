@@ -30,7 +30,6 @@ export enum CollectionIds {
   CLASS_CONNECTION = "ClassConnection",
   SCHOOL_CONNECTION = "SchoolConnection",
   LIVE_QUIZ_ROOM = "LiveQuizRoom",
-  STICKER = "Sticker",
 }
 
 export interface StudentLessonResult {

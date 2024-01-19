@@ -17,7 +17,6 @@ import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import Badge from "../../models/Badge";
 import Rewards from "../../models/Rewards";
-import Sticker from "../../models/Sticker";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -483,13 +482,6 @@ export interface ServiceApi {
   getBadgeById(id: string): Promise<Badge | undefined>;
 
   /**
-   * Gives Sticker for given a Sticker firebase doc Id
-   * @param {string} id - Sticker firebase doc id
-   * @returns {Badge | undefined}`Sticker` or `undefined` if it could not find the Sticker with given `id`
-   */
-  getStickerById(id: string): Promise<Sticker | undefined>;
-
-  /**
    * Gives Rewards for given a Rewards firebase doc Id
    * @param {string} id - Rewards firebase doc id
    * @returns {Rewards | undefined}`Rewards` or `undefined` if it could not find the Rewards with given `id`
@@ -502,11 +494,4 @@ export interface ServiceApi {
    * @returns A Promise that resolves with void when the update is complete.
    */
   updateRewardAsSeen(studentId: string): Promise<void>;
-
-  /**
-   * gets student info from firestore
-   * @param studentId - The ID of the current student.
-   * @returns A Promise that resolves with void when the update is complete.
-   */
-  getUserByDocId(studentId: string): Promise<User | undefined>;
 }

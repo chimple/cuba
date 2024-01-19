@@ -19,7 +19,6 @@ import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import Badge from "../../models/Badge";
 import Rewards from "../../models/Rewards";
-import Sticker from "../../models/Sticker";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -60,11 +59,7 @@ export class ApiHandler implements ServiceApi {
     return this.s.joinLiveQuiz(studentId, assignmentId);
   }
   private constructor() {}
-
-  public async getUserByDocId(studentId: string): Promise<User | undefined> {
-    return await this.s.getUserByDocId(studentId);
-  }
-
+  
   public async updateRewardAsSeen(studentId: string): Promise<void> {
     return await this.s.updateRewardAsSeen(studentId);
   }
@@ -79,9 +74,6 @@ export class ApiHandler implements ServiceApi {
   }
   public async getBadgeById(id: string): Promise<Badge | undefined> {
     return this.s.getBadgeById(id);
-  }
-  public async getStickerById(id: string): Promise<Sticker | undefined> {
-    return this.s.getStickerById(id);
   }
   public async getAvatarInfo(): Promise<AvatarObj | undefined> {
     return await this.s.getAvatarInfo();

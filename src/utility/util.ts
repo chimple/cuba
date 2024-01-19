@@ -26,9 +26,6 @@ import {
   DOWNLOADED_LESSON_AND_CHAPTER_ID,
   LAST_FUNCTION_CALL,
   CHAPTER_LESSON_MAP,
-  LeaderboardRewardsType,
-  LEADERBOARDHEADERLIST,
-  LEADERBOARD_REWARD_LIST,
   // APP_LANG,
 } from "../common/constants";
 import {
@@ -940,8 +937,6 @@ export class Util {
     langFlag: boolean = true,
     isStudent: boolean = true
   ) => {
-    console.log("setCurrentStudent called", student);
-
     const api = ServiceConfig.getI().apiHandler;
     api.currentStudent = student;
 
@@ -1384,107 +1379,5 @@ export class Util {
       date.setMonth(date.getMonth() - 1);
     }
     return date.getFullYear();
-  }
-
-  public static async getStudentInfo() {
-    console.log("getStudentInfo called");
-
-    const api = ServiceConfig.getI().apiHandler;
-    let currentStudent = await Util.getCurrentStudent();
-    console.log("Util.getCurrentStudent() ", currentStudent);
-    if (!currentStudent) return;
-    console.log("Util.getCurrentStudent().docId ", currentStudent.docId);
-    const updatedStudent = await api.getUserByDocId(currentStudent.docId);
-    console.log("api.getUserByDocId(currentStudent.docId); ", updatedStudent);
-    if (updatedStudent) {
-      await Util.setCurrentStudent(updatedStudent);
-    }
-  }
-
-  public static async getAllUnlockedRewards(): Promise<
-    | {
-        id: string;
-        type: LeaderboardRewardsType;
-        image: string;
-        name: string;
-        leaderboardRewardList: LEADERBOARD_REWARD_LIST;
-      }[]
-    | undefined
-  > {
-    console.log("getAllUnlockedRewards() called");
-    await this.getStudentInfo();
-
-    let allUnlockedRewards: {
-      id: string;
-      type: LeaderboardRewardsType;
-      image: string;
-      name: string;
-      leaderboardRewardList: LEADERBOARD_REWARD_LIST;
-    }[] = [];
-    const api = ServiceConfig.getI().apiHandler;
-    let currentStudent = this.getCurrentStudent();
-    if (!currentStudent) return;
-    if (!currentStudent.rewards) return;
-
-    for (let i = 0; i < currentStudent.rewards.badges?.length; i++) {
-      const element = currentStudent.rewards.badges[i];
-      if (!element.seen) {
-        let reward = await api.getBadgeById(element.id);
-        if (!reward) continue;
-        console.log(
-          "allRewards.push(value); currentStudent.rewards.badges",
-          element,
-          reward
-        );
-        allUnlockedRewards.push({
-          id: element.id,
-          type: LeaderboardRewardsType.BADGE,
-          image: reward.image,
-          name: reward.name,
-          leaderboardRewardList: LEADERBOARD_REWARD_LIST.BADGES,
-        });
-      }
-    }
-    for (let i = 0; i < currentStudent.rewards.bonus?.length; i++) {
-      const element = currentStudent.rewards.bonus[i];
-      if (!element.seen) {
-        let reward = await api.getLesson(element.id);
-        if (!reward) continue;
-        console.log(
-          "allRewards.push(value); currentStudent.rewards.bonus ",
-          element
-        );
-        allUnlockedRewards.push({
-          id: reward.docId,
-          type: LeaderboardRewardsType.BONUS,
-          image: reward.thumbnail,
-          name: reward.title,
-          leaderboardRewardList: LEADERBOARD_REWARD_LIST.BONUS,
-        });
-      }
-    }
-
-    for (let i = 0; i < currentStudent.rewards.sticker?.length; i++) {
-      const element = currentStudent.rewards.sticker[i];
-      if (!element.seen) {
-        let reward = await api.getStickerById(element.id);
-        if (!reward) continue;
-        console.log(
-          "allRewards.push(value); currentStudent.rewards.bonus ",
-          element
-        );
-        allUnlockedRewards.push({
-          id: element.id,
-          type: LeaderboardRewardsType.STICKER,
-          image: reward.image,
-          name: reward.name,
-          leaderboardRewardList: LEADERBOARD_REWARD_LIST.STICKER,
-        });
-      }
-    }
-
-    console.log("getAllUnlockedRewards() called ", allUnlockedRewards);
-
-    return allUnlockedRewards;
   }
 }

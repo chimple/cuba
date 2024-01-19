@@ -5,7 +5,6 @@ import { t } from "i18next";
 import LeaderboardBadges from "./LeaderboardBadges";
 import LeaderboardBonus from "./LeaderboardBonus";
 import "./LeaderboardRewards.css";
-import LeaderboardSticker from "./LeaderboardSticker";
 
 const LeaderboardRewards: FC = () => {
   const [tabIndex, setTabIndex] = useState(LEADERBOARD_REWARD_LIST.BADGES);
@@ -58,17 +57,10 @@ const LeaderboardRewards: FC = () => {
           value={LEADERBOARD_REWARD_LIST.BONUS}
           label={t(LEADERBOARD_REWARD_LIST.BONUS)}
         />
-        <Tab
-          id="parent-page-tab-bar"
-          value={LEADERBOARD_REWARD_LIST.STICKER}
-          label={t(LEADERBOARD_REWARD_LIST.STICKER)}
-        />
       </Tabs>
       {tabIndex === LEADERBOARD_REWARD_LIST.BADGES && <LeaderboardBadges />}
 
       {tabIndex === LEADERBOARD_REWARD_LIST.BONUS && <LeaderboardBonus />}
-
-      {tabIndex === LEADERBOARD_REWARD_LIST.STICKER && <LeaderboardSticker />}
     </div>
   );
 };

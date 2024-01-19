@@ -368,7 +368,7 @@ const Leaderboard: React.FC = () => {
             })}
           </div>
           <p id="leaderboard-left-note-message">
-            *** Be among the top performers in your class to win an exciting reward
+            *** Win 3 more rewards to be the top performer in your class
           </p>
         </div>
         <div id="leaderboard-right-UI">

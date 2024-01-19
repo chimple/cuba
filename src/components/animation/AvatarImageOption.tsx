@@ -24,14 +24,18 @@ const AvatarImageOption: React.FC<{
   currentCourse?: Course;
   currentChapter?: Chapter;
   currentLesson?: Lesson;
-  avatarObj: AvatarObj;
+  activitiesValue: number;
+  WeeklyProgressValue: {};
+  WeeklyGoalValue: number;
 }> = ({
   currentMode,
   currtStageMode,
   currentCourse,
   currentChapter,
   currentLesson,
-  avatarObj,
+  activitiesValue,
+  WeeklyProgressValue,
+  WeeklyGoalValue,
 }) => {
   const history = useHistory();
   let content: ReactNode | null = null;
@@ -47,22 +51,28 @@ const AvatarImageOption: React.FC<{
   }, []);
 
   switch (currentMode) {
-    case AvatarModes.collectReward:
-      content = cardContent(
-        avatarObj.currentRewardInfo.image,
-        avatarObj.currentRewardInfo.image,
-        avatarObj.currentRewardInfo.image
-      );
-
-      break;
     case AvatarModes.ShowWeeklyProgress:
       let percentage =
-        ((avatarObj.weeklyTimeSpent["min"] * 60 +
-          avatarObj.weeklyTimeSpent["sec"]) /
-          (avatarObj.weeklyProgressGoal * 60)) *
+        ((WeeklyProgressValue["min"] * 60 + WeeklyProgressValue["sec"]) /
+          (WeeklyGoalValue * 60)) *
         100;
 
       if (!percentage || percentage < 0) percentage = 0;
+
+      console.log(
+        "let percentage",
+        percentage,
+        // avatarObj.weeklyTimeSpent,
+        WeeklyProgressValue,
+        WeeklyGoalValue,
+        WeeklyProgressValue["min"] * 60,
+        WeeklyProgressValue["sec"],
+        (WeeklyProgressValue["min"] * 60 + WeeklyProgressValue["sec"],
+        WeeklyGoalValue * 60) * 100,
+        ((WeeklyProgressValue["min"] * 60 + WeeklyProgressValue["sec"]) /
+          (WeeklyGoalValue * 60)) *
+          100
+      );
 
       content = (
         <div
@@ -74,7 +84,7 @@ const AvatarImageOption: React.FC<{
         >
           <CircularProgressbar
             value={percentage}
-            text={`${avatarObj.weeklyTimeSpent["min"]} Min : ${avatarObj.weeklyTimeSpent["sec"]} Sec`}
+            text={`${WeeklyProgressValue["min"]} Min : ${WeeklyProgressValue["sec"]} Sec`}
             styles={{
               // Customize the root svg element
               root: {},

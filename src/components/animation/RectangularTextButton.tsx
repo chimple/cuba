@@ -2,8 +2,8 @@ import { t } from "i18next";
 import "./RectangularTextButton.css";
 import { useEffect, useState } from "react";
 const RectangularTextButton: React.FC<{
-  buttonWidth: string;
-  buttonHeight: string;
+  buttonWidth: number;
+  buttonHeight: number;
   text: string;
   fontSize: number;
   className: string;
@@ -24,8 +24,8 @@ const RectangularTextButton: React.FC<{
       className={className}
       onClick={onHeaderIconClick}
       style={{
-        width: buttonWidth,
-        height: buttonHeight,
+        width: buttonWidth + "vw",
+        height: buttonHeight + "vh",
         padding: padding + "vh",
         // background: "white",
       }}
