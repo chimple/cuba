@@ -9,21 +9,23 @@ export default class Rewards extends BaseObject {
   private _weekly: {
     [key: string]: { id: string; type: LeaderboardRewardsType }[];
   };
-  private _sticker: {
+  private _weeklySticker: {
     [key: string]: { id: string; type: LeaderboardRewardsType }[];
   };
 
   constructor({
     monthly,
     weekly,
-    sticker,
+    weeklySticker,
     updatedAt,
     createdAt,
     docId,
   }: {
     monthly: { [key: string]: { id: string; type: LeaderboardRewardsType }[] };
     weekly: { [key: string]: { id: string; type: LeaderboardRewardsType }[] };
-    sticker: { [key: string]: { id: string; type: LeaderboardRewardsType }[] };
+    weeklySticker: {
+      [key: string]: { id: string; type: LeaderboardRewardsType }[];
+    };
     updatedAt: Timestamp;
     createdAt: Timestamp;
     docId: string;
@@ -31,7 +33,7 @@ export default class Rewards extends BaseObject {
     super(updatedAt, createdAt, docId);
     this._monthly = monthly;
     this._weekly = weekly;
-    this._sticker = sticker;
+    this._weeklySticker = weeklySticker;
   }
 
   public get monthly(): {
@@ -58,15 +60,15 @@ export default class Rewards extends BaseObject {
     this._weekly = value;
   }
 
-  public get sticker(): {
+  public get weeklySticker(): {
     [key: string]: { id: string; type: LeaderboardRewardsType }[];
   } {
-    return this._sticker;
+    return this._weeklySticker;
   }
 
-  public set sticker(value: {
+  public set weeklySticker(value: {
     [key: string]: { id: string; type: LeaderboardRewardsType }[];
   }) {
-    this._sticker = value;
+    this._weeklySticker = value;
   }
 }
