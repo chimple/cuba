@@ -39,7 +39,7 @@ export class FirebaseAuth implements ServiceAuth {
   private _db = getFirestore();
   private _auth = getAuth(); //FirebaseAuth.whichAuth();
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): FirebaseAuth {
     if (!FirebaseAuth.i) {
@@ -60,12 +60,14 @@ export class FirebaseAuth implements ServiceAuth {
   //   return auth;
   // }
   private async updateUserPreferenceLanguage() {
-
     if (!!this._currentUser) {
       const appLang = localStorage.getItem(LANGUAGE);
       if (!!appLang) {
-        const languages = await ServiceConfig.getI().apiHandler.getAllLanguages();
-        const langDocId = languages.find(lang => lang.code === appLang)?.docId;
+        const languages =
+          await ServiceConfig.getI().apiHandler.getAllLanguages();
+        const langDocId = languages.find(
+          (lang) => lang.code === appLang
+        )?.docId;
         if (!!langDocId) {
           const langDoc = doc(
             this._db,
@@ -74,16 +76,18 @@ export class FirebaseAuth implements ServiceAuth {
 
           if (!!langDoc && this._currentUser.language?.id != langDoc?.id) {
             this._currentUser.language = langDoc;
-            await updateDoc(doc(this._db, `${CollectionIds.USER}/${this._currentUser.uid}`), {
-              language: this._currentUser.language,
-              updatedAt: Timestamp.now(),
-            });
+            await updateDoc(
+              doc(this._db, `${CollectionIds.USER}/${this._currentUser.uid}`),
+              {
+                language: this._currentUser.language,
+                updatedAt: Timestamp.now(),
+              }
+            );
           }
         }
       }
     }
   }
-
 
   public async googleSign(): Promise<boolean> {
     try {
@@ -232,6 +236,9 @@ export class FirebaseAuth implements ServiceAuth {
           const signInWithPhoneNumber = async () => {
             return new Promise(async (resolve, reject) => {
               try {
+                setTimeout(() => {
+                  reject("Timed out waiting for SMS");
+                }, 20000);
                 // Attach `phoneCodeSent` listener to be notified as soon as the SMS is sent
                 await FirebaseAuthentication.addListener(
                   "phoneCodeSent",
