@@ -16,3 +16,7 @@
 .leaderboard-badge-disabled {
   opacity: 0.2;
 }
+
+.leaderboard-next-unlock-text {
+  color: var(--text-color);
+}

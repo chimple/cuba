@@ -5,6 +5,7 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { LeaderboardRewardsType } from "../../common/constants";
 import "./LeaderboardBonus.css";
 import LessonCard from "../LessonCard";
+import { t } from "i18next";
 
 interface BonusInfo {
   bonus: Lesson | undefined;
@@ -33,6 +34,8 @@ const LeaderboardBonus: FC = () => {
 
     for (const unlockedBonus of nextUnlockBonuses) {
       if (unlockedBonus) {
+        let newBonus = unlockedBonus;
+        newBonus.title = t("This Month's Reward");
         bonusInfoArray.push({
           bonus: unlockedBonus,
           isUnlocked: false,
