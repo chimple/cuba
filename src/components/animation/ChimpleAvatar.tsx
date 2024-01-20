@@ -103,22 +103,29 @@ const ChimpleAvatar: FC<{
       );
       await speak(message);
     } else if (avatarObj.mode === AvatarModes.RecommendedLesson) {
-      avatarObj.currentRecommededLessonIndex = 0;
+      // avatarObj.currentRecommendedLessonIndex = 0;
+      if (
+        !avatarObj.currentRecommendedLessonIndex ||
+        avatarObj.currentRecommendedLessonIndex >= recommadedSuggestion.length
+      ) {
+        avatarObj.currentRecommendedLessonIndex = 0;
+      }
       console.log(
         "setCurrentLesson(recommadedSuggestion[0]);",
-        recommadedSuggestion[avatarObj.currentRecommededLessonIndex]
+        recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]
       );
       setCurrentLesson(
-        recommadedSuggestion[avatarObj.currentRecommededLessonIndex]
+        recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]
       );
       const x3 =
-        recommadedSuggestion[avatarObj.currentRecommededLessonIndex]?.title ||
+        recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]?.title ||
         "";
       message = t(`Do you want to play 'x3' lesson?`)
         .replace("x3", " " + x3 + " ")
         .replace(
           "lesson?",
-          currentLesson?.assignment || cLesson?.assignment
+          recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]
+            .assignment
             ? "assignment"
             : "lesson"
         );
@@ -400,10 +407,10 @@ const ChimpleAvatar: FC<{
           //   await loadNextSuggestion();
           //   return;
           // }
-          avatarObj.currentRecommededLessonIndex++;
+          avatarObj.currentLessonSuggestionIndex++;
           console.log(
             "currentStageIndex++;",
-            avatarObj.currentRecommededLessonIndex
+            avatarObj.currentLessonSuggestionIndex
           );
           let recomLesson = await getRecommendedLesson(cChapter, currentCourse);
           setCurrentLesson(recomLesson);
@@ -545,29 +552,29 @@ const ChimpleAvatar: FC<{
         return cLesson;
       }
     } else if (currentMode === AvatarModes.RecommendedLesson) {
+      avatarObj.currentRecommendedLessonIndex++;
       console.log(
-        "currentStageIndex++;",
-        avatarObj.currentRecommededLessonIndex,
+        "avatarObj.currentRecommendedLessonIndex",
+        avatarObj.currentRecommendedLessonIndex,
         recommadedSuggestion.length,
-        avatarObj.currentRecommededLessonIndex === recommadedSuggestion.length
+        avatarObj.currentRecommendedLessonIndex === recommadedSuggestion.length
       );
 
       if (
-        avatarObj.currentRecommededLessonIndex === recommadedSuggestion.length
+        avatarObj.currentRecommendedLessonIndex === recommadedSuggestion.length
       ) {
-        avatarObj.currentRecommededLessonIndex = 0;
+        avatarObj.currentRecommendedLessonIndex = 0;
       }
       setCurrentLesson(
-        recommadedSuggestion[avatarObj.currentRecommededLessonIndex]
+        recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]
       );
       console.log(
-        "recommadedSuggestion[currentStageIndex];",
+        "recommadedSuggestion[avatarObj.currentRecommendedLessonIndex];",
         // recommadedSuggestion,
-        avatarObj.currentRecommededLessonIndex,
-        recommadedSuggestion[avatarObj.currentRecommededLessonIndex]
+        avatarObj.currentRecommendedLessonIndex,
+        recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]
       );
-
-      return recommadedSuggestion[avatarObj.currentRecommededLessonIndex];
+      return recommadedSuggestion[avatarObj.currentRecommendedLessonIndex];
     }
   }
 
