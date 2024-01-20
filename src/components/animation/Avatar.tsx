@@ -52,7 +52,8 @@ export class AvatarObj {
   currentCourse: Course;
   currentChapter: Chapter;
   currentLesson: Lesson | undefined;
-  currentRecommededLessonIndex: number;
+  currentLessonSuggestionIndex: number;
+  currentRecommendedLessonIndex: number = 0;
   weeklyProgressGoal: number = 25;
   weeklyTimeSpent: {} = { min: 0, sec: 0 };
   weeklyPlayedLesson: number = 0;
@@ -495,9 +496,6 @@ export class AvatarObj {
       ) {
         this._mode = AvatarModes.ShowWeeklyProgress;
       }
-      // if (this.weeklyTimeSpent["min"] * 60 >= this.weeklyProgressGoal * 60) {
-      //   // Util.updateUserStickerReward();
-      // }
     } catch (error) {
       console.log("loadAvatarWeeklyProgressData error ", error);
     }
