@@ -22,6 +22,8 @@ const LeaderboardRewards: FC = () => {
     if (rewardsTab) {
       if (rewardsTab === LEADERBOARD_REWARD_LIST.BONUS.toLowerCase()) {
         currentTab = LEADERBOARD_REWARD_LIST.BONUS;
+      } else if (rewardsTab === LEADERBOARD_REWARD_LIST.STICKER.toLowerCase()) {
+        currentTab = LEADERBOARD_REWARD_LIST.STICKER;
       }
     }
     setTabIndex(currentTab);
