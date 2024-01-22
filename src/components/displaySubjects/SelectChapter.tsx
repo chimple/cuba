@@ -5,6 +5,7 @@ import Grade from "../../models/grade";
 import DropDown from "../DropDown";
 import Course from "../../models/course";
 import SelectIconImage from "./SelectIconImage";
+import DownloadLesson from "../DownloadChapterAndLesson";
 
 const SelectChapter: FC<{
   chapters: Chapter[];
@@ -13,7 +14,7 @@ const SelectChapter: FC<{
   course: Course;
   currentGrade: Grade;
   onGradeChange: (grade: Grade) => void;
-  currentChapterId : string | undefined;
+  currentChapterId: string | undefined;
 }> = ({
   chapters,
   onChapterChange,
@@ -26,7 +27,7 @@ const SelectChapter: FC<{
   let currentChapterRef = useRef<any>();
 
   useEffect(() => {
-    currentChapterRef.current?.scrollIntoView({ behavior: 'instant' });
+    currentChapterRef.current?.scrollIntoView({ behavior: "instant" });
   }, []);
   return (
     <div>
@@ -35,21 +36,28 @@ const SelectChapter: FC<{
         {chapters.map((chapter) => {
           return (
             <div
-              ref = {currentChapterId === chapter.id ? currentChapterRef : undefined}
+              ref={
+                currentChapterId === chapter.id ? currentChapterRef : undefined
+              }
               onClick={() => {
                 onChapterChange(chapter);
               }}
               className="chapter-button"
               key={chapter.id}
             >
-              <div className="chapter-icon">
-                <SelectIconImage
-                  localSrc={`courses/${course.courseCode}/icons/${chapter.id}.webp`}
-                  defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
-                  webSrc={chapter.thumbnail}
-                />
+              <div className="chapter-icon-and-chapter-download-container">
+                <div className="chapter-icon">
+                  <SelectIconImage
+                    localSrc={`courses/${course.courseCode}/icons/${chapter.id}.webp`}
+                    defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
+                    webSrc={chapter.thumbnail}
+                  />
+                </div>
+                <div>{chapter.title}</div>
+                <div className="chapter-download">
+                  <DownloadLesson chapters={chapter} />
+                </div>
               </div>
-              {chapter.title}
             </div>
           );
         })}

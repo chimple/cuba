@@ -1,19 +1,33 @@
 import { t } from "i18next";
 import "./RectangularTextButton.css";
+import { useEffect, useState } from "react";
 const RectangularTextButton: React.FC<{
-  buttonWidth: number;
-  buttonHeight: number;
+  buttonWidth: string;
+  buttonHeight: string;
   text: string;
   fontSize: number;
+  className: string;
+  padding: number;
   onHeaderIconClick: React.MouseEventHandler<HTMLDivElement>;
-}> = ({ buttonWidth, buttonHeight, text, fontSize, onHeaderIconClick }) => {
+}> = ({
+  buttonWidth,
+  buttonHeight,
+  text,
+  fontSize,
+  onHeaderIconClick,
+  className,
+  padding,
+}) => {
   return (
     <div
-      id="rectangular-text-button"
+      // id="rectangular-text-button"
+      className={className}
       onClick={onHeaderIconClick}
       style={{
-        width: buttonWidth + "vw",
-        height: buttonHeight + "vh",
+        width: buttonWidth,
+        height: buttonHeight,
+        padding: padding + "vh",
+        // background: "white",
       }}
     >
       <p

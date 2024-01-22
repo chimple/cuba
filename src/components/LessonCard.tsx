@@ -1,7 +1,14 @@
 import { IonCard } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { LESSON_CARD_COLORS, PAGES } from "../common/constants";
+import {
+  COCOS,
+  CONTINUE,
+  LESSON_CARD_COLORS,
+  LIVE_QUIZ,
+  PAGES,
+  TYPE,
+} from "../common/constants";
 import "./LessonCard.css";
 import LessonCardStarIcons from "./LessonCardStarIcons";
 import React from "react";
@@ -13,6 +20,7 @@ import { t } from "i18next";
 import LovedIcon from "./LovedIcon";
 import SelectIconImage from "./displaySubjects/SelectIconImage";
 import { Util } from "../utility/util";
+import DownloadLesson from "./DownloadChapterAndLesson";
 
 const LessonCard: React.FC<{
   width: string;
@@ -29,7 +37,7 @@ const LessonCard: React.FC<{
   isLoved: boolean | undefined;
   lessonData: Lesson[];
   startIndex: number;
-  showChapterName : boolean;
+  showChapterName: boolean;
 }> = ({
   width,
   height,
@@ -80,26 +88,23 @@ const LessonCard: React.FC<{
       return;
     }
     const api = ServiceConfig.getI().apiHandler;
-      const courses =
-        await api.getCoursesForParentsStudent(
-          currentStudent
-        );
-      console.log("Student Courses ", courses);
+    const courses = await api.getCoursesForParentsStudent(currentStudent);
+    console.log("Student Courses ", courses);
 
-      let currentCourse = courses.find(
-        (course) => lesson.cocosSubjectCode === course.courseCode
-      );
+    let currentCourse = courses.find(
+      (course) => lesson.cocosSubjectCode === course.courseCode
+    );
 
-      console.log("current Course ", currentCourse);
-      if (!currentCourse) {
-        let lessonCourse = await api.getCourseFromLesson(lesson);
-        if (!!lessonCourse) {
-          console.log("current Course from all courses ", lessonCourse);
-          setCurrentCourse(lessonCourse)
-        }
-      } else {
-        setCurrentCourse(currentCourse);
+    console.log("current Course ", currentCourse);
+    if (!currentCourse) {
+      let lessonCourse = await api.getCourseFromLesson(lesson);
+      if (!!lessonCourse) {
+        console.log("current Course from all courses ", lessonCourse);
+        setCurrentCourse(lessonCourse);
       }
+    } else {
+      setCurrentCourse(currentCourse);
+    }
   };
 
   // const lessonCardColor =
@@ -139,24 +144,33 @@ const LessonCard: React.FC<{
           // } else {
           // console.log("LessonCard course: subject,", subject);
           console.log("LessonCard course: course,", currentCourse);
-
-          const parmas = `?courseid=${lesson.cocosSubjectCode}&chapterid=${lesson.cocosChapterCode}&lessonid=${lesson.id}`;
-          console.log(
-            "🚀 ~ file: LessonCard.tsx:73 ~ parmas:",
-            parmas,
-            Lesson.toJson(lesson)
-          );
-          history.push(PAGES.GAME + parmas, {
-            url: "chimple-lib/index.html" + parmas,
-            lessonId: lesson.id,
-            courseDocId: course?.docId ?? lesson?.assignment?.course?.id,
-            course: JSON.stringify(Course.toJson(currentCourse!)),
-            lesson: JSON.stringify(Lesson.toJson(lesson)),
-            from: history.location.pathname + "?continue=true",
-          });
-          // }
-        } else {
-          console.log(lesson?.title, "lesson is locked");
+          if (lesson.pluginType === COCOS) {
+            const parmas = `?courseid=${lesson.cocosSubjectCode}&chapterid=${lesson.cocosChapterCode}&lessonid=${lesson.id}`;
+            console.log(
+              "🚀 ~ file: LessonCard.tsx:73 ~ parmas:",
+              parmas,
+              Lesson.toJson(lesson)
+            );
+            history.replace(PAGES.GAME + parmas, {
+              url: "chimple-lib/index.html" + parmas,
+              lessonId: lesson.id,
+              courseDocId: course?.docId ?? lesson?.assignment?.course?.id,
+              course: JSON.stringify(Course.toJson(currentCourse!)),
+              lesson: JSON.stringify(Lesson.toJson(lesson)),
+              from: history.location.pathname + `?${CONTINUE}=true`,
+            });
+          } else if (
+            !!lesson?.assignment?.docId &&
+            lesson.pluginType === LIVE_QUIZ
+          ) {
+            history.replace(
+              PAGES.LIVE_QUIZ_JOIN +
+                `?assignmentId=${lesson?.assignment?.docId}`,
+              {
+                assignment: JSON.stringify(lesson?.assignment),
+              }
+            );
+          }
         }
       }}
       // disabled={!isUnlocked}
@@ -180,15 +194,27 @@ const LessonCard: React.FC<{
           color={lessonCardColor}
         >
           <div id="lesson-card-homework-icon">
-            {lesson.assignment != undefined ? (
-              <div>
-                <img
-                  src="assets/icons/homework_icon.svg"
-                  className="lesson-card-homework-indicator"
-                />
-              </div>
-            ) : null}
+            {lesson.assignment !== undefined &&
+              (!(TYPE in lesson.assignment) ||
+              lesson.assignment.type !== LIVE_QUIZ ? (
+                <div>
+                  <img
+                    src="assets/icons/homework_icon.svg"
+                    className="lesson-card-homework-indicator"
+                    alt="Homework Icon"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <img
+                    src="/assets/icons/quiz_icon.svg"
+                    className="lesson-card-homework-indicator"
+                    alt="Quiz Icon"
+                  />
+                </div>
+              ))}
           </div>
+
           {showSubjectName && currentCourse?.title ? (
             <div id="lesson-card-subject-name">
               <p>
@@ -223,6 +249,8 @@ const LessonCard: React.FC<{
               }
               defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
               webSrc={lesson.thumbnail}
+              imageWidth={"100%"}
+              imageHeight={"100%"}
             />
             {!isUnlocked ? (
               <div id="lesson-card-status-icon">
@@ -235,8 +263,12 @@ const LessonCard: React.FC<{
               </div>
             ) : isPlayed ? (
               showScoreCard ? (
-                <div id="lesson-card-score">
-                  <LessonCardStarIcons score={score}></LessonCardStarIcons>
+                <div>
+                  <div id="lesson-card-score">
+                    <LessonCardStarIcons score={score}></LessonCardStarIcons>
+                  </div>
+
+                  {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
                 </div>
               ) : (
                 <></>
@@ -245,15 +277,31 @@ const LessonCard: React.FC<{
               <div />
             )}
           </div>
-          {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />}
+
+          {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
         </div>
+        <div className="lesson-download-button-container">
+          <DownloadLesson lessonID={lesson.id} lessonData={lessonData} />
+        </div>
+        {isLoved && (
+          <LovedIcon
+            isLoved={isLoved}
+            hasChapterTitle={!!lesson.chapterTitle && showChapterName}
+          />
+        )}
       </div>
-      {showText ? <p id="lesson-card-name">{t(lesson?.title)}</p> : null}
-      {showChapterName && lesson.chapterTitle &&
-        <div id="chapter-title">
-          {lesson.chapterTitle}
-        </div>
-      }
+      <div>
+        {showText ? (
+          <p id={`lesson-card-name${isLoved ? "-fav-icon" : ""}`}>
+            {t(lesson?.title)}
+          </p>
+        ) : null}
+        {showChapterName && lesson.chapterTitle && (
+          <div id={`chapter-title${isLoved ? "-fav-icon" : ""}`}>
+            {lesson.chapterTitle}
+          </div>
+        )}
+      </div>
     </IonCard>
   );
 };

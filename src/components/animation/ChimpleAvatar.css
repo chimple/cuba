@@ -1,0 +1,107 @@
+.avatar-option-box-background {
+  width: 50vw;
+  height: 75vh;
+  border-radius: 6vh;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  box-shadow: 10px 10px 5px #dbdbdb;
+  position: relative;
+}
+
+.rive-container {
+  position: relative;
+}
+
+.rive-component {
+  width: 35vw;
+  height: 70vh;
+  position: relative;
+  z-index: 1;
+}
+
+#rive-avatar-shadow {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  top: 80%;
+  transform: translateX(-50%) rotateX(60deg);
+  width: 20vw;
+  height: 15vh;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  z-index: 0;
+}
+
+@keyframes burst {
+  to {
+    opacity: 0;
+    transform: translateX(-100%) scale(0);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes scale {
+  from {
+    transform: scale(0);
+  }
+}
+
+.burst {
+  animation: burst 0.9s ease-in alternate-reverse;
+}
+
+.buttons-in-avatar-option-box {
+  margin: 2% 0 2% 0;
+  /* width: 38vw; */
+  display: flex;
+  align-items: center;
+
+  /* padding-bottom: 3vh;
+    padding-top: 2vh;
+    padding-left: 2vw;
+    padding-right: 3vw;
+    margin-top: 3vh; */
+}
+.chimple-avatar-chatbox-bubble1,
+.chimple-avatar-chatbox-bubble2,
+.chimple-avatar-chatbox-bubble3,
+.chimple-avatar-chatbox-bubble4 {
+  background-color: white;
+  position: absolute;
+  border-radius: 50%;
+}
+.chimple-avatar-chatbox-bubble1 {
+  width: 3vw;
+  height: 5vh;
+  right: 50vw;
+  right: 50.4vw;
+  top: 8vh;
+  margin-top: 0;
+}
+
+.chimple-avatar-chatbox-bubble2 {
+  width: 2.5vw;
+  height: 4vh;
+  right: 53.3vw;
+  top: 12vh;
+}
+.chimple-avatar-chatbox-bubble3 {
+  width: 1.7vw;
+  height: 3vh;
+  right: 55.8vw;
+  top: 15.8vh;
+}
+.chimple-avatar-chatbox-bubble4 {
+  width: 1.2vw;
+  height: 2vh;
+  right: 57.9vw;
+  top: 18.9vh;
+}

@@ -11,12 +11,17 @@ import StudentProfile from "../../models/studentProfile";
 import Class from "../../models/class";
 import School from "../../models/school";
 import Assignment from "../../models/assignment";
-import { MODES } from "../../common/constants";
-import { FaUnderline } from "react-icons/fa";
-import Avatar from "../../models/avatar";
+import { LeaderboardDropdownList, MODES } from "../../common/constants";
+import { AvatarObj } from "../../components/animation/Avatar";
+import { DocumentData, Unsubscribe } from "firebase/firestore";
+import LiveQuizRoomObject from "../../models/liveQuizRoom";
+import Badge from "../../models/Badge";
+import Rewards from "../../models/Rewards";
+import Sticker from "../../models/Sticker";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
+  monthly: StudentLeaderboardInfo[];
   allTime: StudentLeaderboardInfo[];
 }
 
@@ -101,6 +106,13 @@ export interface ServiceApi {
   getLanguageWithId(id: string): Promise<Language | undefined>;
 
   /**
+   * Gives Lesson for a given CocosLesson Id
+   * @param lessonId - Cocos Lesson Id
+   * Here lessonId is - In Firebase we have Lesson collection in that collection each doc is one lesson in that lesson we have ID
+   */
+  getLessonWithCocosLessonId(lessonId: string): Promise<Lesson | null>;
+
+  /**
    * Gives List of subjects for given a student for Home user
    * @param {User} student - Student User object
    * @returns {Course[]} Array of `Course` objects
@@ -121,7 +133,8 @@ export interface ServiceApi {
   getLesson(
     id: string,
     chapter: Chapter | undefined,
-    loadChapterTitle: boolean
+    loadChapterTitle: boolean,
+    assignment: Assignment | undefined
   ): Promise<Lesson | undefined>;
 
   /**
@@ -142,9 +155,9 @@ export interface ServiceApi {
 
   /**
    * Gives all Avatar info like mode, audio list
-   * @returns {Avatar} `Avatar` Object
+   * @returns {AvatarObj} `Avatar` Object
    */
-  getAvatarInfo(): Promise<Avatar | undefined>;
+  getAvatarInfo(): Promise<AvatarObj | undefined>;
 
   /**
    * Gives all lesson results for given student id
@@ -154,6 +167,23 @@ export interface ServiceApi {
   getLessonResultsForStudent(
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined>;
+
+  /**
+   * This function gets all live quizzes from assignments for a student in a class.
+   * Gives Array of `Assignments` objects for a given `classID`
+   * @param {classId} classId firebase doc id
+   * @param {studentId} studentId firebase doc id
+   * @returns {Assignment[]} A promise that resolves to an array of assignments.
+   */
+  getLiveQuizLessons(classId: string, studentId: string): Promise<Assignment[]>;
+  /**
+   * This function gets the document of the live quiz room
+   * @param liveQuizRoomDocId firebase doc id
+   * @return {DocumentData} A promise that returns the document of live quiz room
+   */
+  getLiveQuizRoomDoc(
+    liveQuizRoomDocId: string
+  ): Promise<DocumentData | undefined>;
   /**
    * Creates a Document in Result collection with the given params
    * student: User
@@ -334,12 +364,22 @@ export interface ServiceApi {
    * This function gives Leaderboard results of b2c or b2b Users
    *
    * @param sectionId section ID of connected class. If user didn't Connected to class this function gives b2c user
-   * @param isWeeklyData If true, it will gives the weekly data from the Collection. False for it will gives the All Time data from the Collection
+   * @param leaderboardDropdownType If true, it will gives the weekly data from the Collection. False for it will gives the All Time data from the Collection
    * @returns A promise that resolves to the student.
    */
   getLeaderboardResults(
     sectionId: string,
-    isWeeklyData: boolean
+    leaderboardDropdownType: LeaderboardDropdownList
+  ): Promise<LeaderboardInfo | undefined>;
+
+  /**
+   * This function gives b2c Leaderboard results of given studentId
+   *
+   * @param studentId The unique identifier of the student for whom the results are being updated.
+   * @returns A promise that resolves to the student.
+   */
+  getLeaderboardStudentResultFromB2CCollection(
+    studentId: string
   ): Promise<LeaderboardInfo | undefined>;
 
   /**
@@ -379,8 +419,94 @@ export interface ServiceApi {
   deleteAllUserData(): Promise<void>;
 
   /**
-   * 
-   * It will get Course Object using lesson cocosSubjectcode from all courses 
+   *
+   * It will get Course Object using lesson cocosSubjectcode from all courses
    */
   getCourseFromLesson(lesson: Lesson): Promise<Course | undefined>;
+
+  /**
+   * Establishes a real-time listener for changes in a live quiz room document.
+   *
+   * @param liveQuizRoomDocId - The unique identifier of the live quiz room document.
+   * @param onDataChange - A callback function to be executed when the data in the live quiz room document changes.
+   *                        It receives the updated LiveQuizRoom object as a parameter.
+   * @returns A function to unsubscribe from the real-time listener.
+   */
+  liveQuizListener(
+    liveQuizRoomDocId: string,
+    onDataChange: (user: LiveQuizRoomObject) => void
+  ): Unsubscribe;
+
+  /**
+   * Updates the live quiz results for a specific student in a live quiz room.
+   *
+   * @param roomDocId - The unique identifier of the live quiz room document.
+   * @param studentId - The unique identifier of the student for whom the results are being updated.
+   * @param questionId - The ID of the question.
+   * @param score - The new score achieved by the student in the quiz.
+   * @param timeSpent - The new amount of time spent by the student on the quiz.
+   * @returns A promise that resolves when the update is successful and rejects if an error occurs.
+   */
+  updateLiveQuiz(
+    roomDocId: string,
+    studentId: string,
+    questionId: string,
+    timeSpent: number,
+    score: number
+  ): Promise<void>;
+
+  /**
+   * Initiates the process for a student to join a live quiz.
+   *
+   * @param studentId - The unique identifier of the student joining the live quiz.
+   * @param assignmentId - The unique identifier of the assignment associated with the live quiz.
+   * @returns A promise that resolves with a live quiz Room doc id upon successful initiation,
+   *          or undefined if an error occurs during the process.
+   */
+  joinLiveQuiz(
+    studentId: string,
+    assignmentId: string
+  ): Promise<string | undefined>;
+
+  /**
+   * Gives Assignment for given a Assignment firebase doc Id
+   * @param {string} id - Assignment firebase doc id
+   * @returns {Assignment | undefined}`Assignment` or `undefined` if it could not find the Assignment with given `id`
+   */
+  getAssignmentById(id: string): Promise<Assignment | undefined>;
+
+  /**
+   * Gives Badge for given a Badge firebase doc Id
+   * @param {string} id - Badge firebase doc id
+   * @returns {Badge | undefined}`Badge` or `undefined` if it could not find the Badge with given `id`
+   */
+  getBadgeById(id: string): Promise<Badge | undefined>;
+
+  /**
+   * Gives Sticker for given a Sticker firebase doc Id
+   * @param {string} id - Sticker firebase doc id
+   * @returns {Badge | undefined}`Sticker` or `undefined` if it could not find the Sticker with given `id`
+   */
+  getStickerById(id: string): Promise<Sticker | undefined>;
+
+  /**
+   * Gives Rewards for given a Rewards firebase doc Id
+   * @param {string} id - Rewards firebase doc id
+   * @returns {Rewards | undefined}`Rewards` or `undefined` if it could not find the Rewards with given `id`
+   */
+  getRewardsById(id: string): Promise<Rewards | undefined>;
+
+  /**
+   * Updates the rewards of a student, marking all rewards as seen.
+   * @param studentId - The ID of the student whose rewards need to be updated.
+   * @returns A Promise that resolves with void when the update is complete.
+   */
+  updateRewardAsSeen(studentId: string): Promise<void>;
+
+  /**
+   * gets student info from firestore
+   * @param studentId - The ID of the current student.
+   * @returns A Promise that resolves with void when the update is complete.
+   */
+  getUserByDocId(studentId: string): Promise<User | undefined>;
 }

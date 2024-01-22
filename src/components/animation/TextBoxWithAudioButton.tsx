@@ -1,30 +1,51 @@
 import { useState } from "react";
-import { HiSpeakerWave } from "react-icons/hi2";
 import AudioComponent from "./AudioButtonComponent";
+import { t } from "i18next";
 
-export default function TextBoxWithAudioButton({ message }) {
+interface TextBoxWithAudioButtonProps {
+  fontSize: string;
+  onClick?: () => void; // Define the prop for the callback function
+  message: string;
+}
+export default function TextBoxWithAudioButton({ message, fontSize, onClick }) {
   return (
-    <div>
-      <div
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "2vw",
+        borderRadius: "2vh",
+        // backgroundColor: "white",
+        // outline: "auto",
+        padding: "1vw 1vw 1vw 1vw",
+        color: "black",
+        // flexWrap: "wrap",
+        width: "100%",
+        // maxWidth: "38vw", // Set a maximum width for the container
+        lineHeight: "4vh",
+        // fontSize: "1vw",
+        paddingBottom:"2vh"
+      }}
+    >
+      <AudioComponent
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "5vw",
-          borderRadius: "2vh",
+          fontSize: "4vw",
+          padding: "1%",
+          color: "#474747",
           backgroundColor: "white",
-          outline: "auto",
-          padding: "1vw 3vw",
+          borderRadius: "100%",
+          border: "2px solid #474747",
+          borderBottom: "4.5px solid #474747",
+        }}
+        onClick={onClick}
+      ></AudioComponent>
+      <p
+        style={{
+          fontSize: fontSize,
         }}
       >
-        <AudioComponent
-          style={{
-            fontsize: "10vh",
-          }}
-          audioSrc={"assets/audios/my_name_is_chimple.mp3"}
-          // audioSrc={"https://samplelib.com/lib/preview/mp3/sample-6s.mp3"}
-        ></AudioComponent>
-        <p>{message}</p>
-      </div>
+        {message}
+      </p>
     </div>
   );
 }

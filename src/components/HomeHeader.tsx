@@ -16,7 +16,6 @@ import { Util } from "../utility/util";
 import User from "../models/user";
 import { useHistory } from "react-router";
 import { schoolUtil } from "../utility/schoolUtil";
-import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 
 const HomeHeader: React.FC<{
   currentHeader: string;
@@ -31,52 +30,38 @@ const HomeHeader: React.FC<{
   const history = useHistory();
   const [student, setStudent] = useState<User>();
   const [studentMode, setStudentMode] = useState<string | undefined>();
-  const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
-
-  async function init() {
-    try {
-      const [canShowAvatarValue, student, currMode] = await Promise.all([
-        Util.getCanShowAvatar(),
-        Util.getCurrentStudent(),
-        schoolUtil.getCurrMode(),
-      ]);
-
-      console.log(
-        "const canShowAvatarValue in homeHeader ",
-        canShowAvatarValue,
-        await Util.getCanShowAvatar()
-      );
-      setCanShowAvatar(canShowAvatarValue);
-
-      if (!student) {
-        history.replace(PAGES.HOME);
-        throw new Error("No student found");
-      }
-
-      setStudentMode(currMode);
-
-      DEFAULT_HEADER_ICON_CONFIGS.forEach(async (element) => {
-        console.log("element.headerList", element.headerList);
-        if (
-          !(
-            (currMode === MODES.SCHOOL &&
-              element.headerList === HOMEHEADERLIST.ASSIGNMENT) ||
-            (canShowAvatarValue === false &&
-              element.headerList === HOMEHEADERLIST.SUGGESTIONS)
-          )
-        ) {
-          headerIconList.push(element);
-        }
-      });
-
-      if (!headerIconList) return;
-
-      setCurrentHeaderIconList(headerIconList);
-      setStudent(student);
-    } catch (error) {
-      console.error("Error in init:", error);
+  const [isLinked, setIsLinked] = useState(false);
+  const api = ServiceConfig.getI().apiHandler;
+  const init = async (fromCache: boolean = true) => {
+    const student = await Util.getCurrentStudent();
+    if (!student) {
+      history.replace(PAGES.HOME);
+      return;
     }
-  }
+    const linked = await api.isStudentLinked(student.docId, fromCache);
+    setIsLinked(linked);
+    const currMode = await schoolUtil.getCurrMode();
+    setStudentMode(currMode);
+    DEFAULT_HEADER_ICON_CONFIGS.forEach((element) => {
+      // console.log("elements", element);
+
+      console.log(currMode);
+      if (
+        !(
+          currMode === MODES.SCHOOL &&
+          element.headerList === HOMEHEADERLIST.ASSIGNMENT
+        )
+      ) {
+        headerIconList.push(element);
+      }
+    });
+
+    if (!headerIconList) return;
+
+    setCurrentHeaderIconList(headerIconList);
+
+    setStudent(student);
+  };
 
   useEffect(() => {
     init();
@@ -105,6 +90,9 @@ const HomeHeader: React.FC<{
       <div id="home-header-middle-icons">
         {!!currentHeaderIconList &&
           currentHeaderIconList.map((element, index) => {
+            if (!isLinked && element.headerList === HOMEHEADERLIST.LIVEQUIZ) {
+              return null;
+            }
             return (
               <HeaderIcon
                 key={index}

@@ -23,7 +23,7 @@ import "./theme/variables.css";
 import Home from "./pages/Home";
 import CocosGame from "./pages/CocosGame";
 import { End } from "./pages/End";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import Profile from "./pages/Profile";
@@ -34,6 +34,7 @@ import {
   // APP_LANG,
   BASE_NAME,
   CACHE_IMAGE,
+  CONTINUE,
   GAME_URL,
   IS_CUBA,
   PAGES,
@@ -55,13 +56,74 @@ import { FirebaseRemoteConfig } from "@capacitor-firebase/remote-config";
 import HotUpdate from "./pages/HotUpdate";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import DisplayChapters from "./pages/DisplayChapters";
+import LiveQuizRoom from "./pages/LiveQuizRoom";
+import LiveQuiz from "./pages/LiveQuiz";
+import { AvatarObj } from "./components/animation/Avatar";
+import { REMOTE_CONFIG_KEYS, RemoteConfig } from "./services/RemoteConfig";
+import LiveQuizGame from "./pages/LiveQuizGame";
+import LiveQuizRoomResult from "./pages/LiveQuizRoomResult";
+import LiveQuizLeaderBoard from "./pages/LiveQuizLeaderBoard";
+import { useOnlineOfflineErrorMessageHandler } from "./common/onlineOfflineErrorMessageHandler";
+import { t } from "i18next";
 
 setupIonicReact();
 
 const App: React.FC = () => {
+  const [online, setOnline] = useState(navigator.onLine);
+  const { presentToast } = useOnlineOfflineErrorMessageHandler();
+
+  useEffect(() => {
+    const handleOnline = () => {
+      if (!online) {
+        setOnline(true);
+        presentToast({
+          message: "Device is online.",
+          color: "success",
+          duration: 3000,
+          position: "bottom",
+          buttons: [
+            {
+              text: "Dismiss",
+              role: "cancel",
+            },
+          ],
+        });
+      }
+    };
+
+    const handleOffline = () => {
+      setOnline(false);
+      presentToast({
+        message: "Device is offline.",
+        color: "danger",
+        duration: 3000,
+        position: "bottom",
+        buttons: [
+          {
+            text: "Dismiss",
+            role: "cancel",
+          },
+        ],
+      });
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [online, presentToast]);
+
   useEffect(() => {
     console.log("fetching...");
     // localStorage.setItem(LANGUAGE, LANG.ENGLISH);
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get(CONTINUE) || PAGES.APP_UPDATE) {
+      urlParams.delete(CONTINUE);
+      CapApp.addListener("appStateChange", Util.onAppStateChange);
+    }
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({
@@ -80,14 +142,14 @@ const App: React.FC = () => {
             localStorage.setItem(GAME_URL, uri + "/");
           }
         });
-      CapApp.addListener("appStateChange", Util.onAppStateChange);
+      //CapApp.addListener("appStateChange", Util.onAppStateChange);
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
     }
 
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,
-    }).catch((_) => { });
+    }).catch((_) => {});
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
@@ -98,9 +160,31 @@ const App: React.FC = () => {
     //Listen to network change
     Util.listenToNetwork();
 
-    //Initialize firebase remote config
-    FirebaseRemoteConfig.fetchAndActivate();
+    updateAvatarSuggestionJson();
   }, []);
+
+  async function updateAvatarSuggestionJson() {
+    // Update Avatar Suggestion local Json
+    try {
+      //Initialize firebase remote config
+      await FirebaseRemoteConfig.fetchAndActivate();
+
+      const CAN_UPDATE_AVATAR_SUGGESTION_JSON = await RemoteConfig.getString(
+        REMOTE_CONFIG_KEYS.CAN_UPDATED_AVATAR_SUGGESTION_URL
+      );
+
+      Util.migrateLocalJsonFile(
+        // "assets/animation/avatarSugguestions.json",
+        CAN_UPDATE_AVATAR_SUGGESTION_JSON,
+        "assets/animation/avatarSugguestions.json",
+        "assets/avatarSugguestions.json",
+        "avatarSuggestionJsonLocation"
+      );
+      // localStorage.setItem(AvatarObj._i.suggestionConstant(), "0");
+    } catch (error) {
+      console.error("Util.migrateLocalJsonFile failed ", error);
+    }
+  }
 
   return (
     <IonApp>
@@ -164,9 +248,21 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
               <SelectMode />
             </ProtectedRoute>
+            <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
+              <LiveQuizRoom />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.LIVE_QUIZ_GAME} exact={true}>
+              <LiveQuizGame />
+            </ProtectedRoute>
             <Route path={PAGES.TERMS_AND_CONDITIONS} exact={true}>
               <TermsAndConditions />
             </Route>
+            <ProtectedRoute path={PAGES.LIVE_QUIZ_ROOM_RESULT} exact={true}>
+              <LiveQuizRoomResult />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.LIVE_QUIZ_LEADERBOARD} exact={true}>
+              <LiveQuizLeaderBoard />
+            </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
       </IonReactRouter>

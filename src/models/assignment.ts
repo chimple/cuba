@@ -13,6 +13,9 @@ export default class Assignment extends BaseObject {
   private _results: object;
   private _school: DocumentReference;
   private _course: DocumentReference;
+  private _type: string;
+  private _startsAt: Timestamp;
+  private _endsAt: Timestamp;
 
   constructor(
     assigner: DocumentReference,
@@ -28,7 +31,10 @@ export default class Assignment extends BaseObject {
     school: DocumentReference,
     updatedAt: Timestamp,
     createdAt: Timestamp,
-    docId: string
+    docId: string,
+    type: string,
+    startsAt: Timestamp,
+    endsAt: Timestamp
   ) {
     super(updatedAt, createdAt, docId);
     this._assigner = assigner;
@@ -42,6 +48,9 @@ export default class Assignment extends BaseObject {
     this._results = results;
     this._school = school;
     this._course = course;
+    this._type = type;
+    this._startsAt = startsAt;
+    this._endsAt = endsAt;
   }
 
   public get assigner(): DocumentReference {
@@ -109,5 +118,23 @@ export default class Assignment extends BaseObject {
   }
   public set course(value: DocumentReference) {
     this._course = value;
+  }
+  public get type(): string {
+    return this._type;
+  }
+  public set type(value: string) {
+    this._type = value;
+  }
+  public get startsAt(): Timestamp {
+    return this._startsAt;
+  }
+  public set startsAt(value: Timestamp) {
+    this._startsAt = value;
+  }
+  public get endsAt(): Timestamp {
+    return this._endsAt;
+  }
+  public set endsAt(value: Timestamp) {
+    this._endsAt = value;
   }
 }

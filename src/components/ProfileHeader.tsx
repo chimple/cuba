@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router";
-import { CURRENT_STUDENT, AVATARS, LANG, PAGES } from "../common/constants";
+import { CURRENT_STUDENT, AVATARS, LANG, PAGES, CONTINUE } from "../common/constants";
 import IconButton from "./IconButton";
 import "./ProfileHeader.css";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -34,7 +34,7 @@ const ProfileHeader: React.FC = () => {
     <div className="header">
       <BackButton
         onClicked={() => {
-          history.replace(PAGES.HOME);
+          Util.setPathToBackButton(PAGES.HOME, history);
         }}
       />
 

@@ -5,7 +5,7 @@ import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
 import Language from "../../models/language";
 import { t } from "i18next";
-import RectangularOutlineDropDown from "../parent/RectangularOutlineDropDown";
+import DropDown from "../DropDown";
 
 const GradeBoardAndLangDropdown: FC<{
   boards: Curriculum[] | undefined;
@@ -44,8 +44,8 @@ const GradeBoardAndLangDropdown: FC<{
   return (
     <div className="dropdown-header">
       <div id="drop-down-board">
-        <p id="drop-down-head">Board</p>
-           <RectangularOutlineDropDown
+        <p id="drop-down-head">{t('Board')}</p>
+           <DropDown
       currentValue={currentlySelectedBoard!}
         // currentlySelected={currentlySelectedBoard}
         placeholder={t("Select").toString()}
@@ -57,8 +57,8 @@ const GradeBoardAndLangDropdown: FC<{
       />
       </div>
       <div id="drop-down-grade">
-      <p id="drop-down-head">Grade</p>
-      <RectangularOutlineDropDown
+      <p id="drop-down-head">{t('Grade')}</p>
+      <DropDown
        currentValue={currentlySelectedGrade!}
        
        placeholder={t("Select").toString()}
@@ -68,8 +68,8 @@ const GradeBoardAndLangDropdown: FC<{
       />
       </div>
       <div id="drop-down-Medium-of-instruction">
-        <p id="drop-down-head">Medium of instruction</p>
-        <RectangularOutlineDropDown
+        <p id="drop-down-head">{t('Medium of instruction')}</p>
+        <DropDown
        currentValue={currentlySelectedLang}
        placeholder={t("Select").toString()}
         onValueChange={onLangChange}

@@ -1,9 +1,13 @@
 import { DocumentReference, Timestamp } from "firebase/firestore";
 import { RoleType } from "../interface/modelInterfaces";
 import BaseObject from "./baseObject";
+import { Util } from "../utility/util";
+import { LeaderboardRewards } from "../common/constants";
 
 export default class User extends BaseObject {
   private _username: string;
+  private _usernamePhone: string;
+  private _usernameMail: string;
   private _users: DocumentReference[];
   private _name: string;
   private _role: RoleType;
@@ -19,7 +23,8 @@ export default class User extends BaseObject {
   private _soundFlag: boolean | undefined;
   private _musicFlag: boolean | undefined;
   static avatar: string;
-  private _tcAccept:boolean| undefined;
+  private _tcAccept: boolean | undefined;
+  private _rewards: LeaderboardRewards | undefined;
 
   constructor(
     username: string,
@@ -40,11 +45,16 @@ export default class User extends BaseObject {
     docId: string,
     soundFlag: boolean = true,
     musicFlag: boolean = true,
-    tcAccept: boolean = false
-
+    tcAccept: boolean = false,
+    rewards?: LeaderboardRewards
   ) {
     super(updatedAt, createdAt, docId);
     this._username = username;
+    if (Util.isEmail(username)) {
+      this._usernameMail = username;
+    } else {
+      this._usernamePhone = username;
+    }
     this._users = users;
     this._name = name;
     this._role = role;
@@ -59,10 +69,23 @@ export default class User extends BaseObject {
     this._avatar = avatar;
     this._soundFlag = soundFlag;
     this._musicFlag = musicFlag;
-    this._tcAccept=tcAccept;
+    this._tcAccept = tcAccept;
+    this._rewards = rewards;
   }
   public get username(): string {
     return this._username;
+  }
+  public set usernamePhone(value: string) {
+    this._usernamePhone = value;
+  }
+  public get usernamePhone(): string {
+    return this._usernamePhone;
+  }
+  public set usernameMail(value: string) {
+    this._usernameMail = value;
+  }
+  public get usernameMail(): string {
+    return this._usernameMail;
   }
   public set username(value: string) {
     this._username = value;
@@ -160,6 +183,13 @@ export default class User extends BaseObject {
     this._tcAccept = value;
   }
 
+  public get rewards(): LeaderboardRewards | undefined {
+    return this._rewards;
+  }
+  public set rewards(value: LeaderboardRewards | undefined) {
+    this._rewards = value;
+  }
+
   public toJson() {
     return {
       age: this.age ?? null,
@@ -176,8 +206,10 @@ export default class User extends BaseObject {
       role: this.role,
       uid: this.uid,
       username: this.username,
+      usernamePhone: this.usernamePhone ?? null,
+      usernameMail: this.usernameMail ?? null,
       users: this.users,
-      tcAccept:this.tcAccept,
+      tcAccept: this.tcAccept,
       // docId: this.docId,
     };
   }

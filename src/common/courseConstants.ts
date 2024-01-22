@@ -11,6 +11,7 @@ export interface Chapter {
 export enum CollectionIds {
   ASSIGNMENT = "Assignment",
   AVATAR = "Avatar",
+  BADGE = "Badge",
   CLASS = "Class",
   CONNECTION = "Connection",
   COURSE = "Course",
@@ -22,11 +23,14 @@ export enum CollectionIds {
   SUBJECT = "Subject",
   TOPIC = "Topic",
   USER = "User",
-  STUDENTPROFILE = "StudentProfile",
+  STUDENT_PROFILE = "StudentProfile",
   RESULT = "Result",
+  REWARDS = "Rewards",
   LEADERBOARD = "Leaderboard",
-  CLASSCONNECTION = "ClassConnection",
-  SCHOOLCONNECTION = "SchoolConnection",
+  CLASS_CONNECTION = "ClassConnection",
+  SCHOOL_CONNECTION = "SchoolConnection",
+  LIVE_QUIZ_ROOM = "LiveQuizRoom",
+  STICKER = "Sticker",
 }
 
 export interface StudentLessonResult {

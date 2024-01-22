@@ -1,29 +1,50 @@
 .fav-icon {
-  display: flex;
+  /* float: left;
+  position: relative;
+  background-color: rgb(220, 213, 213);
   height: 3vw;
   width: 3vw;
+  top: -115%;
+  left: 88%;
+  border-radius: 30vh; */
   background-color: rgb(220, 213, 213);
-  border-radius: 30vw;
-  justify-content: space-around;
-  margin-top: -9vh;
-  margin-right: 2vw;
-  float: right;
+  height: clamp(30px, 8vh, 58px);
+  width: clamp(30px, 8vh, 58px);
+
+  /* top: -115%; */
+  /* left: 88%; */
+  border-radius: 30vh;
 }
 
 .fav-icon-image {
   color: red;
-  height: 3.1vw;
-  width: 2.7vw;
+  /* height: 3.1vw;
+  width: 2.7vw; */
+  /* height: clamp(7vh, 10vh, 8vh);
+  width: clamp(4vh, 5vh, 6vh); */
+  /* height: clamp(25px, 12vh, 27px);
+  width: clamp(25px, 6vh, 27px); */
+  height: clamp(8vh, 11vh, 8vh);
+  width: clamp(5vh, 6vh, 6vh);
 }
 
-.with-chapter-title {
-  display: flex;
+/* .with-chapter-title {
+  float: left;
+  position: relative;
+  background-color: rgb(220, 213, 213);
   height: 3vw;
   width: 3vw;
-  background-color: rgb(220, 213, 213);
-  border-radius: 30vw;
-  justify-content: space-around;
-  margin-top: -9vh;
-  margin-right: 2vw;
-  float: right;
+  top: -115%;
+  left: 88%;
+  border-radius: 30vh;
+} */
+
+.lovedicon {
+  /* margin-bottom: -3vw; */
+  display: flex;
+  position: relative;
+  justify-content: flex-end;
+  bottom: 10vh;
+  right: 2vh;
+  margin-left: auto;
 }

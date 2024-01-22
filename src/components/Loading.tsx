@@ -1,10 +1,16 @@
-import { IonLoading } from "@ionic/react";
-// import { useTranslation } from "react-i18next";
+import { IonLoading, LoadingOptions } from "@ionic/react";
+import React from "react";
 import "./Loading.css";
 
-const Loading: React.FC<{ isLoading: boolean; msg?: string }> = ({
+interface LoadingProps extends LoadingOptions {
+  isLoading: boolean;
+  msg?: string;
+}
+
+const Loading: React.FC<LoadingProps> = ({
   isLoading,
   msg = "",
+
 }) => {
   return isLoading ? (
     <div>
@@ -12,9 +18,7 @@ const Loading: React.FC<{ isLoading: boolean; msg?: string }> = ({
         isOpen={isLoading}
         spinner={null}
         message={
-          '<img class="loading" src="assets/loading.gif"></img> <br/><p>' +
-          msg +
-          "<p/>"
+          `<img class="loading" src="assets/loading.gif"></img> <br/><p>${msg}</p>`
         }
       />
     </div>

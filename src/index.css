@@ -1,20 +1,27 @@
 @font-face {
-    font-family: "BalooRegular";
-    src: local("BalooRegular"),
-        url("/public/assets/fonts/Baloo/Baloo2-Regular.ttf") format("truetype");
-    /* font-weight: bolder; */
+  font-family: "BalooRegular";
+  src: local("BalooRegular"),
+    url("/public/assets/fonts/Baloo/Baloo2-Regular.ttf") format("truetype");
+  /* font-weight: bolder; */
 }
 
 @font-face {
-    font-family: "BalooExtraBold";
-    src: local("BalooRegular"),
-        url("/public/assets/fonts/Baloo/Baloo2-ExtraBold.ttf") format("truetype");
-    font-weight: bolder;
+  font-family: "BalooExtraBold";
+  src: local("BalooRegular"),
+    url("/public/assets/fonts/Baloo/Baloo2-ExtraBold.ttf") format("truetype");
+  font-weight: bolder;
 }
 
 * {
-    font-family: "BalooRegular";
-    src: local("BalooRegular"),
-        url("/public/assets/fonts/Baloo/Baloo2-Regular.ttf") format("truetype");
-    /* font-weight: bolder; */
+  font-family: "BalooRegular";
+  src: local("BalooRegular"),
+    url("/public/assets/fonts/Baloo/Baloo2-Regular.ttf") format("truetype");
+  /* font-weight: bolder; */
+  user-select: none;
+}
+
+/* Hide scrollbar for WebKit browsers */
+::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
 }
