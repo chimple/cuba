@@ -24,20 +24,6 @@ const LiveQuizLeaderBoard: React.FC = () => {
   const init = async () => {
     try {
       const liveQuizRoomDoc = await api.getLiveQuizRoomDoc(paramLiveRoomId);
-      const classRef = liveQuizRoomDoc?.class;
-      const classId = classRef?.id;
-      let tempStudentMap = new Map<string, User>();
-
-      if (!!classId) {
-        const studentsData = await api.getStudentsForClass(classId);
-
-        for (let student of studentsData) {
-          tempStudentMap.set(student.docId, student);
-        }
-
-        setStudents(tempStudentMap);
-      }
-
       const liveQuizRoomResults = liveQuizRoomDoc?.results;
       console.log("liveQuizRoomResults..", liveQuizRoomResults);
       type Participant = {
@@ -49,39 +35,32 @@ const LiveQuizLeaderBoard: React.FC = () => {
       if (!!liveQuizRoomResults) {
         Object.keys(liveQuizRoomResults).forEach((studentDocId) => {
           const studentResult = liveQuizRoomResults[studentDocId];
-          const totalScore = studentResult.reduce(
-            (acc: number, question) => acc + question.score,
-            0
+          const { totalScore, totalTimeSpent } = studentResult.reduce(
+            (acc, question) => {
+              acc.totalScore += question.score;
+              acc.totalTimeSpent += question.timeSpent;
+              return acc;
+            },
+            { totalScore: 0, totalTimeSpent: 0 }
           );
-          console.log("totalScore!!", totalScore);
 
-          const totalTimeSpent = studentResult.reduce(
-            (acc: number, question) => acc + question.timeSpent,
-            0
-          );
           studentResults.push({
             studentDocId,
             totalScore,
             totalTimeSpent,
           });
         });
-
-        studentResults.sort((a, b) => {
-          if (b.totalScore !== a.totalScore) {
-            return b.totalScore - a.totalScore;
-          } else {
-            return a.totalTimeSpent - b.totalTimeSpent;
-          }
-        });
         console.log("studentresults!!!", studentResults);
 
-        const sortedScores: Participant[] = studentResults;
+        const liveQuizRoomScores: Participant[] = studentResults;
         const leaderboardScores = await fetchAssignmentResults();
 
-        const combinedScores = combineScores(sortedScores, leaderboardScores);
+        const combinedScores = combineScores(
+          liveQuizRoomScores,
+          leaderboardScores
+        );
         combinedScores.sort((a, b) => b.totalScore - a.totalScore);
-        console.log("combine..", combinedScores);
-
+        console.log("combinedSortedScores..", combinedScores);
         setCombinedStudentScores(combinedScores);
       }
     } catch (error) {
@@ -96,16 +75,22 @@ const LiveQuizLeaderBoard: React.FC = () => {
     const classRef = res?.class;
     const classId = classRef?.id;
     let tempStudentMap = new Map<string, User>();
-
-    if (!!classId) {
-      const allStudents = await api.getStudentsForClass(classId);
-      for (let student of allStudents) {
-        tempStudentMap.set(student.docId, student);
-      }
-      setStudents(tempStudentMap);
-    }
     const assignmentId = res?.assignment.id;
     const assignmentDoc = await api.getAssignmentById(assignmentId);
+    if (!!classId) {
+      const allStudents = await Promise.all(
+        Object.keys(assignmentDoc?.results ?? {}).map((studentDocId) =>
+          api.getUserByDocId(studentDocId)
+        )
+      );
+      console.log("allstudents..", allStudents);
+      allStudents.forEach((student) => {
+        if (student) {
+          tempStudentMap.set(student.docId, student);
+        }
+      });
+      setStudents(tempStudentMap);
+    }
     console.log("AssignmentDoc:", assignmentDoc);
     let scoresData: any;
 
@@ -121,8 +106,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
         scoresData = [];
       }
     }
-    scoresData.sort((a, b) => b.totalScore - a.totalScore);
-    console.log("Sorted Scores Data:", scoresData);
+    console.log("Scores Data:", scoresData);
 
     return scoresData;
   };
