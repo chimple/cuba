@@ -211,23 +211,33 @@ export class AvatarObj {
         return;
       } else if (showDailyProgress === "true") {
         console.log(
-          "if (avatarObj.weeklyTimeSpent * 60 >= avatarObj.weeklyProgressGoal * 60) {",
-          this.weeklyTimeSpent,
-          this.weeklyTimeSpent["min"] * 60,
-          this.weeklyProgressGoal * 60
+          "} else if (showDailyProgress === true) {",
+          this.weeklyTimeSpent["min"] * 60 < this.weeklyProgressGoal * 60
         );
-        // if (
-        //   !(
-        //     this.weeklyTimeSpent["min"] * 60 >= this.weeklyProgressGoal * 60 ||
-        //     this.weeklyTimeSpent["sec"] < 0
-        //   )
-        // ) {
-        // await this.loadAvatarData();
-        await this.loadAvatarWeeklyProgressData();
-        return;
-        // }
-        // localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
-      } else if (!this._allSuggestions) {
+
+        if (this.weeklyTimeSpent["min"] * 60 < this.weeklyProgressGoal * 60) {
+          await this.loadAvatarWeeklyProgressData();
+          return;
+        }
+
+        localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
+        const isCurrentWeeklyStickerUnlocked = await Util.unlockWeeklySticker();
+        console.log(
+          "const isCurrentWeeklyStickerUnlocked ",
+          isCurrentWeeklyStickerUnlocked
+        );
+
+        if (isCurrentWeeklyStickerUnlocked) {
+          let unlockedSticker = await Util.getAllUnlockedRewards();
+          if (unlockedSticker && unlockedSticker?.length > 0) {
+            this.mode = AvatarModes.collectReward;
+            this.avatarAnimation = "Success";
+            this.currentRewardInfo = unlockedSticker[0];
+            return;
+          }
+        }
+      }
+      if (!this._allSuggestions) {
         if (!this._currentSuggestionNumber) {
           this._currentSuggestionNumber = 0;
         }
@@ -406,10 +416,10 @@ export class AvatarObj {
               computeMinutes,
               finalProgressTimespent
             );
-            // this.message = t(this.gamifyTimespentMessage).replace(
-            //   "x1",
-            //   computeMinutes.toString() + " min and " + computeSec + " sec"
-            // );
+            this.message = t(this.gamifyTimespentMessage).replace(
+              "x1",
+              computeMinutes.toString() + " min and " + computeSec + " sec"
+            );
 
             this.weeklyTimeSpent["min"] = computeMinutes;
             this.weeklyTimeSpent["sec"] = computeSec;
@@ -420,6 +430,7 @@ export class AvatarObj {
               this.weeklyPlayedLesson,
               this.weeklyTimeSpent
             );
+            // this._mode = AvatarModes.ShowWeeklyProgress;
           }
         }
       } else {
@@ -488,14 +499,7 @@ export class AvatarObj {
           }
         }
       }
-      if (
-        !(
-          this.weeklyTimeSpent["min"] * 60 >= this.weeklyProgressGoal * 60 ||
-          this.weeklyTimeSpent["sec"] < 0
-        )
-      ) {
-        this._mode = AvatarModes.ShowWeeklyProgress;
-      }
+      this._mode = AvatarModes.ShowWeeklyProgress;
     } catch (error) {
       console.log("loadAvatarWeeklyProgressData error ", error);
     }
