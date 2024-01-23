@@ -80,12 +80,12 @@
   font-weight: bold;
   font-size: 3vh;
 }
-#header-text1 {
+#header-text-1 {
   font-size: 6vh;
   font-weight: bold;
   color: var(--text-color);
 }
-#header-text {
+#header-text-2 {
   font-size: 4vh;
   font-weight: bold;
   color: var(--text-color);
