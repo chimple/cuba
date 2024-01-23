@@ -11,7 +11,11 @@ import StudentProfile from "../../models/studentProfile";
 import Class from "../../models/class";
 import School from "../../models/school";
 import Assignment from "../../models/assignment";
-import { LeaderboardDropdownList, MODES } from "../../common/constants";
+import {
+  LeaderboardDropdownList,
+  LeaderboardRewards,
+  MODES,
+} from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
@@ -509,4 +513,12 @@ export interface ServiceApi {
    * @returns A Promise that resolves with void when the update is complete.
    */
   getUserByDocId(studentId: string): Promise<User | undefined>;
+
+  /**
+   * update student reward in server
+   * @param studentId - The ID of the current student.
+   * @param unlockReward - The ID of the current student.
+   * @returns A Promise that resolves with void when the update is complete.
+   */
+  updateRewardsForStudent(studentId: string, unlockReward: LeaderboardRewards);
 }
