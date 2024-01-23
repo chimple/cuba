@@ -5,6 +5,7 @@ import Badge from "../../models/Badge";
 import { LeaderboardRewardsType } from "../../common/constants";
 import CachedImage from "../common/CachedImage";
 import "./LeaderboardBadges.css";
+import { t } from "i18next";
 
 interface BadgeInfo {
   badge: Badge | undefined;
@@ -143,6 +144,11 @@ const LeaderboardBadges: FC = () => {
             }
           >
             <CachedImage src={value.badge?.image} />
+            {value.isNextUnlock && (
+              <p className="leaderboard-next-unlock-text">
+                {t("This Week's Reward")}
+              </p>
+            )}
           </div>
         ))}
     </div>
