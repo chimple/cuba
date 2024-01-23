@@ -33,6 +33,7 @@ import {
   DEFAULT_COURSE_IDS,
   LIVE_QUIZ,
   LeaderboardDropdownList,
+  LeaderboardRewards,
   MODES,
   aboveGrade3,
   belowGrade1,
@@ -66,6 +67,7 @@ import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import Badge from "../../models/Badge";
 import Rewards from "../../models/Rewards";
 import Sticker from "../../models/Sticker";
+import { Util } from "../../utility/util";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
@@ -450,6 +452,24 @@ export class FirebaseApi implements ServiceApi {
       currentUser.musicFlag = value;
       ServiceConfig.getI().authHandler.currentUser = currentUser;
     }
+  };
+
+  public updateRewardsForStudent = async (
+    studentId: string,
+    unlockedReward: LeaderboardRewards
+  ) => {
+    const studentDocRef = doc(this._db, CollectionIds.USER, studentId);
+    const studentDoc = await getDoc(studentDocRef);
+    console.log("const studentDoc = await getDoc(studentDocRef);", studentDoc);
+
+    if (!studentDoc || !studentDoc.data()) return;
+    const student: User = studentDoc.data() as User;
+    console.log("const student: User = studentDoc.data() as User;", student);
+    student.docId = studentDoc.id;
+    console.log("if (!rewards) return;", unlockedReward);
+    await updateDoc(studentDocRef, {
+      rewards: unlockedReward,
+    });
   };
 
   public updateLanguage = async (user: User, value: string) => {
@@ -1826,6 +1846,7 @@ export class FirebaseApi implements ServiceApi {
         doc(this._db, CollectionIds.BADGE, id)
       );
       if (!badgeDoc.exists) return;
+      console.log("if (!badgeDoc.exists) return;", badgeDoc.data());
       const data = badgeDoc.data() as Badge;
       data.docId = id;
       return data;
@@ -1836,11 +1857,18 @@ export class FirebaseApi implements ServiceApi {
 
   public async getStickerById(id: string): Promise<Sticker | undefined> {
     try {
-      const badgeDoc = await this.getDocFromOffline(
+      const stickerDoc = await this.getDocFromOffline(
         doc(this._db, CollectionIds.STICKER, id)
       );
-      if (!badgeDoc.exists) return;
-      const data = badgeDoc.data() as Sticker;
+      console.log(
+        "const stickerDoc = await this.getDocFromOffline( ",
+        stickerDoc.exists()
+      );
+      if (!stickerDoc.exists()) return;
+      console.log("if (!stickerDoc.exists) return;", stickerDoc.data());
+      const data = stickerDoc.data() as Sticker;
+      console.log("const data = stickerDoc.data() as Sticker;", data);
+
       data.docId = id;
       return data;
     } catch (error) {
@@ -1855,6 +1883,7 @@ export class FirebaseApi implements ServiceApi {
       );
       if (!rewardDoc.exists) return;
       const data = rewardDoc.data() as Rewards;
+
       data.docId = id;
       return data;
     } catch (error) {
@@ -1878,6 +1907,8 @@ export class FirebaseApi implements ServiceApi {
       return obj;
     }
     const finalRewards = markAllAsSeen(rewards);
+    student.rewards = finalRewards;
+    Util.setCurrentStudent(student);
     await updateDoc(studentDocRef, {
       rewards: finalRewards,
     });

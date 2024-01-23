@@ -148,8 +148,8 @@ const LiveQuizRoom: React.FC = () => {
   return (
     <IonPage className="live-quiz-room-page">
       <div className="live-quiz-room-header">
-        <p id="header-text1">{t("Live Challenge")}</p>
-        <p id="header-text">{course?.title + " | " + lesson?.title}</p>
+        <p id="header-text-1">{t("Live Challenge")}</p>
+        <p id="header-text-2">{course?.title + " | " + lesson?.title}</p>
       </div>
 
       <div className="outcome">
