@@ -88,6 +88,7 @@ const Home: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentStudent, setCurrentStudent] = useState<User>();
   const [currentClass, setCurrentClass] = useState<Class>();
+  const [isLinked, setIsLinked] = useState(false);
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: StudentLessonResult;
   }>();
@@ -158,6 +159,13 @@ const Home: FC = () => {
     const allLessonIds = await getHistory(lessonResult);
     if (allLessonIds) setValidLessonIds(allLessonIds);
     setIsLoading(false);
+    const student = await Util.getCurrentStudent();
+    if (!student) {
+      history.replace(PAGES.HOME);
+      return;
+    }
+    const linked = await api.isStudentLinked(student.docId);
+    setIsLinked(linked);
   };
 
   function urlOpenListenerEvent() {
@@ -985,7 +993,11 @@ const Home: FC = () => {
             )}
           </div>
         ) : null}
-        <SkeltonLoading isLoading={isLoading} header={currentHeader}/>
+        <SkeltonLoading
+          isLoading={isLoading}
+          header={currentHeader}
+          isLinked={isLinked}
+        />
       </div>
     </IonPage>
   );

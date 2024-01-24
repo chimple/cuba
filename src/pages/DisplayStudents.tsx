@@ -20,6 +20,7 @@ import ParentalLock from "../components/parent/ParentalLock";
 import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 import { schoolUtil } from "../utility/schoolUtil";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
+import SkeltonLoading from "../components/SkeltonLoading";
 // import { FirebaseApi } from "../services/api/FirebaseApi";
 // import { FirebaseAuth } from "../services/auth/FirebaseAuth";
 
@@ -202,7 +203,7 @@ const DisplayStudents: FC<{}> = () => {
           ) : null}
         </div>
       )}
-      <Loading isLoading={isLoading} />
+      <SkeltonLoading isLoading={true} header={PAGES.DISPLAY_STUDENT}/>
       {/* </IonContent> */}
     </IonPage>
   );

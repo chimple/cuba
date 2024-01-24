@@ -127,7 +127,7 @@ const AssignmentPage: React.FC = () => {
       });
     }
   }, []);
-  return (
+  return !loading ? (
     <div>
       <div className={`assignment-main${isLinked ? "" : "-join-class"}`}>
         {/* <div id="assignment-back-button" style={{display:"none"}}>
@@ -190,8 +190,13 @@ const AssignmentPage: React.FC = () => {
           )}
         </div>
       </div>
-      <SkeltonLoading isLoading={loading} header={HOMEHEADERLIST.ASSIGNMENT}/>
     </div>
+  ) : (
+    <SkeltonLoading
+      isLoading={loading}
+      header={HOMEHEADERLIST.ASSIGNMENT}
+      isLinked={isLinked}
+    />
   );
 };
 export default AssignmentPage;
