@@ -1,7 +1,14 @@
 import { Capacitor, CapacitorHttp, WebView } from "@capacitor/core";
 import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
 import { COPIED_BUNDLE_FILES_INDEX } from "../common/constants";
+interface Cordova {
+  file: {
+    externalDataDirectory: string;
+    // Add other properties if needed
+  };
+}
 
+declare var cordova: Cordova;
 // --------------
 // INTERNAL TYPES
 // --------------
@@ -697,15 +704,19 @@ export async function downloadFileFromAppBundle(
         JSON.stringify(blob)
       );
 
-      // Convert the blob to a base64 string.
-      base64Data = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onerror = reject;
-        reader.onload = (): void => {
-          resolve(reader.result as string);
-        };
-        reader.readAsDataURL(blob);
-      });
+      // Check if the file size is greater than 10 MB
+      const fileSizeMB = blob.size / (1024 * 1024);
+      if (fileSizeMB > 10) {
+        // Write the file to external storage
+        await writeBlobToExternalStorage(blob, path);
+        console.log("🚀 ~ File written to external storage:", path);
+        return true;
+      }else{
+         // Convert the blob to a base64 string.
+         base64Data = await blobToBase64(blob);
+      }
+
+     
     }
 
     // Save the base64 data to disk. Capacitor will parse this back to a binary file type internally.
@@ -741,6 +752,60 @@ export async function downloadFileFromAppBundle(
   }
 
   return true;
+}
+/**
+ * Converts a blob to a base64 string.
+ *
+ * @param blob - The blob to convert.
+ *
+ * @returns The base64 string.
+ */
+async function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = (): void => {
+      if (reader.result instanceof ArrayBuffer) {
+        const base64 = btoa(
+          new Uint8Array(reader.result).reduce(
+            (data, byte) => data + String.fromCharCode(byte),
+            ''
+          )
+        );
+        resolve(base64);
+      } else {
+        reject("Invalid result from FileReader");
+      }
+    };
+    reader.readAsArrayBuffer(blob);
+  });
+}
+
+
+/**
+ * Writes a blob to external storage.
+ *
+ * @param blob - The blob to write.
+ * @param path - The path to save the file to.
+ *
+ * @returns True if successful, otherwise false.
+ */
+async function writeBlobToExternalStorage(blob: Blob, path: string): Promise<boolean> {
+  try {
+    const file = new File([blob], path, { type: blob.type });
+    const externalStorage = cordova.file.externalDataDirectory; 
+    const filePath = externalStorage + path;
+
+    await Filesystem.writeFile({
+      path: filePath,
+      data: await blobToBase64(blob),
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error writing blob to external storage:", error);
+    return false;
+  }
 }
 
 // -------------------
