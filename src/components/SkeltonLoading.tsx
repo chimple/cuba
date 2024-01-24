@@ -3,7 +3,7 @@ import React from "react";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import "./SkeltonLoading.css";
-import { HOMEHEADERLIST } from "../common/constants";
+import { HOMEHEADERLIST, LEADERBOARDHEADERLIST } from "../common/constants";
 
 interface SkeltonLoadingProps {
   isLoading: boolean;
@@ -30,6 +30,9 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
           <Skeleton className="skelton-search-bar" />
         </div>
       ) : null;
+      break;
+    case LEADERBOARDHEADERLIST.LEADERBOARD:
+      return isLoading ? skeltonLeaderBoard() : null;
       break;
     default:
       return isLoading ? (
@@ -99,6 +102,26 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
       ) : null;
   }
   return <></>;
+
+  function skeltonLeaderBoard() {
+    return (
+      <div>
+        <div className="skelton-leaderboard-header">
+          <Skeleton className="skelton-back-button" />
+          <Skeleton className="skelton-leaderboard-title" />
+          <Skeleton className="skelton-leaderboard-title" />
+          <Skeleton className="skelton-switch-user" />
+        </div>
+        <div className="skelton-leaderboard-body">
+          <div className="skelton-leaderboard-left">
+            <Skeleton className="skelton-leaderboard-dropdown" />
+            <Skeleton circle className="skelton-leaderboard-avatar" />
+          </div>
+          <Skeleton className="skelton-leaderboard-right" />
+        </div>
+      </div>
+    );
+  }
 };
 
 export default SkeltonLoading;

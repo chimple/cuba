@@ -52,3 +52,58 @@
   width: 56.66vh;
   height: 40vh;
 }
+.skelton-back-button {
+  width: clamp(30px, 12vh, 44px);
+  height: clamp(30px, 12vh, 44px);
+  padding: 2%;
+  border-radius: 100%;
+}
+.skelton-switch-user {
+  width: clamp(60px, 20vh, 44px);
+  height: clamp(60px, 20vh, 44px);
+  margin-top: -2vh;
+}
+
+.skelton-leaderboard-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin: var(--margin);
+  margin-bottom: 0;
+}
+.skelton-leaderboard-title {
+  margin-right: 2vh;
+  height: clamp(30px, 12vh, 44px);
+  width: 19vw;
+}
+.skelton-leaderboard-body {
+  display: flex;
+  align-items: center;
+  height: 85vh;
+  padding-bottom: 5vh;
+  flex-wrap: wrap;
+  flex-direction: column;
+}
+.skelton-leaderboard-right {
+  width: 65vw;
+  height: 75vh;
+
+  border-radius: 4vh;
+}
+.skelton-leaderboard-left {
+  width: 30vw;
+  height: 75vh;
+  display: contents;
+  align-items: center;
+}
+.skelton-leaderboard-dropdown {
+  width: 26vw;
+  height: 10vh;
+  margin-left: 2vh;
+}
+.skelton-leaderboard-avatar {
+  width: 16vh;
+  height: 16vh;
+  border-radius: 100%;
+  margin: 3vh;
+}

@@ -620,8 +620,6 @@ const Home: FC = () => {
     localStorage.setItem("currentHeader", selectedHeader);
     localStorage.setItem(PREVIOUS_SELECTED_COURSE(), selectedHeader);
     DEFAULT_HEADER_ICON_CONFIGS.get(selectedHeader);
-    console.log('*******************')
-    console.log(selectedHeader)
     switch (selectedHeader) {
       // case HOMEHEADERLIST.SUBJECTS:
       //   history.replace(PAGES.DISPLAY_SUBJECTS);
