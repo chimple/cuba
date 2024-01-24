@@ -1464,68 +1464,6 @@ export class Util {
     }
   }
 
-  // public static async isCurrentWeeklyStickerUnlocked() {
-  //   try {
-  //     let currentStudent = Util.getCurrentStudent();
-  //     console.log(
-  //       "const studentDoc = await getDoc(studentDocRef);",
-  //       currentStudent
-  //     );
-
-  //     if (!currentStudent) return false;
-  //     console.log(
-  //       "const student: User = studentDoc.data() as User;",
-  //       currentStudent
-  //     );
-  //     const date = new Date();
-  //     const rewardsDoc = await api.getRewardsById(
-  //       date.getFullYear().toString()
-  //     );
-  //     const weeklyData = rewardsDoc.weeklySticker;
-
-  //     console.log(
-  //       "const weeklyData = rewardsDoc.weeklySticker;",
-  //       rewardsDoc.weeklySticker
-  //     );
-
-  //     let currentReward;
-
-  //     weeklyData[currentWeek.toString()].forEach(async (value) => {
-  //       console.log(
-  //         "weeklyData[currentWeek.toString()].forEach((value) => {",
-  //         value
-  //       );
-  //       currentReward = value;
-  //     });
-
-  //     if (!currentStudent.rewards) return false;
-
-  //     const currentWeek = Util.getCurrentWeekNumber();
-  //     const currentReward = currentStudent.rewards;
-  //     if (!currentReward.sticker) return false;
-  //     console.log(
-  //       "if (currentReward.sticker.length <= 0) return false; ",
-  //       currentReward.sticker
-  //     );
-
-  //     // if (currentReward.sticker.length <= 0) return false;
-
-  //     const currentSticker = currentReward.sticker[currentWeek];
-  //     let canPushCurrentReward = true;
-  //     for (let i = 0; i < currentUser.rewards.sticker.length; i++) {
-  //       const element = currentUser.rewards.sticker[i];
-  //       console.log("const element = currentUser.rewards.sticker[i];", element);
-  //       if (element.id === currentReward.id) {
-  //         canPushCurrentReward = false;
-  //       }
-  //     }
-
-  //     return currentSticker.id != undefined;
-  //   } catch (error) {
-  //     console.log("isCurrentWeeklyStickerUnlocked() method error ", error);
-  //   }
-  // }
-
   public static async getAllUnlockedRewards(): Promise<
     | {
         id: string;

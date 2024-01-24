@@ -28,6 +28,7 @@ import IconButton from "../components/IconButton";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
 import LeaderboardRewards from "../components/leaderboard/LeaderboardRewards";
+import { AvatarObj } from "../components/animation/Avatar";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -368,7 +369,8 @@ const Leaderboard: React.FC = () => {
             })}
           </div>
           <p id="leaderboard-left-note-message">
-            *** Be among the top performers in your class to win an exciting reward
+            *** Be among the top performers in your class to win an exciting
+            reward
           </p>
         </div>
         <div id="leaderboard-right-UI">
@@ -575,6 +577,7 @@ const Leaderboard: React.FC = () => {
               id="leaderboard-switch-user-button"
               onClick={async () => {
                 localStorage.removeItem(CURRENT_STUDENT);
+                AvatarObj.destroyInstance();
                 const user = await auth.getCurrentUser();
                 if (!!user && !!user.language?.id) {
                   const langDoc = await api.getLanguageWithId(user.language.id);
