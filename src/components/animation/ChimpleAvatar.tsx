@@ -156,6 +156,7 @@ const ChimpleAvatar: FC<{
       setCurrentCourse(cCourse);
       console.log("setCurrentLesson(CourseSuggestion);", cCourse);
     }
+    // await new Promise((resolve) => setTimeout(resolve, 2000));
     setIsLoading(false);
   }
 
@@ -385,18 +386,12 @@ const ChimpleAvatar: FC<{
       case AvatarModes.FourOptionQuestion:
         choice = option === avatarObj.answer;
         if (avatarObj.questionType === "unanswered") choice = true;
-
-        console.log(
-          "AvatarModes.FourOptionQuestion ",
-          option,
-          choice,
-          avatarObj.questionType === "unanswered"
-        );
         if (choice) {
           await onClickYes();
           await loadNextSuggestion();
         } else {
           await onClickNo();
+          await speak();
         }
         break;
 
@@ -603,7 +598,7 @@ const ChimpleAvatar: FC<{
       const x1 = avatarObj.weeklyProgressGoal;
       message = t(avatarObj.gamifyTimespentMessage).replace(
         "x1",
-        " " + x1.toString() + " minutes"
+        " " + x1.toString() + " " + t("minutes")
       );
       buttons = [
         {
