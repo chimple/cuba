@@ -24,7 +24,7 @@ import ScoreCard from "../components/parent/ScoreCard";
 import { t } from "i18next";
 import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
 import Course from "../models/course";
-
+import { AvatarObj } from "../components/animation/Avatar";
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -64,7 +64,7 @@ const CocosGame: React.FC = () => {
     setShowDialogBox(true);
     Util.killCocosGame();
     initialCount++;
-    localStorage.setItem(LESSONS_PLAYED_COUNT, (initialCount.toString()));
+    localStorage.setItem(LESSONS_PLAYED_COUNT, initialCount.toString());
     console.log("---------count of LESSONS PLAYED", initialCount);
   };
 
@@ -164,7 +164,7 @@ const CocosGame: React.FC = () => {
 
     // document.body.addEventListener("problemEnd", onProblemEnd);
   }
-  const currentStudentDocId: string = Util.getCurrentStudent()?.docId || '';
+  const currentStudentDocId: string = Util.getCurrentStudent()?.docId || "";
 
   let ChapterDetail: Chapter | undefined;
   const api = ServiceConfig.getI().apiHandler;
@@ -192,6 +192,31 @@ const CocosGame: React.FC = () => {
         schoolId = studentResult.schools[0];
       }
     }
+
+    let avatarObj = AvatarObj.getInstance();
+    console.log(
+      "Cosos weeklyTimespent ",
+      avatarObj.weeklyTimeSpent["min"],
+      avatarObj.weeklyTimeSpent["sec"]
+    );
+
+    let finalProgressTimespent = data.timeSpent;
+    let computeMinutes = Math.floor(finalProgressTimespent / 60);
+    let computeSec = finalProgressTimespent % 60;
+
+    avatarObj.weeklyTimeSpent["min"] =
+      avatarObj.weeklyTimeSpent["min"] + computeMinutes;
+    avatarObj.weeklyTimeSpent["sec"] =
+      avatarObj.weeklyTimeSpent["sec"] + computeSec;
+    avatarObj.weeklyPlayedLesson++;
+    console.log(
+      "after Cosos weeklyTimespent ",
+      computeMinutes,
+      computeSec,
+      avatarObj.weeklyTimeSpent["min"],
+      avatarObj.weeklyTimeSpent["sec"]
+    );
+
     const result = await api.updateResult(
       currentStudent,
       courseDocId,
@@ -214,14 +239,25 @@ const CocosGame: React.FC = () => {
         console.log("Current Chapter ", ChapterDetail);
       }
       let existing = new Map();
-      let res: { [key: string]: string } = JSON.parse(localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`) || '{}');
-      const finalLesson = await Util.getNextLessonFromGivenChapter(CourseDetail.chapters, lessonData.chapterId, lesson.id, ChapterDetail);
+      let res: { [key: string]: string } = JSON.parse(
+        localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`) ||
+          "{}"
+      );
+      const finalLesson = await Util.getNextLessonFromGivenChapter(
+        CourseDetail.chapters,
+        lessonData.chapterId,
+        lesson.id,
+        ChapterDetail
+      );
       console.log("final lesson", finalLesson);
       existing.set(CourseDetail.courseCode, finalLesson?.id);
       for (let [key, value] of existing) {
         res[key] = value;
       }
-      localStorage.setItem(`${currentStudentDocId}-${RECOMMENDATIONS}`, JSON.stringify(res));
+      localStorage.setItem(
+        `${currentStudentDocId}-${RECOMMENDATIONS}`,
+        JSON.stringify(res)
+      );
     }
     Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.docId,
@@ -305,7 +341,7 @@ const CocosGame: React.FC = () => {
                   initialCount = 0;
                   localStorage.setItem(
                     LESSONS_PLAYED_COUNT,
-                    (initialCount.toString())
+                    initialCount.toString()
                   );
                 }
                 push();

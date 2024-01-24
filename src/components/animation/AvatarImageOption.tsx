@@ -156,10 +156,10 @@ const AvatarImageOption: React.FC<{
       }
       break;
     case AvatarModes.TwoOptionQuestion:
-      content = cardContent("", "", AvatarObj._i.imageSrc || "");
+      content = cardContent("", "", AvatarObj.getInstance().imageSrc || "");
       break;
     case AvatarModes.FourOptionQuestion:
-      content = cardContent("", "", AvatarObj._i.imageSrc || "");
+      content = cardContent("", "", AvatarObj.getInstance().imageSrc || "");
       break;
     case AvatarModes.RecommendedLesson:
       if (currentLesson) {
