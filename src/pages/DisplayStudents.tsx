@@ -203,7 +203,7 @@ const DisplayStudents: FC<{}> = () => {
           ) : null}
         </div>
       )}
-      <SkeltonLoading isLoading={true} header={PAGES.DISPLAY_STUDENT}/>
+      <SkeltonLoading isLoading={isLoading} header={PAGES.DISPLAY_STUDENT}/>
       {/* </IonContent> */}
     </IonPage>
   );
