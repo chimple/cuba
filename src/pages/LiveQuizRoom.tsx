@@ -61,7 +61,12 @@ const LiveQuizRoom: React.FC = () => {
     }
     lessonRef = assignment?.lesson;
     courseRef = assignment?.course;
-    const tempLesson = await api.getLesson(lessonRef.id);
+    const tempLesson = await api.getLesson(
+      lessonRef.id,
+      undefined,
+      true,
+      assignment
+    );
     if (!!tempLesson) {
       setLesson(tempLesson);
     }
@@ -69,7 +74,6 @@ const LiveQuizRoom: React.FC = () => {
     if (!!tempCourse) {
       setCourse(tempCourse);
     }
-
     if (!assignment?.lesson?.id) return;
     setCurrentAssignment(assignment);
     downloadQuiz(assignment.lesson.id);
@@ -149,7 +153,9 @@ const LiveQuizRoom: React.FC = () => {
     <IonPage className="live-quiz-room-page">
       <div className="live-quiz-room-header">
         <p id="header-text-1">{t("Live Challenge")}</p>
-        <p id="header-text-2">{course?.title + " | " + lesson?.title}</p>
+        <p id="header-text-2">
+          {course?.title + " | " + lesson?.chapterTitle + " | " + lesson?.title}
+        </p>
       </div>
 
       <div className="outcome">
@@ -158,10 +164,20 @@ const LiveQuizRoom: React.FC = () => {
 
       <div className="students-container">
         <div className="played-students">
-          <div className="status-text-container disabled">
+          <div className="status-text-container">
             <p className="status-text-1">{t("Already Played")}</p>
           </div>
-          <div className="student-container-1 disabled">
+          <div
+            className="student-container-1"
+            style={{
+              justifyContent:
+                prevPlayedStudents.length > 0
+                  ? prevPlayedStudents.length > 3
+                    ? "space-between"
+                    : "space-evenly"
+                  : "center",
+            }}
+          >
             {prevPlayedStudents.length > 0 ? (
               prevPlayedStudents
                 .sort((a, b) => {
