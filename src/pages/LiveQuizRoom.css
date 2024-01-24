@@ -70,7 +70,6 @@
   display: flex;
   align-items: center;
   padding-right: 1vw;
-  justify-content: flex-end;
 }
 .student-score {
   display: flex;
@@ -148,14 +147,7 @@
   top: -6vh;
   left: 50%;
   transform: translateX(-50%);
-}
-.student-container-1.disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-.status-text-container.disabled {
-  opacity: 0.5;
-  pointer-events: none;
+  filter: opacity(0.5);
 }
 .student-container-1 {
   display: flex;
@@ -164,10 +156,10 @@
   margin-bottom: 8vh;
   width: 70vw;
   border-radius: 35px;
-  padding: 1vh;
+  padding: 2vh;
   background: #ccc;
   position: relative;
-  justify-content: space-evenly;
+  filter: opacity(0.5);
 }
 .status-text-2 {
   padding: 0vh 6vh 1vh 6vh;
@@ -177,7 +169,6 @@
   background-color: rgb(220, 213, 213);
   border-radius: 15px 15px 0 0;
   padding: 10px;
-  margin-bottom: 10px;
   position: absolute;
   color: var(--text-color);
   padding-top: 0;
@@ -189,19 +180,17 @@
   display: flex;
   overflow-x: scroll;
   gap: 1vw;
-  width: 90vw;
+  width: 80vw;
   border-radius: 35px;
-  padding: 2vh 1vh 1vh 1vh;
+  padding: 2vh;
   background: rgb(220, 213, 213);
-  position: relative;
-  justify-content: space-evenly;
+  justify-content: space-between;
 }
 .green-circle {
   position: absolute;
   top: 0;
   right: 0;
   background-color: #83c327;
-  color: #000;
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -210,5 +199,4 @@
   justify-content: center;
   font-size: 12px;
   font-weight: bold;
-  z-index: 2;
 }
