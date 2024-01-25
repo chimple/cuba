@@ -192,11 +192,12 @@ const AssignmentPage: React.FC = () => {
       </div>
     </div>
   ) : (
-    <SkeltonLoading
-      isLoading={loading}
-      header={HOMEHEADERLIST.ASSIGNMENT}
-      isLinked={isLinked}
-    />
+    <div className="assignment-loading">
+      <SkeltonLoading
+        isLoading={loading}
+        header={HOMEHEADERLIST.ASSIGNMENT}
+      />
+    </div>
   );
 };
 export default AssignmentPage;

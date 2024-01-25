@@ -4,6 +4,9 @@
   height: 100vh;
   background: var(--ion-background-color);
 }
+.assignment-loading{
+  height: 100%;
+}
 
 .assignment-main-join-class {
   display: flex;

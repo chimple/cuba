@@ -22,6 +22,7 @@ import {
   CHAPTER_LESSON_MAP,
   LIVE_QUIZ,
   SHOW_DAILY_PROGRESS_FLAG,
+  IS_CONECTED,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -88,7 +89,6 @@ const Home: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentStudent, setCurrentStudent] = useState<User>();
   const [currentClass, setCurrentClass] = useState<Class>();
-  const [isLinked, setIsLinked] = useState(false);
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: StudentLessonResult;
   }>();
@@ -154,18 +154,22 @@ const Home: FC = () => {
 
   const fetchData = async () => {
     setIsLoading(true);
+
     const lessonResult = await getRecommendeds(HOMEHEADERLIST.HOME);
     console.log("resultTemp", lessonResult);
     const allLessonIds = await getHistory(lessonResult);
     if (allLessonIds) setValidLessonIds(allLessonIds);
     setIsLoading(false);
     const student = await Util.getCurrentStudent();
-    if (!student) {
-      history.replace(PAGES.HOME);
-      return;
+    if (student) {
+      const linked = await api.isStudentLinked(student.docId);
+      const conectedData = localStorage.getItem(IS_CONECTED);
+
+      const parsedConectedData = conectedData ? JSON.parse(conectedData) : {};
+      parsedConectedData[student.docId] = linked;
+
+      localStorage.setItem(IS_CONECTED, JSON.stringify(parsedConectedData));
     }
-    const linked = await api.isStudentLinked(student.docId);
-    setIsLinked(linked);
   };
 
   function urlOpenListenerEvent() {
@@ -993,11 +997,7 @@ const Home: FC = () => {
             )}
           </div>
         ) : null}
-        <SkeltonLoading
-          isLoading={isLoading}
-          header={currentHeader}
-          isLinked={isLinked}
-        />
+        <SkeltonLoading isLoading={isLoading} header={currentHeader} />
       </div>
     </IonPage>
   );

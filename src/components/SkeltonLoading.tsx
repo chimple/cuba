@@ -1,25 +1,27 @@
 import { IonLoading, LoadingOptions } from "@ionic/react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import "./SkeltonLoading.css";
 import {
   HOMEHEADERLIST,
+  IS_CONECTED,
   LEADERBOARDHEADERLIST,
   PAGES,
 } from "../common/constants";
+import { Util } from "../utility/util";
+import { ServiceConfig } from "../services/ServiceConfig";
 
 interface SkeltonLoadingProps {
   isLoading: boolean;
   header?: string;
-  isLinked?: boolean;
 }
 
 const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
   isLoading,
   header,
-  isLinked,
 }) => {
+  const [isLinked, setIsLinked] = useState(Boolean);
   var width = "56.66vh";
   var textWidth = "30vh";
   var subjectTextWidth = "18vh";
@@ -29,6 +31,14 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
     justifyContent: "center",
     alignItems: "center",
   };
+  useEffect(() => {
+    if (header == HOMEHEADERLIST.ASSIGNMENT) {
+      const student = Util.getCurrentStudent();
+      const conectedData = localStorage.getItem(IS_CONECTED);
+      const parsedConectedData = conectedData ? JSON.parse(conectedData) : {};
+      if (student) setIsLinked(parsedConectedData[student.docId]);
+    }
+  }, [header]);
   switch (header) {
     case HOMEHEADERLIST.SEARCH:
       return isLoading ? (
@@ -136,20 +146,10 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
   function skeltonDisplayStudents() {
     return (
       <div className="skelton-display-students">
-        
         <div>
           <Skeleton circle className="skelton-student-profile" />
-          <Skeleton className="skelton-leaderboard-avatar-name"/>
+          <Skeleton className="skelton-leaderboard-avatar-name" />
         </div>
-        <div>
-          <Skeleton circle className="skelton-student-profile" />
-          <Skeleton className="skelton-leaderboard-avatar-name"/>
-        </div> 
-        <div>
-          <Skeleton circle className="skelton-student-profile" />
-          <Skeleton className="skelton-leaderboard-avatar-name"/>
-        </div>
-
       </div>
     );
   }
