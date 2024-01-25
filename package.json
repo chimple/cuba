@@ -87,7 +87,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build && npm run copy-build && npm run create-check-sum && cap sync",
+    "build": "GENERATE_SOURCEMAP=false react-scripts build && npm run copy-build && npm run create-check-sum && cap sync",
     "create-check-sum": "node scripts/check_sum_generator.js",
     "copy-build": "shx cp chimple-lib/*.js build/ && shx cp -r chimple-lib/src build/src && shx cp -r chimple-lib/assets/* build/assets/",
     "serve-build": "http-server build",
