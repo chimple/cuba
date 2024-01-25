@@ -54,6 +54,7 @@ const ChimpleAvatar: FC<{
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const history = useHistory();
   const State_Machine = "State Machine 1";
+  const [isAudioPlayed, setIsAudioPlayed] = useState<boolean>(false);
 
   const { rive, RiveComponent } = useRive({
     src: "/assets/animation/chimplecharacter.riv",
@@ -83,7 +84,8 @@ const ChimpleAvatar: FC<{
   const api = ServiceConfig.getI().apiHandler;
 
   async function loadSuggestionsFromJson() {
-    setIsLoading(true);
+    setIsAudioPlayed(true);
+    if (isAudioPlayed) setIsLoading(true);
     avatarObj.wrongAttempts = 0;
     await avatarObj.loadAvatarData();
 
@@ -127,12 +129,13 @@ const ChimpleAvatar: FC<{
       }
     }
     setIsLoading(false);
-    await speak(message);
+    if (isAudioPlayed) await speak(message);
   }
   let buttons: { label: string; onClick: () => void; isTrue?: boolean }[] = [];
   let message: string = "";
 
   async function loadNextSuggestion() {
+    await stop();
     avatarObj.wrongAttempts = 0;
     await avatarObj.loadAvatarNextSuggestion();
 
@@ -286,18 +289,17 @@ const ChimpleAvatar: FC<{
           case AvatarModes.ChapterSuggestion:
             if (choice) {
               await onClickYes();
+              setCurrentStageMode(AvatarModes.LessonSuggestion);
               cLesson = await getRecommendedLesson(
                 currentChapter || cCourse.chapters[0],
                 cCourse || currentCourse
               );
               setCurrentLesson(cLesson);
               const x3 = cLesson?.title || "";
-              message = t(`Do you want to play 'x3' lesson`).replace(
+              message = t(`Do you want to play 'x3' lesson?`).replace(
                 "x3",
                 " " + x3 + " "
               );
-              // avatarObj.mode = AvatarModes.LessonSuggestion;
-              setCurrentStageMode(AvatarModes.LessonSuggestion);
               await speak(message);
             } else {
               await onClickNo();
@@ -314,7 +316,7 @@ const ChimpleAvatar: FC<{
           case AvatarModes.LessonSuggestion:
             if (choice) {
               await onClickYes();
-              playCurrentLesson();
+              await playCurrentLesson();
               await loadNextSuggestion();
             } else {
               await onClickNo();
