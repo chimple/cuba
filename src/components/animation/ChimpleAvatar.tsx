@@ -221,6 +221,7 @@ const ChimpleAvatar: FC<{
       // If buttons are already disabled, don't proceed
       return;
     }
+    await new Promise((resolve) => setTimeout(resolve, 200));
     setIsBurst(true);
     switch (currentMode) {
       case AvatarModes.collectReward:
@@ -414,7 +415,6 @@ const ChimpleAvatar: FC<{
   }
 
   async function getRecommendedCourse() {
-
     if (!allCourses || allCourses.length === 0) {
       await fetchCoursesForStudent();
     }
@@ -424,7 +424,6 @@ const ChimpleAvatar: FC<{
       );
       return allCourses[courseIndex + 1] || allCourses[0];
     } else {
-
       return allCourses[0] || cAllCourses[0];
     }
   }
@@ -441,7 +440,6 @@ const ChimpleAvatar: FC<{
   }
 
   async function getRecommendedLesson(cChapter: Chapter, cCourse: Course) {
-
     if (currentMode === AvatarModes.CourseSuggestion) {
       if (currentLesson && cChapter) {
         const lessonIndex = cChapter.lessons.findIndex(
@@ -469,7 +467,7 @@ const ChimpleAvatar: FC<{
       }
     } else if (currentMode === AvatarModes.RecommendedLesson) {
       avatarObj.currentRecommendedLessonIndex++;
-      
+
       if (
         avatarObj.currentRecommendedLessonIndex === recommadedSuggestion.length
       ) {
@@ -562,7 +560,7 @@ const ChimpleAvatar: FC<{
           break;
         case AvatarModes.LessonSuggestion:
           if (currentLesson) {
-            const x3 = currentLesson;
+            const x3 = currentLesson.title;
             message = t(`Do you want to play 'x3' lesson?`).replace(
               "x3",
               " " + x3 + " "
@@ -662,7 +660,7 @@ const ChimpleAvatar: FC<{
     case AvatarModes.RecommendedLesson:
       if (currentLesson) {
         const x3 = currentLesson.title;
-        
+
         message = t(`Do you want to play 'x3' lesson?`)
           .replace("x3", " " + x3 + " ")
           .replace(
@@ -767,7 +765,11 @@ const ChimpleAvatar: FC<{
               {buttons.map((button, index) => (
                 <div key={index}>
                   <RectangularTextButton
-                    buttonWidth={"17vw"}
+                    buttonWidth={
+                      avatarObj.mode === AvatarModes.collectReward
+                        ? "auto"
+                        : "17vw"
+                    }
                     buttonHeight={"8vh"}
                     padding={1}
                     text={button.label}
