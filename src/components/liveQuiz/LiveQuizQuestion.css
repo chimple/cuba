@@ -111,3 +111,13 @@
 .live-quiz-option-image {
   height: 30vh;
 }
+
+.selected-option {
+  box-shadow: none;
+  background-color: #cccccc;
+  color: white;
+}
+
+.selected--option-audio-button {
+  background-color: #cccccc;
+}

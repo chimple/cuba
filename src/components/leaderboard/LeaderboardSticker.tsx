@@ -10,6 +10,7 @@ import Sticker from "../../models/Sticker";
 interface stickerInfo {
   sticker: sticker | undefined;
   isUnlocked: boolean;
+  isNextUnlock?: boolean;
 }
 
 const LeaderboardStickers: FC = () => {
@@ -26,29 +27,40 @@ const LeaderboardStickers: FC = () => {
 
     const unlockedstickers = await getUnlockedstickers();
     const prevstickers = await getPrevstickers();
-    // const currentstickers = await getCurrentstickers();
+    const nextUnlockedstickers = await getNextUnlockStickers();
     const stickerInfoArray: stickerInfo[] = [];
-    const uniquestickerIds = new Set<string>();
+    const uniqueStickerIds = new Set<string>();
 
-    for (const unlockedsticker of unlockedstickers) {
-      if (unlockedsticker) {
+    for (const nextUnlockedsticker of nextUnlockedstickers) {
+      if (nextUnlockedsticker) {
         stickerInfoArray.push({
-          sticker: unlockedsticker,
+          sticker: nextUnlockedsticker,
+          isUnlocked: false,
+          isNextUnlock: true,
+        });
+        // uniquestickerIds.add(nextUnlockedsticker.docId);
+      }
+    }
+
+    for (const unlockedStickers of unlockedstickers) {
+      if (unlockedStickers) {
+        stickerInfoArray.push({
+          sticker: unlockedStickers,
           isUnlocked: true,
         });
-        uniquestickerIds.add(unlockedsticker.docId);
+        uniqueStickerIds.add(unlockedStickers.docId);
       }
     }
 
     for (const prevsticker of prevstickers) {
       if (prevsticker) {
-        const isCommon = uniquestickerIds.has(prevsticker.docId);
+        const isCommon = uniqueStickerIds.has(prevsticker.docId);
         if (isCommon) continue;
         stickerInfoArray.push({
           sticker: prevsticker,
           isUnlocked: false,
         });
-        uniquestickerIds.add(prevsticker.docId);
+        uniqueStickerIds.add(prevsticker.docId);
       }
     }
 
@@ -63,12 +75,19 @@ const LeaderboardStickers: FC = () => {
     ) {
       return [];
     }
-    const unlockedstickers = await Promise.all(
-      currentStudent.rewards.sticker.map((value) =>
-        api.getStickerById(value.id)
-      )
+    let isSeen = true;
+    const unlockedSticker = await Promise.all(
+      currentStudent.rewards.sticker.map((value) => {
+        if (!value.seen) {
+          isSeen = false;
+        }
+        return api.getStickerById(value.id);
+      })
     );
-    return unlockedstickers;
+    if (!isSeen) {
+      api.updateRewardAsSeen(currentStudent.docId);
+    }
+    return unlockedSticker?.reverse();
   };
 
   const getPrevstickers = async (): Promise<(Sticker | undefined)[]> => {
@@ -94,7 +113,7 @@ const LeaderboardStickers: FC = () => {
     return stickerDocs;
   };
 
-  const getCurrentstickers = async (): Promise<(Sticker | undefined)[]> => {
+  const getNextUnlockStickers = async (): Promise<(Sticker | undefined)[]> => {
     const date = new Date();
     const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
     if (!rewardsDoc) return [];

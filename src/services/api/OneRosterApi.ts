@@ -2,6 +2,7 @@ import { HttpHeaders } from "@capacitor-community/http";
 import {
   COURSES,
   LeaderboardDropdownList,
+  LeaderboardRewards,
   MODES,
 } from "../../common/constants";
 import { Chapter } from "../../interface/curriculumInterfaces";
@@ -84,7 +85,10 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
-  
+  updateRewardsForStudent(studentId: string, unlockedReward: LeaderboardRewards) {
+    throw new Error("Method not implemented.");
+  }
+
   getUserByDocId(studentId: string): Promise<User | undefined> {
     throw new Error("Method not implemented.");
   }

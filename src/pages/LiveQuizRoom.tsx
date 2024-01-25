@@ -12,7 +12,7 @@ import { t } from "i18next";
 import BarLoader from "react-spinners/BarLoader";
 import Lesson from "../models/lesson";
 import Course from "../models/course";
-
+import { FaHeart } from "react-icons/fa";
 const LiveQuizRoom: React.FC = () => {
   const [students, setStudents] = useState(new Map<String, User>());
   const [prevPlayedStudents, setPrevPlayedStudents] = useState<User[]>([]);
@@ -61,7 +61,12 @@ const LiveQuizRoom: React.FC = () => {
     }
     lessonRef = assignment?.lesson;
     courseRef = assignment?.course;
-    const tempLesson = await api.getLesson(lessonRef.id);
+    const tempLesson = await api.getLesson(
+      lessonRef.id,
+      undefined,
+      true,
+      assignment
+    );
     if (!!tempLesson) {
       setLesson(tempLesson);
     }
@@ -69,7 +74,6 @@ const LiveQuizRoom: React.FC = () => {
     if (!!tempCourse) {
       setCourse(tempCourse);
     }
-
     if (!assignment?.lesson?.id) return;
     setCurrentAssignment(assignment);
     downloadQuiz(assignment.lesson.id);
@@ -104,7 +108,7 @@ const LiveQuizRoom: React.FC = () => {
       ) {
         tempPrevPlayedStudents = assignment.completedStudents
           .map((value) => allStudents.get(value))
-          .filter((student) => student !== undefined) as User[];
+          .filter((student) => !!student) as User[];
       }
     }
     console.log(
@@ -148,8 +152,10 @@ const LiveQuizRoom: React.FC = () => {
   return (
     <IonPage className="live-quiz-room-page">
       <div className="live-quiz-room-header">
-        <p id="header-text">{course?.title + " ⇒"}</p>
-        <p id="header-text">{lesson?.title} </p>
+        <p id="header-text-1">{t("Live Challenge")}</p>
+        <p id="header-text-2">
+          {course?.title + " | " + lesson?.chapterTitle + " | " + lesson?.title}
+        </p>
       </div>
 
       <div className="outcome">
@@ -157,22 +163,44 @@ const LiveQuizRoom: React.FC = () => {
       </div>
 
       <div className="students-container">
-        {/* <div className="left-text">
-  
-        </div> */}
-
-        <div className="student-containers">
-          <div className="played-students">
-            <p id="container-text">{t("Already Played")}</p>
-            <div className="student-container-1">
-              {prevPlayedStudents.length > 0 ? (
-                prevPlayedStudents.map((student) => (
+        <div className="played-students">
+          <div className="status-text-container">
+            <p className="status-text-1">{t("Already Played")}</p>
+          </div>
+          <div
+            className="student-container-1"
+            style={{
+              justifyContent:
+                prevPlayedStudents.length > 0
+                  ? prevPlayedStudents.length > 3
+                    ? "space-between"
+                    : "space-evenly"
+                  : "center",
+            }}
+          >
+            {prevPlayedStudents.length > 0 ? (
+              prevPlayedStudents
+                .sort((a, b) => {
+                  const scoreA =
+                    currentAssignment?.results[a.docId]?.score || 0;
+                  const scoreB =
+                    currentAssignment?.results[b.docId]?.score || 0;
+                  return scoreB - scoreA;
+                })
+                .map((student, index) => (
                   <div key={student.docId} className="student-avatar-container">
+                    {index < 3 && (
+                      <div
+                        className={`top-performer-circle color-${index + 1}`}
+                      >
+                        {index + 1}
+                      </div>
+                    )}
                     <StudentAvatar
                       student={student}
                       onClicked={() => {}}
                       width={70}
-                      namePosition={"above"}
+                      namePosition={"below"}
                     />
                     {!!currentAssignment?.results && (
                       <p className="student-score">
@@ -183,25 +211,32 @@ const LiveQuizRoom: React.FC = () => {
                     )}
                   </div>
                 ))
-              ) : (
-                <p id="container-text">{t("No students have played yet.")}</p>
-              )}
-            </div>
+            ) : (
+              <p id="container-text">{t("No students have played yet.")}</p>
+            )}
           </div>
-
-          <div className="not-played-students">
-            <p id="container-text">{t("Not Played")}</p>
-            <div className="student-container-2">
-              {notPlayedStudents.map((student) => (
+        </div>
+        <div className="not-played-students">
+          <div className="status-text-container-2">
+            <p className="status-text-2">{t("Not Played")}</p>
+          </div>
+          <div className="student-container-2">
+            {notPlayedStudents.map((student) => (
+              <div key={student.docId} className="student-avatar-container">
+                {student.docId === Util.getCurrentStudent()?.docId && (
+                  <div className="green-circle">
+                    <FaHeart color="white" />
+                  </div>
+                )}
                 <StudentAvatar
                   key={student.docId}
                   student={student}
                   onClicked={() => {}}
                   width={70}
-                  namePosition={"above"}
+                  namePosition={"below"}
                 />
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -211,6 +246,7 @@ const LiveQuizRoom: React.FC = () => {
           <IonButton
             size="default"
             color="green"
+            className="join-button"
             shape="round"
             id="button-inner"
             disabled={!isDownloaded || isJoining}

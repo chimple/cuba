@@ -23,6 +23,7 @@ import { t } from "i18next";
 import { useRive, Layout, Fit, useStateMachineInput } from "rive-react";
 import { AvatarModes, AvatarObj } from "./Avatar";
 import { IonLoading, IonPage } from "@ionic/react";
+import { CircularProgress, Fade } from "@mui/material";
 // import { rows } from "../../../build/assets/animation/avatarSugguestions.json";
 
 export enum CourseNames {
@@ -50,6 +51,7 @@ const ChimpleAvatar: FC<{
   const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(true);
   const [riveCharHandsUp, setRiveCharHandsUp] = useState("Fail");
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const history = useHistory();
   const State_Machine = "State Machine 1";
 
@@ -82,6 +84,7 @@ const ChimpleAvatar: FC<{
   const api = ServiceConfig.getI().apiHandler;
 
   async function loadSuggestionsFromJson() {
+    setIsLoading(true);
     avatarObj.wrongAttempts = 0;
     await avatarObj.loadAvatarData();
     console.log("after avatarObj.loadAvatarData();", avatarObj);
@@ -103,22 +106,29 @@ const ChimpleAvatar: FC<{
       );
       await speak(message);
     } else if (avatarObj.mode === AvatarModes.RecommendedLesson) {
-      avatarObj.currentRecommededLessonIndex = 0;
+      // avatarObj.currentRecommendedLessonIndex = 0;
+      if (
+        !avatarObj.currentRecommendedLessonIndex ||
+        avatarObj.currentRecommendedLessonIndex >= recommadedSuggestion.length
+      ) {
+        avatarObj.currentRecommendedLessonIndex = 0;
+      }
       console.log(
         "setCurrentLesson(recommadedSuggestion[0]);",
-        recommadedSuggestion[avatarObj.currentRecommededLessonIndex]
+        recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]
       );
       setCurrentLesson(
-        recommadedSuggestion[avatarObj.currentRecommededLessonIndex]
+        recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]
       );
       const x3 =
-        recommadedSuggestion[avatarObj.currentRecommededLessonIndex]?.title ||
+        recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]?.title ||
         "";
       message = t(`Do you want to play 'x3' lesson?`)
         .replace("x3", " " + x3 + " ")
         .replace(
           "lesson?",
-          currentLesson?.assignment || cLesson?.assignment
+          recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]
+            .assignment
             ? "assignment"
             : "lesson"
         );
@@ -129,11 +139,13 @@ const ChimpleAvatar: FC<{
       }
       await speak(message);
     }
+    setIsLoading(false);
   }
   let buttons: { label: string; onClick: () => void; isTrue?: boolean }[] = [];
   let message: string = "";
 
   async function loadNextSuggestion() {
+    setIsLoading(true);
     avatarObj.wrongAttempts = 0;
     await avatarObj.loadAvatarNextSuggestion();
 
@@ -144,6 +156,8 @@ const ChimpleAvatar: FC<{
       setCurrentCourse(cCourse);
       console.log("setCurrentLesson(CourseSuggestion);", cCourse);
     }
+    // await new Promise((resolve) => setTimeout(resolve, 2000));
+    setIsLoading(false);
   }
 
   const fetchCoursesForStudent = async () => {
@@ -372,18 +386,12 @@ const ChimpleAvatar: FC<{
       case AvatarModes.FourOptionQuestion:
         choice = option === avatarObj.answer;
         if (avatarObj.questionType === "unanswered") choice = true;
-
-        console.log(
-          "AvatarModes.FourOptionQuestion ",
-          option,
-          choice,
-          avatarObj.questionType === "unanswered"
-        );
         if (choice) {
           await onClickYes();
           await loadNextSuggestion();
         } else {
           await onClickNo();
+          await speak();
         }
         break;
 
@@ -400,10 +408,10 @@ const ChimpleAvatar: FC<{
           //   await loadNextSuggestion();
           //   return;
           // }
-          avatarObj.currentRecommededLessonIndex++;
+          avatarObj.currentLessonSuggestionIndex++;
           console.log(
             "currentStageIndex++;",
-            avatarObj.currentRecommededLessonIndex
+            avatarObj.currentLessonSuggestionIndex
           );
           let recomLesson = await getRecommendedLesson(cChapter, currentCourse);
           setCurrentLesson(recomLesson);
@@ -545,29 +553,29 @@ const ChimpleAvatar: FC<{
         return cLesson;
       }
     } else if (currentMode === AvatarModes.RecommendedLesson) {
+      avatarObj.currentRecommendedLessonIndex++;
       console.log(
-        "currentStageIndex++;",
-        avatarObj.currentRecommededLessonIndex,
+        "avatarObj.currentRecommendedLessonIndex",
+        avatarObj.currentRecommendedLessonIndex,
         recommadedSuggestion.length,
-        avatarObj.currentRecommededLessonIndex === recommadedSuggestion.length
+        avatarObj.currentRecommendedLessonIndex === recommadedSuggestion.length
       );
 
       if (
-        avatarObj.currentRecommededLessonIndex === recommadedSuggestion.length
+        avatarObj.currentRecommendedLessonIndex === recommadedSuggestion.length
       ) {
-        avatarObj.currentRecommededLessonIndex = 0;
+        avatarObj.currentRecommendedLessonIndex = 0;
       }
       setCurrentLesson(
-        recommadedSuggestion[avatarObj.currentRecommededLessonIndex]
+        recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]
       );
       console.log(
-        "recommadedSuggestion[currentStageIndex];",
+        "recommadedSuggestion[avatarObj.currentRecommendedLessonIndex];",
         // recommadedSuggestion,
-        avatarObj.currentRecommededLessonIndex,
-        recommadedSuggestion[avatarObj.currentRecommededLessonIndex]
+        avatarObj.currentRecommendedLessonIndex,
+        recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]
       );
-
-      return recommadedSuggestion[avatarObj.currentRecommededLessonIndex];
+      return recommadedSuggestion[avatarObj.currentRecommendedLessonIndex];
     }
   }
 
@@ -590,7 +598,7 @@ const ChimpleAvatar: FC<{
       const x1 = avatarObj.weeklyProgressGoal;
       message = t(avatarObj.gamifyTimespentMessage).replace(
         "x1",
-        " " + x1.toString() + " minutes"
+        " " + x1.toString() + " " + t("minutes")
       );
       buttons = [
         {
@@ -801,8 +809,7 @@ const ChimpleAvatar: FC<{
       ></div>
     )
   );
-  console.log("wrongAttempts", avatarObj.wrongAttempts);
-  console.log("currentCourse_789798", currentCourse);
+
   return (
     <div style={style}>
       <div>
@@ -824,25 +831,15 @@ const ChimpleAvatar: FC<{
         // id="temp"
       >
         {chimpleAvatarChatboxBubbles}
-        <div>
-          <TextBoxWithAudioButton
-            message={message}
-            fontSize={"2vw"}
-            onClick={() => {
-              onClickRiveComponent();
-            }}
-          ></TextBoxWithAudioButton>
-          {spinnerLoading ||
-          (currentStageMode === AvatarModes.CourseSuggestion &&
-            currentCourse === undefined) ||
-          (currentStageMode === AvatarModes.ChapterSuggestion &&
-            currentChapter === undefined) ||
-          (currentStageMode === AvatarModes.LessonSuggestion &&
-            currentLesson === undefined) ? (
-            <div className="custom-spinner-outerbox">
-              <div className="custom-spinner" />
-            </div>
-          ) : (
+        {!isLoading ? (
+          <div>
+            <TextBoxWithAudioButton
+              message={message}
+              fontSize={"2vw"}
+              onClick={() => {
+                onClickRiveComponent();
+              }}
+            ></TextBoxWithAudioButton>
             <AvatarImageOption
               currentCourse={currentCourse}
               currentMode={currentMode}
@@ -851,40 +848,50 @@ const ChimpleAvatar: FC<{
               currentLesson={currentLesson}
               avatarObj={avatarObj}
             />
-          )}
 
-          <div
-            className="buttons-in-avatar-option-box"
-            style={{
-              flexWrap: buttons.length === 4 ? "wrap" : "wrap",
-              justifyContent:
-                buttons.length === 1
-                  ? "center"
-                  : buttons.length === 2
-                  ? "space-evenly"
-                  : "center",
-              gap: ".5em",
-              display: buttons.length > 2 ? "grid" : "",
-              gridTemplateColumns: buttons.length > 2 ? "35% 15vw" : "",
-            }}
-          >
-            {buttons.map((button, index) => (
-              <div key={index}>
-                <RectangularTextButton
-                  buttonWidth={"17vw"}
-                  buttonHeight={"8vh"}
-                  padding={1}
-                  text={button.label}
-                  fontSize={3.2}
-                  onHeaderIconClick={() => {
-                    button.onClick();
-                  }}
-                  className={button.isTrue ? "green-button" : "red-button"}
-                ></RectangularTextButton>
-              </div>
-            ))}
+            <div
+              className="buttons-in-avatar-option-box"
+              style={{
+                flexWrap: buttons.length === 4 ? "wrap" : "wrap",
+                justifyContent:
+                  buttons.length === 1
+                    ? "center"
+                    : buttons.length === 2
+                    ? "space-evenly"
+                    : "center",
+                gap: ".5em",
+                display: buttons.length > 2 ? "grid" : "",
+                gridTemplateColumns: buttons.length > 2 ? "35% 15vw" : "",
+              }}
+            >
+              {buttons.map((button, index) => (
+                <div key={index}>
+                  <RectangularTextButton
+                    buttonWidth={"17vw"}
+                    buttonHeight={"8vh"}
+                    padding={1}
+                    text={button.label}
+                    fontSize={3.2}
+                    onHeaderIconClick={() => {
+                      button.onClick();
+                    }}
+                    className={button.isTrue ? "green-button" : "red-button"}
+                  ></RectangularTextButton>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : null}
+        <Fade
+          in={isLoading}
+          style={{
+            transitionDelay: isLoading ? "800ms" : "0ms",
+            alignSelf: "center",
+          }}
+          unmountOnExit
+        >
+          <CircularProgress />
+        </Fade>
       </div>
     </div>
   );

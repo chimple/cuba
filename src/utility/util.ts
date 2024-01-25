@@ -29,7 +29,7 @@ import {
   LeaderboardRewardsType,
   LEADERBOARDHEADERLIST,
   LEADERBOARD_REWARD_LIST,
-  // APP_LANG,
+  LeaderboardRewards,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -1386,7 +1386,7 @@ export class Util {
     return date.getFullYear();
   }
 
-  public static async getStudentInfo() {
+  public static async getStudentFromServer() {
     console.log("getStudentInfo called");
 
     const api = ServiceConfig.getI().apiHandler;
@@ -1401,6 +1401,69 @@ export class Util {
     }
   }
 
+  public static async unlockWeeklySticker() {
+    try {
+      let currentUser = Util.getCurrentStudent();
+      if (!currentUser) return false;
+      const api = ServiceConfig.getI().apiHandler;
+      const date = new Date();
+      const rewardsDoc = await api.getRewardsById(
+        date.getFullYear().toString()
+      );
+      if (!rewardsDoc) return false;
+      const currentWeek = Util.getCurrentWeekNumber();
+      const weeklyData = rewardsDoc.weeklySticker;
+
+      console.log(
+        "const weeklyData = rewardsDoc.weeklySticker;",
+        rewardsDoc.weeklySticker
+      );
+
+      let currentReward;
+
+      weeklyData[currentWeek.toString()].forEach(async (value) => {
+        console.log(
+          "weeklyData[currentWeek.toString()].forEach((value) => {",
+          value
+        );
+        currentReward = value;
+      });
+      if (!currentUser.rewards) {
+        let leaderboardReward: LeaderboardRewards = {
+          badges: [],
+          bonus: [],
+          sticker: [],
+        };
+        currentUser.rewards = leaderboardReward;
+      }
+      if (!currentUser.rewards.sticker) {
+        currentUser.rewards.sticker = [];
+      }
+      if (!currentReward) {
+        return false;
+      }
+      let canPushCurrentReward = true;
+      for (let i = 0; i < currentUser.rewards.sticker.length; i++) {
+        const element = currentUser.rewards.sticker[i];
+        console.log("const element = currentUser.rewards.sticker[i];", element);
+        if (element.id === currentReward.id) {
+          canPushCurrentReward = false;
+        }
+      }
+      if (canPushCurrentReward)
+        currentUser.rewards.sticker.push({
+          id: currentReward.id,
+          seen: false,
+        });
+      console.log("currentUser.rewards?.sticker.push({", currentUser.rewards);
+      await api.updateRewardsForStudent(currentUser.docId, currentUser.rewards);
+      return true;
+    } catch (error) {
+      console.log("unlockWeeklySticker() error ", error);
+      return false;
+    }
+  }
+
   public static async getAllUnlockedRewards(): Promise<
     | {
         id: string;
@@ -1412,7 +1475,7 @@ export class Util {
     | undefined
   > {
     console.log("getAllUnlockedRewards() called");
-    await this.getStudentInfo();
+    await this.getStudentFromServer();
 
     let allUnlockedRewards: {
       id: string;
