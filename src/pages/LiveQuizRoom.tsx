@@ -13,6 +13,7 @@ import BarLoader from "react-spinners/BarLoader";
 import Lesson from "../models/lesson";
 import Course from "../models/course";
 import { FaHeart } from "react-icons/fa";
+import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 const LiveQuizRoom: React.FC = () => {
   const [students, setStudents] = useState(new Map<String, User>());
   const [prevPlayedStudents, setPrevPlayedStudents] = useState<User[]>([]);
@@ -28,6 +29,7 @@ const LiveQuizRoom: React.FC = () => {
   const [course, setCourse] = useState<Course | undefined>();
   let lessonRef;
   let courseRef;
+  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
 
   const state = (history.location.state as any) ?? {};
   useEffect(() => {
@@ -251,6 +253,22 @@ const LiveQuizRoom: React.FC = () => {
             id="button-inner"
             disabled={!isDownloaded || isJoining}
             onClick={() => {
+              if (!online) {
+                presentToast({
+                  message: t(`Device is offline. Cannot join live quiz`),
+                  color: "danger",
+                  duration: 3000,
+                  position: "bottom",
+                  buttons: [
+                    {
+                      text: "Dismiss",
+                      role: "cancel",
+                    },
+                  ],
+                });
+
+                return;
+              }
               if (!!currentAssignment?.docId) {
                 joinQuiz(
                   Util.getCurrentStudent()?.docId!,
