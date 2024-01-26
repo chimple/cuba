@@ -79,6 +79,7 @@ const ChimpleAvatar: FC<{
     fetchCoursesForStudent();
     return () => {
       stop();
+      setIsAudioPlayed(true);
     };
   }, []);
   const api = ServiceConfig.getI().apiHandler;
