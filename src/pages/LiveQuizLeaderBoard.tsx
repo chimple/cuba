@@ -128,7 +128,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
       const leaderboardScore = leaderboardScores.find(
         (res) => res.studentDocId === studentDocId
       );
-      if (!!roomResultScore && !!leaderboardScore) {
+      if (!!roomResultScore) {
         return {
           studentDocId,
           totalScore: roomResultScore.totalScore,
