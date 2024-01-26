@@ -54,7 +54,7 @@ const ChimpleAvatar: FC<{
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const history = useHistory();
   const State_Machine = "State Machine 1";
-  const [isAudioPlayed, setIsAudioPlayed] = useState<boolean>(false);
+  const [isAudioPlayed, setIsAudioPlayed] = useState<boolean>(true);
 
   const { rive, RiveComponent } = useRive({
     src: "/assets/animation/chimplecharacter.riv",
