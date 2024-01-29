@@ -15,11 +15,13 @@ import { ServiceConfig } from "../services/ServiceConfig";
 interface SkeltonLoadingProps {
   isLoading: boolean;
   header?: string;
+  isChapter?: boolean;
 }
 
 const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
   isLoading,
   header,
+  isChapter,
 }) => {
   const [isLinked, setIsLinked] = useState(Boolean);
   var width = "56.66vh";
@@ -50,6 +52,9 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
     case HOMEHEADERLIST.HOME:
       return isLoading ? skeltonHome() : null;
       break;
+    case PAGES.DISPLAY_CHAPTERS:
+      return isLoading ? skeltonDisplayChapters() : null;
+      break;
     case PAGES.DISPLAY_STUDENT:
       return isLoading ? skeltonDisplayStudents() : null;
       break;
@@ -68,39 +73,7 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
       </div>
     ) : (
       <div className="skelton-body">
-        <div className="skelton-body-cards">
-          {[...Array(8)].map((_, index) => (
-            <div
-              className={
-                header == HOMEHEADERLIST.SUBJECTS
-                  ? "skelton-subject-card-size"
-                  : "skelton-card-size"
-              }
-            >
-              <div className="skelton-card-display">
-                <Skeleton
-                  style={skeletonStyle}
-                  className={
-                    header == HOMEHEADERLIST.SUBJECTS
-                      ? "skelton-subject-card"
-                      : "skelton-size-card"
-                  }
-                />
-                <Skeleton
-                  style={skeletonStyle}
-                  width={
-                    header == HOMEHEADERLIST.SUBJECTS
-                      ? subjectTextWidth
-                      : textWidth
-                  }
-                />
-                {header == HOMEHEADERLIST.SUBJECTS ? null : (
-                  <Skeleton style={skeletonStyle} width={textWidth} />
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+        <div className="skelton-body-cards">{skeltonLessonCards()}</div>
         {header == HOMEHEADERLIST.SUGGESTIONS ? (
           <div className="skelton-home-page-app-ba-div">
             <Skeleton className="skelton-home-page-app-bar" />
@@ -109,6 +82,45 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
       </div>
     );
   }
+  function skeltonLessonCards() {
+    return (
+      <>
+        {[...Array(8)].map((_, index) => (
+          <div
+            key={index} // Don't forget to add a unique key for each mapped element
+            className={
+              header === HOMEHEADERLIST.SUBJECTS
+                ? "skelton-subject-card-size"
+                : "skelton-card-size"
+            }
+          >
+            <div className="skelton-card-display">
+              <Skeleton
+                style={skeletonStyle}
+                className={
+                  header === HOMEHEADERLIST.SUBJECTS
+                    ? "skelton-subject-card"
+                    : "skelton-size-card"
+                }
+              />
+              <Skeleton
+                style={skeletonStyle}
+                width={
+                  header === HOMEHEADERLIST.SUBJECTS
+                    ? subjectTextWidth
+                    : textWidth
+                }
+              />
+              {(header === HOMEHEADERLIST.SUBJECTS || header === PAGES.DISPLAY_CHAPTERS) ? null : (
+                <Skeleton style={skeletonStyle} width={textWidth} />
+              )}
+            </div>
+          </div>
+        ))}
+      </>
+    );
+  }
+
   function skeltonLeaderBoard() {
     return (
       <div>
@@ -150,6 +162,33 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
           <Skeleton circle className="skelton-student-profile" />
           <Skeleton className="skelton-leaderboard-avatar-name" />
         </div>
+      </div>
+    );
+  }
+  function skeltonDisplayChapters() {
+    return (
+      <div>
+        <div className="skelton-leaderboard-header">
+          <Skeleton className="skelton-back-button" />
+          <Skeleton className="skelton-subject-name" />
+          {isChapter ? (
+            <Skeleton className="skelton-grade-name" />
+          ) : (
+            <div></div>
+          )}
+        </div>
+        {isChapter ? (
+          <div className="skelton-display-chapters">
+            {[...Array(100)].map((_, index) => (
+              <div>
+                <Skeleton className="skelton-chapter-icon" />
+                <Skeleton className="skelton-chapter-name" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="skelton-body-cards">{skeltonLessonCards()}</div>
+        )}
       </div>
     );
   }
