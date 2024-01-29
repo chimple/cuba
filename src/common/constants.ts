@@ -455,6 +455,7 @@ export enum EVENTS {
 }
 
 export const FCM_TOKENS = "fcmTokens";
+export const IS_CONECTED ="is_conected"
 
 export const LAST_UPDATE_CHECKED = "lastUpdateChecked";
 
