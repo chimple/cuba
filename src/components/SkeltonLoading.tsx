@@ -179,7 +179,7 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
         </div>
         {isChapter ? (
           <div className="skelton-display-chapters">
-            {[...Array(100)].map((_, index) => (
+            {[...Array(30)].map((_, index) => (
               <div>
                 <Skeleton className="skelton-chapter-icon" />
                 <Skeleton className="skelton-chapter-name" />
