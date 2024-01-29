@@ -54,6 +54,7 @@ const ChimpleAvatar: FC<{
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const history = useHistory();
   const State_Machine = "State Machine 1";
+  const [isAudioPlayed, setIsAudioPlayed] = useState<boolean>(true);
 
   const { rive, RiveComponent } = useRive({
     src: "/assets/animation/chimplecharacter.riv",
@@ -78,12 +79,14 @@ const ChimpleAvatar: FC<{
     fetchCoursesForStudent();
     return () => {
       stop();
+      setIsAudioPlayed(true);
     };
   }, []);
   const api = ServiceConfig.getI().apiHandler;
 
   async function loadSuggestionsFromJson() {
-    setIsLoading(true);
+    setIsAudioPlayed(true);
+    if (isAudioPlayed) setIsLoading(true);
     avatarObj.wrongAttempts = 0;
     await avatarObj.loadAvatarData();
 
@@ -127,12 +130,13 @@ const ChimpleAvatar: FC<{
       }
     }
     setIsLoading(false);
-    await speak(message);
+    if (isAudioPlayed) await speak(message);
   }
   let buttons: { label: string; onClick: () => void; isTrue?: boolean }[] = [];
   let message: string = "";
 
   async function loadNextSuggestion() {
+    await stop();
     avatarObj.wrongAttempts = 0;
     await avatarObj.loadAvatarNextSuggestion();
 
@@ -221,6 +225,7 @@ const ChimpleAvatar: FC<{
       // If buttons are already disabled, don't proceed
       return;
     }
+    await new Promise((resolve) => setTimeout(resolve, 200));
     setIsBurst(true);
     switch (currentMode) {
       case AvatarModes.collectReward:
@@ -285,18 +290,17 @@ const ChimpleAvatar: FC<{
           case AvatarModes.ChapterSuggestion:
             if (choice) {
               await onClickYes();
+              setCurrentStageMode(AvatarModes.LessonSuggestion);
               cLesson = await getRecommendedLesson(
                 currentChapter || cCourse.chapters[0],
                 cCourse || currentCourse
               );
               setCurrentLesson(cLesson);
               const x3 = cLesson?.title || "";
-              message = t(`Do you want to play 'x3' lesson`).replace(
+              message = t(`Do you want to play 'x3' lesson?`).replace(
                 "x3",
                 " " + x3 + " "
               );
-              // avatarObj.mode = AvatarModes.LessonSuggestion;
-              setCurrentStageMode(AvatarModes.LessonSuggestion);
               await speak(message);
             } else {
               await onClickNo();
@@ -313,7 +317,7 @@ const ChimpleAvatar: FC<{
           case AvatarModes.LessonSuggestion:
             if (choice) {
               await onClickYes();
-              playCurrentLesson();
+              await playCurrentLesson();
               await loadNextSuggestion();
             } else {
               await onClickNo();
@@ -414,7 +418,6 @@ const ChimpleAvatar: FC<{
   }
 
   async function getRecommendedCourse() {
-
     if (!allCourses || allCourses.length === 0) {
       await fetchCoursesForStudent();
     }
@@ -424,7 +427,6 @@ const ChimpleAvatar: FC<{
       );
       return allCourses[courseIndex + 1] || allCourses[0];
     } else {
-
       return allCourses[0] || cAllCourses[0];
     }
   }
@@ -441,7 +443,6 @@ const ChimpleAvatar: FC<{
   }
 
   async function getRecommendedLesson(cChapter: Chapter, cCourse: Course) {
-
     if (currentMode === AvatarModes.CourseSuggestion) {
       if (currentLesson && cChapter) {
         const lessonIndex = cChapter.lessons.findIndex(
@@ -469,7 +470,7 @@ const ChimpleAvatar: FC<{
       }
     } else if (currentMode === AvatarModes.RecommendedLesson) {
       avatarObj.currentRecommendedLessonIndex++;
-      
+
       if (
         avatarObj.currentRecommendedLessonIndex === recommadedSuggestion.length
       ) {
@@ -562,7 +563,7 @@ const ChimpleAvatar: FC<{
           break;
         case AvatarModes.LessonSuggestion:
           if (currentLesson) {
-            const x3 = currentLesson;
+            const x3 = currentLesson.title;
             message = t(`Do you want to play 'x3' lesson?`).replace(
               "x3",
               " " + x3 + " "
@@ -662,7 +663,7 @@ const ChimpleAvatar: FC<{
     case AvatarModes.RecommendedLesson:
       if (currentLesson) {
         const x3 = currentLesson.title;
-        
+
         message = t(`Do you want to play 'x3' lesson?`)
           .replace("x3", " " + x3 + " ")
           .replace(
@@ -767,7 +768,11 @@ const ChimpleAvatar: FC<{
               {buttons.map((button, index) => (
                 <div key={index}>
                   <RectangularTextButton
-                    buttonWidth={"17vw"}
+                    buttonWidth={
+                      avatarObj.mode === AvatarModes.collectReward
+                        ? "auto"
+                        : "17vw"
+                    }
                     buttonHeight={"8vh"}
                     padding={1}
                     text={button.label}
