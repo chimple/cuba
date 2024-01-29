@@ -904,9 +904,7 @@ export class FirebaseApi implements ServiceApi {
     languageDocId: string
   ): Promise<User> {
     let tempCourse;
-    if (!student.courses && gradeDocId) {
-      tempCourse = await this.getCourseByUserGradeId(gradeDocId);
-    }
+    tempCourse = await this.getCourseByUserGradeId(gradeDocId);
     const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
     const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
     const languageRef = doc(

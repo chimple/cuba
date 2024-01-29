@@ -370,6 +370,7 @@ const DisplayChapters: FC<{}> = () => {
     addDataToLocalStorage();
     setCurrentGrade(grade);
     setCurrentCourse(currentCourse);
+    localStorageData.currentCourse = currentCourse;
   };
 
   const onChapterChange = async (chapter: Chapter) => {
@@ -411,9 +412,12 @@ const DisplayChapters: FC<{}> = () => {
         <div id="back-button-container">
           <BackButton onClicked={onBackButton} />
         </div>
-        <IonList
-          mode="ios"
-          style={{ width: "20%", display: "flex", justifyContent: "center" }}
+        <div
+          style={{
+            width: "fit-content",
+            display: "flex",
+            justifyContent: "center",
+          }}
         >
           <IonItem lines="none">
             <div className="chapter-name">
@@ -422,7 +426,7 @@ const DisplayChapters: FC<{}> = () => {
                 : currentChapter?.title}
             </div>
           </IonItem>
-        </IonList>
+        </div>
 
         {localGradeMap && currentGrade && stage === STAGES.CHAPTERS && (
           <DropDown
