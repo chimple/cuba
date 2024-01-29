@@ -370,6 +370,7 @@ const DisplayChapters: FC<{}> = () => {
     addDataToLocalStorage();
     setCurrentGrade(grade);
     setCurrentCourse(currentCourse);
+    localData.currentCourse = currentCourse;
     localStorageData.currentCourse = currentCourse;
   };
 
