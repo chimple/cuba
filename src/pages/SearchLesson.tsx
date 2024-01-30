@@ -184,7 +184,7 @@ function SearchLesson() {
           {/* A virtual search box is required for InstantSearch to understand the `query` search state property */}
           <VirtualSearchBox />
           <Autocomplete
-            placeholder={t("Search a Lesson...")}
+            placeholder={t("Search for a Lesson...")}
             detachedMediaQuery="none"
             initialState={{
               query: searchTerm,

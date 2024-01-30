@@ -185,7 +185,7 @@ const DisplayStudents: FC<{}> = () => {
                 size="10vh"
                 onClick={onCreateNewStudent}
               />
-              {t("Create New Child Profile")}
+              {t("Create a New Child Profile")}
             </div>
           )}
           {showDialogBox ? (
