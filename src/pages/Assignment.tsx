@@ -181,7 +181,7 @@ const AssignmentPage: React.FC = () => {
                     />
                   ) : (
                     <div className="pending-assignment">
-                      {t("There are no pending assignments for you.")}
+                      {t("You don't have any pending assignments.")}
                     </div>
                   )}
                 </div>

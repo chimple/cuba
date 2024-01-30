@@ -41,7 +41,7 @@ declare type Release = {
 
 export enum HotUpdateStatus {
   CHECKING_FOR_UPDATE = "Checking for an update",
-  COPY_FROM_BUNDLE = "Getting ready for update in background",
+  COPY_FROM_BUNDLE = "Getting ready for an update in the background",
   FOUND_UPDATE = "Found a new update",
   DOWNLOADING_THE_UPDATES = "Downloading the latest updates",
   ALREADY_UPDATED = "Already on the latest version",

@@ -101,7 +101,7 @@ const LiveQuiz: React.FC = () => {
             </div>
           ) : (
             <div className="pending-live-quiz">
-              {t("There are no Live Quizzes for you.")}
+              {t("You do not have any live quizzes available.")}
             </div>
           )}
         </div>
