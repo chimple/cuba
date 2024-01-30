@@ -413,13 +413,7 @@ const DisplayChapters: FC<{}> = () => {
         <div id="back-button-container">
           <BackButton onClicked={onBackButton} />
         </div>
-        <div
-          style={{
-            width: "fit-content",
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
+        <div className="chapter-header">
           <IonItem lines="none">
             <div className="chapter-name">
               {stage === STAGES.CHAPTERS
