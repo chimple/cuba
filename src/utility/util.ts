@@ -363,6 +363,7 @@ export class Util {
           directory: Directory.External,
           base64Alway: false,
         });
+
         const path =
           (localStorage.getItem("gameUrl") ??
             "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
@@ -403,34 +404,38 @@ export class Util {
         );
         if (!bundleZipUrls || bundleZipUrls.length < 1) return false;
         let zip;
-        for (let bundleUrl of bundleZipUrls) {
-          const zipUrl = bundleUrl + lessonId + ".zip";
-          try {
-            zip = await CapacitorHttp.get({
-              url: zipUrl,
-              responseType: "blob",
-            });
-            console.log(
-              "🚀 ~ file: util.ts:219 ~ downloadZipBundle ~ zip:",
-              zip.status
-            );
-            this.storeLessonOrChaterIdToLocalStorage(
-              lessonId,
-              DOWNLOADED_LESSON_AND_CHAPTER_ID,
-              "lesson"
-            );
 
-            if (!!zip && !!zip.data && zip.status === 200) break;
-          } catch (error) {
-            console.log(
-              "🚀 ~ file: util.ts:216 ~ downloadZipBundle ~ error:",
-              error
-            );
+        const MAX_DOWNLOAD_ATTEMPTS = 3;
+        let downloadAttempts = 0;
+        while (downloadAttempts < MAX_DOWNLOAD_ATTEMPTS) {
+          for (let bundleUrl of bundleZipUrls) {
+            const zipUrl = bundleUrl + lessonId + ".zip";
+            try {
+              zip = await CapacitorHttp.get({
+                url: zipUrl,
+                responseType: "blob",
+              });
+              console.log(
+                "🚀 ~ file: util.ts:219 ~ downloadZipBundle ~ zip:",
+                zip.status
+              );
+              this.storeLessonOrChaterIdToLocalStorage(
+                lessonId,
+                DOWNLOADED_LESSON_AND_CHAPTER_ID,
+                "lesson"
+              );
+
+              if (!!zip && !!zip.data && zip.status === 200) break;
+            } catch (error) {
+              console.log(
+                "🚀 ~ file: util.ts:216 ~ downloadZipBundle ~ error:",
+                error
+              );
+            }
           }
+          downloadAttempts++;
         }
-
         if (!zip || !zip.data || zip.status !== 200) return false;
-
         if (zip instanceof Object) {
           console.log("unzipping ");
           const buffer = Uint8Array.from(atob(zip.data), (c) =>
@@ -452,19 +457,18 @@ export class Util {
               ),
             data: buffer,
           });
-          console.log("un  zip done");
+          console.log("Unzip done");
+
           this.storeLessonOrChaterIdToLocalStorage(
             lessonId,
             DOWNLOADED_LESSON_AND_CHAPTER_ID,
             "lesson"
           );
         }
-        console.log("zip ", zip);
+
+        // Increase the delay between retries exponentially
       } catch (error) {
-        console.log(
-          "🚀 ~ file: util.ts:249 ~ downloadZipBundle ~ error:",
-          error
-        );
+        console.error("Error during lesson download: ", error);
         return false;
       }
     }
