@@ -30,6 +30,7 @@ import Class from "../models/class";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
 import { Timestamp } from "firebase/firestore";
+import SkeltonLoading from "../components/SkeltonLoading";
 
 const localData: any = {};
 let localStorageData: any = {};
@@ -404,9 +405,8 @@ const DisplayChapters: FC<{}> = () => {
     return startIndex;
   }
 
-  return (
+  return !isLoading ? (
     <IonPage id="display-chapters-page">
-      <Loading isLoading={isLoading} />
       <div className="chapters-header">
         <div id="back-button-container">
           <BackButton onClicked={onBackButton} />
@@ -453,8 +453,7 @@ const DisplayChapters: FC<{}> = () => {
             <SelectCourse courses={courses} onCourseChange={onCourseChanges} />
           )} */}
 
-        {!isLoading &&
-          stage === STAGES.CHAPTERS &&
+        {stage === STAGES.CHAPTERS &&
           currentCourse &&
           localGradeMap &&
           currentGrade && (
@@ -471,7 +470,7 @@ const DisplayChapters: FC<{}> = () => {
             </div>
           )}
       </div>
-      {!isLoading && stage === STAGES.LESSONS && lessons && (
+      {stage === STAGES.LESSONS && lessons && (
         <div className="slider-container">
           <LessonSlider
             lessonData={lessons}
@@ -485,6 +484,12 @@ const DisplayChapters: FC<{}> = () => {
         </div>
       )}
     </IonPage>
+  ) : (
+    <SkeltonLoading
+      isLoading={isLoading}
+      header={PAGES.DISPLAY_CHAPTERS}
+      isChapter={stage == STAGES.CHAPTERS?false:true}
+    />
   );
 };
 export default DisplayChapters;

@@ -177,7 +177,7 @@
   height: 75vh;
   border-radius: 6vh;
 }
-.skelton-display-students{
+.skelton-display-students {
   margin: 0.4vh;
   gap: 10vh;
   align-items: center;
@@ -187,12 +187,41 @@
   margin-top: 3vh;
   justify-content: center;
 }
-.skelton-student-profile{
-
+.skelton-student-profile {
   gap: 10vh;
   align-items: center;
   justify-items: center;
   justify-content: center;
   width: 16vh;
   height: 16vh;
+}
+.skelton-display-chapters {
+  display: grid;
+  gap: min(10px, 1vh);
+  justify-items: center;
+  margin: 2%;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(clamp(150px, 40vh, 200px), 1fr)
+  );
+}
+.skelton-subject-name {
+  width: 20vw;
+  min-height: 44px;
+}
+.skelton-grade-name {
+  height: 9vh;
+  width: 15vw;
+  border-radius: 0.8vw;
+}
+.skelton-chapter-icon {
+  background-position: 50%;
+  width: min(70vh, 130px);
+  height: min(70vh, 130px);
+  border-radius: 50%;
+}
+.skelton-chapter-name {
+  top: 5px;
+  align-self: center;
+  width: min(70vh, 130px);
 }
