@@ -161,8 +161,8 @@ export class FirebaseAuth implements ServiceAuth {
       Timestamp.now(),
       Timestamp.now(),
       user.uid,
-      true,
-      true
+      0,
+      0
     );
     await setDoc(userRef, tempUser.toJson());
     this._currentUser = tempUser;
@@ -236,7 +236,7 @@ export class FirebaseAuth implements ServiceAuth {
           const signInWithPhoneNumber = async () => {
             return new Promise(async (resolve, reject) => {
               try {
-              var timeOut =  setTimeout(() => {
+                var timeOut = setTimeout(() => {
                   reject("Timed out waiting for SMS");
                 }, 60000);
                 // Attach `phoneCodeSent` listener to be notified as soon as the SMS is sent
@@ -244,7 +244,7 @@ export class FirebaseAuth implements ServiceAuth {
                   "phoneCodeSent",
                   async (event) => {
                     console.log("phoneCodeSent event ", JSON.stringify(event));
-                    clearTimeout(timeOut)
+                    clearTimeout(timeOut);
                     resolve(event);
                   }
                 );
