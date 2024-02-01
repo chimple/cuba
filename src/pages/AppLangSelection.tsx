@@ -88,7 +88,7 @@ const AppLangSelection: React.FC = () => {
           />
           <div id="text">
             <p id="header-text2">
-              {t("Enhanced kids profile creation")}
+              {t("Enhanced kid's profile creation")}
             </p>
             <div className="intro-text2">
               <p>

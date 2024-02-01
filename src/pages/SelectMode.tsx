@@ -166,7 +166,7 @@ const SelectMode: FC = () => {
             {stage === STAGES.MODE && (
               <div className="select-mode-main">
                 <span className="select-mode-text">
-                  {t("How do you want to join as?")}
+                  {t("How would you like to join?")}
                 </span>
 
                 <SelectModeButton
@@ -191,7 +191,7 @@ const SelectMode: FC = () => {
                   {t("Choose the School")}
                 </span>
                 <DropDown
-                  placeholder={t("Select School").toString()}
+                  placeholder={t("Select the School").toString()}
                   onValueChange={async (selectedSchoolDocId) => {
                     const currSchool = schoolList.find(
                       (element) => element.id === selectedSchoolDocId

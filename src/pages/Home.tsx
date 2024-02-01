@@ -22,6 +22,7 @@ import {
   CHAPTER_LESSON_MAP,
   LIVE_QUIZ,
   SHOW_DAILY_PROGRESS_FLAG,
+  IS_CONECTED,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -61,6 +62,7 @@ import AssignmentPage from "./Assignment";
 import { Console } from "console";
 import Subjects from "./Subjects";
 import LiveQuiz from "./LiveQuiz";
+import SkeltonLoading from "../components/SkeltonLoading";
 
 const sortValidLessonsByDate = (
   lessonIds: string[],
@@ -152,11 +154,22 @@ const Home: FC = () => {
 
   const fetchData = async () => {
     setIsLoading(true);
+
     const lessonResult = await getRecommendeds(HOMEHEADERLIST.HOME);
     console.log("resultTemp", lessonResult);
     const allLessonIds = await getHistory(lessonResult);
     if (allLessonIds) setValidLessonIds(allLessonIds);
     setIsLoading(false);
+    const student = await Util.getCurrentStudent();
+    if (student) {
+      const linked = await api.isStudentLinked(student.docId);
+      const conectedData = localStorage.getItem(IS_CONECTED);
+
+      const parsedConectedData = conectedData ? JSON.parse(conectedData) : {};
+      parsedConectedData[student.docId] = linked;
+
+      localStorage.setItem(IS_CONECTED, JSON.stringify(parsedConectedData));
+    }
   };
 
   function urlOpenListenerEvent() {
@@ -984,7 +997,7 @@ const Home: FC = () => {
             )}
           </div>
         ) : null}
-        <Loading isLoading={isLoading} />
+        <SkeltonLoading isLoading={isLoading} header={currentHeader} />
       </div>
     </IonPage>
   );

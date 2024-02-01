@@ -20,6 +20,7 @@ import ParentalLock from "../components/parent/ParentalLock";
 import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 import { schoolUtil } from "../utility/schoolUtil";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
+import SkeltonLoading from "../components/SkeltonLoading";
 // import { FirebaseApi } from "../services/api/FirebaseApi";
 // import { FirebaseAuth } from "../services/auth/FirebaseAuth";
 
@@ -184,7 +185,7 @@ const DisplayStudents: FC<{}> = () => {
                 size="10vh"
                 onClick={onCreateNewStudent}
               />
-              {t("Create New Child Profile")}
+              {t("Create a New Child Profile")}
             </div>
           )}
           {showDialogBox ? (
@@ -202,7 +203,7 @@ const DisplayStudents: FC<{}> = () => {
           ) : null}
         </div>
       )}
-      <Loading isLoading={isLoading} />
+      <SkeltonLoading isLoading={isLoading} header={PAGES.DISPLAY_STUDENT}/>
       {/* </IonContent> */}
     </IonPage>
   );

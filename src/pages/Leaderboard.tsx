@@ -9,6 +9,7 @@ import {
   MODES,
   LANGUAGE,
   LeaderboardDropdownList,
+  HOMEHEADERLIST,
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import BackButton from "../components/common/BackButton";
@@ -28,6 +29,7 @@ import IconButton from "../components/IconButton";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
 import LeaderboardRewards from "../components/leaderboard/LeaderboardRewards";
+import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 
 const Leaderboard: React.FC = () => {
@@ -510,7 +512,7 @@ const Leaderboard: React.FC = () => {
     // </IonPage>
 
     <IonPage>
-      {!isLoading ? (
+      {!isLoading? (
         <Box>
           <div id="LeaderBoard-Header">
             <BackButton
@@ -613,7 +615,7 @@ const Leaderboard: React.FC = () => {
           </Box>
         </Box>
       ) : null}
-      <Loading isLoading={isLoading} />
+      <SkeltonLoading isLoading={isLoading} header={LEADERBOARDHEADERLIST.LEADERBOARD}/>
     </IonPage>
   );
 };
