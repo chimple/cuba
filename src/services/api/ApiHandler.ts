@@ -281,11 +281,11 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getParentStudentProfiles();
   }
 
-  updateSoundFlag(user: User, value: boolean) {
+  updateSoundFlag(user: User, value: number) {
     return this.s.updateSoundFlag(user, value);
   }
 
-  updateMusicFlag(user: User, value: boolean) {
+  updateMusicFlag(user: User, value: number) {
     return this.s.updateMusicFlag(user, value);
   }
   updateTcAccept(user: User, value: boolean) {

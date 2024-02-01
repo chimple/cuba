@@ -203,22 +203,22 @@ export class Util {
     this.logCurrentPageEvents(currentStudent);
     return currentStudent;
   }
-  public static getCurrentSound(): boolean {
+  public static getCurrentSound(): number {
     const auth = ServiceConfig.getI().authHandler;
     const currUser = auth.currentUser;
-    if (!!currUser?.soundFlag) return currUser.soundFlag;
+    if (!!currUser?.sfxOff) return currUser.sfxOff;
     const currSound = localStorage.getItem(SOUND);
-    if (!currSound) return true;
+    if (!currSound) return 0;
     console.log(currSound);
     if (currUser) {
       ServiceConfig.getI().apiHandler.updateSoundFlag(
         currUser,
-        currSound === "true" ? true : false
+        currSound === "0" ? 0 : 1
       );
     }
-    return currSound === "true" ? true : false;
+    return currSound === "0" ? 0 : 1;
   }
-  public static setCurrentSound = async (currSound: boolean) => {
+  public static setCurrentSound = async (currSound: number) => {
     const auth = ServiceConfig.getI().authHandler;
     const currUser = auth.currentUser;
     if (currUser) {
@@ -227,22 +227,22 @@ export class Util {
     localStorage.setItem(SOUND, currSound.toString());
   };
 
-  public static getCurrentMusic(): boolean {
+  public static getCurrentMusic(): number {
     const auth = ServiceConfig.getI().authHandler;
     const currUser = auth.currentUser;
-    if (!!currUser?.musicFlag) return currUser.musicFlag;
+    if (!!currUser?.musicOff) return currUser.musicOff;
     const currMusic = localStorage.getItem(MUSIC);
-    if (!currMusic) return true;
-    console.log(currMusic);
+    if (!currMusic) return 0;
+    console.log("currentMISIC", currMusic);
     if (currUser) {
       ServiceConfig.getI().apiHandler.updateMusicFlag(
         currUser,
-        currMusic === "true" ? true : false
+        currMusic === "0" ? 0 : 1
       );
     }
-    return currMusic === "true" ? true : false;
+    return currMusic === "0" ? 0 : 1;
   }
-  public static setCurrentMusic = async (currMusic: boolean) => {
+  public static setCurrentMusic = async (currMusic: number) => {
     const auth = ServiceConfig.getI().authHandler;
     const currUser = auth.currentUser;
     if (currUser) {
