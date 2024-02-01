@@ -3,6 +3,20 @@
     height: 65vh;
   }
 }
+.main-header-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.livequiz-back-button {
+  margin: var(--margin);
+  margin-left: 0;
+  margin-right: 0;
+}
+.livequiz-room-header {
+  display: flex;
+  justify-content: space-between;
+}
 .top-performer-circle {
   position: absolute;
   top: 0;
@@ -94,11 +108,6 @@
   padding: 0;
   justify-content: flex-end;
   margin-bottom: 10vh;
-}
-.live-quiz-room-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 .join-button {
   box-shadow: 0;

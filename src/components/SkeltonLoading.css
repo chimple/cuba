@@ -184,7 +184,8 @@
   justify-items: center;
   display: flex;
   flex-wrap: wrap;
-  margin-top: 3vh;
+  flex-direction: row;
+  /* margin-top: 3vh; */
   justify-content: center;
 }
 .skelton-student-profile {
