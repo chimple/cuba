@@ -228,7 +228,7 @@ const Leaderboard: React.FC = () => {
         tempCurrentUserDataContent = [
           // ["Name", element.name],
           [t("Rank"), cUserRank],
-          [t("Lesson Played"), tempData[0].lessonsPlayed],
+          [t("Lessons Played"), tempData[0].lessonsPlayed],
           [t("Score"), tempData[0].score],
           [
             t("Time Spent"),
@@ -248,16 +248,16 @@ const Leaderboard: React.FC = () => {
       tempCurrentUserDataContent = [
         // ["Name", element.name],
         [t("Rank"), "--"],
-        [t("Lesson Played"), "--"],
+        [t("Lessons Played"), "--"],
         [t("Score"), "--"],
-        [t("Time Spent"), "--" + t("min") + " --" + t("sec")],
+        [t("Time Spent"), "--" + t(" min") + " --" + t("sec")],
       ];
       tempLeaderboardDataArray.push([
         "--",
         currentStudent.name,
         "--",
         "--",
-        "--" + t("min") + " --" + t("sec"),
+        "--" + t(" min") + " --" + t("sec"),
       ]);
     }
     setCurrentUserDataContent(tempCurrentUserDataContent);
@@ -371,8 +371,7 @@ const Leaderboard: React.FC = () => {
             })}
           </div>
           <p id="leaderboard-left-note-message">
-            *** Be among the top performers in your class to win an exciting
-            reward
+            {t("***Be among the top performers in your class to win an exciting reward")}
           </p>
         </div>
         <div id="leaderboard-right-UI">

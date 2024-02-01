@@ -58,13 +58,16 @@ const StudentProgress: React.FC = () => {
 
       const courses = await getCourses(currentStudent);
       setCourses(courses);
-
       if (courses.length > 0) {
         setCurrentHeader(courses[0].courseCode);
         setTabIndex(courses[0].courseCode);
         setStudentProgressHeaderIconList(
-          courses.map((course) => ({
-            displayName: t(course.title),
+          courses.map((course) => (
+            {
+            displayName:
+            course.title === 'Maths'
+              ? t(course.title) 
+              : course.title,
             iconSrc: course.thumbnail ?? "assets/icons/EnglishIcon.svg",
             header: course.courseCode,
             course: course,
