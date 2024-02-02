@@ -48,6 +48,9 @@ export class OneRosterApi implements ServiceApi {
   getLessonWithCocosLessonId(lessonId: string): Promise<Lesson | null> {
     throw new Error("Method not implemented.");
   }
+  getLessonIdWithChapterId(chapterId: string): Promise<any[]> {
+    throw new Error("Method not implemented.");
+  }
 
   getLesson(id: string): Promise<Lesson | undefined> {
     throw new Error("Method not implemented.");

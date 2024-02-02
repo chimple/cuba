@@ -69,7 +69,6 @@ const DisplayChapters: FC<{}> = () => {
     (course) => courseDocId == course.docId
   );
   useEffect(() => {
-    Util.updateChapterOrLessonDownloadStatus(lessons);
     init();
   }, []);
   useEffect(() => {
@@ -487,7 +486,7 @@ const DisplayChapters: FC<{}> = () => {
     <SkeltonLoading
       isLoading={isLoading}
       header={PAGES.DISPLAY_CHAPTERS}
-      isChapter={stage == STAGES.CHAPTERS?false:true}
+      isChapter={stage == STAGES.CHAPTERS ? false : true}
     />
   );
 };

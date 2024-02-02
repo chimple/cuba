@@ -577,52 +577,60 @@ export class Util {
   }
 
   public static async updateChapterOrLessonDownloadStatus(
-    lessonId: Lesson[] | undefined
-  ): Promise<boolean> {
-    if (lessonId) {
-      const chapterIdToStore: string[] = [];
-      const areAllIdsStored = lessonId.every((e) => {
-        let isLessonIdStored = this.isStored(
-          e.id,
-          DOWNLOADED_LESSON_AND_CHAPTER_ID
-        );
-        if (isLessonIdStored) {
-          if (e.cocosChapterCode) {
-            chapterIdToStore.push(e.cocosChapterCode);
-          }
+    chapterId: string | undefined
+  ): Promise<any> {
+    if (!chapterId) {
+      return false;
+    }
 
-          // Store the collected cocosChapterCode for stored items
-          this.storeLessonOrChaterIdToLocalStorage(
-            chapterIdToStore,
-            DOWNLOADED_LESSON_AND_CHAPTER_ID,
-            "chapter"
-          );
-        }
-        return true; // Continue checking other IDs
-      });
-      const chapterIdToremove: string[] = [];
-      const areAllIdsNotStored = lessonId.every((e) => {
-        let isLessonIdStored = this.isStored(
-          e.id,
-          DOWNLOADED_LESSON_AND_CHAPTER_ID
-        );
-        if (!isLessonIdStored) {
-          if (e.cocosChapterCode) {
-            chapterIdToremove.push(e.cocosChapterCode);
-          }
-        }
+    const storedLessonAndChapterIdMap = JSON.parse(
+      localStorage.getItem(CHAPTER_LESSON_MAP) || "{}"
+    );
+    const downloadedLessonAndChapterId = JSON.parse(
+      localStorage.getItem(DOWNLOADED_LESSON_AND_CHAPTER_ID) || "{}"
+    );
 
-        return true; // Continue checking other IDs
-      });
-      this.removeLessonOrChapterIdFromLocalStorage(
-        chapterIdToremove,
-        DOWNLOADED_LESSON_AND_CHAPTER_ID
+    if (!storedLessonAndChapterIdMap) {
+      localStorage.setItem(CHAPTER_LESSON_MAP, JSON.stringify({}));
+    }
+
+    if (!storedLessonAndChapterIdMap.hasOwnProperty(chapterId)) {
+      try {
+        const api = await ServiceConfig.getI().apiHandler;
+        const lesson = await api.getLessonIdWithChapterId(chapterId);
+
+        storedLessonAndChapterIdMap[chapterId] = lesson.map(
+          (lesson: any) => lesson.id
+        );
+
+        localStorage.setItem(
+          CHAPTER_LESSON_MAP,
+          JSON.stringify(storedLessonAndChapterIdMap)
+        );
+      } catch (error) {
+        console.error("Error fetching lesson:", error);
+      }
+    }
+    let allDownloadedlessonIds = downloadedLessonAndChapterId.lesson || [];
+    const lessonId123 = storedLessonAndChapterIdMap[chapterId] || [];
+
+    if (lessonId123) {
+      const allPresent = lessonId123.every((item: any) =>
+        allDownloadedlessonIds.includes(item)
       );
 
-      if (!areAllIdsStored || !areAllIdsNotStored) {
-        return false;
+      if (allPresent) {
+        this.storeLessonOrChaterIdToLocalStorage(
+          chapterId,
+          DOWNLOADED_LESSON_AND_CHAPTER_ID,
+          "chapter"
+        );
+      } else {
+        this.removeLessonOrChapterIdFromLocalStorage(
+          chapterId,
+          DOWNLOADED_LESSON_AND_CHAPTER_ID
+        );
       }
-      return true;
     }
 
     return false;

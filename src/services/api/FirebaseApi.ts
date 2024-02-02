@@ -1584,7 +1584,6 @@ export class FirebaseApi implements ServiceApi {
       );
 
       if (!lessonQuerySnapshot.empty) {
-        // If there is a matching lesson, return it
         const lessonDoc = lessonQuerySnapshot.docs[0];
         const lesson = lessonDoc.data() as Lesson;
         lesson.docId = lessonDoc.id;
@@ -1596,6 +1595,33 @@ export class FirebaseApi implements ServiceApi {
     } catch (error) {
       console.error("Error fetching lesson by ID:", error);
       return null;
+    }
+  }
+  public async getLessonIdWithChapterId(chapterId: string): Promise<any> {
+    try {
+      const lessonQuerySnapshot = await this.getDocsFromOffline(
+        query(
+          collection(this._db, CollectionIds.LESSON),
+          where("cocosChapterCode", "==", chapterId)
+        )
+      );
+
+      const lessonIds: any[] = [];
+
+      lessonQuerySnapshot.forEach((lessonDoc) => {
+        const lessonData = lessonDoc.data();
+        if (!lessonData.type) {
+          lessonIds.push({
+            id: lessonDoc.id,
+            ...lessonData,
+          });
+        }
+      });
+
+      return lessonIds;
+    } catch (error) {
+      console.error("Error fetching lessons by ID:", error);
+      return [];
     }
   }
 

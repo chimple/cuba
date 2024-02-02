@@ -15,8 +15,8 @@ import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErro
 const DownloadLesson: React.FC<{
   lessonID?: string;
   chapters?: Chapter;
-  lessonData?: Lesson[];
-}> = ({ lessonID, chapters, lessonData }) => {
+  chapterID?: string;
+}> = ({ lessonID, chapters, chapterID }) => {
   const [showIcon, setShowIcon] = useState(true);
   const [showDialogBox, setShowDialogBox] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -35,7 +35,7 @@ const DownloadLesson: React.FC<{
     }
   }, []);
   async function init() {
-    const lesson = Util.updateChapterOrLessonDownloadStatus(lessonData);
+    const lesson = Util.updateChapterOrLessonDownloadStatus(chapterID);
     if (!lesson) {
       return;
     }
