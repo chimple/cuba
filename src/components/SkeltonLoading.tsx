@@ -61,6 +61,8 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
     case LEADERBOARDHEADERLIST.LEADERBOARD:
       return isLoading ? skeltonLeaderBoard() : null;
       break;
+    case PAGES.LIVE_QUIZ_JOIN:
+      return isLoading ? skeletonLiveQuizRoom() : null;
     default:
       return isLoading ? skeltonSubjectCards() : null;
   }
@@ -111,7 +113,8 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
                     : textWidth
                 }
               />
-              {(header === HOMEHEADERLIST.SUBJECTS || header === PAGES.DISPLAY_CHAPTERS) ? null : (
+              {header === HOMEHEADERLIST.SUBJECTS ||
+              header === PAGES.DISPLAY_CHAPTERS ? null : (
                 <Skeleton style={skeletonStyle} width={textWidth} />
               )}
             </div>
@@ -189,6 +192,24 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
         ) : (
           <div className="skelton-body-cards">{skeltonLessonCards()}</div>
         )}
+      </div>
+    );
+  }
+  function skeletonLiveQuizRoom() {
+    return (
+      <div className="skelton-display-students">
+        <div>
+          <Skeleton circle className="skelton-student-profile" />
+          <Skeleton className="skelton-leaderboard-avatar-name" />
+        </div>
+        <div>
+          <Skeleton circle className="skelton-student-profile" />
+          <Skeleton className="skelton-leaderboard-avatar-name" />
+        </div>
+        <div>
+          <Skeleton circle className="skelton-student-profile" />
+          <Skeleton className="skelton-leaderboard-avatar-name" />
+        </div>
       </div>
     );
   }

@@ -1,6 +1,5 @@
 .leaderboard-header {
   text-align: center;
-  margin: var(--margin);
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -12,11 +11,19 @@
   font-weight: bold;
   font-size: 5vh;
 }
-
+.livequiz-leaderboard {
+  position: sticky;
+  z-index: 3;
+  background: var(--ion-background-color);
+  top: 0;
+  padding: clamp(10px, 10vh, 20px);
+  padding-bottom: 0;
+}
 .leaderboard-container {
   display: flex;
   flex-direction: column;
   margin: auto;
+  overflow-y: scroll;
 }
 
 .leaderboard-row {
