@@ -270,7 +270,7 @@ const Login: React.FC = () => {
 
         if (error.includes("blocked all requests") || error.includes('Timed out waiting for SMS')) {
           setErrorMessage(
-            t("Something went wrong Please try again after some time")
+            t("Something went wrong. Please try again after some time.")
           );
         } else if (error.includes("E.164 format")) {
           setErrorMessage(t("Incorrect phone number format"));
@@ -347,7 +347,7 @@ const Login: React.FC = () => {
             isInvalidCodeLength: false,
           });
           setErrorMessage(
-            t("Verification code has expired. Please request a new one")
+            t("Verification code has expired. Please request a new one.")
           );
         }
       }

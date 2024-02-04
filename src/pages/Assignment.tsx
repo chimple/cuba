@@ -3,7 +3,7 @@ import JoinClass from "../components/assignment/JoinClass";
 import "./Assignment.css";
 import { useEffect, useState } from "react";
 import BackButton from "../components/common/BackButton";
-import { LIVE_QUIZ, PAGES, TYPE } from "../common/constants";
+import { HOMEHEADERLIST, LIVE_QUIZ, PAGES, TYPE } from "../common/constants";
 import { useHistory } from "react-router";
 import Loading from "../components/Loading";
 import Class from "../models/class";
@@ -17,6 +17,7 @@ import { Util } from "../utility/util";
 import { Keyboard } from "@capacitor/keyboard";
 import { Capacitor } from "@capacitor/core";
 import { StudentLessonResult } from "../common/courseConstants";
+import SkeltonLoading from "../components/SkeltonLoading";
 
 const AssignmentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -126,7 +127,7 @@ const AssignmentPage: React.FC = () => {
       });
     }
   }, []);
-  return (
+  return !loading ? (
     <div>
       <div className={`assignment-main${isLinked ? "" : "-join-class"}`}>
         {/* <div id="assignment-back-button" style={{display:"none"}}>
@@ -180,7 +181,7 @@ const AssignmentPage: React.FC = () => {
                     />
                   ) : (
                     <div className="pending-assignment">
-                      {t("There are no pending assignments for you.")}
+                      {t("You don't have any pending assignments.")}
                     </div>
                   )}
                 </div>
@@ -189,7 +190,13 @@ const AssignmentPage: React.FC = () => {
           )}
         </div>
       </div>
-      <Loading isLoading={loading} />
+    </div>
+  ) : (
+    <div className="assignment-loading">
+      <SkeltonLoading
+        isLoading={loading}
+        header={HOMEHEADERLIST.ASSIGNMENT}
+      />
     </div>
   );
 };

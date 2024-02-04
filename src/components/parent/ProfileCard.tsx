@@ -166,7 +166,7 @@ const ProfileCard: React.FC<{
           width={"40vw"}
           height={"30vh"}
           message={t(
-            "You can edit or delete Profile by clicking on the below buttons"
+            "You can edit or delete the Profile by clicking on the buttons below."
           )}
           showDialogBox={showDialogBox}
           yesText={t("Delete Profile")}

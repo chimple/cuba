@@ -419,14 +419,15 @@ export class FirebaseApi implements ServiceApi {
     this._currentMode = value;
   }
 
-  public updateSoundFlag = async (user: User, value: boolean) => {
+  public updateSoundFlag = async (user: User, value: number) => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {
       await updateDoc(doc(this._db, `User/${user.uid}`), {
-        soundFlag: value,
+        sfxOff: value,
         updatedAt: Timestamp.now(),
       });
-      user.soundFlag = value;
+
+      user.sfxOff = value;
       ServiceConfig.getI().authHandler.currentUser = user;
     }
   };
@@ -442,14 +443,15 @@ export class FirebaseApi implements ServiceApi {
     }
   };
 
-  public updateMusicFlag = async (user: User, value: boolean) => {
+  public updateMusicFlag = async (user: User, value: number) => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {
       await updateDoc(doc(this._db, `User/${user.uid}`), {
-        musicFlag: value,
+        musicOff: value,
         updatedAt: Timestamp.now(),
       });
-      currentUser.musicFlag = value;
+      console.log("updateMusicFlag", value);
+      currentUser.musicOff = value;
       ServiceConfig.getI().authHandler.currentUser = currentUser;
     }
   };
@@ -904,9 +906,7 @@ export class FirebaseApi implements ServiceApi {
     languageDocId: string
   ): Promise<User> {
     let tempCourse;
-    if (!student.courses && gradeDocId) {
-      tempCourse = await this.getCourseByUserGradeId(gradeDocId);
-    }
+    tempCourse = await this.getCourseByUserGradeId(gradeDocId);
     const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
     const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
     const languageRef = doc(

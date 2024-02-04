@@ -13,6 +13,9 @@ import BarLoader from "react-spinners/BarLoader";
 import Lesson from "../models/lesson";
 import Course from "../models/course";
 import { FaHeart } from "react-icons/fa";
+import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
+import BackButton from "../components/common/BackButton";
+import SkeltonLoading from "../components/SkeltonLoading";
 const LiveQuizRoom: React.FC = () => {
   const [students, setStudents] = useState(new Map<String, User>());
   const [prevPlayedStudents, setPrevPlayedStudents] = useState<User[]>([]);
@@ -26,8 +29,10 @@ const LiveQuizRoom: React.FC = () => {
   const [isJoining, setIsJoining] = useState(false);
   const [lesson, setLesson] = useState<Lesson | undefined>();
   const [course, setCourse] = useState<Course | undefined>();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   let lessonRef;
   let courseRef;
+  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
 
   const state = (history.location.state as any) ?? {};
   useEffect(() => {
@@ -35,6 +40,7 @@ const LiveQuizRoom: React.FC = () => {
   }, []);
 
   const init = async () => {
+    setIsLoading(true);
     const currentStudent = Util.getCurrentStudent();
 
     if (!currentStudent) return;
@@ -125,6 +131,7 @@ const LiveQuizRoom: React.FC = () => {
     );
     setPrevPlayedStudents(tempPrevPlayedStudents);
     setNotPlayedStudents(tempNotPlayedStudents);
+    setIsLoading(false);
   };
 
   const downloadQuiz = async (lessonId: string) => {
@@ -148,14 +155,27 @@ const LiveQuizRoom: React.FC = () => {
     setIsJoining(false);
     return;
   };
-
   return (
     <IonPage className="live-quiz-room-page">
-      <div className="live-quiz-room-header">
-        <p id="header-text-1">{t("Live Challenge")}</p>
-        <p id="header-text-2">
-          {course?.title + " | " + lesson?.chapterTitle + " | " + lesson?.title}
-        </p>
+      <div className="livequiz-room-header">
+        <div className="livequiz-back-button">
+          <BackButton
+            onClicked={() => {
+              Util.setPathToBackButton(PAGES.HOME, history);
+            }}
+          />
+        </div>
+        <div className="main-header-text">
+          <p id="header-text-1">{t("Live Challenge")}</p>
+          <p id="header-text-2">
+            {course?.title +
+              " | " +
+              lesson?.chapterTitle +
+              " | " +
+              lesson?.title}
+          </p>
+        </div>
+        <div></div>
       </div>
 
       <div className="outcome">
@@ -178,7 +198,12 @@ const LiveQuizRoom: React.FC = () => {
                   : "center",
             }}
           >
-            {prevPlayedStudents.length > 0 ? (
+            {!!isLoading ? (
+              <SkeltonLoading
+                isLoading={isLoading}
+                header={PAGES.LIVE_QUIZ_JOIN}
+              />
+            ) : prevPlayedStudents.length > 0 ? (
               prevPlayedStudents
                 .sort((a, b) => {
                   const scoreA =
@@ -196,19 +221,21 @@ const LiveQuizRoom: React.FC = () => {
                         {index + 1}
                       </div>
                     )}
-                    <StudentAvatar
-                      student={student}
-                      onClicked={() => {}}
-                      width={70}
-                      namePosition={"below"}
-                    />
-                    {!!currentAssignment?.results && (
-                      <p className="student-score">
-                        {Math.round(
-                          currentAssignment.results[student.docId]?.score
-                        )}
-                      </p>
-                    )}
+                    <div className="student-avatar-container">
+                      <StudentAvatar
+                        student={student}
+                        onClicked={() => {}}
+                        width={70}
+                        namePosition={"below"}
+                      />
+                      {!!currentAssignment?.results && (
+                        <p className="student-score">
+                          {Math.round(
+                            currentAssignment.results[student.docId]?.score
+                          )}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 ))
             ) : (
@@ -220,23 +247,40 @@ const LiveQuizRoom: React.FC = () => {
           <div className="status-text-container-2">
             <p className="status-text-2">{t("Not Played")}</p>
           </div>
-          <div className="student-container-2">
-            {notPlayedStudents.map((student) => (
-              <div key={student.docId} className="student-avatar-container">
-                {student.docId === Util.getCurrentStudent()?.docId && (
-                  <div className="green-circle">
-                    <FaHeart color="white" />
-                  </div>
-                )}
-                <StudentAvatar
-                  key={student.docId}
-                  student={student}
-                  onClicked={() => {}}
-                  width={70}
-                  namePosition={"below"}
-                />
-              </div>
-            ))}
+          <div
+            className="student-container-2"
+            style={{
+              justifyContent:
+                notPlayedStudents.length > 0
+                  ? notPlayedStudents.length > 3
+                    ? "space-between"
+                    : "space-evenly"
+                  : "center",
+            }}
+          >
+            {!!isLoading ? (
+              <SkeltonLoading
+                isLoading={isLoading}
+                header={PAGES.LIVE_QUIZ_JOIN}
+              />
+            ) : (
+              notPlayedStudents.map((student) => (
+                <div key={student.docId} className="student-avatar-container">
+                  {student.docId === Util.getCurrentStudent()?.docId && (
+                    <div className="green-circle">
+                      <FaHeart color="white" />
+                    </div>
+                  )}
+                  <StudentAvatar
+                    key={student.docId}
+                    student={student}
+                    onClicked={() => {}}
+                    width={70}
+                    namePosition={"below"}
+                  />
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -251,6 +295,21 @@ const LiveQuizRoom: React.FC = () => {
             id="button-inner"
             disabled={!isDownloaded || isJoining}
             onClick={() => {
+              if (!online) {
+                presentToast({
+                  message: t(`Device is offline. Cannot join live quiz`),
+                  color: "danger",
+                  duration: 3000,
+                  position: "bottom",
+                  buttons: [
+                    {
+                      text: "Dismiss",
+                      role: "cancel",
+                    },
+                  ],
+                });
+                return;
+              }
               if (!!currentAssignment?.docId) {
                 joinQuiz(
                   Util.getCurrentStudent()?.docId!,
@@ -263,7 +322,7 @@ const LiveQuizRoom: React.FC = () => {
           </IonButton>
         ) : (
           <BarLoader
-            color="rgb(95, 226, 54)"
+            color="#8fc93c"
             height={26}
             width={143}
             loading={!isDownloaded}
