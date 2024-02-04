@@ -10,6 +10,7 @@ import { DOWNLOADED_LESSON_AND_CHAPTER_ID } from "../common/constants";
 import { TfiDownload, TfiTrash } from "react-icons/tfi";
 import { Capacitor } from "@capacitor/core";
 import { Chapter } from "../common/courseConstants";
+import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 
 const DownloadLesson: React.FC<{
   lessonID?: string;
@@ -18,41 +19,11 @@ const DownloadLesson: React.FC<{
 }> = ({ lessonID, chapters, lessonData }) => {
   const [showIcon, setShowIcon] = useState(true);
   const [showDialogBox, setShowDialogBox] = useState(false);
-  const [online, setOnline] = useState(navigator.onLine);
   const [loading, setLoading] = useState(false);
   const [storedLessonID, setStoredLessonID] = useState<string[]>([]);
   const api = ServiceConfig.getI().apiHandler;
-  const [present] = useIonToast();
-  const presentToast = async () => {
-    await present({
-      message: t(
-        `Device is offline. Cannot download ${chapters ? "Chapter" : "Lesson"}`
-      ),
-      color: "danger",
-      duration: 3000,
-      position: "bottom",
-      buttons: [
-        {
-          text: t("Dismiss"),
-          role: "cancel",
-        },
-      ],
-    });
-  };
+  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   useEffect(() => {
-    setOnline(navigator.onLine);
-
-    function handleOnlineEvent() {
-      setOnline(true);
-    }
-
-    function handleOfflineEvent() {
-      setOnline(false);
-    }
-
-    window.addEventListener("online", handleOnlineEvent);
-    window.addEventListener("offline", handleOfflineEvent);
-
     const storedLessonAndChapterIds = Util.getStoredLessonAndChapterIds();
 
     if (lessonID && storedLessonAndChapterIds.lesson.includes(lessonID)) {
@@ -73,8 +44,25 @@ const DownloadLesson: React.FC<{
   const handleDownload = async () => {
     if (loading) return;
     setLoading(true);
+
     if (!online) {
-      presentToast();
+      presentToast({
+        message: t(
+          `Device is offline. Cannot download ${
+            chapters ? "Chapter" : "Lesson"
+          }`
+        ),
+        color: "danger",
+        duration: 3000,
+        position: "bottom",
+        buttons: [
+          {
+            text: "Dismiss",
+            role: "cancel",
+          },
+        ],
+      });
+
       setLoading(false);
       return;
     }

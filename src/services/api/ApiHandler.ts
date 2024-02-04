@@ -12,11 +12,18 @@ import Assignment from "../../models/assignment";
 import Class from "../../models/class";
 import StudentProfile from "../../models/studentProfile";
 import school from "../../models/school";
-import { MODES } from "../../common/constants";
+import {
+  LeaderboardDropdownList,
+  LeaderboardRewards,
+  MODES,
+} from "../../common/constants";
 import School from "../../models/school";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
+import Badge from "../../models/Badge";
+import Rewards from "../../models/Rewards";
+import Sticker from "../../models/Sticker";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -57,6 +64,35 @@ export class ApiHandler implements ServiceApi {
     return this.s.joinLiveQuiz(studentId, assignmentId);
   }
   private constructor() {}
+  public async updateRewardsForStudent(
+    studentId: string,
+    unlockedReward: LeaderboardRewards
+  ) {
+    return await this.s.updateRewardsForStudent(studentId, unlockedReward);
+  }
+
+  public async getUserByDocId(studentId: string): Promise<User | undefined> {
+    return await this.s.getUserByDocId(studentId);
+  }
+
+  public async updateRewardAsSeen(studentId: string): Promise<void> {
+    return await this.s.updateRewardAsSeen(studentId);
+  }
+
+  public async getLeaderboardStudentResultFromB2CCollection(
+    studentId: string
+  ): Promise<LeaderboardInfo | undefined> {
+    return await this.s.getLeaderboardStudentResultFromB2CCollection(studentId);
+  }
+  public async getRewardsById(id: string): Promise<Rewards | undefined> {
+    return this.s.getRewardsById(id);
+  }
+  public async getBadgeById(id: string): Promise<Badge | undefined> {
+    return this.s.getBadgeById(id);
+  }
+  public async getStickerById(id: string): Promise<Sticker | undefined> {
+    return this.s.getStickerById(id);
+  }
   public async getAvatarInfo(): Promise<AvatarObj | undefined> {
     return await this.s.getAvatarInfo();
   }
@@ -209,9 +245,10 @@ export class ApiHandler implements ServiceApi {
   public async getLesson(
     id: string,
     chapter: Chapter | undefined = undefined,
-    loadChapterTitle: boolean = false
+    loadChapterTitle: boolean = false,
+    assignment: Assignment | undefined = undefined
   ): Promise<Lesson | undefined> {
-    return await this.s.getLesson(id, chapter, loadChapterTitle);
+    return await this.s.getLesson(id, chapter, loadChapterTitle, assignment);
   }
 
   public async getLessonsForChapter(chapter: Chapter): Promise<Lesson[]> {
@@ -325,9 +362,12 @@ export class ApiHandler implements ServiceApi {
 
   public async getLeaderboardResults(
     sectionId: string,
-    isWeeklyData: boolean
+    leaderboardDropdownType: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined> {
-    return await this.s.getLeaderboardResults(sectionId, isWeeklyData);
+    return await this.s.getLeaderboardResults(
+      sectionId,
+      leaderboardDropdownType
+    );
   }
 
   getAllLessonsForCourse(course: Course): Promise<{

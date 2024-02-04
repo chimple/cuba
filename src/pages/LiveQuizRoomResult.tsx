@@ -9,7 +9,7 @@ import { useHistory } from "react-router";
 import { PAGES } from "../common/constants";
 import { GiCrown } from "react-icons/gi";
 import { t } from "i18next";
-import { IonContent, IonPage } from "@ionic/react";
+import { IonPage } from "@ionic/react";
 
 const LiveQuizRoomResult: React.FC = () => {
   const [topThreeStudents, setTopThreeStudents] = useState<User[]>([]);
@@ -52,11 +52,9 @@ const LiveQuizRoomResult: React.FC = () => {
       if (liveQuizRoomResults) {
         Object.keys(liveQuizRoomResults).forEach((studentDocId) => {
           const studentResult = liveQuizRoomResults[studentDocId];
-          const totalScore = Math.floor(
-            studentResult.reduce(
-              (acc: number, question) => acc + question.score,
-              0
-            )
+          const totalScore = studentResult.reduce(
+            (acc: number, question) => acc + question.score,
+            0
           );
           console.log("totalScore!!", totalScore);
 
@@ -175,7 +173,9 @@ const LiveQuizRoomResult: React.FC = () => {
                     width={70}
                   />
                 )}
-                <div className="student-score">{scoreData.totalScore}</div>
+                <div className="student-score">
+                  {Math.round(scoreData.totalScore)}
+                </div>
               </div>
             );
           })}

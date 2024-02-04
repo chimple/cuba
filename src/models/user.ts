@@ -2,6 +2,7 @@ import { DocumentReference, Timestamp } from "firebase/firestore";
 import { RoleType } from "../interface/modelInterfaces";
 import BaseObject from "./baseObject";
 import { Util } from "../utility/util";
+import { LeaderboardRewards } from "../common/constants";
 
 export default class User extends BaseObject {
   private _username: string;
@@ -23,6 +24,7 @@ export default class User extends BaseObject {
   private _musicFlag: boolean | undefined;
   static avatar: string;
   private _tcAccept: boolean | undefined;
+  private _rewards: LeaderboardRewards | undefined;
 
   constructor(
     username: string,
@@ -43,7 +45,8 @@ export default class User extends BaseObject {
     docId: string,
     soundFlag: boolean = true,
     musicFlag: boolean = true,
-    tcAccept: boolean = false
+    tcAccept: boolean = false,
+    rewards?: LeaderboardRewards
   ) {
     super(updatedAt, createdAt, docId);
     this._username = username;
@@ -67,6 +70,7 @@ export default class User extends BaseObject {
     this._soundFlag = soundFlag;
     this._musicFlag = musicFlag;
     this._tcAccept = tcAccept;
+    this._rewards = rewards;
   }
   public get username(): string {
     return this._username;
@@ -179,6 +183,13 @@ export default class User extends BaseObject {
     this._tcAccept = value;
   }
 
+  public get rewards(): LeaderboardRewards | undefined {
+    return this._rewards;
+  }
+  public set rewards(value: LeaderboardRewards | undefined) {
+    this._rewards = value;
+  }
+
   public toJson() {
     return {
       age: this.age ?? null,
@@ -196,7 +207,7 @@ export default class User extends BaseObject {
       uid: this.uid,
       username: this.username,
       usernamePhone: this.usernamePhone ?? null,
-      usernameMail:this.usernameMail ?? null,
+      usernameMail: this.usernameMail ?? null,
       users: this.users,
       tcAccept: this.tcAccept,
       // docId: this.docId,

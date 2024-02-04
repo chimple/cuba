@@ -32,6 +32,8 @@ import {
   COURSES,
   DEFAULT_COURSE_IDS,
   LIVE_QUIZ,
+  LeaderboardDropdownList,
+  LeaderboardRewards,
   MODES,
   aboveGrade3,
   belowGrade1,
@@ -62,6 +64,10 @@ import School from "../../models/school";
 import Assignment from "../../models/assignment";
 import { AvatarObj } from "../../components/animation/Avatar";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
+import Badge from "../../models/Badge";
+import Rewards from "../../models/Rewards";
+import Sticker from "../../models/Sticker";
+import { Util } from "../../utility/util";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
@@ -448,6 +454,24 @@ export class FirebaseApi implements ServiceApi {
     }
   };
 
+  public updateRewardsForStudent = async (
+    studentId: string,
+    unlockedReward: LeaderboardRewards
+  ) => {
+    const studentDocRef = doc(this._db, CollectionIds.USER, studentId);
+    const studentDoc = await getDoc(studentDocRef);
+    console.log("const studentDoc = await getDoc(studentDocRef);", studentDoc);
+
+    if (!studentDoc || !studentDoc.data()) return;
+    const student: User = studentDoc.data() as User;
+    console.log("const student: User = studentDoc.data() as User;", student);
+    student.docId = studentDoc.id;
+    console.log("if (!rewards) return;", unlockedReward);
+    await updateDoc(studentDocRef, {
+      rewards: unlockedReward,
+    });
+  };
+
   public updateLanguage = async (user: User, value: string) => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {
@@ -561,7 +585,8 @@ export class FirebaseApi implements ServiceApi {
   async getLesson(
     id: string,
     chapter: Chapter | undefined = undefined,
-    loadChapterTitle: boolean = false
+    loadChapterTitle: boolean = false,
+    assignment: Assignment | undefined = undefined
   ): Promise<Lesson | undefined> {
     try {
       const lessonDoc = await this.getDocFromOffline(
@@ -577,7 +602,7 @@ export class FirebaseApi implements ServiceApi {
           this._allCourses = await this.getAllCourses();
         }
         const tmpCourse = this._allCourses?.find(
-          (course) => course.courseCode === lesson.cocosSubjectCode
+          (course) => course.docId === assignment?.course.id
         );
         const chapter = tmpCourse?.chapters.find(
           (chapter) => chapter.id === lesson.cocosChapterCode
@@ -1306,16 +1331,13 @@ export class FirebaseApi implements ServiceApi {
 
   public async getLeaderboardResults(
     sectionId: string,
-    isWeeklyData: boolean
+    leaderboardDropdownType: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined> {
-    console.log(
-      "async getLeaderboard called",
-      isWeeklyData ? "weeklyScore" : "allTimeScore"
-    );
     try {
       const leaderBoardList: LeaderboardInfo = {
         weekly: [],
         allTime: [],
+        monthly: [],
       };
 
       if (sectionId === undefined || sectionId?.length <= 0) {
@@ -1324,21 +1346,36 @@ export class FirebaseApi implements ServiceApi {
             this._db,
             CollectionIds.LEADERBOARD + "/b2c/genericLeaderboard/"
           ),
-          orderBy(isWeeklyData ? "weeklyScore" : "allTimeScore", "desc"),
+          orderBy(
+            leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
+              ? "weeklyScore"
+              : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
+              ? "monthlyScore"
+              : "allTimeScore",
+            "desc"
+          ),
           limit(50)
         );
 
         const queryResult = await getDocs(q);
 
         for (const d of queryResult.docs) {
-          const res = d.data();
-          console.log("isWeeklyData", isWeeklyData);
-          if (isWeeklyData) {
+          if (leaderboardDropdownType === LeaderboardDropdownList.WEEKLY) {
             leaderBoardList.weekly.push({
               name: d.get("name"),
               score: d.get("weeklyScore"),
               timeSpent: d.get("weeklyTimeSpent"),
               lessonsPlayed: d.get("weeklyLessonPlayed"),
+              userId: d.id,
+            });
+          } else if (
+            leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
+          ) {
+            leaderBoardList.monthly.push({
+              name: d.get("name"),
+              score: d.get("monthlyScore"),
+              timeSpent: d.get("monthlyTimeSpent"),
+              lessonsPlayed: d.get("monthlyLessonPlayed"),
               userId: d.id,
             });
           } else {
@@ -1360,6 +1397,7 @@ export class FirebaseApi implements ServiceApi {
         if (!data) return;
         const weekly: StudentLeaderboardInfo[] = [];
         const allTime: StudentLeaderboardInfo[] = [];
+        const monthly: StudentLeaderboardInfo[] = [];
         console.log("school mode Data ", data, data.d, Object.keys(data));
         for (const i of Object.keys(data.d)) {
           console.log("Object.keys(data) ", i, data.d[i]);
@@ -1377,20 +1415,28 @@ export class FirebaseApi implements ServiceApi {
             lessonsPlayed: data.d[i].a.l,
             userId: i,
           });
+          monthly.push({
+            name: data.d[i].n,
+            score: data.d[i]?.m?.s ?? 0,
+            timeSpent: data.d[i]?.m?.t ?? 0,
+            lessonsPlayed: data.d[i]?.m?.l ?? 0,
+            userId: i,
+          });
         }
-        console.log("weekly", weekly, "allTime", allTime);
-
         const sortLeaderboard = (arr: Array<any>) =>
           arr.sort((a, b) => b.score - a.score);
         sortLeaderboard(weekly);
+        sortLeaderboard(monthly);
         sortLeaderboard(allTime);
         let result: LeaderboardInfo = {
           weekly: [],
           allTime: [],
+          monthly: [],
         };
         result = {
           weekly: weekly,
           allTime: allTime,
+          monthly: monthly,
         };
         console.log("result", result);
 
@@ -1405,6 +1451,92 @@ export class FirebaseApi implements ServiceApi {
         "🚀 ~ file: FirebaseApi.ts:971 ~ FirebaseApi ~ error:",
         JSON.stringify(error)
       );
+    }
+  }
+
+  public async getLeaderboardStudentResultFromB2CCollection(
+    studentId: string
+  ): Promise<LeaderboardInfo | undefined> {
+    try {
+      const leaderBoardList: LeaderboardInfo = {
+        weekly: [],
+        allTime: [],
+        monthly: [],
+      };
+
+      const queryResult = await getDoc(
+        doc(
+          this._db,
+          CollectionIds.LEADERBOARD + "/b2c/genericLeaderboard/" + studentId
+        )
+      );
+      console.log("if (!queryResult.data()) return;", queryResult);
+      if (!queryResult.data()) return;
+
+      const data = queryResult.data();
+      console.log("if (!queryResult.data()) const data ", data);
+      if (!data) return;
+      console.log("if (!data) return;", data.name);
+
+      leaderBoardList.weekly.push({
+        name: data.name,
+        score: data.weeklyScore,
+        timeSpent: data.weeklyTimeSpent,
+        lessonsPlayed: data.weeklyLessonPlayed,
+        userId: studentId,
+      });
+      console.log("leaderBoardList.weekly", leaderBoardList.weekly);
+
+      leaderBoardList.monthly.push({
+        name: data.name,
+        score: data.monthlyScore,
+        timeSpent: data.monthlyTimeSpent,
+        lessonsPlayed: data.monthlyLessonPlayed,
+        userId: studentId,
+      });
+      console.log("leaderBoardList.monthly", leaderBoardList.monthly);
+      leaderBoardList.allTime.push({
+        name: data.name,
+        score: data.allTimeScore,
+        timeSpent: data.allTimeTimeSpent,
+        lessonsPlayed: data.allTimeLessonPlayed,
+        userId: studentId,
+      });
+      console.log("leaderBoardList.allTime", leaderBoardList.allTime);
+
+      console.log("result in FirebaseAPI", leaderBoardList, data);
+
+      return leaderBoardList;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:971 ~ FirebaseApi ~ error:",
+        JSON.stringify(error)
+      );
+    }
+  }
+
+  public async getUserByDocId(studentId: string): Promise<User | undefined> {
+    try {
+      console.log("getUserByDocId called");
+
+      const studentDocRef = doc(this._db, CollectionIds.USER, studentId);
+      const studentDoc = await getDoc(studentDocRef);
+      if (studentDoc.exists()) {
+        const studentData = studentDoc.data();
+        if (!studentData) return;
+        console.log("updated studentData as User", studentData as User);
+        let updatedStudent: User = studentData as User;
+        console.log(
+          "updated studentData as User",
+          updatedStudent,
+          studentDoc.id
+        );
+        updatedStudent.docId = studentDoc.id;
+        return updatedStudent;
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      return;
     }
   }
 
@@ -1706,5 +1838,79 @@ export class FirebaseApi implements ServiceApi {
         error
       );
     }
+  }
+
+  public async getBadgeById(id: string): Promise<Badge | undefined> {
+    try {
+      const badgeDoc = await this.getDocFromOffline(
+        doc(this._db, CollectionIds.BADGE, id)
+      );
+      if (!badgeDoc.exists) return;
+      console.log("if (!badgeDoc.exists) return;", badgeDoc.data());
+      const data = badgeDoc.data() as Badge;
+      data.docId = id;
+      return data;
+    } catch (error) {
+      console.log("🚀 ~ FirebaseApi ~ getBadgeById ~ error:", error);
+    }
+  }
+
+  public async getStickerById(id: string): Promise<Sticker | undefined> {
+    try {
+      const stickerDoc = await this.getDocFromOffline(
+        doc(this._db, CollectionIds.STICKER, id)
+      );
+      console.log(
+        "const stickerDoc = await this.getDocFromOffline( ",
+        stickerDoc.exists()
+      );
+      if (!stickerDoc.exists()) return;
+      console.log("if (!stickerDoc.exists) return;", stickerDoc.data());
+      const data = stickerDoc.data() as Sticker;
+      console.log("const data = stickerDoc.data() as Sticker;", data);
+
+      data.docId = id;
+      return data;
+    } catch (error) {
+      console.log("🚀 ~ FirebaseApi ~ getStickerById ~ error:", error);
+    }
+  }
+
+  public async getRewardsById(id: string): Promise<Rewards | undefined> {
+    try {
+      const rewardDoc = await this.getDocFromOffline(
+        doc(this._db, CollectionIds.REWARDS, id)
+      );
+      if (!rewardDoc.exists) return;
+      const data = rewardDoc.data() as Rewards;
+
+      data.docId = id;
+      return data;
+    } catch (error) {
+      console.log("🚀 ~ FirebaseApi ~ getRewardById ~ error:", error);
+    }
+  }
+  public async updateRewardAsSeen(studentId: string): Promise<void> {
+    const studentDocRef = doc(this._db, CollectionIds.USER, studentId);
+    const studentDoc = await getDoc(studentDocRef);
+    if (!studentDoc || !studentDoc.data() || !studentDoc.get("rewards")) return;
+    const student: User = studentDoc.data() as User;
+    student.docId = studentDoc.id;
+    const rewards = student.rewards;
+    if (!rewards) return;
+    function markAllAsSeen(obj: any): any {
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          obj[key] = obj[key].map((item: any) => ({ ...item, seen: true }));
+        }
+      }
+      return obj;
+    }
+    const finalRewards = markAllAsSeen(rewards);
+    student.rewards = finalRewards;
+    Util.setCurrentStudent(student);
+    await updateDoc(studentDocRef, {
+      rewards: finalRewards,
+    });
   }
 }

@@ -26,7 +26,10 @@ import {
   DOWNLOADED_LESSON_AND_CHAPTER_ID,
   LAST_FUNCTION_CALL,
   CHAPTER_LESSON_MAP,
-  // APP_LANG,
+  LeaderboardRewardsType,
+  LEADERBOARDHEADERLIST,
+  LEADERBOARD_REWARD_LIST,
+  LeaderboardRewards,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -573,39 +576,54 @@ export class Util {
     lessonId: Lesson[] | undefined
   ): Promise<boolean> {
     if (lessonId) {
-      const allIdsPresent = lessonId.every((e) =>
-        this.isStored(e.id, DOWNLOADED_LESSON_AND_CHAPTER_ID)
-      );
-      if (!allIdsPresent) {
-        const chaptersToRemove = lessonId.reduce((newArray, lesson) => {
-          if (lesson.cocosChapterCode) {
-            newArray.push(lesson.cocosChapterCode);
-          }
-          return newArray;
-        }, [] as string[]);
-
-        this.removeLessonOrChapterIdFromLocalStorage(
-          chaptersToRemove,
+      const chapterIdToStore: string[] = [];
+      const areAllIdsStored = lessonId.every((e) => {
+        let isLessonIdStored = this.isStored(
+          e.id,
           DOWNLOADED_LESSON_AND_CHAPTER_ID
         );
+        if (isLessonIdStored) {
+          if (e.cocosChapterCode) {
+            chapterIdToStore.push(e.cocosChapterCode);
+          }
+
+          // Store the collected cocosChapterCode for stored items
+          this.storeLessonOrChaterIdToLocalStorage(
+            chapterIdToStore,
+            DOWNLOADED_LESSON_AND_CHAPTER_ID,
+            "chapter"
+          );
+        }
+        return true; // Continue checking other IDs
+      });
+      const chapterIdToremove: string[] = [];
+      const areAllIdsNotStored = lessonId.every((e) => {
+        let isLessonIdStored = this.isStored(
+          e.id,
+          DOWNLOADED_LESSON_AND_CHAPTER_ID
+        );
+        if (!isLessonIdStored) {
+          if (e.cocosChapterCode) {
+            chapterIdToremove.push(e.cocosChapterCode);
+          }
+        }
+
+        return true; // Continue checking other IDs
+      });
+      this.removeLessonOrChapterIdFromLocalStorage(
+        chapterIdToremove,
+        DOWNLOADED_LESSON_AND_CHAPTER_ID
+      );
+
+      if (!areAllIdsStored || !areAllIdsNotStored) {
         return false;
       }
-      const chaptersToStore = lessonId.reduce((newArray, lesson) => {
-        if (lesson.cocosChapterCode) {
-          newArray.push(lesson.cocosChapterCode);
-        }
-        return newArray;
-      }, [] as string[]);
-
-      this.storeLessonOrChaterIdToLocalStorage(
-        chaptersToStore,
-        DOWNLOADED_LESSON_AND_CHAPTER_ID,
-        "chapter"
-      );
       return true;
     }
+
     return false;
   }
+
   // To parse this data:
   //   const course = Convert.toCourse(json);
 
@@ -897,12 +915,12 @@ export class Util {
           url.searchParams.set("isReload", "true");
         }
         url.searchParams.delete(CONTINUE);
-        window.history.pushState(window.history.state, "", url.toString());
+        window.history.replaceState(window.history.state, "", url.toString());
         window.location.reload();
       } else {
         url.searchParams.set("isReload", "true");
         url.searchParams.delete(CONTINUE);
-        window.history.pushState(window.history.state, "", url.toString());
+        window.history.replaceState(window.history.state, "", url.toString());
       }
     }
   };
@@ -922,6 +940,8 @@ export class Util {
     langFlag: boolean = true,
     isStudent: boolean = true
   ) => {
+    console.log("setCurrentStudent called", student);
+
     const api = ServiceConfig.getI().apiHandler;
     api.currentStudent = student;
 
@@ -941,6 +961,7 @@ export class Util {
         name: student.name,
         role: student.role,
         uid: student.uid,
+        rewards: student.rewards,
         username: student.username,
         users: student.users,
         docId: student.docId,
@@ -1339,5 +1360,194 @@ export class Util {
 
       throw error;
     }
+  }
+
+  public static getCurrentWeekNumber() {
+    const date = new Date();
+    var firstWeekday =
+      new Date(date.getFullYear(), date.getMonth(), 1).getDay() - 1;
+    if (firstWeekday < 0) firstWeekday = 6;
+    var offsetDate = date.getDate() + firstWeekday - 1;
+    return Math.floor(offsetDate / 7) + 1;
+  }
+
+  public static getCurrentMonthForLeaderboard() {
+    const date = new Date();
+    if (date.getDate() < 3) {
+      date.setMonth(date.getMonth() - 1);
+    }
+    return date.getMonth() + 1;
+  }
+  public static getCurrentYearForLeaderboard() {
+    const date = new Date();
+    if (date.getDate() < 3) {
+      date.setMonth(date.getMonth() - 1);
+    }
+    return date.getFullYear();
+  }
+
+  public static async getStudentFromServer() {
+    console.log("getStudentInfo called");
+
+    const api = ServiceConfig.getI().apiHandler;
+    let currentStudent = await Util.getCurrentStudent();
+    console.log("Util.getCurrentStudent() ", currentStudent);
+    if (!currentStudent) return;
+    console.log("Util.getCurrentStudent().docId ", currentStudent.docId);
+    const updatedStudent = await api.getUserByDocId(currentStudent.docId);
+    console.log("api.getUserByDocId(currentStudent.docId); ", updatedStudent);
+    if (updatedStudent) {
+      await Util.setCurrentStudent(updatedStudent);
+    }
+  }
+
+  public static async unlockWeeklySticker() {
+    try {
+      let currentUser = Util.getCurrentStudent();
+      if (!currentUser) return false;
+      const api = ServiceConfig.getI().apiHandler;
+      const date = new Date();
+      const rewardsDoc = await api.getRewardsById(
+        date.getFullYear().toString()
+      );
+      if (!rewardsDoc) return false;
+      const currentWeek = Util.getCurrentWeekNumber();
+      const weeklyData = rewardsDoc.weeklySticker;
+
+      console.log(
+        "const weeklyData = rewardsDoc.weeklySticker;",
+        rewardsDoc.weeklySticker
+      );
+
+      let currentReward;
+
+      weeklyData[currentWeek.toString()].forEach(async (value) => {
+        console.log(
+          "weeklyData[currentWeek.toString()].forEach((value) => {",
+          value
+        );
+        currentReward = value;
+      });
+      if (!currentUser.rewards) {
+        let leaderboardReward: LeaderboardRewards = {
+          badges: [],
+          bonus: [],
+          sticker: [],
+        };
+        currentUser.rewards = leaderboardReward;
+      }
+      if (!currentUser.rewards.sticker) {
+        currentUser.rewards.sticker = [];
+      }
+      if (!currentReward) {
+        return false;
+      }
+      let canPushCurrentReward = true;
+      for (let i = 0; i < currentUser.rewards.sticker.length; i++) {
+        const element = currentUser.rewards.sticker[i];
+        console.log("const element = currentUser.rewards.sticker[i];", element);
+        if (element.id === currentReward.id) {
+          canPushCurrentReward = false;
+        }
+      }
+      if (canPushCurrentReward)
+        currentUser.rewards.sticker.push({
+          id: currentReward.id,
+          seen: false,
+        });
+      console.log("currentUser.rewards?.sticker.push({", currentUser.rewards);
+      await api.updateRewardsForStudent(currentUser.docId, currentUser.rewards);
+      return true;
+    } catch (error) {
+      console.log("unlockWeeklySticker() error ", error);
+      return false;
+    }
+  }
+
+  public static async getAllUnlockedRewards(): Promise<
+    | {
+        id: string;
+        type: LeaderboardRewardsType;
+        image: string;
+        name: string;
+        leaderboardRewardList: LEADERBOARD_REWARD_LIST;
+      }[]
+    | undefined
+  > {
+    console.log("getAllUnlockedRewards() called");
+    await this.getStudentFromServer();
+
+    let allUnlockedRewards: {
+      id: string;
+      type: LeaderboardRewardsType;
+      image: string;
+      name: string;
+      leaderboardRewardList: LEADERBOARD_REWARD_LIST;
+    }[] = [];
+    const api = ServiceConfig.getI().apiHandler;
+    let currentStudent = this.getCurrentStudent();
+    if (!currentStudent) return;
+    if (!currentStudent.rewards) return;
+
+    for (let i = 0; i < currentStudent.rewards.badges?.length; i++) {
+      const element = currentStudent.rewards.badges[i];
+      if (!element.seen) {
+        let reward = await api.getBadgeById(element.id);
+        if (!reward) continue;
+        console.log(
+          "allRewards.push(value); currentStudent.rewards.badges",
+          element,
+          reward
+        );
+        allUnlockedRewards.push({
+          id: element.id,
+          type: LeaderboardRewardsType.BADGE,
+          image: reward.image,
+          name: reward.name,
+          leaderboardRewardList: LEADERBOARD_REWARD_LIST.BADGES,
+        });
+      }
+    }
+    for (let i = 0; i < currentStudent.rewards.bonus?.length; i++) {
+      const element = currentStudent.rewards.bonus[i];
+      if (!element.seen) {
+        let reward = await api.getLesson(element.id);
+        if (!reward) continue;
+        console.log(
+          "allRewards.push(value); currentStudent.rewards.bonus ",
+          element
+        );
+        allUnlockedRewards.push({
+          id: reward.docId,
+          type: LeaderboardRewardsType.BONUS,
+          image: reward.thumbnail,
+          name: reward.title,
+          leaderboardRewardList: LEADERBOARD_REWARD_LIST.BONUS,
+        });
+      }
+    }
+
+    for (let i = 0; i < currentStudent.rewards.sticker?.length; i++) {
+      const element = currentStudent.rewards.sticker[i];
+      if (!element.seen) {
+        let reward = await api.getStickerById(element.id);
+        if (!reward) continue;
+        console.log(
+          "allRewards.push(value); currentStudent.rewards.bonus ",
+          element
+        );
+        allUnlockedRewards.push({
+          id: element.id,
+          type: LeaderboardRewardsType.STICKER,
+          image: reward.image,
+          name: reward.name,
+          leaderboardRewardList: LEADERBOARD_REWARD_LIST.STICKER,
+        });
+      }
+    }
+
+    console.log("getAllUnlockedRewards() called ", allUnlockedRewards);
+
+    return allUnlockedRewards;
   }
 }

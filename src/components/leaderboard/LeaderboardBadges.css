@@ -1,0 +1,22 @@
+.leaderboard-badge-container {
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 16px;
+  height: 100%;
+  flex-grow: 1;
+  padding-bottom: 30px;
+}
+
+.leaderboard-badge-item {
+  text-align: center;
+  opacity: 1;
+}
+
+.leaderboard-badge-disabled {
+  opacity: 0.2;
+}
+
+.leaderboard-next-unlock-text {
+  color: var(--text-color);
+}

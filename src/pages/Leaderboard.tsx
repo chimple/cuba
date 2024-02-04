@@ -6,37 +6,29 @@ import {
   LANG,
   LEADERBOARDHEADERLIST,
   PAGES,
-  PARENTHEADERLIST,
   MODES,
   LANGUAGE,
-  CONTINUE,
+  LeaderboardDropdownList,
 } from "../common/constants";
-// import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import { ServiceConfig } from "../services/ServiceConfig";
 import BackButton from "../components/common/BackButton";
 import { useHistory } from "react-router-dom";
 import Loading from "../components/Loading";
-import { IonCol, IonGrid, IonPage, IonRow } from "@ionic/react";
+import { IonCol, IonPage, IonRow } from "@ionic/react";
 import User from "../models/user";
 import React from "react";
 import { FirebaseApi } from "../services/api/FirebaseApi";
-import {
-  LeaderboardInfo,
-  StudentLeaderboardInfo,
-} from "../services/api/ServiceApi";
+import { LeaderboardInfo } from "../services/api/ServiceApi";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
-import { grey } from "@mui/material/colors";
 import StudentProfile from "../models/studentProfile";
 import { t } from "i18next";
-// import { EmailComposer } from "@ionic-native/email-composer";
-// import Share from "react";
 import { Util } from "../utility/util";
-// import auth from "../models/auth";
 import i18n from "../i18n";
 import IconButton from "../components/IconButton";
-
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
+import LeaderboardRewards from "../components/leaderboard/LeaderboardRewards";
+import { AvatarObj } from "../components/animation/Avatar";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -46,6 +38,7 @@ const Leaderboard: React.FC = () => {
     useState<LeaderboardInfo>({
       weekly: [],
       allTime: [],
+      monthly: [],
     });
   const [leaderboardData, setLeaderboardData] = useState<any[][]>([]);
   const [currentUserDataContent, setCurrentUserDataContent] = useState<
@@ -60,6 +53,7 @@ const Leaderboard: React.FC = () => {
     {
       id: string;
       displayName: string;
+      type: LeaderboardDropdownList;
     }[]
   >([]);
   const [weeklySelectedValue, setWeeklySelectedValue] = useState<string>();
@@ -68,24 +62,41 @@ const Leaderboard: React.FC = () => {
   useEffect(() => {
     setIsLoading(true);
     inti();
+    const urlParams = new URLSearchParams(window.location.search);
+    const rewardsTab = urlParams.get("tab");
+    let currentTab = LEADERBOARDHEADERLIST.LEADERBOARD;
+    if (rewardsTab) {
+      if (rewardsTab === LEADERBOARDHEADERLIST.REWARDS.toLowerCase()) {
+        currentTab = LEADERBOARDHEADERLIST.REWARDS;
+      }
+    }
+    setTabIndex(currentTab);
   }, []);
+
+  useEffect(() => {}, []);
 
   async function inti() {
     console.log("init method called");
-    const weekOptions = [t("Weekly"), t("ALL Time")];
+    const weekOptions = [
+      { text: t("Weekly"), type: LeaderboardDropdownList.WEEKLY },
+      { text: t("Monthly"), type: LeaderboardDropdownList.MONTHLY },
+      { text: t("ALL Time"), type: LeaderboardDropdownList.ALL_TIME },
+    ];
     let weekOptionsList: {
       id: string;
       displayName: string;
+      type: LeaderboardDropdownList;
     }[] = [];
     weekOptions.forEach((element, i) => {
       weekOptionsList.push({
         id: i.toString(),
-        displayName: element,
+        displayName: element.text,
+        type: element.type,
       });
     });
     setWeeklyList(weekOptionsList);
     // const api = ServiceConfig.getI().apiHandler;
-    const currentStudent = await Util.getCurrentStudent();
+    const currentStudent = Util.getCurrentStudent();
     if (currentStudent != undefined) {
       const getClass = await FirebaseApi.i.getStudentResult(
         currentStudent.docId
@@ -93,10 +104,18 @@ const Leaderboard: React.FC = () => {
       const currMode = await schoolUtil.getCurrMode();
       setStudentMode(currMode);
       if (getClass?.classes != undefined) {
-        fetchLeaderBoardData(currentStudent, true, getClass?.classes[0]);
+        fetchLeaderBoardData(
+          currentStudent,
+          LeaderboardDropdownList.WEEKLY,
+          getClass?.classes[0]
+        );
         setCurrentClass(getClass);
       } else {
-        fetchLeaderBoardData(currentStudent, true, "");
+        fetchLeaderBoardData(
+          currentStudent,
+          LeaderboardDropdownList.WEEKLY,
+          ""
+        );
       }
       console.log("currentStudent ", currentStudent);
       setCurrentStudent(currentStudent);
@@ -107,7 +126,7 @@ const Leaderboard: React.FC = () => {
 
   async function fetchLeaderBoardData(
     currentStudent: User,
-    isWeeklyFlag: boolean,
+    leaderboardDropdownType: LeaderboardDropdownList,
     classId: string
   ) {
     setIsLoading(true);
@@ -116,17 +135,20 @@ const Leaderboard: React.FC = () => {
       "leaderboardDataInfo.weekly.length <= 0 leaderboardDataInfo.allTime.length <= 0",
       leaderboardDataInfo.weekly.length <= 0 ||
         leaderboardDataInfo.allTime.length <= 0,
-      isWeeklyFlag
+      leaderboardDropdownType
         ? "leaderboardDataInfo.weekly"
         : "leaderboardDataInfo.allTime"
     );
 
     const tempLeaderboardData: LeaderboardInfo = (leaderboardDataInfo.weekly
-      .length <= 0 || leaderboardDataInfo.allTime.length <= 0
-      ? await api.getLeaderboardResults(classId, isWeeklyFlag)
+      .length <= 0 ||
+    leaderboardDataInfo.allTime.length <= 0 ||
+    leaderboardDataInfo.monthly.length <= 0
+      ? await api.getLeaderboardResults(classId, leaderboardDropdownType)
       : leaderboardDataInfo) || {
       weekly: [],
       allTime: [],
+      monthly: [],
     };
 
     // if (isWeeklyFlag) {
@@ -135,43 +157,89 @@ const Leaderboard: React.FC = () => {
     setLeaderboardDataInfo(tempLeaderboardData);
     // }
 
-    const tempData = isWeeklyFlag
-      ? tempLeaderboardData.weekly
-      : tempLeaderboardData.allTime;
+    const tempData =
+      leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
+        ? tempLeaderboardData.weekly
+        : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
+        ? tempLeaderboardData.monthly
+        : tempLeaderboardData.allTime;
 
     let tempLeaderboardDataArray: any[][] = [];
     let tempCurrentUserDataContent: any[][] = [];
     tempLeaderboardDataArray.push([
       "#",
       t("Name"),
-      t("Lesson Played"),
+      t("Lessons Played"),
       t("Score"),
       t("Time Spent"),
     ]);
-
+    let isCurrentStudentDataFetched = false;
     for (let i = 0; i < tempData.length; i++) {
       const element = tempData[i];
       var computeMinutes = Math.floor(element.timeSpent / 60);
-      var result = element.timeSpent % 60;
+      var computeSeconds = element.timeSpent % 60;
       tempLeaderboardDataArray.push([
         i + 1,
         element.name,
         element.lessonsPlayed,
-        Math.floor(element.score),
-        computeMinutes + t("min") + " " + result + " " + t("sec"),
+        element.score,
+        computeMinutes + t(" min") + " " + computeSeconds + " " + t("sec"),
       ]);
 
       if (currentStudent.docId == element.userId) {
+        isCurrentStudentDataFetched = true;
         tempCurrentUserDataContent = [
           // ["Name", element.name],
           [t("Rank"), i + 1],
-          [t("Lesson Played"), element.lessonsPlayed],
-          [t("Score"), Math.floor(element.score)],
+          [t("Lessons Played"), element.lessonsPlayed],
+          [t("Score"), Math.round(element.score)],
           [
             t("Time Spent"),
-            computeMinutes + t("min") + result + " " + t("sec"),
+            computeMinutes + t(" min") + computeSeconds + " " + t("sec"),
           ],
         ];
+      }
+    }
+    if (!isCurrentStudentDataFetched && !classId) {
+      const b2cData = await api.getLeaderboardStudentResultFromB2CCollection(
+        currentStudent.docId
+      );
+      console.log(
+        "const b2cData = await api.getLeaderboardStudentResultFromB2CCollection(",
+        !isCurrentStudentDataFetched && !classId,
+        b2cData
+      );
+
+      if (b2cData) {
+        console.log("if (!b2cData) { return", b2cData);
+
+        const tempData =
+          leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
+            ? b2cData.weekly
+            : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
+            ? b2cData.monthly
+            : b2cData.allTime;
+
+        var computeMinutes = Math.floor(tempData[0].timeSpent / 60);
+        var computeSeconds = tempData[0].timeSpent % 60;
+        const cUserRank = tempLeaderboardDataArray.length.toString() + "+";
+        tempCurrentUserDataContent = [
+          // ["Name", element.name],
+          [t("Rank"), cUserRank],
+          [t("Lesson Played"), tempData[0].lessonsPlayed],
+          [t("Score"), tempData[0].score],
+          [
+            t("Time Spent"),
+            computeMinutes + t(" min") + " " + computeSeconds + " " + t("sec"),
+          ],
+        ];
+        tempLeaderboardDataArray.push([
+          cUserRank,
+          tempData[0].name,
+          tempData[0].lessonsPlayed,
+          tempData[0].score,
+          computeMinutes + t(" min") + " " + computeSeconds + " " + t("sec"),
+        ]);
       }
     }
     if (tempCurrentUserDataContent.length <= 0) {
@@ -222,7 +290,9 @@ const Leaderboard: React.FC = () => {
                 setWeeklySelectedValue(weeklyList[selectedValue]?.id);
                 fetchLeaderBoardData(
                   currentStudent!,
-                  weeklyList[0] === weeklyList[selectedValue],
+                  // weeklyList[0] === weeklyList[selectedValue],
+                  weeklyList[selectedValue].type ??
+                    LeaderboardDropdownList.WEEKLY,
                   currentClass?.classes[0] || ""
                 );
                 //  }
@@ -280,7 +350,7 @@ const Leaderboard: React.FC = () => {
                                 : "",
                             width:
                               i === 1 && currentUserHeaderRowIndicator === 1
-                                ? "2.5vw"
+                                ? "3vw"
                                 : "",
                             textAlign:
                               i === 1 && currentUserHeaderRowIndicator === 1
@@ -298,6 +368,10 @@ const Leaderboard: React.FC = () => {
               );
             })}
           </div>
+          <p id="leaderboard-left-note-message">
+            *** Be among the top performers in your class to win an exciting
+            reward
+          </p>
         </div>
         <div id="leaderboard-right-UI">
           {leaderboardData.map((e) => {
@@ -308,10 +382,11 @@ const Leaderboard: React.FC = () => {
             console.log(
               "headerRowIndicator",
               headerRowIndicator,
-              currentUserDataContent[0][1],
-              // i.toString(),
               Number(currentUserDataContent[0][1]),
-              Number(currentUserDataContent[0][1]) === headerRowIndicator
+              Number(currentUserDataContent[0][1]) === headerRowIndicator,
+              headerRowIndicator + "+",
+              Number(currentUserDataContent[0][1]) === headerRowIndicator ||
+                currentUserDataContent[0][1] === headerRowIndicator + "+"
             );
             // if (currentUserDataContent[0][1] === i.toString()) {
             //   console.log("User e", e);
@@ -326,14 +401,18 @@ const Leaderboard: React.FC = () => {
                     headerRowIndicator === 0
                       ? "rgb(200 200 200)"
                       : Number(currentUserDataContent[0][1]) ===
-                        headerRowIndicator
+                          headerRowIndicator ||
+                        currentUserDataContent[0][1] ===
+                          headerRowIndicator + "+"
                       ? "#FF7925"
                       : "",
                   padding:
                     headerRowIndicator === 0
                       ? "1vh 2vh"
                       : Number(currentUserDataContent[0][1]) ===
-                        headerRowIndicator
+                          headerRowIndicator ||
+                        currentUserDataContent[0][1] ===
+                          headerRowIndicator + "+"
                       ? "0vh 2vh"
                       : "1vh 2vh ",
                   position: "sticky",
@@ -381,8 +460,10 @@ const Leaderboard: React.FC = () => {
                               ? currentStudent?.name
                               : d}
                           </p>
-                        ) : (
+                        ) : isNaN(Math.round(d)) ? (
                           d
+                        ) : (
+                          Math.round(d)
                         )}
                       </p>
                     </IonCol>
@@ -479,35 +560,42 @@ const Leaderboard: React.FC = () => {
                     //   marginRight: "5vw",
                     // }}
                   />
-                  <Tab
+                  {/* <Tab
                     id="parent-page-tab-bar"
                     value={LEADERBOARDHEADERLIST.EVENTS}
                     label={t(LEADERBOARDHEADERLIST.EVENTS)}
+                  /> */}
+                  <Tab
+                    id="parent-page-tab-bar"
+                    value={LEADERBOARDHEADERLIST.REWARDS}
+                    label={t(LEADERBOARDHEADERLIST.REWARDS)}
                   />
                 </Tabs>
               </AppBar>
             </Box>
-            <div>
-              <IconButton
-                name={t("Switch Profile")}
-                iconSrc="assets/icons/SignOutIcon.svg"
-                onClick={async () => {
-                  localStorage.removeItem(CURRENT_STUDENT);
-                  const user = await auth.getCurrentUser();
-                  if (!!user && !!user.language?.id) {
-                    const langDoc = await api.getLanguageWithId(
-                      user.language.id
-                    );
-                    if (langDoc) {
-                      const tempLangCode = langDoc.code ?? LANG.ENGLISH;
-                      localStorage.setItem(LANGUAGE, tempLangCode);
-                      await i18n.changeLanguage(tempLangCode);
-                    }
+            <div
+              id="leaderboard-switch-user-button"
+              onClick={async () => {
+                localStorage.removeItem(CURRENT_STUDENT);
+                AvatarObj.destroyInstance();
+                const user = await auth.getCurrentUser();
+                if (!!user && !!user.language?.id) {
+                  const langDoc = await api.getLanguageWithId(user.language.id);
+                  if (langDoc) {
+                    const tempLangCode = langDoc.code ?? LANG.ENGLISH;
+                    localStorage.setItem(LANGUAGE, tempLangCode);
+                    await i18n.changeLanguage(tempLangCode);
                   }
-                  Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
-                  // history.replace(PAGES.SELECT_MODE);
-                }}
+                }
+                Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
+              }}
+            >
+              <img
+                id="leaderboard-switch-user-button-img"
+                alt={"assets/icons/SignOutIcon.svg"}
+                src={"assets/icons/SignOutIcon.svg"}
               />
+              <p className="child-Name">{t("Switch Profile")}</p>
             </div>
           </div>
           <Box sx={{}}>
@@ -516,7 +604,12 @@ const Leaderboard: React.FC = () => {
                 <div>{leaderboardUI()}</div>
               </Box>
             )}
-            {tabIndex === LEADERBOARDHEADERLIST.EVENTS && <Box></Box>}
+            {/* {tabIndex === LEADERBOARDHEADERLIST.EVENTS && <Box></Box>} */}
+            {tabIndex === LEADERBOARDHEADERLIST.REWARDS && (
+              <Box>
+                <LeaderboardRewards />
+              </Box>
+            )}
           </Box>
         </Box>
       ) : null}

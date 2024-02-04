@@ -144,5 +144,6 @@
 }
 .lesson-download-button-container {
   position: fixed;
-  top: 52vh;
+  top: 40vh;
+  left: 2vh;
 }

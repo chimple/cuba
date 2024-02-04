@@ -23,7 +23,7 @@ import "./theme/variables.css";
 import Home from "./pages/Home";
 import CocosGame from "./pages/CocosGame";
 import { End } from "./pages/End";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import Profile from "./pages/Profile";
@@ -63,10 +63,59 @@ import { REMOTE_CONFIG_KEYS, RemoteConfig } from "./services/RemoteConfig";
 import LiveQuizGame from "./pages/LiveQuizGame";
 import LiveQuizRoomResult from "./pages/LiveQuizRoomResult";
 import LiveQuizLeaderBoard from "./pages/LiveQuizLeaderBoard";
+import { useOnlineOfflineErrorMessageHandler } from "./common/onlineOfflineErrorMessageHandler";
+import { t } from "i18next";
 
 setupIonicReact();
 
 const App: React.FC = () => {
+  const [online, setOnline] = useState(navigator.onLine);
+  const { presentToast } = useOnlineOfflineErrorMessageHandler();
+
+  useEffect(() => {
+    const handleOnline = () => {
+      if (!online) {
+        setOnline(true);
+        presentToast({
+          message: "Device is online.",
+          color: "success",
+          duration: 3000,
+          position: "bottom",
+          buttons: [
+            {
+              text: "Dismiss",
+              role: "cancel",
+            },
+          ],
+        });
+      }
+    };
+
+    const handleOffline = () => {
+      setOnline(false);
+      presentToast({
+        message: "Device is offline.",
+        color: "danger",
+        duration: 3000,
+        position: "bottom",
+        buttons: [
+          {
+            text: "Dismiss",
+            role: "cancel",
+          },
+        ],
+      });
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [online, presentToast]);
+
   useEffect(() => {
     console.log("fetching...");
     // localStorage.setItem(LANGUAGE, LANG.ENGLISH);

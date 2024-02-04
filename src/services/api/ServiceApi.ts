@@ -11,13 +11,21 @@ import StudentProfile from "../../models/studentProfile";
 import Class from "../../models/class";
 import School from "../../models/school";
 import Assignment from "../../models/assignment";
-import { MODES } from "../../common/constants";
+import {
+  LeaderboardDropdownList,
+  LeaderboardRewards,
+  MODES,
+} from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
+import Badge from "../../models/Badge";
+import Rewards from "../../models/Rewards";
+import Sticker from "../../models/Sticker";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
+  monthly: StudentLeaderboardInfo[];
   allTime: StudentLeaderboardInfo[];
 }
 
@@ -129,7 +137,8 @@ export interface ServiceApi {
   getLesson(
     id: string,
     chapter: Chapter | undefined,
-    loadChapterTitle: boolean
+    loadChapterTitle: boolean,
+    assignment: Assignment | undefined
   ): Promise<Lesson | undefined>;
 
   /**
@@ -359,12 +368,22 @@ export interface ServiceApi {
    * This function gives Leaderboard results of b2c or b2b Users
    *
    * @param sectionId section ID of connected class. If user didn't Connected to class this function gives b2c user
-   * @param isWeeklyData If true, it will gives the weekly data from the Collection. False for it will gives the All Time data from the Collection
+   * @param leaderboardDropdownType If true, it will gives the weekly data from the Collection. False for it will gives the All Time data from the Collection
    * @returns A promise that resolves to the student.
    */
   getLeaderboardResults(
     sectionId: string,
-    isWeeklyData: boolean
+    leaderboardDropdownType: LeaderboardDropdownList
+  ): Promise<LeaderboardInfo | undefined>;
+
+  /**
+   * This function gives b2c Leaderboard results of given studentId
+   *
+   * @param studentId The unique identifier of the student for whom the results are being updated.
+   * @returns A promise that resolves to the student.
+   */
+  getLeaderboardStudentResultFromB2CCollection(
+    studentId: string
   ): Promise<LeaderboardInfo | undefined>;
 
   /**
@@ -459,4 +478,47 @@ export interface ServiceApi {
    * @returns {Assignment | undefined}`Assignment` or `undefined` if it could not find the Assignment with given `id`
    */
   getAssignmentById(id: string): Promise<Assignment | undefined>;
+
+  /**
+   * Gives Badge for given a Badge firebase doc Id
+   * @param {string} id - Badge firebase doc id
+   * @returns {Badge | undefined}`Badge` or `undefined` if it could not find the Badge with given `id`
+   */
+  getBadgeById(id: string): Promise<Badge | undefined>;
+
+  /**
+   * Gives Sticker for given a Sticker firebase doc Id
+   * @param {string} id - Sticker firebase doc id
+   * @returns {Badge | undefined}`Sticker` or `undefined` if it could not find the Sticker with given `id`
+   */
+  getStickerById(id: string): Promise<Sticker | undefined>;
+
+  /**
+   * Gives Rewards for given a Rewards firebase doc Id
+   * @param {string} id - Rewards firebase doc id
+   * @returns {Rewards | undefined}`Rewards` or `undefined` if it could not find the Rewards with given `id`
+   */
+  getRewardsById(id: string): Promise<Rewards | undefined>;
+
+  /**
+   * Updates the rewards of a student, marking all rewards as seen.
+   * @param studentId - The ID of the student whose rewards need to be updated.
+   * @returns A Promise that resolves with void when the update is complete.
+   */
+  updateRewardAsSeen(studentId: string): Promise<void>;
+
+  /**
+   * gets student info from firestore
+   * @param studentId - The ID of the current student.
+   * @returns A Promise that resolves with void when the update is complete.
+   */
+  getUserByDocId(studentId: string): Promise<User | undefined>;
+
+  /**
+   * update student reward in server
+   * @param studentId - The ID of the current student.
+   * @param unlockReward - The ID of the current student.
+   * @returns A Promise that resolves with void when the update is complete.
+   */
+  updateRewardsForStudent(studentId: string, unlockReward: LeaderboardRewards);
 }

@@ -21,6 +21,7 @@ import {
   CONTINUE,
   CHAPTER_LESSON_MAP,
   LIVE_QUIZ,
+  SHOW_DAILY_PROGRESS_FLAG,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -121,6 +122,7 @@ const Home: FC = () => {
   const location = useLocation();
 
   useEffect(() => {
+    localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
 
     urlOpenListenerEvent();
@@ -198,7 +200,8 @@ const Home: FC = () => {
           const res = await api.getLesson(
             _assignment.lesson.id,
             undefined,
-            true
+            true,
+            _assignment
           );
           console.log(res);
           if (!!res) {
@@ -491,13 +494,13 @@ const Home: FC = () => {
               lessonObj.chapterTitle = chapterTitle;
               console.log(lessonObj, "lessons pushed");
               reqLes.push(lessonObj as Lesson);
-              setDataCourse(reqLes);
+              // setDataCourse(reqLes);
             }
           } else {
             console.log("Wrong place");
             console.log(element, "lessons pushed");
             reqLes.push(element as Lesson);
-            setDataCourse(reqLes);
+            // setDataCourse(reqLes);
           }
         }
         console.log("pushed lessons", reqLes);
@@ -536,7 +539,7 @@ const Home: FC = () => {
               //   reqLes.push(lesson);
               // }
               console.log("DWSGSGSG");
-              setDataCourse(reqLes);
+              // setDataCourse(reqLes);
               islessonPushed = true;
               break;
             }
@@ -549,7 +552,7 @@ const Home: FC = () => {
       islessonPushed = false;
       if (!sortLessonResultMap) {
         console.log("ERERERER");
-        setDataCourse(reqLes);
+        // setDataCourse(reqLes);
         setIsLoading(false);
         continue;
       }
@@ -564,7 +567,7 @@ const Home: FC = () => {
           islessonPushed = true;
           // break;
           console.log("reqLes.", reqLes);
-          setDataCourse(reqLes);
+          // setDataCourse(reqLes);
           // return;
         }
       });
@@ -623,13 +626,13 @@ const Home: FC = () => {
       case HOMEHEADERLIST.HOME:
         handleHomeIconClick();
         // setCourse(HOMEHEADERLIST.RECOMMENDATION);
-        if (currentStudent) {
-          reqLes = await getCourseRecommendationLessons(
-            currentStudent,
-            currentClass
-          );
-          setDataCourse(reqLes);
-        }
+        // if (currentStudent) {
+        //   reqLes = await getCourseRecommendationLessons(
+        //     currentStudent,
+        //     currentClass
+        //   );
+        //   setDataCourse(reqLes);
+        // }
         break;
       case HOMEHEADERLIST.PROFILE:
         Util.setPathToBackButton(PAGES.LEADERBOARD, history);

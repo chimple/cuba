@@ -1,5 +1,10 @@
 import { HttpHeaders } from "@capacitor-community/http";
-import { COURSES, MODES } from "../../common/constants";
+import {
+  COURSES,
+  LeaderboardDropdownList,
+  LeaderboardRewards,
+  MODES,
+} from "../../common/constants";
 import { Chapter } from "../../interface/curriculumInterfaces";
 import Assignment from "../../models/assignment";
 import Auth from "../../models/auth";
@@ -23,6 +28,9 @@ import { Unsubscribe } from "@firebase/firestore";
 import { AvatarObj } from "../../components/animation/Avatar";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { DocumentData } from "firebase/firestore";
+import Badge from "../../models/Badge";
+import Rewards from "../../models/Rewards";
+import Sticker from "../../models/Sticker";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -77,6 +85,30 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
+  updateRewardsForStudent(studentId: string, unlockedReward: LeaderboardRewards) {
+    throw new Error("Method not implemented.");
+  }
+
+  getUserByDocId(studentId: string): Promise<User | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  updateRewardAsSeen(studentId: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  getLeaderboardStudentResultFromB2CCollection(
+    studentId: string
+  ): Promise<LeaderboardInfo | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getRewardsById(id: string): Promise<Rewards | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getBadgeById(id: string): Promise<Badge | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getStickerById(id: string): Promise<Sticker | undefined> {
+    throw new Error("Method not implemented.");
+  }
   getAvatarInfo(): Promise<AvatarObj | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -99,7 +131,7 @@ export class OneRosterApi implements ServiceApi {
   }
   getLeaderboardResults(
     sectionId: string,
-    isWeeklyData: boolean
+    isWeeklyData: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined> {
     throw new Error("Method not implemented.");
   }

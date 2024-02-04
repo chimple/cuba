@@ -268,7 +268,7 @@ const Login: React.FC = () => {
         // Handle the error as a string
         // errorMessage = "Phone Number signin Failed. Something went wrong. Please try again later.";
 
-        if (error.includes("blocked all requests")) {
+        if (error.includes("blocked all requests") || error.includes('Timed out waiting for SMS')) {
           setErrorMessage(
             t("Something went wrong Please try again after some time")
           );

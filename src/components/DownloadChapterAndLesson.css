@@ -1,12 +1,12 @@
 .download-or-delete-button {
-  height: clamp(3vw, 8vh, 5vw);
-  width: clamp(3vw, 8vh, 5vw);
+  height: clamp(30px, 8vh, 58px);
+  width: clamp(30px, 8vh, 58px);
   border-radius: 50%;
   background-color: rgb(220, 213, 213);
   cursor: "pointer";
   position: relative;
-  bottom: 12vh;
-  left: 2vh;
+  /* bottom: 12vh;
+  left: 2vh; */
 }
 .loading-button-container {
   display: flex;
@@ -14,8 +14,8 @@
   align-items: center;
 }
 .loading-button {
-  height: clamp(3vw, 8vh, 5vw);
-  width: clamp(3vw, 8vh, 5vw);
+  height: clamp(30px, 8vh, 58px);
+  width: clamp(30px, 8vh, 58px);
   border: 3px solid rgb(220, 213, 213);
   border-top-color: #007bff;
   border-radius: 50%;
@@ -27,12 +27,12 @@
   }
 }
 .lesson-or-chapter-delete-icon {
-  margin-top: 1vh;
-  width: 60%;
+  margin-top: 1.4vh;
+  width: 65%;
   height: 60%;
 }
 .lesson-or-chapter-download-icon {
-  margin-top: 1vh;
-  width: 60%;
+  margin-top: 1.4vh;
+  width: 65%;
   height: 60%;
 }

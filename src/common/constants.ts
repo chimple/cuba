@@ -16,6 +16,12 @@ export enum SL_GRADES {
 
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
+export enum LeaderboardDropdownList {
+  WEEKLY = "WEEKLY",
+  MONTHLY = "MONTHLY",
+  ALL_TIME = "ALL_TIME",
+}
+
 export enum HOMEHEADERLIST {
   SUGGESTIONS = "SUGGESTIONS",
   SUBJECTS = "SUBJECTS",
@@ -39,6 +45,13 @@ export enum PARENTHEADERLIST {
 export enum LEADERBOARDHEADERLIST {
   LEADERBOARD = "LEADERBOARD",
   EVENTS = "EVENTS",
+  REWARDS = "REWARDS",
+}
+
+export enum LEADERBOARD_REWARD_LIST {
+  BADGES = "BADGES",
+  BONUS = "BONUS",
+  STICKER = "STICKER",
 }
 
 export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu";
@@ -465,3 +478,31 @@ export const LAST_FUNCTION_CALL = "lastFunctionCall";
 export const CHAPTER_LESSON_MAP = "chapterLessonMap";
 
 export const CURRENT_AVATAR_SUGGESTION_NO = "currentAvatarSuggestion";
+export const SHOW_DAILY_PROGRESS_FLAG = "showAvatarDailyProgress";
+
+export type LeaderboardBadge = {
+  id: string;
+  seen: boolean;
+};
+
+export type LeaderboardBonus = {
+  id: string;
+  seen: boolean;
+};
+
+export type LeaderboardSticker = {
+  id: string;
+  seen: boolean;
+};
+
+export type LeaderboardRewards = {
+  badges: LeaderboardBadge[];
+  bonus: LeaderboardBonus[];
+  sticker: LeaderboardSticker[];
+};
+
+export enum LeaderboardRewardsType {
+  BADGE = "badge",
+  BONUS = "bonus",
+  STICKER = "sticker",
+}
