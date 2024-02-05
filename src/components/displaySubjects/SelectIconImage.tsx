@@ -25,7 +25,7 @@ const SelectIconImage: FC<{
     Default,
   }
   const [loadIcon, setLoadIcon] = useState(LoadIcon.Local);
-
+  
   return (
     <div>
       {loadIcon === LoadIcon.Local ? (
@@ -34,7 +34,7 @@ const SelectIconImage: FC<{
             width: imageWidth,
             height: imageHeight,
           }}
-          src={localSrc}
+          src={webSrc}
           loading="lazy"
           alt=""
           onError={() => {
