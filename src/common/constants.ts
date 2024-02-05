@@ -198,7 +198,7 @@ export const DEFAULT_HEADER_ICON_CONFIGS: Map<
     HOMEHEADERLIST.LIVEQUIZ,
     {
       displayName: "Live Quiz",
-      iconSrc: "/assets/icons/quizsearchInactiveIcon.svg",
+      iconSrc: "/assets/icons/quizInactiveIcon.svg",
       headerList: HOMEHEADERLIST.LIVEQUIZ,
     },
   ],
