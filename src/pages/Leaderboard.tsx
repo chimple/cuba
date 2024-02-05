@@ -250,14 +250,14 @@ const Leaderboard: React.FC = () => {
         [t("Rank"), "--"],
         [t("Lessons Played"), "--"],
         [t("Score"), "--"],
-        [t("Time Spent"), "--" + t(" min") + " --" + t("sec")],
+        [t("Time Spent"), "--" + t("min") + " --" + t("sec")],
       ];
       tempLeaderboardDataArray.push([
         "--",
         currentStudent.name,
         "--",
         "--",
-        "--" + t(" min") + " --" + t("sec"),
+        "--" + t("min") + " --" + t("sec"),
       ]);
     }
     setCurrentUserDataContent(tempCurrentUserDataContent);
