@@ -1597,33 +1597,6 @@ export class FirebaseApi implements ServiceApi {
       return null;
     }
   }
-  public async getLessonIdWithChapterId(chapterId: string): Promise<any> {
-    try {
-      const lessonQuerySnapshot = await this.getDocsFromOffline(
-        query(
-          collection(this._db, CollectionIds.LESSON),
-          where("cocosChapterCode", "==", chapterId)
-        )
-      );
-
-      const lessonIds: any[] = [];
-
-      lessonQuerySnapshot.forEach((lessonDoc) => {
-        const lessonData = lessonDoc.data();
-        if (!lessonData.type) {
-          lessonIds.push({
-            id: lessonDoc.id,
-            ...lessonData,
-          });
-        }
-      });
-
-      return lessonIds;
-    } catch (error) {
-      console.error("Error fetching lessons by ID:", error);
-      return [];
-    }
-  }
 
   public async getAllCourses(): Promise<Course[]> {
     try {

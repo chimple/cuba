@@ -335,7 +335,7 @@ const Home: FC = () => {
     const storedChapterLessonId = storedChapterLessonMap
       ? JSON.parse(storedChapterLessonMap)
       : {};
-    storedChapterLessonId[chapter.id] = lessons.map((lesson) => lesson.id);
+    lessons.map((lesson) => (storedChapterLessonId[lesson.docId] = lesson.id));
     localStorage.setItem(
       CHAPTER_LESSON_MAP,
       JSON.stringify(storedChapterLessonId)

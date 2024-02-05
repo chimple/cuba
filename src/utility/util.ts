@@ -424,7 +424,6 @@ export class Util {
                 DOWNLOADED_LESSON_AND_CHAPTER_ID,
                 "lesson"
               );
-
               if (!!zip && !!zip.data && zip.status === 200) break;
             } catch (error) {
               console.log(
@@ -507,7 +506,7 @@ export class Util {
     if (
       !storedLastRendered ||
       new Date().getTime() - lastRendered > 60 * 60 * 1000
-    ) {
+    )
       try {
         if (!Capacitor.isNativePlatform()) return null;
 
@@ -522,67 +521,32 @@ export class Util {
           console.log("Processing folder:", contents.files[i].name);
           folderNamesArray.push(contents.files[i].name);
         }
-
-        const storedLessonAndChapterIdMap = JSON.parse(
-          localStorage.getItem(CHAPTER_LESSON_MAP) ?? "null"
-        );
         const downloadedLessonAndChapterId = JSON.parse(
           localStorage.getItem(DOWNLOADED_LESSON_AND_CHAPTER_ID) ?? "null"
         );
-
-        const downloadedChapterId = downloadedLessonAndChapterId.chapter || [];
-
-        for (const chapter of downloadedChapterId) {
-          const lessonIds = storedLessonAndChapterIdMap[chapter] || [];
-          if (!lessonIds) {
-            const api = ServiceConfig.getI().apiHandler;
-            const lessons = await api.getLessonsForChapter(chapter);
-            const storedDataString = localStorage.getItem(CHAPTER_LESSON_MAP);
-            const storedData = storedDataString
-              ? JSON.parse(storedDataString)
-              : {};
-            storedData[chapter.id] = lessons.map((lesson) => lesson.id);
-            localStorage.setItem(
-              CHAPTER_LESSON_MAP,
-              JSON.stringify(storedData)
-            );
-          }
-          const downloadedLessonID = downloadedChapterId.lesson || [];
-          const allElementsPresent = lessonIds.every((element) =>
-            downloadedLessonID.includes(element)
-          );
-          if (!allElementsPresent) {
-            await this.removeLessonOrChapterIdFromLocalStorage(
-              chapter,
-              DOWNLOADED_LESSON_AND_CHAPTER_ID
-            );
-          }
-        }
-
         downloadedLessonAndChapterId.lesson = [];
+        console.log("local ids", folderNamesArray);
         this.storeLessonOrChaterIdToLocalStorage(
           folderNamesArray,
           DOWNLOADED_LESSON_AND_CHAPTER_ID,
           "lesson"
         );
-
         lastRendered = new Date().getTime();
         localStorage.setItem(LAST_FUNCTION_CALL, lastRendered.toString());
       } catch (error) {
         console.error("Error listing folders:", error);
         return null;
       }
-    }
+
     return lastRendered;
   }
 
   public static async updateChapterOrLessonDownloadStatus(
-    chapterId: string | undefined
+    chaptersArray: Chapter[] | undefined
   ): Promise<any> {
-    if (!chapterId) {
-      return false;
+    if (chaptersArray == undefined) {
+      return;
     }
-
     const storedLessonAndChapterIdMap = JSON.parse(
       localStorage.getItem(CHAPTER_LESSON_MAP) || "{}"
     );
@@ -594,44 +558,53 @@ export class Util {
       localStorage.setItem(CHAPTER_LESSON_MAP, JSON.stringify({}));
     }
 
-    if (!storedLessonAndChapterIdMap.hasOwnProperty(chapterId)) {
-      try {
-        const api = await ServiceConfig.getI().apiHandler;
-        const lesson = await api.getLessonIdWithChapterId(chapterId);
+    chaptersArray.forEach((chapter) => {
+      if (chapter && chapter.lessons && Array.isArray(chapter.lessons)) {
+        let allLessonIds: string[] = [];
+        let allLessonDocs: string[] = [];
+        const lessonIds = chapter.lessons.map((lesson) => lesson.id);
+        lessonIds.forEach((lessonDoc) => {
+          allLessonDocs.push(lessonDoc);
+          if (storedLessonAndChapterIdMap.hasOwnProperty(lessonDoc)) {
+            const correspondingLessonId =
+              storedLessonAndChapterIdMap[lessonDoc];
+            allLessonIds.push(correspondingLessonId);
+            console.log(
+              "Found matching lesson ID:",
+              lessonDoc,
+              "with value:",
+              correspondingLessonId
+            );
+          }
+        });
 
-        storedLessonAndChapterIdMap[chapterId] = lesson.map(
-          (lesson: any) => lesson.id
-        );
+        let downloadedlessonIds = downloadedLessonAndChapterId.lesson || [];
+        // if (allLessonIds.length === allLessonDocs.length)
+        if (
+          allLessonIds.length > 0 &&
+          allLessonIds.length === allLessonDocs.length
+        ) {
+          const allLessonIdPresent = allLessonIds.every((item) =>
+            downloadedlessonIds.includes(item)
+          );
 
-        localStorage.setItem(
-          CHAPTER_LESSON_MAP,
-          JSON.stringify(storedLessonAndChapterIdMap)
-        );
-      } catch (error) {
-        console.error("Error fetching lesson:", error);
-      }
-    }
-    let allDownloadedlessonIds = downloadedLessonAndChapterId.lesson || [];
-    const lessonId123 = storedLessonAndChapterIdMap[chapterId] || [];
-
-    if (lessonId123) {
-      const allPresent = lessonId123.every((item: any) =>
-        allDownloadedlessonIds.includes(item)
-      );
-
-      if (allPresent) {
-        this.storeLessonOrChaterIdToLocalStorage(
-          chapterId,
-          DOWNLOADED_LESSON_AND_CHAPTER_ID,
-          "chapter"
-        );
+          if (allLessonIdPresent) {
+            this.storeLessonOrChaterIdToLocalStorage(
+              chapter.id,
+              DOWNLOADED_LESSON_AND_CHAPTER_ID,
+              "chapter"
+            );
+          } else {
+            this.removeLessonOrChapterIdFromLocalStorage(
+              chapter.id,
+              DOWNLOADED_LESSON_AND_CHAPTER_ID
+            );
+          }
+        }
       } else {
-        this.removeLessonOrChapterIdFromLocalStorage(
-          chapterId,
-          DOWNLOADED_LESSON_AND_CHAPTER_ID
-        );
+        console.error("Chapter data is missing or not in the expected format.");
       }
-    }
+    });
 
     return false;
   }

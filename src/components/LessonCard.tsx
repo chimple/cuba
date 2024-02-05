@@ -281,10 +281,7 @@ const LessonCard: React.FC<{
           {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
         </div>
         <div className="lesson-download-button-container">
-          <DownloadLesson
-            lessonID={lesson.id}
-            chapterID={lesson.cocosChapterCode}
-          />
+          <DownloadLesson lessonId={lesson.id} />
         </div>
         {isLoved && (
           <LovedIcon

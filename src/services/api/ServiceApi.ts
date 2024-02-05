@@ -117,12 +117,6 @@ export interface ServiceApi {
   getLessonWithCocosLessonId(lessonId: string): Promise<Lesson | null>;
 
   /**
-   * Gives Lesson Ids for a given chapter Id
-   * @param chapterId - Cocos Lesson Id
-   */
-  getLessonIdWithChapterId(chapterId: string): Promise<any[]>;
-
-  /**
    * Gives List of subjects for given a student for Home user
    * @param {User} student - Student User object
    * @returns {Course[]} Array of `Course` objects

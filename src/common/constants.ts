@@ -198,7 +198,7 @@ export const DEFAULT_HEADER_ICON_CONFIGS: Map<
     HOMEHEADERLIST.LIVEQUIZ,
     {
       displayName: "Live Quiz",
-      iconSrc: "/assets/icons/quiz_icon.svg",
+      iconSrc: "/assets/icons/quizsearchInactiveIcon.svg",
       headerList: HOMEHEADERLIST.LIVEQUIZ,
     },
   ],
@@ -455,7 +455,7 @@ export enum EVENTS {
 }
 
 export const FCM_TOKENS = "fcmTokens";
-export const IS_CONECTED ="is_conected"
+export const IS_CONECTED = "is_conected";
 
 export const LAST_UPDATE_CHECKED = "lastUpdateChecked";
 

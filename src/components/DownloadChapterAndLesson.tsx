@@ -13,10 +13,9 @@ import { Chapter } from "../common/courseConstants";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 
 const DownloadLesson: React.FC<{
-  lessonID?: string;
+  lessonId?: string;
   chapters?: Chapter;
-  chapterID?: string;
-}> = ({ lessonID, chapters, chapterID }) => {
+}> = ({ lessonId, chapters }) => {
   const [showIcon, setShowIcon] = useState(true);
   const [showDialogBox, setShowDialogBox] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -26,7 +25,7 @@ const DownloadLesson: React.FC<{
   useEffect(() => {
     const storedLessonAndChapterIds = Util.getStoredLessonAndChapterIds();
 
-    if (lessonID && storedLessonAndChapterIds.lesson.includes(lessonID)) {
+    if (lessonId && storedLessonAndChapterIds.lesson.includes(lessonId)) {
       setShowIcon(false);
     }
 
@@ -34,12 +33,6 @@ const DownloadLesson: React.FC<{
       setShowIcon(false);
     }
   }, []);
-  async function init() {
-    const lesson = Util.updateChapterOrLessonDownloadStatus(chapterID);
-    if (!lesson) {
-      return;
-    }
-  }
 
   const handleDownload = async () => {
     if (loading) return;
@@ -87,9 +80,9 @@ const DownloadLesson: React.FC<{
         );
       }
     } else {
-      if (lessonID) {
-        if (!storedLessonID.includes(lessonID)) {
-          await Util.downloadZipBundle([lessonID]);
+      if (lessonId) {
+        if (!storedLessonID.includes(lessonId)) {
+          await Util.downloadZipBundle([lessonId]);
         }
       }
     }
@@ -115,18 +108,14 @@ const DownloadLesson: React.FC<{
         chapters.id,
         DOWNLOADED_LESSON_AND_CHAPTER_ID
       );
-    } else if (lessonID) {
-      await Util.deleteDownloadedLesson([lessonID]);
-      if (!storedLessonID.includes(lessonID)) {
+    } else if (lessonId) {
+      await Util.deleteDownloadedLesson([lessonId]);
+      if (!storedLessonID.includes(lessonId)) {
         setShowIcon(true);
       }
     }
     setLoading(false);
   };
-
-  useEffect(() => {
-    init();
-  }, [handleDownload, handleDelete]);
 
   return Capacitor.isNativePlatform() ? (
     <div
