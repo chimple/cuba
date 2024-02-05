@@ -185,7 +185,7 @@ const Leaderboard: React.FC = () => {
         element.name,
         element.lessonsPlayed,
         element.score,
-        computeMinutes + t(" min") + " " + computeSeconds + " " + t("sec"),
+        computeMinutes + " " + t("min") + " " + computeSeconds + " " + t("sec"),
       ]);
 
       if (currentStudent.docId == element.userId) {

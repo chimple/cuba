@@ -64,8 +64,8 @@ const StudentProgress: React.FC = () => {
         setStudentProgressHeaderIconList(
           courses.map((course) => (
             {
-            displayName:
-            course.title === 'Maths'
+            displayName: 
+            course.courseCode === 'maths'
               ? t(course.title) 
               : course.title,
             iconSrc: course.thumbnail ?? "assets/icons/EnglishIcon.svg",
