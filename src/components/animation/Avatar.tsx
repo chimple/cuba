@@ -208,6 +208,7 @@ export class AvatarObj {
         showDailyProgress
       );
       let unlockedRewards = await Util.getAllUnlockedRewards();
+      // let unlockedRewards = []; 
       console.log("if (unlockedRewards) {", unlockedRewards);
       if (unlockedRewards && unlockedRewards?.length > 0) {
         this.mode = AvatarModes.collectReward;
