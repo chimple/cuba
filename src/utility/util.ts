@@ -30,6 +30,7 @@ import {
   LEADERBOARDHEADERLIST,
   LEADERBOARD_REWARD_LIST,
   LeaderboardRewards,
+  unlockedRewardsInfo,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -1469,14 +1470,7 @@ export class Util {
   }
 
   public static async getAllUnlockedRewards(): Promise<
-    | {
-        id: string;
-        type: LeaderboardRewardsType;
-        image: string;
-        name: string;
-        leaderboardRewardList: LEADERBOARD_REWARD_LIST;
-      }[]
-    | undefined
+    unlockedRewardsInfo[] | undefined
   > {
     console.log("getAllUnlockedRewards() called");
     await this.getStudentFromServer();
@@ -1508,13 +1502,7 @@ export class Util {
       }
     };
 
-    const allUnlockedRewards: {
-      id: string;
-      type: LeaderboardRewardsType;
-      image: string;
-      name: string;
-      leaderboardRewardList: LEADERBOARD_REWARD_LIST;
-    }[] = [];
+    const allUnlockedRewards: unlockedRewardsInfo[] = [];
 
     await processRewards(
       currentStudent.rewards.badges || [],
