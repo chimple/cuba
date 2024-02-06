@@ -33,26 +33,21 @@ const HomeHeader: React.FC<{
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
 
-  async function init() {
+  const [isLinked, setIsLinked] = useState(false);
+  const api = ServiceConfig.getI().apiHandler;
+  const init = async (fromCache: boolean = true) => {
     try {
       const [canShowAvatarValue, student, currMode] = await Promise.all([
         Util.getCanShowAvatar(),
         Util.getCurrentStudent(),
         schoolUtil.getCurrMode(),
       ]);
-
-      console.log(
-        "const canShowAvatarValue in homeHeader ",
-        canShowAvatarValue,
-        await Util.getCanShowAvatar()
-      );
-      setCanShowAvatar(canShowAvatarValue);
-
       if (!student) {
         history.replace(PAGES.HOME);
-        throw new Error("No student found");
+        return;
       }
-
+      const linked = await api.isStudentLinked(student.docId, fromCache);
+      setIsLinked(linked);
       setStudentMode(currMode);
 
       DEFAULT_HEADER_ICON_CONFIGS.forEach(async (element) => {
@@ -76,7 +71,7 @@ const HomeHeader: React.FC<{
     } catch (error) {
       console.error("Error in init:", error);
     }
-  }
+  };
 
   useEffect(() => {
     init();
@@ -105,6 +100,9 @@ const HomeHeader: React.FC<{
       <div id="home-header-middle-icons">
         {!!currentHeaderIconList &&
           currentHeaderIconList.map((element, index) => {
+            if (!isLinked && element.headerList === HOMEHEADERLIST.LIVEQUIZ) {
+              return null;
+            }
             return (
               <HeaderIcon
                 key={index}

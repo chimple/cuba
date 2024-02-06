@@ -1,34 +1,17 @@
-import { useEffect, useState } from "react";
-import { HiSpeakerWave } from "react-icons/hi2";
-
-export default function AudioButtonComponent({ style, audioSrc }) {
-  useEffect(() => {
-    audio.addEventListener("ended", () => setPlaying(false));
-    return () => {
-      audio.removeEventListener("ended", () => setPlaying(false));
-    };
-  }, []);
-
-  const [audio, setAudio] = useState<HTMLAudioElement>(new Audio(audioSrc));
-
-  const [playing, setPlaying] = useState(false);
-
-  const loadAudio = (audioSrc) => {
-    return new Audio(audioSrc); // Audio can pick from network and locale
-  };
-
+import React from "react";
+import { useAudioPlayer, useTtsAudioPlayer } from "./animationUtils";
+import { PiSpeakerHighBold } from "react-icons/pi";
+import { TextToSpeech } from "@capacitor-community/text-to-speech";
+import { Capacitor } from "@capacitor/core";
+interface AudioButtonProps {
+  style: React.CSSProperties;
+  onClick?: () => void;
+}
+function AudioButtonComponent({ style, onClick }: AudioButtonProps) {
   return (
-    <HiSpeakerWave
-      style={style}
-      onClick={() => {
-        console.log("Play Audio File", audioSrc);
-        setAudio(loadAudio(audioSrc));
-        setPlaying(true);
-        if (!playing) {
-          audio.play();
-          console.log("Audio is playing ", audioSrc);
-        }
-      }}
-    ></HiSpeakerWave>
+    <div>
+      <PiSpeakerHighBold style={style} className="audio-icon" onClick={onClick} />
+    </div>
   );
 }
+export default AudioButtonComponent;

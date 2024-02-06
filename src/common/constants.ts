@@ -16,6 +16,12 @@ export enum SL_GRADES {
 
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
+export enum LeaderboardDropdownList {
+  WEEKLY = "WEEKLY",
+  MONTHLY = "MONTHLY",
+  ALL_TIME = "ALL_TIME",
+}
+
 export enum HOMEHEADERLIST {
   SUGGESTIONS = "SUGGESTIONS",
   SUBJECTS = "SUBJECTS",
@@ -23,7 +29,7 @@ export enum HOMEHEADERLIST {
   ASSIGNMENT = "ASSIGNMENT",
   CHALLENGES = "CHALLENGES",
   SEARCH = "SEARCH",
-  QUIZ = "QUIZ",
+  LIVEQUIZ = "LIVE-QUIZ",
   PROFILE = "PROFILE",
   HISTORY = "HISTORY",
   FAVOURITES = "FAVOURITES",
@@ -39,13 +45,21 @@ export enum PARENTHEADERLIST {
 export enum LEADERBOARDHEADERLIST {
   LEADERBOARD = "LEADERBOARD",
   EVENTS = "EVENTS",
+  REWARDS = "REWARDS",
 }
 
-export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu"
-export const grade1 = "R5sDh8LKKBx7D7o1MMl0"
-export const grade2 = "al0OqObeTBK3OFWSyDOg"
-export const grade3 = "i1paELqh4uwET2OQQl1E"
-export const aboveGrade3 = "rhuiXCmMzmJM1dkN8UNu"
+export enum LEADERBOARD_REWARD_LIST {
+  BADGES = "BADGES",
+  BONUS = "BONUS",
+  STICKER = "STICKER",
+}
+
+export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu";
+export const grade1 = "R5sDh8LKKBx7D7o1MMl0";
+export const grade2 = "al0OqObeTBK3OFWSyDOg";
+export const grade3 = "i1paELqh4uwET2OQQl1E";
+export const aboveGrade3 = "rhuiXCmMzmJM1dkN8UNu";
+export const CONTINUE = "continue";
 
 export const parentHeaderIconList: HeaderIconConfig[] = [
   {
@@ -126,67 +140,69 @@ export const ACTIVE_HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
         headerList: HOMEHEADERLIST.SEARCH,
       },
     ],
-    // [
-    //   HOMEHEADERLIST.QUIZ,
-    //   {
-    //     displayName: "Quiz",
-    //     iconSrc: "/assets/icons/quiz_icon.svg",
-    //     headerList: HOMEHEADERLIST.QUIZ,
-    //   },
-    // ],
+    [
+      HOMEHEADERLIST.LIVEQUIZ,
+      {
+        displayName: "Live Quiz",
+        iconSrc: "/assets/icons/quiz_icon.svg",
+        headerList: HOMEHEADERLIST.LIVEQUIZ,
+      },
+    ],
   ]);
 
-export const DEFAULT_HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
-  new Map<HOMEHEADERLIST, HeaderIconConfig>([
-    [
-      HOMEHEADERLIST.SUGGESTIONS,
-      {
-        displayName: "Suggestion",
-        iconSrc: "/assets/icons/suggestionInactiveIcon.svg",
-        headerList: HOMEHEADERLIST.SUGGESTIONS,
-      },
-    ],
-    [
-      HOMEHEADERLIST.SUBJECTS,
-      {
-        displayName: "Subjects",
-        iconSrc: "/assets/icons/subjectInactiveIcon.svg",
-        headerList: HOMEHEADERLIST.SUBJECTS,
-      },
-    ],
-    [
-      HOMEHEADERLIST.ASSIGNMENT,
-      {
-        displayName: "Home work",
-        iconSrc: "/assets/icons/homeworkInactiveIcon.svg",
-        headerList: HOMEHEADERLIST.ASSIGNMENT,
-      },
-    ],
-    // [
-    //   HOMEHEADERLIST.CHALLENGES,
-    //   {
-    //     displayName: "Challenges",
-    //     iconSrc: "/assets/icons/MathsIcon.svg",
-    //     headerList: HOMEHEADERLIST.CHALLENGES,
-    //   },
-    // ],
-    [
-      HOMEHEADERLIST.SEARCH,
-      {
-        displayName: "Search",
-        iconSrc: "/assets/icons/searchInactiveIcon.svg",
-        headerList: HOMEHEADERLIST.SEARCH,
-      },
-    ],
-    // [
-    //   HOMEHEADERLIST.QUIZ,
-    //   {
-    //     displayName: "Quiz",
-    //     iconSrc: "/assets/icons/quiz_icon.svg",
-    //     headerList: HOMEHEADERLIST.QUIZ,
-    //   },
-    // ],
-  ]);
+export const DEFAULT_HEADER_ICON_CONFIGS: Map<
+  HOMEHEADERLIST,
+  HeaderIconConfig
+> = new Map<HOMEHEADERLIST, HeaderIconConfig>([
+  [
+    HOMEHEADERLIST.SUGGESTIONS,
+    {
+      displayName: "Suggestion",
+      iconSrc: "/assets/icons/suggestionInactiveIcon.svg",
+      headerList: HOMEHEADERLIST.SUGGESTIONS,
+    },
+  ],
+  [
+    HOMEHEADERLIST.SUBJECTS,
+    {
+      displayName: "Subjects",
+      iconSrc: "/assets/icons/subjectInactiveIcon.svg",
+      headerList: HOMEHEADERLIST.SUBJECTS,
+    },
+  ],
+  [
+    HOMEHEADERLIST.ASSIGNMENT,
+    {
+      displayName: "Home work",
+      iconSrc: "/assets/icons/homeworkInactiveIcon.svg",
+      headerList: HOMEHEADERLIST.ASSIGNMENT,
+    },
+  ],
+  // [
+  //   HOMEHEADERLIST.CHALLENGES,
+  //   {
+  //     displayName: "Challenges",
+  //     iconSrc: "/assets/icons/MathsIcon.svg",
+  //     headerList: HOMEHEADERLIST.CHALLENGES,
+  //   },
+  // ],
+  [
+    HOMEHEADERLIST.SEARCH,
+    {
+      displayName: "Search",
+      iconSrc: "/assets/icons/searchInactiveIcon.svg",
+      headerList: HOMEHEADERLIST.SEARCH,
+    },
+  ],
+  [
+    HOMEHEADERLIST.LIVEQUIZ,
+    {
+      displayName: "Live Quiz",
+      iconSrc: "/assets/icons/quiz_icon.svg",
+      headerList: HOMEHEADERLIST.LIVEQUIZ,
+    },
+  ],
+]);
 
 // export const HEADERLIST = [HOME_CONFIG, LANG_CONFIGS, PROFILE_CONFIG]
 export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
@@ -231,14 +247,14 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
         headerList: HOMEHEADERLIST.SEARCH,
       },
     ],
-    // [
-    //   HOMEHEADERLIST.QUIZ,
-    //   {
-    //     displayName: "Quiz",
-    //     iconSrc: "/assets/icons/quiz_icon.svg",
-    //     headerList: HOMEHEADERLIST.QUIZ,
-    //   },
-    // ],
+    [
+      HOMEHEADERLIST.LIVEQUIZ,
+      {
+        displayName: "Live Quiz",
+        iconSrc: "/assets/icons/quiz_icon.svg",
+        headerList: HOMEHEADERLIST.LIVEQUIZ,
+      },
+    ],
   ]);
 
 export const LESSON_CARD_COLORS = [
@@ -277,8 +293,13 @@ export enum PAGES {
   LEADERBOARD = "/leaderboard",
   ASSIGNMENT = "/assignment",
   JOIN_CLASS = "/join-class",
+  LIVE_QUIZ = "/live-quiz",
   SELECT_MODE = "/select-mode",
   TERMS_AND_CONDITIONS = "/terms-and-conditions",
+  LIVE_QUIZ_JOIN = "/live-quiz-join",
+  LIVE_QUIZ_GAME = "/live-quiz-game",
+  LIVE_QUIZ_ROOM_RESULT = "/live-quiz-room-result",
+  LIVE_QUIZ_LEADERBOARD = "/live-quiz-leaderboard",
 }
 
 export enum LANG {
@@ -316,11 +337,16 @@ export const EXAM = "exam";
 export const PRE_QUIZ = "PreQuiz";
 export const GRADE_MAP = "GradeMap";
 export const DISPLAY_SUBJECTS_STORE = "DispSubStore";
-export const SOUND = "sound";
-export const MUSIC = "music";
+export const EDIT_STUDENT_STORE = "EditStudentStorage";
+export const SOUND = "sfxOff";
+export const MUSIC = "musicOff";
 export const GAME_URL = "gameUrl";
 export const TC_ACCEPT = "tcAccept";
 export const RECOMMENDATIONS = "recommendations";
+export const LIVE_QUIZ = "liveQuiz";
+export const COCOS = "cocos";
+export const TYPE = "type";
+
 export const BASE_NAME =
   !Capacitor.isNativePlatform() && !!process.env.REACT_APP_GITHUB_BASE
     ? process.env.REACT_APP_GITHUB_BASE
@@ -429,6 +455,7 @@ export enum EVENTS {
 }
 
 export const FCM_TOKENS = "fcmTokens";
+export const IS_CONECTED ="is_conected"
 
 export const LAST_UPDATE_CHECKED = "lastUpdateChecked";
 
@@ -443,3 +470,40 @@ export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
 export const COPIED_BUNDLE_FILES_INDEX = "copiedBundleFilesIndex";
 
 export const NUMBER_REGEX = /^[0-9]+$/;
+export const DOWNLOADED_LESSON_AND_CHAPTER_ID = "downloadedLessonAndChapterId";
+export enum SnackbarType {
+  Success = "success",
+  Error = "error",
+}
+export const LAST_FUNCTION_CALL = "lastFunctionCall";
+export const CHAPTER_LESSON_MAP = "chapterLessonMap";
+
+export const CURRENT_AVATAR_SUGGESTION_NO = "currentAvatarSuggestion";
+export const SHOW_DAILY_PROGRESS_FLAG = "showAvatarDailyProgress";
+
+export type LeaderboardBadge = {
+  id: string;
+  seen: boolean;
+};
+
+export type LeaderboardBonus = {
+  id: string;
+  seen: boolean;
+};
+
+export type LeaderboardSticker = {
+  id: string;
+  seen: boolean;
+};
+
+export type LeaderboardRewards = {
+  badges: LeaderboardBadge[];
+  bonus: LeaderboardBonus[];
+  sticker: LeaderboardSticker[];
+};
+
+export enum LeaderboardRewardsType {
+  BADGE = "badge",
+  BONUS = "bonus",
+  STICKER = "sticker",
+}

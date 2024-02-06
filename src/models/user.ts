@@ -1,9 +1,13 @@
 import { DocumentReference, Timestamp } from "firebase/firestore";
 import { RoleType } from "../interface/modelInterfaces";
 import BaseObject from "./baseObject";
+import { Util } from "../utility/util";
+import { LeaderboardRewards } from "../common/constants";
 
 export default class User extends BaseObject {
   private _username: string;
+  private _usernamePhone: string;
+  private _usernameMail: string;
   private _users: DocumentReference[];
   private _name: string;
   private _role: RoleType;
@@ -16,10 +20,11 @@ export default class User extends BaseObject {
   private _grade: DocumentReference | undefined;
   private _language: DocumentReference | undefined;
   private _avatar: string | undefined;
-  private _soundFlag: boolean | undefined;
-  private _musicFlag: boolean | undefined;
+  private _sfxOff: number | undefined;
+  private _musicOff: number | undefined;
   static avatar: string;
-  private _tcAccept:boolean| undefined;
+  private _tcAccept: boolean | undefined;
+  private _rewards: LeaderboardRewards | undefined;
 
   constructor(
     username: string,
@@ -38,13 +43,18 @@ export default class User extends BaseObject {
     updatedAt: Timestamp,
     createdAt: Timestamp,
     docId: string,
-    soundFlag: boolean = true,
-    musicFlag: boolean = true,
-    tcAccept: boolean = false
-
+    sfxOff: number = 0,
+    musicOff: number = 0,
+    tcAccept: boolean = false,
+    rewards?: LeaderboardRewards
   ) {
     super(updatedAt, createdAt, docId);
     this._username = username;
+    if (Util.isEmail(username)) {
+      this._usernameMail = username;
+    } else {
+      this._usernamePhone = username;
+    }
     this._users = users;
     this._name = name;
     this._role = role;
@@ -57,12 +67,25 @@ export default class User extends BaseObject {
     this._grade = grade;
     this._language = language;
     this._avatar = avatar;
-    this._soundFlag = soundFlag;
-    this._musicFlag = musicFlag;
-    this._tcAccept=tcAccept;
+    this._sfxOff = sfxOff;
+    this._musicOff = musicOff;
+    this._tcAccept = tcAccept;
+    this._rewards = rewards;
   }
   public get username(): string {
     return this._username;
+  }
+  public set usernamePhone(value: string) {
+    this._usernamePhone = value;
+  }
+  public get usernamePhone(): string {
+    return this._usernamePhone;
+  }
+  public set usernameMail(value: string) {
+    this._usernameMail = value;
+  }
+  public get usernameMail(): string {
+    return this._usernameMail;
   }
   public set username(value: string) {
     this._username = value;
@@ -133,18 +156,18 @@ export default class User extends BaseObject {
   public set language(value: DocumentReference | undefined) {
     this._language = value;
   }
-  public get soundFlag(): boolean | undefined {
-    return this._soundFlag;
+  public get sfxOff(): number | undefined {
+    return this._sfxOff;
   }
-  public set soundFlag(value: boolean | undefined) {
-    this._soundFlag = value;
+  public set sfxOff(value: number | undefined) {
+    this._sfxOff = value;
   }
 
-  public get musicFlag(): boolean | undefined {
-    return this._musicFlag;
+  public get musicOff(): number | undefined {
+    return this._musicOff;
   }
-  public set musicFlag(value: boolean | undefined) {
-    this._musicFlag = value;
+  public set musicOff(value: number | undefined) {
+    this._musicOff = value;
   }
 
   public get avatar(): string | undefined {
@@ -158,6 +181,13 @@ export default class User extends BaseObject {
   }
   public set tcAccept(value: boolean | undefined) {
     this._tcAccept = value;
+  }
+
+  public get rewards(): LeaderboardRewards | undefined {
+    return this._rewards;
+  }
+  public set rewards(value: LeaderboardRewards | undefined) {
+    this._rewards = value;
   }
 
   public toJson() {
@@ -176,8 +206,12 @@ export default class User extends BaseObject {
       role: this.role,
       uid: this.uid,
       username: this.username,
+      usernamePhone: this.usernamePhone ?? null,
+      usernameMail: this.usernameMail ?? null,
       users: this.users,
-      tcAccept:this.tcAccept,
+      tcAccept: this.tcAccept,
+      sfxOff: this.sfxOff,
+      musicOff: this.musicOff,
       // docId: this.docId,
     };
   }

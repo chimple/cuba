@@ -24,7 +24,7 @@ import ScoreCard from "../components/parent/ScoreCard";
 import { t } from "i18next";
 import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
 import Course from "../models/course";
-
+import { AvatarObj } from "../components/animation/Avatar";
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -40,9 +40,7 @@ const CocosGame: React.FC = () => {
   const currentStudent = Util.getCurrentStudent();
   const CourseDetail: Course = JSON.parse(state.course);
   const lessonDetail: Lesson = JSON.parse(state.lesson);
-
   let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
-
   const presentToast = async () => {
     await present({
       message: "Something went wrong!",
@@ -66,7 +64,7 @@ const CocosGame: React.FC = () => {
     setShowDialogBox(true);
     Util.killCocosGame();
     initialCount++;
-    localStorage.setItem(LESSONS_PLAYED_COUNT, (initialCount.toString()));
+    localStorage.setItem(LESSONS_PLAYED_COUNT, initialCount.toString());
     console.log("---------count of LESSONS PLAYED", initialCount);
   };
 
@@ -166,67 +164,11 @@ const CocosGame: React.FC = () => {
 
     // document.body.addEventListener("problemEnd", onProblemEnd);
   }
-  const currentStudentDocId: string = Util.getCurrentStudent()?.docId || '';
+  const currentStudentDocId: string = Util.getCurrentStudent()?.docId || "";
 
   let ChapterDetail: Chapter | undefined;
   const api = ServiceConfig.getI().apiHandler;
   const lesson: Lesson = JSON.parse(state.lesson);
-
-  async function getNextLessonInChapter(chapters, currentChapterId, currentLessonId) {
-
-    const currentChapter = ChapterDetail;
-    console.log("currentChapter", currentChapter);
-
-    if (!currentChapter) return undefined;
-    let currentLessonIndex;
-
-    currentChapter.lessons = Util.convertDoc(currentChapter.lessons)
-    const cChapter = await api.getLessonsForChapter(currentChapter);
-
-    for (let i = 0; i < cChapter.length - 1; i++) {
-      const currentLesson = cChapter[i];
-      console.log(`Checking lesson at index ${i}:`, currentLesson);
-      console.log("currentlesson id:", currentLesson.id);
-      if (currentLesson.id === currentLessonId) {
-        currentLessonIndex = i;
-        break;
-      }
-    }
-
-    console.log("currentLessonIndex", currentLessonIndex);
-
-    if (currentLessonIndex < currentChapter.lessons.length - 1) {
-
-      let nextLesson = currentChapter.lessons[currentLessonIndex + 1];
-      let lessonId = nextLesson.id;
-      let studentResult: { [lessonDocId: string]: StudentLessonResult } | undefined = {};
-      const studentProfile = await api.getStudentResult(currentStudentDocId);
-      studentResult = studentProfile?.lessons;
-
-      if (!studentResult) return undefined;
-      while (studentResult && studentResult[lessonId]) {
-        currentLessonIndex += 1;
-        nextLesson = currentChapter.lessons[currentLessonIndex + 1];
-        lessonId = nextLesson.id;
-      }
-      const lessonObj = await api.getLesson(nextLesson.id) as Lesson;
-      console.log("lessonObj", lessonObj);
-      if (lessonObj) {
-        return lessonObj;
-      }
-    }
-
-    const nextChapterIndex = chapters.findIndex(chapter => chapter.id === currentChapterId) + 1;
-    if (nextChapterIndex < chapters.length) {
-      const nextChapter = chapters[nextChapterIndex];
-      const firstLessonId = nextChapter.lessons[0];
-      if (firstLessonId instanceof Lesson) {
-        return firstLessonId;
-      }
-      return undefined;
-    }
-  };
-
 
   const saveTempData = async (
     lessonData: CocosLessonData,
@@ -250,6 +192,31 @@ const CocosGame: React.FC = () => {
         schoolId = studentResult.schools[0];
       }
     }
+
+    let avatarObj = AvatarObj.getInstance();
+    console.log(
+      "Cosos weeklyTimespent ",
+      avatarObj.weeklyTimeSpent["min"],
+      avatarObj.weeklyTimeSpent["sec"]
+    );
+
+    let finalProgressTimespent = data.timeSpent;
+    let computeMinutes = Math.floor(finalProgressTimespent / 60);
+    let computeSec = finalProgressTimespent % 60;
+
+    avatarObj.weeklyTimeSpent["min"] =
+      avatarObj.weeklyTimeSpent["min"] + computeMinutes;
+    avatarObj.weeklyTimeSpent["sec"] =
+      avatarObj.weeklyTimeSpent["sec"] + computeSec;
+    avatarObj.weeklyPlayedLesson++;
+    console.log(
+      "after Cosos weeklyTimespent ",
+      computeMinutes,
+      computeSec,
+      avatarObj.weeklyTimeSpent["min"],
+      avatarObj.weeklyTimeSpent["sec"]
+    );
+
     const result = await api.updateResult(
       currentStudent,
       courseDocId,
@@ -272,14 +239,25 @@ const CocosGame: React.FC = () => {
         console.log("Current Chapter ", ChapterDetail);
       }
       let existing = new Map();
-      let res: { [key: string]: string } = JSON.parse(localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`) || '{}');
-      const finalLesson = await getNextLessonInChapter(CourseDetail.chapters, lessonData.chapterId, lesson.id);
+      let res: { [key: string]: string } = JSON.parse(
+        localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`) ||
+          "{}"
+      );
+      const finalLesson = await Util.getNextLessonFromGivenChapter(
+        CourseDetail.chapters,
+        lessonData.chapterId,
+        lesson.id,
+        ChapterDetail
+      );
       console.log("final lesson", finalLesson);
       existing.set(CourseDetail.courseCode, finalLesson?.id);
       for (let [key, value] of existing) {
         res[key] = value;
       }
-      localStorage.setItem(`${currentStudentDocId}-${RECOMMENDATIONS}`, JSON.stringify(res));
+      localStorage.setItem(
+        `${currentStudentDocId}-${RECOMMENDATIONS}`,
+        JSON.stringify(res)
+      );
     }
     Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.docId,
@@ -363,7 +341,7 @@ const CocosGame: React.FC = () => {
                   initialCount = 0;
                   localStorage.setItem(
                     LESSONS_PLAYED_COUNT,
-                    (initialCount.toString())
+                    initialCount.toString()
                   );
                 }
                 push();

@@ -6,10 +6,12 @@ import { Chapter, StudentLessonResult } from "../common/courseConstants";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
+  CONTINUE,
   CURRENT_CLASS,
   CURRENT_MODE,
   DISPLAY_SUBJECTS_STORE,
   GRADE_MAP,
+  HOMEHEADERLIST,
   MODES,
   PAGES,
 } from "../common/constants";
@@ -18,7 +20,6 @@ import { chevronBackCircleSharp } from "ionicons/icons";
 import "./Subjects.css";
 import { t } from "i18next";
 import SelectCourse from "../components/displaySubjects/SelectCourse";
-import Loading from "../components/Loading";
 import SelectChapter from "../components/displaySubjects/SelectChapter";
 import LessonSlider from "../components/LessonSlider";
 import Grade from "../models/grade";
@@ -29,6 +30,7 @@ import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
 import { Timestamp } from "firebase/firestore";
 import Chapters from "./DisplayChapters";
+import SkeltonLoading from "../components/SkeltonLoading";
 
 const localData: any = {};
 let localStorageData: any = {};
@@ -61,23 +63,23 @@ const Subjects: React.FC<{}> = ({}) => {
   const history = useHistory();
   const location = useLocation();
   const api = ServiceConfig.getI().apiHandler;
+  const urlParams = new URLSearchParams(location.search);
 
   useEffect(() => {
     init();
   }, []);
 
   const init = async () => {
-    const urlParams = new URLSearchParams(location.search);
     console.log(
       "🚀 ~ file: DisplaySubjects.tsx:47 ~ init ~ urlParams:",
-      urlParams.get("continue")
+      urlParams.get(CONTINUE)
     );
     console.log(
       "🚀 ~ file: DisplaySubjects.tsx:68 ~ init ~ localData:",
       localData
     );
     if (
-      !!urlParams.get("continue") &&
+      !!urlParams.get(CONTINUE) &&
       !!localData.currentCourse &&
       !!localData.currentGrade &&
       !!localData.currentChapter
@@ -242,8 +244,13 @@ const Subjects: React.FC<{}> = ({}) => {
     setCurrentCourse(course);
     // localStorageData.stage = STAGES.CHAPTERS;
     addDataToLocalStorage();
-    const params = `?courseDocId=${course.docId}`;
-    history.replace(PAGES.DISPLAY_CHAPTERS + params);
+    const params = `courseDocId=${course.docId}`;
+    // history.replace(PAGES.DISPLAY_CHAPTERS + params);
+    if (urlParams.get(CONTINUE)) {
+      history.replace(PAGES.DISPLAY_CHAPTERS + `?${CONTINUE}=true` +"&"+ params );
+    } else {
+      history.replace(PAGES.DISPLAY_CHAPTERS + "?" + params);
+    }
   };
 
   function addDataToLocalStorage() {
@@ -255,7 +262,7 @@ const Subjects: React.FC<{}> = ({}) => {
 
   return (
     <div id="display-subjects-page" style={{ height: "100vh" }}>
-      <Loading isLoading={isLoading} />
+      <SkeltonLoading isLoading={isLoading} header={HOMEHEADERLIST.SUBJECTS} />
       <div className="subjects-content">
         {!isLoading &&
           stage === STAGES.SUBJECTS &&

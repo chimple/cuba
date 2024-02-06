@@ -59,5 +59,8 @@
         <intent>
             <action android:name="oneroster"/>
         </intent>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
     </queries>
 </manifest>

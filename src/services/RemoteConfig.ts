@@ -71,6 +71,7 @@ export enum REMOTE_CONFIG_KEYS {
   CAN_HOT_UPDATE = "can_hot_update",
   BUNDLE_ZIP_URLS = "bundle_zip_urls",
   CAN_SHOW_AVATAR = "can_show_avatar",
+  CAN_UPDATED_AVATAR_SUGGESTION_URL = "can_updated_avatar_suggestion_url",
   // TERMS_AND_CONDITIONS_URL = "termsAndConditionsUrl",
 }
 

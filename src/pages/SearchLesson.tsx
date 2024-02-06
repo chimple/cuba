@@ -15,7 +15,7 @@ import LessonSlider from "../components/LessonSlider";
 import Lesson from "../models/lesson";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { useHistory, useLocation } from "react-router";
-import { INSTANT_SEARCH_INDEX_NAME, PAGES } from "../common/constants";
+import { CONTINUE, INSTANT_SEARCH_INDEX_NAME, PAGES } from "../common/constants";
 import BackButton from "../components/common/BackButton";
 import { Util } from "../utility/util";
 import { StudentLessonResult } from "../common/courseConstants";
@@ -98,7 +98,7 @@ function SearchLesson() {
     init();
 
     const urlParams = new URLSearchParams(location.search);
-    if (!!urlParams.get("continue") && !!dataToContinue.lessons) {
+    if (!!urlParams.get(CONTINUE) && !!dataToContinue.lessons) {
       setLessons(dataToContinue.lessons);
       setSearchTerm(dataToContinue.search);
       setLessonResultMap(dataToContinue.lessonResultMap);
@@ -184,7 +184,7 @@ function SearchLesson() {
           {/* A virtual search box is required for InstantSearch to understand the `query` search state property */}
           <VirtualSearchBox />
           <Autocomplete
-            placeholder={t("Search for Lesson...")}
+            placeholder={t("Search for a Lesson...")}
             detachedMediaQuery="none"
             initialState={{
               query: searchTerm,

@@ -1,0 +1,63 @@
+.leaderboard-header {
+  text-align: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-left: 14vw;
+}
+.header-name {
+  color: var(--text-color);
+  font-weight: bold;
+  font-size: 5vh;
+}
+.livequiz-leaderboard {
+  position: sticky;
+  z-index: 3;
+  background: var(--ion-background-color);
+  top: 0;
+  padding: clamp(10px, 10vh, 20px);
+  padding-bottom: 0;
+}
+.leaderboard-container {
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  overflow-y: scroll;
+}
+
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1px 0;
+}
+
+.even {
+  border-radius: 20vh 20vh;
+  background: #f3eaee;
+  border: 2px solid grey;
+}
+
+.odd {
+  border-radius: 20vh 20vh;
+  background: #ebe4f1;
+  border: 2px solid grey;
+}
+
+.rank-column,
+.name-column,
+.score-column {
+  flex: 1;
+  text-align: center;
+  font-weight: bold;
+}
+
+.leaderboard-header-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  color: var(--text-color);
+  font-size: 5vh;
+  font-weight: bold;
+}

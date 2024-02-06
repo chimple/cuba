@@ -10,7 +10,6 @@ const SelectCourse: FC<{
   courses: Course[];
   onCourseChange: (course: Course) => void;
 }> = ({ courses, onCourseChange }) => {
-
   return (
     <Splide
       hasTrack={true}
@@ -45,12 +44,12 @@ const SelectCourse: FC<{
                 />
               </div>
               {/* {t(course.title)} */}
-              {course.title === "English" ? course.title : t(course.title)}
+              {course.title === "English" ? course.title : course.title}
             </div>
           </SplideSlide>
         );
       })}
-      {
+      {/* {
         <SplideSlide className="slide">
           <div className="subject-button">
             <div
@@ -64,7 +63,7 @@ const SelectCourse: FC<{
             {t("Add Subject")}
           </div>
         </SplideSlide>
-      }
+      } */}
     </Splide>
   );
 };

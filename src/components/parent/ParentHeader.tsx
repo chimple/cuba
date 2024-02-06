@@ -2,12 +2,14 @@ import { useTranslation } from "react-i18next";
 import {
   parentHeaderIconList,
   PAGES,
+  CONTINUE,
 } from "../../common/constants";
 import "./ParentHeader.css";
 import React from "react";
 import RectangularIconButton from "./RectangularIconButton";
 import { useHistory } from "react-router-dom";
 import BackButton from "../common/BackButton";
+import { Util } from "../../utility/util";
 
 const ParentHeader: React.FC<{
   currentHeader: string;
@@ -20,7 +22,7 @@ const ParentHeader: React.FC<{
     <div id="parent-header-icons">
       <BackButton
         onClicked={() => {
-          history.replace(PAGES.DISPLAY_STUDENT);
+          Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
         }}
       ></BackButton>
       <div id="parent-header-middle-icons">

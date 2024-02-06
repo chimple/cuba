@@ -1,0 +1,19 @@
+.leaderboard-sticker-container {
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 16px;
+    height: 100%;
+    flex-grow: 1;
+    padding-bottom: 30px;
+  }
+  
+  .leaderboard-sticker-item {
+    text-align: center;
+    opacity: 1;
+  }
+  
+  .leaderboard-sticker-disabled {
+    opacity: 0.2;
+  }
+  

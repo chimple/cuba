@@ -6,6 +6,7 @@ import {
   MAX_STUDENTS_ALLOWED,
   PAGES,
   PARENTHEADERLIST,
+  CONTINUE,
 } from "../common/constants";
 import ProfileCard from "../components/parent/ProfileCard";
 import User from "../models/user";
@@ -22,7 +23,6 @@ import {
 import { FaInstagramSquare } from "react-icons/fa";
 import { t } from "i18next";
 import { TfiWorld } from "react-icons/tfi";
-import RectangularOutlineDropDown from "../components/parent/RectangularOutlineDropDown";
 import i18n from "../i18n";
 import { ServiceConfig } from "../services/ServiceConfig";
 import ParentLogout from "../components/parent/ParentLogout";
@@ -36,14 +36,15 @@ import DeleteParentAccount from "../components/parent/DeleteParentAccount";
 import { TrueFalseEnum } from "../interface/modelInterfaces";
 import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
+import DropDown from "../components/DropDown";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 const Parent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
-  const [soundFlag, setSoundFlag] = useState<boolean>();
-  const [musicFlag, setMusicFlag] = useState<boolean>();
+  const [soundFlag, setSoundFlag] = useState<number>();
+  const [musicFlag, setMusicFlag] = useState<number>();
   const [userProfile, setUserProfile] = useState<User[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
 
@@ -79,11 +80,10 @@ const Parent: React.FC = () => {
     getStudentProfile();
   }, [reloadProfiles]);
 
-
   async function getStudentProfile() {
     console.log("getStudentProfile");
-    const userProfilePromise: User[] = await
-      ServiceConfig.getI().apiHandler.getParentStudentProfiles();
+    const userProfilePromise: User[] =
+      await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     let finalUser: any[] = [];
     for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
       finalUser.push(userProfilePromise[i]);
@@ -96,7 +96,7 @@ const Parent: React.FC = () => {
     if (parentUser != undefined) {
       const currMode = await schoolUtil.getCurrMode();
       setStudentMode(currMode);
-      console.log("User ", parentUser?.musicFlag!);
+      console.log("User ", parentUser?.musicOff!);
       const sound = Util.getCurrentSound();
       const music = Util.getCurrentMusic();
       setSoundFlag(sound);
@@ -163,7 +163,7 @@ const Parent: React.FC = () => {
               showText={true}
               setReloadProfiles={setReloadProfiles}
               profiles={userProfile}
-              studentCurrMode= {studentMode}
+              studentCurrMode={studentMode}
             />
           );
         })}
@@ -177,7 +177,7 @@ const Parent: React.FC = () => {
         <div id="parent-page-setting">
           <div id="parent-page-setting-div">
             <p id="parent-page-setting-lang-text">{t("Language")}</p>
-            <RectangularOutlineDropDown
+            <DropDown
               currentValue={currentAppLang}
               optionList={langList}
               placeholder="Select Language"
@@ -222,15 +222,15 @@ const Parent: React.FC = () => {
               flag={soundFlag!}
               title={t("Sound")}
               onIonChangeClick={async (v) => {
-                console.log("ion change value ", v.detail?.checked);
-                setSoundFlag(v.detail?.checked);
+                console.log("ion change value ", v.detail?.checked ? 0 : 1);
+                setSoundFlag(v.detail?.checked ? 0 : 1);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
-                Util.setCurrentSound(v.detail?.checked);
+                Util.setCurrentSound(v.detail?.checked ? 0 : 1);
                 if (currentUser) {
                   ServiceConfig.getI().apiHandler.updateSoundFlag(
                     currentUser,
-                    v.detail?.checked
+                    v.detail?.checked ? 0 : 1
                   );
                 }
               }}
@@ -240,15 +240,15 @@ const Parent: React.FC = () => {
               flag={musicFlag!}
               title={t("Music")}
               onIonChangeClick={async (v) => {
-                console.log("ion change value ", v.detail?.checked);
-                setMusicFlag(v.detail?.checked);
+                console.log("ion change value ", v.detail?.checked ? 0 : 1);
+                setMusicFlag(v.detail?.checked ? 0 : 1);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
-                Util.setCurrentMusic(v.detail?.checked);
+                Util.setCurrentMusic(v.detail?.checked ? 0 : 1);
                 if (currentUser) {
                   ServiceConfig.getI().apiHandler.updateMusicFlag(
                     currentUser,
-                    v.detail?.checked
+                    v.detail?.checked ? 0 : 1
                   );
                 }
               }}
@@ -334,7 +334,7 @@ const Parent: React.FC = () => {
                   title="YouTube video player"
                   // frameborder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                // allowfullscreen
+                  // allowfullscreen
                 ></iframe>
               </div>
             </div>
@@ -401,9 +401,13 @@ const Parent: React.FC = () => {
   }
   function faqUI() {
     return (
-      <div id="faq-page"
+      <div
+        id="faq-page"
         onClick={() => {
-          window.open('https://www.chimple.org/in-school-guide-for-teachers', "_system");
+          window.open(
+            "https://www.chimple.org/in-school-guide-for-teachers",
+            "_system"
+          );
         }}
       >
         <p>{t("Please Visit Our Website")}</p>
@@ -423,7 +427,7 @@ const Parent: React.FC = () => {
   };
 
   const handleBackButton = () => {
-    history.replace(PAGES.DISPLAY_STUDENT);
+    Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
   };
 
   useEffect(() => {

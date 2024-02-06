@@ -22,32 +22,16 @@ const HotUpdate: FC<{}> = () => {
       const canHotUpdate = await RemoteConfig.getBoolean(
         REMOTE_CONFIG_KEYS.CAN_HOT_UPDATE
       );
-      console.log(
-        "🚀 ~ file: HotUpdate.tsx:18 ~ init ~ canHotUpdate:",
-        canHotUpdate
-      );
       const hotUpdateServer = HOT_UPDATE_SERVER;
-      console.log(
-        "🚀 ~ file: HotUpdate.tsx:23 ~ init ~ hotUpdateServer:",
-        hotUpdateServer
-      );
-
       if (!canHotUpdate || !hotUpdateServer) {
         push();
         return;
       }
-      console.log(
-        "🚀 ~ file: AppUpdate.tsx:18 ~ init ~ hotUpdateServer:",
-        hotUpdateServer
-      );
       const appUpdate = await AppUpdater.sync(hotUpdateServer, (status) => {
-        console.log("🚀 ~ file: HotUpdate.tsx:42 ~ init ~ status:", status);
         setCurrentStatus(status);
       });
-      console.log("🚀 ~ file: AppUpdate.tsx:19 ~ init ~ appUpdate:", appUpdate);
       push();
     } catch (error) {
-      console.log("🚀 ~ file: AppUpdate.tsx:21 ~ init ~ error:", error);
       push();
     }
   };

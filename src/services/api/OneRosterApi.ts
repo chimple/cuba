@@ -1,5 +1,10 @@
 import { HttpHeaders } from "@capacitor-community/http";
-import { COURSES, MODES } from "../../common/constants";
+import {
+  COURSES,
+  LeaderboardDropdownList,
+  LeaderboardRewards,
+  MODES,
+} from "../../common/constants";
 import { Chapter } from "../../interface/curriculumInterfaces";
 import Assignment from "../../models/assignment";
 import Auth from "../../models/auth";
@@ -19,7 +24,13 @@ import Subject from "../../models/subject";
 import StudentProfile from "../../models/studentProfile";
 import school from "../../models/school";
 import School from "../../models/school";
-import Avatar from "../../models/avatar";
+import { Unsubscribe } from "@firebase/firestore";
+import { AvatarObj } from "../../components/animation/Avatar";
+import LiveQuizRoomObject from "../../models/liveQuizRoom";
+import { DocumentData } from "firebase/firestore";
+import Badge from "../../models/Badge";
+import Rewards from "../../models/Rewards";
+import Sticker from "../../models/Sticker";
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -34,6 +45,10 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+  getLessonWithCocosLessonId(lessonId: string): Promise<Lesson | null> {
+    throw new Error("Method not implemented.");
+  }
+
   getLesson(id: string): Promise<Lesson | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -45,8 +60,59 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<{ grades: Grade[]; courses: Course[] }> {
     throw new Error("Method not implemented.");
   }
+  getAssignmentById(id: string): Promise<Assignment | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  liveQuizListener(
+    liveQuizRoomDocId: string,
+    onDataChange: (user: LiveQuizRoomObject) => void
+  ): Unsubscribe {
+    throw new Error("Method not implemented.");
+  }
+  updateLiveQuiz(
+    roomDocId: string,
+    studentId: string,
+    questionId: string,
+    timeSpent: number,
+    score: number
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  joinLiveQuiz(
+    studentId: string,
+    assignmentId: string
+  ): Promise<string | undefined> {
+    throw new Error("Method not implemented.");
+  }
   private constructor() {}
-  getAvatarInfo(): Promise<Avatar | undefined> {
+  updateRewardsForStudent(
+    studentId: string,
+    unlockedReward: LeaderboardRewards
+  ) {
+    throw new Error("Method not implemented.");
+  }
+
+  getUserByDocId(studentId: string): Promise<User | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  updateRewardAsSeen(studentId: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  getLeaderboardStudentResultFromB2CCollection(
+    studentId: string
+  ): Promise<LeaderboardInfo | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getRewardsById(id: string): Promise<Rewards | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getBadgeById(id: string): Promise<Badge | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getStickerById(id: string): Promise<Sticker | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getAvatarInfo(): Promise<AvatarObj | undefined> {
     throw new Error("Method not implemented.");
   }
   updateTcAccept(user: User, value: boolean) {
@@ -68,7 +134,7 @@ export class OneRosterApi implements ServiceApi {
   }
   getLeaderboardResults(
     sectionId: string,
-    isWeeklyData: boolean
+    isWeeklyData: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -78,6 +144,17 @@ export class OneRosterApi implements ServiceApi {
       [key: string]: Lesson;
     };
   }> {
+    throw new Error("Method not implemented.");
+  }
+  getLiveQuizLessons(
+    classId: string,
+    studentId: string
+  ): Promise<Assignment[]> {
+    throw new Error("Method not implemented.");
+  }
+  getLiveQuizRoomDoc(
+    liveQuizRoomDocId: string
+  ): Promise<DocumentData | undefined> {
     throw new Error("Method not implemented.");
   }
 
@@ -194,10 +271,10 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  updateSoundFlag(user: User, value: boolean) {
+  updateSoundFlag(user: User, value: number) {
     throw new Error("Method not implemented.");
   }
-  updateMusicFlag(user: User, value: boolean) {
+  updateMusicFlag(user: User, value: number) {
     throw new Error("Method not implemented.");
   }
   updateLanguage(user: User, value: string) {
@@ -826,7 +903,9 @@ export class OneRosterApi implements ServiceApi {
     return chapters[Math.min(index, chapters.length - 1)] ?? chapters[1];
   }
 
-  public async getCourseFromLesson(lesson: Lesson): Promise<Course | undefined> {
+  public async getCourseFromLesson(
+    lesson: Lesson
+  ): Promise<Course | undefined> {
     throw new Error("Method not implemented.");
   }
 }

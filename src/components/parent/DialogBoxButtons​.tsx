@@ -42,10 +42,12 @@ const DialogBoxButtons: React.FC<{
         open={showDialogBox}
         onClose={handleClose}
         sx={{
-          "& .MuiPaper-root":  { borderRadius: "6vh !important"},
-          "& .MuiTypography-root":  { margin: "13% 0% 0% 0% !important"},
+          "& .MuiPaper-root": {
+            borderRadius: "6vh !important",
+            width: "42vw !important",
+          },
+          "& .MuiTypography-root": { margin: "13% 0% 0% 0% !important" },
         }}
-        
       >
         <DialogContent
           style={{
@@ -54,13 +56,15 @@ const DialogBoxButtons: React.FC<{
             width: width,
             height: height,
           }}
+          sx={{
+            "&.MuiDialogContent-root": { padding: " 20px 0 24px 33px " },
+          }}
         >
           <DialogContentText
             style={{
               textAlign: "center",
-              color: "black",
+              color: "var(--text-color)",
               fontWeight: "normal",
-              margin: "6% 0% 0% 0%",
             }}
           >
             {message}
@@ -69,7 +73,7 @@ const DialogBoxButtons: React.FC<{
         <DialogActions
           style={{
             justifyContent: "space-around",
-            margin: "5%",
+            margin: "3%",
           }}
         >
           <div

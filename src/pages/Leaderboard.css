@@ -52,6 +52,15 @@
   text-align: center;
 }
 
+#leaderboard-left-note-message {
+  max-width: 27vw;
+  /* background-color: white; */
+  margin: 0vw 1vw;
+  font-size: 10px;
+  position: absolute;
+  top: 92vh;
+}
+
 #leaderboard-right-UI::-webkit-scrollbar {
   display: none;
 }
@@ -79,10 +88,22 @@
   overflow: hidden;
 }
 
-
 #leaderboard-profile-name {
   max-width: 22vh;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
+}
+
+#leaderboard-switch-user-button {
+  margin-top: -2vh;
+  cursor: pointer;
+  color: var(--text-color);
+  font-size: var(--text-size);
+  text-align: center;
+}
+
+#leaderboard-switch-user-button-img {
+  width: auto;
+  height: clamp(30px, 12vh, 44px);
 }

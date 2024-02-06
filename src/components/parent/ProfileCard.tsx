@@ -6,12 +6,20 @@ import { MdModeEditOutline } from "react-icons/md";
 import { FcPlus } from "react-icons/fc";
 import { HiPlusCircle } from "react-icons/hi";
 import User from "../../models/user";
-import { ACTION, AVATARS, EVENTS, PAGES, MODES } from "../../common/constants";
+import {
+  ACTION,
+  AVATARS,
+  EVENTS,
+  PAGES,
+  MODES,
+  CONTINUE,
+} from "../../common/constants";
 import { Util } from "../../utility/util";
 import DialogBoxButtons from "./DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
 import Loading from "../Loading";
+import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 
 const ProfileCard: React.FC<{
   width: string;
@@ -23,13 +31,22 @@ const ProfileCard: React.FC<{
   setReloadProfiles: (event: boolean) => void;
   profiles?: User[];
   studentCurrMode: string | undefined;
-}> = ({ width, height, userType, user, setReloadProfiles, profiles, studentCurrMode }) => {
+}> = ({
+  width,
+  height,
+  userType,
+  user,
+  setReloadProfiles,
+  profiles,
+  studentCurrMode,
+}) => {
   const history = useHistory();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [showWarningDialogBox, setShowWarningDialogBox] =
     useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const areProfilesAvailable = profiles && profiles[0] == null || undefined;
+  const areProfilesAvailable = (profiles && profiles[0] == null) || undefined;
+  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   return (
     <IonCard
       id="profile-card"
@@ -50,6 +67,23 @@ const ProfileCard: React.FC<{
             id="profile-card-edit-icon"
             size={"5%"}
             onClick={() => {
+              if (!online) {
+                presentToast({
+                  message: t(
+                    `Device is offline. Cannot edit or delete child profile`
+                  ),
+                  color: "danger",
+                  duration: 3000,
+                  position: "bottom",
+                  buttons: [
+                    {
+                      text: "Dismiss",
+                      role: "cancel",
+                    },
+                  ],
+                });
+                return;
+              }
               console.log("click on edit icon");
               setShowDialogBox(true);
             }}
@@ -70,7 +104,10 @@ const ProfileCard: React.FC<{
           <img
             id="profile-card-image"
             loading="lazy"
-            src={(studentCurrMode === MODES.SCHOOL && user.image) || "assets/avatars/" + (user.avatar ?? AVATARS[0]) + ".png"}
+            src={
+              (studentCurrMode === MODES.SCHOOL && user.image) ||
+              "assets/avatars/" + (user.avatar ?? AVATARS[0]) + ".png"
+            }
             alt=""
           />
           <p id="profile-card-user-name">{user.name}</p>
@@ -81,6 +118,23 @@ const ProfileCard: React.FC<{
             id="profile-card-new-user-icon"
             size={"16vw"}
             onClick={() => {
+              if (!online) {
+                presentToast({
+                  message: t(
+                    `Device is offline. Cannot create a new child profile`
+                  ),
+                  color: "danger",
+                  duration: 3000,
+                  position: "bottom",
+                  buttons: [
+                    {
+                      text: "Dismiss",
+                      role: "cancel",
+                    },
+                  ],
+                });
+                return;
+              }
               history.replace(PAGES.CREATE_STUDENT, {
                 showBackButton: !areProfilesAvailable,
               });
@@ -98,7 +152,7 @@ const ProfileCard: React.FC<{
             // const api = ServiceConfig.getI().apiHandler;
             // api.currentStudent = user;
 
-            history.replace(PAGES.STUDENT_PROGRESS);
+            Util.setPathToBackButton(PAGES.STUDENT_PROGRESS, history);
           }}
         >
           {t("Progress Report")}
@@ -112,7 +166,7 @@ const ProfileCard: React.FC<{
           width={"40vw"}
           height={"30vh"}
           message={t(
-            "You can edit or delete Profile by clicking on the below buttons"
+            "You can edit or delete the Profile by clicking on the buttons below."
           )}
           showDialogBox={showDialogBox}
           yesText={t("Delete Profile")}
@@ -121,11 +175,11 @@ const ProfileCard: React.FC<{
             setShowDialogBox(false);
             console.log("Close", false);
           }}
-          onYesButtonClicked={async ({ }) => {
+          onYesButtonClicked={async ({}) => {
             console.log(`Delete Profile`, "yes", user.docId);
             setShowWarningDialogBox(true);
           }}
-          onNoButtonClicked={async ({ }) => {
+          onNoButtonClicked={async ({}) => {
             console.log(`Edit Profile`, "no", user.docId);
             const api = ServiceConfig.getI().apiHandler;
             await Util.setCurrentStudent(user, undefined, false);
@@ -148,7 +202,7 @@ const ProfileCard: React.FC<{
             setShowDialogBox(false);
             console.log("Close", false);
           }}
-          onYesButtonClicked={async ({ }) => {
+          onYesButtonClicked={async ({}) => {
             console.log(`Show warning yes:`, user.docId);
             setShowWarningDialogBox(false);
             setShowDialogBox(false);
@@ -175,7 +229,7 @@ const ProfileCard: React.FC<{
             Util.logEvent(EVENTS.USER_PROFILE, eventParams);
             setIsLoading(false);
           }}
-          onNoButtonClicked={async ({ }) => {
+          onNoButtonClicked={async ({}) => {
             console.log(`Show warning No:`);
             setShowWarningDialogBox(false);
           }}

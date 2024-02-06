@@ -28,8 +28,9 @@ import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { CollectionIds } from "../../common/courseConstants";
-import { ACTION, CURRENT_USER, EVENTS } from "../../common/constants";
+import { ACTION, CURRENT_USER, EVENTS, LANGUAGE } from "../../common/constants";
 import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
+import { ServiceConfig } from "../ServiceConfig";
 
 export class FirebaseAuth implements ServiceAuth {
   public static i: FirebaseAuth;
@@ -38,7 +39,7 @@ export class FirebaseAuth implements ServiceAuth {
   private _db = getFirestore();
   private _auth = getAuth(); //FirebaseAuth.whichAuth();
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): FirebaseAuth {
     if (!FirebaseAuth.i) {
@@ -58,6 +59,35 @@ export class FirebaseAuth implements ServiceAuth {
   //   }
   //   return auth;
   // }
+  private async updateUserPreferenceLanguage() {
+    if (!!this._currentUser) {
+      const appLang = localStorage.getItem(LANGUAGE);
+      if (!!appLang) {
+        const languages =
+          await ServiceConfig.getI().apiHandler.getAllLanguages();
+        const langDocId = languages.find(
+          (lang) => lang.code === appLang
+        )?.docId;
+        if (!!langDocId) {
+          const langDoc = doc(
+            this._db,
+            `${CollectionIds.LANGUAGE}/${langDocId}`
+          );
+
+          if (!!langDoc && this._currentUser.language?.id != langDoc?.id) {
+            this._currentUser.language = langDoc;
+            await updateDoc(
+              doc(this._db, `${CollectionIds.USER}/${this._currentUser.uid}`),
+              {
+                language: this._currentUser.language,
+                updatedAt: Timestamp.now(),
+              }
+            );
+          }
+        }
+      }
+    }
+  }
 
   public async googleSign(): Promise<boolean> {
     try {
@@ -98,6 +128,7 @@ export class FirebaseAuth implements ServiceAuth {
         }
         this._currentUser.users.push(...migrateRes.newStudents);
       }
+      this.updateUserPreferenceLanguage();
       return true;
     } catch (error) {
       console.log(
@@ -130,8 +161,8 @@ export class FirebaseAuth implements ServiceAuth {
       Timestamp.now(),
       Timestamp.now(),
       user.uid,
-      true,
-      true
+      0,
+      0
     );
     await setDoc(userRef, tempUser.toJson());
     this._currentUser = tempUser;
@@ -162,6 +193,7 @@ export class FirebaseAuth implements ServiceAuth {
       // }
       if (!currentUser) return;
       const tempUserDoc = await getDoc(doc(this._db, "User", currentUser.uid));
+      this.updateUserPreferenceLanguage();
       this._currentUser = (tempUserDoc.data() || tempUserDoc) as User;
       console.log(
         "currentUser in if (!currentUser) {",
@@ -204,12 +236,15 @@ export class FirebaseAuth implements ServiceAuth {
           const signInWithPhoneNumber = async () => {
             return new Promise(async (resolve, reject) => {
               try {
+                var timeOut = setTimeout(() => {
+                  reject("Timed out waiting for SMS");
+                }, 60000);
                 // Attach `phoneCodeSent` listener to be notified as soon as the SMS is sent
                 await FirebaseAuthentication.addListener(
                   "phoneCodeSent",
                   async (event) => {
                     console.log("phoneCodeSent event ", JSON.stringify(event));
-
+                    clearTimeout(timeOut);
                     resolve(event);
                   }
                 );
@@ -471,6 +506,7 @@ export class FirebaseAuth implements ServiceAuth {
         this._currentUser.users.push(...migrateRes.newStudents);
       }
       // }
+      this.updateUserPreferenceLanguage();
       this.updateUserFcm(userData.uid);
       return true;
     } catch (error) {
@@ -495,7 +531,7 @@ export class FirebaseAuth implements ServiceAuth {
     const res = localStorage.getItem(CURRENT_USER);
     console.log("res...", res);
     if (!res) return false;
-    for (var i = 0; i < 50; i++) {
+    for (var i = 0; i < 1000; i++) {
       await new Promise((res) => setTimeout(res, 100));
       const user = await this.getCurrentUser();
       console.log(

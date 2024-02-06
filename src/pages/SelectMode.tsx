@@ -18,7 +18,6 @@ import { IoMdPeople } from "react-icons/io";
 import { GiTeacher } from "react-icons/gi";
 import { t } from "i18next";
 import "./SelectMode.css";
-import RectangularOutlineDropDown from "../components/parent/RectangularOutlineDropDown";
 import BackButton from "../components/common/BackButton";
 import Class from "../models/class";
 import User from "../models/user";
@@ -26,6 +25,7 @@ import School from "../models/school";
 import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
 import i18n from "../i18n";
+import DropDown from "../components/DropDown";
 
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -149,7 +149,7 @@ const SelectMode: FC = () => {
       "🚀 ~ file: DisplayStudents.tsx:30 ~ onStudentClick:student",
       student
     );
-    await Util.setCurrentStudent(student, undefined, false);
+    await Util.setCurrentStudent(student, undefined, true);
     history.replace(PAGES.HOME);
   };
   function randomValue() {
@@ -166,7 +166,7 @@ const SelectMode: FC = () => {
             {stage === STAGES.MODE && (
               <div className="select-mode-main">
                 <span className="select-mode-text">
-                  {t("How do you want to join as?")}
+                  {t("How would you like to join?")}
                 </span>
 
                 <SelectModeButton
@@ -190,8 +190,8 @@ const SelectMode: FC = () => {
                 <span className="select-school-text">
                   {t("Choose the School")}
                 </span>
-                <RectangularOutlineDropDown
-                  placeholder={t("Select School").toString()}
+                <DropDown
+                  placeholder={t("Select the School").toString()}
                   onValueChange={async (selectedSchoolDocId) => {
                     const currSchool = schoolList.find(
                       (element) => element.id === selectedSchoolDocId

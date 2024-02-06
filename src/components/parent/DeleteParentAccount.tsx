@@ -52,11 +52,11 @@ const DeleteParentAccount: React.FC<{}> = ({}) => {
       className="parent-delete-btn"
     >
       <ImBin className="parent-delete-icon" />
-      <div>{t("Delete Parent Account")}</div>
+      <div>{t("Delete Parent's Account")}</div>
       <DialogBoxButtons
         width={"40vw"}
         height={"30vh"}
-        message={t("Do you want to delete the parent account")}
+        message={t("Do you want to delete the parent's account?")}
         showDialogBox={showDialogBox}
         yesText={t("Cancel")}
         noText={t("Delete")}

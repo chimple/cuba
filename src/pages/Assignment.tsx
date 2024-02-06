@@ -3,7 +3,7 @@ import JoinClass from "../components/assignment/JoinClass";
 import "./Assignment.css";
 import { useEffect, useState } from "react";
 import BackButton from "../components/common/BackButton";
-import { CURRENT_LESSON_LEVEL, PAGES } from "../common/constants";
+import { HOMEHEADERLIST, LIVE_QUIZ, PAGES, TYPE } from "../common/constants";
 import { useHistory } from "react-router";
 import Loading from "../components/Loading";
 import Class from "../models/class";
@@ -17,6 +17,7 @@ import { Util } from "../utility/util";
 import { Keyboard } from "@capacitor/keyboard";
 import { Capacitor } from "@capacitor/core";
 import { StudentLessonResult } from "../common/courseConstants";
+import SkeltonLoading from "../components/SkeltonLoading";
 
 const AssignmentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -69,14 +70,26 @@ const AssignmentPage: React.FC = () => {
       const allAssignments: Assignment[] = [];
       await Promise.all(
         studentResult.classes.map(async (_class) => {
-          const res = await api.getPendingAssignments(_class, student.docId);
-          allAssignments.push(...res);
+          const assignments = await api.getPendingAssignments(
+            _class,
+            student.docId
+          );
+          const filteredAssignments = assignments.filter((assignment) => {
+            //filtering the assignments without live quiz
+            return !(TYPE in assignment) || assignment.type !== LIVE_QUIZ;
+          });
+          allAssignments.push(...filteredAssignments);
         })
       );
       const _lessons: Lesson[] = [];
       await Promise.all(
         allAssignments.map(async (_assignment) => {
-          const res = await api.getLesson(_assignment.lesson.id, undefined, true);
+          const res = await api.getLesson(
+            _assignment.lesson.id,
+            undefined,
+            true,
+            _assignment
+          );
           if (!!res) {
             res.assignment = _assignment;
             _lessons.push(res);
@@ -114,7 +127,7 @@ const AssignmentPage: React.FC = () => {
       });
     }
   }, []);
-  return (
+  return !loading ? (
     <div>
       <div className={`assignment-main${isLinked ? "" : "-join-class"}`}>
         {/* <div id="assignment-back-button" style={{display:"none"}}>
@@ -168,7 +181,7 @@ const AssignmentPage: React.FC = () => {
                     />
                   ) : (
                     <div className="pending-assignment">
-                      {t("There are no pending assignments for you.")}
+                      {t("You don't have any pending assignments.")}
                     </div>
                   )}
                 </div>
@@ -177,7 +190,13 @@ const AssignmentPage: React.FC = () => {
           )}
         </div>
       </div>
-      <Loading isLoading={loading} />
+    </div>
+  ) : (
+    <div className="assignment-loading">
+      <SkeltonLoading
+        isLoading={loading}
+        header={HOMEHEADERLIST.ASSIGNMENT}
+      />
     </div>
   );
 };
