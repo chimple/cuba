@@ -25,7 +25,7 @@ const SelectIconImage: FC<{
     Default,
   }
   const [loadIcon, setLoadIcon] = useState(LoadIcon.Local);
-  const onImageLoadError = (
+  const onImageLoad = (
     event: React.SyntheticEvent<HTMLImageElement, Event>
   ) => {
     event.currentTarget.style.display = "block";
@@ -41,7 +41,7 @@ const SelectIconImage: FC<{
           }}
           src={localSrc}
           alt=""
-          onLoad={onImageLoadError}
+          onLoad={onImageLoad}
           onError={() => {
             setLoadIcon(LoadIcon.Web);
           }}
