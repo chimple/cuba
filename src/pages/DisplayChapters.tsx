@@ -6,12 +6,11 @@ import { Chapter, StudentLessonResult } from "../common/courseConstants";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
-  CHAPTER_LESSON_MAP,
+  LESSON_DOC_LESSON_ID_MAP,
   CONTINUE,
   CURRENT_CLASS,
   CURRENT_MODE,
   DISPLAY_SUBJECTS_STORE,
-  DOWNLOADED_LESSON_AND_CHAPTER_ID,
   GRADE_MAP,
   MODES,
   PAGES,
@@ -220,10 +219,6 @@ const DisplayChapters: FC<{}> = () => {
     }
     getLocalGradeMap();
   };
-  async function checkDownloadChapterButtonStatus() {
-    await Util.updateChapterOrLessonDownloadStatus(currentCourse?.chapters);
-  }
-  checkDownloadChapterButtonStatus();
   function getLocalGradeMap():
     | {
         grades: Grade[];
@@ -293,20 +288,6 @@ const DisplayChapters: FC<{}> = () => {
     try {
       const lessons = await api.getLessonsForChapter(chapter);
       // Retrieve existing data from local storage
-      const storedChapterLessonMap = localStorage.getItem(CHAPTER_LESSON_MAP);
-      const storedChapterLessonId = storedChapterLessonMap
-        ? JSON.parse(storedChapterLessonMap)
-        : {};
-      lessons.map(
-        (lesson) => (storedChapterLessonId[lesson.docId] = lesson.id)
-      );
-
-      // Store the updated map in local storage
-      localStorage.setItem(
-        CHAPTER_LESSON_MAP,
-        JSON.stringify(storedChapterLessonId)
-      );
-
       localData.lessons = lessons;
       setLessons(lessons);
       setIsLoading(false);
@@ -474,6 +455,7 @@ const DisplayChapters: FC<{}> = () => {
             </div>
           )}
       </div>
+
       {stage === STAGES.LESSONS && lessons && (
         <div className="slider-container">
           <LessonSlider

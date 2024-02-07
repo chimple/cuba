@@ -131,23 +131,6 @@ const LiveQuizRoom: React.FC = () => {
 
   const downloadQuiz = async (lessonId: string) => {
     const dow = await Util.downloadZipBundle([lessonId]);
-    if (!dow) {
-      presentToast({
-        message: t(`Device is offline.`),
-        color: "danger",
-        duration: 7000,
-        position: "bottom",
-        buttons: [
-          {
-            text: "Dismiss",
-            role: "cancel",
-          },
-        ],
-      });
-      setTimeout(function () {
-        history.replace(HOMEHEADERLIST.HOME);
-      }, 7000);
-    }
     console.log("🚀 ~ file: LiveQuizRoom.tsx:103 ~ downloadQuiz ~ dow:", dow);
     setIsDownloaded(dow);
   };
