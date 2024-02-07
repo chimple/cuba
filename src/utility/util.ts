@@ -479,7 +479,7 @@ export class Util {
     return lastRendered;
   }
 
-  public static async isChapterDowloaded(chapter: Chapter): Promise<boolean> {
+  public static isChapterDowloaded(chapter: Chapter): boolean {
     const storedLessonDoc = JSON.parse(
       localStorage.getItem(LESSON_DOC_LESSON_ID_MAP) || "[]"
     );
