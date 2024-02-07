@@ -49,9 +49,9 @@ const AvatarImageOption: React.FC<{
   switch (currentMode) {
     case AvatarModes.collectReward:
       content = cardContent(
-        avatarObj.currentRewardInfo.image,
-        avatarObj.currentRewardInfo.image,
-        avatarObj.currentRewardInfo.image
+        avatarObj.unlockedRewards[0]?.image,
+        avatarObj.unlockedRewards[0]?.image,
+        avatarObj.unlockedRewards[0]?.image
       );
 
       break;

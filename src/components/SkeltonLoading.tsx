@@ -50,7 +50,7 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
       ) : null;
       break;
     case HOMEHEADERLIST.HOME:
-      return isLoading ? skeltonHome() : null;
+      // return isLoading ? skeltonHome() : null;
       break;
     case PAGES.DISPLAY_CHAPTERS:
       return isLoading ? skeltonDisplayChapters() : null;
