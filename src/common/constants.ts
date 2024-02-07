@@ -60,6 +60,7 @@ export const grade2 = "al0OqObeTBK3OFWSyDOg";
 export const grade3 = "i1paELqh4uwET2OQQl1E";
 export const aboveGrade3 = "rhuiXCmMzmJM1dkN8UNu";
 export const CONTINUE = "continue";
+export const NCERT = "2m6ocNBLQc7jlyCKFZve";
 
 export const parentHeaderIconList: HeaderIconConfig[] = [
   {
@@ -360,11 +361,12 @@ export interface PortPlugin {
   getMigrateUsers(): Promise<{ users: any }>;
 }
 export const DEBUG_15 = "debug15";
-export const DEFAULT_COURSE_IDS = [
-  "RiMQCOteNrktL0Oa6dNi", //English
-  "zmElfKhtS152dPrwcJ0n", //Maths
-  "KiaqDYLBN2dBcodOOBPA", //Digital Skills
+export const DEFAULT_SUBJECT_IDS = [
+  "MWGQt7j9HrEE9XqKYsGg", //English
+  "5fq9UvGv0sjzZJqOZt3c", //Maths
+  "nnFVTiGBmw1LiV3xa4V1", //Digital Skills
 ];
+export const OTHER_CURRICULUM = "BVTIRg2Wm3zxcMPrU5Ob";
 export const LANGUAGE_COURSE_MAP = {
   sju2ne9JwNE1TZgo9M4G: "WUfGFSqcW8cIyl8yiqcR", //Hindi
   zvmpksodSkr8bmhGAFaT: "jZp8NfR84MILMEazPSK7", //Kannada
@@ -455,7 +457,7 @@ export enum EVENTS {
 }
 
 export const FCM_TOKENS = "fcmTokens";
-export const IS_CONECTED ="is_conected"
+export const IS_CONECTED = "is_conected";
 
 export const LAST_UPDATE_CHECKED = "lastUpdateChecked";
 
@@ -508,8 +510,7 @@ export type unlockedRewardsInfo = {
   image: string;
   name: string;
   leaderboardRewardList: LEADERBOARD_REWARD_LIST;
-}
-
+};
 
 export enum LeaderboardRewardsType {
   BADGE = "badge",

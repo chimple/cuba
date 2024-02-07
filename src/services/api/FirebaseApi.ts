@@ -30,11 +30,12 @@ import {
 } from "./ServiceApi";
 import {
   COURSES,
-  DEFAULT_COURSE_IDS,
+  DEFAULT_SUBJECT_IDS,
   LIVE_QUIZ,
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODES,
+  OTHER_CURRICULUM,
   aboveGrade3,
   belowGrade1,
   grade1,
@@ -93,7 +94,8 @@ export class FirebaseApi implements ServiceApi {
   }
 
   public async getCourseByUserGradeId(
-    gradeDocId: string | undefined
+    gradeDocId: string | undefined,
+    boardDocId: string | undefined
   ): Promise<DocumentReference<DocumentData>[]> {
     let courseIds: DocumentReference[] = [];
 
@@ -126,18 +128,47 @@ export class FirebaseApi implements ServiceApi {
           gradeCourses
         );
 
-        gradeCourses.forEach((course) => {
+        const curriculumCourses = gradeCourses.filter((course) => {
+          const curriculumRef = course.curriculum;
+          if (!!curriculumRef && curriculumRef.id === boardDocId) return true;
+        });
+
+        curriculumCourses.forEach((course) => {
           courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+        }); //adding courses based on curriculum
+
+        let subjectIds: string[] = [];
+        curriculumCourses.forEach((course) => {
+          const subjectRef = course.subject;
+          if (!!subjectRef) {
+            subjectIds.push(subjectRef.id);
+          }
+        });
+
+        const remainingSubjects = DEFAULT_SUBJECT_IDS.filter(
+          (subjectId) => !subjectIds.includes(subjectId)
+        ); // getting default subjects
+
+        console.log("Remaining subjects to add:", remainingSubjects);
+
+        remainingSubjects.forEach((subjectId) => {
+          const courses = gradeCourses.filter((course) => {
+            const subjectRef = course.subject;
+            if (
+              !!subjectRef &&
+              subjectRef.id === subjectId &&
+              course.curriculum.id === OTHER_CURRICULUM
+            )
+              return true;
+          });
+          courses.forEach((course) => {
+            courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+          });
         });
       }
     }
 
-    if (courseIds.length === 0) {
-      // If no courses were added, use the default course IDs
-      courseIds = DEFAULT_COURSE_IDS.map((id) =>
-        doc(this._db, `${CollectionIds.COURSE}/${id}`)
-      );
-    }
+    console.log("Final courses array:", courseIds);
 
     return courseIds;
   }
@@ -172,7 +203,8 @@ export class FirebaseApi implements ServiceApi {
     // }
     // let courseIds: DocumentReference[] = await this.getCourseByGradeId(
     let courseIds: DocumentReference[] = await this.getCourseByUserGradeId(
-      gradeDocId
+      gradeDocId,
+      boardDocId
     );
 
     // if (!!languageDocId && !!LANGUAGE_COURSE_MAP[languageDocId]) {
@@ -906,7 +938,7 @@ export class FirebaseApi implements ServiceApi {
     languageDocId: string
   ): Promise<User> {
     let tempCourse;
-    tempCourse = await this.getCourseByUserGradeId(gradeDocId);
+    tempCourse = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
     const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
     const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
     const languageRef = doc(
