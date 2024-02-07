@@ -6,7 +6,7 @@ import User from "../models/user";
 import { useHistory } from "react-router";
 import Assignment from "../models/assignment";
 import StudentAvatar from "../components/common/StudentAvatar";
-import { PAGES } from "../common/constants";
+import { HOMEHEADERLIST, PAGES } from "../common/constants";
 import "./LiveQuizRoom.css";
 import { t } from "i18next";
 import BarLoader from "react-spinners/BarLoader";

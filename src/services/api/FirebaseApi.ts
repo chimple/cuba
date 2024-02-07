@@ -31,6 +31,7 @@ import {
 import {
   COURSES,
   DEFAULT_COURSE_IDS,
+  LESSON_DOC_LESSON_ID_MAP,
   LIVE_QUIZ,
   LeaderboardDropdownList,
   LeaderboardRewards,
@@ -597,7 +598,17 @@ export class FirebaseApi implements ServiceApi {
       if (!lessonDoc.exists) return;
       const lesson = lessonDoc.data() as Lesson;
       lesson.docId = lessonDoc.id;
-
+      const storedLessonDocAndLessonIDMap = localStorage.getItem(
+        LESSON_DOC_LESSON_ID_MAP
+      );
+      const storedLessonId = storedLessonDocAndLessonIDMap
+        ? JSON.parse(storedLessonDocAndLessonIDMap)
+        : {};
+      storedLessonId[lesson.docId] = lesson.id;
+      localStorage.setItem(
+        LESSON_DOC_LESSON_ID_MAP,
+        JSON.stringify(storedLessonId)
+      );
       if (!!chapter) lesson.chapterTitle = chapter.title;
       else if (loadChapterTitle) {
         if (!this._allCourses) {
@@ -1584,7 +1595,6 @@ export class FirebaseApi implements ServiceApi {
       );
 
       if (!lessonQuerySnapshot.empty) {
-        // If there is a matching lesson, return it
         const lessonDoc = lessonQuerySnapshot.docs[0];
         const lesson = lessonDoc.data() as Lesson;
         lesson.docId = lessonDoc.id;
