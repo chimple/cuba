@@ -22,6 +22,8 @@ import {
   IS_MIGRATION_CHECKED,
   SOUND,
   MUSIC,
+  MODES,
+  // APP_LANG,
   CONTINUE,
   DOWNLOADED_LESSON_ID,
   LAST_FUNCTION_CALL,
@@ -68,6 +70,7 @@ import {
 } from "../common/courseConstants";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { Router } from "react-router-dom";
+import { schoolUtil } from "./schoolUtil";
 import lesson from "../models/lesson";
 import Lesson from "../models/lesson";
 
@@ -1188,6 +1191,56 @@ export class Util {
     }
   }
 
+  public static async getCanShowAvatar(): Promise<boolean> {
+    try {
+      const currMode = await schoolUtil.getCurrMode();
+
+      if (currMode === MODES.SCHOOL) {
+        return true;
+      }
+
+      const student = await Util.getCurrentStudent();
+
+      if (!student) {
+        console.error("Student is undefined or null");
+        return false;
+      }
+
+      const api = ServiceConfig.getI().apiHandler;
+      const studentResult = await api.getStudentResult(student.docId);
+
+      // if (!studentResult || studentResult.classes.length === 0) {
+      //   console.error("Student result is undefined or classes array is empty");
+      //   return false;
+      // }
+
+      if (
+        studentResult &&
+        studentResult.classes &&
+        studentResult.classes.length > 0
+      ) {
+        return true;
+      }
+
+      // if (studentResult.last5Lessons && Object.keys(studentResult.last5Lessons).length > 0) {
+      //   return false;
+      // }
+
+      // If Remote Config allows showing avatar, return true
+      const canShowAvatarValue = await RemoteConfig.getBoolean(
+        REMOTE_CONFIG_KEYS.CAN_SHOW_AVATAR
+      );
+      console.log(
+        "getCanShowAvatar() return canShowAvatarValue;",
+        canShowAvatarValue
+      );
+
+      return canShowAvatarValue;
+    } catch (error) {
+      console.error("Error in getCanShowAvatar:", error);
+      return false;
+    }
+  }
   public static async migrateLocalJsonFile(
     newFileURL: string,
     oldFilePath: string,

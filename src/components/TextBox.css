@@ -76,7 +76,7 @@
 }
 
 #text-box-floating-label {
-  font-size: 1.3vw;
+  font-size: 1vw;
   position: absolute;
   pointer-events: none;
   left: 0vh;

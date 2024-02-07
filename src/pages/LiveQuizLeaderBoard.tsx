@@ -138,23 +138,25 @@ const LiveQuizLeaderBoard: React.FC = () => {
   return (
     <IonPage>
       <IonContent>
-        <div className="leaderboard-header">
-          <div className="empty"></div>
+        <div className="livequiz-leaderboard">
+          <div className="leaderboard-header">
+            <div className="empty"></div>
 
-          <p className="header-name">{t("Live Quiz Leaderboard")}</p>
-          <div id="leaderboard-next-button">
-            <NextButton
-              onClicked={() => {
-                history.replace(PAGES.HOME);
-              }}
-              disabled={false}
-            />
+            <p className="header-name">{t("Live Quiz Leaderboard")}</p>
+            <div id="leaderboard-next-button">
+              <NextButton
+                onClicked={() => {
+                  history.replace(PAGES.HOME);
+                }}
+                disabled={false}
+              />
+            </div>
           </div>
-        </div>
-        <div className="leaderboard-header-row">
-          <div>{t("Rank")}</div>
-          <div>{t("Name")}</div>
-          <div>{t("Score")}</div>
+          <div className="leaderboard-header-row">
+            <div>{t("Rank")}</div>
+            <div>{t("Name")}</div>
+            <div>{t("Score")}</div>
+          </div>
         </div>
         <div className="leaderboard-container">
           {combinedStudentScores
