@@ -50,7 +50,7 @@ const ChimpleAvatar: FC<{
   const [isBurst, setIsBurst] = useState(false);
   const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(true);
   const [riveCharHandsUp, setRiveCharHandsUp] = useState("Fail");
-  const [spinnerLoading, setSpinnerLoading] = useState<boolean>(true);
+  const [avatarCompoLoading, setavatarCompoLoading] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const history = useHistory();
   const State_Machine = "State Machine 1";
@@ -63,7 +63,8 @@ const ChimpleAvatar: FC<{
     animations: riveCharHandsUp,
     autoplay: true,
     onLoad: () => {
-      setSpinnerLoading(false);
+      setavatarCompoLoading(false);
+      console.log("setSpinnerLoading(false); in compon ", avatarCompoLoading);
     },
   });
   const onclickInput = useStateMachineInput(
@@ -167,6 +168,9 @@ const ChimpleAvatar: FC<{
         : {};
       if (!currentCourse) setCurrentCourse(allCourses[0]);
     }
+
+    AvatarObj.getInstance().unlockedRewards =
+      (await Util.getAllUnlockedRewards()) || [];
   };
   async function onClickYes() {
     setButtonsDisabled(false);
@@ -236,8 +240,9 @@ const ChimpleAvatar: FC<{
           onclickInput?.fire();
           history.replace(
             PAGES.LEADERBOARD +
-              `?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${avatarObj.currentRewardInfo.leaderboardRewardList.toLowerCase()}`
+              `?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${avatarObj.unlockedRewards[0]?.leaderboardRewardList.toLowerCase()}`
           );
+          avatarObj.unlockedRewards = [];
         }
         break;
       case AvatarModes.ShowWeeklyProgress:
@@ -487,7 +492,7 @@ const ChimpleAvatar: FC<{
     case AvatarModes.collectReward:
       message = t("Congratulations on earning the x1!").replace(
         "x1",
-        t(avatarObj.currentRewardInfo.type)
+        t(avatarObj.unlockedRewards[0]?.type)
       );
       buttons = [
         {
@@ -714,14 +719,42 @@ const ChimpleAvatar: FC<{
   return (
     <div style={style}>
       <div>
-        <IonLoading id="custom-loading-for-avatar" isOpen={spinnerLoading} />
+        {/* <IonLoading id="custom-loading-for-avatar" isOpen={spinnerLoading} /> */}
         <div className="rive-container">
           <RiveComponent
+            onLoad={() => {
+              setavatarCompoLoading(false);
+              console.log(
+                "setSpinnerLoading(false); in div ",
+                avatarCompoLoading
+              );
+            }}
             className="rive-component"
             onClick={onClickRiveComponent}
           />
           <div id="rive-avatar-shadow" />
         </div>
+        {avatarCompoLoading ? (
+          <div
+            style={{
+              position: "fixed",
+              top: "26vh",
+              left: "11vw",
+            }}
+          >
+            <img
+              // className="rive-component"
+              style={{
+                marginTop: "7vh",
+                width: "auto",
+                height: "55vh",
+              }}
+              src={"/assets/animation/chimple_avatar.png"}
+              loading="lazy"
+              alt=""
+            />
+          </div>
+        ) : null}
       </div>
       <div
         className={`avatar-option-box-background ${isBurst ? "burst" : ""}`}
