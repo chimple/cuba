@@ -22,6 +22,8 @@ import {
   IS_MIGRATION_CHECKED,
   SOUND,
   MUSIC,
+  MODES,
+  // APP_LANG,
   CONTINUE,
   DOWNLOADED_LESSON_AND_CHAPTER_ID,
   LAST_FUNCTION_CALL,
@@ -30,6 +32,7 @@ import {
   LEADERBOARDHEADERLIST,
   LEADERBOARD_REWARD_LIST,
   LeaderboardRewards,
+  unlockedRewardsInfo,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -68,6 +71,7 @@ import {
 } from "../common/courseConstants";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { Router } from "react-router-dom";
+import { schoolUtil } from "./schoolUtil";
 import lesson from "../models/lesson";
 import Lesson from "../models/lesson";
 
@@ -1302,6 +1306,56 @@ export class Util {
     }
   }
 
+  public static async getCanShowAvatar(): Promise<boolean> {
+    try {
+      const currMode = await schoolUtil.getCurrMode();
+
+      if (currMode === MODES.SCHOOL) {
+        return true;
+      }
+
+      const student = await Util.getCurrentStudent();
+
+      if (!student) {
+        console.error("Student is undefined or null");
+        return false;
+      }
+
+      const api = ServiceConfig.getI().apiHandler;
+      const studentResult = await api.getStudentResult(student.docId);
+
+      // if (!studentResult || studentResult.classes.length === 0) {
+      //   console.error("Student result is undefined or classes array is empty");
+      //   return false;
+      // }
+
+      if (
+        studentResult &&
+        studentResult.classes &&
+        studentResult.classes.length > 0
+      ) {
+        return true;
+      }
+
+      // if (studentResult.last5Lessons && Object.keys(studentResult.last5Lessons).length > 0) {
+      //   return false;
+      // }
+
+      // If Remote Config allows showing avatar, return true
+      const canShowAvatarValue = await RemoteConfig.getBoolean(
+        REMOTE_CONFIG_KEYS.CAN_SHOW_AVATAR
+      );
+      console.log(
+        "getCanShowAvatar() return canShowAvatarValue;",
+        canShowAvatarValue
+      );
+
+      return canShowAvatarValue;
+    } catch (error) {
+      console.error("Error in getCanShowAvatar:", error);
+      return false;
+    }
+  }
   public static async migrateLocalJsonFile(
     newFileURL: string,
     oldFilePath: string,
@@ -1469,86 +1523,60 @@ export class Util {
   }
 
   public static async getAllUnlockedRewards(): Promise<
-    | {
-        id: string;
-        type: LeaderboardRewardsType;
-        image: string;
-        name: string;
-        leaderboardRewardList: LEADERBOARD_REWARD_LIST;
-      }[]
-    | undefined
+    unlockedRewardsInfo[] | undefined
   > {
     console.log("getAllUnlockedRewards() called");
     await this.getStudentFromServer();
 
-    let allUnlockedRewards: {
-      id: string;
-      type: LeaderboardRewardsType;
-      image: string;
-      name: string;
-      leaderboardRewardList: LEADERBOARD_REWARD_LIST;
-    }[] = [];
     const api = ServiceConfig.getI().apiHandler;
-    let currentStudent = this.getCurrentStudent();
-    if (!currentStudent) return;
-    if (!currentStudent.rewards) return;
+    const currentStudent = this.getCurrentStudent();
+    if (!currentStudent || !currentStudent.rewards) return;
 
-    for (let i = 0; i < currentStudent.rewards.badges?.length; i++) {
-      const element = currentStudent.rewards.badges[i];
-      if (!element.seen) {
-        let reward = await api.getBadgeById(element.id);
-        if (!reward) continue;
-        console.log(
-          "allRewards.push(value); currentStudent.rewards.badges",
-          element,
-          reward
-        );
-        allUnlockedRewards.push({
-          id: element.id,
-          type: LeaderboardRewardsType.BADGE,
-          image: reward.image,
-          name: reward.name,
-          leaderboardRewardList: LEADERBOARD_REWARD_LIST.BADGES,
-        });
+    const processRewards = async (
+      rewards: any[],
+      type: LeaderboardRewardsType,
+      apiGetter: (id: string) => Promise<any>,
+      rewardList: LEADERBOARD_REWARD_LIST
+    ) => {
+      for (const element of rewards) {
+        if (!element.seen) {
+          const reward = await apiGetter(element.id);
+          if (reward) {
+            console.log("Reward added: ", element, reward);
+            allUnlockedRewards.push({
+              id: element.id,
+              type,
+              image: reward.image || reward.thumbnail,
+              name: reward.name || reward.title,
+              leaderboardRewardList: rewardList,
+            });
+          }
+        }
       }
-    }
-    for (let i = 0; i < currentStudent.rewards.bonus?.length; i++) {
-      const element = currentStudent.rewards.bonus[i];
-      if (!element.seen) {
-        let reward = await api.getLesson(element.id);
-        if (!reward) continue;
-        console.log(
-          "allRewards.push(value); currentStudent.rewards.bonus ",
-          element
-        );
-        allUnlockedRewards.push({
-          id: reward.docId,
-          type: LeaderboardRewardsType.BONUS,
-          image: reward.thumbnail,
-          name: reward.title,
-          leaderboardRewardList: LEADERBOARD_REWARD_LIST.BONUS,
-        });
-      }
-    }
+    };
 
-    for (let i = 0; i < currentStudent.rewards.sticker?.length; i++) {
-      const element = currentStudent.rewards.sticker[i];
-      if (!element.seen) {
-        let reward = await api.getStickerById(element.id);
-        if (!reward) continue;
-        console.log(
-          "allRewards.push(value); currentStudent.rewards.bonus ",
-          element
-        );
-        allUnlockedRewards.push({
-          id: element.id,
-          type: LeaderboardRewardsType.STICKER,
-          image: reward.image,
-          name: reward.name,
-          leaderboardRewardList: LEADERBOARD_REWARD_LIST.STICKER,
-        });
-      }
-    }
+    const allUnlockedRewards: unlockedRewardsInfo[] = [];
+
+    await processRewards(
+      currentStudent.rewards.badges || [],
+      LeaderboardRewardsType.BADGE,
+      (id) => api.getBadgeById(id),
+      LEADERBOARD_REWARD_LIST.BADGES
+    );
+
+    await processRewards(
+      currentStudent.rewards.bonus || [],
+      LeaderboardRewardsType.BONUS,
+      (id) => api.getLesson(id),
+      LEADERBOARD_REWARD_LIST.BONUS
+    );
+
+    await processRewards(
+      currentStudent.rewards.sticker || [],
+      LeaderboardRewardsType.STICKER,
+      (id) => api.getStickerById(id),
+      LEADERBOARD_REWARD_LIST.STICKER
+    );
 
     console.log("getAllUnlockedRewards() called ", allUnlockedRewards);
 

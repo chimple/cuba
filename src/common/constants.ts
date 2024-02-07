@@ -502,6 +502,15 @@ export type LeaderboardRewards = {
   sticker: LeaderboardSticker[];
 };
 
+export type unlockedRewardsInfo = {
+  id: string;
+  type: LeaderboardRewardsType;
+  image: string;
+  name: string;
+  leaderboardRewardList: LEADERBOARD_REWARD_LIST;
+}
+
+
 export enum LeaderboardRewardsType {
   BADGE = "badge",
   BONUS = "bonus",

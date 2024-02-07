@@ -53,7 +53,7 @@ const JoinClass: FC<{
       if (error instanceof Object) {
         let eMsg: string =
           "FirebaseError: Invalid inviteCode" === error.toString()
-            ? "Invalid Code. Please contact your teacher"
+            ? t("Invalid Code. Please contact your teacher")
             : error.toString();
         setError(eMsg);
       }
