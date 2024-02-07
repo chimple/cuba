@@ -60,7 +60,6 @@ export const grade2 = "al0OqObeTBK3OFWSyDOg";
 export const grade3 = "i1paELqh4uwET2OQQl1E";
 export const aboveGrade3 = "rhuiXCmMzmJM1dkN8UNu";
 export const CONTINUE = "continue";
-export const NCERT = "2m6ocNBLQc7jlyCKFZve";
 
 export const parentHeaderIconList: HeaderIconConfig[] = [
   {
