@@ -417,8 +417,12 @@ const DisplayChapters: FC<{}> = () => {
           <IonItem lines="none">
             <div className="chapter-name">
               {stage === STAGES.CHAPTERS
-                ? currentCourse?.title
-                : currentChapter?.title}
+                ? currentCourse
+                  ? t(currentCourse?.title)
+                  : ""
+                : currentChapter
+                ? t(currentChapter?.title)
+                : ""}
             </div>
           </IonItem>
         </div>
@@ -487,7 +491,7 @@ const DisplayChapters: FC<{}> = () => {
     <SkeltonLoading
       isLoading={isLoading}
       header={PAGES.DISPLAY_CHAPTERS}
-      isChapter={stage == STAGES.CHAPTERS?false:true}
+      isChapter={stage == STAGES.CHAPTERS ? false : true}
     />
   );
 };

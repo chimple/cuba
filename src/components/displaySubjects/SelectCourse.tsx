@@ -43,8 +43,8 @@ const SelectCourse: FC<{
                   webSrc={course.thumbnail}
                 />
               </div>
-              {/* {t(course.title)} */}
-              {course.title === "English" ? course.title : course.title}
+              {t(course.title)}
+              {/* {course.title === "English" ? course.title : course.title} */}
             </div>
           </SplideSlide>
         );

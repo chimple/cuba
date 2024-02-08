@@ -6,6 +6,7 @@ import DropDown from "../DropDown";
 import Course from "../../models/course";
 import SelectIconImage from "./SelectIconImage";
 import DownloadLesson from "../DownloadChapterAndLesson";
+import { t } from "i18next";
 
 const SelectChapter: FC<{
   chapters: Chapter[];
@@ -29,6 +30,7 @@ const SelectChapter: FC<{
   useEffect(() => {
     currentChapterRef.current?.scrollIntoView({ behavior: "instant" });
   }, []);
+
   return (
     <div>
       <div className="grade-container" />
@@ -53,7 +55,7 @@ const SelectChapter: FC<{
                     webSrc={chapter.thumbnail}
                   />
                 </div>
-                <div>{chapter.title}</div>
+                <div>{t(chapter.title)}</div>
                 <div className="chapter-download">
                   <DownloadLesson chapters={chapter} />
                 </div>
