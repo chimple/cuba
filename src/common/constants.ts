@@ -360,11 +360,12 @@ export interface PortPlugin {
   getMigrateUsers(): Promise<{ users: any }>;
 }
 export const DEBUG_15 = "debug15";
-export const DEFAULT_COURSE_IDS = [
-  "RiMQCOteNrktL0Oa6dNi", //English
-  "zmElfKhtS152dPrwcJ0n", //Maths
-  "KiaqDYLBN2dBcodOOBPA", //Digital Skills
+export const DEFAULT_SUBJECT_IDS = [
+  "MWGQt7j9HrEE9XqKYsGg", //English
+  "5fq9UvGv0sjzZJqOZt3c", //Maths
+  "nnFVTiGBmw1LiV3xa4V1", //Digital Skills
 ];
+export const OTHER_CURRICULUM = "BVTIRg2Wm3zxcMPrU5Ob";
 export const LANGUAGE_COURSE_MAP = {
   sju2ne9JwNE1TZgo9M4G: "WUfGFSqcW8cIyl8yiqcR", //Hindi
   zvmpksodSkr8bmhGAFaT: "jZp8NfR84MILMEazPSK7", //Kannada
@@ -508,8 +509,7 @@ export type unlockedRewardsInfo = {
   image: string;
   name: string;
   leaderboardRewardList: LEADERBOARD_REWARD_LIST;
-}
-
+};
 
 export enum LeaderboardRewardsType {
   BADGE = "badge",
