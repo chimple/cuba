@@ -15,7 +15,11 @@ import LessonSlider from "../components/LessonSlider";
 import Lesson from "../models/lesson";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { useHistory, useLocation } from "react-router";
-import { CONTINUE, INSTANT_SEARCH_INDEX_NAME, PAGES } from "../common/constants";
+import {
+  CONTINUE,
+  INSTANT_SEARCH_INDEX_NAME,
+  PAGES,
+} from "../common/constants";
 import BackButton from "../components/common/BackButton";
 import { Util } from "../utility/util";
 import { StudentLessonResult } from "../common/courseConstants";
@@ -202,13 +206,14 @@ function SearchLesson() {
         <div className="right-button"></div>
       </div>
       <LessonSlider
+        key={searchTerm}
         lessonData={lessons}
         isHome={true}
         course={undefined}
         lessonsScoreMap={lessonResultMap || {}}
         startIndex={0}
         showSubjectName={true}
-        showChapterName = {false}
+        showChapterName={false}
       />
       <div className="search-bottom"></div>
     </div>

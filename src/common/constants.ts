@@ -198,7 +198,7 @@ export const DEFAULT_HEADER_ICON_CONFIGS: Map<
     HOMEHEADERLIST.LIVEQUIZ,
     {
       displayName: "Live Quiz",
-      iconSrc: "/assets/icons/quiz_icon.svg",
+      iconSrc: "/assets/icons/quizInactiveIcon.svg",
       headerList: HOMEHEADERLIST.LIVEQUIZ,
     },
   ],
@@ -471,13 +471,13 @@ export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
 export const COPIED_BUNDLE_FILES_INDEX = "copiedBundleFilesIndex";
 
 export const NUMBER_REGEX = /^[0-9]+$/;
-export const DOWNLOADED_LESSON_AND_CHAPTER_ID = "downloadedLessonAndChapterId";
+export const DOWNLOADED_LESSON_ID = "downloadedLessonId";
 export enum SnackbarType {
   Success = "success",
   Error = "error",
 }
 export const LAST_FUNCTION_CALL = "lastFunctionCall";
-export const CHAPTER_LESSON_MAP = "chapterLessonMap";
+export const LESSON_DOC_LESSON_ID_MAP = "lessonDocLessonidMap";
 
 export const CURRENT_AVATAR_SUGGESTION_NO = "currentAvatarSuggestion";
 export const SHOW_DAILY_PROGRESS_FLAG = "showAvatarDailyProgress";

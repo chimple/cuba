@@ -19,7 +19,6 @@ import {
   CURRENT_MODE,
   RECOMMENDATIONS,
   CONTINUE,
-  CHAPTER_LESSON_MAP,
   LIVE_QUIZ,
   SHOW_DAILY_PROGRESS_FLAG,
   IS_CONECTED,
@@ -340,15 +339,6 @@ const Home: FC = () => {
       return [];
     }
     const lessons = await api.getLessonsForChapter(chapter);
-    const storedChapterLessonMap = localStorage.getItem(CHAPTER_LESSON_MAP);
-    const storedChapterLessonId = storedChapterLessonMap
-      ? JSON.parse(storedChapterLessonMap)
-      : {};
-    storedChapterLessonId[chapter.id] = lessons.map((lesson) => lesson.id);
-    localStorage.setItem(
-      CHAPTER_LESSON_MAP,
-      JSON.stringify(storedChapterLessonId)
-    );
     setLessons(lessons);
     setIsLoading(false);
     return lessons;
