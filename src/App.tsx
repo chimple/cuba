@@ -242,6 +242,9 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.ASSIGNMENT} exact={true}>
               <Home />
             </ProtectedRoute>
+            <ProtectedRoute path={PAGES.LIVE_QUIZ} exact={true}>
+              <Home />
+            </ProtectedRoute>
             <ProtectedRoute path={PAGES.JOIN_CLASS} exact={true}>
               <Home />
             </ProtectedRoute>

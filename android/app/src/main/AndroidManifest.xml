@@ -36,6 +36,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="chimple.cc" android:path="/join-class" />
                 <data android:scheme="https" android:host="chimple.cc" android:path="/assignment" />
+                <data android:scheme="https" android:host="chimple.cc" android:path="/live-quiz" />
             </intent-filter>
 
         </activity>
