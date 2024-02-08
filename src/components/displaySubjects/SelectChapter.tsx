@@ -57,7 +57,7 @@ const SelectChapter: FC<{
                 </div>
                 <div>{t(chapter.title)}</div>
                 <div className="chapter-download">
-                  <DownloadLesson chapters={chapter} />
+                  <DownloadLesson chapter={chapter} />
                 </div>
               </div>
             </div>

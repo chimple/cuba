@@ -21,6 +21,7 @@ import LovedIcon from "./LovedIcon";
 import SelectIconImage from "./displaySubjects/SelectIconImage";
 import { Util } from "../utility/util";
 import DownloadLesson from "./DownloadChapterAndLesson";
+import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 
 const LessonCard: React.FC<{
   width: string;
@@ -60,6 +61,7 @@ const LessonCard: React.FC<{
   const [subject, setSubject] = useState<Subject>();
   // const [subject, setSubject] = useState<Subject>();
   const [currentCourse, setCurrentCourse] = useState<Course>();
+  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
 
   const hideImg = (event: any) => {
     setShowImage(false);
@@ -163,6 +165,21 @@ const LessonCard: React.FC<{
             !!lesson?.assignment?.docId &&
             lesson.pluginType === LIVE_QUIZ
           ) {
+            if (!online) {
+              presentToast({
+                message: t(`Device is offline`),
+                color: "danger",
+                duration: 3000,
+                position: "bottom",
+                buttons: [
+                  {
+                    text: "Dismiss",
+                    role: "cancel",
+                  },
+                ],
+              });
+              return;
+            }
             history.replace(
               PAGES.LIVE_QUIZ_JOIN +
                 `?assignmentId=${lesson?.assignment?.docId}`,
@@ -281,7 +298,7 @@ const LessonCard: React.FC<{
           {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
         </div>
         <div className="lesson-download-button-container">
-          <DownloadLesson lessonID={lesson.id} lessonData={lessonData} />
+          <DownloadLesson lessonId={lesson.id} />
         </div>
         {isLoved && (
           <LovedIcon
