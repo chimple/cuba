@@ -65,7 +65,7 @@ export class OneRosterApi implements ServiceApi {
   }
   liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (user: LiveQuizRoomObject) => void
+    onDataChange: (user: LiveQuizRoomObject | undefined) => void
   ): Unsubscribe {
     throw new Error("Method not implemented.");
   }

@@ -36,7 +36,7 @@ export class ApiHandler implements ServiceApi {
 
   public liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (user: LiveQuizRoomObject) => void
+    onDataChange: (user: LiveQuizRoomObject | undefined) => void
   ): Unsubscribe {
     return this.s.liveQuizListener(liveQuizRoomDocId, onDataChange);
   }

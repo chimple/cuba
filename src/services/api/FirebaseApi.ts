@@ -1811,15 +1811,20 @@ export class FirebaseApi implements ServiceApi {
 
   public liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (roomDoc: LiveQuizRoomObject) => void
+    onDataChange: (roomDoc: LiveQuizRoomObject | undefined) => void
   ): Unsubscribe {
     const unSub = onSnapshot(
       doc(this._db, CollectionIds.LIVE_QUIZ_ROOM, liveQuizRoomDocId),
       (doc) => {
-        console.log("Current data: ", doc.data());
-        const roomDoc = doc.data() as LiveQuizRoomObject;
-        roomDoc.docId = doc.id;
-        onDataChange(roomDoc);
+        if (doc.exists()) {
+          const roomDoc = doc.data() as LiveQuizRoomObject;
+          if (roomDoc && roomDoc.docId) {
+            roomDoc.docId = doc.id;
+          }
+          onDataChange(roomDoc);
+        } else {
+          onDataChange(undefined);
+        }
       }
     );
     return unSub;

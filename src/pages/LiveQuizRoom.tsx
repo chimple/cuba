@@ -151,9 +151,15 @@ const LiveQuizRoom: React.FC = () => {
     setIsJoining(true);
     const res = await api.joinLiveQuiz(studentId, assignmentId);
     console.log("🚀 ~ file: LiveQuizRoom.tsx:108 ~ joinQuiz ~ res:", res);
-    history.replace(PAGES.LIVE_QUIZ_GAME + "?liveRoomId=" + res);
-    setIsJoining(false);
-    return;
+    if (!res || !online) {
+      setIsJoining(false);
+      history.replace(PAGES.LIVE_QUIZ_JOIN);
+      return;
+    } else {
+      history.replace(PAGES.LIVE_QUIZ_GAME + "?liveRoomId=" + res);
+      setIsJoining(false);
+      return;
+    }
   };
   return (
     <IonPage className="live-quiz-room-page">
