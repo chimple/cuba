@@ -438,7 +438,7 @@ export interface ServiceApi {
    */
   liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (user: LiveQuizRoomObject) => void
+    onDataChange: (user: LiveQuizRoomObject | undefined) => void
   ): Unsubscribe;
 
   /**
