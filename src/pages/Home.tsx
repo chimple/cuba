@@ -121,6 +121,7 @@ const Home: FC = () => {
 
   let allPlayedLessonIds: string[] = [];
   let tempPageNumber = 1;
+  let linked: boolean;
   const location = useLocation();
   const getCanShowAvatar = async () => {
     const canShowAvatarValue = await Util.getCanShowAvatar();
@@ -133,11 +134,9 @@ const Home: FC = () => {
   useEffect(() => {
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
-
-    urlOpenListenerEvent();
+    initData();
     setCurrentHeader(HOMEHEADERLIST.HOME);
     setValue(SUBTAB.SUGGESTIONS);
-    fetchData();
     getCanShowAvatar();
     const urlParams = new URLSearchParams(location.search);
 
@@ -159,7 +158,11 @@ const Home: FC = () => {
       fetchData();
     }
   }, [currentHeader]);
-
+  const initData = async () => {
+    fetchData();
+    await isLinked();
+    urlOpenListenerEvent();
+  };
   const fetchData = async () => {
     setIsLoading(true);
 
@@ -168,23 +171,38 @@ const Home: FC = () => {
     const allLessonIds = await getHistory(lessonResult);
     if (allLessonIds) setValidLessonIds(allLessonIds);
     setIsLoading(false);
-    const student = await Util.getCurrentStudent();
-    if (student) {
-      const linked = await api.isStudentLinked(student.docId);
-      const conectedData = localStorage.getItem(IS_CONECTED);
+  };
+  async function isLinked() {
+    const student = Util.getCurrentStudent();
+    const conectedData = localStorage.getItem(IS_CONECTED);
 
-      const parsedConectedData = conectedData ? JSON.parse(conectedData) : {};
-      parsedConectedData[student.docId] = linked;
+    const parsedConectedData = conectedData ? JSON.parse(conectedData) : {};
+    if (student && parsedConectedData[student.docId] != undefined) {
+      linked = parsedConectedData[student.docId];
+    }
+    if (student) {
+      if (linked == undefined) {
+        linked = await api.isStudentLinked(student.docId);
+        parsedConectedData[student.docId] = linked;
+      } else {
+        api.isStudentLinked(student.docId).then((value) => {
+          parsedConectedData[student.docId] = value;
+        });
+      }
 
       localStorage.setItem(IS_CONECTED, JSON.stringify(parsedConectedData));
     }
-  };
+  }
 
   function urlOpenListenerEvent() {
     App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
       const slug = event.url.split(".cc").pop();
-      if (slug) {
+      if (slug === PAGES.LIVE_QUIZ && linked) {
+        setCurrentHeader(HOMEHEADERLIST.LIVEQUIZ);
+      } else {
         setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
+      }
+      if (slug) {
         history.replace(slug);
       }
     });
