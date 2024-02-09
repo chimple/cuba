@@ -143,12 +143,15 @@ export class Util {
       while (studentResult && studentResult[lessonId]) {
         currentLessonIndex += 1;
         nextLesson = currentChapter.lessons[currentLessonIndex + 1];
+        if (!nextLesson) break;
         lessonId = nextLesson.id;
       }
-      const lessonObj = (await api.getLesson(nextLesson.id)) as lesson;
-      console.log("lessonObj", lessonObj);
-      if (lessonObj) {
-        return lessonObj;
+      if (nextLesson) {
+        const lessonObj = (await api.getLesson(nextLesson.id)) as lesson;
+        console.log("lessonObj", lessonObj);
+        if (lessonObj) {
+          return lessonObj;
+        }
       }
     }
 
