@@ -180,11 +180,16 @@ const Home: FC = () => {
     const parsedConectedData = conectedData ? JSON.parse(conectedData) : {};
     if (student && parsedConectedData[student.docId] != undefined) {
       linked = parsedConectedData[student.docId];
-      return;
     }
     if (student) {
-      linked = await api.isStudentLinked(student.docId);
-      parsedConectedData[student.docId] = linked;
+      if (linked == undefined) {
+        linked = await api.isStudentLinked(student.docId);
+        parsedConectedData[student.docId] = linked;
+      } else {
+        api.isStudentLinked(student.docId).then((value) => {
+          parsedConectedData[student.docId] = value;
+        });
+      }
 
       localStorage.setItem(IS_CONECTED, JSON.stringify(parsedConectedData));
     }
