@@ -6,7 +6,7 @@ import { Chapter, StudentLessonResult } from "../common/courseConstants";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
-  CHAPTER_LESSON_MAP,
+  LESSON_DOC_LESSON_ID_MAP,
   CONTINUE,
   CURRENT_CLASS,
   CURRENT_MODE,
@@ -30,6 +30,7 @@ import Class from "../models/class";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
 import { Timestamp } from "firebase/firestore";
+import SkeltonLoading from "../components/SkeltonLoading";
 
 const localData: any = {};
 let localStorageData: any = {};
@@ -68,7 +69,6 @@ const DisplayChapters: FC<{}> = () => {
     (course) => courseDocId == course.docId
   );
   useEffect(() => {
-    Util.updateChapterOrLessonDownloadStatus(lessons);
     init();
   }, []);
   useEffect(() => {
@@ -219,7 +219,6 @@ const DisplayChapters: FC<{}> = () => {
     }
     getLocalGradeMap();
   };
-
   function getLocalGradeMap():
     | {
         grades: Grade[];
@@ -289,18 +288,6 @@ const DisplayChapters: FC<{}> = () => {
     try {
       const lessons = await api.getLessonsForChapter(chapter);
       // Retrieve existing data from local storage
-      const storedChapterLessonMap = localStorage.getItem(CHAPTER_LESSON_MAP);
-      const storedChapterLessonId = storedChapterLessonMap
-        ? JSON.parse(storedChapterLessonMap)
-        : {};
-      storedChapterLessonId[chapter.id] = lessons.map((lesson) => lesson.id);
-
-      // Store the updated map in local storage
-      localStorage.setItem(
-        CHAPTER_LESSON_MAP,
-        JSON.stringify(storedChapterLessonId)
-      );
-
       localData.lessons = lessons;
       setLessons(lessons);
       setIsLoading(false);
@@ -370,6 +357,8 @@ const DisplayChapters: FC<{}> = () => {
     addDataToLocalStorage();
     setCurrentGrade(grade);
     setCurrentCourse(currentCourse);
+    localData.currentCourse = currentCourse;
+    localStorageData.currentCourse = currentCourse;
   };
 
   const onChapterChange = async (chapter: Chapter) => {
@@ -404,25 +393,25 @@ const DisplayChapters: FC<{}> = () => {
     return startIndex;
   }
 
-  return (
+  return !isLoading ? (
     <IonPage id="display-chapters-page">
-      <Loading isLoading={isLoading} />
       <div className="chapters-header">
         <div id="back-button-container">
           <BackButton onClicked={onBackButton} />
         </div>
-        <IonList
-          mode="ios"
-          style={{ width: "20%", display: "flex", justifyContent: "center" }}
-        >
+        <div className="chapter-header">
           <IonItem lines="none">
             <div className="chapter-name">
               {stage === STAGES.CHAPTERS
-                ? currentCourse?.title
-                : currentChapter?.title}
+                ? currentCourse
+                  ? t(currentCourse?.title)
+                  : ""
+                : currentChapter
+                ? t(currentChapter?.title)
+                : ""}
             </div>
           </IonItem>
-        </IonList>
+        </div>
 
         {localGradeMap && currentGrade && stage === STAGES.CHAPTERS && (
           <DropDown
@@ -453,8 +442,7 @@ const DisplayChapters: FC<{}> = () => {
             <SelectCourse courses={courses} onCourseChange={onCourseChanges} />
           )} */}
 
-        {!isLoading &&
-          stage === STAGES.CHAPTERS &&
+        {stage === STAGES.CHAPTERS &&
           currentCourse &&
           localGradeMap &&
           currentGrade && (
@@ -471,7 +459,8 @@ const DisplayChapters: FC<{}> = () => {
             </div>
           )}
       </div>
-      {!isLoading && stage === STAGES.LESSONS && lessons && (
+
+      {stage === STAGES.LESSONS && lessons && (
         <div className="slider-container">
           <LessonSlider
             lessonData={lessons}
@@ -485,6 +474,12 @@ const DisplayChapters: FC<{}> = () => {
         </div>
       )}
     </IonPage>
+  ) : (
+    <SkeltonLoading
+      isLoading={isLoading}
+      header={PAGES.DISPLAY_CHAPTERS}
+      isChapter={stage == STAGES.CHAPTERS ? false : true}
+    />
   );
 };
 export default DisplayChapters;

@@ -5,6 +5,7 @@ import {
   LeaderboardDropdownList,
   LeaderboardRewardsType,
   SHOW_DAILY_PROGRESS_FLAG,
+  unlockedRewardsInfo,
 } from "../../common/constants";
 import { Chapter, StudentLessonResult } from "../../common/courseConstants";
 import Course from "../../models/course";
@@ -47,6 +48,7 @@ export class AvatarObj {
   private _currentSuggestionNumber: number;
   private _allSuggestions: [];
   public static _i: AvatarObj | undefined;
+  unlockedRewards: unlockedRewardsInfo[];
 
   currentCourse: Course;
   currentChapter: Chapter;
@@ -57,14 +59,8 @@ export class AvatarObj {
   weeklyTimeSpent: {} = { min: 0, sec: 0 };
   weeklyPlayedLesson: number = 0;
   wrongAttempts: number = 0;
+  // gamifyTimespentMessage = "Play ' x1 ' to win your daily reward";
   gamifyTimespentMessage = "Play ' x1 ' to win your weekly reward";
-  currentRewardInfo: {
-    id: string;
-    type: LeaderboardRewardsType;
-    image: string;
-    name: string;
-    leaderboardRewardList: LEADERBOARD_REWARD_LIST;
-  };
 
   private constructor() {}
 
@@ -203,16 +199,9 @@ export class AvatarObj {
   public async loadAvatarData() {
     try {
       const showDailyProgress = localStorage.getItem(SHOW_DAILY_PROGRESS_FLAG);
-      console.log(
-        "localStorage.getItem(showDailyProgress) ",
-        showDailyProgress
-      );
-      let unlockedRewards = await Util.getAllUnlockedRewards();
-      console.log("if (unlockedRewards) {", unlockedRewards);
-      if (unlockedRewards && unlockedRewards?.length > 0) {
+      if (this.unlockedRewards && this.unlockedRewards?.length > 0) {
         this.mode = AvatarModes.collectReward;
         this.avatarAnimation = "Success";
-        this.currentRewardInfo = unlockedRewards[0];
         return;
       } else if (showDailyProgress === "true") {
         console.log(
@@ -235,11 +224,9 @@ export class AvatarObj {
         );
 
         if (isCurrentWeeklyStickerUnlocked) {
-          let unlockedSticker = await Util.getAllUnlockedRewards();
-          if (unlockedSticker && unlockedSticker?.length > 0) {
+          if (this.unlockedRewards && this.unlockedRewards?.length > 0) {
             this.mode = AvatarModes.collectReward;
             this.avatarAnimation = "Success";
-            this.currentRewardInfo = unlockedSticker[0];
             return;
           }
         }

@@ -20,8 +20,8 @@ export default class User extends BaseObject {
   private _grade: DocumentReference | undefined;
   private _language: DocumentReference | undefined;
   private _avatar: string | undefined;
-  private _soundFlag: boolean | undefined;
-  private _musicFlag: boolean | undefined;
+  private _sfxOff: number | undefined;
+  private _musicOff: number | undefined;
   static avatar: string;
   private _tcAccept: boolean | undefined;
   private _rewards: LeaderboardRewards | undefined;
@@ -43,8 +43,8 @@ export default class User extends BaseObject {
     updatedAt: Timestamp,
     createdAt: Timestamp,
     docId: string,
-    soundFlag: boolean = true,
-    musicFlag: boolean = true,
+    sfxOff: number = 0,
+    musicOff: number = 0,
     tcAccept: boolean = false,
     rewards?: LeaderboardRewards
   ) {
@@ -67,8 +67,8 @@ export default class User extends BaseObject {
     this._grade = grade;
     this._language = language;
     this._avatar = avatar;
-    this._soundFlag = soundFlag;
-    this._musicFlag = musicFlag;
+    this._sfxOff = sfxOff;
+    this._musicOff = musicOff;
     this._tcAccept = tcAccept;
     this._rewards = rewards;
   }
@@ -156,18 +156,18 @@ export default class User extends BaseObject {
   public set language(value: DocumentReference | undefined) {
     this._language = value;
   }
-  public get soundFlag(): boolean | undefined {
-    return this._soundFlag;
+  public get sfxOff(): number | undefined {
+    return this._sfxOff;
   }
-  public set soundFlag(value: boolean | undefined) {
-    this._soundFlag = value;
+  public set sfxOff(value: number | undefined) {
+    this._sfxOff = value;
   }
 
-  public get musicFlag(): boolean | undefined {
-    return this._musicFlag;
+  public get musicOff(): number | undefined {
+    return this._musicOff;
   }
-  public set musicFlag(value: boolean | undefined) {
-    this._musicFlag = value;
+  public set musicOff(value: number | undefined) {
+    this._musicOff = value;
   }
 
   public get avatar(): string | undefined {
@@ -210,6 +210,8 @@ export default class User extends BaseObject {
       usernameMail: this.usernameMail ?? null,
       users: this.users,
       tcAccept: this.tcAccept,
+      sfxOff: this.sfxOff,
+      musicOff: this.musicOff,
       // docId: this.docId,
     };
   }

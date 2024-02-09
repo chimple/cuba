@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { PAGES } from "../common/constants";
+import { HOMEHEADERLIST, PAGES } from "../common/constants";
 import { useHistory } from "react-router";
 import { Util } from "../utility/util";
 import { StudentLessonResult } from "../common/courseConstants";
@@ -9,7 +9,7 @@ import Lesson from "../models/lesson";
 import { t } from "i18next";
 import LessonSlider from "../components/LessonSlider";
 import "./LiveQuiz.css";
-import Loading from "../components/Loading";
+import SkeltonLoading from "../components/SkeltonLoading";
 
 const LiveQuiz: React.FC = () => {
   const history = useHistory();
@@ -84,7 +84,7 @@ const LiveQuiz: React.FC = () => {
   return (
     <div>
       {loading ? (
-        <Loading isLoading={loading} />
+        <SkeltonLoading isLoading={loading} header={HOMEHEADERLIST.LIVEQUIZ} />
       ) : (
         <div>
           {liveQuizzes.length > 0 ? (
@@ -101,7 +101,7 @@ const LiveQuiz: React.FC = () => {
             </div>
           ) : (
             <div className="pending-live-quiz">
-              {t("There are no Live Quizzes for you.")}
+              {t("You do not have any live quizzes available.")}
             </div>
           )}
         </div>

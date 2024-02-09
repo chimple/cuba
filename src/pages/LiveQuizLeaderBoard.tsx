@@ -62,6 +62,17 @@ const LiveQuizLeaderBoard: React.FC = () => {
         combinedScores.sort((a, b) => b.totalScore - a.totalScore);
         console.log("combinedSortedScores..", combinedScores);
         setCombinedStudentScores(combinedScores);
+        const tempStudentsMap = new Map<string, User>();
+        await Promise.all(
+          combinedScores.map(async (participant) => {
+            const user = await api.getUserByDocId(participant.studentDocId);
+            if (!!user) {
+              tempStudentsMap.set(participant.studentDocId, user);
+            }
+          })
+        );
+        console.log("tempStudentsMap..", tempStudentsMap);
+        setStudents(tempStudentsMap);
       }
     } catch (error) {
       console.error(
@@ -72,25 +83,8 @@ const LiveQuizLeaderBoard: React.FC = () => {
   };
   const fetchAssignmentResults = async () => {
     const res = await api.getLiveQuizRoomDoc(paramLiveRoomId);
-    const classRef = res?.class;
-    const classId = classRef?.id;
-    let tempStudentMap = new Map<string, User>();
     const assignmentId = res?.assignment.id;
     const assignmentDoc = await api.getAssignmentById(assignmentId);
-    if (!!classId) {
-      const allStudents = await Promise.all(
-        Object.keys(assignmentDoc?.results ?? {}).map((studentDocId) =>
-          api.getUserByDocId(studentDocId)
-        )
-      );
-      console.log("allstudents..", allStudents);
-      allStudents.forEach((student) => {
-        if (student) {
-          tempStudentMap.set(student.docId, student);
-        }
-      });
-      setStudents(tempStudentMap);
-    }
     console.log("AssignmentDoc:", assignmentDoc);
     let scoresData: any;
 
@@ -144,23 +138,25 @@ const LiveQuizLeaderBoard: React.FC = () => {
   return (
     <IonPage>
       <IonContent>
-        <div className="leaderboard-header">
-          <div className="empty"></div>
+        <div className="livequiz-leaderboard">
+          <div className="leaderboard-header">
+            <div className="empty"></div>
 
-          <p className="header-name">{t("Live Quiz Leaderboard")}</p>
-          <div id="leaderboard-next-button">
-            <NextButton
-              onClicked={() => {
-                history.replace(PAGES.HOME);
-              }}
-              disabled={false}
-            />
+            <p className="header-name">{t("Live Quiz Leaderboard")}</p>
+            <div id="leaderboard-next-button">
+              <NextButton
+                onClicked={() => {
+                  history.replace(PAGES.HOME);
+                }}
+                disabled={false}
+              />
+            </div>
           </div>
-        </div>
-        <div className="leaderboard-header-row">
-          <div>{t("Rank")}</div>
-          <div>{t("Name")}</div>
-          <div>{t("Score")}</div>
+          <div className="leaderboard-header-row">
+            <div>{t("Rank")}</div>
+            <div>{t("Name")}</div>
+            <div>{t("Score")}</div>
+          </div>
         </div>
         <div className="leaderboard-container">
           {combinedStudentScores

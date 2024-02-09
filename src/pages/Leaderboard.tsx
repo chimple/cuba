@@ -9,6 +9,7 @@ import {
   MODES,
   LANGUAGE,
   LeaderboardDropdownList,
+  HOMEHEADERLIST,
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import BackButton from "../components/common/BackButton";
@@ -28,6 +29,7 @@ import IconButton from "../components/IconButton";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
 import LeaderboardRewards from "../components/leaderboard/LeaderboardRewards";
+import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 
 const Leaderboard: React.FC = () => {
@@ -183,7 +185,7 @@ const Leaderboard: React.FC = () => {
         element.name,
         element.lessonsPlayed,
         element.score,
-        computeMinutes + t(" min") + " " + computeSeconds + " " + t("sec"),
+        computeMinutes + " " + t("min") + " " + computeSeconds + " " + t("sec"),
       ]);
 
       if (currentStudent.docId == element.userId) {
@@ -226,7 +228,7 @@ const Leaderboard: React.FC = () => {
         tempCurrentUserDataContent = [
           // ["Name", element.name],
           [t("Rank"), cUserRank],
-          [t("Lesson Played"), tempData[0].lessonsPlayed],
+          [t("Lessons Played"), tempData[0].lessonsPlayed],
           [t("Score"), tempData[0].score],
           [
             t("Time Spent"),
@@ -246,7 +248,7 @@ const Leaderboard: React.FC = () => {
       tempCurrentUserDataContent = [
         // ["Name", element.name],
         [t("Rank"), "--"],
-        [t("Lesson Played"), "--"],
+        [t("Lessons Played"), "--"],
         [t("Score"), "--"],
         [t("Time Spent"), "--" + t("min") + " --" + t("sec")],
       ];
@@ -369,8 +371,7 @@ const Leaderboard: React.FC = () => {
             })}
           </div>
           <p id="leaderboard-left-note-message">
-            *** Be among the top performers in your class to win an exciting
-            reward
+            {t("***Be among the top performers in your class to win an exciting reward")}
           </p>
         </div>
         <div id="leaderboard-right-UI">
@@ -510,7 +511,7 @@ const Leaderboard: React.FC = () => {
     // </IonPage>
 
     <IonPage>
-      {!isLoading ? (
+      {!isLoading? (
         <Box>
           <div id="LeaderBoard-Header">
             <BackButton
@@ -613,7 +614,7 @@ const Leaderboard: React.FC = () => {
           </Box>
         </Box>
       ) : null}
-      <Loading isLoading={isLoading} />
+      <SkeltonLoading isLoading={isLoading} header={LEADERBOARDHEADERLIST.LEADERBOARD}/>
     </IonPage>
   );
 };

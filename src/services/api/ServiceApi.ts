@@ -97,8 +97,8 @@ export interface ServiceApi {
   set currentClass(value: Class | undefined);
   get currentSchool(): School | undefined;
   set currentSchool(value: School | undefined);
-  updateSoundFlag(user: User, value: boolean);
-  updateMusicFlag(user: User, value: boolean);
+  updateSoundFlag(user: User, value: number);
+  updateMusicFlag(user: User, value: number);
   updateLanguage(user: User, value: string);
   updateTcAccept(user: User, value: boolean);
 

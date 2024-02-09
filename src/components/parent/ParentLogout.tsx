@@ -28,7 +28,7 @@ const ParentLogout: React.FC<{}> = ({ }) => {
       className="parent-logout-btn"
     >
       <ImSwitch className="parent-logout-icon" />
-      <div>{t("Sign out as Parent")}</div>
+      <div>{t("Sign out as a Parent")}</div>
       <DialogBoxButtons
         width={"40vw"}
         height={"30vh"}
