@@ -74,7 +74,7 @@ const AvatarImageOption: React.FC<{
         >
           <CircularProgressbar
             value={percentage}
-            text={`${avatarObj.weeklyTimeSpent["min"]} Min : ${avatarObj.weeklyTimeSpent["sec"]} Sec`}
+            text={`${avatarObj.weeklyTimeSpent["min"]} ${t('min')} : ${avatarObj.weeklyTimeSpent["sec"]} ${t('sec')}`}
             styles={{
               // Customize the root svg element
               root: {},
@@ -105,7 +105,7 @@ const AvatarImageOption: React.FC<{
                 // Text color
                 fill: "#000",
                 // Text size
-                fontSize: "12px",
+                fontSize: "8px",
               },
               // Customize background - only used when the `background` prop is true
               background: {

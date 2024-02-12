@@ -6,7 +6,7 @@ import { Chapter, StudentLessonResult } from "../common/courseConstants";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
-  CHAPTER_LESSON_MAP,
+  LESSON_DOC_LESSON_ID_MAP,
   CONTINUE,
   CURRENT_CLASS,
   CURRENT_MODE,
@@ -69,7 +69,6 @@ const DisplayChapters: FC<{}> = () => {
     (course) => courseDocId == course.docId
   );
   useEffect(() => {
-    Util.updateChapterOrLessonDownloadStatus(lessons);
     init();
   }, []);
   useEffect(() => {
@@ -220,7 +219,6 @@ const DisplayChapters: FC<{}> = () => {
     }
     getLocalGradeMap();
   };
-
   function getLocalGradeMap():
     | {
         grades: Grade[];
@@ -290,18 +288,6 @@ const DisplayChapters: FC<{}> = () => {
     try {
       const lessons = await api.getLessonsForChapter(chapter);
       // Retrieve existing data from local storage
-      const storedChapterLessonMap = localStorage.getItem(CHAPTER_LESSON_MAP);
-      const storedChapterLessonId = storedChapterLessonMap
-        ? JSON.parse(storedChapterLessonMap)
-        : {};
-      storedChapterLessonId[chapter.id] = lessons.map((lesson) => lesson.id);
-
-      // Store the updated map in local storage
-      localStorage.setItem(
-        CHAPTER_LESSON_MAP,
-        JSON.stringify(storedChapterLessonId)
-      );
-
       localData.lessons = lessons;
       setLessons(lessons);
       setIsLoading(false);
@@ -417,8 +403,12 @@ const DisplayChapters: FC<{}> = () => {
           <IonItem lines="none">
             <div className="chapter-name">
               {stage === STAGES.CHAPTERS
-                ? currentCourse?.title
-                : currentChapter?.title}
+                ? currentCourse
+                  ? t(currentCourse?.title)
+                  : ""
+                : currentChapter
+                ? t(currentChapter?.title)
+                : ""}
             </div>
           </IonItem>
         </div>
@@ -469,6 +459,7 @@ const DisplayChapters: FC<{}> = () => {
             </div>
           )}
       </div>
+
       {stage === STAGES.LESSONS && lessons && (
         <div className="slider-container">
           <LessonSlider
@@ -487,7 +478,7 @@ const DisplayChapters: FC<{}> = () => {
     <SkeltonLoading
       isLoading={isLoading}
       header={PAGES.DISPLAY_CHAPTERS}
-      isChapter={stage == STAGES.CHAPTERS?false:true}
+      isChapter={stage == STAGES.CHAPTERS ? false : true}
     />
   );
 };

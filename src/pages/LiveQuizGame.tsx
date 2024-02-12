@@ -10,6 +10,7 @@ import LiveQuizQuestion from "../components/liveQuiz/LiveQuizQuestion";
 import LiveQuiz from "../models/liveQuiz";
 import LiveQuizHeader from "../components/liveQuiz/LiveQuizHeader";
 import LiveQuizNavigationDots from "../components/liveQuiz/LiveQuizNavigationDots";
+import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 
 const LiveQuizGame: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -22,6 +23,7 @@ const LiveQuizGame: FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();
   const [remainingTime, setRemainingTime] = useState<number>();
   const [showAnswer, setShowAnswer] = useState(false);
+  const { presentToast } = useOnlineOfflineErrorMessageHandler();
 
   useEffect(() => {
     if (!paramLiveRoomId) {
@@ -35,8 +37,24 @@ const LiveQuizGame: FC = () => {
       unsubscribe();
     };
   }, []);
-  const handleRoomChange = async (roomDoc: LiveQuizRoomObject) => {
-    setRoomDoc(roomDoc);
+
+  const handleRoomChange = async (roomDoc: LiveQuizRoomObject | undefined) => {
+    if (!roomDoc) {
+      presentToast({
+        message: `Device is offline. Cannot join live quiz`,
+        color: "danger",
+        duration: 10000,
+        position: "bottom",
+        buttons: [
+          {
+            text: "Dismiss",
+            role: "cancel",
+          },
+        ],
+      });
+      history.replace(PAGES.LIVE_QUIZ);
+      return;
+    } else setRoomDoc(roomDoc);
   };
 
   return (

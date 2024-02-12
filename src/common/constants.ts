@@ -198,7 +198,7 @@ export const DEFAULT_HEADER_ICON_CONFIGS: Map<
     HOMEHEADERLIST.LIVEQUIZ,
     {
       displayName: "Live Quiz",
-      iconSrc: "/assets/icons/quiz_icon.svg",
+      iconSrc: "/assets/icons/quizInactiveIcon.svg",
       headerList: HOMEHEADERLIST.LIVEQUIZ,
     },
   ],
@@ -338,8 +338,8 @@ export const PRE_QUIZ = "PreQuiz";
 export const GRADE_MAP = "GradeMap";
 export const DISPLAY_SUBJECTS_STORE = "DispSubStore";
 export const EDIT_STUDENT_STORE = "EditStudentStorage";
-export const SOUND = "sound";
-export const MUSIC = "music";
+export const SOUND = "sfxOff";
+export const MUSIC = "musicOff";
 export const GAME_URL = "gameUrl";
 export const TC_ACCEPT = "tcAccept";
 export const RECOMMENDATIONS = "recommendations";
@@ -360,11 +360,12 @@ export interface PortPlugin {
   getMigrateUsers(): Promise<{ users: any }>;
 }
 export const DEBUG_15 = "debug15";
-export const DEFAULT_COURSE_IDS = [
-  "RiMQCOteNrktL0Oa6dNi", //English
-  "zmElfKhtS152dPrwcJ0n", //Maths
-  "KiaqDYLBN2dBcodOOBPA", //Digital Skills
+export const DEFAULT_SUBJECT_IDS = [
+  "MWGQt7j9HrEE9XqKYsGg", //English
+  "5fq9UvGv0sjzZJqOZt3c", //Maths
+  "nnFVTiGBmw1LiV3xa4V1", //Digital Skills
 ];
+export const OTHER_CURRICULUM = "BVTIRg2Wm3zxcMPrU5Ob";
 export const LANGUAGE_COURSE_MAP = {
   sju2ne9JwNE1TZgo9M4G: "WUfGFSqcW8cIyl8yiqcR", //Hindi
   zvmpksodSkr8bmhGAFaT: "jZp8NfR84MILMEazPSK7", //Kannada
@@ -455,7 +456,7 @@ export enum EVENTS {
 }
 
 export const FCM_TOKENS = "fcmTokens";
-export const IS_CONECTED ="is_conected"
+export const IS_CONECTED = "is_conected";
 
 export const LAST_UPDATE_CHECKED = "lastUpdateChecked";
 
@@ -470,13 +471,13 @@ export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
 export const COPIED_BUNDLE_FILES_INDEX = "copiedBundleFilesIndex";
 
 export const NUMBER_REGEX = /^[0-9]+$/;
-export const DOWNLOADED_LESSON_AND_CHAPTER_ID = "downloadedLessonAndChapterId";
+export const DOWNLOADED_LESSON_ID = "downloadedLessonId";
 export enum SnackbarType {
   Success = "success",
   Error = "error",
 }
 export const LAST_FUNCTION_CALL = "lastFunctionCall";
-export const CHAPTER_LESSON_MAP = "chapterLessonMap";
+export const LESSON_DOC_LESSON_ID_MAP = "lessonDocLessonidMap";
 
 export const CURRENT_AVATAR_SUGGESTION_NO = "currentAvatarSuggestion";
 export const SHOW_DAILY_PROGRESS_FLAG = "showAvatarDailyProgress";
@@ -508,8 +509,7 @@ export type unlockedRewardsInfo = {
   image: string;
   name: string;
   leaderboardRewardList: LEADERBOARD_REWARD_LIST;
-}
-
+};
 
 export enum LeaderboardRewardsType {
   BADGE = "badge",
