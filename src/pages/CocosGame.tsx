@@ -76,7 +76,10 @@ const CocosGame: React.FC = () => {
       else history.replace(fromPath + "?isReload=true");
       window.location.reload();
     } else {
-      history.replace(fromPath);
+      if (fromPath.includes("?")) {
+        history.replace(fromPath + "&isReload=true");
+      }
+      window.location.reload();
     }
     setIsLoading(false);
   };
