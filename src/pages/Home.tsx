@@ -63,6 +63,7 @@ import Subjects from "./Subjects";
 import { RemoteConfig, REMOTE_CONFIG_KEYS } from "../services/RemoteConfig";
 import LiveQuiz from "./LiveQuiz";
 import SkeltonLoading from "../components/SkeltonLoading";
+import { AvatarObj } from "../components/animation/Avatar";
 
 const sortValidLessonsByDate = (
   lessonIds: string[],
@@ -192,7 +193,9 @@ const Home: FC = () => {
 
       localStorage.setItem(IS_CONECTED, JSON.stringify(parsedConectedData));
     }
-  }
+    AvatarObj.getInstance().unlockedRewards =
+      (await Util.getAllUnlockedRewards()) || [];
+  };
 
   function urlOpenListenerEvent() {
     App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {

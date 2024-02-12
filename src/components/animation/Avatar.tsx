@@ -13,6 +13,7 @@ import Lesson from "../../models/lesson";
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
+import { LeaderboardInfo } from "../../services/api/ServiceApi";
 
 export enum AvatarModes {
   Welcome,
@@ -178,11 +179,6 @@ export class AvatarObj {
 
   suggestionConstant = () => {
     const currentStudent = Util.getCurrentStudent();
-    console.log(
-      "currentStudent?.docId-CURRENT_AVATAR_SUGGESTION_NO",
-      currentStudent?.docId + "-" + CURRENT_AVATAR_SUGGESTION_NO
-    );
-
     return currentStudent?.docId + "-" + CURRENT_AVATAR_SUGGESTION_NO;
   };
 
@@ -191,7 +187,6 @@ export class AvatarObj {
       localStorage.getItem(this.suggestionConstant())
     );
     this._currentSuggestionNumber = tempCurrentSugNo;
-    console.log("let tempCurrentSugNo =", tempCurrentSugNo);
 
     return tempCurrentSugNo;
   }
@@ -204,30 +199,22 @@ export class AvatarObj {
         this.avatarAnimation = "Success";
         return;
       } else if (showDailyProgress === "true") {
-        console.log(
-          "} else if (showDailyProgress === true) {",
-          this.weeklyTimeSpent["min"] * 60,
-          this.weeklyProgressGoal * 60,
-          this.weeklyTimeSpent["min"] * 60 < this.weeklyProgressGoal * 60
-        );
-
         if (this.weeklyTimeSpent["min"] * 60 < this.weeklyProgressGoal * 60) {
           await this.loadAvatarWeeklyProgressData();
-          return;
+          return
         }
 
-        localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
-        const isCurrentWeeklyStickerUnlocked = await Util.unlockWeeklySticker();
-        console.log(
-          "const isCurrentWeeklyStickerUnlocked ",
-          isCurrentWeeklyStickerUnlocked
-        );
+        if (this.weeklyTimeSpent["min"] * 60 >= this.weeklyProgressGoal * 60) {
+          localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
+          const isCurrentWeeklyStickerUnlocked =
+            await Util.unlockWeeklySticker();
 
-        if (isCurrentWeeklyStickerUnlocked) {
-          if (this.unlockedRewards && this.unlockedRewards?.length > 0) {
-            this.mode = AvatarModes.collectReward;
-            this.avatarAnimation = "Success";
-            return;
+          if (isCurrentWeeklyStickerUnlocked) {
+            if (this.unlockedRewards && this.unlockedRewards?.length > 0) {
+              this.mode = AvatarModes.collectReward;
+              this.avatarAnimation = "Success";
+              return;
+            }
           }
         }
       }
@@ -260,13 +247,6 @@ export class AvatarObj {
 
         response = await fetch(path);
         let suggesstionJson = await response.json();
-        console.log("Avatar Sugguestion Json ", suggesstionJson);
-
-        console.log(
-          "Avatar suggesstionJson.data ",
-          suggesstionJson,
-          suggesstionJson.data
-        );
 
         this._allSuggestions = suggesstionJson.data;
         // }
@@ -295,17 +275,9 @@ export class AvatarObj {
   }
 
   public async loadAvatarNextSuggestion() {
-    console.log(
-      "if (this.currentSuggestionNumber === this.allSuggestions.length) {",
-      this._currentSuggestionNumber === this._allSuggestions.length - 1
-    );
-
+    
     if (this._currentSuggestionNumber === this._allSuggestions.length - 1) {
       this._currentSuggestionNumber = 0;
-      console.log(
-        "resetting the Avatar Suggestions",
-        this._currentSuggestionNumber
-      );
       localStorage.setItem(
         this.suggestionConstant(),
         this._currentSuggestionNumber.toString()
@@ -315,10 +287,6 @@ export class AvatarObj {
       localStorage.setItem(
         this.suggestionConstant(),
         this._currentSuggestionNumber.toString()
-      );
-      console.log(
-        "Avatar Suggestions incremented",
-        this._currentSuggestionNumber
       );
     }
     let currentSuggestionInJson =
@@ -340,7 +308,6 @@ export class AvatarObj {
 
   public async loadAvatarWeeklyProgressData() {
     try {
-      console.log("loadAvatarWeeklyProgressData called ");
 
       const currentStudent = await Util.getCurrentStudent();
       if (!currentStudent) {
@@ -349,131 +316,59 @@ export class AvatarObj {
 
       const api = ServiceConfig.getI().apiHandler;
       const studentProfile = await api.getStudentResult(currentStudent.docId);
-      console.log("const studentProfile", studentProfile);
+
+      let weeKlyProgressData: LeaderboardInfo | undefined;
 
       if (studentProfile?.classes != undefined) {
-        const leaderboardData = await api.getLeaderboardResults(
+        weeKlyProgressData = await api.getLeaderboardResults(
           studentProfile?.classes[0],
           LeaderboardDropdownList.WEEKLY
         );
-        let weeklyData = leaderboardData?.weekly;
-        console.log("weeklyReport ", weeklyData);
-        if (!weeklyData) {
-          // this.message = undefined;
-          this.weeklyTimeSpent = { min: 0, sec: 0 };
-          this.weeklyPlayedLesson = 0;
-          this._mode = AvatarModes.ShowWeeklyProgress;
-          return;
-        }
-
-        for (let i = 0; i < weeklyData.length; i++) {
-          const element = weeklyData[i];
-          console.log(
-            "currentStudent.docId == element.userId ",
-            currentStudent.docId,
-            element.userId,
-            currentStudent.docId == element.userId
-          );
-
-          if (currentStudent.docId == element.userId) {
-            let finalProgressTimespent = element.timeSpent;
-            let computeMinutes = Math.floor(finalProgressTimespent / 60);
-            let computeSec = finalProgressTimespent % 60;
-
-            console.log(
-              "this.weeklyTimeSpent[min] * this.weeklyTimeSpent[sec],",
-              this.weeklyTimeSpent["min"],
-              this.weeklyTimeSpent["sec"],
-              computeMinutes,
-              computeSec
-            );
-
-            console.log(
-              "current computeMinutes ",
-              this.weeklyTimeSpent["min"] * 60 + this.weeklyTimeSpent["sec"],
-              computeMinutes * 60 + computeSec,
-              this.weeklyTimeSpent["min"] * 60 + this.weeklyTimeSpent["sec"] <=
-                computeMinutes * 60 + computeSec
-            );
-            if (
-              this.weeklyTimeSpent["min"] * 60 + this.weeklyTimeSpent["sec"] <=
-              computeMinutes * 60 + computeSec
-            ) {
-              this.weeklyTimeSpent["min"] = computeMinutes;
-              this.weeklyTimeSpent["sec"] = computeSec;
-              this.weeklyPlayedLesson = element.lessonsPlayed;
-            }
-            this.message = t(this.gamifyTimespentMessage).replace(
-              "x1",
-              computeMinutes.toString() + " min and " + computeSec + " sec"
-            );
-            console.log(
-              "this.message ",
-              this.message,
-              this.weeklyPlayedLesson,
-              this.weeklyTimeSpent
-            );
-            // this._mode = AvatarModes.ShowWeeklyProgress;
-          }
-        }
       } else {
-        const b2cResult =
+        weeKlyProgressData =
           await api.getLeaderboardStudentResultFromB2CCollection(
             currentStudent.docId
           );
-        let weeklyData = b2cResult?.weekly;
-        console.log("weeklyReport ", weeklyData);
-        if (!weeklyData) {
-          // this.message = undefined;
-          this.weeklyTimeSpent = { min: 0, sec: 0 };
-          this.weeklyPlayedLesson = 0;
-          this._mode = AvatarModes.ShowWeeklyProgress;
-          return;
-        }
+      }
 
-        for (let i = 0; i < weeklyData.length; i++) {
-          const element = weeklyData[i];
-          console.log(
-            "currentStudent.docId == element.userId ",
-            currentStudent.docId,
-            element.userId,
-            currentStudent.docId == element.userId
-          );
+      if (!weeKlyProgressData) {
+        this.weeklyTimeSpent = { min: 0, sec: 0 };
+        this.weeklyPlayedLesson = 0;
+        this._mode = AvatarModes.ShowWeeklyProgress;
+        return;
+      }
+      let weeklyData = weeKlyProgressData.weekly;
+      if (!weeklyData) {
+        this.weeklyTimeSpent = { min: 0, sec: 0 };
+        this.weeklyPlayedLesson = 0;
+        this._mode = AvatarModes.ShowWeeklyProgress;
+        return;
+      }
 
-          if (currentStudent.docId == element.userId) {
-            let finalProgressTimespent = element.timeSpent;
-            var computeMinutes = Math.floor(finalProgressTimespent / 60);
-            var computeSec = finalProgressTimespent % 60;
-            console.log(
-              "this.weeklyTimeSpent[min] * this.weeklyTimeSpent[sec],",
-              this.weeklyTimeSpent["min"],
-              this.weeklyTimeSpent["sec"],
-              computeMinutes,
-              computeSec
-            );
-
-            console.log(
-              "current computeMinutes ",
-              this.weeklyTimeSpent["min"] * 60 + this.weeklyTimeSpent["sec"],
-              computeMinutes * 60 + computeSec,
-              this.weeklyTimeSpent["min"] * 60 + this.weeklyTimeSpent["sec"] <=
-                computeMinutes * 60 + computeSec
-            );
-            if (
-              this.weeklyTimeSpent["min"] * 60 + this.weeklyTimeSpent["sec"] <=
-              computeMinutes * 60 + computeSec
-            ) {
-              this.weeklyTimeSpent["min"] = computeMinutes;
-              this.weeklyTimeSpent["sec"] = computeSec;
-              this.weeklyPlayedLesson = element.lessonsPlayed;
-            }
-            console.log(
-              "this.message ",
-              this.message,
-              this.weeklyPlayedLesson,
-              this.weeklyTimeSpent
-            );
+      for (let i = 0; i < weeklyData.length; i++) {
+        const element = weeklyData[i];
+        if (currentStudent.docId == element.userId) {
+          let finalProgressTimespent = element.timeSpent;
+          let computeMinutes = Math.floor(finalProgressTimespent / 60);
+          let computeSec = finalProgressTimespent % 60;
+          if (
+            this.weeklyTimeSpent["min"] * 60 + this.weeklyTimeSpent["sec"] <=
+            computeMinutes * 60 + computeSec
+          ) {
+            this.weeklyTimeSpent["min"] = computeMinutes;
+            this.weeklyTimeSpent["sec"] = computeSec;
+            this.weeklyPlayedLesson = element.lessonsPlayed;
           }
+
+          if (element.timeSpent >= this.weeklyProgressGoal * 60) {
+            localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
+            return;
+          }
+          this.message = t(this.gamifyTimespentMessage).replace(
+            "x1",
+            computeMinutes.toString() + " min and " + computeSec + " sec"
+          );
+          // this._mode = AvatarModes.ShowWeeklyProgress;
         }
       }
       this._mode = AvatarModes.ShowWeeklyProgress;
