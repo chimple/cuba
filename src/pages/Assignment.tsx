@@ -3,7 +3,13 @@ import JoinClass from "../components/assignment/JoinClass";
 import "./Assignment.css";
 import { useEffect, useState } from "react";
 import BackButton from "../components/common/BackButton";
-import { HOMEHEADERLIST, LIVE_QUIZ, PAGES, TYPE } from "../common/constants";
+import {
+  DOWNLOADED_LESSON_ID,
+  HOMEHEADERLIST,
+  LIVE_QUIZ,
+  PAGES,
+  TYPE,
+} from "../common/constants";
 import { useHistory } from "react-router";
 import Loading from "../components/Loading";
 import Class from "../models/class";
@@ -18,6 +24,7 @@ import { Keyboard } from "@capacitor/keyboard";
 import { Capacitor } from "@capacitor/core";
 import { StudentLessonResult } from "../common/courseConstants";
 import SkeltonLoading from "../components/SkeltonLoading";
+import { TfiDownload } from "react-icons/tfi";
 
 const AssignmentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -31,10 +38,27 @@ const AssignmentPage: React.FC = () => {
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: StudentLessonResult;
   }>();
+  const [downloadButtonLoading, setDownloadButtonLoading] = useState(false);
+  const [isInputFocus, setIsInputFocus] = useState(false);
 
   useEffect(() => {
     init();
   }, []);
+
+  async function downloadAllHomeWork(lessons) {
+    setDownloadButtonLoading(true);
+    const allLessonIds = lessons.map((lesson) => lesson.id);
+
+    try {
+      const dowload = await Util.downloadZipBundle(allLessonIds);
+      if (dowload) {
+        setDownloadButtonLoading(false);
+      }
+    } catch (error) {
+      console.error("Error downloading homework:", error);
+      setDownloadButtonLoading(false);
+    }
+  }
 
   const init = async (fromCache: boolean = true) => {
     setLoading(true);
@@ -115,7 +139,6 @@ const AssignmentPage: React.FC = () => {
       return;
     }
   };
-  const [isInputFocus, setIsInputFocus] = useState(false);
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -144,13 +167,30 @@ const AssignmentPage: React.FC = () => {
           }
         >
           <div className="assignment-header">
-            <div className="school-class-header">
-              <div className="classname-header">{schoolName}</div>
-              <div className="classname-header">
-                {currentClass?.name ? currentClass?.name : ""}
+            <div className="right-button"></div>
+            <div className="dowload-homework-button-container">
+              <div className="school-class-header">
+                <div className="classname-header">{schoolName}</div>
+                <div className="classname-header">
+                  {currentClass?.name ? currentClass?.name : ""}
+                </div>
               </div>
             </div>
-            <div className="right-button"></div>
+            {isLinked ? (
+              <div
+                className="dowload-homework-button"
+                onClick={() => {
+                  downloadAllHomeWork(lessons);
+                }}
+              >
+                <div className="download-homework-label">
+                  {t("Download all")}
+                </div>
+                <div className="dowload-homework-icon-container">
+                  <TfiDownload className="dowload-homework-icon" />
+                </div>
+              </div>
+            ) : null}
           </div>
 
           {!loading && (
@@ -178,6 +218,7 @@ const AssignmentPage: React.FC = () => {
                       startIndex={0}
                       showSubjectName={true}
                       showChapterName={true}
+                      downloadButtonLoading={downloadButtonLoading}
                     />
                   ) : (
                     <div className="pending-assignment">
@@ -193,10 +234,7 @@ const AssignmentPage: React.FC = () => {
     </div>
   ) : (
     <div className="assignment-loading">
-      <SkeltonLoading
-        isLoading={loading}
-        header={HOMEHEADERLIST.ASSIGNMENT}
-      />
+      <SkeltonLoading isLoading={loading} header={HOMEHEADERLIST.ASSIGNMENT} />
     </div>
   );
 };

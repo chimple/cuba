@@ -39,6 +39,7 @@ const LessonCard: React.FC<{
   lessonData: Lesson[];
   startIndex: number;
   showChapterName: boolean;
+  downloadButtonLoading?: boolean;
 }> = ({
   width,
   height,
@@ -55,6 +56,7 @@ const LessonCard: React.FC<{
   lessonData,
   startIndex,
   showChapterName = false,
+  downloadButtonLoading,
 }) => {
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
@@ -298,7 +300,10 @@ const LessonCard: React.FC<{
           {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
         </div>
         <div className="lesson-download-button-container">
-          <DownloadLesson lessonId={lesson.id} />
+          <DownloadLesson
+            lessonId={lesson.id}
+            downloadButtonLoading={downloadButtonLoading}
+          />
         </div>
         {isLoved && (
           <LovedIcon

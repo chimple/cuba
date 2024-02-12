@@ -13,16 +13,20 @@ import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErro
 const DownloadLesson: React.FC<{
   lessonId?: string;
   chapter?: Chapter;
-}> = ({ lessonId, chapter }) => {
+  downloadButtonLoading?: boolean;
+}> = ({ lessonId, chapter, downloadButtonLoading = false }) => {
   const [showIcon, setShowIcon] = useState(true);
   const [showDialogBox, setShowDialogBox] = useState(false);
   const [loading, setLoading] = useState(false);
   const [storedLessonID, setStoredLessonID] = useState<string[]>([]);
   const api = ServiceConfig.getI().apiHandler;
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+
   useEffect(() => {
     init();
-  }, []);
+    setLoading(downloadButtonLoading);
+  }, [downloadButtonLoading]);
+
   async function init() {
     const storedLessonIds = Util.getStoredLessonIds();
     if (lessonId && storedLessonIds.includes(lessonId)) {

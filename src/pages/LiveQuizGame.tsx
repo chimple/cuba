@@ -52,7 +52,7 @@ const LiveQuizGame: FC = () => {
           },
         ],
       });
-      history.replace(PAGES.LIVE_QUIZ_JOIN);
+      history.replace(PAGES.LIVE_QUIZ);
       return;
     } else setRoomDoc(roomDoc);
   };
