@@ -167,6 +167,8 @@ const Home: FC = () => {
     console.log("resultTemp", lessonResult);
     const allLessonIds = await getHistory();
     if (allLessonIds) setValidLessonIds(allLessonIds);
+    AvatarObj.getInstance().unlockedRewards =
+      (await Util.getAllUnlockedRewards()) || [];
     setIsLoading(false);
   };
   async function isLinked() {
