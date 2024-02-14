@@ -203,14 +203,14 @@ const CocosGame: React.FC = () => {
       avatarObj.weeklyTimeSpent["sec"]
     );
 
-    let finalProgressTimespent = data.timeSpent;
+    let finalProgressTimespent =
+      avatarObj.weeklyTimeSpent["min"] * 60 + avatarObj.weeklyTimeSpent["sec"];
+    finalProgressTimespent = finalProgressTimespent + data.timeSpent;
     let computeMinutes = Math.floor(finalProgressTimespent / 60);
     let computeSec = finalProgressTimespent % 60;
 
-    avatarObj.weeklyTimeSpent["min"] =
-      avatarObj.weeklyTimeSpent["min"] + computeMinutes;
-    avatarObj.weeklyTimeSpent["sec"] =
-      avatarObj.weeklyTimeSpent["sec"] + computeSec;
+    avatarObj.weeklyTimeSpent["min"] = computeMinutes;
+    avatarObj.weeklyTimeSpent["sec"] = computeSec;
     avatarObj.weeklyPlayedLesson++;
     console.log(
       "after Cosos weeklyTimespent ",

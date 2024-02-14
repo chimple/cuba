@@ -188,7 +188,7 @@ const AvatarImageOption: React.FC<{
             // justifyContent: "center",
           }}
         >
-          <CachedImage
+          {/* <CachedImage
             // style={{
             //   width: "50%",
             //   height: "100%",
@@ -198,7 +198,7 @@ const AvatarImageOption: React.FC<{
             onError={() => {
               // setLoadIcon(LoadIcon.Default);
             }}
-          ></CachedImage>
+          ></CachedImage> */}
         </div>
       );
   }

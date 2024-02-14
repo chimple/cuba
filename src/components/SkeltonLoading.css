@@ -226,3 +226,15 @@
   align-self: center;
   width: min(70vh, 130px);
 }
+
+#skelton-home-screen-div {
+  position: fixed;
+  top: 26vh;
+  left: 11vw;
+}
+
+#skelton-home-screen-char {
+  margin-top: 7vh;
+  width: auto;
+  height: 55vh;
+}

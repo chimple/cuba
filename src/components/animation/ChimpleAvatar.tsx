@@ -50,8 +50,6 @@ const ChimpleAvatar: FC<{
   const [isBurst, setIsBurst] = useState(false);
   const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(true);
   const [riveCharHandsUp, setRiveCharHandsUp] = useState("Fail");
-  const [avatarCompoLoading, setavatarCompoLoading] = useState<boolean>(true);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const history = useHistory();
   const State_Machine = "State Machine 1";
   const [isAudioPlayed, setIsAudioPlayed] = useState<boolean>(true);
@@ -62,10 +60,6 @@ const ChimpleAvatar: FC<{
     layout: new Layout({ fit: Fit.Cover }),
     animations: riveCharHandsUp,
     autoplay: true,
-    onLoad: () => {
-      setavatarCompoLoading(false);
-      console.log("setSpinnerLoading(false); in compon ", avatarCompoLoading);
-    },
   });
   const onclickInput = useStateMachineInput(
     rive,
@@ -87,7 +81,6 @@ const ChimpleAvatar: FC<{
 
   async function loadSuggestionsFromJson() {
     setIsAudioPlayed(true);
-    if (isAudioPlayed) setIsLoading(true);
     avatarObj.wrongAttempts = 0;
     await avatarObj.loadAvatarData();
 
@@ -130,7 +123,6 @@ const ChimpleAvatar: FC<{
         message = t("Hi! Welcome to Chimple");
       }
     }
-    setIsLoading(false);
     if (isAudioPlayed) await speak(message);
   }
   let buttons: { label: string; onClick: () => void; isTrue?: boolean }[] = [];
@@ -169,8 +161,8 @@ const ChimpleAvatar: FC<{
       if (!currentCourse) setCurrentCourse(allCourses[0]);
     }
 
-    AvatarObj.getInstance().unlockedRewards =
-      (await Util.getAllUnlockedRewards()) || [];
+    // AvatarObj.getInstance().unlockedRewards =
+    //   (await Util.getAllUnlockedRewards()) || [];
   };
   async function onClickYes() {
     setButtonsDisabled(false);
@@ -722,39 +714,11 @@ const ChimpleAvatar: FC<{
         {/* <IonLoading id="custom-loading-for-avatar" isOpen={spinnerLoading} /> */}
         <div className="rive-container">
           <RiveComponent
-            onLoad={() => {
-              setavatarCompoLoading(false);
-              console.log(
-                "setSpinnerLoading(false); in div ",
-                avatarCompoLoading
-              );
-            }}
             className="rive-component"
             onClick={onClickRiveComponent}
           />
           <div id="rive-avatar-shadow" />
         </div>
-        {avatarCompoLoading ? (
-          <div
-            style={{
-              position: "fixed",
-              top: "26vh",
-              left: "11vw",
-            }}
-          >
-            <img
-              // className="rive-component"
-              style={{
-                marginTop: "7vh",
-                width: "auto",
-                height: "55vh",
-              }}
-              src={"/assets/animation/chimple_avatar.png"}
-              loading="lazy"
-              alt=""
-            />
-          </div>
-        ) : null}
       </div>
       <div
         className={`avatar-option-box-background ${isBurst ? "burst" : ""}`}
@@ -762,74 +726,61 @@ const ChimpleAvatar: FC<{
           setIsBurst(false);
           setButtonsDisabled(true);
         }}
-        // id="temp"
       >
         {chimpleAvatarChatboxBubbles}
-        {!isLoading ? (
-          <div>
-            <TextBoxWithAudioButton
-              message={message}
-              fontSize={"2vw"}
-              onClick={() => {
-                onClickRiveComponent();
-              }}
-            ></TextBoxWithAudioButton>
-            <AvatarImageOption
-              currentCourse={currentCourse}
-              currentMode={currentMode}
-              currtStageMode={currentStageMode || AvatarModes.CourseSuggestion}
-              currentChapter={currentChapter}
-              currentLesson={currentLesson}
-              avatarObj={avatarObj}
-            />
+        <div>
+          <TextBoxWithAudioButton
+            message={message}
+            fontSize={"2vw"}
+            onClick={() => {
+              onClickRiveComponent();
+            }}
+          ></TextBoxWithAudioButton>
+          <AvatarImageOption
+            currentCourse={currentCourse}
+            currentMode={currentMode}
+            currtStageMode={currentStageMode || AvatarModes.CourseSuggestion}
+            currentChapter={currentChapter}
+            currentLesson={currentLesson}
+            avatarObj={avatarObj}
+          />
 
-            <div
-              className="buttons-in-avatar-option-box"
-              style={{
-                flexWrap: buttons.length === 4 ? "wrap" : "wrap",
-                justifyContent:
-                  buttons.length === 1
-                    ? "center"
-                    : buttons.length === 2
-                    ? "space-evenly"
-                    : "center",
-                gap: ".5em",
-                display: buttons.length > 2 ? "grid" : "",
-                gridTemplateColumns: buttons.length > 2 ? "35% 15vw" : "",
-              }}
-            >
-              {buttons.map((button, index) => (
-                <div key={index}>
-                  <RectangularTextButton
-                    buttonWidth={
-                      avatarObj.mode === AvatarModes.collectReward
-                        ? "auto"
-                        : "17vw"
-                    }
-                    buttonHeight={"8vh"}
-                    padding={1}
-                    text={button.label}
-                    fontSize={3.2}
-                    onHeaderIconClick={() => {
-                      button.onClick();
-                    }}
-                    className={button.isTrue ? "green-button" : "red-button"}
-                  ></RectangularTextButton>
-                </div>
-              ))}
-            </div>
+          <div
+            className="buttons-in-avatar-option-box"
+            style={{
+              flexWrap: buttons.length === 4 ? "wrap" : "wrap",
+              justifyContent:
+                buttons.length === 1
+                  ? "center"
+                  : buttons.length === 2
+                  ? "space-evenly"
+                  : "center",
+              gap: ".5em",
+              display: buttons.length > 2 ? "grid" : "",
+              gridTemplateColumns: buttons.length > 2 ? "35% 15vw" : "",
+            }}
+          >
+            {buttons.map((button, index) => (
+              <div key={index}>
+                <RectangularTextButton
+                  buttonWidth={
+                    avatarObj.mode === AvatarModes.collectReward
+                      ? "auto"
+                      : "17vw"
+                  }
+                  buttonHeight={"8vh"}
+                  padding={1}
+                  text={button.label}
+                  fontSize={3.2}
+                  onHeaderIconClick={() => {
+                    button.onClick();
+                  }}
+                  className={button.isTrue ? "green-button" : "red-button"}
+                ></RectangularTextButton>
+              </div>
+            ))}
           </div>
-        ) : null}
-        <Fade
-          in={isLoading}
-          style={{
-            transitionDelay: isLoading ? "800ms" : "0ms",
-            alignSelf: "center",
-          }}
-          unmountOnExit
-        >
-          <CircularProgress />
-        </Fade>
+        </div>
       </div>
     </div>
   );

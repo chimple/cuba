@@ -176,7 +176,7 @@ const AssignmentPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            {isLinked ? (
+            {isLinked && lessons.length > 0 ? (
               <div
                 className="dowload-homework-button"
                 onClick={() => {
@@ -190,7 +190,9 @@ const AssignmentPage: React.FC = () => {
                   <TfiDownload className="dowload-homework-icon" />
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <div className="right-button"></div>
+            )}
           </div>
 
           {!loading && (

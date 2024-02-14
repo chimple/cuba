@@ -63,25 +63,7 @@ import Subjects from "./Subjects";
 import { RemoteConfig, REMOTE_CONFIG_KEYS } from "../services/RemoteConfig";
 import LiveQuiz from "./LiveQuiz";
 import SkeltonLoading from "../components/SkeltonLoading";
-
-const sortValidLessonsByDate = (
-  lessonIds: string[],
-  lessonResultMap: { [lessonDocId: string]: StudentLessonResult }
-): string[] => {
-  return lessonIds.sort((a, b) => {
-    const lessonResultA = lessonResultMap[a];
-    const lessonResultB = lessonResultMap[b];
-
-    if (!lessonResultA || !lessonResultB) {
-      return 0;
-    }
-
-    const dateA = lessonResultA.date?.toMillis() || 0;
-    const dateB = lessonResultB.date?.toMillis() || 0;
-
-    return dateB - dateA;
-  });
-};
+import { AvatarObj } from "../components/animation/Avatar";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -163,13 +145,30 @@ const Home: FC = () => {
     await isLinked();
     urlOpenListenerEvent();
   };
+
+  function sortPlayedLessonDocByDate(playedLessonData) {
+    const lessonArray: { lessonDoc: string; combinedTime: number }[] = [];
+    for (const lessonDoc in playedLessonData) {
+      if (playedLessonData.hasOwnProperty(lessonDoc)) {
+        const lessonDate = playedLessonData[lessonDoc].date;
+        const combinedTime =
+          lessonDate.seconds * 1000000000 + lessonDate.nanoseconds;
+        lessonArray.push({ lessonDoc, combinedTime });
+      }
+    }
+    lessonArray.sort((a, b) => b.combinedTime - a.combinedTime);
+    return lessonArray.map((item) => item.lessonDoc);
+  }
+
   const fetchData = async () => {
     setIsLoading(true);
 
     const lessonResult = await getRecommendeds(HOMEHEADERLIST.HOME);
     console.log("resultTemp", lessonResult);
-    const allLessonIds = await getHistory(lessonResult);
+    const allLessonIds = await getHistory();
     if (allLessonIds) setValidLessonIds(allLessonIds);
+    AvatarObj.getInstance().unlockedRewards =
+      (await Util.getAllUnlockedRewards()) || [];
     setIsLoading(false);
   };
   async function isLinked() {
@@ -192,6 +191,8 @@ const Home: FC = () => {
 
       localStorage.setItem(IS_CONECTED, JSON.stringify(parsedConectedData));
     }
+    AvatarObj.getInstance().unlockedRewards =
+      (await Util.getAllUnlockedRewards()) || [];
   }
 
   function urlOpenListenerEvent() {
@@ -362,7 +363,7 @@ const Home: FC = () => {
     return lessons;
   };
 
-  const getHistory = async (lessonResult) => {
+  const getHistory = async () => {
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent) {
       return;
@@ -370,17 +371,12 @@ const Home: FC = () => {
     const studentResult = await api.getStudentResult(currentStudent.docId);
 
     if (studentResult?.lessons) {
-      const playedLessonIds = Object.keys(studentResult.lessons);
-      // const lessonPromises = playedLessonIds.map((lessonId) =>
-      //   api.getLesson(lessonId, undefined, true)
-      const validLessonIds = playedLessonIds.filter(
-        (lessonId) => lessonId !== undefined
+      const playedLessonData = studentResult.lessons;
+      const sortedLessonDocIds = sortPlayedLessonDocByDate(playedLessonData);
+      const allValidPlayedLessonDocIds = sortedLessonDocIds.filter(
+        (lessonDoc) => lessonDoc !== undefined
       );
-      allPlayedLessonIds = sortValidLessonsByDate(
-        validLessonIds,
-        lessonResult || {}
-      );
-      return allPlayedLessonIds;
+      return allValidPlayedLessonDocIds;
     }
   };
 
