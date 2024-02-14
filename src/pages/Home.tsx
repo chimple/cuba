@@ -171,6 +171,8 @@ const Home: FC = () => {
     console.log("resultTemp", lessonResult);
     const allLessonIds = await getHistory(lessonResult);
     if (allLessonIds) setValidLessonIds(allLessonIds);
+    AvatarObj.getInstance().unlockedRewards =
+      (await Util.getAllUnlockedRewards()) || [];
     setIsLoading(false);
   };
   async function isLinked() {
@@ -193,9 +195,7 @@ const Home: FC = () => {
 
       localStorage.setItem(IS_CONECTED, JSON.stringify(parsedConectedData));
     }
-    AvatarObj.getInstance().unlockedRewards =
-      (await Util.getAllUnlockedRewards()) || [];
-  };
+  }
 
   function urlOpenListenerEvent() {
     App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
