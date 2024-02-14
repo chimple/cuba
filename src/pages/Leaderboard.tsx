@@ -376,7 +376,7 @@ const Leaderboard: React.FC = () => {
         </div>
         <div id="leaderboard-right-UI">
           {leaderboardData.map((e) => {
-            let columnWidth = ["3vw", "14vw", "15vw", "7vw", "14vw"];
+            let columnWidth = ["3vw", "14vw", "15vw", "7vw", "18vw"];
             let rankColors = ["", "#FFC32C", "#C4C4C4", "#D39A66", "#959595"];
             let i = -1;
             headerRowIndicator++;
