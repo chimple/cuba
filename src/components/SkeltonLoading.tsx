@@ -40,7 +40,17 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
       const parsedConectedData = conectedData ? JSON.parse(conectedData) : {};
       if (student) setIsLinked(parsedConectedData[student.docId]);
     }
+    getCanShowAvatar();
   }, [header]);
+
+  const getCanShowAvatar = async () => {
+    const canShowAvatarValue = await Util.getCanShowAvatar();
+    console.log("const canShowAvatarValue in home ", canShowAvatarValue);
+
+    setCanShowAvatar(canShowAvatarValue);
+  };
+  const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
+
   switch (header) {
     case HOMEHEADERLIST.SEARCH:
       return isLoading ? (
@@ -50,7 +60,11 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
       ) : null;
       break;
     case HOMEHEADERLIST.HOME:
-      // return isLoading ? skeltonHome() : null;
+      return isLoading
+        ? !!canShowAvatar
+          ? skeltonHome()
+          : skeltonSubjectCards()
+        : null;
       break;
     case PAGES.DISPLAY_CHAPTERS:
       return isLoading ? skeltonDisplayChapters() : null;
@@ -150,11 +164,22 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
       </div>
     );
   }
+
   function skeltonHome() {
+    console.log("function skeltonHome() { called");
+
     return (
       <div className="skelton-home-screen">
-        <Skeleton className="skelton-home-screen-avatar" />
-        <Skeleton className="skelton-home-screen-diloag" />
+        <div id="skelton-home-screen-div">
+          <img
+            id="skelton-home-screen-char"
+            src={"/assets/animation/chimple_avatar.png"}
+            loading="lazy"
+            alt=""
+          />
+        </div>
+        {/* <Skeleton className="skelton-home-screen-avatar" /> */}
+        {/* <Skeleton className="skelton-home-screen-diloag" /> */}
       </div>
     );
   }

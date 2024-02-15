@@ -50,7 +50,6 @@ const ChimpleAvatar: FC<{
   const [isBurst, setIsBurst] = useState(false);
   const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(true);
   const [riveCharHandsUp, setRiveCharHandsUp] = useState("Fail");
-  const [avatarCompoLoading, setavatarCompoLoading] = useState<boolean>(true);
   const history = useHistory();
   const State_Machine = "State Machine 1";
   const [isAudioPlayed, setIsAudioPlayed] = useState<boolean>(true);
@@ -61,10 +60,6 @@ const ChimpleAvatar: FC<{
     layout: new Layout({ fit: Fit.Cover }),
     animations: riveCharHandsUp,
     autoplay: true,
-    onLoad: () => {
-      setavatarCompoLoading(false);
-      console.log("setSpinnerLoading(false); in compon ", avatarCompoLoading);
-    },
   });
   const onclickInput = useStateMachineInput(
     rive,
@@ -719,39 +714,11 @@ const ChimpleAvatar: FC<{
         {/* <IonLoading id="custom-loading-for-avatar" isOpen={spinnerLoading} /> */}
         <div className="rive-container">
           <RiveComponent
-            onLoad={() => {
-              setavatarCompoLoading(false);
-              console.log(
-                "setSpinnerLoading(false); in div ",
-                avatarCompoLoading
-              );
-            }}
             className="rive-component"
             onClick={onClickRiveComponent}
           />
           <div id="rive-avatar-shadow" />
         </div>
-        {avatarCompoLoading ? (
-          <div
-            style={{
-              position: "fixed",
-              top: "26vh",
-              left: "11vw",
-            }}
-          >
-            <img
-              // className="rive-component"
-              style={{
-                marginTop: "7vh",
-                width: "auto",
-                height: "55vh",
-              }}
-              src={"/assets/animation/chimple_avatar.png"}
-              loading="lazy"
-              alt=""
-            />
-          </div>
-        ) : null}
       </div>
       <div
         className={`avatar-option-box-background ${isBurst ? "burst" : ""}`}

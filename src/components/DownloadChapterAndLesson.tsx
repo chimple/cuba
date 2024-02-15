@@ -31,6 +31,7 @@ const DownloadLesson: React.FC<{
     const storedLessonIds = Util.getStoredLessonIds();
     if (lessonId && storedLessonIds.includes(lessonId)) {
       setShowIcon(false);
+      downloadButtonLoading = false;
     }
     if (chapter) {
       const isChapterDownloaded = await Util.isChapterDowloaded(chapter);
