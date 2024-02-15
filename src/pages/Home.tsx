@@ -251,7 +251,7 @@ const Home: FC = () => {
           }
         })
       );
-      // setPendingAssignmentsCount(count);
+      setPendingAssignmentsCount(count);
 
       // setDataCourse(reqLes);
       // storeRecommendationsInLocalStorage(reqLes);
