@@ -25,6 +25,7 @@ import { Capacitor } from "@capacitor/core";
 import { StudentLessonResult } from "../common/courseConstants";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { TfiDownload } from "react-icons/tfi";
+import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 
 const AssignmentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -40,6 +41,7 @@ const AssignmentPage: React.FC = () => {
   }>();
   const [downloadButtonLoading, setDownloadButtonLoading] = useState(false);
   const [isInputFocus, setIsInputFocus] = useState(false);
+  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
 
   useEffect(() => {
     init();
@@ -180,7 +182,23 @@ const AssignmentPage: React.FC = () => {
               <div
                 className="dowload-homework-button"
                 onClick={() => {
-                  downloadAllHomeWork(lessons);
+                  if (!online) {
+                    presentToast({
+                      message: t(`Device is offline.`),
+                      color: "danger",
+                      duration: 3000,
+                      position: "bottom",
+                      buttons: [
+                        {
+                          text: "Dismiss",
+                          role: "cancel",
+                        },
+                      ],
+                    });
+
+                    setLoading(false);
+                    return;
+                  } else downloadAllHomeWork(lessons);
                 }}
               >
                 <div className="download-homework-label">

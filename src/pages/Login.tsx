@@ -570,7 +570,7 @@ const Login: React.FC = () => {
                 <div id="login-text-box">
                   <div>
                     <TextBox
-                      inputText={"Enter 6 Digit Code"}
+                      inputText={t("Enter 6 Digit Code")}
                       inputType={"tel"}
                       maxLength={6}
                       inputValue={verificationCode.trim()}
