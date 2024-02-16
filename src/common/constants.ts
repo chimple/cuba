@@ -516,3 +516,5 @@ export enum LeaderboardRewardsType {
   BONUS = "bonus",
   STICKER = "sticker",
 }
+export const DOWNLOAD_LESSON_BATCH_SIZE = 15;
+export const MAX_DOWNLOAD_LESSON_ATTEMPTS = 3;
