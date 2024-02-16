@@ -25,6 +25,7 @@ import { t } from "i18next";
 import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
 import Course from "../models/course";
 import { AvatarObj } from "../components/animation/Avatar";
+import { Capacitor } from "@capacitor/core";
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -37,6 +38,7 @@ const CocosGame: React.FC = () => {
   const [showDialogBox, setShowDialogBox] = useState(false);
   // let gameResult : any;
   const [gameResult, setGameResult] = useState<any>();
+  const [isDeviceAwake, setDeviceAwake] = useState(false);
   const currentStudent = Util.getCurrentStudent();
   const CourseDetail: Course = JSON.parse(state.course);
   const lessonDetail: Lesson = JSON.parse(state.lesson);
@@ -58,8 +60,19 @@ const CocosGame: React.FC = () => {
 
   useEffect(() => {
     init();
-  }, []);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === "visible") {
+      setDeviceAwake(true);
+    } else {
+      setDeviceAwake(false);
+    }
+  };
   const killGame = (e: any) => {
     setShowDialogBox(true);
     Util.killCocosGame();
@@ -71,15 +84,21 @@ const CocosGame: React.FC = () => {
   const push = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
+    if (Capacitor.isNativePlatform()) {
+      if (!!isDeviceAwake) {
+        urlParams.set("isReload", "true");
+        history.replace(fromPath);
+        window.location.reload();
+      } else {
+        history.replace(fromPath);
+      }
+    }
     if (!!urlParams.get("isReload")) {
       if (fromPath.includes("?")) history.replace(fromPath + "&isReload=true");
       else history.replace(fromPath + "?isReload=true");
       window.location.reload();
     } else {
-      if (fromPath.includes("?")) {
-        history.replace(fromPath + "&isReload=true");
-      }
-      window.location.reload();
+      history.replace(fromPath);
     }
     setIsLoading(false);
   };
