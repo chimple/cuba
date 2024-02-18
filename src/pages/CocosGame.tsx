@@ -26,6 +26,7 @@ import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
 import Course from "../models/course";
 import { AvatarObj } from "../components/animation/Avatar";
 import { Capacitor } from "@capacitor/core";
+import { App as CapApp } from "@capacitor/app";
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -60,14 +61,14 @@ const CocosGame: React.FC = () => {
 
   useEffect(() => {
     init();
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
+    CapApp.addListener("appStateChange", handleAppStateChange);
     return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      CapApp.removeAllListeners();
     };
   }, []);
-  const handleVisibilityChange = () => {
-    if (document.visibilityState === "visible") {
+
+  const handleAppStateChange = (state) => {
+    if (state.isActive) {
       setDeviceAwake(true);
     } else {
       setDeviceAwake(false);
@@ -87,7 +88,6 @@ const CocosGame: React.FC = () => {
     if (Capacitor.isNativePlatform()) {
       if (!!isDeviceAwake) {
         urlParams.set("isReload", "true");
-        history.replace(fromPath);
         window.location.reload();
       } else {
         history.replace(fromPath);
