@@ -50,12 +50,9 @@ const AssignmentPage: React.FC = () => {
   async function downloadAllHomeWork(lessons) {
     setDownloadButtonLoading(true);
     const allLessonIds = lessons.map((lesson) => lesson.id);
-
     try {
-      const dowload = await Util.downloadZipBundle(allLessonIds);
-      if (dowload) {
-        setDownloadButtonLoading(false);
-      }
+      await Util.downloadZipBundle(allLessonIds);
+      setDownloadButtonLoading(false);
     } catch (error) {
       console.error("Error downloading homework:", error);
       setDownloadButtonLoading(false);
