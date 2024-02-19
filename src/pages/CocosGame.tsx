@@ -64,6 +64,7 @@ const CocosGame: React.FC = () => {
     CapApp.addListener("appStateChange", handleAppStateChange);
     return () => {
       CapApp.removeAllListeners();
+      CapApp.addListener("appStateChange", Util.onAppStateChange);
     };
   }, []);
 
