@@ -179,24 +179,23 @@ const AssignmentPage: React.FC = () => {
               <div
                 className="dowload-homework-button"
                 onClick={() => {
-                  // if (!online) {
-                  //   presentToast({
-                  //     message: t(`Device is offline.`),
-                  //     color: "danger",
-                  //     duration: 3000,
-                  //     position: "bottom",
-                  //     buttons: [
-                  //       {
-                  //         text: "Dismiss",
-                  //         role: "cancel",
-                  //       },
-                  //     ],
-                  //   });
+                  if (!online) {
+                    presentToast({
+                      message: t(`Device is offline.`),
+                      color: "danger",
+                      duration: 3000,
+                      position: "bottom",
+                      buttons: [
+                        {
+                          text: "Dismiss",
+                          role: "cancel",
+                        },
+                      ],
+                    });
 
-                  //   setLoading(false);
-                  //   return;
-                  // } else downloadAllHomeWork(lessons);
-                  downloadAllHomeWork(lessons);
+                    setLoading(false);
+                    return;
+                  } else downloadAllHomeWork(lessons);
                 }}
               >
                 <div className="download-homework-label">
