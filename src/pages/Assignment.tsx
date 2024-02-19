@@ -51,7 +51,7 @@ const AssignmentPage: React.FC = () => {
     setDownloadButtonLoading(true);
     const allLessonIds = lessons.map((lesson) => lesson.id);
     try {
-      const dowload = await Util.downloadZipBundle(allLessonIds);
+      await Util.downloadZipBundle(allLessonIds);
       setDownloadButtonLoading(false);
     } catch (error) {
       console.error("Error downloading homework:", error);
@@ -179,23 +179,24 @@ const AssignmentPage: React.FC = () => {
               <div
                 className="dowload-homework-button"
                 onClick={() => {
-                  if (!online) {
-                    presentToast({
-                      message: t(`Device is offline.`),
-                      color: "danger",
-                      duration: 3000,
-                      position: "bottom",
-                      buttons: [
-                        {
-                          text: "Dismiss",
-                          role: "cancel",
-                        },
-                      ],
-                    });
+                  // if (!online) {
+                  //   presentToast({
+                  //     message: t(`Device is offline.`),
+                  //     color: "danger",
+                  //     duration: 3000,
+                  //     position: "bottom",
+                  //     buttons: [
+                  //       {
+                  //         text: "Dismiss",
+                  //         role: "cancel",
+                  //       },
+                  //     ],
+                  //   });
 
-                    setLoading(false);
-                    return;
-                  } else downloadAllHomeWork(lessons);
+                  //   setLoading(false);
+                  //   return;
+                  // } else downloadAllHomeWork(lessons);
+                  downloadAllHomeWork(lessons);
                 }}
               >
                 <div className="download-homework-label">
