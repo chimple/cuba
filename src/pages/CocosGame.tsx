@@ -88,18 +88,21 @@ const CocosGame: React.FC = () => {
     const fromPath: string = state?.from ?? PAGES.HOME;
     if (Capacitor.isNativePlatform()) {
       if (!!isDeviceAwake) {
-        urlParams.set("isReload", "true");
+        history.replace(fromPath + "&isReload=true");
         window.location.reload();
       } else {
         history.replace(fromPath);
       }
-    }
-    if (!!urlParams.get("isReload")) {
-      if (fromPath.includes("?")) history.replace(fromPath + "&isReload=true");
-      else history.replace(fromPath + "?isReload=true");
-      window.location.reload();
+      setIsLoading(false);
     } else {
-      history.replace(fromPath);
+      if (!!urlParams.get("isReload")) {
+        if (fromPath.includes("?"))
+          history.replace(fromPath + "&isReload=true");
+        else history.replace(fromPath + "?isReload=true");
+        window.location.reload();
+      } else {
+        history.replace(fromPath);
+      }
     }
     setIsLoading(false);
   };
