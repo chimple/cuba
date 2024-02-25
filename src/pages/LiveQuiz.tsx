@@ -97,6 +97,7 @@ const LiveQuiz: React.FC = () => {
                 startIndex={0}
                 showSubjectName={true}
                 showChapterName={true}
+                showDate={true}
               />
             </div>
           ) : (
