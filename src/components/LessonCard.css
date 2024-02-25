@@ -12,7 +12,17 @@
   box-shadow: none !important;
   margin: 0 1em;
 }
-
+#lesson-card-date {
+  color: var(--text-color);
+  font-size: var(--text-size);
+  position: absolute;
+  display: flex;
+}
+.assigned-date-div {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 1vh;
+}
 #lesson-header {
   padding: 10px 0px 0px 0px;
 }
