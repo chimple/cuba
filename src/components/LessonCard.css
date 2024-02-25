@@ -16,7 +16,6 @@
   color: var(--text-color);
   font-size: var(--text-size);
   position: absolute;
-  display: flex;
 }
 .assigned-date-div {
   display: flex;
