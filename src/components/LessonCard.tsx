@@ -146,7 +146,7 @@ const LessonCard: React.FC<{
                       .toString()
                       .padStart(2, "0");
                     const year = date.getFullYear();
-                    return `${day}/${month}/${year}`;
+                    return `${day}-${month}-${year}`;
                   })()}
               </b>
             </p>
