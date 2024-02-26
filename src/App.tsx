@@ -1,4 +1,4 @@
-import { Route, Switch } from "react-router-dom";
+import { Route, Switch, useHistory } from "react-router-dom";
 import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
@@ -36,6 +36,7 @@ import {
   CACHE_IMAGE,
   CONTINUE,
   GAME_URL,
+  HOMEHEADERLIST,
   IS_CUBA,
   PAGES,
 } from "./common/constants";
@@ -71,6 +72,7 @@ setupIonicReact();
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
+  const history = useHistory();
 
   useEffect(() => {
     const handleOnline = () => {
@@ -115,9 +117,17 @@ const App: React.FC = () => {
       window.removeEventListener("offline", handleOffline);
     };
   }, [online, presentToast]);
-
   useEffect(() => {
     console.log("fetching...");
+    Util.checkNotificationPermissionsAndType((type) => {
+      if (type) {
+        console.log("Notification type:", type);
+        if (type === "reward") {
+          history.replace(HOMEHEADERLIST.HOME);
+        }
+      }
+    });
+
     // localStorage.setItem(LANGUAGE, LANG.ENGLISH);
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get(CONTINUE) || PAGES.APP_UPDATE) {
@@ -153,9 +163,6 @@ const App: React.FC = () => {
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
-
-    //Checking for Notification permissions
-    Util.checkNotificationPermissions();
 
     //Listen to network change
     Util.listenToNetwork();
