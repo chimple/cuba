@@ -22,6 +22,11 @@ export enum LeaderboardDropdownList {
   ALL_TIME = "ALL_TIME",
 }
 
+export enum APP_LANGUAGES {
+  en = "English",
+  hi = "हिन्दी",
+  kn = "ಕನ್ನಡ",
+}
 export enum HOMEHEADERLIST {
   SUGGESTIONS = "SUGGESTIONS",
   SUBJECTS = "SUBJECTS",
