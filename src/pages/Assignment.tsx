@@ -236,6 +236,7 @@ const AssignmentPage: React.FC = () => {
                       showSubjectName={true}
                       showChapterName={true}
                       downloadButtonLoading={downloadButtonLoading}
+                      showDate={true}
                     />
                   ) : (
                     <div className="pending-assignment">

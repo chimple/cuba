@@ -895,6 +895,7 @@ const Home: FC = () => {
                       startIndex={0}
                       showSubjectName={true}
                       showChapterName={true}
+                      showDate={true}
                     />
                   )}
 

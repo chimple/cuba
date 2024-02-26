@@ -18,6 +18,7 @@ const LessonSlider: React.FC<{
   onEndReached?: () => void;
   onMoved?: (splide: any) => any;
   downloadButtonLoading?: boolean;
+  showDate?: boolean;
 }> = ({
   lessonData,
   course,
@@ -29,6 +30,7 @@ const LessonSlider: React.FC<{
   onEndReached,
   onMoved,
   downloadButtonLoading,
+  showDate,
 }) => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
   const [loadedLessons, setLoadedLessons] = useState<Lesson[]>([]);
@@ -104,6 +106,7 @@ const LessonSlider: React.FC<{
                 startIndex={startIndex === -1 ? startIndex + 1 : startIndex}
                 showChapterName={showChapterName}
                 downloadButtonLoading={downloadButtonLoading}
+                showDate={showDate}
               />
             </SplideSlide>
           );
@@ -157,6 +160,7 @@ const LessonSlider: React.FC<{
                 startIndex={startIndex === -1 ? startIndex + 1 : startIndex}
                 showChapterName={showChapterName}
                 downloadButtonLoading={downloadButtonLoading}
+                showDate={showDate}
               />
             </SplideSlide>
           );
