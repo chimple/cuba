@@ -311,7 +311,10 @@ export class Util {
     localStorage.setItem(lessonIdStorageKey, JSON.stringify(updatedItems));
   };
 
-  public static async downloadZipBundle(lessonIds: string[]): Promise<boolean> {
+  public static async downloadZipBundle(
+    lessonIds: string[],
+    lessonDownloaded?: (lessonDownloded: boolean) => void
+  ): Promise<boolean> {
     try {
       if (!Capacitor.isNativePlatform()) return true;
 
@@ -323,6 +326,7 @@ export class Util {
         const results = await Promise.all(
           lessonIdsChunk.map(async (lessonId) => {
             try {
+              if (lessonDownloaded) lessonDownloaded(false);
               let lessonDownloadSuccess = true; // Flag to track lesson download success
               console.log(
                 "downloading Directory.External",
@@ -427,13 +431,12 @@ export class Util {
                   data: buffer,
                 });
                 console.log("Unzip done");
-
                 this.storeLessonIdToLocalStorage(
                   lessonId,
                   DOWNLOADED_LESSON_ID
                 );
+                if (lessonDownloaded) lessonDownloaded(true);
               }
-
               return lessonDownloadSuccess; // Return the result of lesson download
             } catch (error) {
               console.error("Error during lesson download: ", error);
@@ -446,7 +449,6 @@ export class Util {
           return false; // If any lesson download failed, return false
         }
       }
-
       return true; // Return true if all lessons are successfully downloaded
     } catch (error) {
       console.error("Error during lesson download: ", error);

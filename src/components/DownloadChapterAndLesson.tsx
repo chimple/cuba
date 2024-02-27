@@ -14,7 +14,13 @@ const DownloadLesson: React.FC<{
   lessonId?: string;
   chapter?: Chapter;
   downloadButtonLoading?: boolean;
-}> = ({ lessonId, chapter, downloadButtonLoading = false }) => {
+  onDownloadOrDelete?: () => void;
+}> = ({
+  lessonId,
+  chapter,
+  downloadButtonLoading = false,
+  onDownloadOrDelete,
+}) => {
   const [showIcon, setShowIcon] = useState(true);
   const [showDialogBox, setShowDialogBox] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -82,6 +88,7 @@ const DownloadLesson: React.FC<{
     }
     setShowIcon(false);
     setLoading(false);
+    if (onDownloadOrDelete) onDownloadOrDelete();
   };
 
   const handleDelete = async () => {
@@ -95,6 +102,7 @@ const DownloadLesson: React.FC<{
         if (!storedLessonID.includes(e.id)) {
           setShowIcon(true);
         }
+        if (onDownloadOrDelete) onDownloadOrDelete();
       });
 
       await Util.deleteDownloadedLesson(storeLessonID);
@@ -103,6 +111,7 @@ const DownloadLesson: React.FC<{
       if (!storedLessonID.includes(lessonId)) {
         setShowIcon(true);
       }
+      if (onDownloadOrDelete) onDownloadOrDelete();
     }
     setLoading(false);
   };

@@ -41,6 +41,7 @@ const LessonCard: React.FC<{
   showChapterName: boolean;
   downloadButtonLoading?: boolean;
   showDate?: boolean;
+  onDownloadOrDelete?: () => void;
 }> = ({
   width,
   height,
@@ -59,6 +60,7 @@ const LessonCard: React.FC<{
   showChapterName = false,
   downloadButtonLoading,
   showDate,
+  onDownloadOrDelete,
 }) => {
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
@@ -333,6 +335,7 @@ const LessonCard: React.FC<{
             <DownloadLesson
               lessonId={lesson.id}
               downloadButtonLoading={downloadButtonLoading}
+              onDownloadOrDelete={onDownloadOrDelete}
             />
           </div>
           {isLoved && (
