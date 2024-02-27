@@ -132,6 +132,7 @@
   "Delete Parent's Account": "Delete Parent's Account",
   "Delete Profile": "Delete Profile",
   "Delete": "Delete",
+  "Device is offline. Cannot complete a profile": "Device is offline. Cannot complete a profile",
   "Device is offline. Cannot create a new child profile": "Device is offline. Cannot create a new child profile",
   "Device is offline. Cannot download the Chapter": "Device is offline. Cannot download the Chapter",
   "Device is offline. Cannot download the Lesson": "Device is offline. Cannot download the Lesson",
