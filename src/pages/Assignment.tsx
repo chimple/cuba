@@ -43,7 +43,7 @@ const AssignmentPage: React.FC = () => {
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [showDownloadHomeworkButton, setShowDownloadHomeworkButton] =
     useState(true);
-
+  const [lessonDownloaded, setlessonDownloaded] = useState(String);
   useEffect(() => {
     init();
   }, []);
@@ -69,10 +69,13 @@ const AssignmentPage: React.FC = () => {
     setDownloadButtonLoading(true);
     const allLessonIds = lessons.map((lesson) => lesson.id);
     try {
-      await Util.downloadZipBundle(allLessonIds, (lessonDownloaded?) => {
-        if (lessonDownloaded) {
-          setDownloadButtonLoading(false);
-        } else setDownloadButtonLoading(true);
+      const storedLessonIds = Util.getStoredLessonIds();
+      const filteredLessonIds = allLessonIds.filter(
+        (id) => !storedLessonIds.includes(id)
+      );
+
+      await Util.downloadZipBundle(filteredLessonIds, (lessonDownloaded?) => {
+        if (lessonDownloaded) setlessonDownloaded(lessonDownloaded);
       });
       setDownloadButtonLoading(false);
       checkAllHomeworkDownloaded();
@@ -261,6 +264,7 @@ const AssignmentPage: React.FC = () => {
                       downloadButtonLoading={downloadButtonLoading}
                       showDate={true}
                       onDownloadOrDelete={checkAllHomeworkDownloaded}
+                      lessonDownloaded={lessonDownloaded}
                     />
                   ) : (
                     <div className="pending-assignment">

@@ -15,11 +15,13 @@ const DownloadLesson: React.FC<{
   chapter?: Chapter;
   downloadButtonLoading?: boolean;
   onDownloadOrDelete?: () => void;
+  lessonDownloaded?: string;
 }> = ({
   lessonId,
   chapter,
   downloadButtonLoading = false,
   onDownloadOrDelete,
+  lessonDownloaded,
 }) => {
   const [showIcon, setShowIcon] = useState(true);
   const [showDialogBox, setShowDialogBox] = useState(false);
@@ -31,7 +33,7 @@ const DownloadLesson: React.FC<{
   useEffect(() => {
     init();
     setLoading(downloadButtonLoading);
-  }, [downloadButtonLoading]);
+  }, [downloadButtonLoading, lessonDownloaded]);
 
   async function init() {
     const storedLessonIds = Util.getStoredLessonIds();

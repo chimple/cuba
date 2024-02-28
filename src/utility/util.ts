@@ -313,7 +313,7 @@ export class Util {
 
   public static async downloadZipBundle(
     lessonIds: string[],
-    lessonDownloaded?: (lessonDownloded: boolean) => void
+    downloadedLessonId?: (downloadedLessonId: string) => void
   ): Promise<boolean> {
     try {
       if (!Capacitor.isNativePlatform()) return true;
@@ -326,7 +326,6 @@ export class Util {
         const results = await Promise.all(
           lessonIdsChunk.map(async (lessonId) => {
             try {
-              if (lessonDownloaded) lessonDownloaded(false);
               let lessonDownloadSuccess = true; // Flag to track lesson download success
               console.log(
                 "downloading Directory.External",
@@ -435,7 +434,7 @@ export class Util {
                   lessonId,
                   DOWNLOADED_LESSON_ID
                 );
-                if (lessonDownloaded) lessonDownloaded(true);
+                if (downloadedLessonId) downloadedLessonId(lessonId);
               }
               return lessonDownloadSuccess; // Return the result of lesson download
             } catch (error) {
