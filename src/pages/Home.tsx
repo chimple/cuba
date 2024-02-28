@@ -87,6 +87,7 @@ const Home: FC = () => {
   const [gradeMap, setGradeMap] = useState<any>({});
   const [pendingAssignmentsCount, setPendingAssignmentsCount] =
     useState<number>(0);
+  const [pendingLiveQuizCount, setPendingLiveQuizCount] = useState<number>(0);
   const history = useHistory();
   const [PlayedLessonsList, setPlayedLessonsList] = useState<Lesson[]>([]);
   const [favouriteLessons, setFavouriteLessons] = useState<Lesson[]>([]);
@@ -235,6 +236,7 @@ const Home: FC = () => {
         })
       );
       let count = 0;
+      let liveQuizCount = 0;
       await Promise.all(
         allAssignments.map(async (_assignment) => {
           const res = await api.getLesson(
@@ -244,13 +246,18 @@ const Home: FC = () => {
             _assignment
           );
           console.log(res);
-          if (!!res) {
+          if (_assignment.type !== LIVE_QUIZ) {
             count++;
+          } else {
+            liveQuizCount++;
+          }
+          if (!!res) {
             res.assignment = _assignment;
             reqLes.push(res);
           }
         })
       );
+      setPendingLiveQuizCount(liveQuizCount);
       setPendingAssignmentsCount(count);
 
       // setDataCourse(reqLes);
@@ -805,6 +812,7 @@ const Home: FC = () => {
           currentHeader={currentHeader}
           onHeaderIconClick={onHeaderIconClick}
           pendingAssignmentCount={pendingAssignmentsCount}
+          pendingLiveQuizCount={pendingLiveQuizCount}
         ></HomeHeader>
       </IonHeader>
       <div className="slider-content">

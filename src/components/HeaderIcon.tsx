@@ -12,11 +12,13 @@ const HeaderIcon: React.FC<{
   headerConfig: any;
   currentHeader: string;
   pendingAssignmentCount: number | undefined;
+  pendingLiveQuizCount: number | undefined;
   onHeaderIconClick: Function;
 }> = ({
   headerConfig,
   currentHeader,
   pendingAssignmentCount,
+  pendingLiveQuizCount,
   onHeaderIconClick,
 }) => {
   const isCurrentHeaderActive = currentHeader === headerConfig.headerList;
@@ -34,6 +36,15 @@ const HeaderIcon: React.FC<{
           <div id="homework-notification">
             <IonBadge class="badge-notification">
               {pendingAssignmentCount}
+            </IonBadge>
+          </div>
+        )}
+      {headerConfig.headerList == HOMEHEADERLIST.LIVEQUIZ &&
+        !!pendingLiveQuizCount &&
+        pendingLiveQuizCount > 0 && (
+          <div id="homework-notification">
+            <IonBadge class="livequiz-badge-notification">
+              {pendingLiveQuizCount}
             </IonBadge>
           </div>
         )}
