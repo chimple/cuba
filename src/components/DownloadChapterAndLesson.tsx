@@ -35,6 +35,14 @@ const DownloadLesson: React.FC<{
     setLoading(downloadButtonLoading);
   }, [downloadButtonLoading, lessonDownloaded]);
 
+  useEffect(() => {
+    const storedLessonIds = Util.getStoredLessonIds();
+    if (lessonDownloaded && storedLessonIds.includes(lessonDownloaded)) {
+      setShowIcon(false);
+    }
+    setLoading(downloadButtonLoading);
+  }, [lessonDownloaded]);
+
   async function init() {
     const storedLessonIds = Util.getStoredLessonIds();
     if (lessonId && storedLessonIds.includes(lessonId)) {
