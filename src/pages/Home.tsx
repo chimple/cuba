@@ -140,6 +140,7 @@ const Home: FC = () => {
     setValue(SUBTAB.SUGGESTIONS);
     getCanShowAvatar();
     const urlParams = new URLSearchParams(location.search);
+    App.addListener("appStateChange", Util.onAppStateChange);
 
     if (!!urlParams.get(CONTINUE)) {
       urlParams.delete(CONTINUE);
