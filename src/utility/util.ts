@@ -1117,7 +1117,7 @@ export class Util {
                   notification
                 );
                 const extraData = notification.notification.extra;
-                const rewardProfileUid = extraData.tempUid;
+                const rewardProfileUid = extraData.rewardProfileUid;
                 onNotification(NotificationType.REWARD, rewardProfileUid);
               }
             );
