@@ -124,6 +124,10 @@ const Home: FC = () => {
           return HOMEHEADERLIST.SUBJECTS;
         case "homeWorkInHome":
           return HOMEHEADERLIST.ASSIGNMENT;
+        case "searchInHome":
+          return HOMEHEADERLIST.SEARCH;
+        case "liveQuizInHome":
+          return HOMEHEADERLIST.LIVEQUIZ;
         default:
           return HOMEHEADERLIST.HOME;
       }

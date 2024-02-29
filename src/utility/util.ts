@@ -40,7 +40,6 @@ import {
   unlockedRewardsInfo,
   DOWNLOAD_LESSON_BATCH_SIZE,
   MAX_DOWNLOAD_LESSON_ATTEMPTS,
-  HOMEHEADERLIST,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -54,7 +53,6 @@ import { OneRosterApi } from "../services/api/OneRosterApi";
 import User from "../models/user";
 import { ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
-import { useHistory } from "react-router";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 import {

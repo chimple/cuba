@@ -1,4 +1,4 @@
-import { Route, Switch, useHistory } from "react-router-dom";
+import { Route, Switch} from "react-router-dom";
 import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
@@ -36,7 +36,6 @@ import {
   CACHE_IMAGE,
   CONTINUE,
   GAME_URL,
-  HOMEHEADERLIST,
   IS_CUBA,
   PAGES,
 } from "./common/constants";
@@ -72,8 +71,6 @@ setupIonicReact();
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
-  const history = useHistory();
-  const currentStudent = Util.getCurrentStudent();
 
   useEffect(() => {
     const handleOnline = () => {
