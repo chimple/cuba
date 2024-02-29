@@ -33,11 +33,12 @@ const DownloadLesson: React.FC<{
   useEffect(() => {
     init();
     setLoading(downloadButtonLoading);
-  }, [downloadButtonLoading, lessonDownloaded]);
+  }, [downloadButtonLoading]);
 
   useEffect(() => {
-    if (lessonDownloaded) {
+    if (lessonDownloaded === lessonId) {
       setShowIcon(false);
+      setLoading(false);
     }
   }, [lessonDownloaded]);
 
