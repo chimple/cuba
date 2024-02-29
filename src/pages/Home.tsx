@@ -77,10 +77,10 @@ const Home: FC = () => {
   const [courses, setCourses] = useState<Course[]>();
   const [lessons, setLessons] = useState<Lesson[]>();
   //const [currentHeader, setCurrentHeader] = useState<any>(undefined);
-  const [currentHeader, setCurrentHeader] = useState<any>(() => {
-    //Initialize with the value from local storage (if available)
-    return localStorage.getItem("currentHeader") || HOMEHEADERLIST.HOME;
-  });
+  // const [currentHeader, setCurrentHeader] = useState<any>(() => {
+  //   //Initialize with the value from local storage (if available)
+  //   return localStorage.getItem("currentHeader") || HOMEHEADERLIST.HOME;
+  // });
   const [lessonsScoreMap, setLessonsScoreMap] = useState<any>();
   const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
   const [levelChapter, setLevelChapter] = useState<Chapter>();
@@ -100,7 +100,6 @@ const Home: FC = () => {
   );
   const [historyLessons, setHistoryLessons] = useState<Lesson[]>([]);
   const [validLessonIds, setValidLessonIds] = useState<string[]>([]);
-
   let allPlayedLessonIds: string[] = [];
   let tempPageNumber = 1;
   let linked: boolean;
@@ -111,8 +110,27 @@ const Home: FC = () => {
 
     setCanShowAvatar(canShowAvatarValue);
   };
+  const urlParams = new URLSearchParams(location.search);
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
-
+  const [currentHeader, setCurrentHeader] = useState(() => {
+    const currPage = urlParams.get("tab");
+    if (currPage) {
+      switch (currPage) {
+        case "avatarInHome":
+          return HOMEHEADERLIST.HOME;
+        case "suggesInHome":
+          return HOMEHEADERLIST.SUGGESTIONS;
+        case "subjectsInHome":
+          return HOMEHEADERLIST.SUBJECTS;
+        case "homeWorkInHome":
+          return HOMEHEADERLIST.ASSIGNMENT;
+        default:
+          return HOMEHEADERLIST.HOME;
+      }
+    } else {
+      return localStorage.getItem("currentHeader") || HOMEHEADERLIST.HOME;
+    }
+  });
   useEffect(() => {
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
@@ -120,8 +138,6 @@ const Home: FC = () => {
     setCurrentHeader(HOMEHEADERLIST.HOME);
     setValue(SUBTAB.SUGGESTIONS);
     getCanShowAvatar();
-    const urlParams = new URLSearchParams(location.search);
-
     if (!!urlParams.get(CONTINUE)) {
       urlParams.delete(CONTINUE);
       App.addListener("appStateChange", Util.onAppStateChange);

@@ -73,6 +73,7 @@ const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
   const history = useHistory();
+  const currentStudent = Util.getCurrentStudent();
 
   useEffect(() => {
     const handleOnline = () => {
@@ -118,14 +119,13 @@ const App: React.FC = () => {
     };
   }, [online, presentToast]);
   useEffect(() => {
-    console.log("fetching...");
+    console.log("fetching...", history);
     Util.checkNotificationPermissionsAndType((type) => {
       if (type) {
-        console.log("Notification type:", type);
         if (type === "reward") {
-          history.replace(HOMEHEADERLIST.HOME);
+            window.location.replace(PAGES.HOME + "?tab=avatarInHome");
         }
-      }
+      } 
     });
 
     // localStorage.setItem(LANGUAGE, LANG.ENGLISH);
@@ -192,7 +192,6 @@ const App: React.FC = () => {
       console.error("Util.migrateLocalJsonFile failed ", error);
     }
   }
-
   return (
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>

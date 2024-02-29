@@ -1,4 +1,9 @@
-import { Capacitor, CapacitorHttp, registerPlugin } from "@capacitor/core";
+import {
+  Capacitor,
+  CapacitorHttp,
+  PluginCallback,
+  registerPlugin,
+} from "@capacitor/core";
 import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
@@ -85,8 +90,8 @@ declare global {
     _CCSettings: any;
   }
 }
-interface NotificationData {
-  notificationType?: string;
+enum NotificationType {
+  REWARD = "reward",
 }
 
 export class Util {
@@ -1084,11 +1089,11 @@ export class Util {
   public static notificationsCount = 0;
 
   public static async checkNotificationPermissionsAndType(
-    onNotification: (type: string) => void
+    onNotification: (type: NotificationType) => void
   ) {
     if (!Capacitor.isNativePlatform()) return;
     try {
-      await FirebaseMessaging.addListener(
+      FirebaseMessaging.addListener(
         "notificationReceived",
         async ({ notification }) => {
           console.log("notificationReceived", JSON.stringify(notification));
@@ -1106,19 +1111,20 @@ export class Util {
                 },
               ],
             });
+            LocalNotifications.addListener(
+              "localNotificationActionPerformed",
+              (notification) => {
+                console.log(
+                  "Local Notification Action Performed",
+                  notification
+                );
+                onNotification(NotificationType.REWARD);
+              }
+            );
             console.log(
               "🚀 ~ file: util.ts:622 ~ res:",
               JSON.stringify(res.notifications)
             );
-
-            if (
-              notification.data &&
-              (notification.data as NotificationData).notificationType ===
-                "reward"
-            ) {
-              console.log("Notification Type: reward");
-              onNotification("reward");
-            }
           } catch (error) {
             console.log(
               "🚀 ~ file: util.ts:630 ~ error:",
