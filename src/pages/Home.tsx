@@ -116,17 +116,17 @@ const Home: FC = () => {
     const currPage = urlParams.get("tab");
     if (currPage) {
       switch (currPage) {
-        case "avatarInHome":
+        case HOMEHEADERLIST.HOME:
           return HOMEHEADERLIST.HOME;
-        case "suggesInHome":
+        case HOMEHEADERLIST.SUGGESTIONS:
           return HOMEHEADERLIST.SUGGESTIONS;
-        case "subjectsInHome":
+        case HOMEHEADERLIST.SUBJECTS:
           return HOMEHEADERLIST.SUBJECTS;
-        case "homeWorkInHome":
+        case HOMEHEADERLIST.ASSIGNMENT:
           return HOMEHEADERLIST.ASSIGNMENT;
-        case "searchInHome":
+        case HOMEHEADERLIST.SEARCH:
           return HOMEHEADERLIST.SEARCH;
-        case "liveQuizInHome":
+        case HOMEHEADERLIST.LIVEQUIZ:
           return HOMEHEADERLIST.LIVEQUIZ;
         default:
           return HOMEHEADERLIST.HOME;

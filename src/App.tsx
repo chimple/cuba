@@ -1,4 +1,4 @@
-import { Route, Switch} from "react-router-dom";
+import { Route, Switch } from "react-router-dom";
 import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
@@ -36,6 +36,7 @@ import {
   CACHE_IMAGE,
   CONTINUE,
   GAME_URL,
+  HOMEHEADERLIST,
   IS_CUBA,
   PAGES,
 } from "./common/constants";
@@ -116,14 +117,7 @@ const App: React.FC = () => {
     };
   }, [online, presentToast]);
   useEffect(() => {
-    console.log("fetching...", history);
-    Util.checkNotificationPermissionsAndType((type) => {
-      if (type) {
-        if (type === "reward") {
-            window.location.replace(PAGES.HOME + "?tab=avatarInHome");
-        }
-      } 
-    });
+    console.log("fetching...");
 
     // localStorage.setItem(LANGUAGE, LANG.ENGLISH);
     const urlParams = new URLSearchParams(window.location.search);
@@ -163,6 +157,18 @@ const App: React.FC = () => {
 
     //Listen to network change
     Util.listenToNetwork();
+    Util.checkNotificationPermissionsAndType((type, rewardProfileUid) => {
+      if (type) {
+        if (type === "reward") {
+          const currentStudent = Util.getCurrentStudent();
+          if (currentStudent?.uid === rewardProfileUid) {
+            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+          } else {
+            return;
+          }
+        }
+      }
+    });
 
     updateAvatarSuggestionJson();
   }, []);

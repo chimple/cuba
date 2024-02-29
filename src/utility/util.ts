@@ -1087,7 +1087,7 @@ export class Util {
   public static notificationsCount = 0;
 
   public static async checkNotificationPermissionsAndType(
-    onNotification: (type: NotificationType) => void
+    onNotification: (type: NotificationType, rewardProfileUid?: string) => void
   ) {
     if (!Capacitor.isNativePlatform()) return;
     try {
@@ -1116,7 +1116,9 @@ export class Util {
                   "Local Notification Action Performed",
                   notification
                 );
-                onNotification(NotificationType.REWARD);
+                const extraData = notification.notification.extra;
+                const rewardProfileUid = extraData.tempUid;
+                onNotification(NotificationType.REWARD, rewardProfileUid);
               }
             );
             console.log(
