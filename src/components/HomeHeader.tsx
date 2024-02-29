@@ -22,7 +22,13 @@ const HomeHeader: React.FC<{
   currentHeader: string;
   onHeaderIconClick: Function;
   pendingAssignmentCount: number;
-}> = ({ currentHeader, onHeaderIconClick, pendingAssignmentCount }) => {
+  pendingLiveQuizCount: number;
+}> = ({
+  currentHeader,
+  onHeaderIconClick,
+  pendingAssignmentCount,
+  pendingLiveQuizCount,
+}) => {
   const { t } = useTranslation();
   const [currentHeaderIconList, setCurrentHeaderIconList] =
     useState<HeaderIconConfig[]>();
@@ -89,6 +95,7 @@ const HomeHeader: React.FC<{
           }}
           currentHeader={currentHeader}
           pendingAssignmentCount={0}
+          pendingLiveQuizCount={0}
           onHeaderIconClick={() => {
             if (currentHeader != HOMEHEADERLIST.HOME) {
               onHeaderIconClick(HOMEHEADERLIST.HOME);
@@ -109,6 +116,7 @@ const HomeHeader: React.FC<{
                 headerConfig={element}
                 currentHeader={currentHeader}
                 pendingAssignmentCount={pendingAssignmentCount}
+                pendingLiveQuizCount={pendingLiveQuizCount}
                 onHeaderIconClick={() => {
                   if (currentHeader != element.headerList) {
                     onHeaderIconClick(element.headerList);
@@ -130,6 +138,7 @@ const HomeHeader: React.FC<{
           }}
           currentHeader={currentHeader}
           pendingAssignmentCount={0}
+          pendingLiveQuizCount={0}
           onHeaderIconClick={() => {
             if (currentHeader != HOMEHEADERLIST.PROFILE) {
               onHeaderIconClick(HOMEHEADERLIST.PROFILE);
