@@ -137,6 +137,7 @@
   "Device is offline. Cannot download the Chapter": "Device is offline. Cannot download the Chapter",
   "Device is offline. Cannot download the Lesson": "Device is offline. Cannot download the Lesson",
   "Device is offline. Cannot edit or delete child profile": "Device is offline. Cannot edit or delete child profile",
+  "Device is offline. Login requires an internet connection": "Device is offline. Login requires an internet connection",
   "Device is offline.": "Device is offline.",
   "Device is online.": "Device is online.",
   "Difficult": "Difficult",
