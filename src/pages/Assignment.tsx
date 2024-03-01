@@ -32,7 +32,6 @@ const AssignmentPage: React.FC = () => {
   const [isLinked, setIsLinked] = useState(true);
   const [currentClass, setCurrentClass] = useState<Class>();
   const [lessons, setLessons] = useState<Lesson[]>([]);
-  // const [schoolId, setSchoolId] = useState<any>();
   const [schoolName, setSchoolName] = useState<string>();
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
@@ -42,17 +41,44 @@ const AssignmentPage: React.FC = () => {
   const [downloadButtonLoading, setDownloadButtonLoading] = useState(false);
   const [isInputFocus, setIsInputFocus] = useState(false);
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
-
+  const [showDownloadHomeworkButton, setShowDownloadHomeworkButton] =
+    useState(true);
+  const [lessonDownloaded, setlessonDownloaded] = useState(String);
   useEffect(() => {
     init();
   }, []);
+
+  const checkAllHomeworkDownloaded = async () => {
+    if (!lessons || lessons.length === 0) {
+      setShowDownloadHomeworkButton(false);
+      return;
+    }
+
+    const downloadedLessonIds = JSON.parse(
+      localStorage.getItem(DOWNLOADED_LESSON_ID) || "[]"
+    );
+
+    const allLessonIdPresent = lessons.every((lesson) =>
+      downloadedLessonIds.includes(lesson.id)
+    );
+
+    setShowDownloadHomeworkButton(!allLessonIdPresent);
+  };
 
   async function downloadAllHomeWork(lessons) {
     setDownloadButtonLoading(true);
     const allLessonIds = lessons.map((lesson) => lesson.id);
     try {
-      await Util.downloadZipBundle(allLessonIds);
+      const storedLessonIds = Util.getStoredLessonIds();
+      const filteredLessonIds = allLessonIds.filter(
+        (id) => !storedLessonIds.includes(id)
+      );
+
+      await Util.downloadZipBundle(filteredLessonIds, (lessonDownloaded?) => {
+        if (lessonDownloaded) setlessonDownloaded(lessonDownloaded);
+      });
       setDownloadButtonLoading(false);
+      checkAllHomeworkDownloaded();
     } catch (error) {
       console.error("Error downloading homework:", error);
       setDownloadButtonLoading(false);
@@ -175,7 +201,7 @@ const AssignmentPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            {isLinked && lessons.length > 0 ? (
+            {isLinked && showDownloadHomeworkButton && lessons.length > 0 ? (
               <div
                 className="dowload-homework-button"
                 onClick={() => {
@@ -236,6 +262,9 @@ const AssignmentPage: React.FC = () => {
                       showSubjectName={true}
                       showChapterName={true}
                       downloadButtonLoading={downloadButtonLoading}
+                      showDate={true}
+                      onDownloadOrDelete={checkAllHomeworkDownloaded}
+                      lessonDownloaded={lessonDownloaded}
                     />
                   ) : (
                     <div className="pending-assignment">

@@ -52,7 +52,7 @@ const ChimpleAvatar: FC<{
   const [riveCharHandsUp, setRiveCharHandsUp] = useState("Fail");
   const history = useHistory();
   const State_Machine = "State Machine 1";
-  const [isAudioPlayed, setIsAudioPlayed] = useState<boolean>(true);
+  const [isAudioPlayed, setIsAudioPlayed] = useState<boolean>(false);
 
   const { rive, RiveComponent } = useRive({
     src: "/assets/animation/chimplecharacter.riv",
@@ -244,6 +244,7 @@ const ChimpleAvatar: FC<{
           rive?.play(avatarObj.avatarAnimation);
           buttons = [];
           onclickInput?.fire();
+          setIsAudioPlayed(true);
           await loadSuggestionsFromJson();
         }
         break;

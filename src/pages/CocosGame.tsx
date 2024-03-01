@@ -25,6 +25,8 @@ import { t } from "i18next";
 import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
 import Course from "../models/course";
 import { AvatarObj } from "../components/animation/Avatar";
+import { Capacitor } from "@capacitor/core";
+import { App as CapApp } from "@capacitor/app";
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -37,6 +39,7 @@ const CocosGame: React.FC = () => {
   const [showDialogBox, setShowDialogBox] = useState(false);
   // let gameResult : any;
   const [gameResult, setGameResult] = useState<any>();
+  const [isDeviceAwake, setDeviceAwake] = useState(false);
   const currentStudent = Util.getCurrentStudent();
   const CourseDetail: Course = JSON.parse(state.course);
   const lessonDetail: Lesson = JSON.parse(state.lesson);
@@ -58,8 +61,20 @@ const CocosGame: React.FC = () => {
 
   useEffect(() => {
     init();
+    CapApp.addListener("appStateChange", handleAppStateChange);
+    return () => {
+      CapApp.removeAllListeners();
+      CapApp.addListener("appStateChange", Util.onAppStateChange);
+    };
   }, []);
 
+  const handleAppStateChange = (state) => {
+    if (state.isActive) {
+      setDeviceAwake(true);
+    } else {
+      setDeviceAwake(false);
+    }
+  };
   const killGame = (e: any) => {
     setShowDialogBox(true);
     Util.killCocosGame();
@@ -71,12 +86,23 @@ const CocosGame: React.FC = () => {
   const push = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
-    if (!!urlParams.get("isReload")) {
-      if (fromPath.includes("?")) history.replace(fromPath + "&isReload=true");
-      else history.replace(fromPath + "?isReload=true");
-      window.location.reload();
+    if (Capacitor.isNativePlatform()) {
+      if (!!isDeviceAwake) {
+        history.replace(fromPath + "&isReload=true");
+        window.location.reload();
+      } else {
+        history.replace(fromPath);
+      }
+      setIsLoading(false);
     } else {
-      history.replace(fromPath);
+      if (!!urlParams.get("isReload")) {
+        if (fromPath.includes("?"))
+          history.replace(fromPath + "&isReload=true");
+        else history.replace(fromPath + "?isReload=true");
+        window.location.reload();
+      } else {
+        history.replace(fromPath);
+      }
     }
     setIsLoading(false);
   };

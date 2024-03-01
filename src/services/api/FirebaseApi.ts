@@ -1818,7 +1818,7 @@ export class FirebaseApi implements ServiceApi {
       (doc) => {
         if (doc.exists()) {
           const roomDoc = doc.data() as LiveQuizRoomObject;
-          if (roomDoc && roomDoc.docId) {
+          if (!!roomDoc) {
             roomDoc.docId = doc.id;
           }
           onDataChange(roomDoc);

@@ -22,6 +22,11 @@ export enum LeaderboardDropdownList {
   ALL_TIME = "ALL_TIME",
 }
 
+export enum APP_LANGUAGES {
+  en = "English",
+  hi = "हिन्दी",
+  kn = "ಕನ್ನಡ",
+}
 export enum HOMEHEADERLIST {
   SUGGESTIONS = "SUGGESTIONS",
   SUBJECTS = "SUBJECTS",
@@ -516,5 +521,5 @@ export enum LeaderboardRewardsType {
   BONUS = "bonus",
   STICKER = "sticker",
 }
-export const DOWNLOAD_LESSON_BATCH_SIZE = 15;
+export const DOWNLOAD_LESSON_BATCH_SIZE = 10;
 export const MAX_DOWNLOAD_LESSON_ATTEMPTS = 3;

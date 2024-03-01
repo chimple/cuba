@@ -29,6 +29,7 @@ import { Capacitor } from "@capacitor/core";
 import { Keyboard } from "@capacitor/keyboard";
 import BackButton from "../components/common/BackButton";
 import i18n from "../i18n";
+import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 
 let localStoreData: any = {};
 
@@ -80,6 +81,8 @@ const EditStudent = () => {
   const [grades, setGrades] = useState<Grade[]>();
   const [languages, setLanguages] = useState<Language[]>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [checkResults, setCheckResults] = useState<boolean>(false);
+  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
 
   const onNextButton = async () => {
     setIsLoading(true);
@@ -163,7 +166,6 @@ const EditStudent = () => {
         student
       );
 
-
       history.replace(tmpPath);
     } else {
       if (newStage === STAGES.GRADE) {
@@ -172,7 +174,14 @@ const EditStudent = () => {
           api.getAllGrades(),
           api.getAllLanguages(),
         ]);
-
+        if (
+          results &&
+          results[0].length > 0 &&
+          results[1].length > 0 &&
+          results[2].length > 0
+        ) {
+          setCheckResults(true);
+        }
         setBoards(results[0]);
         localStoreData.boards = results[0];
         setGrades(results[1]);
@@ -184,7 +193,6 @@ const EditStudent = () => {
           "🚀 ~ file: EditStudent.tsx:51 ~ isNextButtonEnabled ~ docs:",
           results
         );
-
       }
 
       localStoreData.stage = newStage;
@@ -206,7 +214,10 @@ const EditStudent = () => {
       case STAGES.AVATAR:
         return !!avatar;
       case STAGES.GRADE:
-        return !!grade && !!board && !!language;
+        if (!!checkResults) {
+          return !!grade && !!board && !!language;
+        }
+        return false;
       default:
         return false;
     }
@@ -241,7 +252,6 @@ const EditStudent = () => {
           setStage(localStoreData.stage);
           setStudentName(localStoreData.studentName);
 
-
           !!localStoreData.age && setAge(localStoreData.age);
           !!localStoreData.gender && setGender(localStoreData.gender);
           !!localStoreData.avatar && setAvatar(localStoreData.avatar);
@@ -251,17 +261,13 @@ const EditStudent = () => {
           !!localStoreData.board && setBoard(localStoreData.board);
           !!localStoreData.grade && setGrade(localStoreData.grade);
           !!localStoreData.language && setLanguage(localStoreData.language);
-
         }
       }
     }
   }
 
   function addDataToLocalStorage() {
-    localStorage.setItem(
-      EDIT_STUDENT_STORE,
-      JSON.stringify(localStoreData)
-    );
+    localStorage.setItem(EDIT_STUDENT_STORE, JSON.stringify(localStoreData));
   }
 
   async function changeLanguage() {
@@ -292,7 +298,24 @@ const EditStudent = () => {
       <div id="next-button">
         <NextButton
           disabled={!isNextButtonEnabled()}
-          onClicked={onNextButton}
+          onClicked={() => {
+            if (stage === STAGES.GRADE && !online) {
+              presentToast({
+                message: t(`Device is offline. Cannot complete a profile`),
+                color: "danger",
+                duration: 3000,
+                position: "bottom",
+                buttons: [
+                  {
+                    text: "Dismiss",
+                    role: "cancel",
+                  },
+                ],
+              });
+              return;
+            }
+            onNextButton();
+          }}
         />
       </div>
       <div
@@ -312,8 +335,10 @@ const EditStudent = () => {
         {stage === STAGES.NAME && (
           <StudentNameBox
             studentName={studentName!}
-            onValueChange={(val) => handleValueChange("studentName", val, setStudentName)}
-            onEnterDown={isNextButtonEnabled() ? onNextButton : () => { }}
+            onValueChange={(val) =>
+              handleValueChange("studentName", val, setStudentName)
+            }
+            onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
           />
         )}
       </div>
@@ -361,13 +386,20 @@ const EditStudent = () => {
                 age={age}
                 gender={gender}
                 onAgeChange={(val) => handleValueChange("age", val, setAge)}
-                onGenderChange={(val) => handleValueChange("gender", val, setGender)}
+                onGenderChange={(val) =>
+                  handleValueChange("gender", val, setGender)
+                }
               />
             </>
           </>
         )}
         {stage === STAGES.AVATAR && (
-          <SelectAvatar avatar={avatar} onAvatarChange={(val) => handleValueChange("avatar", val, setAvatar)} />
+          <SelectAvatar
+            avatar={avatar}
+            onAvatarChange={(val) =>
+              handleValueChange("avatar", val, setAvatar)
+            }
+          />
         )}
         {stage === STAGES.GRADE && (
           <>
@@ -396,9 +428,15 @@ const EditStudent = () => {
                   boards={boards}
                   grades={grades}
                   languages={languages}
-                  onBoardChange={(val) => handleValueChange("board", val, setBoard)}
-                  onGradeChange={(val) => handleValueChange("grade", val, setGrade)}
-                  onLangChange={(val) => handleValueChange("language", val, setLanguage)}
+                  onBoardChange={(val) =>
+                    handleValueChange("board", val, setBoard)
+                  }
+                  onGradeChange={(val) =>
+                    handleValueChange("grade", val, setGrade)
+                  }
+                  onLangChange={(val) =>
+                    handleValueChange("language", val, setLanguage)
+                  }
                   currentlySelectedBoard={board}
                   currentlySelectedGrade={grade}
                   currentlySelectedLang={language}
