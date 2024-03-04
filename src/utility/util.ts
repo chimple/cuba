@@ -33,6 +33,8 @@ import {
   LeaderboardRewards,
   LESSON_DOC_LESSON_ID_MAP,
   unlockedRewardsInfo,
+  DOWNLOAD_LESSON_BATCH_SIZE,
+  MAX_DOWNLOAD_LESSON_ATTEMPTS,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -310,122 +312,150 @@ export class Util {
     localStorage.setItem(lessonIdStorageKey, JSON.stringify(updatedItems));
   };
 
-  public static async downloadZipBundle(lessonIds: string[]): Promise<boolean> {
-    for (let lessonId of lessonIds) {
-      try {
-        if (!Capacitor.isNativePlatform()) return true;
-        console.log(
-          "downloading Directory.External",
-          Directory.External,
-          "Directory.Library"
+  public static async downloadZipBundle(
+    lessonIds: string[],
+    downloadedLessonId?: (downloadedLessonId: string) => void
+  ): Promise<boolean> {
+    try {
+      if (!Capacitor.isNativePlatform()) return true;
+
+      for (let i = 0; i < lessonIds.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
+        const lessonIdsChunk = lessonIds.slice(
+          i,
+          i + DOWNLOAD_LESSON_BATCH_SIZE
         );
-        const fs = createFilesystem(Filesystem, {
-          rootDir: "/",
-          directory: Directory.External,
-          base64Alway: false,
-        });
-
-        const path =
-          (localStorage.getItem("gameUrl") ??
-            "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
-          lessonId +
-          "/config.json";
-        console.log("cheching path..", "path", path);
-        const res = await fetch(path);
-        const isExists = res.ok;
-        console.log("fethting path", path);
-        console.log("isexists", isExists);
-        if (isExists) continue;
-
-        console.log(
-          "before local lesson Bundle http url:" +
-            "assets/" +
-            lessonId +
-            "/config.json"
-        );
-
-        const fetchingLocalBundle = await fetch(
-          "assets/" + lessonId + "/config.json"
-        );
-        console.log(
-          "after local lesson Bundle fetch url:" +
-            "assets/" +
-            lessonId +
-            "/config.json",
-          fetchingLocalBundle.ok,
-          fetchingLocalBundle.json,
-          fetchingLocalBundle
-        );
-
-        if (fetchingLocalBundle.ok) continue;
-
-        console.log("fs", fs);
-        const bundleZipUrls: string[] = await RemoteConfig.getJSON(
-          REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS
-        );
-        if (!bundleZipUrls || bundleZipUrls.length < 1) return false;
-        let zip;
-
-        const MAX_DOWNLOAD_ATTEMPTS = 3;
-        let downloadAttempts = 0;
-        while (downloadAttempts < MAX_DOWNLOAD_ATTEMPTS) {
-          for (let bundleUrl of bundleZipUrls) {
-            const zipUrl = bundleUrl + lessonId + ".zip";
+        const results = await Promise.all(
+          lessonIdsChunk.map(async (lessonId) => {
             try {
-              zip = await CapacitorHttp.get({
-                url: zipUrl,
-                responseType: "blob",
+              let lessonDownloadSuccess = true; // Flag to track lesson download success
+              console.log(
+                "downloading Directory.External",
+                Directory.External,
+                "Directory.Library"
+              );
+              const fs = createFilesystem(Filesystem, {
+                rootDir: "/",
+                directory: Directory.External,
+                base64Alway: false,
               });
+
+              const path =
+                (localStorage.getItem("gameUrl") ??
+                  "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
+                lessonId +
+                "/config.json";
+              console.log("checking path..", "path", path);
+              const res = await fetch(path);
+              const isExists = res.ok;
+              console.log("fetching path", path);
+              console.log("isexists", isExists);
+              if (isExists) return true; // Skip if lesson exists
+
               console.log(
-                "🚀 ~ file: util.ts:219 ~ downloadZipBundle ~ zip:",
-                zip.status
+                "before local lesson Bundle http url:" +
+                  "assets/" +
+                  lessonId +
+                  "/config.json"
               );
-              this.storeLessonIdToLocalStorage(lessonId, DOWNLOADED_LESSON_ID);
-              if (!!zip && !!zip.data && zip.status === 200) break;
+
+              const fetchingLocalBundle = await fetch(
+                "assets/" + lessonId + "/config.json"
+              );
+              console.log(
+                "after local lesson Bundle fetch url:" +
+                  "assets/" +
+                  lessonId +
+                  "/config.json",
+                fetchingLocalBundle.ok,
+                fetchingLocalBundle.json,
+                fetchingLocalBundle
+              );
+
+              if (fetchingLocalBundle.ok) return true;
+
+              console.log("fs", fs);
+              const bundleZipUrls: string[] = await RemoteConfig.getJSON(
+                REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS
+              );
+              if (!bundleZipUrls || bundleZipUrls.length < 1) return false;
+              let zip;
+
+              let downloadAttempts = 0;
+              while (downloadAttempts < MAX_DOWNLOAD_LESSON_ATTEMPTS) {
+                for (let bundleUrl of bundleZipUrls) {
+                  const zipUrl = bundleUrl + lessonId + ".zip";
+                  try {
+                    zip = await CapacitorHttp.get({
+                      url: zipUrl,
+                      responseType: "blob",
+                    });
+                    console.log(
+                      "🚀 ~ file: util.ts:219 ~ downloadZipBundle ~ zip:",
+                      zip.status
+                    );
+                    this.storeLessonIdToLocalStorage(
+                      lessonId,
+                      DOWNLOADED_LESSON_ID
+                    );
+                    if (!!zip && !!zip.data && zip.status === 200) break;
+                  } catch (error) {
+                    console.log(
+                      "🚀 ~ file: util.ts:216 ~ downloadZipBundle ~ error:",
+                      error
+                    );
+                  }
+                }
+                downloadAttempts++;
+              }
+              if (!zip || !zip.data || zip.status !== 200)
+                lessonDownloadSuccess = false;
+              if (zip instanceof Object) {
+                console.log("unzipping ");
+                const buffer = Uint8Array.from(atob(zip.data), (c) =>
+                  c.charCodeAt(0)
+                );
+                await unzip({
+                  fs: fs,
+                  extractTo: lessonId,
+                  filepaths: ["."],
+                  filter: (filepath: string) =>
+                    filepath.startsWith("dist/") === false,
+                  onProgress: (event) =>
+                    console.log(
+                      "event unzipping ",
+                      event.total,
+                      event.filename,
+                      event.isDirectory,
+                      event.loaded
+                    ),
+                  data: buffer,
+                });
+                console.log("Unzip done");
+                this.storeLessonIdToLocalStorage(
+                  lessonId,
+                  DOWNLOADED_LESSON_ID
+                );
+                if (downloadedLessonId) downloadedLessonId(lessonId);
+              }
+              return lessonDownloadSuccess; // Return the result of lesson download
             } catch (error) {
-              console.log(
-                "🚀 ~ file: util.ts:216 ~ downloadZipBundle ~ error:",
-                error
-              );
+              console.error("Error during lesson download: ", error);
+              return false;
             }
-          }
-          downloadAttempts++;
-        }
-        if (!zip || !zip.data || zip.status !== 200) return false;
-        if (zip instanceof Object) {
-          console.log("unzipping ");
-          const buffer = Uint8Array.from(atob(zip.data), (c) =>
-            c.charCodeAt(0)
-          );
-          await unzip({
-            fs: fs,
-            extractTo: lessonId,
-            filepaths: ["."],
-            filter: (filepath: string) =>
-              filepath.startsWith("dist/") === false,
-            onProgress: (event) =>
-              console.log(
-                "event unzipping ",
-                event.total,
-                event.filename,
-                event.isDirectory,
-                event.loaded
-              ),
-            data: buffer,
-          });
-          console.log("Unzip done");
+          })
+        );
 
-          this.storeLessonIdToLocalStorage(lessonId, DOWNLOADED_LESSON_ID);
+        if (!results.every((result) => result === true)) {
+          return false; // If any lesson download failed, return false
         }
-
-        // Increase the delay between retries exponentially
-      } catch (error) {
-        console.error("Error during lesson download: ", error);
-        return false;
       }
+      return true; // Return true if all lessons are successfully downloaded
+    } catch (error) {
+      console.error("Error during lesson download: ", error);
+      return false;
     }
-    return true;
   }
+
   public static async deleteDownloadedLesson(
     lessonIds: string[]
   ): Promise<boolean> {

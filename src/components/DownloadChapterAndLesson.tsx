@@ -14,7 +14,15 @@ const DownloadLesson: React.FC<{
   lessonId?: string;
   chapter?: Chapter;
   downloadButtonLoading?: boolean;
-}> = ({ lessonId, chapter, downloadButtonLoading = false }) => {
+  onDownloadOrDelete?: () => void;
+  lessonDownloaded?: string;
+}> = ({
+  lessonId,
+  chapter,
+  downloadButtonLoading = false,
+  onDownloadOrDelete,
+  lessonDownloaded,
+}) => {
   const [showIcon, setShowIcon] = useState(true);
   const [showDialogBox, setShowDialogBox] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -27,10 +35,18 @@ const DownloadLesson: React.FC<{
     setLoading(downloadButtonLoading);
   }, [downloadButtonLoading]);
 
+  useEffect(() => {
+    if (lessonDownloaded === lessonId) {
+      setShowIcon(false);
+      setLoading(false);
+    }
+  }, [lessonDownloaded]);
+
   async function init() {
     const storedLessonIds = Util.getStoredLessonIds();
     if (lessonId && storedLessonIds.includes(lessonId)) {
       setShowIcon(false);
+      downloadButtonLoading = false;
     }
     if (chapter) {
       const isChapterDownloaded = await Util.isChapterDowloaded(chapter);
@@ -81,6 +97,7 @@ const DownloadLesson: React.FC<{
     }
     setShowIcon(false);
     setLoading(false);
+    if (onDownloadOrDelete) onDownloadOrDelete();
   };
 
   const handleDelete = async () => {
@@ -94,6 +111,7 @@ const DownloadLesson: React.FC<{
         if (!storedLessonID.includes(e.id)) {
           setShowIcon(true);
         }
+        if (onDownloadOrDelete) onDownloadOrDelete();
       });
 
       await Util.deleteDownloadedLesson(storeLessonID);
@@ -102,6 +120,7 @@ const DownloadLesson: React.FC<{
       if (!storedLessonID.includes(lessonId)) {
         setShowIcon(true);
       }
+      if (onDownloadOrDelete) onDownloadOrDelete();
     }
     setLoading(false);
   };

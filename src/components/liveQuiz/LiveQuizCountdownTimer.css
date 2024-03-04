@@ -1,28 +1,31 @@
 .dashed-progress-container {
-    width: 70%;
-    margin: 0 auto;
-    padding-top: 5%;
+  width: 70%;
+  margin: 0 auto;
+  padding-top: 5%;
 }
 
 .live-quiz-countdown-container {
-    align-self: center;
-    text-align: center;
+  align-self: center;
+  text-align: center;
 }
-
+.dashed-progressbar {
+  position: relative;
+  width: 90%;
+}
 .live-quiz-countdown-header {
-    font-size: var(--text-size);
-    color: var(--text-color);
+  font-size: var(--text-size);
+  color: var(--text-color);
 }
 
 .live-quiz-countdown-text {
-    color: var(--text-color);
-    font-size: 220%;
-    font-family: 'Orbitron', sans-serif;
+  color: var(--text-color);
+  font-size: 220%;
+  font-family: "Orbitron", sans-serif;
 }
 
 @font-face {
-    font-family: "Orbitron";
-    src: local("Orbitron"),
-        url("/public/assets/fonts/Orbitron-Bold.ttf") format("truetype");
-    font-weight: bolder;
+  font-family: "Orbitron";
+  src: local("Orbitron"),
+    url("/public/assets/fonts/Orbitron-Bold.ttf") format("truetype");
+  font-weight: bolder;
 }

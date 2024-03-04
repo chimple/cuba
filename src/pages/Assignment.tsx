@@ -25,13 +25,13 @@ import { Capacitor } from "@capacitor/core";
 import { StudentLessonResult } from "../common/courseConstants";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { TfiDownload } from "react-icons/tfi";
+import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 
 const AssignmentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isLinked, setIsLinked] = useState(true);
   const [currentClass, setCurrentClass] = useState<Class>();
   const [lessons, setLessons] = useState<Lesson[]>([]);
-  // const [schoolId, setSchoolId] = useState<any>();
   const [schoolName, setSchoolName] = useState<string>();
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
@@ -40,20 +40,45 @@ const AssignmentPage: React.FC = () => {
   }>();
   const [downloadButtonLoading, setDownloadButtonLoading] = useState(false);
   const [isInputFocus, setIsInputFocus] = useState(false);
-
+  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+  const [showDownloadHomeworkButton, setShowDownloadHomeworkButton] =
+    useState(true);
+  const [lessonDownloaded, setlessonDownloaded] = useState(String);
   useEffect(() => {
     init();
   }, []);
 
+  const checkAllHomeworkDownloaded = async () => {
+    if (!lessons || lessons.length === 0) {
+      setShowDownloadHomeworkButton(false);
+      return;
+    }
+
+    const downloadedLessonIds = JSON.parse(
+      localStorage.getItem(DOWNLOADED_LESSON_ID) || "[]"
+    );
+
+    const allLessonIdPresent = lessons.every((lesson) =>
+      downloadedLessonIds.includes(lesson.id)
+    );
+
+    setShowDownloadHomeworkButton(!allLessonIdPresent);
+  };
+
   async function downloadAllHomeWork(lessons) {
     setDownloadButtonLoading(true);
     const allLessonIds = lessons.map((lesson) => lesson.id);
-
     try {
-      const dowload = await Util.downloadZipBundle(allLessonIds);
-      if (dowload) {
-        setDownloadButtonLoading(false);
-      }
+      const storedLessonIds = Util.getStoredLessonIds();
+      const filteredLessonIds = allLessonIds.filter(
+        (id) => !storedLessonIds.includes(id)
+      );
+
+      await Util.downloadZipBundle(filteredLessonIds, (lessonDownloaded?) => {
+        if (lessonDownloaded) setlessonDownloaded(lessonDownloaded);
+      });
+      setDownloadButtonLoading(false);
+      checkAllHomeworkDownloaded();
     } catch (error) {
       console.error("Error downloading homework:", error);
       setDownloadButtonLoading(false);
@@ -176,11 +201,27 @@ const AssignmentPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            {isLinked ? (
+            {isLinked && showDownloadHomeworkButton && lessons.length > 0 ? (
               <div
                 className="dowload-homework-button"
                 onClick={() => {
-                  downloadAllHomeWork(lessons);
+                  if (!online) {
+                    presentToast({
+                      message: t(`Device is offline.`),
+                      color: "danger",
+                      duration: 3000,
+                      position: "bottom",
+                      buttons: [
+                        {
+                          text: "Dismiss",
+                          role: "cancel",
+                        },
+                      ],
+                    });
+
+                    setLoading(false);
+                    return;
+                  } else downloadAllHomeWork(lessons);
                 }}
               >
                 <div className="download-homework-label">
@@ -190,7 +231,9 @@ const AssignmentPage: React.FC = () => {
                   <TfiDownload className="dowload-homework-icon" />
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <div className="right-button"></div>
+            )}
           </div>
 
           {!loading && (
@@ -219,6 +262,9 @@ const AssignmentPage: React.FC = () => {
                       showSubjectName={true}
                       showChapterName={true}
                       downloadButtonLoading={downloadButtonLoading}
+                      showDate={true}
+                      onDownloadOrDelete={checkAllHomeworkDownloaded}
+                      lessonDownloaded={lessonDownloaded}
                     />
                   ) : (
                     <div className="pending-assignment">

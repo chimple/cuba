@@ -65,25 +65,6 @@ import LiveQuiz from "./LiveQuiz";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 
-const sortValidLessonsByDate = (
-  lessonIds: string[],
-  lessonResultMap: { [lessonDocId: string]: StudentLessonResult }
-): string[] => {
-  return lessonIds.sort((a, b) => {
-    const lessonResultA = lessonResultMap[a];
-    const lessonResultB = lessonResultMap[b];
-
-    if (!lessonResultA || !lessonResultB) {
-      return 0;
-    }
-
-    const dateA = lessonResultA.date?.toMillis() || 0;
-    const dateB = lessonResultB.date?.toMillis() || 0;
-
-    return dateB - dateA;
-  });
-};
-
 const localData: any = {};
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
@@ -106,6 +87,7 @@ const Home: FC = () => {
   const [gradeMap, setGradeMap] = useState<any>({});
   const [pendingAssignmentsCount, setPendingAssignmentsCount] =
     useState<number>(0);
+  const [pendingLiveQuizCount, setPendingLiveQuizCount] = useState<number>(0);
   const history = useHistory();
   const [PlayedLessonsList, setPlayedLessonsList] = useState<Lesson[]>([]);
   const [favouriteLessons, setFavouriteLessons] = useState<Lesson[]>([]);
@@ -165,12 +147,27 @@ const Home: FC = () => {
     await isLinked();
     urlOpenListenerEvent();
   };
+
+  function sortPlayedLessonDocByDate(playedLessonData) {
+    const lessonArray: { lessonDoc: string; combinedTime: number }[] = [];
+    for (const lessonDoc in playedLessonData) {
+      if (playedLessonData.hasOwnProperty(lessonDoc)) {
+        const lessonDate = playedLessonData[lessonDoc].date;
+        const combinedTime =
+          lessonDate.seconds * 1000000000 + lessonDate.nanoseconds;
+        lessonArray.push({ lessonDoc, combinedTime });
+      }
+    }
+    lessonArray.sort((a, b) => b.combinedTime - a.combinedTime);
+    return lessonArray.map((item) => item.lessonDoc);
+  }
+
   const fetchData = async () => {
     setIsLoading(true);
 
     const lessonResult = await getRecommendeds(HOMEHEADERLIST.HOME);
     console.log("resultTemp", lessonResult);
-    const allLessonIds = await getHistory(lessonResult);
+    const allLessonIds = await getHistory();
     if (allLessonIds) setValidLessonIds(allLessonIds);
     AvatarObj.getInstance().unlockedRewards =
       (await Util.getAllUnlockedRewards()) || [];
@@ -196,6 +193,8 @@ const Home: FC = () => {
 
       localStorage.setItem(IS_CONECTED, JSON.stringify(parsedConectedData));
     }
+    AvatarObj.getInstance().unlockedRewards =
+      (await Util.getAllUnlockedRewards()) || [];
   }
 
   function urlOpenListenerEvent() {
@@ -238,6 +237,7 @@ const Home: FC = () => {
         })
       );
       let count = 0;
+      let liveQuizCount = 0;
       await Promise.all(
         allAssignments.map(async (_assignment) => {
           const res = await api.getLesson(
@@ -247,14 +247,19 @@ const Home: FC = () => {
             _assignment
           );
           console.log(res);
-          if (!!res) {
+          if (_assignment.type !== LIVE_QUIZ) {
             count++;
+          } else {
+            liveQuizCount++;
+          }
+          if (!!res) {
             res.assignment = _assignment;
             reqLes.push(res);
           }
         })
       );
-      // setPendingAssignmentsCount(count);
+      setPendingLiveQuizCount(liveQuizCount);
+      setPendingAssignmentsCount(count);
 
       // setDataCourse(reqLes);
       // storeRecommendationsInLocalStorage(reqLes);
@@ -366,7 +371,7 @@ const Home: FC = () => {
     return lessons;
   };
 
-  const getHistory = async (lessonResult) => {
+  const getHistory = async () => {
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent) {
       return;
@@ -374,17 +379,12 @@ const Home: FC = () => {
     const studentResult = await api.getStudentResult(currentStudent.docId);
 
     if (studentResult?.lessons) {
-      const playedLessonIds = Object.keys(studentResult.lessons);
-      // const lessonPromises = playedLessonIds.map((lessonId) =>
-      //   api.getLesson(lessonId, undefined, true)
-      const validLessonIds = playedLessonIds.filter(
-        (lessonId) => lessonId !== undefined
+      const playedLessonData = studentResult.lessons;
+      const sortedLessonDocIds = sortPlayedLessonDocByDate(playedLessonData);
+      const allValidPlayedLessonDocIds = sortedLessonDocIds.filter(
+        (lessonDoc) => lessonDoc !== undefined
       );
-      allPlayedLessonIds = sortValidLessonsByDate(
-        validLessonIds,
-        lessonResult || {}
-      );
-      return allPlayedLessonIds;
+      return allValidPlayedLessonDocIds;
     }
   };
 
@@ -813,6 +813,7 @@ const Home: FC = () => {
           currentHeader={currentHeader}
           onHeaderIconClick={onHeaderIconClick}
           pendingAssignmentCount={pendingAssignmentsCount}
+          pendingLiveQuizCount={pendingLiveQuizCount}
         ></HomeHeader>
       </IonHeader>
       <div className="slider-content">
@@ -903,6 +904,7 @@ const Home: FC = () => {
                       startIndex={0}
                       showSubjectName={true}
                       showChapterName={true}
+                      showDate={true}
                     />
                   )}
 
