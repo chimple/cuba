@@ -66,6 +66,7 @@ import LiveQuizRoomResult from "./pages/LiveQuizRoomResult";
 import LiveQuizLeaderBoard from "./pages/LiveQuizLeaderBoard";
 import { useOnlineOfflineErrorMessageHandler } from "./common/onlineOfflineErrorMessageHandler";
 import { t } from "i18next";
+import { ServiceConfig } from "./services/ServiceConfig";
 
 setupIonicReact();
 
@@ -118,7 +119,6 @@ const App: React.FC = () => {
   }, [online, presentToast]);
   useEffect(() => {
     console.log("fetching...");
-
     // localStorage.setItem(LANGUAGE, LANG.ENGLISH);
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get(CONTINUE) || PAGES.APP_UPDATE) {
@@ -157,12 +157,34 @@ const App: React.FC = () => {
 
     //Listen to network change
     Util.listenToNetwork();
-    Util.checkNotificationPermissionsAndType((type, rewardProfileUid) => {
+
+    Util.checkNotificationPermissionsAndType(async (type, rewardProfileUid) => {
+      const currentStudent = Util.getCurrentStudent();
+      if (!rewardProfileUid) {
+        console.error("Reward profile UID is undefined");
+        return;
+      }
+      const students =
+        await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
+      console.log(
+        "🚀 ~ file: DisplayStudents.tsx:13 ~ getStudents ~ students:",
+        students
+      );
+      const docIds = students.map((student) => student.docId);
       if (type) {
         if (type === "reward") {
-          const currentStudent = Util.getCurrentStudent();
-          if (currentStudent?.uid === rewardProfileUid) {
+          if (currentStudent?.docId === rewardProfileUid) {
             window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+          } else if (docIds.includes(rewardProfileUid)) {
+            const matchingUser = students.find(
+              (user) => user.docId === rewardProfileUid
+            );
+            if (matchingUser) {
+              await Util.setCurrentStudent(matchingUser, undefined, true);
+              window.location.replace(
+                PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME
+              );
+            }
           } else {
             return;
           }

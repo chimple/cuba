@@ -115,23 +115,8 @@ const Home: FC = () => {
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
   const [currentHeader, setCurrentHeader] = useState(() => {
     const currPage = urlParams.get("tab");
-    if (currPage) {
-      switch (currPage) {
-        case HOMEHEADERLIST.HOME:
-          return HOMEHEADERLIST.HOME;
-        case HOMEHEADERLIST.SUGGESTIONS:
-          return HOMEHEADERLIST.SUGGESTIONS;
-        case HOMEHEADERLIST.SUBJECTS:
-          return HOMEHEADERLIST.SUBJECTS;
-        case HOMEHEADERLIST.ASSIGNMENT:
-          return HOMEHEADERLIST.ASSIGNMENT;
-        case HOMEHEADERLIST.SEARCH:
-          return HOMEHEADERLIST.SEARCH;
-        case HOMEHEADERLIST.LIVEQUIZ:
-          return HOMEHEADERLIST.LIVEQUIZ;
-        default:
-          return HOMEHEADERLIST.HOME;
-      }
+    if (currPage === HOMEHEADERLIST.HOME) {
+      return HOMEHEADERLIST.HOME;
     } else {
       return localStorage.getItem("currentHeader") || HOMEHEADERLIST.HOME;
     }
