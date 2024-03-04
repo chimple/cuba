@@ -49,7 +49,7 @@ const HomeHeader: React.FC<{
         schoolUtil.getCurrMode(),
       ]);
       if (!student) {
-        history.replace(PAGES.HOME);
+        history.replace(PAGES.SELECT_MODE);
         return;
       }
       const linked = await api.isStudentLinked(student.docId, fromCache);
