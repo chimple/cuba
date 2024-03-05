@@ -115,8 +115,11 @@ const Home: FC = () => {
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
   const [currentHeader, setCurrentHeader] = useState(() => {
     const currPage = urlParams.get("tab");
-    if (currPage === HOMEHEADERLIST.HOME) {
-      return HOMEHEADERLIST.HOME;
+    if (
+      currPage &&
+      Object.values(HOMEHEADERLIST).includes(currPage as HOMEHEADERLIST)
+    ) {
+      return currPage as HOMEHEADERLIST;
     } else {
       return localStorage.getItem("currentHeader") || HOMEHEADERLIST.HOME;
     }

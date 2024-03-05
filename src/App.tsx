@@ -67,8 +67,12 @@ import LiveQuizLeaderBoard from "./pages/LiveQuizLeaderBoard";
 import { useOnlineOfflineErrorMessageHandler } from "./common/onlineOfflineErrorMessageHandler";
 import { t } from "i18next";
 import { ServiceConfig } from "./services/ServiceConfig";
+import User from "./models/user";
 
 setupIonicReact();
+interface ExtraData {
+  rewardProfileId?: string; 
+}
 
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
@@ -158,37 +162,42 @@ const App: React.FC = () => {
     //Listen to network change
     Util.listenToNetwork();
 
-    Util.checkNotificationPermissionsAndType(async (type, rewardProfileUid) => {
-      const currentStudent = Util.getCurrentStudent();
-      if (!rewardProfileUid) {
-        console.error("Reward profile UID is undefined");
-        return;
-      }
-      const students =
-        await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-      console.log(
-        "🚀 ~ file: DisplayStudents.tsx:13 ~ getStudents ~ students:",
-        students
-      );
-      const docIds = students.map((student) => student.docId);
-      if (type) {
-        if (type === "reward") {
-          if (currentStudent?.docId === rewardProfileUid) {
-            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
-          } else if (docIds.includes(rewardProfileUid)) {
-            const matchingUser = students.find(
-              (user) => user.docId === rewardProfileUid
-            );
-            if (matchingUser) {
-              await Util.setCurrentStudent(matchingUser, undefined, true);
+    Util.handleNotificationNavigation(async (type, extraData) => {
+      if (type && extraData) {
+        const currentStudent = Util.getCurrentStudent();
+        const students =
+          await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
+        console.log(
+          "🚀 ~ file: DisplayStudents.tsx:13 ~ getStudents ~ students:",
+          students
+        );
+        const docIds = students.map((student) => student.docId);
+        const matchingUser = students.find(
+          (user) => user.docId === data.rewardProfileId
+        );
+        const zeroIndexUserId = students.find((user) => user[0].docId);
+        const data = extraData as ExtraData;
+        const rewardProfileId = data.rewardProfileId;
+        if (rewardProfileId)
+          if (type === "reward") {
+            if (currentStudent?.docId === rewardProfileId) {
+              window.location.replace(
+                PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME
+              );
+            } else if (docIds.includes(rewardProfileId)) {
+              if (matchingUser) {
+                await Util.setCurrentStudent(matchingUser, undefined, true);
+                window.location.replace(
+                  PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME
+                );
+              }
+            } else if (zeroIndexUserId) {
+              await Util.setCurrentStudent(zeroIndexUserId, undefined, true);
               window.location.replace(
                 PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME
               );
             }
-          } else {
-            return;
           }
-        }
       }
     });
 

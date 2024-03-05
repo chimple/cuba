@@ -1087,8 +1087,8 @@ export class Util {
 
   public static notificationsCount = 0;
 
-  public static async checkNotificationPermissionsAndType(
-    onNotification: (type: NotificationType, rewardProfileUid?: string) => void
+  public static async handleNotificationNavigation(
+    onNotification: (type: NotificationType, extraData?: object) => void
   ) {
     if (!Capacitor.isNativePlatform()) return;
     try {
@@ -1118,8 +1118,7 @@ export class Util {
                   notification
                 );
                 const extraData = notification.notification.extra;
-                const rewardProfileUid = extraData.rewardProfileUid;
-                onNotification(NotificationType.REWARD, rewardProfileUid);
+                onNotification(NotificationType.REWARD, extraData);
               }
             );
             console.log(
