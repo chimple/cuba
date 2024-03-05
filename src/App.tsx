@@ -71,6 +71,7 @@ import User from "./models/user";
 
 setupIonicReact();
 interface ExtraData {
+  notificationType?: string;
   rewardProfileId?: string;
 }
 
@@ -162,30 +163,31 @@ const App: React.FC = () => {
     //Listen to network change
     Util.listenToNetwork();
 
-    Util.notificationListener(async (type, extraData) => {
-      if (type === "reward" && extraData) {
+    Util.notificationListener(async (extraData: ExtraData | undefined) => {
+      if (extraData && extraData.notificationType === "reward") {  
         const currentStudent = Util.getCurrentStudent();
-        const students =
-          await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-        console.log(
-          "🚀 ~ file: DisplayStudents.tsx:13 ~ getStudents ~ students:",
-          students
-        );
-        const docIds = students.map((student) => student.docId);
-        let matchingUser =
-          students.find((user) => user.docId === rewardProfileId) ||
-          students[0];
         const data = extraData as ExtraData;
         const rewardProfileId = data.rewardProfileId;
         if (rewardProfileId)
           if (currentStudent?.docId === rewardProfileId) {
             window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
-          } else if (docIds.includes(rewardProfileId)) {
+          } else {
+            const students =
+              await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
+            console.log(
+              "🚀 ~ file: DisplayStudents.tsx:13 ~ getStudents ~ students:",
+              students
+            );
+            let matchingUser =
+              students.find((user) => user.docId === rewardProfileId) ||
+              students[0];
             if (matchingUser) {
               await Util.setCurrentStudent(matchingUser, undefined, true);
               window.location.replace(
                 PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME
               );
+            } else {
+              return;
             }
           }
       }

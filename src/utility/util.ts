@@ -1088,7 +1088,7 @@ export class Util {
   public static notificationsCount = 0;
 
   public static async notificationListener(
-    onNotification: (type: NotificationType, extraData?: object) => void
+    onNotification: ( extraData?: object) => void
   ) {
     if (!Capacitor.isNativePlatform()) return;
     try {
@@ -1118,7 +1118,7 @@ export class Util {
                   notification
                 );
                 const extraData = notification.notification.extra;
-                onNotification(NotificationType.REWARD, extraData);
+                onNotification(extraData);
               }
             );
             console.log(
