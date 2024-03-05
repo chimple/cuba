@@ -1087,7 +1087,7 @@ export class Util {
 
   public static notificationsCount = 0;
 
-  public static async handleNotificationNavigation(
+  public static async notificationListener(
     onNotification: (type: NotificationType, extraData?: object) => void
   ) {
     if (!Capacitor.isNativePlatform()) return;

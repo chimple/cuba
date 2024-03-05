@@ -71,7 +71,7 @@ import User from "./models/user";
 
 setupIonicReact();
 interface ExtraData {
-  rewardProfileId?: string; 
+  rewardProfileId?: string;
 }
 
 const App: React.FC = () => {
@@ -162,8 +162,8 @@ const App: React.FC = () => {
     //Listen to network change
     Util.listenToNetwork();
 
-    Util.handleNotificationNavigation(async (type, extraData) => {
-      if (type && extraData) {
+    Util.notificationListener(async (type, extraData) => {
+      if (type === "reward" && extraData) {
         const currentStudent = Util.getCurrentStudent();
         const students =
           await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
@@ -172,27 +172,17 @@ const App: React.FC = () => {
           students
         );
         const docIds = students.map((student) => student.docId);
-        const matchingUser = students.find(
-          (user) => user.docId === data.rewardProfileId
-        );
-        const zeroIndexUserId = students.find((user) => user[0].docId);
+        let matchingUser =
+          students.find((user) => user.docId === rewardProfileId) ||
+          students[0];
         const data = extraData as ExtraData;
         const rewardProfileId = data.rewardProfileId;
         if (rewardProfileId)
-          if (type === "reward") {
-            if (currentStudent?.docId === rewardProfileId) {
-              window.location.replace(
-                PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME
-              );
-            } else if (docIds.includes(rewardProfileId)) {
-              if (matchingUser) {
-                await Util.setCurrentStudent(matchingUser, undefined, true);
-                window.location.replace(
-                  PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME
-                );
-              }
-            } else if (zeroIndexUserId) {
-              await Util.setCurrentStudent(zeroIndexUserId, undefined, true);
+          if (currentStudent?.docId === rewardProfileId) {
+            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+          } else if (docIds.includes(rewardProfileId)) {
+            if (matchingUser) {
+              await Util.setCurrentStudent(matchingUser, undefined, true);
               window.location.replace(
                 PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME
               );
