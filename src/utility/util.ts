@@ -1088,7 +1088,7 @@ export class Util {
   public static notificationsCount = 0;
 
   public static async notificationListener(
-    onNotification: ( extraData?: object) => void
+    onNotification: (extraData?: object) => void
   ) {
     if (!Capacitor.isNativePlatform()) return;
     try {

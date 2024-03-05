@@ -164,7 +164,7 @@ const App: React.FC = () => {
     Util.listenToNetwork();
 
     Util.notificationListener(async (extraData: ExtraData | undefined) => {
-      if (extraData && extraData.notificationType === "reward") {  
+      if (extraData && extraData.notificationType === "reward") {
         const currentStudent = Util.getCurrentStudent();
         const data = extraData as ExtraData;
         const rewardProfileId = data.rewardProfileId;
