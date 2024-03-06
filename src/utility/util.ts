@@ -1,4 +1,9 @@
-import { Capacitor, CapacitorHttp, registerPlugin } from "@capacitor/core";
+import {
+  Capacitor,
+  CapacitorHttp,
+  PluginCallback,
+  registerPlugin,
+} from "@capacitor/core";
 import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
@@ -82,6 +87,9 @@ declare global {
     cc: any;
     _CCSettings: any;
   }
+}
+enum NotificationType {
+  REWARD = "reward",
 }
 
 export class Util {
@@ -1079,10 +1087,12 @@ export class Util {
 
   public static notificationsCount = 0;
 
-  public static async checkNotificationPermissions() {
+  public static async notificationListener(
+    onNotification: (extraData?: object) => void
+  ) {
     if (!Capacitor.isNativePlatform()) return;
     try {
-      await FirebaseMessaging.addListener(
+      FirebaseMessaging.addListener(
         "notificationReceived",
         async ({ notification }) => {
           console.log("notificationReceived", JSON.stringify(notification));
@@ -1100,6 +1110,17 @@ export class Util {
                 },
               ],
             });
+            LocalNotifications.addListener(
+              "localNotificationActionPerformed",
+              (notification) => {
+                console.log(
+                  "Local Notification Action Performed",
+                  notification
+                );
+                const extraData = notification.notification.extra;
+                onNotification(extraData);
+              }
+            );
             console.log(
               "🚀 ~ file: util.ts:622 ~ res:",
               JSON.stringify(res.notifications)
@@ -1119,7 +1140,7 @@ export class Util {
       await FirebaseMessaging.requestPermissions();
     } catch (error) {
       console.log(
-        "🚀 ~ file: util.ts:514 ~ checkNotificationPermissions ~ error:",
+        "🚀 ~ file: util.ts:514 ~ checkNotificationPermissionsAndType ~ error:",
         JSON.stringify(error)
       );
     }

@@ -36,6 +36,7 @@ import {
   CACHE_IMAGE,
   CONTINUE,
   GAME_URL,
+  HOMEHEADERLIST,
   IS_CUBA,
   PAGES,
 } from "./common/constants";
@@ -65,8 +66,14 @@ import LiveQuizRoomResult from "./pages/LiveQuizRoomResult";
 import LiveQuizLeaderBoard from "./pages/LiveQuizLeaderBoard";
 import { useOnlineOfflineErrorMessageHandler } from "./common/onlineOfflineErrorMessageHandler";
 import { t } from "i18next";
+import { ServiceConfig } from "./services/ServiceConfig";
+import User from "./models/user";
 
 setupIonicReact();
+interface ExtraData {
+  notificationType?: string;
+  rewardProfileId?: string;
+}
 
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
@@ -115,7 +122,6 @@ const App: React.FC = () => {
       window.removeEventListener("offline", handleOffline);
     };
   }, [online, presentToast]);
-
   useEffect(() => {
     console.log("fetching...");
     // localStorage.setItem(LANGUAGE, LANG.ENGLISH);
@@ -154,11 +160,38 @@ const App: React.FC = () => {
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
 
-    //Checking for Notification permissions
-    Util.checkNotificationPermissions();
-
     //Listen to network change
     Util.listenToNetwork();
+
+    Util.notificationListener(async (extraData: ExtraData | undefined) => {
+      if (extraData && extraData.notificationType === "reward") {
+        const currentStudent = Util.getCurrentStudent();
+        const data = extraData as ExtraData;
+        const rewardProfileId = data.rewardProfileId;
+        if (rewardProfileId)
+          if (currentStudent?.docId === rewardProfileId) {
+            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+          } else {
+            const students =
+              await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
+            console.log(
+              "🚀 ~ file: DisplayStudents.tsx:13 ~ getStudents ~ students:",
+              students
+            );
+            let matchingUser =
+              students.find((user) => user.docId === rewardProfileId) ||
+              students[0];
+            if (matchingUser) {
+              await Util.setCurrentStudent(matchingUser, undefined, true);
+              window.location.replace(
+                PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME
+              );
+            } else {
+              return;
+            }
+          }
+      }
+    });
 
     updateAvatarSuggestionJson();
   }, []);
@@ -185,7 +218,6 @@ const App: React.FC = () => {
       console.error("Util.migrateLocalJsonFile failed ", error);
     }
   }
-
   return (
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>
