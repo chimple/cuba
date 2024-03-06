@@ -72,7 +72,7 @@ import User from "./models/user";
 setupIonicReact();
 interface ExtraData {
   notificationType?: string;
-  rewardProfileId?: string;
+  rewardProfileid?: string;
 }
 
 const App: React.FC = () => {
@@ -167,7 +167,7 @@ const App: React.FC = () => {
       if (extraData && extraData.notificationType === "reward") {
         const currentStudent = Util.getCurrentStudent();
         const data = extraData as ExtraData;
-        const rewardProfileId = data.rewardProfileId;
+        const rewardProfileId = data.rewardProfileid;
         if (rewardProfileId)
           if (currentStudent?.docId === rewardProfileId) {
             window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
