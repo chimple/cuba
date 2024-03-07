@@ -33,19 +33,28 @@ const DownloadLesson: React.FC<{
     init();
     setLoading(downloadButtonLoading);
   }, [downloadButtonLoading]);
+  useEffect(() => {
+    const handleLessonDownloaded = (lessonDownloaded) => {
+      const downloadedLessonId = lessonDownloaded.detail.lessonId;
 
-  function handleLessonDownloaded(lessonDownloaded) {
-    const downloadedLessonId = lessonDownloaded.detail.lessonId;
+      if (downloadedLessonId === lessonId) {
+        setShowIcon(false);
+        setLoading(false);
+      }
+    };
 
-    if (downloadedLessonId === lessonId) {
-      setShowIcon(false);
-      setLoading(false);
-    }
-  }
-  window.addEventListener(
-    LESSON_DOWNLOAD_SUCCESS_EVENT,
-    handleLessonDownloaded
-  );
+    window.addEventListener(
+      LESSON_DOWNLOAD_SUCCESS_EVENT,
+      handleLessonDownloaded
+    );
+
+    return () => {
+      window.removeEventListener(
+        LESSON_DOWNLOAD_SUCCESS_EVENT,
+        handleLessonDownloaded
+      );
+    };
+  }, []);
 
   async function init() {
     const storedLessonIds = Util.getStoredLessonIds();

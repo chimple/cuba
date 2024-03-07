@@ -47,10 +47,9 @@ const AssignmentPage: React.FC = () => {
     useState(true);
 
   useEffect(() => {
-    const initialLoadingState =
-      localStorage.getItem(DOWNLOAD_BUTTON_LOADING_STATUS) === "true"
-        ? true
-        : false;
+    const initialLoadingState = JSON.parse(
+      localStorage.getItem(DOWNLOAD_BUTTON_LOADING_STATUS) || "false"
+    );
     setDownloadButtonLoading(initialLoadingState);
     checkAllHomeworkDownloaded();
     init();
@@ -75,6 +74,11 @@ const AssignmentPage: React.FC = () => {
     );
 
     setShowDownloadHomeworkButton(!allLessonIdPresent);
+
+    window.removeEventListener(
+      ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+      checkAllHomeworkDownloaded
+    );
   };
 
   async function downloadAllHomeWork(lessons) {
