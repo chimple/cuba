@@ -9,19 +9,18 @@ import { TfiDownload, TfiTrash } from "react-icons/tfi";
 import { Capacitor } from "@capacitor/core";
 import { Chapter } from "../common/courseConstants";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
+import { LESSON_DOWNLOAD_SUCCESS_EVENT } from "../common/constants";
 
 const DownloadLesson: React.FC<{
   lessonId?: string;
   chapter?: Chapter;
   downloadButtonLoading?: boolean;
   onDownloadOrDelete?: () => void;
-  lessonDownloaded?: string;
 }> = ({
   lessonId,
   chapter,
   downloadButtonLoading = false,
   onDownloadOrDelete,
-  lessonDownloaded,
 }) => {
   const [showIcon, setShowIcon] = useState(true);
   const [showDialogBox, setShowDialogBox] = useState(false);
@@ -35,12 +34,18 @@ const DownloadLesson: React.FC<{
     setLoading(downloadButtonLoading);
   }, [downloadButtonLoading]);
 
-  useEffect(() => {
-    if (lessonDownloaded === lessonId) {
+  function handleLessonDownloaded(lessonDownloaded) {
+    const downloadedLessonId = lessonDownloaded.detail.lessonId;
+
+    if (downloadedLessonId === lessonId) {
       setShowIcon(false);
       setLoading(false);
     }
-  }, [lessonDownloaded]);
+  }
+  window.addEventListener(
+    LESSON_DOWNLOAD_SUCCESS_EVENT,
+    handleLessonDownloaded
+  );
 
   async function init() {
     const storedLessonIds = Util.getStoredLessonIds();
