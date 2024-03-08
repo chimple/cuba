@@ -51,7 +51,6 @@ const AssignmentPage: React.FC = () => {
       localStorage.getItem(DOWNLOAD_BUTTON_LOADING_STATUS) || "false"
     );
     setDownloadButtonLoading(initialLoadingState);
-    checkAllHomeworkDownloaded();
     init();
   }, []);
 
