@@ -78,14 +78,7 @@ const AvatarImageOption: React.FC<{
       if (!percentage || percentage < 0) percentage = 0;
 
       content = (
-        <div
-          style={{
-            width: "40vh",
-            marginLeft: "auto",
-            marginRight: "auto",
-            position: "relative",
-          }}
-        >
+        <div className="progress-container">
           <CircularProgressbar
             value={percentage}
             text={`${avatarObj.weeklyTimeSpent["min"]} ${t("min")} : ${
@@ -129,37 +122,10 @@ const AvatarImageOption: React.FC<{
               },
             }}
           />
-
-          <div
-            style={{
-              position: "absolute",
-              top: "43%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: "46%",
-              height: "40%",
-            }}
-          >
+          <div className="sticker-container">
             {sticker && (
-              <div
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <img
-                  src={sticker}
-                  style={{
-                    width: "100%",
-                    height: "auto",
-                    maxWidth: "100%",
-                    maxHeight: "100%",
-                  }}
-                  alt="Sticker"
-                />
+              <div className="sticker-inner-container">
+                <img src={sticker} className="sticker-img" alt="Sticker" />
               </div>
             )}
           </div>
