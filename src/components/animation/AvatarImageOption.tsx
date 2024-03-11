@@ -7,6 +7,7 @@ import { ReactNode, useEffect, useState } from "react";
 import {
   CHAPTER_CARD_COLOURS,
   LESSON_CARD_COLORS,
+  LeaderboardRewardsType,
   PAGES,
 } from "../../common/constants";
 import Course from "../../models/course";
@@ -17,6 +18,9 @@ import { Chapter } from "../../common/courseConstants";
 import { AvatarModes, AvatarObj } from "./Avatar";
 import CachedImage from "../common/CachedImage";
 import { CircularProgressbar } from "react-circular-progressbar";
+import { ServiceConfig } from "../../services/ServiceConfig";
+import Badge from "../../models/Badge";
+import { Util } from "../../utility/util";
 
 const AvatarImageOption: React.FC<{
   currentMode?: AvatarModes;
@@ -36,6 +40,7 @@ const AvatarImageOption: React.FC<{
   const history = useHistory();
   let content: ReactNode | null = null;
   const [index, setIndex] = useState<number>(0);
+  const [sticker, setSticker] = useState<string | undefined>(undefined);
   const [lessonCardColor, setLessonCardColor] = useState("");
 
   useEffect(() => {
@@ -44,6 +49,14 @@ const AvatarImageOption: React.FC<{
       LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)]
     );
     setIndex(randomIndex);
+    const loadSticker = async () => {
+      const stickerData = await Util.getNextUnlockStickers();
+      if (stickerData && stickerData.length > 0) {
+        setSticker(stickerData[0]?.image);
+      }
+    };
+
+    loadSticker();
   }, []);
 
   switch (currentMode) {
@@ -70,11 +83,14 @@ const AvatarImageOption: React.FC<{
             width: "40vh",
             marginLeft: "auto",
             marginRight: "auto",
+            position: "relative",
           }}
         >
           <CircularProgressbar
             value={percentage}
-            text={`${avatarObj.weeklyTimeSpent["min"]} ${t('min')} : ${avatarObj.weeklyTimeSpent["sec"]} ${t('sec')}`}
+            text={`${avatarObj.weeklyTimeSpent["min"]} ${t("min")} : ${
+              avatarObj.weeklyTimeSpent["sec"]
+            } ${t("sec")}`}
             styles={{
               // Customize the root svg element
               root: {},
@@ -113,6 +129,40 @@ const AvatarImageOption: React.FC<{
               },
             }}
           />
+
+          <div
+            style={{
+              position: "absolute",
+              top: "43%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: "46%",
+              height: "40%",
+            }}
+          >
+            {sticker && (
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <img
+                  src={sticker}
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                  }}
+                  alt="Sticker"
+                />
+              </div>
+            )}
+          </div>
           {/* <p
             style={{ textAlign: "center" }}
           >{`Weekly ${WeeklyGoalValue} Mins Goal`}</p> */}
