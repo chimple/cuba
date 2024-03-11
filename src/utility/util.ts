@@ -76,6 +76,7 @@ import { Router } from "react-router-dom";
 import { schoolUtil } from "./schoolUtil";
 import lesson from "../models/lesson";
 import Lesson from "../models/lesson";
+import { TextToSpeech } from "@capacitor-community/text-to-speech";
 
 declare global {
   interface Window {
@@ -826,6 +827,11 @@ export class Util {
 
   public static onAppStateChange = ({ isActive }) => {
     const url = new URL(window.location.toString());
+
+    if (!isActive) {
+      TextToSpeech.stop();
+    }
+
 
     if (isActive) {
       if (

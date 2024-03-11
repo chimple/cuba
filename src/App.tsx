@@ -65,6 +65,7 @@ import LiveQuizRoomResult from "./pages/LiveQuizRoomResult";
 import LiveQuizLeaderBoard from "./pages/LiveQuizLeaderBoard";
 import { useOnlineOfflineErrorMessageHandler } from "./common/onlineOfflineErrorMessageHandler";
 import { t } from "i18next";
+import { useTtsAudioPlayer } from "./components/animation/animationUtils";
 
 setupIonicReact();
 
@@ -120,9 +121,9 @@ const App: React.FC = () => {
     console.log("fetching...");
     // localStorage.setItem(LANGUAGE, LANG.ENGLISH);
     const urlParams = new URLSearchParams(window.location.search);
+    CapApp.addListener("appStateChange", Util.onAppStateChange);
     if (urlParams.get(CONTINUE) || PAGES.APP_UPDATE) {
       urlParams.delete(CONTINUE);
-      CapApp.addListener("appStateChange", Util.onAppStateChange);
     }
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
