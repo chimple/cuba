@@ -49,9 +49,9 @@ const AvatarImageOption: React.FC<{
   switch (currentMode) {
     case AvatarModes.collectReward:
       content = cardContent(
-        avatarObj.currentRewardInfo.image,
-        avatarObj.currentRewardInfo.image,
-        avatarObj.currentRewardInfo.image
+        avatarObj.unlockedRewards[0]?.image,
+        avatarObj.unlockedRewards[0]?.image,
+        avatarObj.unlockedRewards[0]?.image
       );
 
       break;
@@ -74,7 +74,7 @@ const AvatarImageOption: React.FC<{
         >
           <CircularProgressbar
             value={percentage}
-            text={`${avatarObj.weeklyTimeSpent["min"]} Min : ${avatarObj.weeklyTimeSpent["sec"]} Sec`}
+            text={`${avatarObj.weeklyTimeSpent["min"]} ${t('min')} : ${avatarObj.weeklyTimeSpent["sec"]} ${t('sec')}`}
             styles={{
               // Customize the root svg element
               root: {},
@@ -105,7 +105,7 @@ const AvatarImageOption: React.FC<{
                 // Text color
                 fill: "#000",
                 // Text size
-                fontSize: "12px",
+                fontSize: "8px",
               },
               // Customize background - only used when the `background` prop is true
               background: {
@@ -156,10 +156,10 @@ const AvatarImageOption: React.FC<{
       }
       break;
     case AvatarModes.TwoOptionQuestion:
-      content = cardContent("", "", AvatarObj._i.imageSrc || "");
+      content = cardContent("", "", AvatarObj.getInstance().imageSrc || "");
       break;
     case AvatarModes.FourOptionQuestion:
-      content = cardContent("", "", AvatarObj._i.imageSrc || "");
+      content = cardContent("", "", AvatarObj.getInstance().imageSrc || "");
       break;
     case AvatarModes.RecommendedLesson:
       if (currentLesson) {
@@ -188,7 +188,7 @@ const AvatarImageOption: React.FC<{
             // justifyContent: "center",
           }}
         >
-          <CachedImage
+          {/* <CachedImage
             // style={{
             //   width: "50%",
             //   height: "100%",
@@ -198,7 +198,7 @@ const AvatarImageOption: React.FC<{
             onError={() => {
               // setLoadIcon(LoadIcon.Default);
             }}
-          ></CachedImage>
+          ></CachedImage> */}
         </div>
       );
   }

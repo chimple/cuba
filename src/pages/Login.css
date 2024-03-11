@@ -213,6 +213,6 @@ p {
 .login-verification-error-message {
   width: 35vw;
   color: red;
-  font-size: 1.5vw;
-
+  font-size: 1.3vw;
+  white-space: nowrap;
 }

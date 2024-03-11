@@ -26,6 +26,7 @@ import User from "../models/user";
 import BackButton from "../components/common/BackButton";
 import { Toast } from "@capacitor/toast";
 import { title } from "process";
+import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -62,6 +63,7 @@ const Login: React.FC = () => {
     isInvalidCode: boolean;
     isInvalidCodeLength: boolean;
   }>();
+  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const Buttoncolors = {
     Default: "grey",
     Valid: "yellowgreen",
@@ -268,9 +270,12 @@ const Login: React.FC = () => {
         // Handle the error as a string
         // errorMessage = "Phone Number signin Failed. Something went wrong. Please try again later.";
 
-        if (error.includes("blocked all requests") || error.includes('Timed out waiting for SMS')) {
+        if (
+          error.includes("blocked all requests") ||
+          error.includes("Timed out waiting for SMS")
+        ) {
           setErrorMessage(
-            t("Something went wrong Please try again after some time")
+            t("Something went wrong. Please try again after some time.")
           );
         } else if (error.includes("E.164 format")) {
           setErrorMessage(t("Incorrect phone number format"));
@@ -347,7 +352,7 @@ const Login: React.FC = () => {
             isInvalidCodeLength: false,
           });
           setErrorMessage(
-            t("Verification code has expired. Please request a new one")
+            t("Verification code has expired. Please request a new one.")
           );
         }
       }
@@ -491,6 +496,23 @@ const Login: React.FC = () => {
                     id="login-continue-button"
                     style={{ backgroundColor: currentButtonColor }}
                     onClick={async () => {
+                      if (!online) {
+                        presentToast({
+                          message: t(
+                            `Device is offline. Login requires an internet connection`
+                          ),
+                          color: "danger",
+                          duration: 3000,
+                          position: "bottom",
+                          buttons: [
+                            {
+                              text: "Dismiss",
+                              role: "cancel",
+                            },
+                          ],
+                        });
+                        return;
+                      }
                       console.log(
                         "if (!recaptchaVerifier && !Capacitor.isNativePlatform()) called",
                         recaptchaVerifier
@@ -531,6 +553,23 @@ const Login: React.FC = () => {
                   alt="Google Icon"
                   src="assets/icons/Google Icon.png"
                   onClick={async () => {
+                    if (!online) {
+                      presentToast({
+                        message: t(
+                          `Device is offline. Login requires an internet connection`
+                        ),
+                        color: "danger",
+                        duration: 3000,
+                        position: "bottom",
+                        buttons: [
+                          {
+                            text: "Dismiss",
+                            role: "cancel",
+                          },
+                        ],
+                      });
+                      return;
+                    }
                     try {
                       setIsLoading(true);
                       console.log("isLoading ", isLoading);
@@ -570,7 +609,7 @@ const Login: React.FC = () => {
                 <div id="login-text-box">
                   <div>
                     <TextBox
-                      inputText={"Enter 6 Digit Code"}
+                      inputText={t("Enter 6 Digit Code")}
                       inputType={"tel"}
                       maxLength={6}
                       inputValue={verificationCode.trim()}

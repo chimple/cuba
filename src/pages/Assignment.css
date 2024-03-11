@@ -4,6 +4,9 @@
   height: 100vh;
   background: var(--ion-background-color);
 }
+.assignment-loading {
+  height: 100%;
+}
 
 .assignment-main-join-class {
   display: flex;
@@ -18,7 +21,6 @@
   display: flex;
   justify-content: center;
   color: var(--text-color);
-
 }
 
 .classname-header {
@@ -42,7 +44,7 @@
 }
 
 .right-button {
-  width: 8vh;
+  width: 20vw;
 }
 
 .pending-assignment {
@@ -50,13 +52,12 @@
   position: relative;
   height: 100vh;
   top: 40vh;
-
 }
 
 .school-class-header {
   display: flex;
   gap: 1vw;
-  padding-left: 42vw;
+  /* padding-left: 42vw; */
   color: black;
 }
 
@@ -68,4 +69,29 @@
 .scroll-header {
   overflow: scroll;
   height: 100vh;
+}
+.dowload-homework-button {
+  background: #ffffffd9;
+  color: #05342f;
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  width: clamp(143px, 20vw, 209px);
+  height: clamp(28px, 9vh, 30px);
+  padding-top: 1vh;
+}
+
+.dowload-homework-icon {
+  display: flex;
+  justify-content: end;
+  width: clamp(25px, 3vw, 28px);
+  height: clamp(15px, 3vh, 15px);
+}
+.dowload-homework-icon-container {
+  margin-top: 1vh;
+}
+.download-homework-label {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }

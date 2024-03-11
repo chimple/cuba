@@ -2,7 +2,7 @@ import { IonIcon, IonPage } from "@ionic/react";
 import { useEffect, useState } from "react";
 import "./AppLangSelection.css";
 import { useHistory } from "react-router-dom";
-import { LANGUAGE, LANG, PAGES } from "../common/constants";
+import { LANGUAGE, LANG, PAGES, APP_LANGUAGES } from "../common/constants";
 import Loading from "../components/Loading";
 import i18n from "../i18n";
 import NextButton from "../components/common/NextButton";
@@ -12,7 +12,6 @@ import { t } from "i18next";
 import "./AppLangSelection.css";
 import { chevronForward } from "ionicons/icons";
 import DropDown from "../components/DropDown";
-
 
 const AppLangSelection: React.FC = () => {
   const history = useHistory();
@@ -36,7 +35,11 @@ const AppLangSelection: React.FC = () => {
       id: string;
       displayName: string;
     }[] = [];
-    const languages = await ServiceConfig.getI().apiHandler.getAllLanguages();
+    // const languages = await ServiceConfig.getI().apiHandler.getAllLanguages();
+    const languages = Object.keys(APP_LANGUAGES).map((key) => ({
+      code: key,
+      title: APP_LANGUAGES[key],
+    }));
     languages.forEach((element) => {
       tempLangList.push({
         id: element.code,
@@ -45,7 +48,7 @@ const AppLangSelection: React.FC = () => {
     });
     const currLang = localStorage.getItem(LANGUAGE);
     if (!!currLang) {
-      await i18n.changeLanguage(currLang)
+      await i18n.changeLanguage(currLang);
       setCurrentAppLang(currLang);
     }
     setLangList(tempLangList);
@@ -62,15 +65,17 @@ const AppLangSelection: React.FC = () => {
             src="assets/icons/intro1.svg"
           />
           <div id="text">
-            <p id="header-text1">
-              {t("Login with Phone number or Gmail")}
-            </p>
+            <p id="header-text1">{t("Login with Phone number or Gmail")}</p>
             <div className="intro-text2">
               <p>
-                {t("Users can now log in with their phone number or Gmail for easy access on different devices.")}
+                {t(
+                  "Users can now log in with their phone number or Gmail for easy access on different devices."
+                )}
               </p>
               <p>
-                {t("Your progress stays synced and consistent across all devices.")}
+                {t(
+                  "Your progress stays synced and consistent across all devices."
+                )}
               </p>
             </div>
           </div>
@@ -87,20 +92,22 @@ const AppLangSelection: React.FC = () => {
             src="assets/icons/intro2.svg"
           />
           <div id="text">
-            <p id="header-text2">
-              {t("Enhanced kids profile creation")}
-            </p>
+            <p id="header-text2">{t("Enhanced kid's profile creation")}</p>
             <div className="intro-text2">
               <p>
-                {t("Kids can now customise their profiles with their class, language of")}
+                {t(
+                  "Kids can now customise their profiles with their class, language of"
+                )}
               </p>
               <p>
-                {t("instruction and school board to match their learning needs.")}
+                {t(
+                  "instruction and school board to match their learning needs."
+                )}
               </p>
             </div>
           </div>
         </div>
-      )
+      ),
     },
     {
       text: (
@@ -111,20 +118,22 @@ const AppLangSelection: React.FC = () => {
             src="assets/icons/intro3.svg"
           />
           <div id="text">
-            <p id="header-text3">
-              {t("Advance Home Screen")}
-            </p>
+            <p id="header-text3">{t("Advance Home Screen")}</p>
             <div className="intro-text2">
               <p>
-                {t("The home screen has three tabs: \"For You\" suggests lessons based on")}
+                {t(
+                  'The home screen has three tabs: "For You" suggests lessons based on'
+                )}
               </p>
               <p>
-                {t("progress, \"Liked\" shows liked lessons and \"Played\" lists completed ones.")}
+                {t(
+                  'progress, "Liked" shows liked lessons and "Played" lists completed ones.'
+                )}
               </p>
             </div>
           </div>
         </div>
-      )
+      ),
     },
   ];
 
@@ -157,13 +166,19 @@ const AppLangSelection: React.FC = () => {
   return (
     <IonPage id="app-lang">
       {!isLoading ? (
-        <div className={`app-container ${currentPage >= 0 ? "with-content" : ""}`}>
+        <div
+          className={`app-container ${currentPage >= 0 ? "with-content" : ""}`}
+        >
           <div className="skip-next">
             {currentPage >= 0 && (
               <div className="top-left">
                 <button onClick={handleSkipClick} className="skip-button">
                   {t("Skip")}
-                  <IonIcon className="arrow-icon" slot="end" icon={chevronForward}></IonIcon>
+                  <IonIcon
+                    className="arrow-icon"
+                    slot="end"
+                    icon={chevronForward}
+                  ></IonIcon>
                 </button>
               </div>
             )}
@@ -178,9 +193,10 @@ const AppLangSelection: React.FC = () => {
             ) : (
               <div className="top-right">
                 <div id="App-lang-nextButton">
-                  <NextButton disabled={false} onClicked={handleNextClick}>
-
-                  </NextButton>
+                  <NextButton
+                    disabled={false}
+                    onClicked={handleNextClick}
+                  ></NextButton>
                 </div>
               </div>
             )}

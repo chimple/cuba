@@ -1,0 +1,240 @@
+.skelton-card-size {
+  width: 66.66vh;
+  height: 50vh;
+  margin-top: 10vh;
+  margin-left: 5vh;
+  margin-right: 5vh;
+  display: flex;
+  justify-content: center;
+}
+.skelton-join-class-div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.skelton-join-class {
+  width: 63vw;
+  border-radius: 4vw;
+  height: 10vh;
+  margin-top: 1vh;
+}
+.skelton-join-class-button {
+  align-items: center;
+
+  border-radius: var(--border-radius) !important;
+
+  height: 10vh;
+  justify-content: center;
+  margin-top: 5%;
+  padding: 4% 0 !important;
+  width: 50%;
+  width: 20vw;
+}
+.skelton-body {
+  position: relative;
+  min-height: 100vh;
+  align-items: center;
+}
+.skelton-body-cards {
+  display: flex;
+  flex-direction: row;
+}
+.skelton-card-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.skelton-subject-card-size {
+  width: 66.66vh;
+  height: 50vh;
+  margin-top: 2vh;
+  margin-left: 3vh;
+  margin-right: 5vh;
+  display: flex;
+  justify-content: center;
+}
+.skelton-search-bar {
+  width: 95vw;
+  height: 10vh;
+  border-radius: 40vw;
+  margin: 5vh;
+}
+.skelton-home-page-app-bar {
+  display: flex;
+  justify-content: center;
+  border-radius: 10vh;
+  min-height: 37px;
+  padding: "0 3vw";
+  margin: "1vh 1vh";
+  width: 40%;
+  height: 8vh;
+  align-self: "center";
+}
+.skelton-home-page-app-ba-div {
+  text-align: -webkit-center;
+  flex-direction: column;
+  display: flex;
+  position: absolute;
+  bottom: 20vh;
+  width: 100%;
+}
+.skelton-subject-card {
+  margin-top: 3vh;
+  width: clamp(26vh, 32vh, 37vh);
+  height: clamp(13vh, 39vh, 71vh);
+  justify-content: center;
+  align-items: center;
+  max-width: 22vw;
+  padding: 0% 4% 0% 4%;
+}
+.skelton-size-card {
+  width: 56.66vh;
+  height: 40vh;
+}
+.skelton-back-button {
+  width: clamp(30px, 12vh, 44px);
+  height: clamp(30px, 12vh, 44px);
+  padding: 2%;
+  border-radius: 100%;
+}
+.skelton-switch-user {
+  width: clamp(60px, 20vh, 44px);
+  height: clamp(60px, 20vh, 44px);
+  margin-top: -2vh;
+}
+
+.skelton-leaderboard-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin: var(--margin);
+  margin-bottom: 0;
+}
+.skelton-leaderboard-title {
+  margin-right: 2vh;
+  height: clamp(30px, 12vh, 44px);
+  width: 19vw;
+}
+.skelton-leaderboard-body {
+  display: flex;
+  align-items: center;
+  height: 85vh;
+  padding-bottom: 5vh;
+  flex-wrap: wrap;
+  flex-direction: column;
+}
+.skelton-leaderboard-right {
+  width: 65vw;
+  height: 75vh;
+
+  border-radius: 4vh;
+}
+.skelton-leaderboard-left {
+  width: 30vw;
+  height: 75vh;
+  display: contents;
+  align-items: center;
+}
+.skelton-leaderboard-dropdown {
+  width: 26vw;
+  height: 10vh;
+  margin-left: 2vh;
+}
+.skelton-leaderboard-avatar {
+  width: 16vh;
+  height: 16vh;
+  border-radius: 100%;
+  margin-top: 3vh;
+}
+.skelton-leaderboard-avatar-name {
+  width: 16vh;
+  height: 2vh;
+  border-radius: 5%;
+  margin-bottom: 3vh;
+}
+.skelton-leaderboard-avatar-details {
+  width: 26vw;
+  height: 3vh;
+  border-radius: 5%;
+  margin: 1vh;
+}
+.skelton-home-screen {
+  margin-bottom: 2vh;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.skelton-home-screen-avatar {
+  width: 35vw;
+  height: 65vh;
+  position: relative;
+  flex-direction: column;
+  justify-content: center;
+  border-radius: 5vh;
+}
+.skelton-home-screen-diloag {
+  width: 50vw;
+  height: 75vh;
+  border-radius: 6vh;
+}
+.skelton-display-students {
+  margin: 0.4vh;
+  gap: 10vh;
+  align-items: center;
+  justify-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  /* margin-top: 3vh; */
+  justify-content: center;
+}
+.skelton-student-profile {
+  gap: 10vh;
+  align-items: center;
+  justify-items: center;
+  justify-content: center;
+  width: 16vh;
+  height: 16vh;
+}
+.skelton-display-chapters {
+  display: grid;
+  gap: min(10px, 1vh);
+  justify-items: center;
+  margin: 2%;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(clamp(150px, 40vh, 200px), 1fr)
+  );
+}
+.skelton-subject-name {
+  width: 20vw;
+  min-height: 44px;
+}
+.skelton-grade-name {
+  height: 9vh;
+  width: 15vw;
+  border-radius: 0.8vw;
+}
+.skelton-chapter-icon {
+  background-position: 50%;
+  width: min(70vh, 130px);
+  height: min(70vh, 130px);
+  border-radius: 50%;
+}
+.skelton-chapter-name {
+  top: 5px;
+  align-self: center;
+  width: min(70vh, 130px);
+}
+
+#skelton-home-screen-div {
+  position: fixed;
+  top: 26vh;
+  left: 11vw;
+}
+
+#skelton-home-screen-char {
+  margin-top: 7vh;
+  width: auto;
+  height: 55vh;
+}

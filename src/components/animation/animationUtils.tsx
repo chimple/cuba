@@ -39,16 +39,23 @@ export function useAudioPlayer(audioSrc: string) {
   return { playAudio, isAudioPlaying, pauseAudio };
 }
 
-export function useTtsAudioPlayer(
-  audioText: string,
-) {
-  
+export function useTtsAudioPlayer(audioText: string) {
   const [isTtsPlaying, setIsTtsPlaying] = useState<boolean>(false);
   useEffect(() => {
     if (isTtsPlaying) {
       speak();
     }
+    return () => {
+      console.log("return called in useEffect(() ");
+      TextToSpeech.stop();
+    };
   }, [isTtsPlaying]);
+  useEffect(() => {
+    return () => {
+      console.log("return called in useEffect(() => { TextToSpeech.stop();");
+      TextToSpeech.stop();
+    };
+  }, []);
   const speak = async (audioMessage?: string, audioLang: string = "en-IN") => {
     audioText = audioMessage || audioText;
     const language = localStorage.getItem(LANGUAGE) || "en";

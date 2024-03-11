@@ -166,7 +166,7 @@ const ParentalLock: React.FC<{
                 <p style={{
                   fontWeight: 'bold',
                   fontSize: 'var(--text-size)',
-                }}>{t("Parents Screen")}</p>
+                }}>{t("Parent's Screen")}</p>
               </div>
             </div>
 

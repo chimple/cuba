@@ -3,7 +3,7 @@ name: Build Android
 on:
   push:
     branches:
-      - master
+      - beta
 
 jobs:
   build:
@@ -32,8 +32,8 @@ jobs:
       - name: Create Google Services JSON File and key.jks
         working-directory: ./android/app/
         env:
-          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-          SHA_KEY: ${{ secrets.SHA_KEY }}
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON_PROD }}
+          SHA_KEY: ${{ secrets.SHA_KEY_PROD }}
         run: |
           echo $GOOGLE_SERVICES_JSON | base64 -di > google-services.json
           echo $SHA_KEY | base64 -di > key.jks
@@ -41,30 +41,40 @@ jobs:
       - name: Build
         env:
           CI: false
-          REACT_APP_API_KEY: ${{ secrets.REACT_APP_API_KEY }}
-          REACT_APP_AUTH_DOMAIN: ${{ secrets.REACT_APP_AUTH_DOMAIN }}
-          REACT_APP_PROJECT_ID: ${{ secrets.REACT_APP_PROJECT_ID }}
-          REACT_APP_STORAGE_BUCKET: ${{ secrets.REACT_APP_STORAGE_BUCKET }}
-          REACT_APP_MESSAGING_SENDER_ID: ${{ secrets.REACT_APP_MESSAGING_SENDER_ID }}
-          REACT_APP_APP_ID: ${{ secrets.REACT_APP_APP_ID }}
-          REACT_APP_MEASUREMENT_ID: ${{ secrets.REACT_APP_MEASUREMENT_ID}}
+          REACT_APP_API_KEY: ${{ secrets.REACT_APP_API_KEY_PROD }}
+          REACT_APP_AUTH_DOMAIN: ${{ secrets.REACT_APP_AUTH_DOMAIN_PROD }}
+          REACT_APP_PROJECT_ID: ${{ secrets.REACT_APP_PROJECT_ID_PROD }}
+          REACT_APP_STORAGE_BUCKET: ${{ secrets.REACT_APP_STORAGE_BUCKET_PROD }}
+          REACT_APP_MESSAGING_SENDER_ID: ${{ secrets.REACT_APP_MESSAGING_SENDER_ID_PROD }}
+          REACT_APP_APP_ID: ${{ secrets.REACT_APP_APP_ID_PROD }}
+          REACT_APP_MEASUREMENT_ID: ${{ secrets.REACT_APP_MEASUREMENT_ID_PROD}}
           REACT_APP_ALGOLIA_APP_ID: ${{ secrets.REACT_APP_ALGOLIA_APP_ID }}
           REACT_APP_ALGOLIA_API_KEY: ${{ secrets.REACT_APP_ALGOLIA_API_KEY }}
-          REACT_APP_HOT_UPDATE_SERVER: ${{ secrets.MASTER_HOT_UPDATE_SERVER }}
-          REACT_APP_ALGOLIA_INDEX_NAME: ${{ secrets.REACT_APP_ALGOLIA_INDEX_NAME}}
+          REACT_APP_HOT_UPDATE_SERVER: ${{ secrets.BETA_HOT_UPDATE_SERVER }}
+          REACT_APP_ALGOLIA_INDEX_NAME: ${{ secrets.REACT_APP_ALGOLIA_INDEX_NAME_PROD}}
 
         run: npm run build
 
       - name: Deploy to Firebase
         uses: w9jds/firebase-action@v13.0.3
         with:
-          args: deploy --only hosting:cuba-stage
+          args: deploy --only hosting:chimple-prod-hot-update-beta
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
       - name: Make gradlew executable
         working-directory: ./android/
         run: chmod +x ./gradlew
+
+      - name: Generate the Android App bundleRelease
+        working-directory: ./android/
+        # android/app/build/outputs/bundle/release/app-release.aab
+        run: ./gradlew bundleRelease
+
+      - name: Generate the Android App apk
+        working-directory: ./android/
+        # android/app/build/outputs/apk/release/app-release.apk
+        run: ./gradlew assembleRelease
 
       - name: Generate the Android App assembleDebug
         working-directory: ./android/
@@ -73,17 +83,18 @@ jobs:
       - name: Deploy apk
         working-directory: .
         run: |
-          cd android/app/build/outputs/apk/debug/
+          cd android/app/build/outputs/
           git init
           git config --global user.email prakash@sutara.org
           git config --global user.name  bhanugummana
           git remote add origin https://${{ secrets.ACCESS_TOKEN }}@github.com/chimple/cuba.git
-          git checkout -b apk
-          git add app-debug.apk
-          git commit -m "created apk"
-          #git push --force secure-origin apk
-          #git push --set-upstream origin gh-pages
-          git push origin apk -f
+          git checkout -b apk-beta
+          # git add app-debug.apk
+          git add bundle/release/app-release.aab
+          git add apk/release/app-release.apk
+          git add apk/debug/app-debug.apk
+          git commit -m "created beta apk"
+          git push origin apk-beta -f
 
       # - name: Pushes to Hot update
       #   uses: cpina/github-action-push-to-another-repository@main

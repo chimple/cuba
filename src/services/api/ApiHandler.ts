@@ -12,7 +12,11 @@ import Assignment from "../../models/assignment";
 import Class from "../../models/class";
 import StudentProfile from "../../models/studentProfile";
 import school from "../../models/school";
-import { LeaderboardDropdownList, MODES } from "../../common/constants";
+import {
+  LeaderboardDropdownList,
+  LeaderboardRewards,
+  MODES,
+} from "../../common/constants";
 import School from "../../models/school";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -32,7 +36,7 @@ export class ApiHandler implements ServiceApi {
 
   public liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (user: LiveQuizRoomObject) => void
+    onDataChange: (user: LiveQuizRoomObject | undefined) => void
   ): Unsubscribe {
     return this.s.liveQuizListener(liveQuizRoomDocId, onDataChange);
   }
@@ -60,6 +64,12 @@ export class ApiHandler implements ServiceApi {
     return this.s.joinLiveQuiz(studentId, assignmentId);
   }
   private constructor() {}
+  public async updateRewardsForStudent(
+    studentId: string,
+    unlockedReward: LeaderboardRewards
+  ) {
+    return await this.s.updateRewardsForStudent(studentId, unlockedReward);
+  }
 
   public async getUserByDocId(studentId: string): Promise<User | undefined> {
     return await this.s.getUserByDocId(studentId);
@@ -271,11 +281,11 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getParentStudentProfiles();
   }
 
-  updateSoundFlag(user: User, value: boolean) {
+  updateSoundFlag(user: User, value: number) {
     return this.s.updateSoundFlag(user, value);
   }
 
-  updateMusicFlag(user: User, value: boolean) {
+  updateMusicFlag(user: User, value: number) {
     return this.s.updateMusicFlag(user, value);
   }
   updateTcAccept(user: User, value: boolean) {

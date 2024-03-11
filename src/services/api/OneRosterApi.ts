@@ -2,6 +2,7 @@ import { HttpHeaders } from "@capacitor-community/http";
 import {
   COURSES,
   LeaderboardDropdownList,
+  LeaderboardRewards,
   MODES,
 } from "../../common/constants";
 import { Chapter } from "../../interface/curriculumInterfaces";
@@ -64,7 +65,7 @@ export class OneRosterApi implements ServiceApi {
   }
   liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (user: LiveQuizRoomObject) => void
+    onDataChange: (user: LiveQuizRoomObject | undefined) => void
   ): Unsubscribe {
     throw new Error("Method not implemented.");
   }
@@ -84,7 +85,13 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
-  
+  updateRewardsForStudent(
+    studentId: string,
+    unlockedReward: LeaderboardRewards
+  ) {
+    throw new Error("Method not implemented.");
+  }
+
   getUserByDocId(studentId: string): Promise<User | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -264,10 +271,10 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  updateSoundFlag(user: User, value: boolean) {
+  updateSoundFlag(user: User, value: number) {
     throw new Error("Method not implemented.");
   }
-  updateMusicFlag(user: User, value: boolean) {
+  updateMusicFlag(user: User, value: number) {
     throw new Error("Method not implemented.");
   }
   updateLanguage(user: User, value: string) {

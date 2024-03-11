@@ -53,19 +53,21 @@ const LiveQuizCountdownTimer: FC<{
             {i18n.t("Please wait. Quiz will be starting soon")}
           </p>
           <div className="dashed-progress-container">
-            <CircularProgressbarWithChildren
-              value={Math.max(0, (1 - remainingTime / maxValue) * 100) ?? 0}
-              strokeWidth={10}
-              styles={buildStyles({
-                strokeLinecap: "butt",
-              })}
-            >
-              <RadialSeparators count={maxValue > 60 ? 60 : maxValue} />
-              <div className="live-quiz-countdown-text">
-                <p>{remainingTime}</p>
-                <p>{i18n.t("sec").toUpperCase()}</p>
-              </div>
-            </CircularProgressbarWithChildren>
+            <div className="dashed-progressbar">
+              <CircularProgressbarWithChildren
+                value={Math.max(0, (1 - remainingTime / maxValue) * 100) ?? 0}
+                strokeWidth={10}
+                styles={buildStyles({
+                  strokeLinecap: "butt",
+                })}
+              >
+                <RadialSeparators count={maxValue > 60 ? 60 : maxValue} />
+                <div className="live-quiz-countdown-text">
+                  <p>{remainingTime}</p>
+                  <p>{i18n.t("sec").toUpperCase()}</p>
+                </div>
+              </CircularProgressbarWithChildren>
+            </div>
           </div>
         </>
       ) : null}

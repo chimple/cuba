@@ -16,12 +16,19 @@ import { Util } from "../utility/util";
 import User from "../models/user";
 import { useHistory } from "react-router";
 import { schoolUtil } from "../utility/schoolUtil";
+import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 
 const HomeHeader: React.FC<{
   currentHeader: string;
   onHeaderIconClick: Function;
   pendingAssignmentCount: number;
-}> = ({ currentHeader, onHeaderIconClick, pendingAssignmentCount }) => {
+  pendingLiveQuizCount: number;
+}> = ({
+  currentHeader,
+  onHeaderIconClick,
+  pendingAssignmentCount,
+  pendingLiveQuizCount,
+}) => {
   const { t } = useTranslation();
   const [currentHeaderIconList, setCurrentHeaderIconList] =
     useState<HeaderIconConfig[]>();
@@ -30,37 +37,46 @@ const HomeHeader: React.FC<{
   const history = useHistory();
   const [student, setStudent] = useState<User>();
   const [studentMode, setStudentMode] = useState<string | undefined>();
+  const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
+
   const [isLinked, setIsLinked] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
   const init = async (fromCache: boolean = true) => {
-    const student = await Util.getCurrentStudent();
-    if (!student) {
-      history.replace(PAGES.HOME);
-      return;
-    }
-    const linked = await api.isStudentLinked(student.docId, fromCache);
-    setIsLinked(linked);
-    const currMode = await schoolUtil.getCurrMode();
-    setStudentMode(currMode);
-    DEFAULT_HEADER_ICON_CONFIGS.forEach((element) => {
-      // console.log("elements", element);
-
-      console.log(currMode);
-      if (
-        !(
-          currMode === MODES.SCHOOL &&
-          element.headerList === HOMEHEADERLIST.ASSIGNMENT
-        )
-      ) {
-        headerIconList.push(element);
+    try {
+      const [canShowAvatarValue, student, currMode] = await Promise.all([
+        Util.getCanShowAvatar(),
+        Util.getCurrentStudent(),
+        schoolUtil.getCurrMode(),
+      ]);
+      if (!student) {
+        history.replace(PAGES.SELECT_MODE);
+        return;
       }
-    });
+      const linked = await api.isStudentLinked(student.docId, fromCache);
+      setIsLinked(linked);
+      setStudentMode(currMode);
 
-    if (!headerIconList) return;
+      DEFAULT_HEADER_ICON_CONFIGS.forEach(async (element) => {
+        console.log("element.headerList", element.headerList);
+        if (
+          !(
+            (currMode === MODES.SCHOOL &&
+              element.headerList === HOMEHEADERLIST.ASSIGNMENT) ||
+            (canShowAvatarValue === false &&
+              element.headerList === HOMEHEADERLIST.SUGGESTIONS)
+          )
+        ) {
+          headerIconList.push(element);
+        }
+      });
 
-    setCurrentHeaderIconList(headerIconList);
+      if (!headerIconList) return;
 
-    setStudent(student);
+      setCurrentHeaderIconList(headerIconList);
+      setStudent(student);
+    } catch (error) {
+      console.error("Error in init:", error);
+    }
   };
 
   useEffect(() => {
@@ -79,6 +95,7 @@ const HomeHeader: React.FC<{
           }}
           currentHeader={currentHeader}
           pendingAssignmentCount={0}
+          pendingLiveQuizCount={0}
           onHeaderIconClick={() => {
             if (currentHeader != HOMEHEADERLIST.HOME) {
               onHeaderIconClick(HOMEHEADERLIST.HOME);
@@ -99,6 +116,7 @@ const HomeHeader: React.FC<{
                 headerConfig={element}
                 currentHeader={currentHeader}
                 pendingAssignmentCount={pendingAssignmentCount}
+                pendingLiveQuizCount={pendingLiveQuizCount}
                 onHeaderIconClick={() => {
                   if (currentHeader != element.headerList) {
                     onHeaderIconClick(element.headerList);
@@ -120,6 +138,7 @@ const HomeHeader: React.FC<{
           }}
           currentHeader={currentHeader}
           pendingAssignmentCount={0}
+          pendingLiveQuizCount={0}
           onHeaderIconClick={() => {
             if (currentHeader != HOMEHEADERLIST.PROFILE) {
               onHeaderIconClick(HOMEHEADERLIST.PROFILE);

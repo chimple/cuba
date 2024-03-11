@@ -12,6 +12,7 @@
 
 .rive-container {
   position: relative;
+  text-align: center;
 }
 
 .rive-component {
@@ -56,6 +57,10 @@
 
 .burst {
   animation: burst 0.9s ease-in alternate-reverse;
+}
+
+.buttons-container-in-avatar-option-box{
+  height: 20vh;
 }
 
 .buttons-in-avatar-option-box {

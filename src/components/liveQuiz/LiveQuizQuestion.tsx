@@ -521,6 +521,9 @@ const LiveQuizQuestion: FC<{
                     }}
                     className={
                       "live-quiz-option-box " +
+                      (selectedAnswerIndex === index && !showAnswer
+                        ? "selected-option "
+                        : "") +
                       (showAnswer
                         ? option.isCorrect
                           ? "live-quiz-option-box-correct"
@@ -531,7 +534,14 @@ const LiveQuizQuestion: FC<{
                     }
                   >
                     {(option.audio || option.text) && (
-                      <div className="live-quiz-audio-button-option">
+                      <div
+                        className={
+                          "live-quiz-audio-button-option " +
+                          (selectedAnswerIndex === index && !showAnswer
+                            ? "selected--option-audio-button"
+                            : "")
+                        }
+                      >
                         <HiSpeakerWave
                           onClick={(e) => {
                             e.stopPropagation();

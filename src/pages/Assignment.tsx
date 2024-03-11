@@ -3,7 +3,15 @@ import JoinClass from "../components/assignment/JoinClass";
 import "./Assignment.css";
 import { useEffect, useState } from "react";
 import BackButton from "../components/common/BackButton";
-import { LIVE_QUIZ, PAGES, TYPE } from "../common/constants";
+import {
+  ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+  DOWNLOADED_LESSON_ID,
+  DOWNLOAD_BUTTON_LOADING_STATUS,
+  HOMEHEADERLIST,
+  LIVE_QUIZ,
+  PAGES,
+  TYPE,
+} from "../common/constants";
 import { useHistory } from "react-router";
 import Loading from "../components/Loading";
 import Class from "../models/class";
@@ -17,23 +25,92 @@ import { Util } from "../utility/util";
 import { Keyboard } from "@capacitor/keyboard";
 import { Capacitor } from "@capacitor/core";
 import { StudentLessonResult } from "../common/courseConstants";
+import SkeltonLoading from "../components/SkeltonLoading";
+import { TfiDownload } from "react-icons/tfi";
+import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 
 const AssignmentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isLinked, setIsLinked] = useState(true);
   const [currentClass, setCurrentClass] = useState<Class>();
   const [lessons, setLessons] = useState<Lesson[]>([]);
-  // const [schoolId, setSchoolId] = useState<any>();
   const [schoolName, setSchoolName] = useState<string>();
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: StudentLessonResult;
   }>();
+  const [downloadButtonLoading, setDownloadButtonLoading] = useState(false);
+  const [isInputFocus, setIsInputFocus] = useState(false);
+  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+  const [showDownloadHomeworkButton, setShowDownloadHomeworkButton] =
+    useState(true);
 
   useEffect(() => {
+    const initialLoadingState = JSON.parse(
+      localStorage.getItem(DOWNLOAD_BUTTON_LOADING_STATUS) || "false"
+    );
+    setDownloadButtonLoading(initialLoadingState);
     init();
   }, []);
+
+  useEffect(() => {
+    checkAllHomeworkDownloaded();
+  }, [lessons]);
+
+  const checkAllHomeworkDownloaded = async () => {
+    if (!lessons || lessons.length === 0) {
+      setShowDownloadHomeworkButton(false);
+      return;
+    }
+
+    const downloadedLessonIds = JSON.parse(
+      localStorage.getItem(DOWNLOADED_LESSON_ID) || "[]"
+    );
+
+    const allLessonIdPresent = lessons.every((lesson) =>
+      downloadedLessonIds.includes(lesson.id)
+    );
+
+    setShowDownloadHomeworkButton(!allLessonIdPresent);
+
+    window.removeEventListener(
+      ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+      checkAllHomeworkDownloaded
+    );
+  };
+
+  async function downloadAllHomeWork(lessons) {
+    setDownloadButtonLoading(true);
+    localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(true));
+    const allLessonIds = lessons.map((lesson) => lesson.id);
+    try {
+      const storedLessonIds = Util.getStoredLessonIds();
+      const filteredLessonIds = allLessonIds.filter(
+        (id) => !storedLessonIds.includes(id)
+      );
+
+      await Util.downloadZipBundle(filteredLessonIds);
+
+      localStorage.setItem(
+        DOWNLOAD_BUTTON_LOADING_STATUS,
+        JSON.stringify(false)
+      );
+      setDownloadButtonLoading(false);
+      checkAllHomeworkDownloaded();
+    } catch (error) {
+      console.error("Error downloading homework:", error);
+      localStorage.setItem(
+        DOWNLOAD_BUTTON_LOADING_STATUS,
+        JSON.stringify(false)
+      );
+      setDownloadButtonLoading(false);
+    }
+  }
+  window.addEventListener(
+    ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+    checkAllHomeworkDownloaded
+  );
 
   const init = async (fromCache: boolean = true) => {
     setLoading(true);
@@ -114,7 +191,6 @@ const AssignmentPage: React.FC = () => {
       return;
     }
   };
-  const [isInputFocus, setIsInputFocus] = useState(false);
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -126,7 +202,7 @@ const AssignmentPage: React.FC = () => {
       });
     }
   }, []);
-  return (
+  return !loading ? (
     <div>
       <div className={`assignment-main${isLinked ? "" : "-join-class"}`}>
         {/* <div id="assignment-back-button" style={{display:"none"}}>
@@ -143,13 +219,48 @@ const AssignmentPage: React.FC = () => {
           }
         >
           <div className="assignment-header">
-            <div className="school-class-header">
-              <div className="classname-header">{schoolName}</div>
-              <div className="classname-header">
-                {currentClass?.name ? currentClass?.name : ""}
+            <div className="right-button"></div>
+            <div className="dowload-homework-button-container">
+              <div className="school-class-header">
+                <div className="classname-header">{schoolName}</div>
+                <div className="classname-header">
+                  {currentClass?.name ? currentClass?.name : ""}
+                </div>
               </div>
             </div>
-            <div className="right-button"></div>
+            {isLinked && showDownloadHomeworkButton && lessons.length > 0 ? (
+              <div
+                className="dowload-homework-button"
+                onClick={() => {
+                  if (!online) {
+                    presentToast({
+                      message: t(`Device is offline.`),
+                      color: "danger",
+                      duration: 3000,
+                      position: "bottom",
+                      buttons: [
+                        {
+                          text: "Dismiss",
+                          role: "cancel",
+                        },
+                      ],
+                    });
+
+                    setLoading(false);
+                    return;
+                  } else downloadAllHomeWork(lessons);
+                }}
+              >
+                <div className="download-homework-label">
+                  {t("Download all")}
+                </div>
+                <div className="dowload-homework-icon-container">
+                  <TfiDownload className="dowload-homework-icon" />
+                </div>
+              </div>
+            ) : (
+              <div className="right-button"></div>
+            )}
           </div>
 
           {!loading && (
@@ -177,10 +288,13 @@ const AssignmentPage: React.FC = () => {
                       startIndex={0}
                       showSubjectName={true}
                       showChapterName={true}
+                      downloadButtonLoading={downloadButtonLoading}
+                      showDate={true}
+                      onDownloadOrDelete={checkAllHomeworkDownloaded}
                     />
                   ) : (
                     <div className="pending-assignment">
-                      {t("There are no pending assignments for you.")}
+                      {t("You don't have any pending assignments.")}
                     </div>
                   )}
                 </div>
@@ -189,7 +303,10 @@ const AssignmentPage: React.FC = () => {
           )}
         </div>
       </div>
-      <Loading isLoading={loading} />
+    </div>
+  ) : (
+    <div className="assignment-loading">
+      <SkeltonLoading isLoading={loading} header={HOMEHEADERLIST.ASSIGNMENT} />
     </div>
   );
 };

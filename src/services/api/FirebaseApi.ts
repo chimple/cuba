@@ -30,10 +30,13 @@ import {
 } from "./ServiceApi";
 import {
   COURSES,
-  DEFAULT_COURSE_IDS,
+  DEFAULT_SUBJECT_IDS,
+  LESSON_DOC_LESSON_ID_MAP,
   LIVE_QUIZ,
   LeaderboardDropdownList,
+  LeaderboardRewards,
   MODES,
+  OTHER_CURRICULUM,
   aboveGrade3,
   belowGrade1,
   grade1,
@@ -66,6 +69,7 @@ import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import Badge from "../../models/Badge";
 import Rewards from "../../models/Rewards";
 import Sticker from "../../models/Sticker";
+import { Util } from "../../utility/util";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
@@ -91,7 +95,8 @@ export class FirebaseApi implements ServiceApi {
   }
 
   public async getCourseByUserGradeId(
-    gradeDocId: string | undefined
+    gradeDocId: string | undefined,
+    boardDocId: string | undefined
   ): Promise<DocumentReference<DocumentData>[]> {
     let courseIds: DocumentReference[] = [];
 
@@ -124,18 +129,47 @@ export class FirebaseApi implements ServiceApi {
           gradeCourses
         );
 
-        gradeCourses.forEach((course) => {
+        const curriculumCourses = gradeCourses.filter((course) => {
+          const curriculumRef = course.curriculum;
+          if (!!curriculumRef && curriculumRef.id === boardDocId) return true;
+        });
+
+        curriculumCourses.forEach((course) => {
           courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+        }); //adding courses based on curriculum
+
+        let subjectIds: string[] = [];
+        curriculumCourses.forEach((course) => {
+          const subjectRef = course.subject;
+          if (!!subjectRef) {
+            subjectIds.push(subjectRef.id);
+          }
+        });
+
+        const remainingSubjects = DEFAULT_SUBJECT_IDS.filter(
+          (subjectId) => !subjectIds.includes(subjectId)
+        ); // getting default subjects
+
+        console.log("Remaining subjects to add:", remainingSubjects);
+
+        remainingSubjects.forEach((subjectId) => {
+          const courses = gradeCourses.filter((course) => {
+            const subjectRef = course.subject;
+            if (
+              !!subjectRef &&
+              subjectRef.id === subjectId &&
+              course.curriculum.id === OTHER_CURRICULUM
+            )
+              return true;
+          });
+          courses.forEach((course) => {
+            courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+          });
         });
       }
     }
 
-    if (courseIds.length === 0) {
-      // If no courses were added, use the default course IDs
-      courseIds = DEFAULT_COURSE_IDS.map((id) =>
-        doc(this._db, `${CollectionIds.COURSE}/${id}`)
-      );
-    }
+    console.log("Final courses array:", courseIds);
 
     return courseIds;
   }
@@ -170,7 +204,8 @@ export class FirebaseApi implements ServiceApi {
     // }
     // let courseIds: DocumentReference[] = await this.getCourseByGradeId(
     let courseIds: DocumentReference[] = await this.getCourseByUserGradeId(
-      gradeDocId
+      gradeDocId,
+      boardDocId
     );
 
     // if (!!languageDocId && !!LANGUAGE_COURSE_MAP[languageDocId]) {
@@ -417,14 +452,15 @@ export class FirebaseApi implements ServiceApi {
     this._currentMode = value;
   }
 
-  public updateSoundFlag = async (user: User, value: boolean) => {
+  public updateSoundFlag = async (user: User, value: number) => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {
       await updateDoc(doc(this._db, `User/${user.uid}`), {
-        soundFlag: value,
+        sfxOff: value,
         updatedAt: Timestamp.now(),
       });
-      user.soundFlag = value;
+
+      user.sfxOff = value;
       ServiceConfig.getI().authHandler.currentUser = user;
     }
   };
@@ -440,16 +476,35 @@ export class FirebaseApi implements ServiceApi {
     }
   };
 
-  public updateMusicFlag = async (user: User, value: boolean) => {
+  public updateMusicFlag = async (user: User, value: number) => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {
       await updateDoc(doc(this._db, `User/${user.uid}`), {
-        musicFlag: value,
+        musicOff: value,
         updatedAt: Timestamp.now(),
       });
-      currentUser.musicFlag = value;
+      console.log("updateMusicFlag", value);
+      currentUser.musicOff = value;
       ServiceConfig.getI().authHandler.currentUser = currentUser;
     }
+  };
+
+  public updateRewardsForStudent = async (
+    studentId: string,
+    unlockedReward: LeaderboardRewards
+  ) => {
+    const studentDocRef = doc(this._db, CollectionIds.USER, studentId);
+    const studentDoc = await getDoc(studentDocRef);
+    console.log("const studentDoc = await getDoc(studentDocRef);", studentDoc);
+
+    if (!studentDoc || !studentDoc.data()) return;
+    const student: User = studentDoc.data() as User;
+    console.log("const student: User = studentDoc.data() as User;", student);
+    student.docId = studentDoc.id;
+    console.log("if (!rewards) return;", unlockedReward);
+    await updateDoc(studentDocRef, {
+      rewards: unlockedReward,
+    });
   };
 
   public updateLanguage = async (user: User, value: string) => {
@@ -575,7 +630,17 @@ export class FirebaseApi implements ServiceApi {
       if (!lessonDoc.exists) return;
       const lesson = lessonDoc.data() as Lesson;
       lesson.docId = lessonDoc.id;
-
+      const storedLessonDocAndLessonIDMap = localStorage.getItem(
+        LESSON_DOC_LESSON_ID_MAP
+      );
+      const storedLessonId = storedLessonDocAndLessonIDMap
+        ? JSON.parse(storedLessonDocAndLessonIDMap)
+        : {};
+      storedLessonId[lesson.docId] = lesson.id;
+      localStorage.setItem(
+        LESSON_DOC_LESSON_ID_MAP,
+        JSON.stringify(storedLessonId)
+      );
       if (!!chapter) lesson.chapterTitle = chapter.title;
       else if (loadChapterTitle) {
         if (!this._allCourses) {
@@ -884,9 +949,7 @@ export class FirebaseApi implements ServiceApi {
     languageDocId: string
   ): Promise<User> {
     let tempCourse;
-    if (!student.courses && gradeDocId) {
-      tempCourse = await this.getCourseByUserGradeId(gradeDocId);
-    }
+    tempCourse = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
     const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
     const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
     const languageRef = doc(
@@ -1564,7 +1627,6 @@ export class FirebaseApi implements ServiceApi {
       );
 
       if (!lessonQuerySnapshot.empty) {
-        // If there is a matching lesson, return it
         const lessonDoc = lessonQuerySnapshot.docs[0];
         const lesson = lessonDoc.data() as Lesson;
         lesson.docId = lessonDoc.id;
@@ -1749,15 +1811,20 @@ export class FirebaseApi implements ServiceApi {
 
   public liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (roomDoc: LiveQuizRoomObject) => void
+    onDataChange: (roomDoc: LiveQuizRoomObject | undefined) => void
   ): Unsubscribe {
     const unSub = onSnapshot(
       doc(this._db, CollectionIds.LIVE_QUIZ_ROOM, liveQuizRoomDocId),
       (doc) => {
-        console.log("Current data: ", doc.data());
-        const roomDoc = doc.data() as LiveQuizRoomObject;
-        roomDoc.docId = doc.id;
-        onDataChange(roomDoc);
+        if (doc.exists()) {
+          const roomDoc = doc.data() as LiveQuizRoomObject;
+          if (!!roomDoc) {
+            roomDoc.docId = doc.id;
+          }
+          onDataChange(roomDoc);
+        } else {
+          onDataChange(undefined);
+        }
       }
     );
     return unSub;
@@ -1826,6 +1893,7 @@ export class FirebaseApi implements ServiceApi {
         doc(this._db, CollectionIds.BADGE, id)
       );
       if (!badgeDoc.exists) return;
+      console.log("if (!badgeDoc.exists) return;", badgeDoc.data());
       const data = badgeDoc.data() as Badge;
       data.docId = id;
       return data;
@@ -1836,11 +1904,18 @@ export class FirebaseApi implements ServiceApi {
 
   public async getStickerById(id: string): Promise<Sticker | undefined> {
     try {
-      const badgeDoc = await this.getDocFromOffline(
+      const stickerDoc = await this.getDocFromOffline(
         doc(this._db, CollectionIds.STICKER, id)
       );
-      if (!badgeDoc.exists) return;
-      const data = badgeDoc.data() as Sticker;
+      console.log(
+        "const stickerDoc = await this.getDocFromOffline( ",
+        stickerDoc.exists()
+      );
+      if (!stickerDoc.exists()) return;
+      console.log("if (!stickerDoc.exists) return;", stickerDoc.data());
+      const data = stickerDoc.data() as Sticker;
+      console.log("const data = stickerDoc.data() as Sticker;", data);
+
       data.docId = id;
       return data;
     } catch (error) {
@@ -1855,6 +1930,7 @@ export class FirebaseApi implements ServiceApi {
       );
       if (!rewardDoc.exists) return;
       const data = rewardDoc.data() as Rewards;
+
       data.docId = id;
       return data;
     } catch (error) {
@@ -1878,6 +1954,8 @@ export class FirebaseApi implements ServiceApi {
       return obj;
     }
     const finalRewards = markAllAsSeen(rewards);
+    student.rewards = finalRewards;
+    Util.setCurrentStudent(student);
     await updateDoc(studentDocRef, {
       rewards: finalRewards,
     });

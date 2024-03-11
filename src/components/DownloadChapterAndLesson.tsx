@@ -5,39 +5,66 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import "./DownloadChapterAndLesson.css";
 import { t } from "i18next";
 import DialogBoxButtons from "./parent/DialogBoxButtons​";
-import { useIonToast } from "@ionic/react";
-import { DOWNLOADED_LESSON_AND_CHAPTER_ID } from "../common/constants";
 import { TfiDownload, TfiTrash } from "react-icons/tfi";
 import { Capacitor } from "@capacitor/core";
 import { Chapter } from "../common/courseConstants";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
+import { LESSON_DOWNLOAD_SUCCESS_EVENT } from "../common/constants";
 
 const DownloadLesson: React.FC<{
-  lessonID?: string;
-  chapters?: Chapter;
-  lessonData?: Lesson[];
-}> = ({ lessonID, chapters, lessonData }) => {
+  lessonId?: string;
+  chapter?: Chapter;
+  downloadButtonLoading?: boolean;
+  onDownloadOrDelete?: () => void;
+}> = ({
+  lessonId,
+  chapter,
+  downloadButtonLoading = false,
+  onDownloadOrDelete,
+}) => {
   const [showIcon, setShowIcon] = useState(true);
   const [showDialogBox, setShowDialogBox] = useState(false);
   const [loading, setLoading] = useState(false);
   const [storedLessonID, setStoredLessonID] = useState<string[]>([]);
   const api = ServiceConfig.getI().apiHandler;
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+
   useEffect(() => {
-    const storedLessonAndChapterIds = Util.getStoredLessonAndChapterIds();
+    init();
+    setLoading(downloadButtonLoading);
+  }, [downloadButtonLoading]);
+  useEffect(() => {
+    const handleLessonDownloaded = (lessonDownloaded) => {
+      const downloadedLessonId = lessonDownloaded.detail.lessonId;
 
-    if (lessonID && storedLessonAndChapterIds.lesson.includes(lessonID)) {
-      setShowIcon(false);
-    }
+      if (downloadedLessonId === lessonId) {
+        setShowIcon(false);
+        setLoading(false);
+      }
+    };
 
-    if (chapters && storedLessonAndChapterIds.chapter.includes(chapters.id)) {
-      setShowIcon(false);
-    }
+    window.addEventListener(
+      LESSON_DOWNLOAD_SUCCESS_EVENT,
+      handleLessonDownloaded
+    );
+
+    return () => {
+      window.removeEventListener(
+        LESSON_DOWNLOAD_SUCCESS_EVENT,
+        handleLessonDownloaded
+      );
+    };
   }, []);
+
   async function init() {
-    const lesson = Util.updateChapterOrLessonDownloadStatus(lessonData);
-    if (!lesson) {
-      return;
+    const storedLessonIds = Util.getStoredLessonIds();
+    if (lessonId && storedLessonIds.includes(lessonId)) {
+      setShowIcon(false);
+      downloadButtonLoading = false;
+    }
+    if (chapter) {
+      const isChapterDownloaded = await Util.isChapterDowloaded(chapter);
+      setShowIcon(isChapterDownloaded);
     }
   }
 
@@ -48,9 +75,7 @@ const DownloadLesson: React.FC<{
     if (!online) {
       presentToast({
         message: t(
-          `Device is offline. Cannot download ${
-            chapters ? "Chapter" : "Lesson"
-          }`
+          `Device is offline. Cannot download ${chapter ? "Chapter" : "Lesson"}`
         ),
         color: "danger",
         duration: 3000,
@@ -69,64 +94,50 @@ const DownloadLesson: React.FC<{
 
     const storeLessonID: string[] = [];
 
-    if (chapters) {
-      if (!storedLessonID.includes(chapters.id)) {
-        setStoredLessonID((prevIds) => [...prevIds, chapters.id]);
-        const lessons: Lesson[] = await api.getLessonsForChapter(chapters);
-
-        for (const e of lessons) {
-          if (!storedLessonID.includes(e.id)) {
-            storeLessonID.push(e.id);
-          }
+    if (chapter) {
+      const lessons: Lesson[] = await api.getLessonsForChapter(chapter);
+      for (const e of lessons) {
+        if (!storedLessonID.includes(e.id)) {
+          storeLessonID.push(e.id);
         }
-        await Util.downloadZipBundle(storeLessonID);
-        Util.storeLessonOrChaterIdToLocalStorage(
-          chapters.id,
-          DOWNLOADED_LESSON_AND_CHAPTER_ID,
-          "chapter"
-        );
       }
+      await Util.downloadZipBundle(storeLessonID);
     } else {
-      if (lessonID) {
-        if (!storedLessonID.includes(lessonID)) {
-          await Util.downloadZipBundle([lessonID]);
+      if (lessonId) {
+        if (!storedLessonID.includes(lessonId)) {
+          await Util.downloadZipBundle([lessonId]);
         }
       }
     }
     setShowIcon(false);
     setLoading(false);
+    if (onDownloadOrDelete) onDownloadOrDelete();
   };
 
   const handleDelete = async () => {
     if (loading) return;
     setLoading(true);
-    if (chapters) {
-      const lessons: Lesson[] = await api.getLessonsForChapter(chapters);
+    if (chapter) {
+      const lessons: Lesson[] = await api.getLessonsForChapter(chapter);
       const storeLessonID: string[] = [];
       lessons.forEach(async (e) => {
         storeLessonID.push(e.id);
         if (!storedLessonID.includes(e.id)) {
           setShowIcon(true);
         }
+        if (onDownloadOrDelete) onDownloadOrDelete();
       });
 
       await Util.deleteDownloadedLesson(storeLessonID);
-      Util.removeLessonOrChapterIdFromLocalStorage(
-        chapters.id,
-        DOWNLOADED_LESSON_AND_CHAPTER_ID
-      );
-    } else if (lessonID) {
-      await Util.deleteDownloadedLesson([lessonID]);
-      if (!storedLessonID.includes(lessonID)) {
+    } else if (lessonId) {
+      await Util.deleteDownloadedLesson([lessonId]);
+      if (!storedLessonID.includes(lessonId)) {
         setShowIcon(true);
       }
+      if (onDownloadOrDelete) onDownloadOrDelete();
     }
     setLoading(false);
   };
-
-  useEffect(() => {
-    init();
-  }, [handleDownload, handleDelete]);
 
   return Capacitor.isNativePlatform() ? (
     <div
@@ -141,7 +152,7 @@ const DownloadLesson: React.FC<{
           width={"40vw"}
           height={"30vh"}
           message={t(
-            `Do you want to Delete this ${chapters ? "Chapter" : "Lesson"}`
+            `Do you want to Delete this ${chapter ? "Chapter" : "Lesson"}`
           )}
           showDialogBox={showDialogBox}
           yesText={t("Yes")}

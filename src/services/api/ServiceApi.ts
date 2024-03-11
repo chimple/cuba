@@ -11,7 +11,11 @@ import StudentProfile from "../../models/studentProfile";
 import Class from "../../models/class";
 import School from "../../models/school";
 import Assignment from "../../models/assignment";
-import { LeaderboardDropdownList, MODES } from "../../common/constants";
+import {
+  LeaderboardDropdownList,
+  LeaderboardRewards,
+  MODES,
+} from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
@@ -93,8 +97,8 @@ export interface ServiceApi {
   set currentClass(value: Class | undefined);
   get currentSchool(): School | undefined;
   set currentSchool(value: School | undefined);
-  updateSoundFlag(user: User, value: boolean);
-  updateMusicFlag(user: User, value: boolean);
+  updateSoundFlag(user: User, value: number);
+  updateMusicFlag(user: User, value: number);
   updateLanguage(user: User, value: string);
   updateTcAccept(user: User, value: boolean);
 
@@ -434,7 +438,7 @@ export interface ServiceApi {
    */
   liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (user: LiveQuizRoomObject) => void
+    onDataChange: (user: LiveQuizRoomObject | undefined) => void
   ): Unsubscribe;
 
   /**
@@ -509,4 +513,12 @@ export interface ServiceApi {
    * @returns A Promise that resolves with void when the update is complete.
    */
   getUserByDocId(studentId: string): Promise<User | undefined>;
+
+  /**
+   * update student reward in server
+   * @param studentId - The ID of the current student.
+   * @param unlockReward - The ID of the current student.
+   * @returns A Promise that resolves with void when the update is complete.
+   */
+  updateRewardsForStudent(studentId: string, unlockReward: LeaderboardRewards);
 }
