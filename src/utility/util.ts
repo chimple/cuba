@@ -844,12 +844,15 @@ export class Util {
   }
 
   public static onAppStateChange = ({ isActive }) => {
-    const url = new URL(window.location.toString());
-
     if (!isActive) {
       TextToSpeech.stop();
     }
-
+    const url = new URL(window.location.toString());
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!(urlParams.get(CONTINUE) || PAGES.APP_UPDATE)) {
+      return;
+    }
+    urlParams.delete(CONTINUE);
 
     if (isActive) {
       if (

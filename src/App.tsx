@@ -125,12 +125,7 @@ const App: React.FC = () => {
   }, [online, presentToast]);
   useEffect(() => {
     console.log("fetching...");
-    // localStorage.setItem(LANGUAGE, LANG.ENGLISH);
-    const urlParams = new URLSearchParams(window.location.search);
     CapApp.addListener("appStateChange", Util.onAppStateChange);
-    if (urlParams.get(CONTINUE) || PAGES.APP_UPDATE) {
-      urlParams.delete(CONTINUE);
-    }
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({
