@@ -27,7 +27,7 @@ const LeaderboardStickers: FC = () => {
 
     const unlockedstickers = await getUnlockedstickers();
     const prevstickers = await getPrevstickers();
-    const nextUnlockedstickers = await Util.getNextUnlockStickers();
+    const nextUnlockedstickers = await getNextUnlockStickers();
     const stickerInfoArray: stickerInfo[] = [];
     const uniqueStickerIds = new Set<string>();
 
@@ -107,6 +107,24 @@ const LeaderboardStickers: FC = () => {
         });
       }
     }
+    const stickerDocs = await Promise.all(
+      stickerIds.map((value) => api.getStickerById(value))
+    );
+    return stickerDocs;
+  };
+
+  const getNextUnlockStickers = async (): Promise<(Sticker | undefined)[]> => {
+    const date = new Date();
+    const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
+    if (!rewardsDoc) return [];
+    const currentWeek = Util.getCurrentWeekNumber();
+    const stickerIds: string[] = [];
+    const weeklyData = rewardsDoc.weeklySticker;
+    weeklyData[currentWeek.toString()].forEach((value) => {
+      if (value.type === LeaderboardRewardsType.STICKER) {
+        stickerIds.push(value.id);
+      }
+    });
     const stickerDocs = await Promise.all(
       stickerIds.map((value) => api.getStickerById(value))
     );
