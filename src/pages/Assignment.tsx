@@ -4,7 +4,9 @@ import "./Assignment.css";
 import { useEffect, useState } from "react";
 import BackButton from "../components/common/BackButton";
 import {
+  ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
   DOWNLOADED_LESSON_ID,
+  DOWNLOAD_BUTTON_LOADING_STATUS,
   HOMEHEADERLIST,
   LIVE_QUIZ,
   PAGES,
@@ -43,10 +45,18 @@ const AssignmentPage: React.FC = () => {
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [showDownloadHomeworkButton, setShowDownloadHomeworkButton] =
     useState(true);
-  const [lessonDownloaded, setlessonDownloaded] = useState(String);
+
   useEffect(() => {
+    const initialLoadingState = JSON.parse(
+      localStorage.getItem(DOWNLOAD_BUTTON_LOADING_STATUS) || "false"
+    );
+    setDownloadButtonLoading(initialLoadingState);
     init();
   }, []);
+
+  useEffect(() => {
+    checkAllHomeworkDownloaded();
+  }, [lessons]);
 
   const checkAllHomeworkDownloaded = async () => {
     if (!lessons || lessons.length === 0) {
@@ -63,10 +73,16 @@ const AssignmentPage: React.FC = () => {
     );
 
     setShowDownloadHomeworkButton(!allLessonIdPresent);
+
+    window.removeEventListener(
+      ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+      checkAllHomeworkDownloaded
+    );
   };
 
   async function downloadAllHomeWork(lessons) {
     setDownloadButtonLoading(true);
+    localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(true));
     const allLessonIds = lessons.map((lesson) => lesson.id);
     try {
       const storedLessonIds = Util.getStoredLessonIds();
@@ -74,16 +90,27 @@ const AssignmentPage: React.FC = () => {
         (id) => !storedLessonIds.includes(id)
       );
 
-      await Util.downloadZipBundle(filteredLessonIds, (lessonDownloaded?) => {
-        if (lessonDownloaded) setlessonDownloaded(lessonDownloaded);
-      });
+      await Util.downloadZipBundle(filteredLessonIds);
+
+      localStorage.setItem(
+        DOWNLOAD_BUTTON_LOADING_STATUS,
+        JSON.stringify(false)
+      );
       setDownloadButtonLoading(false);
       checkAllHomeworkDownloaded();
     } catch (error) {
       console.error("Error downloading homework:", error);
+      localStorage.setItem(
+        DOWNLOAD_BUTTON_LOADING_STATUS,
+        JSON.stringify(false)
+      );
       setDownloadButtonLoading(false);
     }
   }
+  window.addEventListener(
+    ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+    checkAllHomeworkDownloaded
+  );
 
   const init = async (fromCache: boolean = true) => {
     setLoading(true);
@@ -264,7 +291,6 @@ const AssignmentPage: React.FC = () => {
                       downloadButtonLoading={downloadButtonLoading}
                       showDate={true}
                       onDownloadOrDelete={checkAllHomeworkDownloaded}
-                      lessonDownloaded={lessonDownloaded}
                     />
                   ) : (
                     <div className="pending-assignment">
