@@ -29,7 +29,7 @@
 @media only screen and (min-width: 1030px) {
   .audio-icon:hover {
     cursor: pointer;
-    transform: scale(1.05);
+    transform: scale(0.8);
   }
 }
 
