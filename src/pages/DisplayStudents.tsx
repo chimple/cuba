@@ -178,7 +178,7 @@ const DisplayStudents: FC<{}> = () => {
               </div>
             ))}
           </div>
-          {students.length < MAX_STUDENTS_ALLOWED && (
+          {/* {students.length < MAX_STUDENTS_ALLOWED && (
             <div className="add-new-button">
               <IoAddCircleSharp
                 color="white"
@@ -187,7 +187,7 @@ const DisplayStudents: FC<{}> = () => {
               />
               {t("Create a New Child Profile")}
             </div>
-          )}
+          )} */}
           {showDialogBox ? (
             <ParentalLock
               showDialogBox={showDialogBox}
