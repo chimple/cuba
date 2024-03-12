@@ -84,6 +84,7 @@ import { schoolUtil } from "./schoolUtil";
 import lesson from "../models/lesson";
 import Lesson from "../models/lesson";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
+import Sticker from "../models/Sticker";
 
 declare global {
   interface Window {
@@ -1377,6 +1378,28 @@ export class Util {
 
       throw error;
     }
+  }
+
+  // const getNextUnlockStickers = async (): Promise<(Sticker | undefined)[]> => {
+  public static async getNextUnlockStickers(): Promise<
+    (Sticker | undefined)[]
+  > {
+    const date = new Date();
+    const api = ServiceConfig.getI().apiHandler;
+    const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
+    if (!rewardsDoc) return [];
+    const currentWeek = Util.getCurrentWeekNumber();
+    const stickerIds: string[] = [];
+    const weeklyData = rewardsDoc.weeklySticker;
+    weeklyData[currentWeek.toString()].forEach((value) => {
+      if (value.type === LeaderboardRewardsType.STICKER) {
+        stickerIds.push(value.id);
+      }
+    });
+    const stickerDocs = await Promise.all(
+      stickerIds.map((value) => api.getStickerById(value))
+    );
+    return stickerDocs;
   }
 
   public static getCurrentWeekNumber() {
