@@ -342,7 +342,7 @@ const Home: FC = () => {
       }
       tempPageNumber = 1;
       await updateHistoryLessons(validLessonIds);
-      // setIsLoading(false);
+      setIsLoading(false);
     } else if (newValue === SUBTAB.FAVOURITES) {
       setHistoryLessons([]);
       if (lessonResultMap) {
@@ -742,6 +742,7 @@ const Home: FC = () => {
   };
 
   const updateFavouriteLessons = async (allLessonIds) => {
+    setIsLoading(true);
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent || !lessonResultMap) {
       return;
@@ -777,9 +778,11 @@ const Home: FC = () => {
     setValidLessonIds(allLessonIds);
     favouriteLessons.push(...validLessonsForFavourite);
     setInitialFavoriteLessons(latestTenFavouriteLessons);
+    setIsLoading(false);
   };
 
   const updateHistoryLessons = async (allLessonIds) => {
+    setIsLoading(true);
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent || !lessonResultMap) {
       return;
@@ -808,6 +811,7 @@ const Home: FC = () => {
     setValidLessonIds(allLessonIds);
     historyLessons.push(...validLessonsForHIstory);
     setInitialHistoryLessons(latestTenPlayedLessons);
+    setIsLoading(false);
   };
 
   console.log("lesson slider favourite", favouriteLessons);
@@ -916,29 +920,41 @@ const Home: FC = () => {
                   )}
 
                   {value === SUBTAB.FAVOURITES && (
-                    <LessonSlider
-                      lessonData={favouriteLessons}
-                      isHome={true}
-                      course={undefined}
-                      lessonsScoreMap={lessonResultMap || {}}
-                      startIndex={0}
-                      showSubjectName={true}
-                      showChapterName={true}
-                      onEndReached={handleLoadMoreLessons}
-                    />
+                    <>
+                      {!!favouriteLessons && favouriteLessons.length > 0 ? (
+                        <LessonSlider
+                          lessonData={favouriteLessons}
+                          isHome={true}
+                          course={undefined}
+                          lessonsScoreMap={lessonResultMap || {}}
+                          startIndex={0}
+                          showSubjectName={true}
+                          showChapterName={true}
+                          onEndReached={handleLoadMoreLessons}
+                        />
+                      ) : (
+                        <p>{t("No liked lessons available.")}</p>
+                      )}
+                    </>
                   )}
 
                   {value === SUBTAB.HISTORY && (
-                    <LessonSlider
-                      lessonData={historyLessons}
-                      isHome={true}
-                      course={undefined}
-                      lessonsScoreMap={lessonResultMap || {}}
-                      startIndex={0}
-                      showSubjectName={true}
-                      showChapterName={true}
-                      onEndReached={handleLoadMoreHistoryLessons}
-                    />
+                    <>
+                      {!!historyLessons && historyLessons.length > 0 ? (
+                        <LessonSlider
+                          lessonData={historyLessons}
+                          isHome={true}
+                          course={undefined}
+                          lessonsScoreMap={lessonResultMap || {}}
+                          startIndex={0}
+                          showSubjectName={true}
+                          showChapterName={true}
+                          onEndReached={handleLoadMoreHistoryLessons}
+                        />
+                      ) : (
+                        <p>{t("No played lessons available.")}</p>
+                      )}
+                    </>
                   )}
                 </div>
               )}

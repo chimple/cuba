@@ -238,3 +238,17 @@
   width: auto;
   height: 55vh;
 }
+.skeleton-student-lessonname {
+  width: 28vh;
+  height: 4vh;
+  margin-bottom: 3vh;
+}
+.skeleton-student-score {
+  width: 18vh;
+  height: 4vh;
+  margin-bottom: 3vh;
+}
+.skeleton-progress-report {
+  display: flex;
+  margin: 3vw 1vw 1vw 8vw;
+}

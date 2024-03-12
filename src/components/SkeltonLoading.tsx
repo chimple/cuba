@@ -1,4 +1,4 @@
-import { IonLoading, LoadingOptions } from "@ionic/react";
+import { IonCol, IonLoading, LoadingOptions } from "@ionic/react";
 import React, { useEffect, useState } from "react";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
@@ -77,6 +77,8 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
       break;
     case PAGES.LIVE_QUIZ_JOIN:
       return isLoading ? skeletonLiveQuizRoom() : null;
+    case PAGES.STUDENT_PROGRESS:
+      return isLoading ? skeletonStudentProgress() : null;
     default:
       return isLoading ? skeltonSubjectCards() : null;
   }
@@ -92,7 +94,7 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
         <div className="skelton-body-cards">{skeltonLessonCards()}</div>
         {header == HOMEHEADERLIST.SUGGESTIONS ? (
           <div className="skelton-home-page-app-ba-div">
-            <Skeleton className="skelton-home-page-app-bar" />
+            {/* <Skeleton className="skelton-home-page-app-bar" /> */}
           </div>
         ) : null}
       </div>
@@ -235,6 +237,39 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
           <Skeleton circle className="skelton-student-profile" />
           <Skeleton className="skelton-leaderboard-avatar-name" />
         </div>
+      </div>
+    );
+  }
+  function skeletonStudentProgress() {
+    return (
+      <div className="skeleton-progress-report">
+        <IonCol>
+          <Skeleton className="skeleton-student-lessonname" />
+          <Skeleton className="skeleton-student-lessonname" />
+          <Skeleton className="skeleton-student-lessonname" />
+          <Skeleton className="skeleton-student-lessonname" />
+        </IonCol>
+
+        <IonCol>
+          <Skeleton className="skeleton-student-lessonname" />
+          <Skeleton className="skeleton-student-lessonname" />
+          <Skeleton className="skeleton-student-lessonname" />
+          <Skeleton className="skeleton-student-lessonname" />
+        </IonCol>
+
+        <IonCol>
+          <Skeleton className="skeleton-student-score" />
+          <Skeleton className="skeleton-student-score" />
+          <Skeleton className="skeleton-student-score" />
+          <Skeleton className="skeleton-student-score" />
+        </IonCol>
+
+        <IonCol>
+          <Skeleton className="skeleton-student-score" />
+          <Skeleton className="skeleton-student-score" />
+          <Skeleton className="skeleton-student-score" />
+          <Skeleton className="skeleton-student-score" />
+        </IonCol>
       </div>
     );
   }
