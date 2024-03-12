@@ -83,6 +83,7 @@ import { Router } from "react-router-dom";
 import { schoolUtil } from "./schoolUtil";
 import lesson from "../models/lesson";
 import Lesson from "../models/lesson";
+import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import Sticker from "../models/Sticker";
 
 declare global {
@@ -844,7 +845,15 @@ export class Util {
   }
 
   public static onAppStateChange = ({ isActive }) => {
+    if (!isActive) {
+      TextToSpeech.stop();
+    }
     const url = new URL(window.location.toString());
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!(urlParams.get(CONTINUE) || PAGES.APP_UPDATE)) {
+      return;
+    }
+    urlParams.delete(CONTINUE);
 
     if (isActive) {
       if (
