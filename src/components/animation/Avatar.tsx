@@ -56,12 +56,13 @@ export class AvatarObj {
   currentLesson: Lesson | undefined;
   currentLessonSuggestionIndex: number;
   currentRecommendedLessonIndex: number = 0;
-  weeklyProgressGoal: number = 25;
+  weeklyProgressGoal: number = 10;
   weeklyTimeSpent: {} = { min: 0, sec: 0 };
   weeklyPlayedLesson: number = 0;
   wrongAttempts: number = 0;
   // gamifyTimespentMessage = "Play ' x1 ' to win your daily reward";
-  gamifyTimespentMessage = "Play ' x1 ' to win your weekly reward";
+  gamifyTimespentMessage =
+    "Playing for just ' x1 ' every week helps you do better in school and get ready for more learning!";
 
   private constructor() {}
 
@@ -201,7 +202,7 @@ export class AvatarObj {
       } else if (showDailyProgress === "true") {
         if (this.weeklyTimeSpent["min"] * 60 < this.weeklyProgressGoal * 60) {
           await this.loadAvatarWeeklyProgressData();
-          return
+          return;
         }
 
         if (this.weeklyTimeSpent["min"] * 60 >= this.weeklyProgressGoal * 60) {
@@ -275,7 +276,6 @@ export class AvatarObj {
   }
 
   public async loadAvatarNextSuggestion() {
-    
     if (this._currentSuggestionNumber === this._allSuggestions.length - 1) {
       this._currentSuggestionNumber = 0;
       localStorage.setItem(
@@ -308,7 +308,6 @@ export class AvatarObj {
 
   public async loadAvatarWeeklyProgressData() {
     try {
-
       const currentStudent = await Util.getCurrentStudent();
       if (!currentStudent) {
         return;

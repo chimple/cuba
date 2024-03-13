@@ -316,7 +316,7 @@ const ChimpleAvatar: FC<{
             if (choice) {
               await onClickYes();
               await playCurrentLesson();
-              await loadNextSuggestion();
+              // await loadNextSuggestion();
             } else {
               await onClickNo();
               cLesson = await getRecommendedLesson(
@@ -361,7 +361,7 @@ const ChimpleAvatar: FC<{
         if (choice) {
           await onClickYes();
           playCurrentLesson();
-          await loadNextSuggestion();
+          // await loadNextSuggestion();
         } else {
           await onClickNo();
           avatarObj.currentLessonSuggestionIndex++;

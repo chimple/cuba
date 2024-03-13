@@ -43,7 +43,7 @@
 }
 
 #leaderboard-right-UI {
-  width: 65vw;
+  width: auto;
   height: 75vh;
   outline-style: solid;
   outline-width: 0.1px;

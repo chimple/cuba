@@ -66,6 +66,7 @@ import LiveQuizRoomResult from "./pages/LiveQuizRoomResult";
 import LiveQuizLeaderBoard from "./pages/LiveQuizLeaderBoard";
 import { useOnlineOfflineErrorMessageHandler } from "./common/onlineOfflineErrorMessageHandler";
 import { t } from "i18next";
+import { useTtsAudioPlayer } from "./components/animation/animationUtils";
 import { ServiceConfig } from "./services/ServiceConfig";
 import User from "./models/user";
 
@@ -124,12 +125,7 @@ const App: React.FC = () => {
   }, [online, presentToast]);
   useEffect(() => {
     console.log("fetching...");
-    // localStorage.setItem(LANGUAGE, LANG.ENGLISH);
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get(CONTINUE) || PAGES.APP_UPDATE) {
-      urlParams.delete(CONTINUE);
-      CapApp.addListener("appStateChange", Util.onAppStateChange);
-    }
+    CapApp.addListener("appStateChange", Util.onAppStateChange);
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({
