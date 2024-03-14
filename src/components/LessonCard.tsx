@@ -191,7 +191,10 @@ const LessonCard: React.FC<{
               history.replace(PAGES.GAME + parmas, {
                 url: "chimple-lib/index.html" + parmas,
                 lessonId: lesson.id,
-                courseDocId: course?.docId ?? lesson?.assignment?.course?.id ?? currentCourse?.docId,
+                courseDocId:
+                  course?.docId ??
+                  lesson?.assignment?.course?.id ??
+                  currentCourse?.docId,
                 course: JSON.stringify(Course.toJson(currentCourse!)),
                 lesson: JSON.stringify(Lesson.toJson(lesson)),
                 from: history.location.pathname + `?${CONTINUE}=true`,
@@ -278,13 +281,13 @@ const LessonCard: React.FC<{
               <SelectIconImage
                 localSrc={
                   // this is for lesson card background
-                  "courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"
+                  "courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.webp"
                 }
                 defaultSrc={
-                  "courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"
+                  "courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.webp"
                 }
                 webSrc={
-                  "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/lesson_thumbnails%2FlessonCaredPattern%2FChallengePattern.png?alt=media&token=be64aec1-f70f-43c3-95de-fd4b1afe5806"
+                  " https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/thumbnails%2Fpuzzle%2FChallengePattern.webp?alt=media&token=6e25ad1e-0735-4dcb-a300-ccb1443ddc46"
                 }
               />
             </div>
