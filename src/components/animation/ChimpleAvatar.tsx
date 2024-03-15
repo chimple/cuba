@@ -316,7 +316,7 @@ const ChimpleAvatar: FC<{
             if (choice) {
               await onClickYes();
               await playCurrentLesson();
-              await loadNextSuggestion();
+              // await loadNextSuggestion();
             } else {
               await onClickNo();
               cLesson = await getRecommendedLesson(
@@ -361,7 +361,7 @@ const ChimpleAvatar: FC<{
         if (choice) {
           await onClickYes();
           playCurrentLesson();
-          await loadNextSuggestion();
+          // await loadNextSuggestion();
         } else {
           await onClickNo();
           avatarObj.currentLessonSuggestionIndex++;
@@ -745,7 +745,8 @@ const ChimpleAvatar: FC<{
             currentLesson={currentLesson}
             avatarObj={avatarObj}
           />
-
+          <div className="buttons-container-in-avatar-option-box"
+          >
           <div
             className="buttons-in-avatar-option-box"
             style={{
@@ -759,6 +760,7 @@ const ChimpleAvatar: FC<{
               gap: ".5em",
               display: buttons.length > 2 ? "grid" : "",
               gridTemplateColumns: buttons.length > 2 ? "35% 15vw" : "",
+              paddingTop: buttons.length > 2 ? "1vh" : "5vh",
             }}
           >
             {buttons.map((button, index) => (
@@ -781,6 +783,8 @@ const ChimpleAvatar: FC<{
               </div>
             ))}
           </div>
+          </div>
+          
         </div>
       </div>
     </div>

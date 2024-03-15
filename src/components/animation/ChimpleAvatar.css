@@ -59,6 +59,10 @@
   animation: burst 0.9s ease-in alternate-reverse;
 }
 
+.buttons-container-in-avatar-option-box{
+  height: 20vh;
+}
+
 .buttons-in-avatar-option-box {
   margin: 2% 0 2% 0;
   /* width: 38vw; */
