@@ -533,6 +533,7 @@ const Home: FC = () => {
             if (lessonObj) {
               let chapterTitle = tempCourse.chapters[0].title;
               lessonObj.chapterTitle = chapterTitle;
+              lessonObj.couseId = tempCourse.docId;
               console.log(lessonObj, "lessons pushed");
               reqLes.push(lessonObj as Lesson);
               // setDataCourse(reqLes);
@@ -540,6 +541,7 @@ const Home: FC = () => {
           } else {
             console.log("Wrong place");
             console.log(element, "lessons pushed");
+            element.couseId = tempCourse.docId;
             reqLes.push(element as Lesson);
             // setDataCourse(reqLes);
           }
@@ -572,6 +574,7 @@ const Home: FC = () => {
               if (lessonObj) {
                 let chapterTitle = chapter.title;
                 lessonObj.chapterTitle = chapterTitle;
+                lessonObj.couseId = tempCourse.docId;
                 console.log(lessonObj, "lessons pushed");
                 reqLes.push(lessonObj as Lesson);
               }
@@ -604,6 +607,7 @@ const Home: FC = () => {
           !islessonPushed
         ) {
           console.log("last played ", lessonObj, "lessons pushed");
+          lessonObj.couseId = tempCourse.docId;
           reqLes.push(lessonObj as Lesson);
           islessonPushed = true;
           // break;
