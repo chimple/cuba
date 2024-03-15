@@ -493,7 +493,7 @@ const Home: FC = () => {
         }
       | undefined;
     const res = await api.getStudentResult(currentStudent.docId);
-    console.log("tempResultLessonMap = res;", JSON.stringify(res));
+    // console.log("tempResultLessonMap = res;", JSON.stringify(res));
     tempResultLessonMap = res?.lessons;
     setLessonResultMap(res?.lessons);
     if (tempResultLessonMap) {
