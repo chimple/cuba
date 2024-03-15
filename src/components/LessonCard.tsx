@@ -281,13 +281,13 @@ const LessonCard: React.FC<{
               <SelectIconImage
                 localSrc={
                   // this is for lesson card background
-                  "courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.webp"
+                  "courses/" + "lessonCaredPattern/" + "ChallengePattern.webp"
                 }
                 defaultSrc={
-                  "courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.webp"
+                  "courses/" + "lessonCaredPattern/" + "ChallengePattern.webp"
                 }
                 webSrc={
-                  " https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/thumbnails%2Fpuzzle%2FChallengePattern.webp?alt=media&token=6e25ad1e-0735-4dcb-a300-ccb1443ddc46"
+                  "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/thumbnails%2Fpuzzle%2FChallengePattern.webp?alt=media&token=6e25ad1e-0735-4dcb-a300-ccb1443ddc46"
                 }
               />
             </div>
