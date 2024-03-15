@@ -38,8 +38,8 @@ const SelectCourse: FC<{
                 }}
               >
                 <SelectIconImage
-                  localSrc={`courses/chapter_icons/${course.courseCode}.png`}
-                  defaultSrc={"courses/" + "maths" + "/icons/" + "maths10.png"}
+                  localSrc={`courses/chapter_icons/${course.courseCode}.webp`}
+                  defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
                   webSrc={course.thumbnail}
                 />
               </div>
