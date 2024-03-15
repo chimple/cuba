@@ -191,7 +191,7 @@ const LessonCard: React.FC<{
               history.replace(PAGES.GAME + parmas, {
                 url: "chimple-lib/index.html" + parmas,
                 lessonId: lesson.id,
-                courseDocId: course?.docId ?? lesson?.assignment?.course?.id,
+                courseDocId: course?.docId ?? lesson?.assignment?.course?.id ?? currentCourse?.docId,
                 course: JSON.stringify(Course.toJson(currentCourse!)),
                 lesson: JSON.stringify(Lesson.toJson(lesson)),
                 from: history.location.pathname + `?${CONTINUE}=true`,
