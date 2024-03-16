@@ -397,11 +397,8 @@ const ChimpleAvatar: FC<{
           }
         );
       } else {
-        let lessonCourse = currentCourse;
-        if (!currentCourse) {
-          lessonCourse =
+        let lessonCourse =
             (await api.getCourseFromLesson(currentLesson)) || currentCourse;
-        }
         const parmas = `?courseid=${currentLesson.cocosSubjectCode}&chapterid=${currentLesson.cocosChapterCode}&lessonid=${currentLesson.id}`;
         await history.replace(PAGES.GAME + parmas, {
           url: "chimple-lib/index.html" + parmas,
