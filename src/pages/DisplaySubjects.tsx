@@ -402,7 +402,7 @@ const DisplaySubjects: FC<{}> = () => {
           stage === STAGES.SUBJECTS &&
           courses &&
           courses.length > 0 && (
-            <SelectCourse courses={courses} onCourseChange={onCourseChanges} />
+            <SelectCourse courses={courses} modeParent={false} onCourseChange={onCourseChanges} />
           )}
 
         {!isLoading &&
