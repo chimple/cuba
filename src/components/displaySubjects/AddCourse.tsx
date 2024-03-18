@@ -41,23 +41,23 @@ const AddCourse: FC<{
             <div
               onClick={() => {
                 console.log('Selected course = ', course.title);
-                // if (online!) {
-                //   presentToast({
-                //     message: t(
-                //       `Device is offline. Cannot create a new child profile`
-                //     ),
-                //     color: "danger",
-                //     duration: 3000,
-                //     position: "bottom",
-                //     buttons: [
-                //       {
-                //         text: "Dismiss",
-                //         role: "cancel",
-                //       },
-                //     ],
-                //   });
-                //   return;
-                // }
+                if (!online) {
+                  presentToast({
+                    message: t(
+                      `Device is offline. Cannot add new subject`
+                    ),
+                    color: "danger",
+                    duration: 3000,
+                    position: "bottom",
+                    buttons: [
+                      {
+                        text: "Dismiss",
+                        role: "cancel",
+                      },
+                    ],
+                  });
+                  return;
+                }
                 setSelectedCourse(course);
                 setShowDialogBox(true);
                 
