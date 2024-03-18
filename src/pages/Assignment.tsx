@@ -1,10 +1,12 @@
-import { IonPage } from "@ionic/react";
+import { IonButton, IonPage } from "@ionic/react";
 import JoinClass from "../components/assignment/JoinClass";
 import "./Assignment.css";
 import { useEffect, useState } from "react";
 import BackButton from "../components/common/BackButton";
 import {
+  ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
   DOWNLOADED_LESSON_ID,
+  DOWNLOAD_BUTTON_LOADING_STATUS,
   HOMEHEADERLIST,
   LIVE_QUIZ,
   PAGES,
@@ -43,10 +45,18 @@ const AssignmentPage: React.FC = () => {
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [showDownloadHomeworkButton, setShowDownloadHomeworkButton] =
     useState(true);
-  const [lessonDownloaded, setlessonDownloaded] = useState(String);
+
   useEffect(() => {
+    const initialLoadingState = JSON.parse(
+      localStorage.getItem(DOWNLOAD_BUTTON_LOADING_STATUS) || "false"
+    );
+    setDownloadButtonLoading(initialLoadingState);
     init();
   }, []);
+
+  useEffect(() => {
+    checkAllHomeworkDownloaded();
+  }, [lessons]);
 
   const checkAllHomeworkDownloaded = async () => {
     if (!lessons || lessons.length === 0) {
@@ -63,10 +73,20 @@ const AssignmentPage: React.FC = () => {
     );
 
     setShowDownloadHomeworkButton(!allLessonIdPresent);
+    const initialLoadingState = JSON.parse(
+      localStorage.getItem(DOWNLOAD_BUTTON_LOADING_STATUS) || "false"
+    );
+    setDownloadButtonLoading(initialLoadingState);
+
+    window.removeEventListener(
+      ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+      checkAllHomeworkDownloaded
+    );
   };
 
   async function downloadAllHomeWork(lessons) {
     setDownloadButtonLoading(true);
+    localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(true));
     const allLessonIds = lessons.map((lesson) => lesson.id);
     try {
       const storedLessonIds = Util.getStoredLessonIds();
@@ -74,16 +94,27 @@ const AssignmentPage: React.FC = () => {
         (id) => !storedLessonIds.includes(id)
       );
 
-      await Util.downloadZipBundle(filteredLessonIds, (lessonDownloaded?) => {
-        if (lessonDownloaded) setlessonDownloaded(lessonDownloaded);
-      });
+      await Util.downloadZipBundle(filteredLessonIds);
+
+      localStorage.setItem(
+        DOWNLOAD_BUTTON_LOADING_STATUS,
+        JSON.stringify(false)
+      );
       setDownloadButtonLoading(false);
       checkAllHomeworkDownloaded();
     } catch (error) {
       console.error("Error downloading homework:", error);
+      localStorage.setItem(
+        DOWNLOAD_BUTTON_LOADING_STATUS,
+        JSON.stringify(false)
+      );
       setDownloadButtonLoading(false);
     }
   }
+  window.addEventListener(
+    ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+    checkAllHomeworkDownloaded
+  );
 
   const init = async (fromCache: boolean = true) => {
     setLoading(true);
@@ -202,7 +233,11 @@ const AssignmentPage: React.FC = () => {
               </div>
             </div>
             {isLinked && showDownloadHomeworkButton && lessons.length > 0 ? (
-              <div
+              <IonButton
+                size="small"
+                color="white"
+                shape="round"
+                disabled={downloadButtonLoading}
                 className="dowload-homework-button"
                 onClick={() => {
                   if (!online) {
@@ -225,12 +260,16 @@ const AssignmentPage: React.FC = () => {
                 }}
               >
                 <div className="download-homework-label">
-                  {t("Download all")}
+                  {downloadButtonLoading
+                    ? t("Downloading...")
+                    : t("Download all")}
                 </div>
-                <div className="dowload-homework-icon-container">
-                  <TfiDownload className="dowload-homework-icon" />
-                </div>
-              </div>
+                {!downloadButtonLoading ? (
+                  <div className="dowload-homework-icon-container">
+                    <TfiDownload className="dowload-homework-icon" />
+                  </div>
+                ) : null}
+              </IonButton>
             ) : (
               <div className="right-button"></div>
             )}
@@ -264,7 +303,6 @@ const AssignmentPage: React.FC = () => {
                       downloadButtonLoading={downloadButtonLoading}
                       showDate={true}
                       onDownloadOrDelete={checkAllHomeworkDownloaded}
-                      lessonDownloaded={lessonDownloaded}
                     />
                   ) : (
                     <div className="pending-assignment">

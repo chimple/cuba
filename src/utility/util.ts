@@ -40,6 +40,8 @@ import {
   unlockedRewardsInfo,
   DOWNLOAD_LESSON_BATCH_SIZE,
   MAX_DOWNLOAD_LESSON_ATTEMPTS,
+  LESSON_DOWNLOAD_SUCCESS_EVENT,
+  ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -81,6 +83,8 @@ import { Router } from "react-router-dom";
 import { schoolUtil } from "./schoolUtil";
 import lesson from "../models/lesson";
 import Lesson from "../models/lesson";
+import { TextToSpeech } from "@capacitor-community/text-to-speech";
+import Sticker from "../models/Sticker";
 
 declare global {
   interface Window {
@@ -319,10 +323,7 @@ export class Util {
     localStorage.setItem(lessonIdStorageKey, JSON.stringify(updatedItems));
   };
 
-  public static async downloadZipBundle(
-    lessonIds: string[],
-    downloadedLessonId?: (downloadedLessonId: string) => void
-  ): Promise<boolean> {
+  public static async downloadZipBundle(lessonIds: string[]): Promise<boolean> {
     try {
       if (!Capacitor.isNativePlatform()) return true;
 
@@ -442,8 +443,17 @@ export class Util {
                   lessonId,
                   DOWNLOADED_LESSON_ID
                 );
-                if (downloadedLessonId) downloadedLessonId(lessonId);
+
+                const customEvent = new CustomEvent(
+                  LESSON_DOWNLOAD_SUCCESS_EVENT,
+                  {
+                    detail: { lessonId },
+                  }
+                );
+
+                window.dispatchEvent(customEvent);
               }
+
               return lessonDownloadSuccess; // Return the result of lesson download
             } catch (error) {
               console.error("Error during lesson download: ", error);
@@ -456,6 +466,8 @@ export class Util {
           return false; // If any lesson download failed, return false
         }
       }
+      const customEvent = new CustomEvent(ALL_LESSON_DOWNLOAD_SUCCESS_EVENT);
+      window.dispatchEvent(customEvent);
       return true; // Return true if all lessons are successfully downloaded
     } catch (error) {
       console.error("Error during lesson download: ", error);
@@ -833,7 +845,15 @@ export class Util {
   }
 
   public static onAppStateChange = ({ isActive }) => {
+    if (!isActive) {
+      TextToSpeech.stop();
+    }
     const url = new URL(window.location.toString());
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!(urlParams.get(CONTINUE) || PAGES.APP_UPDATE)) {
+      return;
+    }
+    urlParams.delete(CONTINUE);
 
     if (isActive) {
       if (
@@ -1358,6 +1378,28 @@ export class Util {
 
       throw error;
     }
+  }
+
+  // const getNextUnlockStickers = async (): Promise<(Sticker | undefined)[]> => {
+  public static async getNextUnlockStickers(): Promise<
+    (Sticker | undefined)[]
+  > {
+    const date = new Date();
+    const api = ServiceConfig.getI().apiHandler;
+    const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
+    if (!rewardsDoc) return [];
+    const currentWeek = Util.getCurrentWeekNumber();
+    const stickerIds: string[] = [];
+    const weeklyData = rewardsDoc.weeklySticker;
+    weeklyData[currentWeek.toString()].forEach((value) => {
+      if (value.type === LeaderboardRewardsType.STICKER) {
+        stickerIds.push(value.id);
+      }
+    });
+    const stickerDocs = await Promise.all(
+      stickerIds.map((value) => api.getStickerById(value))
+    );
+    return stickerDocs;
   }
 
   public static getCurrentWeekNumber() {

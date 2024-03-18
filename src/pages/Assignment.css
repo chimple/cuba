@@ -74,11 +74,7 @@
   background: #ffffffd9;
   color: #05342f;
   border-radius: 20px;
-  display: flex;
-  justify-content: center;
-  width: clamp(143px, 20vw, 209px);
-  height: clamp(28px, 9vh, 30px);
-  padding-top: 1vh;
+  margin-top: 0px;
 }
 
 .dowload-homework-icon {
@@ -87,11 +83,9 @@
   width: clamp(25px, 3vw, 28px);
   height: clamp(15px, 3vh, 15px);
 }
-.dowload-homework-icon-container {
-  margin-top: 1vh;
-}
 .download-homework-label {
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
+  margin-top: 0.5vh;
 }
