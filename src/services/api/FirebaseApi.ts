@@ -22,6 +22,7 @@ import {
   setDoc,
   onSnapshot,
   Unsubscribe,
+  FieldValue,
 } from "firebase/firestore";
 import {
   LeaderboardInfo,
@@ -36,6 +37,7 @@ import {
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODES,
+  OPTIONAL_SUBJECT_IDS,
   OTHER_CURRICULUM,
   aboveGrade3,
   belowGrade1,
@@ -174,6 +176,61 @@ export class FirebaseApi implements ServiceApi {
     return courseIds;
   }
 
+  public async getOptionalCourses(
+    gradeDocId: string | undefined,
+    courses: Course[] = []
+  ): Promise<Course[]> {
+    let optionalCourses: Course[] = [];
+    let remainingCourses: Course[] = [];
+    if (gradeDocId) {
+      // Initialize isGrade1 and isGrade2
+      let isGrade1: string | boolean = false;
+      let isGrade2: string | boolean = false;
+
+      // Check if gradeDocId matches any of the specified grades and assign the value to isGrade1 or isGrade2
+      if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
+        isGrade1 = true;
+      } else if (
+        gradeDocId === grade2 ||
+        gradeDocId === grade3 ||
+        gradeDocId === aboveGrade3
+      ) {
+        isGrade2 = true;
+      } else {
+        // If it's neither grade1 nor grade2, assume grade2
+        isGrade2 = true;
+      }
+
+      if (isGrade1 || isGrade2) {
+        // Use the value of isGrade1 or isGrade2 as the gradeDocId when fetching courses
+        const gradeCourses = await this.getCoursesByGrade(
+          isGrade1 ? grade1 : isGrade2 ? grade2 : gradeDocId
+        );
+
+        const optionalSubjects = OPTIONAL_SUBJECT_IDS; // getting optional subjects
+
+        remainingCourses = 
+        gradeCourses.filter(({ docId: id1 }) => !courses.some(({ docId: id2 }) => id2 === id1));
+
+        optionalSubjects.forEach((subjectId) => {
+          const optCourses = remainingCourses.filter((course) => {
+            const subjectRef = course.subject;
+            if (
+              !!subjectRef &&
+              subjectRef.id === subjectId
+            )
+              return true;
+          });
+          optCourses.forEach((course) => {
+            optionalCourses.push(course);
+          });
+        });
+      }
+    }
+    console.log(optionalCourses);
+    return optionalCourses;
+  }
+
   public async createProfile(
     name: string,
     age: number | undefined,
@@ -202,7 +259,7 @@ export class FirebaseApi implements ServiceApi {
     //     doc(this._db, `${CollectionIds.COURSE}/${id}`)
     //   );
     // }
-    // let courseIds: DocumentReference[] = await this.getCourseByGradeId(
+    // let courseIds: DocumentReference[] = await this.getOptionalCourses(
     let courseIds: DocumentReference[] = await this.getCourseByUserGradeId(
       gradeDocId,
       boardDocId
@@ -567,6 +624,26 @@ export class FirebaseApi implements ServiceApi {
         JSON.stringify(error)
       );
       return [];
+    }
+  }
+
+  async addCourseForParentsStudent(course: Course, student: User){
+    try {
+      const currentUser = student;
+      console.log(currentUser)
+      if (currentUser!) {
+        console.log(currentUser!);
+        await updateDoc(doc(this._db, `User/${currentUser.docId}`), {
+          courses: arrayUnion(doc(this._db, `Course/${course.docId}`)),
+          updatedAt: Timestamp.now(),
+        });
+        console.log('Success');
+      }
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:358 ~ FirebaseApi ~ getCoursesForParentsStudent ~ error:",
+        JSON.stringify(error)
+      );
     }
   }
 

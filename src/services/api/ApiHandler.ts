@@ -19,7 +19,7 @@ import {
 } from "../../common/constants";
 import School from "../../models/school";
 import { AvatarObj } from "../../components/animation/Avatar";
-import { DocumentData, Unsubscribe } from "firebase/firestore";
+import { DocumentData, DocumentReference, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import Badge from "../../models/Badge";
 import Rewards from "../../models/Rewards";
@@ -233,6 +233,13 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getCoursesForParentsStudent(student);
   }
 
+  public async getOptionalCourses(
+    gradeDocId: string | undefined,
+    courses: Course[] = []
+  ): Promise<Course[]>{
+    return await this.s.getOptionalCourses(gradeDocId, courses);
+  }
+
   public async getLessonWithCocosLessonId(
     lessonId: string
   ): Promise<Lesson | null> {
@@ -334,6 +341,10 @@ export class ApiHandler implements ServiceApi {
       gradeDocId,
       languageDocId
     );
+  }
+
+  public async addCourseForParentsStudent(course: Course, student: User) {
+    return this.s.addCourseForParentsStudent(course, student);
   }
 
   public async deleteProfile(studentId: string) {

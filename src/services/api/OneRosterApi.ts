@@ -27,7 +27,7 @@ import School from "../../models/school";
 import { Unsubscribe } from "@firebase/firestore";
 import { AvatarObj } from "../../components/animation/Avatar";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
-import { DocumentData } from "firebase/firestore";
+import { DocumentData, DocumentReference } from "firebase/firestore";
 import Badge from "../../models/Badge";
 import Rewards from "../../models/Rewards";
 import Sticker from "../../models/Sticker";
@@ -41,6 +41,14 @@ export class OneRosterApi implements ServiceApi {
   getCoursesForParentsStudent(student: User): Promise<Course[]> {
     throw new Error("Method not implemented.");
   }
+  getOptionalCourses(gradeDocId, courses): Promise<Course[]>{
+    throw new Error("Method not implemented.");
+  }
+
+  addCourseForParentsStudent(course: Course, student: User) {
+    throw new Error("Method not implemented.");
+  }
+
   getCoursesForClassStudent(currClass: Class): Promise<Course[]> {
     throw new Error("Method not implemented.");
   }
