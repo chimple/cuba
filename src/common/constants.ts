@@ -292,6 +292,7 @@ export enum PAGES {
   DISPLAY_STUDENT = "/display-students",
   DISPLAY_SUBJECTS = "/display-subjects",
   DISPLAY_CHAPTERS = "/display-chapters",
+  ADD_SUBJECTS = "/add-subjects",
   APP_LANG_SELECTION = "/app-lang-selection",
   STUDENT_PROGRESS = "/student-progress",
   SEARCH = "/search",
@@ -369,6 +370,10 @@ export const DEFAULT_SUBJECT_IDS = [
   "MWGQt7j9HrEE9XqKYsGg", //English
   "5fq9UvGv0sjzZJqOZt3c", //Maths
   "nnFVTiGBmw1LiV3xa4V1", //Digital Skills
+];
+export const OPTIONAL_SUBJECT_IDS = [
+  "i2cjGYRK0wNXuP2cXzrj", //Kannada
+  "3IL0QQTQAp0MwEyCnHlQ", //Hindi
 ];
 export const OTHER_CURRICULUM = "BVTIRg2Wm3zxcMPrU5Ob";
 export const LANGUAGE_COURSE_MAP = {
