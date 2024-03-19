@@ -366,6 +366,9 @@ const ChimpleAvatar: FC<{
           await onClickNo();
           avatarObj.currentLessonSuggestionIndex++;
           let recomLesson = await getRecommendedLesson(cChapter, currentCourse);
+          if (recomLesson?.assignment) {
+            recomLesson.courseId = recomLesson.assignment.course.id;
+          }
           setCurrentLesson(recomLesson);
           const x3 = recomLesson?.title || "";
           message = t(`Do you want to play 'x3' lesson?`)
@@ -406,7 +409,7 @@ const ChimpleAvatar: FC<{
         await history.replace(PAGES.GAME + parmas, {
           url: "chimple-lib/index.html" + parmas,
           lessonId: currentLesson.id,
-          courseDocId: currentLesson.couseId ?? lessonCourse.docId,
+          courseDocId: currentLesson.courseId ?? lessonCourse.docId,
           course: JSON.stringify(Course.toJson(lessonCourse)),
           lesson: JSON.stringify(Lesson.toJson(currentLesson)),
           from: history.location.pathname + "?continue=true",
@@ -661,7 +664,9 @@ const ChimpleAvatar: FC<{
     case AvatarModes.RecommendedLesson:
       if (currentLesson) {
         const x3 = currentLesson.title;
-
+        if (currentLesson.assignment) {
+          currentLesson.courseId = currentLesson.assignment.course.id;
+        }
         message = t(`Do you want to play 'x3' lesson?`)
           .replace("x3", " " + x3 + " ")
           .replace(
