@@ -1,20 +1,14 @@
 import { FC, useEffect, useState } from "react";
 import Course from "../models/course";
-
-import { StudentLessonResult } from "../common/courseConstants";
-import { useLocation } from "react-router";
 import { useHistory } from "react-router-dom"
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
-  CONTINUE,
   DISPLAY_SUBJECTS_STORE,
-  MODES,
   PAGES,
 } from "../common/constants";
 import { IonPage } from "@ionic/react";
 import "./DisplaySubjects.css";
 import Loading from "../components/Loading";
-import Grade from "../models/grade";
 import BackButton from "../components/common/BackButton";
 import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
@@ -31,14 +25,8 @@ const AddSubjects: React.FC = () => {
   const [stage, setStage] = useState(STAGES.SUBJECTS);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [courses, setCourses] = useState<Course[]>();
-  const [currentCourse, setCurrentCourse] = useState<Course>();
   const [reloadSubjects, setReloadSubjects] = useState<boolean>(false);
-  const [localGradeMap, setLocalGradeMap] = useState<{
-    grades: Grade[];
-    courses: Course[];
-  }>();
   const history = useHistory();
-  const location = useLocation();
   const api = ServiceConfig.getI().apiHandler;
   useEffect(() => {
     setIsLoading(true);
@@ -47,53 +35,8 @@ const AddSubjects: React.FC = () => {
   }, [reloadSubjects]);
 
   const init = async () => {
-    const urlParams = new URLSearchParams(location.search);
-    if (
-      !!urlParams.get(CONTINUE) &&
-      !!localData.currentCourse 
-    ) {
-      setCourses(localData.courses);
-
-      setIsLoading(false);
-    } else if (!!urlParams.get("isReload")) {
-      let strLocalStoreData = localStorage.getItem(DISPLAY_SUBJECTS_STORE);
-      if (!!strLocalStoreData) {
-        localStorageData = JSON.parse(strLocalStoreData);
-
-        if (!!localStorageData.courses) {
-          let tmpCourses: Course[] = Util.convertCourses(
-            localStorageData.courses
-          );
-          localData.courses = tmpCourses;
-          setCourses(tmpCourses);
-          if (
-            !!localStorageData.stage &&
-            localStorageData.stage !== STAGES.SUBJECTS &&
-            !!localStorageData.currentCourseId
-          ) {
-            setStage(localStorageData.stage);
-            let cc: Course = localData.courses.find(
-              (cour) => localStorageData.currentCourseId === cour.docId
-            );
-
-            localData.currentCourse = cc;
-            setCurrentCourse(cc);
-
-          } else {
-            setIsLoading(false);
-          }
-        } else {
-          await getCourses();
-        }
-      } else {
-        await getCourses();
-      }
-    } else {
-      await getCourses();
-    }
+    await getCourses();
   };
-
-
 
   function addDataToLocalStorage() {
     localStorage.setItem(
