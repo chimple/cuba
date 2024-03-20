@@ -2,7 +2,8 @@ import { FC, useEffect, useState } from "react";
 import Course from "../models/course";
 
 import { StudentLessonResult } from "../common/courseConstants";
-import { useHistory, useLocation } from "react-router";
+import { useLocation } from "react-router";
+import { useHistory } from "react-router-dom"
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
   CONTINUE,
@@ -21,7 +22,7 @@ import AddCourse from "../components/displaySubjects/AddCourse";
 
 const localData: any = {};
 let localStorageData: any = {};
-const AddSubjects: FC<{}> = () => {
+const AddSubjects: React.FC = () => {
   enum STAGES {
     SUBJECTS,
     CHAPTERS,
@@ -112,9 +113,7 @@ const AddSubjects: FC<{}> = () => {
     const currClass = schoolUtil.getCurrentClass();
     const currMode = await schoolUtil.getCurrMode();
     
-    const allCourses = await (currMode === MODES.SCHOOL && !!currClass
-      ? api.getCoursesForClassStudent(currClass)
-      : api.getCoursesForParentsStudent(currentStudent));
+    const allCourses = await api.getCoursesForParentsStudent(currentStudent);
 
     const courses = await api.getOptionalCourses(currentStudent.grade?.id, allCourses);
       

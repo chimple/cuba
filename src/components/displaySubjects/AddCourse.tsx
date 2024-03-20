@@ -44,7 +44,7 @@ const AddCourse: FC<{
                 if (!online) {
                   presentToast({
                     message: t(
-                      `Device is offline. Cannot add new subject`
+                      `Device is offline.`
                     ),
                     color: "danger",
                     duration: 3000,
@@ -88,7 +88,7 @@ const AddCourse: FC<{
           width={"40vw"}
           height={"30vh"}
           message={t(
-            `Add course ${selectedCourse?.title}`
+            `Add subject ${selectedCourse?.title}`
           )}
           showDialogBox={showDialogBox}
           yesText={t("Yes")}
