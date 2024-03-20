@@ -94,10 +94,10 @@ export default class Lesson extends BaseObject {
   public set title(value: string) {
     this._title = value;
   }
-  public get couseId(): string {
+  public get courseId(): string {
     return this._courseId;
   }
-  public set couseId(value: string) {
+  public set courseId(value: string) {
     this._courseId = value;
   }
   public get clonedFrom(): DocumentReference {
@@ -216,7 +216,7 @@ export default class Lesson extends BaseObject {
       pluginType: lesson.pluginType,
       status: lesson.status,
       subject: lesson.subject,
-      couseId:lesson.couseId,
+      couseId:lesson.courseId,
       targetFrom: lesson.targetFrom,
       targetTo: lesson.targetTo,
       thumbnail: lesson.thumbnail,
