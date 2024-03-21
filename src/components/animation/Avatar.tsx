@@ -365,7 +365,7 @@ export class AvatarObj {
           }
           this.message = t(this.gamifyTimespentMessage).replace(
             "x1",
-            computeMinutes.toString() + " min and " + computeSec + " sec"
+            `<b>${computeMinutes.toString()} + " min and " + ${computeSec} + " sec"</b>`
           );
           // this._mode = AvatarModes.ShowWeeklyProgress;
         }
