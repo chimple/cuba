@@ -6,6 +6,7 @@ import { LeaderboardRewardsType } from "../../common/constants";
 import CachedImage from "../common/CachedImage";
 import "./LeaderboardSticker.css";
 import Sticker from "../../models/Sticker";
+import { t } from "i18next";
 
 interface stickerInfo {
   sticker: sticker | undefined;
@@ -17,6 +18,7 @@ const LeaderboardStickers: FC = () => {
   const currentStudent = Util.getCurrentStudent()!;
   const api = ServiceConfig.getI().apiHandler;
   const [stickers, setstickers] = useState<stickerInfo[]>();
+  const [allStickers, setAllStickers] = useState<Sticker[]>();
 
   useEffect(() => {
     init();
@@ -28,19 +30,10 @@ const LeaderboardStickers: FC = () => {
     const unlockedstickers = await getUnlockedstickers();
     const prevstickers = await getPrevstickers();
     const nextUnlockedstickers = await Util.getNextUnlockStickers();
+    const getAllStickers = await getStickers();
     const stickerInfoArray: stickerInfo[] = [];
     const uniqueStickerIds = new Set<string>();
-
-    for (const nextUnlockedsticker of nextUnlockedstickers) {
-      if (nextUnlockedsticker) {
-        stickerInfoArray.push({
-          sticker: nextUnlockedsticker,
-          isUnlocked: false,
-          isNextUnlock: true,
-        });
-        // uniquestickerIds.add(nextUnlockedsticker.docId);
-      }
-    }
+    const fetchedStickers: Sticker[] = [];
 
     for (const unlockedStickers of unlockedstickers) {
       if (unlockedStickers) {
@@ -63,7 +56,23 @@ const LeaderboardStickers: FC = () => {
         uniqueStickerIds.add(prevsticker.docId);
       }
     }
+    for (const nextUnlockedsticker of nextUnlockedstickers) {
+      if (nextUnlockedsticker) {
+        stickerInfoArray.push({
+          sticker: nextUnlockedsticker,
+          isUnlocked: false,
+          isNextUnlock: true,
+        });
+        // uniquestickerIds.add(nextUnlockedsticker.docId);
+      }
+    }
+    for (const sticker of getAllStickers) {
+      if (!!sticker) {
+        fetchedStickers.push(sticker);
+      }
+    }
 
+    setAllStickers(fetchedStickers);
     setstickers(stickerInfoArray);
   }
 
@@ -89,7 +98,31 @@ const LeaderboardStickers: FC = () => {
     }
     return unlockedSticker?.reverse();
   };
+  const getStickers = async () => {
+    const date = new Date();
+    const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
+    if (!rewardsDoc) return [];
+    const currentWeek = Util.getCurrentWeekNumber();
+    const stickerIds: string[] = [];
+    const weeklyData = rewardsDoc.weeklySticker;
+    for (const key in weeklyData) {
+      const weekNumber = parseInt(key);
+      if (!isNaN(weekNumber) && weekNumber > currentWeek) {
+        weeklyData[key].forEach((item) => {
+          if (item.type == LeaderboardRewardsType.STICKER) {
+            stickerIds.push(item.id);
+          }
+        });
+      }
+    }
+    console.log("all stickers..", stickerIds);
 
+    const stickerDocs = await Promise.all(
+      stickerIds.map((value) => api.getStickerById(value))
+    );
+    console.log("all stickers docs..", stickerDocs);
+    return stickerDocs;
+  };
   const getPrevstickers = async (): Promise<(Sticker | undefined)[]> => {
     const date = new Date();
     const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
@@ -121,11 +154,32 @@ const LeaderboardStickers: FC = () => {
           <div
             key={index}
             className={
-              "leaderboard-sticker-item " +
-              (value.isUnlocked ? "" : "leaderboard-sticker-disabled")
+              "leaderboard-badge-item " +
+              (value.isUnlocked
+                ? ""
+                : value.isNextUnlock
+                ? "next-reward"
+                : "lost-reward")
             }
           >
             <CachedImage src={value.sticker?.image} />
+            {value.isUnlocked && <p>{t("won reward")}</p>}
+            {!value.isUnlocked && !value.isNextUnlock && (
+              <p>{t("lost reward")}</p>
+            )}
+            {value.isNextUnlock && (
+              <p className="leaderboard-next-unlock-text">
+                {t("This Week's Reward")}
+              </p>
+            )}
+          </div>
+        ))}
+      {allStickers &&
+        allStickers.length > 0 &&
+        allStickers.map((value, index) => (
+          <div key={index} className={"leaderboard-sticker-disabled"}>
+            <CachedImage src={value.image} />
+            {!!value.name ? <p>{value.name}</p> : ""}
           </div>
         ))}
     </div>

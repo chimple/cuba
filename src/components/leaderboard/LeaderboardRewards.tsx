@@ -57,20 +57,18 @@ const LeaderboardRewards: FC = () => {
         />
         <Tab
           id="parent-page-tab-bar"
-          value={LEADERBOARD_REWARD_LIST.BONUS}
-          label={t(LEADERBOARD_REWARD_LIST.BONUS)}
-        />
-        <Tab
-          id="parent-page-tab-bar"
           value={LEADERBOARD_REWARD_LIST.STICKER}
           label={t(LEADERBOARD_REWARD_LIST.STICKER)}
         />
+        <Tab
+          id="parent-page-tab-bar"
+          value={LEADERBOARD_REWARD_LIST.BONUS}
+          label={t(LEADERBOARD_REWARD_LIST.BONUS)}
+        />
       </Tabs>
       {tabIndex === LEADERBOARD_REWARD_LIST.BADGES && <LeaderboardBadges />}
-
-      {tabIndex === LEADERBOARD_REWARD_LIST.BONUS && <LeaderboardBonus />}
-
       {tabIndex === LEADERBOARD_REWARD_LIST.STICKER && <LeaderboardSticker />}
+      {tabIndex === LEADERBOARD_REWARD_LIST.BONUS && <LeaderboardBonus />}
     </div>
   );
 };

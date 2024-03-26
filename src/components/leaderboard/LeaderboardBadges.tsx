@@ -6,6 +6,7 @@ import { LeaderboardRewardsType } from "../../common/constants";
 import CachedImage from "../common/CachedImage";
 import "./LeaderboardBadges.css";
 import { t } from "i18next";
+import { FaHeart } from "react-icons/fa";
 
 interface BadgeInfo {
   badge: Badge | undefined;
@@ -17,7 +18,7 @@ const LeaderboardBadges: FC = () => {
   const currentStudent = Util.getCurrentStudent()!;
   const api = ServiceConfig.getI().apiHandler;
   const [badges, setBadges] = useState<BadgeInfo[]>();
-
+  const [allBadges, setAllBadges] = useState<Badge[]>();
   useEffect(() => {
     init();
   }, []);
@@ -28,19 +29,17 @@ const LeaderboardBadges: FC = () => {
     const unlockedBadges = await getUnlockedBadges();
     const prevBadges = await getPrevBadges();
     const nextUnlockBadges = await getNextUnlockBadges();
+    const getAllBadges = await getbadges();
     const badgeInfoArray: BadgeInfo[] = [];
     const uniqueBadgeIds = new Set<string>();
-
-    for (const nextUnlockBadge of nextUnlockBadges) {
-      if (nextUnlockBadge) {
-        badgeInfoArray.push({
-          badge: nextUnlockBadge,
-          isUnlocked: false,
-          isNextUnlock: true,
-        });
-        // uniqueBadgeIds.add(nextUnlockBadge.docId);
+    const fetchedBadges: Badge[] = [];
+    for (let temp of getAllBadges) {
+      const badgeData = await api.getBadgeById(temp);
+      if (!!badgeData) {
+        fetchedBadges.push(badgeData);
       }
     }
+    setAllBadges(fetchedBadges);
 
     for (const unlockedBadge of unlockedBadges) {
       if (unlockedBadge) {
@@ -63,9 +62,38 @@ const LeaderboardBadges: FC = () => {
         uniqueBadgeIds.add(prevBadge.docId);
       }
     }
+    for (const nextUnlockBadge of nextUnlockBadges) {
+      if (nextUnlockBadge) {
+        badgeInfoArray.push({
+          badge: nextUnlockBadge,
+          isUnlocked: false,
+          isNextUnlock: true,
+        });
+        // uniqueBadgeIds.add(nextUnlockBadge.docId);
+      }
+    }
 
     setBadges(badgeInfoArray);
   }
+  const getbadges = async () => {
+    const matchingDocIds: string[] = [];
+    const date = new Date();
+    const currentWeek = Util.getCurrentWeekNumber();
+    const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
+    if (rewardsDoc && rewardsDoc.weekly) {
+      for (const key in rewardsDoc.weekly) {
+        const weekNumber = parseInt(key);
+        if (!isNaN(weekNumber) && weekNumber > currentWeek) {
+          rewardsDoc.weekly[key].forEach((item) => {
+            if (item.type == LeaderboardRewardsType.BADGE) {
+              matchingDocIds.push(item.id);
+            }
+          });
+        }
+      }
+    }
+    return matchingDocIds;
+  };
 
   const getUnlockedBadges = async (): Promise<(Badge | undefined)[]> => {
     if (
@@ -140,15 +168,36 @@ const LeaderboardBadges: FC = () => {
             key={index}
             className={
               "leaderboard-badge-item " +
-              (value.isUnlocked ? "" : "leaderboard-badge-disabled")
+              (value.isUnlocked
+                ? ""
+                : value.isNextUnlock
+                ? "next-reward"
+                : "lost-reward")
             }
           >
+            {value.isNextUnlock && (
+              <div className="green-circle">
+                <FaHeart color="white" />
+              </div>
+            )}
             <CachedImage src={value.badge?.image} />
+            {value.isUnlocked && <p>{t("won reward")}</p>}
+            {!value.isUnlocked && !value.isNextUnlock && (
+              <p>{t("lost reward")}</p>
+            )}
             {value.isNextUnlock && (
               <p className="leaderboard-next-unlock-text">
                 {t("This Week's Reward")}
               </p>
             )}
+          </div>
+        ))}
+      {allBadges &&
+        allBadges.length > 0 &&
+        allBadges.map((value) => (
+          <div className="leaderboard-badge-disabled">
+            <CachedImage src={value.image} />
+            {!!value.name ? <p>{value.name}</p> : ""}
           </div>
         ))}
     </div>
