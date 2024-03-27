@@ -34,9 +34,8 @@ const LeaderboardBadges: FC = () => {
     const uniqueBadgeIds = new Set<string>();
     const fetchedBadges: Badge[] = [];
     for (let temp of getAllBadges) {
-      const badgeData = await api.getBadgeById(temp);
-      if (!!badgeData) {
-        fetchedBadges.push(badgeData);
+      if (temp) {
+        fetchedBadges.push(temp);
       }
     }
     setAllBadges(fetchedBadges);
@@ -75,24 +74,32 @@ const LeaderboardBadges: FC = () => {
 
     setBadges(badgeInfoArray);
   }
-  const getbadges = async () => {
+  const getbadges = async (): Promise<(Badge | undefined)[]> => {
     const matchingDocIds: string[] = [];
     const date = new Date();
     const currentWeek = Util.getCurrentWeekNumber();
     const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
-    if (rewardsDoc && rewardsDoc.weekly) {
-      for (const key in rewardsDoc.weekly) {
-        const weekNumber = parseInt(key);
-        if (!isNaN(weekNumber) && weekNumber > currentWeek) {
-          rewardsDoc.weekly[key].forEach((item) => {
-            if (item.type == LeaderboardRewardsType.BADGE) {
-              matchingDocIds.push(item.id);
-            }
-          });
-        }
+    for (const key in rewardsDoc?.weekly) {
+      const weekNumber = parseInt(key);
+      if (!isNaN(weekNumber) && weekNumber > currentWeek) {
+        rewardsDoc?.weekly[key].forEach((item) => {
+          if (item.type == LeaderboardRewardsType.BADGE) {
+            matchingDocIds.push(item.id);
+          }
+        });
       }
     }
-    return matchingDocIds;
+    const badgeDocs: (Badge | undefined)[] = [];
+    let index = 0;
+    while (index < matchingDocIds.length) {
+      const limit = matchingDocIds.slice(index, index + 20);
+      const limitBadgeDocs = await Promise.all(
+        limit.map((value) => api.getBadgeById(value))
+      );
+      badgeDocs.push(...limitBadgeDocs);
+      index += 20;
+    }
+    return badgeDocs;
   };
 
   const getUnlockedBadges = async (): Promise<(Badge | undefined)[]> => {

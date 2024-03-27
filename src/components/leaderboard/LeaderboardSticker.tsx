@@ -115,12 +115,9 @@ const LeaderboardStickers: FC = () => {
         });
       }
     }
-    console.log("all stickers..", stickerIds);
-
     const stickerDocs = await Promise.all(
       stickerIds.map((value) => api.getStickerById(value))
     );
-    console.log("all stickers docs..", stickerDocs);
     return stickerDocs;
   };
   const getPrevstickers = async (): Promise<(Sticker | undefined)[]> => {
