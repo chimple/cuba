@@ -22,6 +22,7 @@ import {
   setDoc,
   onSnapshot,
   Unsubscribe,
+  FieldValue,
 } from "firebase/firestore";
 import {
   LeaderboardInfo,
@@ -36,6 +37,7 @@ import {
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODES,
+  OPTIONAL_SUBJECT_IDS,
   OTHER_CURRICULUM,
   aboveGrade3,
   belowGrade1,
@@ -174,6 +176,16 @@ export class FirebaseApi implements ServiceApi {
     return courseIds;
   }
 
+  public async getAdditionalCourses(
+    courses: Course[] = []
+  ): Promise<Course[]> {
+    let remainingCourses: Course[] = [];
+        const allCourses = await this.getAllCourses();
+        remainingCourses = 
+        allCourses.filter(({ docId: id1 }) => !courses.some(({ docId: id2 }) => id2 === id1));
+    return remainingCourses;
+  }
+
   public async createProfile(
     name: string,
     age: number | undefined,
@@ -202,7 +214,7 @@ export class FirebaseApi implements ServiceApi {
     //     doc(this._db, `${CollectionIds.COURSE}/${id}`)
     //   );
     // }
-    // let courseIds: DocumentReference[] = await this.getCourseByGradeId(
+    // let courseIds: DocumentReference[] = await this.getAdditionalCourses(
     let courseIds: DocumentReference[] = await this.getCourseByUserGradeId(
       gradeDocId,
       boardDocId
@@ -567,6 +579,29 @@ export class FirebaseApi implements ServiceApi {
         JSON.stringify(error)
       );
       return [];
+    }
+  }
+
+  async addCourseForParentsStudent(courses: Course[], student: User){
+    try { 
+      let courseIds: DocumentReference[] = [];
+      const currentUser = student;
+      courses.forEach((course) => {
+        courseIds.push(doc(this._db, `Course/${course.docId}`));
+      });
+      if (currentUser!) {
+        courseIds.forEach(async (docRef)=> {
+        await updateDoc(doc(this._db, `User/${currentUser.docId}`), {
+          courses: arrayUnion(docRef),
+          updatedAt: Timestamp.now(),
+        });
+      });
+      }
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:358 ~ FirebaseApi ~ addCoursesForParentsStudent ~ error:",
+        JSON.stringify(error)
+      );
     }
   }
 

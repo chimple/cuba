@@ -5,11 +5,14 @@ import { t } from "i18next";
 import SelectIconImage from "./SelectIconImage";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
-import { CHAPTER_CARD_COLOURS } from "../../common/constants";
+import { CHAPTER_CARD_COLOURS, PAGES } from "../../common/constants";
+import { useHistory } from "react-router";
 const SelectCourse: FC<{
   courses: Course[];
+  modeParent: boolean;
   onCourseChange: (course: Course) => void;
-}> = ({ courses, onCourseChange }) => {
+}> = ({ courses, modeParent, onCourseChange }) => {
+  const history = useHistory();
   return (
     <Splide
       hasTrack={true}
@@ -49,9 +52,14 @@ const SelectCourse: FC<{
           </SplideSlide>
         );
       })}
-      {/* {
-        <SplideSlide className="slide">
-          <div className="subject-button">
+      {modeParent ?
+       <SplideSlide className="slide">
+          <div 
+            onClick={() => {
+              history.replace(PAGES.ADD_SUBJECTS);
+              }}
+              className="subject-button"
+              key={courses[0].docId}>
             <div
               className="course-icon"
               style={{
@@ -62,8 +70,8 @@ const SelectCourse: FC<{
             </div>
             {t("Add Subject")}
           </div>
-        </SplideSlide>
-      } */}
+        </SplideSlide>: <></>}
+      
     </Splide>
   );
 };

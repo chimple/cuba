@@ -48,6 +48,7 @@ const Subjects: React.FC<{}> = ({}) => {
   const [currentChapter, setCurrentChapter] = useState<Chapter>();
   const [currentClass, setCurrentClass] = useState<Class>();
   const [lessons, setLessons] = useState<Lesson[]>();
+  const [mode, setMode] = useState<MODES>();
   // const [gradesMap, setGradesMap] = useState<{
   //   grades: Grade[];
   //   courses: Course[];
@@ -214,6 +215,7 @@ const Subjects: React.FC<{}> = ({}) => {
     setLessonResultMap(res);
 
     const currMode = await schoolUtil.getCurrMode();
+    setMode(currMode);
 
     const courses = await (currMode === MODES.SCHOOL && !!currClass
       ? api.getCoursesForClassStudent(currClass)
@@ -268,7 +270,7 @@ const Subjects: React.FC<{}> = ({}) => {
           stage === STAGES.SUBJECTS &&
           courses &&
           courses.length > 0 && (
-            <SelectCourse courses={courses} onCourseChange={onCourseChanges} />
+            <SelectCourse courses={courses} modeParent={mode == MODES.PARENT?? true} onCourseChange={onCourseChanges} />
           )}
       </div>
     </div>
