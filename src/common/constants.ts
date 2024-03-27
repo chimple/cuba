@@ -54,9 +54,9 @@ export enum LEADERBOARDHEADERLIST {
 }
 
 export enum LEADERBOARD_REWARD_LIST {
-  BADGES = "BADGES",
+  BADGES = "MEDALS",
   BONUS = "BONUS",
-  STICKER = "STICKER",
+  STICKER = "STICKERS",
 }
 
 export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu";

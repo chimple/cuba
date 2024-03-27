@@ -4,6 +4,7 @@
 
 div p {
   margin: 0px;
+  color: var(--text-color);
 }
 
 .slider-content {
