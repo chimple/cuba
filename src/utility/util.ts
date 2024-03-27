@@ -194,8 +194,11 @@ export class Util {
 
   public static checkLessonPresentInCourse(course: Course, lessonDoc: String): boolean {
     for (const chapter of course.chapters) {
+
       for (const lesson of chapter.lessons) {
-       return lesson.id === lessonDoc
+        if (lesson.id === lessonDoc) {
+          return true;
+        }
       }
     }
     return false;
