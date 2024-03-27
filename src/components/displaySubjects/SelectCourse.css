@@ -33,6 +33,26 @@
   max-Width:22vw;
   padding:0% 4% 0% 4%;
 }
+
+#subject-card-select-icon{
+  justify-self: right;
+  position: absolute;
+  width: 40%;
+  right: -3%;
+  top: 12%;
+}
+
+#subject-card-subject-name {
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--text-color);
+  font-size: clamp(10px, 2vh, 8px);
+  border-radius: 25px;
+  position: absolute;
+  top: 13%;
+  justify-self: left;
+  width: 30%;
+}
+
 .course-img {
   object-fit: contain;
   min-width: 100%;

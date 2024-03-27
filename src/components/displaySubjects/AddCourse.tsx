@@ -1,11 +1,11 @@
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, useRef } from "react";
 import Course from "../../models/course";
 import "./SelectCourse.css";
 import { t } from "i18next";
 import SelectIconImage from "./SelectIconImage";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
-import { ACTION, CHAPTER_CARD_COLOURS, EVENTS, PAGES } from "../../common/constants";
+import { ACTION, CHAPTER_CARD_COLOURS, EVENTS, PAGES, SUBJECT_CARD_COLOURS, aboveGrade3, belowGrade1, grade1, grade2, grade3 } from "../../common/constants";
 import { useHistory } from "react-router";
 import { BsFillCheckCircleFill } from "react-icons/bs";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
@@ -13,34 +13,26 @@ import DialogBoxButtons from "../parent/DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
 import Loading from "../Loading";
+import "../LessonSlider.css";
 
 const AddCourse: FC<{
   courses: Course[];
-  setReloadSubjects: (event: boolean) => void;
-}> = ({ courses, setReloadSubjects }) => {
+  onSelectedCoursesChange;
+}> = ({ courses,onSelectedCoursesChange }) => {
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [selectedCourse, setSelectedCourse] = useState<Course>();
   const currentStudent = Util.getCurrentStudent();
-  return (
-    <Splide
-      hasTrack={true}
-      options={{
-        arrows: false,
-        wheel: true,
-        lazyLoad: true,
-        direction: "ltr",
-        pagination: false,
-      }}
-    >
-      {courses.map((course, index) => {
-        return (
-          <SplideSlide className="slide">
-            <div
-              onClick={() => {
-                console.log('Selected course = ', course.title);
+  let startIndex = 0;
+  const [allCourses] =  useState([
+    ...courses.map(course => {return {course, selected: false}})
+  ]);
+
+  useEffect(() => {
+  }, []);
+  const selectedCourses: Course[] = [];
+  const handleClick = (course) => {
                 if (!online) {
                   presentToast({
                     message: t(
@@ -58,77 +50,108 @@ const AddCourse: FC<{
                   });
                   return;
                 }
-                setSelectedCourse(course);
-                setShowDialogBox(true);
+                else{
+                const cCourse = selectedCourses?.find(courseObject => courseObject.docId === course.docId);
+                if((cCourse != null || undefined) && cCourse?.docId === course.docId){
+                  console.log('Already selected');
+                  selectedCourses.splice(selectedCourses?.indexOf(cCourse!), 1);
+                }
+                else{
+                  selectedCourses.push(course);
+                }
                 
-              }}
+                onSelectedCoursesChange(selectedCourses);
+                console.log('Selected course = ', onSelectedCoursesChange);
+                }
+  }
+
+  return (
+    <div className="Lesson-slider-content">
+    <Splide
+      hasTrack={true}
+      options={{
+        arrows: false,
+        wheel: true,
+        lazyLoad: true,
+        direction: "ltr",
+        pagination: false,
+      }}
+    >
+      {
+      allCourses.map((course, index) => {
+        let isGrade1: string | boolean = false;
+        let isGrade2: string | boolean = false;
+        let gradeDocId = course.course.grade.id;
+        
+        // Check if gradeDocId matches any of the specified grades and assign the value to isGrade1 or isGrade2
+        if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
+          isGrade1 = true;
+        } else if (
+          gradeDocId === grade2 ||
+          gradeDocId === grade3 ||
+          gradeDocId === aboveGrade3
+        ) {
+          isGrade2 = true;
+        } else {
+          // If it's neither grade1 nor grade2, assume grade2
+          isGrade2 = true;
+        }
+        // const ccCourse = setSelectedCourses.find(o=> o.docId === course.docId);
+        return (
+          <SplideSlide 
+          className="slide">
+            <div
+              onClick={async()=> 
+              {
+                // const cCourse = setSelectedCourses.find(o=> o.docId === course.docId);
+                
+                // else
+                course.selected = !course.selected;
+                  handleClick(course.course!)
+              } 
+              } 
               className="subject-button"
-              key={course.docId}
+              key={course.course.docId}
             >
+              {course.selected? <div id="subject-card-select-icon">
+                  <div>
+                  <BsFillCheckCircleFill
+                  
+                color={"white"}
+                className="gender-check-box"
+                size="4vh"
+              />
+                  </div>
+            </div>: null}
+            <div id="subject-card-subject-name">
+                <p>
+                  {isGrade1?'Grade 1':'Grade 2'}
+                  {/* {subject.title==="English"?subject.title:t(subject.title)} */}
+                </p>
+              </div>
               <div
                 className="course-icon"
                 style={{
-                  backgroundColor: CHAPTER_CARD_COLOURS[index],
+                  backgroundColor: SUBJECT_CARD_COLOURS[index],
+                  flexDirection: "column",
                 }}
               >
+                
                 <SelectIconImage
-                  localSrc={`courses/chapter_icons/${course.courseCode}.png`}
+                  localSrc={`courses/chapter_icons/${course.course.courseCode}.png`}
                   defaultSrc={"courses/" + "maths" + "/icons/" + "maths10.png"}
-                  webSrc={course.thumbnail}
+                  webSrc={course.course.thumbnail}
                 />
               </div>
-              {t(course.title)}
+              {t(course?.course.title)}
               {/* {course.title === "English" ? course.title : course.title} */}
             </div>
           </SplideSlide>
         );
       })}
-      {showDialogBox ? (
-        <DialogBoxButtons
-          width={"40vw"}
-          height={"30vh"}
-          message={t(
-            `Add subject ${selectedCourse?.title}`
-          )}
-          showDialogBox={showDialogBox}
-          yesText={t("Yes")}
-          noText={t("Cancel")}
-          handleClose={() => {
-            setShowDialogBox(false);
-            console.log("Close", false);
-          }}
-          onYesButtonClicked={async ({}) => {
-            setShowDialogBox(false);
-            setIsLoading(true);
-            setReloadSubjects(false);
-            await ServiceConfig.getI().apiHandler.addCourseForParentsStudent(selectedCourse!, currentStudent!);
-            await setReloadSubjects(true);
-            const eventParams = {
-              user_id: currentStudent?.docId,
-              user_type: currentStudent?.role,
-              user_name: currentStudent?.name,
-              user_gender: currentStudent?.gender!,
-              user_age: currentStudent?.age!,
-              phone_number: currentStudent?.username,
-              parent_id: currentStudent?.uid,
-              parent_username: currentStudent?.username,
-              action_type: ACTION.UPDATE,
-            };
-            console.log(
-              "Util.logEvent(EVENTS.USER_PROFILE, eventParams);",
-              EVENTS.USER_PROFILE,
-              eventParams
-            );
-            Util.logEvent(EVENTS.USER_PROFILE, eventParams);
-            setIsLoading(false);
-          }}
-          onNoButtonClicked={async ({}) => {
-            setShowDialogBox(false);
-          }}
-        ></DialogBoxButtons>
-      ) : null}
       <Loading isLoading={isLoading} />
     </Splide>
+    </div>
   );
 };
 export default AddCourse;

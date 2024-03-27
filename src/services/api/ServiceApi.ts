@@ -128,14 +128,14 @@ export interface ServiceApi {
    * @param {String} gradeDocId - Student User grade
    * @returns {Course[]} Array of `Course` objects
    */
-  getOptionalCourses(gradeDocId, courses): Promise<Course[]>;
+  getAdditionalCourses(courses): Promise<Course[]>;
   
   /**
    * Add subject for given a student for Home user
    * @param {User} student - Student User object
    * @returns {Course} `Course` object
    */
-  addCourseForParentsStudent(course: Course, student: User);
+  addCourseForParentsStudent(courses: Course[], student: User);
 
   /**
    * Gives List of subjects for given a student for Home user

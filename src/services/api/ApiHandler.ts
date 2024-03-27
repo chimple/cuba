@@ -233,11 +233,10 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getCoursesForParentsStudent(student);
   }
 
-  public async getOptionalCourses(
-    gradeDocId: string | undefined,
+  public async getAdditionalCourses(
     courses: Course[] = []
   ): Promise<Course[]>{
-    return await this.s.getOptionalCourses(gradeDocId, courses);
+    return await this.s.getAdditionalCourses(courses);
   }
 
   public async getLessonWithCocosLessonId(
@@ -343,8 +342,8 @@ export class ApiHandler implements ServiceApi {
     );
   }
 
-  public async addCourseForParentsStudent(course: Course, student: User) {
-    return this.s.addCourseForParentsStudent(course, student);
+  public async addCourseForParentsStudent(courses: Course[], student: User) {
+    return this.s.addCourseForParentsStudent(courses, student);
   }
 
   public async deleteProfile(studentId: string) {

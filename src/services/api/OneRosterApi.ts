@@ -41,11 +41,11 @@ export class OneRosterApi implements ServiceApi {
   getCoursesForParentsStudent(student: User): Promise<Course[]> {
     throw new Error("Method not implemented.");
   }
-  getOptionalCourses(gradeDocId, courses): Promise<Course[]>{
+  getAdditionalCourses(courses): Promise<Course[]>{
     throw new Error("Method not implemented.");
   }
 
-  addCourseForParentsStudent(course: Course, student: User) {
+  addCourseForParentsStudent(courses: Course[], student: User){
     throw new Error("Method not implemented.");
   }
 
