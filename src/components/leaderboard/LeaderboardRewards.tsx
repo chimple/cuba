@@ -52,13 +52,13 @@ const LeaderboardRewards: FC = () => {
       >
         <Tab
           id="parent-page-tab-bar"
-          value={LEADERBOARD_REWARD_LIST.BADGES}
-          label={t(LEADERBOARD_REWARD_LIST.BADGES)}
+          value={LEADERBOARD_REWARD_LIST.STICKER}
+          label={t(LEADERBOARD_REWARD_LIST.STICKER)}
         />
         <Tab
           id="parent-page-tab-bar"
-          value={LEADERBOARD_REWARD_LIST.STICKER}
-          label={t(LEADERBOARD_REWARD_LIST.STICKER)}
+          value={LEADERBOARD_REWARD_LIST.BADGES}
+          label={t(LEADERBOARD_REWARD_LIST.BADGES)}
         />
         <Tab
           id="parent-page-tab-bar"
