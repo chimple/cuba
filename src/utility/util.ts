@@ -85,6 +85,7 @@ import lesson from "../models/lesson";
 import Lesson from "../models/lesson";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import Sticker from "../models/Sticker";
+import Course from "../models/course";
 
 declare global {
   interface Window {
@@ -189,6 +190,15 @@ export class Util {
       data.push(newCourseRef);
     }
     return data;
+  }
+
+  public static checkLessonPresentInCourse(course: Course, lessonDoc: String): boolean {
+    for (const chapter of course.chapters) {
+      for (const lesson of chapter.lessons) {
+       return lesson.id === lessonDoc
+      }
+    }
+    return false;
   }
 
   public static getRef(ref): DocumentReference {
@@ -361,9 +371,9 @@ export class Util {
 
               console.log(
                 "before local lesson Bundle http url:" +
-                  "assets/" +
-                  lessonId +
-                  "/config.json"
+                "assets/" +
+                lessonId +
+                "/config.json"
               );
 
               const fetchingLocalBundle = await fetch(
@@ -371,9 +381,9 @@ export class Util {
               );
               console.log(
                 "after local lesson Bundle fetch url:" +
-                  "assets/" +
-                  lessonId +
-                  "/config.json",
+                "assets/" +
+                lessonId +
+                "/config.json",
                 fetchingLocalBundle.ok,
                 fetchingLocalBundle.json,
                 fetchingLocalBundle

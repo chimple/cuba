@@ -1804,7 +1804,11 @@ export class FirebaseApi implements ServiceApi {
     }
 
     const tmpCourse = this._allCourses?.find(
-      (course) => course.courseCode === lesson.cocosSubjectCode
+      (course) => {
+        if(course.courseCode === lesson.cocosSubjectCode){
+         return Util.checkLessonPresentInCourse(course,lesson.docId)
+        }
+      }
     );
     return tmpCourse;
   }
