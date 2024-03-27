@@ -194,6 +194,7 @@ const LessonCard: React.FC<{
                 courseDocId:
                   course?.docId ??
                   lesson?.assignment?.course?.id ??
+                  lesson.courseId ??
                   currentCourse?.docId,
                 course: JSON.stringify(Course.toJson(currentCourse!)),
                 lesson: JSON.stringify(Lesson.toJson(lesson)),
