@@ -56,13 +56,13 @@ export class AvatarObj {
   currentLesson: Lesson | undefined;
   currentLessonSuggestionIndex: number;
   currentRecommendedLessonIndex: number = 0;
-  weeklyProgressGoal: number = 25;
+  weeklyProgressGoal: number = 10;
   weeklyTimeSpent: {} = { min: 0, sec: 0 };
   weeklyPlayedLesson: number = 0;
   wrongAttempts: number = 0;
   // gamifyTimespentMessage = "Play ' x1 ' to win your daily reward";
   gamifyTimespentMessage =
-    "Play for ' x1 ' a week to improve in school and prepare for more learning!";
+    "Playing for just ' x1 ' every week helps you do better in school and get ready for more learning!";
 
   private constructor() {}
 
@@ -365,7 +365,7 @@ export class AvatarObj {
           }
           this.message = t(this.gamifyTimespentMessage).replace(
             "x1",
-            `<b>${computeMinutes.toString()} + " min and " + ${computeSec} + " sec"</b>`
+            computeMinutes.toString() + " min and " + computeSec + " sec"
           );
           // this._mode = AvatarModes.ShowWeeklyProgress;
         }
