@@ -30,11 +30,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  max-Width:22vw;
-  padding:0% 4% 0% 4%;
+  max-width: 22vw;
+  padding: 0% 4% 0% 4%;
 }
 
-#subject-card-select-icon{
+#subject-card-select-icon {
   justify-self: right;
   position: absolute;
   width: 40%;

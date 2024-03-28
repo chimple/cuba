@@ -17,7 +17,11 @@ import {
   MODES,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
-import { DocumentData, DocumentReference, Unsubscribe } from "firebase/firestore";
+import {
+  DocumentData,
+  DocumentReference,
+  Unsubscribe,
+} from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import Badge from "../../models/Badge";
 import Rewards from "../../models/Rewards";
@@ -129,7 +133,7 @@ export interface ServiceApi {
    * @returns {Course[]} Array of `Course` objects
    */
   getAdditionalCourses(student: User): Promise<Course[]>;
-  
+
   /**
    * Add subject for given a student for Home user
    * @param {User} student - Student User object
