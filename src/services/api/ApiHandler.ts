@@ -234,9 +234,9 @@ export class ApiHandler implements ServiceApi {
   }
 
   public async getAdditionalCourses(
-    courses: Course[] = []
+    student: User
   ): Promise<Course[]>{
-    return await this.s.getAdditionalCourses(courses);
+    return await this.s.getAdditionalCourses(student);
   }
 
   public async getLessonWithCocosLessonId(

@@ -125,10 +125,10 @@ export interface ServiceApi {
 
   /**
    * Gives List of optional subjects for given a student for Home user
-   * @param {String} gradeDocId - Student User grade
+   * @param {User} student - Student User object
    * @returns {Course[]} Array of `Course` objects
    */
-  getAdditionalCourses(courses): Promise<Course[]>;
+  getAdditionalCourses(student: User): Promise<Course[]>;
   
   /**
    * Add subject for given a student for Home user

@@ -1,11 +1,12 @@
 import { FC, useEffect, useState } from "react";
 import Course from "../models/course";
-import { useHistory } from "react-router-dom"
+import { useHistory } from "react-router-dom";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
   ACTION,
   DISPLAY_SUBJECTS_STORE,
   EVENTS,
+  HOMEHEADERLIST,
   MODES,
   PAGES,
 } from "../common/constants";
@@ -19,10 +20,11 @@ import AddCourse from "../components/displaySubjects/AddCourse";
 import NextButton from "../components/common/NextButton";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import { t } from "i18next";
+import SkeltonLoading from "../components/SkeltonLoading";
 
 const localData: any = {};
 let localStorageData: any = {};
-const AddSubjects: React.FC = () => {
+const AddCourses: React.FC = () => {
   enum STAGES {
     SUBJECTS,
     CHAPTERS,
@@ -37,7 +39,7 @@ const AddSubjects: React.FC = () => {
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
   const currentStudent = Util.getCurrentStudent();
-  
+
   useEffect(() => {
     setIsLoading(true);
     init();
@@ -58,9 +60,9 @@ const AddSubjects: React.FC = () => {
   const getCourses = async (): Promise<Course[]> => {
     setIsLoading(true);
     let isGrade1: string | boolean = false;
-      let isGrade2: string | boolean = false;
+    let isGrade2: string | boolean = false;
 
-      // Check if gradeDocId matches any of the specified grades and assign the value to isGrade1 or isGrade2
+    // Check if gradeDocId matches any of the specified grades and assign the value to isGrade1 or isGrade2
     const currentStudent = await Util.getCurrentStudent();
     if (!currentStudent) {
       history.replace(PAGES.SELECT_MODE);
@@ -69,9 +71,8 @@ const AddSubjects: React.FC = () => {
     // const currClass = localStorage.getItem(CURRENT_CLASS);
     const currClass = schoolUtil.getCurrentClass();
     const currMode = await schoolUtil.getCurrMode();
-    
-    const allCourses = await api.getCoursesForParentsStudent(currentStudent);
-    const courses = await api.getAdditionalCourses(allCourses);
+
+    const courses = await api.getAdditionalCourses(currentStudent);
     localData.courses = courses;
     localStorageData.courses = courses;
     setCourses(courses);
@@ -80,7 +81,7 @@ const AddSubjects: React.FC = () => {
     return courses;
   };
 
-  const updateCourses  = async(): Promise<Course[]> => {
+  const updateCourses = async (): Promise<Course[]> => {
     setIsLoading(true);
     await api.addCourseForParentsStudent(selectedCourses!, currentStudent!);
     const eventParams = {
@@ -110,7 +111,7 @@ const AddSubjects: React.FC = () => {
         break;
     }
     return [];
-  }
+  };
 
   const onBackButton = () => {
     switch (stage) {
@@ -123,9 +124,9 @@ const AddSubjects: React.FC = () => {
     }
   };
 
-  function handleCallback(data){
+  function handleCallback(data: Course[]) {
     setSelectedCourses(data);
-};
+  }
 
   return (
     <IonPage id="display-subjects-page">
@@ -135,41 +136,48 @@ const AddSubjects: React.FC = () => {
           <BackButton onClicked={onBackButton} />
         </div>
         <div id="next-button">
-        <NextButton
-          disabled={selectedCourses === (null || undefined)? true :false}
-          onClicked={() => {
-            if (!online) {
-              presentToast({
-                message: t(`Device is offline.`),
-                color: "danger",
-                duration: 3000,
-                position: "bottom",
-                buttons: [
-                  {
-                    text: "Dismiss",
-                    role: "cancel",
-                  },
-                ],
-              });
-              return;
-            }
-            updateCourses();
-          }}
-        />
-      </div>
+          <NextButton
+            disabled={selectedCourses === (null || undefined) ? true : false}
+            onClicked={() => {
+              if (!online) {
+                presentToast({
+                  message: t(`Device is offline.`),
+                  color: "danger",
+                  duration: 3000,
+                  position: "bottom",
+                  buttons: [
+                    {
+                      text: "Dismiss",
+                      role: "cancel",
+                    },
+                  ],
+                });
+                return;
+              }
+              updateCourses();
+            }}
+          />
+        </div>
         {/* {stage !== STAGES.CHAPTERS && <div className="button-right" />} */}
       </div>
       <div id="display-subjects-page" style={{ height: "100vh" }}>
-      <div className="subjects-content">
-        {!isLoading &&
-          stage === STAGES.SUBJECTS &&
-          courses &&
-          courses.length > 0 && (
-            <AddCourse courses = {courses} onSelectedCoursesChange={handleCallback}/>
-          )}
-      </div>
+        <SkeltonLoading
+          isLoading={isLoading}
+          header={HOMEHEADERLIST.SUBJECTS}
+        />
+        <div className="subjects-content">
+          {!isLoading &&
+            stage === STAGES.SUBJECTS &&
+            courses &&
+            courses.length > 0 && (
+              <AddCourse
+                courses={courses}
+                onSelectedCoursesChange={handleCallback}
+              />
+            )}
+        </div>
       </div>
     </IonPage>
   );
 };
-export default AddSubjects;
+export default AddCourses;

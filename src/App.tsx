@@ -47,7 +47,7 @@ import DisplayStudents from "./pages/DisplayStudents";
 // import Assignments from "./pages/Assignments";
 // import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
 import DisplaySubjects from "./pages/DisplaySubjects";
-import AddSubjects from "./pages/AddSubjects";
+import AddCourses from "./pages/AddCourses";
 import AppLangSelection from "./pages/AppLangSelection";
 import StudentProgress from "./pages/StudentProgress";
 import SearchLesson from "./pages/SearchLesson";
@@ -257,7 +257,7 @@ const App: React.FC = () => {
               <DisplaySubjects />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.ADD_SUBJECTS} exact={true}>
-              <AddSubjects />
+              <AddCourses />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.DISPLAY_CHAPTERS} exact={true}>
               <DisplayChapters />

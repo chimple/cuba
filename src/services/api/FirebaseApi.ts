@@ -176,13 +176,13 @@ export class FirebaseApi implements ServiceApi {
     return courseIds;
   }
 
-  public async getAdditionalCourses(
-    courses: Course[] = []
-  ): Promise<Course[]> {
+  public async getAdditionalCourses(student: User): Promise<Course[]> {
     let remainingCourses: Course[] = [];
-        const allCourses = await this.getAllCourses();
-        remainingCourses = 
-        allCourses.filter(({ docId: id1 }) => !courses.some(({ docId: id2 }) => id2 === id1));
+    const studentCourses = await this.getCoursesForParentsStudent(student);
+    const allCourses = await this.getAllCourses();
+    remainingCourses = allCourses.filter(
+      ({ docId: id1 }) => !studentCourses.some(({ docId: id2 }) => id2 === id1)
+    );
     return remainingCourses;
   }
 
@@ -582,20 +582,25 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  async addCourseForParentsStudent(courses: Course[], student: User){
-    try { 
+  async addCourseForParentsStudent(courses: Course[], student: User) {
+    try {
       let courseIds: DocumentReference[] = [];
       const currentUser = student;
       courses.forEach((course) => {
-        courseIds.push(doc(this._db, `Course/${course.docId}`));
+        courseIds.push(
+          doc(this._db, `${CollectionIds.COURSE}/${course.docId}`)
+        );
       });
       if (currentUser!) {
-        courseIds.forEach(async (docRef)=> {
-        await updateDoc(doc(this._db, `User/${currentUser.docId}`), {
-          courses: arrayUnion(docRef),
-          updatedAt: Timestamp.now(),
+        courseIds.forEach(async (docRef) => {
+          await updateDoc(
+            doc(this._db, `${CollectionIds.USER}/${currentUser.docId}`),
+            {
+              courses: arrayUnion(docRef),
+              updatedAt: Timestamp.now(),
+            }
+          );
         });
-      });
       }
     } catch (error) {
       console.log(
