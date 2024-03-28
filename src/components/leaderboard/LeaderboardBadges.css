@@ -6,6 +6,7 @@
   height: 100%;
   flex-grow: 1;
   padding-bottom: 30px;
+  align-items: center;
 }
 
 .leaderboard-badge-item {
@@ -13,6 +14,12 @@
   opacity: 1;
 }
 
+.next-reward {
+  filter: opacity(0.6);
+}
+.lost-reward {
+  filter: grayscale(1);
+}
 .leaderboard-badge-disabled {
   opacity: 0.2;
 }

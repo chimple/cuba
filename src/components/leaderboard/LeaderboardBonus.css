@@ -6,6 +6,7 @@
   height: 100%;
   flex-grow: 1;
   padding-bottom: 30px;
+  justify-content: space-around;
 }
 
 .leaderboard-bonus-item {
