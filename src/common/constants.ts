@@ -388,10 +388,7 @@ export const DEFAULT_SUBJECT_IDS = [
   "5fq9UvGv0sjzZJqOZt3c", //Maths
   "nnFVTiGBmw1LiV3xa4V1", //Digital Skills
 ];
-export const OPTIONAL_SUBJECT_IDS = [
-  "i2cjGYRK0wNXuP2cXzrj", //Kannada
-  "3IL0QQTQAp0MwEyCnHlQ", //Hindi
-];
+
 export const OTHER_CURRICULUM = "BVTIRg2Wm3zxcMPrU5Ob";
 export const LANGUAGE_COURSE_MAP = {
   sju2ne9JwNE1TZgo9M4G: "WUfGFSqcW8cIyl8yiqcR", //Hindi
