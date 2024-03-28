@@ -37,7 +37,6 @@ import {
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODES,
-  OPTIONAL_SUBJECT_IDS,
   OTHER_CURRICULUM,
   aboveGrade3,
   belowGrade1,
