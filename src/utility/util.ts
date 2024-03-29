@@ -1230,7 +1230,10 @@ export class Util {
       );
     }
   }
-
+  public static async callJavaScriptFunction() {
+    if (!Util.port) Util.port = registerPlugin<PortPlugin>('Port');
+    return Util.port.callJavaScriptFunction();
+  }
   public static async migrate() {
     if (
       !Capacitor.isNativePlatform() ||
