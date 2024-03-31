@@ -63,9 +63,10 @@ public class PortPlugin extends Plugin {
   }
 
   @PluginMethod
-  public void callJavaScriptFunction(PluginCall call) {
+  public void fetchNotificationData(PluginCall call) {
     String notificationType = this.notificationType;
     String rewardProfileId = this.rewardProfileId;
+    Log.d("MainActivity", "logs of fetchNotificationData" + rewardProfileId);
     if (notificationType != null && rewardProfileId != null) {
       String jsonData =
         "{\"notificationType\": \"" +
@@ -81,6 +82,8 @@ public class PortPlugin extends Plugin {
       result.put("notificationType", notificationType);
       result.put("rewardProfileId", rewardProfileId);
       call.resolve(result);
+      this.notificationType = null;
+      this.rewardProfileId = null;
     } else {
       call.reject("Data not found in Java code");
     }

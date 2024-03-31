@@ -192,26 +192,34 @@ const App: React.FC = () => {
   const processNotificationData = async (data) => {
     if (data && data.notificationType === "reward") {
       if (data.rewardProfileId) {
-        const students =
-          await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-        let matchingUser =
-          students.find((user) => user.docId === data.rewardProfileId) ||
-          students[0];
-        if (matchingUser) {
-          await Util.setCurrentStudent(matchingUser, undefined, true);
+        const currentStudent = Util.getCurrentStudent();
+        if (currentStudent?.docId === data.rewardProfileId) {
           window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
           return;
         } else {
-          return;
+          const students =
+            await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
+          let matchingUser =
+            students.find((user) => user.docId === data.rewardProfileId) ||
+            students[0];
+          if (matchingUser) {
+              await Util.setCurrentStudent(matchingUser, undefined, true);
+              window.location.replace(
+                PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME
+              );
+            return;
+          } else {
+            return;
+          }
         }
       }
     }
   };
   const getNotificationData = async () => {
     if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
-    if (Util.port && typeof Util.port.callJavaScriptFunction === "function") {
+    if (Util.port && typeof Util.port.fetchNotificationData === "function") {
       try {
-        const data = await Util.port.callJavaScriptFunction();
+        const data = await Util.port.fetchNotificationData();
         if (data && data.notificationType && data.rewardProfileId) {
           processNotificationData(data);
         }
@@ -219,7 +227,7 @@ const App: React.FC = () => {
         console.error("Error retrieving notification data:", error);
       }
     } else {
-      console.warn("Util.port or callJavaScriptFunction is not available.");
+      console.warn("Util.port or fetchNotificationData is not available.");
     }
   };
   const fetchData = async () => {
