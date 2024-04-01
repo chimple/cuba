@@ -149,7 +149,7 @@ const AddCourse: FC<{
                 <div
                   className="course-icon"
                   style={{
-                    backgroundColor: SUBJECT_CARD_COLOURS[index],
+                    backgroundColor: course.course.color,
                     flexDirection: "column",
                   }}
                 >

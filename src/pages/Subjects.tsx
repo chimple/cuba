@@ -49,6 +49,7 @@ const Subjects: React.FC<{}> = ({}) => {
   const [currentClass, setCurrentClass] = useState<Class>();
   const [lessons, setLessons] = useState<Lesson[]>();
   const [mode, setMode] = useState<MODES>();
+  const [isNotConnectedToClass, setIsNotConnectedToClass] = useState<boolean>(false);
   // const [gradesMap, setGradesMap] = useState<{
   //   grades: Grade[];
   //   courses: Course[];
@@ -61,14 +62,14 @@ const Subjects: React.FC<{}> = ({}) => {
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: StudentLessonResult;
   }>();
+  const [userMode, setUserMode]  = useState<boolean>(false);
   const history = useHistory();
   const location = useLocation();
   const api = ServiceConfig.getI().apiHandler;
   const urlParams = new URLSearchParams(location.search);
-
   useEffect(() => {
     init();
-  }, []);
+  }, [isNotConnectedToClass]);
 
   const init = async () => {
     console.log(
@@ -214,8 +215,18 @@ const Subjects: React.FC<{}> = ({}) => {
     localStorageData.lessonResultMap = res;
     setLessonResultMap(res);
 
+    
+    const studentProfile = await api.getStudentResult(currentStudent.docId);
+    if(studentProfile === (null || undefined)){
+      setIsNotConnectedToClass(true);
+    }
+    else if(studentProfile != null || undefined){
+      if(studentProfile!.classes === null || undefined){
+        setIsNotConnectedToClass(true);
+      } 
+    }
     const currMode = await schoolUtil.getCurrMode();
-    setMode(currMode);
+    setUserMode(((currMode === MODES.PARENT) == true && isNotConnectedToClass) ?? true);
 
     const courses = await (currMode === MODES.SCHOOL && !!currClass
       ? api.getCoursesForClassStudent(currClass)
@@ -270,7 +281,7 @@ const Subjects: React.FC<{}> = ({}) => {
           stage === STAGES.SUBJECTS &&
           courses &&
           courses.length > 0 && (
-            <SelectCourse courses={courses} modeParent={mode == MODES.PARENT?? true} onCourseChange={onCourseChanges} />
+            <SelectCourse courses={courses} modeParent={userMode} onCourseChange={onCourseChanges} />
           )}
       </div>
     </div>
