@@ -71,8 +71,4 @@ public abstract class MainActivity extends BridgeActivity {
         super.onDestroy();
     }
 
-//    @Override
-//    public void onDataReceived(String data) {
-//
-//    }
 }
