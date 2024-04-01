@@ -3,7 +3,7 @@ name: Build Android
 on:
   push:
     branches:
-      - rahul-chimple3
+      - master
 
 jobs:
   build:
