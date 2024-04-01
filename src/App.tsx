@@ -1,4 +1,4 @@
-import { Route, Switch } from "react-router-dom";
+import { Route, Switch, useHistory } from "react-router-dom";
 import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
@@ -24,7 +24,7 @@ import Home from "./pages/Home";
 import CocosGame from "./pages/CocosGame";
 import { End } from "./pages/End";
 import { useEffect, useState } from "react";
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
@@ -38,7 +38,9 @@ import {
   GAME_URL,
   HOMEHEADERLIST,
   IS_CUBA,
+  MODES,
   PAGES,
+  PortPlugin,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -69,13 +71,13 @@ import { t } from "i18next";
 import { useTtsAudioPlayer } from "./components/animation/animationUtils";
 import { ServiceConfig } from "./services/ServiceConfig";
 import User from "./models/user";
+import React from "react";
 
 setupIonicReact();
 interface ExtraData {
   notificationType?: string;
   rewardProfileId?: string;
 }
-
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
@@ -158,6 +160,7 @@ const App: React.FC = () => {
 
     //Listen to network change
     Util.listenToNetwork();
+    fetchData();
 
     Util.notificationListener(async (extraData: ExtraData | undefined) => {
       if (extraData && extraData.notificationType === "reward") {
@@ -170,10 +173,6 @@ const App: React.FC = () => {
           } else {
             const students =
               await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-            console.log(
-              "🚀 ~ file: DisplayStudents.tsx:13 ~ getStudents ~ students:",
-              students
-            );
             let matchingUser =
               students.find((user) => user.docId === rewardProfileId) ||
               students[0];
@@ -188,9 +187,52 @@ const App: React.FC = () => {
           }
       }
     });
-
     updateAvatarSuggestionJson();
   }, []);
+  const processNotificationData = async (data) => {
+    if (data && data.notificationType === "reward") {
+      if (data.rewardProfileId) {
+        const currentStudent = Util.getCurrentStudent();
+        if (currentStudent?.docId === data.rewardProfileId) {
+          window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+          return;
+        } else {
+          const students =
+            await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
+          let matchingUser =
+            students.find((user) => user.docId === data.rewardProfileId) ||
+            students[0];
+          if (matchingUser) {
+              await Util.setCurrentStudent(matchingUser, undefined, true);
+              window.location.replace(
+                PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME
+              );
+            return;
+          } else {
+            return;
+          }
+        }
+      }
+    }
+  };
+  const getNotificationData = async () => {
+    if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+    if (Util.port && typeof Util.port.fetchNotificationData === "function") {
+      try {
+        const data = await Util.port.fetchNotificationData();
+        if (data && data.notificationType && data.rewardProfileId) {
+          processNotificationData(data);
+        }
+      } catch (error) {
+        console.error("Error retrieving notification data:", error);
+      }
+    } else {
+      console.warn("Util.port or fetchNotificationData is not available.");
+    }
+  };
+  const fetchData = async () => {
+    await getNotificationData();
+  };
 
   async function updateAvatarSuggestionJson() {
     // Update Avatar Suggestion local Json

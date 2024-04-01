@@ -64,6 +64,7 @@ import { RemoteConfig, REMOTE_CONFIG_KEYS } from "../services/RemoteConfig";
 import LiveQuiz from "./LiveQuiz";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
+import React from "react";
 
 const localData: any = {};
 const Home: FC = () => {

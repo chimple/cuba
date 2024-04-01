@@ -363,6 +363,7 @@ export const BUNDLE_URL =
 export interface PortPlugin {
   getPort(): Promise<{ port: number }>;
   getMigrateUsers(): Promise<{ users: any }>;
+  fetchNotificationData(): Promise<{ notificationType: string; rewardProfileId: string }>;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_SUBJECT_IDS = [

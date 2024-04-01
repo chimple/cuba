@@ -7,6 +7,7 @@ import "./i18n";
 import { initializeFireBase } from "./services/Firebase";
 import { APIMode, ServiceConfig } from "./services/ServiceConfig";
 import { Util } from "./utility/util";
+import React from "react";
 
 const container = document.getElementById("root");
 const root = createRoot(container!);

@@ -42,6 +42,7 @@ import {
   MAX_DOWNLOAD_LESSON_ATTEMPTS,
   LESSON_DOWNLOAD_SUCCESS_EVENT,
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+  HOMEHEADERLIST,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -192,9 +193,11 @@ export class Util {
     return data;
   }
 
-  public static checkLessonPresentInCourse(course: Course, lessonDoc: String): boolean {
+  public static checkLessonPresentInCourse(
+    course: Course,
+    lessonDoc: String
+  ): boolean {
     for (const chapter of course.chapters) {
-
       for (const lesson of chapter.lessons) {
         if (lesson.id === lessonDoc) {
           return true;
@@ -374,9 +377,9 @@ export class Util {
 
               console.log(
                 "before local lesson Bundle http url:" +
-                "assets/" +
-                lessonId +
-                "/config.json"
+                  "assets/" +
+                  lessonId +
+                  "/config.json"
               );
 
               const fetchingLocalBundle = await fetch(
@@ -384,9 +387,9 @@ export class Util {
               );
               console.log(
                 "after local lesson Bundle fetch url:" +
-                "assets/" +
-                lessonId +
-                "/config.json",
+                  "assets/" +
+                  lessonId +
+                  "/config.json",
                 fetchingLocalBundle.ok,
                 fetchingLocalBundle.json,
                 fetchingLocalBundle
@@ -1230,7 +1233,10 @@ export class Util {
       );
     }
   }
-
+  public static async fetchNotificationData() {
+    if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+    return Util.port.fetchNotificationData();
+  }
   public static async migrate() {
     if (
       !Capacitor.isNativePlatform() ||
