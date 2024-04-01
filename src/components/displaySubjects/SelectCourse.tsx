@@ -37,7 +37,7 @@ const SelectCourse: FC<{
               <div
                 className="course-icon"
                 style={{
-                  backgroundColor: CHAPTER_CARD_COLOURS[index],
+                  backgroundColor: course.color,
                 }}
               >
                 <SelectIconImage
