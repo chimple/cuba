@@ -71,9 +71,4 @@ public  class MainActivity extends BridgeActivity {
         super.onDestroy();
     }
 
-//    @Override
-//    public void onDataReceived(String data) {
-//        Log.d("DEBUG","Overridden");
-//        super.onCreate(savedInstanceState);
-//    }
 }
