@@ -20,7 +20,7 @@ import com.ustadmobile.httpoveripc.client.HttpOverIpcProxy;
 
 import java.io.IOException;
 
-public abstract class MainActivity extends BridgeActivity {
+public  class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(PortPlugin.class);
@@ -71,4 +71,9 @@ public abstract class MainActivity extends BridgeActivity {
         super.onDestroy();
     }
 
+//    @Override
+//    public void onDataReceived(String data) {
+//        Log.d("DEBUG","Overridden");
+//        super.onCreate(savedInstanceState);
+//    }
 }
