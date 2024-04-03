@@ -21,6 +21,7 @@ import NextButton from "../components/common/NextButton";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import { t } from "i18next";
 import SkeltonLoading from "../components/SkeltonLoading";
+import "./DisplayChapters.css";
 
 const localData: any = {};
 let localStorageData: any = {};
@@ -160,12 +161,12 @@ const AddCourses: React.FC = () => {
         </div>
         {/* {stage !== STAGES.CHAPTERS && <div className="button-right" />} */}
       </div>
-      <div id="display-subjects-page" style={{ height: "100vh" }}>
+      <div id="display-subjects-page" style={{ height: "100%" }}>
         <SkeltonLoading
           isLoading={isLoading}
           header={HOMEHEADERLIST.SUBJECTS}
         />
-        <div className="subjects-content">
+        <div className="add-subjects-content">
           {!isLoading &&
             stage === STAGES.SUBJECTS &&
             courses &&

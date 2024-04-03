@@ -5,7 +5,11 @@ import { t } from "i18next";
 import SelectIconImage from "./SelectIconImage";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
-import { CHAPTER_CARD_COLOURS, PAGES } from "../../common/constants";
+import {
+  CHAPTER_CARD_COLOURS,
+  DEFUALT_SUBJECT_CARD_COLOUR,
+  PAGES,
+} from "../../common/constants";
 import { useHistory } from "react-router";
 const SelectCourse: FC<{
   courses: Course[];
@@ -37,7 +41,7 @@ const SelectCourse: FC<{
               <div
                 className="course-icon"
                 style={{
-                  backgroundColor: course.color,
+                  backgroundColor: course.color ?? DEFUALT_SUBJECT_CARD_COLOUR,
                 }}
               >
                 <SelectIconImage
@@ -52,14 +56,15 @@ const SelectCourse: FC<{
           </SplideSlide>
         );
       })}
-      {modeParent ?
-       <SplideSlide className="slide">
-          <div 
+      {modeParent ? (
+        <SplideSlide className="slide">
+          <div
             onClick={() => {
               history.replace(PAGES.ADD_SUBJECTS);
-              }}
-              className="subject-button"
-              key={courses[0].docId}>
+            }}
+            className="subject-button"
+            key={courses[0].docId}
+          >
             <div
               className="course-icon"
               style={{
@@ -70,8 +75,10 @@ const SelectCourse: FC<{
             </div>
             {t("Add Subject")}
           </div>
-        </SplideSlide>: <></>}
-      
+        </SplideSlide>
+      ) : (
+        <></>
+      )}
     </Splide>
   );
 };
