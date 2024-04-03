@@ -279,22 +279,7 @@ export const CHAPTER_CARD_COLOURS = [
   "#009948",
 ];
 
-export const SUBJECT_CARD_COLOURS = [
-  "#F99500",
-  "#0090D3",
-  "#F3609B",
-  "#8F5AA5",
-  "#009948",
-  "#FF7925",
-  "#FFC000",
-  "#2BAC67",
-  "#008CD2",
-  "#FF94B5",
-  "#AC82CF",
-  "#F3609B",
-  "#8F5AA5",
-  "#009948",
-];
+export const DEFUALT_SUBJECT_CARD_COLOUR = "#009948";
 
 export enum PAGES {
   APP_UPDATE = "/",
@@ -389,6 +374,8 @@ export const DEFAULT_SUBJECT_IDS = [
   "nnFVTiGBmw1LiV3xa4V1", //Digital Skills
 ];
 
+export const KARNATAKA_STATE_BOARD_CURRICULUM = "mKDCldpkmAntlspPx21o";
+export const NCERT_CURRICULUM = "2m6ocNBLQc7jlyCKFZve";
 export const OTHER_CURRICULUM = "BVTIRg2Wm3zxcMPrU5Ob";
 export const LANGUAGE_COURSE_MAP = {
   sju2ne9JwNE1TZgo9M4G: "WUfGFSqcW8cIyl8yiqcR", //Hindi
