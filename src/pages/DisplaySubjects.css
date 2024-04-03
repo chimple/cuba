@@ -26,6 +26,12 @@
   overflow-y: scroll;
 }
 
+.add-subjects-content {
+  align-self: center;
+  overflow-y: scroll;
+  height: 100%;
+}
+
 .subjects-content::-webkit-scrollbar {
   display: none;
 }

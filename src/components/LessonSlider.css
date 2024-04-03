@@ -5,6 +5,13 @@
   margin-bottom: 12vh;
 }
 
+.Subject-slider-content {
+  text-align: -webkit-center;
+  overflow: hidden scroll;
+  margin-top: 1vh;
+  margin-bottom: 20vh;
+}
+
 .Lesson-slider-content::-webkit-scrollbar {
   display: none;
 }

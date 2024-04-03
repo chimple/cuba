@@ -53,6 +53,15 @@
   width: 30%;
 }
 
+.subject-header {
+  display: flex;
+  /* margin-top: 1vh; */
+  margin: var(--margin);
+  margin-bottom: 0;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .course-img {
   object-fit: contain;
   min-width: 100%;
