@@ -1,6 +1,5 @@
-// MenuItems.tsx
 import React from "react";
-import "./FloatingMenuItems.css"; // Import CSS file for styling
+import "./FloatingMenuItems.css";
 
 interface FloatingMenuItemsProps {
   isOpen: boolean;

@@ -40,7 +40,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
         <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-        <Dropdowns /> {/* Use the Dropdowns component */}
+        <Dropdowns />
         <button className="sending-report">Send Report</button>
       </div>
       <DashboardStats />

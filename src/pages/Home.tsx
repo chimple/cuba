@@ -842,7 +842,7 @@ const Home: FC = () => {
               ></ChimpleAvatar>
             ) : null}
 
-            {currentHeader === HOMEHEADERLIST.SUBJECTS && <Dashboard />}
+            {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
 
             {currentHeader === HOMEHEADERLIST.ASSIGNMENT && <AssignmentPage />}
 
