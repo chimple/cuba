@@ -418,7 +418,7 @@ const Login: React.FC = () => {
     try {
       setIsLoading(true);
       const _authHandler = ServiceConfig.getI().authHandler;
-      const result: boolean = await _authHandler.loginWithStudentCredentials(
+      const result: boolean = await _authHandler.loginWithEmailAndPassword(
         schoolCode + studentId + DOMAIN,
         studentPassword
       );
@@ -434,7 +434,7 @@ const Login: React.FC = () => {
     } catch (error) {
       setStudentCredentialLogin(true);
       setIsLoading(false);
-      setErrorMessage("login error");
+      setErrorMessage(t("Login unsuccessful. Please try again later."));
       console.log("error", error);
     }
   };

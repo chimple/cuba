@@ -39,8 +39,8 @@ export class AuthHandler implements ServiceAuth {
     return await this.s.phoneNumberSignIn(phoneNumber, recaptchaVerifier);
   }
 
-  public async loginWithStudentCredentials(email: any, password: any) {
-    return await this.s.loginWithStudentCredentials(email, password);
+  public async loginWithEmailAndPassword(email: any, password: any) {
+    return await this.s.loginWithEmailAndPassword(email, password);
   }
 
   public async proceedWithVerificationCode(

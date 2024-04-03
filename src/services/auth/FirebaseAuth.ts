@@ -140,7 +140,7 @@ export class FirebaseAuth implements ServiceAuth {
     }
   }
 
-  async loginWithStudentCredentials(
+  async loginWithEmailAndPassword(
     email: string,
     password: string
   ): Promise<boolean> {
