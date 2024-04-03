@@ -9,7 +9,7 @@ export class AuthHandler implements ServiceAuth {
 
   private s: ServiceAuth;
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(s: ServiceAuth): AuthHandler {
     if (!AuthHandler.i) {
@@ -41,15 +41,18 @@ export class AuthHandler implements ServiceAuth {
   public async msg91OtpGenerate(
     phoneNumber: string,
     appName: string
-
   ): Promise<boolean | undefined> {
-    return await this.s.msg91OtpGenerate(phoneNumber, appName)
+    return await this.s.msg91OtpGenerate(phoneNumber, appName);
   }
   public async resendOtpMsg91(
-    phoneNumber: string,
+    phoneNumber: string
   ): Promise<boolean | undefined> {
-    return await this.s.resendOtpMsg91(phoneNumber)
+    return await this.s.resendOtpMsg91(phoneNumber);
   }
+  public async loginWithStudentCredentials(email: any, password: any) {
+    return await this.s.loginWithStudentCredentials(email, password);
+  }
+
   public async proceedWithVerificationCode(
     verificationId,
     verificationCode

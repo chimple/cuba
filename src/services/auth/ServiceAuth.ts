@@ -4,6 +4,8 @@ import { ConfirmationResult } from "@firebase/auth";
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 
 export interface ServiceAuth {
+  loginWithStudentCredentials(email, password): Promise<boolean>;
+
   googleSign(): Promise<boolean>;
 
   getCurrentUser(): Promise<User | undefined>;

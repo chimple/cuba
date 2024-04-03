@@ -5,6 +5,7 @@ import { useHistory } from "react-router-dom";
 import {
   APP_NAME,
   CURRENT_USER,
+  DOMAIN,
   LANGUAGE,
   NUMBER_REGEX,
   PAGES,
@@ -28,6 +29,13 @@ import BackButton from "../components/common/BackButton";
 import { Toast } from "@capacitor/toast";
 import { title } from "process";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
+import {
+  IoCallOutline,
+  IoLockClosedOutline,
+  IoReaderOutline,
+  IoSchool,
+  IoSchoolOutline,
+} from "react-icons/io5";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -92,6 +100,12 @@ const Login: React.FC = () => {
   const [title, setTitle] = React.useState("");
   //let errorMessage;
   const [errorMessage, setErrorMessage] = useState<string | null>();
+  const [studentId, setStudentId] = useState<string>("");
+  const [studentPassword, setStudenPassword] = useState<string>("");
+  const [schoolCode, setSchoolCode] = useState<string>("");
+  const [showStudentCredentialtLogin, setStudentCredentialLogin] =
+    useState<boolean>(false);
+
   useEffect(() => {
     // init();
     setIsLoading(true);
@@ -404,6 +418,49 @@ const Login: React.FC = () => {
     }
   }
 
+  const handleLoginWithStudentCredentials = async () => {
+    setStudentCredentialLogin(false);
+    try {
+      setIsLoading(true);
+      const _authHandler = ServiceConfig.getI().authHandler;
+      const result: boolean = await _authHandler.loginWithStudentCredentials(
+        schoolCode + studentId + DOMAIN,
+        studentPassword
+      );
+      if (result) {
+        setIsLoading(false);
+        history.replace(PAGES.SELECT_MODE);
+        localStorage.setItem(CURRENT_USER, JSON.stringify(result));
+      } else {
+        setStudentCredentialLogin(true);
+        setErrorMessage(t("User not Found. Please verify your credentials."));
+        setIsLoading(false);
+      }
+    } catch (error) {
+      setStudentCredentialLogin(true);
+      setIsLoading(false);
+      setErrorMessage("login error");
+      console.log("error", error);
+    }
+  };
+
+  function loinWithStudentCredentialsButton() {
+    setShowBackButton(true);
+    setShowVerification(true);
+    setShowNameInput(true);
+    setStudentCredentialLogin(true);
+  }
+  useEffect(() => {
+    if (
+      schoolCode.length != 0 &&
+      studentId.length != 0 &&
+      studentPassword.length! >= 6
+    ) {
+      setCurrentButtonColor(Buttoncolors.Valid);
+    } else {
+      setCurrentButtonColor(Buttoncolors.Default);
+    }
+  }, [schoolCode, studentId, studentPassword]);
   return (
     <IonPage id="login-screen">
       {!!showBackButton && (
@@ -424,6 +481,8 @@ const Login: React.FC = () => {
                 isInvalidCodeLength: false,
               });
               setErrorMessage("");
+              setStudentCredentialLogin(false);
+              setShowNameInput(false);
             }}
           />
         </div>
@@ -456,6 +515,7 @@ const Login: React.FC = () => {
                         inputType={"tel"}
                         maxLength={10}
                         inputValue={phoneNumber}
+                        icon={<IoCallOutline id="text-box-icon" />}
                         onChange={(input) => {
                           if (input.target.value) {
                             if (!NUMBER_REGEX.test(input.target.value)) {
@@ -549,62 +609,75 @@ const Login: React.FC = () => {
                 <div id="Google-horizontal-line-main-container">
                   <div id="Google-horizontal-line"></div>
                   <div id="login-google-icon-text">
-                    {t("Continue with Google")}
+                    {t("Continue with Google or Student credentials")}
                   </div>
                   <div id="Google-horizontal-line2"></div>
                 </div>
-                <img
-                  id="login-google-icon"
-                  alt="Google Icon"
-                  src="assets/icons/Google Icon.png"
-                  onClick={async () => {
-                    if (!online) {
-                      presentToast({
-                        message: t(
-                          `Device is offline. Login requires an internet connection`
-                        ),
-                        color: "danger",
-                        duration: 3000,
-                        position: "bottom",
-                        buttons: [
-                          {
-                            text: "Dismiss",
-                            role: "cancel",
-                          },
-                        ],
-                      });
-                      return;
-                    }
-                    try {
-                      setIsLoading(true);
-                      console.log("isLoading ", isLoading);
-                      const _authHandler = ServiceConfig.getI().authHandler;
-                      const result: boolean = await _authHandler.googleSign();
-                      console.log(
-                        "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
-                        result
-                      );
-                      if (result) {
-                        setIsLoading(false);
-                        // history.replace(PAGES.DISPLAY_STUDENT);
-                        history.replace(PAGES.SELECT_MODE);
-                        localStorage.setItem(
-                          CURRENT_USER,
-                          JSON.stringify(result)
-                        );
-                        console.log(
-                          "google...",
-                          localStorage.getItem(CURRENT_USER)
-                        );
-                      } else {
-                        setIsLoading(false);
+                <div className="login-with-google-or-student-credentials-container">
+                  <img
+                    id="login-google-icon"
+                    alt="Google Icon"
+                    src="assets/icons/Google Icon.png"
+                    onClick={async () => {
+                      if (!online) {
+                        presentToast({
+                          message: t(
+                            `Device is offline. Login requires an internet connection`
+                          ),
+                          color: "danger",
+                          duration: 3000,
+                          position: "bottom",
+                          buttons: [
+                            {
+                              text: "Dismiss",
+                              role: "cancel",
+                            },
+                          ],
+                        });
+                        return;
                       }
-                    } catch (error) {
-                      setIsLoading(false);
-                      console.log("error", error);
-                    }
-                  }}
-                />
+                      try {
+                        setIsLoading(true);
+                        console.log("isLoading ", isLoading);
+                        const _authHandler = ServiceConfig.getI().authHandler;
+                        const result: boolean = await _authHandler.googleSign();
+                        console.log(
+                          "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
+                          result
+                        );
+                        if (result) {
+                          setIsLoading(false);
+                          // history.replace(PAGES.DISPLAY_STUDENT);
+                          history.replace(PAGES.SELECT_MODE);
+                          localStorage.setItem(
+                            CURRENT_USER,
+                            JSON.stringify(result)
+                          );
+                          console.log(
+                            "google...",
+                            localStorage.getItem(CURRENT_USER)
+                          );
+                        } else {
+                          setIsLoading(false);
+                        }
+                      } catch (error) {
+                        setIsLoading(false);
+                        console.log("error", error);
+                      }
+                    }}
+                  />
+                  <div className="google-or-student-credentials-button ">
+                    OR
+                  </div>
+                  {!showVerification ? (
+                    <div
+                      className="login-with-student-credentials"
+                      onClick={loinWithStudentCredentialsButton}
+                    >
+                      <IoSchool className="school-icon" />
+                    </div>
+                  ) : null}
+                </div>
               </div>
             ) : !showNameInput && startResendOtpCounter() ? (
               <div>
@@ -618,6 +691,7 @@ const Login: React.FC = () => {
                       inputType={"tel"}
                       maxLength={6}
                       inputValue={verificationCode.trim()}
+                      icon={<IoCallOutline id="text-box-icon" />}
                       onChange={(input) => {
                         if (input.target.value) {
                           if (!NUMBER_REGEX.test(input.target.value)) {
@@ -749,9 +823,110 @@ const Login: React.FC = () => {
               >
                 Enter Chimple APP
               </div> */}
-                {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
+
+                {/* {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null} */}
               </div>
             )}
+          </div>
+        ) : null}
+        {showStudentCredentialtLogin ? (
+          <div className="student-credentials-container">
+            <div className="student-credentials-text-box-container">
+              <TextBox
+                inputText={t("Enter school code")}
+                inputType={"text"}
+                maxLength={100}
+                inputValue={schoolCode.trim()}
+                icon={<IoSchoolOutline id="text-box-icon" />}
+                onChange={(input) => {
+                  setErrorMessage("");
+                  if (input.target.value) {
+                    setSchoolCode(input.target.value);
+                    console.log(input.target.value);
+                  } else {
+                    setSchoolCode("");
+                  }
+                }}
+              ></TextBox>
+
+              <TextBox
+                inputText={t("Enter student id")}
+                inputType={"text"}
+                maxLength={100}
+                inputValue={studentId.trim()}
+                icon={<IoReaderOutline id="text-box-icon" />}
+                onChange={(input) => {
+                  setErrorMessage("");
+                  if (input.target.value) {
+                    setStudentId(input.target.value);
+                    console.log(input.target.value);
+                  } else {
+                    setStudentId("");
+                  }
+                }}
+              ></TextBox>
+
+              <div>
+                <TextBox
+                  inputText={t("Enter  Password")}
+                  inputType={"password"}
+                  maxLength={100}
+                  inputValue={studentPassword.trim()}
+                  icon={<IoLockClosedOutline id="text-box-icon" />}
+                  onChange={(input) => {
+                    setErrorMessage("");
+                    if (input.target.value) {
+                      setStudenPassword(input.target.value);
+                      console.log(input.target.value);
+                    } else setStudenPassword("");
+                  }}
+                ></TextBox>
+                {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
+              </div>
+            </div>
+            <div>
+              {errorMessage && (
+                <p className="student-login-verification-error-message">
+                  {errorMessage}
+                </p>
+              )}
+            </div>
+            <div
+              id="login-with-student-credentials"
+              style={{ backgroundColor: currentButtonColor }}
+              onClick={() => {
+                if (!online) {
+                  presentToast({
+                    message: t(
+                      `Device is offline. Login requires an internet connection`
+                    ),
+                    color: "danger",
+                    duration: 3000,
+                    position: "bottom",
+                    buttons: [
+                      {
+                        text: "Dismiss",
+                        role: "cancel",
+                      },
+                    ],
+                  });
+                  return;
+                }
+                if (
+                  schoolCode.length !== 0 &&
+                  studentId.length !== 0 &&
+                  studentPassword.length >= 6
+                ) {
+                  handleLoginWithStudentCredentials();
+                } else if (schoolCode.length == 0 || studentId.length == 0) {
+                  setErrorMessage(t("Please fill in all fields."));
+                } else if (studentPassword.length < 6) {
+                  setErrorMessage(t("Password is too short."));
+                }
+              }}
+            >
+              {t("Get Started")}
+            </div>
           </div>
         ) : null}
       </div>
