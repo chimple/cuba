@@ -10,12 +10,15 @@ import {
   CHAPTER_CARD_COLOURS,
   EVENTS,
   PAGES,
-  SUBJECT_CARD_COLOURS,
+  DEFUALT_SUBJECT_CARD_COLOUR,
   aboveGrade3,
   belowGrade1,
   grade1,
   grade2,
   grade3,
+  NCERT_CURRICULUM,
+  KARNATAKA_STATE_BOARD_CURRICULUM,
+  OTHER_CURRICULUM,
 } from "../../common/constants";
 import { useHistory } from "react-router";
 import { BsFillCheckCircleFill } from "react-icons/bs";
@@ -25,6 +28,7 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
 import Loading from "../Loading";
 import "../LessonSlider.css";
+import "../../pages/DisplayChapters.css";
 
 const AddCourse: FC<{
   courses: Course[];
@@ -41,6 +45,9 @@ const AddCourse: FC<{
       return { course, selected: false };
     }),
   ]);
+  allCourses.sort((a, b) => {
+    return a.course.sortIndex - b.course.sortIndex;
+  });
   let selectedCourses: Course[] = [];
 
   useEffect(() => {}, []);
@@ -82,93 +89,109 @@ const AddCourse: FC<{
     }
   };
 
-  return (
-    <div className="Lesson-slider-content">
-      <Splide
-        hasTrack={true}
-        options={{
-          arrows: false,
-          wheel: true,
-          lazyLoad: true,
-          direction: "ltr",
-          pagination: false,
-        }}
-      >
-        {allCourses.map((course, index) => {
-          let isGrade1: string | boolean = false;
-          let isGrade2: string | boolean = false;
-          let gradeDocId = course.course.grade.id;
+  const renderSubjectCard = (curr) => {
+    console.log("FFFFF", allCourses);
+    return (
+      <div className="Subject-slider-content">
+        <Splide
+          hasTrack={true}
+          options={{
+            arrows: false,
+            wheel: true,
+            lazyLoad: true,
+            direction: "ltr",
+            pagination: false,
+          }}
+        >
+          {allCourses.map((course, index) => {
+            if (course.course.curriculum.id === curr) {
+              let isGrade1: string | boolean = false;
+              let isGrade2: string | boolean = false;
+              let gradeDocId = course.course.grade.id;
 
-          // Check if gradeDocId matches any of the specified grades and assign the value to isGrade1 or isGrade2
-          if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
-            isGrade1 = true;
-          } else if (
-            gradeDocId === grade2 ||
-            gradeDocId === grade3 ||
-            gradeDocId === aboveGrade3
-          ) {
-            isGrade2 = true;
-          } else {
-            // If it's neither grade1 nor grade2, assume grade2
-            isGrade2 = true;
-          }
-          // const ccCourse = setSelectedCourses.find(o=> o.docId === course.docId);
-          return (
-            <SplideSlide className="slide">
-              <div
-                onClick={async () => {
-                  const newCourses = allCourses.map((c, i) => {
-                    if (c.course.docId === course.course.docId)
-                      c.selected = !c.selected;
-                    return c;
-                  });
+              // Check if gradeDocId matches any of the specified grades and assign the value to isGrade1 or isGrade2
+              if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
+                isGrade1 = true;
+              } else if (
+                gradeDocId === grade2 ||
+                gradeDocId === grade3 ||
+                gradeDocId === aboveGrade3
+              ) {
+                isGrade2 = true;
+              } else {
+                // If it's neither grade1 nor grade2, assume grade2
+                isGrade2 = true;
+              }
+              // const ccCourse = setSelectedCourses.find(o=> o.docId === course.docId);
+              return (
+                <SplideSlide className="slide">
+                  <div
+                    onClick={async () => {
+                      const newCourses = allCourses.map((c, i) => {
+                        if (c.course.docId === course.course.docId)
+                          c.selected = !c.selected;
+                        return c;
+                      });
 
-                  setAllCourses(newCourses);
-                  handleClick(course.course!);
-                }}
-                className="subject-button"
-                key={course.course.docId}
-              >
-                {course.selected ? (
-                  <div id="subject-card-select-icon">
-                    <div>
-                      <BsFillCheckCircleFill
-                        color={"white"}
-                        className="gender-check-box"
-                        size="4vh"
+                      setAllCourses(newCourses);
+                      handleClick(course.course!);
+                    }}
+                    className="subject-button"
+                    key={course.course.docId}
+                  >
+                    {course.selected ? (
+                      <div id="subject-card-select-icon">
+                        <div>
+                          <BsFillCheckCircleFill
+                            color={"white"}
+                            className="gender-check-box"
+                            size="4vh"
+                          />
+                        </div>
+                      </div>
+                    ) : null}
+                    <div id="subject-card-subject-name">
+                      <p>
+                        {isGrade1 ? "Grade 1" : "Grade 2"}
+                        {/* {subject.title==="English"?subject.title:t(subject.title)} */}
+                      </p>
+                    </div>
+                    <div
+                      className="course-icon"
+                      style={{
+                        backgroundColor: course.course.color??DEFUALT_SUBJECT_CARD_COLOUR,
+                        flexDirection: "column",
+                      }}
+                    >
+                      <SelectIconImage
+                        localSrc={`courses/chapter_icons/${course.course.courseCode}.png`}
+                        defaultSrc={
+                          "courses/" + "maths" + "/icons/" + "maths10.png"
+                        }
+                        webSrc={course.course.thumbnail}
                       />
                     </div>
+                    {t(course?.course.title)}
+                    {/* {course.title === "English" ? course.title : course.title} */}
                   </div>
-                ) : null}
-                <div id="subject-card-subject-name">
-                  <p>
-                    {isGrade1 ? "Grade 1" : "Grade 2"}
-                    {/* {subject.title==="English"?subject.title:t(subject.title)} */}
-                  </p>
-                </div>
-                <div
-                  className="course-icon"
-                  style={{
-                    backgroundColor: course.course.color,
-                    flexDirection: "column",
-                  }}
-                >
-                  <SelectIconImage
-                    localSrc={`courses/chapter_icons/${course.course.courseCode}.png`}
-                    defaultSrc={
-                      "courses/" + "maths" + "/icons/" + "maths10.png"
-                    }
-                    webSrc={course.course.thumbnail}
-                  />
-                </div>
-                {t(course?.course.title)}
-                {/* {course.title === "English" ? course.title : course.title} */}
-              </div>
-            </SplideSlide>
-          );
-        })}
-        <Loading isLoading={isLoading} />
-      </Splide>
+                </SplideSlide>
+              );
+            }
+          })}
+          <Loading isLoading={isLoading} />
+        </Splide>
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      <div>{"NCERT curriculum"}</div>
+      {renderSubjectCard(NCERT_CURRICULUM)}
+      <div>{"Karnataka board curriculum"}</div>
+      {renderSubjectCard(KARNATAKA_STATE_BOARD_CURRICULUM)}
+      <div>{"Other curriculum"}</div>
+      {renderSubjectCard(OTHER_CURRICULUM)}
     </div>
   );
 };
