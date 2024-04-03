@@ -90,7 +90,6 @@ const AddCourse: FC<{
   };
 
   const renderSubjectCard = (curr) => {
-    console.log("FFFFF", allCourses);
     return (
       <div className="Subject-slider-content">
         <Splide
@@ -186,11 +185,11 @@ const AddCourse: FC<{
 
   return (
     <div>
-      <div>{"NCERT curriculum"}</div>
+      <div className="subject-header">{t("NCERT curriculum")}</div>
       {renderSubjectCard(NCERT_CURRICULUM)}
-      <div>{"Karnataka board curriculum"}</div>
+      <div className="subject-header">{t("Karnataka board curriculum")}</div>
       {renderSubjectCard(KARNATAKA_STATE_BOARD_CURRICULUM)}
-      <div>{"Other curriculum"}</div>
+      <div className="subject-header">{t("Other curriculum")}</div>
       {renderSubjectCard(OTHER_CURRICULUM)}
     </div>
   );
