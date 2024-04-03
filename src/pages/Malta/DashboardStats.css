@@ -1,0 +1,20 @@
+.dashboard-stats {
+  display: flex;
+  justify-content: space-around;
+}
+
+.dashboard-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-label,
+.stat-value {
+  margin-bottom: 5px;
+  color: #a86565;
+  font-weight: bold;
+  font-size: 90%;
+  white-space: nowrap;
+  font-family: none;
+}

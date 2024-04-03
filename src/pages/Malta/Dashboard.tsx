@@ -1,23 +1,25 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "./Dashboard.css";
-import { useState } from "react";
+import Sidebar from "./Sidebar";
+import Dropdowns from "./Dropdowns"; // Import the Dropdowns component
+import DashboardStats from "./DashboardStats";
 
-const Dashboard = () => {
+const Dashboard: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   useEffect(() => {
-    const handleOutsideClick = (event) => {
-      const sidebar = document.querySelector(".sidebar");
-      const menuButton = document.querySelector(".menu-button");
+    const handleOutsideClick = (event: MouseEvent) => {
+      const sidebar = document.querySelector(".sidebar") as HTMLElement;
+      const menuButton = document.querySelector(".menu-button") as HTMLElement;
 
       if (
         isSidebarOpen &&
         sidebar &&
-        !sidebar.contains(event.target) &&
+        !sidebar.contains(event.target as Node) &&
         menuButton &&
-        !menuButton.contains(event.target)
+        !menuButton.contains(event.target as Node)
       ) {
         setIsSidebarOpen(false);
       }
@@ -37,32 +39,11 @@ const Dashboard = () => {
             <div></div>
           </div>
         </div>
-
-        <div className={`sidebar ${isSidebarOpen ? "open" : ""}`}>
-          <button onClick={toggleSidebar} className="close-sidebar">
-            X
-          </button>
-          <ul>
-            <li>Item 1</li>
-            <li>Item 2</li>
-            <li>Item 3</li>
-          </ul>
-        </div>
-
-        <div className="dropdown-container">
-          <select className="dropdown">
-            <option value="option1">Option 1</option>
-            <option value="option2">Option 2</option>
-            <option value="option3">Option 3</option>
-          </select>
-
-          <select className="dropdown">
-            <option value="option1">Option A</option>
-            <option value="option2">Option B</option>
-            <option value="option3">Option C</option>
-          </select>
-        </div>
+        <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+        <Dropdowns /> {/* Use the Dropdowns component */}
+        <button className="sending-report">Send Report</button>
       </div>
+      <DashboardStats />
       <button className="floating-button">+</button>
     </>
   );

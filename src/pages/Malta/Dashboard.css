@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 5vh 1vw;
+  padding: 3vh 1vw;
   flex-wrap: nowrap;
 }
 
@@ -14,7 +14,7 @@
 .dropdown-container {
   display: flex;
   align-items: center;
-  margin-right: 26svw;
+  /* margin-right: 7vw; */
 }
 
 .dropdown {
@@ -54,6 +54,7 @@
   z-index: 2;
   transition: transform 0.3s ease;
   transform: translateX(-100%);
+  align-items: center;
 }
 
 .sidebar.open {
@@ -78,6 +79,19 @@
   background: none;
   font-size: 1.5vh;
 }
+.sidebar-button {
+  border: none;
+  background: none;
+  text-align: left;
+  padding: 10px;
+  width: 100%;
+  display: block;
+  cursor: pointer;
+  outline: none;
+  font-size: 2.2vh;
+  flex-wrap: nowrap;
+  color: black;
+}
 
 .floating-button {
   position: fixed;
@@ -100,4 +114,24 @@
 
 .floating-button:hover {
   background-color: #0056b3;
+}
+.sending-report:hover {
+  transform: scale(1.1); /* Zoom in by 10% on hover */
+  transition: transform 0.2s ease; /* Add a smooth transition effect */
+}
+
+.sending-report {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  border: none;
+  background-color: transparent;
+  flex-wrap: nowrap;
+  margin-right: 15vw;
+  height: auto;
+  width: auto;
+  /* font-size: 2.1vw; */
+  cursor: pointer;
+  padding: 1.7vh 3.5vw;
+  color: black;
 }

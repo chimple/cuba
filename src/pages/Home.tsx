@@ -64,6 +64,7 @@ import { RemoteConfig, REMOTE_CONFIG_KEYS } from "../services/RemoteConfig";
 import LiveQuiz from "./LiveQuiz";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
+import Dashboard from "./Malta/Dashboard";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -841,7 +842,7 @@ const Home: FC = () => {
               ></ChimpleAvatar>
             ) : null}
 
-            {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
+            {currentHeader === HOMEHEADERLIST.SUBJECTS && <Dashboard />}
 
             {currentHeader === HOMEHEADERLIST.ASSIGNMENT && <AssignmentPage />}
 
