@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import "./Dashboard.css";
 import Sidebar from "./Sidebar";
-import Dropdowns from "./Dropdowns"; // Import the Dropdowns component
+import Dropdowns from "./Dropdowns";
 import DashboardStats from "./DashboardStats";
+import { t } from "i18next";
 
 const Dashboard: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -41,7 +42,7 @@ const Dashboard: React.FC = () => {
         </div>
         <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
         <Dropdowns />
-        <button className="sending-report">Send Report</button>
+        <button className="sending-report">{t("Send Report")}</button>
       </div>
       <DashboardStats />
       <button className="floating-button">+</button>

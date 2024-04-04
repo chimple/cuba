@@ -1,3 +1,4 @@
+import { t } from "i18next";
 import React from "react";
 
 interface SidebarProps {
@@ -13,14 +14,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
       </button>
       <ul>
         <li>
-          <button className="sidebar-button">Home</button>
+          <button className="sidebar-button">{t("Home")}</button>
         </li>
-        <button className="sidebar-button">Class Code</button>
+        <button className="sidebar-button">{t("Class Code")}</button>
         <li>
-          <button className="sidebar-button">Classroom</button>
+          <button className="sidebar-button">{t("Classroom")}</button>
         </li>
         <li>
-          <button className="sidebar-button">Users</button>
+          <button className="sidebar-button">{t("Users")}</button>
         </li>
       </ul>
     </div>
