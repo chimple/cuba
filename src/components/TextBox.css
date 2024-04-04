@@ -1,16 +1,16 @@
 #text-box {
-    /* position: absolute; */
-    outline-style: solid;
-    outline-width: 0.1px;
-    /*left: 50%; */
-    color: var(--text-color);
-    /*top: 58%; */
-    width: 26vw;
-    height: 5.5vw;
-    transform: translateY(0vw) translateX(4.3vw);
-    border-radius: var(--border-radius);
-    
-    /* background-color: var(--ion-background-color); */
+  /* position: absolute; */
+  outline-style: solid;
+  outline-width: 0.1px;
+  /*left: 50%; */
+  color: var(--text-color);
+  /*top: 58%; */
+  width: 26vw;
+  height: 5.5vw;
+  transform: translateY(0vw) translateX(4.3vw);
+  border-radius: var(--border-radius);
+
+  /* background-color: var(--ion-background-color); */
 }
 
 #text-box-elements {
@@ -22,23 +22,23 @@
 }
 
 #text-box-icon {
-    width: 4vw;
-    height: 2.1vw;
-    min-width: 1vw;
-    min-height: 1vw;
-    /*margin: 4.6%;*/
-    color:black;
-    margin: 1.7vw 0vw 1.7vw 0.5vw;
-    /*transform: translateX(-6px) translateY(4px); */
+  width: 4vw;
+  height: 2.1vw;
+  min-width: 1vw;
+  min-height: 1vw;
+  /*margin: 4.6%;*/
+  color: black;
+  margin: 1.7vw 0vw 1.7vw 0.5vw;
+  /*transform: translateX(-6px) translateY(4px); */
 }
 
 #text-box-vertical-line {
-    width: 0.1vw;
-    height: 3.5vw;
-   /* margin-top: 3.5%; */
-    background-color: var(--text-color);
-    /*transform: translateX(8px);*/
-    margin: 1vw 0.5vw 0vw 0.5vw;
+  width: 0.1vw;
+  height: 3.5vw;
+  /* margin-top: 3.5%; */
+  background-color: var(--text-color);
+  /*transform: translateX(8px);*/
+  margin: 1vw 0.5vw 0vw 0.5vw;
 }
 
 /* #text-box-ion-item {
@@ -60,14 +60,14 @@
 /* .text-box-ion-input {
     transform: translateY(0vh) !important;
     font-size: 3vw !important; */
-    /* height: 10px !important; */
+/* height: 10px !important; */
 /* } */
 
 #text-box-container {
   width: 29vw;
   padding: 1.7vw 0vw 0vw 0vw;
   margin: 0 auto;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 #text-box-label-content {
@@ -90,7 +90,7 @@
 }
 
 #text-box-floating-input {
-  font-size:calc(1vw + 0.5vw) !important;
+  font-size: calc(1vw + 0.5vw) !important;
   display: block;
   width: 17.5vw;
   height: 6vh;
@@ -104,7 +104,7 @@
 
   &:focus {
     outline: none;
-    ~#text-box-floating-label {
+    ~ #text-box-floating-label {
       top: -2.9vh;
       font-size: 1vw;
     }
@@ -112,6 +112,6 @@
 }
 
 #text-box-floating-input:not(:placeholder-shown) ~ #text-box-floating-label {
-  top:-2.9vh;
-  font-size:1vw;
+  top: -2.9vh;
+  font-size: 1vw;
 }
