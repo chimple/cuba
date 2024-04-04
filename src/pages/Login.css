@@ -123,14 +123,11 @@ p {
   height: 0.1vh;
   margin-top: 2%;
   background-color: gray;
-
-
-
 }
 
 #Google-horizontal-line-main-container {
   display: flex;
-  width: 26vw;
+  width: 30vw;
   margin-left: 36.9%;
   margin-top: -2%;
 }
@@ -150,13 +147,13 @@ p {
 #custom-loading {
   --background: #e3edff;
   --spinner-color: white;
-   color: white;
+  color: white;
 }
-#custom-loading-for-avatar{
+#custom-loading-for-avatar {
   --background: #e3edff;
   --spinner-color: #ff5500;
-    color: white;
-    padding-right: 50vw;
+  color: white;
+  padding-right: 50vw;
 }
 
 .login-error-message {
@@ -183,7 +180,6 @@ p {
 
 .scroll-header {
   overflow: scroll;
-
 }
 
 .scroll-header::-webkit-scrollbar {
@@ -204,7 +200,6 @@ p {
   font-size: 1.5vw;
 }
 
-
 #login-resend-otp-text {
   font-size: 2vw;
   font-weight: bold;
@@ -213,6 +208,54 @@ p {
 .login-verification-error-message {
   width: 35vw;
   color: red;
+  font-size: 1.3vw;
+  white-space: nowrap;
+}
+#login-with-student-credentials {
+  color: white;
+  width: 26vw;
+  height: 5.5vw;
+  background: grey;
+  border-radius: var(--border-radius);
+  text-align: center;
+  line-height: 6vw;
+  font-size: 1.9vw;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: -1vh;
+}
+.student-credentials-text-box-container {
+  margin: -2.6% 0% 2% 32.8vw;
+}
+.student-credentials-container {
+  margin-top: 1vh;
+}
+.school-icon {
+  height: 9vh;
+  width: auto;
+  /* text-align: center; */
+  /* transform: translateY(-5%) translateX(-50%); */
+  margin-top: 0%;
+  color: #565656;
+}
+.login-with-google-or-student-credentials-container {
+  display: flex;
+  justify-content: center;
+  gap: 4vw;
+  margin-top: 1vh;
+}
+.google-or-student-credentials-button {
+  color: black;
+  height: 9vh;
+  width: auto;
+  /* text-align: center; */
+  /* transform: translateY(-5%) translateX(-50%); */
+  margin-top: 1%;
+}
+.student-login-verification-error-message {
+  color: #ff5500;
+  margin-top: -2vh;
+  padding-bottom: 2vh;
   font-size: 1.3vw;
   white-space: nowrap;
 }
