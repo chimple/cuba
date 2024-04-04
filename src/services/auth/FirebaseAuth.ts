@@ -159,7 +159,7 @@ export class FirebaseAuth implements ServiceAuth {
       const user = result.user;
       const additionalUserInfo = result.additionalUserInfo;
       if (!user) return false;
-      const userRef = doc(this._db, "User", user.uid);
+      const userRef = doc(this._db, CollectionIds.USER, user.uid);
       if (additionalUserInfo?.isNewUser) {
         await this._createUserDoc(user);
       } else {
