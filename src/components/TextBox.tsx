@@ -9,31 +9,32 @@ const TextBox: React.FC<{
   inputType;
   maxLength: number;
   inputValue: string;
+  icon?: JSX.Element; // Define icon prop as JSX.Element
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   // onChange: (event: IonInputCustomEvent<InputChangeEventDetail>) => void;
-}> = ({ inputText, inputType, inputValue, maxLength, onChange }) => {
+}> = ({ inputText, inputType, inputValue, maxLength, icon, onChange }) => {
   return (
     <div id="text-box">
       <div id="text-box-elements">
-        <IoCallOutline id="text-box-icon" mode="ios" />
+        {icon}
+        {/* <IoCallOutline id="text-box-icon" mode="ios" /> */}
         <div id="text-box-vertical-line"></div>
 
         <div id="text-box-input">
           <div id="text-box-container">
             <div id="text-box-label-content">
-              <input id="text-box-floating-input"
+              <input
+                id="text-box-floating-input"
                 type={inputType}
                 value={inputValue}
                 onChange={onChange}
                 maxLength={maxLength}
                 placeholder=" "
               />
-              <label id="text-box-floating-label">
-                {inputText}
-              </label>
+              <label id="text-box-floating-label">{inputText}</label>
             </div>
           </div>
-           {/* <IonItem id="text-box-ion-item" lines="none" mode="ios">
+          {/* <IonItem id="text-box-ion-item" lines="none" mode="ios">
             <IonLabel
               mode="ios"
               class="text-box-ion-label"
