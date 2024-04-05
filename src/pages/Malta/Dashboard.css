@@ -1,0 +1,137 @@
+.dashboard-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3vh 1vw;
+  flex-wrap: nowrap;
+}
+
+.menu-button {
+  flex: 0 0 auto;
+  margin-right: 1vw;
+}
+
+.dropdown-container {
+  display: flex;
+  align-items: center;
+  /* margin-right: 7vw; */
+}
+
+.dropdown {
+  margin-left: 7vw;
+  padding: 1.7vh 3.5vw;
+  border: 0.1vw solid #ccc;
+  border-radius: 1vw;
+  background-color: #dde4f2;
+  cursor: pointer;
+}
+
+.hamburger-icon {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 5vw;
+  height: 4.5vh;
+}
+
+.hamburger-icon div {
+  height: 0.4vw;
+  background-color: #333;
+}
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 30vw;
+  height: 100%;
+  background-color: #f4f4f4;
+  box-shadow: 0.2vw 0 0.5vw rgba(0, 0, 0, 0.5);
+  padding: 1vh;
+  display: flex;
+  flex-direction: column;
+  z-index: 2;
+  transition: transform 0.3s ease;
+  transform: translateX(-100%);
+  align-items: center;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.sidebar li {
+  padding: 1vh 0;
+}
+
+.close-sidebar {
+  cursor: pointer;
+  position: absolute;
+  top: 1vh;
+  right: 1vw;
+  border: none;
+  background: none;
+  font-size: 1.5vh;
+}
+.sidebar-button {
+  border: none;
+  background: none;
+  text-align: left;
+  padding: 10px;
+  width: 100%;
+  display: block;
+  cursor: pointer;
+  outline: none;
+  font-size: 2.2vh;
+  flex-wrap: nowrap;
+  color: black;
+}
+
+.floating-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #007bff;
+  color: #fff;
+  font-size: 24px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.floating-button:hover {
+  background-color: #0056b3;
+}
+.sending-report:hover {
+  transform: scale(1.1); /* Zoom in by 10% on hover */
+  transition: transform 0.2s ease; /* Add a smooth transition effect */
+}
+
+.sending-report {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  border: none;
+  background-color: transparent;
+  flex-wrap: nowrap;
+  margin-right: 15vw;
+  height: auto;
+  width: auto;
+  /* font-size: 2.1vw; */
+  cursor: pointer;
+  padding: 1.7vh 3.5vw;
+  color: black;
+}
