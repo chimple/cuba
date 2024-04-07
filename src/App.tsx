@@ -81,7 +81,6 @@ interface ExtraData {
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
-
   useEffect(() => {
     const handleOnline = () => {
       if (!online) {
@@ -155,6 +154,11 @@ const App: React.FC = () => {
       directory: Directory.Cache,
     }).catch((_) => {});
 
+    const portPlugin = registerPlugin<PortPlugin>("Port");
+    portPlugin.addListener("notificationOpened", (data: any) => {
+      fetchData();
+    });
+
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
 
@@ -203,10 +207,9 @@ const App: React.FC = () => {
             students.find((user) => user.docId === data.rewardProfileId) ||
             students[0];
           if (matchingUser) {
-              await Util.setCurrentStudent(matchingUser, undefined, true);
-              window.location.replace(
-                PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME
-              );
+            await Util.setCurrentStudent(matchingUser, undefined, true);
+            console.log("check this log", currentStudent);
+            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
             return;
           } else {
             return;
