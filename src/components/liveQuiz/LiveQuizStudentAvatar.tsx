@@ -6,6 +6,8 @@ import {
   CircularProgressbarWithChildren,
   buildStyles,
 } from "react-circular-progressbar";
+import { Util } from "../../utility/util";
+import { t } from "i18next";
 
 const LiveQuizStudentAvatar: FC<{
   student: User;
@@ -15,7 +17,6 @@ const LiveQuizStudentAvatar: FC<{
 }> = ({ student, score, percentage, isCorrect }) => {
   return (
     <div className="live-quiz-student-avatar">
-      <p className="live-quiz-student-Name">{student.name}</p>
       <div>
         {percentage || isCorrect != null ? (
           <CircularProgressbarWithChildren
@@ -40,6 +41,11 @@ const LiveQuizStudentAvatar: FC<{
           />
         )}
       </div>
+      {student && student.docId === Util.getCurrentStudent()?.docId ? (
+        <p>{t("Me")}</p>
+      ) : (
+        <p className="live-quiz-student-Name">{student.name}</p>
+      )}
 
       <p className="live-quiz-student-score">{Math.round(score)}</p>
     </div>

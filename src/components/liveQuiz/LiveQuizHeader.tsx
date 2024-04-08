@@ -23,6 +23,7 @@ const LiveQuizHeader: FC<{
     {
       student: User;
       score: number;
+      isTopPerformer: boolean;
     }[]
   >();
 
@@ -58,6 +59,7 @@ const LiveQuizHeader: FC<{
       student: User;
       score: number;
       lastQuestionId: string;
+      isTopPerformer: boolean;
     }[] = [];
     roomDoc.participants.forEach((studentId: string) => {
       const studentResult = roomDoc.results?.[studentId];
@@ -74,6 +76,7 @@ const LiveQuizHeader: FC<{
               (student) => student.student.docId === studentId
             )?.score ?? 0,
         lastQuestionId: studentResult?.[studentResult.length - 1]?.id,
+        isTopPerformer: false,
       });
     });
     tempSortedStudents.sort((a, b) => {
@@ -85,6 +88,10 @@ const LiveQuizHeader: FC<{
         return b.score - a.score;
       }
     });
+    tempSortedStudents.sort((a, b) => b.score - a.score);
+    tempSortedStudents.slice(0, 3).forEach((student) => {
+      student.isTopPerformer = true;
+    });
     setSortedStudents(tempSortedStudents);
   };
 
@@ -92,7 +99,7 @@ const LiveQuizHeader: FC<{
     <div>
       <div className="live-quiz-header">
         {sortedStudents &&
-          sortedStudents.map((studentMap) => {
+          sortedStudents.map((studentMap, index) => {
             const studentResult = roomDoc.results?.[studentMap.student.docId];
             const lastAnswer = studentResult?.[studentResult.length - 1];
             const currentQuestionResult = currentQuestion
@@ -101,26 +108,36 @@ const LiveQuizHeader: FC<{
                 )
               : null;
             return (
-              <LiveQuizStudentAvatar
-                student={studentMap.student}
-                score={studentMap.score}
+              <div
                 key={studentMap.student.docId}
-                isCorrect={
-                  !showAnswer
-                    ? undefined
-                    : currentQuestionResult != null &&
-                      currentQuestionResult.score > 0
-                }
-                percentage={
-                  !currentQuestion ||
-                  currentQuestion.id === lastAnswer?.id ||
-                  !remainingTime
-                    ? undefined
-                    : ((LIVE_QUIZ_QUESTION_TIME - remainingTime) /
-                        LIVE_QUIZ_QUESTION_TIME) *
-                      100
-                }
-              />
+                className="student-avatar-container"
+              >
+                {studentMap.isTopPerformer && (
+                  <div className={`top-performer-circle color-${index + 1}`}>
+                    {index + 1}
+                  </div>
+                )}
+                <LiveQuizStudentAvatar
+                  student={studentMap.student}
+                  score={studentMap.score}
+                  key={studentMap.student.docId}
+                  isCorrect={
+                    !showAnswer
+                      ? undefined
+                      : currentQuestionResult != null &&
+                        currentQuestionResult.score > 0
+                  }
+                  percentage={
+                    !currentQuestion ||
+                    currentQuestion.id === lastAnswer?.id ||
+                    !remainingTime
+                      ? undefined
+                      : ((LIVE_QUIZ_QUESTION_TIME - remainingTime) /
+                          LIVE_QUIZ_QUESTION_TIME) *
+                        100
+                  }
+                />
+              </div>
             );
           })}
       </div>
