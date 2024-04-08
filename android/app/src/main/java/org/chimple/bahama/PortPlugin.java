@@ -59,6 +59,10 @@ public class PortPlugin extends Plugin {
     if (extras != null) {
       this.notificationType = extras.getString("notificationType");
       this.rewardProfileId = extras.getString("rewardProfileId");
+      JSObject eventData = new JSObject();
+      eventData.put("notificationType", notificationType);
+      eventData.put("rewardProfileId", rewardProfileId);
+      notifyListeners("notificationOpened", eventData);
     }
   }
 

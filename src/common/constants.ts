@@ -361,6 +361,7 @@ export const IS_CUBA = "is_cuba";
 export const BUNDLE_URL =
   "https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/";
 export interface PortPlugin {
+  addListener(eventName: string, listenerFunc: (data: any) => void): void;
   getPort(): Promise<{ port: number }>;
   getMigrateUsers(): Promise<{ users: any }>;
   fetchNotificationData(): Promise<{ notificationType: string; rewardProfileId: string }>;
