@@ -1,5 +1,7 @@
+import { t } from "i18next";
 import { AVATARS } from "../../common/constants";
 import User from "../../models/user";
+import { Util } from "../../utility/util";
 import "./StudentAvatar.css";
 
 const StudentAvatar: React.FC<{
@@ -37,30 +39,43 @@ const StudentAvatar: React.FC<{
       style={containerStyle}
       className={`student-avatar-${namePosition}`}
     >
-      {namePosition === "above" && (
-        <span style={nameStyle} className="student-avatar-name-above">
-          {student.name}
-        </span>
-      )}
+      {namePosition === "above" &&
+        (student && student.docId === Util.getCurrentStudent()?.docId ? (
+          <p style={nameStyle}>
+            {t("Me")}
+            {nameLabel}
+          </p>
+        ) : (
+          <span style={nameStyle} className="student-avatar-name-below">
+            {student.name} {nameLabel}
+          </span>
+        ))}
       <img
         style={{ width: width }}
         className="student-avatar-img"
         src={"assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png"}
         alt=""
       />
-      {(namePosition === "right" || namePosition === "left") && (
-        <span
-          style={nameStyle}
-          className={`student-avatar-name-${namePosition}`}
-        >
-          {student.name} {nameLabel}
-        </span>
-      )}
-      {namePosition === "below" && (
-        <span style={nameStyle} className="student-avatar-name-below">
-          {student.name} {nameLabel}
-        </span>
-      )}
+      {(namePosition === "right" || namePosition === "left") &&
+        (student && student.docId === Util.getCurrentStudent()?.docId ? (
+          <p style={nameStyle}>
+            {t("Me")} {nameLabel}
+          </p>
+        ) : (
+          <span style={nameStyle} className="student-avatar-name-below">
+            {student.name} {nameLabel}
+          </span>
+        ))}
+      {namePosition === "below" &&
+        (student && student.docId === Util.getCurrentStudent()?.docId ? (
+          <p style={nameStyle}>
+            {t("Me")} {nameLabel}
+          </p>
+        ) : (
+          <span style={nameStyle} className="student-avatar-name-below">
+            {student.name} {nameLabel}
+          </span>
+        ))}
     </div>
   );
 };

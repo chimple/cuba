@@ -74,14 +74,6 @@ const LiveQuizGame: FC = () => {
             />
           )}
         </div>
-        <div className="live-quiz-navigation-dots">
-          {isTimeOut && liveQuizConfig && currentQuestionIndex != null && (
-            <LiveQuizNavigationDots
-              totalDots={liveQuizConfig.data.length}
-              currentDot={currentQuestionIndex}
-            />
-          )}
-        </div>
         <div className="live-quiz-center-div">
           {roomDoc && !isTimeOut && (
             <LiveQuizCountdownTimer
@@ -94,6 +86,7 @@ const LiveQuizGame: FC = () => {
           {roomDoc && (
             <LiveQuizQuestion
               roomDoc={roomDoc}
+              isTimeOut={isTimeOut}
               onNewQuestionChange={(newQuestionIndex) => {
                 console.log(
                   "🚀 ~ file: LiveQuizGame.tsx:54 ~ newQuestionIndex:",
