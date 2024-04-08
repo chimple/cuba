@@ -442,6 +442,9 @@ export class FirebaseAuth implements ServiceAuth {
       if (response['error'] != null) {
         throw Error(response['error']);
       }
+      await FirebaseAuthentication.signInWithCustomToken({
+        token:response['customToken']
+      })
       let res = await signInWithCustomToken(auth, response['customToken'])
       // let res = await signInWithCredential(auth, credential);
       const u = await FirebaseAuthentication.getCurrentUser();
