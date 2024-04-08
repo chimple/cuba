@@ -14,6 +14,15 @@ export interface ServiceAuth {
 
   phoneNumberSignIn(phoneNumber, recaptchaVerifier): Promise<any>;
 
+  resendOtpMsg91(
+    phoneNumber: string,
+  ): Promise<boolean | undefined>;
+
+  msg91OtpGenerate(
+    phoneNumber: string,
+    appName: string
+  ): Promise<boolean | undefined>;
+
   proceedWithVerificationCode(
     verificationId,
     verificationCode

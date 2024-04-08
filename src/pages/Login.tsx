@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
 import {
+  APP_NAME,
   CURRENT_USER,
   LANGUAGE,
   NUMBER_REGEX,
@@ -227,40 +228,43 @@ const Login: React.FC = () => {
       console.log("window.recaptchaVerifier", window.recaptchaVerifier);
 
       // setEnabled(true);
-      console.log(
-        "onPhoneNumberSubmit called ",
-        phoneNumberWithCountryCode,
-        recaptchaVerifier
-      );
-      let authRes = await authInstance.phoneNumberSignIn(
-        phoneNumberWithCountryCode,
-        recaptchaVerifier
-      );
-      console.log("phoneNumberSignIn authRes", JSON.stringify(authRes));
-      if (authRes.user) {
-        setIsLoading(false);
-        history.replace(PAGES.SELECT_MODE);
-        // setShowNameInput(true);
-      }
-      console.log("verificationIdRes", authRes?.verificationId);
-      // setEnabled(false);
-
-      if (authRes) {
-        setPhoneNumberSigninRes(authRes);
-        setSentOtpLoading(false);
-        setShowVerification(true);
-        setCounter(59);
+      let response = await authInstance.msg91OtpGenerate(phoneNumberWithCountryCode, APP_NAME)
+      if (response) {
         setShowBackButton(true);
         setSpinnerLoading(false);
-      } else {
-        console.log("Phone Number signin Failed ");
-        setSpinnerLoading(false);
         setSentOtpLoading(false);
-        setErrorMessage(
-          t("Phone Number signin Failed. Please try again later")
-        );
-        //alert("Phone Number signin Failed " + authRes);
+        setCounter(59);
+        setShowVerification(true);
       }
+      // let authRes = await authInstance.phoneNumberSignIn(
+      //   phoneNumberWithCountryCode,
+      //   recaptchaVerifier
+      // );
+      // console.log("phoneNumberSignIn authRes", JSON.stringify(authRes));
+      // if (authRes.user) {
+      //   setIsLoading(false);
+      //   history.replace(PAGES.SELECT_MODE);
+      //   // setShowNameInput(true);
+      // }
+      // console.log("verificationIdRes", authRes?.verificationId);
+      // setEnabled(false);
+
+      // if (authRes) {
+      //   setPhoneNumberSigninRes(authRes);
+      // setSentOtpLoading(false);
+      //   setShowVerification(true);
+      //   setCounter(59);
+      //   setShowBackButton(true);
+      //   setSpinnerLoading(false);
+      // } else {
+      //   console.log("Phone Number signin Failed ");
+      //   setSpinnerLoading(false);
+      //   setSentOtpLoading(false);
+      //   setErrorMessage(
+      //     t("Phone Number signin Failed. Please try again later")
+      //   );
+      //   //alert("Phone Number signin Failed " + authRes);
+      // }
     } catch (error) {
       console.log("Phone Number signin Failed ");
       setSpinnerLoading(false);
@@ -298,8 +302,9 @@ const Login: React.FC = () => {
   const onVerificationCodeSubmit = async () => {
     try {
       setIsLoading(true);
+      let phoneNumberWithCountryCode = countryCode + phoneNumber;
       const res = await authInstance.proceedWithVerificationCode(
-        phoneNumberSigninRes,
+        phoneNumberWithCountryCode,
         verificationCode.trim()
       );
       console.log("login User Data ", res, userData);
@@ -371,14 +376,14 @@ const Login: React.FC = () => {
       }
       setSentOtpLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
-      setRecaptchaVerifier(undefined);
-      let authRes = await authInstance.phoneNumberSignIn(
-        phoneNumberWithCountryCode,
-        recaptchaVerifier
-      );
-      if (authRes) {
-        setPhoneNumberSigninRes(authRes);
-        console.log("Resend Otp Sucessfull");
+      // setRecaptchaVerifier(undefined);
+      let response = await authInstance.resendOtpMsg91(phoneNumberWithCountryCode)
+      // let authRes = await authInstance.phoneNumberSignIn(
+      //   phoneNumberWithCountryCode,
+      //   recaptchaVerifier
+      // );
+      if (response) {
+        // setPhoneNumberSigninRes(authRes);
         setSentOtpLoading(false);
         setShowResendOtp(false);
         setCounter(59);

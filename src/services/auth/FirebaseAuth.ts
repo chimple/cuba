@@ -5,6 +5,7 @@ import {
   PhoneAuthProvider,
   getAuth,
   signInWithCredential,
+  signInWithCustomToken,
   signInWithPhoneNumber,
 } from "firebase/auth";
 import User from "../../models/user";
@@ -31,6 +32,7 @@ import { CollectionIds } from "../../common/courseConstants";
 import { ACTION, CURRENT_USER, EVENTS, LANGUAGE } from "../../common/constants";
 import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 import { ServiceConfig } from "../ServiceConfig";
+import { getFunctions, httpsCallable } from "firebase/functions";
 
 export class FirebaseAuth implements ServiceAuth {
   public static i: FirebaseAuth;
@@ -39,7 +41,7 @@ export class FirebaseAuth implements ServiceAuth {
   private _db = getFirestore();
   private _auth = getAuth(); //FirebaseAuth.whichAuth();
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): FirebaseAuth {
     if (!FirebaseAuth.i) {
@@ -368,14 +370,51 @@ export class FirebaseAuth implements ServiceAuth {
     }
   }
 
+  public async msg91OtpGenerate(
+    phoneNumber: string,
+    appName: string
+
+  ): Promise<boolean | undefined> {
+    try {
+      const functions = getFunctions();
+      const msg91Otp = httpsCallable(functions, "GenerateOtpWithMSG91");
+      const result = await msg91Otp({
+        phoneNumber,
+        appName,
+      });
+      const response = result.data as Map<string, boolean>;
+      return response['status']
+    } catch (error) {
+      console.log(
+        "Failed with Msg91",
+        error
+      );
+    }
+  }
+  public async resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined> {
+    try {
+      const functions = getFunctions();
+      const msg91Otp = httpsCallable(functions, "ResendOtpWithMSG91");
+      const result = await msg91Otp({
+        phoneNumber,
+      });
+      const response = result.data as Map<string, boolean>;
+      return response['status']
+    } catch (error) {
+      console.log(
+        "Failed with Msg91",
+        error
+      );
+    }
+  }
   public async proceedWithVerificationCode(
-    result,
+    phone_number,
     verificationCode
   ): Promise<{ user: any; isUserExist: boolean } | undefined> {
     try {
       // const verificationCode = e.detail.data.values[0];
       console.log("verificationCode", verificationCode);
-      if (!verificationCode || !result || verificationCode.length < 6) {
+      if (!verificationCode || verificationCode.length < 6) {
         return;
       }
 
@@ -388,29 +427,23 @@ export class FirebaseAuth implements ServiceAuth {
       // if (!confirmVerificationCredential.credential) {
       //   return;
       // }
-      // console.log(
-      //   "confirmVerificationCredential",
-      //   JSON.stringify(credential)
+      const functions = getFunctions();
+      const generateCustomTocken = httpsCallable(functions, "GenerateCustomToken");
+      const result = await generateCustomTocken({
+        'phoneNumber': phone_number,
+        'otp': verificationCode,
+      });
+      const response = result.data as Map<string, string>;
+      // const credential = PhoneAuthProvider.credential(
+      //   result.verificationId,
+      //   verificationCode
       // );
-
-      console.log(
-        "result.verificationId!,",
-        JSON.stringify(result.verificationId),
-        JSON.stringify(verificationCode)
-      );
-
-      const credential = PhoneAuthProvider.credential(
-        result.verificationId,
-        verificationCode
-      );
-
       const auth = await getAuth();
-      console.log(
-        "credential",
-        JSON.stringify(auth),
-        JSON.stringify(credential)
-      );
-      let res = await signInWithCredential(auth, credential);
+      if (response['error'] != null) {
+        throw Error(response['error']);
+      }
+      let res = await signInWithCustomToken(auth, response['customToken'])
+      // let res = await signInWithCredential(auth, credential);
       const u = await FirebaseAuthentication.getCurrentUser();
       console.log(
         "line ni 316 before FirebaseAuthentication.getCurrentUser()",
@@ -421,7 +454,7 @@ export class FirebaseAuth implements ServiceAuth {
         JSON.stringify(auth.currentUser)
       );
 
-      console.log("signInWithCredential Success!", JSON.stringify(credential));
+      // console.log("signInWithCredential Success!", JSON.stringify(credential));
       // Success!
 
       // await FirebaseAuthentication.confirmVerificationCode({
