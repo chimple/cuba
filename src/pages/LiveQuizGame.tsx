@@ -64,6 +64,7 @@ const LiveQuizGame: FC = () => {
           {roomDoc && (
             <LiveQuizHeader
               roomDoc={roomDoc}
+              currentQuestionIndex={currentQuestionIndex}
               remainingTime={remainingTime}
               showAnswer={showAnswer}
               currentQuestion={
