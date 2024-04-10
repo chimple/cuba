@@ -17,13 +17,20 @@ const LiveQuizHeader: FC<{
   remainingTime: number | undefined;
   showAnswer: boolean;
   currentQuestion: LiveQuizQuestion | undefined;
-}> = ({ roomDoc, remainingTime, showAnswer, currentQuestion }) => {
+  currentQuestionIndex: number | undefined;
+}> = ({
+  roomDoc,
+  remainingTime,
+  showAnswer,
+  currentQuestion,
+  currentQuestionIndex,
+}) => {
   const [studentIdMap, setStudentIdMap] = useState<{ [id: string]: User }>();
   const [sortedStudents, setSortedStudents] = useState<
     {
       student: User;
       score: number;
-      isTopPerformer: boolean;
+      rank: number;
     }[]
   >();
 
@@ -59,7 +66,6 @@ const LiveQuizHeader: FC<{
       student: User;
       score: number;
       lastQuestionId: string;
-      isTopPerformer: boolean;
     }[] = [];
     roomDoc.participants.forEach((studentId: string) => {
       const studentResult = roomDoc.results?.[studentId];
@@ -76,30 +82,31 @@ const LiveQuizHeader: FC<{
               (student) => student.student.docId === studentId
             )?.score ?? 0,
         lastQuestionId: studentResult?.[studentResult.length - 1]?.id,
-        isTopPerformer: false,
       });
     });
-    tempSortedStudents.sort((a, b) => {
-      if (a.student.docId === student?.docId) {
-        return -1;
-      } else if (b.student.docId === student?.docId) {
-        return 1;
-      } else {
-        return b.score - a.score;
-      }
-    });
     tempSortedStudents.sort((a, b) => b.score - a.score);
-    tempSortedStudents.slice(0, 3).forEach((student) => {
-      student.isTopPerformer = true;
-    });
-    setSortedStudents(tempSortedStudents);
+    const rankedStudents = tempSortedStudents.map((student, index) => ({
+      ...student,
+      rank: index + 1,
+    }));
+
+    const currentStudentIndex = rankedStudents.findIndex(
+      (stud) => stud.student.docId === student?.docId
+    );
+
+    if (currentStudentIndex !== -1) {
+      const [currentStudent] = rankedStudents.splice(currentStudentIndex, 1);
+      rankedStudents.unshift(currentStudent);
+    }
+
+    setSortedStudents(rankedStudents);
   };
 
   return (
     <div>
       <div className="live-quiz-header">
         {sortedStudents &&
-          sortedStudents.map((studentMap, index) => {
+          sortedStudents.map((studentMap) => {
             const studentResult = roomDoc.results?.[studentMap.student.docId];
             const lastAnswer = studentResult?.[studentResult.length - 1];
             const currentQuestionResult = currentQuestion
@@ -112,11 +119,13 @@ const LiveQuizHeader: FC<{
                 key={studentMap.student.docId}
                 className="student-avatar-container"
               >
-                {studentMap.isTopPerformer && (
-                  <div className={`top-performer-circle color-${index + 1}`}>
-                    {index + 1}
+                {currentQuestionIndex && currentQuestionIndex > 0 ? (
+                  <div
+                    className={`top-performer-circle color-${studentMap.rank}`}
+                  >
+                    {studentMap.rank}
                   </div>
-                )}
+                ) : null}
                 <LiveQuizStudentAvatar
                   student={studentMap.student}
                   score={studentMap.score}
