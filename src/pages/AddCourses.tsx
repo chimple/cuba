@@ -176,6 +176,13 @@ const AddCourses: React.FC = () => {
                 onSelectedCoursesChange={handleCallback}
               />
             )}
+          {
+            <div>
+              <div className="center">
+                {t("No more subjects available to add")}
+              </div>
+            </div>
+          }
         </div>
       </div>
     </IonPage>
