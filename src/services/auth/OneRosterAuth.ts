@@ -7,7 +7,10 @@ import { ConfirmationResult } from "@firebase/auth";
 export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
 
-  private constructor() { }
+  private constructor() {}
+  loginWithEmailAndPassword(email: any, password: any): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
 
   logOut(): Promise<void> {
     throw new Error("Method not implemented.");
@@ -37,13 +40,10 @@ export class OneRosterAuth implements ServiceAuth {
   msg91OtpGenerate(
     phoneNumber: string,
     appName: string
-
   ): Promise<boolean | undefined> {
     throw new Error("Method not implemented.");
   }
-  resendOtpMsg91(
-    phoneNumber: string,
-  ): Promise<boolean | undefined> {
+  resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined> {
     throw new Error("Method not implemented.");
   }
   proceedWithVerificationCode(

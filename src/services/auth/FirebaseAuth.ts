@@ -1,6 +1,7 @@
 import { ServiceAuth } from "./ServiceAuth";
 import {
   ConfirmationResult,
+  EmailAuthProvider,
   GoogleAuthProvider,
   PhoneAuthProvider,
   getAuth,
@@ -135,6 +136,49 @@ export class FirebaseAuth implements ServiceAuth {
     } catch (error) {
       console.log(
         "🚀 ~ file: FirebaseAuth.ts:60 ~ FirebaseAuth ~ googleSign ~ error:",
+        error
+      );
+      return false;
+    }
+  }
+
+  async loginWithEmailAndPassword(
+    email: string,
+    password: string
+  ): Promise<boolean> {
+    try {
+      if (!email || !password) {
+        throw new Error("Email and password are required.");
+      }
+      const result = await FirebaseAuthentication.signInWithEmailAndPassword({
+        email,
+        password,
+      });
+      const credential = EmailAuthProvider.credential(email, password);
+      await signInWithCredential(this._auth, credential);
+      const user = result.user;
+      const additionalUserInfo = result.additionalUserInfo;
+      if (!user) return false;
+      const userRef = doc(this._db, CollectionIds.USER, user.uid);
+      if (additionalUserInfo?.isNewUser) {
+        await this._createUserDoc(user);
+      } else {
+        const tempUserDoc = await getDoc(userRef);
+        if (!tempUserDoc.exists) {
+          await this._createUserDoc(user);
+        } else {
+          this._currentUser = tempUserDoc.data() as User;
+          this._currentUser.docId = tempUserDoc.id;
+          Util.subscribeToClassTopicForAllStudents(this._currentUser);
+        }
+      }
+      App.addListener("appStateChange", Util.onAppStateChange);
+      this.updateUserFcm(user.uid);
+      this.updateUserPreferenceLanguage();
+      return true;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseAuth.ts:143 ~ FirebaseAuth ~ Emailsignin ~ error:",
         error
       );
       return false;
