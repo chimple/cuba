@@ -530,3 +530,5 @@ export const MAX_DOWNLOAD_LESSON_ATTEMPTS = 3;
 export const LESSON_DOWNLOAD_SUCCESS_EVENT = "lesson_download_success";
 export const ALL_LESSON_DOWNLOAD_SUCCESS_EVENT = "all_lesson_download_success";
 export const DOWNLOAD_BUTTON_LOADING_STATUS = "download_button_loading_status";
+export const DOMAIN = "@chimple.net";
+export const AT_SYMBOL_RESTRICTION = /@/;
