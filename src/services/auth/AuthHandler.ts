@@ -49,9 +49,7 @@ export class AuthHandler implements ServiceAuth {
   ): Promise<boolean | undefined> {
     return await this.s.resendOtpMsg91(phoneNumber);
   }
-  public async loginWithStudentCredentials(email: any, password: any) {
-    return await this.s.loginWithStudentCredentials(email, password);
-
+  
   public async loginWithEmailAndPassword(email: any, password: any) {
     return await this.s.loginWithEmailAndPassword(email, password);
   }
