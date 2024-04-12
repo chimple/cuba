@@ -906,7 +906,7 @@ export class Util {
   }
 
   public static setCurrentStudent = async (
-    student: User,
+    student: User | null,
     languageCode: string | undefined = undefined,
     langFlag: boolean = true,
     isStudent: boolean = true
@@ -914,32 +914,32 @@ export class Util {
     console.log("setCurrentStudent called", student);
 
     const api = ServiceConfig.getI().apiHandler;
-    api.currentStudent = student;
+      api.currentStudent = student !== null ? student : undefined;
 
     localStorage.setItem(
       CURRENT_STUDENT,
       JSON.stringify({
-        age: student.age ?? null,
-        avatar: student.avatar ?? null,
-        board: student.board ?? null,
-        courses: student.courses,
-        createdAt: student.createdAt,
-        updatedAt: student.updatedAt,
-        gender: student.gender ?? null,
-        grade: student.grade ?? null,
-        image: student.image ?? null,
-        language: student.language ?? null,
-        name: student.name,
-        role: student.role,
-        uid: student.uid,
-        rewards: student.rewards,
-        username: student.username,
-        users: student.users,
-        docId: student.docId,
+        age: student?.age ?? null,
+        avatar: student?.avatar ?? null,
+        board: student?.board ?? null,
+        courses: student?.courses,
+        createdAt: student?.createdAt,
+        updatedAt: student?.updatedAt,
+        gender: student?.gender ?? null,
+        grade: student?.grade ?? null,
+        image: student?.image ?? null,
+        language: student?.language ?? null,
+        name: student?.name,
+        role: student?.role,
+        uid: student?.uid,
+        rewards: student?.rewards,
+        username: student?.username,
+        users: student?.users,
+        docId: student?.docId,
       })
     );
 
-    if (!languageCode && !!student.language?.id) {
+    if (!languageCode && !!student?.language?.id) {
       const langDoc = await api.getLanguageWithId(student.language.id);
       if (langDoc) {
         languageCode = langDoc.code;
@@ -950,9 +950,11 @@ export class Util {
     if (!!isStudent) await i18n.changeLanguage(tempLangCode);
 
     //Setting Student Id in User Properites
+    if(student)
     await FirebaseAnalytics.setUserId({
       userId: student?.docId,
     });
+    if(student)
     await Util.setUserProperties(student);
   };
 

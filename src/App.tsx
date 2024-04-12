@@ -156,7 +156,9 @@ const App: React.FC = () => {
 
     const portPlugin = registerPlugin<PortPlugin>("Port");
     portPlugin.addListener("notificationOpened", (data: any) => {
-      fetchData();
+      if (data) {
+        processNotificationData(data);
+      }
     });
 
     //Checking for flexible update in play-store
@@ -175,6 +177,7 @@ const App: React.FC = () => {
           if (currentStudent?.docId === rewardProfileId) {
             window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
           } else {
+            await Util.setCurrentStudent(null);
             const students =
               await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
             let matchingUser =
@@ -194,13 +197,14 @@ const App: React.FC = () => {
     updateAvatarSuggestionJson();
   }, []);
   const processNotificationData = async (data) => {
+    const currentStudent = Util.getCurrentStudent();
     if (data && data.notificationType === "reward") {
       if (data.rewardProfileId) {
-        const currentStudent = Util.getCurrentStudent();
         if (currentStudent?.docId === data.rewardProfileId) {
           window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
           return;
         } else {
+          await Util.setCurrentStudent(null);
           const students =
             await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
           let matchingUser =
@@ -208,7 +212,6 @@ const App: React.FC = () => {
             students[0];
           if (matchingUser) {
             await Util.setCurrentStudent(matchingUser, undefined, true);
-            console.log("check this log", currentStudent);
             window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
             return;
           } else {
