@@ -1,13 +1,20 @@
 .dot {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    margin: 0 5px;
-    border-radius: 50%;
-    background-color: #ccc;
-    cursor: pointer;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  margin-right: 5px;
+  border: 1px solid #cccccc;
 }
 
-.dot.active {
-    background-color: #007bff;
+.dot.actived {
+  background-color: #cccccc;
+}
+
+.dot.correct {
+  background-color: #83c327;
+}
+
+.dot.incorrect {
+  background-color: #f22a55;
 }

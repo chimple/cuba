@@ -17,12 +17,20 @@ const LiveQuizHeader: FC<{
   remainingTime: number | undefined;
   showAnswer: boolean;
   currentQuestion: LiveQuizQuestion | undefined;
-}> = ({ roomDoc, remainingTime, showAnswer, currentQuestion }) => {
+  currentQuestionIndex: number | undefined;
+}> = ({
+  roomDoc,
+  remainingTime,
+  showAnswer,
+  currentQuestion,
+  currentQuestionIndex,
+}) => {
   const [studentIdMap, setStudentIdMap] = useState<{ [id: string]: User }>();
   const [sortedStudents, setSortedStudents] = useState<
     {
       student: User;
       score: number;
+      rank: number;
     }[]
   >();
 
@@ -76,16 +84,22 @@ const LiveQuizHeader: FC<{
         lastQuestionId: studentResult?.[studentResult.length - 1]?.id,
       });
     });
-    tempSortedStudents.sort((a, b) => {
-      if (a.student.docId === student?.docId) {
-        return -1;
-      } else if (b.student.docId === student?.docId) {
-        return 1;
-      } else {
-        return b.score - a.score;
-      }
-    });
-    setSortedStudents(tempSortedStudents);
+    tempSortedStudents.sort((a, b) => b.score - a.score);
+    const rankedStudents = tempSortedStudents.map((student, index) => ({
+      ...student,
+      rank: index + 1,
+    }));
+
+    const currentStudentIndex = rankedStudents.findIndex(
+      (stud) => stud.student.docId === student?.docId
+    );
+
+    if (currentStudentIndex !== -1) {
+      const [currentStudent] = rankedStudents.splice(currentStudentIndex, 1);
+      rankedStudents.unshift(currentStudent);
+    }
+
+    setSortedStudents(rankedStudents);
   };
 
   return (
@@ -101,26 +115,38 @@ const LiveQuizHeader: FC<{
                 )
               : null;
             return (
-              <LiveQuizStudentAvatar
-                student={studentMap.student}
-                score={studentMap.score}
+              <div
                 key={studentMap.student.docId}
-                isCorrect={
-                  !showAnswer
-                    ? undefined
-                    : currentQuestionResult != null &&
-                      currentQuestionResult.score > 0
-                }
-                percentage={
-                  !currentQuestion ||
-                  currentQuestion.id === lastAnswer?.id ||
-                  !remainingTime
-                    ? undefined
-                    : ((LIVE_QUIZ_QUESTION_TIME - remainingTime) /
-                        LIVE_QUIZ_QUESTION_TIME) *
-                      100
-                }
-              />
+                className="student-avatar-container"
+              >
+                {currentQuestionIndex && currentQuestionIndex > 0 ? (
+                  <div
+                    className={`top-performer-circle color-${studentMap.rank}`}
+                  >
+                    {studentMap.rank}
+                  </div>
+                ) : null}
+                <LiveQuizStudentAvatar
+                  student={studentMap.student}
+                  score={studentMap.score}
+                  key={studentMap.student.docId}
+                  isCorrect={
+                    !showAnswer
+                      ? undefined
+                      : currentQuestionResult != null &&
+                        currentQuestionResult.score > 0
+                  }
+                  percentage={
+                    !currentQuestion ||
+                    currentQuestion.id === lastAnswer?.id ||
+                    !remainingTime
+                      ? undefined
+                      : ((LIVE_QUIZ_QUESTION_TIME - remainingTime) /
+                          LIVE_QUIZ_QUESTION_TIME) *
+                        100
+                  }
+                />
+              </div>
             );
           })}
       </div>

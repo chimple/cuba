@@ -13,12 +13,14 @@ import { useHistory } from "react-router";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { HiSpeakerWave } from "react-icons/hi2";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
+import LiveQuizNavigationDots from "./LiveQuizNavigationDots";
 
 let questionInterval;
 let audiosMap: { [key: string]: HTMLAudioElement } = {};
 const LiveQuizQuestion: FC<{
   roomDoc: LiveQuizRoomObject;
   showQuiz: boolean;
+  isTimeOut: boolean;
   onNewQuestionChange?: (newQuestionIndex: number) => void;
   onQuizEnd?: Function;
   onConfigLoaded?: (liveQuizConfig: LiveQuiz) => void;
@@ -32,6 +34,7 @@ const LiveQuizQuestion: FC<{
   showQuiz,
   onRemainingTimeChange,
   onShowAnswer,
+  isTimeOut,
 }) => {
   const quizPath =
     (localStorage.getItem("gameUrl") ??
@@ -43,7 +46,9 @@ const LiveQuizQuestion: FC<{
   const [canAnswer, setCanAnswer] = useState(true);
   const [showAnswer, setShowAnswer] = useState(false);
   const [selectedAnswerIndex, setSelectedAnswerIndex] = useState<number>();
-
+  const [audio, setAudio] = useState<boolean>(false);
+  const [correctAnswers, setCorrectAnswers] = useState<number[]>([]);
+  const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
   const history = useHistory();
   const student = Util.getCurrentStudent();
   const api = ServiceConfig.getI().apiHandler;
@@ -73,6 +78,25 @@ const LiveQuizQuestion: FC<{
       changeQuestion(liveQuizConfig, true);
     }
   }, [showQuiz]);
+
+  useEffect(() => {
+    if (liveQuizConfig) {
+      const correctAnswersList = liveQuizConfig.data.map((question) =>
+        question.options.findIndex((option) => option.isCorrect)
+      );
+      console.log("correctAnswersList.......", correctAnswersList);
+      setCorrectAnswers(correctAnswersList);
+    }
+  }, [liveQuizConfig]);
+
+  const handleOptionClick = (questionIndex: number, optionIndex: number) => {
+    setSelectedAnswers((prevSelectedAnswers) => {
+      const updatedSelectedAnswers = [...prevSelectedAnswers];
+      updatedSelectedAnswers[questionIndex] = optionIndex;
+      console.log("updatedSelectedAnswers......", updatedSelectedAnswers);
+      return updatedSelectedAnswers;
+    });
+  };
 
   const getConfigJson = async () => {
     if (liveQuizConfig) return liveQuizConfig;
@@ -386,6 +410,7 @@ const LiveQuizQuestion: FC<{
     data: LiveQuizOption | LiveQuizQuestionType
   ) => {
     try {
+      setAudio(true);
       await stopAllAudios();
       if (data.audio) {
         if (audiosMap[data.audio]) {
@@ -395,10 +420,13 @@ const LiveQuizQuestion: FC<{
           await audio.play();
         }
         audiosMap[data.audio].play();
+        setAudio(false);
       } else if (data.text) {
+        setAudio(true);
         await TextToSpeech.speak({
           text: data.text,
         });
+        setAudio(false);
       }
     } catch (error) {
       console.log("🚀 ~ file: LiveQuizQuestion.tsx:348 ~ error:", error);
@@ -411,7 +439,9 @@ const LiveQuizQuestion: FC<{
         preLoadAudio(question.question.audio);
         question.options.forEach((option) => {
           if (option.audio) {
+            setAudio(true);
             preLoadAudio(option.audio);
+            setAudio(false);
           }
         });
       }
@@ -455,6 +485,16 @@ const LiveQuizQuestion: FC<{
 
   return (
     <div>
+      <div className="live-quiz-navigation-dots">
+        {isTimeOut && liveQuizConfig && currentQuestionIndex != null && (
+          <LiveQuizNavigationDots
+            totalDots={liveQuizConfig.data.length}
+            currentDot={currentQuestionIndex}
+            correctAnswers={correctAnswers}
+            selectedAnswers={selectedAnswers}
+          />
+        )}
+      </div>
       {showQuiz && liveQuizConfig && currentQuestionIndex != null && (
         <div>
           <div className="live-quiz-question">
@@ -470,6 +510,7 @@ const LiveQuizQuestion: FC<{
                       );
                       console.log("on audio question click");
                     }}
+                    className={audio ? "audio-playing" : ""}
                   />
                 </div>
               )}
@@ -506,6 +547,7 @@ const LiveQuizQuestion: FC<{
                       if (!canAnswer) return;
                       setCanAnswer(false);
                       setSelectedAnswerIndex(index);
+                      handleOptionClick(currentQuestionIndex, index);
                       const score = calculateScoreForQuestion(
                         option.isCorrect === true,
                         liveQuizConfig.data.length,
@@ -548,6 +590,7 @@ const LiveQuizQuestion: FC<{
                             playLiveQuizAudio(option);
                             console.log("on audio click");
                           }}
+                          className={audio ? "audio-playing" : ""}
                         />
                       </div>
                     )}
