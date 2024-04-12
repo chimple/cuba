@@ -35,6 +35,7 @@ import {
   BASE_NAME,
   CACHE_IMAGE,
   CONTINUE,
+  DOWNLOAD_BUTTON_LOADING_STATUS,
   GAME_URL,
   HOMEHEADERLIST,
   IS_CUBA,
@@ -125,6 +126,7 @@ const App: React.FC = () => {
     };
   }, [online, presentToast]);
   useEffect(() => {
+    localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(false));
     console.log("fetching...");
     CapApp.addListener("appStateChange", Util.onAppStateChange);
     localStorage.setItem(IS_CUBA, "1");

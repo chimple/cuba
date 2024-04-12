@@ -232,7 +232,10 @@ const AssignmentPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            {isLinked && showDownloadHomeworkButton && lessons.length > 0 ? (
+            {isLinked &&
+            showDownloadHomeworkButton &&
+            lessons.length > 0 &&
+            Capacitor.isNativePlatform() ? (
               <IonButton
                 size="small"
                 color="white"
