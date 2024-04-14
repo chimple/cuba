@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
 import {
+  AT_SYMBOL_RESTRICTION,
   CURRENT_USER,
   DOMAIN,
   LANGUAGE,
@@ -604,7 +605,7 @@ const Login: React.FC = () => {
                 <div id="Google-horizontal-line-main-container">
                   <div id="Google-horizontal-line"></div>
                   <div id="login-google-icon-text">
-                    {t("Continue with Google or Student credentials")}
+                    {t("Continue with Google or Student ID")}
                   </div>
                   <div id="Google-horizontal-line2"></div>
                 </div>
@@ -661,9 +662,7 @@ const Login: React.FC = () => {
                       }
                     }}
                   />
-                  <div className="google-or-student-credentials-button ">
-                    OR
-                  </div>
+                  <div className="google-or-student-credentials-button">OR</div>
                   {!showVerification ? (
                     <div
                       className="login-with-student-credentials"
@@ -836,6 +835,9 @@ const Login: React.FC = () => {
                 onChange={(input) => {
                   setErrorMessage("");
                   if (input.target.value) {
+                    if (AT_SYMBOL_RESTRICTION.test(input.target.value)) {
+                      return;
+                    }
                     setSchoolCode(input.target.value);
                     console.log(input.target.value);
                   } else {
@@ -853,6 +855,9 @@ const Login: React.FC = () => {
                 onChange={(input) => {
                   setErrorMessage("");
                   if (input.target.value) {
+                    if (AT_SYMBOL_RESTRICTION.test(input.target.value)) {
+                      return;
+                    }
                     setStudentId(input.target.value);
                     console.log(input.target.value);
                   } else {
@@ -913,7 +918,11 @@ const Login: React.FC = () => {
                   studentPassword.length >= 6
                 ) {
                   handleLoginWithStudentCredentials();
-                } else if (schoolCode.length == 0 || studentId.length == 0) {
+                } else if (
+                  schoolCode.length == 0 ||
+                  studentId.length == 0 ||
+                  studentPassword.length == 0
+                ) {
                   setErrorMessage(t("Please fill in all fields."));
                 } else if (studentPassword.length < 6) {
                   setErrorMessage(t("Password is too short."));

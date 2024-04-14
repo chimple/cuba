@@ -4,16 +4,23 @@ import "./LiveQuizNavigationDots.css";
 const LiveQuizNavigationDots: FC<{
   totalDots: number;
   currentDot: number;
-}> = ({ totalDots, currentDot }) => {
+  correctAnswers: number[];
+  selectedAnswers: number[];
+}> = ({ totalDots, currentDot, correctAnswers, selectedAnswers }) => {
   return (
-    <div>
+    <div className="live-quiz-navigation-dots">
       {[...Array(totalDots).keys()].map((i) => {
-        return (
-          <div
-            key={i}
-            className={i >= currentDot + 1 ? "dot" : "dot active"}
-          ></div>
-        );
+        let dotClass = "dot";
+        if (i < currentDot) {
+          if (correctAnswers[i] === selectedAnswers[i]) {
+            dotClass += " correct";
+          } else {
+            dotClass += " incorrect";
+          }
+        } else if (i === currentDot) {
+          dotClass += " actived";
+        }
+        return <div key={i} className={dotClass}></div>;
       })}
     </div>
   );

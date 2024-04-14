@@ -9,7 +9,7 @@
   padding: 4px;
   width: 100%;
   box-sizing: border-box;
-  /* height: 35vh; */
+  height: 35vh;
 }
 
 .live-quiz-center-div {
@@ -27,4 +27,5 @@
 }
 .live-quiz-navigation-dots {
   margin-bottom: 2vh;
+  text-align: center;
 }
