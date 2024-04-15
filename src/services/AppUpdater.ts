@@ -68,7 +68,9 @@ export const AppUpdater = {
     if (!Capacitor.isNativePlatform()) {
       return false;
     }
+    const res = await checkForDownloadedHotUpdate();
 
+    if (res) return false;
     // Start the app update job.
     const timeStart = new Date();
 
@@ -190,11 +192,12 @@ export const AppUpdater = {
         to: `releases/${serverChecksum.id}`,
         directory: Directory.Data,
       });
-      // Delete any old release packages.
-      await deleteOldReleases(serverChecksum.id);
+      // // Delete any old release packages.
+      // await deleteOldReleases(serverChecksum.id);
 
-      // Activate the downloaded release.
-      await activateRelease(serverChecksum.id);
+      // // Activate the downloaded release.
+      // await activateRelease(serverChecksum.id);
+      localStorage.setItem("readyForHotUpdate", serverChecksum.id);
 
       // Report that the app was successfully updated.
       return true;
@@ -212,7 +215,18 @@ export const AppUpdater = {
     }
   },
 };
+async function checkForDownloadedHotUpdate(): Promise<boolean> {
+  const serverChecksumId = localStorage.getItem("readyForHotUpdate");
 
+  if (!serverChecksumId) return false;
+  //  Delete any old release packages.
+  await deleteOldReleases(serverChecksumId);
+
+  // Activate the downloaded release.
+  await activateRelease(serverChecksumId);
+  localStorage.removeItem("readyForHotUpdate");
+  return true;
+}
 // --------------
 // STEP FUNCTIONS
 // --------------

@@ -37,6 +37,15 @@ export class OneRosterAuth implements ServiceAuth {
   phoneNumberSignIn(phoneNumber: any, recaptchaVerifier: any): Promise<any> {
     throw new Error("Method not implemented.");
   }
+  msg91OtpGenerate(
+    phoneNumber: string,
+    appName: string
+  ): Promise<boolean | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined> {
+    throw new Error("Method not implemented.");
+  }
   proceedWithVerificationCode(
     verificationId: any,
     verificationCode: any
