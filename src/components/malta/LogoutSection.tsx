@@ -1,6 +1,7 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
 import { PAGES } from "../../common/constants";
+import { t } from "i18next";
 
 const LogoutSection = () => {
   const history = useHistory();
@@ -16,10 +17,10 @@ const LogoutSection = () => {
   return (
     <div className="logout-section">
       <button className="logout-button" onClick={handleLogout}>
-        <span>Logout</span>
+        <span>{t("Logout")}</span>
       </button>
       <button className="delete-account-button" onClick={handleDeleteAccount}>
-        <span>Delete Account</span>
+        <span>{t("Delete Account")}</span>
       </button>
     </div>
   );
