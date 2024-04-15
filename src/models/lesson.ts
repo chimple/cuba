@@ -9,6 +9,7 @@ export default class Lesson extends BaseObject {
   private _createdBy: DocumentReference;
   private _id: string;
   private _language: string;
+  private _courseId: string;
   private _outcome: string;
   private _pluginType: string;
   private _status: string;
@@ -28,6 +29,7 @@ export default class Lesson extends BaseObject {
     clonedFrom,
     createdBy,
     id,
+    courseId,
     language,
     outcome,
     pluginType,
@@ -52,6 +54,7 @@ export default class Lesson extends BaseObject {
     outcome: string;
     pluginType: string;
     status: string;
+    courseId: string;
     subject: DocumentReference;
     targetFrom: number;
     targetTo: number;
@@ -75,6 +78,7 @@ export default class Lesson extends BaseObject {
     this._status = status;
     this._subject = subject;
     this._targetFrom = targetFrom;
+    this._courseId = courseId;
     this._targetTo = targetTo;
     this._thumbnail = thumbnail;
     this._topic = topic;
@@ -89,6 +93,12 @@ export default class Lesson extends BaseObject {
   }
   public set title(value: string) {
     this._title = value;
+  }
+  public get courseId(): string {
+    return this._courseId;
+  }
+  public set courseId(value: string) {
+    this._courseId = value;
   }
   public get clonedFrom(): DocumentReference {
     return this._clonedFrom;
@@ -206,6 +216,7 @@ export default class Lesson extends BaseObject {
       pluginType: lesson.pluginType,
       status: lesson.status,
       subject: lesson.subject,
+      couseId: lesson.courseId,
       targetFrom: lesson.targetFrom,
       targetTo: lesson.targetTo,
       thumbnail: lesson.thumbnail,

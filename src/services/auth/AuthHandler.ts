@@ -54,10 +54,6 @@ export class AuthHandler implements ServiceAuth {
     return await this.s.loginWithEmailAndPassword(email, password);
   }
 
-  public async loginWithEmailAndPassword(email: any, password: any) {
-    return await this.s.loginWithEmailAndPassword(email, password);
-  }
-
   public async proceedWithVerificationCode(
     verificationId,
     verificationCode

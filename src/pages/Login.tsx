@@ -205,7 +205,6 @@ const Login: React.FC = () => {
     showTimer && counter > 0 && setTimeout(() => setCounter(counter - 1), 1000);
   }, [counter, showTimer]);
   useEffect(() => {
-    console.log("Testing: " + allowSubmittingOtpCounter);
     disableOtpButtonIfSameNumber &&
       allowSubmittingOtpCounter > 0 &&
       setTimeout(
