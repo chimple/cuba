@@ -93,7 +93,7 @@ export function useTtsAudioPlayer(audioText: string) {
   };
 
   const stop = async () => {
-    if (!isTtsPlaying) {
+    if (isTtsPlaying) {
       await TextToSpeech.stop();
     }
   };

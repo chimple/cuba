@@ -27,8 +27,8 @@ const HotUpdate: FC<{}> = () => {
         push();
         return;
       }
-      const appUpdate = await AppUpdater.sync(hotUpdateServer, (status) => {
-        setCurrentStatus(status);
+      AppUpdater.sync(hotUpdateServer, (status) => {
+        // setCurrentStatus(status);
       });
       push();
     } catch (error) {
@@ -39,18 +39,11 @@ const HotUpdate: FC<{}> = () => {
     const appLang = localStorage.getItem(LANGUAGE);
     if (appLang == undefined) {
       history.replace(PAGES.APP_LANG_SELECTION);
-    } else
-      history.replace(PAGES.HOME);
+    } else history.replace(PAGES.HOME);
   };
   useEffect(() => {
     init();
   }, []);
-  return (
-    <IonPage id="app-update">
-      <img className="hot-update-loading" src="assets/loading.gif"></img>
-      <br />
-      <p>{t(currentStatus)}</p>
-    </IonPage>
-  );
+  return null;
 };
 export default HotUpdate;

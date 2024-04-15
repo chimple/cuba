@@ -425,8 +425,9 @@ export class FirebaseApi implements ServiceApi {
 
   public async getParentStudentProfiles(): Promise<User[]> {
     try {
-      const currentUser =
-        await ServiceConfig.getI().authHandler.getCurrentUser();
+      const authHandler = ServiceConfig.getI()?.authHandler;
+      const isUserLoggedIn = await authHandler?.isUserLoggedIn();
+      const currentUser = await authHandler?.getCurrentUser();
       if (!currentUser) throw "User is not Logged in";
       if (!currentUser.users || currentUser.users.length < 1) return [];
       const tempUsers = await Promise.all(
@@ -1843,7 +1844,11 @@ export class FirebaseApi implements ServiceApi {
     }
 
     const tmpCourse = this._allCourses?.find(
-      (course) => course.courseCode === lesson.cocosSubjectCode
+      (course) => {
+        if(course.courseCode === lesson.cocosSubjectCode){
+         return Util.checkLessonPresentInCourse(course,lesson.docId)
+        }
+      }
     );
     return tmpCourse;
   }

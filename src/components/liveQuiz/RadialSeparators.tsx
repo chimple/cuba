@@ -1,5 +1,6 @@
 import _ from "lodash";
 import "./RadialSeparators.css";
+import { FC } from "react";
 
 function Separator(props) {
   return (
@@ -13,12 +14,15 @@ function Separator(props) {
     </div>
   );
 }
-
-function RadialSeparators(props) {
+const RadialSeparators: FC<{ count: number; style?: any }> = (props) => {
   const turns = 1 / props.count;
-  return _.range(props.count).map((index) => (
-    <Separator key={index} turns={index * turns} style={props.style} />
-  ));
-}
+  return (
+    <div>
+      {_.range(props.count).map((index) => (
+        <Separator key={index} turns={index * turns} style={props.style} />
+      ))}
+    </div>
+  );
+};
 
 export default RadialSeparators;
