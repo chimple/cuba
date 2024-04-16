@@ -12,7 +12,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const history = useHistory();
 
   const navigateToProfile = () => {
-    history.replace(PAGES.STUDENT_PROFILE);
+    history.replace(PAGES.TEACHER_PROFILE);
   };
 
   return (
