@@ -1,10 +1,10 @@
 import React from "react";
 
-const MyProfileSection = () => {
+const TeacherProfileSection = () => {
   return (
     <>
       <h2 className="section-title">My Profile</h2>
-      <div className="my-profile-section">
+      <div className="teacher-profile-section">
         <div className="profile-line">School: ABC School</div>
         <div className="profile-line">Class: 10th Grade</div>
       </div>
@@ -12,4 +12,4 @@ const MyProfileSection = () => {
   );
 };
 
-export default MyProfileSection;
+export default TeacherProfileSection;

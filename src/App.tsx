@@ -75,6 +75,7 @@ import { ServiceConfig } from "./services/ServiceConfig";
 import User from "./models/user";
 import TeacherProfile from "./pages/Malta/TeacherProfile";
 import React from "react";
+import StudentProfile from "./pages/Malta/StudentProfile";
 
 setupIonicReact();
 interface ExtraData {
@@ -336,6 +337,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
               <TeacherProfile />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.STUDENT_PROFILE} exact={true}>
+              <StudentProfile />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
               <LiveQuizRoom />

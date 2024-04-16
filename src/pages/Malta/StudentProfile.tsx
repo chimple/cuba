@@ -1,13 +1,12 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
 import "./TeacherProfile.css";
-import { ReactComponent as CloseIcon } from "./close-icon.svg"; // Ensure the SVG is correctly placed in your project
 import { PAGES } from "../../common/constants";
 import ProfileDetails from "../../components/malta/ProfileDetails";
 import TeacherProfileSection from "../../components/malta/TeacherProfileSection";
-import LogoutSection from "../../components/malta/LogoutSection";
+import StudentProfileSection from "../../components/malta/StudentProfileSection";
 
-const TeacherProfile = () => {
+const StudentProfile = () => {
   const history = useHistory();
 
   const handleBack = () => {
@@ -22,12 +21,9 @@ const TeacherProfile = () => {
       <div className="profile-container-section">
         <ProfileDetails />
       </div>
-      <TeacherProfileSection />
-      <div className="logout-container">
-        <LogoutSection />
-      </div>
+      <StudentProfileSection />
     </div>
   );
 };
 
-export default TeacherProfile;
+export default StudentProfile;
