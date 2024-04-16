@@ -90,11 +90,11 @@ const AssignmentPage: React.FC = () => {
     const allLessonIds = lessons.map((lesson) => lesson.id);
     try {
       const storedLessonIds = Util.getStoredLessonIds();
-      const filteredLessonIds = allLessonIds.filter(
+      const filteredLessonIds: string[] = allLessonIds.filter(
         (id) => !storedLessonIds.includes(id)
       );
-
-      await Util.downloadZipBundle(filteredLessonIds);
+      const uniqueFilteredLessonIds = [...new Set(filteredLessonIds)];
+      await Util.downloadZipBundle(uniqueFilteredLessonIds);
 
       localStorage.setItem(
         DOWNLOAD_BUTTON_LOADING_STATUS,
