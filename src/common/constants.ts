@@ -385,6 +385,12 @@ export const LANGUAGE_COURSE_MAP = {
   zvmpksodSkr8bmhGAFaT: "jZp8NfR84MILMEazPSK7", //Kannada
 };
 
+export enum CURRICULUM {
+  NCERT_CURRICULUM = 'NCERT',
+  KARNATAKA_STATE_BOARD_CURRICULUM = 'Karnataka',
+  OTHER_CURRICULUM = 'Chimple'
+}
+
 export enum GENDER {
   BOY = "male",
   GIRL = "female",

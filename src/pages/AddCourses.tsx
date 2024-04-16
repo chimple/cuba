@@ -166,24 +166,21 @@ const AddCourses: React.FC = () => {
           isLoading={isLoading}
           header={HOMEHEADERLIST.SUBJECTS}
         />
-        <div className="add-subjects-content">
-          {!isLoading &&
-            stage === STAGES.SUBJECTS &&
-            courses &&
-            courses.length > 0 && (
-              <AddCourse
-                courses={courses}
-                onSelectedCoursesChange={handleCallback}
-              />
-            )}
-          {
-            <div>
-              <div className="center">
-                {t("No more subjects available to add")}
-              </div>
-            </div>
-          }
-        </div>
+        {!isLoading &&
+        stage === STAGES.SUBJECTS &&
+        courses &&
+        courses.length > 0 ? (
+          <div className="add-subjects-content">
+            <AddCourse
+              courses={courses}
+              onSelectedCoursesChange={handleCallback}
+            />
+          </div>
+        ) : (
+          <div className="center">
+            {!isLoading && t("No more subjects available to add")}
+          </div>
+        )}
       </div>
     </IonPage>
   );

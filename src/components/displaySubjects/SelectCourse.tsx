@@ -7,7 +7,10 @@ import { IoAddCircleSharp } from "react-icons/io5";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import {
   CHAPTER_CARD_COLOURS,
+  CURRICULUM,
   DEFUALT_SUBJECT_CARD_COLOUR,
+  KARNATAKA_STATE_BOARD_CURRICULUM,
+  NCERT_CURRICULUM,
   PAGES,
   aboveGrade3,
   belowGrade1,
@@ -82,7 +85,13 @@ const SelectCourse: FC<{
                 />
               </div>
               {t(course.title)}
-              {/* {course.title === "English" ? course.title : course.title} */}
+            </div>
+            <div>
+              {course.curriculum.id === NCERT_CURRICULUM
+                ? CURRICULUM.NCERT_CURRICULUM
+                : course.curriculum.id === KARNATAKA_STATE_BOARD_CURRICULUM
+                ? CURRICULUM.KARNATAKA_STATE_BOARD_CURRICULUM
+                : CURRICULUM.OTHER_CURRICULUM}
             </div>
           </SplideSlide>
         );
