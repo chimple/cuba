@@ -368,7 +368,10 @@ export interface PortPlugin {
   addListener(eventName: string, listenerFunc: (data: any) => void): void;
   getPort(): Promise<{ port: number }>;
   getMigrateUsers(): Promise<{ users: any }>;
-  fetchNotificationData(): Promise<{ notificationType: string; rewardProfileId: string }>;
+  fetchNotificationData(): Promise<{
+    notificationType: string;
+    rewardProfileId: string;
+  }>;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_SUBJECT_IDS = [
@@ -386,9 +389,9 @@ export const LANGUAGE_COURSE_MAP = {
 };
 
 export enum CURRICULUM {
-  NCERT_CURRICULUM = 'NCERT',
-  KARNATAKA_STATE_BOARD_CURRICULUM = 'Karnataka',
-  OTHER_CURRICULUM = 'Chimple'
+  NCERT_CURRICULUM = "NCERT",
+  KARNATAKA_STATE_BOARD_CURRICULUM = "Karnataka",
+  OTHER_CURRICULUM = "Chimple",
 }
 
 export enum GENDER {
