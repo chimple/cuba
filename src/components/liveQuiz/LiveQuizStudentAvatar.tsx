@@ -38,13 +38,12 @@ const LiveQuizStudentAvatar: FC<{
             className="live-quiz-student-image"
             src={"assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png"}
             alt=""
+            style={{ width: "89%", height: "100%" }}
           />
         )}
       </div>
       {student && student.docId === Util.getCurrentStudent()?.docId ? (
-        <p>
-          <b>{t("Me")}</b>
-        </p>
+        <p className="live-quiz-student-Name">{t("Me")}</p>
       ) : (
         <p className="live-quiz-student-Name">{student.name}</p>
       )}
