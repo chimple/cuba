@@ -29,7 +29,7 @@ const AddUserPopUp: React.FC<AddUserPopUpProps> = ({ showDialogBox, handleClose 
                                 onClick={handleClose}
                                 className="close-icon"
                             />
-                            <h1 className="search-text">Search</h1>
+                            <h1 className="search-text">{t('Search')}</h1>
                         </div>
                         <div className='search-field'>
                             <TextField
@@ -42,7 +42,8 @@ const AddUserPopUp: React.FC<AddUserPopUpProps> = ({ showDialogBox, handleClose 
                         </div>
                         <button className="use-another-search" onClick={() => {
                             setIsMailSearch(!isMailSerach)
-                         }}>Use {isMailSerach ? 'Mail' : 'Phone Number'} Instead</button>
+
+                         }}>{isMailSerach?t('Use Phone Number Instead'):t('Use Email Instead')}</button>
                     </DialogContent>
                 </div>
 
