@@ -1,0 +1,33 @@
+.all-users-display {
+    display: grid;
+    gap: min(10px, 1vh);
+    justify-items: center;
+    flex-direction: row;
+    align-self: center;
+    overflow-y: scroll;
+    height: 50vh;
+    margin: 10%;
+    grid-template-columns: repeat(auto-fill,
+            minmax(clamp(80px, 40vh, 40px), 1fr));
+}
+
+.user-name {
+    white-space: nowrap;
+    display: block;
+    max-width: 20vh;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.user-img {
+    border-radius: 50%;
+}
+
+.user-image-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    font-size: var(--text-size);
+    color: #05342f;
+}
