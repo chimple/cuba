@@ -4,6 +4,7 @@
 
 div p {
   margin: 0px;
+  color: var(--text-color);
 }
 
 .slider-content {
@@ -16,6 +17,8 @@ div p {
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
+  text-align: center;
+  color: var(--text-color);
 }
 
 #home-leaderboard-button {
@@ -47,7 +50,7 @@ div p {
 
 .home-page-app-bar {
   border-radius: 10vh;
-  background-color: #CCCCCC !important;
+  background-color: #cccccc !important;
   box-shadow: none !important;
   width: fit-content !important;
   margin: auto !important;

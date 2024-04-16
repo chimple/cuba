@@ -17,6 +17,8 @@ const LeaderboardBonus: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
 
   const [bonuses, setBonuses] = useState<BonusInfo[]>();
+  const [allBonus, setAllBonus] = useState<Lesson[]>();
+
   useEffect(() => {
     if (!currentStudent) return;
     init();
@@ -28,22 +30,11 @@ const LeaderboardBonus: FC = () => {
     const unlockedBonuses = await getUnlockedBonus();
     const prevBonuses = await getPrevBonus();
     const nextUnlockBonuses = await getNextUnlockBonus();
+    const getAllBonus = await getBonus();
     console.log("🚀 ~ init ~ nextUnlockBonuses:", nextUnlockBonuses);
     const bonusInfoArray: BonusInfo[] = [];
     const uniqueBonusIds = new Set<string>();
-
-    for (const unlockedBonus of nextUnlockBonuses) {
-      if (unlockedBonus) {
-        let newBonus = unlockedBonus;
-        newBonus.title = t("This Month's Reward");
-        bonusInfoArray.push({
-          bonus: unlockedBonus,
-          isUnlocked: false,
-          isNextUnlock: true,
-        });
-        // uniqueBadgeIds.add(unlockedBonus.docId);
-      }
-    }
+    const fetchedBonus: Lesson[] = [];
 
     for (const unlockedBonus of unlockedBonuses) {
       if (unlockedBonus) {
@@ -65,9 +56,49 @@ const LeaderboardBonus: FC = () => {
         uniqueBonusIds.add(prevBonus.docId);
       }
     }
-
+    for (const unlockedBonus of nextUnlockBonuses) {
+      if (unlockedBonus) {
+        let newBonus = unlockedBonus;
+        newBonus.title = t("This Month's Reward");
+        bonusInfoArray.push({
+          bonus: unlockedBonus,
+          isUnlocked: false,
+          isNextUnlock: true,
+        });
+        // uniqueBadgeIds.add(unlockedBonus.docId);
+      }
+    }
+    for (const bonus of getAllBonus) {
+      if (!!bonus) {
+        fetchedBonus.push(bonus);
+      }
+    }
+    setAllBonus(fetchedBonus);
     setBonuses(bonusInfoArray);
   }
+  const getBonus = async () => {
+    const rewardsDoc = await api.getRewardsById(
+      Util.getCurrentYearForLeaderboard().toString()
+    );
+    if (!rewardsDoc) return [];
+    const currentMonth = Util.getCurrentMonthForLeaderboard();
+    const bonusIds: string[] = [];
+    const monthlyData = rewardsDoc.monthly;
+    for (const key in monthlyData) {
+      const weekNumber = parseInt(key);
+      if (!isNaN(weekNumber) && weekNumber > currentMonth) {
+        monthlyData[key].forEach((item) => {
+          if (item.type === LeaderboardRewardsType.BONUS) {
+            bonusIds.push(item.id);
+          }
+        });
+      }
+    }
+    const bonusDocs = await Promise.all(
+      bonusIds.map((value) => api.getLesson(value))
+    );
+    return bonusDocs;
+  };
   const getUnlockedBonus = async (): Promise<(Lesson | undefined)[]> => {
     if (
       !currentStudent.rewards ||
@@ -142,8 +173,12 @@ const LeaderboardBonus: FC = () => {
           <div
             key={index}
             className={
-              "leaderboard-bonus-item " +
-              (value.isUnlocked ? "" : "leaderboard-bonus-disabled")
+              "leaderboard-badge-item " +
+              (value.isUnlocked
+                ? ""
+                : value.isNextUnlock
+                ? "next-reward"
+                : "lost-reward")
             }
           >
             {value.bonus && (
@@ -154,6 +189,38 @@ const LeaderboardBonus: FC = () => {
                 course={undefined}
                 isPlayed={false}
                 isUnlocked={value.isUnlocked}
+                isHome={false}
+                showSubjectName={false}
+                score={undefined}
+                isLoved={undefined}
+                lessonData={[]}
+                startIndex={0}
+                // showScoreCard={false}
+                // showText={false}
+                showChapterName={false}
+              />
+            )}
+            {value.isUnlocked && <p>{t("won reward")}</p>}
+            {!value.isUnlocked && !value.isNextUnlock && (
+              <p>{t("lost reward")}</p>
+            )}
+          </div>
+        ))}
+      {allBonus &&
+        allBonus.length > 0 &&
+        allBonus.map((value, index) => (
+          <div
+            key={index}
+            className={value ? "leaderboard-bonus-disabled" : ""}
+          >
+            {value && (
+              <LessonCard
+                width={""}
+                height={""}
+                lesson={value}
+                course={undefined}
+                isPlayed={false}
+                isUnlocked={false}
                 isHome={false}
                 showSubjectName={false}
                 score={undefined}

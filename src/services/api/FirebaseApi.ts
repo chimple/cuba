@@ -22,6 +22,7 @@ import {
   setDoc,
   onSnapshot,
   Unsubscribe,
+  FieldValue,
 } from "firebase/firestore";
 import {
   LeaderboardInfo,
@@ -174,6 +175,16 @@ export class FirebaseApi implements ServiceApi {
     return courseIds;
   }
 
+  public async getAdditionalCourses(student: User): Promise<Course[]> {
+    let remainingCourses: Course[] = [];
+    const studentCourses = await this.getCoursesForParentsStudent(student);
+    const allCourses = await this.getAllCourses();
+    remainingCourses = allCourses.filter(
+      ({ docId: id1 }) => !studentCourses.some(({ docId: id2 }) => id2 === id1)
+    );
+    return remainingCourses;
+  }
+
   public async createProfile(
     name: string,
     age: number | undefined,
@@ -202,7 +213,7 @@ export class FirebaseApi implements ServiceApi {
     //     doc(this._db, `${CollectionIds.COURSE}/${id}`)
     //   );
     // }
-    // let courseIds: DocumentReference[] = await this.getCourseByGradeId(
+    // let courseIds: DocumentReference[] = await this.getAdditionalCourses(
     let courseIds: DocumentReference[] = await this.getCourseByUserGradeId(
       gradeDocId,
       boardDocId
@@ -568,6 +579,34 @@ export class FirebaseApi implements ServiceApi {
         JSON.stringify(error)
       );
       return [];
+    }
+  }
+
+  async addCourseForParentsStudent(courses: Course[], student: User) {
+    try {
+      let courseIds: DocumentReference[] = [];
+      const currentUser = student;
+      courses.forEach((course) => {
+        courseIds.push(
+          doc(this._db, `${CollectionIds.COURSE}/${course.docId}`)
+        );
+      });
+      if (currentUser!) {
+        courseIds.forEach(async (docRef) => {
+          await updateDoc(
+            doc(this._db, `${CollectionIds.USER}/${currentUser.docId}`),
+            {
+              courses: arrayUnion(docRef),
+              updatedAt: Timestamp.now(),
+            }
+          );
+        });
+      }
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:358 ~ FirebaseApi ~ addCoursesForParentsStudent ~ error:",
+        JSON.stringify(error)
+      );
     }
   }
 

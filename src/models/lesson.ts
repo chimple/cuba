@@ -54,7 +54,7 @@ export default class Lesson extends BaseObject {
     outcome: string;
     pluginType: string;
     status: string;
-    courseId: string
+    courseId: string;
     subject: DocumentReference;
     targetFrom: number;
     targetTo: number;
@@ -216,7 +216,7 @@ export default class Lesson extends BaseObject {
       pluginType: lesson.pluginType,
       status: lesson.status,
       subject: lesson.subject,
-      couseId:lesson.courseId,
+      couseId: lesson.courseId,
       targetFrom: lesson.targetFrom,
       targetTo: lesson.targetTo,
       thumbnail: lesson.thumbnail,

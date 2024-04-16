@@ -54,9 +54,9 @@ export enum LEADERBOARDHEADERLIST {
 }
 
 export enum LEADERBOARD_REWARD_LIST {
-  BADGES = "BADGES",
+  BADGES = "MEDALS",
   BONUS = "BONUS",
-  STICKER = "STICKER",
+  STICKER = "STICKERS",
 }
 
 export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu";
@@ -279,6 +279,8 @@ export const CHAPTER_CARD_COLOURS = [
   "#009948",
 ];
 
+export const DEFUALT_SUBJECT_CARD_COLOUR = "#009948";
+
 export enum PAGES {
   APP_UPDATE = "/",
   HOME = "/home",
@@ -292,6 +294,7 @@ export enum PAGES {
   DISPLAY_STUDENT = "/display-students",
   DISPLAY_SUBJECTS = "/display-subjects",
   DISPLAY_CHAPTERS = "/display-chapters",
+  ADD_SUBJECTS = "/add-subjects",
   APP_LANG_SELECTION = "/app-lang-selection",
   STUDENT_PROGRESS = "/student-progress",
   SEARCH = "/search",
@@ -365,7 +368,10 @@ export interface PortPlugin {
   addListener(eventName: string, listenerFunc: (data: any) => void): void;
   getPort(): Promise<{ port: number }>;
   getMigrateUsers(): Promise<{ users: any }>;
-  fetchNotificationData(): Promise<{ notificationType: string; rewardProfileId: string }>;
+  fetchNotificationData(): Promise<{
+    notificationType: string;
+    rewardProfileId: string;
+  }>;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_SUBJECT_IDS = [
@@ -373,11 +379,20 @@ export const DEFAULT_SUBJECT_IDS = [
   "5fq9UvGv0sjzZJqOZt3c", //Maths
   "nnFVTiGBmw1LiV3xa4V1", //Digital Skills
 ];
+
+export const KARNATAKA_STATE_BOARD_CURRICULUM = "mKDCldpkmAntlspPx21o";
+export const NCERT_CURRICULUM = "2m6ocNBLQc7jlyCKFZve";
 export const OTHER_CURRICULUM = "BVTIRg2Wm3zxcMPrU5Ob";
 export const LANGUAGE_COURSE_MAP = {
   sju2ne9JwNE1TZgo9M4G: "WUfGFSqcW8cIyl8yiqcR", //Hindi
   zvmpksodSkr8bmhGAFaT: "jZp8NfR84MILMEazPSK7", //Kannada
 };
+
+export enum CURRICULUM {
+  NCERT_CURRICULUM = "NCERT",
+  KARNATAKA_STATE_BOARD_CURRICULUM = "Karnataka",
+  OTHER_CURRICULUM = "Chimple",
+}
 
 export enum GENDER {
   BOY = "male",

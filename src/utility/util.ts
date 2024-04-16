@@ -3,7 +3,7 @@ import {
   CapacitorHttp,
   PluginCallback,
   registerPlugin,
-} from "@capacitor/core";
+} from "@capacitor/core"; 
 import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
@@ -35,6 +35,7 @@ import {
   LeaderboardRewardsType,
   LEADERBOARDHEADERLIST,
   LEADERBOARD_REWARD_LIST,
+  // APP_LANG,
   LeaderboardRewards,
   LESSON_DOC_LESSON_ID_MAP,
   unlockedRewardsInfo,

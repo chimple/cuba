@@ -5,6 +5,7 @@ import { DocumentReference, Timestamp } from "firebase/firestore";
 export default class Course extends BaseObject {
   private _title: string;
   private _chapters: Chapter[];
+  private _color: string;
   private _courseCode: string;
   private _curriculum: DocumentReference;
   private _grade: DocumentReference;
@@ -17,6 +18,7 @@ export default class Course extends BaseObject {
   constructor({
     chapters,
     courseCode,
+    color,
     curriculum,
     grade,
     sortIndex,
@@ -29,6 +31,7 @@ export default class Course extends BaseObject {
     docId,
   }: {
     chapters: Chapter[];
+    color: string;
     courseCode: string;
     curriculum: DocumentReference;
     grade: DocumentReference;
@@ -43,6 +46,7 @@ export default class Course extends BaseObject {
   }) {
     super(updatedAt, createdAt, docId);
     this._chapters = chapters;
+    this._color = color;
     this._courseCode = courseCode;
     this._curriculum = curriculum;
     this._grade = grade;
@@ -57,6 +61,12 @@ export default class Course extends BaseObject {
   }
   public set chapters(value: Chapter[]) {
     this._chapters = value;
+  }
+  public get color(): string {
+    return this._color;
+  }
+  public set color(value: string) {
+    this._color = value;
   }
   public get courseCode(): string {
     return this._courseCode;
@@ -109,6 +119,7 @@ export default class Course extends BaseObject {
   public static toJson(course: Course) {
     return {
       chapters: course.chapters,
+      color: course.color,
       courseCode: course.courseCode,
       curriculum: course.curriculum,
       grade: course.grade,
