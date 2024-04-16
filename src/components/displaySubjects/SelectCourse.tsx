@@ -7,8 +7,16 @@ import { IoAddCircleSharp } from "react-icons/io5";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import {
   CHAPTER_CARD_COLOURS,
+  CURRICULUM,
   DEFUALT_SUBJECT_CARD_COLOUR,
+  KARNATAKA_STATE_BOARD_CURRICULUM,
+  NCERT_CURRICULUM,
   PAGES,
+  aboveGrade3,
+  belowGrade1,
+  grade1,
+  grade2,
+  grade3,
 } from "../../common/constants";
 import { useHistory } from "react-router";
 const SelectCourse: FC<{
@@ -16,6 +24,9 @@ const SelectCourse: FC<{
   modeParent: boolean;
   onCourseChange: (course: Course) => void;
 }> = ({ courses, modeParent, onCourseChange }) => {
+  courses.sort((a, b) => {
+    return a.sortIndex - b.sortIndex;
+  });
   const history = useHistory();
   return (
     <Splide
@@ -29,6 +40,23 @@ const SelectCourse: FC<{
       }}
     >
       {courses.map((course, index) => {
+        let isGrade1: string | boolean = false;
+        let isGrade2: string | boolean = false;
+        let gradeDocId = course.grade.id;
+
+        // Check if gradeDocId matches any of the specified grades and assign the value to isGrade1 or isGrade2
+        if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
+          isGrade1 = true;
+        } else if (
+          gradeDocId === grade2 ||
+          gradeDocId === grade3 ||
+          gradeDocId === aboveGrade3
+        ) {
+          isGrade2 = true;
+        } else {
+          // If it's neither grade1 nor grade2, assume grade2
+          isGrade2 = true;
+        }
         return (
           <SplideSlide className="slide">
             <div
@@ -38,6 +66,12 @@ const SelectCourse: FC<{
               className="subject-button"
               key={course.docId}
             >
+              <div id="subject-card-subject-name">
+                <p>
+                  {isGrade1 ? "Grade 1" : "Grade 2"}
+                  {/* {subject.title==="English"?subject.title:t(subject.title)} */}
+                </p>
+              </div>
               <div
                 className="course-icon"
                 style={{
@@ -51,7 +85,13 @@ const SelectCourse: FC<{
                 />
               </div>
               {t(course.title)}
-              {/* {course.title === "English" ? course.title : course.title} */}
+            </div>
+            <div>
+              {course.curriculum.id === NCERT_CURRICULUM
+                ? CURRICULUM.NCERT_CURRICULUM
+                : course.curriculum.id === KARNATAKA_STATE_BOARD_CURRICULUM
+                ? CURRICULUM.KARNATAKA_STATE_BOARD_CURRICULUM
+                : CURRICULUM.OTHER_CURRICULUM}
             </div>
           </SplideSlide>
         );
