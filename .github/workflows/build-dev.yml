@@ -3,7 +3,7 @@ name: Build Android
 on:
   push:
     branches:
-      - dev
+      - bhanu-new
 
 jobs:
   build:
@@ -72,25 +72,25 @@ jobs:
       #     github_token: ${{ secrets.ACCESS_TOKEN }}
       #     publish_dir: ./build
 
-      - name: Make gradlew executable
-        working-directory: ./android/
-        run: chmod +x ./gradlew
+      # - name: Make gradlew executable
+      #   working-directory: ./android/
+      #   run: chmod +x ./gradlew
 
-      - name: Generate the Android App assembleDebug
-        working-directory: ./android/
-        run: ./gradlew assembleDebug
+      # - name: Generate the Android App assembleDebug
+      #   working-directory: ./android/
+      #   run: ./gradlew assembleDebug
 
-      - name: Deploy apk
-        working-directory: .
-        run: |
-          cd android/app/build/outputs/apk/debug/
-          git init
-          git config --global user.email prakash@sutara.org
-          git config --global user.name  bhanugummana
-          git remote add origin https://${{ secrets.ACCESS_TOKEN }}@github.com/chimple/cuba.git
-          git checkout -b dev-apk
-          git add app-debug.apk
-          git commit -m "created apk"
-          #git push --force secure-origin apk
-          #git push --set-upstream origin gh-pages
-          git push origin dev-apk -f
+      # - name: Deploy apk
+      #   working-directory: .
+      #   run: |
+      #     cd android/app/build/outputs/apk/debug/
+      #     git init
+      #     git config --global user.email prakash@sutara.org
+      #     git config --global user.name  bhanugummana
+      #     git remote add origin https://${{ secrets.ACCESS_TOKEN }}@github.com/chimple/cuba.git
+      #     git checkout -b dev-apk
+      #     git add app-debug.apk
+      #     git commit -m "created apk"
+      #     #git push --force secure-origin apk
+      #     #git push --set-upstream origin gh-pages
+      #     git push origin dev-apk -f
