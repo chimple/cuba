@@ -373,7 +373,13 @@ export class Util {
               const isExists = res.ok;
               console.log("fetching path", path);
               console.log("isexists", isExists);
-              if (isExists) return true; // Skip if lesson exists
+              if (isExists) {
+                this.storeLessonIdToLocalStorage(
+                  lessonId,
+                  DOWNLOADED_LESSON_ID
+                );
+                return true;
+              } // Skip if lesson exists
 
               console.log(
                 "before local lesson Bundle http url:" +
@@ -416,10 +422,6 @@ export class Util {
                     console.log(
                       "🚀 ~ file: util.ts:219 ~ downloadZipBundle ~ zip:",
                       zip.status
-                    );
-                    this.storeLessonIdToLocalStorage(
-                      lessonId,
-                      DOWNLOADED_LESSON_ID
                     );
                     if (!!zip && !!zip.data && zip.status === 200) break;
                   } catch (error) {
