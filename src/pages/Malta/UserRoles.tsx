@@ -8,11 +8,12 @@ import DisplayUsers from '../../components/userRoles/DisplayUsers';
 import UserTabs from '../../components/userRoles/UserTabs';
 import UserActionButton from '../../components/userRoles/UserActionButton';
 import AddUserPopUp from '../../components/userRoles/AddUserPopUp';
+import { t } from 'i18next';
 
-interface AppBarWithBackButtonProps {
+interface UserRolesProps {
 
 }
-const UserRoles: React.FC<AppBarWithBackButtonProps> = () => {
+const UserRoles: React.FC<UserRolesProps> = () => {
   const history = useHistory();
   const [tabIndex, setTabIndex] = useState(USERTYPES.PRINCIAPAL);
   const [showPopUp, setShowPopUP] = useState(false);
@@ -35,7 +36,7 @@ const UserRoles: React.FC<AppBarWithBackButtonProps> = () => {
           backgroundColor: "grey",
         }}
       >
-        <p className='app-bar-title'>Users</p>
+        <p className='app-bar-title'>{t('Users')}</p>
       </AppBar>
       <div>
         <UserTabs value={tabIndex} onChange={onTabChange} />
