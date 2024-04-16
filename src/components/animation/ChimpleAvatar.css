@@ -56,10 +56,10 @@
 }
 
 .burst {
-  animation: burst 0.9s ease-in alternate-reverse;
+  animation: burst 2s ease-in alternate-reverse;
 }
 
-.buttons-container-in-avatar-option-box{
+.buttons-container-in-avatar-option-box {
   height: 20vh;
 }
 

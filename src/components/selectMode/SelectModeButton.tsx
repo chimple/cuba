@@ -2,6 +2,7 @@ import { t } from "i18next";
 import { FC, MouseEventHandler } from "react";
 import "./SelectModeButton.css";
 import { IconType } from "react-icons/lib";
+import React from "react";
 
 const SelectModeButton: FC<{
   text: string;
