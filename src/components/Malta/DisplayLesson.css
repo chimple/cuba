@@ -1,0 +1,80 @@
+.lesson-container {
+  display: grid;
+  gap: min(10px, 1vh);
+  margin: 2%;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(clamp(90px, 10vh, 100px), 1fr)
+  );
+}
+.lesson-button {
+  font-size: var(--text-size);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: min(20px, 3vh);
+  cursor: pointer;
+  color: var(--text-color);
+  text-align: center;
+  white-space: nowrap;
+}
+.lesson-icon {
+  background-color: white;
+  /* clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%); */
+  background-repeat: no-repeat;
+  background-position: 50%;
+  width: min(20vh, 70px);
+  height: min(20vh, 70px);
+  border-radius: 50%;
+}
+
+.lesson-icon-in-avatar-image-option {
+  background-color: white;
+  /* clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%); */
+  background-repeat: no-repeat;
+  background-position: 50%;
+  width: min(70vh, 130px);
+  /* height: min(70vh, 130px); */
+  border-radius: 50%;
+}
+
+.lessons-content {
+  align-self: center;
+  overflow-y: scroll;
+  height: 60vh;
+}
+.grade-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: end;
+  align-items: center;
+  width: 100vw;
+  margin-right: 3vh;
+  margin-top: 1vh;
+}
+.lesson-img {
+  min-width: 100%;
+  min-height: 100%;
+  object-fit: fill;
+}
+.lesson-download {
+  position: absolute;
+  /* margin-bottom: 29vh; */
+  top: 58%;
+}
+.lesson-icon-and-lesson-download-container {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.lesson-card-select-icon {
+  justify-self: right;
+  float: right;
+}
+.lesson-title {
+  display: block;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 12vh;
+}

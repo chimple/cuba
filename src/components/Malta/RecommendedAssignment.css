@@ -1,0 +1,37 @@
+.recommended-subject-header {
+  margin-bottom: 0;
+  justify-content: space-between;
+  align-items: center;
+  float: left;
+}
+
+.recommended-subject-name {
+  color: var(--text-color);
+  font-size: var(--header-text);
+  align-self: center;
+  justify-content: center;
+  font-size: clamp(18px, 3.1vh, 25px);
+  font-weight: bold;
+  /* margin-left: 13vw; */
+}
+
+.recommended-assignment-card {
+  height: 25vh;
+  width: 70vh;
+  float: left;
+  border-radius: 2;
+}
+
+.recommended-content {
+  overflow-y: scroll;
+  height: 70vh;
+}
+
+.display-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.select-all {
+  margin-left: auto;
+}
