@@ -43,7 +43,7 @@ const AddUserPopUp: React.FC<AddUserPopUpProps> = ({ showDialogBox, handleClose 
                         <button className="use-another-search" onClick={() => {
                             setIsMailSearch(!isMailSerach)
 
-                         }}>{isMailSerach?t('Use Phone Number Instead'):t('Use Email Instead')}</button>
+                         }}>{!isMailSerach?t('Use Phone Number Instead'):t('Use Email Instead')}</button>
                     </DialogContent>
                 </div>
 
