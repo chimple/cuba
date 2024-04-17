@@ -179,7 +179,9 @@ const LeaderboardBadges: FC = () => {
                 ? ""
                 : value.isNextUnlock
                 ? "next-reward"
-                : value.isUpcomingBadge?"next-reward":"lost-reward")
+                : value.isUpcomingBadge
+                ? "next-reward"
+                : "lost-reward")
             }
           >
             {value.isNextUnlock && (
@@ -204,18 +206,7 @@ const LeaderboardBadges: FC = () => {
               </div>
             )}
 
-            <CachedImage
-              // style={{
-              //   filter:
-              //     !value.isUnlocked &&
-              //     !value.isNextUnlock &&
-              //     !value.isUpcomingBadge
-              //       ? "grayscale(1)"
-              //       : "",
-              //   opacity: value.isUpcomingBadge ? "0.2" : "",
-              // }}
-              src={value.badge?.image}
-            />
+            <CachedImage src={value.badge?.image} />
 
             <p>{value.badge?.name}</p>
             {value.isUpcomingBadge &&

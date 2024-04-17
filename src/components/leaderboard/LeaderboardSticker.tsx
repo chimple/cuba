@@ -87,7 +87,7 @@ const LeaderboardStickers: FC = () => {
     const weeklyData = rewardsDoc.weeklySticker;
     for (const key in weeklyData) {
       const weekNumber = parseInt(key);
-      if (!isNaN(weekNumber) && weekNumber > currentWeek+1) {
+      if (!isNaN(weekNumber) && weekNumber > currentWeek + 1) {
         weeklyData[key].forEach((item) => {
           if (item.type == LeaderboardRewardsType.STICKER) {
             stickerIds.push(item.id);
@@ -153,7 +153,9 @@ const LeaderboardStickers: FC = () => {
                 ? ""
                 : value.isNextUnlock
                 ? "next-reward"
-                : value.isUpcomingSticker?"next-reward":"lost-reward")
+                : value.isUpcomingSticker
+                ? "next-reward"
+                : "lost-reward")
             }
           >
             {value.isNextUnlock && (
@@ -178,18 +180,7 @@ const LeaderboardStickers: FC = () => {
               </div>
             )}
 
-            <CachedImage
-              // style={{
-              //   filter:
-              //     !value.isUnlocked &&
-              //     !value.isNextUnlock &&
-              //     !value.isUpcomingSticker
-              //       ? "grayscale(1)"
-              //       : "",
-              //   opacity: value.isUpcomingSticker ? "0.2" : "",
-              // }}
-              src={value.sticker?.image}
-            />
+            <CachedImage src={value.sticker?.image} />
 
             <p>{value.sticker?.name}</p>
             {value.isUpcomingSticker && !value.isUnlocked ? (
