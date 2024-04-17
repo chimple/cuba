@@ -43,6 +43,9 @@
   font-weight: bold;
   z-index: 1;
 }
+.lost-reward{
+filter: grayscale(2);
+}
 .red-circle svg {
   width: 2vw;
   height: 2vh;
