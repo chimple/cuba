@@ -6,11 +6,11 @@ import { USERTYPES } from '../../common/constants';
 import "./UserTabs.css"
 
 interface UserTabsProps {
-  value: string;
+  userType: USERTYPES;
   onChange: (event, newValu) => void;
 }
 
-const UserTabs: React.FC<UserTabsProps> = ({ value, onChange }) => {
+const UserTabs: React.FC<UserTabsProps> = ({ userType: value, onChange }) => {
   return (
     <Tabs
       value={value}
