@@ -64,6 +64,7 @@ const LiveQuizGame: FC = () => {
           {roomDoc && (
             <LiveQuizHeader
               roomDoc={roomDoc}
+              currentQuestionIndex={currentQuestionIndex}
               remainingTime={remainingTime}
               showAnswer={showAnswer}
               currentQuestion={
@@ -71,14 +72,6 @@ const LiveQuizGame: FC = () => {
                   ? liveQuizConfig?.data[currentQuestionIndex].question
                   : undefined
               }
-            />
-          )}
-        </div>
-        <div className="live-quiz-navigation-dots">
-          {isTimeOut && liveQuizConfig && currentQuestionIndex != null && (
-            <LiveQuizNavigationDots
-              totalDots={liveQuizConfig.data.length}
-              currentDot={currentQuestionIndex}
             />
           )}
         </div>
@@ -94,6 +87,7 @@ const LiveQuizGame: FC = () => {
           {roomDoc && (
             <LiveQuizQuestion
               roomDoc={roomDoc}
+              isTimeOut={isTimeOut}
               onNewQuestionChange={(newQuestionIndex) => {
                 console.log(
                   "🚀 ~ file: LiveQuizGame.tsx:54 ~ newQuestionIndex:",

@@ -11,13 +11,14 @@ interface BonusInfo {
   bonus: Lesson | undefined;
   isUnlocked: boolean;
   isNextUnlock?: boolean;
+  isUpcomingBonus?: boolean;
 }
 const LeaderboardBonus: FC = () => {
   const currentStudent = Util.getCurrentStudent()!;
   const api = ServiceConfig.getI().apiHandler;
 
   const [bonuses, setBonuses] = useState<BonusInfo[]>();
-  const [allBonus, setAllBonus] = useState<Lesson[]>();
+  const [allBonus, setAllBonus] = useState<(Lesson | undefined)[]>();
 
   useEffect(() => {
     if (!currentStudent) return;
@@ -28,54 +29,48 @@ const LeaderboardBonus: FC = () => {
     if (!currentStudent) return;
 
     const unlockedBonuses = await getUnlockedBonus();
-    const prevBonuses = await getPrevBonus();
-    const nextUnlockBonuses = await getNextUnlockBonus();
-    const getAllBonus = await getBonus();
-    console.log("🚀 ~ init ~ nextUnlockBonuses:", nextUnlockBonuses);
-    const bonusInfoArray: BonusInfo[] = [];
-    const uniqueBonusIds = new Set<string>();
-    const fetchedBonus: Lesson[] = [];
+    const prevBonus = await getPrevBonus();
+    const nextUnlockBonus = await getNextUnlockBonus();
+    const allBonuses = await getBonus();
+    const upcomingBonus = await getUpcomingBadges();
+    setAllBonus(allBonuses);
 
-    for (const unlockedBonus of unlockedBonuses) {
-      if (unlockedBonus) {
-        bonusInfoArray.push({
-          bonus: unlockedBonus,
-          isUnlocked: true,
-        });
-        uniqueBonusIds.add(unlockedBonus.docId);
-      }
-    }
-    for (const prevBonus of prevBonuses) {
-      if (prevBonus) {
-        const isCommon = uniqueBonusIds.has(prevBonus.docId);
-        if (isCommon) continue;
-        bonusInfoArray.push({
-          bonus: prevBonus,
-          isUnlocked: false,
-        });
-        uniqueBonusIds.add(prevBonus.docId);
-      }
-    }
-    for (const unlockedBonus of nextUnlockBonuses) {
-      if (unlockedBonus) {
-        let newBonus = unlockedBonus;
-        newBonus.title = t("This Month's Reward");
-        bonusInfoArray.push({
-          bonus: unlockedBonus,
-          isUnlocked: false,
-          isNextUnlock: true,
-        });
-        // uniqueBadgeIds.add(unlockedBonus.docId);
-      }
-    }
-    for (const bonus of getAllBonus) {
-      if (!!bonus) {
-        fetchedBonus.push(bonus);
-      }
-    }
-    setAllBonus(fetchedBonus);
+    const bonusInfoArray: BonusInfo[] = prevBonus.map((bonus) => ({
+      bonus,
+      isUnlocked: unlockedBonuses.some((b) => b?.docId === bonus?.docId),
+    }));
+
+    nextUnlockBonus.forEach((bonus) => {
+      bonusInfoArray.push({ bonus, isUnlocked: false, isNextUnlock: true });
+    });
+    upcomingBonus.forEach((bonus) => {
+      bonusInfoArray.push({
+        bonus,
+        isUnlocked: false,
+        isUpcomingBonus: true,
+      });
+    });
     setBonuses(bonusInfoArray);
   }
+  const getUpcomingBadges = async (): Promise<(Lesson | undefined)[]> => {
+    const rewardsDoc = await api.getRewardsById(
+      Util.getCurrentYearForLeaderboard().toString()
+    );
+    if (!rewardsDoc) return [];
+    const currentMonth = Util.getCurrentMonthForLeaderboard();
+    const nextMonth = currentMonth + 1;
+    const bonusIds: string[] = [];
+    const monthlyData = rewardsDoc.monthly;
+    monthlyData[nextMonth.toString()].forEach((value) => {
+      if (value.type === LeaderboardRewardsType.BONUS) {
+        bonusIds.push(value.id);
+      }
+    });
+    const bonusDocs = await Promise.all(
+      bonusIds.map((value) => api.getLesson(value))
+    );
+    return bonusDocs;
+  };
   const getBonus = async () => {
     const rewardsDoc = await api.getRewardsById(
       Util.getCurrentYearForLeaderboard().toString()
@@ -172,13 +167,19 @@ const LeaderboardBonus: FC = () => {
         bonuses.map((value, index) => (
           <div
             key={index}
+            style={{ opacity: value.isUpcomingBonus ? "0.2" : "" }}
             className={
               "leaderboard-badge-item " +
               (value.isUnlocked
                 ? ""
                 : value.isNextUnlock
                 ? "next-reward"
-                : "lost-reward")
+                : "") +
+              (!value.isUnlocked &&
+              !value.isUpcomingBonus &&
+              !value.isNextUnlock
+                ? "lost-bonus"
+                : "")
             }
           >
             {value.bonus && (
@@ -200,10 +201,20 @@ const LeaderboardBonus: FC = () => {
                 showChapterName={false}
               />
             )}
-            {value.isUnlocked && <p>{t("won reward")}</p>}
-            {!value.isUnlocked && !value.isNextUnlock && (
-              <p>{t("lost reward")}</p>
+            {value.isNextUnlock && (
+              <p className="leaderboard-next-unlock-text">
+                {t("This Month's Reward")}
+              </p>
             )}
+            {value.isUnlocked && (
+              <p>
+                <b>{t("won reward")}</b>
+              </p>
+            )}
+            {!value.isUnlocked &&
+              !value.isNextUnlock &&
+              !value.isUpcomingBonus && <p>{t("lost reward")}</p>}
+            {value.isUpcomingBonus && <p>{t("Upcoming")}</p>}
           </div>
         ))}
       {allBonus &&

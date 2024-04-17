@@ -3,7 +3,7 @@ import {
   CapacitorHttp,
   PluginCallback,
   registerPlugin,
-} from "@capacitor/core"; 
+} from "@capacitor/core";
 import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
@@ -43,6 +43,7 @@ import {
   MAX_DOWNLOAD_LESSON_ATTEMPTS,
   LESSON_DOWNLOAD_SUCCESS_EVENT,
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+  HOMEHEADERLIST,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -86,6 +87,7 @@ import lesson from "../models/lesson";
 import Lesson from "../models/lesson";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import Sticker from "../models/Sticker";
+import Course from "../models/course";
 
 declare global {
   interface Window {
@@ -190,6 +192,20 @@ export class Util {
       data.push(newCourseRef);
     }
     return data;
+  }
+
+  public static checkLessonPresentInCourse(
+    course: Course,
+    lessonDoc: String
+  ): boolean {
+    for (const chapter of course.chapters) {
+      for (const lesson of chapter.lessons) {
+        if (lesson.id === lessonDoc) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   public static getRef(ref): DocumentReference {
@@ -891,7 +907,7 @@ export class Util {
   }
 
   public static setCurrentStudent = async (
-    student: User,
+    student: User | null,
     languageCode: string | undefined = undefined,
     langFlag: boolean = true,
     isStudent: boolean = true
@@ -899,32 +915,32 @@ export class Util {
     console.log("setCurrentStudent called", student);
 
     const api = ServiceConfig.getI().apiHandler;
-    api.currentStudent = student;
+      api.currentStudent = student !== null ? student : undefined;
 
     localStorage.setItem(
       CURRENT_STUDENT,
       JSON.stringify({
-        age: student.age ?? null,
-        avatar: student.avatar ?? null,
-        board: student.board ?? null,
-        courses: student.courses,
-        createdAt: student.createdAt,
-        updatedAt: student.updatedAt,
-        gender: student.gender ?? null,
-        grade: student.grade ?? null,
-        image: student.image ?? null,
-        language: student.language ?? null,
-        name: student.name,
-        role: student.role,
-        uid: student.uid,
-        rewards: student.rewards,
-        username: student.username,
-        users: student.users,
-        docId: student.docId,
+        age: student?.age ?? null,
+        avatar: student?.avatar ?? null,
+        board: student?.board ?? null,
+        courses: student?.courses,
+        createdAt: student?.createdAt,
+        updatedAt: student?.updatedAt,
+        gender: student?.gender ?? null,
+        grade: student?.grade ?? null,
+        image: student?.image ?? null,
+        language: student?.language ?? null,
+        name: student?.name,
+        role: student?.role,
+        uid: student?.uid,
+        rewards: student?.rewards,
+        username: student?.username,
+        users: student?.users,
+        docId: student?.docId,
       })
     );
 
-    if (!languageCode && !!student.language?.id) {
+    if (!languageCode && !!student?.language?.id) {
       const langDoc = await api.getLanguageWithId(student.language.id);
       if (langDoc) {
         languageCode = langDoc.code;
@@ -935,9 +951,11 @@ export class Util {
     if (!!isStudent) await i18n.changeLanguage(tempLangCode);
 
     //Setting Student Id in User Properites
+    if(student)
     await FirebaseAnalytics.setUserId({
       userId: student?.docId,
     });
+    if(student)
     await Util.setUserProperties(student);
   };
 
@@ -1218,7 +1236,10 @@ export class Util {
       );
     }
   }
-
+  public static async fetchNotificationData() {
+    if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+    return Util.port.fetchNotificationData();
+  }
   public static async migrate() {
     if (
       !Capacitor.isNativePlatform() ||
@@ -1403,13 +1424,18 @@ export class Util {
     return stickerDocs;
   }
 
-  public static getCurrentWeekNumber() {
-    const date = new Date();
-    var firstWeekday =
-      new Date(date.getFullYear(), date.getMonth(), 1).getDay() - 1;
-    if (firstWeekday < 0) firstWeekday = 6;
-    var offsetDate = date.getDate() + firstWeekday - 1;
-    return Math.floor(offsetDate / 7) + 1;
+  public static getCurrentWeekNumber(): number {
+    const now: Date = new Date();
+    const currentDay: number = now.getDay();
+    const daysToMonday: number = currentDay === 0 ? 6 : currentDay - 1;
+    now.setDate(now.getDate() - daysToMonday);
+    const onejan: Date = new Date(now.getFullYear(), 0, 1);
+    const millisecsInDay: number = 86400000;
+    const dayOfYear: number =
+      (now.getTime() - onejan.getTime()) / millisecsInDay + 1;
+    const firstDayOfWeek: number = onejan.getDay() || 7;
+    const weekNumber: number = Math.ceil((dayOfYear + firstDayOfWeek) / 7);
+    return weekNumber;
   }
 
   public static getCurrentMonthForLeaderboard() {

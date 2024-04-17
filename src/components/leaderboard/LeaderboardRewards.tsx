@@ -18,7 +18,7 @@ const LeaderboardRewards: FC = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const rewardsTab = urlParams.get("rewards");
-    let currentTab = LEADERBOARD_REWARD_LIST.BADGES;
+    let currentTab = LEADERBOARD_REWARD_LIST.STICKER;
     if (rewardsTab) {
       if (rewardsTab === LEADERBOARD_REWARD_LIST.BONUS.toLowerCase()) {
         currentTab = LEADERBOARD_REWARD_LIST.BONUS;

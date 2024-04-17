@@ -73,8 +73,8 @@
   background-color: white;
   border-radius: 50%;
   z-index: 1;
-  height: 7vh;
-  width: 7vh;
+  height: 6vh;
+  width: 6vh;
   position: absolute;
   top: 4px;
   left: 2px;
@@ -82,8 +82,8 @@
 }
 
 .live-quiz-audio-button-question svg {
-  width: 5vh;
-  height: 5vh;
+  width: 4vh;
+  height: 4vh;
 }
 
 .live-quiz-audio-button-option {
@@ -93,21 +93,28 @@
   background-color: #ffffff;
   border-radius: 50%;
   z-index: 1;
-  height: 6vh;
-  width: 6vh;
+  height: 5vh;
+  width: 5vh;
+  text-align: center;
   position: absolute;
   top: 1px;
   box-shadow: 1px 1px grey;
 }
 .live-quiz-audio-button-option svg {
-  width: 4vh;
-  height: 4vh;
+  width: 3vh;
+  height: 3vh;
 }
 .live-quiz-question-image {
   height: 30vh;
   padding-top: 5px;
 }
+.audio-playing {
+  transition: transform 0.5s ease-in-out;
+}
 
+.audio-playing:hover {
+  transform: scale(1.4);
+}
 .live-quiz-option-image {
   height: 30vh;
 }

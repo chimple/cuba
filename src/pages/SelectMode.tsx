@@ -26,6 +26,7 @@ import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
 import i18n from "../i18n";
 import DropDown from "../components/DropDown";
+import React from "react";
 
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);

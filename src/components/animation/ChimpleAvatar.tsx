@@ -52,7 +52,7 @@ const ChimpleAvatar: FC<{
   const [riveCharHandsUp, setRiveCharHandsUp] = useState("Fail");
   const history = useHistory();
   const State_Machine = "State Machine 1";
-  const [isAudioPlayed, setIsAudioPlayed] = useState<boolean>(false);
+  const [isAudioPlayed, setIsAudioPlayed] = useState<boolean>(true);
 
   const { rive, RiveComponent } = useRive({
     src: "/assets/animation/chimplecharacter.riv",
@@ -74,13 +74,11 @@ const ChimpleAvatar: FC<{
     fetchCoursesForStudent();
     return () => {
       stop();
-      setIsAudioPlayed(true);
     };
   }, []);
   const api = ServiceConfig.getI().apiHandler;
 
   async function loadSuggestionsFromJson() {
-    setIsAudioPlayed(true);
     avatarObj.wrongAttempts = 0;
     await avatarObj.loadAvatarData();
 
@@ -123,12 +121,16 @@ const ChimpleAvatar: FC<{
         message = t("Hi! Welcome to Chimple");
       }
     }
-    if (isAudioPlayed) await speak(message);
+    if (isAudioPlayed) {
+      await speak(message);
+      setIsAudioPlayed(false);
+    }
   }
   let buttons: { label: string; onClick: () => void; isTrue?: boolean }[] = [];
   let message: string = "";
 
   async function loadNextSuggestion() {
+    avatarObj.imageSrc = "";
     await stop();
     avatarObj.wrongAttempts = 0;
     await avatarObj.loadAvatarNextSuggestion();
@@ -221,6 +223,7 @@ const ChimpleAvatar: FC<{
       // If buttons are already disabled, don't proceed
       return;
     }
+    await stop();
     await new Promise((resolve) => setTimeout(resolve, 200));
     setIsBurst(true);
     switch (currentMode) {
@@ -241,10 +244,9 @@ const ChimpleAvatar: FC<{
         if (choice) {
           localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
           setButtonsDisabled(false);
-          rive?.play(avatarObj.avatarAnimation);
+          rive?.play("Success");
           buttons = [];
           onclickInput?.fire();
-          setIsAudioPlayed(true);
           await loadSuggestionsFromJson();
         }
         break;
@@ -272,7 +274,7 @@ const ChimpleAvatar: FC<{
                 "x2",
                 x2
               );
-              await speak(message);
+              // await speak(message);
             } else {
               await onClickNo();
               cCourse = await getRecommendedCourse();
@@ -282,7 +284,7 @@ const ChimpleAvatar: FC<{
                 "x1",
                 " " + x1 + " "
               );
-              await speak(message);
+              // await speak(message);
             }
             break;
           case AvatarModes.ChapterSuggestion:
@@ -299,7 +301,7 @@ const ChimpleAvatar: FC<{
                 "x3",
                 " " + x3 + " "
               );
-              await speak(message);
+              // await speak(message);
             } else {
               await onClickNo();
               cChapter = await getRecommendedChapter(cCourse || currentCourse);
@@ -309,7 +311,7 @@ const ChimpleAvatar: FC<{
                 "x2",
                 " " + x2 + " "
               );
-              await speak(message);
+              // await speak(message);
             }
             break;
           case AvatarModes.LessonSuggestion:
@@ -329,7 +331,7 @@ const ChimpleAvatar: FC<{
                 "x3",
                 " " + x3 + " "
               );
-              await speak(message);
+              // await speak(message);
             }
             break;
         }
@@ -342,7 +344,7 @@ const ChimpleAvatar: FC<{
           await loadNextSuggestion();
         } else {
           await onClickNo();
-          await speak();
+          // await speak();
         }
         break;
       case AvatarModes.FourOptionQuestion:
@@ -353,7 +355,7 @@ const ChimpleAvatar: FC<{
           await loadNextSuggestion();
         } else {
           await onClickNo();
-          await speak();
+          // await speak();
         }
         break;
 
@@ -374,7 +376,7 @@ const ChimpleAvatar: FC<{
               "lesson",
               recomLesson?.assignment ? "assignment" : "lesson"
             );
-          await speak(message);
+          // await speak(message);
         }
         break;
       default:
@@ -723,9 +725,10 @@ const ChimpleAvatar: FC<{
       </div>
       <div
         className={`avatar-option-box-background ${isBurst ? "burst" : ""}`}
-        onAnimationEnd={() => {
+        onAnimationEnd={async () => {
           setIsBurst(false);
           setButtonsDisabled(true);
+          await speak(message);
         }}
       >
         {chimpleAvatarChatboxBubbles}
