@@ -4,6 +4,7 @@ import Tab from '@mui/material/Tab';
 import { t } from 'i18next';
 import { USERTYPES } from '../../common/constants';
 import "./UserTabs.css"
+import { AppBar, Box } from '@mui/material';
 
 interface UserTabsProps {
   userType: USERTYPES;
@@ -12,40 +13,58 @@ interface UserTabsProps {
 
 const UserTabs: React.FC<UserTabsProps> = ({ userType: value, onChange }) => {
   return (
-    <Tabs
-      value={value}
-      onChange={onChange}
-      className='tab-tool-bar'
-      textColor="secondary"
-      indicatorColor="secondary"
-      aria-label="secondary tabs example"
-      scrollButtons="auto"
-      centered
-      sx={{
-        "& .MuiTabs-indicator": {
-          backgroundColor: "#000000 !important",
-          bottom: "15% !important",
-        },
-        "& .MuiTab-root": { color: "#000000 !important" },
-        "& .Mui-selected": { color: "#000000 !important" },
-      }}
-    >
-      <Tab
-        value={USERTYPES.PRINCIAPAL}
-        label={t(USERTYPES.PRINCIAPAL)} // Assuming `t` function is defined for translations
-        id="users-tab-bar"
-      />
-      <Tab
-        id="users-tab-bar"
-        value={USERTYPES.COORDINATORS}
-        label={t(USERTYPES.COORDINATORS)}
-      />
-      <Tab
-        id="users-tab-bar"
-        value={USERTYPES.SPONSORS}
-        label={t(USERTYPES.SPONSORS)}
-      />
-    </Tabs>
+    <div className="tabs-view">
+      <AppBar className="tab-page-app-bar">
+        <Box>
+          <Tabs
+            value={value}
+            onChange={onChange}
+            TabIndicatorProps={{ style: { display: "none" } }}
+            sx={{
+              "& .MuiTab-root": {
+                color: "black",
+                borderRadius: "5vh",
+                padding: "0 3vw",
+                margin: "1vh 1vh",
+                minHeight: "37px",
+                backgroundColor:'#FFDC96'
+              },
+              "& .Mui-selected": {
+                backgroundColor: "#FFDC97",
+                borderRadius: "8vh",
+                color: "blue !important",
+                minHeight: "37px",
+              },
+            }}
+          >
+            <Tab
+              className="user-page-sub-tab"
+              label={USERTYPES.PRINCIAPAL}
+              value={USERTYPES.PRINCIAPAL}
+              onClick={() => {
+
+              }}
+            />
+            <Tab
+              className="user-page-sub-tab"
+              label={USERTYPES.COORDINATORS}
+              value={USERTYPES.COORDINATORS}
+              onClick={() => {
+
+              }}
+            />
+            <Tab
+              className="user-page-sub-tab"
+              label={USERTYPES.SPONSORS}
+              value={USERTYPES.SPONSORS}
+              onClick={() => {
+
+              }}
+            />
+          </Tabs>
+        </Box>
+      </AppBar>
+    </div>
   );
 };
 

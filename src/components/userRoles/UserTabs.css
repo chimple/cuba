@@ -1,3 +1,21 @@
-.tab-tool-bar {
-    margin-top: 2vh;
+.tabs-view {
+    position: fixed;
+    width: 100%;
+    margin-top: 3vh;
+}
+
+.tab-page-app-bar {
+    border-radius: 10vh;
+    background-color:transparent !important;
+    box-shadow: none !important;
+    width: fit-content !important;
+    margin: auto !important;
+    position: static !important;
+}
+
+.user-page-sub-tab {
+    background-color: #FFDC97;
+    text-transform: none;
+    font-family: BalooRegular;
+    font-size: var(--text-size);
 }
