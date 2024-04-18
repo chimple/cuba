@@ -7,18 +7,20 @@ import CachedImage from "../common/CachedImage";
 import "./LeaderboardBadges.css";
 import { t } from "i18next";
 import { FaHeart } from "react-icons/fa";
-
+import { RxCross2 } from "react-icons/rx";
+import { TiTick } from "react-icons/ti";
 interface BadgeInfo {
   badge: Badge | undefined;
   isUnlocked: boolean;
   isNextUnlock?: boolean;
+  isUpcomingBadge?: boolean;
 }
 
 const LeaderboardBadges: FC = () => {
   const currentStudent = Util.getCurrentStudent()!;
   const api = ServiceConfig.getI().apiHandler;
   const [badges, setBadges] = useState<BadgeInfo[]>();
-  const [allBadges, setAllBadges] = useState<Badge[]>();
+  const [allBadges, setAllBadges] = useState<(Badge | undefined)[]>();
   useEffect(() => {
     init();
   }, []);
@@ -29,59 +31,57 @@ const LeaderboardBadges: FC = () => {
     const unlockedBadges = await getUnlockedBadges();
     const prevBadges = await getPrevBadges();
     const nextUnlockBadges = await getNextUnlockBadges();
-    const getAllBadges = await getbadges();
-    const badgeInfoArray: BadgeInfo[] = [];
-    const uniqueBadgeIds = new Set<string>();
-    const fetchedBadges: Badge[] = [];
-    for (let temp of getAllBadges) {
-      if (temp) {
-        fetchedBadges.push(temp);
-      }
-    }
-    setAllBadges(fetchedBadges);
+    const allBadges = await getBadges();
+    const upcomingBadges = await getUpcomingBadges();
+    setAllBadges(allBadges);
 
-    for (const unlockedBadge of unlockedBadges) {
-      if (unlockedBadge) {
-        badgeInfoArray.push({
-          badge: unlockedBadge,
-          isUnlocked: true,
-        });
-        uniqueBadgeIds.add(unlockedBadge.docId);
-      }
-    }
+    const badgeInfoArray: BadgeInfo[] = prevBadges.map((badge) => ({
+      badge,
+      isUnlocked: unlockedBadges.some((b) => b?.docId === badge?.docId),
+    }));
 
-    for (const prevBadge of prevBadges) {
-      if (prevBadge) {
-        const isCommon = uniqueBadgeIds.has(prevBadge.docId);
-        if (isCommon) continue;
-        badgeInfoArray.push({
-          badge: prevBadge,
-          isUnlocked: false,
-        });
-        uniqueBadgeIds.add(prevBadge.docId);
-      }
-    }
-    for (const nextUnlockBadge of nextUnlockBadges) {
-      if (nextUnlockBadge) {
-        badgeInfoArray.push({
-          badge: nextUnlockBadge,
-          isUnlocked: false,
-          isNextUnlock: true,
-        });
-        // uniqueBadgeIds.add(nextUnlockBadge.docId);
-      }
-    }
+    nextUnlockBadges.forEach((badge) => {
+      badgeInfoArray.push({ badge, isUnlocked: false, isNextUnlock: true });
+    });
+
+    upcomingBadges.forEach((badge) => {
+      badgeInfoArray.push({
+        badge,
+        isUnlocked: false,
+        isUpcomingBadge: true,
+        isNextUnlock: false,
+      });
+    });
 
     setBadges(badgeInfoArray);
   }
-  const getbadges = async (): Promise<(Badge | undefined)[]> => {
+
+  const getUpcomingBadges = async (): Promise<(Badge | undefined)[]> => {
+    const date = new Date();
+    const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
+    if (!rewardsDoc) return [];
+    const currentWeek = Util.getCurrentWeekNumber();
+    const nextWeek = currentWeek + 1;
+    const badgeIds: string[] = [];
+    const weeklyData = rewardsDoc.weekly;
+    weeklyData[nextWeek.toString()].forEach((value) => {
+      if (value.type === LeaderboardRewardsType.BADGE) {
+        badgeIds.push(value.id);
+      }
+    });
+    const badgeDocs = await Promise.all(
+      badgeIds.map((value) => api.getBadgeById(value))
+    );
+    return badgeDocs;
+  };
+  const getBadges = async (): Promise<(Badge | undefined)[]> => {
     const matchingDocIds: string[] = [];
     const date = new Date();
     const currentWeek = Util.getCurrentWeekNumber();
     const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
     for (const key in rewardsDoc?.weekly) {
       const weekNumber = parseInt(key);
-      if (!isNaN(weekNumber) && weekNumber > currentWeek) {
+      if (!isNaN(weekNumber) && weekNumber > currentWeek + 1) {
         rewardsDoc?.weekly[key].forEach((item) => {
           if (item.type == LeaderboardRewardsType.BADGE) {
             matchingDocIds.push(item.id);
@@ -179,6 +179,8 @@ const LeaderboardBadges: FC = () => {
                 ? ""
                 : value.isNextUnlock
                 ? "next-reward"
+                : value.isUpcomingBadge
+                ? "next-reward"
                 : "lost-reward")
             }
           >
@@ -187,10 +189,40 @@ const LeaderboardBadges: FC = () => {
                 <FaHeart color="white" />
               </div>
             )}
+            {!value.isUnlocked &&
+              !value.isNextUnlock &&
+              !value.isUpcomingBadge && (
+                <div className="lost-reward-overlay">
+                  <div className="red-circle">
+                    <RxCross2 color="white" />
+                  </div>
+                </div>
+              )}
+            {value.isUnlocked && (
+              <div className="lost-reward-overlay">
+                <div className="won-circle">
+                  <TiTick color="white" />
+                </div>
+              </div>
+            )}
+
             <CachedImage src={value.badge?.image} />
-            {value.isUnlocked && <p>{t("won reward")}</p>}
-            {!value.isUnlocked && !value.isNextUnlock && (
-              <p>{t("lost reward")}</p>
+
+            <p>{value.badge?.name}</p>
+            {value.isUpcomingBadge &&
+            !value.isNextUnlock &&
+            !value.isUnlocked ? (
+              <p>{t("Upcoming")}</p>
+            ) : (
+              ""
+            )}
+            {!value.isUnlocked &&
+              !value.isNextUnlock &&
+              !value.isUpcomingBadge && <p>{t("lost reward")}</p>}
+            {value.isUnlocked && (
+              <p>
+                <b>{t("won reward")}</b>
+              </p>
             )}
             {value.isNextUnlock && (
               <p className="leaderboard-next-unlock-text">
@@ -203,8 +235,8 @@ const LeaderboardBadges: FC = () => {
         allBadges.length > 0 &&
         allBadges.map((value) => (
           <div className="leaderboard-badge-disabled">
-            <CachedImage src={value.image} />
-            {!!value.name ? <p>{value.name}</p> : ""}
+            <CachedImage src={value?.image} />
+            {!!value?.name ? <p>{value?.name}</p> : ""}
           </div>
         ))}
     </div>
