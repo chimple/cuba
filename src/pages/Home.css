@@ -5,6 +5,7 @@
 div p {
   margin: 0px;
   color: var(--text-color);
+  text-align: center;
 }
 
 .slider-content {
