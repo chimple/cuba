@@ -1,15 +1,29 @@
 import React from "react";
+import "./ProfileDetails.css";
 
-const ProfileDetails = () => {
+interface ProfileDetailsProps {
+  width?: string;
+  height?: string;
+  imgSrc: string;
+  imgAlt?: string;
+  className?: string;
+}
+
+const ProfileDetails: React.FC<ProfileDetailsProps> = ({
+  width = '100px', // default width if not provided
+  height = '100px', // default height if not provided
+  imgSrc,
+  imgAlt = 'Profile',
+  className
+}) => {
   return (
-    <div className="profile-details">
-      <div className="profile-container">
-        <img src="" alt="Profile" className="profile-picture" />
+    <div className={`profile-details ${className || ''}`}>
+      <div className="">
+        <img src={imgSrc} alt={imgAlt} className="profile-container" style={{ width, height }} />
       </div>
-      <div className="profile-name">John Doe </div>
-      <div className="profile-email">john.doe@example.com</div>
     </div>
   );
 };
 
 export default ProfileDetails;
+

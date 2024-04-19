@@ -7,7 +7,7 @@
   width: 100vw;
   position: relative;
   color: black;
-  padding: 2vw; /* Changed from pixels to viewport width */
+  padding: -15vh; /* Changed from pixels to viewport width */
 }
 
 .close-button {
@@ -36,10 +36,10 @@
   border-radius: 50%;
 }
 
-.profile-details {
+/* .profile-details {
   text-align: center;
   margin-top: 1.2vh;
-}
+} */
 
 .profile-name-edit {
   display: flex;
@@ -61,7 +61,7 @@
   font-size: 3vh;
 }
 
-.section-title {
+/* .section-title {
   align-self: flex-start;
   margin-top: 2vh;
   margin-left: 2vw;
@@ -69,7 +69,7 @@
 }
 
 .teacher-profile-section {
-  background-color: lightblue;
+  background-color: #FFFBEC;
   border-radius: 5vh;
   flex: 1;
   width: calc(100% - 4vw);
@@ -79,10 +79,40 @@
   justify-content: center;
   padding: 2vw;
   margin: 1vw;
+  max-width: 70vh;
+} */
+.section-title {
+  align-self: flex-start;
+  margin-top: 2vh;
+  margin-left: 2vw; /* This should match the padding of the container for consistent alignment */
+  font-size: 4vh;
+}
+
+.teacher-profile-section {
+  background-color: #FFFBEC;
+  border-radius: 5vh;
+  flex: 1;
+  width: calc(100% - 4vw); /* Adjusts width by the side margins */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2vw; /* Make sure this is the point from where your text inside starts */
+  margin: 1vw;
+  max-width: 70vh; /* This may also need adjustment depending on your design */
+}
+.profile-name-in-teacher-profile{
+  font-size: 3vh;
+
+}
+.profile-email-in-teacher-profile{
+  font-size: 3vh;
+  padding-bottom: 4vh;
+
 }
 
 .student-profile-section {
-  background-color: lightblue;
+  background-color: #FFFBEC;
   border-radius: 5vh;
   flex: 1;
   width: calc(100% - 4vw);
@@ -92,6 +122,8 @@
   justify-content: center; 
   padding: 2vw;
   margin: 1vw;
+  max-width: 70vh;
+  /* max-width: 50vw; */
 }
 
 .profile-lines-container {

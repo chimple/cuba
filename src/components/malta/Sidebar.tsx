@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useHistory } from "react-router";
 import { PAGES } from "../../common/constants";
 import ProfileDetails from "./ProfileDetails";
+import "./Sidebar.css"; 
 interface SidebarProps {
   isOpen: boolean;
   toggleSidebar: () => void;
@@ -12,7 +13,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const history = useHistory();
 
   const navigateToProfile = () => {
-    history.replace(PAGES.TEACHER_PROFILE);
+    history.replace(PAGES.ADD_STUDENT);
   };
 
   return (
@@ -21,7 +22,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         X
       </button>
       <div className="profile-section" onClick={navigateToProfile}>
-        <ProfileDetails />
+      <ProfileDetails imgSrc="" width="auto" height="10vh" />
+        <div className="profile-name-in-sidebar">John Doe </div>
+        <div className="profile-email-in-sidebar">john.doe@example.com</div>
+        <select className="profile-dropdown-in-sidebar">
+          <option value="option1">Bharatiya Vidya Mandir</option>
+          <option value="option2">Option 2</option>
+        </select>
         <hr className="horizontal-line" />
       </div>
       <ul>

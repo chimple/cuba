@@ -1,0 +1,54 @@
+.add-student-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: 100vh;
+  width: 100vw;
+  position: relative;
+  color: black;
+  padding: 2vw;
+}
+
+/* .header-for-add-student {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+} */
+.header-for-add-student{
+  background-color: #FFFBEC;
+  width: 100vw;
+  margin-top: -4vh;
+  padding-bottom: 3vh;
+}
+.title{
+  padding: 0.001vw;
+}
+
+/* .title {
+  background-color: lightblue;
+  padding: 2.5vh;
+  border-radius: 5px;
+  width: 100vw;
+  top: 2vh;
+  margin-top: -4vh;
+  padding-top: 3.5vh;
+} */
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.save-button {
+  padding: 10px 20px;
+  background-color: #FFDC96;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  color: black;
+}
+
+.save-button:hover {
+  background-color: #add8e6;
+}

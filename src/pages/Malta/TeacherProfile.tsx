@@ -20,8 +20,14 @@ const TeacherProfile = () => {
         X
       </button>
       <div className="profile-container-section">
-        <ProfileDetails />
+        <ProfileDetails
+          imgSrc="path_to_teacher_profile_image.jpg"
+          width="150px"
+          height="150px"
+        />
       </div>
+      <div className="profile-name-in-teacher-profile">John Doe </div>
+      <div className="profile-email-in-teacher-profile">john.doe@example.com</div>
       <TeacherProfileSection />
       <div className="logout-container">
         <LogoutSection />
