@@ -33,13 +33,13 @@ const UserRoles: React.FC<UserRolesProps> = () => {
           flexDirection: "inherit",
           justifyContent: "space-evenly",
           padding: "2vh 3vw 2vh 3vw",
-          backgroundColor: "grey",
+          backgroundColor: "#FFFBEC",
         }}
       >
         <p className='app-bar-title'>{t('Users')}</p>
       </AppBar>
       <div>
-        <UserTabs value={tabIndex} onChange={onTabChange} />
+        <UserTabs userType={tabIndex} onChange={onTabChange} />
         <DisplayUsers users={users} />
         <div className='vertical-line-container'>
           <div className="vertical-line"></div>

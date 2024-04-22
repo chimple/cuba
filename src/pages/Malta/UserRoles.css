@@ -5,7 +5,7 @@
 
 .back-button-in-users {
   position: absolute;
-  margin: var(--margin);
+  margin: 10px;
   margin-right: 0;
 }
 
