@@ -35,6 +35,7 @@ import {
   LeaderboardRewardsType,
   LEADERBOARDHEADERLIST,
   LEADERBOARD_REWARD_LIST,
+  // APP_LANG,
   LeaderboardRewards,
   LESSON_DOC_LESSON_ID_MAP,
   unlockedRewardsInfo,
@@ -1425,13 +1426,18 @@ export class Util {
     return stickerDocs;
   }
 
-  public static getCurrentWeekNumber() {
-    const date = new Date();
-    var firstWeekday =
-      new Date(date.getFullYear(), date.getMonth(), 1).getDay() - 1;
-    if (firstWeekday < 0) firstWeekday = 6;
-    var offsetDate = date.getDate() + firstWeekday - 1;
-    return Math.floor(offsetDate / 7) + 1;
+  public static getCurrentWeekNumber(): number {
+    const now: Date = new Date();
+    const currentDay: number = now.getDay();
+    const daysToMonday: number = currentDay === 0 ? 6 : currentDay - 1;
+    now.setDate(now.getDate() - daysToMonday);
+    const onejan: Date = new Date(now.getFullYear(), 0, 1);
+    const millisecsInDay: number = 86400000;
+    const dayOfYear: number =
+      (now.getTime() - onejan.getTime()) / millisecsInDay + 1;
+    const firstDayOfWeek: number = onejan.getDay() || 7;
+    const weekNumber: number = Math.ceil((dayOfYear + firstDayOfWeek) / 7);
+    return weekNumber;
   }
 
   public static getCurrentMonthForLeaderboard() {

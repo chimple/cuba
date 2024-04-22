@@ -18,6 +18,7 @@ import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import CustomAppBar from "../components/studentProgress/CustomAppBar";
 import { t } from "i18next";
 import { Util } from "../utility/util";
+import SkeltonLoading from "../components/SkeltonLoading";
 
 const StudentProgress: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -62,9 +63,8 @@ const StudentProgress: React.FC = () => {
         setCurrentHeader(courses[0].courseCode);
         setTabIndex(courses[0].courseCode);
         setStudentProgressHeaderIconList(
-          courses.map((course) => (
-            {
-            displayName: t(course.title) ,
+          courses.map((course) => ({
+            displayName: t(course.title),
             iconSrc: course.thumbnail ?? "assets/icons/EnglishIcon.svg",
             header: course.courseCode,
             course: course,
@@ -107,29 +107,36 @@ const StudentProgress: React.FC = () => {
             })}
           </IonRow>
         </div>
-        {dataContent.length === 0 ? (
+        {!!isLoading && (
+          <SkeltonLoading
+            isLoading={isLoading}
+            header={PAGES.STUDENT_PROGRESS}
+          />
+        )}
+        {!isLoading && dataContent.length === 0 ? (
           <p id="student-progress-display-progress-no-data-message">
             {t("No Data ")}
           </p>
         ) : null}
-        <div id="student-progress-display-progress-content">
-          {dataContent.map((e) => {
-            return (
-              <IonRow>
-                {e.map((d) => {
-                  return (
-                    <IonCol size="12" size-sm="3">
-                      <p id="student-progress-display-progress-content-text">
-                        {d}
-                      </p>
-                    </IonCol>
-                  );
-                })}
-              </IonRow>
-            );
-          })}
-        </div>
-        <Loading isLoading={isLoading} />
+        {!isLoading && dataContent.length > 0 && (
+          <div id="student-progress-display-progress-content">
+            {dataContent.map((e) => {
+              return (
+                <IonRow>
+                  {e.map((d) => {
+                    return (
+                      <IonCol size="12" size-sm="3">
+                        <p id="student-progress-display-progress-content-text">
+                          {d}
+                        </p>
+                      </IonCol>
+                    );
+                  })}
+                </IonRow>
+              );
+            })}
+          </div>
+        )}
       </div>
     );
   }

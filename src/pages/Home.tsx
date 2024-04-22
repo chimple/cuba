@@ -343,7 +343,7 @@ const Home: FC = () => {
       }
       tempPageNumber = 1;
       await updateHistoryLessons(validLessonIds);
-      // setIsLoading(false);
+      setIsLoading(false);
     } else if (newValue === SUBTAB.FAVOURITES) {
       setHistoryLessons([]);
       if (lessonResultMap) {
@@ -534,7 +534,6 @@ const Home: FC = () => {
             if (lessonObj) {
               let chapterTitle = tempCourse.chapters[0].title;
               lessonObj.chapterTitle = chapterTitle;
-              lessonObj.courseId = tempCourse.docId;
               console.log(lessonObj, "lessons pushed");
               reqLes.push(lessonObj as Lesson);
               // setDataCourse(reqLes);
@@ -542,7 +541,6 @@ const Home: FC = () => {
           } else {
             console.log("Wrong place");
             console.log(element, "lessons pushed");
-            element.courseId = tempCourse.docId;
             reqLes.push(element as Lesson);
             // setDataCourse(reqLes);
           }
@@ -575,7 +573,6 @@ const Home: FC = () => {
               if (lessonObj) {
                 let chapterTitle = chapter.title;
                 lessonObj.chapterTitle = chapterTitle;
-                lessonObj.courseId = tempCourse.docId;
                 console.log(lessonObj, "lessons pushed");
                 reqLes.push(lessonObj as Lesson);
               }
@@ -608,7 +605,6 @@ const Home: FC = () => {
           !islessonPushed
         ) {
           console.log("last played ", lessonObj, "lessons pushed");
-          lessonObj.courseId = tempCourse.docId;
           reqLes.push(lessonObj as Lesson);
           islessonPushed = true;
           // break;
@@ -747,6 +743,7 @@ const Home: FC = () => {
   };
 
   const updateFavouriteLessons = async (allLessonIds) => {
+    setIsLoading(true);
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent || !lessonResultMap) {
       return;
@@ -782,9 +779,11 @@ const Home: FC = () => {
     setValidLessonIds(allLessonIds);
     favouriteLessons.push(...validLessonsForFavourite);
     setInitialFavoriteLessons(latestTenFavouriteLessons);
+    setIsLoading(false);
   };
 
   const updateHistoryLessons = async (allLessonIds) => {
+    setIsLoading(true);
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent || !lessonResultMap) {
       return;
@@ -813,6 +812,7 @@ const Home: FC = () => {
     setValidLessonIds(allLessonIds);
     historyLessons.push(...validLessonsForHIstory);
     setInitialHistoryLessons(latestTenPlayedLessons);
+    setIsLoading(false);
   };
 
   console.log("lesson slider favourite", favouriteLessons);
@@ -921,29 +921,41 @@ const Home: FC = () => {
                   )}
 
                   {value === SUBTAB.FAVOURITES && (
-                    <LessonSlider
-                      lessonData={favouriteLessons}
-                      isHome={true}
-                      course={undefined}
-                      lessonsScoreMap={lessonResultMap || {}}
-                      startIndex={0}
-                      showSubjectName={true}
-                      showChapterName={true}
-                      onEndReached={handleLoadMoreLessons}
-                    />
+                    <>
+                      {!!favouriteLessons && favouriteLessons.length > 0 ? (
+                        <LessonSlider
+                          lessonData={favouriteLessons}
+                          isHome={true}
+                          course={undefined}
+                          lessonsScoreMap={lessonResultMap || {}}
+                          startIndex={0}
+                          showSubjectName={true}
+                          showChapterName={true}
+                          onEndReached={handleLoadMoreLessons}
+                        />
+                      ) : (
+                        <p>{t("No liked lessons available.")}</p>
+                      )}
+                    </>
                   )}
 
                   {value === SUBTAB.HISTORY && (
-                    <LessonSlider
-                      lessonData={historyLessons}
-                      isHome={true}
-                      course={undefined}
-                      lessonsScoreMap={lessonResultMap || {}}
-                      startIndex={0}
-                      showSubjectName={true}
-                      showChapterName={true}
-                      onEndReached={handleLoadMoreHistoryLessons}
-                    />
+                    <>
+                      {!!historyLessons && historyLessons.length > 0 ? (
+                        <LessonSlider
+                          lessonData={historyLessons}
+                          isHome={true}
+                          course={undefined}
+                          lessonsScoreMap={lessonResultMap || {}}
+                          startIndex={0}
+                          showSubjectName={true}
+                          showChapterName={true}
+                          onEndReached={handleLoadMoreHistoryLessons}
+                        />
+                      ) : (
+                        <p>{t("No played lessons available.")}</p>
+                      )}
+                    </>
                   )}
                 </div>
               )}

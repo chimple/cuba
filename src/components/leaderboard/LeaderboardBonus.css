@@ -1,13 +1,16 @@
 .leaderboard-bonus-container {
   overflow-y: auto;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: 20% 20% 20%;
   gap: 16px;
   height: 100%;
   flex-grow: 1;
   padding-bottom: 30px;
+  justify-content: space-around;
 }
-
+.lost-bonus {
+  filter: grayscale(2);
+}
 .leaderboard-bonus-item {
   text-align: center;
   opacity: 1;
