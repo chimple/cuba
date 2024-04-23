@@ -7,8 +7,8 @@ import {
   IonToolbar,
 } from "@ionic/react";
 import { t } from "i18next";
-import RecommendedAssignment from "../../components/Malta/assignment/RecommendedAssignment";
-import AssignButton from "../../components/Malta/assignment/AssignButton";
+import RecommendedAssignment from '../../components/malta/assignment/RecommendedAssignment';
+import AssignButton from '../../components/malta/assignment/AssignButton';
 import "./SelectedAssignment.css";
 
 const SelectedAssignment: React.FC = () => {

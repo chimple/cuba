@@ -1,7 +1,7 @@
 import { FC, useState } from "react";
-import AssignButton from "./AssignButton";
-import RecommendedAssignment from "./RecommendedAssignment";
+import AssignButton from './AssignButton';
 import Lesson from "../../../models/lesson";
+import RecommendedAssignment from './RecommendedAssignment'
 
 const RecommendedTab: FC<{
   lessons: Lesson[];

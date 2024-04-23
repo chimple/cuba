@@ -11,13 +11,7 @@ interface AssignButtonProps {
 
 const AssignButton: React.FC<AssignButtonProps> = ({ onClicked, disabled }) => {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "center",
-      }}
-    >
+    <div className="buttoncontainer">
       <IonButton
         disabled={disabled}
         onClick={onClicked}

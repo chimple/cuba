@@ -15,3 +15,9 @@
   background-color: #e6ca91;
   opacity: 0.5;
 }
+
+.buttoncontainer {
+  display: "flex";
+  flex-direction: "row";
+  justify-content: "center";
+}
