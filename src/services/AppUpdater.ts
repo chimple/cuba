@@ -248,7 +248,7 @@ async function getCurrentRelease(): Promise<Release | null> {
 
     if (result.data) {
       // Get the active release summary details.
-      const data = JSON.parse(result.data.toString()) as Release;
+      const data = JSON.parse(result.data) as Release;
 
       // Get the checksum for the active release.
       const checksum = JSON.parse(
@@ -258,7 +258,7 @@ async function getCurrentRelease(): Promise<Release | null> {
             directory: Directory.Data,
             encoding: Encoding.UTF8,
           })
-        ).data.toString()
+        ).data
       ) as Checksum;
 
       // Return the release version details.
