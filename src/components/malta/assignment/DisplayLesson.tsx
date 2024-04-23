@@ -54,10 +54,10 @@ const DisplayLesson: FC<{
               className="lesson-button"
               key={lesson.lesson.id}
             >
-              <div className="lesson-icon-and-chapter-download-container">
+              <div className="lesson-icon-container">
                 <div className="lesson-icon">
                   {lesson.selected ? (
-                    <div className="lesson-card-select-icon">
+                    <div className="lesson-select-icon">
                       <BsFillCheckCircleFill color={"grey"} size="2vh" />
                     </div>
                   ) : null}

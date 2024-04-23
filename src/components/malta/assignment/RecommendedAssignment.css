@@ -41,6 +41,12 @@ ion-card {
   height: 70vh;
 }
 
+.recommended-lesson {
+  display: flex;
+  flex-direction: column;
+  padding: 2px;
+}
+
 .recommended-text {
   font-size: 18px;
   display: flex;
@@ -59,7 +65,7 @@ ion-card {
 
 ion-checkbox {
   --size: 20px;
-  --checkbox-background: "white";
+  --checkbox-background: white;
 }
 
 ion-checkbox::part(container) {

@@ -85,11 +85,7 @@ const RecommendedAssignment: React.FC<{
                         {chapter.lessons.map((lesson) => {
                           return (
                             <div
-                              style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                padding: "2px",
-                              }}
+                              className="recommended-lesson"
                             >
                               <IonCheckbox
                                 justify="space-between"

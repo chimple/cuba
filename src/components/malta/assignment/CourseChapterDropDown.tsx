@@ -2,7 +2,8 @@ import "./CourseChapterDropDown.css";
 
 import Course from "../../../models/course";
 import { Chapter } from "../../../common/courseConstants";
-import DropDown from "../../DropDown";
+import DropDown from "./DropDown";
+
 
 
 const CourseChapterDropDown: React.FC<{
@@ -36,6 +37,7 @@ const CourseChapterDropDown: React.FC<{
           }
         }}
         width="35vw"
+        // height="5vh"
       />
       <DropDown
         currentValue={currentChapter?.id}
@@ -51,6 +53,7 @@ const CourseChapterDropDown: React.FC<{
           }
         }}
         width="35vw"
+        // height="5vh"
       />
     </div>
   );
