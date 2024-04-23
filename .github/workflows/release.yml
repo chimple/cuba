@@ -77,18 +77,18 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
-      - name: Pushes to Hot update
-        uses: cpina/github-action-push-to-another-repository@main
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.ACCESS_TOKEN }}
+      # - name: Pushes to Hot update
+      #   uses: cpina/github-action-push-to-another-repository@main
+      #   env:
+      #     API_TOKEN_GITHUB: ${{ secrets.ACCESS_TOKEN }}
 
-        with:
-          source-directory: build
-          target-directory: public/${{ env.SHORT_TAG_NAME }}
-          destination-github-username: chimple
-          destination-repository-name: cuba-hot-update
-          user-email: prakash@sutara.org
-          target-branch: main
+      #   with:
+      #     source-directory: build
+      #     target-directory: public/${{ env.SHORT_TAG_NAME }}
+      #     destination-github-username: chimple
+      #     destination-repository-name: cuba-hot-update
+      #     user-email: prakash@sutara.org
+      #     target-branch: main
 
       - name: Make gradlew executable
         working-directory: ./android/
