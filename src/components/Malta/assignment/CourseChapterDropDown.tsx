@@ -1,8 +1,9 @@
 import "./CourseChapterDropDown.css";
-import DropDown from "../DropDown";
 
-import Course from "../../models/course";
-import { Chapter } from "../../common/courseConstants";
+import Course from "../../../models/course";
+import { Chapter } from "../../../common/courseConstants";
+import DropDown from "../../DropDown";
+
 
 const CourseChapterDropDown: React.FC<{
   courses: Course[];

@@ -9,8 +9,9 @@
   align-items: center;
   background-color: white;
   border-radius: 8px;
+  background-color: #e6ca91;
 }
 #assign-button:disabled {
-  background-color: white;
+  background-color: #e6ca91;
   opacity: 0.5;
 }

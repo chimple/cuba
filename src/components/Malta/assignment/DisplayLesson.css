@@ -4,7 +4,7 @@
   margin: 2%;
   grid-template-columns: repeat(
     auto-fill,
-    minmax(clamp(90px, 10vh, 100px), 1fr)
+    minmax(clamp(100px, 10vh, 100px), 1fr)
   );
 }
 .lesson-button {
@@ -19,13 +19,13 @@
   white-space: nowrap;
 }
 .lesson-icon {
-  background-color: white;
+  background-color: rgba(248, 235, 235, 0.938);
   /* clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%); */
   background-repeat: no-repeat;
   background-position: 50%;
-  width: min(20vh, 70px);
+  width: min(25vh, 70px);
   height: min(20vh, 70px);
-  border-radius: 50%;
+  border-radius: 10%;
 }
 
 .lesson-icon-in-avatar-image-option {
@@ -76,5 +76,5 @@
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
-  width: 12vh;
+  width: 10vh;
 }

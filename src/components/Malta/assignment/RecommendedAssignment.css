@@ -1,8 +1,22 @@
-.recommended-subject-header {
-  margin-bottom: 0;
-  justify-content: space-between;
-  align-items: center;
+.recommended-card {
   float: left;
+  display: flex;
+  flex-direction: column;
+}
+
+.recommended-subject-header {
+  display: flex;
+  margin-left: 2vw;
+  color: blue;
+}
+
+ion-card-subtitle {
+  --color: #a71b3b;
+}
+
+ion-card {
+  --background: #fff8e9;
+  --color: #474747;
 }
 
 .recommended-subject-name {
@@ -27,6 +41,12 @@
   height: 70vh;
 }
 
+.recommended-text {
+  font-size: 18px;
+  display: flex;
+  margin-left: 2vw;
+}
+
 .display-card {
   display: flex;
   flex-direction: column;
@@ -34,4 +54,14 @@
 
 .select-all {
   margin-left: auto;
+  padding-right: 5vw;
+}
+
+ion-checkbox {
+  --size: 20px;
+  --checkbox-background: "white";
+}
+
+ion-checkbox::part(container) {
+  border: 2px solid #cfced1;
 }

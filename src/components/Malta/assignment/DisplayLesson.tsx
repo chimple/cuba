@@ -1,9 +1,9 @@
 import { FC, useEffect, useRef, useState } from "react";
 import "./DisplayLesson.css";
-import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
+import SelectIconImage from "../../displaySubjects/SelectIconImage";
 import { t } from "i18next";
-import Lesson from "../../models/lesson";
-import { ServiceConfig } from "../../services/ServiceConfig";
+import Lesson from "../../../models/lesson";
+import { ServiceConfig } from "../../../services/ServiceConfig";
 import { BsFillCheckCircleFill } from "react-icons/bs";
 
 const DisplayLesson: FC<{
@@ -58,7 +58,7 @@ const DisplayLesson: FC<{
                 <div className="lesson-icon">
                   {lesson.selected ? (
                     <div className="lesson-card-select-icon">
-                      <BsFillCheckCircleFill color={"green"} size="3vh" />
+                      <BsFillCheckCircleFill color={"grey"} size="2vh" />
                     </div>
                   ) : null}
                   <SelectIconImage
