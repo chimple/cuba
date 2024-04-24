@@ -41,7 +41,14 @@ const LeaderboardBonus: FC = () => {
     }));
 
     nextUnlockBonus.forEach((bonus) => {
-      bonusInfoArray.push({ bonus, isUnlocked: false, isNextUnlock: true });
+      const isAlreadyUnlocked = unlockedBonuses.some(
+        (b) => b?.docId === bonus?.docId
+      );
+      if (isAlreadyUnlocked) {
+        bonusInfoArray.push({ bonus, isUnlocked: true, isNextUnlock: true });
+      } else {
+        bonusInfoArray.push({ bonus, isUnlocked: false, isNextUnlock: true });
+      }
     });
     upcomingBonus.forEach((bonus) => {
       bonusInfoArray.push({
@@ -173,8 +180,8 @@ const LeaderboardBonus: FC = () => {
               (value.isUnlocked
                 ? ""
                 : value.isNextUnlock
-                ? "next-reward"
-                : "") +
+                  ? "next-reward"
+                  : "") +
               (!value.isUnlocked &&
               !value.isUpcomingBonus &&
               !value.isNextUnlock
