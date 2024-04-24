@@ -3,24 +3,6 @@
   flex-direction: column;
 }
 
-/* .profile-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-Fixed width for labels */
-/* .profile-row label {
-  width: 150px; 
-  text-align: right;
-  margin-right: 10px;
-}
-
-.profile-row input,
-.profile-row select {
-  flex: 1;
-} */
 .profile-row {
   display: flex;
   align-items: center;
