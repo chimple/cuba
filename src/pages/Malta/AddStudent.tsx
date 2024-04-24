@@ -4,7 +4,7 @@ import "./TeacherProfile.css";
 import "./AddStudent.css";
 import { PAGES } from "../../common/constants";
 import ProfileDetails from "../../components/malta/ProfileDetails";
-import AddStudentSection from "../../components/malta/AddStudentSection";
+import AddStudentSection from "../../components/malta/AddStudent/AddStudentSection";
 
 const AddStudent = () => {
   const history = useHistory();

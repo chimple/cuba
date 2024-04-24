@@ -10,31 +10,16 @@
   padding: 2vw;
 }
 
-/* .header-for-add-student {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-} */
-.header-for-add-student{
-  background-color: #FFFBEC;
+.header-for-add-student {
+  background-color: #fffbec;
   width: 100vw;
   margin-top: -4vh;
   padding-bottom: 3vh;
 }
-.title{
+.title {
   padding: 0.001vw;
 }
 
-/* .title {
-  background-color: lightblue;
-  padding: 2.5vh;
-  border-radius: 5px;
-  width: 100vw;
-  top: 2vh;
-  margin-top: -4vh;
-  padding-top: 3.5vh;
-} */
 .button-container {
   display: flex;
   justify-content: flex-end;
@@ -42,7 +27,7 @@
 
 .save-button {
   padding: 10px 20px;
-  background-color: #FFDC96;
+  background-color: #ffdc96;
   border: none;
   border-radius: 5px;
   cursor: pointer;

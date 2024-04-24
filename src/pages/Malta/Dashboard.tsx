@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import "./Dashboard.css";
-import Sidebar from "../../components/malta/Sidebar";
+import Sidebar from "../../components/malta/Dashboard/Sidebar";
 import Dropdowns from "../../components/malta/Dropdowns";
-import DashboardStats from "../../components/malta/DashboardStats";
+import DashboardStats from "../../components/malta/Dashboard/DashboardStats";
 import { t } from "i18next";
 
 const Dashboard: React.FC = () => {

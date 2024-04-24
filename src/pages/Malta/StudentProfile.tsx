@@ -3,7 +3,7 @@ import { useHistory } from "react-router-dom";
 import "./TeacherProfile.css";
 import { PAGES } from "../../common/constants";
 import ProfileDetails from "../../components/malta/ProfileDetails";
-import StudentProfileSection from "../../components/malta/StudentProfileSection";
+import StudentProfileSection from "../../components/malta/StudentProfile/StudentProfileSection";
 import "./StudentProfile.css";
 
 const StudentProfile = () => {

@@ -1,6 +1,6 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
-import { PAGES } from "../../common/constants";
+import { PAGES } from "../../../common/constants";
 import { t } from "i18next";
 
 const LogoutSection = () => {

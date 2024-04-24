@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ProfileDetails from "./ProfileDetails";
+import ProfileDetails from "../ProfileDetails";
 import "./AddStudentSection.css";
 
 const AddStudentSection = () => {
@@ -45,7 +45,11 @@ const AddStudentSection = () => {
           </div>
           <div className="profile-row">
             <label htmlFor="class">Class:</label>
-            <select id="class" value={selectedClass} onChange={handleClassChange}>
+            <select
+              id="class"
+              value={selectedClass}
+              onChange={handleClassChange}
+            >
               <option value="">Select Class</option>
               <option value="1st Standard">1st Standard</option>
               <option value="2nd Standard">2nd Standard</option>

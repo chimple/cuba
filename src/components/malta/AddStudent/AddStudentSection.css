@@ -29,24 +29,25 @@ Fixed width for labels */
 }
 
 .profile-row label {
-  width: 150px; 
+  width: 150px;
   text-align: right;
-  margin-right: 10px; 
+  margin-right: 10px;
 }
 
 .profile-row input,
 .profile-row select {
   flex: 1;
-  min-width: 0; 
-  width: 100%; 
+  min-width: 0;
+  width: 100%;
+  background-color: white;
 }
 
 .profile-line input[type="text"],
 .profile-line input[type="number"],
 .profile-line select {
-  background-color: white; 
+  background-color: white;
 }
-.student-profile-section-in-addstudent{
+.student-profile-section-in-addstudent {
   background-color: #fffbec;
   border-radius: 5vh;
   flex: 1;

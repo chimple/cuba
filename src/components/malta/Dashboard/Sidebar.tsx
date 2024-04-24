@@ -1,9 +1,9 @@
 import { t } from "i18next";
 import React, { useState } from "react";
 import { useHistory } from "react-router";
-import { PAGES } from "../../common/constants";
-import ProfileDetails from "./ProfileDetails";
-import "./Sidebar.css"; 
+import { PAGES } from "../../../common/constants";
+import ProfileDetails from "../ProfileDetails";
+import "./Sidebar.css";
 interface SidebarProps {
   isOpen: boolean;
   toggleSidebar: () => void;
@@ -22,7 +22,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         X
       </button>
       <div className="profile-section" onClick={navigateToProfile}>
-      <ProfileDetails imgSrc="" width="auto" height="10vh" />
+        <ProfileDetails imgSrc="" width="auto" height="10vh" />
         <div className="profile-name-in-sidebar">John Doe </div>
         <div className="profile-email-in-sidebar">john.doe@example.com</div>
         <select className="profile-dropdown-in-sidebar">

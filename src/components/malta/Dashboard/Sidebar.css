@@ -1,0 +1,35 @@
+.sidebar .profile-dropdown {
+  background-color: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  padding: 2px 8px 2px 2px;
+}
+
+.profile-name-in-sidebar {
+  font-size: 3vh;
+}
+.profile-email-in-sidebar {
+  font-size: 3vh;
+}
+.profile-dropdown-in-sidebar {
+  background-color: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  padding: 2px 8px 2px 2px;
+}
+
+.profile-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.profile-section > * {
+  margin-left: 0;
+}
+
+.profile-dropdown-in-sidebar {
+  width: 100%;
+}
