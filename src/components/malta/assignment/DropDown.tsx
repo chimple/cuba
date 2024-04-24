@@ -11,15 +11,18 @@ const DropDown: React.FC<{
   onValueChange;
   placeholder: string | undefined;
   width: string;
-}> = ({ optionList, currentValue = placeholderTextItem, onValueChange }) => {
+}> = ({ optionList, currentValue = placeholderTextItem, onValueChange, placeholder }) => {
   return (
     <Select
       className="dropdown-outer"
       onChange={(evt) => {
-        onValueChange(evt.target);
+        onValueChange(evt.target.value);
       }}
       value={currentValue}
     >
+      <MenuItem hidden={true} value={placeholderTextItem} >
+        {placeholder}
+      </MenuItem>
       {optionList.map((option, index) => (
         <MenuItem
           className="dropdown-item"
