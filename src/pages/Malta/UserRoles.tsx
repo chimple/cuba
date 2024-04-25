@@ -4,11 +4,12 @@ import { useHistory } from 'react-router-dom';
 import BackButton from '../../components/common/BackButton';
 import "./UserRoles.css"
 import { USERTYPES } from '../../common/constants';
-import DisplayUsers from '../../components/userRoles/DisplayUsers';
+import DisplayUsers from '../../components/DisplayUsers';
 import UserTabs from '../../components/userRoles/UserTabs';
-import UserActionButton from '../../components/userRoles/UserActionButton';
 import AddUserPopUp from '../../components/userRoles/AddUserPopUp';
 import { t } from 'i18next';
+import CircularButton from '../../components/CircularButton';
+import User from '../../models/user';;
 
 interface UserRolesProps {
 
@@ -18,6 +19,7 @@ const UserRoles: React.FC<UserRolesProps> = () => {
   const [tabIndex, setTabIndex] = useState(USERTYPES.PRINCIAPAL);
   const [showPopUp, setShowPopUP] = useState(false);
   const [users, setUsers] = useState([]);
+  var usersd:User[] = [];
  
   const onTabChange = (event, newValue) => {
     setTabIndex(newValue);
@@ -40,15 +42,15 @@ const UserRoles: React.FC<UserRolesProps> = () => {
       </AppBar>
       <div>
         <UserTabs userType={tabIndex} onChange={onTabChange} />
-        <DisplayUsers users={users} />
+        <DisplayUsers users={usersd} />
         <div className='vertical-line-container'>
           <div className="vertical-line"></div>
         </div>
         <div className='user-action-buttons'>
-          <UserActionButton isAddAction={true} onClick={() => { 
+          <CircularButton isAddAction={true} onClick={() => { 
              setShowPopUP(true);
           }} />
-          <UserActionButton isAddAction={false} onClick={() => {
+          <CircularButton isAddAction={false} onClick={() => {
 
           }} />
           {showPopUp && <AddUserPopUp showDialogBox={showPopUp} handleClose={() => {
