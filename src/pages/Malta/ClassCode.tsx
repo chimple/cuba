@@ -16,13 +16,11 @@ const ClassCode: React.FC<ClassCodeProps> = () => {
     const screenRef = useRef(null);
 
     const captureScreen = () => {
-        console.log('**************')
         const screen = screenRef.current;
         if (!screen) return null;
         html2canvas(screen)
           .then((canvas) => {
             const base64Image = canvas.toDataURL();
-            console.log('FFFFFFFFFFFFFFFFF',base64Image)
             const whatsappURL = `whatsapp://send?text=Check%20out%20this%20image&attachment=${base64Image}`;
             window.open(whatsappURL);
           })

@@ -1,12 +1,12 @@
 import React from 'react';
 import { IoIosAddCircle, IoIosRemoveCircle } from 'react-icons/io';
 
-interface UserActionButtonProps {
+interface CircularButtonProps {
   onClick: () => void;
   isAddAction: boolean;
 }
 
-const UserActionButton: React.FC<UserActionButtonProps> = ({ onClick, isAddAction }) => {
+const CircularButton: React.FC<CircularButtonProps> = ({ onClick, isAddAction }) => {
   return (
     <div>
       {isAddAction ? (
@@ -18,4 +18,4 @@ const UserActionButton: React.FC<UserActionButtonProps> = ({ onClick, isAddActio
   );
 };
 
-export default UserActionButton;
+export default CircularButton;
