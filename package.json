@@ -49,6 +49,7 @@
     "cordova-support-android-plugin": "^2.0.4",
     "cuba": "file:",
     "firebase": "^9.19.1",
+    "html2canvas": "^1.4.1",
     "i18next": "^22.4.1",
     "i18next-browser-languagedetector": "^7.0.1",
     "i18next-http-backend": "^2.1.0",
