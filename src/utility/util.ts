@@ -895,7 +895,52 @@ export class Util {
         url.searchParams.set("isReload", "true");
         url.searchParams.delete(CONTINUE);
         window.history.replaceState(window.history.state, "", url.toString());
+        Util.checkingIfGameCanvasAvailable();
       }
+    }
+  };
+
+  public static checkingIfGameCanvasAvailable = () => {
+    const canvas = document.getElementById("GameCanvas") as HTMLCanvasElement;
+    if (canvas) {
+      const webgl2Context = canvas.getContext("webgl");
+      canvas.addEventListener(
+        "webglcontextlost",
+        function (event) {
+          // inform WebGL that we handle context restoration
+          console.log("WebGl webglcontextlost in cocosGame.tsx");
+          event.preventDefault();
+          if (webgl2Context) {
+            const rest = webgl2Context.getExtension("WEBGL_lose_context");
+
+            // Reloading cocos Game if GameCanvas buffer is not restored
+            if (!rest) {
+              window.location.reload();
+            }
+            if (rest) {
+              rest.loseContext();
+            }
+          }
+        },
+        false
+      );
+      canvas.addEventListener(
+        "webglcontextrestored",
+        function (event) {
+          // inform WebGL that we handle context restoration
+          console.log("WebGl webglcontextrestored in cocosGame.tsx");
+          event.preventDefault();
+
+          if (webgl2Context) {
+            const rest = webgl2Context.getExtension("WEBGL_lose_context");
+
+            if (rest) {
+              rest.restoreContext();
+            }
+          }
+        },
+        false
+      );
     }
   };
 
@@ -917,7 +962,7 @@ export class Util {
     console.log("setCurrentStudent called", student);
 
     const api = ServiceConfig.getI().apiHandler;
-      api.currentStudent = student !== null ? student : undefined;
+    api.currentStudent = student !== null ? student : undefined;
 
     localStorage.setItem(
       CURRENT_STUDENT,
@@ -953,12 +998,11 @@ export class Util {
     if (!!isStudent) await i18n.changeLanguage(tempLangCode);
 
     //Setting Student Id in User Properites
-    if(student)
-    await FirebaseAnalytics.setUserId({
-      userId: student?.docId,
-    });
-    if(student)
-    await Util.setUserProperties(student);
+    if (student)
+      await FirebaseAnalytics.setUserId({
+        userId: student?.docId,
+      });
+    if (student) await Util.setUserProperties(student);
   };
 
   public static randomBetween(min, max) {
