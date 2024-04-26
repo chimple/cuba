@@ -1,0 +1,20 @@
+.teacher-img {
+    height: 7vh;
+    width: 7vh;
+    border-radius: 100%;
+}
+.header {
+    display: flex;
+    flex-direction: row;
+}
+.teacher-details{
+    padding-left: 10px;
+    text-align: center;
+}
+.teacher-name{
+    font-weight: bold;
+    font-size: x-large;
+}
+.class-name{
+    font-size: large;
+}
