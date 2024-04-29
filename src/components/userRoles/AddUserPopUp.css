@@ -1,0 +1,35 @@
+.dialog-box {
+    display: flex;
+    flex-direction: column;
+}
+
+.search-text-bar {
+    display: flex;
+    align-items: center;
+}
+
+.search-text {
+    flex: 1;
+    text-align: center;
+}
+
+.close-icon {
+    margin-right: auto;
+}
+
+.search-field {
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    margin-left: 8px;
+}
+.use-another-search {
+    margin-left: 1px;
+    background-color: transparent;
+    color:black ;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+  }

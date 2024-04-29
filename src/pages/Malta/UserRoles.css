@@ -1,0 +1,29 @@
+.users-page {
+  background-color: white;
+  height: 100vh;
+}
+
+.back-button-in-users {
+  position: absolute;
+  margin: 10px;
+  margin-right: 0;
+}
+
+.app-bar-title {
+  font-size: 3vh;
+}
+
+.vertical-line {
+  border: 1px solid black;
+  width: 100%;
+  margin: '10px';
+}
+
+.vertical-line-container {
+  padding: 0 20px;
+  /* Adjust the left and right padding as needed */
+}
+.user-action-buttons {
+  display: flex;
+  justify-content: center;
+}
