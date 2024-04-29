@@ -92,6 +92,11 @@
   margin: 1vw;
   max-width: 70vh;
 }
+.section-title-in-teacher-profile{
+  font-size: 4vh;
+  white-space: nowrap;
+  padding-right: 21vw;
+}
 
 
 .profile-name-in-teacher-profile {
