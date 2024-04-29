@@ -59,6 +59,15 @@ export enum LEADERBOARD_REWARD_LIST {
   STICKER = "STICKERS",
 }
 
+export enum USERTYPES {
+  COORDINATORS = "Coordinators",
+  PRINCIAPAL = "Principal",
+  SPONSORS = "Sponsors",
+  TEACHERS = "Teachers",
+  STUDENTS = 'Students'
+}
+
+
 export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu";
 export const grade1 = "R5sDh8LKKBx7D7o1MMl0";
 export const grade2 = "al0OqObeTBK3OFWSyDOg";
