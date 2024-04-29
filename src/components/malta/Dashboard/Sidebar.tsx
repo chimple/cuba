@@ -22,7 +22,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         X
       </button>
       <div className="profile-section" onClick={navigateToProfile}>
-        <ProfileDetails imgSrc="" width="auto" height="10vh" />
+        <ProfileDetails imgSrc="" width="10vw" height="10vh" />
         <div className="profile-name-in-sidebar">John Doe </div>
         <div className="profile-email-in-sidebar">john.doe@example.com</div>
         <select className="profile-dropdown-in-sidebar">

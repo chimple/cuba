@@ -16,6 +16,7 @@
   width: 100%;
   max-width: 20em;
   box-sizing: border-box;
+  font-size: 2vh;
 }
 .view-button-container {
   padding-bottom: 2vh;

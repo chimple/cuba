@@ -77,6 +77,7 @@ import TeacherProfile from "./pages/Malta/TeacherProfile";
 import React from "react";
 import StudentProfile from "./pages/Malta/StudentProfile";
 import AddStudent from "./pages/Malta/AddStudent";
+import Dashboard from "./pages/Malta/Dashboard";
 
 setupIonicReact();
 interface ExtraData {

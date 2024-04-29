@@ -10,10 +10,10 @@ interface ProfileDetailsProps {
 }
 
 const ProfileDetails: React.FC<ProfileDetailsProps> = ({
-  width = '100px', // default width if not provided
-  height = '100px', // default height if not provided
+  width = '100px', 
+  height = '100px', 
   imgSrc,
-  imgAlt = 'Profile',
+  imgAlt = '',
   className
 }) => {
   return (

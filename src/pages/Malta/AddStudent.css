@@ -3,21 +3,27 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
   position: relative;
   color: black;
   padding: 2vw;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 0;
 }
 
 .header-for-add-student {
   background-color: #fffbec;
-  width: 100vw;
-  margin-top: -4vh;
-  padding-bottom: 3vh;
+  width: 100%;
+  margin-top: 0;
+  /* padding-bottom: 3vh; */
 }
 .title {
-  padding: 0.001vw;
+  /* padding: 0.001vw; */
+  font-size: 250%;
+  margin: 1.2%;
+  align-items: center;
 }
 
 .button-container {

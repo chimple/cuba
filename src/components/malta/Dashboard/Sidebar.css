@@ -7,10 +7,20 @@
 }
 
 .profile-name-in-sidebar {
-  font-size: 3vh;
+  font-size: 90%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  color: black;
 }
 .profile-email-in-sidebar {
-  font-size: 3vh;
+  font-size: 90%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  color: black;
 }
 .profile-dropdown-in-sidebar {
   background-color: transparent;
@@ -18,6 +28,11 @@
   color: inherit;
   cursor: pointer;
   padding: 2px 8px 2px 2px;
+  color: black;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 .profile-section {

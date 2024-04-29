@@ -4,11 +4,15 @@ import Sidebar from "../../components/malta/Dashboard/Sidebar";
 import Dropdowns from "../../components/malta/Dropdowns";
 import DashboardStats from "../../components/malta/Dashboard/DashboardStats";
 import { t } from "i18next";
+import FloatingMenuItems from "../../components/malta/Dashboard/FloatingMenuItems";
+import FloatingButton from "../../components/malta/Dashboard/FloatingButton";
 
 const Dashboard: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [areMenuItemsOpen, setAreMenuItemsOpen] = useState(false);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  const toggleMenuItems = () => setAreMenuItemsOpen(!areMenuItemsOpen);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -45,7 +49,8 @@ const Dashboard: React.FC = () => {
         <button className="sending-report">{t("Send Report")}</button>
       </div>
       <DashboardStats />
-      <button className="floating-button">+</button>
+      <FloatingButton onClick={toggleMenuItems} />{" "}
+      <FloatingMenuItems isOpen={areMenuItemsOpen} />{" "}
     </>
   );
 };

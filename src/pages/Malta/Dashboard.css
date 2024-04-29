@@ -24,6 +24,7 @@
   border-radius: 1vw;
   background-color: #dde4f2;
   cursor: pointer;
+  color: black;
 }
 
 .hamburger-icon {
@@ -55,6 +56,7 @@
   transition: transform 0.3s ease;
   transform: translateX(-100%);
   align-items: center;
+  overflow-x: hidden;
 }
 
 .sidebar.open {
@@ -88,7 +90,7 @@
   display: block;
   cursor: pointer;
   outline: none;
-  font-size: 2.2vh;
+  font-size: 90%;
   flex-wrap: nowrap;
   color: black;
 }
