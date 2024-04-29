@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
-import { AppBar} from '@mui/material';
+import { AppBar } from '@mui/material';
 import { useHistory } from 'react-router-dom';
 import BackButton from '../../components/common/BackButton';
 import "./UserRoles.css"
 import { USERTYPES } from '../../common/constants';
-import DisplayUsers from '../../components/DisplayUsers';
 import UserTabs from '../../components/userRoles/UserTabs';
 import AddUserPopUp from '../../components/userRoles/AddUserPopUp';
 import { t } from 'i18next';
 import CircularButton from '../../components/CircularButton';
-import User from '../../models/user';;
-
+import User from '../../models/user'; import UserImageWithName from '../../components/UserImageWithName';
 interface UserRolesProps {
 
 }
@@ -18,9 +16,7 @@ const UserRoles: React.FC<UserRolesProps> = () => {
   const history = useHistory();
   const [tabIndex, setTabIndex] = useState(USERTYPES.PRINCIAPAL);
   const [showPopUp, setShowPopUP] = useState(false);
-  const [users, setUsers] = useState([]);
-  var usersd:User[] = [];
- 
+  const [users, setUsers] = useState<User[]>([]);
   const onTabChange = (event, newValue) => {
     setTabIndex(newValue);
   };
@@ -42,13 +38,17 @@ const UserRoles: React.FC<UserRolesProps> = () => {
       </AppBar>
       <div>
         <UserTabs userType={tabIndex} onChange={onTabChange} />
-        <DisplayUsers users={usersd} />
+        <div className="all-users-display">
+          {users.map((user) => (
+            <UserImageWithName userDocId={user.docId} userName={user.name} userImgPath={'assets/avatars/armydog.png'} />
+          ))}
+        </div>
         <div className='vertical-line-container'>
           <div className="vertical-line"></div>
         </div>
         <div className='user-action-buttons'>
-          <CircularButton isAddAction={true} onClick={() => { 
-             setShowPopUP(true);
+          <CircularButton isAddAction={true} onClick={() => {
+            setShowPopUP(true);
           }} />
           <CircularButton isAddAction={false} onClick={() => {
 
