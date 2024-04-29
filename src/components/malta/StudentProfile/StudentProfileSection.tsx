@@ -1,17 +1,17 @@
 import React from "react";
 
-const StudentProfileSection = () => {
+const StudentProfileSection = ({ school, className, gender, age, classCode }) => {
   return (
     <>
-        <h2 className="section-title">Student Profile</h2>
-        <div className="student-profile-section">
-          <div className="profile-lines-container">
-            <div className="profile-line">School: ABC School</div>
-            <div className="profile-line">Class: 1st Standard</div>
-            <div className="profile-line">Gender: Male</div>
-            <div className="profile-line">Age: 7</div>
-            <div className="profile-line">Class Code: 123456</div>
-          </div>
+      <h2 className="section-title">Student Profile</h2>
+      <div className="student-profile-section">
+        <div className="profile-lines-container">
+          <div className="profile-line">School: {school}</div>
+          <div className="profile-line">Class: {className}</div>
+          <div className="profile-line">Gender: {gender}</div>
+          <div className="profile-line">Age: {age}</div>
+          <div className="profile-line">Class Code: {classCode}</div>
+        </div>
       </div>
     </>
   );

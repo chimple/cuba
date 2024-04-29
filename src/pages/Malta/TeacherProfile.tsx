@@ -3,8 +3,8 @@ import { useHistory } from "react-router-dom";
 import "./TeacherProfile.css";
 import { PAGES } from "../../common/constants";
 import ProfileDetails from "../../components/malta/ProfileDetails";
-import TeacherProfileSection from "../../components/malta/TeacherProfile/TeacherProfileSection";
 import LogoutSection from "../../components/malta/TeacherProfile/LogoutSection";
+import TeacherProfileSection from "../../components/malta/TeacherProfile/TeacherProfileSection";
 
 const TeacherProfile = () => {
   const history = useHistory();
@@ -29,7 +29,7 @@ const TeacherProfile = () => {
       <div className="profile-email-in-teacher-profile">
         john.doe@example.com
       </div>
-      <TeacherProfileSection />
+      <TeacherProfileSection schoolName="ABC School" className="10th Grade" />
       <div className="logout-container">
         <LogoutSection />
       </div>

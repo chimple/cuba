@@ -26,7 +26,13 @@ const StudentProfile = () => {
         />
         <div className="profile-name">John Doe </div>
       </div>
-      <StudentProfileSection />
+      <StudentProfileSection
+        school="ABC School"
+        className="1st Class"
+        gender="Male"
+        age={7}
+        classCode="123456"
+      />
       <hr className="horizontal-line-for-view-button-container" />
       <div className="view-button-container">
         <div className="view-button-info">
