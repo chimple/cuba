@@ -63,7 +63,8 @@ export enum USERTYPES {
   COORDINATORS = "Coordinators",
   PRINCIAPAL = "Principal",
   SPONSORS = "Sponsors",
-  TEACHERS = "Teachers"
+  TEACHERS = "Teachers",
+  STUDENTS = 'Students'
 }
 
 

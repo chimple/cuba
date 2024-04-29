@@ -1,13 +1,20 @@
-.users-page {
+.container {
   background-color: white;
   height: 100vh;
 }
 
-.back-button-in-users {
+.back-button {
   position: absolute;
-  margin: 10px;
+  margin: var(--margin);
   margin-right: 0;
 }
+
+.vertical-line {
+  border: 1px solid black;
+  width: 100%;
+  margin: '10px';
+}
+
 .all-users-display {
   display: grid;
   gap: min(10px, 1vh);
@@ -18,23 +25,14 @@
   height: 50vh;
   margin: 10%;
   grid-template-columns: repeat(auto-fill,
-          minmax(clamp(80px, 40vh, 40px), 1fr));
-}
-
-.app-bar-title {
-  font-size: 3vh;
-}
-
-.vertical-line {
-  border: 1px solid black;
-  width: 100%;
-  margin: '10px';
+      minmax(clamp(80px, 40vh, 40px), 1fr));
 }
 
 .vertical-line-container {
   padding: 0 20px;
   /* Adjust the left and right padding as needed */
 }
+
 .user-action-buttons {
   display: flex;
   justify-content: center;
