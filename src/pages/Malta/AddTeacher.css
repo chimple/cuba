@@ -1,0 +1,78 @@
+#searchbar {
+  width: clamp(350px, 45vw, 750px);
+  border-radius: 20px;
+  height: clamp(50px, 18vh, 100px);
+  background-color: white;
+  font-size: 30px;
+  border: none;
+  padding-left: 3vw;
+}
+.searchbar-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 5vh;
+  width: 60vw;
+  border-radius: 25px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.search-icon {
+  color: black;
+}
+.header-class {
+  top: 0;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  background-color: antiquewhite;
+  height: clamp(60px, 25vh, 110px);
+}
+.line {
+  width: 100%;
+  height: 2px;
+  background-color: black;
+  margin-top: 5vh;
+}
+.container {
+  display: flex;
+  width: clamp(400px, 60vw, 800px);
+  flex-direction: column;
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  color: black;
+  background-color: antiquewhite;
+  border-radius: 20px;
+  align-items: center;
+  padding-bottom: 4vh;
+  row-gap: 3vh;
+}
+.add-teacher-button {
+  width: clamp(100px, 20vw, 200px);
+  height: clamp(50px, 5vw, 200px);
+  background-color: rgb(228, 183, 91);
+  color: black;
+  border-radius: 10px;
+  border: none;
+}
+.phone-number-search {
+  margin-left: 32vw;
+}
+.search-text {
+  color: black;
+  text-align: start;
+  font-size: 30px;
+  margin-left: 4vw;
+}
+.profile {
+  display: flex;
+  gap: 2vw;
+}
+.profile-image {
+  width: 100%;
+}
+.profile-details {
+  margin-top: 2vh;
+}

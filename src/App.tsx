@@ -74,6 +74,7 @@ import { useTtsAudioPlayer } from "./components/animation/animationUtils";
 import { ServiceConfig } from "./services/ServiceConfig";
 import User from "./models/user";
 import React from "react";
+import AddTeacher from "./pages/Malta/AddTeacher";
 
 setupIonicReact();
 interface ExtraData {
@@ -347,6 +348,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.LIVE_QUIZ_LEADERBOARD} exact={true}>
               <LiveQuizLeaderBoard />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_TEACHER} exact={true}>
+              <AddTeacher />
             </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>

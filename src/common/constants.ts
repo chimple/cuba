@@ -316,6 +316,7 @@ export enum PAGES {
   LIVE_QUIZ_GAME = "/live-quiz-game",
   LIVE_QUIZ_ROOM_RESULT = "/live-quiz-room-result",
   LIVE_QUIZ_LEADERBOARD = "/live-quiz-leaderboard",
+  ADD_TEACHER = "/add-teacher",
 }
 
 export enum LANG {
