@@ -23,32 +23,33 @@ const meta = {
             },
         },
     },
-    args: { userType: USERTYPES.PRINCIAPAL },
+    args: { userType: USERTYPES.PRINCIAPAL,onChange:fn() },
 } satisfies Meta<typeof UserTabs>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Principal: Story = {
     args: {
         userType: USERTYPES.PRINCIAPAL,
-        onChange(event, newValu) {
-
-        },
     },
 };
 export const Coordinators: Story = {
     args: {
         userType: USERTYPES.COORDINATORS,
-        onChange(event, newValu) {
-
-        },
     },
 };
 export const Sponsors: Story = {
     args: {
         userType: USERTYPES.SPONSORS,
-        onChange(event, newValu) {
-
-        },
     },
 };
+export const Students: Story = {
+    args: {
+        userType: USERTYPES.STUDENTS,
+    },
+};
+export const Teachers: Story = {
+    args: {
+        userType: USERTYPES.TEACHERS,
+    },
+}
 
