@@ -58,9 +58,9 @@ const CocosGame: React.FC = () => {
       ],
     });
   };
-  Util.checkingIfGameCanvasAvailable();
   useEffect(() => {
     init();
+    Util.checkingIfGameCanvasAvailable();
     CapApp.addListener("appStateChange", handleAppStateChange);
     return () => {
       CapApp.removeAllListeners();
