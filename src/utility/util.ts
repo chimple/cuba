@@ -820,7 +820,7 @@ export class Util {
   public static async setUserProperties(currentUser: User) {
     try {
       await FirebaseAnalytics.setUserProperty({
-        name: "parent user_id",
+        name: "parent_user_id",
         value: currentUser.docId,
       });
       await FirebaseAnalytics.setUserProperty({
