@@ -1,8 +1,8 @@
 import { FC, useState } from "react";
-import AssignButton from './AssignButton';
+import AssignButton from "./AssignButton";
 import Lesson from "../../../models/lesson";
-import CourseChapterDropDown from './CourseChapterDropDown';
-import DisplayLesson from './DisplayLesson';
+import CourseChapterDropDown from "./CourseChapterDropDown";
+import DisplayLesson from "./DisplayLesson";
 import Course from "../../../models/course";
 
 const AssignmentTab: FC<{

@@ -7,7 +7,7 @@ import {
 } from "@ionic/react";
 import { t } from "i18next";
 import { calendar } from "ionicons/icons";
-import './DateTimePicker.css'
+import "./DateTimePicker.css";
 
 const DateTimePicker = () => {
   return (

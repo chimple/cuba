@@ -13,7 +13,12 @@ import {
   IonToolbar,
 } from "@ionic/react";
 import { t } from "i18next";
-import { DISPLAY_SUBJECTS_STORE, MODES, PAGES } from "../../common/constants";
+import {
+  ASSIGNMENTTAB_LIST,
+  DISPLAY_SUBJECTS_STORE,
+  MODES,
+  PAGES,
+} from "../../common/constants";
 import "../DisplaySubjects.css";
 import "../DisplayChapters.css";
 import "./Assignment.css";
@@ -30,6 +35,8 @@ import Lesson from "../../models/lesson";
 import AssignmentTab from "../../components/malta/assignment/AssignmentTab";
 import RecommendedTab from "../../components/malta/assignment/RecommendedTab";
 import QuizTab from "../../components/malta/assignment/QuizTab";
+import AssignmentTabList from "../../components/malta/assignment/AssignmentTabList";
+import AssignmentAppBar from "../../components/malta/assignment/AssignmentAppBar";
 
 const localData: any = {};
 let localStorageData: any = {};
@@ -41,7 +48,7 @@ const Assignment: React.FC = () => {
     LESSONS,
   }
 
-  const [activeTab, setActiveTab] = useState("tabRecommended");
+  const [activeTab, setActiveTab] = useState(ASSIGNMENTTAB_LIST.RECOMMENDED);
   const [value, setValue] = React.useState(0);
   const [stage, setStage] = useState(STAGES.SUBJECTS);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -190,29 +197,17 @@ const Assignment: React.FC = () => {
   return (
     <IonPage style={{ backgroundColor: "white" }}>
       <IonHeader>
-        <IonToolbar>
-          <IonButtons slot="start">
-            <IonBackButton defaultHref="#"></IonBackButton>
-          </IonButtons>
-          <IonTitle>{t("Assignment")}</IonTitle>
-        </IonToolbar>
-        <IonSegment value="all" onIonChange={segmentChanged}>
-          <IonSegmentButton value="tabRecommended">
-            <IonLabel>Recommended</IonLabel>
-          </IonSegmentButton>
-          <IonSegmentButton value="tabAssignment">
-            <IonLabel>Assignment</IonLabel>
-          </IonSegmentButton>
-          <IonSegmentButton value="tabQuiz">
-            <IonLabel>Live Quiz</IonLabel>
-          </IonSegmentButton>
-        </IonSegment>
+        <AssignmentAppBar />
+        <AssignmentTabList
+          tabHeader={activeTab}
+          segmentChanged={segmentChanged}
+        ></AssignmentTabList>
       </IonHeader>
-      {activeTab == "tabRecommended" && (
+      {activeTab == ASSIGNMENTTAB_LIST.RECOMMENDED && (
         <RecommendedTab lessons={lessons!}></RecommendedTab>
       )}
 
-      {activeTab == "tabAssignment" && (
+      {activeTab == ASSIGNMENTTAB_LIST.ASSIGNMENT && (
         <AssignmentTab
           courses={courses!}
           lessons={lessons!}
@@ -222,7 +217,7 @@ const Assignment: React.FC = () => {
         ></AssignmentTab>
       )}
 
-      {activeTab == "tabQuiz" && (
+      {activeTab == ASSIGNMENTTAB_LIST.LIVEQUIZ && (
         <QuizTab
           courses={courses!}
           liveQuizLessons={liveQuizLessons!}

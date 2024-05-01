@@ -1,11 +1,11 @@
 .dropdown-outer {
-    height: 5vh;
-    width: 20vh;
-    position: relative;
-    align-self: center;
-    border-radius: 30px;
-    background-color: #fff8e9;
+  height: 5vh;
+  width: 20vh;
+  position: relative;
+  align-self: center;
+  border-radius: 30px;
+  background-color: #fff8e9;
 }
 .dropdown-item {
-    background-color: transparent;   
+  background-color: transparent;
 }

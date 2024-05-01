@@ -1,10 +1,10 @@
 import { FC, useState } from "react";
-import AssignButton from './AssignButton';
+import AssignButton from "./AssignButton";
 import Lesson from "../../../models/lesson";
-import CourseChapterDropDown from './CourseChapterDropDown';
-import DisplayLesson from './DisplayLesson';
+import CourseChapterDropDown from "./CourseChapterDropDown";
+import DisplayLesson from "./DisplayLesson";
 import Course from "../../../models/course";
-import DateTimePicker from './DateTimePicker';
+import DateTimePicker from "./DateTimePicker";
 import { t } from "i18next";
 
 const QuizTab: FC<{

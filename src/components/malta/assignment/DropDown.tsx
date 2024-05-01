@@ -1,17 +1,24 @@
 import { MenuItem, Select } from "@mui/material";
 import "./DropDown.css";
 
-const placeholderTextItem = "placeholderText";
-const DropDown: React.FC<{
+const placeholderTextItem = "select";
+
+interface DropDownProps {
   optionList: {
     id: string;
     displayName: string;
   }[];
   currentValue: string | undefined;
-  onValueChange;
+  onValueChange: (evt) => void;
   placeholder: string | undefined;
   width: string;
-}> = ({ optionList, currentValue = placeholderTextItem, onValueChange, placeholder }) => {
+}
+const DropDown: React.FC<DropDownProps> = ({
+  optionList,
+  currentValue = placeholderTextItem,
+  onValueChange,
+  placeholder,
+}) => {
   return (
     <Select
       className="dropdown-outer"
@@ -20,15 +27,11 @@ const DropDown: React.FC<{
       }}
       value={currentValue}
     >
-      <MenuItem hidden={true} value={placeholderTextItem} >
+      <MenuItem hidden={true} value={placeholderTextItem}>
         {placeholder}
       </MenuItem>
       {optionList.map((option, index) => (
-        <MenuItem
-          className="dropdown-item"
-          key={index}
-          value={option.id}
-        >
+        <MenuItem className="dropdown-item" key={index} value={option.id}>
           {option.displayName}
         </MenuItem>
       ))}

@@ -5,6 +5,7 @@ import { t } from "i18next";
 import Lesson from "../../../models/lesson";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import { BsFillCheckCircleFill } from "react-icons/bs";
+import LessonIcon from "./LessonIcon";
 
 const DisplayLesson: FC<{
   lessons: Lesson[];
@@ -55,26 +56,13 @@ const DisplayLesson: FC<{
               key={lesson.lesson.id}
             >
               <div className="lesson-icon-container">
-                <div className="lesson-icon">
-                  {lesson.selected ? (
-                    <div className="lesson-select-icon">
-                      <BsFillCheckCircleFill color={"grey"} size="2vh" />
-                    </div>
-                  ) : null}
-                  <SelectIconImage
-                    localSrc={
-                      "courses/" +
-                      lesson.lesson.cocosSubjectCode +
-                      "/icons/" +
-                      lesson.lesson.id +
-                      ".webp"
-                    }
-                    defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
-                    webSrc={lesson.lesson.thumbnail}
-                  />
-                </div>
-
-                <div className="lesson-title">{t(lesson.lesson.title)}</div>
+                <LessonIcon
+                  id={lesson.lesson.id!}
+                  cocosSubjectCode={lesson.lesson.cocosSubjectCode!}
+                  thumbnail={lesson.lesson.thumbnail!}
+                  selected={lesson.selected}
+                  title={lesson.lesson.title}
+                ></LessonIcon>
               </div>
             </div>
           );

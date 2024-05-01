@@ -2,13 +2,8 @@ import { t } from "i18next";
 import "./RecommendedAssignment.css";
 import { Box } from "@mui/material";
 import React from "react";
-import {
-  IonCard,
-  IonCardContent,
-  IonCardHeader,
-  IonCardSubtitle,
-  IonCheckbox,
-} from "@ionic/react";
+import SubjectCard from "./ChapterCard";
+import SelectAll from "./SelectAll";
 
 const RecommendedAssignment: React.FC<{
   infoText: string;
@@ -59,7 +54,7 @@ const RecommendedAssignment: React.FC<{
     <div className="display-card">
       <div className="recommended-text">{t(infoText)}</div>
       <div className="select-all">
-        <IonCheckbox labelPlacement="start">{t("Select All")}</IonCheckbox>
+        <SelectAll />
       </div>
       <div className="recommended-content">
         {subjects.map((data) => {
@@ -68,37 +63,10 @@ const RecommendedAssignment: React.FC<{
               <div className="recommended-subject-header">{t(data.title)}</div>
               {data.chapters.map((chapter) => {
                 return (
-                  <Box
-                    sx={{
-                      width: "100vw",
-                      maxWidth: "93%",
-                      borderRadius: 20,
-                    }}
-                  >
-                    <IonCard>
-                      <IonCardHeader>
-                        <div style={{ display: "flex" }}>
-                          <IonCardSubtitle>{t(chapter.title)}</IonCardSubtitle>
-                        </div>
-                      </IonCardHeader>
-                      <IonCardContent>
-                        {chapter.lessons.map((lesson) => {
-                          return (
-                            <div
-                              className="recommended-lesson"
-                            >
-                              <IonCheckbox
-                                justify="space-between"
-                                color={"white"}
-                              >
-                                {t(lesson.title)}
-                              </IonCheckbox>
-                            </div>
-                          );
-                        })}
-                      </IonCardContent>
-                    </IonCard>
-                  </Box>
+                  <SubjectCard
+                    chapterTitle={chapter.title}
+                    lessons={chapter.lessons}
+                  ></SubjectCard>
                 );
               })}
             </div>
