@@ -14,7 +14,7 @@
   margin-right: 8px;
   transform: scale(1.5);
 }
-.demo9 {
+.class-round-div {
   display: flex;
   flex-direction: row;
   gap: 7vw;

@@ -41,7 +41,7 @@ const SelectClass: React.FC<{
 
   return (
     <div className="switch-class-container">
-      <div className="demo9">
+      <div className="class-round-div">
         {classes?.map((className) => (
           <div key={className}>
             <div className={"class-option1"} />
