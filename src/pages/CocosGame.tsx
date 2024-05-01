@@ -58,9 +58,9 @@ const CocosGame: React.FC = () => {
       ],
     });
   };
-
   useEffect(() => {
     init();
+    Util.checkingIfGameCanvasAvailable();
     CapApp.addListener("appStateChange", handleAppStateChange);
     return () => {
       CapApp.removeAllListeners();
@@ -91,7 +91,7 @@ const CocosGame: React.FC = () => {
         history.replace(fromPath + "&isReload=true");
         window.location.reload();
       } else {
-        history.replace(fromPath);
+        history.replace(fromPath + "&isReload=false");
       }
       setIsLoading(false);
     } else {
