@@ -5,6 +5,7 @@ import "./AddStudent.css";
 import { PAGES } from "../../common/constants";
 import ProfileDetails from "../../components/malta/ProfileDetails";
 import AddStudentSection from "../../components/malta/AddStudent/AddStudentSection";
+import { t } from "i18next";
 
 const AddStudent = () => {
   const history = useHistory();
@@ -20,7 +21,7 @@ const AddStudent = () => {
         X
       </button>
       <div className="header-for-add-student">
-        <h1 className="title">Add Student</h1>
+        <h1 className="title">{t("Add Student")}</h1>
       </div>
       <div className="profile-container-section">
         <ProfileDetails
@@ -32,7 +33,7 @@ const AddStudent = () => {
       <AddStudentSection />
       <div className="button-container">
         <button className="save-button" onClick={handleSave}>
-          Save
+        {t("Save")}
         </button>
       </div>
     </div>

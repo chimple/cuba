@@ -5,6 +5,7 @@ import { PAGES } from "../../common/constants";
 import ProfileDetails from "../../components/malta/ProfileDetails";
 import StudentProfileSection from "../../components/malta/StudentProfile/StudentProfileSection";
 import "./StudentProfile.css";
+import { t } from "i18next";
 
 const StudentProfile = () => {
   const history = useHistory();
@@ -36,10 +37,10 @@ const StudentProfile = () => {
       <hr className="horizontal-line-for-view-button-container" />
       <div className="view-button-container">
         <div className="view-button-info">
-          Click below to view Student's progress
+        {t("Click below to view Student's progress")}
         </div>
         <button className="view-button-in-student-profile">
-          View Progress
+        {t("View Progress")}
         </button>
       </div>
     </div>

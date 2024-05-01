@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import ProfileDetails from "../ProfileDetails";
 import "./AddStudentSection.css";
+import { t } from "i18next";
 
 const AddStudentSection = () => {
   const [fullName, setFullName] = useState("");
@@ -35,7 +36,7 @@ const AddStudentSection = () => {
       <div className="student-profile-section-in-addstudent">
         <div className="profile-container2">
           <div className="profile-row">
-            <label htmlFor="fullName">Full Name:</label>
+            <label htmlFor="fullName">{t("Full Name:")}</label>
             <input
               type="text"
               id="fullName"
@@ -44,13 +45,13 @@ const AddStudentSection = () => {
             />
           </div>
           <div className="profile-row">
-            <label htmlFor="class">Class:</label>
+            <label htmlFor="class">{t("Class:")}</label>
             <select
               id="class"
               value={selectedClass}
               onChange={handleClassChange}
             >
-              <option value="">Select Class</option>
+              <option value="">{t("Select Class")}</option>
               <option value="1st Standard">1st Standard</option>
               <option value="2nd Standard">2nd Standard</option>
               <option value="3rd Standard">3rd Standard</option>
@@ -58,7 +59,7 @@ const AddStudentSection = () => {
             </select>
           </div>
           <div className="profile-row">
-            <label htmlFor="age">Age:</label>
+            <label htmlFor="age">{t("Age:")}</label>
             <input
               type="number"
               id="age"
@@ -67,7 +68,7 @@ const AddStudentSection = () => {
             />
           </div>
           <div className="profile-row">
-            <label htmlFor="studentId">Student ID:</label>
+            <label htmlFor="studentId">{t("Student ID:")}</label>
             <input
               type="text"
               id="studentId"
@@ -76,7 +77,7 @@ const AddStudentSection = () => {
             />
           </div>
           <div className="profile-row">
-            <label htmlFor="studentNumber">Student Number:</label>
+            <label htmlFor="studentNumber">{t("Student Number:")}</label>
             <input
               type="text"
               id="studentNumber"
@@ -85,7 +86,7 @@ const AddStudentSection = () => {
             />
           </div>
           <div className="profile-row gender-line">
-            <label>Gender:</label>
+            <label>{t("Gender:")}</label>
             <div className="gender-options">
               <input
                 type="radio"
@@ -95,7 +96,7 @@ const AddStudentSection = () => {
                 checked={gender === "male"}
                 onChange={handleGenderChange}
               />
-              <label htmlFor="male">Male</label>
+              <label htmlFor="male">{t("Male")}</label>
 
               <input
                 type="radio"
@@ -105,7 +106,7 @@ const AddStudentSection = () => {
                 checked={gender === "female"}
                 onChange={handleGenderChange}
               />
-              <label htmlFor="female">Female</label>
+              <label htmlFor="female">{t("Female")}Female</label>
 
               <input
                 type="radio"
@@ -115,7 +116,7 @@ const AddStudentSection = () => {
                 checked={gender === "other"}
                 onChange={handleGenderChange}
               />
-              <label htmlFor="other">Other</label>
+              <label htmlFor="other">{t("Other")}</label>
             </div>
           </div>
         </div>
