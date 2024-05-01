@@ -36,7 +36,7 @@ const AddStudentSection = () => {
       <div className="student-profile-section-in-addstudent">
         <div className="profile-container2">
           <div className="profile-row">
-            <label htmlFor="fullName">{t("Full Name:")}</label>
+            <label htmlFor="fullName">{t("Full Name")}:</label>
             <input
               type="text"
               id="fullName"
@@ -45,7 +45,7 @@ const AddStudentSection = () => {
             />
           </div>
           <div className="profile-row">
-            <label htmlFor="class">{t("Class:")}</label>
+            <label htmlFor="class">{t("Class")}:</label>
             <select
               id="class"
               value={selectedClass}
@@ -59,7 +59,7 @@ const AddStudentSection = () => {
             </select>
           </div>
           <div className="profile-row">
-            <label htmlFor="age">{t("Age:")}</label>
+            <label htmlFor="age">{t("Age")}:</label>
             <input
               type="number"
               id="age"
@@ -68,7 +68,7 @@ const AddStudentSection = () => {
             />
           </div>
           <div className="profile-row">
-            <label htmlFor="studentId">{t("Student ID:")}</label>
+            <label htmlFor="studentId">{t("Student ID")}:</label>
             <input
               type="text"
               id="studentId"
@@ -77,7 +77,7 @@ const AddStudentSection = () => {
             />
           </div>
           <div className="profile-row">
-            <label htmlFor="studentNumber">{t("Student Number:")}</label>
+            <label htmlFor="studentNumber">{t("Student Number")}:</label>
             <input
               type="text"
               id="studentNumber"
@@ -106,7 +106,7 @@ const AddStudentSection = () => {
                 checked={gender === "female"}
                 onChange={handleGenderChange}
               />
-              <label htmlFor="female">{t("Female")}Female</label>
+              <label htmlFor="female">{t("Female")}</label>
 
               <input
                 type="radio"
