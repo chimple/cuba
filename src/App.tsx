@@ -74,7 +74,6 @@ import { useTtsAudioPlayer } from "./components/animation/animationUtils";
 import { ServiceConfig } from "./services/ServiceConfig";
 import User from "./models/user";
 import React from "react";
-import ClassDetails from "./pages/Malta/Add class details/ChangeClass";
 import ChangeClass from "./pages/Malta/Add class details/ChangeClass";
 
 setupIonicReact();
