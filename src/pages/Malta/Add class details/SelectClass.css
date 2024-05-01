@@ -1,0 +1,72 @@
+.switch-class-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.class-option {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.class-option input[type="radio"] {
+  margin-right: 8px;
+  transform: scale(1.5);
+}
+.demo9 {
+  display: flex;
+  flex-direction: row;
+  gap: 7vw;
+  align-items: center;
+}
+
+.class-option1 {
+  border: 1px solid black;
+  border-radius: 50%;
+  gap: 2vw;
+  display: flex;
+  width: 12vh;
+  height: 12vh;
+}
+.switch-button {
+  width: 30vw;
+  height: 6vh;
+  text-align: center;
+  display: flex;
+  border-radius: 6px;
+  background: #fffbec;
+  margin-bottom: 2vh;
+  flex-direction: column;
+  justify-content: center;
+}
+.class-option.selected {
+  background-color: orange;
+  color: white;
+}
+.classes-name {
+  white-space: nowrap;
+  display: block;
+  max-width: 13vh;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  color: var(--text-color);
+  font-size: var(--font-size);
+  color: var(--text-color);
+}
+
+.tick-mark {
+  font-size: 20px;
+}
+
+.add-class-container {
+  display: flex;
+  flex-direction: row;
+  gap: 5vw;
+  align-items: center;
+  margin-bottom: 1vh;
+}
+.add-class-icon {
+  position: relative;
+  right: 0;
+}

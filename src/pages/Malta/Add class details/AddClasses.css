@@ -1,0 +1,35 @@
+.addclass-header {
+  display: flex;
+  justify-content: space-evenly;
+  margin-bottom: 1vh;
+}
+.addclass-header-text1 {
+  font-size: 20px;
+}
+.dropdown-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px;
+}
+.cancel-icon {
+  position: absolute;
+  top: 5px;
+  right: 0;
+}
+.add-button-div {
+  padding: 2vh;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+}
+.add-button-new {
+  background: #fffbec;
+  height: 6vh;
+  width: 29vw;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}

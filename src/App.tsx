@@ -74,6 +74,8 @@ import { useTtsAudioPlayer } from "./components/animation/animationUtils";
 import { ServiceConfig } from "./services/ServiceConfig";
 import User from "./models/user";
 import React from "react";
+import ClassDetails from "./pages/Malta/Add class details/ChangeClass";
+import ChangeClass from "./pages/Malta/Add class details/ChangeClass";
 
 setupIonicReact();
 interface ExtraData {
@@ -317,6 +319,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.SEARCH} exact={true}>
               <SearchLesson />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.CHANGE_CLASS} exact={true}>
+              <ChangeClass/>
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.LEADERBOARD} exact={true}>
               <Leaderboard />

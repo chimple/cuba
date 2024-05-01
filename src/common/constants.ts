@@ -64,9 +64,8 @@ export enum USERTYPES {
   PRINCIAPAL = "Principal",
   SPONSORS = "Sponsors",
   TEACHERS = "Teachers",
-  STUDENTS = 'Students'
+  STUDENTS = "Students",
 }
-
 
 export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu";
 export const grade1 = "R5sDh8LKKBx7D7o1MMl0";
@@ -317,6 +316,7 @@ export enum PAGES {
   LIVE_QUIZ_GAME = "/live-quiz-game",
   LIVE_QUIZ_ROOM_RESULT = "/live-quiz-room-result",
   LIVE_QUIZ_LEADERBOARD = "/live-quiz-leaderboard",
+  CHANGE_CLASS = "/change-class",
 }
 
 export enum LANG {
