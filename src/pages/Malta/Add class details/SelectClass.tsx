@@ -78,7 +78,7 @@ const SelectClass: React.FC<{
             <AddIcon />
           </Fab>
           <div className="add-class-text">
-            <p className="classes-name">{t("Add class")}</p>
+            <p className="classes-name" style={{ maxWidth: "fit-content" }}>{t("Add class")}</p>
           </div>
         </div>
         <div className="add-class-container">
