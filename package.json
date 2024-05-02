@@ -30,6 +30,7 @@
     "@emotion/styled": "^11.10.8",
     "@ionic/react": "^6.0.0",
     "@ionic/react-router": "^6.0.0",
+    "@mui/icons-material": "^5.15.16",
     "@mui/material": "^5.12.3",
     "@splidejs/react-splide": "^0.7.10",
     "@testing-library/jest-dom": "^5.11.9",

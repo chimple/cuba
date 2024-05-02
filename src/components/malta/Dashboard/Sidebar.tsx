@@ -4,6 +4,8 @@ import { useHistory } from "react-router";
 import { PAGES } from "../../../common/constants";
 import ProfileDetails from "../ProfileDetails";
 import "./Sidebar.css";
+import CloseIcon from "@mui/icons-material/Close";
+
 interface SidebarProps {
   isOpen: boolean;
   toggleSidebar: () => void;
@@ -19,7 +21,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   return (
     <div className={`sidebar ${isOpen ? "open" : ""}`}>
       <button onClick={toggleSidebar} className="close-sidebar">
-        X
+      <CloseIcon />
       </button>
       <div className="profile-section" onClick={navigateToProfile}>
         <ProfileDetails imgSrc="" width="10vw" height="10vh" />

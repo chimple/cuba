@@ -5,8 +5,12 @@ import { PAGES } from "../../common/constants";
 import ProfileDetails from "../../components/malta/ProfileDetails";
 import LogoutSection from "../../components/malta/TeacherProfile/LogoutSection";
 import TeacherProfileSection from "../../components/malta/TeacherProfile/TeacherProfileSection";
+import CloseIcon from "@mui/icons-material/Close";
 
-const TeacherProfile = () => {
+const TeacherProfile: React.FC<{
+  name?: string;
+  email?: string;
+}> = ({ name, email }) => {
   const history = useHistory();
 
   const handleBack = () => {
@@ -16,7 +20,7 @@ const TeacherProfile = () => {
   return (
     <div className="teacher-profile">
       <button className="close-button" onClick={handleBack}>
-        X
+      <CloseIcon />
       </button>
       <div className="profile-container-section">
         <ProfileDetails
@@ -25,9 +29,11 @@ const TeacherProfile = () => {
           height="20vh"
         />
       </div>
-      <div className="profile-name-in-teacher-profile">John Doe </div>
+      <div className="profile-name-in-teacher-profile">
+        {name ? name : "John Doe"}
+      </div>
       <div className="profile-email-in-teacher-profile">
-        john.doe@example.com
+        {email ? email : "john.doe@example.com"}
       </div>
       <TeacherProfileSection schoolName="ABC School" className="10th Grade" />
       <div className="logout-container">

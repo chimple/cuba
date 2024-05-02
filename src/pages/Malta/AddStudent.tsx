@@ -5,6 +5,7 @@ import "./AddStudent.css";
 import { PAGES } from "../../common/constants";
 import ProfileDetails from "../../components/malta/ProfileDetails";
 import AddStudentSection from "../../components/malta/AddStudent/AddStudentSection";
+import CloseIcon from "@mui/icons-material/Close";
 import { t } from "i18next";
 
 const AddStudent = () => {
@@ -18,7 +19,7 @@ const AddStudent = () => {
   return (
     <div className="add-student-page">
       <button className="close-button" onClick={handleBack}>
-        X
+      <CloseIcon />
       </button>
       <div className="header-for-add-student">
         <h1 className="title">{t("Add Student")}</h1>

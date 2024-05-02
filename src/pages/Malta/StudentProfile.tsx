@@ -6,8 +6,11 @@ import ProfileDetails from "../../components/malta/ProfileDetails";
 import StudentProfileSection from "../../components/malta/StudentProfile/StudentProfileSection";
 import "./StudentProfile.css";
 import { t } from "i18next";
+import CloseIcon from "@mui/icons-material/Close";
 
-const StudentProfile = () => {
+const StudentProfile: React.FC<{
+  name?: string;
+}> = ({ name }) => {
   const history = useHistory();
 
   const handleBack = () => {
@@ -17,7 +20,7 @@ const StudentProfile = () => {
   return (
     <div className="teacher-profile">
       <button className="close-button" onClick={handleBack}>
-        X
+        <CloseIcon />
       </button>
       <div className="profile-container-section">
         <ProfileDetails
@@ -25,7 +28,7 @@ const StudentProfile = () => {
           width=""
           height="20vh"
         />
-        <div className="profile-name">John Doe </div>
+        <div className="profile-name">{name ? name : "John Doe"}</div>
       </div>
       <StudentProfileSection
         school="ABC School"
@@ -37,10 +40,10 @@ const StudentProfile = () => {
       <hr className="horizontal-line-for-view-button-container" />
       <div className="view-button-container">
         <div className="view-button-info">
-        {t("Click below to view Student's progress")}
+          {t("Click below to view Student's progress")}
         </div>
         <button className="view-button-in-student-profile">
-        {t("View Progress")}
+          {t("View Progress")}
         </button>
       </div>
     </div>
