@@ -51,7 +51,7 @@
     "cuba": "file:",
     "firebase": "^9.19.1",
     "html2canvas": "^1.4.1",
-    "i18next": "^22.5.1",
+    "i18next": "^22.4.1",
     "i18next-browser-languagedetector": "^7.0.1",
     "i18next-http-backend": "^2.1.0",
     "ionicons": "^6.0.3",
