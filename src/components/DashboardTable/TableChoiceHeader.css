@@ -1,0 +1,18 @@
+.sort-name {
+    position: absolute;
+    bottom: 0;
+    /* Stick to the bottom */
+    left: 0;
+    right: 0;
+    margin: auto;
+    border-top: 1px solid gray;
+    color: gray;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.sort-button {
+    margin-left: 5px;
+}

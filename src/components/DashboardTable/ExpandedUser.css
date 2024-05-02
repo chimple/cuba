@@ -1,0 +1,22 @@
+.expanded-conatiner {
+    display: flex;
+    width: 100vw;
+    flex-direction: row;
+    align-items: center;
+    margin: 20px;
+
+}
+
+.text-container {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: x-large;
+}
+
+.button-style {
+    font-size: medium;
+    margin: 10px;
+    background-color: transparent;
+    color: blue;
+}

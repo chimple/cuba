@@ -67,6 +67,14 @@ export enum USERTYPES {
   STUDENTS = 'Students'
 }
 
+export enum TABLEDROPDOWN {
+  ASSIGNMENTS = "Assignments",
+  MONTHLY = "Monthly",
+  WEEKLY = "Weekly",
+  LIVEQUIZ = "LiveQuiz",
+  CHAPTER = 'Chapter'
+}
+
 
 export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu";
 export const grade1 = "R5sDh8LKKBx7D7o1MMl0";

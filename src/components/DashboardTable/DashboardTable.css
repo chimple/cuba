@@ -1,0 +1,59 @@
+.table-container {
+  overflow-x: auto;
+  width: 100%;
+  display: flex;
+}
+
+.table {
+  width: 100%;
+  display: flex;
+  background-color: white;
+}
+
+.square-cell {
+  height: 50px;
+  width: 50px;
+  text-align: center;
+  vertical-align: middle;
+}
+.square-cell1 {
+  height: 50px;
+  width: 50px;
+  border: 0;
+  text-align: center;
+  vertical-align: middle;
+}
+
+
+table {
+  border: 1px solid grey;
+  width: 100%;
+  margin: 10px;
+
+}
+
+th:first-child,
+td:first-child {
+  min-width: 120px;
+  max-width: 120px;
+  writing-mode: horizontal-tb;
+  transform: rotate(0deg);
+}
+
+th {
+  /* border-bottom: 1px solid grey; */
+  border: 1px solid grey;
+  height: 20vh;
+  transform: rotate(180deg);
+  writing-mode: vertical-rl;
+  font-size: 16px;
+  color: blue;
+}
+
+td {
+  border: 1px solid grey;
+  height: 20px;
+  width: 20px;
+  text-align: center;
+  color: black;
+}
