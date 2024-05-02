@@ -27,9 +27,7 @@ const LessonIcon: FC<LessonIconProps> = ({
         ) : null}
         <SelectIconImage
           localSrc={"courses/" + cocosSubjectCode + "/icons/" + id + ".webp"}
-          defaultSrc={
-            "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/2023-05-17%2009%3A19%3A10.323?alt=media&token=1eb327b1-95f4-46c3-99d3-23cf8c8a62f9"
-          }
+          defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
           webSrc={thumbnail}
         />
       </div>
