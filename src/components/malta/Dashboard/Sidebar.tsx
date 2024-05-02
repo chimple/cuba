@@ -7,11 +7,24 @@ import "./Sidebar.css";
 import CloseIcon from "@mui/icons-material/Close";
 
 interface SidebarProps {
+  name: string;
+  email: string;
   isOpen: boolean;
   toggleSidebar: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
+const classOptions = [
+  { label: "Bharatiya Vidya Mandir", value: "option1" },
+  { label: "2nd Standard", value: "option2" },
+  { label: "3rd Standard", value: "option3" },
+];
+
+const Sidebar: React.FC<SidebarProps> = ({
+  name,
+  email,
+  isOpen,
+  toggleSidebar,
+}) => {
   const history = useHistory();
 
   const navigateToProfile = () => {
@@ -21,15 +34,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   return (
     <div className={`sidebar ${isOpen ? "open" : ""}`}>
       <button onClick={toggleSidebar} className="close-sidebar">
-      <CloseIcon />
+        <CloseIcon />
       </button>
       <div className="profile-section" onClick={navigateToProfile}>
         <ProfileDetails imgSrc="" width="10vw" height="10vh" />
-        <div className="profile-name-in-sidebar">John Doe </div>
-        <div className="profile-email-in-sidebar">john.doe@example.com</div>
+        <div className="profile-name-in-sidebar">{name} </div>
+        <div className="profile-email-in-sidebar">{email}</div>
         <select className="profile-dropdown-in-sidebar">
-          <option value="option1">Bharatiya Vidya Mandir</option>
-          <option value="option2">Option 2</option>
+          {classOptions.map((option, index) => (
+            <option key={index} value={option.value}>
+              {option.label}
+            </option>
+          ))}
         </select>
         <hr className="horizontal-line" />
       </div>

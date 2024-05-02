@@ -14,18 +14,35 @@ const meta: Meta = {
     school: string,
     className: string,
     gender: string,
-    age:number,
-    classCode: string
-
-},
-args: { school: 'ABC School', className: '1st class', gender: 'Male', age: 7, classCode : "12346"},
+    age: number,
+    classCode: string,
+  },
+  args: {
+    school: "ABC School",
+    className: "1st class",
+    gender: "Male",
+    age: 7,
+    classCode: "12346",
+  },
 };
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Test1: Story = {
-    args: {
-        school: 'ABC School', className: '1st class', gender: 'Male', age: 7, classCode : "12346"
-    },
+  args: {
+    school: "ABC School",
+    className: "1st class",
+    gender: "Male",
+    age: 7,
+    classCode: "12346",
+  },
 };
-export const Default = () => <StudentProfileSection school={undefined} className={undefined} gender={undefined} age={undefined} classCode={undefined} />;
+export const Default = () => (
+  <StudentProfileSection
+    school={undefined}
+    className={undefined}
+    gender={undefined}
+    age={undefined}
+    classCode={undefined}
+  />
+);

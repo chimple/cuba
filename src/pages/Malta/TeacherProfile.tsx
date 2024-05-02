@@ -20,7 +20,7 @@ const TeacherProfile: React.FC<{
   return (
     <div className="teacher-profile">
       <button className="close-button" onClick={handleBack}>
-      <CloseIcon />
+        <CloseIcon />
       </button>
       <div className="profile-container-section">
         <ProfileDetails

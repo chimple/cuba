@@ -44,7 +44,12 @@ const Dashboard: React.FC = () => {
             <div></div>
           </div>
         </div>
-        <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+        <Sidebar
+          name="John Doe"
+          email="john.doe@example.com"
+          isOpen={isSidebarOpen}
+          toggleSidebar={toggleSidebar}
+        />
         <Dropdowns />
         <button className="sending-report">{t("Send Report")}</button>
       </div>

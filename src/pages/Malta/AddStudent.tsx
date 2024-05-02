@@ -19,7 +19,7 @@ const AddStudent = () => {
   return (
     <div className="add-student-page">
       <button className="close-button" onClick={handleBack}>
-      <CloseIcon />
+        <CloseIcon />
       </button>
       <div className="header-for-add-student">
         <h1 className="title">{t("Add Student")}</h1>
@@ -34,7 +34,7 @@ const AddStudent = () => {
       <AddStudentSection />
       <div className="button-container">
         <button className="save-button" onClick={handleSave}>
-        {t("Save")}
+          {t("Save")}
         </button>
       </div>
     </div>
