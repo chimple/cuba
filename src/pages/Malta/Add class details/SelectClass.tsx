@@ -1,4 +1,3 @@
-// SelectClass.tsx
 import React, { useState } from "react";
 import "./SelectClass.css";
 import ClassOptions from "./ClassOptions";
@@ -48,6 +47,7 @@ const SelectClass: React.FC<{
 
       <AddClasses
         open={showAddClass}
+        additionalClasses={["4th standard", "5th standard"]}
         onClose={handleCloseAddClass}
         onAddClass={handleAddClassSuccess}
       />

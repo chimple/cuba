@@ -7,14 +7,13 @@ import "./AddClasses.css";
 
 const AddClasses: React.FC<{
   open: boolean;
+  additionalClasses: string[];
   onClose: () => void;
   onAddClass: (selectedClass: string) => void;
-}> = ({ open, onClose, onAddClass }) => {
+}> = ({ open, additionalClasses, onClose, onAddClass }) => {
   const [selectedOption, setSelectedOption] = useState<string | undefined>(
     undefined
   );
-  const additionalClasses = ["4th standard", "5th standard"];
-
   const handleAddClass = () => {
     if (selectedOption) {
       console.log("Selected class to add:", selectedOption);
