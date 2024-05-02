@@ -2,6 +2,7 @@ import { FC, useState } from "react";
 import AssignButton from "./AssignButton";
 import Lesson from "../../../models/lesson";
 import RecommendedAssignment from "./RecommendedAssignment";
+import "./RecommendedTab.css"
 
 const RecommendedTab: FC<{
   lessons: Lesson[];
@@ -11,13 +12,7 @@ const RecommendedTab: FC<{
   }
   const [stage, setStage] = useState(STAGES.SUBJECTS);
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        paddingLeft: "2px",
-        paddingRight: "2px",
-      }}
+    <div className="recommendedTab"
     >
       {stage === STAGES.SUBJECTS && lessons && (
         <div>
