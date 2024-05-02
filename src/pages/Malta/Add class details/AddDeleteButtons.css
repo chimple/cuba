@@ -1,0 +1,11 @@
+.add-class-container {
+  display: flex;
+  flex-direction: row;
+  gap: 5vw;
+  align-items: center;
+  margin-bottom: 1vh;
+}
+.add-class-icon {
+  position: relative;
+  right: 0;
+}

@@ -22,7 +22,6 @@ const meta = {
   args: {
     classes: ["1st standard", "2nd standard", "3rd standard"],
     selectedClass: "3rd standard",
-    onClassSelect: fn(),
     onSwitchClass: fn(),
   },
 } satisfies Meta<typeof SelectClass>;

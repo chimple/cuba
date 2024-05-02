@@ -3,6 +3,7 @@ import { AppBar, IconButton, Tab, Tabs, Box } from "@mui/material";
 import "./ChangeClass.css";
 import SelectClass from "./SelectClass";
 import { t } from "i18next";
+import CloseIcon from "@mui/icons-material/Close";
 
 const ChangeClass: React.FC<{
   teachersName?: string;
@@ -16,10 +17,6 @@ const ChangeClass: React.FC<{
     setTabValue(newValue);
   };
 
-  const handleClassSelect = (selectedClass: string) => {
-    setSelectedClass(selectedClass);
-  };
-
   const handleSwitchClass = (className: string) => {
     setSelectedClass(className);
     console.log("classname...", className);
@@ -31,10 +28,7 @@ const ChangeClass: React.FC<{
     <div className="change-class-header-div">
       <div className="header-class1">
         <div>
-          <IconButton edge="start" color="inherit" aria-label="close">
-            {" "}
-            X
-          </IconButton>
+          <CloseIcon />
         </div>
         <div className="change-class-header-image-div">
           <img
@@ -94,7 +88,6 @@ const ChangeClass: React.FC<{
           classes={["1st standard", "2nd standard", "3rd standard"]}
           selectedClass={selectedClass}
           onSwitchClass={handleSwitchClass}
-          onClassSelect={handleClassSelect}
         />
       )}
     </div>
