@@ -59,6 +59,12 @@ export enum LEADERBOARD_REWARD_LIST {
   STICKER = "STICKERS",
 }
 
+export enum ASSIGNMENTTAB_LIST {
+  RECOMMENDED = "Recommended",
+  ASSIGNMENT = "Assignment",
+  LIVEQUIZ = "Live Quiz",
+}
+
 export enum USERTYPES {
   COORDINATORS = "Coordinators",
   PRINCIAPAL = "Principal",
