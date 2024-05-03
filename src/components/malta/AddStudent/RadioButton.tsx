@@ -2,6 +2,7 @@ import React from 'react';
 import { t } from 'i18next';
 
 const RadioButton = ({ id, name, checked, onChange, label }) => {
+    console.log("fsfsdfdsf", onChange);
   return (
     <>
       <input

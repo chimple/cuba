@@ -26,4 +26,9 @@ export const Test1: Story = {
     schoolName: 'ABC School', className: '10th Grade'
   },
 };
+export const Test2: Story = {
+  args: {
+    schoolName: 'xyzabc school', className: '2nd Grade'
+  },
+};
 export const Default = () => <TeacherProfileSection schoolName={undefined} className={undefined} />;
