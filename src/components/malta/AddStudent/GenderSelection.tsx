@@ -4,12 +4,7 @@ import RadioButton from "./RadioButton";
 
 
 const GenderSelection = ({ gender, onGenderChange }) => {
-    console.log("hjghghh", onGenderChange);
-    console.log("hgfhfghfhg", gender);
-
-
-    
-  return (
+    return (
     <div className="profile-row gender-line">
       <label>{t("Gender")}:</label>
       <div className="gender-options">

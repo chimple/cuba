@@ -19,7 +19,6 @@ const AddStudentSection = () => {
   const [studentNumber, setStudentNumber] = useState("");
 
   const handleGenderChange = (event) => {
-    console.log("Selected Gender:", event.target.value);
     setGender(event.target.value);
   };
 

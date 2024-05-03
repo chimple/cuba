@@ -16,7 +16,6 @@ interface SidebarProps {
 const classOptions = [
   { label: "Bharatiya Vidya Mandir", value: "option1" },
   { label: "2nd Standard", value: "option2" },
-  { label: "3rd Standard", value: "option3" },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({
