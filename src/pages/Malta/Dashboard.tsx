@@ -45,8 +45,8 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
         <Sidebar
-          name="John Doe"
-          email="john.doe@example.com"
+          name=""
+          email=""
           isOpen={isSidebarOpen}
           toggleSidebar={toggleSidebar}
         />

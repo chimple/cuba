@@ -23,19 +23,15 @@ const StudentProfile: React.FC<{
         <CloseIcon />
       </button>
       <div className="profile-container-section">
-        <ProfileDetails
-          imgSrc="path_to_teacher_profile_image.jpg"
-          width=""
-          height="20vh"
-        />
-        <div className="profile-name">{name ? name : "John Doe"}</div>
+        <ProfileDetails imgSrc="" width="" height="20vh" />
+        <div className="profile-name">{name}</div>
       </div>
       <StudentProfileSection
-        school="ABC School"
-        className="1st Class"
-        gender="Male"
-        age={7}
-        classCode="123456"
+        school=""
+        className=""
+        gender=""
+        age=""
+        classCode=""
       />
       <hr className="horizontal-line-for-view-button-container" />
       <div className="view-button-container">

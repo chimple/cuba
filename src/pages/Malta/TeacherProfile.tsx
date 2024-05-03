@@ -23,19 +23,11 @@ const TeacherProfile: React.FC<{
         <CloseIcon />
       </button>
       <div className="profile-container-section">
-        <ProfileDetails
-          imgSrc="path_to_teacher_profile_image.jpg"
-          width=""
-          height="20vh"
-        />
+        <ProfileDetails imgSrc="" width="" height="20vh" />
       </div>
-      <div className="profile-name-in-teacher-profile">
-        {name ? name : "John Doe"}
-      </div>
-      <div className="profile-email-in-teacher-profile">
-        {email ? email : "john.doe@example.com"}
-      </div>
-      <TeacherProfileSection schoolName="ABC School" className="10th Grade" />
+      <div className="profile-name-in-teacher-profile">{name}</div>
+      <div className="profile-email-in-teacher-profile">{email}</div>
+      <TeacherProfileSection schoolName="" className="" />
       <div className="logout-container">
         <LogoutSection />
       </div>
