@@ -36,7 +36,7 @@ import AssignmentTab from "../../components/malta/assignment/AssignmentTab";
 import RecommendedTab from "../../components/malta/assignment/RecommendedTab";
 import QuizTab from "../../components/malta/assignment/QuizTab";
 import AssignmentTabList from "../../components/malta/assignment/AssignmentTabList";
-import AssignmentAppBar from "../../components/malta/assignment/AssignmentAppBar";
+import CommonAppBar from "../../components/malta/common/CommonAppBar";
 
 const localData: any = {};
 let localStorageData: any = {};
@@ -197,7 +197,7 @@ const Assignment: React.FC = () => {
   return (
     <IonPage style={{ backgroundColor: "white" }}>
       <IonHeader>
-        <AssignmentAppBar />
+        <CommonAppBar title={t("Assignment")} loc="#" />
         <AssignmentTabList
           tabHeader={activeTab}
           segmentChanged={segmentChanged}

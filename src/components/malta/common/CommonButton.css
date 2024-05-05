@@ -1,4 +1,4 @@
-#assign-button {
+#common-button {
   justify-content: space-between;
   right: 0;
   color: #05342f;
@@ -11,7 +11,7 @@
   border-radius: 8px;
   background-color: #e6ca91;
 }
-#assign-button:disabled {
+#common-button:disabled {
   background-color: #e6ca91;
   opacity: 0.5;
 }

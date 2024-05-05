@@ -1,8 +1,8 @@
 import { FC, useState } from "react";
-import AssignButton from "./AssignButton";
 import Lesson from "../../../models/lesson";
 import RecommendedAssignment from "./RecommendedAssignment";
-import "./RecommendedTab.css"
+import "./RecommendedTab.css";
+import CommonButton from "../common/CommonButton";
 
 const RecommendedTab: FC<{
   lessons: Lesson[];
@@ -12,15 +12,14 @@ const RecommendedTab: FC<{
   }
   const [stage, setStage] = useState(STAGES.SUBJECTS);
   return (
-    <div className="recommendedTab"
-    >
+    <div className="recommendedTab">
       {stage === STAGES.SUBJECTS && lessons && (
         <div>
           <RecommendedAssignment infoText="These are the recommended assignments based on the previous assignments" />
         </div>
       )}
 
-      <AssignButton disabled={false} onClicked={() => {}} />
+      <CommonButton title="Assign" disabled={false} onClicked={() => {}} />
     </div>
   );
 };

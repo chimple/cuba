@@ -1,9 +1,9 @@
 import { FC, useState } from "react";
-import AssignButton from "./AssignButton";
 import Lesson from "../../../models/lesson";
 import CourseChapterDropDown from "./CourseChapterDropDown";
 import DisplayLesson from "./DisplayLesson";
 import Course from "../../../models/course";
+import CommonButton from "../common/CommonButton";
 
 const AssignmentTab: FC<{
   lessons: Lesson[];
@@ -45,7 +45,7 @@ const AssignmentTab: FC<{
           </div>
         )}
       </div>
-      <AssignButton disabled={false} onClicked={() => {}} />
+      <CommonButton title="Assign" disabled={false} onClicked={() => {}} />
     </div>
   );
 };

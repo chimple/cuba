@@ -1,11 +1,11 @@
 import { FC, useState } from "react";
-import AssignButton from "./AssignButton";
 import Lesson from "../../../models/lesson";
 import CourseChapterDropDown from "./CourseChapterDropDown";
 import DisplayLesson from "./DisplayLesson";
 import Course from "../../../models/course";
 import DateTimePicker from "./DateTimePicker";
 import { t } from "i18next";
+import CommonButton from "../common/CommonButton";
 
 const QuizTab: FC<{
   liveQuizLessons: Lesson[];
@@ -51,7 +51,7 @@ const QuizTab: FC<{
       <div style={{ marginLeft: "1vh" }}>{t("Select by date range")}</div>
       <DateTimePicker></DateTimePicker>
 
-      <AssignButton disabled={false} onClicked={() => {}} />
+      <CommonButton title="Assign" disabled={false} onClicked={() => {}} />
     </div>
   );
 };
