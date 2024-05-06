@@ -4,6 +4,7 @@ import { useHistory } from "react-router-dom";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
   ACTION,
+  ADDITIONAL_COURSES,
   DISPLAY_SUBJECTS_STORE,
   EVENTS,
   HOMEHEADERLIST,
@@ -85,6 +86,19 @@ const AddCourses: React.FC = () => {
   const updateCourses = async (): Promise<Course[]> => {
     setIsLoading(true);
     await api.addCourseForParentsStudent(selectedCourses!, currentStudent!);
+    let tempCourse: Course[] = [];
+    const strTempCourses = localStorage.getItem(ADDITIONAL_COURSES);
+    if (strTempCourses) {
+      tempCourse = JSON.parse(strTempCourses);
+    }
+    if (selectedCourses) {
+      const updatedTempCourse = [...tempCourse, ...selectedCourses];
+      localStorage.setItem(
+        ADDITIONAL_COURSES,
+        JSON.stringify(updatedTempCourse)
+      );
+    }
+
     const eventParams = {
       user_id: currentStudent?.docId,
       user_type: currentStudent?.role,
@@ -126,6 +140,7 @@ const AddCourses: React.FC = () => {
   };
 
   function handleCallback(data: Course[]) {
+    console.log("data.........", data);
     setSelectedCourses(data);
   }
 

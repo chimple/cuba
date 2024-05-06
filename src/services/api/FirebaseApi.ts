@@ -30,6 +30,7 @@ import {
   StudentLeaderboardInfo,
 } from "./ServiceApi";
 import {
+  ADDITIONAL_COURSES,
   COURSES,
   DEFAULT_SUBJECT_IDS,
   LESSON_DOC_LESSON_ID_MAP,
@@ -1008,9 +1009,29 @@ export class FirebaseApi implements ServiceApi {
       language: languageRef,
       name: name,
     };
+    let localStorageData: Course[] = [];
     if (!!tempCourse) {
-      updateDocWithCourse.courses = tempCourse;
-      student.courses = tempCourse;
+      let strLocalStoreData = localStorage.getItem(ADDITIONAL_COURSES);
+      if (!!strLocalStoreData) {
+        localStorageData = JSON.parse(strLocalStoreData);
+        const localCoursesRefs = localStorageData.map((course) =>
+          doc(this._db, CollectionIds.COURSE, course.docId)
+        );
+        const mergedCourses: DocumentReference<DocumentData>[] = [];
+        tempCourse.forEach((course) => {
+          const isDuplicate = localCoursesRefs.some(
+            (courseRef) => courseRef.path === course.path
+          );
+          if (!isDuplicate) {
+            mergedCourses.push(course);
+          }
+        });
+        updateDocWithCourse.courses = [...localCoursesRefs, ...mergedCourses];
+        student.courses = [...localCoursesRefs, ...mergedCourses];
+      } else {
+        updateDocWithCourse.courses = tempCourse;
+        student.courses = tempCourse;
+      }
     }
     await updateDoc(
       doc(this._db, `${CollectionIds.USER}/${student.docId}`),
@@ -1433,8 +1454,8 @@ export class FirebaseApi implements ServiceApi {
             leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
               ? "weeklyScore"
               : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
-              ? "monthlyScore"
-              : "allTimeScore",
+                ? "monthlyScore"
+                : "allTimeScore",
             "desc"
           ),
           limit(50)
@@ -1843,13 +1864,11 @@ export class FirebaseApi implements ServiceApi {
       this._allCourses = await this.getAllCourses();
     }
 
-    const tmpCourse = this._allCourses?.find(
-      (course) => {
-        if(course.courseCode === lesson.cocosSubjectCode){
-         return Util.checkLessonPresentInCourse(course,lesson.docId)
-        }
+    const tmpCourse = this._allCourses?.find((course) => {
+      if (course.courseCode === lesson.cocosSubjectCode) {
+        return Util.checkLessonPresentInCourse(course, lesson.docId);
       }
-    );
+    });
     return tmpCourse;
   }
 
