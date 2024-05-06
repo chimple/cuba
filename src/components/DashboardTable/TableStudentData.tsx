@@ -5,13 +5,15 @@ interface TableStudentDataProps {
 }
 
 function getColor(score) {
-    console.log(score)
-    if (score < 30) {
-        return 'red';
+    if (score == null) {
+        return 'white'
+    }
+    else if (score < 30) {
+        return '#EAA6B1';
     } else if (score >= 30 && score <= 70) {
-        return 'orange';
+        return '#F4D6AE';
     } else {
-        return 'green';
+        return '#CEF3D6';
     }
 }
 

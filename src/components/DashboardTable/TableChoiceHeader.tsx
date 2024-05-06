@@ -13,7 +13,7 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({ }) => {
     return (
         <div>
             <TypeSelectionDropDown dropdownValues={Object.values(TABLEDROPDOWN)} />
-            <div>17thFeb-23thFeb</div>
+            <div className='date-range'>17thFeb-23thFeb</div>
             <div className='sort-name'>
                 <div >Name</div>
                 <IoIosArrowDropdownCircle className='sort-button' onClick={() => { }} />

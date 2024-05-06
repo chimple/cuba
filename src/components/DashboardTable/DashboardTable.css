@@ -8,6 +8,8 @@
   width: 100%;
   display: flex;
   background-color: white;
+  overflow: auto;
+  height: 80vh;
 }
 
 .square-cell {
@@ -16,6 +18,7 @@
   text-align: center;
   vertical-align: middle;
 }
+
 .square-cell1 {
   height: 50px;
   width: 50px;
@@ -32,12 +35,20 @@ table {
 
 }
 
+thead {
+  position: sticky;
+  top: 0;
+  background-color: #fff; 
+  border: 1px solid grey;/* Background color for fixed header */
+}
+
 th:first-child,
 td:first-child {
+  /* position:sticky; */
   min-width: 120px;
   max-width: 120px;
   writing-mode: horizontal-tb;
-  transform: rotate(0deg);
+  transform: inherit;
 }
 
 th {
