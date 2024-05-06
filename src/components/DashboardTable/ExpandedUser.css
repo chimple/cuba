@@ -1,6 +1,6 @@
 .expanded-conatiner {
     display: flex;
-    width: 100vw;
+    width: 80vw;
     flex-direction: row;
     align-items: center;
     margin: 20px;

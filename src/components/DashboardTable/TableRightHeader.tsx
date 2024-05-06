@@ -1,5 +1,4 @@
 import React from 'react';
-import "./TypeSelectionDropDown.css"
 interface TableRightHeaderProps {
     headerDetails: string[]
 }
