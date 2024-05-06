@@ -140,7 +140,6 @@ const AddCourses: React.FC = () => {
   };
 
   function handleCallback(data: Course[]) {
-    console.log("data.........", data);
     setSelectedCourses(data);
   }
 
