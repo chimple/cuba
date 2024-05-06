@@ -1,0 +1,50 @@
+.sidebar .profile-dropdown {
+  background-color: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  padding: 2px 8px 2px 2px;
+}
+
+.profile-name-in-sidebar {
+  font-size: 90%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  color: black;
+}
+.profile-email-in-sidebar {
+  font-size: 90%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  color: black;
+}
+.profile-dropdown-in-sidebar {
+  background-color: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  padding: 2px 8px 2px 2px;
+  color: black;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.profile-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.profile-section > * {
+  margin-left: 0;
+}
+
+.profile-dropdown-in-sidebar {
+  width: 100%;
+}

@@ -1,7 +1,7 @@
 .menu-items {
   position: fixed;
-  bottom: 90px; /* Adjust the position as needed */
-  right: 30px; /* Adjust the position as needed */
+  bottom: 90px;
+  right: 30px;
   display: flex;
   flex-direction: column;
 }
