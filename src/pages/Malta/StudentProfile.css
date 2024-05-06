@@ -1,0 +1,30 @@
+.view-button-info {
+  font-size: 2vh;
+}
+
+.view-button-in-student-profile {
+  margin: 2vh;
+  background-color: #ffdc96;
+  padding: 1.5vh 2vh;
+  color: black;
+  border-radius: 1vh;
+  border-color: #000000;
+  border-width: 0.2 vh;
+  border-style: solid;
+  margin-top: 1vh;
+  margin-bottom: 13vh;
+  width: 100%;
+  max-width: 20em;
+  box-sizing: border-box;
+  font-size: 2vh;
+}
+.view-button-container {
+  padding-bottom: 2vh;
+}
+
+.horizontal-line-for-view-button-container {
+  border: none;
+  border-top: 0.3vh solid #999;
+  margin: 2vh 0;
+  width: 75vw;
+}

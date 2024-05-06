@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react";
 import "./Dashboard.css";
-import Sidebar from "./Sidebar";
-import Dropdowns from "./Dropdowns";
-import DashboardStats from "./DashboardStats";
+import Sidebar from "../../components/malta/Dashboard/Sidebar";
+import Dropdowns from "../../components/malta/Dropdowns";
+import DashboardStats from "../../components/malta/Dashboard/DashboardStats";
 import { t } from "i18next";
 import DashboardTable from "../../components/DashboardTable/DashboardTable";
 
 const Dashboard: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [areMenuItemsOpen, setAreMenuItemsOpen] = useState(false);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  const toggleMenuItems = () => setAreMenuItemsOpen(!areMenuItemsOpen);
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -42,7 +44,7 @@ const Dashboard: React.FC = () => {
               <div></div>
             </div>
           </div>
-          <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+          <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} name={""} email={""} />
           <Dropdowns />
           <button className="sending-report">{t("Send Report")}</button>
         </div>

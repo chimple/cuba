@@ -1,9 +1,8 @@
-// FloatingButton.tsx
 import React from "react";
-import "./FloatingButton.css"; // Import CSS file for styling
+import "./FloatingButton.css";
 
 interface FloatingButtonProps {
-  onClick: () => void; // onClick prop function
+  onClick: () => void;
 }
 
 const FloatingButton: React.FC<FloatingButtonProps> = ({ onClick }) => {
