@@ -1017,17 +1017,17 @@ export class FirebaseApi implements ServiceApi {
         const localCoursesRefs = localStorageData.map((course) =>
           doc(this._db, CollectionIds.COURSE, course.docId)
         );
-        const mergedCourses: DocumentReference<DocumentData>[] = [];
+        const filteredCourses: DocumentReference<DocumentData>[] = [];
         tempCourse.forEach((course) => {
           const isDuplicate = localCoursesRefs.some(
             (courseRef) => courseRef.path === course.path
           );
           if (!isDuplicate) {
-            mergedCourses.push(course);
+            filteredCourses.push(course);
           }
         });
-        updateDocWithCourse.courses = [...localCoursesRefs, ...mergedCourses];
-        student.courses = [...localCoursesRefs, ...mergedCourses];
+        updateDocWithCourse.courses = [...localCoursesRefs, ...filteredCourses];
+        student.courses = [...localCoursesRefs, ...filteredCourses];
       } else {
         updateDocWithCourse.courses = tempCourse;
         student.courses = tempCourse;
