@@ -2,7 +2,6 @@ import React from 'react';
 import { t } from 'i18next';
 
 const RadioButton = ({ id, name, checked, onChange, label }) => {
-    console.log("fsfsdfdsf", onChange);
   return (
     <>
       <input
@@ -10,7 +9,7 @@ const RadioButton = ({ id, name, checked, onChange, label }) => {
         id={id}
         name={name}
         value={id}
-        checked={checked === id}
+        checked={checked}
         onChange={onChange}
       />
       <label htmlFor={id}>{t(label)}</label>

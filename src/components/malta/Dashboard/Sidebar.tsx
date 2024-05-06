@@ -35,9 +35,9 @@ const Sidebar: React.FC<SidebarProps> = ({
       <button onClick={toggleSidebar} className="close-sidebar">
         <CloseIcon />
       </button>
-      <div className="profile-section" onClick={navigateToProfile}>
-        <ProfileDetails imgSrc="" width="10vw" height="10vh" />
-        <div className="profile-name-in-sidebar">{name} </div>
+      <div className="profile-section" >
+        <ProfileDetails imgSrc="" width="10vw" height="10vh"/>
+        <div className="profile-name-in-sidebar" onClick={navigateToProfile}>{name} </div>
         <div className="profile-email-in-sidebar">{email}</div>
         <select className="profile-dropdown-in-sidebar">
           {classOptions.map((option, index) => (

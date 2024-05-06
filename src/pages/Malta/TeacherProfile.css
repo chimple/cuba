@@ -133,6 +133,9 @@
   font-size: 4vh;
   white-space: nowrap;
   text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
 }
 
 .logout-section {

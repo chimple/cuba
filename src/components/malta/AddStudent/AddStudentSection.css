@@ -8,6 +8,9 @@
   align-items: center;
   margin-bottom: 10px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
 }
 
 .profile-row label {
