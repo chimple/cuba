@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import CommonAppBar from "../../components/malta/common/CommonAppBar";
 
 const meta = {
-  title: "Component/malta/assignment/AssignmentAppBar",
+  title: "Component/malta/school/schoolAppBar",
   component: CommonAppBar,
   parameters: {
     layout: "centered",
@@ -34,9 +34,9 @@ type Story = StoryObj<typeof meta>;
 
 export const appBar: Story = {
   args: {
-    title: "assignment",
+    title: "username",
     loc: "#",
-    showAvatar: false,
-    imgScr: ''
+    showAvatar: true,
+    imgScr: "https://ionicframework.com/docs/img/demos/avatar.svg"
   },
 };

@@ -44,8 +44,8 @@ const AddSchool: FC<AddSchoolProps> = ({
         value={stateName}
       ></IonInput>
       <div className="buttonRow">
-        <CommonButton disabled={false} title="Cancel" onClicked={onCancel} />
-        <CommonButton disabled={false} title="Add" onClicked={onCreate} />
+        <CommonButton disabled={false} title="Cancel" onClicked={onCancel}  />
+        <CommonButton disabled={false} title="Add" onClicked={onCreate}  />
       </div>
     </div>
   );

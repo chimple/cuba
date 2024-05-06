@@ -2,7 +2,7 @@ import { IonHeader, IonPage } from "@ionic/react";
 import { FC, useState } from "react";
 import CommonAppBar from "../../components/malta/common/CommonAppBar";
 import { COMMONTAB_LIST } from "../../common/constants";
-import CommonTab from "../../components/malta/common/CommonTab";
+import CommonTab from "../../components/malta/common/SchoolClassSubjectsTab";
 import { t } from "i18next";
 import "./SchoolClassSubjectTab.css";
 import AddEditDeleteFab from "../../components/malta/school/AddEditDeleteFab";
@@ -44,7 +44,12 @@ const SchoolClassSubjectTab: FC = () => {
   return (
     <IonPage style={{ backgroundColor: "white" }}>
       <IonHeader>
-        <CommonAppBar title={t("Username")} loc="#" />
+        <CommonAppBar
+          title={t("Username")}
+          loc="#"
+          showAvatar={true}
+          imgScr="https://ionicframework.com/docs/img/demos/avatar.svg"
+        />
         <CommonTab
           tabHeader={activeTab}
           segmentChanged={segmentChanged}
@@ -76,9 +81,9 @@ const SchoolClassSubjectTab: FC = () => {
               stateName="Karnataka"
             />
           )}
-          <SwitchSchool></SwitchSchool>
+          <SwitchSchool schools={['school1','school2']}></SwitchSchool>
           <CommonButton
-            title="Switch School"
+            title={t("Switch School")}
             disabled={isSchoolAdd || isSchoolEdit ? true : false}
             onClicked={() => {}}
           />

@@ -1,19 +1,22 @@
 import { IonItem, IonList, IonRadio, IonRadioGroup } from "@ionic/react";
 import { FC } from "react";
 import "./SwitchSchool.css";
+interface SwitchSchoolProps {
+  schools: string[];
+}
 
-const SwitchSchool: FC = () => {
+const SwitchSchool: FC<SwitchSchoolProps> = ({ schools }) => {
   return (
     <div className="alignContent">
       <IonRadioGroup value="school1">
-        <IonRadio value="school1" labelPlacement="end">
-          Bhartiya Vidya Mandir
-        </IonRadio>
-        <br />
-        <IonRadio value="school2" labelPlacement="end">
-          School2
-        </IonRadio>
-        <br />
+        {schools.map((school) => (
+          <>
+            <IonRadio value={school} labelPlacement="end">
+              {school}
+            </IonRadio>
+            <br />
+          </>
+        ))}
       </IonRadioGroup>
     </div>
   );

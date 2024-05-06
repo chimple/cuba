@@ -1,15 +1,17 @@
 import React, { FC } from "react";
-import { IonAlert, IonButton, IonFabButton, IonIcon } from "@ionic/react";
+import { IonAlert, IonButton, IonFabButton, IonIcon, useIonAlert } from "@ionic/react";
 import { trash } from "ionicons/icons";
+interface DeleteDialogProps {
+  alertMsg: string;
+}
 
-const DeleteSchoolDialog: FC = () => {
+const DeleteDialog: FC<DeleteDialogProps> = ({alertMsg}) => {
   return (
     <>
-      <IonFabButton>
-        <IonIcon icon={trash} id="delete-alert"></IonIcon>
-      </IonFabButton>
+      <IonIcon icon={trash} id="delete-alert"></IonIcon>
+      
       <IonAlert
-        header="Are you sure to delete the school"
+        header={alertMsg}
         trigger="delete-alert"
         buttons={[
           {
@@ -34,4 +36,4 @@ const DeleteSchoolDialog: FC = () => {
     </>
   );
 };
-export default DeleteSchoolDialog;
+export default DeleteDialog;

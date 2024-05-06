@@ -1,8 +1,9 @@
 import { IonFab, IonFabButton, IonFabList, IonIcon } from "@ionic/react";
 import { add, arrowUpCircle, create, trash } from "ionicons/icons";
 import { FC } from "react";
-import DeleteSchoolDialog from "./DeleteSchoolDialog";
+import DeleteDialog from "../common/DeleteDialog";
 import AddSchool from "./AddSchool";
+import { t } from "i18next";
 interface AddEditDeleteFabProps {
   onAddClick: React.MouseEventHandler<HTMLIonIconElement>;
   onEditClick: React.MouseEventHandler<HTMLIonIconElement>;
@@ -22,7 +23,8 @@ const AddEditDeleteFab : FC<AddEditDeleteFabProps> = ({onAddClick, onEditClick, 
             <IonFabButton>
               <IonIcon icon={create} onClick={onEditClick}></IonIcon>
             </IonFabButton>
-            <DeleteSchoolDialog></DeleteSchoolDialog>
+            <IonFabButton>
+            <DeleteDialog alertMsg={t("Are you sure to delete the school?")}></DeleteDialog></IonFabButton>
           </IonFabList>
         </IonFab></>
     );

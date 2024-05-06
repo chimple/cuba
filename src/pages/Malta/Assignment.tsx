@@ -197,7 +197,7 @@ const Assignment: React.FC = () => {
   return (
     <IonPage style={{ backgroundColor: "white" }}>
       <IonHeader>
-        <CommonAppBar title={t("Assignment")} loc="#" />
+        <CommonAppBar title={t("Assignment")} loc="#" showAvatar={false} imgScr="" />
         <AssignmentTabList
           tabHeader={activeTab}
           segmentChanged={segmentChanged}
