@@ -31,7 +31,7 @@ const AddStudent = () => {
           height="20vh"
         />
       </div>
-      <AddStudentSection />
+      <AddStudentSection classOptions={[]} />
       <div className="button-container">
         <button className="save-button" onClick={handleSave}>
           {t("Save")}

@@ -1,16 +1,25 @@
-import React from 'react';
-import { t } from 'i18next';
+import React from "react";
+import { t } from "i18next";
 
-const InputField = ({ label, type, id, value, onChange }) => {
+interface InputFieldProps {
+  label: string;
+  type: string;
+  id: string;
+  value: string;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+const InputField: React.FC<InputFieldProps> = ({
+  label,
+  type,
+  id,
+  value,
+  onChange,
+}) => {
   return (
     <div className="profile-row">
       <label htmlFor={id}>{t(label)}:</label>
-      <input
-        type={type}
-        id={id}
-        value={value}
-        onChange={onChange}
-      />
+      <input type={type} id={id} value={value} onChange={onChange} />
     </div>
   );
 };

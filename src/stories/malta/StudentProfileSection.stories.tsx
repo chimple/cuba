@@ -37,12 +37,3 @@ export const Test1: Story = {
     classCode: "12346",
   },
 };
-export const Default = () => (
-  <StudentProfileSection
-    school={undefined}
-    className={undefined}
-    gender={undefined}
-    age={undefined}
-    classCode={undefined}
-  />
-);

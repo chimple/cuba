@@ -31,4 +31,3 @@ export const Test2: Story = {
     schoolName: 'xyzabc school', className: '2nd Grade'
   },
 };
-export const Default = () => <TeacherProfileSection schoolName={undefined} className={undefined} />;

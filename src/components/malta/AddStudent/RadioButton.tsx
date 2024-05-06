@@ -1,7 +1,21 @@
-import React from 'react';
-import { t } from 'i18next';
+import React from "react";
+import { t } from "i18next";
 
-const RadioButton = ({ id, name, checked, onChange, label }) => {
+interface RadioButtonProps {
+  id: string;
+  name: string;
+  checked: boolean;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  label: string;
+}
+
+const RadioButton: React.FC<RadioButtonProps> = ({
+  id,
+  name,
+  checked,
+  onChange,
+  label,
+}) => {
   return (
     <>
       <input

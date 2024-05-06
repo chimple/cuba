@@ -1,24 +1,31 @@
 import React, { useState } from "react";
 import "./AddStudentSection.css";
-import { t } from "i18next";
 import InputField from "./InputField";
 import GenderSelection from "./GenderSelection";
 import SelectDropdown from "./SelectDropdown";
 
-const classOptions = [
-  { label: "1st Standard", value: "1st Standard" },
-  { label: "2nd Standard", value: "2nd Standard" },
-];
+interface ClassOption {
+  label: string;
+  value: string;
+}
 
-const AddStudentSection = () => {
+interface AddStudentSectionProps {
+  classOptions: ClassOption[];
+}
+
+const AddStudentSection: React.FC<AddStudentSectionProps> = ({
+  classOptions,
+}) => {
   const [fullName, setFullName] = useState("");
-  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedClass, setSelectedClass] = useState<ClassOption | undefined>(
+    classOptions[0] || undefined
+  );
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
   const [studentId, setStudentId] = useState("");
   const [studentNumber, setStudentNumber] = useState("");
 
-  const handleGenderChange = (event) => {
+  const handleGenderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setGender(event.target.value);
   };
 
@@ -35,8 +42,13 @@ const AddStudentSection = () => {
           />
           <SelectDropdown
             label="Class"
-            value={selectedClass}
-            onChange={(e) => setSelectedClass(e.target.value)}
+            value={selectedClass?.value || ""}
+            onChange={(e) => {
+              const selectedOption = classOptions.find(
+                (option) => option.value === e.target.value
+              );
+              setSelectedClass(selectedOption);
+            }}
             options={classOptions}
           />
           <InputField
