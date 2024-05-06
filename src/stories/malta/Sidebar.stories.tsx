@@ -31,3 +31,21 @@ export const Test2: Story = {
     email: "xygdone@gmail.com",
   },
 };
+export const Test3: Story = {
+  args: {
+    name: "",
+    email: "xygdone@gmail.com",
+  },
+};
+export const Test4: Story = {
+  args: {
+    name: "",
+    email: "",
+  },
+};
+export const Test5: Story = {
+  args: {
+    name: "XYG HGHDG DHGHG Done",
+    email: "xygdonechsgdhdsf@gmail.com",
+  },
+};

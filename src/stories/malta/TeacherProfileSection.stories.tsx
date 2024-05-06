@@ -31,3 +31,18 @@ export const Test2: Story = {
     schoolName: 'xyzabc school', className: '2nd Grade'
   },
 };
+export const Test3: Story = {
+  args: {
+    schoolName: '', className: '2nd Grade'
+  },
+};
+export const Test4: Story = {
+  args: {
+    schoolName: 'hghjghjghjg school', className: ''
+  },
+};
+export const Test5: Story = {
+  args: {
+    schoolName: 'yugtyjgfjfgfghfhgfhgfg school', className: '10th Grade'
+  },
+};

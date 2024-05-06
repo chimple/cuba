@@ -28,4 +28,19 @@ export const Test2: Story = {
     name: "XYG Done",
   },
 };
+export const Test3: Story = {
+  args: {
+    name: "ABCDEFGHIJKLMNOP",
+  },
+};
+export const Test4: Story = {
+  args: {
+    name: "",
+  },
+};
+export const Test5: Story = {
+  args: {
+    name: "XYG ABC YYZ ABC",
+  },
+};
 export const Default = () => <StudentProfile />;

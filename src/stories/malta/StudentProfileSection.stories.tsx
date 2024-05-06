@@ -37,3 +37,37 @@ export const Test1: Story = {
     classCode: "12346",
   },
 };
+export const Test2: Story = {
+  args: {
+    school: "ABC School",
+    className: "1st class",
+    gender: "Male",
+    age: 7,
+    classCode: "12346",
+  },
+};
+export const Test3: Story = {
+  args: {
+    school: "ABCDEFGHIJKL School",
+    className: "1st class",
+    gender: "Male",
+    age: 7,
+    classCode: "12346767",
+  },
+};export const Test4: Story = {
+  args: {
+    school: "",
+    className: "1st class",
+    gender: "Male",
+    age: 7,
+    classCode: "1",
+  },
+};export const Test5: Story = {
+  args: {
+    school: "ABCJHSJDJHDJSHJFHSJFHSKHFJHFSDJSHF",
+    className: "1st class",
+    gender: "Male",
+    age: 7,
+    classCode: "1234678676767",
+  },
+};

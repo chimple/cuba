@@ -1,5 +1,7 @@
 import React from "react";
 import RadioButton from "./RadioButton";
+import { t } from "i18next";
+import { GENDER } from "../../../common/constants";
 
 interface GenderSelectionProps {
   gender: string;
@@ -12,29 +14,18 @@ const GenderSelection: React.FC<GenderSelectionProps> = ({
 }) => {
   return (
     <div className="profile-row gender-line">
-      <label>Gender:</label>
+      <label>{t("Gender")}:</label>
       <div className="gender-options">
-        <RadioButton
-          id="male"
-          name="gender"
-          checked={gender === "male"}
-          onChange={onGenderChange}
-          label="Male"
-        />
-        <RadioButton
-          id="female"
-          name="gender"
-          checked={gender === "female"}
-          onChange={onGenderChange}
-          label="Female"
-        />
-        <RadioButton
-          id="other"
-          name="gender"
-          checked={gender === "other"}
-          onChange={onGenderChange}
-          label="Other"
-        />
+        {Object.values(GENDER).map((value) => (
+          <RadioButton
+            key={value}
+            id={value}
+            name="gender"
+            checked={gender === value}
+            onChange={onGenderChange}
+            label={t(value.charAt(0).toUpperCase() + value.slice(1))}
+          />
+        ))}
       </div>
     </div>
   );

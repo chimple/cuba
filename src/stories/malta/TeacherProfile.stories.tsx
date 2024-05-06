@@ -23,7 +23,27 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 export const Test1: Story = {
   args: {
-    name: 'ABC student', email: '3rd Grade'
+    name: 'ABC student', email: 'fafhd@gmail.com'
+  },
+};
+export const Test2: Story = {
+  args: {
+    name: 'Kiran', email: 'kiran@gmail.com'
+  },
+};
+export const Test3: Story = {
+  args: {
+    name: 'Ravindra Goud', email: 'ravindragoud@gmail.com'
+  },
+};
+export const Test4: Story = {
+  args: {
+    name: 'Smith', email: 'smith@gmail.com'
+  },
+};
+export const Test5: Story = {
+  args: {
+    name: 'Krishna Rao', email: 'krishnarao@gmail.com'
   },
 };
 export const Default = () => <TeacherProfile />;
