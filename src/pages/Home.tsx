@@ -137,6 +137,7 @@ const Home: FC = () => {
       App.addListener("appStateChange", Util.onAppStateChange);
       setCurrentHeader(currentHeader);
     }
+    App.addListener("appStateChange", Util.onAppStateChange);
   }, []);
 
   useEffect(() => {
