@@ -1,18 +1,26 @@
 import React, { FC } from "react";
-import { IonAlert, IonButton, IonFabButton, IonIcon, useIonAlert } from "@ionic/react";
-import { trash } from "ionicons/icons";
-interface DeleteDialogProps {
+import {
+  IonAlert,
+  IonButton,
+  IonFabButton,
+  IonIcon,
+  useIonAlert,
+} from "@ionic/react";
+import { trash, add, create } from "ionicons/icons";
+interface CommonDialogProps {
+  children?: React.ReactNode | React.ReactNode[];
   alertMsg: string;
+  ionIcon: string;
 }
 
-const DeleteDialog: FC<DeleteDialogProps> = ({alertMsg}) => {
+const CommonDialog: FC<CommonDialogProps> = ({ alertMsg, ionIcon }) => {
   return (
     <>
-      <IonIcon icon={trash} id="delete-alert"></IonIcon>
-      
+      <IonIcon icon={ionIcon} id="alert"></IonIcon>
+
       <IonAlert
         header={alertMsg}
-        trigger="delete-alert"
+        trigger="alert"
         buttons={[
           {
             text: "Cancel",
@@ -36,4 +44,4 @@ const DeleteDialog: FC<DeleteDialogProps> = ({alertMsg}) => {
     </>
   );
 };
-export default DeleteDialog;
+export default CommonDialog;

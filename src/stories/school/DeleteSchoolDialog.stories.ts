@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import AddSchool from "../../components/malta/common/DeleteDialog";
+import AddSchool from "../../components/malta/common/CommonDialog";
 import { fn } from "@storybook/test";
-import DeleteDialog from "../../components/malta/common/DeleteDialog";
+import DeleteDialog from "../../components/malta/common/CommonDialog";
 
 const meta = {
   title: "Component/malta/school/DeleteSchool",
@@ -18,9 +18,9 @@ const meta = {
         type: "text",
         labels: Object.keys(""),
       },
-    }
+    },
   },
-  args: {alertMsg:'Delete?'},
+  args: { alertMsg: "Delete?" },
 } satisfies Meta<typeof AddSchool>;
 
 export default meta;
@@ -28,6 +28,7 @@ type Story = StoryObj<typeof meta>;
 
 export const deleteSchool: Story = {
   args: {
-    alertMsg: 'Are you sure to delete the school',
+    alertMsg: "Are you sure to delete the school",
+    ionIcon: "trash",
   },
 };

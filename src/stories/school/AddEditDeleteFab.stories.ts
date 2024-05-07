@@ -19,7 +19,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const editSchool: Story = {
+export const fabButtons: Story = {
   args: {
     disabled: false,
     onAddClick: fn(),

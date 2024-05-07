@@ -12,12 +12,17 @@ import CommonButton from "../../components/malta/common/CommonButton";
 import EditSchool from "../../components/malta/school/EditSchool";
 import AddSchool from "../../components/malta/school/AddSchool";
 import School from "../../models/school";
+import SchoolTab from "../../components/malta/school/SchoolTab";
 
 const SchoolClassSubjectTab: FC = () => {
   const [activeTab, setActiveTab] = useState(COMMONTAB_LIST.SCHOOL);
   const [isSchoolEdit, setIsSchoolEdit] = useState<boolean>(false);
   const [isSchoolAdd, setIsSchoolAdd] = useState<boolean>(false);
   const [newSchool, setNewSchool] = useState<School>();
+  const [currentSchoolName, setCurrentSchoolName] = useState<string>();
+  const [currentSchoolCity, setCurrentSchoolCity] = useState<string>();
+  const [currentSchoolState, setCurrentSchoolState] = useState<string>();
+  const [allSchools, setAllSchools] = useState<[]>();
   const segmentChanged = (evt) => {
     console.log(evt.detail.value);
     //write logic
@@ -57,42 +62,19 @@ const SchoolClassSubjectTab: FC = () => {
       </IonHeader>
 
       {activeTab == COMMONTAB_LIST.SCHOOL && (
-        <>
-          {isSchoolEdit ? (
-            <EditSchool
-              schoolName="Bharthiya Vidya Mandir"
-              cityName="Bengaluru"
-              stateName="Karnataka"
-              onCancel={onCancel}
-              onSave={onSchoolSave}
-            />
-          ) : isSchoolAdd ? (
-            <AddSchool
-              schoolName={newSchool?.name!}
-              cityName={newSchool?.name!}
-              stateName={newSchool?.name!}
-              onCancel={onCancel}
-              onCreate={onSchoolCreate}
-            />
-          ) : (
-            <SchoolDetail
-              schoolName="Bharthiya Vidya Mandir"
-              cityName="Bengaluru"
-              stateName="Karnataka"
-            />
-          )}
-          <SwitchSchool schools={['school1','school2']}></SwitchSchool>
-          <CommonButton
-            title={t("Switch School")}
-            disabled={isSchoolAdd || isSchoolEdit ? true : false}
-            onClicked={() => {}}
-          />
-          <AddEditDeleteFab
-            onAddClick={onSchoolAdd}
-            onEditClick={onSchoolEdit}
-            disabled={isSchoolAdd || isSchoolEdit ? true : false}
-          />
-        </>
+        <SchoolTab
+          cityName={currentSchoolCity!}
+          schoolName={currentSchoolName!}
+          stateName={currentSchoolState!}
+          schools={allSchools!}
+          onCancel={onCancel}
+          onSchoolAdd={onSchoolAdd}
+          onSchoolEdit={onSchoolEdit}
+          onSchoolCreate={onSchoolCreate}
+          onSchoolSave={onSchoolSave}
+          isSchoolAdd={isSchoolAdd}
+          isSchoolEdit={isSchoolEdit}
+        ></SchoolTab>
       )}
     </IonPage>
   );
