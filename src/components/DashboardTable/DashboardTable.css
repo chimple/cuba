@@ -9,7 +9,7 @@
   display: flex;
   background-color: white;
   overflow: auto;
-  height: 80vh;
+  max-height: 80vh;
 }
 
 .square-cell {
@@ -39,7 +39,7 @@ thead {
   position: sticky;
   top: 0;
   background-color: #fff; 
-  border: 1px solid grey;/* Background color for fixed header */
+  /* border: 1px solid grey; */
 }
 
 th:first-child,
@@ -62,7 +62,7 @@ th {
 }
 
 td {
-  border: 1px solid grey;
+  /* border: 1px solid grey; */
   height: 20px;
   width: 20px;
   text-align: center;

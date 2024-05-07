@@ -1,7 +1,7 @@
 import React from 'react';
 import "./TableStudentData.css"
 interface TableStudentDataProps {
-    studentData: Map<string, string>
+    studentData
 }
 
 function getColor(score) {
@@ -18,6 +18,7 @@ function getColor(score) {
 }
 
 const TableStudentData: React.FC<TableStudentDataProps> = ({ studentData }) => {
+    console.log(studentData)
     return (
         <>
             {Object.keys(studentData).map((val, key) => (

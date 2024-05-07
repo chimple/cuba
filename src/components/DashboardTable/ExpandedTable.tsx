@@ -21,14 +21,14 @@ const ExpandedTable: React.FC<ExpandedTableProps> = ({ expandedData }) => {
         <>
             {Object.keys(expandedData).slice(0, 4).map((val, key) => (
                 <tr>
-                    <td>{'LessonName'}</td>
+                    <td>{val}</td>
                     {Object.keys(expandedData[val]).map((v, k) => (
                         <td className="square-cell" style={{ color: getColor(expandedData[val][v]) }}>{expandedData[val][v] + '%'}</td>
                     ))}
                 </tr>
 
             ))}
-            <div className='border-divide'></div>
+            {/* <div className='border-divide'></div> */}
 
         </>
     );
