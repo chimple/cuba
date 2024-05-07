@@ -136,6 +136,7 @@
     "prop-types": "^15.8.1",
     "shx": "^0.3.4",
     "storybook": "^8.0.8",
+    "storybook-react-i18next": "^3.0.1",
     "webpack": "^5.91.0"
   },
   "description": "An Ionic project"
