@@ -21,7 +21,7 @@ const ExpandedTable: React.FC<ExpandedTableProps> = ({ expandedData }) => {
         <>
             {Object.keys(expandedData).slice(0, 4).map((val, key) => (
                 <tr>
-                    <td>{val}</td>
+                    <td>{'Lesson Name'}</td>
                     {Object.keys(expandedData[val]).map((v, k) => (
                         <td className="square-cell" style={{ color: getColor(expandedData[val][v]) }}>{expandedData[val][v] + '%'}</td>
                     ))}

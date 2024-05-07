@@ -1,6 +1,6 @@
 .table-container {
   overflow-x: auto;
-  width: 100%;
+  /* width: 100%; */
   display: flex;
 }
 
@@ -15,6 +15,7 @@
 .square-cell {
   height: 50px;
   width: 50px;
+  min-width: 40px;
   text-align: center;
   vertical-align: middle;
 }
@@ -38,17 +39,26 @@ table {
 thead {
   position: sticky;
   top: 0;
-  background-color: #fff; 
+  background-color: #fff;
+  z-index: 3;
+
   /* border: 1px solid grey; */
+}
+
+tbody {
+  z-index: 1;
 }
 
 th:first-child,
 td:first-child {
-  /* position:sticky; */
+  position: sticky;
+  left: 0;
   min-width: 120px;
   max-width: 120px;
   writing-mode: horizontal-tb;
   transform: inherit;
+  background-color: white;
+  z-index: 2;
 }
 
 th {
@@ -62,7 +72,7 @@ th {
 }
 
 td {
-  /* border: 1px solid grey; */
+  border: 1px solid grey;
   height: 20px;
   width: 20px;
   text-align: center;

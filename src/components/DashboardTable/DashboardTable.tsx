@@ -9,10 +9,11 @@ import ExpandedTable from './ExpandedTable';
 
 
 interface DashboardTableProps {
-    studentsData
+    studentsData,
+    headerData
 }
 
-const DashboardTable: React.FC<DashboardTableProps> = ({ studentsData }) => {
+const DashboardTable: React.FC<DashboardTableProps> = ({ studentsData, headerData }) => {
     const [expandedRow, setExpandedRow] = useState(null);
 
     const handleRowClick = (key) => {
@@ -22,13 +23,6 @@ const DashboardTable: React.FC<DashboardTableProps> = ({ studentsData }) => {
             setExpandedRow(key);
         }
     };
-    const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    // const data1 = [
-    //     { name: "Anom", score: 19, },
-    //     { name: "Megha", score: 19, },
-    //     { name: "Subham", score: 25 },
-    // ]
-  
     return (
 
         <div className="table">
@@ -37,7 +31,7 @@ const DashboardTable: React.FC<DashboardTableProps> = ({ studentsData }) => {
                 <thead>
                     <tr>
                         <th><TableChoiceHeader dateRange={'12thFeb-23thFeb'} /></th>
-                        <TableRightHeader headerDetails={daysOfWeek} />
+                        <TableRightHeader headerDetails={headerData} />
                     </tr>
                 </thead>
                 <tbody >

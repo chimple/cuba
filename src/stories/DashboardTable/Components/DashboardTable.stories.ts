@@ -16,15 +16,15 @@ const meta = {
     },
     tags: ["autodocs"],
 
-    argTypes: {
-
-    },
 
 } satisfies Meta<typeof DashboardTable>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const OneStudent: Story = {
     args: {
+        headerData:
+            ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        ,
         studentsData: {
             "Kumar": {
                 "Mon": null,
@@ -40,6 +40,9 @@ export const OneStudent: Story = {
 };
 export const TwoStudent: Story = {
     args: {
+        headerData:
+            ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        ,
         studentsData: {
             "Kumar": {
                 "Mon": null,
@@ -64,6 +67,9 @@ export const TwoStudent: Story = {
 };
 export const ThreeStudent: Story = {
     args: {
+        headerData:
+            ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        ,
         studentsData: {
             "Naveen": {
                 "Mon": 2,
@@ -97,6 +103,9 @@ export const ThreeStudent: Story = {
 };
 export const FourStudent: Story = {
     args: {
+        headerData:
+            ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        ,
         studentsData: {
             "Kumar": {
                 "Mon": null,
