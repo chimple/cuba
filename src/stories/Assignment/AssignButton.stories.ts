@@ -11,21 +11,28 @@ const meta = {
   tags: ["autodocs"],
   argTypes: {
     title: {
+      control: {
+        type: "text",
+      },
+    },
+    disabled: {
       options: Object.values(""),
       mapping: Object.values(""),
       control: {
-        type: "text",
+        type: "boolean",
         labels: Object.keys(""),
       },
     },
+    onClicked: fn(),
   },
-  args: { title: 'button' },
+  args: { title: "button", disabled: false, onClicked: fn() },
 } satisfies Meta<typeof CommonButton>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const assignButton: Story = {
+  parameters: { locale: "hi" },
   args: {
     title: "Assign",
     disabled: true,
