@@ -78,6 +78,7 @@ import React from "react";
 import StudentProfile from "./pages/Malta/StudentProfile";
 import AddStudent from "./pages/Malta/AddStudent";
 import Dashboard from "./pages/Malta/Dashboard";
+import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
 
 setupIonicReact();
 interface ExtraData {
@@ -281,7 +282,7 @@ const App: React.FC = () => {
               <Home />
             </ProtectedRoute>
             <Route path={PAGES.LOGIN} exact={true}>
-              <Login />
+              <Dashboard />
             </Route>
             <ProtectedRoute path={PAGES.GAME} exact={true}>
               <CocosGame />
