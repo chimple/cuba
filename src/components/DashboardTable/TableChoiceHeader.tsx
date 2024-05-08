@@ -3,6 +3,7 @@ import "./TableChoiceHeader.css"
 import TypeSelectionDropDown from './TypeSelectionDropDown';
 import { IoIosArrowDropdownCircle } from "react-icons/io";
 import { TABLEDROPDOWN } from '../../common/constants';
+import { t } from "i18next";
 
 interface TableChoiceHeaderProps {
    dateRange:string,
@@ -15,7 +16,7 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({dateRange }) => {
             <TypeSelectionDropDown dropdownValues={Object.values(TABLEDROPDOWN)} />
             <div className='date-range'>{dateRange}</div>
             <div className='sort-name'>
-                <div >Name</div>
+                <div >{t("Name")}</div>
                 <IoIosArrowDropdownCircle className='sort-button' onClick={() => { }} />
             </div>
         </div>
