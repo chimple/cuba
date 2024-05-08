@@ -1,7 +1,17 @@
 import type { Preview } from "@storybook/react";
+import i18n from "./i18next";
 
 const preview: Preview = {
+  globals: {
+    locale: 'en',
+    locales: {
+        en: 'English',
+        kn: 'ಕನ್ನಡ',
+        hi: 'हिंदी',
+    },
+},
   parameters: {
+    i18n,
     controls: {
       matchers: {
         color: /(background|color)$/i,

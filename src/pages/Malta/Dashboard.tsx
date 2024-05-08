@@ -4,8 +4,7 @@ import Sidebar from "../../components/malta/Dashboard/Sidebar";
 import Dropdowns from "../../components/malta/Dropdowns";
 import DashboardStats from "../../components/malta/Dashboard/DashboardStats";
 import { t } from "i18next";
-import FloatingMenuItems from "../../components/malta/Dashboard/FloatingMenuItems";
-import FloatingButton from "../../components/malta/Dashboard/FloatingButton";
+import DashboardTable from "../../components/DashboardTable/DashboardTable";
 
 const Dashboard: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -13,6 +12,8 @@ const Dashboard: React.FC = () => {
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const toggleMenuItems = () => setAreMenuItemsOpen(!areMenuItemsOpen);
+ 
+
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -36,26 +37,23 @@ const Dashboard: React.FC = () => {
 
   return (
     <>
-      <div className="dashboard-container">
-        <div className="menu-button" onClick={toggleSidebar}>
-          <div className="hamburger-icon">
-            <div></div>
-            <div></div>
-            <div></div>
+      <div className="dashboard">
+        <div className="dashboard-container">
+          <div className="menu-button" onClick={toggleSidebar}>
+            <div className="hamburger-icon">
+              <div></div>
+              <div></div>
+              <div></div>
+            </div>
           </div>
+          <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} name={""} email={""} />
+          <Dropdowns />
+          <button className="sending-report">{t("Send Report")}</button>
         </div>
-        <Sidebar
-          name=""
-          email=""
-          isOpen={isSidebarOpen}
-          toggleSidebar={toggleSidebar}
-        />
-        <Dropdowns />
-        <button className="sending-report">{t("Send Report")}</button>
+        <DashboardStats />
       </div>
-      <DashboardStats />
-      <FloatingButton onClick={toggleMenuItems} />{" "}
-      <FloatingMenuItems isOpen={areMenuItemsOpen} />{" "}
+      {/* <DashboardTable studentsData={{}} headerData={[]}/> */}
+      <button className="floating-button">+</button>
     </>
   );
 };

@@ -27,7 +27,7 @@ const UserTabs: React.FC<UserTabsProps> = ({ userType: value, onChange }) => {
                 padding: "0 3vw",
                 margin: "1vh 1vh",
                 minHeight: "37px",
-                backgroundColor:'#FFDC96'
+                backgroundColor: '#FFDC96'
               },
               "& .Mui-selected": {
                 backgroundColor: "#FFDC97",
@@ -44,6 +44,9 @@ const UserTabs: React.FC<UserTabsProps> = ({ userType: value, onChange }) => {
               onClick={() => {
 
               }}
+              sx={{
+                textTransform: 'none'
+              }}
             />
             <Tab
               className="user-page-sub-tab"
@@ -52,6 +55,9 @@ const UserTabs: React.FC<UserTabsProps> = ({ userType: value, onChange }) => {
               onClick={() => {
 
               }}
+              sx={{
+                textTransform: 'none'
+              }}
             />
             <Tab
               className="user-page-sub-tab"
@@ -59,6 +65,9 @@ const UserTabs: React.FC<UserTabsProps> = ({ userType: value, onChange }) => {
               value={USERTYPES.SPONSORS}
               onClick={() => {
 
+              }}
+              sx={{
+                textTransform: 'none'
               }}
             />
           </Tabs>
