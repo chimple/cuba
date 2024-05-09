@@ -1,12 +1,11 @@
 
 import { fn } from "@storybook/test";
 import type { Meta, StoryObj } from "@storybook/react";
-import AddUserPopUp from "../../../components/userRoles/AddUserPopUp";
-import { func } from "prop-types";
+
 import UserTabs from "../../../components/userRoles/UserTabs";
 import { USERTYPES } from "../../../common/constants";
 import { withActions } from '@storybook/addon-actions/decorator';
-import "./userRoles.stories.css"
+
 
 const meta = {
     title: "Component/AddUsers/userTabs",
@@ -14,7 +13,7 @@ const meta = {
     decorators:[withActions],
     parameters: {
 
-        layout: "centered",
+        layout: 'fullscreen',
     },
     tags: ["autodocs"],
     argTypes: {
