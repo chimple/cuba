@@ -140,7 +140,9 @@ export class FirebaseApi implements ServiceApi {
           const existingCourseRefs:
             | DocumentReference<DocumentData>[]
             | undefined = student?.courses;
-          courseIds.push(...existingCourseRefs);
+          if (existingCourseRefs.length > 0) {
+            courseIds.push(...existingCourseRefs);
+          }
           curriculumCourses.forEach((course) => {
             if (!courseIds.find((c) => c.id === course.docId)) {
               courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
