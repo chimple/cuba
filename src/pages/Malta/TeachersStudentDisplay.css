@@ -1,12 +1,12 @@
 .container {
   background-color: white;
   height: 100vh;
+  padding: 0;
 }
 
 .back-button {
   position: absolute;
-  margin: var(--margin);
-  margin-right: 0;
+  left: 10px;
 }
 
 .vertical-line {
@@ -22,6 +22,7 @@
   flex-direction: row;
   align-self: center;
   overflow-y: scroll;
+  overflow: hidden;
   height: 50vh;
   margin: 10%;
   grid-template-columns: repeat(auto-fill,

@@ -1,16 +1,18 @@
 .class-code-page {
     background-color: white;
     height: 100vh;
+    margin: 0;
 }
 
 .back-button {
     position: absolute;
-    margin: var(--margin);
-    margin-right: 0;
+    left: 10px;
 }
 
 .app-bar-title {
     font-size: 3vh;
+    color: black;
+    align-self: center;
 }
 
 .class-code-body {
@@ -31,6 +33,7 @@
     color: blue;
     margin: 2vh;
     font-size: larger;
+    border: 0;
 }
 .code-button{
     display: flex;

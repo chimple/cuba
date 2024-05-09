@@ -1,9 +1,11 @@
 .teacher-img {
-    height: 7vh;
-    width: 7vh;
-    border-radius: 100%;
+    position: relative;
+    height: 8vh;
+    width: 8vh;
+    border-radius: 50%;
 }
 .header {
+    margin: 0;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -14,8 +16,12 @@
 }
 .teacher-name{
     font-weight: bold;
-    font-size: x-large;
+    font-size: 20px;
+    color: black;
+    margin: 0;
 }
 .class-name{
-    font-size: large;
+    /* font-size: large; */
+    color: black;
+    margin: 0;
 }

@@ -1,0 +1,9 @@
+.sb-show-main.sb-main-centered {
+    min-height: 0;
+    display: contents;
+}
+
+.sb-show-main.sb-main-centered #storybook-root {
+    max-height: 0;
+    padding: 0;
+}

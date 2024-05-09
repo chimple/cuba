@@ -22,9 +22,6 @@ const UserRoles: React.FC<UserRolesProps> = () => {
   };
   return (
     <div className='users-page'>
-      <div className="back-button-in-users">
-        <BackButton onClicked={() => { }} />
-      </div>
       <AppBar
         position="static"
         sx={{
@@ -32,9 +29,15 @@ const UserRoles: React.FC<UserRolesProps> = () => {
           justifyContent: "space-evenly",
           padding: "2vh 3vw 2vh 3vw",
           backgroundColor: "#FFFBEC",
+          height: '10vh'
         }}
       >
-        <p className='app-bar-title'>{t('Users')}</p>
+
+        <div className="back-button">
+          <BackButton onClicked={() => { }} />
+        </div>
+
+        <p className='app-bar-title'>{t('Add User')}</p>
       </AppBar>
       <div>
         <UserTabs userType={tabIndex} onChange={onTabChange} />

@@ -4,7 +4,7 @@
     position: relative;
     /* display: flex; */
     align-self: center;
-    border-radius: 30px;
+    border-radius: 5px;
     background-color: cornsilk;
 }
 .menu-item {

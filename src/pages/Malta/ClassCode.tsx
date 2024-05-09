@@ -1,11 +1,9 @@
 import React, { useRef, useState } from 'react';
-import { AppBar, MenuItem, Select } from '@mui/material';
-import { useHistory } from 'react-router-dom';
+import { AppBar, } from '@mui/material';
 import BackButton from '../../components/common/BackButton';
 import "./ClassCode.css"
 import { t } from 'i18next';
 import QRCodeGenerator from '../../components/classcode/QrCodeGenerator';
-import DropDown from '../../components/DropDown';
 import CodeDropDown from '../../components/classcode/CodeDropDown';
 import html2canvas from 'html2canvas';
 
@@ -19,20 +17,19 @@ const ClassCode: React.FC<ClassCodeProps> = () => {
         const screen = screenRef.current;
         if (!screen) return null;
         html2canvas(screen)
-          .then((canvas) => {
-            const base64Image = canvas.toDataURL();
-            const whatsappURL = `whatsapp://send?text=Check%20out%20this%20image&attachment=${base64Image}`;
-            window.open(whatsappURL);
-          })
-          .catch((error) => {
-            console.error('Error capturing screen:', error);
-          });
-      };
+            .then((canvas) => {
+                const base64Image = canvas.toDataURL();
+                const whatsappURL = `whatsapp://send?text=Check%20out%20this%20image&attachment=${base64Image}`;
+                window.open(whatsappURL);
+            })
+            .catch((error) => {
+                console.error('Error capturing screen:', error);
+            });
+    };
     return (
         <div className='class-code-page' ref={screenRef}>
-            <div className="back-button">
-                <BackButton onClicked={() => { }} />
-            </div>
+
+
             <AppBar
                 position="static"
                 sx={{
@@ -40,8 +37,14 @@ const ClassCode: React.FC<ClassCodeProps> = () => {
                     justifyContent: "space-evenly",
                     padding: "2vh 3vw 2vh 3vw",
                     backgroundColor: "#FFFBEC",
+                    height:'10vh'
                 }}
             >
+
+                <div className="back-button">
+                    <BackButton onClicked={() => { }} />
+                </div>
+
                 <p className='app-bar-title'>{t('Class Code')}</p>
             </AppBar>
             <div className='class-code-body'>
