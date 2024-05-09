@@ -30,7 +30,6 @@ import {
   StudentLeaderboardInfo,
 } from "./ServiceApi";
 import {
-  ADDITIONAL_COURSES,
   COURSES,
   DEFAULT_SUBJECT_IDS,
   LESSON_DOC_LESSON_ID_MAP,
@@ -98,7 +97,8 @@ export class FirebaseApi implements ServiceApi {
 
   public async getCourseByUserGradeId(
     gradeDocId: string | undefined,
-    boardDocId: string | undefined
+    boardDocId: string | undefined,
+    student?: User
   ): Promise<DocumentReference<DocumentData>[]> {
     let courseIds: DocumentReference[] = [];
 
@@ -136,6 +136,33 @@ export class FirebaseApi implements ServiceApi {
           if (!!curriculumRef && curriculumRef.id === boardDocId) return true;
         });
 
+        if (student) {
+          const existingCourseRefs:
+            | DocumentReference<DocumentData>[]
+            | undefined = student?.courses;
+          let existingCourseIds: string[] = [];
+          existingCourseRefs?.map((course) => {
+            existingCourseIds.push(course.id);
+          });
+          let existingCourses: Course[] = [];
+          if (existingCourseIds) {
+            for (const id of existingCourseIds) {
+              const courseDoc = await this.getCourse(id);
+              if (courseDoc) {
+                existingCourses.push(courseDoc);
+              }
+            }
+          }
+          existingCourses.forEach((course) => {
+            courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+          });
+          curriculumCourses.forEach((course) => {
+            if (!courseIds.find((c) => c.id === course.docId)) {
+              courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+            }
+          });
+          return courseIds;
+        }
         curriculumCourses.forEach((course) => {
           courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
         }); //adding courses based on curriculum
@@ -990,7 +1017,11 @@ export class FirebaseApi implements ServiceApi {
     languageDocId: string
   ): Promise<User> {
     let tempCourse;
-    tempCourse = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
+    tempCourse = await this.getCourseByUserGradeId(
+      gradeDocId,
+      boardDocId,
+      student
+    );
     const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
     const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
     const languageRef = doc(
@@ -1009,29 +1040,9 @@ export class FirebaseApi implements ServiceApi {
       language: languageRef,
       name: name,
     };
-    let localStorageData: Course[] = [];
     if (!!tempCourse) {
-      let strLocalStoreData = localStorage.getItem(ADDITIONAL_COURSES);
-      if (!!strLocalStoreData) {
-        localStorageData = JSON.parse(strLocalStoreData);
-        const localCoursesRefs = localStorageData.map((course) =>
-          doc(this._db, CollectionIds.COURSE, course.docId)
-        );
-        const filteredCourses: DocumentReference<DocumentData>[] = [];
-        tempCourse.forEach((course) => {
-          const isDuplicate = localCoursesRefs.some(
-            (courseRef) => courseRef.path === course.path
-          );
-          if (!isDuplicate) {
-            filteredCourses.push(course);
-          }
-        });
-        updateDocWithCourse.courses = [...localCoursesRefs, ...filteredCourses];
-        student.courses = [...localCoursesRefs, ...filteredCourses];
-      } else {
-        updateDocWithCourse.courses = tempCourse;
-        student.courses = tempCourse;
-      }
+      updateDocWithCourse.courses = tempCourse;
+      student.courses = tempCourse;
     }
     await updateDoc(
       doc(this._db, `${CollectionIds.USER}/${student.docId}`),
