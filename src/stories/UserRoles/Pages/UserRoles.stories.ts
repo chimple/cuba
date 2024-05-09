@@ -7,7 +7,7 @@ const meta = {
     title: "Pages/Malta/UserRoles",
     component: UserRoles,
     parameters: {
-        layout: "centered",
+        layout: "fullscreen",
     },
     tags: ["autodocs"],
     args: {  },
