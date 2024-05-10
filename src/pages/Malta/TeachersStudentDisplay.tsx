@@ -34,7 +34,7 @@ const TeachersStudentDisplay: React.FC<TeachersStudentDisplayProps> = () => {
                     <BackButton onClicked={() => { }} />
                 </div>
 
-                <TeacherHeader name={'Mr Jyothi'} className={'1st standard'} image={'https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/2023-04-24%2013%3A45%3A46.114687?alt=media&token=ede2e11a-f37c-44df-b6f9-3396f8ca55ef'} />
+                <TeacherHeader name={''} className={''} image={''} />
             </AppBar>
 
             <ClassTabs userType={tabIndex} onChange={onTabChange} />
