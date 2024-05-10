@@ -12,9 +12,11 @@ td:first-child {
   max-width: 120px;
   writing-mode: horizontal-tb;
   transform: inherit;
+  align-content: center;
 }
 
 td {
+  background-color: white;
   border: 1px solid grey;
   height: 20px;
   width: 20px;
