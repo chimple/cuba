@@ -19,20 +19,24 @@ const TeachersStudentDisplay: React.FC<TeachersStudentDisplayProps> = () => {
     };
     return (
         <div className='container'>
-            <div className="back-button">
-                <BackButton onClicked={() => { }} />
-            </div>
             <AppBar
                 position="static"
                 sx={{
                     flexDirection: "inherit",
                     justifyContent: "space-evenly",
-                    padding: "0vh 1vw 1vh 1vw",
+                    padding: "2vh 3vw 2vh 3vw",
                     backgroundColor: "#FFFBEC",
+                    height: '10vh'
                 }}
             >
-                <TeacherHeader name={'Mr Jyothi'} className={'1st standard'} image={'https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/2023-04-24%2013%3A45%3A46.114687?alt=media&token=ede2e11a-f37c-44df-b6f9-3396f8ca55ef'} />
+
+                <div className="back-button">
+                    <BackButton onClicked={() => { }} />
+                </div>
+
+                <TeacherHeader name={''} className={''} image={''} />
             </AppBar>
+
             <ClassTabs userType={tabIndex} onChange={onTabChange} />
             <div className="all-users-display">
                 {users.map((user) => (
