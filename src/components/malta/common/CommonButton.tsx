@@ -13,7 +13,7 @@ interface CommonButtonProps {
 const CommonButton: React.FC<CommonButtonProps> = ({
   onClicked,
   disabled,
-  title
+  title,
 }) => {
   return (
     <div className="buttoncontainerr">

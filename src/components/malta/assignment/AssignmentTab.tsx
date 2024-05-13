@@ -4,6 +4,7 @@ import CourseChapterDropDown from "./CourseChapterDropDown";
 import DisplayLesson from "./DisplayLesson";
 import Course from "../../../models/course";
 import CommonButton from "../common/CommonButton";
+import { t } from "i18next";
 
 const AssignmentTab: FC<{
   lessons: Lesson[];
@@ -45,7 +46,7 @@ const AssignmentTab: FC<{
           </div>
         )}
       </div>
-      <CommonButton title="Assign" disabled={false} onClicked={() => {}} />
+      <CommonButton title={t("Assign")} disabled={false} onClicked={() => {}} />
     </div>
   );
 };

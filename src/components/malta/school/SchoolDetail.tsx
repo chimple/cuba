@@ -1,4 +1,11 @@
-import { IonInput, IonItem, IonLabel, IonList } from "@ionic/react";
+import {
+  IonCol,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonRow,
+} from "@ionic/react";
 import { FC } from "react";
 import "./SchoolDetail.css";
 import { t } from "i18next";
@@ -14,16 +21,16 @@ const SchoolDetail: FC<SchoolDetailProps> = ({
 }) => {
   return (
     <div className="alignItems">
-      <IonItem lines="none" color={'#fff'}>
-        <IonLabel>{t("School name : ")}</IonLabel>
+      <IonItem lines="none" color={"#fff"}>
+        <IonLabel>{t("School name ")}</IonLabel>
         <IonLabel>{schoolName}</IonLabel>
       </IonItem>
-      <IonItem lines="none" color={'#fff'}>
-        <IonLabel>{t("City : ")}</IonLabel>
+      <IonItem lines="none" color={"#fff"}>
+        <IonLabel>{t("City ")}</IonLabel>
         <IonLabel>{cityName}</IonLabel>
       </IonItem>
-      <IonItem lines="none" color={'#fff'}>
-        <IonLabel>{t("State : ")}</IonLabel>
+      <IonItem lines="none" color={"#fff"}>
+        <IonLabel>{t("State ")}</IonLabel>
         <IonLabel>{stateName}</IonLabel>
       </IonItem>
     </div>

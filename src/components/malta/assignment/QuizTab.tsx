@@ -49,9 +49,9 @@ const QuizTab: FC<{
       </div>
 
       <div style={{ marginLeft: "1vh" }}>{t("Select by date range")}</div>
-      <StartEndDateSelect startDate="2024-05-02" endDate="2024-05-10"/>
+      <StartEndDateSelect startDate="2024-05-02" endDate="2024-05-10" />
 
-      <CommonButton title="Assign" disabled={false} onClicked={() => {}} />
+      <CommonButton title={t("Assign")} disabled={false} onClicked={() => {}} />
     </div>
   );
 };

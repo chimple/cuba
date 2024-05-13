@@ -3,6 +3,7 @@ import Lesson from "../../../models/lesson";
 import RecommendedAssignment from "./RecommendedAssignment";
 import "./RecommendedTab.css";
 import CommonButton from "../common/CommonButton";
+import { t } from "i18next";
 
 const RecommendedTab: FC<{
   lessons: Lesson[];
@@ -15,11 +16,11 @@ const RecommendedTab: FC<{
     <div className="recommendedTab">
       {stage === STAGES.SUBJECTS && lessons && (
         <div>
-          <RecommendedAssignment infoText="These are the recommended assignments based on the previous assignments" />
+          <RecommendedAssignment infoText={t("These are the recommended assignments based on the previous assignments")} />
         </div>
       )}
 
-      <CommonButton title="Assign" disabled={false} onClicked={() => {}} />
+      <CommonButton title={t("Assign")} disabled={false} onClicked={() => {}} />
     </div>
   );
 };

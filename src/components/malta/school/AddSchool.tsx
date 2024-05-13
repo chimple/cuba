@@ -2,6 +2,7 @@ import { IonInput, IonList } from "@ionic/react";
 import { FC } from "react";
 import "./AddSchool.css";
 import CommonButton from "../common/CommonButton";
+import { t } from "i18next";
 
 interface AddSchoolProps {
   schoolName: string;
@@ -21,31 +22,31 @@ const AddSchool: FC<AddSchoolProps> = ({
   return (
     <div className="alignItems">
       <IonInput
-        label="School name"
+        label={t("School name")!}
         labelPlacement="floating"
         fill="outline"
-        placeholder="Enter text"
+        placeholder={t("Enter text")!}
         value={schoolName}
       ></IonInput>
       <br />
       <IonInput
-        label="City"
+        label={t("City")!}
         labelPlacement="floating"
         fill="outline"
-        placeholder="Enter text"
+        placeholder={t("Enter text")!}
         value={cityName}
       ></IonInput>
       <br />
       <IonInput
-        label="State"
+        label={t("State")!}
         labelPlacement="floating"
         fill="outline"
-        placeholder="Enter text"
+        placeholder={t("Enter text")!}
         value={stateName}
       ></IonInput>
       <div className="buttonRow">
-        <CommonButton disabled={false} title="Cancel" onClicked={onCancel}  />
-        <CommonButton disabled={false} title="Add" onClicked={onCreate}  />
+        <CommonButton disabled={false} title="Cancel" onClicked={onCancel} />
+        <CommonButton disabled={false} title="Add" onClicked={onCreate} />
       </div>
     </div>
   );

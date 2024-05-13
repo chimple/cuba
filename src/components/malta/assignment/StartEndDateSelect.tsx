@@ -8,18 +8,20 @@ interface StartEndDateSelectProps {
   endDate: string;
 }
 
-const StartEndDateSelect: FC<StartEndDateSelectProps> = ({startDate, endDate}) => {
+const StartEndDateSelect: FC<StartEndDateSelectProps> = ({
+  startDate,
+  endDate,
+}) => {
   return (
     <>
       <div className="datePicker">
         <div className="datetextdiv">
           {t("Start Date")}
-          <DateTimePicker date={startDate}/>
-          
+          <DateTimePicker date={startDate} />
         </div>
         <div className="datetextdiv">
           {t("End Date")}
-          <DateTimePicker date={endDate}/>
+          <DateTimePicker date={endDate} />
         </div>
       </div>
     </>
