@@ -1,10 +1,10 @@
 import {
-  IonCol,
+  IonCard,
+  IonCardContent,
   IonInput,
   IonItem,
   IonLabel,
   IonList,
-  IonRow,
 } from "@ionic/react";
 import { FC } from "react";
 import "./SchoolDetail.css";
@@ -21,18 +21,22 @@ const SchoolDetail: FC<SchoolDetailProps> = ({
 }) => {
   return (
     <div className="alignItems">
-      <IonItem lines="none" color={"#fff"}>
-        <IonLabel>{t("School name ")}</IonLabel>
-        <IonLabel>{schoolName}</IonLabel>
-      </IonItem>
-      <IonItem lines="none" color={"#fff"}>
-        <IonLabel>{t("City ")}</IonLabel>
-        <IonLabel>{cityName}</IonLabel>
-      </IonItem>
-      <IonItem lines="none" color={"#fff"}>
-        <IonLabel>{t("State ")}</IonLabel>
-        <IonLabel>{stateName}</IonLabel>
-      </IonItem>
+      <IonCard color={'#fff'}>
+        <IonCardContent>
+          <IonItem lines="none" >
+            <IonLabel>{t("School name")}</IonLabel>
+            <IonLabel>{schoolName}</IonLabel>
+          </IonItem>
+          <IonItem lines="none">
+            <IonLabel>{t("City")}</IonLabel>
+            <IonLabel>{cityName}</IonLabel>
+          </IonItem>
+          <IonItem lines="none" >
+            <IonLabel>{t("State")}</IonLabel>
+            <IonLabel>{stateName}</IonLabel>
+          </IonItem>
+        </IonCardContent>
+      </IonCard>
     </div>
   );
 };
