@@ -1,5 +1,10 @@
 import type { Preview } from "@storybook/react";
 import i18n from "./i18next";
+import { setupIonicReact } from '@ionic/react';
+
+setupIonicReact({
+  mode: 'md'
+});
 
 const preview: Preview = {
   globals: {
@@ -20,5 +25,6 @@ const preview: Preview = {
     },
   },
 };
+
 
 export default preview;

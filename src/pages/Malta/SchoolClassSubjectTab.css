@@ -1,7 +1,0 @@
-.segment-button-checked.md::part(native) {
-  background: #ffc409;
-}
-
-.segment-button-checked.ios::part(native) {
-  color: #ffc409;
-}

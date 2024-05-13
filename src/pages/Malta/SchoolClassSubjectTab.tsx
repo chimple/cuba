@@ -4,7 +4,6 @@ import CommonAppBar from "../../components/malta/common/CommonAppBar";
 import { COMMONTAB_LIST } from "../../common/constants";
 import CommonTab from "../../components/malta/common/SchoolClassSubjectsTab";
 import { t } from "i18next";
-import "./SchoolClassSubjectTab.css";
 import AddEditDeleteFab from "../../components/malta/school/AddEditDeleteFab";
 import SchoolDetail from "../../components/malta/school/SchoolDetail";
 import SwitchSchool from "../../components/malta/school/SwitchSchool";

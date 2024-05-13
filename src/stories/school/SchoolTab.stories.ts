@@ -16,6 +16,38 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+export const schoolDetail: Story = {
+  args: {
+    schoolName: "School1",
+    cityName: "Bengaluru",
+    stateName: "Karnataka",
+    schools: ["School1", "School2"],
+    isSchoolAdd: false,
+    isSchoolEdit: false,
+    onCancel: fn(),
+    onSchoolAdd: fn(),
+    onSchoolCreate: fn(),
+    onSchoolEdit: fn(),
+    onSchoolSave: fn(),
+  },
+};
+
+export const addSchool: Story = {
+  args: {
+    schoolName: "School1",
+    cityName: "Bengaluru",
+    stateName: "Karnataka",
+    schools: ["School1", "School2"],
+    isSchoolAdd: true,
+    isSchoolEdit: false,
+    onCancel: fn(),
+    onSchoolAdd: fn(),
+    onSchoolCreate: fn(),
+    onSchoolEdit: fn(),
+    onSchoolSave: fn(),
+  },
+};
+
 export const editSchool: Story = {
   args: {
     schoolName: "School1",
@@ -24,6 +56,22 @@ export const editSchool: Story = {
     schools: ["School1", "School2"],
     isSchoolAdd: false,
     isSchoolEdit: true,
+    onCancel: fn(),
+    onSchoolAdd: fn(),
+    onSchoolCreate: fn(),
+    onSchoolEdit: fn(),
+    onSchoolSave: fn(),
+  },
+};
+
+export const deleteSchool: Story = {
+  args: {
+    schoolName: "School1",
+    cityName: "Bengaluru",
+    stateName: "Karnataka",
+    schools: ["School1", "School2"],
+    isSchoolAdd: false,
+    isSchoolEdit: false,
     onCancel: fn(),
     onSchoolAdd: fn(),
     onSchoolCreate: fn(),

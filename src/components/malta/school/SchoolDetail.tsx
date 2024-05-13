@@ -14,15 +14,15 @@ const SchoolDetail: FC<SchoolDetailProps> = ({
 }) => {
   return (
     <div className="alignItems">
-      <IonItem color={"#fff"}>
+      <IonItem lines="none" color={'#fff'}>
         <IonLabel>{t("School name : ")}</IonLabel>
         <IonLabel>{schoolName}</IonLabel>
       </IonItem>
-      <IonItem color={"#fff"}>
+      <IonItem lines="none" color={'#fff'}>
         <IonLabel>{t("City : ")}</IonLabel>
         <IonLabel>{cityName}</IonLabel>
       </IonItem>
-      <IonItem color={"#fff"}>
+      <IonItem lines="none" color={'#fff'}>
         <IonLabel>{t("State : ")}</IonLabel>
         <IonLabel>{stateName}</IonLabel>
       </IonItem>

@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import AddSchool from "../../components/malta/common/CommonDialog";
 import { fn } from "@storybook/test";
 import DeleteDialog from "../../components/malta/common/CommonDialog";
+import {trash} from 'ionicons/icons'
 
 const meta = {
   title: "Component/malta/school/DeleteSchool",
@@ -29,6 +30,6 @@ type Story = StoryObj<typeof meta>;
 export const deleteSchool: Story = {
   args: {
     alertMsg: "Are you sure to delete the school",
-    ionIcon: "trash",
+    ionIcon: trash,
   },
 };

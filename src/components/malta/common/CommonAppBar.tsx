@@ -9,7 +9,7 @@ import {
 } from "@ionic/react";
 import { t } from "i18next";
 import ProfileAvatar from "./ProfileAvatar";
-import { trash } from "ionicons/icons";
+import './CommonAppBar.css';
 interface CommonAppBarProps {
   title: string;
   loc: string;

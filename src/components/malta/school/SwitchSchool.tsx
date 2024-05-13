@@ -8,7 +8,7 @@ interface SwitchSchoolProps {
 const SwitchSchool: FC<SwitchSchoolProps> = ({ schools }) => {
   return (
     <div className="alignContent">
-      <IonRadioGroup value="school1">
+      <IonRadioGroup value={schools[0]}>
         {schools.map((school) => (
           <>
             <IonRadio value={school} labelPlacement="end">

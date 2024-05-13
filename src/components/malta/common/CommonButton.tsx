@@ -16,13 +16,12 @@ const CommonButton: React.FC<CommonButtonProps> = ({
   title
 }) => {
   return (
-    <div className="buttoncontainer">
+    <div className="buttoncontainerr">
       <IonButton
         disabled={disabled}
         onClick={onClicked}
         size="default"
         expand="block"
-        color={'warning'}
       >
         {t(title)}
       </IonButton>

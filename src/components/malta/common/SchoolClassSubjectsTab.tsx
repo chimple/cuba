@@ -1,6 +1,7 @@
 import * as React from "react";
 import { IonLabel, IonSegment, IonSegmentButton } from "@ionic/react";
 import { COMMONTAB_LIST } from "../../../common/constants";
+import './SchoolClassSubjectsTab.css';
 
 interface CommonTabProps {
   tabHeader: COMMONTAB_LIST;
@@ -13,7 +14,7 @@ const CommonTab: React.FC<CommonTabProps> = ({
 }) => {
   return (
     <>
-      <IonSegment value={value} onIonChange={segmentChanged}>
+      <IonSegment value={value} onIonChange={segmentChanged} style={{padding: '6px'}}>
         <IonSegmentButton value={COMMONTAB_LIST.SCHOOL}>
           <IonLabel>{COMMONTAB_LIST.SCHOOL}</IonLabel>
         </IonSegmentButton>
