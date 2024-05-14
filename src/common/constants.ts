@@ -65,12 +65,6 @@ export enum ASSIGNMENTTAB_LIST {
   LIVEQUIZ = "Live Quiz",
 }
 
-export enum COMMONTAB_LIST {
-  SCHOOL = "School",
-  CLASS = "Class",
-  SUBJECTS = "Subjects",
-}
-
 export enum USERTYPES {
   COORDINATORS = "Coordinators",
   PRINCIAPAL = "Principal",

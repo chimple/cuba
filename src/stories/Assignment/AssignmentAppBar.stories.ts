@@ -1,42 +1,18 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import CommonAppBar from "../../components/malta/common/CommonAppBar";
+import AssignmentAppBar from "../../components/malta/assignment/AssignmentAppBar";
 
 const meta = {
   title: "Component/malta/assignment/AssignmentAppBar",
-  component: CommonAppBar,
+  component: AssignmentAppBar,
   parameters: {
     layout: "centered",
   },
   tags: ["autodocs"],
-  argTypes: {
-    title: {
-      options: Object.values(""),
-      mapping: Object.values(""),
-      control: {
-        type: "text",
-        labels: Object.keys(""),
-      },
-    },
-    loc: {
-      options: Object.values(""),
-      mapping: Object.values(""),
-      control: {
-        type: "text",
-        labels: Object.keys(""),
-      },
-    },
-  },
+  argTypes: {},
   args: {},
-} satisfies Meta<typeof CommonAppBar>;
+} satisfies Meta<typeof AssignmentAppBar>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const appBar: Story = {
-  args: {
-    title: "assignment",
-    loc: "#",
-    showAvatar: false,
-    imgScr: ''
-  },
-};
+export const enabled: Story = {};

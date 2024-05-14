@@ -7,11 +7,10 @@
 
 .datetextdiv {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   background-color: antiquewhite;
   width: 40vw;
   height: 6vh;
-  justify-content: space-between;
 }
 
 .dateicon {

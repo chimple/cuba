@@ -1,32 +1,28 @@
 import { IonButton, IonIcon } from "@ionic/react";
 import { t } from "i18next";
 import { chevronForward, warning } from "ionicons/icons";
-import "./CommonButton.css";
+import "./AssignButton.css";
 import React from "react";
 
-interface CommonButtonProps {
+interface AssignButtonProps {
   onClicked: React.MouseEventHandler<HTMLIonButtonElement>;
   disabled: boolean;
-  title: string;
 }
 
-const CommonButton: React.FC<CommonButtonProps> = ({
-  onClicked,
-  disabled,
-  title,
-}) => {
+const AssignButton: React.FC<AssignButtonProps> = ({ onClicked, disabled }) => {
   return (
-    <div className="buttoncontainerr">
+    <div className="buttoncontainer">
       <IonButton
         disabled={disabled}
         onClick={onClicked}
+        color={"warning"}
         size="default"
         expand="block"
       >
-        {t(title)}
+        {t("Assign")}
       </IonButton>
     </div>
   );
 };
 
-export default CommonButton;
+export default AssignButton;

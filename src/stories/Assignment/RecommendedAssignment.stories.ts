@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import RecommendedAssignment from "../../components/malta/assignment/RecommendedAssignment";
 
 const meta = {
-  title: "Component/Malta/assignment/RecommendedorSelectedAssignment",
+  title: "Component/Malta/assignment/RecommendedAssignment",
   component: RecommendedAssignment,
   parameters: {
     layout: "centered",
@@ -24,14 +24,8 @@ const meta = {
 } satisfies Meta<typeof RecommendedAssignment>;
 export default meta;
 type Story = StoryObj<typeof meta>;
-export const recommendedAssignments: Story = {
+export const recommendedText: Story = {
   args: {
-    infoText: "These are the recommended assignments based on the previous assignments",
-  },
-};
-
-export const selectedAssignments: Story = {
-  args: {
-    infoText: "These are the assignments you have chosen to assign",
+    infoText: "Recommended Assignments",
   },
 };

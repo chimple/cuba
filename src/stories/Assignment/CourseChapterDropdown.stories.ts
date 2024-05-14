@@ -3,10 +3,8 @@ import { fn } from "@storybook/test";
 import DropDown from "../../components/malta/assignment/DropDown";
 
 const OPTIONS = [
-  { id: "str", displayName: "lesson1" },
-  { id: "str1", displayName: "lesson2" },
-  { id: "str2", displayName: "lesson3" },
-  { id: "str3", displayName: "lesson4" },
+  { id: "str", displayName: "strDisp" },
+  { id: "str1", displayName: "strDisp1" },
 ];
 const meta = {
   title: "component/malta/assignment/DropDown",
@@ -32,7 +30,7 @@ export const dropdown: Story = {
   args: {
     currentValue: "value",
     optionList: OPTIONS,
-    placeholder: "",
+    placeholder: "select",
     width: "35vw",
     onValueChange(evt) {},
   },

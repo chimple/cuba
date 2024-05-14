@@ -1,10 +1,9 @@
 import { FC, useState } from "react";
+import AssignButton from "./AssignButton";
 import Lesson from "../../../models/lesson";
 import CourseChapterDropDown from "./CourseChapterDropDown";
 import DisplayLesson from "./DisplayLesson";
 import Course from "../../../models/course";
-import CommonButton from "../common/CommonButton";
-import { t } from "i18next";
 
 const AssignmentTab: FC<{
   lessons: Lesson[];
@@ -46,7 +45,7 @@ const AssignmentTab: FC<{
           </div>
         )}
       </div>
-      <CommonButton title={t("Assign")} disabled={false} onClicked={() => {}} />
+      <AssignButton disabled={false} onClicked={() => {}} />
     </div>
   );
 };
