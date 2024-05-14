@@ -1,0 +1,13 @@
+.card-subtitle {
+  --color: #a71b3b;
+}
+
+.card {
+  --background: #fff8e9;
+  --color: #474747;
+}
+
+.checkbox {
+  --size: 20px;
+  --checkbox-background: white;
+}
