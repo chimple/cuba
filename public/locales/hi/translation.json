@@ -149,6 +149,7 @@
   "Device is offline. Cannot download the Chapter": "डिवाइस ऑफ़लाइन है. अध्याय डाउनलोड नहीं किया जा सकता",
   "Device is offline. Cannot download the Lesson": "डिवाइस ऑफ़लाइन है. पाठ डाउनलोड नहीं किया जा सकता",
   "Device is offline. Cannot edit or delete child profile": "डिवाइस ऑफ़लाइन है. बच्चे की प्रोफ़ाइल को संपादित या हटा नहीं सकते",
+  "Device is offline. Cannot join a class": "डिवाइस ऑफ़लाइन है. किसी क्लास में शामिल नहीं हो सकते",
   "Device is offline. Login requires an internet connection": "डिवाइस ऑफ़लाइन है. लॉगिन के लिए इंटरनेट कनेक्शन की आवश्यकता होती है",
   "Device is offline.": "डिवाइस ऑफ़लाइन है.",
   "Device is online.": "डिवाइस ऑनलाइन है.",
