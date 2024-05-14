@@ -7,9 +7,9 @@ import {
   IonToolbar,
 } from "@ionic/react";
 import { t } from "i18next";
-import RecommendedAssignment from '../../components/malta/assignment/RecommendedAssignment';
-import AssignButton from '../../components/malta/assignment/AssignButton';
+import RecommendedAssignment from "../../components/malta/assignment/RecommendedAssignment";
 import "./SelectedAssignment.css";
+import CommonButton from "../../components/malta/common/CommonButton";
 
 const SelectedAssignment: React.FC = () => {
   return (
@@ -23,7 +23,11 @@ const SelectedAssignment: React.FC = () => {
         </IonToolbar>
       </IonHeader>
       <RecommendedAssignment infoText="These are the assignments you have chosen to assign"></RecommendedAssignment>
-      <AssignButton disabled={false} onClicked={() => {}}></AssignButton>
+      <CommonButton
+        title="Assign"
+        disabled={false}
+        onClicked={() => {}}
+      ></CommonButton>
     </IonPage>
   );
 };

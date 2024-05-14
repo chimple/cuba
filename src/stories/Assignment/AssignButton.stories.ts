@@ -1,32 +1,58 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { fn } from "@storybook/test";
-import { action } from "@storybook/addon-actions";
-import AssignButton from "../../components/malta/assignment/AssignButton";
+import CommonButton from "../../components/malta/common/CommonButton";
 
 const meta = {
-  title: "Component/malta/assignment/AssignButton",
-  component: AssignButton,
+  title: "Component/malta/CommonButton",
+  component: CommonButton,
   parameters: {
     layout: "centered",
   },
   tags: ["autodocs"],
   argTypes: {
-    onClicked: action("on-click"),
+    title: {
+      options: Object.values(""),
+      mapping: Object.values(""),
+      control: {
+        type: "text",
+        labels: Object.keys(""),
+      },
+    },
   },
-  args: { onClicked: fn() },
-} satisfies Meta<typeof AssignButton>;
+  args: { title: 'button' },
+} satisfies Meta<typeof CommonButton>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const disabled: Story = {
+export const assignButton: Story = {
   args: {
+    title: "Assign",
     disabled: true,
+    onClicked: fn(),
   },
 };
 
-export const enabled: Story = {
+export const switchSchoolButton: Story = {
   args: {
+    title: "Switch school",
     disabled: false,
+    onClicked: fn(),
+  },
+};
+
+export const cancelButton: Story = {
+  args: {
+    title: "Cancel",
+    disabled: false,
+    onClicked: fn(),
+  },
+};
+
+export const saveButton: Story = {
+  args: {
+    title: "Save",
+    disabled: false,
+    onClicked: fn(),
   },
 };

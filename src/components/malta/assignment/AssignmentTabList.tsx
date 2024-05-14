@@ -1,6 +1,7 @@
 import * as React from "react";
 import { IonLabel, IonSegment, IonSegmentButton } from "@ionic/react";
 import { ASSIGNMENTTAB_LIST } from "../../../common/constants";
+import "./AssignmentTabList.css";
 
 interface AssignmentTabListProps {
   tabHeader: ASSIGNMENTTAB_LIST;

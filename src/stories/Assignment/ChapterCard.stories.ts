@@ -39,8 +39,8 @@ const meta = {
     ],
   },
   args: {
-    chapterTitle: "string",
-    lessons: [{ lesson: "string", title: "string" }],
+    chapterTitle: "ChapterName",
+    lessons: [{ lesson: "lessonName", title: "lessonTitle" }],
   },
 } satisfies Meta<typeof ChapterCard>;
 export default meta;
@@ -48,7 +48,7 @@ type Story = StoryObj<typeof meta>;
 
 export const chapter: Story = {
   args: {
-    chapterTitle: "string",
-    lessons: [{ lesson: "string", title: "string" }],
+    chapterTitle: "ChapterName",
+    lessons: [{ lesson: "lessonName", title: "lessonTitle" }],
   },
 };
