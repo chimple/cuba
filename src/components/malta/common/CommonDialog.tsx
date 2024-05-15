@@ -20,7 +20,7 @@ const CommonDialog: FC<CommonDialogProps> = ({ alertMsg, ionIcon }) => {
 
       <IonAlert
         header={alertMsg}
-        trigger="alert"
+        isOpen = {true}
         buttons={[
           {
             text: "Cancel",

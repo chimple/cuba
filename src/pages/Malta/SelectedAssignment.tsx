@@ -15,7 +15,7 @@ const SelectedAssignment: React.FC = () => {
   return (
     <IonPage style={{ backgroundColor: "white" }}>
       <IonHeader>
-        <IonToolbar>
+        <IonToolbar className="toolbar">
           <IonButtons slot="start">
             <IonBackButton defaultHref="#"></IonBackButton>
           </IonButtons>

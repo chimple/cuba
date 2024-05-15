@@ -14,13 +14,6 @@ const DateTimePicker: FC<DateTimePickerProps> = ({ date }) => {
           id={date}
           presentation="date"
           value={date}
-          formatOptions={{
-            date: {
-              year: "2-digit",
-              month: "2-digit",
-              day: "2-digit",
-            },
-          }}
         ></IonDatetime>
       </IonModal>
     </>

@@ -22,25 +22,16 @@ const AddSchool: FC<AddSchoolProps> = ({
   return (
     <div className="alignItems">
       <IonInput
-        label={t("School name")!}
-        labelPlacement="floating"
-        fill="outline"
         placeholder={t("Enter text")!}
         value={schoolName}
       ></IonInput>
       <br />
       <IonInput
-        label={t("City")!}
-        labelPlacement="floating"
-        fill="outline"
         placeholder={t("Enter text")!}
         value={cityName}
       ></IonInput>
       <br />
       <IonInput
-        label={t("State")!}
-        labelPlacement="floating"
-        fill="outline"
         placeholder={t("Enter text")!}
         value={stateName}
       ></IonInput>

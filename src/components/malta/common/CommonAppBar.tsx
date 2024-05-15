@@ -1,12 +1,5 @@
 import * as React from "react";
-import {
-  IonBackButton,
-  IonButton,
-  IonButtons,
-  IonIcon,
-  IonLabel,
-  IonToolbar,
-} from "@ionic/react";
+import { IonBackButton, IonButtons, IonLabel, IonToolbar } from "@ionic/react";
 import { t } from "i18next";
 import ProfileAvatar from "./ProfileAvatar";
 import "./CommonAppBar.css";
@@ -23,7 +16,7 @@ const CommonAppBar: React.FC<CommonAppBarProps> = ({
   imgScr,
 }) => {
   return (
-    <IonToolbar>
+    <IonToolbar className="common-appBar">
       <IonButtons slot="start">
         <IonBackButton defaultHref={loc}></IonBackButton>
       </IonButtons>

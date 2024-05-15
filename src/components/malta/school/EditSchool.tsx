@@ -22,23 +22,14 @@ const EditSchool: FC<EditSchoolProps> = ({
   return (
     <div className="alignItems">
       <IonInput
-        label={t("School name")!}
-        labelPlacement="floating"
-        fill="outline"
         value={schoolName}
       ></IonInput>
       <br />
       <IonInput
-        label={t("City")!}
-        labelPlacement="floating"
-        fill="outline"
         value={cityName}
       ></IonInput>
       <br />
       <IonInput
-        label={t("State")!}
-        labelPlacement="floating"
-        fill="outline"
         value={stateName}
       ></IonInput>
       <div className="buttonRow">

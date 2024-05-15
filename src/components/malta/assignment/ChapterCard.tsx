@@ -8,6 +8,7 @@ import {
 } from "@ionic/react";
 import { Box } from "@mui/material";
 import { t } from "i18next";
+import "./ChapterCard.css";
 
 const ChapterCard: React.FC<{
   chapterTitle: string;
@@ -22,17 +23,19 @@ const ChapterCard: React.FC<{
           borderRadius: 20,
         }}
       >
-        <IonCard>
+        <IonCard className="card">
           <IonCardHeader>
             <div style={{ display: "flex" }}>
-              <IonCardSubtitle>{t(chapterTitle)}</IonCardSubtitle>
+              <IonCardSubtitle className="card-subtitle">
+                {t(chapterTitle)}
+              </IonCardSubtitle>
             </div>
           </IonCardHeader>
           <IonCardContent>
             {lessons.map((lesson) => {
               return (
                 <div className="recommended-lesson">
-                  <IonCheckbox justify="space-between">
+                  <IonCheckbox className="checkbox">
                     {t(lesson.title)}
                   </IonCheckbox>
                 </div>
