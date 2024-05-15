@@ -51,7 +51,6 @@ const JoinClass: FC<{
       });
       return;
     } else {
-      console.log("onJoin", urlClassCode.inviteCode, isNextButtonEnabled());
       if (!!error) setError("");
       if (!isNextButtonEnabled()) return;
       setLoading(true);
@@ -59,17 +58,9 @@ const JoinClass: FC<{
         const result = await api.getDataByInviteCode(
           urlClassCode.inviteCode ? urlClassCode.inviteCode : inviteCode
         );
-        console.log(
-          "🚀 ~ file: JoinClass.tsx:24 ~ getClassData ~ result:",
-          result
-        );
         setCodeResult(result);
         setShowDialogBox(true);
       } catch (error) {
-        console.log(
-          "🚀 ~ file: JoinClass.tsx:32 ~ getClassData ~ error:",
-          error
-        );
         if (error instanceof Object) {
           let eMsg: string =
             "FirebaseError: Invalid inviteCode" === error.toString()
@@ -86,7 +77,6 @@ const JoinClass: FC<{
     setLoading(true);
     try {
       const result = await api.linkStudent(inviteCode!);
-      console.log("🚀 ~ file: JoinClass.tsx:41 ~ onJoin ~ result:", result);
       if (!!codeResult) {
         Util.subscribeToClassTopic(
           codeResult["classId"],
@@ -94,11 +84,9 @@ const JoinClass: FC<{
         );
       }
       onClassJoin();
-      console.log("path....", window.location.pathname);
       history.replace("/");
       window.location.reload();
     } catch (error) {
-      console.log("🚀 ~ file: JoinClass.tsx:48 ~ onJoin ~ error:", error);
       if (error instanceof Object) setError(error.toString());
     }
 

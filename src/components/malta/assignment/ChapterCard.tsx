@@ -35,7 +35,7 @@ const ChapterCard: React.FC<{
             {lessons.map((lesson) => {
               return (
                 <div className="recommended-lesson">
-                  <IonCheckbox justify="space-between" className="checkbox">
+                  <IonCheckbox className="checkbox" defaultValue={'xxxxxx'}>
                     {t(lesson.title)}
                   </IonCheckbox>
                 </div>

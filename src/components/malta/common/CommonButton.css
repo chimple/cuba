@@ -18,8 +18,8 @@
 }
 
 .common-button {
-  --background: #e6ca91;
-  --color: black;
-  --border-radius: 8px;
+  background-color: #e6ca91;
+  color: black;
+  border-radius: 8px;
   text-transform: capitalize;
 }

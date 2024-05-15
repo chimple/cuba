@@ -11,7 +11,7 @@ const SwitchSchool: FC<SwitchSchoolProps> = ({ schools }) => {
       <IonRadioGroup value={schools[0]}>
         {schools.map((school) => (
           <>
-            <IonRadio value={school} labelPlacement="end">
+            <IonRadio value={school}>
               {school}
             </IonRadio>
             <br />
