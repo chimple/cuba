@@ -282,7 +282,7 @@ const App: React.FC = () => {
               <Home />
             </ProtectedRoute>
             <Route path={PAGES.LOGIN} exact={true}>
-              <Dashboard />
+              <Login />
             </Route>
             <ProtectedRoute path={PAGES.GAME} exact={true}>
               <CocosGame />
