@@ -1,0 +1,23 @@
+.datePicker {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: stretch;
+}
+
+.datetextdiv {
+  display: flex;
+  flex-direction: row;
+  background-color: antiquewhite;
+  width: 40vw;
+  height: 6vh;
+  justify-content: space-between;
+}
+
+.dateicon {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: end;
+  height: 0.1vh;
+}

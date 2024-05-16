@@ -847,8 +847,12 @@ export class Util {
     if (!isActive) {
       TextToSpeech.stop();
     }
+
     const url = new URL(window.location.toString());
     const urlParams = new URLSearchParams(window.location.search);
+    if (!!urlParams.get(CONTINUE)) {
+      urlParams.delete(CONTINUE);
+    }
     if (!(urlParams.get(CONTINUE) || PAGES.APP_UPDATE)) {
       return;
     }
@@ -875,8 +879,77 @@ export class Util {
         url.searchParams.set("isReload", "true");
         url.searchParams.delete(CONTINUE);
         window.history.replaceState(window.history.state, "", url.toString());
+        Util.checkingIfGameCanvasAvailable();
       }
     }
+  };
+
+  public static checkingIfGameCanvasAvailable = async () => {
+    // return new Promise<boolean>(async (resolve, reject) => {
+    try {
+      const canvas = document.getElementById("GameCanvas") as HTMLCanvasElement;
+      if (canvas) {
+        const webgl2Context = canvas.getContext("webgl");
+        canvas.addEventListener(
+          "webglcontextlost",
+          function (event) {
+            // inform WebGL that we handle context restoration
+            console.log("WebGl webglcontextlost in cocosGame.tsx");
+            event.preventDefault();
+            if (webgl2Context) {
+              const rest = webgl2Context.getExtension("WEBGL_lose_context");
+
+              // Reloading cocos Game if GameCanvas buffer is not restored
+              if (!rest) {
+                // const url = new URL(window.location.toString());
+                // url.searchParams.set("isReload", "false");
+                // url.searchParams.delete(CONTINUE);
+                // window.history.replaceState(
+                //   window.history.state,
+                //   "",
+                //   url.toString()
+                // );
+                window.location.reload();
+                // resolve(false);
+                console.log("page got reloaded ", false);
+              }
+              if (rest) {
+                rest.loseContext();
+                // return true;
+                // resolve(false);
+              }
+            }
+          },
+          false
+        );
+        canvas.addEventListener(
+          "webglcontextrestored",
+          function (event) {
+            // inform WebGL that we handle context restoration
+            console.log("WebGl webglcontextrestored in cocosGame.tsx");
+            event.preventDefault();
+
+            if (webgl2Context) {
+              const rest = webgl2Context.getExtension("WEBGL_lose_context");
+
+              if (rest) {
+                rest.restoreContext();
+                // return true;
+                // resolve(false);
+              }
+            }
+          },
+          false
+        );
+      }
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: util.ts:965 ~ checkingIfGameCanvasAvailable ~ error:",
+        error
+      );
+      // throw error;
+    }
+    // });
   };
 
   public static setPathToBackButton(path: string, history: any) {

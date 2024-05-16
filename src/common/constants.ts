@@ -100,6 +100,35 @@ export enum LEADERBOARD_REWARD_LIST {
   STICKER = "STICKERS",
 }
 
+export enum ASSIGNMENTTAB_LIST {
+  RECOMMENDED = "Recommended",
+  ASSIGNMENT = "Assignment",
+  LIVEQUIZ = "Live Quiz",
+}
+
+export enum COMMONTAB_LIST {
+  SCHOOL = "School",
+  CLASS = "Class",
+  SUBJECTS = "Subjects",
+}
+
+export enum USERTYPES {
+  COORDINATORS = "Coordinators",
+  PRINCIAPAL = "Principal",
+  SPONSORS = "Sponsors",
+  TEACHERS = "Teachers",
+  STUDENTS = 'Students'
+}
+
+export enum TABLEDROPDOWN {
+  ASSIGNMENTS = "Assignments",
+  MONTHLY = "Monthly",
+  WEEKLY = "Weekly",
+  LIVEQUIZ = "LiveQuiz",
+  CHAPTER = 'Chapter'
+}
+
+
 export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu";
 export const grade1 = "R5sDh8LKKBx7D7o1MMl0";
 export const grade2 = "al0OqObeTBK3OFWSyDOg";
@@ -349,6 +378,9 @@ export enum PAGES {
   LIVE_QUIZ_GAME = "/live-quiz-game",
   LIVE_QUIZ_ROOM_RESULT = "/live-quiz-room-result",
   LIVE_QUIZ_LEADERBOARD = "/live-quiz-leaderboard",
+  TEACHER_PROFILE = "/teacher-profile",
+  STUDENT_PROFILE = "/student-profile",
+  ADD_STUDENT = "/add_student",
 }
 
 export enum LANG {

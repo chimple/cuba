@@ -88,10 +88,9 @@ const Home: FC = () => {
     setSubTab(SUBTAB.SUGGESTIONS);
     getCanShowAvatar();
     if (!!urlParams.get(CONTINUE)) {
-      urlParams.delete(CONTINUE);
-      App.addListener("appStateChange", Util.onAppStateChange);
       setCurrentHeader(currentHeader);
     }
+    App.addListener("appStateChange", Util.onAppStateChange);
   }, []);
 
   useEffect(() => {

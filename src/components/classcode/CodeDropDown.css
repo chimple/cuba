@@ -1,0 +1,12 @@
+.dropdown {
+    height: 5vh;
+    width: 5vh;
+    position: relative;
+    /* display: flex; */
+    align-self: center;
+    border-radius: 5px;
+    background-color: cornsilk;
+}
+.menu-item {
+    background-color: transparent;   
+}

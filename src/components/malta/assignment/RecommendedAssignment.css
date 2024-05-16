@@ -1,0 +1,55 @@
+.recommended-card {
+  float: left;
+  display: flex;
+  flex-direction: column;
+}
+
+.recommended-subject-header {
+  display: flex;
+  margin-left: 2vw;
+  color: blue;
+}
+
+.recommended-subject-name {
+  color: var(--text-color);
+  font-size: var(--header-text);
+  align-self: center;
+  justify-content: center;
+  font-size: clamp(18px, 3.1vh, 25px);
+  font-weight: bold;
+  /* margin-left: 13vw; */
+}
+
+.recommended-assignment-card {
+  height: 25vh;
+  width: 70vh;
+  float: left;
+  border-radius: 2;
+}
+
+.recommended-content {
+  overflow-y: scroll;
+  height: 70vh;
+}
+
+.recommended-lesson {
+  display: flex;
+  flex-direction: column;
+  padding: 2px;
+}
+
+.recommended-text {
+  font-size: 18px;
+  display: flex;
+  margin-left: 2vw;
+}
+
+.display-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.select-all {
+  margin-left: auto;
+  padding-right: 5vw;
+}
