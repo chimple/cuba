@@ -1,37 +1,22 @@
 import * as React from "react";
-import { FC, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
-import {
-  IonBackButton,
-  IonButtons,
-  IonHeader,
-  IonLabel,
-  IonPage,
-  IonSegment,
-  IonSegmentButton,
-  IonTitle,
-  IonToolbar,
-} from "@ionic/react";
+import { IonHeader, IonPage } from "@ionic/react";
 import { t } from "i18next";
 import {
   ASSIGNMENTTAB_LIST,
   DISPLAY_SUBJECTS_STORE,
   MODES,
   PAGES,
+  TableTypes,
 } from "../../common/constants";
 import "../DisplaySubjects.css";
 import "../DisplayChapters.css";
 import "./Assignment.css";
 import "../../components/malta/assignment/DisplayLesson.css";
-import { Chapter } from "../../common/courseConstants";
 import { schoolUtil } from "../../utility/schoolUtil";
 import { Util } from "../../utility/util";
-import Course from "../../models/course";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import Grade from "../../models/grade";
-import { StudentLessonResult } from "../../common/courseConstants";
-import Class from "../../models/class";
-import Lesson from "../../models/lesson";
 import AssignmentTab from "../../components/malta/assignment/AssignmentTab";
 import RecommendedTab from "../../components/malta/assignment/RecommendedTab";
 import QuizTab from "../../components/malta/assignment/QuizTab";
@@ -52,12 +37,13 @@ const Assignment: React.FC = () => {
   const [value, setValue] = React.useState(0);
   const [stage, setStage] = useState(STAGES.SUBJECTS);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [courses, setCourses] = useState<Course[]>();
-  const [currentCourse, setCurrentCourse] = useState<Course>();
-  const [currentChapter, setCurrentChapter] = useState<Chapter>();
-  const [currentClass, setCurrentClass] = useState<Class>();
-  const [lessons, setLessons] = useState<Lesson[]>();
-  const [liveQuizLessons, setLiveQuizLessons] = useState<Lesson[]>();
+  const [courses, setCourses] = useState<TableTypes<"course">[]>();
+  const [currentCourse, setCurrentCourse] = useState<TableTypes<"course">>();
+  const [currentChapter, setCurrentChapter] = useState<TableTypes<"chapter">>();
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
+  const [lessons, setLessons] = useState<TableTypes<"lesson">[]>();
+  const [liveQuizLessons, setLiveQuizLessons] =
+    useState<TableTypes<"lesson">[]>();
   const [mode, setMode] = useState<MODES>();
   const [isNotConnectedToClass, setIsNotConnectedToClass] =
     useState<boolean>(false);
@@ -66,12 +52,12 @@ const Assignment: React.FC = () => {
   //   courses: Course[];
   // }>();
   const [localGradeMap, setLocalGradeMap] = useState<{
-    grades: Grade[];
-    courses: Course[];
+    grades: TableTypes<"grade">[];
+    courses: TableTypes<"course">[];
   }>();
-  const [currentGrade, setCurrentGrade] = useState<Grade>();
+  const [currentGrade, setCurrentGrade] = useState<TableTypes<"grade">>();
   const [lessonResultMap, setLessonResultMap] = useState<{
-    [lessonDocId: string]: StudentLessonResult;
+    [lessonDocId: string]: TableTypes<"result">;
   }>();
   const [userMode, setUserMode] = useState<boolean>(false);
   const history = useHistory();
@@ -92,7 +78,7 @@ const Assignment: React.FC = () => {
     setValue(newValue);
   };
 
-  const getCourses = async (): Promise<Course[]> => {
+  const getCourses = async (): Promise<TableTypes<"course">[]> => {
     setIsLoading(true);
     const currentStudent = await Util.getCurrentStudent();
     if (!currentStudent) {
@@ -108,20 +94,21 @@ const Assignment: React.FC = () => {
     const currMode = await schoolUtil.getCurrMode();
 
     const courses = await (currMode === MODES.SCHOOL && !!currClass
-      ? api.getCoursesForClassStudent(currClass)
-      : api.getCoursesForParentsStudent(currentStudent));
+      ? api.getCoursesForClassStudent(currClass.id)
+      : api.getCoursesForParentsStudent(currentStudent.id));
     localData.courses = courses;
     localStorageData.courses = courses;
     setCourses(courses);
     addDataToLocalStorage();
     setIsLoading(false);
-    console.log("********", courses);
-    getLessonsForChapter(courses![5].chapters[6]);
-    getLiveQuizLessons(courses![12].chapters[5]);
+    // getLessonsForChapter(courses![5].chapters[6]);
+    // getLiveQuizLessons(courses![12].chapters[5]);
     return courses;
   };
 
-  const getLessonsForChapter = async (chapter: Chapter): Promise<Lesson[]> => {
+  const getLessonsForChapter = async (
+    chapter: TableTypes<"chapter">
+  ): Promise<TableTypes<"lesson">[]> => {
     setIsLoading(true);
 
     if (!chapter) {
@@ -130,7 +117,7 @@ const Assignment: React.FC = () => {
     }
 
     try {
-      const lessons = await api.getLessonsForChapter(chapter);
+      const lessons = await api.getLessonsForChapter(chapter.id);
       // Retrieve existing data from local storage
       localData.lessons = lessons;
       setLessons(lessons);
@@ -144,7 +131,9 @@ const Assignment: React.FC = () => {
     }
   };
 
-  const getLiveQuizLessons = async (chapter: Chapter): Promise<Lesson[]> => {
+  const getLiveQuizLessons = async (
+    chapter: TableTypes<"chapter">
+  ): Promise<TableTypes<"lesson">[]> => {
     setIsLoading(true);
 
     if (!chapter) {
@@ -153,7 +142,7 @@ const Assignment: React.FC = () => {
     }
 
     try {
-      const lessons = await api.getLessonsForChapter(chapter);
+      const lessons = await api.getLessonsForChapter(chapter.id);
       // Retrieve existing data from local storage
       localData.lessons = lessons;
       setLiveQuizLessons(lessons);
@@ -197,7 +186,12 @@ const Assignment: React.FC = () => {
   return (
     <IonPage style={{ backgroundColor: "white" }}>
       <IonHeader>
-        <CommonAppBar title={t("Assignment")} loc="#" showAvatar={false} imgScr="" />
+        <CommonAppBar
+          title={t("Assignment")}
+          loc="#"
+          showAvatar={false}
+          imgScr=""
+        />
         <AssignmentTabList
           tabHeader={activeTab}
           segmentChanged={segmentChanged}

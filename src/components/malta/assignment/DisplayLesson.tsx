@@ -6,9 +6,10 @@ import Lesson from "../../../models/lesson";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import { BsFillCheckCircleFill } from "react-icons/bs";
 import LessonIcon from "./LessonIcon";
+import { TableTypes } from "../../../common/constants";
 
 const DisplayLesson: FC<{
-  lessons: Lesson[];
+  lessons: TableTypes<"lesson">[];
   onLessonSelect;
   currentChapterId: string | undefined;
 }> = ({ lessons, onLessonSelect, currentChapterId }) => {
@@ -44,7 +45,7 @@ const DisplayLesson: FC<{
               }
               onClick={() => {
                 const newLessons = allLessons.map((l, i) => {
-                  if (l.lesson.docId === lesson.lesson.docId)
+                  if (l.lesson.id === lesson.lesson.id)
                     l.selected = !l.selected;
                   return l;
                 });
@@ -58,10 +59,10 @@ const DisplayLesson: FC<{
               <div className="lesson-icon-container">
                 <LessonIcon
                   id={lesson.lesson.id!}
-                  cocosSubjectCode={lesson.lesson.cocosSubjectCode!}
-                  thumbnail={lesson.lesson.thumbnail!}
+                  cocosSubjectCode={lesson.lesson.cocos_subject_code!}
+                  thumbnail={lesson.lesson.image!}
                   selected={lesson.selected}
-                  title={lesson.lesson.title}
+                  title={lesson.lesson.name ?? ""}
                 ></LessonIcon>
               </div>
             </div>

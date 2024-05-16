@@ -6,10 +6,11 @@ import Course from "../../../models/course";
 import { t } from "i18next";
 import CommonButton from "../common/CommonButton";
 import StartEndDateSelect from "./StartEndDateSelect";
+import { TableTypes } from "../../../common/constants";
 
 const QuizTab: FC<{
-  liveQuizLessons: Lesson[];
-  courses: Course[];
+  liveQuizLessons: TableTypes<"lesson">[];
+  courses: TableTypes<"course">[];
   onCourseChange;
   onChapterChange;
   onLessonSelect;
@@ -26,7 +27,7 @@ const QuizTab: FC<{
   const [stage, setStage] = useState(STAGES.SUBJECTS);
   return (
     <div>
-      {stage === STAGES.SUBJECTS && courses && courses.length > 0 && (
+      {/* {stage === STAGES.SUBJECTS && courses && courses.length > 0 && (
         <CourseChapterDropDown
           courses={courses!}
           currentCourse={courses![12]}
@@ -46,7 +47,7 @@ const QuizTab: FC<{
             />
           </div>
         )}
-      </div>
+      </div> */}
 
       <div style={{ marginLeft: "1vh" }}>{t("Select by date range")}</div>
       <StartEndDateSelect startDate="2024-05-02" endDate="2024-05-10" />
