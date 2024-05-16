@@ -30,15 +30,12 @@ public class PortPlugin extends Plugin {
       JSObject ret = new JSObject();
       if (((MainActivity) getActivity()).mHttpOverIpcProxy != null) {
         ret.put(
-          "port",
-          ((MainActivity) getActivity()).mHttpOverIpcProxy.getListeningPort()
-        );
+            "port",
+            ((MainActivity) getActivity()).mHttpOverIpcProxy.getListeningPort());
         Log.d(
-          "Porting",
-          String.valueOf(
-            ((MainActivity) getActivity()).mHttpOverIpcProxy.getListeningPort()
-          )
-        );
+            "Porting",
+            String.valueOf(
+                ((MainActivity) getActivity()).mHttpOverIpcProxy.getListeningPort()));
         call.resolve(ret);
       } else {
         call.reject("Not Found");
@@ -51,6 +48,7 @@ public class PortPlugin extends Plugin {
 
   private String notificationType;
   private String rewardProfileId;
+  private String classId;
 
   @Override
   protected void handleOnNewIntent(Intent data) {
@@ -59,9 +57,11 @@ public class PortPlugin extends Plugin {
     if (extras != null) {
       this.notificationType = extras.getString("notificationType");
       this.rewardProfileId = extras.getString("rewardProfileId");
+      this.classId = extras.getString("classId");
       JSObject eventData = new JSObject();
       eventData.put("notificationType", notificationType);
       eventData.put("rewardProfileId", rewardProfileId);
+      eventData.put("classId", classId);
       notifyListeners("notificationOpened", eventData);
     }
   }
@@ -70,24 +70,29 @@ public class PortPlugin extends Plugin {
   public void fetchNotificationData(PluginCall call) {
     String notificationType = this.notificationType;
     String rewardProfileId = this.rewardProfileId;
+    String classId = this.classId;
     Log.d("MainActivity", "logs of fetchNotificationData" + rewardProfileId);
+    Log.d("MainActivity", "logs of fetchNotificationData" + notificationType);
+    Log.d("MainActivity", "logs of fetchNotificationData" + classId);
+
     if (notificationType != null && rewardProfileId != null) {
-      String jsonData =
-        "{\"notificationType\": \"" +
-        notificationType +
-        "\", \"rewardProfileId\": \"" +
-        rewardProfileId +
-        "\"}";
+      String jsonData = "{\"notificationType\": \"" +
+          notificationType +
+          "\", \"rewardProfileId\": \"" +
+          rewardProfileId +
+          "\"}";
     } else {
       Log.d("MainActivity", "Notification data not found");
     }
-    if (notificationType != null && rewardProfileId != null) {
+    if ((notificationType != null && rewardProfileId != null) || (notificationType != null && classId != null)) {
       JSObject result = new JSObject();
       result.put("notificationType", notificationType);
       result.put("rewardProfileId", rewardProfileId);
+      result.put("classId", classId);
       call.resolve(result);
       this.notificationType = null;
       this.rewardProfileId = null;
+      this.classId = null;
     } else {
       call.reject("Data not found in Java code");
     }
@@ -107,7 +112,7 @@ public class PortPlugin extends Plugin {
 
     String ret = null;
     try {
-      //      String selectQuery = "SELECT * FROM 'data' where key='UserId'";
+      // String selectQuery = "SELECT * FROM 'data' where key='UserId'";
       String selectQuery = "SELECT * FROM data WHERE `key`='UserId'";
 
       Cursor c = db.rawQuery(selectQuery, null);
@@ -122,12 +127,10 @@ public class PortPlugin extends Plugin {
         JSONArray obj = new JSONArray(ret);
         for (int o = 0; o < obj.length(); o++) {
           Log.d(
-            TAG_NAME,
-            "The key contains value '" + obj.get(o).toString() + "'"
-          );
+              TAG_NAME,
+              "The key contains value '" + obj.get(o).toString() + "'");
           String userId = (String) obj.get(o);
-          String selectQuery1 =
-            "SELECT * FROM 'data' where key='" + userId + "'";
+          String selectQuery1 = "SELECT * FROM 'data' where key='" + userId + "'";
           Cursor c1 = db.rawQuery(selectQuery1, null);
           String reg = null;
           while (c1.moveToNext()) {

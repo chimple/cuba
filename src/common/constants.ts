@@ -402,7 +402,8 @@ export interface PortPlugin {
   getMigrateUsers(): Promise<{ users: any }>;
   fetchNotificationData(): Promise<{
     notificationType: string;
-    rewardProfileId: string;
+    rewardProfileId?: string;
+    classId?: string;
   }>;
 }
 export const DEBUG_15 = "debug15";
@@ -501,7 +502,10 @@ export enum ACTION {
   UPDATE = "update",
   DELETE = "delete",
 }
-
+export enum NOTIFICATIONTYPE {
+  REWARD = "reward",
+  ASSIGNMENT = "assignment",
+}
 export const CURRENT_STUDENT = "currentStudent";
 export const CURRENT_USER = "currentUser";
 export enum EVENTS {
