@@ -150,19 +150,19 @@ const App: React.FC = () => {
         });
       //CapApp.addListener("appStateChange", Util.onAppStateChange);
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
+
+      const portPlugin = registerPlugin<PortPlugin>("Port");
+      portPlugin.addListener("notificationOpened", (data: any) => {
+        if (data) {
+          processNotificationData(data);
+        }
+      });
     }
 
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,
     }).catch((_) => {});
-
-    const portPlugin = registerPlugin<PortPlugin>("Port");
-    portPlugin.addListener("notificationOpened", (data: any) => {
-      if (data) {
-        processNotificationData(data);
-      }
-    });
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
@@ -177,14 +177,14 @@ const App: React.FC = () => {
         const data = extraData as ExtraData;
         const rewardProfileId = data.rewardProfileId;
         if (rewardProfileId)
-          if (currentStudent?.docId === rewardProfileId) {
+          if (currentStudent?.id === rewardProfileId) {
             window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
           } else {
             await Util.setCurrentStudent(null);
             const students =
               await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
             let matchingUser =
-              students.find((user) => user.docId === rewardProfileId) ||
+              students.find((user) => user.id === rewardProfileId) ||
               students[0];
             if (matchingUser) {
               await Util.setCurrentStudent(matchingUser, undefined, true);
@@ -203,7 +203,7 @@ const App: React.FC = () => {
     const currentStudent = Util.getCurrentStudent();
     if (data && data.notificationType === "reward") {
       if (data.rewardProfileId) {
-        if (currentStudent?.docId === data.rewardProfileId) {
+        if (currentStudent?.id === data.rewardProfileId) {
           window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
           return;
         } else {
@@ -211,7 +211,7 @@ const App: React.FC = () => {
           const students =
             await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
           let matchingUser =
-            students.find((user) => user.docId === data.rewardProfileId) ||
+            students.find((user) => user.id === data.rewardProfileId) ||
             students[0];
           if (matchingUser) {
             await Util.setCurrentStudent(matchingUser, undefined, true);

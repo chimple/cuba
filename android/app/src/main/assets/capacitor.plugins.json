@@ -8,6 +8,10 @@
 		"classpath": "com.getcapacitor.plugin.http.Http"
 	},
 	{
+		"pkg": "@capacitor-community/sqlite",
+		"classpath": "com.getcapacitor.community.database.sqlite.CapacitorSQLitePlugin"
+	},
+	{
 		"pkg": "@capacitor-community/text-to-speech",
 		"classpath": "com.getcapacitor.community.tts.TextToSpeechPlugin"
 	},
@@ -58,6 +62,10 @@
 	{
 		"pkg": "@capawesome/capacitor-app-update",
 		"classpath": "io.capawesome.capacitorjs.plugins.appupdate.AppUpdatePlugin"
+	},
+	{
+		"pkg": "@codetrix-studio/capacitor-google-auth",
+		"classpath": "com.codetrixstudio.capacitor.GoogleAuth.GoogleAuth"
 	},
 	{
 		"pkg": "capacitor-rate-app",

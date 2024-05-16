@@ -56,12 +56,7 @@ export enum TrueFalseEnum {
 }
 
 export enum RoleType {
-  ADMINISTRATOR = "administrator",
-  AIDE = "aide",
-  GUARDIAN = "guardian",
   PARENT = "parent",
-  PROCTOR = "proctor",
-  RELATIVE = "relative",
   STUDENT = "student",
   TEACHER = "teacher",
   PRINCIPAL = "principal",

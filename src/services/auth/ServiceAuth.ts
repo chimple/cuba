@@ -1,6 +1,4 @@
-import { DocumentReference } from "firebase/firestore";
-import User from "../../models/user";
-import { ConfirmationResult } from "@firebase/auth";
+import { TableTypes } from "../../common/constants";
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 
 export interface ServiceAuth {
@@ -8,17 +6,15 @@ export interface ServiceAuth {
 
   googleSign(): Promise<boolean>;
 
-  getCurrentUser(): Promise<User | undefined>;
+  getCurrentUser(): Promise<TableTypes<"user"> | undefined>;
 
-  set currentUser(user: User);
+  set currentUser(user: TableTypes<"user">);
 
   isUserLoggedIn(): Promise<boolean>;
 
   phoneNumberSignIn(phoneNumber, recaptchaVerifier): Promise<any>;
 
-  resendOtpMsg91(
-    phoneNumber: string,
-  ): Promise<boolean | undefined>;
+  resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined>;
 
   msg91OtpGenerate(
     phoneNumber: string,

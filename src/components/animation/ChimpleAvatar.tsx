@@ -11,13 +11,11 @@ import {
   LEADERBOARD_REWARD_LIST,
   LIVE_QUIZ,
   PAGES,
+  TableTypes,
   RECOMMENDATIONS,
   SHOW_DAILY_PROGRESS_FLAG,
 } from "../../common/constants";
-import Course from "../../models/course";
-import Lesson from "../../models/lesson";
 import "./ChimpleAvatar.css";
-import { Chapter } from "../../common/courseConstants";
 import { useHistory } from "react-router";
 import { t } from "i18next";
 import { useRive, Layout, Fit, useStateMachineInput } from "rive-react";
@@ -34,7 +32,7 @@ export enum CourseNames {
 }
 
 const ChimpleAvatar: FC<{
-  recommadedSuggestion: Lesson[];
+  recommadedSuggestion: TableTypes<"lesson">[];
   style;
   isUnlocked?: boolean;
 }> = ({ recommadedSuggestion, style }) => {
@@ -43,10 +41,12 @@ const ChimpleAvatar: FC<{
     avatarObj.mode || AvatarModes.Welcome
   );
   const [currentStageMode, setCurrentStageMode] = useState<AvatarModes>();
-  const [allCourses, setAllCourses] = useState<Course[]>([]);
-  const [currentCourse, setCurrentCourse] = useState<Course>(allCourses[0]);
-  const [currentChapter, setCurrentChapter] = useState<Chapter>();
-  const [currentLesson, setCurrentLesson] = useState<Lesson>();
+  const [allCourses, setAllCourses] = useState<TableTypes<"course">[]>([]);
+  const [currentCourse, setCurrentCourse] = useState<TableTypes<"course">>(
+    allCourses[0]
+  );
+  const [currentChapter, setCurrentChapter] = useState<TableTypes<"chapter">>();
+  const [currentLesson, setCurrentLesson] = useState<TableTypes<"lesson">>();
   const [isBurst, setIsBurst] = useState(false);
   const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(true);
   const [riveCharHandsUp, setRiveCharHandsUp] = useState("Fail");
@@ -88,7 +88,7 @@ const ChimpleAvatar: FC<{
       setCurrentStageMode(AvatarModes.CourseSuggestion);
       cCourse = await getRecommendedCourse();
       setCurrentCourse(cCourse);
-      const x1 = cCourse?.title || "";
+      const x1 = cCourse?.name || "";
       message = t(`Do you want to play 'x1' course?`).replace(
         "x1",
         " " + x1 + " "
@@ -105,16 +105,17 @@ const ChimpleAvatar: FC<{
         recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]
       );
       const x3 =
-        recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]?.title ||
+        recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]?.name ||
         "";
       message = t(`Do you want to play 'x3' lesson?`)
         .replace("x3", " " + x3 + " ")
         .replace(
           "lesson",
-          recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]
-            .assignment
-            ? "assignment"
-            : "lesson"
+          // recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]
+          //   .assignment
+          //   ? "assignment"
+          //   :
+          "lesson"
         );
     } else {
       if (!message) {
@@ -149,13 +150,13 @@ const ChimpleAvatar: FC<{
 
     const currentStudent = Util.getCurrentStudent();
     if (currentStudent) {
-      let courses = await api.getCoursesForParentsStudent(currentStudent);
+      let courses = await api.getCoursesForParentsStudent(currentStudent.id);
       if (courses) {
         setAllCourses(courses);
         cAllCourses = courses;
       }
       const recommendationsInLocal = localStorage.getItem(
-        `${currentStudent.docId}-${RECOMMENDATIONS}`
+        `${currentStudent.id}-${RECOMMENDATIONS}`
       );
       const recommendations = recommendationsInLocal
         ? JSON.parse(recommendationsInLocal)
@@ -214,10 +215,10 @@ const ChimpleAvatar: FC<{
       return;
     }
   }
-  let cCourse: Course,
-    cChapter: Chapter,
-    cLesson: Lesson | undefined,
-    cAllCourses: Course[];
+  let cCourse: TableTypes<"course">,
+    cChapter: TableTypes<"chapter">,
+    cLesson: TableTypes<"lesson"> | undefined,
+    cAllCourses: TableTypes<"course">[];
   const handleButtonClick = async (choice: boolean, option = "") => {
     if (!buttonsDisabled) {
       // If buttons are already disabled, don't proceed
@@ -266,10 +267,10 @@ const ChimpleAvatar: FC<{
           case AvatarModes.CourseSuggestion:
             if (choice) {
               await onClickYes();
-              cChapter = await getRecommendedChapter(cCourse || currentCourse);
+              // cChapter = await getRecommendedChapter(cCourse || currentCourse);
               setCurrentChapter(cChapter);
               setCurrentStageMode(AvatarModes.ChapterSuggestion);
-              const x2 = cChapter?.title || "";
+              const x2 = cChapter?.name || "";
               message = t(`Do you want to play 'x2' chapter?`).replace(
                 "x2",
                 x2
@@ -279,7 +280,7 @@ const ChimpleAvatar: FC<{
               await onClickNo();
               cCourse = await getRecommendedCourse();
               setCurrentCourse(cCourse);
-              const x1 = cCourse?.title || "";
+              const x1 = cCourse?.name || "";
               message = t(`Do you want to play 'x1' course?`).replace(
                 "x1",
                 " " + x1 + " "
@@ -291,12 +292,13 @@ const ChimpleAvatar: FC<{
             if (choice) {
               await onClickYes();
               setCurrentStageMode(AvatarModes.LessonSuggestion);
-              cLesson = await getRecommendedLesson(
-                currentChapter || cCourse.chapters[0],
-                cCourse || currentCourse
-              );
+              // cLesson = await getRecommendedLesson(
+              //   // currentChapter || cCourse.chapters[0],
+              //   currentChapter,
+              //   cCourse || currentCourse
+              // );
               setCurrentLesson(cLesson);
-              const x3 = cLesson?.title || "";
+              const x3 = cLesson?.name || "";
               message = t(`Do you want to play 'x3' lesson?`).replace(
                 "x3",
                 " " + x3 + " "
@@ -304,13 +306,13 @@ const ChimpleAvatar: FC<{
               // await speak(message);
             } else {
               await onClickNo();
-              cChapter = await getRecommendedChapter(cCourse || currentCourse);
-              setCurrentChapter(cChapter);
-              const x2 = cChapter?.title || "";
-              message = t(`Do you want to play 'x2' chapter?`).replace(
-                "x2",
-                " " + x2 + " "
-              );
+              // cChapter = await getRecommendedChapter(cCourse || currentCourse);
+              // setCurrentChapter(cChapter);
+              // const x2 = cChapter?.name || "";
+              // message = t(`Do you want to play 'x2' chapter?`).replace(
+              //   "x2",
+              //   " " + x2 + " "
+              // );
               // await speak(message);
             }
             break;
@@ -321,12 +323,13 @@ const ChimpleAvatar: FC<{
               // await loadNextSuggestion();
             } else {
               await onClickNo();
-              cLesson = await getRecommendedLesson(
-                currentChapter || cCourse.chapters[0],
-                cCourse || currentCourse
-              );
+              // cLesson = await getRecommendedLesson(
+              //   // currentChapter || cCourse.chapters[0],
+              //   currentChapter,
+              //   cCourse || currentCourse
+              // );
               setCurrentLesson(cLesson);
-              const x3 = cLesson?.title || "";
+              const x3 = cLesson?.name || "";
               message = t(`Do you want to play 'x3' lesson?`).replace(
                 "x3",
                 " " + x3 + " "
@@ -367,14 +370,18 @@ const ChimpleAvatar: FC<{
         } else {
           await onClickNo();
           avatarObj.currentLessonSuggestionIndex++;
-          let recomLesson = await getRecommendedLesson(cChapter, currentCourse);
-          setCurrentLesson(recomLesson);
-          const x3 = recomLesson?.title || "";
+          let recomLesson: any = await getRecommendedLesson(
+            cChapter,
+            currentCourse
+          );
+          // setCurrentLesson(recomLesson);
+          const x3 = recomLesson?.name || "";
           message = t(`Do you want to play 'x3' lesson?`)
             .replace("x3", " " + x3 + " ")
             .replace(
               "lesson",
-              recomLesson?.assignment ? "assignment" : "lesson"
+              // recomLesson?.assignment ? "assignment" :
+              "lesson"
             );
           // await speak(message);
         }
@@ -386,35 +393,35 @@ const ChimpleAvatar: FC<{
 
   async function playCurrentLesson() {
     await stop();
-    if (currentLesson) {
-      if (
-        !!currentLesson?.assignment?.docId &&
-        currentLesson.pluginType === LIVE_QUIZ
-      ) {
-        history.replace(
-          PAGES.LIVE_QUIZ_JOIN +
-            `?assignmentId=${currentLesson?.assignment?.docId}`,
-          {
-            assignment: JSON.stringify(currentLesson?.assignment),
-          }
-        );
-      } else {
-        let lessonCourse = currentCourse;
-        if (!currentCourse) {
-          lessonCourse =
-            (await api.getCourseFromLesson(currentLesson)) || currentCourse;
-        }
-        const parmas = `?courseid=${currentLesson.cocosSubjectCode}&chapterid=${currentLesson.cocosChapterCode}&lessonid=${currentLesson.id}`;
-        await history.replace(PAGES.GAME + parmas, {
-          url: "chimple-lib/index.html" + parmas,
-          lessonId: currentLesson.id,
-          courseDocId: lessonCourse.docId,
-          course: JSON.stringify(Course.toJson(lessonCourse)),
-          lesson: JSON.stringify(Lesson.toJson(currentLesson)),
-          from: history.location.pathname + "?continue=true",
-        });
-      }
-    }
+    // if (currentLesson) {
+    //   if (
+    //     !!currentLesson?.assignment?.id &&
+    //     currentLesson.pluginType === LIVE_QUIZ
+    //   ) {
+    //     history.replace(
+    //       PAGES.LIVE_QUIZ_JOIN +
+    //         `?assignmentId=${currentLesson?.assignment?.id}`,
+    //       {
+    //         assignment: JSON.stringify(currentLesson?.assignment),
+    //       }
+    //     );
+    //   } else {
+    //     let lessonCourse = currentCourse;
+    //     if (!currentCourse) {
+    //       lessonCourse =
+    //         (await api.getCourseFromLesson(currentLesson)) || currentCourse;
+    //     }
+    //     const parmas = `?courseid=${currentLesson.cocosSubjectCode}&chapterid=${currentLesson.cocosChapterCode}&lessonid=${currentLesson.id}`;
+    //     await history.replace(PAGES.GAME + parmas, {
+    //       url: "chimple-lib/index.html" + parmas,
+    //       lessonId: currentLesson.id,
+    //       courseDocId: lessonCourse.id,
+    //       course: JSON.stringify(Course.toJson(lessonCourse)),
+    //       lesson: JSON.stringify(Lesson.toJson(currentLesson)),
+    //       from: history.location.pathname + "?continue=true",
+    //     });
+    //   }
+    // }
   }
 
   async function getRecommendedCourse() {
@@ -423,7 +430,7 @@ const ChimpleAvatar: FC<{
     }
     if (currentCourse) {
       const courseIndex = allCourses.findIndex(
-        (course) => course.courseCode === currentCourse?.courseCode
+        (course) => course.code === currentCourse?.code
       );
       return allCourses[courseIndex + 1] || allCourses[0];
     } else {
@@ -431,56 +438,56 @@ const ChimpleAvatar: FC<{
     }
   }
 
-  async function getRecommendedChapter(course: Course) {
-    if (currentChapter) {
-      const chapterIndex = course.chapters.findIndex(
-        (chapter) => chapter.id === currentChapter?.id
-      );
-      return course.chapters[chapterIndex + 1];
-    } else {
-      return course.chapters[0];
-    }
+  async function getRecommendedChapter(course: TableTypes<"course">) {
+    // if (currentChapter) {
+    //   const chapterIndex = course.chapters.findIndex(
+    //     (chapter) => chapter.id === currentChapter?.id
+    //   );
+    //   return course.chapters[chapterIndex + 1];
+    // } else {
+    //   return course.chapters[0];
+    // }
   }
 
-  async function getRecommendedLesson(cChapter: Chapter, cCourse: Course) {
-    if (currentMode === AvatarModes.CourseSuggestion) {
-      if (currentLesson && cChapter) {
-        const lessonIndex = cChapter.lessons.findIndex(
-          (lesson) => lesson.id === currentLesson?.docId
-        );
-
-        if (lessonIndex === cChapter.lessons.length - 1) {
-          const chapterIndex = cCourse.chapters.findIndex(
-            (chapter) => chapter.id === cChapter.id
-          );
-          setCurrentChapter(cCourse.chapters[chapterIndex + 1]);
-          const cLessonRef = cCourse.chapters[chapterIndex + 1].lessons[0].id;
-          const cLesson = await api.getLesson(cLessonRef);
-          return cLesson;
-        } else {
-          const cLessonRef = cChapter.lessons[lessonIndex + 1].id;
-          const cLesson = await api.getLesson(cLessonRef);
-
-          return cLesson;
-        }
-      } else {
-        const cLessonRef = cChapter.lessons[0].id;
-        const cLesson = await api.getLesson(cLessonRef);
-        return cLesson;
-      }
-    } else if (currentMode === AvatarModes.RecommendedLesson) {
-      avatarObj.currentRecommendedLessonIndex++;
-
-      if (
-        avatarObj.currentRecommendedLessonIndex === recommadedSuggestion.length
-      ) {
-        avatarObj.currentRecommendedLessonIndex = 0;
-      }
-      setCurrentLesson(
-        recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]
-      );
-      return recommadedSuggestion[avatarObj.currentRecommendedLessonIndex];
-    }
+  async function getRecommendedLesson(
+    cChapter: TableTypes<"chapter">,
+    cCourse: TableTypes<"course">
+  ) {
+    // if (currentMode === AvatarModes.CourseSuggestion) {
+    //   if (currentLesson && cChapter) {
+    //     const lessonIndex = cChapter.lessons.findIndex(
+    //       (lesson) => lesson.id === currentLesson?.id
+    //     );
+    //     if (lessonIndex === cChapter.lessons.length - 1) {
+    //       const chapterIndex = cCourse.chapters.findIndex(
+    //         (chapter) => chapter.id === cChapter.id
+    //       );
+    //       setCurrentChapter(cCourse.chapters[chapterIndex + 1]);
+    //       const cLessonRef = cCourse.chapters[chapterIndex + 1].lessons[0].id;
+    //       const cLesson = await api.getLesson(cLessonRef);
+    //       return cLesson;
+    //     } else {
+    //       const cLessonRef = cChapter.lessons[lessonIndex + 1].id;
+    //       const cLesson = await api.getLesson(cLessonRef);
+    //       return cLesson;
+    //     }
+    //   } else {
+    //     const cLessonRef = cChapter.lessons[0].id;
+    //     const cLesson = await api.getLesson(cLessonRef);
+    //     return cLesson;
+    //   }
+    // } else if (currentMode === AvatarModes.RecommendedLesson) {
+    //   avatarObj.currentRecommendedLessonIndex++;
+    //   if (
+    //     avatarObj.currentRecommendedLessonIndex === recommadedSuggestion.length
+    //   ) {
+    //     avatarObj.currentRecommendedLessonIndex = 0;
+    //   }
+    //   setCurrentLesson(
+    //     recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]
+    //   );
+    //   return recommadedSuggestion[avatarObj.currentRecommendedLessonIndex];
+    // }
   }
 
   switch (currentMode) {
@@ -524,7 +531,7 @@ const ChimpleAvatar: FC<{
     case AvatarModes.CourseSuggestion:
       switch (currentStageMode) {
         case AvatarModes.CourseSuggestion:
-          const x1 = currentCourse?.title || "";
+          const x1 = currentCourse?.name || "";
           message = t(`Do you want to play 'x1' course?`).replace(
             "x1",
             " " + x1 + " "
@@ -543,7 +550,7 @@ const ChimpleAvatar: FC<{
           ];
           break;
         case AvatarModes.ChapterSuggestion:
-          const x2 = currentChapter?.title || "";
+          const x2 = currentChapter?.name || "";
           message = t(`Do you want to play 'x2' chapter?`).replace(
             "x2",
             " " + x2 + " "
@@ -563,7 +570,7 @@ const ChimpleAvatar: FC<{
           break;
         case AvatarModes.LessonSuggestion:
           if (currentLesson) {
-            const x3 = currentLesson.title;
+            const x3 = currentLesson.name;
             message = t(`Do you want to play 'x3' lesson?`).replace(
               "x3",
               " " + x3 + " "
@@ -662,14 +669,16 @@ const ChimpleAvatar: FC<{
       break;
     case AvatarModes.RecommendedLesson:
       if (currentLesson) {
-        const x3 = currentLesson.title;
+        const x3 = currentLesson.name;
 
-        message = t(`Do you want to play 'x3' lesson?`)
-          .replace("x3", " " + x3 + " ")
-          .replace(
-            "lesson",
-            currentLesson.assignment ? "assignment" : "lesson"
-          );
+        message = t(`Do you want to play 'x3' lesson?`).replace(
+          "x3",
+          " " + x3 + " "
+        );
+        // .replace(
+        //   "lesson",
+        //   currentLesson.assignment ? "assignment" : "lesson"
+        // );
         // setMessage(t(`Do you want to play 'x1' Lesson?`).replace("x1", x1));
         buttons = [
           {
@@ -748,46 +757,44 @@ const ChimpleAvatar: FC<{
             currentLesson={currentLesson}
             avatarObj={avatarObj}
           />
-          <div className="buttons-container-in-avatar-option-box"
-          >
-          <div
-            className="buttons-in-avatar-option-box"
-            style={{
-              flexWrap: buttons.length === 4 ? "wrap" : "wrap",
-              justifyContent:
-                buttons.length === 1
-                  ? "center"
-                  : buttons.length === 2
-                  ? "space-evenly"
-                  : "center",
-              gap: ".5em",
-              display: buttons.length > 2 ? "grid" : "",
-              gridTemplateColumns: buttons.length > 2 ? "35% 15vw" : "",
-              paddingTop: buttons.length > 2 ? "1vh" : "5vh",
-            }}
-          >
-            {buttons.map((button, index) => (
-              <div key={index}>
-                <RectangularTextButton
-                  buttonWidth={
-                    avatarObj.mode === AvatarModes.collectReward
-                      ? "auto"
-                      : "17vw"
-                  }
-                  buttonHeight={"8vh"}
-                  padding={1}
-                  text={button.label}
-                  fontSize={3.2}
-                  onHeaderIconClick={() => {
-                    button.onClick();
-                  }}
-                  className={button.isTrue ? "green-button" : "red-button"}
-                ></RectangularTextButton>
-              </div>
-            ))}
+          <div className="buttons-container-in-avatar-option-box">
+            <div
+              className="buttons-in-avatar-option-box"
+              style={{
+                flexWrap: buttons.length === 4 ? "wrap" : "wrap",
+                justifyContent:
+                  buttons.length === 1
+                    ? "center"
+                    : buttons.length === 2
+                      ? "space-evenly"
+                      : "center",
+                gap: ".5em",
+                display: buttons.length > 2 ? "grid" : "",
+                gridTemplateColumns: buttons.length > 2 ? "35% 15vw" : "",
+                paddingTop: buttons.length > 2 ? "1vh" : "5vh",
+              }}
+            >
+              {buttons.map((button, index) => (
+                <div key={index}>
+                  <RectangularTextButton
+                    buttonWidth={
+                      avatarObj.mode === AvatarModes.collectReward
+                        ? "auto"
+                        : "17vw"
+                    }
+                    buttonHeight={"8vh"}
+                    padding={1}
+                    text={button.label}
+                    fontSize={3.2}
+                    onHeaderIconClick={() => {
+                      button.onClick();
+                    }}
+                    className={button.isTrue ? "green-button" : "red-button"}
+                  ></RectangularTextButton>
+                </div>
+              ))}
+            </div>
           </div>
-          </div>
-          
         </div>
       </div>
     </div>

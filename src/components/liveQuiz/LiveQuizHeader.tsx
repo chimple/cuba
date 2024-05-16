@@ -5,7 +5,7 @@ import User from "../../models/user";
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { useHistory } from "react-router";
-import { PAGES } from "../../common/constants";
+import { PAGES, TableTypes } from "../../common/constants";
 import LiveQuizStudentAvatar from "./LiveQuizStudentAvatar";
 import {
   LIVE_QUIZ_QUESTION_TIME,
@@ -25,10 +25,12 @@ const LiveQuizHeader: FC<{
   currentQuestion,
   currentQuestionIndex,
 }) => {
-  const [studentIdMap, setStudentIdMap] = useState<{ [id: string]: User }>();
+  const [studentIdMap, setStudentIdMap] = useState<{
+    [id: string]: TableTypes<"user">;
+  }>();
   const [sortedStudents, setSortedStudents] = useState<
     {
-      student: User;
+      student: TableTypes<"user">;
       score: number;
       rank: number;
     }[]
@@ -55,15 +57,17 @@ const LiveQuizHeader: FC<{
     const students = await api.getStudentsForClass(roomDoc.class.id);
     const tempStudentsMap = {};
     students.forEach((student) => {
-      tempStudentsMap[student.docId] = student;
+      tempStudentsMap[student.id] = student;
     });
     setStudentIdMap(tempStudentsMap);
     sortedStudentsWithScore(tempStudentsMap);
   };
 
-  const sortedStudentsWithScore = (studentIdMap: { [id: string]: User }) => {
+  const sortedStudentsWithScore = (studentIdMap: {
+    [id: string]: TableTypes<"user">;
+  }) => {
     const tempSortedStudents: {
-      student: User;
+      student: TableTypes<"user">;
       score: number;
       lastQuestionId: string;
     }[] = [];
@@ -78,9 +82,8 @@ const LiveQuizHeader: FC<{
         student: studentIdMap[studentId],
         score: showAnswer
           ? Number(totalScore.toFixed(1))
-          : sortedStudents?.find(
-              (student) => student.student.docId === studentId
-            )?.score ?? 0,
+          : sortedStudents?.find((student) => student.student.id === studentId)
+              ?.score ?? 0,
         lastQuestionId: studentResult?.[studentResult.length - 1]?.id,
       });
     });
@@ -91,7 +94,7 @@ const LiveQuizHeader: FC<{
     }));
 
     const currentStudentIndex = rankedStudents.findIndex(
-      (stud) => stud.student.docId === student?.docId
+      (stud) => stud.student.id === student?.id
     );
 
     if (currentStudentIndex !== -1) {
@@ -107,7 +110,7 @@ const LiveQuizHeader: FC<{
       <div className="live-quiz-header">
         {sortedStudents &&
           sortedStudents.map((studentMap) => {
-            const studentResult = roomDoc.results?.[studentMap.student.docId];
+            const studentResult = roomDoc.results?.[studentMap.student.id];
             const lastAnswer = studentResult?.[studentResult.length - 1];
             const currentQuestionResult = currentQuestion
               ? studentResult?.find(
@@ -116,7 +119,7 @@ const LiveQuizHeader: FC<{
               : null;
             return (
               <div
-                key={studentMap.student.docId}
+                key={studentMap.student.id}
                 className="student-avatar-container"
               >
                 {currentQuestionIndex && currentQuestionIndex > 0 ? (
@@ -129,7 +132,7 @@ const LiveQuizHeader: FC<{
                 <LiveQuizStudentAvatar
                   student={studentMap.student}
                   score={studentMap.score}
-                  key={studentMap.student.docId}
+                  key={studentMap.student.id}
                   isCorrect={
                     !showAnswer
                       ? undefined

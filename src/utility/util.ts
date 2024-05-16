@@ -1,16 +1,10 @@
-import {
-  Capacitor,
-  CapacitorHttp,
-  PluginCallback,
-  registerPlugin,
-} from "@capacitor/core";
+import { Capacitor, CapacitorHttp, registerPlugin } from "@capacitor/core";
 import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
 import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
 import {
   CURRENT_STUDENT,
-  BUNDLE_URL,
   COURSES,
   CURRENT_LESSON_LEVEL,
   EVENTS,
@@ -18,6 +12,7 @@ import {
   LANG,
   LANGUAGE,
   LAST_PERMISSION_CHECKED,
+  TableTypes,
   LAST_UPDATE_CHECKED,
   PAGES,
   PortPlugin,
@@ -33,7 +28,6 @@ import {
   DOWNLOADED_LESSON_ID,
   LAST_FUNCTION_CALL,
   LeaderboardRewardsType,
-  LEADERBOARDHEADERLIST,
   LEADERBOARD_REWARD_LIST,
   // APP_LANG,
   LeaderboardRewards,
@@ -43,29 +37,25 @@ import {
   MAX_DOWNLOAD_LESSON_ATTEMPTS,
   LESSON_DOWNLOAD_SUCCESS_EVENT,
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
-  HOMEHEADERLIST,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
   Course as curriculamInterfaceCourse,
   Lesson as curriculamInterfaceLesson,
 } from "../interface/curriculumInterfaces";
-import Course1 from "../models/course";
 import { GUIDRef } from "../interface/modelInterfaces";
-import Result from "../models/result";
 import { OneRosterApi } from "../services/api/OneRosterApi";
-import User from "../models/user";
 import { ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
-import {
-  DocumentReference,
-  doc,
-  getFirestore,
-  enableNetwork,
-  disableNetwork,
-} from "firebase/firestore";
+// import {
+//   DocumentReference,
+//   doc,
+//   getFirestore,
+//   enableNetwork,
+//   disableNetwork,
+// } from "firebase/firestore";
 import { Keyboard } from "@capacitor/keyboard";
 import {
   AppUpdate,
@@ -75,19 +65,10 @@ import {
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { RateApp } from "capacitor-rate-app";
 import { getFunctions, httpsCallable } from "firebase/functions";
-import {
-  Chapter,
-  CollectionIds,
-  StudentLessonResult,
-} from "../common/courseConstants";
+// import { CollectionIds } from "../common/courseConstants";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
-import { Router } from "react-router-dom";
 import { schoolUtil } from "./schoolUtil";
-import lesson from "../models/lesson";
-import Lesson from "../models/lesson";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
-import Sticker from "../models/Sticker";
-import Course from "../models/course";
 
 declare global {
   interface Window {
@@ -102,19 +83,19 @@ enum NotificationType {
 export class Util {
   public static port: PortPlugin;
 
-  public static convertCourses(_courses: Course1[]): Course1[] {
-    let courses: Course1[] = [];
-    _courses.forEach((course) => {
-      course.chapters.forEach((chapter) => {
-        chapter.lessons = this.convertDoc(chapter.lessons);
-      });
+  // public static convertCourses(_courses: Course1[]): Course1[] {
+  //   let courses: Course1[] = [];
+  //   _courses.forEach((course) => {
+  //     course.chapters.forEach((chapter) => {
+  //       chapter.lessons = this.convertDoc(chapter.lessons);
+  //     });
 
-      course.curriculum = Util.getRef(course.curriculum);
-      course.grade = Util.getRef(course.grade);
-      course.subject = Util.getRef(course.subject);
-    });
-    return _courses;
-  }
+  //     course.curriculum = Util.getRef(course.curriculum);
+  //     course.grade = Util.getRef(course.grade);
+  //     course.subject = Util.getRef(course.subject);
+  //   });
+  //   return _courses;
+  // }
 
   public static async getNextLessonFromGivenChapter(
     chapters,
@@ -125,14 +106,14 @@ export class Util {
     const api = ServiceConfig.getI().apiHandler;
     // let ChapterDetail: Chapter | undefined;
     const currentChapter = ChapterDetail;
-    const currentStudentDocId: string = Util.getCurrentStudent()?.docId || "";
+    const currentStudentDocId: string = Util.getCurrentStudent()?.id || "";
 
     console.log("currentChapter", currentChapter);
 
     if (!currentChapter) return undefined;
     let currentLessonIndex;
 
-    currentChapter.lessons = Util.convertDoc(currentChapter.lessons);
+    // currentChapter.lessons = Util.convertDoc(currentChapter.lessons);
     const cChapter = await api.getLessonsForChapter(currentChapter);
 
     for (let i = 0; i < cChapter.length - 1; i++) {
@@ -151,10 +132,11 @@ export class Util {
       let nextLesson = currentChapter.lessons[currentLessonIndex + 1];
       let lessonId = nextLesson.id;
       let studentResult:
-        | { [lessonDocId: string]: StudentLessonResult }
+        | { [lessonDocId: string]: TableTypes<"result"> }
         | undefined = {};
-      const studentProfile = await api.getStudentResult(currentStudentDocId);
-      studentResult = studentProfile?.lessons;
+      const studentProfile =
+        await api.getStudentResultInMap(currentStudentDocId);
+      studentResult = studentProfile;
 
       if (!studentResult) return undefined;
       while (studentResult && studentResult[lessonId]) {
@@ -164,7 +146,9 @@ export class Util {
         lessonId = nextLesson.id;
       }
       if (nextLesson) {
-        const lessonObj = (await api.getLesson(nextLesson.id)) as lesson;
+        const lessonObj = (await api.getLesson(
+          nextLesson.id
+        )) as TableTypes<"lesson">;
         console.log("lessonObj", lessonObj);
         if (lessonObj) {
           return lessonObj;
@@ -177,81 +161,69 @@ export class Util {
     if (nextChapterIndex < chapters.length) {
       const nextChapter = chapters[nextChapterIndex];
       const firstLessonId = nextChapter.lessons[0];
-      if (firstLessonId instanceof lesson) {
-        return firstLessonId;
-      }
+      // if (firstLessonId instanceof TableTypes<"lesson">) {
+      //   return firstLessonId;
+      // }
       return undefined;
     }
   }
 
-  public static convertDoc(refs: any[]): DocumentReference[] {
-    const data: DocumentReference[] = [];
-    for (let ref of refs) {
-      const newCourseRef = Util.getRef(ref);
+  // public static convertDoc(refs: any[]): DocumentReference[] {
+  //   const data: DocumentReference[] = [];
+  //   for (let ref of refs) {
+  //     const newCourseRef = Util.getRef(ref);
 
-      data.push(newCourseRef);
-    }
-    return data;
-  }
+  //     data.push(newCourseRef);
+  //   }
+  //   return data;
+  // }
 
   public static checkLessonPresentInCourse(
-    course: Course,
+    course: TableTypes<"course">,
     lessonDoc: String
   ): boolean {
-    for (const chapter of course.chapters) {
-      for (const lesson of chapter.lessons) {
-        if (lesson.id === lessonDoc) {
-          return true;
-        }
-      }
-    }
+    // if (!course || !course) return false;
+    // for (const chapter of course?.chapters) {
+    //   for (const lesson of chapter.lessons) {
+    //     if (lesson.id === lessonDoc) {
+    //       return true;
+    //     }
+    //   }
+    // }
     return false;
   }
 
-  public static getRef(ref): DocumentReference {
-    const db = getFirestore();
-    const newCourseRef = doc(
-      db,
-      ref["_key"].path.segments.at(-2),
-      ref["_key"].path.segments.at(-1)
-    );
-    return newCourseRef;
-  }
+  // public static getRef(ref): DocumentReference {
+  //   const db = getFirestore();
+  //   const newCourseRef = doc(
+  //     db,
+  //     ref["_key"].path.segments.at(-2),
+  //     ref["_key"].path.segments.at(-1)
+  //   );
+  //   return newCourseRef;
+  // }
 
-  public static getCurrentStudent(): User | undefined {
+  public static getCurrentStudent(): TableTypes<"user"> | undefined {
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentStudent) return api.currentStudent;
     const temp = localStorage.getItem(CURRENT_STUDENT);
 
     if (!temp) return;
-    const currentStudent = JSON.parse(temp) as User;
-
-    if (!!currentStudent.users)
-      currentStudent.users = Util.convertDoc(currentStudent.users);
-    if (!!currentStudent.courses)
-      currentStudent.courses = Util.convertDoc(currentStudent.courses);
-    if (!!currentStudent.grade)
-      currentStudent.grade = Util.getRef(currentStudent.grade);
-    if (!!currentStudent.language)
-      currentStudent.language = Util.getRef(currentStudent.language);
-    if (!!currentStudent.board)
-      currentStudent.board = Util.getRef(currentStudent.board);
+    const currentStudent = JSON.parse(temp) as TableTypes<"user">;
     api.currentStudent = currentStudent;
-
-    this.logCurrentPageEvents(currentStudent);
     return currentStudent;
   }
   public static getCurrentSound(): number {
     const auth = ServiceConfig.getI().authHandler;
     const currUser = auth.currentUser;
-    if (!!currUser?.sfxOff) return currUser.sfxOff;
+    if (!!currUser?.sfx_off) return currUser.sfx_off ? 1 : 0;
     const currSound = localStorage.getItem(SOUND);
     if (!currSound) return 0;
     console.log(currSound);
     if (currUser) {
       ServiceConfig.getI().apiHandler.updateSoundFlag(
-        currUser,
-        currSound === "0" ? 0 : 1
+        currUser.id,
+        currSound === "0" ? false : true
       );
     }
     return currSound === "0" ? 0 : 1;
@@ -260,7 +232,10 @@ export class Util {
     const auth = ServiceConfig.getI().authHandler;
     const currUser = auth.currentUser;
     if (currUser) {
-      ServiceConfig.getI().apiHandler.updateSoundFlag(currUser, currSound);
+      ServiceConfig.getI().apiHandler.updateSoundFlag(
+        currUser.id,
+        currSound === 1
+      );
     }
     localStorage.setItem(SOUND, currSound.toString());
   };
@@ -268,14 +243,14 @@ export class Util {
   public static getCurrentMusic(): number {
     const auth = ServiceConfig.getI().authHandler;
     const currUser = auth.currentUser;
-    if (!!currUser?.musicOff) return currUser.musicOff;
+    if (!!currUser?.music_off) return currUser?.music_off ? 1 : 0;
     const currMusic = localStorage.getItem(MUSIC);
     if (!currMusic) return 0;
     console.log("currentMISIC", currMusic);
     if (currUser) {
       ServiceConfig.getI().apiHandler.updateMusicFlag(
-        currUser,
-        currMusic === "0" ? 0 : 1
+        currUser.id,
+        currMusic === "0" ? false : true
       );
     }
     return currMusic === "0" ? 0 : 1;
@@ -284,7 +259,10 @@ export class Util {
     const auth = ServiceConfig.getI().authHandler;
     const currUser = auth.currentUser;
     if (currUser) {
-      ServiceConfig.getI().apiHandler.updateMusicFlag(currUser, currMusic);
+      ServiceConfig.getI().apiHandler.updateMusicFlag(
+        currUser.id,
+        currMusic === 1
+      );
     }
     localStorage.setItem(MUSIC, currMusic.toString());
   };
@@ -555,7 +533,7 @@ export class Util {
     return lastRendered;
   }
 
-  public static isChapterDowloaded(chapter: Chapter): boolean {
+  public static isChapterDowloaded(chapter: TableTypes<"chapter">): boolean {
     const storedLessonDoc = JSON.parse(
       localStorage.getItem(LESSON_DOC_LESSON_ID_MAP) || "[]"
     );
@@ -564,9 +542,9 @@ export class Util {
     );
     let allLessonDocs: string[] = [];
     let allLessonIds: string[] = [];
-    allLessonDocs = chapter.lessons.map((lessonDoc) => lessonDoc.id);
-    for (let i = 0; i < allLessonDocs.length; i++) {
-      const lessonDoc = allLessonDocs[i];
+    // allLessonDocs = chapter?.lessons?.map((lessonDoc) => lessonDoc.id);
+    for (let i = 0; i < allLessonDocs?.length; i++) {
+      const lessonDoc = allLessonDocs?.[i];
       if (storedLessonDoc.hasOwnProperty(lessonDoc)) {
         const correspondingLessonId = storedLessonDoc[lessonDoc];
         allLessonIds.push(correspondingLessonId);
@@ -575,6 +553,8 @@ export class Util {
 
     // if (allLessonIds.length === allLessonDocs.length)
     if (
+      allLessonIds &&
+      allLessonDocs &&
       allLessonIds.length > 0 &&
       allLessonIds.length === allLessonDocs.length
     ) {
@@ -662,7 +642,7 @@ export class Util {
     subjectCode: string,
     lessons: curriculamInterfaceLesson[],
     chapters: curriculamInterfaceChapter[] = [],
-    lessonResultMap: { [key: string]: Result } = {}
+    lessonResultMap: { [key: string]: TableTypes<"result"> } = {}
   ): Promise<number> {
     const currentLessonJson = localStorage.getItem(CURRENT_LESSON_LEVEL());
     let currentLessonLevel: any = {};
@@ -719,7 +699,7 @@ export class Util {
 
   public static getLastPlayedLessonIndexForLessons(
     lessons: curriculamInterfaceLesson[],
-    lessonResultMap: { [key: string]: Result } = {}
+    lessonResultMap: { [key: string]: TableTypes<"result"> } = {}
   ): number {
     let tempCurrentIndex = 0;
     for (let i = 0; i < lessons.length; i++) {
@@ -817,15 +797,15 @@ export class Util {
       );
     }
   }
-  public static async setUserProperties(currentUser: User) {
+  public static async setUserProperties(currentUser: TableTypes<"user">) {
     try {
       await FirebaseAnalytics.setUserProperty({
         name: "parent user_id",
-        value: currentUser.docId,
+        value: currentUser.id,
       });
       await FirebaseAnalytics.setUserProperty({
         name: "name",
-        value: currentUser.name,
+        value: currentUser.name ?? "",
       });
       await FirebaseAnalytics.setUserProperty({
         name: "age",
@@ -835,23 +815,23 @@ export class Util {
         name: "gender",
         value: currentUser.gender?.toLocaleString() || "",
       });
-      await FirebaseAnalytics.setUserProperty({
-        name: "user_type",
-        value: currentUser.role,
-      });
-      await FirebaseAnalytics.setUserProperty({
-        name: "username",
-        value: currentUser.username,
-      });
+      // await FirebaseAnalytics.setUserProperty({
+      //   name: "user_type",
+      //   value: currentUser.role,
+      // });
+      // await FirebaseAnalytics.setUserProperty({
+      //   name: "username",
+      //   value: currentUser.username,
+      // });
     } catch (error) {
       console.log("Set User Properties Error ", error);
     }
   }
 
-  public static async logCurrentPageEvents(user: User) {
+  public static async logCurrentPageEvents(user: TableTypes<"user">) {
     //Setting User Id in User Properites
     await FirebaseAnalytics.setUserId({
-      userId: user.docId,
+      userId: user.id,
     });
 
     await Util.setUserProperties(user);
@@ -909,56 +889,59 @@ export class Util {
   }
 
   public static setCurrentStudent = async (
-    student: User | null,
-    languageCode: string | undefined = undefined,
+    student: TableTypes<"user"> | null,
+    languageCode?: string,
     langFlag: boolean = true,
     isStudent: boolean = true
   ) => {
     console.log("setCurrentStudent called", student);
 
     const api = ServiceConfig.getI().apiHandler;
-      api.currentStudent = student !== null ? student : undefined;
+    api.currentStudent = student !== null ? student : undefined;
 
     localStorage.setItem(
       CURRENT_STUDENT,
-      JSON.stringify({
-        age: student?.age ?? null,
-        avatar: student?.avatar ?? null,
-        board: student?.board ?? null,
-        courses: student?.courses,
-        createdAt: student?.createdAt,
-        updatedAt: student?.updatedAt,
-        gender: student?.gender ?? null,
-        grade: student?.grade ?? null,
-        image: student?.image ?? null,
-        language: student?.language ?? null,
-        name: student?.name,
-        role: student?.role,
-        uid: student?.uid,
-        rewards: student?.rewards,
-        username: student?.username,
-        users: student?.users,
-        docId: student?.docId,
-      })
+      JSON.stringify(student)
+      // JSON.stringify({
+      //   age: student?.age ?? null,
+      //   avatar: student?.avatar ?? null,
+      //   board: student?.board ?? null,
+      //   courses: student?.courses,
+      //   createdAt: student?.createdAt,
+      //   updatedAt: student?.updatedAt,
+      //   gender: student?.gender ?? null,
+      //   grade: student?.grade ?? null,
+      //   image: student?.image ?? null,
+      //   language: student?.language ?? null,
+      //   name: student?.name,
+      //   role: student?.role,
+      //   uid: student?.uid,
+      //   rewards: student?.rewards,
+      //   username: student?.username,
+      //   users: student?.users,
+      //   docId: student?.id,
+      // })
     );
 
-    if (!languageCode && !!student?.language?.id) {
-      const langDoc = await api.getLanguageWithId(student.language.id);
+    if (!languageCode && !!student?.language_id) {
+      const langDoc = await api.getLanguageWithId(student.language_id);
       if (langDoc) {
-        languageCode = langDoc.code;
+        languageCode = langDoc.code ?? undefined;
       }
     }
     const tempLangCode = languageCode ?? LANG.ENGLISH;
+    console.log("🚀 ~ tempLangCode:", tempLangCode);
     if (!!langFlag) localStorage.setItem(LANGUAGE, tempLangCode);
+    console.log("🚀 ~ langFlag:", langFlag);
     if (!!isStudent) await i18n.changeLanguage(tempLangCode);
+    console.log("🚀 ~ isStudent:", isStudent);
 
     //Setting Student Id in User Properites
-    if(student)
-    await FirebaseAnalytics.setUserId({
-      userId: student?.docId,
-    });
-    if(student)
-    await Util.setUserProperties(student);
+    // if (student)
+    //   await FirebaseAnalytics.setUserId({
+    //     userId: student?.id,
+    //   });
+    // if (student) await Util.setUserProperties(student);
   };
 
   public static randomBetween(min, max) {
@@ -1007,30 +990,30 @@ export class Util {
   }
 
   public static async subscribeToClassTopicForAllStudents(
-    currentUser: User
+    currentUser: TableTypes<"user">
   ): Promise<void> {
-    if (!Capacitor.isNativePlatform()) return;
-    const students: DocumentReference[] = currentUser.users;
-    if (!students || students.length < 1) return;
-    const api = ServiceConfig.getI().apiHandler;
-    for (let studentRef of students) {
-      if (!studentRef.id) continue;
-      api.getStudentResult(studentRef.id).then((studentProfile) => {
-        if (
-          !!studentProfile &&
-          !!studentProfile.classes &&
-          studentProfile.classes.length > 0 &&
-          studentProfile.classes.length === studentProfile.schools.length
-        ) {
-          for (let i = 0; i < studentProfile.classes.length; i++) {
-            const classId = studentProfile.classes[i];
-            const schoolId = studentProfile.schools[i];
-            if (!this.isClassTokenSubscribed(classId))
-              this.subscribeToClassTopic(classId, schoolId);
-          }
-        }
-      });
-    }
+    // if (!Capacitor.isNativePlatform()) return;
+    // const students: DocumentReference[] = currentUser.users;
+    // if (!students || students.length < 1) return;
+    // const api = ServiceConfig.getI().apiHandler;
+    // for (let studentRef of students) {
+    //   if (!studentRef.id) continue;
+    //   api.getStudentResult(studentRef.id).then((studentProfile) => {
+    //     if (
+    //       !!studentProfile &&
+    //       !!studentProfile.classes &&
+    //       studentProfile.classes.length > 0 &&
+    //       studentProfile.classes.length === studentProfile.schools.length
+    //     ) {
+    //       for (let i = 0; i < studentProfile.classes.length; i++) {
+    //         const classId = studentProfile.classes[i];
+    //         const schoolId = studentProfile.schools[i];
+    //         if (!this.isClassTokenSubscribed(classId))
+    //           this.subscribeToClassTopic(classId, schoolId);
+    //       }
+    //     }
+    //   });
+    // }
   }
 
   public static isClassTokenSubscribed(classId: string): boolean {
@@ -1212,20 +1195,24 @@ export class Util {
   }
 
   public static listenToNetwork() {
-    const _db = getFirestore();
-    if (navigator.onLine) {
-      enableNetwork(_db);
-    } else {
-      disableNetwork(_db);
-    }
-    window.addEventListener("online", (e) => {
-      console.log("🚀 ~ file: util.ts:677 ~ window.addEventListener ~ e:", e);
-      enableNetwork(_db);
-    });
-    window.addEventListener("offline", (e) => {
-      console.log("🚀 ~ file: util.ts:681 ~ window.addEventListener ~ e:", e);
-      disableNetwork(_db);
-    });
+    // try {
+    //   const _db = getFirestore();
+    //   if (navigator.onLine) {
+    //     enableNetwork(_db);
+    //   } else {
+    //     disableNetwork(_db);
+    //   }
+    //   window.addEventListener("online", (e) => {
+    //     console.log("🚀 ~ file: util.ts:677 ~ window.addEventListener ~ e:", e);
+    //     enableNetwork(_db);
+    //   });
+    //   window.addEventListener("offline", (e) => {
+    //     console.log("🚀 ~ file: util.ts:681 ~ window.addEventListener ~ e:", e);
+    //     disableNetwork(_db);
+    //   });
+    // } catch (err) {
+    //   console.log("🚀 ~ listenToNetwork ~ err:", err);
+    // }
   }
 
   public static async showInAppReview() {
@@ -1275,15 +1262,15 @@ export class Util {
         JSON.stringify(result)
       );
       const res: any = result.data;
-      if (res.migrated) {
-        const _db = getFirestore();
-        const newStudents: DocumentReference[] = res.studentIds.map(
-          (studentId) => doc(_db, CollectionIds.USER, studentId)
-        );
-        await Filesystem.deleteFile({ path: filePath });
-        localStorage.setItem(IS_MIGRATION_CHECKED, "true");
-        return { migrated: true, newStudents: newStudents };
-      }
+      // if (res.migrated) {
+      //   const _db = getFirestore();
+      //   const newStudents: DocumentReference[] = res.studentIds.map(
+      //     (studentId) => doc(_db, CollectionIds.USER, studentId)
+      //   );
+      //   await Filesystem.deleteFile({ path: filePath });
+      //   localStorage.setItem(IS_MIGRATION_CHECKED, "true");
+      //   return { migrated: true, newStudents: newStudents };
+      // }
     } catch (error) {
       console.log("🚀 ~ file: util.ts:707 ~ migrate ~ error:", error);
       return { migrated: false };
@@ -1306,7 +1293,7 @@ export class Util {
       }
 
       const api = ServiceConfig.getI().apiHandler;
-      const studentResult = await api.getStudentResult(student.docId);
+      const studentResult = await api.getStudentClassesAndSchools(student.id);
 
       // if (!studentResult || studentResult.classes.length === 0) {
       //   console.error("Student result is undefined or classes array is empty");
@@ -1406,7 +1393,7 @@ export class Util {
 
   // const getNextUnlockStickers = async (): Promise<(Sticker | undefined)[]> => {
   public static async getNextUnlockStickers(): Promise<
-    (Sticker | undefined)[]
+    (TableTypes<"sticker"> | undefined)[]
   > {
     const date = new Date();
     const api = ServiceConfig.getI().apiHandler;
@@ -1415,7 +1402,7 @@ export class Util {
     const currentWeek = Util.getCurrentWeekNumber();
     const stickerIds: string[] = [];
     const weeklyData = rewardsDoc.weeklySticker;
-    weeklyData[currentWeek.toString()].forEach((value) => {
+    weeklyData?.[currentWeek.toString()].forEach((value) => {
       if (value.type === LeaderboardRewardsType.STICKER) {
         stickerIds.push(value.id);
       }
@@ -1462,9 +1449,9 @@ export class Util {
     let currentStudent = await Util.getCurrentStudent();
     console.log("Util.getCurrentStudent() ", currentStudent);
     if (!currentStudent) return;
-    console.log("Util.getCurrentStudent().docId ", currentStudent.docId);
-    const updatedStudent = await api.getUserByDocId(currentStudent.docId);
-    console.log("api.getUserByDocId(currentStudent.docId); ", updatedStudent);
+    console.log("Util.getCurrentStudent().id ", currentStudent.id);
+    const updatedStudent = await api.getUserByDocId(currentStudent.id);
+    console.log("api.getUserByDocId(currentStudent.id); ", updatedStudent);
     if (updatedStudent) {
       await Util.setCurrentStudent(updatedStudent);
     }
@@ -1490,42 +1477,42 @@ export class Util {
 
       let currentReward;
 
-      weeklyData[currentWeek.toString()].forEach(async (value) => {
+      weeklyData?.[currentWeek.toString()].forEach(async (value) => {
         console.log(
           "weeklyData[currentWeek.toString()].forEach((value) => {",
           value
         );
         currentReward = value;
       });
-      if (!currentUser.rewards) {
-        let leaderboardReward: LeaderboardRewards = {
-          badges: [],
-          bonus: [],
-          sticker: [],
-        };
-        currentUser.rewards = leaderboardReward;
-      }
-      if (!currentUser.rewards.sticker) {
-        currentUser.rewards.sticker = [];
-      }
+      // if (!currentUser.rewards) {
+      //   let leaderboardReward: LeaderboardRewards = {
+      //     badges: [],
+      //     bonus: [],
+      //     sticker: [],
+      //   };
+      //   currentUser.rewards = leaderboardReward;
+      // }
+      // if (!currentUser.rewards.sticker) {
+      //   currentUser.rewards.sticker = [];
+      // }
       if (!currentReward) {
         return false;
       }
-      let canPushCurrentReward = true;
-      for (let i = 0; i < currentUser.rewards.sticker.length; i++) {
-        const element = currentUser.rewards.sticker[i];
-        console.log("const element = currentUser.rewards.sticker[i];", element);
-        if (element.id === currentReward.id) {
-          canPushCurrentReward = false;
-        }
-      }
-      if (canPushCurrentReward)
-        currentUser.rewards.sticker.push({
-          id: currentReward.id,
-          seen: false,
-        });
-      console.log("currentUser.rewards?.sticker.push({", currentUser.rewards);
-      await api.updateRewardsForStudent(currentUser.docId, currentUser.rewards);
+      // let canPushCurrentReward = true;
+      // for (let i = 0; i < currentUser.rewards.sticker.length; i++) {
+      //   const element = currentUser.rewards.sticker[i];
+      //   console.log("const element = currentUser.rewards.sticker[i];", element);
+      //   if (element.id === currentReward.id) {
+      //     canPushCurrentReward = false;
+      //   }
+      // }
+      // if (canPushCurrentReward)
+      //   currentUser.rewards.sticker.push({
+      //     id: currentReward.id,
+      //     seen: false,
+      //   });
+      // console.log("currentUser.rewards?.sticker.push({", currentUser.rewards);
+      // await api.updateRewardsForStudent(currentUser.id, currentUser.rewards);
       return true;
     } catch (error) {
       console.log("unlockWeeklySticker() error ", error);
@@ -1536,61 +1523,54 @@ export class Util {
   public static async getAllUnlockedRewards(): Promise<
     unlockedRewardsInfo[] | undefined
   > {
-    console.log("getAllUnlockedRewards() called");
-    await this.getStudentFromServer();
-
-    const api = ServiceConfig.getI().apiHandler;
-    const currentStudent = this.getCurrentStudent();
-    if (!currentStudent || !currentStudent.rewards) return;
-
-    const processRewards = async (
-      rewards: any[],
-      type: LeaderboardRewardsType,
-      apiGetter: (id: string) => Promise<any>,
-      rewardList: LEADERBOARD_REWARD_LIST
-    ) => {
-      for (const element of rewards) {
-        if (!element.seen) {
-          const reward = await apiGetter(element.id);
-          if (reward) {
-            console.log("Reward added: ", element, reward);
-            allUnlockedRewards.push({
-              id: element.id,
-              type,
-              image: reward.image || reward.thumbnail,
-              name: reward.name || reward.title,
-              leaderboardRewardList: rewardList,
-            });
-          }
-        }
-      }
-    };
-
-    const allUnlockedRewards: unlockedRewardsInfo[] = [];
-
-    await processRewards(
-      currentStudent.rewards.badges || [],
-      LeaderboardRewardsType.BADGE,
-      (id) => api.getBadgeById(id),
-      LEADERBOARD_REWARD_LIST.BADGES
-    );
-
-    await processRewards(
-      currentStudent.rewards.bonus || [],
-      LeaderboardRewardsType.BONUS,
-      (id) => api.getLesson(id),
-      LEADERBOARD_REWARD_LIST.BONUS
-    );
-
-    await processRewards(
-      currentStudent.rewards.sticker || [],
-      LeaderboardRewardsType.STICKER,
-      (id) => api.getStickerById(id),
-      LEADERBOARD_REWARD_LIST.STICKER
-    );
-
-    console.log("getAllUnlockedRewards() called ", allUnlockedRewards);
-
-    return allUnlockedRewards;
+    //   console.log("getAllUnlockedRewards() called");
+    //   await this.getStudentFromServer();
+    //   const api = ServiceConfig.getI().apiHandler;
+    //   const currentStudent = this.getCurrentStudent();
+    //   if (!currentStudent || !currentStudent.rewards) return;
+    //   const processRewards = async (
+    //     rewards: any[],
+    //     type: LeaderboardRewardsType,
+    //     apiGetter: (id: string) => Promise<any>,
+    //     rewardList: LEADERBOARD_REWARD_LIST
+    //   ) => {
+    //     for (const element of rewards) {
+    //       if (!element.seen) {
+    //         const reward = await apiGetter(element.id);
+    //         if (reward) {
+    //           console.log("Reward added: ", element, reward);
+    //           allUnlockedRewards.push({
+    //             id: element.id,
+    //             type,
+    //             image: reward.image || reward.thumbnail,
+    //             name: reward.name || reward.title,
+    //             leaderboardRewardList: rewardList,
+    //           });
+    //         }
+    //       }
+    //     }
+    //   };
+    //   const allUnlockedRewards: unlockedRewardsInfo[] = [];
+    //   await processRewards(
+    //     currentStudent.rewards.badges || [],
+    //     LeaderboardRewardsType.BADGE,
+    //     (id) => api.getBadgeById(id),
+    //     LEADERBOARD_REWARD_LIST.BADGES
+    //   );
+    //   await processRewards(
+    //     currentStudent.rewards.bonus || [],
+    //     LeaderboardRewardsType.BONUS,
+    //     (id) => api.getLesson(id),
+    //     LEADERBOARD_REWARD_LIST.BONUS
+    //   );
+    //   await processRewards(
+    //     currentStudent.rewards.sticker || [],
+    //     LeaderboardRewardsType.STICKER,
+    //     (id) => api.getStickerById(id),
+    //     LEADERBOARD_REWARD_LIST.STICKER
+    //   );
+    //   console.log("getAllUnlockedRewards() called ", allUnlockedRewards);
+    //   return allUnlockedRewards;
+    return;
   }
 }

@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { HOMEHEADERLIST, PAGES } from "../common/constants";
+import { HOMEHEADERLIST, PAGES, TableTypes } from "../common/constants";
 import { useHistory } from "react-router";
 import { Util } from "../utility/util";
 import { StudentLessonResult } from "../common/courseConstants";
-import Assignment from "../models/assignment";
-import Lesson from "../models/lesson";
 import { t } from "i18next";
 import LessonSlider from "../components/LessonSlider";
 import "./LiveQuiz.css";
@@ -14,9 +12,9 @@ import SkeltonLoading from "../components/SkeltonLoading";
 const LiveQuiz: React.FC = () => {
   const history = useHistory();
   const [loading, setLoading] = useState(true);
-  const [liveQuizzes, setLiveQuizzes] = useState<Lesson[]>([]);
+  const [liveQuizzes, setLiveQuizzes] = useState<TableTypes<"lesson">[]>([]);
   const [lessonResultMap, setLessonResultMap] = useState<{
-    [lessonDocId: string]: StudentLessonResult;
+    [lessonDocId: string]: TableTypes<"result">;
   }>();
   const api = ServiceConfig.getI().apiHandler;
 
@@ -26,48 +24,41 @@ const LiveQuiz: React.FC = () => {
 
   const init = async (fromCache: boolean = true) => {
     setLoading(true);
-    const student = await Util.getCurrentStudent();
+    const student = Util.getCurrentStudent();
     if (!student) {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
 
-    const studentResult = await api.getStudentResult(student.docId);
+    const studentResult = await api.getStudentResultInMap(student.id);
+
     if (!!studentResult) {
-      console.log("tempResultLessonMap = res;", studentResult.lessons);
-      setLessonResultMap(studentResult.lessons);
+      console.log("tempResultLessonMap = res;", studentResult);
+      setLessonResultMap(studentResult);
     }
 
-    const linked = await api.isStudentLinked(student.docId, fromCache);
+    const linked = await api.isStudentLinked(student.id, fromCache);
     if (!linked) {
       setLoading(false);
       return;
     }
+    const linkedData = await api.getStudentClassesAndSchools(student.id);
 
-    if (
-      !!studentResult &&
-      !!studentResult.classes &&
-      studentResult.classes.length > 0
-    ) {
-      const classId = studentResult.classes[0];
-      const allLiveQuizzes: Assignment[] = [];
+    if (!!linkedData && !!linkedData.classes && linkedData.classes.length > 0) {
+      const classId = linkedData.classes[0];
+      const allLiveQuizzes: TableTypes<"assignment">[] = [];
       await Promise.all(
-        studentResult.classes.map(async (_class) => {
-          const res = await api.getLiveQuizLessons(classId, student.docId);
+        linkedData.classes.map(async (_class) => {
+          const res = await api.getLiveQuizLessons(classId.id, student.id);
           allLiveQuizzes.push(...res);
         })
       );
-      const _lessons: Lesson[] = [];
+      const _lessons: TableTypes<"lesson">[] = [];
       await Promise.all(
         allLiveQuizzes.map(async (_assignment) => {
-          const res = await api.getLesson(
-            _assignment.lesson.id,
-            undefined,
-            true,
-            _assignment
-          );
+          const res = await api.getLesson(_assignment.lesson_id);
           if (!!res) {
-            res.assignment = _assignment;
+            // res.assignment = _assignment;
             _lessons.push(res);
           }
         })

@@ -46,7 +46,7 @@ function SearchLesson() {
     const results = await searchIndex.search(term);
     const tempLessons = results.hits.map((hit) => {
       const lesson = hit as any as Lesson;
-      lesson.docId = hit.objectID;
+      lesson.id = hit.objectID;
       return lesson;
     });
     dataToContinue.lessons = tempLessons;
@@ -68,7 +68,7 @@ function SearchLesson() {
       return;
     }
 
-    setStudent(currentStudent);
+    // setStudent(currentStudent);
     if (currentStudent) {
       const api = ServiceConfig.getI().apiHandler;
       // const currentStudent =await Util.getCurrentStudent();
@@ -77,27 +77,13 @@ function SearchLesson() {
         return;
       }
       if (!dataToContinue.lessonResultMap) {
-        const res = await api.getStudentResultInMap(currentStudent.docId);
+        const res = await api.getStudentResultInMap(currentStudent.id);
         console.log("tempResultLessonMap = res;", res);
         dataToContinue.lessonResultMap = res;
-        setLessonResultMap(res);
+        // setLessonResultMap(res);
       }
-      // api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
-      //   console.log("tempResultLessonMap = res;", res);
-      //   setLessonResultMap(res);
-      // });
     }
   }
-
-  // useEffect(() => {
-  //   init();
-  //   // const currentStudent = await Util.getCurrentStudent();
-  //   const urlParams = new URLSearchParams(location.search);
-  //   if (!!urlParams.get("continue") && !!dataToContinue.lessons) {
-  //     setLessons(dataToContinue.lessons);
-  //     setSearchTerm(dataToContinue.search);
-  //   }
-  // }, []);
   useEffect(() => {
     init();
 
@@ -207,10 +193,10 @@ function SearchLesson() {
       </div>
       <LessonSlider
         key={searchTerm}
-        lessonData={lessons}
+        lessonData={[]}
         isHome={true}
         course={undefined}
-        lessonsScoreMap={lessonResultMap || {}}
+        lessonsScoreMap={{}}
         startIndex={0}
         showSubjectName={true}
         showChapterName={false}

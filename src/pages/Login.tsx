@@ -10,25 +10,23 @@ import {
   LANGUAGE,
   NUMBER_REGEX,
   PAGES,
+  TableTypes,
 } from "../common/constants";
 import { Capacitor } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
 import TextBox from "../components/TextBox";
 import React from "react";
 import Loading from "../components/Loading";
-import { ConfirmationResult, RecaptchaVerifier, getAuth } from "@firebase/auth";
+import { ConfirmationResult, RecaptchaVerifier } from "@firebase/auth";
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 // import { BackgroundMode } from "@awesome-cordova-plugins/background-mode";
 // import { setEnabled } from "@red-mobile/cordova-plugin-background-mode/www/background-mode";
 import { FirebaseAuth } from "../services/auth/FirebaseAuth";
 import { Keyboard } from "@capacitor/keyboard";
-import { initializeApp } from "firebase/app";
-import { init, t } from "i18next";
+import { t } from "i18next";
 import { Util } from "../utility/util";
-import User from "../models/user";
 import BackButton from "../components/common/BackButton";
 import { Toast } from "@capacitor/toast";
-import { title } from "process";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import {
   IoCallOutline,
@@ -83,7 +81,7 @@ const Login: React.FC = () => {
   );
   const [isInputFocus, setIsInputFocus] = useState(false);
   const scollToRef = useRef<null | HTMLDivElement>(null);
-  const [currentStudent, setStudent] = useState<User>();
+  const [currentStudent, setStudent] = useState<TableTypes<"user">>();
 
   const otpBtnRef = useRef<any>();
   const getOtpBtnRef = useRef<any>();
@@ -142,7 +140,7 @@ const Login: React.FC = () => {
       );
 
       async function init() {
-        const currentStudent = await Util.getCurrentStudent();
+        const currentStudent = Util.getCurrentStudent();
         if (!currentStudent) {
           history.replace(PAGES.HOME);
           return;
@@ -167,35 +165,32 @@ const Login: React.FC = () => {
     if (!recaptchaVerifier && !Capacitor.isNativePlatform()) {
       // Note: The 'recaptcha-container' must be rendered by this point, or
       // else Firebase throws 'auth/argument-error'
-      const auth = getAuth();
-      console.log("auth in recaptcha ", auth);
-
-      const rv = new RecaptchaVerifier(
-        "recaptcha-container",
-        {
-          size: "invisible",
-          callback: (response) => {
-            // reCAPTCHA solved, allow signInWithPhoneNumber.
-            console.log("// reCAPTCHA solved, allow signInWithPhoneNumber.");
-          },
-          "expired-callback": () => {
-            // Reset reCAPTCHA?
-            console.log("// Reset reCAPTCHA?");
-          },
-        },
-        auth
-      );
-      console.log("setRecaptchaVerifier(rv);", rv);
-
-      setRecaptchaVerifier(rv);
-
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(
-          "recaptcha-container",
-          { size: "invisible" },
-          auth
-        );
-      }
+      // const auth = getAuth();
+      // console.log("auth in recaptcha ", auth);
+      // const rv = new RecaptchaVerifier(
+      //   "recaptcha-container",
+      //   {
+      //     size: "invisible",
+      //     callback: (response) => {
+      //       // reCAPTCHA solved, allow signInWithPhoneNumber.
+      //       console.log("// reCAPTCHA solved, allow signInWithPhoneNumber.");
+      //     },
+      //     "expired-callback": () => {
+      //       // Reset reCAPTCHA?
+      //       console.log("// Reset reCAPTCHA?");
+      //     },
+      //   },
+      //   auth
+      // );
+      // console.log("setRecaptchaVerifier(rv);", rv);
+      // setRecaptchaVerifier(rv);
+      // if (!window.recaptchaVerifier) {
+      //   window.recaptchaVerifier = new RecaptchaVerifier(
+      //     "recaptcha-container",
+      //     { size: "invisible" },
+      //     auth
+      //   );
+      // }
     }
   }, [recaptchaVerifier]);
   React.useEffect(() => {

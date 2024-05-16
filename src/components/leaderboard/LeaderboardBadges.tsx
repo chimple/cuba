@@ -2,7 +2,7 @@ import { FC, useEffect, useState } from "react";
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import Badge from "../../models/Badge";
-import { LeaderboardRewardsType } from "../../common/constants";
+import { LeaderboardRewardsType, TableTypes } from "../../common/constants";
 import CachedImage from "../common/CachedImage";
 import "./LeaderboardBadges.css";
 import { t } from "i18next";
@@ -10,7 +10,7 @@ import { FaHeart } from "react-icons/fa";
 import { RxCross2 } from "react-icons/rx";
 import { TiTick } from "react-icons/ti";
 interface BadgeInfo {
-  badge: Badge | undefined;
+  badge: TableTypes<"badge"> | undefined;
   isUnlocked: boolean;
   isNextUnlock?: boolean;
   isUpcomingBadge?: boolean;
@@ -33,11 +33,11 @@ const LeaderboardBadges: FC = () => {
     const nextUnlockBadges = await getNextUnlockBadges();
     const allBadges = await getBadges();
     const upcomingBadges = await getUpcomingBadges();
-    setAllBadges(allBadges);
+    // setAllBadges(allBadges);
 
     const badgeInfoArray: BadgeInfo[] = prevBadges.map((badge) => ({
       badge,
-      isUnlocked: unlockedBadges.some((b) => b?.docId === badge?.docId),
+      isUnlocked: unlockedBadges.some((b) => b?.id === badge?.id),
     }));
 
     nextUnlockBadges.forEach((badge) => {
@@ -56,7 +56,9 @@ const LeaderboardBadges: FC = () => {
     setBadges(badgeInfoArray);
   }
 
-  const getUpcomingBadges = async (): Promise<(Badge | undefined)[]> => {
+  const getUpcomingBadges = async (): Promise<
+    (TableTypes<"badge"> | undefined)[]
+  > => {
     const date = new Date();
     const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
     if (!rewardsDoc) return [];
@@ -64,7 +66,7 @@ const LeaderboardBadges: FC = () => {
     const nextWeek = currentWeek + 1;
     const badgeIds: string[] = [];
     const weeklyData = rewardsDoc.weekly;
-    weeklyData[nextWeek.toString()].forEach((value) => {
+    weeklyData?.[nextWeek.toString()].forEach((value) => {
       if (value.type === LeaderboardRewardsType.BADGE) {
         badgeIds.push(value.id);
       }
@@ -74,11 +76,13 @@ const LeaderboardBadges: FC = () => {
     );
     return badgeDocs;
   };
-  const getBadges = async (): Promise<(Badge | undefined)[]> => {
+  const getBadges = async (): Promise<(TableTypes<"badge"> | undefined)[]> => {
     const matchingDocIds: string[] = [];
     const date = new Date();
     const currentWeek = Util.getCurrentWeekNumber();
-    const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
+    const rewardsDoc: any = await api.getRewardsById(
+      date.getFullYear().toString()
+    );
     for (const key in rewardsDoc?.weekly) {
       const weekNumber = parseInt(key);
       if (!isNaN(weekNumber) && weekNumber > currentWeek + 1) {
@@ -89,7 +93,7 @@ const LeaderboardBadges: FC = () => {
         });
       }
     }
-    const badgeDocs: (Badge | undefined)[] = [];
+    const badgeDocs: (TableTypes<"badge"> | undefined)[] = [];
     let index = 0;
     while (index < matchingDocIds.length) {
       const limit = matchingDocIds.slice(index, index + 20);
@@ -102,36 +106,41 @@ const LeaderboardBadges: FC = () => {
     return badgeDocs;
   };
 
-  const getUnlockedBadges = async (): Promise<(Badge | undefined)[]> => {
-    if (
-      !currentStudent.rewards ||
-      !currentStudent.rewards.badges ||
-      currentStudent.rewards.badges.length < 1
-    ) {
-      return [];
-    }
-    let isSeen = true;
-    const unlockedBadges = await Promise.all(
-      currentStudent.rewards.badges.map((value) => {
-        if (!value.seen) {
-          isSeen = false;
-        }
-        return api.getBadgeById(value.id);
-      })
-    );
-    if (!isSeen) {
-      api.updateRewardAsSeen(currentStudent.docId);
-    }
-    return unlockedBadges?.reverse();
+  const getUnlockedBadges = async (): Promise<
+    (TableTypes<"badge"> | undefined)[]
+  > => {
+    // if (
+    //   !currentStudent.rewards ||
+    //   !currentStudent.rewards.badges ||
+    //   currentStudent.rewards.badges.length < 1
+    // ) {
+    //   return [];
+    // }
+    // let isSeen = true;
+    // const unlockedBadges = await Promise.all(
+    //   currentStudent.rewards.badges.map((value) => {
+    //     if (!value.seen) {
+    //       isSeen = false;
+    //     }
+    //     return api.getBadgeById(value.id);
+    //   })
+    // );
+    // if (!isSeen) {
+    //   api.updateRewardAsSeen(currentStudent.id);
+    // }
+    // return unlockedBadges?.reverse();
+    return [];
   };
 
-  const getPrevBadges = async (): Promise<(Badge | undefined)[]> => {
+  const getPrevBadges = async (): Promise<
+    (TableTypes<"badge"> | undefined)[]
+  > => {
     const date = new Date();
     const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
     if (!rewardsDoc) return [];
     const currentWeek = Util.getCurrentWeekNumber();
     const badgeIds: string[] = [];
-    const weeklyData = rewardsDoc.weekly;
+    const weeklyData: any = rewardsDoc.weekly;
     for (const key in weeklyData) {
       const weekNumber = parseInt(key);
       if (!isNaN(weekNumber) && weekNumber < currentWeek) {
@@ -148,14 +157,16 @@ const LeaderboardBadges: FC = () => {
     return badgeDocs;
   };
 
-  const getNextUnlockBadges = async (): Promise<(Badge | undefined)[]> => {
+  const getNextUnlockBadges = async (): Promise<
+    (TableTypes<"badge"> | undefined)[]
+  > => {
     const date = new Date();
     const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
     if (!rewardsDoc) return [];
     const currentWeek = Util.getCurrentWeekNumber();
     const badgeIds: string[] = [];
     const weeklyData = rewardsDoc.weekly;
-    weeklyData[currentWeek.toString()].forEach((value) => {
+    weeklyData?.[currentWeek.toString()].forEach((value) => {
       if (value.type === LeaderboardRewardsType.BADGE) {
         badgeIds.push(value.id);
       }
@@ -178,10 +189,10 @@ const LeaderboardBadges: FC = () => {
               (value.isUnlocked
                 ? ""
                 : value.isNextUnlock
-                ? "next-reward"
-                : value.isUpcomingBadge
-                ? "next-reward"
-                : "lost-reward")
+                  ? "next-reward"
+                  : value.isUpcomingBadge
+                    ? "next-reward"
+                    : "lost-reward")
             }
           >
             {value.isNextUnlock && (
@@ -206,7 +217,7 @@ const LeaderboardBadges: FC = () => {
               </div>
             )}
 
-            <CachedImage src={value.badge?.image} />
+            <CachedImage src={value.badge?.image ?? undefined} />
 
             <p>{value.badge?.name}</p>
             {value.isUpcomingBadge &&

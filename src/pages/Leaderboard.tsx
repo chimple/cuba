@@ -7,6 +7,7 @@ import {
   LEADERBOARDHEADERLIST,
   PAGES,
   MODES,
+  TableTypes,
   LANGUAGE,
   LeaderboardDropdownList,
   HOMEHEADERLIST,
@@ -18,7 +19,6 @@ import Loading from "../components/Loading";
 import { IonCol, IonPage, IonRow } from "@ionic/react";
 import User from "../models/user";
 import React from "react";
-import { FirebaseApi } from "../services/api/FirebaseApi";
 import { LeaderboardInfo } from "../services/api/ServiceApi";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import StudentProfile from "../models/studentProfile";
@@ -34,7 +34,7 @@ import { AvatarObj } from "../components/animation/Avatar";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [currentStudent, setCurrentStudent] = useState<User>();
+  const [currentStudent, setCurrentStudent] = useState<TableTypes<"user">>();
   // const [isWeeklyFlag, setIsWeeklyFlag] = useState<boolean>(true);
   const [leaderboardDataInfo, setLeaderboardDataInfo] =
     useState<LeaderboardInfo>({
@@ -97,21 +97,19 @@ const Leaderboard: React.FC = () => {
       });
     });
     setWeeklyList(weekOptionsList);
-    // const api = ServiceConfig.getI().apiHandler;
+    const api = ServiceConfig.getI().apiHandler;
     const currentStudent = Util.getCurrentStudent();
     if (currentStudent != undefined) {
-      const getClass = await FirebaseApi.i.getStudentResult(
-        currentStudent.docId
-      );
+      const getClass = await api.getStudentClassesAndSchools(currentStudent.id);
       const currMode = await schoolUtil.getCurrMode();
       setStudentMode(currMode);
       if (getClass?.classes != undefined) {
         fetchLeaderBoardData(
           currentStudent,
           LeaderboardDropdownList.WEEKLY,
-          getClass?.classes[0]
+          getClass?.classes[0].id
         );
-        setCurrentClass(getClass);
+        // setCurrentClass(getClass);
       } else {
         fetchLeaderBoardData(
           currentStudent,
@@ -127,7 +125,7 @@ const Leaderboard: React.FC = () => {
   }
 
   async function fetchLeaderBoardData(
-    currentStudent: User,
+    currentStudent: TableTypes<"user">,
     leaderboardDropdownType: LeaderboardDropdownList,
     classId: string
   ) {
@@ -163,8 +161,8 @@ const Leaderboard: React.FC = () => {
       leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
         ? tempLeaderboardData.weekly
         : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
-        ? tempLeaderboardData.monthly
-        : tempLeaderboardData.allTime;
+          ? tempLeaderboardData.monthly
+          : tempLeaderboardData.allTime;
 
     let tempLeaderboardDataArray: any[][] = [];
     let tempCurrentUserDataContent: any[][] = [];
@@ -188,7 +186,7 @@ const Leaderboard: React.FC = () => {
         computeMinutes + " " + t("min") + " " + computeSeconds + " " + t("sec"),
       ]);
 
-      if (currentStudent.docId == element.userId) {
+      if (currentStudent.id == element.userId) {
         isCurrentStudentDataFetched = true;
         tempCurrentUserDataContent = [
           // ["Name", element.name],
@@ -204,7 +202,7 @@ const Leaderboard: React.FC = () => {
     }
     if (!isCurrentStudentDataFetched && !classId) {
       const b2cData = await api.getLeaderboardStudentResultFromB2CCollection(
-        currentStudent.docId
+        currentStudent.id
       );
       console.log(
         "const b2cData = await api.getLeaderboardStudentResultFromB2CCollection(",
@@ -219,8 +217,8 @@ const Leaderboard: React.FC = () => {
           leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
             ? b2cData.weekly
             : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
-            ? b2cData.monthly
-            : b2cData.allTime;
+              ? b2cData.monthly
+              : b2cData.allTime;
 
         var computeMinutes = Math.floor(tempData[0].timeSpent / 60);
         var computeSeconds = tempData[0].timeSpent % 60;
@@ -302,7 +300,7 @@ const Leaderboard: React.FC = () => {
             }}
           ></DropDown>
           <div
-            key={currentStudent?.docId}
+            key={currentStudent?.id}
             // onClick={() => onStudentClick(student)}
             className="avatar"
             id="leaderboard-avatar"
@@ -371,7 +369,9 @@ const Leaderboard: React.FC = () => {
             })}
           </div>
           <p id="leaderboard-left-note-message">
-            {t("***Be among the top performers in your class to win an exciting reward")}
+            {t(
+              "***Be among the top performers in your class to win an exciting reward"
+            )}
           </p>
         </div>
         <div id="leaderboard-right-UI">
@@ -402,20 +402,20 @@ const Leaderboard: React.FC = () => {
                     headerRowIndicator === 0
                       ? "rgb(200 200 200)"
                       : Number(currentUserDataContent[0][1]) ===
-                          headerRowIndicator ||
-                        currentUserDataContent[0][1] ===
-                          headerRowIndicator + "+"
-                      ? "#FF7925"
-                      : "",
+                            headerRowIndicator ||
+                          currentUserDataContent[0][1] ===
+                            headerRowIndicator + "+"
+                        ? "#FF7925"
+                        : "",
                   padding:
                     headerRowIndicator === 0
                       ? "1vh 2vh"
                       : Number(currentUserDataContent[0][1]) ===
-                          headerRowIndicator ||
-                        currentUserDataContent[0][1] ===
-                          headerRowIndicator + "+"
-                      ? "0vh 2vh"
-                      : "1vh 2vh ",
+                            headerRowIndicator ||
+                          currentUserDataContent[0][1] ===
+                            headerRowIndicator + "+"
+                        ? "0vh 2vh"
+                        : "1vh 2vh ",
                   position: "sticky",
                   zIndex: headerRowIndicator === 0 ? "3" : "0",
                   top: "0px",
@@ -511,7 +511,7 @@ const Leaderboard: React.FC = () => {
     // </IonPage>
 
     <IonPage>
-      {!isLoading? (
+      {!isLoading ? (
         <Box>
           <div id="LeaderBoard-Header">
             <BackButton
@@ -581,8 +581,8 @@ const Leaderboard: React.FC = () => {
                 // await Util.setCurrentStudent(null);
                 AvatarObj.destroyInstance();
                 const user = await auth.getCurrentUser();
-                if (!!user && !!user.language?.id) {
-                  const langDoc = await api.getLanguageWithId(user.language.id);
+                if (!!user && !!user.language_id) {
+                  const langDoc = await api.getLanguageWithId(user.language_id);
                   if (langDoc) {
                     const tempLangCode = langDoc.code ?? LANG.ENGLISH;
                     localStorage.setItem(LANGUAGE, tempLangCode);
@@ -615,7 +615,10 @@ const Leaderboard: React.FC = () => {
           </Box>
         </Box>
       ) : null}
-      <SkeltonLoading isLoading={isLoading} header={LEADERBOARDHEADERLIST.LEADERBOARD}/>
+      <SkeltonLoading
+        isLoading={isLoading}
+        header={LEADERBOARDHEADERLIST.LEADERBOARD}
+      />
     </IonPage>
   );
 };

@@ -1,20 +1,12 @@
+//@ts-nocheck
 import React, { useEffect, useState } from "react";
-import { IonCol, IonGrid, IonList, IonPage, IonRow } from "@ionic/react";
-import { SyntheticEvent } from "react";
-import Loading from "../components/Loading";
+import { IonCol, IonRow } from "@ionic/react";
 import "../components/studentProgress/CustomAppBar.css";
 import "./StudentProgress.css";
-import { CONTINUE, PAGES } from "../common/constants";
+import { PAGES, TableTypes } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
-import StudentProgressHeader from "../components/studentProgress/StudentProgressHeader";
-import Course from "../models/course";
-import User from "../models/user";
-import { StudentLessonResult } from "../common/courseConstants";
 import Lesson from "../models/lesson";
 import { useHistory } from "react-router-dom";
-import { blue, red, green } from "@mui/material/colors";
-import { common } from "@mui/material/colors";
-import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import CustomAppBar from "../components/studentProgress/CustomAppBar";
 import { t } from "i18next";
 import { Util } from "../utility/util";
@@ -27,12 +19,11 @@ const StudentProgress: React.FC = () => {
     useState<HeaderIconConfig[]>([]);
   const [headerContent, setHeaderContent] = useState<string[]>([]);
   const [dataContent, setDataContent] = useState<string[][]>([]);
-  const [currentStudent, setCurrentStudent] = useState<User>();
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [lessonsResults, setLessonsResults] = useState<
-    Map<string, StudentLessonResult>
-  >(new Map());
-  const [currentAppLang, setCurrentAppLang] = useState<string>();
+  const [currentStudent, setCurrentStudent] = useState<TableTypes<"user">>();
+  const [courses, setCourses] = useState<TableTypes<"course">[]>([]);
+  const [lessonsResults, setLessonsResults] = useState<{
+    [lessonDocId: string]: TableTypes<"result">;
+  }>({});
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
 
@@ -45,7 +36,7 @@ const StudentProgress: React.FC = () => {
     displayName: string;
     iconSrc: string;
     header: any;
-    course: Course;
+    course: TableTypes<"course">;
   }
   const handleBackButton = () => {
     Util.setPathToBackButton(PAGES.PARENT, history);
@@ -60,21 +51,21 @@ const StudentProgress: React.FC = () => {
       const courses = await getCourses(currentStudent);
       setCourses(courses);
       if (courses.length > 0) {
-        setCurrentHeader(courses[0].courseCode);
-        setTabIndex(courses[0].courseCode);
+        setCurrentHeader(courses[0].code);
+        setTabIndex(courses[0].code ?? "");
         setStudentProgressHeaderIconList(
           courses.map((course) => ({
-            displayName: t(course.title),
-            iconSrc: course.thumbnail ?? "assets/icons/EnglishIcon.svg",
-            header: course.courseCode,
+            displayName: t(course.name),
+            iconSrc: course.image ?? "assets/icons/EnglishIcon.svg",
+            header: course.code,
             course: course,
           }))
         );
         // console.log(courses[0].title);
       }
 
-      const res = await api.getLessonResultsForStudent(currentStudent.docId);
-      setLessonsResults(res || new Map());
+      const res = await api.getStudentResultInMap(currentStudent.id);
+      setLessonsResults(res || {});
 
       if (res && res.size > 0) {
         console.log("result...");
@@ -86,8 +77,10 @@ const StudentProgress: React.FC = () => {
     }
   }
 
-  async function getCourses(currentStudent: User): Promise<Course[]> {
-    const courses = await api.getCoursesForParentsStudent(currentStudent);
+  async function getCourses(
+    currentStudent: TableTypes<"user">
+  ): Promise<TableTypes<"course">[]> {
+    const courses = await api.getCoursesForParentsStudent(currentStudent.id);
     return courses;
   }
 
@@ -142,11 +135,11 @@ const StudentProgress: React.FC = () => {
   }
 
   async function getResultsForStudentForSelectedHeader(
-    course: Course,
-    lessonsResults: Map<string, StudentLessonResult>
+    course: TableTypes<"course">,
+    lessonsResults: Map<string, TableTypes<"result">>
   ) {
     setIsLoading(true);
-    console.log("Selected header ", course.title, lessonsResults);
+    console.log("Selected header ", course.name, lessonsResults);
     let isDataAvailable: boolean = false;
     let tempDataContent: string[][] = [];
 

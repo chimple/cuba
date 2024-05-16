@@ -40,7 +40,7 @@ const StudentAvatar: React.FC<{
       className={`student-avatar-${namePosition}`}
     >
       {namePosition === "above" &&
-        (student && student.docId === Util.getCurrentStudent()?.docId ? (
+        (student && student.id === Util.getCurrentStudent()?.id ? (
           <p style={nameStyle}>
             {t("Me")}
             {nameLabel}
@@ -57,7 +57,7 @@ const StudentAvatar: React.FC<{
         alt=""
       />
       {(namePosition === "right" || namePosition === "left") &&
-        (student && student.docId === Util.getCurrentStudent()?.docId ? (
+        (student && student.id === Util.getCurrentStudent()?.id ? (
           <p style={nameStyle}>
             {t("Me")} {nameLabel}
           </p>
@@ -67,7 +67,7 @@ const StudentAvatar: React.FC<{
           </span>
         ))}
       {namePosition === "below" &&
-        (student && student.docId === Util.getCurrentStudent()?.docId ? (
+        (student && student.id === Util.getCurrentStudent()?.id ? (
           <p style={nameStyle}>
             {t("Me")} {nameLabel}
           </p>

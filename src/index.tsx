@@ -4,20 +4,35 @@ import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import reportWebVitals from "./reportWebVitals";
 import "./index.css";
 import "./i18n";
-import { initializeFireBase } from "./services/Firebase";
 import { APIMode, ServiceConfig } from "./services/ServiceConfig";
-import { Util } from "./utility/util";
-import React from "react";
+import {
+  defineCustomElements as jeepSqlite,
+  applyPolyfills,
+} from "jeep-sqlite/loader";
+import { SqliteApi } from "./services/api/SqliteApi";
+import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 
+applyPolyfills().then(() => {
+  jeepSqlite(window);
+});
 const container = document.getElementById("root");
 const root = createRoot(container!);
-root.render(
-  <>
-    <App />
-  </>
-);
-initializeFireBase();
-ServiceConfig.getInstance(APIMode.FIREBASE);
+GoogleAuth.initialize({
+  clientId: process.env.REACT_APP_CLIENT_ID,
+  scopes: ["profile", "email"],
+  // grantOfflineAccess: true,
+});
+SqliteApi.getInstance().then(() => {
+  ServiceConfig.getInstance(APIMode.SQLITE);
+  root.render(
+    <>
+      <App />
+    </>
+  );
+  // initializeFireBase();
+});
+
+root.render(<></>);
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

@@ -6,14 +6,18 @@ import User from "../models/user";
 import Confetti from "react-confetti";
 import NextButton from "../components/common/NextButton";
 import { useHistory } from "react-router";
-import { PAGES } from "../common/constants";
+import { PAGES, TableTypes } from "../common/constants";
 import { GiCrown } from "react-icons/gi";
 import { t } from "i18next";
 import { IonPage } from "@ionic/react";
 
 const LiveQuizRoomResult: React.FC = () => {
-  const [topThreeStudents, setTopThreeStudents] = useState<User[]>([]);
-  const [students, setStudents] = useState(new Map<String, User>());
+  const [topThreeStudents, setTopThreeStudents] = useState<
+    TableTypes<"user">[]
+  >([]);
+  const [students, setStudents] = useState(
+    new Map<String, TableTypes<"user">>()
+  );
   const [showConfetti, setShowConfetti] = useState(true);
   const history = useHistory();
   const [sortedStudentScores, setSortedStudentScores] = useState<any>([]);
@@ -31,12 +35,12 @@ const LiveQuizRoomResult: React.FC = () => {
       const liveQuizRoomDoc = await api.getLiveQuizRoomDoc(paramLiveRoomId);
       const classRef = liveQuizRoomDoc?.class;
       const classId = classRef?.id;
-      let tempStudentMap = new Map<String, User>();
+      let tempStudentMap = new Map<String, TableTypes<"user">>();
       if (!!classId) {
         const studentsData = await api.getStudentsForClass(classId);
 
         for (let student of studentsData) {
-          tempStudentMap.set(student.docId, student);
+          tempStudentMap.set(student.id, student);
         }
         setStudents(tempStudentMap);
       }
@@ -85,7 +89,7 @@ const LiveQuizRoomResult: React.FC = () => {
         const topThreePerformers = sortedScores.slice(0, 3);
         const topthreeStudents = topThreePerformers.map((perf) =>
           tempStudentMap.get(perf.studentDocId)
-        ) as User[];
+        ) as TableTypes<"user">[];
         setTopThreeStudents(topthreeStudents);
       }
     } catch (error) {
@@ -127,7 +131,7 @@ const LiveQuizRoomResult: React.FC = () => {
 
               <div className="student-avatar-container">
                 <StudentAvatar
-                  key={student.docId}
+                  key={student.id}
                   student={student}
                   onClicked={() => {}}
                   nameLabel="1st"
@@ -148,7 +152,7 @@ const LiveQuizRoomResult: React.FC = () => {
           {topThreeStudents.slice(1).map((student, index) => (
             <div key={index + 1} className={`performer-${index + 2}`}>
               <StudentAvatar
-                key={student.docId}
+                key={student.id}
                 student={student}
                 onClicked={() => {}}
                 nameLabel={getOrdinal(index + 2)}
@@ -166,7 +170,7 @@ const LiveQuizRoomResult: React.FC = () => {
               <div key={scoreData.studentDocId} className="student-info">
                 {student && (
                   <StudentAvatar
-                    key={student.docId}
+                    key={student.id}
                     student={student}
                     onClicked={() => {}}
                     namePosition="above"

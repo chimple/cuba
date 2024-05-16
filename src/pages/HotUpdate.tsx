@@ -27,9 +27,9 @@ const HotUpdate: FC<{}> = () => {
         push();
         return;
       }
-      AppUpdater.sync(hotUpdateServer, (status) => {
-        // setCurrentStatus(status);
-      });
+      // AppUpdater.sync(hotUpdateServer, (status) => {
+      //   // setCurrentStatus(status);
+      // });
       push();
     } catch (error) {
       push();
@@ -39,7 +39,7 @@ const HotUpdate: FC<{}> = () => {
     const appLang = localStorage.getItem(LANGUAGE);
     if (appLang == undefined) {
       history.replace(PAGES.APP_LANG_SELECTION);
-    } else history.replace(PAGES.HOME);
+    } else history.replace(PAGES.SELECT_MODE);
   };
   useEffect(() => {
     init();

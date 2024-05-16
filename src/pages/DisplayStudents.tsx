@@ -10,6 +10,7 @@ import {
   PAGES,
   MODES,
   CONTINUE,
+  TableTypes,
 } from "../common/constants";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { useHistory } from "react-router";
@@ -26,7 +27,7 @@ import SkeltonLoading from "../components/SkeltonLoading";
 
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [students, setStudents] = useState<User[]>();
+  const [students, setStudents] = useState<TableTypes<"user">[]>();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const history = useHistory();
@@ -38,6 +39,13 @@ const DisplayStudents: FC<{}> = () => {
     };
   }, []);
   const getStudents = async () => {
+    const api = ServiceConfig.getI().apiHandler;
+    console.log("🚀 ~ getStudents ~ api:", api);
+    const res = await api.getStudentResultInMap(
+      "c582c84a-2370-4096-8b0b-df98dd7a4fc5"
+    );
+    console.log("🚀 ~ getStudents ~ res:", res);
+
     const currMode = await schoolUtil.getCurrMode();
     setStudentMode(currMode);
     const students =
@@ -54,17 +62,18 @@ const DisplayStudents: FC<{}> = () => {
       return;
     }
     setStudents(students);
+    setIsLoading(false);
 
-    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!currentUser) {
-      return;
-    }
+    // const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    // if (!currentUser) {
+    //   return;
+    // }
 
-    await FirebaseAnalytics.setUserId({
-      userId: currentUser.docId,
-    });
+    // await FirebaseAnalytics.setUserId({
+    //   userId: currentUser.id,
+    // });
 
-    Util.setUserProperties(currentUser);
+    // Util.setUserProperties(currentUser);
 
     // setStudents([students[0]]);
 
@@ -87,21 +96,20 @@ const DisplayStudents: FC<{}> = () => {
     //   "🚀 ~ file: DisplayStudents.tsx:34 ~ getStudents ~ iseTeacher:",
     //   iseTeacher
     // );
-
-    setIsLoading(false);
   };
-  const onStudentClick = async (student: User) => {
+  const onStudentClick = async (student: TableTypes<"user">) => {
     console.log(
       "🚀 ~ file: DisplayStudents.tsx:30 ~ onStudentClick:student",
       student
     );
     await Util.setCurrentStudent(student, undefined, true);
-
+    console.log("done setting student");
     if (
-      !student.board ||
-      !student.language ||
-      !student.grade ||
-      !student.courses
+      !student.curriculum_id ||
+      !student.language_id
+      //  ||
+      // !student.grade_id ||
+      // !student.courses
     ) {
       history.replace(PAGES.EDIT_STUDENT, {
         from: history.location.pathname,
@@ -133,7 +141,7 @@ const DisplayStudents: FC<{}> = () => {
       : undefined;
     history.replace(PAGES.CREATE_STUDENT, locationState);
   };
-
+  console.log("🚀 ~ onCreateNewStudent ~ students:", students);
   return (
     <IonPage id="display-students">
       {/* <IonContent> */}
@@ -162,7 +170,7 @@ const DisplayStudents: FC<{}> = () => {
           <div className="avatar-container">
             {students.map((student) => (
               <div
-                key={student.docId}
+                key={student.id}
                 onClick={() => onStudentClick(student)}
                 className="avatar"
               >
@@ -203,7 +211,7 @@ const DisplayStudents: FC<{}> = () => {
           ) : null}
         </div>
       )}
-      <SkeltonLoading isLoading={isLoading} header={PAGES.DISPLAY_STUDENT}/>
+      <SkeltonLoading isLoading={isLoading} header={PAGES.DISPLAY_STUDENT} />
       {/* </IonContent> */}
     </IonPage>
   );

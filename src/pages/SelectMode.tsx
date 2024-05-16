@@ -1,17 +1,14 @@
 import { IonPage } from "@ionic/react";
 import { FC, useEffect, useState } from "react";
 import Loading from "../components/Loading";
-import { FirebaseApi } from "../services/api/FirebaseApi";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { useHistory } from "react-router";
 import {
   LANGUAGE,
   AVATARS,
-  CURRENT_CLASS,
-  CURRENT_MODE,
-  CURRENT_SCHOOL,
   MODES,
   PAGES,
+  TableTypes,
 } from "../common/constants";
 import SelectModeButton from "../components/selectMode/SelectModeButton";
 import { IoMdPeople } from "react-icons/io";
@@ -19,14 +16,10 @@ import { GiTeacher } from "react-icons/gi";
 import { t } from "i18next";
 import "./SelectMode.css";
 import BackButton from "../components/common/BackButton";
-import Class from "../models/class";
-import User from "../models/user";
-import School from "../models/school";
 import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
 import i18n from "../i18n";
 import DropDown from "../components/DropDown";
-import React from "react";
 
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -40,22 +33,23 @@ const SelectMode: FC = () => {
     {
       id: string;
       displayName: string;
-      school: School;
+      school: TableTypes<"school">;
     }[]
   >([]);
   const [currentSchoolName, setCurrentSchoolName] = useState<string>();
-  const [currentSchool, setCurrentSchool] = useState<any>();
+  const [currentSchool, setCurrentSchool] = useState<TableTypes<"school">>();
   const [currentSchoolId, setCurrentSchoolId] = useState<string>();
-  const [currentUser, setCurrentUser] = useState<any>();
-  const [currentClasses, setCurrentClasses] = useState<Class[]>();
-  const [currentStudents, setCurrentStudents] = useState<User[]>();
-  const [currStudent, setCurrStudent] = useState<User>();
-  const [currClass, setCurrClass] = useState<any>();
+  const [currentUser, setCurrentUser] = useState<TableTypes<"user">>();
+  const [currentClasses, setCurrentClasses] = useState<TableTypes<"class">[]>();
+  const [currentStudents, setCurrentStudents] =
+    useState<TableTypes<"user">[]>();
+  const [currStudent, setCurrStudent] = useState<TableTypes<"user">>();
+  const [currClass, setCurrClass] = useState<TableTypes<"class">>();
   let count = 1;
   const tempSchoolList: {
     id: string;
     displayName: string;
-    school: School;
+    school: TableTypes<"school">;
   }[] = [];
   useEffect(() => {
     init();
@@ -74,8 +68,11 @@ const SelectMode: FC = () => {
   const init = async () => {
     const currUser = await auth.getCurrentUser();
     if (!currUser) return;
-    const allSchool = await api.getSchoolsForUser(currUser);
+    // const allSchool = await api.getSchoolsForUser(currUser);
+    const allSchool = [];
+    console.log("🚀 ~ init ~ allSchool:", allSchool);
     const students = await api.getParentStudentProfiles();
+    console.log("🚀 ~ init ~ students:", students);
     // const isTeacher = await api.isUserTeacher(currUser);
     // console.log("This is the current status of teacher " + isTeacher);
     if (!allSchool || allSchool.length < 1) {
@@ -94,15 +91,15 @@ const SelectMode: FC = () => {
     //   return;
     // }
 
-    console.log("allSchool", allSchool);
-    for (let i = 0; i < allSchool.length; i++) {
-      const element = allSchool[i];
-      tempSchoolList.push({
-        id: element.docId,
-        displayName: element.name,
-        school: allSchool[i],
-      });
-    }
+    // console.log("allSchool", allSchool);
+    // for (let i = 0; i < allSchool.length; i++) {
+    //   const element = allSchool[i];
+    //   tempSchoolList.push({
+    //     id: element.id,
+    //     displayName: element.name,
+    //     school: allSchool[i],
+    //   });
+    // }
 
     setCurrentUser(currUser);
     setSchoolList(tempSchoolList);
@@ -130,7 +127,11 @@ const SelectMode: FC = () => {
     setStage(STAGES.SCHOOL);
   };
   const displayClasses = async () => {
-    const element = await api.getClassesForSchool(currentSchool, currentUser);
+    if (!currentSchool || !currentUser) return;
+    const element = await api.getClassesForSchool(
+      currentSchool?.id ?? "",
+      currentUser.id ?? ""
+    );
     console.log("this are the classes " + element);
     setCurrentClasses(element);
 
@@ -138,14 +139,14 @@ const SelectMode: FC = () => {
   };
   const displayStudents = async (curClass) => {
     // if(!currClass) return;
-    const element = await api.getStudentsForClass(curClass.docId);
+    const element = await api.getStudentsForClass(curClass.id);
     console.log("THis are the students " + element);
     if (!element) return;
     setCurrentStudents(element);
 
     return;
   };
-  const onStudentClick = async (student: User) => {
+  const onStudentClick = async (student: TableTypes<"user">) => {
     console.log(
       "🚀 ~ file: DisplayStudents.tsx:30 ~ onStudentClick:student",
       student
@@ -205,7 +206,7 @@ const SelectMode: FC = () => {
                     console.log(currSchool);
                     setCurrentSchool(currSchool);
                     setCurrentSchoolName(currSchool.name);
-                    setCurrentSchoolId(currSchool.docId);
+                    setCurrentSchoolId(currSchool.id);
                     setIsOkayButtonDisabled(false);
                     schoolUtil.setCurrentSchool(currSchool);
                   }}
@@ -249,7 +250,7 @@ const SelectMode: FC = () => {
                 <div className="class-container">
                   {currentClasses?.map((tempClass) => (
                     <div
-                      key={tempClass.docId}
+                      key={tempClass.id}
                       onClick={async () => {
                         if (!tempClass) return;
                         // localStorage.setItem(CURRENT_CLASS,JSON.stringify(tempClass));
@@ -291,7 +292,7 @@ const SelectMode: FC = () => {
                 <div className="class-container">
                   {currentStudents?.map((tempStudent) => (
                     <div
-                      key={tempStudent.docId}
+                      key={tempStudent.id}
                       onClick={() => {
                         setCurrStudent(tempStudent);
                         // setStage(STAGES.STUDENT);

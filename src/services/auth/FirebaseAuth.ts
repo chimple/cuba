@@ -1,9 +1,8 @@
+// @ts-nocheck
 import { ServiceAuth } from "./ServiceAuth";
 import {
-  ConfirmationResult,
   EmailAuthProvider,
   GoogleAuthProvider,
-  PhoneAuthProvider,
   getAuth,
   signInWithCredential,
   signInWithCustomToken,
@@ -30,8 +29,12 @@ import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { CollectionIds } from "../../common/courseConstants";
-import { ACTION, CURRENT_USER, EVENTS, LANGUAGE } from "../../common/constants";
-import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
+import {
+  ACTION,
+  EVENTS,
+  LANGUAGE,
+  TableTypes,
+} from "../../common/constants";
 import { ServiceConfig } from "../ServiceConfig";
 import { getFunctions, httpsCallable } from "firebase/functions";
 
@@ -42,7 +45,7 @@ export class FirebaseAuth implements ServiceAuth {
   private _db = getFirestore();
   private _auth = getAuth(); //FirebaseAuth.whichAuth();
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): FirebaseAuth {
     if (!FirebaseAuth.i) {
@@ -225,38 +228,39 @@ export class FirebaseAuth implements ServiceAuth {
     return this._currentUser;
   }
 
-  public async getCurrentUser(): Promise<User | undefined> {
-    try {
-      if (this._currentUser) return this._currentUser;
-      const currentUser = this._auth.currentUser;
-      console.log("🚀 ~ file: FirebaseAuth.ts:153 ~ currentUser:", currentUser);
-      // let currentUser: any = (await FirebaseAuthentication.getCurrentUser()).user;
-      // console.log("let currentUser", currentUser);
+  public async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
+    throw new Error("Method not implemented");
+    // try {
+    //   if (this._currentUser) return this._currentUser;
+    //   const currentUser = this._auth.currentUser;
+    //   console.log("🚀 ~ file: FirebaseAuth.ts:153 ~ currentUser:", currentUser);
+    //   // let currentUser: any = (await FirebaseAuthentication.getCurrentUser()).user;
+    //   // console.log("let currentUser", currentUser);
 
-      // if (!currentUser) {
-      //   currentUser = getAuth().currentUser;
-      //   console.log("currentUser in if (!currentUser) {", currentUser);
-      // }
-      if (!currentUser) return;
-      const tempUserDoc = await getDoc(doc(this._db, "User", currentUser.uid));
-      this.updateUserPreferenceLanguage();
-      this._currentUser = (tempUserDoc.data() || tempUserDoc) as User;
-      console.log(
-        "currentUser in if (!currentUser) {",
-        tempUserDoc,
-        this._currentUser
-      );
-      this._currentUser.docId = tempUserDoc.id;
-      return this._currentUser;
-    } catch (error) {
-      console.log("🚀 ~ file: FirebaseAuth.ts:175 ~ error:", error);
-    }
+    //   // if (!currentUser) {
+    //   //   currentUser = getAuth().currentUser;
+    //   //   console.log("currentUser in if (!currentUser) {", currentUser);
+    //   // }
+    //   if (!currentUser) return;
+    //   const tempUserDoc = await getDoc(doc(this._db, "User", currentUser.uid));
+    //   this.updateUserPreferenceLanguage();
+    //   this._currentUser = (tempUserDoc.data() || tempUserDoc) as User;
+    //   console.log(
+    //     "currentUser in if (!currentUser) {",
+    //     tempUserDoc,
+    //     this._currentUser
+    //   );
+    //   this._currentUser.docId = tempUserDoc.id;
+    //   return this._currentUser;
+    // } catch (error) {
+    //   console.log("🚀 ~ file: FirebaseAuth.ts:175 ~ error:", error);
+    // }
   }
 
   public set currentUser(value: User) {
     this._currentUser = value;
   }
-  // public set updateCurrentUser(user: User) {
+  // public set updatecurrentUser(user: TableTypes<"user">) {
   //     this._currentUser = user;
   // }
 
@@ -417,7 +421,6 @@ export class FirebaseAuth implements ServiceAuth {
   public async msg91OtpGenerate(
     phoneNumber: string,
     appName: string
-
   ): Promise<boolean | undefined> {
     try {
       const functions = getFunctions();
@@ -427,15 +430,14 @@ export class FirebaseAuth implements ServiceAuth {
         appName,
       });
       const response = result.data as Map<string, boolean>;
-      return response['status']
+      return response["status"];
     } catch (error) {
-      console.log(
-        "Failed with Msg91",
-        error
-      );
+      console.log("Failed with Msg91", error);
     }
   }
-  public async resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined> {
+  public async resendOtpMsg91(
+    phoneNumber: string
+  ): Promise<boolean | undefined> {
     try {
       const functions = getFunctions();
       const msg91Otp = httpsCallable(functions, "ResendOtpWithMSG91");
@@ -443,12 +445,9 @@ export class FirebaseAuth implements ServiceAuth {
         phoneNumber,
       });
       const response = result.data as Map<string, boolean>;
-      return response['status']
+      return response["status"];
     } catch (error) {
-      console.log(
-        "Failed with Msg91",
-        error
-      );
+      console.log("Failed with Msg91", error);
     }
   }
   public async proceedWithVerificationCode(
@@ -472,10 +471,13 @@ export class FirebaseAuth implements ServiceAuth {
       //   return;
       // }
       const functions = getFunctions();
-      const generateCustomTocken = httpsCallable(functions, "GenerateCustomToken");
+      const generateCustomTocken = httpsCallable(
+        functions,
+        "GenerateCustomToken"
+      );
       const result = await generateCustomTocken({
-        'phoneNumber': phone_number,
-        'otp': verificationCode,
+        phoneNumber: phone_number,
+        otp: verificationCode,
       });
       const response = result.data as Map<string, string>;
       // const credential = PhoneAuthProvider.credential(
@@ -483,13 +485,13 @@ export class FirebaseAuth implements ServiceAuth {
       //   verificationCode
       // );
       const auth = await getAuth();
-      if (response['error'] != null) {
-        throw Error(response['error']);
+      if (response["error"] != null) {
+        throw Error(response["error"]);
       }
       await FirebaseAuthentication.signInWithCustomToken({
-        token:response['customToken']
-      })
-      let res = await signInWithCustomToken(auth, response['customToken'])
+        token: response["customToken"],
+      });
+      let res = await signInWithCustomToken(auth, response["customToken"]);
       // let res = await signInWithCredential(auth, credential);
       const u = await FirebaseAuthentication.getCurrentUser();
       console.log(
@@ -596,39 +598,40 @@ export class FirebaseAuth implements ServiceAuth {
   }
 
   async isUserLoggedIn(): Promise<boolean> {
-    console.log("isUserLoggedIn entred");
+    throw new Error("Method not implemented");
+    // console.log("isUserLoggedIn entred");
 
-    const user = await this.getCurrentUser();
-    console.log("isUserLoggedIn user", user, !!user);
-    if (!!user) return true;
-    console.log(
-      "isUserLoggedIn !user && Capacitor.isNativePlatform()",
-      !user,
-      !user && Capacitor.isNativePlatform()
-    );
-    // if (!user && Capacitor.isNativePlatform()) return false;
+    // const user = await this.getCurrentUser();
+    // console.log("isUserLoggedIn user", user, !!user);
+    // if (!!user) return true;
+    // console.log(
+    //   "isUserLoggedIn !user && Capacitor.isNativePlatform()",
+    //   !user,
+    //   !user && Capacitor.isNativePlatform()
+    // );
+    // // if (!user && Capacitor.isNativePlatform()) return false;
 
-    const res = localStorage.getItem(CURRENT_USER);
-    console.log("res...", res);
-    if (!res) return false;
-    for (var i = 0; i < 1000; i++) {
-      await new Promise((res) => setTimeout(res, 100));
-      const user = await this.getCurrentUser();
-      console.log(
-        "🚀 ~ file: FirebaseAuth.ts:146 ~ FirebaseAuth ~ isUserLoggedIn ~ user:",
-        user
-      );
-      if (!!user) {
-        await FirebaseAnalytics.setUserId({
-          userId: user.uid,
-        });
-        Util.setUserProperties(user);
-        return true;
-      }
-    }
-    localStorage.removeItem(CURRENT_USER);
-    if (!user) return false;
-    return false;
+    // const res = localStorage.getItem(CURRENT_USER);
+    // console.log("res...", res);
+    // if (!res) return false;
+    // for (var i = 0; i < 1000; i++) {
+    //   await new Promise((res) => setTimeout(res, 100));
+    //   const user = await this.getCurrentUser();
+    //   console.log(
+    //     "🚀 ~ file: FirebaseAuth.ts:146 ~ FirebaseAuth ~ isUserLoggedIn ~ user:",
+    //     user
+    //   );
+    //   if (!!user) {
+    //     await FirebaseAnalytics.setUserId({
+    //       userId: user.id,
+    //     });
+    //     Util.setUserProperties(user);
+    //     return true;
+    //   }
+    // }
+    // localStorage.removeItem(CURRENT_USER);
+    // if (!user) return false;
+    // return false;
   }
 
   async logOut(): Promise<void> {

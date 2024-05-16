@@ -3,6 +3,8 @@ import User from "../../models/user";
 import { ServiceAuth } from "./ServiceAuth";
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 import { ConfirmationResult } from "@firebase/auth";
+import { Database } from "../database";
+import { TableTypes } from "../../common/constants";
 
 export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
@@ -26,7 +28,7 @@ export class OneRosterAuth implements ServiceAuth {
     return OneRosterAuth.i;
   }
 
-  public set currentUser(user: User) {
+  public set currentUser(user: TableTypes<"user">) {
     throw new Error("Method not implemented.");
   }
 
@@ -53,7 +55,7 @@ export class OneRosterAuth implements ServiceAuth {
     throw new Error("Method not implemented.");
   }
 
-  getCurrentUser(): Promise<User | undefined> {
+  getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
     throw new Error("Method not implemented.");
   }
 }
