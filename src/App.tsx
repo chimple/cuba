@@ -79,6 +79,8 @@ import StudentProfile from "./pages/Malta/StudentProfile";
 import AddStudent from "./pages/Malta/AddStudent";
 import Dashboard from "./pages/Malta/Dashboard";
 import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
+import ClassCode from "./pages/Malta/ClassCode";
+import UserRoles from "./pages/Malta/UserRoles";
 
 setupIonicReact();
 interface ExtraData {
@@ -282,7 +284,7 @@ const App: React.FC = () => {
               <Home />
             </ProtectedRoute>
             <Route path={PAGES.LOGIN} exact={true}>
-              <Dashboard />
+              <Login />
             </Route>
             <ProtectedRoute path={PAGES.GAME} exact={true}>
               <CocosGame />
@@ -297,7 +299,7 @@ const App: React.FC = () => {
               <Parent />
             </ProtectedRoute>
             <Route path={PAGES.APP_LANG_SELECTION} exact={true}>
-              <AppLangSelection />
+              <ClassCode />
             </Route>
             <ProtectedRoute path={PAGES.CREATE_STUDENT} exact={true}>
               <EditStudent />
