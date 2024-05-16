@@ -1,15 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import CommonAppBar from "../../components/malta/common/CommonAppBar";
+import AddSchool from "../../components/malta/school/AddSchool";
+import { fn } from "@storybook/test";
 
 const meta = {
-  title: "Component/malta/assignment/AssignmentAppBar",
-  component: CommonAppBar,
+  title: "Component/malta/school/AddSchool",
+  component: AddSchool,
   parameters: {
     layout: "centered",
   },
   tags: ["autodocs"],
   argTypes: {
-    title: {
+    schoolName: {
       options: Object.values(""),
       mapping: Object.values(""),
       control: {
@@ -17,7 +18,7 @@ const meta = {
         labels: Object.keys(""),
       },
     },
-    loc: {
+    cityName: {
       options: Object.values(""),
       mapping: Object.values(""),
       control: {
@@ -25,18 +26,27 @@ const meta = {
         labels: Object.keys(""),
       },
     },
+    stateName: {
+        options: Object.values(""),
+        mapping: Object.values(""),
+        control: {
+          type: "text",
+          labels: Object.keys(""),
+        },
+      },
   },
   args: {},
-} satisfies Meta<typeof CommonAppBar>;
+} satisfies Meta<typeof AddSchool>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const appBar: Story = {
+export const addSchool: Story = {
   args: {
-    title: "assignment",
-    loc: "#",
-    showAvatar: false,
-    imgScr: ''
+    schoolName: '',
+    cityName: '',
+    stateName: '',
+    onCancel: fn(),
+    onCreate: fn()
   },
 };

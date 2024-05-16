@@ -9,6 +9,7 @@ import { Capacitor } from "@capacitor/core";
 import { Keyboard } from "@capacitor/keyboard";
 import { NUMBER_REGEX, PAGES } from "../../common/constants";
 import { useHistory, useLocation } from "react-router";
+import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 const urlClassCode: any = {};
 
 const JoinClass: FC<{
@@ -23,6 +24,7 @@ const JoinClass: FC<{
   const [isInputFocus, setIsInputFocus] = useState(false);
   const scollToRef = useRef<null | HTMLDivElement>(null);
   const history = useHistory();
+  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
 
   const api = ServiceConfig.getI().apiHandler;
 
@@ -34,38 +36,47 @@ const JoinClass: FC<{
   };
 
   const getClassData = async () => {
-    console.log("onJoin", urlClassCode.inviteCode, isNextButtonEnabled());
-    if (!!error) setError("");
-    if (!isNextButtonEnabled()) return;
-    setLoading(true);
-    try {
-      const result = await api.getDataByInviteCode(
-        urlClassCode.inviteCode ? urlClassCode.inviteCode : inviteCode
-      );
-      console.log(
-        "🚀 ~ file: JoinClass.tsx:24 ~ getClassData ~ result:",
-        result
-      );
-      setCodeResult(result);
-      setShowDialogBox(true);
-    } catch (error) {
-      console.log("🚀 ~ file: JoinClass.tsx:32 ~ getClassData ~ error:", error);
-      if (error instanceof Object) {
-        let eMsg: string =
-          "FirebaseError: Invalid inviteCode" === error.toString()
-            ? t("Invalid Code. Please contact your teacher")
-            : error.toString();
-        setError(eMsg);
+    if (!online) {
+      presentToast({
+        message: t(`Device is offline. Cannot join a class`),
+        color: "danger",
+        duration: 3000,
+        position: "bottom",
+        buttons: [
+          {
+            text: "Dismiss",
+            role: "cancel",
+          },
+        ],
+      });
+      return;
+    } else {
+      if (!!error) setError("");
+      if (!isNextButtonEnabled()) return;
+      setLoading(true);
+      try {
+        const result = await api.getDataByInviteCode(
+          urlClassCode.inviteCode ? urlClassCode.inviteCode : inviteCode
+        );
+        setCodeResult(result);
+        setShowDialogBox(true);
+      } catch (error) {
+        if (error instanceof Object) {
+          let eMsg: string =
+            "FirebaseError: Invalid inviteCode" === error.toString()
+              ? t("Invalid Code. Please contact your teacher")
+              : error.toString();
+          setError(eMsg);
+        }
       }
+      setLoading(false);
     }
-    setLoading(false);
   };
   const onJoin = async () => {
     setShowDialogBox(false);
     setLoading(true);
     try {
       const result = await api.linkStudent(inviteCode!);
-      console.log("🚀 ~ file: JoinClass.tsx:41 ~ onJoin ~ result:", result);
       if (!!codeResult) {
         Util.subscribeToClassTopic(
           codeResult["classId"],
@@ -73,14 +84,9 @@ const JoinClass: FC<{
         );
       }
       onClassJoin();
-      console.log(
-        "path....",
-        window.location.pathname,
-      );
-      history.replace('/');
+      history.replace("/");
       window.location.reload();
     } catch (error) {
-      console.log("🚀 ~ file: JoinClass.tsx:48 ~ onJoin ~ error:", error);
       if (error instanceof Object) setError(error.toString());
     }
 

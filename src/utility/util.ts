@@ -867,8 +867,12 @@ export class Util {
     if (!isActive) {
       TextToSpeech.stop();
     }
+
     const url = new URL(window.location.toString());
     const urlParams = new URLSearchParams(window.location.search);
+    if (!!urlParams.get(CONTINUE)) {
+      urlParams.delete(CONTINUE);
+    }
     if (!(urlParams.get(CONTINUE) || PAGES.APP_UPDATE)) {
       return;
     }

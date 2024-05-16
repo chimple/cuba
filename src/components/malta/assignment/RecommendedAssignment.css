@@ -10,15 +10,6 @@
   color: blue;
 }
 
-ion-card-subtitle {
-  --color: #a71b3b;
-}
-
-ion-card {
-  --background: #fff8e9;
-  --color: #474747;
-}
-
 .recommended-subject-name {
   color: var(--text-color);
   font-size: var(--header-text);
@@ -61,13 +52,4 @@ ion-card {
 .select-all {
   margin-left: auto;
   padding-right: 5vw;
-}
-
-ion-checkbox {
-  --size: 20px;
-  --checkbox-background: white;
-}
-
-ion-checkbox::part(container) {
-  border: 2px solid #cfced1;
 }
