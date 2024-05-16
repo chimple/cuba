@@ -158,7 +158,8 @@ const AddCourse: FC<{
                     <div
                       className="course-icon"
                       style={{
-                        backgroundColor: course.course.color??DEFUALT_SUBJECT_CARD_COLOUR,
+                        backgroundColor:
+                          course.course.color ?? DEFUALT_SUBJECT_CARD_COLOUR,
                         flexDirection: "column",
                       }}
                     >
@@ -189,7 +190,7 @@ const AddCourse: FC<{
       {renderSubjectCard(NCERT_CURRICULUM)}
       <div className="subject-header">{t("Karnataka board curriculum")}</div>
       {renderSubjectCard(KARNATAKA_STATE_BOARD_CURRICULUM)}
-      <div className="subject-header">{t("Other curriculum")}</div>
+      <div className="subject-header">{t("Chimple curriculum")}</div>
       {renderSubjectCard(OTHER_CURRICULUM)}
     </div>
   );
