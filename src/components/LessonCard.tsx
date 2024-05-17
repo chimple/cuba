@@ -169,7 +169,7 @@ const LessonCard: React.FC<{
               const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
               history.replace(PAGES.GAME + parmas, {
                 url: "chimple-lib/index.html" + parmas,
-                lessonId: lesson.id,
+                lessonId: lesson.cocos_lesson_id,
                 courseDocId:
                   course?.id ??
                   // lesson?.assignment?.course?.id ??
