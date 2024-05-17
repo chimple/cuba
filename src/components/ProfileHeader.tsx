@@ -1,6 +1,13 @@
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router";
-import { CURRENT_STUDENT, AVATARS, LANG, PAGES, CONTINUE } from "../common/constants";
+import {
+  CURRENT_STUDENT,
+  AVATARS,
+  LANG,
+  PAGES,
+  CONTINUE,
+  TableTypes,
+} from "../common/constants";
 import IconButton from "./IconButton";
 import "./ProfileHeader.css";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -8,16 +15,15 @@ import i18n from "../i18n";
 import BackButton from "./common/BackButton";
 import { Util } from "../utility/util";
 import { useEffect, useState } from "react";
-import User from "../models/user";
 
 const ProfileHeader: React.FC = () => {
   const history = useHistory();
   const { t } = useTranslation();
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
-  const [student, setStudent] = useState<User>();
+  const [student, setStudent] = useState<TableTypes<"user">>();
   async function init() {
-    const student = await Util.getCurrentStudent();
+    const student = Util.getCurrentStudent();
     if (!student) {
       history.replace(PAGES.HOME);
       return;
@@ -48,8 +54,8 @@ const ProfileHeader: React.FC = () => {
         onClick={async () => {
           localStorage.removeItem(CURRENT_STUDENT);
           const user = await auth.getCurrentUser();
-          if (!!user && !!user.language?.id) {
-            const langDoc = await api.getLanguageWithId(user.language.id);
+          if (!!user && !!user.language_id) {
+            const langDoc = await api.getLanguageWithId(user.language_id);
             if (langDoc) {
               const tempLangCode = langDoc.code ?? LANG.ENGLISH;
               await i18n.changeLanguage(tempLangCode);

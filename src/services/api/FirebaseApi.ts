@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   DocumentReference,
   Timestamp,
@@ -38,6 +39,7 @@ import {
   LeaderboardRewards,
   MODES,
   OTHER_CURRICULUM,
+  TableTypes,
   aboveGrade3,
   belowGrade1,
   grade1,
@@ -71,11 +73,12 @@ import Badge from "../../models/Badge";
 import Rewards from "../../models/Rewards";
 import Sticker from "../../models/Sticker";
 import { Util } from "../../utility/util";
+import { Database } from "../database";
 
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
   private _db = getFirestore();
-  private _currentStudent: User | undefined;
+  private _currentStudent: TableTypes<"user"> | undefined;
   private _currentClass: Class | undefined;
   private _currentSchool: School | undefined;
   private _subjectsCache: { [key: string]: Subject } = {};
@@ -175,7 +178,9 @@ export class FirebaseApi implements ServiceApi {
     return courseIds;
   }
 
-  public async getAdditionalCourses(student: User): Promise<Course[]> {
+  public async getAdditionalCourses(
+    studentId: string
+  ): Promise<TableTypes<"course">[]> {
     let remainingCourses: Course[] = [];
     const studentCourses = await this.getCoursesForParentsStudent(student);
     const allCourses = await this.getAllCourses();
@@ -194,7 +199,7 @@ export class FirebaseApi implements ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined
-  ): Promise<User> {
+  ): Promise<TableTypes<"user">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
@@ -320,7 +325,7 @@ export class FirebaseApi implements ServiceApi {
     ServiceConfig.getI().authHandler.currentUser = _currentUser;
   }
 
-  public async getAllCurriculums(): Promise<Curriculum[]> {
+  public async getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
     try {
       const querySnapshot = await this.getDocsFromOffline(
         collection(this._db, CollectionIds.CURRICULUM)
@@ -346,7 +351,7 @@ export class FirebaseApi implements ServiceApi {
 
   // }
 
-  public async getAllGrades(): Promise<Grade[]> {
+  public async getAllGrades(): Promise<TableTypes<"grade">[]> {
     try {
       const querySnapshot = await this.getDocsFromOffline(
         collection(this._db, CollectionIds.GRADE)
@@ -401,7 +406,7 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  public async getAllLanguages(): Promise<Language[]> {
+  public async getAllLanguages(): Promise<TableTypes<"language">[]> {
     try {
       const querySnapshot = await this.getDocsFromOffline(
         collection(this._db, CollectionIds.LANGUAGE)
@@ -423,7 +428,7 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  public async getParentStudentProfiles(): Promise<User[]> {
+  public async getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
     try {
       const authHandler = ServiceConfig.getI()?.authHandler;
       const isUserLoggedIn = await authHandler?.isUserLoggedIn();
@@ -531,7 +536,9 @@ export class FirebaseApi implements ServiceApi {
     }
   };
 
-  async getLanguageWithId(id: string): Promise<Language | undefined> {
+  async getLanguageWithId(
+    id: string
+  ): Promise<TableTypes<"language"> | undefined> {
     try {
       const result = await getDoc(
         doc(this._db, `${CollectionIds.LANGUAGE}/${id}`)
@@ -557,7 +564,9 @@ export class FirebaseApi implements ServiceApi {
     return subjects;
   }
 
-  async getCoursesForParentsStudent(student: User): Promise<Course[]> {
+  async getCoursesForParentsStudent(
+    studentId: string
+  ): Promise<TableTypes<"course">[]> {
     try {
       const subjects: Course[] = [];
       if (!student?.courses || student.courses.length < 1) return subjects;
@@ -657,12 +666,7 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  async getLesson(
-    id: string,
-    chapter: Chapter | undefined = undefined,
-    loadChapterTitle: boolean = false,
-    assignment: Assignment | undefined = undefined
-  ): Promise<Lesson | undefined> {
+  async getLesson(id: string): Promise<TableTypes<"lesson"> | undefined> {
     try {
       const lessonDoc = await this.getDocFromOffline(
         doc(this._db, `${CollectionIds.LESSON}/${id}`)
@@ -702,7 +706,9 @@ export class FirebaseApi implements ServiceApi {
       );
     }
   }
-  async getLessonsForChapter(chapter: Chapter): Promise<Lesson[]> {
+  async getLessonsForChapter(
+    chapterId: string
+  ): Promise<TableTypes<"lesson">[]> {
     const lessons: Lesson[] = [];
     try {
       if (chapter.lessons && chapter.lessons.length > 0) {
@@ -726,11 +732,9 @@ export class FirebaseApi implements ServiceApi {
     return lessons;
   }
 
-  async getAllLessonsForCourse(course: Course): Promise<{
-    [key: string]: {
-      [key: string]: Lesson;
-    };
-  }> {
+  async getAllLessonsForCourse(
+    courseId: string
+  ): Promise<TableTypes<"lesson">[]> {
     let lessons: {
       [key: string]: {
         [key: string]: Lesson;
@@ -826,9 +830,10 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  async getDifferentGradesForCourse(
-    course: Course
-  ): Promise<{ grades: Grade[]; courses: Course[] }> {
+  async getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
+    grades: TableTypes<"grade">[];
+    courses: TableTypes<"course">[];
+  }> {
     const q = query(
       collection(this._db, CollectionIds.COURSE),
       where("subject", "==", course.subject),
@@ -870,18 +875,18 @@ export class FirebaseApi implements ServiceApi {
   }
 
   async updateResult(
-    student: User,
+    studentId: string,
     courseId: string | undefined,
     lessonId: string,
     score: number,
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    isLoved: boolean,
+    isLoved: boolean | undefined,
     assignmentId: string | undefined,
     classId: string | undefined,
     schoolId: string | undefined
-  ): Promise<Result> {
+  ): Promise<TableTypes<"result">> {
     const courseRef = courseId
       ? doc(this._db, CollectionIds.COURSE, courseId)
       : undefined;
@@ -1028,7 +1033,7 @@ export class FirebaseApi implements ServiceApi {
     return student;
   }
 
-  async getSubject(id: string): Promise<Subject | undefined> {
+  async getSubject(id: string): Promise<TableTypes<"subject"> | undefined> {
     try {
       if (!!this._subjectsCache[id]) return this._subjectsCache[id];
       const subjectDoc = await this.getDocFromOffline(
@@ -1049,7 +1054,7 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  async getCourse(id: string): Promise<Course | undefined> {
+  async getCourse(id: string): Promise<TableTypes<"course"> | undefined> {
     try {
       if (!!this._CourseCache[id]) return this._CourseCache[id];
       const CourseDoc = await this.getDocFromOffline(
@@ -1091,8 +1096,8 @@ export class FirebaseApi implements ServiceApi {
 
   async getStudentResult(
     studentId: string,
-    fromCache: boolean = false
-  ): Promise<StudentProfile | undefined> {
+    fromCache?: boolean
+  ): Promise<TableTypes<"result">[]> {
     try {
       if (!!this._studentResultCache[studentId] && fromCache)
         return this._studentResultCache[studentId];
@@ -1119,7 +1124,7 @@ export class FirebaseApi implements ServiceApi {
 
   async getStudentResultInMap(
     studentId: string
-  ): Promise<{ [lessonDocId: string]: StudentLessonResult } | undefined> {
+  ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
     try {
       const lessonsData = await this.getStudentResult(studentId);
       console.log(
@@ -1136,7 +1141,7 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  async getClassById(id: string): Promise<Class | undefined> {
+  async getClassById(id: string): Promise<TableTypes<"class"> | undefined> {
     try {
       if (!!this._classCache[id]) return this._classCache[id];
       const classDoc = await this.getDocFromOffline(
@@ -1155,7 +1160,7 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  async getSchoolById(id: string): Promise<School | undefined> {
+  async getSchoolById(id: string): Promise<TableTypes<"school"> | undefined> {
     try {
       if (!!this._schoolCache[id]) return this._schoolCache[id];
       const schoolDoc = await this.getDocFromOffline(
@@ -1190,7 +1195,7 @@ export class FirebaseApi implements ServiceApi {
   async getPendingAssignments(
     classId: string,
     studentId: string
-  ): Promise<Assignment[]> {
+  ): Promise<TableTypes<"assignment">[]> {
     try {
       const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
       const q = query(
@@ -1261,7 +1266,9 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  async getSchoolsForUser(user: User): Promise<School[]> {
+  async getSchoolsForUser(
+    userId: string
+  ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
     try {
       if (!!this._schoolsCache[user.docId])
         return this._schoolsCache[user.docId];
@@ -1312,7 +1319,7 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  async isUserTeacher(user: User): Promise<boolean> {
+  async isUserTeacher(userId: string): Promise<boolean> {
     try {
       const isParent = user.role === RoleType.PARENT;
       console.log("this is the role  " + user.role);
@@ -1328,7 +1335,10 @@ export class FirebaseApi implements ServiceApi {
     return false;
   }
 
-  async getClassesForSchool(school: School, user: User): Promise<Class[]> {
+  async getClassesForSchool(
+    schoolId: string,
+    userId: string
+  ): Promise<TableTypes<"class">[]> {
     try {
       const classes: Class[] = [];
       const isTeacher = school.role === RoleType.TEACHER;
@@ -1381,7 +1391,7 @@ export class FirebaseApi implements ServiceApi {
       return [];
     }
   }
-  async getStudentsForClass(classId: string): Promise<User[]> {
+  async getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
     try {
       const students: User[] = [];
       const classConnectionDoc = await getDoc(
@@ -1433,8 +1443,8 @@ export class FirebaseApi implements ServiceApi {
             leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
               ? "weeklyScore"
               : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
-              ? "monthlyScore"
-              : "allTimeScore",
+                ? "monthlyScore"
+                : "allTimeScore",
             "desc"
           ),
           limit(50)
@@ -1598,7 +1608,10 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  public async getUserByDocId(studentId: string): Promise<User | undefined> {
+  public async getUserByDocId(
+    studentId: string
+  ): Promise<TableTypes<"user"> | undefined> {
+    throw new Error("Method not implemented.");
     try {
       console.log("getUserByDocId called");
 
@@ -1615,7 +1628,7 @@ export class FirebaseApi implements ServiceApi {
           studentDoc.id
         );
         updatedStudent.docId = studentDoc.id;
-        return updatedStudent;
+        // return updatedStudent;
       }
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -1623,7 +1636,9 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  public async getCoursesByGrade(gradeDocId: any): Promise<Course[]> {
+  public async getCoursesByGrade(
+    gradeDocId: any
+  ): Promise<TableTypes<"course">[]> {
     try {
       const gradeQuerySnapshot = await getDocs(
         query(
@@ -1681,7 +1696,7 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  public async getAllCourses(): Promise<Course[]> {
+  public async getAllCourses(): Promise<TableTypes<"course">[]> {
     try {
       const querySnapshot = await this.getDocsFromOffline(
         collection(this._db, CollectionIds.COURSE)
@@ -1710,22 +1725,22 @@ export class FirebaseApi implements ServiceApi {
     );
     await deleteAllUserDataFunction();
   }
-  get currentStudent(): User | undefined {
+  get currentStudent(): TableTypes<"user"> | undefined {
     return this._currentStudent;
   }
-  set currentStudent(value: User | undefined) {
+  set currentStudent(value: TableTypes<"user"> | undefined) {
     this._currentStudent = value;
   }
-  get currentClass(): Class | undefined {
+  get currentClass(): TableTypes<"class"> | undefined {
     return this._currentClass;
   }
-  set currentClass(value: Class | undefined) {
+  set currentClass(value: TableTypes<"class"> | undefined) {
     this._currentClass = value;
   }
-  get currentSchool(): School | undefined {
+  get currentSchool(): TableTypes<"school"> | undefined {
     return this._currentSchool;
   }
-  set currentSchool(value: School | undefined) {
+  set currentSchool(value: TableTypes<"school"> | undefined) {
     this._currentSchool = value;
   }
 
@@ -1757,7 +1772,7 @@ export class FirebaseApi implements ServiceApi {
   public async getLiveQuizLessons(
     classId: string,
     studentId: string
-  ): Promise<Assignment[] | []> {
+  ): Promise<TableTypes<"assignment">[]> {
     try {
       const now = new Date();
       const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
@@ -1836,20 +1851,18 @@ export class FirebaseApi implements ServiceApi {
     return undefined;
   }
 
-  public async getCourseFromLesson(
-    lesson: Lesson
-  ): Promise<Course | undefined> {
+  public async getCoursesFromLesson(
+    lessonId: string
+  ): Promise<TableTypes<"course">[]> {
     if (!this._allCourses) {
       this._allCourses = await this.getAllCourses();
     }
 
-    const tmpCourse = this._allCourses?.find(
-      (course) => {
-        if(course.courseCode === lesson.cocosSubjectCode){
-         return Util.checkLessonPresentInCourse(course,lesson.docId)
-        }
+    const tmpCourse = this._allCourses?.find((course) => {
+      if (course.courseCode === lesson.cocosSubjectCode) {
+        return Util.checkLessonPresentInCourse(course, lesson.docId);
       }
-    );
+    });
     return tmpCourse;
   }
 
@@ -1914,7 +1927,9 @@ export class FirebaseApi implements ServiceApi {
       );
     }
   }
-  public async getAssignmentById(id: string): Promise<Assignment | undefined> {
+  public async getAssignmentById(
+    id: string
+  ): Promise<TableTypes<"assignment"> | undefined> {
     try {
       const assignmentDoc = await getDoc(
         doc(this._db, CollectionIds.ASSIGNMENT, id)
@@ -1931,7 +1946,9 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  public async getBadgeById(id: string): Promise<Badge | undefined> {
+  public async getBadgeById(
+    id: string
+  ): Promise<TableTypes<"badge"> | undefined> {
     try {
       const badgeDoc = await this.getDocFromOffline(
         doc(this._db, CollectionIds.BADGE, id)
@@ -1946,7 +1963,9 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  public async getStickerById(id: string): Promise<Sticker | undefined> {
+  public async getStickerById(
+    id: string
+  ): Promise<TableTypes<"sticker"> | undefined> {
     try {
       const stickerDoc = await this.getDocFromOffline(
         doc(this._db, CollectionIds.STICKER, id)
@@ -1967,7 +1986,9 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  public async getRewardsById(id: string): Promise<Rewards | undefined> {
+  public async getRewardsById(
+    id: string
+  ): Promise<TableTypes<"reward"> | undefined> {
     try {
       const rewardDoc = await this.getDocFromOffline(
         doc(this._db, CollectionIds.REWARDS, id)

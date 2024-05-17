@@ -7,6 +7,7 @@ import {
   PAGES,
   MODES,
   CURRENT_MODE,
+  TableTypes,
 } from "../common/constants";
 import "./HomeHeader.css";
 import HeaderIcon from "./HeaderIcon";
@@ -35,7 +36,7 @@ const HomeHeader: React.FC<{
   var headerIconList: HeaderIconConfig[] = [];
 
   const history = useHistory();
-  const [student, setStudent] = useState<User>();
+  const [student, setStudent] = useState<TableTypes<"user">>();
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
 
@@ -52,7 +53,7 @@ const HomeHeader: React.FC<{
         history.replace(PAGES.SELECT_MODE);
         return;
       }
-      const linked = await api.isStudentLinked(student.docId, fromCache);
+      const linked = await api.isStudentLinked(student.id, fromCache);
       setIsLinked(linked);
       setStudentMode(currMode);
 

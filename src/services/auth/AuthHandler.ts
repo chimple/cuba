@@ -1,8 +1,5 @@
-import { DocumentReference } from "firebase/firestore";
-import User from "../../models/user";
 import { ServiceAuth } from "./ServiceAuth";
-// import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
-import { ConfirmationResult } from "@firebase/auth";
+import { TableTypes } from "../../common/constants";
 
 export class AuthHandler implements ServiceAuth {
   public static i: AuthHandler;
@@ -23,11 +20,11 @@ export class AuthHandler implements ServiceAuth {
     return await this.s.googleSign();
   }
 
-  async getCurrentUser(): Promise<User | undefined> {
+  async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
     return await this.s.getCurrentUser();
   }
 
-  public set currentUser(user: User) {
+  public set currentUser(user: TableTypes<"user">) {
     this.s.currentUser = user;
   }
 
@@ -49,7 +46,7 @@ export class AuthHandler implements ServiceAuth {
   ): Promise<boolean | undefined> {
     return await this.s.resendOtpMsg91(phoneNumber);
   }
-  
+
   public async loginWithEmailAndPassword(email: any, password: any) {
     return await this.s.loginWithEmailAndPassword(email, password);
   }

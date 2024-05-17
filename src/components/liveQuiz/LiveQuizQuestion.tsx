@@ -384,7 +384,7 @@ const LiveQuizQuestion: FC<{
     const totalQuestions = liveQuizConfig?.data.length || 0;
     let correctMoves = 0;
     if (!roomDoc.results) return;
-    for (let result of roomDoc.results[student!.docId]) {
+    for (let result of roomDoc.results[student!.id]) {
       totalScore += result.score || 0;
       totalTimeSpent += result.timeSpent || 0;
       if (result.score > 0) {
@@ -392,7 +392,7 @@ const LiveQuizQuestion: FC<{
       }
     }
     await api.updateResult(
-      student!,
+      student!.id,
       roomDoc.course.id,
       roomDoc.lesson.id,
       totalScore,
@@ -553,13 +553,13 @@ const LiveQuizQuestion: FC<{
                         liveQuizConfig.data.length,
                         LIVE_QUIZ_QUESTION_TIME - remainingTime
                       );
-                      await api.updateLiveQuiz(
-                        roomDoc.docId,
-                        student?.docId!,
-                        liveQuizConfig.data[currentQuestionIndex].question.id,
-                        LIVE_QUIZ_QUESTION_TIME - remainingTime,
-                        score
-                      );
+                      // await api.updateLiveQuiz(
+                      //   roomDoc.id,
+                      //   student?.id!,
+                      //   liveQuizConfig.data[currentQuestionIndex].question.id,
+                      //   LIVE_QUIZ_QUESTION_TIME - remainingTime,
+                      //   score
+                      // );
                     }}
                     className={
                       "live-quiz-option-box " +
@@ -570,8 +570,8 @@ const LiveQuizQuestion: FC<{
                         ? option.isCorrect
                           ? "live-quiz-option-box-correct"
                           : selectedAnswerIndex === index
-                          ? "live-quiz-option-box-incorrect"
-                          : ""
+                            ? "live-quiz-option-box-incorrect"
+                            : ""
                         : "")
                     }
                   >

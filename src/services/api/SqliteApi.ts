@@ -1,0 +1,1224 @@
+import { DocumentData, Unsubscribe } from "firebase/firestore";
+import {
+  MODES,
+  LeaderboardDropdownList,
+  LeaderboardRewards,
+  TABLES,
+  TableTypes,
+  MUTATE_TYPES,
+  LIVE_QUIZ,
+} from "../../common/constants";
+import { StudentLessonResult } from "../../common/courseConstants";
+import { AvatarObj } from "../../components/animation/Avatar";
+import Course from "../../models/course";
+import Lesson from "../../models/lesson";
+import LiveQuizRoomObject from "../../models/liveQuizRoom";
+import User from "../../models/user";
+import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
+import {
+  SQLiteDBConnection,
+  SQLiteConnection,
+  CapacitorSQLite,
+  capSQLiteResult,
+  DBSQLiteValues,
+} from "@capacitor-community/sqlite";
+import { Capacitor } from "@capacitor/core";
+import { SupabaseApi } from "./SupabaseApi";
+import { APIMode, ServiceConfig } from "../ServiceConfig";
+import { v4 as uuidv4 } from "uuid";
+import { RoleType } from "../../interface/modelInterfaces";
+
+export class SqliteApi implements ServiceApi {
+  public static i: SqliteApi;
+  private _db: SQLiteDBConnection | undefined;
+  private _sqlite: SQLiteConnection | undefined;
+  private DB_NAME = "db_issue10";
+  private _serverApi: SupabaseApi;
+  private _currentMode: MODES;
+  private _currentStudent: TableTypes<"user"> | undefined;
+  private _currentClass: TableTypes<"class"> | undefined;
+  private _currentSchool: TableTypes<"school"> | undefined;
+
+  public static async getInstance(): Promise<SqliteApi> {
+    if (!SqliteApi.i) {
+      SqliteApi.i = new SqliteApi();
+      SqliteApi.i._serverApi = SupabaseApi.getInstance();
+      await SqliteApi.i.init();
+    }
+    return SqliteApi.i;
+  }
+
+  private async init() {
+    SupabaseApi.getInstance();
+    const platform = Capacitor.getPlatform();
+    this._sqlite = new SQLiteConnection(CapacitorSQLite);
+    if (platform === "web") {
+      const jeepEl = document.createElement("jeep-sqlite");
+      document.body.appendChild(jeepEl);
+      await customElements.whenDefined("jeep-sqlite");
+      await this._sqlite.initWebStore();
+    }
+    let ret: capSQLiteResult | undefined;
+    let isConn: boolean | undefined;
+    try {
+      ret = await this._sqlite.checkConnectionsConsistency();
+      isConn = (await this._sqlite.isConnection(this.DB_NAME, false)).result;
+    } catch (error) {
+      console.log("🚀 ~ Api ~ init ~ error:", error);
+    }
+    if (ret && ret.result && isConn) {
+      this._db = await this._sqlite.retrieveConnection(this.DB_NAME, false);
+    } else {
+      this._db = await this._sqlite.createConnection(
+        this.DB_NAME,
+        false,
+        "no-encryption",
+        1,
+        false
+      );
+    }
+    try {
+      await this._db.open();
+    } catch (err) {
+      console.log("🚀 ~ SqliteApi ~ init ~ err:", err);
+    }
+    await this.setUpDatabase();
+    return this._db;
+  }
+
+  private async setUpDatabase() {
+    console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ setUpDatabase:");
+    if (!this._db || !this._sqlite) return;
+    try {
+      const exportedData = await this._db.exportToJson("full");
+      console.log(
+        "🚀 ~ Api ~ setUpDatabase ~ exportedData:",
+        exportedData.export
+      );
+    } catch (error) {
+      console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
+    }
+    let res1: DBSQLiteValues | undefined = undefined;
+    try {
+      const stmt = "SELECT * FROM sqlite_master WHERE type='table'";
+      res1 = await this._db.query(stmt);
+    } catch (error) {
+      console.log(
+        "🚀 ~ SqliteApi ~ setUpDatabase ~ error:",
+        JSON.stringify(error)
+      );
+    }
+    if (!res1 || !res1.values || !res1.values.length) {
+      try {
+        const data = await fetch("databases/init_sqlite.json");
+        if (!data || !data.ok) return;
+        const queries = await data.json();
+        for (const query of queries) {
+          const res298 = await this.executeQuery(query);
+        }
+
+        // const data = await fetch("seed/dummy_data.json");
+        // if (!data || !data.ok) return;
+        // const json = await data.json();
+        // const jsonString = JSON.stringify(json);
+        // const isValid = await this._sqlite.isJsonValid(jsonString);
+        // if (isValid) {
+        //   const res2 = await this._sqlite.importFromJson(jsonString);
+        //   console.log("🚀 ~ imported:", JSON.stringify(res2.changes));
+        //   if (!Capacitor.isNativePlatform())
+        //     await this._sqlite.saveToStore(this.DB_NAME);
+        // }
+      } catch (error) {
+        console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
+      }
+    }
+    const config = ServiceConfig.getInstance(APIMode.SQLITE);
+    const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
+    if (isUserLoggedIn) {
+      console.log("syncing");
+      let user;
+      try {
+        user = await config.authHandler.getCurrentUser();
+      } catch (error) {
+        console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
+      }
+      if (!user) {
+        await this.syncDbNow();
+      } else {
+        this.syncDbNow();
+      }
+    } else {
+      console.log("not syncing");
+    }
+  }
+
+  private async executeQuery(
+    statement: string,
+    values?: any[] | undefined,
+    isSQL92?: boolean | undefined
+  ) {
+    if (!this._db || !this._sqlite) return;
+    const res = await this._db.query(statement, values, isSQL92);
+    if (!Capacitor.isNativePlatform())
+      await this._sqlite?.saveToStore(this.DB_NAME);
+    return res;
+  }
+
+  private async pullChanges(tableNames: TABLES[]) {
+    if (!this._db) return;
+    const tables = "'" + tableNames.join("', '") + "'";
+
+    const tablePullSync = `SELECT * FROM pull_sync_info WHERE table_name IN (${tables});`;
+    let res: any[] = [];
+    try {
+      res = (await this._db.query(tablePullSync)).values ?? [];
+    } catch (error) {
+      console.log("🚀 ~ Api ~ syncDB ~ error:", error);
+      await this.createSyncTables();
+    }
+    const lastPullTables = new Map();
+    if (res?.length) {
+      res.forEach((row) => {
+        lastPullTables.set(row.table_name, row.last_pulled);
+      });
+    }
+    const data = await SupabaseApi.i.getTablesData(tableNames, lastPullTables);
+    for (const tableName of tableNames) {
+      if (data.get(tableName)) {
+        const tableData = data.get(tableName) ?? [];
+        for (const row of tableData) {
+          const fieldNames = Object.keys(row);
+          const fieldValues = fieldNames.map((fieldName) => row[fieldName]);
+          const fieldPlaceholders = fieldNames.map(() => "?").join(", ");
+          const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(
+            ", "
+          )}) VALUES (${fieldPlaceholders})`;
+          console.log(
+            "🚀 ~ Api ~ pullChanges ~ stmt, fieldValues:",
+            stmt,
+            fieldValues
+          );
+
+          await this.executeQuery(stmt, fieldValues);
+        }
+
+        const lastPulled = new Date().toISOString();
+        const stmt = `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`;
+        await this.executeQuery(stmt, [tableName, lastPulled]);
+      }
+    }
+  }
+
+  private async pushChanges(tableNames: TABLES[]) {
+    if (!this._db) return false;
+    const tables = "'" + tableNames.join("', '") + "'";
+
+    const tablePushSync = `SELECT * FROM push_sync_info WHERE table_name IN (${tables}) ORDER BY created_at;`;
+    let res: any[] = [];
+    try {
+      res = (await this._db.query(tablePushSync)).values ?? [];
+      console.log("🚀 ~ syncDB ~ tablePushSync:", res);
+    } catch (error) {
+      console.log("🚀 ~ Api ~ syncDB ~ error:", error);
+      await this.createSyncTables();
+    }
+    if (res && res.length) {
+      for (const data of res) {
+        const newData = JSON.parse(data.data);
+        console.log("🚀 ~ SqliteApi ~ pushChanges ~ newData:", newData);
+        const isMutated = await this._serverApi.mutate(
+          data.change_type,
+          data.table_name,
+          newData,
+          newData.id
+        );
+        console.log("🚀 ~ Api ~ pushChanges ~ isMutated:", isMutated);
+        if (!isMutated) {
+          return false;
+        }
+        await this.executeQuery(
+          `DELETE FROM push_sync_info WHERE id = ? AND table_name = ?`,
+          [data.id, data.table_name]
+        );
+      }
+    }
+    return true;
+  }
+
+  async syncDbNow(tableNames: TABLES[] = Object.values(TABLES)) {
+    if (!this._db) return;
+    await this.pullChanges(tableNames);
+    this.pushChanges(tableNames).then((value) => {
+      const tables = "'" + tableNames.join("', '") + "'";
+      this.executeQuery(
+        `UPDATE pull_sync_info SET last_pulled = CURRENT_TIMESTAMP WHERE table_name IN (${tables})`
+      );
+    });
+  }
+
+  private async createSyncTables() {
+    const createPullSyncInfoTable = `CREATE TABLE IF NOT EXISTS pull_sync_info (
+      table_name TEXT NOT NULL PRIMARY KEY,
+      last_pulled TIMESTAMP NOT NULL
+  )`;
+    const createPushSyncInfoTable = `CREATE TABLE IF NOT EXISTS push_sync_info (
+      id TEXT NOT NULL PRIMARY KEY,
+      table_name TEXT NOT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      change_type TEXT NOT NULL,
+      data TEXT NOT NULL
+  )`;
+
+    await this.executeQuery(createPullSyncInfoTable);
+    await this.executeQuery(createPushSyncInfoTable);
+  }
+
+  private async updatePushChanges(
+    tableName: TABLES,
+    mutateType: MUTATE_TYPES,
+    data: { [key: string]: any }
+  ) {
+    if (!this._db) return;
+    data["updated_at"] = new Date().toISOString();
+    const stmt = `INSERT OR REPLACE INTO push_sync_info (id, table_name, change_type, data) VALUES (?, ?, ?, ?)`;
+    const variables = [
+      uuidv4(),
+      tableName.toString(),
+      mutateType,
+      JSON.stringify(data),
+    ];
+    console.log("🚀 ~ Api ~ variables:", variables);
+    await this.executeQuery(stmt, variables);
+    this.syncDbNow([tableName]);
+  }
+
+  async createProfile(
+    name: string,
+    age: number | undefined,
+    gender: string | undefined,
+    avatar: string | undefined,
+    image: string | undefined,
+    boardDocId: string | undefined,
+    gradeDocId: string | undefined,
+    languageDocId: string | undefined
+  ): Promise<TableTypes<"user">> {
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
+    const studentId = uuidv4();
+    console.log("🚀 ~ SqliteApi ~ id:", studentId);
+    const newStudent: TableTypes<"user"> = {
+      age: age ?? null,
+      avatar: avatar ?? null,
+      created_at: new Date().toISOString(),
+      curriculum_id: boardDocId ?? null,
+      gender: gender ?? null,
+      id: studentId,
+      image: image ?? null,
+      is_deleted: false,
+      is_tc_accepted: true,
+      language_id: languageDocId ?? null,
+      name: name,
+      grade_id: gradeDocId ?? null,
+      updated_at: new Date().toISOString(),
+      email: null,
+      phone: null,
+      music_off: false,
+      sfx_off: false,
+    };
+
+    const res = await this.executeQuery(
+      `
+    INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+  `,
+      [
+        newStudent.id,
+        newStudent.name,
+        newStudent.age,
+        newStudent.gender,
+        newStudent.avatar,
+        newStudent.image,
+        newStudent.curriculum_id,
+        newStudent.language_id,
+      ]
+    );
+    console.log("🚀 ~ SqliteApi ~ res:", res);
+    const parentUserId = uuidv4();
+    const newParentUser: TableTypes<"parent_user"> = {
+      created_at: new Date().toISOString(),
+      id: parentUserId,
+      is_deleted: false,
+      parent_id: _currentUser.id,
+      student_id: studentId,
+      updated_at: new Date().toISOString(),
+    };
+    const res1 = await this.executeQuery(
+      `
+      INSERT INTO parent_user (id, parent_id, student_id)
+    VALUES (?, ?, ?);
+  `,
+      [newParentUser.id, newParentUser.parent_id, newParentUser.student_id]
+    );
+    console.log("🚀 ~ SqliteApi ~ res1:", res1);
+
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
+    this.updatePushChanges(
+      TABLES.ParentUser,
+      MUTATE_TYPES.INSERT,
+      newParentUser
+    );
+    const courses = await this.getAllCourses();
+    const courseIds = courses.map((val) => val.id);
+    for (const courseId of courseIds) {
+      const newUserCourse: TableTypes<"user_course"> = {
+        course_id: courseId,
+        created_at: new Date().toISOString(),
+        id: uuidv4(),
+        is_deleted: false,
+        updated_at: new Date().toISOString(),
+        user_id: newStudent.id,
+      };
+      await this.executeQuery(
+        `
+        INSERT INTO user_course (id, user_id, course_id)
+      VALUES (?, ?, ?);
+    `,
+        [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
+      );
+      this.updatePushChanges(
+        TABLES.UserCourse,
+        MUTATE_TYPES.INSERT,
+        newUserCourse
+      );
+    }
+
+    return newStudent;
+  }
+
+  deleteProfile(studentId: string) {
+    throw new Error("Method not implemented.");
+  }
+
+  async getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
+    const res = await this._db?.query("select * from " + TABLES.Curriculum);
+    console.log("🚀 ~ SqliteApi ~ getAllCurriculums ~ res:", res);
+    return res?.values ?? [];
+  }
+
+  async getAllGrades(): Promise<TableTypes<"grade">[]> {
+    const res = await this._db?.query("select * from " + TABLES.Grade);
+    return res?.values ?? [];
+  }
+
+  async getAllLanguages(): Promise<TableTypes<"language">[]> {
+    const res = await this._db?.query("select * from " + TABLES.Language);
+    console.log("🚀 ~ SqliteApi ~ getAllLanguages ~ res:", res);
+    return res?.values ?? [];
+  }
+
+  async getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
+    if (!this._db) throw "Db is not initialized";
+    const authHandler = ServiceConfig.getI()?.authHandler;
+    const currentUser = await authHandler?.getCurrentUser();
+    if (!currentUser) throw "User is not Logged in";
+    const query = `
+  SELECT *
+  FROM ${TABLES.ParentUser} AS parent
+  JOIN ${TABLES.User} AS student ON parent.student_id = student.id
+  WHERE parent.parent_id = "${currentUser.id}";
+`;
+    const res = await this._db.query(query);
+    return res.values ?? [];
+  }
+
+  get currentStudent(): TableTypes<"user"> | undefined {
+    return this._currentStudent;
+  }
+
+  set currentStudent(value: TableTypes<"user"> | undefined) {
+    this._currentStudent = value;
+  }
+
+  get currentClass(): TableTypes<"class"> | undefined {
+    return this._currentClass;
+  }
+
+  set currentClass(value: TableTypes<"class"> | undefined) {
+    this._currentClass = value;
+  }
+
+  get currentSchool(): TableTypes<"school"> | undefined {
+    return this._currentSchool;
+  }
+
+  set currentSchool(value: TableTypes<"school"> | undefined) {
+    this._currentSchool = value;
+  }
+
+  async updateSoundFlag(userId: string, value: boolean) {
+    const query = `
+    UPDATE "user"
+    SET sfx_off = ${value ? 1 : 0}
+    WHERE id = "${userId}";
+  `;
+    const res = await this.executeQuery(query);
+    console.log("🚀 ~ SqliteApi ~ updateSoundFlag ~ res:", res);
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+      sfx_off: value ? 1 : 0,
+      id: userId,
+    });
+  }
+  async updateMusicFlag(userId: string, value: boolean) {
+    const query = `
+    UPDATE "user"
+    SET music_off = ${value ? 1 : 0}
+    WHERE id = "${userId}";
+  `;
+    const res = await this.executeQuery(query);
+    console.log("🚀 ~ SqliteApi ~ updateMusicFlag ~ res:", res);
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+      music_off: value ? 1 : 0,
+      id: userId,
+    });
+  }
+  async updateLanguage(userId: string, value: string) {
+    const query = `
+    UPDATE "user"
+    SET language_id = "${value}"
+    WHERE id = "${userId}";
+  `;
+    const res = await this.executeQuery(query);
+    console.log("🚀 ~ SqliteApi ~ updateMusicFlag ~ res:", res);
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+      language_id: value,
+      id: userId,
+    });
+  }
+  async updateTcAccept(userId: string) {
+    const query = `
+    UPDATE "user"
+    SET is_tc_accepted = 1
+    WHERE id = "${userId}";
+  `;
+    const res = await this.executeQuery(query);
+    console.log(
+      "🚀 ~ SqliteApi ~ updateTcAccept ~ res:",
+      res,
+      ServiceConfig.getI().authHandler.currentUser
+    );
+    const auth = ServiceConfig.getI().authHandler;
+    const currentUser = await auth.getCurrentUser();
+    if (currentUser) {
+      currentUser.is_tc_accepted = true;
+      auth.currentUser = currentUser;
+    }
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+      is_tc_accepted: 1,
+      id: userId,
+    });
+  }
+  async getLanguageWithId(
+    id: string
+  ): Promise<TableTypes<"language"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Language} where id = "${id}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+
+  async getLessonWithCocosLessonId(
+    lessonId: string
+  ): Promise<TableTypes<"lesson"> | null> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Lesson} where cocos_lesson_id = "${lessonId}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return null;
+    return res.values[0];
+  }
+
+  async getCoursesForParentsStudent(
+    studentId: string
+  ): Promise<TableTypes<"course">[]> {
+    const query = `
+    SELECT *
+    FROM ${TABLES.UserCourse} AS uc
+    JOIN ${TABLES.Course} AS course ON uc.course_id= course.id
+    WHERE uc.user_id = "${studentId}";
+  `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
+
+  async getAdditionalCourses(
+    studentId: string
+  ): Promise<TableTypes<"course">[]> {
+    const res = await this._db?.query(`
+    SELECT c.*
+    FROM ${TABLES.Course} c
+    LEFT JOIN user_course uc ON c.id = uc.course_id AND uc.user_id = "${studentId}"
+    WHERE uc.course_id IS NULL;
+    `);
+    return res?.values ?? [];
+  }
+
+  async getCoursesForClassStudent(
+    classId: string
+  ): Promise<TableTypes<"course">[]> {
+    const query = `
+    SELECT *
+    FROM ${TABLES.ClassCourse} AS cc
+    JOIN ${TABLES.Course} AS course ON cc.course_id= course.id
+    WHERE cc.class_id = "${classId}";
+  `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
+
+  async getLesson(id: string): Promise<TableTypes<"lesson"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Lesson} where id = "${id}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+
+  async getLessonsForChapter(
+    chapterId: string
+  ): Promise<TableTypes<"lesson">[]> {
+    const query = `
+    SELECT *
+    FROM ${TABLES.ChapterLesson} AS cl
+    JOIN ${TABLES.Lesson} AS lesson ON cl.lesson_id= lesson.id
+    WHERE cl.chapter_id = "${chapterId}";
+  `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
+
+  async getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
+    grades: TableTypes<"grade">[];
+    courses: TableTypes<"course">[];
+  }> {
+    const query = `
+    SELECT c.*, 
+    JSON_OBJECT(
+      'id',g.id,
+      'name',g.name,
+      'image',g.image,
+      'description',g.description,
+      'sort_index',g.sort_index,
+      'created_at',g.created_at,
+      'updated_at',g.updated_at,
+      'is_deleted',g.is_deleted
+    ) AS grade
+    FROM ${TABLES.Course} c
+    JOIN ${TABLES.Grade} g ON c.grade_id = g.id
+    WHERE c.subject_id = "${course.subject_id}" 
+    AND c.curriculum_id = "${course.curriculum_id}";
+
+  `;
+    const res = await this._db?.query(query);
+    const gradeMap: {
+      grades: TableTypes<"grade">[];
+      courses: TableTypes<"course">[];
+    } = { grades: [], courses: [] };
+    for (const data of res?.values ?? []) {
+      const grade = JSON.parse(data.grade);
+      delete data.grade;
+      const course = data;
+      const gradeAlreadyExists = gradeMap.grades.find(
+        (_grade) => _grade.id === grade.id
+      );
+      if (gradeAlreadyExists) continue;
+      gradeMap.courses.push(course);
+      gradeMap.grades.push(grade);
+    }
+
+    gradeMap.grades.sort((a, b) => {
+      //Number.MAX_SAFE_INTEGER is using when sortIndex is not found GRADES (i.e it gives default value)
+      const sortIndexA = a.sort_index || Number.MAX_SAFE_INTEGER;
+      const sortIndexB = b.sort_index || Number.MAX_SAFE_INTEGER;
+
+      return sortIndexA - sortIndexB;
+    });
+    return gradeMap as any;
+  }
+
+  getAvatarInfo(): Promise<AvatarObj | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
+  getLessonResultsForStudent(
+    studentId: string
+  ): Promise<Map<string, StudentLessonResult> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
+  async getLiveQuizLessons(
+    classId: string,
+    studentId: string
+  ): Promise<TableTypes<"assignment">[]> {
+    const query = `
+    SELECT a.*
+    FROM ${TABLES.Assignment} a
+    LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
+    LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = "${studentId}"
+    WHERE a.class_id = '${classId}' and type = "${LIVE_QUIZ}" and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL;
+    `;
+    const res = await this._db?.query(query);
+    if (!res || !res.values || res.values.length < 1) return [];
+    return res.values;
+  }
+
+  getLiveQuizRoomDoc(
+    liveQuizRoomDocId: string
+  ): Promise<DocumentData | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
+  async updateResult(
+    studentId: string,
+    courseId: string | undefined,
+    lessonId: string,
+    score: number,
+    correctMoves: number,
+    wrongMoves: number,
+    timeSpent: number,
+    isLoved: boolean | undefined,
+    assignmentId: string | undefined,
+    classId: string | undefined,
+    schoolId: string | undefined
+  ): Promise<TableTypes<"result">> {
+    const resultId = uuidv4();
+    console.log("🚀 ~ SqliteApi ~ id:", studentId);
+    const newResult: TableTypes<"result"> = {
+      id: resultId,
+      assignment_id: assignmentId ?? null,
+      correct_moves: correctMoves,
+      lesson_id: lessonId,
+      school_id: schoolId ?? null,
+      score: score,
+      student_id: studentId,
+      time_spent: timeSpent,
+      wrong_moves: wrongMoves,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+    };
+
+    const res = await this.executeQuery(
+      `
+    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+  `,
+      [
+        newResult.id,
+        newResult.assignment_id,
+        newResult.correct_moves,
+        newResult.lesson_id,
+        newResult.school_id,
+        newResult.score,
+        newResult.student_id,
+        newResult.time_spent,
+        newResult.wrong_moves,
+        newResult.created_at,
+        newResult.updated_at,
+        newResult.is_deleted,
+      ]
+    );
+    console.log("🚀 ~ SqliteApi ~ res:", res);
+    this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult);
+    return newResult;
+  }
+
+  async updateStudent(
+    student: TableTypes<"user">,
+    name: string,
+    age: number,
+    gender: string,
+    avatar: string,
+    image: string | undefined,
+    boardDocId: string,
+    gradeDocId: string,
+    languageDocId: string
+  ): Promise<TableTypes<"user">> {
+    const query = `
+  UPDATE "user"
+  SET name = "${name}",
+      age = ${age},
+      gender = "${gender}",
+      avatar = "${avatar}",
+      image = "${image}",
+      curriculum_id = "${boardDocId}",
+      grade_id = "${gradeDocId}",
+      language_id = "${languageDocId}"
+  WHERE id = "${student.id}";
+`;
+
+    const res = await this.executeQuery(query);
+    console.log("🚀 ~ SqliteApi ~ updateStudent ~ res:", res);
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+      name: name,
+      age: age,
+      gender: gender,
+      avatar: avatar,
+      image: image,
+      curriculum_id: boardDocId,
+      grade_id: gradeDocId,
+      language_id: languageDocId,
+      id: student.id,
+    });
+    return student;
+  }
+
+  async getSubject(id: string): Promise<TableTypes<"subject"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Subject} where id = "${id}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+
+  async getCourse(id: string): Promise<TableTypes<"course"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Course} where id = "${id}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+
+  async getStudentResult(
+    studentId: string,
+    fromCache?: boolean
+  ): Promise<TableTypes<"result">[]> {
+    const query = `
+    SELECT * FROM ${TABLES.Result}
+    where student_id = '${studentId}'
+    `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
+
+  async getStudentResultInMap(
+    studentId: string
+  ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
+    const query = `
+    SELECT *
+    FROM ${TABLES.Result}
+    WHERE (student_id = '${studentId}')
+    AND (lesson_id, updated_at) IN (
+    SELECT lesson_id, MAX(updated_at)
+    FROM ${TABLES.Result}
+    WHERE student_id = '${studentId}'
+    GROUP BY lesson_id
+  );
+    `;
+    const res = await this._db?.query(query);
+    console.log("🚀 ~ SqliteApi ~ getStudentResultInMap ~ res:", res?.values);
+    if (!res || !res.values || res.values.length < 1) return {};
+    const resultMap = {};
+    for (const data of res.values) {
+      resultMap[data.lesson_id] = data;
+    }
+    return resultMap;
+  }
+
+  async getClassById(id: string): Promise<TableTypes<"class"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Class} where id = "${id}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+
+  async getSchoolById(id: string): Promise<TableTypes<"school"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.School} where id = "${id}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+
+  async isStudentLinked(
+    studentId: string,
+    fromCache: boolean
+  ): Promise<boolean> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.ClassUser} 
+      where user_id = "${studentId}" 
+      and role = "${RoleType.STUDENT}"`
+    );
+    console.log("🚀 ~ SqliteApi ~ isStudentLinked ~ res:", res);
+    if (!res || !res.values || res.values.length < 1) return false;
+    return true;
+  }
+
+  async getPendingAssignments(
+    classId: string,
+    studentId: string
+  ): Promise<TableTypes<"assignment">[]> {
+    const query = `
+    SELECT a.*
+    FROM ${TABLES.Assignment} a
+    LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
+    LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = "${studentId}"
+    WHERE a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL;
+    `;
+    const res = await this._db?.query(query);
+    if (!res || !res.values || res.values.length < 1) return [];
+    return res.values;
+  }
+
+  async getSchoolsForUser(
+    userId: string
+  ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
+    const query = `
+    SELECT su.*, 
+    JSON_OBJECT(
+      'id',s.id,
+      'name',s.name,
+      'group1',s.group1,
+      'group2',s.group2,
+      'group3',s.group3,
+      'image',s.image,
+      'created_at',s.created_at,
+      'updated_at',s.updated_at,
+      'is_deleted',s.is_deleted
+    ) AS school
+    FROM ${TABLES.SchoolUser} su
+    JOIN ${TABLES.School} s ON su.school_id = s.id
+    WHERE su.user_id = "${userId}" and NOT su.role = "${RoleType.PARENT}"
+    `;
+    const res = await this._db?.query(query);
+    console.log("🚀 ~ SqliteApi ~ getSchoolsForUser ~ res:", res);
+    if (!res || !res.values || res.values.length < 1) return [];
+    const finalData: { school: TableTypes<"school">; role: RoleType }[] = [];
+    for (const data of res.values) {
+      finalData.push({
+        role: data.role,
+        school: JSON.parse(data.school),
+      });
+    }
+    return finalData;
+  }
+
+  public get currentMode(): MODES {
+    return this._currentMode;
+  }
+
+  public set currentMode(value: MODES) {
+    this._currentMode = value;
+  }
+
+  async isUserTeacher(userId: string): Promise<boolean> {
+    const schools = await this.getSchoolsForUser(userId);
+    return schools.length > 0;
+  }
+  async getClassesForSchool(
+    schoolId: string,
+    userId: string
+  ): Promise<TableTypes<"class">[]> {
+    const schoolQuery = `
+    SELECT * FROM ${TABLES.SchoolUser} WHERE school_id = '${schoolId}' AND user_id = '${userId}' AND NOT role = '${RoleType.PARENT}' 
+    `;
+    const res = await this._db?.query(schoolQuery);
+    if (!res || !res.values || res.values.length < 1) return [];
+    const role: RoleType = res.values[0].role;
+    if (role === RoleType.TEACHER) {
+      const query = `
+      SELECT c.*
+      FROM ${TABLES.ClassUser} cu
+      JOIN ${TABLES.Class} c ON cu.class_id = c.id
+      WHERE cu.user_id = "${userId}" and cu.role = "${RoleType.TEACHER}"
+      `;
+      const res = await this._db?.query(query);
+      if (!res || !res.values || res.values.length < 1) return [];
+      return res?.values;
+    } else {
+      const query = `
+      SELECT *
+      FROM ${TABLES.Class} 
+      WHERE school_id = '${schoolId}'
+      `;
+      const res = await this._db?.query(query);
+      if (!res || !res.values || res.values.length < 1) return [];
+      return res?.values;
+    }
+  }
+
+  async getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
+    const query = `
+    SELECT user.*
+    FROM ${TABLES.ClassUser} AS cu
+    JOIN ${TABLES.User} AS user ON cu.user_id= user.id
+    WHERE cu.class_id = "${classId}" and cu.role = '${RoleType.STUDENT}';
+  `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
+
+  getDataByInviteCode(inviteCode: number): Promise<any> {
+    throw new Error("Method not implemented.");
+  }
+
+  linkStudent(inviteCode: number): Promise<any> {
+    throw new Error("Method not implemented.");
+  }
+
+  async getLeaderboardResults(
+    sectionId: string,
+    leaderboardDropdownType: LeaderboardDropdownList
+  ): Promise<LeaderboardInfo | undefined> {
+    // throw new Error("Method not implemented.");
+    return;
+  }
+
+  async getLeaderboardStudentResultFromB2CCollection(
+    studentId: string
+  ): Promise<LeaderboardInfo | undefined> {
+    // throw new Error("Method not implemented.");
+    return;
+  }
+
+  async getAllLessonsForCourse(
+    courseId: string
+  ): Promise<TableTypes<"lesson">[]> {
+    const query = `
+    SELECT l.* FROM ${TABLES.Chapter} as c
+    JOIN ${TABLES.ChapterLesson} cl ON cl.chapter_id = c.id
+    JOIN ${TABLES.Lesson} l ON l.id = cl.lesson_id
+    WHERE c.course_id = '${courseId}'
+    `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
+
+  getLessonFromCourse(
+    course: Course,
+    lessonId: string
+  ): Promise<Lesson | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
+  async getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Course} where grade_id = "${gradeDocId}"`
+    );
+    return res?.values ?? [];
+  }
+
+  async getAllCourses(): Promise<TableTypes<"course">[]> {
+    const res = await this._db?.query(`select * from ${TABLES.Course}`);
+    return res?.values ?? [];
+  }
+  deleteAllUserData(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  async getCoursesFromLesson(
+    lessonId: string
+  ): Promise<TableTypes<"course">[]> {
+    const query = `
+    SELECT co.* FROM ${TABLES.Lesson} as l
+    JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
+    JOIN ${TABLES.Chapter} c ON c.id = cl.chapter_id
+    JOIN ${TABLES.Course} co ON co.id = c.course_id
+    WHERE l.id = '${lessonId}'
+    `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
+
+  liveQuizListener(
+    liveQuizRoomDocId: string,
+    onDataChange: (user: LiveQuizRoomObject | undefined) => void
+  ): Unsubscribe {
+    throw new Error("Method not implemented.");
+  }
+
+  updateLiveQuiz(
+    roomDocId: string,
+    studentId: string,
+    questionId: string,
+    timeSpent: number,
+    score: number
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  joinLiveQuiz(
+    studentId: string,
+    assignmentId: string
+  ): Promise<string | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
+  async getAssignmentById(
+    id: string
+  ): Promise<TableTypes<"assignment"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Assignment} where id = "${id}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+
+  async getBadgeById(id: string): Promise<TableTypes<"badge"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Badge} where id = "${id}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+
+  async getStickerById(id: string): Promise<TableTypes<"sticker"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Sticker} where id = "${id}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+
+  async getRewardsById(id: string): Promise<TableTypes<"reward"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Reward} where id = "${id}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+
+  updateRewardAsSeen(studentId: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  async getUserByDocId(
+    studentId: string
+  ): Promise<TableTypes<"user"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.User} where id = "${studentId}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+
+  addCourseForParentsStudent(courses: Course[], student: User) {
+    throw new Error("Method not implemented.");
+  }
+
+  updateRewardsForStudent(studentId: string, unlockReward: LeaderboardRewards) {
+    throw new Error("Method not implemented.");
+  }
+
+  async getChaptersForCourse(
+    courseId: string
+  ): Promise<TableTypes<"chapter">[]> {
+    const query = `
+    SELECT * FROM ${TABLES.Chapter} 
+    WHERE course_id = "${courseId}"
+    `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
+
+  async getPendingAssignmentForLesson(
+    lessonId: string,
+    classId: string,
+    studentId: string
+  ): Promise<TableTypes<"assignment"> | undefined> {
+    const query = `
+    SELECT a.*
+    FROM ${TABLES.Assignment} a
+    LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
+    LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = "${studentId}"
+    WHERE a.lesson_id = '${lessonId}' a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL;
+    `;
+    const res = await this._db?.query(query);
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+  async getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
+    const query = `
+    SELECT l.*
+    FROM ${TABLES.FavoriteLesson} fl
+    JOIN ${TABLES.Lesson} l 
+    ON fl.lesson_id = l.id
+    WHERE fl.user_id = '${userId}'
+    `;
+    const res = await this._db?.query(query);
+    if (!res || !res.values || res.values.length < 1) return [];
+    return res.values;
+  }
+
+  async getStudentClassesAndSchools(userId: string): Promise<{
+    classes: TableTypes<"class">[];
+    schools: TableTypes<"school">[];
+  }> {
+    const data: {
+      classes: TableTypes<"class">[];
+      schools: TableTypes<"school">[];
+    } = {
+      classes: [],
+      schools: [],
+    };
+    const res = await this._db?.query(
+      `select c.*,     
+      JSON_OBJECT(
+        'id',s.id,
+        'name',s.name,
+        'group1',s.group1,
+        'group2',s.group2,
+        'group3',s.group3,
+        'image',s.image,
+        'created_at',s.created_at,
+        'updated_at',s.updated_at,
+        'is_deleted',s.is_deleted
+      ) AS school
+       from ${TABLES.ClassUser} cu 
+      join ${TABLES.Class} c
+      ON cu.class_id = c.id
+      join ${TABLES.School} s
+      ON c.school_id = s.id
+      where user_id = "${userId}" and role = "${RoleType.STUDENT}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return data;
+    data.classes = res.values;
+    data.schools = res.values.map((val) => val.school);
+    return data;
+  }
+
+  async createUserDoc(
+    user: TableTypes<"user">
+  ): Promise<TableTypes<"user"> | undefined> {
+    await this.executeQuery(
+      `
+      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+      `,
+      [
+        user.id,
+        user.name,
+        user.age,
+        user.gender,
+        user.avatar,
+        user.image,
+        user.curriculum_id,
+        user.language_id,
+      ]
+    );
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, user);
+
+    return user;
+  }
+
+  async syncDB(): Promise<boolean> {
+    try {
+      await this.syncDbNow();
+      return true;
+    } catch (error) {
+      console.log("🚀 ~ SqliteApi ~ syncDB ~ error:", error);
+      return false;
+    }
+  }
+}

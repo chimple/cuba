@@ -1,20 +1,17 @@
 import { FC, useEffect, useRef, useState } from "react";
-import { Chapter } from "../../common/courseConstants";
 import "./SelectChapter.css";
-import Grade from "../../models/grade";
-import DropDown from "../DropDown";
-import Course from "../../models/course";
 import SelectIconImage from "./SelectIconImage";
 import DownloadLesson from "../DownloadChapterAndLesson";
 import { t } from "i18next";
+import { TableTypes } from "../../common/constants";
 
 const SelectChapter: FC<{
-  chapters: Chapter[];
-  onChapterChange: (chapter: Chapter) => void;
-  grades: Grade[];
-  course: Course;
-  currentGrade: Grade;
-  onGradeChange: (grade: Grade) => void;
+  chapters: TableTypes<"chapter">[];
+  onChapterChange: (chapter: TableTypes<"chapter">) => void;
+  grades: TableTypes<"grade">[];
+  course: TableTypes<"course">;
+  currentGrade: TableTypes<"grade">;
+  onGradeChange: (grade: TableTypes<"grade">) => void;
   currentChapterId: string | undefined;
 }> = ({
   chapters,
@@ -50,12 +47,12 @@ const SelectChapter: FC<{
               <div className="chapter-icon-and-chapter-download-container">
                 <div className="chapter-icon">
                   <SelectIconImage
-                    localSrc={`courses/${course.courseCode}/icons/${chapter.id}.webp`}
+                    localSrc={`courses/${course.code}/icons/${chapter.id}.webp`}
                     defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
-                    webSrc={chapter.thumbnail}
+                    webSrc={chapter.image}
                   />
                 </div>
-                <div>{t(chapter.title)}</div>
+                <div>{t(chapter.name ?? "")}</div>
                 <div className="chapter-download">
                   <DownloadLesson chapter={chapter} />
                 </div>

@@ -6,26 +6,14 @@ import {
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODES,
-  TableTypes,
+  TableTypes
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { RoleType } from "../../interface/modelInterfaces";
+import { LeaderboardInfo } from "./ServiceApi";
 
-export interface LeaderboardInfo {
-  weekly: StudentLeaderboardInfo[];
-  monthly: StudentLeaderboardInfo[];
-  allTime: StudentLeaderboardInfo[];
-}
-
-export interface StudentLeaderboardInfo {
-  name: string;
-  score: number;
-  timeSpent: number;
-  lessonsPlayed: number;
-  userId: string;
-}
 
 export interface ServiceApi {
   /**
@@ -279,7 +267,7 @@ export interface ServiceApi {
    */
   getStudentResultInMap(
     studentId: string
-  ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }>;
+  ): Promise<{ [lessonDocId: string]: TableTypes<"result">; }>;
 
   /**
    * Gives Class for given a Class firebase doc Id
@@ -319,10 +307,9 @@ export interface ServiceApi {
    * @param {User} user user firebase documentId;
    * @return A promise to an array of schools
    */
-
   getSchoolsForUser(
     userId: string
-  ): Promise<{ school: TableTypes<"school">; role: RoleType }[]>;
+  ): Promise<{ school: TableTypes<"school">; role: RoleType; }[]>;
 
   /**
    * This function sets the current mode for the user
@@ -340,7 +327,6 @@ export interface ServiceApi {
    * @param {User} user user firebase documentId;
    * @return A promise of boolean.
    */
-
   isUserTeacher(userId: string): Promise<boolean>;
 
   /**
@@ -554,37 +540,7 @@ export interface ServiceApi {
   ): Promise<TableTypes<"assignment"> | undefined>;
 
   /**
-   * Retrieves Array of Favourite lessons for the specified user
-   * @param user_id The unique identifier of the user
-   */
-  getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]>;
-
-  /**
-   * Retrieves Array of classes for the specified user
-   * @param user_id The unique identifier of the user
-   */
-  getStudentClassesAndSchools(userId: string): Promise<{
-    classes: TableTypes<"class">[];
-    schools: TableTypes<"school">[];
-  }>;
-
-  /**
-   * Function to create user documentation.
    *
-   * @param user - The user object of type "user" table.
-   * @returns A promise containing the created user object or undefined.
    */
-  createUserDoc(
-    user: TableTypes<"user">
-  ): Promise<TableTypes<"user"> | undefined>;
-
-  /* Synchronizes the local database with an external data source asynchronously.
-   * This method ensures that the local database reflects the latest data from the external source.
-   *
-   * @returns A Promise that resolves to a boolean value indicating whether the synchronization was successful.
-   *          - `true` if the synchronization completed successfully.
-   *          - `false` if there were any errors or if no synchronization was necessary.
-   */
-
-  syncDB(): Promise<boolean>;
+  getFavouriteLessons(user_id: string): Promise<TableTypes<"lesson">[]>;
 }

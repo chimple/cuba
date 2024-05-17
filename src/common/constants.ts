@@ -1,5 +1,6 @@
 import { Capacitor } from "@capacitor/core";
 import Auth from "../models/auth";
+import { Database } from "../services/database";
 
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = "sl-en",
@@ -7,6 +8,46 @@ export enum COURSES {
   PUZZLE = "puzzle",
   ENGLISH = "en",
   MATHS = "maths",
+}
+export type TableTypes<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Row"];
+
+export enum MUTATE_TYPES {
+  INSERT = "insert",
+  UPDATE = "update",
+  DELETE = "delete",
+}
+
+export enum TABLES {
+  Curriculum = "curriculum",
+  Subject = "subject",
+  Grade = "grade",
+  Language = "language",
+  Course = "course",
+  School = "school",
+  Chapter = "chapter",
+  Lesson = "lesson",
+  Badge = "badge",
+  Sticker = "sticker",
+  Reward = "reward",
+  Class = "class",
+  User = "user",
+  ClassInvite_code = "class_invite_code",
+  ClassUser = "class_user",
+  FavoriteLesson = "favorite_lesson",
+  ClassCourse = "class_course",
+  ChapterLesson = "chapter_lesson",
+  ParentUser = "parent_user",
+  SchoolCourse = "school_course",
+  SchoolUser = "school_user",
+  UserBadge = "user_badge",
+  UserBonus = "user_bonus",
+  UserCourse = "user_course",
+  UserSticker = "user_sticker",
+  Assignment = "assignment",
+  Assignment_user = "assignment_user",
+  Result = "result",
+  // Chatbot = "chatbot",
 }
 
 export enum SL_GRADES {

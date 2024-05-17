@@ -23,14 +23,14 @@ const DeleteParentAccount: React.FC<{}> = ({}) => {
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
     const eventParams = {
-      user_id: user?.docId,
-      user_type: user?.role,
+      user_id: user?.id,
+      // user_type: user?.role,
       user_name: user?.name,
       user_gender: user?.gender!,
       user_age: user?.age!,
-      phone_number: user?.username,
-      parent_id: user?.uid,
-      parent_username: user?.username,
+      phone_number: user?.phone,
+      // parent_id: user?.uid,
+      // parent_username: user?.username,
       action_type: ACTION.DELETE,
     };
     console.log(

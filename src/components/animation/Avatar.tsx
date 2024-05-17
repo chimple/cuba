@@ -1,15 +1,10 @@
-import { Filesystem } from "@capacitor/filesystem";
 import {
   CURRENT_AVATAR_SUGGESTION_NO,
-  LEADERBOARD_REWARD_LIST,
   LeaderboardDropdownList,
-  LeaderboardRewardsType,
   SHOW_DAILY_PROGRESS_FLAG,
+  TableTypes,
   unlockedRewardsInfo,
 } from "../../common/constants";
-import { Chapter, StudentLessonResult } from "../../common/courseConstants";
-import Course from "../../models/course";
-import Lesson from "../../models/lesson";
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
@@ -51,9 +46,9 @@ export class AvatarObj {
   public static _i: AvatarObj | undefined;
   unlockedRewards: unlockedRewardsInfo[];
 
-  currentCourse: Course;
-  currentChapter: Chapter;
-  currentLesson: Lesson | undefined;
+  currentCourse: TableTypes<"course">;
+  currentChapter: TableTypes<"chapter">;
+  currentLesson: TableTypes<"lesson"> | undefined;
   currentLessonSuggestionIndex: number;
   currentRecommendedLessonIndex: number = 0;
   weeklyProgressGoal: number = 10;
@@ -180,7 +175,7 @@ export class AvatarObj {
 
   suggestionConstant = () => {
     const currentStudent = Util.getCurrentStudent();
-    return currentStudent?.docId + "-" + CURRENT_AVATAR_SUGGESTION_NO;
+    return currentStudent?.id + "-" + CURRENT_AVATAR_SUGGESTION_NO;
   };
 
   public getCurrentSuggestionNo() {
@@ -308,25 +303,27 @@ export class AvatarObj {
 
   public async loadAvatarWeeklyProgressData() {
     try {
-      const currentStudent = await Util.getCurrentStudent();
+      const currentStudent = Util.getCurrentStudent();
       if (!currentStudent) {
         return;
       }
 
       const api = ServiceConfig.getI().apiHandler;
-      const studentProfile = await api.getStudentResult(currentStudent.docId);
+      const studentProfile = await api.getStudentClassesAndSchools(
+        currentStudent.id
+      );
 
       let weeKlyProgressData: LeaderboardInfo | undefined;
 
       if (studentProfile?.classes != undefined) {
         weeKlyProgressData = await api.getLeaderboardResults(
-          studentProfile?.classes[0],
+          studentProfile?.classes[0].id,
           LeaderboardDropdownList.WEEKLY
         );
       } else {
         weeKlyProgressData =
           await api.getLeaderboardStudentResultFromB2CCollection(
-            currentStudent.docId
+            currentStudent.id
           );
       }
 
@@ -346,7 +343,7 @@ export class AvatarObj {
 
       for (let i = 0; i < weeklyData.length; i++) {
         const element = weeklyData[i];
-        if (currentStudent.docId == element.userId) {
+        if (currentStudent.id == element.userId) {
           let finalProgressTimespent = element.timeSpent;
           let computeMinutes = Math.floor(finalProgressTimespent / 60);
           let computeSec = finalProgressTimespent % 60;

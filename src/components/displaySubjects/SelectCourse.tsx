@@ -12,6 +12,7 @@ import {
   KARNATAKA_STATE_BOARD_CURRICULUM,
   NCERT_CURRICULUM,
   PAGES,
+  TableTypes,
   aboveGrade3,
   belowGrade1,
   grade1,
@@ -20,12 +21,12 @@ import {
 } from "../../common/constants";
 import { useHistory } from "react-router";
 const SelectCourse: FC<{
-  courses: Course[];
+  courses: TableTypes<"course">[];
   modeParent: boolean;
-  onCourseChange: (course: Course) => void;
+  onCourseChange: (course: TableTypes<"course">) => void;
 }> = ({ courses, modeParent, onCourseChange }) => {
   courses.sort((a, b) => {
-    return a.sortIndex - b.sortIndex;
+    return (a.sort_index ?? 0) - (b.sort_index ?? 0);
   });
   const history = useHistory();
   return (
@@ -42,7 +43,7 @@ const SelectCourse: FC<{
       {courses.map((course, index) => {
         let isGrade1: string | boolean = false;
         let isGrade2: string | boolean = false;
-        let gradeDocId = course.grade.id;
+        let gradeDocId = course.grade_id;
 
         // Check if gradeDocId matches any of the specified grades and assign the value to isGrade1 or isGrade2
         if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
@@ -58,13 +59,13 @@ const SelectCourse: FC<{
           isGrade2 = true;
         }
         return (
-          <SplideSlide className="slide">
+          <SplideSlide key={index} className="slide">
             <div
               onClick={() => {
                 onCourseChange(course);
               }}
               className="subject-button"
-              key={course.docId}
+              key={course.id}
             >
               <div id="subject-card-subject-name">
                 <p>
@@ -79,19 +80,19 @@ const SelectCourse: FC<{
                 }}
               >
                 <SelectIconImage
-                  localSrc={`courses/chapter_icons/${course.courseCode}.webp`}
+                  localSrc={`courses/chapter_icons/${course.code}.webp`}
                   defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
-                  webSrc={course.thumbnail}
+                  webSrc={course.image}
                 />
               </div>
-              {t(course.title)}
+              {t(course.name)}
             </div>
             <div>
-              {course.curriculum.id === NCERT_CURRICULUM
+              {course.curriculum_id === NCERT_CURRICULUM
                 ? CURRICULUM.NCERT_CURRICULUM
-                : course.curriculum.id === KARNATAKA_STATE_BOARD_CURRICULUM
-                ? CURRICULUM.KARNATAKA_STATE_BOARD_CURRICULUM
-                : CURRICULUM.OTHER_CURRICULUM}
+                : course.curriculum_id === KARNATAKA_STATE_BOARD_CURRICULUM
+                  ? CURRICULUM.KARNATAKA_STATE_BOARD_CURRICULUM
+                  : CURRICULUM.OTHER_CURRICULUM}
             </div>
           </SplideSlide>
         );
@@ -103,7 +104,7 @@ const SelectCourse: FC<{
               history.replace(PAGES.ADD_SUBJECTS);
             }}
             className="subject-button"
-            key={courses[0].docId}
+            key={courses[0].id}
           >
             <div
               className="course-icon"

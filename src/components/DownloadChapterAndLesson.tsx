@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Util } from "../utility/util";
-import Lesson from "../models/lesson";
 import { ServiceConfig } from "../services/ServiceConfig";
 import "./DownloadChapterAndLesson.css";
 import { t } from "i18next";
 import DialogBoxButtons from "./parent/DialogBoxButtons​";
 import { TfiDownload, TfiTrash } from "react-icons/tfi";
 import { Capacitor } from "@capacitor/core";
-import { Chapter } from "../common/courseConstants";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
-import { LESSON_DOWNLOAD_SUCCESS_EVENT } from "../common/constants";
+import { LESSON_DOWNLOAD_SUCCESS_EVENT, TableTypes } from "../common/constants";
 
 const DownloadLesson: React.FC<{
   lessonId?: string;
-  chapter?: Chapter;
+  chapter?: TableTypes<"chapter">;
   downloadButtonLoading?: boolean;
   onDownloadOrDelete?: () => void;
 }> = ({
@@ -63,7 +61,7 @@ const DownloadLesson: React.FC<{
       downloadButtonLoading = false;
     }
     if (chapter) {
-      const isChapterDownloaded = await Util.isChapterDowloaded(chapter);
+      const isChapterDownloaded = Util.isChapterDowloaded(chapter);
       setShowIcon(isChapterDownloaded);
     }
   }
@@ -95,7 +93,9 @@ const DownloadLesson: React.FC<{
     const storeLessonID: string[] = [];
 
     if (chapter) {
-      const lessons: Lesson[] = await api.getLessonsForChapter(chapter);
+      const lessons: TableTypes<"lesson">[] = await api.getLessonsForChapter(
+        chapter.id
+      );
       for (const e of lessons) {
         if (!storedLessonID.includes(e.id)) {
           storeLessonID.push(e.id);
@@ -118,7 +118,9 @@ const DownloadLesson: React.FC<{
     if (loading) return;
     setLoading(true);
     if (chapter) {
-      const lessons: Lesson[] = await api.getLessonsForChapter(chapter);
+      const lessons: TableTypes<"lesson">[] = await api.getLessonsForChapter(
+        chapter.id
+      );
       const storeLessonID: string[] = [];
       lessons.forEach(async (e) => {
         storeLessonID.push(e.id);

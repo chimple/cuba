@@ -1,33 +1,24 @@
 import { t } from "i18next";
 import "./RectangularTextButton.css";
 import SelectIconImage from "../displaySubjects/SelectIconImage";
-import course from "../../models/course";
 import { useHistory } from "react-router-dom";
 import { ReactNode, useEffect, useState } from "react";
 import {
   CHAPTER_CARD_COLOURS,
   LESSON_CARD_COLORS,
-  LeaderboardRewardsType,
-  PAGES,
+  TableTypes,
 } from "../../common/constants";
-import Course from "../../models/course";
-import Lesson from "../../models/lesson";
 import "./AvatarImageOption.css";
-import { IonCard } from "@ionic/react";
-import { Chapter } from "../../common/courseConstants";
 import { AvatarModes, AvatarObj } from "./Avatar";
-import CachedImage from "../common/CachedImage";
 import { CircularProgressbar } from "react-circular-progressbar";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import Badge from "../../models/Badge";
 import { Util } from "../../utility/util";
 
 const AvatarImageOption: React.FC<{
   currentMode?: AvatarModes;
   currtStageMode: AvatarModes;
-  currentCourse?: Course;
-  currentChapter?: Chapter;
-  currentLesson?: Lesson;
+  currentCourse?: TableTypes<"course">;
+  currentChapter?: TableTypes<"chapter">;
+  currentLesson?: TableTypes<"lesson">;
   avatarObj: AvatarObj;
 }> = ({
   currentMode,
@@ -52,7 +43,7 @@ const AvatarImageOption: React.FC<{
     const loadSticker = async () => {
       const stickerData = await Util.getNextUnlockStickers();
       if (stickerData && stickerData.length > 0) {
-        setSticker(stickerData[0]?.image);
+        setSticker(stickerData[0]?.image ?? undefined);
       }
     };
 
@@ -141,18 +132,18 @@ const AvatarImageOption: React.FC<{
         case AvatarModes.CourseSuggestion:
           if (currentCourse) {
             content = cardContent(
-              `courses/chapter_icons/${currentCourse.courseCode}.png`,
+              `courses/chapter_icons/${currentCourse.code}.png`,
               "courses/maths/icons/maths10.png",
-              currentCourse.thumbnail ?? ""
+              currentCourse.image ?? ""
             );
           }
           break;
         case AvatarModes.ChapterSuggestion:
           if (currentCourse && currentChapter) {
             content = cardContent(
-              `courses/${currentCourse.courseCode}/icons/${currentChapter.id}.webp`,
+              `courses/${currentCourse.code}/icons/${currentChapter.id}.webp`,
               "courses/en/icons/en38.webp",
-              currentChapter.thumbnail
+              currentChapter.image ?? ""
             );
           }
           break;
@@ -160,12 +151,12 @@ const AvatarImageOption: React.FC<{
           if (currentCourse && currentChapter && currentLesson) {
             content = cardContent(
               "courses/" +
-                currentLesson.cocosSubjectCode +
+                currentLesson.cocos_subject_code +
                 "/icons/" +
                 currentLesson.id +
                 ".webp",
               "courses/en/icons/en38.webp",
-              currentLesson.thumbnail
+              currentLesson.image ?? ""
             );
           }
           break;
@@ -181,12 +172,12 @@ const AvatarImageOption: React.FC<{
       if (currentLesson) {
         content = cardContent(
           "courses/" +
-            currentLesson.cocosSubjectCode +
+            currentLesson.cocos_subject_code +
             "/icons/" +
             currentLesson.id +
             ".webp",
           "courses/en/icons/en38.webp",
-          currentLesson.thumbnail
+          currentLesson.image ?? ""
         );
       }
 

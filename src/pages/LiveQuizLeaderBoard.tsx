@@ -2,16 +2,17 @@ import React, { useEffect, useState } from "react";
 import { IonPage, IonRow, IonContent } from "@ionic/react";
 import "./LiveQuizLeaderBoard.css";
 import { ServiceConfig } from "../services/ServiceConfig";
-import User from "../models/user";
 import StudentAvatar from "../components/common/StudentAvatar";
-import { PAGES } from "../common/constants";
+import { PAGES, TableTypes } from "../common/constants";
 import { t } from "i18next";
 import { useHistory } from "react-router";
 import NextButton from "../components/common/NextButton";
 
 const LiveQuizLeaderBoard: React.FC = () => {
   const [combinedStudentScores, setCombinedStudentScores] = useState<any>([]);
-  const [students, setStudents] = useState(new Map<String, User>());
+  const [students, setStudents] = useState(
+    new Map<String, TableTypes<"user">>()
+  );
   const urlSearchParams = new URLSearchParams(window.location.search);
   const paramLiveRoomId = urlSearchParams.get("liveRoomId") ?? "";
   const api = ServiceConfig.getI().apiHandler;
@@ -62,7 +63,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
         combinedScores.sort((a, b) => b.totalScore - a.totalScore);
         console.log("combinedSortedScores..", combinedScores);
         setCombinedStudentScores(combinedScores);
-        const tempStudentsMap = new Map<string, User>();
+        const tempStudentsMap = new Map<string, TableTypes<"user">>();
         await Promise.all(
           combinedScores.map(async (participant) => {
             const user = await api.getUserByDocId(participant.studentDocId);
@@ -88,18 +89,18 @@ const LiveQuizLeaderBoard: React.FC = () => {
     console.log("AssignmentDoc:", assignmentDoc);
     let scoresData: any;
 
-    if (!!assignmentDoc && !!assignmentDoc.results) {
-      const playedStudentIds = Object.keys(assignmentDoc.results);
-      console.log("Played Student IDs:", playedStudentIds);
-      if (playedStudentIds.length > 0) {
-        scoresData = playedStudentIds.map((studentDocId) => ({
-          studentDocId,
-          totalScore: assignmentDoc.results[studentDocId]?.score || 0,
-        }));
-      } else {
-        scoresData = [];
-      }
-    }
+    // if (!!assignmentDoc && !!assignmentDoc.results) {
+    //   const playedStudentIds = Object.keys(assignmentDoc.results);
+    //   console.log("Played Student IDs:", playedStudentIds);
+    //   if (playedStudentIds.length > 0) {
+    //     scoresData = playedStudentIds.map((studentDocId) => ({
+    //       studentDocId,
+    //       totalScore: assignmentDoc.results[studentDocId]?.score || 0,
+    //     }));
+    //   } else {
+    //     scoresData = [];
+    //   }
+    // }
     console.log("Scores Data:", scoresData);
 
     return scoresData;

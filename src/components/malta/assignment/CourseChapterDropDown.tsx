@@ -1,15 +1,14 @@
 import "./CourseChapterDropDown.css";
 
-import Course from "../../../models/course";
-import { Chapter } from "../../../common/courseConstants";
 import DropDown from "./DropDown";
+import { TableTypes } from "../../../common/constants";
 
 const CourseChapterDropDown: React.FC<{
-  courses: Course[];
-  currentCourse: Course;
+  courses: TableTypes<"course">[];
+  currentCourse: TableTypes<"course">;
   onCourseChange;
-  chapters: Chapter[];
-  currentChapter: Chapter;
+  chapters: TableTypes<"chapter">[];
+  currentChapter: TableTypes<"chapter">;
   onChapterChange;
 }> = ({
   courses,
@@ -22,15 +21,15 @@ const CourseChapterDropDown: React.FC<{
   return (
     <div className="dropDown">
       <DropDown
-        currentValue={currentCourse?.docId}
+        currentValue={currentCourse?.id}
         optionList={courses.map((course) => ({
-          displayName: course.title,
-          id: course.docId,
+          displayName: course.name,
+          id: course.id,
         }))}
         placeholder=""
         onValueChange={(evt) => {
           {
-            const tempCourse = courses.find((course) => course.docId === evt);
+            const tempCourse = courses.find((course) => course.id === evt);
             onChapterChange(tempCourse ?? currentChapter);
           }
         }}
@@ -40,7 +39,7 @@ const CourseChapterDropDown: React.FC<{
       <DropDown
         currentValue={currentChapter?.id}
         optionList={chapters.map((chapter) => ({
-          displayName: chapter.title,
+          displayName: chapter.name ?? "",
           id: chapter.id,
         }))}
         placeholder=""

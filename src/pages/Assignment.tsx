@@ -2,7 +2,6 @@ import { IonButton, IonPage } from "@ionic/react";
 import JoinClass from "../components/assignment/JoinClass";
 import "./Assignment.css";
 import { useEffect, useState } from "react";
-import BackButton from "../components/common/BackButton";
 import {
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
   DOWNLOADED_LESSON_ID,
@@ -11,20 +10,15 @@ import {
   LIVE_QUIZ,
   PAGES,
   TYPE,
+  TableTypes,
 } from "../common/constants";
 import { useHistory } from "react-router";
-import Loading from "../components/Loading";
-import Class from "../models/class";
-import Assignment from "../models/assignment";
-import Lesson from "../models/lesson";
 import LessonSlider from "../components/LessonSlider";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { t } from "i18next";
-import StudentNameBox from "../components/editStudent/StudentNameBox";
 import { Util } from "../utility/util";
 import { Keyboard } from "@capacitor/keyboard";
 import { Capacitor } from "@capacitor/core";
-import { StudentLessonResult } from "../common/courseConstants";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { TfiDownload } from "react-icons/tfi";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
@@ -32,19 +26,22 @@ import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErro
 const AssignmentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isLinked, setIsLinked] = useState(true);
-  const [currentClass, setCurrentClass] = useState<Class>();
-  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
+  const [lessons, setLessons] = useState<TableTypes<"lesson">[]>([]);
   const [schoolName, setSchoolName] = useState<string>();
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
   const [lessonResultMap, setLessonResultMap] = useState<{
-    [lessonDocId: string]: StudentLessonResult;
+    [lessonDocId: string]: TableTypes<"result">;
   }>();
   const [downloadButtonLoading, setDownloadButtonLoading] = useState(false);
   const [isInputFocus, setIsInputFocus] = useState(false);
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [showDownloadHomeworkButton, setShowDownloadHomeworkButton] =
     useState(true);
+  const [assignments, setAssignments] = useState<TableTypes<"assignment">[]>(
+    []
+  );
 
   useEffect(() => {
     const initialLoadingState = JSON.parse(
@@ -111,6 +108,7 @@ const AssignmentPage: React.FC = () => {
       setDownloadButtonLoading(false);
     }
   }
+  
   window.addEventListener(
     ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
     checkAllHomeworkDownloaded
@@ -119,40 +117,35 @@ const AssignmentPage: React.FC = () => {
   const init = async (fromCache: boolean = true) => {
     setLoading(true);
 
-    const student = await Util.getCurrentStudent();
+    const student = Util.getCurrentStudent();
     if (!student) {
-      // history.replace(PAGES.DISPLAY_STUDENT);
       history.replace(PAGES.SELECT_MODE);
       return;
     }
-
-    const studentResult = await api.getStudentResult(student.docId);
+    const studentResult = await api.getStudentResultInMap(student.id);
     if (!!studentResult) {
-      console.log("tempResultLessonMap = res;", studentResult.lessons);
-      setLessonResultMap(studentResult.lessons);
+      setLessonResultMap(studentResult);
     }
 
-    const linked = await api.isStudentLinked(student.docId, fromCache);
+    const linked = await api.isStudentLinked(student.id, fromCache);
+    console.log("🚀 ~ init ~ linked:", linked);
     if (!linked) {
       setIsLinked(false);
       setLoading(false);
       return;
     }
+    const linkedData = await api.getStudentClassesAndSchools(student.id);
+    if (!!linkedData && linkedData.classes.length > 0) {
+      // const classId = linkedData.classes[0];
+      // const classDoc = await api.getClassById(classId.id);
+      const classDoc = linkedData.classes[0];
 
-    if (
-      !!studentResult &&
-      !!studentResult.classes &&
-      studentResult.classes.length > 0
-    ) {
-      const classId = studentResult.classes[0];
-      const classDoc = await api.getClassById(classId);
-
-      const allAssignments: Assignment[] = [];
+      const allAssignments: TableTypes<"assignment">[] = [];
       await Promise.all(
-        studentResult.classes.map(async (_class) => {
+        linkedData.classes.map(async (_class) => {
           const assignments = await api.getPendingAssignments(
-            _class,
-            student.docId
+            _class.id,
+            student.id
           );
           const filteredAssignments = assignments.filter((assignment) => {
             //filtering the assignments without live quiz
@@ -161,30 +154,24 @@ const AssignmentPage: React.FC = () => {
           allAssignments.push(...filteredAssignments);
         })
       );
-      const _lessons: Lesson[] = [];
+      const _lessons: TableTypes<"lesson">[] = [];
       await Promise.all(
         allAssignments.map(async (_assignment) => {
-          const res = await api.getLesson(
-            _assignment.lesson.id,
-            undefined,
-            true,
-            _assignment
-          );
+          const res = await api.getLesson(_assignment.lesson_id);
           if (!!res) {
-            res.assignment = _assignment;
+            // res.assignment = _assignment;
             _lessons.push(res);
           }
         })
       );
 
       setLessons(_lessons);
-
+      setAssignments(allAssignments);
       setCurrentClass(classDoc);
 
-      if (classDoc && classDoc.school && classDoc.school.id) {
-        const schoolId = classDoc.school.id;
-        const res = await api.getSchoolById(schoolId);
-
+      if (classDoc && classDoc.id && classDoc.school_id) {
+        const schoolId = classDoc.school_id;
+        const res = linkedData.schools.find((val) => val.id === schoolId);
         setSchoolName(res?.name);
       }
       setLoading(false);
@@ -209,14 +196,6 @@ const AssignmentPage: React.FC = () => {
   return !loading ? (
     <div>
       <div className={`assignment-main${isLinked ? "" : "-join-class"}`}>
-        {/* <div id="assignment-back-button" style={{display:"none"}}>
-          <BackButton
-            onClicked={() => {
-              history.replace(PAGES.HOME);
-            }}
-          />
-        </div> */}
-
         <div
           className={
             "header " + isInputFocus && !isLinked ? "scroll-header" : ""
@@ -303,6 +282,7 @@ const AssignmentPage: React.FC = () => {
                       startIndex={0}
                       showSubjectName={true}
                       showChapterName={true}
+                      assignments={assignments}
                       downloadButtonLoading={downloadButtonLoading}
                       showDate={true}
                       onDownloadOrDelete={checkAllHomeworkDownloaded}

@@ -10,7 +10,6 @@ import {
   PAGES,
 } from "../common/constants";
 import { Util } from "../utility/util";
-import { ServiceConfig } from "../services/ServiceConfig";
 
 interface SkeltonLoadingProps {
   isLoading: boolean;
@@ -38,7 +37,7 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
       const student = Util.getCurrentStudent();
       const conectedData = localStorage.getItem(IS_CONECTED);
       const parsedConectedData = conectedData ? JSON.parse(conectedData) : {};
-      if (student) setIsLinked(parsedConectedData[student.docId]);
+      if (student) setIsLinked(parsedConectedData[student.id]);
     }
     getCanShowAvatar();
   }, [header]);

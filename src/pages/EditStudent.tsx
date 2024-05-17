@@ -14,6 +14,7 @@ import {
   GENDER,
   PAGES,
   EDIT_STUDENT_STORE,
+  TableTypes,
 } from "../common/constants";
 import { chevronForward } from "ionicons/icons";
 import Curriculum from "../models/curriculum";
@@ -39,6 +40,7 @@ const EditStudent = () => {
   const state = history.location.state as any;
   const api = ServiceConfig.getI().apiHandler;
   const currentStudent = Util.getCurrentStudent();
+  console.log("🚀 ~ EditStudent ~ currentStudent:", currentStudent);
   const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
 
   enum STAGES {
@@ -66,20 +68,20 @@ const EditStudent = () => {
       : undefined
   );
   const [avatar, setAvatar] = useState<string | undefined>(
-    isEdit ? currentStudent?.avatar : undefined
+    isEdit ? currentStudent?.avatar ?? undefined : undefined
   );
   const [board, setBoard] = useState<string | undefined>(
-    isEdit ? currentStudent?.board?.id : undefined
+    isEdit ? currentStudent?.curriculum_id ?? undefined : undefined
   );
   const [grade, setGrade] = useState<string | undefined>(
-    isEdit ? currentStudent?.grade?.id : undefined
+    isEdit ? currentStudent?.grade_id ?? undefined : undefined
   );
   const [language, setLanguage] = useState<string | undefined>(
-    isEdit ? currentStudent?.language?.id : undefined
+    isEdit ? currentStudent?.language_id ?? undefined : undefined
   );
-  const [boards, setBoards] = useState<Curriculum[]>();
-  const [grades, setGrades] = useState<Grade[]>();
-  const [languages, setLanguages] = useState<Language[]>();
+  const [boards, setBoards] = useState<TableTypes<"curriculum">[]>();
+  const [grades, setGrades] = useState<TableTypes<"grade">[]>();
+  const [languages, setLanguages] = useState<TableTypes<"language">[]>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [checkResults, setCheckResults] = useState<boolean>(false);
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
@@ -98,8 +100,8 @@ const EditStudent = () => {
       //Creating Profile for the Student
       localStorage.removeItem(EDIT_STUDENT_STORE);
       let student;
-      const currentStudent = await Util.getCurrentStudent();
-      if (isEdit && !!currentStudent && !!currentStudent.docId) {
+      const currentStudent = Util.getCurrentStudent();
+      if (isEdit && !!currentStudent && !!currentStudent.id) {
         student = await api.updateStudent(
           currentStudent,
           _studentName!,
@@ -107,19 +109,19 @@ const EditStudent = () => {
           gender ?? currentStudent.gender!,
           avatar ?? currentStudent.avatar!,
           undefined,
-          board ?? currentStudent.board?.id!,
-          grade ?? currentStudent.grade?.id!,
-          language ?? currentStudent.language?.id!
+          board ?? currentStudent.curriculum_id!,
+          grade ?? currentStudent.grade_id!,
+          language ?? currentStudent.language_id!
         );
         Util.logEvent(EVENTS.USER_PROFILE, {
-          user_id: currentStudent.docId,
-          user_type: currentStudent.role,
+          user_id: currentStudent.id,
+          // user_type: currentStudent.role,
           user_name: studentName!,
           user_gender: currentStudent.gender!,
           user_age: currentStudent.age!,
-          phone_number: currentStudent.username,
-          parent_username: currentStudent.username,
-          parent_id: currentStudent.uid,
+          phone_number: currentStudent.phone,
+          // parent_username: currentStudent.username,
+          parent_id: currentStudent.id,
           action_type: ACTION.UPDATE,
         });
       } else {
@@ -134,7 +136,7 @@ const EditStudent = () => {
           language
         );
         const eventParams = {
-          user_id: student.docId,
+          user_id: student.id,
           user_type: student.role,
           user_name: student.name!,
           user_gender: student.gender,
@@ -152,12 +154,12 @@ const EditStudent = () => {
 
         Util.logEvent(EVENTS.USER_PROFILE, eventParams);
         //Setting the Current Student
-        const langIndex = languages?.findIndex(
-          (lang) => lang.docId === language
-        );
+        const langIndex = languages?.findIndex((lang) => lang.id === language);
         await Util.setCurrentStudent(
           student,
-          langIndex && languages ? languages[langIndex]?.code : undefined,
+          langIndex && languages && languages[langIndex]?.code
+            ? languages[langIndex]?.code ?? undefined
+            : undefined,
           tmpPath === PAGES.HOME ? true : false
         );
       }
@@ -205,7 +207,7 @@ const EditStudent = () => {
   const isNextButtonEnabled = () => {
     switch (stage) {
       case STAGES.NAME:
-        return !!studentName.trim();
+        return !!studentName?.trim();
       case STAGES.GENDER_AND_AGE:
         if (gender === GENDER.BOY || gender === GENDER.GIRL) {
           return !!gender && !!age;
@@ -225,6 +227,7 @@ const EditStudent = () => {
   const [isInputFocus, setIsInputFocus] = useState(false);
 
   useEffect(() => {
+    console.log("in edit student");
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
         setIsInputFocus(true);
@@ -238,6 +241,12 @@ const EditStudent = () => {
   }, []);
 
   async function init() {
+    // const user = await ServiceConfig.getI().authHandler.getCurrentUser();
+    // console.log("🚀 ~ init ~ data:", user);
+    // if (!user) return;
+    // await ServiceConfig.getI().apiHandler.getLessonWithCocosLessonId(user.id);
+    // console.log("done update");
+
     const urlParams = new URLSearchParams(location.search);
     console.log(
       "🚀 ~ file: DisplaySubjects.tsx:47 ~ init ~ urlParams:",

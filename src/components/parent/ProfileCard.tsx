@@ -3,16 +3,14 @@ import { useHistory } from "react-router-dom";
 import "./ProfileCard.css";
 import React, { useState } from "react";
 import { MdModeEditOutline } from "react-icons/md";
-import { FcPlus } from "react-icons/fc";
 import { HiPlusCircle } from "react-icons/hi";
-import User from "../../models/user";
 import {
   ACTION,
   AVATARS,
   EVENTS,
   PAGES,
   MODES,
-  CONTINUE,
+  TableTypes,
 } from "../../common/constants";
 import { Util } from "../../utility/util";
 import DialogBoxButtons from "./DialogBoxButtons​";
@@ -26,10 +24,10 @@ const ProfileCard: React.FC<{
   height: string;
   //true for User, false for no user
   userType: boolean;
-  user: User;
+  user: TableTypes<"user">;
   showText?: boolean;
   setReloadProfiles: (event: boolean) => void;
-  profiles?: User[];
+  profiles?: TableTypes<"user">[];
   studentCurrMode: string | undefined;
 }> = ({
   width,
@@ -176,11 +174,11 @@ const ProfileCard: React.FC<{
             console.log("Close", false);
           }}
           onYesButtonClicked={async ({}) => {
-            console.log(`Delete Profile`, "yes", user.docId);
+            console.log(`Delete Profile`, "yes", user.id);
             setShowWarningDialogBox(true);
           }}
           onNoButtonClicked={async ({}) => {
-            console.log(`Edit Profile`, "no", user.docId);
+            console.log(`Edit Profile`, "no", user.id);
             const api = ServiceConfig.getI().apiHandler;
             await Util.setCurrentStudent(user, undefined, false);
             history.replace(PAGES.EDIT_STUDENT, {
@@ -203,22 +201,22 @@ const ProfileCard: React.FC<{
             console.log("Close", false);
           }}
           onYesButtonClicked={async ({}) => {
-            console.log(`Show warning yes:`, user.docId);
+            console.log(`Show warning yes:`, user.id);
             setShowWarningDialogBox(false);
             setShowDialogBox(false);
             setIsLoading(true);
             setReloadProfiles(false);
-            await ServiceConfig.getI().apiHandler.deleteProfile(user.docId);
-            await setReloadProfiles(true);
+            await ServiceConfig.getI().apiHandler.deleteProfile(user.id);
+            setReloadProfiles(true);
             const eventParams = {
-              user_id: user.docId,
-              user_type: user.role,
+              user_id: user.id,
+              // user_type: user.role,
               user_name: user.name,
               user_gender: user.gender!,
               user_age: user.age!,
-              phone_number: user.username,
-              parent_id: user.uid,
-              parent_username: user.username,
+              phone_number: user.phone,
+              // parent_id: user.uid,
+              // parent_username: user.username,
               action_type: ACTION.DELETE,
             };
             console.log(

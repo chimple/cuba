@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import "./Parent.css";
 import {
   LANGUAGE,
-  LANG,
   MAX_STUDENTS_ALLOWED,
   PAGES,
   PARENTHEADERLIST,
-  CONTINUE,
+  TableTypes,
 } from "../common/constants";
 import ProfileCard from "../components/parent/ProfileCard";
 import User from "../models/user";
@@ -26,14 +25,9 @@ import { TfiWorld } from "react-icons/tfi";
 import i18n from "../i18n";
 import { ServiceConfig } from "../services/ServiceConfig";
 import ParentLogout from "../components/parent/ParentLogout";
-import { AppBar, Box, Tab, Tabs } from "@mui/material";
-import { blue, red, green } from "@mui/material/colors";
-import { common } from "@mui/material/colors";
-import BackButton from "../components/common/BackButton";
+import { Box } from "@mui/material";
 import { useHistory } from "react-router-dom";
 import CustomAppBar from "../components/studentProgress/CustomAppBar";
-import DeleteParentAccount from "../components/parent/DeleteParentAccount";
-import { TrueFalseEnum } from "../interface/modelInterfaces";
 import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
@@ -45,7 +39,7 @@ const Parent: React.FC = () => {
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [soundFlag, setSoundFlag] = useState<number>();
   const [musicFlag, setMusicFlag] = useState<number>();
-  const [userProfile, setUserProfile] = useState<User[]>([]);
+  const [userProfile, setUserProfile] = useState<TableTypes<"user">[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
 
   const [langList, setLangList] = useState<
@@ -82,7 +76,7 @@ const Parent: React.FC = () => {
 
   async function getStudentProfile() {
     console.log("getStudentProfile");
-    const userProfilePromise: User[] =
+    const userProfilePromise: TableTypes<"user">[] =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     let finalUser: any[] = [];
     for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
@@ -96,7 +90,7 @@ const Parent: React.FC = () => {
     if (parentUser != undefined) {
       const currMode = await schoolUtil.getCurrMode();
       setStudentMode(currMode);
-      console.log("User ", parentUser?.musicOff!);
+      console.log("User ", parentUser?.music_off!);
       const sound = Util.getCurrentSound();
       const music = Util.getCurrentMusic();
       setSoundFlag(sound);
@@ -109,11 +103,11 @@ const Parent: React.FC = () => {
         const element = allLang[i];
 
         tempLangList.push({
-          id: element.docId,
-          displayName: element.title,
+          id: element.id,
+          displayName: element.name,
         });
-        tempLangDocIds.set(element.title, element.docId);
-        keytempLangDocIds.set(element.docId, element.title);
+        tempLangDocIds.set(element.name, element.id);
+        keytempLangDocIds.set(element.id, element.name);
       }
 
       setLangDocIds(tempLangDocIds);
@@ -122,9 +116,9 @@ const Parent: React.FC = () => {
       console.log(
         "current Lang",
         langDocIds,
-        langDocIds.get(parentUser?.language?.id!),
-        keytempLangDocIds.get(parentUser?.language?.id!),
-        langDocIds.get(parentUser?.language?.id!) || localAppLang || langList[0]
+        langDocIds.get(parentUser?.language_id!),
+        keytempLangDocIds.get(parentUser?.language_id!),
+        langDocIds.get(parentUser?.language_id!) || localAppLang || langList[0]
       );
 
       //console.log(localAppLang);
@@ -132,7 +126,7 @@ const Parent: React.FC = () => {
       const element = allLang.find((obj) => obj.code === localAppLang);
       if (!element) return;
 
-      setCurrentAppLang(element.docId);
+      setCurrentAppLang(element.id);
 
       setIsLoading(false);
     }
@@ -188,29 +182,25 @@ const Parent: React.FC = () => {
                 const api = ServiceConfig.getI().apiHandler;
                 // api.deleteAllUserData
                 // const langDoc = await api.getLanguageWithId(selectedLangDocId);
-                const allLang =
-                  await ServiceConfig.getI().apiHandler.getAllLanguages();
+                const allLang = await api.getAllLanguages();
 
                 const langDoc = allLang.find(
-                  (obj) => obj.docId === selectedLangDocId
+                  (obj) => obj.id === selectedLangDocId
                 );
 
                 if (!langDoc) return;
-                localStorage.setItem(LANGUAGE, langDoc.code);
+                localStorage.setItem(LANGUAGE, langDoc.code ?? "");
                 console.log("langDoc", langDoc);
-                await i18n.changeLanguage(langDoc.code);
+                await i18n.changeLanguage(langDoc.code ?? "");
                 console.log("applang", selectedLangDocId);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
                 setTabIndex(t(parentHeaderIconList[1].header));
 
-                const langId = langDocIds.get(langDoc.code);
+                const langId = langDocIds.get(langDoc.code ?? "");
 
                 if (currentUser && selectedLangDocId) {
-                  ServiceConfig.getI().apiHandler.updateLanguage(
-                    currentUser,
-                    selectedLangDocId
-                  );
+                  api.updateLanguage(currentUser.id, selectedLangDocId);
                 }
                 console.log("selectedLangDocId", selectedLangDocId);
                 setCurrentAppLang(selectedLangDocId);
@@ -229,8 +219,8 @@ const Parent: React.FC = () => {
                 Util.setCurrentSound(v.detail?.checked ? 0 : 1);
                 if (currentUser) {
                   ServiceConfig.getI().apiHandler.updateSoundFlag(
-                    currentUser,
-                    v.detail?.checked ? 0 : 1
+                    currentUser.id,
+                    v.detail?.checked
                   );
                 }
               }}
@@ -247,8 +237,8 @@ const Parent: React.FC = () => {
                 Util.setCurrentMusic(v.detail?.checked ? 0 : 1);
                 if (currentUser) {
                   ServiceConfig.getI().apiHandler.updateMusicFlag(
-                    currentUser,
-                    v.detail?.checked ? 0 : 1
+                    currentUser.id,
+                    v.detail?.checked
                   );
                 }
               }}
