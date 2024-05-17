@@ -79,7 +79,6 @@ import React from "react";
 import StudentProfile from "./pages/Malta/StudentProfile";
 import AddStudent from "./pages/Malta/AddStudent";
 import Dashboard from "./pages/Malta/Dashboard";
-import { FirebaseApi } from "./services/api/FirebaseApi";
 
 setupIonicReact();
 interface ExtraData {
@@ -179,136 +178,21 @@ const App: React.FC = () => {
     fetchData();
 
     Util.notificationListener(async (extraData: ExtraData | undefined) => {
-      const currentStudent = Util.getCurrentStudent();
-      if (extraData && extraData.notificationType === NOTIFICATIONTYPE.REWARD) {
-        const data = extraData as ExtraData;
-        const rewardProfileId = data.rewardProfileId;
-        if (rewardProfileId)
-          if (currentStudent?.docId === rewardProfileId) {
-            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
-          } else {
-            await Util.setCurrentStudent(null);
-            const students =
-              await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-            let matchingUser =
-              students.find((user) => user.docId === rewardProfileId) ||
-              students[0];
-            if (matchingUser) {
-              await Util.setCurrentStudent(matchingUser, undefined, true);
-              window.location.replace(
-                PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME
-              );
-            } else {
-              return;
-            }
-          }
-      } else if (
-        extraData &&
-        extraData.notificationType === NOTIFICATIONTYPE.ASSIGNMENT
-      ) {
-        if (extraData.classId) {
-          const classId = extraData.classId;
-          if (!classId) return;
-          const studentsData =
-            await FirebaseApi.getInstance().getStudentsForClass(classId);
-          let tempStudentIds: string[] = [];
-          for (let student of studentsData) {
-            tempStudentIds.push(student.docId);
-          }
-          for (let studentId of tempStudentIds) {
-            if (currentStudent?.docId === studentId) {
-              window.location.replace(
-                PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
-              );
-              return;
-            } else {
-              await Util.setCurrentStudent(null);
-              const students =
-                await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-              let matchingUser =
-                students.find((user) => user.docId === studentId) ||
-                students[0];
-              if (matchingUser) {
-                await Util.setCurrentStudent(matchingUser, undefined, true);
-                window.location.replace(
-                  PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
-                );
-                return;
-              } else {
-                return;
-              }
-            }
-          }
-        }
+      if (extraData) {
+        Util.navigateTabByNotificationData(extraData);
       }
     });
     updateAvatarSuggestionJson();
   }, []);
   const processNotificationData = async (data) => {
-    const currentStudent = Util.getCurrentStudent();
-    if (data && data.notificationType === NOTIFICATIONTYPE.REWARD) {
-      if (data.rewardProfileId) {
-        if (currentStudent?.docId === data.rewardProfileId) {
-          window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
-          return;
-        } else {
-          await Util.setCurrentStudent(null);
-          const students =
-            await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-          let matchingUser =
-            students.find((user) => user.docId === data.rewardProfileId) ||
-            students[0];
-          if (matchingUser) {
-            await Util.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
-            return;
-          } else {
-            return;
-          }
-        }
-      }
-    } else if (data && data.notificationType === NOTIFICATIONTYPE.ASSIGNMENT) {
-      if (data.classId) {
-        const classId = data.classId;
-        if (!classId) return;
-        const studentsData =
-          await FirebaseApi.getInstance().getStudentsForClass(classId);
-        let tempStudentIds: string[] = [];
-        for (let student of studentsData) {
-          tempStudentIds.push(student.docId);
-        }
-        for (let studentId of tempStudentIds) {
-          if (currentStudent?.docId === studentId) {
-            window.location.replace(
-              PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
-            );
-            return;
-          } else {
-            await Util.setCurrentStudent(null);
-            const students =
-              await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-            let matchingUser =
-              students.find((user) => user.docId === studentId) || students[0];
-            if (matchingUser) {
-              await Util.setCurrentStudent(matchingUser, undefined, true);
-              window.location.replace(
-                PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
-              );
-              return;
-            } else {
-              return;
-            }
-          }
-        }
-      }
-    }
+    Util.navigateTabByNotificationData(data);
   };
   const getNotificationData = async () => {
     if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
     if (Util.port && typeof Util.port.fetchNotificationData === "function") {
       try {
         const data = await Util.port.fetchNotificationData();
-        if (data && data.notificationType) {
+        if (data) {
           processNotificationData(data);
         }
       } catch (error) {

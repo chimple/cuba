@@ -46,55 +46,45 @@ public class PortPlugin extends Plugin {
     }
   }
 
-  private String notificationType;
-  private String rewardProfileId;
-  private String classId;
+  private Bundle notificationExtras;
 
   @Override
   protected void handleOnNewIntent(Intent data) {
     super.handleOnNewIntent(data);
     Bundle extras = data.getExtras();
     if (extras != null) {
-      this.notificationType = extras.getString("notificationType");
-      this.rewardProfileId = extras.getString("rewardProfileId");
-      this.classId = extras.getString("classId");
+      notificationExtras = new Bundle(extras);
       JSObject eventData = new JSObject();
-      eventData.put("notificationType", notificationType);
-      eventData.put("rewardProfileId", rewardProfileId);
-      eventData.put("classId", classId);
+      for (String key : extras.keySet()) {
+        Object value = extras.get(key);
+        if (value != null) {
+          eventData.put(key, value.toString());
+        }
+      }
       notifyListeners("notificationOpened", eventData);
     }
   }
 
   @PluginMethod
   public void fetchNotificationData(PluginCall call) {
-    String notificationType = this.notificationType;
-    String rewardProfileId = this.rewardProfileId;
-    String classId = this.classId;
-    Log.d("MainActivity", "logs of fetchNotificationData" + rewardProfileId);
-    Log.d("MainActivity", "logs of fetchNotificationData" + notificationType);
-    Log.d("MainActivity", "logs of fetchNotificationData" + classId);
-
-    if (notificationType != null && rewardProfileId != null) {
-      String jsonData = "{\"notificationType\": \"" +
-          notificationType +
-          "\", \"rewardProfileId\": \"" +
-          rewardProfileId +
-          "\"}";
-    } else {
-      Log.d("MainActivity", "Notification data not found");
-    }
-    if ((notificationType != null && rewardProfileId != null) || (notificationType != null && classId != null)) {
+    if (notificationExtras != null) {
       JSObject result = new JSObject();
-      result.put("notificationType", notificationType);
-      result.put("rewardProfileId", rewardProfileId);
-      result.put("classId", classId);
-      call.resolve(result);
-      this.notificationType = null;
-      this.rewardProfileId = null;
-      this.classId = null;
+
+      for (String key : notificationExtras.keySet()) {
+        Object value = notificationExtras.get(key);
+        if (value != null) {
+          result.put(key, value.toString());
+          Log.d("fetchNotificationData", "Added to result: " + key + " = " + value.toString());
+        }
+      }
+      if (result.length() > 0) {
+        call.resolve(result);
+        notificationExtras.clear();
+      } else {
+        call.reject("Data not found in Java code");
+      }
     } else {
-      call.reject("Data not found in Java code");
+      call.reject("No notification data available");
     }
   }
 
