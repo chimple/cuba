@@ -133,7 +133,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getCoursesByGrade(gradeDocId);
   }
 
-  public async getAllCourses(): Promise<Course[]> {
+  public async getAllCourses(): Promise<TableTypes<"course">[]> {
     return await this.s.getAllCourses();
   }
 

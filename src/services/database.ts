@@ -1064,6 +1064,7 @@ export type Database = {
           avatar: string | null
           created_at: string
           curriculum_id: string | null
+          email: string | null
           gender: string | null
           grade_id: string | null
           id: string
@@ -1073,16 +1074,16 @@ export type Database = {
           language_id: string | null
           music_off: boolean | null
           name: string | null
+          phone: string | null
           sfx_off: boolean | null
           updated_at: string | null
-          usernamemail: string | null
-          usernamephone: string | null
         }
         Insert: {
           age?: number | null
           avatar?: string | null
           created_at?: string
           curriculum_id?: string | null
+          email?: string | null
           gender?: string | null
           grade_id?: string | null
           id?: string
@@ -1092,16 +1093,16 @@ export type Database = {
           language_id?: string | null
           music_off?: boolean | null
           name?: string | null
+          phone?: string | null
           sfx_off?: boolean | null
           updated_at?: string | null
-          usernamemail?: string | null
-          usernamephone?: string | null
         }
         Update: {
           age?: number | null
           avatar?: string | null
           created_at?: string
           curriculum_id?: string | null
+          email?: string | null
           gender?: string | null
           grade_id?: string | null
           id?: string
@@ -1111,10 +1112,9 @@ export type Database = {
           language_id?: string | null
           music_off?: boolean | null
           name?: string | null
+          phone?: string | null
           sfx_off?: boolean | null
           updated_at?: string | null
-          usernamemail?: string | null
-          usernamephone?: string | null
         }
         Relationships: [
           {

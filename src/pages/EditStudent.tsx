@@ -40,6 +40,7 @@ const EditStudent = () => {
   const state = history.location.state as any;
   const api = ServiceConfig.getI().apiHandler;
   const currentStudent = Util.getCurrentStudent();
+  console.log("🚀 ~ EditStudent ~ currentStudent:", currentStudent);
   const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
 
   enum STAGES {
@@ -70,10 +71,10 @@ const EditStudent = () => {
     isEdit ? currentStudent?.avatar ?? undefined : undefined
   );
   const [board, setBoard] = useState<string | undefined>(
-    isEdit ? currentStudent?.id ?? undefined : undefined
+    isEdit ? currentStudent?.curriculum_id ?? undefined : undefined
   );
   const [grade, setGrade] = useState<string | undefined>(
-    isEdit ? currentStudent?.curriculum_id ?? undefined : undefined
+    isEdit ? currentStudent?.grade_id ?? undefined : undefined
   );
   const [language, setLanguage] = useState<string | undefined>(
     isEdit ? currentStudent?.language_id ?? undefined : undefined
@@ -118,7 +119,7 @@ const EditStudent = () => {
           user_name: studentName!,
           user_gender: currentStudent.gender!,
           user_age: currentStudent.age!,
-          phone_number: currentStudent.usernamephone,
+          phone_number: currentStudent.phone,
           // parent_username: currentStudent.username,
           parent_id: currentStudent.id,
           action_type: ACTION.UPDATE,

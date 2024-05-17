@@ -103,7 +103,7 @@ const Leaderboard: React.FC = () => {
       const getClass = await api.getStudentClassesAndSchools(currentStudent.id);
       const currMode = await schoolUtil.getCurrMode();
       setStudentMode(currMode);
-      if (getClass?.classes != undefined) {
+      if (getClass?.classes && getClass?.classes.length > 0) {
         fetchLeaderBoardData(
           currentStudent,
           LeaderboardDropdownList.WEEKLY,

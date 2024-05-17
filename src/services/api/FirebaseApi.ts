@@ -1696,7 +1696,7 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  public async getAllCourses(): Promise<Course[]> {
+  public async getAllCourses(): Promise<TableTypes<"course">[]> {
     try {
       const querySnapshot = await this.getDocsFromOffline(
         collection(this._db, CollectionIds.COURSE)

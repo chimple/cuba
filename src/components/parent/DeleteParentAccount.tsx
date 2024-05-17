@@ -28,7 +28,7 @@ const DeleteParentAccount: React.FC<{}> = ({}) => {
       user_name: user?.name,
       user_gender: user?.gender!,
       user_age: user?.age!,
-      phone_number: user?.usernamephone,
+      phone_number: user?.phone,
       // parent_id: user?.uid,
       // parent_username: user?.username,
       action_type: ACTION.DELETE,

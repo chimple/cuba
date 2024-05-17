@@ -423,7 +423,7 @@ export interface ServiceApi {
    * @returns {Course[]} Array of `Course` objects
    */
   getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]>;
-  getAllCourses(): Promise<Course[]>;
+  getAllCourses(): Promise<TableTypes<"course">[]>;
 
   /**
    * Deletes all the data related to user from database.

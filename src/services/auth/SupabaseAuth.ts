@@ -62,11 +62,12 @@ export class SupabaseAuth implements ServiceAuth {
           language_id: null,
           name: authUser.name,
           updated_at: new Date().toISOString(),
-          usernamemail: authUser.email,
-          usernamephone: data.user?.phone ?? null,
+          email: authUser.email,
+          phone: data.user?.phone ?? null,
           music_off: false,
           sfx_off: false,
         });
+        this._currentUser = createdUser;
       }
       const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
     } catch (error) {

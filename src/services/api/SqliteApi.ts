@@ -321,8 +321,8 @@ export class SqliteApi implements ServiceApi {
       name: name,
       grade_id: gradeDocId ?? null,
       updated_at: new Date().toISOString(),
-      usernamemail: null,
-      usernamephone: null,
+      email: null,
+      phone: null,
       music_off: false,
       sfx_off: false,
     };
@@ -361,12 +361,37 @@ export class SqliteApi implements ServiceApi {
       [newParentUser.id, newParentUser.parent_id, newParentUser.student_id]
     );
     console.log("🚀 ~ SqliteApi ~ res1:", res1);
+
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
     this.updatePushChanges(
       TABLES.ParentUser,
       MUTATE_TYPES.INSERT,
       newParentUser
     );
+    const courses = await this.getAllCourses();
+    const courseIds = courses.map((val) => val.id);
+    for (const courseId of courseIds) {
+      const newUserCourse: TableTypes<"user_course"> = {
+        course_id: courseId,
+        created_at: new Date().toISOString(),
+        id: uuidv4(),
+        is_deleted: false,
+        updated_at: new Date().toISOString(),
+        user_id: newStudent.id,
+      };
+      await this.executeQuery(
+        `
+        INSERT INTO user_course (id, user_id, course_id)
+      VALUES (?, ?, ?);
+    `,
+        [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
+      );
+      this.updatePushChanges(
+        TABLES.UserCourse,
+        MUTATE_TYPES.INSERT,
+        newUserCourse
+      );
+    }
 
     return newStudent;
   }
@@ -477,7 +502,17 @@ export class SqliteApi implements ServiceApi {
     WHERE id = "${userId}";
   `;
     const res = await this.executeQuery(query);
-    console.log("🚀 ~ SqliteApi ~ updateTcAccept ~ res:", res);
+    console.log(
+      "🚀 ~ SqliteApi ~ updateTcAccept ~ res:",
+      res,
+      ServiceConfig.getI().authHandler.currentUser
+    );
+    const auth = ServiceConfig.getI().authHandler;
+    const currentUser = await auth.getCurrentUser();
+    if (currentUser) {
+      currentUser.is_tc_accepted = true;
+      auth.currentUser = currentUser;
+    }
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       is_tc_accepted: 1,
       id: userId,
@@ -974,7 +1009,7 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
-  async getAllCourses(): Promise<Course[]> {
+  async getAllCourses(): Promise<TableTypes<"course">[]> {
     const res = await this._db?.query(`select * from ${TABLES.Course}`);
     return res?.values ?? [];
   }
