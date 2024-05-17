@@ -89,10 +89,11 @@ const JoinClass: FC<{
   const location = useLocation();
 
   useEffect(() => {
-    //Util.isTextFieldFocus(scollToRef, setIsInputFocus);
-    document.addEventListener('visibilitychange', () => {
+    const handleVisibilityChange = () => {
       setVisiabilityChange(!visiabilityChange)
-    });
+    };
+    //Util.isTextFieldFocus(scollToRef, setIsInputFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     const urlParams = new URLSearchParams(location.search);
     const joinClassParam = urlParams.get("join-class");
     const classCode = urlParams.get("classCode");
@@ -108,7 +109,7 @@ const JoinClass: FC<{
       }
     }
     return () => {
-      document.removeEventListener('visibilitychange', () => { });
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [visiabilityChange]);
 
