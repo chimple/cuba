@@ -146,12 +146,13 @@ const Home: FC = () => {
         : currentHeader
     );
     localStorage.setItem("currentHeader", currentHeader);
-    if (currentHeader !== HOMEHEADERLIST.HOME) {
+    if ((currentHeader !== HOMEHEADERLIST.HOME) && (currentHeader !== HOMEHEADERLIST.PROFILE)) {
       fetchData();
     }
   }, [currentHeader]);
   const initData = async () => {
     fetchData();
+    await getRecommendeds(HOMEHEADERLIST.HOME);
     await isLinked();
     urlOpenListenerEvent();
   };
@@ -173,8 +174,6 @@ const Home: FC = () => {
   const fetchData = async () => {
     setIsLoading(true);
 
-    const lessonResult = await getRecommendeds(HOMEHEADERLIST.HOME);
-    console.log("resultTemp", lessonResult);
     const allLessonIds = await getHistory();
     if (allLessonIds) setValidLessonIds(allLessonIds);
     AvatarObj.getInstance().unlockedRewards =
