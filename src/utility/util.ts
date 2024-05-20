@@ -1290,26 +1290,29 @@ export class Util {
         for (let student of studentsData) {
           tempStudentIds.push(student.docId);
         }
+        let foundMatch = false;
         for (let studentId of tempStudentIds) {
           if (currentStudent?.docId === studentId) {
             window.location.replace(
               PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
             );
-            return;
+            foundMatch = true;
+            break;
           } else {
-            await this.setCurrentStudent(null);
-            const students = await api.getParentStudentProfiles();
-            let matchingUser =
-              students.find((user) => user.docId === studentId) || students[0];
-            if (matchingUser) {
-              await this.setCurrentStudent(matchingUser, undefined, true);
-              window.location.replace(
-                PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
-              );
-              return;
-            } else {
-              return;
-            }
+            console.log("not matching current student");
+          }
+        }
+        if (!foundMatch) {
+          await this.setCurrentStudent(null);
+          const students = await api.getParentStudentProfiles();
+          let matchingUser =
+            students.find((user) => tempStudentIds.includes(user.docId)) ||
+            students[0];
+          if (matchingUser) {
+            await this.setCurrentStudent(matchingUser, undefined, true);
+            window.location.replace(
+              PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
+            );
           }
         }
       }
