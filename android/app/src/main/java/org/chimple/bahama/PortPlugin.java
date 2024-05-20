@@ -67,9 +67,9 @@ public class PortPlugin extends Plugin {
 
   @PluginMethod
   public void fetchNotificationData(PluginCall call) {
-    if (notificationExtras != null) {
-      JSObject result = new JSObject();
+    JSObject result = new JSObject();
 
+    if (notificationExtras != null) {
       for (String key : notificationExtras.keySet()) {
         Object value = notificationExtras.get(key);
         if (value != null) {
@@ -77,14 +77,13 @@ public class PortPlugin extends Plugin {
           Log.d("fetchNotificationData", "Added to result: " + key + " = " + value.toString());
         }
       }
-      if (result.length() > 0) {
-        call.resolve(result);
-        notificationExtras.clear();
-      } else {
-        call.reject("Data not found in Java code");
-      }
+      notificationExtras.clear();
+    }
+
+    if (result.length() > 0) {
+      call.resolve(result);
     } else {
-      call.reject("No notification data available");
+      call.resolve(new JSObject());
     }
   }
 
