@@ -44,6 +44,7 @@ import {
   LESSON_DOWNLOAD_SUCCESS_EVENT,
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
   HOMEHEADERLIST,
+  NOTIFICATIONTYPE,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -1259,6 +1260,61 @@ export class Util {
     }
   }
 
+  public static async navigateTabByNotificationData(data: any) {
+    const currentStudent = this.getCurrentStudent();
+    const api = ServiceConfig.getI().apiHandler;
+    if (data && data.notificationType === NOTIFICATIONTYPE.REWARD) {
+      const rewardProfileId = data.rewardProfileId;
+      if (rewardProfileId)
+        if (currentStudent?.docId === rewardProfileId) {
+          window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+        } else {
+          await this.setCurrentStudent(null);
+          const students = await api.getParentStudentProfiles();
+          let matchingUser =
+            students.find((user) => user.docId === rewardProfileId) ||
+            students[0];
+          if (matchingUser) {
+            await this.setCurrentStudent(matchingUser, undefined, true);
+            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+          } else {
+            return;
+          }
+        }
+    } else if (data && data.notificationType === NOTIFICATIONTYPE.ASSIGNMENT) {
+      if (data.classId) {
+        const classId = data.classId;
+        if (!classId) return;
+        const studentsData = await api.getStudentsForClass(classId);
+        let tempStudentIds: string[] = [];
+        for (let student of studentsData) {
+          tempStudentIds.push(student.docId);
+        }
+        for (let studentId of tempStudentIds) {
+          if (currentStudent?.docId === studentId) {
+            window.location.replace(
+              PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
+            );
+            return;
+          } else {
+            await this.setCurrentStudent(null);
+            const students = await api.getParentStudentProfiles();
+            let matchingUser =
+              students.find((user) => user.docId === studentId) || students[0];
+            if (matchingUser) {
+              await this.setCurrentStudent(matchingUser, undefined, true);
+              window.location.replace(
+                PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
+              );
+              return;
+            } else {
+              return;
+            }
+          }
+        }
+      }
+    }
+  }
   public static canCheckUpdate(updateFor: string) {
     const tempLastUpdateChecked = localStorage.getItem(updateFor);
     const now = new Date();
