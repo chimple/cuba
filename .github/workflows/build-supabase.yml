@@ -79,7 +79,7 @@ jobs:
           git config --global user.email prakash@sutara.org
           git config --global user.name  bhanugummana
           git remote add origin https://${{ secrets.ACCESS_TOKEN }}@github.com/chimple/cuba.git
-          git checkout -b apk
+          git checkout -b supabase-dev-apk
           git add app-debug.apk
           git commit -m "created apk"
           #git push --force secure-origin apk
