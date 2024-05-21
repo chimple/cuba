@@ -76,7 +76,7 @@ export enum USERTYPES {
   PRINCIAPAL = "Principal",
   SPONSORS = "Sponsors",
   TEACHERS = "Teachers",
-  STUDENTS = 'Students'
+  STUDENTS = "Students",
 }
 
 export enum TABLEDROPDOWN {
@@ -84,9 +84,8 @@ export enum TABLEDROPDOWN {
   MONTHLY = "Monthly",
   WEEKLY = "Weekly",
   LIVEQUIZ = "LiveQuiz",
-  CHAPTER = 'Chapter'
+  CHAPTER = "Chapter",
 }
-
 
 export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu";
 export const grade1 = "R5sDh8LKKBx7D7o1MMl0";
@@ -579,3 +578,7 @@ export const ALL_LESSON_DOWNLOAD_SUCCESS_EVENT = "all_lesson_download_success";
 export const DOWNLOAD_BUTTON_LOADING_STATUS = "download_button_loading_status";
 export const DOMAIN = "@chimple.net";
 export const AT_SYMBOL_RESTRICTION = /@/;
+export const SELECTED_STUDENTS = "selectedStudent";
+export const SELECTED_CLASSES = "selectedClasses";
+export const CURRENT_CLASS_NAME = "currClassName";
+export const CURRENT_SCHOOL_NAME = "currentSchoolName";

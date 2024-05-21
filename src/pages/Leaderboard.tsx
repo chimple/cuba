@@ -10,6 +10,7 @@ import {
   LANGUAGE,
   LeaderboardDropdownList,
   HOMEHEADERLIST,
+  CURRENT_MODE,
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import BackButton from "../components/common/BackButton";
@@ -163,8 +164,8 @@ const Leaderboard: React.FC = () => {
       leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
         ? tempLeaderboardData.weekly
         : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
-        ? tempLeaderboardData.monthly
-        : tempLeaderboardData.allTime;
+          ? tempLeaderboardData.monthly
+          : tempLeaderboardData.allTime;
 
     let tempLeaderboardDataArray: any[][] = [];
     let tempCurrentUserDataContent: any[][] = [];
@@ -219,8 +220,8 @@ const Leaderboard: React.FC = () => {
           leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
             ? b2cData.weekly
             : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
-            ? b2cData.monthly
-            : b2cData.allTime;
+              ? b2cData.monthly
+              : b2cData.allTime;
 
         var computeMinutes = Math.floor(tempData[0].timeSpent / 60);
         var computeSeconds = tempData[0].timeSpent % 60;
@@ -371,7 +372,9 @@ const Leaderboard: React.FC = () => {
             })}
           </div>
           <p id="leaderboard-left-note-message">
-            {t("***Be among the top performers in your class to win an exciting reward")}
+            {t(
+              "***Be among the top performers in your class to win an exciting reward"
+            )}
           </p>
         </div>
         <div id="leaderboard-right-UI">
@@ -402,20 +405,20 @@ const Leaderboard: React.FC = () => {
                     headerRowIndicator === 0
                       ? "rgb(200 200 200)"
                       : Number(currentUserDataContent[0][1]) ===
-                          headerRowIndicator ||
-                        currentUserDataContent[0][1] ===
-                          headerRowIndicator + "+"
-                      ? "#FF7925"
-                      : "",
+                            headerRowIndicator ||
+                          currentUserDataContent[0][1] ===
+                            headerRowIndicator + "+"
+                        ? "#FF7925"
+                        : "",
                   padding:
                     headerRowIndicator === 0
                       ? "1vh 2vh"
                       : Number(currentUserDataContent[0][1]) ===
-                          headerRowIndicator ||
-                        currentUserDataContent[0][1] ===
-                          headerRowIndicator + "+"
-                      ? "0vh 2vh"
-                      : "1vh 2vh ",
+                            headerRowIndicator ||
+                          currentUserDataContent[0][1] ===
+                            headerRowIndicator + "+"
+                        ? "0vh 2vh"
+                        : "1vh 2vh ",
                   position: "sticky",
                   zIndex: headerRowIndicator === 0 ? "3" : "0",
                   top: "0px",
@@ -511,7 +514,7 @@ const Leaderboard: React.FC = () => {
     // </IonPage>
 
     <IonPage>
-      {!isLoading? (
+      {!isLoading ? (
         <Box>
           <div id="LeaderBoard-Header">
             <BackButton
@@ -589,7 +592,16 @@ const Leaderboard: React.FC = () => {
                     await i18n.changeLanguage(tempLangCode);
                   }
                 }
-                Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
+                const currentMOde = localStorage.getItem(CURRENT_MODE);
+                if (currentMOde === MODES.PARENT) {
+                  Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
+                } else {
+                  Util.setPathToBackButton(PAGES.SELECT_MODE, history);
+                  Util.setPathToBackButton(
+                    PAGES.SELECT_MODE + "?tab=" + "student",
+                    history
+                  );
+                }
               }}
             >
               <img
@@ -615,7 +627,10 @@ const Leaderboard: React.FC = () => {
           </Box>
         </Box>
       ) : null}
-      <SkeltonLoading isLoading={isLoading} header={LEADERBOARDHEADERLIST.LEADERBOARD}/>
+      <SkeltonLoading
+        isLoading={isLoading}
+        header={LEADERBOARDHEADERLIST.LEADERBOARD}
+      />
     </IonPage>
   );
 };
