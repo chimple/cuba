@@ -191,9 +191,9 @@ const ChimpleAvatar: FC<{
     } else {
       console.log("Rive component not fully initialized yet");
     }
-    if (!isTtsPlaying) {
-      await speak();
-    }
+    // if (!isTtsPlaying) {
+    await speak();
+    // }
   };
 
   async function onClickNo() {

@@ -47,13 +47,13 @@ export function useTtsAudioPlayer(audioText: string) {
     }
     return () => {
       console.log("return called in useEffect(() ");
-      TextToSpeech.stop();
+      stop();
     };
   }, [isTtsPlaying]);
   useEffect(() => {
     return () => {
       console.log("return called in useEffect(() => { TextToSpeech.stop();");
-      TextToSpeech.stop();
+      stop();
     };
   }, []);
   const speak = async (audioMessage?: string, audioLang: string = "en-IN") => {
@@ -95,6 +95,7 @@ export function useTtsAudioPlayer(audioText: string) {
   const stop = async () => {
     if (isTtsPlaying) {
       await TextToSpeech.stop();
+      setIsTtsPlaying(false);
     }
   };
 
