@@ -1298,9 +1298,7 @@ export class Util {
             );
             foundMatch = true;
             break;
-          } else {
-            console.log("not matching current student");
-          }
+          } 
         }
         if (!foundMatch) {
           await this.setCurrentStudent(null);
