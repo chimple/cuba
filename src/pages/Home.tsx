@@ -126,6 +126,13 @@ const Home: FC = () => {
     }
   });
   useEffect(() => {
+    const student = Util.getCurrentStudent();
+
+    if (!student) {
+      history.replace(PAGES.SELECT_MODE);
+      return;
+    }
+    urlOpenListenerEvent();
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
     initData();
@@ -146,8 +153,6 @@ const Home: FC = () => {
         : currentHeader
     );
     localStorage.setItem("currentHeader", currentHeader);
-    if (currentHeader != HOMEHEADERLIST.PROFILE)
-      urlOpenListenerEvent();
     if (currentHeader !== HOMEHEADERLIST.HOME) {
       fetchData();
     }
@@ -225,14 +230,9 @@ const Home: FC = () => {
   async function getAssignments(): Promise<Lesson[]> {
     let reqLes: Lesson[] = [];
     // setIsLoading(true);
-    const student = await Util.getCurrentStudent();
-
-    if (!student) {
-      history.replace(PAGES.SELECT_MODE);
-      return [];
-    }
-    const studentResult = await api.getStudentResult(student.docId);
-    if (
+    const student = Util.getCurrentStudent();
+    const studentResult = student != null ? await api.getStudentResult(student.docId) : null;
+    if (student &&
       !!studentResult &&
       !!studentResult.classes &&
       studentResult.classes.length > 0
