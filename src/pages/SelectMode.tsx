@@ -12,6 +12,10 @@ import {
   CURRENT_SCHOOL,
   MODES,
   PAGES,
+  SELECTED_STUDENTS,
+  CURRENT_SCHOOL_NAME,
+  CURRENT_CLASS_NAME,
+  SELECTED_CLASSES,
 } from "../common/constants";
 import SelectModeButton from "../components/selectMode/SelectModeButton";
 import { IoMdPeople } from "react-icons/io";
@@ -31,10 +35,10 @@ import React from "react";
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   enum STAGES {
-    MODE,
-    SCHOOL,
-    CLASS,
-    STUDENT,
+    MODE = "mode",
+    SCHOOL = "school",
+    CLASS = "class",
+    STUDENT = "student",
   }
   const [schoolList, setSchoolList] = useState<
     {
@@ -72,6 +76,38 @@ const SelectMode: FC = () => {
   const [stage, setStage] = useState(STAGES.MODE);
   const [isOkayButtonDisabled, setIsOkayButtonDisabled] = useState(true);
   const init = async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const setTab = urlParams.get("tab");
+
+    if (setTab) {
+      if (setTab === STAGES.STUDENT) {
+        setStage(STAGES.STUDENT);
+      }
+    }
+    const displayClasses = localStorage.getItem(SELECTED_CLASSES);
+    if (displayClasses) {
+      setCurrentClasses(JSON.parse(displayClasses));
+    }
+    const displayStudent = localStorage.getItem(SELECTED_STUDENTS);
+    if (displayStudent) {
+      setCurrentStudents(JSON.parse(displayStudent));
+    }
+
+    const currentMode = localStorage.getItem(CURRENT_MODE);
+    if (currentMode == MODES.PARENT) {
+      schoolUtil.setCurrMode(MODES.PARENT);
+      history.replace(PAGES.DISPLAY_STUDENT);
+    } else if (currentMode == MODES.SCHOOL) {
+      const schoolName = localStorage.getItem(CURRENT_SCHOOL_NAME);
+      if (schoolName) setCurrentSchoolName(JSON.parse(schoolName));
+      const className = localStorage.getItem(CURRENT_CLASS_NAME);
+      if (className) setCurrClass(JSON.parse(className));
+      if (schoolName && className) {
+        setStage(STAGES.STUDENT);
+      } else {
+        setStage(STAGES.MODE);
+      }
+    }
     const currUser = await auth.getCurrentUser();
     if (!currUser) return;
     const allSchool = await api.getSchoolsForUser(currUser);
@@ -94,7 +130,6 @@ const SelectMode: FC = () => {
     //   return;
     // }
 
-    console.log("allSchool", allSchool);
     for (let i = 0; i < allSchool.length; i++) {
       const element = allSchool[i];
       tempSchoolList.push({
@@ -133,6 +168,7 @@ const SelectMode: FC = () => {
     const element = await api.getClassesForSchool(currentSchool, currentUser);
     console.log("this are the classes " + element);
     setCurrentClasses(element);
+    localStorage.setItem(SELECTED_CLASSES, JSON.stringify(element));
 
     return;
   };
@@ -143,6 +179,7 @@ const SelectMode: FC = () => {
     if (!element) return;
     setCurrentStudents(element);
 
+    localStorage.setItem(SELECTED_STUDENTS, JSON.stringify(element));
     return;
   };
   const onStudentClick = async (student: User) => {
@@ -187,46 +224,59 @@ const SelectMode: FC = () => {
 
           <div>
             {stage === STAGES.SCHOOL && (
-              <div className="select-school-main">
-                <span className="select-school-text">
-                  {t("Choose the School")}
-                </span>
-                <DropDown
-                  placeholder={t("Select the School").toString()}
-                  onValueChange={async (selectedSchoolDocId) => {
-                    const currSchool = schoolList.find(
-                      (element) => element.id === selectedSchoolDocId
-                    )?.school;
+              <div>
+                <div className="back-button-container">
+                  <BackButton
+                    onClicked={() => {
+                      //  history.replace(PAGES.SELECT_SCHOOL);
+                      setStage(STAGES.MODE);
+                    }}
+                  />
+                </div>
+                <div className="select-school-main">
+                  <span className="select-school-text">
+                    {t("Choose the School")}
+                  </span>
+                  <DropDown
+                    placeholder={t("Select the School").toString()}
+                    onValueChange={async (selectedSchoolDocId) => {
+                      const currSchool = schoolList.find(
+                        (element) => element.id === selectedSchoolDocId
+                      )?.school;
 
-                    if (!currSchool) {
-                      setIsOkayButtonDisabled(true);
+                      if (!currSchool) {
+                        setIsOkayButtonDisabled(true);
+                        return;
+                      }
+                      setCurrentSchool(currSchool);
+                      localStorage.setItem(
+                        CURRENT_SCHOOL_NAME,
+                        JSON.stringify(currSchool.name)
+                      );
+                      setCurrentSchoolName(currSchool.name);
+                      setCurrentSchoolId(currSchool.docId);
+                      setIsOkayButtonDisabled(false);
+                      schoolUtil.setCurrentSchool(currSchool);
+                    }}
+                    optionList={schoolList}
+                    width="26vw"
+                    currentValue={currentSchoolId}
+                  />
+                  <button
+                    className={`okay-btn ${
+                      isOkayButtonDisabled ? "okay-btn-disabled" : ""
+                    }`}
+                    onClick={async function () {
+                      // history.replace(PAGES.SELECT_CLASS);
+                      await displayClasses();
+                      setStage(STAGES.CLASS);
                       return;
-                    }
-                    console.log(currSchool);
-                    setCurrentSchool(currSchool);
-                    setCurrentSchoolName(currSchool.name);
-                    setCurrentSchoolId(currSchool.docId);
-                    setIsOkayButtonDisabled(false);
-                    schoolUtil.setCurrentSchool(currSchool);
-                  }}
-                  optionList={schoolList}
-                  width="26vw"
-                  currentValue={currentSchoolId}
-                />
-                <button
-                  className={`okay-btn ${
-                    isOkayButtonDisabled ? "okay-btn-disabled" : ""
-                  }`}
-                  onClick={async function () {
-                    // history.replace(PAGES.SELECT_CLASS);
-                    await displayClasses();
-                    setStage(STAGES.CLASS);
-                    return;
-                  }}
-                  disabled={isOkayButtonDisabled}
-                >
-                  {t("Okay")}
-                </button>
+                    }}
+                    disabled={isOkayButtonDisabled}
+                  >
+                    {t("Okay")}
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -257,6 +307,10 @@ const SelectMode: FC = () => {
                         console.log("This is the selected class " + tempClass);
                         setCurrClass(tempClass);
 
+                        localStorage.setItem(
+                          CURRENT_CLASS_NAME,
+                          JSON.stringify(tempClass)
+                        );
                         await displayStudents(tempClass);
                         setStage(STAGES.STUDENT);
                       }}
