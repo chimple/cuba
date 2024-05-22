@@ -37,7 +37,6 @@ const SelectIconImage: FC<{
           style={{
             width: imageWidth,
             height: imageHeight,
-            display: "none",
           }}
           src={localSrc}
           alt=""
@@ -68,9 +67,14 @@ const SelectIconImage: FC<{
           }}
           src={defaultSrc}
           alt=""
+          onError={handleImageError}
         />
       )}
     </div>
   );
+  function handleImageError(ev) {
+    setLoadIcon(LoadIcon.Local);
+    ev.target.style.display = "contents";
+  }
 };
 export default SelectIconImage;

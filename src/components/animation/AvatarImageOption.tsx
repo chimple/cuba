@@ -163,10 +163,18 @@ const AvatarImageOption: React.FC<{
       }
       break;
     case AvatarModes.TwoOptionQuestion:
-      content = cardContent("", "", AvatarObj.getInstance().imageSrc || "");
+      content = cardContent(
+        AvatarObj.getInstance().imageSrc,
+        "",
+        AvatarObj.getInstance().imageSrc
+      );
       break;
     case AvatarModes.FourOptionQuestion:
-      content = cardContent("", "", AvatarObj.getInstance().imageSrc || "");
+      content = cardContent(
+        AvatarObj.getInstance().imageSrc,
+        "",
+        AvatarObj.getInstance().imageSrc
+      );
       break;
     case AvatarModes.RecommendedLesson:
       if (currentLesson) {
@@ -211,7 +219,11 @@ const AvatarImageOption: React.FC<{
   }
 
   function cardContent(localSrc: string, defalutSrc: string, webSrc: string) {
-    let contentWidth = "40vw";
+    let contentWidth =
+      currentMode === AvatarModes.FourOptionQuestion ||
+      currentMode === AvatarModes.TwoOptionQuestion
+        ? "16vw"
+        : "40vw";
     let contentHeight = "40vh";
     return (
       <div
