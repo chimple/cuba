@@ -131,7 +131,7 @@ const Home: FC = () => {
     Util.checkDownloadedLessonsFromLocal();
     initData();
     setCurrentHeader(HOMEHEADERLIST.HOME);
-    setValue(SUBTAB.SUGGESTIONS);    
+    setValue(SUBTAB.SUGGESTIONS);
     getCanShowAvatar();
     if (!!urlParams.get(CONTINUE)) {
       setCurrentHeader(currentHeader);
@@ -147,17 +147,14 @@ const Home: FC = () => {
     );
     localStorage.setItem("currentHeader", currentHeader);
     if ((currentHeader !== HOMEHEADERLIST.HOME) && (currentHeader !== HOMEHEADERLIST.PROFILE)) {
-      fetchHomeRecommendations();
       fetchData();
     }
   }, [currentHeader]);
   const initData = async () => {
     fetchData();
+    await getRecommendeds(HOMEHEADERLIST.HOME);
     await isLinked();
     urlOpenListenerEvent();
-  };
-  const fetchHomeRecommendations = async () => {
-    await getRecommendeds(HOMEHEADERLIST.HOME);
   };
 
   function sortPlayedLessonDocByDate(playedLessonData) {
