@@ -459,7 +459,7 @@ const Home: FC = () => {
     //   }
 
     let reqLes: Lesson[] = [];
-    setIsLoading(true);
+    // setIsLoading(true);
     let tempResultLessonMap:
       | { [lessonDocId: string]: StudentLessonResult }
       | undefined = {};
@@ -507,7 +507,7 @@ const Home: FC = () => {
       : api.getCoursesForParentsStudent(currentStudent));
     setCourses(courses);
     for (const tempCourse of courses) {
-      setIsLoading(true);
+      // setIsLoading(true);
       if (tempCourse.chapters.length <= 0) {
         console.log("Chapters are empty", tempCourse);
         continue;
@@ -594,7 +594,7 @@ const Home: FC = () => {
       if (!sortLessonResultMap) {
         console.log("ERERERER");
         // setDataCourse(reqLes);
-        setIsLoading(false);
+        // setIsLoading(false);
         continue;
       }
       Object.entries(sortLessonResultMap).forEach(async (v, k) => {
@@ -617,7 +617,7 @@ const Home: FC = () => {
     console.log("reqLes outside.", reqLes);
     // setDataCourse(reqLes);
     // storeRecommendationsInLocalStorage(reqLes);
-    setIsLoading(false);
+    // setIsLoading(false);
     // return sortLessonResultMap;
     return reqLes;
   }
