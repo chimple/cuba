@@ -392,7 +392,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_deleted: boolean | null
-          role: Database["public"]["Enums"]["role"] | null
+          role: Database["public"]["Enums"]["role"]
           updated_at: string | null
           user_id: string
         }
@@ -401,7 +401,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
-          role?: Database["public"]["Enums"]["role"] | null
+          role: Database["public"]["Enums"]["role"]
           updated_at?: string | null
           user_id: string
         }
@@ -410,7 +410,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
-          role?: Database["public"]["Enums"]["role"] | null
+          role?: Database["public"]["Enums"]["role"]
           updated_at?: string | null
           user_id?: string
         }
@@ -844,30 +844,30 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
-          monthly: Json | null
+          monthly: string | null
           updated_at: string | null
-          weekly: Json | null
-          weeklySticker: Json | null
+          weekly: string | null
+          weeklySticker: string | null
           year: number
         }
         Insert: {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          monthly?: Json | null
+          monthly?: string | null
           updated_at?: string | null
-          weekly?: Json | null
-          weeklySticker?: Json | null
+          weekly?: string | null
+          weeklySticker?: string | null
           year: number
         }
         Update: {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          monthly?: Json | null
+          monthly?: string | null
           updated_at?: string | null
-          weekly?: Json | null
-          weeklySticker?: Json | null
+          weekly?: string | null
+          weeklySticker?: string | null
           year?: number
         }
         Relationships: []
@@ -955,7 +955,7 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
-          role: Database["public"]["Enums"]["role"] | null
+          role: Database["public"]["Enums"]["role"]
           school_id: string
           updated_at: string | null
           user_id: string
@@ -964,7 +964,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          role?: Database["public"]["Enums"]["role"] | null
+          role: Database["public"]["Enums"]["role"]
           school_id: string
           updated_at?: string | null
           user_id: string
@@ -973,7 +973,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          role?: Database["public"]["Enums"]["role"] | null
+          role?: Database["public"]["Enums"]["role"]
           school_id?: string
           updated_at?: string | null
           user_id?: string
@@ -1313,10 +1313,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      getDataByInviteCode: {
+        Args: {
+          invite_code: number
+        }
+        Returns: Json
+      }
       isUserExists: {
         Args: {
           user_phone: string
           user_email: string
+        }
+        Returns: boolean
+      }
+      linkStudent: {
+        Args: {
+          invite_code: number
+          student_id: string
         }
         Returns: boolean
       }
