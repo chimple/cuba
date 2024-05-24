@@ -161,15 +161,11 @@ export class SqliteApi implements ServiceApi {
     values?: any[] | undefined,
     isSQL92?: boolean | undefined
   ) {
-    try {
       if (!this._db || !this._sqlite) return;
       const res = await this._db.query(statement, values, isSQL92);
       if (!Capacitor.isNativePlatform())
         await this._sqlite?.saveToStore(this.DB_NAME);
       return res;
-    } catch (error) {
-
-    }
   }
 
   private async pullChanges(tableNames: TABLES[]) {
@@ -258,7 +254,6 @@ export class SqliteApi implements ServiceApi {
     await this.pullChanges(tableNames);
     this.pushChanges(tableNames).then((value) => {
       const tables = "'" + tableNames.join("', '") + "'";
-      console.log('Tablessssssssssssss',tables)
       this.executeQuery(
         `UPDATE pull_sync_info SET last_pulled = CURRENT_TIMESTAMP WHERE table_name IN (${tables})`
       )
