@@ -77,7 +77,7 @@ const JoinClass: FC<{
     setLoading(true);
     try {
       const result = await api.linkStudent(inviteCode!);
-      //To do Notification subscribe
+      //TODO Notification subscribe
       // if (!!codeResult) {
       //   Util.subscribeToClassTopic(
       //     codeResult["class_id"],

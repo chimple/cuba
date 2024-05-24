@@ -161,11 +161,11 @@ export class SqliteApi implements ServiceApi {
     values?: any[] | undefined,
     isSQL92?: boolean | undefined
   ) {
-      if (!this._db || !this._sqlite) return;
-      const res = await this._db.query(statement, values, isSQL92);
-      if (!Capacitor.isNativePlatform())
-        await this._sqlite?.saveToStore(this.DB_NAME);
-      return res;
+    if (!this._db || !this._sqlite) return;
+    const res = await this._db.query(statement, values, isSQL92);
+    if (!Capacitor.isNativePlatform())
+      await this._sqlite?.saveToStore(this.DB_NAME);
+    return res;
   }
 
   private async pullChanges(tableNames: TABLES[]) {
@@ -256,7 +256,7 @@ export class SqliteApi implements ServiceApi {
       const tables = "'" + tableNames.join("', '") + "'";
       this.executeQuery(
         `UPDATE pull_sync_info SET last_pulled = CURRENT_TIMESTAMP WHERE table_name IN (${tables})`
-      )
+      );
     });
   }
 
@@ -965,20 +965,15 @@ export class SqliteApi implements ServiceApi {
   async getDataByInviteCode(inviteCode: number): Promise<any> {
     try {
       const rpcRes = await this._supabaseDb?.rpc("getDataByInviteCode", {
-        invite_code: inviteCode
+        invite_code: inviteCode,
       });
-      if (rpcRes != null && rpcRes.error) {
-        throw rpcRes.error;
+      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
+        throw rpcRes?.error ?? "";
       }
-      if (rpcRes != null) {
-        const data = rpcRes.data != null ? rpcRes.data : {};
-        return data;
-      }
-      else {
-        throw new Error('No data returned from the database');
-      }
+      const data = rpcRes.data;
+      return data;
     } catch (e) {
-      throw new Error('Invalid inviteCode');
+      throw new Error("Invalid inviteCode");
     }
   }
 
@@ -986,20 +981,16 @@ export class SqliteApi implements ServiceApi {
     try {
       const rpcRes = await this._supabaseDb?.rpc("linkStudent", {
         invite_code: inviteCode,
-        student_id: this._currentStudent?.id != null ? this._currentStudent?.id : ''
+        student_id:
+          this._currentStudent?.id != null ? this._currentStudent?.id : "",
       });
-      if (rpcRes != null && rpcRes.error) {
-        throw rpcRes.error;
+      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
+        throw rpcRes?.error ?? "";
       }
-      if (rpcRes != null) {
-        const data = rpcRes.data != null ? rpcRes.data : {};
-        return data;
-      }
-      else {
-        throw new Error('No data returned from the database');
-      }
+      const data = rpcRes.data;
+      return data;
     } catch (e) {
-      throw new Error('Invalid inviteCode');
+      throw new Error("Invalid inviteCode");
     }
   }
 
