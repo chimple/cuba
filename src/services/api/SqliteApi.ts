@@ -27,6 +27,8 @@ import { SupabaseApi } from "./SupabaseApi";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
 import { v4 as uuidv4 } from "uuid";
 import { RoleType } from "../../interface/modelInterfaces";
+import { SupabaseClient } from "@supabase/supabase-js";
+import { Database } from "../database";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -38,11 +40,13 @@ export class SqliteApi implements ServiceApi {
   private _currentStudent: TableTypes<"user"> | undefined;
   private _currentClass: TableTypes<"class"> | undefined;
   private _currentSchool: TableTypes<"school"> | undefined;
+  private _supabaseDb: SupabaseClient<Database> | undefined;
 
   public static async getInstance(): Promise<SqliteApi> {
     if (!SqliteApi.i) {
       SqliteApi.i = new SqliteApi();
       SqliteApi.i._serverApi = SupabaseApi.getInstance();
+      SqliteApi.i._supabaseDb = SupabaseApi.getInstance().supabase;
       await SqliteApi.i.init();
     }
     return SqliteApi.i;
@@ -157,11 +161,15 @@ export class SqliteApi implements ServiceApi {
     values?: any[] | undefined,
     isSQL92?: boolean | undefined
   ) {
-    if (!this._db || !this._sqlite) return;
-    const res = await this._db.query(statement, values, isSQL92);
-    if (!Capacitor.isNativePlatform())
-      await this._sqlite?.saveToStore(this.DB_NAME);
-    return res;
+    try {
+      if (!this._db || !this._sqlite) return;
+      const res = await this._db.query(statement, values, isSQL92);
+      if (!Capacitor.isNativePlatform())
+        await this._sqlite?.saveToStore(this.DB_NAME);
+      return res;
+    } catch (error) {
+
+    }
   }
 
   private async pullChanges(tableNames: TABLES[]) {
@@ -250,9 +258,10 @@ export class SqliteApi implements ServiceApi {
     await this.pullChanges(tableNames);
     this.pushChanges(tableNames).then((value) => {
       const tables = "'" + tableNames.join("', '") + "'";
+      console.log('Tablessssssssssssss',tables)
       this.executeQuery(
         `UPDATE pull_sync_info SET last_pulled = CURRENT_TIMESTAMP WHERE table_name IN (${tables})`
-      );
+      )
     });
   }
 
@@ -854,7 +863,6 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return false;
     return true;
   }
-
   async getPendingAssignments(
     classId: string,
     studentId: string
@@ -959,12 +967,45 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
-  getDataByInviteCode(inviteCode: number): Promise<any> {
-    throw new Error("Method not implemented.");
+  async getDataByInviteCode(inviteCode: number): Promise<any> {
+    try {
+      const rpcRes = await this._supabaseDb?.rpc("getDataByInviteCode", {
+        invite_code: inviteCode
+      });
+      if (rpcRes != null && rpcRes.error) {
+        throw rpcRes.error;
+      }
+      if (rpcRes != null) {
+        const data = rpcRes.data != null ? rpcRes.data : {};
+        return data;
+      }
+      else {
+        throw new Error('No data returned from the database');
+      }
+    } catch (e) {
+      throw new Error('Invalid inviteCode');
+    }
   }
 
-  linkStudent(inviteCode: number): Promise<any> {
-    throw new Error("Method not implemented.");
+  async linkStudent(inviteCode: number): Promise<any> {
+    try {
+      const rpcRes = await this._supabaseDb?.rpc("linkStudent", {
+        invite_code: inviteCode,
+        student_id: this._currentStudent?.id != null ? this._currentStudent?.id : ''
+      });
+      if (rpcRes != null && rpcRes.error) {
+        throw rpcRes.error;
+      }
+      if (rpcRes != null) {
+        const data = rpcRes.data != null ? rpcRes.data : {};
+        return data;
+      }
+      else {
+        throw new Error('No data returned from the database');
+      }
+    } catch (e) {
+      throw new Error('Invalid inviteCode');
+    }
   }
 
   async getLeaderboardResults(
