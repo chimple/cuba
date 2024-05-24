@@ -203,7 +203,11 @@ export class SqliteApi implements ServiceApi {
             fieldValues
           );
 
-          await this.executeQuery(stmt, fieldValues);
+          try {
+            await this.executeQuery(stmt, fieldValues);
+          } catch (er) {
+            console.log( "🚀 ~ Api ~ pullChangesError ",er)
+          }
         }
 
         const lastPulled = new Date().toISOString();
@@ -249,8 +253,15 @@ export class SqliteApi implements ServiceApi {
     return true;
   }
 
-  async syncDbNow(tableNames: TABLES[] = Object.values(TABLES)) {
+  async syncDbNow(
+    tableNames: TABLES[] = Object.values(TABLES),
+    refreshTables: TABLES[] = []
+  ) {
     if (!this._db) return;
+    const refresh_tables = "'" + refreshTables.join("', '") + "'";
+    this.executeQuery(
+      `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`
+    );
     await this.pullChanges(tableNames);
     this.pushChanges(tableNames).then((value) => {
       const tables = "'" + tableNames.join("', '") + "'";
@@ -979,17 +990,21 @@ export class SqliteApi implements ServiceApi {
 
   async linkStudent(inviteCode: number): Promise<any> {
     try {
-      if(!this._currentStudent?.id){
-        throw Error('Student Not Found')
+      if (!this._currentStudent?.id) {
+        throw Error("Student Not Found");
       }
       const rpcRes = await this._supabaseDb?.rpc("linkStudent", {
         invite_code: inviteCode,
-        student_id:
-          this._currentStudent.id,
+        student_id: this._currentStudent.id,
       });
       if (rpcRes == null || rpcRes.error || !rpcRes.data) {
         throw rpcRes?.error ?? "";
       }
+      await this.syncDbNow(Object.values(TABLES), [
+        TABLES.Assignment,
+        TABLES.Class,
+        TABLES.School,
+      ]);
       const data = rpcRes.data;
       return data;
     } catch (e) {
