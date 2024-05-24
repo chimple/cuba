@@ -979,10 +979,13 @@ export class SqliteApi implements ServiceApi {
 
   async linkStudent(inviteCode: number): Promise<any> {
     try {
+      if(!this._currentStudent?.id){
+        throw Error('Student Not Found')
+      }
       const rpcRes = await this._supabaseDb?.rpc("linkStudent", {
         invite_code: inviteCode,
         student_id:
-          this._currentStudent?.id != null ? this._currentStudent?.id : "",
+          this._currentStudent.id,
       });
       if (rpcRes == null || rpcRes.error || !rpcRes.data) {
         throw rpcRes?.error ?? "";
