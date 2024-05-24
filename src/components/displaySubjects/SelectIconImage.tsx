@@ -25,9 +25,11 @@ const SelectIconImage: FC<{
   }
 
   const [loadIcon, setLoadIcon] = useState<LoadIcon>(LoadIcon.Local);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [isValid, setIsValid] = useState(true);
 
   const handleImageLoad = () => {
+    setIsLoaded(true);
     setIsValid(true);
   };
 
@@ -53,7 +55,7 @@ const SelectIconImage: FC<{
     style: {
       width: imageWidth,
       height: imageHeight,
-      display: isValid ? "block" : "contents",
+      display: isValid || isLoaded ? "block" : "contents",
     },
     onLoad: handleImageLoad,
     onError: handleImageError,
