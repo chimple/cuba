@@ -259,7 +259,7 @@ export class SqliteApi implements ServiceApi {
   ) {
     if (!this._db) return;
     const refresh_tables = "'" + refreshTables.join("', '") + "'";
-    this.executeQuery(
+    await this.executeQuery(
       `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`
     );
     await this.pullChanges(tableNames);
