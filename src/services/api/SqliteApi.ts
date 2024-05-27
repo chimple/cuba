@@ -157,11 +157,15 @@ export class SqliteApi implements ServiceApi {
     values?: any[] | undefined,
     isSQL92?: boolean | undefined
   ) {
-    if (!this._db || !this._sqlite) return;
-    const res = await this._db.query(statement, values, isSQL92);
-    if (!Capacitor.isNativePlatform())
-      await this._sqlite?.saveToStore(this.DB_NAME);
-    return res;
+    try {
+      if (!this._db || !this._sqlite) return;
+      const res = await this._db.query(statement, values, isSQL92);
+      if (!Capacitor.isNativePlatform())
+        await this._sqlite?.saveToStore(this.DB_NAME);
+      return res;
+    } catch (error) {
+      console.log("executeQuery Error ", error);
+    }
   }
 
   private async pullChanges(tableNames: TABLES[]) {
@@ -971,14 +975,101 @@ export class SqliteApi implements ServiceApi {
     sectionId: string,
     leaderboardDropdownType: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined> {
-    // throw new Error("Method not implemented.");
-    return;
+    let genericQueryResult =
+      await this._serverApi.getLeaderboardStudentResultFromB2CCollection();
+    console.log(
+      "getLeaderboardStudentResults genericQueryResult ",
+      genericQueryResult
+    );
+    if (!genericQueryResult) {
+      return;
+    }
+    return genericQueryResult;
   }
 
   async getLeaderboardStudentResultFromB2CCollection(
     studentId: string
   ): Promise<LeaderboardInfo | undefined> {
-    // throw new Error("Method not implemented.");
+    try {
+      let leaderBoardList: LeaderboardInfo = {
+        weekly: [],
+        allTime: [],
+        monthly: [],
+      };
+      console.log(
+        "getLeaderboardStudentResults called in sqliteApit.ts ",
+        studentId
+      );
+      if (!this._db) throw "Db is not initialized";
+      const currentStudentQuery = `
+      SELECT 'allTime' as type,student_id,name, count(res.id) as lessons_played,sum(score) as total_score,sum(time_spent) as total_time_spent
+      FROM ${TABLES.Result} res
+      JOIN ${TABLES.User} u ON u.id = res.student_id
+      WHERE res.student_id = '${studentId}'
+      GROUP BY student_id, u.name
+      UNION ALL
+      SELECT 'monthly' as type,student_id,u.name, count(res.id) as lessons_played,sum(score) as total_score,sum(time_spent) as total_time_spent
+      FROM ${TABLES.Result} res
+      JOIN ${TABLES.User} u ON u.id = res.student_id
+      WHERE res.student_id = '${studentId}' and strftime('%m', res.created_at) =strftime('%m', datetime('now'))
+      GROUP BY student_id, u.name
+      UNION ALL
+      SELECT 'weekly' as type,student_id,u.name, count(res.id) as lessons_played,sum(score) as total_score,sum(time_spent) as total_time_spent
+      FROM ${TABLES.Result} res
+      JOIN ${TABLES.User} u ON u.id = res.student_id
+      WHERE res.student_id = '${studentId}' and strftime('%W', res.created_at) =strftime('%W', datetime('now'))
+      GROUP BY student_id, u.name
+      `;
+      console.log("getLeaderboardStudentResults query ", currentStudentQuery);
+      const currentUserResult = await this._db.query(currentStudentQuery);
+      console.log("getLeaderboardStudentResults res ", currentUserResult);
+      if (!currentUserResult.values) {
+        return;
+      }
+
+      for (let i = 0; i < currentUserResult.values.length; i++) {
+        const result = currentUserResult.values[i];
+        console.log("const result = res.values[i]; ", result);
+        switch (result.type) {
+          case "allTime":
+            leaderBoardList.allTime.push({
+              name: result.name,
+              score: result.total_score,
+              timeSpent: result.total_time_spent,
+              lessonsPlayed: result.lessons_played,
+              userId: studentId,
+            });
+            break;
+          case "monthly":
+            leaderBoardList.monthly.push({
+              name: result.name,
+              score: result.total_score,
+              timeSpent: result.total_time_spent,
+              lessonsPlayed: result.lessons_played,
+              userId: studentId,
+            });
+            break;
+
+          case "weekly":
+            leaderBoardList.weekly.push({
+              name: result.name,
+              score: result.total_score,
+              timeSpent: result.total_time_spent,
+              lessonsPlayed: result.lessons_played,
+              userId: studentId,
+            });
+            break;
+
+          default:
+            break;
+        }
+      }
+      console.log("Final getLeaderboardResults ", currentUserResult);
+
+      return leaderBoardList;
+    } catch (error) {
+      console.log(" async getLeaderboardResults Error ", error);
+    }
     return;
   }
 

@@ -1310,7 +1310,17 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      get_leaderboard_generic_data: {
+        Row: {
+          lessons_played: number | null
+          name: string | null
+          student_id: string | null
+          total_score: number | null
+          total_time_spent: number | null
+          type: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       getDataByInviteCode: {

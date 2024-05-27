@@ -422,16 +422,118 @@ export class SupabaseApi implements ServiceApi {
   linkStudent(inviteCode: number): Promise<any> {
     throw new Error("Method not implemented.");
   }
-  getLeaderboardResults(
+  async getLeaderboardResults(
     sectionId: string,
     leaderboardDropdownType: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined> {
     throw new Error("Method not implemented.");
+    // try {
+    //   console.log("🚀 ~ SupabaseApi ~ res getLeaderboardResults called ");
+    //   let leaderBoardList: LeaderboardInfo = {
+    //     weekly: [],
+    //     allTime: [],
+    //     monthly: [],
+    //   };
+    //   // const res = await this.supabase
+    //   //   ?.from(tableName)
+    //   //   .select("*")
+    //   //   .gte("updated_at", lastModifiedDate);
+    //   // return leaderBoardList.monthly.push({
+    //   //   name: d.get("name"),
+    //   //   score: d.get("monthlyScore"),
+    //   //   timeSpent: d.get("monthlyTimeSpent"),
+    //   //   lessonsPlayed: d.get("monthlyLessonPlayed"),
+    //   //   userId: d.id,
+    //   // });
+    //   return leaderBoardList;
+    // } catch (error) {
+    //   console.log("getLeaderboardResults in Supabase Error ", error);
+    // }
   }
-  getLeaderboardStudentResultFromB2CCollection(
-    studentId: string
-  ): Promise<LeaderboardInfo | undefined> {
-    throw new Error("Method not implemented.");
+  async getLeaderboardStudentResultFromB2CCollection(): Promise<
+    LeaderboardInfo | undefined
+  > {
+    try {
+      console.log("🚀 ~ SupabaseApi ~ res getLeaderboardResults called ");
+      let leaderBoardList: LeaderboardInfo = {
+        weekly: [],
+        allTime: [],
+        monthly: [],
+      };
+
+      const genericQuery = `
+      SELECT *
+      FROM get_leaderboard_generic_data
+      `;
+      console.log(
+        "getLeaderboardStudentResults supabase genericQuery ",
+        genericQuery
+      );
+      // const genericQueryResult = await this._db.query(genericQuery);
+      if (!this.supabase) return;
+      const genericQueryResult = await this.supabase
+        .from("get_leaderboard_generic_data")
+        .select();
+      if (!genericQueryResult || !genericQueryResult.data) {
+        return;
+      }
+      console.log(
+        "getLeaderboardStudentResults genericQueryResult ",
+        genericQueryResult
+      );
+      for (let i = 0; i < genericQueryResult.data.length; i++) {
+        const result = genericQueryResult.data[i];
+        // console.log("const result = res.values[i]; ", result);
+        if (!result) {
+          continue;
+        }
+        switch (result.type) {
+          case "allTime":
+            leaderBoardList.allTime.push({
+              name: result.name || "",
+              score: result.total_score || 0,
+              timeSpent: result.total_time_spent || 0,
+              lessonsPlayed: result.lessons_played || 0,
+              userId: result.student_id || "",
+            });
+            break;
+          case "monthly":
+            leaderBoardList.monthly.push({
+              name: result.name || "",
+              score: result.total_score || 0,
+              timeSpent: result.total_time_spent || 0,
+              lessonsPlayed: result.lessons_played || 0,
+              userId: result.student_id || "",
+            });
+            break;
+
+          case "weekly":
+            leaderBoardList.weekly.push({
+              name: result.name || "",
+              score: result.total_score || 0,
+              timeSpent: result.total_time_spent || 0,
+              lessonsPlayed: result.lessons_played || 0,
+              userId: result.student_id || "",
+            });
+            break;
+
+          default:
+            break;
+        }
+        // if (i === length - 1 && leaderBoardList.weekly.length === 0) {
+        //   leaderBoardList.weekly.push({
+        //     name: "null",
+        //     score: 0,
+        //     timeSpent: 0,
+        //     lessonsPlayed: 0,
+        //     userId: "",
+        //   });
+        // }
+      }
+      return leaderBoardList;
+    } catch (error) {
+      console.log("getLeaderboardResults in Supabase Error ", error);
+    }
   }
   getAllLessonsForCourse(courseId: string): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
