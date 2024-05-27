@@ -484,7 +484,7 @@ export class SupabaseApi implements ServiceApi {
   getStickerById(id: string): Promise<TableTypes<"sticker"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  getRewardsById(id: string): Promise<TableTypes<"reward"> | undefined> {
+  getRewardsById(id: number, periodType: string): Promise<TableTypes<"reward"> | undefined> {
     throw new Error("Method not implemented.");
   }
   updateRewardAsSeen(studentId: string): Promise<void> {

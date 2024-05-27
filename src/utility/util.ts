@@ -1470,7 +1470,7 @@ export class Util {
   > {
     const date = new Date();
     const api = ServiceConfig.getI().apiHandler;
-    const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
+    const rewardsDoc = await api.getRewardsById(date.getFullYear(), "weeklySticker");
     if (!rewardsDoc) return [];
     const currentWeek = Util.getCurrentWeekNumber();
     const stickerIds: string[] = [];
@@ -1537,7 +1537,7 @@ export class Util {
       const api = ServiceConfig.getI().apiHandler;
       const date = new Date();
       const rewardsDoc = await api.getRewardsById(
-        date.getFullYear().toString()
+        date.getFullYear(), "weeklySticker"
       );
       if (!rewardsDoc) return false;
       const currentWeek = Util.getCurrentWeekNumber();

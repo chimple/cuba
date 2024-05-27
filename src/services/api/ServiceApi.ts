@@ -506,7 +506,7 @@ export interface ServiceApi {
    * @param {string} id - Rewards firebase doc id
    * @returns {Rewards | undefined}`Rewards` or `undefined` if it could not find the Rewards with given `id`
    */
-  getRewardsById(id: string): Promise<TableTypes<"reward"> | undefined>;
+  getRewardsById(id: number, periodType: string): Promise<TableTypes<"reward"> | undefined>;
 
   /**
    * Updates the rewards of a student, marking all rewards as seen.

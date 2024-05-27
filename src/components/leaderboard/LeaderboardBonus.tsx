@@ -56,34 +56,44 @@ const LeaderboardBonus: FC = () => {
     (TableTypes<"lesson"> | undefined)[]
   > => {
     const rewardsDoc = await api.getRewardsById(
-      Util.getCurrentYearForLeaderboard().toString()
+      Util.getCurrentYearForLeaderboard(),
+      "weekly"
     );
     if (!rewardsDoc) return [];
     const currentMonth = Util.getCurrentMonthForLeaderboard();
     const nextMonth = currentMonth + 1;
     const bonusIds: string[] = [];
-    const monthlyData = rewardsDoc.monthly;
-    monthlyData?.[nextMonth.toString()].forEach((value) => {
-      if (value.type === LeaderboardRewardsType.BONUS) {
-        bonusIds.push(value.id);
-      }
-    });
+    const monthlyData: any = rewardsDoc;
+    if (monthlyData[nextMonth.toString()]) {
+      monthlyData[nextMonth.toString()].forEach((value) => {
+        if (value.type === LeaderboardRewardsType.BONUS) {
+          bonusIds.push(value.id);
+        }
+      });
+    } else {
+      console.error(`No data found for month ${nextMonth}`);
+      return [];
+    }
     const bonusDocs = await Promise.all(
-      bonusIds.map((value) => api.getLesson(value))
+      bonusIds.map(async (value) => {
+        const lesson = await api.getLesson(value);
+        return lesson;
+      })
     );
     return bonusDocs;
   };
-  const getBonus = async () => {
+  const getBonus = async (): Promise<(TableTypes<"lesson"> | undefined)[]> => {
     const rewardsDoc = await api.getRewardsById(
-      Util.getCurrentYearForLeaderboard().toString()
+      Util.getCurrentYearForLeaderboard(),
+      "monthly"
     );
     if (!rewardsDoc) return [];
     const currentMonth = Util.getCurrentMonthForLeaderboard();
     const bonusIds: string[] = [];
-    const monthlyData: any = rewardsDoc.monthly;
+    const monthlyData: any = rewardsDoc;
     for (const key in monthlyData) {
-      const weekNumber = parseInt(key);
-      if (!isNaN(weekNumber) && weekNumber > currentMonth) {
+      const monthNumber = parseInt(key);
+      if (!isNaN(monthNumber) && monthNumber > currentMonth) {
         monthlyData[key].forEach((item) => {
           if (item.type === LeaderboardRewardsType.BONUS) {
             bonusIds.push(item.id);
@@ -92,7 +102,10 @@ const LeaderboardBonus: FC = () => {
       }
     }
     const bonusDocs = await Promise.all(
-      bonusIds.map((value) => api.getLesson(value))
+      bonusIds.map(async (value) => {
+        const lesson = await api.getLesson(value);
+        return lesson;
+      })
     );
     return bonusDocs;
   };
@@ -126,15 +139,16 @@ const LeaderboardBonus: FC = () => {
     (TableTypes<"lesson"> | undefined)[]
   > => {
     const rewardsDoc = await api.getRewardsById(
-      Util.getCurrentYearForLeaderboard().toString()
+      Util.getCurrentYearForLeaderboard(),
+      "monthly"
     );
     if (!rewardsDoc) return [];
     const currentMonth = Util.getCurrentMonthForLeaderboard();
     const bonusIds: string[] = [];
-    const monthlyData: any = rewardsDoc.monthly;
+    const monthlyData: any = rewardsDoc;
     for (const key in monthlyData) {
-      const weekNumber = parseInt(key);
-      if (!isNaN(weekNumber) && weekNumber < currentMonth) {
+      const monthNumber = parseInt(key);
+      if (!isNaN(monthNumber) && monthNumber < currentMonth) {
         monthlyData[key].forEach((item) => {
           if (item.type === LeaderboardRewardsType.BONUS) {
             bonusIds.push(item.id);
@@ -143,7 +157,10 @@ const LeaderboardBonus: FC = () => {
       }
     }
     const bonusDocs = await Promise.all(
-      bonusIds.map((value) => api.getLesson(value))
+      bonusIds.map(async (value) => {
+        const lesson = await api.getLesson(value);
+        return lesson;
+      })
     );
     return bonusDocs;
   };
@@ -152,19 +169,29 @@ const LeaderboardBonus: FC = () => {
     (TableTypes<"lesson"> | undefined)[]
   > => {
     const rewardsDoc = await api.getRewardsById(
-      Util.getCurrentYearForLeaderboard().toString()
+      Util.getCurrentYearForLeaderboard(),
+      "monthly"
     );
     if (!rewardsDoc) return [];
     const currentMonth = Util.getCurrentMonthForLeaderboard();
+    const nextMonth = currentMonth + 1;
     const bonusIds: string[] = [];
-    const monthlyData = rewardsDoc.monthly;
-    monthlyData?.[currentMonth.toString()].forEach((value) => {
-      if (value.type === LeaderboardRewardsType.BONUS) {
-        bonusIds.push(value.id);
-      }
-    });
+    const monthlyData: any = rewardsDoc;
+    if (monthlyData[nextMonth.toString()]) {
+      monthlyData[nextMonth.toString()].forEach((value) => {
+        if (value.type === LeaderboardRewardsType.BONUS) {
+          bonusIds.push(value.id);
+        }
+      });
+    } else {
+      console.error(`No data found for month ${nextMonth}`);
+      return [];
+    }
     const bonusDocs = await Promise.all(
-      bonusIds.map((value) => api.getLesson(value))
+      bonusIds.map(async (value) => {
+        const lesson = await api.getLesson(value);
+        return lesson;
+      })
     );
     return bonusDocs;
   };

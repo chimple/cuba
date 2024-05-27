@@ -80,72 +80,100 @@ const LeaderboardStickers: FC = () => {
     // return unlockedSticker?.reverse();
     return [];
   };
-  const getStickers = async () => {
+  const getStickers = async (): Promise<
+    (TableTypes<"sticker"> | undefined)[]
+  > => {
     const date = new Date();
-    const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
+    const rewardsDoc = await api.getRewardsById(
+      date.getFullYear(),
+      "weeklySticker"
+    );
     if (!rewardsDoc) return [];
     const currentWeek = Util.getCurrentWeekNumber();
     const stickerIds: string[] = [];
-    const weeklyData: any = rewardsDoc.weeklySticker;
+    const weeklyData: any = rewardsDoc;
     for (const key in weeklyData) {
       const weekNumber = parseInt(key);
       if (!isNaN(weekNumber) && weekNumber > currentWeek + 1) {
         weeklyData[key].forEach((item) => {
-          if (item.type == LeaderboardRewardsType.STICKER) {
+          if (item.type === LeaderboardRewardsType.STICKER) {
             stickerIds.push(item.id);
           }
         });
       }
     }
     const stickerDocs = await Promise.all(
-      stickerIds.map((value) => api.getStickerById(value))
+      stickerIds.map(async (value) => {
+        const sticker = await api.getStickerById(value);
+        return sticker;
+      })
     );
     return stickerDocs;
   };
+
   const getPrevstickers = async (): Promise<
     (TableTypes<"sticker"> | undefined)[]
   > => {
     const date = new Date();
-    const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
+    const rewardsDoc = await api.getRewardsById(
+      date.getFullYear(),
+      "weeklySticker"
+    );
     if (!rewardsDoc) return [];
     const currentWeek = Util.getCurrentWeekNumber();
     const stickerIds: string[] = [];
-    const weeklyData: any = rewardsDoc.weeklySticker;
+    const weeklyData: any = rewardsDoc;
     for (const key in weeklyData) {
       const weekNumber = parseInt(key);
       if (!isNaN(weekNumber) && weekNumber < currentWeek) {
         weeklyData[key].forEach((item) => {
-          if (item.type == LeaderboardRewardsType.STICKER) {
+          if (item.type === LeaderboardRewardsType.STICKER) {
             stickerIds.push(item.id);
           }
         });
       }
     }
     const stickerDocs = await Promise.all(
-      stickerIds.map((value) => api.getStickerById(value))
+      stickerIds.map(async (value) => {
+        const sticker = await api.getStickerById(value);
+        return sticker;
+      })
     );
     return stickerDocs;
   };
+
   const getUpcomingStickers = async (): Promise<
     (TableTypes<"sticker"> | undefined)[]
   > => {
     const date = new Date();
-    const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
+    const rewardsDoc = await api.getRewardsById(
+      date.getFullYear(),
+      "weeklySticker"
+    );
     if (!rewardsDoc) return [];
     const currentWeek = Util.getCurrentWeekNumber();
     const nextWeek = currentWeek + 1;
     const stickerIds: string[] = [];
-    const weeklyData: any = rewardsDoc.weeklySticker;
-    weeklyData[nextWeek.toString()].forEach((value) => {
-      if (value.type === LeaderboardRewardsType.STICKER) {
-        stickerIds.push(value.id);
-      }
-    });
+    const weeklyData: any = rewardsDoc;
+    if (weeklyData[nextWeek.toString()]) {
+      weeklyData[nextWeek.toString()].forEach((value) => {
+        if (value.type === LeaderboardRewardsType.STICKER) {
+          stickerIds.push(value.id);
+        }
+      });
+    } else {
+      console.error(`No data found for week ${nextWeek}`);
+      return [];
+    }
     const stickerDocs = await Promise.all(
-      stickerIds.map((value) => api.getStickerById(value))
+      stickerIds.map(async (value) => {
+        const sticker = await api.getStickerById(value);
+        return sticker;
+      })
     );
     return stickerDocs;
   };
+
   return currentStudent ? (
     <div className="leaderboard-sticker-container">
       {stickers &&

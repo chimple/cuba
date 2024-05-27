@@ -81,9 +81,9 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getLeaderboardStudentResultFromB2CCollection(studentId);
   }
   public async getRewardsById(
-    id: string
+    id: number, periodType: string
   ): Promise<TableTypes<"reward"> | undefined> {
-    return this.s.getRewardsById(id);
+    return this.s.getRewardsById(id, periodType);
   }
   public async getBadgeById(
     id: string

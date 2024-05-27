@@ -120,7 +120,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<LeaderboardInfo | undefined> {
     throw new Error("Method not implemented.");
   }
-  getRewardsById(id: string): Promise<TableTypes<"reward"> | undefined> {
+  getRewardsById(id: number, periodType: string): Promise<TableTypes<"reward"> | undefined> {
     throw new Error("Method not implemented.");
   }
   getBadgeById(id: string): Promise<TableTypes<"badge"> | undefined> {

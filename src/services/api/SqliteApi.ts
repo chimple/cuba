@@ -1080,13 +1080,35 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
+  async getRewardsById(
+    id: number,
+    periodType: string
+  ): Promise<TableTypes<"reward"> | undefined> {
+    try {
+      const query = `SELECT ${periodType} FROM ${TABLES.Reward} WHERE year = ${id}`;
+      const data = await this._db?.query(query);
 
-  async getRewardsById(id: string): Promise<TableTypes<"reward"> | undefined> {
-    const res = await this._db?.query(
-      `select * from ${TABLES.Reward} where id = "${id}"`
-    );
-    if (!res || !res.values || res.values.length < 1) return;
-    return res.values[0];
+      if (!data || !data.values || data.values.length === 0) {
+        console.error("No reward found for the given year.");
+        return;
+      }
+      const periodData = data.values[0][periodType];
+      const cleanPeriodData = periodData
+        .replace(/^'|'$/g, "")
+        .replace(/\n/g, "")
+        .replace(/,(\s*[\]}])/g, "$1");
+      let periodObj;
+      try {
+        periodObj = JSON.parse(cleanPeriodData);
+        if (periodObj) return periodObj;
+      } catch (parseError) {
+        console.error("Error parsing JSON string:", parseError);
+        return undefined;
+      }
+    } catch (error) {
+      console.error("Error fetching reward by ID:", error);
+      return undefined;
+    }
   }
 
   updateRewardAsSeen(studentId: string): Promise<void> {
