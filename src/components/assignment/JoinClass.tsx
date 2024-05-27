@@ -63,7 +63,7 @@ const JoinClass: FC<{
       } catch (error) {
         if (error instanceof Object) {
           let eMsg: string =
-            "FirebaseError: Invalid inviteCode" === error.toString()
+            "Error: Invalid inviteCode" === error.toString()
               ? t("Invalid Code. Please contact your teacher")
               : error.toString();
           setError(eMsg);
@@ -77,15 +77,16 @@ const JoinClass: FC<{
     setLoading(true);
     try {
       const result = await api.linkStudent(inviteCode!);
-      if (!!codeResult) {
-        Util.subscribeToClassTopic(
-          codeResult["classId"],
-          codeResult["schoolId"]
-        );
-      }
+      //TODO Notification subscribe
+      // if (!!codeResult) {
+      //   Util.subscribeToClassTopic(
+      //     codeResult["class_id"],
+      //     codeResult["school_id"]
+      //   );
+      // }
       onClassJoin();
-      history.replace("/");
-      window.location.reload();
+      // history.replace("/");
+      // window.location.reload();
     } catch (error) {
       if (error instanceof Object) setError(error.toString());
     }
@@ -165,12 +166,12 @@ const JoinClass: FC<{
           t("You are Joining ") +
           (!!codeResult
             ? t("School") +
-                ": " +
-                codeResult["schoolName"] +
-                ", " +
-                t("Class") +
-                ": " +
-                codeResult["data"]["name"] ?? ""
+            ": " +
+            codeResult["school_name"] +
+            ", " +
+            t("Class") +
+            ": " +
+            codeResult["class_name"] ?? ""
             : "")
         }
         showDialogBox={showDialogBox}

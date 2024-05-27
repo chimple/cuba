@@ -27,6 +27,8 @@ import { SupabaseApi } from "./SupabaseApi";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
 import { v4 as uuidv4 } from "uuid";
 import { RoleType } from "../../interface/modelInterfaces";
+import { SupabaseClient } from "@supabase/supabase-js";
+import { Database } from "../database";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -38,11 +40,13 @@ export class SqliteApi implements ServiceApi {
   private _currentStudent: TableTypes<"user"> | undefined;
   private _currentClass: TableTypes<"class"> | undefined;
   private _currentSchool: TableTypes<"school"> | undefined;
+  private _supabaseDb: SupabaseClient<Database> | undefined;
 
   public static async getInstance(): Promise<SqliteApi> {
     if (!SqliteApi.i) {
       SqliteApi.i = new SqliteApi();
       SqliteApi.i._serverApi = SupabaseApi.getInstance();
+      SqliteApi.i._supabaseDb = SupabaseApi.getInstance().supabase;
       await SqliteApi.i.init();
     }
     return SqliteApi.i;
@@ -203,7 +207,11 @@ export class SqliteApi implements ServiceApi {
             fieldValues
           );
 
-          await this.executeQuery(stmt, fieldValues);
+          try {
+            await this.executeQuery(stmt, fieldValues);
+          } catch (er) {
+            console.log( "🚀 ~ Api ~ pullChangesError ",er)
+          }
         }
 
         const lastPulled = new Date().toISOString();
@@ -249,8 +257,15 @@ export class SqliteApi implements ServiceApi {
     return true;
   }
 
-  async syncDbNow(tableNames: TABLES[] = Object.values(TABLES)) {
+  async syncDbNow(
+    tableNames: TABLES[] = Object.values(TABLES),
+    refreshTables: TABLES[] = []
+  ) {
     if (!this._db) return;
+    const refresh_tables = "'" + refreshTables.join("', '") + "'";
+    await this.executeQuery(
+      `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`
+    );
     await this.pullChanges(tableNames);
     this.pushChanges(tableNames).then((value) => {
       const tables = "'" + tableNames.join("', '") + "'";
@@ -858,7 +873,6 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return false;
     return true;
   }
-
   async getPendingAssignments(
     classId: string,
     studentId: string
@@ -963,12 +977,43 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
-  getDataByInviteCode(inviteCode: number): Promise<any> {
-    throw new Error("Method not implemented.");
+  async getDataByInviteCode(inviteCode: number): Promise<any> {
+    try {
+      const rpcRes = await this._supabaseDb?.rpc("getDataByInviteCode", {
+        invite_code: inviteCode,
+      });
+      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
+        throw rpcRes?.error ?? "";
+      }
+      const data = rpcRes.data;
+      return data;
+    } catch (e) {
+      throw new Error("Invalid inviteCode");
+    }
   }
 
-  linkStudent(inviteCode: number): Promise<any> {
-    throw new Error("Method not implemented.");
+  async linkStudent(inviteCode: number): Promise<any> {
+    try {
+      if (!this._currentStudent?.id) {
+        throw Error("Student Not Found");
+      }
+      const rpcRes = await this._supabaseDb?.rpc("linkStudent", {
+        invite_code: inviteCode,
+        student_id: this._currentStudent.id,
+      });
+      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
+        throw rpcRes?.error ?? "";
+      }
+      await this.syncDbNow(Object.values(TABLES), [
+        TABLES.Assignment,
+        TABLES.Class,
+        TABLES.School,
+      ]);
+      const data = rpcRes.data;
+      return data;
+    } catch (e) {
+      throw new Error("Invalid inviteCode");
+    }
   }
 
   async getLeaderboardResults(
