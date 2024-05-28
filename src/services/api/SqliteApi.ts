@@ -1020,25 +1020,22 @@ export class SqliteApi implements ServiceApi {
     sectionId: string,
     leaderboardDropdownType: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined> {
-    console.log("getLeaderboardResults sectionId ", sectionId);
     if (sectionId) {
+      // Getting Class wise Leaderboard
       let classLeaderboard = await SupabaseApi.getInstance().getLeaderboardResults(
         sectionId,
         leaderboardDropdownType
       );
-      console.log("let classLeaderboard ", classLeaderboard);
+      return classLeaderboard
+    } else {
+      // Getting Generic Leaderboard
+      let genericQueryResult =
+        await this._serverApi.getLeaderboardStudentResultFromB2CCollection();
+      if (!genericQueryResult) {
+        return;
+      }
+      return genericQueryResult;
     }
-
-    let genericQueryResult =
-      await this._serverApi.getLeaderboardStudentResultFromB2CCollection();
-    console.log(
-      "getLeaderboardStudentResults genericQueryResult ",
-      genericQueryResult
-    );
-    if (!genericQueryResult) {
-      return;
-    }
-    return genericQueryResult;
   }
 
   async getLeaderboardStudentResultFromB2CCollection(

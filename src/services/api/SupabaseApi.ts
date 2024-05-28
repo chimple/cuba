@@ -427,155 +427,156 @@ export class SupabaseApi implements ServiceApi {
     leaderboardDropdownType: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined> {
     try {
-      if (!this.supabase) return;
-      console.log("getClassLeaderboard ", leaderboardDropdownType);
+      if (!this.supabase) throw new Error("Supabase instance is not initialized");
 
+      console.log("getClassLeaderboard sectionId:", sectionId);
+      console.log("getClassLeaderboard type:", leaderboardDropdownType);
+
+      // Calling the stored procedure
       const rpcRes = await this.supabase.rpc("getClassLeaderboard", {
-        current_class_id: sectionId
+        current_class_id: sectionId,
       });
-      console.log("const rpcRes ", rpcRes);
+
+      console.log("RPC Response: ", rpcRes);
 
       if (rpcRes == null || rpcRes.error || !rpcRes.data) {
-        throw rpcRes?.error ?? "";
+        throw rpcRes?.error ?? new Error("Failed to fetch leaderboard data");
       }
-      const data = rpcRes.data;
-      console.log("getClassLeaderboard ", data);
+
+      const data: any = rpcRes.data;
+      console.log("Fetched leaderboard data: ", data);
 
       let leaderBoardList: LeaderboardInfo = {
         weekly: [],
         allTime: [],
         monthly: [],
       };
-      // for (let i = 0; i < data.length; i++) {
-      //   const result = currentUserResult.values[i];
-      //   console.log("const result = res.values[i]; ", result);
-      //   switch (result.type) {
-      //     case "allTime":
-      //       leaderBoardList.allTime.push({
-      //         name: result.name,
-      //         score: result.total_score,
-      //         timeSpent: result.total_time_spent,
-      //         lessonsPlayed: result.lessons_played,
-      //         userId: studentId,
-      //       });
-      //       break;
-      //     case "monthly":
-      //       leaderBoardList.monthly.push({
-      //         name: result.name,
-      //         score: result.total_score,
-      //         timeSpent: result.total_time_spent,
-      //         lessonsPlayed: result.lessons_played,
-      //         userId: studentId,
-      //       });
-      //       break;
 
-      //     case "weekly":
-      //       leaderBoardList.weekly.push({
-      //         name: result.name,
-      //         score: result.total_score,
-      //         timeSpent: result.total_time_spent,
-      //         lessonsPlayed: result.lessons_played,
-      //         userId: studentId,
-      //       });
-      //       break;
-
-      //     default:
-      //       break;
-      //   }
-      // }
-
-      // return data;
-
-    } catch (e) {
-      // throw new Error("Invalid inviteCode");
-      console.log("getClassLeaderboard ", e);
-    }
-  }
-  async getLeaderboardStudentResultFromB2CCollection(): Promise<
-    LeaderboardInfo | undefined
-  > {
-    try {
-      console.log("🚀 ~ SupabaseApi ~ res getLeaderboardResults called ");
-      let leaderBoardList: LeaderboardInfo = {
-        weekly: [],
-        allTime: [],
-        monthly: [],
-      };
-
-      const genericQuery = `
-      SELECT *
-      FROM get_leaderboard_generic_data
-      `;
-      console.log(
-        "getLeaderboardStudentResults supabase genericQuery ",
-        genericQuery
-      );
-      // const genericQueryResult = await this._db.query(genericQuery);
-      if (!this.supabase) return;
-      const genericQueryResult = await this.supabase
-        .from("get_leaderboard_generic_data")
-        .select();
-      if (!genericQueryResult || !genericQueryResult.data) {
-        return;
-      }
-      console.log(
-        "getLeaderboardStudentResults genericQueryResult ",
-        genericQueryResult
-      );
-      for (let i = 0; i < genericQueryResult.data.length; i++) {
-        const result = genericQueryResult.data[i];
-        // console.log("const result = res.values[i]; ", result);
-        if (!result) {
-          continue;
-        }
+      for (let i = 0; i < data.length; i++) {
+        const result = data[i];
+        console.log("Processing result: ", result);
         switch (result.type) {
           case "allTime":
             leaderBoardList.allTime.push({
-              name: result.name || "",
-              score: result.total_score || 0,
-              timeSpent: result.total_time_spent || 0,
-              lessonsPlayed: result.lessons_played || 0,
-              userId: result.student_id || "",
+              name: result.name,
+              score: result.total_score,
+              timeSpent: result.total_time_spent,
+              lessonsPlayed: result.lessons_played,
+              userId: result.student_id,
             });
             break;
           case "monthly":
             leaderBoardList.monthly.push({
-              name: result.name || "",
-              score: result.total_score || 0,
-              timeSpent: result.total_time_spent || 0,
-              lessonsPlayed: result.lessons_played || 0,
-              userId: result.student_id || "",
+              name: result.name,
+              score: result.total_score,
+              timeSpent: result.total_time_spent,
+              lessonsPlayed: result.lessons_played,
+              userId: result.student_id,
             });
             break;
-
           case "weekly":
             leaderBoardList.weekly.push({
-              name: result.name || "",
-              score: result.total_score || 0,
-              timeSpent: result.total_time_spent || 0,
-              lessonsPlayed: result.lessons_played || 0,
-              userId: result.student_id || "",
+              name: result.name,
+              score: result.total_score,
+              timeSpent: result.total_time_spent,
+              lessonsPlayed: result.lessons_played,
+              userId: result.student_id,
             });
             break;
-
           default:
+            console.warn("Unknown leaderboard type: ", result.type);
+            return {
+              weekly: [],
+              allTime: [],
+              monthly: [],
+            }
             break;
         }
-        // if (i === length - 1 && leaderBoardList.weekly.length === 0) {
-        //   leaderBoardList.weekly.push({
-        //     name: "null",
-        //     score: 0,
-        //     timeSpent: 0,
-        //     lessonsPlayed: 0,
-        //     userId: "",
-        //   });
-        // }
       }
+
       return leaderBoardList;
-    } catch (error) {
-      console.log("getLeaderboardResults in Supabase Error ", error);
+    } catch (e) {
+      console.error("Error in getClassLeaderboard: ", e);
+      return {
+        weekly: [],
+        allTime: [],
+        monthly: [],
+      }
     }
   }
+
+  async getLeaderboardStudentResultFromB2CCollection(): Promise<LeaderboardInfo | undefined> {
+    try {
+      // Initialize leaderboard structure
+      let leaderBoardList: LeaderboardInfo = {
+        weekly: [],
+        allTime: [],
+        monthly: [],
+      };
+
+      // Define the query to fetch data from the view
+      const genericQuery = `
+        SELECT *
+        FROM get_leaderboard_generic_data
+      `;
+
+      if (!this.supabase) {
+        console.error("Supabase instance is not initialized");
+        return;
+      }
+
+      // Execute the query
+      const { data, error } = await this.supabase
+        .from("get_leaderboard_generic_data")
+        .select();
+
+      // Handle errors in the query execution
+      if (error) {
+        console.error("Error fetching leaderboard data: ", error);
+        return;
+      }
+
+      // Handle case where no data is returned
+      if (!data) {
+        console.warn("No data returned from get_leaderboard_generic_data");
+        return;
+      }
+
+      console.log("Fetched leaderboard data: ", data);
+
+      // Process the results
+      data.forEach(result => {
+        if (!result) return;
+
+        const leaderboardEntry = {
+          name: result.name || "",
+          score: result.total_score || 0,
+          timeSpent: result.total_time_spent || 0,
+          lessonsPlayed: result.lessons_played || 0,
+          userId: result.student_id || "",
+        };
+
+        switch (result.type) {
+          case "allTime":
+            leaderBoardList.allTime.push(leaderboardEntry);
+            break;
+          case "monthly":
+            leaderBoardList.monthly.push(leaderboardEntry);
+            break;
+          case "weekly":
+            leaderBoardList.weekly.push(leaderboardEntry);
+            break;
+          default:
+            console.warn("Unknown leaderboard type: ", result.type);
+        }
+      });
+
+      return leaderBoardList;
+    } catch (error) {
+      console.error("Error in getLeaderboardStudentResultFromB2CCollection: ", error);
+    }
+  }
+
   getAllLessonsForCourse(courseId: string): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
