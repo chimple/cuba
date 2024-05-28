@@ -176,13 +176,9 @@ const Leaderboard: React.FC = () => {
       t("Score"),
       t("Time Spent"),
     ]);
-    console.log("tempData all ", tempData);
-
     let isCurrentStudentDataFetched = false;
     for (let i = 0; i < tempData.length; i++) {
       const element = tempData[i];
-      console.log("const element = tempData[i]; ", element);
-
       var computeMinutes = Math.floor(element.timeSpent / 60);
       var computeSeconds = element.timeSpent % 60;
       tempLeaderboardDataArray.push([
@@ -211,15 +207,7 @@ const Leaderboard: React.FC = () => {
       const b2cData = await api.getLeaderboardStudentResultFromB2CCollection(
         currentStudent.id
       );
-      console.log(
-        "const b2cData = await api.getLeaderboardStudentResultFromB2CCollection(",
-        !isCurrentStudentDataFetched && !classId,
-        b2cData
-      );
-
       if (b2cData) {
-        console.log("if (!b2cData) { return", b2cData);
-
         const tempData =
           leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
             ? b2cData.weekly
@@ -227,9 +215,6 @@ const Leaderboard: React.FC = () => {
               ? b2cData.monthly
               : b2cData.allTime;
         if (tempData && tempData.length > 0) {
-          console.log("getLeaderboard tempData ", tempData);
-          console.log("getLeaderboard timespent ", tempData[0].timeSpent);
-
           var computeMinutes = Math.floor(tempData[0].timeSpent / 60);
           var computeSeconds = tempData[0].timeSpent % 60;
           const cUserRank = tempLeaderboardDataArray.length.toString() + "+";

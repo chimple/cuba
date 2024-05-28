@@ -1042,87 +1042,89 @@ export class SqliteApi implements ServiceApi {
     studentId: string
   ): Promise<LeaderboardInfo | undefined> {
     try {
+      // Ensure the database instance is initialized
+      if (!this._db) throw new Error("Database is not initialized");
+
+      // Define the query to fetch the leaderboard data for the given student
+      const currentStudentQuery = `
+        SELECT 'allTime' as type, student_id, name, 
+               count(res.id) as lessons_played, 
+               sum(score) as total_score, 
+               sum(time_spent) as total_time_spent
+        FROM ${TABLES.Result} res
+        JOIN ${TABLES.User} u ON u.id = res.student_id
+        WHERE res.student_id = '${studentId}'
+        GROUP BY student_id, u.name
+        UNION ALL
+        SELECT 'monthly' as type, student_id, u.name, 
+               count(res.id) as lessons_played, 
+               sum(score) as total_score, 
+               sum(time_spent) as total_time_spent
+        FROM ${TABLES.Result} res
+        JOIN ${TABLES.User} u ON u.id = res.student_id
+        WHERE res.student_id = '${studentId}' 
+        AND strftime('%m', res.created_at) = strftime('%m', datetime('now'))
+        GROUP BY student_id, u.name
+        UNION ALL
+        SELECT 'weekly' as type, student_id, u.name, 
+               count(res.id) as lessons_played, 
+               sum(score) as total_score, 
+               sum(time_spent) as total_time_spent
+        FROM ${TABLES.Result} res
+        JOIN ${TABLES.User} u ON u.id = res.student_id
+        WHERE res.student_id = '${studentId}' 
+        AND strftime('%W', res.created_at) = strftime('%W', datetime('now'))
+        GROUP BY student_id, u.name
+      `;
+
+      // Execute the query
+      const currentUserResult = await this._db.query(currentStudentQuery);
+
+      // Handle case where no data is returned
+      if (!currentUserResult.values) {
+        return;
+      }
+
+      // Initialize the leaderboard structure
       let leaderBoardList: LeaderboardInfo = {
         weekly: [],
         allTime: [],
         monthly: [],
       };
-      console.log(
-        "getLeaderboardStudentResults called in sqliteApit.ts ",
-        studentId
-      );
-      if (!this._db) throw "Db is not initialized";
-      const currentStudentQuery = `
-      SELECT 'allTime' as type,student_id,name, count(res.id) as lessons_played,sum(score) as total_score,sum(time_spent) as total_time_spent
-      FROM ${TABLES.Result} res
-      JOIN ${TABLES.User} u ON u.id = res.student_id
-      WHERE res.student_id = '${studentId}'
-      GROUP BY student_id, u.name
-      UNION ALL
-      SELECT 'monthly' as type,student_id,u.name, count(res.id) as lessons_played,sum(score) as total_score,sum(time_spent) as total_time_spent
-      FROM ${TABLES.Result} res
-      JOIN ${TABLES.User} u ON u.id = res.student_id
-      WHERE res.student_id = '${studentId}' and strftime('%m', res.created_at) =strftime('%m', datetime('now'))
-      GROUP BY student_id, u.name
-      UNION ALL
-      SELECT 'weekly' as type,student_id,u.name, count(res.id) as lessons_played,sum(score) as total_score,sum(time_spent) as total_time_spent
-      FROM ${TABLES.Result} res
-      JOIN ${TABLES.User} u ON u.id = res.student_id
-      WHERE res.student_id = '${studentId}' and strftime('%W', res.created_at) =strftime('%W', datetime('now'))
-      GROUP BY student_id, u.name
-      `;
-      console.log("getLeaderboardStudentResults query ", currentStudentQuery);
-      const currentUserResult = await this._db.query(currentStudentQuery);
-      console.log("getLeaderboardStudentResults res ", currentUserResult);
-      if (!currentUserResult.values) {
-        return;
-      }
 
-      for (let i = 0; i < currentUserResult.values.length; i++) {
-        const result = currentUserResult.values[i];
-        console.log("const result = res.values[i]; ", result);
+      // Process the results
+      currentUserResult.values.forEach(result => {
+        if (!result) return;
+
+        const leaderboardEntry = {
+          name: result.name || "",
+          score: result.total_score || 0,
+          timeSpent: result.total_time_spent || 0,
+          lessonsPlayed: result.lessons_played || 0,
+          userId: studentId,
+        };
+
         switch (result.type) {
           case "allTime":
-            leaderBoardList.allTime.push({
-              name: result.name,
-              score: result.total_score,
-              timeSpent: result.total_time_spent,
-              lessonsPlayed: result.lessons_played,
-              userId: studentId,
-            });
+            leaderBoardList.allTime.push(leaderboardEntry);
             break;
           case "monthly":
-            leaderBoardList.monthly.push({
-              name: result.name,
-              score: result.total_score,
-              timeSpent: result.total_time_spent,
-              lessonsPlayed: result.lessons_played,
-              userId: studentId,
-            });
+            leaderBoardList.monthly.push(leaderboardEntry);
             break;
-
           case "weekly":
-            leaderBoardList.weekly.push({
-              name: result.name,
-              score: result.total_score,
-              timeSpent: result.total_time_spent,
-              lessonsPlayed: result.lessons_played,
-              userId: studentId,
-            });
+            leaderBoardList.weekly.push(leaderboardEntry);
             break;
-
           default:
-            break;
+            console.warn("Unknown leaderboard type: ", result.type);
         }
-      }
-      console.log("Final getLeaderboardResults ", currentUserResult);
+      });
 
       return leaderBoardList;
     } catch (error) {
-      console.log(" async getLeaderboardResults Error ", error);
+      console.error("Error in getLeaderboardStudentResultFromB2CCollection: ", error);
     }
-    return;
   }
+
 
   async getAllLessonsForCourse(
     courseId: string
