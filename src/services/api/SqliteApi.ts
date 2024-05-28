@@ -114,24 +114,23 @@ export class SqliteApi implements ServiceApi {
     }
     if (!res1 || !res1.values || !res1.values.length) {
       try {
-        const data = await fetch("databases/init_sqlite.json");
-        if (!data || !data.ok) return;
-        const queries = await data.json();
-        for (const query of queries) {
-          const res298 = await this.executeQuery(query);
-        }
-
-        // const data = await fetch("seed/dummy_data.json");
+        // const data = await fetch("databases/init_sqlite.json");
         // if (!data || !data.ok) return;
-        // const json = await data.json();
-        // const jsonString = JSON.stringify(json);
-        // const isValid = await this._sqlite.isJsonValid(jsonString);
-        // if (isValid) {
-        //   const res2 = await this._sqlite.importFromJson(jsonString);
-        //   console.log("🚀 ~ imported:", JSON.stringify(res2.changes));
-        //   if (!Capacitor.isNativePlatform())
-        //     await this._sqlite.saveToStore(this.DB_NAME);
+        // const queries = await data.json();
+        // for (const query of queries) {
+        //   const res298 = await this.executeQuery(query);
         // }
+
+        try {
+          const importData = await fetch("databases/import.json");
+          if (!importData || !importData.ok) return;
+          const importJson = JSON.stringify((await importData.json()) ?? {});
+          const resImport = await this._sqlite.importFromJson(importJson);
+          console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:", resImport);
+          if (!Capacitor.isNativePlatform()) window.location.reload();
+        } catch (error) {
+          console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
+        }
       } catch (error) {
         console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
       }
@@ -200,13 +199,14 @@ export class SqliteApi implements ServiceApi {
           console.log(
             "🚀 ~ Api ~ pullChanges ~ stmt, fieldValues:",
             stmt,
-            fieldValues
+            fieldValues,
+            fieldValues.length
           );
 
           try {
             await this.executeQuery(stmt, fieldValues);
           } catch (er) {
-            console.log( "🚀 ~ Api ~ pullChangesError ",er)
+            console.log("🚀 ~ Api ~ pullChangesError ", er);
           }
         }
 
