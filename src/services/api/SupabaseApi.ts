@@ -44,19 +44,19 @@ export class SupabaseApi implements ServiceApi {
     studentId: string
   ): Promise<
     | {
-        class_id: string;
-        created_at: string;
-        created_by: string | null;
-        ends_at: string | null;
-        id: string;
-        is_class_wise: boolean;
-        is_deleted: boolean | null;
-        lesson_id: string;
-        school_id: string;
-        starts_at: string;
-        type: string | null;
-        updated_at: string | null;
-      }
+      class_id: string;
+      created_at: string;
+      created_by: string | null;
+      ends_at: string | null;
+      id: string;
+      is_class_wise: boolean;
+      is_deleted: boolean | null;
+      lesson_id: string;
+      school_id: string;
+      starts_at: string;
+      type: string | null;
+      updated_at: string | null;
+    }
     | undefined
   > {
     throw new Error("Method not implemented.");
@@ -426,29 +426,70 @@ export class SupabaseApi implements ServiceApi {
     sectionId: string,
     leaderboardDropdownType: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined> {
-    throw new Error("Method not implemented.");
-    // try {
-    //   console.log("🚀 ~ SupabaseApi ~ res getLeaderboardResults called ");
-    //   let leaderBoardList: LeaderboardInfo = {
-    //     weekly: [],
-    //     allTime: [],
-    //     monthly: [],
-    //   };
-    //   // const res = await this.supabase
-    //   //   ?.from(tableName)
-    //   //   .select("*")
-    //   //   .gte("updated_at", lastModifiedDate);
-    //   // return leaderBoardList.monthly.push({
-    //   //   name: d.get("name"),
-    //   //   score: d.get("monthlyScore"),
-    //   //   timeSpent: d.get("monthlyTimeSpent"),
-    //   //   lessonsPlayed: d.get("monthlyLessonPlayed"),
-    //   //   userId: d.id,
-    //   // });
-    //   return leaderBoardList;
-    // } catch (error) {
-    //   console.log("getLeaderboardResults in Supabase Error ", error);
-    // }
+    try {
+      if (!this.supabase) return;
+      console.log("getClassLeaderboard ", leaderboardDropdownType);
+
+      const rpcRes = await this.supabase.rpc("getClassLeaderboard", {
+        current_class_id: sectionId
+      });
+      console.log("const rpcRes ", rpcRes);
+
+      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
+        throw rpcRes?.error ?? "";
+      }
+      const data = rpcRes.data;
+      console.log("getClassLeaderboard ", data);
+
+      let leaderBoardList: LeaderboardInfo = {
+        weekly: [],
+        allTime: [],
+        monthly: [],
+      };
+      // for (let i = 0; i < data.length; i++) {
+      //   const result = currentUserResult.values[i];
+      //   console.log("const result = res.values[i]; ", result);
+      //   switch (result.type) {
+      //     case "allTime":
+      //       leaderBoardList.allTime.push({
+      //         name: result.name,
+      //         score: result.total_score,
+      //         timeSpent: result.total_time_spent,
+      //         lessonsPlayed: result.lessons_played,
+      //         userId: studentId,
+      //       });
+      //       break;
+      //     case "monthly":
+      //       leaderBoardList.monthly.push({
+      //         name: result.name,
+      //         score: result.total_score,
+      //         timeSpent: result.total_time_spent,
+      //         lessonsPlayed: result.lessons_played,
+      //         userId: studentId,
+      //       });
+      //       break;
+
+      //     case "weekly":
+      //       leaderBoardList.weekly.push({
+      //         name: result.name,
+      //         score: result.total_score,
+      //         timeSpent: result.total_time_spent,
+      //         lessonsPlayed: result.lessons_played,
+      //         userId: studentId,
+      //       });
+      //       break;
+
+      //     default:
+      //       break;
+      //   }
+      // }
+
+      // return data;
+
+    } catch (e) {
+      // throw new Error("Invalid inviteCode");
+      console.log("getClassLeaderboard ", e);
+    }
   }
   async getLeaderboardStudentResultFromB2CCollection(): Promise<
     LeaderboardInfo | undefined

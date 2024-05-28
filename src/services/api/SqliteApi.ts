@@ -210,7 +210,7 @@ export class SqliteApi implements ServiceApi {
           try {
             await this.executeQuery(stmt, fieldValues);
           } catch (er) {
-            console.log( "🚀 ~ Api ~ pullChangesError ",er)
+            console.log("🚀 ~ Api ~ pullChangesError ", er);
           }
         }
 
@@ -1020,6 +1020,15 @@ export class SqliteApi implements ServiceApi {
     sectionId: string,
     leaderboardDropdownType: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined> {
+    console.log("getLeaderboardResults sectionId ", sectionId);
+    if (sectionId) {
+      let classLeaderboard = await SupabaseApi.getInstance().getLeaderboardResults(
+        sectionId,
+        leaderboardDropdownType
+      );
+      console.log("let classLeaderboard ", classLeaderboard);
+    }
+
     let genericQueryResult =
       await this._serverApi.getLeaderboardStudentResultFromB2CCollection();
     console.log(

@@ -1323,6 +1323,12 @@ export type Database = {
       }
     }
     Functions: {
+      getClassLeaderboard: {
+        Args: {
+          current_class_id: string
+        }
+        Returns: Json
+      }
       getDataByInviteCode: {
         Args: {
           invite_code: number
