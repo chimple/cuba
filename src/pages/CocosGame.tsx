@@ -24,10 +24,10 @@ import { t } from "i18next";
 import { AvatarObj } from "../components/animation/Avatar";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
-
 const CocosGame: React.FC = () => {
   const history = useHistory();
   console.log("cocos game", history.location.state);
+
   const state = history.location.state as any;
   const iFrameUrl = state?.url;
   console.log("iFrameUrl", state?.url, iFrameUrl);
@@ -204,11 +204,10 @@ const CocosGame: React.FC = () => {
     const api = ServiceConfig.getI().apiHandler;
     const courseDocId: string | undefined = state.courseDocId;
     const lesson: Lesson = JSON.parse(state.lesson);
-    console.log("🚀 ~ file: CocosGame.tsx:57 ~ init ~ lesson:", lesson);
-    console.log("--------lesson data -------", lessonData);
-    console.log("--------score of the lesson", lessonData.score);
+    const assignment = state.assignment;
     const currentStudent = api.currentStudent!;
     const data = lessonData;
+    let assignmentId = assignment ? assignment.id : null;
     const isStudentLinked = await api.isStudentLinked(currentStudent.id);
     let classId;
     let schoolId;
@@ -220,8 +219,17 @@ const CocosGame: React.FC = () => {
         classId = studentResult.classes[0].id;
         schoolId = studentResult.schools[0].id;
       }
+      if (!assignment) {
+        const result = await api.getPendingAssignmentForLesson(
+          lesson.id,
+          classId,
+          currentStudent.id
+        );
+        if (result) {
+          assignmentId = result?.id;
+        }
+      }
     }
-
     let avatarObj = AvatarObj.getInstance();
     let finalProgressTimespent =
       avatarObj.weeklyTimeSpent["min"] * 60 + avatarObj.weeklyTimeSpent["sec"];
@@ -242,7 +250,7 @@ const CocosGame: React.FC = () => {
       data.wrongMoves,
       data.timeSpent,
       isLoved,
-      lesson.assignment?.docId,
+      assignmentId,
       classId,
       schoolId
     );
