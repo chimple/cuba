@@ -39,48 +39,6 @@
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
         }
-      ],
-      "values": [
-        [
-          "0e54f9d0-af64-4d0f-8851-7b27a2a4d90e",
-          "Chimple",
-          null,
-          null,
-          1,
-          "2024-04-25T07:18:25.811217+00:00",
-          "2024-04-25T07:18:25.811217+00:00",
-          0
-        ],
-        [
-          "e1629739-5421-4996-a1f7-61225443bd04",
-          "NCERT",
-          null,
-          null,
-          null,
-          "2024-05-21T09:45:36.276464+00:00",
-          "2024-05-21T09:45:36.276464+00:00",
-          0
-        ],
-        [
-          "7d560737-746a-4931-a49f-02de1ca526bd",
-          "Chimple",
-          null,
-          null,
-          null,
-          "2024-05-21T09:45:36.276464+00:00",
-          "2024-05-21T09:45:36.276464+00:00",
-          0
-        ],
-        [
-          "feec6f59-b8bc-41e8-81aa-2b2689a9fc40",
-          "Karnataka State Board",
-          null,
-          null,
-          null,
-          "2024-05-21T09:45:36.276464+00:00",
-          "2024-05-21T09:45:36.276464+00:00",
-          0
-        ]
       ]
     },
     {
@@ -118,68 +76,6 @@
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
         }
-      ],
-      "values": [
-        [
-          "59c72485-0bec-4c83-89b8-0395e703ee06",
-          "English",
-          null,
-          null,
-          1,
-          "2024-04-22T10:29:02.27056+00:00",
-          "2024-04-22T10:29:02.27056+00:00",
-          0
-        ],
-        [
-          "c5674cc5-48f8-40b8-8123-f5246ea0c5e8",
-          "Maths",
-          null,
-          null,
-          null,
-          "2024-05-21T09:55:56.038154+00:00",
-          "2024-05-21T09:55:56.038154+00:00",
-          0
-        ],
-        [
-          "54abf22e-7102-4e14-915b-acd8eab47d56",
-          "English",
-          null,
-          null,
-          null,
-          "2024-05-21T09:55:56.038154+00:00",
-          "2024-05-21T09:55:56.038154+00:00",
-          0
-        ],
-        [
-          "c2dfd745-e7f2-4614-8890-f983d04155b2",
-          "Digital Skills",
-          null,
-          null,
-          null,
-          "2024-05-21T09:55:56.038154+00:00",
-          "2024-05-21T09:55:56.038154+00:00",
-          0
-        ],
-        [
-          "c6e312bc-a832-4b81-964a-e0537cf7718c",
-          "हिंदी\n",
-          null,
-          null,
-          null,
-          "2024-05-21T09:55:56.038154+00:00",
-          "2024-05-21T09:55:56.038154+00:00",
-          0
-        ],
-        [
-          "be9d503e-439d-434d-b35c-c1e718b518bd",
-          "ಕನ್ನಡ\n",
-          null,
-          null,
-          null,
-          "2024-05-21T09:55:56.038154+00:00",
-          "2024-05-21T09:55:56.038154+00:00",
-          0
-        ]
       ]
     },
     {
@@ -217,78 +113,6 @@
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
         }
-      ],
-      "values": [
-        [
-          "629b28a6-b27f-406d-9dd4-cc7b560dd3ec",
-          "Grade 1",
-          null,
-          null,
-          null,
-          "2024-04-25T07:19:11.401201+00:00",
-          "2024-04-25T07:19:11.401201+00:00",
-          0
-        ],
-        [
-          "198fdeab-fdae-4e2c-813b-d41312a7fd18",
-          "Grade 2",
-          null,
-          null,
-          null,
-          "2024-04-30T04:36:21.397659+00:00",
-          "2024-04-30T04:36:21.397659+00:00",
-          0
-        ],
-        [
-          "30ecb762-8e63-45b3-a22a-62c1a9f71641",
-          "Below Grade 1",
-          null,
-          null,
-          1,
-          "2024-05-21T09:35:39.215531+00:00",
-          "2024-05-21T09:35:39.215531+00:00",
-          0
-        ],
-        [
-          "c802dce7-0840-4baf-b374-ef6cb4272a76",
-          "Grade 1",
-          null,
-          null,
-          2,
-          "2024-05-21T09:35:39.215531+00:00",
-          "2024-05-21T09:35:39.215531+00:00",
-          0
-        ],
-        [
-          "36e7ff1f-34d6-42ac-9294-3192433ace40",
-          "Grade 2",
-          null,
-          null,
-          3,
-          "2024-05-21T09:35:39.215531+00:00",
-          "2024-05-21T09:35:39.215531+00:00",
-          0
-        ],
-        [
-          "d8cf7700-e00c-4bf8-a082-222b1ecfe1f7",
-          "Grade 3",
-          null,
-          null,
-          4,
-          "2024-05-21T09:35:39.215531+00:00",
-          "2024-05-21T09:35:39.215531+00:00",
-          0
-        ],
-        [
-          "d05cb75a-adc2-4365-8548-30b2ac65b321",
-          "Above Grade 3",
-          null,
-          null,
-          5,
-          "2024-05-21T09:35:39.215531+00:00",
-          "2024-05-21T09:35:39.215531+00:00",
-          0
-        ]
       ]
     },
     {
@@ -330,63 +154,6 @@
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
         }
-      ],
-      "values": [
-        [
-          "0601045e-c0f9-447c-b4f5-0d5b8779c970",
-          "English",
-          null,
-          null,
-          1,
-          "en",
-          "2024-04-25T07:17:43.740828+00:00",
-          "2024-04-25T07:17:43.740828+00:00",
-          0
-        ],
-        [
-          "10e23642-6b4c-402c-90e5-6d02cb8d5388",
-          "Hindi",
-          null,
-          null,
-          null,
-          "hi",
-          "2024-04-30T04:36:37.106191+00:00",
-          "2024-04-30T04:36:37.106191+00:00",
-          0
-        ],
-        [
-          "7eaf3509-e44e-460f-80a1-7f6a13a8a883",
-          "English",
-          null,
-          null,
-          null,
-          "en",
-          "2024-05-21T09:46:35.453668+00:00",
-          "2024-05-21T09:46:35.453668+00:00",
-          0
-        ],
-        [
-          "aca183d0-c416-4917-a0c8-f78538b6e51b",
-          "हिंदी\n",
-          null,
-          null,
-          null,
-          "hi",
-          "2024-05-21T09:46:35.453668+00:00",
-          "2024-05-21T09:46:35.453668+00:00",
-          0
-        ],
-        [
-          "4c6b7921-672b-4aee-b64d-1c18ea7f4913",
-          "ಕನ್ನಡ\n",
-          null,
-          null,
-          null,
-          "kn",
-          "2024-05-21T09:46:35.453668+00:00",
-          "2024-05-21T09:46:35.453668+00:00",
-          0
-        ]
       ]
     },
     {
@@ -420,17 +187,6 @@
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
         }
-      ],
-      "values": [
-        [
-          "3d4877f5-776e-4851-a692-3b3fa9b0ed78",
-          "Radio Rewards Badge",
-          "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/lesson_thumbnails%2Fhi%2Fradio_rewards.png?alt=media&token=9119bb39-8909-4f15-a2eb-98deafaec6dd",
-          "",
-          "2024-05-20T09:10:37.844057+00:00",
-          "2024-05-20T09:10:37.844057+00:00",
-          0
-        ]
       ]
     },
     {
@@ -487,51 +243,7 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "subject_id",
-          "value": "REFERENCES subject (id)"
-        },
-        {
-          "foreignkey": "grade_id",
-          "value": "REFERENCES grade (id)"
-        },
-        {
-          "foreignkey": "curriculum_id",
-          "value": "REFERENCES curriculum (id)"
         }
-      ],
-      "values": [
-        [
-          "cd09e4ed-b98b-4053-969f-8392fce79f98",
-          "English 2",
-          "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/thumbnails%2Fchapter_icons%2Fen.webp?alt=media&token=de04f5ee-54c6-4da9-97e9-311a6717963d",
-          null,
-          2,
-          "59c72485-0bec-4c83-89b8-0395e703ee06",
-          "198fdeab-fdae-4e2c-813b-d41312a7fd18",
-          "0e54f9d0-af64-4d0f-8851-7b27a2a4d90e",
-          null,
-          null,
-          "2024-04-30T04:45:19.256514+00:00",
-          "2024-05-10T04:07:40+00:00",
-          0
-        ],
-        [
-          "e2eec259-d820-4e06-9a9e-a6d4a6d14624",
-          "English",
-          "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/thumbnails%2Fchapter_icons%2Fen.webp?alt=media&token=de04f5ee-54c6-4da9-97e9-311a6717963d",
-          null,
-          1,
-          "59c72485-0bec-4c83-89b8-0395e703ee06",
-          "629b28a6-b27f-406d-9dd4-cc7b560dd3ec",
-          "0e54f9d0-af64-4d0f-8851-7b27a2a4d90e",
-          null,
-          "en",
-          "2024-04-30T04:44:10.009415+00:00",
-          "2024-05-10T04:07:34+00:00",
-          0
-        ]
       ]
     },
     {
@@ -565,26 +277,6 @@
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
         }
-      ],
-      "values": [
-        [
-          "cc769c06-fd43-4544-9dc1-2b012d78528f",
-          "test 1",
-          null,
-          null,
-          "2024-05-21T07:17:46.184306+00:00",
-          "2024-05-21T07:17:46.184306+00:00",
-          0
-        ],
-        [
-          "853131a1-ce63-4eaf-8ef2-45d4b10ef43b",
-          "Parasolsticker",
-          "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/thumbnails%2FStickers%2Fparasolsticker.png?alt=media&token=76beb661-1a16-456a-90f7-b0c9c6f9322e",
-          null,
-          "2024-05-27T04:41:35+00:00",
-          "2024-05-27T04:43:25+00:00",
-          0
-        ]
       ]
     },
     {
@@ -626,18 +318,6 @@
           "constraint": "CPK_id",
           "value": "PRIMARY KEY (id)"
         }
-      ],
-      "values": [
-        [
-          "3d4877f5-776e-4851-a692-3b3fa9b0ed78",
-          "2024-05-21T19:42:18.213224+00:00",
-          "2024-05-21T19:42:18.213224+00:00",
-          0,
-          "{\"monthly\":{\"1\":[{\"id\":\"YFLWYfx5qpMi1qj3L7TA\",\"type\":\"bonus\"},{\"id\":\"HZZCULVz9hDUnCpy7qwi\",\"type\":\"bonus\"},{\"id\":\"gUGEkGRfaZHj4jaLJSMu\",\"type\":\"bonus\"},{\"id\":\"w29ktcACHH8LKDZdCVr0\",\"type\":\"bonus\"},{\"id\":\"wULRIGt7WxC2XeMm2Pw3\",\"type\":\"bonus\"},{\"id\":\"dp1XM6N0oM82871Hgw4R\",\"type\":\"bonus\"},{\"id\":\"6PHKoXsP9wz8gJpJU4Ts\",\"type\":\"bonus\"},{\"id\":\"RgFWMnYhGhT6YlIM9IK3\",\"type\":\"bonus\"},{\"id\":\"XLc0XlejUXe8BrypnZCX\",\"type\":\"bonus\"},{\"id\":\"klqyJLGiSKSxaD5T80GQ\",\"type\":\"bonus\"},{\"id\":\"k0iqPAWuU4qXjzhkuS8I\",\"type\":\"bonus\"},{\"id\":\"cNwrArVCwvSRD6g6ou5G\",\"type\":\"bonus\"}]}}\n",
-          "{\"weekly\":{\"1\":[{\"id\":\"fEQX5wzrh0Xl0iCUoKR2\",\"type\":\"badge\"},{\"id\":\"pQOpbMQYtaUJo9Tw6zNq\",\"type\":\"badge\"},{\"id\":\"14eeDDK5WA29471bnuaF\",\"type\":\"badge\"}],\"2\":[{\"id\":\"1tpw4AUWvXVBmoDQTbxS\",\"type\":\"badge\"}],\"3\":[{\"id\":\"2f75ZZYxd7oIh72lgS0I\",\"type\":\"badge\"}],\"4\":[{\"id\":\"3yWGMOAD2IhI96iNQ3ht\",\"type\":\"badge\"}],\"5\":[{\"id\":\"8t7XRMAqs7KxkHUXRx0A\",\"type\":\"badge\"}],\"6\":[{\"id\":\"ADo6LSNnH6mgGJVYepib\",\"type\":\"badge\"}],\"7\":[{\"id\":\"AWa1Blipa7snXK3lwlj3\",\"type\":\"badge\"}],\"8\":[{\"id\":\"E47dO3Pn1STowv9rXiFZ\",\"type\":\"badge\"}],\"9\":[{\"id\":\"JI8au3qy4na5X4G5mxiy\",\"type\":\"badge\"}],\"10\":[{\"id\":\"OpIHImKJTEzt1xbUQlQc\",\"type\":\"badge\"}],\"11\":[{\"id\":\"QqegXQpkaAerCnvqRgON\",\"type\":\"badge\"}],\"12\":[{\"id\":\"S8i6s3M9g0mBee5A9wIW\",\"type\":\"badge\"}],\"13\":[{\"id\":\"Vp8JMjAXWdt5jXpHBatG\",\"type\":\"badge\"}],\"14\":[{\"id\":\"Vsucb1LAI9zz6vEPByei\",\"type\":\"badge\"}],\"15\":[{\"id\":\"WTJG3iyfEbwftLdo0eD4\",\"type\":\"badge\"}],\"16\":[{\"id\":\"Wrff6zb1J6PGbmYPJrqu\",\"type\":\"badge\"}],\"17\":[{\"id\":\"YuXu23D8okQYEsiGnRSL\",\"type\":\"badge\"}],\"18\":[{\"id\":\"bN1QqvruEVUVZH6fzO5s\",\"type\":\"badge\"}],\"19\":[{\"id\":\"cK0L0sK41zK6vWoRuZ2B\",\"type\":\"badge\"}],\"20\":[{\"id\":\"fEQX5wzrh0Xl0iCUoKR2\",\"type\":\"badge\"}],\"21\":[{\"id\":\"ggin54QhPSb8uFmjThFU\",\"type\":\"badge\"}],\"22\":[{\"id\":\"hsHO1BG61bfZSSqZ2SqW\",\"type\":\"badge\"}],\"23\":[{\"id\":\"iaaIOsNTaMLLL931Uhhu\",\"type\":\"badge\"}],\"24\":[{\"id\":\"k6bIlf27Y9qDSTpDmKxP\",\"type\":\"badge\"}],\"25\":[{\"id\":\"mIEzj26JG8DOaosofP9B\",\"type\":\"badge\"}],\"26\":[{\"id\":\"nEUQacBQW0OikqKtRvHm\",\"type\":\"badge\"}],\"27\":[{\"id\":\"nuk0PeokepKVShREHk2L\",\"type\":\"badge\"}],\"28\":[{\"id\":\"pQOpbMQYtaUJo9Tw6zNq\",\"type\":\"badge\"}],\"29\":[{\"id\":\"sUI66q0L4g7qFY0FTIPB\",\"type\":\"badge\"}],\"30\":[{\"id\":\"szVmkTU9lAxw0fjZQLOF\",\"type\":\"badge\"}],\"31\":[{\"id\":\"tRxqFLzNkxOf2fUmOhL8\",\"type\":\"badge\"}]}}",
-          "{\"weeklySticker\":{\"1\":[{\"id\":\"VA7Bc5C8zP4TSSYaa8xh\",\"type\":\"sticker\"},{\"id\":\"xfiJoGqlWp1JlsZDzN1G\",\"type\":\"sticker\"},{\"id\":\"beU4IfmaS73BqobQQCiP\",\"type\":\"sticker\"},{\"id\":\"OeJ67au7UFU6NFQ1CrYu\",\"type\":\"sticker\"},{\"id\":\"nx2o1QBQNbV2kBmZ8Tiz\",\"type\":\"sticker\"},{\"id\":\"iaeYqqbtVeI63kcFXWzd\",\"type\":\"sticker\"},{\"id\":\"JUaJ534Re1D3MGeDK4yp\",\"type\":\"sticker\"},{\"id\":\"PJumJ7DpayD0dbkQvlVu\",\"type\":\"sticker\"},{\"id\":\"KUfeKKtlQ0lrvwUabRbR\",\"type\":\"sticker\"},{\"id\":\"YtBaDW9Da3X251rxOjtH\",\"type\":\"sticker\"},{\"id\":\"w5MGpG3Ucs77c3iRz36b\",\"type\":\"sticker\"},{\"id\":\"pldfoCPUqZF6pCn0pd5j\",\"type\":\"sticker\"},{\"id\":\"A7301bwVdd1ho1WSK013\",\"type\":\"sticker\"},{\"id\":\"cUnpRy7z080hFS44hAce\",\"type\":\"sticker\"},{\"id\":\"Wp1ocWKGvKIzvT7rw5dL\",\"type\":\"sticker\"},{\"id\":\"jhkiZCW6I8Mtaa2WYPAJ\",\"type\":\"sticker\"},{\"id\":\"dQRz8VhJVja0Fo4p7EGm\",\"type\":\"sticker\"},{\"id\":\"Zjg1RZKvMky6YDqL7llX\",\"type\":\"sticker\"},{\"id\":\"JMjF4mLtgxCUZdminCg9\",\"type\":\"sticker\"},{\"id\":\"Xybu4CAo5yrrnOWAl54R\",\"type\":\"sticker\"},{\"id\":\"BdAFikVvSCFt8tlmTmzu\",\"type\":\"sticker\"},{\"id\":\"BwaRa2kYrbOWHksqFGgu\",\"type\":\"sticker\"},{\"id\":\"2ULu4xNbwF7Y2firZdvT\",\"type\":\"sticker\"},{\"id\":\"pAYvkhTrYUy4oSwsjzND\",\"type\":\"sticker\"},{\"id\":\"te0yGIkJmMu9PVgJiwQp\",\"type\":\"sticker\"},{\"id\":\"itC3C96WnrZXN83305PL\",\"type\":\"sticker\"},{\"id\":\"O45Kqp4ZB71qjItStZGq\",\"type\":\"sticker\"},{\"id\":\"Djg1vxi9tedRoCNfxB0B\",\"type\":\"sticker\"},{\"id\":\"m64wh8JWBmtdVM1eJSAA\",\"type\":\"sticker\"},{\"id\":\"GMWAEjYUKiloLKsxKJGM\",\"type\":\"sticker\"},{\"id\":\"4EjPBp4e9y7B4ekYQCFa\",\"type\":\"sticker\"}]}}",
-          2024
-        ]
       ]
     },
     {
@@ -719,57 +399,7 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "course_id",
-          "value": "REFERENCES course (id)"
         }
-      ],
-      "values": [
-        [
-          "89a2b605-454e-4758-be27-88961ecadb97",
-          "Chapter 2",
-          "https://storage.googleapis.com/cuba-stage.appspot.com/thumbnails/en/en01.webp?GoogleAccessId=firebase-adminsdk-q2a92%40cuba-stage.iam.gserviceaccount.com&Expires=4863976430&Signature=gUjC%2BtJuIxYPIQ5hBpGgc0gemFip6F1TpWL3sn%2BWjUFakooG%2BuYGGz1LUGwYzc4yHCtdRUO6NStvinAw00ggtWon4%2B2U93QO1pSyaU3mY%2FquiZ%2FbhK%2FTkxEr%2FnY1QFOZkKuz7szPMEiPKb0gvThOj24dhDSB7beUYhnQuADVKoZWDw9z5iJ80JetOiSHcOqFunI1ySR4lGAr%2FCykwhiDnDcjD9pjTfEQJhlC5lJr38yGaiG7KSDZP%2Fm3SPItL0bdT91fHQpIOQsnIW1gLciK06zHNKy54M62aaxD4w4GY%2BbcNXPDzPNqYLu65oC2mwdrs%2BhRjaeWCpqJESg2ltKkrQ%3D%3D",
-          "e2eec259-d820-4e06-9a9e-a6d4a6d14624",
-          2,
-          null,
-          "2024-04-30T04:56:22.484896+00:00",
-          "2024-05-10T04:03:10+00:00",
-          0
-        ],
-        [
-          "0ab1ba6b-f1a9-4135-99d5-4e0b530a9a1d",
-          "Chapter 4",
-          "https://storage.googleapis.com/cuba-stage.appspot.com/thumbnails/en/en03.webp?GoogleAccessId=firebase-adminsdk-q2a92%40cuba-stage.iam.gserviceaccount.com&Expires=4863976430&Signature=nGv62mF9jiRh90n%2F2pvz%2FLZGKYu6kQqscMH2pOzjBSx7hjgaoqyIdQVS%2FJJSQEShpahcMMMwi3Dyww2CqcENTqdNK2wQUCmMLNvYnXlywTgkwYbdpNOa%2F%2FqLFqw42FQGWGeOkVcRRb9y5dyRJd4%2B1MvPQnaCuLzAaYuVgUjhjKEwoRqNh03Lb%2FEraJAPc3L%2F8X4bh%2FDkkBerbArxCWQBNcng5C3VH4fUXNv60HNfYLHflPjQsd6Ca1t6ox6wOOF3LXEfFiFPSFsaVmA0sGVcZL1EcqWYKxm%2F8YXnUcIUlzibUdglsKjXvZ%2FtAnyqjOyxHye8Jyu%2B2uYJohqZWhI0TQ%3D%3D",
-          "cd09e4ed-b98b-4053-969f-8392fce79f98",
-          2,
-          null,
-          "2024-04-30T04:56:59.804354+00:00",
-          "2024-05-10T04:03:18+00:00",
-          0
-        ],
-        [
-          "682d2a1c-c105-4587-a737-8f3fc5a9928c",
-          "Chapter 3",
-          "https://storage.googleapis.com/cuba-stage.appspot.com/thumbnails/en/en02.webp?GoogleAccessId=firebase-adminsdk-q2a92%40cuba-stage.iam.gserviceaccount.com&Expires=4863976430&Signature=GDroMIAxVuwuEwEhHgro%2FFXGo60KUIODzDeUfkTGECoIEOEOgQAKOPqgS9y6H8ntRlilVifKasp6Rd%2F37h1dlXiVJcuv2LFfLOh5KsilfyDuYLGnB%2BFNL7dTzl4pFxLBYuosa1gIiPMroriUjcCNOeGhoPBcmlL6EYIi8YNmEa%2BBIvkU%2Fem2oxKcNzv4ELaV8ro8BfrVZ9gxkGa6dDk84uHcYknW5KV77krgmkrofqf%2F2vdKpMesd69MQWZe3sSm4E8IxGWhnkPESVOJCF8kCn3xZsGjuzmOr5CrvthmMXzWLtG9NQ2l4aqCpxilb%2BHUAZzew8fUIx8l20lU9UgfjQ%3D%3D",
-          "cd09e4ed-b98b-4053-969f-8392fce79f98",
-          1,
-          null,
-          "2024-04-30T04:56:45.206282+00:00",
-          "2024-05-10T04:03:27+00:00",
-          0
-        ],
-        [
-          "491c7cad-e5c1-4729-8dfc-256daea519b5",
-          "Chapter 1",
-          "https://storage.googleapis.com/cuba-stage.appspot.com/thumbnails/en/en00.webp?GoogleAccessId=firebase-adminsdk-q2a92%40cuba-stage.iam.gserviceaccount.com&Expires=4863976430&Signature=NnoJ3GnzHfzDbHmj1herU0HCzR%2B1qvJj6SZHmJda5TBjUe3WPf0SnmWDdn3SX4D%2FxrjVKJ9iEo5aSiF0PXH4490RNIvhAMskQVmqWF%2BHFXDrl9W2BorE2lC0XkVHY6JkTpu%2FuRG1X3jcooj9PNySCaLLmney5jbsoeZ5AuEBQswLzfWQr7isZ4RRhf96VmWLkVWnRDIqbQ8i0LdJv1YdemCzuQKleZTk8z1gNAnHhvkNoYjJdfh9VjpmlCRPgcCfTakthwe7vABgmS8Lh9PwL4jBQvXhukCzGSA5EULT2qpbpE7nx5QUg18Ql%2FXtiHdDZjCoGur8%2B41Mx1nPHbm%2F9g%3D%3D",
-          "e2eec259-d820-4e06-9a9e-a6d4a6d14624",
-          1,
-          null,
-          "2024-04-30T04:56:04.027826+00:00",
-          "2024-05-10T04:03:03+00:00",
-          0
-        ]
       ]
     },
     {
@@ -846,97 +476,7 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "subject_id",
-          "value": "REFERENCES subject (id)"
-        },
-        {
-          "foreignkey": "language_id",
-          "value": "REFERENCES language (id)"
         }
-      ],
-      "values": [
-        [
-          "ddbb6996-d23e-4d1f-b57f-638b6cb5804d",
-          "Second lesson 1",
-          "https://storage.googleapis.com/cuba-stage.appspot.com/thumbnails/en/en0001.webp?GoogleAccessId=firebase-adminsdk-q2a92%40cuba-stage.iam.gserviceaccount.com&Expires=4863950919&Signature=rajXfVc9UaUYwRUuGgEUDMQe6dt1gUwRdsnNhzVjrXi4fr8wcc07zzCW5O1BhA7ETXW46t5544CkLHpH9O7gs0fcC5AjZ%2FDhciFlH%2FlyHdG6JuvmSItYQPts69KtUDAkatDaUds7gdegWi7M9kZYJzJfLIr1iLRyXuP3wh1NSo54nyu3hIQgHAzbDk%2F8lob55EDtUVNOEN6CDfOVM3TO8bINbbGo3QPT0KSXoc%2FoEnEQQLUYye4zyL8Ft7%2BXIMPI3Jk8FS4sPshO6CSqgaQoO6XxPj2So%2B62Nzv7fKu8ZcDfJKhaxRHUCDyrUbeXlypTQTbJQ7s2ppq%2BbeeXXhQeGQ%3D%3D",
-          null,
-          "cocos",
-          null,
-          "en",
-          null,
-          "en0001",
-          null,
-          "59c72485-0bec-4c83-89b8-0395e703ee06",
-          null,
-          null,
-          "0601045e-c0f9-447c-b4f5-0d5b8779c970",
-          null,
-          "2024-04-30T04:37:52.537857+00:00",
-          "2024-05-14T04:53:02+00:00",
-          0
-        ],
-        [
-          "ddbb6996-d23e-4d1f-b57f-638b6cb5805d",
-          "Third lesson",
-          "https://storage.googleapis.com/cuba-stage.appspot.com/thumbnails/en/en0002.webp?GoogleAccessId=firebase-adminsdk-q2a92%40cuba-stage.iam.gserviceaccount.com&Expires=4863950919&Signature=jTlrLDtkt9wWY4CgOK8kjA%2FxuFh2kq9dxf7kfmEIWjMbV71ueMna1IMVQPmbWXgI219HH0pP0dr%2FK4TgedoAajxZh7We0NJv%2BIwsu%2FWn2iEoDDv%2FgCMlpiFv4sudKr6sfnzL1NU7LRS4RGhkut1k41tIDvOq1TkmiBeVWmOucMYpwjDzTZSkumO4MWyhQUfIyxTJL6rq242Z9AR64MGSXUcCNbKr5gi49xyAtpPhRBly4YjuzkJagdzUgOXer7ZBH87LgKxfZZWtvFDTtnn2benMObtf80f9H1tlHw3WxyGbvy93MA0wZFojj9q5QVi56gmQTT5XiBEui6S%2BKlhtqQ%3D%3D",
-          null,
-          "cocos",
-          null,
-          "en",
-          null,
-          "en0002",
-          null,
-          "59c72485-0bec-4c83-89b8-0395e703ee06",
-          null,
-          null,
-          "0601045e-c0f9-447c-b4f5-0d5b8779c970",
-          null,
-          "2024-04-30T04:37:52.537857+00:00",
-          "2024-05-10T03:18:09+00:00",
-          0
-        ],
-        [
-          "ddbb6996-d23e-4d1f-b57f-638b6cb5806d",
-          "Fourth lesson",
-          "https://storage.googleapis.com/cuba-stage.appspot.com/thumbnails/en/en0003.webp?GoogleAccessId=firebase-adminsdk-q2a92%40cuba-stage.iam.gserviceaccount.com&Expires=4863950919&Signature=uX0ufAZCGtibIjFTPQuQAjU%2F2cUH692lhLAaHqlsnTgL3rg7HvQJWJ%2Ff3bGaKhqqPJ7WCQJhFqi%2BxsmdjaBEoDxQH6v%2FHcx8W84wRMsw5qaQs3AOVtgD8tfU6hCfbtC0hOElWzXSpI7RRvDIWLpVMaJ3nTg4DlaljkTbBWRfp7lHlwo%2BuVtlGTHPGi0SEOv4L3%2BG7wjfGFNRONys1PT39dfrqSOH1zXtaPt%2B7GeqQsTyeITOE77P0fG5Ag6nqqsfXuFtPTs8telSdP6%2BVvXyFKaZ2Er9%2BGTFxAau7JSEXlHxaVa%2F5lpTsHkO4j51LBXN5ay1%2B2WaPb%2FCgq4rEaaphw%3D%3D",
-          null,
-          "cocos",
-          null,
-          "en",
-          null,
-          "en0003",
-          null,
-          "59c72485-0bec-4c83-89b8-0395e703ee06",
-          null,
-          null,
-          "0601045e-c0f9-447c-b4f5-0d5b8779c970",
-          null,
-          "2024-04-30T04:37:52.537857+00:00",
-          "2024-05-10T03:18:17+00:00",
-          0
-        ],
-        [
-          "ddbb6996-d23e-4d1f-b57f-638b6cb5803d",
-          "First lesson",
-          "https://storage.googleapis.com/cuba-stage.appspot.com/thumbnails/en/en0000.webp?GoogleAccessId=firebase-adminsdk-q2a92%40cuba-stage.iam.gserviceaccount.com&Expires=4863950919&Signature=ixXrtYYaijYkCSUJVYXmmtQSOtYdIjAU2UaqtcskPy3smgMaHdIWnZrJ6r51r9vOqkXrRL3I3fIVc3Sl8qNciTj88K%2B7fEwJfRTfU3SUYnhpS%2FuMmSSK1akyrv5Z71BM0u4tPHpWm%2FahWMe4ddBxH2UhzrjYl1ZPCIe5IYxljXkiDia%2BuAcWRG0zxai5oARIFFDnCWcM7bSkHEmhc%2F4hUz%2FBLaUkll1N8LAaYXsIZxnuJ%2Bothn0O5wg0NNP49W1cMhHFEPiGbMgA7fTibi01qarDl2z9hSCFYdSqq3IKxSAO2HwnhoV3vplfWl%2BSQYcKDrxP0d7HldnhxIST295Nfg%3D%3D",
-          null,
-          "cocos",
-          null,
-          "en",
-          null,
-          "en0000",
-          null,
-          "59c72485-0bec-4c83-89b8-0395e703ee06",
-          null,
-          null,
-          "0601045e-c0f9-447c-b4f5-0d5b8779c970",
-          null,
-          "2024-04-30T04:37:52.537857+00:00",
-          "2024-05-10T03:18:21+00:00",
-          0
-        ]
       ]
     },
     {
@@ -969,10 +509,6 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "school_id",
-          "value": "REFERENCES school (id)"
         }
       ]
     },
@@ -1046,59 +582,7 @@
         {
           "column": "sfx_off",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "language_id",
-          "value": "REFERENCES language (id)"
-        },
-        {
-          "foreignkey": "curriculum_id",
-          "value": "REFERENCES curriculum (id)"
-        },
-        {
-          "foreignkey": "grade_id",
-          "value": "REFERENCES grade (id)"
         }
-      ],
-      "values": [
-        [
-          "cf0978ed-3cd2-4cb0-b8fe-0aba94a1bd4c",
-          "Gummana Bhanu Prakash Reddy",
-          "prakash@sutara.org",
-          "",
-          null,
-          "https://lh3.googleusercontent.com/a/ACg8ocKOLZvNteWAj59Ps5lCX9sUYlnLnyd0uyscxE4qtXBR1kwi_dU=s96-c",
-          null,
-          null,
-          null,
-          20,
-          null,
-          "2024-05-17T02:37:47.799+00:00",
-          "2024-05-17T02:37:52.751+00:00",
-          0,
-          1,
-          0,
-          0
-        ],
-        [
-          "db133d8b-4826-4ff6-81b3-e64718a3e12c",
-          "Student 2",
-          null,
-          null,
-          "male",
-          null,
-          "astronautraccon",
-          "0601045e-c0f9-447c-b4f5-0d5b8779c970",
-          "0e54f9d0-af64-4d0f-8851-7b27a2a4d90e",
-          4,
-          "198fdeab-fdae-4e2c-813b-d41312a7fd18",
-          "2024-05-17T02:38:12.774+00:00",
-          "2024-05-17T02:49:30.917+00:00",
-          0,
-          1,
-          0,
-          0
-        ]
       ]
     },
     {
@@ -1135,10 +619,6 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "class_id",
-          "value": "REFERENCES class (id)"
         }
       ]
     },
@@ -1172,14 +652,6 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "class_id",
-          "value": "REFERENCES class (id)"
-        },
-        {
-          "foreignkey": "user_id",
-          "value": "REFERENCES 'user' (id)"
         }
       ]
     },
@@ -1213,14 +685,6 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "lesson_id",
-          "value": "REFERENCES lesson (id)"
-        },
-        {
-          "foreignkey": "user_id",
-          "value": "REFERENCES 'user' (id)"
         }
       ]
     },
@@ -1250,14 +714,6 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "class_id",
-          "value": "REFERENCES class (id)"
-        },
-        {
-          "foreignkey": "course_id",
-          "value": "REFERENCES course (id)"
         }
       ]
     },
@@ -1291,89 +747,7 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "chapter_id",
-          "value": "REFERENCES chapter (id)"
-        },
-        {
-          "foreignkey": "lesson_id",
-          "value": "REFERENCES lesson (id)"
         }
-      ],
-      "values": [
-        [
-          "ff94ba8c-9f59-4579-b61c-19e11c8bab0e",
-          "ddbb6996-d23e-4d1f-b57f-638b6cb5803d",
-          "491c7cad-e5c1-4729-8dfc-256daea519b5",
-          1,
-          "2024-04-30T04:57:40.274515+00:00",
-          "2024-04-30T04:57:40.274515+00:00",
-          0
-        ],
-        [
-          "41474171-2c21-402b-8381-ec249f9874bf",
-          "ddbb6996-d23e-4d1f-b57f-638b6cb5804d",
-          "89a2b605-454e-4758-be27-88961ecadb97",
-          1,
-          "2024-04-30T04:58:20.977201+00:00",
-          "2024-04-30T04:58:20.977201+00:00",
-          0
-        ],
-        [
-          "9845cf99-66d9-400c-bb34-11b9a0d7b163",
-          "ddbb6996-d23e-4d1f-b57f-638b6cb5805d",
-          "682d2a1c-c105-4587-a737-8f3fc5a9928c",
-          1,
-          "2024-04-30T04:58:35.270142+00:00",
-          "2024-04-30T04:58:35.270142+00:00",
-          0
-        ],
-        [
-          "a2cda53b-0b06-4d70-a81d-bac042485023",
-          "ddbb6996-d23e-4d1f-b57f-638b6cb5806d",
-          "0ab1ba6b-f1a9-4135-99d5-4e0b530a9a1d",
-          4,
-          "2024-04-30T04:58:52.576147+00:00",
-          "2024-04-30T04:58:52.576147+00:00",
-          0
-        ],
-        [
-          "8b5c0d8b-c099-42e8-ad1b-9e6194f11750",
-          "ddbb6996-d23e-4d1f-b57f-638b6cb5803d",
-          "491c7cad-e5c1-4729-8dfc-256daea519b5",
-          null,
-          "2024-05-24T06:14:26.551196+00:00",
-          "2024-05-24T06:14:26.551196+00:00",
-          0
-        ],
-        [
-          "680b0d15-40bd-4545-a84a-e4781703a0b8",
-          "ddbb6996-d23e-4d1f-b57f-638b6cb5803d",
-          "0ab1ba6b-f1a9-4135-99d5-4e0b530a9a1d",
-          null,
-          "2024-05-24T07:10:26.821609+00:00",
-          "2024-05-24T07:10:26.821609+00:00",
-          0
-        ],
-        [
-          "c6c91bf8-064f-48f2-8949-2c7472a789d1",
-          "ddbb6996-d23e-4d1f-b57f-638b6cb5803d",
-          "89a2b605-454e-4758-be27-88961ecadb97",
-          null,
-          "2024-05-24T07:15:09.868954+00:00",
-          "2024-05-24T07:15:09.868954+00:00",
-          0
-        ],
-        [
-          "6a1990b2-6e8e-4f71-9f98-316acef83cca",
-          "ddbb6996-d23e-4d1f-b57f-638b6cb5803d",
-          "491c7cad-e5c1-4729-8dfc-256daea519b5",
-          null,
-          "2024-05-24T09:11:42.619013+00:00",
-          "2024-05-24T09:11:42.619013+00:00",
-          0
-        ]
       ]
     },
     {
@@ -1402,25 +776,7 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "parent_id",
-          "value": "REFERENCES 'user' (id)"
-        },
-        {
-          "foreignkey": "student_id",
-          "value": "REFERENCES 'user' (id)"
         }
-      ],
-      "values": [
-        [
-          "b38b1414-a259-490c-957d-633432521f7b",
-          "cf0978ed-3cd2-4cb0-b8fe-0aba94a1bd4c",
-          "db133d8b-4826-4ff6-81b3-e64718a3e12c",
-          "2024-05-23T02:23:57.871333+00:00",
-          "2024-05-23T02:23:57.871333+00:00",
-          0
-        ]
       ]
     },
     {
@@ -1449,14 +805,6 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "course_id",
-          "value": "REFERENCES course (id)"
-        },
-        {
-          "foreignkey": "school_id",
-          "value": "REFERENCES school (id)"
         }
       ]
     },
@@ -1490,14 +838,6 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "school_id",
-          "value": "REFERENCES school (id)"
-        },
-        {
-          "foreignkey": "user_id",
-          "value": "REFERENCES 'user' (id)"
         }
       ]
     },
@@ -1527,25 +867,7 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "badge_id",
-          "value": "REFERENCES badge (id)"
-        },
-        {
-          "foreignkey": "user_id",
-          "value": "REFERENCES 'user' (id)"
         }
-      ],
-      "values": [
-        [
-          "cf00db0a-fb6e-4b56-b46f-089216d2f607",
-          "db133d8b-4826-4ff6-81b3-e64718a3e12c",
-          "3d4877f5-776e-4851-a692-3b3fa9b0ed78",
-          "2024-05-21T07:08:25.822947+00:00",
-          "2024-05-21T07:08:25.822947+00:00",
-          0
-        ]
       ]
     },
     {
@@ -1574,14 +896,6 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "bonus_id",
-          "value": "REFERENCES lesson (id)"
-        },
-        {
-          "foreignkey": "user_id",
-          "value": "REFERENCES 'user' (id)"
         }
       ]
     },
@@ -1611,33 +925,7 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "course_id",
-          "value": "REFERENCES course (id)"
-        },
-        {
-          "foreignkey": "user_id",
-          "value": "REFERENCES 'user' (id)"
         }
-      ],
-      "values": [
-        [
-          "5e3f3800-92e8-4921-8232-eeec73441232",
-          "db133d8b-4826-4ff6-81b3-e64718a3e12c",
-          "cd09e4ed-b98b-4053-969f-8392fce79f98",
-          "2024-05-17T02:38:12.823+00:00",
-          "2024-05-17T02:38:12.836+00:00",
-          0
-        ],
-        [
-          "661793c4-ee68-4e19-b8c2-db1c9a936c19",
-          "db133d8b-4826-4ff6-81b3-e64718a3e12c",
-          "e2eec259-d820-4e06-9a9e-a6d4a6d14624",
-          "2024-05-17T02:38:12.802+00:00",
-          "2024-05-17T02:38:12.822+00:00",
-          0
-        ]
       ]
     },
     {
@@ -1666,14 +954,6 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "sticker_id",
-          "value": "REFERENCES sticker (id)"
-        },
-        {
-          "foreignkey": "user_id",
-          "value": "REFERENCES 'user' (id)"
         }
       ]
     },
@@ -1727,22 +1007,6 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "class_id",
-          "value": "REFERENCES class (id)"
-        },
-        {
-          "foreignkey": "created_by",
-          "value": "REFERENCES 'user' (id)"
-        },
-        {
-          "foreignkey": "lesson_id",
-          "value": "REFERENCES lesson (id)"
-        },
-        {
-          "foreignkey": "school_id",
-          "value": "REFERENCES school (id)"
         }
       ]
     },
@@ -1772,14 +1036,6 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "assignment_id",
-          "value": "REFERENCES assignment (id)"
-        },
-        {
-          "foreignkey": "user_id",
-          "value": "REFERENCES 'user' (id)"
         }
       ]
     },
@@ -1854,39 +1110,7 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
-        },
-        {
-          "foreignkey": "assignment_id",
-          "value": "REFERENCES assignment (id)"
-        },
-        {
-          "foreignkey": "lesson_id",
-          "value": "REFERENCES lesson (id)"
-        },
-        {
-          "foreignkey": "school_id",
-          "value": "REFERENCES school (id)"
-        },
-        {
-          "foreignkey": "student_id",
-          "value": "REFERENCES 'user' (id)"
         }
-      ],
-      "values": [
-        [
-          "ab241de8-2274-4204-bcc5-d243593f5309",
-          null,
-          "ddbb6996-d23e-4d1f-b57f-638b6cb5803d",
-          null,
-          87,
-          "db133d8b-4826-4ff6-81b3-e64718a3e12c",
-          null,
-          null,
-          null,
-          "2024-05-20T10:13:31.482756+00:00",
-          "2024-05-20T10:13:31.482756+00:00",
-          0
-        ]
       ]
     },
     {
@@ -1900,36 +1124,6 @@
           "column": "last_pulled",
           "value": "TIMESTAMP NOT NULL"
         }
-      ],
-      "values": [
-        ["curriculum", "2024-05-27 05:02:59"],
-        ["subject", "2024-05-27 05:02:59"],
-        ["grade", "2024-05-27 05:02:59"],
-        ["language", "2024-05-27 05:02:59"],
-        ["course", "2024-05-27 05:02:59"],
-        ["school", "2024-01-01 00:00:00"],
-        ["chapter", "2024-05-27 05:02:59"],
-        ["lesson", "2024-05-27 05:02:59"],
-        ["badge", "2024-05-27 05:02:59"],
-        ["sticker", "2024-05-27 05:02:59"],
-        ["reward", "2024-05-27 05:02:59"],
-        ["class", "2024-01-01 00:00:00"],
-        ["user", "2024-01-01 00:00:00"],
-        ["class_invite_code", "2024-05-27 05:02:59"],
-        ["class_user", "2024-01-01 00:00:00"],
-        ["favorite_lesson", "2024-01-01 00:00:00"],
-        ["class_course", "2024-01-01 00:00:00"],
-        ["chapter_lesson", "2024-05-27 05:02:59"],
-        ["parent_user", "2024-01-01 00:00:00"],
-        ["school_course", "2024-01-01 00:00:00"],
-        ["school_user", "2024-01-01 00:00:00"],
-        ["user_badge", "2024-01-01 00:00:00"],
-        ["user_bonus", "2024-01-01 00:00:00"],
-        ["user_course", "2024-01-01 00:00:00"],
-        ["user_sticker", "2024-01-01 00:00:00"],
-        ["assignment", "2024-01-01 00:00:00"],
-        ["assignment_user", "2024-01-01 00:00:00"],
-        ["result", "2024-01-01 00:00:00"]
       ]
     },
     {
