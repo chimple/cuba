@@ -1016,16 +1016,111 @@ export class SqliteApi implements ServiceApi {
     sectionId: string,
     leaderboardDropdownType: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined> {
-    // throw new Error("Method not implemented.");
-    return;
+    if (sectionId) {
+      // Getting Class wise Leaderboard
+      let classLeaderboard = await this._serverApi.getLeaderboardResults(
+        sectionId,
+        leaderboardDropdownType
+      );
+      return classLeaderboard
+    } else {
+      // Getting Generic Leaderboard
+      let genericQueryResult =
+        await this._serverApi.getLeaderboardStudentResultFromB2CCollection();
+      if (!genericQueryResult) {
+        return;
+      }
+      return genericQueryResult;
+    }
   }
 
   async getLeaderboardStudentResultFromB2CCollection(
     studentId: string
   ): Promise<LeaderboardInfo | undefined> {
-    // throw new Error("Method not implemented.");
-    return;
+    try {
+      // Ensure the database instance is initialized
+      if (!this._db) throw new Error("Database is not initialized");
+
+      // Define the query to fetch the leaderboard data for the given student
+      const currentStudentQuery = `
+        SELECT 'allTime' as type, student_id, name, 
+               count(res.id) as lessons_played, 
+               sum(score) as total_score, 
+               sum(time_spent) as total_time_spent
+        FROM ${TABLES.Result} res
+        JOIN ${TABLES.User} u ON u.id = res.student_id
+        WHERE res.student_id = '${studentId}'
+        GROUP BY student_id, u.name
+        UNION ALL
+        SELECT 'monthly' as type, student_id, u.name, 
+               count(res.id) as lessons_played, 
+               sum(score) as total_score, 
+               sum(time_spent) as total_time_spent
+        FROM ${TABLES.Result} res
+        JOIN ${TABLES.User} u ON u.id = res.student_id
+        WHERE res.student_id = '${studentId}' 
+        AND strftime('%m', res.created_at) = strftime('%m', datetime('now'))
+        GROUP BY student_id, u.name
+        UNION ALL
+        SELECT 'weekly' as type, student_id, u.name, 
+               count(res.id) as lessons_played, 
+               sum(score) as total_score, 
+               sum(time_spent) as total_time_spent
+        FROM ${TABLES.Result} res
+        JOIN ${TABLES.User} u ON u.id = res.student_id
+        WHERE res.student_id = '${studentId}' 
+        AND strftime('%W', res.created_at) = strftime('%W', datetime('now'))
+        GROUP BY student_id, u.name
+      `;
+
+      // Execute the query
+      const currentUserResult = await this._db.query(currentStudentQuery);
+
+      // Handle case where no data is returned
+      if (!currentUserResult.values) {
+        return;
+      }
+
+      // Initialize the leaderboard structure
+      let leaderBoardList: LeaderboardInfo = {
+        weekly: [],
+        allTime: [],
+        monthly: [],
+      };
+
+      // Process the results
+      currentUserResult.values.forEach(result => {
+        if (!result) return;
+
+        const leaderboardEntry = {
+          name: result.name || "",
+          score: result.total_score || 0,
+          timeSpent: result.total_time_spent || 0,
+          lessonsPlayed: result.lessons_played || 0,
+          userId: studentId,
+        };
+
+        switch (result.type) {
+          case "allTime":
+            leaderBoardList.allTime.push(leaderboardEntry);
+            break;
+          case "monthly":
+            leaderBoardList.monthly.push(leaderboardEntry);
+            break;
+          case "weekly":
+            leaderBoardList.weekly.push(leaderboardEntry);
+            break;
+          default:
+            console.warn("Unknown leaderboard type: ", result.type);
+        }
+      });
+
+      return leaderBoardList;
+    } catch (error) {
+      console.error("Error in getLeaderboardStudentResultFromB2CCollection: ", error);
+    }
   }
+
 
   async getAllLessonsForCourse(
     courseId: string

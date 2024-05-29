@@ -44,19 +44,19 @@ export class SupabaseApi implements ServiceApi {
     studentId: string
   ): Promise<
     | {
-        class_id: string;
-        created_at: string;
-        created_by: string | null;
-        ends_at: string | null;
-        id: string;
-        is_class_wise: boolean;
-        is_deleted: boolean | null;
-        lesson_id: string;
-        school_id: string;
-        starts_at: string;
-        type: string | null;
-        updated_at: string | null;
-      }
+      class_id: string;
+      created_at: string;
+      created_by: string | null;
+      ends_at: string | null;
+      id: string;
+      is_class_wise: boolean;
+      is_deleted: boolean | null;
+      lesson_id: string;
+      school_id: string;
+      starts_at: string;
+      type: string | null;
+      updated_at: string | null;
+    }
     | undefined
   > {
     throw new Error("Method not implemented.");
@@ -422,17 +422,141 @@ export class SupabaseApi implements ServiceApi {
   linkStudent(inviteCode: number): Promise<any> {
     throw new Error("Method not implemented.");
   }
-  getLeaderboardResults(
+  async getLeaderboardResults(
     sectionId: string,
     leaderboardDropdownType: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined> {
-    throw new Error("Method not implemented.");
+    try {
+      if (!this.supabase) throw new Error("Supabase instance is not initialized");
+
+      // Fetch leaderboard data using the Supabase RPC function
+      const rpcRes = await this.supabase.rpc("get_class_leaderboard", {
+        current_class_id: sectionId,
+      });
+
+      // Check if the response is valid
+      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
+        throw rpcRes?.error ?? new Error("Failed to fetch leaderboard data");
+      }
+
+      // Initialize the leaderboard structure
+      const data: any = rpcRes.data;
+      let leaderBoardList: LeaderboardInfo = {
+        weekly: [],
+        allTime: [],
+        monthly: [],
+      };
+
+      // Process the data and populate the leaderboard lists
+      for (let i = 0; i < data.length; i++) {
+        const result = data[i];
+        const leaderboardEntry = {
+          name: result.name || "",
+          score: result.total_score || 0,
+          timeSpent: result.total_time_spent || 0,
+          lessonsPlayed: result.lessons_played || 0,
+          userId: result.student_id || "",
+        };
+
+        switch (result.type) {
+          case "allTime":
+            leaderBoardList.allTime.push(leaderboardEntry);
+            break;
+          case "monthly":
+            leaderBoardList.monthly.push(leaderboardEntry);
+            break;
+          case "weekly":
+            leaderBoardList.weekly.push(leaderboardEntry);
+            break;
+          default:
+            console.warn("Unknown leaderboard type: ", result.type);
+        }
+      }
+
+      return leaderBoardList;
+    } catch (e) {
+      console.error("Error in getLeaderboardResults: ", e);
+      // Return an empty leaderboard structure in case of error
+      return {
+        weekly: [],
+        allTime: [],
+        monthly: [],
+      };
+    }
   }
-  getLeaderboardStudentResultFromB2CCollection(
-    studentId: string
-  ): Promise<LeaderboardInfo | undefined> {
-    throw new Error("Method not implemented.");
+
+
+  async getLeaderboardStudentResultFromB2CCollection(): Promise<LeaderboardInfo | undefined> {
+    try {
+      // Initialize leaderboard structure
+      let leaderBoardList: LeaderboardInfo = {
+        weekly: [],
+        allTime: [],
+        monthly: [],
+      };
+
+      // Define the query to fetch data from the view
+      const genericQuery = `
+        SELECT *
+        FROM get_leaderboard_generic_data
+      `;
+
+      if (!this.supabase) {
+        console.error("Supabase instance is not initialized");
+        return;
+      }
+
+      // Execute the query
+      const { data, error } = await this.supabase
+        .from("get_leaderboard_generic_data")
+        .select();
+
+      // Handle errors in the query execution
+      if (error) {
+        console.error("Error fetching leaderboard data: ", error);
+        return;
+      }
+
+      // Handle case where no data is returned
+      if (!data) {
+        console.warn("No data returned from get_leaderboard_generic_data");
+        return;
+      }
+
+
+      // Process the results
+      data.forEach(result => {
+        if (!result) return;
+
+        const leaderboardEntry = {
+          name: result.name || "",
+          score: result.total_score || 0,
+          timeSpent: result.total_time_spent || 0,
+          lessonsPlayed: result.lessons_played || 0,
+          userId: result.student_id || "",
+        };
+
+        switch (result.type) {
+          case "allTime":
+            leaderBoardList.allTime.push(leaderboardEntry);
+            break;
+          case "monthly":
+            leaderBoardList.monthly.push(leaderboardEntry);
+            break;
+          case "weekly":
+            leaderBoardList.weekly.push(leaderboardEntry);
+            break;
+          default:
+            console.warn("Unknown leaderboard type: ", result.type);
+        }
+      });
+
+      return leaderBoardList;
+    } catch (error) {
+      console.error("Error in getLeaderboardStudentResultFromB2CCollection: ", error);
+    }
   }
+
   getAllLessonsForCourse(courseId: string): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
