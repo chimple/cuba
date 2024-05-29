@@ -1018,7 +1018,7 @@ export class SqliteApi implements ServiceApi {
   ): Promise<LeaderboardInfo | undefined> {
     if (sectionId) {
       // Getting Class wise Leaderboard
-      let classLeaderboard = await SupabaseApi.getInstance().getLeaderboardResults(
+      let classLeaderboard = await this._serverApi.getLeaderboardResults(
         sectionId,
         leaderboardDropdownType
       );
