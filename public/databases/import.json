@@ -1,0 +1,1155 @@
+{
+  "database": "db_issue10",
+  "version": 1,
+  "encrypted": false,
+  "mode": "full",
+  "tables": [
+    {
+      "name": "curriculum",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "name",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "image",
+          "value": "TEXT"
+        },
+        {
+          "column": "description",
+          "value": "TEXT"
+        },
+        {
+          "column": "sort_index",
+          "value": "INTEGER"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "subject",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "name",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "image",
+          "value": "TEXT"
+        },
+        {
+          "column": "description",
+          "value": "TEXT"
+        },
+        {
+          "column": "sort_index",
+          "value": "INTEGER"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "grade",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "name",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "image",
+          "value": "TEXT"
+        },
+        {
+          "column": "description",
+          "value": "TEXT"
+        },
+        {
+          "column": "sort_index",
+          "value": "INTEGER"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "language",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "name",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "image",
+          "value": "TEXT"
+        },
+        {
+          "column": "description",
+          "value": "TEXT"
+        },
+        {
+          "column": "sort_index",
+          "value": "INTEGER"
+        },
+        {
+          "column": "code",
+          "value": "TEXT"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "badge",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "name",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "image",
+          "value": "TEXT"
+        },
+        {
+          "column": "description",
+          "value": "TEXT"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "course",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "name",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "image",
+          "value": "TEXT"
+        },
+        {
+          "column": "description",
+          "value": "TEXT"
+        },
+        {
+          "column": "sort_index",
+          "value": "INTEGER"
+        },
+        {
+          "column": "subject_id",
+          "value": "TEXT"
+        },
+        {
+          "column": "grade_id",
+          "value": "TEXT"
+        },
+        {
+          "column": "curriculum_id",
+          "value": "TEXT"
+        },
+        {
+          "column": "color",
+          "value": "TEXT"
+        },
+        {
+          "column": "code",
+          "value": "TEXT"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "sticker",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "name",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "image",
+          "value": "TEXT"
+        },
+        {
+          "column": "description",
+          "value": "TEXT"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "reward",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT NOT NULL DEFAULT (datetime('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "BOOLEAN DEFAULT 0"
+        },
+        {
+          "column": "monthly",
+          "value": "TEXT"
+        },
+        {
+          "column": "weekly",
+          "value": "TEXT"
+        },
+        {
+          "column": "weeklySticker",
+          "value": "TEXT"
+        },
+        {
+          "column": "year",
+          "value": "INTEGER NOT NULL"
+        },
+        {
+          "constraint": "CPK_id",
+          "value": "PRIMARY KEY (id)"
+        }
+      ]
+    },
+    {
+      "name": "school",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "name",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "group1",
+          "value": "TEXT"
+        },
+        {
+          "column": "group2",
+          "value": "TEXT"
+        },
+        {
+          "column": "group3",
+          "value": "TEXT"
+        },
+        {
+          "column": "image",
+          "value": "TEXT"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "chapter",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "name",
+          "value": "TEXT"
+        },
+        {
+          "column": "image",
+          "value": "TEXT"
+        },
+        {
+          "column": "course_id",
+          "value": "TEXT"
+        },
+        {
+          "column": "sort_index",
+          "value": "INTEGER"
+        },
+        {
+          "column": "sub_topics",
+          "value": "TEXT"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "lesson",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "name",
+          "value": "TEXT"
+        },
+        {
+          "column": "image",
+          "value": "TEXT"
+        },
+        {
+          "column": "outcome",
+          "value": "TEXT"
+        },
+        {
+          "column": "plugin_type",
+          "value": "TEXT"
+        },
+        {
+          "column": "status",
+          "value": "TEXT"
+        },
+        {
+          "column": "cocos_subject_code",
+          "value": "TEXT"
+        },
+        {
+          "column": "cocos_chapter_code",
+          "value": "TEXT"
+        },
+        {
+          "column": "cocos_lesson_id",
+          "value": "TEXT"
+        },
+        {
+          "column": "created_by",
+          "value": "TEXT"
+        },
+        {
+          "column": "subject_id",
+          "value": "TEXT"
+        },
+        {
+          "column": "target_age_from",
+          "value": "INTEGER"
+        },
+        {
+          "column": "target_age_to",
+          "value": "INTEGER"
+        },
+        {
+          "column": "language_id",
+          "value": "TEXT"
+        },
+        {
+          "column": "color",
+          "value": "TEXT"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "class",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "name",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "image",
+          "value": "TEXT"
+        },
+        {
+          "column": "school_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "user",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "name",
+          "value": "TEXT"
+        },
+        {
+          "column": "email",
+          "value": "TEXT"
+        },
+        {
+          "column": "phone",
+          "value": "TEXT"
+        },
+        {
+          "column": "gender",
+          "value": "TEXT"
+        },
+        {
+          "column": "image",
+          "value": "TEXT"
+        },
+        {
+          "column": "avatar",
+          "value": "TEXT"
+        },
+        {
+          "column": "language_id",
+          "value": "TEXT"
+        },
+        {
+          "column": "curriculum_id",
+          "value": "TEXT"
+        },
+        {
+          "column": "age",
+          "value": "INTEGER"
+        },
+        {
+          "column": "grade_id",
+          "value": "TEXT"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        },
+        {
+          "column": "is_tc_accepted",
+          "value": "INTEGER DEFAULT 0"
+        },
+        {
+          "column": "music_off",
+          "value": "INTEGER DEFAULT 0"
+        },
+        {
+          "column": "sfx_off",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "class_invite_code",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "code",
+          "value": "INTEGER NOT NULL"
+        },
+        {
+          "column": "expires_at",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "class_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "is_class_code",
+          "value": "INTEGER DEFAULT 1"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "class_user",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "class_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "user_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "role",
+          "value": "TEXT"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "favorite_lesson",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "lesson_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "user_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "role",
+          "value": "TEXT"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "class_course",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "class_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "course_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "chapter_lesson",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "lesson_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "chapter_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "sort_index",
+          "value": "INTEGER"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "parent_user",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "parent_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "student_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "school_course",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "school_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "course_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "school_user",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "school_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "user_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "role",
+          "value": "TEXT"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "user_badge",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "user_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "badge_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "user_bonus",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "user_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "bonus_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "user_course",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "user_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "course_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "user_sticker",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "user_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "sticker_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "assignment",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "created_by",
+          "value": "TEXT"
+        },
+        {
+          "column": "starts_at",
+          "value": "TEXT NOT NULL DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "ends_at",
+          "value": "TEXT"
+        },
+        {
+          "column": "is_class_wise",
+          "value": "INTEGER NOT NULL DEFAULT 0"
+        },
+        {
+          "column": "class_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "school_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "lesson_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "type",
+          "value": "TEXT"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "assignment_user",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "assignment_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "user_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "chatbot",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "result",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "assignment_id",
+          "value": "TEXT"
+        },
+        {
+          "column": "lesson_id",
+          "value": "TEXT"
+        },
+        {
+          "column": "school_id",
+          "value": "TEXT"
+        },
+        {
+          "column": "score",
+          "value": "INTEGER"
+        },
+        {
+          "column": "student_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "correct_moves",
+          "value": "INTEGER"
+        },
+        {
+          "column": "time_spent",
+          "value": "INTEGER"
+        },
+        {
+          "column": "wrong_moves",
+          "value": "INTEGER"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime ('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    },
+    {
+      "name": "pull_sync_info",
+      "schema": [
+        {
+          "column": "table_name",
+          "value": "TEXT NOT NULL PRIMARY KEY"
+        },
+        {
+          "column": "last_pulled",
+          "value": "TIMESTAMP NOT NULL"
+        }
+      ]
+    },
+    {
+      "name": "push_sync_info",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT NOT NULL PRIMARY KEY"
+        },
+        {
+          "column": "table_name",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "created_at",
+          "value": "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
+        },
+        {
+          "column": "change_type",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "data",
+          "value": "TEXT NOT NULL"
+        }
+      ]
+    }
+  ]
+}
