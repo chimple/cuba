@@ -161,15 +161,11 @@ export class SqliteApi implements ServiceApi {
     values?: any[] | undefined,
     isSQL92?: boolean | undefined
   ) {
-    try {
-      if (!this._db || !this._sqlite) return;
-      const res = await this._db.query(statement, values, isSQL92);
-      if (!Capacitor.isNativePlatform())
-        await this._sqlite?.saveToStore(this.DB_NAME);
-      return res;
-    } catch (error) {
-      console.log("executeQuery Error ", error);
-    }
+    if (!this._db || !this._sqlite) return;
+    const res = await this._db.query(statement, values, isSQL92);
+    if (!Capacitor.isNativePlatform())
+      await this._sqlite?.saveToStore(this.DB_NAME);
+    return res;
   }
 
   private async pullChanges(tableNames: TABLES[]) {

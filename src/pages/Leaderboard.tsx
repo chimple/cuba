@@ -59,7 +59,7 @@ const Leaderboard: React.FC = () => {
     }[]
   >([]);
   const [weeklySelectedValue, setWeeklySelectedValue] = useState<string>();
-  const [currentClass, setCurrentClass] = useState<{
+  const [currentClassAndSchool, setCurrentClassAndSchool] = useState<{
     classes: TableTypes<"class">[];
     schools: TableTypes<"school">[];
   }>();
@@ -112,7 +112,7 @@ const Leaderboard: React.FC = () => {
           LeaderboardDropdownList.WEEKLY,
           getClass?.classes[0].id
         );
-        setCurrentClass(getClass);
+        setCurrentClassAndSchool(getClass);
       } else {
         fetchLeaderBoardData(
           currentStudent,
@@ -294,7 +294,7 @@ const Leaderboard: React.FC = () => {
                   // weeklyList[0] === weeklyList[selectedValue],
                   weeklyList[selectedValue].type ??
                     LeaderboardDropdownList.WEEKLY,
-                  currentClass?.classes[0].id || ""
+                  currentClassAndSchool?.classes[0].id || ""
                 );
                 //  }
               }

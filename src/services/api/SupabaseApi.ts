@@ -430,7 +430,7 @@ export class SupabaseApi implements ServiceApi {
       if (!this.supabase) throw new Error("Supabase instance is not initialized");
 
       // Fetch leaderboard data using the Supabase RPC function
-      const rpcRes = await this.supabase.rpc("getClassLeaderboard", {
+      const rpcRes = await this.supabase.rpc("get_class_leaderboard", {
         current_class_id: sectionId,
       });
 

@@ -1323,7 +1323,7 @@ export type Database = {
       }
     }
     Functions: {
-      getClassLeaderboard: {
+      get_class_leaderboard: {
         Args: {
           current_class_id: string
         }
