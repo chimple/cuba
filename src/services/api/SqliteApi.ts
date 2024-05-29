@@ -206,7 +206,7 @@ export class SqliteApi implements ServiceApi {
           try {
             await this.executeQuery(stmt, fieldValues);
           } catch (er) {
-            console.log( "🚀 ~ Api ~ pullChangesError ",er)
+            console.log("🚀 ~ Api ~ pullChangesError ", er);
           }
         }
 
@@ -1176,8 +1176,10 @@ export class SqliteApi implements ServiceApi {
     SELECT a.*
     FROM ${TABLES.Assignment} a
     LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
-    LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = "${studentId}"
-    WHERE a.lesson_id = '${lessonId}' a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL;
+    LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = '${studentId}'
+    WHERE a.lesson_id = '${lessonId}' AND a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = '${studentId}') and r.assignment_id IS NULL
+    ORDER BY a.updated_at DESC
+    LIMIT 1;
     `;
     const res = await this._db?.query(query);
     if (!res || !res.values || res.values.length < 1) return;

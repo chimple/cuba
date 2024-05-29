@@ -419,6 +419,7 @@ const ChimpleAvatar: FC<{
     //       course: JSON.stringify(Course.toJson(lessonCourse)),
     //       lesson: JSON.stringify(Lesson.toJson(currentLesson)),
     //       from: history.location.pathname + "?continue=true",
+    //       assignment:assignment
     //     });
     //   }
     // }

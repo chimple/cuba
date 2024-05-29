@@ -177,6 +177,7 @@ const LessonCard: React.FC<{
                   currentCourse?.id,
                 course: JSON.stringify(currentCourse!),
                 lesson: JSON.stringify(lesson),
+                assignment:assignment,
                 from: history.location.pathname + `?${CONTINUE}=true`,
               });
             } else if (!!assignment?.id && lesson.plugin_type === LIVE_QUIZ) {
