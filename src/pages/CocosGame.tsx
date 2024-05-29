@@ -219,7 +219,7 @@ const CocosGame: React.FC = () => {
         classId = studentResult.classes[0].id;
         schoolId = studentResult.schools[0].id;
       }
-      if (!assignment) {
+      if (!assignmentId) {
         const result = await api.getPendingAssignmentForLesson(
           lesson.id,
           classId,

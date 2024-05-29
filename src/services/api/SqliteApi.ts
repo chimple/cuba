@@ -1177,20 +1177,9 @@ export class SqliteApi implements ServiceApi {
     FROM ${TABLES.Assignment} a
     LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
     LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = '${studentId}'
-    INNER JOIN (
-        SELECT a2.id
-        FROM ${TABLES.Assignment} a2
-        LEFT JOIN ${TABLES.Assignment_user} au2 ON a2.id = au2.assignment_id
-        WHERE a2.lesson_id = '${lessonId}'
-          AND a2.class_id = '${classId}'
-          AND (a2.is_class_wise = 1 OR au2.user_id = '${studentId}')
-        ORDER BY a2.updated_at DESC
-        LIMIT 1
-    ) latest_assignment ON a.id = latest_assignment.id
-     WHERE a.lesson_id = '${lessonId}' 
-     AND a.class_id = '${classId}' 
-     AND (a.is_class_wise = 1 OR au.user_id = '${studentId}') 
-     AND r.assignment_id IS NULL;
+    WHERE a.lesson_id = '${lessonId}' AND a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = '${studentId}') and r.assignment_id IS NULL
+    ORDER BY a.updated_at DESC
+    LIMIT 1;
     `;
     const res = await this._db?.query(query);
     if (!res || !res.values || res.values.length < 1) return;
