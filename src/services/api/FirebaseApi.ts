@@ -1083,7 +1083,7 @@ export class FirebaseApi implements ServiceApi {
     return result.data;
   }
 
-  async linkStudent(inviteCode: number): Promise<any> {
+  async linkStudent(inviteCode: number,studentId:string): Promise<any> {
     const functions = getFunctions();
     const generateInviteCode = httpsCallable(functions, "LinkStudent");
     const result = await generateInviteCode({

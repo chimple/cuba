@@ -421,11 +421,39 @@ export class SupabaseApi implements ServiceApi {
   getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
     throw new Error("Method not implemented.");
   }
-  getDataByInviteCode(inviteCode: number): Promise<any> {
-    throw new Error("Method not implemented.");
+  async getDataByInviteCode(inviteCode: number): Promise<any> {
+    try {
+      const rpcRes = await this.supabase?.rpc("getDataByInviteCode", {
+        invite_code: inviteCode,
+      });
+      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
+        throw rpcRes?.error ?? "";
+      }
+      const data = rpcRes.data;
+      return data;
+    } catch (e) {
+      throw new Error("Invalid inviteCode");
+    }
   }
-  linkStudent(inviteCode: number): Promise<any> {
-    throw new Error("Method not implemented.");
+  async linkStudent(inviteCode: number,studentId:string): Promise<any> {
+    try {
+
+      if (!studentId) {
+        console.log(this._currentStudent)
+        throw Error("Student Not Found");
+      }
+      const rpcRes = await this.supabase?.rpc("linkStudent", {
+        invite_code: inviteCode,
+        student_id: studentId,
+      });
+      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
+        throw rpcRes?.error ?? "";
+      }
+      const data = rpcRes.data;
+      return data;
+    } catch (e) {
+      throw new Error("Invalid inviteCode");
+    }
   }
   async getLeaderboardResults(
     sectionId: string,

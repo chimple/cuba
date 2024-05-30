@@ -1007,42 +1007,18 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getDataByInviteCode(inviteCode: number): Promise<any> {
-    try {
-      const rpcRes = await this._supabaseDb?.rpc("getDataByInviteCode", {
-        invite_code: inviteCode,
-      });
-      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
-        throw rpcRes?.error ?? "";
-      }
-      const data = rpcRes.data;
-      return data;
-    } catch (e) {
-      throw new Error("Invalid inviteCode");
-    }
+    let inviteData = await this._serverApi.getDataByInviteCode(inviteCode);
+    return inviteData;
   }
 
-  async linkStudent(inviteCode: number): Promise<any> {
-    try {
-      if (!this._currentStudent?.id) {
-        throw Error("Student Not Found");
-      }
-      const rpcRes = await this._supabaseDb?.rpc("linkStudent", {
-        invite_code: inviteCode,
-        student_id: this._currentStudent.id,
-      });
-      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
-        throw rpcRes?.error ?? "";
-      }
-      await this.syncDbNow(Object.values(TABLES), [
-        TABLES.Assignment,
-        TABLES.Class,
-        TABLES.School,
-      ]);
-      const data = rpcRes.data;
-      return data;
-    } catch (e) {
-      throw new Error("Invalid inviteCode");
-    }
+  async linkStudent(inviteCode: number,studentId:string): Promise<any> {
+      let linkData = await this._serverApi.linkStudent(inviteCode,studentId);
+    await this.syncDbNow(Object.values(TABLES), [
+      TABLES.Assignment,
+      TABLES.Class,
+      TABLES.School,
+    ]);
+    return linkData;
   }
 
   async getLeaderboardResults(

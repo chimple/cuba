@@ -365,9 +365,10 @@ export interface ServiceApi {
    * This function links a student to a class.
    *
    * @param inviteCode The invite code of the student.
+   * @param studentId The current Studnet Id
    * @returns A promise that resolves to the student.
    */
-  linkStudent(inviteCode: number): Promise<any>;
+  linkStudent(inviteCode: number,studentId:string): Promise<any>;
 
   /**
    * This function gives Leaderboard results of b2c or b2b Users

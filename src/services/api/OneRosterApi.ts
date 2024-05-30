@@ -177,7 +177,7 @@ export class OneRosterApi implements ServiceApi {
   getDataByInviteCode(inviteCode: number): Promise<any> {
     throw new Error("Method not implemented.");
   }
-  linkStudent(inviteCode: number): Promise<any> {
+  linkStudent(inviteCode: number,studentId:string): Promise<any> {
     throw new Error("Method not implemented.");
   }
   getStudentResult(
