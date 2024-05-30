@@ -430,6 +430,7 @@ const Parent: React.FC = () => {
     <Box>
       <div>
         <CustomAppBar
+          tabIds={parentHeaderIconList.map((item) => t(item.header))}
           tabNames={parentHeaderIconList.map((item) => t(item.header))}
           value={tabIndex}
           onChange={handleChange}

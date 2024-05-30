@@ -33,6 +33,7 @@ const StudentProgress: React.FC = () => {
   }, []);
 
   interface HeaderIconConfig {
+    couresId: string;
     displayName: string;
     iconSrc: string;
     header: any;
@@ -47,7 +48,6 @@ const StudentProgress: React.FC = () => {
     if (currentStudent) {
       setHeaderContent(["Lesson Name", "Chapter Name", "Score", "Time Spent"]);
       setCurrentStudent(currentStudent);
-
       const courses = await getCourses(currentStudent);
       setCourses(courses);
       if (courses.length > 0) {
@@ -55,6 +55,7 @@ const StudentProgress: React.FC = () => {
         setTabIndex(courses[0].code ?? "");
         setStudentProgressHeaderIconList(
           courses.map((course) => ({
+            couresId: course.id,
             displayName: t(course.name),
             iconSrc: course.image ?? "assets/icons/EnglishIcon.svg",
             header: course.code,
@@ -64,12 +65,11 @@ const StudentProgress: React.FC = () => {
         // console.log(courses[0].title);
       }
 
-      const res = await api.getStudentResultInMap(currentStudent.id);
+      const res = await api.getStudentResult(currentStudent.id);
       setLessonsResults(res || {});
 
-      if (res && res.size > 0) {
+      if (res) {
         console.log("result...");
-
         await getResultsForStudentForSelectedHeader(courses[0], res);
       }
 
@@ -139,56 +139,47 @@ const StudentProgress: React.FC = () => {
     lessonsResults: Map<string, TableTypes<"result">>
   ) {
     setIsLoading(true);
-    console.log("Selected header ", course.name, lessonsResults);
-    let isDataAvailable: boolean = false;
-    let tempDataContent: string[][] = [];
-
-    await Promise.all(
-      course.chapters.map(async (chapter) => {
-        await Promise.all(
-          chapter.lessons.map(async (lesson) => {
-            const lessonDetail = (await api.getLesson(lesson.id)) as Lesson;
-            const lessonRes = await lessonsResults.get(lesson.id);
-
-            if (lessonDetail && lessonRes) {
-              isDataAvailable = true;
-              const computeMinutes = Math.floor(lessonRes.timeSpent / 60);
-              const result = lessonRes.timeSpent % 60;
-              console.log(
-                "Data ",
-                lessonDetail.title,
-
-                chapter.title,
-                lessonRes.score,
-                computeMinutes + ":" + result
-              );
-              tempDataContent.push([
-                lessonDetail.title,
-                chapter.title,
-                Math.floor(lessonRes.score).toString(),
-                computeMinutes + ":" + result,
-              ]);
-            }
-          })
+    try {
+      const chapters = await api.getChaptersForCourse(course.id);
+      const lessons = [];
+      for (const chapter of chapters) {
+        const chapterLessons = await api.getLessonsForChapter(chapter.id);
+        for (const lesson of chapterLessons) {
+          lessons.push({ ...lesson, chapterName: chapter.name });
+        }
+      }
+      const tempDataContent = [];
+      let isDataAvailable = false;
+      for (const lessonRes of lessonsResults) {
+        const matchedLesson = lessons.find(
+          (lesson) => lesson.id === lessonRes.lesson_id
         );
-      })
-    );
+        if (matchedLesson) {
+          isDataAvailable = true;
+          const computeMinutes = Math.floor(lessonRes.time_spent / 60);
+          const computeSeconds = lessonRes.time_spent % 60;
+          tempDataContent.push([
+            matchedLesson.name,
+            matchedLesson.chapterName,
+            Math.floor(lessonRes.score).toString(),
+            `${computeMinutes}:${computeSeconds}`,
+          ]);
+        }
+      }
 
-    if (!isDataAvailable) {
-      tempDataContent = [];
+      setDataContent(isDataAvailable ? tempDataContent : []);
+    } catch (error) {
+      console.error("Error fetching results:", error);
+    } finally {
+      setIsLoading(false);
     }
-
-    setDataContent(tempDataContent);
-    setIsLoading(false);
   }
 
   const handleChange = (newValue: string) => {
-    // setValue(newValue);
     setTabIndex(newValue);
     const selectedHeader = studentProgressHeaderIconList.find(
-      (iconConfig) => iconConfig.displayName === newValue
+      (iconConfig) => iconConfig.couresId === newValue
     );
-
     if (selectedHeader) {
       setCurrentHeader(selectedHeader.header);
       getResultsForStudentForSelectedHeader(
@@ -201,13 +192,16 @@ const StudentProgress: React.FC = () => {
 
   useEffect(() => {
     if (studentProgressHeaderIconList.length > 0) {
-      setTabIndex(studentProgressHeaderIconList[0].displayName);
+      setTabIndex(studentProgressHeaderIconList[0].couresId);
     }
   }, [studentProgressHeaderIconList]);
 
   return (
     <div>
       <CustomAppBar
+        tabIds={studentProgressHeaderIconList.map(
+          (iconConfig) => iconConfig.couresId
+        )}
         tabNames={studentProgressHeaderIconList.map(
           (iconConfig) => iconConfig.displayName
         )}
