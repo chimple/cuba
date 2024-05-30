@@ -693,6 +693,40 @@ export class SqliteApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+  async updateFavoriteLesson(
+    studentId: string,
+    lessonId: string
+  ): Promise<TableTypes<"favorite_lesson">> {
+    const favoriteId = uuidv4();
+    const favoriteLesson: TableTypes<"favorite_lesson"> = {
+      id: favoriteId,
+      lesson_id: lessonId,
+      user_id: studentId ?? null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+    };
+    const res = await this.executeQuery(
+      `
+    INSERT INTO favorite_lesson (id, lesson_id, user_id, created_at, updated_at, is_deleted)
+    VALUES (?, ?, ?, ?, ?, ?);
+     `,
+      [
+        favoriteLesson.id,
+        favoriteLesson.lesson_id,
+        favoriteLesson.user_id,
+        favoriteLesson.created_at,
+        favoriteLesson.updated_at,
+        favoriteLesson.is_deleted,
+      ]
+    );
+    this.updatePushChanges(
+      TABLES.FavoriteLesson,
+      MUTATE_TYPES.INSERT,
+      favoriteLesson
+    );
+    return favoriteLesson;
+  }
   async updateResult(
     studentId: string,
     courseId: string | undefined,
@@ -701,7 +735,6 @@ export class SqliteApi implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    isLoved: boolean | undefined,
     assignmentId: string | undefined,
     classId: string | undefined,
     schoolId: string | undefined
@@ -1022,7 +1055,7 @@ export class SqliteApi implements ServiceApi {
         sectionId,
         leaderboardDropdownType
       );
-      return classLeaderboard
+      return classLeaderboard;
     } else {
       // Getting Generic Leaderboard
       let genericQueryResult =
@@ -1089,7 +1122,7 @@ export class SqliteApi implements ServiceApi {
       };
 
       // Process the results
-      currentUserResult.values.forEach(result => {
+      currentUserResult.values.forEach((result) => {
         if (!result) return;
 
         const leaderboardEntry = {
@@ -1117,10 +1150,12 @@ export class SqliteApi implements ServiceApi {
 
       return leaderBoardList;
     } catch (error) {
-      console.error("Error in getLeaderboardStudentResultFromB2CCollection: ", error);
+      console.error(
+        "Error in getLeaderboardStudentResultFromB2CCollection: ",
+        error
+      );
     }
   }
-
 
   async getAllLessonsForCourse(
     courseId: string
@@ -1282,7 +1317,7 @@ export class SqliteApi implements ServiceApi {
   }
   async getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
     const query = `
-    SELECT l.*
+    SELECT DISTINCT l.*
     FROM ${TABLES.FavoriteLesson} fl
     JOIN ${TABLES.Lesson} l 
     ON fl.lesson_id = l.id

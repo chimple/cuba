@@ -399,7 +399,6 @@ const LiveQuizQuestion: FC<{
       correctMoves,
       totalQuestions - correctMoves,
       totalTimeSpent,
-      undefined,
       roomDoc.assignment.id,
       roomDoc.class.id,
       roomDoc.school.id

@@ -258,6 +258,12 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<Map<string, StudentLessonResult> | undefined> {
     throw new Error("Method not implemented.");
   }
+  updateFavoriteLesson(
+    studentId: string,
+    lessonId: string
+  ): Promise<TableTypes<"favorite_lesson">> {
+    throw new Error("Method not implemented.");
+  }
   updateResult(
     student: User,
     courseId: string,
@@ -266,7 +272,6 @@ export class OneRosterApi implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    isLoved: boolean
   ): Promise<Result> {
     throw new Error("Method not implemented.");
   }
