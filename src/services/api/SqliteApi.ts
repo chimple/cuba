@@ -40,13 +40,11 @@ export class SqliteApi implements ServiceApi {
   private _currentStudent: TableTypes<"user"> | undefined;
   private _currentClass: TableTypes<"class"> | undefined;
   private _currentSchool: TableTypes<"school"> | undefined;
-  private _supabaseDb: SupabaseClient<Database> | undefined;
 
   public static async getInstance(): Promise<SqliteApi> {
     if (!SqliteApi.i) {
       SqliteApi.i = new SqliteApi();
       SqliteApi.i._serverApi = SupabaseApi.getInstance();
-      SqliteApi.i._supabaseDb = SupabaseApi.getInstance().supabase;
       await SqliteApi.i.init();
     }
     return SqliteApi.i;
@@ -698,33 +696,62 @@ export class SqliteApi implements ServiceApi {
     lessonId: string
   ): Promise<TableTypes<"favorite_lesson">> {
     const favoriteId = uuidv4();
-    const favoriteLesson: TableTypes<"favorite_lesson"> = {
-      id: favoriteId,
-      lesson_id: lessonId,
-      user_id: studentId ?? null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_deleted: false,
-    };
-    const res = await this.executeQuery(
+    var favoriteLesson: TableTypes<"favorite_lesson">;
+    const isExist = await this._db?.query(
+      `SELECT * FROM ${TABLES.FavoriteLesson} 
+       WHERE user_id= '${studentId}' and lesson_id = '${lessonId}';`
+    );
+    if (!isExist || !isExist.values || isExist.values.length < 1) {
+      favoriteLesson = {
+        id: favoriteId,
+        lesson_id: lessonId,
+        user_id: studentId ?? null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_deleted: false,
+      };
+      const res = await this.executeQuery(
       `
-    INSERT INTO favorite_lesson (id, lesson_id, user_id, created_at, updated_at, is_deleted)
-    VALUES (?, ?, ?, ?, ?, ?);
-     `,
-      [
-        favoriteLesson.id,
-        favoriteLesson.lesson_id,
-        favoriteLesson.user_id,
-        favoriteLesson.created_at,
-        favoriteLesson.updated_at,
-        favoriteLesson.is_deleted,
-      ]
-    );
-    this.updatePushChanges(
-      TABLES.FavoriteLesson,
-      MUTATE_TYPES.INSERT,
-      favoriteLesson
-    );
+      INSERT INTO favorite_lesson (id, lesson_id, user_id, created_at, updated_at, is_deleted)
+      VALUES (?, ?, ?, ?, ?, ?);
+      `,
+        [
+          favoriteLesson.id,
+          favoriteLesson.lesson_id,
+          favoriteLesson.user_id,
+          favoriteLesson.created_at,
+          favoriteLesson.updated_at,
+          favoriteLesson.is_deleted,
+        ]
+      );
+      this.updatePushChanges(
+        TABLES.FavoriteLesson,
+        MUTATE_TYPES.INSERT,
+        favoriteLesson
+      );
+    } else {
+      var liked_lesson = isExist.values[0];
+      favoriteLesson = {
+        id: liked_lesson.id,
+        lesson_id: liked_lesson.lesson_id,
+        user_id: liked_lesson.student_id,
+        created_at: liked_lesson.created_at,
+        updated_at: new Date().toISOString(),
+        is_deleted: false,
+      };
+
+      await this.executeQuery(
+        `
+      UPDATE  favorite_lesson SET updated_at = '${favoriteLesson.updated_at}'
+      WHERE id = "${favoriteLesson.id}";
+       `
+      );
+      this.updatePushChanges(TABLES.FavoriteLesson, MUTATE_TYPES.UPDATE, {
+        id: favoriteLesson.id,
+        updated_at: favoriteLesson.updated_at,
+      });
+    }
+
     return favoriteLesson;
   }
   async updateResult(
