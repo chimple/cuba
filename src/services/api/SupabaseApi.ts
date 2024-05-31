@@ -44,19 +44,19 @@ export class SupabaseApi implements ServiceApi {
     studentId: string
   ): Promise<
     | {
-      class_id: string;
-      created_at: string;
-      created_by: string | null;
-      ends_at: string | null;
-      id: string;
-      is_class_wise: boolean;
-      is_deleted: boolean | null;
-      lesson_id: string;
-      school_id: string;
-      starts_at: string;
-      type: string | null;
-      updated_at: string | null;
-    }
+        class_id: string;
+        created_at: string;
+        created_by: string | null;
+        ends_at: string | null;
+        id: string;
+        is_class_wise: boolean;
+        is_deleted: boolean | null;
+        lesson_id: string;
+        school_id: string;
+        starts_at: string;
+        type: string | null;
+        updated_at: string | null;
+      }
     | undefined
   > {
     throw new Error("Method not implemented.");
@@ -333,6 +333,12 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<DocumentData | undefined> {
     throw new Error("Method not implemented.");
   }
+  updateFavoriteLesson(
+    studentId: string,
+    lessonId: string
+  ): Promise<TableTypes<"favorite_lesson">> {
+    throw new Error("Method not implemented.");
+  }
   updateResult(
     studentId: string,
     courseId: string | undefined,
@@ -341,7 +347,6 @@ export class SupabaseApi implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    isLoved: boolean | undefined,
     assignmentId: string | undefined,
     classId: string | undefined,
     schoolId: string | undefined
@@ -416,18 +421,47 @@ export class SupabaseApi implements ServiceApi {
   getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
     throw new Error("Method not implemented.");
   }
-  getDataByInviteCode(inviteCode: number): Promise<any> {
-    throw new Error("Method not implemented.");
+  async getDataByInviteCode(inviteCode: number): Promise<any> {
+    try {
+      const rpcRes = await this.supabase?.rpc("getDataByInviteCode", {
+        invite_code: inviteCode,
+      });
+      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
+        throw rpcRes?.error ?? "";
+      }
+      const data = rpcRes.data;
+      return data;
+    } catch (e) {
+      throw new Error("Invalid inviteCode");
+    }
   }
-  linkStudent(inviteCode: number): Promise<any> {
-    throw new Error("Method not implemented.");
+  async linkStudent(inviteCode: number,studentId:string): Promise<any> {
+    try {
+
+      if (!studentId) {
+        console.log(this._currentStudent)
+        throw Error("Student Not Found");
+      }
+      const rpcRes = await this.supabase?.rpc("linkStudent", {
+        invite_code: inviteCode,
+        student_id: studentId,
+      });
+      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
+        throw rpcRes?.error ?? "";
+      }
+      const data = rpcRes.data;
+      return data;
+    } catch (e) {
+      throw new Error("Invalid inviteCode");
+    }
   }
   async getLeaderboardResults(
     sectionId: string,
     leaderboardDropdownType: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined> {
     try {
-      if (!this.supabase) throw new Error("Supabase instance is not initialized");
+      if (!this.supabase)
+        throw new Error("Supabase instance is not initialized");
 
       // Fetch leaderboard data using the Supabase RPC function
       const rpcRes = await this.supabase.rpc("get_class_leaderboard", {
@@ -485,8 +519,9 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-
-  async getLeaderboardStudentResultFromB2CCollection(): Promise<LeaderboardInfo | undefined> {
+  async getLeaderboardStudentResultFromB2CCollection(): Promise<
+    LeaderboardInfo | undefined
+  > {
     try {
       // Initialize leaderboard structure
       let leaderBoardList: LeaderboardInfo = {
@@ -523,9 +558,8 @@ export class SupabaseApi implements ServiceApi {
         return;
       }
 
-
       // Process the results
-      data.forEach(result => {
+      data.forEach((result) => {
         if (!result) return;
 
         const leaderboardEntry = {
@@ -553,7 +587,10 @@ export class SupabaseApi implements ServiceApi {
 
       return leaderBoardList;
     } catch (error) {
-      console.error("Error in getLeaderboardStudentResultFromB2CCollection: ", error);
+      console.error(
+        "Error in getLeaderboardStudentResultFromB2CCollection: ",
+        error
+      );
     }
   }
 

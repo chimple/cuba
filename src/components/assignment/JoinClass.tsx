@@ -75,8 +75,11 @@ const JoinClass: FC<{
   const onJoin = async () => {
     setShowDialogBox(false);
     setLoading(true);
+    const student = Util.getCurrentStudent();
     try {
-      const result = await api.linkStudent(inviteCode!);
+      if (student != null && inviteCode != null) {
+        const result = await api.linkStudent(inviteCode, student.id);
+      }
       //TODO Notification subscribe
       // if (!!codeResult) {
       //   Util.subscribeToClassTopic(
@@ -166,12 +169,12 @@ const JoinClass: FC<{
           t("You are Joining ") +
           (!!codeResult
             ? t("School") +
-            ": " +
-            codeResult["school_name"] +
-            ", " +
-            t("Class") +
-            ": " +
-            codeResult["class_name"] ?? ""
+                ": " +
+                codeResult["school_name"] +
+                ", " +
+                t("Class") +
+                ": " +
+                codeResult["class_name"] ?? ""
             : "")
         }
         showDialogBox={showDialogBox}

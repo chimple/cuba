@@ -40,13 +40,11 @@ export class SqliteApi implements ServiceApi {
   private _currentStudent: TableTypes<"user"> | undefined;
   private _currentClass: TableTypes<"class"> | undefined;
   private _currentSchool: TableTypes<"school"> | undefined;
-  private _supabaseDb: SupabaseClient<Database> | undefined;
 
   public static async getInstance(): Promise<SqliteApi> {
     if (!SqliteApi.i) {
       SqliteApi.i = new SqliteApi();
       SqliteApi.i._serverApi = SupabaseApi.getInstance();
-      SqliteApi.i._supabaseDb = SupabaseApi.getInstance().supabase;
       await SqliteApi.i.init();
     }
     return SqliteApi.i;
@@ -693,6 +691,69 @@ export class SqliteApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+  async updateFavoriteLesson(
+    studentId: string,
+    lessonId: string
+  ): Promise<TableTypes<"favorite_lesson">> {
+    const favoriteId = uuidv4();
+    var favoriteLesson: TableTypes<"favorite_lesson">;
+    const isExist = await this._db?.query(
+      `SELECT * FROM ${TABLES.FavoriteLesson} 
+       WHERE user_id= '${studentId}' and lesson_id = '${lessonId}';`
+    );
+    if (!isExist || !isExist.values || isExist.values.length < 1) {
+      favoriteLesson = {
+        id: favoriteId,
+        lesson_id: lessonId,
+        user_id: studentId ?? null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_deleted: false,
+      };
+      const res = await this.executeQuery(
+      `
+      INSERT INTO favorite_lesson (id, lesson_id, user_id, created_at, updated_at, is_deleted)
+      VALUES (?, ?, ?, ?, ?, ?);
+      `,
+        [
+          favoriteLesson.id,
+          favoriteLesson.lesson_id,
+          favoriteLesson.user_id,
+          favoriteLesson.created_at,
+          favoriteLesson.updated_at,
+          favoriteLesson.is_deleted,
+        ]
+      );
+      this.updatePushChanges(
+        TABLES.FavoriteLesson,
+        MUTATE_TYPES.INSERT,
+        favoriteLesson
+      );
+    } else {
+      var liked_lesson = isExist.values[0];
+      favoriteLesson = {
+        id: liked_lesson.id,
+        lesson_id: liked_lesson.lesson_id,
+        user_id: liked_lesson.student_id,
+        created_at: liked_lesson.created_at,
+        updated_at: new Date().toISOString(),
+        is_deleted: false,
+      };
+
+      await this.executeQuery(
+        `
+      UPDATE  favorite_lesson SET updated_at = '${favoriteLesson.updated_at}'
+      WHERE id = "${favoriteLesson.id}";
+       `
+      );
+      this.updatePushChanges(TABLES.FavoriteLesson, MUTATE_TYPES.UPDATE, {
+        id: favoriteLesson.id,
+        updated_at: favoriteLesson.updated_at,
+      });
+    }
+
+    return favoriteLesson;
+  }
   async updateResult(
     studentId: string,
     courseId: string | undefined,
@@ -701,7 +762,6 @@ export class SqliteApi implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    isLoved: boolean | undefined,
     assignmentId: string | undefined,
     classId: string | undefined,
     schoolId: string | undefined
@@ -974,42 +1034,18 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getDataByInviteCode(inviteCode: number): Promise<any> {
-    try {
-      const rpcRes = await this._supabaseDb?.rpc("getDataByInviteCode", {
-        invite_code: inviteCode,
-      });
-      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
-        throw rpcRes?.error ?? "";
-      }
-      const data = rpcRes.data;
-      return data;
-    } catch (e) {
-      throw new Error("Invalid inviteCode");
-    }
+    let inviteData = await this._serverApi.getDataByInviteCode(inviteCode);
+    return inviteData;
   }
 
-  async linkStudent(inviteCode: number): Promise<any> {
-    try {
-      if (!this._currentStudent?.id) {
-        throw Error("Student Not Found");
-      }
-      const rpcRes = await this._supabaseDb?.rpc("linkStudent", {
-        invite_code: inviteCode,
-        student_id: this._currentStudent.id,
-      });
-      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
-        throw rpcRes?.error ?? "";
-      }
-      await this.syncDbNow(Object.values(TABLES), [
-        TABLES.Assignment,
-        TABLES.Class,
-        TABLES.School,
-      ]);
-      const data = rpcRes.data;
-      return data;
-    } catch (e) {
-      throw new Error("Invalid inviteCode");
-    }
+  async linkStudent(inviteCode: number,studentId:string): Promise<any> {
+      let linkData = await this._serverApi.linkStudent(inviteCode,studentId);
+    await this.syncDbNow(Object.values(TABLES), [
+      TABLES.Assignment,
+      TABLES.Class,
+      TABLES.School,
+    ]);
+    return linkData;
   }
 
   async getLeaderboardResults(
@@ -1022,7 +1058,7 @@ export class SqliteApi implements ServiceApi {
         sectionId,
         leaderboardDropdownType
       );
-      return classLeaderboard
+      return classLeaderboard;
     } else {
       // Getting Generic Leaderboard
       let genericQueryResult =
@@ -1089,7 +1125,7 @@ export class SqliteApi implements ServiceApi {
       };
 
       // Process the results
-      currentUserResult.values.forEach(result => {
+      currentUserResult.values.forEach((result) => {
         if (!result) return;
 
         const leaderboardEntry = {
@@ -1117,10 +1153,12 @@ export class SqliteApi implements ServiceApi {
 
       return leaderBoardList;
     } catch (error) {
-      console.error("Error in getLeaderboardStudentResultFromB2CCollection: ", error);
+      console.error(
+        "Error in getLeaderboardStudentResultFromB2CCollection: ",
+        error
+      );
     }
   }
-
 
   async getAllLessonsForCourse(
     courseId: string
@@ -1282,7 +1320,7 @@ export class SqliteApi implements ServiceApi {
   }
   async getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
     const query = `
-    SELECT l.*
+    SELECT DISTINCT l.*
     FROM ${TABLES.FavoriteLesson} fl
     JOIN ${TABLES.Lesson} l 
     ON fl.lesson_id = l.id
