@@ -183,15 +183,6 @@ export interface ServiceApi {
   getLiveQuizRoomDoc(
     liveQuizRoomDocId: string
   ): Promise<DocumentData | undefined>;
-    /**
-   * Create a Row in FavoriteLesson with given params
-   * @param studentId 
-   * @param lessonId 
-   */
-    updateFavoriteLesson(
-      studentId: string,
-      lessonId: string
-    ): Promise<TableTypes<"favorite_lesson">>; 
   /**
    * Creates a Document in Result collection with the given params
    * student: User
@@ -204,6 +195,7 @@ export interface ServiceApi {
    * @param {string | undefined} assignmentId
    * @param {string | undefined} classId
    * @param {string | undefined} schoolId
+   * @param {boolean | undefined} isLoved
    * @returns {Result}} Updated result Object
    */
   updateResult(
@@ -214,6 +206,7 @@ export interface ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
+    isLoved: boolean | undefined,
     assignmentId: string | undefined,
     classId: string | undefined,
     schoolId: string | undefined
@@ -365,10 +358,9 @@ export interface ServiceApi {
    * This function links a student to a class.
    *
    * @param inviteCode The invite code of the student.
-   * @param studentId The current Studnet Id
    * @returns A promise that resolves to the student.
    */
-  linkStudent(inviteCode: number,studentId:string): Promise<any>;
+  linkStudent(inviteCode: number): Promise<any>;
 
   /**
    * This function gives Leaderboard results of b2c or b2b Users
