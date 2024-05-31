@@ -24,7 +24,6 @@ import { t } from "i18next";
 import { AvatarObj } from "../components/animation/Avatar";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
-
 const CocosGame: React.FC = () => {
   const history = useHistory();
   console.log("cocos game", history.location.state);
@@ -180,9 +179,9 @@ const CocosGame: React.FC = () => {
     document.body.addEventListener(
       LESSON_END,
       (event) => {
+        saveTempData(event.detail);
         // setGameResult(event.detail as lessonEndData);
         setGameResult(event);
-        console.log("----------line 100 add event listener------", event);
       },
       { once: true }
     );
@@ -197,18 +196,25 @@ const CocosGame: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const lesson: Lesson = JSON.parse(state.lesson);
 
-  const saveTempData = async (
-    lessonData: CocosLessonData,
-    isLoved: boolean | undefined
-  ) => {
+  const updateLessonAsFavorite = async () => {
+    const currentStudent = Util.getCurrentStudent();
+    const lesson: Lesson = JSON.parse(state.lesson);
+    if (currentStudent != null) {
+      const result = await api.updateFavoriteLesson(
+        currentStudent.id,
+        lesson.id
+      );
+    }
+  };
+
+  const saveTempData = async (lessonData: CocosLessonData) => {
     const api = ServiceConfig.getI().apiHandler;
     const courseDocId: string | undefined = state.courseDocId;
     const lesson: Lesson = JSON.parse(state.lesson);
-    console.log("🚀 ~ file: CocosGame.tsx:57 ~ init ~ lesson:", lesson);
-    console.log("--------lesson data -------", lessonData);
-    console.log("--------score of the lesson", lessonData.score);
+    const assignment = state.assignment;
     const currentStudent = api.currentStudent!;
     const data = lessonData;
+    let assignmentId = assignment ? assignment.id : null;
     const isStudentLinked = await api.isStudentLinked(currentStudent.id);
     let classId;
     let schoolId;
@@ -220,19 +226,26 @@ const CocosGame: React.FC = () => {
         classId = studentResult.classes[0].id;
         schoolId = studentResult.schools[0].id;
       }
+      if (!assignmentId) {
+        const result = await api.getPendingAssignmentForLesson(
+          lesson.id,
+          classId,
+          currentStudent.id
+        );
+        if (result) {
+          assignmentId = result?.id;
+        }
+      }
     }
-
     let avatarObj = AvatarObj.getInstance();
     let finalProgressTimespent =
       avatarObj.weeklyTimeSpent["min"] * 60 + avatarObj.weeklyTimeSpent["sec"];
     finalProgressTimespent = finalProgressTimespent + data.timeSpent;
     let computeMinutes = Math.floor(finalProgressTimespent / 60);
     let computeSec = finalProgressTimespent % 60;
-
     avatarObj.weeklyTimeSpent["min"] = computeMinutes;
     avatarObj.weeklyTimeSpent["sec"] = computeSec;
     avatarObj.weeklyPlayedLesson++;
-
     const result = await api.updateResult(
       currentStudent.id,
       courseDocId,
@@ -241,8 +254,7 @@ const CocosGame: React.FC = () => {
       data.correctMoves,
       data.wrongMoves,
       data.timeSpent,
-      isLoved,
-      lesson.assignment?.docId,
+      assignmentId,
       classId,
       schoolId
     );
@@ -338,14 +350,14 @@ const CocosGame: React.FC = () => {
               noText={t("Continue Playing")}
               handleClose={(e: any) => {
                 setShowDialogBox(true);
-                // saveTempData(gameResult.detail, undefined);
+                //  saveTempData(gameResult.detail, undefined);
                 // push();
               }}
               onYesButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
                 console.log("--------------line 200 game result", gameResult);
                 setIsLoading(true);
-                await saveTempData(gameResult.detail, true);
+                await updateLessonAsFavorite();
                 console.log(
                   "------------------the game result ",
                   gameResult.detail.score
@@ -363,7 +375,7 @@ const CocosGame: React.FC = () => {
               onContinueButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
                 setIsLoading(true);
-                await saveTempData(gameResult.detail, undefined);
+                // await saveTempData(gameResult.detail, undefined);
                 console.log(
                   "------------------the game result ",
                   gameResult.detail.score

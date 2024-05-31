@@ -608,18 +608,19 @@ const Home: FC = () => {
       favLessons = await api.getFavouriteLessons(currentStudent.id);
     }
 
-    const favouritesStartIndex = (tempPageNumber - 1) * favouritesPageSize;
-    const favouritesEndIndex = favouritesStartIndex + favouritesPageSize;
+    setFavouriteLessons(favLessons)
+    // const favouritesStartIndex = (tempPageNumber - 1) * favouritesPageSize;
+    // const favouritesEndIndex = favouritesStartIndex + favouritesPageSize;
 
-    const lessonsForFavourite = favLessons.slice(
-      favouritesStartIndex,
-      favouritesEndIndex
-    );
-    favouriteLessons.push(...lessonsForFavourite);
-    setFavouriteLessons((_favouriteLessons) => {
-      _favouriteLessons.push(...lessonsForFavourite);
-      return _favouriteLessons;
-    });
+    // const lessonsForFavourite = favLessons.slice(
+    //   favouritesStartIndex,
+    //   favouritesEndIndex
+    // );
+    // favouriteLessons.push(...lessonsForFavourite);
+    // setFavouriteLessons((_favouriteLessons) => {
+    //   _favouriteLessons.push(...lessonsForFavourite);
+    //   return _favouriteLessons;
+    // });
     setIsLoading(false);
   };
 
