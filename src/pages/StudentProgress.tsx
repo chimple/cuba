@@ -195,16 +195,15 @@ const StudentProgress: React.FC = () => {
       setTabIndex(studentProgressHeaderIconList[0].couresId);
     }
   }, [studentProgressHeaderIconList]);
+  const tabs = {};
+  studentProgressHeaderIconList.forEach((iconConfig) => {
+    tabs[iconConfig.couresId] = iconConfig.displayName;
+  });
 
   return (
     <div>
       <CustomAppBar
-        tabIds={studentProgressHeaderIconList.map(
-          (iconConfig) => iconConfig.couresId
-        )}
-        tabNames={studentProgressHeaderIconList.map(
-          (iconConfig) => iconConfig.displayName
-        )}
+        tabs={tabs}
         value={tabIndex}
         onChange={handleChange}
         handleBackButton={handleBackButton}

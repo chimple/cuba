@@ -425,13 +425,16 @@ const Parent: React.FC = () => {
       setTabIndex(t(parentHeaderIconList[0].header));
     }
   }, []);
+  const tabs = {};
+  parentHeaderIconList.forEach((item) => {
+    tabs[t(item.header)] = t(item.header);
+  });
 
   return (
     <Box>
       <div>
         <CustomAppBar
-          tabIds={parentHeaderIconList.map((item) => t(item.header))}
-          tabNames={parentHeaderIconList.map((item) => t(item.header))}
+          tabs={tabs}
           value={tabIndex}
           onChange={handleChange}
           handleBackButton={handleBackButton}
