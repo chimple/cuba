@@ -27,7 +27,6 @@ import { App as CapApp } from "@capacitor/app";
 const CocosGame: React.FC = () => {
   const history = useHistory();
   console.log("cocos game", history.location.state);
-
   const state = history.location.state as any;
   const iFrameUrl = state?.url;
   console.log("iFrameUrl", state?.url, iFrameUrl);
@@ -198,10 +197,14 @@ const CocosGame: React.FC = () => {
   const lesson: Lesson = JSON.parse(state.lesson);
 
   const updateLessonAsFavorite = async () => {
-    const api = ServiceConfig.getI().apiHandler;
-    const currentStudent = api.currentStudent!;
+    const currentStudent = Util.getCurrentStudent();
     const lesson: Lesson = JSON.parse(state.lesson);
-    const result = await api.updateFavoriteLesson(currentStudent.id, lesson.id);
+    if (currentStudent != null) {
+      const result = await api.updateFavoriteLesson(
+        currentStudent.id,
+        lesson.id
+      );
+    }
   };
 
   const saveTempData = async (lessonData: CocosLessonData) => {
