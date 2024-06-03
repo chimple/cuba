@@ -35,6 +35,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
+  private DB_VERSION = 1;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -68,6 +69,9 @@ export class SqliteApi implements ServiceApi {
     } catch (error) {
       console.log("🚀 ~ Api ~ init ~ error:", error);
     }
+    
+    await this._sqlite.addUpgradeStatement(this.DB_NAME, this.DB_VERSION, []);
+
     if (ret && ret.result && isConn) {
       this._db = await this._sqlite.retrieveConnection(this.DB_NAME, false);
     } else {
@@ -75,7 +79,7 @@ export class SqliteApi implements ServiceApi {
         this.DB_NAME,
         false,
         "no-encryption",
-        1,
+        this.DB_VERSION,
         false
       );
     }
@@ -102,15 +106,22 @@ export class SqliteApi implements ServiceApi {
     }
     let res1: DBSQLiteValues | undefined = undefined;
     try {
-      const stmt = "SELECT * FROM sqlite_master WHERE type='table'";
+      const stmt =
+        "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table';";
       res1 = await this._db.query(stmt);
+      console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ res1:", res1);
     } catch (error) {
       console.log(
         "🚀 ~ SqliteApi ~ setUpDatabase ~ error:",
         JSON.stringify(error)
       );
     }
-    if (!res1 || !res1.values || !res1.values.length) {
+    if (
+      !res1 ||
+      !res1.values ||
+      !res1.values.length ||
+      res1.values[0].count < 10
+    ) {
       try {
         // const data = await fetch("databases/init_sqlite.json");
         // if (!data || !data.ok) return;
