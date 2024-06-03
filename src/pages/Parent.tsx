@@ -72,6 +72,11 @@ const Parent: React.FC = () => {
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
     inti();
     getStudentProfile();
+    const initialTabs: { [key: string]: string } = {};
+    parentHeaderIconList.forEach((item) => {
+      initialTabs[item.header] = t(item.displayName);
+    });
+    setTabIndex(initialTabs);
   }, [reloadProfiles]);
 
   async function getStudentProfile() {

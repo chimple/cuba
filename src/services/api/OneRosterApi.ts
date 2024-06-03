@@ -61,9 +61,10 @@ export class OneRosterApi implements ServiceApi {
   getLesson(id: string): Promise<Lesson | undefined> {
     throw new Error("Method not implemented.");
   }
-  getDifferentGradesForCourse(
-    course: TableTypes<"course">
-  ): Promise<{ grades: TableTypes<"grade">[]; courses: TableTypes<"course">[] }> {
+  getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
+    grades: TableTypes<"grade">[];
+    courses: TableTypes<"course">[];
+  }> {
     throw new Error("Method not implemented.");
   }
   getAssignmentById(id: string): Promise<TableTypes<"assignment"> | undefined> {
@@ -91,15 +92,44 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {}
-  getChaptersForCourse(courseId: string): Promise<{ course_id: string | null; created_at: string; id: string; image: string | null; is_deleted: boolean | null; name: string | null; sort_index: number | null; sub_topics: string | null; updated_at: string | null; }[]> {
+  getChaptersForCourse(courseId: string): Promise<
+    {
+      course_id: string | null;
+      created_at: string;
+      id: string;
+      image: string | null;
+      is_deleted: boolean | null;
+      name: string | null;
+      sort_index: number | null;
+      sub_topics: string | null;
+      updated_at: string | null;
+    }[]
+  > {
     throw new Error("Method not implemented.");
   }
-  getLessonsForChapter(chapterId: string): Promise<{
-    cocos_chapter_code: string | null; cocos_lesson_id: string | null; //     JSON.stringify(error)
-    //     JSON.stringify(error)
-    //   );
-    cocos_subject_code: string | null; created_at: string; created_by: string | null; id: string; image: string | null; is_deleted: boolean | null; language_id: string | null; name: string | null; outcome: string | null; plugin_type: string | null; status: string | null; subject_id: string | null; target_age_from: number | null; target_age_to: number | null; updated_at: string | null;
-  }[]> {
+  getLessonsForChapter(chapterId: string): Promise<
+    {
+      cocos_chapter_code: string | null;
+      cocos_lesson_id: string | null; //     JSON.stringify(error)
+      //     JSON.stringify(error)
+      //   );
+      cocos_subject_code: string | null;
+      created_at: string;
+      created_by: string | null;
+      id: string;
+      image: string | null;
+      is_deleted: boolean | null;
+      language_id: string | null;
+      name: string | null;
+      outcome: string | null;
+      plugin_type: string | null;
+      status: string | null;
+      subject_id: string | null;
+      target_age_from: number | null;
+      target_age_to: number | null;
+      updated_at: string | null;
+    }[]
+  > {
     throw new Error("Method not implemented.");
   }
   updateRewardsForStudent(
@@ -159,7 +189,10 @@ export class OneRosterApi implements ServiceApi {
   getAllLessonsForCourse(courseId: string): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
-  getLiveQuizLessons(classId: string, studentId: string): Promise<TableTypes<"assignment">[]> {
+  getLiveQuizLessons(
+    classId: string,
+    studentId: string
+  ): Promise<TableTypes<"assignment">[]> {
     throw new Error("Method not implemented.");
   }
   getLiveQuizRoomDoc(
@@ -186,9 +219,12 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
   }
+  getStudentProgress(studentId: string): Promise<Map<string, string>> {
+    throw new Error("Method not implemented.");
+  }
   getStudentResultInMap(
     studentId: string
-  ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }>  {
+  ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
     throw new Error("Method not implemented.");
   }
   getClassById(id: string): Promise<TableTypes<"class"> | undefined> {

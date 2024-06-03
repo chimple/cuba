@@ -1412,4 +1412,26 @@ export class SqliteApi implements ServiceApi {
       return false;
     }
   }
+  async getStudentProgress(studentId: string): Promise<Map<string, string>> {
+    const query = `
+      SELECT r.*, l.name AS lesson_name, c.course_id AS course_id, c.name AS chapter_name
+      FROM ${TABLES.Result} r
+      JOIN ${TABLES.Lesson} l ON r.lesson_id = l.id
+      JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
+      JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
+      WHERE r.student_id = '${studentId}'
+    `;
+    const res = await this._db?.query(query);
+    let resultMap: Map<string, string> = new Map<string, string>();
+    if (res && res.values) {
+      res.values.forEach((result) => {
+        const courseId = result.course_id;
+        if (!resultMap[courseId]) {
+          resultMap[courseId] = [];
+        }
+        resultMap[courseId].push(result);
+      });
+    }
+    return resultMap;
+  }
 }
