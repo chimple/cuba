@@ -35,18 +35,17 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
+  private DB_VERSION = 1;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
   private _currentClass: TableTypes<"class"> | undefined;
   private _currentSchool: TableTypes<"school"> | undefined;
-  private _supabaseDb: SupabaseClient<Database> | undefined;
 
   public static async getInstance(): Promise<SqliteApi> {
     if (!SqliteApi.i) {
       SqliteApi.i = new SqliteApi();
       SqliteApi.i._serverApi = SupabaseApi.getInstance();
-      SqliteApi.i._supabaseDb = SupabaseApi.getInstance().supabase;
       await SqliteApi.i.init();
     }
     return SqliteApi.i;
@@ -70,6 +69,9 @@ export class SqliteApi implements ServiceApi {
     } catch (error) {
       console.log("🚀 ~ Api ~ init ~ error:", error);
     }
+    
+    await this._sqlite.addUpgradeStatement(this.DB_NAME, this.DB_VERSION, []);
+
     if (ret && ret.result && isConn) {
       this._db = await this._sqlite.retrieveConnection(this.DB_NAME, false);
     } else {
@@ -77,7 +79,7 @@ export class SqliteApi implements ServiceApi {
         this.DB_NAME,
         false,
         "no-encryption",
-        1,
+        this.DB_VERSION,
         false
       );
     }
@@ -104,34 +106,40 @@ export class SqliteApi implements ServiceApi {
     }
     let res1: DBSQLiteValues | undefined = undefined;
     try {
-      const stmt = "SELECT * FROM sqlite_master WHERE type='table'";
+      const stmt =
+        "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table';";
       res1 = await this._db.query(stmt);
+      console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ res1:", res1);
     } catch (error) {
       console.log(
         "🚀 ~ SqliteApi ~ setUpDatabase ~ error:",
         JSON.stringify(error)
       );
     }
-    if (!res1 || !res1.values || !res1.values.length) {
+    if (
+      !res1 ||
+      !res1.values ||
+      !res1.values.length ||
+      res1.values[0].count < 10
+    ) {
       try {
-        const data = await fetch("databases/init_sqlite.json");
-        if (!data || !data.ok) return;
-        const queries = await data.json();
-        for (const query of queries) {
-          const res298 = await this.executeQuery(query);
-        }
-
-        // const data = await fetch("seed/dummy_data.json");
+        // const data = await fetch("databases/init_sqlite.json");
         // if (!data || !data.ok) return;
-        // const json = await data.json();
-        // const jsonString = JSON.stringify(json);
-        // const isValid = await this._sqlite.isJsonValid(jsonString);
-        // if (isValid) {
-        //   const res2 = await this._sqlite.importFromJson(jsonString);
-        //   console.log("🚀 ~ imported:", JSON.stringify(res2.changes));
-        //   if (!Capacitor.isNativePlatform())
-        //     await this._sqlite.saveToStore(this.DB_NAME);
+        // const queries = await data.json();
+        // for (const query of queries) {
+        //   const res298 = await this.executeQuery(query);
         // }
+
+        try {
+          const importData = await fetch("databases/import.json");
+          if (!importData || !importData.ok) return;
+          const importJson = JSON.stringify((await importData.json()) ?? {});
+          const resImport = await this._sqlite.importFromJson(importJson);
+          console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:", resImport);
+          if (!Capacitor.isNativePlatform()) window.location.reload();
+        } catch (error) {
+          console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
+        }
       } catch (error) {
         console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
       }
@@ -200,13 +208,14 @@ export class SqliteApi implements ServiceApi {
           console.log(
             "🚀 ~ Api ~ pullChanges ~ stmt, fieldValues:",
             stmt,
-            fieldValues
+            fieldValues,
+            fieldValues.length
           );
 
           try {
             await this.executeQuery(stmt, fieldValues);
           } catch (er) {
-            console.log( "🚀 ~ Api ~ pullChangesError ",er)
+            console.log("🚀 ~ Api ~ pullChangesError ", er);
           }
         }
 
@@ -693,6 +702,69 @@ export class SqliteApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+  async updateFavoriteLesson(
+    studentId: string,
+    lessonId: string
+  ): Promise<TableTypes<"favorite_lesson">> {
+    const favoriteId = uuidv4();
+    var favoriteLesson: TableTypes<"favorite_lesson">;
+    const isExist = await this._db?.query(
+      `SELECT * FROM ${TABLES.FavoriteLesson} 
+       WHERE user_id= '${studentId}' and lesson_id = '${lessonId}';`
+    );
+    if (!isExist || !isExist.values || isExist.values.length < 1) {
+      favoriteLesson = {
+        id: favoriteId,
+        lesson_id: lessonId,
+        user_id: studentId ?? null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_deleted: false,
+      };
+      const res = await this.executeQuery(
+      `
+      INSERT INTO favorite_lesson (id, lesson_id, user_id, created_at, updated_at, is_deleted)
+      VALUES (?, ?, ?, ?, ?, ?);
+      `,
+        [
+          favoriteLesson.id,
+          favoriteLesson.lesson_id,
+          favoriteLesson.user_id,
+          favoriteLesson.created_at,
+          favoriteLesson.updated_at,
+          favoriteLesson.is_deleted,
+        ]
+      );
+      this.updatePushChanges(
+        TABLES.FavoriteLesson,
+        MUTATE_TYPES.INSERT,
+        favoriteLesson
+      );
+    } else {
+      var liked_lesson = isExist.values[0];
+      favoriteLesson = {
+        id: liked_lesson.id,
+        lesson_id: liked_lesson.lesson_id,
+        user_id: liked_lesson.student_id,
+        created_at: liked_lesson.created_at,
+        updated_at: new Date().toISOString(),
+        is_deleted: false,
+      };
+
+      await this.executeQuery(
+        `
+      UPDATE  favorite_lesson SET updated_at = '${favoriteLesson.updated_at}'
+      WHERE id = "${favoriteLesson.id}";
+       `
+      );
+      this.updatePushChanges(TABLES.FavoriteLesson, MUTATE_TYPES.UPDATE, {
+        id: favoriteLesson.id,
+        updated_at: favoriteLesson.updated_at,
+      });
+    }
+
+    return favoriteLesson;
+  }
   async updateResult(
     studentId: string,
     courseId: string | undefined,
@@ -701,7 +773,6 @@ export class SqliteApi implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    isLoved: boolean | undefined,
     assignmentId: string | undefined,
     classId: string | undefined,
     schoolId: string | undefined
@@ -974,57 +1045,130 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getDataByInviteCode(inviteCode: number): Promise<any> {
-    try {
-      const rpcRes = await this._supabaseDb?.rpc("getDataByInviteCode", {
-        invite_code: inviteCode,
-      });
-      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
-        throw rpcRes?.error ?? "";
-      }
-      const data = rpcRes.data;
-      return data;
-    } catch (e) {
-      throw new Error("Invalid inviteCode");
-    }
+    let inviteData = await this._serverApi.getDataByInviteCode(inviteCode);
+    return inviteData;
   }
 
-  async linkStudent(inviteCode: number): Promise<any> {
-    try {
-      if (!this._currentStudent?.id) {
-        throw Error("Student Not Found");
-      }
-      const rpcRes = await this._supabaseDb?.rpc("linkStudent", {
-        invite_code: inviteCode,
-        student_id: this._currentStudent.id,
-      });
-      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
-        throw rpcRes?.error ?? "";
-      }
-      await this.syncDbNow(Object.values(TABLES), [
-        TABLES.Assignment,
-        TABLES.Class,
-        TABLES.School,
-      ]);
-      const data = rpcRes.data;
-      return data;
-    } catch (e) {
-      throw new Error("Invalid inviteCode");
-    }
+  async linkStudent(inviteCode: number,studentId:string): Promise<any> {
+      let linkData = await this._serverApi.linkStudent(inviteCode,studentId);
+    await this.syncDbNow(Object.values(TABLES), [
+      TABLES.Assignment,
+      TABLES.Class,
+      TABLES.School,
+    ]);
+    return linkData;
   }
 
   async getLeaderboardResults(
     sectionId: string,
     leaderboardDropdownType: LeaderboardDropdownList
   ): Promise<LeaderboardInfo | undefined> {
-    // throw new Error("Method not implemented.");
-    return;
+    if (sectionId) {
+      // Getting Class wise Leaderboard
+      let classLeaderboard = await this._serverApi.getLeaderboardResults(
+        sectionId,
+        leaderboardDropdownType
+      );
+      return classLeaderboard;
+    } else {
+      // Getting Generic Leaderboard
+      let genericQueryResult =
+        await this._serverApi.getLeaderboardStudentResultFromB2CCollection();
+      if (!genericQueryResult) {
+        return;
+      }
+      return genericQueryResult;
+    }
   }
 
   async getLeaderboardStudentResultFromB2CCollection(
     studentId: string
   ): Promise<LeaderboardInfo | undefined> {
-    // throw new Error("Method not implemented.");
-    return;
+    try {
+      // Ensure the database instance is initialized
+      if (!this._db) throw new Error("Database is not initialized");
+
+      // Define the query to fetch the leaderboard data for the given student
+      const currentStudentQuery = `
+        SELECT 'allTime' as type, student_id, name, 
+               count(res.id) as lessons_played, 
+               sum(score) as total_score, 
+               sum(time_spent) as total_time_spent
+        FROM ${TABLES.Result} res
+        JOIN ${TABLES.User} u ON u.id = res.student_id
+        WHERE res.student_id = '${studentId}'
+        GROUP BY student_id, u.name
+        UNION ALL
+        SELECT 'monthly' as type, student_id, u.name, 
+               count(res.id) as lessons_played, 
+               sum(score) as total_score, 
+               sum(time_spent) as total_time_spent
+        FROM ${TABLES.Result} res
+        JOIN ${TABLES.User} u ON u.id = res.student_id
+        WHERE res.student_id = '${studentId}' 
+        AND strftime('%m', res.created_at) = strftime('%m', datetime('now'))
+        GROUP BY student_id, u.name
+        UNION ALL
+        SELECT 'weekly' as type, student_id, u.name, 
+               count(res.id) as lessons_played, 
+               sum(score) as total_score, 
+               sum(time_spent) as total_time_spent
+        FROM ${TABLES.Result} res
+        JOIN ${TABLES.User} u ON u.id = res.student_id
+        WHERE res.student_id = '${studentId}' 
+        AND strftime('%W', res.created_at) = strftime('%W', datetime('now'))
+        GROUP BY student_id, u.name
+      `;
+
+      // Execute the query
+      const currentUserResult = await this._db.query(currentStudentQuery);
+
+      // Handle case where no data is returned
+      if (!currentUserResult.values) {
+        return;
+      }
+
+      // Initialize the leaderboard structure
+      let leaderBoardList: LeaderboardInfo = {
+        weekly: [],
+        allTime: [],
+        monthly: [],
+      };
+
+      // Process the results
+      currentUserResult.values.forEach((result) => {
+        if (!result) return;
+
+        const leaderboardEntry = {
+          name: result.name || "",
+          score: result.total_score || 0,
+          timeSpent: result.total_time_spent || 0,
+          lessonsPlayed: result.lessons_played || 0,
+          userId: studentId,
+        };
+
+        switch (result.type) {
+          case "allTime":
+            leaderBoardList.allTime.push(leaderboardEntry);
+            break;
+          case "monthly":
+            leaderBoardList.monthly.push(leaderboardEntry);
+            break;
+          case "weekly":
+            leaderBoardList.weekly.push(leaderboardEntry);
+            break;
+          default:
+            console.warn("Unknown leaderboard type: ", result.type);
+        }
+      });
+
+      return leaderBoardList;
+    } catch (error) {
+      console.error(
+        "Error in getLeaderboardStudentResultFromB2CCollection: ",
+        error
+      );
+    }
   }
 
   async getAllLessonsForCourse(
@@ -1176,8 +1320,10 @@ export class SqliteApi implements ServiceApi {
     SELECT a.*
     FROM ${TABLES.Assignment} a
     LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
-    LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = "${studentId}"
-    WHERE a.lesson_id = '${lessonId}' a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL;
+    LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = '${studentId}'
+    WHERE a.lesson_id = '${lessonId}' AND a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = '${studentId}') and r.assignment_id IS NULL
+    ORDER BY a.updated_at DESC
+    LIMIT 1;
     `;
     const res = await this._db?.query(query);
     if (!res || !res.values || res.values.length < 1) return;
@@ -1185,7 +1331,7 @@ export class SqliteApi implements ServiceApi {
   }
   async getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
     const query = `
-    SELECT l.*
+    SELECT DISTINCT l.*
     FROM ${TABLES.FavoriteLesson} fl
     JOIN ${TABLES.Lesson} l 
     ON fl.lesson_id = l.id

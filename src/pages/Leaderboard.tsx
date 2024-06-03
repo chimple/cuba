@@ -59,7 +59,10 @@ const Leaderboard: React.FC = () => {
     }[]
   >([]);
   const [weeklySelectedValue, setWeeklySelectedValue] = useState<string>();
-  const [currentClass, setCurrentClass] = useState<StudentProfile>();
+  const [currentClassAndSchool, setCurrentClassAndSchool] = useState<{
+    classes: TableTypes<"class">[];
+    schools: TableTypes<"school">[];
+  }>();
 
   useEffect(() => {
     setIsLoading(true);
@@ -109,7 +112,7 @@ const Leaderboard: React.FC = () => {
           LeaderboardDropdownList.WEEKLY,
           getClass?.classes[0].id
         );
-        // setCurrentClass(getClass);
+        setCurrentClassAndSchool(getClass);
       } else {
         fetchLeaderBoardData(
           currentStudent,
@@ -204,42 +207,40 @@ const Leaderboard: React.FC = () => {
       const b2cData = await api.getLeaderboardStudentResultFromB2CCollection(
         currentStudent.id
       );
-      console.log(
-        "const b2cData = await api.getLeaderboardStudentResultFromB2CCollection(",
-        !isCurrentStudentDataFetched && !classId,
-        b2cData
-      );
-
       if (b2cData) {
-        console.log("if (!b2cData) { return", b2cData);
-
         const tempData =
           leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
             ? b2cData.weekly
             : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
               ? b2cData.monthly
               : b2cData.allTime;
-
-        var computeMinutes = Math.floor(tempData[0].timeSpent / 60);
-        var computeSeconds = tempData[0].timeSpent % 60;
-        const cUserRank = tempLeaderboardDataArray.length.toString() + "+";
-        tempCurrentUserDataContent = [
-          // ["Name", element.name],
-          [t("Rank"), cUserRank],
-          [t("Lessons Played"), tempData[0].lessonsPlayed],
-          [t("Score"), tempData[0].score],
-          [
-            t("Time Spent"),
+        if (tempData && tempData.length > 0) {
+          var computeMinutes = Math.floor(tempData[0].timeSpent / 60);
+          var computeSeconds = tempData[0].timeSpent % 60;
+          const cUserRank = tempLeaderboardDataArray.length.toString() + "+";
+          tempCurrentUserDataContent = [
+            // ["Name", element.name],
+            [t("Rank"), cUserRank],
+            [t("Lessons Played"), tempData[0].lessonsPlayed],
+            [t("Score"), tempData[0].score],
+            [
+              t("Time Spent"),
+              computeMinutes +
+                t(" min") +
+                " " +
+                computeSeconds +
+                " " +
+                t("sec"),
+            ],
+          ];
+          tempLeaderboardDataArray.push([
+            cUserRank,
+            tempData[0].name,
+            tempData[0].lessonsPlayed,
+            tempData[0].score,
             computeMinutes + t(" min") + " " + computeSeconds + " " + t("sec"),
-          ],
-        ];
-        tempLeaderboardDataArray.push([
-          cUserRank,
-          tempData[0].name,
-          tempData[0].lessonsPlayed,
-          tempData[0].score,
-          computeMinutes + t(" min") + " " + computeSeconds + " " + t("sec"),
-        ]);
+          ]);
+        }
       }
     }
     if (tempCurrentUserDataContent.length <= 0) {
@@ -293,7 +294,7 @@ const Leaderboard: React.FC = () => {
                   // weeklyList[0] === weeklyList[selectedValue],
                   weeklyList[selectedValue].type ??
                     LeaderboardDropdownList.WEEKLY,
-                  currentClass?.classes[0] || ""
+                  currentClassAndSchool?.classes[0].id || ""
                 );
                 //  }
               }

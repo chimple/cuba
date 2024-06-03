@@ -10,10 +10,7 @@ import {
   TableTypes,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
-import {
-  DocumentData,
-  Unsubscribe,
-} from "firebase/firestore";
+import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { RoleType } from "../../interface/modelInterfaces";
 
@@ -146,8 +143,8 @@ export class ApiHandler implements ServiceApi {
   public async getDataByInviteCode(inviteCode: number): Promise<any> {
     return await this.s.getDataByInviteCode(inviteCode);
   }
-  public async linkStudent(inviteCode: number): Promise<any> {
-    return await this.s.linkStudent(inviteCode);
+  public async linkStudent(inviteCode: number,studentId:string): Promise<any> {
+    return await this.s.linkStudent(inviteCode,studentId);
   }
   public async getStudentResult(
     studentId: string,
@@ -213,6 +210,13 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getLessonResultsForStudent(studentId);
   }
 
+  public async updateFavoriteLesson(
+    studentId: string,
+    lessonId: string
+  ): Promise<TableTypes<"favorite_lesson">> {
+    return await this.s.updateFavoriteLesson(studentId, lessonId);
+  }
+
   public async updateResult(
     studentId: string,
     courseId: string | undefined,
@@ -221,7 +225,6 @@ export class ApiHandler implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    isLoved: boolean | undefined,
     assignmentId: string | undefined,
     classId: string | undefined,
     schoolId: string | undefined
@@ -234,7 +237,6 @@ export class ApiHandler implements ServiceApi {
       correctMoves,
       wrongMoves,
       timeSpent,
-      isLoved,
       assignmentId,
       classId,
       schoolId
