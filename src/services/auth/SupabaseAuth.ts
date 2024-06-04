@@ -152,7 +152,7 @@ export class SupabaseAuth implements ServiceAuth {
   async phoneNumberSignIn(phoneNumber: any, recaptchaVerifier: any): Promise<any> {
     if (!this._auth) return false;
      const { data, error } = await this._auth.signInWithOtp({
-      phone: '+918884754676',
+      phone: '',
      })
      console.log("🚀 ~ SupabaseAuth ~ phonelogin ~ data, error:", data, error);
   }
