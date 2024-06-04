@@ -80,7 +80,6 @@ const JoinClass: FC<{
       if (student != null && inviteCode != null) {
         const result = await api.linkStudent(inviteCode, student.id);
       }
-      //TODO Notification subscribe
       if (!!codeResult) {
         Util.subscribeToClassTopic(
           codeResult["class_id"],
