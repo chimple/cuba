@@ -152,6 +152,9 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"result">[]> {
     return await this.s.getStudentResult(studentId, fromCache);
   }
+  async getStudentProgress(studentId: string): Promise<Map<string, string>> {
+    return await this.s.getStudentProgress(studentId);
+  }
   async getStudentResultInMap(
     studentId: string
   ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {

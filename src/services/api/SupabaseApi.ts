@@ -363,6 +363,9 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
   }
+  getStudentProgress(studentId: string): Promise<Map<string, string>> {
+    throw new Error("Method not implemented.");
+  }
   getStudentResultInMap(
     studentId: string
   ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
