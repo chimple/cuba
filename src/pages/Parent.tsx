@@ -66,17 +66,12 @@ const Parent: React.FC = () => {
     { header: "help", displayName: "Help" },
     { header: "faq", displayName: "FAQ" },
   ];
-
+  const [tabs, setTabs] = useState({});
   useEffect(() => {
     setIsLoading(true);
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
     inti();
     getStudentProfile();
-    const initialTabs: { [key: string]: string } = {};
-    parentHeaderIconList.forEach((item) => {
-      initialTabs[item.header] = t(item.displayName);
-    });
-    setTabIndex(initialTabs);
   }, [reloadProfiles]);
 
   async function getStudentProfile() {
@@ -430,10 +425,13 @@ const Parent: React.FC = () => {
       setTabIndex(t(parentHeaderIconList[0].header));
     }
   }, []);
-  const tabs = {};
-  parentHeaderIconList.forEach((item) => {
-    tabs[t(item.header)] = t(item.header);
-  });
+  useEffect(() => {
+    const updatedTabs = {};
+    parentHeaderIconList.forEach((item) => {
+      updatedTabs[t(item.header)] = t(item.header);
+    });
+    setTabs(updatedTabs);
+  }, [parentHeaderIconList]);
 
   return (
     <Box>
