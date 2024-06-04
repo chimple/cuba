@@ -59,7 +59,7 @@ const Login: React.FC = () => {
   const [userData, setUserData] = useState<any>();
 
   const authInstance = ServiceConfig.getI().authHandler;
-  const countryCode = "+91";
+  const countryCode = "91";
   // let phoneNumber: string = "";
   // let verificationCode: string = "";
   let displayName: string = "";
@@ -235,7 +235,13 @@ const Login: React.FC = () => {
         return;
       }
       console.log("window.recaptchaVerifier", window.recaptchaVerifier);
-
+      const _authHandler = ServiceConfig.getI().authHandler;
+      ///////////work needed
+      // const result: boolean = await _authHandler.phoneNumberSignIn(
+      //   schoolCode + studentId + DOMAIN,
+      //   studentPassword
+      // );
+      // console.log('*****', result);
       // setEnabled(true);
       let response = await authInstance.msg91OtpGenerate(
         phoneNumberWithCountryCode,

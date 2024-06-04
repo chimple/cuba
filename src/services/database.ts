@@ -1329,6 +1329,12 @@ export type Database = {
         }
         Returns: Json
       }
+      get_user_by_phone: {
+        Args: {
+          phone_number: string
+        }
+        Returns: Json
+      }
       getDataByInviteCode: {
         Args: {
           invite_code: number
@@ -1348,6 +1354,13 @@ export type Database = {
           student_id: string
         }
         Returns: boolean
+      }
+      set_confirmation: {
+        Args: {
+          phone_number: string
+          code: string
+        }
+        Returns: string
       }
     }
     Enums: {

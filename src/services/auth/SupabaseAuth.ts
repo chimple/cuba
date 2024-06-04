@@ -3,7 +3,7 @@ import { SupabaseApi } from "../api/SupabaseApi";
 import { ServiceAuth } from "./ServiceAuth";
 import { Database } from "../database";
 import { TableTypes } from "../../common/constants";
-import { SupabaseClient } from "@supabase/supabase-js";
+import { SupabaseClient, createClient } from "@supabase/supabase-js";
 import { ServiceConfig } from "../ServiceConfig";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 
@@ -14,8 +14,21 @@ export class SupabaseAuth implements ServiceAuth {
   private _auth: SupabaseAuthClient | undefined;
   private _supabaseDb: SupabaseClient<Database> | undefined;
   // private _auth = getAuth();
+  public supabase: SupabaseClient<Database> | undefined;
+  private supabaseUrl: string;
+  private supabaseKey: string;
 
-  private constructor() {}
+  constructor() {
+    this.supabaseUrl = process.env.REACT_APP_SUPABASE_URL ?? "";
+    this.supabaseKey = process.env.REACT_APP_SUPABASE_KEY ?? "";
+    this.supabase = createClient<Database>(this.supabaseUrl, this.supabaseKey, {
+      auth: {
+        persistSession: false,
+      },
+    });
+    console.log("🚀 ~ supabase:", this.supabase);
+  }
+
 
   public static getInstance(): SupabaseAuth {
     if (!SupabaseAuth.i) {
@@ -26,8 +39,48 @@ export class SupabaseAuth implements ServiceAuth {
     return SupabaseAuth.i;
   }
 
-  loginWithEmailAndPassword(email: any, password: any): Promise<boolean> {
-    throw new Error("Method not implemented.");
+  async loginWithEmailAndPassword(email: any, password: any): Promise<boolean> {
+   try {
+    if (!this._auth) return false;
+     const { data, error } = await this._auth.signInWithPassword({
+       email: email,
+       password: password,
+     })
+     console.log("🚀 ~ SupabaseAuth ~ emailpasswordlogin ~ data, error:", data, error);
+     const rpcRes = await this._supabaseDb?.rpc("isUserExists", {
+      user_email: data.user?.email!,
+      user_phone: "",
+    });
+    console.log("🚀 ~ SupabaseAuth ~ emailpasswordlogin ~ isUserExists:", rpcRes);
+    if (!rpcRes?.data) {
+      const api = ServiceConfig.getI().apiHandler;
+      const createdUser = await api.createUserDoc({
+        age: null,
+        avatar: null,
+        created_at: new Date().toISOString(),
+        curriculum_id: null,
+        gender: null,
+        grade_id: null,
+        id: data.user?.id ?? data.user?.id!,
+        image: '',
+        is_deleted: false,
+        is_tc_accepted: false,
+        language_id: null,
+        name: data.user?.email!,
+        updated_at: new Date().toISOString(),
+        email: data.user?.email!,
+        phone: data.user?.phone ?? null,
+        music_off: false,
+        sfx_off: false,
+      });
+      this._currentUser = createdUser;
+    }
+    const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
+   } catch (error) {
+    console.error("🚀 ~ SupabaseAuth ~ emailpasswordlogin ~ error:", error);
+    return false;
+   }
+   return true;
   }
 
   async googleSign(): Promise<boolean> {
@@ -96,17 +149,40 @@ export class SupabaseAuth implements ServiceAuth {
     // const user = await this.getCurrentUser();
     return !!authData?.data?.user;
   }
-  phoneNumberSignIn(phoneNumber: any, recaptchaVerifier: any): Promise<any> {
-    throw new Error("Method not implemented.");
+  async phoneNumberSignIn(phoneNumber: any, recaptchaVerifier: any): Promise<any> {
+    if (!this._auth) return false;
+     const { data, error } = await this._auth.signInWithOtp({
+      phone: '+918884754676',
+     })
+     console.log("🚀 ~ SupabaseAuth ~ phonelogin ~ data, error:", data, error);
   }
-  resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined> {
-    throw new Error("Method not implemented.");
+  async resendOtpMsg91(phoneNumber: string): Promise<any | undefined> {
+    try {
+      const result = await this.supabase?.functions.invoke('resend-otp', {
+         body:{phoneNumber: phoneNumber}
+      })
+      const response = result;
+      console.log('***RESPOSNE**',response);
+      return response;
+    } catch (error) {
+      console.log("Failed with Msg91", error);
+    }
   }
-  msg91OtpGenerate(
+  async msg91OtpGenerate(
     phoneNumber: string,
     appName: string
-  ): Promise<boolean | undefined> {
-    throw new Error("Method not implemented.");
+  ): Promise<any | undefined> {
+    try {
+      const result = await this.supabase?.functions.invoke('generate-otp', {
+         body:{phoneNumber: phoneNumber, 
+         appName: appName}
+      })
+      const response = result;
+      console.log('***RESPOSNE**',response);
+      return response;
+    } catch (error) {
+      console.log("Failed with Msg91", error);
+    }
   }
   proceedWithVerificationCode(
     verificationId: any,
