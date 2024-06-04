@@ -79,6 +79,7 @@ export interface ServiceApi {
   updateMusicFlag(userId: string, value: boolean);
   updateLanguage(userId: string, value: string);
   updateTcAccept(userId: string);
+  updateFcmToken(userId: string);
 
   /**
    * Gives Language for given a language firebase doc Id

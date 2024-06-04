@@ -28,13 +28,14 @@ import { SupabaseApi } from "./SupabaseApi";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
 import { v4 as uuidv4 } from "uuid";
 import { RoleType } from "../../interface/modelInterfaces";
+import { Util } from "../../utility/util";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
-  private DB_VERSION = 1;
+  private DB_VERSION = 2;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -1498,7 +1499,20 @@ export class SqliteApi implements ServiceApi {
     data.schools = res.values.map((val) => val.school);
     return data;
   }
-
+  async updateFcmToken(userId: string) {
+    const token = await Util.getToken();
+    const query = `
+    UPDATE "user"
+    SET fcm_token = "${token}"
+    WHERE id = "${userId}";
+  `;
+    const res = await this.executeQuery(query);
+    console.log("🚀 ~ SqliteApi ~ updateFCM Token:", res);
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+      fcm_token: token,
+      id: userId,
+    });
+  }
   async createUserDoc(
     user: TableTypes<"user">
   ): Promise<TableTypes<"user"> | undefined> {

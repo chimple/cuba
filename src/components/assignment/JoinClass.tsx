@@ -81,12 +81,12 @@ const JoinClass: FC<{
         const result = await api.linkStudent(inviteCode, student.id);
       }
       //TODO Notification subscribe
-      // if (!!codeResult) {
-      //   Util.subscribeToClassTopic(
-      //     codeResult["class_id"],
-      //     codeResult["school_id"]
-      //   );
-      // }
+      if (!!codeResult) {
+        Util.subscribeToClassTopic(
+          codeResult["class_id"],
+          codeResult["school_id"]
+        );
+      }
       onClassJoin();
       // history.replace("/");
       // window.location.reload();

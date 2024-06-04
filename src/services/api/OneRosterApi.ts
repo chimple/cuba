@@ -336,6 +336,10 @@ export class OneRosterApi implements ServiceApi {
   updateLanguage(userId: string, value: string) {
     throw new Error("Method not implemented.");
   }
+  updateFcmToken(userId: string) {
+    throw new Error("Method not implemented.");
+  }
+
 
   get currentStudent(): TableTypes<"user"> | undefined {
     throw new Error("Method not implemented.");
