@@ -466,7 +466,7 @@ export class SqliteApi implements ServiceApi {
       updated_at: new Date().toISOString(),
       email: null,
       phone: null,
-      fcm_token:null,
+      fcm_token: null,
       music_off: false,
       sfx_off: false,
     };
@@ -1425,7 +1425,8 @@ export class SqliteApi implements ServiceApi {
   ): Promise<TableTypes<"chapter">[]> {
     const query = `
     SELECT * FROM ${TABLES.Chapter} 
-    WHERE course_id = "${courseId}"
+    WHERE course_id = "${courseId}"    
+    ORDER BY sort_index ASC;
     `;
     const res = await this._db?.query(query);
     return res?.values ?? [];
