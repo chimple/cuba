@@ -466,6 +466,7 @@ export class SqliteApi implements ServiceApi {
       updated_at: new Date().toISOString(),
       email: null,
       phone: null,
+      fcm_token:null,
       music_off: false,
       sfx_off: false,
     };
