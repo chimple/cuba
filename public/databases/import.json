@@ -34296,6 +34296,10 @@
         {
           "column": "sfx_off",
           "value": "INTEGER DEFAULT 0"
+        },
+        {
+          "column": "fcm_token",
+          "value": "TEXT"
         }
       ]
     },
@@ -56638,6 +56642,14 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
+        },
+        {
+          "column": "course_id",
+          "value": "TEXT"
+        },
+        {
+          "column": "chapter_id",
+          "value": "TEXT"
         }
       ]
     },
