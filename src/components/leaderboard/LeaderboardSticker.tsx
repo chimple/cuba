@@ -36,7 +36,6 @@ const LeaderboardStickers: FC = () => {
     const allStickers = await getStickers();
     const upcomingStickers = await getUpcomingStickers();
     setAllStickers(allStickers);
-
     const stickerInfoArray: stickerInfo[] = prevStickers.map((sticker) => ({
       sticker,
       isUnlocked: unlockedStickers.some((s: any) => s?.id === sticker?.id),
@@ -91,7 +90,7 @@ const LeaderboardStickers: FC = () => {
     if (!rewardsDoc) return [];
     const currentWeek = Util.getCurrentWeekNumber();
     const stickerIds: string[] = [];
-    const weeklyData: any = rewardsDoc;
+    const weeklyData: any = rewardsDoc.weeklySticker;
     for (const key in weeklyData) {
       const weekNumber = parseInt(key);
       if (!isNaN(weekNumber) && weekNumber > currentWeek + 1) {
@@ -102,12 +101,7 @@ const LeaderboardStickers: FC = () => {
         });
       }
     }
-    const stickerDocs = await Promise.all(
-      stickerIds.map(async (value) => {
-        const sticker = await api.getStickerById(value);
-        return sticker;
-      })
-    );
+    const stickerDocs = await api.getStickersByIds(stickerIds);
     return stickerDocs;
   };
 
@@ -122,7 +116,7 @@ const LeaderboardStickers: FC = () => {
     if (!rewardsDoc) return [];
     const currentWeek = Util.getCurrentWeekNumber();
     const stickerIds: string[] = [];
-    const weeklyData: any = rewardsDoc;
+    const weeklyData: any = rewardsDoc.weeklySticker;
     for (const key in weeklyData) {
       const weekNumber = parseInt(key);
       if (!isNaN(weekNumber) && weekNumber < currentWeek) {
@@ -133,12 +127,7 @@ const LeaderboardStickers: FC = () => {
         });
       }
     }
-    const stickerDocs = await Promise.all(
-      stickerIds.map(async (value) => {
-        const sticker = await api.getStickerById(value);
-        return sticker;
-      })
-    );
+    const stickerDocs = await api.getStickersByIds(stickerIds);
     return stickerDocs;
   };
 
@@ -154,7 +143,7 @@ const LeaderboardStickers: FC = () => {
     const currentWeek = Util.getCurrentWeekNumber();
     const nextWeek = currentWeek + 1;
     const stickerIds: string[] = [];
-    const weeklyData: any = rewardsDoc;
+    const weeklyData: any = rewardsDoc.weeklySticker;
     if (weeklyData[nextWeek.toString()]) {
       weeklyData[nextWeek.toString()].forEach((value) => {
         if (value.type === LeaderboardRewardsType.STICKER) {
@@ -165,12 +154,7 @@ const LeaderboardStickers: FC = () => {
       console.error(`No data found for week ${nextWeek}`);
       return [];
     }
-    const stickerDocs = await Promise.all(
-      stickerIds.map(async (value) => {
-        const sticker = await api.getStickerById(value);
-        return sticker;
-      })
-    );
+    const stickerDocs = await api.getStickersByIds(stickerIds);
     return stickerDocs;
   };
 

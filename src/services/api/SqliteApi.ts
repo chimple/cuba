@@ -596,7 +596,6 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
-
   async getLessonsForChapter(
     chapterId: string
   ): Promise<TableTypes<"lesson">[]> {
@@ -711,7 +710,7 @@ export class SqliteApi implements ServiceApi {
         is_deleted: false,
       };
       const res = await this.executeQuery(
-      `
+        `
       INSERT INTO favorite_lesson (id, lesson_id, user_id, created_at, updated_at, is_deleted)
       VALUES (?, ?, ?, ?, ?, ?);
       `,
@@ -1038,8 +1037,8 @@ export class SqliteApi implements ServiceApi {
     return inviteData;
   }
 
-  async linkStudent(inviteCode: number,studentId:string): Promise<any> {
-      let linkData = await this._serverApi.linkStudent(inviteCode,studentId);
+  async linkStudent(inviteCode: number, studentId: string): Promise<any> {
+    let linkData = await this._serverApi.linkStudent(inviteCode, studentId);
     await this.syncDbNow(Object.values(TABLES), [
       TABLES.Assignment,
       TABLES.Class,
@@ -1243,20 +1242,52 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
 
-  async getBadgeById(id: string): Promise<TableTypes<"badge"> | undefined> {
-    const res = await this._db?.query(
-      `select * from ${TABLES.Badge} where id = "${id}"`
-    );
-    if (!res || !res.values || res.values.length < 1) return;
-    return res.values[0];
+  async getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]> {
+    if (ids.length === 0) return [];
+
+    const quotedIds = ids.map((id) => `"${id}"`).join(", ");
+    try {
+      const res = await this._db?.query(
+        `SELECT * FROM ${TABLES.Badge} WHERE id IN (${quotedIds})`
+      );
+      if (!res || !res.values || res.values.length < 1) return [];
+
+      return res.values;
+    } catch (error) {
+      console.error("Error fetching badges by IDs:", error);
+      return [];
+    }
   }
 
-  async getStickerById(id: string): Promise<TableTypes<"sticker"> | undefined> {
-    const res = await this._db?.query(
-      `select * from ${TABLES.Sticker} where id = "${id}"`
-    );
-    if (!res || !res.values || res.values.length < 1) return;
-    return res.values[0];
+  async getStickersByIds(ids: string[]): Promise<TableTypes<"sticker">[]> {
+    if (ids.length === 0) return [];
+
+    const quotedIds = ids.map((id) => `"${id}"`).join(`, `);
+    try {
+      const res = await this._db?.query(
+        `select * FROM ${TABLES.Sticker} WHERE id IN (${quotedIds})`
+      );
+      if (!res || !res.values || res.values.length < 1) return [];
+      return res.values;
+    } catch (error) {
+      console.error("Error fetching stickers by IDs:", error);
+      return [];
+    }
+  }
+  async getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]> {
+    if (ids.length === 0) return [];
+
+    const quotedIds = ids.map((id) => `"${id}"`).join(`, `);
+    try {
+      const res = await this._db?.query(
+        `select * FROM ${TABLES.Lesson} WHERE id IN (${quotedIds})`
+      );
+      if (!res || !res.values || res.values.length < 1) return [];
+      return res.values;
+    } catch (error) {
+      console.error("Error fetching stickers by IDs:", error);
+      return [];
+    }
   }
   async getRewardsById(
     id: number,
@@ -1270,15 +1301,9 @@ export class SqliteApi implements ServiceApi {
         console.error("No reward found for the given year.");
         return;
       }
-      const periodData = data.values[0][periodType];
-      const cleanPeriodData = periodData
-        .replace(/^'|'$/g, "")
-        .replace(/\n/g, "")
-        .replace(/,(\s*[\]}])/g, "$1");
-      let periodObj;
+      const periodData = JSON.parse(data.values[0][periodType]);
       try {
-        periodObj = JSON.parse(cleanPeriodData);
-        if (periodObj) return periodObj;
+        if (periodData) return periodData;
       } catch (parseError) {
         console.error("Error parsing JSON string:", parseError);
         return undefined;

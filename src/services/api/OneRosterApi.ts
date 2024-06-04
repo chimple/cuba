@@ -57,8 +57,10 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"lesson"> | null> {
     throw new Error("Method not implemented.");
   }
-
   getLesson(id: string): Promise<Lesson | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]>{
     throw new Error("Method not implemented.");
   }
   getDifferentGradesForCourse(
@@ -123,10 +125,10 @@ export class OneRosterApi implements ServiceApi {
   getRewardsById(id: number, periodType: string): Promise<TableTypes<"reward"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  getBadgeById(id: string): Promise<TableTypes<"badge"> | undefined> {
+  getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]> {
     throw new Error("Method not implemented.");
   }
-  getStickerById(id: string): Promise<TableTypes<"sticker"> | undefined> {
+  getStickersByIds(ids: string[]): Promise<TableTypes<"sticker">[]> {
     throw new Error("Method not implemented.");
   }
   getAvatarInfo(): Promise<AvatarObj | undefined> {

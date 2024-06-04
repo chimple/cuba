@@ -82,15 +82,13 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"reward"> | undefined> {
     return this.s.getRewardsById(id, periodType);
   }
-  public async getBadgeById(
-    id: string
-  ): Promise<TableTypes<"badge"> | undefined> {
-    return this.s.getBadgeById(id);
+  public async getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]> {
+    return this.s.getBadgesByIds(ids);
   }
-  public async getStickerById(
-    id: string
-  ): Promise<TableTypes<"sticker"> | undefined> {
-    return this.s.getStickerById(id);
+  public async getStickersByIds(
+    ids: string[]
+  ): Promise<TableTypes<"sticker">[]> {
+    return this.s.getStickersByIds(ids);
   }
   public async getAvatarInfo(): Promise<AvatarObj | undefined> {
     return await this.s.getAvatarInfo();
@@ -266,10 +264,16 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"course">[]> {
     return await this.s.getCoursesForClassStudent(classId);
   }
+  
   public async getLesson(
     id: string
   ): Promise<TableTypes<"lesson"> | undefined> {
     return await this.s.getLesson(id);
+  }
+  public async getBonusesByIds(
+    ids: string[]
+  ): Promise<TableTypes<"lesson">[]> {
+    return await this.s.getBonusesByIds(ids);
   }
 
   public async getLessonsForChapter(

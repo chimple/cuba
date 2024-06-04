@@ -60,15 +60,12 @@ const LeaderboardBadges: FC = () => {
     (TableTypes<"badge"> | undefined)[]
   > => {
     const date = new Date();
-    const rewardsDoc = await api.getRewardsById(
-      date.getFullYear(),
-      "weekly"
-    );
+    const rewardsDoc = await api.getRewardsById(date.getFullYear(), "weekly");
     if (!rewardsDoc) return [];
     const currentWeek = Util.getCurrentWeekNumber();
     const nextWeek = currentWeek + 1;
     const badgeIds: string[] = [];
-    const weeklyData: any = rewardsDoc;
+    const weeklyData: any = rewardsDoc.weekly;
     if (weeklyData[nextWeek.toString()]) {
       weeklyData[nextWeek.toString()].forEach((value) => {
         if (value.type === LeaderboardRewardsType.BADGE) {
@@ -79,12 +76,7 @@ const LeaderboardBadges: FC = () => {
       console.error(`No data found for week ${nextWeek}`);
       return [];
     }
-    const badgeDocs = await Promise.all(
-      badgeIds.map(async (value) => {
-        const badge = await api.getBadgeById(value);
-        return badge;
-      })
-    );
+    const badgeDocs = await api.getBadgesByIds(badgeIds);
     return badgeDocs;
   };
 
@@ -117,12 +109,7 @@ const LeaderboardBadges: FC = () => {
     let index = 0;
     while (index < matchingDocIds.length) {
       const limit = matchingDocIds.slice(index, index + 20);
-      const limitBadgeDocs = await Promise.all(
-        limit.map(async (value) => {
-          const badge = await api.getBadgeById(value);
-          return badge;
-        })
-      );
+      const limitBadgeDocs = await api.getBadgesByIds(limit);
       badgeDocs.push(...limitBadgeDocs);
       index += 20;
     }
@@ -159,10 +146,7 @@ const LeaderboardBadges: FC = () => {
     (TableTypes<"badge"> | undefined)[]
   > => {
     const date = new Date();
-    const rewardsDoc = await api.getRewardsById(
-      date.getFullYear(),
-      "weekly"
-    );
+    const rewardsDoc = await api.getRewardsById(date.getFullYear(), "weekly");
     if (!rewardsDoc || !rewardsDoc.weekly) {
       console.error("No rewards document or weekly data found");
       return [];
@@ -181,13 +165,7 @@ const LeaderboardBadges: FC = () => {
         });
       }
     }
-    const badgeDocs = await Promise.all(
-      badgeIds.map(async (value) => {
-        const badge = await api.getBadgeById(value);
-        console.log("Fetched badge", badge);
-        return badge;
-      })
-    );
+    const badgeDocs = await api.getBadgesByIds(badgeIds);
     return badgeDocs;
   };
 
@@ -195,10 +173,7 @@ const LeaderboardBadges: FC = () => {
     (TableTypes<"badge"> | undefined)[]
   > => {
     const date = new Date();
-    const rewardsDoc = await api.getRewardsById(
-      date.getFullYear(),
-      "weekly"
-    );
+    const rewardsDoc = await api.getRewardsById(date.getFullYear(), "weekly");
     if (!rewardsDoc || !rewardsDoc.weekly) {
       console.error("No rewards document or weekly data found");
       return [];
@@ -217,12 +192,7 @@ const LeaderboardBadges: FC = () => {
       console.error(`No data found for week ${currentWeek}`);
       return [];
     }
-    const badgeDocs = await Promise.all(
-      badgeIds.map(async (value) => {
-        const badge = await api.getBadgeById(value);
-        return badge;
-      })
-    );
+    const badgeDocs = await api.getBadgesByIds(badgeIds);
     return badgeDocs;
   };
 
