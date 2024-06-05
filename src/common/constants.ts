@@ -541,6 +541,7 @@ export enum ACTION {
   CREATE = "create",
   UPDATE = "update",
   DELETE = "delete",
+  LOGIN = "login"
 }
 
 export const CURRENT_STUDENT = "currentStudent";

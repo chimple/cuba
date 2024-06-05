@@ -3,10 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
 import {
+  ACTION,
   APP_NAME,
   AT_SYMBOL_RESTRICTION,
   CURRENT_USER,
   DOMAIN,
+  EVENTS,
   LANGUAGE,
   NUMBER_REGEX,
   PAGES,
@@ -35,6 +37,7 @@ import {
   IoSchool,
   IoSchoolOutline,
 } from "react-icons/io5";
+import { RoleType } from "../interface/modelInterfaces";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -354,6 +357,15 @@ const Login: React.FC = () => {
         console.log("Verification Failed");
         //alert("Verification Failed");
       }
+      Util.logEvent(EVENTS.USER_PROFILE, {
+        user_id: res.user.uid,
+        user_name: res.user.name,
+        user_username: res.user.username,
+        phone_number: res.user.username,
+        user_type: RoleType.PARENT,
+        action_type: ACTION.LOGIN,
+        login_type: "phone-number",
+      });
     } catch (error) {
       setIsLoading(false);
       console.log("Verification Failed", error);
@@ -657,6 +669,11 @@ const Login: React.FC = () => {
                             "google...",
                             localStorage.getItem(CURRENT_USER)
                           );
+                          Util.logEvent(EVENTS.USER_PROFILE, {
+                            user_type: RoleType.PARENT,
+                            action_type: ACTION.LOGIN,
+                            login_type: "google-signin",
+                          });
                         } else {
                           setIsLoading(false);
                         }
