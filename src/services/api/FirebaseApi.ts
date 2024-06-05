@@ -523,7 +523,9 @@ export class FirebaseApi implements ServiceApi {
       rewards: unlockedReward,
     });
   };
-
+ public updateFcmToken= async (userId: string) => {
+    throw new Error("Method not implemented.");
+  }
   public updateLanguage = async (user: User, value: string) => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {

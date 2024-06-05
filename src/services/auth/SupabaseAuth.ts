@@ -6,6 +6,7 @@ import { TableTypes } from "../../common/constants";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { ServiceConfig } from "../ServiceConfig";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
+import { Util } from "../../utility/util";
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
@@ -33,6 +34,7 @@ export class SupabaseAuth implements ServiceAuth {
   async googleSign(): Promise<boolean> {
     try {
       if (!this._auth) return false;
+      const api = ServiceConfig.getI().apiHandler;
       const authUser = await GoogleAuth.signIn();
       console.log("🚀 ~ SupabaseAuth ~ googleSign ~ authUser:", authUser);
       const { data, error } = await this._auth.signInWithIdToken({
@@ -45,9 +47,9 @@ export class SupabaseAuth implements ServiceAuth {
         user_email: authUser.email,
         user_phone: "",
       });
+
       console.log("🚀 ~ SupabaseAuth ~ googleSign ~ isUserExists:", rpcRes);
       if (!rpcRes?.data) {
-        const api = ServiceConfig.getI().apiHandler;
         const createdUser = await api.createUserDoc({
           age: null,
           avatar: null,
@@ -66,10 +68,11 @@ export class SupabaseAuth implements ServiceAuth {
           phone: data.user?.phone ?? null,
           music_off: false,
           sfx_off: false,
-          fcm_token:null
+          fcm_token: null,
         });
         this._currentUser = createdUser;
       }
+      await api.updateFcmToken(data.user?.id ?? authUser.id);
       const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
     } catch (error) {
       console.error("🚀 ~ SupabaseAuth ~ googleSign ~ error:", error);
@@ -81,7 +84,7 @@ export class SupabaseAuth implements ServiceAuth {
   async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
     if (this._currentUser) return this._currentUser;
     const authData = await this._auth?.getUser();
-    
+
     if (!authData || !authData.data.user?.id) return;
     const api = ServiceConfig.getI().apiHandler;
     let user = await api.getUserByDocId(authData.data.user.id);
@@ -116,6 +119,7 @@ export class SupabaseAuth implements ServiceAuth {
   ): Promise<{ user: any; isUserExist: boolean } | undefined> {
     throw new Error("Method not implemented.");
   }
+
   async logOut(): Promise<void> {
     // throw new Error("Method not implemented.");
     await this._auth?.signOut();

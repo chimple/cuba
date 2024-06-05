@@ -348,6 +348,10 @@ export class ApiHandler implements ServiceApi {
     return this.s.updateLanguage(userId, value);
   }
 
+  updateFcmToken(userId: string) {
+    return this.s.updateFcmToken(userId);
+  } 
+
   public async createProfile(
     name: string,
     age: number | undefined,
