@@ -541,7 +541,7 @@ export enum ACTION {
   CREATE = "create",
   UPDATE = "update",
   DELETE = "delete",
-  LOGIN = "login"
+  LOGIN = "login",
 }
 
 export const CURRENT_STUDENT = "currentStudent";
@@ -623,3 +623,7 @@ export const ALL_LESSON_DOWNLOAD_SUCCESS_EVENT = "all_lesson_download_success";
 export const DOWNLOAD_BUTTON_LOADING_STATUS = "download_button_loading_status";
 export const DOMAIN = "@chimple.net";
 export const AT_SYMBOL_RESTRICTION = /@/;
+export const SELECTED_STUDENTS = "selectedStudent";
+export const SELECTED_CLASSES = "selectedClasses";
+export const CURRENT_CLASS_NAME = "currClassName";
+export const CURRENT_SCHOOL_NAME = "currentSchoolName";
