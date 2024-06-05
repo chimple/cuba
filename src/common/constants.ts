@@ -128,11 +128,11 @@ export enum TABLEDROPDOWN {
   CHAPTER = "Chapter",
 }
 
-export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu";
-export const grade1 = "R5sDh8LKKBx7D7o1MMl0";
-export const grade2 = "al0OqObeTBK3OFWSyDOg";
-export const grade3 = "i1paELqh4uwET2OQQl1E";
-export const aboveGrade3 = "rhuiXCmMzmJM1dkN8UNu";
+export const belowGrade1 = "30ecb762-8e63-45b3-a22a-62c1a9f71641";
+export const grade1 = "c802dce7-0840-4baf-b374-ef6cb4272a76";
+export const grade2 = "36e7ff1f-34d6-42ac-9294-3192433ace40";
+export const grade3 = "d8cf7700-e00c-4bf8-a082-222b1ecfe1f7";
+export const aboveGrade3 = "d05cb75a-adc2-4365-8548-30b2ac65b321";
 export const CONTINUE = "continue";
 
 export const parentHeaderIconList: HeaderIconConfig[] = [
@@ -447,14 +447,15 @@ export interface PortPlugin {
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_SUBJECT_IDS = [
-  "MWGQt7j9HrEE9XqKYsGg", //English
-  "5fq9UvGv0sjzZJqOZt3c", //Maths
-  "nnFVTiGBmw1LiV3xa4V1", //Digital Skills
+  "54abf22e-7102-4e14-915b-acd8eab47d56", //English
+  "c5674cc5-48f8-40b8-8123-f5246ea0c5e8", //Maths
+  "c2dfd745-e7f2-4614-8890-f983d04155b2", //Digital Skills
 ];
 
-export const KARNATAKA_STATE_BOARD_CURRICULUM = "mKDCldpkmAntlspPx21o";
-export const NCERT_CURRICULUM = "2m6ocNBLQc7jlyCKFZve";
-export const OTHER_CURRICULUM = "BVTIRg2Wm3zxcMPrU5Ob";
+export const KARNATAKA_STATE_BOARD_CURRICULUM =
+  "feec6f59-b8bc-41e8-81aa-2b2689a9fc40";
+export const NCERT_CURRICULUM = "e1629739-5421-4996-a1f7-61225443bd04";
+export const OTHER_CURRICULUM = "7d560737-746a-4931-a49f-02de1ca526bd";
 export const LANGUAGE_COURSE_MAP = {
   sju2ne9JwNE1TZgo9M4G: "WUfGFSqcW8cIyl8yiqcR", //Hindi
   zvmpksodSkr8bmhGAFaT: "jZp8NfR84MILMEazPSK7", //Kannada
