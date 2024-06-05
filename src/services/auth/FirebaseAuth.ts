@@ -622,7 +622,7 @@ export class FirebaseAuth implements ServiceAuth {
         });
         Util.setUserProperties(user);
         return true;
-      } else return false;
+      }
     }
     localStorage.removeItem(CURRENT_USER);
     if (!user) return false;
