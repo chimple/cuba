@@ -61,17 +61,18 @@ export class SupabaseAuth implements ServiceAuth {
         curriculum_id: null,
         gender: null,
         grade_id: null,
-        id: data.user?.id ?? data.user?.id!,
+        id: data.user?.id||'',
         image: '',
         is_deleted: false,
         is_tc_accepted: false,
         language_id: null,
-        name: data.user?.email!,
+        name: '',
         updated_at: new Date().toISOString(),
-        email: data.user?.email!,
+        email: data.user!.email || "",
         phone: data.user?.phone ?? null,
         music_off: false,
         sfx_off: false,
+        fcm_token:null
       });
       this._currentUser = createdUser;
     }
@@ -186,12 +187,63 @@ export class SupabaseAuth implements ServiceAuth {
       console.log("Failed with Msg91", error);
     }
   }
-  proceedWithVerificationCode(
-    verificationId: any,
-    verificationCode: any
-  ): Promise<{ user: any; isUserExist: boolean } | undefined> {
-    throw new Error("Method not implemented.");
+  async proceedWithVerificationCode(
+    phoneNumber: string,
+    code: string
+  ): Promise<any | undefined> {
+    try {
+      const result = await this.supabase?.functions.invoke('generate-custom-token', {
+         body:{phoneNumber: phoneNumber, 
+         code: code}
+      })
+      const response = result;
+      console.log('***RESPOSNE**',response);
+      if(response!["data"] != null) {
+        const rpcRes = await this._supabaseDb?.rpc("isUserExists", {
+          user_email: "",
+          user_phone: phoneNumber,
+        });
+        console.log("🚀 ~ SupabaseAuth ~ emailpasswordlogin ~ isUserExists:", rpcRes);
+        console.log(!rpcRes?.data);
+        console.log(response!['data']['id'],response!['data']['phone']);
+        if (!rpcRes?.data) {
+          const api = ServiceConfig.getI().apiHandler;
+          console.log('entered');
+          const createdUser = await api.createUserDoc({
+            age: null,
+            avatar: null,
+            created_at: new Date().toISOString(),
+            curriculum_id: null,
+            gender: null,
+            grade_id: null,
+            id: response!['data']['id'],
+            image: '',
+            is_deleted: false,
+            is_tc_accepted: false,
+            language_id: null,
+            name: '',
+            updated_at: new Date().toISOString(),
+            email: '',
+            phone: response!['data']['phone'] ?? null,
+            music_off: false,
+            sfx_off: false,
+            fcm_token:null
+          });
+          this._currentUser = createdUser;
+        }
+        console.log('***currentuser***',this.currentUser);
+        const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
+      }
+      
+    } catch (error) {
+      console.log("Failed with Msg91", error);
+      return false;
+    }
+    return true;
   }
+
+  
+
   async logOut(): Promise<void> {
     // throw new Error("Method not implemented.");
     await this._auth?.signOut();

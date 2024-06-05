@@ -236,13 +236,6 @@ const Login: React.FC = () => {
       }
       console.log("window.recaptchaVerifier", window.recaptchaVerifier);
       const _authHandler = ServiceConfig.getI().authHandler;
-      ///////////work needed
-      // const result: boolean = await _authHandler.phoneNumberSignIn(
-      //   schoolCode + studentId + DOMAIN,
-      //   studentPassword
-      // );
-      // console.log('*****', result);
-      // setEnabled(true);
       let response = await authInstance.msg91OtpGenerate(
         phoneNumberWithCountryCode,
         APP_NAME
@@ -254,44 +247,12 @@ const Login: React.FC = () => {
         setCounter(59);
         setShowVerification(true);
       }
-      // let authRes = await authInstance.phoneNumberSignIn(
-      //   phoneNumberWithCountryCode,
-      //   recaptchaVerifier
-      // );
-      // console.log("phoneNumberSignIn authRes", JSON.stringify(authRes));
-      // if (authRes.user) {
-      //   setIsLoading(false);
-      //   history.replace(PAGES.SELECT_MODE);
-      //   // setShowNameInput(true);
-      // }
-      // console.log("verificationIdRes", authRes?.verificationId);
-      // setEnabled(false);
-
-      // if (authRes) {
-      //   setPhoneNumberSigninRes(authRes);
-      // setSentOtpLoading(false);
-      //   setShowVerification(true);
-      //   setCounter(59);
-      //   setShowBackButton(true);
-      //   setSpinnerLoading(false);
-      // } else {
-      //   console.log("Phone Number signin Failed ");
-      //   setSpinnerLoading(false);
-      //   setSentOtpLoading(false);
-      //   setErrorMessage(
-      //     t("Phone Number signin Failed. Please try again later")
-      //   );
-      //   //alert("Phone Number signin Failed " + authRes);
-      // }
     } catch (error) {
       console.log("Phone Number signin Failed ");
       setSpinnerLoading(false);
       setSentOtpLoading(false);
 
       if (typeof error === "string") {
-        // Handle the error as a string
-        // errorMessage = "Phone Number signin Failed. Something went wrong. Please try again later.";
-
         if (
           error.includes("blocked all requests") ||
           error.includes("Timed out waiting for SMS")
@@ -303,7 +264,6 @@ const Login: React.FC = () => {
           setErrorMessage(t("Incorrect phone number format"));
         }
       } else {
-        // Default error message for non-string errors
         setErrorMessage(
           t("Phone Number signin Failed. Please try again later.")
         );
@@ -321,8 +281,9 @@ const Login: React.FC = () => {
     try {
       setIsLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
+      console.log('***phone**', phoneNumberWithCountryCode);
       const res = await authInstance.proceedWithVerificationCode(
-        phoneNumberWithCountryCode,
+        phoneNumberWithCountryCode.replace(/\+/g, ""),
         verificationCode.trim()
       );
       console.log("login User Data ", res, userData);
@@ -344,16 +305,16 @@ const Login: React.FC = () => {
 
         // setShowNameInput(true);
       } else if (!res.isUserExist) {
-        setIsLoading(false);
-        let phoneAuthResult = await FirebaseAuth.i.createPhoneAuthUser(
-          res.user
-        );
-        if (phoneAuthResult) {
-          // history.push(PAGES.DISPLAY_STUDENT);
-          history.replace(PAGES.SELECT_MODE);
-          localStorage.setItem(CURRENT_USER, JSON.stringify(phoneAuthResult));
-          console.log("new user", localStorage.getItem(CURRENT_USER));
-        }
+        // setIsLoading(false);
+        // let phoneAuthResult = await FirebaseAuth.i.createPhoneAuthUser(
+        //   res.user
+        // );
+        // if (phoneAuthResult) {
+        //   // history.push(PAGES.DISPLAY_STUDENT);
+        //   history.replace(PAGES.SELECT_MODE);
+        //   localStorage.setItem(CURRENT_USER, JSON.stringify(phoneAuthResult));
+        //   console.log("new user", localStorage.getItem(CURRENT_USER));
+        // }
       } else {
         setIsLoading(false);
 

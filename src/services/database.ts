@@ -1449,13 +1449,6 @@ export type Database = {
       create_user: {
         Args: {
           phone_number: string
-          confirmation_token: string
-        }
-        Returns: string
-      }
-      generate_otp_msg91: {
-        Args: {
-          phone_number: string
         }
         Returns: Json
       }
@@ -1470,15 +1463,6 @@ export type Database = {
           lessons_played: number
           total_score: number
           total_time_spent: number
-        }[]
-      }
-      get_user_by_phone: {
-        Args: {
-          phone_number: string
-        }
-        Returns: {
-          id: string
-          phone: string
         }[]
       }
       get_user_by_phone: {
