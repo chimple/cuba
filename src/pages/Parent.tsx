@@ -66,7 +66,7 @@ const Parent: React.FC = () => {
     { header: "help", displayName: "Help" },
     { header: "faq", displayName: "FAQ" },
   ];
-
+  const [tabs, setTabs] = useState({});
   useEffect(() => {
     setIsLoading(true);
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
@@ -425,12 +425,19 @@ const Parent: React.FC = () => {
       setTabIndex(t(parentHeaderIconList[0].header));
     }
   }, []);
+  useEffect(() => {
+    const updatedTabs = {};
+    parentHeaderIconList.forEach((item) => {
+      updatedTabs[t(item.header)] = t(item.header);
+    });
+    setTabs(updatedTabs);
+  }, [parentHeaderIconList]);
 
   return (
     <Box>
       <div>
         <CustomAppBar
-          tabNames={parentHeaderIconList.map((item) => t(item.header))}
+          tabs={tabs}
           value={tabIndex}
           onChange={handleChange}
           handleBackButton={handleBackButton}

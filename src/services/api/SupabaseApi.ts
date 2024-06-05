@@ -42,22 +42,7 @@ export class SupabaseApi implements ServiceApi {
     lessonId: string,
     classId: string,
     studentId: string
-  ): Promise<
-    | {
-        class_id: string;
-        created_at: string;
-        created_by: string | null;
-        ends_at: string | null;
-        id: string;
-        is_class_wise: boolean;
-        is_deleted: boolean | null;
-        lesson_id: string;
-        school_id: string;
-        starts_at: string;
-        type: string | null;
-        updated_at: string | null;
-      }
-    | undefined
+  ): Promise<TableTypes<"assignment">
   > {
     throw new Error("Method not implemented.");
   }
@@ -379,6 +364,9 @@ export class SupabaseApi implements ServiceApi {
     studentId: string,
     fromCache?: boolean
   ): Promise<TableTypes<"result">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getStudentProgress(studentId: string): Promise<Map<string, string>> {
     throw new Error("Method not implemented.");
   }
   getStudentResultInMap(

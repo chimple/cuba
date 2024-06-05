@@ -286,6 +286,12 @@ export interface ServiceApi {
    * @param {string} id - Student firebase doc id
    * @returns {{ Map<string, StudentLessonResult> }} Map of `StudentLessonResult` Objects
    */
+
+  getStudentProgress(studentId: string): Promise<Map<string, string>>;
+
+  /**
+   * Gives StudentProgress for given a Student
+   */
   getStudentResultInMap(
     studentId: string
   ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }>;
