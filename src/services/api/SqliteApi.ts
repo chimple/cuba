@@ -727,7 +727,6 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
-
   async getLessonsForChapter(
     chapterId: string
   ): Promise<TableTypes<"lesson">[]> {
@@ -1374,28 +1373,76 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
 
-  async getBadgeById(id: string): Promise<TableTypes<"badge"> | undefined> {
-    const res = await this._db?.query(
-      `select * from ${TABLES.Badge} where id = "${id}"`
-    );
-    if (!res || !res.values || res.values.length < 1) return;
-    return res.values[0];
+  async getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]> {
+    if (ids.length === 0) return [];
+
+    const quotedIds = ids.map((id) => `"${id}"`).join(", ");
+    try {
+      const res = await this._db?.query(
+        `SELECT * FROM ${TABLES.Badge} WHERE id IN (${quotedIds})`
+      );
+      if (!res || !res.values || res.values.length < 1) return [];
+
+      return res.values;
+    } catch (error) {
+      console.error("Error fetching badges by IDs:", error);
+      return [];
+    }
   }
 
-  async getStickerById(id: string): Promise<TableTypes<"sticker"> | undefined> {
-    const res = await this._db?.query(
-      `select * from ${TABLES.Sticker} where id = "${id}"`
-    );
-    if (!res || !res.values || res.values.length < 1) return;
-    return res.values[0];
-  }
+  async getStickersByIds(ids: string[]): Promise<TableTypes<"sticker">[]> {
+    if (ids.length === 0) return [];
 
-  async getRewardsById(id: string): Promise<TableTypes<"reward"> | undefined> {
-    const res = await this._db?.query(
-      `select * from ${TABLES.Reward} where id = "${id}"`
-    );
-    if (!res || !res.values || res.values.length < 1) return;
-    return res.values[0];
+    const quotedIds = ids.map((id) => `"${id}"`).join(`, `);
+    try {
+      const res = await this._db?.query(
+        `select * FROM ${TABLES.Sticker} WHERE id IN (${quotedIds})`
+      );
+      if (!res || !res.values || res.values.length < 1) return [];
+      return res.values;
+    } catch (error) {
+      console.error("Error fetching stickers by IDs:", error);
+      return [];
+    }
+  }
+  async getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]> {
+    if (ids.length === 0) return [];
+
+    const quotedIds = ids.map((id) => `"${id}"`).join(`, `);
+    try {
+      const res = await this._db?.query(
+        `select * FROM ${TABLES.Lesson} WHERE id IN (${quotedIds})`
+      );
+      if (!res || !res.values || res.values.length < 1) return [];
+      return res.values;
+    } catch (error) {
+      console.error("Error fetching stickers by IDs:", error);
+      return [];
+    }
+  }
+  async getRewardsById(
+    id: number,
+    periodType: string
+  ): Promise<TableTypes<"reward"> | undefined> {
+    try {
+      const query = `SELECT ${periodType} FROM ${TABLES.Reward} WHERE year = ${id}`;
+      const data = await this._db?.query(query);
+
+      if (!data || !data.values || data.values.length === 0) {
+        console.error("No reward found for the given year.");
+        return;
+      }
+      const periodData = JSON.parse(data.values[0][periodType]);
+      try {
+        if (periodData) return periodData;
+      } catch (parseError) {
+        console.error("Error parsing JSON string:", parseError);
+        return undefined;
+      }
+    } catch (error) {
+      console.error("Error fetching reward by ID:", error);
+      return undefined;
+    }
   }
 
   updateRewardAsSeen(studentId: string): Promise<void> {

@@ -1986,7 +1986,7 @@ export class FirebaseApi implements ServiceApi {
   }
 
   public async getRewardsById(
-    id: string
+    id: number
   ): Promise<TableTypes<"reward"> | undefined> {
     try {
       const rewardDoc = await this.getDocFromOffline(

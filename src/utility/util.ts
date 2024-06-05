@@ -1464,13 +1464,15 @@ export class Util {
     }
   }
 
-  // const getNextUnlockStickers = async (): Promise<(Sticker | undefined)[]> => {
   public static async getNextUnlockStickers(): Promise<
-    (TableTypes<"sticker"> | undefined)[]
+    TableTypes<"sticker">[]
   > {
     const date = new Date();
     const api = ServiceConfig.getI().apiHandler;
-    const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
+    const rewardsDoc = await api.getRewardsById(
+      date.getFullYear(),
+      "weeklySticker"
+    );
     if (!rewardsDoc) return [];
     const currentWeek = Util.getCurrentWeekNumber();
     const stickerIds: string[] = [];
@@ -1480,9 +1482,8 @@ export class Util {
         stickerIds.push(value.id);
       }
     });
-    const stickerDocs = await Promise.all(
-      stickerIds.map((value) => api.getStickerById(value))
-    );
+
+    const stickerDocs = await api.getStickersByIds(stickerIds);
     return stickerDocs;
   }
 
@@ -1537,7 +1538,8 @@ export class Util {
       const api = ServiceConfig.getI().apiHandler;
       const date = new Date();
       const rewardsDoc = await api.getRewardsById(
-        date.getFullYear().toString()
+        date.getFullYear(),
+        "weeklySticker"
       );
       if (!rewardsDoc) return false;
       const currentWeek = Util.getCurrentWeekNumber();

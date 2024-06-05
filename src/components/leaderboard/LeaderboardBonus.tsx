@@ -41,49 +41,57 @@ const LeaderboardBonus: FC = () => {
     }));
 
     nextUnlockBonus.forEach((bonus) => {
-      bonusInfoArray.push({ bonus, isUnlocked: false, isNextUnlock: true });
+      if (bonus) {
+        bonusInfoArray.push({ bonus, isUnlocked: false, isNextUnlock: true });
+      }
     });
+
     upcomingBonus.forEach((bonus) => {
-      bonusInfoArray.push({
-        bonus,
-        isUnlocked: false,
-        isUpcomingBonus: true,
-      });
+      if (bonus) {
+        bonusInfoArray.push({
+          bonus,
+          isUnlocked: false,
+          isUpcomingBonus: true,
+        });
+      }
     });
     setBonuses(bonusInfoArray);
   }
-  const getUpcomingBadges = async (): Promise<
-    (TableTypes<"lesson"> | undefined)[]
-  > => {
+  const getUpcomingBadges = async (): Promise<TableTypes<"lesson">[]> => {
     const rewardsDoc = await api.getRewardsById(
-      Util.getCurrentYearForLeaderboard().toString()
+      Util.getCurrentYearForLeaderboard(),
+      "monthly"
     );
     if (!rewardsDoc) return [];
     const currentMonth = Util.getCurrentMonthForLeaderboard();
     const nextMonth = currentMonth + 1;
     const bonusIds: string[] = [];
-    const monthlyData = rewardsDoc.monthly;
-    monthlyData?.[nextMonth.toString()].forEach((value) => {
-      if (value.type === LeaderboardRewardsType.BONUS) {
-        bonusIds.push(value.id);
-      }
-    });
-    const bonusDocs = await Promise.all(
-      bonusIds.map((value) => api.getLesson(value))
-    );
+    const monthlyData: any = rewardsDoc.monthly;
+    if (monthlyData && monthlyData[nextMonth.toString()]) {
+      monthlyData[nextMonth.toString()].forEach((value: any) => {
+        if (value.type === LeaderboardRewardsType.BONUS) {
+          bonusIds.push(value.id);
+        }
+      });
+    } else {
+      console.error(`No data found for month ${nextMonth}`);
+      return [];
+    }
+    const bonusDocs = await api.getBonusesByIds(bonusIds);
     return bonusDocs;
   };
-  const getBonus = async () => {
+  const getBonus = async (): Promise<(TableTypes<"lesson"> | undefined)[]> => {
     const rewardsDoc = await api.getRewardsById(
-      Util.getCurrentYearForLeaderboard().toString()
+      Util.getCurrentYearForLeaderboard(),
+      "monthly"
     );
     if (!rewardsDoc) return [];
     const currentMonth = Util.getCurrentMonthForLeaderboard();
     const bonusIds: string[] = [];
     const monthlyData: any = rewardsDoc.monthly;
     for (const key in monthlyData) {
-      const weekNumber = parseInt(key);
-      if (!isNaN(weekNumber) && weekNumber > currentMonth) {
+      const monthNumber = parseInt(key);
+      if (!isNaN(monthNumber) && monthNumber > currentMonth) {
         monthlyData[key].forEach((item) => {
           if (item.type === LeaderboardRewardsType.BONUS) {
             bonusIds.push(item.id);
@@ -91,9 +99,7 @@ const LeaderboardBonus: FC = () => {
         });
       }
     }
-    const bonusDocs = await Promise.all(
-      bonusIds.map((value) => api.getLesson(value))
-    );
+    const bonusDocs = await api.getBonusesByIds(bonusIds);
     return bonusDocs;
   };
   const getUnlockedBonus = async (): Promise<
@@ -126,15 +132,16 @@ const LeaderboardBonus: FC = () => {
     (TableTypes<"lesson"> | undefined)[]
   > => {
     const rewardsDoc = await api.getRewardsById(
-      Util.getCurrentYearForLeaderboard().toString()
+      Util.getCurrentYearForLeaderboard(),
+      "monthly"
     );
     if (!rewardsDoc) return [];
     const currentMonth = Util.getCurrentMonthForLeaderboard();
     const bonusIds: string[] = [];
     const monthlyData: any = rewardsDoc.monthly;
     for (const key in monthlyData) {
-      const weekNumber = parseInt(key);
-      if (!isNaN(weekNumber) && weekNumber < currentMonth) {
+      const monthNumber = parseInt(key);
+      if (!isNaN(monthNumber) && monthNumber < currentMonth) {
         monthlyData[key].forEach((item) => {
           if (item.type === LeaderboardRewardsType.BONUS) {
             bonusIds.push(item.id);
@@ -142,30 +149,31 @@ const LeaderboardBonus: FC = () => {
         });
       }
     }
-    const bonusDocs = await Promise.all(
-      bonusIds.map((value) => api.getLesson(value))
-    );
+    const bonusDocs = await api.getBonusesByIds(bonusIds);
     return bonusDocs;
   };
 
-  const getNextUnlockBonus = async (): Promise<
-    (TableTypes<"lesson"> | undefined)[]
-  > => {
+  const getNextUnlockBonus = async (): Promise<TableTypes<"lesson">[]> => {
     const rewardsDoc = await api.getRewardsById(
-      Util.getCurrentYearForLeaderboard().toString()
+      Util.getCurrentYearForLeaderboard(),
+      "monthly"
     );
     if (!rewardsDoc) return [];
     const currentMonth = Util.getCurrentMonthForLeaderboard();
+    const nextMonth = currentMonth + 1;
     const bonusIds: string[] = [];
-    const monthlyData = rewardsDoc.monthly;
-    monthlyData?.[currentMonth.toString()].forEach((value) => {
-      if (value.type === LeaderboardRewardsType.BONUS) {
-        bonusIds.push(value.id);
-      }
-    });
-    const bonusDocs = await Promise.all(
-      bonusIds.map((value) => api.getLesson(value))
-    );
+    const monthlyData: any = rewardsDoc.monthly;
+    if (monthlyData && monthlyData[nextMonth.toString()]) {
+      monthlyData[nextMonth.toString()].forEach((value: any) => {
+        if (value.type === LeaderboardRewardsType.BONUS) {
+          bonusIds.push(value.id);
+        }
+      });
+    } else {
+      console.error(`No data found for month ${nextMonth}`);
+      return [];
+    }
+    const bonusDocs = await api.getBonusesByIds(bonusIds);
     return bonusDocs;
   };
 

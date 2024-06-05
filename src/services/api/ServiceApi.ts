@@ -143,6 +143,7 @@ export interface ServiceApi {
    * @returns {Lesson | undefined}`Lesson` or `undefined` if it could not find the lesson with given `id`
    */
   getLesson(id: string): Promise<TableTypes<"lesson"> | undefined>;
+  getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]>
 
   /**
    * Gives Array of `Lesson` objects for a given `chapter`
@@ -507,21 +508,20 @@ export interface ServiceApi {
    * @param {string} id - Badge firebase doc id
    * @returns {Badge | undefined}`Badge` or `undefined` if it could not find the Badge with given `id`
    */
-  getBadgeById(id: string): Promise<TableTypes<"badge"> | undefined>;
+  getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]>
 
   /**
    * Gives Sticker for given a Sticker firebase doc Id
    * @param {string} id - Sticker firebase doc id
    * @returns {Badge | undefined}`Sticker` or `undefined` if it could not find the Sticker with given `id`
    */
-  getStickerById(id: string): Promise<TableTypes<"sticker"> | undefined>;
-
+  getStickersByIds(ids: string[]): Promise<TableTypes<"sticker">[]>;
   /**
    * Gives Rewards for given a Rewards firebase doc Id
    * @param {string} id - Rewards firebase doc id
    * @returns {Rewards | undefined}`Rewards` or `undefined` if it could not find the Rewards with given `id`
    */
-  getRewardsById(id: string): Promise<TableTypes<"reward"> | undefined>;
+  getRewardsById(id: number, periodType: string): Promise<TableTypes<"reward"> | undefined>;
 
   /**
    * Updates the rewards of a student, marking all rewards as seen.
