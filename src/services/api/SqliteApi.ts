@@ -735,7 +735,8 @@ export class SqliteApi implements ServiceApi {
     SELECT *
     FROM ${TABLES.ChapterLesson} AS cl
     JOIN ${TABLES.Lesson} AS lesson ON cl.lesson_id= lesson.id
-    WHERE cl.chapter_id = "${chapterId}";
+    WHERE cl.chapter_id = "${chapterId}"
+    ORDER BY sort_index ASC;
   `;
     const res = await this._db?.query(query);
     return res?.values ?? [];
