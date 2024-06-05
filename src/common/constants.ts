@@ -117,7 +117,7 @@ export enum USERTYPES {
   PRINCIAPAL = "Principal",
   SPONSORS = "Sponsors",
   TEACHERS = "Teachers",
-  STUDENTS = 'Students'
+  STUDENTS = "Students",
 }
 
 export enum TABLEDROPDOWN {
@@ -125,9 +125,8 @@ export enum TABLEDROPDOWN {
   MONTHLY = "Monthly",
   WEEKLY = "Weekly",
   LIVEQUIZ = "LiveQuiz",
-  CHAPTER = 'Chapter'
+  CHAPTER = "Chapter",
 }
-
 
 export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu";
 export const grade1 = "R5sDh8LKKBx7D7o1MMl0";
@@ -577,6 +576,8 @@ export const LESSON_DOC_LESSON_ID_MAP = "lessonDocLessonidMap";
 
 export const CURRENT_AVATAR_SUGGESTION_NO = "currentAvatarSuggestion";
 export const SHOW_DAILY_PROGRESS_FLAG = "showAvatarDailyProgress";
+
+export const CURRENT_SQLITE_VERSION = "currentSqliteVersion";
 
 export type LeaderboardBadge = {
   id: string;

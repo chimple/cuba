@@ -119,6 +119,7 @@ export class SupabaseAuth implements ServiceAuth {
           phone: data.user?.phone ?? null,
           music_off: false,
           sfx_off: false,
+          fcm_token:null
         });
         this._currentUser = createdUser;
       }
@@ -133,6 +134,7 @@ export class SupabaseAuth implements ServiceAuth {
   async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
     if (this._currentUser) return this._currentUser;
     const authData = await this._auth?.getUser();
+    
     if (!authData || !authData.data.user?.id) return;
     const api = ServiceConfig.getI().apiHandler;
     let user = await api.getUserByDocId(authData.data.user.id);

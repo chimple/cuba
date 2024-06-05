@@ -7,6 +7,7 @@ import {
   TableTypes,
   MUTATE_TYPES,
   LIVE_QUIZ,
+  CURRENT_SQLITE_VERSION,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -27,8 +28,6 @@ import { SupabaseApi } from "./SupabaseApi";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
 import { v4 as uuidv4 } from "uuid";
 import { RoleType } from "../../interface/modelInterfaces";
-import { SupabaseClient } from "@supabase/supabase-js";
-import { Database } from "../database";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -41,6 +40,7 @@ export class SqliteApi implements ServiceApi {
   private _currentStudent: TableTypes<"user"> | undefined;
   private _currentClass: TableTypes<"class"> | undefined;
   private _currentSchool: TableTypes<"school"> | undefined;
+  private _syncTableData = {};
 
   public static async getInstance(): Promise<SqliteApi> {
     if (!SqliteApi.i) {
@@ -69,8 +69,71 @@ export class SqliteApi implements ServiceApi {
     } catch (error) {
       console.log("🚀 ~ Api ~ init ~ error:", error);
     }
-    
-    await this._sqlite.addUpgradeStatement(this.DB_NAME, this.DB_VERSION, []);
+    try {
+      const localVersion = localStorage.getItem(CURRENT_SQLITE_VERSION);
+      if (
+        localVersion &&
+        !Number.isNaN(localVersion) &&
+        Number(localVersion) !== this.DB_VERSION
+      ) {
+        let upgradeStatements: string[] = [];
+        const localVersionNumber = Number(localVersion);
+        const data = await fetch("databases/upgradeStatements.json");
+        if (!data || !data.ok) return;
+        const upgradeStatementsMap: {
+          [key: string]: string[];
+        } = await data.json();
+        for (
+          let version = localVersionNumber + 1;
+          version <= this.DB_VERSION;
+          version++
+        ) {
+          if (
+            upgradeStatementsMap[version] &&
+            upgradeStatementsMap[version]["statements"]
+          ) {
+            upgradeStatements = upgradeStatements.concat(
+              upgradeStatementsMap[version]["statements"]
+            );
+
+            const versionData = upgradeStatementsMap[version];
+            if (versionData && versionData["tableChanges"]) {
+              if (versionData["tableChanges"]) {
+                for (const tableName in versionData["tableChanges"]) {
+                  const changeDate = versionData["tableChanges"][tableName];
+
+                  if (!this._syncTableData[tableName]) {
+                    this._syncTableData[tableName] = changeDate;
+                  } else {
+                    if (
+                      new Date(this._syncTableData[tableName]) >
+                      new Date(changeDate)
+                    ) {
+                      this._syncTableData[tableName] = changeDate;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        console.log(
+          "🚀 ~ SqliteApi ~ init ~ upgradeStatements:",
+          upgradeStatements
+        );
+        await this._sqlite.addUpgradeStatement(
+          this.DB_NAME,
+          this.DB_VERSION,
+          upgradeStatements
+        );
+        localStorage.setItem(
+          CURRENT_SQLITE_VERSION,
+          this.DB_VERSION.toString()
+        );
+      }
+    } catch (error) {
+      console.log("🚀 ~ SqliteApi ~ init ~ error:", JSON.stringify(error));
+    }
 
     if (ret && ret.result && isConn) {
       this._db = await this._sqlite.retrieveConnection(this.DB_NAME, false);
@@ -99,8 +162,18 @@ export class SqliteApi implements ServiceApi {
       const exportedData = await this._db.exportToJson("full");
       console.log(
         "🚀 ~ Api ~ setUpDatabase ~ exportedData:",
-        exportedData.export
+        JSON.stringify(exportedData.export?.tables)
       );
+      if (exportedData.export?.tables) {
+        for (const da of exportedData.export?.tables) {
+          console.log(
+            "new schema name: ",
+            da.name,
+            " schema: ",
+            JSON.stringify(da.schema)
+          );
+        }
+      }
     } catch (error) {
       console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
     }
@@ -135,8 +208,13 @@ export class SqliteApi implements ServiceApi {
           if (!importData || !importData.ok) return;
           const importJson = JSON.stringify((await importData.json()) ?? {});
           const resImport = await this._sqlite.importFromJson(importJson);
+          localStorage.setItem(
+            CURRENT_SQLITE_VERSION,
+            this.DB_VERSION.toString()
+          );
           console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:", resImport);
-          if (!Capacitor.isNativePlatform()) window.location.reload();
+          // if (!Capacitor.isNativePlatform())
+          window.location.reload();
         } catch (error) {
           console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
         }
@@ -144,6 +222,32 @@ export class SqliteApi implements ServiceApi {
         console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
       }
     }
+    if (this._syncTableData) {
+      const tableNames = Object.keys(this._syncTableData) ?? [];
+      if (tableNames.length > 0) {
+        const tables = "'" + tableNames.join("', '") + "'";
+        const tablePullSync = `SELECT * FROM pull_sync_info WHERE table_name IN (${tables});`;
+        const res = (await this._db?.query(tablePullSync))?.values ?? [];
+        res.forEach((row) => {
+          if (
+            row.last_pulled &&
+            new Date(this._syncTableData[row.table_name]) >
+              new Date(row.last_pulled)
+          ) {
+            this._syncTableData[row.table_name] = row.last_pulled;
+          }
+        });
+        for (const _tableName of Object.keys(this._syncTableData)) {
+          const updatePullSyncQuery = `UPDATE pull_sync_info SET last_pulled = '${this._syncTableData[_tableName]}' WHERE table_name = '${_tableName}'`;
+          console.log(
+            "🚀 ~ SqliteApi ~ setUpDatabase ~ updatePullSyncQuery:",
+            updatePullSyncQuery
+          );
+          await this.executeQuery(updatePullSyncQuery);
+        }
+      }
+    }
+
     const config = ServiceConfig.getInstance(APIMode.SQLITE);
     const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
     if (isUserLoggedIn) {
@@ -198,24 +302,34 @@ export class SqliteApi implements ServiceApi {
     for (const tableName of tableNames) {
       if (data.get(tableName)) {
         const tableData = data.get(tableName) ?? [];
-        for (const row of tableData) {
-          const fieldNames = Object.keys(row);
-          const fieldValues = fieldNames.map((fieldName) => row[fieldName]);
-          const fieldPlaceholders = fieldNames.map(() => "?").join(", ");
-          const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(
-            ", "
-          )}) VALUES (${fieldPlaceholders})`;
-          console.log(
-            "🚀 ~ Api ~ pullChanges ~ stmt, fieldValues:",
-            stmt,
-            fieldValues,
-            fieldValues.length
-          );
+        const existingColumns = await this.getTableColumns(tableName);
+        console.log(
+          "🚀 ~ SqliteApi ~ pullChanges ~ tableInfo:",
+          existingColumns
+        );
+        if (existingColumns) {
+          for (const row of tableData) {
+            const fieldNames = Object.keys(row).filter((fieldName) =>
+              existingColumns.includes(fieldName)
+            );
+            const fieldValues = fieldNames.map((fieldName) => row[fieldName]);
+            const fieldPlaceholders = fieldNames.map(() => "?").join(", ");
 
-          try {
-            await this.executeQuery(stmt, fieldValues);
-          } catch (er) {
-            console.log("🚀 ~ Api ~ pullChangesError ", er);
+            if (fieldNames.length === 0) continue; // Skip if no valid columns
+
+            const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(", ")}) VALUES (${fieldPlaceholders})`;
+            console.log(
+              "🚀 ~ pullChanges ~ stmt, fieldValues:",
+              stmt,
+              fieldValues,
+              fieldValues.length
+            );
+
+            try {
+              await this.executeQuery(stmt, fieldValues);
+            } catch (error) {
+              console.log("🚀 ~ pullChanges ~ Error:", error);
+            }
           }
         }
 
@@ -224,6 +338,11 @@ export class SqliteApi implements ServiceApi {
         await this.executeQuery(stmt, [tableName, lastPulled]);
       }
     }
+  }
+  async getTableColumns(tableName: string): Promise<string[] | undefined> {
+    const query = `PRAGMA table_info(${tableName})`;
+    const result = await this._db?.query(query);
+    return result?.values?.map((row: any) => row.name);
   }
 
   private async pushChanges(tableNames: TABLES[]) {
@@ -347,6 +466,7 @@ export class SqliteApi implements ServiceApi {
       updated_at: new Date().toISOString(),
       email: null,
       phone: null,
+      fcm_token:null,
       music_off: false,
       sfx_off: false,
     };
@@ -722,7 +842,7 @@ export class SqliteApi implements ServiceApi {
         is_deleted: false,
       };
       const res = await this.executeQuery(
-      `
+        `
       INSERT INTO favorite_lesson (id, lesson_id, user_id, created_at, updated_at, is_deleted)
       VALUES (?, ?, ?, ?, ?, ?);
       `,
@@ -1049,8 +1169,8 @@ export class SqliteApi implements ServiceApi {
     return inviteData;
   }
 
-  async linkStudent(inviteCode: number,studentId:string): Promise<any> {
-      let linkData = await this._serverApi.linkStudent(inviteCode,studentId);
+  async linkStudent(inviteCode: number, studentId: string): Promise<any> {
+    let linkData = await this._serverApi.linkStudent(inviteCode, studentId);
     await this.syncDbNow(Object.values(TABLES), [
       TABLES.Assignment,
       TABLES.Class,
@@ -1411,5 +1531,27 @@ export class SqliteApi implements ServiceApi {
       console.log("🚀 ~ SqliteApi ~ syncDB ~ error:", error);
       return false;
     }
+  }
+  async getStudentProgress(studentId: string): Promise<Map<string, string>> {
+    const query = `
+      SELECT r.*, l.name AS lesson_name, c.course_id AS course_id, c.name AS chapter_name
+      FROM ${TABLES.Result} r
+      JOIN ${TABLES.Lesson} l ON r.lesson_id = l.id
+      JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
+      JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
+      WHERE r.student_id = '${studentId}'
+    `;
+    const res = await this._db?.query(query);
+    let resultMap: Map<string, string> = new Map<string, string>();
+    if (res && res.values) {
+      res.values.forEach((result) => {
+        const courseId = result.course_id;
+        if (!resultMap[courseId]) {
+          resultMap[courseId] = [];
+        }
+        resultMap[courseId].push(result);
+      });
+    }
+    return resultMap;
   }
 }

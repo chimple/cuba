@@ -1,11 +1,9 @@
-//@ts-nocheck
 import React, { useEffect, useState } from "react";
 import { IonCol, IonRow } from "@ionic/react";
 import "../components/studentProgress/CustomAppBar.css";
 import "./StudentProgress.css";
 import { PAGES, TableTypes } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
-import Lesson from "../models/lesson";
 import { useHistory } from "react-router-dom";
 import CustomAppBar from "../components/studentProgress/CustomAppBar";
 import { t } from "i18next";
@@ -21,18 +19,18 @@ const StudentProgress: React.FC = () => {
   const [dataContent, setDataContent] = useState<string[][]>([]);
   const [currentStudent, setCurrentStudent] = useState<TableTypes<"user">>();
   const [courses, setCourses] = useState<TableTypes<"course">[]>([]);
-  const [lessonsResults, setLessonsResults] = useState<{
-    [lessonDocId: string]: TableTypes<"result">;
-  }>({});
+  const [lessonsResults, setLessonsResults] = useState<Map<string, string>>();
+  const [tabs, setTabs] = useState<{ [key: string]: string }>({});
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
 
   useEffect(() => {
     setIsLoading(true);
-    inti();
+    init();
   }, []);
 
   interface HeaderIconConfig {
+    courseId: string;
     displayName: string;
     iconSrc: string;
     header: any;
@@ -42,12 +40,11 @@ const StudentProgress: React.FC = () => {
     Util.setPathToBackButton(PAGES.PARENT, history);
   };
 
-  async function inti() {
+  async function init() {
     const currentStudent = await Util.getCurrentStudent();
     if (currentStudent) {
       setHeaderContent(["Lesson Name", "Chapter Name", "Score", "Time Spent"]);
       setCurrentStudent(currentStudent);
-
       const courses = await getCourses(currentStudent);
       setCourses(courses);
       if (courses.length > 0) {
@@ -55,22 +52,21 @@ const StudentProgress: React.FC = () => {
         setTabIndex(courses[0].code ?? "");
         setStudentProgressHeaderIconList(
           courses.map((course) => ({
+            courseId: course.id,
             displayName: t(course.name),
             iconSrc: course.image ?? "assets/icons/EnglishIcon.svg",
             header: course.code,
             course: course,
           }))
         );
-        // console.log(courses[0].title);
       }
 
-      const res = await api.getStudentResultInMap(currentStudent.id);
-      setLessonsResults(res || {});
+      const res = await api.getStudentProgress(currentStudent.id);
 
-      if (res && res.size > 0) {
-        console.log("result...");
+      if (res) {
+        setLessonsResults(res);
 
-        await getResultsForStudentForSelectedHeader(courses[0], res);
+        await getResultsForStudentForSelectedHeader(courses[0].id, res);
       }
 
       setIsLoading(false);
@@ -89,15 +85,13 @@ const StudentProgress: React.FC = () => {
       <div id="student-progress-display-progress">
         <div id="student-progress-display-progress-header">
           <IonRow>
-            {headerContent.map((h) => {
-              return (
-                <IonCol size="12" size-sm="3">
-                  <p id="student-progress-display-progress-header-content">
-                    {t(h)}
-                  </p>
-                </IonCol>
-              );
-            })}
+            {headerContent.map((h) => (
+              <IonCol key={h} size="12" size-sm="3">
+                <p id="student-progress-display-progress-header-content">
+                  {t(h)}
+                </p>
+              </IonCol>
+            ))}
           </IonRow>
         </div>
         {!!isLoading && (
@@ -113,21 +107,17 @@ const StudentProgress: React.FC = () => {
         ) : null}
         {!isLoading && dataContent.length > 0 && (
           <div id="student-progress-display-progress-content">
-            {dataContent.map((e) => {
-              return (
-                <IonRow>
-                  {e.map((d) => {
-                    return (
-                      <IonCol size="12" size-sm="3">
-                        <p id="student-progress-display-progress-content-text">
-                          {d}
-                        </p>
-                      </IonCol>
-                    );
-                  })}
-                </IonRow>
-              );
-            })}
+            {dataContent.map((e, rowIndex) => (
+              <IonRow key={rowIndex}>
+                {e.map((d, cellIndex) => (
+                  <IonCol key={cellIndex} size="12" size-sm="3">
+                    <p id="student-progress-display-progress-content-text">
+                      {d}
+                    </p>
+                  </IonCol>
+                ))}
+              </IonRow>
+            ))}
           </div>
         )}
       </div>
@@ -135,64 +125,43 @@ const StudentProgress: React.FC = () => {
   }
 
   async function getResultsForStudentForSelectedHeader(
-    course: TableTypes<"course">,
-    lessonsResults: Map<string, TableTypes<"result">>
+    selectedCourseId: string,
+    lessonsResults: Map<string, string>
   ) {
     setIsLoading(true);
-    console.log("Selected header ", course.name, lessonsResults);
     let isDataAvailable: boolean = false;
     let tempDataContent: string[][] = [];
-
-    await Promise.all(
-      course.chapters.map(async (chapter) => {
-        await Promise.all(
-          chapter.lessons.map(async (lesson) => {
-            const lessonDetail = (await api.getLesson(lesson.id)) as Lesson;
-            const lessonRes = await lessonsResults.get(lesson.id);
-
-            if (lessonDetail && lessonRes) {
-              isDataAvailable = true;
-              const computeMinutes = Math.floor(lessonRes.timeSpent / 60);
-              const result = lessonRes.timeSpent % 60;
-              console.log(
-                "Data ",
-                lessonDetail.title,
-
-                chapter.title,
-                lessonRes.score,
-                computeMinutes + ":" + result
-              );
-              tempDataContent.push([
-                lessonDetail.title,
-                chapter.title,
-                Math.floor(lessonRes.score).toString(),
-                computeMinutes + ":" + result,
-              ]);
-            }
-          })
-        );
-      })
-    );
-
-    if (!isDataAvailable) {
-      tempDataContent = [];
+    if (lessonsResults) {
+      const lessonResultsForCourse = lessonsResults[selectedCourseId];
+      if (lessonResultsForCourse) {
+        isDataAvailable = true;
+        lessonResultsForCourse.forEach((result) => {
+          const computeMinutes = Math.floor(result.time_spent / 60);
+          const computeSeconds = result.time_spent % 60;
+          tempDataContent.push([
+            result.lesson_name,
+            result.chapter_name,
+            Math.floor(result.score).toString(),
+            `${computeMinutes}:${computeSeconds}`,
+          ]);
+        });
+      }
     }
 
-    setDataContent(tempDataContent);
+    setDataContent(isDataAvailable ? tempDataContent : []);
     setIsLoading(false);
   }
 
   const handleChange = (newValue: string) => {
-    // setValue(newValue);
     setTabIndex(newValue);
     const selectedHeader = studentProgressHeaderIconList.find(
-      (iconConfig) => iconConfig.displayName === newValue
+      (iconConfig) => iconConfig.courseId === newValue
     );
 
-    if (selectedHeader) {
+    if (selectedHeader && lessonsResults) {
       setCurrentHeader(selectedHeader.header);
       getResultsForStudentForSelectedHeader(
-        selectedHeader.course,
+        selectedHeader.courseId,
         lessonsResults
       );
     }
@@ -201,16 +170,19 @@ const StudentProgress: React.FC = () => {
 
   useEffect(() => {
     if (studentProgressHeaderIconList.length > 0) {
-      setTabIndex(studentProgressHeaderIconList[0].displayName);
+      setTabIndex(studentProgressHeaderIconList[0].courseId);
     }
+    const newTabs = {};
+    studentProgressHeaderIconList.forEach((iconConfig) => {
+      newTabs[iconConfig.courseId] = iconConfig.displayName;
+    });
+    setTabs(newTabs);
   }, [studentProgressHeaderIconList]);
 
   return (
     <div>
       <CustomAppBar
-        tabNames={studentProgressHeaderIconList.map(
-          (iconConfig) => iconConfig.displayName
-        )}
+        tabs={tabs}
         value={tabIndex}
         onChange={handleChange}
         handleBackButton={handleBackButton}
