@@ -27,6 +27,7 @@ export enum TABLES {
   School = "school",
   Chapter = "chapter",
   Lesson = "lesson",
+  Live_quiz_room = "live_quiz_room",
   Badge = "badge",
   Sticker = "sticker",
   Reward = "reward",
@@ -541,7 +542,7 @@ export enum ACTION {
   CREATE = "create",
   UPDATE = "update",
   DELETE = "delete",
-  LOGIN = "login"
+  LOGIN = "login",
 }
 
 export const CURRENT_STUDENT = "currentStudent";

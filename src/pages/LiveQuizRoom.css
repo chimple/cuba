@@ -209,3 +209,7 @@
   font-size: 12px;
   font-weight: bold;
 }
+.join-button-container {
+  display: flex;
+  justify-content: center;
+}

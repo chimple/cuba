@@ -144,7 +144,7 @@ export interface ServiceApi {
    * @returns {Lesson | undefined}`Lesson` or `undefined` if it could not find the lesson with given `id`
    */
   getLesson(id: string): Promise<TableTypes<"lesson"> | undefined>;
-  getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]>
+  getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]>;
 
   /**
    * Gives Array of `Lesson` objects for a given `chapter`
@@ -196,17 +196,17 @@ export interface ServiceApi {
    */
   getLiveQuizRoomDoc(
     liveQuizRoomDocId: string
-  ): Promise<DocumentData | undefined>;
-  
+  ): Promise<TableTypes<"live_quiz_room"> | undefined>;
+
   /**
    * Create a Row in FavoriteLesson with given params
-   * @param studentId 
-   * @param lessonId 
+   * @param studentId
+   * @param lessonId
    */
   updateFavoriteLesson(
     studentId: string,
     lessonId: string
-  ): Promise<TableTypes<"favorite_lesson">>; 
+  ): Promise<TableTypes<"favorite_lesson">>;
   /**
    * Creates a Document in Result collection with the given params
    * student: User
@@ -391,7 +391,7 @@ export interface ServiceApi {
    * @param studentId The current student Id
    * @returns A promise that resolves to the student.
    */
-  linkStudent(inviteCode: number,studentId:string): Promise<any>;
+  linkStudent(inviteCode: number, studentId: string): Promise<any>;
 
   /**
    * This function gives Leaderboard results of b2c or b2b Users
@@ -463,8 +463,8 @@ export interface ServiceApi {
    */
   liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (user: LiveQuizRoomObject | undefined) => void
-  ): Unsubscribe;
+    onDataChange: (roomDoc: TableTypes<"live_quiz_room"> | undefined) => void
+  ): void;
 
   /**
    * Updates the live quiz results for a specific student in a live quiz room.
@@ -493,10 +493,18 @@ export interface ServiceApi {
    *          or undefined if an error occurs during the process.
    */
   joinLiveQuiz(
-    studentId: string,
-    assignmentId: string
+    assignmentId: string,
+    studentId: string
   ): Promise<string | undefined>;
-
+  /**
+   * getting the results based on assignmentId.
+   *
+   * @param assignmentId - The unique identifier of the assignment document.
+   * @returns {Assignment}  A promise that resolves `Assignment` for the with given `id`.
+   */
+  getStudentResultsByAssignmentId(
+    assignmentId: string
+  ): Promise<TableTypes<"result">[]>;
   /**
    * Gives Assignment for given a Assignment firebase doc Id
    * @param {string} id - Assignment firebase doc id
@@ -509,7 +517,7 @@ export interface ServiceApi {
    * @param {string} id - Badge firebase doc id
    * @returns {Badge | undefined}`Badge` or `undefined` if it could not find the Badge with given `id`
    */
-  getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]>
+  getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]>;
 
   /**
    * Gives Sticker for given a Sticker firebase doc Id
@@ -522,7 +530,10 @@ export interface ServiceApi {
    * @param {string} id - Rewards firebase doc id
    * @returns {Rewards | undefined}`Rewards` or `undefined` if it could not find the Rewards with given `id`
    */
-  getRewardsById(id: number, periodType: string): Promise<TableTypes<"reward"> | undefined>;
+  getRewardsById(
+    id: number,
+    periodType: string
+  ): Promise<TableTypes<"reward"> | undefined>;
 
   /**
    * Updates the rewards of a student, marking all rewards as seen.
