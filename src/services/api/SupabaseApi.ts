@@ -642,6 +642,15 @@ export class SupabaseApi implements ServiceApi {
   getRewardsById(id: number, periodType: string): Promise<TableTypes<"reward"> | undefined> {
     throw new Error("Method not implemented.");
   }
+  getUserSticker(userId: string): Promise<TableTypes<"user_sticker">[]>{
+    throw new Error("Method not implemented.");
+  }
+  getUserBadge(userId: string): Promise<TableTypes<"user_badge"> []>{
+    throw new Error("Method not implemented.");
+  }
+  getUserBonus(userId: string): Promise<TableTypes<"user_bonus"> []>{
+    throw new Error("Method not implemented.");
+  }
   updateRewardAsSeen(studentId: string): Promise<void> {
     throw new Error("Method not implemented.");
   }

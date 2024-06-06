@@ -82,6 +82,21 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"reward"> | undefined> {
     return this.s.getRewardsById(id, periodType);
   }
+  public async getUserSticker(
+    userId: string,
+  ): Promise<TableTypes<"user_sticker"> []> {
+    return this.s.getUserSticker(userId);
+  }
+  public async getUserBonus(
+    userId: string,
+  ): Promise<TableTypes<"user_bonus"> []> {
+    return this.s.getUserBonus(userId);
+  }
+  public async getUserBadge(
+    userId: string,
+  ): Promise<TableTypes<"user_badge"> []> {
+    return this.s.getUserBadge(userId);
+  }
   public async getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]> {
     return this.s.getBadgesByIds(ids);
   }

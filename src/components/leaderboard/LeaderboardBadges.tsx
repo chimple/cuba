@@ -117,30 +117,32 @@ const LeaderboardBadges: FC = () => {
     return badgeDocs;
   };
 
-  const getUnlockedBadges = async (): Promise<
-    (TableTypes<"badge"> | undefined)[]
-  > => {
-    // if (
-    //   !currentStudent.rewards ||
-    //   !currentStudent.rewards.badges ||
-    //   currentStudent.rewards.badges.length < 1
-    // ) {
-    //   return [];
-    // }
-    // let isSeen = true;
-    // const unlockedBadges = await Promise.all(
-    //   currentStudent.rewards.badges.map((value) => {
-    //     if (!value.seen) {
-    //       isSeen = false;
-    //     }
-    //     return api.getBadgeById(value.id);
-    //   })
-    // );
-    // if (!isSeen) {
-    //   api.updateRewardAsSeen(currentStudent.id);
-    // }
-    // return unlockedBadges?.reverse();
-    return [];
+  const getUnlockedBadges = async (): Promise<TableTypes<"badge">[]> => {
+    if (!currentStudent) return [];
+
+    try {
+      const userBadges = await api.getUserBadge(currentStudent.id);
+      if (!userBadges || userBadges.length === 0) return [];
+
+      let isSeen = true;
+
+      const badgeIds = userBadges.map((badge) => {
+        if (!badge.is_seen) {
+          isSeen = false;
+        }
+        return badge.badge_id;
+      });
+
+      const badges = await api.getBadgesByIds(badgeIds);
+      if (!isSeen) {
+        await api.updateRewardAsSeen(currentStudent.id);
+      }
+
+      return badges.reverse();
+    } catch (error) {
+      console.error("Error fetching unlocked badges:", error);
+      return [];
+    }
   };
 
   const getPrevBadges = async (): Promise<
