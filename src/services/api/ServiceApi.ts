@@ -146,6 +146,13 @@ export interface ServiceApi {
   getLesson(id: string): Promise<TableTypes<"lesson"> | undefined>;
   getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]>
 
+    /**
+   * Gives Chapter for given a chapter doc Id
+   * @param id  -chapter id
+   * @returns {Chapter | undefined}`Chapter` or `undefined` if it could not find the lesson with given `id`
+   */
+    getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined>;
+
   /**
    * Gives Array of `Lesson` objects for a given `chapter`
    * @param {Chapter} chapter - Chapter to which we need `Lesson` objects

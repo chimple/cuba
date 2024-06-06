@@ -296,6 +296,9 @@ export class SupabaseApi implements ServiceApi {
   getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]>{
     throw new Error("Method not implemented.");
   }
+  getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
   getLessonsForChapter(chapterId: string): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }

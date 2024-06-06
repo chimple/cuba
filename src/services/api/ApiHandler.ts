@@ -278,6 +278,11 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"lesson">[]> {
     return await this.s.getBonusesByIds(ids);
   }
+  public async getChapterById(
+    id: string
+  ): Promise<TableTypes<"chapter"> | undefined> {
+    return await this.s.getChapterById(id);
+  }
 
   public async getLessonsForChapter(
     chapterId: string
