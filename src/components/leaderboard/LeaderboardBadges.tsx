@@ -20,7 +20,8 @@ const LeaderboardBadges: FC = () => {
   const currentStudent = Util.getCurrentStudent()!;
   const api = ServiceConfig.getI().apiHandler;
   const [badges, setBadges] = useState<BadgeInfo[]>();
-  const [allBadges, setAllBadges] = useState<(Badge | undefined)[]>();
+  const [allBadges, setAllBadges] =
+    useState<(TableTypes<"badge"> | undefined)[]>();
   useEffect(() => {
     init();
   }, []);
@@ -33,7 +34,7 @@ const LeaderboardBadges: FC = () => {
     const nextUnlockBadges = await getNextUnlockBadges();
     const allBadges = await getBadges();
     const upcomingBadges = await getUpcomingBadges();
-    // setAllBadges(allBadges);
+    setAllBadges(allBadges);
 
     const badgeInfoArray: BadgeInfo[] = prevBadges.map((badge) => ({
       badge,
@@ -265,7 +266,7 @@ const LeaderboardBadges: FC = () => {
         allBadges.length > 0 &&
         allBadges.map((value) => (
           <div className="leaderboard-badge-disabled">
-            <CachedImage src={value?.image} />
+            <CachedImage src={value?.image ?? undefined} />
             {!!value?.name ? <p>{value?.name}</p> : ""}
           </div>
         ))}
