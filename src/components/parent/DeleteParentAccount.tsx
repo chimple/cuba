@@ -5,7 +5,7 @@ import { useState } from "react";
 import DialogBoxButtons from "./DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { useHistory } from "react-router";
-import { ACTION, EVENTS, PAGES } from "../../common/constants";
+import { ACTION, CURRENT_USER, EVENTS, PAGES } from "../../common/constants";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import Loading from "../Loading";
@@ -33,12 +33,12 @@ const DeleteParentAccount: React.FC<{}> = ({}) => {
       parent_username: user?.username,
       action_type: ACTION.DELETE,
     };
+    localStorage.removeItem(CURRENT_USER);
     console.log(
       "Util.logEvent(EVENTS.USER_PROFILE, eventParams);",
       EVENTS.USER_PROFILE,
       eventParams
     );
-
     Util.logEvent(EVENTS.USER_PROFILE, eventParams);
     setIsLoading(false);
     history.replace(PAGES.APP_LANG_SELECTION);
