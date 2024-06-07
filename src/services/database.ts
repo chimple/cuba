@@ -1568,7 +1568,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      join_live_quiz_now: {
+      join_live_quiz: {
         Args: {
           _assignment_id: string
           _student_id: string
