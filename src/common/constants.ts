@@ -27,6 +27,7 @@ export enum TABLES {
   School = "school",
   Chapter = "chapter",
   Lesson = "lesson",
+  Live_quiz_room = "live_quiz_room",
   Badge = "badge",
   Sticker = "sticker",
   Reward = "reward",

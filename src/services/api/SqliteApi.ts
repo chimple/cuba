@@ -817,10 +817,12 @@ export class SqliteApi implements ServiceApi {
     return res.values;
   }
 
-  getLiveQuizRoomDoc(
+  async getLiveQuizRoomDoc(
     liveQuizRoomDocId: string
-  ): Promise<DocumentData | undefined> {
-    throw new Error("Method not implemented.");
+  ): Promise<TableTypes<"live_quiz_room">> {
+    const roomData =
+      await this._serverApi.getLiveQuizRoomDoc(liveQuizRoomDocId);
+    return roomData;
   }
 
   async updateFavoriteLesson(
@@ -1341,30 +1343,46 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
-  liveQuizListener(
+  async liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (user: LiveQuizRoomObject | undefined) => void
-  ): Unsubscribe {
-    throw new Error("Method not implemented.");
+    onDataChange: (roomDoc: TableTypes<"live_quiz_room"> | undefined) => void
+  ) {
+    return await this._serverApi.liveQuizListener(
+      liveQuizRoomDocId,
+      onDataChange
+    );
   }
 
-  updateLiveQuiz(
+  async updateLiveQuiz(
     roomDocId: string,
     studentId: string,
     questionId: string,
     timeSpent: number,
     score: number
   ): Promise<void> {
-    throw new Error("Method not implemented.");
+    await this._serverApi.updateLiveQuiz(
+      roomDocId,
+      studentId,
+      questionId,
+      timeSpent,
+      score
+    );
   }
 
-  joinLiveQuiz(
-    studentId: string,
-    assignmentId: string
+  async joinLiveQuiz(
+    assignmentId: string,
+    studentId: string
   ): Promise<string | undefined> {
-    throw new Error("Method not implemented.");
+    const data = await this._serverApi.joinLiveQuiz(assignmentId, studentId);
+    return data;
   }
-
+  async getStudentResultsByAssignmentId(
+    assignmentId: string
+  ): Promise<TableTypes<"result">[]> {
+    const res =
+      await this._serverApi.getStudentResultsByAssignmentId(assignmentId);
+    return res;
+  }
   async getAssignmentById(
     id: string
   ): Promise<TableTypes<"assignment"> | undefined> {
@@ -1474,13 +1492,12 @@ export class SqliteApi implements ServiceApi {
   ): Promise<TableTypes<"chapter">[]> {
     const query = `
     SELECT * FROM ${TABLES.Chapter} 
-    WHERE course_id = "${courseId}"    
+    WHERE course_id = "${courseId}"
     ORDER BY sort_index ASC;
     `;
     const res = await this._db?.query(query);
     return res?.values ?? [];
   }
-
   async getPendingAssignmentForLesson(
     lessonId: string,
     classId: string,
