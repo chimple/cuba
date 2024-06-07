@@ -525,7 +525,11 @@ export class FirebaseApi implements ServiceApi {
   };
   public updateFcmToken = async (userId: string) => {
     throw new Error("Method not implemented.");
-  };
+  }
+
+  public getChapterById= async (Id: string) => {
+    throw new Error("Method not implemented.");
+  }
   public updateLanguage = async (user: User, value: string) => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {

@@ -728,6 +728,15 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
+
+  async getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Chapter} where id = "${id}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+
   async getLessonsForChapter(
     chapterId: string
   ): Promise<TableTypes<"lesson">[]> {
@@ -1622,7 +1631,7 @@ export class SqliteApi implements ServiceApi {
     );
     if (!res || !res.values || res.values.length < 1) return data;
     data.classes = res.values;
-    data.schools = res.values.map((val) => val.school);
+    data.schools = res.values.map((val) => JSON.parse(val.school));
     return data;
   }
   async updateFcmToken(userId: string) {

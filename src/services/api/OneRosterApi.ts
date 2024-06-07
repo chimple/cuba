@@ -63,6 +63,9 @@ export class OneRosterApi implements ServiceApi {
   getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]>{
     throw new Error("Method not implemented.");
   }
+  getChapterById(id: string): Promise<Chapter | undefined> {
+    throw new Error("Method not implemented.");
+  }
   getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
     grades: TableTypes<"grade">[];
     courses: TableTypes<"course">[];
