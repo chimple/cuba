@@ -11,6 +11,7 @@ import {
   LANGUAGE,
   LeaderboardDropdownList,
   HOMEHEADERLIST,
+  CURRENT_MODE,
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import BackButton from "../components/common/BackButton";
@@ -31,6 +32,7 @@ import DropDown from "../components/DropDown";
 import LeaderboardRewards from "../components/leaderboard/LeaderboardRewards";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
+import { App } from "@capacitor/app";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -79,8 +81,15 @@ const Leaderboard: React.FC = () => {
   }, []);
 
   useEffect(() => {}, []);
-
+  const urlOpen=()=>{
+    App.addListener("appUrlOpen", (event) => {
+      const url = new URL(event.url);   
+        Util.setPathToBackButton(`${PAGES.HOME}?page=/${url.pathname.substring(1)}&classCode=${url.searchParams.get("classCode")}`, history);
+    });
+  }
+  App.addListener("appStateChange", urlOpen);
   async function inti() {
+  
     console.log("init method called");
     const weekOptions = [
       { text: t("Weekly"), type: LeaderboardDropdownList.WEEKLY },
@@ -126,7 +135,6 @@ const Leaderboard: React.FC = () => {
       // setIsLoading(false);
     }
   }
-
   async function fetchLeaderBoardData(
     currentStudent: TableTypes<"user">,
     leaderboardDropdownType: LeaderboardDropdownList,
@@ -590,7 +598,16 @@ const Leaderboard: React.FC = () => {
                     await i18n.changeLanguage(tempLangCode);
                   }
                 }
-                Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
+                const currentMOde = localStorage.getItem(CURRENT_MODE);
+                if (currentMOde === MODES.PARENT) {
+                  Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
+                } else {
+                  Util.setPathToBackButton(PAGES.SELECT_MODE, history);
+                  Util.setPathToBackButton(
+                    PAGES.SELECT_MODE + "?tab=" + "student",
+                    history
+                  );
+                }
               }}
             >
               <img

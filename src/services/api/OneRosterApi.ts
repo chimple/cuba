@@ -57,14 +57,20 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"lesson"> | null> {
     throw new Error("Method not implemented.");
   }
-
   getLesson(id: string): Promise<Lesson | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]>{
+    throw new Error("Method not implemented.");
+  }
+  getChapterById(id: string): Promise<Chapter | undefined> {
     throw new Error("Method not implemented.");
   }
   getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
     grades: TableTypes<"grade">[];
     courses: TableTypes<"course">[];
   }> {
+
     throw new Error("Method not implemented.");
   }
   getAssignmentById(id: string): Promise<TableTypes<"assignment"> | undefined> {
@@ -150,13 +156,22 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<LeaderboardInfo | undefined> {
     throw new Error("Method not implemented.");
   }
-  getRewardsById(id: string): Promise<TableTypes<"reward"> | undefined> {
+  getRewardsById(id: number, periodType: string): Promise<TableTypes<"reward"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  getBadgeById(id: string): Promise<TableTypes<"badge"> | undefined> {
+  getUserSticker(userId: string): Promise<TableTypes<"user_sticker">[]>{
     throw new Error("Method not implemented.");
   }
-  getStickerById(id: string): Promise<TableTypes<"sticker"> | undefined> {
+  getUserBonus(userId: string): Promise<TableTypes<"user_bonus"> []>{
+    throw new Error("Method not implemented.");
+  }
+  getUserBadge(userId: string): Promise<TableTypes<"user_badge"> []>{
+    throw new Error("Method not implemented.");
+  }
+  getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getStickersByIds(ids: string[]): Promise<TableTypes<"sticker">[]> {
     throw new Error("Method not implemented.");
   }
   getAvatarInfo(): Promise<AvatarObj | undefined> {
@@ -336,6 +351,10 @@ export class OneRosterApi implements ServiceApi {
   updateLanguage(userId: string, value: string) {
     throw new Error("Method not implemented.");
   }
+  updateFcmToken(userId: string) {
+    throw new Error("Method not implemented.");
+  }
+
 
   get currentStudent(): TableTypes<"user"> | undefined {
     throw new Error("Method not implemented.");

@@ -8,7 +8,7 @@ import LiveQuiz, {
 import "./LiveQuizQuestion.css";
 import { Capacitor } from "@capacitor/core";
 import { Util } from "../../utility/util";
-import { PAGES } from "../../common/constants";
+import { PAGES, TableTypes } from "../../common/constants";
 import { useHistory } from "react-router";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { HiSpeakerWave } from "react-icons/hi2";
@@ -18,7 +18,7 @@ import LiveQuizNavigationDots from "./LiveQuizNavigationDots";
 let questionInterval;
 let audiosMap: { [key: string]: HTMLAudioElement } = {};
 const LiveQuizQuestion: FC<{
-  roomDoc: LiveQuizRoomObject;
+  roomDoc: TableTypes<"live_quiz_room">;
   showQuiz: boolean;
   isTimeOut: boolean;
   onNewQuestionChange?: (newQuestionIndex: number) => void;
@@ -39,7 +39,7 @@ const LiveQuizQuestion: FC<{
   const quizPath =
     (localStorage.getItem("gameUrl") ??
       "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
-    roomDoc.lesson.id;
+    roomDoc.lesson_id;
   const [liveQuizConfig, setLiveQuizConfig] = useState<LiveQuiz>();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();
   const [remainingTime, setRemainingTime] = useState(LIVE_QUIZ_QUESTION_TIME);
@@ -290,11 +290,13 @@ const LiveQuizQuestion: FC<{
       },
       0
     );
-    if (participantsPlayedCount === roomDoc.participants.length) {
-      clearInterval(questionInterval);
-      // setTimeout(() => {
-      changeQuestion();
-      // }, 1000);
+    if (roomDoc.participants) {
+      if (participantsPlayedCount === roomDoc.participants.length) {
+        clearInterval(questionInterval);
+        // setTimeout(() => {
+        changeQuestion();
+        // }, 1000);
+      }
     }
   };
 
@@ -393,15 +395,15 @@ const LiveQuizQuestion: FC<{
     }
     await api.updateResult(
       student!.id,
-      roomDoc.course.id,
-      roomDoc.lesson.id,
+      roomDoc.course_id,
+      roomDoc.lesson_id,
       totalScore,
       correctMoves,
       totalQuestions - correctMoves,
       totalTimeSpent,
-      roomDoc.assignment.id,
-      roomDoc.class.id,
-      roomDoc.school.id
+      roomDoc.assignment_id,
+      roomDoc.class_id,
+      roomDoc.school_id
     );
   }
 
@@ -552,13 +554,13 @@ const LiveQuizQuestion: FC<{
                         liveQuizConfig.data.length,
                         LIVE_QUIZ_QUESTION_TIME - remainingTime
                       );
-                      // await api.updateLiveQuiz(
-                      //   roomDoc.id,
-                      //   student?.id!,
-                      //   liveQuizConfig.data[currentQuestionIndex].question.id,
-                      //   LIVE_QUIZ_QUESTION_TIME - remainingTime,
-                      //   score
-                      // );
+                      await api.updateLiveQuiz(
+                        roomDoc.id,
+                        student?.id!,
+                        liveQuizConfig.data[currentQuestionIndex].question.id,
+                        LIVE_QUIZ_QUESTION_TIME - remainingTime,
+                        score
+                      );
                     }}
                     className={
                       "live-quiz-option-box " +

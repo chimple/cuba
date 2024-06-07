@@ -24,11 +24,14 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"assignment"> | undefined> {
     return this.s.getAssignmentById(id);
   }
+  public getStudentResultsByAssignmentId(assignmentId: string) {
+    return this.s.getStudentResultsByAssignmentId(assignmentId);
+  }
 
   public liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (user: LiveQuizRoomObject | undefined) => void
-  ): Unsubscribe {
+    onDataChange: (roomDoc: TableTypes<"live_quiz_room"> | undefined) => void
+  ): void {
     return this.s.liveQuizListener(liveQuizRoomDocId, onDataChange);
   }
 
@@ -49,10 +52,10 @@ export class ApiHandler implements ServiceApi {
   }
 
   public async joinLiveQuiz(
-    studentId: string,
-    assignmentId: string
+    assignmentId: string,
+    studentId: string
   ): Promise<string | undefined> {
-    return this.s.joinLiveQuiz(studentId, assignmentId);
+    return this.s.joinLiveQuiz(assignmentId, studentId);
   }
   private constructor() {}
   public async updateRewardsForStudent(
@@ -78,19 +81,33 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getLeaderboardStudentResultFromB2CCollection(studentId);
   }
   public async getRewardsById(
-    id: string
+    id: number,
+    periodType: string
   ): Promise<TableTypes<"reward"> | undefined> {
-    return this.s.getRewardsById(id);
+    return this.s.getRewardsById(id, periodType);
   }
-  public async getBadgeById(
-    id: string
-  ): Promise<TableTypes<"badge"> | undefined> {
-    return this.s.getBadgeById(id);
+  public async getUserSticker(
+    userId: string,
+  ): Promise<TableTypes<"user_sticker"> []> {
+    return this.s.getUserSticker(userId);
   }
-  public async getStickerById(
-    id: string
-  ): Promise<TableTypes<"sticker"> | undefined> {
-    return this.s.getStickerById(id);
+  public async getUserBonus(
+    userId: string,
+  ): Promise<TableTypes<"user_bonus"> []> {
+    return this.s.getUserBonus(userId);
+  }
+  public async getUserBadge(
+    userId: string,
+  ): Promise<TableTypes<"user_badge"> []> {
+    return this.s.getUserBadge(userId);
+  }
+  public async getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]> {
+    return this.s.getBadgesByIds(ids);
+  }
+  public async getStickersByIds(
+    ids: string[]
+  ): Promise<TableTypes<"sticker">[]> {
+    return this.s.getStickersByIds(ids);
   }
   public async getAvatarInfo(): Promise<AvatarObj | undefined> {
     return await this.s.getAvatarInfo();
@@ -277,6 +294,14 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"lesson"> | undefined> {
     return await this.s.getLesson(id);
   }
+  public async getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]> {
+    return await this.s.getBonusesByIds(ids);
+  }
+  public async getChapterById(
+    id: string
+  ): Promise<TableTypes<"chapter"> | undefined> {
+    return await this.s.getChapterById(id);
+  }
 
   public async getLessonsForChapter(
     chapterId: string
@@ -294,7 +319,7 @@ export class ApiHandler implements ServiceApi {
   }
   public async getLiveQuizRoomDoc(
     liveQuizRoomDocId: string
-  ): Promise<DocumentData | undefined> {
+  ): Promise<TableTypes<"live_quiz_room"> | undefined> {
     return await this.s.getLiveQuizRoomDoc(liveQuizRoomDocId);
   }
   public async getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
@@ -345,6 +370,10 @@ export class ApiHandler implements ServiceApi {
   }
   updateLanguage(userId: string, value: string) {
     return this.s.updateLanguage(userId, value);
+  }
+
+  updateFcmToken(userId: string) {
+    return this.s.updateFcmToken(userId);
   }
 
   public async createProfile(

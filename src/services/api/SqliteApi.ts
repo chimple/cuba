@@ -28,6 +28,7 @@ import { SupabaseApi } from "./SupabaseApi";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
 import { v4 as uuidv4 } from "uuid";
 import { RoleType } from "../../interface/modelInterfaces";
+import { Util } from "../../utility/util";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -728,6 +729,14 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
 
+  async getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Chapter} where id = "${id}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+
   async getLessonsForChapter(
     chapterId: string
   ): Promise<TableTypes<"lesson">[]> {
@@ -735,7 +744,8 @@ export class SqliteApi implements ServiceApi {
     SELECT *
     FROM ${TABLES.ChapterLesson} AS cl
     JOIN ${TABLES.Lesson} AS lesson ON cl.lesson_id= lesson.id
-    WHERE cl.chapter_id = "${chapterId}";
+    WHERE cl.chapter_id = "${chapterId}"
+    ORDER BY sort_index ASC;
   `;
     const res = await this._db?.query(query);
     return res?.values ?? [];
@@ -816,10 +826,12 @@ export class SqliteApi implements ServiceApi {
     return res.values;
   }
 
-  getLiveQuizRoomDoc(
+  async getLiveQuizRoomDoc(
     liveQuizRoomDocId: string
-  ): Promise<DocumentData | undefined> {
-    throw new Error("Method not implemented.");
+  ): Promise<TableTypes<"live_quiz_room">> {
+    const roomData =
+      await this._serverApi.getLiveQuizRoomDoc(liveQuizRoomDocId);
+    return roomData;
   }
 
   async updateFavoriteLesson(
@@ -1340,30 +1352,46 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
-  liveQuizListener(
+  async liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (user: LiveQuizRoomObject | undefined) => void
-  ): Unsubscribe {
-    throw new Error("Method not implemented.");
+    onDataChange: (roomDoc: TableTypes<"live_quiz_room"> | undefined) => void
+  ) {
+    return await this._serverApi.liveQuizListener(
+      liveQuizRoomDocId,
+      onDataChange
+    );
   }
 
-  updateLiveQuiz(
+  async updateLiveQuiz(
     roomDocId: string,
     studentId: string,
     questionId: string,
     timeSpent: number,
     score: number
   ): Promise<void> {
-    throw new Error("Method not implemented.");
+    await this._serverApi.updateLiveQuiz(
+      roomDocId,
+      studentId,
+      questionId,
+      timeSpent,
+      score
+    );
   }
 
-  joinLiveQuiz(
-    studentId: string,
-    assignmentId: string
+  async joinLiveQuiz(
+    assignmentId: string,
+    studentId: string
   ): Promise<string | undefined> {
-    throw new Error("Method not implemented.");
+    const data = await this._serverApi.joinLiveQuiz(assignmentId, studentId);
+    return data;
   }
-
+  async getStudentResultsByAssignmentId(
+    assignmentId: string
+  ): Promise<TableTypes<"result">[]> {
+    const res =
+      await this._serverApi.getStudentResultsByAssignmentId(assignmentId);
+    return res;
+  }
   async getAssignmentById(
     id: string
   ): Promise<TableTypes<"assignment"> | undefined> {
@@ -1374,32 +1402,140 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
 
-  async getBadgeById(id: string): Promise<TableTypes<"badge"> | undefined> {
-    const res = await this._db?.query(
-      `select * from ${TABLES.Badge} where id = "${id}"`
-    );
-    if (!res || !res.values || res.values.length < 1) return;
-    return res.values[0];
+  async getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]> {
+    if (ids.length === 0) return [];
+
+    const quotedIds = ids.map((id) => `"${id}"`).join(", ");
+    try {
+      const res = await this._db?.query(
+        `SELECT * FROM ${TABLES.Badge} WHERE id IN (${quotedIds})`
+      );
+      if (!res || !res.values || res.values.length < 1) return [];
+
+      return res.values;
+    } catch (error) {
+      console.error("Error fetching badges by IDs:", error);
+      return [];
+    }
   }
 
-  async getStickerById(id: string): Promise<TableTypes<"sticker"> | undefined> {
-    const res = await this._db?.query(
-      `select * from ${TABLES.Sticker} where id = "${id}"`
-    );
-    if (!res || !res.values || res.values.length < 1) return;
-    return res.values[0];
+  async getStickersByIds(ids: string[]): Promise<TableTypes<"sticker">[]> {
+    if (ids.length === 0) return [];
+
+    const quotedIds = ids.map((id) => `"${id}"`).join(`, `);
+    try {
+      const res = await this._db?.query(
+        `select * FROM ${TABLES.Sticker} WHERE id IN (${quotedIds})`
+      );
+      if (!res || !res.values || res.values.length < 1) return [];
+      return res.values;
+    } catch (error) {
+      console.error("Error fetching stickers by IDs:", error);
+      return [];
+    }
+  }
+  async getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]> {
+    if (ids.length === 0) return [];
+
+    const quotedIds = ids.map((id) => `"${id}"`).join(`, `);
+    try {
+      const res = await this._db?.query(
+        `select * FROM ${TABLES.Lesson} WHERE id IN (${quotedIds})`
+      );
+      if (!res || !res.values || res.values.length < 1) return [];
+      return res.values;
+    } catch (error) {
+      console.error("Error fetching stickers by IDs:", error);
+      return [];
+    }
+  }
+  async getRewardsById(
+    id: number,
+    periodType: string
+  ): Promise<TableTypes<"reward"> | undefined> {
+    try {
+      const query = `SELECT ${periodType} FROM ${TABLES.Reward} WHERE year = ${id}`;
+      const data = await this._db?.query(query);
+
+      if (!data || !data.values || data.values.length === 0) {
+        console.error("No reward found for the given year.");
+        return;
+      }
+      const periodData = JSON.parse(data.values[0][periodType]);
+      try {
+        if (periodData) return periodData;
+      } catch (parseError) {
+        console.error("Error parsing JSON string:", parseError);
+        return undefined;
+      }
+    } catch (error) {
+      console.error("Error fetching reward by ID:", error);
+      return undefined;
+    }
   }
 
-  async getRewardsById(id: string): Promise<TableTypes<"reward"> | undefined> {
-    const res = await this._db?.query(
-      `select * from ${TABLES.Reward} where id = "${id}"`
-    );
-    if (!res || !res.values || res.values.length < 1) return;
-    return res.values[0];
+  async getUserSticker(userId: string): Promise<TableTypes<"user_sticker">[]> {
+    try {
+      const query = `select * from ${TABLES.UserSticker} where user_id = "${userId}"`;
+      const data = await this._db?.query(query);
+
+      if (!data || !data.values || data.values.length === 0) {
+        console.error("No sticker found for the given user id.");
+        return [];
+      }
+
+      const periodData = data.values;
+      return periodData;
+    } catch (error) {
+      console.error("Error fetching sticker by user ID:", error);
+      return [];
+    }
+  }
+  async getUserBadge(userId: string): Promise<TableTypes<"user_badge">[]> {
+    try {
+      const query = `select * from ${TABLES.UserBadge} where user_id = "${userId}"`;
+      const data = await this._db?.query(query);
+
+      if (!data || !data.values || data.values.length === 0) {
+        console.error("No badge found for the given user id.");
+        return [];
+      }
+
+      const periodData = data.values;
+      return periodData;
+    } catch (error) {
+      console.error("Error fetching user bade by user iD:", error);
+      return [];
+    }
   }
 
-  updateRewardAsSeen(studentId: string): Promise<void> {
-    throw new Error("Method not implemented.");
+  async getUserBonus(userId: string): Promise<TableTypes<"user_bonus">[]> {
+    try {
+      const query = `select * from ${TABLES.UserBonus} where user_id = "${userId}"`;
+      const data = await this._db?.query(query);
+
+      if (!data || !data.values || data.values.length === 0) {
+        console.error("No bonus found for the given user id.");
+        return [];
+      }
+
+      const periodData = data.values;
+      return periodData;
+    } catch (error) {
+      console.error("Error fetching bonus by user ID:", error);
+      return [];
+    }
+  }
+
+  async updateRewardAsSeen(studentId: string): Promise<void> {
+    try {
+      const query = `UPDATE ${TABLES.UserSticker} SET is_seen = true WHERE user_id = "${studentId}" AND is_seen = false`;
+      await this._db?.query(query);
+      console.log(`Updated unseen rewards to seen for student ${studentId}`);
+    } catch (error) {
+      console.error("Error updating rewards as seen:", error);
+      throw new Error("Error updating rewards as seen.");
+    }
   }
 
   async getUserByDocId(
@@ -1426,11 +1562,11 @@ export class SqliteApi implements ServiceApi {
     const query = `
     SELECT * FROM ${TABLES.Chapter} 
     WHERE course_id = "${courseId}"
+    ORDER BY sort_index ASC;
     `;
     const res = await this._db?.query(query);
     return res?.values ?? [];
   }
-
   async getPendingAssignmentForLesson(
     lessonId: string,
     classId: string,
@@ -1495,10 +1631,23 @@ export class SqliteApi implements ServiceApi {
     );
     if (!res || !res.values || res.values.length < 1) return data;
     data.classes = res.values;
-    data.schools = res.values.map((val) => val.school);
+    data.schools = res.values.map((val) => JSON.parse(val.school));
     return data;
   }
-
+  async updateFcmToken(userId: string) {
+    const token = await Util.getToken();
+    const query = `
+    UPDATE "user"
+    SET fcm_token = "${token}"
+    WHERE id = "${userId}";
+  `;
+    const res = await this.executeQuery(query);
+    console.log("🚀 ~ SqliteApi ~ updateFCM Token:", res);
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+      fcm_token: token,
+      id: userId,
+    });
+  }
   async createUserDoc(
     user: TableTypes<"user">
   ): Promise<TableTypes<"user"> | undefined> {
