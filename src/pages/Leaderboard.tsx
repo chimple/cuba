@@ -31,6 +31,7 @@ import DropDown from "../components/DropDown";
 import LeaderboardRewards from "../components/leaderboard/LeaderboardRewards";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
+import { App } from "@capacitor/app";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -79,8 +80,15 @@ const Leaderboard: React.FC = () => {
   }, []);
 
   useEffect(() => {}, []);
-
+  const urlOpen=()=>{
+    App.addListener("appUrlOpen", (event) => {
+      const url = new URL(event.url);   
+        Util.setPathToBackButton(`${PAGES.HOME}?page=/${url.pathname.substring(1)}&classCode=${url.searchParams.get("classCode")}`, history);
+    });
+  }
+  App.addListener("appStateChange", urlOpen);
   async function inti() {
+  
     console.log("init method called");
     const weekOptions = [
       { text: t("Weekly"), type: LeaderboardDropdownList.WEEKLY },
@@ -126,7 +134,6 @@ const Leaderboard: React.FC = () => {
       // setIsLoading(false);
     }
   }
-
   async function fetchLeaderBoardData(
     currentStudent: TableTypes<"user">,
     leaderboardDropdownType: LeaderboardDropdownList,

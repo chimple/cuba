@@ -80,7 +80,16 @@ const Home: FC = () => {
       return localStorage.getItem("currentHeader") || HOMEHEADERLIST.HOME;
     }
   });
+  const appStateChange = (isActive) => {
+    urlOpenListenerEvent();
+    Util.onAppStateChange({isActive});
+  };
   useEffect(() => {
+    const student = Util.getCurrentStudent();
+    if (student == undefined) {
+      history.replace(PAGES.SELECT_MODE);
+      return;
+    }
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
     initData();
@@ -90,7 +99,9 @@ const Home: FC = () => {
     if (!!urlParams.get(CONTINUE)) {
       setCurrentHeader(currentHeader);
     }
-    App.addListener("appStateChange", Util.onAppStateChange);
+    App.addListener("appStateChange", ({ isActive }) =>
+      appStateChange(isActive)
+    );
   }, []);
 
   useEffect(() => {
@@ -108,6 +119,13 @@ const Home: FC = () => {
     fetchData();
     await isLinked();
     urlOpenListenerEvent();
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("page") === PAGES.JOIN_CLASS) {
+      setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
+    } else if (urlParams.get("page") === PAGES.LIVE_QUIZ) {
+      if (linked) setCurrentHeader(HOMEHEADERLIST.LIVEQUIZ);
+      else setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
+    }
   };
 
   function sortPlayedLessonDocByDate(playedLessonData: TableTypes<"result">[]) {
@@ -180,14 +198,18 @@ const Home: FC = () => {
     // setIsLoading(true);
     const student = Util.getCurrentStudent();
 
-    if (!student) {
-      history.replace(PAGES.SELECT_MODE);
-      return [];
-    }
     // const studentResult = await api.getStudentResult(student.id, false);
-    const linkedData = await api.getStudentClassesAndSchools(student.id);
+    const linkedData =
+      student != null
+        ? await api.getStudentClassesAndSchools(student.id)
+        : null;
 
-    if (!!linkedData && !!linkedData.classes && linkedData.classes.length > 0) {
+    if (
+      student != null &&
+      !!linkedData &&
+      !!linkedData.classes &&
+      linkedData.classes.length > 0
+    ) {
       const allAssignments: TableTypes<"assignment">[] = [];
 
       await Promise.all(
@@ -234,7 +256,7 @@ const Home: FC = () => {
     const currentStudent = await Util.getCurrentStudent();
 
     if (!currentStudent) {
-      history.replace(PAGES.SELECT_MODE);
+      // history.replace(PAGES.SELECT_MODE);
       return;
     }
     const currClass = schoolUtil.getCurrentClass();
@@ -608,7 +630,7 @@ const Home: FC = () => {
       favLessons = await api.getFavouriteLessons(currentStudent.id);
     }
 
-    setFavouriteLessons(favLessons)
+    setFavouriteLessons(favLessons);
     // const favouritesStartIndex = (tempPageNumber - 1) * favouritesPageSize;
     // const favouritesEndIndex = favouritesStartIndex + favouritesPageSize;
 
