@@ -758,7 +758,7 @@ export type Database = {
           participants: string[] | null
           results: Json | null
           school_id: string
-          starts_at: string | null
+          starts_at: string
           updated_at: string | null
         }
         Insert: {
@@ -772,7 +772,7 @@ export type Database = {
           participants?: string[] | null
           results?: Json | null
           school_id: string
-          starts_at?: string | null
+          starts_at: string
           updated_at?: string | null
         }
         Update: {
@@ -786,7 +786,7 @@ export type Database = {
           participants?: string[] | null
           results?: Json | null
           school_id?: string
-          starts_at?: string | null
+          starts_at?: string
           updated_at?: string | null
         }
         Relationships: [
@@ -823,35 +823,6 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "school"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      notifications: {
-        Row: {
-          body: string | null
-          created_at: string
-          id: string
-          user_id: string | null
-        }
-        Insert: {
-          body?: string | null
-          created_at?: string
-          id?: string
-          user_id?: string | null
-        }
-        Update: {
-          body?: string | null
-          created_at?: string
-          id?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user"
             referencedColumns: ["id"]
           },
         ]
