@@ -1465,8 +1465,68 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
-  updateRewardAsSeen(studentId: string): Promise<void> {
-    throw new Error("Method not implemented.");
+  async getUserSticker(userId: string): Promise<TableTypes<"user_sticker">[]> {
+    try {
+      const query = `select * from ${TABLES.UserSticker} where user_id = "${userId}"`;
+      const data = await this._db?.query(query);
+
+      if (!data || !data.values || data.values.length === 0) {
+        console.error("No sticker found for the given user id.");
+        return [];
+      }
+
+      const periodData = data.values;
+      return periodData;
+    } catch (error) {
+      console.error("Error fetching sticker by user ID:", error);
+      return [];
+    }
+  }
+  async getUserBadge(userId: string): Promise<TableTypes<"user_badge">[]> {
+    try {
+      const query = `select * from ${TABLES.UserBadge} where user_id = "${userId}"`;
+      const data = await this._db?.query(query);
+
+      if (!data || !data.values || data.values.length === 0) {
+        console.error("No badge found for the given user id.");
+        return [];
+      }
+
+      const periodData = data.values;
+      return periodData;
+    } catch (error) {
+      console.error("Error fetching user bade by user iD:", error);
+      return [];
+    }
+  }
+
+  async getUserBonus(userId: string): Promise<TableTypes<"user_bonus">[]> {
+    try {
+      const query = `select * from ${TABLES.UserBonus} where user_id = "${userId}"`;
+      const data = await this._db?.query(query);
+
+      if (!data || !data.values || data.values.length === 0) {
+        console.error("No bonus found for the given user id.");
+        return [];
+      }
+
+      const periodData = data.values;
+      return periodData;
+    } catch (error) {
+      console.error("Error fetching bonus by user ID:", error);
+      return [];
+    }
+  }
+
+  async updateRewardAsSeen(studentId: string): Promise<void> {
+    try {
+      const query = `UPDATE ${TABLES.UserSticker} SET is_seen = true WHERE user_id = "${studentId}" AND is_seen = false`;
+      await this._db?.query(query);
+      console.log(`Updated unseen rewards to seen for student ${studentId}`);
+    } catch (error) {
+      console.error("Error updating rewards as seen:", error);
+      throw new Error("Error updating rewards as seen.");
+    }
   }
 
   async getUserByDocId(

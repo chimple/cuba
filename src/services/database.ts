@@ -748,39 +748,45 @@ export type Database = {
       }
       live_quiz_room: {
         Row: {
-          assignment_id: string | null
-          class_id: string | null
-          course_id: string | null
+          assignment_id: string
+          class_id: string
+          course_id: string
           created_at: string | null
           id: string
           is_deleted: boolean | null
-          lesson_id: string | null
+          lesson_id: string
           participants: string[] | null
           results: Json | null
+          school_id: string
+          starts_at: string | null
           updated_at: string | null
         }
         Insert: {
-          assignment_id?: string | null
-          class_id?: string | null
-          course_id?: string | null
+          assignment_id: string
+          class_id: string
+          course_id: string
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
-          lesson_id?: string | null
+          lesson_id: string
           participants?: string[] | null
           results?: Json | null
+          school_id: string
+          starts_at?: string | null
           updated_at?: string | null
         }
         Update: {
-          assignment_id?: string | null
-          class_id?: string | null
-          course_id?: string | null
+          assignment_id?: string
+          class_id?: string
+          course_id?: string
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
-          lesson_id?: string | null
+          lesson_id?: string
           participants?: string[] | null
           results?: Json | null
+          school_id?: string
+          starts_at?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -810,6 +816,13 @@ export type Database = {
             columns: ["lesson_id"]
             isOneToOne: false
             referencedRelation: "lesson"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school"
             referencedColumns: ["id"]
           },
         ]
@@ -1269,6 +1282,7 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
+          is_seen: boolean | null
           updated_at: string | null
           user_id: string
         }
@@ -1277,6 +1291,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_seen?: boolean | null
           updated_at?: string | null
           user_id: string
         }
@@ -1285,6 +1300,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_seen?: boolean | null
           updated_at?: string | null
           user_id?: string
         }
@@ -1311,6 +1327,7 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
+          is_seen: boolean | null
           updated_at: string | null
           user_id: string
         }
@@ -1319,6 +1336,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_seen?: boolean | null
           updated_at?: string | null
           user_id: string
         }
@@ -1327,6 +1345,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_seen?: boolean | null
           updated_at?: string | null
           user_id?: string
         }
@@ -1394,6 +1413,7 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
+          is_seen: boolean | null
           sticker_id: string
           updated_at: string | null
           user_id: string
@@ -1402,6 +1422,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_seen?: boolean | null
           sticker_id: string
           updated_at?: string | null
           user_id: string
@@ -1410,6 +1431,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_seen?: boolean | null
           sticker_id?: string
           updated_at?: string | null
           user_id?: string
@@ -1449,9 +1471,42 @@ export type Database = {
       create_user: {
         Args: {
           phone_number: string
-          confirmation_token: string
         }
-        Returns: string
+        Returns: {
+          id: string
+          phone: string
+        }[]
+      }
+      delete_user: {
+        Args: {
+          uuid: string
+        }
+        Returns: boolean
+      }
+      find_similar_lessons: {
+        Args: {
+          search_text: string
+        }
+        Returns: {
+          id: string
+          name: string
+          image: string
+          outcome: string
+          plugin_type: string
+          status: string
+          cocos_subject_code: string
+          cocos_chapter_code: string
+          created_by: string
+          subject_id: string
+          target_age_from: number
+          target_age_to: number
+          language_id: string
+          created_at: string
+          updated_at: string
+          is_deleted: boolean
+          cocos_lesson_id: string
+          color: string
+        }[]
       }
       generate_otp_msg91: {
         Args: {
@@ -1470,6 +1525,25 @@ export type Database = {
           lessons_played: number
           total_score: number
           total_time_spent: number
+        }[]
+      }
+      get_results_by_assignment: {
+        Args: {
+          _assignment_id: string
+        }
+        Returns: {
+          assignment_id: string | null
+          correct_moves: number | null
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          lesson_id: string | null
+          school_id: string | null
+          score: number | null
+          student_id: string
+          time_spent: number | null
+          updated_at: string | null
+          wrong_moves: number | null
         }[]
       }
       get_user_by_phone: {
@@ -1496,8 +1570,8 @@ export type Database = {
       }
       join_live_quiz_now: {
         Args: {
-          assignment_id: string
-          student_id: string
+          _assignment_id: string
+          _student_id: string
         }
         Returns: string
       }

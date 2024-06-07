@@ -536,6 +536,33 @@ export interface ServiceApi {
   ): Promise<TableTypes<"reward"> | undefined>;
 
   /**
+   * Retrieves all stickers associated with a specified user.
+   * @param userId The unique identifier of the user whose stickers are to be retrieved.
+   * @returns A Promise resolving to an array of user stickers. Each sticker is an object corresponding to the 'user_sticker' table type.
+   * Note: The userId must be valid and correspond to an existing user.
+   * Note: If the user has no stickers, the returned Promise resolves to an empty array.
+   */
+  getUserSticker(userId: string): Promise<TableTypes<"user_sticker">[]>;
+
+  /**
+   * Retrieves all bonuses associated with a specified user.
+   * @param userId The unique identifier of the user whose bonuses are to be retrieved.
+   * @returns A Promise resolving to an array of user bonuses. Each bonus is an object corresponding to the 'user_bonus' table type.
+   * Note: The userId must be valid and correspond to an existing user.
+   * Note: If the user has no bonuses, the returned Promise resolves to an empty users.
+   */
+  getUserBonus(userId: string): Promise<TableTypes<"user_bonus">[]>;
+
+  /**
+   * Retrieves all badges associated with a specified user.
+   * @param userId The unique identifier of the user whose badges are to be retrieved.
+   * @returns A Promise resolving to an array of user badges. Each badge is an object corresponding to the 'user_badge' table type.
+   * Note: The userId must be valid and correspond to an existing user.
+   * Note: If the user has no badges, the returned Promise resolves to an empty array.
+   */
+  getUserBadge(userId: string): Promise<TableTypes<"user_badge">[]>;
+
+  /**
    * Updates the rewards of a student, marking all rewards as seen.
    * @param studentId - The ID of the student whose rewards need to be updated.
    * @returns A Promise that resolves with void when the update is complete.

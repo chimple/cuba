@@ -102,30 +102,32 @@ const LeaderboardBonus: FC = () => {
     const bonusDocs = await api.getBonusesByIds(bonusIds);
     return bonusDocs;
   };
-  const getUnlockedBonus = async (): Promise<
-    (TableTypes<"lesson"> | undefined)[]
-  > => {
-    // if (
-    //   !currentStudent.rewards ||
-    //   !currentStudent.rewards.bonus ||
-    //   currentStudent.rewards.bonus.length < 1
-    // ) {
-    //   return [];
-    // }
-    // let isSeen = true;
-    // const unlockedBonus = await Promise.all(
-    //   currentStudent.rewards.bonus.map((value) => {
-    //     if (!value.seen) {
-    //       isSeen = false;
-    //     }
-    //     return api.getLesson(value.id);
-    //   })
-    // );
-    // if (!isSeen) {
-    //   api.updateRewardAsSeen(currentStudent.id);
-    // }
-    // return unlockedBonus?.reverse();
-    return [];
+  const getUnlockedBonus = async (): Promise<TableTypes<"lesson">[]> => {
+    if (!currentStudent) return [];
+
+    try {
+      const userBonuses = await api.getUserBonus(currentStudent.id);
+      if (!userBonuses || userBonuses.length === 0) return [];
+
+      let isSeen = true;
+
+      const lessonIds = userBonuses.map((bonus) => {
+        if (!bonus.is_seen) {
+          isSeen = false;
+        }
+        return bonus.bonus_id;
+      });
+
+      const lessons = await api.getBonusesByIds(lessonIds);
+      if (!isSeen) {
+        await api.updateRewardAsSeen(currentStudent.id);
+      }
+
+      return lessons.reverse();
+    } catch (error) {
+      console.error("Error fetching unlocked bonuses:", error);
+      return [];
+    }
   };
 
   const getPrevBonus = async (): Promise<

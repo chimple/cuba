@@ -54,31 +54,35 @@ const LeaderboardStickers: FC = () => {
     });
     setstickers(stickerInfoArray);
   }
-  const getUnlockedstickers = async (): Promise<
-    (TableTypes<"sticker"> | undefined)[]
-  > => {
-    // if (
-    //   !currentStudent.rewards ||
-    //   !currentStudent.rewards.sticker ||
-    //   currentStudent.rewards.sticker.length < 1
-    // ) {
-    //   return [];
-    // }
-    // let isSeen = true;
-    // const unlockedSticker = await Promise.all(
-    //   currentStudent.rewards.sticker.map((value) => {
-    //     if (!value.seen) {
-    //       isSeen = false;
-    //     }
-    //     return api.getStickerById(value.id);
-    //   })
-    // );
-    // if (!isSeen) {
-    //   api.updateRewardAsSeen(currentStudent.id);
-    // }
-    // return unlockedSticker?.reverse();
-    return [];
+  const getUnlockedstickers = async (): Promise<TableTypes<"sticker">[]> => {
+    if (!currentStudent) return [];
+
+    try {
+      const userStickers = await api.getUserSticker(currentStudent.id);
+      if (!userStickers || userStickers.length === 0) return [];
+
+      let isSeen = true;
+
+      const stickerIds = userStickers.map((sticker) => {
+        if (!sticker.is_seen) {
+          isSeen = false;
+        }
+        return sticker.sticker_id;
+      });
+
+      const stickers = await api.getStickersByIds(stickerIds);
+      if (!isSeen) {
+        await api.updateRewardAsSeen(currentStudent.id);
+      }
+
+      console.log("getUnlockedstickers", stickers);
+      return stickers.reverse();
+    } catch (error) {
+      console.error("Error fetching unlocked stickers:", error);
+      return [];
+    }
   };
+
   const getStickers = async (): Promise<
     (TableTypes<"sticker"> | undefined)[]
   > => {

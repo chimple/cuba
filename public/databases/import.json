@@ -56502,6 +56502,10 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
+        },
+        {
+          "column": "is_seen",
+          "value": "INTEGER DEFAULT 0"
         }
       ]
     },
@@ -56530,6 +56534,10 @@
         },
         {
           "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        },
+        {
+          "column": "is_seen",
           "value": "INTEGER DEFAULT 0"
         }
       ]
@@ -56588,6 +56596,10 @@
         },
         {
           "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        },
+        {
+          "column": "is_seen",
           "value": "INTEGER DEFAULT 0"
         }
       ]
