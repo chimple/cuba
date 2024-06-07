@@ -24,11 +24,14 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"assignment"> | undefined> {
     return this.s.getAssignmentById(id);
   }
+  public getStudentResultsByAssignmentId(assignmentId: string) {
+    return this.s.getStudentResultsByAssignmentId(assignmentId);
+  }
 
   public liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (user: LiveQuizRoomObject | undefined) => void
-  ): Unsubscribe {
+    onDataChange: (roomDoc: TableTypes<"live_quiz_room"> | undefined) => void
+  ): void {
     return this.s.liveQuizListener(liveQuizRoomDocId, onDataChange);
   }
 
@@ -49,10 +52,10 @@ export class ApiHandler implements ServiceApi {
   }
 
   public async joinLiveQuiz(
-    studentId: string,
-    assignmentId: string
+    assignmentId: string,
+    studentId: string
   ): Promise<string | undefined> {
-    return this.s.joinLiveQuiz(studentId, assignmentId);
+    return this.s.joinLiveQuiz(assignmentId, studentId);
   }
   private constructor() {}
   public async updateRewardsForStudent(
@@ -78,7 +81,8 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getLeaderboardStudentResultFromB2CCollection(studentId);
   }
   public async getRewardsById(
-    id: number, periodType: string
+    id: number,
+    periodType: string
   ): Promise<TableTypes<"reward"> | undefined> {
     return this.s.getRewardsById(id, periodType);
   }
@@ -156,8 +160,11 @@ export class ApiHandler implements ServiceApi {
   public async getDataByInviteCode(inviteCode: number): Promise<any> {
     return await this.s.getDataByInviteCode(inviteCode);
   }
-  public async linkStudent(inviteCode: number,studentId:string): Promise<any> {
-    return await this.s.linkStudent(inviteCode,studentId);
+  public async linkStudent(
+    inviteCode: number,
+    studentId: string
+  ): Promise<any> {
+    return await this.s.linkStudent(inviteCode, studentId);
   }
   public async getStudentResult(
     studentId: string,
@@ -282,15 +289,12 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"course">[]> {
     return await this.s.getCoursesForClassStudent(classId);
   }
-  
   public async getLesson(
     id: string
   ): Promise<TableTypes<"lesson"> | undefined> {
     return await this.s.getLesson(id);
   }
-  public async getBonusesByIds(
-    ids: string[]
-  ): Promise<TableTypes<"lesson">[]> {
+  public async getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]> {
     return await this.s.getBonusesByIds(ids);
   }
 
@@ -310,7 +314,7 @@ export class ApiHandler implements ServiceApi {
   }
   public async getLiveQuizRoomDoc(
     liveQuizRoomDocId: string
-  ): Promise<DocumentData | undefined> {
+  ): Promise<TableTypes<"live_quiz_room"> | undefined> {
     return await this.s.getLiveQuizRoomDoc(liveQuizRoomDocId);
   }
   public async getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
@@ -365,7 +369,7 @@ export class ApiHandler implements ServiceApi {
 
   updateFcmToken(userId: string) {
     return this.s.updateFcmToken(userId);
-  } 
+  }
 
   public async createProfile(
     name: string,

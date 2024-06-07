@@ -16,6 +16,9 @@ const LiveQuiz: React.FC = () => {
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
   }>();
+  const [assignments, setAssignments] = useState<TableTypes<"assignment">[]>(
+    []
+  );
   const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
@@ -53,6 +56,7 @@ const LiveQuiz: React.FC = () => {
           allLiveQuizzes.push(...res);
         })
       );
+      setAssignments(allLiveQuizzes);
       const _lessons: TableTypes<"lesson">[] = [];
       await Promise.all(
         allLiveQuizzes.map(async (_assignment) => {
@@ -63,7 +67,7 @@ const LiveQuiz: React.FC = () => {
           }
         })
       );
-
+      console.log("all the live quizzes...", _lessons);
       setLiveQuizzes(_lessons);
       setLoading(false);
     } else {
@@ -88,6 +92,7 @@ const LiveQuiz: React.FC = () => {
                 startIndex={0}
                 showSubjectName={true}
                 showChapterName={true}
+                assignments={assignments}
                 showDate={true}
               />
             </div>

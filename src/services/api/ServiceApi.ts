@@ -196,7 +196,7 @@ export interface ServiceApi {
    */
   getLiveQuizRoomDoc(
     liveQuizRoomDocId: string
-  ): Promise<DocumentData | undefined>;
+  ): Promise<TableTypes<"live_quiz_room"> | undefined>;
 
   /**
    * Create a Row in FavoriteLesson with given params
@@ -463,8 +463,8 @@ export interface ServiceApi {
    */
   liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (user: LiveQuizRoomObject | undefined) => void
-  ): Unsubscribe;
+    onDataChange: (roomDoc: TableTypes<"live_quiz_room"> | undefined) => void
+  ): void;
 
   /**
    * Updates the live quiz results for a specific student in a live quiz room.
@@ -493,10 +493,18 @@ export interface ServiceApi {
    *          or undefined if an error occurs during the process.
    */
   joinLiveQuiz(
-    studentId: string,
-    assignmentId: string
+    assignmentId: string,
+    studentId: string
   ): Promise<string | undefined>;
-
+  /**
+   * getting the results based on assignmentId.
+   *
+   * @param assignmentId - The unique identifier of the assignment document.
+   * @returns {Assignment}  A promise that resolves `Assignment` for the with given `id`.
+   */
+  getStudentResultsByAssignmentId(
+    assignmentId: string
+  ): Promise<TableTypes<"result">[]>;
   /**
    * Gives Assignment for given a Assignment firebase doc Id
    * @param {string} id - Assignment firebase doc id
