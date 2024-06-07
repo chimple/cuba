@@ -233,7 +233,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -1616,5 +1616,70 @@ export class SqliteApi implements ServiceApi {
       });
     }
     return resultMap;
+  }
+  async getRecommendedLessons(studentId: string): Promise<any[] | undefined> {
+    // This Query will give last played lessons
+    const lastPlayedLessonsQuery = `
+    select
+  id,
+  assignment_id,
+  course_id,
+  chapter_id,
+  lesson_id,
+  score,
+  updated_at,
+  cocos_subject_code,
+  cocos_chapter_code,
+  cocos_lesson_id,
+  chapter_name,
+  lesson_name
+from
+  (
+    select
+      r.id,
+      r.assignment_id,
+      c.course_id,
+      c.id as chapter_id,
+      r.lesson_id,
+      r.score,
+      r.updated_at,
+      l.name as lesson_name,
+      l.cocos_subject_code,
+      l.cocos_chapter_code,
+      l.cocos_lesson_id,
+      c.name as chapter_name,
+      row_number() over (
+        partition by
+          r.student_id,
+          c.course_id
+        order by
+          r.updated_at desc
+      ) as rn
+    FROM ${TABLES.Result} r
+      JOIN ${TABLES.Lesson} l ON r.lesson_id = l.id
+      JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
+      JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
+    where
+      r.student_id = '${studentId}'
+  ) as subquery
+where
+  rn = 1;
+  `;
+    console.log("lastPlayedLessonsQuery ", lastPlayedLessonsQuery);
+
+    const res = await this._db?.query(lastPlayedLessonsQuery);
+    console.log("const res =  ", res?.values);
+
+    // let resultMap: Map<string, string> = new Map<string, string>();
+    // if (res && res.values) {
+    //   res.values.forEach((result) => {
+    //     const courseId = result.course_id;
+    //     if (!resultMap[courseId]) {
+    //       resultMap[courseId] = [];
+    //     }
+    //     resultMap[courseId].push(result);
+    //   });
+    // }
+    return res?.values;
   }
 }

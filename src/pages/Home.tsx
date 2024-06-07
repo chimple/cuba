@@ -12,6 +12,7 @@ import {
   SHOW_DAILY_PROGRESS_FLAG,
   IS_CONECTED,
   TableTypes,
+  RECOMMENDATIONS,
 } from "../common/constants";
 import "./Home.css";
 import LessonSlider from "../components/LessonSlider";
@@ -216,7 +217,7 @@ const Home: FC = () => {
       setPendingLiveQuizCount(liveQuizCount);
       setPendingAssignmentsCount(count);
 
-      // setDataCourse(reqLes);
+      setDataCourse(reqLes);
       // storeRecommendationsInLocalStorage(reqLes);
       // setIsLoading(true);
       return reqLes;
@@ -340,206 +341,47 @@ const Home: FC = () => {
     }
   };
 
+  const sortLessonResultByDate = (lesMap: {
+    [lessonDocId: string]: TableTypes<"result">;
+  }) => {
+    if (!lesMap) {
+      return;
+    }
+    console.log("Object.entries(lesMap)", lesMap, Object.entries(lesMap));
+    const lesList = Object.entries(lesMap).sort((a, b) => {
+      if (new Date(a[1].updated_at ?? "") === new Date(b[1].updated_at ?? "")) {
+        return 0;
+      } else {
+        return new Date(a[1].updated_at ?? "") > new Date(b[1].updated_at ?? "")
+          ? -1
+          : 1;
+      }
+    });
+
+    // Rebuild the map after sorting it.
+    let tempLesMap: {
+      [lessonDocId: string]: TableTypes<"result">;
+    } = {};
+    lesList.forEach((res) => (tempLesMap[res[0]] = res[1]));
+    return tempLesMap;
+  };
+
   async function getCourseRecommendationLessons(
     currentStudent: TableTypes<"user">,
     currClass: TableTypes<"class"> | undefined
   ): Promise<TableTypes<"lesson">[]> {
-    //   const recommendationsInLocal = localStorage.getItem(
-    //     `${currentStudentDocId}-${RECOMMENDATIONS}`
-    //   );
-    //   let existingRecommendations: any[] = [];
+    console.log("async function getCourseRecommendationLessons( ");
+    // const allCourses: TableTypes<"course">[] =
+    //   await api.getCoursesForParentsStudent(currentStudent.id);
+    // console.log("allCourses ", allCourses);
+    // const lessons = await api.getAllLessonsForCourse(allCourses[0].id);
+    // console.log("const lessons ", lessons);
+    let tempRecommendedLesson = await api.getRecommendedLessons(
+      currentStudent.id
+    );
+    console.log("let tempRecommendedLesson ", tempRecommendedLesson);
 
-    //   if (recommendationsInLocal !== null) {
-    //     existingRecommendations = JSON.parse(recommendationsInLocal);
-    //   }
-
-    //   if (!lessonResultMap && existingRecommendations.length === 0) {
-    //     let lessonMap = new Map();
-
-    //     for (let i = 0; i < recommendations.length; i++) {
-    //       const lesson = recommendations[i];
-    //       if (lesson.cocosSubjectCode && lesson.id) {
-    //         lessonMap[lesson.cocosSubjectCode] = lesson.id;
-    //       }
-    //     }
-
-    //     localStorage.setItem(
-    //       `${currentStudentDocId}-${RECOMMENDATIONS}`,
-    //       JSON.stringify(lessonMap)
-    //     );
-    //     setDataCourse(existingRecommendations.concat(lessonMap) as TableTypes<"lesson">[]);
-    //   } else {
-    //     setDataCourse(existingRecommendations);
-    //   }
-
-    let reqLes: TableTypes<"lesson">[] = [];
-    setIsLoading(true);
-    let tempResultLessonMap:
-      | { [lessonDocId: string]: TableTypes<"result"> }
-      | undefined = {};
-    const sortLessonResultByDate = (lesMap: {
-      [lessonDocId: string]: TableTypes<"result">;
-    }) => {
-      if (!lesMap) {
-        return;
-      }
-      console.log("Object.entries(lesMap)", lesMap, Object.entries(lesMap));
-      const lesList = Object.entries(lesMap).sort((a, b) => {
-        if (
-          new Date(a[1].updated_at ?? "") === new Date(b[1].updated_at ?? "")
-        ) {
-          return 0;
-        } else {
-          return new Date(a[1].updated_at ?? "") >
-            new Date(b[1].updated_at ?? "")
-            ? -1
-            : 1;
-        }
-      });
-
-      // Rebuild the map after sorting it.
-      let tempLesMap: {
-        [lessonDocId: string]: TableTypes<"result">;
-      } = {};
-      lesList.forEach((res) => (tempLesMap[res[0]] = res[1]));
-      return tempLesMap;
-    };
-    const currMode = await schoolUtil.getCurrMode();
-    console.log(currMode);
-    let sortLessonResultMap:
-      | {
-          [lessonDocId: string]: TableTypes<"result">;
-        }
-      | undefined;
-    const res = await api.getStudentResultInMap(currentStudent.id);
-    // console.log("tempResultLessonMap = res;", JSON.stringify(res));
-    tempResultLessonMap = res;
-    setLessonResultMap(res);
-    if (tempResultLessonMap) {
-      console.log("tempResultLessonMap", tempResultLessonMap);
-      sortLessonResultMap = sortLessonResultByDate(tempResultLessonMap);
-      console.log("sortLessonResultMap ", sortLessonResultMap);
-    }
-
-    const courses: TableTypes<"course">[] = await (currMode === MODES.SCHOOL &&
-    !!currClass
-      ? api.getCoursesForClassStudent(currClass.id)
-      : api.getCoursesForParentsStudent(currentStudent.id));
-    // setCourses(courses);
-    // for (const tempCourse of courses) {
-    //   setIsLoading(true);
-    //   if (tempCourse.chapters.length <= 0) {
-    //     console.log("Chapters are empty", tempCourse);
-    //     continue;
-    //   }
-    //   let islessonPushed = false;
-    //   if (tempCourse.chapters.length <= 0) {
-    //     console.log("Chapter are empty", tempCourse);
-    //     continue;
-    //   }
-    //   if (
-    //     tempResultLessonMap === undefined &&
-    //     tempCourse.chapters[0].id === tempCourse.courseCode + "_quiz"
-    //   ) {
-    //     const tempLes = tempCourse.chapters[0].lessons;
-    //     for (let i = 0; i < tempLes.length; i++) {
-    //       const element = tempLes[i];
-    //       if (element instanceof DocumentReference) {
-    //         const lessonObj = await api.getLessonFromCourse(
-    //           tempCourse,
-    //           element.id
-    //         );
-    //         // await res.lessons[tempCourse.courseCode][l.id];
-    //         if (lessonObj) {
-    //           let chapterTitle = tempCourse.chapters[0].title;
-    //           lessonObj.chapterTitle = chapterTitle;
-    //           console.log(lessonObj, "lessons pushed");
-    //           reqLes.push(lessonObj as Lesson);
-    //           // setDataCourse(reqLes);
-    //         }
-    //       } else {
-    //         console.log("Wrong place");
-    //         console.log(element, "lessons pushed");
-    //         reqLes.push(element as Lesson);
-    //         // setDataCourse(reqLes);
-    //       }
-    //     }
-    //     console.log("pushed lessons", reqLes);
-    //   } else {
-    //     for (let c = 0; c < tempCourse.chapters.length; c++) {
-    //       if (islessonPushed) {
-    //         break;
-    //       }
-    //       const chapter = tempCourse.chapters[c];
-    //       // console.log("chapter in for ", chapter);
-    //       for (let l = 0; l < chapter.lessons.length; l++) {
-    //         const lesson = chapter.lessons[l];
-    //         // console.log("lesson id", lesson.id);
-    //         if (!tempResultLessonMap || !tempResultLessonMap[lesson.id]) {
-    //           // if (lesson instanceof DocumentReference) {
-    //           const lessonObj = await api.getLessonFromCourse(
-    //             tempCourse,
-    //             lesson.id
-    //           );
-    //           // await res.lessons[tempCourse.courseCode][
-    //           //   lesson.id
-    //           // ];
-    //           // console.log(
-    //           //   "await FirebaseApi.i.getLessonFromCourse(tempCourse, lesson.id)",
-    //           //   await FirebaseApi.i.getLessonFromCourse(tempCourse, lesson.id)
-    //           // );
-
-    //           if (lessonObj) {
-    //             let chapterTitle = chapter.title;
-    //             lessonObj.chapterTitle = chapterTitle;
-    //             console.log(lessonObj, "lessons pushed");
-    //             reqLes.push(lessonObj as Lesson);
-    //           }
-    //           // } else {
-    //           //   console.log(lesson, "lessons pushed");
-    //           //   reqLes.push(lesson);
-    //           // }
-    //           console.log("DWSGSGSG");
-    //           // setDataCourse(reqLes);
-    //           islessonPushed = true;
-    //           break;
-    //         }
-    //       }
-    //     }
-    //     islessonPushed = false;
-    //   }
-
-    //   //Last Played Lessons
-    //   islessonPushed = false;
-    //   if (!sortLessonResultMap) {
-    //     console.log("ERERERER");
-    //     // setDataCourse(reqLes);
-    //     setIsLoading(false);
-    //     continue;
-    //   }
-    //   Object.entries(sortLessonResultMap).forEach(async (v, k) => {
-    //     const lessonObj = await api.getLessonFromCourse(tempCourse, v[0]);
-    //     if (
-    //       lessonObj?.subject.id === tempCourse.subject.id &&
-    //       !islessonPushed
-    //     ) {
-    //       console.log("last played ", lessonObj, "lessons pushed");
-    //       reqLes.push(lessonObj as Lesson);
-    //       islessonPushed = true;
-    //       // break;
-    //       console.log("reqLes.", reqLes);
-    //       // setDataCourse(reqLes);
-    //       // return;
-    //     }
-    //   });
-    //   console.log("reqLes in if.", reqLes);
-    // }
-    console.log("reqLes outside.", reqLes);
-    // setDataCourse(reqLes);
-    // storeRecommendationsInLocalStorage(reqLes);
-    setIsLoading(false);
-    // return sortLessonResultMap;
-    return reqLes;
+    return [];
   }
 
   async function onHeaderIconClick(selectedHeader: any) {
@@ -608,7 +450,7 @@ const Home: FC = () => {
       favLessons = await api.getFavouriteLessons(currentStudent.id);
     }
 
-    setFavouriteLessons(favLessons)
+    setFavouriteLessons(favLessons);
     // const favouritesStartIndex = (tempPageNumber - 1) * favouritesPageSize;
     // const favouritesEndIndex = favouritesStartIndex + favouritesPageSize;
 
@@ -678,7 +520,7 @@ const Home: FC = () => {
           <div className="space-between">
             {currentHeader === HOMEHEADERLIST.HOME && !!canShowAvatar ? (
               <ChimpleAvatar
-                recommadedSuggestion={[]}
+                recommadedSuggestion={dataCourse}
                 style={{
                   marginBottom: "2vh",
                   display: "flex",

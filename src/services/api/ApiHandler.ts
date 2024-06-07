@@ -54,7 +54,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<string | undefined> {
     return this.s.joinLiveQuiz(studentId, assignmentId);
   }
-  private constructor() {}
+  private constructor() { }
   public async updateRewardsForStudent(
     studentId: string,
     unlockedReward: LeaderboardRewards
@@ -141,8 +141,8 @@ export class ApiHandler implements ServiceApi {
   public async getDataByInviteCode(inviteCode: number): Promise<any> {
     return await this.s.getDataByInviteCode(inviteCode);
   }
-  public async linkStudent(inviteCode: number,studentId:string): Promise<any> {
-    return await this.s.linkStudent(inviteCode,studentId);
+  public async linkStudent(inviteCode: number, studentId: string): Promise<any> {
+    return await this.s.linkStudent(inviteCode, studentId);
   }
   public async getStudentResult(
     studentId: string,
@@ -267,7 +267,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"course">[]> {
     return await this.s.getCoursesForClassStudent(classId);
   }
-  
+
   public async getLesson(
     id: string
   ): Promise<TableTypes<"lesson"> | undefined> {
@@ -350,7 +350,7 @@ export class ApiHandler implements ServiceApi {
 
   updateFcmToken(userId: string) {
     return this.s.updateFcmToken(userId);
-  } 
+  }
 
   public async createProfile(
     name: string,
@@ -468,5 +468,8 @@ export class ApiHandler implements ServiceApi {
 
   syncDB(): Promise<boolean> {
     return this.s.syncDB();
+  }
+  async getRecommendedLessons(studentId: string): Promise<any[] | undefined> {
+    return this.s.getRecommendedLessons(studentId);
   }
 }

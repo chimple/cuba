@@ -197,7 +197,7 @@ export interface ServiceApi {
   getLiveQuizRoomDoc(
     liveQuizRoomDocId: string
   ): Promise<DocumentData | undefined>;
-  
+
   /**
    * Create a Row in FavoriteLesson with given params
    * @param studentId 
@@ -206,7 +206,7 @@ export interface ServiceApi {
   updateFavoriteLesson(
     studentId: string,
     lessonId: string
-  ): Promise<TableTypes<"favorite_lesson">>; 
+  ): Promise<TableTypes<"favorite_lesson">>;
   /**
    * Creates a Document in Result collection with the given params
    * student: User
@@ -391,7 +391,7 @@ export interface ServiceApi {
    * @param studentId The current student Id
    * @returns A promise that resolves to the student.
    */
-  linkStudent(inviteCode: number,studentId:string): Promise<any>;
+  linkStudent(inviteCode: number, studentId: string): Promise<any>;
 
   /**
    * This function gives Leaderboard results of b2c or b2b Users
@@ -603,4 +603,15 @@ export interface ServiceApi {
    */
 
   syncDB(): Promise<boolean>;
+
+  /**
+   * Function to get Recommended Lessons.
+   *
+   * @param studentId - The current student id.
+   * @returns A promise returns list of Recommended Lessons to home page.
+   */
+  getRecommendedLessons(
+    studentId: string
+  ): Promise<any[] | undefined>;
+
 }

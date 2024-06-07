@@ -293,7 +293,7 @@ export class SupabaseApi implements ServiceApi {
   getLesson(id: string): Promise<TableTypes<"lesson"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]>{
+  getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
   getLessonsForChapter(chapterId: string): Promise<TableTypes<"lesson">[]> {
@@ -429,7 +429,7 @@ export class SupabaseApi implements ServiceApi {
       throw new Error("Invalid inviteCode");
     }
   }
-  async linkStudent(inviteCode: number,studentId:string): Promise<any> {
+  async linkStudent(inviteCode: number, studentId: string): Promise<any> {
     try {
 
       if (!studentId) {
@@ -633,7 +633,7 @@ export class SupabaseApi implements ServiceApi {
   getAssignmentById(id: string): Promise<TableTypes<"assignment"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]>{
+  getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]> {
     throw new Error("Method not implemented.");
   }
   getStickersByIds(ids: string[]): Promise<TableTypes<"sticker">[]> {
@@ -655,6 +655,9 @@ export class SupabaseApi implements ServiceApi {
     return res?.data?.[0];
   }
   updateRewardsForStudent(studentId: string, unlockReward: LeaderboardRewards) {
+    throw new Error("Method not implemented.");
+  }
+  getRecommendedLessons(studentId: string): Promise<any[] | undefined> {
     throw new Error("Method not implemented.");
   }
 }
