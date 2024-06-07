@@ -86,7 +86,7 @@ const Home: FC = () => {
   };
   useEffect(() => {
     const student = Util.getCurrentStudent();
-    if (student == undefined) {
+    if (!student) {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
