@@ -11,6 +11,7 @@ import {
   LANGUAGE,
   LeaderboardDropdownList,
   HOMEHEADERLIST,
+  CURRENT_MODE,
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import BackButton from "../components/common/BackButton";
@@ -590,7 +591,16 @@ const Leaderboard: React.FC = () => {
                     await i18n.changeLanguage(tempLangCode);
                   }
                 }
-                Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
+                const currentMOde = localStorage.getItem(CURRENT_MODE);
+                if (currentMOde === MODES.PARENT) {
+                  Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
+                } else {
+                  Util.setPathToBackButton(PAGES.SELECT_MODE, history);
+                  Util.setPathToBackButton(
+                    PAGES.SELECT_MODE + "?tab=" + "student",
+                    history
+                  );
+                }
               }}
             >
               <img
