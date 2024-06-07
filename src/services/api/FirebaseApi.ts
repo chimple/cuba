@@ -523,7 +523,7 @@ export class FirebaseApi implements ServiceApi {
       rewards: unlockedReward,
     });
   };
- public updateFcmToken= async (userId: string) => {
+  public updateFcmToken = async (userId: string) => {
     throw new Error("Method not implemented.");
   }
 
@@ -1089,7 +1089,7 @@ export class FirebaseApi implements ServiceApi {
     return result.data;
   }
 
-  async linkStudent(inviteCode: number,studentId:string): Promise<any> {
+  async linkStudent(inviteCode: number, studentId: string): Promise<any> {
     const functions = getFunctions();
     const generateInviteCode = httpsCallable(functions, "LinkStudent");
     const result = await generateInviteCode({
@@ -1774,87 +1774,87 @@ export class FirebaseApi implements ServiceApi {
     return querySnapshot;
   }
   //getting lessons for quiz
-  public async getLiveQuizLessons(
-    classId: string,
-    studentId: string
-  ): Promise<TableTypes<"assignment">[]> {
-    try {
-      const now = new Date();
-      const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
+  // public async getLiveQuizLessons(
+  //   classId: string,
+  //   studentId: string
+  // ): Promise<TableTypes<"assignment">[]> {
+  //   try {
+  //     const now = new Date();
+  //     const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
 
-      const q = query(
-        collection(this._db, CollectionIds.ASSIGNMENT),
-        where("class", "==", classDocRef),
-        where("type", "==", LIVE_QUIZ),
-        where("startsAt", "<=", now),
-        orderBy("startsAt", "desc")
-      );
-      console.log("query result:", q);
+  //     const q = query(
+  //       collection(this._db, CollectionIds.ASSIGNMENT),
+  //       where("class", "==", classDocRef),
+  //       where("type", "==", LIVE_QUIZ),
+  //       where("startsAt", "<=", now),
+  //       orderBy("startsAt", "desc")
+  //     );
+  //     console.log("query result:", q);
 
-      const liveQuizLessons: Assignment[] = [];
-      const liveQuizDocs = await getDocs(q);
-      console.log("live quiz count", liveQuizDocs.size);
+  //     const liveQuizLessons: Assignment[] = [];
+  //     const liveQuizDocs = await getDocs(q);
+  //     console.log("live quiz count", liveQuizDocs.size);
 
-      if (liveQuizDocs.size > 0) {
-        liveQuizDocs.docs.forEach((_assignment) => {
-          const endsAt = _assignment.get("endsAt");
-          const endsAtDate = endsAt.toDate();
-          if (endsAtDate > now) {
-            const assignment = _assignment.data() as Assignment;
-            assignment.docId = _assignment.id;
-            const liveQuiz = _assignment.data() as Assignment;
-            liveQuiz.docId = _assignment.id;
-            const doneLiveQuiz = liveQuiz.completedStudents?.find(
-              (data) => data === studentId
-            );
-            let tempLiveQuizCompletedIds = localStorage.getItem(
-              ASSIGNMENT_COMPLETED_IDS
-            );
-            let liveQuizcompletedIds = JSON.parse(
-              tempLiveQuizCompletedIds ?? "{}"
-            );
-            console.log("liveQuizcompletedIds:", liveQuizcompletedIds);
+  //     if (liveQuizDocs.size > 0) {
+  //       liveQuizDocs.docs.forEach((_assignment) => {
+  //         const endsAt = _assignment.get("endsAt");
+  //         const endsAtDate = endsAt.toDate();
+  //         if (endsAtDate > now) {
+  //           const assignment = _assignment.data() as Assignment;
+  //           assignment.docId = _assignment.id;
+  //           const liveQuiz = _assignment.data() as Assignment;
+  //           liveQuiz.docId = _assignment.id;
+  //           const doneLiveQuiz = liveQuiz.completedStudents?.find(
+  //             (data) => data === studentId
+  //           );
+  //           let tempLiveQuizCompletedIds = localStorage.getItem(
+  //             ASSIGNMENT_COMPLETED_IDS
+  //           );
+  //           let liveQuizcompletedIds = JSON.parse(
+  //             tempLiveQuizCompletedIds ?? "{}"
+  //           );
+  //           console.log("liveQuizcompletedIds:", liveQuizcompletedIds);
 
-            const doneliveQuizLocally = liveQuizcompletedIds[studentId]?.find(
-              (assignmentId) => assignmentId === liveQuiz.docId
-            );
-            console.log("doneliveQuizLocally:", doneliveQuizLocally);
+  //           const doneliveQuizLocally = liveQuizcompletedIds[studentId]?.find(
+  //             (assignmentId) => assignmentId === liveQuiz.docId
+  //           );
+  //           console.log("doneliveQuizLocally:", doneliveQuizLocally);
 
-            if (!doneLiveQuiz && !doneliveQuizLocally)
-              liveQuizLessons.push(liveQuiz);
-          }
-        });
-      } else {
-        console.log("Live Quiz has ended. Skipping.");
-      }
-      console.log("Live quiz lessons", liveQuizLessons);
-      return liveQuizLessons;
-    } catch (error) {
-      console.error("Error fetching live quiz lessons:", error);
-      throw new Error("Error fetching live quiz lessons");
-    }
-  }
+  //           if (!doneLiveQuiz && !doneliveQuizLocally)
+  //             liveQuizLessons.push(liveQuiz);
+  //         }
+  //       });
+  //     } else {
+  //       console.log("Live Quiz has ended. Skipping.");
+  //     }
+  //     console.log("Live quiz lessons", liveQuizLessons);
+  //     return liveQuizLessons;
+  //   } catch (error) {
+  //     console.error("Error fetching live quiz lessons:", error);
+  //     throw new Error("Error fetching live quiz lessons");
+  //   }
+  // }
 
-  public async getLiveQuizRoomDoc(
-    liveQuizRoomDocId: string
-  ): Promise<DocumentData | undefined> {
-    try {
-      const liveQuizRoomDoc = await getDoc(
-        doc(this._db, `${CollectionIds.LIVE_QUIZ_ROOM}/${liveQuizRoomDocId}`)
-      );
+  // public async getLiveQuizRoomDoc(
+  //   liveQuizRoomDocId: string
+  // ): Promise<DocumentData | undefined> {
+  //   try {
+  //     const liveQuizRoomDoc = await getDoc(
+  //       doc(this._db, `${CollectionIds.LIVE_QUIZ_ROOM}/${liveQuizRoomDocId}`)
+  //     );
 
-      if (liveQuizRoomDoc.exists()) {
-        console.log("inside if..");
-        const res = liveQuizRoomDoc.data() as LiveQuizRoomObject;
-        console.log("res", res);
-        return res;
-      }
-    } catch (error) {
-      console.error("Error fetching LiveQuizRoom data:", error);
-      throw error;
-    }
-    return undefined;
-  }
+  //     if (liveQuizRoomDoc.exists()) {
+  //       console.log("inside if..");
+  //       const res = liveQuizRoomDoc.data() as LiveQuizRoomObject;
+  //       console.log("res", res);
+  //       return res;
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching LiveQuizRoom data:", error);
+  //     throw error;
+  //   }
+  //   return undefined;
+  // }
 
   public async getCoursesFromLesson(
     lessonId: string
@@ -1871,67 +1871,67 @@ export class FirebaseApi implements ServiceApi {
     return tmpCourse;
   }
 
-  public liveQuizListener(
-    liveQuizRoomDocId: string,
-    onDataChange: (roomDoc: LiveQuizRoomObject | undefined) => void
-  ): Unsubscribe {
-    const unSub = onSnapshot(
-      doc(this._db, CollectionIds.LIVE_QUIZ_ROOM, liveQuizRoomDocId),
-      (doc) => {
-        if (doc.exists()) {
-          const roomDoc = doc.data() as LiveQuizRoomObject;
-          if (!!roomDoc) {
-            roomDoc.docId = doc.id;
-          }
-          onDataChange(roomDoc);
-        } else {
-          onDataChange(undefined);
-        }
-      }
-    );
-    return unSub;
-  }
-  public async updateLiveQuiz(
-    roomDocId: string,
-    studentId: string,
-    questionId: string,
-    timeSpent: number,
-    score: number
-  ): Promise<void> {
-    try {
-      await updateDoc(doc(this._db, CollectionIds.LIVE_QUIZ_ROOM, roomDocId), {
-        [`results.${studentId}`]: arrayUnion({
-          score: score,
-          timeSpent: timeSpent,
-          id: questionId,
-        }),
-      });
-    } catch (error) {
-      console.log(
-        "🚀 ~ file: FirebaseApi.ts:1571 ~ FirebaseApi ~ error:",
-        error
-      );
-    }
-  }
-  public async joinLiveQuiz(
-    studentId: string,
-    assignmentId: string
-  ): Promise<string | undefined> {
-    try {
-      const functions = getFunctions();
-      const joinLiveQuiz = httpsCallable(functions, "joinLiveQuiz");
-      const result = await joinLiveQuiz({
-        studentId,
-        assignmentId,
-      });
-      return result.data as string;
-    } catch (error) {
-      console.log(
-        "🚀 ~ file: FirebaseApi.ts:1573 ~ FirebaseApi ~ error:",
-        error
-      );
-    }
-  }
+  // public liveQuizListener(
+  //   liveQuizRoomDocId: string,
+  //   onDataChange: (roomDoc: LiveQuizRoomObject | undefined) => void
+  // ): Unsubscribe {
+  //   const unSub = onSnapshot(
+  //     doc(this._db, CollectionIds.LIVE_QUIZ_ROOM, liveQuizRoomDocId),
+  //     (doc) => {
+  //       if (doc.exists()) {
+  //         const roomDoc = doc.data() as LiveQuizRoomObject;
+  //         if (!!roomDoc) {
+  //           roomDoc.docId = doc.id;
+  //         }
+  //         onDataChange(roomDoc);
+  //       } else {
+  //         onDataChange(undefined);
+  //       }
+  //     }
+  //   );
+  //   return unSub;
+  // }
+  // public async updateLiveQuiz(
+  //   roomDocId: string,
+  //   studentId: string,
+  //   questionId: string,
+  //   timeSpent: number,
+  //   score: number
+  // ): Promise<void> {
+  //   try {
+  //     await updateDoc(doc(this._db, CollectionIds.LIVE_QUIZ_ROOM, roomDocId), {
+  //       [`results.${studentId}`]: arrayUnion({
+  //         score: score,
+  //         timeSpent: timeSpent,
+  //         id: questionId,
+  //       }),
+  //     });
+  //   } catch (error) {
+  //     console.log(
+  //       "🚀 ~ file: FirebaseApi.ts:1571 ~ FirebaseApi ~ error:",
+  //       error
+  //     );
+  //   }
+  // }
+  // public async joinLiveQuiz(
+  //   studentId: string,
+  //   assignmentId: string
+  // ): Promise<string | undefined> {
+  //   try {
+  //     const functions = getFunctions();
+  //     const joinLiveQuiz = httpsCallable(functions, "joinLiveQuiz");
+  //     const result = await joinLiveQuiz({
+  //       studentId,
+  //       assignmentId,
+  //     });
+  //     return result.data as string;
+  //   } catch (error) {
+  //     console.log(
+  //       "🚀 ~ file: FirebaseApi.ts:1573 ~ FirebaseApi ~ error:",
+  //       error
+  //     );
+  //   }
+  // }
   public async getAssignmentById(
     id: string
   ): Promise<TableTypes<"assignment"> | undefined> {
