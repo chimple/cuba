@@ -1083,7 +1083,7 @@ export class FirebaseApi implements ServiceApi {
     return result.data;
   }
 
-  async linkStudent(inviteCode: number,studentId:string): Promise<any> {
+  async linkStudent(inviteCode: number, studentId: string): Promise<any> {
     const functions = getFunctions();
     const generateInviteCode = httpsCallable(functions, "LinkStudent");
     const result = await generateInviteCode({
@@ -2023,5 +2023,9 @@ export class FirebaseApi implements ServiceApi {
     await updateDoc(studentDocRef, {
       rewards: finalRewards,
     });
+  }
+
+  searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
+    throw new Error("Method not implemented.");
   }
 }

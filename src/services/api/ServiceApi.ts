@@ -602,4 +602,23 @@ export interface ServiceApi {
    */
 
   syncDB(): Promise<boolean>;
+
+  /**
+ * Searches for lessons that match the given search string in their name or outcome fields.
+ *
+ * @param searchString - The text to search for in the name or outcome of lessons.
+ * @returns A promise that resolves to an array of lessons that match the search criteria. Each lesson is an object containing fields as defined in the "lesson" table.
+ *
+ * The search is performed using a PostgreSQL function called find_similar_lessons, which returns lessons with similarity scores based on the search string.
+ * The function looks for matches in both the name and outcome fields of the lessons.
+ * The results are ordered by their similarity scores in descending order, and limited to a certain number of rows to ensure efficiency.
+ * if the user is offline search will be performed in sqlite
+ *
+ * Example usage:
+ * searchLessons("math")
+ *   .then(lessons => console.log(lessons))
+ *   .catch(error => console.error(error));
+ */
+
+  searchLessons(searchString: string): Promise<TableTypes<"lesson">[]>
 }

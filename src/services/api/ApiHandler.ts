@@ -143,8 +143,11 @@ export class ApiHandler implements ServiceApi {
   public async getDataByInviteCode(inviteCode: number): Promise<any> {
     return await this.s.getDataByInviteCode(inviteCode);
   }
-  public async linkStudent(inviteCode: number,studentId:string): Promise<any> {
-    return await this.s.linkStudent(inviteCode,studentId);
+  public async linkStudent(
+    inviteCode: number,
+    studentId: string
+  ): Promise<any> {
+    return await this.s.linkStudent(inviteCode, studentId);
   }
   public async getStudentResult(
     studentId: string,
@@ -460,5 +463,8 @@ export class ApiHandler implements ServiceApi {
 
   syncDB(): Promise<boolean> {
     return this.s.syncDB();
+  }
+  searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
+    return this.s.searchLessons(searchString);
   }
 }

@@ -42,8 +42,7 @@ export class SupabaseApi implements ServiceApi {
     lessonId: string,
     classId: string,
     studentId: string
-  ): Promise<TableTypes<"assignment">
-  > {
+  ): Promise<TableTypes<"assignment">> {
     throw new Error("Method not implemented.");
   }
   getFavouriteLessons(userId: string): Promise<
@@ -423,11 +422,10 @@ export class SupabaseApi implements ServiceApi {
       throw new Error("Invalid inviteCode");
     }
   }
-  async linkStudent(inviteCode: number,studentId:string): Promise<any> {
+  async linkStudent(inviteCode: number, studentId: string): Promise<any> {
     try {
-
       if (!studentId) {
-        console.log(this._currentStudent)
+        console.log(this._currentStudent);
         throw Error("Student Not Found");
       }
       const rpcRes = await this.supabase?.rpc("linkStudent", {
@@ -650,5 +648,14 @@ export class SupabaseApi implements ServiceApi {
   }
   updateRewardsForStudent(studentId: string, unlockReward: LeaderboardRewards) {
     throw new Error("Method not implemented.");
+  }
+  async searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
+    if (!this.supabase) return [];
+    const { data, error } = await this.supabase.rpc("find_similar_lessons", {
+      search_text: searchString,
+    });
+    console.log("🚀 ~ SupabaseApi ~ searchLessons ~ data, error:", data, error);
+    if (error) return [];
+    return data;
   }
 }
