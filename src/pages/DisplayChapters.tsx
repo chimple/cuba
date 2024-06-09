@@ -3,7 +3,6 @@ import { Chapter, StudentLessonResult } from "../common/courseConstants";
 import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
-  LESSON_DOC_LESSON_ID_MAP,
   CONTINUE,
   CURRENT_CLASS,
   CURRENT_MODE,

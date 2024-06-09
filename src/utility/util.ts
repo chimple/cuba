@@ -31,12 +31,12 @@ import {
   LEADERBOARD_REWARD_LIST,
   // APP_LANG,
   LeaderboardRewards,
-  LESSON_DOC_LESSON_ID_MAP,
   unlockedRewardsInfo,
   DOWNLOAD_LESSON_BATCH_SIZE,
   MAX_DOWNLOAD_LESSON_ATTEMPTS,
   LESSON_DOWNLOAD_SUCCESS_EVENT,
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+  CHAPTER_ID_LESSON_ID_MAP,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -533,43 +533,30 @@ export class Util {
     return lastRendered;
   }
 
-  public static isChapterDowloaded(chapter: TableTypes<"chapter">): boolean {
-    const storedLessonDoc = JSON.parse(
-      localStorage.getItem(LESSON_DOC_LESSON_ID_MAP) || "[]"
+  public static async isChapterDownloaded(chapter: string): Promise<boolean> {
+    const chapterLessonIdMap = JSON.parse(
+      localStorage.getItem(CHAPTER_ID_LESSON_ID_MAP) || "{}"
     );
     const downloadedLessonIds = JSON.parse(
       localStorage.getItem(DOWNLOADED_LESSON_ID) || "[]"
     );
-    let allLessonDocs: string[] = [];
-    let allLessonIds: string[] = [];
-    // allLessonDocs = chapter?.lessons?.map((lessonDoc) => lessonDoc.id);
-    for (let i = 0; i < allLessonDocs?.length; i++) {
-      const lessonDoc = allLessonDocs?.[i];
-      if (storedLessonDoc.hasOwnProperty(lessonDoc)) {
-        const correspondingLessonId = storedLessonDoc[lessonDoc];
-        allLessonIds.push(correspondingLessonId);
-      } else break;
-    }
-
-    // if (allLessonIds.length === allLessonDocs.length)
-    if (
-      allLessonIds &&
-      allLessonDocs &&
-      allLessonIds.length > 0 &&
-      allLessonIds.length === allLessonDocs.length
-    ) {
-      const allLessonIdPresent = allLessonIds.every((item) =>
-        downloadedLessonIds.includes(item)
+    let lessonIdsForChapter = chapterLessonIdMap[chapter];
+    if (!lessonIdsForChapter) {
+      const api = ServiceConfig.getI().apiHandler;
+      const storedLessonDoc = await api.getLessonsForChapter(chapter);
+      lessonIdsForChapter = storedLessonDoc.map((id) => id.cocos_lesson_id);
+      chapterLessonIdMap[chapter] = lessonIdsForChapter;
+      localStorage.setItem(
+        CHAPTER_ID_LESSON_ID_MAP,
+        JSON.stringify(chapterLessonIdMap)
       );
-      console.log("allLessonIdPresent", allLessonIdPresent);
-      if (allLessonIdPresent) {
-        return false;
-      } else {
-        return true;
-      }
     }
-    return true;
+    const allLessonIdsDownloaded = lessonIdsForChapter.every(
+      (lessonId: string) => downloadedLessonIds.includes(lessonId)
+    );
+    return !allLessonIdsDownloaded;
   }
+
   // To parse this data:
   //   const course = Convert.toCourse(json);
 

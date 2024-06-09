@@ -572,7 +572,7 @@ export enum SnackbarType {
   Error = "error",
 }
 export const LAST_FUNCTION_CALL = "lastFunctionCall";
-export const LESSON_DOC_LESSON_ID_MAP = "lessonDocLessonidMap";
+export const CHAPTER_ID_LESSON_ID_MAP = "chapterIdLessonidMap";
 
 export const CURRENT_AVATAR_SUGGESTION_NO = "currentAvatarSuggestion";
 export const SHOW_DAILY_PROGRESS_FLAG = "showAvatarDailyProgress";
