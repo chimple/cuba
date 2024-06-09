@@ -533,19 +533,19 @@ export class Util {
     return lastRendered;
   }
 
-  public static async isChapterDownloaded(chapter: string): Promise<boolean> {
+  public static async isChapterDownloaded(chapterId: string): Promise<boolean> {
     const chapterLessonIdMap = JSON.parse(
       localStorage.getItem(CHAPTER_ID_LESSON_ID_MAP) || "{}"
     );
     const downloadedLessonIds = JSON.parse(
       localStorage.getItem(DOWNLOADED_LESSON_ID) || "[]"
     );
-    let lessonIdsForChapter = chapterLessonIdMap[chapter];
+    let lessonIdsForChapter = chapterLessonIdMap[chapterId];
     if (!lessonIdsForChapter) {
       const api = ServiceConfig.getI().apiHandler;
-      const storedLessonDoc = await api.getLessonsForChapter(chapter);
+      const storedLessonDoc = await api.getLessonsForChapter(chapterId);
       lessonIdsForChapter = storedLessonDoc.map((id) => id.cocos_lesson_id);
-      chapterLessonIdMap[chapter] = lessonIdsForChapter;
+      chapterLessonIdMap[chapterId] = lessonIdsForChapter;
       localStorage.setItem(
         CHAPTER_ID_LESSON_ID_MAP,
         JSON.stringify(chapterLessonIdMap)
