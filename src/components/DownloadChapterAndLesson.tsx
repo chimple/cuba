@@ -7,7 +7,11 @@ import DialogBoxButtons from "./parent/DialogBoxButtons​";
 import { TfiDownload, TfiTrash } from "react-icons/tfi";
 import { Capacitor } from "@capacitor/core";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
-import { LESSON_DOWNLOAD_SUCCESS_EVENT, TableTypes } from "../common/constants";
+import {
+  DOWNLOADED_LESSON_ID,
+  LESSON_DOWNLOAD_SUCCESS_EVENT,
+  TableTypes,
+} from "../common/constants";
 
 const DownloadLesson: React.FC<{
   lessonId?: string;
@@ -38,6 +42,8 @@ const DownloadLesson: React.FC<{
       if (downloadedLessonId === lessonId) {
         setShowIcon(false);
         setLoading(false);
+        if (storedLessonID && lessonId)
+          setStoredLessonID([...storedLessonID, lessonId]);
       }
     };
 
@@ -56,12 +62,13 @@ const DownloadLesson: React.FC<{
 
   async function init() {
     const storedLessonIds = Util.getStoredLessonIds();
+    setStoredLessonID(storedLessonIds);
     if (lessonId && storedLessonIds.includes(lessonId)) {
       setShowIcon(false);
       downloadButtonLoading = false;
     }
     if (chapter) {
-      const isChapterDownloaded = Util.isChapterDowloaded(chapter);
+      const isChapterDownloaded = await Util.isChapterDownloaded(chapter.id);
       setShowIcon(isChapterDownloaded);
     }
   }
@@ -97,9 +104,10 @@ const DownloadLesson: React.FC<{
         chapter.id
       );
       for (const e of lessons) {
-        if (!storedLessonID.includes(e.id)) {
-          storeLessonID.push(e.id);
-        }
+        if (e.cocos_lesson_id)
+          if (!storedLessonID.includes(e.cocos_lesson_id)) {
+            storeLessonID.push(e.cocos_lesson_id);
+          }
       }
       await Util.downloadZipBundle(storeLessonID);
     } else {
@@ -111,6 +119,7 @@ const DownloadLesson: React.FC<{
     }
     setShowIcon(false);
     setLoading(false);
+    setStoredLessonID([...storedLessonID, ...storeLessonID]);
     if (onDownloadOrDelete) onDownloadOrDelete();
   };
 
@@ -123,20 +132,28 @@ const DownloadLesson: React.FC<{
       );
       const storeLessonID: string[] = [];
       lessons.forEach(async (e) => {
-        storeLessonID.push(e.id);
-        if (!storedLessonID.includes(e.id)) {
+        if (e.cocos_lesson_id) {
+          storeLessonID.push(e.cocos_lesson_id);
           setShowIcon(true);
         }
         if (onDownloadOrDelete) onDownloadOrDelete();
       });
 
       await Util.deleteDownloadedLesson(storeLessonID);
+      // Filter out deleted lesson IDs from storedLessonID
+      const updatedStoredLessonIDs = storedLessonID.filter(
+        (id) => !storeLessonID.includes(id)
+      );
+      setStoredLessonID(updatedStoredLessonIDs);
     } else if (lessonId) {
       await Util.deleteDownloadedLesson([lessonId]);
-      if (!storedLessonID.includes(lessonId)) {
-        setShowIcon(true);
-      }
+      setShowIcon(true);
       if (onDownloadOrDelete) onDownloadOrDelete();
+      // Filter out deleted lesson ID from storedLessonID
+      const updatedStoredLessonIDs = storedLessonID.filter(
+        (id) => id !== lessonId
+      );
+      setStoredLessonID(updatedStoredLessonIDs);
     }
     setLoading(false);
   };

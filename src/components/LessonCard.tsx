@@ -177,7 +177,7 @@ const LessonCard: React.FC<{
                   currentCourse?.id,
                 course: JSON.stringify(currentCourse!),
                 lesson: JSON.stringify(lesson),
-                assignment:assignment,
+                assignment: assignment,
                 from: history.location.pathname + `?${CONTINUE}=true`,
               });
             } else if (!!assignment?.id && lesson.plugin_type === LIVE_QUIZ) {
@@ -311,11 +311,13 @@ const LessonCard: React.FC<{
             {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
           </div>
           <div className="lesson-download-button-container">
-            <DownloadLesson
-              lessonId={lesson.id}
-              downloadButtonLoading={downloadButtonLoading}
-              onDownloadOrDelete={onDownloadOrDelete}
-            />
+            {lesson.cocos_lesson_id && (
+              <DownloadLesson
+                lessonId={lesson.cocos_lesson_id}
+                downloadButtonLoading={downloadButtonLoading}
+                onDownloadOrDelete={onDownloadOrDelete}
+              />
+            )}
           </div>
           {isLoved && (
             <LovedIcon
