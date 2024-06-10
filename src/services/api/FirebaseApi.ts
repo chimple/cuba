@@ -2030,4 +2030,8 @@ export class FirebaseApi implements ServiceApi {
       rewards: finalRewards,
     });
   }
+
+  searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
+    throw new Error("Method not implemented.");
+  }
 }

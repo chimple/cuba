@@ -493,4 +493,7 @@ export class ApiHandler implements ServiceApi {
   syncDB(): Promise<boolean> {
     return this.s.syncDB();
   }
+  searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
+    return this.s.searchLessons(searchString);
+  }
 }

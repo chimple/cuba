@@ -22,8 +22,6 @@ import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 import { schoolUtil } from "../utility/schoolUtil";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import SkeltonLoading from "../components/SkeltonLoading";
-// import { FirebaseApi } from "../services/api/FirebaseApi";
-// import { FirebaseAuth } from "../services/auth/FirebaseAuth";
 
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -39,13 +37,6 @@ const DisplayStudents: FC<{}> = () => {
     };
   }, []);
   const getStudents = async () => {
-    const api = ServiceConfig.getI().apiHandler;
-    console.log("🚀 ~ getStudents ~ api:", api);
-    const res = await api.getStudentResultInMap(
-      "c582c84a-2370-4096-8b0b-df98dd7a4fc5"
-    );
-    console.log("🚀 ~ getStudents ~ res:", res);
-
     const currMode = await schoolUtil.getCurrMode();
     setStudentMode(currMode);
     const students =

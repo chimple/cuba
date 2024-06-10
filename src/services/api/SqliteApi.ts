@@ -1703,4 +1703,45 @@ export class SqliteApi implements ServiceApi {
     }
     return resultMap;
   }
+
+  async searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
+    if (!this._db) return [];
+    const res: TableTypes<"lesson">[] = [];
+
+    try {
+      const serverResults = await this._serverApi.searchLessons(searchString);
+      res.push(...serverResults);
+    } catch (error) {
+      console.log("🚀 ~ SqliteApi ~ searchLessons ~ error:", error);
+    }
+
+    if (res.length > 0) return res;
+    const limit = 20;
+    const nameSearchQuery = `
+        SELECT * 
+        FROM lesson 
+        WHERE name LIKE ? 
+        LIMIT ?;
+`;
+    const nameResults = await this._db.query(nameSearchQuery, [
+      `%${searchString}%`,
+      limit,
+    ]);
+    if (nameResults.values) res.push(...nameResults.values);
+    console.log("🚀 ~ SqliteApi ~ searchLessons ~ dat:", nameResults);
+    const outcomeSearchQuery = `
+    SELECT * 
+    FROM lesson 
+    WHERE outcome LIKE ? 
+    LIMIT ?;
+`;
+    const outcomeLength = limit - res.length;
+    const outcomeResults = await this._db.query(outcomeSearchQuery, [
+      `%${searchString}%`,
+      outcomeLength,
+    ]);
+    if (outcomeResults.values) res.push(...outcomeResults.values);
+    console.log("🚀 ~ SqliteApi ~ searchLessons ~ dat1:", outcomeResults);
+    return res;
+  }
 }

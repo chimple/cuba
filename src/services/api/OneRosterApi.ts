@@ -983,4 +983,8 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"course">[]> {
     throw new Error("Method not implemented.");
   }
+
+  searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
+    throw new Error("Method not implemented.");
+  }
 }
