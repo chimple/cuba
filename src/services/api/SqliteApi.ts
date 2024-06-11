@@ -1617,58 +1617,170 @@ export class SqliteApi implements ServiceApi {
     }
     return resultMap;
   }
-  async getRecommendedLessons(studentId: string): Promise<any[] | undefined> {
+  async getRecommendedLessons(studentId: string): Promise<TableTypes<"lesson">[]> {
     // This Query will give last played lessons
     const lastPlayedLessonsQuery = `
-    select
-  id,
-  assignment_id,
-  course_id,
-  chapter_id,
-  lesson_id,
-  score,
-  updated_at,
-  cocos_subject_code,
-  cocos_chapter_code,
-  cocos_lesson_id,
-  chapter_name,
-  lesson_name
-from
-  (
-    select
-      r.id,
-      r.assignment_id,
+  WITH
+  course_details AS (
+    SELECT
+      c.name AS chapter_name,
+      l.name AS lesson_name,
       c.course_id,
-      c.id as chapter_id,
-      r.lesson_id,
-      r.score,
-      r.updated_at,
-      l.name as lesson_name,
+      c.id AS chapter_id,
+      l.id AS lesson_id,
+      c.sort_index AS chapter_index,
+      cl.sort_index AS lesson_index,
       l.cocos_subject_code,
       l.cocos_chapter_code,
       l.cocos_lesson_id,
-      c.name as chapter_name,
-      row_number() over (
-        partition by
-          r.student_id,
-          c.course_id
-        order by
-          r.updated_at desc
-      ) as rn
-    FROM ${TABLES.Result} r
-      JOIN ${TABLES.Lesson} l ON r.lesson_id = l.id
+      l.image,
+      l.outcome,
+      l.plugin_type,
+      l.status,
+      l.created_by,
+      l.subject_id,
+      l.target_age_from,
+      l.target_age_to,
+      l.language_id,
+      l.created_at,
+      l.updated_at,
+      l.is_deleted,
+      l.color
+    FROM
+      ${TABLES.Lesson} l
       JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
       JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
+    ORDER BY
+      c.course_id,
+      chapter_index,
+      lesson_index
+  ),
+  last_played_lessons AS (
+    SELECT
+      cd.*,
+      (
+        SELECT
+          l.lesson_id
+        FROM
+          course_details l
+        WHERE
+          l.chapter_id = cd.chapter_id
+          AND l.lesson_index > cd.lesson_index
+        ORDER BY
+          l.lesson_index
+        LIMIT
+          1
+      ) AS next_lesson_id
+    from
+      (
+        SELECT
+          c.*,
+          r.id,
+          r.assignment_id,
+          r.score,
+          ROW_NUMBER() OVER (
+            PARTITION BY
+              r.student_id,
+              c.course_id
+            ORDER BY
+              r.updated_at DESC
+          ) AS rn
+        FROM
+          result r,
+          course_details c
+        where
+          r.lesson_id = c.lesson_id
+          and r.student_id = '${studentId}'
+      ) as cd
     where
-      r.student_id = '${studentId}'
-  ) as subquery
-where
-  rn = 1;
+      rn = 1
+  ),
+  next_played_lesson as (
+    select
+      lpl.next_lesson_id,
+      cd.*
+    FROM
+      last_played_lessons lpl,
+      course_details as cd
+    where
+      lpl.chapter_id = cd.chapter_id
+      and lpl.next_lesson_id = cd.lesson_id
+  )
+select
+  lesson_id as id,
+  lesson_name as name,
+  cocos_subject_code,
+  cocos_chapter_code,
+  cocos_lesson_id,
+  image,
+  outcome,
+  plugin_type,
+  status,
+  created_by,
+  subject_id,
+  target_age_from,
+  target_age_to,
+  language_id,
+  created_at,
+  updated_at,
+  is_deleted,
+  color
+from
+  last_played_lessons
+union all
+select
+  next_lesson_id as id,
+  lesson_name as name,
+  cocos_subject_code,
+  cocos_chapter_code,
+  cocos_lesson_id,
+  image,
+  outcome,
+  plugin_type,
+  status,
+  created_by,
+  subject_id,
+  target_age_from,
+  target_age_to,
+  language_id,
+  created_at,
+  updated_at,
+  is_deleted,
+  color
+from
+  next_played_lesson;
   `;
     console.log("lastPlayedLessonsQuery ", lastPlayedLessonsQuery);
 
     const res = await this._db?.query(lastPlayedLessonsQuery);
     console.log("const res =  ", res?.values);
+    if (!res) {
+      return []
+    }
+    let listOfLessons = res.values as TableTypes<"lesson">[]
+    // {
+    //   cocos_chapter_code: null,
+    //   cocos_lesson_id: null,
+    //   cocos_subject_code: null,
+    //   color: null,
+    //   created_at: "",
+    //   created_by: null,
+    //   id: "",
+    //   image: null,
+    //   is_deleted: null,
+    //   language_id: null,
+    //   name: null,
+    //   outcome: null,
+    //   plugin_type: null,
+    //   status: null,
+    //   subject_id: null,
+    //   target_age_from: null,
+    //   target_age_to: null,
+    //   updated_at: null
+    // }
+    // res?.values
+    console.log("listOfLessons ", listOfLessons);
+
 
     // let resultMap: Map<string, string> = new Map<string, string>();
     // if (res && res.values) {
@@ -1680,6 +1792,6 @@ where
     //     resultMap[courseId].push(result);
     //   });
     // }
-    return res?.values;
+    return listOfLessons;
   }
 }

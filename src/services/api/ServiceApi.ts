@@ -612,6 +612,6 @@ export interface ServiceApi {
    */
   getRecommendedLessons(
     studentId: string
-  ): Promise<any[] | undefined>;
+  ): Promise<TableTypes<"lesson">[]>;
 
 }

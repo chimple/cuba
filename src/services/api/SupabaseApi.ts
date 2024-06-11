@@ -657,7 +657,7 @@ export class SupabaseApi implements ServiceApi {
   updateRewardsForStudent(studentId: string, unlockReward: LeaderboardRewards) {
     throw new Error("Method not implemented.");
   }
-  getRecommendedLessons(studentId: string): Promise<any[] | undefined> {
+  getRecommendedLessons(studentId: string): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
 }

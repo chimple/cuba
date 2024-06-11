@@ -469,7 +469,7 @@ export class ApiHandler implements ServiceApi {
   syncDB(): Promise<boolean> {
     return this.s.syncDB();
   }
-  async getRecommendedLessons(studentId: string): Promise<any[] | undefined> {
+  async getRecommendedLessons(studentId: string): Promise<TableTypes<"lesson">[]> {
     return this.s.getRecommendedLessons(studentId);
   }
 }
