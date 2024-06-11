@@ -1448,6 +1448,19 @@ export type Database = {
           phone: string
         }[]
       }
+      delete_student:
+        | {
+            Args: {
+              student_id: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              student_id: string
+            }
+            Returns: undefined
+          }
       delete_user: {
         Args: {
           uuid: string

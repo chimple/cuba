@@ -219,8 +219,15 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"user">> {
     throw new Error("Method not implemented.");
   }
-  deleteProfile(studentId: string) {
-    throw new Error("Method not implemented.");
+  async deleteProfile(studentId: string) {
+    if (!this.supabase) return;
+
+    const res = await this.supabase.rpc("delete_student", {
+      student_id: studentId,
+    });
+    if (res.error) {
+      throw res.error;
+    }
   }
   getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
     throw new Error("Method not implemented.");
@@ -716,13 +723,13 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"reward"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  getUserSticker(userId: string): Promise<TableTypes<"user_sticker">[]>{
+  getUserSticker(userId: string): Promise<TableTypes<"user_sticker">[]> {
     throw new Error("Method not implemented.");
   }
-  getUserBadge(userId: string): Promise<TableTypes<"user_badge"> []>{
+  getUserBadge(userId: string): Promise<TableTypes<"user_badge">[]> {
     throw new Error("Method not implemented.");
   }
-  getUserBonus(userId: string): Promise<TableTypes<"user_bonus"> []>{
+  getUserBonus(userId: string): Promise<TableTypes<"user_bonus">[]> {
     throw new Error("Method not implemented.");
   }
   updateRewardAsSeen(studentId: string): Promise<void> {
