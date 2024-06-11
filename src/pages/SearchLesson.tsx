@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "@algolia/autocomplete-theme-classic";
 import "./SearchLesson.css";
 
@@ -13,6 +13,7 @@ const dataToContinue: any = {};
 function SearchLesson() {
   const [searchTerm, setSearchTerm] = useState("");
   const [lessons, setLessons] = useState<TableTypes<"lesson">[]>([]);
+  const inputEl = useRef<HTMLIonSearchbarElement>(null);
 
   const onSearch = async (term: string) => {
     if (dataToContinue.search === term) return;
@@ -23,12 +24,13 @@ function SearchLesson() {
       setSearchTerm(term);
       return;
     }
+    // setSearchTerm(term);
     const api = ServiceConfig.getI().apiHandler;
     const results = await api.searchLessons(term);
     dataToContinue.lessons = results;
     dataToContinue.search = term;
+    localStorage.setItem("searchTerm", dataToContinue.search);
     setLessons(results);
-    setSearchTerm(term);
   };
 
   const history = useHistory();
@@ -49,7 +51,11 @@ function SearchLesson() {
       setLessonResultMap(res);
     }
   }
+
   useEffect(() => {
+    setTimeout(() => {
+      inputEl.current?.setFocus();
+    }, 300);
     init();
 
     const urlParams = new URLSearchParams(location.search);
@@ -63,22 +69,25 @@ function SearchLesson() {
       setSearchTerm(savedSearchTerm);
       onSearch(savedSearchTerm);
     }
-    localStorage.setItem("searchTerm", searchTerm);
     return () => {
       localStorage.removeItem("searchTerm");
     };
-  }, [searchTerm]);
+  }, []);
 
   return (
     <div className="search-container">
       <div className="search-header">
         <IonSearchbar
+          ref={inputEl}
           showClearButton="focus"
           color={"light"}
           inputMode="search"
           enterkeyhint="search"
           onIonClear={() => {
             onSearch("");
+          }}
+          onInput={(ev) => {
+            setSearchTerm(ev.currentTarget.value ?? "");
           }}
           onKeyDown={(ev) => {
             if (ev.key === "Enter") {
@@ -97,7 +106,6 @@ function SearchLesson() {
         <div className="right-button"></div>
       </div>
       <LessonSlider
-        key={searchTerm}
         lessonData={lessons}
         isHome={true}
         course={undefined}
