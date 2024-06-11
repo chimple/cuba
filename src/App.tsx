@@ -252,20 +252,20 @@ const App: React.FC = () => {
     // Update Avatar Suggestion local Json
     try {
       //Initialize firebase remote config
-      await FirebaseRemoteConfig.fetchAndActivate();
+      // await FirebaseRemoteConfig.fetchAndActivate();
 
-      const CAN_UPDATE_AVATAR_SUGGESTION_JSON = await RemoteConfig.getString(
-        REMOTE_CONFIG_KEYS.CAN_UPDATED_AVATAR_SUGGESTION_URL
-      );
+      // const CAN_UPDATE_AVATAR_SUGGESTION_JSON = await RemoteConfig.getString(
+      //   REMOTE_CONFIG_KEYS.CAN_UPDATED_AVATAR_SUGGESTION_URL
+      // );
 
-      Util.migrateLocalJsonFile(
-        // "assets/animation/avatarSugguestions.json",
-        CAN_UPDATE_AVATAR_SUGGESTION_JSON,
-        "assets/animation/avatarSugguestions.json",
-        "assets/avatarSugguestions.json",
-        "avatarSuggestionJsonLocation"
-      );
-      // localStorage.setItem(AvatarObj._i.suggestionConstant(), "0");
+      // Util.migrateLocalJsonFile(
+      //   // "assets/animation/avatarSugguestions.json",
+      //   CAN_UPDATE_AVATAR_SUGGESTION_JSON,
+      //   "assets/animation/avatarSugguestions.json",
+      //   "assets/avatarSugguestions.json",
+      //   "avatarSuggestionJsonLocation"
+      // );
+      // // localStorage.setItem(AvatarObj._i.suggestionConstant(), "0");
     } catch (error) {
       console.error("Util.migrateLocalJsonFile failed ", error);
     }

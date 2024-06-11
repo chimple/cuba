@@ -44,8 +44,8 @@ const Home: FC = () => {
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
   }>();
-  const [pendingAssignmentsCount, setPendingAssignmentsCount] =
-    useState<number>(0);
+  const [pendingAssignments, setPendingAssignments] =
+    useState<TableTypes<"assignment">[]>([]);
   const [pendingLiveQuizCount, setPendingLiveQuizCount] = useState<number>(0);
   const history = useHistory();
   const [favouriteLessons, setFavouriteLessons] = useState<
@@ -83,7 +83,7 @@ const Home: FC = () => {
   });
   const appStateChange = (isActive) => {
     urlOpenListenerEvent();
-    Util.onAppStateChange({isActive});
+    Util.onAppStateChange({ isActive });
   };
   useEffect(() => {
     const student = Util.getCurrentStudent();
@@ -237,7 +237,7 @@ const Home: FC = () => {
         })
       );
       setPendingLiveQuizCount(liveQuizCount);
-      setPendingAssignmentsCount(count);
+      setPendingAssignments(allAssignments);
 
       setDataCourse(reqLes);
       // storeRecommendationsInLocalStorage(reqLes);
@@ -531,7 +531,7 @@ const Home: FC = () => {
         <HomeHeader
           currentHeader={currentHeader}
           onHeaderIconClick={onHeaderIconClick}
-          pendingAssignmentCount={pendingAssignmentsCount}
+          pendingAssignmentCount={pendingAssignments.length}
           pendingLiveQuizCount={pendingLiveQuizCount}
         ></HomeHeader>
       </IonHeader>
@@ -541,6 +541,7 @@ const Home: FC = () => {
             {currentHeader === HOMEHEADERLIST.HOME && !!canShowAvatar ? (
               <ChimpleAvatar
                 recommadedSuggestion={dataCourse}
+                assignments={pendingAssignments}
                 style={{
                   marginBottom: "2vh",
                   display: "flex",

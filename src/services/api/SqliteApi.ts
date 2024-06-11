@@ -1840,8 +1840,90 @@ from
 
     const res = await this._db?.query(lastPlayedLessonsQuery);
     console.log("const res =  ", res?.values);
-    if (!res) {
-      return []
+    if (!res || !res.values || res.values?.length <= 0) {
+      console.log("if (!res || !res.values || res.values?.length <= 0 ");
+
+      const firstLessonOfEachCourse = `
+      WITH
+  get_user_courses as (
+    select
+      *
+    from
+      ${TABLES.UserCourse}
+    where
+      user_id = '${studentId}'
+  ),
+  course_details AS (
+    SELECT
+      c.name AS chapter_name,
+      l.name AS lesson_name,
+      c.course_id,
+      c.id AS chapter_id,
+      l.id AS lesson_id,
+      c.sort_index AS chapter_index,
+      cl.sort_index AS lesson_index,
+      l.cocos_subject_code,
+      l.cocos_chapter_code,
+      l.cocos_lesson_id,
+      l.image,
+      l.outcome,
+      l.plugin_type,
+      l.status,
+      l.created_by,
+      l.subject_id,
+      l.target_age_from,
+      l.target_age_to,
+      l.language_id,
+      l.created_at,
+      l.updated_at,
+      l.is_deleted,
+      l.color
+    FROM
+    ${TABLES.Lesson} l
+      JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
+      JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
+      JOIN get_user_courses co on co.course_id = c.course_id
+    ORDER BY
+      c.course_id,
+      chapter_index,
+      lesson_index
+  )
+SELECT
+  course_id,
+  chapter_index,
+  lesson_index,
+  lesson_id as id,
+  chapter_name,
+  lesson_name as name,
+  cocos_subject_code,
+  cocos_chapter_code,
+  cocos_lesson_id,
+  image,
+  outcome,
+  plugin_type,
+  status,
+  created_by,
+  subject_id,
+  target_age_from,
+  target_age_to,
+  language_id,
+  created_at,
+  updated_at,
+  is_deleted,
+  color
+FROM
+  course_details
+WHERE
+  lesson_index = 0
+  and chapter_index = 0;
+`
+      const firRes = await this._db?.query(firstLessonOfEachCourse);
+      console.log("firRes?.values  ", firRes?.values);
+      if (!firRes) {
+        return []
+      }
+      let firstOfCourse = firRes.values as TableTypes<"lesson">[]
+      return firstOfCourse
     }
     let listOfLessons = res.values as TableTypes<"lesson">[]
 
