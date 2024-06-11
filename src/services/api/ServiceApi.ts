@@ -144,7 +144,14 @@ export interface ServiceApi {
    * @returns {Lesson | undefined}`Lesson` or `undefined` if it could not find the lesson with given `id`
    */
   getLesson(id: string): Promise<TableTypes<"lesson"> | undefined>;
-  getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]>
+  getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]>;
+
+  /**
+ * Gives Chapter for given a chapter doc Id
+ * @param id  -chapter id
+ * @returns {Chapter | undefined}`Chapter` or `undefined` if it could not find the lesson with given `id`
+ */
+  getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined>;
 
   /**
    * Gives Array of `Lesson` objects for a given `chapter`
@@ -196,12 +203,12 @@ export interface ServiceApi {
    */
   getLiveQuizRoomDoc(
     liveQuizRoomDocId: string
-  ): Promise<DocumentData | undefined>;
+  ): Promise<TableTypes<"live_quiz_room"> | undefined>;
 
   /**
    * Create a Row in FavoriteLesson with given params
-   * @param studentId 
-   * @param lessonId 
+   * @param studentId
+   * @param lessonId
    */
   updateFavoriteLesson(
     studentId: string,
@@ -463,8 +470,8 @@ export interface ServiceApi {
    */
   liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (user: LiveQuizRoomObject | undefined) => void
-  ): Unsubscribe;
+    onDataChange: (roomDoc: TableTypes<"live_quiz_room"> | undefined) => void
+  ): void;
 
   /**
    * Updates the live quiz results for a specific student in a live quiz room.
@@ -493,10 +500,18 @@ export interface ServiceApi {
    *          or undefined if an error occurs during the process.
    */
   joinLiveQuiz(
-    studentId: string,
-    assignmentId: string
+    assignmentId: string,
+    studentId: string
   ): Promise<string | undefined>;
-
+  /**
+   * getting the results based on assignmentId.
+   *
+   * @param assignmentId - The unique identifier of the assignment document.
+   * @returns {Assignment}  A promise that resolves `Assignment` for the with given `id`.
+   */
+  getStudentResultsByAssignmentId(
+    assignmentId: string
+  ): Promise<TableTypes<"result">[]>;
   /**
    * Gives Assignment for given a Assignment firebase doc Id
    * @param {string} id - Assignment firebase doc id
@@ -509,7 +524,7 @@ export interface ServiceApi {
    * @param {string} id - Badge firebase doc id
    * @returns {Badge | undefined}`Badge` or `undefined` if it could not find the Badge with given `id`
    */
-  getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]>
+  getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]>;
 
   /**
    * Gives Sticker for given a Sticker firebase doc Id
@@ -522,7 +537,37 @@ export interface ServiceApi {
    * @param {string} id - Rewards firebase doc id
    * @returns {Rewards | undefined}`Rewards` or `undefined` if it could not find the Rewards with given `id`
    */
-  getRewardsById(id: number, periodType: string): Promise<TableTypes<"reward"> | undefined>;
+  getRewardsById(
+    id: number,
+    periodType: string
+  ): Promise<TableTypes<"reward"> | undefined>;
+
+  /**
+   * Retrieves all stickers associated with a specified user.
+   * @param userId The unique identifier of the user whose stickers are to be retrieved.
+   * @returns A Promise resolving to an array of user stickers. Each sticker is an object corresponding to the 'user_sticker' table type.
+   * Note: The userId must be valid and correspond to an existing user.
+   * Note: If the user has no stickers, the returned Promise resolves to an empty array.
+   */
+  getUserSticker(userId: string): Promise<TableTypes<"user_sticker">[]>;
+
+  /**
+   * Retrieves all bonuses associated with a specified user.
+   * @param userId The unique identifier of the user whose bonuses are to be retrieved.
+   * @returns A Promise resolving to an array of user bonuses. Each bonus is an object corresponding to the 'user_bonus' table type.
+   * Note: The userId must be valid and correspond to an existing user.
+   * Note: If the user has no bonuses, the returned Promise resolves to an empty users.
+   */
+  getUserBonus(userId: string): Promise<TableTypes<"user_bonus">[]>;
+
+  /**
+   * Retrieves all badges associated with a specified user.
+   * @param userId The unique identifier of the user whose badges are to be retrieved.
+   * @returns A Promise resolving to an array of user badges. Each badge is an object corresponding to the 'user_badge' table type.
+   * Note: The userId must be valid and correspond to an existing user.
+   * Note: If the user has no badges, the returned Promise resolves to an empty array.
+   */
+  getUserBadge(userId: string): Promise<TableTypes<"user_badge">[]>;
 
   /**
    * Updates the rewards of a student, marking all rewards as seen.
@@ -613,5 +658,22 @@ export interface ServiceApi {
   getRecommendedLessons(
     studentId: string
   ): Promise<TableTypes<"lesson">[]>;
+  /**
+   * Searches for lessons that match the given search string in their name or outcome fields.
+   *
+   * @param searchString - The text to search for in the name or outcome of lessons.
+   * @returns A promise that resolves to an array of lessons that match the search criteria. Each lesson is an object containing fields as defined in the "lesson" table.
+   *
+   * The search is performed using a PostgreSQL function called find_similar_lessons, which returns lessons with similarity scores based on the search string.
+   * The function looks for matches in both the name and outcome fields of the lessons.
+   * The results are ordered by their similarity scores in descending order, and limited to a certain number of rows to ensure efficiency.
+   * if the user is offline search will be performed in sqlite
+   *
+   * Example usage:
+   * searchLessons("math")
+   *   .then(lessons => console.log(lessons))
+   *   .catch(error => console.error(error));
+   */
 
+  searchLessons(searchString: string): Promise<TableTypes<"lesson">[]>
 }

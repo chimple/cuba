@@ -33,8 +33,7 @@ const LiveQuizRoomResult: React.FC = () => {
   async function init() {
     try {
       const liveQuizRoomDoc = await api.getLiveQuizRoomDoc(paramLiveRoomId);
-      const classRef = liveQuizRoomDoc?.class;
-      const classId = classRef?.id;
+      const classId = liveQuizRoomDoc?.class_id;
       let tempStudentMap = new Map<String, TableTypes<"user">>();
       if (!!classId) {
         const studentsData = await api.getStudentsForClass(classId);

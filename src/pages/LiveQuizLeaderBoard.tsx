@@ -84,26 +84,30 @@ const LiveQuizLeaderBoard: React.FC = () => {
   };
   const fetchAssignmentResults = async () => {
     const res = await api.getLiveQuizRoomDoc(paramLiveRoomId);
-    const assignmentId = res?.assignment.id;
-    const assignmentDoc = await api.getAssignmentById(assignmentId);
-    console.log("AssignmentDoc:", assignmentDoc);
-    let scoresData: any;
+    if (res) {
+      const assignmentId = res?.assignment_id;
+      const assignmentDoc = await api.getAssignmentById(assignmentId);
+      console.log("AssignmentDoc:", assignmentDoc);
+      let scoresData: any;
 
-    // if (!!assignmentDoc && !!assignmentDoc.results) {
-    //   const playedStudentIds = Object.keys(assignmentDoc.results);
-    //   console.log("Played Student IDs:", playedStudentIds);
-    //   if (playedStudentIds.length > 0) {
-    //     scoresData = playedStudentIds.map((studentDocId) => ({
-    //       studentDocId,
-    //       totalScore: assignmentDoc.results[studentDocId]?.score || 0,
-    //     }));
-    //   } else {
-    //     scoresData = [];
-    //   }
-    // }
-    console.log("Scores Data:", scoresData);
+      if (assignmentDoc) {
+        const results = await api.getStudentResultsByAssignmentId(
+          assignmentDoc?.id
+        );
+        const playedStudentIds = Object.keys(results);
+        if (playedStudentIds.length > 0) {
+          scoresData = playedStudentIds.map((studentDocId) => ({
+            studentDocId,
+            totalScore: results[studentDocId]?.score || 0,
+          }));
+        } else {
+          scoresData = [];
+        }
+      }
+      console.log("Scores Data:", scoresData);
 
-    return scoresData;
+      return scoresData;
+    }
   };
   const combineScores = (roomResultScores, leaderboardScores) => {
     console.log("roomResultScores", roomResultScores);

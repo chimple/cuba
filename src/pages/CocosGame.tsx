@@ -76,6 +76,7 @@ const CocosGame: React.FC = () => {
     }
   };
   const killGame = (e: any) => {
+    document.body.removeEventListener(LESSON_END,handleLessonEndListner);
     setShowDialogBox(true);
     Util.killCocosGame();
     initialCount++;
@@ -121,6 +122,7 @@ const CocosGame: React.FC = () => {
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
     killGame(e);
+    document.body.removeEventListener(LESSON_END,handleLessonEndListner);
     Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
       user_id: api.currentStudent!.id,
       // assignment_id: lessonDetail.assignment?.id,
@@ -152,7 +154,10 @@ const CocosGame: React.FC = () => {
     setShowDialogBox(false);
     push();
   };
-
+  const handleLessonEndListner = (event)=>{
+    saveTempData(event.detail);
+      setGameResult(event);
+  }
   async function init() {
     setIsLoading(true);
     const lessonId: string = state.lessonId;
@@ -178,11 +183,7 @@ const CocosGame: React.FC = () => {
 
     document.body.addEventListener(
       LESSON_END,
-      (event) => {
-        saveTempData(event.detail);
-        // setGameResult(event.detail as lessonEndData);
-        setGameResult(event);
-      },
+      handleLessonEndListner,
       { once: true }
     );
     document.body.addEventListener(GAME_END, killGame, { once: true });

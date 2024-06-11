@@ -10,21 +10,23 @@ import RadialSeparators from "./RadialSeparators";
 import i18n from "../../i18n";
 
 const LiveQuizCountdownTimer: FC<{
-  startsAt: Timestamp;
+  startsAt: Date;
   onTimeOut: Function;
 }> = ({ startsAt, onTimeOut }) => {
   const [remainingTime, setRemainingTime] = useState<number | null>(null);
   const [maxValue, setMaxValue] = useState<number>(0);
 
   useEffect(() => {
+    console.log("startsAt", startsAt, onTimeOut);
+
     const newMaxValue = Math.ceil(
-      (startsAt.toDate().getTime() - new Date().getTime()) / 1000
+      (startsAt.getTime() - new Date().getTime()) / 1000
     );
     setMaxValue(newMaxValue < 0 ? 0 : newMaxValue);
 
     const getRemainingTiming = () => {
       const currentTime = new Date().getTime();
-      const startsAtDate = startsAt.toDate();
+      const startsAtDate = startsAt;
       const remainingMillis = Math.max(0, startsAtDate.getTime() - currentTime);
       const newRemainingTime = Math.ceil(remainingMillis / 1000);
       return newRemainingTime;

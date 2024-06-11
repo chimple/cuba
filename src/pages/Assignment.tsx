@@ -28,6 +28,7 @@ const AssignmentPage: React.FC = () => {
   const [isLinked, setIsLinked] = useState(true);
   const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
   const [lessons, setLessons] = useState<TableTypes<"lesson">[]>([]);
+  const [lessonChapterMap, setLessonChapterMap] = useState<{ [lessonId: string]: TableTypes<"chapter"> }>({});
   const [schoolName, setSchoolName] = useState<string>();
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
@@ -155,16 +156,24 @@ const AssignmentPage: React.FC = () => {
         })
       );
       const _lessons: TableTypes<"lesson">[] = [];
+      const _lessonChapterMap:{ [lessonId: string]: TableTypes<"chapter"> } ={};
       await Promise.all(
         allAssignments.map(async (_assignment) => {
           const res = await api.getLesson(_assignment.lesson_id);
+         if(!!_assignment.chapter_id){
+          const chapter = await api.getChapterById(_assignment.chapter_id);
+          if(!!res && !!chapter){
+            _lessonChapterMap[res.id] = chapter;
+          }
+         }
           if (!!res) {
-            // res.assignment = _assignment;
             _lessons.push(res);
           }
+         
         })
       );
 
+      setLessonChapterMap(_lessonChapterMap);
       setLessons(_lessons);
       setAssignments(allAssignments);
       setCurrentClass(classDoc);
@@ -286,6 +295,7 @@ const AssignmentPage: React.FC = () => {
                       downloadButtonLoading={downloadButtonLoading}
                       showDate={true}
                       onDownloadOrDelete={checkAllHomeworkDownloaded}
+                      lessonChapterMap={lessonChapterMap}
                     />
                   ) : (
                     <div className="pending-assignment">

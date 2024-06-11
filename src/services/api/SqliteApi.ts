@@ -728,6 +728,15 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
+
+  async getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Chapter} where id = "${id}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+
   async getLessonsForChapter(
     chapterId: string
   ): Promise<TableTypes<"lesson">[]> {
@@ -817,10 +826,12 @@ export class SqliteApi implements ServiceApi {
     return res.values;
   }
 
-  getLiveQuizRoomDoc(
+  async getLiveQuizRoomDoc(
     liveQuizRoomDocId: string
-  ): Promise<DocumentData | undefined> {
-    throw new Error("Method not implemented.");
+  ): Promise<TableTypes<"live_quiz_room">> {
+    const roomData =
+      await this._serverApi.getLiveQuizRoomDoc(liveQuizRoomDocId);
+    return roomData;
   }
 
   async updateFavoriteLesson(
@@ -1341,30 +1352,46 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
-  liveQuizListener(
+  async liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (user: LiveQuizRoomObject | undefined) => void
-  ): Unsubscribe {
-    throw new Error("Method not implemented.");
+    onDataChange: (roomDoc: TableTypes<"live_quiz_room"> | undefined) => void
+  ) {
+    return await this._serverApi.liveQuizListener(
+      liveQuizRoomDocId,
+      onDataChange
+    );
   }
 
-  updateLiveQuiz(
+  async updateLiveQuiz(
     roomDocId: string,
     studentId: string,
     questionId: string,
     timeSpent: number,
     score: number
   ): Promise<void> {
-    throw new Error("Method not implemented.");
+    await this._serverApi.updateLiveQuiz(
+      roomDocId,
+      studentId,
+      questionId,
+      timeSpent,
+      score
+    );
   }
 
-  joinLiveQuiz(
-    studentId: string,
-    assignmentId: string
+  async joinLiveQuiz(
+    assignmentId: string,
+    studentId: string
   ): Promise<string | undefined> {
-    throw new Error("Method not implemented.");
+    const data = await this._serverApi.joinLiveQuiz(assignmentId, studentId);
+    return data;
   }
-
+  async getStudentResultsByAssignmentId(
+    assignmentId: string
+  ): Promise<TableTypes<"result">[]> {
+    const res =
+      await this._serverApi.getStudentResultsByAssignmentId(assignmentId);
+    return res;
+  }
   async getAssignmentById(
     id: string
   ): Promise<TableTypes<"assignment"> | undefined> {
@@ -1447,8 +1474,68 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
-  updateRewardAsSeen(studentId: string): Promise<void> {
-    throw new Error("Method not implemented.");
+  async getUserSticker(userId: string): Promise<TableTypes<"user_sticker">[]> {
+    try {
+      const query = `select * from ${TABLES.UserSticker} where user_id = "${userId}"`;
+      const data = await this._db?.query(query);
+
+      if (!data || !data.values || data.values.length === 0) {
+        console.error("No sticker found for the given user id.");
+        return [];
+      }
+
+      const periodData = data.values;
+      return periodData;
+    } catch (error) {
+      console.error("Error fetching sticker by user ID:", error);
+      return [];
+    }
+  }
+  async getUserBadge(userId: string): Promise<TableTypes<"user_badge">[]> {
+    try {
+      const query = `select * from ${TABLES.UserBadge} where user_id = "${userId}"`;
+      const data = await this._db?.query(query);
+
+      if (!data || !data.values || data.values.length === 0) {
+        console.error("No badge found for the given user id.");
+        return [];
+      }
+
+      const periodData = data.values;
+      return periodData;
+    } catch (error) {
+      console.error("Error fetching user bade by user iD:", error);
+      return [];
+    }
+  }
+
+  async getUserBonus(userId: string): Promise<TableTypes<"user_bonus">[]> {
+    try {
+      const query = `select * from ${TABLES.UserBonus} where user_id = "${userId}"`;
+      const data = await this._db?.query(query);
+
+      if (!data || !data.values || data.values.length === 0) {
+        console.error("No bonus found for the given user id.");
+        return [];
+      }
+
+      const periodData = data.values;
+      return periodData;
+    } catch (error) {
+      console.error("Error fetching bonus by user ID:", error);
+      return [];
+    }
+  }
+
+  async updateRewardAsSeen(studentId: string): Promise<void> {
+    try {
+      const query = `UPDATE ${TABLES.UserSticker} SET is_seen = true WHERE user_id = "${studentId}" AND is_seen = false`;
+      await this._db?.query(query);
+      console.log(`Updated unseen rewards to seen for student ${studentId}`);
+    } catch (error) {
+      console.error("Error updating rewards as seen:", error);
+      throw new Error("Error updating rewards as seen.");
+    }
   }
 
   async getUserByDocId(
@@ -1474,13 +1561,12 @@ export class SqliteApi implements ServiceApi {
   ): Promise<TableTypes<"chapter">[]> {
     const query = `
     SELECT * FROM ${TABLES.Chapter} 
-    WHERE course_id = "${courseId}"    
+    WHERE course_id = "${courseId}"
     ORDER BY sort_index ASC;
     `;
     const res = await this._db?.query(query);
     return res?.values ?? [];
   }
-
   async getPendingAssignmentForLesson(
     lessonId: string,
     classId: string,
@@ -1545,7 +1631,7 @@ export class SqliteApi implements ServiceApi {
     );
     if (!res || !res.values || res.values.length < 1) return data;
     data.classes = res.values;
-    data.schools = res.values.map((val) => val.school);
+    data.schools = res.values.map((val) => JSON.parse(val.school));
     return data;
   }
   async updateFcmToken(userId: string) {
@@ -1758,40 +1844,51 @@ from
       return []
     }
     let listOfLessons = res.values as TableTypes<"lesson">[]
-    // {
-    //   cocos_chapter_code: null,
-    //   cocos_lesson_id: null,
-    //   cocos_subject_code: null,
-    //   color: null,
-    //   created_at: "",
-    //   created_by: null,
-    //   id: "",
-    //   image: null,
-    //   is_deleted: null,
-    //   language_id: null,
-    //   name: null,
-    //   outcome: null,
-    //   plugin_type: null,
-    //   status: null,
-    //   subject_id: null,
-    //   target_age_from: null,
-    //   target_age_to: null,
-    //   updated_at: null
-    // }
-    // res?.values
+
     console.log("listOfLessons ", listOfLessons);
 
 
-    // let resultMap: Map<string, string> = new Map<string, string>();
-    // if (res && res.values) {
-    //   res.values.forEach((result) => {
-    //     const courseId = result.course_id;
-    //     if (!resultMap[courseId]) {
-    //       resultMap[courseId] = [];
-    //     }
-    //     resultMap[courseId].push(result);
-    //   });
-    // }
     return listOfLessons;
+  }
+
+  async searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
+    if (!this._db) return [];
+    const res: TableTypes<"lesson">[] = [];
+
+    try {
+      const serverResults = await this._serverApi.searchLessons(searchString);
+      res.push(...serverResults);
+    } catch (error) {
+      console.log("🚀 ~ SqliteApi ~ searchLessons ~ error:", error);
+    }
+
+    if (res.length > 0) return res;
+    const limit = 20;
+    const nameSearchQuery = `
+        SELECT * 
+        FROM lesson 
+        WHERE name LIKE ? 
+        LIMIT ?;
+`;
+    const nameResults = await this._db.query(nameSearchQuery, [
+      `%${searchString}%`,
+      limit,
+    ]);
+    if (nameResults.values) res.push(...nameResults.values);
+    console.log("🚀 ~ SqliteApi ~ searchLessons ~ dat:", nameResults);
+    const outcomeSearchQuery = `
+    SELECT * 
+    FROM lesson 
+    WHERE outcome LIKE ? 
+    LIMIT ?;
+`;
+    const outcomeLength = limit - res.length;
+    const outcomeResults = await this._db.query(outcomeSearchQuery, [
+      `%${searchString}%`,
+      outcomeLength,
+    ]);
+    if (outcomeResults.values) res.push(...outcomeResults.values);
+    console.log("🚀 ~ SqliteApi ~ searchLessons ~ dat1:", outcomeResults);
+    return res;
   }
 }

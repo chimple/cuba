@@ -63,6 +63,9 @@ export class OneRosterApi implements ServiceApi {
   getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]>{
     throw new Error("Method not implemented.");
   }
+  getChapterById(id: string): Promise<Chapter | undefined> {
+    throw new Error("Method not implemented.");
+  }
   getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
     grades: TableTypes<"grade">[];
     courses: TableTypes<"course">[];
@@ -154,6 +157,15 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   getRewardsById(id: number, periodType: string): Promise<TableTypes<"reward"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getUserSticker(userId: string): Promise<TableTypes<"user_sticker">[]>{
+    throw new Error("Method not implemented.");
+  }
+  getUserBonus(userId: string): Promise<TableTypes<"user_bonus"> []>{
+    throw new Error("Method not implemented.");
+  }
+  getUserBadge(userId: string): Promise<TableTypes<"user_badge"> []>{
     throw new Error("Method not implemented.");
   }
   getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]> {
@@ -969,6 +981,10 @@ export class OneRosterApi implements ServiceApi {
   public async getCoursesFromLesson(
     lessonId: string
   ): Promise<TableTypes<"course">[]> {
+    throw new Error("Method not implemented.");
+  }
+
+  searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
 }

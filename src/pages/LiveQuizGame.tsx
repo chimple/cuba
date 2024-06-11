@@ -3,7 +3,7 @@ import { FC, useEffect, useState } from "react";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { useHistory } from "react-router";
 import LiveQuizRoomObject from "../models/liveQuizRoom";
-import { PAGES } from "../common/constants";
+import { PAGES, TableTypes } from "../common/constants";
 import "./LiveQuizGame.css";
 import LiveQuizCountdownTimer from "../components/liveQuiz/LiveQuizCountdownTimer";
 import LiveQuizQuestion from "../components/liveQuiz/LiveQuizQuestion";
@@ -17,7 +17,7 @@ const LiveQuizGame: FC = () => {
   const history = useHistory();
   const urlSearchParams = new URLSearchParams(window.location.search);
   const paramLiveRoomId = urlSearchParams.get("liveRoomId");
-  const [roomDoc, setRoomDoc] = useState<LiveQuizRoomObject>();
+  const [roomDoc, setRoomDoc] = useState<TableTypes<"live_quiz_room">>();
   const [isTimeOut, setIsTimeOut] = useState(false);
   const [liveQuizConfig, setLiveQuizConfig] = useState<LiveQuiz>();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();
@@ -30,15 +30,12 @@ const LiveQuizGame: FC = () => {
       history.replace(PAGES.HOME);
       return;
     }
-
-    const unsubscribe = api.liveQuizListener(paramLiveRoomId, handleRoomChange);
-
-    return () => {
-      unsubscribe();
-    };
+    api.liveQuizListener(paramLiveRoomId, handleRoomChange);
   }, []);
 
-  const handleRoomChange = async (roomDoc: LiveQuizRoomObject | undefined) => {
+  const handleRoomChange = async (
+    roomDoc: TableTypes<"live_quiz_room"> | undefined
+  ) => {
     if (!roomDoc) {
       presentToast({
         message: `Device is offline. Cannot join live quiz`,
@@ -78,7 +75,7 @@ const LiveQuizGame: FC = () => {
         <div className="live-quiz-center-div">
           {roomDoc && !isTimeOut && (
             <LiveQuizCountdownTimer
-              startsAt={roomDoc.startsAt}
+              startsAt={new Date(roomDoc.starts_at)}
               onTimeOut={() => {
                 setIsTimeOut(true);
               }}

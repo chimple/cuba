@@ -42,8 +42,7 @@ export class SupabaseApi implements ServiceApi {
     lessonId: string,
     classId: string,
     studentId: string
-  ): Promise<TableTypes<"assignment">
-  > {
+  ): Promise<TableTypes<"assignment">> {
     throw new Error("Method not implemented.");
   }
   getFavouriteLessons(userId: string): Promise<
@@ -296,6 +295,9 @@ export class SupabaseApi implements ServiceApi {
   getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
+  getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
   getLessonsForChapter(chapterId: string): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
@@ -319,10 +321,15 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"assignment">[]> {
     throw new Error("Method not implemented.");
   }
-  getLiveQuizRoomDoc(
+  async getLiveQuizRoomDoc(
     liveQuizRoomDocId: string
-  ): Promise<DocumentData | undefined> {
-    throw new Error("Method not implemented.");
+  ): Promise<TableTypes<"live_quiz_room">> {
+    const res = await this.supabase
+      ?.from("live_quiz_room")
+      .select("*")
+      .eq("id", liveQuizRoomDocId)
+      .single();
+    return res?.data as TableTypes<"live_quiz_room">;
   }
   updateFavoriteLesson(
     studentId: string,
@@ -431,9 +438,8 @@ export class SupabaseApi implements ServiceApi {
   }
   async linkStudent(inviteCode: number, studentId: string): Promise<any> {
     try {
-
       if (!studentId) {
-        console.log(this._currentStudent)
+        console.log(this._currentStudent);
         throw Error("Student Not Found");
       }
       const rpcRes = await this.supabase?.rpc("linkStudent", {
@@ -609,26 +615,91 @@ export class SupabaseApi implements ServiceApi {
   getCoursesFromLesson(lessonId: string): Promise<TableTypes<"course">[]> {
     throw new Error("Method not implemented.");
   }
-  liveQuizListener(
+  async liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (user: LiveQuizRoomObject | undefined) => void
-  ): Unsubscribe {
-    throw new Error("Method not implemented.");
+    onDataChange: (roomDoc: TableTypes<"live_quiz_room"> | undefined) => void
+  ) {
+    try {
+      const roomDoc = await this.getLiveQuizRoomDoc(liveQuizRoomDocId);
+      onDataChange(roomDoc);
+
+      const liveQuizRoomChannel = this.supabase?.channel("live_quiz_room");
+
+      if (!liveQuizRoomChannel) {
+        throw new Error("Failed to establish channel for live quiz room");
+      }
+
+      const res = liveQuizRoomChannel
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "live_quiz_room",
+            filter: `id=eq.${liveQuizRoomDocId}`,
+          },
+          (payload) => {
+            onDataChange(payload.new as TableTypes<"live_quiz_room">);
+          }
+        )
+        .subscribe();
+
+      return () => {
+        this.supabase?.removeChannel(liveQuizRoomChannel);
+      };
+    } catch (error) {
+      console.error("Error setting up live quiz room listener:", error);
+      throw error;
+    }
   }
-  updateLiveQuiz(
+
+  async updateLiveQuiz(
     roomDocId: string,
     studentId: string,
     questionId: string,
     timeSpent: number,
     score: number
   ): Promise<void> {
-    throw new Error("Method not implemented.");
+    try {
+      await this.supabase?.rpc("update_live_quiz", {
+        room_id: roomDocId,
+        student_id: studentId,
+        question_id: questionId,
+        time_spent: timeSpent,
+        score: score,
+      });
+    } catch (error) {
+      console.error("Error updating quiz result:", error);
+      throw error;
+    }
   }
-  joinLiveQuiz(
-    studentId: string,
-    assignmentId: string
+
+  async joinLiveQuiz(
+    assignmentId: string,
+    studentId: string
   ): Promise<string | undefined> {
-    throw new Error("Method not implemented.");
+    let liveQuizId = await this?.supabase?.rpc("join_live_quiz", {
+      _assignment_id: assignmentId,
+      _student_id: studentId,
+    });
+
+    if (liveQuizId == null || liveQuizId.error || !liveQuizId.data) {
+      throw liveQuizId?.error ?? "";
+    }
+    const data = liveQuizId.data;
+    return data;
+  }
+  async getStudentResultsByAssignmentId(
+    assignmentId: string
+  ): Promise<TableTypes<"result">[]> {
+    let results = await this?.supabase?.rpc("get_results_by_assignment", {
+      _assignment_id: assignmentId,
+    });
+    if (results == null || results.error || !results.data) {
+      throw results?.error ?? "";
+    }
+    const data = results.data;
+    return data;
   }
   getAssignmentById(id: string): Promise<TableTypes<"assignment"> | undefined> {
     throw new Error("Method not implemented.");
@@ -639,7 +710,19 @@ export class SupabaseApi implements ServiceApi {
   getStickersByIds(ids: string[]): Promise<TableTypes<"sticker">[]> {
     throw new Error("Method not implemented.");
   }
-  getRewardsById(id: number, periodType: string): Promise<TableTypes<"reward"> | undefined> {
+  getRewardsById(
+    id: number,
+    periodType: string
+  ): Promise<TableTypes<"reward"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getUserSticker(userId: string): Promise<TableTypes<"user_sticker">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getUserBadge(userId: string): Promise<TableTypes<"user_badge">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getUserBonus(userId: string): Promise<TableTypes<"user_bonus">[]> {
     throw new Error("Method not implemented.");
   }
   updateRewardAsSeen(studentId: string): Promise<void> {
@@ -657,7 +740,18 @@ export class SupabaseApi implements ServiceApi {
   updateRewardsForStudent(studentId: string, unlockReward: LeaderboardRewards) {
     throw new Error("Method not implemented.");
   }
+
   getRecommendedLessons(studentId: string): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
+  }
+
+  async searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
+    if (!this.supabase) return [];
+    const { data, error } = await this.supabase.rpc("find_similar_lessons", {
+      search_text: searchString,
+    });
+    console.log("🚀 ~ SupabaseApi ~ searchLessons ~ data, error:", data, error);
+    if (error) return [];
+    return data;
   }
 }

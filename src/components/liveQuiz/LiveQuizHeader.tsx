@@ -13,7 +13,7 @@ import {
 } from "../../models/liveQuiz";
 
 const LiveQuizHeader: FC<{
-  roomDoc: LiveQuizRoomObject;
+  roomDoc: TableTypes<"live_quiz_room">;
   remainingTime: number | undefined;
   showAnswer: boolean;
   currentQuestion: LiveQuizQuestion | undefined;
@@ -54,13 +54,15 @@ const LiveQuizHeader: FC<{
     }
   }, [roomDoc, showAnswer]);
   const getStudents = async () => {
-    const students = await api.getStudentsForClass(roomDoc.class.id);
-    const tempStudentsMap = {};
-    students.forEach((student) => {
-      tempStudentsMap[student.id] = student;
-    });
-    setStudentIdMap(tempStudentsMap);
-    sortedStudentsWithScore(tempStudentsMap);
+    if (roomDoc && roomDoc.class_id) {
+      const students = await api.getStudentsForClass(roomDoc?.class_id);
+      const tempStudentsMap = {};
+      students.forEach((student) => {
+        tempStudentsMap[student.id] = student;
+      });
+      setStudentIdMap(tempStudentsMap);
+      sortedStudentsWithScore(tempStudentsMap);
+    }
   };
 
   const sortedStudentsWithScore = (studentIdMap: {
@@ -71,22 +73,25 @@ const LiveQuizHeader: FC<{
       score: number;
       lastQuestionId: string;
     }[] = [];
-    roomDoc.participants.forEach((studentId: string) => {
-      const studentResult = roomDoc.results?.[studentId];
-      const totalScore =
-        studentResult?.reduce(
-          (acc: number, question) => acc + question.score,
-          0
-        ) ?? 0;
-      tempSortedStudents.push({
-        student: studentIdMap[studentId],
-        score: showAnswer
-          ? Number(totalScore.toFixed(1))
-          : sortedStudents?.find((student) => student.student.id === studentId)
-              ?.score ?? 0,
-        lastQuestionId: studentResult?.[studentResult.length - 1]?.id,
+    if (roomDoc && roomDoc.participants) {
+      roomDoc.participants.forEach((studentId: string) => {
+        const studentResult = roomDoc.results?.[studentId];
+        const totalScore =
+          studentResult?.reduce(
+            (acc: number, question) => acc + question.score,
+            0
+          ) ?? 0;
+        tempSortedStudents.push({
+          student: studentIdMap[studentId],
+          score: showAnswer
+            ? Number(totalScore.toFixed(1))
+            : sortedStudents?.find(
+                (student) => student.student.id === studentId
+              )?.score ?? 0,
+          lastQuestionId: studentResult?.[studentResult.length - 1]?.id,
+        });
       });
-    });
+    }
     tempSortedStudents.sort((a, b) => b.score - a.score);
     const rankedStudents = tempSortedStudents.map((student, index) => ({
       ...student,

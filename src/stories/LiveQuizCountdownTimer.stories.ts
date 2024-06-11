@@ -12,9 +12,7 @@ const meta = {
   },
   args: {
     onTimeOut: fn(),
-    startsAt: Timestamp.fromDate(
-      new Date(new Date().setSeconds(new Date().getSeconds() + 30))
-    ),
+    startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 30)),
   },
   argTypes: {
     startsAt: {
@@ -35,9 +33,7 @@ type Story = StoryObj<typeof meta>;
 export const CountdownFor10Sec: Story = {
   args: {
     onTimeOut: fn(),
-    startsAt: Timestamp.fromDate(
-      new Date(new Date().setSeconds(new Date().getSeconds() + 10))
-    ),
+    startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 10)),
   },
   tags: ["autodocs"],
   parameters: {
@@ -48,9 +44,7 @@ export const CountdownFor10Sec: Story = {
 export const CountdownFor15Sec: Story = {
   args: {
     onTimeOut: fn(),
-    startsAt: Timestamp.fromDate(
-      new Date(new Date().setSeconds(new Date().getSeconds() + 15))
-    ),
+    startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 15)),
   },
   tags: ["autodocs"],
   parameters: {
@@ -61,9 +55,7 @@ export const CountdownFor15Sec: Story = {
 export const CountdownFor20Sec: Story = {
   args: {
     onTimeOut: fn(),
-    startsAt: Timestamp.fromDate(
-      new Date(new Date().setSeconds(new Date().getSeconds() + 20))
-    ),
+    startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 20)),
   },
   tags: ["autodocs"],
   parameters: {
@@ -74,9 +66,7 @@ export const CountdownFor20Sec: Story = {
 export const CountdownFor25Sec: Story = {
   args: {
     onTimeOut: fn(),
-    startsAt: Timestamp.fromDate(
-      new Date(new Date().setSeconds(new Date().getSeconds() + 25))
-    ),
+    startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 25)),
   },
   tags: ["autodocs"],
   parameters: {
@@ -87,9 +77,7 @@ export const CountdownFor25Sec: Story = {
 export const CountdownFor30Sec: Story = {
   args: {
     onTimeOut: fn(),
-    startsAt: Timestamp.fromDate(
-      new Date(new Date().setSeconds(new Date().getSeconds() + 30))
-    ),
+    startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 30)),
   },
   tags: ["autodocs"],
   parameters: {
@@ -100,9 +88,7 @@ export const CountdownFor30Sec: Story = {
 export const CountdownFor35Sec: Story = {
   args: {
     onTimeOut: fn(),
-    startsAt: Timestamp.fromDate(
-      new Date(new Date().setSeconds(new Date().getSeconds() + 35))
-    ),
+    startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 35)),
   },
   tags: ["autodocs"],
   parameters: {
@@ -113,9 +99,7 @@ export const CountdownFor35Sec: Story = {
 export const CountdownFor40Sec: Story = {
   args: {
     onTimeOut: fn(),
-    startsAt: Timestamp.fromDate(
-      new Date(new Date().setSeconds(new Date().getSeconds() + 40))
-    ),
+    startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 40)),
   },
   tags: ["autodocs"],
   parameters: {
@@ -125,9 +109,7 @@ export const CountdownFor40Sec: Story = {
 export const CountdownFor45Sec: Story = {
   args: {
     onTimeOut: fn(),
-    startsAt: Timestamp.fromDate(
-      new Date(new Date().setSeconds(new Date().getSeconds() + 45))
-    ),
+    startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 45)),
   },
   tags: ["autodocs"],
   parameters: {
@@ -137,9 +119,7 @@ export const CountdownFor45Sec: Story = {
 export const CountdownFor50Sec: Story = {
   args: {
     onTimeOut: fn(),
-    startsAt: Timestamp.fromDate(
-      new Date(new Date().setSeconds(new Date().getSeconds() + 50))
-    ),
+    startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 50)),
   },
   tags: ["autodocs"],
   parameters: {
@@ -149,9 +129,7 @@ export const CountdownFor50Sec: Story = {
 export const CountdownFor55Sec: Story = {
   args: {
     onTimeOut: fn(),
-    startsAt: Timestamp.fromDate(
-      new Date(new Date().setSeconds(new Date().getSeconds() + 55))
-    ),
+    startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 55)),
   },
   tags: ["autodocs"],
   parameters: {
@@ -162,9 +140,7 @@ export const CountdownFor55Sec: Story = {
 export const CountdownFor60Sec: Story = {
   args: {
     onTimeOut: fn(),
-    startsAt: Timestamp.fromDate(
-      new Date(new Date().setSeconds(new Date().getSeconds() + 60))
-    ),
+    startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 60)),
   },
   tags: ["autodocs"],
   parameters: {
@@ -174,9 +150,7 @@ export const CountdownFor60Sec: Story = {
 export const CountdownFor65Sec: Story = {
   args: {
     onTimeOut: fn(),
-    startsAt: Timestamp.fromDate(
-      new Date(new Date().setSeconds(new Date().getSeconds() + 65))
-    ),
+    startsAt: new Date(new Date().setSeconds(new Date().getSeconds() + 65)),
   },
   tags: ["autodocs"],
   parameters: {
