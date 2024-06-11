@@ -1548,8 +1548,33 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
 
-  addCourseForParentsStudent(courses: Course[], student: User) {
-    throw new Error("Method not implemented.");
+  async addCourseForParentsStudent(
+    courses: TableTypes<"course">[],
+    student: TableTypes<"user">
+  ) {
+    const courseIds = courses?.map((course) => course.id);
+    for (const courseId of courseIds) {
+      const newUserCourse: TableTypes<"user_course"> = {
+        course_id: courseId,
+        created_at: new Date().toISOString(),
+        id: uuidv4(),
+        is_deleted: false,
+        updated_at: new Date().toISOString(),
+        user_id: student.id,
+      };
+      await this.executeQuery(
+        `
+        INSERT INTO user_course (id, user_id, course_id)
+      VALUES (?, ?, ?);
+    `,
+        [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
+      );
+      this.updatePushChanges(
+        TABLES.UserCourse,
+        MUTATE_TYPES.INSERT,
+        newUserCourse
+      );
+    }
   }
 
   updateRewardsForStudent(studentId: string, unlockReward: LeaderboardRewards) {

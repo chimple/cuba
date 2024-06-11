@@ -283,7 +283,10 @@ export class SupabaseApi implements ServiceApi {
   getAdditionalCourses(studentId: string): Promise<TableTypes<"course">[]> {
     throw new Error("Method not implemented.");
   }
-  addCourseForParentsStudent(courses: Course[], student: User) {
+  addCourseForParentsStudent(
+    courses: TableTypes<"course">[],
+    student: TableTypes<"user">
+  ) {
     throw new Error("Method not implemented.");
   }
   getCoursesForClassStudent(classId: string): Promise<TableTypes<"course">[]> {
@@ -716,13 +719,13 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"reward"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  getUserSticker(userId: string): Promise<TableTypes<"user_sticker">[]>{
+  getUserSticker(userId: string): Promise<TableTypes<"user_sticker">[]> {
     throw new Error("Method not implemented.");
   }
-  getUserBadge(userId: string): Promise<TableTypes<"user_badge"> []>{
+  getUserBadge(userId: string): Promise<TableTypes<"user_badge">[]> {
     throw new Error("Method not implemented.");
   }
-  getUserBonus(userId: string): Promise<TableTypes<"user_bonus"> []>{
+  getUserBonus(userId: string): Promise<TableTypes<"user_bonus">[]> {
     throw new Error("Method not implemented.");
   }
   updateRewardAsSeen(studentId: string): Promise<void> {
