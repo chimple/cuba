@@ -357,7 +357,8 @@ const DisplayChapters: FC<{}> = () => {
   };
 
   const onGradeChanges = async (grade: TableTypes<"grade">) => {
-    const currentCourse = localGradeMap?.courses.find(
+    let _localMap = getLocalGradeMap();
+    const currentCourse = _localMap?.courses.find(
       (course) => course.grade_id === grade.id
     );
     localData.currentGrade = grade;
