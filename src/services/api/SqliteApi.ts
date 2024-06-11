@@ -233,7 +233,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-            new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -1703,7 +1703,9 @@ export class SqliteApi implements ServiceApi {
     }
     return resultMap;
   }
-  async getRecommendedLessons(studentId: string): Promise<TableTypes<"lesson">[]> {
+  async getRecommendedLessons(
+    studentId: string
+  ): Promise<TableTypes<"lesson">[]> {
     // This Query will give last played lessons
     const lastPlayedLessonsQuery = `
   WITH
@@ -1916,19 +1918,18 @@ FROM
 WHERE
   lesson_index = 0
   and chapter_index = 0;
-`
+`;
       const firRes = await this._db?.query(firstLessonOfEachCourse);
       console.log("firRes?.values  ", firRes?.values);
       if (!firRes) {
-        return []
+        return [];
       }
-      let firstOfCourse = firRes.values as TableTypes<"lesson">[]
-      return firstOfCourse
+      let firstOfCourse = firRes.values as TableTypes<"lesson">[];
+      return firstOfCourse;
     }
-    let listOfLessons = res.values as TableTypes<"lesson">[]
+    let listOfLessons = res.values as TableTypes<"lesson">[];
 
     console.log("listOfLessons ", listOfLessons);
-
 
     return listOfLessons;
   }

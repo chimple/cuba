@@ -253,11 +253,9 @@ const App: React.FC = () => {
     try {
       //Initialize firebase remote config
       // await FirebaseRemoteConfig.fetchAndActivate();
-
       // const CAN_UPDATE_AVATAR_SUGGESTION_JSON = await RemoteConfig.getString(
       //   REMOTE_CONFIG_KEYS.CAN_UPDATED_AVATAR_SUGGESTION_URL
       // );
-
       // Util.migrateLocalJsonFile(
       //   // "assets/animation/avatarSugguestions.json",
       //   CAN_UPDATE_AVATAR_SUGGESTION_JSON,

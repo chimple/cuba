@@ -44,8 +44,9 @@ const Home: FC = () => {
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
   }>();
-  const [pendingAssignments, setPendingAssignments] =
-    useState<TableTypes<"assignment">[]>([]);
+  const [pendingAssignments, setPendingAssignments] = useState<
+    TableTypes<"assignment">[]
+  >([]);
   const [pendingLiveQuizCount, setPendingLiveQuizCount] = useState<number>(0);
   const history = useHistory();
   const [favouriteLessons, setFavouriteLessons] = useState<
@@ -271,9 +272,8 @@ const Home: FC = () => {
       }
       try {
         recommendationResult = await getAssignments();
-        let tempRecommendations = await getCourseRecommendationLessons(
-          currentStudent
-        );
+        let tempRecommendations =
+          await getCourseRecommendationLessons(currentStudent);
         recommendationResult = recommendationResult.concat(tempRecommendations);
         console.log("Final RECOMMENDATION List ", recommendationResult);
         setDataCourse(recommendationResult);
@@ -388,7 +388,7 @@ const Home: FC = () => {
   };
 
   async function getCourseRecommendationLessons(
-    currentStudent: TableTypes<"user">,
+    currentStudent: TableTypes<"user">
   ): Promise<TableTypes<"lesson">[]> {
     console.log("async function getCourseRecommendationLessons( ");
     // const allCourses: TableTypes<"course">[] =
@@ -739,70 +739,70 @@ const Home: FC = () => {
               currentHeader === HOMEHEADERLIST.FAVOURITES ||
               currentHeader === HOMEHEADERLIST.HISTORY ||
               (!canShowAvatar && currentHeader === HOMEHEADERLIST.HOME)) && (
-                <div id="home-page-bottom">
-                  <AppBar className="home-page-app-bar">
-                    <Box>
-                      <Tabs
-                        value={subTab}
-                        onChange={handleChange}
-                        TabIndicatorProps={{ style: { display: "none" } }}
-                        sx={{
-                          "& .MuiTab-root": {
-                            color: "black",
-                            borderRadius: "5vh",
-                            padding: "0 3vw",
-                            margin: "1vh 1vh",
-                            minHeight: "37px",
-                          },
-                          "& .Mui-selected": {
-                            backgroundColor: "#FF7925",
-                            borderRadius: "8vh",
-                            color: "#FFFFFF !important",
-                            minHeight: "37px",
-                          },
+              <div id="home-page-bottom">
+                <AppBar className="home-page-app-bar">
+                  <Box>
+                    <Tabs
+                      value={subTab}
+                      onChange={handleChange}
+                      TabIndicatorProps={{ style: { display: "none" } }}
+                      sx={{
+                        "& .MuiTab-root": {
+                          color: "black",
+                          borderRadius: "5vh",
+                          padding: "0 3vw",
+                          margin: "1vh 1vh",
+                          minHeight: "37px",
+                        },
+                        "& .Mui-selected": {
+                          backgroundColor: "#FF7925",
+                          borderRadius: "8vh",
+                          color: "#FFFFFF !important",
+                          minHeight: "37px",
+                        },
+                      }}
+                    >
+                      <Tab
+                        id="home-page-sub-tab"
+                        label={t("For You")}
+                        onClick={() => {
+                          setCurrentHeader(
+                            canShowAvatar
+                              ? HOMEHEADERLIST.SUGGESTIONS
+                              : HOMEHEADERLIST.HOME
+                          );
+                          setSubTab(SUBTAB.SUGGESTIONS);
                         }}
-                      >
-                        <Tab
-                          id="home-page-sub-tab"
-                          label={t("For You")}
-                          onClick={() => {
-                            setCurrentHeader(
-                              canShowAvatar
-                                ? HOMEHEADERLIST.SUGGESTIONS
-                                : HOMEHEADERLIST.HOME
-                            );
-                            setSubTab(SUBTAB.SUGGESTIONS);
-                          }}
-                        />
-                        <Tab
-                          id="home-page-sub-tab"
-                          label={t("Favourite")}
-                          onClick={() => {
-                            setCurrentHeader(
-                              canShowAvatar
-                                ? HOMEHEADERLIST.SUGGESTIONS
-                                : HOMEHEADERLIST.HOME
-                            );
-                            setSubTab(SUBTAB.FAVOURITES);
-                          }}
-                        />
-                        <Tab
-                          id="home-page-sub-tab"
-                          label={t("History")}
-                          onClick={() => {
-                            setCurrentHeader(
-                              canShowAvatar
-                                ? HOMEHEADERLIST.SUGGESTIONS
-                                : HOMEHEADERLIST.HOME
-                            );
-                            setSubTab(SUBTAB.HISTORY);
-                          }}
-                        />
-                      </Tabs>
-                    </Box>
-                  </AppBar>
-                </div>
-              )}
+                      />
+                      <Tab
+                        id="home-page-sub-tab"
+                        label={t("Favourite")}
+                        onClick={() => {
+                          setCurrentHeader(
+                            canShowAvatar
+                              ? HOMEHEADERLIST.SUGGESTIONS
+                              : HOMEHEADERLIST.HOME
+                          );
+                          setSubTab(SUBTAB.FAVOURITES);
+                        }}
+                      />
+                      <Tab
+                        id="home-page-sub-tab"
+                        label={t("History")}
+                        onClick={() => {
+                          setCurrentHeader(
+                            canShowAvatar
+                              ? HOMEHEADERLIST.SUGGESTIONS
+                              : HOMEHEADERLIST.HOME
+                          );
+                          setSubTab(SUBTAB.HISTORY);
+                        }}
+                      />
+                    </Tabs>
+                  </Box>
+                </AppBar>
+              </div>
+            )}
           </div>
         ) : null}
         <SkeltonLoading isLoading={isLoading} header={currentHeader} />

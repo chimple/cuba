@@ -362,9 +362,9 @@ export class Util {
 
               console.log(
                 "before local lesson Bundle http url:" +
-                "assets/" +
-                lessonId +
-                "/config.json"
+                  "assets/" +
+                  lessonId +
+                  "/config.json"
               );
 
               const fetchingLocalBundle = await fetch(
@@ -372,9 +372,9 @@ export class Util {
               );
               console.log(
                 "after local lesson Bundle fetch url:" +
-                "assets/" +
-                lessonId +
-                "/config.json",
+                  "assets/" +
+                  lessonId +
+                  "/config.json",
                 fetchingLocalBundle.ok,
                 fetchingLocalBundle.json,
                 fetchingLocalBundle
@@ -1373,7 +1373,7 @@ export class Util {
       // }
 
       // If Remote Config allows showing avatar, return true
-      const canShowAvatarValue = false
+      const canShowAvatarValue = false;
       // await RemoteConfig.getBoolean(
       //   REMOTE_CONFIG_KEYS.CAN_SHOW_AVATAR
       // );

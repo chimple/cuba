@@ -133,8 +133,8 @@ const AvatarImageOption: React.FC<{
           if (currentCourse) {
             content = cardContent(
               `courses/chapter_icons/${currentCourse.code}.png`,
-              "courses/maths/icons/maths10.png",
-              currentCourse.image ?? ""
+              "assets/icons/DefaultIcon.png",
+              currentCourse.image ?? "assets/icons/DefaultIcon.png"
             );
           }
           break;
@@ -142,8 +142,8 @@ const AvatarImageOption: React.FC<{
           if (currentCourse && currentChapter) {
             content = cardContent(
               `courses/${currentCourse.code}/icons/${currentChapter.id}.webp`,
-              "courses/en/icons/en38.webp",
-              currentChapter.image ?? ""
+              "assets/icons/DefaultIcon.png",
+              currentChapter.image ?? "assets/icons/DefaultIcon.png"
             );
           }
           break;
@@ -155,8 +155,8 @@ const AvatarImageOption: React.FC<{
                 "/icons/" +
                 currentLesson.id +
                 ".webp",
-              "courses/en/icons/en38.webp",
-              currentLesson.image ?? ""
+              "assets/icons/DefaultIcon.png",
+              currentLesson.image ?? "assets/icons/DefaultIcon.png"
             );
           }
           break;
@@ -184,8 +184,8 @@ const AvatarImageOption: React.FC<{
             "/icons/" +
             currentLesson.id +
             ".webp",
-          "courses/en/icons/en38.webp",
-          currentLesson.image ?? ""
+          "assets/icons/DefaultIcon.png",
+          currentLesson.image ?? "assets/icons/DefaultIcon.png"
         );
       }
 
@@ -291,7 +291,7 @@ const AvatarImageOption: React.FC<{
           <SelectIconImage
             localSrc={localSrc}
             defaultSrc={defalutSrc}
-            webSrc={webSrc}
+            webSrc={webSrc || "assets/icons/DefaultIcon.png"}
             imageWidth={"80%"}
             imageHeight={"80%"}
             webImageWidth={

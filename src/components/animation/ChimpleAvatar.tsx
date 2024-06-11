@@ -164,7 +164,6 @@ const ChimpleAvatar: FC<{
         : {};
       if (!currentCourse) setCurrentCourse(allCourses[0]);
     }
-
   };
   async function onClickYes() {
     setButtonsDisabled(false);
@@ -235,7 +234,7 @@ const ChimpleAvatar: FC<{
           onclickInput?.fire();
           history.replace(
             PAGES.LEADERBOARD +
-            `?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${avatarObj.unlockedRewards[0]?.leaderboardRewardList.toLowerCase()}`
+              `?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${avatarObj.unlockedRewards[0]?.leaderboardRewardList.toLowerCase()}`
           );
           avatarObj.unlockedRewards = [];
         }
@@ -393,18 +392,15 @@ const ChimpleAvatar: FC<{
     if (currentLesson) {
       const assignmentMap = {};
       const assignmentFound = assignments?.find(
-        (val) => val.lesson_id === currentLesson.id && assignmentMap[val.id] == null
+        (val) =>
+          val.lesson_id === currentLesson.id && assignmentMap[val.id] == null
       );
       if (assignmentFound) {
         assignmentMap[assignmentFound.id] = currentLesson.id;
       }
-      if (
-        !!assignmentFound?.id &&
-        currentLesson.plugin_type === LIVE_QUIZ
-      ) {
+      if (!!assignmentFound?.id && currentLesson.plugin_type === LIVE_QUIZ) {
         history.replace(
-          PAGES.LIVE_QUIZ_JOIN +
-          `?assignmentId=${assignmentFound.id}`,
+          PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${assignmentFound.id}`,
           {
             assignment: JSON.stringify(assignmentFound),
           }
@@ -422,7 +418,7 @@ const ChimpleAvatar: FC<{
           course: JSON.stringify(lessonCourse),
           lesson: JSON.stringify(currentLesson),
           from: history.location.pathname + "?continue=true",
-          assignment: assignmentFound
+          assignment: assignmentFound,
         });
       }
     }
@@ -445,7 +441,7 @@ const ChimpleAvatar: FC<{
   }
 
   async function getRecommendedChapter(course: TableTypes<"course">) {
-    const cCourseChapter = await api.getChaptersForCourse(course.id)
+    const cCourseChapter = await api.getChaptersForCourse(course.id);
     if (currentChapter) {
       const chapterIndex = cCourseChapter.findIndex(
         (chapter) => chapter.id === currentChapter?.id
@@ -461,7 +457,7 @@ const ChimpleAvatar: FC<{
     cCourse: TableTypes<"course">
   ) {
     if (currentMode === AvatarModes.CourseSuggestion) {
-      const cChapterLessons = await api.getLessonsForChapter(cChapter.id)
+      const cChapterLessons = await api.getLessonsForChapter(cChapter.id);
       if (currentLesson && cChapter) {
         const lessonIndex = cChapterLessons.findIndex(
           (lesson) => lesson.id === currentLesson?.id
@@ -471,7 +467,7 @@ const ChimpleAvatar: FC<{
             (chapter) => chapter.id === cChapter.id
           );
           if (!cLesson) {
-            return cChapterLessons[0]
+            return cChapterLessons[0];
           }
           // const cCourseChapter = await api.getChaptersForCourse(course.id)
           // setCurrentChapter(cCourse.chapters[chapterIndex + 1]);
