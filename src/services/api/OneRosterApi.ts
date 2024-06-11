@@ -330,6 +330,10 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+  getCourseByUserGradeId(gradeDocId: string | null | undefined, boardDocId: string | null | undefined): Promise<TableTypes<"course">[]> {
+    throw new Error("Method not implemented.");
+  }
+
   updateSoundFlag(userId: string, value: boolean) {
     throw new Error("Method not implemented.");
   }

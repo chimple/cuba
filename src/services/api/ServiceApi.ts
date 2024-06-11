@@ -79,6 +79,8 @@ export interface ServiceApi {
    * @returns {User[]} Array of `User` objects
    */
   getParentStudentProfiles(): Promise<TableTypes<"user">[]>;
+  getCourseByUserGradeId(gradeDocId: string | null | undefined, boardDocId: string | null | undefined): Promise<TableTypes<"course">[]> ;
+  
 
   get currentStudent(): TableTypes<"user"> | undefined;
 
