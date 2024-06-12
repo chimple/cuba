@@ -1709,6 +1709,14 @@ export class SqliteApi implements ServiceApi {
     // This Query will give last played lessons
     const lastPlayedLessonsQuery = `
   WITH
+  get_user_courses as (
+    select
+      *
+    from
+      ${TABLES.UserCourse}
+    where
+      user_id = '${studentId}'
+  ),
   course_details AS (
     SELECT
       c.name AS chapter_name,
@@ -1738,6 +1746,7 @@ export class SqliteApi implements ServiceApi {
       ${TABLES.Lesson} l
       JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
       JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
+      JOIN get_user_courses co on co.course_id = c.course_id
     ORDER BY
       c.course_id,
       chapter_index,
@@ -1793,8 +1802,49 @@ export class SqliteApi implements ServiceApi {
     where
       lpl.chapter_id = cd.chapter_id
       and lpl.next_lesson_id = cd.lesson_id
+  ),
+  not_played_courses as (
+    SELECT
+      cd.course_id
+    FROM
+      course_details cd
+    WHERE
+      NOT EXISTS (
+        SELECT
+          1
+        FROM
+          last_played_lessons lpl
+        WHERE
+          cd.course_id = lpl.course_id
+      )
+    GROUP BY
+      cd.course_id -- Ensures only one row per course_id
+  ),
+  played_with_first_lesson as (
+    SELECT distinct
+  c.*
+FROM
+  (
+    SELECT
+      *
+    FROM
+      course_details
+    WHERE
+      lesson_index = 0
+      AND chapter_index = 0
+  ) c,
+  not_played_courses n
+WHERE
+  c.course_id != n.course_id
+ORDER BY
+  c.course_id,
+  c.chapter_name,
+  c.lesson_name
   )
 select
+  chapter_name,
+  lesson_name,
+  course_id,
   lesson_id as id,
   lesson_name as name,
   cocos_subject_code,
@@ -1814,9 +1864,12 @@ select
   is_deleted,
   color
 from
-  last_played_lessons
+  played_with_first_lesson
 union all
 select
+  chapter_name,
+  lesson_name,
+  course_id,
   next_lesson_id as id,
   lesson_name as name,
   cocos_subject_code,
@@ -1836,96 +1889,18 @@ select
   is_deleted,
   color
 from
-  next_played_lesson;
+  next_played_lesson
+order by
+  course_id,
+  chapter_name,
+  lesson_name;
   `;
-    console.log("lastPlayedLessonsQuery ", lastPlayedLessonsQuery);
+    console.log("lastPlayedLessons Query  Exicuted");
 
     const res = await this._db?.query(lastPlayedLessonsQuery);
     console.log("const res =  ", res?.values);
-    if (!res || !res.values || res.values?.length <= 0) {
-      console.log("if (!res || !res.values || res.values?.length <= 0 ");
-
-      const firstLessonOfEachCourse = `
-      WITH
-  get_user_courses as (
-    select
-      *
-    from
-      ${TABLES.UserCourse}
-    where
-      user_id = '${studentId}'
-  ),
-  course_details AS (
-    SELECT
-      c.name AS chapter_name,
-      l.name AS lesson_name,
-      c.course_id,
-      c.id AS chapter_id,
-      l.id AS lesson_id,
-      c.sort_index AS chapter_index,
-      cl.sort_index AS lesson_index,
-      l.cocos_subject_code,
-      l.cocos_chapter_code,
-      l.cocos_lesson_id,
-      l.image,
-      l.outcome,
-      l.plugin_type,
-      l.status,
-      l.created_by,
-      l.subject_id,
-      l.target_age_from,
-      l.target_age_to,
-      l.language_id,
-      l.created_at,
-      l.updated_at,
-      l.is_deleted,
-      l.color
-    FROM
-    ${TABLES.Lesson} l
-      JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
-      JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
-      JOIN get_user_courses co on co.course_id = c.course_id
-    ORDER BY
-      c.course_id,
-      chapter_index,
-      lesson_index
-  )
-SELECT
-  course_id,
-  chapter_index,
-  lesson_index,
-  lesson_id as id,
-  chapter_name,
-  lesson_name as name,
-  cocos_subject_code,
-  cocos_chapter_code,
-  cocos_lesson_id,
-  image,
-  outcome,
-  plugin_type,
-  status,
-  created_by,
-  subject_id,
-  target_age_from,
-  target_age_to,
-  language_id,
-  created_at,
-  updated_at,
-  is_deleted,
-  color
-FROM
-  course_details
-WHERE
-  lesson_index = 0
-  and chapter_index = 0;
-`;
-      const firRes = await this._db?.query(firstLessonOfEachCourse);
-      console.log("firRes?.values  ", firRes?.values);
-      if (!firRes) {
-        return [];
-      }
-      let firstOfCourse = firRes.values as TableTypes<"lesson">[];
-      return firstOfCourse;
+    if (!res) {
+      return [];
     }
     let listOfLessons = res.values as TableTypes<"lesson">[];
 
