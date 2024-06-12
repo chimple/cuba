@@ -390,7 +390,6 @@ const Home: FC = () => {
   async function getCourseRecommendationLessons(
     currentStudent: TableTypes<"user">
   ): Promise<TableTypes<"lesson">[]> {
-    console.log("async function getCourseRecommendationLessons( ");
     // const allCourses: TableTypes<"course">[] =
     //   await api.getCoursesForParentsStudent(currentStudent.id);
     // console.log("allCourses ", allCourses);
@@ -399,8 +398,6 @@ const Home: FC = () => {
     let tempRecommendedLesson = await api.getRecommendedLessons(
       currentStudent.id
     );
-    console.log("let tempRecommendedLesson ", tempRecommendedLesson);
-
     return tempRecommendedLesson;
   }
 

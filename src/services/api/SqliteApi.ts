@@ -1895,17 +1895,11 @@ order by
   chapter_name,
   lesson_name;
   `;
-    console.log("lastPlayedLessons Query  Exicuted");
-
     const res = await this._db?.query(lastPlayedLessonsQuery);
-    console.log("const res =  ", res?.values);
     if (!res) {
       return [];
     }
     let listOfLessons = res.values as TableTypes<"lesson">[];
-
-    console.log("listOfLessons ", listOfLessons);
-
     return listOfLessons;
   }
 

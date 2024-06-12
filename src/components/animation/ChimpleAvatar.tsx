@@ -150,8 +150,6 @@ const ChimpleAvatar: FC<{
     const currentStudent = Util.getCurrentStudent();
     if (currentStudent) {
       let courses = await api.getCoursesForParentsStudent(currentStudent.id);
-      console.log("let courses =  ", courses);
-
       if (courses) {
         setAllCourses(courses);
         cAllCourses = courses;
@@ -428,8 +426,6 @@ const ChimpleAvatar: FC<{
     if (!allCourses || allCourses.length === 0) {
       await fetchCoursesForStudent();
     }
-    console.log("async function getRecommendedCourse ", currentCourse);
-
     if (currentCourse) {
       const courseIndex = allCourses.findIndex(
         (course) => course.code === currentCourse?.code
