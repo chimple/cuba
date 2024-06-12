@@ -79,6 +79,8 @@ export interface ServiceApi {
    * @returns {User[]} Array of `User` objects
    */
   getParentStudentProfiles(): Promise<TableTypes<"user">[]>;
+  getCourseByUserGradeId(gradeDocId: string | null | undefined, boardDocId: string | null | undefined): Promise<TableTypes<"course">[]> ;
+  
 
   get currentStudent(): TableTypes<"user"> | undefined;
 
@@ -130,7 +132,10 @@ export interface ServiceApi {
    * @param {User} student - Student User object
    * @returns {Course} `Course` object
    */
-  addCourseForParentsStudent(courses: Course[], student: User);
+  addCourseForParentsStudent(
+    courses: TableTypes<"course">[],
+    student: TableTypes<"user">
+  );
 
   /**
    * Gives List of subjects for given a student for Home user
@@ -147,10 +152,10 @@ export interface ServiceApi {
   getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]>;
 
   /**
- * Gives Chapter for given a chapter doc Id
- * @param id  -chapter id
- * @returns {Chapter | undefined}`Chapter` or `undefined` if it could not find the lesson with given `id`
- */
+   * Gives Chapter for given a chapter doc Id
+   * @param id  -chapter id
+   * @returns {Chapter | undefined}`Chapter` or `undefined` if it could not find the lesson with given `id`
+   */
   getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined>;
 
   /**
@@ -658,6 +663,7 @@ export interface ServiceApi {
   getRecommendedLessons(
     studentId: string
   ): Promise<TableTypes<"lesson">[]>;
+  
   /**
    * Searches for lessons that match the given search string in their name or outcome fields.
    *
@@ -675,5 +681,5 @@ export interface ServiceApi {
    *   .catch(error => console.error(error));
    */
 
-  searchLessons(searchString: string): Promise<TableTypes<"lesson">[]>
+  searchLessons(searchString: string): Promise<TableTypes<"lesson">[]>;
 }

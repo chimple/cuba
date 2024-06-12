@@ -86,7 +86,9 @@ const AddCourses: React.FC = () => {
 
   const updateCourses = async (): Promise<Course[]> => {
     setIsLoading(true);
-    // await api.addCourseForParentsStudent(selectedCourses!, currentStudent!);
+    if (selectedCourses && currentStudent) {
+      await api.addCourseForParentsStudent(selectedCourses, currentStudent);
+    }
     const eventParams = {
       // user_id: currentStudent?.id,
       // user_type: currentStudent?.role,

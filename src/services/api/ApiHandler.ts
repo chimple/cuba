@@ -57,7 +57,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<string | undefined> {
     return this.s.joinLiveQuiz(assignmentId, studentId);
   }
-  private constructor() { }
+  private constructor() {}
   public async updateRewardsForStudent(
     studentId: string,
     unlockedReward: LeaderboardRewards
@@ -87,17 +87,17 @@ export class ApiHandler implements ServiceApi {
     return this.s.getRewardsById(id, periodType);
   }
   public async getUserSticker(
-    userId: string,
+    userId: string
   ): Promise<TableTypes<"user_sticker">[]> {
     return this.s.getUserSticker(userId);
   }
   public async getUserBonus(
-    userId: string,
+    userId: string
   ): Promise<TableTypes<"user_bonus">[]> {
     return this.s.getUserBonus(userId);
   }
   public async getUserBadge(
-    userId: string,
+    userId: string
   ): Promise<TableTypes<"user_badge">[]> {
     return this.s.getUserBadge(userId);
   }
@@ -338,6 +338,13 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getParentStudentProfiles();
   }
 
+  public async getCourseByUserGradeId(
+    gradeDocId: string | null | undefined,
+    boardDocId: string | null | undefined
+  ): Promise<TableTypes<"course">[]> {
+    return await this.s.getCourseByUserGradeId(gradeDocId, boardDocId);
+  }
+
   updateSoundFlag(userId: string, value: boolean) {
     return this.s.updateSoundFlag(userId, value);
   }
@@ -399,8 +406,8 @@ export class ApiHandler implements ServiceApi {
   }
 
   public async addCourseForParentsStudent(
-    courses: Course[],
-    student: User
+    courses: TableTypes<"course">[],
+    student: TableTypes<"user">
   ): Promise<TableTypes<"course">[]> {
     return this.s.addCourseForParentsStudent(courses, student);
   }
@@ -494,7 +501,9 @@ export class ApiHandler implements ServiceApi {
     return this.s.syncDB();
   }
 
-  async getRecommendedLessons(studentId: string): Promise<TableTypes<"lesson">[]> {
+  async getRecommendedLessons(
+    studentId: string
+  ): Promise<TableTypes<"lesson">[]> {
     return this.s.getRecommendedLessons(studentId);
   }
 

@@ -219,8 +219,15 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"user">> {
     throw new Error("Method not implemented.");
   }
-  deleteProfile(studentId: string) {
-    throw new Error("Method not implemented.");
+  async deleteProfile(studentId: string) {
+    if (!this.supabase) return;
+
+    const res = await this.supabase.rpc("delete_student", {
+      student_id: studentId,
+    });
+    if (res.error) {
+      throw res.error;
+    }
   }
   getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
     throw new Error("Method not implemented.");
@@ -232,6 +239,10 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
+    throw new Error("Method not implemented.");
+  }
+
+  getCourseByUserGradeId(gradeDocId: string | null | undefined , boardDocId: string | null| undefined): Promise<TableTypes<"course">[]> {
     throw new Error("Method not implemented.");
   }
   get currentStudent(): TableTypes<"user"> | undefined {
@@ -283,7 +294,10 @@ export class SupabaseApi implements ServiceApi {
   getAdditionalCourses(studentId: string): Promise<TableTypes<"course">[]> {
     throw new Error("Method not implemented.");
   }
-  addCourseForParentsStudent(courses: Course[], student: User) {
+  addCourseForParentsStudent(
+    courses: TableTypes<"course">[],
+    student: TableTypes<"user">
+  ) {
     throw new Error("Method not implemented.");
   }
   getCoursesForClassStudent(classId: string): Promise<TableTypes<"course">[]> {
