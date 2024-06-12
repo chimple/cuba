@@ -178,10 +178,13 @@ const DisplayChapters: FC<{}> = () => {
             setCurrentCourse(cc);
 
             if (!!localStorageData.currentChapterId) {
-              let cChap: TableTypes<"chapter"> =
-                localData.currentCourse.chapters.find(
-                  (chap) => localStorageData.currentChapterId === chap.id
-                );
+              const chapters = await api.getChaptersForCourse(
+                localData.currentCourse.id
+              );
+              const cChap = chapters.find(
+                (chap) => localStorageData.currentChapterId === chap.id
+              );
+
               localData.currentChapter = cChap;
               setCurrentChapter(cChap);
             }
