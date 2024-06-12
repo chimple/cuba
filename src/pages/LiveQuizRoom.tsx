@@ -80,7 +80,9 @@ const LiveQuizRoom: React.FC = () => {
     }
     if (!assignment?.lesson_id) return;
     setCurrentAssignment(assignment);
-    downloadQuiz(assignment.lesson_id);
+    if (tempLesson?.cocos_lesson_id) {
+      downloadQuiz(tempLesson?.cocos_lesson_id);
+    }
     const linked = await api.isStudentLinked(currentStudent.id, true);
     if (!linked) return;
 
