@@ -277,8 +277,8 @@ const LessonCard: React.FC<{
                   lesson.id +
                   ".webp"
                 }
-                defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
-                webSrc={lesson.image}
+                defaultSrc={"assets/icons/DefaultIcon.png"}
+                webSrc={lesson.image || "assets/icons/DefaultIcon.png"}
                 imageWidth={"100%"}
                 imageHeight={"100%"}
               />

@@ -338,7 +338,10 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getParentStudentProfiles();
   }
 
-  public async getCourseByUserGradeId(gradeDocId: string| null | undefined, boardDocId: string | null | undefined): Promise<TableTypes<"course">[]> {
+  public async getCourseByUserGradeId(
+    gradeDocId: string | null | undefined,
+    boardDocId: string | null | undefined
+  ): Promise<TableTypes<"course">[]> {
     return await this.s.getCourseByUserGradeId(gradeDocId, boardDocId);
   }
 
@@ -497,6 +500,13 @@ export class ApiHandler implements ServiceApi {
   syncDB(): Promise<boolean> {
     return this.s.syncDB();
   }
+
+  async getRecommendedLessons(
+    studentId: string
+  ): Promise<TableTypes<"lesson">[]> {
+    return this.s.getRecommendedLessons(studentId);
+  }
+
   searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
     return this.s.searchLessons(searchString);
   }

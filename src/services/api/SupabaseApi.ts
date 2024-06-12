@@ -754,6 +754,11 @@ export class SupabaseApi implements ServiceApi {
   updateRewardsForStudent(studentId: string, unlockReward: LeaderboardRewards) {
     throw new Error("Method not implemented.");
   }
+
+  getRecommendedLessons(studentId: string): Promise<TableTypes<"lesson">[]> {
+    throw new Error("Method not implemented.");
+  }
+
   async searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
     if (!this.supabase) return [];
     const { data, error } = await this.supabase.rpc("find_similar_lessons", {

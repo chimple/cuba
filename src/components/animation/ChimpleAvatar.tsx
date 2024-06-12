@@ -33,9 +33,10 @@ export enum CourseNames {
 
 const ChimpleAvatar: FC<{
   recommadedSuggestion: TableTypes<"lesson">[];
+  assignments: TableTypes<"assignment">[];
   style;
   isUnlocked?: boolean;
-}> = ({ recommadedSuggestion, style }) => {
+}> = ({ recommadedSuggestion, assignments, style }) => {
   let avatarObj = AvatarObj.getInstance();
   const [currentMode, setCurrentMode] = useState<AvatarModes>(
     avatarObj.mode || AvatarModes.Welcome
@@ -94,7 +95,6 @@ const ChimpleAvatar: FC<{
         " " + x1 + " "
       );
     } else if (avatarObj.mode === AvatarModes.RecommendedLesson) {
-      // avatarObj.currentRecommendedLessonIndex = 0;
       if (
         !avatarObj.currentRecommendedLessonIndex ||
         avatarObj.currentRecommendedLessonIndex >= recommadedSuggestion.length
@@ -142,7 +142,6 @@ const ChimpleAvatar: FC<{
       cCourse = await getRecommendedCourse();
       setCurrentCourse(cCourse);
     }
-    // await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 
   const fetchCoursesForStudent = async () => {
@@ -163,9 +162,6 @@ const ChimpleAvatar: FC<{
         : {};
       if (!currentCourse) setCurrentCourse(allCourses[0]);
     }
-
-    // AvatarObj.getInstance().unlockedRewards =
-    //   (await Util.getAllUnlockedRewards()) || [];
   };
   async function onClickYes() {
     setButtonsDisabled(false);
@@ -267,7 +263,7 @@ const ChimpleAvatar: FC<{
           case AvatarModes.CourseSuggestion:
             if (choice) {
               await onClickYes();
-              // cChapter = await getRecommendedChapter(cCourse || currentCourse);
+              cChapter = await getRecommendedChapter(cCourse || currentCourse);
               setCurrentChapter(cChapter);
               setCurrentStageMode(AvatarModes.ChapterSuggestion);
               const x2 = cChapter?.name || "";
@@ -292,11 +288,10 @@ const ChimpleAvatar: FC<{
             if (choice) {
               await onClickYes();
               setCurrentStageMode(AvatarModes.LessonSuggestion);
-              // cLesson = await getRecommendedLesson(
-              //   // currentChapter || cCourse.chapters[0],
-              //   currentChapter,
-              //   cCourse || currentCourse
-              // );
+              cLesson = await getRecommendedLesson(
+                currentChapter || cChapter[0],
+                cCourse || currentCourse
+              );
               setCurrentLesson(cLesson);
               const x3 = cLesson?.name || "";
               message = t(`Do you want to play 'x3' lesson?`).replace(
@@ -306,13 +301,13 @@ const ChimpleAvatar: FC<{
               // await speak(message);
             } else {
               await onClickNo();
-              // cChapter = await getRecommendedChapter(cCourse || currentCourse);
-              // setCurrentChapter(cChapter);
-              // const x2 = cChapter?.name || "";
-              // message = t(`Do you want to play 'x2' chapter?`).replace(
-              //   "x2",
-              //   " " + x2 + " "
-              // );
+              cChapter = await getRecommendedChapter(cCourse || currentCourse);
+              setCurrentChapter(cChapter);
+              const x2 = cChapter?.name || "";
+              message = t(`Do you want to play 'x2' chapter?`).replace(
+                "x2",
+                " " + x2 + " "
+              );
               // await speak(message);
             }
             break;
@@ -323,11 +318,10 @@ const ChimpleAvatar: FC<{
               // await loadNextSuggestion();
             } else {
               await onClickNo();
-              // cLesson = await getRecommendedLesson(
-              //   // currentChapter || cCourse.chapters[0],
-              //   currentChapter,
-              //   cCourse || currentCourse
-              // );
+              cLesson = await getRecommendedLesson(
+                currentChapter || cChapter[0],
+                cCourse || currentCourse
+              );
               setCurrentLesson(cLesson);
               const x3 = cLesson?.name || "";
               message = t(`Do you want to play 'x3' lesson?`).replace(
@@ -374,7 +368,7 @@ const ChimpleAvatar: FC<{
             cChapter,
             currentCourse
           );
-          // setCurrentLesson(recomLesson);
+          setCurrentLesson(recomLesson);
           const x3 = recomLesson?.name || "";
           message = t(`Do you want to play 'x3' lesson?`)
             .replace("x3", " " + x3 + " ")
@@ -393,36 +387,39 @@ const ChimpleAvatar: FC<{
 
   async function playCurrentLesson() {
     await stop();
-    // if (currentLesson) {
-    //   if (
-    //     !!currentLesson?.assignment?.id &&
-    //     currentLesson.pluginType === LIVE_QUIZ
-    //   ) {
-    //     history.replace(
-    //       PAGES.LIVE_QUIZ_JOIN +
-    //         `?assignmentId=${currentLesson?.assignment?.id}`,
-    //       {
-    //         assignment: JSON.stringify(currentLesson?.assignment),
-    //       }
-    //     );
-    //   } else {
-    //     let lessonCourse = currentCourse;
-    //     if (!currentCourse) {
-    //       lessonCourse =
-    //         (await api.getCourseFromLesson(currentLesson)) || currentCourse;
-    //     }
-    //     const parmas = `?courseid=${currentLesson.cocosSubjectCode}&chapterid=${currentLesson.cocosChapterCode}&lessonid=${currentLesson.id}`;
-    //     await history.replace(PAGES.GAME + parmas, {
-    //       url: "chimple-lib/index.html" + parmas,
-    //       lessonId: currentLesson.id,
-    //       courseDocId: lessonCourse.id,
-    //       course: JSON.stringify(Course.toJson(lessonCourse)),
-    //       lesson: JSON.stringify(Lesson.toJson(currentLesson)),
-    //       from: history.location.pathname + "?continue=true",
-    //       assignment:assignment
-    //     });
-    //   }
-    // }
+    if (currentLesson) {
+      const assignmentMap = {};
+      const assignmentFound = assignments?.find(
+        (val) =>
+          val.lesson_id === currentLesson.id && assignmentMap[val.id] == null
+      );
+      if (assignmentFound) {
+        assignmentMap[assignmentFound.id] = currentLesson.id;
+      }
+      if (!!assignmentFound?.id && currentLesson.plugin_type === LIVE_QUIZ) {
+        history.replace(
+          PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${assignmentFound.id}`,
+          {
+            assignment: JSON.stringify(assignmentFound),
+          }
+        );
+      } else {
+        const lessonCourse = await api.getCoursesFromLesson(currentLesson.id);
+        if (lessonCourse && lessonCourse.length > 0) {
+          setCurrentCourse(lessonCourse[0]);
+        }
+        const parmas = `?courseid=${currentLesson.cocos_subject_code}&chapterid=${currentLesson.cocos_chapter_code}&lessonid=${currentLesson.cocos_lesson_id}`;
+        await history.replace(PAGES.GAME + parmas, {
+          url: "chimple-lib/index.html" + parmas,
+          lessonId: currentLesson.cocos_lesson_id,
+          courseDocId: lessonCourse[0].id,
+          course: JSON.stringify(lessonCourse),
+          lesson: JSON.stringify(currentLesson),
+          from: history.location.pathname + "?continue=true",
+          assignment: assignmentFound,
+        });
+      }
+    }
   }
 
   async function getRecommendedCourse() {
@@ -440,55 +437,61 @@ const ChimpleAvatar: FC<{
   }
 
   async function getRecommendedChapter(course: TableTypes<"course">) {
-    // if (currentChapter) {
-    //   const chapterIndex = course.chapters.findIndex(
-    //     (chapter) => chapter.id === currentChapter?.id
-    //   );
-    //   return course.chapters[chapterIndex + 1];
-    // } else {
-    //   return course.chapters[0];
-    // }
+    const cCourseChapter = await api.getChaptersForCourse(course.id);
+    if (currentChapter) {
+      const chapterIndex = cCourseChapter.findIndex(
+        (chapter) => chapter.id === currentChapter?.id
+      );
+      return cCourseChapter[chapterIndex + 1];
+    } else {
+      return cCourseChapter[0];
+    }
   }
 
   async function getRecommendedLesson(
     cChapter: TableTypes<"chapter">,
     cCourse: TableTypes<"course">
   ) {
-    // if (currentMode === AvatarModes.CourseSuggestion) {
-    //   if (currentLesson && cChapter) {
-    //     const lessonIndex = cChapter.lessons.findIndex(
-    //       (lesson) => lesson.id === currentLesson?.id
-    //     );
-    //     if (lessonIndex === cChapter.lessons.length - 1) {
-    //       const chapterIndex = cCourse.chapters.findIndex(
-    //         (chapter) => chapter.id === cChapter.id
-    //       );
-    //       setCurrentChapter(cCourse.chapters[chapterIndex + 1]);
-    //       const cLessonRef = cCourse.chapters[chapterIndex + 1].lessons[0].id;
-    //       const cLesson = await api.getLesson(cLessonRef);
-    //       return cLesson;
-    //     } else {
-    //       const cLessonRef = cChapter.lessons[lessonIndex + 1].id;
-    //       const cLesson = await api.getLesson(cLessonRef);
-    //       return cLesson;
-    //     }
-    //   } else {
-    //     const cLessonRef = cChapter.lessons[0].id;
-    //     const cLesson = await api.getLesson(cLessonRef);
-    //     return cLesson;
-    //   }
-    // } else if (currentMode === AvatarModes.RecommendedLesson) {
-    //   avatarObj.currentRecommendedLessonIndex++;
-    //   if (
-    //     avatarObj.currentRecommendedLessonIndex === recommadedSuggestion.length
-    //   ) {
-    //     avatarObj.currentRecommendedLessonIndex = 0;
-    //   }
-    //   setCurrentLesson(
-    //     recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]
-    //   );
-    //   return recommadedSuggestion[avatarObj.currentRecommendedLessonIndex];
-    // }
+    if (currentMode === AvatarModes.CourseSuggestion) {
+      const cChapterLessons = await api.getLessonsForChapter(cChapter.id);
+      if (currentLesson && cChapter) {
+        const lessonIndex = cChapterLessons.findIndex(
+          (lesson) => lesson.id === currentLesson?.id
+        );
+        if (lessonIndex === cChapterLessons.length - 1) {
+          const chapterIndex = cChapterLessons.findIndex(
+            (chapter) => chapter.id === cChapter.id
+          );
+          if (!cLesson) {
+            return cChapterLessons[0];
+          }
+          // const cCourseChapter = await api.getChaptersForCourse(course.id)
+          // setCurrentChapter(cCourse.chapters[chapterIndex + 1]);
+          // const cLessonRef = cCourse.chapters[chapterIndex + 1].lessons[0].id;
+          // const cLesson = await api.getLesson(cLessonRef);
+          return cLesson;
+        } else {
+          const cLesson = cChapterLessons[lessonIndex + 1];
+          // const cLesson = await api.getLesson(cLessonRef);
+          return cLesson;
+        }
+      } else {
+        // const cLessonRef = cChapterLessons[0].id;
+        const cLesson = cChapterLessons[0];
+        return cLesson;
+      }
+    } else if (currentMode === AvatarModes.RecommendedLesson) {
+      avatarObj.currentRecommendedLessonIndex++;
+      if (
+        avatarObj.currentRecommendedLessonIndex === recommadedSuggestion.length
+      ) {
+        avatarObj.currentRecommendedLessonIndex = 0;
+      }
+      setCurrentLesson(
+        recommadedSuggestion[avatarObj.currentRecommendedLessonIndex]
+      );
+      return recommadedSuggestion[avatarObj.currentRecommendedLessonIndex];
+    }
   }
 
   switch (currentMode) {

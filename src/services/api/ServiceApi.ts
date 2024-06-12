@@ -655,6 +655,16 @@ export interface ServiceApi {
   syncDB(): Promise<boolean>;
 
   /**
+   * Function to get Recommended Lessons.
+   *
+   * @param studentId - The current student id.
+   * @returns A promise returns list of Recommended Lessons to home page.
+   */
+  getRecommendedLessons(
+    studentId: string
+  ): Promise<TableTypes<"lesson">[]>;
+  
+  /**
    * Searches for lessons that match the given search string in their name or outcome fields.
    *
    * @param searchString - The text to search for in the name or outcome of lessons.

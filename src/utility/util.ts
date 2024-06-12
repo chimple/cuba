@@ -1373,9 +1373,10 @@ export class Util {
       // }
 
       // If Remote Config allows showing avatar, return true
-      const canShowAvatarValue = await RemoteConfig.getBoolean(
-        REMOTE_CONFIG_KEYS.CAN_SHOW_AVATAR
-      );
+      const canShowAvatarValue = false;
+      // await RemoteConfig.getBoolean(
+      //   REMOTE_CONFIG_KEYS.CAN_SHOW_AVATAR
+      // );
       console.log(
         "getCanShowAvatar() return canShowAvatarValue;",
         canShowAvatarValue

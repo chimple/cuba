@@ -324,7 +324,7 @@ const Parent: React.FC = () => {
                   title="YouTube video player"
                   // frameborder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  // allowfullscreen
+                // allowfullscreen
                 ></iframe>
               </div>
             </div>
@@ -431,7 +431,7 @@ const Parent: React.FC = () => {
       updatedTabs[t(item.header)] = t(item.header);
     });
     setTabs(updatedTabs);
-  }, [parentHeaderIconList]);
+  }, []);
 
   return (
     <Box>

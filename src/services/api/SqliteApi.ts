@@ -1972,6 +1972,205 @@ export class SqliteApi implements ServiceApi {
     }
     return resultMap;
   }
+  async getRecommendedLessons(
+    studentId: string
+  ): Promise<TableTypes<"lesson">[]> {
+    // This Query will give last played lessons
+    const lastPlayedLessonsQuery = `
+  WITH
+  get_user_courses as (
+    select
+      *
+    from
+      ${TABLES.UserCourse}
+    where
+      user_id = '${studentId}'
+  ),
+  course_details AS (
+    SELECT
+      c.name AS chapter_name,
+      l.name AS lesson_name,
+      c.course_id,
+      c.id AS chapter_id,
+      l.id AS lesson_id,
+      c.sort_index AS chapter_index,
+      cl.sort_index AS lesson_index,
+      l.cocos_subject_code,
+      l.cocos_chapter_code,
+      l.cocos_lesson_id,
+      l.image,
+      l.outcome,
+      l.plugin_type,
+      l.status,
+      l.created_by,
+      l.subject_id,
+      l.target_age_from,
+      l.target_age_to,
+      l.language_id,
+      l.created_at,
+      l.updated_at,
+      l.is_deleted,
+      l.color
+    FROM
+      ${TABLES.Lesson} l
+      JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
+      JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
+      JOIN get_user_courses co on co.course_id = c.course_id
+    ORDER BY
+      c.course_id,
+      chapter_index,
+      lesson_index
+  ),
+  last_played_lessons AS (
+    SELECT
+      cd.*,
+      (
+        SELECT
+          l.lesson_id
+        FROM
+          course_details l
+        WHERE
+          l.chapter_id = cd.chapter_id
+          AND l.lesson_index > cd.lesson_index
+        ORDER BY
+          l.lesson_index
+        LIMIT
+          1
+      ) AS next_lesson_id
+    from
+      (
+        SELECT
+          c.*,
+          r.id,
+          r.assignment_id,
+          r.score,
+          ROW_NUMBER() OVER (
+            PARTITION BY
+              r.student_id,
+              c.course_id
+            ORDER BY
+              r.updated_at DESC
+          ) AS rn
+        FROM
+          result r,
+          course_details c
+        where
+          r.lesson_id = c.lesson_id
+          and r.student_id = '${studentId}'
+      ) as cd
+    where
+      rn = 1
+  ),
+  next_played_lesson as (
+    select
+      lpl.next_lesson_id,
+      cd.*
+    FROM
+      last_played_lessons lpl,
+      course_details as cd
+    where
+      lpl.chapter_id = cd.chapter_id
+      and lpl.next_lesson_id = cd.lesson_id
+  ),
+  not_played_courses as (
+    SELECT
+      cd.course_id
+    FROM
+      course_details cd
+    WHERE
+      NOT EXISTS (
+        SELECT
+          1
+        FROM
+          last_played_lessons lpl
+        WHERE
+          cd.course_id = lpl.course_id
+      )
+    GROUP BY
+      cd.course_id -- Ensures only one row per course_id
+  ),
+  played_with_first_lesson as (
+    SELECT distinct
+  c.*
+FROM
+  (
+    SELECT
+      *
+    FROM
+      course_details
+    WHERE
+      lesson_index = 0
+      AND chapter_index = 0
+  ) c,
+  not_played_courses n
+WHERE
+  c.course_id != n.course_id
+ORDER BY
+  c.course_id,
+  c.chapter_name,
+  c.lesson_name
+  )
+select
+  chapter_name,
+  lesson_name,
+  course_id,
+  lesson_id as id,
+  lesson_name as name,
+  cocos_subject_code,
+  cocos_chapter_code,
+  cocos_lesson_id,
+  image,
+  outcome,
+  plugin_type,
+  status,
+  created_by,
+  subject_id,
+  target_age_from,
+  target_age_to,
+  language_id,
+  created_at,
+  updated_at,
+  is_deleted,
+  color
+from
+  played_with_first_lesson
+union all
+select
+  chapter_name,
+  lesson_name,
+  course_id,
+  next_lesson_id as id,
+  lesson_name as name,
+  cocos_subject_code,
+  cocos_chapter_code,
+  cocos_lesson_id,
+  image,
+  outcome,
+  plugin_type,
+  status,
+  created_by,
+  subject_id,
+  target_age_from,
+  target_age_to,
+  language_id,
+  created_at,
+  updated_at,
+  is_deleted,
+  color
+from
+  next_played_lesson
+order by
+  course_id,
+  chapter_name,
+  lesson_name;
+  `;
+    const res = await this._db?.query(lastPlayedLessonsQuery);
+    if (!res) {
+      return [];
+    }
+    let listOfLessons = res.values as TableTypes<"lesson">[];
+    return listOfLessons;
+  }
 
   async searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
     if (!this._db) return [];
