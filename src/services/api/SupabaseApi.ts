@@ -219,8 +219,15 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"user">> {
     throw new Error("Method not implemented.");
   }
-  deleteProfile(studentId: string) {
-    throw new Error("Method not implemented.");
+  async deleteProfile(studentId: string) {
+    if (!this.supabase) return;
+
+    const res = await this.supabase.rpc("delete_student", {
+      student_id: studentId,
+    });
+    if (res.error) {
+      throw res.error;
+    }
   }
   getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
     throw new Error("Method not implemented.");
