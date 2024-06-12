@@ -8,6 +8,13 @@ import {
   MUTATE_TYPES,
   LIVE_QUIZ,
   CURRENT_SQLITE_VERSION,
+  DEFAULT_SUBJECT_IDS,
+  OTHER_CURRICULUM,
+  grade1,
+  aboveGrade3,
+  belowGrade1,
+  grade2,
+  grade3,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -450,21 +457,20 @@ export class SqliteApi implements ServiceApi {
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
     const studentId = uuidv4();
-    console.log("🚀 ~ SqliteApi ~ id:", studentId);
     const newStudent: TableTypes<"user"> = {
-      age: age ?? null,
-      avatar: avatar ?? null,
-      created_at: new Date().toISOString(),
-      curriculum_id: boardDocId ?? null,
-      gender: gender ?? null,
       id: studentId,
+      name,
+      age: age ?? null,
+      gender: gender ?? null,
+      avatar: avatar ?? null,
       image: image ?? null,
+      curriculum_id: boardDocId ?? null,
+      grade_id: gradeDocId ?? null,
+      language_id: languageDocId ?? null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       is_deleted: false,
       is_tc_accepted: true,
-      language_id: languageDocId ?? null,
-      name: name,
-      grade_id: gradeDocId ?? null,
-      updated_at: new Date().toISOString(),
       email: null,
       phone: null,
       fcm_token: null,
@@ -472,11 +478,11 @@ export class SqliteApi implements ServiceApi {
       sfx_off: false,
     };
 
-    const res = await this.executeQuery(
+    await this.executeQuery(
       `
-    INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-  `,
+      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `,
       [
         newStudent.id,
         newStudent.name,
@@ -485,50 +491,47 @@ export class SqliteApi implements ServiceApi {
         newStudent.avatar,
         newStudent.image,
         newStudent.curriculum_id,
+        newStudent.grade_id,
         newStudent.language_id,
+        newStudent.created_at,
+        newStudent.updated_at,
       ]
     );
-    console.log("🚀 ~ SqliteApi ~ res:", res);
-    const parentUserId = uuidv4();
-    const newParentUser: TableTypes<"parent_user"> = {
-      created_at: new Date().toISOString(),
-      id: parentUserId,
-      is_deleted: false,
-      parent_id: _currentUser.id,
-      student_id: studentId,
-      updated_at: new Date().toISOString(),
-    };
-    const res1 = await this.executeQuery(
-      `
-      INSERT INTO parent_user (id, parent_id, student_id)
-    VALUES (?, ?, ?);
-  `,
-      [newParentUser.id, newParentUser.parent_id, newParentUser.student_id]
-    );
-    console.log("🚀 ~ SqliteApi ~ res1:", res1);
 
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
-    this.updatePushChanges(
-      TABLES.ParentUser,
-      MUTATE_TYPES.INSERT,
-      newParentUser
+    const parentUserId = uuidv4();
+    await this.executeQuery(
+      `
+      INSERT INTO parent_user (id, parent_id, student_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?);
+      `,
+      [
+        parentUserId,
+        _currentUser.id,
+        studentId,
+        new Date().toISOString(),
+        new Date().toISOString(),
+      ]
     );
-    const courses = await this.getAllCourses();
-    const courseIds = courses.map((val) => val.id);
-    for (const courseId of courseIds) {
+
+    let courses;
+    if (gradeDocId && boardDocId) {
+      courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
+    }
+
+    for (const course of courses) {
       const newUserCourse: TableTypes<"user_course"> = {
-        course_id: courseId,
+        course_id: course.id,
         created_at: new Date().toISOString(),
         id: uuidv4(),
         is_deleted: false,
         updated_at: new Date().toISOString(),
-        user_id: newStudent.id,
+        user_id: studentId,
       };
       await this.executeQuery(
         `
-        INSERT INTO user_course (id, user_id, course_id)
-      VALUES (?, ?, ?);
-    `,
+      INSERT INTO user_course (id, user_id, course_id)
+    VALUES (?, ?, ?);
+  `,
         [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
       );
       this.updatePushChanges(
@@ -537,6 +540,15 @@ export class SqliteApi implements ServiceApi {
         newUserCourse
       );
     }
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
+    this.updatePushChanges(TABLES.ParentUser, MUTATE_TYPES.INSERT, {
+      id: parentUserId,
+      parent_id: _currentUser.id,
+      student_id: studentId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+    });
 
     return newStudent;
   }
@@ -627,6 +639,74 @@ export class SqliteApi implements ServiceApi {
     } catch (error) {
       console.log("🚀 ~ SqliteApi ~ deleteProfile ~ error:", error);
     }
+  }
+  async getCourseByUserGradeId(
+    gradeDocId: string | null,
+    boardDocId: string | null
+  ): Promise<TableTypes<"course">[]> {
+    if (!gradeDocId) {
+      throw new Error("Grade document ID is required.");
+    }
+
+    if (!boardDocId) {
+      throw new Error("Board document ID is required.");
+    }
+
+    let courseIds: TableTypes<"course">[] = [];
+    let isGrade1: boolean = false;
+    let isGrade2: boolean = false;
+
+    if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
+      isGrade1 = true;
+    } else if (
+      gradeDocId === grade2 ||
+      gradeDocId === grade3 ||
+      gradeDocId === aboveGrade3
+    ) {
+      isGrade2 = true;
+    } else {
+      isGrade2 = true;
+    }
+
+    const gradeLevel = isGrade1 ? grade1 : isGrade2 ? grade2 : gradeDocId;
+    const gradeCourses = await this.getCoursesByGrade(gradeLevel);
+    const curriculumCourses = gradeCourses.filter(
+      (course: TableTypes<"course">) => {
+        return course.curriculum_id === boardDocId;
+      }
+    );
+
+    curriculumCourses.forEach((course: TableTypes<"course">) => {
+      courseIds.push(course);
+    });
+
+    let subjectIds: string[] = [];
+    curriculumCourses.forEach((course: TableTypes<"course">) => {
+      if (course.subject_id) {
+        subjectIds.push(course.subject_id);
+      }
+    });
+
+    const remainingSubjects = DEFAULT_SUBJECT_IDS.filter(
+      (subjectId) => !subjectIds.includes(subjectId)
+    );
+
+    remainingSubjects.forEach((subjectId) => {
+      const courses = gradeCourses.filter((course) => {
+        const subjectRef = course.subject_id;
+        if (
+          !!subjectRef &&
+          subjectRef === subjectId &&
+          course.curriculum_id === OTHER_CURRICULUM
+        )
+          return true;
+      });
+      courses.forEach((course) => {
+        courseIds.push(course);
+      });
+    });
+
+    return courseIds;
   }
 
   async getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
@@ -1034,7 +1114,6 @@ export class SqliteApi implements ServiceApi {
     this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult);
     return newResult;
   }
-
   async updateStudent(
     student: TableTypes<"user">,
     name: string,
@@ -1046,27 +1125,92 @@ export class SqliteApi implements ServiceApi {
     gradeDocId: string,
     languageDocId: string
   ): Promise<TableTypes<"user">> {
-    const query = `
-  UPDATE "user"
-  SET name = "${name}",
-      age = ${age},
-      gender = "${gender}",
-      avatar = "${avatar}",
-      image = "${image}",
-      curriculum_id = "${boardDocId}",
-      grade_id = "${gradeDocId}",
-      language_id = "${languageDocId}"
-  WHERE id = "${student.id}";
-`;
+    const updateUserQuery = `
+      UPDATE "user"
+      SET 
+        name = ?,
+        age = ?,
+        gender = ?,
+        avatar = ?,
+        image = ?,
+        curriculum_id = ?,
+        grade_id = ?,
+        language_id = ?
+      WHERE id = ?;
+    `;
 
-    const res = await this.executeQuery(query);
-    console.log("🚀 ~ SqliteApi ~ updateStudent ~ res:", res);
+    await this.executeQuery(updateUserQuery, [
+      name,
+      age,
+      gender,
+      avatar,
+      image ?? null,
+      boardDocId,
+      gradeDocId,
+      languageDocId,
+      student.id,
+    ]);
+
+    let courses;
+    if (gradeDocId && boardDocId) {
+      courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
+    }
+    // Update student object with new details
+    student.name = name;
+    student.age = age;
+    student.gender = gender;
+    student.avatar = avatar;
+    student.image = image ?? null;
+    student.curriculum_id = boardDocId;
+    student.grade_id = gradeDocId;
+    student.language_id = languageDocId;
+
+    if (courses && courses.length > 0) {
+      const now = new Date().toISOString();
+      for (const course of courses) {
+        const checkCourseExistsQuery = `
+          SELECT COUNT(*) as count FROM user_course WHERE user_id = ? AND course_id = ?;
+        `;
+
+        let result;
+        result = await this.executeQuery(checkCourseExistsQuery, [
+          student.id,
+          course.id,
+        ]);
+
+        const count = result.values[0].count;
+        if (count === 0) {
+          const newUserCourse: TableTypes<"user_course"> = {
+            course_id: course.id,
+            created_at: now,
+            id: uuidv4(),
+            is_deleted: false,
+            updated_at: now,
+            user_id: student.id,
+          };
+          await this.executeQuery(
+            `
+            INSERT INTO user_course (id, user_id, course_id)
+            VALUES (?, ?, ?);
+            `,
+            [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
+          );
+
+          this.updatePushChanges(
+            TABLES.UserCourse,
+            MUTATE_TYPES.INSERT,
+            newUserCourse
+          );
+        }
+      }
+    }
+
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       name: name,
       age: age,
       gender: gender,
       avatar: avatar,
-      image: image,
+      image: image ?? null,
       curriculum_id: boardDocId,
       grade_id: gradeDocId,
       language_id: languageDocId,
@@ -1408,10 +1552,26 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]> {
-    const res = await this._db?.query(
-      `select * from ${TABLES.Course} where grade_id = "${gradeDocId}"`
-    );
-    return res?.values ?? [];
+    try {
+      const gradeCoursesRes = await this._db?.query(
+        `SELECT * FROM ${TABLES.Course} WHERE grade_id = "${gradeDocId}"`
+      );
+
+      const puzzleCoursesRes = await this._db?.query(
+        `SELECT * FROM ${TABLES.Course} WHERE name = "Digital Skills"`
+      );
+
+      const courses = [
+        ...(gradeCoursesRes?.values ?? []),
+        ...(puzzleCoursesRes?.values ?? []),
+      ];
+      console.error("courses fetching courses by grade:", courses);
+
+      return courses;
+    } catch (error) {
+      console.error("Error fetching courses by grade:", error);
+      return [];
+    }
   }
 
   async getAllCourses(): Promise<TableTypes<"course">[]> {

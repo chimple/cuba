@@ -338,6 +338,10 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getParentStudentProfiles();
   }
 
+  public async getCourseByUserGradeId(gradeDocId: string| null | undefined, boardDocId: string | null | undefined): Promise<TableTypes<"course">[]> {
+    return await this.s.getCourseByUserGradeId(gradeDocId, boardDocId);
+  }
+
   updateSoundFlag(userId: string, value: boolean) {
     return this.s.updateSoundFlag(userId, value);
   }

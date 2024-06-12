@@ -241,6 +241,10 @@ export class SupabaseApi implements ServiceApi {
   getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
     throw new Error("Method not implemented.");
   }
+
+  getCourseByUserGradeId(gradeDocId: string | null | undefined , boardDocId: string | null| undefined): Promise<TableTypes<"course">[]> {
+    throw new Error("Method not implemented.");
+  }
   get currentStudent(): TableTypes<"user"> | undefined {
     return this._currentStudent;
   }
