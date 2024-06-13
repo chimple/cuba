@@ -1595,6 +1595,71 @@ export class SqliteApi implements ServiceApi {
     const res = await this._db?.query(query);
     return res?.values ?? [];
   }
+  async assignmentListner(
+    studentId: string,
+    onDataChange: (assignment: TableTypes<"assignment"> | undefined) => void
+  ) {
+    const handleDataChange = async (
+      assignmet: TableTypes<"assignment"> | undefined
+    ) => {
+      if (assignmet)
+        await this.executeQuery(
+          `
+          INSERT INTO assignment (id, created_by, starts_at,ends_at,is_class_wise,class_id,school_id,lesson_id,type,created_at,updated_at,is_deleted,chapter_id,course_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `,
+          [
+            assignmet.id,
+            assignmet.created_by,
+            assignmet.starts_at,
+            assignmet.ends_at,
+            assignmet.is_class_wise,
+            assignmet.class_id,
+            assignmet.school_id,
+            assignmet.lesson_id,
+            assignmet.type,
+            assignmet.created_at,
+            assignmet.updated_at,
+            assignmet.is_deleted,
+            assignmet.chapter_id,
+            assignmet.course_id
+          ]
+        );
+    };
+    return await this._serverApi.assignmentListner(studentId, handleDataChange);
+  }
+  async removeAssignmentChannel() {
+    return await this._serverApi.removeAssignmentChannel();
+  }
+  async assignmentUserListner(
+    studentId: string,
+    onDataChange: (assignment_user: TableTypes<"assignment_user"> | undefined) => void
+  ) {
+    const handleDataChange = async (
+      assignmet_user: TableTypes<"assignment_user"> | undefined
+    ) => {
+      if (assignmet_user)
+        await this.executeQuery(
+          `
+          INSERT INTO assignment_user (id, assignment_id, user_id,created_at,updated_at,is_deleted)
+        VALUES (?, ?, ?, ?, ?, ?);
+      `,
+          [
+            assignmet_user.id,
+            assignmet_user.assignment_id,
+            assignmet_user.user_id,
+            assignmet_user.created_at,
+            assignmet_user.updated_at,
+            assignmet_user.is_deleted,
+          ]
+        );
+    };
+
+    return await this._serverApi.assignmentUserListner(
+      studentId,
+      handleDataChange
+    );
+  }
 
   async liveQuizListener(
     liveQuizRoomDocId: string,

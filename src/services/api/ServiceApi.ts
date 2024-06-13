@@ -477,6 +477,34 @@ export interface ServiceApi {
     liveQuizRoomDocId: string,
     onDataChange: (roomDoc: TableTypes<"live_quiz_room"> | undefined) => void
   ): void;
+  
+
+   /**
+   * Establishes a real-time listener for changes in a assignmentUser document.
+   * @param studentId  - The class Id of the student
+   * @param onDataChange - A callback function to be executed when the data in assignment is inserted
+   */
+
+   assignmentUserListner(
+    studentId: string,
+    onDataChange: (roomDoc: TableTypes<"assignment_user"> | undefined) => void
+  ): void;
+
+  /**
+   * Remove AssignmentChannel;
+   */
+  removeAssignmentChannel();
+  /**
+   * Establishes a real-time listener for changes in a assignmet document.
+   * @param classId  - The class Id of the student
+   * @param onDataChange - A callback function to be executed when the data in assignment is inserted
+   */
+
+  assignmentListner(
+    classId: string,
+    onDataChange: (roomDoc: TableTypes<"assignment"> | undefined) => void
+  ): void;
+
 
   /**
    * Updates the live quiz results for a specific student in a live quiz room.

@@ -76,6 +76,21 @@ export class OneRosterApi implements ServiceApi {
   getAssignmentById(id: string): Promise<TableTypes<"assignment"> | undefined> {
     throw new Error("Method not implemented.");
   }
+  assignmentListner(
+    classId: string,
+    onDataChange: (user: Assignment | undefined) => void
+  ) {
+    throw new Error("Method not implemented.");
+  }
+  removeAssignmentChannel() {
+    throw new Error("Method not implemented.");
+  }
+  assignmentUserListner(
+    studentId: string,
+    onDataChange: (user: Assignment | undefined) => void
+  ) {
+    throw new Error("Method not implemented.");
+  }
   liveQuizListener(
     liveQuizRoomDocId: string,
     onDataChange: (user: LiveQuizRoomObject | undefined) => void

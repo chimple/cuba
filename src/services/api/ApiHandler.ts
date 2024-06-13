@@ -28,6 +28,22 @@ export class ApiHandler implements ServiceApi {
     return this.s.getStudentResultsByAssignmentId(assignmentId);
   }
 
+  public assignmentListner(
+    class_id: string,
+    onDataChange: (roomDoc: TableTypes<"assignment"> | undefined) => void
+  ): void {
+    return this.s.assignmentListner(class_id, onDataChange);
+  }
+  public removeAssignmentChannel() {
+    return this.s.removeAssignmentChannel();
+  }
+  public assignmentUserListner(
+    student_id: string,
+    onDataChange: (roomDoc: TableTypes<"assignment_user"> | undefined) => void
+  ): void {
+    return this.s.assignmentUserListner(student_id, onDataChange);
+  }
+
   public liveQuizListener(
     liveQuizRoomDocId: string,
     onDataChange: (roomDoc: TableTypes<"live_quiz_room"> | undefined) => void

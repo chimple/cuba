@@ -17,12 +17,15 @@ import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
 import { Database } from "../database";
 import {
   PostgrestSingleResponse,
+  RealtimeChannel,
   SupabaseClient,
   createClient,
 } from "@supabase/supabase-js";
 import { RoleType } from "../../interface/modelInterfaces";
 
 export class SupabaseApi implements ServiceApi {
+  private _assignmetRealTime?: RealtimeChannel;
+  private _assignmentUserRealTime?: RealtimeChannel;
   getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;
@@ -242,7 +245,10 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getCourseByUserGradeId(gradeDocId: string | null | undefined , boardDocId: string | null| undefined): Promise<TableTypes<"course">[]> {
+  getCourseByUserGradeId(
+    gradeDocId: string | null | undefined,
+    boardDocId: string | null | undefined
+  ): Promise<TableTypes<"course">[]> {
     throw new Error("Method not implemented.");
   }
   get currentStudent(): TableTypes<"user"> | undefined {
@@ -628,6 +634,70 @@ export class SupabaseApi implements ServiceApi {
   }
   getCoursesFromLesson(lessonId: string): Promise<TableTypes<"course">[]> {
     throw new Error("Method not implemented.");
+  }
+  async assignmentUserListner(
+    studentId: string,
+    onDataChange: (assignment_user: TableTypes<"assignment_user"> | undefined) => void
+  ) {
+    try {
+      if (this._assignmentUserRealTime) return;
+      this._assignmentUserRealTime = this.supabase?.channel("assignment_user");
+      if (!this._assignmentUserRealTime) {
+        throw new Error("Failed to establish channel for assignment_user");
+      }
+      const res = this._assignmentUserRealTime
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "assignment_user",
+            filter: `user_id=eq.${studentId}`,
+          },
+          (payload) => {
+            onDataChange(payload.new as TableTypes<"assignment_user">);
+          }
+        )
+        .subscribe();
+      return;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async assignmentListner(
+    classId: string,
+    onDataChange: (assignment: TableTypes<"assignment"> | undefined) => void
+  ) {
+    try {
+      if (this._assignmetRealTime) return;
+      this._assignmetRealTime = this.supabase?.channel("assignment");
+      if (!this._assignmetRealTime) {
+        throw new Error("Failed to establish channel for assignment");
+      }
+      const res = this._assignmetRealTime!.on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "assignment",
+          filter: `class_id=eq.${classId}`,
+        },
+        (payload) => {
+          onDataChange(payload.new as TableTypes<"assignment">);
+        }
+      ).subscribe();
+      return;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async removeAssignmentChannel() {
+    try {
+      if (this._assignmentUserRealTime)
+        this.supabase?.removeChannel(this._assignmentUserRealTime);
+      if (this._assignmetRealTime)
+        this.supabase?.removeChannel(this._assignmetRealTime);
+    } catch (e) {}
   }
   async liveQuizListener(
     liveQuizRoomDocId: string,

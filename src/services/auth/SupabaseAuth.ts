@@ -83,11 +83,10 @@ export class SupabaseAuth implements ServiceAuth {
 
   async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
     if (this._currentUser) return this._currentUser;
-    const authData = await this._auth?.getUser();
-
-    if (!authData || !authData.data.user?.id) return;
+    const authData = await this._auth?.getSession();
+    if (!authData || !authData.data.session?.user?.id) return;
     const api = ServiceConfig.getI().apiHandler;
-    let user = await api.getUserByDocId(authData.data.user.id);
+    let user = await api.getUserByDocId(authData.data.session?.user.id);
     this._currentUser = user;
     return this._currentUser;
   }
@@ -96,10 +95,10 @@ export class SupabaseAuth implements ServiceAuth {
   }
   async isUserLoggedIn(): Promise<boolean> {
     if (this._currentUser) return true;
-    const authData = await this._auth?.getUser();
-
+    // const authData = await this._auth?.getUser();
+    const authData = await this._auth?.getSession();
     // const user = await this.getCurrentUser();
-    return !!authData?.data?.user;
+    return !!authData?.data?.session?.user;
   }
   phoneNumberSignIn(phoneNumber: any, recaptchaVerifier: any): Promise<any> {
     throw new Error("Method not implemented.");
@@ -113,6 +112,7 @@ export class SupabaseAuth implements ServiceAuth {
   ): Promise<boolean | undefined> {
     throw new Error("Method not implemented.");
   }
+
   proceedWithVerificationCode(
     verificationId: any,
     verificationCode: any
