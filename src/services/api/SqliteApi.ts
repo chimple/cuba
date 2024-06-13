@@ -240,7 +240,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -1980,16 +1980,21 @@ export class SqliteApi implements ServiceApi {
   WITH
   get_user_courses as (
     select
-      *
+      c.*,
+      c.id as course_id,
+      sort_index as course_index
     from
-      ${TABLES.UserCourse}
-    where
-      user_id = '${studentId}'
+      ${TABLES.UserCourse} as u
+      join ${TABLES.Course} as c
+    on 
+      course_id=c.id
+      and user_id = '${studentId}'
   ),
   course_details AS (
     SELECT
       c.name AS chapter_name,
       l.name AS lesson_name,
+      course_index,
       c.course_id,
       c.id AS chapter_id,
       l.id AS lesson_id,
@@ -2091,29 +2096,30 @@ export class SqliteApi implements ServiceApi {
   ),
   played_with_first_lesson as (
     SELECT distinct
-  c.*
-FROM
-  (
-    SELECT
-      *
+      c.*
     FROM
-      course_details
+      (
+        SELECT
+          *
+        FROM
+          course_details
+        WHERE
+          lesson_index = 0
+          AND chapter_index = 0
+      ) c,
+      not_played_courses n
     WHERE
-      lesson_index = 0
-      AND chapter_index = 0
-  ) c,
-  not_played_courses n
-WHERE
-  c.course_id != n.course_id
-ORDER BY
-  c.course_id,
-  c.chapter_name,
-  c.lesson_name
+      c.course_id != n.course_id
+    ORDER BY
+      c.course_id,
+      c.chapter_name,
+      c.lesson_name
   )
 select
   chapter_name,
   lesson_name,
   course_id,
+  course_index,
   lesson_id as id,
   lesson_name as name,
   cocos_subject_code,
@@ -2139,6 +2145,7 @@ select
   chapter_name,
   lesson_name,
   course_id,
+  course_index,
   next_lesson_id as id,
   lesson_name as name,
   cocos_subject_code,
@@ -2160,6 +2167,7 @@ select
 from
   next_played_lesson
 order by
+  course_index,
   course_id,
   chapter_name,
   lesson_name;
