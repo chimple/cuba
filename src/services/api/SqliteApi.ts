@@ -440,7 +440,7 @@ export class SqliteApi implements ServiceApi {
     ];
     console.log("🚀 ~ Api ~ variables:", variables);
     await this.executeQuery(stmt, variables);
-    this.syncDbNow([tableName]);
+    await this.syncDbNow([tableName]);
   }
 
   async createProfile(
@@ -518,6 +518,16 @@ export class SqliteApi implements ServiceApi {
       courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
     }
 
+    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
+    await this.updatePushChanges(TABLES.ParentUser, MUTATE_TYPES.INSERT, {
+      id: parentUserId,
+      parent_id: _currentUser.id,
+      student_id: studentId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+    });
+
     for (const course of courses) {
       const newUserCourse: TableTypes<"user_course"> = {
         course_id: course.id,
@@ -540,15 +550,6 @@ export class SqliteApi implements ServiceApi {
         newUserCourse
       );
     }
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
-    this.updatePushChanges(TABLES.ParentUser, MUTATE_TYPES.INSERT, {
-      id: parentUserId,
-      parent_id: _currentUser.id,
-      student_id: studentId,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_deleted: false,
-    });
 
     return newStudent;
   }
@@ -793,12 +794,12 @@ export class SqliteApi implements ServiceApi {
   }
   async updateLanguage(userId: string, value: string) {
     const query = `
-    UPDATE "user"
-    SET language_id = "${value}"
-    WHERE id = "${userId}";
-  `;
+      UPDATE "user"
+      SET language_id = "${value}"
+      WHERE id = "${userId}";
+    `;
     const res = await this.executeQuery(query);
-    console.log("🚀 ~ SqliteApi ~ updateMusicFlag ~ res:", res);
+    console.log("🚀 ~ SqliteApi ~ updateLanguage ~ res:", res);
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       language_id: value,
       id: userId,
@@ -1565,8 +1566,6 @@ export class SqliteApi implements ServiceApi {
         ...(gradeCoursesRes?.values ?? []),
         ...(puzzleCoursesRes?.values ?? []),
       ];
-      console.error("courses fetching courses by grade:", courses);
-
       return courses;
     } catch (error) {
       console.error("Error fetching courses by grade:", error);
