@@ -188,9 +188,9 @@ const ChimpleAvatar: FC<{
     } else {
       console.log("Rive component not fully initialized yet");
     }
-    if (!isTtsPlaying) {
-      await speak();
-    }
+    // if (!isTtsPlaying) {
+    await speak();
+    // }
   };
 
   async function onClickNo() {
@@ -404,10 +404,13 @@ const ChimpleAvatar: FC<{
           }
         );
       } else {
-        const lessonCourse = await api.getCoursesFromLesson(currentLesson.id);
-        if (lessonCourse && lessonCourse.length > 0) {
-          setCurrentCourse(lessonCourse[0]);
-        }
+        const lessonCourse =
+          (await api.getCoursesFromLesson(currentLesson.id)) || currentCourse;
+        // let lessonCourse = currentCourse;
+        // if (!currentCourse) {
+        //   lessonCourse =
+        //     (await api.getCoursesFromLesson(currentLesson.id)) || currentCourse;
+        // }
         const parmas = `?courseid=${currentLesson.cocos_subject_code}&chapterid=${currentLesson.cocos_chapter_code}&lessonid=${currentLesson.cocos_lesson_id}`;
         await history.replace(PAGES.GAME + parmas, {
           url: "chimple-lib/index.html" + parmas,
@@ -465,11 +468,14 @@ const ChimpleAvatar: FC<{
           if (!cLesson) {
             return cChapterLessons[0];
           }
-          // const cCourseChapter = await api.getChaptersForCourse(course.id)
-          // setCurrentChapter(cCourse.chapters[chapterIndex + 1]);
-          // const cLessonRef = cCourse.chapters[chapterIndex + 1].lessons[0].id;
+          const cCourseChapter = await api.getChaptersForCourse(cCourse.id);
+          setCurrentChapter(cCourseChapter[chapterIndex + 1]);
+          const cChapterLesson = await api.getLessonsForChapter(
+            cCourseChapter[chapterIndex + 1].id
+          );
+          // const cLessonRef = cCourseChapter[chapterIndex + 1].lessons[0].id;
           // const cLesson = await api.getLesson(cLessonRef);
-          return cLesson;
+          return cChapterLesson[0];
         } else {
           const cLesson = cChapterLessons[lessonIndex + 1];
           // const cLesson = await api.getLesson(cLessonRef);
@@ -675,14 +681,13 @@ const ChimpleAvatar: FC<{
       if (currentLesson) {
         const x3 = currentLesson.name;
 
-        message = t(`Do you want to play 'x3' lesson?`).replace(
-          "x3",
-          " " + x3 + " "
-        );
-        // .replace(
-        //   "lesson",
-        //   currentLesson.assignment ? "assignment" : "lesson"
-        // );
+        message = t(`Do you want to play 'x3' lesson?`)
+          .replace("x3", " " + x3 + " ")
+          .replace(
+            "lesson",
+            // currentLesson.assignment ? "assignment" :
+            "lesson"
+          );
         // setMessage(t(`Do you want to play 'x1' Lesson?`).replace("x1", x1));
         buttons = [
           {
