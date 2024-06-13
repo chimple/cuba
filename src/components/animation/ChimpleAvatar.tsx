@@ -433,13 +433,6 @@ const ChimpleAvatar: FC<{
       const courseIndex = allCourses.findIndex(
         (course) => course.code === currentCourse?.code
       );
-      console.log(
-        "getRecommendedCourse ",
-        currentCourse,
-        courseIndex,
-        allCourses[courseIndex + 1]
-      );
-
       return allCourses[courseIndex + 1] || allCourses[0];
     } else {
       return allCourses[0] || cAllCourses[0];
