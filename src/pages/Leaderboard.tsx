@@ -599,6 +599,7 @@ const Leaderboard: React.FC = () => {
                   }
                 }
                 const currentMOde = localStorage.getItem(CURRENT_MODE);
+                await api.removeAssignmentChannel();
                 if (currentMOde === MODES.PARENT) {
                   Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
                 } else {

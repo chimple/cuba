@@ -214,6 +214,9 @@ const Home: FC = () => {
       student != null
         ? await api.getStudentClassesAndSchools(student.id)
         : null;
+    const classDoc = linkedData?.classes[0];
+    if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
+    if (student) await api.assignmentUserListner(student.id, () => {});
 
     if (
       student != null &&
