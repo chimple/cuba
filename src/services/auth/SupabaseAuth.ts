@@ -106,18 +106,72 @@ export class SupabaseAuth implements ServiceAuth {
   resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined> {
     throw new Error("Method not implemented.");
   }
-  msg91OtpGenerate(
+  async generateOtp(
     phoneNumber: string,
     appName: string
   ): Promise<boolean | undefined> {
-    throw new Error("Method not implemented.");
+    try {
+      if (!this._auth) return false;
+      const { data, error } = await this._auth.signInWithOtp({
+        phone: phoneNumber,
+      });
+      if (!error) return true;
+      return false;
+    } catch (error) {
+      console.log("Failed with ");
+    }
   }
 
-  proceedWithVerificationCode(
-    verificationId: any,
+  async proceedWithVerificationCode(
+    phoneNumber: any,
     verificationCode: any
   ): Promise<{ user: any; isUserExist: boolean } | undefined> {
-    throw new Error("Method not implemented.");
+    try {
+      if (!this._auth) return;
+      const api = ServiceConfig.getI().apiHandler;
+      const { data: user, error } = await this._auth.verifyOtp({
+        phone: phoneNumber,
+        token: verificationCode,
+        type: "sms",
+      });
+      if (error) {
+        throw new Error("OTP verification failed");
+      }
+      const rpcRes = await this._supabaseDb?.rpc("isUserExists", {
+            user_email: "",
+            user_phone: user?.user?.phone ?? "",
+          })
+      console.log("🚀 ~ SupabaseAuth ~ googleSign ~ isUserExists:", rpcRes);
+
+      if (!rpcRes?.data) {
+        const createdUser = await api.createUserDoc({
+          age: null,
+          avatar: null,
+          created_at: new Date().toISOString(),
+          curriculum_id: null,
+          gender: null,
+          grade_id: null,
+          id: user.user?.id ?? "",
+          image: null,
+          is_deleted: false,
+          is_tc_accepted: false,
+          language_id: null,
+          name: null,
+          updated_at: new Date().toISOString(),
+          email: null,
+          phone: user?.user?.phone ?? "",
+          music_off: false,
+          sfx_off: false,
+          fcm_token: null,
+        });
+        this._currentUser = createdUser;
+      }
+      await api.updateFcmToken(user?.user?.id ?? "");
+      const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
+      return { user: user, isUserExist: rpcRes?.data ?? false };
+    } catch (error) {
+      return { user: null, isUserExist: false };
+    }
   }
 
   async logOut(): Promise<void> {
