@@ -81,7 +81,7 @@ const DownloadLesson: React.FC<{
         chapterDownloaded
       );
     };
-  }, [lessonId, loading]);
+  }, [loading]);
 
   async function init() {
     const storedLessonIds = Util.getStoredLessonIds();
