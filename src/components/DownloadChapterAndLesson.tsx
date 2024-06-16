@@ -8,7 +8,9 @@ import { TfiDownload, TfiTrash } from "react-icons/tfi";
 import { Capacitor } from "@capacitor/core";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import {
+  ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
   DOWNLOADED_LESSON_ID,
+  DOWNLOADING_CHAPTER_ID,
   LESSON_DOWNLOAD_SUCCESS_EVENT,
   TableTypes,
 } from "../common/constants";
@@ -35,6 +37,7 @@ const DownloadLesson: React.FC<{
     init();
     setLoading(downloadButtonLoading);
   }, [downloadButtonLoading]);
+
   useEffect(() => {
     const handleLessonDownloaded = (lessonDownloaded) => {
       const downloadedLessonId = lessonDownloaded.detail.lessonId;
@@ -42,8 +45,20 @@ const DownloadLesson: React.FC<{
       if (downloadedLessonId === lessonId) {
         setShowIcon(false);
         setLoading(false);
-        if (storedLessonID && lessonId)
+        if (storedLessonID && lessonId) {
           setStoredLessonID([...storedLessonID, lessonId]);
+        }
+      }
+    };
+
+    const chapterDownloaded = async () => {
+      if (chapter) {
+        const isChapterDownloaded = await Util.isChapterDownloaded(chapter.id);
+        if (loading) {
+          setLoading(isChapterDownloaded);
+        }
+        setShowIcon(isChapterDownloaded);
+        Util.removeLessonIdFromLocalStorage(chapter.id, DOWNLOADING_CHAPTER_ID);
       }
     };
 
@@ -51,14 +66,22 @@ const DownloadLesson: React.FC<{
       LESSON_DOWNLOAD_SUCCESS_EVENT,
       handleLessonDownloaded
     );
+    window.addEventListener(
+      ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+      chapterDownloaded
+    );
 
     return () => {
       window.removeEventListener(
         LESSON_DOWNLOAD_SUCCESS_EVENT,
         handleLessonDownloaded
       );
+      window.removeEventListener(
+        ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+        chapterDownloaded
+      );
     };
-  }, []);
+  }, [lessonId, loading]);
 
   async function init() {
     const storedLessonIds = Util.getStoredLessonIds();
@@ -70,6 +93,12 @@ const DownloadLesson: React.FC<{
     if (chapter) {
       const isChapterDownloaded = await Util.isChapterDownloaded(chapter.id);
       setShowIcon(isChapterDownloaded);
+    }
+    const storedItems = JSON.parse(
+      localStorage.getItem(DOWNLOADING_CHAPTER_ID) || JSON.stringify([])
+    );
+    if (storedItems.includes(chapter?.id)) {
+      setLoading(true);
     }
   }
 
@@ -103,6 +132,7 @@ const DownloadLesson: React.FC<{
       const lessons: TableTypes<"lesson">[] = await api.getLessonsForChapter(
         chapter.id
       );
+      Util.storeLessonIdToLocalStorage(chapter.id, DOWNLOADING_CHAPTER_ID);
       for (const e of lessons) {
         if (e.cocos_lesson_id)
           if (!storedLessonID.includes(e.cocos_lesson_id)) {
