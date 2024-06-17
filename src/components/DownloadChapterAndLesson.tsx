@@ -51,14 +51,12 @@ const DownloadLesson: React.FC<{
       }
     };
 
-    const chapterDownloaded = async () => {
+    const chapterDownloaded = (event) => {
       if (chapter) {
-        const isChapterDownloaded = await Util.isChapterDownloaded(chapter.id);
-        if (loading) {
-          setLoading(isChapterDownloaded);
+        if (chapter?.id === event.detail.chapterId) {
+          setLoading(false);
+          setShowIcon(false);
         }
-        setShowIcon(isChapterDownloaded);
-        Util.removeLessonIdFromLocalStorage(chapter.id, DOWNLOADING_CHAPTER_ID);
       }
     };
 
@@ -81,7 +79,7 @@ const DownloadLesson: React.FC<{
         chapterDownloaded
       );
     };
-  }, [loading]);
+  }, []);
 
   async function init() {
     const storedLessonIds = Util.getStoredLessonIds();
@@ -99,6 +97,8 @@ const DownloadLesson: React.FC<{
     );
     if (storedItems.includes(chapter?.id)) {
       setLoading(true);
+    } else {
+      setLoading(false);
     }
   }
 
@@ -139,7 +139,7 @@ const DownloadLesson: React.FC<{
             storeLessonID.push(e.cocos_lesson_id);
           }
       }
-      await Util.downloadZipBundle(storeLessonID);
+      await Util.downloadZipBundle(storeLessonID, chapter.id);
     } else {
       if (lessonId) {
         if (!storedLessonID.includes(lessonId)) {

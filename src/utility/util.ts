@@ -37,6 +37,7 @@ import {
   LESSON_DOWNLOAD_SUCCESS_EVENT,
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
   CHAPTER_ID_LESSON_ID_MAP,
+  DOWNLOADING_CHAPTER_ID,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -318,7 +319,10 @@ export class Util {
     localStorage.setItem(lessonIdStorageKey, JSON.stringify(updatedItems));
   };
 
-  public static async downloadZipBundle(lessonIds: string[]): Promise<boolean> {
+  public static async downloadZipBundle(
+    lessonIds: string[],
+    chapterId?: string
+  ): Promise<boolean> {
     try {
       if (!Capacitor.isNativePlatform()) return true;
 
@@ -463,7 +467,13 @@ export class Util {
           return false; // If any lesson download failed, return false
         }
       }
-      const customEvent = new CustomEvent(ALL_LESSON_DOWNLOAD_SUCCESS_EVENT);
+      const customEvent = new CustomEvent(ALL_LESSON_DOWNLOAD_SUCCESS_EVENT, {
+        detail: { chapterId },
+      });
+      if (chapterId) {
+        this.removeLessonIdFromLocalStorage(chapterId, DOWNLOADING_CHAPTER_ID);
+      }
+
       window.dispatchEvent(customEvent);
       return true; // Return true if all lessons are successfully downloaded
     } catch (error) {
