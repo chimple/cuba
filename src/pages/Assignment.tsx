@@ -28,7 +28,9 @@ const AssignmentPage: React.FC = () => {
   const [isLinked, setIsLinked] = useState(true);
   const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
   const [lessons, setLessons] = useState<TableTypes<"lesson">[]>([]);
-  const [lessonChapterMap, setLessonChapterMap] = useState<{ [lessonId: string]: TableTypes<"chapter"> }>({});
+  const [lessonChapterMap, setLessonChapterMap] = useState<{
+    [lessonId: string]: TableTypes<"chapter">;
+  }>({});
   const [schoolName, setSchoolName] = useState<string>();
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
@@ -67,7 +69,7 @@ const AssignmentPage: React.FC = () => {
     );
 
     const allLessonIdPresent = lessons.every((lesson) =>
-      downloadedLessonIds.includes(lesson.id)
+      downloadedLessonIds.includes(lesson.cocos_lesson_id)
     );
 
     setShowDownloadHomeworkButton(!allLessonIdPresent);
@@ -85,7 +87,7 @@ const AssignmentPage: React.FC = () => {
   async function downloadAllHomeWork(lessons) {
     setDownloadButtonLoading(true);
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(true));
-    const allLessonIds = lessons.map((lesson) => lesson.id);
+    const allLessonIds = lessons.map((lesson) => lesson.cocos_lesson_id);
     try {
       const storedLessonIds = Util.getStoredLessonIds();
       const filteredLessonIds: string[] = allLessonIds.filter(
@@ -109,7 +111,7 @@ const AssignmentPage: React.FC = () => {
       setDownloadButtonLoading(false);
     }
   }
-  
+
   window.addEventListener(
     ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
     checkAllHomeworkDownloaded
@@ -156,20 +158,20 @@ const AssignmentPage: React.FC = () => {
         })
       );
       const _lessons: TableTypes<"lesson">[] = [];
-      const _lessonChapterMap:{ [lessonId: string]: TableTypes<"chapter"> } ={};
+      const _lessonChapterMap: { [lessonId: string]: TableTypes<"chapter"> } =
+        {};
       await Promise.all(
         allAssignments.map(async (_assignment) => {
           const res = await api.getLesson(_assignment.lesson_id);
-         if(!!_assignment.chapter_id){
-          const chapter = await api.getChapterById(_assignment.chapter_id);
-          if(!!res && !!chapter){
-            _lessonChapterMap[res.id] = chapter;
+          if (!!_assignment.chapter_id) {
+            const chapter = await api.getChapterById(_assignment.chapter_id);
+            if (!!res && !!chapter) {
+              _lessonChapterMap[res.id] = chapter;
+            }
           }
-         }
           if (!!res) {
             _lessons.push(res);
           }
-         
         })
       );
 

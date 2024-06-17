@@ -616,7 +616,7 @@ export enum LeaderboardRewardsType {
   BONUS = "bonus",
   STICKER = "sticker",
 }
-export const DOWNLOAD_LESSON_BATCH_SIZE = 10;
+export const DOWNLOAD_LESSON_BATCH_SIZE = 8;
 export const MAX_DOWNLOAD_LESSON_ATTEMPTS = 3;
 
 export const LESSON_DOWNLOAD_SUCCESS_EVENT = "lesson_download_success";
@@ -628,3 +628,4 @@ export const SELECTED_STUDENTS = "selectedStudent";
 export const SELECTED_CLASSES = "selectedClasses";
 export const CURRENT_CLASS_NAME = "currClassName";
 export const CURRENT_SCHOOL_NAME = "currentSchoolName";
+export const DOWNLOADING_CHAPTER_ID = "downloading_chapter_id";
