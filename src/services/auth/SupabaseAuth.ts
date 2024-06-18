@@ -27,8 +27,28 @@ export class SupabaseAuth implements ServiceAuth {
     return SupabaseAuth.i;
   }
 
-  loginWithEmailAndPassword(email: any, password: any): Promise<boolean> {
-    throw new Error("Method not implemented.");
+  async loginWithEmailAndPassword(email: any, password: any): Promise<boolean> {
+    try {
+      if (!this._auth) return false;
+      if (!email || !password) {
+        throw new Error("Email and password are required.");
+      }
+      const api = ServiceConfig.getI().apiHandler;
+      const { data, error } = await this._auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+      await api.updateFcmToken(data?.user?.id ?? "");
+      const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
+      await api.subscribeToClassTopic()
+      return true;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: SupabaseAuth.ts:143 ~ SupabaseAuth ~ Emailsignin ~ error:",
+        error
+      );
+      return false;
+    }
   }
 
   async googleSign(): Promise<boolean> {
@@ -138,9 +158,9 @@ export class SupabaseAuth implements ServiceAuth {
         throw new Error("OTP verification failed");
       }
       const rpcRes = await this._supabaseDb?.rpc("isUserExists", {
-            user_email: "",
-            user_phone: user?.user?.phone ?? "",
-          })
+        user_email: "",
+        user_phone: user?.user?.phone ?? "",
+      });
       console.log("🚀 ~ SupabaseAuth ~ googleSign ~ isUserExists:", rpcRes);
 
       if (!rpcRes?.data) {

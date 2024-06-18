@@ -442,6 +442,9 @@ export class SupabaseApi implements ServiceApi {
   getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
     throw new Error("Method not implemented.");
   }
+  subscribeToClassTopic():Promise<void>{
+    throw new Error("Method not implemented.");
+  }
   async getDataByInviteCode(inviteCode: number): Promise<any> {
     try {
       const rpcRes = await this.supabase?.rpc("getDataByInviteCode", {
