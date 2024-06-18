@@ -27,8 +27,8 @@ const LessonIcon: FC<LessonIconProps> = ({
         ) : null}
         <SelectIconImage
           localSrc={"courses/" + cocosSubjectCode + "/icons/" + id + ".webp"}
-          defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
-          webSrc={thumbnail}
+          defaultSrc={"assets/icons/DefaultIcon.png"}
+          webSrc={thumbnail || "assets/icons/DefaultIcon.png"}
         />
       </div>
       <div className="lesson-title">{t(title)}</div>

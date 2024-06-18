@@ -118,6 +118,15 @@ const Home: FC = () => {
     }
   }, [currentHeader]);
   const initData = async () => {
+    const student = Util.getCurrentStudent();
+    if (!student) {
+      history.replace(PAGES.SELECT_MODE);
+      return;
+    }
+    const studentResult = await api.getStudentResultInMap(student.id);
+    if (!!studentResult) {
+      setLessonResultMap(studentResult);
+    }
     fetchData();
     await isLinked();
     urlOpenListenerEvent();
@@ -621,6 +630,7 @@ const Home: FC = () => {
                       isHome={true}
                       course={undefined}
                       lessonsScoreMap={lessonResultMap || {}}
+                      assignments={pendingAssignments}
                       startIndex={0}
                       showSubjectName={true}
                       showChapterName={true}

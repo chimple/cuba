@@ -156,10 +156,10 @@ const AddCourse: FC<{
                     >
                       <SelectIconImage
                         localSrc={`courses/chapter_icons/${course.course.code}.png`}
-                        defaultSrc={
-                          "courses/" + "maths" + "/icons/" + "maths10.png"
+                        defaultSrc={"assets/icons/DefaultIcon.png"}
+                        webSrc={
+                          course.course.image || "assets/icons/DefaultIcon.png"
                         }
-                        webSrc={course.course.image}
                       />
                     </div>
                     {t(course?.course.name)}

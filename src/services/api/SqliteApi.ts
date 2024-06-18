@@ -240,7 +240,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -440,7 +440,7 @@ export class SqliteApi implements ServiceApi {
     ];
     console.log("🚀 ~ Api ~ variables:", variables);
     await this.executeQuery(stmt, variables);
-    this.syncDbNow([tableName]);
+    await this.syncDbNow([tableName]);
   }
 
   async createProfile(
@@ -518,6 +518,16 @@ export class SqliteApi implements ServiceApi {
       courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
     }
 
+    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
+    await this.updatePushChanges(TABLES.ParentUser, MUTATE_TYPES.INSERT, {
+      id: parentUserId,
+      parent_id: _currentUser.id,
+      student_id: studentId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+    });
+
     for (const course of courses) {
       const newUserCourse: TableTypes<"user_course"> = {
         course_id: course.id,
@@ -540,15 +550,6 @@ export class SqliteApi implements ServiceApi {
         newUserCourse
       );
     }
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
-    this.updatePushChanges(TABLES.ParentUser, MUTATE_TYPES.INSERT, {
-      id: parentUserId,
-      parent_id: _currentUser.id,
-      student_id: studentId,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_deleted: false,
-    });
 
     return newStudent;
   }
@@ -793,12 +794,12 @@ export class SqliteApi implements ServiceApi {
   }
   async updateLanguage(userId: string, value: string) {
     const query = `
-    UPDATE "user"
-    SET language_id = "${value}"
-    WHERE id = "${userId}";
-  `;
+      UPDATE "user"
+      SET language_id = "${value}"
+      WHERE id = "${userId}";
+    `;
     const res = await this.executeQuery(query);
-    console.log("🚀 ~ SqliteApi ~ updateMusicFlag ~ res:", res);
+    console.log("🚀 ~ SqliteApi ~ updateLanguage ~ res:", res);
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       language_id: value,
       id: userId,
@@ -1565,8 +1566,6 @@ export class SqliteApi implements ServiceApi {
         ...(gradeCoursesRes?.values ?? []),
         ...(puzzleCoursesRes?.values ?? []),
       ];
-      console.error("courses fetching courses by grade:", courses);
-
       return courses;
     } catch (error) {
       console.error("Error fetching courses by grade:", error);
@@ -2045,16 +2044,21 @@ export class SqliteApi implements ServiceApi {
   WITH
   get_user_courses as (
     select
-      *
+      c.*,
+      c.id as course_id,
+      sort_index as course_index
     from
-      ${TABLES.UserCourse}
-    where
-      user_id = '${studentId}'
+      ${TABLES.UserCourse} as u
+      join ${TABLES.Course} as c
+    on 
+      course_id=c.id
+      and user_id = '${studentId}'
   ),
   course_details AS (
     SELECT
       c.name AS chapter_name,
       l.name AS lesson_name,
+      course_index,
       c.course_id,
       c.id AS chapter_id,
       l.id AS lesson_id,
@@ -2156,29 +2160,30 @@ export class SqliteApi implements ServiceApi {
   ),
   played_with_first_lesson as (
     SELECT distinct
-  c.*
-FROM
-  (
-    SELECT
-      *
+      c.*
     FROM
-      course_details
+      (
+        SELECT
+          *
+        FROM
+          course_details
+        WHERE
+          lesson_index = 0
+          AND chapter_index = 0
+      ) c,
+      not_played_courses n
     WHERE
-      lesson_index = 0
-      AND chapter_index = 0
-  ) c,
-  not_played_courses n
-WHERE
-  c.course_id != n.course_id
-ORDER BY
-  c.course_id,
-  c.chapter_name,
-  c.lesson_name
+      c.course_id != n.course_id
+    ORDER BY
+      c.course_id,
+      c.chapter_name,
+      c.lesson_name
   )
 select
   chapter_name,
   lesson_name,
   course_id,
+  course_index,
   lesson_id as id,
   lesson_name as name,
   cocos_subject_code,
@@ -2204,6 +2209,7 @@ select
   chapter_name,
   lesson_name,
   course_id,
+  course_index,
   next_lesson_id as id,
   lesson_name as name,
   cocos_subject_code,
@@ -2225,6 +2231,7 @@ select
 from
   next_played_lesson
 order by
+  course_index,
   course_id,
   chapter_name,
   lesson_name;
