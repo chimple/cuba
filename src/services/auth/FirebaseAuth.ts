@@ -122,6 +122,7 @@ export class FirebaseAuth implements ServiceAuth {
         }
       }
       App.addListener("appStateChange", Util.onAppStateChange);
+      CapApp.addListener("appUrlOpen", Util.onAppUrlOpen);
       this.updateUserFcm(user.uid);
       const migrateRes = await Util.migrate();
       if (
