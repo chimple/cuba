@@ -16,7 +16,7 @@ export interface ServiceAuth {
 
   resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined>;
 
-  msg91OtpGenerate(
+  generateOtp(
     phoneNumber: string,
     appName: string
   ): Promise<boolean | undefined>;

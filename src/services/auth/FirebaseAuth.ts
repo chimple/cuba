@@ -418,7 +418,7 @@ export class FirebaseAuth implements ServiceAuth {
     }
   }
 
-  public async msg91OtpGenerate(
+  public async generateOtp(
     phoneNumber: string,
     appName: string
   ): Promise<boolean | undefined> {

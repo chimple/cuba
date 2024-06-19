@@ -505,6 +505,11 @@ export interface ServiceApi {
     onDataChange: (roomDoc: TableTypes<"assignment"> | undefined) => void
   ): void;
 
+  /**
+   * Subscribe to Class Topic
+   */
+  subscribeToClassTopic():Promise<void>;
+
 
   /**
    * Updates the live quiz results for a specific student in a live quiz room.

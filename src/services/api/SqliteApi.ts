@@ -240,7 +240,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-            new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -725,6 +725,23 @@ export class SqliteApi implements ServiceApi {
     const res = await this._db?.query("select * from " + TABLES.Language);
     console.log("🚀 ~ SqliteApi ~ getAllLanguages ~ res:", res);
     return res?.values ?? [];
+  }
+
+  async subscribeToClassTopic():Promise<void> {
+    var students: TableTypes<"user">[] = await this.getParentStudentProfiles();
+    for (const student of students) {
+      const linkedData = await this.getStudentClassesAndSchools(student.id);
+      if (
+        !!linkedData &&
+        !!linkedData.classes &&
+        linkedData.classes.length > 0
+      ) {
+        Util.subscribeToClassTopic(
+          linkedData.classes[0].id,
+          linkedData.schools[0].id
+        );
+      }
+    }
   }
 
   async getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
@@ -1621,7 +1638,7 @@ export class SqliteApi implements ServiceApi {
             assignmet.updated_at,
             assignmet.is_deleted,
             assignmet.chapter_id,
-            assignmet.course_id
+            assignmet.course_id,
           ]
         );
     };
@@ -1632,7 +1649,9 @@ export class SqliteApi implements ServiceApi {
   }
   async assignmentUserListner(
     studentId: string,
-    onDataChange: (assignment_user: TableTypes<"assignment_user"> | undefined) => void
+    onDataChange: (
+      assignment_user: TableTypes<"assignment_user"> | undefined
+    ) => void
   ) {
     const handleDataChange = async (
       assignmet_user: TableTypes<"assignment_user"> | undefined

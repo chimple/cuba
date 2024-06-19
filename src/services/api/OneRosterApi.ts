@@ -216,6 +216,10 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+  subscribeToClassTopic():Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
   getAllLessonsForCourse(courseId: string): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
