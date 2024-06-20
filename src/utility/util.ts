@@ -38,6 +38,7 @@ import {
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
   CHAPTER_ID_LESSON_ID_MAP,
   DOWNLOADING_CHAPTER_ID,
+  TABLES,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -1190,6 +1191,13 @@ export class Util {
       FirebaseMessaging.addListener(
         "notificationReceived",
         async ({ notification }) => {
+          if (
+            notification.data &&
+            notification.data["notificationType"] === TABLES.Assignment
+          ) {
+            const api = ServiceConfig.getI().apiHandler;
+            await api.syncDB();
+          }
           console.log("notificationReceived", JSON.stringify(notification));
           try {
             const res = await LocalNotifications.schedule({
