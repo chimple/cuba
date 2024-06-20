@@ -17,7 +17,8 @@ const LiveQuizLeaderBoard: React.FC = () => {
   const paramLiveRoomId = urlSearchParams.get("liveRoomId") ?? "";
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
-
+  let resultData: TableTypes<"result">[] | null = [];
+  let userData: TableTypes<"user">[] | null = [];
   useEffect(() => {
     init();
   }, []);
@@ -66,9 +67,12 @@ const LiveQuizLeaderBoard: React.FC = () => {
         const tempStudentsMap = new Map<string, TableTypes<"user">>();
         await Promise.all(
           combinedScores.map(async (participant) => {
-            const user = await api.getUserByDocId(participant.studentDocId);
-            if (!!user) {
-              tempStudentsMap.set(participant.studentDocId, user);
+            if (!!userData) {
+              for (let user of userData) {
+                if (participant.studentDocId === user.id) {
+                  tempStudentsMap.set(participant.studentDocId, user);
+                }
+              }
             }
           })
         );
@@ -94,15 +98,22 @@ const LiveQuizLeaderBoard: React.FC = () => {
         const results = await api.getStudentResultsByAssignmentId(
           assignmentDoc?.id
         );
-        const playedStudentIds = Object.keys(results);
-        if (playedStudentIds.length > 0) {
-          scoresData = playedStudentIds.map((studentDocId) => ({
+        userData = results[0].user_data;
+        resultData = results[0].result_data;
+        const playedStudentIds = [
+          ...new Set(resultData.map((result) => result.student_id)),
+        ];
+
+        scoresData = playedStudentIds.map((studentDocId) => {
+          const totalScore = resultData
+            ?.filter((data) => data.student_id === studentDocId)
+            .reduce((sum, data) => sum + (data.score || 0), 0);
+
+          return {
             studentDocId,
-            totalScore: results[studentDocId]?.score || 0,
-          }));
-        } else {
-          scoresData = [];
-        }
+            totalScore,
+          };
+        });
       }
       console.log("Scores Data:", scoresData);
 

@@ -50,7 +50,9 @@ export class ApiHandler implements ServiceApi {
   ): void {
     return this.s.liveQuizListener(liveQuizRoomDocId, onDataChange);
   }
-
+  public async removeLiveQuizChannel() {
+    return await this.s.removeLiveQuizChannel();
+  }
   public async updateLiveQuiz(
     roomDocId: string,
     studentId: string,

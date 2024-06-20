@@ -79,8 +79,10 @@ export interface ServiceApi {
    * @returns {User[]} Array of `User` objects
    */
   getParentStudentProfiles(): Promise<TableTypes<"user">[]>;
-  getCourseByUserGradeId(gradeDocId: string | null | undefined, boardDocId: string | null | undefined): Promise<TableTypes<"course">[]> ;
-  
+  getCourseByUserGradeId(
+    gradeDocId: string | null | undefined,
+    boardDocId: string | null | undefined
+  ): Promise<TableTypes<"course">[]>;
 
   get currentStudent(): TableTypes<"user"> | undefined;
 
@@ -477,15 +479,19 @@ export interface ServiceApi {
     liveQuizRoomDocId: string,
     onDataChange: (roomDoc: TableTypes<"live_quiz_room"> | undefined) => void
   ): void;
-  
+  /**
+   * Removes LiveQuizChannel after live quiz completion;
+   */
 
-   /**
+  removeLiveQuizChannel();
+
+  /**
    * Establishes a real-time listener for changes in a assignmentUser document.
    * @param studentId  - The class Id of the student
    * @param onDataChange - A callback function to be executed when the data in assignment is inserted
    */
 
-   assignmentUserListner(
+  assignmentUserListner(
     studentId: string,
     onDataChange: (roomDoc: TableTypes<"assignment_user"> | undefined) => void
   ): void;
@@ -504,7 +510,6 @@ export interface ServiceApi {
     classId: string,
     onDataChange: (roomDoc: TableTypes<"assignment"> | undefined) => void
   ): void;
-
 
   /**
    * Updates the live quiz results for a specific student in a live quiz room.
@@ -542,9 +547,12 @@ export interface ServiceApi {
    * @param assignmentId - The unique identifier of the assignment document.
    * @returns {Assignment}  A promise that resolves `Assignment` for the with given `id`.
    */
-  getStudentResultsByAssignmentId(
-    assignmentId: string
-  ): Promise<TableTypes<"result">[]>;
+  getStudentResultsByAssignmentId(assignmentId: string): Promise<
+    {
+      result_data: TableTypes<"result">[];
+      user_data: TableTypes<"user">[];
+    }[]
+  >;
   /**
    * Gives Assignment for given a Assignment firebase doc Id
    * @param {string} id - Assignment firebase doc id
@@ -688,10 +696,8 @@ export interface ServiceApi {
    * @param studentId - The current student id.
    * @returns A promise returns list of Recommended Lessons to home page.
    */
-  getRecommendedLessons(
-    studentId: string
-  ): Promise<TableTypes<"lesson">[]>;
-  
+  getRecommendedLessons(studentId: string): Promise<TableTypes<"lesson">[]>;
+
   /**
    * Searches for lessons that match the given search string in their name or outcome fields.
    *

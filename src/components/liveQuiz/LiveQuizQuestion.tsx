@@ -21,6 +21,7 @@ const LiveQuizQuestion: FC<{
   roomDoc: TableTypes<"live_quiz_room">;
   showQuiz: boolean;
   isTimeOut: boolean;
+  cocosLessonId: string | null;
   onNewQuestionChange?: (newQuestionIndex: number) => void;
   onQuizEnd?: Function;
   onConfigLoaded?: (liveQuizConfig: LiveQuiz) => void;
@@ -30,6 +31,7 @@ const LiveQuizQuestion: FC<{
   roomDoc,
   onNewQuestionChange,
   onQuizEnd,
+  cocosLessonId,
   onConfigLoaded,
   showQuiz,
   onRemainingTimeChange,
@@ -39,7 +41,7 @@ const LiveQuizQuestion: FC<{
   const quizPath =
     (localStorage.getItem("gameUrl") ??
       "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
-    roomDoc.lesson_id;
+    cocosLessonId;
   const [liveQuizConfig, setLiveQuizConfig] = useState<LiveQuiz>();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();
   const [remainingTime, setRemainingTime] = useState(LIVE_QUIZ_QUESTION_TIME);
@@ -93,7 +95,6 @@ const LiveQuizQuestion: FC<{
     setSelectedAnswers((prevSelectedAnswers) => {
       const updatedSelectedAnswers = [...prevSelectedAnswers];
       updatedSelectedAnswers[questionIndex] = optionIndex;
-      console.log("updatedSelectedAnswers......", updatedSelectedAnswers);
       return updatedSelectedAnswers;
     });
   };
@@ -248,6 +249,7 @@ const LiveQuizQuestion: FC<{
             questionType: "text",
           },
         ],
+
         type: "multiOptions",
       } as LiveQuiz;
       preLoadAudiosWithLiveQuizConfig(config);
@@ -279,7 +281,8 @@ const LiveQuizQuestion: FC<{
     if (!results) return;
     const participantsPlayedCount = Object.values(results).reduce(
       (accumulator, liveQuizResult) => {
-        const lastQuestionId = liveQuizResult[liveQuizResult.length - 1].id;
+        const lastQuestionId =
+          liveQuizResult[liveQuizResult.length - 1].question_id;
         if (
           lastQuestionId ===
           liveQuizConfig?.data[currentQuestionIndex].question.id
@@ -387,6 +390,8 @@ const LiveQuizQuestion: FC<{
     let correctMoves = 0;
     if (!roomDoc.results) return;
     for (let result of roomDoc.results[student!.id]) {
+      console.log("inside for...", roomDoc.results[student!.id]);
+
       totalScore += result.score || 0;
       totalTimeSpent += result.timeSpent || 0;
       if (result.score > 0) {
@@ -397,7 +402,7 @@ const LiveQuizQuestion: FC<{
       student!.id,
       roomDoc.course_id,
       roomDoc.lesson_id,
-      totalScore,
+      Math.round(totalScore),
       correctMoves,
       totalQuestions - correctMoves,
       totalTimeSpent,

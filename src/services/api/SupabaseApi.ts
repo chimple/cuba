@@ -26,6 +26,7 @@ import { RoleType } from "../../interface/modelInterfaces";
 export class SupabaseApi implements ServiceApi {
   private _assignmetRealTime?: RealtimeChannel;
   private _assignmentUserRealTime?: RealtimeChannel;
+  private _liveQuizRealTime?: RealtimeChannel;
   getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;
@@ -637,7 +638,9 @@ export class SupabaseApi implements ServiceApi {
   }
   async assignmentUserListner(
     studentId: string,
-    onDataChange: (assignment_user: TableTypes<"assignment_user"> | undefined) => void
+    onDataChange: (
+      assignment_user: TableTypes<"assignment_user"> | undefined
+    ) => void
   ) {
     try {
       if (this._assignmentUserRealTime) return;
@@ -707,13 +710,13 @@ export class SupabaseApi implements ServiceApi {
       const roomDoc = await this.getLiveQuizRoomDoc(liveQuizRoomDocId);
       onDataChange(roomDoc);
 
-      const liveQuizRoomChannel = this.supabase?.channel("live_quiz_room");
+      this._liveQuizRealTime = this.supabase?.channel("live_quiz_room");
 
-      if (!liveQuizRoomChannel) {
+      if (!this._liveQuizRealTime) {
         throw new Error("Failed to establish channel for live quiz room");
       }
 
-      const res = liveQuizRoomChannel
+      const res = this._liveQuizRealTime
         .on(
           "postgres_changes",
           {
@@ -727,16 +730,18 @@ export class SupabaseApi implements ServiceApi {
           }
         )
         .subscribe();
-
-      return () => {
-        this.supabase?.removeChannel(liveQuizRoomChannel);
-      };
+      return;
     } catch (error) {
       console.error("Error setting up live quiz room listener:", error);
       throw error;
     }
   }
-
+  async removeLiveQuizChannel() {
+    try {
+      if (this._liveQuizRealTime)
+        this.supabase?.removeChannel(this._liveQuizRealTime);
+    } catch (e) {}
+  }
   async updateLiveQuiz(
     roomDocId: string,
     studentId: string,
@@ -773,10 +778,13 @@ export class SupabaseApi implements ServiceApi {
     const data = liveQuizId.data;
     return data;
   }
-  async getStudentResultsByAssignmentId(
-    assignmentId: string
-  ): Promise<TableTypes<"result">[]> {
-    let results = await this?.supabase?.rpc("get_results_by_assignment", {
+  async getStudentResultsByAssignmentId(assignmentId: string): Promise<
+    {
+      result_data: TableTypes<"result">[];
+      user_data: TableTypes<"user">[];
+    }[]
+  > {
+    const results = await this?.supabase?.rpc("get_results_by_assignment", {
       _assignment_id: assignmentId,
     });
     if (results == null || results.error || !results.data) {
