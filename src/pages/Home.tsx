@@ -221,11 +221,16 @@ const Home: FC = () => {
       await Promise.all(
         allAssignments.map(async (_assignment) => {
           const res = await api.getLesson(_assignment.lesson_id);
+          const now = new Date().toISOString();
           console.log(res);
           if (_assignment.type !== LIVE_QUIZ) {
             count++;
           } else {
-            liveQuizCount++;
+            if (_assignment.ends_at && _assignment.starts_at) {
+              if (_assignment.starts_at <= now && _assignment.ends_at > now) {
+                liveQuizCount++;
+              }
+            }
           }
           if (!!res) {
             // res.assignment = _assignment;

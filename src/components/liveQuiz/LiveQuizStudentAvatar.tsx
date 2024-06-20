@@ -11,7 +11,7 @@ import { t } from "i18next";
 
 const LiveQuizStudentAvatar: FC<{
   student: TableTypes<"user">;
-  score: number;
+  score?: number;
   percentage?: number;
   isCorrect?: boolean;
 }> = ({ student, score, percentage, isCorrect }) => {
@@ -48,7 +48,7 @@ const LiveQuizStudentAvatar: FC<{
         <p className="live-quiz-student-Name">{student.name}</p>
       )}
 
-      <p className="live-quiz-student-score">{Math.round(score)}</p>
+      {score && <p className="live-quiz-student-score">{Math.round(score!)}</p>}
     </div>
   );
 };

@@ -15,12 +15,12 @@ const LiveQuizRoomResult: React.FC = () => {
   const [topThreeStudents, setTopThreeStudents] = useState<
     TableTypes<"user">[]
   >([]);
-  const [students, setStudents] = useState(
-    new Map<String, TableTypes<"user">>()
+  const [students, setStudents] = useState<Map<String, TableTypes<"user">>>(
+    new Map()
   );
   const [showConfetti, setShowConfetti] = useState(true);
   const history = useHistory();
-  const [sortedStudentScores, setSortedStudentScores] = useState<any>([]);
+  const [sortedStudentScores, setSortedStudentScores] = useState<any[]>([]);
   const [isCongratsVisible, setCongratsVisible] = useState(true);
   const urlSearchParams = new URLSearchParams(window.location.search);
   const paramLiveRoomId = urlSearchParams.get("liveRoomId") ?? "";
@@ -32,15 +32,17 @@ const LiveQuizRoomResult: React.FC = () => {
 
   async function init() {
     try {
+      const tempStudentMap = new Map<String, TableTypes<"user">>();
       const liveQuizRoomDoc = await api.getLiveQuizRoomDoc(paramLiveRoomId);
       const classId = liveQuizRoomDoc?.class_id;
-      let tempStudentMap = new Map<String, TableTypes<"user">>();
       if (!!classId) {
-        const studentsData = await api.getStudentsForClass(classId);
-
-        for (let student of studentsData) {
+        const results = await api.getStudentResultsByAssignmentId(
+          liveQuizRoomDoc.assignment_id
+        );
+        const studentsData = results[0];
+        studentsData.user_data.map((student) => {
           tempStudentMap.set(student.id, student);
-        }
+        });
         setStudents(tempStudentMap);
       }
 
@@ -86,10 +88,10 @@ const LiveQuizRoomResult: React.FC = () => {
         setSortedStudentScores(sortedScores);
 
         const topThreePerformers = sortedScores.slice(0, 3);
-        const topthreeStudents = topThreePerformers.map((perf) =>
-          tempStudentMap.get(perf.studentDocId)
-        ) as TableTypes<"user">[];
-        setTopThreeStudents(topthreeStudents);
+        const topThreeStudents = topThreePerformers
+          .map((perf) => tempStudentMap.get(perf.studentDocId))
+          .filter((student) => !!student) as TableTypes<"user">[];
+        setTopThreeStudents(topThreeStudents);
       }
     } catch (error) {
       console.error("Error fetching LiveQuizRoom data:", error);

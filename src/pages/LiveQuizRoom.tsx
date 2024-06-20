@@ -1,7 +1,6 @@
 import { IonButton, IonPage } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { Util } from "../utility/util";
-import User from "../models/user";
 import { useHistory } from "react-router";
 import StudentAvatar from "../components/common/StudentAvatar";
 import { PAGES, TableTypes } from "../common/constants";
@@ -97,11 +96,13 @@ const LiveQuizRoom: React.FC = () => {
       return;
     const classId = studentResult.classes[0];
     if (!classId) return;
-    const studentsData = await api.getStudentsForClass(classId.id);
+    const results =
+      await api.getStudentResultsByAssignmentId(paramAssignmentId);
+    const studentsData = results[0];
     const tempStudentMap = new Map<String, TableTypes<"user">>();
-    for (let student of studentsData) {
+    studentsData.user_data.map((student) => {
       tempStudentMap.set(student.id, student);
-    }
+    });
     setStudents(tempStudentMap);
 
     const allStudents = tempStudentMap ?? students;
@@ -109,23 +110,18 @@ const LiveQuizRoom: React.FC = () => {
     let tempNotPlayedStudents: TableTypes<"user">[] = [];
     // const tempLiveStudents: User[] = [];
     if (tempPrevPlayedStudents.length < 1) {
-      if (
-        !!assignment &&
-        !!assignment.completedStudents &&
-        assignment.completedStudents.length > 0
-      ) {
-        const results =
-          await api.getStudentResultsByAssignmentId(paramAssignmentId);
-        if (results) {
-          setAssignmentResult(results);
-          let studentDocs: TableTypes<"user">[] = [];
-          results.map(async (result) => {
-            const studentDoc = await api.getUserByDocId(result.student_id);
-            if (studentDoc) {
-              studentDocs.push(studentDoc);
+      let resultData: TableTypes<"result">[] | null = studentsData.result_data;
+      let userData: TableTypes<"user">[] | null = studentsData.user_data;
+      if (results) {
+        setAssignmentResult(resultData);
+        for (let userResult of resultData) {
+          for (let user of userData) {
+            if (user.id === userResult.student_id) {
+              if (user) {
+                tempPrevPlayedStudents.push(user);
+              }
             }
-          });
-          tempPrevPlayedStudents = studentDocs;
+          }
         }
       }
     }
