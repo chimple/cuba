@@ -727,6 +727,23 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
+  async subscribeToClassTopic():Promise<void> {
+    var students: TableTypes<"user">[] = await this.getParentStudentProfiles();
+    for (const student of students) {
+      const linkedData = await this.getStudentClassesAndSchools(student.id);
+      if (
+        !!linkedData &&
+        !!linkedData.classes &&
+        linkedData.classes.length > 0
+      ) {
+        Util.subscribeToClassTopic(
+          linkedData.classes[0].id,
+          linkedData.schools[0].id
+        );
+      }
+    }
+  }
+
   async getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
     if (!this._db) throw "Db is not initialized";
     const authHandler = ServiceConfig.getI()?.authHandler;

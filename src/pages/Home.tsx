@@ -28,7 +28,7 @@ import { Timestamp } from "firebase/firestore";
 import { schoolUtil } from "../utility/schoolUtil";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import { t } from "i18next";
-import { App, URLOpenListenerEvent } from "@capacitor/app";
+import { App } from "@capacitor/app";
 import ChimpleAvatar from "../components/animation/ChimpleAvatar";
 import SearchLesson from "./SearchLesson";
 import AssignmentPage from "./Assignment";
@@ -83,7 +83,6 @@ const Home: FC = () => {
     }
   });
   const appStateChange = (isActive) => {
-    urlOpenListenerEvent();
     Util.onAppStateChange({ isActive });
   };
   useEffect(() => {
@@ -129,7 +128,6 @@ const Home: FC = () => {
     }
     fetchData();
     await isLinked();
-    urlOpenListenerEvent();
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("page") === PAGES.JOIN_CLASS) {
       setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
@@ -186,20 +184,6 @@ const Home: FC = () => {
     }
     AvatarObj.getInstance().unlockedRewards =
       (await Util.getAllUnlockedRewards()) || [];
-  }
-
-  function urlOpenListenerEvent() {
-    App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
-      const slug = event.url.split(".cc").pop();
-      if (slug === PAGES.LIVE_QUIZ && linked) {
-        setCurrentHeader(HOMEHEADERLIST.LIVEQUIZ);
-      } else {
-        setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
-      }
-      if (slug) {
-        history.replace(slug);
-      }
-    });
   }
 
   const api = ServiceConfig.getI().apiHandler;

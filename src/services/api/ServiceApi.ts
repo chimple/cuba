@@ -512,6 +512,11 @@ export interface ServiceApi {
   ): void;
 
   /**
+   * Subscribe to Class Topic
+   */
+  subscribeToClassTopic(): Promise<void>;
+
+  /**
    * Updates the live quiz results for a specific student in a live quiz room.
    *
    * @param roomDocId - The unique identifier of the live quiz room document.

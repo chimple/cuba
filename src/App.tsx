@@ -35,6 +35,7 @@ import {
   BASE_NAME,
   CACHE_IMAGE,
   CONTINUE,
+  DOWNLOADING_CHAPTER_ID,
   DOWNLOAD_BUTTON_LOADING_STATUS,
   GAME_URL,
   HOMEHEADERLIST,
@@ -133,6 +134,7 @@ const App: React.FC = () => {
   }, [online, presentToast]);
   useEffect(() => {
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(false));
+    localStorage.setItem(DOWNLOADING_CHAPTER_ID, JSON.stringify(false));
     console.log("fetching...");
     CapApp.addListener("appStateChange", Util.onAppStateChange);
     localStorage.setItem(IS_CUBA, "1");
@@ -162,6 +164,7 @@ const App: React.FC = () => {
           processNotificationData(data);
         }
       });
+      CapApp.addListener("appUrlOpen", Util.onAppUrlOpen);
     }
 
     Filesystem.mkdir({

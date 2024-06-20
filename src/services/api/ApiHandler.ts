@@ -400,6 +400,9 @@ export class ApiHandler implements ServiceApi {
   updateFcmToken(userId: string) {
     return this.s.updateFcmToken(userId);
   }
+  subscribeToClassTopic(){
+    return this.s.subscribeToClassTopic();
+  }
 
   public async createProfile(
     name: string,

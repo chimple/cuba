@@ -62,7 +62,7 @@ const Login: React.FC = () => {
   const [userData, setUserData] = useState<any>();
 
   const authInstance = ServiceConfig.getI().authHandler;
-  const countryCode = "+91";
+  const countryCode = "";
   // let phoneNumber: string = "";
   // let verificationCode: string = "";
   let displayName: string = "";
@@ -240,7 +240,7 @@ const Login: React.FC = () => {
       console.log("window.recaptchaVerifier", window.recaptchaVerifier);
 
       // setEnabled(true);
-      let response = await authInstance.msg91OtpGenerate(
+      let response = await authInstance.generateOtp(
         phoneNumberWithCountryCode,
         APP_NAME
       );
@@ -323,7 +323,7 @@ const Login: React.FC = () => {
         verificationCode.trim()
       );
       console.log("login User Data ", res, userData);
-      if (!res) {
+      if (!res?.user) {
         setIsLoading(false);
         console.log("Verification Failed");
         setErrorMessage(t("Something went wrong Verification Failed"));
@@ -333,30 +333,32 @@ const Login: React.FC = () => {
       setUserData(res.user);
       console.log("login User Data ", res, userData);
 
-      if (res.isUserExist) {
+      // if (res.isUserExist) {
         setIsLoading(false);
         history.replace(PAGES.SELECT_MODE);
         localStorage.setItem(CURRENT_USER, JSON.stringify(res.user));
         console.log("isUserExist", localStorage.getItem(CURRENT_USER));
 
         // setShowNameInput(true);
-      } else if (!res.isUserExist) {
-        setIsLoading(false);
-        let phoneAuthResult = await FirebaseAuth.i.createPhoneAuthUser(
-          res.user
-        );
-        if (phoneAuthResult) {
-          // history.push(PAGES.DISPLAY_STUDENT);
-          history.replace(PAGES.SELECT_MODE);
-          localStorage.setItem(CURRENT_USER, JSON.stringify(phoneAuthResult));
-          console.log("new user", localStorage.getItem(CURRENT_USER));
-        }
-      } else {
-        setIsLoading(false);
+      // } 
+      // else if (!res.isUserExist) {
+      //   setIsLoading(false);
+      //   let phoneAuthResult = await FirebaseAuth.i.createPhoneAuthUser(
+      //     res.user
+      //   );
+      //   if (phoneAuthResult) {
+      //     // history.push(PAGES.DISPLAY_STUDENT);
+      //     history.replace(PAGES.SELECT_MODE);
+      //     localStorage.setItem(CURRENT_USER, JSON.stringify(phoneAuthResult));
+      //     console.log("new user", localStorage.getItem(CURRENT_USER));
+      //   }
+      // } 
+      // else {
+      //   setIsLoading(false);
 
-        console.log("Verification Failed");
-        //alert("Verification Failed");
-      }
+      //   console.log("Verification Failed");
+      //   //alert("Verification Failed");
+      // }
       Util.logEvent(EVENTS.USER_PROFILE, {
         user_id: res.user.uid,
         user_name: res.user.name,
@@ -434,8 +436,8 @@ const Login: React.FC = () => {
     setStudentCredentialLogin(false);
     try {
       setIsLoading(true);
-      const _authHandler = ServiceConfig.getI().authHandler;
-      const result: boolean = await _authHandler.loginWithEmailAndPassword(
+      // const _authHandler = ServiceConfig.getI().authHandler;
+      const result: boolean = await authInstance.loginWithEmailAndPassword(
         schoolCode + studentId + DOMAIN,
         studentPassword
       );

@@ -39,7 +39,7 @@ export class OneRosterAuth implements ServiceAuth {
   phoneNumberSignIn(phoneNumber: any, recaptchaVerifier: any): Promise<any> {
     throw new Error("Method not implemented.");
   }
-  msg91OtpGenerate(
+  generateOtp(
     phoneNumber: string,
     appName: string
   ): Promise<boolean | undefined> {

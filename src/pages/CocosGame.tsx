@@ -65,6 +65,7 @@ const CocosGame: React.FC = () => {
     return () => {
       CapApp.removeAllListeners();
       CapApp.addListener("appStateChange", Util.onAppStateChange);
+      CapApp.addListener("appUrlOpen", Util.onAppUrlOpen);
     };
   }, []);
 

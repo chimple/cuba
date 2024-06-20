@@ -37,6 +37,7 @@ import {
   LESSON_DOWNLOAD_SUCCESS_EVENT,
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
   CHAPTER_ID_LESSON_ID_MAP,
+  DOWNLOADING_CHAPTER_ID,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -69,6 +70,7 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { schoolUtil } from "./schoolUtil";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
+import { URLOpenListenerEvent } from "@capacitor/app";
 
 declare global {
   interface Window {
@@ -318,7 +320,10 @@ export class Util {
     localStorage.setItem(lessonIdStorageKey, JSON.stringify(updatedItems));
   };
 
-  public static async downloadZipBundle(lessonIds: string[]): Promise<boolean> {
+  public static async downloadZipBundle(
+    lessonIds: string[],
+    chapterId?: string
+  ): Promise<boolean> {
     try {
       if (!Capacitor.isNativePlatform()) return true;
 
@@ -463,7 +468,13 @@ export class Util {
           return false; // If any lesson download failed, return false
         }
       }
-      const customEvent = new CustomEvent(ALL_LESSON_DOWNLOAD_SUCCESS_EVENT);
+      const customEvent = new CustomEvent(ALL_LESSON_DOWNLOAD_SUCCESS_EVENT, {
+        detail: { chapterId },
+      });
+      if (chapterId) {
+        this.removeLessonIdFromLocalStorage(chapterId, DOWNLOADING_CHAPTER_ID);
+      }
+
       window.dispatchEvent(customEvent);
       return true; // Return true if all lessons are successfully downloaded
     } catch (error) {
@@ -1635,5 +1646,23 @@ export class Util {
     //   console.log("getAllUnlockedRewards() called ", allUnlockedRewards);
     //   return allUnlockedRewards;
     return;
+  }
+
+  public static onAppUrlOpen(event: URLOpenListenerEvent) {
+    const slug = event.url.split(".cc").pop();
+    if (slug?.startsWith(PAGES.JOIN_CLASS)) {
+      const newSearParams = new URLSearchParams(new URL(event.url).search);
+      const currentParams = new URLSearchParams(window.location.search);
+      currentParams.set("classCode", newSearParams.get("classCode") ?? "");
+      currentParams.set("page", PAGES.JOIN_CLASS);
+      const currentStudent = Util.getCurrentStudent();
+      if (currentStudent) {
+        window.location.replace(PAGES.HOME + "?" + currentParams.toString());
+      } else {
+        window.location.replace(
+          PAGES.DISPLAY_STUDENT + "?" + currentParams.toString()
+        );
+      }
+    }
   }
 }
