@@ -81,15 +81,17 @@ const Leaderboard: React.FC = () => {
   }, []);
 
   useEffect(() => {}, []);
-  const urlOpen=()=>{
+  const urlOpen = () => {
     App.addListener("appUrlOpen", (event) => {
-      const url = new URL(event.url);   
-        Util.setPathToBackButton(`${PAGES.HOME}?page=/${url.pathname.substring(1)}&classCode=${url.searchParams.get("classCode")}`, history);
+      const url = new URL(event.url);
+      Util.setPathToBackButton(
+        `${PAGES.HOME}?page=/${url.pathname.substring(1)}&classCode=${url.searchParams.get("classCode")}`,
+        history
+      );
     });
-  }
+  };
   App.addListener("appStateChange", urlOpen);
   async function inti() {
-  
     console.log("init method called");
     const weekOptions = [
       { text: t("Weekly"), type: LeaderboardDropdownList.WEEKLY },
@@ -586,6 +588,7 @@ const Leaderboard: React.FC = () => {
             <div
               id="leaderboard-switch-user-button"
               onClick={async () => {
+                Util.setCurrentStudent(null);
                 localStorage.removeItem(CURRENT_STUDENT);
                 // await Util.setCurrentStudent(null);
                 AvatarObj.destroyInstance();

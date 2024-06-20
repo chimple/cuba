@@ -70,6 +70,7 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { schoolUtil } from "./schoolUtil";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
+import { URLOpenListenerEvent } from "@capacitor/app";
 
 declare global {
   interface Window {
@@ -1645,5 +1646,23 @@ export class Util {
     //   console.log("getAllUnlockedRewards() called ", allUnlockedRewards);
     //   return allUnlockedRewards;
     return;
+  }
+
+  public static onAppUrlOpen(event: URLOpenListenerEvent) {
+    const slug = event.url.split(".cc").pop();
+    if (slug?.startsWith(PAGES.JOIN_CLASS)) {
+      const newSearParams = new URLSearchParams(new URL(event.url).search);
+      const currentParams = new URLSearchParams(window.location.search);
+      currentParams.set("classCode", newSearParams.get("classCode") ?? "");
+      currentParams.set("page", PAGES.JOIN_CLASS);
+      const currentStudent = Util.getCurrentStudent();
+      if (currentStudent) {
+        window.location.replace(PAGES.HOME + "?" + currentParams.toString());
+      } else {
+        window.location.replace(
+          PAGES.DISPLAY_STUDENT + "?" + currentParams.toString()
+        );
+      }
+    }
   }
 }

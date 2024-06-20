@@ -164,6 +164,7 @@ const App: React.FC = () => {
           processNotificationData(data);
         }
       });
+      CapApp.addListener("appUrlOpen", Util.onAppUrlOpen);
     }
 
     Filesystem.mkdir({

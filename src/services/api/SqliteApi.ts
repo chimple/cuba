@@ -996,12 +996,16 @@ export class SqliteApi implements ServiceApi {
     classId: string,
     studentId: string
   ): Promise<TableTypes<"assignment">[]> {
+    const now = new Date().toISOString();
     const query = `
     SELECT a.*
     FROM ${TABLES.Assignment} a
     LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
     LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = "${studentId}"
-    WHERE a.class_id = '${classId}' and type = "${LIVE_QUIZ}" and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL;
+   WHERE a.class_id = '${classId}' and type = "${LIVE_QUIZ}" and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL  
+    and a.starts_at <= '${now}'
+    and a.ends_at > '${now}'
+    order by a.created_at desc;
     `;
     const res = await this._db?.query(query);
     if (!res || !res.values || res.values.length < 1) return [];
@@ -1688,7 +1692,9 @@ export class SqliteApi implements ServiceApi {
       onDataChange
     );
   }
-
+  async removeLiveQuizChannel() {
+    return await this._serverApi.removeLiveQuizChannel();
+  }
   async updateLiveQuiz(
     roomDocId: string,
     studentId: string,
@@ -1712,9 +1718,12 @@ export class SqliteApi implements ServiceApi {
     const data = await this._serverApi.joinLiveQuiz(assignmentId, studentId);
     return data;
   }
-  async getStudentResultsByAssignmentId(
-    assignmentId: string
-  ): Promise<TableTypes<"result">[]> {
+  async getStudentResultsByAssignmentId(assignmentId: string): Promise<
+    {
+      result_data: TableTypes<"result">[];
+      user_data: TableTypes<"user">[];
+    }[]
+  > {
     const res =
       await this._serverApi.getStudentResultsByAssignmentId(assignmentId);
     return res;

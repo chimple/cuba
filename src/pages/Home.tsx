@@ -28,7 +28,7 @@ import { Timestamp } from "firebase/firestore";
 import { schoolUtil } from "../utility/schoolUtil";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import { t } from "i18next";
-import { App, URLOpenListenerEvent } from "@capacitor/app";
+import { App } from "@capacitor/app";
 import ChimpleAvatar from "../components/animation/ChimpleAvatar";
 import SearchLesson from "./SearchLesson";
 import AssignmentPage from "./Assignment";
@@ -83,7 +83,6 @@ const Home: FC = () => {
     }
   });
   const appStateChange = (isActive) => {
-    urlOpenListenerEvent();
     Util.onAppStateChange({ isActive });
   };
   useEffect(() => {
@@ -129,7 +128,6 @@ const Home: FC = () => {
     }
     fetchData();
     await isLinked();
-    urlOpenListenerEvent();
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("page") === PAGES.JOIN_CLASS) {
       setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
@@ -188,20 +186,6 @@ const Home: FC = () => {
       (await Util.getAllUnlockedRewards()) || [];
   }
 
-  function urlOpenListenerEvent() {
-    App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
-      const slug = event.url.split(".cc").pop();
-      if (slug === PAGES.LIVE_QUIZ && linked) {
-        setCurrentHeader(HOMEHEADERLIST.LIVEQUIZ);
-      } else {
-        setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
-      }
-      if (slug) {
-        history.replace(slug);
-      }
-    });
-  }
-
   const api = ServiceConfig.getI().apiHandler;
 
   async function getAssignments(): Promise<TableTypes<"lesson">[]> {
@@ -237,11 +221,16 @@ const Home: FC = () => {
       await Promise.all(
         allAssignments.map(async (_assignment) => {
           const res = await api.getLesson(_assignment.lesson_id);
+          const now = new Date().toISOString();
           console.log(res);
           if (_assignment.type !== LIVE_QUIZ) {
             count++;
           } else {
-            liveQuizCount++;
+            if (_assignment.ends_at && _assignment.starts_at) {
+              if (_assignment.starts_at <= now && _assignment.ends_at > now) {
+                liveQuizCount++;
+              }
+            }
           }
           if (!!res) {
             // res.assignment = _assignment;
