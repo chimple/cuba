@@ -1448,24 +1448,28 @@ export type Database = {
           phone: string
         }[]
       }
-      delete_student:
-        | {
-            Args: {
-              student_id: string
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              student_id: string
-            }
-            Returns: undefined
-          }
+      delete_student: {
+        Args: {
+          student_id: string
+        }
+        Returns: undefined
+      }
       delete_user: {
         Args: {
           uuid: string
         }
         Returns: boolean
+      }
+      fetch_leaderboard_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          type: string
+          student_id: string
+          name: string
+          lessons_played: number
+          total_score: number
+          total_time_spent: number
+        }[]
       }
       find_similar_lessons: {
         Args: {
@@ -1511,23 +1515,24 @@ export type Database = {
           total_time_spent: number
         }[]
       }
+      get_leaderboard: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          type: string
+          student_id: string
+          name: string
+          lessons_played: number
+          total_score: number
+          total_time_spent: number
+        }[]
+      }
       get_results_by_assignment: {
         Args: {
           _assignment_id: string
         }
         Returns: {
-          assignment_id: string | null
-          correct_moves: number | null
-          created_at: string
-          id: string
-          is_deleted: boolean | null
-          lesson_id: string | null
-          school_id: string | null
-          score: number | null
-          student_id: string
-          time_spent: number | null
-          updated_at: string | null
-          wrong_moves: number | null
+          result_data: Database["public"]["Tables"]["result"]["Row"][]
+          user_data: Database["public"]["Tables"]["user"]["Row"][]
         }[]
       }
       get_user_by_phone: {
