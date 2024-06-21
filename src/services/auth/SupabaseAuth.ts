@@ -40,7 +40,7 @@ export class SupabaseAuth implements ServiceAuth {
       });
       await api.updateFcmToken(data?.user?.id ?? "");
       const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
-      await api.subscribeToClassTopic()
+      await api.subscribeToClassTopic();
       return true;
     } catch (error) {
       console.log(
@@ -94,6 +94,9 @@ export class SupabaseAuth implements ServiceAuth {
       }
       await api.updateFcmToken(data.user?.id ?? authUser.id);
       const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
+      if (rpcRes?.data) {
+        await api.subscribeToClassTopic();
+      }
     } catch (error) {
       console.error("🚀 ~ SupabaseAuth ~ googleSign ~ error:", error);
       return false;
@@ -124,7 +127,7 @@ export class SupabaseAuth implements ServiceAuth {
     throw new Error("Method not implemented.");
   }
   resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined> {
-    throw new Error("Method not implemented.");
+    return this.generateOtp(phoneNumber, "");
   }
   async generateOtp(
     phoneNumber: string,
@@ -161,7 +164,7 @@ export class SupabaseAuth implements ServiceAuth {
         user_email: "",
         user_phone: user?.user?.phone ?? "",
       });
-      console.log("🚀 ~ SupabaseAuth ~ googleSign ~ isUserExists:", rpcRes);
+      console.log("🚀 ~ SupabaseAuth ~ PhoneSignIn ~ isUserExists:", rpcRes);
 
       if (!rpcRes?.data) {
         const createdUser = await api.createUserDoc({
@@ -188,6 +191,9 @@ export class SupabaseAuth implements ServiceAuth {
       }
       await api.updateFcmToken(user?.user?.id ?? "");
       const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
+      if (rpcRes?.data) {
+        await api.subscribeToClassTopic();
+      }
       return { user: user, isUserExist: rpcRes?.data ?? false };
     } catch (error) {
       return { user: null, isUserExist: false };
