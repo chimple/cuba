@@ -164,7 +164,7 @@ export class SupabaseAuth implements ServiceAuth {
         user_email: "",
         user_phone: user?.user?.phone ?? "",
       });
-      console.log("🚀 ~ SupabaseAuth ~ googleSign ~ isUserExists:", rpcRes);
+      console.log("🚀 ~ SupabaseAuth ~ PhoneSignIn ~ isUserExists:", rpcRes);
 
       if (!rpcRes?.data) {
         const createdUser = await api.createUserDoc({
