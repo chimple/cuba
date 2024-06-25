@@ -82,8 +82,12 @@ const HomeHeader: React.FC<{
 
   useEffect(() => {
     init();
+    window.addEventListener("JoinClassListner", handleJoinClassListner);
   }, []);
-
+  const handleJoinClassListner = () => {
+    setIsLinked(true);
+    window.removeEventListener("JoinClassListner", handleJoinClassListner);
+  };
   // const student =await Util.getCurrentStudent();
   return (
     <div id="home-header-icons">
