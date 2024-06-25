@@ -41,6 +41,8 @@ const localData: any = {};
 const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<TableTypes<"lesson">[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isStudentLinked, setIsStudentLinked] = useState<boolean>();
+  const [refreshKey, setRefreshKey] = useState(0);
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
   }>();
@@ -61,7 +63,6 @@ const Home: FC = () => {
     []
   );
   let tempPageNumber = 1;
-  let linked: boolean;
   const location = useLocation();
   const getCanShowAvatar = async () => {
     const canShowAvatarValue = await Util.getCanShowAvatar();
@@ -100,6 +101,7 @@ const Home: FC = () => {
     if (!!urlParams.get(CONTINUE)) {
       setCurrentHeader(currentHeader);
     }
+    window.addEventListener("JoinClassListner", handleJoinClassEvent);
     App.addListener("appStateChange", ({ isActive }) =>
       appStateChange(isActive)
     );
@@ -116,6 +118,13 @@ const Home: FC = () => {
       fetchData();
     }
   }, [currentHeader]);
+  const handleJoinClassEvent = async (event) => {
+    await getAssignments();
+    setCanShowAvatar(true);
+    setIsStudentLinked(true);
+    setRefreshKey(oldKey => oldKey + 1);
+    window.removeEventListener("JoinClassListner", handleJoinClassEvent);
+  };
   const initData = async () => {
     const student = Util.getCurrentStudent();
     if (!student) {
@@ -135,7 +144,7 @@ const Home: FC = () => {
         setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
       }, 500);
     } else if (urlParams.get("page") === PAGES.LIVE_QUIZ) {
-      if (linked) setCurrentHeader(HOMEHEADERLIST.LIVEQUIZ);
+      if (isStudentLinked) setCurrentHeader(HOMEHEADERLIST.LIVEQUIZ);
       else setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
     }
   };
@@ -171,12 +180,14 @@ const Home: FC = () => {
 
     const parsedConectedData = conectedData ? JSON.parse(conectedData) : {};
     if (student && parsedConectedData[student.id] != undefined) {
-      linked = parsedConectedData[student.id];
+      setIsStudentLinked(parsedConectedData[student.id]);
+      // linked = parsedConectedData[student.id];
     }
     if (student) {
-      if (linked == undefined) {
-        linked = await api.isStudentLinked(student.id);
+      if (isStudentLinked == undefined) {
+        var linked = await api.isStudentLinked(student.id);
         parsedConectedData[student.id] = linked;
+        setIsStudentLinked(linked);
       } else {
         api.isStudentLinked(student.id).then((value) => {
           parsedConectedData[student.id] = value;
@@ -530,6 +541,7 @@ const Home: FC = () => {
     <IonPage id="home-page">
       <IonHeader id="home-header">
         <HomeHeader
+          key={refreshKey}
           currentHeader={currentHeader}
           onHeaderIconClick={onHeaderIconClick}
           pendingAssignmentCount={pendingAssignments.length}
