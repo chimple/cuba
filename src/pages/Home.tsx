@@ -42,6 +42,7 @@ const Home: FC = () => {
   const [dataCourse, setDataCourse] = useState<TableTypes<"lesson">[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isStudentLinked, setIsStudentLinked] = useState<boolean>();
+  const [refreshKey, setRefreshKey] = useState(0);
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
   }>();
@@ -121,6 +122,7 @@ const Home: FC = () => {
     await getAssignments();
     setCanShowAvatar(true);
     setIsStudentLinked(true);
+    setRefreshKey(oldKey => oldKey + 1);
     window.removeEventListener("JoinClassListner", handleJoinClassEvent);
   };
   const initData = async () => {
@@ -536,6 +538,7 @@ const Home: FC = () => {
     <IonPage id="home-page">
       <IonHeader id="home-header">
         <HomeHeader
+          key={refreshKey}
           currentHeader={currentHeader}
           onHeaderIconClick={onHeaderIconClick}
           pendingAssignmentCount={pendingAssignments.length}
