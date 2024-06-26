@@ -279,8 +279,8 @@ const LessonCard: React.FC<{
                 }
                 defaultSrc={"assets/icons/DefaultIcon.png"}
                 webSrc={lesson.image || "assets/icons/DefaultIcon.png"}
-                imageWidth={"100%"}
-                imageHeight={"100%"}
+                imageWidth={"50%"}
+                imageHeight={"auto"}
               />
               {!isUnlocked ? (
                 <div id="lesson-card-status-icon">

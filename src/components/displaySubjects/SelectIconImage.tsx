@@ -1,10 +1,9 @@
-import { FC, useState } from "react";
-import CachedImage from "../common/CachedImage";
+import { FC, useState, useEffect } from "react";
 
 const SelectIconImage: FC<{
-  localSrc: any;
-  defaultSrc: any;
-  webSrc: any;
+  localSrc: string;
+  defaultSrc: string;
+  webSrc: string;
   imageWidth?: string;
   imageHeight?: string;
   webImageWidth?: string;
@@ -18,62 +17,39 @@ const SelectIconImage: FC<{
   webImageWidth = "100%",
   webImageHeight = "100%",
 }) => {
-  enum LoadIcon {
-    Local,
-    Web,
-    Default,
-  }
+  const [activeSrc, setActiveSrc] = useState<string>(defaultSrc);
 
-  const [loadIcon, setLoadIcon] = useState<LoadIcon>(LoadIcon.Local);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isValid, setIsValid] = useState(true);
+  useEffect(() => {
+    const preloadImage = (src: string): Promise<boolean> =>
+      new Promise((resolve) => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+      });
 
-  const handleImageLoad = () => {
-    setIsLoaded(true);
-    setIsValid(true);
-  };
+    const checkImages = async () => {
+      if (await preloadImage(localSrc)) {
+        setActiveSrc(localSrc);
+      } else if (await preloadImage(webSrc)) {
+        setActiveSrc(webSrc);
+      } else {
+        setActiveSrc(defaultSrc);
+      }
+    };
 
-  const handleImageError = () => {
-    switch (loadIcon) {
-      case LoadIcon.Local:
-        setLoadIcon(LoadIcon.Web);
-        break;
-      case LoadIcon.Web:
-        setLoadIcon(LoadIcon.Default);
-        break;
-      case LoadIcon.Default:
-        setLoadIcon(LoadIcon.Local);
-        setIsValid(false);
-        break;
-      default:
-        setLoadIcon(LoadIcon.Default);
-        break;
-    }
-  };
-
-  const imageProps = {
-    style: {
-      width: imageWidth,
-      height: imageHeight,
-      display: isValid || isLoaded ? "block" : "contents",
-    },
-    onLoad: handleImageLoad,
-    onError: handleImageError,
-    alt: "",
-  };
+    checkImages();
+  }, [localSrc, webSrc, defaultSrc]);
 
   return (
-    <div>
-      {loadIcon === LoadIcon.Local && <img {...imageProps} src={localSrc} />}
-      {webSrc !== undefined &&
-        (webSrc ?? defaultSrc) &&
-        loadIcon === LoadIcon.Web && (
-          <CachedImage {...imageProps} src={webSrc} />
-        )}
-      {loadIcon === LoadIcon.Default && (
-        <img {...imageProps} src={defaultSrc} />
-      )}
-    </div>
+    <img
+      src={activeSrc}
+      alt=""
+      style={{
+        width: imageWidth,
+        height: imageHeight,
+      }}
+    />
   );
 };
 
