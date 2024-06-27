@@ -20,22 +20,28 @@ const SelectIconImage: FC<{
   const [activeSrc, setActiveSrc] = useState<string>(defaultSrc);
 
   useEffect(() => {
-    const preloadImage = (src: string): Promise<boolean> =>
+    const preloadImage = (src: string): Promise<string | null> =>
       new Promise((resolve) => {
         const img = new Image();
         img.src = src;
-        img.onload = () => resolve(true);
-        img.onerror = () => resolve(false);
+        img.onload = () => resolve(src);
+        img.onerror = () => resolve(null);
       });
 
     const checkImages = async () => {
-      if (await preloadImage(localSrc)) {
-        setActiveSrc(localSrc);
-      } else if (await preloadImage(webSrc)) {
-        setActiveSrc(webSrc);
-      } else {
-        setActiveSrc(defaultSrc);
+      const localImage = await preloadImage(localSrc);
+      if (localImage) {
+        setActiveSrc(localImage);
+        return;
       }
+
+      const webImage = await preloadImage(webSrc);
+      if (webImage) {
+        setActiveSrc(webImage);
+        return;
+      }
+
+      setActiveSrc(defaultSrc);
     };
 
     checkImages();
