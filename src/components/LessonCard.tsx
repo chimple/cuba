@@ -255,8 +255,6 @@ const LessonCard: React.FC<{
             ) : null}
             <div className="pattern">
               <SelectIconImage
-              imageWidth={"85%"}
-              imageHeight={"auto"}
                 localSrc={
                   // this is for lesson card background
                   "courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"
