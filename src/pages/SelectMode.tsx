@@ -92,7 +92,7 @@ const SelectMode: FC = () => {
     if (currentMode == MODES.PARENT) {
       schoolUtil.setCurrMode(MODES.PARENT);
       const student = Util.getCurrentStudent();
-      if (!student) {
+      if (student) {
         history.replace(PAGES.HOME);
         return;
       }
