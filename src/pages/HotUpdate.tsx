@@ -39,7 +39,7 @@ const HotUpdate: FC<{}> = () => {
     const appLang = localStorage.getItem(LANGUAGE);
     if (appLang == undefined) {
       history.replace(PAGES.APP_LANG_SELECTION);
-    } else history.replace(PAGES.HOME);
+    } else history.replace(PAGES.SELECT_MODE);
   };
   useEffect(() => {
     init();
