@@ -1,4 +1,5 @@
 import { FC, useState, useEffect } from "react";
+import './SelectIconImage.css';
 
 const SelectIconImage: FC<{
   localSrc: string;
@@ -17,7 +18,7 @@ const SelectIconImage: FC<{
   webImageWidth = "100%",
   webImageHeight = "100%",
 }) => {
-  const [activeSrc, setActiveSrc] = useState<string>(defaultSrc);
+  const [activeSrc, setActiveSrc] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -32,23 +33,20 @@ const SelectIconImage: FC<{
     const loadImages = async () => {
       setIsLoading(true); 
 
-      
       const localLoaded = await preloadImage(localSrc);
       if (localLoaded) {
         setActiveSrc(localSrc);
-        setIsLoading(false); // Set loading state to false when image loaded successfully
-        return;
+        setIsLoading(false); 
+        return; 
       }
 
-      
       const webLoaded = await preloadImage(webSrc);
       if (webLoaded) {
         setActiveSrc(webSrc);
-        setIsLoading(false); // Set loading state to false when image loaded successfully
-        return;
+        setIsLoading(false); 
+        return; 
       }
 
-      
       setActiveSrc(defaultSrc);
       setIsLoading(false); 
     };
@@ -57,15 +55,17 @@ const SelectIconImage: FC<{
   }, [localSrc, webSrc, defaultSrc]);
 
   return (
-    <img
-      src={activeSrc}
-      alt=""
-      style={{
-        width: imageWidth,
-        height: imageHeight,
-        
-      }}
-    />
+    <div style={{ position: "relative", width: imageWidth, height: imageHeight }}>
+      {isLoading && (
+        <div className="placeholder" />
+      )}
+      <img
+        src={activeSrc}
+        alt=""
+        className={`image ${!isLoading && 'imageLoaded'}`} 
+        onLoad={() => setIsLoading(false)} 
+      />
+    </div>
   );
 };
 
