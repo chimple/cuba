@@ -18,7 +18,6 @@ const SelectIconImage: FC<{
   webImageHeight = "100%",
 }) => {
   const [activeSrc, setActiveSrc] = useState<string>(defaultSrc);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const preloadImage = (src: string): Promise<boolean> =>
@@ -29,31 +28,17 @@ const SelectIconImage: FC<{
         img.onerror = () => resolve(false);
       });
 
-    const loadImages = async () => {
-      setIsLoading(true); 
-
-      
-      const localLoaded = await preloadImage(localSrc);
-      if (localLoaded) {
+    const checkImages = async () => {
+      if (await preloadImage(localSrc)) {
         setActiveSrc(localSrc);
-        setIsLoading(false); // Set loading state to false when image loaded successfully
-        return;
-      }
-
-      
-      const webLoaded = await preloadImage(webSrc);
-      if (webLoaded) {
+      } else if (await preloadImage(webSrc)) {
         setActiveSrc(webSrc);
-        setIsLoading(false); // Set loading state to false when image loaded successfully
-        return;
+      } else {
+        setActiveSrc(defaultSrc);
       }
-
-      
-      setActiveSrc(defaultSrc);
-      setIsLoading(false); 
     };
 
-    loadImages();
+    checkImages();
   }, [localSrc, webSrc, defaultSrc]);
 
   return (
@@ -63,7 +48,6 @@ const SelectIconImage: FC<{
       style={{
         width: imageWidth,
         height: imageHeight,
-        
       }}
     />
   );
