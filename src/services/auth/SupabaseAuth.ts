@@ -2,11 +2,12 @@ import { SupabaseAuthClient } from "@supabase/supabase-js/dist/module/lib/Supaba
 import { SupabaseApi } from "../api/SupabaseApi";
 import { ServiceAuth } from "./ServiceAuth";
 import { Database } from "../database";
-import { TableTypes } from "../../common/constants";
+import { TableTypes, USER_DATA } from "../../common/constants";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { ServiceConfig } from "../ServiceConfig";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Util } from "../../utility/util";
+import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
@@ -26,7 +27,6 @@ export class SupabaseAuth implements ServiceAuth {
     }
     return SupabaseAuth.i;
   }
-
   async loginWithEmailAndPassword(email: any, password: any): Promise<boolean> {
     try {
       if (!this._auth) return false;
@@ -106,22 +106,34 @@ export class SupabaseAuth implements ServiceAuth {
 
   async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
     if (this._currentUser) return this._currentUser;
-    const authData = await this._auth?.getSession();
-    if (!authData || !authData.data.session?.user?.id) return;
-    const api = ServiceConfig.getI().apiHandler;
-    let user = await api.getUserByDocId(authData.data.session?.user.id);
-    this._currentUser = user;
-    return this._currentUser;
+    if (!navigator.onLine) {
+      const api = ServiceConfig.getI().apiHandler;
+      let user = localStorage.getItem(USER_DATA);
+      if (user) this._currentUser = JSON.parse(user) as TableTypes<"user">;
+      return this._currentUser;
+    } else {
+      const authData = await this._auth?.getSession();
+      if (!authData || !authData.data.session?.user?.id) return;
+      this?._auth?.startAutoRefresh();
+      const api = ServiceConfig.getI().apiHandler;
+      let user = await api.getUserByDocId(authData.data.session?.user.id);
+
+      localStorage.setItem(USER_DATA, JSON.stringify(user));
+      this._currentUser = user;
+      return this._currentUser;
+    }
   }
   set currentUser(user: TableTypes<"user">) {
     this._currentUser = user;
   }
   async isUserLoggedIn(): Promise<boolean> {
     if (this._currentUser) return true;
-    // const authData = await this._auth?.getUser();
-    const authData = await this._auth?.getSession();
-    // const user = await this.getCurrentUser();
-    return !!authData?.data?.session?.user;
+    if (navigator.onLine) {
+      // const authData = await this._auth?.getUser();
+      const authData = await this._auth?.getSession();
+      // const user = await this.getCurrentUser();
+      return !!authData?.data?.session?.user;
+    } else return true;
   }
   phoneNumberSignIn(phoneNumber: any, recaptchaVerifier: any): Promise<any> {
     throw new Error("Method not implemented.");
