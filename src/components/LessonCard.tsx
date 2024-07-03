@@ -256,7 +256,7 @@ const LessonCard: React.FC<{
             <div className="pattern">
               <SelectIconImage
                imageWidth={"85%"}
-               imageHeight={"auto"}
+               imageHeight={"80%"}
                 localSrc={
                   // this is for lesson card background
                   "courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"
@@ -287,7 +287,7 @@ const LessonCard: React.FC<{
                 defaultSrc={"assets/icons/DefaultIcon.png"}
                 webSrc={lesson.image || "assets/icons/DefaultIcon.png"}
                 imageWidth={"50%"}
-                imageHeight={"auto"}
+                imageHeight={"80%"}
               />
               {!isUnlocked ? (
                 <div id="lesson-card-status-icon">
