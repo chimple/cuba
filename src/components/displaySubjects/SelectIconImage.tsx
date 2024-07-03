@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from "react";
+import React, { FC, useState, useEffect } from 'react';
 import './SelectIconImage.css';
 
 const SelectIconImage: FC<{
@@ -12,11 +12,11 @@ const SelectIconImage: FC<{
 }> = ({
   localSrc,
   defaultSrc,
-  webSrc,
-  imageWidth = "100%",
-  imageHeight = "100%",
-  webImageWidth = "100%",
-  webImageHeight = "100%",
+  webSrc = '', // Ensure webSrc has a default value
+  imageWidth = '100%',
+  imageHeight = '100%',
+  webImageWidth = '100%',
+  webImageHeight = '100%',
 }) => {
   const [activeSrc, setActiveSrc] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -31,47 +31,41 @@ const SelectIconImage: FC<{
       });
 
     const loadImages = async () => {
-      setIsLoading(true); 
+      setIsLoading(true);
 
       const localLoaded = await preloadImage(localSrc);
       if (localLoaded) {
         setActiveSrc(localSrc);
-        setIsLoading(false); 
-        return; 
+        setIsLoading(false);
+        return;
       }
 
-      const webLoaded = await preloadImage(webSrc);
-      if (webLoaded) {
-        setActiveSrc(webSrc);
-        setIsLoading(false); 
-        return; 
+      if (webSrc) { // Ensure webSrc is checked before using it
+        const webLoaded = await preloadImage(webSrc);
+        if (webLoaded) {
+          setActiveSrc(webSrc);
+          setIsLoading(false);
+          return;
+        }
       }
 
       setActiveSrc(defaultSrc);
-      setIsLoading(false); 
+      setIsLoading(false);
     };
 
-
-    loadImages(); 
-
     loadImages();
-
   }, [localSrc, webSrc, defaultSrc]);
 
   return (
-    <div style={{ position: "relative", width: imageWidth, height: imageHeight }}>
-
-      {isLoading && ( 
-
+    <div style={{ position: 'relative', width: imageWidth, height: imageHeight }}>
       {isLoading && (
-
         <div className="placeholder" />
       )}
       <img
         src={activeSrc}
         alt=""
-        className={`image ${!isLoading && 'imageLoaded'}`} 
-        onLoad={() => setIsLoading(false)} 
+        className={`image ${!isLoading && 'imageLoaded'}`}
+        onLoad={() => setIsLoading(false)}
       />
     </div>
   );
