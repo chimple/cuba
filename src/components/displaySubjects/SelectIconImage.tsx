@@ -51,12 +51,20 @@ const SelectIconImage: FC<{
       setIsLoading(false); 
     };
 
+
     loadImages(); 
+
+    loadImages();
+
   }, [localSrc, webSrc, defaultSrc]);
 
   return (
     <div style={{ position: "relative", width: imageWidth, height: imageHeight }}>
+
       {isLoading && ( 
+
+      {isLoading && (
+
         <div className="placeholder" />
       )}
       <img
