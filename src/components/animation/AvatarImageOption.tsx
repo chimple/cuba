@@ -172,7 +172,7 @@ const AvatarImageOption: FC<{
       currentMode === AvatarModes.FourOptionQuestion ||
       currentMode === AvatarModes.TwoOptionQuestion
         ? "16vw"
-        : "40vw";
+        : "30vw";
     let contentHeight = "40vh";
     return (
       <div

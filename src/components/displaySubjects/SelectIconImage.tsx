@@ -33,22 +33,25 @@ const SelectIconImage: FC<{
     const loadImages = async () => {
       setIsLoading(true); 
 
+      // Check localSrc first
       const localLoaded = await preloadImage(localSrc);
       if (localLoaded) {
         setActiveSrc(localSrc);
-        setIsLoading(false); 
-        return; 
+        setIsLoading(false);
+        return;
       }
 
+      // Check webSrc if localSrc failed
       const webLoaded = await preloadImage(webSrc);
       if (webLoaded) {
         setActiveSrc(webSrc);
-        setIsLoading(false); 
-        return; 
+        setIsLoading(false);
+        return;
       }
 
+      // Fallback to defaultSrc if both localSrc and webSrc failed
       setActiveSrc(defaultSrc);
-      setIsLoading(false); 
+      setIsLoading(false);
     };
 
     loadImages();
@@ -62,8 +65,13 @@ const SelectIconImage: FC<{
       <img
         src={activeSrc}
         alt=""
-        className={`image ${!isLoading && 'imageLoaded'}`} 
-        onLoad={() => setIsLoading(false)} 
+        className={`image ${!isLoading ? 'imageLoaded' : ''}`}
+        style={{
+          width: imageWidth,
+          height: imageHeight,
+          objectFit: 'cover' // Ensures that the image covers the container without distortion
+        }}
+        onLoad={() => setIsLoading(false)}
       />
     </div>
   );
