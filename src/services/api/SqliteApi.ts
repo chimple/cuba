@@ -727,7 +727,7 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
-  async subscribeToClassTopic():Promise<void> {
+  async subscribeToClassTopic(): Promise<void> {
     var students: TableTypes<"user">[] = await this.getParentStudentProfiles();
     for (const student of students) {
       const linkedData = await this.getStudentClassesAndSchools(student.id);
@@ -1341,8 +1341,28 @@ export class SqliteApi implements ServiceApi {
   async getSchoolsForUser(
     userId: string
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
-    const query = `
-    SELECT su.*, 
+    const query = `SELECT DISTINCT
+    cu.role AS role,
+    JSON_OBJECT(
+      'id',s.id,
+      'name',s.name,
+      'group1',s.group1,
+      'group2',s.group2,
+      'group3',s.group3,
+      'image',s.image,
+      'created_at',s.created_at,
+      'updated_at',s.updated_at,
+      'is_deleted',s.is_deleted
+          ) AS school
+      FROM school s
+      JOIN class_user cu ON cu.user_id = "${userId}" AND cu.role != "${RoleType.PARENT}"
+      JOIN class c ON cu.class_id = c.id
+      WHERE c.school_id = s.id
+      
+      UNION
+      
+      SELECT DISTINCT
+          su.role AS role,
     JSON_OBJECT(
       'id',s.id,
       'name',s.name,
@@ -1354,10 +1374,9 @@ export class SqliteApi implements ServiceApi {
       'updated_at',s.updated_at,
       'is_deleted',s.is_deleted
     ) AS school
-    FROM ${TABLES.SchoolUser} su
-    JOIN ${TABLES.School} s ON su.school_id = s.id
-    WHERE su.user_id = "${userId}" and NOT su.role = "${RoleType.PARENT}"
-    `;
+      FROM school s
+      JOIN school_user su ON su.user_id = "${userId}" AND su.role != "${RoleType.PARENT}"
+      WHERE su.school_id = s.id;`;
     const res = await this._db?.query(query);
     console.log("🚀 ~ SqliteApi ~ getSchoolsForUser ~ res:", res);
     if (!res || !res.values || res.values.length < 1) return [];

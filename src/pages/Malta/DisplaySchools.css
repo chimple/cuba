@@ -1,0 +1,29 @@
+.display-page {
+    background-color: white;
+    min-block-size: fit-content;
+    height: -webkit-fill-available;
+  }
+  .back-button {
+    position: absolute;
+    left: 10px;
+  }
+  .app-bar-title {
+    font-size: 3vh;
+    color: black;
+  }
+  .school-details{
+    background-color: black;
+  }
+  .all-school-display {
+    display: grid;
+    gap: min(10px, 1vh);
+    justify-items: center;
+    flex-direction: row;
+    align-self: center;
+    overflow-y: scroll;
+    height: 50vh;
+    margin: 10%;
+    grid-template-columns: repeat(auto-fill,
+        minmax(clamp(80px, 40vh, 40px), 1fr));
+  }
+  
