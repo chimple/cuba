@@ -58,4 +58,8 @@ export class OneRosterAuth implements ServiceAuth {
   getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
     throw new Error("Method not implemented.");
   }
+
+  refreshSession(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
 }

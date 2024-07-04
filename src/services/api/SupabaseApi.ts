@@ -443,7 +443,7 @@ export class SupabaseApi implements ServiceApi {
   getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
     throw new Error("Method not implemented.");
   }
-  subscribeToClassTopic():Promise<void>{
+  subscribeToClassTopic(): Promise<void> {
     throw new Error("Method not implemented.");
   }
   async getDataByInviteCode(inviteCode: number): Promise<any> {
@@ -546,76 +546,77 @@ export class SupabaseApi implements ServiceApi {
   async getLeaderboardStudentResultFromB2CCollection(): Promise<
     LeaderboardInfo | undefined
   > {
-    try {
-      // Initialize leaderboard structure
-      let leaderBoardList: LeaderboardInfo = {
-        weekly: [],
-        allTime: [],
-        monthly: [],
-      };
+    if (navigator.onLine)
+      try {
+        // Initialize leaderboard structure
+        let leaderBoardList: LeaderboardInfo = {
+          weekly: [],
+          allTime: [],
+          monthly: [],
+        };
 
-      // Define the query to fetch data from the view
-      const genericQuery = `
+        // Define the query to fetch data from the view
+        const genericQuery = `
         SELECT *
         FROM get_leaderboard_generic_data
       `;
 
-      if (!this.supabase) {
-        console.error("Supabase instance is not initialized");
-        return;
-      }
-
-      // Execute the query
-      const { data, error } = await this.supabase
-        .from("get_leaderboard_generic_data")
-        .select();
-
-      // Handle errors in the query execution
-      if (error) {
-        console.error("Error fetching leaderboard data: ", error);
-        return;
-      }
-
-      // Handle case where no data is returned
-      if (!data) {
-        console.warn("No data returned from get_leaderboard_generic_data");
-        return;
-      }
-
-      // Process the results
-      data.forEach((result) => {
-        if (!result) return;
-
-        const leaderboardEntry = {
-          name: result.name || "",
-          score: result.total_score || 0,
-          timeSpent: result.total_time_spent || 0,
-          lessonsPlayed: result.lessons_played || 0,
-          userId: result.student_id || "",
-        };
-
-        switch (result.type) {
-          case "allTime":
-            leaderBoardList.allTime.push(leaderboardEntry);
-            break;
-          case "monthly":
-            leaderBoardList.monthly.push(leaderboardEntry);
-            break;
-          case "weekly":
-            leaderBoardList.weekly.push(leaderboardEntry);
-            break;
-          default:
-            console.warn("Unknown leaderboard type: ", result.type);
+        if (!this.supabase) {
+          console.error("Supabase instance is not initialized");
+          return;
         }
-      });
 
-      return leaderBoardList;
-    } catch (error) {
-      console.error(
-        "Error in getLeaderboardStudentResultFromB2CCollection: ",
-        error
-      );
-    }
+        // Execute the query
+        const { data, error } = await this.supabase
+          .from("get_leaderboard_generic_data")
+          .select();
+
+        // Handle errors in the query execution
+        if (error) {
+          console.error("Error fetching leaderboard data: ", error);
+          return;
+        }
+
+        // Handle case where no data is returned
+        if (!data) {
+          console.warn("No data returned from get_leaderboard_generic_data");
+          return;
+        }
+
+        // Process the results
+        data.forEach((result) => {
+          if (!result) return;
+
+          const leaderboardEntry = {
+            name: result.name || "",
+            score: result.total_score || 0,
+            timeSpent: result.total_time_spent || 0,
+            lessonsPlayed: result.lessons_played || 0,
+            userId: result.student_id || "",
+          };
+
+          switch (result.type) {
+            case "allTime":
+              leaderBoardList.allTime.push(leaderboardEntry);
+              break;
+            case "monthly":
+              leaderBoardList.monthly.push(leaderboardEntry);
+              break;
+            case "weekly":
+              leaderBoardList.weekly.push(leaderboardEntry);
+              break;
+            default:
+              console.warn("Unknown leaderboard type: ", result.type);
+          }
+        });
+
+        return leaderBoardList;
+      } catch (error) {
+        console.error(
+          "Error in getLeaderboardStudentResultFromB2CCollection: ",
+          error
+        );
+      }
   }
 
   getAllLessonsForCourse(courseId: string): Promise<TableTypes<"lesson">[]> {

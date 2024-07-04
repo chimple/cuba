@@ -27,4 +27,5 @@ export interface ServiceAuth {
   ): Promise<{ user: any; isUserExist: boolean } | undefined>;
 
   logOut(): Promise<void>;
+  refreshSession(): Promise<void>;
 }
