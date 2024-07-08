@@ -1,20 +1,23 @@
 @font-face {
   font-family: "BalooRegular";
-  src: local("BalooRegular"),
+  src:
+    local("BalooRegular"),
     url("/public/assets/fonts/Baloo/Baloo2-Regular.ttf") format("truetype");
   /* font-weight: bolder; */
 }
 
 @font-face {
   font-family: "BalooExtraBold";
-  src: local("BalooRegular"),
+  src:
+    local("BalooRegular"),
     url("/public/assets/fonts/Baloo/Baloo2-ExtraBold.ttf") format("truetype");
   font-weight: bolder;
 }
 
 * {
   font-family: "BalooRegular";
-  src: local("BalooRegular"),
+  src:
+    local("BalooRegular"),
     url("/public/assets/fonts/Baloo/Baloo2-Regular.ttf") format("truetype");
   /* font-weight: bolder; */
   user-select: none;
@@ -25,4 +28,23 @@
   width: 0;
   height: 0;
   background: transparent;
+}
+.loading-wrapper {
+  --background: transparent !important;
+  -webkit-box-shadow: none !important;
+  box-shadow: none !important;
+}
+
+.loading {
+  /* border-radius: 30px; */
+  width: 100px;
+  height: 100px;
+}
+
+.loading-content {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text-color);
 }

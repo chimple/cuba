@@ -87,6 +87,8 @@ const JoinClass: FC<{
         );
       }
       onClassJoin();
+      const event = new CustomEvent('JoinClassListner', {detail:'Joined'});
+      window.dispatchEvent(event);
       // history.replace("/");
       // window.location.reload();
     } catch (error) {

@@ -160,6 +160,8 @@ const AddCourse: FC<{
                         webSrc={
                           course.course.image || "assets/icons/DefaultIcon.png"
                         }
+                        imageWidth={"80%"}
+                        imageHeight={"auto"}
                       />
                     </div>
                     {t(course?.course.name)}

@@ -114,11 +114,13 @@ const LiveQuizRoom: React.FC = () => {
       let userData: TableTypes<"user">[] | null = studentsData.user_data;
       if (results) {
         setAssignmentResult(resultData);
+        const uniqueUserIds = new Set<string>();
         for (let userResult of resultData) {
           for (let user of userData) {
             if (user.id === userResult.student_id) {
-              if (user) {
+              if (user && !uniqueUserIds.has(user.id)) {
                 tempPrevPlayedStudents.push(user);
+                uniqueUserIds.add(user.id);
               }
             }
           }

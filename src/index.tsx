@@ -11,7 +11,7 @@ import {
 } from "jeep-sqlite/loader";
 import { SqliteApi } from "./services/api/SqliteApi";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
-
+import { IonLoading } from "@ionic/react";
 applyPolyfills().then(() => {
   jeepSqlite(window);
 });
@@ -32,7 +32,15 @@ SqliteApi.getInstance().then(() => {
   // initializeFireBase();
 });
 
-root.render(<></>);
+root.render(
+  <>
+    <IonLoading
+      message={`<img class="loading" src="assets/loading.gif"></img>`}
+      isOpen={true}
+      spinner={null}
+    />
+  </>
+);
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

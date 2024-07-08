@@ -91,6 +91,11 @@ const SelectMode: FC = () => {
     const currentMode = localStorage.getItem(CURRENT_MODE);
     if (currentMode == MODES.PARENT) {
       schoolUtil.setCurrMode(MODES.PARENT);
+      const student = Util.getCurrentStudent();
+      if (student) {
+        history.replace(PAGES.HOME);
+        return;
+      }
       history.replace(PAGES.DISPLAY_STUDENT);
     } else if (currentMode == MODES.SCHOOL) {
       const schoolName = localStorage.getItem(CURRENT_SCHOOL_NAME);
