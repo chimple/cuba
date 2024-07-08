@@ -1,11 +1,15 @@
 #app-update {
-    color: var(--text-color);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  color: var(--text-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-
-.hot-update-loading {
-    width: 100px;
-    height: 100px;
+.loading-wrapper {
+  --background: transparent !important;
+  -webkit-box-shadow: none !important;
+  box-shadow: none !important;
+}
+.loading {
+  width: 100px;
+  height: 100px;
 }

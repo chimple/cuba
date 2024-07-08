@@ -12,9 +12,11 @@ import {
 import { SqliteApi } from "./services/api/SqliteApi";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { IonLoading } from "@ionic/react";
+import { SplashScreen } from "@capacitor/splash-screen";
 applyPolyfills().then(() => {
   jeepSqlite(window);
 });
+SplashScreen.hide();
 const container = document.getElementById("root");
 const root = createRoot(container!);
 GoogleAuth.initialize({
