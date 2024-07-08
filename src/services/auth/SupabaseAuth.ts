@@ -43,11 +43,9 @@ export class SupabaseAuth implements ServiceAuth {
         email: email,
         password: password,
       });
-      localStorage.setItem(
-        REFRESH_TOKEN,
-        JSON.stringify(data.session?.refresh_token)
-      );
-      console.log(data.session?.refresh_token);
+      if (data.session?.refresh_token)
+        Util.setItemInLocalStorage(REFRESH_TOKEN, data.session?.refresh_token);
+
       await api.updateFcmToken(data?.user?.id ?? "");
       const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
       await api.subscribeToClassTopic();
@@ -76,10 +74,9 @@ export class SupabaseAuth implements ServiceAuth {
         token: authUser.authentication.idToken,
         access_token: authUser.authentication.accessToken,
       });
-      localStorage.setItem(
-        REFRESH_TOKEN,
-        JSON.stringify(data.session?.refresh_token)
-      );
+
+      if (data.session?.refresh_token)
+        Util.setItemInLocalStorage(REFRESH_TOKEN, data.session?.refresh_token);
       console.log(
         "🚀 ~ SupabaseAuth ~ googleSign ~ data, error:",
         data,
@@ -135,7 +132,7 @@ export class SupabaseAuth implements ServiceAuth {
       if (user) this._currentUser = JSON.parse(user) as TableTypes<"user">;
       return this._currentUser;
     } else {
-      this.refreshSession();
+      await this.refreshSession();
       const authData = await this._auth?.getSession();
       if (!authData || !authData.data.session?.user?.id) return;
       const api = ServiceConfig.getI().apiHandler;
@@ -146,43 +143,40 @@ export class SupabaseAuth implements ServiceAuth {
     }
   }
   async refreshSession(): Promise<void> {
-    const authData = await this._auth?.getSession();
-    let sessionExp = authData?.data.session?.expires_at;
-
-    sessionExp = Number(sessionExp);
-
-    const currentTime = new Date().getTime() / 1000;
-
-    const threshold = 500;
-
-    if (sessionExp < currentTime || sessionExp <= currentTime + threshold) {
-      const refreshToken = localStorage.getItem(REFRESH_TOKEN);
-      let result = refreshToken?.replace(/"/g, "");
-      if (!result) {
-        console.error("No refresh token available");
-        return;
-      }
-      try {
-        this._auth
-          ?.refreshSession({ refresh_token: result })
-          .then(({ error, data }) => {
-            if (error) {
-              throw new Error("Session refreshed failed", error);
-            } else {
-              if (data && data.session) {
-                const { access_token, refresh_token } = data.session;
-                this._auth?.setSession({ access_token, refresh_token });
-                localStorage.setItem(REFRESH_TOKEN, refresh_token);
-              }
+    try {
+      const authData = await this._auth?.getSession();
+      let sessionExp = authData?.data.session?.expires_at;
+      sessionExp = Number(sessionExp);
+      const currentTime = new Date().getTime() / 1000;
+      const threshold = 500;
+      if (sessionExp < currentTime || sessionExp <= currentTime + threshold) {
+        const refreshToken = localStorage.getItem(REFRESH_TOKEN);
+        let result = refreshToken?.replace(/"/g, "");
+        if (!result) {
+          console.error("No refresh token available");
+          return;
+        }
+        const response = await this._auth?.refreshSession({
+          refresh_token: result,
+        });
+        if (response) {
+          const { error, data } = response;
+          if (error) {
+            throw new Error("Session refresh failed: " + error.message);
+          } else {
+            if (data && data.session) {
+              const { access_token, refresh_token } = data.session;
+              this._auth?.setSession({ access_token, refresh_token });
+              Util.setItemInLocalStorage(REFRESH_TOKEN, refresh_token);
             }
-          });
-      } catch (error) {
-        console.error("Unexpected error while refreshing session:", error);
+          }
+        }
+      } else {
+        console.log("Session is still valid");
       }
-    } else {
-      console.log("Session is still valid");
+    } catch (error) {
+      console.error("Unexpected error while refreshing session:", error);
     }
-    return;
   }
   set currentUser(user: TableTypes<"user">) {
     this._currentUser = user;
@@ -191,7 +185,7 @@ export class SupabaseAuth implements ServiceAuth {
   async isUserLoggedIn(): Promise<boolean> {
     if (this._currentUser) return true;
     if (navigator.onLine) {
-      this.refreshSession();
+      await this.refreshSession();
       // const authData = await this._auth?.getUser();
       const authData = await this._auth?.getSession();
       // const user = await this.getCurrentUser();
@@ -240,6 +234,8 @@ export class SupabaseAuth implements ServiceAuth {
         JSON.stringify(user.session?.refresh_token)
       );
 
+      if (user.session?.refresh_token)
+        Util.setItemInLocalStorage(REFRESH_TOKEN, user.session?.refresh_token);
       if (error) {
         throw new Error("OTP verification failed");
       }

@@ -557,9 +557,9 @@ export class SupabaseApi implements ServiceApi {
 
         // Define the query to fetch data from the view
         const genericQuery = `
-        SELECT *
-        FROM get_leaderboard_generic_data
-      `;
+      SELECT *
+      FROM get_leaderboard_generic_data
+    `;
 
         if (!this.supabase) {
           console.error("Supabase instance is not initialized");
@@ -704,7 +704,9 @@ export class SupabaseApi implements ServiceApi {
         this.supabase?.removeChannel(this._assignmentUserRealTime);
       if (this._assignmetRealTime)
         this.supabase?.removeChannel(this._assignmetRealTime);
-    } catch (e) {}
+    } catch (error) {
+      throw error;
+    }
   }
   async liveQuizListener(
     liveQuizRoomDocId: string,
@@ -744,7 +746,9 @@ export class SupabaseApi implements ServiceApi {
     try {
       if (this._liveQuizRealTime)
         this.supabase?.removeChannel(this._liveQuizRealTime);
-    } catch (e) {}
+    } catch (error) {
+      throw error;
+    }
   }
   async updateLiveQuiz(
     roomDocId: string,
@@ -788,14 +792,18 @@ export class SupabaseApi implements ServiceApi {
       user_data: TableTypes<"user">[];
     }[]
   > {
-    const results = await this?.supabase?.rpc("get_results_by_assignment", {
-      _assignment_id: assignmentId,
-    });
-    if (results == null || results.error || !results.data) {
-      throw results?.error ?? "";
+    try {
+      const results = await this?.supabase?.rpc("get_results_by_assignment", {
+        _assignment_id: assignmentId,
+      });
+      if (results == null || results.error || !results.data) {
+        throw results?.error ?? "";
+      }
+      const data = results.data;
+      return data;
+    } catch (error) {
+      throw error;
     }
-    const data = results.data;
-    return data;
   }
   getAssignmentById(id: string): Promise<TableTypes<"assignment"> | undefined> {
     throw new Error("Method not implemented.");
@@ -827,11 +835,15 @@ export class SupabaseApi implements ServiceApi {
   async getUserByDocId(
     studentId: string
   ): Promise<TableTypes<"user"> | undefined> {
-    const res = await this.supabase
-      ?.from("user")
-      .select("*")
-      .eq("id", studentId);
-    return res?.data?.[0];
+    try {
+      const res = await this.supabase
+        ?.from("user")
+        .select("*")
+        .eq("id", studentId);
+      return res?.data?.[0];
+    } catch (error) {
+      throw error;
+    }
   }
   updateRewardsForStudent(studentId: string, unlockReward: LeaderboardRewards) {
     throw new Error("Method not implemented.");

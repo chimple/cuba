@@ -1673,4 +1673,7 @@ export class Util {
       }
     }
   }
+  public static setItemInLocalStorage(key: string, value: string): void {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
 }
