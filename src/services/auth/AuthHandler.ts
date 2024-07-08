@@ -64,4 +64,8 @@ export class AuthHandler implements ServiceAuth {
   async logOut(): Promise<void> {
     return await this.s.logOut();
   }
+
+  async refreshSession(): Promise<void> {
+    return await this.s.refreshSession();
+  }
 }

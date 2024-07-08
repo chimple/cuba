@@ -2,11 +2,17 @@ import { SupabaseAuthClient } from "@supabase/supabase-js/dist/module/lib/Supaba
 import { SupabaseApi } from "../api/SupabaseApi";
 import { ServiceAuth } from "./ServiceAuth";
 import { Database } from "../database";
-import { TableTypes } from "../../common/constants";
+import {
+  CURRENT_USER,
+  REFRESH_TOKEN,
+  TableTypes,
+  USER_DATA,
+} from "../../common/constants";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { ServiceConfig } from "../ServiceConfig";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Util } from "../../utility/util";
+import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
@@ -26,7 +32,6 @@ export class SupabaseAuth implements ServiceAuth {
     }
     return SupabaseAuth.i;
   }
-
   async loginWithEmailAndPassword(email: any, password: any): Promise<boolean> {
     try {
       if (!this._auth) return false;
@@ -38,6 +43,9 @@ export class SupabaseAuth implements ServiceAuth {
         email: email,
         password: password,
       });
+      if (data.session?.refresh_token)
+        Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
+
       await api.updateFcmToken(data?.user?.id ?? "");
       const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
       await api.subscribeToClassTopic();
@@ -56,13 +64,25 @@ export class SupabaseAuth implements ServiceAuth {
       if (!this._auth) return false;
       const api = ServiceConfig.getI().apiHandler;
       const authUser = await GoogleAuth.signIn();
-      console.log("🚀 ~ SupabaseAuth ~ googleSign ~ authUser:", authUser);
+      console.log(
+        "🚀 ~ SupabaseAuth ~ googleSign ~ authUser:",
+        authUser.authentication.refreshToken
+      );
+
       const { data, error } = await this._auth.signInWithIdToken({
         provider: "google",
         token: authUser.authentication.idToken,
         access_token: authUser.authentication.accessToken,
       });
-      console.log("🚀 ~ SupabaseAuth ~ googleSign ~ data, error:", data, error);
+
+      if (data.session?.refresh_token)
+        Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
+      console.log(
+        "🚀 ~ SupabaseAuth ~ googleSign ~ data, error:",
+        data,
+        error,
+        data.session?.refresh_token
+      );
       const rpcRes = await this._supabaseDb?.rpc("isUserExists", {
         user_email: authUser.email,
         user_phone: "",
@@ -106,22 +126,74 @@ export class SupabaseAuth implements ServiceAuth {
 
   async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
     if (this._currentUser) return this._currentUser;
-    const authData = await this._auth?.getSession();
-    if (!authData || !authData.data.session?.user?.id) return;
-    const api = ServiceConfig.getI().apiHandler;
-    let user = await api.getUserByDocId(authData.data.session?.user.id);
-    this._currentUser = user;
-    return this._currentUser;
+    if (!navigator.onLine) {
+      const api = ServiceConfig.getI().apiHandler;
+      let user = localStorage.getItem(USER_DATA);
+      if (user) this._currentUser = JSON.parse(user) as TableTypes<"user">;
+      return this._currentUser;
+    } else {
+      await this.refreshSession();
+      const authData = await this._auth?.getSession();
+      if (!authData || !authData.data.session?.user?.id) return;
+      const api = ServiceConfig.getI().apiHandler;
+      let user = await api.getUserByDocId(authData.data.session?.user.id);
+      localStorage.setItem(USER_DATA, JSON.stringify(user));
+      this._currentUser = user;
+      return this._currentUser;
+    }
+  }
+  async refreshSession(): Promise<void> {
+    try {
+      const authData = await this._auth?.getSession();
+      let sessionExp = authData?.data.session?.expires_at;
+      sessionExp = Number(sessionExp);
+      const currentTime = new Date().getTime() / 1000;
+      const threshold = 500;
+      if (sessionExp < currentTime || sessionExp <= currentTime + threshold) {
+        const refreshToken = localStorage.getItem(REFRESH_TOKEN);
+        let result = refreshToken?.replace(/"/g, "");
+        if (!result) {
+          console.error("No refresh token available");
+          return;
+        }
+        const response = await this._auth?.refreshSession({
+          refresh_token: result,
+        });
+        if (response) {
+          const { error, data } = response;
+          if (error) {
+            throw new Error("Session refresh failed: " + error.message);
+          } else {
+            if (data && data.session) {
+              const { access_token, refresh_token } = data.session;
+              this._auth?.setSession({ access_token, refresh_token });
+              Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
+            }
+          }
+        }
+      } else {
+        console.log("Session is still valid");
+      }
+    } catch (error) {
+      console.error("Unexpected error while refreshing session:", error);
+    }
   }
   set currentUser(user: TableTypes<"user">) {
     this._currentUser = user;
   }
+
   async isUserLoggedIn(): Promise<boolean> {
     if (this._currentUser) return true;
-    // const authData = await this._auth?.getUser();
-    const authData = await this._auth?.getSession();
-    // const user = await this.getCurrentUser();
-    return !!authData?.data?.session?.user;
+    if (navigator.onLine) {
+      await this.refreshSession();
+      // const authData = await this._auth?.getUser();
+      const authData = await this._auth?.getSession();
+      // const user = await this.getCurrentUser();
+      return !!authData?.data?.session?.user;
+    } else {
+      const isUser = localStorage.getItem(CURRENT_USER);
+      return !!isUser;
+    }
   }
   phoneNumberSignIn(phoneNumber: any, recaptchaVerifier: any): Promise<any> {
     throw new Error("Method not implemented.");
@@ -157,6 +229,13 @@ export class SupabaseAuth implements ServiceAuth {
         token: verificationCode,
         type: "sms",
       });
+      localStorage.setItem(
+        REFRESH_TOKEN,
+        JSON.stringify(user.session?.refresh_token)
+      );
+
+      if (user.session?.refresh_token)
+        Util.addRefreshTokenToLocalStorage(user.session?.refresh_token);
       if (error) {
         throw new Error("OTP verification failed");
       }
