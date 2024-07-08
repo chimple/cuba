@@ -39,6 +39,7 @@ import {
   CHAPTER_ID_LESSON_ID_MAP,
   DOWNLOADING_CHAPTER_ID,
   TABLES,
+  REFRESH_TOKEN,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -1673,7 +1674,7 @@ export class Util {
       }
     }
   }
-  public static setItemInLocalStorage(key: string, value: string): void {
-    localStorage.setItem(key, JSON.stringify(value));
+  public static addRefreshTokenToLocalStorage(refreshToken: string) {
+    localStorage.setItem(REFRESH_TOKEN, JSON.stringify(refreshToken));
   }
 }

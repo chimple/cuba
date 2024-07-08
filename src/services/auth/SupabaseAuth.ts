@@ -44,7 +44,7 @@ export class SupabaseAuth implements ServiceAuth {
         password: password,
       });
       if (data.session?.refresh_token)
-        Util.setItemInLocalStorage(REFRESH_TOKEN, data.session?.refresh_token);
+        Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
 
       await api.updateFcmToken(data?.user?.id ?? "");
       const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
@@ -76,7 +76,7 @@ export class SupabaseAuth implements ServiceAuth {
       });
 
       if (data.session?.refresh_token)
-        Util.setItemInLocalStorage(REFRESH_TOKEN, data.session?.refresh_token);
+        Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
       console.log(
         "🚀 ~ SupabaseAuth ~ googleSign ~ data, error:",
         data,
@@ -167,7 +167,7 @@ export class SupabaseAuth implements ServiceAuth {
             if (data && data.session) {
               const { access_token, refresh_token } = data.session;
               this._auth?.setSession({ access_token, refresh_token });
-              Util.setItemInLocalStorage(REFRESH_TOKEN, refresh_token);
+              Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
             }
           }
         }
@@ -235,7 +235,7 @@ export class SupabaseAuth implements ServiceAuth {
       );
 
       if (user.session?.refresh_token)
-        Util.setItemInLocalStorage(REFRESH_TOKEN, user.session?.refresh_token);
+        Util.addRefreshTokenToLocalStorage(user.session?.refresh_token);
       if (error) {
         throw new Error("OTP verification failed");
       }
