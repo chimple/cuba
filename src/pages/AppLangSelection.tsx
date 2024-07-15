@@ -154,14 +154,13 @@ const AppLangSelection: React.FC = () => {
   };
 
   const handleSkipClick = async () => {
-    history.push(PAGES.TEST_PAGE1);
-    // history.replace(PAGES.LOGIN);
-    // const appLang = localStorage.getItem(LANGUAGE);
-    // if (!appLang) {
-    //   const tempLangCode = LANG.ENGLISH;
-    //   localStorage.setItem(LANGUAGE, tempLangCode);
-    //   await i18n.changeLanguage(tempLangCode);
-    // }
+    history.replace(PAGES.LOGIN);
+    const appLang = localStorage.getItem(LANGUAGE);
+    if (!appLang) {
+      const tempLangCode = LANG.ENGLISH;
+      localStorage.setItem(LANGUAGE, tempLangCode);
+      await i18n.changeLanguage(tempLangCode);
+    }
   };
 
   return (
@@ -186,12 +185,7 @@ const AppLangSelection: React.FC = () => {
             {currentPage >= 0 ? (
               <div className="top-right">
                 <div id="App-lang-nextButton">
-                  <NextButton
-                    disabled={false}
-                    onClicked={() => {
-                      history.push(PAGES.TEST_PAGE);
-                    }}
-                  >
+                  <NextButton disabled={false} onClicked={handleNextClick}>
                     {intermediatePages[currentPage]?.buttonText || ""}
                   </NextButton>
                 </div>
