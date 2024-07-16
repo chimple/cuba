@@ -30,6 +30,10 @@ const config: CapacitorConfig = {
       androidClientId: process.env.REACT_APP_CLIENT_ID,
       forceCodeForRefreshToken: true,
     },
+    SplashScreen: {
+      launchShowDuration: 5000,
+      launchAutoHide: false,
+    },
   },
 };
 

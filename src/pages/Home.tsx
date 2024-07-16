@@ -140,6 +140,9 @@ const Home: FC = () => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("page") === PAGES.JOIN_CLASS) {
       setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
+      setTimeout(() => {
+        setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
+      }, 500);
     } else if (urlParams.get("page") === PAGES.LIVE_QUIZ) {
       if (isStudentLinked) setCurrentHeader(HOMEHEADERLIST.LIVEQUIZ);
       else setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);

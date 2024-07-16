@@ -83,6 +83,8 @@ const SelectCourse: FC<{
                   localSrc={`courses/chapter_icons/${course.code}.webp`}
                   defaultSrc={"assets/icons/DefaultIcon.png"}
                   webSrc={course.image || "assets/icons/DefaultIcon.png"}
+                  imageWidth={"80%"}
+                  imageHeight={"auto"}
                 />
               </div>
               {t(course.name)}

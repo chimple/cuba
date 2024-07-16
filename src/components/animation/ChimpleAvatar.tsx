@@ -431,7 +431,7 @@ const ChimpleAvatar: FC<{
     }
     if (currentCourse) {
       const courseIndex = allCourses.findIndex(
-        (course) => course.code === currentCourse?.code
+        (course) => course.id === currentCourse?.id
       );
       return allCourses[courseIndex + 1] || allCourses[0];
     } else {

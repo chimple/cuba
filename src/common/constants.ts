@@ -381,6 +381,8 @@ export enum PAGES {
   TEACHER_PROFILE = "/teacher-profile",
   STUDENT_PROFILE = "/student-profile",
   ADD_STUDENT = "/add_student",
+  TEST_PAGE = "/test-page",
+  TEST_PAGE1 = "/test-page1",
 }
 
 export enum LANG {
@@ -629,3 +631,5 @@ export const SELECTED_CLASSES = "selectedClasses";
 export const CURRENT_CLASS_NAME = "currClassName";
 export const CURRENT_SCHOOL_NAME = "currentSchoolName";
 export const DOWNLOADING_CHAPTER_ID = "downloading_chapter_id";
+export const USER_DATA = "userData";
+export const REFRESH_TOKEN = "refreshToken";

@@ -29,6 +29,8 @@ const LessonIcon: FC<LessonIconProps> = ({
           localSrc={"courses/" + cocosSubjectCode + "/icons/" + id + ".webp"}
           defaultSrc={"assets/icons/DefaultIcon.png"}
           webSrc={thumbnail || "assets/icons/DefaultIcon.png"}
+          imageWidth={"80%"}
+          imageHeight={"auto"}
         />
       </div>
       <div className="lesson-title">{t(title)}</div>
