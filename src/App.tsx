@@ -80,8 +80,6 @@ import StudentProfile from "./pages/Malta/StudentProfile";
 import AddStudent from "./pages/Malta/AddStudent";
 import Dashboard from "./pages/Malta/Dashboard";
 import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
-import DisplaySchools from "./pages/Malta/DisplaySchools";
-import HomePage from "./pages/Malta/HomePage";
 
 setupIonicReact();
 interface ExtraData {
@@ -305,9 +303,6 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.CREATE_STUDENT} exact={true}>
               <EditStudent />
             </ProtectedRoute>
-            <ProtectedRoute path={PAGES.HOME_PAGE} exact={true}>
-              <HomePage />
-            </ProtectedRoute>
             <ProtectedRoute path={PAGES.EDIT_STUDENT} exact={true}>
               <EditStudent />
             </ProtectedRoute>
@@ -316,9 +311,6 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.DISPLAY_SUBJECTS} exact={true}>
               <DisplaySubjects />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.DISPLAY_SCHOOLS} exact={true}>
-              <DisplaySchools />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.ADD_SUBJECTS} exact={true}>
               <AddCourses />

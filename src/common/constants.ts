@@ -363,7 +363,6 @@ export enum PAGES {
   EDIT_STUDENT = "/edit-student",
   DISPLAY_STUDENT = "/display-students",
   DISPLAY_SUBJECTS = "/display-subjects",
-  DISPLAY_SCHOOLS = "/display-schools",
   DISPLAY_CHAPTERS = "/display-chapters",
   ADD_SUBJECTS = "/add-subjects",
   APP_LANG_SELECTION = "/app-lang-selection",
@@ -382,7 +381,6 @@ export enum PAGES {
   TEACHER_PROFILE = "/teacher-profile",
   STUDENT_PROFILE = "/student-profile",
   ADD_STUDENT = "/add_student",
-  HOME_PAGE = "/home_page"
 }
 
 export enum LANG {
