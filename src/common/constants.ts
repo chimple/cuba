@@ -381,6 +381,8 @@ export enum PAGES {
   TEACHER_PROFILE = "/teacher-profile",
   STUDENT_PROFILE = "/student-profile",
   ADD_STUDENT = "/add_student",
+  TEST_PAGE = "/test-page",
+  TEST_PAGE1 = "/test-page1",
 }
 
 export enum LANG {

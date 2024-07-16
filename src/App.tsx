@@ -23,7 +23,7 @@ import "./theme/variables.css";
 import Home from "./pages/Home";
 import CocosGame from "./pages/CocosGame";
 import { End } from "./pages/End";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import Profile from "./pages/Profile";
@@ -80,6 +80,7 @@ import StudentProfile from "./pages/Malta/StudentProfile";
 import AddStudent from "./pages/Malta/AddStudent";
 import Dashboard from "./pages/Malta/Dashboard";
 import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
+import { TestPage1, TestPage2 } from "./common/chimplePrivatePages";
 
 setupIonicReact();
 interface ExtraData {
@@ -363,6 +364,16 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.LIVE_QUIZ_LEADERBOARD} exact={true}>
               <LiveQuizLeaderBoard />
             </ProtectedRoute>
+            <Route path={PAGES.TEST_PAGE} exact={true}>
+              <Suspense>
+                <TestPage1 />
+              </Suspense>
+            </Route>
+            <Route path={PAGES.TEST_PAGE1} exact={true}>
+              <Suspense>
+                <TestPage2 />
+              </Suspense>
+            </Route>
           </Switch>
         </IonRouterOutlet>
       </IonReactRouter>
