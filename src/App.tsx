@@ -80,7 +80,8 @@ import StudentProfile from "./pages/Malta/StudentProfile";
 import AddStudent from "./pages/Malta/AddStudent";
 import Dashboard from "./pages/Malta/Dashboard";
 import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
-import { TestPage1, TestPage2 } from "./common/chimplePrivatePages";
+import { HomePage, TestPage1, TestPage2,DisplaySchools, ShowChapters } from "./common/chimplePrivatePages";
+
 
 setupIonicReact();
 interface ExtraData {
@@ -367,6 +368,21 @@ const App: React.FC = () => {
             <Route path={PAGES.TEST_PAGE} exact={true}>
               <Suspense>
                 <TestPage1 />
+              </Suspense>
+            </Route>
+            <Route path={PAGES.DISPLAY_SCHOOLS} exact={true}>
+              <Suspense>
+                <DisplaySchools />
+              </Suspense>
+            </Route>
+            <Route path={PAGES.HOME_PAGE} exact={true}>
+              <Suspense>
+                <HomePage />
+              </Suspense>
+            </Route>
+            <Route path={PAGES.SHOW_CHAPTERS} exact={true}>
+              <Suspense>
+                <ShowChapters />
               </Suspense>
             </Route>
             <Route path={PAGES.TEST_PAGE1} exact={true}>

@@ -152,6 +152,9 @@ const SelectMode: FC = () => {
     console.log("This is the lang " + languageDocId);
     if (!!languageDocId) await i18n.changeLanguage(languageDocId);
   }
+  const onSchoolSelect = async () =>{
+    history.replace(PAGES.DISPLAY_SCHOOLS);
+  }
   const onParentSelect = async () => {
     api.currentMode = MODES.PARENT;
     const students = await api.getParentStudentProfiles();
@@ -209,6 +212,13 @@ const SelectMode: FC = () => {
       {!isLoading && (
         <div>
           <div>
+          <div>
+              <SelectModeButton
+                text={t("School")}
+                icon={GiTeacher}
+                onClick={onSchoolSelect}
+              />
+            </div>
             {stage === STAGES.MODE && (
               <div className="select-mode-main">
                 <span className="select-mode-text">
