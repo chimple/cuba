@@ -42,7 +42,7 @@ export class FirebaseAuth implements ServiceAuth {
   private _db = getFirestore();
   private _auth = getAuth(); //FirebaseAuth.whichAuth();
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): FirebaseAuth {
     if (!FirebaseAuth.i) {
@@ -417,7 +417,6 @@ export class FirebaseAuth implements ServiceAuth {
   public async msg91OtpGenerate(
     phoneNumber: string,
     appName: string
-
   ): Promise<boolean | undefined> {
     try {
       const functions = getFunctions();
@@ -427,15 +426,14 @@ export class FirebaseAuth implements ServiceAuth {
         appName,
       });
       const response = result.data as Map<string, boolean>;
-      return response['status']
+      return response["status"];
     } catch (error) {
-      console.log(
-        "Failed with Msg91",
-        error
-      );
+      console.log("Failed with Msg91", error);
     }
   }
-  public async resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined> {
+  public async resendOtpMsg91(
+    phoneNumber: string
+  ): Promise<boolean | undefined> {
     try {
       const functions = getFunctions();
       const msg91Otp = httpsCallable(functions, "ResendOtpWithMSG91");
@@ -443,12 +441,9 @@ export class FirebaseAuth implements ServiceAuth {
         phoneNumber,
       });
       const response = result.data as Map<string, boolean>;
-      return response['status']
+      return response["status"];
     } catch (error) {
-      console.log(
-        "Failed with Msg91",
-        error
-      );
+      console.log("Failed with Msg91", error);
     }
   }
   public async proceedWithVerificationCode(
@@ -472,10 +467,13 @@ export class FirebaseAuth implements ServiceAuth {
       //   return;
       // }
       const functions = getFunctions();
-      const generateCustomTocken = httpsCallable(functions, "GenerateCustomToken");
+      const generateCustomTocken = httpsCallable(
+        functions,
+        "GenerateCustomToken"
+      );
       const result = await generateCustomTocken({
-        'phoneNumber': phone_number,
-        'otp': verificationCode,
+        phoneNumber: phone_number,
+        otp: verificationCode,
       });
       const response = result.data as Map<string, string>;
       // const credential = PhoneAuthProvider.credential(
@@ -483,13 +481,13 @@ export class FirebaseAuth implements ServiceAuth {
       //   verificationCode
       // );
       const auth = await getAuth();
-      if (response['error'] != null) {
-        throw Error(response['error']);
+      if (response["error"] != null) {
+        throw Error(response["error"]);
       }
       await FirebaseAuthentication.signInWithCustomToken({
-        token:response['customToken']
-      })
-      let res = await signInWithCustomToken(auth, response['customToken'])
+        token: response["customToken"],
+      });
+      let res = await signInWithCustomToken(auth, response["customToken"]);
       // let res = await signInWithCredential(auth, credential);
       const u = await FirebaseAuthentication.getCurrentUser();
       console.log(

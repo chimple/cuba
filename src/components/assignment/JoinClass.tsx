@@ -20,6 +20,7 @@ const JoinClass: FC<{
   const [inviteCode, setInviteCode] = useState<number>();
   const [codeResult, setCodeResult] = useState();
   const [error, setError] = useState("");
+  const [visiabilityChange, setVisiabilityChange] = useState(false);
   const [schoolName, setSchoolName] = useState<string>();
   const [isInputFocus, setIsInputFocus] = useState(false);
   const scollToRef = useRef<null | HTMLDivElement>(null);
@@ -34,7 +35,6 @@ const JoinClass: FC<{
       : inviteCode;
     return !!tempInviteCode && tempInviteCode.toString().length === 6;
   };
-
   const getClassData = async () => {
     if (!online) {
       presentToast({
@@ -95,12 +95,14 @@ const JoinClass: FC<{
   const location = useLocation();
 
   useEffect(() => {
+    const handleVisibilityChange = () => {
+      setVisiabilityChange(!visiabilityChange)
+    };
     //Util.isTextFieldFocus(scollToRef, setIsInputFocus);
-
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     const urlParams = new URLSearchParams(location.search);
     const joinClassParam = urlParams.get("join-class");
     const classCode = urlParams.get("classCode");
-
     if (classCode != "") {
       let tempClassCode =
         !!classCode && !isNaN(parseInt(classCode))
@@ -112,7 +114,10 @@ const JoinClass: FC<{
         getClassData();
       }
     }
-  }, []);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [visiabilityChange]);
 
   return (
     <div className="join-class-main-header">
@@ -165,12 +170,12 @@ const JoinClass: FC<{
           t("You are Joining ") +
           (!!codeResult
             ? t("School") +
-                ": " +
-                codeResult["schoolName"] +
-                ", " +
-                t("Class") +
-                ": " +
-                codeResult["data"]["name"] ?? ""
+            ": " +
+            codeResult["schoolName"] +
+            ", " +
+            t("Class") +
+            ": " +
+            codeResult["data"]["name"] ?? ""
             : "")
         }
         showDialogBox={showDialogBox}

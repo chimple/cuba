@@ -97,7 +97,8 @@ export class FirebaseApi implements ServiceApi {
 
   public async getCourseByUserGradeId(
     gradeDocId: string | undefined,
-    boardDocId: string | undefined
+    boardDocId: string | undefined,
+    student?: User
   ): Promise<DocumentReference<DocumentData>[]> {
     let courseIds: DocumentReference[] = [];
 
@@ -135,6 +136,20 @@ export class FirebaseApi implements ServiceApi {
           if (!!curriculumRef && curriculumRef.id === boardDocId) return true;
         });
 
+        if (student) {
+          const existingCourseRefs:
+            | DocumentReference<DocumentData>[]
+            | undefined = student?.courses;
+          if (existingCourseRefs.length > 0) {
+            courseIds.push(...existingCourseRefs);
+          }
+          curriculumCourses.forEach((course) => {
+            if (!courseIds.find((c) => c.id === course.docId)) {
+              courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
+            }
+          });
+          return courseIds;
+        }
         curriculumCourses.forEach((course) => {
           courseIds.push(doc(this._db, CollectionIds.COURSE, course.docId));
         }); //adding courses based on curriculum
@@ -989,7 +1004,11 @@ export class FirebaseApi implements ServiceApi {
     languageDocId: string
   ): Promise<User> {
     let tempCourse;
-    tempCourse = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
+    tempCourse = await this.getCourseByUserGradeId(
+      gradeDocId,
+      boardDocId,
+      student
+    );
     const boardRef = doc(this._db, `${CollectionIds.CURRICULUM}/${boardDocId}`);
     const gradeRef = doc(this._db, `${CollectionIds.GRADE}/${gradeDocId}`);
     const languageRef = doc(
@@ -1433,8 +1452,8 @@ export class FirebaseApi implements ServiceApi {
             leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
               ? "weeklyScore"
               : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
-              ? "monthlyScore"
-              : "allTimeScore",
+                ? "monthlyScore"
+                : "allTimeScore",
             "desc"
           ),
           limit(50)
@@ -1843,13 +1862,11 @@ export class FirebaseApi implements ServiceApi {
       this._allCourses = await this.getAllCourses();
     }
 
-    const tmpCourse = this._allCourses?.find(
-      (course) => {
-        if(course.courseCode === lesson.cocosSubjectCode){
-         return Util.checkLessonPresentInCourse(course,lesson.docId)
-        }
+    const tmpCourse = this._allCourses?.find((course) => {
+      if (course.courseCode === lesson.cocosSubjectCode) {
+        return Util.checkLessonPresentInCourse(course, lesson.docId);
       }
-    );
+    });
     return tmpCourse;
   }
 

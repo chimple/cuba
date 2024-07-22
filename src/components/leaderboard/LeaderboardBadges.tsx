@@ -41,9 +41,15 @@ const LeaderboardBadges: FC = () => {
     }));
 
     nextUnlockBadges.forEach((badge) => {
-      badgeInfoArray.push({ badge, isUnlocked: false, isNextUnlock: true });
+      const isAlreadyUnlocked = unlockedBadges.some(
+        (b) => b?.docId === badge?.docId
+      );
+      if (isAlreadyUnlocked) {
+        badgeInfoArray.push({ badge, isUnlocked: true, isNextUnlock: true });
+      } else {
+        badgeInfoArray.push({ badge, isUnlocked: false, isNextUnlock: true });
+      }
     });
-
     upcomingBadges.forEach((badge) => {
       badgeInfoArray.push({
         badge,
@@ -178,13 +184,13 @@ const LeaderboardBadges: FC = () => {
               (value.isUnlocked
                 ? ""
                 : value.isNextUnlock
-                ? "next-reward"
-                : value.isUpcomingBadge
-                ? "next-reward"
-                : "lost-reward")
+                  ? "next-reward"
+                  : value.isUpcomingBadge
+                    ? "next-reward"
+                    : "lost-reward")
             }
           >
-            {value.isNextUnlock && (
+            {value.isNextUnlock && !value.isUnlocked && (
               <div className="green-circle">
                 <FaHeart color="white" />
               </div>
@@ -224,11 +230,11 @@ const LeaderboardBadges: FC = () => {
                 <b>{t("won reward")}</b>
               </p>
             )}
-            {value.isNextUnlock && (
+            {!value.isUnlocked && value.isNextUnlock ? (
               <p className="leaderboard-next-unlock-text">
                 {t("This Week's Reward")}
               </p>
-            )}
+            ) : null}
           </div>
         ))}
       {allBadges &&

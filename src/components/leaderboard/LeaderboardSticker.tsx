@@ -44,9 +44,23 @@ const LeaderboardStickers: FC = () => {
     }));
 
     nextUnlockStickers.forEach((sticker) => {
-      stickerInfoArray.push({ sticker, isUnlocked: false, isNextUnlock: true });
+      const isAlreadyUnlocked = unlockedStickers.some(
+        (b) => b?.docId === sticker?.docId
+      );
+      if (isAlreadyUnlocked) {
+        stickerInfoArray.push({
+          sticker,
+          isUnlocked: true,
+          isNextUnlock: true,
+        });
+      } else {
+        stickerInfoArray.push({
+          sticker,
+          isUnlocked: false,
+          isNextUnlock: true,
+        });
+      }
     });
-
     upcomingStickers.forEach((sticker) => {
       stickerInfoArray.push({
         sticker,
@@ -152,13 +166,13 @@ const LeaderboardStickers: FC = () => {
               (value.isUnlocked
                 ? ""
                 : value.isNextUnlock
-                ? "next-reward"
-                : value.isUpcomingSticker
-                ? "next-reward"
-                : "lost-reward")
+                  ? "next-reward"
+                  : value.isUpcomingSticker
+                    ? "next-reward"
+                    : "lost-reward")
             }
           >
-            {value.isNextUnlock && (
+            {value.isNextUnlock && !value.isUnlocked && (
               <div className="green-circle">
                 <FaHeart color="white" />
               </div>
@@ -196,11 +210,11 @@ const LeaderboardStickers: FC = () => {
                 <b>{t("won reward")}</b>
               </p>
             )}
-            {value.isNextUnlock && (
+            {!value.isUnlocked && value.isNextUnlock ? (
               <p className="leaderboard-next-unlock-text">
                 {t("This Week's Reward")}
               </p>
-            )}
+            ) : null}
           </div>
         ))}
       {allSticker &&

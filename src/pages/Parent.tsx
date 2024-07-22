@@ -259,9 +259,9 @@ const Parent: React.FC = () => {
           <div id="parent-logout">
             <ParentLogout />
           </div>
-          {/* <div id="parent-delete">
+          <div id="parent-delete">
             <DeleteParentAccount />
-          </div> */}
+          </div>
         </div>
       </div>
     );
