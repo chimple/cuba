@@ -383,6 +383,7 @@ export enum PAGES {
   ADD_STUDENT = "/add_student",
   TEST_PAGE = "/test-page",
   TEST_PAGE1 = "/test-page1",
+  TEACHER_ASSIGNMENT = '/teacher_assignment'
 }
 
 export enum LANG {
