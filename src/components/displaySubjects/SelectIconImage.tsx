@@ -1,6 +1,5 @@
 import { FC, useState } from "react";
 import CachedImage from "../common/CachedImage";
-import Lesson from "../../models/lesson";
 
 const SelectIconImage: FC<{
   localSrc: any;
@@ -24,53 +23,58 @@ const SelectIconImage: FC<{
     Web,
     Default,
   }
-  const [loadIcon, setLoadIcon] = useState(LoadIcon.Local);
-  const onImageLoad = (
-    event: React.SyntheticEvent<HTMLImageElement, Event>
-  ) => {
-    event.currentTarget.style.display = "block";
+
+  const [loadIcon, setLoadIcon] = useState<LoadIcon>(LoadIcon.Local);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isValid, setIsValid] = useState(true);
+
+  const handleImageLoad = () => {
+    setIsLoaded(true);
+    setIsValid(true);
   };
+
+  const handleImageError = () => {
+    switch (loadIcon) {
+      case LoadIcon.Local:
+        setLoadIcon(LoadIcon.Web);
+        break;
+      case LoadIcon.Web:
+        setLoadIcon(LoadIcon.Default);
+        break;
+      case LoadIcon.Default:
+        setLoadIcon(LoadIcon.Local);
+        setIsValid(false);
+        break;
+      default:
+        setLoadIcon(LoadIcon.Default);
+        break;
+    }
+  };
+
+  const imageProps = {
+    style: {
+      width: imageWidth,
+      height: imageHeight,
+      display: isValid || isLoaded ? "block" : "contents",
+    },
+    onLoad: handleImageLoad,
+    onError: handleImageError,
+    alt: "",
+  };
+
   return (
     <div>
-      {loadIcon === LoadIcon.Local ? (
-        <img
-          style={{
-            width: imageWidth,
-            height: imageHeight,
-            display: "none",
-          }}
-          src={localSrc}
-          alt=""
-          onLoad={onImageLoad}
-          onError={() => {
-            setLoadIcon(LoadIcon.Web);
-          }}
-        />
-      ) : webSrc !== undefined &&
+      {loadIcon === LoadIcon.Local && <img {...imageProps} src={localSrc} />}
+      {webSrc !== undefined &&
         (webSrc ?? defaultSrc) &&
-        loadIcon === LoadIcon.Web ? (
-        <CachedImage
-          style={{
-            width: webImageWidth,
-            height: webImageHeight,
-          }}
-          src={webSrc}
-          alt=""
-          onError={() => {
-            setLoadIcon(LoadIcon.Default);
-          }}
-        />
-      ) : (
-        <img
-          style={{
-            width: imageWidth,
-            height: imageHeight,
-          }}
-          src={defaultSrc}
-          alt=""
-        />
+        loadIcon === LoadIcon.Web && (
+          <CachedImage {...imageProps} src={webSrc} />
+        )}
+      {loadIcon === LoadIcon.Default && (
+        <img {...imageProps} src={defaultSrc} />
       )}
     </div>
   );
 };
+
 export default SelectIconImage;

@@ -1,0 +1,16 @@
+.sort-name {
+    margin: auto;
+    border-top: 1px solid gray;
+    color: gray;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+.date-range{
+    color: gray;
+}
+
+.sort-button {
+    margin-left: 5px;
+}
