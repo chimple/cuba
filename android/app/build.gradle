@@ -22,6 +22,9 @@ android {
             storePassword = '123456'
             keyAlias = 'key'
             keyPassword = '123456'
+            v1SigningEnabled false
+            v2SigningEnabled false  
+            enableV3Signing = true
         }
     }
     buildTypes {
