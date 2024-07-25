@@ -38,7 +38,7 @@ const LiveQuizQuestion: FC<{
 }) => {
   const quizPath =
     (localStorage.getItem("gameUrl") ??
-      "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
+      "http://chimple/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
     roomDoc.lesson.id;
   const [liveQuizConfig, setLiveQuizConfig] = useState<LiveQuiz>();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();

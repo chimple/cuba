@@ -5,6 +5,9 @@ const config: CapacitorConfig = {
   appName: "Chimple",
   webDir: "build",
   bundledWebRuntime: false,
+  server:{
+     hostname:'chimple',
+  },
   plugins: {
     FirebaseAuthentication: {
       skipNativeAuth: false,
