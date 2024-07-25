@@ -33,6 +33,7 @@ const SelectMode: FC = () => {
     SCHOOL = "school",
     CLASS = "class",
     STUDENT = "student",
+    TEACHER = "teacher",
   }
   const [schoolList, setSchoolList] = useState<
     {
@@ -165,13 +166,21 @@ const SelectMode: FC = () => {
     // setStage(STAGES.MODE);
   };
 
-  const onTeacherSelect = () => {
+  const onSchoolSelect = () => {
     api.currentMode = MODES.SCHOOL;
     // history.replace(PAGES.SELECT_SCHOOL);
     // localStorage.setItem(CURRENT_MODE,JSON.stringify(MODES.SCHOOL));
     schoolUtil.setCurrMode(MODES.SCHOOL);
     setStage(STAGES.SCHOOL);
   };
+
+  const onTeacherSelect = () => {
+    // api.currentMode = MODES.TEACHER;
+    // schoolUtil.setCurrMode(MODES.TEACHER);
+    // setStage(STAGES.TEACHER);
+    history.replace(PAGES.HOME_PAGE);
+  };
+
   const displayClasses = async () => {
     if (!currentSchool || !currentUser) return;
     const element = await api.getClassesForSchool(
@@ -229,6 +238,12 @@ const SelectMode: FC = () => {
                   text={t("Parent")}
                   icon={IoMdPeople}
                   onClick={onParentSelect}
+                />
+
+                <SelectModeButton
+                  text={t("School")}
+                  icon={GiTeacher}
+                  onClick={onSchoolSelect}
                 />
 
                 <SelectModeButton

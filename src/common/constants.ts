@@ -386,6 +386,10 @@ export enum PAGES {
   ADD_STUDENT = "/add_student",
   TEST_PAGE = "/test-page",
   TEST_PAGE1 = "/test-page1",
+  TEACHER_ASSIGNMENT = '/teacher-assignment',
+  HOME_PAGE = '/home-page',
+  // Chatbot = "chatbot",
+  SHOW_CHAPTERS = "SHOW_CHAPTERS"
 }
 
 export enum LANG {
@@ -541,6 +545,8 @@ export const INSTANT_SEARCH_INDEX_NAME =
 export enum MODES {
   PARENT = "PARENT",
   SCHOOL = "SCHOOL",
+  TEACHER = "TEACHER",
+
 }
 
 export enum ACTION {
