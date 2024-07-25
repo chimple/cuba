@@ -1,0 +1,9 @@
+.alignItems {
+  padding: 10vw;
+}
+
+.buttonRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}

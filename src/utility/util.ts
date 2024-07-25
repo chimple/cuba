@@ -44,6 +44,7 @@ import {
   LESSON_DOWNLOAD_SUCCESS_EVENT,
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
   HOMEHEADERLIST,
+  NOTIFICATIONTYPE,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -820,7 +821,7 @@ export class Util {
   public static async setUserProperties(currentUser: User) {
     try {
       await FirebaseAnalytics.setUserProperty({
-        name: "parent user_id",
+        name: "parent_user_id",
         value: currentUser.docId,
       });
       await FirebaseAnalytics.setUserProperty({
@@ -867,8 +868,12 @@ export class Util {
     if (!isActive) {
       TextToSpeech.stop();
     }
+
     const url = new URL(window.location.toString());
     const urlParams = new URLSearchParams(window.location.search);
+    if (!!urlParams.get(CONTINUE)) {
+      urlParams.delete(CONTINUE);
+    }
     if (!(urlParams.get(CONTINUE) || PAGES.APP_UPDATE)) {
       return;
     }
@@ -895,8 +900,77 @@ export class Util {
         url.searchParams.set("isReload", "true");
         url.searchParams.delete(CONTINUE);
         window.history.replaceState(window.history.state, "", url.toString());
+        Util.checkingIfGameCanvasAvailable();
       }
     }
+  };
+
+  public static checkingIfGameCanvasAvailable = async () => {
+    // return new Promise<boolean>(async (resolve, reject) => {
+    try {
+      const canvas = document.getElementById("GameCanvas") as HTMLCanvasElement;
+      if (canvas) {
+        const webgl2Context = canvas.getContext("webgl");
+        canvas.addEventListener(
+          "webglcontextlost",
+          function (event) {
+            // inform WebGL that we handle context restoration
+            console.log("WebGl webglcontextlost in cocosGame.tsx");
+            event.preventDefault();
+            if (webgl2Context) {
+              const rest = webgl2Context.getExtension("WEBGL_lose_context");
+
+              // Reloading cocos Game if GameCanvas buffer is not restored
+              if (!rest) {
+                // const url = new URL(window.location.toString());
+                // url.searchParams.set("isReload", "false");
+                // url.searchParams.delete(CONTINUE);
+                // window.history.replaceState(
+                //   window.history.state,
+                //   "",
+                //   url.toString()
+                // );
+                window.location.reload();
+                // resolve(false);
+                console.log("page got reloaded ", false);
+              }
+              if (rest) {
+                rest.loseContext();
+                // return true;
+                // resolve(false);
+              }
+            }
+          },
+          false
+        );
+        canvas.addEventListener(
+          "webglcontextrestored",
+          function (event) {
+            // inform WebGL that we handle context restoration
+            console.log("WebGl webglcontextrestored in cocosGame.tsx");
+            event.preventDefault();
+
+            if (webgl2Context) {
+              const rest = webgl2Context.getExtension("WEBGL_lose_context");
+
+              if (rest) {
+                rest.restoreContext();
+                // return true;
+                // resolve(false);
+              }
+            }
+          },
+          false
+        );
+      }
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: util.ts:965 ~ checkingIfGameCanvasAvailable ~ error:",
+        error
+      );
+      // throw error;
+    }
+    // });
   };
 
   public static setPathToBackButton(path: string, history: any) {
@@ -917,7 +991,7 @@ export class Util {
     console.log("setCurrentStudent called", student);
 
     const api = ServiceConfig.getI().apiHandler;
-      api.currentStudent = student !== null ? student : undefined;
+    api.currentStudent = student !== null ? student : undefined;
 
     localStorage.setItem(
       CURRENT_STUDENT,
@@ -953,12 +1027,11 @@ export class Util {
     if (!!isStudent) await i18n.changeLanguage(tempLangCode);
 
     //Setting Student Id in User Properites
-    if(student)
-    await FirebaseAnalytics.setUserId({
-      userId: student?.docId,
-    });
-    if(student)
-    await Util.setUserProperties(student);
+    if (student)
+      await FirebaseAnalytics.setUserId({
+        userId: student?.docId,
+      });
+    if (student) await Util.setUserProperties(student);
   };
 
   public static randomBetween(min, max) {
@@ -1187,6 +1260,62 @@ export class Util {
     }
   }
 
+  public static async navigateTabByNotificationData(data: any) {
+    const currentStudent = this.getCurrentStudent();
+    const api = ServiceConfig.getI().apiHandler;
+    if (data && data.notificationType === NOTIFICATIONTYPE.REWARD) {
+      const rewardProfileId = data.rewardProfileId;
+      if (rewardProfileId)
+        if (currentStudent?.docId === rewardProfileId) {
+          window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+        } else {
+          await this.setCurrentStudent(null);
+          const students = await api.getParentStudentProfiles();
+          let matchingUser =
+            students.find((user) => user.docId === rewardProfileId) ||
+            students[0];
+          if (matchingUser) {
+            await this.setCurrentStudent(matchingUser, undefined, true);
+            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+          } else {
+            return;
+          }
+        }
+    } else if (data && data.notificationType === NOTIFICATIONTYPE.ASSIGNMENT) {
+      if (data.classId) {
+        const classId = data.classId;
+        if (!classId) return;
+        const studentsData = await api.getStudentsForClass(classId);
+        let tempStudentIds: string[] = [];
+        for (let student of studentsData) {
+          tempStudentIds.push(student.docId);
+        }
+        let foundMatch = false;
+        for (let studentId of tempStudentIds) {
+          if (currentStudent?.docId === studentId) {
+            window.location.replace(
+              PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
+            );
+            foundMatch = true;
+            break;
+          } 
+        }
+        if (!foundMatch) {
+          await this.setCurrentStudent(null);
+          const students = await api.getParentStudentProfiles();
+          let matchingUser =
+            students.find((user) => tempStudentIds.includes(user.docId)) ||
+            students[0];
+          if (matchingUser) {
+            await this.setCurrentStudent(matchingUser, undefined, true);
+            window.location.replace(
+              PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
+            );
+          }
+        }
+      }
+    }
+  }
   public static canCheckUpdate(updateFor: string) {
     const tempLastUpdateChecked = localStorage.getItem(updateFor);
     const now = new Date();

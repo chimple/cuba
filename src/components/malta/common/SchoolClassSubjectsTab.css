@@ -1,0 +1,5 @@
+.segment-button-checked {
+  background: #e6ca91;
+  border-radius: 12px;
+  --indicator-color: transparent;
+}

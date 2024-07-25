@@ -65,6 +65,7 @@ import LiveQuiz from "./LiveQuiz";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 import React from "react";
+import Dashboard from "./Malta/Dashboard";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -140,10 +141,9 @@ const Home: FC = () => {
     setValue(SUBTAB.SUGGESTIONS);
     getCanShowAvatar();
     if (!!urlParams.get(CONTINUE)) {
-      urlParams.delete(CONTINUE);
-      App.addListener("appStateChange", Util.onAppStateChange);
       setCurrentHeader(currentHeader);
     }
+    App.addListener("appStateChange", Util.onAppStateChange);
   }, []);
 
   useEffect(() => {
@@ -153,12 +153,13 @@ const Home: FC = () => {
         : currentHeader
     );
     localStorage.setItem("currentHeader", currentHeader);
-    if (currentHeader !== HOMEHEADERLIST.HOME) {
+    if ((currentHeader !== HOMEHEADERLIST.HOME) && (currentHeader !== HOMEHEADERLIST.PROFILE)) {
       fetchData();
     }
   }, [currentHeader]);
   const initData = async () => {
     fetchData();
+    await getRecommendeds(HOMEHEADERLIST.HOME);
     await isLinked();
   };
 
@@ -179,8 +180,6 @@ const Home: FC = () => {
   const fetchData = async () => {
     setIsLoading(true);
 
-    const lessonResult = await getRecommendeds(HOMEHEADERLIST.HOME);
-    console.log("resultTemp", lessonResult);
     const allLessonIds = await getHistory();
     if (allLessonIds) setValidLessonIds(allLessonIds);
     AvatarObj.getInstance().unlockedRewards =
@@ -461,7 +460,7 @@ const Home: FC = () => {
     //   }
 
     let reqLes: Lesson[] = [];
-    setIsLoading(true);
+    // setIsLoading(true);
     let tempResultLessonMap:
       | { [lessonDocId: string]: StudentLessonResult }
       | undefined = {};
@@ -509,7 +508,7 @@ const Home: FC = () => {
       : api.getCoursesForParentsStudent(currentStudent));
     setCourses(courses);
     for (const tempCourse of courses) {
-      setIsLoading(true);
+      // setIsLoading(true);
       if (tempCourse.chapters.length <= 0) {
         console.log("Chapters are empty", tempCourse);
         continue;
@@ -596,7 +595,7 @@ const Home: FC = () => {
       if (!sortLessonResultMap) {
         console.log("ERERERER");
         // setDataCourse(reqLes);
-        setIsLoading(false);
+        // setIsLoading(false);
         continue;
       }
       Object.entries(sortLessonResultMap).forEach(async (v, k) => {
@@ -619,7 +618,7 @@ const Home: FC = () => {
     console.log("reqLes outside.", reqLes);
     // setDataCourse(reqLes);
     // storeRecommendationsInLocalStorage(reqLes);
-    setIsLoading(false);
+    // setIsLoading(false);
     // return sortLessonResultMap;
     return reqLes;
   }

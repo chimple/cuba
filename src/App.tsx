@@ -40,6 +40,7 @@ import {
   HOMEHEADERLIST,
   IS_CUBA,
   MODES,
+  NOTIFICATIONTYPE,
   PAGES,
   PortPlugin,
 } from "./common/constants";
@@ -73,12 +74,17 @@ import { t } from "i18next";
 import { useTtsAudioPlayer } from "./components/animation/animationUtils";
 import { ServiceConfig } from "./services/ServiceConfig";
 import User from "./models/user";
+import TeacherProfile from "./pages/Malta/TeacherProfile";
 import React from "react";
+import StudentProfile from "./pages/Malta/StudentProfile";
+import AddStudent from "./pages/Malta/AddStudent";
+import Dashboard from "./pages/Malta/Dashboard";
 
 setupIonicReact();
 interface ExtraData {
   notificationType?: string;
   rewardProfileId?: string;
+  classId?: string;
 }
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
@@ -172,64 +178,21 @@ const App: React.FC = () => {
     fetchData();
 
     Util.notificationListener(async (extraData: ExtraData | undefined) => {
-      if (extraData && extraData.notificationType === "reward") {
-        const currentStudent = Util.getCurrentStudent();
-        const data = extraData as ExtraData;
-        const rewardProfileId = data.rewardProfileId;
-        if (rewardProfileId)
-          if (currentStudent?.docId === rewardProfileId) {
-            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
-          } else {
-            await Util.setCurrentStudent(null);
-            const students =
-              await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-            let matchingUser =
-              students.find((user) => user.docId === rewardProfileId) ||
-              students[0];
-            if (matchingUser) {
-              await Util.setCurrentStudent(matchingUser, undefined, true);
-              window.location.replace(
-                PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME
-              );
-            } else {
-              return;
-            }
-          }
+      if (extraData) {
+        Util.navigateTabByNotificationData(extraData);
       }
     });
     updateAvatarSuggestionJson();
   }, []);
   const processNotificationData = async (data) => {
-    const currentStudent = Util.getCurrentStudent();
-    if (data && data.notificationType === "reward") {
-      if (data.rewardProfileId) {
-        if (currentStudent?.docId === data.rewardProfileId) {
-          window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
-          return;
-        } else {
-          await Util.setCurrentStudent(null);
-          const students =
-            await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-          let matchingUser =
-            students.find((user) => user.docId === data.rewardProfileId) ||
-            students[0];
-          if (matchingUser) {
-            await Util.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
-            return;
-          } else {
-            return;
-          }
-        }
-      }
-    }
+    Util.navigateTabByNotificationData(data);
   };
   const getNotificationData = async () => {
     if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
     if (Util.port && typeof Util.port.fetchNotificationData === "function") {
       try {
         const data = await Util.port.fetchNotificationData();
-        if (data && data.notificationType && data.rewardProfileId) {
+        if (data) {
           processNotificationData(data);
         }
       } catch (error) {
@@ -332,6 +295,15 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
               <SelectMode />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
+              <TeacherProfile />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.STUDENT_PROFILE} exact={true}>
+              <StudentProfile />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_STUDENT} exact={true}>
+              <AddStudent />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
               <LiveQuizRoom />

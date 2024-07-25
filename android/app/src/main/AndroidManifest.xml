@@ -11,9 +11,11 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="false"
         android:largeHeap="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:hardwareAccelerated="true">
 
-        <meta-data android:name="com.google.firebase.mess   aging.default_notification_icon" android:resource="@mipmap/chimple_monkey_icon" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/chimple_monkey_icon" />
 
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
@@ -58,7 +60,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <queries>
         <intent>
-            <action android:name="oneroster"/>
+            <action android:name="oneroster" />
         </intent>
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />

@@ -1,0 +1,47 @@
+.class-code-page {
+    background-color: white;
+    height: 100vh;
+    margin: 0;
+}
+
+.back-button {
+    position: absolute;
+    left: 10px;
+}
+
+.app-bar-title {
+    font-size: 3vh;
+    color: black;
+    align-self: center;
+}
+
+.class-code-body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 90vh;
+    flex-direction: column;
+}
+
+.share-code {
+    font-size: xx-large;
+    padding: 1vh;
+    font-weight: bold;
+}
+.share-butoon {
+    background-color: transparent;
+    color: blue;
+    margin: 2vh;
+    font-size: larger;
+    border: 0;
+}
+.code-button{
+    display: flex;
+    
+    flex-direction: row;
+}
+.share-text {
+    margin: 1vh;
+    font-size: x-large;
+    text-align: center;
+}

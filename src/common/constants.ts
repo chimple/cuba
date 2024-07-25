@@ -59,6 +59,34 @@ export enum LEADERBOARD_REWARD_LIST {
   STICKER = "STICKERS",
 }
 
+export enum ASSIGNMENTTAB_LIST {
+  RECOMMENDED = "Recommended",
+  ASSIGNMENT = "Assignment",
+  LIVEQUIZ = "Live Quiz",
+}
+
+export enum COMMONTAB_LIST {
+  SCHOOL = "School",
+  CLASS = "Class",
+  SUBJECTS = "Subjects",
+}
+
+export enum USERTYPES {
+  COORDINATORS = "Coordinators",
+  PRINCIAPAL = "Principal",
+  SPONSORS = "Sponsors",
+  TEACHERS = "Teachers",
+  STUDENTS = "Students",
+}
+
+export enum TABLEDROPDOWN {
+  ASSIGNMENTS = "Assignments",
+  MONTHLY = "Monthly",
+  WEEKLY = "Weekly",
+  LIVEQUIZ = "LiveQuiz",
+  CHAPTER = "Chapter",
+}
+
 export const belowGrade1 = "NIAdGIaaRXi8BOl87MEu";
 export const grade1 = "R5sDh8LKKBx7D7o1MMl0";
 export const grade2 = "al0OqObeTBK3OFWSyDOg";
@@ -308,6 +336,9 @@ export enum PAGES {
   LIVE_QUIZ_GAME = "/live-quiz-game",
   LIVE_QUIZ_ROOM_RESULT = "/live-quiz-room-result",
   LIVE_QUIZ_LEADERBOARD = "/live-quiz-leaderboard",
+  TEACHER_PROFILE = "/teacher-profile",
+  STUDENT_PROFILE = "/student-profile",
+  ADD_STUDENT = "/add_student",
 }
 
 export enum LANG {
@@ -370,7 +401,8 @@ export interface PortPlugin {
   getMigrateUsers(): Promise<{ users: any }>;
   fetchNotificationData(): Promise<{
     notificationType: string;
-    rewardProfileId: string;
+    rewardProfileId?: string;
+    classId?: string;
   }>;
 }
 export const DEBUG_15 = "debug15";
@@ -469,7 +501,10 @@ export enum ACTION {
   UPDATE = "update",
   DELETE = "delete",
 }
-
+export enum NOTIFICATIONTYPE {
+  REWARD = "reward",
+  ASSIGNMENT = "assignment",
+}
 export const CURRENT_STUDENT = "currentStudent";
 export const CURRENT_USER = "currentUser";
 export enum EVENTS {
@@ -547,3 +582,7 @@ export const ALL_LESSON_DOWNLOAD_SUCCESS_EVENT = "all_lesson_download_success";
 export const DOWNLOAD_BUTTON_LOADING_STATUS = "download_button_loading_status";
 export const DOMAIN = "@chimple.net";
 export const AT_SYMBOL_RESTRICTION = /@/;
+export const SELECTED_STUDENTS = "selectedStudent";
+export const SELECTED_CLASSES = "selectedClasses";
+export const CURRENT_CLASS_NAME = "currClassName";
+export const CURRENT_SCHOOL_NAME = "currentSchoolName";
