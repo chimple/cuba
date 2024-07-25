@@ -387,9 +387,7 @@ export enum PAGES {
   TEST_PAGE = "/test-page",
   TEST_PAGE1 = "/test-page1",
   TEACHER_ASSIGNMENT = '/teacher-assignment',
-  HOME_PAGE = '/home-page',
   // Chatbot = "chatbot",
-  SHOW_CHAPTERS = "SHOW_CHAPTERS"
 }
 
 export enum LANG {
