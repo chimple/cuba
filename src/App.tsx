@@ -395,11 +395,11 @@ const App: React.FC = () => {
                 <TestPage2 />
               </Suspense>
             </Route>
-            <Route path={PAGES.HOME_PAGE} exact={true}>
+            <ProtectedRoute path={PAGES.HOME_PAGE} exact={true}>
               <Suspense>
                 <HomePage />
               </Suspense>
-            </Route>
+            </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
       </IonReactRouter>
