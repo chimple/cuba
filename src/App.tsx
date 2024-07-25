@@ -81,6 +81,8 @@ import AddStudent from "./pages/Malta/AddStudent";
 import Dashboard from "./pages/Malta/Dashboard";
 import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
 import { TestPage1, TestPage2 } from "./common/chimplePrivatePages";
+import HomePage from "./chimple-private/pages/HomePage";
+
 
 setupIonicReact();
 interface ExtraData {
@@ -372,6 +374,11 @@ const App: React.FC = () => {
             <Route path={PAGES.TEST_PAGE1} exact={true}>
               <Suspense>
                 <TestPage2 />
+              </Suspense>
+            </Route>
+            <Route path={PAGES.HOME_PAGE} exact={true}>
+              <Suspense>
+                <HomePage />
               </Suspense>
             </Route>
           </Switch>
