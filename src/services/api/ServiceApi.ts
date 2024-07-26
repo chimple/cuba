@@ -721,4 +721,12 @@ export interface ServiceApi {
    */
 
   searchLessons(searchString: string): Promise<TableTypes<"lesson">[]>;
+
+  /**
+   * Create Assignment Cart when the user added the lessons to his cart
+   */
+  createAssignmentCart(
+    userId: string,
+    lessons: string
+  ): Promise<boolean | undefined>;
 }

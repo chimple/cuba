@@ -400,7 +400,7 @@ export class ApiHandler implements ServiceApi {
   updateFcmToken(userId: string) {
     return this.s.updateFcmToken(userId);
   }
-  subscribeToClassTopic(){
+  subscribeToClassTopic() {
     return this.s.subscribeToClassTopic();
   }
 
@@ -530,5 +530,11 @@ export class ApiHandler implements ServiceApi {
 
   searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
     return this.s.searchLessons(searchString);
+  }
+  createAssignmentCart(
+    userId: string,
+    lessons: string
+  ): Promise<boolean | undefined> {
+    return this.s.createAssignmentCart(userId, lessons);
   }
 }

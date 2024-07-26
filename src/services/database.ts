@@ -103,6 +103,38 @@ export type Database = {
           },
         ]
       }
+      assignment_cart: {
+        Row: {
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          lessons: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          lessons?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          lessons?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignment_cart_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assignment_user: {
         Row: {
           assignment_id: string
@@ -1439,6 +1471,14 @@ export type Database = {
       }
     }
     Functions: {
+      call_send_badges: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      call_send_bonuses: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       create_user: {
         Args: {
           phone_number: string

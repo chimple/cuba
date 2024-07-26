@@ -198,7 +198,7 @@ export class SupabaseApi implements ServiceApi {
         console.log("🚀 ~ SupabaseApi ~ data:", data);
         res = await this.supabase.from(tableName).update(data).eq("id", id);
         break;
-
+     
       case MUTATE_TYPES.DELETE:
         res = await this.supabase.from(tableName).delete().eq("id", id);
         break;
@@ -805,6 +805,12 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   getAssignmentById(id: string): Promise<TableTypes<"assignment"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  createAssignmentCart(
+    userId: string,
+    lessons: string
+  ): Promise<boolean | undefined> {
     throw new Error("Method not implemented.");
   }
   getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]> {
