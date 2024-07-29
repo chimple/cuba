@@ -1,4 +1,4 @@
-import { Route, Switch, useHistory } from "react-router-dom";
+import { Route, Switch } from "react-router-dom";
 import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
@@ -34,13 +34,9 @@ import {
   // APP_LANG,
   BASE_NAME,
   CACHE_IMAGE,
-  CONTINUE,
   DOWNLOAD_BUTTON_LOADING_STATUS,
   GAME_URL,
-  HOMEHEADERLIST,
   IS_CUBA,
-  MODES,
-  NOTIFICATIONTYPE,
   PAGES,
   PortPlugin,
 } from "./common/constants";
@@ -56,29 +52,24 @@ import AppLangSelection from "./pages/AppLangSelection";
 import StudentProgress from "./pages/StudentProgress";
 import SearchLesson from "./pages/SearchLesson";
 import Leaderboard from "./pages/Leaderboard";
-import AssignmentPage from "./pages/Assignment";
 import SelectMode from "./pages/SelectMode";
 import { FirebaseRemoteConfig } from "@capacitor-firebase/remote-config";
 import HotUpdate from "./pages/HotUpdate";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import DisplayChapters from "./pages/DisplayChapters";
 import LiveQuizRoom from "./pages/LiveQuizRoom";
-import LiveQuiz from "./pages/LiveQuiz";
-import { AvatarObj } from "./components/animation/Avatar";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "./services/RemoteConfig";
 import LiveQuizGame from "./pages/LiveQuizGame";
 import LiveQuizRoomResult from "./pages/LiveQuizRoomResult";
 import LiveQuizLeaderBoard from "./pages/LiveQuizLeaderBoard";
 import { useOnlineOfflineErrorMessageHandler } from "./common/onlineOfflineErrorMessageHandler";
-import { t } from "i18next";
-import { useTtsAudioPlayer } from "./components/animation/animationUtils";
-import { ServiceConfig } from "./services/ServiceConfig";
-import User from "./models/user";
 import TeacherProfile from "./pages/Malta/TeacherProfile";
 import React from "react";
 import StudentProfile from "./pages/Malta/StudentProfile";
 import AddStudent from "./pages/Malta/AddStudent";
-import Dashboard from "./pages/Malta/Dashboard";
+import { JailbreakRoot } from "@basecom-gmbh/capacitor-jailbreak-root-detection";
+import { useIonAlert } from "@ionic/react";
+import i18n from "./i18n";
 
 setupIonicReact();
 interface ExtraData {
@@ -89,6 +80,8 @@ interface ExtraData {
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
+  const [presentAlert] = useIonAlert();
+
   useEffect(() => {
     const handleOnline = () => {
       if (!online) {
@@ -138,6 +131,18 @@ const App: React.FC = () => {
     CapApp.addListener("appStateChange", Util.onAppStateChange);
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
+      JailbreakRoot.isJailbrokenOrRooted().then((value) => {
+        if (value.result) {
+          presentAlert({
+            header: i18n.t("Device Not Supported"),
+            message: i18n.t("Device is Rooted"),
+            buttons: [i18n.t("Okay")],
+            onDidDismiss: () => {
+              CapApp.exitApp();
+            },
+          });
+        }
+      });
       Filesystem.getUri({
         directory: Directory.External,
         path: "",
