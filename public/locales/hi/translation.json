@@ -145,7 +145,7 @@
   "Delete Profile": "प्रोफ़ाइल हटाएं",
   "Delete": "मिटाना",
   "Device Not Supported": "डिवाइस समर्थित नहीं है",
-  "Device is Rooted": "हमें खेद है, लेकिन ऐसा प्रतीत होता है कि आपका डिवाइस रूट किया हुआ है। सुरक्षा और स्थिरता कारणों से, इस एप्लिकेशन का उपयोग रूट किए गए डिवाइस पर नहीं किया जा सकता है। कृपया एप का उपयोग जारी रखने के लिए अपना डिवाइस अनरूट करें। यदि आपको सहायता की आवश्यकता है, तो कृपया हमारी सहायता टीम से संपर्क करें।",
+  "We're sorry, but it appears that your device is rooted. For security and stability reasons, this application cannot be used on rooted devices. Please unroot your device to continue using the app. If you need assistance, please contact our support team.": "हमें खेद है, लेकिन ऐसा प्रतीत होता है कि आपका डिवाइस रूट किया हुआ है। सुरक्षा और स्थिरता कारणों से, इस एप्लिकेशन का उपयोग रूट किए गए डिवाइस पर नहीं किया जा सकता है। कृपया एप का उपयोग जारी रखने के लिए अपना डिवाइस अनरूट करें। यदि आपको सहायता की आवश्यकता है, तो कृपया हमारी सहायता टीम से संपर्क करें।",
   "Device is offline. Cannot complete a profile": "डिवाइस ऑफ़लाइन है. प्रोफ़ाइल पूर्ण नहीं की जा सकती",
   "Device is offline. Cannot create a new child profile": "डिवाइस ऑफ़लाइन है. नए  बच्चे की  प्रोफ़ाइल नहीं बनाई जा सकती",
   "Device is offline. Cannot download the Chapter": "डिवाइस ऑफ़लाइन है. अध्याय डाउनलोड नहीं किया जा सकता",

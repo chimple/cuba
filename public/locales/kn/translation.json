@@ -146,7 +146,7 @@
   "Delete User": "ಬಳಕೆದಾರರನ್ನು ತೆಗೆಯಿರಿ",
   "Delete": "ಅಳಿಸಿ",
   "Device Not Supported": "ಸಾಧನವು ಬೆಂಬಲಿತವಲ್ಲ",
-  "Device is Rooted": "ನಾವು ಕ್ಷಮೆಯಾಚಿಸುತ್ತೇವೆ, ಆದರೆ ನಿಮ್ಮ ಸಾಧನವನ್ನು ರೂಟ್ ಮಾಡಲಾಗಿದೆ ಎಂದು ತೋರುತ್ತದೆ. ಭದ್ರತೆ ಮತ್ತು ಸ್ಥಿರತೆಯ ಕಾರಣಗಳಿಂದ, ಈ ಅಪ್ಲಿಕೇಶನ್ ಅನ್ನು ರೂಟ್ ಮಾಡಲಾದ ಸಾಧನದಲ್ಲಿ ಬಳಸಲಾಗುವುದಿಲ್ಲ. ದಯವಿಟ್ಟು ಆಪ್ ಅನ್ನು ಮುಂದುವರಿಸಲು ನಿಮ್ಮ ಸಾಧನವನ್ನು ಅನ್ರೂಟ್ ಮಾಡಿ. ನಿಮಗೆ ಸಹಾಯ ಬೇಕಾದರೆ, ದಯವಿಟ್ಟು ನಮ್ಮ ಬೆಂಬಲ ತಂಡವನ್ನು ಸಂಪರ್ಕಿಸಿ.",
+  "We're sorry, but it appears that your device is rooted. For security and stability reasons, this application cannot be used on rooted devices. Please unroot your device to continue using the app. If you need assistance, please contact our support team.": "ನಾವು ಕ್ಷಮೆಯಾಚಿಸುತ್ತೇವೆ, ಆದರೆ ನಿಮ್ಮ ಸಾಧನವನ್ನು ರೂಟ್ ಮಾಡಲಾಗಿದೆ ಎಂದು ತೋರುತ್ತದೆ. ಭದ್ರತೆ ಮತ್ತು ಸ್ಥಿರತೆಯ ಕಾರಣಗಳಿಂದ, ಈ ಅಪ್ಲಿಕೇಶನ್ ಅನ್ನು ರೂಟ್ ಮಾಡಲಾದ ಸಾಧನದಲ್ಲಿ ಬಳಸಲಾಗುವುದಿಲ್ಲ. ದಯವಿಟ್ಟು ಆಪ್ ಅನ್ನು ಮುಂದುವರಿಸಲು ನಿಮ್ಮ ಸಾಧನವನ್ನು ಅನ್ರೂಟ್ ಮಾಡಿ. ನಿಮಗೆ ಸಹಾಯ ಬೇಕಾದರೆ, ದಯವಿಟ್ಟು ನಮ್ಮ ಬೆಂಬಲ ತಂಡವನ್ನು ಸಂಪರ್ಕಿಸಿ.",
   "Device is offline. Cannot complete a profile": "ಸಾಧನವು ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿದೆ. ಪ್ರೊಫೈಲ್ ಅನ್ನು ಪೂರ್ಣಗೊಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ",
   "Device is offline. Cannot create a new child profile": "ಸಾಧನವು ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿದೆ.",
   "Device is offline. Cannot download the Chapter": "ಸಾಧನವು ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿದೆ. ಹೊಸ ಮಕ್ಕಳ ಪ್ರೊಫೈಲ್ ರಚಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ",

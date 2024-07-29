@@ -135,7 +135,7 @@ const App: React.FC = () => {
         if (value.result) {
           presentAlert({
             header: i18n.t("Device Not Supported"),
-            message: i18n.t("Device is Rooted"),
+            message: i18n.t("We're sorry, but it appears that your device is rooted. For security and stability reasons, this application cannot be used on rooted devices. Please unroot your device to continue using the app. If you need assistance, please contact our support team."),
             buttons: [i18n.t("Okay")],
             onDidDismiss: () => {
               CapApp.exitApp();

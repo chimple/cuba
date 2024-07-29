@@ -145,7 +145,7 @@
   "Delete Profile": "Delete Profile",
   "Delete": "Delete",
   "Device Not Supported": "Device Not Supported",
-  "Device is Rooted": "We're sorry, but it appears that your device is rooted. For security and stability reasons, this application cannot be used on rooted devices. Please unroot your device to continue using the app. If you need assistance, please contact our support team.",
+  "We're sorry, but it appears that your device is rooted. For security and stability reasons, this application cannot be used on rooted devices. Please unroot your device to continue using the app. If you need assistance, please contact our support team.": "We're sorry, but it appears that your We're sorry, but it appears that your device is rooted. For security and stability reasons, this application cannot be used on rooted devices. Please unroot your device to continue using the app. If you need assistance, please contact our support team.. For security and stability reasons, this application cannot be used on rooted devices. Please unroot your device to continue using the app. If you need assistance, please contact our support team.",
   "Device is offline. Cannot complete a profile": "Device is offline. Cannot complete a profile",
   "Device is offline. Cannot create a new child profile": "Device is offline. Cannot create a new child profile",
   "Device is offline. Cannot download the Chapter": "Device is offline. Cannot download the Chapter",
