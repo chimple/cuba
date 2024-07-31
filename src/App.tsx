@@ -86,6 +86,7 @@ import {
   TestPage2,
   DisplaySchools,
   ShowChapters,
+  SearchLessons,
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
 
@@ -389,6 +390,12 @@ const App: React.FC = () => {
             <Route path={PAGES.SHOW_CHAPTERS} exact={true}>
               <Suspense>
                 <ShowChapters />
+              </Suspense>
+            </Route>
+
+            <Route path={PAGES.SEARCH_LESSON} exact={true}>
+              <Suspense>
+                <SearchLessons />
               </Suspense>
             </Route>
 

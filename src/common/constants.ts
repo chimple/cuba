@@ -388,7 +388,8 @@ export enum PAGES {
   TEST_PAGE = "/test-page",
   TEST_PAGE1 = "/test-page1",
   TEACHER_ASSIGNMENT = '/teacher-assignment',
-  LESSON_DETAILS = '/lesson-details'
+  LESSON_DETAILS = '/lesson-details',
+  SEARCH_LESSON ='/search-lesson'
   // Chatbot = "chatbot",
 }
 

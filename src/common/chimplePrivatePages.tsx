@@ -38,6 +38,14 @@ export const ShowChapters = lazy(async () => {
     return { default: FallbackComponent };
   }
 });
+export const SearchLessons = lazy(async () => {
+  try {
+    //@ts-ignore
+    return await import("../chimple-private/pages/SearchLessons");
+  } catch (error) {
+    return { default: FallbackComponent };
+  }
+});
 export const LessonDetails = lazy(async () => {
   try {
     //@ts-ignore

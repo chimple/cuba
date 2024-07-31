@@ -724,9 +724,19 @@ export interface ServiceApi {
 
   /**
    * Create Assignment Cart when the user added the lessons to his cart
+   * @param userId 
+   * @param lessons 
    */
   createAssignmentCart(
     userId: string,
     lessons: string
   ): Promise<boolean | undefined>;
+
+  /**
+   * Get user selected assignmets which they are added to their cart
+   * @param userId 
+   */
+  getUserAssignmentCart(
+    userId: string
+  ): Promise<TableTypes<"assignment_cart"> | undefined>
 }

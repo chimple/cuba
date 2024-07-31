@@ -2028,21 +2028,27 @@ export class SqliteApi implements ServiceApi {
       `,
       [userId, lessons, new Date().toISOString()]
     );
-    var a = await this.updatePushChanges(
-      TABLES.Assignment_cart,
-      MUTATE_TYPES.UPDATE,
+    await this._serverApi.pushAssignmentCart(
       {
         id: userId,
         lessons: lessons,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         is_deleted: false,
-      }
-    ).catch(() => {
-      console.log("JJJJJJJJJJJJJJJJJJJJJJJJJJJ");
-    });
-    console.log("GGGGGGGGGGGGGGGGGGGGGGGG");
-    console.log(a);
+      },
+      userId
+    );
+    // await this.updatePushChanges(
+    //   TABLES.Assignment_cart,
+    //   MUTATE_TYPES.UPDATE,
+    //   {
+    //     id: userId,
+    //     lessons: lessons,
+    //     created_at: new Date().toISOString(),
+    //     updated_at: new Date().toISOString(),
+    //     is_deleted: false,
+    //   }
+    // )
     return true;
   }
   async createUserDoc(
@@ -2077,6 +2083,15 @@ export class SqliteApi implements ServiceApi {
       console.log("🚀 ~ SqliteApi ~ syncDB ~ error:", error);
       return false;
     }
+  }
+  async getUserAssignmentCart(
+    userId: string
+  ): Promise<TableTypes<"assignment_cart"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Assignment_cart} where id = "${userId}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
   }
   async getStudentProgress(studentId: string): Promise<Map<string, string>> {
     const query = `
