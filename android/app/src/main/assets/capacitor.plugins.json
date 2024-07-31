@@ -1,5 +1,9 @@
 [
 	{
+		"pkg": "@basecom-gmbh/capacitor-jailbreak-root-detection",
+		"classpath": "de.basecom.plugins.jailbreakroot.JailbreakRootPlugin"
+	},
+	{
 		"pkg": "@capacitor-community/firebase-analytics",
 		"classpath": "com.getcapacitor.community.firebaseanalytics.FirebaseAnalytics"
 	},
