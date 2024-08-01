@@ -1,4 +1,4 @@
-import { IonPage } from "@ionic/react";
+import { IonLoading } from "@ionic/react";
 import { FC, useEffect, useState } from "react";
 import { AppUpdater, HotUpdateStatus } from "../services/AppUpdater";
 import { useHistory } from "react-router";
@@ -13,6 +13,7 @@ const HotUpdate: FC<{}> = () => {
   const [currentStatus, setCurrentStatus] = useState(
     HotUpdateStatus.CHECKING_FOR_UPDATE
   );
+  const [isLoading, setIsLoading] = useState(true);
   const init = async () => {
     try {
       if (!Capacitor.isNativePlatform()) {
@@ -34,6 +35,7 @@ const HotUpdate: FC<{}> = () => {
     } catch (error) {
       push();
     }
+    setIsLoading(false);
   };
   const push = () => {
     const appLang = localStorage.getItem(LANGUAGE);
@@ -44,6 +46,12 @@ const HotUpdate: FC<{}> = () => {
   useEffect(() => {
     init();
   }, []);
-  return null;
+  return isLoading ? (
+    <IonLoading
+      message={`<img class="loading" src="assets/loading.gif"></img>`}
+      isOpen={true}
+      spinner={null}
+    />
+  ) : null;
 };
 export default HotUpdate;

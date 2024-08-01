@@ -52,6 +52,14 @@
 		"classpath": "com.capacitorjs.plugins.localnotifications.LocalNotificationsPlugin"
 	},
 	{
+		"pkg": "@capacitor/screen-orientation",
+		"classpath": "com.capacitorjs.plugins.screenorientation.ScreenOrientationPlugin"
+	},
+	{
+		"pkg": "@capacitor/splash-screen",
+		"classpath": "com.capacitorjs.plugins.splashscreen.SplashScreenPlugin"
+	},
+	{
 		"pkg": "@capacitor/status-bar",
 		"classpath": "com.capacitorjs.plugins.statusbar.StatusBarPlugin"
 	},

@@ -222,7 +222,7 @@ const AvatarImageOption: FC<{
             localSrc={localSrc}
             defaultSrc={"assets/icons/DefaultIcon.png"}
             webSrc={webSrc}
-            imageWidth={"50%"}
+            imageWidth={"80%"}
             imageHeight={"auto"}
             webImageWidth={
               currentMode === AvatarModes.FourOptionQuestion ||

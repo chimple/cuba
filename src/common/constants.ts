@@ -364,10 +364,13 @@ export enum PAGES {
   DISPLAY_STUDENT = "/display-students",
   DISPLAY_SUBJECTS = "/display-subjects",
   DISPLAY_CHAPTERS = "/display-chapters",
+  DISPLAY_SCHOOLS = "/display-schools",
+  HOME_PAGE = "/home-page",
   ADD_SUBJECTS = "/add-subjects",
   APP_LANG_SELECTION = "/app-lang-selection",
   STUDENT_PROGRESS = "/student-progress",
   SEARCH = "/search",
+  SHOW_CHAPTERS = "/show-chapters",
   LEADERBOARD = "/leaderboard",
   ASSIGNMENT = "/assignment",
   JOIN_CLASS = "/join-class",
@@ -381,6 +384,10 @@ export enum PAGES {
   TEACHER_PROFILE = "/teacher-profile",
   STUDENT_PROFILE = "/student-profile",
   ADD_STUDENT = "/add_student",
+  TEST_PAGE = "/test-page",
+  TEST_PAGE1 = "/test-page1",
+  TEACHER_ASSIGNMENT = '/teacher-assignment',
+  // Chatbot = "chatbot",
 }
 
 export enum LANG {
@@ -536,6 +543,8 @@ export const INSTANT_SEARCH_INDEX_NAME =
 export enum MODES {
   PARENT = "PARENT",
   SCHOOL = "SCHOOL",
+  TEACHER = "TEACHER",
+
 }
 
 export enum ACTION {

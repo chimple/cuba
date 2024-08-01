@@ -51,7 +51,7 @@ export class AvatarObj {
   currentLesson: TableTypes<"lesson"> | undefined;
   currentLessonSuggestionIndex: number;
   currentRecommendedLessonIndex: number = 0;
-  weeklyProgressGoal: number = 10;
+  weeklyProgressGoal: number = 60;
   weeklyTimeSpent: {} = { min: 0, sec: 0 };
   weeklyPlayedLesson: number = 0;
   wrongAttempts: number = 0;
