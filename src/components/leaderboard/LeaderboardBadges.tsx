@@ -70,11 +70,15 @@ const LeaderboardBadges: FC = () => {
     const nextWeek = currentWeek + 1;
     const badgeIds: string[] = [];
     const weeklyData = rewardsDoc.weekly;
-    weeklyData[nextWeek.toString()].forEach((value) => {
-      if (value.type === LeaderboardRewardsType.BADGE) {
-        badgeIds.push(value.id);
-      }
-    });
+    const weekData = weeklyData[nextWeek.toString()];
+
+    if (weekData) {
+      weekData.forEach((value) => {
+        if (value.type === LeaderboardRewardsType.BADGE) {
+          badgeIds.push(value.id);
+        }
+      });
+    }
     const badgeDocs = await Promise.all(
       badgeIds.map((value) => api.getBadgeById(value))
     );
