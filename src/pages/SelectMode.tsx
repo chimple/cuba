@@ -78,6 +78,8 @@ const SelectMode: FC = () => {
     if (setTab) {
       if (setTab === STAGES.STUDENT) {
         setStage(STAGES.STUDENT);
+      } else if (setTab === STAGES.CLASS) {
+        setStage(STAGES.CLASS);
       }
     }
     const displayClasses = localStorage.getItem(SELECTED_CLASSES);
@@ -104,7 +106,7 @@ const SelectMode: FC = () => {
       const className = localStorage.getItem(CURRENT_CLASS_NAME);
       if (className) setCurrClass(JSON.parse(className));
       if (schoolName && className) {
-        setStage(STAGES.STUDENT);
+        setStage(STAGES.CLASS);
       } else {
         setStage(STAGES.MODE);
       }
@@ -153,9 +155,9 @@ const SelectMode: FC = () => {
     console.log("This is the lang " + languageDocId);
     if (!!languageDocId) await i18n.changeLanguage(languageDocId);
   }
-  const onSchoolSelect = async () =>{
+  const onSchoolSelect = async () => {
     history.replace(PAGES.DISPLAY_SCHOOLS);
-  }
+  };
   const onParentSelect = async () => {
     api.currentMode = MODES.PARENT;
     const students = await api.getParentStudentProfiles();
@@ -214,12 +216,14 @@ const SelectMode: FC = () => {
       {!isLoading && (
         <div>
           <div>
-          <div>
-              <SelectModeButton
-                text={t("School")}
-                icon={GiTeacher}
-                onClick={onSchoolSelect}
-              />
+            <div>
+              {stage === STAGES.MODE && (
+                <SelectModeButton
+                  text={t("School")}
+                  icon={GiTeacher}
+                  onClick={onSchoolSelect}
+                />
+              )}
             </div>
             {stage === STAGES.MODE && (
               <div className="select-mode-main">
