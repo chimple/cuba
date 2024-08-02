@@ -235,7 +235,6 @@ const StudentProgress: React.FC = () => {
         value={tabIndex}
         onChange={handleChange}
         handleBackButton={handleBackButton}
-        customStyle={false}
       />
 
       {tabIndex && <div>{displayProgressUI(currentHeader)}</div>}
