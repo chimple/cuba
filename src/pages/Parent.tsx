@@ -47,7 +47,7 @@ const Parent: React.FC = () => {
   const [musicFlag, setMusicFlag] = useState<number>();
   const [userProfile, setUserProfile] = useState<User[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
-
+  const [tabs, setTabs] = useState({});
   const [langList, setLangList] = useState<
     {
       id: string;
@@ -79,7 +79,13 @@ const Parent: React.FC = () => {
     inti();
     getStudentProfile();
   }, [reloadProfiles]);
-
+  useEffect(() => {
+    const updatedTabs = {};
+    parentHeaderIconList.forEach((item) => {
+      updatedTabs[t(item.header)] = t(item.header);
+    });
+    setTabs(updatedTabs);
+  }, [parentHeaderIconList]);
   async function getStudentProfile() {
     console.log("getStudentProfile");
     const userProfilePromise: User[] =
@@ -440,10 +446,11 @@ const Parent: React.FC = () => {
     <Box>
       <div>
         <CustomAppBar
-          tabNames={parentHeaderIconList.map((item) => t(item.header))}
+          tabNames={tabs}
           value={tabIndex}
           onChange={handleChange}
           handleBackButton={handleBackButton}
+          customStyle={true}
         />
         {tabIndex === t("profile") && <div>{profileUI()}</div>}
         {tabIndex === t("setting") && <div>{settingUI()}</div>}
