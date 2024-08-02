@@ -80,8 +80,10 @@ const SelectCourse: FC<{
               >
                 <SelectIconImage
                   localSrc={`courses/chapter_icons/${course.courseCode}.webp`}
-                  defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
-                  webSrc={course.thumbnail}
+                  defaultSrc={"assets/icons/DefaultIcon.png"}
+                  webSrc={course.thumbnail || "assets/icons/DefaultIcon.png"}
+                  imageWidth={"100%"}
+                  imageHeight={"80%"}
                 />
               </div>
               {t(course.title)}
@@ -90,8 +92,8 @@ const SelectCourse: FC<{
               {course.curriculum.id === NCERT_CURRICULUM
                 ? CURRICULUM.NCERT_CURRICULUM
                 : course.curriculum.id === KARNATAKA_STATE_BOARD_CURRICULUM
-                ? CURRICULUM.KARNATAKA_STATE_BOARD_CURRICULUM
-                : CURRICULUM.OTHER_CURRICULUM}
+                  ? CURRICULUM.KARNATAKA_STATE_BOARD_CURRICULUM
+                  : CURRICULUM.OTHER_CURRICULUM}
             </div>
           </SplideSlide>
         );

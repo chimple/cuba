@@ -385,9 +385,9 @@ export class Util {
 
               console.log(
                 "before local lesson Bundle http url:" +
-                  "assets/" +
-                  lessonId +
-                  "/config.json"
+                "assets/" +
+                lessonId +
+                "/config.json"
               );
 
               const fetchingLocalBundle = await fetch(
@@ -395,9 +395,9 @@ export class Util {
               );
               console.log(
                 "after local lesson Bundle fetch url:" +
-                  "assets/" +
-                  lessonId +
-                  "/config.json",
+                "assets/" +
+                lessonId +
+                "/config.json",
                 fetchingLocalBundle.ok,
                 fetchingLocalBundle.json,
                 fetchingLocalBundle
@@ -1298,7 +1298,7 @@ export class Util {
             );
             foundMatch = true;
             break;
-          } 
+          }
         }
         if (!foundMatch) {
           await this.setCurrentStudent(null);
@@ -1527,7 +1527,7 @@ export class Util {
         // res.uri.slice(1, res.uri.length)
       );
     } catch (error) {
-      console.error("Json File Migration failed ", error);
+      console.log("Json File Migration failed ", error);
 
       throw error;
     }

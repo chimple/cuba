@@ -307,10 +307,10 @@ const LessonCard: React.FC<{
                     lesson.id +
                     ".webp"
                   }
-                  defaultSrc={"courses/" + "en" + "/icons/" + "en38.webp"}
-                  webSrc={lesson.thumbnail}
-                  imageWidth={"100%"}
-                  imageHeight={"100%"}
+                  defaultSrc={"assets/icons/DefaultIcon.png"}
+                  webSrc={lesson.thumbnail|| "assets/icons/DefaultIcon.png"}
+                  imageWidth={"60%"}
+                  imageHeight={"60%"}
                 />
                 {!isUnlocked ? (
                   <div id="lesson-card-status-icon">
