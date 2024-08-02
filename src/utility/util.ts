@@ -1529,7 +1529,7 @@ export class Util {
     } catch (error) {
       console.log("Json File Migration failed ", error);
 
-      throw error;
+      // throw error;
     }
   }
 
