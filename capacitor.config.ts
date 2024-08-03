@@ -1,13 +1,14 @@
 import { CapacitorConfig } from "@capacitor/cli";
+import dotenv from "dotenv";
+import path from "path";
+
+dotenv.config({ path: path.resolve(__dirname, ".env.local") });
 
 const config: CapacitorConfig = {
   appId: "org.chimple.bahama",
   appName: "Chimple",
   webDir: "build",
   bundledWebRuntime: false,
-  server:{
-     hostname:'chimple',
-  },
   plugins: {
     FirebaseAuthentication: {
       skipNativeAuth: false,
@@ -23,6 +24,15 @@ const config: CapacitorConfig = {
     },
     LocalNotifications: {
       smallIcon: "chimple_monkey_icon",
+    },
+    GoogleAuth: {
+      scopes: ["profile", "email"],
+      androidClientId: process.env.REACT_APP_CLIENT_ID,
+      forceCodeForRefreshToken: true,
+    },
+    SplashScreen: {
+      launchShowDuration: 5000,
+      launchAutoHide: false,
     },
   },
 };

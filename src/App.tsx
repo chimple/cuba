@@ -1,4 +1,4 @@
-import { Route, Switch } from "react-router-dom";
+import { Route, Switch, useHistory } from "react-router-dom";
 import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
@@ -23,7 +23,7 @@ import "./theme/variables.css";
 import Home from "./pages/Home";
 import CocosGame from "./pages/CocosGame";
 import { End } from "./pages/End";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import Profile from "./pages/Profile";
@@ -34,9 +34,13 @@ import {
   // APP_LANG,
   BASE_NAME,
   CACHE_IMAGE,
+  CONTINUE,
+  DOWNLOADING_CHAPTER_ID,
   DOWNLOAD_BUTTON_LOADING_STATUS,
   GAME_URL,
+  HOMEHEADERLIST,
   IS_CUBA,
+  MODES,
   PAGES,
   PortPlugin,
 } from "./common/constants";
@@ -52,36 +56,46 @@ import AppLangSelection from "./pages/AppLangSelection";
 import StudentProgress from "./pages/StudentProgress";
 import SearchLesson from "./pages/SearchLesson";
 import Leaderboard from "./pages/Leaderboard";
+import AssignmentPage from "./pages/Assignment";
 import SelectMode from "./pages/SelectMode";
 import { FirebaseRemoteConfig } from "@capacitor-firebase/remote-config";
 import HotUpdate from "./pages/HotUpdate";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import DisplayChapters from "./pages/DisplayChapters";
 import LiveQuizRoom from "./pages/LiveQuizRoom";
+import LiveQuiz from "./pages/LiveQuiz";
+import { AvatarObj } from "./components/animation/Avatar";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "./services/RemoteConfig";
 import LiveQuizGame from "./pages/LiveQuizGame";
 import LiveQuizRoomResult from "./pages/LiveQuizRoomResult";
 import LiveQuizLeaderBoard from "./pages/LiveQuizLeaderBoard";
 import { useOnlineOfflineErrorMessageHandler } from "./common/onlineOfflineErrorMessageHandler";
+import { t } from "i18next";
+import { useTtsAudioPlayer } from "./components/animation/animationUtils";
+import { ServiceConfig } from "./services/ServiceConfig";
+import User from "./models/user";
 import TeacherProfile from "./pages/Malta/TeacherProfile";
 import React from "react";
 import StudentProfile from "./pages/Malta/StudentProfile";
 import AddStudent from "./pages/Malta/AddStudent";
-import { JailbreakRoot } from "@basecom-gmbh/capacitor-jailbreak-root-detection";
-import { useIonAlert } from "@ionic/react";
-import i18n from "./i18n";
+import Dashboard from "./pages/Malta/Dashboard";
+import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
+import {
+  HomePage,
+  TestPage1,
+  TestPage2,
+  DisplaySchools,
+  ShowChapters,
+} from "./common/chimplePrivatePages";
 
 setupIonicReact();
 interface ExtraData {
   notificationType?: string;
   rewardProfileId?: string;
-  classId?: string;
 }
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
-  const [presentAlert] = useIonAlert();
-
   useEffect(() => {
     const handleOnline = () => {
       if (!online) {
@@ -127,22 +141,11 @@ const App: React.FC = () => {
   }, [online, presentToast]);
   useEffect(() => {
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(false));
+    localStorage.setItem(DOWNLOADING_CHAPTER_ID, JSON.stringify(false));
     console.log("fetching...");
     CapApp.addListener("appStateChange", Util.onAppStateChange);
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
-      JailbreakRoot.isJailbrokenOrRooted().then((value) => {
-        if (value.result) {
-          presentAlert({
-            header: i18n.t("Device Not Supported"),
-            message: i18n.t("We're sorry, but it appears that your device is rooted. For security and stability reasons, this application cannot be used on rooted devices. Please unroot your device to continue using the app. If you need assistance, please contact our support team."),
-            buttons: [i18n.t("Okay")],
-            onDidDismiss: () => {
-              CapApp.exitApp();
-            },
-          });
-        }
-      });
       Filesystem.getUri({
         directory: Directory.External,
         path: "",
@@ -161,19 +164,20 @@ const App: React.FC = () => {
         });
       //CapApp.addListener("appStateChange", Util.onAppStateChange);
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
+
+      const portPlugin = registerPlugin<PortPlugin>("Port");
+      portPlugin.addListener("notificationOpened", (data: any) => {
+        if (data) {
+          processNotificationData(data);
+        }
+      });
+      CapApp.addListener("appUrlOpen", Util.onAppUrlOpen);
     }
 
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,
     }).catch((_) => {});
-
-    const portPlugin = registerPlugin<PortPlugin>("Port");
-    portPlugin.addListener("notificationOpened", (data: any) => {
-      if (data) {
-        processNotificationData(data);
-      }
-    });
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
@@ -183,21 +187,64 @@ const App: React.FC = () => {
     fetchData();
 
     Util.notificationListener(async (extraData: ExtraData | undefined) => {
-      if (extraData) {
-        Util.navigateTabByNotificationData(extraData);
+      if (extraData && extraData.notificationType === "reward") {
+        const currentStudent = Util.getCurrentStudent();
+        const data = extraData as ExtraData;
+        const rewardProfileId = data.rewardProfileId;
+        if (rewardProfileId)
+          if (currentStudent?.id === rewardProfileId) {
+            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+          } else {
+            await Util.setCurrentStudent(null);
+            const students =
+              await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
+            let matchingUser =
+              students.find((user) => user.id === rewardProfileId) ||
+              students[0];
+            if (matchingUser) {
+              await Util.setCurrentStudent(matchingUser, undefined, true);
+              window.location.replace(
+                PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME
+              );
+            } else {
+              return;
+            }
+          }
       }
     });
     updateAvatarSuggestionJson();
   }, []);
   const processNotificationData = async (data) => {
-    Util.navigateTabByNotificationData(data);
+    const currentStudent = Util.getCurrentStudent();
+    if (data && data.notificationType === "reward") {
+      if (data.rewardProfileId) {
+        if (currentStudent?.id === data.rewardProfileId) {
+          window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+          return;
+        } else {
+          await Util.setCurrentStudent(null);
+          const students =
+            await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
+          let matchingUser =
+            students.find((user) => user.id === data.rewardProfileId) ||
+            students[0];
+          if (matchingUser) {
+            await Util.setCurrentStudent(matchingUser, undefined, true);
+            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+            return;
+          } else {
+            return;
+          }
+        }
+      }
+    }
   };
   const getNotificationData = async () => {
     if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
     if (Util.port && typeof Util.port.fetchNotificationData === "function") {
       try {
         const data = await Util.port.fetchNotificationData();
-        if (data) {
+        if (data && data.notificationType && data.rewardProfileId) {
           processNotificationData(data);
         }
       } catch (error) {
@@ -215,20 +262,18 @@ const App: React.FC = () => {
     // Update Avatar Suggestion local Json
     try {
       //Initialize firebase remote config
-      await FirebaseRemoteConfig.fetchAndActivate();
-
-      const CAN_UPDATE_AVATAR_SUGGESTION_JSON = await RemoteConfig.getString(
-        REMOTE_CONFIG_KEYS.CAN_UPDATED_AVATAR_SUGGESTION_URL
-      );
-
-      Util.migrateLocalJsonFile(
-        // "assets/animation/avatarSugguestions.json",
-        CAN_UPDATE_AVATAR_SUGGESTION_JSON,
-        "assets/animation/avatarSugguestions.json",
-        "assets/avatarSugguestions.json",
-        "avatarSuggestionJsonLocation"
-      );
-      // localStorage.setItem(AvatarObj._i.suggestionConstant(), "0");
+      // await FirebaseRemoteConfig.fetchAndActivate();
+      // const CAN_UPDATE_AVATAR_SUGGESTION_JSON = await RemoteConfig.getString(
+      //   REMOTE_CONFIG_KEYS.CAN_UPDATED_AVATAR_SUGGESTION_URL
+      // );
+      // Util.migrateLocalJsonFile(
+      //   // "assets/animation/avatarSugguestions.json",
+      //   CAN_UPDATE_AVATAR_SUGGESTION_JSON,
+      //   "assets/animation/avatarSugguestions.json",
+      //   "assets/avatarSugguestions.json",
+      //   "avatarSuggestionJsonLocation"
+      // );
+      // // localStorage.setItem(AvatarObj._i.suggestionConstant(), "0");
     } catch (error) {
       console.error("Util.migrateLocalJsonFile failed ", error);
     }
@@ -324,6 +369,36 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.LIVE_QUIZ_LEADERBOARD} exact={true}>
               <LiveQuizLeaderBoard />
+            </ProtectedRoute>
+            <Route path={PAGES.TEST_PAGE} exact={true}>
+              <Suspense>
+                <TestPage1 />
+              </Suspense>
+            </Route>
+            <Route path={PAGES.DISPLAY_SCHOOLS} exact={true}>
+              <Suspense>
+                <DisplaySchools />
+              </Suspense>
+            </Route>
+            <Route path={PAGES.HOME_PAGE} exact={true}>
+              <Suspense>
+                <HomePage />
+              </Suspense>
+            </Route>
+            <Route path={PAGES.SHOW_CHAPTERS} exact={true}>
+              <Suspense>
+                <ShowChapters />
+              </Suspense>
+            </Route>
+            <Route path={PAGES.TEST_PAGE1} exact={true}>
+              <Suspense>
+                <TestPage2 />
+              </Suspense>
+            </Route>
+            <ProtectedRoute path={PAGES.HOME_PAGE} exact={true}>
+              <Suspense>
+                <HomePage />
+              </Suspense>
             </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>

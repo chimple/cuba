@@ -7,8 +7,8 @@ android {
         applicationId "org.chimple.bahama"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 61
-        versionName "4.0.1"
+        versionCode 60
+        versionName "4.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -22,9 +22,6 @@ android {
             storePassword = '123456'
             keyAlias = 'key'
             keyPassword = '123456'
-            v1SigningEnabled false
-            v2SigningEnabled false  
-            enableV3Signing = true
         }
     }
     buildTypes {

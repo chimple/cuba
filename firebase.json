@@ -19,6 +19,11 @@
       "public": "build",
       "site": "chimple-prod-hot-update-beta",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    },
+    {
+      "public": "build",
+      "site": "cuba-stage-supabase",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
     }
   ]
 }

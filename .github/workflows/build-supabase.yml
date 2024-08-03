@@ -1,0 +1,89 @@
+name: Build Android
+
+on:
+  push:
+    branches:
+      - master-supabase
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+          token: ${{ secrets.ACCESS_TOKEN }}
+
+      - name: Setup java
+        uses: actions/setup-java@v1
+        with:
+          java-version: "17"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 18.x
+
+      - name: Install app dependencies
+        run: npm install
+
+      - name: Create Google Services JSON File and key.jks
+        working-directory: ./android/app/
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          SHA_KEY: ${{ secrets.SHA_KEY }}
+        run: |
+          echo $GOOGLE_SERVICES_JSON | base64 -di > google-services.json
+          echo $SHA_KEY | base64 -di > key.jks
+         
+      - name: Build
+        env:
+          CI: false
+          REACT_APP_API_KEY: ${{ secrets.REACT_APP_API_KEY }}
+          REACT_APP_AUTH_DOMAIN: ${{ secrets.REACT_APP_AUTH_DOMAIN }}
+          REACT_APP_PROJECT_ID: ${{ secrets.REACT_APP_PROJECT_ID }}
+          REACT_APP_STORAGE_BUCKET: ${{ secrets.REACT_APP_STORAGE_BUCKET }}
+          REACT_APP_MESSAGING_SENDER_ID: ${{ secrets.REACT_APP_MESSAGING_SENDER_ID }}
+          REACT_APP_APP_ID: ${{ secrets.REACT_APP_APP_ID }}
+          REACT_APP_MEASUREMENT_ID: ${{ secrets.REACT_APP_MEASUREMENT_ID}}
+          REACT_APP_ALGOLIA_APP_ID: ${{ secrets.REACT_APP_ALGOLIA_APP_ID }}
+          REACT_APP_ALGOLIA_API_KEY: ${{ secrets.REACT_APP_ALGOLIA_API_KEY }}
+          REACT_APP_HOT_UPDATE_SERVER: ${{ secrets.SUPABASE_DEV_HOT_UPDATE_SERVER }}
+          REACT_APP_ALGOLIA_INDEX_NAME: ${{ secrets.REACT_APP_ALGOLIA_INDEX_NAME}}
+          REACT_APP_SUPABASE_URL: ${{ secrets.REACT_APP_SUPABASE_URL}}
+          REACT_APP_SUPABASE_KEY: ${{ secrets.REACT_APP_SUPABASE_KEY}}
+          REACT_APP_CLIENT_ID: ${{ secrets.REACT_APP_CLIENT_ID}}
+
+        run: npm run build
+
+      - name: Deploy to Firebase
+        uses: w9jds/firebase-action@v13.0.3
+        with:
+          args: deploy --only hosting:cuba-stage-supabase
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Make gradlew executable
+        working-directory: ./android/
+        run: chmod +x ./gradlew
+
+      - name: Generate the Android App assembleDebug
+        working-directory: ./android/
+        run: ./gradlew assembleDebug
+
+      - name: Deploy apk
+        working-directory: .
+        run: |
+          cd android/app/build/outputs/apk/debug/
+          git init
+          git config --global user.email prakash@sutara.org
+          git config --global user.name  bhanugummana
+          git remote add origin https://${{ secrets.ACCESS_TOKEN }}@github.com/chimple/cuba.git
+          git checkout -b supabase-dev-apk
+          git add app-debug.apk
+          git commit -m "created apk"
+          #git push --force secure-origin apk
+          #git push --set-upstream origin gh-pages
+          git push origin supabase-dev-apk -f
