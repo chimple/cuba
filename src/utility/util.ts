@@ -1535,7 +1535,7 @@ export class Util {
 
   // const getNextUnlockStickers = async (): Promise<(Sticker | undefined)[]> => {
   public static async getNextUnlockStickers(): Promise<
-    (Sticker | undefined)[]
+    (Sticker | undefined)[] | undefined
   > {
     const date = new Date();
     const api = ServiceConfig.getI().apiHandler;
@@ -1544,7 +1544,10 @@ export class Util {
     const currentWeek = Util.getCurrentWeekNumber();
     const stickerIds: string[] = [];
     const weeklyData = rewardsDoc.weeklySticker;
-    weeklyData[currentWeek.toString()].forEach((value) => {
+    if (!weeklyData[currentWeek.toString()]) {
+      return undefined
+    }
+    weeklyData[currentWeek.toString()]?.forEach((value) => {
       if (value.type === LeaderboardRewardsType.STICKER) {
         stickerIds.push(value.id);
       }
