@@ -42,9 +42,10 @@ const LessonSlider: React.FC<{
   height = "35vh";
   const lessonSwiperRef = useRef<any>(null);
   useEffect(() => {
-    if (lessonSwiperRef.current) {
-      lessonSwiperRef.current.go(startIndex);
-    }
+    lessonSwiperRef?.current.go(0);
+    setTimeout(() => {
+      if (startIndex) lessonSwiperRef?.current.go(startIndex);
+    }, 100);
   }, [startIndex]);
 
   const handleMoved = (splide) => {
