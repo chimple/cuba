@@ -55,10 +55,6 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
-    implementation "com.github.UstadMobile.httpoveripc:core:0.0.1m"
-    implementation "com.github.UstadMobile.httpoveripc:client:0.0.1m"
-    implementation "org.nanohttpd:nanohttpd:2.3.1"
-    implementation "com.athaydes.rawhttp:rawhttp-core:2.5.2"
     // Import the BoM for the Firebase platform
     implementation platform('com.google.firebase:firebase-bom:32.1.0')
     // When using the BoM, you don't specify versions in Firebase library dependencies
