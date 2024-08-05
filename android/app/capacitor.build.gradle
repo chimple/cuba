@@ -9,6 +9,7 @@ android {
 
 apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
 dependencies {
+    implementation project(':basecom-gmbh-capacitor-jailbreak-root-detection')
     implementation project(':capacitor-community-firebase-analytics')
     implementation project(':capacitor-community-http')
     implementation project(':capacitor-community-text-to-speech')

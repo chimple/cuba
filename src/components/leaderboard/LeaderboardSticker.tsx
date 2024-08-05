@@ -139,16 +139,21 @@ const LeaderboardStickers: FC = () => {
   const getUpcomingStickers = async (): Promise<(Sticker | undefined)[]> => {
     const date = new Date();
     const rewardsDoc = await api.getRewardsById(date.getFullYear().toString());
+
     if (!rewardsDoc) return [];
     const currentWeek = Util.getCurrentWeekNumber();
     const nextWeek = currentWeek + 1;
     const stickerIds: string[] = [];
     const weeklyData = rewardsDoc.weeklySticker;
-    weeklyData[nextWeek.toString()].forEach((value) => {
-      if (value.type === LeaderboardRewardsType.STICKER) {
-        stickerIds.push(value.id);
-      }
-    });
+    const weekData = weeklyData[nextWeek.toString()];
+    if (weekData) {
+      weeklyData[nextWeek.toString()].forEach((value) => {
+        if (value.type === LeaderboardRewardsType.STICKER) {
+          stickerIds.push(value.id);
+        }
+      });
+    }
+
     const stickerDocs = await Promise.all(
       stickerIds.map((value) => api.getStickerById(value))
     );

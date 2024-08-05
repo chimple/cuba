@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
-        android:allowBackup="false"
+        android:allowBackup="false" 
         android:icon="@mipmap/chimple_monkey_icon"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/chimple_monkey_icon"
