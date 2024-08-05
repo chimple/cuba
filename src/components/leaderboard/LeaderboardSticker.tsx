@@ -43,7 +43,7 @@ const LeaderboardStickers: FC = () => {
       isUnlocked: unlockedStickers.some((s) => s?.docId === sticker?.docId),
     }));
 
-    nextUnlockStickers.forEach((sticker) => {
+    nextUnlockStickers?.forEach((sticker) => {
       const isAlreadyUnlocked = unlockedStickers.some(
         (b) => b?.docId === sticker?.docId
       );

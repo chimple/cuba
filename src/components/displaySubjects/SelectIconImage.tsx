@@ -1,10 +1,10 @@
-import { FC, useState } from "react";
-import CachedImage from "../common/CachedImage";
+import { FC, useState, useEffect } from "react";
+import "./SelectIconImage.css";
 
 const SelectIconImage: FC<{
-  localSrc: any;
-  defaultSrc: any;
-  webSrc: any;
+  localSrc: string;
+  defaultSrc: string;
+  webSrc: string;
   imageWidth?: string;
   imageHeight?: string;
   webImageWidth?: string;
@@ -18,61 +18,63 @@ const SelectIconImage: FC<{
   webImageWidth = "100%",
   webImageHeight = "100%",
 }) => {
-  enum LoadIcon {
-    Local,
-    Web,
-    Default,
-  }
+  const [activeSrc, setActiveSrc] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const [loadIcon, setLoadIcon] = useState<LoadIcon>(LoadIcon.Local);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isValid, setIsValid] = useState(true);
+  useEffect(() => {
+    console.log("imageHeight?: string;   ", imageHeight);
 
-  const handleImageLoad = () => {
-    setIsLoaded(true);
-    setIsValid(true);
-  };
+    const preloadImage = (src: string): Promise<boolean> =>
+      new Promise((resolve) => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+      });
 
-  const handleImageError = () => {
-    switch (loadIcon) {
-      case LoadIcon.Local:
-        setLoadIcon(LoadIcon.Web);
-        break;
-      case LoadIcon.Web:
-        setLoadIcon(LoadIcon.Default);
-        break;
-      case LoadIcon.Default:
-        setLoadIcon(LoadIcon.Local);
-        setIsValid(false);
-        break;
-      default:
-        setLoadIcon(LoadIcon.Default);
-        break;
-    }
-  };
+    const loadImages = async () => {
+      setIsLoading(true);
 
-  const imageProps = {
-    style: {
-      width: imageWidth,
-      height: imageHeight,
-      display: isValid || isLoaded ? "block" : "contents",
-    },
-    onLoad: handleImageLoad,
-    onError: handleImageError,
-    alt: "",
-  };
+      // Check localSrc first
+      const localLoaded = await preloadImage(localSrc);
+      if (localLoaded) {
+        setActiveSrc(localSrc);
+        setIsLoading(false);
+        return;
+      }
+
+      // Check webSrc if localSrc failed
+      const webLoaded = await preloadImage(webSrc);
+      if (webLoaded) {
+        setActiveSrc(webSrc);
+        setIsLoading(false);
+        return;
+      }
+
+      // Fallback to defaultSrc if both localSrc and webSrc failed
+      setActiveSrc(defaultSrc);
+      setIsLoading(false);
+    };
+
+    loadImages();
+  }, [localSrc, webSrc, defaultSrc]);
 
   return (
-    <div>
-      {loadIcon === LoadIcon.Local && <img {...imageProps} src={localSrc} />}
-      {webSrc !== undefined &&
-        (webSrc ?? defaultSrc) &&
-        loadIcon === LoadIcon.Web && (
-          <CachedImage {...imageProps} src={webSrc} />
-        )}
-      {loadIcon === LoadIcon.Default && (
-        <img {...imageProps} src={defaultSrc} />
-      )}
+    <div
+      style={{ position: "relative", width: imageWidth, height: 'auto' }}
+    >
+      {isLoading && <div className="placeholder" />}
+      <img
+        src={activeSrc}
+        alt=""
+        className={`image ${!isLoading ? "imageLoaded" : ""}`}
+        style={{
+          width: imageWidth,
+          height: imageHeight,
+          objectFit: "cover", // Ensures that the image covers the container without distortion
+        }}
+        onLoad={() => setIsLoading(false)}
+      />
     </div>
   );
 };

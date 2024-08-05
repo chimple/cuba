@@ -142,8 +142,8 @@ const AvatarImageOption: React.FC<{
           if (currentCourse) {
             content = cardContent(
               `courses/chapter_icons/${currentCourse.courseCode}.png`,
-              "courses/maths/icons/maths10.png",
-              currentCourse.thumbnail ?? ""
+              "assets/icons/DefaultIcon.png",
+              currentCourse.thumbnail ?? "assets/icons/DefaultIcon.png"
             );
           }
           break;
@@ -151,7 +151,7 @@ const AvatarImageOption: React.FC<{
           if (currentCourse && currentChapter) {
             content = cardContent(
               `courses/${currentCourse.courseCode}/icons/${currentChapter.id}.webp`,
-              "courses/en/icons/en38.webp",
+              "assets/icons/DefaultIcon.png",
               currentChapter.thumbnail
             );
           }
@@ -164,7 +164,7 @@ const AvatarImageOption: React.FC<{
                 "/icons/" +
                 currentLesson.id +
                 ".webp",
-              "courses/en/icons/en38.webp",
+              "assets/icons/DefaultIcon.png",
               currentLesson.thumbnail
             );
           }
@@ -193,7 +193,7 @@ const AvatarImageOption: React.FC<{
             "/icons/" +
             currentLesson.id +
             ".webp",
-          "courses/en/icons/en38.webp",
+          "assets/icons/DefaultIcon.png",
           currentLesson.thumbnail
         );
       }
@@ -232,7 +232,7 @@ const AvatarImageOption: React.FC<{
       currentMode === AvatarModes.FourOptionQuestion ||
       currentMode === AvatarModes.TwoOptionQuestion
         ? "16vw"
-        : "40vw";
+        : "30vw";
     let contentHeight = "40vh";
     return (
       <div
@@ -273,8 +273,8 @@ const AvatarImageOption: React.FC<{
             webSrc={
               "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/lesson_thumbnails%2FlessonCaredPattern%2FChallengePattern.png?alt=media&token=be64aec1-f70f-43c3-95de-fd4b1afe5806"
             }
-            imageWidth={"100%"}
-            imageHeight={"80%"}
+            imageWidth={"28vw"}
+            imageHeight={"auto"}
           />
         </div>
 
