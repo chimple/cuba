@@ -6,16 +6,13 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
 import android.util.Log;
-import android.webkit.WebView;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
@@ -24,30 +21,30 @@ import org.json.JSONObject;
 @CapacitorPlugin(name = "Port")
 public class PortPlugin extends Plugin {
 
-  @PluginMethod
-  public void getPort(PluginCall call) {
-    try {
-      JSObject ret = new JSObject();
-      if (((MainActivity) getActivity()).mHttpOverIpcProxy != null) {
-        ret.put(
-          "port",
-          ((MainActivity) getActivity()).mHttpOverIpcProxy.getListeningPort()
-        );
-        Log.d(
-          "Porting",
-          String.valueOf(
-            ((MainActivity) getActivity()).mHttpOverIpcProxy.getListeningPort()
-          )
-        );
-        call.resolve(ret);
-      } else {
-        call.reject("Not Found");
-      }
-    } catch (Exception e) {
-      Log.d("error on portPlugin", e.toString());
-      call.reject(e.toString());
-    }
-  }
+//  @PluginMethod
+//  public void getPort(PluginCall call) {
+//    try {
+//      JSObject ret = new JSObject();
+//      if (((MainActivity) getActivity()).mHttpOverIpcProxy != null) {
+//        ret.put(
+//          "port",
+//          ((MainActivity) getActivity()).mHttpOverIpcProxy.getListeningPort()
+//        );
+//        Log.d(
+//          "Porting",
+//          String.valueOf(
+//            ((MainActivity) getActivity()).mHttpOverIpcProxy.getListeningPort()
+//          )
+//        );
+//        call.resolve(ret);
+//      } else {
+//        call.reject("Not Found");
+//      }
+//    } catch (Exception e) {
+//      Log.d("error on portPlugin", e.toString());
+//      call.reject(e.toString());
+//    }
+//  }
 
   private String notificationType;
   private String rewardProfileId;
