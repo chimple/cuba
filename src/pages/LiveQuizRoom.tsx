@@ -291,7 +291,7 @@ const LiveQuizRoom: React.FC = () => {
         </div>
       </div>
 
-      <div className="button-container">
+      <div className="join-button-container">
         {!!isDownloaded ? (
           <IonButton
             size="default"

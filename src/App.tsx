@@ -168,12 +168,14 @@ const App: React.FC = () => {
       directory: Directory.Cache,
     }).catch((_) => {});
 
-    const portPlugin = registerPlugin<PortPlugin>("Port");
-    portPlugin.addListener("notificationOpened", (data: any) => {
-      if (data) {
-        processNotificationData(data);
-      }
-    });
+    if (Capacitor.isNativePlatform()) {
+      const portPlugin = registerPlugin<PortPlugin>("Port");
+      portPlugin.addListener("notificationOpened", (data: any) => {
+        if (data) {
+          processNotificationData(data);
+        }
+      });
+    }
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
@@ -193,18 +195,20 @@ const App: React.FC = () => {
     Util.navigateTabByNotificationData(data);
   };
   const getNotificationData = async () => {
-    if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
-    if (Util.port && typeof Util.port.fetchNotificationData === "function") {
-      try {
-        const data = await Util.port.fetchNotificationData();
-        if (data) {
-          processNotificationData(data);
+    if (Capacitor.isNativePlatform()) {
+      if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+      if (Util.port && typeof Util.port.fetchNotificationData === "function") {
+        try {
+          const data = await Util.port.fetchNotificationData();
+          if (data) {
+            processNotificationData(data);
+          }
+        } catch (error) {
+          console.error("Error retrieving notification data:", error);
         }
-      } catch (error) {
-        console.error("Error retrieving notification data:", error);
+      } else {
+        console.warn("Util.port or fetchNotificationData is not available.");
       }
-    } else {
-      console.warn("Util.port or fetchNotificationData is not available.");
     }
   };
   const fetchData = async () => {
