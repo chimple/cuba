@@ -7,7 +7,14 @@
   color: black;
   font-weight: bold;
 }
-
+.grade-text {
+  font-size: 15px;
+  text-transform: none;
+}
+.curriculum-text {
+  font-size: 14px;
+  text-transform: none;
+}
 #student-progress-display-progress-content {
   margin: 3vw 1vw 1vw 8vw;
   height: 80vh;

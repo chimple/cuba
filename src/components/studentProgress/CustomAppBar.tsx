@@ -4,10 +4,11 @@ import BackButton from "../common/BackButton";
 import { useHistory } from "react-router-dom";
 
 interface TabBarProps {
-  tabNames: string[];
+  tabNames: { [key: string]: React.ReactNode };
   value: string;
   onChange: (newValue: string) => void;
   handleBackButton: () => void;
+  customStyle?: boolean;
 }
 
 const CustomAppBar: React.FC<TabBarProps> = ({
@@ -15,6 +16,7 @@ const CustomAppBar: React.FC<TabBarProps> = ({
   value,
   onChange,
   handleBackButton,
+  customStyle,
 }) => {
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     onChange(newValue);
@@ -37,7 +39,11 @@ const CustomAppBar: React.FC<TabBarProps> = ({
           boxShadow: "0px 0px 0px 0px !important",
         }}
       >
-        <Box sx={{ maxWidth: { xs: 500, sm: "clamp(13vw, 90vw, 90vw)", md: "89vw" }}}>
+        <Box
+          sx={{
+            maxWidth: { xs: 500, sm: "clamp(13vw, 90vw, 90vw)", md: "89vw" },
+          }}
+        >
           <Tabs
             value={value}
             onChange={handleChange}
@@ -59,10 +65,15 @@ const CustomAppBar: React.FC<TabBarProps> = ({
             }}
             className="custom-tabs"
           >
-            {tabNames.map((tabName) => (
+            {Object.entries(tabNames).map(([tabId, tabName]) => (
               <Tab
-                key={tabName}
-                value={tabName}
+                style={
+                  customStyle
+                    ? { fontWeight: "bold", width: "17vw" }
+                    : undefined
+                }
+                key={tabId}
+                value={tabId}
                 label={tabName}
                 id="custom-app-bar"
               />

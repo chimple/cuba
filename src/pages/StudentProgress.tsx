@@ -1,24 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { IonCol, IonGrid, IonList, IonPage, IonRow } from "@ionic/react";
-import { SyntheticEvent } from "react";
-import Loading from "../components/Loading";
+import { IonCol, IonRow } from "@ionic/react";
 import "../components/studentProgress/CustomAppBar.css";
 import "./StudentProgress.css";
-import { CONTINUE, PAGES } from "../common/constants";
+import { PAGES } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
-import StudentProgressHeader from "../components/studentProgress/StudentProgressHeader";
-import Course from "../models/course";
-import User from "../models/user";
-import { StudentLessonResult } from "../common/courseConstants";
-import Lesson from "../models/lesson";
 import { useHistory } from "react-router-dom";
-import { blue, red, green } from "@mui/material/colors";
-import { common } from "@mui/material/colors";
-import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import CustomAppBar from "../components/studentProgress/CustomAppBar";
 import { t } from "i18next";
 import { Util } from "../utility/util";
 import SkeltonLoading from "../components/SkeltonLoading";
+import { DocumentData, DocumentReference, getDoc } from "firebase/firestore";
+import { StudentLessonResult } from "../common/courseConstants";
+import Lesson from "../models/lesson";
+import User from "../models/user";
+import Course from "../models/course";
 
 const StudentProgress: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -35,6 +30,8 @@ const StudentProgress: React.FC = () => {
   const [currentAppLang, setCurrentAppLang] = useState<string>();
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
+  const [tabs, setTabs] = useState<{ [key: string]: React.ReactNode }>({});
+  const [tabIndex, setTabIndex] = useState<string>("");
 
   useEffect(() => {
     setIsLoading(true);
@@ -42,7 +39,8 @@ const StudentProgress: React.FC = () => {
   }, []);
 
   interface HeaderIconConfig {
-    displayName: string;
+    courseId: string;
+    displayName: React.ReactNode;
     iconSrc: string;
     header: any;
     course: Course;
@@ -60,25 +58,41 @@ const StudentProgress: React.FC = () => {
       const courses = await getCourses(currentStudent);
       setCourses(courses);
       if (courses.length > 0) {
-        setCurrentHeader(courses[0].courseCode);
-        setTabIndex(courses[0].courseCode);
-        setStudentProgressHeaderIconList(
-          courses.map((course) => ({
-            displayName: t(course.title),
-            iconSrc: course.thumbnail ?? "assets/icons/EnglishIcon.svg",
-            header: course.courseCode,
-            course: course,
-          }))
+        const updatedHeaderIconList = await Promise.all(
+          courses.map(async (course) => {
+            const gradeDoc = (await getDoc(course.grade)).data();
+            const curriculumDoc = (await getDoc(course.curriculum)).data();
+            return {
+              courseId: course.docId,
+              displayName: (
+                <div>
+                  <b>{t(course.title)}</b>
+                  {gradeDoc && (
+                    <div className="grade-text">{t(gradeDoc.title)}</div>
+                  )}
+                  {curriculumDoc && (
+                    <div className="curriculum-text">
+                      {t(curriculumDoc.title)}
+                    </div>
+                  )}
+                </div>
+              ),
+              iconSrc: course.thumbnail ?? "assets/icons/EnglishIcon.svg",
+              header: course.courseCode,
+              course: course,
+            };
+          })
         );
-        // console.log(courses[0].title);
+
+        setStudentProgressHeaderIconList(updatedHeaderIconList);
+        setCurrentHeader(updatedHeaderIconList[0].header);
+        setTabIndex(updatedHeaderIconList[0].courseId);
       }
 
       const res = await api.getLessonResultsForStudent(currentStudent.docId);
       setLessonsResults(res || new Map());
 
       if (res && res.size > 0) {
-        console.log("result...");
-
         await getResultsForStudentForSelectedHeader(courses[0], res);
       }
 
@@ -164,7 +178,6 @@ const StudentProgress: React.FC = () => {
               console.log(
                 "Data ",
                 lessonDetail.title,
-
                 chapter.title,
                 lessonRes.score,
                 computeMinutes + ":" + result
@@ -190,10 +203,9 @@ const StudentProgress: React.FC = () => {
   }
 
   const handleChange = (newValue: string) => {
-    // setValue(newValue);
     setTabIndex(newValue);
     const selectedHeader = studentProgressHeaderIconList.find(
-      (iconConfig) => iconConfig.displayName === newValue
+      (iconConfig) => iconConfig.courseId === newValue
     );
 
     if (selectedHeader) {
@@ -204,20 +216,22 @@ const StudentProgress: React.FC = () => {
       );
     }
   };
-  const [tabIndex, setTabIndex] = useState<string>("");
 
   useEffect(() => {
     if (studentProgressHeaderIconList.length > 0) {
-      setTabIndex(studentProgressHeaderIconList[0].displayName);
+      setTabIndex(studentProgressHeaderIconList[0].courseId);
     }
+    const newTabs = {};
+    studentProgressHeaderIconList.forEach((iconConfig) => {
+      newTabs[iconConfig.courseId] = iconConfig.displayName;
+    });
+    setTabs(newTabs);
   }, [studentProgressHeaderIconList]);
 
   return (
     <div>
       <CustomAppBar
-        tabNames={studentProgressHeaderIconList.map(
-          (iconConfig) => iconConfig.displayName
-        )}
+        tabNames={tabs}
         value={tabIndex}
         onChange={handleChange}
         handleBackButton={handleBackButton}
