@@ -844,6 +844,14 @@ export class SupabaseApi implements ServiceApi {
       throw error;
     }
   }
+  async getGradeById(id: string): Promise<TableTypes<"grade"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  async getCurriculumById(
+    id: string
+  ): Promise<TableTypes<"curriculum"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
   updateRewardsForStudent(studentId: string, unlockReward: LeaderboardRewards) {
     throw new Error("Method not implemented.");
   }

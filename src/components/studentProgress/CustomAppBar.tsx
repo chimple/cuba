@@ -4,10 +4,11 @@ import BackButton from "../common/BackButton";
 import { useHistory } from "react-router-dom";
 
 interface TabBarProps {
-  tabs: { [key: string]: string }; // Using an object map for tabs
+  tabs: { [key: string]: React.ReactNode }; // Using an object map for tabs
   value: string;
   onChange: (newValue: string) => void;
   handleBackButton: () => void;
+  customStyle?: boolean;
 }
 
 const CustomAppBar: React.FC<TabBarProps> = ({
@@ -15,6 +16,7 @@ const CustomAppBar: React.FC<TabBarProps> = ({
   value,
   onChange,
   handleBackButton,
+  customStyle,
 }) => {
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     onChange(newValue);
@@ -64,6 +66,11 @@ const CustomAppBar: React.FC<TabBarProps> = ({
           >
             {Object.entries(tabs).map(([tabId, tabName]) => (
               <Tab
+                style={
+                  customStyle
+                    ? { fontWeight: "bold", width: "17vw" }
+                    : undefined
+                }
                 key={tabId}
                 value={tabId}
                 label={tabName}
