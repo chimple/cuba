@@ -78,12 +78,12 @@ const LessonSlider: React.FC<{
       >
         {lessonData.map((m: Lesson, i: number) => {
           if (!m) return;
-          console.log(
-            "lessonsScoreMap[m.id]",
-            // lessonsScoreMap.get(m.docId),
-            m
-            // lessonsScoreMap.get(m.docId)?.score
-          );
+          // console.log(
+          //   "lessonsScoreMap[m.id]",
+          //   // lessonsScoreMap.get(m.docId),
+          //   m
+          //   // lessonsScoreMap.get(m.docId)?.score
+          // );
           let res: StudentLessonResult = lessonsScoreMap[m.docId];
           const isPlayed =
             !!lessonsScoreMap[m.docId] && lessonsScoreMap[m.docId]?.score! > 0;
