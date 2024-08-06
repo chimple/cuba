@@ -165,7 +165,7 @@ const LeaderboardBadges: FC = () => {
     const currentWeek = Util.getCurrentWeekNumber();
     const badgeIds: string[] = [];
     const weeklyData = rewardsDoc.weekly;
-    weeklyData[currentWeek.toString()].forEach((value) => {
+    weeklyData[currentWeek.toString()]?.forEach((value) => {
       if (value.type === LeaderboardRewardsType.BADGE) {
         badgeIds.push(value.id);
       }
