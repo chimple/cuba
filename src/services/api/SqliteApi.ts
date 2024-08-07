@@ -721,13 +721,29 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
+  async getGradeById(id: string): Promise<TableTypes<"grade"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Grade} where id = "${id}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+  async getCurriculumById(
+    id: string
+  ): Promise<TableTypes<"curriculum"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Curriculum} where id = "${id}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
   async getAllLanguages(): Promise<TableTypes<"language">[]> {
     const res = await this._db?.query("select * from " + TABLES.Language);
     console.log("🚀 ~ SqliteApi ~ getAllLanguages ~ res:", res);
     return res?.values ?? [];
   }
 
-  async subscribeToClassTopic():Promise<void> {
+  async subscribeToClassTopic(): Promise<void> {
     var students: TableTypes<"user">[] = await this.getParentStudentProfiles();
     for (const student of students) {
       const linkedData = await this.getStudentClassesAndSchools(student.id);
