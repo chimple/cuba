@@ -49,8 +49,7 @@ const Subjects: React.FC<{}> = ({}) => {
   const [currentClass, setCurrentClass] = useState<Class>();
   const [lessons, setLessons] = useState<Lesson[]>();
   const [mode, setMode] = useState<MODES>();
-  const [isNotConnectedToClass, setIsNotConnectedToClass] =
-    useState<boolean>(false);
+  const [studentLinked, setStudentLinked] = useState<boolean>(false);
   // const [gradesMap, setGradesMap] = useState<{
   //   grades: Grade[];
   //   courses: Course[];
@@ -70,7 +69,7 @@ const Subjects: React.FC<{}> = ({}) => {
   const urlParams = new URLSearchParams(location.search);
   useEffect(() => {
     init();
-  }, [isNotConnectedToClass]);
+  }, [studentLinked]);
 
   const init = async () => {
     console.log(
@@ -216,17 +215,13 @@ const Subjects: React.FC<{}> = ({}) => {
     localStorageData.lessonResultMap = res;
     setLessonResultMap(res);
 
-    const studentProfile = await api.getStudentResult(currentStudent.docId);
-    if (studentProfile === (null || undefined)) {
-      setIsNotConnectedToClass(true);
-    } else if (studentProfile != null || undefined) {
-      if (studentProfile!.classes === null || undefined) {
-        setIsNotConnectedToClass(true);
-      }
-    }
+    const linkedData = await api.isStudentLinked(currentStudent.docId);
+    if (linkedData) {
+      setStudentLinked(true);
+    } else setStudentLinked(false);
     const currMode = await schoolUtil.getCurrMode();
     setUserMode(
-      ((currMode === MODES.PARENT) == true && isNotConnectedToClass) ?? true
+      ((currMode === MODES.PARENT) == true && !studentLinked) ?? true
     );
 
     const courses = await (currMode === MODES.SCHOOL && !!currClass
