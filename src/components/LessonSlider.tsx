@@ -41,11 +41,9 @@ const LessonSlider: React.FC<{
   width = "45.5vh";
   height = "35vh";
   const lessonSwiperRef = useRef<any>(null);
-  useEffect(() => {
-    if (lessonSwiperRef.current) {
-      lessonSwiperRef.current.go(startIndex);
-    }
-  }, [startIndex]);
+  const checkSplideInstance = () => {
+    if (startIndex) lessonSwiperRef?.current.go(startIndex);
+  };
 
   const handleMoved = (splide) => {
     const newIndex = splide.index;
@@ -91,7 +89,7 @@ const LessonSlider: React.FC<{
           width = "66.66vh";
           height = "50vh";
           return (
-            <SplideSlide className="slide" key={i}>
+            <SplideSlide onLoad={checkSplideInstance} className="slide" key={i}>
               <LessonCard
                 width={width}
                 height={height}
@@ -146,7 +144,7 @@ const LessonSlider: React.FC<{
           const isPlayed =
             !!lessonsScoreMap[m.docId] && lessonsScoreMap[m.docId]?.score! > 0;
           return (
-            <SplideSlide className="slide" key={i}>
+            <SplideSlide onLoad={checkSplideInstance} className="slide" key={i}>
               <LessonCard
                 width={width}
                 height={height}
