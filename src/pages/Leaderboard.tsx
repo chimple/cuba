@@ -152,7 +152,24 @@ const Leaderboard: React.FC = () => {
         ? "leaderboardDataInfo.weekly"
         : "leaderboardDataInfo.allTime"
     );
-
+    let tempCurrentUserDataContent1: any[][] = [];
+    let tempLeaderboardDataArray1: any[][] = [];
+    tempCurrentUserDataContent1 = [
+      [t("Rank"), "--"],
+      [t("Lessons Played"), "--"],
+      [t("Score"), "--"],
+      [t("Time Spent"), "--" + t("min") + " --" + t("sec")],
+    ];
+    tempLeaderboardDataArray1.push([
+      "--",
+      currentStudent.name,
+      "--",
+      "--",
+      "--" + t("min") + " --" + t("sec"),
+    ]);
+    setCurrentUserDataContent(tempCurrentUserDataContent1);
+    setLeaderboardData(tempLeaderboardDataArray1);
+    setIsLoading(false);
     const tempLeaderboardData: LeaderboardInfo = (leaderboardDataInfo.weekly
       .length <= 0 ||
     leaderboardDataInfo.allTime.length <= 0 ||
