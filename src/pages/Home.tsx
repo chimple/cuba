@@ -103,6 +103,7 @@ const Home: FC = () => {
   );
   const [historyLessons, setHistoryLessons] = useState<Lesson[]>([]);
   const [validLessonIds, setValidLessonIds] = useState<string[]>([]);
+  const [historySortIndex, setHistorySortIndex] = useState<number>(0);
   let allPlayedLessonIds: string[] = [];
   let tempPageNumber = 1;
   let linked: boolean;
@@ -788,6 +789,9 @@ const Home: FC = () => {
   };
 
   const updateHistoryLessons = async (allLessonIds) => {
+    if (historyLessons.length >= allLessonIds.length) {
+      return;
+    }
     setIsLoading(true);
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent || !lessonResultMap) {
@@ -815,6 +819,8 @@ const Home: FC = () => {
 
     const latestTenPlayedLessons = historyLessons.slice(0, 10);
     setValidLessonIds(allLessonIds);
+    setHistorySortIndex(historyLessons.length - 1);
+
     historyLessons.push(...validLessonsForHIstory);
     setInitialHistoryLessons(latestTenPlayedLessons);
     setIsLoading(false);
@@ -952,7 +958,7 @@ const Home: FC = () => {
                           isHome={true}
                           course={undefined}
                           lessonsScoreMap={lessonResultMap || {}}
-                          startIndex={0}
+                          startIndex={historySortIndex}
                           showSubjectName={true}
                           showChapterName={true}
                           onEndReached={handleLoadMoreHistoryLessons}

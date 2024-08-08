@@ -171,7 +171,7 @@ const AddCourse: FC<{
                           "assets/icons/DefaultIcon.png"
                         }
                         imageWidth={"100%"}
-                        imageHeight={"80%"}
+                        imageHeight={"100%"}
                       />
                     </div>
                     {t(course?.course.title)}
