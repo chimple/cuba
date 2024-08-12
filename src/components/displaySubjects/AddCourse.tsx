@@ -5,21 +5,7 @@ import { t } from "i18next";
 import SelectIconImage from "./SelectIconImage";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
-import {
-  ACTION,
-  CHAPTER_CARD_COLOURS,
-  EVENTS,
-  PAGES,
-  DEFUALT_SUBJECT_CARD_COLOUR,
-  aboveGrade3,
-  belowGrade1,
-  grade1,
-  grade2,
-  grade3,
-  NCERT_CURRICULUM,
-  KARNATAKA_STATE_BOARD_CURRICULUM,
-  OTHER_CURRICULUM,
-} from "../../common/constants";
+import { DEFUALT_SUBJECT_CARD_COLOUR } from "../../common/constants";
 import { useHistory } from "react-router";
 import { BsFillCheckCircleFill } from "react-icons/bs";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
@@ -29,6 +15,8 @@ import { Util } from "../../utility/util";
 import Loading from "../Loading";
 import "../LessonSlider.css";
 import "../../pages/DisplayChapters.css";
+import Curriculum from "../../models/curriculum";
+import Grade from "../../models/grade";
 
 const AddCourse: FC<{
   courses: Course[];
@@ -40,6 +28,9 @@ const AddCourse: FC<{
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [coursesSelected, setCoursesSelected] = useState<Course[]>();
   const currentStudent = Util.getCurrentStudent();
+  const [curriculums, setCurriculums] = useState<Curriculum[]>();
+  const [gradesMap, setGradesMap] = useState(new Map<String, Grade>());
+  const api = ServiceConfig.getI().apiHandler;
   const [allCourses, setAllCourses] = useState([
     ...courses.map((course) => {
       return { course, selected: false };
@@ -50,7 +41,26 @@ const AddCourse: FC<{
   });
   let selectedCourses: Course[] = [];
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    getCurriculum();
+    getAllGradeDocs();
+  }, []);
+  const getCurriculum = async () => {
+    const curriculumDocs = await api.getAllCurriculums();
+    if (curriculumDocs.length > 0) {
+      setCurriculums(curriculumDocs);
+    }
+  };
+  const getAllGradeDocs = async () => {
+    const grades = await api.getAllGrades();
+    if (grades && grades.length > 0) {
+      const temp = new Map<string, Grade>();
+      grades.forEach((grade) => {
+        temp.set(grade.docId, grade);
+      });
+      setGradesMap(temp);
+    }
+  };
 
   const handleClick = (course) => {
     if (!online) {
@@ -102,25 +112,10 @@ const AddCourse: FC<{
             pagination: false,
           }}
         >
-          {allCourses.map((course, index) => {
+          {allCourses.map((course) => {
             if (course.course.curriculum.id === curr) {
-              let isGrade1: string | boolean = false;
-              let isGrade2: string | boolean = false;
-              let gradeDocId = course.course.grade.id;
-
-              // Check if gradeDocId matches any of the specified grades and assign the value to isGrade1 or isGrade2
-              if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
-                isGrade1 = true;
-              } else if (
-                gradeDocId === grade2 ||
-                gradeDocId === grade3 ||
-                gradeDocId === aboveGrade3
-              ) {
-                isGrade2 = true;
-              } else {
-                // If it's neither grade1 nor grade2, assume grade2
-                isGrade2 = true;
-              }
+              const grade = gradesMap.get(course.course.grade.id);
+              const gradeTitle = grade ? grade.title : "";
               // const ccCourse = setSelectedCourses.find(o=> o.docId === course.docId);
               return (
                 <SplideSlide className="slide">
@@ -151,7 +146,7 @@ const AddCourse: FC<{
                     ) : null}
                     <div id="subject-card-subject-name">
                       <p>
-                        {isGrade1 ? "Grade 1" : "Grade 2"}
+                        {gradeTitle}
                         {/* {subject.title==="English"?subject.title:t(subject.title)} */}
                       </p>
                     </div>
@@ -188,14 +183,29 @@ const AddCourse: FC<{
   };
 
   return (
-    <div>
-      <div className="subject-header">{t("NCERT curriculum")}</div>
-      {renderSubjectCard(NCERT_CURRICULUM)}
-      <div className="subject-header">{t("Karnataka board curriculum")}</div>
-      {renderSubjectCard(KARNATAKA_STATE_BOARD_CURRICULUM)}
-      <div className="subject-header">{t("Chimple curriculum")}</div>
-      {renderSubjectCard(OTHER_CURRICULUM)}
-    </div>
+    <>
+      {curriculums && curriculums.length > 0 && (
+        <div>
+          {curriculums.map((curriculum) => {
+            const coursesForCurriculum = allCourses.filter(
+              (course) => course.course.curriculum.id === curriculum.docId
+            );
+
+            if (coursesForCurriculum.length > 0) {
+              return (
+                <div key={curriculum.docId}>
+                  <div className="subject-header">
+                    {t(curriculum.title + " " + "Curriculum")}
+                  </div>
+                  {renderSubjectCard(curriculum.docId)}
+                </div>
+              );
+            }
+            return null;
+          })}
+        </div>
+      )}
+    </>
   );
 };
 export default AddCourse;
