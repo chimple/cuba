@@ -6,14 +6,6 @@ import SelectIconImage from "./SelectIconImage";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import {
   DEFUALT_SUBJECT_CARD_COLOUR,
-  aboveGrade3,
-  belowGrade1,
-  grade1,
-  grade2,
-  grade3,
-  NCERT_CURRICULUM,
-  KARNATAKA_STATE_BOARD_CURRICULUM,
-  OTHER_CURRICULUM,
   TableTypes,
 } from "../../common/constants";
 import { BsFillCheckCircleFill } from "react-icons/bs";
@@ -21,6 +13,7 @@ import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineE
 import Loading from "../Loading";
 import "../LessonSlider.css";
 import "../../pages/DisplayChapters.css";
+import { ServiceConfig } from "../../services/ServiceConfig";
 
 const AddCourse: FC<{
   courses: TableTypes<"course">[];
@@ -31,6 +24,11 @@ const AddCourse: FC<{
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [coursesSelected, setCoursesSelected] =
     useState<TableTypes<"course">[]>();
+  const [curriculums, setCurriculums] = useState<TableTypes<"curriculum">[]>();
+  const [gradesMap, setGradesMap] = useState(
+    new Map<String, TableTypes<"grade">>()
+  );
+  const api = ServiceConfig.getI().apiHandler;
   const [allCourses, setAllCourses] = useState([
     ...courses.map((course) => {
       return { course, selected: false };
@@ -41,7 +39,26 @@ const AddCourse: FC<{
   });
   let selectedCourses: TableTypes<"course">[] = [];
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    getCurriculum();
+    getAllGradeDocs();
+  }, []);
+  const getCurriculum = async () => {
+    const curriculumDocs = await api.getAllCurriculums();
+    if (curriculumDocs.length > 0) {
+      setCurriculums(curriculumDocs);
+    }
+  };
+  const getAllGradeDocs = async () => {
+    const grades = await api.getAllGrades();
+    if (grades && grades.length > 0) {
+      const temp = new Map<string, TableTypes<"grade">>();
+      grades.forEach((grade) => {
+        temp.set(grade.id, grade);
+      });
+      setGradesMap(temp);
+    }
+  };
 
   const handleClick = (course) => {
     if (!online) {
@@ -95,24 +112,8 @@ const AddCourse: FC<{
         >
           {allCourses.map((course) => {
             if (course.course.curriculum_id === curr) {
-              let isGrade1: string | boolean = false;
-              let isGrade2: string | boolean = false;
-              let gradeDocId = course.course.grade_id;
-
-              // Check if gradeDocId matches any of the specified grades and assign the value to isGrade1 or isGrade2
-              if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
-                isGrade1 = true;
-              } else if (
-                gradeDocId === grade2 ||
-                gradeDocId === grade3 ||
-                gradeDocId === aboveGrade3
-              ) {
-                isGrade2 = true;
-              } else {
-                // If it's neither grade1 nor grade2, assume grade2
-                isGrade2 = true;
-              }
-              // const ccCourse = setSelectedCourses.find(o=> o.id === course.id);
+              const grade = gradesMap.get(course.course.grade_id!);
+              const gradeTitle = grade ? grade.name : "";
               return (
                 <SplideSlide className="slide">
                   <div
@@ -141,10 +142,7 @@ const AddCourse: FC<{
                       </div>
                     ) : null}
                     <div id="subject-card-subject-name">
-                      <p>
-                        {isGrade1 ? "Grade 1" : "Grade 2"}
-                        {/* {subject.title==="English"?subject.title:t(subject.title)} */}
-                      </p>
+                      <p>{gradeTitle}</p>
                     </div>
                     <div
                       className="course-icon"
@@ -178,14 +176,29 @@ const AddCourse: FC<{
   };
 
   return (
-    <div>
-      <div className="subject-header">{t("NCERT curriculum")}</div>
-      {renderSubjectCard(NCERT_CURRICULUM)}
-      <div className="subject-header">{t("Karnataka board curriculum")}</div>
-      {renderSubjectCard(KARNATAKA_STATE_BOARD_CURRICULUM)}
-      <div className="subject-header">{t("Chimple curriculum")}</div>
-      {renderSubjectCard(OTHER_CURRICULUM)}
-    </div>
+    <>
+      {curriculums && curriculums.length > 0 && (
+        <div>
+          {curriculums.map((curriculum) => {
+            const coursesForCurriculum = allCourses.filter(
+              (course) => course.course.curriculum_id === curriculum.id
+            );
+
+            if (coursesForCurriculum.length > 0) {
+              return (
+                <div key={curriculum.id}>
+                  <div className="subject-header">
+                    {t(curriculum.name) + " " + t("Curriculum")}
+                  </div>
+                  {renderSubjectCard(curriculum.id)}
+                </div>
+              );
+            }
+            return null;
+          })}
+        </div>
+      )}
+    </>
   );
 };
 export default AddCourse;

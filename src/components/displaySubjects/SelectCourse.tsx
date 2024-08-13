@@ -6,27 +6,46 @@ import SelectIconImage from "./SelectIconImage";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import {
-  CHAPTER_CARD_COLOURS,
-  CURRICULUM,
   DEFUALT_SUBJECT_CARD_COLOUR,
-  KARNATAKA_STATE_BOARD_CURRICULUM,
-  NCERT_CURRICULUM,
   PAGES,
   TableTypes,
-  aboveGrade3,
-  belowGrade1,
-  grade1,
-  grade2,
-  grade3,
 } from "../../common/constants";
 import { useHistory } from "react-router";
+import { ServiceConfig } from "../../services/ServiceConfig";
+interface CourseDetails {
+  course: TableTypes<"course">;
+  grade?: TableTypes<"grade"> | null;
+  curriculum?: TableTypes<"curriculum"> | null;
+}
 const SelectCourse: FC<{
   courses: TableTypes<"course">[];
   modeParent: boolean;
   onCourseChange: (course: TableTypes<"course">) => void;
 }> = ({ courses, modeParent, onCourseChange }) => {
-  courses.sort((a, b) => {
-    return (a.sort_index ?? 0) - (b.sort_index ?? 0);
+  const [courseDetails, setCourseDetails] = useState<CourseDetails[]>([]);
+  const api = ServiceConfig.getI().apiHandler;
+
+  useEffect(() => {
+    fetchCourseDetails();
+  }, [courses]);
+  const fetchCourseDetails = async () => {
+    const detailedCourses: CourseDetails[] = await Promise.all(
+      courses.map(async (course) => {
+        const gradeDoc = await api.getGradeById(course.grade_id!);
+        const curriculumDoc = await api.getCurriculumById(
+          course.curriculum_id!
+        );
+        return {
+          course,
+          grade: gradeDoc,
+          curriculum: curriculumDoc,
+        };
+      })
+    );
+    setCourseDetails(detailedCourses);
+  };
+  courseDetails.sort((a, b) => {
+    return a.course.sort_index! - b.course.sort_index!;
   });
   const history = useHistory();
   return (
@@ -40,24 +59,7 @@ const SelectCourse: FC<{
         pagination: false,
       }}
     >
-      {courses.map((course, index) => {
-        let isGrade1: string | boolean = false;
-        let isGrade2: string | boolean = false;
-        let gradeDocId = course.grade_id;
-
-        // Check if gradeDocId matches any of the specified grades and assign the value to isGrade1 or isGrade2
-        if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
-          isGrade1 = true;
-        } else if (
-          gradeDocId === grade2 ||
-          gradeDocId === grade3 ||
-          gradeDocId === aboveGrade3
-        ) {
-          isGrade2 = true;
-        } else {
-          // If it's neither grade1 nor grade2, assume grade2
-          isGrade2 = true;
-        }
+      {courseDetails.map(({ course, grade, curriculum }, index) => {
         return (
           <SplideSlide key={index} className="slide">
             <div
@@ -69,8 +71,7 @@ const SelectCourse: FC<{
             >
               <div id="subject-card-subject-name">
                 <p>
-                  {isGrade1 ? "Grade 1" : "Grade 2"}
-                  {/* {subject.title==="English"?subject.title:t(subject.title)} */}
+                  <p>{grade?.name}</p>
                 </p>
               </div>
               <div
@@ -87,14 +88,10 @@ const SelectCourse: FC<{
                   imageHeight={"auto"}
                 />
               </div>
-              {t(course.name)}
-            </div>
-            <div>
-              {course.curriculum_id === NCERT_CURRICULUM
-                ? CURRICULUM.NCERT_CURRICULUM
-                : course.curriculum_id === KARNATAKA_STATE_BOARD_CURRICULUM
-                  ? CURRICULUM.KARNATAKA_STATE_BOARD_CURRICULUM
-                  : CURRICULUM.OTHER_CURRICULUM}
+              <div className="course-title">{course.name}</div>
+              {curriculum && (
+                <div className="course-curriculum">{curriculum.name}</div>
+              )}
             </div>
           </SplideSlide>
         );
