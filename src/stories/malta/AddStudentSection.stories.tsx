@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import AddStudentSection from "../../components/malta/AddStudent/AddStudentSection";
+import AddStudentSection from "../../chimple-private/components/homePage/library/AddStudentSection";
 
 const meta: Meta = {
   title: "components/malta/AddStudent/AddStudentSection",

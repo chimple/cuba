@@ -554,6 +554,64 @@ export class SqliteApi implements ServiceApi {
     return newStudent;
   }
 
+  async function createStudentProfile(
+    name: string,
+    age: number | undefined,
+    gender: string | undefined,
+    avatar: string | undefined,
+    image: string | undefined,
+    boardDocId: string | undefined,
+    gradeDocId: string | undefined,
+    languageDocId: string | undefined
+  ): Promise<TableTypes<"user">> {
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
+    const studentId = uuidv4();
+    const newStudent: TableTypes<"user"> = {
+      id: studentId,
+      name,
+      age: age ?? null,
+      gender: gender ?? null,
+      avatar: avatar ?? null,
+      image: image ?? null,
+      curriculum_id: boardDocId ?? null,
+      grade_id: gradeDocId ?? null,
+      language_id: languageDocId ?? null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+      is_tc_accepted: true,
+      email: null,
+      phone: null,
+      fcm_token: null,
+      music_off: false,
+      sfx_off: false,
+    };
+
+    await this.executeQuery(
+      `
+      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `,
+      [
+        newStudent.id,
+        newStudent.name,
+        newStudent.age,
+        newStudent.gender,
+        newStudent.avatar,
+        newStudent.image,
+        newStudent.curriculum_id,
+        newStudent.grade_id,
+        newStudent.language_id,
+        newStudent.created_at,
+        newStudent.updated_at,
+      ]
+    );
+    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
+    return newStudent;
+  }
+
   async deleteProfile(studentId: string) {
     if (!this._db) return;
     try {

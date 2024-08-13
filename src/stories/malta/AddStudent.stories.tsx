@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { fn } from "@storybook/test";
-import AddStudent from "../../pages/Malta/AddStudent";
+import AddStudent from "../../chimple-private/pages/AddStudent";
 
 const meta: Meta = {
   title: "Pages/Malta/AddStudent",

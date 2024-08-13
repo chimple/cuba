@@ -47,3 +47,11 @@ export const TestPage2 = lazy(async () => {
     return { default: FallbackComponent };
   }
 });
+// export const AddStudent = lazy(async () => {
+//   try {
+//     //@ts-ignore
+//     return await import("../chimple-private/pages/AddStudent");
+//   } catch (error) {
+//     return { default: FallbackComponent };
+//   }
+// });
