@@ -51,6 +51,8 @@
   top: 13%;
   justify-self: left;
   width: 30%;
+  padding: 0 1vw;
+  width: fit-content;
 }
 
 .subject-header {
@@ -60,8 +62,14 @@
   margin-bottom: 0;
   justify-content: space-between;
   align-items: center;
+  color: var(--text-color);
 }
-
+.course-curriculum {
+  font-size: 14px;
+  text-transform: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .course-img {
   object-fit: contain;
   min-width: 100%;
