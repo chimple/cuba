@@ -287,10 +287,10 @@ const LessonCard: React.FC<{
                 <SelectIconImage
                   localSrc={
                     // this is for lesson card background
-                    "courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"
+                    "courses/lessonCaredPattern/ChallengePattern.webp"
                   }
                   defaultSrc={
-                    "courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"
+                    "courses/lessonCaredPattern/ChallengePattern.webp"
                   }
                   webSrc={
                     "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/lesson_thumbnails%2FlessonCaredPattern%2FChallengePattern.png?alt=media&token=be64aec1-f70f-43c3-95de-fd4b1afe5806"
