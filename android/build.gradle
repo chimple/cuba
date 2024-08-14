@@ -23,7 +23,7 @@ allprojects {
         jcenter()
         mavenCentral()
         maven {
-            url "https://devserver3.ustadmobile.com/maven2"
+            url "https://jcenter.bintray.com"
         }
     }
 }
