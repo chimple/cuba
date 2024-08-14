@@ -386,7 +386,7 @@ export enum PAGES {
   ADD_STUDENT = "/add_student",
   TEST_PAGE = "/test-page",
   TEST_PAGE1 = "/test-page1",
-  TEACHER_ASSIGNMENT = '/teacher-assignment',
+  TEACHER_ASSIGNMENT = "/teacher-assignment",
   // Chatbot = "chatbot",
 }
 
@@ -469,12 +469,6 @@ export const LANGUAGE_COURSE_MAP = {
   zvmpksodSkr8bmhGAFaT: "jZp8NfR84MILMEazPSK7", //Kannada
 };
 
-export enum CURRICULUM {
-  NCERT_CURRICULUM = "NCERT",
-  KARNATAKA_STATE_BOARD_CURRICULUM = "Karnataka",
-  OTHER_CURRICULUM = "Chimple",
-}
-
 export enum GENDER {
   BOY = "male",
   GIRL = "female",
@@ -544,7 +538,6 @@ export enum MODES {
   PARENT = "PARENT",
   SCHOOL = "SCHOOL",
   TEACHER = "TEACHER",
-
 }
 
 export enum ACTION {
