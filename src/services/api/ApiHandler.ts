@@ -441,7 +441,9 @@ export class ApiHandler implements ServiceApi {
     image: string | undefined,
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
-    languageDocId: string | undefined
+    languageDocId: string | undefined,
+    classId: string,  
+    role: string  
   ): Promise<TableTypes<"user">> {
    
     return await this.s.createStudentProfile(
@@ -452,7 +454,9 @@ export class ApiHandler implements ServiceApi {
       image,
       boardDocId,
       gradeDocId,
-      languageDocId
+      languageDocId,
+      classId,
+      role
     );
   }
 

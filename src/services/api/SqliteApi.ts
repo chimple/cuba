@@ -554,7 +554,7 @@ export class SqliteApi implements ServiceApi {
     return newStudent;
   }
 
-  async function createStudentProfile(
+  async createStudentProfile(
     name: string,
     age: number | undefined,
     gender: string | undefined,
@@ -562,11 +562,15 @@ export class SqliteApi implements ServiceApi {
     image: string | undefined,
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
-    languageDocId: string | undefined
+    languageDocId: string | undefined,
+    classId: string,
+    // role: string
+    role: "coordinator" | "principal" | "sponsor" | "teacher" | "parent" | "student"
   ): Promise<TableTypes<"user">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
+
     const studentId = uuidv4();
     const newStudent: TableTypes<"user"> = {
       id: studentId,
@@ -589,6 +593,7 @@ export class SqliteApi implements ServiceApi {
       sfx_off: false,
     };
 
+    // Insert into user table
     await this.executeQuery(
       `
       INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at)
@@ -609,6 +614,40 @@ export class SqliteApi implements ServiceApi {
       ]
     );
     await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
+
+    // Insert into class_user table
+    const classUserId = uuidv4();
+    const newClassUser: TableTypes<"class_user"> = {
+      id: classUserId,
+      class_id: classId,
+      user_id: studentId,
+      role: role,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+    };
+
+    await this.executeQuery(
+      `
+      INSERT INTO class_user (id, class_id, user_id, role, created_at, updated_at, is_deleted)
+      VALUES (?, ?, ?, ?, ?, ?, ?);
+      `,
+      [
+        newClassUser.id,
+        newClassUser.class_id,
+        newClassUser.user_id,
+        newClassUser.role,
+        newClassUser.created_at,
+        newClassUser.updated_at,
+        newClassUser.is_deleted,
+      ]
+    );
+    await this.updatePushChanges(
+      TABLES.ClassUser,
+      MUTATE_TYPES.INSERT,
+      newClassUser
+    );
+
     return newStudent;
   }
 

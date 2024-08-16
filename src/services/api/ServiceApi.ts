@@ -58,7 +58,9 @@ export interface ServiceApi {
     image: string | undefined,
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
-    languageDocId: string | undefined
+    languageDocId: string | undefined,
+    classId: string,  
+    role: string  
   ): Promise<TableTypes<"user">>;
 
   /**

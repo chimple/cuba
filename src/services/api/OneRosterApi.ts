@@ -417,7 +417,9 @@ export class OneRosterApi implements ServiceApi {
     image: string | undefined,
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
-    languageDocId: string | undefined
+    languageDocId: string | undefined,
+    classId: string,  
+    role: string  
   ): Promise<TableTypes<"user">>{
     throw new Error("Method not implemented.");
   }
