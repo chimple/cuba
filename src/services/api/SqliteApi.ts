@@ -2217,7 +2217,14 @@ export class SqliteApi implements ServiceApi {
       ) c,
       not_played_courses n
     WHERE
-      c.course_id != n.course_id
+      NOT EXISTS (
+        SELECT
+          1
+        FROM
+          last_played_lessons lpl
+        WHERE
+          c.course_id = lpl.course_id
+      )
     ORDER BY
       c.course_id,
       c.chapter_name,
