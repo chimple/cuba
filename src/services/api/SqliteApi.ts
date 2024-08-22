@@ -2230,6 +2230,32 @@ export class SqliteApi implements ServiceApi {
       c.chapter_name,
       c.lesson_name
   )
+      select
+  chapter_name,
+  lesson_name,
+  course_id,
+  course_index,
+  lesson_id as id,
+  lesson_name as name,
+  cocos_subject_code,
+  cocos_chapter_code,
+  cocos_lesson_id,
+  image,
+  outcome,
+  plugin_type,
+  status,
+  created_by,
+  subject_id,
+  target_age_from,
+  target_age_to,
+  language_id,
+  created_at,
+  updated_at,
+  is_deleted,
+  color
+from
+  last_played_lessons
+union all
 select
   chapter_name,
   lesson_name,
