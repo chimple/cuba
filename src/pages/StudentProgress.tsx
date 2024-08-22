@@ -31,7 +31,7 @@ const StudentProgress: React.FC = () => {
 
   interface HeaderIconConfig {
     courseId: string;
-    displayName: string;
+    displayName: React.ReactNode;
     iconSrc: string;
     header: any;
     course: TableTypes<"course">;
@@ -49,16 +49,37 @@ const StudentProgress: React.FC = () => {
       setCourses(courses);
       if (courses.length > 0) {
         setCurrentHeader(courses[0].code);
-        setTabIndex(courses[0].code ?? "");
-        setStudentProgressHeaderIconList(
-          courses.map((course) => ({
-            courseId: course.id,
-            displayName: t(course.name),
-            iconSrc: course.image ?? "assets/icons/EnglishIcon.svg",
-            header: course.code,
-            course: course,
-          }))
+        const updatedHeaderIconList = await Promise.all(
+          courses.map(async (course) => {
+            const gradeDoc = await api.getGradeById(course.grade_id!);
+            const curriculumDoc = await api.getCurriculumById(
+              course.curriculum_id!
+            );
+            return {
+              courseId: course.id,
+              displayName: (
+                <div className="course-detail-div">
+                  <div className="course-text">{t(course.name)}</div>
+                  {gradeDoc && (
+                    <div className="grade-text">{t(gradeDoc.name)}</div>
+                  )}
+                  {curriculumDoc && (
+                    <div className="curriculum-text">
+                      {t(curriculumDoc.name)}
+                    </div>
+                  )}
+                </div>
+              ),
+              iconSrc: course.image ?? "assets/icons/EnglishIcon.svg",
+              header: course.code,
+              course: course,
+            };
+          })
         );
+
+        setStudentProgressHeaderIconList(updatedHeaderIconList);
+        setCurrentHeader(updatedHeaderIconList[0].header);
+        setTabIndex(updatedHeaderIconList[0].courseId);
       }
 
       const res = await api.getStudentProgress(currentStudent.id);

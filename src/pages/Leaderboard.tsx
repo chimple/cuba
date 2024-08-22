@@ -152,7 +152,32 @@ const Leaderboard: React.FC = () => {
         ? "leaderboardDataInfo.weekly"
         : "leaderboardDataInfo.allTime"
     );
-
+    let currentUserDataContent: any[][] = [];
+    let leaderboardDataArray: any[][] = [];
+    currentUserDataContent = [
+      [t("Rank"), "--"],
+      [t("Lessons Played"), "--"],
+      [t("Score"), "--"],
+      [t("Time Spent"), "--" + t("min") + " --" + t("sec")],
+    ];
+    leaderboardDataArray.push([
+      "#",
+      t("Name"),
+      t("Lessons Played"),
+      t("Score"),
+      t("Time Spent"),
+    ]);
+    let dummyData = [
+      "--",
+      currentStudent.name,
+      "--",
+      "--",
+      "--" + t("min") + " --" + t("sec"),
+    ];
+    leaderboardDataArray.push(dummyData);
+    setCurrentUserDataContent(currentUserDataContent);
+    setLeaderboardData(leaderboardDataArray);
+    setIsLoading(false);
     const tempLeaderboardData: LeaderboardInfo = (leaderboardDataInfo.weekly
       .length <= 0 ||
     leaderboardDataInfo.allTime.length <= 0 ||
@@ -254,20 +279,8 @@ const Leaderboard: React.FC = () => {
       }
     }
     if (tempCurrentUserDataContent.length <= 0) {
-      tempCurrentUserDataContent = [
-        // ["Name", element.name],
-        [t("Rank"), "--"],
-        [t("Lessons Played"), "--"],
-        [t("Score"), "--"],
-        [t("Time Spent"), "--" + t("min") + " --" + t("sec")],
-      ];
-      tempLeaderboardDataArray.push([
-        "--",
-        currentStudent.name,
-        "--",
-        "--",
-        "--" + t("min") + " --" + t("sec"),
-      ]);
+      tempCurrentUserDataContent = currentUserDataContent;
+      tempLeaderboardDataArray.push(dummyData);
     }
     setCurrentUserDataContent(tempCurrentUserDataContent);
     setLeaderboardData(tempLeaderboardDataArray);
@@ -608,7 +621,7 @@ const Leaderboard: React.FC = () => {
                 } else {
                   Util.setPathToBackButton(PAGES.SELECT_MODE, history);
                   Util.setPathToBackButton(
-                    PAGES.SELECT_MODE + "?tab=" + "student",
+                    PAGES.SELECT_MODE + "?tab=" + "class",
                     history
                   );
                 }

@@ -441,6 +441,7 @@ const Parent: React.FC = () => {
           value={tabIndex}
           onChange={handleChange}
           handleBackButton={handleBackButton}
+          customStyle={true}
         />
         {tabIndex === t("profile") && <div>{profileUI()}</div>}
         {tabIndex === t("setting") && <div>{settingUI()}</div>}

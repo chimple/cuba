@@ -721,6 +721,22 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
+  async getGradeById(id: string): Promise<TableTypes<"grade"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Grade} where id = "${id}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+  async getCurriculumById(
+    id: string
+  ): Promise<TableTypes<"curriculum"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Curriculum} where id = "${id}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
   async getAllLanguages(): Promise<TableTypes<"language">[]> {
     const res = await this._db?.query("select * from " + TABLES.Language);
     console.log("🚀 ~ SqliteApi ~ getAllLanguages ~ res:", res);
@@ -2252,12 +2268,45 @@ export class SqliteApi implements ServiceApi {
       ) c,
       not_played_courses n
     WHERE
-      c.course_id != n.course_id
+      NOT EXISTS (
+        SELECT
+          1
+        FROM
+          last_played_lessons lpl
+        WHERE
+          c.course_id = lpl.course_id
+      )
     ORDER BY
       c.course_id,
       c.chapter_name,
       c.lesson_name
   )
+      select
+  chapter_name,
+  lesson_name,
+  course_id,
+  course_index,
+  lesson_id as id,
+  lesson_name as name,
+  cocos_subject_code,
+  cocos_chapter_code,
+  cocos_lesson_id,
+  image,
+  outcome,
+  plugin_type,
+  status,
+  created_by,
+  subject_id,
+  target_age_from,
+  target_age_to,
+  language_id,
+  created_at,
+  updated_at,
+  is_deleted,
+  color
+from
+  last_played_lessons
+union all
 select
   chapter_name,
   lesson_name,

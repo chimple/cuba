@@ -13,7 +13,29 @@
   height: 80vh;
   overflow-y: scroll;
 }
-
+.course-detail-div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.course-text {
+  font-size: var(--text-size);
+  font-weight: bold;
+  width: 17vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.grade-text {
+  font-size: 15px;
+  text-transform: none;
+}
+.curriculum-text {
+  font-size: 14px;
+  text-transform: none;
+  width: 15vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 #student-progress-display-progress-content-text {
   white-space: nowrap;
   overflow: hidden;

@@ -89,6 +89,7 @@ const Subjects: React.FC<{}> = ({}) => {
 
       setIsLoading(false);
     } else if (!!urlParams.get("isReload")) {
+      await getCourses();
       let strLocalStoreData = localStorage.getItem(DISPLAY_SUBJECTS_STORE);
       if (!!strLocalStoreData) {
         localStorageData = JSON.parse(strLocalStoreData);

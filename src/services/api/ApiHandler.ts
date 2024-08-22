@@ -347,7 +347,14 @@ export class ApiHandler implements ServiceApi {
   public async getAllGrades(): Promise<TableTypes<"grade">[]> {
     return await this.s.getAllGrades();
   }
-
+  async getGradeById(id: string): Promise<TableTypes<"grade"> | undefined> {
+    return await this.s.getGradeById(id);
+  }
+  async getCurriculumById(
+    id: string
+  ): Promise<TableTypes<"curriculum"> | undefined> {
+    return await this.s.getCurriculumById(id);
+  }
   public async getAllLanguages(): Promise<TableTypes<"language">[]> {
     return await this.s.getAllLanguages();
   }

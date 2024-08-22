@@ -67,7 +67,16 @@ export interface ServiceApi {
    * @returns {Grade[]} Array of `Grade` objects
    */
   getAllGrades(): Promise<TableTypes<"grade">[]>;
-
+  /**
+   * @param id - The ID of the grade.
+   * @returns {TableTypes<"grade">} or `undefined` if it could not find the grade with given `id`
+   */
+  getGradeById(id: string): Promise<TableTypes<"grade"> | undefined>;
+  /**
+   * @param id - The ID of the curriculum.
+   * @returns {TableTypes<"curriculum">} or `undefined` if it could not find the curriculum with given `id`
+   */
+  getCurriculumById(id: string): Promise<TableTypes<"curriculum"> | undefined>;
   /**
    * Gives all `Languages` available on database
    * @returns {Language[]} Array of `Language` objects
