@@ -421,6 +421,7 @@ const ChimpleAvatar: FC<{
     if (!allCourses || allCourses.length === 0) {
       await fetchCoursesForStudent();
     }
+    avatarObj.imageSrc = undefined;
     if (currentCourse) {
       const courseIndex = allCourses.findIndex(
         (course) => course.courseCode === currentCourse?.courseCode

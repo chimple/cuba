@@ -173,16 +173,16 @@ const AvatarImageOption: React.FC<{
       break;
     case AvatarModes.TwoOptionQuestion:
       content = cardContent(
-        AvatarObj.getInstance().imageSrc,
+        AvatarObj.getInstance().imageSrc ?? "assets/icons/DefaultIcon.png",
         "",
-        AvatarObj.getInstance().imageSrc
+        AvatarObj.getInstance().imageSrc ?? "assets/icons/DefaultIcon.png"
       );
       break;
     case AvatarModes.FourOptionQuestion:
       content = cardContent(
-        AvatarObj.getInstance().imageSrc,
+        AvatarObj.getInstance().imageSrc ?? "assets/icons/DefaultIcon.png",
         "",
-        AvatarObj.getInstance().imageSrc
+        AvatarObj.getInstance().imageSrc ?? "assets/icons/DefaultIcon.png"
       );
       break;
     case AvatarModes.RecommendedLesson:
