@@ -48,6 +48,7 @@ export enum TABLES {
   Assignment = "assignment",
   Assignment_user = "assignment_user",
   Result = "result",
+  Assignment_cart = 'assignment_cart'
   // Chatbot = "chatbot",
 }
 
@@ -386,7 +387,9 @@ export enum PAGES {
   ADD_STUDENT = "/add_student",
   TEST_PAGE = "/test-page",
   TEST_PAGE1 = "/test-page1",
-  TEACHER_ASSIGNMENT = "/teacher-assignment",
+  TEACHER_ASSIGNMENT = '/teacher-assignment',
+  LESSON_DETAILS = '/lesson-details',
+  SEARCH_LESSON ='/search-lesson'
   // Chatbot = "chatbot",
 }
 

@@ -74,6 +74,31 @@
       ]
     },
     {
+      "name": "assignment_cart",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "lessons",
+          "value": "TEXT"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT NOT NULL DEFAULT (datetime('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "BOOLEAN DEFAULT 0"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime('now'))"
+        }
+      ]
+    },
+    {
       "name": "subject",
       "schema": [
         {

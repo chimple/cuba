@@ -538,4 +538,16 @@ export class ApiHandler implements ServiceApi {
   searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
     return this.s.searchLessons(searchString);
   }
+  createAssignmentCart(
+    userId: string,
+    lessons: string
+  ): Promise<boolean | undefined> {
+    return this.s.createAssignmentCart(userId, lessons);
+  }
+
+  getUserAssignmentCart(
+    userId: string
+  ): Promise<TableTypes<"assignment_cart"> | undefined> {
+    return this.s.getUserAssignmentCart(userId);
+  }
 }

@@ -399,12 +399,12 @@ export class SqliteApi implements ServiceApi {
       `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`
     );
     await this.pullChanges(tableNames);
-    this.pushChanges(tableNames).then((value) => {
-      const tables = "'" + tableNames.join("', '") + "'";
-      this.executeQuery(
-        `UPDATE pull_sync_info SET last_pulled = CURRENT_TIMESTAMP WHERE table_name IN (${tables})`
-      );
-    });
+    const res = await this.pushChanges(tableNames);
+    const tables = "'" + tableNames.join("', '") + "'";
+    this.executeQuery(
+      `UPDATE pull_sync_info SET last_pulled = CURRENT_TIMESTAMP WHERE table_name IN (${tables})`
+    );
+    return res;
   }
 
   private async createSyncTables() {
@@ -440,7 +440,7 @@ export class SqliteApi implements ServiceApi {
     ];
     console.log("🚀 ~ Api ~ variables:", variables);
     await this.executeQuery(stmt, variables);
-    await this.syncDbNow([tableName]);
+    return await this.syncDbNow([tableName]);
   }
 
   async createProfile(
@@ -1664,6 +1664,7 @@ export class SqliteApi implements ServiceApi {
     };
     return await this._serverApi.assignmentListner(studentId, handleDataChange);
   }
+
   async removeAssignmentChannel() {
     return await this._serverApi.removeAssignmentChannel();
   }
@@ -2025,6 +2026,47 @@ export class SqliteApi implements ServiceApi {
       id: userId,
     });
   }
+
+  async createAssignmentCart(
+    userId: string,
+    lessons: string
+  ): Promise<boolean | undefined> {
+    await this.executeQuery(
+      `
+      INSERT INTO assignment_cart (
+          id,
+          lessons,
+          updated_at
+      ) VALUES (?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+          lessons = excluded.lessons,
+          updated_at = excluded.updated_at;
+      `,
+      [userId, lessons, new Date().toISOString()]
+    );
+    await this._serverApi.pushAssignmentCart(
+      {
+        id: userId,
+        lessons: lessons,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_deleted: false,
+      },
+      userId
+    );
+    // await this.updatePushChanges(
+    //   TABLES.Assignment_cart,
+    //   MUTATE_TYPES.UPDATE,
+    //   {
+    //     id: userId,
+    //     lessons: lessons,
+    //     created_at: new Date().toISOString(),
+    //     updated_at: new Date().toISOString(),
+    //     is_deleted: false,
+    //   }
+    // )
+    return true;
+  }
   async createUserDoc(
     user: TableTypes<"user">
   ): Promise<TableTypes<"user"> | undefined> {
@@ -2057,6 +2099,15 @@ export class SqliteApi implements ServiceApi {
       console.log("🚀 ~ SqliteApi ~ syncDB ~ error:", error);
       return false;
     }
+  }
+  async getUserAssignmentCart(
+    userId: string
+  ): Promise<TableTypes<"assignment_cart"> | undefined> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Assignment_cart} where id = "${userId}"`
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
   }
   async getStudentProgress(studentId: string): Promise<Map<string, string>> {
     const query = `
