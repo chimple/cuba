@@ -2,7 +2,7 @@ import React from "react";
 import { useHistory } from "react-router-dom";
 import "./TeacherProfile.css";
 import { PAGES } from "../../common/constants";
-import ProfileDetails from "../../chimple-private/components/homePage/library/ProfileDetails";
+// import ProfileDetails from "../../chimple-private/components/homePage/library/ProfileDetails";
 import StudentProfileSection from "../../components/malta/StudentProfile/StudentProfileSection";
 import "./StudentProfile.css";
 import { t } from "i18next";
