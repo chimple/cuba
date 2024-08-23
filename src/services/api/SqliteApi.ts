@@ -564,8 +564,7 @@ export class SqliteApi implements ServiceApi {
     gradeDocId: string | undefined,
     languageDocId: string | undefined,
     classId: string,
-    // role: string
-    role: "coordinator" | "principal" | "sponsor" | "teacher" | "parent" | "student"
+    role: "student"
   ): Promise<TableTypes<"user">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
