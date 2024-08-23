@@ -86,7 +86,7 @@ import {
   DisplaySchools,
   ShowChapters,
   SearchLessons,
-  AddStudent,
+    AddStudent,
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
 
