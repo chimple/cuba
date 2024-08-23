@@ -34,7 +34,7 @@ export enum AvatarModes {
 export class AvatarObj {
   private _mode: any;
   private _message: string | undefined;
-  private _imageSrc: string | undefined;
+  private _imageSrc: string;
   private _audioSrc: string | undefined;
   private _avatarAnimation: string | undefined;
   private _yesAnimation: string | undefined;
@@ -92,10 +92,10 @@ export class AvatarObj {
   public set message(value: string | undefined) {
     this._message = value;
   }
-  public get imageSrc(): string | undefined {
+  public get imageSrc(): string {
     return this._imageSrc;
   }
-  public set imageSrc(value: string | undefined) {
+  public set imageSrc(value: string) {
     this._imageSrc = value;
   }
   public get audioSrc(): string | undefined {

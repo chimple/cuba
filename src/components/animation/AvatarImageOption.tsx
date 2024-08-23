@@ -141,9 +141,9 @@ const AvatarImageOption: React.FC<{
         case AvatarModes.CourseSuggestion:
           if (currentCourse) {
             content = cardContent(
-              `courses/chapter_icons/${currentCourse.courseCode}.png`,
+              AvatarObj.getInstance().imageSrc,
               "assets/icons/DefaultIcon.png",
-              currentCourse.thumbnail ?? "assets/icons/DefaultIcon.png"
+              AvatarObj.getInstance().imageSrc
             );
           }
           break;
@@ -174,14 +174,14 @@ const AvatarImageOption: React.FC<{
     case AvatarModes.TwoOptionQuestion:
       content = cardContent(
         AvatarObj.getInstance().imageSrc ?? "assets/icons/DefaultIcon.png",
-        "",
+        "assets/icons/DefaultIcon.png",
         AvatarObj.getInstance().imageSrc ?? "assets/icons/DefaultIcon.png"
       );
       break;
     case AvatarModes.FourOptionQuestion:
       content = cardContent(
         AvatarObj.getInstance().imageSrc ?? "assets/icons/DefaultIcon.png",
-        "",
+        "assets/icons/DefaultIcon.png",
         AvatarObj.getInstance().imageSrc ?? "assets/icons/DefaultIcon.png"
       );
       break;
