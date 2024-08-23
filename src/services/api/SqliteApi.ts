@@ -554,6 +554,102 @@ export class SqliteApi implements ServiceApi {
     return newStudent;
   }
 
+  async createStudentProfile(
+    name: string,
+    age: number | undefined,
+    gender: string | undefined,
+    avatar: string | undefined,
+    image: string | undefined,
+    boardDocId: string | undefined,
+    gradeDocId: string | undefined,
+    languageDocId: string | undefined,
+    classId: string,
+    role: "student"
+  ): Promise<TableTypes<"user">> {
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
+
+    const studentId = uuidv4();
+    const newStudent: TableTypes<"user"> = {
+      id: studentId,
+      name,
+      age: age ?? null,
+      gender: gender ?? null,
+      avatar: avatar ?? null,
+      image: image ?? null,
+      curriculum_id: boardDocId ?? null,
+      grade_id: gradeDocId ?? null,
+      language_id: languageDocId ?? null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+      is_tc_accepted: true,
+      email: null,
+      phone: null,
+      fcm_token: null,
+      music_off: false,
+      sfx_off: false,
+    };
+
+    // Insert into user table
+    await this.executeQuery(
+      `
+      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `,
+      [
+        newStudent.id,
+        newStudent.name,
+        newStudent.age,
+        newStudent.gender,
+        newStudent.avatar,
+        newStudent.image,
+        newStudent.curriculum_id,
+        newStudent.grade_id,
+        newStudent.language_id,
+        newStudent.created_at,
+        newStudent.updated_at,
+      ]
+    );
+    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
+
+    // Insert into class_user table
+    const classUserId = uuidv4();
+    const newClassUser: TableTypes<"class_user"> = {
+      id: classUserId,
+      class_id: classId,
+      user_id: studentId,
+      role: role,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+    };
+
+    await this.executeQuery(
+      `
+      INSERT INTO class_user (id, class_id, user_id, role, created_at, updated_at, is_deleted)
+      VALUES (?, ?, ?, ?, ?, ?, ?);
+      `,
+      [
+        newClassUser.id,
+        newClassUser.class_id,
+        newClassUser.user_id,
+        newClassUser.role,
+        newClassUser.created_at,
+        newClassUser.updated_at,
+        newClassUser.is_deleted,
+      ]
+    );
+    await this.updatePushChanges(
+      TABLES.ClassUser,
+      MUTATE_TYPES.INSERT,
+      newClassUser
+    );
+
+    return newStudent;
+  }
+
   async deleteProfile(studentId: string) {
     if (!this._db) return;
     try {

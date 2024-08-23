@@ -77,7 +77,7 @@ import User from "./models/user";
 import TeacherProfile from "./pages/Malta/TeacherProfile";
 import React from "react";
 import StudentProfile from "./pages/Malta/StudentProfile";
-import AddStudent from "./pages/Malta/AddStudent";
+import AddStudent from "./chimple-private/pages/AddStudent";
 import Dashboard from "./pages/Malta/Dashboard";
 import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
 import {

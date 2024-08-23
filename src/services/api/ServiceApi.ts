@@ -50,6 +50,19 @@ export interface ServiceApi {
     languageDocId: string | undefined
   ): Promise<TableTypes<"user">>;
 
+  createStudentProfile(
+    name: string,
+    age: number | undefined,
+    gender: string | undefined,
+    avatar: string | undefined,
+    image: string | undefined,
+    boardDocId: string | undefined,
+    gradeDocId: string | undefined,
+    languageDocId: string | undefined,
+    classId: string,  
+    role: string  
+  ): Promise<TableTypes<"user">>;
+
   /**
    * To delete `Profile` for given student Id
    * @param {string } studentId - Student Id

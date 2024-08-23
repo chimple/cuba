@@ -433,6 +433,33 @@ export class ApiHandler implements ServiceApi {
     );
   }
 
+  public async createStudentProfile(
+    name: string,
+    age: number | undefined,
+    gender: string | undefined,
+    avatar: string | undefined,
+    image: string | undefined,
+    boardDocId: string | undefined,
+    gradeDocId: string | undefined,
+    languageDocId: string | undefined,
+    classId: string,  
+    role: string  
+  ): Promise<TableTypes<"user">> {
+   
+    return await this.s.createStudentProfile(
+      name,
+      age,
+      gender,
+      avatar,
+      image,
+      boardDocId,
+      gradeDocId,
+      languageDocId,
+      classId,
+      role
+    );
+  }
+
   public async addCourseForParentsStudent(
     courses: TableTypes<"course">[],
     student: TableTypes<"user">
