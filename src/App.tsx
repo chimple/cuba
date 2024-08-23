@@ -77,7 +77,6 @@ import User from "./models/user";
 import TeacherProfile from "./pages/Malta/TeacherProfile";
 import React from "react";
 import StudentProfile from "./pages/Malta/StudentProfile";
-import AddStudent from "./chimple-private/pages/AddStudent";
 import Dashboard from "./pages/Malta/Dashboard";
 import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
 import {
@@ -87,6 +86,7 @@ import {
   DisplaySchools,
   ShowChapters,
   SearchLessons,
+  AddStudent,
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
 
@@ -355,7 +355,9 @@ const App: React.FC = () => {
               <StudentProfile />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.ADD_STUDENT} exact={true}>
-              <AddStudent />
+              <Suspense>
+                <AddStudent />
+              </Suspense>
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
               <LiveQuizRoom />
