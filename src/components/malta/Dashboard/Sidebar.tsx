@@ -2,7 +2,7 @@ import { t } from "i18next";
 import React, { useState } from "react";
 import { useHistory } from "react-router";
 import { PAGES } from "../../../common/constants";
-import ProfileDetails from "../../../chimple-private/components/homePage/library/ProfileDetails";
+// import ProfileDetails from "../../../chimple-private/components/homePage/library/ProfileDetails";
 import "./Sidebar.css";
 import CloseIcon from "@mui/icons-material/Close";
 
