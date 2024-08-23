@@ -87,6 +87,7 @@ const ChimpleAvatar: FC<{
       if (!allCourses || allCourses.length === 0) fetchCoursesForStudent();
       setCurrentStageMode(AvatarModes.CourseSuggestion);
       cCourse = await getRecommendedCourse();
+      avatarObj.imageSrc = cCourse.thumbnail || "";
       setCurrentCourse(cCourse);
       const x1 = cCourse?.title || "";
       message = t(`Do you want to play 'x1' course?`).replace(
@@ -139,6 +140,7 @@ const ChimpleAvatar: FC<{
     if (avatarObj.mode === AvatarModes.CourseSuggestion) {
       setCurrentStageMode(AvatarModes.CourseSuggestion);
       cCourse = await getRecommendedCourse();
+      avatarObj.imageSrc = cCourse.thumbnail || "";
       setCurrentCourse(cCourse);
     }
     // await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -278,6 +280,7 @@ const ChimpleAvatar: FC<{
             } else {
               await onClickNo();
               cCourse = await getRecommendedCourse();
+              avatarObj.imageSrc = cCourse.thumbnail || "";
               setCurrentCourse(cCourse);
               const x1 = cCourse?.title || "";
               message = t(`Do you want to play 'x1' course?`).replace(
@@ -421,7 +424,7 @@ const ChimpleAvatar: FC<{
     if (!allCourses || allCourses.length === 0) {
       await fetchCoursesForStudent();
     }
-    avatarObj.imageSrc = undefined;
+    avatarObj.imageSrc = "";
     if (currentCourse) {
       const courseIndex = allCourses.findIndex(
         (course) => course.courseCode === currentCourse?.courseCode
@@ -749,46 +752,44 @@ const ChimpleAvatar: FC<{
             currentLesson={currentLesson}
             avatarObj={avatarObj}
           />
-          <div className="buttons-container-in-avatar-option-box"
-          >
-          <div
-            className="buttons-in-avatar-option-box"
-            style={{
-              flexWrap: buttons.length === 4 ? "wrap" : "wrap",
-              justifyContent:
-                buttons.length === 1
-                  ? "center"
-                  : buttons.length === 2
-                  ? "space-evenly"
-                  : "center",
-              gap: ".5em",
-              display: buttons.length > 2 ? "grid" : "",
-              gridTemplateColumns: buttons.length > 2 ? "35% 15vw" : "",
-              paddingTop: buttons.length > 2 ? "1vh" : "5vh",
-            }}
-          >
-            {buttons.map((button, index) => (
-              <div key={index}>
-                <RectangularTextButton
-                  buttonWidth={
-                    avatarObj.mode === AvatarModes.collectReward
-                      ? "auto"
-                      : "17vw"
-                  }
-                  buttonHeight={"8vh"}
-                  padding={1}
-                  text={button.label}
-                  fontSize={3.2}
-                  onHeaderIconClick={() => {
-                    button.onClick();
-                  }}
-                  className={button.isTrue ? "green-button" : "red-button"}
-                ></RectangularTextButton>
-              </div>
-            ))}
+          <div className="buttons-container-in-avatar-option-box">
+            <div
+              className="buttons-in-avatar-option-box"
+              style={{
+                flexWrap: buttons.length === 4 ? "wrap" : "wrap",
+                justifyContent:
+                  buttons.length === 1
+                    ? "center"
+                    : buttons.length === 2
+                      ? "space-evenly"
+                      : "center",
+                gap: ".5em",
+                display: buttons.length > 2 ? "grid" : "",
+                gridTemplateColumns: buttons.length > 2 ? "35% 15vw" : "",
+                paddingTop: buttons.length > 2 ? "1vh" : "5vh",
+              }}
+            >
+              {buttons.map((button, index) => (
+                <div key={index}>
+                  <RectangularTextButton
+                    buttonWidth={
+                      avatarObj.mode === AvatarModes.collectReward
+                        ? "auto"
+                        : "17vw"
+                    }
+                    buttonHeight={"8vh"}
+                    padding={1}
+                    text={button.label}
+                    fontSize={3.2}
+                    onHeaderIconClick={() => {
+                      button.onClick();
+                    }}
+                    className={button.isTrue ? "green-button" : "red-button"}
+                  ></RectangularTextButton>
+                </div>
+              ))}
+            </div>
           </div>
-          </div>
-          
         </div>
       </div>
     </div>
