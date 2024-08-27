@@ -297,7 +297,15 @@ const Home: FC = () => {
       return;
     }
     setCurrentStudent(currentStudent);
-    const currClass = schoolUtil.getCurrentClass();
+    // const currClass = schoolUtil.getCurrentClass();
+    let currClass;
+    const result = await api.getStudentResult(currentStudent.docId, true);
+    if (result?.classes && result.classes.length > 0) {
+      const classId = result.classes[0];
+      currClass = await api.getClassById(classId);
+    } else {
+      console.log("No classes found for the student.");
+    }
     if (!!currClass) setCurrentClass(currClass);
     if (
       subjectCode === HOMEHEADERLIST.HOME ||
@@ -509,7 +517,7 @@ const Home: FC = () => {
       console.log("sortLessonResultMap ", sortLessonResultMap);
     }
 
-    const courses: Course[] = await (currMode === MODES.SCHOOL && !!currClass
+    const courses: Course[] = await (!!currClass
       ? api.getCoursesForClassStudent(currClass)
       : api.getCoursesForParentsStudent(currentStudent));
     setCourses(courses);
