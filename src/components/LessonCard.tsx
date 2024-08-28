@@ -22,6 +22,7 @@ import SelectIconImage from "./displaySubjects/SelectIconImage";
 import { Util } from "../utility/util";
 import DownloadLesson from "./DownloadChapterAndLesson";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
+import { doc, getFirestore } from "firebase/firestore";
 
 const LessonCard: React.FC<{
   width: string;
@@ -190,8 +191,9 @@ const LessonCard: React.FC<{
               let subjectDocID: string;
 
               if (typeof lesson.subject === "string") {
-                const subjecDoc: string = lesson.subject;
-                subjectDocID = subjecDoc.split("/")[1];
+                const db = getFirestore();
+                const subjecDoc = doc(db, lesson.subject);
+                subjectDocID = subjecDoc.id;
               } else {
                 subjectDocID = lesson.subject.id;
               }
