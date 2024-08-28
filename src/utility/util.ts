@@ -367,7 +367,7 @@ export class Util {
 
               const path =
                 (localStorage.getItem("gameUrl") ??
-                  "http://chimple/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
+                  "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
                 lessonId +
                 "/config.json";
               console.log("checking path..", "path", path);
