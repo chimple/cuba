@@ -389,7 +389,7 @@ const App: React.FC = () => {
             </Route>
             <Route path={PAGES.HOME_PAGE} exact={true}>
               <Suspense>
-                <ClassUsers />
+                <HomePage />
               </Suspense>
             </Route>
             <Route path={PAGES.SHOW_CHAPTERS} exact={true}>
