@@ -1162,23 +1162,26 @@ export class FirebaseApi implements ServiceApi {
         doc(this._db, CollectionIds.CLASS, id)
       );
       let classData: Class | undefined;
-
       if (classDocOffline.exists()) {
         classData = classDocOffline.data() as Class;
         classData.docId = id;
         this._classCache[id] = classData;
       }
-
-      // Now fetch the class data from the online source to update the cache
-      const classDocOnline = await getDoc(
-        doc(this._db, CollectionIds.CLASS, id)
-      );
-      if (classDocOnline.exists()) {
-        classData = classDocOnline.data() as Class;
-        classData.docId = id;
-        this._classCache[id] = classData;
-      }
-
+      // Fetch the class data from the online source to update the cache in the background
+      getDoc(doc(this._db, CollectionIds.CLASS, id))
+        .then((classDocOnline) => {
+          if (classDocOnline.exists()) {
+            const onlineClassData = classDocOnline.data() as Class;
+            onlineClassData.docId = id;
+            this._classCache[id] = onlineClassData;
+          }
+        })
+        .catch((error) => {
+          console.log(
+            "🚀 ~ file: FirebaseApi.ts:770 ~ FirebaseApi ~ getClassById (online fetch) ~ error:",
+            JSON.stringify(error)
+          );
+        });
       return classData;
     } catch (error) {
       console.log(
