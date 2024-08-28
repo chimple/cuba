@@ -86,10 +86,10 @@ import {
   ShowChapters,
   SearchLessons,
   AddStudent,
+  ClassUsers,
+  StudentProfile,
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
-import ClassUsers from "./chimple-private/pages/ClassUsers";
-import StudentProfile from "./chimple-private/components/studentProfile/StudentProfile";
 
 setupIonicReact();
 interface ExtraData {
