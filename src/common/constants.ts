@@ -48,10 +48,13 @@ export enum TABLES {
   Assignment = "assignment",
   Assignment_user = "assignment_user",
   Result = "result",
-  Assignment_cart = 'assignment_cart'
+  Assignment_cart = "assignment_cart",
   // Chatbot = "chatbot",
 }
-
+export enum CLASS_USERS {
+  STUDENTS = "Students",
+  TEACHERS = "Teachers",
+}
 export enum SL_GRADES {
   GRADE1 = "Grade 1",
   GRADE2 = "Grade 2",
@@ -387,9 +390,10 @@ export enum PAGES {
   ADD_STUDENT = "/add_student",
   TEST_PAGE = "/test-page",
   TEST_PAGE1 = "/test-page1",
-  TEACHER_ASSIGNMENT = '/teacher-assignment',
-  LESSON_DETAILS = '/lesson-details',
-  SEARCH_LESSON ='/search-lesson'
+  TEACHER_ASSIGNMENT = "/teacher-assignment",
+  LESSON_DETAILS = "/lesson-details",
+  SEARCH_LESSON = "/search-lesson",
+  CLASS_USERS = "/class-users",
   // Chatbot = "chatbot",
 }
 
