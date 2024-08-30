@@ -30,6 +30,22 @@ export const DisplaySchools = lazy(async () => {
     return { default: FallbackComponent };
   }
 });
+export const ClassUsers = lazy(async () => {
+  try {
+    //@ts-ignore
+    return await import("../chimple-private/pages/ClassUsers");
+  } catch (error) {
+    return { default: FallbackComponent };
+  }
+});
+export const StudentProfile = lazy(async () => {
+  try {
+    //@ts-ignore
+    return await import("../chimple-private/pages/StudentProfile");
+  } catch (error) {
+    return { default: FallbackComponent };
+  }
+});
 export const ShowChapters = lazy(async () => {
   try {
     //@ts-ignore

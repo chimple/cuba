@@ -76,7 +76,6 @@ import { ServiceConfig } from "./services/ServiceConfig";
 import User from "./models/user";
 // import TeacherProfile from "./pages/Malta/TeacherProfile";
 import React from "react";
-import StudentProfile from "./pages/Malta/StudentProfile";
 import Dashboard from "./pages/Malta/Dashboard";
 import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
 import {
@@ -88,6 +87,8 @@ import {
   SearchLessons,
   AddStudent,
   TeacherProfile,
+  ClassUsers,
+  StudentProfile,
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
 
@@ -353,7 +354,9 @@ const App: React.FC = () => {
               <TeacherProfile />
             </ProtectedRoute> */}
             <ProtectedRoute path={PAGES.STUDENT_PROFILE} exact={true}>
-              <StudentProfile />
+              <Suspense>
+                <StudentProfile />
+              </Suspense>
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.ADD_STUDENT} exact={true}>
               <Suspense>
@@ -418,6 +421,11 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.HOME_PAGE} exact={true}>
               <Suspense>
                 <HomePage />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.CLASS_USERS} exact={true}>
+              <Suspense>
+                <ClassUsers />
               </Suspense>
             </ProtectedRoute>
           </Switch>
