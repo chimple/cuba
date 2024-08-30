@@ -74,7 +74,7 @@ import { t } from "i18next";
 import { useTtsAudioPlayer } from "./components/animation/animationUtils";
 import { ServiceConfig } from "./services/ServiceConfig";
 import User from "./models/user";
-import TeacherProfile from "./pages/Malta/TeacherProfile";
+// import TeacherProfile from "./pages/Malta/TeacherProfile";
 import React from "react";
 import StudentProfile from "./pages/Malta/StudentProfile";
 import Dashboard from "./pages/Malta/Dashboard";
@@ -87,6 +87,7 @@ import {
   ShowChapters,
   SearchLessons,
   AddStudent,
+  TeacherProfile,
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
 
@@ -348,15 +349,20 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
               <SelectMode />
             </ProtectedRoute>
-            <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
+            {/* <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
               <TeacherProfile />
-            </ProtectedRoute>
+            </ProtectedRoute> */}
             <ProtectedRoute path={PAGES.STUDENT_PROFILE} exact={true}>
               <StudentProfile />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.ADD_STUDENT} exact={true}>
               <Suspense>
                 <AddStudent />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
+              <Suspense>
+                <TeacherProfile />
               </Suspense>
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
