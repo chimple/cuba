@@ -898,4 +898,8 @@ export class SupabaseApi implements ServiceApi {
   getUserAssignmentCart(userId: string): Promise<TableTypes<"assignment_cart"> | undefined> {
     throw new Error("Method not implemented.");
   }
+
+  getChapterByLesson(lessonId:string,classId:string): Promise< String | undefined>{
+    throw new Error("Method not implemented.");
+  }
 }
