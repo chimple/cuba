@@ -87,10 +87,10 @@ export const AddStudent = lazy(async () => {
     return { default: FallbackComponent };
   }
 });
-export const TeacherProfile = lazy(async () => {
+export const UserProfile = lazy(async () => {
   try {
     //@ts-ignore
-    return await import("../chimple-private/pages/TeacherProfile");
+    return await import("../chimple-private/pages/UserProfile");
   } catch (error) {
     return { default: FallbackComponent };
   }

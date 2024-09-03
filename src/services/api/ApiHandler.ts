@@ -239,6 +239,24 @@ export class ApiHandler implements ServiceApi {
       languageDocId
     );
   }
+
+  public async updateUserProfile(
+    user: TableTypes<"user">,
+    fullName: string,
+    email: string,
+    phoneNum: string,
+    languageDocId: string,
+    profilePic: string | undefined
+  ): Promise<TableTypes<"user">> {
+    return await this.s.updateUserProfile(
+      user,
+      fullName,
+      email,
+      phoneNum,
+      languageDocId,
+      profilePic
+    );
+  }
   public async getLiveQuizLessons(
     classId: string,
     studentId: string
@@ -442,10 +460,9 @@ export class ApiHandler implements ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined,
-    classId: string,  
-    role: string  
+    classId: string,
+    role: string
   ): Promise<TableTypes<"user">> {
-   
     return await this.s.createStudentProfile(
       name,
       age,

@@ -86,7 +86,7 @@ import {
   ShowChapters,
   SearchLessons,
   AddStudent,
-  TeacherProfile,
+  UserProfile,
   ClassUsers,
   StudentProfile,
 } from "./common/chimplePrivatePages";
@@ -363,9 +363,9 @@ const App: React.FC = () => {
                 <AddStudent />
               </Suspense>
             </ProtectedRoute>
-            <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
+            <ProtectedRoute path={PAGES.USER_PROFILE} exact={true}>
               <Suspense>
-                <TeacherProfile />
+                <UserProfile />
               </Suspense>
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
