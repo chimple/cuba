@@ -49,6 +49,38 @@ export interface ServiceApi {
     gradeDocId: string | undefined,
     languageDocId: string | undefined
   ): Promise<TableTypes<"user">>;
+  /**
+   * Creates a new school and returns the school object
+   * @param {string} name - name of the school
+   * @param {string} group1 - state of school
+   * @param {string} group1 - district of school
+   * @param {string} group1 - city of school
+   * @param {string[]} courseIds - school course ids
+   * @returns {TableTypes<"school">} School Object
+   */
+  createSchool(
+    name: string,
+    group1: string,
+    group2: string,
+    group3: string,
+    courseIds: string[]
+  ): Promise<TableTypes<"school">>;
+  /**
+   * updates a school details and returns the school object
+   * @param {TableTypes<"school">} school - school object
+   * @param {string} name - name of the school
+   * @param {string} group1 - state of school
+   * @param {string} group1 - district of school
+   * @param {string} group1 - city of school
+   * @returns {TableTypes<"school">} Updated School Object
+   */
+  updateSchoolProfile(
+    school: TableTypes<"school">,
+    name: string,
+    group1: string,
+    group2: string,
+    group3: string
+  ): Promise<TableTypes<"school">>;
 
   createStudentProfile(
     name: string,
@@ -59,8 +91,8 @@ export interface ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined,
-    classId: string,  
-    role: string  
+    classId: string,
+    role: string
   ): Promise<TableTypes<"user">>;
 
   /**
@@ -746,8 +778,8 @@ export interface ServiceApi {
 
   /**
    * Create Assignment Cart when the user added the lessons to his cart
-   * @param userId 
-   * @param lessons 
+   * @param userId
+   * @param lessons
    */
   createAssignmentCart(
     userId: string,
@@ -756,9 +788,9 @@ export interface ServiceApi {
 
   /**
    * Get user selected assignmets which they are added to their cart
-   * @param userId 
+   * @param userId
    */
   getUserAssignmentCart(
     userId: string
-  ): Promise<TableTypes<"assignment_cart"> | undefined>
+  ): Promise<TableTypes<"assignment_cart"> | undefined>;
 }

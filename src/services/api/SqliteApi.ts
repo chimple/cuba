@@ -553,6 +553,166 @@ export class SqliteApi implements ServiceApi {
 
     return newStudent;
   }
+  async createSchool(
+    name: string,
+    group1: string,
+    group2: string,
+    group3: string,
+    courseIds: string[]
+  ): Promise<TableTypes<"school">> {
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
+
+    const schoolId = uuidv4();
+    const newSchool: TableTypes<"school"> = {
+      id: schoolId,
+      name,
+      group1: group1 ?? null,
+      group2: group2 ?? null,
+      group3: group3 ?? null,
+      image: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+    };
+    console.log("school data..", newSchool);
+
+    await this.executeQuery(
+      `
+      INSERT INTO school (id, name, group1, group2, group3, image, created_at, updated_at, is_deleted)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `,
+      [
+        newSchool.id,
+        newSchool.name,
+        newSchool.group1,
+        newSchool.group2,
+        newSchool.group3,
+        newSchool.image,
+        newSchool.created_at,
+        newSchool.updated_at,
+        newSchool.is_deleted,
+      ]
+    );
+
+    await this.updatePushChanges(TABLES.School, MUTATE_TYPES.INSERT, newSchool);
+
+    // Insert into school_user table
+    const schoolUserId = uuidv4();
+    const newSchoolUser: TableTypes<"school_user"> = {
+      id: schoolUserId,
+      school_id: schoolId,
+      user_id: _currentUser.id,
+      role: RoleType.PRINCIPAL,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+    };
+    console.log("school user data..", newSchoolUser);
+
+    await this.executeQuery(
+      `
+      INSERT INTO school_user (id,school_id, user_id, role, created_at, updated_at, is_deleted)
+      VALUES (?, ?, ?, ?, ?, ?, ?);
+      `,
+      [
+        newSchoolUser.id,
+        newSchoolUser.school_id,
+        newSchoolUser.user_id,
+        newSchoolUser.role,
+        newSchoolUser.created_at,
+        newSchoolUser.updated_at,
+        newSchoolUser.is_deleted,
+      ]
+    );
+
+    await this.updatePushChanges(
+      TABLES.SchoolUser,
+      MUTATE_TYPES.INSERT,
+      newSchoolUser
+    );
+    // Insert into school_course table
+    for (const courseId of courseIds) {
+      const schoolCourseId = uuidv4();
+      const newSchoolCourse: TableTypes<"school_course"> = {
+        id: schoolCourseId,
+        school_id: schoolId,
+        course_id: courseId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_deleted: false,
+      };
+      console.log("school course data..", newSchoolCourse);
+
+      await this.executeQuery(
+        `
+      INSERT INTO school_course (id, school_id, course_id, created_at, updated_at, is_deleted)
+      VALUES (?, ?, ?, ?, ?, ?);
+      `,
+        [
+          newSchoolCourse.id,
+          newSchoolCourse.school_id,
+          newSchoolCourse.course_id,
+          newSchoolCourse.created_at,
+          newSchoolCourse.updated_at,
+          newSchoolCourse.is_deleted,
+        ]
+      );
+      await this.updatePushChanges(
+        TABLES.SchoolCourse,
+        MUTATE_TYPES.INSERT,
+        newSchoolCourse
+      );
+    }
+
+    return newSchool;
+  }
+  async updateSchoolProfile(
+    school: TableTypes<"school">,
+    name: string,
+    group1: string,
+    group2: string,
+    group3: string
+  ): Promise<TableTypes<"school">> {
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
+
+    const updatedSchool: TableTypes<"school"> = {
+      name: name ?? school.name,
+      group1: group1 ?? school.group1,
+      group2: group2 ?? school.group2,
+      group3: group3 ?? school.group3,
+      updated_at: new Date().toISOString(),
+      created_at: school.created_at,
+      id: school.id,
+      image: null,
+      is_deleted: false,
+    };
+    const updatedSchoolQuery = `
+    UPDATE school
+    SET name = ?, group1 = ?, group2 = ?, group3 = ?, updated_at=?
+    WHERE id = ?;
+    `;
+
+    await this.executeQuery(updatedSchoolQuery, [
+      updatedSchool.name,
+      updatedSchool.group1,
+      updatedSchool.group2,
+      updatedSchool.group3,
+      updatedSchool.updated_at,
+      school.id,
+    ]);
+
+    await this.updatePushChanges(
+      TABLES.School,
+      MUTATE_TYPES.UPDATE,
+      updatedSchool
+    );
+
+    return updatedSchool;
+  }
 
   async createStudentProfile(
     name: string,
