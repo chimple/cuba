@@ -2555,4 +2555,24 @@ order by
     console.log("🚀 ~ SqliteApi ~ searchLessons ~ dat1:", outcomeResults);
     return res;
   }
+
+  async getChapterByLesson(lessonId:string,classId:string): Promise<String | undefined>{
+    try {
+      const class_course = await this.getCoursesForClassStudent(classId)
+      const res = await this._db?.query(
+        `SELECT cl.lesson_id, c.course_id ,cl.chapter_id
+         FROM ${TABLES.ChapterLesson} cl
+         JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
+         WHERE cl.lesson_id = "${lessonId}"`
+      );
+      if (!res || !res.values || res.values.length < 1) return;
+      const classCourseIds = new Set(class_course.map(course => course.id));
+      const matchedLesson = res.values.find(lesson => classCourseIds.has(lesson.course_id));
+      
+      return matchedLesson ? matchedLesson.chapter_id : res.values[0].chapter_id
+    } catch (error) {
+      console.error("Error fetching chapter by IDs:", error);
+      return;
+    }
+  }
 }

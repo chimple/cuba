@@ -770,4 +770,10 @@ export interface ServiceApi {
   getUserAssignmentCart(
     userId: string
   ): Promise<TableTypes<"assignment_cart"> | undefined>
+  
+  /**
+   * Get the chapter by lessonId
+   * @param lessonId 
+   */
+  getChapterByLesson(lessonId:string,classId:string): Promise<String | undefined>
 }
