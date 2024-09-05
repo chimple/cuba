@@ -293,6 +293,15 @@ export interface ServiceApi {
     languageDocId: string
   ): Promise<TableTypes<"user">>;
 
+  updateUserProfile(
+    user: TableTypes<"user">,
+    fullName: string,
+    email: string,
+    phoneNum: string,
+    languageDocId: string,
+    profilePic: string | undefined
+  ): Promise<TableTypes<"user">>;
+
   /**
    * Gives Subject for given a Subject firebase doc Id
    * @param {string} id - Subject firebase doc id

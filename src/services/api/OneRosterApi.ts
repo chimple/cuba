@@ -325,6 +325,17 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<User> {
     throw new Error("Method not implemented.");
   }
+
+  updateUserProfile(
+    user: TableTypes<"user">,
+    fullName: string,
+    email: string,
+    phoneNum: string,
+    languageDocId: string,
+    profilePic: string | undefined
+  ): Promise<TableTypes<"user">> {
+    throw new Error("Method not implemented.");
+  }
   getLessonResultsForStudent(
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined> {
@@ -422,9 +433,9 @@ export class OneRosterApi implements ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined,
-    classId: string,  
-    role: string  
-  ): Promise<TableTypes<"user">>{
+    classId: string,
+    role: string
+  ): Promise<TableTypes<"user">> {
     throw new Error("Method not implemented.");
   }
 
