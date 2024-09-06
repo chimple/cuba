@@ -217,6 +217,26 @@ export class SupabaseApi implements ServiceApi {
     await this.supabase.from(TABLES.Assignment_cart).upsert({ id, ...data });
   }
 
+  async updateSchoolProfile(
+    school: TableTypes<"school">,
+    name: string,
+    group1: string,
+    group2: string,
+    group3: string
+  ): Promise<TableTypes<"school">> {
+    throw new Error("Method not implemented.");
+  }
+
+  async createSchool(
+    name: string,
+    group1: string,
+    group2: string,
+    group3: string,
+    courseIds: string[]
+  ): Promise<TableTypes<"school">> {
+    throw new Error("Method not implemented.");
+  }
+
   createProfile(
     name: string,
     age: number | undefined,
@@ -239,7 +259,7 @@ export class SupabaseApi implements ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined
-  ): Promise<TableTypes<"user">>{
+  ): Promise<TableTypes<"user">> {
     throw new Error("Method not implemented.");
   }
 
@@ -905,7 +925,9 @@ export class SupabaseApi implements ServiceApi {
     if (error) return [];
     return data;
   }
-  getUserAssignmentCart(userId: string): Promise<TableTypes<"assignment_cart"> | undefined> {
+  getUserAssignmentCart(
+    userId: string
+  ): Promise<TableTypes<"assignment_cart"> | undefined> {
     throw new Error("Method not implemented.");
   }
 
