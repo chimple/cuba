@@ -806,7 +806,6 @@ export class SqliteApi implements ServiceApi {
       MUTATE_TYPES.INSERT,
       newClassUser
     );
-
     return newStudent;
   }
 
@@ -1408,6 +1407,54 @@ export class SqliteApi implements ServiceApi {
     this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult);
     return newResult;
   }
+
+  async updateUserProfile(
+    user: TableTypes<"user">,
+    fullName: string,
+    email: string,
+    phoneNum: string,
+    languageDocId: string,
+    profilePic: string | undefined
+  ): Promise<TableTypes<"user">> {
+    const updateUserProfileQuery = `
+      UPDATE "user"
+      SET 
+        name = ?,
+        email = ?,
+        phone = ?,
+        language_id = ?,
+        image = ?
+      WHERE id = ?;
+    `;
+
+    await this.executeQuery(updateUserProfileQuery, [
+      fullName,
+      email,
+      phoneNum,
+      languageDocId,
+      profilePic ?? null,
+      user.id,
+    ]);
+
+    // Update the user object with new details
+    user.name = fullName;
+    user.email = email;
+    user.phone = phoneNum;
+    user.language_id = languageDocId;
+    user.image = profilePic ?? null;
+
+    // Push changes for synchronization
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+      name: fullName,
+      email: email,
+      phone: phoneNum,
+      language_id: languageDocId,
+      image: profilePic ?? null,
+      id: user.id,
+    });
+    return user;
+  }
+
   async updateStudent(
     student: TableTypes<"user">,
     name: string,
@@ -2667,5 +2714,25 @@ order by
     if (outcomeResults.values) res.push(...outcomeResults.values);
     console.log("🚀 ~ SqliteApi ~ searchLessons ~ dat1:", outcomeResults);
     return res;
+  }
+
+  async getChapterByLesson(lessonId:string,classId:string): Promise<String | undefined>{
+    try {
+      const class_course = await this.getCoursesForClassStudent(classId)
+      const res = await this._db?.query(
+        `SELECT cl.lesson_id, c.course_id ,cl.chapter_id
+         FROM ${TABLES.ChapterLesson} cl
+         JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
+         WHERE cl.lesson_id = "${lessonId}"`
+      );
+      if (!res || !res.values || res.values.length < 1) return;
+      const classCourseIds = new Set(class_course.map(course => course.id));
+      const matchedLesson = res.values.find(lesson => classCourseIds.has(lesson.course_id));
+      
+      return matchedLesson ? matchedLesson.chapter_id : res.values[0].chapter_id
+    } catch (error) {
+      console.error("Error fetching chapter by IDs:", error);
+      return;
+    }
   }
 }

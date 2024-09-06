@@ -263,6 +263,24 @@ export class ApiHandler implements ServiceApi {
       languageDocId
     );
   }
+
+  public async updateUserProfile(
+    user: TableTypes<"user">,
+    fullName: string,
+    email: string,
+    phoneNum: string,
+    languageDocId: string,
+    profilePic: string | undefined
+  ): Promise<TableTypes<"user">> {
+    return await this.s.updateUserProfile(
+      user,
+      fullName,
+      email,
+      phoneNum,
+      languageDocId,
+      profilePic
+    );
+  }
   public async getLiveQuizLessons(
     classId: string,
     studentId: string
@@ -599,5 +617,9 @@ export class ApiHandler implements ServiceApi {
     userId: string
   ): Promise<TableTypes<"assignment_cart"> | undefined> {
     return this.s.getUserAssignmentCart(userId);
+  }
+
+  getChapterByLesson(lessonId:string,classId:string): Promise<String | undefined>{
+    return this.s.getChapterByLesson(lessonId,classId)
   }
 }

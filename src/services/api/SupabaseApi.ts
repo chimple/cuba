@@ -425,6 +425,16 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"user">> {
     throw new Error("Method not implemented.");
   }
+  public async updateUserProfile(
+    user: TableTypes<"user">,
+    fullName: string,
+    email: string,
+    phoneNum: string,
+    languageDocId: string,
+    profilePic: string | undefined
+  ): Promise<TableTypes<"user">> {
+    throw new Error("Method not implemented.");
+  }
   getSubject(id: string): Promise<TableTypes<"subject"> | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -918,6 +928,10 @@ export class SupabaseApi implements ServiceApi {
   getUserAssignmentCart(
     userId: string
   ): Promise<TableTypes<"assignment_cart"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
+  getChapterByLesson(lessonId:string,classId:string): Promise< String | undefined>{
     throw new Error("Method not implemented.");
   }
 }

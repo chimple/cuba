@@ -74,7 +74,7 @@ import { t } from "i18next";
 import { useTtsAudioPlayer } from "./components/animation/animationUtils";
 import { ServiceConfig } from "./services/ServiceConfig";
 import User from "./models/user";
-import TeacherProfile from "./pages/Malta/TeacherProfile";
+// import TeacherProfile from "./pages/Malta/TeacherProfile";
 import React from "react";
 import Dashboard from "./pages/Malta/Dashboard";
 import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
@@ -86,6 +86,7 @@ import {
   ShowChapters,
   SearchLessons,
   AddStudent,
+  UserProfile,
   ClassUsers,
   StudentProfile,
   ManageSchools,
@@ -354,9 +355,9 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
               <SelectMode />
             </ProtectedRoute>
-            <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
+            {/* <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
               <TeacherProfile />
-            </ProtectedRoute>
+            </ProtectedRoute> */}
             <ProtectedRoute path={PAGES.STUDENT_PROFILE} exact={true}>
               <Suspense>
                 <StudentProfile />
@@ -365,6 +366,11 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.ADD_STUDENT} exact={true}>
               <Suspense>
                 <AddStudent />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.USER_PROFILE} exact={true}>
+              <Suspense>
+                <UserProfile />
               </Suspense>
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
