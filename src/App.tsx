@@ -410,7 +410,7 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
               <Suspense>
-                <AddSchool />
+                <EditSchool />
               </Suspense>
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.MANAGE_CLASS} exact={true}>
