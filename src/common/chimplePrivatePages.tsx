@@ -73,7 +73,7 @@ export const SchoolProfile = lazy(async () => {
 export const AddSchool = lazy(async () => {
   try {
     //@ts-ignore
-    return await import("../chimple-private/pages/AddSchool");
+    return await import("../chimple-private/pages/EditSchool");
   } catch (error) {
     return { default: FallbackComponent };
   }
