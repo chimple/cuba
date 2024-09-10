@@ -95,3 +95,11 @@ export const UserProfile = lazy(async () => {
     return { default: FallbackComponent };
   }
 });
+export const SubjectSelection = lazy(async () => {
+  try {
+    //@ts-ignore
+    return await import("../chimple-private/pages/SubjectSelection");
+  } catch (error) {
+    return { default: FallbackComponent };
+  }
+});

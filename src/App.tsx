@@ -89,6 +89,7 @@ import {
   UserProfile,
   ClassUsers,
   StudentProfile,
+  SubjectSelection
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
 
@@ -366,6 +367,11 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.USER_PROFILE} exact={true}>
               <Suspense>
                 <UserProfile />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SUBJECTS_PAGE} exact={true}>
+              <Suspense>
+                <SubjectSelection />
               </Suspense>
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
