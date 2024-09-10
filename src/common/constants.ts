@@ -1,6 +1,7 @@
 import { Capacitor } from "@capacitor/core";
 import Auth from "../models/auth";
 import { Database } from "../services/database";
+import { RoleType } from "../interface/modelInterfaces";
 
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = "sl-en",
@@ -394,8 +395,12 @@ export enum PAGES {
   LESSON_DETAILS = "/lesson-details",
   SEARCH_LESSON = "/search-lesson",
   CLASS_USERS = "/class-users",
-  SUBJECTS_PAGE = "/subject-selection"
-  // Chatbot = "chatbot",
+  SUBJECTS_PAGE = "/subject-selection",
+  MANAGE_SCHOOL = "/manage-schools",
+  SCHOOL_PROFILE = "/school-profile",
+  ADD_SCHOOL = "/add-school",
+  MANAGE_CLASS = "/manage-class",
+  EDIT_SCHOOL = "/edit-school",
 }
 
 export enum LANG {
@@ -405,7 +410,15 @@ export enum LANG {
   MARATHI = "mr",
   SIERRA_LEONE = "sl_en",
 }
+export enum DrawerOptions {
+  MANAGE_SCHOOL = "Manage School",
+  MANAGE_CLASS = "Manage Class",
+}
 
+export interface SchoolWithRole {
+  school: TableTypes<"school">;
+  role: RoleType;
+}
 export const SCREEN_WIDTH = window.innerWidth;
 export const SCREEN_HEIGHT = window.innerHeight;
 

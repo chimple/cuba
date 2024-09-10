@@ -89,6 +89,11 @@ import {
   UserProfile,
   ClassUsers,
   StudentProfile,
+  ManageSchools,
+  SchoolProfile,
+  AddSchool,
+  ManageClass,
+  EditSchool,
   SubjectSelection
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
@@ -399,11 +404,31 @@ const App: React.FC = () => {
                 <DisplaySchools />
               </Suspense>
             </Route>
-            <Route path={PAGES.HOME_PAGE} exact={true}>
+            <ProtectedRoute path={PAGES.MANAGE_SCHOOL} exact={true}>
               <Suspense>
-                <HomePage />
+                <ManageSchools />
               </Suspense>
-            </Route>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SCHOOL_PROFILE} exact={true}>
+              <Suspense>
+                <SchoolProfile />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
+              <Suspense>
+                <EditSchool />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.MANAGE_CLASS} exact={true}>
+              <Suspense>
+                <ManageClass />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
+              <Suspense>
+                <EditSchool />
+              </Suspense>
+            </ProtectedRoute>
             <Route path={PAGES.SHOW_CHAPTERS} exact={true}>
               <Suspense>
                 <ShowChapters />
