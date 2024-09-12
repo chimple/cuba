@@ -500,6 +500,12 @@ export class ApiHandler implements ServiceApi {
       role
     );
   }
+  public async updateClassCourseSelection(
+    classId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> {
+    return this.s.updateClassCourseSelection(classId, selectedCourseIds);
+  }
 
   public async addCourseForParentsStudent(
     courses: TableTypes<"course">[],

@@ -95,6 +95,11 @@ export interface ServiceApi {
     role: string
   ): Promise<TableTypes<"user">>;
 
+  updateClassCourseSelection(
+    classId: string,
+    selectedCourseIds: string[]
+  ): Promise<void>;
+
   /**
    * To delete `Profile` for given student Id
    * @param {string } studentId - Student Id
