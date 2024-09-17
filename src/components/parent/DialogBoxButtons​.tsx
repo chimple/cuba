@@ -44,7 +44,8 @@ const DialogBoxButtons: React.FC<{
         sx={{
           "& .MuiPaper-root": {
             borderRadius: "6vh !important",
-            width: "42vw !important",
+            maxWidth: "75vw !important",
+            minWidth: "42vw !important",
           },
           "& .MuiTypography-root": { margin: "13% 0% 0% 0% !important" },
         }}
@@ -55,6 +56,8 @@ const DialogBoxButtons: React.FC<{
             textAlign: "center",
             width: width,
             height: height,
+            maxWidth: "70vw",
+            maxHeight: "40vh",
           }}
           sx={{
             "&.MuiDialogContent-root": { padding: " 20px 0 24px 33px " },
