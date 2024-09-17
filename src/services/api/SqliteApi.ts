@@ -1803,7 +1803,87 @@ export class SqliteApi implements ServiceApi {
     let inviteData = await this._serverApi.getDataByInviteCode(inviteCode);
     return inviteData;
   }
+  async createClass(
+    schoolId: string,
+    className: string
+  ): Promise<TableTypes<"class">> {
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
 
+    const classId = uuidv4();
+    const newClass: TableTypes<"class"> = {
+      id: classId,
+      name: className,
+      image: null,
+      school_id: schoolId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+    };
+    console.log("school data..", newClass);
+
+    await this.executeQuery(
+      `
+      INSERT INTO class (id, name , image, school_id, created_at, updated_at, is_deleted)
+      VALUES (?, ?, ?, ?, ?, ?, ?);
+      `,
+      [
+        newClass.id,
+        newClass.name,
+        newClass.image,
+        newClass.school_id,
+        newClass.created_at,
+        newClass.updated_at,
+        newClass.is_deleted,
+      ]
+    );
+
+    await this.updatePushChanges(TABLES.Class, MUTATE_TYPES.INSERT, newClass);
+    return newClass;
+  }
+  async deleteClass(classId: string) {
+    try {
+      // Delete from class_user where role is teacher
+      await this.executeQuery(
+        `DELETE FROM class_user WHERE class_id = ? AND role = ?`,
+        [classId, RoleType.TEACHER] // Passing RoleType.TEACHER as a parameter
+      );
+
+      //  Delete from class_course where class_id matches
+      await this.executeQuery(`DELETE FROM class_course WHERE class_id = ?`, [
+        classId,
+      ]);
+
+      //  Delete from class where id matches and is_deleted is false
+      await this.executeQuery(
+        `DELETE FROM class WHERE id = ? AND is_deleted = 0`,
+        [classId]
+      );
+
+      console.log("Class and related data deleted successfully.");
+    } catch (error) {
+      console.error("Failed to delete class:", error);
+      throw error;
+    }
+  }
+  async updateClass(classId: string, className: string) {
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
+
+    const updatedClassQuery = `
+    UPDATE class SET name = "${className}"
+    WHERE id = "${classId}";
+    `;
+    const res = await this.executeQuery(updatedClassQuery);
+    console.log("🚀 ~ SqliteApi ~ updateClass ~ res:", res);
+
+    this.updatePushChanges(TABLES.Class, MUTATE_TYPES.UPDATE, {
+      name: className,
+      id: classId,
+    });
+  }
   async linkStudent(inviteCode: number, studentId: string): Promise<any> {
     let linkData = await this._serverApi.linkStudent(inviteCode, studentId);
     await this.syncDbNow(Object.values(TABLES), [

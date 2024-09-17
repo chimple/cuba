@@ -401,6 +401,9 @@ export enum PAGES {
   ADD_SCHOOL = "/add-school",
   MANAGE_CLASS = "/manage-class",
   EDIT_SCHOOL = "/edit-school",
+  EDIT_CLASS = "/edit-class",
+  ADD_CLASS = "/add-class",
+  CLASS_PROFILE = "/class-profile",
 }
 
 export enum LANG {
@@ -456,6 +459,14 @@ export const LIVE_QUIZ = "liveQuiz";
 export const COCOS = "cocos";
 export const TYPE = "type";
 export const APP_NAME = "Kids";
+export const SCHOOL = "school";
+export const CLASS = "class";
+export const USER_ROLE = "userRole";
+
+export enum IconType {
+  SCHOOL = "school",
+  CLASS = "class",
+}
 
 export const BASE_NAME =
   !Capacitor.isNativePlatform() && !!process.env.REACT_APP_GITHUB_BASE

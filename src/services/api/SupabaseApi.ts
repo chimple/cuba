@@ -516,6 +516,18 @@ export class SupabaseApi implements ServiceApi {
       throw new Error("Invalid inviteCode");
     }
   }
+  async createClass(
+    schoolId: string,
+    className: string
+  ): Promise<TableTypes<"class">> {
+    throw new Error("Method not implemented.");
+  }
+  async deleteClass(classId: string) {
+    throw new Error("Method not implemented.");
+  }
+  async updateClass(classId: string, className: string) {
+    throw new Error("Method not implemented.");
+  }
   async linkStudent(inviteCode: number, studentId: string): Promise<any> {
     try {
       if (!studentId) {
@@ -937,7 +949,10 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getChapterByLesson(lessonId:string,classId:string): Promise< String | undefined>{
+  getChapterByLesson(
+    lessonId: string,
+    classId: string
+  ): Promise<String | undefined> {
     throw new Error("Method not implemented.");
   }
 }

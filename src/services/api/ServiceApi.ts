@@ -816,4 +816,25 @@ export interface ServiceApi {
     lessonId: string,
     classId: string
   ): Promise<String | undefined>;
+  /**
+   * Creates a class for the given school
+   * @param schoolId
+   * @param className
+   * @returns {TableTypes<"class">} Class Object
+   */
+  createClass(
+    schoolId: string,
+    className: string
+  ): Promise<TableTypes<"class">>;
+  /**
+   * Updates a class name for given classId
+   * @param classId
+   * @param className
+   */
+  updateClass(classId: string, className: string);
+  /**
+   * Deletes a class
+   * @param classId
+   */
+  deleteClass(classId: string);
 }
