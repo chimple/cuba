@@ -78,6 +78,30 @@ export const AddSchool = lazy(async () => {
     return { default: FallbackComponent };
   }
 });
+export const AddClass = lazy(async () => {
+  try {
+    //@ts-ignore
+    return await import("../chimple-private/pages/EditClass");
+  } catch (error) {
+    return { default: FallbackComponent };
+  }
+});
+export const EditClass = lazy(async () => {
+  try {
+    //@ts-ignore
+    return await import("../chimple-private/pages/EditClass");
+  } catch (error) {
+    return { default: FallbackComponent };
+  }
+});
+export const ClassProfile = lazy(async () => {
+  try {
+    //@ts-ignore
+    return await import("../chimple-private/pages/ClassProfile");
+  } catch (error) {
+    return { default: FallbackComponent };
+  }
+});
 export const StudentProfile = lazy(async () => {
   try {
     //@ts-ignore

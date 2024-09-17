@@ -94,6 +94,8 @@ import {
   AddSchool,
   ManageClass,
   EditSchool,
+  EditClass,
+  ClassProfile,
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
 
@@ -421,6 +423,21 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
               <Suspense>
                 <EditSchool />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.EDIT_CLASS} exact={true}>
+              <Suspense>
+                <EditClass />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_CLASS} exact={true}>
+              <Suspense>
+                <EditClass />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.CLASS_PROFILE} exact={true}>
+              <Suspense>
+                <ClassProfile />
               </Suspense>
             </ProtectedRoute>
             <Route path={PAGES.SHOW_CHAPTERS} exact={true}>
