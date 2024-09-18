@@ -805,6 +805,64 @@ export class SqliteApi implements ServiceApi {
     return newStudent;
   }
 
+  async updateClassCourseSelection(
+    classId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> {
+    const currentDate = new Date().toISOString();
+
+    for (const courseId of selectedCourseIds) {
+      // Check if the course is already assigned to the class
+      const isExist = await this._db?.query(
+        `SELECT * FROM class_course WHERE class_id = '${classId}' AND course_id = '${courseId}';`
+      );
+
+      if (!isExist || !isExist.values || isExist.values.length < 1) {
+        // Insert new entry into class_course table
+        const newId = uuidv4();
+        const newClassCourseEntry = {
+          id: newId,
+          class_id: classId,
+          course_id: courseId,
+          created_at: currentDate,
+          updated_at: currentDate,
+          is_deleted: false,
+        };
+        await this.executeQuery(
+          `INSERT INTO class_course (id, class_id, course_id, created_at, updated_at, is_deleted)
+          VALUES (?, ?, ?, ?, ?, ?);`,
+          [
+            newClassCourseEntry.id,
+            newClassCourseEntry.class_id,
+            newClassCourseEntry.course_id,
+            newClassCourseEntry.created_at,
+            newClassCourseEntry.updated_at,
+            newClassCourseEntry.is_deleted,
+          ]
+        );
+
+        this.updatePushChanges(
+          TABLES.ClassCourse,
+          MUTATE_TYPES.INSERT,
+          newClassCourseEntry
+        );
+      } else {
+        // Update the existing entry's updated_at field
+        const existingEntry = isExist.values[0];
+        await this.executeQuery(
+          `UPDATE class_course SET updated_at = ? WHERE id = ?;`,
+          [currentDate, existingEntry.id]
+        );
+
+        // Optionally: Update changes for syncing or notifications
+        this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.UPDATE, {
+          id: existingEntry.id,
+          updated_at: currentDate,
+        });
+      }
+    }
+  }
+
   async deleteProfile(studentId: string) {
     if (!this._db) return;
     try {
@@ -1775,7 +1833,87 @@ export class SqliteApi implements ServiceApi {
     let inviteData = await this._serverApi.getDataByInviteCode(inviteCode);
     return inviteData;
   }
+  async createClass(
+    schoolId: string,
+    className: string
+  ): Promise<TableTypes<"class">> {
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
 
+    const classId = uuidv4();
+    const newClass: TableTypes<"class"> = {
+      id: classId,
+      name: className,
+      image: null,
+      school_id: schoolId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+    };
+    console.log("school data..", newClass);
+
+    await this.executeQuery(
+      `
+      INSERT INTO class (id, name , image, school_id, created_at, updated_at, is_deleted)
+      VALUES (?, ?, ?, ?, ?, ?, ?);
+      `,
+      [
+        newClass.id,
+        newClass.name,
+        newClass.image,
+        newClass.school_id,
+        newClass.created_at,
+        newClass.updated_at,
+        newClass.is_deleted,
+      ]
+    );
+
+    await this.updatePushChanges(TABLES.Class, MUTATE_TYPES.INSERT, newClass);
+    return newClass;
+  }
+  async deleteClass(classId: string) {
+    try {
+      // Delete from class_user where role is teacher
+      await this.executeQuery(
+        `DELETE FROM class_user WHERE class_id = ? AND role = ?`,
+        [classId, RoleType.TEACHER] // Passing RoleType.TEACHER as a parameter
+      );
+
+      //  Delete from class_course where class_id matches
+      await this.executeQuery(`DELETE FROM class_course WHERE class_id = ?`, [
+        classId,
+      ]);
+
+      //  Delete from class where id matches and is_deleted is false
+      await this.executeQuery(
+        `DELETE FROM class WHERE id = ? AND is_deleted = 0`,
+        [classId]
+      );
+
+      console.log("Class and related data deleted successfully.");
+    } catch (error) {
+      console.error("Failed to delete class:", error);
+      throw error;
+    }
+  }
+  async updateClass(classId: string, className: string) {
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
+
+    const updatedClassQuery = `
+    UPDATE class SET name = "${className}"
+    WHERE id = "${classId}";
+    `;
+    const res = await this.executeQuery(updatedClassQuery);
+    console.log("🚀 ~ SqliteApi ~ updateClass ~ res:", res);
+
+    this.updatePushChanges(TABLES.Class, MUTATE_TYPES.UPDATE, {
+      name: className,
+      id: classId,
+    });
+  }
   async linkStudent(inviteCode: number, studentId: string): Promise<any> {
     let linkData = await this._serverApi.linkStudent(inviteCode, studentId);
     await this.syncDbNow(Object.values(TABLES), [

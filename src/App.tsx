@@ -94,6 +94,9 @@ import {
   AddSchool,
   ManageClass,
   EditSchool,
+  SubjectSelection,
+  EditClass,
+  ClassProfile,
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
 
@@ -373,6 +376,11 @@ const App: React.FC = () => {
                 <UserProfile />
               </Suspense>
             </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SUBJECTS_PAGE} exact={true}>
+              <Suspense>
+                <SubjectSelection />
+              </Suspense>
+            </ProtectedRoute>
             <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
               <LiveQuizRoom />
             </ProtectedRoute>
@@ -421,6 +429,21 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
               <Suspense>
                 <EditSchool />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.EDIT_CLASS} exact={true}>
+              <Suspense>
+                <EditClass />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_CLASS} exact={true}>
+              <Suspense>
+                <EditClass />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.CLASS_PROFILE} exact={true}>
+              <Suspense>
+                <ClassProfile />
               </Suspense>
             </ProtectedRoute>
             <Route path={PAGES.SHOW_CHAPTERS} exact={true}>

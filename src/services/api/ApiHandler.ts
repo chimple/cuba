@@ -162,6 +162,9 @@ export class ApiHandler implements ServiceApi {
   public async isUserTeacher(userId: string): Promise<boolean> {
     return await this.s.isUserTeacher(userId);
   }
+  public async deleteClass(classId: string) {
+    return await this.s.deleteClass(classId);
+  }
   public async getClassesForSchool(
     schoolId: string,
     userId: string
@@ -500,6 +503,12 @@ export class ApiHandler implements ServiceApi {
       role
     );
   }
+  public async updateClassCourseSelection(
+    classId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> {
+    return this.s.updateClassCourseSelection(classId, selectedCourseIds);
+  }
 
   public async addCourseForParentsStudent(
     courses: TableTypes<"course">[],
@@ -619,8 +628,20 @@ export class ApiHandler implements ServiceApi {
     return this.s.getUserAssignmentCart(userId);
   }
 
-  getChapterByLesson(lessonId:string,classId:string): Promise<String | undefined>{
-    return this.s.getChapterByLesson(lessonId,classId)
+  getChapterByLesson(
+    lessonId: string,
+    classId: string
+  ): Promise<String | undefined> {
+    return this.s.getChapterByLesson(lessonId, classId);
+  }
+  createClass(
+    schoolId: string,
+    className: string
+  ): Promise<TableTypes<"class">> {
+    return this.s.createClass(schoolId, className);
+  }
+  updateClass(classId: string, className: string) {
+    return this.s.updateClass(classId, className);
   }
   getAssignmentByClassByDate(classId:string,startDate:string,endData:string): Promise<TableTypes<"assignment">[] | undefined>{
     return this.s.getAssignmentByClassByDate(classId,startDate,endData)
