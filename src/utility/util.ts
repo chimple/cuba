@@ -40,13 +40,16 @@ import {
   DOWNLOADING_CHAPTER_ID,
   TABLES,
   REFRESH_TOKEN,
+  SCHOOL,
+  USER_ROLE,
+  CLASS,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
   Course as curriculamInterfaceCourse,
   Lesson as curriculamInterfaceLesson,
 } from "../interface/curriculumInterfaces";
-import { GUIDRef } from "../interface/modelInterfaces";
+import { GUIDRef, RoleType } from "../interface/modelInterfaces";
 import { OneRosterApi } from "../services/api/OneRosterApi";
 import { ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
@@ -105,7 +108,7 @@ export class Util {
     chapters,
     currentChapterId,
     currentLessonId,
-    ChapterDetail,
+    ChapterDetail
   ) {
     const api = ServiceConfig.getI().apiHandler;
     // let ChapterDetail: Chapter | undefined;
@@ -151,7 +154,7 @@ export class Util {
       }
       if (nextLesson) {
         const lessonObj = (await api.getLesson(
-          nextLesson.id,
+          nextLesson.id
         )) as TableTypes<"lesson">;
         console.log("lessonObj", lessonObj);
         if (lessonObj) {
@@ -184,7 +187,7 @@ export class Util {
 
   public static checkLessonPresentInCourse(
     course: TableTypes<"course">,
-    lessonDoc: String,
+    lessonDoc: String
   ): boolean {
     // if (!course || !course) return false;
     // for (const chapter of course?.chapters) {
@@ -227,7 +230,7 @@ export class Util {
     if (currUser) {
       ServiceConfig.getI().apiHandler.updateSoundFlag(
         currUser.id,
-        currSound === "0" ? false : true,
+        currSound === "0" ? false : true
       );
     }
     return currSound === "0" ? 0 : 1;
@@ -238,7 +241,7 @@ export class Util {
     if (currUser) {
       ServiceConfig.getI().apiHandler.updateSoundFlag(
         currUser.id,
-        currSound === 1,
+        currSound === 1
       );
     }
     localStorage.setItem(SOUND, currSound.toString());
@@ -254,7 +257,7 @@ export class Util {
     if (currUser) {
       ServiceConfig.getI().apiHandler.updateMusicFlag(
         currUser.id,
-        currMusic === "0" ? false : true,
+        currMusic === "0" ? false : true
       );
     }
     return currMusic === "0" ? 0 : 1;
@@ -265,7 +268,7 @@ export class Util {
     if (currUser) {
       ServiceConfig.getI().apiHandler.updateMusicFlag(
         currUser.id,
-        currMusic === 1,
+        currMusic === 1
       );
     }
     localStorage.setItem(MUSIC, currMusic.toString());
@@ -276,10 +279,10 @@ export class Util {
 
   public static storeLessonIdToLocalStorage = (
     id: string | string[],
-    lessonIdStorageKey: string,
+    lessonIdStorageKey: string
   ) => {
     const storedItems = JSON.parse(
-      localStorage.getItem(lessonIdStorageKey) || "[]",
+      localStorage.getItem(lessonIdStorageKey) || "[]"
     );
 
     const updatedItems = [
@@ -293,7 +296,7 @@ export class Util {
 
   public static getStoredLessonIds = () => {
     const storedItems = JSON.parse(
-      localStorage.getItem(DOWNLOADED_LESSON_ID) || JSON.stringify([]),
+      localStorage.getItem(DOWNLOADED_LESSON_ID) || JSON.stringify([])
     );
 
     return storedItems;
@@ -301,10 +304,10 @@ export class Util {
 
   public static removeLessonIdFromLocalStorage = (
     id: string | string[],
-    lessonIdStorageKey: string,
+    lessonIdStorageKey: string
   ): void => {
     const storedItems = JSON.parse(
-      localStorage.getItem(lessonIdStorageKey) || "[]",
+      localStorage.getItem(lessonIdStorageKey) || "[]"
     );
 
     let idsToRemove: string[];
@@ -324,7 +327,7 @@ export class Util {
 
   public static async downloadZipBundle(
     lessonIds: string[],
-    chapterId?: string,
+    chapterId?: string
   ): Promise<boolean> {
     try {
       if (!Capacitor.isNativePlatform()) return true;
@@ -332,7 +335,7 @@ export class Util {
       for (let i = 0; i < lessonIds.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
         const lessonIdsChunk = lessonIds.slice(
           i,
-          i + DOWNLOAD_LESSON_BATCH_SIZE,
+          i + DOWNLOAD_LESSON_BATCH_SIZE
         );
         const results = await Promise.all(
           lessonIdsChunk.map(async (lessonId) => {
@@ -341,7 +344,7 @@ export class Util {
               console.log(
                 "downloading Directory.External",
                 Directory.External,
-                "Directory.Library",
+                "Directory.Library"
               );
               const fs = createFilesystem(Filesystem, {
                 rootDir: "/",
@@ -362,7 +365,7 @@ export class Util {
               if (isExists) {
                 this.storeLessonIdToLocalStorage(
                   lessonId,
-                  DOWNLOADED_LESSON_ID,
+                  DOWNLOADED_LESSON_ID
                 );
                 return true;
               } // Skip if lesson exists
@@ -371,11 +374,11 @@ export class Util {
                 "before local lesson Bundle http url:" +
                   "assets/" +
                   lessonId +
-                  "/config.json",
+                  "/config.json"
               );
 
               const fetchingLocalBundle = await fetch(
-                "assets/" + lessonId + "/config.json",
+                "assets/" + lessonId + "/config.json"
               );
               console.log(
                 "after local lesson Bundle fetch url:" +
@@ -384,14 +387,14 @@ export class Util {
                   "/config.json",
                 fetchingLocalBundle.ok,
                 fetchingLocalBundle.json,
-                fetchingLocalBundle,
+                fetchingLocalBundle
               );
 
               if (fetchingLocalBundle.ok) return true;
 
               console.log("fs", fs);
               const bundleZipUrls: string[] = await RemoteConfig.getJSON(
-                REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
+                REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS
               );
               if (!bundleZipUrls || bundleZipUrls.length < 1) return false;
               let zip;
@@ -407,13 +410,13 @@ export class Util {
                     });
                     console.log(
                       "🚀 ~ file: util.ts:219 ~ downloadZipBundle ~ zip:",
-                      zip.status,
+                      zip.status
                     );
                     if (!!zip && !!zip.data && zip.status === 200) break;
                   } catch (error) {
                     console.log(
                       "🚀 ~ file: util.ts:216 ~ downloadZipBundle ~ error:",
-                      error,
+                      error
                     );
                   }
                 }
@@ -424,7 +427,7 @@ export class Util {
               if (zip instanceof Object) {
                 console.log("unzipping ");
                 const buffer = Uint8Array.from(atob(zip.data), (c) =>
-                  c.charCodeAt(0),
+                  c.charCodeAt(0)
                 );
                 await unzip({
                   fs: fs,
@@ -438,21 +441,21 @@ export class Util {
                       event.total,
                       event.filename,
                       event.isDirectory,
-                      event.loaded,
+                      event.loaded
                     ),
                   data: buffer,
                 });
                 console.log("Unzip done");
                 this.storeLessonIdToLocalStorage(
                   lessonId,
-                  DOWNLOADED_LESSON_ID,
+                  DOWNLOADED_LESSON_ID
                 );
 
                 const customEvent = new CustomEvent(
                   LESSON_DOWNLOAD_SUCCESS_EVENT,
                   {
                     detail: { lessonId },
-                  },
+                  }
                 );
 
                 window.dispatchEvent(customEvent);
@@ -463,7 +466,7 @@ export class Util {
               console.error("Error during lesson download: ", error);
               return false;
             }
-          }),
+          })
         );
 
         if (!results.every((result) => result === true)) {
@@ -486,7 +489,7 @@ export class Util {
   }
 
   public static async deleteDownloadedLesson(
-    lessonIds: string[],
+    lessonIds: string[]
   ): Promise<boolean> {
     try {
       for (const lessonId of lessonIds) {
@@ -534,7 +537,7 @@ export class Util {
         console.log("local ids", folderNamesArray);
         this.storeLessonIdToLocalStorage(
           folderNamesArray,
-          DOWNLOADED_LESSON_ID,
+          DOWNLOADED_LESSON_ID
         );
         lastRendered = new Date().getTime();
         localStorage.setItem(LAST_FUNCTION_CALL, lastRendered.toString());
@@ -548,10 +551,10 @@ export class Util {
 
   public static async isChapterDownloaded(chapterId: string): Promise<boolean> {
     const chapterLessonIdMap = JSON.parse(
-      localStorage.getItem(CHAPTER_ID_LESSON_ID_MAP) || "{}",
+      localStorage.getItem(CHAPTER_ID_LESSON_ID_MAP) || "{}"
     );
     const downloadedLessonIds = JSON.parse(
-      localStorage.getItem(DOWNLOADED_LESSON_ID) || "[]",
+      localStorage.getItem(DOWNLOADED_LESSON_ID) || "[]"
     );
     let lessonIdsForChapter = chapterLessonIdMap[chapterId];
     if (!lessonIdsForChapter) {
@@ -561,11 +564,11 @@ export class Util {
       chapterLessonIdMap[chapterId] = lessonIdsForChapter;
       localStorage.setItem(
         CHAPTER_ID_LESSON_ID_MAP,
-        JSON.stringify(chapterLessonIdMap),
+        JSON.stringify(chapterLessonIdMap)
       );
     }
     const allLessonIdsDownloaded = lessonIdsForChapter.every(
-      (lessonId: string) => downloadedLessonIds.includes(lessonId),
+      (lessonId: string) => downloadedLessonIds.includes(lessonId)
     );
     return !allLessonIdsDownloaded;
   }
@@ -642,7 +645,7 @@ export class Util {
     subjectCode: string,
     lessons: curriculamInterfaceLesson[],
     chapters: curriculamInterfaceChapter[] = [],
-    lessonResultMap: { [key: string]: TableTypes<"result"> } = {},
+    lessonResultMap: { [key: string]: TableTypes<"result"> } = {}
   ): Promise<number> {
     const currentLessonJson = localStorage.getItem(CURRENT_LESSON_LEVEL());
     let currentLessonLevel: any = {};
@@ -652,7 +655,7 @@ export class Util {
     const currentLessonId = currentLessonLevel[subjectCode];
     if (currentLessonId) {
       const lessonIndex: number = lessons.findIndex(
-        (lesson: any) => lesson.id === currentLessonId,
+        (lesson: any) => lesson.id === currentLessonId
       );
       if (lessonIndex >= 0) return lessonIndex;
     }
@@ -662,7 +665,7 @@ export class Util {
       if (Object.keys(lessonResultMap).length <= 0) return 0;
       const currentIndex = Util.getLastPlayedLessonIndexForLessons(
         lessons,
-        lessonResultMap,
+        lessonResultMap
       );
       // for (let i = 0; i < lessons.length; i++) {
       //   if (lessonResultMap[lessons[i].id]) {
@@ -677,7 +680,7 @@ export class Util {
     const tempLevelChapter = await apiInstance.getChapterForPreQuizScore(
       subjectCode,
       preQuiz.score ?? 0,
-      chapters,
+      chapters
     );
     // let tempCurrentIndex = 0;
     // for (let i = 0; i < tempLevelChapter.lessons.length; i++) {
@@ -687,11 +690,11 @@ export class Util {
     // }
     const tempCurrentIndex = Util.getLastPlayedLessonIndexForLessons(
       tempLevelChapter.lessons,
-      lessonResultMap,
+      lessonResultMap
     );
     let currentIndex: number = lessons.findIndex(
       (lesson: any) =>
-        lesson.id === tempLevelChapter.lessons[tempCurrentIndex].id,
+        lesson.id === tempLevelChapter.lessons[tempCurrentIndex].id
     );
     // currentIndex--;
     return currentIndex < 0 ? 0 : currentIndex;
@@ -699,7 +702,7 @@ export class Util {
 
   public static getLastPlayedLessonIndexForLessons(
     lessons: curriculamInterfaceLesson[],
-    lessonResultMap: { [key: string]: TableTypes<"result"> } = {},
+    lessonResultMap: { [key: string]: TableTypes<"result"> } = {}
   ): number {
     let tempCurrentIndex = 0;
     for (let i = 0; i < lessons.length; i++) {
@@ -752,7 +755,7 @@ export class Util {
     eventName: EVENTS,
     params: {
       [key: string]: any;
-    },
+    }
   ) {
     try {
       //Setting User Id in User Properites
@@ -775,7 +778,7 @@ export class Util {
         "Error logging event to firebase analytics ",
         eventName,
         ":",
-        error,
+        error
       );
     }
   }
@@ -902,7 +905,7 @@ export class Util {
               }
             }
           },
-          false,
+          false
         );
         canvas.addEventListener(
           "webglcontextrestored",
@@ -921,13 +924,13 @@ export class Util {
               }
             }
           },
-          false,
+          false
         );
       }
     } catch (error) {
       console.log(
         "🚀 ~ file: util.ts:965 ~ checkingIfGameCanvasAvailable ~ error:",
-        error,
+        error
       );
       // throw error;
     }
@@ -947,7 +950,7 @@ export class Util {
     student: TableTypes<"user"> | null,
     languageCode?: string,
     langFlag: boolean = true,
-    isStudent: boolean = true,
+    isStudent: boolean = true
   ) => {
     console.log("setCurrentStudent called", student);
 
@@ -956,7 +959,7 @@ export class Util {
 
     localStorage.setItem(
       CURRENT_STUDENT,
-      JSON.stringify(student),
+      JSON.stringify(student)
       // JSON.stringify({
       //   age: student?.age ?? null,
       //   avatar: student?.avatar ?? null,
@@ -1010,7 +1013,7 @@ export class Util {
   }
   public static async subscribeToClassTopic(
     classId: string,
-    schoolId: string,
+    schoolId: string
   ): Promise<void> {
     const classToken = `${classId}-assignments`;
     const schoolToken = `${schoolId}-assignments`;
@@ -1045,7 +1048,7 @@ export class Util {
   }
 
   public static async subscribeToClassTopicForAllStudents(
-    currentUser: TableTypes<"user">,
+    currentUser: TableTypes<"user">
   ): Promise<void> {
     // if (!Capacitor.isNativePlatform()) return;
     // const students: DocumentReference[] = currentUser.users;
@@ -1078,7 +1081,7 @@ export class Util {
       tokens = JSON.parse(subscribedTokens) ?? [];
     }
     const foundToken = tokens.find((token: string) =>
-      token.startsWith(classId),
+      token.startsWith(classId)
     );
     return !!foundToken;
   }
@@ -1126,13 +1129,13 @@ export class Util {
       const canCheckUpdate = Util.canCheckUpdate(LAST_UPDATE_CHECKED);
       console.log(
         "🚀 ~ file: util.ts:473 ~ startFlexibleUpdate ~ canCheckUpdate:",
-        canCheckUpdate,
+        canCheckUpdate
       );
       if (!canCheckUpdate) return;
       const result = await AppUpdate.getAppUpdateInfo();
       console.log(
         "🚀 ~ file: util.ts:471 ~ startFlexibleUpdate ~ result:",
-        JSON.stringify(result),
+        JSON.stringify(result)
       );
       if (
         result.updateAvailability !== AppUpdateAvailability.UPDATE_AVAILABLE
@@ -1143,23 +1146,23 @@ export class Util {
         const appUpdateResult = await AppUpdate.startFlexibleUpdate();
         console.log(
           "🚀 ~ file: util.ts:482 ~ startFlexibleUpdate ~ appUpdateResult:",
-          JSON.stringify(appUpdateResult),
+          JSON.stringify(appUpdateResult)
         );
         if (appUpdateResult.code === AppUpdateResultCode.OK) {
           console.log(
             "🚀 ~ file: util.ts:487 ~ startFlexibleUpdate ~ appUpdateResult.code:",
-            appUpdateResult.code,
+            appUpdateResult.code
           );
           await AppUpdate.completeFlexibleUpdate();
           console.log(
-            "🚀 ~ file: util.ts:492 ~ startFlexibleUpdate ~ completeFlexibleUpdate:",
+            "🚀 ~ file: util.ts:492 ~ startFlexibleUpdate ~ completeFlexibleUpdate:"
           );
         }
       }
     } catch (error) {
       console.log(
         "🚀 ~ file: util.ts:482 ~ startFlexibleUpdate ~ error:",
-        JSON.stringify(error),
+        JSON.stringify(error)
       );
     }
   }
@@ -1167,7 +1170,7 @@ export class Util {
   public static notificationsCount = 0;
 
   public static async notificationListener(
-    onNotification: (extraData?: object) => void,
+    onNotification: (extraData?: object) => void
   ) {
     if (!Capacitor.isNativePlatform()) return;
     try {
@@ -1201,23 +1204,23 @@ export class Util {
               (notification) => {
                 console.log(
                   "Local Notification Action Performed",
-                  notification,
+                  notification
                 );
                 const extraData = notification.notification.extra;
                 onNotification(extraData);
-              },
+              }
             );
             console.log(
               "🚀 ~ file: util.ts:622 ~ res:",
-              JSON.stringify(res.notifications),
+              JSON.stringify(res.notifications)
             );
           } catch (error) {
             console.log(
               "🚀 ~ file: util.ts:630 ~ error:",
-              JSON.stringify(error),
+              JSON.stringify(error)
             );
           }
-        },
+        }
       );
       const canCheckPermission = Util.canCheckUpdate(LAST_PERMISSION_CHECKED);
       if (!canCheckPermission) return;
@@ -1227,7 +1230,7 @@ export class Util {
     } catch (error) {
       console.log(
         "🚀 ~ file: util.ts:514 ~ checkNotificationPermissionsAndType ~ error:",
-        JSON.stringify(error),
+        JSON.stringify(error)
       );
     }
   }
@@ -1283,7 +1286,7 @@ export class Util {
     } catch (error) {
       console.log(
         "🚀 ~ file: util.ts:694 ~ showInAppReview ~ error:",
-        JSON.stringify(error),
+        JSON.stringify(error)
       );
     }
   }
@@ -1321,7 +1324,7 @@ export class Util {
       });
       console.log(
         "🚀 ~ file: util.ts:734 ~ migrate ~ result:",
-        JSON.stringify(result),
+        JSON.stringify(result)
       );
       const res: any = result.data;
       // if (res.migrated) {
@@ -1381,7 +1384,7 @@ export class Util {
       // );
       console.log(
         "getCanShowAvatar() return canShowAvatarValue;",
-        canShowAvatarValue,
+        canShowAvatarValue
       );
 
       return canShowAvatarValue;
@@ -1394,7 +1397,7 @@ export class Util {
     newFileURL: string,
     oldFilePath: string,
     newFilePathLocation: string,
-    localStorageNameForFilePath: string,
+    localStorageNameForFilePath: string
   ) {
     try {
       console.log("Migrate existing Json File ");
@@ -1423,7 +1426,7 @@ export class Util {
         "oldFileJson.version >= newFileJson.version",
         oldFileJson.version,
         newFileJson.version,
-        oldFileJson.version >= newFileJson.version,
+        oldFileJson.version >= newFileJson.version
       );
 
       if (oldFileJson.version >= newFileJson.version) {
@@ -1440,11 +1443,11 @@ export class Util {
       });
       console.log(
         "const res = await Filesystem.writeFile({ slice",
-        res.uri, //.slice(1, res.uri.length)
+        res.uri //.slice(1, res.uri.length)
       );
       localStorage.setItem(
         localStorageNameForFilePath,
-        res.uri,
+        res.uri
         // res.uri.slice(1, res.uri.length)
       );
     } catch (error) {
@@ -1461,7 +1464,7 @@ export class Util {
     const api = ServiceConfig.getI().apiHandler;
     const rewardsDoc = await api.getRewardsById(
       date.getFullYear(),
-      "weeklySticker",
+      "weeklySticker"
     );
     if (!rewardsDoc) return [];
     const currentWeek = Util.getCurrentWeekNumber();
@@ -1529,7 +1532,7 @@ export class Util {
       const date = new Date();
       const rewardsDoc = await api.getRewardsById(
         date.getFullYear(),
-        "weeklySticker",
+        "weeklySticker"
       );
       if (!rewardsDoc) return false;
       const currentWeek = Util.getCurrentWeekNumber();
@@ -1537,7 +1540,7 @@ export class Util {
 
       console.log(
         "const weeklyData = rewardsDoc.weeklySticker;",
-        rewardsDoc.weeklySticker,
+        rewardsDoc.weeklySticker
       );
 
       let currentReward;
@@ -1545,7 +1548,7 @@ export class Util {
       weeklyData?.[currentWeek.toString()].forEach(async (value) => {
         console.log(
           "weeklyData[currentWeek.toString()].forEach((value) => {",
-          value,
+          value
         );
         currentReward = value;
       });
@@ -1651,12 +1654,51 @@ export class Util {
         window.location.replace(PAGES.HOME + "?" + currentParams.toString());
       } else {
         window.location.replace(
-          PAGES.DISPLAY_STUDENT + "?" + currentParams.toString(),
+          PAGES.DISPLAY_STUDENT + "?" + currentParams.toString()
         );
       }
     }
   }
   public static addRefreshTokenToLocalStorage(refreshToken: string) {
     localStorage.setItem(REFRESH_TOKEN, JSON.stringify(refreshToken));
+  }
+  public static setCurrentSchool = async (
+    school: TableTypes<"school"> | null,
+    role?: RoleType
+  ) => {
+    console.log("setCurrentSchool called", school);
+    const api = ServiceConfig.getI().apiHandler;
+    api.currentSchool = school !== null ? school : undefined;
+    localStorage.setItem(SCHOOL, JSON.stringify(school));
+    localStorage.setItem(USER_ROLE, JSON.stringify(role));
+  };
+
+  public static getCurrentSchool(): TableTypes<"school"> | undefined {
+    const api = ServiceConfig.getI().apiHandler;
+    if (!!api.currentSchool) return api.currentSchool;
+    const temp = localStorage.getItem(SCHOOL);
+    if (!temp) return;
+    const currentSchool = JSON.parse(temp) as TableTypes<"school">;
+    api.currentSchool = currentSchool;
+    return currentSchool;
+  }
+
+  public static setCurrentClass = async (
+    classDoc: TableTypes<"class"> | null
+  ) => {
+    console.log("setCurrentClass called", classDoc);
+    const api = ServiceConfig.getI().apiHandler;
+    api.currentClass = classDoc !== null ? classDoc : undefined;
+    localStorage.setItem(CLASS, JSON.stringify(classDoc));
+  };
+
+  public static getCurrentClass(): TableTypes<"class"> | undefined {
+    const api = ServiceConfig.getI().apiHandler;
+    if (!!api.currentClass) return api.currentClass;
+    const temp = localStorage.getItem(CLASS);
+    if (!temp) return;
+    const currentClass = JSON.parse(temp) as TableTypes<"class">;
+    api.currentClass = currentClass;
+    return currentClass;
   }
 }
