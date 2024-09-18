@@ -395,6 +395,7 @@ export enum PAGES {
   LESSON_DETAILS = "/lesson-details",
   SEARCH_LESSON = "/search-lesson",
   CLASS_USERS = "/class-users",
+  SUBJECTS_PAGE = "/subject-selection",
   MANAGE_SCHOOL = "/manage-schools",
   SCHOOL_PROFILE = "/school-profile",
   ADD_SCHOOL = "/add-school",

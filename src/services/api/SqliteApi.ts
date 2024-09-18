@@ -805,6 +805,64 @@ export class SqliteApi implements ServiceApi {
     return newStudent;
   }
 
+  async updateClassCourseSelection(
+    classId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> {
+    const currentDate = new Date().toISOString();
+
+    for (const courseId of selectedCourseIds) {
+      // Check if the course is already assigned to the class
+      const isExist = await this._db?.query(
+        `SELECT * FROM class_course WHERE class_id = '${classId}' AND course_id = '${courseId}';`
+      );
+
+      if (!isExist || !isExist.values || isExist.values.length < 1) {
+        // Insert new entry into class_course table
+        const newId = uuidv4();
+        const newClassCourseEntry = {
+          id: newId,
+          class_id: classId,
+          course_id: courseId,
+          created_at: currentDate,
+          updated_at: currentDate,
+          is_deleted: false,
+        };
+        await this.executeQuery(
+          `INSERT INTO class_course (id, class_id, course_id, created_at, updated_at, is_deleted)
+          VALUES (?, ?, ?, ?, ?, ?);`,
+          [
+            newClassCourseEntry.id,
+            newClassCourseEntry.class_id,
+            newClassCourseEntry.course_id,
+            newClassCourseEntry.created_at,
+            newClassCourseEntry.updated_at,
+            newClassCourseEntry.is_deleted,
+          ]
+        );
+
+        this.updatePushChanges(
+          TABLES.ClassCourse,
+          MUTATE_TYPES.INSERT,
+          newClassCourseEntry
+        );
+      } else {
+        // Update the existing entry's updated_at field
+        const existingEntry = isExist.values[0];
+        await this.executeQuery(
+          `UPDATE class_course SET updated_at = ? WHERE id = ?;`,
+          [currentDate, existingEntry.id]
+        );
+
+        // Optionally: Update changes for syncing or notifications
+        this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.UPDATE, {
+          id: existingEntry.id,
+          updated_at: currentDate,
+        });
+      }
+    }
+  }
+
   async deleteProfile(studentId: string) {
     if (!this._db) return;
     try {

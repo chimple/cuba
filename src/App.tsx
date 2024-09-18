@@ -94,6 +94,7 @@ import {
   AddSchool,
   ManageClass,
   EditSchool,
+  SubjectSelection,
   EditClass,
   ClassProfile,
 } from "./common/chimplePrivatePages";
@@ -373,6 +374,11 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.USER_PROFILE} exact={true}>
               <Suspense>
                 <UserProfile />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SUBJECTS_PAGE} exact={true}>
+              <Suspense>
+                <SubjectSelection />
               </Suspense>
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
