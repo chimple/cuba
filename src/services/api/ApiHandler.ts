@@ -622,4 +622,12 @@ export class ApiHandler implements ServiceApi {
   getChapterByLesson(lessonId:string,classId:string): Promise<String | undefined>{
     return this.s.getChapterByLesson(lessonId,classId)
   }
+  getAssignmentByClassByDate(classId:string,startDate:string,endData:string): Promise<TableTypes<"assignment">[] | undefined>{
+    return this.s.getAssignmentByClassByDate(classId,startDate,endData)
+  }
+  getStudentLastTenResult( studentId: string,):Promise<TableTypes<"result">[]>{
+    return this.s.getStudentLastTenResult(studentId)
+  }
+  
+
 }

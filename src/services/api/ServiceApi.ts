@@ -811,4 +811,19 @@ export interface ServiceApi {
     lessonId: string,
     classId: string
   ): Promise<String | undefined>;
+
+  /**
+   * Get Assignments by classId and datewise
+   * @param classId 
+   * @param startDate 
+   * @param endData 
+   */
+  getAssignmentByClassByDate(classId:string,startDate:string,endData:string): Promise<TableTypes<"assignment">[] | undefined>;
+
+
+  /**
+   * Get Student Result of 10 activities either assignments or self played
+   * @param studentId 
+   */
+  getStudentLastTenResult( studentId: string,):Promise<TableTypes<"result">[]>;
 }

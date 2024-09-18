@@ -112,6 +112,13 @@ export enum ASSIGNMENTTAB_LIST {
   LIVEQUIZ = "Live Quiz",
 }
 
+export enum BANDWISECOLOR {
+  RED = "#F09393",
+  YELLOW = "#FDF7C3",
+  GREEN = "#CBDFA0",
+  GREY="#D4D1D8"
+}
+
 export enum COMMONTAB_LIST {
   SCHOOL = "School",
   CLASS = "Class",

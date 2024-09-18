@@ -2037,4 +2037,10 @@ export class FirebaseApi implements ServiceApi {
   searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
+  getAssignmentByClassByDate(classId:string,startDate:string,endData:string): Promise<TableTypes<"assignment">[] | undefined>{
+    throw new Error("Method not implemented.");
+  }
+  getStudentLastTenResult( studentId: string,):Promise<TableTypes<"result">[]>{
+    throw new Error("Method not implemented.");
+  }
 }

@@ -1584,6 +1584,36 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
+  async getStudentLastTenResult(studentId: string,):Promise<TableTypes<"result">[]> {
+    const res = await this._db?.query(
+      `WITH null_assignments AS (
+         SELECT * 
+         FROM ${TABLES.Result} 
+         WHERE student_id = ? 
+         AND assignment_id IS NULL 
+         ORDER BY created_at DESC 
+         LIMIT 5
+       ),
+       non_null_assignments AS (
+         SELECT * 
+         FROM ${TABLES.Result} 
+         WHERE student_id = ? 
+         AND assignment_id IS NOT NULL 
+         ORDER BY created_at DESC 
+         LIMIT 5
+       )
+       SELECT * 
+       FROM null_assignments
+       UNION ALL
+       SELECT * 
+       FROM non_null_assignments
+       ORDER BY created_at DESC
+       LIMIT 10;`,
+      [studentId, studentId]
+    );
+    return res?.values ?? [];
+  }
+
   async getStudentResultInMap(
     studentId: string
   ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
@@ -2737,5 +2767,20 @@ order by
       console.error("Error fetching chapter by IDs:", error);
       return;
     }
+  }
+  async getAssignmentByClassByDate(
+    classId: string,
+    startDate: string,
+    endDate: string
+  ): Promise<TableTypes<"assignment">[] | undefined> {
+    const query = `SELECT * 
+       FROM ${TABLES.Assignment} 
+       WHERE class_id = '${classId}'
+       AND created_at BETWEEN '${endDate}' AND '${startDate}';`;
+
+    const res = await this._db?.query(query);
+
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values;
   }
 }
