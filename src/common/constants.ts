@@ -119,6 +119,13 @@ export enum BANDWISECOLOR {
   GREY="#D4D1D8"
 }
 
+export enum BANDS {
+  REDGROUP = "redGroup",
+  YELLOWGROUP = "yellowGroup",
+  GREENGROUP = "greenGroup",
+  GREYGROUP="greyGroup"
+}
+
 export enum COMMONTAB_LIST {
   SCHOOL = "School",
   CLASS = "Class",
@@ -378,6 +385,7 @@ export enum PAGES {
   DISPLAY_CHAPTERS = "/display-chapters",
   DISPLAY_SCHOOLS = "/display-schools",
   DISPLAY_CLASSES = "/display-classes",
+  DASHBOARD_DETAILS = '/dashboard-details',
   HOME_PAGE = "/home-page",
   ADD_SUBJECTS = "/add-subjects",
   APP_LANG_SELECTION = "/app-lang-selection",

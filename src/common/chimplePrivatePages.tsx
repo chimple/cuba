@@ -175,3 +175,11 @@ export const DisplayClasses = lazy(async () => {
     return { default: FallbackComponent };
   }
 });
+export const DashBoardDetails = lazy(async () => {
+  try {
+    //@ts-ignore
+    return await import("../chimple-private/pages/DashBoardDetails");
+  } catch (error) {
+    return { default: FallbackComponent };
+  }
+});
