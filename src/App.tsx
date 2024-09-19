@@ -99,6 +99,7 @@ import {
   ClassProfile,
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
+import DisplayClasses from "./chimple-private/pages/DisplayClasses";
 
 setupIonicReact();
 interface ExtraData {
@@ -404,6 +405,11 @@ const App: React.FC = () => {
             <Route path={PAGES.DISPLAY_SCHOOLS} exact={true}>
               <Suspense>
                 <DisplaySchools />
+              </Suspense>
+            </Route>
+            <Route path={PAGES.DISPLAY_CLASSES} exact={true}>
+              <Suspense>
+                <DisplayClasses />
               </Suspense>
             </Route>
             <ProtectedRoute path={PAGES.MANAGE_SCHOOL} exact={true}>
