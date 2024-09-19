@@ -41,6 +41,7 @@ import {
   HOMEHEADERLIST,
   IS_CUBA,
   MODES,
+  OPEN_APK,
   PAGES,
   PortPlugin,
 } from "./common/constants";
@@ -158,7 +159,8 @@ const App: React.FC = () => {
     console.log("fetching...");
     CapApp.addListener("appStateChange", Util.onAppStateChange);
     localStorage.setItem(IS_CUBA, "1");
-    if (Capacitor.isNativePlatform()) {
+    console.log("if (Capacitor.isNativePlatform() && !OPEN_APK) { ", OPEN_APK);
+    if (Capacitor.isNativePlatform() && !OPEN_APK) {
       Filesystem.getUri({
         directory: Directory.External,
         path: "",

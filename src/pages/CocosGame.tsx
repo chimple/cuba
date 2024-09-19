@@ -7,6 +7,7 @@ import {
   GAME_EXIT,
   LESSONS_PLAYED_COUNT,
   LESSON_END,
+  OPEN_APK,
   PAGES,
   TableTypes,
 } from "../common/constants";
@@ -77,7 +78,7 @@ const CocosGame: React.FC = () => {
     }
   };
   const killGame = (e: any) => {
-    document.body.removeEventListener(LESSON_END,handleLessonEndListner);
+    document.body.removeEventListener(LESSON_END, handleLessonEndListner);
     setShowDialogBox(true);
     Util.killCocosGame();
     initialCount++;
@@ -88,7 +89,9 @@ const CocosGame: React.FC = () => {
   const push = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
-    if (Capacitor.isNativePlatform()) {
+    console.log("const push = () => { ", urlParams, fromPath);
+
+    if (Capacitor.isNativePlatform() || OPEN_APK) {
       if (!!isDeviceAwake) {
         history.replace(fromPath + "&isReload=true");
         window.location.reload();
@@ -123,7 +126,7 @@ const CocosGame: React.FC = () => {
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
     killGame(e);
-    document.body.removeEventListener(LESSON_END,handleLessonEndListner);
+    document.body.removeEventListener(LESSON_END, handleLessonEndListner);
     Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
       user_id: api.currentStudent!.id,
       // assignment_id: lessonDetail.assignment?.id,
@@ -155,10 +158,10 @@ const CocosGame: React.FC = () => {
     setShowDialogBox(false);
     push();
   };
-  const handleLessonEndListner = (event)=>{
+  const handleLessonEndListner = (event) => {
     saveTempData(event.detail);
-      setGameResult(event);
-  }
+    setGameResult(event);
+  };
   async function init() {
     setIsLoading(true);
     const lessonId: string = state.lessonId;
@@ -182,11 +185,9 @@ const CocosGame: React.FC = () => {
     //   push();
     // };
 
-    document.body.addEventListener(
-      LESSON_END,
-      handleLessonEndListner,
-      { once: true }
-    );
+    document.body.addEventListener(LESSON_END, handleLessonEndListner, {
+      once: true,
+    });
     document.body.addEventListener(GAME_END, killGame, { once: true });
     document.body.addEventListener(GAME_EXIT, gameExit, { once: true });
 

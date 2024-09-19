@@ -666,3 +666,5 @@ export const CURRENT_SCHOOL_NAME = "currentSchoolName";
 export const DOWNLOADING_CHAPTER_ID = "downloading_chapter_id";
 export const USER_DATA = "userData";
 export const REFRESH_TOKEN = "refreshToken";
+
+export const OPEN_APK = true

@@ -43,6 +43,7 @@ import {
   SCHOOL,
   USER_ROLE,
   CLASS,
+  OPEN_APK,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -330,7 +331,10 @@ export class Util {
     chapterId?: string
   ): Promise<boolean> {
     try {
-      if (!Capacitor.isNativePlatform()) return true;
+      if (!Capacitor.isNativePlatform() || OPEN_APK) {
+        console.log("downloadZipBundle( if (Capacitor.isNativePlatform()) { ", true);
+        return true
+      };
 
       for (let i = 0; i < lessonIds.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
         const lessonIdsChunk = lessonIds.slice(
@@ -372,9 +376,9 @@ export class Util {
 
               console.log(
                 "before local lesson Bundle http url:" +
-                  "assets/" +
-                  lessonId +
-                  "/config.json"
+                "assets/" +
+                lessonId +
+                "/config.json"
               );
 
               const fetchingLocalBundle = await fetch(
@@ -382,9 +386,9 @@ export class Util {
               );
               console.log(
                 "after local lesson Bundle fetch url:" +
-                  "assets/" +
-                  lessonId +
-                  "/config.json",
+                "assets/" +
+                lessonId +
+                "/config.json",
                 fetchingLocalBundle.ok,
                 fetchingLocalBundle.json,
                 fetchingLocalBundle
@@ -520,7 +524,7 @@ export class Util {
       new Date().getTime() - lastRendered > 60 * 60 * 1000
     )
       try {
-        if (!Capacitor.isNativePlatform()) return null;
+        if (!Capacitor.isNativePlatform() || OPEN_APK) return null;
 
         const contents = await Filesystem.readdir({
           path: "",
@@ -585,6 +589,8 @@ export class Util {
   }
 
   public static async launchCocosGame(): Promise<void> {
+    console.log("launchCocosGame(): called ");
+
     if (!window.cc) {
       return;
     }
@@ -594,9 +600,16 @@ export class Util {
       return b.getSceneInfo(launchScene);
     });
 
+    console.log("bundle.loadScene(launchScene, null, null, function (err, scene) { ", launchScene);
+
+
     await new Promise((resolve, reject) => {
       bundle.loadScene(launchScene, null, null, function (err, scene) {
+        console.log("bundle.loadScene(launchScene, null, null, function (err, scene) { ", err);
+
         if (!err) {
+          console.log("window.cc.director.runSceneImmediate(scene); ", scene, window.cc.sys.isBrowser);
+
           window.cc.director.runSceneImmediate(scene);
           if (window.cc.sys.isBrowser) {
             // show canvas
@@ -621,6 +634,8 @@ export class Util {
         }
       });
     });
+    console.log("launchCocosGame(): Ended ");
+
   }
 
   public static killCocosGame(): void {
