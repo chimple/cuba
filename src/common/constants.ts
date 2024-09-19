@@ -370,6 +370,7 @@ export enum PAGES {
   DISPLAY_SUBJECTS = "/display-subjects",
   DISPLAY_CHAPTERS = "/display-chapters",
   DISPLAY_SCHOOLS = "/display-schools",
+  DISPLAY_CLASSES = "/display-classes",
   HOME_PAGE = "/home-page",
   ADD_SUBJECTS = "/add-subjects",
   APP_LANG_SELECTION = "/app-lang-selection",
