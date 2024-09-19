@@ -167,3 +167,11 @@ export const SubjectSelection = lazy(async () => {
     return { default: FallbackComponent };
   }
 });
+export const DisplayClasses = lazy(async () => {
+  try {
+    //@ts-ignore
+    return await import("../chimple-private/pages/DisplayClasses");
+  } catch (error) {
+    return { default: FallbackComponent };
+  }
+});
