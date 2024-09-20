@@ -819,18 +819,21 @@ export interface ServiceApi {
 
   /**
    * Get Assignments by classId and datewise
-   * @param classId 
-   * @param startDate 
-   * @param endData 
+   * @param classId
+   * @param startDate
+   * @param endData
    */
-  getAssignmentByClassByDate(classId:string,startDate:string,endData:string): Promise<TableTypes<"assignment">[] | undefined>;
-
+  getAssignmentByClassByDate(
+    classId: string,
+    startDate: string,
+    endData: string
+  ): Promise<TableTypes<"assignment">[] | undefined>;
 
   /**
    * Get Student Result of 10 activities either assignments or self played
-   * @param studentId 
+   * @param studentId
    */
-  getStudentLastTenResult( studentId: string,):Promise<TableTypes<"result">[]>;
+  getStudentLastTenResult(studentId: string): Promise<TableTypes<"result">[]>;
   /**
    * Creates a class for the given school
    * @param schoolId
@@ -852,4 +855,12 @@ export interface ServiceApi {
    * @param classId
    */
   deleteClass(classId: string);
+
+  /**
+   *  Get the results By assignmentIds
+   * @param assignmentIds
+   */
+  getResultByAssignmentIds(
+    assignmentIds: string[]
+  ): Promise<TableTypes<"result">[] | undefined>;
 }

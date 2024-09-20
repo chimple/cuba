@@ -1642,7 +1642,9 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
-  async getStudentLastTenResult(studentId: string,):Promise<TableTypes<"result">[]> {
+  async getStudentLastTenResult(
+    studentId: string
+  ): Promise<TableTypes<"result">[]> {
     const res = await this._db?.query(
       `WITH null_assignments AS (
          SELECT * 
@@ -2906,6 +2908,25 @@ order by
       return;
     }
   }
+
+  async getResultByAssignmentIds(
+    assignmentIds: string[] // Expect an array of strings
+  ): Promise<TableTypes<"result">[] | undefined> {
+    if (!assignmentIds || assignmentIds.length === 0) return;
+
+    // Dynamically construct placeholders for the `IN` clause
+    const placeholders = assignmentIds.map(() => "?").join(", ");
+
+    const query = `SELECT * 
+      FROM ${TABLES.Result} 
+      WHERE assignment_id IN (${placeholders});`;
+
+    const res = await this._db?.query(query, assignmentIds);
+
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values;
+  }
+
   async getAssignmentByClassByDate(
     classId: string,
     startDate: string,

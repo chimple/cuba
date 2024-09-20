@@ -116,14 +116,14 @@ export enum BANDWISECOLOR {
   RED = "#F09393",
   YELLOW = "#FDF7C3",
   GREEN = "#CBDFA0",
-  GREY="#D4D1D8"
+  GREY = "#D4D1D8",
 }
 
 export enum BANDS {
   REDGROUP = "redGroup",
   YELLOWGROUP = "yellowGroup",
   GREENGROUP = "greenGroup",
-  GREYGROUP="greyGroup"
+  GREYGROUP = "greyGroup",
 }
 
 export enum COMMONTAB_LIST {
@@ -385,7 +385,7 @@ export enum PAGES {
   DISPLAY_CHAPTERS = "/display-chapters",
   DISPLAY_SCHOOLS = "/display-schools",
   DISPLAY_CLASSES = "/display-classes",
-  DASHBOARD_DETAILS = '/dashboard-details',
+  DASHBOARD_DETAILS = "/dashboard-details",
   HOME_PAGE = "/home-page",
   ADD_SUBJECTS = "/add-subjects",
   APP_LANG_SELECTION = "/app-lang-selection",
@@ -438,6 +438,7 @@ export interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;
 }
+
 export const SCREEN_WIDTH = window.innerWidth;
 export const SCREEN_HEIGHT = window.innerHeight;
 
@@ -681,3 +682,15 @@ export const CURRENT_SCHOOL_NAME = "currentSchoolName";
 export const DOWNLOADING_CHAPTER_ID = "downloading_chapter_id";
 export const USER_DATA = "userData";
 export const REFRESH_TOKEN = "refreshToken";
+export interface HomeWeeklySummary {
+  assignments: {
+    asgnmetCmptd: number;
+    totalAssignments: number;
+  };
+  students: {
+    stdCompletd: number;
+    totalStudents: number;
+  };
+  timeSpent: number;
+  averageScore: number;
+}
