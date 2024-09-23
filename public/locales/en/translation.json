@@ -123,7 +123,7 @@
   "Comparison by Subtraction": "Comparison by Subtraction",
   "Comparison Of Numbers": "Comparison Of Number",
   "Comparison": "Comparison",
-  "Confirm" : "Confirm",
+  "Confirm": "Confirm",
   "Congratulations on earning the x1!": "Congratulations on earning the x1!",
   "Congratulations!": "Congratulations!",
   "Continue Playing": "Continue Playing",
@@ -589,6 +589,7 @@
   "Turtle": "Turtle",
   "Twitter": "Twitter",
   "Unlock": "Unlock",
+  "Unspecified": "Unspecified",
   "UP": "UP",
   "Upcoming": "Upcoming",
   "Update": "Update",
@@ -629,8 +630,8 @@
   "You Completed the Lesson:": "You Completed the Lesson:",
   "You do not have any live quizzes available.": "You do not have any live quizzes available.",
   "You don't have any pending assignments.": "You don't have any pending assignments.",
-  "You have selected to remove a subject, would you like to continue?": "You have selected to remove a subject, would you like to continue?",
   "You have selected to delete a class, would you like to continue?": "You have selected to delete a class, would you like to continue?",
+  "You have selected to remove a subject, would you like to continue?": "You have selected to remove a subject, would you like to continue?",
   "Your progress stays synced and consistent across all devices.": "Your progress stays synced and consistent across all devices.",
   "Zebra": "Zebra"
 }
