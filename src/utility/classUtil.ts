@@ -39,8 +39,6 @@ export class ClassUtil {
     const _students = await this.api.getStudentsForClass(classId);
     const totalStudents = _students.length;
     const totalAssignments = assignmentIds.length;
-    console.log("HHHHHHHHHHHHHHHHHHHHHh");
-    console.log(totalAssignments);
     const studentsWithCompletedAssignments = assignmentResult?.reduce(
       (acc, result) => {
         const { student_id, assignment_id } = result;
@@ -60,10 +58,6 @@ export class ClassUtil {
           );
         }).length
       : 0;
-
-    console.log(
-      `Number of students who completed all assignments: ${studentsWhoCompletedAllAssignments}`
-    );
     const assignmentsWithCompletedStudents = assignmentResult?.reduce(
       (acc, result) => {
         const { student_id, assignment_id } = result;
