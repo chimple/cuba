@@ -955,4 +955,19 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<String | undefined> {
     throw new Error("Method not implemented.");
   }
+  getAssignmentByClassByDate(
+    classId: string,
+    startDate: string,
+    endData: string
+  ): Promise<TableTypes<"assignment">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getStudentLastTenResult(studentId: string): Promise<TableTypes<"result">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getResultByAssignmentIds(
+    assignmentIds: string[]
+  ): Promise<TableTypes<"result">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
 }
