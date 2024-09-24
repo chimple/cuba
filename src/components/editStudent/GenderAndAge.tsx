@@ -49,6 +49,24 @@ const GenderAndAge: React.FC<{
               size="4vh"
             />
           </div>
+          <div className="gender-container">
+            <div
+              className="gender-button"
+              onClick={() => {
+                onGenderChange(GENDER.OTHER);
+              }}
+            >
+              <IonRow>
+                <CgBoy size="8vh" color="#ffad1a" />
+                <p className="gender-text"> {t("Unspecified")}</p>
+              </IonRow>
+              <BsFillCheckCircleFill
+                color={gender === GENDER.OTHER ? "#81C127" : "grey"}
+                className="gender-check-box"
+                size="4vh"
+              />
+            </div>
+          </div>
         </div>
         <div className="gender-title">{t("What is your child’s age?")}</div>
         <div className="age-container">
