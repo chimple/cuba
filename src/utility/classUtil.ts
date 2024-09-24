@@ -95,47 +95,21 @@ export class ClassUtil {
           : 0,
     };
   }
-
-  async getStudent(classId: string) {
-    const _students = await this.api.getStudentsForClass(classId);
-
-    for (const student of _students) {
-      const result = await this.api.getStudentLastTenResult(student.id);
-      console.log(result);
-    }
-  }
-
   public async divideStudents(classId: string) {
-    var greenGroup: Map<string, TableTypes<"user"> | TableTypes<"result">[]>[] =
-      [];
-    var yellowGroup: Map<
-      string,
-      TableTypes<"user"> | TableTypes<"result">[]
-    >[] = [];
-    var redGroup: Map<string, TableTypes<"user"> | TableTypes<"result">[]>[] =
-      [];
-    var greyGroup: Map<string, TableTypes<"user"> | TableTypes<"result">[]>[] =
-      [];
-    var currentDate = new Date();
+    const greenGroup: Map<string, TableTypes<"user"> | TableTypes<"result">[]>[] = [];
+    const yellowGroup: Map<string, TableTypes<"user"> | TableTypes<"result">[]>[] = [];
+    const redGroup: Map<string, TableTypes<"user"> | TableTypes<"result">[]>[] = [];
+    const greyGroup: Map<string, TableTypes<"user"> | TableTypes<"result">[]>[] = [];
+    const currentDate = new Date();
     currentDate.setDate(currentDate.getDate() + 1);
+  
     const oneWeekBack = new Date(currentDate);
     oneWeekBack.setDate(currentDate.getDate() - 8);
-    const oneWeekBackTimeStamp = oneWeekBack
-      .toISOString()
-      .replace("T", " ")
-      .replace("Z", "+00");
+    const oneWeekBackTimeStamp = oneWeekBack.toISOString().replace("T", " ").replace("Z", "+00");
     const _students = await this.api.getStudentsForClass(classId);
-    for (const student of _students) {
-      console.log(student);
+    const studentResultsPromises = _students.map(async (student) => {
       const results = await this.api.getStudentLastTenResult(student.id);
-      if (results.length == 0) {
-        greyGroup.push(
-          new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
-            ["student", student],
-            ["results", results],
-          ])
-        );
-      } else if (results[0].created_at <= oneWeekBackTimeStamp) {
+      if (results.length === 0 || results[0].created_at <= oneWeekBackTimeStamp) {
         greyGroup.push(
           new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
             ["student", student],
@@ -143,18 +117,17 @@ export class ClassUtil {
           ])
         );
       } else {
-        var totalScore = 0;
-        results.forEach((result) => {
-          totalScore = totalScore + (result.score ?? 0);
-        });
-        if (totalScore / results.length >= 70) {
+        const totalScore = results.reduce((acc, result) => acc + (result.score ?? 0), 0);
+        const averageScore = totalScore / results.length;
+  
+        if (averageScore >= 70) {
           greenGroup.push(
             new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
               ["student", student],
               ["results", results],
             ])
           );
-        } else if (totalScore / results.length <= 49) {
+        } else if (averageScore <= 49) {
           redGroup.push(
             new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
               ["student", student],
@@ -170,12 +143,16 @@ export class ClassUtil {
           );
         }
       }
-    }
-    var groups: Map<string, any> = new Map();
+    });
+    await Promise.all(studentResultsPromises);
+  
+    const groups: Map<string, any> = new Map();
     groups.set(BANDS.GREENGROUP, greenGroup);
     groups.set(BANDS.GREYGROUP, greyGroup);
     groups.set(BANDS.REDGROUP, redGroup);
     groups.set(BANDS.YELLOWGROUP, yellowGroup);
+  
     return groups;
   }
+  
 }
