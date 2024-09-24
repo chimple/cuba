@@ -291,7 +291,7 @@ async function buildReleaseFromBundle(): Promise<Release> {
 
   try {
     // Get the bundled release checksum.
-    const response = await fetch("http://chimple/checksum.json");
+    const response = await fetch("http://localhost/checksum.json");
     const checksum = (await response.json()) as Checksum;
 
     // Prepare to download a new release.
@@ -323,7 +323,7 @@ async function buildReleaseFromBundle(): Promise<Release> {
 
     for (let i = copiedBundleFiles; i < checksum.files.length; i++) {
       const currentFile = checksum.files[i];
-      const url = `http://chimple/${currentFile.path}`;
+      const url = `http://localhost/${currentFile.path}`;
       // const alreadyCopied = copiedBundleFiles.find((value) => url === value);
       console.debug(
         "🚀 ~ file: AppUpdater.ts:291 ~ buildReleaseFromBundle ~ alreadyCopied:",

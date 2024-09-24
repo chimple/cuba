@@ -81,9 +81,8 @@ const DisplayChapters: FC<{}> = () => {
       if (currentCourse) {
         setIsLoading(true);
         const getLocalGradeMap = async () => {
-          const { grades } = await api.getDifferentGradesForCourse(
-            currentCourse
-          );
+          const { grades } =
+            await api.getDifferentGradesForCourse(currentCourse);
           localData.gradesMap = { grades, courses: [currentCourse] };
           localStorageData.gradesMap = localData.gradesMap;
           addDataToLocalStorage();
@@ -255,7 +254,14 @@ const DisplayChapters: FC<{}> = () => {
     }
 
     // const currClass = localStorage.getItem(CURRENT_CLASS);
-    const currClass = schoolUtil.getCurrentClass();
+    let currClass;
+    const result = await api.getStudentResult(currentStudent.docId, true);
+    if (result?.classes && result.classes.length > 0) {
+      const classId = result.classes[0];
+      currClass = await api.getClassById(classId);
+    } else {
+      console.log("No classes found for the student.");
+    }
     if (!!currClass) setCurrentClass(currClass);
 
     const res = await api.getStudentResultInMap(currentStudent.docId);
@@ -266,7 +272,7 @@ const DisplayChapters: FC<{}> = () => {
 
     const currMode = await schoolUtil.getCurrMode();
 
-    const courses = await (currMode === MODES.SCHOOL && !!currClass
+    const courses = await (!!currClass
       ? api.getCoursesForClassStudent(currClass)
       : api.getCoursesForParentsStudent(currentStudent));
     localData.courses = courses;
@@ -407,8 +413,8 @@ const DisplayChapters: FC<{}> = () => {
                   ? t(currentCourse?.title)
                   : ""
                 : currentChapter
-                ? t(currentChapter?.title)
-                : ""}
+                  ? t(currentChapter?.title)
+                  : ""}
             </div>
           </IonItem>
         </div>

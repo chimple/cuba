@@ -98,6 +98,7 @@ const Subjects: React.FC<{}> = ({}) => {
         if (currentStudent) {
           //loading student result cache (seems like a new user)
           const result = await api.getStudentResult(currentStudent.docId, true);
+          console.log("dsfs", result);
           const lessons = result?.lessons;
           localData.lessonResultMap = lessons;
           setLessonResultMap(lessons);
@@ -207,7 +208,14 @@ const Subjects: React.FC<{}> = ({}) => {
     }
 
     // const currClass = localStorage.getItem(CURRENT_CLASS);
-    const currClass = schoolUtil.getCurrentClass();
+    let currClass;
+    const result = await api.getStudentResult(currentStudent.docId, true);
+    if (result?.classes && result.classes.length > 0) {
+      const classId = result.classes[0];
+      currClass = await api.getClassById(classId);
+    } else {
+      console.log("No classes found for the student.");
+    }
     if (!!currClass) setCurrentClass(currClass);
 
     const res = await api.getStudentResultInMap(currentStudent.docId);
@@ -225,7 +233,7 @@ const Subjects: React.FC<{}> = ({}) => {
       ((currMode === MODES.PARENT) == true && !studentLinked) ?? true
     );
 
-    const courses = await (currMode === MODES.SCHOOL && !!currClass
+    const courses = await (!!currClass
       ? api.getCoursesForClassStudent(currClass)
       : api.getCoursesForParentsStudent(currentStudent));
     localData.courses = courses;

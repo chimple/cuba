@@ -1212,16 +1212,28 @@ export class FirebaseApi implements ServiceApi {
   ): Promise<Assignment[]> {
     try {
       const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
-      const q = query(
+
+      let q1 = query(
         collection(this._db, CollectionIds.ASSIGNMENT),
+        where("isClassWise", "==", true),
         where("class", "==", classDocRef),
-        // where("results." + studentId + ".score", "!=", 1)
         orderBy("createdAt", "desc"),
         limit(50)
       );
-      const queryResult = await getDocs(q);
+
+      // Add the condition for when isClassWise is false
+      let q2 = query(
+        collection(this._db, CollectionIds.ASSIGNMENT),
+        where("isClassWise", "==", false),
+        where("class", "==", classDocRef),
+        where("assignedStudents", "array-contains", studentId),
+        orderBy("createdAt", "desc"),
+        limit(50)
+      );
+      const [snapshot1, snapshot2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+      const queryResult = [...snapshot1.docs, ...snapshot2.docs];
       const assignments: Assignment[] = [];
-      queryResult.docs.forEach((_assignment) => {
+      queryResult.forEach((_assignment) => {
         const assignment = _assignment.data() as Assignment;
         assignment.docId = _assignment.id;
         const doneAssignment = assignment.completedStudents?.find(
@@ -1780,22 +1792,31 @@ export class FirebaseApi implements ServiceApi {
     try {
       const now = new Date();
       const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
-
-      const q = query(
+      let q1 = query(
         collection(this._db, CollectionIds.ASSIGNMENT),
+        where("isClassWise", "==", true),
         where("class", "==", classDocRef),
         where("type", "==", LIVE_QUIZ),
         where("startsAt", "<=", now),
         orderBy("startsAt", "desc")
       );
-      console.log("query result:", q);
 
+      // Add the condition for when isClassWise is false
+      let q2 = query(
+        collection(this._db, CollectionIds.ASSIGNMENT),
+        where("isClassWise", "==", false),
+        where("class", "==", classDocRef),
+        where("assignedStudents", "array-contains", studentId),
+        where("type", "==", LIVE_QUIZ),
+        where("startsAt", "<=", now),
+        orderBy("startsAt", "desc")
+      );
+      const [snapshot1, snapshot2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+      const queryResult = [...snapshot1.docs, ...snapshot2.docs];
       const liveQuizLessons: Assignment[] = [];
-      const liveQuizDocs = await getDocs(q);
-      console.log("live quiz count", liveQuizDocs.size);
-
-      if (liveQuizDocs.size > 0) {
-        liveQuizDocs.docs.forEach((_assignment) => {
+      const liveQuizDocs =queryResult;
+      if (liveQuizDocs.length > 0) {
+        liveQuizDocs.forEach((_assignment) => {
           const endsAt = _assignment.get("endsAt");
           const endsAtDate = endsAt.toDate();
           if (endsAtDate > now) {
