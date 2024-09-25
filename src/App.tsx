@@ -483,6 +483,11 @@ const App: React.FC = () => {
                 <ClassUsers />
               </Suspense>
             </ProtectedRoute>
+            <ProtectedRoute path={PAGES.EDIT_CLASS} exact={true}>
+              <Suspense>
+                <EditClass />
+              </Suspense>
+            </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
       </IonReactRouter>
