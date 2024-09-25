@@ -1,4 +1,5 @@
 {
+  "Time for a break!": "ವಿರಾಮದ ಸಮಯ!",
   " OFF ": " ಆಫ್ ",
   " ON ": " ಆನ್ ",
   "***Be among the top performers in your class to win an exciting reward": "***ಅತ್ಯಾಕರ್ಷಕ ಬಹುಮಾನವನ್ನು ಗೆಲ್ಲಲು ನಿಮ್ಮ ತರಗತಿಯಲ್ಲಿ ಉನ್ನತ ಪ್ರದರ್ಶನಕಾರರಲ್ಲಿ ಒಬ್ಬರಾಗಿರಿ.",
@@ -123,7 +124,7 @@
   "Comparison by Subtraction": "ಹೋಲಿಸಿ ಕಳೆಯಿರಿ",
   "Comparison Of Numbers": "ಸಂಖ್ಯೆಗಳ ಹೋಲಿಕೆ",
   "Comparison": "ಹೋಲಿಕೆ",
-  "Confirm" : "ದೃಢೀಕರಿಸಿ",
+  "Confirm": "ದೃಢೀಕರಿಸಿ",
   "Congratulations on earning the x1!": "x1 ಗಳಿಸಿದ್ದಕ್ಕಾಗಿ ಅಭಿನಂದನೆಗಳು!",
   "Congratulations!": "ಅಭಿನಂದನೆಗಳು!",
   "Continue Playing": "ಆಟ ಮುಂದುವರಿಸಿ",
@@ -631,8 +632,9 @@
   "You Completed the Lesson:": "ನೀವು ಪಾಠವನ್ನು ಪೂರ್ಣಗೊಳಿಸಿದ್ದೀರಿ:",
   "You do not have any live quizzes available.": "ನಿಮಗಾಗಿ ಯಾವುದೇ ಲೈವ್ ರಸಪ್ರಶ್ನೆಗಳು ಲಭ್ಯವಿಲ್ಲ.",
   "You don't have any pending assignments.": "ನಿಮಗಾಗಿ ಯಾವುದೇ ಬಾಕಿ ಇರುವ ಕಾರ್ಯಯೋಜನೆಗಳಿಲ್ಲ.",
-  "You have selected to remove a subject, would you like to continue?": "ನೀವು ವಿಷಯವನ್ನು ತೆಗೆದುಹಾಕಲು ಆಯ್ಕೆ ಮಾಡಿದ್ದೀರಿ, ನೀವು ಮುಂದುವರಿಸಲು ಬಯಸುವಿರಾ?",
   "You have selected to delete a class, would you like to continue?": "ನೀವು ವರ್ಗವನ್ನು ಅಳಿಸಲು ಆಯ್ಕೆ ಮಾಡಿದ್ದೀರಿ, ನೀವು ಮುಂದುವರಿಸಲು ಬಯಸುವಿರಾ?",
+  "You have selected to remove a subject, would you like to continue?": "ನೀವು ವಿಷಯವನ್ನು ತೆಗೆದುಹಾಕಲು ಆಯ್ಕೆ ಮಾಡಿದ್ದೀರಿ, ನೀವು ಮುಂದುವರಿಸಲು ಬಯಸುವಿರಾ?",
+  "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!": "ನೀವು ಇಂದು 25 ನಿಮಿಷಗಳ ಕಾಲ ಚಿಂಪಲ್ ಅನ್ನು ಬಳಸಿದ್ದೀರಿ. ನಿಮ್ಮ ಕಣ್ಣುಗಳಿಗೆ ವಿಶ್ರಾಂತಿ ಪಡೆಯಲು ವಿರಾಮ ತೆಗೆದುಕೊಳ್ಳಿ!",
   "Your progress stays synced and consistent across all devices.": "ನಿಮ್ಮ ಪ್ರಗತಿಯು ಎಲ್ಲಾ ಸಾಧನಗಳಾದ್ಯಂತ ನವೀಕರಿಸಲ್ಪಡುತ್ತದೆ ಮತ್ತು ಸ್ಥಿರವಾಗಿರುತ್ತದೆ.",
   "Zebra": "ಜೀಬ್ರಾ"
 }
