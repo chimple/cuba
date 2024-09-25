@@ -643,4 +643,19 @@ export class ApiHandler implements ServiceApi {
   updateClass(classId: string, className: string) {
     return this.s.updateClass(classId, className);
   }
+  getAssignmentByClassByDate(
+    classId: string,
+    startDate: string,
+    endData: string
+  ): Promise<TableTypes<"assignment">[] | undefined> {
+    return this.s.getAssignmentByClassByDate(classId, startDate, endData);
+  }
+  getStudentLastTenResult(studentId: string): Promise<TableTypes<"result">[]> {
+    return this.s.getStudentLastTenResult(studentId);
+  }
+  getResultByAssignmentIds(
+    assignmentIds: string[]
+  ): Promise<TableTypes<"result">[] | undefined> {
+    return this.s.getResultByAssignmentIds(assignmentIds);
+  }
 }
