@@ -1826,7 +1826,7 @@ export class SqliteApi implements ServiceApi {
     const query = `
     SELECT * 
     FROM ${TABLES.ClassCourse}
-    WHERE class_id = ?
+    WHERE class_id = ? AND is_deleted= false
   `;
     const res = await this._db?.query(query, [classId]);
     return res?.values ?? [];
