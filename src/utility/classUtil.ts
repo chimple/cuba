@@ -33,9 +33,6 @@ export class ClassUtil {
       totalScore = totalScore + (res.score ?? 0);
       timeSpent = timeSpent + (res.time_spent ?? 0) / 60;
     });
-    console.log(parseFloat(timeSpent.toFixed(2)));
-    console.log(totalScore / (assignmentResult?.length ?? 0));
-
     const _students = await this.api.getStudentsForClass(classId);
     const totalStudents = _students.length;
     const totalAssignments = assignmentIds.length;
@@ -96,20 +93,55 @@ export class ClassUtil {
     };
   }
   public async divideStudents(classId: string) {
-    const greenGroup: Map<string, TableTypes<"user"> | TableTypes<"result">[]>[] = [];
-    const yellowGroup: Map<string, TableTypes<"user"> | TableTypes<"result">[]>[] = [];
-    const redGroup: Map<string, TableTypes<"user"> | TableTypes<"result">[]>[] = [];
-    const greyGroup: Map<string, TableTypes<"user"> | TableTypes<"result">[]>[] = [];
+    const greenGroup: Map<
+      string,
+      TableTypes<"user"> | TableTypes<"result">[]
+    >[] = [];
+    const yellowGroup: Map<
+      string,
+      TableTypes<"user"> | TableTypes<"result">[]
+    >[] = [];
+    const redGroup: Map<string, TableTypes<"user"> | TableTypes<"result">[]>[] =
+      [];
+    const greyGroup: Map<
+      string,
+      TableTypes<"user"> | TableTypes<"result">[]
+    >[] = [];
     const currentDate = new Date();
     currentDate.setDate(currentDate.getDate() + 1);
-  
+
     const oneWeekBack = new Date(currentDate);
     oneWeekBack.setDate(currentDate.getDate() - 8);
-    const oneWeekBackTimeStamp = oneWeekBack.toISOString().replace("T", " ").replace("Z", "+00");
+    var currentDateTimeStamp = currentDate
+      .toISOString()
+      .replace("T", " ")
+      .replace("Z", "+00");
+    const oneWeekBackTimeStamp = oneWeekBack
+      .toISOString()
+      .replace("T", " ")
+      .replace("Z", "+00");
+    const assignements = await this.api.getAssignmentByClassByDate(
+      classId,
+      currentDateTimeStamp,
+      oneWeekBackTimeStamp
+    );
+    const assignmentIds = (assignements?.map((asgmt) => asgmt.id) || []).slice(
+      0,
+      5
+    );
     const _students = await this.api.getStudentsForClass(classId);
     const studentResultsPromises = _students.map(async (student) => {
-      const results = await this.api.getStudentLastTenResult(student.id);
-      if (results.length === 0 || results[0].created_at <= oneWeekBackTimeStamp) {
+      const results = await this.api.getStudentLastTenResult(
+        student.id,
+        assignmentIds
+      );
+      const selfPlayedLength = results.filter(
+        (result) => result.assignment_id === null
+      ).length;
+      if (
+        results.length === 0 ||
+        results[0].created_at <= oneWeekBackTimeStamp
+      ) {
         greyGroup.push(
           new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
             ["student", student],
@@ -117,9 +149,12 @@ export class ClassUtil {
           ])
         );
       } else {
-        const totalScore = results.reduce((acc, result) => acc + (result.score ?? 0), 0);
-        const averageScore = totalScore / results.length;
-  
+        const totalScore = results.reduce(
+          (acc, result) => acc + (result.score ?? 0),
+          0
+        );
+        const averageScore = totalScore / (selfPlayedLength+assignmentIds.length);
+
         if (averageScore >= 70) {
           greenGroup.push(
             new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
@@ -145,14 +180,13 @@ export class ClassUtil {
       }
     });
     await Promise.all(studentResultsPromises);
-  
+
     const groups: Map<string, any> = new Map();
     groups.set(BANDS.GREENGROUP, greenGroup);
     groups.set(BANDS.GREYGROUP, greyGroup);
     groups.set(BANDS.REDGROUP, redGroup);
     groups.set(BANDS.YELLOWGROUP, yellowGroup);
-  
+
     return groups;
   }
-  
 }

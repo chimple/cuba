@@ -833,7 +833,10 @@ export interface ServiceApi {
    * Get Student Result of 10 activities either assignments or self played
    * @param studentId
    */
-  getStudentLastTenResult(studentId: string): Promise<TableTypes<"result">[]>;
+  getStudentLastTenResult(
+    studentId: string,
+    assignmentIds: string[]
+  ): Promise<TableTypes<"result">[]>;
   /**
    * Creates a class for the given school
    * @param schoolId
