@@ -813,7 +813,7 @@ export class SqliteApi implements ServiceApi {
     for (const courseId of selectedCourseIds) {
       // Check if the course is already assigned to the class
       const isExist = await this._db?.query(
-        `SELECT * FROM class_course WHERE class_id = '${classId}' AND course_id = '${courseId}';`
+        `SELECT * FROM class_course WHERE class_id = '${classId}' AND course_id = '${courseId} AND is_deleted = false';`
       );
 
       if (!isExist || !isExist.values || isExist.values.length < 1) {
@@ -849,7 +849,7 @@ export class SqliteApi implements ServiceApi {
         // Update the existing entry's updated_at field
         const existingEntry = isExist.values[0];
         await this.executeQuery(
-          `UPDATE class_course SET updated_at = ? WHERE id = ?;`,
+          `UPDATE class_course SET updated_at = ?, is_deleted = false WHERE id = ?;`,
           [currentDate, existingEntry.id]
         );
 
@@ -857,6 +857,7 @@ export class SqliteApi implements ServiceApi {
         this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.UPDATE, {
           id: existingEntry.id,
           updated_at: currentDate,
+          is_deleted: false,
         });
       }
     }
@@ -1833,10 +1834,11 @@ export class SqliteApi implements ServiceApi {
 
   async removeCourseFromClass(id: string): Promise<void> {
     try {
-      await this.executeQuery(`DELETE FROM class_course WHERE id = ?`, [id]);
-      this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.DELETE, {
-        id: id,
-      });
+      await this.executeQuery(`UPDATE class_course SET is_deleted = true WHERE id = ?`, [id]);
+    this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.UPDATE, {
+      id: id,
+      is_deleted: true,
+    });
     } catch (error) {
       console.error("Error removing course from class_course", error);
     }
