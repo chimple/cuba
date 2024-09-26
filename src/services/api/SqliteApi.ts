@@ -810,7 +810,6 @@ export class SqliteApi implements ServiceApi {
     selectedCourseIds: string[]
   ): Promise<void> {
     const currentDate = new Date().toISOString();
-
     for (const courseId of selectedCourseIds) {
       // Check if the course is already assigned to the class
       const isExist = await this._db?.query(
@@ -1803,7 +1802,7 @@ export class SqliteApi implements ServiceApi {
       SELECT c.*
       FROM ${TABLES.ClassUser} cu
       JOIN ${TABLES.Class} c ON cu.class_id = c.id
-      WHERE cu.user_id = "${userId}" and cu.role = "${RoleType.TEACHER}"
+      WHERE cu.user_id = "${userId}" and c.school_id = "${schoolId} and cu.role = "${RoleType.TEACHER}"
       `;
       const res = await this._db?.query(query);
       if (!res || !res.values || res.values.length < 1) return [];
@@ -1820,6 +1819,34 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
+  async getCourseIdsByClassId(
+    classId: string,
+  ): Promise<TableTypes<"class_course">[]> {
+    console.log("getCourseIdsByClassId result",classId );
+
+    const query = `
+      SELECT course_id 
+      FROM ${TABLES.ClassCourse}
+      WHERE class_id = '${classId}'
+    `;
+  
+    const res = await this._db?.query(query);
+    console.log("getCourseIdsByClassId result",res );
+    return res?.values ?? [];
+  }
+
+  async removeCourseFromClass(classId: string, courseId: string): Promise<void> {
+    try {
+      await this.executeQuery(
+        `DELETE FROM class_course WHERE class_id = ? AND course_id = ?`,
+        [classId, courseId]
+      );
+  
+      console.log(`Course ${courseId} removed from class ${classId} successfully.`);
+    } catch (error) {
+      console.error("Error removing course from class_course", error);
+    }
+  }
   async getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
     const query = `
     SELECT user.*
