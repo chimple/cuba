@@ -100,9 +100,9 @@ export interface ServiceApi {
     selectedCourseIds: string[]
   ): Promise<void>;
 
-  getCourseIdsByClassId(classId: string): Promise<TableTypes<"class_course">[]>;
+  getCourseByClassId(classId: string): Promise<TableTypes<"class_course">[]>;
 
-  removeCourseFromClass(classId: string, courseId: string):Promise<void>;
+  removeCourseFromClass(id: string):Promise<void>;
   /**
    * To delete `Profile` for given student Id
    * @param {string } studentId - Student Id

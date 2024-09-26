@@ -260,7 +260,13 @@ const App: React.FC = () => {
       }
     };
 
-    CapApp.addListener("appStateChange", handleAppStateChange);
+    if (Capacitor.isNativePlatform()) {
+      const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
+      const today = new Date().toISOString().split("T")[0];
+      if (lastShownDate !== today) {
+        CapApp.addListener("appStateChange", handleAppStateChange);
+      }
+    }
     return () => {
       CapApp.removeAllListeners();
     };
@@ -552,9 +558,12 @@ const App: React.FC = () => {
                 "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
               )}
             </p>
-            <IonButton onClick={handleContinue}
-            style={{ backgroundColor: '#4b0082', color: 'white' }}
-            >{t("Continue")}</IonButton>
+            <IonButton
+              onClick={handleContinue}
+              style={{ backgroundColor: "#4b0082", color: "white" }}
+            >
+              {t("Continue")}
+            </IonButton>
           </div>
         </IonModal>
         {/*Toast notification for acknowledgment */}

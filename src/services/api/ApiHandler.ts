@@ -160,11 +160,11 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getSchoolsForUser(userId);
   }
 
-  public async getCourseIdsByClassId(classid: string): Promise<TableTypes<"class_course">[]> {
-    return await this.s.getCourseIdsByClassId(classid);
+  public async getCourseByClassId(classid: string): Promise<TableTypes<"class_course">[]> {
+    return await this.s.getCourseByClassId(classid);
   }
-  public async removeCourseFromClass(classid: string, courseId: string): Promise<void> {
-    return await this.s.removeCourseFromClass(classid, courseId);
+  public async removeCourseFromClass(id: string): Promise<void> {
+    return await this.s.removeCourseFromClass(id);
   }
   public async isUserTeacher(userId: string): Promise<boolean> {
     return await this.s.isUserTeacher(userId);

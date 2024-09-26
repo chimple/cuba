@@ -1819,30 +1819,24 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
-  async getCourseIdsByClassId(
-    classId: string,
+  async getCourseByClassId(
+    classId: string
   ): Promise<TableTypes<"class_course">[]> {
-    console.log("getCourseIdsByClassId result",classId );
-
     const query = `
-      SELECT course_id 
-      FROM ${TABLES.ClassCourse}
-      WHERE class_id = '${classId}'
-    `;
-  
-    const res = await this._db?.query(query);
-    console.log("getCourseIdsByClassId result",res );
+    SELECT * 
+    FROM ${TABLES.ClassCourse}
+    WHERE class_id = ?
+  `;
+    const res = await this._db?.query(query, [classId]);
     return res?.values ?? [];
   }
 
-  async removeCourseFromClass(classId: string, courseId: string): Promise<void> {
+  async removeCourseFromClass(id: string): Promise<void> {
     try {
-      await this.executeQuery(
-        `DELETE FROM class_course WHERE class_id = ? AND course_id = ?`,
-        [classId, courseId]
-      );
-  
-      console.log(`Course ${courseId} removed from class ${classId} successfully.`);
+      await this.executeQuery(`DELETE FROM class_course WHERE id = ?`, [id]);
+      this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.DELETE, {
+        id: id,
+      });
     } catch (error) {
       console.error("Error removing course from class_course", error);
     }
