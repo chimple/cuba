@@ -88,7 +88,9 @@ export class ClassUtil {
       timeSpent: parseFloat(timeSpent.toFixed(2)),
       averageScore:
         assignmentResult?.length ?? 0 > 0
-          ? totalScore / (assignmentResult?.length ?? 0)
+          ? parseFloat(
+              (totalScore / (assignmentResult?.length ?? 0)).toFixed(1)
+            )
           : 0,
     };
   }
@@ -153,7 +155,8 @@ export class ClassUtil {
           (acc, result) => acc + (result.score ?? 0),
           0
         );
-        const averageScore = totalScore / (selfPlayedLength+assignmentIds.length);
+        const averageScore =
+          totalScore / (selfPlayedLength + assignmentIds.length);
 
         if (averageScore >= 70) {
           greenGroup.push(
