@@ -1663,38 +1663,6 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
-  async getStudentLastTenResult(
-    studentId: string
-  ): Promise<TableTypes<"result">[]> {
-    const res = await this._db?.query(
-      `WITH null_assignments AS (
-         SELECT * 
-         FROM ${TABLES.Result} 
-         WHERE student_id = ? 
-         AND assignment_id IS NULL 
-         ORDER BY created_at DESC 
-         LIMIT 5
-       ),
-       non_null_assignments AS (
-         SELECT * 
-         FROM ${TABLES.Result} 
-         WHERE student_id = ? 
-         AND assignment_id IS NOT NULL 
-         ORDER BY created_at DESC 
-         LIMIT 5
-       )
-       SELECT * 
-       FROM null_assignments
-       UNION ALL
-       SELECT * 
-       FROM non_null_assignments
-       ORDER BY created_at DESC
-       LIMIT 10;`,
-      [studentId, studentId]
-    );
-    return res?.values ?? [];
-  }
-
   async getStudentResultInMap(
     studentId: string
   ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
@@ -2959,9 +2927,7 @@ order by
   ): Promise<TableTypes<"result">[] | undefined> {
     if (!assignmentIds || assignmentIds.length === 0) return;
 
-    // Dynamically construct placeholders for the `IN` clause
     const placeholders = assignmentIds.map(() => "?").join(", ");
-
     const query = `SELECT * 
       FROM ${TABLES.Result} 
       WHERE assignment_id IN (${placeholders});`;
@@ -2972,6 +2938,40 @@ order by
     return res.values;
   }
 
+  async getStudentLastTenResults(
+    studentId: string,
+    assignmentIds: string[]
+  ): Promise<TableTypes<"result">[]> {
+    const assignmentholders = assignmentIds.map(() => "?").join(", ");
+    const res = await this._db?.query(
+      `WITH null_assignments AS (
+         SELECT * 
+         FROM ${TABLES.Result} 
+         WHERE student_id = ? 
+         AND assignment_id IS NULL 
+         ORDER BY created_at DESC 
+         LIMIT 5
+       ),
+       non_null_assignments AS (
+         SELECT * 
+         FROM ${TABLES.Result} 
+         WHERE student_id = ? 
+         AND assignment_id IN (${assignmentholders}) 
+         ORDER BY created_at DESC 
+         LIMIT 5
+       )
+       SELECT * 
+       FROM null_assignments
+       UNION ALL
+       SELECT * 
+       FROM non_null_assignments
+       ORDER BY created_at DESC
+       LIMIT 10;`,
+      [studentId, studentId, ...assignmentIds] 
+    );
+    return res?.values ?? [];
+  }
+
   async getAssignmentByClassByDate(
     classId: string,
     startDate: string,
@@ -2980,7 +2980,8 @@ order by
     const query = `SELECT * 
        FROM ${TABLES.Assignment} 
        WHERE class_id = '${classId}'
-       AND created_at BETWEEN '${endDate}' AND '${startDate}';`;
+       AND created_at BETWEEN '${endDate}' AND '${startDate}'
+       ORDER BY created_by DESC;`;
 
     const res = await this._db?.query(query);
 
