@@ -781,26 +781,26 @@ export class SqliteApi implements ServiceApi {
       is_deleted: false,
     };
 
-    // await this.executeQuery(
-    //   `
-    //   INSERT INTO class_user (id, class_id, user_id, role, created_at, updated_at, is_deleted)
-    //   VALUES (?, ?, ?, ?, ?, ?, ?);
-    //   `,
-    //   [
-    //     newClassUser.id,
-    //     newClassUser.class_id,
-    //     newClassUser.user_id,
-    //     newClassUser.role,
-    //     newClassUser.created_at,
-    //     newClassUser.updated_at,
-    //     newClassUser.is_deleted,
-    //   ]
-    // );
-    // await this.updatePushChanges(
-    //   TABLES.ClassUser,
-    //   MUTATE_TYPES.INSERT,
-    //   newClassUser
-    // );
+    await this.executeQuery(
+      `
+      INSERT INTO class_user (id, class_id, user_id, role, created_at, updated_at, is_deleted)
+      VALUES (?, ?, ?, ?, ?, ?, ?);
+      `,
+      [
+        newClassUser.id,
+        newClassUser.class_id,
+        newClassUser.user_id,
+        newClassUser.role,
+        newClassUser.created_at,
+        newClassUser.updated_at,
+        newClassUser.is_deleted,
+      ]
+    );
+    await this.updatePushChanges(
+      TABLES.ClassUser,
+      MUTATE_TYPES.INSERT,
+      newClassUser
+    );
     return newStudent;
   }
 
