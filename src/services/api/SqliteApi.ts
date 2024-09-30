@@ -1855,7 +1855,7 @@ export class SqliteApi implements ServiceApi {
 
   async removeCourseFromClass(id: string): Promise<void> {
     try {
-      await this.executeQuery(`UPDATE class_course SET is_deleted = 0 WHERE id = ?`, [id]);
+      await this.executeQuery(`UPDATE class_course SET is_deleted = 1 WHERE id = ?`, [id]);
       this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.UPDATE, {
         id: id,
         is_deleted: true,
