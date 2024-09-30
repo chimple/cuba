@@ -240,7 +240,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -747,7 +747,6 @@ export class SqliteApi implements ServiceApi {
       music_off: false,
       sfx_off: false,
     };
-
     // Insert into user table
     await this.executeQuery(
       `
@@ -814,11 +813,12 @@ export class SqliteApi implements ServiceApi {
     for (const courseId of selectedCourseIds) {
       // Check if the course is already assigned to the class
       const isExist = await this._db?.query(
-        `SELECT * FROM class_course WHERE class_id = '${classId}' AND course_id = '${courseId}';`
+        `SELECT * FROM class_course WHERE class_id = ? AND course_id = ?;`,
+        [classId, courseId]
       );
 
       if (!isExist || !isExist.values || isExist.values.length < 1) {
-        // Insert new entry into class_course table
+        // Case 1: Course is not assigned, so we insert it
         const newId = uuidv4();
         const newClassCourseEntry = {
           id: newId,
@@ -826,39 +826,60 @@ export class SqliteApi implements ServiceApi {
           course_id: courseId,
           created_at: currentDate,
           updated_at: currentDate,
-          is_deleted: false,
+          is_deleted: false, // New entry should have is_deleted set to false
         };
+
         await this.executeQuery(
           `INSERT INTO class_course (id, class_id, course_id, created_at, updated_at, is_deleted)
-          VALUES (?, ?, ?, ?, ?, ?);`,
+        VALUES (?, ?, ?, ?, ?, ?);`,
           [
             newClassCourseEntry.id,
             newClassCourseEntry.class_id,
             newClassCourseEntry.course_id,
             newClassCourseEntry.created_at,
             newClassCourseEntry.updated_at,
-            newClassCourseEntry.is_deleted,
+            newClassCourseEntry.is_deleted, // always false for new entries
           ]
         );
 
+        // Trigger change notification for the new entry
         this.updatePushChanges(
           TABLES.ClassCourse,
           MUTATE_TYPES.INSERT,
           newClassCourseEntry
         );
-      } else {
-        // Update the existing entry's updated_at field
-        const existingEntry = isExist.values[0];
-        await this.executeQuery(
-          `UPDATE class_course SET updated_at = ? WHERE id = ?;`,
-          [currentDate, existingEntry.id]
-        );
 
-        // Optionally: Update changes for syncing or notifications
-        this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.UPDATE, {
-          id: existingEntry.id,
-          updated_at: currentDate,
-        });
+      } else {
+        // Case 2: Course is already assigned
+        const existingEntry = isExist.values[0];
+
+        if (existingEntry.is_deleted) {
+          // Case 2a: Course was marked as deleted, reactivate it
+          await this.executeQuery(
+            `UPDATE class_course SET is_deleted = 0, updated_at = ? WHERE id = ?;`,
+            [currentDate, existingEntry.id]
+          );
+
+          // Trigger change notification for the re-activation
+          this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.UPDATE, {
+            id: existingEntry.id,
+            is_deleted: false,
+            updated_at: currentDate,
+          });
+
+        } else {
+          // Case 2b: Course is already active, update the updated_at field
+          await this.executeQuery(
+            `UPDATE class_course SET updated_at = ? WHERE id = ?;`,
+            [currentDate, existingEntry.id]
+          );
+
+          // Trigger change notification for the updated timestamp
+          this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.UPDATE, {
+            id: existingEntry.id,
+            updated_at: currentDate,
+          });
+        }
       }
     }
   }
@@ -1771,7 +1792,7 @@ export class SqliteApi implements ServiceApi {
       SELECT c.*
       FROM ${TABLES.ClassUser} cu
       JOIN ${TABLES.Class} c ON cu.class_id = c.id
-      WHERE cu.user_id = "${userId}" and cu.role = "${RoleType.TEACHER}"
+      WHERE cu.user_id = "${userId}" and c.school_id = "${schoolId} and cu.role = "${RoleType.TEACHER}"
       `;
       const res = await this._db?.query(query);
       if (!res || !res.values || res.values.length < 1) return [];
@@ -1785,6 +1806,30 @@ export class SqliteApi implements ServiceApi {
       const res = await this._db?.query(query);
       if (!res || !res.values || res.values.length < 1) return [];
       return res?.values;
+    }
+  }
+
+  async getCourseByClassId(
+    classId: string
+  ): Promise<TableTypes<"class_course">[]> {
+    const query = `
+    SELECT * 
+    FROM ${TABLES.ClassCourse}
+    WHERE class_id = ? AND is_deleted = 0
+  `;
+    const res = await this._db?.query(query, [classId]);
+    return res?.values ?? [];
+  }
+
+  async removeCourseFromClass(id: string): Promise<void> {
+    try {
+      await this.executeQuery(`UPDATE class_course SET is_deleted = 1 WHERE id = ?`, [id]);
+      this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.UPDATE, {
+        id: id,
+        is_deleted: true,
+      });
+    } catch (error) {
+      console.error("Error removing course from class_course", error);
     }
   }
 

@@ -432,6 +432,7 @@ export enum LANG {
 export enum DrawerOptions {
   MANAGE_SCHOOL = "Manage School",
   MANAGE_CLASS = "Manage Class",
+  USER_PROFILE = "User Profile",
 }
 
 export interface SchoolWithRole {
