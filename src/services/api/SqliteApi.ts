@@ -2893,7 +2893,7 @@ order by
     return res.values;
   }
 
-  async getStudentLastTenResult(
+  async getStudentLastTenResults(
     studentId: string,
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]> {
@@ -2924,7 +2924,6 @@ order by
        LIMIT 10;`,
       [studentId, studentId, ...assignmentIds] 
     );
-    
     return res?.values ?? [];
   }
 

@@ -833,7 +833,7 @@ export interface ServiceApi {
    * Get Student Result of 10 activities either assignments or self played
    * @param studentId
    */
-  getStudentLastTenResult(
+  getStudentLastTenResults(
     studentId: string,
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]>;
