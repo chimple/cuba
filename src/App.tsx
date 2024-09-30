@@ -1,5 +1,12 @@
 import { Route, Switch, useHistory } from "react-router-dom";
-import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
+import {
+  IonApp,
+  IonButton,
+  IonModal,
+  IonRouterOutlet,
+  IonToast,
+  setupIonicReact,
+} from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
 /* Core CSS required for Ionic components to work properly */
@@ -101,15 +108,22 @@ import {
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
 import DisplayClasses from "./chimple-private/pages/DisplayClasses";
+import "./App.css";
 
 setupIonicReact();
 interface ExtraData {
   notificationType?: string;
   rewardProfileId?: string;
 }
+const TIME_LIMIT = 1500; // 25 * 60
+const LAST_MODAL_SHOWN_KEY = "lastTimeExceededShown";
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
+  const [startTime, setStartTime] = useState<number>(Date.now());
+  const [timeExceeded, setTimeExceeded] = useState<boolean>(false);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [showToast, setShowToast] = useState<boolean>(false);
   useEffect(() => {
     const handleOnline = () => {
       if (!online) {
@@ -228,6 +242,43 @@ const App: React.FC = () => {
     });
     updateAvatarSuggestionJson();
   }, []);
+  useEffect(() => {
+    const handleAppStateChange = (state: any) => {
+      if (state.isActive) {
+        const currentTime = Date.now();
+        const timeElapsed = (currentTime - startTime) / 1000;
+
+        if (timeElapsed >= TIME_LIMIT) {
+          const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
+          const today = new Date().toISOString().split("T")[0];
+
+          if (lastShownDate !== today) {
+            setShowModal(true);
+            localStorage.setItem(LAST_MODAL_SHOWN_KEY, today);
+          }
+        }
+      }
+    };
+
+    if (Capacitor.isNativePlatform()) {
+      const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
+      const today = new Date().toISOString().split("T")[0];
+      if (lastShownDate !== today) {
+        CapApp.addListener("appStateChange", handleAppStateChange);
+      }
+    }
+
+    return () => {
+      CapApp.removeAllListeners();
+    };
+  }, [startTime]);
+
+  const handleContinue = () => {
+    setShowModal(false);
+    setShowToast(true);
+    // Reset the timer
+    setStartTime(Date.now());
+  };
   const processNotificationData = async (data) => {
     const currentStudent = Util.getCurrentStudent();
     if (data && data.notificationType === "reward") {
@@ -490,6 +541,42 @@ const App: React.FC = () => {
             </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
+        {/* Modal Notification for time limit */}
+        <IonModal isOpen={showModal} className="time-exceed-content">
+          <div
+            style={{
+              textAlign: "center",
+              color: "black",
+              width: "80%",
+              height: "60%",
+              marginTop: "9vh",
+              marginLeft: "9vw",
+            }}
+          >
+            <h2>{t("Time for a break!")}</h2>
+            <p>
+              {t(
+                "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
+              )}
+            </p>
+          <div className="time-exceed-buttons">
+
+            <IonButton
+              onClick={handleContinue}
+              className="time-exceed-continue"
+            >
+              {t("Continue")}
+            </IonButton>
+            </div>
+          </div>
+        </IonModal>
+        {/*Toast notification for acknowledgment */}
+        <IonToast
+          isOpen={showToast}
+          onDidDismiss={() => setShowToast(false)}
+          message="You have resumed after exceeding the time limit."
+          duration={3000}
+        />
       </IonReactRouter>
     </IonApp>
   );
