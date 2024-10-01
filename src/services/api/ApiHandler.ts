@@ -159,8 +159,8 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
     return await this.s.getSchoolsForUser(userId);
   }
-  public async getCourseByClassId(classid: string): Promise<TableTypes<"class_course">[]> {
-    return await this.s.getCourseByClassId(classid);
+  public async getCoursesByClassId(classid: string): Promise<TableTypes<"class_course">[]> {
+    return await this.s.getCoursesByClassId(classid);
   }
   public async removeCourseFromClass(id: string): Promise<void> {
     return await this.s.removeCourseFromClass(id);
@@ -490,9 +490,9 @@ export class ApiHandler implements ServiceApi {
     gender: string | undefined,
     avatar: string | undefined,
     image: string | undefined,
-    boardDocId: string | undefined,
-    gradeDocId: string | undefined,
-    languageDocId: string | undefined,
+    boardDocId: string | null,
+    gradeDocId: string | null,
+    languageDocId: string | null,
     classId: string,
     role: string
   ): Promise<TableTypes<"user">> {

@@ -716,9 +716,9 @@ export class SqliteApi implements ServiceApi {
     gender: string | undefined,
     avatar: string | undefined,
     image: string | undefined,
-    boardDocId: string | undefined,
-    gradeDocId: string | undefined,
-    languageDocId: string | undefined,
+    boardDocId: string | null,
+    gradeDocId: string | null,
+    languageDocId: string | null,
     classId: string,
     role: "student"
   ): Promise<TableTypes<"user">> {
@@ -767,8 +767,7 @@ export class SqliteApi implements ServiceApi {
         newStudent.updated_at,
       ]
     );
-    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
-
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
     // Insert into class_user table
     const classUserId = uuidv4();
     const newClassUser: TableTypes<"class_user"> = {
@@ -796,7 +795,7 @@ export class SqliteApi implements ServiceApi {
         newClassUser.is_deleted,
       ]
     );
-    await this.updatePushChanges(
+    this.updatePushChanges(
       TABLES.ClassUser,
       MUTATE_TYPES.INSERT,
       newClassUser
@@ -1809,7 +1808,7 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
-  async getCourseByClassId(
+  async getCoursesByClassId(
     classId: string
   ): Promise<TableTypes<"class_course">[]> {
     const query = `
@@ -2967,7 +2966,7 @@ order by
        FROM non_null_assignments
        ORDER BY created_at DESC
        LIMIT 10;`,
-      [studentId, studentId, ...assignmentIds] 
+      [studentId, studentId, ...assignmentIds]
     );
     return res?.values ?? [];
   }

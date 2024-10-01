@@ -343,7 +343,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  getCourseByClassId(
+  getCoursesByClassId(
     classId: string
   ): Promise<TableTypes<"class_course">[]> {
     throw new Error("Method not implemented.");
@@ -445,9 +445,9 @@ export class OneRosterApi implements ServiceApi {
     gender: string | undefined,
     avatar: string | undefined,
     image: string | undefined,
-    boardDocId: string | undefined,
-    gradeDocId: string | undefined,
-    languageDocId: string | undefined,
+    boardDocId: string | null,
+    gradeDocId: string | null,
+    languageDocId: string | null,
     classId: string,
     role: string
   ): Promise<TableTypes<"user">> {
