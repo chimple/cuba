@@ -57,7 +57,10 @@ const GenderAndAge: React.FC<{
               }}
             >
               <IonRow>
-                <CgBoy size="8vh" color="#ffad1a" />
+                <img
+                  className="unspecifiedGenderIcon"
+                  src="assets/icons/OtherGenderIcon.png"
+                />
                 <p className="gender-text"> {t("Unspecified")}</p>
               </IonRow>
               <BsFillCheckCircleFill
