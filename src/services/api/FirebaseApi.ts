@@ -1233,9 +1233,9 @@ export class FirebaseApi implements ServiceApi {
       const [snapshot1, snapshot2] = await Promise.all([getDocs(q1), getDocs(q2)]);
       const queryResult = [...snapshot1.docs, ...snapshot2.docs];
       const sortedResult = queryResult.sort((a, b) => {
-        const createdAtA = a.data().createdAt;
-        const createdAtB = b.data().createdAt;
-        return createdAtB.seconds - createdAtA.seconds;
+        const createdAtA = a.data().createdAt.toDate();
+        const createdAtB = b.data().createdAt.toDate();
+        return createdAtB - createdAtA;
       });
       const assignments: Assignment[] = [];
       sortedResult.forEach((_assignment) => {
@@ -1819,9 +1819,10 @@ export class FirebaseApi implements ServiceApi {
       const [snapshot1, snapshot2] = await Promise.all([getDocs(q1), getDocs(q2)]);
       const queryResult = [...snapshot1.docs, ...snapshot2.docs];
       const sortedResult = queryResult.sort((a, b) => {
-        const createdAtA = a.data().createdAt;
-        const createdAtB = b.data().createdAt;
-        return createdAtB.seconds - createdAtA.seconds;
+        const createdAtA = a.data().createdAt.toDate();
+        const createdAtB = b.data().createdAt.toDate();
+      
+        return createdAtB - createdAtA;
       });
       const liveQuizLessons: Assignment[] = [];
       const liveQuizDocs =sortedResult;
