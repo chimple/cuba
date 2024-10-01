@@ -227,7 +227,7 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  async getCourseByClassId(
+  async getCoursesByClassId(
     classId: string,
   ):Promise<TableTypes<"class_course">[]>{
     throw new Error("Method not implemented.");
@@ -268,9 +268,9 @@ export class SupabaseApi implements ServiceApi {
     gender: string | undefined,
     avatar: string | undefined,
     image: string | undefined,
-    boardDocId: string | undefined,
-    gradeDocId: string | undefined,
-    languageDocId: string | undefined
+    boardDocId: string | null,
+    gradeDocId: string | null,
+    languageDocId: string | null
   ): Promise<TableTypes<"user">> {
     throw new Error("Method not implemented.");
   }
