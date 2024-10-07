@@ -109,6 +109,7 @@ import {
 import LessonDetails from "./chimple-private/pages/LessonDetails";
 import DisplayClasses from "./chimple-private/pages/DisplayClasses";
 import "./App.css";
+import SelectedAssignedPage from "./chimple-private/pages/SelectedAssignedPage";
 
 setupIonicReact();
 interface ExtraData {
@@ -539,6 +540,11 @@ const App: React.FC = () => {
                 <EditClass />
               </Suspense>
             </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SELECTED_ASSIGNED_PAGE} exact={true}>
+              <Suspense>
+                <SelectedAssignedPage />
+              </Suspense>
+            </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
         {/* Modal Notification for time limit */}
@@ -559,14 +565,13 @@ const App: React.FC = () => {
                 "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
               )}
             </p>
-          <div className="time-exceed-buttons">
-
-            <IonButton
-              onClick={handleContinue}
-              className="time-exceed-continue"
-            >
-              {t("Continue")}
-            </IonButton>
+            <div className="time-exceed-buttons">
+              <IonButton
+                onClick={handleContinue}
+                className="time-exceed-continue"
+              >
+                {t("Continue")}
+              </IonButton>
             </div>
           </div>
         </IonModal>
