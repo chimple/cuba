@@ -3081,7 +3081,7 @@ order by
     if (!result?.values) return false;
     return result.values.length > 0;
   }
-  async getAssignmentsByUserAndClass(
+  async getAssignmentsByAssignerAndClass(
     userId: string,
     classId: string,
     startDate: string,
@@ -3093,10 +3093,10 @@ order by
     const query = `
     SELECT * 
     FROM ${TABLES.Assignment}
-    WHERE created_by = '${userId}'  -- Add single quotes around userId
-      AND (class_id = '${classId}' OR is_class_wise = 1)  -- Add single quotes around classId
-      AND created_at >= '${startDate}'  -- Add single quotes around startDate
-      AND created_at <= '${endDate}'  -- Add single quotes around endDate
+    WHERE created_by = '${userId}'  
+      AND (class_id = '${classId}' OR is_class_wise = 1)  
+      AND created_at >= '${startDate}'  
+      AND created_at <= '${endDate}'  
     ORDER BY is_class_wise DESC, created_at ASC;
   `;
 
@@ -3139,7 +3139,8 @@ order by
 
     return undefined;
   }
-  async getUserIdsByAssignment(assignmentId: string): Promise<string[]> {
+  async getAssignedUsers(assignmentId: string): Promise<string[]> {
+    //getting the student ids for the individual assignments
     const query = `
     SELECT user_id 
     FROM assignment_user 

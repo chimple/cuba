@@ -691,7 +691,7 @@ export class ApiHandler implements ServiceApi {
   checkUserInClass(classId: string, userId: string): Promise<boolean> {
     return this.s.checkUserInClass(classId, userId);
   }
-  async getAssignmentsByUserAndClass(
+  async getAssignmentsByAssignerAndClass(
     userId: string,
     classId: string,
     startDate: string,
@@ -700,7 +700,7 @@ export class ApiHandler implements ServiceApi {
     classWiseAssignments: TableTypes<"assignment">[];
     individualAssignments: TableTypes<"assignment">[];
   }> {
-    return this.s.getAssignmentsByUserAndClass(
+    return this.s.getAssignmentsByAssignerAndClass(
       userId,
       classId,
       startDate,
@@ -713,7 +713,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"class_user"> | undefined> {
     return this.s.getTeacherJoinedDate(userId, classId);
   }
-  getUserIdsByAssignment(assignmentId: string): Promise<string[]> {
-    return this.s.getUserIdsByAssignment(assignmentId);
+  getAssignedUsers(assignmentId: string): Promise<string[]> {
+    return this.s.getAssignedUsers(assignmentId);
   }
 }

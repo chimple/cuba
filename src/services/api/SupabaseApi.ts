@@ -1028,7 +1028,7 @@ export class SupabaseApi implements ServiceApi {
   checkUserInClass(classid, userId): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
-  getAssignmentsByUserAndClass(
+  getAssignmentsByAssignerAndClass(
     userId: string,
     classId: string,
     startDate: string,
@@ -1045,7 +1045,7 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"class_user"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  getUserIdsByAssignment(assignmentId: string): Promise<string[]> {
+  getAssignedUsers(assignmentId: string): Promise<string[]> {
     throw new Error("Method not implemented.");
   }
 }
