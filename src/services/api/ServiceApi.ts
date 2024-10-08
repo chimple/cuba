@@ -949,5 +949,5 @@ export interface ServiceApi {
    * @param {string} assignmentId assignment Id
    * @return array of student ids.
    */
-  getAssignedUsers(assignmentId: string): Promise<string[]>;
+  getAssignedStudents(assignmentId: string): Promise<string[]>;
 }

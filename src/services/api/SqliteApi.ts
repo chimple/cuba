@@ -3139,7 +3139,7 @@ order by
 
     return undefined;
   }
-  async getAssignedUsers(assignmentId: string): Promise<string[]> {
+  async getAssignedStudents(assignmentId: string): Promise<string[]> {
     //getting the student ids for the individual assignments
     const query = `
     SELECT user_id 

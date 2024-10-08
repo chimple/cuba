@@ -1045,7 +1045,7 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"class_user"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  getAssignedUsers(assignmentId: string): Promise<string[]> {
+  getAssignedStudents(assignmentId: string): Promise<string[]> {
     throw new Error("Method not implemented.");
   }
 }

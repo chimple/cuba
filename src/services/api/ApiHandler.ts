@@ -713,7 +713,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"class_user"> | undefined> {
     return this.s.getTeacherJoinedDate(userId, classId);
   }
-  getAssignedUsers(assignmentId: string): Promise<string[]> {
-    return this.s.getAssignedUsers(assignmentId);
+  getAssignedStudents(assignmentId: string): Promise<string[]> {
+    return this.s.getAssignedStudents(assignmentId);
   }
 }
