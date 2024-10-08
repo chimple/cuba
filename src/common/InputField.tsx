@@ -2,6 +2,7 @@ import React from "react";
 import { IonItem, IonSearchbar, IonIcon, IonButton } from "@ionic/react";
 import { enterOutline } from "ionicons/icons";
 import "./InputField.css";
+import { t } from "i18next";
 
 const InputField: React.FC<{
   useEmail: boolean;
@@ -45,7 +46,7 @@ const InputField: React.FC<{
 
       <div className="toggle-text">
         <IonButton fill="clear" onClick={toggleInputMethod}>
-          {useEmail ? "Use phone number instead" : "Use email instead"}
+          {useEmail ? t("Use phone number instead") : t("Use email instead")}
         </IonButton>
       </div>
     </>
