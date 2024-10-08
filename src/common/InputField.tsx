@@ -31,7 +31,7 @@ const InputField: React.FC<{
           onIonInput={handleInputChange}
           onKeyDown={handleKeyDown}
           type={useEmail ? "email" : "number"}
-          placeholder={useEmail ? "Email" : "Phone"}
+          placeholder={useEmail ? t("Email") || "" : t("Phone") || ""}
           showCancelButton="never"
           showClearButton="never"
           inputmode={useEmail ? "email" : "tel"}

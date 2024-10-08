@@ -901,11 +901,7 @@ export interface ServiceApi {
    * @param {string} userId user Id;
    * @return void.
    */
-  addTeacherToClass(
-    schoolId: string,
-    classId: string,
-    userId: string
-  ): Promise<void>;
+  addTeacherToClass(classId: string, userId: string): Promise<void>;
 
   /**
    * Checks the user present in class or not.

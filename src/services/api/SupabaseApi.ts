@@ -1018,11 +1018,7 @@ export class SupabaseApi implements ServiceApi {
       throw error;
     }
   }
-  addTeacherToClass(
-    schoolId: string,
-    classId: string,
-    userId: string
-  ): Promise<void> {
+  addTeacherToClass(classId: string, userId: string): Promise<void> {
     throw new Error("Method not implemented.");
   }
   checkUserInClass(classid, userId): Promise<boolean> {

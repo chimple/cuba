@@ -1729,7 +1729,51 @@ export class SqliteApi implements ServiceApi {
   async getSchoolsForUser(
     userId: string
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
-    const query = `
+    const finalData: { school: TableTypes<"school">; role: RoleType }[] = [];
+    const schoolIds: Set<string> = new Set();
+
+    let query = `
+    SELECT cu.class_id, c.school_id
+    FROM ${TABLES.ClassUser} cu
+    JOIN ${TABLES.Class} c ON cu.class_id = c.id
+    WHERE cu.user_id = "${userId}" AND cu.role = "${RoleType.TEACHER}"
+  `;
+    const classUserRes = await this._db?.query(query);
+
+    if (classUserRes && classUserRes.values && classUserRes.values.length > 0) {
+      for (const classData of classUserRes.values) {
+        const schoolId = classData.school_id;
+
+        if (!schoolIds.has(schoolId)) {
+          schoolIds.add(schoolId);
+
+          query = `
+          SELECT JSON_OBJECT(
+            'id', s.id,
+            'name', s.name,
+            'group1', s.group1,
+            'group2', s.group2,
+            'group3', s.group3,
+            'image', s.image,
+            'created_at', s.created_at,
+            'updated_at', s.updated_at,
+            'is_deleted', s.is_deleted
+          ) AS school
+          FROM ${TABLES.School} s
+          WHERE s.id = "${schoolId}"
+        `;
+          const schoolRes = await this._db?.query(query);
+          if (schoolRes && schoolRes.values && schoolRes.values.length > 0) {
+            finalData.push({
+              school: JSON.parse(schoolRes.values[0].school),
+              role: RoleType.TEACHER,
+            });
+          }
+        }
+      }
+    }
+
+    query = `
     SELECT su.*, 
     JSON_OBJECT(
       'id',s.id,
@@ -1744,17 +1788,26 @@ export class SqliteApi implements ServiceApi {
     ) AS school
     FROM ${TABLES.SchoolUser} su
     JOIN ${TABLES.School} s ON su.school_id = s.id
-    WHERE su.user_id = "${userId}" and NOT su.role = "${RoleType.PARENT}"
-    `;
-    const res = await this._db?.query(query);
-    console.log("🚀 ~ SqliteApi ~ getSchoolsForUser ~ res:", res);
-    if (!res || !res.values || res.values.length < 1) return [];
-    const finalData: { school: TableTypes<"school">; role: RoleType }[] = [];
-    for (const data of res.values) {
-      finalData.push({
-        role: data.role,
-        school: JSON.parse(data.school),
-      });
+    WHERE su.user_id = "${userId}" 
+    AND su.role != "${RoleType.PARENT}"
+  `;
+    const schoolUserRes = await this._db?.query(query);
+
+    if (
+      schoolUserRes &&
+      schoolUserRes.values &&
+      schoolUserRes.values.length > 0
+    ) {
+      for (const data of schoolUserRes.values) {
+        const schoolId = JSON.parse(data.school).id;
+
+        if (!schoolIds.has(schoolId)) {
+          finalData.push({
+            school: JSON.parse(data.school),
+            role: data.role,
+          });
+        }
+      }
     }
     return finalData;
   }
@@ -1775,32 +1828,37 @@ export class SqliteApi implements ServiceApi {
     schoolId: string,
     userId: string
   ): Promise<TableTypes<"class">[]> {
-    const schoolQuery = `
-    SELECT * FROM ${TABLES.SchoolUser} WHERE school_id = '${schoolId}' AND user_id = '${userId}' AND NOT role = '${RoleType.PARENT}' 
-    `;
-    const res = await this._db?.query(schoolQuery);
-    if (!res || !res.values || res.values.length < 1) return [];
-    const role: RoleType = res.values[0].role;
-    if (role === RoleType.TEACHER) {
-      const query = `
-      SELECT c.*
-      FROM ${TABLES.ClassUser} cu
-      JOIN ${TABLES.Class} c ON cu.class_id = c.id
-      WHERE cu.user_id = "${userId}" and c.school_id = "${schoolId} and cu.role = "${RoleType.TEACHER}"
-      `;
-      const res = await this._db?.query(query);
-      if (!res || !res.values || res.values.length < 1) return [];
-      return res?.values;
-    } else {
-      const query = `
-      SELECT *
-      FROM ${TABLES.Class} 
-      WHERE school_id = '${schoolId}'
-      `;
-      const res = await this._db?.query(query);
-      if (!res || !res.values || res.values.length < 1) return [];
-      return res?.values;
+    let query = `
+    SELECT cu.class_id, cu.role, c.*
+    FROM ${TABLES.ClassUser} cu
+    JOIN ${TABLES.Class} c ON cu.class_id = c.id
+    WHERE cu.user_id = '${userId}' 
+    AND c.school_id = '${schoolId}' 
+    AND cu.role != '${RoleType.PARENT}' 
+  `;
+    const res = await this._db?.query(query);
+
+    if (res && res.values && res.values.length > 0) {
+      const teacherClasses = res.values.map((classData) => classData);
+      return teacherClasses.length > 0 ? teacherClasses : [];
     }
+
+    query = `
+    SELECT *
+    FROM ${TABLES.Class}
+    WHERE school_id = '${schoolId}'
+  `;
+    const allClassesRes = await this._db?.query(query);
+
+    if (
+      !allClassesRes ||
+      !allClassesRes.values ||
+      allClassesRes.values.length < 1
+    ) {
+      return [];
+    }
+
+    return allClassesRes.values;
   }
 
   async getCoursesByClassId(
@@ -2992,7 +3050,7 @@ order by
     SELECT user.*
     FROM ${TABLES.ClassUser} AS cu
     JOIN ${TABLES.User} AS user ON cu.user_id= user.id
-    WHERE cu.class_id = "${classId}" and cu.role = '${RoleType.TEACHER}';
+    WHERE cu.class_id = "${classId}" and cu.role = '${RoleType.TEACHER}' and cu.is_deleted = false;
   `;
     const res = await this._db?.query(query);
     return res?.values ?? [];
@@ -3005,44 +3063,7 @@ order by
   ): Promise<TableTypes<"user"> | undefined> {
     return this._serverApi.getUserByPhoneNumber(phone);
   }
-  async addTeacherToClass(
-    schoolId: string,
-    classId: string,
-    userId: string
-  ): Promise<void> {
-    const schoolUserId = uuidv4();
-    const newSchoolUser = {
-      id: schoolUserId,
-      school_id: schoolId,
-      user_id: userId,
-      role: RoleType.TEACHER,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_deleted: false,
-    };
-
-    await this.executeQuery(
-      `
-    INSERT INTO school_user (id, school_id, user_id, role, created_at, updated_at, is_deleted)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-    `,
-      [
-        newSchoolUser.id,
-        newSchoolUser.school_id,
-        newSchoolUser.user_id,
-        newSchoolUser.role,
-        newSchoolUser.created_at,
-        newSchoolUser.updated_at,
-        newSchoolUser.is_deleted,
-      ]
-    );
-
-    this.updatePushChanges(
-      TABLES.SchoolUser,
-      MUTATE_TYPES.INSERT,
-      newSchoolUser
-    );
-
+  async addTeacherToClass(classId: string, userId: string): Promise<void> {
     const classUserId = uuidv4();
     const classUser = {
       id: classUserId,
@@ -3070,7 +3091,11 @@ order by
       ]
     );
 
-    this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.INSERT, classUser);
+    await this.updatePushChanges(
+      TABLES.ClassUser,
+      MUTATE_TYPES.INSERT,
+      classUser
+    );
   }
 
   async checkUserInClass(classId: string, userId: string): Promise<boolean> {
