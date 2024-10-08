@@ -13,6 +13,7 @@ import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { RoleType } from "../../interface/modelInterfaces";
+import { school } from "ionicons/icons";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -159,7 +160,9 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
     return await this.s.getSchoolsForUser(userId);
   }
-  public async getCoursesByClassId(classid: string): Promise<TableTypes<"class_course">[]> {
+  public async getCoursesByClassId(
+    classid: string
+  ): Promise<TableTypes<"class_course">[]> {
     return await this.s.getCoursesByClassId(classid);
   }
   public async removeCourseFromClass(id: string): Promise<void> {
@@ -666,5 +669,51 @@ export class ApiHandler implements ServiceApi {
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[] | undefined> {
     return this.s.getResultByAssignmentIds(assignmentIds);
+  }
+  getTeachersForClass(
+    classId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    return this.s.getTeachersForClass(classId);
+  }
+  getUserByEmail(email: string): Promise<TableTypes<"user"> | undefined> {
+    return this.s.getUserByEmail(email);
+  }
+  getUserByPhoneNumber(phone: string): Promise<TableTypes<"user"> | undefined> {
+    return this.s.getUserByPhoneNumber(phone);
+  }
+  addTeacherToClass(
+    schoolId: string,
+    classId: string,
+    userId: string
+  ): Promise<void> {
+    return this.s.addTeacherToClass(schoolId, classId, userId);
+  }
+  checkUserInClass(classId: string, userId: string): Promise<boolean> {
+    return this.s.checkUserInClass(classId, userId);
+  }
+  async getAssignmentsByUserAndClass(
+    userId: string,
+    classId: string,
+    startDate: string,
+    endDate: string
+  ): Promise<{
+    classWiseAssignments: TableTypes<"assignment">[];
+    individualAssignments: TableTypes<"assignment">[];
+  }> {
+    return this.s.getAssignmentsByUserAndClass(
+      userId,
+      classId,
+      startDate,
+      endDate
+    );
+  }
+  getTeacherJoinedDate(
+    userId: string,
+    classId: string
+  ): Promise<TableTypes<"class_user"> | undefined> {
+    return this.s.getTeacherJoinedDate(userId, classId);
+  }
+  getUserIdsByAssignment(assignmentId: string): Promise<string[]> {
+    return this.s.getUserIdsByAssignment(assignmentId);
   }
 }

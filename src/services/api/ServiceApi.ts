@@ -102,7 +102,7 @@ export interface ServiceApi {
 
   getCoursesByClassId(classId: string): Promise<TableTypes<"class_course">[]>;
 
-  removeCourseFromClass(id: string):Promise<void>;
+  removeCourseFromClass(id: string): Promise<void>;
 
   /**
    * To delete `Profile` for given student Id
@@ -870,4 +870,34 @@ export interface ServiceApi {
   getResultByAssignmentIds(
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[] | undefined>;
+  /**
+   * This function gets all the teachers for the class.
+   * @param {string} classId class Id;
+   * @return A promise to an array of teachers.
+   */
+  getTeachersForClass(
+    classId: string
+  ): Promise<TableTypes<"user">[] | undefined>;
+  getUserByEmail(email: string): Promise<TableTypes<"user"> | undefined>;
+  getUserByPhoneNumber(phone: string): Promise<TableTypes<"user"> | undefined>;
+  addTeacherToClass(
+    schoolId: string,
+    classId: string,
+    userId: string
+  ): Promise<void>;
+  checkUserInClass(classId: string, userId: string): Promise<boolean>;
+  getAssignmentsByUserAndClass(
+    userId: string,
+    classId: string,
+    startDate: string,
+    endDate: string
+  ): Promise<{
+    classWiseAssignments: TableTypes<"assignment">[];
+    individualAssignments: TableTypes<"assignment">[];
+  }>;
+  getTeacherJoinedDate(
+    userId: string,
+    classId: string
+  ): Promise<TableTypes<"class_user"> | undefined>;
+  getUserIdsByAssignment(assignmentId: string): Promise<string[]>;
 }
