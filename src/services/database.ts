@@ -1601,6 +1601,7 @@ export type Database = {
           phone: string
           sfx_off: boolean
           updated_at: string
+          student_id: string
         }[]
       }
       get_user_by_phone: {
@@ -1635,6 +1636,7 @@ export type Database = {
           phone: string
           sfx_off: boolean
           updated_at: string
+          student_id: string
         }[]
       }
       getDataByInviteCode: {
