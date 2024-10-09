@@ -476,6 +476,7 @@ export class SqliteApi implements ServiceApi {
       fcm_token: null,
       music_off: false,
       sfx_off: false,
+      student_id: null,
     };
 
     await this.executeQuery(
@@ -746,6 +747,7 @@ export class SqliteApi implements ServiceApi {
       fcm_token: null,
       music_off: false,
       sfx_off: false,
+      student_id: null,
     };
     // Insert into user table
     await this.executeQuery(
@@ -780,6 +782,8 @@ export class SqliteApi implements ServiceApi {
       is_deleted: false,
     };
 
+
+    console.log("whdefs", newClassUser);
     await this.executeQuery(
       `
       INSERT INTO class_user (id, class_id, user_id, role, created_at, updated_at, is_deleted)
@@ -1632,6 +1636,140 @@ export class SqliteApi implements ServiceApi {
       id: student.id,
     });
     return student;
+  }
+
+  async getCurrentClassIdForStudent(studentId: string): Promise<string | null> {
+    const query = `
+      SELECT class_id 
+      FROM class_user 
+      WHERE user_id = ? AND is_deleted = false
+      ORDER BY updated_at DESC
+      LIMIT 1;
+    `;
+    const res = await this.executeQuery(query, [studentId]);
+    // Check if a result was found
+    if (!res || !res.values || res.values.length < 1) {
+      return null;
+    }
+    return res?.values[0].class_id;
+  }
+
+
+  async updateStudentFromSchoolMode(
+    student: TableTypes<"user">,
+    name: string,
+    age: number,
+    gender: string,
+    avatar: string,
+    image: string | undefined,
+    boardDocId: string,
+    gradeDocId: string,
+    languageDocId: string,
+    student_id: string,
+    newClassId: string
+  ): Promise<TableTypes<"user">> {
+    console.log("fsgdgdfg", name, newClassId);
+    const updateUserQuery = `
+      UPDATE "user"
+      SET 
+        name = ?,
+        age = ?,
+        gender = ?,
+        avatar = ?,
+        image = ?,
+        curriculum_id = ?,
+        grade_id = ?,
+        language_id = ?
+        student_id = ?,
+      WHERE id = ?;
+    `;
+    try {
+    await this.executeQuery(updateUserQuery, [
+      name,
+      age,
+      gender,
+      avatar,
+      image ?? null,
+      boardDocId,
+      gradeDocId,
+      languageDocId,
+      student_id,
+      student.id,
+    ]);
+
+    student.name = name;
+    student.age = age;
+    student.gender = gender;
+    student.avatar = avatar;
+    student.image = image ?? null;
+    student.curriculum_id = boardDocId;
+    student.grade_id = gradeDocId;
+    student.language_id = languageDocId;
+    student.student_id = student_id;
+
+    // Check if the class has changed
+    const currentClassId = await this.getCurrentClassIdForStudent(student.id); // Assume this function retrieves the current class ID
+    console.log("fdsfsf", currentClassId, newClassId);
+    if (currentClassId !== newClassId) {
+      // Update class_user table to set previous record as deleted
+      const deleteOldClassUserQuery = `
+          UPDATE class_user
+          SET is_deleted = 1, updated_at = ?
+          WHERE user_id = ? AND is_deleted = 0;
+        `;
+      const now = new Date().toISOString();
+      await this.executeQuery(deleteOldClassUserQuery, [now, student.id]);
+      // Create new class_user entry
+      const newClassUserId = uuidv4();
+      const newClassUser: TableTypes<"class_user"> = {
+        id: newClassUserId,
+        class_id: newClassId,
+        user_id: student.id,
+        role: "student",
+        created_at: now,
+        updated_at: now,
+        is_deleted: false,
+      };
+
+      await this.executeQuery(
+        `
+            INSERT INTO class_user (id, class_id, user_id, role, created_at, updated_at, is_deleted)
+            VALUES (?, ?, ?, ?, ?, ?, ?);
+            `,
+        [
+          newClassUser.id,
+          newClassUser.class_id,
+          newClassUser.user_id,
+          newClassUser.role,
+          newClassUser.created_at,
+          newClassUser.updated_at,
+          newClassUser.is_deleted,
+        ]
+      );
+      this.updatePushChanges(
+        TABLES.ClassUser,
+        MUTATE_TYPES.INSERT,
+        newClassUser
+      );
+    }
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+      name,
+      age,
+      gender,
+      avatar,
+      image: image ?? null,
+      curriculum_id: boardDocId,
+      grade_id: gradeDocId,
+      language_id: languageDocId,
+      student_id: student_id,
+      id: student.id,
+    });
+
+    return student;
+  } catch (error) {
+    console.error("Error updating student:", error);
+    throw error; // Rethrow error after logging
+  }
   }
 
   async getSubject(id: string): Promise<TableTypes<"subject"> | undefined> {
