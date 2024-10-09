@@ -105,6 +105,8 @@ import {
   EditClass,
   ClassProfile,
   DashBoardDetails,
+  AddTeacher,
+  TeacherProfile,
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
 import DisplayClasses from "./chimple-private/pages/DisplayClasses";
@@ -539,6 +541,16 @@ const App: React.FC = () => {
                 <EditClass />
               </Suspense>
             </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_TEACHER} exact={true}>
+              <Suspense>
+                <AddTeacher />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
+              <Suspense>
+                <TeacherProfile />
+              </Suspense>
+            </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
         {/* Modal Notification for time limit */}
@@ -559,14 +571,13 @@ const App: React.FC = () => {
                 "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
               )}
             </p>
-          <div className="time-exceed-buttons">
-
-            <IonButton
-              onClick={handleContinue}
-              className="time-exceed-continue"
-            >
-              {t("Continue")}
-            </IonButton>
+            <div className="time-exceed-buttons">
+              <IonButton
+                onClick={handleContinue}
+                className="time-exceed-continue"
+              >
+                {t("Continue")}
+              </IonButton>
             </div>
           </div>
         </IonModal>
