@@ -477,6 +477,7 @@ export class SqliteApi implements ServiceApi {
       fcm_token: null,
       music_off: false,
       sfx_off: false,
+      student_id: null,
     };
 
     await this.executeQuery(
@@ -747,6 +748,7 @@ export class SqliteApi implements ServiceApi {
       fcm_token: null,
       music_off: false,
       sfx_off: false,
+      student_id: null,
     };
     // Insert into user table
     await this.executeQuery(
