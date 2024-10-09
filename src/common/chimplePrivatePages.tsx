@@ -183,3 +183,19 @@ export const DashBoardDetails = lazy(async () => {
     return { default: FallbackComponent };
   }
 });
+export const AddTeacher = lazy(async () => {
+  try {
+    //@ts-ignore
+    return await import("../chimple-private/pages/AddTeacher");
+  } catch (error) {
+    return { default: FallbackComponent };
+  }
+});
+export const TeacherProfile = lazy(async () => {
+  try {
+    //@ts-ignore
+    return await import("../chimple-private/pages/TeacherProfile");
+  } catch (error) {
+    return { default: FallbackComponent };
+  }
+});
