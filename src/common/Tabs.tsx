@@ -1,22 +1,22 @@
-import React, { useState } from "react";
+import React from "react";
 import { AppBar, Tabs as MuiTabs, Tab } from "@mui/material";
 import { t } from "i18next";
 
 const Tabs: React.FC<{
-  tabs: any;
-  onSelectTab: (tab) => void;
-}> = ({ tabs, onSelectTab }) => {
-  const [selectedTab, setSelectedTab] = useState(0);
+  tabs: string[];
+  selectedTab: string;
+  onSelectTab: (tab: string) => void;
+}> = ({ tabs, selectedTab, onSelectTab }) => {
+  const selectedTabIndex = tabs.indexOf(selectedTab);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setSelectedTab(newValue);
     onSelectTab(tabs[newValue]);
   };
 
   return (
     <AppBar position="static" color="default">
       <MuiTabs
-        value={selectedTab}
+        value={selectedTabIndex >= 0 ? selectedTabIndex : 0}
         onChange={handleTabChange}
         textColor="primary"
         variant="fullWidth"
@@ -42,8 +42,9 @@ const Tabs: React.FC<{
           },
         }}
       >
-        {tabs &&
-          tabs.map((tab, index) => <Tab key={index} label={t(tab)}></Tab>)}
+        {tabs.map((tab, index) => (
+          <Tab key={index} label={t(tab)} />
+        ))}
       </MuiTabs>
     </AppBar>
   );

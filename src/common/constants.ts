@@ -420,6 +420,8 @@ export enum PAGES {
   EDIT_CLASS = "/edit-class",
   ADD_CLASS = "/add-class",
   CLASS_PROFILE = "/class-profile",
+  ADD_TEACHER = "/add-teacher",
+  TEACHER_PROFILE = "/teacher-profile",
 }
 
 export enum LANG {
@@ -480,6 +482,7 @@ export const APP_NAME = "Kids";
 export const SCHOOL = "school";
 export const CLASS = "class";
 export const USER_ROLE = "userRole";
+export const CURRENT_TEACHER = "currentTeacher";
 
 export enum IconType {
   SCHOOL = "school",

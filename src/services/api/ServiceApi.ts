@@ -102,7 +102,7 @@ export interface ServiceApi {
 
   getCoursesByClassId(classId: string): Promise<TableTypes<"class_course">[]>;
 
-  removeCourseFromClass(id: string):Promise<void>;
+  removeCourseFromClass(id: string): Promise<void>;
 
   /**
    * To delete `Profile` for given student Id
@@ -870,4 +870,80 @@ export interface ServiceApi {
   getResultByAssignmentIds(
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[] | undefined>;
+
+  /**
+   * This function gets all the teachers for the class.
+   * @param {string} classId class Id;
+   * @return A promise to an array of teachers.
+   */
+  getTeachersForClass(
+    classId: string
+  ): Promise<TableTypes<"user">[] | undefined>;
+
+  /**
+   * This function gets the user by email.
+   * @param {string} email email;
+   * @return user object.
+   */
+  getUserByEmail(email: string): Promise<TableTypes<"user"> | undefined>;
+
+  /**
+   * This function gets the user by phonenumber.
+   * @param {string} phone phonenumber;
+   * @return user object.
+   */
+  getUserByPhoneNumber(phone: string): Promise<TableTypes<"user"> | undefined>;
+
+  /**
+   * Adding a teacher to class.
+   * @param {string} schoolId school Id
+   * @param {string} classId class Id
+   * @param {string} userId user Id;
+   * @return void.
+   */
+  addTeacherToClass(classId: string, userId: string): Promise<void>;
+
+  /**
+   * Checks the user present in class or not.
+   * @param {string} classId class Id
+   * @param {string} userId user Id;
+   * @return returns boolean whether the teacher is connected to class or not.
+   */
+  checkUserInClass(classId: string, userId: string): Promise<boolean>;
+
+  /**
+   * Gets the assignments by assigner and class.
+   * @param {string} classId class Id
+   * @param {string} userId user Id
+   * @param {string} startDate start date
+   * @param {string} endDate end date
+   * @return array of class wise and individual assignments.
+   */
+  getAssignmentsByAssignerAndClass(
+    userId: string,
+    classId: string,
+    startDate: string,
+    endDate: string
+  ): Promise<{
+    classWiseAssignments: TableTypes<"assignment">[];
+    individualAssignments: TableTypes<"assignment">[];
+  }>;
+
+  /**
+   * Gets teacher joined date.
+   * @param {string} userId user Id
+   * @param {string} classId class Id
+   * @return class user object.
+   */
+  getTeacherJoinedDate(
+    userId: string,
+    classId: string
+  ): Promise<TableTypes<"class_user"> | undefined>;
+
+  /**
+   * Gets student ids for individual assignments.
+   * @param {string} assignmentId assignment Id
+   * @return array of student ids.
+   */
+  getAssignedStudents(assignmentId: string): Promise<string[]>;
 }
