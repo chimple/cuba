@@ -34325,6 +34325,10 @@
         {
           "column": "fcm_token",
           "value": "TEXT"
+        },
+        {
+          "column": "student_id",
+          "value": "TEXT"
         }
       ]
     },

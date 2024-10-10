@@ -249,7 +249,6 @@ const App: React.FC = () => {
       if (state.isActive) {
         const currentTime = Date.now();
         const timeElapsed = (currentTime - startTime) / 1000;
-
         if (timeElapsed >= TIME_LIMIT) {
           const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
           const today = new Date().toISOString().split("T")[0];
@@ -261,8 +260,7 @@ const App: React.FC = () => {
         }
       }
     };
-
-    if (Capacitor.isNativePlatform()) {
+    if (Capacitor.getPlatform() === "android") {
       const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
       const today = new Date().toISOString().split("T")[0];
       if (lastShownDate !== today) {
