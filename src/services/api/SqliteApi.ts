@@ -1646,7 +1646,7 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) {
       return null;
     }
-    return res?.values[0].class_id;
+    return res?.values[0];
   }
 
 
@@ -1703,9 +1703,10 @@ export class SqliteApi implements ServiceApi {
     student.student_id = student_id;
 
     // Check if the class has changed
-    const currentClassId = await this.getCurrentClassIdForStudent(student.id); // Assume this function retrieves the current class ID
+    // const currentClassId = await this.getCurrentClassIdForStudent(student.id); // Assume this function retrieves the current class ID
+    const currentClassId = Util.getCurrentClass();
     console.log("fdsfsf", currentClassId, newClassId);
-    if (currentClassId !== newClassId) {
+    if (currentClassId?.id !== newClassId) {
       // Update class_user table to set previous record as deleted
       const deleteOldClassUserQuery = `
           UPDATE class_user
