@@ -3036,7 +3036,24 @@ order by
        FROM ${TABLES.Assignment} 
        WHERE class_id = '${classId}'
        AND created_at BETWEEN '${endDate}' AND '${startDate}'
-       ORDER BY created_by DESC;`;
+       ORDER BY created_at DESC;`;
+
+    const res = await this._db?.query(query);
+
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values;
+  }
+  async getStudentResultByDate(
+    studentId: string,
+    startDate: string,
+    endDate: string
+  ): Promise<TableTypes<"result">[] | undefined> {
+    
+    const query = `SELECT * 
+       FROM ${TABLES.Result} 
+       WHERE student_id = '${studentId}'
+       AND created_at BETWEEN '${startDate}' AND '${endDate}'
+       ORDER BY created_at DESC;`;
 
     const res = await this._db?.query(query);
 

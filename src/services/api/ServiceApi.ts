@@ -830,7 +830,7 @@ export interface ServiceApi {
   getAssignmentByClassByDate(
     classId: string,
     startDate: string,
-    endData: string
+    endDate: string
   ): Promise<TableTypes<"assignment">[] | undefined>;
 
   /**
@@ -946,4 +946,15 @@ export interface ServiceApi {
    * @return array of student ids.
    */
   getAssignedStudents(assignmentId: string): Promise<string[]>;
+
+  /** Get the student result by Date
+   * @param studentId 
+   * @param startDate 
+   * @param endDate 
+   */
+  getStudentResultByDate(
+    studentId: string,
+    startDate: string,
+    endDate: string
+  ): Promise<TableTypes<"result">[] | undefined>
 }

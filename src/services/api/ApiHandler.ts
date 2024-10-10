@@ -655,9 +655,9 @@ export class ApiHandler implements ServiceApi {
   getAssignmentByClassByDate(
     classId: string,
     startDate: string,
-    endData: string
+    endDate: string
   ): Promise<TableTypes<"assignment">[] | undefined> {
-    return this.s.getAssignmentByClassByDate(classId, startDate, endData);
+    return this.s.getAssignmentByClassByDate(classId, startDate, endDate);
   }
   getStudentLastTenResults(
     studentId: string,
@@ -711,5 +711,12 @@ export class ApiHandler implements ServiceApi {
   }
   getAssignedStudents(assignmentId: string): Promise<string[]> {
     return this.s.getAssignedStudents(assignmentId);
+  }
+  getStudentResultByDate(
+    studentId: string,
+    startDate: string,
+    endDate: string
+  ): Promise<TableTypes<"result">[] | undefined>{
+    return this.s.getStudentResultByDate(studentId, startDate, endDate);
   }
 }

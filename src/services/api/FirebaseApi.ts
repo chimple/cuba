@@ -2037,7 +2037,7 @@ export class FirebaseApi implements ServiceApi {
   searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
-  getAssignmentByClassByDate(classId:string,startDate:string,endData:string): Promise<TableTypes<"assignment">[] | undefined>{
+  getAssignmentByClassByDate(classId:string,startDate:string,endDate:string): Promise<TableTypes<"assignment">[] | undefined>{
     throw new Error("Method not implemented.");
   }
   getStudentLastTenResults( studentId: string,assignmentIds: string[]):Promise<TableTypes<"result">[]>{
@@ -2045,6 +2045,13 @@ export class FirebaseApi implements ServiceApi {
   }
   getResultByAssignmentIds(
     assignmentIds: string[]
+  ): Promise<TableTypes<"result">[] | undefined>{
+    throw new Error("Method not implemented.");
+  }
+  getStudentResultByDate(
+    studentId: string,
+    startDate: string,
+    endDate: string
   ): Promise<TableTypes<"result">[] | undefined>{
     throw new Error("Method not implemented.");
   }

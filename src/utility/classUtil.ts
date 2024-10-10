@@ -1,6 +1,7 @@
+import { start } from "repl";
 import { BANDS, TableTypes } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { format, subWeeks } from "date-fns";
+import { addDays, addMonths, format, subDays, subWeeks } from "date-fns";
 
 export class ClassUtil {
   private api = ServiceConfig.getI().apiHandler;
@@ -191,5 +192,152 @@ export class ClassUtil {
     groups.set(BANDS.YELLOWGROUP, yellowGroup);
 
     return groups;
+  }
+  private getDaysInRange(startDate: Date, endDate: Date): string[] {
+    const days: string[] = [];
+    var currentDate = new Date(startDate);
+    endDate = addDays(new Date(endDate), 1);
+    while (currentDate < endDate) {
+      days.push(currentDate.toLocaleDateString("en-US", { weekday: "long" }));
+      currentDate = addDays(new Date(currentDate), 1);
+    }
+
+    return days;
+  }
+  private getMonthsInRange(startDate: Date, endDate: Date): string[] {
+    const months: string[] = [];
+    let currentDate = new Date(startDate);
+    endDate = addDays(new Date(endDate), 1);
+
+    while (currentDate < endDate) {
+      const monthName = currentDate.toLocaleDateString("en-US", {
+        month: "long",
+      });
+      if (!months.includes(monthName)) {
+        months.push(monthName); // Add month name if it's not already in the list
+      }
+      currentDate = addMonths(new Date(currentDate), 1);
+    }
+
+    return months;
+  }
+  public async getWeeklyReport(
+    classId: string,
+    startDate: Date,
+    endDate: Date
+  ) {
+    const adjustedStartDate = subDays(new Date(startDate), 1);
+    const adjustedEndDate = addDays(new Date(endDate), 1);
+    const daysInRange = this.getDaysInRange(startDate, endDate);
+    const startTimeStamp = adjustedStartDate
+      .toISOString()
+      .replace("T", " ")
+      .replace("Z", "+00");
+    const endTimeStamp = adjustedEndDate
+      .toISOString()
+      .replace("T", " ")
+      .replace("Z", "+00");
+    const _students = await this.api.getStudentsForClass(classId);
+
+    const resultsByStudent = new Map<
+      string,
+      { name: string; results: Record<string, any[]> }
+    >();
+
+    _students.forEach((student) => {
+      resultsByStudent.set(student.id, {
+        name: student.name || "",
+        results: {},
+      });
+      daysInRange.forEach((day) => {
+        resultsByStudent.get(student.id)!.results[day] = [];
+      });
+    });
+
+    for (const student of _students) {
+      const res = await this.api.getStudentResultByDate(
+        student.id,
+        startTimeStamp,
+        endTimeStamp
+      );
+
+      res?.forEach((result) => {
+        const resultDate = new Date(result.created_at);
+        const dayName = resultDate.toLocaleDateString("en-US", {
+          weekday: "long",
+        });
+
+        if (resultsByStudent.get(student.id)?.results[dayName]) {
+          resultsByStudent.get(student.id)!.results[dayName].push(result);
+        }
+      });
+    }
+    return {
+      ReportData: resultsByStudent,
+      HeaderData: daysInRange,
+    };
+  }
+
+  public async getMonthlyReport(
+    classId: string,
+    startDate: Date,
+    endDate: Date
+  ) {
+    const monthsInRange = this.getMonthsInRange(startDate, endDate);
+    const adjustedStartDate = subDays(new Date(startDate), 1);
+    const adjustedEndDate = addDays(new Date(endDate), 1);
+    const startTimeStamp = adjustedStartDate
+      .toISOString()
+      .replace("T", " ")
+      .replace("Z", "+00");
+    const endTimeStamp = adjustedEndDate
+      .toISOString()
+      .replace("T", " ")
+      .replace("Z", "+00");
+    const _students = await this.api.getStudentsForClass(classId);
+  
+    const resultsByStudent = new Map<
+      string,
+      { name: string; results: Record<string, any[]> }
+    >();
+  
+    // Initialize results map for each student
+    _students.forEach((student) => {
+      resultsByStudent.set(student.id, {
+        name: student.name || "",
+        results: {},
+      });
+      monthsInRange.forEach((month) => {
+        resultsByStudent.get(student.id)!.results[month] = []; // Initialize an array for each month
+      });
+    });
+  
+    // Fetch results for each student
+    for (const student of _students) {
+      const res = await this.api.getStudentResultByDate(
+        student.id,
+        startTimeStamp,
+        endTimeStamp
+      );
+  
+      res?.forEach((result) => {
+        const resultDate = new Date(result.created_at);
+        // Get month name (e.g., "January", "February")
+        const monthName = resultDate.toLocaleDateString("en-US", {
+          month: "long",
+        });
+  
+        // If the result's month is in the initialized results map, push the result
+        if (resultsByStudent.get(student.id)?.results[monthName]) {
+          resultsByStudent.get(student.id)!.results[monthName].push(result);
+        }
+      });
+    }
+  
+    console.log('Monthly Report Data:', resultsByStudent);
+    return {
+      ReportData: resultsByStudent,
+      HeaderData: monthsInRange,
+    };
   }
 }
