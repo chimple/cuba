@@ -1213,6 +1213,7 @@ export type Database = {
           name: string | null
           phone: string | null
           sfx_off: boolean | null
+          student_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -1233,6 +1234,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           sfx_off?: boolean | null
+          student_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -1253,6 +1255,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           sfx_off?: boolean | null
+          student_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -1575,6 +1578,32 @@ export type Database = {
           user_data: Database["public"]["Tables"]["user"]["Row"][]
         }[]
       }
+      get_user_by_email: {
+        Args: {
+          p_email: string
+        }
+        Returns: {
+          id: string
+          name: string
+          email: string
+          age: number
+          avatar: string
+          created_at: string
+          curriculum_id: string
+          fcm_token: string
+          gender: string
+          grade_id: string
+          image: string
+          is_deleted: boolean
+          is_tc_accepted: boolean
+          language_id: string
+          music_off: boolean
+          phone: string
+          sfx_off: boolean
+          updated_at: string
+          student_id: string
+        }[]
+      }
       get_user_by_phone: {
         Args: {
           phone_number: string
@@ -1582,6 +1611,32 @@ export type Database = {
         Returns: {
           id: string
           phone: string
+        }[]
+      }
+      get_user_by_phonenumber: {
+        Args: {
+          p_phone: string
+        }
+        Returns: {
+          id: string
+          name: string
+          email: string
+          age: number
+          avatar: string
+          created_at: string
+          curriculum_id: string
+          fcm_token: string
+          gender: string
+          grade_id: string
+          image: string
+          is_deleted: boolean
+          is_tc_accepted: boolean
+          language_id: string
+          music_off: boolean
+          phone: string
+          sfx_off: boolean
+          updated_at: string
+          student_id: string
         }[]
       }
       getDataByInviteCode: {
