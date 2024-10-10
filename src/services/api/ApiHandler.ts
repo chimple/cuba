@@ -276,6 +276,34 @@ export class ApiHandler implements ServiceApi {
     );
   }
 
+  public async updateStudentFromSchoolMode(
+    student: TableTypes<"user">,
+    name: string,
+    age: number,
+    gender: string,
+    avatar: string,
+    image: string | undefined,
+    boardDocId: string,
+    gradeDocId: string,
+    languageDocId: string,
+    student_id: string,
+    newClassId: string ,
+  ): Promise<TableTypes<"user">> {
+    return await this.s.updateStudentFromSchoolMode(
+      student,
+      name,
+      age,
+      gender,
+      avatar,
+      image,
+      boardDocId,
+      gradeDocId,
+      languageDocId,
+      student_id,
+      newClassId
+    );
+  }
+
   public async updateUserProfile(
     user: TableTypes<"user">,
     fullName: string,

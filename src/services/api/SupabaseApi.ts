@@ -435,6 +435,20 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"user">> {
     throw new Error("Method not implemented.");
   }
+  updateStudentFromSchoolMode(
+    student: TableTypes<"user">,
+    name: string,
+    age: number,
+    gender: string,
+    avatar: string,
+    image: string | undefined,
+    boardDocId: string,
+    gradeDocId: string,
+    languageDocId: string,
+    newClassId: string | undefined,
+  ): Promise<TableTypes<"user">> {
+    throw new Error("Method not implemented.");
+  }
   public async updateUserProfile(
     user: TableTypes<"user">,
     fullName: string,
