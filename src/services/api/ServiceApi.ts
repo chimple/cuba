@@ -334,6 +334,20 @@ export interface ServiceApi {
     languageDocId: string
   ): Promise<TableTypes<"user">>;
 
+  updateStudentFromSchoolMode(
+    student: TableTypes<"user">,
+    name: string,
+    age: number,
+    gender: string,
+    avatar: string,
+    image: string | undefined,
+    boardDocId: string,
+    gradeDocId: string,
+    languageDocId: string,
+    student_id: string,
+    newClassId: string 
+  ): Promise<TableTypes<"user">>;
+
   updateUserProfile(
     user: TableTypes<"user">,
     fullName: string,

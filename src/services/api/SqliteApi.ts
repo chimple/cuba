@@ -241,7 +241,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -783,6 +783,8 @@ export class SqliteApi implements ServiceApi {
       is_deleted: false,
     };
 
+
+    console.log("whdefs", newClassUser);
     await this.executeQuery(
       `
       INSERT INTO class_user (id, class_id, user_id, role, created_at, updated_at, is_deleted)
@@ -1236,12 +1238,12 @@ export class SqliteApi implements ServiceApi {
     classId: string
   ): Promise<TableTypes<"course">[]> {
     const query = `
-    SELECT *
-    FROM ${TABLES.ClassCourse} AS cc
-    JOIN ${TABLES.Course} AS course ON cc.course_id= course.id
-    WHERE cc.class_id = "${classId}";
-  `;
-    const res = await this._db?.query(query);
+      SELECT course.*
+      FROM ${TABLES.ClassCourse} AS cc
+      JOIN ${TABLES.Course} AS course ON cc.course_id = course.id
+      WHERE cc.class_id = ? AND cc.is_deleted = 0;
+    `;
+    const res = await this._db?.query(query, [classId]);
     return res?.values ?? [];
   }
 
@@ -1629,6 +1631,149 @@ export class SqliteApi implements ServiceApi {
       id: student.id,
     });
     return student;
+  }
+
+  async getCurrentClassIdForStudent(studentId: string): Promise<string | null> {
+    const query = `
+      SELECT class_id 
+      FROM class_user 
+      WHERE user_id = ? AND is_deleted = false
+      ORDER BY updated_at DESC
+      LIMIT 1;
+    `;
+    const res = await this.executeQuery(query, [studentId]);
+    // Check if a result was found
+    if (!res || !res.values || res.values.length < 1) {
+      return null;
+    }
+    return res?.values[0];
+  }
+
+
+  async updateStudentFromSchoolMode(
+    student: TableTypes<"user">,
+    name: string,
+    age: number,
+    gender: string,
+    avatar: string,
+    image: string | undefined,
+    boardDocId: string,
+    gradeDocId: string,
+    languageDocId: string,
+    student_id: string,
+    newClassId: string
+  ): Promise<TableTypes<"user">> {
+    console.log("fsgdgdfg", name, newClassId);
+    const updateUserQuery = `
+      UPDATE "user"
+      SET 
+        name = ?,
+        age = ?,
+        gender = ?,
+        avatar = ?,
+        image = ?,
+        curriculum_id = ?,
+        grade_id = ?,
+        language_id = ?,
+        student_id = ?
+      WHERE id = ?;
+    `;
+    try {
+      await this.executeQuery(updateUserQuery, [
+        name,
+        age,
+        gender,
+        avatar,
+        image ?? null,
+        boardDocId,
+        gradeDocId,
+        languageDocId,
+        student_id,
+        student.id,
+      ]);
+
+      student.name = name;
+      student.age = age;
+      student.gender = gender;
+      student.avatar = avatar;
+      student.image = image ?? null;
+      student.curriculum_id = boardDocId;
+      student.grade_id = gradeDocId;
+      student.language_id = languageDocId;
+      student.student_id = student_id;
+
+      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+        name,
+        age,
+        gender,
+        avatar,
+        image: image ?? null,
+        curriculum_id: boardDocId,
+        grade_id: gradeDocId,
+        language_id: languageDocId,
+        student_id: student_id,
+        id: student.id,
+      });
+
+      // Check if the class has changed
+      // const currentClassId = await this.getCurrentClassIdForStudent(student.id); // Assume this function retrieves the current class ID
+      const currentClassId = Util.getCurrentClass();
+      console.log("fdsfsf", currentClassId, newClassId);
+      if (currentClassId?.id !== newClassId) {
+        // Update class_user table to set previous record as deleted
+        const deleteOldClassUserQuery = `
+          UPDATE class_user
+          SET is_deleted = 1, updated_at = ?
+          WHERE user_id = ? AND is_deleted = 0;
+        `;
+        const now = new Date().toISOString();
+        await this.executeQuery(deleteOldClassUserQuery, [now, student.id]);
+        // Push changes for the update (marking the old class_user as deleted)
+        this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
+          user_id: student.id,
+          is_deleted: true,
+          updated_at: now,
+        });
+        // Create new class_user entry
+        const newClassUserId = uuidv4();
+        const newClassUser: TableTypes<"class_user"> = {
+          id: newClassUserId,
+          class_id: newClassId,
+          user_id: student.id,
+          role: "student",
+          created_at: now,
+          updated_at: now,
+          is_deleted: false,
+        };
+
+        await this.executeQuery(
+          `
+            INSERT INTO class_user (id, class_id, user_id, role, created_at, updated_at, is_deleted)
+            VALUES (?, ?, ?, ?, ?, ?, ?);
+            `,
+          [
+            newClassUser.id,
+            newClassUser.class_id,
+            newClassUser.user_id,
+            newClassUser.role,
+            newClassUser.created_at,
+            newClassUser.updated_at,
+            newClassUser.is_deleted,
+          ]
+        );
+        this.updatePushChanges(
+          TABLES.ClassUser,
+          MUTATE_TYPES.INSERT,
+          newClassUser
+        );
+      }
+
+
+      return student;
+    } catch (error) {
+      console.error("Error updating student:", error);
+      throw error; // Rethrow error after logging
+    }
   }
 
   async getSubject(id: string): Promise<TableTypes<"subject"> | undefined> {
