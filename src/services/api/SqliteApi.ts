@@ -3139,6 +3139,21 @@ order by
     if (!res || !res.values || res.values.length < 1) return;
     return res.values;
   }
+  async getLessonsBylessonIds(
+    lessonIds: string[] // Expect an array of strings
+  ): Promise<TableTypes<"lesson">[] | undefined> {
+    if (!lessonIds || lessonIds.length === 0) return;
+
+    const placeholders = lessonIds.map(() => "?").join(", ");
+    const query = `SELECT * 
+      FROM ${TABLES.Lesson} 
+      WHERE id IN (${placeholders});`;
+
+    const res = await this._db?.query(query, lessonIds);
+
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values;
+  }
 
   async getStudentLastTenResults(
     studentId: string,
@@ -3174,17 +3189,24 @@ order by
     return res?.values ?? [];
   }
 
-  async getAssignmentByClassByDate(
+  async getAssignmentOrLiveQuizByClassByDate(
     classId: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    isClassWise: boolean,
+    isLiveQuiz:boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
-    const query = `SELECT * 
+    let query = `SELECT * 
        FROM ${TABLES.Assignment} 
        WHERE class_id = '${classId}'
-       AND created_at BETWEEN '${endDate}' AND '${startDate}'
-       ORDER BY created_at DESC;`;
-
+       AND created_at BETWEEN '${endDate}' AND '${startDate}'`;
+    if (isClassWise) {
+      query += ` AND is_class_wise = 1`;
+    }
+    if (isLiveQuiz) {
+      query += ` AND type = 'liveQuiz'`;
+    }
+    query += ` ORDER BY created_at DESC;`;
     const res = await this._db?.query(query);
 
     if (!res || !res.values || res.values.length < 1) return;
@@ -3195,7 +3217,6 @@ order by
     startDate: string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined> {
-    
     const query = `SELECT * 
        FROM ${TABLES.Result} 
        WHERE student_id = '${studentId}'
@@ -3207,6 +3228,7 @@ order by
     if (!res || !res.values || res.values.length < 1) return;
     return res.values;
   }
+
   async getTeachersForClass(
     classId: string
   ): Promise<TableTypes<"user">[] | undefined> {

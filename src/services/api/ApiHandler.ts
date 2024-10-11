@@ -680,12 +680,20 @@ export class ApiHandler implements ServiceApi {
   updateClass(classId: string, className: string) {
     return this.s.updateClass(classId, className);
   }
-  getAssignmentByClassByDate(
+  getAssignmentOrLiveQuizByClassByDate(
     classId: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    isClassWise: boolean,
+    isLiveQuiz: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
-    return this.s.getAssignmentByClassByDate(classId, startDate, endDate);
+    return this.s.getAssignmentOrLiveQuizByClassByDate(
+      classId,
+      startDate,
+      endDate,
+      isClassWise,
+      isLiveQuiz
+    );
   }
   getStudentLastTenResults(
     studentId: string,
@@ -744,7 +752,12 @@ export class ApiHandler implements ServiceApi {
     studentId: string,
     startDate: string,
     endDate: string
-  ): Promise<TableTypes<"result">[] | undefined>{
+  ): Promise<TableTypes<"result">[] | undefined> {
     return this.s.getStudentResultByDate(studentId, startDate, endDate);
+  }
+  getLessonsBylessonIds(
+    lessonIds: string[] // Expect an array of strings
+  ): Promise<TableTypes<"lesson">[] | undefined> {
+    return this.s.getLessonsBylessonIds(lessonIds);
   }
 }

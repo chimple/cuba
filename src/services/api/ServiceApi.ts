@@ -841,10 +841,12 @@ export interface ServiceApi {
    * @param startDate
    * @param endData
    */
-  getAssignmentByClassByDate(
+  getAssignmentOrLiveQuizByClassByDate(
     classId: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    isClassWise: boolean,
+    isLiveQuiz:boolean
   ): Promise<TableTypes<"assignment">[] | undefined>;
 
   /**
@@ -971,4 +973,12 @@ export interface ServiceApi {
     startDate: string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined>
+   
+  /**
+   * Get the Lessons with LessonIds
+   * @param lessonIds 
+   */
+  getLessonsBylessonIds(
+    lessonIds: string[] // Expect an array of strings
+  ): Promise<TableTypes<"lesson">[] | undefined> 
 }

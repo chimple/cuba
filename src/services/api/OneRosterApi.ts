@@ -1068,7 +1068,7 @@ export class OneRosterApi implements ServiceApi {
   getChapterByLesson(lessonId:string,classId:string): Promise<String | undefined>{
     throw new Error("Method not implemented.");
   }
-  getAssignmentByClassByDate(classId:string,startDate:string,endDate:string): Promise<TableTypes<"assignment">[] | undefined>{
+  getAssignmentOrLiveQuizByClassByDate(classId:string,startDate:string,endDate:string,isClassWise: boolean,isLiveQuiz: boolean): Promise<TableTypes<"assignment">[] | undefined>{
     throw new Error("Method not implemented.");
   }
   getStudentLastTenResults( studentId: string,assignmentIds: string[]):Promise<TableTypes<"result">[]>{
@@ -1084,6 +1084,11 @@ export class OneRosterApi implements ServiceApi {
     startDate: string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined>{
+    throw new Error("Method not implemented.");
+  }
+  getLessonsBylessonIds(
+    lessonIds: string[] // Expect an array of strings
+  ): Promise<TableTypes<"lesson">[] | undefined> {
     throw new Error("Method not implemented.");
   }
 }

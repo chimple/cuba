@@ -141,11 +141,11 @@ export enum USERTYPES {
 }
 
 export enum TABLEDROPDOWN {
-  ASSIGNMENTS = "Assignments",
-  MONTHLY = "Monthly",
-  WEEKLY = "Weekly",
-  LIVEQUIZ = "LiveQuiz",
-  CHAPTER = "Chapter",
+  ASSIGNMENTS = "Assignments Report",
+  MONTHLY = "Monthly Report",
+  WEEKLY = "Weekly Report",
+  LIVEQUIZ = "LiveQuiz Report",
+  CHAPTER = "Chapter Report",
 }
 
 export const belowGrade1 = "30ecb762-8e63-45b3-a22a-62c1a9f71641";

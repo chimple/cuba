@@ -22,10 +22,12 @@ export class ClassUtil {
       .toISOString()
       .replace("T", " ")
       .replace("Z", "+00");
-    const assignements = await this.api.getAssignmentByClassByDate(
+    const assignements = await this.api.getAssignmentOrLiveQuizByClassByDate(
       classId,
       currentDateTimeStamp,
-      oneWeekBackTimeStamp
+      oneWeekBackTimeStamp,
+      true,
+      false
     );
     const assignmentIds = assignements?.map((asgmt) => asgmt.id) || [];
     const assignmentResult =
@@ -123,10 +125,12 @@ export class ClassUtil {
       .toISOString()
       .replace("T", " ")
       .replace("Z", "+00");
-    const assignements = await this.api.getAssignmentByClassByDate(
+    const assignements = await this.api.getAssignmentOrLiveQuizByClassByDate(
       classId,
       currentDateTimeStamp,
-      oneWeekBackTimeStamp
+      oneWeekBackTimeStamp,
+      true,
+      false
     );
     const assignmentIds = (assignements?.map((asgmt) => asgmt.id) || []).slice(
       0,
@@ -272,9 +276,26 @@ export class ClassUtil {
         }
       });
     }
+    const daysMapArray: Map<
+      string,
+      { headerName: string; startAt: string; endAt: string }
+    >[] = (daysInRange || []).map((day) => {
+      const daysMap = new Map<
+        string,
+        { headerName: string; startAt: string; endAt: string }
+      >();
+
+      daysMap.set(day, {
+        headerName: day,
+        startAt: "",
+        endAt: "",
+      });
+
+      return daysMap;
+    });
     return {
       ReportData: resultsByStudent,
-      HeaderData: daysInRange,
+      HeaderData: daysMapArray,
     };
   }
 
@@ -283,6 +304,9 @@ export class ClassUtil {
     startDate: Date,
     endDate: Date
   ) {
+    console.log('DDDDDDDDDDDDD')
+    console.log(startDate)
+    console.log(endDate)
     const monthsInRange = this.getMonthsInRange(startDate, endDate);
     const adjustedStartDate = subDays(new Date(startDate), 1);
     const adjustedEndDate = addDays(new Date(endDate), 1);
@@ -295,49 +319,144 @@ export class ClassUtil {
       .replace("T", " ")
       .replace("Z", "+00");
     const _students = await this.api.getStudentsForClass(classId);
-  
+
     const resultsByStudent = new Map<
       string,
       { name: string; results: Record<string, any[]> }
     >();
-  
-    // Initialize results map for each student
     _students.forEach((student) => {
       resultsByStudent.set(student.id, {
         name: student.name || "",
         results: {},
       });
       monthsInRange.forEach((month) => {
-        resultsByStudent.get(student.id)!.results[month] = []; // Initialize an array for each month
+        resultsByStudent.get(student.id)!.results[month] = [];
       });
     });
-  
-    // Fetch results for each student
+
     for (const student of _students) {
       const res = await this.api.getStudentResultByDate(
         student.id,
         startTimeStamp,
         endTimeStamp
       );
-  
+
       res?.forEach((result) => {
         const resultDate = new Date(result.created_at);
-        // Get month name (e.g., "January", "February")
         const monthName = resultDate.toLocaleDateString("en-US", {
           month: "long",
         });
-  
-        // If the result's month is in the initialized results map, push the result
         if (resultsByStudent.get(student.id)?.results[monthName]) {
           resultsByStudent.get(student.id)!.results[monthName].push(result);
         }
       });
     }
-  
-    console.log('Monthly Report Data:', resultsByStudent);
+    const monthsMapArray: Map<
+      string,
+      { headerName: string; startAt: string; endAt: string }
+    >[] = (monthsInRange || []).map((month) => {
+      const monthsMap = new Map<
+        string,
+        { headerName: string; startAt: string; endAt: string }
+      >();
+
+      monthsMap.set(month, {
+        headerName: month,
+        startAt: "",
+        endAt: "",
+      });
+
+      return monthsMap;
+    });
     return {
       ReportData: resultsByStudent,
-      HeaderData: monthsInRange,
+      HeaderData: monthsMapArray,
+    };
+  }
+  public async getAssignmentOrLiveQuizReport(
+    classId: string,
+    startDate: Date,
+    endDate: Date,
+    isLiveQuiz: boolean
+  ) {
+    const adjustedStartDate = subDays(new Date(startDate), 1);
+    const adjustedEndDate = addDays(new Date(endDate), 1);
+
+    const startTimeStamp = adjustedStartDate
+      .toISOString()
+      .replace("T", " ")
+      .replace("Z", "+00");
+    const endTimeStamp = adjustedEndDate
+      .toISOString()
+      .replace("T", " ")
+      .replace("Z", "+00");
+    const _students = await this.api.getStudentsForClass(classId);
+
+    const _assignments = await this.api.getAssignmentOrLiveQuizByClassByDate(
+      classId,
+      endTimeStamp,
+      startTimeStamp,
+      false,
+      isLiveQuiz
+    );
+
+    let assignmentIds = _assignments?.map((asgmt) => asgmt.id) || [];
+    const lessonIds = [
+      ...new Set(_assignments?.map((res) => res.lesson_id) || []),
+    ];
+    const assignmentResults =
+      await this.api.getResultByAssignmentIds(assignmentIds);
+    const lessonDetails = await this.api.getLessonsBylessonIds(lessonIds);
+
+    const assignmentMapArray: Map<
+      string,
+      { headerName: string; startAt: string; endAt: string }
+    >[] = (_assignments || []).map((assignment) => {
+      const lesson = lessonDetails?.find(
+        (lesson) => lesson.id === assignment.lesson_id
+      );
+
+      const assignmentMap = new Map<
+        string,
+        { headerName: string; startAt: string; endAt: string }
+      >();
+
+      assignmentMap.set(assignment.id, {
+        headerName: lesson?.name ?? "",
+        startAt: assignment.starts_at,
+        endAt: assignment.ends_at ?? "",
+      });
+
+      return assignmentMap;
+    });
+    const resultsByStudent = new Map<
+      string,
+      { name: string; results: Record<string, any[]> }
+    >();
+
+    _students.forEach((student) => {
+      resultsByStudent.set(student.id, {
+        name: student.name || "",
+        results: {},
+      });
+      assignmentIds.forEach((assignmentId) => {
+        resultsByStudent.get(student.id)!.results[assignmentId] = [];
+      });
+    });
+
+    assignmentResults?.forEach((result) => {
+      const studentId = result.student_id;
+      const assignmentId = result.assignment_id;
+
+      if (resultsByStudent.get(studentId)?.results[assignmentId ?? ""]) {
+        resultsByStudent
+          .get(studentId)!
+          .results[assignmentId ?? ""].push(result);
+      }
+    });
+    return {
+      ReportData: resultsByStudent,
+      HeaderData: assignmentMapArray,
     };
   }
 }
