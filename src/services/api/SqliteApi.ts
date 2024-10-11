@@ -1238,12 +1238,12 @@ export class SqliteApi implements ServiceApi {
     classId: string
   ): Promise<TableTypes<"course">[]> {
     const query = `
-    SELECT *
-    FROM ${TABLES.ClassCourse} AS cc
-    JOIN ${TABLES.Course} AS course ON cc.course_id= course.id
-    WHERE cc.class_id = "${classId}";
-  `;
-    const res = await this._db?.query(query);
+      SELECT course.*
+      FROM ${TABLES.ClassCourse} AS cc
+      JOIN ${TABLES.Course} AS course ON cc.course_id = course.id
+      WHERE cc.class_id = ? AND cc.is_deleted = 0;
+    `;
+    const res = await this._db?.query(query, [classId]);
     return res?.values ?? [];
   }
 
