@@ -2070,6 +2070,48 @@ export class SqliteApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+  async getLessonFromChapter(
+    chapterId: string,
+    lessonId: string
+  ): Promise<{
+    lesson: TableTypes<"lesson">[];
+    course: TableTypes<"course">[];
+  }> {
+    const data: {
+      lesson: TableTypes<"lesson">[];
+      course: TableTypes<"course">[];
+    } = {
+      lesson: [],
+      course: [],
+    };
+    const query = `
+    SELECT l.*,JSON_OBJECT(
+          'id',co.id,
+          'code',co.code,
+          'color',co.color,
+          'created_at',co.created_at,
+          'curriculum_id',co.curriculum_id,
+          'description',co.description,
+          'grade_id',co.grade_id,
+          'image',co.image,
+          'is_deleted',co.is_deleted,
+          'name',co.name,
+          'sort_index',co.sort_index,
+          'subject_id',co.subject_id,
+          'updated_at',co.updated_at
+      ) AS course FROM ${TABLES.Lesson} as l
+    JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
+    JOIN ${TABLES.Chapter} c ON c.id = cl.chapter_id
+    JOIN ${TABLES.Course} co ON co.id = c.course_id
+    WHERE c.id='${chapterId}' and l.id = '${lessonId}'
+    `;
+    const res = await this._db?.query(query);
+    if (!res || !res.values || res.values.length < 1) return data;
+    data.lesson = res.values;
+    data.course = res.values.map((val) => JSON.parse(val.course));
+    return data;
+  }
+
   async getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]> {
     try {
       const gradeCoursesRes = await this._db?.query(
@@ -2981,6 +3023,26 @@ order by
        WHERE class_id = '${classId}'
        AND created_at BETWEEN '${endDate}' AND '${startDate}'
        ORDER BY created_by DESC;`;
+
+    const res = await this._db?.query(query);
+
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values;
+  }
+
+  async getLastAssignmentsByCourse(
+    classId: string,
+  ): Promise<TableTypes<"assignment">[] | undefined> {
+    const query = `WITH RankedAssignments AS (
+    SELECT *,
+           ROW_NUMBER() OVER (PARTITION BY course_id ORDER BY created_at DESC) AS rn
+    FROM ${TABLES.Assignment} 
+    WHERE class_id = '${classId}'
+)
+SELECT *
+FROM RankedAssignments
+WHERE rn = 1
+ORDER BY created_at DESC;`;
 
     const res = await this._db?.query(query);
 

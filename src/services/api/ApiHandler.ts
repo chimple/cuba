@@ -75,7 +75,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<string | undefined> {
     return this.s.joinLiveQuiz(assignmentId, studentId);
   }
-  private constructor() {}
+  private constructor() { }
   public async updateRewardsForStudent(
     studentId: string,
     unlockedReward: LeaderboardRewards
@@ -572,6 +572,16 @@ export class ApiHandler implements ServiceApi {
     lessonId: string
   ): Promise<Lesson | undefined> {
     return this.s.getLessonFromCourse(course, lessonId);
+  }
+
+  public async getLessonFromChapter(
+    chapterId: string,
+    lessonId: string
+  ): Promise<{
+    lesson: TableTypes<"lesson">[];
+    course: TableTypes<"course">[];
+  }> {
+    return this.s.getLessonFromChapter(chapterId, lessonId);
   }
 
   public async getCoursesFromLesson(

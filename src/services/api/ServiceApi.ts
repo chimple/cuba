@@ -102,7 +102,7 @@ export interface ServiceApi {
 
   getCoursesByClassId(classId: string): Promise<TableTypes<"class_course">[]>;
 
-  removeCourseFromClass(id: string):Promise<void>;
+  removeCourseFromClass(id: string): Promise<void>;
 
   /**
    * To delete `Profile` for given student Id
@@ -520,6 +520,21 @@ export interface ServiceApi {
     course: Course,
     lessonId: string
   ): Promise<Lesson | undefined>;
+
+  /**
+   * This function gives lesson objects for given chapterId and LessonId 
+   *
+   * @param chapterId Chapter Id of the course
+   * @param lessonId Lesson Id of a course
+   * @returns A promise that resolves to the lesson.
+   */
+  getLessonFromChapter(
+    chapterId: string,
+    lessonId: string
+  ): Promise<{
+    lesson: TableTypes<"lesson">[];
+    course: TableTypes<"course">[];
+  }>;
 
   /**
    * Gives all `Course` available on database

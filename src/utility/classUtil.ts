@@ -197,16 +197,12 @@ export class ClassUtil {
     const groups: Map<string, TableTypes<"user">[]> = new Map();
 
     studentsMap.forEach((studentM: Map<string, any>, index: string) => {
-      console.log("Processing student group:", index);
 
       studentM.forEach((element: any) => {
         const studentData = element.get("student");
         if (!studentData) {
-          console.warn(`No student data found for element in group ${index}. Skipping.`);
           return; // Skip this element if no student data is present
         }
-
-        console.log("Processing student data:", studentData);
 
         // Fetch the existing array of students for this category, or initialize a new array
         let existingStudents = groups.get(index) || [];
@@ -218,8 +214,6 @@ export class ClassUtil {
         groups.set(index, existingStudents);
       });
     });
-
-    console.log("Returning grouped students: ", groups);
     return groups;
   }
 
