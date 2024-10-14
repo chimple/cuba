@@ -86,13 +86,14 @@ export interface ServiceApi {
     name: string,
     age: number | undefined,
     gender: string | undefined,
-    avatar: string | undefined,
-    image: string | undefined,
+    avatar: string | null,
+    image: string | null,
     boardDocId: string | null,
     gradeDocId: string | null,
     languageDocId: string | null,
     classId: string,
-    role: string
+    role: string,
+    studentId: string,
   ): Promise<TableTypes<"user">>;
 
   updateClassCourseSelection(
@@ -103,6 +104,12 @@ export interface ServiceApi {
   getCoursesByClassId(classId: string): Promise<TableTypes<"class_course">[]>;
 
   removeCourseFromClass(id: string): Promise<void>;
+
+    /**
+   * To delete a 'user' with a given student ID from the class_user table.
+   * @param {string } studentId - Student Id
+   */
+  deleteUserFromClass(userId: string): Promise<void>;
 
   /**
    * To delete `Profile` for given student Id
