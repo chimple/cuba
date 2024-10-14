@@ -273,7 +273,7 @@ export class SupabaseApi implements ServiceApi {
     boardDocId: string | null,
     gradeDocId: string | null,
     languageDocId: string | null,
-    studentId: string,
+    studentId: string
   ): Promise<TableTypes<"user">> {
     throw new Error("Method not implemented.");
   }
@@ -450,7 +450,7 @@ export class SupabaseApi implements ServiceApi {
     boardDocId: string,
     gradeDocId: string,
     languageDocId: string,
-    newClassId: string | undefined,
+    newClassId: string | undefined
   ): Promise<TableTypes<"user">> {
     throw new Error("Method not implemented.");
   }
@@ -1040,7 +1040,7 @@ export class SupabaseApi implements ServiceApi {
   addTeacherToClass(classId: string, userId: string): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  checkUserInClass(classid, userId): Promise<boolean> {
+  checkUserInClass(schoolId, classid, userId): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
   getAssignmentsByAssignerAndClass(
@@ -1062,5 +1062,15 @@ export class SupabaseApi implements ServiceApi {
   }
   getAssignedStudents(assignmentId: string): Promise<string[]> {
     throw new Error("Method not implemented.");
+  }
+  async deleteTeacher(classId: string, teacherId: string) {
+    if (!this.supabase) return;
+    const res = await this.supabase.rpc("delete_teacher_from_class", {
+      p_class_id: classId,
+      p_teacher_id: teacherId,
+    });
+    if (res.error) {
+      throw res.error;
+    }
   }
 }

@@ -241,7 +241,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-            new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -723,7 +723,7 @@ export class SqliteApi implements ServiceApi {
     languageDocId: string | null,
     classId: string,
     role: "student",
-    studentId: string,
+    studentId: string
   ): Promise<TableTypes<"user">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -784,7 +784,6 @@ export class SqliteApi implements ServiceApi {
       updated_at: new Date().toISOString(),
       is_deleted: false,
     };
-
 
     await this.executeQuery(
       `
@@ -1650,7 +1649,6 @@ export class SqliteApi implements ServiceApi {
     return res?.values[0];
   }
 
-
   async updateStudentFromSchoolMode(
     student: TableTypes<"user">,
     name: string,
@@ -1768,7 +1766,6 @@ export class SqliteApi implements ServiceApi {
           newClassUser
         );
       }
-
 
       return student;
     } catch (error) {
@@ -2059,8 +2056,6 @@ export class SqliteApi implements ServiceApi {
       console.error("Error deleting user from class_user", error);
     }
   }
-
-
 
   async getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
     const query = `
@@ -3274,9 +3269,29 @@ order by
     );
   }
 
-  async checkUserInClass(classId: string, userId: string): Promise<boolean> {
+  async checkUserInClass(
+    schoolId: string,
+    classId: string,
+    userId: string
+  ): Promise<boolean> {
+    // Check if the user is present in school_user but not as a parent
+    const schoolUserResult = await this.executeQuery(
+      `SELECT * FROM school_user 
+     WHERE school_id = ? AND user_id = ? 
+     AND role != ?  
+     AND is_deleted = false`,
+      [schoolId, userId, RoleType.PARENT]
+    );
+
+    if (schoolUserResult?.values && schoolUserResult.values.length > 0) {
+      return true;
+    }
+    // Check if the user is a teacher in class_user
     const result = await this.executeQuery(
-      `SELECT * FROM class_user WHERE class_id = ? AND user_id = ? AND role = ? AND is_deleted = false`,
+      `SELECT * FROM class_user 
+     WHERE class_id = ? AND user_id = ? 
+     AND role = ? 
+     AND is_deleted = false`,
       [classId, userId, RoleType.TEACHER]
     );
     if (!result?.values) return false;
@@ -3361,6 +3376,17 @@ order by
     } catch (error) {
       console.error("Error fetching user IDs:", error);
       return [];
+    }
+  }
+  async deleteTeacher(classId: string, teacherId: string) {
+    try {
+      await this._serverApi.deleteTeacher(classId, teacherId);
+      await this.executeQuery(
+        `DELETE FROM class_user WHERE user_id = ? AND class_id = ? AND role = 'teacher' AND is_deleted = 0`,
+        [teacherId, classId]
+      );
+    } catch (error) {
+      console.log("🚀 ~ SqliteApi ~ deleteTeacher ~ error:", error);
     }
   }
 }
