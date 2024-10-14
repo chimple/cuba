@@ -168,6 +168,9 @@ export class ApiHandler implements ServiceApi {
   public async removeCourseFromClass(id: string): Promise<void> {
     return await this.s.removeCourseFromClass(id);
   }
+  public async deleteUserFromClass(userId: string): Promise<void> {
+    return await this.s.deleteUserFromClass(userId);
+  }
   public async isUserTeacher(userId: string): Promise<boolean> {
     return await this.s.isUserTeacher(userId);
   }
@@ -519,13 +522,14 @@ export class ApiHandler implements ServiceApi {
     name: string,
     age: number | undefined,
     gender: string | undefined,
-    avatar: string | undefined,
-    image: string | undefined,
+    avatar: string | null,
+    image: string | null,
     boardDocId: string | null,
     gradeDocId: string | null,
     languageDocId: string | null,
     classId: string,
-    role: string
+    role: string,
+    studentId: string,
   ): Promise<TableTypes<"user">> {
     return await this.s.createStudentProfile(
       name,
@@ -537,7 +541,8 @@ export class ApiHandler implements ServiceApi {
       gradeDocId,
       languageDocId,
       classId,
-      role
+      role,
+      studentId,
     );
   }
   public async updateClassCourseSelection(
