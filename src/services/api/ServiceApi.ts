@@ -105,6 +105,10 @@ export interface ServiceApi {
 
   removeCourseFromClass(id: string): Promise<void>;
 
+    /**
+   * To delete a 'user' with a given student ID from the class_user table.
+   * @param {string } studentId - Student Id
+   */
   deleteUserFromClass(userId: string): Promise<void>;
 
   /**
