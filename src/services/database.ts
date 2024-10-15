@@ -1497,6 +1497,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      delete_teacher_from_class: {
+        Args: {
+          p_class_id: string
+          p_teacher_id: string
+        }
+        Returns: undefined
+      }
       delete_user: {
         Args: {
           uuid: string
