@@ -241,7 +241,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-            new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -716,21 +716,22 @@ export class SqliteApi implements ServiceApi {
     name: string,
     age: number | undefined,
     gender: string | undefined,
-    avatar: string | undefined,
-    image: string | undefined,
+    avatar: string | null,
+    image: string | null,
     boardDocId: string | null,
     gradeDocId: string | null,
     languageDocId: string | null,
     classId: string,
-    role: "student"
+    role: "student",
+    studentId: string
   ): Promise<TableTypes<"user">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
 
-    const studentId = uuidv4();
+    const userId = uuidv4();
     const newStudent: TableTypes<"user"> = {
-      id: studentId,
+      id: userId,
       name,
       age: age ?? null,
       gender: gender ?? null,
@@ -748,13 +749,13 @@ export class SqliteApi implements ServiceApi {
       fcm_token: null,
       music_off: false,
       sfx_off: false,
-      student_id: null,
+      student_id: studentId ?? null,
     };
     // Insert into user table
     await this.executeQuery(
       `
-      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at, student_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         newStudent.id,
@@ -768,6 +769,7 @@ export class SqliteApi implements ServiceApi {
         newStudent.language_id,
         newStudent.created_at,
         newStudent.updated_at,
+        newStudent.student_id,
       ]
     );
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
@@ -776,15 +778,13 @@ export class SqliteApi implements ServiceApi {
     const newClassUser: TableTypes<"class_user"> = {
       id: classUserId,
       class_id: classId,
-      user_id: studentId,
+      user_id: userId,
       role: role,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
     };
 
-
-    console.log("whdefs", newClassUser);
     await this.executeQuery(
       `
       INSERT INTO class_user (id, class_id, user_id, role, created_at, updated_at, is_deleted)
@@ -1649,7 +1649,6 @@ export class SqliteApi implements ServiceApi {
     return res?.values[0];
   }
 
-
   async updateStudentFromSchoolMode(
     student: TableTypes<"user">,
     name: string,
@@ -1767,7 +1766,6 @@ export class SqliteApi implements ServiceApi {
           newClassUser
         );
       }
-
 
       return student;
     } catch (error) {
@@ -2034,15 +2032,41 @@ export class SqliteApi implements ServiceApi {
       console.error("Error removing course from class_course", error);
     }
   }
+  async deleteUserFromClass(userId: string): Promise<void> {
+    try {
+      await this.executeQuery(
+        `UPDATE class_user SET is_deleted = 1 WHERE user_id = ?`,
+        [userId]
+      );
+      const query = `
+      SELECT * 
+      FROM ${TABLES.ClassUser}
+      WHERE user_id = ?
+    `;
+      const res = await this._db?.query(query, [userId]);
+      let userData;
+      if (res && res.values && res.values.length > 0) {
+        userData = res.values[0];
+      }
+      this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
+        id: userData.id,
+        is_deleted: true,
+      });
+    } catch (error) {
+      console.error("Error deleting user from class_user", error);
+    }
+  }
 
   async getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
     const query = `
-    SELECT user.*
-    FROM ${TABLES.ClassUser} AS cu
-    JOIN ${TABLES.User} AS user ON cu.user_id= user.id
-    WHERE cu.class_id = "${classId}" and cu.role = '${RoleType.STUDENT}';
-  `;
-    const res = await this._db?.query(query);
+      SELECT user.*
+      FROM ${TABLES.ClassUser} AS cu
+      JOIN ${TABLES.User} AS user ON cu.user_id = user.id
+      WHERE cu.class_id = ? 
+        AND cu.role = ? 
+        AND cu.is_deleted = 0; 
+    `;
+    const res = await this._db?.query(query, [classId, RoleType.STUDENT]);
     return res?.values ?? [];
   }
 
@@ -3284,9 +3308,29 @@ order by
     );
   }
 
-  async checkUserInClass(classId: string, userId: string): Promise<boolean> {
+  async checkUserInClass(
+    schoolId: string,
+    classId: string,
+    userId: string
+  ): Promise<boolean> {
+    // Check if the user is present in school_user but not as a parent
+    const schoolUserResult = await this.executeQuery(
+      `SELECT * FROM school_user 
+     WHERE school_id = ? AND user_id = ? 
+     AND role != ?  
+     AND is_deleted = false`,
+      [schoolId, userId, RoleType.PARENT]
+    );
+
+    if (schoolUserResult?.values && schoolUserResult.values.length > 0) {
+      return true;
+    }
+    // Check if the user is a teacher in class_user
     const result = await this.executeQuery(
-      `SELECT * FROM class_user WHERE class_id = ? AND user_id = ? AND role = ? AND is_deleted = false`,
+      `SELECT * FROM class_user 
+     WHERE class_id = ? AND user_id = ? 
+     AND role = ? 
+     AND is_deleted = false`,
       [classId, userId, RoleType.TEACHER]
     );
     if (!result?.values) return false;
@@ -3371,6 +3415,37 @@ order by
     } catch (error) {
       console.error("Error fetching user IDs:", error);
       return [];
+    }
+  }
+  async deleteTeacher(classId: string, teacherId: string) {
+    try {
+      await this.executeQuery(
+        `UPDATE class_user SET is_deleted = 1 WHERE user_id = ? AND class_id = ? AND role = 'teacher'`,
+        [teacherId, classId]
+      );
+
+      const query = `
+      SELECT * 
+      FROM ${TABLES.ClassUser}
+      WHERE user_id = ? AND class_id = ? AND role = 'teacher'
+    `;
+
+      const res = await this._db?.query(query, [teacherId, classId]);
+      let userData;
+
+      if (res && res.values && res.values.length > 0) {
+        userData = res.values[0];
+        console.log("user..", userData);
+      } else {
+        throw new Error("Teacher not found after update.");
+      }
+
+      await this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
+        id: userData.id,
+        is_deleted: true,
+      });
+    } catch (error) {
+      console.log("🚀 ~ SqliteApi ~ deleteTeacher ~ error:", error);
     }
   }
 }

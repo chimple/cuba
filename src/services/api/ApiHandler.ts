@@ -168,6 +168,9 @@ export class ApiHandler implements ServiceApi {
   public async removeCourseFromClass(id: string): Promise<void> {
     return await this.s.removeCourseFromClass(id);
   }
+  public async deleteUserFromClass(userId: string): Promise<void> {
+    return await this.s.deleteUserFromClass(userId);
+  }
   public async isUserTeacher(userId: string): Promise<boolean> {
     return await this.s.isUserTeacher(userId);
   }
@@ -287,7 +290,7 @@ export class ApiHandler implements ServiceApi {
     gradeDocId: string,
     languageDocId: string,
     student_id: string,
-    newClassId: string ,
+    newClassId: string
   ): Promise<TableTypes<"user">> {
     return await this.s.updateStudentFromSchoolMode(
       student,
@@ -519,13 +522,14 @@ export class ApiHandler implements ServiceApi {
     name: string,
     age: number | undefined,
     gender: string | undefined,
-    avatar: string | undefined,
-    image: string | undefined,
+    avatar: string | null,
+    image: string | null,
     boardDocId: string | null,
     gradeDocId: string | null,
     languageDocId: string | null,
     classId: string,
-    role: string
+    role: string,
+    studentId: string,
   ): Promise<TableTypes<"user">> {
     return await this.s.createStudentProfile(
       name,
@@ -537,7 +541,8 @@ export class ApiHandler implements ServiceApi {
       gradeDocId,
       languageDocId,
       classId,
-      role
+      role,
+      studentId,
     );
   }
   public async updateClassCourseSelection(
@@ -720,8 +725,12 @@ export class ApiHandler implements ServiceApi {
   addTeacherToClass(classId: string, userId: string): Promise<void> {
     return this.s.addTeacherToClass(classId, userId);
   }
-  checkUserInClass(classId: string, userId: string): Promise<boolean> {
-    return this.s.checkUserInClass(classId, userId);
+  checkUserInClass(
+    schoolId: string,
+    classId: string,
+    userId: string
+  ): Promise<boolean> {
+    return this.s.checkUserInClass(schoolId, classId, userId);
   }
   async getAssignmentsByAssignerAndClass(
     userId: string,
@@ -759,5 +768,8 @@ export class ApiHandler implements ServiceApi {
     lessonIds: string[] // Expect an array of strings
   ): Promise<TableTypes<"lesson">[] | undefined> {
     return this.s.getLessonsBylessonIds(lessonIds);
+  }
+  deleteTeacher(classId: string, teacherId: string) {
+    return this.s.deleteTeacher(classId, teacherId);
   }
 }

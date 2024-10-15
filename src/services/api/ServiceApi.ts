@@ -86,13 +86,14 @@ export interface ServiceApi {
     name: string,
     age: number | undefined,
     gender: string | undefined,
-    avatar: string | undefined,
-    image: string | undefined,
+    avatar: string | null,
+    image: string | null,
     boardDocId: string | null,
     gradeDocId: string | null,
     languageDocId: string | null,
     classId: string,
-    role: string
+    role: string,
+    studentId: string
   ): Promise<TableTypes<"user">>;
 
   updateClassCourseSelection(
@@ -103,6 +104,12 @@ export interface ServiceApi {
   getCoursesByClassId(classId: string): Promise<TableTypes<"class_course">[]>;
 
   removeCourseFromClass(id: string): Promise<void>;
+
+  /**
+   * To delete a 'user' with a given student ID from the class_user table.
+   * @param {string } studentId - Student Id
+   */
+  deleteUserFromClass(userId: string): Promise<void>;
 
   /**
    * To delete `Profile` for given student Id
@@ -345,7 +352,7 @@ export interface ServiceApi {
     gradeDocId: string,
     languageDocId: string,
     student_id: string,
-    newClassId: string 
+    newClassId: string
   ): Promise<TableTypes<"user">>;
 
   updateUserProfile(
@@ -925,7 +932,11 @@ export interface ServiceApi {
    * @param {string} userId user Id;
    * @return returns boolean whether the teacher is connected to class or not.
    */
-  checkUserInClass(classId: string, userId: string): Promise<boolean>;
+  checkUserInClass(
+    schoolId: string,
+    classId: string,
+    userId: string
+  ): Promise<boolean>;
 
   /**
    * Gets the assignments by assigner and class.
@@ -981,4 +992,10 @@ export interface ServiceApi {
   getLessonsBylessonIds(
     lessonIds: string[] // Expect an array of strings
   ): Promise<TableTypes<"lesson">[] | undefined> 
+  /**
+   * To delete `teacher` from class for given class id and teacher id
+   * @param {string } classId - Class Id
+   * @param {string } teacherId - Teacher Id
+   */
+  deleteTeacher(classId: string, teacherId: string);
 }
