@@ -885,4 +885,12 @@ export interface ServiceApi {
   getResultByAssignmentIds(
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[] | undefined>;
+
+  /**
+   *  Get the last assignments by course wise
+   * @param classId
+   */
+  getLastAssignmentsByCourse(
+    classId: string,
+  ): Promise<TableTypes<"assignment">[] | undefined>;
 }
