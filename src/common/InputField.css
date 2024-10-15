@@ -39,3 +39,12 @@ ion-searchbar .search-icon {
   flex-direction: row;
   justify-content: flex-end;
 }
+.disabled-icon {
+  color: gray;
+  pointer-events: none;
+}
+
+.field-error-text {
+  margin-top: 5px;
+  font-size: var(--text-size);
+}

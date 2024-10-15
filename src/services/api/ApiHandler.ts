@@ -290,7 +290,7 @@ export class ApiHandler implements ServiceApi {
     gradeDocId: string,
     languageDocId: string,
     student_id: string,
-    newClassId: string ,
+    newClassId: string
   ): Promise<TableTypes<"user">> {
     return await this.s.updateStudentFromSchoolMode(
       student,
@@ -717,8 +717,12 @@ export class ApiHandler implements ServiceApi {
   addTeacherToClass(classId: string, userId: string): Promise<void> {
     return this.s.addTeacherToClass(classId, userId);
   }
-  checkUserInClass(classId: string, userId: string): Promise<boolean> {
-    return this.s.checkUserInClass(classId, userId);
+  checkUserInClass(
+    schoolId: string,
+    classId: string,
+    userId: string
+  ): Promise<boolean> {
+    return this.s.checkUserInClass(schoolId, classId, userId);
   }
   async getAssignmentsByAssignerAndClass(
     userId: string,
@@ -744,5 +748,8 @@ export class ApiHandler implements ServiceApi {
   }
   getAssignedStudents(assignmentId: string): Promise<string[]> {
     return this.s.getAssignedStudents(assignmentId);
+  }
+  deleteTeacher(classId: string, teacherId: string) {
+    return this.s.deleteTeacher(classId, teacherId);
   }
 }
