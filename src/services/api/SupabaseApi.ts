@@ -1064,13 +1064,6 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   async deleteTeacher(classId: string, teacherId: string) {
-    if (!this.supabase) return;
-    const res = await this.supabase.rpc("delete_teacher_from_class", {
-      p_class_id: classId,
-      p_teacher_id: teacherId,
-    });
-    if (res.error) {
-      throw res.error;
-    }
+    throw new Error("Method not implemented.");
   }
 }

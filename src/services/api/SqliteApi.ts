@@ -3380,11 +3380,31 @@ order by
   }
   async deleteTeacher(classId: string, teacherId: string) {
     try {
-      await this._serverApi.deleteTeacher(classId, teacherId);
       await this.executeQuery(
-        `DELETE FROM class_user WHERE user_id = ? AND class_id = ? AND role = 'teacher' AND is_deleted = 0`,
+        `UPDATE class_user SET is_deleted = 1 WHERE user_id = ? AND class_id = ? AND role = 'teacher'`,
         [teacherId, classId]
       );
+
+      const query = `
+      SELECT * 
+      FROM ${TABLES.ClassUser}
+      WHERE user_id = ? AND class_id = ? AND role = 'teacher'
+    `;
+
+      const res = await this._db?.query(query, [teacherId, classId]);
+      let userData;
+
+      if (res && res.values && res.values.length > 0) {
+        userData = res.values[0];
+        console.log("user..", userData);
+      } else {
+        throw new Error("Teacher not found after update.");
+      }
+
+      await this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
+        id: userData.id,
+        is_deleted: true,
+      });
     } catch (error) {
       console.log("🚀 ~ SqliteApi ~ deleteTeacher ~ error:", error);
     }
