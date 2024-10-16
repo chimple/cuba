@@ -3361,7 +3361,7 @@ order by
     SELECT * 
     FROM ${TABLES.ClassUser}
     WHERE user_id = $1
-    AND role = $2 AND class_id = $3
+    AND role = $2 AND class_id = $3 AND is_deleted = 0
     LIMIT 1`;
 
     const values = [userId, RoleType.TEACHER, classId];
