@@ -478,7 +478,7 @@
   "sec": "sec",
   "Select All": "Select All",
   "Select Class": "Select Class",
-  "Select the Start date and End Date for all the assignments.": "Select the Start date and End Date for all the assignments",
+  "assignments_date_message": "Select the <strong>Start date</strong> and <strong>End Date</strong> for all the assignments.",
   "Select the App Language": "Select the App Language",
   "Select the Board": "Select the Board",
   "Select the Child's Age:": "Select the Child's Age:",

@@ -482,7 +482,7 @@
   "sec": "ಸೆಕೆಂಡ್",
   "Select All": "ಎಲ್ಲವನ್ನು ಆರಿಸು",
   "Select Class": "ವರ್ಗ ಆಯ್ಕೆಮಾಡಿ",
-  "Select the Start date and End Date for all the assignments.": "ಎಲ್ಲಾ ಕಾರ್ಯಯೋಜನೆಗಳಿಗಾಗಿ ಪ್ರಾರಂಭ ದಿನಾಂಕ ಮತ್ತು ಅಂತಿಮ ದಿನಾಂಕವನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+  "assignments_date_message": "ಎಲ್ಲಾ ಕಾರ್ಯಯೋಜನೆಗಳಿಗಾಗಿ <strong>ಪ್ರಾರಂಭ ದಿನಾಂಕ</strong> ಮತ್ತು <strong>ಅಂತ್ಯ ದಿನಾಂಕ</strong> ಆಯ್ಕೆಮಾಡಿ.",
   "Select the App Language": "ಆಪ್  ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
   "Select the Board": "ಬೋರ್ಡ್ ಆಯ್ಕೆಮಾಡಿ",
   "Select the Child's Age:": "ಮಕ್ಕಳ ವಯಸ್ಸನ್ನು ಆಯ್ಕೆಮಾಡಿ:",

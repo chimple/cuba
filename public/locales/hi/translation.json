@@ -485,7 +485,7 @@
   "sec": "सेकंड",
   "Select All": "सबका चयन करें",
   "Select Class": "कक्षा का चयन करें",
-  "Select the Start date and End Date for all the assignments.": "सभी असाइनमेंट के लिए आरंभ तिथि और समाप्ति तिथि चुनें.",
+  "assignments_date_message": "सभी असाइनमेंट के लिए <strong>प्रारंभ तिथि</strong> और <strong>अंतिम तिथि</strong> का चयन करें।",
   "Select the App Language": "ऐप भाषा चुनें",
   "Select the Board": "बोर्ड का चयन करें",
   "Select the Child's Age:": "बच्चे की उम्र को चुनिए :",
