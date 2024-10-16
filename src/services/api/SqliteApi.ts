@@ -2145,16 +2145,17 @@ export class SqliteApi implements ServiceApi {
         classUserRes.values.length > 0
       ) {
         for (const row of classUserRes.values) {
-          await this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
+          // Push changes for each affected class_user (teachers)
+          this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
             id: row.id,
             is_deleted: true,
           });
         }
       } else {
-        throw new Error("No class_user records found for the teachers.");
+        console.log("No class_user records found for the teachers.");
       }
 
-      // Update is_deleted to true for all class_course records where class_id matches
+      //Update is_deleted to true for all class_course records where class_id matches
       await this.executeQuery(
         `UPDATE class_course SET is_deleted = 1 WHERE class_id = ?`,
         [classId]
@@ -2175,17 +2176,13 @@ export class SqliteApi implements ServiceApi {
       ) {
         for (const row of classCourseRes.values) {
           // Push changes for each affected class_course
-          await this.updatePushChanges(
-            TABLES.ClassCourse,
-            MUTATE_TYPES.UPDATE,
-            {
-              id: row.id,
-              is_deleted: true,
-            }
-          );
+          this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.UPDATE, {
+            id: row.id,
+            is_deleted: true,
+          });
         }
       } else {
-        throw new Error("No class_course records found for the class.");
+        console.log("No class_course records found for the class.");
       }
 
       // Update is_deleted to true for the class itself
@@ -2195,7 +2192,7 @@ export class SqliteApi implements ServiceApi {
       );
 
       // Push changes for the class itself
-      await this.updatePushChanges(TABLES.Class, MUTATE_TYPES.UPDATE, {
+      this.updatePushChanges(TABLES.Class, MUTATE_TYPES.UPDATE, {
         id: classId,
         is_deleted: true,
       });
