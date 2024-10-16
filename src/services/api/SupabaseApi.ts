@@ -1076,6 +1076,7 @@ export class SupabaseApi implements ServiceApi {
   async getLessonsBylessonIds(
     lessonIds: string[] // Expect an array of strings
   ): Promise<TableTypes<"lesson">[] | undefined> {
+    throw new Error("Method not implemented.");
   } 
   async deleteTeacher(classId: string, teacherId: string) {
     throw new Error("Method not implemented.");
