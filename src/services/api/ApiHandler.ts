@@ -352,6 +352,7 @@ export class ApiHandler implements ServiceApi {
     wrongMoves: number,
     timeSpent: number,
     assignmentId: string | undefined,
+    chapterId: string,
     classId: string | undefined,
     schoolId: string | undefined
   ): Promise<TableTypes<"result">> {
@@ -364,6 +365,7 @@ export class ApiHandler implements ServiceApi {
       wrongMoves,
       timeSpent,
       assignmentId,
+      chapterId,
       classId,
       schoolId
     );
