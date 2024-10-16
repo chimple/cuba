@@ -56794,6 +56794,14 @@
         {
           "column": "is_deleted",
           "value": "INTEGER DEFAULT 0"
+        },
+        {
+          "column": "course_id",
+          "value": "TEXT"
+        },
+        {
+          "column": "chapter_id",
+          "value": "TEXT"
         }
       ]
     },

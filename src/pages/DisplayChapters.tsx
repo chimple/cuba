@@ -480,7 +480,6 @@ const DisplayChapters: FC<{}> = () => {
             </div>
           )}
       </div>
-
       {stage === STAGES.LESSONS && lessons && (
         <div className="slider-container">
           <LessonSlider
@@ -491,6 +490,7 @@ const DisplayChapters: FC<{}> = () => {
             startIndex={getLastPlayedLessonIndex()}
             showSubjectName={false}
             showChapterName={false}
+            chapter={currentChapter}
           />
         </div>
       )}
