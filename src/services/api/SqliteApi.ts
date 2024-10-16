@@ -1974,12 +1974,14 @@ export class SqliteApi implements ServiceApi {
     userId: string
   ): Promise<TableTypes<"class">[]> {
     let query = `
-    SELECT cu.class_id, cu.role, c.*
+    SELECT DISTINCT cu.class_id, cu.role, c.*
     FROM ${TABLES.ClassUser} cu
     JOIN ${TABLES.Class} c ON cu.class_id = c.id
     WHERE cu.user_id = '${userId}' 
     AND c.school_id = '${schoolId}' 
-    AND cu.role != '${RoleType.PARENT}' 
+    AND cu.role != '${RoleType.PARENT}'
+    AND cu.is_deleted = 0
+    AND c.is_deleted = 0
   `;
     const res = await this._db?.query(query);
 
@@ -1991,7 +1993,7 @@ export class SqliteApi implements ServiceApi {
     query = `
     SELECT *
     FROM ${TABLES.Class}
-    WHERE school_id = '${schoolId}'
+    WHERE school_id = '${schoolId}' AND is_deleted = 0
   `;
     const allClassesRes = await this._db?.query(query);
 
@@ -2115,24 +2117,44 @@ export class SqliteApi implements ServiceApi {
   }
   async deleteClass(classId: string) {
     try {
-      // Delete from class_user where role is teacher
+      // Update is_deleted to true for all class_user records where role is teacher
       await this.executeQuery(
-        `DELETE FROM class_user WHERE class_id = ? AND role = ?`,
+        `UPDATE class_user SET is_deleted = 1 WHERE class_id = ? AND role = ?`,
         [classId, RoleType.TEACHER] // Passing RoleType.TEACHER as a parameter
       );
 
-      //  Delete from class_course where class_id matches
-      await this.executeQuery(`DELETE FROM class_course WHERE class_id = ?`, [
-        classId,
-      ]);
+      // Push changes for class_user (teachers)
+      await this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
+        class_id: classId,
+        role: RoleType.TEACHER,
+        is_deleted: true,
+      });
 
-      //  Delete from class where id matches and is_deleted is false
+      // Update is_deleted to true for all class_course records where class_id matches
       await this.executeQuery(
-        `DELETE FROM class WHERE id = ? AND is_deleted = 0`,
+        `UPDATE class_course SET is_deleted = 1 WHERE class_id = ?`,
         [classId]
       );
 
-      console.log("Class and related data deleted successfully.");
+      // Push changes for class_course
+      await this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.UPDATE, {
+        class_id: classId,
+        is_deleted: true,
+      });
+
+      // Update is_deleted to true for the class itself
+      await this.executeQuery(
+        `UPDATE class SET is_deleted = 1 WHERE id = ? AND is_deleted = 0`,
+        [classId]
+      );
+
+      // Push changes for the class itself
+      await this.updatePushChanges(TABLES.Class, MUTATE_TYPES.UPDATE, {
+        id: classId,
+        is_deleted: true,
+      });
+
+      console.log("Class and related data marked as deleted successfully.");
     } catch (error) {
       console.error("Failed to delete class:", error);
       throw error;
