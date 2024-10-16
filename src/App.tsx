@@ -1,5 +1,12 @@
 import { Route, Switch, useHistory } from "react-router-dom";
-import { IonApp, IonRouterOutlet, setupIonicReact } from "@ionic/react";
+import {
+  IonApp,
+  IonButton,
+  IonModal,
+  IonRouterOutlet,
+  IonToast,
+  setupIonicReact,
+} from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
 /* Core CSS required for Ionic components to work properly */
@@ -74,9 +81,8 @@ import { t } from "i18next";
 import { useTtsAudioPlayer } from "./components/animation/animationUtils";
 import { ServiceConfig } from "./services/ServiceConfig";
 import User from "./models/user";
-import TeacherProfile from "./pages/Malta/TeacherProfile";
+// import TeacherProfile from "./pages/Malta/TeacherProfile";
 import React from "react";
-import StudentProfile from "./pages/Malta/StudentProfile";
 import Dashboard from "./pages/Malta/Dashboard";
 import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
 import {
@@ -87,17 +93,39 @@ import {
   ShowChapters,
   SearchLessons,
   AddStudent,
+  UserProfile,
+  ClassUsers,
+  StudentProfile,
+  ManageSchools,
+  SchoolProfile,
+  AddSchool,
+  ManageClass,
+  EditSchool,
+  SubjectSelection,
+  EditClass,
+  ClassProfile,
+  DashBoardDetails,
+  AddTeacher,
+  TeacherProfile,
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
+import DisplayClasses from "./chimple-private/pages/DisplayClasses";
+import "./App.css";
 
 setupIonicReact();
 interface ExtraData {
   notificationType?: string;
   rewardProfileId?: string;
 }
+const TIME_LIMIT = 1500; // 25 * 60
+const LAST_MODAL_SHOWN_KEY = "lastTimeExceededShown";
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
+  const [startTime, setStartTime] = useState<number>(Date.now());
+  const [timeExceeded, setTimeExceeded] = useState<boolean>(false);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [showToast, setShowToast] = useState<boolean>(false);
   useEffect(() => {
     const handleOnline = () => {
       if (!online) {
@@ -216,6 +244,41 @@ const App: React.FC = () => {
     });
     updateAvatarSuggestionJson();
   }, []);
+  useEffect(() => {
+    const handleAppStateChange = (state: any) => {
+      if (state.isActive) {
+        const currentTime = Date.now();
+        const timeElapsed = (currentTime - startTime) / 1000;
+        if (timeElapsed >= TIME_LIMIT) {
+          const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
+          const today = new Date().toISOString().split("T")[0];
+
+          if (lastShownDate !== today) {
+            setShowModal(true);
+            localStorage.setItem(LAST_MODAL_SHOWN_KEY, today);
+          }
+        }
+      }
+    };
+    if (Capacitor.getPlatform() === "android") {
+      const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
+      const today = new Date().toISOString().split("T")[0];
+      if (lastShownDate !== today) {
+        CapApp.addListener("appStateChange", handleAppStateChange);
+      }
+    }
+
+    return () => {
+      CapApp.removeAllListeners();
+    };
+  }, [startTime]);
+
+  const handleContinue = () => {
+    setShowModal(false);
+    setShowToast(true);
+    // Reset the timer
+    setStartTime(Date.now());
+  };
   const processNotificationData = async (data) => {
     const currentStudent = Util.getCurrentStudent();
     if (data && data.notificationType === "reward") {
@@ -348,15 +411,27 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
               <SelectMode />
             </ProtectedRoute>
-            <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
+            {/* <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
               <TeacherProfile />
-            </ProtectedRoute>
+            </ProtectedRoute> */}
             <ProtectedRoute path={PAGES.STUDENT_PROFILE} exact={true}>
-              <StudentProfile />
+              <Suspense>
+                <StudentProfile />
+              </Suspense>
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.ADD_STUDENT} exact={true}>
               <Suspense>
                 <AddStudent />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.USER_PROFILE} exact={true}>
+              <Suspense>
+                <UserProfile />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SUBJECTS_PAGE} exact={true}>
+              <Suspense>
+                <SubjectSelection />
               </Suspense>
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
@@ -384,11 +459,51 @@ const App: React.FC = () => {
                 <DisplaySchools />
               </Suspense>
             </Route>
-            <Route path={PAGES.HOME_PAGE} exact={true}>
+            <Route path={PAGES.DISPLAY_CLASSES} exact={true}>
               <Suspense>
-                <HomePage />
+                <DisplayClasses />
               </Suspense>
             </Route>
+            <ProtectedRoute path={PAGES.MANAGE_SCHOOL} exact={true}>
+              <Suspense>
+                <ManageSchools />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SCHOOL_PROFILE} exact={true}>
+              <Suspense>
+                <SchoolProfile />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
+              <Suspense>
+                <EditSchool />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.MANAGE_CLASS} exact={true}>
+              <Suspense>
+                <ManageClass />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
+              <Suspense>
+                <EditSchool />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.DASHBOARD_DETAILS} exact={true}>
+              <Suspense>
+                <DashBoardDetails />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_CLASS} exact={true}>
+              <Suspense>
+                <EditClass />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.CLASS_PROFILE} exact={true}>
+              <Suspense>
+                <ClassProfile />
+              </Suspense>
+            </ProtectedRoute>
             <Route path={PAGES.SHOW_CHAPTERS} exact={true}>
               <Suspense>
                 <ShowChapters />
@@ -414,8 +529,63 @@ const App: React.FC = () => {
                 <HomePage />
               </Suspense>
             </ProtectedRoute>
+            <ProtectedRoute path={PAGES.CLASS_USERS} exact={true}>
+              <Suspense>
+                <ClassUsers />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.EDIT_CLASS} exact={true}>
+              <Suspense>
+                <EditClass />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_TEACHER} exact={true}>
+              <Suspense>
+                <AddTeacher />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
+              <Suspense>
+                <TeacherProfile />
+              </Suspense>
+            </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
+        {/* Modal Notification for time limit */}
+        <IonModal isOpen={showModal} className="time-exceed-content">
+          <div
+            style={{
+              textAlign: "center",
+              color: "black",
+              width: "80%",
+              height: "60%",
+              marginTop: "9vh",
+              marginLeft: "9vw",
+            }}
+          >
+            <h2>{t("Time for a break!")}</h2>
+            <p>
+              {t(
+                "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
+              )}
+            </p>
+            <div className="time-exceed-buttons">
+              <IonButton
+                onClick={handleContinue}
+                className="time-exceed-continue"
+              >
+                {t("Continue")}
+              </IonButton>
+            </div>
+          </div>
+        </IonModal>
+        {/*Toast notification for acknowledgment */}
+        <IonToast
+          isOpen={showToast}
+          onDidDismiss={() => setShowToast(false)}
+          message="You have resumed after exceeding the time limit."
+          duration={3000}
+        />
       </IonReactRouter>
     </IonApp>
   );

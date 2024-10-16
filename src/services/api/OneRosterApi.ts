@@ -325,6 +325,35 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<User> {
     throw new Error("Method not implemented.");
   }
+
+  updateUserProfile(
+    user: TableTypes<"user">,
+    fullName: string,
+    email: string,
+    phoneNum: string,
+    languageDocId: string,
+    profilePic: string | undefined
+  ): Promise<TableTypes<"user">> {
+    throw new Error("Method not implemented.");
+  }
+
+  updateClassCourseSelection(
+    classId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  getCoursesByClassId(
+    classId: string
+  ): Promise<TableTypes<"class_course">[]> {
+    throw new Error("Method not implemented.");
+  }
+  removeCourseFromClass(id: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  deleteUserFromClass(userId: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
   getLessonResultsForStudent(
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined> {
@@ -419,12 +448,13 @@ export class OneRosterApi implements ServiceApi {
     gender: string | undefined,
     avatar: string | undefined,
     image: string | undefined,
-    boardDocId: string | undefined,
-    gradeDocId: string | undefined,
-    languageDocId: string | undefined,
-    classId: string,  
-    role: string  
-  ): Promise<TableTypes<"user">>{
+    boardDocId: string | null,
+    gradeDocId: string | null,
+    languageDocId: string | null,
+    classId: string,
+    role: string,
+    studentId: string,
+  ): Promise<TableTypes<"user">> {
     throw new Error("Method not implemented.");
   }
 
@@ -1037,6 +1067,20 @@ export class OneRosterApi implements ServiceApi {
   getUserAssignmentCart(
     userId: string
   ): Promise<TableTypes<"assignment_cart"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getChapterByLesson(lessonId:string,classId:string): Promise<String | undefined>{
+    throw new Error("Method not implemented.");
+  }
+  getAssignmentByClassByDate(classId:string,startDate:string,endData:string): Promise<TableTypes<"assignment">[] | undefined>{
+    throw new Error("Method not implemented.");
+  }
+  getStudentLastTenResults( studentId: string,assignmentIds: string[]):Promise<TableTypes<"result">[]>{
+    throw new Error("Method not implemented.");
+  }
+  getResultByAssignmentIds(
+    assignmentIds: string[]
+  ): Promise<TableTypes<"result">[] | undefined>{
     throw new Error("Method not implemented.");
   }
 }

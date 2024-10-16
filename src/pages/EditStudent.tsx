@@ -209,7 +209,11 @@ const EditStudent = () => {
       case STAGES.NAME:
         return !!studentName?.trim();
       case STAGES.GENDER_AND_AGE:
-        if (gender === GENDER.BOY || gender === GENDER.GIRL) {
+        if (
+          gender === GENDER.BOY ||
+          gender === GENDER.GIRL ||
+          gender === GENDER.OTHER
+        ) {
           return !!gender && !!age;
         }
         return false;

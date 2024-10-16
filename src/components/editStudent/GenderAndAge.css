@@ -19,7 +19,8 @@
   border-radius: 2vh;
   cursor: pointer;
   margin: 0px 3vh;
-  width: 30vh;
+  min-width: 30vh;
+  gap: 10px;
 }
 
 .gender-container {

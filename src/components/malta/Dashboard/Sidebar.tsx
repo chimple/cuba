@@ -27,7 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const history = useHistory();
 
   const navigateToProfile = () => {
-    history.replace(PAGES.TEACHER_PROFILE);
+    history.replace(PAGES.USER_PROFILE);
   };
 
   return (

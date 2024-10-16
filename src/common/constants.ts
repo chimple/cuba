@@ -1,6 +1,7 @@
 import { Capacitor } from "@capacitor/core";
 import Auth from "../models/auth";
 import { Database } from "../services/database";
+import { RoleType } from "../interface/modelInterfaces";
 
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = "sl-en",
@@ -48,10 +49,13 @@ export enum TABLES {
   Assignment = "assignment",
   Assignment_user = "assignment_user",
   Result = "result",
-  Assignment_cart = 'assignment_cart'
+  Assignment_cart = "assignment_cart",
   // Chatbot = "chatbot",
 }
-
+export enum CLASS_USERS {
+  STUDENTS = "Students",
+  TEACHERS = "Teachers",
+}
 export enum SL_GRADES {
   GRADE1 = "Grade 1",
   GRADE2 = "Grade 2",
@@ -106,6 +110,20 @@ export enum ASSIGNMENTTAB_LIST {
   RECOMMENDED = "Recommended",
   ASSIGNMENT = "Assignment",
   LIVEQUIZ = "Live Quiz",
+}
+
+export enum BANDWISECOLOR {
+  RED = "#F09393",
+  YELLOW = "#FDF7C3",
+  GREEN = "#CBDFA0",
+  GREY = "#D4D1D8",
+}
+
+export enum BANDS {
+  REDGROUP = "redGroup",
+  YELLOWGROUP = "yellowGroup",
+  GREENGROUP = "greenGroup",
+  GREYGROUP = "greyGroup",
 }
 
 export enum COMMONTAB_LIST {
@@ -366,6 +384,8 @@ export enum PAGES {
   DISPLAY_SUBJECTS = "/display-subjects",
   DISPLAY_CHAPTERS = "/display-chapters",
   DISPLAY_SCHOOLS = "/display-schools",
+  DISPLAY_CLASSES = "/display-classes",
+  DASHBOARD_DETAILS = "/dashboard-details",
   HOME_PAGE = "/home-page",
   ADD_SUBJECTS = "/add-subjects",
   APP_LANG_SELECTION = "/app-lang-selection",
@@ -382,15 +402,26 @@ export enum PAGES {
   LIVE_QUIZ_GAME = "/live-quiz-game",
   LIVE_QUIZ_ROOM_RESULT = "/live-quiz-room-result",
   LIVE_QUIZ_LEADERBOARD = "/live-quiz-leaderboard",
-  TEACHER_PROFILE = "/teacher-profile",
+  USER_PROFILE = "/user-profile",
   STUDENT_PROFILE = "/student-profile",
   ADD_STUDENT = "/add_student",
   TEST_PAGE = "/test-page",
   TEST_PAGE1 = "/test-page1",
-  TEACHER_ASSIGNMENT = '/teacher-assignment',
-  LESSON_DETAILS = '/lesson-details',
-  SEARCH_LESSON ='/search-lesson'
-  // Chatbot = "chatbot",
+  TEACHER_ASSIGNMENT = "/teacher-assignment",
+  LESSON_DETAILS = "/lesson-details",
+  SEARCH_LESSON = "/search-lesson",
+  CLASS_USERS = "/class-users",
+  SUBJECTS_PAGE = "/subject-selection",
+  MANAGE_SCHOOL = "/manage-schools",
+  SCHOOL_PROFILE = "/school-profile",
+  ADD_SCHOOL = "/add-school",
+  MANAGE_CLASS = "/manage-class",
+  EDIT_SCHOOL = "/edit-school",
+  EDIT_CLASS = "/edit-class",
+  ADD_CLASS = "/add-class",
+  CLASS_PROFILE = "/class-profile",
+  ADD_TEACHER = "/add-teacher",
+  TEACHER_PROFILE = "/teacher-profile",
 }
 
 export enum LANG {
@@ -399,6 +430,16 @@ export enum LANG {
   KANNADA = "kn",
   MARATHI = "mr",
   SIERRA_LEONE = "sl_en",
+}
+export enum DrawerOptions {
+  MANAGE_SCHOOL = "Manage School",
+  MANAGE_CLASS = "Manage Class",
+  USER_PROFILE = "User Profile",
+}
+
+export interface SchoolWithRole {
+  school: TableTypes<"school">;
+  role: RoleType;
 }
 
 export const SCREEN_WIDTH = window.innerWidth;
@@ -438,6 +479,15 @@ export const LIVE_QUIZ = "liveQuiz";
 export const COCOS = "cocos";
 export const TYPE = "type";
 export const APP_NAME = "Kids";
+export const SCHOOL = "school";
+export const CLASS = "class";
+export const USER_ROLE = "userRole";
+export const CURRENT_TEACHER = "currentTeacher";
+
+export enum IconType {
+  SCHOOL = "school",
+  CLASS = "class",
+}
 
 export const BASE_NAME =
   !Capacitor.isNativePlatform() && !!process.env.REACT_APP_GITHUB_BASE
@@ -636,3 +686,15 @@ export const CURRENT_SCHOOL_NAME = "currentSchoolName";
 export const DOWNLOADING_CHAPTER_ID = "downloading_chapter_id";
 export const USER_DATA = "userData";
 export const REFRESH_TOKEN = "refreshToken";
+export interface HomeWeeklySummary {
+  assignments: {
+    asgnmetCmptd: number;
+    totalAssignments: number;
+  };
+  students: {
+    stdCompletd: number;
+    totalStudents: number;
+  };
+  timeSpent: number;
+  averageScore: number;
+}

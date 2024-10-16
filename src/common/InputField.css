@@ -1,0 +1,50 @@
+.custom-search-bar {
+  --background: white;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.custom-search-input {
+  height: 50px;
+  --background: white;
+  border-radius: 10px;
+  --icon-display: none;
+}
+
+ion-searchbar .searchbar-clear-button {
+  display: none;
+}
+
+ion-searchbar .searchbar-input-container {
+  --padding-start: 0px;
+}
+ion-searchbar .search-icon {
+  --color: white;
+  --position: fixed;
+}
+.icon-inside-search {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 24px;
+  color: black;
+}
+.searchbar-input.sc-ion-searchbar-md {
+  box-shadow: none;
+}
+
+.toggle-text {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+.disabled-icon {
+  color: gray;
+  pointer-events: none;
+}
+
+.field-error-text {
+  margin-top: 5px;
+  font-size: var(--text-size);
+}
