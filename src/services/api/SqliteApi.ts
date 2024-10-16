@@ -1979,12 +1979,14 @@ export class SqliteApi implements ServiceApi {
     userId: string
   ): Promise<TableTypes<"class">[]> {
     let query = `
-    SELECT cu.class_id, cu.role, c.*
+    SELECT DISTINCT cu.class_id, cu.role, c.*
     FROM ${TABLES.ClassUser} cu
     JOIN ${TABLES.Class} c ON cu.class_id = c.id
     WHERE cu.user_id = '${userId}' 
     AND c.school_id = '${schoolId}' 
-    AND cu.role != '${RoleType.PARENT}' 
+    AND cu.role != '${RoleType.PARENT}'
+    AND cu.is_deleted = 0
+    AND c.is_deleted = 0
   `;
     const res = await this._db?.query(query);
 
@@ -1996,7 +1998,7 @@ export class SqliteApi implements ServiceApi {
     query = `
     SELECT *
     FROM ${TABLES.Class}
-    WHERE school_id = '${schoolId}'
+    WHERE school_id = '${schoolId}' AND is_deleted = 0
   `;
     const allClassesRes = await this._db?.query(query);
 
@@ -2120,24 +2122,82 @@ export class SqliteApi implements ServiceApi {
   }
   async deleteClass(classId: string) {
     try {
-      // Delete from class_user where role is teacher
+      // Update is_deleted to true for all class_user records where role is teacher
       await this.executeQuery(
-        `DELETE FROM class_user WHERE class_id = ? AND role = ?`,
-        [classId, RoleType.TEACHER] // Passing RoleType.TEACHER as a parameter
+        `UPDATE class_user SET is_deleted = 1 WHERE class_id = ? AND role = ?`,
+        [classId, RoleType.TEACHER]
       );
 
-      //  Delete from class_course where class_id matches
-      await this.executeQuery(`DELETE FROM class_course WHERE class_id = ?`, [
+      // Retrieve the ids of the affected class_user rows
+      const classUserQuery = `
+      SELECT id 
+      FROM ${TABLES.ClassUser}
+      WHERE class_id = ? AND role = ? AND is_deleted = 1
+    `;
+      const classUserRes = await this._db?.query(classUserQuery, [
         classId,
+        RoleType.TEACHER,
       ]);
 
-      //  Delete from class where id matches and is_deleted is false
+      if (
+        classUserRes &&
+        classUserRes.values &&
+        classUserRes.values.length > 0
+      ) {
+        for (const row of classUserRes.values) {
+          // Push changes for each affected class_user (teachers)
+          this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
+            id: row.id,
+            is_deleted: true,
+          });
+        }
+      } else {
+        console.log("No class_user records found for the teachers.");
+      }
+
+      //Update is_deleted to true for all class_course records where class_id matches
       await this.executeQuery(
-        `DELETE FROM class WHERE id = ? AND is_deleted = 0`,
+        `UPDATE class_course SET is_deleted = 1 WHERE class_id = ?`,
         [classId]
       );
 
-      console.log("Class and related data deleted successfully.");
+      // Retrieve the ids of the affected class_course rows
+      const classCourseQuery = `
+      SELECT id 
+      FROM ${TABLES.ClassCourse}
+      WHERE class_id = ? AND is_deleted = 1
+    `;
+      const classCourseRes = await this._db?.query(classCourseQuery, [classId]);
+
+      if (
+        classCourseRes &&
+        classCourseRes.values &&
+        classCourseRes.values.length > 0
+      ) {
+        for (const row of classCourseRes.values) {
+          // Push changes for each affected class_course
+          this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.UPDATE, {
+            id: row.id,
+            is_deleted: true,
+          });
+        }
+      } else {
+        console.log("No class_course records found for the class.");
+      }
+
+      // Update is_deleted to true for the class itself
+      await this.executeQuery(
+        `UPDATE class SET is_deleted = 1 WHERE id = ? AND is_deleted = 0`,
+        [classId]
+      );
+
+      // Push changes for the class itself
+      this.updatePushChanges(TABLES.Class, MUTATE_TYPES.UPDATE, {
+        id: classId,
+        is_deleted: true,
+      });
+
+      console.log("Class and related data marked as deleted successfully.");
     } catch (error) {
       console.error("Failed to delete class:", error);
       throw error;
@@ -3344,7 +3404,7 @@ order by
     SELECT * 
     FROM ${TABLES.ClassUser}
     WHERE user_id = $1
-    AND role = $2 AND class_id = $3
+    AND role = $2 AND class_id = $3 AND is_deleted = 0
     LIMIT 1`;
 
     const values = [userId, RoleType.TEACHER, classId];
