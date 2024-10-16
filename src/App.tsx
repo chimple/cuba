@@ -85,6 +85,7 @@ import User from "./models/user";
 import React from "react";
 import Dashboard from "./pages/Malta/Dashboard";
 import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
+import TimeMe from "timeme.js";
 import {
   HomePage,
   TestPage1,
@@ -244,32 +245,29 @@ const App: React.FC = () => {
     });
     updateAvatarSuggestionJson();
   }, []);
-  useEffect(() => {
-    const handleAppStateChange = (state: any) => {
-      if (state.isActive) {
-        const currentTime = Date.now();
-        const timeElapsed = (currentTime - startTime) / 1000;
-        if (timeElapsed >= TIME_LIMIT) {
-          const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
-          const today = new Date().toISOString().split("T")[0];
-
-          if (lastShownDate !== today) {
-            setShowModal(true);
-            localStorage.setItem(LAST_MODAL_SHOWN_KEY, today);
-          }
-        }
+  const checkTimeExceeded = () => {
+    const currentTime = Date.now();
+    const timeElapsed = (currentTime - startTime) / 1000;
+    if (timeElapsed >= TIME_LIMIT) {
+      const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
+      const today = new Date().toISOString().split("T")[0];
+      if (lastShownDate !== today) {
+        setShowModal(true);
+        localStorage.setItem(LAST_MODAL_SHOWN_KEY, today);
       }
-    };
+    }
+  };
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
     if (Capacitor.getPlatform() === "android") {
       const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
       const today = new Date().toISOString().split("T")[0];
       if (lastShownDate !== today) {
-        CapApp.addListener("appStateChange", handleAppStateChange);
+        timeoutId = setTimeout(checkTimeExceeded, TIME_LIMIT * 1000);
       }
     }
-
     return () => {
-      CapApp.removeAllListeners();
+      clearTimeout(timeoutId);
     };
   }, [startTime]);
 
@@ -554,14 +552,6 @@ const App: React.FC = () => {
         {/* Modal Notification for time limit */}
         <IonModal isOpen={showModal} className="time-exceed-content">
           <div
-            style={{
-              textAlign: "center",
-              color: "black",
-              width: "80%",
-              height: "60%",
-              marginTop: "9vh",
-              marginLeft: "9vw",
-            }}
           >
             <h2>{t("Time for a break!")}</h2>
             <p>
