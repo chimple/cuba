@@ -1436,6 +1436,7 @@ export class SqliteApi implements ServiceApi {
     wrongMoves: number,
     timeSpent: number,
     assignmentId: string | undefined,
+    chapterId: string,
     classId: string | undefined,
     schoolId: string | undefined
   ): Promise<TableTypes<"result">> {
@@ -1454,12 +1455,14 @@ export class SqliteApi implements ServiceApi {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
+      chapter_id: chapterId,
+      course_id: courseId ?? "",
     };
 
     const res = await this.executeQuery(
       `
-    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `,
       [
         newResult.id,
@@ -1474,6 +1477,8 @@ export class SqliteApi implements ServiceApi {
         newResult.created_at,
         newResult.updated_at,
         newResult.is_deleted,
+        newResult.course_id,
+        newResult.chapter_id,
       ]
     );
     console.log("🚀 ~ SqliteApi ~ res:", res);

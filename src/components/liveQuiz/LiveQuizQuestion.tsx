@@ -407,6 +407,7 @@ const LiveQuizQuestion: FC<{
       totalQuestions - correctMoves,
       totalTimeSpent,
       roomDoc.assignment_id,
+      "",
       roomDoc.class_id,
       roomDoc.school_id
     );
