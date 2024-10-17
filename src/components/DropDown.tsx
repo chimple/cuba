@@ -7,11 +7,12 @@ const DropDown: React.FC<{
     id: string;
     displayName: string;
   }[];
-  currentValue: string | undefined;
+  currentValue?: string;
   onValueChange;
-  placeholder: string | undefined;
+  placeholder: string | undefined | null;
   width: string;
-}> = ({ optionList, currentValue = placeholderTextItem, onValueChange, width, placeholder }) => {
+  isWhiteBackground?: boolean;
+}> = ({ optionList, currentValue = placeholderTextItem, onValueChange, width, placeholder, isWhiteBackground }) => {
   return (
     <Select
 
@@ -35,7 +36,7 @@ const DropDown: React.FC<{
       onChange={(evt) => {
         onValueChange(evt.target.value);
       }}
-      value={currentValue}
+      value={currentValue || placeholder}
       MenuProps={{
         sx: { marginTop: "0.8vh", },
         PaperProps: {
@@ -45,7 +46,7 @@ const DropDown: React.FC<{
             OverflowY: "scroll",
             borderRadius: "0.8vw",
             width: width,
-            backgroundColor: "#e2dede",
+            backgroundColor: isWhiteBackground ? "#fff" : "#e2dede", 
           }
         },
         anchorOrigin: {

@@ -772,7 +772,7 @@ export class SqliteApi implements ServiceApi {
         newStudent.student_id,
       ]
     );
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
+    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
     // Insert into class_user table
     const classUserId = uuidv4();
     const newClassUser: TableTypes<"class_user"> = {
