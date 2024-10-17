@@ -24,6 +24,7 @@ export class ClassUtil {
       .replace("Z", "+00");
     const assignements = await this.api.getAssignmentOrLiveQuizByClassByDate(
       classId,
+      "",
       currentDateTimeStamp,
       oneWeekBackTimeStamp,
       true,
@@ -127,6 +128,7 @@ export class ClassUtil {
       .replace("Z", "+00");
     const assignements = await this.api.getAssignmentOrLiveQuizByClassByDate(
       classId,
+      "",
       currentDateTimeStamp,
       oneWeekBackTimeStamp,
       true,
@@ -227,6 +229,7 @@ export class ClassUtil {
   }
   public async getWeeklyReport(
     classId: string,
+    courseId: string,
     startDate: Date,
     endDate: Date
   ) {
@@ -261,6 +264,7 @@ export class ClassUtil {
     for (const student of _students) {
       const res = await this.api.getStudentResultByDate(
         student.id,
+        courseId,
         startTimeStamp,
         endTimeStamp
       );
@@ -301,12 +305,10 @@ export class ClassUtil {
 
   public async getMonthlyReport(
     classId: string,
+    courseId: string,
     startDate: Date,
     endDate: Date
   ) {
-    console.log('DDDDDDDDDDDDD')
-    console.log(startDate)
-    console.log(endDate)
     const monthsInRange = this.getMonthsInRange(startDate, endDate);
     const adjustedStartDate = subDays(new Date(startDate), 1);
     const adjustedEndDate = addDays(new Date(endDate), 1);
@@ -337,10 +339,10 @@ export class ClassUtil {
     for (const student of _students) {
       const res = await this.api.getStudentResultByDate(
         student.id,
+        courseId,
         startTimeStamp,
         endTimeStamp
       );
-
       res?.forEach((result) => {
         const resultDate = new Date(result.created_at);
         const monthName = resultDate.toLocaleDateString("en-US", {
@@ -375,6 +377,7 @@ export class ClassUtil {
   }
   public async getAssignmentOrLiveQuizReport(
     classId: string,
+    courseId: string,
     startDate: Date,
     endDate: Date,
     isLiveQuiz: boolean
@@ -394,6 +397,7 @@ export class ClassUtil {
 
     const _assignments = await this.api.getAssignmentOrLiveQuizByClassByDate(
       classId,
+      courseId,
       endTimeStamp,
       startTimeStamp,
       false,
@@ -457,6 +461,81 @@ export class ClassUtil {
     return {
       ReportData: resultsByStudent,
       HeaderData: assignmentMapArray,
+    };
+  }
+  public async getChapterWiseReport(
+    classId: string,
+    startDate: Date,
+    endDate: Date,
+    courseId: string,
+    chapterId: string
+  ) {
+    const adjustedStartDate = subDays(new Date(startDate), 1);
+    const adjustedEndDate = addDays(new Date(endDate), 1);
+
+    const startTimeStamp = adjustedStartDate
+      .toISOString()
+      .replace("T", " ")
+      .replace("Z", "+00");
+    const endTimeStamp = adjustedEndDate
+      .toISOString()
+      .replace("T", " ")
+      .replace("Z", "+00");
+    const _students = await this.api.getStudentsForClass(classId);
+
+    const _lessons = await this.api.getLessonsForChapter(chapterId);
+
+    const chapterResults = await this.api.getResultByChapterByDate(
+      chapterId,
+      courseId,
+      startTimeStamp,
+      endTimeStamp
+    );
+    console.log("HHHHHHHHHHHHHHHHHHHHH");
+    console.log(chapterResults);
+    const chapterMapArray: Map<
+      string,
+      { headerName: string; startAt: string; endAt: string }
+    >[] = (_lessons || []).map((lesson) => {
+      const lessonMap = new Map<
+        string,
+        { headerName: string; startAt: string; endAt: string }
+      >();
+
+      lessonMap.set(lesson.id, {
+        headerName: lesson?.name ?? "",
+        startAt: "",
+        endAt: "",
+      });
+
+      return lessonMap;
+    });
+    const resultsByStudent = new Map<
+      string,
+      { name: string; results: Record<string, any[]> }
+    >();
+
+    _students.forEach((student) => {
+      resultsByStudent.set(student.id, {
+        name: student.name || "",
+        results: {},
+      });
+      _lessons.forEach((lesson) => {
+        resultsByStudent.get(student.id)!.results[lesson.id] = [];
+      });
+    });
+
+    chapterResults?.forEach((result) => {
+      const studentId = result.student_id;
+      const lessonId = result.lesson_id;
+
+      if (resultsByStudent.get(studentId)?.results[lessonId ?? ""]) {
+        resultsByStudent.get(studentId)!.results[lessonId ?? ""].push(result);
+      }
+    });
+    return {
+      ReportData: resultsByStudent,
+      HeaderData: chapterMapArray,
     };
   }
 }

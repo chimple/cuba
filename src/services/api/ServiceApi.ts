@@ -851,6 +851,7 @@ export interface ServiceApi {
    */
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
+    courseId:string,
     startDate: string,
     endDate: string,
     isClassWise: boolean,
@@ -982,6 +983,7 @@ export interface ServiceApi {
    */
   getStudentResultByDate(
     studentId: string,
+    course_id:string,
     startDate: string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined>
@@ -999,4 +1001,18 @@ export interface ServiceApi {
    * @param {string } teacherId - Teacher Id
    */
   deleteTeacher(classId: string, teacherId: string);
+
+  /**
+   * To get the result by chapterId
+   * @param chapter_id 
+   * @param course_id 
+   * @param startDate 
+   * @param endDate 
+   */
+  getResultByChapterByDate(
+    chapter_id: string,
+    course_id: string,
+    startDate: string,
+    endDate: string
+  ): Promise<TableTypes<"result">[] | undefined>
 }

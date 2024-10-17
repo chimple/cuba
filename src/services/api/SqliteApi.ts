@@ -3220,14 +3220,16 @@ order by
 
   async getAssignmentOrLiveQuizByClassByDate(
     classId: string,
+    courseId: string,
     startDate: string,
     endDate: string,
     isClassWise: boolean,
-    isLiveQuiz:boolean
+    isLiveQuiz: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
     let query = `SELECT * 
        FROM ${TABLES.Assignment} 
        WHERE class_id = '${classId}'
+       AND course_id = '${courseId}'
        AND created_at BETWEEN '${endDate}' AND '${startDate}'`;
     if (isClassWise) {
       query += ` AND is_class_wise = 1`;
@@ -3243,12 +3245,14 @@ order by
   }
   async getStudentResultByDate(
     studentId: string,
+    course_id: string,
     startDate: string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined> {
     const query = `SELECT * 
        FROM ${TABLES.Result} 
        WHERE student_id = '${studentId}'
+       AND course_id = '${course_id}'
        AND created_at BETWEEN '${startDate}' AND '${endDate}'
        ORDER BY created_at DESC;`;
 
@@ -3452,5 +3456,24 @@ order by
     } catch (error) {
       console.log("🚀 ~ SqliteApi ~ deleteTeacher ~ error:", error);
     }
+  }
+
+  async getResultByChapterByDate(
+    chapter_id: string,
+    course_id: string,
+    startDate: string,
+    endDate: string
+  ): Promise<TableTypes<"result">[] | undefined> {
+    const query = `SELECT * 
+       FROM ${TABLES.Result} 
+       WHERE chapter_id = '${chapter_id}'
+       AND course_id = '${course_id}'
+       AND created_at BETWEEN '${startDate}' AND '${endDate}'
+       ORDER BY created_at DESC;`;
+
+    const res = await this._db?.query(query);
+
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values;
   }
 }

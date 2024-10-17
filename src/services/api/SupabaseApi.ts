@@ -987,6 +987,7 @@ export class SupabaseApi implements ServiceApi {
   }
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
+    courseId:string,
     startDate: string,
     endDate: string,
     isClassWise: boolean,
@@ -1069,6 +1070,7 @@ export class SupabaseApi implements ServiceApi {
   getStudentResultByDate(
     studentId: string,
     startDate: string,
+    course_id:string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined> {
     throw new Error("Method not implemented.");
@@ -1079,6 +1081,14 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   } 
   async deleteTeacher(classId: string, teacherId: string) {
+    throw new Error("Method not implemented.");
+  }
+  async getResultByChapterByDate(
+    chapter_id: string,
+    course_id: string,
+    startDate: string,
+    endDate: string
+  ): Promise<TableTypes<"result">[] | undefined>{
     throw new Error("Method not implemented.");
   }
 }
