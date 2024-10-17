@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { IonItem, IonSearchbar, IonIcon, IonButton } from "@ionic/react";
-import { enterOutline } from "ionicons/icons";
+import { searchOutline } from "ionicons/icons";
 import "./InputField.css";
 import { t } from "i18next";
 
@@ -10,13 +10,24 @@ const InputField: React.FC<{
   setInputValue: (value: string) => void;
   onEnter: () => void;
   toggleInputMethod: () => void;
-}> = ({ useEmail, inputValue, setInputValue, onEnter, toggleInputMethod }) => {
+  resetUserNotFound: () => void;
+}> = ({
+  useEmail,
+  inputValue,
+  setInputValue,
+  onEnter,
+  toggleInputMethod,
+  resetUserNotFound,
+}) => {
   const [showError, setShowError] = useState(false);
   const handleInputChange = (event: CustomEvent) => {
     let value = (event.target as HTMLInputElement).value;
     console.log("Input value:", value);
     setInputValue(value || "");
-    if (value) setShowError(false);
+    if (value) {
+      resetUserNotFound();
+      setShowError(false);
+    }
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
@@ -40,6 +51,7 @@ const InputField: React.FC<{
   };
 
   const handleToggleInputMethod = () => {
+    resetUserNotFound();
     setShowError(false);
     toggleInputMethod();
   };
@@ -59,7 +71,7 @@ const InputField: React.FC<{
           className="custom-search-input"
         ></IonSearchbar>
         <IonIcon
-          icon={enterOutline}
+          icon={searchOutline}
           className={`icon-inside-search ${!inputValue ? "disabled-icon" : ""}`}
           onClick={handleClick}
           style={{ cursor: inputValue ? "pointer" : "not-allowed" }}
