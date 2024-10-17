@@ -531,7 +531,7 @@ export class ApiHandler implements ServiceApi {
     languageDocId: string | null,
     classId: string,
     role: string,
-    studentId: string,
+    studentId: string
   ): Promise<TableTypes<"user">> {
     return await this.s.createStudentProfile(
       name,
@@ -544,7 +544,7 @@ export class ApiHandler implements ServiceApi {
       languageDocId,
       classId,
       role,
-      studentId,
+      studentId
     );
   }
   public async updateClassCourseSelection(
@@ -753,5 +753,11 @@ export class ApiHandler implements ServiceApi {
   }
   deleteTeacher(classId: string, teacherId: string) {
     return this.s.deleteTeacher(classId, teacherId);
+  }
+  getClassCodeById(class_id: string): Promise<number | undefined> {
+    return this.s.getClassCodeById(class_id);
+  }
+  generateClassCode(class_id: string): Promise<any | undefined> {
+    return this.s.generateClassCode(class_id);
   }
 }

@@ -978,4 +978,14 @@ export interface ServiceApi {
    * @param {string } teacherId - Teacher Id
    */
   deleteTeacher(classId: string, teacherId: string);
+  /**
+   * To get class code for the given class id
+   * @param {string } classId - Class Id
+   */
+  getClassCodeById(class_id: string): Promise<number | undefined>;
+  /**
+   * To generate class code for the given class id
+   * @param {string } classId - Class Id
+   */
+  generateClassCode(class_id: string): Promise<any | undefined>;
 }
