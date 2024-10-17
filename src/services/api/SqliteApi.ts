@@ -2097,6 +2097,7 @@ export class SqliteApi implements ServiceApi {
       school_id: schoolId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+
       is_deleted: false,
     };
     console.log("school data..", newClass);
@@ -3473,5 +3474,80 @@ order by
     } catch (error) {
       console.log("🚀 ~ SqliteApi ~ deleteTeacher ~ error:", error);
     }
+  }
+  async getClassCodeById(class_id: string): Promise<number | undefined> {
+    if (!class_id) return;
+    const query = `SELECT code 
+    FROM ${TABLES.ClassInvite_code} 
+    WHERE class_id='${class_id}'`;
+    console.log("A$", query);
+    try {
+      const res = await this._db?.query(query);
+      return res?.values?.[0]?.code;
+    } catch (error) {
+      console.error("Error executing query:", error); // Log any errors
+      return;
+    }
+  }
+
+  async generateClassCode(class_id: string): Promise<any | undefined> {
+    if (!class_id) return;
+    const existingClassCode = await this.getClassCodeById(class_id);
+
+    // If the class code already exists, throw an error
+    if (existingClassCode) {
+      console.log("existingClassCode", existingClassCode);
+      return existingClassCode;
+    }
+
+    // Set the expiration date (1 year from today)
+    const expiresAt = new Date();
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1); // Add 1 year to today's date
+
+    const formattedExpiresAt = expiresAt.toISOString(); // Format the date to ISO string
+
+    // Generate a unique ID for the new class code
+    const codeId = uuidv4();
+
+    // Create the class invite code object
+    const newClass: TableTypes<"class_invite_code"> = {
+      id: codeId,
+      code: Math.floor(Math.random() * 900000) + 100000, // The class code provided
+      expires_at: formattedExpiresAt, // Expiry date one year from now
+      class_id: class_id, // The class ID provided
+      is_class_code: true, // Assuming boolean flag
+      created_at: new Date().toISOString(), // Current timestamp
+      updated_at: new Date().toISOString(), // Current timestamp
+      is_deleted: false, // By default, the entry is not deleted
+    };
+
+    console.log("Creating new class invite code:", newClass);
+
+    // SQL query to insert the new class invite code
+    await this.executeQuery(
+      `
+      INSERT INTO class_invite_code (id, code, expires_at, class_id, is_class_code, created_at, updated_at, is_deleted)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+      `,
+      [
+        newClass.id, // The generated ID
+        newClass.code, // The class code
+        newClass.expires_at, // Expiry date
+        newClass.class_id, // Class ID
+        newClass.is_class_code, // Boolean flag for class code
+        newClass.created_at, // Timestamp when created
+        newClass.updated_at, // Timestamp when last updated
+        newClass.is_deleted, // Deletion flag (false)
+      ]
+    );
+
+    // Assuming a method to update push changes, which takes table name, mutation type, and data
+    await this.updatePushChanges(
+      TABLES.ClassInvite_code,
+      MUTATE_TYPES.INSERT,
+      newClass
+    );
+
+    return newClass;
   }
 }
