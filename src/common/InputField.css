@@ -3,12 +3,14 @@
   padding: 10px;
   border-radius: 10px;
 }
+.searchbar-search-icon.sc-ion-searchbar-ios {
+  color: white;
+}
 
 .custom-search-input {
   height: 50px;
   --background: white;
   border-radius: 10px;
-  --icon-display: none;
 }
 
 ion-searchbar .searchbar-clear-button {
