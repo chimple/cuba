@@ -2590,6 +2590,87 @@ export class SqliteApi implements ServiceApi {
     // )
     return true;
   }
+
+  async createAssignment(
+    student_list: string[],
+    userId: string,
+    starts_at: string,
+    ends_at: string,
+    is_class_wise: boolean,
+    class_id: string,
+    school_id: string,
+    lesson_id: string,
+    chapter_id: string,
+    course_id: string
+  ): Promise<boolean> {
+    const assignmentUUid = uuidv4();
+    console.log("createAssignment called", assignmentUUid);
+    await this.executeQuery(
+      `
+      INSERT INTO assignment (id, created_by, starts_at,ends_at,is_class_wise,class_id,school_id,lesson_id,type,created_at,updated_at,is_deleted,chapter_id,course_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `,
+      [assignmentUUid, userId, starts_at, ends_at, is_class_wise, class_id, school_id, lesson_id, null, new Date().toISOString(), new Date().toISOString(), false, chapter_id, course_id]
+    );
+    const assignment_data = {
+      id: assignmentUUid,
+      created_by: userId,
+      starts_at: starts_at,
+      ends_at: ends_at,
+      is_class_wise: is_class_wise,
+      class_id: class_id,
+      school_id: school_id,
+      lesson_id: lesson_id,
+      type: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+      chapter_id: chapter_id,
+      course_id: course_id
+    }
+    console.log("const assignment_data = { ", assignment_data);
+
+    const res = await this.updatePushChanges(
+      TABLES.Assignment,
+      MUTATE_TYPES.INSERT,
+      assignment_data
+    )
+    console.log("res  ", res);
+
+    if (!is_class_wise) {
+      for (const student of student_list) {
+        const assignment_user_UUid = uuidv4();
+        const newAssignmentUser: TableTypes<"assignment_user"> = {
+          assignment_id: assignmentUUid,
+          created_at: new Date().toISOString(),
+          id: assignment_user_UUid,
+          is_deleted: false,
+          updated_at: new Date().toISOString(),
+          user_id: student
+        };
+        await this.executeQuery(
+          `
+          INSERT INTO assignment_user (id, assignment_id, user_id,created_at,updated_at,is_deleted)
+        VALUES (?, ?, ?, ?, ?, ?);
+      `,
+          [
+            assignment_user_UUid,
+            assignmentUUid,
+            student,
+            new Date().toISOString(),
+            new Date().toISOString(),
+            false,
+          ]
+        );
+        this.updatePushChanges(
+          TABLES.Assignment_user,
+          MUTATE_TYPES.INSERT,
+          newAssignmentUser
+        );
+      }
+    }
+    return res ?? false;
+  }
   async createUserDoc(
     user: TableTypes<"user">
   ): Promise<TableTypes<"user"> | undefined> {

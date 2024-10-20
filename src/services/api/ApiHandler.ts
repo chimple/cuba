@@ -682,4 +682,29 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"assignment">[] | undefined> {
     return this.s.getLastAssignmentsByCourse(classId);
   }
+  async createAssignment(
+    student_list: string[],
+    userId: string,
+    starts_at: string,
+    ends_at: string,
+    is_class_wise: boolean,
+    class_id: string,
+    school_id: string,
+    lesson_id: string,
+    chapter_id: string,
+    course_id: string
+  ): Promise<boolean> {
+    return this.s.createAssignment(
+      student_list,
+      userId,
+      starts_at,
+      ends_at,
+      is_class_wise,
+      class_id,
+      school_id,
+      lesson_id,
+      chapter_id,
+      course_id
+    );
+  }
 }

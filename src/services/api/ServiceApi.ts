@@ -893,4 +893,17 @@ export interface ServiceApi {
   getLastAssignmentsByCourse(
     classId: string,
   ): Promise<TableTypes<"assignment">[] | undefined>;
+
+  createAssignment(
+    student_list: string[],
+    userId: string,
+    starts_at: string,
+    ends_at: string,
+    is_class_wise: boolean,
+    class_id: string,
+    school_id: string,
+    lesson_id: string,
+    chapter_id: string,
+    course_id: string
+  ): Promise<boolean>;
 }

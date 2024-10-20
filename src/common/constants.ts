@@ -420,7 +420,7 @@ export enum PAGES {
   EDIT_CLASS = "/edit-class",
   ADD_CLASS = "/add-class",
   CLASS_PROFILE = "/class-profile",
-  SELECTED_ASSIGNED_PAGE = "/selected-assigned-page",
+  SHOW_STUDENTS_IN_ASSIGNED_PAGE = "/show-students-in-assigned-page",
 }
 
 export enum LANG {

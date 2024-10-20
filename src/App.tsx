@@ -109,7 +109,7 @@ import {
 import LessonDetails from "./chimple-private/pages/LessonDetails";
 import DisplayClasses from "./chimple-private/pages/DisplayClasses";
 import "./App.css";
-import SelectedAssignedPage from "./chimple-private/pages/SelectedAssignedPage";
+import ShowStudentsInAssignmentPage from "./chimple-private/pages/ShowStudentsInAssignmentPage";
 
 setupIonicReact();
 interface ExtraData {
@@ -540,9 +540,9 @@ const App: React.FC = () => {
                 <EditClass />
               </Suspense>
             </ProtectedRoute>
-            <ProtectedRoute path={PAGES.SELECTED_ASSIGNED_PAGE} exact={true}>
+            <ProtectedRoute path={PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE} exact={true}>
               <Suspense>
-                <SelectedAssignedPage />
+                <ShowStudentsInAssignmentPage />
               </Suspense>
             </ProtectedRoute>
           </Switch>
