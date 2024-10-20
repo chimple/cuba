@@ -904,7 +904,9 @@ export type Database = {
       result: {
         Row: {
           assignment_id: string | null
+          chapter_id: string | null
           correct_moves: number | null
+          course_id: string | null
           created_at: string
           id: string
           is_deleted: boolean | null
@@ -918,7 +920,9 @@ export type Database = {
         }
         Insert: {
           assignment_id?: string | null
+          chapter_id?: string | null
           correct_moves?: number | null
+          course_id?: string | null
           created_at?: string
           id?: string
           is_deleted?: boolean | null
@@ -932,7 +936,9 @@ export type Database = {
         }
         Update: {
           assignment_id?: string | null
+          chapter_id?: string | null
           correct_moves?: number | null
+          course_id?: string | null
           created_at?: string
           id?: string
           is_deleted?: boolean | null
@@ -964,6 +970,20 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "school"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapter"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course"
             referencedColumns: ["id"]
           },
           {
@@ -1213,6 +1233,7 @@ export type Database = {
           name: string | null
           phone: string | null
           sfx_off: boolean | null
+          student_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -1233,6 +1254,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           sfx_off?: boolean | null
+          student_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -1253,6 +1275,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           sfx_off?: boolean | null
+          student_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -1575,6 +1598,32 @@ export type Database = {
           user_data: Database["public"]["Tables"]["user"]["Row"][]
         }[]
       }
+      get_user_by_email: {
+        Args: {
+          p_email: string
+        }
+        Returns: {
+          id: string
+          name: string
+          email: string
+          age: number
+          avatar: string
+          created_at: string
+          curriculum_id: string
+          fcm_token: string
+          gender: string
+          grade_id: string
+          image: string
+          is_deleted: boolean
+          is_tc_accepted: boolean
+          language_id: string
+          music_off: boolean
+          phone: string
+          sfx_off: boolean
+          updated_at: string
+          student_id: string
+        }[]
+      }
       get_user_by_phone: {
         Args: {
           phone_number: string
@@ -1582,6 +1631,32 @@ export type Database = {
         Returns: {
           id: string
           phone: string
+        }[]
+      }
+      get_user_by_phonenumber: {
+        Args: {
+          p_phone: string
+        }
+        Returns: {
+          id: string
+          name: string
+          email: string
+          age: number
+          avatar: string
+          created_at: string
+          curriculum_id: string
+          fcm_token: string
+          gender: string
+          grade_id: string
+          image: string
+          is_deleted: boolean
+          is_tc_accepted: boolean
+          language_id: string
+          music_off: boolean
+          phone: string
+          sfx_off: boolean
+          updated_at: string
+          student_id: string
         }[]
       }
       getDataByInviteCode: {
@@ -1730,4 +1805,19 @@ export type Enums<
   ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof PublicSchema["CompositeTypes"]
+    | { schema: keyof Database },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
+    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never

@@ -351,6 +351,9 @@ export class OneRosterApi implements ServiceApi {
   removeCourseFromClass(id: string): Promise<void> {
     throw new Error("Method not implemented.");
   }
+  deleteUserFromClass(userId: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
   getLessonResultsForStudent(
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined> {
@@ -449,7 +452,8 @@ export class OneRosterApi implements ServiceApi {
     gradeDocId: string | null,
     languageDocId: string | null,
     classId: string,
-    role: string
+    role: string,
+    studentId: string,
   ): Promise<TableTypes<"user">> {
     throw new Error("Method not implemented.");
   }

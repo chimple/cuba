@@ -105,6 +105,8 @@ import {
   EditClass,
   ClassProfile,
   DashBoardDetails,
+  AddTeacher,
+  TeacherProfile,
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
 import DisplayClasses from "./chimple-private/pages/DisplayClasses";
@@ -248,7 +250,6 @@ const App: React.FC = () => {
       if (state.isActive) {
         const currentTime = Date.now();
         const timeElapsed = (currentTime - startTime) / 1000;
-
         if (timeElapsed >= TIME_LIMIT) {
           const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
           const today = new Date().toISOString().split("T")[0];
@@ -260,8 +261,7 @@ const App: React.FC = () => {
         }
       }
     };
-
-    if (Capacitor.isNativePlatform()) {
+    if (Capacitor.getPlatform() === "android") {
       const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
       const today = new Date().toISOString().split("T")[0];
       if (lastShownDate !== today) {
@@ -540,9 +540,22 @@ const App: React.FC = () => {
                 <EditClass />
               </Suspense>
             </ProtectedRoute>
-            <ProtectedRoute path={PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE} exact={true}>
+            <ProtectedRoute
+              path={PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE}
+              exact={true}
+            >
               <Suspense>
                 <ShowStudentsInAssignmentPage />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_TEACHER} exact={true}>
+              <Suspense>
+                <AddTeacher />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
+              <Suspense>
+                <TeacherProfile />
               </Suspense>
             </ProtectedRoute>
           </Switch>

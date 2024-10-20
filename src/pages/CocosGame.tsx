@@ -77,7 +77,7 @@ const CocosGame: React.FC = () => {
     }
   };
   const killGame = (e: any) => {
-    document.body.removeEventListener(LESSON_END,handleLessonEndListner);
+    document.body.removeEventListener(LESSON_END, handleLessonEndListner);
     setShowDialogBox(true);
     Util.killCocosGame();
     initialCount++;
@@ -123,7 +123,7 @@ const CocosGame: React.FC = () => {
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
     killGame(e);
-    document.body.removeEventListener(LESSON_END,handleLessonEndListner);
+    document.body.removeEventListener(LESSON_END, handleLessonEndListner);
     Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
       user_id: api.currentStudent!.id,
       // assignment_id: lessonDetail.assignment?.id,
@@ -155,11 +155,12 @@ const CocosGame: React.FC = () => {
     setShowDialogBox(false);
     push();
   };
-  const handleLessonEndListner = (event)=>{
+  const handleLessonEndListner = (event) => {
     saveTempData(event.detail);
-      setGameResult(event);
-  }
+    setGameResult(event);
+  };
   async function init() {
+    const currentStudent = Util.getCurrentStudent();
     setIsLoading(true);
     const lessonId: string = state.lessonId;
     const lessonIds: string[] = [];
@@ -182,11 +183,9 @@ const CocosGame: React.FC = () => {
     //   push();
     // };
 
-    document.body.addEventListener(
-      LESSON_END,
-      handleLessonEndListner,
-      { once: true }
-    );
+    document.body.addEventListener(LESSON_END, handleLessonEndListner, {
+      once: true,
+    });
     document.body.addEventListener(GAME_END, killGame, { once: true });
     document.body.addEventListener(GAME_EXIT, gameExit, { once: true });
 
@@ -238,6 +237,7 @@ const CocosGame: React.FC = () => {
           assignmentId = result?.id;
         }
       }
+      var chapter_id = await api.getChapterByLesson(lesson.id, classId);
     }
     let avatarObj = AvatarObj.getInstance();
     let finalProgressTimespent =
@@ -257,6 +257,7 @@ const CocosGame: React.FC = () => {
       data.wrongMoves,
       data.timeSpent,
       assignmentId,
+      ChapterDetail?.id ?? chapter_id?.toString() ?? "",
       classId,
       schoolId
     );

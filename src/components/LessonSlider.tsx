@@ -21,6 +21,7 @@ const LessonSlider: React.FC<{
   showDate?: boolean;
   onDownloadOrDelete?: () => void;
   assignments?: TableTypes<"assignment">[];
+  chapter?: TableTypes<"chapter">;
   lessonChapterMap?: { [lessonId: string]: TableTypes<"chapter"> };
 }> = ({
   lessonData,
@@ -37,6 +38,7 @@ const LessonSlider: React.FC<{
   onDownloadOrDelete,
   assignments,
   lessonChapterMap,
+  chapter,
 }) => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
   const [loadedLessons, setLoadedLessons] = useState<TableTypes<"lesson">[]>(
@@ -133,7 +135,7 @@ const LessonSlider: React.FC<{
                 assignment={assignmentFound}
                 showDate={showDate}
                 onDownloadOrDelete={onDownloadOrDelete}
-                chapter={lessonChapterMap?.[m.id]}
+                chapter={lessonChapterMap?.[m.id] ?? chapter}
               />
             </SplideSlide>
           );
