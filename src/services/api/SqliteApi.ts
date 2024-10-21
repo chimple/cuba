@@ -3421,76 +3421,77 @@ ORDER BY created_at DESC;`;
 
     if (!res || !res.values || res.values.length < 1) return;
     return res.values;
+  }
   async getTeachersForClass(
-      classId: string
-    ): Promise < TableTypes < "user" > [] | undefined > {
-      const query = `
+    classId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    const query = `
     SELECT user.*
     FROM ${TABLES.ClassUser} AS cu
     JOIN ${TABLES.User} AS user ON cu.user_id= user.id
     WHERE cu.class_id = "${classId}" and cu.role = '${RoleType.TEACHER}' and cu.is_deleted = false;
   `;
-      const res = await this._db?.query(query);
-      return res?.values ?? [];
-    }
-  async getUserByEmail(email: string): Promise < TableTypes<"user"> | undefined > {
-      return this._serverApi.getUserByEmail(email);
-    }
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
+  async getUserByEmail(email: string): Promise<TableTypes<"user"> | undefined> {
+    return this._serverApi.getUserByEmail(email);
+  }
   async getUserByPhoneNumber(
-      phone: string
-    ): Promise < TableTypes<"user"> | undefined > {
-      return this._serverApi.getUserByPhoneNumber(phone);
-    }
-  async addTeacherToClass(classId: string, userId: string): Promise < void> {
-      const classUserId = uuidv4();
-      const classUser = {
-        id: classUserId,
-        class_id: classId,
-        user_id: userId,
-        role: RoleType.TEACHER,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        is_deleted: false,
-      };
+    phone: string
+  ): Promise<TableTypes<"user"> | undefined> {
+    return this._serverApi.getUserByPhoneNumber(phone);
+  }
+  async addTeacherToClass(classId: string, userId: string): Promise<void> {
+    const classUserId = uuidv4();
+    const classUser = {
+      id: classUserId,
+      class_id: classId,
+      user_id: userId,
+      role: RoleType.TEACHER,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+    };
 
-      await this.executeQuery(
-        `
+    await this.executeQuery(
+      `
     INSERT INTO class_user (id, class_id, user_id, role, created_at, updated_at, is_deleted)
     VALUES (?, ?, ?, ?, ?, ?, ?)
     `,
-        [
-          classUser.id,
-          classUser.class_id,
-          classUser.user_id,
-          classUser.role,
-          classUser.created_at,
-          classUser.updated_at,
-          classUser.is_deleted,
-        ]
-      );
+      [
+        classUser.id,
+        classUser.class_id,
+        classUser.user_id,
+        classUser.role,
+        classUser.created_at,
+        classUser.updated_at,
+        classUser.is_deleted,
+      ]
+    );
 
-      await this.updatePushChanges(
-        TABLES.ClassUser,
-        MUTATE_TYPES.INSERT,
-        classUser
-      );
-    }
+    await this.updatePushChanges(
+      TABLES.ClassUser,
+      MUTATE_TYPES.INSERT,
+      classUser
+    );
+  }
 
   async checkUserInClass(
-      schoolId: string,
-      classId: string,
-      userId: string
-    ): Promise < boolean > {
-      // Check if the user is present in school_user but not as a parent
-      const schoolUserResult = await this.executeQuery(
-        `SELECT * FROM school_user 
+    schoolId: string,
+    classId: string,
+    userId: string
+  ): Promise<boolean> {
+    // Check if the user is present in school_user but not as a parent
+    const schoolUserResult = await this.executeQuery(
+      `SELECT * FROM school_user 
      WHERE school_id = ? AND user_id = ? 
      AND role != ?  
      AND is_deleted = false`,
-        [schoolId, userId, RoleType.PARENT]
-      );
+      [schoolId, userId, RoleType.PARENT]
+    );
 
-      if(schoolUserResult?.values && schoolUserResult.values.length > 0) {
+    if (schoolUserResult?.values && schoolUserResult.values.length > 0) {
       return true;
     }
     // Check if the user is a teacher in class_user
