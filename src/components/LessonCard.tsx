@@ -178,6 +178,7 @@ const LessonCard: React.FC<{
                 course: JSON.stringify(currentCourse!),
                 lesson: JSON.stringify(lesson),
                 assignment: assignment,
+                chapter: JSON.stringify(chapter),
                 from: history.location.pathname + `?${CONTINUE}=true`,
               });
             } else if (!!assignment?.id && lesson.plugin_type === LIVE_QUIZ) {
@@ -255,8 +256,8 @@ const LessonCard: React.FC<{
             ) : null}
             <div className="pattern">
               <SelectIconImage
-               imageWidth={"100%"}
-               imageHeight={"auto"}
+                imageWidth={"100%"}
+                imageHeight={"auto"}
                 localSrc={
                   // this is for lesson card background
                   "courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"
@@ -266,20 +267,19 @@ const LessonCard: React.FC<{
                 }
                 webSrc={
                   "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/lesson_thumbnails%2FlessonCaredPattern%2FChallengePattern.png?alt=media&token=be64aec1-f70f-43c3-95de-fd4b1afe5806"
-                } 
+                }
               />
             </div>
 
             <div id="lesson-card-image">
               <SelectIconImage
-              
                 localSrc={
                   "courses/" +
                   lesson.cocos_subject_code +
                   "/icons/" +
                   lesson.id +
                   ".webp"
-                } 
+                }
                 defaultSrc={"assets/icons/DefaultIcon.png"}
                 webSrc={lesson.image || "assets/icons/DefaultIcon.png"}
                 imageWidth={"60%"}
