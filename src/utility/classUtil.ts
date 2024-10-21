@@ -1,5 +1,5 @@
 import { start } from "repl";
-import { BANDS, TableTypes } from "../common/constants";
+import { BANDS, TABLESORTBY, TableTypes } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { addDays, addMonths, format, subDays, subWeeks } from "date-fns";
 
@@ -227,11 +227,13 @@ export class ClassUtil {
 
     return months;
   }
+  
   public async getWeeklyReport(
     classId: string,
     courseId: string,
     startDate: Date,
-    endDate: Date
+    endDate: Date,
+    sortBy: TABLESORTBY
   ) {
     const adjustedStartDate = subDays(new Date(startDate), 1);
     const adjustedEndDate = addDays(new Date(endDate), 1);
@@ -245,7 +247,13 @@ export class ClassUtil {
       .replace("T", " ")
       .replace("Z", "+00");
     const _students = await this.api.getStudentsForClass(classId);
-
+    console.log(_students);
+    if (sortBy == TABLESORTBY.NAME)
+      _students.sort((a, b) => {
+        if (a.name === null) return 1;
+        if (b.name === null) return -1;
+        return a.name.localeCompare(b.name);
+      });
     const resultsByStudent = new Map<
       string,
       { name: string; results: Record<string, any[]> }
@@ -297,6 +305,7 @@ export class ClassUtil {
 
       return daysMap;
     });
+    console.log(resultsByStudent);
     return {
       ReportData: resultsByStudent,
       HeaderData: daysMapArray,
@@ -307,7 +316,8 @@ export class ClassUtil {
     classId: string,
     courseId: string,
     startDate: Date,
-    endDate: Date
+    endDate: Date,
+    sortBy: TABLESORTBY
   ) {
     const monthsInRange = this.getMonthsInRange(startDate, endDate);
     const adjustedStartDate = subDays(new Date(startDate), 1);
@@ -321,6 +331,12 @@ export class ClassUtil {
       .replace("T", " ")
       .replace("Z", "+00");
     const _students = await this.api.getStudentsForClass(classId);
+    if (sortBy == TABLESORTBY.NAME)
+      _students.sort((a, b) => {
+        if (a.name === null) return 1;
+        if (b.name === null) return -1;
+        return a.name.localeCompare(b.name);
+      });
 
     const resultsByStudent = new Map<
       string,
@@ -375,12 +391,19 @@ export class ClassUtil {
       HeaderData: monthsMapArray,
     };
   }
+  public formatDate(timestamp) {
+    const date = new Date(timestamp);
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    return `${day.toString().padStart(2, "0")}/${month.toString().padStart(2, "0")}`;
+  }
   public async getAssignmentOrLiveQuizReport(
     classId: string,
     courseId: string,
     startDate: Date,
     endDate: Date,
-    isLiveQuiz: boolean
+    isLiveQuiz: boolean,
+    sortBy: TABLESORTBY
   ) {
     const adjustedStartDate = subDays(new Date(startDate), 1);
     const adjustedEndDate = addDays(new Date(endDate), 1);
@@ -394,6 +417,12 @@ export class ClassUtil {
       .replace("T", " ")
       .replace("Z", "+00");
     const _students = await this.api.getStudentsForClass(classId);
+    if (sortBy == TABLESORTBY.NAME)
+      _students.sort((a, b) => {
+        if (a.name === null) return 1;
+        if (b.name === null) return -1;
+        return a.name.localeCompare(b.name);
+      });
 
     const _assignments = await this.api.getAssignmentOrLiveQuizByClassByDate(
       classId,
@@ -427,8 +456,9 @@ export class ClassUtil {
 
       assignmentMap.set(assignment.id, {
         headerName: lesson?.name ?? "",
-        startAt: assignment.starts_at,
-        endAt: assignment.ends_at ?? "",
+
+        startAt: this.formatDate(assignment.starts_at),
+        endAt: assignment.ends_at ? this.formatDate(assignment.ends_at) : "",
       });
 
       return assignmentMap;
@@ -468,7 +498,8 @@ export class ClassUtil {
     startDate: Date,
     endDate: Date,
     courseId: string,
-    chapterId: string
+    chapterId: string,
+    sortBy: TABLESORTBY
   ) {
     const adjustedStartDate = subDays(new Date(startDate), 1);
     const adjustedEndDate = addDays(new Date(endDate), 1);
@@ -482,6 +513,12 @@ export class ClassUtil {
       .replace("T", " ")
       .replace("Z", "+00");
     const _students = await this.api.getStudentsForClass(classId);
+    if (sortBy == TABLESORTBY.NAME)
+      _students.sort((a, b) => {
+        if (a.name === null) return 1;
+        if (b.name === null) return -1;
+        return a.name.localeCompare(b.name);
+      });
 
     const _lessons = await this.api.getLessonsForChapter(chapterId);
 
@@ -491,8 +528,6 @@ export class ClassUtil {
       startTimeStamp,
       endTimeStamp
     );
-    console.log("HHHHHHHHHHHHHHHHHHHHH");
-    console.log(chapterResults);
     const chapterMapArray: Map<
       string,
       { headerName: string; startAt: string; endAt: string }

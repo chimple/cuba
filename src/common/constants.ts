@@ -148,6 +148,12 @@ export enum TABLEDROPDOWN {
   CHAPTER = "Chapter Report",
 }
 
+export enum TABLESORTBY {
+  NAME = "Name",
+  HIGHSCORE = "High Score",
+  LOWSCORE = "Low Score",
+}
+
 export const belowGrade1 = "30ecb762-8e63-45b3-a22a-62c1a9f71641";
 export const grade1 = "c802dce7-0840-4baf-b374-ef6cb4272a76";
 export const grade2 = "36e7ff1f-34d6-42ac-9294-3192433ace40";
