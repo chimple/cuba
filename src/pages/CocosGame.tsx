@@ -40,7 +40,7 @@ const CocosGame: React.FC = () => {
   const courseDetail: TableTypes<"course"> = state.course
     ? JSON.parse(state.course)
     : undefined;
-  const chapterDetail: TableTypes<"chapter"> = state.course
+  const chapterDetail: TableTypes<"chapter"> = state.chapter
     ? JSON.parse(state.chapter)
     : undefined;
   const lessonDetail: TableTypes<"lesson"> = state.lesson
@@ -261,7 +261,7 @@ const CocosGame: React.FC = () => {
       data.wrongMoves,
       data.timeSpent,
       assignmentId,
-      ChapterDetail?.id ?? chapter_id?.toString() ?? "",
+      chapterDetail?.id ?? chapter_id?.toString() ?? "",
       classId,
       schoolId
     );
