@@ -3477,10 +3477,13 @@ order by
   }
   async getClassCodeById(class_id: string): Promise<number | undefined> {
     if (!class_id) return;
+    const currentDate = new Date().toISOString(); // Convert to a proper format for SQL (ISO 8601)
     const query = `SELECT code 
     FROM ${TABLES.ClassInvite_code} 
-    WHERE class_id='${class_id}'`;
-    console.log("A$", query);
+    WHERE class_id='${class_id}' 
+    AND is_deleted = FALSE 
+    AND (expires_at IS NULL OR expires_at > '${currentDate}')`;
+
     try {
       const res = await this._db?.query(query);
       return res?.values?.[0]?.code;
