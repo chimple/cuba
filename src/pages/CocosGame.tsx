@@ -40,6 +40,9 @@ const CocosGame: React.FC = () => {
   const courseDetail: TableTypes<"course"> = state.course
     ? JSON.parse(state.course)
     : undefined;
+  const chapterDetail: TableTypes<"chapter"> = state.course
+    ? JSON.parse(state.chapter)
+    : undefined;
   const lessonDetail: TableTypes<"lesson"> = state.lesson
     ? JSON.parse(state.lesson)
     : undefined;
@@ -59,6 +62,7 @@ const CocosGame: React.FC = () => {
     });
   };
   useEffect(() => {
+    console.log('JJJJJJJJJJJJJJJJJJJJJJJJ',chapterDetail)
     init();
     Util.checkingIfGameCanvasAvailable();
     CapApp.addListener("appStateChange", handleAppStateChange);
@@ -110,7 +114,7 @@ const CocosGame: React.FC = () => {
   };
 
   const gameExit = async (e: any) => {
-    let ChapterDetail: TableTypes<"chapter"> | undefined;
+    // let chapterDetail: TableTypes<"chapter"> | undefined;
     // if (!!lessonDetail.cocos_chapter_code) {
     //   let cChap = courseDetail.chapters.find(
     //     (chap) => lessonDetail.cocosChapterCode === chap.id
@@ -130,7 +134,7 @@ const CocosGame: React.FC = () => {
       left_game_no: data.currentGameNumber,
       left_game_name: data.gameName,
       chapter_id: data.chapterId,
-      chapter_name: ChapterDetail ? ChapterDetail.name : "",
+      chapter_name: chapterDetail ? chapterDetail.name : "",
       lesson_id: data.lessonId,
       lesson_name: lessonDetail.name,
       lesson_type: data.lessonType,
