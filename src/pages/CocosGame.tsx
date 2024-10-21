@@ -62,7 +62,6 @@ const CocosGame: React.FC = () => {
     });
   };
   useEffect(() => {
-    console.log('JJJJJJJJJJJJJJJJJJJJJJJJ',chapterDetail)
     init();
     Util.checkingIfGameCanvasAvailable();
     CapApp.addListener("appStateChange", handleAppStateChange);
