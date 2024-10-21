@@ -174,6 +174,35 @@ export class Util {
       return undefined;
     }
   }
+  public static handleAppStateChange = (
+    state: any,
+    startTime: number,
+    TIME_LIMIT: number,
+    LAST_MODAL_SHOWN_KEY: string
+  ): boolean => {
+    console.log("checking handleapp1");
+    if (state.isActive) {
+      console.log("checking handleapp2");
+
+      const currentTime = Date.now();
+      const timeElapsed = (currentTime - startTime) / 1000;
+
+      if (timeElapsed >= TIME_LIMIT) {
+        console.log("checking handleapp3");
+
+        const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
+        const today = new Date().toISOString().split("T")[0];
+
+        if (lastShownDate !== today) {
+          console.log("checking handleapp4");
+
+          localStorage.setItem(LAST_MODAL_SHOWN_KEY, today);
+          return true; // Modal should be shown
+        }
+      }
+    }
+    return false; // Modal should not be shown
+  };
 
   // public static convertDoc(refs: any[]): DocumentReference[] {
   //   const data: DocumentReference[] = [];
@@ -372,9 +401,9 @@ export class Util {
 
               console.log(
                 "before local lesson Bundle http url:" +
-                  "assets/" +
-                  lessonId +
-                  "/config.json"
+                "assets/" +
+                lessonId +
+                "/config.json"
               );
 
               const fetchingLocalBundle = await fetch(
@@ -382,9 +411,9 @@ export class Util {
               );
               console.log(
                 "after local lesson Bundle fetch url:" +
-                  "assets/" +
-                  lessonId +
-                  "/config.json",
+                "assets/" +
+                lessonId +
+                "/config.json",
                 fetchingLocalBundle.ok,
                 fetchingLocalBundle.json,
                 fetchingLocalBundle

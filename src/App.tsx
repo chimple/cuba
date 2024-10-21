@@ -1,5 +1,6 @@
 import { Route, Switch, useHistory } from "react-router-dom";
 import {
+  IonAlert,
   IonApp,
   IonButton,
   IonModal,
@@ -207,7 +208,7 @@ const App: React.FC = () => {
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,
-    }).catch((_) => {});
+    }).catch((_) => { });
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
@@ -245,33 +246,55 @@ const App: React.FC = () => {
     updateAvatarSuggestionJson();
   }, []);
   useEffect(() => {
-    const handleAppStateChange = (state: any) => {
-      if (state.isActive) {
-        const currentTime = Date.now();
-        const timeElapsed = (currentTime - startTime) / 1000;
-        if (timeElapsed >= TIME_LIMIT) {
-          const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
-          const today = new Date().toISOString().split("T")[0];
+    let timeoutId: NodeJS.Timeout;
 
-          if (lastShownDate !== today) {
-            setShowModal(true);
-            localStorage.setItem(LAST_MODAL_SHOWN_KEY, today);
-          }
-        }
-      }
-    };
-    if (Capacitor.getPlatform() === "android") {
+
+
+    if (Capacitor.isNativePlatform()) {
+      // Use Util.handleAppStateChange directly and update modal state based on its return value
+      console.log("checking handleapp8");
+
+      CapApp.addListener("appStateChange", (state) => {
+        const shouldShowModal = Util.handleAppStateChange(state, startTime, TIME_LIMIT, LAST_MODAL_SHOWN_KEY);
+        setShowModal(shouldShowModal);
+      });
+
+      // Handle continuous time check for mobile platforms (both Android and iOS)
       const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
       const today = new Date().toISOString().split("T")[0];
       if (lastShownDate !== today) {
-        CapApp.addListener("appStateChange", handleAppStateChange);
+        console.log("checking handleapp9");
+
+        timeoutId = setTimeout(checkTimeExceeded, TIME_LIMIT * 1000);
       }
     }
 
+    // Clean-up: Remove event listeners and clear timeout
     return () => {
+      clearTimeout(timeoutId);
       CapApp.removeAllListeners();
     };
   }, [startTime]);
+  const checkTimeExceeded = () => {
+    console.log("checking handleapp5");
+
+    const currentTime = Date.now();
+    const timeElapsed = (currentTime - startTime) / 1000; // Convert ms to seconds
+
+    if (timeElapsed >= TIME_LIMIT) {
+      console.log("checking handleapp6");
+
+      const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
+      const today = new Date().toISOString().split("T")[0];
+      if (lastShownDate !== today) {
+        console.log("checking handleapp7");
+
+        setShowModal(true);
+        localStorage.setItem(LAST_MODAL_SHOWN_KEY, today);
+      }
+    }
+  };
+
 
   const handleContinue = () => {
     setShowModal(false);
@@ -551,34 +574,23 @@ const App: React.FC = () => {
             </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
-        {/* Modal Notification for time limit */}
-        <IonModal isOpen={showModal} className="time-exceed-content">
-          <div
-            style={{
-              textAlign: "center",
-              color: "black",
-              width: "80%",
-              height: "60%",
-              marginTop: "9vh",
-              marginLeft: "9vw",
-            }}
-          >
-            <h2>{t("Time for a break!")}</h2>
-            <p>
-              {t(
-                "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
-              )}
-            </p>
-            <div className="time-exceed-buttons">
-              <IonButton
-                onClick={handleContinue}
-                className="time-exceed-continue"
-              >
-                {t("Continue")}
-              </IonButton>
-            </div>
-          </div>
-        </IonModal>
+        <IonAlert
+          isOpen={showModal}
+          onDidDismiss={() => setShowModal(false)}
+          header={t("Time for a break!") || ""}
+          message={t(
+            "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
+          ) || ""}
+          cssClass="custom-alert"
+          buttons={[
+            {
+              text: t("Continue"),
+              role: "cancel",
+              cssClass: "time-exceed-continue",
+              handler: handleContinue,
+            },
+          ]}
+        />
         {/*Toast notification for acknowledgment */}
         <IonToast
           isOpen={showToast}

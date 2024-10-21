@@ -1,15 +1,37 @@
-.time-exceed-content {
-  --ion-background-color: white; 
-  --ion-text-color: black; 
-  width: 80%;
-  height: 46%;
-  margin-top: 26vh;
-  margin-left: 9vw;
-  box-shadow: 0 0.3vh 1.2vh rgba(0, 0, 0, 0.3);
-  border-radius: 10%;
+.custom-alert {
+  --background: white;
+  --color: black;
+  --border-radius: 3vh;
 }
 
-.time-exceed-buttons ion-button:first-of-type {
-  --background: #a9c867;
-  --background-hover:#a9c867;
+.custom-alert .alert-button-group {
+  justify-content: center;
+}
+
+.custom-alert .time-exceed-continue {
+  --background: #83c327;
+  --color: white;
+  opacity: 1;
+  border-radius: 1vh;
+  padding: 1vh 2vw;
+  font-weight: bold;
+  text-align: center;
+  width: auto;
+  max-width: 20vw;
+}
+
+.custom-alert .alert-button.time-exceed-continue {
+  background-color: #83c327 !important;
+  color: white !important;
+  border-radius: 1vh;
+  padding: 1vh 2vw;
+  width: auto;
+  min-width: 20vw;
+  max-width: 20vw;
+  display: inline-block;
+  margin-bottom: 1vw;
+}
+
+.custom-alert .alert-button-group {
+  justify-content: center;
 }
