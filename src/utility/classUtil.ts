@@ -227,7 +227,32 @@ export class ClassUtil {
 
     return months;
   }
-  
+
+  private calculateTotalScore(results: any) {
+    const allResults = Object.values(results).flat();
+
+    return allResults.reduce((total, result) => {
+      if (result && typeof result === "object") {
+        return total + ((result as any).score || 0); // Casting to any
+      }
+      return total;
+    }, 0);
+  }
+  private sortStudentsByTotalScore(resultsByStudent: Map<string, any>) {
+    const sortedEntries = [...resultsByStudent.entries()].sort(
+      ([, studentA], [, studentB]) => {
+        const totalScoreA = this.calculateTotalScore(
+          studentA.results
+        ) as number;
+        const totalScoreB = this.calculateTotalScore(
+          studentB.results
+        ) as number;
+
+        return totalScoreB - totalScoreA;
+      }
+    );
+    return new Map(sortedEntries);
+  }
   public async getWeeklyReport(
     classId: string,
     courseId: string,
@@ -247,14 +272,13 @@ export class ClassUtil {
       .replace("T", " ")
       .replace("Z", "+00");
     const _students = await this.api.getStudentsForClass(classId);
-    console.log(_students);
     if (sortBy == TABLESORTBY.NAME)
       _students.sort((a, b) => {
         if (a.name === null) return 1;
         if (b.name === null) return -1;
         return a.name.localeCompare(b.name);
       });
-    const resultsByStudent = new Map<
+    var resultsByStudent = new Map<
       string,
       { name: string; results: Record<string, any[]> }
     >();
@@ -288,6 +312,14 @@ export class ClassUtil {
         }
       });
     }
+    if (sortBy === TABLESORTBY.LOWSCORE || sortBy === TABLESORTBY.HIGHSCORE) {
+      resultsByStudent = this.sortStudentsByTotalScore(resultsByStudent);
+      if (sortBy === TABLESORTBY.LOWSCORE) {
+        const reversedEntries = [...resultsByStudent.entries()].reverse();
+        resultsByStudent = new Map(reversedEntries);
+      }
+    }
+
     const daysMapArray: Map<
       string,
       { headerName: string; startAt: string; endAt: string }
@@ -305,7 +337,6 @@ export class ClassUtil {
 
       return daysMap;
     });
-    console.log(resultsByStudent);
     return {
       ReportData: resultsByStudent,
       HeaderData: daysMapArray,
@@ -338,7 +369,7 @@ export class ClassUtil {
         return a.name.localeCompare(b.name);
       });
 
-    const resultsByStudent = new Map<
+    var resultsByStudent = new Map<
       string,
       { name: string; results: Record<string, any[]> }
     >();
@@ -368,6 +399,13 @@ export class ClassUtil {
           resultsByStudent.get(student.id)!.results[monthName].push(result);
         }
       });
+    }
+    if (sortBy === TABLESORTBY.LOWSCORE || sortBy === TABLESORTBY.HIGHSCORE) {
+      resultsByStudent = this.sortStudentsByTotalScore(resultsByStudent);
+      if (sortBy === TABLESORTBY.LOWSCORE) {
+        const reversedEntries = [...resultsByStudent.entries()].reverse();
+        resultsByStudent = new Map(reversedEntries);
+      }
     }
     const monthsMapArray: Map<
       string,
@@ -463,7 +501,7 @@ export class ClassUtil {
 
       return assignmentMap;
     });
-    const resultsByStudent = new Map<
+    var resultsByStudent = new Map<
       string,
       { name: string; results: Record<string, any[]> }
     >();
@@ -477,7 +515,13 @@ export class ClassUtil {
         resultsByStudent.get(student.id)!.results[assignmentId] = [];
       });
     });
-
+    if (sortBy === TABLESORTBY.LOWSCORE || sortBy === TABLESORTBY.HIGHSCORE) {
+      resultsByStudent = this.sortStudentsByTotalScore(resultsByStudent);
+      if (sortBy === TABLESORTBY.HIGHSCORE) {
+        const reversedEntries = [...resultsByStudent.entries()].reverse();
+        resultsByStudent = new Map(reversedEntries);
+      }
+    }
     assignmentResults?.forEach((result) => {
       const studentId = result.student_id;
       const assignmentId = result.assignment_id;
@@ -545,7 +589,7 @@ export class ClassUtil {
 
       return lessonMap;
     });
-    const resultsByStudent = new Map<
+    var resultsByStudent = new Map<
       string,
       { name: string; results: Record<string, any[]> }
     >();
@@ -559,6 +603,13 @@ export class ClassUtil {
         resultsByStudent.get(student.id)!.results[lesson.id] = [];
       });
     });
+    if (sortBy === TABLESORTBY.LOWSCORE || sortBy === TABLESORTBY.HIGHSCORE) {
+      resultsByStudent = this.sortStudentsByTotalScore(resultsByStudent);
+      if (sortBy === TABLESORTBY.HIGHSCORE) {
+        const reversedEntries = [...resultsByStudent.entries()].reverse();
+        resultsByStudent = new Map(reversedEntries);
+      }
+    }
 
     chapterResults?.forEach((result) => {
       const studentId = result.student_id;
