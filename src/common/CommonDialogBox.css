@@ -1,0 +1,35 @@
+.custom-alert {
+  --background: white;
+}
+
+.custom-alert .alert-delete-button {
+  /* background: #f72121 !important; */
+  opacity: 0.5;
+  color: black;
+  border-radius: 8px;
+  padding: 15px 30px;
+  text-transform: none;
+  font-size: var(--text-size);
+}
+
+.custom-alert .alert-cancel-button {
+  text-transform: none;
+  background-color: #83c327;
+  font-size: var(--text-size);
+  opacity: 0.9;
+  color: white;
+  border-radius: 8px;
+  padding: 15px 30px;
+}
+
+.alert-button-group.sc-ion-alert-md {
+  justify-content: space-around;
+}
+.alert-wrapper.sc-ion-alert-md {
+  padding: 1vh;
+  border-radius: 3vh;
+}
+.alert-message.sc-ion-alert-md {
+  color: var(--text-color);
+  text-align: center;
+}

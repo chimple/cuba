@@ -912,7 +912,7 @@ export interface ServiceApi {
    *  Get the last assignments by course wise
    * @param classId
    */
-  getLastAssignmentsByCourse(
+  getLastAssignmentsForRecommendations(
     classId: string,
   ): Promise<TableTypes<"assignment">[] | undefined>;
 
