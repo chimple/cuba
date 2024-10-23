@@ -61,6 +61,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-appcheck-playintegrity'
 
     implementation 'com.google.firebase:firebase-appcheck-debug:17.0.1'
+    implementation 'com.google.android.gms:play-services-auth-api-phone:18.0.1'
+    implementation 'com.google.android.gms:play-services-auth:19.0.0'
     androidTestImplementation 'com.google.firebase:firebase-appcheck-debug-testing:17.0.1'
 
 }

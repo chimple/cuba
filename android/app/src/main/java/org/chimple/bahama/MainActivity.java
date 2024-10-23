@@ -1,7 +1,11 @@
 package org.chimple.bahama;
 
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.BridgeActivity;
 import com.google.firebase.FirebaseApp;
@@ -29,5 +33,14 @@ public  class MainActivity extends BridgeActivity {
     public void onDestroy() {
         super.onDestroy();
     }
+
+//    private void requestPermissions() {
+//        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECEIVE_SMS)
+//                != PackageManager.PERMISSION_GRANTED){
+//            ActivityCompat.requestPermissions(MainActivity.this,new String[]{
+//                    Manifest.permission.RECEIVE_SMS
+//            },100);
+//        }
+//    }
 
 }
