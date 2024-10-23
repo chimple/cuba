@@ -426,6 +426,7 @@ export enum PAGES {
   EDIT_CLASS = "/edit-class",
   ADD_CLASS = "/add-class",
   CLASS_PROFILE = "/class-profile",
+  SHOW_STUDENTS_IN_ASSIGNED_PAGE = "/show-students-in-assigned-page",
   ADD_TEACHER = "/add-teacher",
   TEACHER_PROFILE = "/teacher-profile",
 }

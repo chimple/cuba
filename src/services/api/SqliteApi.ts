@@ -241,7 +241,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -772,7 +772,7 @@ export class SqliteApi implements ServiceApi {
         newStudent.student_id,
       ]
     );
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
+    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
     // Insert into class_user table
     const classUserId = uuidv4();
     const newClassUser: TableTypes<"class_user"> = {
@@ -2362,6 +2362,48 @@ export class SqliteApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+  async getLessonFromChapter(
+    chapterId: string,
+    lessonId: string
+  ): Promise<{
+    lesson: TableTypes<"lesson">[];
+    course: TableTypes<"course">[];
+  }> {
+    const data: {
+      lesson: TableTypes<"lesson">[];
+      course: TableTypes<"course">[];
+    } = {
+      lesson: [],
+      course: [],
+    };
+    const query = `
+    SELECT l.*,JSON_OBJECT(
+          'id',co.id,
+          'code',co.code,
+          'color',co.color,
+          'created_at',co.created_at,
+          'curriculum_id',co.curriculum_id,
+          'description',co.description,
+          'grade_id',co.grade_id,
+          'image',co.image,
+          'is_deleted',co.is_deleted,
+          'name',co.name,
+          'sort_index',co.sort_index,
+          'subject_id',co.subject_id,
+          'updated_at',co.updated_at
+      ) AS course FROM ${TABLES.Lesson} as l
+    JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
+    JOIN ${TABLES.Chapter} c ON c.id = cl.chapter_id
+    JOIN ${TABLES.Course} co ON co.id = c.course_id
+    WHERE c.id='${chapterId}' and l.id = '${lessonId}'
+    `;
+    const res = await this._db?.query(query);
+    if (!res || !res.values || res.values.length < 1) return data;
+    data.lesson = res.values;
+    data.course = res.values.map((val) => JSON.parse(val.course));
+    return data;
+  }
+
   async getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]> {
     try {
       const gradeCoursesRes = await this._db?.query(
@@ -2840,6 +2882,118 @@ export class SqliteApi implements ServiceApi {
     // )
     return true;
   }
+
+  async createAssignment(
+    student_list: string[],
+    userId: string,
+    starts_at: string,
+    ends_at: string,
+    is_class_wise: boolean,
+    class_id: string,
+    school_id: string,
+    lesson_id: string,
+    chapter_id: string,
+    course_id: string
+  ): Promise<boolean> {
+    const assignmentUUid = uuidv4();
+    const timestamp = new Date().toISOString(); // Cache timestamp for reuse
+    console.log("createAssignment called", assignmentUUid);
+
+    try {
+      // Insert into assignment table
+      await this.executeQuery(
+        `INSERT INTO assignment 
+          (id, created_by, starts_at, ends_at, is_class_wise, class_id, school_id, lesson_id, type, created_at, updated_at, is_deleted, chapter_id, course_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        [
+          assignmentUUid,
+          userId,
+          starts_at,
+          ends_at,
+          is_class_wise,
+          class_id,
+          school_id,
+          lesson_id,
+          null,
+          timestamp,
+          timestamp,
+          false,
+          chapter_id,
+          course_id
+        ]
+      );
+
+      // Prepare assignment data for push changes
+      const assignment_data: TableTypes<"assignment"> = {
+        id: assignmentUUid,
+        created_by: userId,
+        starts_at: timestamp,
+        ends_at: timestamp,
+        is_class_wise: is_class_wise,
+        class_id: class_id,
+        school_id: school_id,
+        lesson_id: lesson_id,
+        type: null,
+        created_at: timestamp,
+        updated_at: timestamp,
+        is_deleted: false,
+        chapter_id: chapter_id,
+        course_id: course_id,
+      };
+
+      console.log("Assignment data:", assignment_data);
+
+      const res = await this.updatePushChanges(
+        TABLES.Assignment,
+        MUTATE_TYPES.INSERT,
+        assignment_data
+      );
+      console.log("Push changes result:", res);
+
+      // If the assignment is not class-wide, assign it to individual students
+
+      if (!is_class_wise && student_list.length > 0) {
+        for (const student of student_list) {
+          const assignment_user_UUid = uuidv4();
+          const newAssignmentUser: TableTypes<"assignment_user"> = {
+            assignment_id: assignmentUUid,
+            created_at: new Date().toISOString(),
+            id: assignment_user_UUid,
+            is_deleted: false,
+            updated_at: new Date().toISOString(),
+            user_id: student
+          };
+          await this.executeQuery(
+            `
+          INSERT INTO assignment_user (id, assignment_id, user_id,created_at,updated_at,is_deleted)
+        VALUES (?, ?, ?, ?, ?, ?);
+      `,
+            [
+              assignment_user_UUid,
+              assignmentUUid,
+              student,
+              new Date().toISOString(),
+              new Date().toISOString(),
+              false,
+            ]
+          );
+          const assignmentUserPushRes = await this.updatePushChanges(
+            TABLES.Assignment_user,
+            MUTATE_TYPES.INSERT,
+            newAssignmentUser
+          );
+          console.log("const assignmentUserPushRes ", newAssignmentUser, assignmentUserPushRes);
+
+        }
+      }
+
+      return res ?? false;
+    } catch (error) {
+      console.error("Error in createAssignment:", error);
+      return false; // Return false in case of error
+    }
+  }
+
   async createUserDoc(
     user: TableTypes<"user">
   ): Promise<TableTypes<"user"> | undefined> {
@@ -3322,6 +3476,25 @@ order by
     return res.values;
   }
 
+  async getLastAssignmentsForRecommendations(
+    classId: string,
+  ): Promise<TableTypes<"assignment">[] | undefined> {
+    const query = `WITH RankedAssignments AS (
+    SELECT *,
+           ROW_NUMBER() OVER (PARTITION BY course_id ORDER BY created_at DESC) AS rn
+    FROM ${TABLES.Assignment} 
+    WHERE class_id = '${classId}'
+    )
+    SELECT *
+    FROM RankedAssignments
+    WHERE rn = 1
+    ORDER BY created_at DESC;`;
+
+    const res = await this._db?.query(query);
+
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values;
+  }
   async getTeachersForClass(
     classId: string
   ): Promise<TableTypes<"user">[] | undefined> {
