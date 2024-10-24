@@ -119,7 +119,7 @@ interface ExtraData {
   rewardProfileId?: string;
 }
 interface WindowEventMap {
-  shouldShowModal: CustomEvent<boolean>; 
+  shouldShowModal: CustomEvent<boolean>;
 }
 const TIME_LIMIT = 1500; // 25 * 60
 const LAST_MODAL_SHOWN_KEY = "lastTimeExceededShown";
@@ -248,7 +248,7 @@ const App: React.FC = () => {
     });
     updateAvatarSuggestionJson();
   }, []);
-  
+
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
 
@@ -256,11 +256,10 @@ const App: React.FC = () => {
       const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
       const today = new Date().toISOString().split("T")[0];
       if (lastShownDate !== today) {
-        CapApp.addListener("appStateChange", Util.handleAppStateChange);
         timeoutId = setTimeout(checkTimeExceeded, Util.TIME_LIMIT * 1000);
       }
       const handleShowModalEvent = (event: CustomEvent<boolean>) => {
-        setShowModal(event.detail); 
+        setShowModal(event.detail);
       };
       window.addEventListener("shouldShowModal", handleShowModalEvent as EventListener);
       return () => {
@@ -274,7 +273,7 @@ const App: React.FC = () => {
   const checkTimeExceeded = () => {
     const currentTime = Date.now();
     const startTime = Number(localStorage.getItem("startTime") || "0");
-    const timeElapsed = (currentTime - startTime) / 1000; 
+    const timeElapsed = (currentTime - startTime) / 1000;
     if (timeElapsed >= Util.TIME_LIMIT) {
       const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
       const today = new Date().toISOString().split("T")[0];
