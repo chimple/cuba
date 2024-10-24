@@ -118,6 +118,9 @@ interface ExtraData {
   notificationType?: string;
   rewardProfileId?: string;
 }
+interface WindowEventMap {
+  shouldShowModal: CustomEvent<boolean>; 
+}
 const TIME_LIMIT = 1500; // 25 * 60
 const LAST_MODAL_SHOWN_KEY = "lastTimeExceededShown";
 const App: React.FC = () => {
@@ -245,56 +248,43 @@ const App: React.FC = () => {
     });
     updateAvatarSuggestionJson();
   }, []);
+  
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
 
-
-
     if (Capacitor.isNativePlatform()) {
-      // Use Util.handleAppStateChange directly and update modal state based on its return value
-      console.log("checking handleapp8");
-
-      CapApp.addListener("appStateChange", (state) => {
-        const shouldShowModal = Util.handleAppStateChange(state, startTime, TIME_LIMIT, LAST_MODAL_SHOWN_KEY);
-        setShowModal(shouldShowModal);
-      });
-
-      // Handle continuous time check for mobile platforms (both Android and iOS)
-      const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
+      const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
       const today = new Date().toISOString().split("T")[0];
       if (lastShownDate !== today) {
-        console.log("checking handleapp9");
-
-        timeoutId = setTimeout(checkTimeExceeded, TIME_LIMIT * 1000);
+        CapApp.addListener("appStateChange", Util.handleAppStateChange);
+        timeoutId = setTimeout(checkTimeExceeded, Util.TIME_LIMIT * 1000);
       }
+      const handleShowModalEvent = (event: CustomEvent<boolean>) => {
+        setShowModal(event.detail); 
+      };
+      window.addEventListener("shouldShowModal", handleShowModalEvent as EventListener);
+      return () => {
+        clearTimeout(timeoutId);
+        CapApp.removeAllListeners();
+        window.removeEventListener("shouldShowModal", handleShowModalEvent as EventListener);
+      };
     }
+  }, []);
 
-    // Clean-up: Remove event listeners and clear timeout
-    return () => {
-      clearTimeout(timeoutId);
-      CapApp.removeAllListeners();
-    };
-  }, [startTime]);
   const checkTimeExceeded = () => {
-    console.log("checking handleapp5");
-
     const currentTime = Date.now();
-    const timeElapsed = (currentTime - startTime) / 1000; // Convert ms to seconds
-
-    if (timeElapsed >= TIME_LIMIT) {
-      console.log("checking handleapp6");
-
-      const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
+    const startTime = Number(localStorage.getItem("startTime") || "0");
+    const timeElapsed = (currentTime - startTime) / 1000; 
+    if (timeElapsed >= Util.TIME_LIMIT) {
+      const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
       const today = new Date().toISOString().split("T")[0];
       if (lastShownDate !== today) {
-        console.log("checking handleapp7");
-
-        setShowModal(true);
-        localStorage.setItem(LAST_MODAL_SHOWN_KEY, today);
+        const event = new CustomEvent("shouldShowModal", { detail: true });
+        window.dispatchEvent(event);
+        localStorage.setItem(Util.LAST_MODAL_SHOWN_KEY, today);
       }
     }
   };
-
 
   const handleContinue = () => {
     setShowModal(false);

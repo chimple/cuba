@@ -87,8 +87,11 @@ enum NotificationType {
   REWARD = "reward",
 }
 
+
 export class Util {
   public static port: PortPlugin;
+  static TIME_LIMIT = 25 * 60;
+  static LAST_MODAL_SHOWN_KEY = "lastModalShown";
 
   // public static convertCourses(_courses: Course1[]): Course1[] {
   //   let courses: Course1[] = [];
@@ -174,34 +177,27 @@ export class Util {
       return undefined;
     }
   }
-  public static handleAppStateChange = (
-    state: any,
-    startTime: number,
-    TIME_LIMIT: number,
-    LAST_MODAL_SHOWN_KEY: string
-  ): boolean => {
-    console.log("checking handleapp1");
+
+
+
+  public static handleAppStateChange = (state: any) => {
     if (state.isActive) {
-      console.log("checking handleapp2");
-
       const currentTime = Date.now();
-      const timeElapsed = (currentTime - startTime) / 1000;
-
-      if (timeElapsed >= TIME_LIMIT) {
-        console.log("checking handleapp3");
-
-        const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
+      const startTime = Number(localStorage.getItem("startTime") || "0");
+      const timeElapsed = (currentTime - startTime) / 1000; // in seconds
+      if (timeElapsed >= Util.TIME_LIMIT) {
+        const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
         const today = new Date().toISOString().split("T")[0];
-
         if (lastShownDate !== today) {
-          console.log("checking handleapp4");
-
-          localStorage.setItem(LAST_MODAL_SHOWN_KEY, today);
-          return true; // Modal should be shown
+          const showModalEvent = new CustomEvent("shouldShowModal", { detail: true });
+          window.dispatchEvent(showModalEvent);
+          localStorage.setItem(Util.LAST_MODAL_SHOWN_KEY, today);
+          return;
         }
       }
     }
-    return false; // Modal should not be shown
+    const showModalEvent = new CustomEvent("shouldShowModal", { detail: false });
+    window.dispatchEvent(showModalEvent);
   };
 
   // public static convertDoc(refs: any[]): DocumentReference[] {
