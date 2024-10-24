@@ -544,6 +544,21 @@ export interface ServiceApi {
   ): Promise<Lesson | undefined>;
 
   /**
+   * This function gives lesson objects for given chapterId and LessonId 
+   *
+   * @param chapterId Chapter Id of the course
+   * @param lessonId Lesson Id of a course
+   * @returns A promise that resolves to the lesson.
+   */
+  getLessonFromChapter(
+    chapterId: string,
+    lessonId: string
+  ): Promise<{
+    lesson: TableTypes<"lesson">[];
+    course: TableTypes<"course">[];
+  }>;
+
+  /**
    * Gives all `Course` available on database
    * @returns {Course[]} Array of `Course` objects
    */
@@ -892,6 +907,38 @@ export interface ServiceApi {
   getResultByAssignmentIds(
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[] | undefined>;
+
+  /**
+   *  Get the last assignments by course wise
+   * @param classId
+   */
+  getLastAssignmentsForRecommendations(
+    classId: string,
+  ): Promise<TableTypes<"assignment">[] | undefined>;
+
+  /**
+   * Creates a assignment object
+   * @param {string} student_list - list of the students id's
+   * @param {number} age - age of the student
+   * @param {GENDER} gender - gender of the student
+   * @param {string} image - image of the student
+   * @param {string} boardDocId - boardDocId is `Curriculum` doc id
+   * @param {string} gradeDocId -  gradeDocId is `Grade` doc id
+   * @param {string} languageDocId -  languageDocId is `Language` doc id
+   * @returns {User} Student User Object
+   */
+  createAssignment(
+    student_list: string[],
+    userId: string,
+    starts_at: string,
+    ends_at: string,
+    is_class_wise: boolean,
+    class_id: string,
+    school_id: string,
+    lesson_id: string,
+    chapter_id: string,
+    course_id: string
+  ): Promise<boolean>;
 
   /**
    * This function gets all the teachers for the class.

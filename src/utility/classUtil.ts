@@ -49,11 +49,11 @@ export class ClassUtil {
     );
     const studentsWhoCompletedAllAssignments = studentsWithCompletedAssignments
       ? Object.keys(studentsWithCompletedAssignments).filter((studentId) => {
-          return (
-            studentsWithCompletedAssignments[studentId].size ===
-            totalAssignments
-          );
-        }).length
+        return (
+          studentsWithCompletedAssignments[studentId].size ===
+          totalAssignments
+        );
+      }).length
       : 0;
     const assignmentsWithCompletedStudents = assignmentResult?.reduce(
       (acc, result) => {
@@ -70,11 +70,11 @@ export class ClassUtil {
     );
     const assignmentsCompletedByAllStudents = assignmentsWithCompletedStudents
       ? Object.keys(assignmentsWithCompletedStudents).filter((assignmentId) => {
-          return (
-            assignmentsWithCompletedStudents[assignmentId].size ===
-            totalStudents
-          );
-        }).length
+        return (
+          assignmentsWithCompletedStudents[assignmentId].size ===
+          totalStudents
+        );
+      }).length
       : 0;
     return {
       assignments: {
@@ -89,8 +89,8 @@ export class ClassUtil {
       averageScore:
         assignmentResult?.length ?? 0 > 0
           ? parseFloat(
-              (totalScore / (assignmentResult?.length ?? 0)).toFixed(1)
-            )
+            (totalScore / (assignmentResult?.length ?? 0)).toFixed(1)
+          )
           : 0,
     };
   }
@@ -192,4 +192,31 @@ export class ClassUtil {
 
     return groups;
   }
+
+  public async groupStudentsByCategoryInList(studentsMap: Map<string, Map<string, TableTypes<"user">>>): Promise<Map<string, TableTypes<"user">[]>> {
+    const groups: Map<string, TableTypes<"user">[]> = new Map();
+
+    studentsMap.forEach((studentM: Map<string, any>, index: string) => {
+
+      studentM.forEach((element: any) => {
+        const studentData = element.get("student");
+        if (!studentData) {
+          return; // Skip this element if no student data is present
+        }
+
+        // Fetch the existing array of students for this category, or initialize a new array
+        let existingStudents = groups.get(index) || [];
+
+        // Add the student element to the existing group array
+        existingStudents.push(studentData);
+
+        // Update the group with the new list of students
+        groups.set(index, existingStudents);
+      });
+    });
+    return groups;
+  }
+
+
+
 }
