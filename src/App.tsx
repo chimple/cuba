@@ -1,5 +1,6 @@
 import { Route, Switch, useHistory } from "react-router-dom";
 import {
+  IonAlert,
   IonApp,
   IonButton,
   IonModal,
@@ -111,11 +112,15 @@ import {
 import LessonDetails from "./chimple-private/pages/LessonDetails";
 import DisplayClasses from "./chimple-private/pages/DisplayClasses";
 import "./App.css";
+import ShowStudentsInAssignmentPage from "./chimple-private/pages/ShowStudentsInAssignmentPage";
 
 setupIonicReact();
 interface ExtraData {
   notificationType?: string;
   rewardProfileId?: string;
+}
+interface WindowEventMap {
+  shouldShowModal: CustomEvent<boolean>;
 }
 const TIME_LIMIT = 1500; // 25 * 60
 const LAST_MODAL_SHOWN_KEY = "lastTimeExceededShown";
@@ -207,7 +212,7 @@ const App: React.FC = () => {
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,
-    }).catch((_) => {});
+    }).catch((_) => { });
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
@@ -244,34 +249,42 @@ const App: React.FC = () => {
     });
     updateAvatarSuggestionJson();
   }, []);
-  useEffect(() => {
-    const handleAppStateChange = (state: any) => {
-      if (state.isActive) {
-        const currentTime = Date.now();
-        const timeElapsed = (currentTime - startTime) / 1000;
-        if (timeElapsed >= TIME_LIMIT) {
-          const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
-          const today = new Date().toISOString().split("T")[0];
 
-          if (lastShownDate !== today) {
-            setShowModal(true);
-            localStorage.setItem(LAST_MODAL_SHOWN_KEY, today);
-          }
-        }
-      }
-    };
-    if (Capacitor.getPlatform() === "android") {
-      const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    if (Capacitor.isNativePlatform()) {
+      const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
       const today = new Date().toISOString().split("T")[0];
       if (lastShownDate !== today) {
-        CapApp.addListener("appStateChange", handleAppStateChange);
+        timeoutId = setTimeout(checkTimeExceeded, Util.TIME_LIMIT * 1000);
+      }
+      const handleShowModalEvent = (event: CustomEvent<boolean>) => {
+        setShowModal(event.detail);
+      };
+      window.addEventListener("shouldShowModal", handleShowModalEvent as EventListener);
+      return () => {
+        clearTimeout(timeoutId);
+        CapApp.removeAllListeners();
+        window.removeEventListener("shouldShowModal", handleShowModalEvent as EventListener);
+      };
+    }
+  }, []);
+
+  const checkTimeExceeded = () => {
+    const currentTime = Date.now();
+    const startTime = Number(localStorage.getItem("startTime") || "0");
+    const timeElapsed = (currentTime - startTime) / 1000;
+    if (timeElapsed >= Util.TIME_LIMIT) {
+      const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
+      const today = new Date().toISOString().split("T")[0];
+      if (lastShownDate !== today) {
+        const event = new CustomEvent("shouldShowModal", { detail: true });
+        window.dispatchEvent(event);
+        localStorage.setItem(Util.LAST_MODAL_SHOWN_KEY, today);
       }
     }
-
-    return () => {
-      CapApp.removeAllListeners();
-    };
-  }, [startTime]);
+  };
 
   const handleContinue = () => {
     setShowModal(false);
@@ -539,6 +552,14 @@ const App: React.FC = () => {
                 <EditClass />
               </Suspense>
             </ProtectedRoute>
+            <ProtectedRoute
+              path={PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE}
+              exact={true}
+            >
+              <Suspense>
+                <ShowStudentsInAssignmentPage />
+              </Suspense>
+            </ProtectedRoute>
             <ProtectedRoute path={PAGES.ADD_TEACHER} exact={true}>
               <Suspense>
                 <AddTeacher />
@@ -551,34 +572,23 @@ const App: React.FC = () => {
             </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
-        {/* Modal Notification for time limit */}
-        <IonModal isOpen={showModal} className="time-exceed-content">
-          <div
-            style={{
-              textAlign: "center",
-              color: "black",
-              width: "80%",
-              height: "60%",
-              marginTop: "9vh",
-              marginLeft: "9vw",
-            }}
-          >
-            <h2>{t("Time for a break!")}</h2>
-            <p>
-              {t(
-                "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
-              )}
-            </p>
-            <div className="time-exceed-buttons">
-              <IonButton
-                onClick={handleContinue}
-                className="time-exceed-continue"
-              >
-                {t("Continue")}
-              </IonButton>
-            </div>
-          </div>
-        </IonModal>
+        <IonAlert
+          isOpen={showModal}
+          onDidDismiss={() => setShowModal(false)}
+          header={t("Time for a break!") || ""}
+          message={t(
+            "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
+          ) || ""}
+          cssClass="custom-alert"
+          buttons={[
+            {
+              text: t("Continue"),
+              role: "cancel",
+              cssClass: "time-exceed-continue",
+              handler: handleContinue,
+            },
+          ]}
+        />
         {/*Toast notification for acknowledgment */}
         <IonToast
           isOpen={showToast}
