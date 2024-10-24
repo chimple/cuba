@@ -11,7 +11,7 @@ import {
   NUMBER_REGEX,
   PAGES,
 } from "../common/constants";
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, registerPlugin } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
 import TextBox from "../components/TextBox";
 import React from "react";
@@ -232,6 +232,10 @@ const Login: React.FC = () => {
         setDisableOtpButtonIfSameNumber(false);
         setAllowSubmittingOtpCounter(0);
       }
+      console.log("")
+      const PortPlugin = registerPlugin<any>("Port");
+  
+      PortPlugin.otpRetrieve();
       setSentOtpLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
       if (phoneNumber.length != 10) {

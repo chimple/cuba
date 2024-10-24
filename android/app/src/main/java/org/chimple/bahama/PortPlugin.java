@@ -66,6 +66,12 @@ public class PortPlugin extends Plugin {
   }
 
   @PluginMethod
+  public void otpRetrieve(PluginCall call) {
+    JSObject result = new JSObject();
+//    MainActivity.requestSmsPermission();
+  }
+
+  @PluginMethod
   public void fetchNotificationData(PluginCall call) {
     JSObject result = new JSObject();
 
