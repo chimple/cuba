@@ -63,7 +63,6 @@ const CocosGame: React.FC = () => {
   };
   useEffect(() => {
     init();
-
     Util.checkingIfGameCanvasAvailable();
     CapApp.addListener("appStateChange", handleAppStateChange);
     return () => {
@@ -164,7 +163,6 @@ const CocosGame: React.FC = () => {
     setGameResult(event);
   };
   async function init() {
-    // var chapter_id = await api.getChapterByLesson(lesson.id, classId);
     const currentStudent = Util.getCurrentStudent();
     setIsLoading(true);
     const lessonId: string = state.lessonId;
@@ -225,7 +223,6 @@ const CocosGame: React.FC = () => {
     let classId;
     let schoolId;
     let chapter_id;
-    // var chapter_id;
     if (isStudentLinked) {
       const studentResult = await api.getStudentClassesAndSchools(
         currentStudent.id
