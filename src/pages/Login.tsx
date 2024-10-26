@@ -106,7 +106,11 @@ const Login: React.FC = () => {
   const [schoolCode, setSchoolCode] = useState<string>("");
   const [showStudentCredentialtLogin, setStudentCredentialLogin] =
     useState<boolean>(false);
+  let isOtpListenerExecuted = false;
 
+  useEffect(() => {
+    initPort();
+  });
   useEffect(() => {
     // init();
     setIsLoading(true);
@@ -198,6 +202,35 @@ const Login: React.FC = () => {
       }
     }
   }, [recaptchaVerifier]);
+
+  const initPort = async () => {
+    if (!isOtpListenerExecuted) {
+      document.addEventListener(
+        "otpReceived",
+        async function (event: Event) {
+          console.log("*********************************");
+
+          if (showVerification) {
+            const PortPlugin = registerPlugin<any>("Port");
+            const data = await PortPlugin.otpRetrieve();
+
+            if (data.otp) {
+              isOtpListenerExecuted = true;
+              console.log("1111111111111****Retrieved OTP data:", data);
+              setVerificationCode(data.otp.toString());
+              onVerificationCodeSubmit(data.otp.toString());
+              setIsInvalidCode({
+                isInvalidCode: false,
+                isInvalidCodeLength: false,
+              });
+              setVerificationCode("");
+            }
+          }
+        },
+        { once: true }
+      );
+    }
+  };
   React.useEffect(() => {
     if (counter <= 0 && showTimer) {
       setShowResendOtp(true);
@@ -232,9 +265,9 @@ const Login: React.FC = () => {
         setDisableOtpButtonIfSameNumber(false);
         setAllowSubmittingOtpCounter(0);
       }
-      console.log("")
+      console.log("");
       const PortPlugin = registerPlugin<any>("Port");
-  
+
       PortPlugin.otpRetrieve();
       setSentOtpLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
@@ -320,16 +353,17 @@ const Login: React.FC = () => {
     }
   };
 
-  const onVerificationCodeSubmit = async () => {
+  const onVerificationCodeSubmit = async (otp) => {
     try {
       setIsLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
       const res = await authInstance.proceedWithVerificationCode(
         phoneNumberWithCountryCode,
-        verificationCode.trim()
+        otp.trim()
       );
       console.log("login User Data ", res, userData);
       if (!res) {
+        console.log("**************************4444444444444444");
         setIsLoading(false);
         console.log("Verification Failed");
         setErrorMessage(t("Something went wrong Verification Failed"));
@@ -340,6 +374,7 @@ const Login: React.FC = () => {
       console.log("login User Data ", res, userData);
 
       if (res.isUserExist) {
+        console.log("**************************33333333333");
         setIsLoading(false);
         history.replace(PAGES.SELECT_MODE);
         localStorage.setItem(CURRENT_USER, JSON.stringify(res.user));
@@ -348,6 +383,7 @@ const Login: React.FC = () => {
         // setShowNameInput(true);
       } else if (!res.isUserExist) {
         setIsLoading(false);
+        console.log("**************************222222222222");
         let phoneAuthResult = await FirebaseAuth.i.createPhoneAuthUser(
           res.user
         );
@@ -359,12 +395,13 @@ const Login: React.FC = () => {
         }
       } else {
         setIsLoading(false);
-
+        console.log("**************************1111111111111");
         console.log("Verification Failed");
         //alert("Verification Failed");
       }
     } catch (error) {
       setIsLoading(false);
+      console.log("**************************");
       console.log("Verification Failed", error);
       //alert("Please Enter Valid Verification Code");
       setIsInvalidCode({
@@ -750,7 +787,7 @@ const Login: React.FC = () => {
                   <div
                     onClick={() => {
                       if (verificationCode.length === 6) {
-                        onVerificationCodeSubmit();
+                        onVerificationCodeSubmit(verificationCode);
                         setVerificationCode("");
                       } else if (verificationCode.length <= 6) {
                         setVerificationCode("");
@@ -763,7 +800,7 @@ const Login: React.FC = () => {
                       // setShowNameInput(true);
                       // history.push(PAGES.PARENT);
                       else {
-                        onVerificationCodeSubmit();
+                        onVerificationCodeSubmit(verificationCode);
                         setIsInvalidCode({
                           isInvalidCode: false,
                           isInvalidCodeLength: false,

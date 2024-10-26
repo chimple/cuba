@@ -40,6 +40,8 @@ public class MainActivity extends BridgeActivity {
         firebaseAppCheck.installAppCheckProviderFactory(
                 DebugAppCheckProviderFactory.getInstance());
 
+//        MainActivity.requestSmsPermission();
+
     }
     @Override
     public void onDestroy() {
@@ -64,7 +66,10 @@ public class MainActivity extends BridgeActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGGGKKK3333333333333333");
                 // Permission granted, now register the BroadcastReceiver
-                registerReceiver();
+                OTPReceiver otpReceiver = new OTPReceiver();
+                IntentFilter filter = new IntentFilter("android.provider.Telephony.SMS_RECEIVED");
+                registerReceiver(otpReceiver, filter);
+//                registerReceiver();
             } else {
                 // Permission denied, handle the failure
             }

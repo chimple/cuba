@@ -17,9 +17,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class OTPReceiver extends BroadcastReceiver {
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+//    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public void onReceive(Context context, Intent intent) {
+        System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGG111111111111122222222");
             Bundle bundle = intent.getExtras();
             if (bundle != null) {
                 Object[] pdus = (Object[]) bundle.get("pdus");
@@ -32,6 +33,8 @@ public class OTPReceiver extends BroadcastReceiver {
                             System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGG1111111111111");
                             String otp = extractOtp(messageBody);
                             if (otp != null) {
+//                                PortPlugin.
+                                PortPlugin.sendOtpData(otp);
 //                                notifyListeners("notificationOpened", eventData);
                                 System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGG"+otp);
                             }

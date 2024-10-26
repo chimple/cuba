@@ -3,6 +3,7 @@ package org.chimple.bahama;
 import static android.content.Intent.getIntent;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -23,6 +24,8 @@ import org.json.JSONObject;
 
 @CapacitorPlugin(name = "Port")
 public class PortPlugin extends Plugin {
+  private static String _otp;
+
 
 //  @PluginMethod
 //  public void getPort(PluginCall call) {
@@ -66,9 +69,18 @@ public class PortPlugin extends Plugin {
   }
 
   @PluginMethod
+  public static void sendOtpData(String otp) {
+    System.out.println("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"+otp);
+    _otp = otp;
+    bridge.triggerDocumentJSEvent("otpReceived", "{ \"otp\": \"" + otp + "\" }");
+
+  }
+  @PluginMethod
   public void otpRetrieve(PluginCall call) {
+    System.out.println("GGGGGGGGGGGGGGGGGGGGGRRRRR"+_otp);
     JSObject result = new JSObject();
-//    MainActivity.requestSmsPermission();
+    result.put("otp",_otp);
+    call.resolve(result);
   }
 
   @PluginMethod
