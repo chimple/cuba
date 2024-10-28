@@ -1,22 +1,16 @@
 package org.chimple.bahama;
 
-import static android.content.Intent.getIntent;
-
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
 import android.util.Log;
-import android.webkit.WebView;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
@@ -81,6 +75,15 @@ public class PortPlugin extends Plugin {
     JSObject result = new JSObject();
     result.put("otp",_otp);
     call.resolve(result);
+  }
+
+  @PluginMethod
+  public void numberRetrieve(PluginCall call) {
+    MainActivity.getPhoneNumbers().thenAccept(selectedPhoneNumber -> {
+      JSObject result = new JSObject();
+      result.put("number", selectedPhoneNumber.toString());
+      call.resolve(result);
+    });
   }
 
   @PluginMethod

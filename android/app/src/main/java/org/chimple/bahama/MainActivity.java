@@ -1,46 +1,30 @@
 package org.chimple.bahama;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
-import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.IntentSenderRequest;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.BridgeActivity;
-import com.google.android.gms.auth.api.identity.GetPhoneNumberHintIntentRequest;
-import com.google.android.gms.auth.api.identity.Identity;
-import com.google.android.gms.common.api.ApiException;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.appcheck.FirebaseAppCheck;
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 
 public class MainActivity extends BridgeActivity {
@@ -63,8 +47,7 @@ public class MainActivity extends BridgeActivity {
         firebaseAppCheck.installAppCheckProviderFactory(
                 DebugAppCheckProviderFactory.getInstance());
 
-      requestSmsPhonePermission();
-        getPhoneNumbers();
+        requestSmsPhonePermission();
     }
     @Override
     public void onDestroy() {
@@ -72,18 +55,17 @@ public class MainActivity extends BridgeActivity {
     }
 
 
-    public  void requestSmsPhonePermission() {
+    public  static void requestSmsPhonePermission() {
         List<String> permissionsNeeded = new ArrayList<>();
 
-        if (ContextCompat.checkSelfPermission(appContext, Manifest.permission.READ_SMS)
+        if (ContextCompat.checkSelfPermission(appContext, Manifest.permission.READ_PHONE_STATE)
                 != PackageManager.PERMISSION_GRANTED) {
-            permissionsNeeded.add(Manifest.permission.READ_SMS);
+            permissionsNeeded.add(android.Manifest.permission.READ_PHONE_STATE);
+            permissionsNeeded.add(android.Manifest.permission.READ_PHONE_NUMBERS);
         }
-
-        if (ContextCompat.checkSelfPermission(appContext, Manifest.permission.READ_PHONE_NUMBERS)
+        if (ContextCompat.checkSelfPermission(appContext, Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED) {
-//            permissionsNeeded.add(Manifest.permission.READ_PHONE_NUMBERS);
-            permissionsNeeded.add(Manifest.permission.READ_PHONE_STATE);
+            permissionsNeeded.add(Manifest.permission.POST_NOTIFICATIONS);
         }
 
         // Add any additional permissions you want to request
@@ -107,16 +89,18 @@ public class MainActivity extends BridgeActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(ContextCompat.checkSelfPermission(appContext, Manifest.permission.READ_PHONE_STATE)
                 == PackageManager.PERMISSION_GRANTED) {
-            getPhoneNumbers();
+//            getPhoneNumbers();
         }
     }
 
 
 
-    private void getPhoneNumbers(){
+    public static CompletableFuture<String> getPhoneNumbers() {
+        CompletableFuture<String> future = new CompletableFuture<>();
         List<String> phoneNumbers = new ArrayList<>();
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-            SubscriptionManager subscriptionManager = (SubscriptionManager) getSystemService(SubscriptionManager.class);
+
+        if (ActivityCompat.checkSelfPermission(appContext, android.Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+            SubscriptionManager subscriptionManager = (SubscriptionManager) appContext.getSystemService(SubscriptionManager.class);
             if (subscriptionManager != null) {
                 List<SubscriptionInfo> subscriptionInfos = subscriptionManager.getActiveSubscriptionInfoList();
                 if (subscriptionInfos != null) {
@@ -129,31 +113,48 @@ public class MainActivity extends BridgeActivity {
                 }
             }
         }
-        if(!phoneNumbers.isEmpty()){
-            promptPhoneNumber(phoneNumbers);
+        if (!phoneNumbers.isEmpty()) {
+            promptPhoneNumber(phoneNumbers).thenAccept(selectedPhoneNumber -> {
+                if (selectedPhoneNumber != null) {
+                    future.complete(selectedPhoneNumber); // Complete future with the selected number
+                } else {
+                    future.complete(null); // Complete future with null if "None of the above" is selected
+                }
+            });
+        } else {
+            future.completeExceptionally(new Exception("No phone numbers found or permission not granted"));
         }
+        return future;
     }
-    private void promptPhoneNumber(List<String> phoneNumbers) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        LayoutInflater inflater = getLayoutInflater();
-        View dialogView = inflater.inflate(R.layout.dialog_phone_selection, null);
 
+    public static CompletableFuture<String> promptPhoneNumber(List<String> phoneNumbers) {
+        CompletableFuture<String> future = new CompletableFuture<>();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(appContext);
+        LayoutInflater inflater = LayoutInflater.from(appContext);
+        View dialogView = inflater.inflate(R.layout.dialog_phone_selection, null);
         LinearLayout phoneOptionsContainer = dialogView.findViewById(R.id.phoneOptionsContainer);
+        AlertDialog dialog = builder.setView(dialogView).create();
+
         for (String phoneNumber : phoneNumbers) {
-            LinearLayout phoneOptionLayout = new LinearLayout(this);
+            LinearLayout phoneOptionLayout = new LinearLayout(appContext);
             phoneOptionLayout.setOrientation(LinearLayout.HORIZONTAL);
             phoneOptionLayout.setPadding(8, 8, 8, 8);
             phoneOptionLayout.setClickable(true);
-            ImageView phoneIcon = new ImageView(this);
+
+            ImageView phoneIcon = new ImageView(appContext);
             LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(60, 60); // Adjust size as needed
             phoneIcon.setLayoutParams(iconParams);
             phoneIcon.setImageResource(android.R.drawable.sym_action_call);  // or any other suitable icon
-            TextView phoneText = new TextView(this);
+
+            TextView phoneText = new TextView(appContext);
             phoneText.setText(phoneNumber);
             phoneText.setPadding(16, 0, 0, 0);
             phoneText.setTextSize(16);
+
             phoneOptionLayout.addView(phoneIcon);
             phoneOptionLayout.addView(phoneText);
+
             LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
@@ -162,22 +163,31 @@ public class MainActivity extends BridgeActivity {
             phoneOptionLayout.setLayoutParams(layoutParams);
 
             phoneOptionLayout.setOnClickListener(v -> {
-                System.out.println("Selected Phone Number: " + phoneNumber);
+
+                System.out.println("HHHHHHHHHHHHHHHHHHHHHHHH!!!!!!!!!!!!"+phoneNumber);
+                future.complete(phoneNumber);  // Resolve the selected phone number
+                dialog.dismiss();
             });
             phoneOptionsContainer.addView(phoneOptionLayout);
         }
+
         TextView noneOfTheAbove = dialogView.findViewById(R.id.noneOfTheAbove);
         noneOfTheAbove.setOnClickListener(v -> {
-            System.out.println("None of the above selected");
+            future.complete(null);  // Return null if "None of the above" is selected
+            dialog.dismiss();
         });
 
-        builder.setView(dialogView);
-
-        AlertDialog dialog = builder.create();
         dialog.show();
         dialog.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        return future;
     }
-    public static Context getAppContext() {
-        return appContext;
-    }
+
+
 }
+
+
+
+
+
+

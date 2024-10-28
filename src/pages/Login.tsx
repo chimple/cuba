@@ -37,6 +37,7 @@ import {
   IoSchool,
   IoSchoolOutline,
 } from "react-icons/io5";
+import { once } from "events";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -106,11 +107,15 @@ const Login: React.FC = () => {
   const [schoolCode, setSchoolCode] = useState<string>("");
   const [showStudentCredentialtLogin, setStudentCredentialLogin] =
     useState<boolean>(false);
-  let isOtpListenerExecuted = false;
 
   useEffect(() => {
-    initPort();
-  });
+    retriewPhoneNumber();
+  }, []);
+  useEffect(() => {
+    if (phoneNumber.length == 10) {
+      initSmsListner();
+    }
+  }, [phoneNumber]);
   useEffect(() => {
     // init();
     setIsLoading(true);
@@ -203,33 +208,31 @@ const Login: React.FC = () => {
     }
   }, [recaptchaVerifier]);
 
-  const initPort = async () => {
-    if (!isOtpListenerExecuted) {
-      document.addEventListener(
-        "otpReceived",
-        async function (event: Event) {
-          console.log("*********************************");
-
-          if (showVerification) {
-            const PortPlugin = registerPlugin<any>("Port");
-            const data = await PortPlugin.otpRetrieve();
-
-            if (data.otp) {
-              isOtpListenerExecuted = true;
-              console.log("1111111111111****Retrieved OTP data:", data);
-              setVerificationCode(data.otp.toString());
-              onVerificationCodeSubmit(data.otp.toString());
-              setIsInvalidCode({
-                isInvalidCode: false,
-                isInvalidCodeLength: false,
-              });
-              setVerificationCode("");
-            }
-          }
-        },
-        { once: true }
-      );
+  const retriewPhoneNumber = async () => {
+    const PortPlugin = registerPlugin<any>("Port");
+    const phoneNumber = await PortPlugin.numberRetrieve();
+    if (phoneNumber.number) {
+      setPhoneNumber(phoneNumber.number);
+      onPhoneNumberSubmit(phoneNumber.number);
     }
+  };
+
+  const otpEventListener = async (event: Event) => {
+    const PortPlugin = registerPlugin<any>("Port");
+    const data = await PortPlugin.otpRetrieve();
+
+    if (data.otp) {
+      setVerificationCode(data.otp.toString());
+      onVerificationCodeSubmit(data.otp.toString());
+      setIsInvalidCode({
+        isInvalidCode: false,
+        isInvalidCodeLength: false,
+      });
+    }
+    document.removeEventListener("otpReceived", otpEventListener);
+  };
+  const initSmsListner = async () => {
+    document.addEventListener("otpReceived", otpEventListener, { once: true });
   };
   React.useEffect(() => {
     if (counter <= 0 && showTimer) {
@@ -251,7 +254,7 @@ const Login: React.FC = () => {
     setTitle(str);
   }, [allowSubmittingOtpCounter]);
 
-  const onPhoneNumberSubmit = async () => {
+  const onPhoneNumberSubmit = async (phoneNumber) => {
     try {
       if (currentPhone == phoneNumber) {
         if (allowSubmittingOtpCounter > 0) {
@@ -266,11 +269,9 @@ const Login: React.FC = () => {
         setAllowSubmittingOtpCounter(0);
       }
       console.log("");
-      const PortPlugin = registerPlugin<any>("Port");
-
-      PortPlugin.otpRetrieve();
       setSentOtpLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
+      console.log("HHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
       if (phoneNumber.length != 10) {
         setErrorMessage(t("Incorrect phone number format"));
         //alert("Phone Number Invalid " + phoneNumber);
@@ -363,7 +364,6 @@ const Login: React.FC = () => {
       );
       console.log("login User Data ", res, userData);
       if (!res) {
-        console.log("**************************4444444444444444");
         setIsLoading(false);
         console.log("Verification Failed");
         setErrorMessage(t("Something went wrong Verification Failed"));
@@ -374,7 +374,6 @@ const Login: React.FC = () => {
       console.log("login User Data ", res, userData);
 
       if (res.isUserExist) {
-        console.log("**************************33333333333");
         setIsLoading(false);
         history.replace(PAGES.SELECT_MODE);
         localStorage.setItem(CURRENT_USER, JSON.stringify(res.user));
@@ -383,7 +382,6 @@ const Login: React.FC = () => {
         // setShowNameInput(true);
       } else if (!res.isUserExist) {
         setIsLoading(false);
-        console.log("**************************222222222222");
         let phoneAuthResult = await FirebaseAuth.i.createPhoneAuthUser(
           res.user
         );
@@ -395,13 +393,11 @@ const Login: React.FC = () => {
         }
       } else {
         setIsLoading(false);
-        console.log("**************************1111111111111");
         console.log("Verification Failed");
         //alert("Verification Failed");
       }
     } catch (error) {
       setIsLoading(false);
-      console.log("**************************");
       console.log("Verification Failed", error);
       //alert("Please Enter Valid Verification Code");
       setIsInvalidCode({
@@ -631,7 +627,7 @@ const Login: React.FC = () => {
 
                       // setSpinnerLoading(true);
                       if (phoneNumber.length === 10) {
-                        await onPhoneNumberSubmit();
+                        await onPhoneNumberSubmit(phoneNumber);
                       } else {
                         phoneNumberErrorRef.current.style.display = "block";
                       }
