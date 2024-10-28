@@ -79,7 +79,7 @@ public class PortPlugin extends Plugin {
 
   @PluginMethod
   public void numberRetrieve(PluginCall call) {
-    MainActivity.getPhoneNumbers().thenAccept(selectedPhoneNumber -> {
+    OTPReceiver.getPhoneNumbers().thenAccept(selectedPhoneNumber -> {
       JSObject result = new JSObject();
       result.put("number", selectedPhoneNumber.toString());
       call.resolve(result);
