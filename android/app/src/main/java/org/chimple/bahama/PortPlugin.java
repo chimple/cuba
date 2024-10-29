@@ -64,24 +64,37 @@ public class PortPlugin extends Plugin {
 
   @PluginMethod
   public static void sendOtpData(String otp) {
-    System.out.println("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"+otp);
     _otp = otp;
     bridge.triggerDocumentJSEvent("otpReceived", "{ \"otp\": \"" + otp + "\" }");
 
   }
+
+  @PluginMethod
+  public static void isPermissionAccepted() {
+    bridge.triggerDocumentJSEvent("permissionAccepted");
+
+  }
   @PluginMethod
   public void otpRetrieve(PluginCall call) {
-    System.out.println("GGGGGGGGGGGGGGGGGGGGGRRRRR"+_otp);
     JSObject result = new JSObject();
     result.put("otp",_otp);
     call.resolve(result);
   }
 
   @PluginMethod
-  public void numberRetrieve(PluginCall call) {
-    OTPReceiver.getPhoneNumbers().thenAccept(selectedPhoneNumber -> {
+  public void requestPermission(PluginCall call) {
+    OTPReceiver.requestSmsPhonePermission().thenAccept(PhoneNumber -> {
       JSObject result = new JSObject();
-      result.put("number", selectedPhoneNumber.toString());
+      result.put("number", PhoneNumber);
+      call.resolve(result);
+    });
+  }
+
+  @PluginMethod
+  public void numberRetrieve(PluginCall call) {
+    OTPReceiver.getPhoneNumbers().thenAccept(PhoneNumber -> {
+      JSObject result = new JSObject();
+      result.put("number", PhoneNumber);
       call.resolve(result);
     });
   }

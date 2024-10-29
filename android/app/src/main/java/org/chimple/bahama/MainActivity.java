@@ -47,7 +47,15 @@ public class MainActivity extends BridgeActivity {
         firebaseAppCheck.installAppCheckProviderFactory(
                 DebugAppCheckProviderFactory.getInstance());
 
-        OTPReceiver.requestSmsPhonePermission();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(ContextCompat.checkSelfPermission(appContext, Manifest.permission.READ_PHONE_STATE)
+                == PackageManager.PERMISSION_GRANTED) {
+            PortPlugin.isPermissionAccepted();
+        }
     }
     @Override
     public void onDestroy() {

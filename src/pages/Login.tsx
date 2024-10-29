@@ -38,6 +38,7 @@ import {
   IoSchoolOutline,
 } from "react-icons/io5";
 import { once } from "events";
+import PhoneNumberPopup from "../components/login/PhoneNumberPopup";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -90,6 +91,7 @@ const Login: React.FC = () => {
   const getOtpBtnRef = useRef<any>();
   const parentNameRef = useRef<any>();
   const phoneNumberErrorRef = useRef<any>();
+  const inputRef = useRef<HTMLInputElement>(null);
   let verificationCodeMessageFlags = {
     isInvalidCode: false,
     isInvalidCodeLength: false,
@@ -107,15 +109,20 @@ const Login: React.FC = () => {
   const [schoolCode, setSchoolCode] = useState<string>("");
   const [showStudentCredentialtLogin, setStudentCredentialLogin] =
     useState<boolean>(false);
+  const [promptPhonNumbers, setPromptPhonNumbers] = useState<Array<string>>([]);
+  const [showPhoneNumberPopUp, setShowPhoneNumberPopUp] =
+    useState<boolean>(true);
+  const PortPlugin = registerPlugin<any>("Port");
 
   useEffect(() => {
-    retriewPhoneNumber();
+    initPermissionListner();
+    initSmsListner();
   }, []);
-  useEffect(() => {
-    if (phoneNumber.length == 10) {
-      initSmsListner();
-    }
-  }, [phoneNumber]);
+  // useEffect(() => {
+  //   if (phoneNumber.length == 10) {
+  //     initSmsListner();
+  //   }
+  // }, [phoneNumber]);
   useEffect(() => {
     // init();
     setIsLoading(true);
@@ -209,16 +216,14 @@ const Login: React.FC = () => {
   }, [recaptchaVerifier]);
 
   const retriewPhoneNumber = async () => {
-    const PortPlugin = registerPlugin<any>("Port");
     const phoneNumber = await PortPlugin.numberRetrieve();
     if (phoneNumber.number) {
-      setPhoneNumber(phoneNumber.number);
-      onPhoneNumberSubmit(phoneNumber.number);
+      setShowPhoneNumberPopUp(!showPhoneNumberPopUp);
+      setPromptPhonNumbers(JSON.parse(phoneNumber.number))
     }
   };
 
   const otpEventListener = async (event: Event) => {
-    const PortPlugin = registerPlugin<any>("Port");
     const data = await PortPlugin.otpRetrieve();
 
     if (data.otp) {
@@ -230,6 +235,15 @@ const Login: React.FC = () => {
       });
     }
     document.removeEventListener("otpReceived", otpEventListener);
+  };
+  const permissionEventListener = async (event: Event) => {
+    retriewPhoneNumber();
+    document.removeEventListener("otpReceived", otpEventListener);
+  };
+  const initPermissionListner = async () => {
+    document.addEventListener("permissionAccepted", permissionEventListener, {
+      once: true,
+    });
   };
   const initSmsListner = async () => {
     document.addEventListener("otpReceived", otpEventListener, { once: true });
@@ -271,7 +285,6 @@ const Login: React.FC = () => {
       console.log("");
       setSentOtpLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
-      console.log("HHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
       if (phoneNumber.length != 10) {
         setErrorMessage(t("Incorrect phone number format"));
         //alert("Phone Number Invalid " + phoneNumber);
@@ -553,8 +566,18 @@ const Login: React.FC = () => {
                   <div id="login-text-box">
                     <div id="login-text">
                       <TextBox
+                        ref={inputRef}
                         inputText={t("Enter Mobile Number (10-digit)")}
                         inputType={"tel"}
+                        onFocus={async () => {
+                          if (Capacitor.getPlatform() === "android") {
+                            const data = await PortPlugin.requestPermission();
+                            if (data.number) {
+                              setShowPhoneNumberPopUp(!showPhoneNumberPopUp);
+                              setPromptPhonNumbers(JSON.parse(data.number))
+                            }
+                          }
+                        }}
                         maxLength={10}
                         inputValue={phoneNumber}
                         icon={<IoCallOutline id="text-box-icon" />}
@@ -978,6 +1001,28 @@ const Login: React.FC = () => {
               {t("Get Started")}
             </div>
           </div>
+        ) : null}
+
+        {showPhoneNumberPopUp ? (
+          <PhoneNumberPopup
+            showPopUp={showPhoneNumberPopUp}
+            onPopUpClose={() => {
+              setShowPhoneNumberPopUp(!showPhoneNumberPopUp);
+            }}
+            onNoneSelect={() => {
+              setShowPhoneNumberPopUp(!showPhoneNumberPopUp);
+              setPhoneNumber("");
+              setCurrentButtonColor(Buttoncolors.Default);
+            }}
+            onNumberSelect={(number) => {
+              setShowPhoneNumberPopUp(!showPhoneNumberPopUp);
+              setPhoneNumber(number);
+              setCurrentButtonColor(Buttoncolors.Valid);
+                              phoneNumberErrorRef.current.style.display =
+                                "none";
+            }}
+            phoneNumbers={promptPhonNumbers}
+          />
         ) : null}
       </div>
       <Loading isLoading={isLoading || sentOtpLoading} />

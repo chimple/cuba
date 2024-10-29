@@ -6,13 +6,24 @@ import { ChangeEvent } from "react";
 
 const TextBox: React.FC<{
   inputText: string;
+  ref?;
   inputType;
+  onFocus?;
   maxLength: number;
   inputValue: string;
   icon?: JSX.Element; // Define icon prop as JSX.Element
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   // onChange: (event: IonInputCustomEvent<InputChangeEventDetail>) => void;
-}> = ({ inputText, inputType, inputValue, maxLength, icon, onChange }) => {
+}> = ({
+  inputText,
+  inputType,
+  inputValue,
+  maxLength,
+  icon,
+  onChange,
+  onFocus,
+  ref,
+}) => {
   return (
     <div id="text-box">
       <div id="text-box-elements">
@@ -24,6 +35,8 @@ const TextBox: React.FC<{
           <div id="text-box-container">
             <div id="text-box-label-content">
               <input
+                ref={ref}
+                onFocus={onFocus}
                 id="text-box-floating-input"
                 type={inputType}
                 value={inputValue}

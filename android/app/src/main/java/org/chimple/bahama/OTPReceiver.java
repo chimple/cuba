@@ -24,6 +24,7 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.getcapacitor.JSObject;
 import com.google.android.gms.auth.api.phone.SmsRetriever;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.Status;
@@ -68,8 +69,9 @@ public class OTPReceiver extends BroadcastReceiver {
         return null;
     }
 
-    public  static void requestSmsPhonePermission() {
+    public  static CompletableFuture<List> requestSmsPhonePermission() {
         Context appContext = MainActivity.getAppContext();
+        CompletableFuture<List> future = new CompletableFuture<>();
         List<String> permissionsNeeded = new ArrayList<>();
 
         if (ContextCompat.checkSelfPermission(appContext, android.Manifest.permission.READ_PHONE_STATE)
@@ -93,12 +95,20 @@ public class OTPReceiver extends BroadcastReceiver {
             ActivityCompat.requestPermissions((Activity) appContext,
                     permissionsNeeded.toArray(new String[0]),
                     PackageManager.PERMISSION_GRANTED);
+            future.complete(null);
         }
+        else {
+            getPhoneNumbers().thenAccept(selectedPhoneNumber -> {
+                future.complete(selectedPhoneNumber);
+            });
+        }
+        return future;
     }
 
-    public static CompletableFuture<String> getPhoneNumbers() {
+
+    public static CompletableFuture<List> getPhoneNumbers() {
         Context appContext = MainActivity.getAppContext();
-        CompletableFuture<String> future = new CompletableFuture<>();
+        CompletableFuture<List> future = new CompletableFuture<>();
         List<String> phoneNumbers = new ArrayList<>();
 
         if (ActivityCompat.checkSelfPermission(appContext, android.Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
@@ -116,15 +126,9 @@ public class OTPReceiver extends BroadcastReceiver {
             }
         }
         if (!phoneNumbers.isEmpty()) {
-            promptPhoneNumber(phoneNumbers).thenAccept(selectedPhoneNumber -> {
-                if (selectedPhoneNumber != null) {
-                    future.complete(selectedPhoneNumber); // Complete future with the selected number
-                } else {
-                    future.complete(null); // Complete future with null if "None of the above" is selected
-                }
-            });
+            future.complete(phoneNumbers);
         } else {
-            future.completeExceptionally(new Exception("No phone numbers found or permission not granted"));
+            future.complete(null);
         }
         return future;
     }
