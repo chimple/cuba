@@ -94,9 +94,6 @@ public class OTPReceiver extends BroadcastReceiver {
                     permissionsNeeded.toArray(new String[0]),
                     PackageManager.PERMISSION_GRANTED);
         }
-        else {
-            getPhoneNumbers();
-        }
     }
 
     public static CompletableFuture<String> getPhoneNumbers() {
