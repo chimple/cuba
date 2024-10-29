@@ -76,6 +76,7 @@ import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { schoolUtil } from "./schoolUtil";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { URLOpenListenerEvent } from "@capacitor/app";
+import { t } from "i18next";
 
 declare global {
   interface Window {
@@ -372,9 +373,9 @@ export class Util {
 
               console.log(
                 "before local lesson Bundle http url:" +
-                  "assets/" +
-                  lessonId +
-                  "/config.json"
+                "assets/" +
+                lessonId +
+                "/config.json"
               );
 
               const fetchingLocalBundle = await fetch(
@@ -382,9 +383,9 @@ export class Util {
               );
               console.log(
                 "after local lesson Bundle fetch url:" +
-                  "assets/" +
-                  lessonId +
-                  "/config.json",
+                "assets/" +
+                lessonId +
+                "/config.json",
                 fetchingLocalBundle.ok,
                 fetchingLocalBundle.json,
                 fetchingLocalBundle
@@ -1700,5 +1701,36 @@ export class Util {
     const currentClass = JSON.parse(temp) as TableTypes<"class">;
     api.currentClass = currentClass;
     return currentClass;
+  }
+
+  public static async sendContentToAndroidOrWebShare(
+    text: string,
+    title: string,
+    url?: string,
+    image?: string
+  ) {
+    if (Capacitor.isNativePlatform()) {
+      // Sharing via custom plugin for Android
+      await Util.port
+        .shareContentWithAndroidShare({
+          text: t(text),
+          title: t(title),
+          url: url,
+          image: image, // Pass image as URI or file path for Android
+        })
+        .then(() => console.log("Content shared successfully"))
+        .catch((error) => console.error("Error sharing content:", error));
+    } else {
+      // Sharing for web without image support
+      const shareData: any = {
+        text: t(text),
+        title: t(title),
+        url: url,
+      };
+
+      await navigator.share(shareData)
+        .then(() => console.log("Content shared successfully"))
+        .catch((error) => console.error("Error sharing content:", error));
+    }
   }
 }
