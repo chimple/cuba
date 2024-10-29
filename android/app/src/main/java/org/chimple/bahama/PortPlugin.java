@@ -6,13 +6,18 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+
+import androidx.core.content.FileProvider;
+
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
@@ -147,4 +152,40 @@ public class PortPlugin extends Plugin {
       call.reject(e.toString());
     }
   }
+@PluginMethod
+public void shareContentWithAndroidShare(PluginCall call) {
+    try {
+        String text = call.getString("text");
+        String url = call.getString("url");
+        String title = call.getString("title");
+        String imagePath = call.getString("image");  // Path to the image file
+        
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_TEXT,  text + "\n\n" + url);
+        sendIntent.setType("text/plain");
+
+        if (imagePath != null && !imagePath.isEmpty()) {
+            File imageFile = new File(imagePath);
+            Uri imageUri = FileProvider.getUriForFile(
+                    getContext(),
+                    getContext().getPackageName() + ".fileprovider",
+                    imageFile
+            );
+            sendIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+            sendIntent.setType("image/*");
+            sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        }
+
+        Intent shareIntent = Intent.createChooser(sendIntent, title);
+        
+        getContext().startActivity(shareIntent); // Start activity with context
+
+        call.resolve(); // Successfully resolve the call if sharing is initiated
+    } catch (Exception e) {
+        e.printStackTrace();
+        call.reject("Failed to share text: " + e.toString());
+    }
+}
+
 }
