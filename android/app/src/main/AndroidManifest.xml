@@ -2,10 +2,6 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
-    <uses-feature
-        android:name="android.hardware.telephony"
-        android:required="false" />
     <application
         android:allowBackup="false" 
         android:icon="@mipmap/chimple_monkey_icon"
