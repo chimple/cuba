@@ -1707,25 +1707,28 @@ export class Util {
     text: string,
     title: string,
     url?: string,
-    image?: string
+    imageFile?: File[]
   ) {
     if (Capacitor.isNativePlatform()) {
-      // Sharing via custom plugin for Android
+      // Convert File object to a blob URL, then extract path for Android
+      const file = imageFile ? imageFile[0] : null;
+
       await Util.port
         .shareContentWithAndroidShare({
           text: t(text),
           title: t(title),
           url: url,
-          image: image, // Pass image as URI or file path for Android
+          imageFile: imageFile // Pass the File object for Android
         })
         .then(() => console.log("Content shared successfully"))
         .catch((error) => console.error("Error sharing content:", error));
     } else {
-      // Sharing for web without image support
-      const shareData: any = {
-        text: t(text),
-        title: t(title),
+      // Web sharing
+      const shareData: ShareData = {
+        text: t(text) || "",
+        title: t(title) || "",
         url: url,
+        files: imageFile,
       };
 
       await navigator.share(shareData)
@@ -1733,4 +1736,6 @@ export class Util {
         .catch((error) => console.error("Error sharing content:", error));
     }
   }
+
+
 }

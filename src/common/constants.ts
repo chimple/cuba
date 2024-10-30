@@ -506,7 +506,7 @@ export interface PortPlugin {
     notificationType: string;
     rewardProfileId: string;
   }>;
-  shareContentWithAndroidShare(options: { text: string; title: string; url?: string; image?: string}): Promise<void>;
+  shareContentWithAndroidShare(options: { text: string; title: string; url?: string; imageFile?: File[] }): Promise<void>;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_SUBJECT_IDS = [

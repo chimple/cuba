@@ -152,40 +152,51 @@ public class PortPlugin extends Plugin {
       call.reject(e.toString());
     }
   }
+  
 @PluginMethod
 public void shareContentWithAndroidShare(PluginCall call) {
     try {
         String text = call.getString("text");
-        String url = call.getString("url");
+        String url = call.getString("url") != null ? call.getString("url") : "";
         String title = call.getString("title");
-        String imagePath = call.getString("image");  // Path to the image file
-        
+
+        JSObject imageFileObject = call.getObject("imageFile"); // Expecting a File in JSON format
+
         Intent sendIntent = new Intent();
         sendIntent.setAction(Intent.ACTION_SEND);
-        sendIntent.putExtra(Intent.EXTRA_TEXT,  text + "\n\n" + url);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, text + "\n\n" + url);
         sendIntent.setType("text/plain");
 
-        if (imagePath != null && !imagePath.isEmpty()) {
-            File imageFile = new File(imagePath);
-            Uri imageUri = FileProvider.getUriForFile(
-                    getContext(),
-                    getContext().getPackageName() + ".fileprovider",
-                    imageFile
-            );
-            sendIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
-            sendIntent.setType("image/*");
-            sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        // Check if an imageFile is provided, and convert it to a Uri for sharing
+        if (imageFileObject != null) {
+            String fileName = imageFileObject.getString("name");
+            String filePath = imageFileObject.getString("path"); // Assuming the file path is accessible here
+
+            File imageFile = new File(filePath);
+            if (imageFile.exists()) {
+                Uri imageUri = FileProvider.getUriForFile(
+                        getContext(),
+                        getContext().getPackageName() + ".fileprovider",
+                        imageFile
+                );
+                sendIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+                sendIntent.setType("image/*");
+                sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            } else {
+                call.reject("Image file does not exist at provided path");
+                return;
+            }
         }
 
         Intent shareIntent = Intent.createChooser(sendIntent, title);
-        
-        getContext().startActivity(shareIntent); // Start activity with context
+        getContext().startActivity(shareIntent);
 
-        call.resolve(); // Successfully resolve the call if sharing is initiated
+        call.resolve();
     } catch (Exception e) {
         e.printStackTrace();
-        call.reject("Failed to share text: " + e.toString());
+        call.reject("Failed to share content: " + e.toString());
     }
 }
+
 
 }
