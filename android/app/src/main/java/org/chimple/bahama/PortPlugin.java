@@ -1,21 +1,16 @@
 package org.chimple.bahama;
 
-import static android.content.Intent.getIntent;
-
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Bundle;
 import android.util.Log;
-import android.webkit.WebView;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
@@ -23,6 +18,8 @@ import org.json.JSONObject;
 
 @CapacitorPlugin(name = "Port")
 public class PortPlugin extends Plugin {
+  private static String _otp;
+
 
 //  @PluginMethod
 //  public void getPort(PluginCall call) {
@@ -63,6 +60,43 @@ public class PortPlugin extends Plugin {
       }
       notifyListeners("notificationOpened", eventData);
     }
+  }
+
+  @PluginMethod
+  public static void sendOtpData(String otp) {
+    _otp = otp;
+    bridge.triggerDocumentJSEvent("otpReceived", "{ \"otp\": \"" + otp + "\" }");
+
+  }
+
+  @PluginMethod
+  public static void isPermissionAccepted() {
+    bridge.triggerDocumentJSEvent("permissionAccepted");
+
+  }
+  @PluginMethod
+  public void otpRetrieve(PluginCall call) {
+    JSObject result = new JSObject();
+    result.put("otp",_otp);
+    call.resolve(result);
+  }
+
+  @PluginMethod
+  public void requestPermission(PluginCall call) {
+    OTPReceiver.requestSmsPhonePermission().thenAccept(PhoneNumber -> {
+      JSObject result = new JSObject();
+      result.put("number", PhoneNumber);
+      call.resolve(result);
+    });
+  }
+
+  @PluginMethod
+  public void numberRetrieve(PluginCall call) {
+    OTPReceiver.getPhoneNumbers().thenAccept(PhoneNumber -> {
+      JSObject result = new JSObject();
+      result.put("number", PhoneNumber);
+      call.resolve(result);
+    });
   }
 
   @PluginMethod
