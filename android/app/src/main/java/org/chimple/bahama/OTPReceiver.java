@@ -20,14 +20,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.getcapacitor.JSObject;
-import com.google.android.gms.auth.api.phone.SmsRetriever;
-import com.google.android.gms.common.api.CommonStatusCodes;
-import com.google.android.gms.common.api.Status;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -130,61 +125,6 @@ public class OTPReceiver extends BroadcastReceiver {
         } else {
             future.complete(null);
         }
-        return future;
-    }
-
-    public static CompletableFuture<String> promptPhoneNumber(List<String> phoneNumbers) {
-        Context appContext = MainActivity.getAppContext();
-        CompletableFuture<String> future = new CompletableFuture<>();
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(appContext);
-        LayoutInflater inflater = LayoutInflater.from(appContext);
-        View dialogView = inflater.inflate(R.layout.dialog_phone_selection, null);
-        LinearLayout phoneOptionsContainer = dialogView.findViewById(R.id.phoneOptionsContainer);
-        AlertDialog dialog = builder.setView(dialogView).create();
-
-        for (String phoneNumber : phoneNumbers) {
-            LinearLayout phoneOptionLayout = new LinearLayout(appContext);
-            phoneOptionLayout.setOrientation(LinearLayout.HORIZONTAL);
-            phoneOptionLayout.setPadding(8, 8, 8, 8);
-            phoneOptionLayout.setClickable(true);
-
-            ImageView phoneIcon = new ImageView(appContext);
-            LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(60, 60); // Adjust size as needed
-            phoneIcon.setLayoutParams(iconParams);
-            phoneIcon.setImageResource(android.R.drawable.sym_action_call);  // or any other suitable icon
-
-            TextView phoneText = new TextView(appContext);
-            phoneText.setText(phoneNumber);
-            phoneText.setPadding(16, 0, 0, 0);
-            phoneText.setTextSize(16);
-
-            phoneOptionLayout.addView(phoneIcon);
-            phoneOptionLayout.addView(phoneText);
-
-            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            );
-            layoutParams.setMargins(0, 8, 0, 8); // Set top and bottom margin for spacing
-            phoneOptionLayout.setLayoutParams(layoutParams);
-
-            phoneOptionLayout.setOnClickListener(v -> {
-                future.complete(phoneNumber);  // Resolve the selected phone number
-                dialog.dismiss();
-            });
-            phoneOptionsContainer.addView(phoneOptionLayout);
-        }
-
-        TextView noneOfTheAbove = dialogView.findViewById(R.id.noneOfTheAbove);
-        noneOfTheAbove.setOnClickListener(v -> {
-            future.complete(null);  // Return null if "None of the above" is selected
-            dialog.dismiss();
-        });
-
-        dialog.show();
-        dialog.getWindow().setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-
         return future;
     }
 }

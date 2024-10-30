@@ -1,4 +1,5 @@
 import React, { FC, useState } from "react";
+import { t } from "i18next";
 import {
   IonAlert,
   IonModal,
@@ -10,12 +11,13 @@ import {
   IonText,
 } from "@ionic/react";
 import { callSharp } from "ionicons/icons";
+import { fontWeight } from "html2canvas/dist/types/css/property-descriptors/font-weight";
 interface PhoneNumberPopupProps {
   showPopUp: boolean;
   onPopUpClose;
   phoneNumbers: Array<string>;
   onNumberSelect;
-  onNoneSelect
+  onNoneSelect;
 }
 
 const PhoneNumberPopup: FC<PhoneNumberPopupProps> = ({
@@ -23,29 +25,39 @@ const PhoneNumberPopup: FC<PhoneNumberPopupProps> = ({
   onPopUpClose,
   phoneNumbers,
   onNumberSelect,
-  onNoneSelect
+  onNoneSelect,
 }) => {
   return (
     <>
-      {/* Modal for phone number selection */}
       <IonModal
         isOpen={showPopUp}
         onDidDismiss={onPopUpClose}
         style={{
           "--border-radius": "15px",
-          "--width": "auto", // Set width as needed
-          "--height": "auto", // Set height as needed
+          "--width": "auto",
+          "--height": "auto",
         }}
       >
         <div style={{ padding: "20px", color: "black" }}>
-          <h1>Continue with</h1>
+          <h5>{t("Continue with")}</h5>
 
-          {/* List of phone numbers */}
           <IonList lines="none">
             {phoneNumbers.map((phoneNumber, index) => (
-              <IonItem button key={index} onClick={() => onNumberSelect(phoneNumber)}>
-                <IonIcon icon={callSharp} slot="start" />
-                <IonLabel>{phoneNumber}</IonLabel>
+              <IonItem
+                button
+                key={index}
+                style={{ marginLeft: "0"}}
+                onClick={() => onNumberSelect(phoneNumber)}
+              >
+                <IonIcon
+                  icon={callSharp}
+                  slot="start"
+                  style={{ marginRight: "4px" }}
+                />
+
+                <IonLabel style={{ marginLeft: "0" ,fontWeight:"bold"}}>
+                  {phoneNumber}
+                </IonLabel>
               </IonItem>
             ))}
           </IonList>
@@ -54,9 +66,9 @@ const PhoneNumberPopup: FC<PhoneNumberPopupProps> = ({
           <IonText
             color="primary"
             style={{ marginTop: "50px", cursor: "pointer" }}
-            onClick={onPopUpClose}
+            onClick={onNoneSelect}
           >
-            <strong>NONE OF THE ABOVE</strong>
+            <h6>{t("None of above")}</h6>
           </IonText>
         </div>
       </IonModal>

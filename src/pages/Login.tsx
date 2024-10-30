@@ -92,6 +92,8 @@ const Login: React.FC = () => {
   const parentNameRef = useRef<any>();
   const phoneNumberErrorRef = useRef<any>();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isPromptNumbers, setIsPromptNumbers] =
+    useState<boolean>(false);
   let verificationCodeMessageFlags = {
     isInvalidCode: false,
     isInvalidCodeLength: false,
@@ -111,18 +113,17 @@ const Login: React.FC = () => {
     useState<boolean>(false);
   const [promptPhonNumbers, setPromptPhonNumbers] = useState<Array<string>>([]);
   const [showPhoneNumberPopUp, setShowPhoneNumberPopUp] =
-    useState<boolean>(true);
+    useState<boolean>(false);
   const PortPlugin = registerPlugin<any>("Port");
 
   useEffect(() => {
     initPermissionListner();
-    initSmsListner();
   }, []);
-  // useEffect(() => {
-  //   if (phoneNumber.length == 10) {
-  //     initSmsListner();
-  //   }
-  // }, [phoneNumber]);
+  useEffect(() => {
+    if (phoneNumber.length == 10) {
+      initSmsListner();
+    }
+  }, [phoneNumber]);
   useEffect(() => {
     // init();
     setIsLoading(true);
@@ -570,12 +571,14 @@ const Login: React.FC = () => {
                         inputText={t("Enter Mobile Number (10-digit)")}
                         inputType={"tel"}
                         onFocus={async () => {
-                          if (Capacitor.getPlatform() === "android") {
+                          
+                          if (Capacitor.getPlatform() === "android" && !isPromptNumbers) {
                             const data = await PortPlugin.requestPermission();
                             if (data.number) {
                               setShowPhoneNumberPopUp(!showPhoneNumberPopUp);
                               setPromptPhonNumbers(JSON.parse(data.number))
                             }
+                            setIsPromptNumbers(true)
                           }
                         }}
                         maxLength={10}
@@ -1016,7 +1019,7 @@ const Login: React.FC = () => {
             }}
             onNumberSelect={(number) => {
               setShowPhoneNumberPopUp(!showPhoneNumberPopUp);
-              setPhoneNumber(number);
+              setPhoneNumber(number.toString());
               setCurrentButtonColor(Buttoncolors.Valid);
                               phoneNumberErrorRef.current.style.display =
                                 "none";
