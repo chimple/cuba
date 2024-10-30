@@ -19,6 +19,10 @@ import org.json.JSONObject;
 @CapacitorPlugin(name = "Port")
 public class PortPlugin extends Plugin {
   private static String _otp;
+  private static PortPlugin instance;
+  public PortPlugin() {
+    instance = this; // Assign instance when PortPlugin is created
+  }
 
 
 //  @PluginMethod
@@ -65,13 +69,17 @@ public class PortPlugin extends Plugin {
   @PluginMethod
   public static void sendOtpData(String otp) {
     _otp = otp;
-    bridge.triggerDocumentJSEvent("otpReceived", "{ \"otp\": \"" + otp + "\" }");
+    if (getInstance().bridge != null) {
+      getInstance().bridge.triggerDocumentJSEvent("otpReceived", "{ \"otp\": \"" + otp + "\" }");
+    }
 
   }
 
   @PluginMethod
   public static void isPermissionAccepted() {
-    bridge.triggerDocumentJSEvent("permissionAccepted");
+    if (getInstance().bridge != null) {
+      getInstance().bridge.triggerDocumentJSEvent("permissionAccepted");
+    }
 
   }
   @PluginMethod
@@ -97,6 +105,9 @@ public class PortPlugin extends Plugin {
       result.put("number", PhoneNumber);
       call.resolve(result);
     });
+  }
+  public static PortPlugin getInstance() {
+    return instance;
   }
 
   @PluginMethod
