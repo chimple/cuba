@@ -113,7 +113,7 @@ const Login: React.FC = () => {
     useState<boolean>(false);
   const [promptPhonNumbers, setPromptPhonNumbers] = useState<Array<string>>([]);
   const [showPhoneNumberPopUp, setShowPhoneNumberPopUp] =
-    useState<boolean>(false);
+    useState<boolean>(true);
   const PortPlugin = registerPlugin<any>("Port");
 
   useEffect(() => {
@@ -1024,7 +1024,7 @@ const Login: React.FC = () => {
                               phoneNumberErrorRef.current.style.display =
                                 "none";
             }}
-            phoneNumbers={promptPhonNumbers}
+            phoneNumbers={['9704085472','7997225712']}
           />
         ) : null}
       </div>

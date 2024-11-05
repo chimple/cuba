@@ -38,15 +38,26 @@ const PhoneNumberPopup: FC<PhoneNumberPopupProps> = ({
           "--height": "auto",
         }}
       >
-        <div style={{ padding: "20px", color: "black" }}>
+        <div
+          style={{ paddingLeft: "20px", paddingRight: "20px", color: "black" }}
+        >
           <h5>{t("Continue with")}</h5>
 
-          <IonList lines="none">
+          <IonList
+            lines="none"
+            style={{
+              paddingLeft: "0px",
+              minWidth: "200px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+            }}
+          >
             {phoneNumbers.map((phoneNumber, index) => (
               <IonItem
                 button
                 key={index}
-                style={{ marginLeft: "0"}}
+                style={{ marginLeft: "0" }}
                 onClick={() => onNumberSelect(phoneNumber)}
               >
                 <IonIcon
@@ -55,7 +66,7 @@ const PhoneNumberPopup: FC<PhoneNumberPopupProps> = ({
                   style={{ marginRight: "4px" }}
                 />
 
-                <IonLabel style={{ marginLeft: "0" ,fontWeight:"bold"}}>
+                <IonLabel style={{ marginLeft: "0", fontWeight: "bold" }}>
                   {phoneNumber}
                 </IonLabel>
               </IonItem>

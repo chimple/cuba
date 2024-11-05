@@ -16,7 +16,7 @@
     "@capacitor-firebase/authentication": "^5.3.0",
     "@capacitor-firebase/messaging": "^5.0.0",
     "@capacitor-firebase/remote-config": "^5.0.1",
-    "@capacitor/android": "^5.0.0",
+    "@capacitor/android": "^5.7.8",
     "@capacitor/app": "^5.0.0",
     "@capacitor/core": "^5.0.0",
     "@capacitor/device": "^5.0.6",
