@@ -88,8 +88,11 @@ enum NotificationType {
   REWARD = "reward",
 }
 
+
 export class Util {
   public static port: PortPlugin;
+  static TIME_LIMIT = 25 * 60;
+  static LAST_MODAL_SHOWN_KEY = "lastModalShown";
 
   // public static convertCourses(_courses: Course1[]): Course1[] {
   //   let courses: Course1[] = [];
@@ -175,6 +178,28 @@ export class Util {
       return undefined;
     }
   }
+
+
+
+  public static handleAppStateChange = (state: any) => {
+    if (state.isActive && Capacitor.isNativePlatform()) {
+      const currentTime = Date.now();
+      const startTime = Number(localStorage.getItem("startTime") || "0");
+      const timeElapsed = (currentTime - startTime) / 1000; // in seconds
+      if (timeElapsed >= Util.TIME_LIMIT) {
+        const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
+        const today = new Date().toISOString().split("T")[0];
+        if (lastShownDate !== today) {
+          const showModalEvent = new CustomEvent("shouldShowModal", { detail: true });
+          window.dispatchEvent(showModalEvent);
+          localStorage.setItem(Util.LAST_MODAL_SHOWN_KEY, today);
+          return;
+        }
+      }
+    }
+    const showModalEvent = new CustomEvent("shouldShowModal", { detail: false });
+    window.dispatchEvent(showModalEvent);
+  };
 
   // public static convertDoc(refs: any[]): DocumentReference[] {
   //   const data: DocumentReference[] = [];
@@ -830,10 +855,12 @@ export class Util {
   }
 
   public static onAppStateChange = ({ isActive }) => {
+    // Existing logic for stopping TextToSpeech when app is inactive
     if (!isActive) {
       TextToSpeech.stop();
     }
-
+  
+    // Handling app state changes (reloading pages, updating URLs, etc.)
     const url = new URL(window.location.toString());
     const urlParams = new URLSearchParams(window.location.search);
     if (!!urlParams.get(CONTINUE)) {
@@ -843,7 +870,7 @@ export class Util {
       return;
     }
     urlParams.delete(CONTINUE);
-
+  
     if (isActive) {
       if (
         Capacitor.isNativePlatform() &&
@@ -868,7 +895,9 @@ export class Util {
         Util.checkingIfGameCanvasAvailable();
       }
     }
+    Util.handleAppStateChange(isActive);
   };
+  
 
   public static checkingIfGameCanvasAvailable = async () => {
     // return new Promise<boolean>(async (resolve, reject) => {
