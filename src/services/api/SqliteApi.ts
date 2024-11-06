@@ -2842,7 +2842,7 @@ export class SqliteApi implements ServiceApi {
     });
   }
 
-  async createAssignmentCart(
+  async createOrUpdateAssignmentCart(
     userId: string,
     lessons: string
   ): Promise<boolean | undefined> {
@@ -2893,7 +2893,8 @@ export class SqliteApi implements ServiceApi {
     school_id: string,
     lesson_id: string,
     chapter_id: string,
-    course_id: string
+    course_id: string,
+    type: string
   ): Promise<boolean> {
     const assignmentUUid = uuidv4();
     const timestamp = new Date().toISOString(); // Cache timestamp for reuse
@@ -2914,7 +2915,7 @@ export class SqliteApi implements ServiceApi {
           class_id,
           school_id,
           lesson_id,
-          null,
+          type,
           timestamp,
           timestamp,
           false,
@@ -2933,7 +2934,7 @@ export class SqliteApi implements ServiceApi {
         class_id: class_id,
         school_id: school_id,
         lesson_id: lesson_id,
-        type: null,
+        type: type,
         created_at: timestamp,
         updated_at: timestamp,
         is_deleted: false,

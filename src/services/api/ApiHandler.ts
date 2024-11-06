@@ -669,11 +669,11 @@ export class ApiHandler implements ServiceApi {
   searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
     return this.s.searchLessons(searchString);
   }
-  createAssignmentCart(
+  createOrUpdateAssignmentCart(
     userId: string,
     lessons: string
   ): Promise<boolean | undefined> {
-    return this.s.createAssignmentCart(userId, lessons);
+    return this.s.createOrUpdateAssignmentCart(userId, lessons);
   }
 
   getUserAssignmentCart(
@@ -731,7 +731,8 @@ export class ApiHandler implements ServiceApi {
     school_id: string,
     lesson_id: string,
     chapter_id: string,
-    course_id: string
+    course_id: string,
+    type: string
   ): Promise<boolean> {
     return this.s.createAssignment(
       student_list,
@@ -743,7 +744,8 @@ export class ApiHandler implements ServiceApi {
       school_id,
       lesson_id,
       chapter_id,
-      course_id
+      course_id,
+      type
     );
   }
   getTeachersForClass(

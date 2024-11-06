@@ -836,7 +836,7 @@ export interface ServiceApi {
    * @param userId
    * @param lessons
    */
-  createAssignmentCart(
+  createOrUpdateAssignmentCart(
     userId: string,
     lessons: string
   ): Promise<boolean | undefined>;
@@ -938,7 +938,8 @@ export interface ServiceApi {
     school_id: string,
     lesson_id: string,
     chapter_id: string,
-    course_id: string
+    course_id: string,
+    type: string
   ): Promise<boolean>;
 
   /**
