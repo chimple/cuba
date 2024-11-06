@@ -76,6 +76,7 @@ import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { schoolUtil } from "./schoolUtil";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { URLOpenListenerEvent } from "@capacitor/app";
+import { t } from "i18next";
 
 declare global {
   interface Window {
@@ -1730,4 +1731,40 @@ export class Util {
     api.currentClass = currentClass;
     return currentClass;
   }
+
+  public static async sendContentToAndroidOrWebShare(
+    text: string,
+    title: string,
+    url?: string,
+    imageFile?: File[]
+  ) {
+    if (Capacitor.isNativePlatform()) {
+      // Convert File object to a blob URL, then extract path for Android
+      const file = imageFile ? imageFile[0] : null;
+
+      await Util.port
+        .shareContentWithAndroidShare({
+          text: t(text),
+          title: t(title),
+          url: url,
+          imageFile: imageFile // Pass the File object for Android
+        })
+        .then(() => console.log("Content shared successfully"))
+        .catch((error) => console.error("Error sharing content:", error));
+    } else {
+      // Web sharing
+      const shareData: ShareData = {
+        text: t(text) || "",
+        title: t(title) || "",
+        url: url,
+        files: imageFile,
+      };
+
+      await navigator.share(shareData)
+        .then(() => console.log("Content shared successfully"))
+        .catch((error) => console.error("Error sharing content:", error));
+    }
+  }
+
+
 }

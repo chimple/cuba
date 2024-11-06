@@ -684,9 +684,10 @@ export class ApiHandler implements ServiceApi {
 
   getChapterByLesson(
     lessonId: string,
-    classId: string
+    classId?: string,
+    userId?: string
   ): Promise<String | undefined> {
-    return this.s.getChapterByLesson(lessonId, classId);
+    return this.s.getChapterByLesson(lessonId, classId,userId);
   }
   createClass(
     schoolId: string,

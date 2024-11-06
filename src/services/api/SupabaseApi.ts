@@ -990,7 +990,8 @@ export class SupabaseApi implements ServiceApi {
 
   getChapterByLesson(
     lessonId: string,
-    classId: string
+    classId: string,
+    userId?: string
   ): Promise<String | undefined> {
     throw new Error("Method not implemented.");
   }

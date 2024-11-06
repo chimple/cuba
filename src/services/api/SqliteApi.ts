@@ -241,7 +241,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-            new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -2920,7 +2920,7 @@ export class SqliteApi implements ServiceApi {
           timestamp,
           false,
           chapter_id,
-          course_id
+          course_id,
         ]
       );
 
@@ -2962,7 +2962,7 @@ export class SqliteApi implements ServiceApi {
             id: assignment_user_UUid,
             is_deleted: false,
             updated_at: new Date().toISOString(),
-            user_id: student
+            user_id: student,
           };
           await this.executeQuery(
             `
@@ -2983,8 +2983,11 @@ export class SqliteApi implements ServiceApi {
             MUTATE_TYPES.INSERT,
             newAssignmentUser
           );
-          console.log("const assignmentUserPushRes ", newAssignmentUser, assignmentUserPushRes);
-
+          console.log(
+            "const assignmentUserPushRes ",
+            newAssignmentUser,
+            assignmentUserPushRes
+          );
         }
       }
 
@@ -3343,10 +3346,13 @@ order by
 
   async getChapterByLesson(
     lessonId: string,
-    classId: string
+    classId?: string,
+    userId?: string
   ): Promise<String | undefined> {
     try {
-      const class_course = await this.getCoursesForClassStudent(classId);
+      const class_course = classId
+        ? await this.getCoursesForClassStudent(classId)
+        : await this.getCoursesForParentsStudent(userId ?? "");
       const res = await this._db?.query(
         `SELECT cl.lesson_id, c.course_id ,cl.chapter_id
          FROM ${TABLES.ChapterLesson} cl
@@ -3436,7 +3442,7 @@ order by
   }
 
   async getLastAssignmentsForRecommendations(
-    classId: string,
+    classId: string
   ): Promise<TableTypes<"assignment">[] | undefined> {
     const query = `WITH RankedAssignments AS (
     SELECT *,

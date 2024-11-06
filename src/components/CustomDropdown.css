@@ -14,7 +14,12 @@ ion-select::part(text) {
   color: var(--text-color);
   /* padding-right: 20px ; */
   font-size: var(--text-size);
+}
 
+ion-select,
+ion-item {
+  --ion-background-color: white;
+  --color: black;
 }
 ion-popover {
   width: 26vw;
@@ -23,4 +28,12 @@ ion-popover {
 }
 ion-label {
   font-size: var(--text-size) !important;
+}
+
+/* ion-select::part(backdrop) {
+  background-color: transparent;
+} */
+
+ion-popover::part(backdrop) {
+  --ion-backdrop-color: transparent;
 }

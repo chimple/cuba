@@ -855,7 +855,8 @@ export interface ServiceApi {
    */
   getChapterByLesson(
     lessonId: string,
-    classId: string
+    classId?: string,
+    userId?: string
   ): Promise<String | undefined>;
 
   /**
@@ -1010,7 +1011,7 @@ export interface ServiceApi {
    */
   getTeacherJoinedDate(
     userId: string,
-    classId: string
+    classId: string,
   ): Promise<TableTypes<"class_user"> | undefined>;
 
   /**
