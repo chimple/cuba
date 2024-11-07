@@ -1,17 +1,11 @@
 import React, { FC, useState } from "react";
 import { t } from "i18next";
 import {
-  IonAlert,
   IonModal,
-  IonButton,
-  IonList,
-  IonItem,
-  IonLabel,
   IonIcon,
   IonText,
 } from "@ionic/react";
 import { callSharp } from "ionicons/icons";
-import { fontWeight } from "html2canvas/dist/types/css/property-descriptors/font-weight";
 interface PhoneNumberPopupProps {
   showPopUp: boolean;
   onPopUpClose;
