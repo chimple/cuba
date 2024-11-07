@@ -1,17 +1,12 @@
 import React, { FC, useState } from "react";
 import { t } from "i18next";
 import {
-  IonAlert,
   IonModal,
-  IonButton,
-  IonList,
-  IonItem,
-  IonLabel,
   IonIcon,
   IonText,
 } from "@ionic/react";
 import { callSharp } from "ionicons/icons";
-import { fontWeight } from "html2canvas/dist/types/css/property-descriptors/font-weight";
+import "./PhoneNumberPopup.css"
 interface PhoneNumberPopupProps {
   showPopUp: boolean;
   onPopUpClose;
@@ -38,29 +33,24 @@ const PhoneNumberPopup: FC<PhoneNumberPopupProps> = ({
           "--height": "auto",
         }}
       >
-        <div style={{ padding: "20px", color: "black" }}>
+        <div
+         className="phone-number-pop-up-page"
+        >
           <h5>{t("Continue with")}</h5>
-
-          <IonList lines="none">
+          <div
+           className="phone-number-pop-up"
+          >
             {phoneNumbers.map((phoneNumber, index) => (
-              <IonItem
-                button
+              <div
                 key={index}
-                style={{ marginLeft: "0"}}
                 onClick={() => onNumberSelect(phoneNumber)}
+                className="phone-number-pop-up-number"
               >
-                <IonIcon
-                  icon={callSharp}
-                  slot="start"
-                  style={{ marginRight: "4px" }}
-                />
-
-                <IonLabel style={{ marginLeft: "0" ,fontWeight:"bold"}}>
-                  {phoneNumber}
-                </IonLabel>
-              </IonItem>
+                <IonIcon icon={callSharp} style={{ marginRight: "8px" }} />
+                <span style={{ fontWeight: "bold" }}>{phoneNumber}</span>
+              </div>
             ))}
-          </IonList>
+          </div>
 
           {/* None of the above option */}
           <IonText

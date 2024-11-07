@@ -114,7 +114,8 @@ public class OTPReceiver extends BroadcastReceiver {
                     for (SubscriptionInfo info : subscriptionInfos) {
                         String number = info.getNumber(); // Get the phone number
                         if (number != null) {
-                            phoneNumbers.add(number);
+                            String localNumber = number.length() > 10 ? number.substring(number.length() - 10) : number;
+                            phoneNumbers.add(localNumber);
                         }
                     }
                 }
