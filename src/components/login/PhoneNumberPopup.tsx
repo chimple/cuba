@@ -6,6 +6,7 @@ import {
   IonText,
 } from "@ionic/react";
 import { callSharp } from "ionicons/icons";
+import "./PhoneNumberPopup.css"
 interface PhoneNumberPopupProps {
   showPopUp: boolean;
   onPopUpClose;
@@ -37,12 +38,7 @@ const PhoneNumberPopup: FC<PhoneNumberPopupProps> = ({
         >
           <h5>{t("Continue with")}</h5>
           <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              minWidth: "200px",
-              alignItems: "flex-start",
-            }}
+           className="phone-number-pop-up"
           >
             {phoneNumbers.map((phoneNumber, index) => (
               <div

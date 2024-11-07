@@ -1,3 +1,10 @@
-ion-list{
+ion-list {
   outline-style: hidden;
+}
+
+.phone-number-pop-up {
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  align-items: flex-start;
 }
