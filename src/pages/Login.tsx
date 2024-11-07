@@ -92,8 +92,7 @@ const Login: React.FC = () => {
   const parentNameRef = useRef<any>();
   const phoneNumberErrorRef = useRef<any>();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [isPromptNumbers, setIsPromptNumbers] =
-    useState<boolean>(false);
+  const [isPromptNumbers, setIsPromptNumbers] = useState<boolean>(false);
   let verificationCodeMessageFlags = {
     isInvalidCode: false,
     isInvalidCodeLength: false,
@@ -113,7 +112,7 @@ const Login: React.FC = () => {
     useState<boolean>(false);
   const [promptPhonNumbers, setPromptPhonNumbers] = useState<Array<string>>([]);
   const [showPhoneNumberPopUp, setShowPhoneNumberPopUp] =
-    useState<boolean>(true);
+    useState<boolean>(false);
   const PortPlugin = registerPlugin<any>("Port");
 
   useEffect(() => {
@@ -220,7 +219,7 @@ const Login: React.FC = () => {
     const phoneNumber = await PortPlugin.numberRetrieve();
     if (phoneNumber.number) {
       setShowPhoneNumberPopUp(!showPhoneNumberPopUp);
-      setPromptPhonNumbers(JSON.parse(phoneNumber.number))
+      setPromptPhonNumbers(JSON.parse(phoneNumber.number));
     }
   };
 
@@ -547,6 +546,7 @@ const Login: React.FC = () => {
         {!isLoading ? (
           <div>
             <img
+              aria-hidden="true"
               id="login-chimple-logo"
               alt="Chimple Brand Logo"
               src="assets/icons/ChimpleBrandLogo.svg"
@@ -571,14 +571,16 @@ const Login: React.FC = () => {
                         inputText={t("Enter Mobile Number (10-digit)")}
                         inputType={"tel"}
                         onFocus={async () => {
-                          
-                          if (Capacitor.getPlatform() === "android" && !isPromptNumbers) {
+                          if (
+                            Capacitor.getPlatform() === "android" &&
+                            !isPromptNumbers
+                          ) {
                             const data = await PortPlugin.requestPermission();
                             if (data.number) {
                               setShowPhoneNumberPopUp(!showPhoneNumberPopUp);
-                              setPromptPhonNumbers(JSON.parse(data.number))
+                              setPromptPhonNumbers(JSON.parse(data.number));
                             }
-                            setIsPromptNumbers(true)
+                            setIsPromptNumbers(true);
                           }
                         }}
                         maxLength={10}
@@ -1021,10 +1023,9 @@ const Login: React.FC = () => {
               setShowPhoneNumberPopUp(!showPhoneNumberPopUp);
               setPhoneNumber(number.toString());
               setCurrentButtonColor(Buttoncolors.Valid);
-                              phoneNumberErrorRef.current.style.display =
-                                "none";
+              phoneNumberErrorRef.current.style.display = "none";
             }}
-            phoneNumbers={['9704085472','7997225712']}
+            phoneNumbers={promptPhonNumbers}
           />
         ) : null}
       </div>
