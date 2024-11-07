@@ -8,3 +8,15 @@ ion-list {
   min-width: 200px;
   align-items: flex-start;
 }
+.phone-number-pop-up-number {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  cursor: pointer;
+  width: 100%;
+}
+.phone-number-pop-up-page{
+  padding-left: 20px;
+   padding-right: 20px;
+   color: black 
+} 

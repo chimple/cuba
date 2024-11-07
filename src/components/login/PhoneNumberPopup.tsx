@@ -34,7 +34,7 @@ const PhoneNumberPopup: FC<PhoneNumberPopupProps> = ({
         }}
       >
         <div
-          style={{ paddingLeft: "20px", paddingRight: "20px", color: "black" }}
+         className="phone-number-pop-up-page"
         >
           <h5>{t("Continue with")}</h5>
           <div
@@ -44,13 +44,7 @@ const PhoneNumberPopup: FC<PhoneNumberPopupProps> = ({
               <div
                 key={index}
                 onClick={() => onNumberSelect(phoneNumber)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "10px 0", // Adjust padding as needed
-                  cursor: "pointer",
-                  width: "100%",
-                }}
+                className="phone-number-pop-up-number"
               >
                 <IonIcon icon={callSharp} style={{ marginRight: "8px" }} />
                 <span style={{ fontWeight: "bold" }}>{phoneNumber}</span>
