@@ -63,16 +63,19 @@ const SelectCourse: FC<{
         return (
           <SplideSlide className="slide">
             <div
+              tabIndex={0}
               onClick={() => {
                 onCourseChange(course);
               }}
+              aria-label={`${grade?.title}, ${course.title}, ${curriculum && curriculum.title}`}
               className="subject-button"
               key={course.docId}
             >
-              <div id="subject-card-subject-name">
+              <div aria-hidden="true" id="subject-card-subject-name">
                 <p>{grade?.title}</p>
               </div>
               <div
+                aria-hidden="true"
                 className="course-icon"
                 style={{
                   backgroundColor: course.color ?? DEFUALT_SUBJECT_CARD_COLOUR,
@@ -86,9 +89,13 @@ const SelectCourse: FC<{
                   imageHeight={"80%"}
                 />
               </div>
-              <div className="course-title">{course.title}</div>
+              <div aria-hidden="true" className="course-title">
+                {course.title}
+              </div>
               {curriculum && (
-                <div className="course-curriculum">{curriculum.title}</div>
+                <div aria-hidden="true" className="course-curriculum">
+                  {curriculum.title}
+                </div>
               )}
             </div>
           </SplideSlide>
@@ -102,6 +109,8 @@ const SelectCourse: FC<{
             }}
             className="subject-button"
             key={courses[0].docId}
+            tabIndex={1}
+            aria-label={`${t("Add Subject")}`}
           >
             <div
               className="course-icon"

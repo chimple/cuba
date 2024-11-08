@@ -10,9 +10,14 @@ const SelectModeButton: FC<{
   onClick: MouseEventHandler<HTMLDivElement>;
 }> = ({ icon: Icon, onClick, text }) => {
   return (
-    <div onClick={onClick} className="select-mode-btn">
+    <div
+      tabIndex={1}
+      aria-label={`${t(text)}`}
+      onClick={onClick}
+      className="select-mode-btn"
+    >
       <Icon size={"4vh"} />
-      <div className="select-mode-btn-text">{t(text)}</div>
+      <div aria-hidden={true} className="select-mode-btn-text">{t(text)}</div>
     </div>
   );
 };

@@ -24,16 +24,29 @@ const HeaderIcon: React.FC<{
   const isCurrentHeaderActive = currentHeader === headerConfig.headerList;
 
   return (
-    <div>
-      {isCurrentHeaderActive ? (
-        <p className="home-header-indicator">&#9679;</p>
-      ) : (
-        <p className="home-header-indicator">&nbsp;</p>
-      )}
+    <div
+      // role="button"
+      tabIndex={0}
+      aria-label={`${t(headerConfig.displayName)}`}
+      aria-hidden="false"
+      onClick={() => {
+        if (!isCurrentHeaderActive) {
+          onHeaderIconClick(headerConfig.headerList);
+        }
+      }}
+    >
+      <div aria-hidden="true">
+        {isCurrentHeaderActive ? (
+          <p className="home-header-indicator">&#9679;</p>
+        ) : (
+          <p className="home-header-indicator">&nbsp;</p>
+        )}
+      </div>
+
       {headerConfig.headerList === HOMEHEADERLIST.ASSIGNMENT &&
         pendingAssignmentCount !== undefined &&
         pendingAssignmentCount > 0 && (
-          <div id="homework-notification">
+          <div aria-hidden="true" id="homework-notification">
             <IonBadge class="badge-notification">
               {pendingAssignmentCount}
             </IonBadge>
@@ -42,25 +55,22 @@ const HeaderIcon: React.FC<{
       {headerConfig.headerList == HOMEHEADERLIST.LIVEQUIZ &&
         !!pendingLiveQuizCount &&
         pendingLiveQuizCount > 0 && (
-          <div id="homework-notification">
+          <div aria-hidden="true" id="homework-notification">
             <IonBadge class="livequiz-badge-notification">
               {pendingLiveQuizCount}
             </IonBadge>
           </div>
         )}
-      <IconButton
-        name={t(headerConfig.displayName)}
-        iconSrc={
-          !isCurrentHeaderActive
-            ? headerConfig.iconSrc
-            : ACTIVE_HEADER_ICON_CONFIGS.get(headerConfig.headerList)?.iconSrc
-        }
-        onClick={() => {
-          if (!isCurrentHeaderActive) {
-            onHeaderIconClick(headerConfig.headerList);
+      <div aria-hidden="true">
+        <IconButton
+          name={t(headerConfig.displayName)}
+          iconSrc={
+            !isCurrentHeaderActive
+              ? headerConfig.iconSrc
+              : ACTIVE_HEADER_ICON_CONFIGS.get(headerConfig.headerList)?.iconSrc
           }
-        }}
-      />
+        />
+      </div>
     </div>
   );
 };

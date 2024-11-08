@@ -43,39 +43,44 @@ const GradeBoardAndLangDropdown: FC<{
   }));
   return (
     <div className="dropdown-header">
-      <div id="drop-down-board">
-        <p id="drop-down-head">{t('Board')}</p>
-           <DropDown
-      currentValue={currentlySelectedBoard!}
-        // currentlySelected={currentlySelectedBoard}
-        placeholder={t("Select").toString()}
-        onValueChange={onBoardChange}
-        optionList={boardOptions??[]}
-        width="26vw"
-        // options={boardOptions ?? []}
-        // onDropdownChange={onBoardChange}
-      />
+      <div id="drop-down-board" aria-label={`${t("Board")}`}>
+        <p  aria-hidden = "true" id="drop-down-head">{t("Board")}</p>
+        <div aria-hidden="true">
+          <DropDown
+            currentValue={currentlySelectedBoard!}
+            // currentlySelected={currentlySelectedBoard}
+            placeholder={t("Select").toString()}
+            onValueChange={onBoardChange}
+            optionList={boardOptions ?? []}
+            width="26vw"
+            // options={boardOptions ?? []}
+            // onDropdownChange={onBoardChange}
+          />
+        </div>
       </div>
-      <div id="drop-down-grade">
-      <p id="drop-down-head">{t('Grade')}</p>
-      <DropDown
-       currentValue={currentlySelectedGrade!}
-       
-       placeholder={t("Select").toString()}
-       onValueChange={onGradeChange}
-       optionList={gradeOptions??[]}
-       width="26vw"
-      />
-      </div>
-      <div id="drop-down-Medium-of-instruction">
-        <p id="drop-down-head">{t('Medium of instruction')}</p>
+      <div id="drop-down-grade" aria-label={`${t("Grade")}`}>
+        <p   aria-hidden = "true"id="drop-down-head">{t("Grade")}</p>
+        <div aria-hidden = "true">
         <DropDown
-       currentValue={currentlySelectedLang}
-       placeholder={t("Select").toString()}
-        onValueChange={onLangChange}
-        optionList={languageOptions??[]}
-        width="26vw"
-      />
+          currentValue={currentlySelectedGrade!}
+          placeholder={t("Select").toString()}
+          onValueChange={onGradeChange}
+          optionList={gradeOptions ?? []}
+          width="26vw"
+        />
+        </div>
+      </div>
+      <div id="drop-down-Medium-of-instruction" aria-label={`${t("Medium of instruction")}`}>
+        <p   aria-hidden = "true"id="drop-down-head">{t("Medium of instruction")}</p>
+        <div aria-hidden = "true">
+        <DropDown
+          currentValue={currentlySelectedLang}
+          placeholder={t("Select").toString()}
+          onValueChange={onLangChange}
+          optionList={languageOptions ?? []}
+          width="26vw"
+        />
+        </div>
       </div>
     </div>
   );

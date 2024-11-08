@@ -426,6 +426,13 @@ export enum GENDER {
   OTHER = "unspecified",
 }
 
+export enum DISABILITY {
+  NOTAPPLICABLE = "Not Applicable",
+  VI = "Visual Impairment",
+  HI = "Hearing Impairment",
+}
+
+
 export const AVATARS: string[] = [
   "Aligator",
   "armydog",

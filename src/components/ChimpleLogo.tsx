@@ -4,7 +4,7 @@ const ChimpleLogo: React.FC<{ header: string; msg: string | string[] }> = ({
   msg,
 }) => {
   return (
-    <div id="logo-header">
+    <div id="logo-header" aria-hidden="true">
       <img
         id="chimple-logo"
         alt="assets/icons/ChimpleBrandLogo.svg"

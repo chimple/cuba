@@ -35,9 +35,11 @@ const SelectChapter: FC<{
     <div>
       <div className="grade-container" />
       <div className="chapter-container">
-        {chapters.map((chapter) => {
+        {chapters.map((chapter, index) => {
           return (
             <div
+              tabIndex={index}
+              aria-label={`${t(chapter.title)}`}
               ref={
                 currentChapterId === chapter.id ? currentChapterRef : undefined
               }
@@ -48,7 +50,7 @@ const SelectChapter: FC<{
               key={chapter.id}
             >
               <div className="chapter-icon-and-chapter-download-container">
-                <div className="chapter-icon">
+                <div className="chapter-icon" aria-hidden="true">
                   <SelectIconImage
                     localSrc={`courses/${course.courseCode}/icons/${chapter.id}.webp`}
                     defaultSrc={"assets/icons/DefaultIcon.png"}
@@ -57,8 +59,11 @@ const SelectChapter: FC<{
                     imageHeight={"80%"}
                   />
                 </div>
-                <div>{t(chapter.title)}</div>
-                <div className="chapter-download">
+                <div aria-hidden="true">{t(chapter.title)}</div>
+                <div
+                  className="chapter-download"
+                   aria-hidden="true"
+                >
                   <DownloadLesson chapter={chapter} />
                 </div>
               </div>

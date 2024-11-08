@@ -8,8 +8,11 @@ import { initializeFireBase } from "./services/Firebase";
 import { APIMode, ServiceConfig } from "./services/ServiceConfig";
 import { Util } from "./utility/util";
 import React from "react";
+import ReactDOM from "react-dom";
 
 const container = document.getElementById("root");
+var axe = require('react-axe')
+axe(React,ReactDOM,100)
 const root = createRoot(container!);
 root.render(
   <>

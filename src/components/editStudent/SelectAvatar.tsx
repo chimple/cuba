@@ -15,8 +15,10 @@ const SelectAvatar: FC<{ avatar: string|undefined; onAvatarChange: (avatar: stri
           {AVATARS.map((_avatar: string) => {
             return (
               <div
+                aria-label={_avatar}
                 onClick={() => onAvatarChange(_avatar)}
                 className="avatar-button"
+                 aria-hidden="false"
                 key={_avatar}
               >
                 <img

@@ -63,8 +63,9 @@ const AppLangSelection: React.FC = () => {
             id="intro-logo"
             alt="Home Screen"
             src="assets/icons/intro1.svg"
+            aria-hidden="true"
           />
-          <div id="text">
+          <div id="text" tabIndex={4}>
             <p id="header-text1">{t("Login with Phone number or Gmail")}</p>
             <div className="intro-text2">
               <p>
@@ -90,8 +91,9 @@ const AppLangSelection: React.FC = () => {
             id="intro-logo"
             alt="Home Screen"
             src="assets/icons/intro2.svg"
+            aria-hidden="true"
           />
-          <div id="text">
+          <div id="text" tabIndex={5}>
             <p id="header-text2">{t("Enhanced kid's profile creation")}</p>
             <div className="intro-text2">
               <p>
@@ -116,8 +118,9 @@ const AppLangSelection: React.FC = () => {
             id="intro-logo"
             alt="Home Screen"
             src="assets/icons/intro3.svg"
+            aria-hidden="true"
           />
-          <div id="text">
+          <div id="text" tabIndex={6}>
             <p id="header-text3">{t("Advance Home Screen")}</p>
             <div className="intro-text2">
               <p>
@@ -208,13 +211,17 @@ const AppLangSelection: React.FC = () => {
           ) : (
             <div className="middle-content">
               <img
+              tabIndex={1}
                 id="app-lang-chimple-logo"
                 alt="Chimple Brand Logo"
                 src="assets/icons/ChimpleBrandLogo.svg"
               />
               <div id="app-lang-element">
-                <p id="app-lang-text">{t("Choose your language")}</p>
-                <DropDown
+                <p tabIndex={2} id="app-lang-text">
+                  {t("Choose your language")}
+                </p>
+               <div tabIndex={3}>
+               <DropDown
                   placeholder=""
                   optionList={langList}
                   currentValue={currentAppLang || langList[0]?.id}
@@ -229,6 +236,7 @@ const AppLangSelection: React.FC = () => {
                     setCurrentAppLang(tempLangCode);
                   }}
                 />
+                </div>
               </div>
             </div>
           )}

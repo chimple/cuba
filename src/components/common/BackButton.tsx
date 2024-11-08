@@ -7,7 +7,6 @@ import { Capacitor } from "@capacitor/core";
 import { CONTINUE } from "../../common/constants";
 
 const BackButton: React.FC<{
-
   onClicked: any;
 }> = ({ onClicked }) => {
   useEffect(() => {
@@ -27,6 +26,7 @@ const BackButton: React.FC<{
 
   return (
     <IoIosArrowBack
+      aria-label={`${"Do you want to go back"}`}
       id="common-back-button"
       onClick={onClicked}
     ></IoIosArrowBack>

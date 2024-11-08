@@ -1,0 +1,53 @@
+.disability-title {
+    font-size: var(--text-size);
+    text-align: center;
+    color: #05342f;
+    margin-bottom: 1.5vh;
+  }
+  
+  .disability-header {
+    width: 100%;
+    text-align: -webkit-center;
+    padding-top: 10%;
+  }
+  
+  .disability-button {
+    background: white;
+    height: 9vh;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    border-radius: 2vh;
+    cursor: pointer;
+    margin: 0px 3vh;
+    min-width: 30vh;
+    gap: 10px;
+    padding: 10px;
+  }
+  
+  .disability-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 4vh;
+  }
+  
+  .disability-text {
+    font-size: var(--text-size);
+    align-self: center;
+    color: #05342f;
+  }
+  
+  .disability-check-box {
+    margin-right: 1vh;
+  }
+  
+  .age-container {
+    display: flex;
+    justify-content: center;
+  }  
+  .impairedIcon {
+    height: 8vh;
+    width: auto;
+    padding: 5px;
+  }
+  

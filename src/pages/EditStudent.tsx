@@ -14,6 +14,7 @@ import {
   GENDER,
   PAGES,
   EDIT_STUDENT_STORE,
+  DISABILITY,
 } from "../common/constants";
 import { chevronForward } from "ionicons/icons";
 import Curriculum from "../models/curriculum";
@@ -30,6 +31,7 @@ import { Keyboard } from "@capacitor/keyboard";
 import BackButton from "../components/common/BackButton";
 import i18n from "../i18n";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
+import SelectDisabilty from "../components/editStudent/SelectDisabilty";
 
 let localStoreData: any = {};
 
@@ -46,6 +48,7 @@ const EditStudent = () => {
     GENDER_AND_AGE,
     AVATAR,
     GRADE,
+    DISABILITY,
   }
   const [stage, setStage] = useState(STAGES.NAME);
   const [studentName, setStudentName] = useState(
@@ -55,6 +58,12 @@ const EditStudent = () => {
     isEdit && currentStudent?.gender
       ? (currentStudent?.gender as GENDER)
       : undefined
+  );
+
+  const [disability, setDisability] = useState<DISABILITY | undefined>(
+    isEdit && currentStudent?.gender
+      ? (currentStudent?.gender as DISABILITY)
+      : DISABILITY.NOTAPPLICABLE
   );
   const [age, setAge] = useState<number | undefined>(
     isEdit
@@ -220,6 +229,11 @@ const EditStudent = () => {
       case STAGES.GRADE:
         if (!!checkResults) {
           return !!grade && !!board && !!language;
+        }
+        return false;
+      case STAGES.DISABILITY:
+        if (!!checkResults) {
+          return !!disability;
         }
         return false;
       default:
@@ -421,7 +435,10 @@ const EditStudent = () => {
             <>
               <>
                 <>
-                  <div id="common-div">
+                  <div
+                    id="common-div"
+                    aria-label={`${t("Choose your child’s class details").toString()}`}
+                  >
                     <ChimpleLogo
                       header={t("")}
                       msg={t("Choose your child’s class details").toString()}
@@ -450,6 +467,43 @@ const EditStudent = () => {
           </>
         )}
       </div>
+      {stage === STAGES.DISABILITY && (
+        <>
+          <>
+            <div id="Edit-student-back-button">
+              <BackButton
+                onClicked={() => {
+                  localStoreData.stage = STAGES.GRADE;
+                  addDataToLocalStorage();
+                  setStage(STAGES.GRADE);
+                }}
+              />
+            </div>
+          </>
+          <>
+            <>
+              <>
+                <div
+                  aria-label={`${t("Choose your child’s sensory Disability ").toString()}`}
+                >
+                  <ChimpleLogo
+                    header={t("")}
+                    msg={t(
+                      "Choose your child’s sensory Disability "
+                    ).toString()}
+                  />
+                </div>
+                <SelectDisabilty
+                  disability={disability}
+                  onDisabilityChange={(val) =>
+                    handleValueChange("disability", val, setDisability)
+                  }
+                />
+              </>
+            </>
+          </>
+        </>
+      )}
       <Loading isLoading={isLoading} />
     </IonPage>
   );
