@@ -167,7 +167,7 @@ const AppLangSelection: React.FC = () => {
   };
 
   return (
-    <IonPage id="app-lang">
+    <IonPage id="app-lang"  aria-hidden={"true"}>
       {!isLoading ? (
         <div
           className={`app-container ${currentPage >= 0 ? "with-content" : ""}`}
@@ -211,7 +211,7 @@ const AppLangSelection: React.FC = () => {
           ) : (
             <div className="middle-content">
               <img
-              tabIndex={1}
+                aria-hidden={"true"}
                 id="app-lang-chimple-logo"
                 alt="Chimple Brand Logo"
                 src="assets/icons/ChimpleBrandLogo.svg"
@@ -220,22 +220,22 @@ const AppLangSelection: React.FC = () => {
                 <p tabIndex={2} id="app-lang-text">
                   {t("Choose your language")}
                 </p>
-               <div tabIndex={3}>
-               <DropDown
-                  placeholder=""
-                  optionList={langList}
-                  currentValue={currentAppLang || langList[0]?.id}
-                  width="26vw"
-                  onValueChange={async (selectedLang) => {
-                    console.log("selected Language", selectedLang);
-                    const tempLangCode = selectedLang;
-                    if (!tempLangCode) return;
-                    localStorage.setItem(LANGUAGE, tempLangCode);
-                    console.log("Selected language: " + tempLangCode);
-                    await i18n.changeLanguage(tempLangCode);
-                    setCurrentAppLang(tempLangCode);
-                  }}
-                />
+                <div tabIndex={3}>
+                  <DropDown
+                    placeholder=""
+                    optionList={langList}
+                    currentValue={currentAppLang || langList[0]?.id}
+                    width="26vw"
+                    onValueChange={async (selectedLang) => {
+                      console.log("selected Language", selectedLang);
+                      const tempLangCode = selectedLang;
+                      if (!tempLangCode) return;
+                      localStorage.setItem(LANGUAGE, tempLangCode);
+                      console.log("Selected language: " + tempLangCode);
+                      await i18n.changeLanguage(tempLangCode);
+                      setCurrentAppLang(tempLangCode);
+                    }}
+                  />
                 </div>
               </div>
             </div>

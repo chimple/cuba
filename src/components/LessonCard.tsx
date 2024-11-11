@@ -163,6 +163,8 @@ const LessonCard: React.FC<{
 
       <div>
         <IonCard
+          tabIndex={1}
+          aria-label={`${showText ? t(lesson?.title) : ""},${showChapterName && lesson.chapterTitle ? lesson.chapterTitle : ""}`}
           id="lesson-card"
           style={{
             width: width,
@@ -248,8 +250,6 @@ const LessonCard: React.FC<{
           }}
         >
           <div
-            tabIndex={1}
-            aria-label={`${showText ? t(lesson?.title) : ""},${showChapterName && lesson.chapterTitle ? lesson.chapterTitle : ""}`}
             style={{
               display: "grid",
             }}

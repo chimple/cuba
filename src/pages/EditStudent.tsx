@@ -313,7 +313,7 @@ const EditStudent = () => {
         )}
       </div>
 
-      <div id="next-button">
+      <div id="next-button" aria-hidden={!isNextButtonEnabled()}>
         <NextButton
           disabled={!isNextButtonEnabled()}
           onClicked={() => {
