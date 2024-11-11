@@ -91,7 +91,7 @@ enum NotificationType {
 
 export class Util {
   public static port: PortPlugin;
-  static TIME_LIMIT = 6 * 60;
+  static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = "lastModalShown";
 
 
