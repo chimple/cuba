@@ -76,9 +76,9 @@ http://ionicframework.com/docs/theming/ */
   --ion-color-light-tint: #f5f6f9;
 
   /** custom **/
-  --ion-background-color: #e2dede;
+  --ion-background-color:white;
   --text-color: #182a4f;
-  --text-size: clamp(15px, 4vh, 18px);
+  --text-size: clamp(18px, 5vh, 22px);
   --border-radius: 1.5vh;
   --header-text: clamp(33px, 10vh, 55px);
 

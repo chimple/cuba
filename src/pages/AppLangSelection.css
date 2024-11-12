@@ -45,7 +45,7 @@
   height: clamp(40px,8vh,45px);
   display: flex;
   align-items: center;
-  background-color: white;
+  background-color: #D14600;
   border-radius: 64px;
 }
 
@@ -103,7 +103,7 @@
 
 .skip-button{
   text-align: center;
-  background-color: #CCCCCC;
+  background-color: #D14600;
 }
 .skip-next{
   display: flex;

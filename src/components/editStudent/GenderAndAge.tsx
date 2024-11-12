@@ -15,39 +15,51 @@ const GenderAndAge: React.FC<{
   return (
     <div>
       <div className="main-header">
-        <div className="gender-title" >{t("What is your child’s gender?")}</div>
+        <div className="gender-title">{t("What is your child’s gender?")}</div>
         <div className="gender-container">
           <div
+            style={{
+              border:
+                gender === GENDER.BOY ? "4px solid #58CD99" : "2px solid black",
+              backgroundColor: gender === GENDER.BOY ? "#E1FFC7" : "white",
+            }}
             aria-label={`${t("Boy")}`}
             className="gender-button"
             onClick={() => {
               onGenderChange(GENDER.BOY);
             }}
           >
-            <IonRow aria-hidden={'true'}>
+            <IonRow aria-hidden={"true"}>
               <CgBoy size="8vh" color="#ffad1a" />
               <p className="gender-text"> {t("Boy")}</p>
             </IonRow>
             <BsFillCheckCircleFill
-              aria-hidden={'true'}
+              aria-hidden={"true"}
               color={gender === GENDER.BOY ? "#81C127" : "grey"}
               className="gender-check-box"
               size="4vh"
             />
           </div>
           <div
-           aria-label={`${t("Girl")}`}
+            aria-label={`${t("Girl")}`}
+            style={{
+              border:
+                gender === GENDER.GIRL
+                  ? "4px solid #58CD99"
+                  : "2px solid black",
+              backgroundColor: gender === GENDER.GIRL ? "#E1FFC7" : "white",
+            }}
             className="gender-button"
             onClick={() => {
               onGenderChange(GENDER.GIRL);
             }}
           >
-            <IonRow aria-hidden={'true'}>
+            <IonRow aria-hidden={"true"}>
               <CgGirl size="8vh" color="#e28daf" />
               <p className="gender-text"> {t("Girl")}</p>
             </IonRow>
             <BsFillCheckCircleFill
-            aria-hidden={'true'}
+              aria-hidden={"true"}
               color={gender === GENDER.GIRL ? "#81C127" : "grey"}
               className="gender-check-box"
               size="4vh"
@@ -55,7 +67,14 @@ const GenderAndAge: React.FC<{
           </div>
           <div className="gender-container" aria-label={`${t("Unspecified")}`}>
             <div
-             aria-hidden={'true'}
+              aria-hidden={"true"}
+              style={{
+                border:
+                  gender === GENDER.OTHER
+                    ? "4px solid #58CD99"
+                    : "2px solid black",
+                backgroundColor: gender === GENDER.OTHER ? "#E1FFC7" : "white",
+              }}
               className="gender-button"
               onClick={() => {
                 onGenderChange(GENDER.OTHER);
@@ -76,7 +95,7 @@ const GenderAndAge: React.FC<{
             </div>
           </div>
         </div>
-        <div className="gender-title" >{t("What is your child’s age?")}</div>
+        <div className="gender-title">{t("What is your child’s age?")}</div>
         <div className="age-container">
           {Array(7)
             .fill(null)

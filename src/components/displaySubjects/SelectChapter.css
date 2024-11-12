@@ -27,6 +27,7 @@
   width: min(70vh, 130px);
   height: min(70vh, 130px);
   border-radius: 50%;
+  border: 2px solid #D14600,
 }
 
 .chapter-icon-in-avatar-image-option {

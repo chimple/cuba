@@ -427,6 +427,7 @@ const DisplayChapters: FC<{}> = () => {
               id: grade.docId,
             }))}
             placeholder=""
+            
             onValueChange={(evt) => {
               {
                 const tempGrade = localGradeMap.grades.find(

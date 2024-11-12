@@ -1,4 +1,4 @@
-#common-next-button{
+    #common-next-button{
     justify-content: space-between;
     padding-left: min(10px,2vw);
     /* position: absolute; */
@@ -12,6 +12,7 @@
     height: clamp(40px,8vh,45px);
     display: flex;
     align-items: center;
+    border: 2px solid #D14600;
     background-color: white;
     border-radius: 64px;
 }

@@ -10,6 +10,8 @@ const TextField: React.FC<{
 }> = ({ onChange, value, onEnterDown }) => {
   const [isInputFocus, setIsInputFocus] = useState(false);
   const scollToRef = useRef<null | HTMLDivElement>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -35,12 +37,17 @@ const TextField: React.FC<{
         className={"text-box "}
         type="text"
         value={value}
+        onFocus={() => setIsEditing(true)}   // Set editing state to true on focus
+        onBlur={() => setIsEditing(false)}
         // ref={scollToRef}
         onChange={onChange}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
             onEnterDown();
           }
+        }}
+        style={{
+          border: isEditing ? "4px solid #58CD99" : "2px solid black", // Conditional border color
         }}
       ></input>
       {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}

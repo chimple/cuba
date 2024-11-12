@@ -27,6 +27,7 @@
   width: clamp(95px, 10vh, 110px);
   height: clamp(40px, 8vh, 45px);
   border-radius: 64px;
+  border: 2px solid #D14600;
   background: #ffffffd9;
   display: flex;
   padding-left: min(10px, 2vw);

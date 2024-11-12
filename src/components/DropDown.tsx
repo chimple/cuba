@@ -17,18 +17,20 @@ const DropDown: React.FC<{
 
       className="dropdown-outer"
       sx={{
+        // fontSize:"20px"
         color: currentValue === placeholderTextItem ? "gray" : "black",
         width: width,
+        // border: currentValue != "Select"? '4px solid #58CD99':"black",
         borderRadius: "0.8vw",
         fontFamily: "BalooRegular",
         '.MuiOutlinedInput-notchedOutline': {
-          borderColor: 'gray',
+          border: '2px solid black,',
         },
         '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-          borderColor: 'gray',
+          border: '4px solid #58CD99,',
         },
         '&:hover .MuiOutlinedInput-notchedOutline': {
-          borderColor: 'gray',
+          border:  '4px solid #58CD99,',
         },
       }}
       variant="outlined"
@@ -45,7 +47,7 @@ const DropDown: React.FC<{
             OverflowY: "scroll",
             borderRadius: "0.8vw",
             width: width,
-            backgroundColor: "#e2dede",
+            backgroundColor: "white",
           }
         },
         anchorOrigin: {

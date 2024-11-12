@@ -41,6 +41,7 @@ const LessonCard: React.FC<{
   showChapterName: boolean;
   downloadButtonLoading?: boolean;
   showDate?: boolean;
+  lessonName?:string
   onDownloadOrDelete?: () => void;
 }> = ({
   width,
@@ -61,6 +62,7 @@ const LessonCard: React.FC<{
   downloadButtonLoading,
   showDate,
   onDownloadOrDelete,
+  lessonName
 }) => {
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
@@ -164,7 +166,7 @@ const LessonCard: React.FC<{
       <div>
         <IonCard
           tabIndex={1}
-          aria-label={`${showText ? t(lesson?.title) : ""},${showChapterName && lesson.chapterTitle ? lesson.chapterTitle : ""}`}
+          aria-label={`${showText ? t("My Face") : ""},${showChapterName && lesson.chapterTitle ? lesson.chapterTitle : ""}`}
           id="lesson-card"
           style={{
             width: width,
@@ -378,7 +380,7 @@ const LessonCard: React.FC<{
           <div aria-hidden="true">
             {showText ? (
               <p id={`lesson-card-name${isLoved ? "-fav-icon" : ""}`}>
-                {t(lesson?.title)}
+                {t(lessonName??lesson?.title)}
               </p>
             ) : null}
             {showChapterName && lesson.chapterTitle && (

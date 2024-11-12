@@ -108,6 +108,7 @@ const LessonSlider: React.FC<{
                 downloadButtonLoading={downloadButtonLoading}
                 showDate={showDate}
                 onDownloadOrDelete={onDownloadOrDelete}
+                lessonName={i == 0 ? "MyFace" : undefined}
               />
             </SplideSlide>
           );

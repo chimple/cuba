@@ -20,6 +20,10 @@ const SelectDisabilty: React.FC<{
             style={{
               backgroundColor:
                 disability === DISABILITY.NOTAPPLICABLE ? "#E9FFBF" : "white",
+              border:
+                disability === DISABILITY.NOTAPPLICABLE
+                  ? "4px solid #58CD99"
+                  : "2px solid black",
             }}
             onClick={() => {
               onDisabilityChange(DISABILITY.NOTAPPLICABLE);
@@ -33,6 +37,10 @@ const SelectDisabilty: React.FC<{
             style={{
               backgroundColor:
                 disability === DISABILITY.VI ? "#E9FFBF" : "white",
+              border:
+                disability === DISABILITY.VI
+                  ? "4px solid #58CD99"
+                  : "2px solid black",
             }}
             aria-label={`${t(DISABILITY.VI)}`}
             className="disability-button"
@@ -58,6 +66,10 @@ const SelectDisabilty: React.FC<{
               style={{
                 backgroundColor:
                   disability === DISABILITY.HI ? "#E9FFBF" : "white",
+                border:
+                  disability === DISABILITY.HI
+                    ? "4px solid #58CD99"
+                    : "2px solid black",
               }}
               onClick={() => {
                 onDisabilityChange(DISABILITY.HI);

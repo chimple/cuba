@@ -12,6 +12,7 @@
 
 .gender-button {
   background: white;
+  border: 2px solid black;
   height: 9vh;
   display: flex;
   align-items: center;
@@ -50,6 +51,7 @@
   margin: 1vh;
   border-radius: 1.1vh;
   background-color: white;
+  border: 2px solid black;
   display: flex;
   justify-content: center;
   font-size: var(--text-size);
@@ -58,7 +60,8 @@
 }
 
 .active-age {
-  background: #81c127;
+  background: #E1FFC7;
+  border: 4px solid #58CD99;
 }
 .unspecifiedGenderIcon {
   height: 8vh;

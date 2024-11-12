@@ -63,7 +63,7 @@ const EditStudent = () => {
   const [disability, setDisability] = useState<DISABILITY | undefined>(
     isEdit && currentStudent?.gender
       ? (currentStudent?.gender as DISABILITY)
-      : DISABILITY.NOTAPPLICABLE
+      : undefined
   );
   const [age, setAge] = useState<number | undefined>(
     isEdit

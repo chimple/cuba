@@ -7,11 +7,12 @@
   outline: none;
   margin-top: 1vh;
   background-color: white;
+  border: 2px solid black;
   color: #05342f;
   overflow-y: scroll;
 }
 #scroll {
   height: 57vh;
-  background-color: #e2dede;
+  background-color: white;
   overflow: scroll;
 }

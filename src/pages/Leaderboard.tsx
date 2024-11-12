@@ -531,7 +531,7 @@ const Leaderboard: React.FC = () => {
                   flexDirection: "inherit",
                   justifyContent: "space-between",
                   padding: "1vh 1vw",
-                  backgroundColor: "#e2dede !important",
+                  backgroundColor: "white !important",
                   boxShadow: "0px 0px 0px 0px !important",
                 }}
               >
