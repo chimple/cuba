@@ -1,0 +1,30 @@
+.calendar-picker {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  background-color: white;
+  border-radius: 20px;
+  padding: 3px;
+  border: 1px solid #ccc;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+}
+.confirm-button {
+  color: #7c5db0;
+  font-weight: bold;
+}
+.calendar-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+.calendar-div {
+  background: white;
+  border-radius: 3vh;
+}

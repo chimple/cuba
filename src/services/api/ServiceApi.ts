@@ -836,7 +836,7 @@ export interface ServiceApi {
    * @param userId
    * @param lessons
    */
-  createAssignmentCart(
+  createOrUpdateAssignmentCart(
     userId: string,
     lessons: string
   ): Promise<boolean | undefined>;
@@ -855,7 +855,8 @@ export interface ServiceApi {
    */
   getChapterByLesson(
     lessonId: string,
-    classId: string
+    classId?: string,
+    userId?: string
   ): Promise<String | undefined>;
 
   /**
@@ -940,7 +941,8 @@ export interface ServiceApi {
     school_id: string,
     lesson_id: string,
     chapter_id: string,
-    course_id: string
+    course_id: string,
+    type: string
   ): Promise<boolean>;
 
   /**
@@ -1013,7 +1015,7 @@ export interface ServiceApi {
    */
   getTeacherJoinedDate(
     userId: string,
-    classId: string
+    classId: string,
   ): Promise<TableTypes<"class_user"> | undefined>;
 
   /**

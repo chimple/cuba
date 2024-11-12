@@ -1058,7 +1058,7 @@ export class OneRosterApi implements ServiceApi {
   searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
-  createAssignmentCart(
+  createOrUpdateAssignmentCart(
     userId: string,
     lessons: string
   ): Promise<boolean | undefined> {
@@ -1069,7 +1069,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"assignment_cart"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  getChapterByLesson(lessonId:string,classId:string): Promise<String | undefined>{
+  getChapterByLesson(lessonId:string,classId?:string,userId?: string): Promise<String | undefined>{
     throw new Error("Method not implemented.");
   }
   getAssignmentOrLiveQuizByClassByDate(classId:string,courseId:string,startDate:string,endDate:string,isClassWise: boolean,isLiveQuiz: boolean): Promise<TableTypes<"assignment">[] | undefined>{

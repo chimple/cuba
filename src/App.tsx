@@ -1,5 +1,6 @@
 import { Route, Switch, useHistory } from "react-router-dom";
 import {
+  IonAlert,
   IonApp,
   IonButton,
   IonModal,
@@ -112,21 +113,34 @@ import LessonDetails from "./chimple-private/pages/LessonDetails";
 import DisplayClasses from "./chimple-private/pages/DisplayClasses";
 import "./App.css";
 import ShowStudentsInAssignmentPage from "./chimple-private/pages/ShowStudentsInAssignmentPage";
+import { schoolUtil } from "./utility/schoolUtil";
 
 setupIonicReact();
 interface ExtraData {
   notificationType?: string;
   rewardProfileId?: string;
 }
+interface WindowEventMap {
+  shouldShowModal: CustomEvent<boolean>;
+}
 const TIME_LIMIT = 1500; // 25 * 60
 const LAST_MODAL_SHOWN_KEY = "lastTimeExceededShown";
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
-  const [startTime, setStartTime] = useState<number>(Date.now());
+  const [startTime, setStartTime] = useState<number>(() => {
+    const savedStartTime = localStorage.getItem("startTime");
+    const initialTime = savedStartTime ? Number(savedStartTime) : Date.now();
+    if (!savedStartTime) {
+      localStorage.setItem("startTime", initialTime.toString());
+    }
+    return initialTime;
+  });
+  let timeoutId: NodeJS.Timeout;
   const [timeExceeded, setTimeExceeded] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
+  const [isActive, setIsActive] = useState(true);
   useEffect(() => {
     const handleOnline = () => {
       if (!online) {
@@ -208,7 +222,7 @@ const App: React.FC = () => {
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,
-    }).catch((_) => {});
+    }).catch((_) => { });
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
@@ -245,41 +259,98 @@ const App: React.FC = () => {
     });
     updateAvatarSuggestionJson();
   }, []);
-  useEffect(() => {
-    const handleAppStateChange = (state: any) => {
-      if (state.isActive) {
-        const currentTime = Date.now();
-        const timeElapsed = (currentTime - startTime) / 1000;
-        if (timeElapsed >= TIME_LIMIT) {
-          const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
-          const today = new Date().toISOString().split("T")[0];
+  const initializeAppUsage = async () => {
+    const currMode = await schoolUtil.getCurrMode();
+    console.log("currMode", currMode);
+    const usedTime = Number(localStorage.getItem("usedTime")) || 0;
+    const startTime = Number(localStorage.getItem("startTime")) || Date.now();
+    localStorage.setItem("usedTime", usedTime.toString());
+    localStorage.setItem("startTime", startTime.toString());
+    if (!localStorage.getItem("lastInactiveTime")) {
+      localStorage.setItem("lastInactiveTime", Date.now().toString());
+    }
+  };
 
+  const handleVisibilityChange = () => {
+    const currentTime = Date.now();
+    if (document.visibilityState === 'visible') {
+      setIsActive(true);
+      const lastInactiveTime = Number(localStorage.getItem("lastInactiveTime")) || currentTime;
+      const usedTime = Number(localStorage.getItem("usedTime")) || 0;
+      const timeInBackground = (currentTime - lastInactiveTime) / 1000;
+      const newUsedTime = usedTime + timeInBackground;
+      localStorage.setItem("usedTime", newUsedTime.toString());
+      if (newUsedTime >= Util.TIME_LIMIT) {
+        checkTimeExceeded();
+      } else {
+        console.log("timeout trigger", (Util.TIME_LIMIT - newUsedTime));
+        timeoutId = setTimeout(checkTimeExceeded, (Util.TIME_LIMIT - newUsedTime) * 1000);
+      }
+    } else {
+      setIsActive(false);
+      localStorage.setItem("lastInactiveTime", currentTime.toString());
+      clearTimeout(timeoutId);
+    }
+  };
+
+  const checkTimeExceeded = async () => {
+    if (Capacitor.isNativePlatform()) {
+      const currMode = await schoolUtil.getCurrMode();
+      if (currMode === MODES.PARENT) {
+        const startTime = Number(localStorage.getItem("startTime")) || Date.now();
+        const currentTime = Date.now();
+        const usedTime = Number(localStorage.getItem("usedTime")) || 0;
+        const newUsedTime = usedTime + (currentTime - startTime) / 1000;
+        if (newUsedTime >= Util.TIME_LIMIT) {
+          const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
+          const today = new Date().toISOString().split("T")[0];
           if (lastShownDate !== today) {
-            setShowModal(true);
-            localStorage.setItem(LAST_MODAL_SHOWN_KEY, today);
+            const event = new CustomEvent("shouldShowModal", { detail: true });
+            window.dispatchEvent(event);
+            localStorage.setItem(Util.LAST_MODAL_SHOWN_KEY, today);
           }
         }
       }
-    };
-    if (Capacitor.getPlatform() === "android") {
-      const lastShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
-      const today = new Date().toISOString().split("T")[0];
-      if (lastShownDate !== today) {
-        CapApp.addListener("appStateChange", handleAppStateChange);
-      }
     }
+  };
 
-    return () => {
-      CapApp.removeAllListeners();
-    };
-  }, [startTime]);
 
   const handleContinue = () => {
     setShowModal(false);
     setShowToast(true);
-    // Reset the timer
     setStartTime(Date.now());
+    localStorage.setItem("startTime", Date.now().toString());
   };
+  useEffect(() => {
+    initializeAppUsage();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
+      const today = new Date().toISOString().split("T")[0];
+      const startTime = Number(localStorage.getItem("startTime")) || Date.now();
+      const currentTime = Date.now();
+      const usedTime = Number(localStorage.getItem("usedTime")) || 0;
+      const newUsedTime = usedTime + (currentTime - startTime) / 1000;
+      if (lastShownDate !== today) {
+        timeoutId = setTimeout(checkTimeExceeded, (Util.TIME_LIMIT - newUsedTime) * 1000);
+      }
+      const handleShowModalEvent = (event: CustomEvent<boolean>) => {
+        setShowModal(event.detail);
+      };
+      window.addEventListener("shouldShowModal", handleShowModalEvent as EventListener);
+      return () => {
+        clearTimeout(timeoutId);
+        window.removeEventListener("shouldShowModal", handleShowModalEvent as EventListener);
+      };
+    }
+  }, []);
   const processNotificationData = async (data) => {
     const currentStudent = Util.getCurrentStudent();
     if (data && data.notificationType === "reward") {
@@ -560,34 +631,23 @@ const App: React.FC = () => {
             </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
-        {/* Modal Notification for time limit */}
-        <IonModal isOpen={showModal} className="time-exceed-content">
-          <div
-            style={{
-              textAlign: "center",
-              color: "black",
-              width: "80%",
-              height: "60%",
-              marginTop: "9vh",
-              marginLeft: "9vw",
-            }}
-          >
-            <h2>{t("Time for a break!")}</h2>
-            <p>
-              {t(
-                "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
-              )}
-            </p>
-            <div className="time-exceed-buttons">
-              <IonButton
-                onClick={handleContinue}
-                className="time-exceed-continue"
-              >
-                {t("Continue")}
-              </IonButton>
-            </div>
-          </div>
-        </IonModal>
+        <IonAlert
+          isOpen={showModal}
+          onDidDismiss={() => setShowModal(false)}
+          header={t("Time for a break!") || ""}
+          message={t(
+            "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
+          ) || ""}
+          cssClass="custom-alert"
+          buttons={[
+            {
+              text: t("Continue"),
+              role: "cancel",
+              cssClass: "time-exceed-continue",
+              handler: handleContinue,
+            },
+          ]}
+        />
         {/*Toast notification for acknowledgment */}
         <IonToast
           isOpen={showToast}

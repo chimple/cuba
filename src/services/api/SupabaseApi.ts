@@ -911,7 +911,7 @@ export class SupabaseApi implements ServiceApi {
   getAssignmentById(id: string): Promise<TableTypes<"assignment"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  createAssignmentCart(
+  createOrUpdateAssignmentCart(
     userId: string,
     lessons: string
   ): Promise<boolean | undefined> {
@@ -987,7 +987,8 @@ export class SupabaseApi implements ServiceApi {
 
   getChapterByLesson(
     lessonId: string,
-    classId: string
+    classId: string,
+    userId?: string
   ): Promise<String | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -1027,7 +1028,8 @@ export class SupabaseApi implements ServiceApi {
     school_id: string,
     lesson_id: string,
     chapter_id: string,
-    course_id: string
+    course_id: string,
+    type: string
   ): Promise<boolean> {
     throw new Error("Method not implemented.");
   }

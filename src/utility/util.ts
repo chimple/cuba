@@ -76,6 +76,7 @@ import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { schoolUtil } from "./schoolUtil";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { URLOpenListenerEvent } from "@capacitor/app";
+import { t } from "i18next";
 
 declare global {
   interface Window {
@@ -87,8 +88,12 @@ enum NotificationType {
   REWARD = "reward",
 }
 
+
 export class Util {
   public static port: PortPlugin;
+  static TIME_LIMIT = 25 * 60;
+  static LAST_MODAL_SHOWN_KEY = "lastModalShown";
+
 
   // public static convertCourses(_courses: Course1[]): Course1[] {
   //   let courses: Course1[] = [];
@@ -174,6 +179,35 @@ export class Util {
       return undefined;
     }
   }
+
+
+
+  public static handleAppStateChange = (state: any) => {
+    console.log("handleAppStateChange triggered");
+    if (state.isActive && Capacitor.isNativePlatform()) {
+      const currentTime = Date.now();
+      const startTime = Number(localStorage.getItem("startTime") || "0");
+      const timeElapsed = (currentTime - startTime) / 1000; // in seconds
+      if (timeElapsed >= Util.TIME_LIMIT) {
+        const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
+        const today = new Date().toISOString().split("T")[0];
+        console.log("lastShownDate in handleAppStateChange", today, lastShownDate);
+        if ("2024-11-05" !== today) {
+          // if (STAGES.MODE === "parent") {
+          console.log("handleAppStateChange modal triggered");
+          const showModalEvent = new CustomEvent("shouldShowModal", { detail: true });
+          document.dispatchEvent(showModalEvent);
+          // const showModalEvent = new CustomEvent("shouldShowModal", { detail: true });
+          window.dispatchEvent(showModalEvent);
+          localStorage.setItem(Util.LAST_MODAL_SHOWN_KEY, today);
+          // }
+          return;
+        }
+      }
+    }
+    const showModalEvent = new CustomEvent("shouldShowModal", { detail: false });
+    window.dispatchEvent(showModalEvent);
+  };
 
   // public static convertDoc(refs: any[]): DocumentReference[] {
   //   const data: DocumentReference[] = [];
@@ -372,9 +406,9 @@ export class Util {
 
               console.log(
                 "before local lesson Bundle http url:" +
-                  "assets/" +
-                  lessonId +
-                  "/config.json"
+                "assets/" +
+                lessonId +
+                "/config.json"
               );
 
               const fetchingLocalBundle = await fetch(
@@ -382,9 +416,9 @@ export class Util {
               );
               console.log(
                 "after local lesson Bundle fetch url:" +
-                  "assets/" +
-                  lessonId +
-                  "/config.json",
+                "assets/" +
+                lessonId +
+                "/config.json",
                 fetchingLocalBundle.ok,
                 fetchingLocalBundle.json,
                 fetchingLocalBundle
@@ -829,10 +863,12 @@ export class Util {
   }
 
   public static onAppStateChange = ({ isActive }) => {
+    // Existing logic for stopping TextToSpeech when app is inactive
     if (!isActive) {
       TextToSpeech.stop();
     }
 
+    // Handling app state changes (reloading pages, updating URLs, etc.)
     const url = new URL(window.location.toString());
     const urlParams = new URLSearchParams(window.location.search);
     if (!!urlParams.get(CONTINUE)) {
@@ -867,7 +903,9 @@ export class Util {
         Util.checkingIfGameCanvasAvailable();
       }
     }
+    // Util.handleAppStateChange(isActive);
   };
+
 
   public static checkingIfGameCanvasAvailable = async () => {
     // return new Promise<boolean>(async (resolve, reject) => {
@@ -1701,4 +1739,40 @@ export class Util {
     api.currentClass = currentClass;
     return currentClass;
   }
+
+  public static async sendContentToAndroidOrWebShare(
+    text: string,
+    title: string,
+    url?: string,
+    imageFile?: File[]
+  ) {
+    if (Capacitor.isNativePlatform()) {
+      // Convert File object to a blob URL, then extract path for Android
+      const file = imageFile ? imageFile[0] : null;
+
+      await Util.port
+        .shareContentWithAndroidShare({
+          text: t(text),
+          title: t(title),
+          url: url,
+          imageFile: imageFile // Pass the File object for Android
+        })
+        .then(() => console.log("Content shared successfully"))
+        .catch((error) => console.error("Error sharing content:", error));
+    } else {
+      // Web sharing
+      const shareData: ShareData = {
+        text: t(text) || "",
+        title: t(title) || "",
+        url: url,
+        files: imageFile,
+      };
+
+      await navigator.share(shareData)
+        .then(() => console.log("Content shared successfully"))
+        .catch((error) => console.error("Error sharing content:", error));
+    }
+  }
+
+
 }
