@@ -6,25 +6,25 @@ import { addDays, addMonths, format, subDays, subWeeks } from "date-fns";
 export class ClassUtil {
   private api = ServiceConfig.getI().apiHandler;
 
-  async getWeeklySummary(classId: string) {
+  async getWeeklySummary(classId: string, courseId: string) {
     var currentDate = new Date();
     var totalScore = 0;
     var timeSpent = 0;
-    currentDate.setDate(currentDate.getDate() + 1);
-    var currentDateTimeStamp = currentDate
+    const adjustedcurrentDate = addDays(currentDate, 1);
+    const adjustedoneWeekBack = subDays(currentDate, 7);
+    var currentDateTimeStamp = adjustedcurrentDate
       .toISOString()
       .replace("T", " ")
       .replace("Z", "+00");
 
-    const oneWeekBack = new Date(currentDate);
-    oneWeekBack.setDate(currentDate.getDate() - 8);
-    const oneWeekBackTimeStamp = oneWeekBack
+    const oneWeekBackTimeStamp = adjustedoneWeekBack
       .toISOString()
       .replace("T", " ")
       .replace("Z", "+00");
+
     const assignements = await this.api.getAssignmentOrLiveQuizByClassByDate(
       classId,
-      "",
+      courseId,
       currentDateTimeStamp,
       oneWeekBackTimeStamp,
       true,
@@ -53,11 +53,11 @@ export class ClassUtil {
     );
     const studentsWhoCompletedAllAssignments = studentsWithCompletedAssignments
       ? Object.keys(studentsWithCompletedAssignments).filter((studentId) => {
-        return (
-          studentsWithCompletedAssignments[studentId].size ===
-          totalAssignments
-        );
-      }).length
+          return (
+            studentsWithCompletedAssignments[studentId].size ===
+            totalAssignments
+          );
+        }).length
       : 0;
     const assignmentsWithCompletedStudents = assignmentResult?.reduce(
       (acc, result) => {
@@ -74,11 +74,11 @@ export class ClassUtil {
     );
     const assignmentsCompletedByAllStudents = assignmentsWithCompletedStudents
       ? Object.keys(assignmentsWithCompletedStudents).filter((assignmentId) => {
-        return (
-          assignmentsWithCompletedStudents[assignmentId].size ===
-          totalStudents
-        );
-      }).length
+          return (
+            assignmentsWithCompletedStudents[assignmentId].size ===
+            totalStudents
+          );
+        }).length
       : 0;
     return {
       assignments: {
@@ -93,12 +93,12 @@ export class ClassUtil {
       averageScore:
         assignmentResult?.length ?? 0 > 0
           ? parseFloat(
-            (totalScore / (assignmentResult?.length ?? 0)).toFixed(1)
-          )
+              (totalScore / (assignmentResult?.length ?? 0)).toFixed(1)
+            )
           : 0,
     };
   }
-  public async divideStudents(classId: string) {
+  public async divideStudents(classId: string, courseId: string) {
     const greenGroup: Map<
       string,
       TableTypes<"user"> | TableTypes<"result">[]
@@ -114,21 +114,20 @@ export class ClassUtil {
       TableTypes<"user"> | TableTypes<"result">[]
     >[] = [];
     const currentDate = new Date();
-    currentDate.setDate(currentDate.getDate() + 1);
-
-    const oneWeekBack = new Date(currentDate);
-    oneWeekBack.setDate(currentDate.getDate() - 8);
-    var currentDateTimeStamp = currentDate
+    const adjustedcurrentDate = addDays(currentDate, 1);
+    const adjustedoneWeekBack = subDays(currentDate, 7);
+    var currentDateTimeStamp = adjustedcurrentDate
       .toISOString()
       .replace("T", " ")
       .replace("Z", "+00");
-    const oneWeekBackTimeStamp = oneWeekBack
+
+    const oneWeekBackTimeStamp = adjustedoneWeekBack
       .toISOString()
       .replace("T", " ")
       .replace("Z", "+00");
     const assignements = await this.api.getAssignmentOrLiveQuizByClassByDate(
       classId,
-      "",
+      courseId,
       currentDateTimeStamp,
       oneWeekBackTimeStamp,
       true,
@@ -138,10 +137,12 @@ export class ClassUtil {
       0,
       5
     );
+    console.log(assignmentIds);
     const _students = await this.api.getStudentsForClass(classId);
     const studentResultsPromises = _students.map(async (student) => {
       const results = await this.api.getStudentLastTenResults(
         student.id,
+        courseId,
         assignmentIds
       );
       const selfPlayedLength = results.filter(
@@ -271,6 +272,7 @@ export class ClassUtil {
       .toISOString()
       .replace("T", " ")
       .replace("Z", "+00");
+
     const _students = await this.api.getStudentsForClass(classId);
     if (sortBy == TABLESORTBY.NAME)
       _students.sort((a, b) => {
@@ -625,11 +627,12 @@ export class ClassUtil {
     };
   }
 
-  public async groupStudentsByCategoryInList(studentsMap: Map<string, Map<string, TableTypes<"user">>>): Promise<Map<string, TableTypes<"user">[]>> {
+  public async groupStudentsByCategoryInList(
+    studentsMap: Map<string, Map<string, TableTypes<"user">>>
+  ): Promise<Map<string, TableTypes<"user">[]>> {
     const groups: Map<string, TableTypes<"user">[]> = new Map();
 
     studentsMap.forEach((studentM: Map<string, any>, index: string) => {
-
       studentM.forEach((element: any) => {
         const studentData = element.get("student");
         if (!studentData) {
@@ -648,7 +651,4 @@ export class ClassUtil {
     });
     return groups;
   }
-
-
-
 }

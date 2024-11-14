@@ -76,7 +76,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<string | undefined> {
     return this.s.joinLiveQuiz(assignmentId, studentId);
   }
-  private constructor() { }
+  private constructor() {}
   public async updateRewardsForStudent(
     studentId: string,
     unlockedReward: LeaderboardRewards
@@ -687,7 +687,7 @@ export class ApiHandler implements ServiceApi {
     classId?: string,
     userId?: string
   ): Promise<String | undefined> {
-    return this.s.getChapterByLesson(lessonId, classId,userId);
+    return this.s.getChapterByLesson(lessonId, classId, userId);
   }
   createClass(
     schoolId: string,
@@ -717,9 +717,10 @@ export class ApiHandler implements ServiceApi {
   }
   getStudentLastTenResults(
     studentId: string,
+    courseId: string,
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]> {
-    return this.s.getStudentLastTenResults(studentId, assignmentIds);
+    return this.s.getStudentLastTenResults(studentId, courseId, assignmentIds);
   }
   getResultByAssignmentIds(
     assignmentIds: string[]
@@ -727,7 +728,7 @@ export class ApiHandler implements ServiceApi {
     return this.s.getResultByAssignmentIds(assignmentIds);
   }
   async getLastAssignmentsForRecommendations(
-    classId: string,
+    classId: string
   ): Promise<TableTypes<"assignment">[] | undefined> {
     return this.s.getLastAssignmentsForRecommendations(classId);
   }

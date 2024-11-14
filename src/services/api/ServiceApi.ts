@@ -877,9 +877,11 @@ export interface ServiceApi {
   /**
    * Get Student Result of 10 activities either assignments or self played
    * @param studentId
+   * @param courseId
    */
   getStudentLastTenResults(
     studentId: string,
+    courseId:string,
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]>;
   /**

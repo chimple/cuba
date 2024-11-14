@@ -1004,6 +1004,7 @@ export class SupabaseApi implements ServiceApi {
   }
   getStudentLastTenResults(
     studentId: string,
+    courseId:string,
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");

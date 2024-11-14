@@ -3407,6 +3407,7 @@ order by
 
   async getStudentLastTenResults(
     studentId: string,
+    courseId: string,
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]> {
     const assignmentholders = assignmentIds.map(() => "?").join(", ");
@@ -3415,6 +3416,7 @@ order by
          SELECT * 
          FROM ${TABLES.Result} 
          WHERE student_id = ? 
+         AND course_id = ?
          AND assignment_id IS NULL 
          ORDER BY created_at DESC 
          LIMIT 5
@@ -3423,6 +3425,7 @@ order by
          SELECT * 
          FROM ${TABLES.Result} 
          WHERE student_id = ? 
+         AND course_id = ?
          AND assignment_id IN (${assignmentholders}) 
          ORDER BY created_at DESC 
          LIMIT 5
@@ -3434,7 +3437,7 @@ order by
        FROM non_null_assignments
        ORDER BY created_at DESC
        LIMIT 10;`,
-      [studentId, studentId, ...assignmentIds]
+      [studentId, courseId, studentId, courseId, ...assignmentIds]
     );
     return res?.values ?? [];
   }

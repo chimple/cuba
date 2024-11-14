@@ -2041,7 +2041,7 @@ export class FirebaseApi implements ServiceApi {
   getAssignmentOrLiveQuizByClassByDate(classId:string,courseId:string,startDate:string,endDate:string,isClassWise: boolean,isLiveQuiz: boolean): Promise<TableTypes<"assignment">[] | undefined>{
     throw new Error("Method not implemented.");
   }
-  getStudentLastTenResults( studentId: string,assignmentIds: string[]):Promise<TableTypes<"result">[]>{
+  getStudentLastTenResults( studentId: string,courseId:string,assignmentIds: string[]):Promise<TableTypes<"result">[]>{
     throw new Error("Method not implemented.");
   }
   getResultByAssignmentIds(
