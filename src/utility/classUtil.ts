@@ -137,7 +137,6 @@ export class ClassUtil {
       0,
       5
     );
-    console.log(assignmentIds);
     const _students = await this.api.getStudentsForClass(classId);
     const studentResultsPromises = _students.map(async (student) => {
       const results = await this.api.getStudentLastTenResults(
