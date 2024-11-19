@@ -113,6 +113,7 @@ import LessonDetails from "./chimple-private/pages/LessonDetails";
 import DisplayClasses from "./chimple-private/pages/DisplayClasses";
 import "./App.css";
 import ShowStudentsInAssignmentPage from "./chimple-private/pages/ShowStudentsInAssignmentPage";
+import { schoolUtil } from "./utility/schoolUtil";
 
 setupIonicReact();
 interface ExtraData {
@@ -127,10 +128,19 @@ const LAST_MODAL_SHOWN_KEY = "lastTimeExceededShown";
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
-  const [startTime, setStartTime] = useState<number>(Date.now());
+  const [startTime, setStartTime] = useState<number>(() => {
+    const savedStartTime = localStorage.getItem("startTime");
+    const initialTime = savedStartTime ? Number(savedStartTime) : Date.now();
+    if (!savedStartTime) {
+      localStorage.setItem("startTime", initialTime.toString());
+    }
+    return initialTime;
+  });
+  let timeoutId: NodeJS.Timeout;
   const [timeExceeded, setTimeExceeded] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
+  const [isActive, setIsActive] = useState(true);
   useEffect(() => {
     const handleOnline = () => {
       if (!online) {
@@ -249,15 +259,87 @@ const App: React.FC = () => {
     });
     updateAvatarSuggestionJson();
   }, []);
+  const initializeAppUsage = async () => {
+    const currMode = await schoolUtil.getCurrMode();
+    console.log("currMode", currMode);
+    const usedTime = Number(localStorage.getItem("usedTime")) || 0;
+    const startTime = Number(localStorage.getItem("startTime")) || Date.now();
+    localStorage.setItem("usedTime", usedTime.toString());
+    localStorage.setItem("startTime", startTime.toString());
+    if (!localStorage.getItem("lastInactiveTime")) {
+      localStorage.setItem("lastInactiveTime", Date.now().toString());
+    }
+  };
 
+  const handleVisibilityChange = () => {
+    const currentTime = Date.now();
+    if (document.visibilityState === 'visible') {
+      setIsActive(true);
+      const lastInactiveTime = Number(localStorage.getItem("lastInactiveTime")) || currentTime;
+      const usedTime = Number(localStorage.getItem("usedTime")) || 0;
+      const timeInBackground = (currentTime - lastInactiveTime) / 1000;
+      const newUsedTime = usedTime + timeInBackground;
+      localStorage.setItem("usedTime", newUsedTime.toString());
+      if (newUsedTime >= Util.TIME_LIMIT) {
+        checkTimeExceeded();
+      } else {
+        console.log("timeout trigger", (Util.TIME_LIMIT - newUsedTime));
+        timeoutId = setTimeout(checkTimeExceeded, (Util.TIME_LIMIT - newUsedTime) * 1000);
+      }
+    } else {
+      setIsActive(false);
+      localStorage.setItem("lastInactiveTime", currentTime.toString());
+      clearTimeout(timeoutId);
+    }
+  };
+
+  const checkTimeExceeded = async () => {
+    if (Capacitor.isNativePlatform()) {
+      const currMode = await schoolUtil.getCurrMode();
+      if (currMode === MODES.PARENT) {
+        const startTime = Number(localStorage.getItem("startTime")) || Date.now();
+        const currentTime = Date.now();
+        const usedTime = Number(localStorage.getItem("usedTime")) || 0;
+        const newUsedTime = usedTime + (currentTime - startTime) / 1000;
+        if (newUsedTime >= Util.TIME_LIMIT) {
+          const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
+          const today = new Date().toISOString().split("T")[0];
+          if (lastShownDate !== today) {
+            const event = new CustomEvent("shouldShowModal", { detail: true });
+            window.dispatchEvent(event);
+            localStorage.setItem(Util.LAST_MODAL_SHOWN_KEY, today);
+          }
+        }
+      }
+    }
+  };
+
+
+  const handleContinue = () => {
+    setShowModal(false);
+    setShowToast(true);
+    setStartTime(Date.now());
+    localStorage.setItem("startTime", Date.now().toString());
+  };
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    initializeAppUsage();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+  useEffect(() => {
     if (Capacitor.isNativePlatform()) {
       const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
       const today = new Date().toISOString().split("T")[0];
+      const startTime = Number(localStorage.getItem("startTime")) || Date.now();
+      const currentTime = Date.now();
+      const usedTime = Number(localStorage.getItem("usedTime")) || 0;
+      const newUsedTime = usedTime + (currentTime - startTime) / 1000;
       if (lastShownDate !== today) {
-        timeoutId = setTimeout(checkTimeExceeded, Util.TIME_LIMIT * 1000);
+        timeoutId = setTimeout(checkTimeExceeded, (Util.TIME_LIMIT - newUsedTime) * 1000);
       }
       const handleShowModalEvent = (event: CustomEvent<boolean>) => {
         setShowModal(event.detail);
@@ -265,33 +347,10 @@ const App: React.FC = () => {
       window.addEventListener("shouldShowModal", handleShowModalEvent as EventListener);
       return () => {
         clearTimeout(timeoutId);
-        CapApp.removeAllListeners();
         window.removeEventListener("shouldShowModal", handleShowModalEvent as EventListener);
       };
     }
   }, []);
-
-  const checkTimeExceeded = () => {
-    const currentTime = Date.now();
-    const startTime = Number(localStorage.getItem("startTime") || "0");
-    const timeElapsed = (currentTime - startTime) / 1000;
-    if (timeElapsed >= Util.TIME_LIMIT) {
-      const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
-      const today = new Date().toISOString().split("T")[0];
-      if (lastShownDate !== today) {
-        const event = new CustomEvent("shouldShowModal", { detail: true });
-        window.dispatchEvent(event);
-        localStorage.setItem(Util.LAST_MODAL_SHOWN_KEY, today);
-      }
-    }
-  };
-
-  const handleContinue = () => {
-    setShowModal(false);
-    setShowToast(true);
-    // Reset the timer
-    setStartTime(Date.now());
-  };
   const processNotificationData = async (data) => {
     const currentStudent = Util.getCurrentStudent();
     if (data && data.notificationType === "reward") {

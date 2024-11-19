@@ -94,6 +94,7 @@ export class Util {
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = "lastModalShown";
 
+
   // public static convertCourses(_courses: Course1[]): Course1[] {
   //   let courses: Course1[] = [];
   //   _courses.forEach((course) => {
@@ -182,6 +183,7 @@ export class Util {
 
 
   public static handleAppStateChange = (state: any) => {
+    console.log("handleAppStateChange triggered");
     if (state.isActive && Capacitor.isNativePlatform()) {
       const currentTime = Date.now();
       const startTime = Number(localStorage.getItem("startTime") || "0");
@@ -189,10 +191,16 @@ export class Util {
       if (timeElapsed >= Util.TIME_LIMIT) {
         const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
         const today = new Date().toISOString().split("T")[0];
-        if (lastShownDate !== today) {
+        console.log("lastShownDate in handleAppStateChange", today, lastShownDate);
+        if ("2024-11-05" !== today) {
+          // if (STAGES.MODE === "parent") {
+          console.log("handleAppStateChange modal triggered");
           const showModalEvent = new CustomEvent("shouldShowModal", { detail: true });
+          document.dispatchEvent(showModalEvent);
+          // const showModalEvent = new CustomEvent("shouldShowModal", { detail: true });
           window.dispatchEvent(showModalEvent);
           localStorage.setItem(Util.LAST_MODAL_SHOWN_KEY, today);
+          // }
           return;
         }
       }
@@ -859,7 +867,7 @@ export class Util {
     if (!isActive) {
       TextToSpeech.stop();
     }
-  
+
     // Handling app state changes (reloading pages, updating URLs, etc.)
     const url = new URL(window.location.toString());
     const urlParams = new URLSearchParams(window.location.search);
@@ -870,7 +878,7 @@ export class Util {
       return;
     }
     urlParams.delete(CONTINUE);
-  
+
     if (isActive) {
       if (
         Capacitor.isNativePlatform() &&
@@ -895,9 +903,9 @@ export class Util {
         Util.checkingIfGameCanvasAvailable();
       }
     }
-    Util.handleAppStateChange(isActive);
+    // Util.handleAppStateChange(isActive);
   };
-  
+
 
   public static checkingIfGameCanvasAvailable = async () => {
     // return new Promise<boolean>(async (resolve, reject) => {
@@ -1500,7 +1508,7 @@ export class Util {
     const currentWeek = Util.getCurrentWeekNumber();
     const stickerIds: string[] = [];
     const weeklyData = rewardsDoc.weeklySticker;
-    weeklyData?.[currentWeek.toString()].forEach((value) => {
+    weeklyData?.[currentWeek.toString()]?.forEach((value) => {
       if (value.type === LeaderboardRewardsType.STICKER) {
         stickerIds.push(value.id);
       }
