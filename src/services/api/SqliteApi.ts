@@ -241,7 +241,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -439,7 +439,7 @@ export class SqliteApi implements ServiceApi {
       mutateType,
       JSON.stringify(data),
     ];
-    console.log("🚀 ~ Api ~ variables:", variables);
+    console.log("🚀 ~ Api ~ variables:", stmt, variables);
     await this.executeQuery(stmt, variables);
     return await this.syncDbNow([tableName]);
   }
@@ -1869,7 +1869,7 @@ export class SqliteApi implements ServiceApi {
     FROM ${TABLES.Assignment} a
     LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
     LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = "${studentId}"
-    WHERE a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL and a.type is NULL;
+    WHERE a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL and a.type !='liveQuiz';
     `;
     const res = await this._db?.query(query);
     if (!res || !res.values || res.values.length < 1) return [];
