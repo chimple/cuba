@@ -259,60 +259,107 @@ const App: React.FC = () => {
     });
     updateAvatarSuggestionJson();
   }, []);
-  const initializeAppUsage = async () => {
-    const currMode = await schoolUtil.getCurrMode();
-    console.log("currMode", currMode);
-    const usedTime = Number(localStorage.getItem("usedTime")) || 0;
-    const startTime = Number(localStorage.getItem("startTime")) || Date.now();
-    localStorage.setItem("usedTime", usedTime.toString());
-    localStorage.setItem("startTime", startTime.toString());
-    if (!localStorage.getItem("lastInactiveTime")) {
-      localStorage.setItem("lastInactiveTime", Date.now().toString());
-    }
-  };
 
-  const handleVisibilityChange = () => {
-    const currentTime = Date.now();
-    if (document.visibilityState === 'visible') {
-      setIsActive(true);
-      const lastInactiveTime = Number(localStorage.getItem("lastInactiveTime")) || currentTime;
-      const usedTime = Number(localStorage.getItem("usedTime")) || 0;
-      const timeInBackground = (currentTime - lastInactiveTime) / 1000;
-      const newUsedTime = usedTime + timeInBackground;
-      localStorage.setItem("usedTime", newUsedTime.toString());
-      if (newUsedTime >= Util.TIME_LIMIT) {
-        checkTimeExceeded();
-      } else {
-        console.log("timeout trigger", (Util.TIME_LIMIT - newUsedTime));
-        timeoutId = setTimeout(checkTimeExceeded, (Util.TIME_LIMIT - newUsedTime) * 1000);
-      }
+  const initializeUsage = () => {
+    // If the app is opened for the first time, store the start time
+    if (!localStorage.getItem('isInitialized')) {
+      console.log("First time opening the app: resetting usage data");
+      localStorage.setItem('startTime', Date.now().toString());
+      localStorage.setItem('usedTime', "0");
+      localStorage.setItem('isInitialized', "true");
     } else {
-      setIsActive(false);
-      localStorage.setItem("lastInactiveTime", currentTime.toString());
-      clearTimeout(timeoutId);
+      console.log("App has been opened before. Current usage data:", {
+        startTime: localStorage.getItem('startTime'),
+        usedTime: localStorage.getItem('usedTime'),
+      });
     }
   };
 
+  // Function to calculate the used time and store it
+  const calculateUsedTime = () => {
+    const currentTime = Date.now();
+    const startTime = Number(localStorage.getItem("startTime"));
+    const usedTime = Number(localStorage.getItem("usedTime"));
+    const sessionTime = (currentTime - startTime) / 1000;
+    const usedTimeInMinutes = usedTime / 60;
+    console.log(
+      "calculateUsedTime",
+      Math.floor(usedTimeInMinutes + sessionTime),
+      `Start Time (min): ${startTime / 1000 / 60}`,
+      `Current Time (min): ${currentTime / 1000 / 60}`,
+      `Used Time (min): ${usedTimeInMinutes}`,
+      `Session Time (min): ${sessionTime / 60}`
+    );
+    const date1 = new Date(currentTime);
+    const date2 = new Date(startTime);
+    console.log(date1.toString(), date2.toString());
+
+    return usedTime + sessionTime;
+  };
+
+  const saveUsedTime = () => {
+    const totalUsedTime = calculateUsedTime();
+    localStorage.setItem('usedTime', totalUsedTime.toString());
+  };
+
+
+  const startTimeout = () => {
+    clearExistingTimeout();
+    const usedTime = Number(localStorage.getItem('usedTime') || 0);
+    const remainingTime = Util.TIME_LIMIT - usedTime;
+    console.log("timeout trigger remainingTime", remainingTime);
+    if (remainingTime > 0) {
+      timeoutId = setTimeout(() => {
+        checkTimeExceeded();
+      }, remainingTime * 1000);
+    }
+  };
+
+  const clearExistingTimeout = () => {
+    clearTimeout(timeoutId);
+  };
   const checkTimeExceeded = async () => {
     if (Capacitor.isNativePlatform()) {
       const currMode = await schoolUtil.getCurrMode();
       if (currMode === MODES.PARENT) {
-        const startTime = Number(localStorage.getItem("startTime")) || Date.now();
-        const currentTime = Date.now();
-        const usedTime = Number(localStorage.getItem("usedTime")) || 0;
-        const newUsedTime = usedTime + (currentTime - startTime) / 1000;
-        if (newUsedTime >= Util.TIME_LIMIT) {
-          const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
-          const today = new Date().toISOString().split("T")[0];
-          if (lastShownDate !== today) {
-            const event = new CustomEvent("shouldShowModal", { detail: true });
-            window.dispatchEvent(event);
-            localStorage.setItem(Util.LAST_MODAL_SHOWN_KEY, today);
-          }
+        const today = new Date().toISOString().split("T")[0];
+        const lastModalShownDate = localStorage.getItem("lastTimeExceededShown");
+
+        if (lastModalShownDate !== today) {
+          console.log("triggered");
+          setShowModal(true);
+          const event = new CustomEvent("shouldShowModal", { detail: true });
+          window.dispatchEvent(event);
+          localStorage.setItem("lastTimeExceededShown", today);
         }
       }
     }
   };
+
+  // Function to handle visibility change (when app goes into background or foreground)
+  const handleVisibilityChange = () => {
+    const currentTime = Date.now();
+    if (document.visibilityState === 'visible') {
+      if (!localStorage.getItem("startTime")) {
+        localStorage.setItem("startTime", currentTime.toString());
+      }
+      startTimeout();
+    } else {
+      saveUsedTime();
+      localStorage.removeItem('startTime');
+      clearExistingTimeout();
+    }
+  };
+
+  useEffect(() => {
+    initializeUsage();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    startTimeout();
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      clearExistingTimeout();
+    };
+  }, []);
 
 
   const handleContinue = () => {
@@ -321,36 +368,6 @@ const App: React.FC = () => {
     setStartTime(Date.now());
     localStorage.setItem("startTime", Date.now().toString());
   };
-  useEffect(() => {
-    initializeAppUsage();
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      clearTimeout(timeoutId);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
-  useEffect(() => {
-    if (Capacitor.isNativePlatform()) {
-      const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
-      const today = new Date().toISOString().split("T")[0];
-      const startTime = Number(localStorage.getItem("startTime")) || Date.now();
-      const currentTime = Date.now();
-      const usedTime = Number(localStorage.getItem("usedTime")) || 0;
-      const newUsedTime = usedTime + (currentTime - startTime) / 1000;
-      if (lastShownDate !== today) {
-        timeoutId = setTimeout(checkTimeExceeded, (Util.TIME_LIMIT - newUsedTime) * 1000);
-      }
-      const handleShowModalEvent = (event: CustomEvent<boolean>) => {
-        setShowModal(event.detail);
-      };
-      window.addEventListener("shouldShowModal", handleShowModalEvent as EventListener);
-      return () => {
-        clearTimeout(timeoutId);
-        window.removeEventListener("shouldShowModal", handleShowModalEvent as EventListener);
-      };
-    }
-  }, []);
   const processNotificationData = async (data) => {
     const currentStudent = Util.getCurrentStudent();
     if (data && data.notificationType === "reward") {
@@ -647,6 +664,7 @@ const App: React.FC = () => {
               handler: handleContinue,
             },
           ]}
+          backdropDismiss={false}
         />
         {/*Toast notification for acknowledgment */}
         <IonToast
