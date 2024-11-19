@@ -125,18 +125,21 @@ interface WindowEventMap {
 }
 const TIME_LIMIT = 1500; // 25 * 60
 const LAST_MODAL_SHOWN_KEY = "lastTimeExceededShown";
+const START_TIME_KEY = "startTime";
+const USED_TIME_KEY = "usedTime";
+let timeoutId: NodeJS.Timeout;
+
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
   const [startTime, setStartTime] = useState<number>(() => {
-    const savedStartTime = localStorage.getItem("startTime");
+    const savedStartTime = localStorage.getItem(START_TIME_KEY);
     const initialTime = savedStartTime ? Number(savedStartTime) : Date.now();
     if (!savedStartTime) {
       localStorage.setItem("startTime", initialTime.toString());
     }
     return initialTime;
   });
-  let timeoutId: NodeJS.Timeout;
   const [timeExceeded, setTimeExceeded] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
@@ -185,6 +188,9 @@ const App: React.FC = () => {
     };
   }, [online, presentToast]);
   useEffect(() => {
+    initializeUsage();
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+  startTimeout()
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(false));
     localStorage.setItem(DOWNLOADING_CHAPTER_ID, JSON.stringify(false));
     console.log("fetching...");
@@ -258,6 +264,11 @@ const App: React.FC = () => {
       }
     });
     updateAvatarSuggestionJson();
+     // Cleanup on unmount
+  return () => {
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
+    clearExistingTimeout();
+  };
   }, []);
 
   const initializeUsage = () => {
@@ -265,12 +276,12 @@ const App: React.FC = () => {
     if (!localStorage.getItem('isInitialized')) {
       console.log("First time opening the app: resetting usage data");
       localStorage.setItem('startTime', Date.now().toString());
-      localStorage.setItem('usedTime', "0");
+      localStorage.setItem(USED_TIME_KEY, "0");
       localStorage.setItem('isInitialized', "true");
     } else {
       console.log("App has been opened before. Current usage data:", {
         startTime: localStorage.getItem('startTime'),
-        usedTime: localStorage.getItem('usedTime'),
+        usedTime: localStorage.getItem(USED_TIME_KEY),
       });
     }
   };
@@ -279,7 +290,7 @@ const App: React.FC = () => {
   const calculateUsedTime = () => {
     const currentTime = Date.now();
     const startTime = Number(localStorage.getItem("startTime"));
-    const usedTime = Number(localStorage.getItem("usedTime"));
+    const usedTime = Number(localStorage.getItem(USED_TIME_KEY));
     const sessionTime = (currentTime - startTime) / 1000;
     const usedTimeInMinutes = usedTime / 60;
     console.log(
@@ -299,13 +310,13 @@ const App: React.FC = () => {
 
   const saveUsedTime = () => {
     const totalUsedTime = calculateUsedTime();
-    localStorage.setItem('usedTime', totalUsedTime.toString());
+    localStorage.setItem(USED_TIME_KEY, totalUsedTime.toString());
   };
 
 
   const startTimeout = () => {
     clearExistingTimeout();
-    const usedTime = Number(localStorage.getItem('usedTime') || 0);
+    const usedTime = Number(localStorage.getItem(USED_TIME_KEY) || 0);
     const remainingTime = Util.TIME_LIMIT - usedTime;
     console.log("timeout trigger remainingTime", remainingTime);
     if (remainingTime > 0) {
@@ -340,33 +351,33 @@ const App: React.FC = () => {
   const handleVisibilityChange = () => {
     const currentTime = Date.now();
     if (document.visibilityState === 'visible') {
-      if (!localStorage.getItem("startTime")) {
-        localStorage.setItem("startTime", currentTime.toString());
+      if (!localStorage.getItem(START_TIME_KEY)) {
+        localStorage.setItem(START_TIME_KEY, currentTime.toString());
       }
       startTimeout();
     } else {
       saveUsedTime();
-      localStorage.removeItem('startTime');
+      localStorage.removeItem(START_TIME_KEY);
       clearExistingTimeout();
     }
   };
 
-  useEffect(() => {
-    initializeUsage();
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    startTimeout();
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      clearExistingTimeout();
-    };
-  }, []);
+  // useEffect(() => {
+  //   initializeUsage();
+  //   document.addEventListener("visibilitychange", handleVisibilityChange);
+  //   startTimeout();
+  //   return () => {
+  //     document.removeEventListener("visibilitychange", handleVisibilityChange);
+  //     clearExistingTimeout();
+  //   };
+  // }, []);
 
 
   const handleContinue = () => {
     setShowModal(false);
     setShowToast(true);
     setStartTime(Date.now());
-    localStorage.setItem("startTime", Date.now().toString());
+    localStorage.setItem(START_TIME_KEY, Date.now().toString());
   };
   const processNotificationData = async (data) => {
     const currentStudent = Util.getCurrentStudent();
