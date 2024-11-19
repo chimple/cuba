@@ -865,18 +865,23 @@ export interface ServiceApi {
    * @param startDate
    * @param endData
    */
-  getAssignmentByClassByDate(
+  getAssignmentOrLiveQuizByClassByDate(
     classId: string,
+    courseId:string,
     startDate: string,
-    endData: string
+    endDate: string,
+    isClassWise: boolean,
+    isLiveQuiz:boolean
   ): Promise<TableTypes<"assignment">[] | undefined>;
 
   /**
    * Get Student Result of 10 activities either assignments or self played
    * @param studentId
+   * @param courseId
    */
   getStudentLastTenResults(
     studentId: string,
+    courseId:string,
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]>;
   /**
@@ -1021,10 +1026,44 @@ export interface ServiceApi {
    * @return array of student ids.
    */
   getAssignedStudents(assignmentId: string): Promise<string[]>;
+
+  /** Get the student result by Date
+   * @param studentId 
+   * @param startDate 
+   * @param endDate 
+   */
+  getStudentResultByDate(
+    studentId: string,
+    course_id:string,
+    startDate: string,
+    endDate: string
+  ): Promise<TableTypes<"result">[] | undefined>
+   
+  /**
+   * Get the Lessons with LessonIds
+   * @param lessonIds 
+   */
+  getLessonsBylessonIds(
+    lessonIds: string[] // Expect an array of strings
+  ): Promise<TableTypes<"lesson">[] | undefined> 
   /**
    * To delete `teacher` from class for given class id and teacher id
    * @param {string } classId - Class Id
    * @param {string } teacherId - Teacher Id
    */
   deleteTeacher(classId: string, teacherId: string);
+
+  /**
+   * To get the result by chapterId
+   * @param chapter_id 
+   * @param course_id 
+   * @param startDate 
+   * @param endDate 
+   */
+  getResultByChapterByDate(
+    chapter_id: string,
+    course_id: string,
+    startDate: string,
+    endDate: string
+  ): Promise<TableTypes<"result">[] | undefined>
 }

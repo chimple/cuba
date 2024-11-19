@@ -174,7 +174,9 @@ const AssignmentPage: React.FC = () => {
           }
         })
       );
-
+      allAssignments.sort(
+        (a, b) => Number(a.created_at) - Number(b.created_at)
+      );
       setLessonChapterMap(_lessonChapterMap);
       setLessons(_lessons);
       setAssignments(allAssignments);
