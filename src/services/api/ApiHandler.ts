@@ -487,6 +487,13 @@ export class ApiHandler implements ServiceApi {
   public set currentSchool(value: TableTypes<"school"> | undefined) {
     this.s.currentSchool = value;
   }
+
+  public get currentCourse(): Map<string, TableTypes<"course"> | undefined> | undefined {
+    return this.s.currentCourse;
+  }
+  public set currentCourse(value: Map<string, TableTypes<"course"> | undefined> | undefined) {
+    this.s.currentCourse = value;
+  }
   updateLanguage(userId: string, value: string) {
     return this.s.updateLanguage(userId, value);
   }
