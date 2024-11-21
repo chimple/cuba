@@ -490,6 +490,7 @@ export const SCHOOL = "school";
 export const CLASS = "class";
 export const USER_ROLE = "userRole";
 export const CURRENT_TEACHER = "currentTeacher";
+export const CURRENT_COURSE = "currentCourse";
 
 export enum IconType {
   SCHOOL = "school",
