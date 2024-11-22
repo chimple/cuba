@@ -159,6 +159,8 @@ export interface ServiceApi {
   set currentStudent(value: TableTypes<"user"> | undefined);
   get currentClass(): TableTypes<"class"> | undefined;
   set currentClass(value: TableTypes<"class"> | undefined);
+  get currentCourse():  Map<string, TableTypes<"course"> | undefined> | undefined;
+  set currentCourse(value:  Map<string, TableTypes<"course"> | undefined> | undefined);
   get currentSchool(): TableTypes<"school"> | undefined;
   set currentSchool(value: TableTypes<"school"> | undefined);
   updateSoundFlag(userId: string, value: boolean);

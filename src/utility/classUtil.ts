@@ -89,7 +89,7 @@ export class ClassUtil {
         stdCompletd: studentsWhoCompletedAllAssignments,
         totalStudents: totalStudents,
       },
-      timeSpent: parseFloat(timeSpent.toFixed(2)),
+      timeSpent: parseFloat(timeSpent.toFixed(2)) / totalStudents,
       averageScore:
         assignmentResult?.length ?? 0 > 0
           ? parseFloat(

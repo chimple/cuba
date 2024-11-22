@@ -49,6 +49,9 @@ export class SqliteApi implements ServiceApi {
   private _currentStudent: TableTypes<"user"> | undefined;
   private _currentClass: TableTypes<"class"> | undefined;
   private _currentSchool: TableTypes<"school"> | undefined;
+  private _currentCourse:
+    | Map<string, TableTypes<"course"> | undefined>
+    | undefined;
   private _syncTableData = {};
 
   public static async getInstance(): Promise<SqliteApi> {
@@ -241,7 +244,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-            new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -1125,6 +1128,18 @@ export class SqliteApi implements ServiceApi {
 
   set currentSchool(value: TableTypes<"school"> | undefined) {
     this._currentSchool = value;
+  }
+
+  get currentCourse():
+    | Map<string, TableTypes<"course"> | undefined>
+    | undefined {
+    return this._currentCourse;
+  }
+
+  set currentCourse(
+    value: Map<string, TableTypes<"course"> | undefined> | undefined
+  ) {
+    this._currentCourse = value;
   }
 
   async updateSoundFlag(userId: string, value: boolean) {

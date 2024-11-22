@@ -430,6 +430,13 @@ export class OneRosterApi implements ServiceApi {
   set currentSchool(value: TableTypes<"school"> | undefined) {
     throw new Error("Method not implemented.");
   }
+
+  get currentCourse():  Map<string, TableTypes<"course"> | undefined> | undefined {
+    throw new Error("Method not implemented.");
+  }
+  set currentCourse(value:  Map<string, TableTypes<"course"> | undefined> | undefined) {
+    throw new Error("Method not implemented.");
+  }
   createProfile(
     name: string,
     age: number,
