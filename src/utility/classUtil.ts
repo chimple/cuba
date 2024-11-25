@@ -258,7 +258,8 @@ export class ClassUtil {
     courseId: string,
     startDate: Date,
     endDate: Date,
-    sortBy: TABLESORTBY
+    sortBy: TABLESORTBY,
+    isAssignments: boolean
   ) {
     const adjustedStartDate = subDays(new Date(startDate), 1);
     const adjustedEndDate = addDays(new Date(endDate), 1);
@@ -295,12 +296,15 @@ export class ClassUtil {
     });
 
     for (const student of _students) {
-      const res = await this.api.getStudentResultByDate(
+      var res = await this.api.getStudentResultByDate(
         student.id,
         courseId,
         startTimeStamp,
         endTimeStamp
       );
+      res = isAssignments
+        ? res?.filter((item) => item.assignment_id !== null)
+        : res;
 
       res?.forEach((result) => {
         const resultDate = new Date(result.created_at);
@@ -349,7 +353,8 @@ export class ClassUtil {
     courseId: string,
     startDate: Date,
     endDate: Date,
-    sortBy: TABLESORTBY
+    sortBy: TABLESORTBY,
+    isAssignments:boolean
   ) {
     const monthsInRange = this.getMonthsInRange(startDate, endDate);
     const adjustedStartDate = subDays(new Date(startDate), 1);
@@ -385,12 +390,15 @@ export class ClassUtil {
     });
 
     for (const student of _students) {
-      const res = await this.api.getStudentResultByDate(
+      var res = await this.api.getStudentResultByDate(
         student.id,
         courseId,
         startTimeStamp,
         endTimeStamp
       );
+      res = isAssignments
+        ? res?.filter((item) => item.assignment_id !== null)
+        : res;
       res?.forEach((result) => {
         const resultDate = new Date(result.created_at);
         const monthName = resultDate.toLocaleDateString("en-US", {
@@ -544,7 +552,8 @@ export class ClassUtil {
     endDate: Date,
     courseId: string,
     chapterId: string,
-    sortBy: TABLESORTBY
+    sortBy: TABLESORTBY,
+    isAssignments:boolean
   ) {
     const adjustedStartDate = subDays(new Date(startDate), 1);
     const adjustedEndDate = addDays(new Date(endDate), 1);
@@ -567,12 +576,15 @@ export class ClassUtil {
 
     const _lessons = await this.api.getLessonsForChapter(chapterId);
 
-    const chapterResults = await this.api.getResultByChapterByDate(
+    var chapterResults = await this.api.getResultByChapterByDate(
       chapterId,
       courseId,
       startTimeStamp,
       endTimeStamp
     );
+    chapterResults = isAssignments
+    ? chapterResults?.filter((item) => item.assignment_id !== null)
+    : chapterResults;
     const chapterMapArray: Map<
       string,
       { headerName: string; startAt: string; endAt: string }
