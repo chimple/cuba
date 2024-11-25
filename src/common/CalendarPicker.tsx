@@ -29,12 +29,15 @@ const CalendarPicker: React.FC<CalendarPickerProps> = ({
   const today = new Date().toISOString().split("T")[0];
   const effectiveMaxDate = (maxDate || today).split("T")[0];
   const effectiveMinDate =
-    mode === "start"
-      ? (minDate || today).split("T")[0]
-      : (startDate || today).split("T")[0];
-
+    mode === "start" ? minDate : startDate || "1900-01-01";
   console.log("Effective Min Date:", effectiveMinDate);
   console.log("Effective Max Date:", effectiveMaxDate);
+  // Ensure that effectiveMinDate is never undefined
+  const safeMinDate = effectiveMinDate ?? "1900-01-01";
+
+  useEffect(() => {
+    setCurrentValue(value);
+  }, [value]);
 
   useEffect(() => {
     if (datetimeRef.current) {
@@ -52,7 +55,7 @@ const CalendarPicker: React.FC<CalendarPickerProps> = ({
     const newDate = event.detail.value?.split("T")[0]; // Extract only the date part
 
     // Directly compare dates as strings in 'yyyy-MM-dd' format
-    if (newDate && newDate >= effectiveMinDate && newDate <= effectiveMaxDate) {
+    if (newDate && newDate >= safeMinDate && newDate <= effectiveMaxDate) {
       setCurrentValue(newDate);
     } else {
       console.log("Selected date out of range");
@@ -64,7 +67,7 @@ const CalendarPicker: React.FC<CalendarPickerProps> = ({
         ref={datetimeRef}
         value={currentValue}
         presentation="date"
-        min={effectiveMinDate}
+        min={safeMinDate}
         max={effectiveMaxDate}
         className="calendar-div"
         onIonChange={handleDateChange}

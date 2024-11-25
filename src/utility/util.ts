@@ -43,6 +43,7 @@ import {
   SCHOOL,
   USER_ROLE,
   CLASS,
+  CURRENT_COURSE,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -87,7 +88,6 @@ declare global {
 enum NotificationType {
   REWARD = "reward",
 }
-
 
 export class Util {
   public static port: PortPlugin;
@@ -179,9 +179,8 @@ export class Util {
     }
   }
 
-
-
   public static handleAppStateChange = (state: any) => {
+    console.log("handleAppStateChange triggered");
     if (state.isActive && Capacitor.isNativePlatform()) {
       const currentTime = Date.now();
       const startTime = Number(localStorage.getItem("startTime") || "0");
@@ -189,15 +188,29 @@ export class Util {
       if (timeElapsed >= Util.TIME_LIMIT) {
         const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
         const today = new Date().toISOString().split("T")[0];
-        if (lastShownDate !== today) {
-          const showModalEvent = new CustomEvent("shouldShowModal", { detail: true });
+        console.log(
+          "lastShownDate in handleAppStateChange",
+          today,
+          lastShownDate
+        );
+        if ("2024-11-05" !== today) {
+          // if (STAGES.MODE === "parent") {
+          console.log("handleAppStateChange modal triggered");
+          const showModalEvent = new CustomEvent("shouldShowModal", {
+            detail: true,
+          });
+          document.dispatchEvent(showModalEvent);
+          // const showModalEvent = new CustomEvent("shouldShowModal", { detail: true });
           window.dispatchEvent(showModalEvent);
           localStorage.setItem(Util.LAST_MODAL_SHOWN_KEY, today);
+          // }
           return;
         }
       }
     }
-    const showModalEvent = new CustomEvent("shouldShowModal", { detail: false });
+    const showModalEvent = new CustomEvent("shouldShowModal", {
+      detail: false,
+    });
     window.dispatchEvent(showModalEvent);
   };
 
@@ -398,9 +411,9 @@ export class Util {
 
               console.log(
                 "before local lesson Bundle http url:" +
-                "assets/" +
-                lessonId +
-                "/config.json"
+                  "assets/" +
+                  lessonId +
+                  "/config.json"
               );
 
               const fetchingLocalBundle = await fetch(
@@ -408,9 +421,9 @@ export class Util {
               );
               console.log(
                 "after local lesson Bundle fetch url:" +
-                "assets/" +
-                lessonId +
-                "/config.json",
+                  "assets/" +
+                  lessonId +
+                  "/config.json",
                 fetchingLocalBundle.ok,
                 fetchingLocalBundle.json,
                 fetchingLocalBundle
@@ -859,7 +872,7 @@ export class Util {
     if (!isActive) {
       TextToSpeech.stop();
     }
-  
+
     // Handling app state changes (reloading pages, updating URLs, etc.)
     const url = new URL(window.location.toString());
     const urlParams = new URLSearchParams(window.location.search);
@@ -870,7 +883,7 @@ export class Util {
       return;
     }
     urlParams.delete(CONTINUE);
-  
+
     if (isActive) {
       if (
         Capacitor.isNativePlatform() &&
@@ -895,9 +908,8 @@ export class Util {
         Util.checkingIfGameCanvasAvailable();
       }
     }
-    Util.handleAppStateChange(isActive);
+    // Util.handleAppStateChange(isActive);
   };
-  
 
   public static checkingIfGameCanvasAvailable = async () => {
     // return new Promise<boolean>(async (resolve, reject) => {
@@ -1500,7 +1512,7 @@ export class Util {
     const currentWeek = Util.getCurrentWeekNumber();
     const stickerIds: string[] = [];
     const weeklyData = rewardsDoc.weeklySticker;
-    weeklyData?.[currentWeek.toString()].forEach((value) => {
+    weeklyData?.[currentWeek.toString()]?.forEach((value) => {
       if (value.type === LeaderboardRewardsType.STICKER) {
         stickerIds.push(value.id);
       }
@@ -1747,7 +1759,7 @@ export class Util {
           text: t(text),
           title: t(title),
           url: url,
-          imageFile: imageFile // Pass the File object for Android
+          imageFile: imageFile, // Pass the File object for Android
         })
         .then(() => console.log("Content shared successfully"))
         .catch((error) => console.error("Error sharing content:", error));
@@ -1760,11 +1772,39 @@ export class Util {
         files: imageFile,
       };
 
-      await navigator.share(shareData)
+      await navigator
+        .share(shareData)
         .then(() => console.log("Content shared successfully"))
         .catch((error) => console.error("Error sharing content:", error));
     }
   }
 
+  public static setCurrentCourse = async (
+    classId: string | undefined,
+    courseDoc: TableTypes<"course"> | null
+  ) => {
+    if (!classId) return;
+    const api = ServiceConfig.getI().apiHandler;
+    const courseMap: Map<string, TableTypes<"course"> | undefined> = new Map();
+    courseMap.set(classId, courseDoc ?? undefined);
+    api.currentCourse = courseMap;
+    const mapObject = Object.fromEntries(courseMap);
+    localStorage.setItem(CURRENT_COURSE, JSON.stringify(mapObject));
+  };
 
+  public static getCurrentCourse(
+    classId: string | undefined
+  ): TableTypes<"course"> | undefined {
+    if (!classId) return;
+    const api = ServiceConfig.getI().apiHandler;
+    if (!!api.currentCourse) return api.currentCourse.get(classId);
+    const temp = localStorage.getItem(CURRENT_COURSE);
+    if (!temp) return;
+    const tempObject = JSON.parse(temp);
+    const currentCourse = new Map(Object.entries(tempObject)) as Map<
+      string,
+      TableTypes<"course">
+    >;
+    return currentCourse.get(classId);
+  }
 }

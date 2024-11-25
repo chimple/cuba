@@ -49,6 +49,9 @@ export class SqliteApi implements ServiceApi {
   private _currentStudent: TableTypes<"user"> | undefined;
   private _currentClass: TableTypes<"class"> | undefined;
   private _currentSchool: TableTypes<"school"> | undefined;
+  private _currentCourse:
+    | Map<string, TableTypes<"course"> | undefined>
+    | undefined;
   private _syncTableData = {};
 
   public static async getInstance(): Promise<SqliteApi> {
@@ -439,7 +442,7 @@ export class SqliteApi implements ServiceApi {
       mutateType,
       JSON.stringify(data),
     ];
-    console.log("🚀 ~ Api ~ variables:", variables);
+    console.log("🚀 ~ Api ~ variables:", stmt, variables);
     await this.executeQuery(stmt, variables);
     return await this.syncDbNow([tableName]);
   }
@@ -1125,6 +1128,18 @@ export class SqliteApi implements ServiceApi {
 
   set currentSchool(value: TableTypes<"school"> | undefined) {
     this._currentSchool = value;
+  }
+
+  get currentCourse():
+    | Map<string, TableTypes<"course"> | undefined>
+    | undefined {
+    return this._currentCourse;
+  }
+
+  set currentCourse(
+    value: Map<string, TableTypes<"course"> | undefined> | undefined
+  ) {
+    this._currentCourse = value;
   }
 
   async updateSoundFlag(userId: string, value: boolean) {
@@ -1869,7 +1884,7 @@ export class SqliteApi implements ServiceApi {
     FROM ${TABLES.Assignment} a
     LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
     LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = "${studentId}"
-    WHERE a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL and a.type is NULL;
+    WHERE a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL and a.type !='liveQuiz';
     `;
     const res = await this._db?.query(query);
     if (!res || !res.values || res.values.length < 1) return [];
@@ -2843,7 +2858,7 @@ export class SqliteApi implements ServiceApi {
     });
   }
 
-  async createAssignmentCart(
+  async createOrUpdateAssignmentCart(
     userId: string,
     lessons: string
   ): Promise<boolean | undefined> {
@@ -2894,7 +2909,8 @@ export class SqliteApi implements ServiceApi {
     school_id: string,
     lesson_id: string,
     chapter_id: string,
-    course_id: string
+    course_id: string,
+    type: string
   ): Promise<boolean> {
     const assignmentUUid = uuidv4();
     const timestamp = new Date().toISOString(); // Cache timestamp for reuse
@@ -2915,7 +2931,7 @@ export class SqliteApi implements ServiceApi {
           class_id,
           school_id,
           lesson_id,
-          null,
+          type,
           timestamp,
           timestamp,
           false,
@@ -2934,7 +2950,7 @@ export class SqliteApi implements ServiceApi {
         class_id: class_id,
         school_id: school_id,
         lesson_id: lesson_id,
-        type: null,
+        type: type,
         created_at: timestamp,
         updated_at: timestamp,
         is_deleted: false,
@@ -3389,9 +3405,25 @@ order by
     if (!res || !res.values || res.values.length < 1) return;
     return res.values;
   }
+  async getLessonsBylessonIds(
+    lessonIds: string[] // Expect an array of strings
+  ): Promise<TableTypes<"lesson">[] | undefined> {
+    if (!lessonIds || lessonIds.length === 0) return;
+
+    const placeholders = lessonIds.map(() => "?").join(", ");
+    const query = `SELECT * 
+      FROM ${TABLES.Lesson} 
+      WHERE id IN (${placeholders});`;
+
+    const res = await this._db?.query(query, lessonIds);
+
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values;
+  }
 
   async getStudentLastTenResults(
     studentId: string,
+    courseId: string,
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]> {
     const assignmentholders = assignmentIds.map(() => "?").join(", ");
@@ -3400,6 +3432,7 @@ order by
          SELECT * 
          FROM ${TABLES.Result} 
          WHERE student_id = ? 
+         AND course_id = ?
          AND assignment_id IS NULL 
          ORDER BY created_at DESC 
          LIMIT 5
@@ -3408,6 +3441,7 @@ order by
          SELECT * 
          FROM ${TABLES.Result} 
          WHERE student_id = ? 
+         AND course_id = ?
          AND assignment_id IN (${assignmentholders}) 
          ORDER BY created_at DESC 
          LIMIT 5
@@ -3419,21 +3453,48 @@ order by
        FROM non_null_assignments
        ORDER BY created_at DESC
        LIMIT 10;`,
-      [studentId, studentId, ...assignmentIds]
+      [studentId, courseId, studentId, courseId, ...assignmentIds]
     );
     return res?.values ?? [];
   }
 
-  async getAssignmentByClassByDate(
+  async getAssignmentOrLiveQuizByClassByDate(
     classId: string,
+    courseId: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    isClassWise: boolean,
+    isLiveQuiz: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
-    const query = `SELECT * 
+    let query = `SELECT * 
        FROM ${TABLES.Assignment} 
        WHERE class_id = '${classId}'
-       AND created_at BETWEEN '${endDate}' AND '${startDate}'
-       ORDER BY created_by DESC;`;
+       AND course_id = '${courseId}'
+       AND created_at BETWEEN '${endDate}' AND '${startDate}'`;
+    if (isClassWise) {
+      query += ` AND is_class_wise = 1`;
+    }
+    if (isLiveQuiz) {
+      query += ` AND type = 'liveQuiz'`;
+    }
+    query += ` ORDER BY created_at DESC;`;
+    const res = await this._db?.query(query);
+
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values;
+  }
+  async getStudentResultByDate(
+    studentId: string,
+    course_id: string,
+    startDate: string,
+    endDate: string
+  ): Promise<TableTypes<"result">[] | undefined> {
+    const query = `SELECT * 
+       FROM ${TABLES.Result} 
+       WHERE student_id = '${studentId}'
+       AND course_id = '${course_id}'
+       AND created_at BETWEEN '${startDate}' AND '${endDate}'
+       ORDER BY created_at DESC;`;
 
     const res = await this._db?.query(query);
 
@@ -3732,5 +3793,23 @@ order by
     );
 
     return newClass;
+
+  async getResultByChapterByDate(
+    chapter_id: string,
+    course_id: string,
+    startDate: string,
+    endDate: string
+  ): Promise<TableTypes<"result">[] | undefined> {
+    const query = `SELECT * 
+       FROM ${TABLES.Result} 
+       WHERE chapter_id = '${chapter_id}'
+       AND course_id = '${course_id}'
+       AND created_at BETWEEN '${startDate}' AND '${endDate}'
+       ORDER BY created_at DESC;`;
+
+    const res = await this._db?.query(query);
+
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values;
   }
 }

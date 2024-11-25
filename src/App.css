@@ -8,6 +8,10 @@
   justify-content: center;
 }
 
+.custom-alert .alert-title.sc-ion-alert-md {
+  text-align: center;
+}
+
 .custom-alert .time-exceed-continue {
   --background: #83c327;
   --color: white;
