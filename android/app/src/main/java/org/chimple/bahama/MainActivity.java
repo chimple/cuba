@@ -7,10 +7,15 @@ import com.getcapacitor.BridgeActivity;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.appcheck.FirebaseAppCheck;
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;             
 
 public  class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) ->{
+            FirebaseCrashlytics.getInstance().recordException(throwable);
+        });
+
         registerPlugin(PortPlugin.class);
         super.onCreate(savedInstanceState);
         View decorView = getWindow().getDecorView();
