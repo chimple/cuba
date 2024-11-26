@@ -3734,16 +3734,23 @@ order by
     }
   }
 
-  async generateClassCode(class_id: string): Promise<any | undefined> {
+  async createClassCode(
+    class_code: number,
+    class_id: string
+  ): Promise<number | undefined> {
     if (!class_id) return;
     const existingClassCode = await this.getClassCodeById(class_id);
 
-    // If the class code already exists, throw an error
     if (existingClassCode) {
-      console.log("existingClassCode", existingClassCode);
       return existingClassCode;
     }
-
+    let isCodeExist = await this._serverApi.createClassCode(
+      class_code,
+      class_id
+    );
+    if (isCodeExist) {
+      return undefined;
+    }
     // Set the expiration date (1 year from today)
     const expiresAt = new Date();
     expiresAt.setFullYear(expiresAt.getFullYear() + 1); // Add 1 year to today's date
@@ -3756,7 +3763,7 @@ order by
     // Create the class invite code object
     const newClass: TableTypes<"class_invite_code"> = {
       id: codeId,
-      code: Math.floor(Math.random() * 900000) + 100000, // The class code provided
+      code: class_code, // The class code provided
       expires_at: formattedExpiresAt, // Expiry date one year from now
       class_id: class_id, // The class ID provided
       is_class_code: true, // Assuming boolean flag
@@ -3785,15 +3792,14 @@ order by
       ]
     );
 
-    // Assuming a method to update push changes, which takes table name, mutation type, and data
     await this.updatePushChanges(
       TABLES.ClassInvite_code,
       MUTATE_TYPES.INSERT,
       newClass
     );
 
-    return newClass;
-
+    return newClass.code;
+  }
   async getResultByChapterByDate(
     chapter_id: string,
     course_id: string,
