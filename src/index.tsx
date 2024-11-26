@@ -9,9 +9,7 @@ import {
   defineCustomElements as jeepSqlite,
   applyPolyfills,
 } from "jeep-sqlite/loader";
-import {
-  FirebaseCrashlytics,
-} from "@capacitor-firebase/crashlytics";
+import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
 import { SqliteApi } from "./services/api/SqliteApi";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { IonLoading } from "@ionic/react";
@@ -25,18 +23,16 @@ if (Capacitor.isNativePlatform()) {
 applyPolyfills().then(() => {
   jeepSqlite(window);
 });
-const recordExecption = (message: string) => {
-  if (Capacitor.getPlatform() != "web")
-  {
-    FirebaseCrashlytics.recordException({ message: message });
+const recordExecption = (message: string, error: string) => { 
+  if (Capacitor.getPlatform() != "web") {
+    FirebaseCrashlytics.recordException({ message: message, domain: error });
   }
-   
 };
-window.onunhandledrejection = (event:PromiseRejectionEvent) => {
-  recordExecption(event.reason.message);
+window.onunhandledrejection = (event: PromiseRejectionEvent) => {
+  recordExecption(event.reason.toString(),event.type.toString());
 };
 window.onerror = (message, source, lineno, colno, error) => {
-  recordExecption(message);
+  recordExecption(message.toString,error.toString());
 };
 SplashScreen.hide();
 const container = document.getElementById("root");

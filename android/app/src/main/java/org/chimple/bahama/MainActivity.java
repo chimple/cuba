@@ -1,5 +1,7 @@
 package org.chimple.bahama;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 
@@ -13,6 +15,11 @@ public  class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) ->{
+                SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+            String userId = sharedPreferences.getString("userId", null);
+            if(userId !=null){
+                FirebaseCrashlytics.getInstance().setUserId(userId);
+            }
             FirebaseCrashlytics.getInstance().recordException(throwable);
         });
 
