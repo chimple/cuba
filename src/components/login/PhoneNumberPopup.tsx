@@ -58,7 +58,7 @@ const PhoneNumberPopup: FC<PhoneNumberPopupProps> = ({
             style={{ marginTop: "50px", cursor: "pointer" }}
             onClick={onNoneSelect}
           >
-            <h6>{t("None of above")}</h6>
+            <h6>{t("None of the above")}</h6>
           </IonText>
         </div>
       </IonModal>

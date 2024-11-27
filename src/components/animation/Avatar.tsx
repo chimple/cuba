@@ -31,6 +31,14 @@ export enum AvatarModes {
   BadProgress,
 }
 
+export enum AvatarAnimations {
+  IDLE1 = "idle_1",
+  IDLE2 = "idle_2",
+  TALK = "talking",
+  LOSE = "lose",
+  WIN = "win",
+}
+
 export class AvatarObj {
   private _mode: any;
   private _message: string | undefined;
@@ -57,7 +65,7 @@ export class AvatarObj {
   currentLessonSuggestionIndex: number;
   currentRecommendedLessonIndex: number = 0;
   weeklyProgressGoal: number = 60;
-  weeklyTimeSpent: {} = { min: 0, sec: 0 };
+  weeklyTimeSpent: { min; sec } = { min: 0, sec: 0 };
   weeklyPlayedLesson: number = 0;
   wrongAttempts: number = 0;
   // gamifyTimespentMessage = "Play ' x1 ' to win your daily reward";
