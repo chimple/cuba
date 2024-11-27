@@ -21,7 +21,7 @@ import { Chapter } from "../../common/courseConstants";
 import { useHistory } from "react-router";
 import { t } from "i18next";
 import { useRive, Layout, Fit, useStateMachineInput } from "rive-react";
-import { AvatarModes, AvatarObj } from "./Avatar";
+import { AvatarModes, AvatarObj, AvatarAnimations } from "./Avatar";
 import { IonLoading, IonPage } from "@ionic/react";
 import { CircularProgress, Fade } from "@mui/material";
 // import { rows } from "../../../build/assets/animation/avatarSugguestions.json";
@@ -49,22 +49,21 @@ const ChimpleAvatar: FC<{
   const [currentLesson, setCurrentLesson] = useState<Lesson>();
   const [isBurst, setIsBurst] = useState(false);
   const [buttonsDisabled, setButtonsDisabled] = useState<boolean>(true);
-  const [riveCharHandsUp, setRiveCharHandsUp] = useState("Fail");
   const history = useHistory();
   const State_Machine = "State Machine 1";
   const [isAudioPlayed, setIsAudioPlayed] = useState<boolean>(true);
 
   const { rive, RiveComponent } = useRive({
-    src: "/assets/animation/chimplecharacter.riv",
-    stateMachines: State_Machine,
+    src: "/assets/animation/chimple.riv",
+    // stateMachines: State_Machine,
     layout: new Layout({ fit: Fit.Cover }),
-    animations: riveCharHandsUp,
+    animations: AvatarAnimations.IDLE1,
     autoplay: true,
   });
   const onclickInput = useStateMachineInput(
     rive,
     State_Machine,
-    riveCharHandsUp
+    AvatarAnimations.IDLE1
   );
   useEffect(() => {
     loadSuggestionsFromJson();
@@ -170,7 +169,7 @@ const ChimpleAvatar: FC<{
   };
   async function onClickYes() {
     setButtonsDisabled(false);
-    rive?.play(avatarObj.yesAnimation);
+    rive?.play(AvatarAnimations.WIN);
     buttons = [];
     onclickInput?.fire();
   }
@@ -208,7 +207,7 @@ const ChimpleAvatar: FC<{
       avatarObj.wrongAttempts++;
     }
     setButtonsDisabled(false);
-    rive?.play(avatarObj.noAnimation);
+    rive?.play(AvatarAnimations.LOSE);
     buttons = [];
     onclickInput?.fire();
     if (avatarObj.wrongAttempts >= 3) {
@@ -232,7 +231,7 @@ const ChimpleAvatar: FC<{
       case AvatarModes.collectReward:
         if (choice) {
           setButtonsDisabled(false);
-          rive?.play(avatarObj.avatarAnimation);
+          rive?.play(AvatarAnimations.WIN);
           buttons = [];
           onclickInput?.fire();
           history.replace(
@@ -246,7 +245,7 @@ const ChimpleAvatar: FC<{
         if (choice) {
           localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "false");
           setButtonsDisabled(false);
-          rive?.play("Success");
+          rive?.play(AvatarAnimations.WIN);
           buttons = [];
           onclickInput?.fire();
           await loadSuggestionsFromJson();
@@ -256,7 +255,7 @@ const ChimpleAvatar: FC<{
       case AvatarModes.Welcome:
         if (choice) {
           setButtonsDisabled(false);
-          rive?.play(avatarObj.avatarAnimation);
+          rive?.play(AvatarAnimations.WIN);
           buttons = [];
           onclickInput?.fire();
           await loadNextSuggestion();
