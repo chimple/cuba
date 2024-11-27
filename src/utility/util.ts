@@ -1724,9 +1724,6 @@ export class Util {
     api.currentSchool = currentSchool;
     return currentSchool;
   }
-  public static classCodeGenerate(): number {
-    return Math.floor(Math.random() * 900000) + 100000;
-  }
 
   public static setCurrentClass = async (
     classDoc: TableTypes<"class"> | null

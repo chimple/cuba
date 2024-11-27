@@ -1502,13 +1502,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
-      check_class_code_exist: {
-        Args: {
-          class_code_input: number
-          class_id_input: string
-        }
-        Returns: boolean
-      }
       create_user: {
         Args: {
           phone_number: string
@@ -1571,6 +1564,12 @@ export type Database = {
           phone_number: string
         }
         Returns: Json
+      }
+      generate_unique_class_code: {
+        Args: {
+          class_id_input: string
+        }
+        Returns: number
       }
       get_class_leaderboard: {
         Args: {

@@ -3723,7 +3723,7 @@ order by
     FROM ${TABLES.ClassInvite_code} 
     WHERE class_id='${class_id}' 
     AND is_deleted = FALSE 
-    AND (expires_at IS NULL OR expires_at > '${currentDate}')`;
+    AND (expires_at >= '${currentDate}')`;
 
     try {
       const res = await this._db?.query(query);
@@ -3734,22 +3734,16 @@ order by
     }
   }
 
-  async createClassCode(
-    class_code: number,
-    class_id: string
-  ): Promise<number | undefined> {
+  async createClassCode(class_id: string): Promise<number | undefined> {
     if (!class_id) return;
     const existingClassCode = await this.getClassCodeById(class_id);
 
     if (existingClassCode) {
       return existingClassCode;
     }
-    let isCodeExist = await this._serverApi.createClassCode(
-      class_code,
-      class_id
-    );
-    if (isCodeExist) {
-      return undefined;
+    let classCode = await this._serverApi.createClassCode(class_id);
+    if (!classCode) {
+      return;
     }
     // Set the expiration date (1 year from today)
     const expiresAt = new Date();
@@ -3763,7 +3757,7 @@ order by
     // Create the class invite code object
     const newClass: TableTypes<"class_invite_code"> = {
       id: codeId,
-      code: class_code, // The class code provided
+      code: classCode, // The class code provided
       expires_at: formattedExpiresAt, // Expiry date one year from now
       class_id: class_id, // The class ID provided
       is_class_code: true, // Assuming boolean flag
@@ -3798,7 +3792,7 @@ order by
       newClass
     );
 
-    return newClass.code;
+    return classCode;
   }
   async getResultByChapterByDate(
     chapter_id: string,

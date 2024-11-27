@@ -1081,10 +1081,6 @@ export interface ServiceApi {
   /**
    * To generate class code for the given class id
    * @param {string } classId - Class Id
-   * @param {number } class_code - class code
    */
-  createClassCode(
-    class_code: number,
-    class_id: string
-  ): Promise<any | undefined>;
+  createClassCode(class_id: string): Promise<number | undefined>;
 }
