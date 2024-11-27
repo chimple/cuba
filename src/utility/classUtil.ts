@@ -89,7 +89,7 @@ export class ClassUtil {
         stdCompletd: studentsWhoCompletedAllAssignments,
         totalStudents: totalStudents,
       },
-      timeSpent: parseFloat(timeSpent.toFixed(2)) / totalStudents,
+      timeSpent: parseFloat((timeSpent / totalStudents).toFixed(2)),
       averageScore:
         assignmentResult?.length ?? 0 > 0
           ? parseFloat(
@@ -354,7 +354,7 @@ export class ClassUtil {
     startDate: Date,
     endDate: Date,
     sortBy: TABLESORTBY,
-    isAssignments:boolean
+    isAssignments: boolean
   ) {
     const monthsInRange = this.getMonthsInRange(startDate, endDate);
     const adjustedStartDate = subDays(new Date(startDate), 1);
@@ -553,7 +553,7 @@ export class ClassUtil {
     courseId: string,
     chapterId: string,
     sortBy: TABLESORTBY,
-    isAssignments:boolean
+    isAssignments: boolean
   ) {
     const adjustedStartDate = subDays(new Date(startDate), 1);
     const adjustedEndDate = addDays(new Date(endDate), 1);
@@ -583,8 +583,8 @@ export class ClassUtil {
       endTimeStamp
     );
     chapterResults = isAssignments
-    ? chapterResults?.filter((item) => item.assignment_id !== null)
-    : chapterResults;
+      ? chapterResults?.filter((item) => item.assignment_id !== null)
+      : chapterResults;
     const chapterMapArray: Map<
       string,
       { headerName: string; startAt: string; endAt: string }
