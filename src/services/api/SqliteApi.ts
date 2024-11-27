@@ -3476,6 +3476,9 @@ order by
     if (isLiveQuiz) {
       query += ` AND type = 'liveQuiz'`;
     }
+    else{
+      query += ` AND type != 'liveQuiz'`;
+    }
     query += ` ORDER BY created_at DESC;`;
     const res = await this._db?.query(query);
 

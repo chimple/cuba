@@ -3,7 +3,9 @@ package org.chimple.bahama;
 import static android.content.Intent.getIntent;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -197,6 +199,24 @@ public void shareContentWithAndroidShare(PluginCall call) {
         call.reject("Failed to share content: " + e.toString());
     }
 }
+    @PluginMethod
+    public void shareUserId(PluginCall call) {
+        try {
+            String userId = call.getString("userId");
+            if (userId != null) {
+                SharedPreferences sharedPreferences = getContext().getSharedPreferences("AppPreferences", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString("userId", userId);
+                editor.apply();
+                call.resolve();
+            } else {
+                call.reject("Key required");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            call.reject("Failed to share content: " + e.toString());
+        }
+    }
 
 
 }
