@@ -112,6 +112,20 @@ export enum ASSIGNMENTTAB_LIST {
   LIVEQUIZ = "Live Quiz",
 }
 
+export enum BANDWISECOLOR {
+  RED = "#F09393",
+  YELLOW = "#FDF7C3",
+  GREEN = "#CBDFA0",
+  GREY = "#D4D1D8",
+}
+
+export enum BANDS {
+  REDGROUP = "redGroup",
+  YELLOWGROUP = "yellowGroup",
+  GREENGROUP = "greenGroup",
+  GREYGROUP = "greyGroup",
+}
+
 export enum COMMONTAB_LIST {
   SCHOOL = "School",
   CLASS = "Class",
@@ -127,11 +141,17 @@ export enum USERTYPES {
 }
 
 export enum TABLEDROPDOWN {
-  ASSIGNMENTS = "Assignments",
-  MONTHLY = "Monthly",
-  WEEKLY = "Weekly",
-  LIVEQUIZ = "LiveQuiz",
-  CHAPTER = "Chapter",
+  ASSIGNMENTS = "Assignments Report",
+  MONTHLY = "Monthly Report",
+  WEEKLY = "Weekly Report",
+  LIVEQUIZ = "LiveQuiz Report",
+  CHAPTER = "Chapter Report",
+}
+
+export enum TABLESORTBY {
+  NAME = "Name",
+  HIGHSCORE = "High Score",
+  LOWSCORE = "Low Score",
 }
 
 export const belowGrade1 = "30ecb762-8e63-45b3-a22a-62c1a9f71641";
@@ -371,6 +391,7 @@ export enum PAGES {
   DISPLAY_CHAPTERS = "/display-chapters",
   DISPLAY_SCHOOLS = "/display-schools",
   DISPLAY_CLASSES = "/display-classes",
+  DASHBOARD_DETAILS = "/dashboard-details",
   HOME_PAGE = "/home-page",
   ADD_SUBJECTS = "/add-subjects",
   APP_LANG_SELECTION = "/app-lang-selection",
@@ -405,6 +426,9 @@ export enum PAGES {
   EDIT_CLASS = "/edit-class",
   ADD_CLASS = "/add-class",
   CLASS_PROFILE = "/class-profile",
+  SHOW_STUDENTS_IN_ASSIGNED_PAGE = "/show-students-in-assigned-page",
+  ADD_TEACHER = "/add-teacher",
+  TEACHER_PROFILE = "/teacher-profile",
 }
 
 export enum LANG {
@@ -417,12 +441,14 @@ export enum LANG {
 export enum DrawerOptions {
   MANAGE_SCHOOL = "Manage School",
   MANAGE_CLASS = "Manage Class",
+  USER_PROFILE = "User Profile",
 }
 
 export interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;
 }
+
 export const SCREEN_WIDTH = window.innerWidth;
 export const SCREEN_HEIGHT = window.innerHeight;
 
@@ -463,6 +489,8 @@ export const APP_NAME = "Kids";
 export const SCHOOL = "school";
 export const CLASS = "class";
 export const USER_ROLE = "userRole";
+export const CURRENT_TEACHER = "currentTeacher";
+export const CURRENT_COURSE = "currentCourse";
 
 export enum IconType {
   SCHOOL = "school",
@@ -485,6 +513,8 @@ export interface PortPlugin {
     notificationType: string;
     rewardProfileId: string;
   }>;
+  shareContentWithAndroidShare(options: { text: string; title: string; url?: string; imageFile?: File[] }): Promise<void>;
+  shareUserId(options: { userId: string }): Promise<void>;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_SUBJECT_IDS = [
@@ -668,3 +698,15 @@ export const USER_DATA = "userData";
 export const REFRESH_TOKEN = "refreshToken";
 
 export const OPEN_APK = true
+export interface HomeWeeklySummary {
+  assignments: {
+    asgnmetCmptd: number;
+    totalAssignments: number;
+  };
+  students: {
+    stdCompletd: number;
+    totalStudents: number;
+  };
+  timeSpent: number;
+  averageScore: number;
+}

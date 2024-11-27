@@ -95,7 +95,7 @@ const DownloadLesson: React.FC<{
     const storedItems = JSON.parse(
       localStorage.getItem(DOWNLOADING_CHAPTER_ID) || JSON.stringify([])
     );
-    if (storedItems.includes(chapter?.id)) {
+    if (storedItems && storedItems.includes(chapter?.id)) {
       setLoading(true);
     } else {
       setLoading(false);

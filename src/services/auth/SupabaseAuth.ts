@@ -109,6 +109,7 @@ export class SupabaseAuth implements ServiceAuth {
           music_off: false,
           sfx_off: false,
           fcm_token: null,
+          student_id: null,
         });
         this._currentUser = createdUser;
       }
@@ -265,6 +266,7 @@ export class SupabaseAuth implements ServiceAuth {
           music_off: false,
           sfx_off: false,
           fcm_token: null,
+          student_id: null,
         });
         this._currentUser = createdUser;
       }

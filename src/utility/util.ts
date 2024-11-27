@@ -44,6 +44,7 @@ import {
   USER_ROLE,
   CLASS,
   OPEN_APK,
+  CURRENT_COURSE,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -77,6 +78,8 @@ import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { schoolUtil } from "./schoolUtil";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { URLOpenListenerEvent } from "@capacitor/app";
+import { t } from "i18next";
+import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
 
 declare global {
   interface Window {
@@ -90,6 +93,8 @@ enum NotificationType {
 
 export class Util {
   public static port: PortPlugin;
+  static TIME_LIMIT = 25 * 60;
+  static LAST_MODAL_SHOWN_KEY = "lastModalShown";
 
   // public static convertCourses(_courses: Course1[]): Course1[] {
   //   let courses: Course1[] = [];
@@ -175,6 +180,41 @@ export class Util {
       return undefined;
     }
   }
+
+  public static handleAppStateChange = (state: any) => {
+    console.log("handleAppStateChange triggered");
+    if (state.isActive && Capacitor.isNativePlatform()) {
+      const currentTime = Date.now();
+      const startTime = Number(localStorage.getItem("startTime") || "0");
+      const timeElapsed = (currentTime - startTime) / 1000; // in seconds
+      if (timeElapsed >= Util.TIME_LIMIT) {
+        const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
+        const today = new Date().toISOString().split("T")[0];
+        console.log(
+          "lastShownDate in handleAppStateChange",
+          today,
+          lastShownDate
+        );
+        if ("2024-11-05" !== today) {
+          // if (STAGES.MODE === "parent") {
+          console.log("handleAppStateChange modal triggered");
+          const showModalEvent = new CustomEvent("shouldShowModal", {
+            detail: true,
+          });
+          document.dispatchEvent(showModalEvent);
+          // const showModalEvent = new CustomEvent("shouldShowModal", { detail: true });
+          window.dispatchEvent(showModalEvent);
+          localStorage.setItem(Util.LAST_MODAL_SHOWN_KEY, today);
+          // }
+          return;
+        }
+      }
+    }
+    const showModalEvent = new CustomEvent("shouldShowModal", {
+      detail: false,
+    });
+    window.dispatchEvent(showModalEvent);
+  };
 
   // public static convertDoc(refs: any[]): DocumentReference[] {
   //   const data: DocumentReference[] = [];
@@ -777,6 +817,11 @@ export class Util {
       await FirebaseAnalytics.setUserId({
         userId: params.user_id,
       });
+      if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+      Util.port.shareUserId({ userId: params.user_id })
+      await FirebaseCrashlytics.setUserId({
+        userId: params.user_id,
+      });
 
       await FirebaseAnalytics.setScreenName({
         screenName: window.location.pathname,
@@ -844,10 +889,12 @@ export class Util {
   }
 
   public static onAppStateChange = ({ isActive }) => {
+    // Existing logic for stopping TextToSpeech when app is inactive
     if (!isActive) {
       TextToSpeech.stop();
     }
 
+    // Handling app state changes (reloading pages, updating URLs, etc.)
     const url = new URL(window.location.toString());
     const urlParams = new URLSearchParams(window.location.search);
     if (!!urlParams.get(CONTINUE)) {
@@ -882,6 +929,7 @@ export class Util {
         Util.checkingIfGameCanvasAvailable();
       }
     }
+    // Util.handleAppStateChange(isActive);
   };
 
   public static checkingIfGameCanvasAvailable = async () => {
@@ -1485,7 +1533,7 @@ export class Util {
     const currentWeek = Util.getCurrentWeekNumber();
     const stickerIds: string[] = [];
     const weeklyData = rewardsDoc.weeklySticker;
-    weeklyData?.[currentWeek.toString()].forEach((value) => {
+    weeklyData?.[currentWeek.toString()]?.forEach((value) => {
       if (value.type === LeaderboardRewardsType.STICKER) {
         stickerIds.push(value.id);
       }
@@ -1715,5 +1763,69 @@ export class Util {
     const currentClass = JSON.parse(temp) as TableTypes<"class">;
     api.currentClass = currentClass;
     return currentClass;
+  }
+
+  public static async sendContentToAndroidOrWebShare(
+    text: string,
+    title: string,
+    url?: string,
+    imageFile?: File[]
+  ) {
+    if (Capacitor.isNativePlatform()) {
+      // Convert File object to a blob URL, then extract path for Android
+      const file = imageFile ? imageFile[0] : null;
+
+      await Util.port
+        .shareContentWithAndroidShare({
+          text: t(text),
+          title: t(title),
+          url: url,
+          imageFile: imageFile, // Pass the File object for Android
+        })
+        .then(() => console.log("Content shared successfully"))
+        .catch((error) => console.error("Error sharing content:", error));
+    } else {
+      // Web sharing
+      const shareData: ShareData = {
+        text: t(text) || "",
+        title: t(title) || "",
+        url: url,
+        files: imageFile,
+      };
+
+      await navigator
+        .share(shareData)
+        .then(() => console.log("Content shared successfully"))
+        .catch((error) => console.error("Error sharing content:", error));
+    }
+  }
+
+  public static setCurrentCourse = async (
+    classId: string | undefined,
+    courseDoc: TableTypes<"course"> | null
+  ) => {
+    if (!classId) return;
+    const api = ServiceConfig.getI().apiHandler;
+    const courseMap: Map<string, TableTypes<"course"> | undefined> = new Map();
+    courseMap.set(classId, courseDoc ?? undefined);
+    api.currentCourse = courseMap;
+    const mapObject = Object.fromEntries(courseMap);
+    localStorage.setItem(CURRENT_COURSE, JSON.stringify(mapObject));
+  };
+
+  public static getCurrentCourse(
+    classId: string | undefined
+  ): TableTypes<"course"> | undefined {
+    if (!classId) return;
+    const api = ServiceConfig.getI().apiHandler;
+    if (!!api.currentCourse) return api.currentCourse.get(classId);
+    const temp = localStorage.getItem(CURRENT_COURSE);
+    if (!temp) return;
+    const tempObject = JSON.parse(temp);
+    const currentCourse = new Map(Object.entries(tempObject)) as Map<
+      string,
+      TableTypes<"course">
+    >;
+    return currentCourse.get(classId);
   }
 }

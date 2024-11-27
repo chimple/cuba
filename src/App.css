@@ -1,0 +1,46 @@
+.custom-alert {
+  --background: white;
+  --color: black;
+  --border-radius: 3vh;
+}
+
+.custom-alert .alert-button-group {
+  justify-content: center;
+}
+
+.custom-alert .alert-title.sc-ion-alert-md {
+  text-align: center;
+}
+
+.custom-alert .time-exceed-continue {
+  --background: #83c327;
+  --color: white;
+  opacity: 1;
+  border-radius: 1vh;
+  padding: 1vh 2vw;
+  font-weight: bold;
+  text-align: center;
+  width: auto;
+  max-width: 20vw;
+}
+
+.custom-alert .alert-button.time-exceed-continue {
+  background-color: #83c327 !important;
+  color: white !important;
+  border-radius: 1vh;
+  padding: 1vh 2vw;
+  width: auto;
+  min-width: 20vh;
+  max-width: 20vh;
+  display: inline-block;
+  margin-bottom: 1vw;
+}
+
+.custom-alert .alert-button-group {
+  justify-content: center;
+}
+
+.alert-button-inner.sc-ion-alert-md {
+  -ms-flex-pack: end;
+  justify-content: center !important;
+}

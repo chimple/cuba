@@ -86,19 +86,30 @@ export interface ServiceApi {
     name: string,
     age: number | undefined,
     gender: string | undefined,
-    avatar: string | undefined,
-    image: string | undefined,
-    boardDocId: string | undefined,
-    gradeDocId: string | undefined,
-    languageDocId: string | undefined,
+    avatar: string | null,
+    image: string | null,
+    boardDocId: string | null,
+    gradeDocId: string | null,
+    languageDocId: string | null,
     classId: string,
-    role: string
+    role: string,
+    studentId: string
   ): Promise<TableTypes<"user">>;
 
   updateClassCourseSelection(
     classId: string,
     selectedCourseIds: string[]
   ): Promise<void>;
+
+  getCoursesByClassId(classId: string): Promise<TableTypes<"class_course">[]>;
+
+  removeCourseFromClass(id: string): Promise<void>;
+
+  /**
+   * To delete a 'user' with a given student ID from the class_user table.
+   * @param {string } studentId - Student Id
+   */
+  deleteUserFromClass(userId: string): Promise<void>;
 
   /**
    * To delete `Profile` for given student Id
@@ -148,6 +159,8 @@ export interface ServiceApi {
   set currentStudent(value: TableTypes<"user"> | undefined);
   get currentClass(): TableTypes<"class"> | undefined;
   set currentClass(value: TableTypes<"class"> | undefined);
+  get currentCourse():  Map<string, TableTypes<"course"> | undefined> | undefined;
+  set currentCourse(value:  Map<string, TableTypes<"course"> | undefined> | undefined);
   get currentSchool(): TableTypes<"school"> | undefined;
   set currentSchool(value: TableTypes<"school"> | undefined);
   updateSoundFlag(userId: string, value: boolean);
@@ -303,6 +316,7 @@ export interface ServiceApi {
     wrongMoves: number,
     timeSpent: number,
     assignmentId: string | undefined,
+    chapterId: string,
     classId: string | undefined,
     schoolId: string | undefined
   ): Promise<TableTypes<"result">>;
@@ -328,6 +342,20 @@ export interface ServiceApi {
     boardDocId: string,
     gradeDocId: string,
     languageDocId: string
+  ): Promise<TableTypes<"user">>;
+
+  updateStudentFromSchoolMode(
+    student: TableTypes<"user">,
+    name: string,
+    age: number,
+    gender: string,
+    avatar: string,
+    image: string | undefined,
+    boardDocId: string,
+    gradeDocId: string,
+    languageDocId: string,
+    student_id: string,
+    newClassId: string
   ): Promise<TableTypes<"user">>;
 
   updateUserProfile(
@@ -516,6 +544,21 @@ export interface ServiceApi {
     course: Course,
     lessonId: string
   ): Promise<Lesson | undefined>;
+
+  /**
+   * This function gives lesson objects for given chapterId and LessonId 
+   *
+   * @param chapterId Chapter Id of the course
+   * @param lessonId Lesson Id of a course
+   * @returns A promise that resolves to the lesson.
+   */
+  getLessonFromChapter(
+    chapterId: string,
+    lessonId: string
+  ): Promise<{
+    lesson: TableTypes<"lesson">[];
+    course: TableTypes<"course">[];
+  }>;
 
   /**
    * Gives all `Course` available on database
@@ -795,7 +838,7 @@ export interface ServiceApi {
    * @param userId
    * @param lessons
    */
-  createAssignmentCart(
+  createOrUpdateAssignmentCart(
     userId: string,
     lessons: string
   ): Promise<boolean | undefined>;
@@ -814,8 +857,35 @@ export interface ServiceApi {
    */
   getChapterByLesson(
     lessonId: string,
-    classId: string
+    classId?: string,
+    userId?: string
   ): Promise<String | undefined>;
+
+  /**
+   * Get Assignments by classId and datewise
+   * @param classId
+   * @param startDate
+   * @param endData
+   */
+  getAssignmentOrLiveQuizByClassByDate(
+    classId: string,
+    courseId:string,
+    startDate: string,
+    endDate: string,
+    isClassWise: boolean,
+    isLiveQuiz:boolean
+  ): Promise<TableTypes<"assignment">[] | undefined>;
+
+  /**
+   * Get Student Result of 10 activities either assignments or self played
+   * @param studentId
+   * @param courseId
+   */
+  getStudentLastTenResults(
+    studentId: string,
+    courseId:string,
+    assignmentIds: string[]
+  ): Promise<TableTypes<"result">[]>;
   /**
    * Creates a class for the given school
    * @param schoolId
@@ -837,4 +907,165 @@ export interface ServiceApi {
    * @param classId
    */
   deleteClass(classId: string);
+
+  /**
+   *  Get the results By assignmentIds
+   * @param assignmentIds
+   */
+  getResultByAssignmentIds(
+    assignmentIds: string[]
+  ): Promise<TableTypes<"result">[] | undefined>;
+
+  /**
+   *  Get the last assignments by course wise
+   * @param classId
+   */
+  getLastAssignmentsForRecommendations(
+    classId: string,
+  ): Promise<TableTypes<"assignment">[] | undefined>;
+
+  /**
+   * Creates a assignment object
+   * @param {string} student_list - list of the students id's
+   * @param {number} age - age of the student
+   * @param {GENDER} gender - gender of the student
+   * @param {string} image - image of the student
+   * @param {string} boardDocId - boardDocId is `Curriculum` doc id
+   * @param {string} gradeDocId -  gradeDocId is `Grade` doc id
+   * @param {string} languageDocId -  languageDocId is `Language` doc id
+   * @returns {User} Student User Object
+   */
+  createAssignment(
+    student_list: string[],
+    userId: string,
+    starts_at: string,
+    ends_at: string,
+    is_class_wise: boolean,
+    class_id: string,
+    school_id: string,
+    lesson_id: string,
+    chapter_id: string,
+    course_id: string,
+    type: string
+  ): Promise<boolean>;
+
+  /**
+   * This function gets all the teachers for the class.
+   * @param {string} classId class Id;
+   * @return A promise to an array of teachers.
+   */
+  getTeachersForClass(
+    classId: string
+  ): Promise<TableTypes<"user">[] | undefined>;
+
+  /**
+   * This function gets the user by email.
+   * @param {string} email email;
+   * @return user object.
+   */
+  getUserByEmail(email: string): Promise<TableTypes<"user"> | undefined>;
+
+  /**
+   * This function gets the user by phonenumber.
+   * @param {string} phone phonenumber;
+   * @return user object.
+   */
+  getUserByPhoneNumber(phone: string): Promise<TableTypes<"user"> | undefined>;
+
+  /**
+   * Adding a teacher to class.
+   * @param {string} schoolId school Id
+   * @param {string} classId class Id
+   * @param {string} userId user Id;
+   * @return void.
+   */
+  addTeacherToClass(classId: string, userId: string): Promise<void>;
+
+  /**
+   * Checks the user present in class or not.
+   * @param {string} classId class Id
+   * @param {string} userId user Id;
+   * @return returns boolean whether the teacher is connected to class or not.
+   */
+  checkUserInClass(
+    schoolId: string,
+    classId: string,
+    userId: string
+  ): Promise<boolean>;
+
+  /**
+   * Gets the assignments by assigner and class.
+   * @param {string} classId class Id
+   * @param {string} userId user Id
+   * @param {string} startDate start date
+   * @param {string} endDate end date
+   * @return array of class wise and individual assignments.
+   */
+  getAssignmentsByAssignerAndClass(
+    userId: string,
+    classId: string,
+    startDate: string,
+    endDate: string
+  ): Promise<{
+    classWiseAssignments: TableTypes<"assignment">[];
+    individualAssignments: TableTypes<"assignment">[];
+  }>;
+
+  /**
+   * Gets teacher joined date.
+   * @param {string} userId user Id
+   * @param {string} classId class Id
+   * @return class user object.
+   */
+  getTeacherJoinedDate(
+    userId: string,
+    classId: string,
+  ): Promise<TableTypes<"class_user"> | undefined>;
+
+  /**
+   * Gets student ids for individual assignments.
+   * @param {string} assignmentId assignment Id
+   * @return array of student ids.
+   */
+  getAssignedStudents(assignmentId: string): Promise<string[]>;
+
+  /** Get the student result by Date
+   * @param studentId 
+   * @param startDate 
+   * @param endDate 
+   */
+  getStudentResultByDate(
+    studentId: string,
+    course_id:string,
+    startDate: string,
+    endDate: string
+  ): Promise<TableTypes<"result">[] | undefined>
+   
+  /**
+   * Get the Lessons with LessonIds
+   * @param lessonIds 
+   */
+  getLessonsBylessonIds(
+    lessonIds: string[] // Expect an array of strings
+  ): Promise<TableTypes<"lesson">[] | undefined> 
+  /**
+   * To delete `teacher` from class for given class id and teacher id
+   * @param {string } classId - Class Id
+   * @param {string } teacherId - Teacher Id
+   */
+  deleteTeacher(classId: string, teacherId: string);
+
+  /**
+   * To get the result by chapterId
+   * @param chapter_id 
+   * @param course_id 
+   * @param startDate 
+   * @param endDate 
+   */
+  getResultByChapterByDate(
+    chapter_id: string,
+    course_id: string,
+    startDate: string,
+    endDate: string
+  ): Promise<TableTypes<"result">[] | undefined>
 }

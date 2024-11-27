@@ -892,6 +892,7 @@ export class FirebaseApi implements ServiceApi {
     wrongMoves: number,
     timeSpent: number,
     assignmentId: string | undefined,
+    chapterId: string,
     classId: string | undefined,
     schoolId: string | undefined
   ): Promise<TableTypes<"result">> {
@@ -2035,6 +2036,38 @@ export class FirebaseApi implements ServiceApi {
   }
 
   searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getAssignmentOrLiveQuizByClassByDate(classId:string,courseId:string,startDate:string,endDate:string,isClassWise: boolean,isLiveQuiz: boolean): Promise<TableTypes<"assignment">[] | undefined>{
+    throw new Error("Method not implemented.");
+  }
+  getStudentLastTenResults( studentId: string,courseId:string,assignmentIds: string[]):Promise<TableTypes<"result">[]>{
+    throw new Error("Method not implemented.");
+  }
+  getResultByAssignmentIds(
+    assignmentIds: string[]
+  ): Promise<TableTypes<"result">[] | undefined>{
+    throw new Error("Method not implemented.");
+  }
+  getStudentResultByDate(
+    studentId: string,
+    course_id:string,
+    startDate: string,
+    endDate: string
+  ): Promise<TableTypes<"result">[] | undefined>{
+    throw new Error("Method not implemented.");
+  }
+  getLessonsBylessonIds(
+    lessonIds: string[] // Expect an array of strings
+  ): Promise<TableTypes<"lesson">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getResultByChapterByDate(
+    chapter_id: string,
+    course_id: string,
+    startDate: string,
+    endDate: string
+  ): Promise<TableTypes<"result">[] | undefined>{
     throw new Error("Method not implemented.");
   }
 }

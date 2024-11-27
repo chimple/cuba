@@ -41,6 +41,9 @@ const CocosGame: React.FC = () => {
   const courseDetail: TableTypes<"course"> = state.course
     ? JSON.parse(state.course)
     : undefined;
+  const chapterDetail: TableTypes<"chapter"> = state.chapter
+    ? JSON.parse(state.chapter)
+    : undefined;
   const lessonDetail: TableTypes<"lesson"> = state.lesson
     ? JSON.parse(state.lesson)
     : undefined;
@@ -113,7 +116,7 @@ const CocosGame: React.FC = () => {
   };
 
   const gameExit = async (e: any) => {
-    let ChapterDetail: TableTypes<"chapter"> | undefined;
+    // let chapterDetail: TableTypes<"chapter"> | undefined;
     // if (!!lessonDetail.cocos_chapter_code) {
     //   let cChap = courseDetail.chapters.find(
     //     (chap) => lessonDetail.cocosChapterCode === chap.id
@@ -133,7 +136,7 @@ const CocosGame: React.FC = () => {
       left_game_no: data.currentGameNumber,
       left_game_name: data.gameName,
       chapter_id: data.chapterId,
-      chapter_name: ChapterDetail ? ChapterDetail.name : "",
+      chapter_name: chapterDetail ? chapterDetail.name : "",
       lesson_id: data.lessonId,
       lesson_name: lessonDetail.name,
       lesson_type: data.lessonType,
@@ -163,6 +166,7 @@ const CocosGame: React.FC = () => {
     setGameResult(event);
   };
   async function init() {
+    const currentStudent = Util.getCurrentStudent();
     setIsLoading(true);
     const lessonId: string = state.lessonId;
     const lessonIds: string[] = [];
@@ -221,6 +225,7 @@ const CocosGame: React.FC = () => {
     const isStudentLinked = await api.isStudentLinked(currentStudent.id);
     let classId;
     let schoolId;
+    let chapter_id;
     if (isStudentLinked) {
       const studentResult = await api.getStudentClassesAndSchools(
         currentStudent.id
@@ -239,6 +244,13 @@ const CocosGame: React.FC = () => {
           assignmentId = result?.id;
         }
       }
+      chapter_id = await api.getChapterByLesson(lesson.id, classId);
+    } else {
+      chapter_id = await api.getChapterByLesson(
+        lesson.id,
+        undefined,
+        currentStudent.id
+      );
     }
     let avatarObj = AvatarObj.getInstance();
     let finalProgressTimespent =
@@ -258,6 +270,7 @@ const CocosGame: React.FC = () => {
       data.wrongMoves,
       data.timeSpent,
       assignmentId,
+      chapterDetail?.id ?? chapter_id?.toString() ?? "",
       classId,
       schoolId
     );

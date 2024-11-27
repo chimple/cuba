@@ -398,6 +398,7 @@ const LiveQuizQuestion: FC<{
         correctMoves++;
       }
     }
+    var _assignment = await api.getAssignmentById(roomDoc.assignment_id);
     await api.updateResult(
       student!.id,
       roomDoc.course_id,
@@ -407,6 +408,7 @@ const LiveQuizQuestion: FC<{
       totalQuestions - correctMoves,
       totalTimeSpent,
       roomDoc.assignment_id,
+      _assignment?.chapter_id ?? "",
       roomDoc.class_id,
       roomDoc.school_id
     );
