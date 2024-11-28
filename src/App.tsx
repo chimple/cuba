@@ -108,6 +108,7 @@ import {
   DashBoardDetails,
   AddTeacher,
   TeacherProfile,
+  StudentReport 
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
 import DisplayClasses from "./chimple-private/pages/DisplayClasses";
@@ -569,6 +570,11 @@ const App: React.FC = () => {
             <Route path={PAGES.DISPLAY_SCHOOLS} exact={true}>
               <Suspense>
                 <DisplaySchools />
+              </Suspense>
+            </Route>
+            <Route path={PAGES.STUDENT_REPORT} exact={true}>
+              <Suspense>
+                <StudentReport />
               </Suspense>
             </Route>
             <Route path={PAGES.DISPLAY_CLASSES} exact={true}>

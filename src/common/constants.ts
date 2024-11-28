@@ -429,6 +429,7 @@ export enum PAGES {
   SHOW_STUDENTS_IN_ASSIGNED_PAGE = "/show-students-in-assigned-page",
   ADD_TEACHER = "/add-teacher",
   TEACHER_PROFILE = "/teacher-profile",
+  STUDENT_REPORT = "/student-report"
 }
 
 export enum LANG {

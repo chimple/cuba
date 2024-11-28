@@ -282,12 +282,12 @@ export class ClassUtil {
       });
     var resultsByStudent = new Map<
       string,
-      { name: string; results: Record<string, any[]> }
+      { student: TableTypes<"user">; results: Record<string, any[]> }
     >();
 
     _students.forEach((student) => {
       resultsByStudent.set(student.id, {
-        name: student.name || "",
+        student: student,
         results: {},
       });
       daysInRange.forEach((day) => {
@@ -377,11 +377,11 @@ export class ClassUtil {
 
     var resultsByStudent = new Map<
       string,
-      { name: string; results: Record<string, any[]> }
+      { student: TableTypes<"user">; results: Record<string, any[]> }
     >();
     _students.forEach((student) => {
       resultsByStudent.set(student.id, {
-        name: student.name || "",
+        student: student,
         results: {},
       });
       monthsInRange.forEach((month) => {
@@ -512,12 +512,12 @@ export class ClassUtil {
     });
     var resultsByStudent = new Map<
       string,
-      { name: string; results: Record<string, any[]> }
+      { student: TableTypes<"user">; results: Record<string, any[]> }
     >();
 
     _students.forEach((student) => {
       resultsByStudent.set(student.id, {
-        name: student.name || "",
+        student: student,
         results: {},
       });
       assignmentIds.forEach((assignmentId) => {
@@ -545,6 +545,44 @@ export class ClassUtil {
       ReportData: resultsByStudent,
       HeaderData: assignmentMapArray,
     };
+  }
+  public async getStudentProgress(
+    studentId: string,
+    courseId: string,
+    startDate: string,
+    endDate: string
+  ) {
+    const adjustedStartDate = subDays(new Date(startDate ?? ""), 1);
+    const adjustedEndDate = addDays(new Date(endDate ?? ""), 1);
+    const startTimeStamp = adjustedStartDate
+      .toISOString()
+      .replace("T", " ")
+      .replace("Z", "+00");
+    const endTimeStamp = adjustedEndDate
+      .toISOString()
+      .replace("T", " ")
+      .replace("Z", "+00");
+    var res = await this.api.getStudentResultByDate(
+      studentId,
+      courseId,
+      startTimeStamp,
+      endTimeStamp
+    );
+    const lessonIds = res?.map((item) => item.lesson_id ?? "");
+    var lessons = await this.api.getLessonsBylessonIds(lessonIds ?? []);
+    const formattedResults = res?.map((result) => {
+      const matchingLesson = lessons?.find(
+        (lesson) => lesson.id === result.lesson_id
+      );
+
+      return {
+        lessonName: matchingLesson?.name ?? "",
+        score: result.score ?? 0,
+        date: new Date(result.created_at).toLocaleDateString("en-GB"),
+        isAssignment: result.assignment_id ? true : false,
+      };
+    });
+    return formattedResults;
   }
   public async getChapterWiseReport(
     classId: string,
@@ -604,12 +642,12 @@ export class ClassUtil {
     });
     var resultsByStudent = new Map<
       string,
-      { name: string; results: Record<string, any[]> }
+      { student: TableTypes<"user">; results: Record<string, any[]> }
     >();
 
     _students.forEach((student) => {
       resultsByStudent.set(student.id, {
-        name: student.name || "",
+        student: student,
         results: {},
       });
       _lessons.forEach((lesson) => {
