@@ -1140,22 +1140,22 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  async createClassCode(class_id: string): Promise<number | undefined> {
+  async createClassCode(classId: string): Promise<number> {
     try {
       // Validate parameters
-      if (!class_id) return undefined;
+      if (!classId)
+        throw new Error("Class ID is required to create a class code.");
 
       // Call the RPC function
       const classCode = await this?.supabase?.rpc(
         "generate_unique_class_code",
         {
-          class_id_input: class_id,
+          class_id_input: classId,
         }
       );
-      if (classCode?.error) {
-        throw classCode.error;
+      if (!classCode?.data) {
+        throw new Error(`A class code is not created`);
       }
-
       return classCode?.data;
     } catch (error) {
       throw error; // Re-throw the error for external handling

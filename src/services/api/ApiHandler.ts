@@ -854,7 +854,7 @@ export class ApiHandler implements ServiceApi {
       endDate
     );
   }
-  createClassCode(class_id: string): Promise<number | undefined> {
-    return this.s.createClassCode(class_id);
+  createClassCode(classId: string): Promise<number> {
+    return this.s.createClassCode(classId);
   }
 }

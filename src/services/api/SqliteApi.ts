@@ -3734,64 +3734,19 @@ order by
     }
   }
 
-  async createClassCode(class_id: string): Promise<number | undefined> {
-    if (!class_id) return;
-    const existingClassCode = await this.getClassCodeById(class_id);
+  async createClassCode(classId: string): Promise<number> {
+    if (!classId) {
+      throw new Error("Class ID is required to create a class code.");
+    }
+    const existingClassCode = await this.getClassCodeById(classId);
 
     if (existingClassCode) {
       return existingClassCode;
     }
-    let classCode = await this._serverApi.createClassCode(class_id);
+    let classCode = await this._serverApi.createClassCode(classId);
     if (!classCode) {
-      return;
+      throw new Error(`A class code is not created`);
     }
-    // Set the expiration date (1 year from today)
-    const expiresAt = new Date();
-    expiresAt.setFullYear(expiresAt.getFullYear() + 1); // Add 1 year to today's date
-
-    const formattedExpiresAt = expiresAt.toISOString(); // Format the date to ISO string
-
-    // Generate a unique ID for the new class code
-    const codeId = uuidv4();
-
-    // Create the class invite code object
-    const newClass: TableTypes<"class_invite_code"> = {
-      id: codeId,
-      code: classCode, // The class code provided
-      expires_at: formattedExpiresAt, // Expiry date one year from now
-      class_id: class_id, // The class ID provided
-      is_class_code: true, // Assuming boolean flag
-      created_at: new Date().toISOString(), // Current timestamp
-      updated_at: new Date().toISOString(), // Current timestamp
-      is_deleted: false, // By default, the entry is not deleted
-    };
-
-    console.log("Creating new class invite code:", newClass);
-
-    // SQL query to insert the new class invite code
-    await this.executeQuery(
-      `
-      INSERT INTO class_invite_code (id, code, expires_at, class_id, is_class_code, created_at, updated_at, is_deleted)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-      `,
-      [
-        newClass.id, // The generated ID
-        newClass.code, // The class code
-        newClass.expires_at, // Expiry date
-        newClass.class_id, // Class ID
-        newClass.is_class_code, // Boolean flag for class code
-        newClass.created_at, // Timestamp when created
-        newClass.updated_at, // Timestamp when last updated
-        newClass.is_deleted, // Deletion flag (false)
-      ]
-    );
-
-    await this.updatePushChanges(
-      TABLES.ClassInvite_code,
-      MUTATE_TYPES.INSERT,
-      newClass
-    );
-
     return classCode;
   }
   async getResultByChapterByDate(
