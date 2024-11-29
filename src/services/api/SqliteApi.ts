@@ -244,7 +244,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -806,6 +806,86 @@ export class SqliteApi implements ServiceApi {
     this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.INSERT, newClassUser);
     return newStudent;
   }
+
+  async updateSchoolCourseSelection(
+    schoolId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> {
+    const currentDate = new Date().toISOString();
+    console.log("check how many lessons we are getting in api", selectedCourseIds);
+
+    for (const courseId of selectedCourseIds) {
+      // Check if the course is already assigned to the school
+      const isExist = await this._db?.query(
+        `SELECT * FROM school_course WHERE school_id = ? AND course_id = ?;`,
+        [schoolId, courseId]
+      );
+
+      if (!isExist || !isExist.values || isExist.values.length < 1) {
+        // Case 1: Course is not assigned, so we insert it
+        const newId = uuidv4();
+        const newSchoolCourseEntry = {
+          id: newId,
+          school_id: schoolId,
+          course_id: courseId,
+          created_at: currentDate,
+          updated_at: currentDate,
+          is_deleted: false, // New entry should have is_deleted set to false
+        };
+
+        await this.executeQuery(
+          `INSERT INTO school_course (id, school_id, course_id, created_at, updated_at, is_deleted)
+           VALUES (?, ?, ?, ?, ?, ?);`,
+          [
+            newSchoolCourseEntry.id,
+            newSchoolCourseEntry.school_id,
+            newSchoolCourseEntry.course_id,
+            newSchoolCourseEntry.created_at,
+            newSchoolCourseEntry.updated_at,
+            newSchoolCourseEntry.is_deleted,
+          ]
+        );
+
+        // Trigger change notification for the new entry
+        this.updatePushChanges(
+          TABLES.SchoolCourse,
+          MUTATE_TYPES.INSERT,
+          newSchoolCourseEntry
+        );
+      } else {
+        // Case 2: Course is already assigned
+        const existingEntry = isExist.values[0];
+
+        if (existingEntry.is_deleted) {
+          // Case 2a: Course was marked as deleted, reactivate it
+          await this.executeQuery(
+            `UPDATE school_course SET is_deleted = 0, updated_at = ? WHERE id = ?;`,
+            [currentDate, existingEntry.id]
+          );
+
+          // Trigger change notification for the re-activation
+          this.updatePushChanges(TABLES.SchoolCourse, MUTATE_TYPES.UPDATE, {
+            id: existingEntry.id,
+            is_deleted: false,
+            updated_at: currentDate,
+          });
+        } else {
+          // Case 2b: Course is already active, update the updated_at field
+          await this.executeQuery(
+            `UPDATE school_course SET updated_at = ? WHERE id = ?;`,
+            [currentDate, existingEntry.id]
+          );
+
+          // Trigger change notification for the updated timestamp
+          this.updatePushChanges(TABLES.SchoolCourse, MUTATE_TYPES.UPDATE, {
+            id: existingEntry.id,
+            updated_at: currentDate,
+          });
+        }
+      }
+    }
+  }
+
 
   async updateClassCourseSelection(
     classId: string,
@@ -2039,6 +2119,19 @@ export class SqliteApi implements ServiceApi {
     const res = await this._db?.query(query, [classId]);
     return res?.values ?? [];
   }
+  async getCoursesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"school_course">[]> {
+    const query = `
+      SELECT * 
+      FROM ${TABLES.SchoolCourse}
+      WHERE school_id = ? AND is_deleted = 0
+    `;
+    const res = await this._db?.query(query, [schoolId]);
+    console.log("res of school course", res);
+    return res?.values ?? [];
+  }
+  
 
   async removeCourseFromClass(id: string): Promise<void> {
     try {
@@ -2052,6 +2145,20 @@ export class SqliteApi implements ServiceApi {
       });
     } catch (error) {
       console.error("Error removing course from class_course", error);
+    }
+  }
+  async removeCourseFromSchool(id: string): Promise<void> {
+    try {
+      await this.executeQuery(
+        `UPDATE school_course SET is_deleted = 1 WHERE id = ?`,
+        [id]
+      );
+      this.updatePushChanges(TABLES.SchoolCourse, MUTATE_TYPES.UPDATE, {
+        id: id,
+        is_deleted: true,
+      });
+    } catch (error) {
+      console.error("Error removing course from school_course", error);
     }
   }
   async deleteUserFromClass(userId: string): Promise<void> {

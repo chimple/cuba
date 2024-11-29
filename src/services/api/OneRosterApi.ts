@@ -343,6 +343,14 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
+
+  updateSchoolCourseSelection(
+    schoolId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
   getCoursesByClassId(
     classId: string
   ): Promise<TableTypes<"class_course">[]> {

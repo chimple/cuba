@@ -233,7 +233,17 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+  async getCoursesBySchoolId(
+    studentId: string
+  ): Promise<TableTypes<"school_course">[]> {
+    throw new Error("Method not implemented.");
+  }
+
   async removeCourseFromClass(id: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  async removeCourseFromSchool(id: string): Promise<void> {
     throw new Error("Method not implemented.");
   }
 
@@ -482,6 +492,14 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
+
+  updateSchoolCourseSelection(
+    schoolId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  
   getSubject(id: string): Promise<TableTypes<"subject"> | undefined> {
     throw new Error("Method not implemented.");
   }
