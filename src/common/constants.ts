@@ -429,7 +429,7 @@ export enum PAGES {
   SHOW_STUDENTS_IN_ASSIGNED_PAGE = "/show-students-in-assigned-page",
   ADD_TEACHER = "/add-teacher",
   TEACHER_PROFILE = "/teacher-profile",
-  STUDENT_REPORT = "/student-report"
+  STUDENT_REPORT = "/student-report",
 }
 
 export enum LANG {
@@ -438,6 +438,12 @@ export enum LANG {
   KANNADA = "kn",
   MARATHI = "mr",
   SIERRA_LEONE = "sl_en",
+}
+export enum SCORECOLOR {
+  RED = "#D74747",
+  ORANGE = "#FFA800",
+  GREEN = "#86AB37",
+  WHITE = "white"
 }
 export enum DrawerOptions {
   MANAGE_SCHOOL = "Manage School",
@@ -514,7 +520,12 @@ export interface PortPlugin {
     notificationType: string;
     rewardProfileId: string;
   }>;
-  shareContentWithAndroidShare(options: { text: string; title: string; url?: string; imageFile?: File[] }): Promise<void>;
+  shareContentWithAndroidShare(options: {
+    text: string;
+    title: string;
+    url?: string;
+    imageFile?: File[];
+  }): Promise<void>;
   shareUserId(options: { userId: string }): Promise<void>;
 }
 export const DEBUG_15 = "debug15";
