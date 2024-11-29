@@ -78,6 +78,7 @@ import { schoolUtil } from "./schoolUtil";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { URLOpenListenerEvent } from "@capacitor/app";
 import { t } from "i18next";
+import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
 
 declare global {
   interface Window {
@@ -799,6 +800,11 @@ export class Util {
     try {
       //Setting User Id in User Properites
       await FirebaseAnalytics.setUserId({
+        userId: params.user_id,
+      });
+      if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+      Util.port.shareUserId({userId: params.user_id})
+      await FirebaseCrashlytics.setUserId({
         userId: params.user_id,
       });
 
