@@ -70,7 +70,7 @@ const Parent: React.FC = () => {
   useEffect(() => {
     setIsLoading(true);
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
-    inti();
+    init();
     getStudentProfile();
   }, [reloadProfiles]);
 
@@ -85,7 +85,7 @@ const Parent: React.FC = () => {
     setUserProfile(finalUser);
     // });
   }
-  async function inti(): Promise<void> {
+  async function init(): Promise<void> {
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (parentUser != undefined) {
       const currMode = await schoolUtil.getCurrMode();
@@ -204,6 +204,7 @@ const Parent: React.FC = () => {
                 }
                 console.log("selectedLangDocId", selectedLangDocId);
                 setCurrentAppLang(selectedLangDocId);
+                // window.location.reload();
               }}
             />
           </div>
@@ -431,7 +432,9 @@ const Parent: React.FC = () => {
       updatedTabs[t(item.header)] = t(item.header);
     });
     setTabs(updatedTabs);
-  }, []);
+  }, [
+    localAppLang
+  ]);
 
   return (
     <Box>
