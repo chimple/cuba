@@ -3476,8 +3476,7 @@ order by
     }
     if (isLiveQuiz) {
       query += ` AND type = 'liveQuiz'`;
-    }
-    else{
+    } else {
       query += ` AND type != 'liveQuiz'`;
     }
     query += ` ORDER BY created_at DESC;`;
@@ -3750,6 +3749,7 @@ order by
     if (!classCode) {
       throw new Error(`A class code is not created`);
     }
+    this.syncDB();
     return classCode;
   }
   async getResultByChapterByDate(
