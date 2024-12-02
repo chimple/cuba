@@ -1144,6 +1144,11 @@ export class SupabaseApi implements ServiceApi {
   async deleteTeacher(classId: string, teacherId: string) {
     throw new Error("Method not implemented.");
   }
+
+  async getClassCodeById(class_id: string): Promise<number | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
   async getResultByChapterByDate(
     chapter_id: string,
     course_id: string,
@@ -1151,5 +1156,27 @@ export class SupabaseApi implements ServiceApi {
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined> {
     throw new Error("Method not implemented.");
+  }
+
+  async createClassCode(classId: string): Promise<number> {
+    try {
+      // Validate parameters
+      if (!classId)
+        throw new Error("Class ID is required to create a class code.");
+
+      // Call the RPC function
+      const classCode = await this?.supabase?.rpc(
+        "generate_unique_class_code",
+        {
+          class_id_input: classId,
+        }
+      );
+      if (!classCode?.data) {
+        throw new Error(`A class code is not created`);
+      }
+      return classCode?.data;
+    } catch (error) {
+      throw error; // Re-throw the error for external handling
+    }
   }
 }

@@ -176,8 +176,12 @@ export interface ServiceApi {
   set currentStudent(value: TableTypes<"user"> | undefined);
   get currentClass(): TableTypes<"class"> | undefined;
   set currentClass(value: TableTypes<"class"> | undefined);
-  get currentCourse():  Map<string, TableTypes<"course"> | undefined> | undefined;
-  set currentCourse(value:  Map<string, TableTypes<"course"> | undefined> | undefined);
+  get currentCourse():
+    | Map<string, TableTypes<"course"> | undefined>
+    | undefined;
+  set currentCourse(
+    value: Map<string, TableTypes<"course"> | undefined> | undefined
+  );
   get currentSchool(): TableTypes<"school"> | undefined;
   set currentSchool(value: TableTypes<"school"> | undefined);
   updateSoundFlag(userId: string, value: boolean);
@@ -563,7 +567,7 @@ export interface ServiceApi {
   ): Promise<Lesson | undefined>;
 
   /**
-   * This function gives lesson objects for given chapterId and LessonId 
+   * This function gives lesson objects for given chapterId and LessonId
    *
    * @param chapterId Chapter Id of the course
    * @param lessonId Lesson Id of a course
@@ -886,11 +890,11 @@ export interface ServiceApi {
    */
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-    courseId:string,
+    courseId: string,
     startDate: string,
     endDate: string,
     isClassWise: boolean,
-    isLiveQuiz:boolean
+    isLiveQuiz: boolean
   ): Promise<TableTypes<"assignment">[] | undefined>;
 
   /**
@@ -900,7 +904,7 @@ export interface ServiceApi {
    */
   getStudentLastTenResults(
     studentId: string,
-    courseId:string,
+    courseId: string,
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]>;
   /**
@@ -938,7 +942,7 @@ export interface ServiceApi {
    * @param classId
    */
   getLastAssignmentsForRecommendations(
-    classId: string,
+    classId: string
   ): Promise<TableTypes<"assignment">[] | undefined>;
 
   /**
@@ -1036,7 +1040,7 @@ export interface ServiceApi {
    */
   getTeacherJoinedDate(
     userId: string,
-    classId: string,
+    classId: string
   ): Promise<TableTypes<"class_user"> | undefined>;
 
   /**
@@ -1047,42 +1051,53 @@ export interface ServiceApi {
   getAssignedStudents(assignmentId: string): Promise<string[]>;
 
   /** Get the student result by Date
-   * @param studentId 
-   * @param startDate 
-   * @param endDate 
+   * @param studentId
+   * @param startDate
+   * @param endDate
    */
   getStudentResultByDate(
     studentId: string,
-    course_id:string,
+    course_id: string,
     startDate: string,
     endDate: string
-  ): Promise<TableTypes<"result">[] | undefined>
-   
+  ): Promise<TableTypes<"result">[] | undefined>;
+
   /**
    * Get the Lessons with LessonIds
-   * @param lessonIds 
+   * @param lessonIds
    */
   getLessonsBylessonIds(
     lessonIds: string[] // Expect an array of strings
-  ): Promise<TableTypes<"lesson">[] | undefined> 
+  ): Promise<TableTypes<"lesson">[] | undefined>;
   /**
    * To delete `teacher` from class for given class id and teacher id
    * @param {string } classId - Class Id
    * @param {string } teacherId - Teacher Id
    */
   deleteTeacher(classId: string, teacherId: string);
+  /**
+   * To get class code for the given class id
+   * @param {string } classId - Class Id
+   */
+  getClassCodeById(class_id: string): Promise<number | undefined>;
 
   /**
    * To get the result by chapterId
-   * @param chapter_id 
-   * @param course_id 
-   * @param startDate 
-   * @param endDate 
+   * @param chapter_id
+   * @param course_id
+   * @param startDate
+   * @param endDate
    */
   getResultByChapterByDate(
     chapter_id: string,
     course_id: string,
     startDate: string,
     endDate: string
-  ): Promise<TableTypes<"result">[] | undefined>
+  ): Promise<TableTypes<"result">[] | undefined>;
+
+  /**
+   * To generate class code for the given class id
+   * @param {string } classId - Class Id
+   */
+  createClassCode(classId: string): Promise<number>;
 }

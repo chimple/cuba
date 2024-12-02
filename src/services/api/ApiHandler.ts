@@ -496,10 +496,14 @@ export class ApiHandler implements ServiceApi {
     this.s.currentSchool = value;
   }
 
-  public get currentCourse(): Map<string, TableTypes<"course"> | undefined> | undefined {
+  public get currentCourse():
+    | Map<string, TableTypes<"course"> | undefined>
+    | undefined {
     return this.s.currentCourse;
   }
-  public set currentCourse(value: Map<string, TableTypes<"course"> | undefined> | undefined) {
+  public set currentCourse(
+    value: Map<string, TableTypes<"course"> | undefined> | undefined
+  ) {
     this.s.currentCourse = value;
   }
   updateLanguage(userId: string, value: string) {
@@ -848,6 +852,10 @@ export class ApiHandler implements ServiceApi {
   deleteTeacher(classId: string, teacherId: string) {
     return this.s.deleteTeacher(classId, teacherId);
   }
+  getClassCodeById(class_id: string): Promise<number | undefined> {
+    return this.s.getClassCodeById(class_id);
+  }
+
   getResultByChapterByDate(
     chapter_id: string,
     course_id: string,
@@ -860,5 +868,8 @@ export class ApiHandler implements ServiceApi {
       startDate,
       endDate
     );
+  }
+  createClassCode(classId: string): Promise<number> {
+    return this.s.createClassCode(classId);
   }
 }
