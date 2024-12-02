@@ -2112,6 +2112,7 @@ export class SqliteApi implements ServiceApi {
       school_id: schoolId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+
       is_deleted: false,
     };
     console.log("school data..", newClass);
@@ -3475,8 +3476,7 @@ order by
     }
     if (isLiveQuiz) {
       query += ` AND type = 'liveQuiz'`;
-    }
-    else{
+    } else {
       query += ` AND type != 'liveQuiz'`;
     }
     query += ` ORDER BY created_at DESC;`;
@@ -3718,7 +3718,40 @@ order by
       console.log("🚀 ~ SqliteApi ~ deleteTeacher ~ error:", error);
     }
   }
+  async getClassCodeById(class_id: string): Promise<number | undefined> {
+    if (!class_id) return;
+    const currentDate = new Date().toISOString(); // Convert to a proper format for SQL (ISO 8601)
+    const query = `SELECT code 
+    FROM ${TABLES.ClassInvite_code} 
+    WHERE class_id='${class_id}' 
+    AND is_deleted = FALSE 
+    AND (expires_at >= '${currentDate}')`;
 
+    try {
+      const res = await this._db?.query(query);
+      return res?.values?.[0]?.code;
+    } catch (error) {
+      console.error("Error executing query:", error); // Log any errors
+      return;
+    }
+  }
+
+  async createClassCode(classId: string): Promise<number> {
+    if (!classId) {
+      throw new Error("Class ID is required to create a class code.");
+    }
+    const existingClassCode = await this.getClassCodeById(classId);
+
+    if (existingClassCode) {
+      return existingClassCode;
+    }
+    let classCode = await this._serverApi.createClassCode(classId);
+    if (!classCode) {
+      throw new Error(`A class code is not created`);
+    }
+    this.syncDB();
+    return classCode;
+  }
   async getResultByChapterByDate(
     chapter_id: string,
     course_id: string,
