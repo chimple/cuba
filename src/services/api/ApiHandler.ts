@@ -165,8 +165,16 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"class_course">[]> {
     return await this.s.getCoursesByClassId(classid);
   }
+  public async getCoursesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"school_course">[]> {
+    return await this.s.getCoursesBySchoolId(schoolId);
+  }
   public async removeCourseFromClass(id: string): Promise<void> {
     return await this.s.removeCourseFromClass(id);
+  }
+  public async removeCourseFromSchool(id: string): Promise<void> {
+    return await this.s.removeCourseFromSchool(id);
   }
   public async deleteUserFromClass(userId: string): Promise<void> {
     return await this.s.deleteUserFromClass(userId);
@@ -563,6 +571,13 @@ export class ApiHandler implements ServiceApi {
     selectedCourseIds: string[]
   ): Promise<void> {
     return this.s.updateClassCourseSelection(classId, selectedCourseIds);
+  }
+
+  public async updateSchoolCourseSelection(
+    schoolId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> {
+    return this.s.updateSchoolCourseSelection(schoolId, selectedCourseIds);
   }
 
   public async addCourseForParentsStudent(

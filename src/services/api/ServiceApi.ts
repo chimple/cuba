@@ -101,9 +101,26 @@ export interface ServiceApi {
     selectedCourseIds: string[]
   ): Promise<void>;
 
+  updateSchoolCourseSelection(
+    schoolId: string,
+    selectedCourseIds: string[]
+  ): Promise<void>;
+
   getCoursesByClassId(classId: string): Promise<TableTypes<"class_course">[]>;
 
+  getCoursesBySchoolId(schoolId: string): Promise<TableTypes<"school_course">[]>;
+
+  /**
+   * To delete a 'course' with a given class ID from the class_course table.
+   * @param {id } class_id - Class Id
+   */
   removeCourseFromClass(id: string): Promise<void>;
+
+  /**
+   * To delete a 'course' with a given school ID from the school_course table.
+   * @param {id } school_id - School Id
+   */
+  removeCourseFromSchool(id: string): Promise<void>;
 
   /**
    * To delete a 'user' with a given student ID from the class_user table.
