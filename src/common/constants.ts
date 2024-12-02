@@ -514,6 +514,7 @@ export interface PortPlugin {
     rewardProfileId: string;
   }>;
   shareContentWithAndroidShare(options: { text: string; title: string; url?: string; imageFile?: File[] }): Promise<void>;
+  shareUserId(options: { userId: string }): Promise<void>;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_SUBJECT_IDS = [

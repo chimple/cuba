@@ -127,6 +127,8 @@ const TIME_LIMIT = 1500; // 25 * 60
 const LAST_MODAL_SHOWN_KEY = "lastTimeExceededShown";
 const START_TIME_KEY = "startTime";
 const USED_TIME_KEY = "usedTime";
+const LAST_ACCESS_DATE_KEY = "lastAccessDate";
+const IS_INITIALIZED= "isInitialized";
 let timeoutId: NodeJS.Timeout;
 
 const App: React.FC = () => {
@@ -189,8 +191,8 @@ const App: React.FC = () => {
   }, [online, presentToast]);
   useEffect(() => {
     initializeUsage();
-  document.addEventListener("visibilitychange", handleVisibilityChange);
-  startTimeout()
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    startTimeout()
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(false));
     localStorage.setItem(DOWNLOADING_CHAPTER_ID, JSON.stringify(false));
     console.log("fetching...");
@@ -264,32 +266,42 @@ const App: React.FC = () => {
       }
     });
     updateAvatarSuggestionJson();
-     // Cleanup on unmount
-  return () => {
-    document.removeEventListener("visibilitychange", handleVisibilityChange);
-    clearExistingTimeout();
-  };
+    // Cleanup on unmount
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      clearExistingTimeout();
+    };
   }, []);
 
   const initializeUsage = () => {
-    // If the app is opened for the first time, store the start time
-    if (!localStorage.getItem('isInitialized')) {
-      console.log("First time opening the app: resetting usage data");
-      localStorage.setItem('startTime', Date.now().toString());
-      localStorage.setItem(USED_TIME_KEY, "0");
-      localStorage.setItem('isInitialized', "true");
+    const currentDate = new Date().toISOString().split("T")[0];
+    const lastAccessDate = localStorage.getItem(LAST_ACCESS_DATE_KEY);
+
+    if (!lastAccessDate || lastAccessDate !== currentDate) {
+      // First-time use or a new day
+      console.log("New day detected. Resetting usage data.");
+      localStorage.setItem(USED_TIME_KEY, "0"); // Reset used time
+      localStorage.setItem(START_TIME_KEY, Date.now().toString()); // Reset start time
+      localStorage.setItem(LAST_ACCESS_DATE_KEY, currentDate); // Update the last access date
     } else {
-      console.log("App has been opened before. Current usage data:", {
-        startTime: localStorage.getItem('startTime'),
+      console.log("Continuing from the same day. Current usage data:", {
+        startTime: localStorage.getItem(START_TIME_KEY),
         usedTime: localStorage.getItem(USED_TIME_KEY),
       });
     }
+
+    if (!localStorage.getItem(IS_INITIALIZED)) {
+      console.log("First time opening the app: initializing usage data.");
+      localStorage.setItem(START_TIME_KEY, Date.now().toString());
+      localStorage.setItem(IS_INITIALIZED, "true");
+    }
   };
+
 
   // Function to calculate the used time and store it
   const calculateUsedTime = () => {
     const currentTime = Date.now();
-    const startTime = Number(localStorage.getItem("startTime"));
+    const startTime = Number(localStorage.getItem(START_TIME_KEY) || currentTime); // Use current time if startTime is missing
     const usedTime = Number(localStorage.getItem(USED_TIME_KEY));
     const sessionTime = (currentTime - startTime) / 1000;
     const usedTimeInMinutes = usedTime / 60;
@@ -334,14 +346,14 @@ const App: React.FC = () => {
       const currMode = await schoolUtil.getCurrMode();
       if (currMode === MODES.PARENT) {
         const today = new Date().toISOString().split("T")[0];
-        const lastModalShownDate = localStorage.getItem("lastTimeExceededShown");
+        const lastModalShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
 
         if (lastModalShownDate !== today) {
           console.log("triggered");
           setShowModal(true);
           const event = new CustomEvent("shouldShowModal", { detail: true });
           window.dispatchEvent(event);
-          localStorage.setItem("lastTimeExceededShown", today);
+          localStorage.setItem(LAST_MODAL_SHOWN_KEY, today);
         }
       }
     }
