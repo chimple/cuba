@@ -56,11 +56,6 @@ export enum CLASS_USERS {
   STUDENTS = "Students",
   TEACHERS = "Teachers",
 }
-export enum SCHOOL_USERS {
-  PRINCIPALS = "Principals",
-  COORDINATORS = "Coordinators",
-  SPONSORS = "Sponsors",
-}
 export enum SL_GRADES {
   GRADE1 = "Grade 1",
   GRADE2 = "Grade 2",
@@ -434,10 +429,6 @@ export enum PAGES {
   SHOW_STUDENTS_IN_ASSIGNED_PAGE = "/show-students-in-assigned-page",
   ADD_TEACHER = "/add-teacher",
   TEACHER_PROFILE = "/teacher-profile",
-  SCHOOL_USERS = "/school-users",
-  ADD_PRINCIPAL = "/add-principal",
-  ADD_COORDINATOR = "/add-coordinator",
-  ADD_SPONSOR = "/add-sponsor",
 }
 
 export enum LANG {
@@ -522,12 +513,7 @@ export interface PortPlugin {
     notificationType: string;
     rewardProfileId: string;
   }>;
-  shareContentWithAndroidShare(options: {
-    text: string;
-    title: string;
-    url?: string;
-    imageFile?: File[];
-  }): Promise<void>;
+  shareContentWithAndroidShare(options: { text: string; title: string; url?: string; imageFile?: File[] }): Promise<void>;
   shareUserId(options: { userId: string }): Promise<void>;
 }
 export const DEBUG_15 = "debug15";
