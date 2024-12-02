@@ -799,12 +799,8 @@ export class ApiHandler implements ServiceApi {
   addTeacherToClass(classId: string, userId: string): Promise<void> {
     return this.s.addTeacherToClass(classId, userId);
   }
-  checkUserInClass(
-    schoolId: string,
-    classId: string,
-    userId: string
-  ): Promise<boolean> {
-    return this.s.checkUserInClass(schoolId, classId, userId);
+  checkUserExistInSchool(schoolId: string, userId: string): Promise<boolean> {
+    return this.s.checkUserExistInSchool(schoolId, userId);
   }
   async getAssignmentsByAssignerAndClass(
     userId: string,
@@ -871,5 +867,34 @@ export class ApiHandler implements ServiceApi {
   }
   createClassCode(classId: string): Promise<number> {
     return this.s.createClassCode(classId);
+  }
+  getPrincipalsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    return this.s.getPrincipalsForSchool(schoolId);
+  }
+  getCoordinatorsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    return this.s.getCoordinatorsForSchool(schoolId);
+  }
+  getSponsorsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    return this.s.getSponsorsForSchool(schoolId);
+  }
+  async addUserToSchool(
+    schoolId: string,
+    userId: string,
+    role: RoleType
+  ): Promise<void> {
+    return this.s.addUserToSchool(schoolId, userId, role);
+  }
+  async deleteUserFromSchool(
+    schoolId: string,
+    userId: string,
+    role: RoleType
+  ): Promise<void> {
+    return this.s.deleteUserFromSchool(schoolId, userId, role);
   }
 }

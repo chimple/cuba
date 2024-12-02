@@ -244,7 +244,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-            new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -812,7 +812,10 @@ export class SqliteApi implements ServiceApi {
     selectedCourseIds: string[]
   ): Promise<void> {
     const currentDate = new Date().toISOString();
-    console.log("check how many lessons we are getting in api", selectedCourseIds);
+    console.log(
+      "check how many lessons we are getting in api",
+      selectedCourseIds
+    );
 
     for (const courseId of selectedCourseIds) {
       // Check if the course is already assigned to the school
@@ -885,7 +888,6 @@ export class SqliteApi implements ServiceApi {
       }
     }
   }
-
 
   async updateClassCourseSelection(
     classId: string,
@@ -2131,7 +2133,6 @@ export class SqliteApi implements ServiceApi {
     console.log("res of school course", res);
     return res?.values ?? [];
   }
-
 
   async removeCourseFromClass(id: string): Promise<void> {
     try {
@@ -3685,9 +3686,8 @@ order by
     );
   }
 
-  async checkUserInClass(
+  async checkUserExistInSchool(
     schoolId: string,
-    classId: string,
     userId: string
   ): Promise<boolean> {
     // Check if the user is present in school_user but not as a parent
@@ -3702,16 +3702,34 @@ order by
     if (schoolUserResult?.values && schoolUserResult.values.length > 0) {
       return true;
     }
-    // Check if the user is a teacher in class_user
-    const result = await this.executeQuery(
-      `SELECT * FROM class_user 
-     WHERE class_id = ? AND user_id = ? 
-     AND role = ? 
+
+    // Step 2: Fetch all classes for the given school
+    const classResult = await this.executeQuery(
+      `SELECT id FROM class 
+     WHERE school_id = ? 
      AND is_deleted = false`,
-      [classId, userId, RoleType.TEACHER]
+      [schoolId]
     );
-    if (!result?.values) return false;
-    return result.values.length > 0;
+
+    if (!classResult?.values || classResult.values.length === 0) {
+      return false;
+    }
+    const classIds = classResult.values.map((row: { id: string }) => row.id);
+    // Step 3: Check if the user is a teacher in any of these classes
+    const placeholders = classIds.map(() => "?").join(", ");
+    const teacherResult = await this.executeQuery(
+      `SELECT * FROM class_user 
+       WHERE class_id IN (${placeholders}) 
+       AND user_id = ? 
+       AND role = ? 
+       AND is_deleted = false`,
+      [...classIds, userId, RoleType.TEACHER]
+    );
+
+    if (teacherResult?.values && teacherResult.values.length > 0) {
+      return true;
+    }
+    return false;
   }
   async getAssignmentsByAssignerAndClass(
     userId: string,
@@ -3796,18 +3814,18 @@ order by
   }
   async deleteTeacher(classId: string, teacherId: string) {
     try {
-      await this.executeQuery(
-        `UPDATE class_user SET is_deleted = 1 WHERE user_id = ? AND class_id = ? AND role = 'teacher'`,
-        [teacherId, classId]
-      );
-
       const query = `
       SELECT * 
       FROM ${TABLES.ClassUser}
-      WHERE user_id = ? AND class_id = ? AND role = 'teacher'
+      WHERE user_id = ? AND class_id = ?
+      AND role = 'teacher' AND is_deleted = 0
     `;
-
       const res = await this._db?.query(query, [teacherId, classId]);
+      await this.executeQuery(
+        `UPDATE class_user SET is_deleted = 1 WHERE user_id = ? AND class_id = ? AND role = 'teacher' AND is_deleted = 0`,
+        [teacherId, classId]
+      );
+
       let userData;
 
       if (res && res.values && res.values.length > 0) {
@@ -3876,5 +3894,113 @@ order by
 
     if (!res || !res.values || res.values.length < 1) return;
     return res.values;
+  }
+  async getPrincipalsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    const query = `
+    SELECT user.*
+    FROM ${TABLES.SchoolUser} AS su
+    JOIN ${TABLES.User} AS user ON su.user_id= user.id
+    WHERE su.school_id = "${schoolId}" and su.role = '${RoleType.PRINCIPAL}' and su.is_deleted = false;
+  `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
+  async getCoordinatorsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    const query = `
+    SELECT user.*
+    FROM ${TABLES.SchoolUser} AS su
+    JOIN ${TABLES.User} AS user ON su.user_id= user.id
+    WHERE su.school_id = "${schoolId}" and su.role = '${RoleType.COORDINATOR}' and su.is_deleted = false;
+  `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
+  async getSponsorsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    const query = `
+    SELECT user.*
+    FROM ${TABLES.SchoolUser} AS su
+    JOIN ${TABLES.User} AS user ON su.user_id= user.id
+    WHERE su.school_id = "${schoolId}" and su.role = '${RoleType.SPONSOR}' and su.is_deleted = false;
+  `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
+  async addUserToSchool(
+    schoolId: string,
+    userId: string,
+    role: RoleType
+  ): Promise<void> {
+    const schoolUserId = uuidv4();
+    const schoolUser = {
+      id: schoolUserId,
+      school_id: schoolId,
+      user_id: userId,
+      role: role,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+    };
+
+    await this.executeQuery(
+      `
+    INSERT INTO school_user (id, school_id, user_id, role, created_at, updated_at, is_deleted)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    `,
+      [
+        schoolUser.id,
+        schoolUser.school_id,
+        schoolUser.user_id,
+        schoolUser.role,
+        schoolUser.created_at,
+        schoolUser.updated_at,
+        schoolUser.is_deleted,
+      ]
+    );
+
+    await this.updatePushChanges(
+      TABLES.SchoolUser,
+      MUTATE_TYPES.INSERT,
+      schoolUser
+    );
+  }
+  async deleteUserFromSchool(
+    schoolId: string,
+    userId: string,
+    role: RoleType
+  ): Promise<void> {
+    try {
+      const query = `
+      SELECT * 
+      FROM ${TABLES.SchoolUser}
+      WHERE user_id = ? AND school_id = ?
+      AND role = '${role}' AND is_deleted = 0
+    `;
+      const res = await this._db?.query(query, [userId, schoolId]);
+
+      await this.executeQuery(
+        `UPDATE school_user SET is_deleted = 1 WHERE user_id = ? 
+        AND school_id = ? AND role = '${role}' AND is_deleted = 0`,
+        [userId, schoolId]
+      );
+
+      let userData;
+      if (res && res.values && res.values.length > 0) {
+        userData = res.values[0];
+      } else {
+        throw new Error("school user not found after update.");
+      }
+      await this.updatePushChanges(TABLES.SchoolUser, MUTATE_TYPES.UPDATE, {
+        id: userData.id,
+        is_deleted: true,
+      });
+    } catch (error) {
+      console.log("🚀 ~ SqliteApi ~ deleteUserFromSchool ~ error:", error);
+    }
   }
 }
