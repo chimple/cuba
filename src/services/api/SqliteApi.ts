@@ -2131,7 +2131,7 @@ export class SqliteApi implements ServiceApi {
     console.log("res of school course", res);
     return res?.values ?? [];
   }
-  
+
 
   async removeCourseFromClass(id: string): Promise<void> {
     try {
@@ -3583,7 +3583,7 @@ order by
     if (isLiveQuiz) {
       query += ` AND type = 'liveQuiz'`;
     }
-    else{
+    else {
       query += ` AND type != 'liveQuiz'`;
     }
     query += ` ORDER BY created_at DESC;`;
