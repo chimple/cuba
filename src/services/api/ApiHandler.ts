@@ -165,8 +165,16 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"class_course">[]> {
     return await this.s.getCoursesByClassId(classid);
   }
+  public async getCoursesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"school_course">[]> {
+    return await this.s.getCoursesBySchoolId(schoolId);
+  }
   public async removeCourseFromClass(id: string): Promise<void> {
     return await this.s.removeCourseFromClass(id);
+  }
+  public async removeCourseFromSchool(id: string): Promise<void> {
+    return await this.s.removeCourseFromSchool(id);
   }
   public async deleteUserFromClass(userId: string): Promise<void> {
     return await this.s.deleteUserFromClass(userId);
@@ -488,10 +496,14 @@ export class ApiHandler implements ServiceApi {
     this.s.currentSchool = value;
   }
 
-  public get currentCourse(): Map<string, TableTypes<"course"> | undefined> | undefined {
+  public get currentCourse():
+    | Map<string, TableTypes<"course"> | undefined>
+    | undefined {
     return this.s.currentCourse;
   }
-  public set currentCourse(value: Map<string, TableTypes<"course"> | undefined> | undefined) {
+  public set currentCourse(
+    value: Map<string, TableTypes<"course"> | undefined> | undefined
+  ) {
     this.s.currentCourse = value;
   }
   updateLanguage(userId: string, value: string) {
@@ -559,6 +571,13 @@ export class ApiHandler implements ServiceApi {
     selectedCourseIds: string[]
   ): Promise<void> {
     return this.s.updateClassCourseSelection(classId, selectedCourseIds);
+  }
+
+  public async updateSchoolCourseSelection(
+    schoolId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> {
+    return this.s.updateSchoolCourseSelection(schoolId, selectedCourseIds);
   }
 
   public async addCourseForParentsStudent(
@@ -833,6 +852,10 @@ export class ApiHandler implements ServiceApi {
   deleteTeacher(classId: string, teacherId: string) {
     return this.s.deleteTeacher(classId, teacherId);
   }
+  getClassCodeById(class_id: string): Promise<number | undefined> {
+    return this.s.getClassCodeById(class_id);
+  }
+
   getResultByChapterByDate(
     chapter_id: string,
     course_id: string,
@@ -845,5 +868,8 @@ export class ApiHandler implements ServiceApi {
       startDate,
       endDate
     );
+  }
+  createClassCode(classId: string): Promise<number> {
+    return this.s.createClassCode(classId);
   }
 }

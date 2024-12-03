@@ -25,17 +25,17 @@ const CommonDialogBox: FC<{
       <IonAlert
         isOpen={showConfirmFlag}
         onDidDismiss={onDidDismiss}
-        cssClass="custom-alert"
+        cssClass="custom-dailog-alert"
         message={t(message) || ""}
         buttons={[
           {
             text: t(leftButtonText),
-            cssClass: "alert-delete-button",
+            cssClass: "custom-dailog-alert-delete-button",
             handler: leftButtonHandler,
           },
           {
             text: t(rightButtonText),
-            cssClass: "alert-cancel-button",
+            cssClass: "custom-dailog-alert-cancel-button",
             handler: rightButtonHandler,
           },
         ]}

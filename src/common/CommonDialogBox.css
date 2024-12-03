@@ -1,8 +1,8 @@
-.custom-alert {
+.custom-dailog-alert {
   --background: white;
 }
 
-.custom-alert .alert-delete-button {
+.custom-dailog-alert .custom-dailog-alert-delete-button {
   /* background: #f72121 !important; */
   opacity: 0.5;
   color: black;
@@ -12,7 +12,7 @@
   font-size: var(--text-size);
 }
 
-.custom-alert .alert-cancel-button {
+.custom-dailog-alert .custom-dailog-alert-cancel-button {
   text-transform: none;
   background-color: #83c327;
   font-size: var(--text-size);

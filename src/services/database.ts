@@ -1565,6 +1565,12 @@ export type Database = {
         }
         Returns: Json
       }
+      generate_unique_class_code: {
+        Args: {
+          class_id_input: string
+        }
+        Returns: number
+      }
       get_class_leaderboard: {
         Args: {
           current_class_id: string
