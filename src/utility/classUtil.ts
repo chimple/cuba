@@ -444,7 +444,7 @@ export class ClassUtil {
     const month = date.getMonth() + 1;
     return `${day.toString().padStart(2, "0")}/${month.toString().padStart(2, "0")}`;
   }
-  public async getAssignmentOrLiveQuizReport(
+  public async getAssignmentOrLiveQuizReportForReport(
     classId: string,
     courseId: string,
     startDate: Date,
@@ -546,7 +546,7 @@ export class ClassUtil {
       HeaderData: assignmentMapArray,
     };
   }
-  public async getStudentProgress(
+  public async getStudentProgressForStudentTable(
     studentId: string,
     courseId: string,
     startDate: string,
