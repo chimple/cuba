@@ -108,6 +108,7 @@ import {
   DashBoardDetails,
   AddTeacher,
   TeacherProfile,
+  StudentReport ,
   SchoolUsers,
   AddSchoolUser,
 } from "./common/chimplePrivatePages";
@@ -523,7 +524,7 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
               <SelectMode />
-            </ProtectedRoute>
+            </ProtectedRoute> 
             {/* <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
               <TeacherProfile />
             </ProtectedRoute> */}
@@ -570,6 +571,11 @@ const App: React.FC = () => {
             <Route path={PAGES.DISPLAY_SCHOOLS} exact={true}>
               <Suspense>
                 <DisplaySchools />
+              </Suspense>
+            </Route>
+            <Route path={PAGES.STUDENT_REPORT} exact={true}>
+              <Suspense>
+                <StudentReport />
               </Suspense>
             </Route>
             <Route path={PAGES.DISPLAY_CLASSES} exact={true}>

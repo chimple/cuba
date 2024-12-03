@@ -434,6 +434,7 @@ export enum PAGES {
   SHOW_STUDENTS_IN_ASSIGNED_PAGE = "/show-students-in-assigned-page",
   ADD_TEACHER = "/add-teacher",
   TEACHER_PROFILE = "/teacher-profile",
+  STUDENT_REPORT = "/student-report",
   SCHOOL_USERS = "/school-users",
   ADD_PRINCIPAL = "/add-principal",
   ADD_COORDINATOR = "/add-coordinator",
@@ -446,6 +447,12 @@ export enum LANG {
   KANNADA = "kn",
   MARATHI = "mr",
   SIERRA_LEONE = "sl_en",
+}
+export enum SCORECOLOR {
+  RED = "#D74747",
+  ORANGE = "#FFA800",
+  GREEN = "#86AB37",
+  WHITE = "white"
 }
 export enum DrawerOptions {
   MANAGE_SCHOOL = "Manage School",

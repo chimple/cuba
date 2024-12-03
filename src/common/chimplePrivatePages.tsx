@@ -199,6 +199,16 @@ export const TeacherProfile = lazy(async () => {
     return { default: FallbackComponent };
   }
 });
+
+export const StudentReport = lazy(async () => {
+  try {
+    //@ts-ignore
+    return await import("../chimple-private/pages/StudentReport");
+  } catch (error) {
+    return { default: FallbackComponent };
+  }
+}); 
+
 export const SchoolUsers = lazy(async () => {
   try {
     //@ts-ignore
