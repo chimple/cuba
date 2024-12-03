@@ -56,6 +56,11 @@ export enum CLASS_USERS {
   STUDENTS = "Students",
   TEACHERS = "Teachers",
 }
+export enum SCHOOL_USERS {
+  PRINCIPALS = "Principals",
+  COORDINATORS = "Coordinators",
+  SPONSORS = "Sponsors",
+}
 export enum SL_GRADES {
   GRADE1 = "Grade 1",
   GRADE2 = "Grade 2",
@@ -430,6 +435,10 @@ export enum PAGES {
   ADD_TEACHER = "/add-teacher",
   TEACHER_PROFILE = "/teacher-profile",
   STUDENT_REPORT = "/student-report",
+  SCHOOL_USERS = "/school-users",
+  ADD_PRINCIPAL = "/add-principal",
+  ADD_COORDINATOR = "/add-coordinator",
+  ADD_SPONSOR = "/add-sponsor",
 }
 
 export enum LANG {

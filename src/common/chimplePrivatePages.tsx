@@ -207,4 +207,21 @@ export const StudentReport = lazy(async () => {
   } catch (error) {
     return { default: FallbackComponent };
   }
+}); 
+
+export const SchoolUsers = lazy(async () => {
+  try {
+    //@ts-ignore
+    return await import("../chimple-private/pages/SchoolUsers");
+  } catch (error) {
+    return { default: FallbackComponent };
+  }
+});
+export const AddSchoolUser = lazy(async () => {
+  try {
+    //@ts-ignore
+    return await import("../chimple-private/pages/AddSchoolUser");
+  } catch (error) {
+    return { default: FallbackComponent };
+  }
 });
