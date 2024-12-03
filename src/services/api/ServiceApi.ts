@@ -108,7 +108,9 @@ export interface ServiceApi {
 
   getCoursesByClassId(classId: string): Promise<TableTypes<"class_course">[]>;
 
-  getCoursesBySchoolId(schoolId: string): Promise<TableTypes<"school_course">[]>;
+  getCoursesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"school_course">[]>;
 
   /**
    * To delete a 'course' with a given class ID from the class_course table.
@@ -1003,16 +1005,12 @@ export interface ServiceApi {
   addTeacherToClass(classId: string, userId: string): Promise<void>;
 
   /**
-   * Checks the user present in class or not.
-   * @param {string} classId class Id
+   * Checks the user present in school or not.
+   * @param {string} schoolId school Id
    * @param {string} userId user Id;
-   * @return returns boolean whether the teacher is connected to class or not.
+   * @return returns boolean whether the user is already connected to school or not.
    */
-  checkUserInClass(
-    schoolId: string,
-    classId: string,
-    userId: string
-  ): Promise<boolean>;
+  checkUserExistInSchool(schoolId: string, userId: string): Promise<boolean>;
 
   /**
    * Gets the assignments by assigner and class.
@@ -1100,4 +1098,51 @@ export interface ServiceApi {
    * @param {string } classId - Class Id
    */
   createClassCode(classId: string): Promise<number>;
+  /**
+   * This function gets all the principals for the school.
+   * @param {string} schoolId school Id;
+   * @return A promise to an array of principals.
+   */
+  getPrincipalsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined>;
+  /**
+   * This function gets all the coordinators for the school.
+   * @param {string} schoolId school Id;
+   * @return A promise to an array of coordinators.
+   */
+  getCoordinatorsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined>;
+  /**
+   * This function gets all the sponsors for the school.
+   * @param {string} schoolId school Id;
+   * @return A promise to an array of sponsors.
+   */
+  getSponsorsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined>;
+  /**
+   * Adding a principal or coordinator or sponsor to school.
+   * @param {string} schoolId school Id
+   * @param {string} userId user Id;
+   * @param {string} role role
+   * @return void.
+   */
+  addUserToSchool(
+    schoolId: string,
+    userId: string,
+    role: RoleType
+  ): Promise<void>;
+  /**
+   * To delete a user from school for given school id, user id and role
+   * @param {string } schoolId - school Id
+   * @param {string } userId - user Id
+   * @param {string } role - role
+   */
+  deleteUserFromSchool(
+    schoolId: string,
+    userId: string,
+    role: RoleType
+  ): Promise<void>;
 }
