@@ -32,11 +32,11 @@ export enum AvatarModes {
 }
 
 export enum AvatarAnimations {
-  IDLE1 = "idle_1",
+  IDLE1 = "Idle",
   IDLE2 = "idle_2",
   TALK = "talking",
-  LOSE = "lose",
-  WIN = "win",
+  LOSE = "Fail",
+  WIN = "Success",
 }
 
 export class AvatarObj {
