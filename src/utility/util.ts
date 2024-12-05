@@ -803,7 +803,7 @@ export class Util {
         userId: params.user_id,
       });
       if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
-      Util.port.shareUserId({userId: params.user_id})
+      Util.port.shareUserId({ userId: params.user_id });
       await FirebaseCrashlytics.setUserId({
         userId: params.user_id,
       });
@@ -1711,8 +1711,8 @@ export class Util {
     localStorage.setItem(REFRESH_TOKEN, JSON.stringify(refreshToken));
   }
   public static setCurrentSchool = async (
-    school: TableTypes<"school"> | null,
-    role?: RoleType
+    school: TableTypes<"school">,
+    role: RoleType
   ) => {
     console.log("setCurrentSchool called", school);
     const api = ServiceConfig.getI().apiHandler;
