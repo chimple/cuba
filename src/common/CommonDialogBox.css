@@ -33,3 +33,16 @@
   color: var(--text-color);
   text-align: center;
 }
+
+.alert-title.sc-ion-alert-md {
+  text-align: center;
+}
+
+.custom-dailog-alert .alert-button-group.sc-ion-alert-ios {
+  width: 80%;
+  align-self: center;
+}
+
+.custom-dailog-alert .alert-button-group.sc-ion-alert-ios button {
+  flex: 1;
+}
