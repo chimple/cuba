@@ -364,6 +364,15 @@ export class Util {
     localStorage.setItem(lessonIdStorageKey, JSON.stringify(updatedItems));
   };
 
+  public static async getLessonPath(lessonId: string): Promise<string> {
+    const path =
+      (localStorage.getItem("gameUrl") ??
+        "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
+      lessonId +
+      "/";
+    return path;
+  }
+
   public static async downloadZipBundle(
     lessonIds: string[],
     chapterId?: string

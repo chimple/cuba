@@ -114,6 +114,7 @@ import DisplayClasses from "./chimple-private/pages/DisplayClasses";
 import "./App.css";
 import ShowStudentsInAssignmentPage from "./chimple-private/pages/ShowStudentsInAssignmentPage";
 import { schoolUtil } from "./utility/schoolUtil";
+import LidoPlayer from "./pages/LidoPlayer";
 
 setupIonicReact();
 interface ExtraData {
@@ -128,7 +129,7 @@ const LAST_MODAL_SHOWN_KEY = "lastTimeExceededShown";
 const START_TIME_KEY = "startTime";
 const USED_TIME_KEY = "usedTime";
 const LAST_ACCESS_DATE_KEY = "lastAccessDate";
-const IS_INITIALIZED= "isInitialized";
+const IS_INITIALIZED = "isInitialized";
 let timeoutId: NodeJS.Timeout;
 
 const App: React.FC = () => {
@@ -192,7 +193,7 @@ const App: React.FC = () => {
   useEffect(() => {
     initializeUsage();
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    startTimeout()
+    startTimeout();
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(false));
     localStorage.setItem(DOWNLOADING_CHAPTER_ID, JSON.stringify(false));
     console.log("fetching...");
@@ -230,7 +231,7 @@ const App: React.FC = () => {
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,
-    }).catch((_) => { });
+    }).catch((_) => {});
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
@@ -297,11 +298,12 @@ const App: React.FC = () => {
     }
   };
 
-
   // Function to calculate the used time and store it
   const calculateUsedTime = () => {
     const currentTime = Date.now();
-    const startTime = Number(localStorage.getItem(START_TIME_KEY) || currentTime); // Use current time if startTime is missing
+    const startTime = Number(
+      localStorage.getItem(START_TIME_KEY) || currentTime
+    ); // Use current time if startTime is missing
     const usedTime = Number(localStorage.getItem(USED_TIME_KEY));
     const sessionTime = (currentTime - startTime) / 1000;
     const usedTimeInMinutes = usedTime / 60;
@@ -324,7 +326,6 @@ const App: React.FC = () => {
     const totalUsedTime = calculateUsedTime();
     localStorage.setItem(USED_TIME_KEY, totalUsedTime.toString());
   };
-
 
   const startTimeout = () => {
     clearExistingTimeout();
@@ -362,7 +363,7 @@ const App: React.FC = () => {
   // Function to handle visibility change (when app goes into background or foreground)
   const handleVisibilityChange = () => {
     const currentTime = Date.now();
-    if (document.visibilityState === 'visible') {
+    if (document.visibilityState === "visible") {
       if (!localStorage.getItem(START_TIME_KEY)) {
         localStorage.setItem(START_TIME_KEY, currentTime.toString());
       }
@@ -383,7 +384,6 @@ const App: React.FC = () => {
   //     clearExistingTimeout();
   //   };
   // }, []);
-
 
   const handleContinue = () => {
     setShowModal(false);
@@ -471,6 +471,9 @@ const App: React.FC = () => {
             </Route>
             <ProtectedRoute path={PAGES.GAME} exact={true}>
               <CocosGame />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.LIDO_PLAYER} exact={true}>
+              <LidoPlayer />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.END} exact={true}>
               <End />
@@ -675,9 +678,11 @@ const App: React.FC = () => {
           isOpen={showModal}
           onDidDismiss={() => setShowModal(false)}
           header={t("Time for a break!") || ""}
-          message={t(
-            "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
-          ) || ""}
+          message={
+            t(
+              "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
+            ) || ""
+          }
           cssClass="custom-alert"
           buttons={[
             {

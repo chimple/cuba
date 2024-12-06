@@ -5,6 +5,7 @@ import {
   COCOS,
   CONTINUE,
   LESSON_CARD_COLORS,
+  LIDO,
   LIVE_QUIZ,
   PAGES,
   TYPE,
@@ -203,6 +204,17 @@ const LessonCard: React.FC<{
                   assignment: JSON.stringify(assignment),
                 }
               );
+            } else if (lesson.plugin_type === LIDO) {
+              const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+              history.replace(PAGES.LIDO_PLAYER + parmas, {
+                lessonId: lesson.cocos_lesson_id,
+                courseDocId: course?.id ?? currentCourse?.id,
+                course: JSON.stringify(currentCourse!),
+                lesson: JSON.stringify(lesson),
+                assignment: assignment,
+                chapter: JSON.stringify(chapter),
+                from: history.location.pathname + `?${CONTINUE}=true`,
+              });
             }
           }
         }}

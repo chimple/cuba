@@ -381,6 +381,7 @@ export enum PAGES {
   HOME = "/home",
   LOGIN = "/login",
   GAME = "/game",
+  LIDO_PLAYER = "/lido-player",
   END = "/end",
   PROFILE = "/profile",
   PARENT = "/parent",
@@ -484,6 +485,7 @@ export const TC_ACCEPT = "tcAccept";
 export const RECOMMENDATIONS = "recommendations";
 export const LIVE_QUIZ = "liveQuiz";
 export const COCOS = "cocos";
+export const LIDO = "lido";
 export const TYPE = "type";
 export const APP_NAME = "Kids";
 export const SCHOOL = "school";
@@ -513,7 +515,12 @@ export interface PortPlugin {
     notificationType: string;
     rewardProfileId: string;
   }>;
-  shareContentWithAndroidShare(options: { text: string; title: string; url?: string; imageFile?: File[] }): Promise<void>;
+  shareContentWithAndroidShare(options: {
+    text: string;
+    title: string;
+    url?: string;
+    imageFile?: File[];
+  }): Promise<void>;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_SUBJECT_IDS = [
