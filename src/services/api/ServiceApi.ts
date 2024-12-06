@@ -1099,6 +1099,30 @@ export interface ServiceApi {
    */
   createClassCode(classId: string): Promise<number>;
   /**
+   * This function gets all the principals for the school.
+   * @param {string} schoolId school Id;
+   * @return A promise to an array of principals.
+   */
+  getPrincipalsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined>;
+  /**
+   * This function gets all the coordinators for the school.
+   * @param {string} schoolId school Id;
+   * @return A promise to an array of coordinators.
+   */
+  getCoordinatorsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined>;
+  /**
+   * This function gets all the sponsors for the school.
+   * @param {string} schoolId school Id;
+   * @return A promise to an array of sponsors.
+   */
+  getSponsorsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined>;
+  /**
    * Adding a principal or coordinator or sponsor to school.
    * @param {string} schoolId school Id
    * @param {string} userId user Id;
@@ -1121,14 +1145,4 @@ export interface ServiceApi {
     userId: string,
     role: RoleType
   ): Promise<void>;
-  /**
-   * Getting a user docs from school based on role.
-   * @param {string} schoolId school Id
-   * @param {string} role role
-   * @return array of user docs.
-   */
-  getSchoolUsers(
-    schoolId: string,
-    role: string
-  ): Promise<TableTypes<"user">[] | undefined>;
 }

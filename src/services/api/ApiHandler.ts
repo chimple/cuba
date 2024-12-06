@@ -868,6 +868,21 @@ export class ApiHandler implements ServiceApi {
   createClassCode(classId: string): Promise<number> {
     return this.s.createClassCode(classId);
   }
+  getPrincipalsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    return this.s.getPrincipalsForSchool(schoolId);
+  }
+  getCoordinatorsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    return this.s.getCoordinatorsForSchool(schoolId);
+  }
+  getSponsorsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    return this.s.getSponsorsForSchool(schoolId);
+  }
   async addUserToSchool(
     schoolId: string,
     userId: string,
@@ -881,11 +896,5 @@ export class ApiHandler implements ServiceApi {
     role: RoleType
   ): Promise<void> {
     return this.s.deleteUserFromSchool(schoolId, userId, role);
-  }
-  async getSchoolUsers(
-    schoolId: string,
-    role: string
-  ): Promise<TableTypes<"user">[] | undefined> {
-    return this.s.getSchoolUsers(schoolId, role);
   }
 }

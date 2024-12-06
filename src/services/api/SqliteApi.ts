@@ -3898,6 +3898,43 @@ order by
     if (!res || !res.values || res.values.length < 1) return;
     return res.values;
   }
+  async getPrincipalsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    const query = `
+    SELECT user.*
+    FROM ${TABLES.SchoolUser} AS su
+    JOIN ${TABLES.User} AS user ON su.user_id= user.id
+    WHERE su.school_id = "${schoolId}" and su.role = '${RoleType.PRINCIPAL}' and su.is_deleted = false;
+  `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
+
+  async getCoordinatorsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    const query = `
+    SELECT user.*
+    FROM ${TABLES.SchoolUser} AS su
+    JOIN ${TABLES.User} AS user ON su.user_id= user.id
+    WHERE su.school_id = "${schoolId}" and su.role = '${RoleType.COORDINATOR}' and su.is_deleted = false;
+  `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
+  async getSponsorsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    const query = `
+    SELECT user.*
+    FROM ${TABLES.SchoolUser} AS su
+    JOIN ${TABLES.User} AS user ON su.user_id= user.id
+    WHERE su.school_id = "${schoolId}" and su.role = '${RoleType.SPONSOR}' and su.is_deleted = false;
+  `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
   async addUserToSchool(
     schoolId: string,
     userId: string,
@@ -3969,11 +4006,5 @@ order by
     } catch (error) {
       console.log("🚀 ~ SqliteApi ~ deleteUserFromSchool ~ error:", error);
     }
-  }
-  async getSchoolUsers(
-    schoolId: string,
-    role: string
-  ): Promise<TableTypes<"user">[] | undefined> {
-    return await this._serverApi.getSchoolUsers(schoolId, role);
   }
 }

@@ -1179,6 +1179,21 @@ export class SupabaseApi implements ServiceApi {
       throw error; // Re-throw the error for external handling
     }
   }
+  async getPrincipalsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  async getCoordinatorsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  async getSponsorsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
   async addUserToSchool(
     schoolId: string,
     userId: string,
@@ -1192,23 +1207,5 @@ export class SupabaseApi implements ServiceApi {
     role: RoleType
   ): Promise<void> {
     throw new Error("Method not implemented.");
-  }
-  async getSchoolUsers(
-    schoolId: string,
-    role: string
-  ): Promise<TableTypes<"user">[] | undefined> {
-    try {
-      const results = await this?.supabase?.rpc("get_school_users", {
-        _school_id: schoolId,
-        _role: role,
-      });
-      if (results == null || results.error || !results.data) {
-        throw results?.error ?? "";
-      }
-      const data = results.data;
-      return data;
-    } catch (error) {
-      throw error;
-    }
   }
 }
