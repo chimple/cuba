@@ -77,7 +77,7 @@ const AddCourses: React.FC = () => {
     localData.courses = courses;
     localStorageData.courses = courses;
     setCourses(courses);
-    addDataToLocalStorage();
+    // addDataToLocalStorage();
     setIsLoading(false);
     return courses;
   };
