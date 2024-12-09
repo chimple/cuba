@@ -1983,7 +1983,7 @@ export class SqliteApi implements ServiceApi {
     SELECT cu.class_id, c.school_id
     FROM ${TABLES.ClassUser} cu
     JOIN ${TABLES.Class} c ON cu.class_id = c.id
-    WHERE cu.user_id = "${userId}" AND cu.role = "${RoleType.TEACHER}"
+    WHERE cu.user_id = "${userId}" AND cu.role = "${RoleType.TEACHER}" AND cu.is_deleted = 0 AND c.is_deleted = 0
   `;
     const classUserRes = await this._db?.query(query);
 
@@ -2007,7 +2007,7 @@ export class SqliteApi implements ServiceApi {
             'is_deleted', s.is_deleted
           ) AS school
           FROM ${TABLES.School} s
-          WHERE s.id = "${schoolId}"
+          WHERE s.id = "${schoolId}" AND s.is_deleted = 0
         `;
           const schoolRes = await this._db?.query(query);
           if (schoolRes && schoolRes.values && schoolRes.values.length > 0) {
@@ -2023,20 +2023,22 @@ export class SqliteApi implements ServiceApi {
     query = `
     SELECT su.*, 
     JSON_OBJECT(
-      'id',s.id,
-      'name',s.name,
-      'group1',s.group1,
-      'group2',s.group2,
-      'group3',s.group3,
-      'image',s.image,
-      'created_at',s.created_at,
-      'updated_at',s.updated_at,
-      'is_deleted',s.is_deleted
+      'id', s.id,
+      'name', s.name,
+      'group1', s.group1,
+      'group2', s.group2,
+      'group3', s.group3,
+      'image', s.image,
+      'created_at', s.created_at,
+      'updated_at', s.updated_at,
+      'is_deleted', s.is_deleted
     ) AS school
     FROM ${TABLES.SchoolUser} su
     JOIN ${TABLES.School} s ON su.school_id = s.id
     WHERE su.user_id = "${userId}" 
-    AND su.role != "${RoleType.PARENT}"
+    AND su.role != "${RoleType.PARENT}" 
+    AND su.is_deleted = 0 
+    AND s.is_deleted = 0
   `;
     const schoolUserRes = await this._db?.query(query);
 
@@ -2049,6 +2051,7 @@ export class SqliteApi implements ServiceApi {
         const schoolId = JSON.parse(data.school).id;
 
         if (!schoolIds.has(schoolId)) {
+          schoolIds.add(schoolId);
           finalData.push({
             school: JSON.parse(data.school),
             role: data.role,
@@ -3907,6 +3910,7 @@ order by
     const res = await this._db?.query(query);
     return res?.values ?? [];
   }
+
   async getCoordinatorsForSchool(
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined> {

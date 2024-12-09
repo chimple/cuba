@@ -28,7 +28,10 @@ const Tabs: React.FC<{
             minHeight: "37px",
             textTransform: "none",
             fontSize: "var(--text-size)",
-            color: "var(--text-color) !important",
+            color: "#707070 !important",
+            "&:hover": {
+              backgroundColor: "transparent",
+            },
           },
           "& .MuiTabs-flexContainer": {
             width: "100vw",
@@ -38,7 +41,7 @@ const Tabs: React.FC<{
             minHeight: "37px",
             background: "white",
             fontWeight: "bold",
-            color: "var(--text-color) !important",
+            color: "#707070 !important",
           },
         }}
       >
