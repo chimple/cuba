@@ -9,7 +9,6 @@ import {
   CONTINUE,
   CURRENT_CLASS,
   CURRENT_MODE,
-  DISPLAY_SUBJECTS_STORE,
   GRADE_MAP,
   MODES,
   PAGES,
@@ -123,7 +122,8 @@ const DisplaySubjects: FC<{}> = () => {
 
       setIsLoading(false);
     } else if (!!urlParams.get("isReload")) {
-      let strLocalStoreData = localStorage.getItem(DISPLAY_SUBJECTS_STORE);
+      // let strLocalStoreData = localStorage.getItem(DISPLAY_SUBJECTS_STORE);
+      let strLocalStoreData = null;
       if (!!strLocalStoreData) {
         localStorageData = JSON.parse(strLocalStoreData);
 
@@ -223,10 +223,10 @@ const DisplaySubjects: FC<{}> = () => {
   }
 
   function addDataToLocalStorage() {
-    localStorage.setItem(
-      DISPLAY_SUBJECTS_STORE,
-      JSON.stringify(localStorageData)
-    );
+    // localStorage.setItem(
+    //   DISPLAY_SUBJECTS_STORE,
+    //   JSON.stringify(localStorageData)
+    // );
   }
 
   const getCourses = async (): Promise<Course[]> => {
@@ -261,7 +261,7 @@ const DisplaySubjects: FC<{}> = () => {
     localData.courses = courses;
     localStorageData.courses = courses;
     setCourses(courses);
-    addDataToLocalStorage();
+    // addDataToLocalStorage();
     setIsLoading(false);
     return courses;
   };
@@ -282,7 +282,7 @@ const DisplaySubjects: FC<{}> = () => {
   const onBackButton = () => {
     switch (stage) {
       case STAGES.SUBJECTS:
-        localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
+        // localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
         history.replace(PAGES.HOME);
         break;
       case STAGES.CHAPTERS:

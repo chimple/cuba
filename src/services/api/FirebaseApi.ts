@@ -653,7 +653,7 @@ export class FirebaseApi implements ServiceApi {
     try {
       if (!currClass?.courses || currClass.courses.length < 1) return subjects;
       const courseDocs = await Promise.all(
-        currClass.courses.map((course) => getDoc(doc(this._db, course)))
+        currClass.courses.map((course) => this.getDocFromOffline(doc(this._db, course)))
       );
       courseDocs.forEach((courseDoc) => {
         if (courseDoc && courseDoc.data) {

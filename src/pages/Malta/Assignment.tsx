@@ -15,7 +15,7 @@ import {
 import { t } from "i18next";
 import {
   ASSIGNMENTTAB_LIST,
-  DISPLAY_SUBJECTS_STORE,
+  // DISPLAY_SUBJECTS_STORE,
   MODES,
   PAGES,
 } from "../../common/constants";
@@ -113,7 +113,7 @@ const Assignment: React.FC = () => {
     localData.courses = courses;
     localStorageData.courses = courses;
     setCourses(courses);
-    addDataToLocalStorage();
+    // addDataToLocalStorage();
     setIsLoading(false);
     console.log("********", courses);
     getLessonsForChapter(courses![5].chapters[6]);
@@ -168,16 +168,16 @@ const Assignment: React.FC = () => {
   };
 
   function addDataToLocalStorage() {
-    localStorage.setItem(
-      DISPLAY_SUBJECTS_STORE,
-      JSON.stringify(localStorageData)
-    );
+    // localStorage.setItem(
+    //   DISPLAY_SUBJECTS_STORE,
+    //   JSON.stringify(localStorageData)
+    // );
   }
 
   const onBackButton = () => {
     switch (stage) {
       case STAGES.SUBJECTS:
-        localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
+        // localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
         history.replace(PAGES.HOME);
         break;
       default:

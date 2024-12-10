@@ -9,7 +9,7 @@ import {
   CONTINUE,
   CURRENT_CLASS,
   CURRENT_MODE,
-  DISPLAY_SUBJECTS_STORE,
+  // DISPLAY_SUBJECTS_STORE,
   GRADE_MAP,
   HOMEHEADERLIST,
   MODES,
@@ -108,13 +108,14 @@ const Subjects: React.FC<{}> = ({}) => {
       !!localData.localGradeMap && setLocalGradeMap(localData.localGradeMap);
       localStorageData.lessonResultMap = localData.lessonResultMap;
       //   localStorageData.stage = STAGES.LESSONS;
-      addDataToLocalStorage();
+      // addDataToLocalStorage();
       //   setStage(STAGES.LESSONS);
 
       setIsLoading(false);
     } else if (!!urlParams.get("isReload")) {
       await getCourses();
-      let strLocalStoreData = localStorage.getItem(DISPLAY_SUBJECTS_STORE);
+      // let strLocalStoreData = localStorage.getItem(DISPLAY_SUBJECTS_STORE);
+      let strLocalStoreData = null;
       if (!!strLocalStoreData) {
         localStorageData = JSON.parse(strLocalStoreData);
 
@@ -236,10 +237,10 @@ const Subjects: React.FC<{}> = ({}) => {
     const courses = await (!!currClass
       ? api.getCoursesForClassStudent(currClass)
       : api.getCoursesForParentsStudent(currentStudent));
-    localData.courses = courses;
-    localStorageData.courses = courses;
-    setCourses(courses);
-    addDataToLocalStorage();
+      localData.courses = courses;
+      // localStorageData.courses = courses;
+      setCourses(courses);
+    // addDataToLocalStorage();
     setIsLoading(false);
     return courses;
   };
@@ -261,7 +262,7 @@ const Subjects: React.FC<{}> = ({}) => {
     setLocalGradeMap(gradesMap);
     setCurrentCourse(course);
     // localStorageData.stage = STAGES.CHAPTERS;
-    addDataToLocalStorage();
+    // addDataToLocalStorage();
     const params = `courseDocId=${course.docId}`;
     // history.replace(PAGES.DISPLAY_CHAPTERS + params);
     if (urlParams.get(CONTINUE)) {
@@ -274,10 +275,10 @@ const Subjects: React.FC<{}> = ({}) => {
   };
 
   function addDataToLocalStorage() {
-    localStorage.setItem(
-      DISPLAY_SUBJECTS_STORE,
-      JSON.stringify(localStorageData)
-    );
+    // localStorage.setItem(
+    //   DISPLAY_SUBJECTS_STORE,
+    //   JSON.stringify(localStorageData)
+    // );
   }
 
   return (
