@@ -2102,20 +2102,6 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
-  async removeCourseFromClass(id: string): Promise<void> {
-    try {
-      await this.executeQuery(
-        `UPDATE class_course SET is_deleted = 1 WHERE id = ?`,
-        [id]
-      );
-      this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.UPDATE, {
-        id: id,
-        is_deleted: true,
-      });
-    } catch (error) {
-      console.error("Error removing course from class_course", error);
-    }
-  }
   async checkCourseInClasses(classIds: string[], courseId: string): Promise<boolean> {
     try {
       if (classIds.length === 0) {
@@ -2183,21 +2169,6 @@ export class SqliteApi implements ServiceApi {
       });
     } catch (error) {
       console.error("Error removing courses from school_course", error);
-    }
-  }
-
-  async removeCourseFromSchool(id: string): Promise<void> {
-    try {
-      await this.executeQuery(
-        `UPDATE school_course SET is_deleted = 1 WHERE id = ?`,
-        [id]
-      );
-      this.updatePushChanges(TABLES.SchoolCourse, MUTATE_TYPES.UPDATE, {
-        id: id,
-        is_deleted: true,
-      });
-    } catch (error) {
-      console.error("Error removing course from school_course", error);
     }
   }
   async deleteUserFromClass(userId: string): Promise<void> {

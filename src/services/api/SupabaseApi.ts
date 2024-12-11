@@ -239,17 +239,11 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  async removeCourseFromClass(id: string): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
 
   async removeCoursesFromClass(ids: string[]): Promise<void> {
     throw new Error("Method not implemented.");
   }
 
-  async removeCourseFromSchool(id: string): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
   async removeCoursesFromSchool(ids: string[]): Promise<void> {
     throw new Error("Method not implemented.");
   }

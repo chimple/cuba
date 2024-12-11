@@ -111,23 +111,12 @@ export interface ServiceApi {
     schoolId: string
   ): Promise<TableTypes<"school_course">[]>;
 
-  /**
-   * To delete a 'course' with a given class ID from the class_course table.
-   * @param {id } class_id - Class Id
-   */
-  removeCourseFromClass(id: string): Promise<void>;
 
   /**
      * To delete 'courses' with given class IDs from the class_course table.
      * @param {string[] } class_ids - Class Ids
      */
   removeCoursesFromClass(ids: string[]): Promise<void>;
-
-  /**
-   * To delete a 'course' with a given school ID from the school_course table.
-   * @param {string } school_id - School Id
-   */
-  removeCourseFromSchool(id: string): Promise<void>;
 
   /**
    * To delete 'courses' with given school IDs from the school_course table.
