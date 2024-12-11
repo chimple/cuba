@@ -76,7 +76,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<string | undefined> {
     return this.s.joinLiveQuiz(assignmentId, studentId);
   }
-  private constructor() {}
+  private constructor() { }
   public async updateRewardsForStudent(
     studentId: string,
     unlockedReward: LeaderboardRewards
@@ -136,9 +136,8 @@ export class ApiHandler implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    courseIds: string[]
   ): Promise<TableTypes<"school">> {
-    return await this.s.createSchool(name, group1, group2, group3, courseIds);
+    return await this.s.createSchool(name, group1, group2, group3);
   }
   public async updateSchoolProfile(
     school: TableTypes<"school">,
@@ -173,8 +172,17 @@ export class ApiHandler implements ServiceApi {
   public async removeCourseFromClass(id: string): Promise<void> {
     return await this.s.removeCourseFromClass(id);
   }
+  public async removeCoursesFromClass(ids: string[]): Promise<void> {
+    return await this.s.removeCoursesFromClass(ids);
+  }
   public async removeCourseFromSchool(id: string): Promise<void> {
     return await this.s.removeCourseFromSchool(id);
+  }
+  public async removeCoursesFromSchool(ids: string[]): Promise<void> {
+    return await this.s.removeCoursesFromSchool(ids);
+  }
+  public async checkCourseInClasses(classIds: string[], courseId: string): Promise<boolean> {
+    return await this.s.checkCourseInClasses(classIds, courseId);
   }
   public async deleteUserFromClass(userId: string): Promise<void> {
     return await this.s.deleteUserFromClass(userId);
