@@ -72,7 +72,7 @@ const DisplaySubjects: FC<{}> = () => {
         api.getDifferentGradesForCourse(currentCourse).then(({ grades }) => {
           localData.gradesMap = { grades, courses: [currentCourse] };
           localStorageData.gradesMap = localData.gradesMap;
-          addDataToLocalStorage();
+          // addDataToLocalStorage();
           setLocalGradeMap({ grades, courses: [currentCourse] });
           setIsLoading(false);
         });
@@ -117,85 +117,85 @@ const DisplaySubjects: FC<{}> = () => {
       !!localData.localGradeMap && setLocalGradeMap(localData.localGradeMap);
       localStorageData.lessonResultMap = localData.lessonResultMap;
       localStorageData.stage = STAGES.LESSONS;
-      addDataToLocalStorage();
+      // addDataToLocalStorage();
       setStage(STAGES.LESSONS);
 
       setIsLoading(false);
     } else if (!!urlParams.get("isReload")) {
       // let strLocalStoreData = localStorage.getItem(DISPLAY_SUBJECTS_STORE);
-      let strLocalStoreData = null;
-      if (!!strLocalStoreData) {
-        localStorageData = JSON.parse(strLocalStoreData);
+      // let strLocalStoreData = null;
+      // if (!!strLocalStoreData) {
+      //   localStorageData = JSON.parse(strLocalStoreData);
 
-        if (!!localStorageData.courses) {
-          let tmpCourses: Course[] = Util.convertCourses(
-            localStorageData.courses
-          );
-          localData.courses = tmpCourses;
-          setCourses(tmpCourses);
-          if (
-            !!localStorageData.stage &&
-            localStorageData.stage !== STAGES.SUBJECTS &&
-            !!localStorageData.currentCourseId
-          ) {
-            setStage(localStorageData.stage);
-            let cc: Course = localData.courses.find(
-              (cour) => localStorageData.currentCourseId === cour.docId
-            );
+      //   if (!!localStorageData.courses) {
+      //     let tmpCourses: Course[] = Util.convertCourses(
+      //       localStorageData.courses
+      //     );
+      //     localData.courses = tmpCourses;
+      //     setCourses(tmpCourses);
+      //     if (
+      //       !!localStorageData.stage &&
+      //       localStorageData.stage !== STAGES.SUBJECTS &&
+      //       !!localStorageData.currentCourseId
+      //     ) {
+      //       setStage(localStorageData.stage);
+      //       let cc: Course = localData.courses.find(
+      //         (cour) => localStorageData.currentCourseId === cour.docId
+      //       );
 
-            let _localMap = getLocalGradeMap();
+      //       let _localMap = getLocalGradeMap();
 
-            if (!!_localMap) {
-              if (!!localStorageData.currentGrade) {
-                localData.currentGrade = localStorageData.currentGrade;
-                setCurrentGrade(localStorageData.currentGrade);
-                const tmpCurrentCourse = _localMap?.courses.find(
-                  (course) => course.grade.id === localData.currentGrade.docId
-                );
+      //       if (!!_localMap) {
+      //         if (!!localStorageData.currentGrade) {
+      //           localData.currentGrade = localStorageData.currentGrade;
+      //           setCurrentGrade(localStorageData.currentGrade);
+      //           const tmpCurrentCourse = _localMap?.courses.find(
+      //             (course) => course.grade.id === localData.currentGrade.docId
+      //           );
 
-                if (!!tmpCurrentCourse) cc = tmpCurrentCourse;
-              }
-            }
+      //           if (!!tmpCurrentCourse) cc = tmpCurrentCourse;
+      //         }
+      //       }
 
-            localData.currentCourse = cc;
-            setCurrentCourse(cc);
+      //       localData.currentCourse = cc;
+      //       setCurrentCourse(cc);
 
-            if (!!localStorageData.currentChapterId) {
-              let cChap: Chapter = localData.currentCourse.chapters.find(
-                (chap) => localStorageData.currentChapterId === chap.id
-              );
-              localData.currentChapter = cChap;
-              setCurrentChapter(cChap);
-            }
+      //       if (!!localStorageData.currentChapterId) {
+      //         let cChap: Chapter = localData.currentCourse.chapters.find(
+      //           (chap) => localStorageData.currentChapterId === chap.id
+      //         );
+      //         localData.currentChapter = cChap;
+      //         setCurrentChapter(cChap);
+      //       }
 
-            if (!!localStorageData.lessonResultMap) {
-              let tmpStdMap: { [lessonDocId: string]: StudentLessonResult } =
-                localStorageData.lessonResultMap;
-              for (const value of Object.values(tmpStdMap)) {
-                if (!!value.course) value.course = Util.getRef(value.course);
-              }
-              localData.lessonResultMap = tmpStdMap;
-              setLessonResultMap(tmpStdMap);
-            }
+      //       if (!!localStorageData.lessonResultMap) {
+      //         let tmpStdMap: { [lessonDocId: string]: StudentLessonResult } =
+      //           localStorageData.lessonResultMap;
+      //         for (const value of Object.values(tmpStdMap)) {
+      //           if (!!value.course) value.course = Util.getRef(value.course);
+      //         }
+      //         localData.lessonResultMap = tmpStdMap;
+      //         setLessonResultMap(tmpStdMap);
+      //       }
 
-            if (localStorageData.stage === STAGES.LESSONS) {
-              getLessonsForChapter(localData.currentChapter);
-            } else {
-              setIsLoading(false);
-            }
-          } else {
-            setIsLoading(false);
-          }
-        } else {
-          await getCourses();
-          console.log(
-            "🚀 ~ file: DisplaySubjects.tsx:127 ~ init ~ getCourses:"
-          );
-        }
-      } else {
-        await getCourses();
-        console.log("🚀 ~ file: DisplaySubjects.tsx:126 ~ init ~ getCourses:");
-      }
+      //       if (localStorageData.stage === STAGES.LESSONS) {
+      //         getLessonsForChapter(localData.currentChapter);
+      //       } else {
+      //         setIsLoading(false);
+      //       }
+      //     } else {
+      //       setIsLoading(false);
+      //     }
+      //   } else {
+      //     await getCourses();
+      //     console.log(
+      //       "🚀 ~ file: DisplaySubjects.tsx:127 ~ init ~ getCourses:"
+      //     );
+      //   }
+      // } else {
+      //   await getCourses();
+      //   console.log("🚀 ~ file: DisplaySubjects.tsx:126 ~ init ~ getCourses:");
+      // }
     } else {
       await getCourses();
       console.log("🚀 ~ file: DisplaySubjects.tsx:131 ~ init ~ getCourses:");
@@ -222,12 +222,12 @@ const DisplaySubjects: FC<{}> = () => {
     }
   }
 
-  function addDataToLocalStorage() {
+  // function addDataToLocalStorage() {
     // localStorage.setItem(
     //   DISPLAY_SUBJECTS_STORE,
     //   JSON.stringify(localStorageData)
     // );
-  }
+  // }
 
   const getCourses = async (): Promise<Course[]> => {
     setIsLoading(true);
@@ -290,14 +290,14 @@ const DisplaySubjects: FC<{}> = () => {
         delete localStorageData.currentChapterId;
         setCurrentChapter(undefined);
         localStorageData.stage = STAGES.SUBJECTS;
-        addDataToLocalStorage();
+        // addDataToLocalStorage();
         setStage(STAGES.SUBJECTS);
         break;
       case STAGES.LESSONS:
         delete localData.lessons;
         setLessons(undefined);
         localStorageData.stage = STAGES.CHAPTERS;
-        addDataToLocalStorage();
+        // addDataToLocalStorage();
         setStage(STAGES.CHAPTERS);
 
         break;
@@ -322,7 +322,7 @@ const DisplaySubjects: FC<{}> = () => {
     setLocalGradeMap(gradesMap);
     setCurrentCourse(course);
     localStorageData.stage = STAGES.CHAPTERS;
-    addDataToLocalStorage();
+    // addDataToLocalStorage();
     setStage(STAGES.CHAPTERS);
   };
 
@@ -332,7 +332,7 @@ const DisplaySubjects: FC<{}> = () => {
     );
     localData.currentGrade = grade;
     localStorageData.currentGrade = grade;
-    addDataToLocalStorage();
+    // addDataToLocalStorage();
     setCurrentGrade(grade);
     setCurrentCourse(currentCourse);
   };
@@ -343,7 +343,7 @@ const DisplaySubjects: FC<{}> = () => {
     localStorageData.currentChapterId = chapter.id;
     setCurrentChapter(chapter);
     localStorageData.stage = STAGES.LESSONS;
-    addDataToLocalStorage();
+    // addDataToLocalStorage();
     setStage(STAGES.LESSONS);
   };
 

@@ -50,12 +50,12 @@ const AddCourses: React.FC = () => {
     await getCourses();
   };
 
-  function addDataToLocalStorage() {
+  // function addDataToLocalStorage() {
     // localStorage.setItem(
     //   DISPLAY_SUBJECTS_STORE,
     //   JSON.stringify(localStorageData)
     // );
-  }
+  // }
 
   const getCourses = async (): Promise<Course[]> => {
     setIsLoading(true);

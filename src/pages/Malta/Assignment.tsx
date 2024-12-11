@@ -167,12 +167,12 @@ const Assignment: React.FC = () => {
     }
   };
 
-  function addDataToLocalStorage() {
+  // function addDataToLocalStorage() {
     // localStorage.setItem(
     //   DISPLAY_SUBJECTS_STORE,
     //   JSON.stringify(localStorageData)
     // );
-  }
+  // }
 
   const onBackButton = () => {
     switch (stage) {
