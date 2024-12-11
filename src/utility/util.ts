@@ -44,6 +44,7 @@ import {
   USER_ROLE,
   CLASS,
   CURRENT_COURSE,
+  CLASS_OR_SCHOOL_CHANGE_EVENT,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -1813,4 +1814,8 @@ export class Util {
     >;
     return currentCourse.get(classId);
   }
+  public static dispatchClassOrSchoolChangeEvent = () => {
+    const customEvent = new CustomEvent(CLASS_OR_SCHOOL_CHANGE_EVENT);
+    window.dispatchEvent(customEvent);
+  };
 }
