@@ -63,7 +63,6 @@ export interface ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    courseIds: string[]
   ): Promise<TableTypes<"school">>;
   /**
    * updates a school details and returns the school object
@@ -112,17 +111,26 @@ export interface ServiceApi {
     schoolId: string
   ): Promise<TableTypes<"school_course">[]>;
 
-  /**
-   * To delete a 'course' with a given class ID from the class_course table.
-   * @param {id } class_id - Class Id
-   */
-  removeCourseFromClass(id: string): Promise<void>;
 
   /**
-   * To delete a 'course' with a given school ID from the school_course table.
-   * @param {id } school_id - School Id
+     * To delete 'courses' with given class IDs from the class_course table.
+     * @param {string[] } class_ids - Class Ids
+     */
+  removeCoursesFromClass(ids: string[]): Promise<void>;
+
+  /**
+   * To delete 'courses' with given school IDs from the school_course table.
+   * @param {string[] } school_ids - School Ids
    */
-  removeCourseFromSchool(id: string): Promise<void>;
+  removeCoursesFromSchool(ids: string[]): Promise<void>;
+
+  /**
+   *To check course is connected with any given class ids and return boolean value.
+   * @param {string [] } class_ids - class Ids
+   * @param {string } course_id - course Id
+   */
+  checkCourseInClasses(classIds: string[], courseId: string): Promise<boolean>;
+
 
   /**
    * To delete a 'user' with a given student ID from the class_user table.

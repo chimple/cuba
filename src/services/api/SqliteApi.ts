@@ -244,7 +244,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -563,7 +563,6 @@ export class SqliteApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    courseIds: string[]
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -637,40 +636,6 @@ export class SqliteApi implements ServiceApi {
       MUTATE_TYPES.INSERT,
       newSchoolUser
     );
-    // Insert into school_course table
-    for (const courseId of courseIds) {
-      const schoolCourseId = uuidv4();
-      const newSchoolCourse: TableTypes<"school_course"> = {
-        id: schoolCourseId,
-        school_id: schoolId,
-        course_id: courseId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        is_deleted: false,
-      };
-      console.log("school course data..", newSchoolCourse);
-
-      await this.executeQuery(
-        `
-      INSERT INTO school_course (id, school_id, course_id, created_at, updated_at, is_deleted)
-      VALUES (?, ?, ?, ?, ?, ?);
-      `,
-        [
-          newSchoolCourse.id,
-          newSchoolCourse.school_id,
-          newSchoolCourse.course_id,
-          newSchoolCourse.created_at,
-          newSchoolCourse.updated_at,
-          newSchoolCourse.is_deleted,
-        ]
-      );
-      await this.updatePushChanges(
-        TABLES.SchoolCourse,
-        MUTATE_TYPES.INSERT,
-        newSchoolCourse
-      );
-    }
-
     return newSchool;
   }
   async updateSchoolProfile(
@@ -2137,32 +2102,73 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
-  async removeCourseFromClass(id: string): Promise<void> {
+  async checkCourseInClasses(classIds: string[], courseId: string): Promise<boolean> {
     try {
-      await this.executeQuery(
-        `UPDATE class_course SET is_deleted = 1 WHERE id = ?`,
-        [id]
+      if (classIds.length === 0) {
+        return false; // No classes to check
+      }
+
+      const placeholders = classIds.map(() => "?").join(", ");
+      const result = await this.executeQuery(
+        `SELECT 1 FROM class_course 
+         WHERE class_id IN (${placeholders}) AND course_id = ? AND is_deleted = 0 
+         LIMIT 1`,
+        [...classIds, courseId]
       );
-      this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.UPDATE, {
-        id: id,
-        is_deleted: true,
-      });
+
+      if (!result?.values) return false;
+      console.log("result value for classids", result, classIds, courseId);
+      return result.values.length > 0; // Return true if at least one match is found
     } catch (error) {
-      console.error("Error removing course from class_course", error);
+      console.error("Error checking course in classes:", error);
+      throw error;
     }
   }
-  async removeCourseFromSchool(id: string): Promise<void> {
+
+  async removeCoursesFromClass(ids: string[]): Promise<void> {
     try {
+      if (ids.length === 0) {
+        console.warn("No course IDs provided for removal.");
+        return;
+      }
+
+      const placeholders = ids.map(() => '?').join(', ');
       await this.executeQuery(
-        `UPDATE school_course SET is_deleted = 1 WHERE id = ?`,
-        [id]
+        `UPDATE class_course SET is_deleted = 1 WHERE id IN (${placeholders})`,
+        ids
       );
-      this.updatePushChanges(TABLES.SchoolCourse, MUTATE_TYPES.UPDATE, {
-        id: id,
-        is_deleted: true,
+
+      ids.forEach((id) => {
+        this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.UPDATE, {
+          id: id,
+          is_deleted: true,
+        });
       });
     } catch (error) {
-      console.error("Error removing course from school_course", error);
+      console.error("Error removing courses from class_course", error);
+    }
+  }
+  async removeCoursesFromSchool(ids: string[]): Promise<void> {
+    try {
+      if (ids.length === 0) {
+        console.warn("No course IDs provided for removal.");
+        return;
+      }
+
+      const placeholders = ids.map(() => '?').join(', ');
+      await this.executeQuery(
+        `UPDATE school_course SET is_deleted = 1 WHERE id IN (${placeholders})`,
+        ids
+      );
+
+      ids.forEach((id) => {
+        this.updatePushChanges(TABLES.SchoolCourse, MUTATE_TYPES.UPDATE, {
+          id: id,
+          is_deleted: true,
+        });
+      });
+    } catch (error) {
+      console.error("Error removing courses from school_course", error);
     }
   }
   async deleteUserFromClass(userId: string): Promise<void> {
