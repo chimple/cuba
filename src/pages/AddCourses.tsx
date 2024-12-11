@@ -4,7 +4,6 @@ import { useHistory } from "react-router-dom";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
   ACTION,
-  DISPLAY_SUBJECTS_STORE,
   EVENTS,
   HOMEHEADERLIST,
   MODES,
@@ -51,12 +50,12 @@ const AddCourses: React.FC = () => {
     await getCourses();
   };
 
-  function addDataToLocalStorage() {
-    localStorage.setItem(
-      DISPLAY_SUBJECTS_STORE,
-      JSON.stringify(localStorageData)
-    );
-  }
+  // function addDataToLocalStorage() {
+    // localStorage.setItem(
+    //   DISPLAY_SUBJECTS_STORE,
+    //   JSON.stringify(localStorageData)
+    // );
+  // }
 
   const getCourses = async (): Promise<Course[]> => {
     setIsLoading(true);
@@ -77,7 +76,7 @@ const AddCourses: React.FC = () => {
     localData.courses = courses;
     localStorageData.courses = courses;
     setCourses(courses);
-    addDataToLocalStorage();
+    // addDataToLocalStorage();
     setIsLoading(false);
     return courses;
   };
@@ -105,7 +104,7 @@ const AddCourses: React.FC = () => {
     setIsLoading(false);
     switch (stage) {
       case STAGES.SUBJECTS:
-        localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
+        // localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
         history.replace(PAGES.HOME);
         break;
       default:
@@ -117,7 +116,7 @@ const AddCourses: React.FC = () => {
   const onBackButton = () => {
     switch (stage) {
       case STAGES.SUBJECTS:
-        localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
+        // localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
         history.replace(PAGES.HOME);
         break;
       default:
