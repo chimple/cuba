@@ -3178,8 +3178,8 @@ export class SqliteApi implements ServiceApi {
       SELECT r.*, l.name AS lesson_name, c.course_id AS course_id, c.name AS chapter_name
       FROM ${TABLES.Result} r
       JOIN ${TABLES.Lesson} l ON r.lesson_id = l.id
-      JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
-      JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
+      JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id and r.chapter_id=cl.chapter_id
+      JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id and r.course_id=c.course_id
       WHERE r.student_id = '${studentId}'
     `;
     const res = await this._db?.query(query);
