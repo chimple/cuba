@@ -356,12 +356,6 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"class_course">[]> {
     throw new Error("Method not implemented.");
   }
-  removeCourseFromClass(id: string): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  removeCourseFromSchool(id: string): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
   deleteUserFromClass(userId: string): Promise<void> {
     throw new Error("Method not implemented.");
   }
