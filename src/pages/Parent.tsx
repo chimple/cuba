@@ -309,7 +309,7 @@ const Parent: React.FC = () => {
                 onClick={() => {
                   let message = "Hiii !!!!";
                   window.open(
-                    `https://api.whatsapp.com/send?phone=918904515444&text=${message}`,
+                    `https://api.whatsapp.com/send?phone=919606018552&text=${message}`,
                     "_system"
                   );
                 }}
