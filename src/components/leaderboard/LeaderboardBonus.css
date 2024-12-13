@@ -19,3 +19,22 @@
 .leaderboard-bonus-disabled {
   opacity: 0.2;
 }
+
+.leaderboard-bonus-page {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+.leaderboard-bonus-section {
+  margin-bottom: 20px;
+  padding: 20px;
+}
+
+.section-divider {
+  border: 1px solid lightslategray;
+  height: 1px;
+  width: 100%;
+  color: black;
+}
