@@ -78,6 +78,7 @@ export enum APP_LANGUAGES {
   en = "English",
   hi = "हिन्दी",
   kn = "ಕನ್ನಡ",
+  mr = "मराठी",
 }
 export enum HOMEHEADERLIST {
   SUGGESTIONS = "SUGGESTIONS",
