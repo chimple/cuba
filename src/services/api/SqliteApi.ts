@@ -2757,7 +2757,6 @@ export class SqliteApi implements ServiceApi {
     try {
       const query = `SELECT ${periodType} FROM ${TABLES.Reward} WHERE year = ${id}`;
       const data = await this._db?.query(query);
-
       if (!data || !data.values || data.values.length === 0) {
         console.error("No reward found for the given year.");
         return;
@@ -3693,6 +3692,7 @@ order by
       MUTATE_TYPES.INSERT,
       classUser
     );
+    await this.syncDbNow([TABLES.User])
   }
 
   async checkUserExistInSchool(
@@ -3978,6 +3978,7 @@ order by
       MUTATE_TYPES.INSERT,
       schoolUser
     );
+    await this.syncDbNow([TABLES.User])
   }
   async deleteUserFromSchool(
     schoolId: string,
