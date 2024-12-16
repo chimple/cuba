@@ -5,7 +5,7 @@ import { IonHeader, IonPage } from "@ionic/react";
 import { t } from "i18next";
 import {
   ASSIGNMENTTAB_LIST,
-  DISPLAY_SUBJECTS_STORE,
+  // DISPLAY_SUBJECTS_STORE,
   MODES,
   PAGES,
   TableTypes,
@@ -99,7 +99,7 @@ const Assignment: React.FC = () => {
     localData.courses = courses;
     localStorageData.courses = courses;
     setCourses(courses);
-    addDataToLocalStorage();
+    // addDataToLocalStorage();
     setIsLoading(false);
     // getLessonsForChapter(courses![5].chapters[6]);
     // getLiveQuizLessons(courses![12].chapters[5]);
@@ -156,17 +156,17 @@ const Assignment: React.FC = () => {
     }
   };
 
-  function addDataToLocalStorage() {
-    localStorage.setItem(
-      DISPLAY_SUBJECTS_STORE,
-      JSON.stringify(localStorageData)
-    );
-  }
+  // function addDataToLocalStorage() {
+  //   localStorage.setItem(
+  //     DISPLAY_SUBJECTS_STORE,
+  //     JSON.stringify(localStorageData)
+  //   );
+  // }
 
   const onBackButton = () => {
     switch (stage) {
       case STAGES.SUBJECTS:
-        localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
+        // localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
         history.replace(PAGES.HOME);
         break;
       default:
