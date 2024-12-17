@@ -1,11 +1,14 @@
 .leaderboard-sticker-container {
   overflow-y: auto;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: 15% 20% 20% 20% 16%;
   gap: 16px;
   height: 100%;
+  width: 100%;
   flex-grow: 1;
-  padding-bottom: 30px;
+  align-items: center;
+  text-align: center;
+  overflow-x: hidden;
 }
 
 .leaderboard-sticker-item {
@@ -25,7 +28,6 @@
 }
 
 .leaderboard-sticker-section {
-  margin-bottom: 20px;
   padding: 20px;
 }
 

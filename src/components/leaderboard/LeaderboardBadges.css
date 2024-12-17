@@ -6,7 +6,6 @@
   height: 100%;
   width: 100%;
   flex-grow: 1;
-  padding-bottom: 30px;
   align-items: center;
   text-align: center;
   overflow-x: hidden;
@@ -93,7 +92,6 @@
 }
 
 .leaderboard-badge-section {
-  margin-bottom: 20px;
   padding: 20px;
 }
 
