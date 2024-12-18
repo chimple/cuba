@@ -5,7 +5,6 @@
   gap: 16px;
   height: 100%;
   flex-grow: 1;
-  padding-bottom: 30px;
   justify-content: space-around;
 }
 .lost-bonus {
@@ -18,4 +17,22 @@
 
 .leaderboard-bonus-disabled {
   opacity: 0.2;
+}
+
+.leaderboard-bonus-page {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+.leaderboard-bonus-section {
+  padding: 20px;
+}
+
+.section-divider {
+  border: 1px solid lightslategray;
+  height: 1px;
+  width: 100%;
+  color: black;
 }

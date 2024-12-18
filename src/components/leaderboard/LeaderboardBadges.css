@@ -6,11 +6,11 @@
   height: 100%;
   width: 100%;
   flex-grow: 1;
-  padding-bottom: 30px;
   align-items: center;
   text-align: center;
   overflow-x: hidden;
 }
+
 .lost-reward-overlay {
   position: relative;
 }
@@ -28,6 +28,7 @@
   align-items: center;
   z-index: 1;
 }
+
 .won-circle {
   position: absolute;
   top: 0;
@@ -43,24 +44,29 @@
   font-weight: bold;
   z-index: 1;
 }
-.lost-reward{
-filter: grayscale(2);
+
+.lost-reward {
+  filter: grayscale(2);
 }
+
 .red-circle svg {
   width: 2vw;
   height: 2vh;
   stroke-width: 2px;
 }
+
 #badge-header-text {
   text-align: center;
   font-size: 4vh;
   font-weight: bold;
 }
+
 .won-circle svg {
   width: 2vw;
   height: 3vh;
   stroke-width: 1px;
 }
+
 .leaderboard-badge-item {
   text-align: center;
   opacity: 1;
@@ -69,10 +75,29 @@ filter: grayscale(2);
 .next-reward {
   filter: opacity(0.6);
 }
+
 .leaderboard-badge-disabled {
   opacity: 0.2;
 }
 
 .leaderboard-next-unlock-text {
   color: var(--text-color);
+}
+
+.leaderboard-badge-page {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+.leaderboard-badge-section {
+  padding: 20px;
+}
+
+.section-divider {
+  border: 1px solid lightslategray;
+  height: 1px;
+  width: 100%;
+  color: black;
 }
