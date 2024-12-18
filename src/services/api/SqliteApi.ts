@@ -3699,8 +3699,8 @@ order by
     if (user_doc) {
       await this.executeQuery(
         `
-        INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id,created_at,updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT (id) DO NOTHING;
         `,
         [
@@ -3712,6 +3712,8 @@ order by
           user_doc.image,
           user_doc.curriculum_id,
           user_doc.language_id,
+          user_doc.created_at,
+          user_doc.updated_at
         ]
       );
     }
@@ -4004,8 +4006,8 @@ order by
     if (user_doc) {
       await this.executeQuery(
         `
-        INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id,created_at,updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT (id) DO NOTHING;
         `,
         [
@@ -4017,6 +4019,8 @@ order by
           user_doc.image,
           user_doc.curriculum_id,
           user_doc.language_id,
+          user_doc.created_at,
+          user_doc.updated_at
         ]
       );
     }
