@@ -12,6 +12,7 @@ import {
   LeaderboardDropdownList,
   HOMEHEADERLIST,
   CURRENT_MODE,
+  CLASS,
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import BackButton from "../components/common/BackButton";
@@ -603,6 +604,7 @@ const Leaderboard: React.FC = () => {
               onClick={async () => {
                 Util.setCurrentStudent(null);
                 localStorage.removeItem(CURRENT_STUDENT);
+                localStorage.removeItem(CLASS);
                 // await Util.setCurrentStudent(null);
                 AvatarObj.destroyInstance();
                 const user = await auth.getCurrentUser();
