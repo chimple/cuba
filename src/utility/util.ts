@@ -45,6 +45,7 @@ import {
   CLASS,
   CURRENT_COURSE,
   CLASS_OR_SCHOOL_CHANGE_EVENT,
+  NAVIGATION_STATE,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -1818,4 +1819,18 @@ export class Util {
     const customEvent = new CustomEvent(CLASS_OR_SCHOOL_CHANGE_EVENT);
     window.dispatchEvent(customEvent);
   };
+  public static getNavigationState(): {
+    stage: string;
+  } | null {
+    return JSON.parse(localStorage.getItem(NAVIGATION_STATE) || "null");
+  }
+
+  public static setNavigationState(stage: string) {
+    const navigationState = { stage };
+    localStorage.setItem(NAVIGATION_STATE, JSON.stringify(navigationState));
+  }
+
+  public static clearNavigationState() {
+    localStorage.removeItem(NAVIGATION_STATE);
+  }
 }
