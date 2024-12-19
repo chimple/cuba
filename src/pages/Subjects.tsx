@@ -205,7 +205,7 @@ const Subjects: React.FC<{}> = ({}) => {
       ((currMode === MODES.PARENT) == true && !studentLinked) ?? true
     );
 
-    const courses = await (currMode === MODES.SCHOOL && !!currClass
+    const courses = await (!!currClass
       ? api.getCoursesForClassStudent(currClass.id)
       : api.getCoursesForParentsStudent(currentStudent.id));
     localData.courses = courses;
