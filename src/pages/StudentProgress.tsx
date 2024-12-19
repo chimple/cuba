@@ -97,7 +97,26 @@ const StudentProgress: React.FC = () => {
   async function getCourses(
     currentStudent: TableTypes<"user">
   ): Promise<TableTypes<"course">[]> {
-    const courses = await api.getCoursesForParentsStudent(currentStudent.id);
+    const linkedData = await api.getStudentClassesAndSchools(currentStudent.id);
+    // Declare currClass with the correct type
+    let currClass: {
+      created_at: string;
+      id: string;
+      image: string | null;
+      is_deleted: boolean | null;
+      name: string;
+      school_id: string;
+      updated_at: string | null;
+    } | null = null;
+
+    if (linkedData.classes && linkedData.classes.length > 0) {
+      const firstClass = linkedData.classes[0];
+      currClass = (await api.getClassById(firstClass.id)) ?? null; // Handle undefined
+    }
+    // Fetch courses based on whether a class exists
+    const courses = currClass
+      ? await api.getCoursesForClassStudent(currClass.id) // Fetch courses for the class
+      : await api.getCoursesForParentsStudent(currentStudent.id); // Fallback for parent student
     return courses;
   }
 
