@@ -10,7 +10,6 @@ import { useHistory } from "react-router";
 import { getDoc } from "firebase/firestore";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
-import { Util } from "../../utility/util";
 
 interface CourseDetails {
   course: Course;
