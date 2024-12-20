@@ -34,10 +34,10 @@ const SelectCourse: FC<{
   const fetchCourseDetails = async () => {
     const detailedCourses: CourseDetails[] = await Promise.all(
       courses.map(async (course) => {
-        if (course) {
-          const subjectRefId = course.subject;
-          await api.getSubject(subjectRefId.id);
-        }
+        // if (course) {
+        //   const subjectRefId = course.subject;
+        //   await api.getSubject(subjectRefId.id);
+        // }
         const gradeDoc = await getDoc(course.grade);
         const curriculumDoc = await getDoc(course.curriculum);
         return {
