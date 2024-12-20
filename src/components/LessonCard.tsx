@@ -196,8 +196,6 @@ const LessonCard: React.FC<{
                 subjectDocID = lesson.subject.id;
               }
               const api = ServiceConfig.getI().apiHandler;
-              const subjectDetails = await api.getSubject(subjectDocID);
-              const subjectId = subjectDetails?.id;
               const parmas = `?courseid=${lesson.cocosSubjectCode}&chapterid=${lesson.cocosChapterCode}&lessonid=${lesson.id}`;
               console.log(
                 "🚀 ~ file: LessonCard.tsx:73 ~ parmas:",
