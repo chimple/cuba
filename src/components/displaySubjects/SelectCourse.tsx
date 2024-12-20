@@ -10,6 +10,8 @@ import { useHistory } from "react-router";
 import { getDoc } from "firebase/firestore";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
+import { ServiceConfig } from "../../services/ServiceConfig";
+import { Util } from "../../utility/util";
 
 interface CourseDetails {
   course: Course;
@@ -24,6 +26,7 @@ const SelectCourse: FC<{
 }> = ({ courses, modeParent, onCourseChange }) => {
   const [courseDetails, setCourseDetails] = useState<CourseDetails[]>([]);
   const history = useHistory();
+  const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
     fetchCourseDetails();
@@ -31,6 +34,10 @@ const SelectCourse: FC<{
   const fetchCourseDetails = async () => {
     const detailedCourses: CourseDetails[] = await Promise.all(
       courses.map(async (course) => {
+        if (course) {
+          const subjectRefId = course.subject;
+          await api.getSubject(subjectRefId.id);
+        }
         const gradeDoc = await getDoc(course.grade);
         const curriculumDoc = await getDoc(course.curriculum);
         return {
