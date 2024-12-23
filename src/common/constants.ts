@@ -465,7 +465,12 @@ export interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;
 }
-
+export enum School_Creation_Stages {
+  CREATE_SCHOOL = "create_school",
+  SCHOOL_COURSE = "school_course",
+  CREATE_CLASS = "create_class",
+  CLASS_COURSE = "class_course",
+}
 export const SCREEN_WIDTH = window.innerWidth;
 export const SCREEN_HEIGHT = window.innerHeight;
 
@@ -508,6 +513,7 @@ export const CLASS = "class";
 export const USER_ROLE = "userRole";
 export const CURRENT_TEACHER = "currentTeacher";
 export const CURRENT_COURSE = "currentCourse";
+export const NAVIGATION_STATE = "navigationState";
 
 export enum IconType {
   SCHOOL = "school",

@@ -244,7 +244,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-            new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -562,7 +562,7 @@ export class SqliteApi implements ServiceApi {
     name: string,
     group1: string,
     group2: string,
-    group3: string,
+    group3: string
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -2102,7 +2102,10 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
-  async checkCourseInClasses(classIds: string[], courseId: string): Promise<boolean> {
+  async checkCourseInClasses(
+    classIds: string[],
+    courseId: string
+  ): Promise<boolean> {
     try {
       if (classIds.length === 0) {
         return false; // No classes to check
@@ -2132,7 +2135,7 @@ export class SqliteApi implements ServiceApi {
         return;
       }
 
-      const placeholders = ids.map(() => '?').join(', ');
+      const placeholders = ids.map(() => "?").join(", ");
       await this.executeQuery(
         `UPDATE class_course SET is_deleted = 1 WHERE id IN (${placeholders})`,
         ids
@@ -2155,7 +2158,7 @@ export class SqliteApi implements ServiceApi {
         return;
       }
 
-      const placeholders = ids.map(() => '?').join(', ');
+      const placeholders = ids.map(() => "?").join(", ");
       await this.executeQuery(
         `UPDATE school_course SET is_deleted = 1 WHERE id IN (${placeholders})`,
         ids
@@ -2757,7 +2760,6 @@ export class SqliteApi implements ServiceApi {
     try {
       const query = `SELECT ${periodType} FROM ${TABLES.Reward} WHERE year = ${id}`;
       const data = await this._db?.query(query);
-
       if (!data || !data.values || data.values.length === 0) {
         console.error("No reward found for the given year.");
         return;
@@ -3693,6 +3695,28 @@ order by
       MUTATE_TYPES.INSERT,
       classUser
     );
+    var user_doc = await this._serverApi.getUserByDocId(userId);
+    if (user_doc) {
+      await this.executeQuery(
+        `
+        INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id,created_at,updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT (id) DO NOTHING;
+        `,
+        [
+          user_doc.id,
+          user_doc.name,
+          user_doc.age,
+          user_doc.gender,
+          user_doc.avatar,
+          user_doc.image,
+          user_doc.curriculum_id,
+          user_doc.language_id,
+          user_doc.created_at,
+          user_doc.updated_at
+        ]
+      );
+    }
   }
 
   async checkUserExistInSchool(
@@ -3978,6 +4002,28 @@ order by
       MUTATE_TYPES.INSERT,
       schoolUser
     );
+    var user_doc = await this._serverApi.getUserByDocId(userId);
+    if (user_doc) {
+      await this.executeQuery(
+        `
+        INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id,created_at,updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT (id) DO NOTHING;
+        `,
+        [
+          user_doc.id,
+          user_doc.name,
+          user_doc.age,
+          user_doc.gender,
+          user_doc.avatar,
+          user_doc.image,
+          user_doc.curriculum_id,
+          user_doc.language_id,
+          user_doc.created_at,
+          user_doc.updated_at
+        ]
+      );
+    }
   }
   async deleteUserFromSchool(
     schoolId: string,
