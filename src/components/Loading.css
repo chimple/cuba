@@ -17,3 +17,9 @@
   align-items: center;
   color: var(--text-color);
 }
+
+.msg{
+  font-size:24px;
+  margin-top: 5%;
+  width: 950px;
+}
