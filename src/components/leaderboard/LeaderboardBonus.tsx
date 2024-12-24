@@ -19,6 +19,7 @@ const LeaderboardBonus: FC = () => {
 
   const [bonuses, setBonuses] = useState<BonusInfo[]>();
   const [allBonus, setAllBonus] = useState<(Lesson | undefined)[]>();
+  const [lostBonus, setLostBonus] = useState<BonusInfo[]>();
 
   useEffect(() => {
     if (!currentStudent) return;
@@ -57,7 +58,27 @@ const LeaderboardBonus: FC = () => {
         isUpcomingBonus: true,
       });
     });
-    setBonuses(bonusInfoArray);
+    // Sorting logic: prioritize by type order
+    const typePriority = (bonus: BonusInfo): number => {
+      if (bonus.isNextUnlock) return 1; // Current
+      if (bonus.isUpcomingBonus) return 2; // Upcoming
+      if (bonus.isUnlocked) return 3; // Won
+      if (!bonus.isUnlocked && !bonus.isUpcomingBonus) return 4; // Lost
+      return 5; // Remaining
+    };
+
+    bonusInfoArray.sort((a, b) => typePriority(a) - typePriority(b));
+    // Filter lost badges
+    const lostBonusArray = bonusInfoArray.filter(
+      (bonus) => !bonus.isUnlocked && !bonus.isNextUnlock && !bonus.isUpcomingBonus
+    );
+    // Filter current, upcoming, and won badges
+    const filteredBonus = bonusInfoArray.filter(
+      (bonus) =>
+        bonus.isUnlocked || bonus.isNextUnlock || bonus.isUpcomingBonus
+    );
+    setBonuses(filteredBonus);
+    setLostBonus(lostBonusArray);
   }
   const getUpcomingBadges = async (): Promise<(Lesson | undefined)[]> => {
     const rewardsDoc = await api.getRewardsById(
@@ -68,6 +89,12 @@ const LeaderboardBonus: FC = () => {
     const nextMonth = currentMonth + 1;
     const bonusIds: string[] = [];
     const monthlyData = rewardsDoc.monthly;
+
+    // Ensure monthlyData and nextMonth exist
+    if (!monthlyData || !monthlyData[nextMonth.toString()]) {
+      console.warn("No data available for next month:", nextMonth);
+      return [];
+    }
     monthlyData[nextMonth.toString()].forEach((value) => {
       if (value.type === LeaderboardRewardsType.BONUS) {
         bonusIds.push(value.id);
@@ -168,94 +195,110 @@ const LeaderboardBonus: FC = () => {
   };
 
   return currentStudent ? (
-    <div className="leaderboard-bonus-container">
-      {bonuses &&
-        bonuses.length > 0 &&
-        bonuses.map((value, index) => (
-          <div
-            key={index}
-            style={{ opacity: value.isUpcomingBonus ? "0.2" : "" }}
-            className={
-              "leaderboard-badge-item " +
-              (value.isUnlocked
-                ? ""
-                : value.isNextUnlock
-                  ? "next-reward"
-                  : "") +
-              (!value.isUnlocked &&
-              !value.isUpcomingBonus &&
-              !value.isNextUnlock
-                ? "lost-bonus"
-                : "")
-            }
-          >
-            {value.bonus && (
-              <LessonCard
-                width={""}
-                height={""}
-                lesson={value.bonus}
-                course={undefined}
-                isPlayed={false}
-                isUnlocked={value.isUnlocked}
-                isHome={false}
-                showSubjectName={false}
-                score={undefined}
-                isLoved={undefined}
-                lessonData={[]}
-                startIndex={0}
-                // showScoreCard={false}
-                // showText={false}
-                showChapterName={false}
-              />
-            )}
-            {value.isNextUnlock && (
-              <p className="leaderboard-next-unlock-text">
-                {t("This Month's Reward")}
-              </p>
-            )}
-            {value.isUnlocked && (
-              <p>
-                <b>{t("won reward")}</b>
-              </p>
-            )}
-            {!value.isUnlocked &&
-              !value.isNextUnlock &&
-              !value.isUpcomingBonus && <p>{t("lost reward")}</p>}
-            {value.isUpcomingBonus && <p>{t("Upcoming")}</p>}
-          </div>
-        ))}
-      {allBonus &&
-        allBonus.length > 0 &&
-        allBonus.map((value, index) => (
-          <div
-            key={index}
-            className={value ? "leaderboard-bonus-disabled" : ""}
-          >
-            {value && (
-              <LessonCard
-                width={""}
-                height={""}
-                lesson={value}
-                course={undefined}
-                isPlayed={false}
-                isUnlocked={false}
-                isHome={false}
-                showSubjectName={false}
-                score={undefined}
-                isLoved={undefined}
-                lessonData={[]}
-                startIndex={0}
-                // showScoreCard={false}
-                // showText={false}
-                showChapterName={false}
-              />
-            )}
-          </div>
-        ))}
+    <div className="leaderboard-bonus-page">
+      {/* Section for Current, Upcoming, and Won Bonuses */}
+      <div className="leaderboard-bonus-section">
+        <div className="leaderboard-bonus-container">
+          {bonuses &&
+            bonuses.length > 0 &&
+            bonuses.map((value, index) => (
+              <div
+                key={index}
+                style={{ opacity: value.isUpcomingBonus ? "0.2" : "" }}
+                className={
+                  "leaderboard-badge-item " +
+                  (value.isUnlocked
+                    ? ""
+                    : value.isNextUnlock
+                      ? "next-reward"
+                      : "") +
+                  (value.isUpcomingBonus
+                    ? "upcoming-reward"
+                    : "") +
+                  (!value.isUnlocked &&
+                    !value.isUpcomingBonus &&
+                    !value.isNextUnlock
+                    ? "lost-bonus"
+                    : "")
+                }
+              >
+                {value.bonus && (
+                  <LessonCard
+                    width={""}
+                    height={""}
+                    lesson={value.bonus}
+                    course={undefined}
+                    isPlayed={false}
+                    isUnlocked={value.isUnlocked}
+                    isHome={false}
+                    showSubjectName={false}
+                    score={undefined}
+                    isLoved={undefined}
+                    lessonData={[]}
+                    startIndex={0}
+                    showChapterName={false}
+                  />
+                )}
+                {value.isNextUnlock && (
+                  <p className="leaderboard-next-unlock-text">
+                    {t("This Month's Reward")}
+                  </p>
+                )}
+                {value.isUnlocked && (
+                  <p>
+                    <b>{t("won reward")}</b>
+                  </p>
+                )}
+                {!value.isUnlocked &&
+                  !value.isNextUnlock &&
+                  !value.isUpcomingBonus && <p>{t("lost reward")}</p>}
+                {value.isUpcomingBonus && <p>{t("Upcoming")}</p>}
+              </div>
+            ))}
+        </div>
+      </div>
+
+      <hr className="section-divider" />
+
+      {/* Section for Lost Bonuses */}
+      <div className="leaderboard-bonus-section">
+        <div className="leaderboard-bonus-container">
+          {lostBonus &&
+            lostBonus.length > 0 &&
+            lostBonus.map((value, index) => (
+              !value.isUnlocked && !value.isUpcomingBonus && !value.isNextUnlock ? (
+                <div
+                  key={index}
+                  className="leaderboard-badge-item lost-reward"
+                >
+                  {value.bonus && (
+                    <LessonCard
+                      width={""}
+                      height={""}
+                      lesson={value.bonus}
+                      course={undefined}
+                      isPlayed={false}
+                      isUnlocked={value.isUnlocked}
+                      isHome={false}
+                      showSubjectName={false}
+                      score={undefined}
+                      isLoved={undefined}
+                      lessonData={[]}
+                      startIndex={0}
+                      showChapterName={false}
+                    />
+                  )}
+                  <p>{t("Lost Reward")}</p>
+                </div>
+              ) : null
+            ))}
+        </div>
+      </div>
     </div>
   ) : (
     <div></div>
   );
+
 };
 
 export default LeaderboardBonus;
