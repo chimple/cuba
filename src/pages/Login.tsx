@@ -47,6 +47,7 @@ declare global {
 const Login: React.FC = () => {
   const history = useHistory();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(false);
   const [sentOtpLoading, setSentOtpLoading] = useState<boolean>(false);
   const [showVerification, setShowVerification] = useState<boolean>(false);
   const [showBackButton, setShowBackButton] = useState<boolean>(false);
@@ -157,13 +158,16 @@ const Login: React.FC = () => {
 
       if (currentStudent) {
         setIsLoading(false);
+        setIsInitialLoading(false);
         history.replace(PAGES.DISPLAY_STUDENT);
       }
       if (isUserLoggedIn) {
         setIsLoading(false);
+        setIsInitialLoading(false);
         history.replace(PAGES.SELECT_MODE);
       }
       setIsLoading(false);
+      setIsInitialLoading(false);
     });
     if (!recaptchaVerifier && !Capacitor.isNativePlatform()) {
       // Note: The 'recaptcha-container' must be rendered by this point, or
@@ -317,6 +321,7 @@ const Login: React.FC = () => {
   const onVerificationCodeSubmit = async () => {
     try {
       setIsLoading(true);
+      setIsInitialLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
       const res = await authInstance.proceedWithVerificationCode(
         phoneNumberWithCountryCode,
@@ -325,6 +330,7 @@ const Login: React.FC = () => {
       console.log("login User Data ", res, userData);
       if (!res?.user) {
         setIsLoading(false);
+        setIsInitialLoading(false);
         console.log("Verification Failed");
         setErrorMessage(t("Something went wrong Verification Failed"));
         // alert("Something went wrong Verification Failed");
@@ -335,6 +341,7 @@ const Login: React.FC = () => {
 
       // if (res.isUserExist) {
         setIsLoading(false);
+        setIsInitialLoading(false);
         history.replace(PAGES.SELECT_MODE);
         localStorage.setItem(CURRENT_USER, JSON.stringify(res.user));
         console.log("isUserExist", localStorage.getItem(CURRENT_USER));
@@ -370,6 +377,7 @@ const Login: React.FC = () => {
       });
     } catch (error) {
       setIsLoading(false);
+      setIsInitialLoading(false);
       console.log("Verification Failed", error);
       //alert("Please Enter Valid Verification Code");
       setIsInvalidCode({
@@ -436,6 +444,7 @@ const Login: React.FC = () => {
     setStudentCredentialLogin(false);
     try {
       setIsLoading(true);
+      setIsInitialLoading(true);
       // const _authHandler = ServiceConfig.getI().authHandler;
       const result: boolean = await authInstance.loginWithEmailAndPassword(
         schoolCode + studentId + DOMAIN,
@@ -443,16 +452,19 @@ const Login: React.FC = () => {
       );
       if (result) {
         setIsLoading(false);
+        setIsInitialLoading(false);
         history.replace(PAGES.SELECT_MODE);
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
       } else {
         setStudentCredentialLogin(true);
         setErrorMessage(t("User not Found. Please verify your credentials."));
         setIsLoading(false);
+        setIsInitialLoading(false);
       }
     } catch (error) {
       setStudentCredentialLogin(true);
       setIsLoading(false);
+      setIsInitialLoading(false);
       setErrorMessage(t("Login unsuccessful. Please try again later."));
       console.log("error", error);
     }
@@ -652,6 +664,7 @@ const Login: React.FC = () => {
                       }
                       try {
                         setIsLoading(true);
+                        setIsInitialLoading(true);
                         console.log("isLoading ", isLoading);
                         const _authHandler = ServiceConfig.getI().authHandler;
                         const result: boolean = await _authHandler.googleSign();
@@ -661,6 +674,7 @@ const Login: React.FC = () => {
                         );
                         if (result) {
                           setIsLoading(false);
+                          setIsInitialLoading(false);
                           // history.replace(PAGES.DISPLAY_STUDENT);
                           history.replace(PAGES.SELECT_MODE);
                           localStorage.setItem(
@@ -678,9 +692,11 @@ const Login: React.FC = () => {
                           });
                         } else {
                           setIsLoading(false);
+                          setIsInitialLoading(false);
                         }
                       } catch (error) {
                         setIsLoading(false);
+                        setIsInitialLoading(false);
                         console.log("error", error);
                       }
                     }}
@@ -957,7 +973,7 @@ const Login: React.FC = () => {
           </div>
         ) : null}
       </div>
-      <Loading isLoading={isLoading || sentOtpLoading} />
+      <Loading isLoading={isLoading || sentOtpLoading} initialLogin = {isInitialLoading}/>
     </IonPage>
   );
 };
