@@ -973,7 +973,7 @@ const Login: React.FC = () => {
           </div>
         ) : null}
       </div>
-      <Loading isLoading={isLoading || sentOtpLoading} initialLogin = {isInitialLoading}/>
+      <Loading isLoading={isLoading || sentOtpLoading} msg={isInitialLoading ? "Please wait.....Login in progress. This may take a moment." : ""}/>
     </IonPage>
   );
 };
