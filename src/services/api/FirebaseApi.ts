@@ -347,6 +347,9 @@ export class FirebaseApi implements ServiceApi {
         curriculum.docId = doc.id;
         curriculums.push(curriculum);
       });
+      // Sort curriculums alphabetically by `title` property
+      curriculums.sort((a, b) => a.title.localeCompare(b.title));
+  
       return curriculums;
     } catch (error) {
       console.log(
@@ -356,6 +359,7 @@ export class FirebaseApi implements ServiceApi {
       return [];
     }
   }
+  
 
   // public async getCoursesByGradeId(): Promise<COURSES[]>{
 

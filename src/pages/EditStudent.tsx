@@ -182,12 +182,8 @@ const EditStudent = () => {
         ) {
           setCheckResults(true);
         }
-        // Sort boards alphabetically by name
-        const sortedBoards = results[0].sort((a, b) =>
-          a.title.localeCompare(b.title) 
-        );
-        setBoards(sortedBoards);
-        localStoreData.boards = sortedBoards;
+        setBoards(results[0]);
+        localStoreData.boards = results[0];
         setGrades(results[1]);
         localStoreData.grades = results[1];
         setLanguages(results[2]);
