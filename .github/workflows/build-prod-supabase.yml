@@ -3,7 +3,7 @@ name: Build Android
 on:
   push:
     branches:
-      - vinay_supabase
+      - master-supabase
 
 jobs:
   build:
