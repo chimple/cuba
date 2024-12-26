@@ -70,12 +70,12 @@ jobs:
 
         run: echo REACT_APP_HOT_UPDATE_SERVER ${REACT_APP_HOT_UPDATE_SERVER} && npm run build
 
-      - name: Deploy to Firebase
-        uses: w9jds/firebase-action@v13.0.3
-        with:
-          args: deploy --only hosting:chimple-prod
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      # - name: Deploy to Firebase
+      #   uses: w9jds/firebase-action@v13.0.3
+      #   with:
+      #     args: deploy --only hosting:chimple-prod
+      #   env:
+      #     FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
       # - name: Pushes to Hot update
       #   uses: cpina/github-action-push-to-another-repository@main
