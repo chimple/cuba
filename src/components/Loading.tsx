@@ -6,13 +6,11 @@ import { t } from "i18next";
 interface LoadingProps extends LoadingOptions {
   isLoading: boolean;
   msg?: string;
-  initialLogin?: boolean;
 }
 
 const Loading: React.FC<LoadingProps> = ({
   isLoading,
   msg = "",
-  initialLogin
 }) => {
   return isLoading ? (
     <div>
@@ -20,7 +18,7 @@ const Loading: React.FC<LoadingProps> = ({
         isOpen={isLoading}
         spinner={null}
         message={
-          `<img class="loading" src="assets/loading.gif"></img> <br/><p class="msg">${ initialLogin ? t("Please wait.....Login in progress. This may take a moment.") : ""}</p>`
+          `<img class="loading" src="assets/loading.gif"></img> <br/><p class="loading-msg">${t(msg)}</p>`
         }
       />
     </div>
