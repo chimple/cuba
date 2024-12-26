@@ -337,9 +337,11 @@ export class FirebaseApi implements ServiceApi {
 
   public async getAllCurriculums(): Promise<Curriculum[]> {
     try {
-      const querySnapshot = await this.getDocsFromOffline(
-        collection(this._db, CollectionIds.CURRICULUM)
+      const queryRef = query(
+        collection(this._db, CollectionIds.CURRICULUM),
+        orderBy("title", "asc") // Sort by the `title` field in ascending order
       );
+      const querySnapshot = await getDocs(queryRef);
       const curriculums: Curriculum[] = [];
       querySnapshot.forEach((doc) => {
         console.log(`${doc.id} => ${doc.data()}`);
@@ -356,6 +358,8 @@ export class FirebaseApi implements ServiceApi {
       return [];
     }
   }
+  
+  
 
   // public async getCoursesByGradeId(): Promise<COURSES[]>{
 
