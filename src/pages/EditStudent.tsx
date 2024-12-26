@@ -184,7 +184,7 @@ const EditStudent = () => {
         }
         // Sort boards alphabetically by name
         const sortedBoards = results[0].sort((a, b) =>
-          a.name.localeCompare(b.name)
+          a.title.localeCompare(b.title) 
         );
         setBoards(sortedBoards);
         localStoreData.boards = sortedBoards;
