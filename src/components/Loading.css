@@ -18,8 +18,8 @@
   color: var(--text-color);
 }
 
-.msg{
-  font-size:24px;
+.loading-msg{
+  font-size:var(--text-size);
   margin-top: 5%;
-  width: 950px;
+  width: 100vw;
 }
