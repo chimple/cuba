@@ -233,9 +233,24 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  async removeCourseFromClass(id: string): Promise<void> {
+  async getCoursesBySchoolId(
+    studentId: string
+  ): Promise<TableTypes<"school_course">[]> {
     throw new Error("Method not implemented.");
   }
+
+
+  async removeCoursesFromClass(ids: string[]): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  async removeCoursesFromSchool(ids: string[]): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  async checkCourseInClasses(classIds: string[], classId: string): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+
 
   async deleteUserFromClass(userId: string): Promise<void> {
     throw new Error("Method not implemented.");
@@ -246,7 +261,6 @@ export class SupabaseApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    courseIds: string[]
   ): Promise<TableTypes<"school">> {
     throw new Error("Method not implemented.");
   }
@@ -482,6 +496,14 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
+
+  updateSchoolCourseSelection(
+    schoolId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
   getSubject(id: string): Promise<TableTypes<"subject"> | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -1087,7 +1109,7 @@ export class SupabaseApi implements ServiceApi {
   addTeacherToClass(classId: string, userId: string): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  checkUserInClass(schoolId, classid, userId): Promise<boolean> {
+  checkUserExistInSchool(schoolId, userId): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
   getAssignmentsByAssignerAndClass(
@@ -1126,12 +1148,68 @@ export class SupabaseApi implements ServiceApi {
   async deleteTeacher(classId: string, teacherId: string) {
     throw new Error("Method not implemented.");
   }
+
+  async getClassCodeById(class_id: string): Promise<number | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
   async getResultByChapterByDate(
     chapter_id: string,
     course_id: string,
     startDate: string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
+  async createClassCode(classId: string): Promise<number> {
+    try {
+      // Validate parameters
+      if (!classId)
+        throw new Error("Class ID is required to create a class code.");
+
+      // Call the RPC function
+      const classCode = await this?.supabase?.rpc(
+        "generate_unique_class_code",
+        {
+          class_id_input: classId,
+        }
+      );
+      if (!classCode?.data) {
+        throw new Error(`A class code is not created`);
+      }
+      return classCode?.data;
+    } catch (error) {
+      throw error; // Re-throw the error for external handling
+    }
+  }
+  async getPrincipalsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  async getCoordinatorsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  async getSponsorsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  async addUserToSchool(
+    schoolId: string,
+    userId: string,
+    role: RoleType
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  async deleteUserFromSchool(
+    schoolId: string,
+    userId: string,
+    role: RoleType
+  ): Promise<void> {
     throw new Error("Method not implemented.");
   }
 }

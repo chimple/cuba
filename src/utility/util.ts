@@ -45,6 +45,8 @@ import {
   CLASS,
   OPEN_APK,
   CURRENT_COURSE,
+  CLASS_OR_SCHOOL_CHANGE_EVENT,
+  NAVIGATION_STATE,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -372,9 +374,12 @@ export class Util {
   ): Promise<boolean> {
     try {
       if (!Capacitor.isNativePlatform() || OPEN_APK) {
-        console.log("downloadZipBundle( if (Capacitor.isNativePlatform()) { ", true);
-        return true
-      };
+        console.log(
+          "downloadZipBundle( if (Capacitor.isNativePlatform()) { ",
+          true
+        );
+        return true;
+      }
 
       for (let i = 0; i < lessonIds.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
         const lessonIdsChunk = lessonIds.slice(
@@ -416,9 +421,9 @@ export class Util {
 
               console.log(
                 "before local lesson Bundle http url:" +
-                "assets/" +
-                lessonId +
-                "/config.json"
+                  "assets/" +
+                  lessonId +
+                  "/config.json"
               );
 
               const fetchingLocalBundle = await fetch(
@@ -426,9 +431,9 @@ export class Util {
               );
               console.log(
                 "after local lesson Bundle fetch url:" +
-                "assets/" +
-                lessonId +
-                "/config.json",
+                  "assets/" +
+                  lessonId +
+                  "/config.json",
                 fetchingLocalBundle.ok,
                 fetchingLocalBundle.json,
                 fetchingLocalBundle
@@ -640,15 +645,24 @@ export class Util {
       return b.getSceneInfo(launchScene);
     });
 
-    console.log("bundle.loadScene(launchScene, null, null, function (err, scene) { ", launchScene);
-
+    console.log(
+      "bundle.loadScene(launchScene, null, null, function (err, scene) { ",
+      launchScene
+    );
 
     await new Promise((resolve, reject) => {
       bundle.loadScene(launchScene, null, null, function (err, scene) {
-        console.log("bundle.loadScene(launchScene, null, null, function (err, scene) { ", err);
+        console.log(
+          "bundle.loadScene(launchScene, null, null, function (err, scene) { ",
+          err
+        );
 
         if (!err) {
-          console.log("window.cc.director.runSceneImmediate(scene); ", scene, window.cc.sys.isBrowser);
+          console.log(
+            "window.cc.director.runSceneImmediate(scene); ",
+            scene,
+            window.cc.sys.isBrowser
+          );
 
           window.cc.director.runSceneImmediate(scene);
           if (window.cc.sys.isBrowser) {
@@ -675,7 +689,6 @@ export class Util {
       });
     });
     console.log("launchCocosGame(): Ended ");
-
   }
 
   public static killCocosGame(): void {
@@ -818,7 +831,7 @@ export class Util {
         userId: params.user_id,
       });
       if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
-      Util.port.shareUserId({ userId: params.user_id })
+      Util.port.shareUserId({ userId: params.user_id });
       await FirebaseCrashlytics.setUserId({
         userId: params.user_id,
       });
@@ -1726,8 +1739,8 @@ export class Util {
     localStorage.setItem(REFRESH_TOKEN, JSON.stringify(refreshToken));
   }
   public static setCurrentSchool = async (
-    school: TableTypes<"school"> | null,
-    role?: RoleType
+    school: TableTypes<"school">,
+    role: RoleType
   ) => {
     console.log("setCurrentSchool called", school);
     const api = ServiceConfig.getI().apiHandler;
@@ -1827,5 +1840,23 @@ export class Util {
       TableTypes<"course">
     >;
     return currentCourse.get(classId);
+  }
+  public static dispatchClassOrSchoolChangeEvent = () => {
+    const customEvent = new CustomEvent(CLASS_OR_SCHOOL_CHANGE_EVENT);
+    window.dispatchEvent(customEvent);
+  };
+  public static getNavigationState(): {
+    stage: string;
+  } | null {
+    return JSON.parse(localStorage.getItem(NAVIGATION_STATE) || "null");
+  }
+
+  public static setNavigationState(stage: string) {
+    const navigationState = { stage };
+    localStorage.setItem(NAVIGATION_STATE, JSON.stringify(navigationState));
+  }
+
+  public static clearNavigationState() {
+    localStorage.removeItem(NAVIGATION_STATE);
   }
 }

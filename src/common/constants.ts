@@ -56,6 +56,11 @@ export enum CLASS_USERS {
   STUDENTS = "Students",
   TEACHERS = "Teachers",
 }
+export enum SCHOOL_USERS {
+  PRINCIPALS = "Principals",
+  COORDINATORS = "Coordinators",
+  SPONSORS = "Sponsors",
+}
 export enum SL_GRADES {
   GRADE1 = "Grade 1",
   GRADE2 = "Grade 2",
@@ -73,6 +78,7 @@ export enum APP_LANGUAGES {
   en = "English",
   hi = "हिन्दी",
   kn = "ಕನ್ನಡ",
+  mr = "मराठी",
 }
 export enum HOMEHEADERLIST {
   SUGGESTIONS = "SUGGESTIONS",
@@ -429,6 +435,11 @@ export enum PAGES {
   SHOW_STUDENTS_IN_ASSIGNED_PAGE = "/show-students-in-assigned-page",
   ADD_TEACHER = "/add-teacher",
   TEACHER_PROFILE = "/teacher-profile",
+  STUDENT_REPORT = "/student-report",
+  SCHOOL_USERS = "/school-users",
+  ADD_PRINCIPAL = "/add-principal",
+  ADD_COORDINATOR = "/add-coordinator",
+  ADD_SPONSOR = "/add-sponsor",
 }
 
 export enum LANG {
@@ -437,6 +448,12 @@ export enum LANG {
   KANNADA = "kn",
   MARATHI = "mr",
   SIERRA_LEONE = "sl_en",
+}
+export enum SCORECOLOR {
+  RED = "#D74747",
+  ORANGE = "#FFA800",
+  GREEN = "#86AB37",
+  WHITE = "white",
 }
 export enum DrawerOptions {
   MANAGE_SCHOOL = "Manage School",
@@ -448,7 +465,12 @@ export interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;
 }
-
+export enum School_Creation_Stages {
+  CREATE_SCHOOL = "create_school",
+  SCHOOL_COURSE = "school_course",
+  CREATE_CLASS = "create_class",
+  CLASS_COURSE = "class_course",
+}
 export const SCREEN_WIDTH = window.innerWidth;
 export const SCREEN_HEIGHT = window.innerHeight;
 
@@ -491,6 +513,7 @@ export const CLASS = "class";
 export const USER_ROLE = "userRole";
 export const CURRENT_TEACHER = "currentTeacher";
 export const CURRENT_COURSE = "currentCourse";
+export const NAVIGATION_STATE = "navigationState";
 
 export enum IconType {
   SCHOOL = "school",
@@ -513,7 +536,12 @@ export interface PortPlugin {
     notificationType: string;
     rewardProfileId: string;
   }>;
-  shareContentWithAndroidShare(options: { text: string; title: string; url?: string; imageFile?: File[] }): Promise<void>;
+  shareContentWithAndroidShare(options: {
+    text: string;
+    title: string;
+    url?: string;
+    imageFile?: File[];
+  }): Promise<void>;
   shareUserId(options: { userId: string }): Promise<void>;
 }
 export const DEBUG_15 = "debug15";
@@ -686,6 +714,7 @@ export const MAX_DOWNLOAD_LESSON_ATTEMPTS = 3;
 
 export const LESSON_DOWNLOAD_SUCCESS_EVENT = "lesson_download_success";
 export const ALL_LESSON_DOWNLOAD_SUCCESS_EVENT = "all_lesson_download_success";
+export const CLASS_OR_SCHOOL_CHANGE_EVENT = "class_or_school_change_event";
 export const DOWNLOAD_BUTTON_LOADING_STATUS = "download_button_loading_status";
 export const DOMAIN = "@chimple.net";
 export const AT_SYMBOL_RESTRICTION = /@/;
