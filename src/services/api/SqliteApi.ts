@@ -1089,11 +1089,12 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
-    const res = await this._db?.query("select * from " + TABLES.Curriculum);
+    const res = await this._db?.query(
+      `SELECT * FROM ${TABLES.Curriculum} ORDER BY name ASC` 
+    );
     console.log("🚀 ~ SqliteApi ~ getAllCurriculums ~ res:", res);
     return res?.values ?? [];
   }
-
   async getAllGrades(): Promise<TableTypes<"grade">[]> {
     const res = await this._db?.query("select * from " + TABLES.Grade);
     return res?.values ?? [];

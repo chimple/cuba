@@ -6,7 +6,6 @@
   height: 100%;
   width: 100%;
   flex-grow: 1;
-  padding-bottom: 30px;
   align-items: center;
   text-align: center;
   overflow-x: hidden;
@@ -75,4 +74,22 @@ filter: grayscale(2);
 
 .leaderboard-next-unlock-text {
   color: var(--text-color);
+}
+
+.leaderboard-badge-page {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: 100vh;
+}
+
+.leaderboard-badge-section {
+  padding: 20px;
+}
+
+.section-divider {
+  border: 1px solid lightslategray;
+  height: 1px;
+  width: 100%;
+  color: black;
 }
