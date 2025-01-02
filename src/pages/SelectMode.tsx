@@ -308,7 +308,7 @@ const SelectMode: FC = () => {
                   />
 
                   <div className="schoolname-header">{currentSchoolName}</div>
-                  <div className="right-button"></div>
+                  <div></div>
                 </div>
 
                 <div className="class-container">
@@ -353,7 +353,7 @@ const SelectMode: FC = () => {
                   <div className="schoolClassname-header">
                     {currentSchoolName + ", " + currClass?.name}
                   </div>
-                  <div className="right-button"></div>
+                  <div></div>
                 </div>
 
                 <div className="class-container">

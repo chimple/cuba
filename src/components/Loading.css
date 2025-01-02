@@ -17,3 +17,9 @@
   align-items: center;
   color: var(--text-color);
 }
+
+.loading-msg{
+  font-size:var(--text-size);
+  margin-top: 5%;
+  width: 100vw;
+}

@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { IonItem, IonSearchbar, IonIcon, IonButton } from "@ionic/react";
+import { IonItem, IonInput, IonIcon, IonButton } from "@ionic/react";
 import { searchOutline } from "ionicons/icons";
 import "./InputField.css";
 import { t } from "i18next";
+import { textTransform } from "html2canvas/dist/types/css/property-descriptors/text-transform";
+import { PaddingOutlined } from "@mui/icons-material";
 
 const InputField: React.FC<{
   useEmail: boolean;
@@ -59,23 +61,21 @@ const InputField: React.FC<{
   return (
     <>
       <IonItem className="custom-search-bar">
-        <IonSearchbar
+        <IonInput
           value={inputValue}
           onIonInput={handleInputChange}
           onKeyDown={handleKeyDown}
           type={useEmail ? "email" : "number"}
           placeholder={useEmail ? t("Email") || "" : t("Phone") || ""}
-          showCancelButton="never"
-          showClearButton="never"
           inputmode={useEmail ? "email" : "tel"}
-          className="custom-search-input"
-        ></IonSearchbar>
-        <IonIcon
-          icon={searchOutline}
-          className={`icon-inside-search ${!inputValue ? "disabled-icon" : ""}`}
-          onClick={handleClick}
-          style={{ cursor: inputValue ? "pointer" : "not-allowed" }}
+          className="custom-ion-input"
         />
+        <div
+          className={`search-icon-container ${!inputValue ? "disabled-icon" : ""}`}
+          onClick={() => handleClick()}
+        >
+          <IonIcon icon={searchOutline} />
+        </div>
       </IonItem>
 
       {showError && (
@@ -87,7 +87,11 @@ const InputField: React.FC<{
       )}
 
       <div className="toggle-text">
-        <IonButton fill="clear" onClick={handleToggleInputMethod}>
+        <IonButton
+          fill="clear"
+          onClick={handleToggleInputMethod}
+          className="inputField-toggle-text"
+        >
           {useEmail ? t("Use phone number instead") : t("Use email instead")}
         </IonButton>
       </div>
