@@ -62,6 +62,18 @@ const LeaderboardStickers: FC = () => {
         });
       }
     });
+    unlockedStickers.forEach((sticker) => {
+      const isInNextUnlock = stickerInfoArray?.some(
+        (nextSticker) => nextSticker?.sticker?.docId === sticker?.docId
+      );
+      if (!isInNextUnlock) {
+        stickerInfoArray.push({
+          sticker,
+          isUnlocked: true,
+          isNextUnlock: false,
+        });
+      }
+    });
     upcomingStickers.forEach((sticker) => {
       stickerInfoArray.push({
         sticker,

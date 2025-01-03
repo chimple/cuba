@@ -51,6 +51,18 @@ const LeaderboardBonus: FC = () => {
         bonusInfoArray.push({ bonus, isUnlocked: false, isNextUnlock: true });
       }
     });
+    unlockedBonuses.forEach((bonus) => {
+      const isInNextUnlock = bonusInfoArray?.some(
+        (nextBonus) => nextBonus?.bonus?.docId === bonus?.docId
+      );
+      if (!isInNextUnlock) {
+        bonusInfoArray.push({
+          bonus,
+          isUnlocked: true,
+          isNextUnlock: false,
+        });
+      }
+    });
     upcomingBonus.forEach((bonus) => {
       bonusInfoArray.push({
         bonus,
