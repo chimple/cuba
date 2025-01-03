@@ -51,6 +51,18 @@ const LeaderboardBadges: FC = () => {
         badgeInfoArray.push({ badge, isUnlocked: false, isNextUnlock: true });
       }
     });
+    unlockedBadges.forEach((badge) => {
+      const isInNextUnlock = badgeInfoArray?.some(
+        (nextBadge) => nextBadge?.badge?.docId === badge?.docId
+      );
+      if (!isInNextUnlock) {
+        badgeInfoArray.push({
+          badge,
+          isUnlocked: true,
+          isNextUnlock: false,
+        });
+      }
+    });
     upcomingBadges.forEach((badge) => {
       badgeInfoArray.push({
         badge,
