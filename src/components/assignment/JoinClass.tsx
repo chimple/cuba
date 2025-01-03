@@ -10,6 +10,7 @@ import { Keyboard } from "@capacitor/keyboard";
 import { NUMBER_REGEX, PAGES } from "../../common/constants";
 import { useHistory, useLocation } from "react-router";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
+import { schoolUtil } from "../../utility/schoolUtil";
 const urlClassCode: any = {};
 
 const JoinClass: FC<{
@@ -85,9 +86,16 @@ const JoinClass: FC<{
           codeResult["class_id"],
           codeResult["school_id"]
         );
+        const currClass = await api.getClassById(codeResult["class_id"]);
+        if (currClass) {
+          await schoolUtil.setCurrentClass(currClass);
+        } else {
+          console.error("Class data not found.");
+          throw new Error("Class data could not be fetched.");
+        }
       }
       onClassJoin();
-      const event = new CustomEvent('JoinClassListner', {detail:'Joined'});
+      const event = new CustomEvent("JoinClassListner", { detail: "Joined" });
       window.dispatchEvent(event);
       // history.replace("/");
       // window.location.reload();

@@ -98,13 +98,13 @@ const DisplayStudents: FC<{}> = () => {
     await Util.setCurrentStudent(student, undefined, true);
     const linkedData = await api.getStudentClassesAndSchools(student.id);
     if (linkedData.classes && linkedData.classes.length > 0) {
-      const firstClass = linkedData.classes[0]; 
-      const currClass = await api.getClassById(firstClass.id); 
+      const firstClass = linkedData.classes[0];
+      const currClass = await api.getClassById(firstClass.id);
       console.log("Current class details:", currClass);
-      await Util.setCurrentClass(currClass ?? null);
+      await schoolUtil.setCurrentClass(currClass ?? undefined);
     } else {
       console.warn("No classes found for the student.");
-      await Util.setCurrentClass(null); // Explicitly set to null if no classes are found
+      await schoolUtil.setCurrentClass(undefined); 
     }
     if (
       !student.curriculum_id ||
