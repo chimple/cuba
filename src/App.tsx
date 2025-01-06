@@ -108,7 +108,7 @@ import {
   DashBoardDetails,
   AddTeacher,
   TeacherProfile,
-  StudentReport ,
+  StudentReport,
   SchoolUsers,
   AddSchoolUser,
 } from "./common/chimplePrivatePages";
@@ -192,6 +192,10 @@ const App: React.FC = () => {
       window.removeEventListener("offline", handleOffline);
     };
   }, [online, presentToast]);
+
+  const setAndroidGameUrl = async () => {
+    localStorage.setItem(GAME_URL, await Util.getAndroidBundlePath());
+  };
   useEffect(() => {
     initializeUsage();
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -202,22 +206,7 @@ const App: React.FC = () => {
     CapApp.addListener("appStateChange", Util.onAppStateChange);
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
-      Filesystem.getUri({
-        directory: Directory.External,
-        path: "",
-      })
-        .catch((ca) => {
-          console.log("path error", ca);
-        })
-        .then((path) => {
-          console.log("path ", path, "uri", path?.uri);
-
-          if (path instanceof Object) {
-            const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.bahama/cache
-            console.log("uri", uri); //http://localhost/_capacitor_file_/data/user/0/org.chimple.bahama/cache
-            localStorage.setItem(GAME_URL, uri + "/");
-          }
-        });
+      setAndroidGameUrl();
       //CapApp.addListener("appStateChange", Util.onAppStateChange);
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
 
@@ -524,7 +513,7 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
               <SelectMode />
-            </ProtectedRoute> 
+            </ProtectedRoute>
             {/* <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
               <TeacherProfile />
             </ProtectedRoute> */}

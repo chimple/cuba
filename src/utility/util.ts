@@ -47,7 +47,6 @@ import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   NAVIGATION_STATE,
   GAME_URL,
-  ANDROID_BUNDLES_PATH,
   LOCAL_BUNDLES_PATH,
 } from "../common/constants";
 import {
@@ -396,15 +395,15 @@ export class Util {
                 directory: Directory.External,
                 base64Alway: false,
               });
-
-              const path = ANDROID_BUNDLES_PATH + lessonId + "/config.json";
+              const androidPath = await this.getAndroidBundlePath();
+              const path = androidPath + lessonId + "/config.json";
               console.log("checking path..", "path", path);
               const res = await fetch(path);
               const isExists = res.ok;
               console.log("fetching path", path);
               console.log("isexists", isExists);
               if (isExists) {
-                localStorage.setItem(GAME_URL, ANDROID_BUNDLES_PATH);
+                localStorage.setItem(GAME_URL, path);
                 this.storeLessonIdToLocalStorage(
                   lessonId,
                   DOWNLOADED_LESSON_ID
@@ -488,7 +487,7 @@ export class Util {
                   data: buffer,
                 });
                 console.log("Unzip done");
-                localStorage.setItem(GAME_URL, ANDROID_BUNDLES_PATH);
+                localStorage.setItem(GAME_URL, path);
                 this.storeLessonIdToLocalStorage(
                   lessonId,
                   DOWNLOADED_LESSON_ID
@@ -1833,5 +1832,28 @@ export class Util {
 
   public static clearNavigationState() {
     localStorage.removeItem(NAVIGATION_STATE);
+  }
+
+  public static async getAndroidBundlePath(): Promise<string> {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const path = await Filesystem.getUri({
+          directory: Directory.External,
+          path: "",
+        });
+
+        console.log("path ", path, "uri", path?.uri);
+
+        if (path && path.uri) {
+          const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.bahama/cache
+          console.log("uri", uri); // http://localhost/_capacitor_file_/data/user/0/org.chimple.bahama/cache
+          return uri + "/";
+        }
+      } catch (error) {
+        console.error("path error", error);
+      }
+      throw new Error("Failed to retrieve Android bundle path.");
+    }
+    throw new Error("Not running on a native platform.");
   }
 }
