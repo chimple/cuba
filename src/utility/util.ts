@@ -488,10 +488,7 @@ export class Util {
                   data: buffer,
                 });
                 console.log("Unzip done");
-                localStorage.setItem(
-                  GAME_URL,
-                  "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/"
-                );
+                localStorage.setItem(GAME_URL, ANDROID_BUNDLES_PATH);
                 this.storeLessonIdToLocalStorage(
                   lessonId,
                   DOWNLOADED_LESSON_ID
