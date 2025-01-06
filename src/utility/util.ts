@@ -46,6 +46,9 @@ import {
   CURRENT_COURSE,
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   NAVIGATION_STATE,
+  GAME_URL,
+  ANDROID_BUNDLES_PATH,
+  LOCAL_BUNDLES_PATH,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -394,34 +397,26 @@ export class Util {
                 base64Alway: false,
               });
 
-              const path =
-                (localStorage.getItem("gameUrl") ??
-                  "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
-                lessonId +
-                "/config.json";
+              const path = ANDROID_BUNDLES_PATH + lessonId + "/config.json";
               console.log("checking path..", "path", path);
               const res = await fetch(path);
               const isExists = res.ok;
               console.log("fetching path", path);
               console.log("isexists", isExists);
               if (isExists) {
+                localStorage.setItem(GAME_URL, ANDROID_BUNDLES_PATH);
                 this.storeLessonIdToLocalStorage(
                   lessonId,
                   DOWNLOADED_LESSON_ID
                 );
                 return true;
               } // Skip if lesson exists
+              const localBundlePath =
+                LOCAL_BUNDLES_PATH + `${lessonId}/config.json`;
 
-              console.log(
-                "before local lesson Bundle http url:" +
-                  "assets/" +
-                  lessonId +
-                  "/config.json"
-              );
+              console.log(localBundlePath);
 
-              const fetchingLocalBundle = await fetch(
-                "assets/" + lessonId + "/config.json"
-              );
+              const fetchingLocalBundle = await fetch(localBundlePath);
               console.log(
                 "after local lesson Bundle fetch url:" +
                   "assets/" +
@@ -431,7 +426,12 @@ export class Util {
                 fetchingLocalBundle.json,
                 fetchingLocalBundle
               );
-
+              console.log(
+                "fetch on",
+                fetchingLocalBundle,
+                fetchingLocalBundle.ok
+              );
+              localStorage.setItem(GAME_URL, LOCAL_BUNDLES_PATH);
               if (fetchingLocalBundle.ok) return true;
 
               console.log("fs", fs);
@@ -488,6 +488,10 @@ export class Util {
                   data: buffer,
                 });
                 console.log("Unzip done");
+                localStorage.setItem(
+                  GAME_URL,
+                  "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/"
+                );
                 this.storeLessonIdToLocalStorage(
                   lessonId,
                   DOWNLOADED_LESSON_ID

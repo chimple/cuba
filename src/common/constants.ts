@@ -725,6 +725,9 @@ export const CURRENT_SCHOOL_NAME = "currentSchoolName";
 export const DOWNLOADING_CHAPTER_ID = "downloading_chapter_id";
 export const USER_DATA = "userData";
 export const REFRESH_TOKEN = "refreshToken";
+export const ANDROID_BUNDLES_PATH =
+  "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/";
+export const LOCAL_BUNDLES_PATH = "http://localhost/assets/bundles/";
 export interface HomeWeeklySummary {
   assignments: {
     asgnmetCmptd: number;
