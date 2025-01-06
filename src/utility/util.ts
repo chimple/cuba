@@ -83,6 +83,7 @@ import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { URLOpenListenerEvent } from "@capacitor/app";
 import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
+import { promises } from "dns";
 
 declare global {
   interface Window {
@@ -403,7 +404,7 @@ export class Util {
               console.log("fetching path", path);
               console.log("isexists", isExists);
               if (isExists) {
-                localStorage.setItem(GAME_URL, path);
+                this.setGameUrl(path);
                 this.storeLessonIdToLocalStorage(
                   lessonId,
                   DOWNLOADED_LESSON_ID
@@ -431,7 +432,7 @@ export class Util {
                 fetchingLocalBundle.ok
               );
               if (fetchingLocalBundle.ok) {
-                localStorage.setItem(GAME_URL, LOCAL_BUNDLES_PATH);
+                this.setGameUrl(LOCAL_BUNDLES_PATH);
                 return true;
               }
 
@@ -489,7 +490,7 @@ export class Util {
                   data: buffer,
                 });
                 console.log("Unzip done");
-                localStorage.setItem(GAME_URL, path);
+                this.setGameUrl(path);
                 this.storeLessonIdToLocalStorage(
                   lessonId,
                   DOWNLOADED_LESSON_ID
@@ -1857,5 +1858,9 @@ export class Util {
       throw new Error("Failed to retrieve Android bundle path.");
     }
     throw new Error("Not running on a native platform.");
+  }
+
+  public static setGameUrl(url: string) {
+    localStorage.setItem(GAME_URL, url);
   }
 }

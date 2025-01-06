@@ -194,7 +194,7 @@ const App: React.FC = () => {
   }, [online, presentToast]);
 
   const setAndroidGameUrl = async () => {
-    localStorage.setItem(GAME_URL, await Util.getAndroidBundlePath());
+    Util.setGameUrl(await Util.getAndroidBundlePath());
   };
   useEffect(() => {
     initializeUsage();
