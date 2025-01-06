@@ -83,7 +83,6 @@ import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { URLOpenListenerEvent } from "@capacitor/app";
 import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
-import { promises } from "dns";
 
 declare global {
   interface Window {
@@ -1860,7 +1859,7 @@ export class Util {
     throw new Error("Not running on a native platform.");
   }
 
-  public static setGameUrl(url: string) {
-    localStorage.setItem(GAME_URL, url);
+  public static setGameUrl(path: string) {
+    localStorage.setItem(GAME_URL, path);
   }
 }
