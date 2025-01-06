@@ -13,6 +13,7 @@ import {
   HOMEHEADERLIST,
   CURRENT_MODE,
   CLASS,
+  CURRENT_CLASS,
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import BackButton from "../components/common/BackButton";
@@ -34,6 +35,7 @@ import LeaderboardRewards from "../components/leaderboard/LeaderboardRewards";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 import { App } from "@capacitor/app";
+import { school } from "../stories/school/SchoolClassSubjectsTab.stories";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
