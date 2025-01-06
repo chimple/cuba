@@ -7,7 +7,6 @@ import {
   GAME_EXIT,
   LESSONS_PLAYED_COUNT,
   LESSON_END,
-  OPEN_APK,
   PAGES,
   TableTypes,
 } from "../common/constants";
@@ -94,7 +93,7 @@ const CocosGame: React.FC = () => {
     const fromPath: string = state?.from ?? PAGES.HOME;
     console.log("const push = () => { ", urlParams, fromPath);
 
-    if (Capacitor.isNativePlatform() || OPEN_APK) {
+    if (Capacitor.isNativePlatform()) {
       if (!!isDeviceAwake) {
         history.replace(fromPath + "&isReload=true");
         window.location.reload();

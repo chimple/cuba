@@ -49,7 +49,6 @@ import {
   HOMEHEADERLIST,
   IS_CUBA,
   MODES,
-  OPEN_APK,
   PAGES,
   PortPlugin,
 } from "./common/constants";
@@ -109,7 +108,7 @@ import {
   DashBoardDetails,
   AddTeacher,
   TeacherProfile,
-  StudentReport ,
+  StudentReport,
   SchoolUsers,
   AddSchoolUser,
 } from "./common/chimplePrivatePages";
@@ -202,8 +201,7 @@ const App: React.FC = () => {
     console.log("fetching...");
     CapApp.addListener("appStateChange", Util.onAppStateChange);
     localStorage.setItem(IS_CUBA, "1");
-    console.log("if (Capacitor.isNativePlatform() && !OPEN_APK) { ", OPEN_APK);
-    if (Capacitor.isNativePlatform() && !OPEN_APK) {
+    if (Capacitor.isNativePlatform()) {
       Filesystem.getUri({
         directory: Directory.External,
         path: "",
@@ -526,7 +524,7 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
               <SelectMode />
-            </ProtectedRoute> 
+            </ProtectedRoute>
             {/* <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
               <TeacherProfile />
             </ProtectedRoute> */}
