@@ -430,8 +430,10 @@ export class Util {
                 fetchingLocalBundle,
                 fetchingLocalBundle.ok
               );
-              localStorage.setItem(GAME_URL, LOCAL_BUNDLES_PATH);
-              if (fetchingLocalBundle.ok) return true;
+              if (fetchingLocalBundle.ok) {
+                localStorage.setItem(GAME_URL, LOCAL_BUNDLES_PATH);
+                return true;
+              }
 
               console.log("fs", fs);
               const bundleZipUrls: string[] = await RemoteConfig.getJSON(
