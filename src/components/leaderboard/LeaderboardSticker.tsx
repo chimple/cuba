@@ -46,6 +46,18 @@ const LeaderboardStickers: FC = () => {
       stickerInfoArray.push({ sticker, isUnlocked: false, isNextUnlock: true });
     });
 
+    unlockedStickers.forEach((sticker) => {
+      const isInNextUnlock = stickerInfoArray?.some(
+        (nextSticker) => nextSticker?.sticker?.id === sticker?.id
+      );
+      if (!isInNextUnlock) {
+        stickerInfoArray.push({
+          sticker,
+          isUnlocked: true,
+          isNextUnlock: false,
+        });
+      }
+    });
     upcomingStickers.forEach((sticker) => {
       stickerInfoArray.push({
         sticker,
@@ -53,27 +65,27 @@ const LeaderboardStickers: FC = () => {
         isUpcomingSticker: true,
       });
     });
-      // Sorting logic: prioritize by type order
-      const typePriority = (sticker: stickerInfo): number => {
-        if (sticker.isNextUnlock) return 1; // Current
-        if (sticker.isUpcomingSticker) return 2; // Upcoming
-        if (sticker.isUnlocked) return 3; // Won
-        if (!sticker.isUnlocked && !sticker.isUpcomingSticker) return 4; // Lost
-        return 5; // Remaining
-      };
-  
-      stickerInfoArray.sort((a, b) => typePriority(a) - typePriority(b));
-      // Filter lost badges
-      const lostStickersArray = stickerInfoArray.filter(
-        (sticker) => !sticker.isUnlocked && !sticker.isNextUnlock && !sticker.isUpcomingSticker
-      );
-      // Filter current, upcoming, and won badges
-      const filteredStickers = stickerInfoArray.filter(
-        (sticker) =>
-          sticker.isUnlocked || sticker.isNextUnlock || sticker.isUpcomingSticker
-      );
-      setstickers(filteredStickers);
-      setLostStickers(lostStickersArray);
+    // Sorting logic: prioritize by type order
+    const typePriority = (sticker: stickerInfo): number => {
+      if (sticker.isNextUnlock) return 1; // Current
+      if (sticker.isUpcomingSticker) return 2; // Upcoming
+      if (sticker.isUnlocked) return 3; // Won
+      if (!sticker.isUnlocked && !sticker.isUpcomingSticker) return 4; // Lost
+      return 5; // Remaining
+    };
+
+    stickerInfoArray.sort((a, b) => typePriority(a) - typePriority(b));
+    // Filter lost badges
+    const lostStickersArray = stickerInfoArray.filter(
+      (sticker) => !sticker.isUnlocked && !sticker.isNextUnlock && !sticker.isUpcomingSticker
+    );
+    // Filter current, upcoming, and won badges
+    const filteredStickers = stickerInfoArray.filter(
+      (sticker) =>
+        sticker.isUnlocked || sticker.isNextUnlock || sticker.isUpcomingSticker
+    );
+    setstickers(filteredStickers);
+    setLostStickers(lostStickersArray);
   }
   const getUnlockedstickers = async (): Promise<TableTypes<"sticker">[]> => {
     if (!currentStudent) return [];

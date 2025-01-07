@@ -1531,16 +1531,11 @@ export class Util {
   }
 
   public static getCurrentWeekNumber(): number {
-    const now: Date = new Date();
-    const currentDay: number = now.getDay();
-    const daysToMonday: number = currentDay === 0 ? 6 : currentDay - 1;
-    now.setDate(now.getDate() - daysToMonday);
-    const onejan: Date = new Date(now.getFullYear(), 0, 1);
-    const millisecsInDay: number = 86400000;
-    const dayOfYear: number =
-      (now.getTime() - onejan.getTime()) / millisecsInDay + 1;
-    const firstDayOfWeek: number = onejan.getDay() || 7;
-    const weekNumber: number = Math.ceil((dayOfYear + firstDayOfWeek) / 7);
+    const date: Date = new Date();
+    const startOfYear: Date = new Date(date.getFullYear(), 0, 1);
+    const dayOfYear: number = Math.floor((date.getTime() - startOfYear.getTime()) / 86400000) + 1;
+    const firstDayOfWeek: number = startOfYear.getDay() || 7;
+    const weekNumber: number = Math.ceil((dayOfYear + firstDayOfWeek - 1) / 7);
     return weekNumber;
   }
 

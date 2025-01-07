@@ -1,6 +1,7 @@
 import { IonLoading, LoadingOptions } from "@ionic/react";
 import React from "react";
 import "./Loading.css";
+import { t } from "i18next";
 
 interface LoadingProps extends LoadingOptions {
   isLoading: boolean;
@@ -10,7 +11,6 @@ interface LoadingProps extends LoadingOptions {
 const Loading: React.FC<LoadingProps> = ({
   isLoading,
   msg = "",
-
 }) => {
   return isLoading ? (
     <div>
@@ -18,7 +18,7 @@ const Loading: React.FC<LoadingProps> = ({
         isOpen={isLoading}
         spinner={null}
         message={
-          `<img class="loading" src="assets/loading.gif"></img> <br/><p>${msg}</p>`
+          `<img class="loading" src="assets/loading.gif"></img> <br/><p class="loading-msg">${t(msg)}</p>`
         }
       />
     </div>
