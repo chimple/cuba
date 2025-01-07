@@ -385,11 +385,6 @@ export class Util {
           lessonIdsChunk.map(async (lessonId) => {
             try {
               let lessonDownloadSuccess = true; // Flag to track lesson download success
-              console.log(
-                "downloading Directory.External",
-                Directory.External,
-                "Directory.Library"
-              );
               const fs = createFilesystem(Filesystem, {
                 rootDir: "/",
                 directory: Directory.External,
@@ -397,11 +392,8 @@ export class Util {
               });
               const androidPath = await this.getAndroidBundlePath();
               const path = androidPath + lessonId + "/config.json";
-              console.log("checking path..", "path", path);
               const res = await fetch(path);
               const isExists = res.ok;
-              console.log("fetching path", path);
-              console.log("isexists", isExists);
               if (isExists) {
                 this.setGameUrl(path);
                 this.storeLessonIdToLocalStorage(
@@ -412,30 +404,11 @@ export class Util {
               } // Skip if lesson exists
               const localBundlePath =
                 LOCAL_BUNDLES_PATH + `${lessonId}/config.json`;
-
-              console.log(localBundlePath);
-
               const fetchingLocalBundle = await fetch(localBundlePath);
-              console.log(
-                "after local lesson Bundle fetch url:" +
-                  "assets/" +
-                  lessonId +
-                  "/config.json",
-                fetchingLocalBundle.ok,
-                fetchingLocalBundle.json,
-                fetchingLocalBundle
-              );
-              console.log(
-                "fetch on",
-                fetchingLocalBundle,
-                fetchingLocalBundle.ok
-              );
               if (fetchingLocalBundle.ok) {
                 this.setGameUrl(LOCAL_BUNDLES_PATH);
                 return true;
               }
-
-              console.log("fs", fs);
               const bundleZipUrls: string[] = await RemoteConfig.getJSON(
                 REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS
               );
