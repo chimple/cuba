@@ -192,10 +192,6 @@ const App: React.FC = () => {
       window.removeEventListener("offline", handleOffline);
     };
   }, [online, presentToast]);
-
-  const setAndroidGameUrl = async () => {
-    Util.setGameUrl(await Util.getAndroidBundlePath());
-  };
   useEffect(() => {
     initializeUsage();
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -206,7 +202,6 @@ const App: React.FC = () => {
     CapApp.addListener("appStateChange", Util.onAppStateChange);
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
-      setAndroidGameUrl();
       //CapApp.addListener("appStateChange", Util.onAppStateChange);
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
 
