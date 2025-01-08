@@ -288,7 +288,7 @@ const Home: FC = () => {
       try {
         recommendationResult = await getAssignments();
         let tempRecommendations =
-          await getCourseRecommendationLessons(currentStudent);
+          await getCourseRecommendationLessons(currentStudent,currClass);
         recommendationResult = recommendationResult.concat(tempRecommendations);
         console.log("Final RECOMMENDATION List ", recommendationResult);
         setDataCourse(recommendationResult);
@@ -403,7 +403,8 @@ const Home: FC = () => {
   };
 
   async function getCourseRecommendationLessons(
-    currentStudent: TableTypes<"user">
+    currentStudent: TableTypes<"user">,
+    currentClass?: TableTypes<"class">
   ): Promise<TableTypes<"lesson">[]> {
     // const allCourses: TableTypes<"course">[] =
     //   await api.getCoursesForParentsStudent(currentStudent.id);
@@ -411,7 +412,8 @@ const Home: FC = () => {
     // const lessons = await api.getAllLessonsForCourse(allCourses[0].id);
     // console.log("const lessons ", lessons);
     let tempRecommendedLesson = await api.getRecommendedLessons(
-      currentStudent.id
+      currentStudent.id,
+      currentClass?.id
     );
     return tempRecommendedLesson;
   }
