@@ -689,9 +689,10 @@ export class ApiHandler implements ServiceApi {
   }
 
   async getRecommendedLessons(
-    studentId: string
+    studentId: string,
+    classId?:string
   ): Promise<TableTypes<"lesson">[]> {
-    return this.s.getRecommendedLessons(studentId);
+    return this.s.getRecommendedLessons(studentId,classId);
   }
 
   searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
