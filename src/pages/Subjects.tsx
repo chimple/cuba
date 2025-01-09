@@ -204,7 +204,6 @@ const Subjects: React.FC<{}> = ({}) => {
     setUserMode(
       ((currMode === MODES.PARENT) == true && !studentLinked) ?? true
     );
-
     const courses = await (!!currClass
       ? api.getCoursesForClassStudent(currClass.id)
       : api.getCoursesForParentsStudent(currentStudent.id));
