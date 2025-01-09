@@ -46,6 +46,8 @@ import {
   CURRENT_COURSE,
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   NAVIGATION_STATE,
+  GAME_URL,
+  LOCAL_BUNDLES_PATH,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -383,58 +385,30 @@ export class Util {
           lessonIdsChunk.map(async (lessonId) => {
             try {
               let lessonDownloadSuccess = true; // Flag to track lesson download success
-              console.log(
-                "downloading Directory.External",
-                Directory.External,
-                "Directory.Library"
-              );
               const fs = createFilesystem(Filesystem, {
                 rootDir: "/",
                 directory: Directory.External,
                 base64Alway: false,
               });
-
-              const path =
-                (localStorage.getItem("gameUrl") ??
-                  "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
-                lessonId +
-                "/config.json";
-              console.log("checking path..", "path", path);
+              const androidPath = await this.getAndroidBundlePath();
+              const path = androidPath + lessonId + "/config.json";
               const res = await fetch(path);
               const isExists = res.ok;
-              console.log("fetching path", path);
-              console.log("isexists", isExists);
               if (isExists) {
+                this.setGameUrl(path);
                 this.storeLessonIdToLocalStorage(
                   lessonId,
                   DOWNLOADED_LESSON_ID
                 );
                 return true;
               } // Skip if lesson exists
-
-              console.log(
-                "before local lesson Bundle http url:" +
-                  "assets/" +
-                  lessonId +
-                  "/config.json"
-              );
-
-              const fetchingLocalBundle = await fetch(
-                "assets/" + lessonId + "/config.json"
-              );
-              console.log(
-                "after local lesson Bundle fetch url:" +
-                  "assets/" +
-                  lessonId +
-                  "/config.json",
-                fetchingLocalBundle.ok,
-                fetchingLocalBundle.json,
-                fetchingLocalBundle
-              );
-
-              if (fetchingLocalBundle.ok) return true;
-
-              console.log("fs", fs);
+              const localBundlePath =
+                LOCAL_BUNDLES_PATH + `${lessonId}/config.json`;
+              const fetchingLocalBundle = await fetch(localBundlePath);
+              if (fetchingLocalBundle.ok) {
+                this.setGameUrl(LOCAL_BUNDLES_PATH);
+                return true;
+              }
               const bundleZipUrls: string[] = await RemoteConfig.getJSON(
                 REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS
               );
@@ -488,6 +462,7 @@ export class Util {
                   data: buffer,
                 });
                 console.log("Unzip done");
+                this.setGameUrl(path);
                 this.storeLessonIdToLocalStorage(
                   lessonId,
                   DOWNLOADED_LESSON_ID
@@ -1827,5 +1802,32 @@ export class Util {
 
   public static clearNavigationState() {
     localStorage.removeItem(NAVIGATION_STATE);
+  }
+
+  public static async getAndroidBundlePath(): Promise<string> {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const path = await Filesystem.getUri({
+          directory: Directory.External,
+          path: "",
+        });
+
+        console.log("path ", path, "uri", path?.uri);
+
+        if (path && path.uri) {
+          const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.bahama/cache
+          console.log("uri", uri); // http://localhost/_capacitor_file_/data/user/0/org.chimple.bahama/cache
+          return uri + "/";
+        }
+      } catch (error) {
+        console.error("path error", error);
+      }
+      throw new Error("Failed to retrieve Android bundle path.");
+    }
+    throw new Error("Not running on a native platform.");
+  }
+
+  public static setGameUrl(path: string) {
+    localStorage.setItem(GAME_URL, path);
   }
 }
