@@ -244,7 +244,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -1090,7 +1090,7 @@ export class SqliteApi implements ServiceApi {
 
   async getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
     const res = await this._db?.query(
-      `SELECT * FROM ${TABLES.Curriculum} ORDER BY name ASC` 
+      `SELECT * FROM ${TABLES.Curriculum} ORDER BY name ASC`
     );
     console.log("🚀 ~ SqliteApi ~ getAllCurriculums ~ res:", res);
     return res?.values ?? [];
@@ -3241,7 +3241,8 @@ export class SqliteApi implements ServiceApi {
     return resultMap;
   }
   async getRecommendedLessons(
-    studentId: string
+    studentId: string,
+    classId?: string
   ): Promise<TableTypes<"lesson">[]> {
     // This Query will give last played lessons
     const lastPlayedLessonsQuery = `
@@ -3252,11 +3253,11 @@ export class SqliteApi implements ServiceApi {
       c.id as course_id,
       sort_index as course_index
     from
-      ${TABLES.UserCourse} as u
+      ${classId ? TABLES.ClassCourse : TABLES.UserCourse} as u
       join ${TABLES.Course} as c
     on 
       course_id=c.id
-      and user_id = '${studentId}'
+      and ${classId ? `class_id = '${classId}'` : `user_id = '${studentId}'`}
   ),
   course_details AS (
     SELECT

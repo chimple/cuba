@@ -853,9 +853,10 @@ export interface ServiceApi {
    * Function to get Recommended Lessons.
    *
    * @param studentId - The current student id.
+   * @param classId - The current class id
    * @returns A promise returns list of Recommended Lessons to home page.
    */
-  getRecommendedLessons(studentId: string): Promise<TableTypes<"lesson">[]>;
+  getRecommendedLessons(studentId: string,classId?:string): Promise<TableTypes<"lesson">[]>;
 
   /**
    * Searches for lessons that match the given search string in their name or outcome fields.

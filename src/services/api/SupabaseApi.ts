@@ -1010,7 +1010,7 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getRecommendedLessons(studentId: string): Promise<TableTypes<"lesson">[]> {
+  getRecommendedLessons(studentId: string,classId?:string): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
 
