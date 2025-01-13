@@ -1107,6 +1107,24 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
+  async getGradesByIds(gradeIds: string[]): Promise<TableTypes<"grade">[]> {
+    if (!gradeIds || gradeIds.length === 0) {
+      return []; 
+    }
+    // Format the IDs for the SQL query
+    const formattedIds = gradeIds.map((id) => `"${id}"`).join(", ");
+    // Construct and execute the query
+    const res = await this._db?.query(
+      `SELECT * FROM ${TABLES.Grade} WHERE id IN (${formattedIds})`
+    );
+  
+    if (!res || !res.values || res.values.length === 0) {
+      return []; // Return an empty array if no grades are found
+    }
+    // Return the retrieved grades
+    return res.values;
+  }
+  
   async getCurriculumById(
     id: string
   ): Promise<TableTypes<"curriculum"> | undefined> {
@@ -1116,6 +1134,30 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
+  async getCurriculumsByIds(
+    ids: string[]
+  ): Promise<TableTypes<"curriculum">[]> {
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+  
+    // Format the IDs for the SQL query
+    const formattedIds = ids.map((id) => `"${id}"`).join(", ");
+  
+    // Construct and execute the query
+    const res = await this._db?.query(
+      `SELECT * FROM ${TABLES.Curriculum} WHERE id IN (${formattedIds})`
+    );
+  
+    if (!res || !res.values || res.values.length < 1) {
+      return [];
+    }
+  
+    // Assuming you need to return the first item or an empty array
+    return res.values;
+  }
+  
+  
   async getAllLanguages(): Promise<TableTypes<"language">[]> {
     const res = await this._db?.query("select * from " + TABLES.Language);
     console.log("🚀 ~ SqliteApi ~ getAllLanguages ~ res:", res);
