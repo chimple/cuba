@@ -726,6 +726,8 @@ export const DOWNLOADING_CHAPTER_ID = "downloading_chapter_id";
 export const USER_DATA = "userData";
 export const REFRESH_TOKEN = "refreshToken";
 export const LOCAL_BUNDLES_PATH = "http://localhost/assets/lessonBundles/";
+export const CURRENT_SELECTED_COURSE = "currentSelectedCourse";
+export const CURRENT_SELECTED_CHAPTER = "currentSelectedChapter";
 export interface HomeWeeklySummary {
   assignments: {
     asgnmetCmptd: number;
