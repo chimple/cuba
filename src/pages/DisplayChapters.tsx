@@ -8,6 +8,8 @@ import {
   CURRENT_MODE,
   CURRENT_SELECTED_CHAPTER,
   CURRENT_SELECTED_COURSE,
+  CURRENT_SELECTED_GRADE,
+  CURRENT_STAGE,
   DISPLAY_SUBJECTS_STORE,
   GRADE_MAP,
   MODES,
@@ -30,7 +32,7 @@ import { Timestamp } from "firebase/firestore";
 import SkeltonLoading from "../components/SkeltonLoading";
 
 const localData: any = {};
-let localStorageData: any = {};
+// let localStorageData: any = {};
 const DisplayChapters: FC<{}> = () => {
   enum STAGES {
     SUBJECTS,
@@ -136,8 +138,7 @@ const DisplayChapters: FC<{}> = () => {
       !!localData.localGradeMap && setLocalGradeMap(localData.localGradeMap);
       setStage(STAGES.LESSONS);
       // localStorage.setItem("stage", JSON.stringify(STAGES.LESSONS));
-      localStorageData.stage = STAGES.LESSONS;
-      addDataToLocalStorage();
+      addStateTolocalStorage(STAGES.LESSONS);
       setIsLoading(false);
     } else if (!!urlParams.get("isReload")) {
       await getCourses();
@@ -161,11 +162,14 @@ const DisplayChapters: FC<{}> = () => {
           setLessons(lesson);
         } else setCurrentChapter(undefined);
 
-        const strLocalStoreData = localStorage.getItem(DISPLAY_SUBJECTS_STORE);
-        if (!!strLocalStoreData)
-          localStorageData = JSON.parse(strLocalStoreData);
-        setStage(localStorageData.stage);
-        setCurrentGrade(localStorageData.grade);
+        const stage = localStorage.getItem(CURRENT_STAGE);
+        if (stage) {
+          setStage(JSON.parse(stage));
+        }
+        const grade = localStorage.getItem(CURRENT_SELECTED_GRADE);
+        if (grade) {
+          setCurrentGrade(JSON.parse(grade));
+        }
       } else {
         setCourses(undefined);
       }
@@ -195,12 +199,12 @@ const DisplayChapters: FC<{}> = () => {
     }
   }
 
-  function addDataToLocalStorage() {
-    localStorage.setItem(
-      DISPLAY_SUBJECTS_STORE,
-      JSON.stringify(localStorageData)
-    );
-  }
+  // function addDataToLocalStorage() {
+  //   localStorage.setItem(
+  //     DISPLAY_SUBJECTS_STORE,
+  //     JSON.stringify(localStorageData)
+  //   );
+  // }
 
   const getCourses = async (): Promise<TableTypes<"course">[]> => {
     setIsLoading(true);
@@ -278,8 +282,7 @@ const DisplayChapters: FC<{}> = () => {
         delete localData.lessons;
         setLessons(undefined);
         setStage(STAGES.CHAPTERS);
-        localStorageData.stage = STAGES.CHAPTERS;
-        addDataToLocalStorage();
+        addStateTolocalStorage(STAGES.CHAPTERS);
         localStorage.removeItem(CURRENT_SELECTED_CHAPTER);
 
         break;
@@ -304,14 +307,13 @@ const DisplayChapters: FC<{}> = () => {
     localData.currentCourse = course;
 
     setCurrentGrade(currentGrade ?? gradesMap.grades[0]);
-    localStorageData.grade = currentGrade ?? gradesMap.grades[0];
+    addGradeToLocalStorage(currentGrade ?? gradesMap.grades[0]);
     setLocalGradeMap(gradesMap);
     const chapters = await api.getChaptersForCourse(course.id);
     setChapters(chapters);
     setCurrentCourse(course);
     localStorage.setItem(CURRENT_SELECTED_COURSE, JSON.stringify(course));
-    localStorageData.stage = STAGES.CHAPTERS;
-    addDataToLocalStorage();
+    addStateTolocalStorage(STAGES.CHAPTERS);
     setStage(STAGES.CHAPTERS);
   };
 
@@ -322,8 +324,7 @@ const DisplayChapters: FC<{}> = () => {
     );
     localData.currentGrade = grade;
     setCurrentGrade(grade);
-    localStorageData.grade = grade;
-    addDataToLocalStorage();
+    addGradeToLocalStorage(grade);
     const chapters = await api.getChaptersForCourse(currentCourse?.id ?? "");
     setChapters(chapters);
     setCurrentCourse(currentCourse);
@@ -342,8 +343,7 @@ const DisplayChapters: FC<{}> = () => {
     localStorage.setItem(CURRENT_SELECTED_CHAPTER, JSON.stringify(chapter));
 
     setStage(STAGES.LESSONS);
-    localStorageData.stage = STAGES.LESSONS;
-    addDataToLocalStorage();
+    addStateTolocalStorage(STAGES.LESSONS);
   };
 
   function getLastPlayedLessonIndex() {
@@ -374,6 +374,13 @@ const DisplayChapters: FC<{}> = () => {
 
     return startIndex;
   }
+  function addStateTolocalStorage(stage: STAGES) {
+    localStorage.setItem(CURRENT_STAGE, JSON.stringify(stage));
+  }
+  function addGradeToLocalStorage(grade: TableTypes<"grade">) {
+    localStorage.setItem(CURRENT_SELECTED_GRADE, JSON.stringify(grade));
+  }
+
   return !isLoading ? (
     <IonPage id="display-chapters-page">
       <div className="chapters-header">

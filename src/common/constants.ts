@@ -728,6 +728,8 @@ export const REFRESH_TOKEN = "refreshToken";
 export const LOCAL_BUNDLES_PATH = "http://localhost/assets/lessonBundles/";
 export const CURRENT_SELECTED_COURSE = "currentSelectedCourse";
 export const CURRENT_SELECTED_CHAPTER = "currentSelectedChapter";
+export const CURRENT_STAGE = "currentStage";
+export const CURRENT_SELECTED_GRADE = "currentSelectedGrade";
 export interface HomeWeeklySummary {
   assignments: {
     asgnmetCmptd: number;
