@@ -610,6 +610,7 @@ const Leaderboard: React.FC = () => {
                 // await Util.setCurrentStudent(null);
                 AvatarObj.destroyInstance();
                 const user = await auth.getCurrentUser();
+                // console.log("supabase user:", user);
                 if (!!user && !!user.language_id) {
                   const langDoc = await api.getLanguageWithId(user.language_id);
                   if (langDoc) {
