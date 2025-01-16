@@ -395,7 +395,7 @@ export class Util {
               const res = await fetch(path);
               const isExists = res.ok;
               if (isExists) {
-                this.setGameUrl(path);
+                this.setGameUrl(androidPath);
                 this.storeLessonIdToLocalStorage(
                   lessonId,
                   DOWNLOADED_LESSON_ID
@@ -462,7 +462,7 @@ export class Util {
                   data: buffer,
                 });
                 console.log("Unzip done");
-                this.setGameUrl(path);
+                this.setGameUrl(androidPath);
                 this.storeLessonIdToLocalStorage(
                   lessonId,
                   DOWNLOADED_LESSON_ID
@@ -1508,7 +1508,8 @@ export class Util {
   public static getCurrentWeekNumber(): number {
     const date: Date = new Date();
     const startOfYear: Date = new Date(date.getFullYear(), 0, 1);
-    const dayOfYear: number = Math.floor((date.getTime() - startOfYear.getTime()) / 86400000) + 1;
+    const dayOfYear: number =
+      Math.floor((date.getTime() - startOfYear.getTime()) / 86400000) + 1;
     const firstDayOfWeek: number = startOfYear.getDay() || 7;
     const weekNumber: number = Math.ceil((dayOfYear + firstDayOfWeek - 1) / 7);
     return weekNumber;

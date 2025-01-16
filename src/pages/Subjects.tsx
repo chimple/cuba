@@ -4,6 +4,7 @@ import { useHistory, useLocation } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
   CONTINUE,
+  CURRENT_SELECTED_COURSE,
   DISPLAY_SUBJECTS_STORE,
   GRADE_MAP,
   HOMEHEADERLIST,
@@ -204,7 +205,6 @@ const Subjects: React.FC<{}> = ({}) => {
     setUserMode(
       ((currMode === MODES.PARENT) == true && !studentLinked) ?? true
     );
-
     const courses = await (!!currClass
       ? api.getCoursesForClassStudent(currClass.id)
       : api.getCoursesForParentsStudent(currentStudent.id));
@@ -234,6 +234,7 @@ const Subjects: React.FC<{}> = ({}) => {
     setCurrentGrade(currentGrade ?? gradesMap.grades[0]);
     setLocalGradeMap(gradesMap);
     setCurrentCourse(course);
+    localStorage.setItem(CURRENT_SELECTED_COURSE, JSON.stringify(course));
     // localStorageData.stage = STAGES.CHAPTERS;
     // addDataToLocalStorage();
     const params = `courseDocId=${course.id}`;
