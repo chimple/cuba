@@ -275,7 +275,8 @@ const DisplayChapters: FC<{}> = () => {
         setCurrentChapter(undefined);
         // addDataToLocalStorage();
         localStorage.removeItem(CURRENT_SELECTED_COURSE);
-        localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
+        localStorage.removeItem(CURRENT_SELECTED_GRADE);
+        addStateTolocalStorage(STAGES.SUBJECTS);
         Util.setPathToBackButton(PAGES.HOME, history);
         break;
       case STAGES.LESSONS:
