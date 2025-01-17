@@ -6,6 +6,7 @@ import {
   PAGES,
   PARENTHEADERLIST,
   TableTypes,
+  USER_DATA,
 } from "../common/constants";
 import ProfileCard from "../components/parent/ProfileCard";
 import User from "../models/user";
@@ -180,6 +181,7 @@ const Parent: React.FC = () => {
                 // setIsLoading(true);
 
                 const api = ServiceConfig.getI().apiHandler;
+                const auth = ServiceConfig.getI().authHandler;
                 // api.deleteAllUserData
                 // const langDoc = await api.getLanguageWithId(selectedLangDocId);
                 const allLang = await api.getAllLanguages();
@@ -193,8 +195,7 @@ const Parent: React.FC = () => {
                 console.log("langDoc", langDoc);
                 await i18n.changeLanguage(langDoc.code ?? "");
                 console.log("applang", selectedLangDocId);
-                const currentUser =
-                  await ServiceConfig.getI().authHandler.getCurrentUser();
+                const currentUser = await auth.getCurrentUser();
                 setTabIndex(t(parentHeaderIconList[1].header));
 
                 const langId = langDocIds.get(langDoc.code ?? "");
@@ -204,6 +205,13 @@ const Parent: React.FC = () => {
                 }
                 console.log("selectedLangDocId", selectedLangDocId);
                 setCurrentAppLang(selectedLangDocId);
+                const updatedUserData: TableTypes<"user"> | undefined = 
+                  currentUser ? {...currentUser, language_id: selectedLangDocId} : undefined;
+                localStorage.setItem(USER_DATA, JSON.stringify(updatedUserData));
+                if (updatedUserData) {
+                  auth.currentUser = updatedUserData;
+                }
+                // console.log("currentUser after update:",await auth.getCurrentUser());
                 // window.location.reload();
               }}
             />
