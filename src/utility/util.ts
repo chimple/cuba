@@ -602,42 +602,47 @@ export class Util {
   }
 
   public static async launchCocosGame(): Promise<void> {
-    if (!window.cc) {
-      return;
-    }
-    const settings = window._CCSettings;
-    const launchScene = settings.launchScene;
-    const bundle = window.cc.assetManager.bundles.find(function (b) {
-      return b.getSceneInfo(launchScene);
-    });
-
-    await new Promise((resolve, reject) => {
-      bundle.loadScene(launchScene, null, null, function (err, scene) {
-        if (!err) {
-          window.cc.director.runSceneImmediate(scene);
-          if (window.cc.sys.isBrowser) {
-            // show canvas
-            var canvas = document.getElementById("GameCanvas");
-            if (canvas) {
-              canvas.style.visibility = "";
-              canvas.style.display = "";
-            }
-            const container = document.getElementById("Cocos2dGameContainer");
-            if (container) {
-              container.style.display = "";
-            }
-            var div = document.getElementById("GameDiv");
-            if (div) {
-              div.style.backgroundImage = "";
-            }
-            console.log("Success to load scene: " + launchScene);
-          }
-          resolve(scene);
-        } else {
-          reject(err);
-        }
+    try {
+      if (!window.cc) {
+        return;
+      }
+      const settings = window._CCSettings;
+      const launchScene = settings.launchScene;
+      const bundle = window.cc.assetManager.bundles.find(function (b) {
+        return b.getSceneInfo(launchScene);
       });
-    });
+
+      await new Promise((resolve, reject) => {
+        bundle.loadScene(launchScene, null, null, function (err, scene) {
+          if (!err) {
+            window.cc.director.runSceneImmediate(scene);
+            if (window.cc.sys.isBrowser) {
+              Util.checkingIfGameCanvasAvailable();
+              // show canvas
+              var canvas = document.getElementById("GameCanvas");
+              if (canvas) {
+                canvas.style.visibility = "";
+                canvas.style.display = "";
+              }
+              const container = document.getElementById("Cocos2dGameContainer");
+              if (container) {
+                container.style.display = "";
+              }
+              var div = document.getElementById("GameDiv");
+              if (div) {
+                div.style.backgroundImage = "";
+              }
+              console.log("Success to load scene: " + launchScene);
+            }
+            resolve(scene);
+          } else {
+            reject(err);
+          }
+        });
+      });
+    } catch (error) {
+      console.log("launchCocosGame(): error ", error);
+    }
   }
 
   public static killCocosGame(): void {
@@ -894,72 +899,133 @@ export class Util {
     // Util.handleAppStateChange(isActive);
   };
 
-  public static checkingIfGameCanvasAvailable = async () => {
-    // return new Promise<boolean>(async (resolve, reject) => {
+  public static checkingIfGameCanvasAvailable = async (): Promise<boolean> => {
     try {
       const canvas = document.getElementById("GameCanvas") as HTMLCanvasElement;
+
       if (canvas) {
-        const webgl2Context = canvas.getContext("webgl");
+        const gl = canvas.getContext("webgl") as WebGLRenderingContext | null;
+
+        if (!gl) {
+          console.error("WebGL is not supported on this device or browser.");
+          return false;
+        }
+
+        // Helper function to create and validate shaders
+        const createAndValidateShader = (
+          type: GLenum,
+          source: string
+        ): WebGLShader | null => {
+          const shader = gl.createShader(type);
+          if (!shader) {
+            console.error("Failed to create shader.");
+            return null;
+          }
+          gl.shaderSource(shader, source);
+          gl.compileShader(shader);
+
+          // Check for shader compilation errors
+          if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            console.error(
+              `Error compiling shader: ${gl.getShaderInfoLog(shader)}`
+            );
+            gl.deleteShader(shader);
+            return null;
+          }
+
+          return shader;
+        };
+
+        // Example vertex and fragment shader source code
+        const vertexShaderSource = `
+          attribute vec4 position;
+          void main() {
+            gl_Position = position;
+          }
+        `;
+
+        const fragmentShaderSource = `
+          precision mediump float;
+          void main() {
+            gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red color
+          }
+        `;
+
+        // Create and validate shaders
+        const vertexShader = createAndValidateShader(
+          gl.VERTEX_SHADER,
+          vertexShaderSource
+        );
+        const fragmentShader = createAndValidateShader(
+          gl.FRAGMENT_SHADER,
+          fragmentShaderSource
+        );
+
+        if (!vertexShader || !fragmentShader) {
+          console.error("Shader creation or validation failed.");
+          return false;
+        }
+
+        // Handle WebGL context lost
         canvas.addEventListener(
           "webglcontextlost",
-          function (event) {
-            // inform WebGL that we handle context restoration
-            console.log("WebGl webglcontextlost in cocosGame.tsx");
-            event.preventDefault();
-            if (webgl2Context) {
-              const rest = webgl2Context.getExtension("WEBGL_lose_context");
+          (event) => {
+            try {
+              console.error("WebGL context lost detected.");
+              event.preventDefault(); // Prevent the browser from handling context loss
+              const webglContext = canvas.getContext(
+                "webgl"
+              ) as WebGLRenderingContext | null;
 
-              // Reloading cocos Game if GameCanvas buffer is not restored
-              if (!rest) {
-                // const url = new URL(window.location.toString());
-                // url.searchParams.set("isReload", "false");
-                // url.searchParams.delete(CONTINUE);
-                // window.history.replaceState(
-                //   window.history.state,
-                //   "",
-                //   url.toString()
-                // );
-                window.location.reload();
-                // resolve(false);
-                console.log("page got reloaded ", false);
+              if (webglContext) {
+                const rest = webglContext.getExtension("WEBGL_lose_context");
+
+                // If the context cannot be restored, reload the page
+                if (!rest) {
+                  console.error(
+                    "Unable to restore WebGL context. Reloading page..."
+                  );
+                  window.location.reload();
+                }
               }
-              if (rest) {
-                rest.loseContext();
-                // return true;
-                // resolve(false);
-              }
+            } catch (error) {
+              console.error("Error handling webglcontextlost:", error);
             }
           },
           false
         );
+
+        // Handle WebGL context restored
         canvas.addEventListener(
           "webglcontextrestored",
-          function (event) {
-            // inform WebGL that we handle context restoration
-            console.log("WebGl webglcontextrestored in cocosGame.tsx");
-            event.preventDefault();
+          (event) => {
+            try {
+              console.log("WebGL context restored.");
+              event.preventDefault(); // Prevent the browser from restoring automatically
+              const webglContext = canvas.getContext(
+                "webgl"
+              ) as WebGLRenderingContext | null;
 
-            if (webgl2Context) {
-              const rest = webgl2Context.getExtension("WEBGL_lose_context");
-
-              if (rest) {
-                rest.restoreContext();
-                // return true;
-                // resolve(false);
+              if (webglContext) {
+                console.log("WebGL context successfully restored.");
               }
+            } catch (error) {
+              console.error("Error handling webglcontextrestored:", error);
             }
           },
           false
         );
+
+        console.log("WebGL setup completed successfully.");
+        return true; // Return true if canvas exists and WebGL is initialized
+      } else {
+        console.warn("GameCanvas element not found.");
+        return false;
       }
     } catch (error) {
-      console.log(
-        "🚀 ~ file: util.ts:965 ~ checkingIfGameCanvasAvailable ~ error:",
-        error
-      );
-      // throw error;
+      console.error("Error in checkingIfGameCanvasAvailable:", error);
+      return false;
     }
-    // });
   };
 
   public static setPathToBackButton(path: string, history: any) {
