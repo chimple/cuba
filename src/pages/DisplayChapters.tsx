@@ -13,6 +13,11 @@ import {
   GRADE_MAP,
   MODES,
   PAGES,
+  CURRENT_SELECTED_COURSE,
+  CURRENT_SELECTED_GRADE,
+  CURRENT_STAGE,
+  CURRENT_SELECTED_CHAPTER,
+  COURSES,
 } from "../common/constants";
 import { IonIcon, IonItem, IonList, IonPage } from "@ionic/react";
 import { chevronBackCircleSharp } from "ionicons/icons";
@@ -135,83 +140,34 @@ const DisplayChapters: FC<{}> = () => {
       localStorageData.stage = STAGES.LESSONS;
       // addDataToLocalStorage();
       setStage(STAGES.LESSONS);
+      addStateTolocalStorage(STAGES.LESSONS);
 
       setIsLoading(false);
     } else if (!!urlParams.get("isReload")) {
-      // let strLocalStoreData = localStorage.getItem(DISPLAY_SUBJECTS_STORE);
-      // let strLocalStoreData = null;
-      // if (!!strLocalStoreData) {
-      //   localStorageData = JSON.parse(strLocalStoreData);
-
-      //   if (!!localStorageData.courses) {
-      //     let tmpCourses: Course[] = Util.convertCourses(
-      //       localStorageData.courses
-      //     );
-      //     localData.courses = tmpCourses;
-      //     setCourses(tmpCourses);
-      //     if (
-      //       !!localStorageData.stage &&
-      //       localStorageData.stage !== STAGES.SUBJECTS &&
-      //       !!localStorageData.currentCourseId
-      //     ) {
-      //       setStage(localStorageData.stage);
-      //       let cc: Course = localData.courses.find(
-      //         (cour) => localStorageData.currentCourseId === cour.docId
-      //       );
-
-      //       let _localMap = getLocalGradeMap();
-
-      //       if (!!_localMap) {
-      //         if (!!localStorageData.currentGrade) {
-      //           localData.currentGrade = localStorageData.currentGrade;
-      //           setCurrentGrade(localStorageData.currentGrade);
-      //           const tmpCurrentCourse = _localMap?.courses.find(
-      //             (course) => course.grade.id === localData.currentGrade.docId
-      //           );
-
-      //           if (!!tmpCurrentCourse) cc = tmpCurrentCourse;
-      //         }
-      //       }
-
-      //       localData.currentCourse = cc;
-      //       setCurrentCourse(cc);
-
-      //       if (!!localStorageData.currentChapterId) {
-      //         let cChap: Chapter = localData.currentCourse.chapters.find(
-      //           (chap) => localStorageData.currentChapterId === chap.id
-      //         );
-      //         localData.currentChapter = cChap;
-      //         setCurrentChapter(cChap);
-      //       }
-
-      //       if (!!localStorageData.lessonResultMap) {
-      //         let tmpStdMap: { [lessonDocId: string]: StudentLessonResult } =
-      //           localStorageData.lessonResultMap;
-      //         for (const value of Object.values(tmpStdMap)) {
-      //           if (!!value.course) value.course = Util.getRef(value.course);
-      //         }
-      //         localData.lessonResultMap = tmpStdMap;
-      //         setLessonResultMap(tmpStdMap);
-      //       }
-
-      //       if (localStorageData.stage === STAGES.LESSONS) {
-      //         getLessonsForChapter(localData.currentChapter);
-      //       } else {
-      //         setIsLoading(false);
-      //       }
-      //     } else {
-      //       setIsLoading(false);
-      //     }
-      //   } else {
-      //     await getCourses();
-      //     console.log(
-      //       "🚀 ~ file: DisplaySubjects.tsx:127 ~ init ~ getCourses:"
-      //     );
-      //   }
-      // } else {
-      //   await getCourses();
-      //   console.log("🚀 ~ file: DisplaySubjects.tsx:126 ~ init ~ getCourses:");
-      // }
+      await getCourses();
+      setIsLoading(true);
+      const strCourse = localStorage.getItem(CURRENT_SELECTED_COURSE);
+      if (!!strCourse) {
+        const currentCourse = JSON.parse(strCourse);
+        Util.convertCourses([currentCourse]);
+        setCurrentCourse(currentCourse);
+        const currentGrade = localStorage.getItem(CURRENT_SELECTED_GRADE);
+        if (currentGrade) setCurrentGrade(JSON.parse(currentGrade));
+        const currentStage = localStorage.getItem(CURRENT_STAGE);
+        if (currentStage) {
+          setStage(JSON.parse(currentStage));
+        }
+        const strChapter = localStorage.getItem(CURRENT_SELECTED_CHAPTER);
+        if (strChapter) {
+          const currentChapter = JSON.parse(strChapter);
+          currentChapter.lessons = Util.convertDoc(currentChapter.lessons);
+          setCurrentChapter(currentChapter);
+          const lessons = await getLessonsForChapter(currentChapter);
+          setLessons(lessons);
+        } else setCurrentChapter(undefined);
+        setIsLoading(false);
+      } else setCurrentCourse(undefined);
+      setIsLoading(false);
     } else {
       await getCourses();
       console.log("🚀 ~ file: DisplaySubjects.tsx:131 ~ init ~ getCourses:");
@@ -238,10 +194,10 @@ const DisplayChapters: FC<{}> = () => {
   }
 
   // function addDataToLocalStorage() {
-    // localStorage.setItem(
-    //   DISPLAY_SUBJECTS_STORE,
-    //   JSON.stringify(localStorageData)
-    // );
+  // localStorage.setItem(
+  //   DISPLAY_SUBJECTS_STORE,
+  //   JSON.stringify(localStorageData)
+  // );
   // }
 
   const getCourses = async (): Promise<Course[]> => {
@@ -319,6 +275,8 @@ const DisplayChapters: FC<{}> = () => {
         localStorageData.stage = STAGES.SUBJECTS;
         // addDataToLocalStorage();
         // localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
+        localStorage.removeItem(CURRENT_SELECTED_COURSE);
+        localStorage.removeItem(CURRENT_SELECTED_GRADE);
         Util.setPathToBackButton(PAGES.HOME, history);
         break;
       case STAGES.LESSONS:
@@ -327,7 +285,8 @@ const DisplayChapters: FC<{}> = () => {
         localStorageData.stage = STAGES.CHAPTERS;
         // addDataToLocalStorage();
         setStage(STAGES.CHAPTERS);
-
+        localStorage.removeItem(CURRENT_SELECTED_CHAPTER);
+        addStateTolocalStorage(STAGES.CHAPTERS);
         break;
       default:
         break;
@@ -347,11 +306,13 @@ const DisplayChapters: FC<{}> = () => {
     localData.currentCourse = course;
     localStorageData.currentCourseId = course.docId;
     setCurrentGrade(currentGrade ?? gradesMap.grades[0]);
+    addGradeToLocalStorage(currentGrade ?? gradesMap.grades[0]);
     setLocalGradeMap(gradesMap);
+    Util.setCurrentCourseToLoaclstorage(course);
     setCurrentCourse(course);
     localStorageData.stage = STAGES.CHAPTERS;
-    // addDataToLocalStorage();
     setStage(STAGES.CHAPTERS);
+    addStateTolocalStorage(STAGES.CHAPTERS);
   };
 
   const onGradeChanges = async (grade: Grade) => {
@@ -360,11 +321,14 @@ const DisplayChapters: FC<{}> = () => {
     );
     localData.currentGrade = grade;
     localStorageData.currentGrade = grade;
-    // addDataToLocalStorage();
     setCurrentGrade(grade);
-    setCurrentCourse(currentCourse);
-    localData.currentCourse = currentCourse;
-    localStorageData.currentCourse = currentCourse;
+    addGradeToLocalStorage(grade);
+    if (currentCourse) {
+      setCurrentCourse(currentCourse);
+      Util.setCurrentCourseToLoaclstorage(currentCourse);
+      localData.currentCourse = currentCourse;
+      localStorageData.currentCourse = currentCourse;
+    }
   };
 
   const onChapterChange = async (chapter: Chapter) => {
@@ -372,9 +336,11 @@ const DisplayChapters: FC<{}> = () => {
     localData.currentChapter = chapter;
     localStorageData.currentChapterId = chapter.id;
     setCurrentChapter(chapter);
+    localStorage.setItem(CURRENT_SELECTED_CHAPTER, JSON.stringify(chapter));
     localStorageData.stage = STAGES.LESSONS;
     // addDataToLocalStorage();
     setStage(STAGES.LESSONS);
+    addStateTolocalStorage(STAGES.LESSONS);
   };
 
   function getLastPlayedLessonIndex() {
@@ -398,7 +364,12 @@ const DisplayChapters: FC<{}> = () => {
 
     return startIndex;
   }
-
+  function addStateTolocalStorage(stage: STAGES) {
+    localStorage.setItem(CURRENT_STAGE, JSON.stringify(stage));
+  }
+  function addGradeToLocalStorage(grade: Grade) {
+    localStorage.setItem(CURRENT_SELECTED_GRADE, JSON.stringify(grade));
+  }
   return !isLoading ? (
     <IonPage id="display-chapters-page">
       <div className="chapters-header">
