@@ -9,6 +9,7 @@ import {
   CONTINUE,
   CURRENT_CLASS,
   CURRENT_MODE,
+  CURRENT_SELECTED_COURSE,
   // DISPLAY_SUBJECTS_STORE,
   GRADE_MAP,
   HOMEHEADERLIST,
@@ -237,9 +238,9 @@ const Subjects: React.FC<{}> = ({}) => {
     const courses = await (!!currClass
       ? api.getCoursesForClassStudent(currClass)
       : api.getCoursesForParentsStudent(currentStudent));
-      localData.courses = courses;
-      // localStorageData.courses = courses;
-      setCourses(courses);
+    localData.courses = courses;
+    // localStorageData.courses = courses;
+    setCourses(courses);
     // addDataToLocalStorage();
     setIsLoading(false);
     return courses;
@@ -261,6 +262,7 @@ const Subjects: React.FC<{}> = ({}) => {
     setCurrentGrade(currentGrade ?? gradesMap.grades[0]);
     setLocalGradeMap(gradesMap);
     setCurrentCourse(course);
+    Util.setCurrentCourseToLoaclstorage(course);
     // localStorageData.stage = STAGES.CHAPTERS;
     // addDataToLocalStorage();
     const params = `courseDocId=${course.docId}`;
@@ -275,10 +277,10 @@ const Subjects: React.FC<{}> = ({}) => {
   };
 
   // function addDataToLocalStorage() {
-    // localStorage.setItem(
-    //   DISPLAY_SUBJECTS_STORE,
-    //   JSON.stringify(localStorageData)
-    // );
+  // localStorage.setItem(
+  //   DISPLAY_SUBJECTS_STORE,
+  //   JSON.stringify(localStorageData)
+  // );
   // }
 
   return (
