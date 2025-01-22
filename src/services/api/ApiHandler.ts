@@ -8,6 +8,8 @@ import {
   LeaderboardRewards,
   MODES,
   TableTypes,
+  DEFAULT_SUBJECT_IDS,
+  OTHER_CURRICULUM,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -470,9 +472,48 @@ export class ApiHandler implements ServiceApi {
 
   public async getCourseByUserGradeId(
     gradeDocId: string | null | undefined,
-    boardDocId: string | null | undefined
+    boardDocId: string | null | undefined,
   ): Promise<TableTypes<"course">[]> {
-    return await this.s.getCourseByUserGradeId(gradeDocId, boardDocId);
+    let courseIds: TableTypes<"course">[] = [];
+   const  gradeCourses = await this.s.getCourseByUserGradeId(gradeDocId, boardDocId);
+
+   const curriculumCourses = gradeCourses.filter(
+         (course: TableTypes<"course">) => {
+           return course.curriculum_id === boardDocId;
+         }
+       );
+   
+       curriculumCourses.forEach((course: TableTypes<"course">) => {
+         courseIds.push(course);
+       });
+   
+       let subjectIds: string[] = [];
+       curriculumCourses.forEach((course: TableTypes<"course">) => {
+         if (course.subject_id) {
+           subjectIds.push(course.subject_id);
+         }
+       });
+   
+       const remainingSubjects = DEFAULT_SUBJECT_IDS.filter(
+         (subjectId) => !subjectIds.includes(subjectId)
+       );
+   
+       remainingSubjects.forEach((subjectId) => {
+         const courses = gradeCourses.filter((course) => {
+           const subjectRef = course.subject_id;
+           if (
+             !!subjectRef &&
+             subjectRef === subjectId &&
+             course.curriculum_id === OTHER_CURRICULUM
+           )
+             return true;
+         });
+         courses.forEach((course) => {
+           courseIds.push(course);
+         });
+       });
+   
+       return curriculumCourses
   }
 
   updateSoundFlag(userId: string, value: boolean) {
@@ -548,6 +589,9 @@ export class ApiHandler implements ServiceApi {
       languageDocId
     );
   }
+
+
+
 
   public async createStudentProfile(
     name: string,

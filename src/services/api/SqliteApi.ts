@@ -8,8 +8,6 @@ import {
   MUTATE_TYPES,
   LIVE_QUIZ,
   CURRENT_SQLITE_VERSION,
-  DEFAULT_SUBJECT_IDS,
-  OTHER_CURRICULUM,
   grade1,
   aboveGrade3,
   belowGrade1,
@@ -447,6 +445,8 @@ export class SqliteApi implements ServiceApi {
     return await this.syncDbNow([tableName]);
   }
 
+
+  // shubham
   async createProfile(
     name: string,
     age: number | undefined,
@@ -558,6 +558,9 @@ export class SqliteApi implements ServiceApi {
 
     return newStudent;
   }
+
+
+
   async createSchool(
     name: string,
     group1: string,
@@ -638,6 +641,8 @@ export class SqliteApi implements ServiceApi {
     );
     return newSchool;
   }
+
+
   async updateSchoolProfile(
     school: TableTypes<"school">,
     name: string,
@@ -1019,6 +1024,8 @@ export class SqliteApi implements ServiceApi {
       console.log("🚀 ~ SqliteApi ~ deleteProfile ~ error:", error);
     }
   }
+
+
   async getCourseByUserGradeId(
     gradeDocId: string | null,
     boardDocId: string | null
@@ -1031,7 +1038,7 @@ export class SqliteApi implements ServiceApi {
       throw new Error("Board document ID is required.");
     }
 
-    let courseIds: TableTypes<"course">[] = [];
+    
     let isGrade1: boolean = false;
     let isGrade2: boolean = false;
 
@@ -1049,44 +1056,9 @@ export class SqliteApi implements ServiceApi {
 
     const gradeLevel = isGrade1 ? grade1 : isGrade2 ? grade2 : gradeDocId;
     const gradeCourses = await this.getCoursesByGrade(gradeLevel);
-    const curriculumCourses = gradeCourses.filter(
-      (course: TableTypes<"course">) => {
-        return course.curriculum_id === boardDocId;
-      }
-    );
-
-    curriculumCourses.forEach((course: TableTypes<"course">) => {
-      courseIds.push(course);
-    });
-
-    let subjectIds: string[] = [];
-    curriculumCourses.forEach((course: TableTypes<"course">) => {
-      if (course.subject_id) {
-        subjectIds.push(course.subject_id);
-      }
-    });
-
-    const remainingSubjects = DEFAULT_SUBJECT_IDS.filter(
-      (subjectId) => !subjectIds.includes(subjectId)
-    );
-
-    remainingSubjects.forEach((subjectId) => {
-      const courses = gradeCourses.filter((course) => {
-        const subjectRef = course.subject_id;
-        if (
-          !!subjectRef &&
-          subjectRef === subjectId &&
-          course.curriculum_id === OTHER_CURRICULUM
-        )
-          return true;
-      });
-      courses.forEach((course) => {
-        courseIds.push(course);
-      });
-    });
-
-    return courseIds;
+    return gradeCourses;
   }
+
 
   async getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
     const res = await this._db?.query(
@@ -1107,6 +1079,8 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
+
+  
   async getGradesByIds(gradeIds: string[]): Promise<TableTypes<"grade">[]> {
     if (!gradeIds || gradeIds.length === 0) {
       return []; 
@@ -2541,6 +2515,8 @@ export class SqliteApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+  // 68 compliated here 
+
   async getLessonFromChapter(
     chapterId: string,
     lessonId: string
@@ -3005,6 +2981,8 @@ export class SqliteApi implements ServiceApi {
     data.schools = res.values.map((val) => JSON.parse(val.school));
     return data;
   }
+
+
   async updateFcmToken(userId: string) {
     const token = await Util.getToken();
     const query = `
