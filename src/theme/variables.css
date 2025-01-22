@@ -82,6 +82,13 @@ http://ionicframework.com/docs/theming/ */
   --border-radius: 1.5vh;
   --header-text: clamp(33px, 10vh, 55px);
 
+  /* custom-dropdown */
+  --text-sizeS: clamp(1px, 1.5vh, 15px);
+  --text-sizeM: clamp(10px, 1.7vh, 15px);
+  --text-sizeL: clamp(15px, 3vh, 18px);
+  --text-sizeXL:clamp(15px, 5vh, 30px);
+
+
   /* minimum size for buttons/tabs */
   --button-height: 3vh;
   --button-width: 3vw;
