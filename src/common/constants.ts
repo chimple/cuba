@@ -581,3 +581,7 @@ export const SELECTED_STUDENTS = "selectedStudent";
 export const SELECTED_CLASSES = "selectedClasses";
 export const CURRENT_CLASS_NAME = "currClassName";
 export const CURRENT_SCHOOL_NAME = "currentSchoolName";
+export const CURRENT_SELECTED_COURSE = "currentSelectedCourse";
+export const CURRENT_SELECTED_CHAPTER = "currentSelectedChapter";
+export const CURRENT_STAGE = "currentStage";
+export const CURRENT_SELECTED_GRADE = "currentSelectedGrade";

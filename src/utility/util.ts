@@ -45,6 +45,7 @@ import {
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
   HOMEHEADERLIST,
   NOTIFICATIONTYPE,
+  CURRENT_SELECTED_COURSE,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -1627,7 +1628,8 @@ export class Util {
   public static getCurrentWeekNumber(): number {
     const date: Date = new Date();
     const startOfYear: Date = new Date(date.getFullYear(), 0, 1);
-    const dayOfYear: number = Math.floor((date.getTime() - startOfYear.getTime()) / 86400000) + 1;
+    const dayOfYear: number =
+      Math.floor((date.getTime() - startOfYear.getTime()) / 86400000) + 1;
     const firstDayOfWeek: number = startOfYear.getDay() || 7;
     const weekNumber: number = Math.ceil((dayOfYear + firstDayOfWeek - 1) / 7);
     return weekNumber;
@@ -1790,5 +1792,8 @@ export class Util {
     const db = getFirestore();
     const reference = doc(db, ref);
     return reference;
+  }
+  public static setCurrentCourseToLoaclstorage(course: Course) {
+    localStorage.setItem(CURRENT_SELECTED_COURSE, JSON.stringify(course));
   }
 }
