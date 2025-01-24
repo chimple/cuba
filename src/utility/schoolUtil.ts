@@ -69,6 +69,11 @@ export class schoolUtil {
       // })
     );
   };
+  public static removeCurrentClass = () => {
+    const api = ServiceConfig.getI().apiHandler;
+    api.currentClass = undefined;
+    localStorage.removeItem(CURRENT_CLASS);
+  };
   public static getCurrentSchool(): TableTypes<"school"> | undefined {
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentSchool) return api.currentSchool;
