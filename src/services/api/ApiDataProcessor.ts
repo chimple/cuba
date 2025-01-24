@@ -1,10 +1,11 @@
 import { DBSQLiteValues } from '@capacitor-community/sqlite';
-import { lessonChapterInterface } from '../types/ApiDataProcessorTypes';
+import { ILessonChapterInterface } from '../interface/ApiDataProcessorTypes';
+
 export default class ApiDataProcessor {
   public static getLessonFromChapterDataProcessor(
     res: DBSQLiteValues | undefined
-  ): lessonChapterInterface {
-    const data: lessonChapterInterface = {
+  ): ILessonChapterInterface {
+    const data: ILessonChapterInterface = {
       lesson: [],
       course: [],
     };

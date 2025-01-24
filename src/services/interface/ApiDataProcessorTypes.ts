@@ -1,6 +1,6 @@
 import { TableTypes } from '../../common/constants';
 
-export interface lessonChapterInterface {
+export interface ILessonChapterInterface {
   lesson: TableTypes<'lesson'>[];
   course: TableTypes<'course'>[];
 }
