@@ -64,6 +64,7 @@ export class SqliteApi implements ServiceApi {
     return SqliteApi.i;
   }
 
+  // No need to doing dataProcessor 
   private async init() {
     SupabaseApi.getInstance();
     const platform = Capacitor.getPlatform();
@@ -168,6 +169,7 @@ export class SqliteApi implements ServiceApi {
     return this._db;
   }
 
+  // data setup
   private async setUpDatabase() {
     console.log('🚀 ~ SqliteApi ~ setUpDatabase ~ setUpDatabase:');
     if (!this._db || !this._sqlite) return;
@@ -281,6 +283,7 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
+  // no need to move 
   private async executeQuery(
     statement: string,
     values?: any[] | undefined,
@@ -293,6 +296,7 @@ export class SqliteApi implements ServiceApi {
     return res;
   }
 
+  // no need to change and move 
   private async pullChanges(tableNames: TABLES[]) {
     if (!this._db) return;
     const tables = "'" + tableNames.join("', '") + "'";
@@ -352,9 +356,11 @@ export class SqliteApi implements ServiceApi {
       }
     }
   }
+  // PRAGMA data table
   async getTableColumns(tableName: string): Promise<string[] | undefined> {
     const query = `PRAGMA table_info(${tableName})`;
     const result = await this._db?.query(query);
+    
     return result?.values?.map((row: any) => row.name);
   }
 
@@ -394,6 +400,7 @@ export class SqliteApi implements ServiceApi {
     return true;
   }
 
+  // sync upadte data 
   async syncDbNow(
     tableNames: TABLES[] = Object.values(TABLES),
     refreshTables: TABLES[] = []
@@ -1020,6 +1027,7 @@ export class SqliteApi implements ServiceApi {
       console.log('🚀 ~ SqliteApi ~ deleteProfile ~ error:', error);
     }
   }
+
   async getCourseByUserGradeId(
     gradeDocId: string | null,
     boardDocId: string | null
@@ -1049,6 +1057,7 @@ export class SqliteApi implements ServiceApi {
     }
 
     const gradeLevel = isGrade1 ? grade1 : isGrade2 ? grade2 : gradeDocId;
+    
     const gradeCourses = await this.getCoursesByGrade(gradeLevel);
     const curriculumCourses = gradeCourses.filter(
       (course: TableTypes<'course'>) => {
@@ -1096,6 +1105,7 @@ export class SqliteApi implements ServiceApi {
     console.log('🚀 ~ SqliteApi ~ getAllCurriculums ~ res:', res);
     return res?.values ?? [];
   }
+
   async getAllGrades(): Promise<TableTypes<'grade'>[]> {
     const res = await this._db?.query('select * from ' + TABLES.Grade);
     return res?.values ?? [];
@@ -1105,9 +1115,11 @@ export class SqliteApi implements ServiceApi {
     const res = await this._db?.query(
       `select * from ${TABLES.Grade} where id = "${id}"`
     );
+
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
+
   async getGradesByIds(gradeIds: string[]): Promise<TableTypes<'grade'>[]> {
     if (!gradeIds || gradeIds.length === 0) {
       return [];
@@ -1135,6 +1147,7 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
+
   async getCurriculumsByIds(
     ids: string[]
   ): Promise<TableTypes<'curriculum'>[]> {
@@ -1164,8 +1177,10 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
+  // pending data
   async subscribeToClassTopic(): Promise<void> {
     var students: TableTypes<'user'>[] = await this.getParentStudentProfiles();
+
     for (const student of students) {
       const linkedData = await this.getStudentClassesAndSchools(student.id);
       if (
@@ -1185,16 +1200,16 @@ export class SqliteApi implements ServiceApi {
     if (!this._db) throw 'Db is not initialized';
     const authHandler = ServiceConfig.getI()?.authHandler;
     const currentUser = await authHandler?.getCurrentUser();
-    if (!currentUser) throw 'User is not Logged in';
-    const query = `
-  SELECT *
-  FROM ${TABLES.ParentUser} AS parent
-  JOIN ${TABLES.User} AS student ON parent.student_id = student.id
-  WHERE parent.parent_id = "${currentUser.id}";
-`;
-    const res = await this._db.query(query);
-    return res.values ?? [];
-  }
+        if (!currentUser) throw 'User is not Logged in';
+        const query = `
+      SELECT *
+      FROM ${TABLES.ParentUser} AS parent
+      JOIN ${TABLES.User} AS student ON parent.student_id = student.id
+      WHERE parent.parent_id = "${currentUser.id}";
+    `;
+        const res = await this._db.query(query);
+        return res.values ?? [];
+      }
 
   get currentStudent(): TableTypes<'user'> | undefined {
     return this._currentStudent;
@@ -1314,6 +1329,7 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
 
+  // its working no need to move  
   async getCoursesForParentsStudent(
     studentId: string
   ): Promise<TableTypes<'course'>[]> {
@@ -1431,16 +1447,19 @@ export class SqliteApi implements ServiceApi {
     return gradeMap as any;
   }
 
+  // not impletment 
   getAvatarInfo(): Promise<AvatarObj | undefined> {
     throw new Error('Method not implemented.');
   }
 
+  // not impletment 
   getLessonResultsForStudent(
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined> {
     throw new Error('Method not implemented.');
   }
 
+  // 
   async getLiveQuizLessons(
     classId: string,
     studentId: string
@@ -1912,9 +1931,11 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
+
+  // statudent result data
   async getStudentResultInMap(
     studentId: string
-  ): Promise<{ [lessonDocId: string]: TableTypes<'result'> }> {
+  ): Promise<{ [lessonDocId: string]: TableTypes<'result'>}> {
     const query = `
     SELECT *
     FROM ${TABLES.Result}
@@ -1927,13 +1948,7 @@ export class SqliteApi implements ServiceApi {
   );
     `;
     const res = await this._db?.query(query);
-    console.log('🚀 ~ SqliteApi ~ getStudentResultInMap ~ res:', res?.values);
-    if (!res || !res.values || res.values.length < 1) return {};
-    const resultMap = {};
-    for (const data of res.values) {
-      resultMap[data.lesson_id] = data;
-    }
-    return resultMap;
+     return ApiDataProcessor.dataProcessorStudentResultInMap(res);
   }
 
   async getClassById(id: string): Promise<TableTypes<'class'> | undefined> {
@@ -1965,6 +1980,7 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return false;
     return true;
   }
+
   async getPendingAssignments(
     classId: string,
     studentId: string
@@ -1977,8 +1993,7 @@ export class SqliteApi implements ServiceApi {
     WHERE a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL and a.type !='liveQuiz';
     `;
     const res = await this._db?.query(query);
-    if (!res || !res.values || res.values.length < 1) return [];
-    return res.values;
+    return res?.values ?? [];
   }
 
   async getSchoolsForUser(
@@ -2078,10 +2093,13 @@ export class SqliteApi implements ServiceApi {
     this._currentMode = value;
   }
 
+  // not move 
   async isUserTeacher(userId: string): Promise<boolean> {
     const schools = await this.getSchoolsForUser(userId);
     return schools.length > 0;
   }
+
+
   async getClassesForSchool(
     schoolId: string,
     userId: string
@@ -2097,7 +2115,7 @@ export class SqliteApi implements ServiceApi {
     AND c.is_deleted = 0
   `;
     const res = await this._db?.query(query);
-
+    
     if (res && res.values && res.values.length > 0) {
       const teacherClasses = res.values.map((classData) => classData);
       return teacherClasses.length > 0 ? teacherClasses : [];
@@ -2132,6 +2150,7 @@ export class SqliteApi implements ServiceApi {
     const res = await this._db?.query(query, [classId]);
     return res?.values ?? [];
   }
+
   async getCoursesBySchoolId(
     schoolId: string
   ): Promise<TableTypes<'school_course'>[]> {
@@ -2217,6 +2236,7 @@ export class SqliteApi implements ServiceApi {
       console.error('Error removing courses from school_course', error);
     }
   }
+  
   async deleteUserFromClass(userId: string): Promise<void> {
     try {
       await this.executeQuery(
@@ -2472,7 +2492,7 @@ export class SqliteApi implements ServiceApi {
 
       // Execute the query
       const currentUserResult = await this._db.query(currentStudentQuery);
-
+      
       // Handle case where no data is returned
       if (!currentUserResult.values) {
         return;
@@ -2513,6 +2533,7 @@ export class SqliteApi implements ServiceApi {
       });
 
       return leaderBoardList;
+
     } catch (error) {
       console.error(
         'Error in getLeaderboardStudentResultFromB2CCollection: ',
@@ -2573,7 +2594,7 @@ export class SqliteApi implements ServiceApi {
     WHERE c.id='${chapterId}' and l.id = '${lessonId}'
     `;
     const res = await this._db?.query(query);
-    return ApiDataProcessor.getLessonFromChapterDataProcessor(res);
+    return ApiDataProcessor.dataProcessorLessonFromChapter(res);
   }
 
   async getCoursesByGrade(gradeDocId: any): Promise<TableTypes<'course'>[]> {
