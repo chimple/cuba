@@ -1,0 +1,24 @@
+.rounded-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.common-toggle-toggle-label {
+  font-size: var(--text-size);
+  color: var(--text-color);
+  font-family: "BalooRegular";
+  margin: 0 1.5vw;
+}
+
+.common-toggle-custom-rounded-toggle {
+  --handle-width: 16px;
+  --handle-height: 16px;
+  --handle-background: #7c5db0;
+  --background: white;
+  --background-checked: #7c5db0;
+  border-radius: 50px;
+  border: 1px solid #7c5db0;
+  width: clamp(40px, 1.5vw, 60px);
+  height: clamp(20px, 1.5vh, 30px);
+}

@@ -10,9 +10,11 @@ import {
   DOMAIN,
   EVENTS,
   LANGUAGE,
+  MODES,
   NUMBER_REGEX,
   PAGES,
   TableTypes,
+  USER_DATA,
 } from "../common/constants";
 import { Capacitor } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -38,6 +40,7 @@ import {
   IoSchoolOutline,
 } from "react-icons/io5";
 import { RoleType } from "../interface/modelInterfaces";
+import { schoolUtil } from "../utility/schoolUtil";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -55,6 +58,7 @@ const Login: React.FC = () => {
   const [verificationCode, setVerificationCode] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState<any>("");
   //const [parentName, setParentName] = useState<any>("");
+  const api = ServiceConfig.getI().apiHandler;
 
   const [recaptchaVerifier, setRecaptchaVerifier] =
     useState<RecaptchaVerifier>();
@@ -317,7 +321,42 @@ const Login: React.FC = () => {
       // window.recaptchaVerifier.clear();
     }
   };
-
+  async function getSchoolsForUser(user: TableTypes<"user">) {
+    const userSchools = await api.getSchoolsForUser(user.id);
+    if (userSchools && userSchools.length > 0) {
+      return userSchools;
+    }
+    return [];
+  }
+  async function redirectUser(
+    user: TableTypes<"user">,
+    userSchools: {
+      school: TableTypes<"school">;
+      role: RoleType;
+    }[]
+  ) {
+    if (userSchools.length > 0) {
+      if (userSchools?.length === 1) {
+        Util.setCurrentSchool(userSchools[0].school, userSchools[0].role);
+        const tempClasses = await api.getClassesForSchool(
+          userSchools[0].school.id,
+          user?.id!
+        );
+        if (tempClasses) Util.setCurrentClass(tempClasses[0]);
+        schoolUtil.setCurrMode(MODES.TEACHER);
+        history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+      } else {
+        schoolUtil.setCurrMode(MODES.TEACHER);
+        history.replace(PAGES.DISPLAY_SCHOOLS);
+      }
+    } else {
+      schoolUtil.setCurrMode(MODES.PARENT);
+      const students = await api.getParentStudentProfiles();
+      if (!!students && students.length == 0) {
+        history.replace(PAGES.CREATE_STUDENT);
+      } else history.replace(PAGES.DISPLAY_STUDENT);
+    }
+  }
   const onVerificationCodeSubmit = async () => {
     try {
       setIsLoading(true);
@@ -340,14 +379,14 @@ const Login: React.FC = () => {
       console.log("login User Data ", res, userData);
 
       // if (res.isUserExist) {
-        setIsLoading(false);
-        setIsInitialLoading(false);
-        history.replace(PAGES.SELECT_MODE);
-        localStorage.setItem(CURRENT_USER, JSON.stringify(res.user));
-        console.log("isUserExist", localStorage.getItem(CURRENT_USER));
+      setIsLoading(false);
+      setIsInitialLoading(false);
+      localStorage.setItem(CURRENT_USER, JSON.stringify(res.user));
+      const userSchools = await getSchoolsForUser(res.user.user);
+      await redirectUser(res.user.user, userSchools);
 
-        // setShowNameInput(true);
-      // } 
+      // setShowNameInput(true);
+      // }
       // else if (!res.isUserExist) {
       //   setIsLoading(false);
       //   let phoneAuthResult = await FirebaseAuth.i.createPhoneAuthUser(
@@ -359,7 +398,7 @@ const Login: React.FC = () => {
       //     localStorage.setItem(CURRENT_USER, JSON.stringify(phoneAuthResult));
       //     console.log("new user", localStorage.getItem(CURRENT_USER));
       //   }
-      // } 
+      // }
       // else {
       //   setIsLoading(false);
 
@@ -453,7 +492,7 @@ const Login: React.FC = () => {
       if (result) {
         setIsLoading(false);
         setIsInitialLoading(false);
-        history.replace(PAGES.SELECT_MODE);
+        // history.replace(PAGES.SELECT_MODE);
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
       } else {
         setStudentCredentialLogin(true);
@@ -676,7 +715,11 @@ const Login: React.FC = () => {
                           setIsLoading(false);
                           setIsInitialLoading(false);
                           // history.replace(PAGES.DISPLAY_STUDENT);
-                          history.replace(PAGES.SELECT_MODE);
+                          const user = JSON.parse(
+                            localStorage.getItem(USER_DATA)!
+                          );
+                          const userSchools = await getSchoolsForUser(user);
+                          await redirectUser(user, userSchools);
                           localStorage.setItem(
                             CURRENT_USER,
                             JSON.stringify(result)
@@ -973,7 +1016,14 @@ const Login: React.FC = () => {
           </div>
         ) : null}
       </div>
-      <Loading isLoading={isLoading || sentOtpLoading} msg={isInitialLoading ? "Please wait.....Login in progress. This may take a moment." : ""}/>
+      <Loading
+        isLoading={isLoading || sentOtpLoading}
+        msg={
+          isInitialLoading
+            ? "Please wait.....Login in progress. This may take a moment."
+            : ""
+        }
+      />
     </IonPage>
   );
 };

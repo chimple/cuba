@@ -244,7 +244,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-            new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -1109,7 +1109,7 @@ export class SqliteApi implements ServiceApi {
   }
   async getGradesByIds(gradeIds: string[]): Promise<TableTypes<"grade">[]> {
     if (!gradeIds || gradeIds.length === 0) {
-      return []; 
+      return [];
     }
     // Format the IDs for the SQL query
     const formattedIds = gradeIds.map((id) => `"${id}"`).join(", ");
@@ -1117,14 +1117,14 @@ export class SqliteApi implements ServiceApi {
     const res = await this._db?.query(
       `SELECT * FROM ${TABLES.Grade} WHERE id IN (${formattedIds})`
     );
-  
+
     if (!res || !res.values || res.values.length === 0) {
       return []; // Return an empty array if no grades are found
     }
     // Return the retrieved grades
     return res.values;
   }
-  
+
   async getCurriculumById(
     id: string
   ): Promise<TableTypes<"curriculum"> | undefined> {
@@ -1140,24 +1140,23 @@ export class SqliteApi implements ServiceApi {
     if (!ids || ids.length === 0) {
       return [];
     }
-  
+
     // Format the IDs for the SQL query
     const formattedIds = ids.map((id) => `"${id}"`).join(", ");
-  
+
     // Construct and execute the query
     const res = await this._db?.query(
       `SELECT * FROM ${TABLES.Curriculum} WHERE id IN (${formattedIds})`
     );
-  
+
     if (!res || !res.values || res.values.length < 1) {
       return [];
     }
-  
+
     // Assuming you need to return the first item or an empty array
     return res.values;
   }
-  
-  
+
   async getAllLanguages(): Promise<TableTypes<"language">[]> {
     const res = await this._db?.query("select * from " + TABLES.Language);
     console.log("🚀 ~ SqliteApi ~ getAllLanguages ~ res:", res);
@@ -2016,6 +2015,7 @@ export class SqliteApi implements ServiceApi {
           ) AS school
           FROM ${TABLES.School} s
           WHERE s.id = "${schoolId}" AND s.is_deleted = 0
+          ORDER BY s.name ASC; 
         `;
           const schoolRes = await this._db?.query(query);
           if (schoolRes && schoolRes.values && schoolRes.values.length > 0) {
@@ -2046,7 +2046,8 @@ export class SqliteApi implements ServiceApi {
     WHERE su.user_id = "${userId}" 
     AND su.role != "${RoleType.PARENT}" 
     AND su.is_deleted = 0 
-    AND s.is_deleted = 0
+    AND s.is_deleted = 0 
+    ORDER BY s.name ASC; 
   `;
     const schoolUserRes = await this._db?.query(query);
 
@@ -3757,7 +3758,7 @@ order by
           user_doc.curriculum_id,
           user_doc.language_id,
           user_doc.created_at,
-          user_doc.updated_at
+          user_doc.updated_at,
         ]
       );
     }
@@ -4064,7 +4065,7 @@ order by
           user_doc.curriculum_id,
           user_doc.language_id,
           user_doc.created_at,
-          user_doc.updated_at
+          user_doc.updated_at,
         ]
       );
     }
