@@ -3,9 +3,25 @@ import {
   IAssignmentsByAssignerAndClass,
   ILessonChapterInterface,
   IStudentClassesAndSchools,
+  IClassStudentResultInMap,
 } from "../interface/ApiDataProcessorTypes";
 
 export default class ApiDataProcessor {
+  public static dataProcessorStudentResultInMap(
+    res: DBSQLiteValues | undefined
+  ): IClassStudentResultInMap {
+    const data: IClassStudentResultInMap = {};
+
+    if (!res || !res.values || res.values.length < 1) {
+      return data;
+    }
+    const resultMap = {};
+    for (const data of res.values) {
+      resultMap[data.lesson_id] = data;
+    }
+    return data;
+  }
+
   public static dataProcessorLessonFromChapter(
     res: DBSQLiteValues | undefined
   ): ILessonChapterInterface {
