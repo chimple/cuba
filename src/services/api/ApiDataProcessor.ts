@@ -1,11 +1,63 @@
 import { DBSQLiteValues } from "@capacitor-community/sqlite";
 import {
+  ClassStudentResultInMap,
+  IDifferentGradesForCourseInterface,
   IAssignmentsByAssignerAndClass,
   ILessonChapterInterface,
   IStudentClassesAndSchools,
 } from "../interface/ApiDataProcessorTypes";
 
 export default class ApiDataProcessor {
+
+  public static getDataStudentResultInMap(
+    res: DBSQLiteValues | undefined
+  ): ClassStudentResultInMap {
+    const data: ClassStudentResultInMap = {};
+
+    if (!res || !res.values || res.values.length < 1) {
+      return data;
+    }
+    const resultMap = {};
+    for (const data of res.values) {
+      resultMap[data.lesson_id] = data;
+    }
+    return data;
+  }
+
+  public static dataProcessorDifferentGradesForCourse(
+    res: DBSQLiteValues | undefined
+  ): IDifferentGradesForCourseInterface {
+    const data: IDifferentGradesForCourseInterface = {
+      grades: [],
+      courses: [],
+    };
+    // const gradeMap: {
+    //   grades: TableTypes<"grade">[];
+    //   courses: TableTypes<"course">[];
+    // } = { grades: [], courses: [] };
+    
+    for (const data of res?.values ?? []) {
+      const grade = JSON.parse(data.grade);
+      delete data.grade;
+      const course = data;
+      const gradeAlreadyExists = data.grades.find(
+        (_grade) => _grade.id === grade.id
+      );
+      if (gradeAlreadyExists) continue;
+      data.courses.push(course);
+      data.grades.push(grade);
+    }
+
+    data.grades.sort((a, b) => {
+      //Number.MAX_SAFE_INTEGER is using when sortIndex is not found GRADES (i.e it gives default value)
+      const sortIndexA = a.sort_index || Number.MAX_SAFE_INTEGER;
+      const sortIndexB = b.sort_index || Number.MAX_SAFE_INTEGER;
+
+      return sortIndexA - sortIndexB;
+    });
+    return data as any;
+  }
+
   public static dataProcessorLessonFromChapter(
     res: DBSQLiteValues | undefined
   ): ILessonChapterInterface {

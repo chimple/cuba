@@ -1405,30 +1405,7 @@ export class SqliteApi implements ServiceApi {
 
   `;
     const res = await this._db?.query(query);
-    const gradeMap: {
-      grades: TableTypes<"grade">[];
-      courses: TableTypes<"course">[];
-    } = { grades: [], courses: [] };
-    for (const data of res?.values ?? []) {
-      const grade = JSON.parse(data.grade);
-      delete data.grade;
-      const course = data;
-      const gradeAlreadyExists = gradeMap.grades.find(
-        (_grade) => _grade.id === grade.id
-      );
-      if (gradeAlreadyExists) continue;
-      gradeMap.courses.push(course);
-      gradeMap.grades.push(grade);
-    }
-
-    gradeMap.grades.sort((a, b) => {
-      //Number.MAX_SAFE_INTEGER is using when sortIndex is not found GRADES (i.e it gives default value)
-      const sortIndexA = a.sort_index || Number.MAX_SAFE_INTEGER;
-      const sortIndexB = b.sort_index || Number.MAX_SAFE_INTEGER;
-
-      return sortIndexA - sortIndexB;
-    });
-    return gradeMap as any;
+    return ApiDataProcessor.dataProcessorDifferentGradesForCourse(res);
   }
 
   getAvatarInfo(): Promise<AvatarObj | undefined> {
@@ -1927,13 +1904,8 @@ export class SqliteApi implements ServiceApi {
   );
     `;
     const res = await this._db?.query(query);
-    console.log("🚀 ~ SqliteApi ~ getStudentResultInMap ~ res:", res?.values);
-    if (!res || !res.values || res.values.length < 1) return {};
-    const resultMap = {};
-    for (const data of res.values) {
-      resultMap[data.lesson_id] = data;
-    }
-    return resultMap;
+    return ApiDataProcessor.getDataStudentResultInMap(res);
+    
   }
 
   async getClassById(id: string): Promise<TableTypes<"class"> | undefined> {
@@ -1981,6 +1953,7 @@ export class SqliteApi implements ServiceApi {
     return res.values;
   }
 
+  // working 
   async getSchoolsForUser(
     userId: string
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
