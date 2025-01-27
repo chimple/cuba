@@ -492,7 +492,7 @@ const Login: React.FC = () => {
       if (result) {
         setIsLoading(false);
         setIsInitialLoading(false);
-        // history.replace(PAGES.SELECT_MODE);
+        history.replace(PAGES.SELECT_MODE);
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
       } else {
         setStudentCredentialLogin(true);

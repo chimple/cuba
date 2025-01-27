@@ -6,7 +6,7 @@ const ToggleButton: React.FC<{
   flag?: number;
   title: string;
   titleAlignment?: "left" | "center" | "right";
-  layout?: "horizontal" | "vertical"; // New prop to control layout
+  layout?: "horizontal" | "vertical";
   onIonChangeClick: (event: CustomEvent<ToggleChangeEventDetail<any>>) => void;
 }> = ({
   flag,
