@@ -64,7 +64,7 @@ export class SqliteApi implements ServiceApi {
     return SqliteApi.i;
   }
 
-  // No need to doing dataProcessor 
+  // No need to doing dataProcessor
   private async init() {
     SupabaseApi.getInstance();
     const platform = Capacitor.getPlatform();
@@ -283,7 +283,7 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
-  // no need to move 
+  // no need to move
   private async executeQuery(
     statement: string,
     values?: any[] | undefined,
@@ -296,7 +296,7 @@ export class SqliteApi implements ServiceApi {
     return res;
   }
 
-  // no need to change and move 
+  // no need to change and move
   private async pullChanges(tableNames: TABLES[]) {
     if (!this._db) return;
     const tables = "'" + tableNames.join("', '") + "'";
@@ -360,7 +360,7 @@ export class SqliteApi implements ServiceApi {
   async getTableColumns(tableName: string): Promise<string[] | undefined> {
     const query = `PRAGMA table_info(${tableName})`;
     const result = await this._db?.query(query);
-    
+
     return result?.values?.map((row: any) => row.name);
   }
 
@@ -400,7 +400,7 @@ export class SqliteApi implements ServiceApi {
     return true;
   }
 
-  // sync upadte data 
+  // sync upadte data
   async syncDbNow(
     tableNames: TABLES[] = Object.values(TABLES),
     refreshTables: TABLES[] = []
@@ -1057,7 +1057,7 @@ export class SqliteApi implements ServiceApi {
     }
 
     const gradeLevel = isGrade1 ? grade1 : isGrade2 ? grade2 : gradeDocId;
-    
+
     const gradeCourses = await this.getCoursesByGrade(gradeLevel);
     const curriculumCourses = gradeCourses.filter(
       (course: TableTypes<'course'>) => {
@@ -1105,7 +1105,6 @@ export class SqliteApi implements ServiceApi {
     console.log('🚀 ~ SqliteApi ~ getAllCurriculums ~ res:', res);
     return res?.values ?? [];
   }
-
   async getAllGrades(): Promise<TableTypes<'grade'>[]> {
     const res = await this._db?.query('select * from ' + TABLES.Grade);
     return res?.values ?? [];
@@ -1119,7 +1118,6 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
-
   async getGradesByIds(gradeIds: string[]): Promise<TableTypes<'grade'>[]> {
     if (!gradeIds || gradeIds.length === 0) {
       return [];
@@ -1180,7 +1178,6 @@ export class SqliteApi implements ServiceApi {
   // pending data
   async subscribeToClassTopic(): Promise<void> {
     var students: TableTypes<'user'>[] = await this.getParentStudentProfiles();
-
     for (const student of students) {
       const linkedData = await this.getStudentClassesAndSchools(student.id);
       if (
@@ -1200,16 +1197,16 @@ export class SqliteApi implements ServiceApi {
     if (!this._db) throw 'Db is not initialized';
     const authHandler = ServiceConfig.getI()?.authHandler;
     const currentUser = await authHandler?.getCurrentUser();
-        if (!currentUser) throw 'User is not Logged in';
-        const query = `
-      SELECT *
-      FROM ${TABLES.ParentUser} AS parent
-      JOIN ${TABLES.User} AS student ON parent.student_id = student.id
-      WHERE parent.parent_id = "${currentUser.id}";
-    `;
-        const res = await this._db.query(query);
-        return res.values ?? [];
-      }
+    if (!currentUser) throw 'User is not Logged in';
+    const query = `
+  SELECT *
+  FROM ${TABLES.ParentUser} AS parent
+  JOIN ${TABLES.User} AS student ON parent.student_id = student.id
+  WHERE parent.parent_id = "${currentUser.id}";
+`;
+    const res = await this._db.query(query);
+    return res.values ?? [];
+  }
 
   get currentStudent(): TableTypes<'user'> | undefined {
     return this._currentStudent;
@@ -1329,7 +1326,7 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
 
-  // its working no need to move  
+  // its working no need to move
   async getCoursesForParentsStudent(
     studentId: string
   ): Promise<TableTypes<'course'>[]> {
@@ -1447,19 +1444,19 @@ export class SqliteApi implements ServiceApi {
     return gradeMap as any;
   }
 
-  // not impletment 
+  // not impletment
   getAvatarInfo(): Promise<AvatarObj | undefined> {
     throw new Error('Method not implemented.');
   }
 
-  // not impletment 
+  // not impletment
   getLessonResultsForStudent(
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined> {
     throw new Error('Method not implemented.');
   }
 
-  // 
+  //
   async getLiveQuizLessons(
     classId: string,
     studentId: string
@@ -1931,11 +1928,10 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
-
   // statudent result data
   async getStudentResultInMap(
     studentId: string
-  ): Promise<{ [lessonDocId: string]: TableTypes<'result'>}> {
+  ): Promise<{ [lessonDocId: string]: TableTypes<'result'> }> {
     const query = `
     SELECT *
     FROM ${TABLES.Result}
@@ -1948,7 +1944,7 @@ export class SqliteApi implements ServiceApi {
   );
     `;
     const res = await this._db?.query(query);
-     return ApiDataProcessor.dataProcessorStudentResultInMap(res);
+    return ApiDataProcessor.dataProcessorStudentResultInMap(res);
   }
 
   async getClassById(id: string): Promise<TableTypes<'class'> | undefined> {
@@ -2093,12 +2089,11 @@ export class SqliteApi implements ServiceApi {
     this._currentMode = value;
   }
 
-  // not move 
+  // not move
   async isUserTeacher(userId: string): Promise<boolean> {
     const schools = await this.getSchoolsForUser(userId);
     return schools.length > 0;
   }
-
 
   async getClassesForSchool(
     schoolId: string,
@@ -2115,7 +2110,7 @@ export class SqliteApi implements ServiceApi {
     AND c.is_deleted = 0
   `;
     const res = await this._db?.query(query);
-    
+
     if (res && res.values && res.values.length > 0) {
       const teacherClasses = res.values.map((classData) => classData);
       return teacherClasses.length > 0 ? teacherClasses : [];
@@ -2236,7 +2231,7 @@ export class SqliteApi implements ServiceApi {
       console.error('Error removing courses from school_course', error);
     }
   }
-  
+
   async deleteUserFromClass(userId: string): Promise<void> {
     try {
       await this.executeQuery(
@@ -2492,7 +2487,7 @@ export class SqliteApi implements ServiceApi {
 
       // Execute the query
       const currentUserResult = await this._db.query(currentStudentQuery);
-      
+
       // Handle case where no data is returned
       if (!currentUserResult.values) {
         return;
@@ -2533,7 +2528,6 @@ export class SqliteApi implements ServiceApi {
       });
 
       return leaderBoardList;
-
     } catch (error) {
       console.error(
         'Error in getLeaderboardStudentResultFromB2CCollection: ',
@@ -2542,9 +2536,6 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
-  // till here
-
-  //No data Manipulations
   async getAllLessonsForCourse(
     courseId: string
   ): Promise<TableTypes<'lesson'>[]> {
@@ -2607,28 +2598,25 @@ export class SqliteApi implements ServiceApi {
         `SELECT * FROM ${TABLES.Course} WHERE name = "Digital Skills"`
       );
 
-      const courses = [
-        ...(gradeCoursesRes?.values ?? []),
-        ...(puzzleCoursesRes?.values ?? []),
-      ];
-      return courses;
+      return ApiDataProcessor.dataProcessorCoursesByGrade(
+        gradeCoursesRes,
+        puzzleCoursesRes
+      );
     } catch (error) {
       console.error('Error fetching courses by grade:', error);
       return [];
     }
   }
 
-  //No data Manipulations
   async getAllCourses(): Promise<TableTypes<'course'>[]> {
     const res = await this._db?.query(`select * from ${TABLES.Course}`);
     return res?.values ?? [];
   }
-  //No data Manipulations
+
   deleteAllUserData(): Promise<void> {
     throw new Error('Method not implemented.');
   }
 
-  //No data Manipulations
   async getCoursesFromLesson(
     lessonId: string
   ): Promise<TableTypes<'course'>[]> {
@@ -2642,45 +2630,46 @@ export class SqliteApi implements ServiceApi {
     const res = await this._db?.query(query);
     return res?.values ?? [];
   }
-  //No data Manipulations
+
   async assignmentListner(
     studentId: string,
     onDataChange: (assignment: TableTypes<'assignment'> | undefined) => void
   ) {
     const handleDataChange = async (
-      assignmet: TableTypes<'assignment'> | undefined
+      assignment: TableTypes<'assignment'> | undefined
     ) => {
-      if (assignmet)
+      if (assignment)
         await this.executeQuery(
           `
           INSERT INTO assignment (id, created_by, starts_at,ends_at,is_class_wise,class_id,school_id,lesson_id,type,created_at,updated_at,is_deleted,chapter_id,course_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
           [
-            assignmet.id,
-            assignmet.created_by,
-            assignmet.starts_at,
-            assignmet.ends_at,
-            assignmet.is_class_wise,
-            assignmet.class_id,
-            assignmet.school_id,
-            assignmet.lesson_id,
-            assignmet.type,
-            assignmet.created_at,
-            assignmet.updated_at,
-            assignmet.is_deleted,
-            assignmet.chapter_id,
-            assignmet.course_id,
+            assignment.id,
+            assignment.created_by,
+            assignment.starts_at,
+            assignment.ends_at,
+            assignment.is_class_wise,
+            assignment.class_id,
+            assignment.school_id,
+            assignment.lesson_id,
+            assignment.type,
+            assignment.created_at,
+            assignment.updated_at,
+            assignment.is_deleted,
+            assignment.chapter_id,
+            assignment.course_id,
           ]
         );
     };
+
     return await this._serverApi.assignmentListner(studentId, handleDataChange);
   }
-  //No data Manipulations
+
   async removeAssignmentChannel() {
     return await this._serverApi.removeAssignmentChannel();
   }
-  //No data Manipulations
+
   async assignmentUserListner(
     studentId: string,
     onDataChange: (
@@ -2712,7 +2701,7 @@ export class SqliteApi implements ServiceApi {
       handleDataChange
     );
   }
-  //No data Manipulations
+
   async liveQuizListener(
     liveQuizRoomDocId: string,
     onDataChange: (roomDoc: TableTypes<'live_quiz_room'> | undefined) => void
@@ -2722,12 +2711,11 @@ export class SqliteApi implements ServiceApi {
       onDataChange
     );
   }
-  //No data Manipulations
+
   async removeLiveQuizChannel() {
     return await this._serverApi.removeLiveQuizChannel();
   }
 
-  //No data Manipulations
   async updateLiveQuiz(
     roomDocId: string,
     studentId: string,
@@ -2744,7 +2732,6 @@ export class SqliteApi implements ServiceApi {
     );
   }
 
-  //No data Manipulations
   async joinLiveQuiz(
     assignmentId: string,
     studentId: string
@@ -2753,7 +2740,6 @@ export class SqliteApi implements ServiceApi {
     return data;
   }
 
-  //No data Manipulations
   async getStudentResultsByAssignmentId(assignmentId: string): Promise<
     {
       result_data: TableTypes<'result'>[];
@@ -2765,7 +2751,6 @@ export class SqliteApi implements ServiceApi {
     return res;
   }
 
-  //No data Manipulations
   async getAssignmentById(
     id: string
   ): Promise<TableTypes<'assignment'> | undefined> {
@@ -2775,7 +2760,7 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
-  //No data Manipulations
+
   async getBadgesByIds(ids: string[]): Promise<TableTypes<'badge'>[]> {
     if (ids.length === 0) return [];
 
@@ -2792,7 +2777,7 @@ export class SqliteApi implements ServiceApi {
       return [];
     }
   }
-  //No data Manipulations
+
   async getStickersByIds(ids: string[]): Promise<TableTypes<'sticker'>[]> {
     if (ids.length === 0) return [];
 
@@ -2808,7 +2793,7 @@ export class SqliteApi implements ServiceApi {
       return [];
     }
   }
-  //No data Manipulations
+
   async getBonusesByIds(ids: string[]): Promise<TableTypes<'lesson'>[]> {
     if (ids.length === 0) return [];
 
@@ -2825,7 +2810,6 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
-  //No data Manipulations
   async getRewardsById(
     id: number,
     periodType: string
@@ -2833,17 +2817,7 @@ export class SqliteApi implements ServiceApi {
     try {
       const query = `SELECT ${periodType} FROM ${TABLES.Reward} WHERE year = ${id}`;
       const data = await this._db?.query(query);
-      if (!data || !data.values || data.values.length === 0) {
-        console.error('No reward found for the given year.');
-        return;
-      }
-      const periodData = JSON.parse(data.values[0][periodType]);
-      try {
-        if (periodData) return periodData;
-      } catch (parseError) {
-        console.error('Error parsing JSON string:', parseError);
-        return undefined;
-      }
+      return ApiDataProcessor.dataProcessorRewardsById(data, periodType);
     } catch (error) {
       console.error('Error fetching reward by ID:', error);
       return undefined;
@@ -2867,6 +2841,7 @@ export class SqliteApi implements ServiceApi {
       return [];
     }
   }
+
   async getUserBadge(userId: string): Promise<TableTypes<'user_badge'>[]> {
     try {
       const query = `select * from ${TABLES.UserBadge} where user_id = "${userId}"`;
@@ -2903,7 +2878,6 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
-  //No data Manipulations
   async updateRewardAsSeen(studentId: string): Promise<void> {
     try {
       const query = `UPDATE ${TABLES.UserSticker} SET is_seen = true WHERE user_id = "${studentId}" AND is_seen = false`;
@@ -2914,7 +2888,7 @@ export class SqliteApi implements ServiceApi {
       throw new Error('Error updating rewards as seen.');
     }
   }
-  //No data Manipulations
+
   async getUserByDocId(
     studentId: string
   ): Promise<TableTypes<'user'> | undefined> {
@@ -2925,7 +2899,6 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
 
-  // method dependency on executeQuery and updatedPushChanges
   async addCourseForParentsStudent(
     courses: TableTypes<'course'>[],
     student: TableTypes<'user'>
@@ -2955,11 +2928,10 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
-  //No data Manipulations
   updateRewardsForStudent(studentId: string, unlockReward: LeaderboardRewards) {
     throw new Error('Method not implemented.');
   }
-  //No data Manipulations
+
   async getChaptersForCourse(
     courseId: string
   ): Promise<TableTypes<'chapter'>[]> {
@@ -2972,7 +2944,6 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
-  //No data Manipulations
   async getPendingAssignmentForLesson(
     lessonId: string,
     classId: string,
@@ -2992,7 +2963,6 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
 
-  //No data Manipulations
   async getFavouriteLessons(userId: string): Promise<TableTypes<'lesson'>[]> {
     const query = `
     SELECT DISTINCT l.*
@@ -3010,13 +2980,6 @@ export class SqliteApi implements ServiceApi {
     classes: TableTypes<'class'>[];
     schools: TableTypes<'school'>[];
   }> {
-    const data: {
-      classes: TableTypes<'class'>[];
-      schools: TableTypes<'school'>[];
-    } = {
-      classes: [],
-      schools: [],
-    };
     const res = await this._db?.query(
       `select c.*,     
       JSON_OBJECT(
@@ -3037,12 +3000,9 @@ export class SqliteApi implements ServiceApi {
       ON c.school_id = s.id
       where user_id = "${userId}" and role = "${RoleType.STUDENT}"`
     );
-    if (!res || !res.values || res.values.length < 1) return data;
-    data.classes = res.values;
-    data.schools = res.values.map((val) => JSON.parse(val.school));
-    return data;
+    return ApiDataProcessor.dataProcessorStudentClassesAndSchools(res);
   }
-  // method dependency on executeQuery and updatedPushChanges
+
   async updateFcmToken(userId: string) {
     const token = await Util.getToken();
     const query = `
@@ -3058,7 +3018,6 @@ export class SqliteApi implements ServiceApi {
     });
   }
 
-  // method dependency on executeQuery and updatedPushChanges
   async createOrUpdateAssignmentCart(
     userId: string,
     lessons: string
@@ -3100,7 +3059,6 @@ export class SqliteApi implements ServiceApi {
     return true;
   }
 
-  // method dependency on executeQuery and updatedPushChanges
   async createAssignment(
     student_list: string[],
     userId: string,
@@ -3216,7 +3174,6 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
-  // method dependency on executeQuery and updatedPushChanges
   async createUserDoc(
     user: TableTypes<'user'>
   ): Promise<TableTypes<'user'> | undefined> {
@@ -3241,7 +3198,6 @@ export class SqliteApi implements ServiceApi {
     return user;
   }
 
-  //No data Manipulations
   async syncDB(): Promise<boolean> {
     try {
       await this.syncDbNow();
@@ -3252,7 +3208,6 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
-  //No data Manipulations
   async getUserAssignmentCart(
     userId: string
   ): Promise<TableTypes<'assignment_cart'> | undefined> {
@@ -3272,20 +3227,9 @@ export class SqliteApi implements ServiceApi {
       WHERE r.student_id = '${studentId}'
     `;
     const res = await this._db?.query(query);
-    let resultMap: Map<string, string> = new Map<string, string>();
-    if (res && res.values) {
-      res.values.forEach((result) => {
-        const courseId = result.course_id;
-        if (!resultMap[courseId]) {
-          resultMap[courseId] = [];
-        }
-        resultMap[courseId].push(result);
-      });
-    }
-    return resultMap;
+    return ApiDataProcessor.dataProcessorStudentProgress(res);
   }
 
-  //No data Manipulations
   async getRecommendedLessons(
     studentId: string,
     classId?: string
@@ -3551,6 +3495,7 @@ order by
       `%${searchString}%`,
       limit,
     ]);
+
     if (nameResults.values) res.push(...nameResults.values);
     console.log('🚀 ~ SqliteApi ~ searchLessons ~ dat:', nameResults);
     const outcomeSearchQuery = `
@@ -3584,22 +3529,13 @@ order by
          JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
          WHERE cl.lesson_id = "${lessonId}"`
       );
-      if (!res || !res.values || res.values.length < 1) return;
-      const classCourseIds = new Set(class_course.map((course) => course.id));
-      const matchedLesson = res.values.find((lesson) =>
-        classCourseIds.has(lesson.course_id)
-      );
-
-      return matchedLesson
-        ? matchedLesson.chapter_id
-        : res.values[0].chapter_id;
+      return ApiDataProcessor.dataProcessorChapterByLesson(res, class_course);
     } catch (error) {
       console.error('Error fetching chapter by IDs:', error);
       return;
     }
   }
 
-  //No data Manipulations
   async getResultByAssignmentIds(
     assignmentIds: string[] // Expect an array of strings
   ): Promise<TableTypes<'result'>[] | undefined> {
@@ -3615,7 +3551,7 @@ order by
     if (!res || !res.values || res.values.length < 1) return;
     return res.values;
   }
-  //No data Manipulations
+
   async getLessonsBylessonIds(
     lessonIds: string[] // Expect an array of strings
   ): Promise<TableTypes<'lesson'>[] | undefined> {
@@ -3632,7 +3568,6 @@ order by
     return res.values;
   }
 
-  //No data Manipulations
   async getStudentLastTenResults(
     studentId: string,
     courseId: string,
@@ -3669,7 +3604,7 @@ order by
     );
     return res?.values ?? [];
   }
-  //No data Manipulations
+
   async getAssignmentOrLiveQuizByClassByDate(
     classId: string,
     courseId: string,
@@ -3698,7 +3633,6 @@ order by
     return res.values;
   }
 
-  //No data Manipulations
   async getStudentResultByDate(
     studentId: string,
     course_id: string,
@@ -3718,7 +3652,6 @@ order by
     return res.values;
   }
 
-  //No data Manipulations
   async getLastAssignmentsForRecommendations(
     classId: string
   ): Promise<TableTypes<'assignment'>[] | undefined> {
@@ -3739,7 +3672,6 @@ order by
     return res.values;
   }
 
-  //No data Manipulations
   async getTeachersForClass(
     classId: string
   ): Promise<TableTypes<'user'>[] | undefined> {
@@ -3753,12 +3685,10 @@ order by
     return res?.values ?? [];
   }
 
-  //No data Manipulations
   async getUserByEmail(email: string): Promise<TableTypes<'user'> | undefined> {
     return this._serverApi.getUserByEmail(email);
   }
 
-  //No data Manipulations
   async getUserByPhoneNumber(
     phone: string
   ): Promise<TableTypes<'user'> | undefined> {
@@ -3886,21 +3816,9 @@ order by
   `;
 
     const res = await this._db?.query(query);
-    const assignments = res?.values ?? [];
-
-    console.log('assignments..', assignments);
-
-    const classWiseAssignments = assignments.filter(
-      (assignment) => assignment.is_class_wise
-    );
-    const individualAssignments = assignments.filter(
-      (assignment) => !assignment.is_class_wise
-    );
-
-    return { classWiseAssignments, individualAssignments };
+    return ApiDataProcessor.dataProcessorAssignmentsByAssignerAndClass(res);
   }
 
-  // Note: simple method just checking the response we don't have any logic manipulations
   async getTeacherJoinedDate(
     userId: string,
     classId: string
@@ -3926,7 +3844,6 @@ order by
     return undefined;
   }
 
-  // ! Need to ask
   async getAssignedStudents(assignmentId: string): Promise<string[]> {
     //getting the student ids for the individual assignments
     const query = `
@@ -3937,14 +3854,7 @@ order by
 
     try {
       const res = await this._db?.query(query);
-      let userIds: string[] = [];
-
-      if (res?.values) {
-        userIds = res?.values.map((row: { user_id: string }) => row.user_id);
-      }
-      console.log('userids..', userIds);
-
-      return userIds ?? [];
+      return ApiDataProcessor.dataProcessorAssignedStudents(res);
     } catch (error) {
       console.error('Error fetching user IDs:', error);
       return [];
@@ -3983,7 +3893,6 @@ order by
     }
   }
 
-  // Note: This is also dependent method
   async getClassCodeById(class_id: string): Promise<number | undefined> {
     if (!class_id) return;
     const currentDate = new Date().toISOString(); // Convert to a proper format for SQL (ISO 8601)
@@ -4002,7 +3911,6 @@ order by
     }
   }
 
-  // Note: will not separate out this method because it dependent here
   async createClassCode(classId: string): Promise<number> {
     if (!classId) {
       throw new Error('Class ID is required to create a class code.');
@@ -4019,7 +3927,7 @@ order by
     this.syncDB();
     return classCode;
   }
-  // Note: simple method just checking the response we don't have any logic manipulations
+
   async getResultByChapterByDate(
     chapter_id: string,
     course_id: string,
@@ -4038,7 +3946,7 @@ order by
     if (!res || !res.values || res.values.length < 1) return;
     return res.values;
   }
-  // Note: simple method just checking the response we don't have any logic manipulations
+
   async getPrincipalsForSchool(
     schoolId: string
   ): Promise<TableTypes<'user'>[] | undefined> {
@@ -4052,7 +3960,6 @@ order by
     return res?.values ?? [];
   }
 
-  // Note: simple method just checking the response we don't have any logic manipulations
   async getCoordinatorsForSchool(
     schoolId: string
   ): Promise<TableTypes<'user'>[] | undefined> {
@@ -4066,7 +3973,6 @@ order by
     return res?.values ?? [];
   }
 
-  // Note: simple method just checking the response we don't have any logic manipulations
   async getSponsorsForSchool(
     schoolId: string
   ): Promise<TableTypes<'user'>[] | undefined> {
@@ -4080,7 +3986,6 @@ order by
     return res?.values ?? [];
   }
 
-  // Note: will not separate out this method because it dependent here
   async addUserToSchool(
     schoolId: string,
     userId: string,
@@ -4142,7 +4047,6 @@ order by
     }
   }
 
-  // Todo: will not separate out this method because it dependent here
   async deleteUserFromSchool(
     schoolId: string,
     userId: string,
