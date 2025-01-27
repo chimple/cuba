@@ -681,5 +681,6 @@
   "You have selected to remove a subject, would you like to continue?": "You have selected to remove a subject, would you like to continue?",
   "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!": "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!",
   "Your progress stays synced and consistent across all devices.": "Your progress stays synced and consistent across all devices.",
-  "Zebra": "Zebra"
+  "Zebra": "Zebra",
+  "The Subject you have chosen is the last one left and cannot be deleted": "The Subject you have chosen is the last one left and cannot be deleted"
 }
