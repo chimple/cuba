@@ -1,10 +1,10 @@
-import { DBSQLiteValues } from '@capacitor-community/sqlite';
+import { DBSQLiteValues } from "@capacitor-community/sqlite";
 import {
   IAssignmentsByAssignerAndClass,
   ILessonChapterInterface,
   IStudentClassesAndSchools,
   IClassStudentResultInMap,
-} from '../interface/ApiDataProcessorTypes';
+} from "../interface/ApiDataProcessorTypes";
 
 export default class ApiDataProcessor {
   public static dataProcessorStudentResultInMap(
@@ -48,14 +48,14 @@ export default class ApiDataProcessor {
     periodType: string
   ) {
     if (!rewardRes || !rewardRes.values || rewardRes.values.length === 0) {
-      console.error('No reward found for the given year.');
+      console.error("No reward found for the given year.");
       return;
     }
     const periodData = JSON.parse(rewardRes.values[0][periodType]);
     try {
       if (periodData) return periodData;
     } catch (parseError) {
-      console.error('Error parsing JSON string:', parseError);
+      console.error("Error parsing JSON string:", parseError);
       return undefined;
     }
   }
@@ -107,7 +107,7 @@ export default class ApiDataProcessor {
     res: DBSQLiteValues | undefined
   ): IAssignmentsByAssignerAndClass {
     const assignments = res?.values ?? [];
-    console.log('assignments..', assignments);
+    console.log("assignments..", assignments);
     const classWiseAssignments = assignments.filter(
       (assignment) => assignment.is_class_wise
     );
@@ -126,7 +126,7 @@ export default class ApiDataProcessor {
     if (res?.values) {
       userIds = res?.values.map((row: { user_id: string }) => row.user_id);
     }
-    console.log('userids..', userIds);
+    console.log("userids..", userIds);
 
     return userIds;
   }

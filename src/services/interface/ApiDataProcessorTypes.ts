@@ -1,20 +1,20 @@
-import { TableTypes } from '../../common/constants';
+import { TableTypes } from "../../common/constants";
 
 export interface IClassStudentResultInMap {
-  [lessonDocId: string]: TableTypes<'result'>;
+  [lessonDocId: string]: TableTypes<"result">;
 }
 
 export interface ILessonChapterInterface {
-  lesson: TableTypes<'lesson'>[];
-  course: TableTypes<'course'>[];
+  lesson: TableTypes<"lesson">[];
+  course: TableTypes<"course">[];
 }
 
 export interface IStudentClassesAndSchools {
-  classes: TableTypes<'class'>[];
-  schools: TableTypes<'school'>[];
+  classes: TableTypes<"class">[];
+  schools: TableTypes<"school">[];
 }
 
 export interface IAssignmentsByAssignerAndClass {
-  classWiseAssignments: TableTypes<'assignment'>[];
-  individualAssignments: TableTypes<'assignment'>[];
+  classWiseAssignments: TableTypes<"assignment">[];
+  individualAssignments: TableTypes<"assignment">[];
 }
