@@ -606,7 +606,7 @@ const Leaderboard: React.FC = () => {
               onClick={async () => {
                 Util.setCurrentStudent(null);
                 localStorage.removeItem(CURRENT_STUDENT);
-                localStorage.removeItem(CLASS);
+                schoolUtil.removeCurrentClass();
                 // await Util.setCurrentStudent(null);
                 AvatarObj.destroyInstance();
                 const user = await auth.getCurrentUser();

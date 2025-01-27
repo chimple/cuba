@@ -56,6 +56,7 @@ const DisplaySubjects: FC<{}> = () => {
     grades: TableTypes<"grade">[];
     courses: TableTypes<"course">[];
   }>();
+  
   const [currentGrade, setCurrentGrade] = useState<TableTypes<"grade">>();
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
