@@ -43,6 +43,9 @@ const Home: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isStudentLinked, setIsStudentLinked] = useState<boolean>();
   const [refreshKey, setRefreshKey] = useState(0);
+  const [lessonCourseMap, setLessonCourseMap] = useState<{
+    [lessonId: string]: { course_id: string };
+  }>({});
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
   }>();
@@ -62,6 +65,10 @@ const Home: FC = () => {
   const [allFavLessons, setAllFavLessons] = useState<TableTypes<"lesson">[]>(
     []
   );
+  const [recommendedLessonCourseMap, setRecommendedLessonCourseMap] = useState<{
+    [lessonId: string]: { course_id: string };
+  }>({});
+
   let tempPageNumber = 1;
   const location = useLocation();
   const getCanShowAvatar = async () => {
@@ -135,6 +142,13 @@ const Home: FC = () => {
     if (!!studentResult) {
       setLessonResultMap(studentResult);
     }
+    const lessonCourseMap = Object.fromEntries(
+      Object.entries(studentResult).map(([lessonDocId, details]) => [
+        lessonDocId,
+        { course_id: details.course_id || "" },
+      ])
+    );
+    setLessonCourseMap(lessonCourseMap);
     fetchData();
     await isLinked();
     const urlParams = new URLSearchParams(window.location.search);
@@ -248,6 +262,7 @@ const Home: FC = () => {
           }
           if (!!res) {
             // res.assignment = _assignment;
+            (res as any).course_id = _assignment.course_id || null;
             reqLes.push(res);
           }
         })
@@ -287,10 +302,20 @@ const Home: FC = () => {
       }
       try {
         recommendationResult = await getAssignments();
-        let tempRecommendations =
-          await getCourseRecommendationLessons(currentStudent,currClass);
-        recommendationResult = recommendationResult.concat(tempRecommendations);
+        let tempRecommendations = await getCourseRecommendationLessons(
+          currentStudent,
+          currClass
+        );
         console.log("Final RECOMMENDATION List ", recommendationResult);
+        recommendationResult = recommendationResult.concat(tempRecommendations);
+
+        const lessonCourseMap: { [lessonId: string]: { course_id: string } } =
+          {}; // Initialize the object
+
+        recommendationResult.forEach(async (c: any) => {
+          lessonCourseMap[c.id] = { course_id: c.course_id };
+          setRecommendedLessonCourseMap(lessonCourseMap);
+        });
         setDataCourse(recommendationResult);
         return recommendationResult;
       } catch (error) {
@@ -641,6 +666,7 @@ const Home: FC = () => {
                       showSubjectName={true}
                       showChapterName={true}
                       showDate={true}
+                      lessonCourseMap={recommendedLessonCourseMap}
                     />
                   )}
 
@@ -656,6 +682,7 @@ const Home: FC = () => {
                           showSubjectName={true}
                           showChapterName={true}
                           onEndReached={handleLoadMoreLessons}
+                          lessonCourseMap={lessonCourseMap}
                         />
                       ) : (
                         <p>{t("No liked lessons available.")}</p>
@@ -675,6 +702,7 @@ const Home: FC = () => {
                           showSubjectName={true}
                           showChapterName={true}
                           onEndReached={handleLoadMoreHistoryLessons}
+                          lessonCourseMap={lessonCourseMap}
                         />
                       ) : (
                         <p>{t("No played lessons available.")}</p>
