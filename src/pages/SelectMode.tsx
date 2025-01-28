@@ -110,6 +110,14 @@ const SelectMode: FC = () => {
       } else {
         setStage(STAGES.MODE);
       }
+    } else if (currentMode === MODES.TEACHER) {
+      const tempSchool = Util.getCurrentSchool();
+      const tempClass = Util.getCurrentClass();
+      if (tempSchool && tempClass) {
+        history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+      } else {
+        history.replace(PAGES.DISPLAY_SCHOOLS);
+      }
     }
     const currUser = await auth.getCurrentUser();
     if (!currUser) return;
@@ -216,15 +224,6 @@ const SelectMode: FC = () => {
       {!isLoading && (
         <div>
           <div>
-            <div>
-              {stage === STAGES.MODE && (
-                <SelectModeButton
-                  text={t("School")}
-                  icon={GiTeacher}
-                  onClick={onSchoolSelect}
-                />
-              )}
-            </div>
             {stage === STAGES.MODE && (
               <div className="select-mode-main">
                 <span className="select-mode-text">
