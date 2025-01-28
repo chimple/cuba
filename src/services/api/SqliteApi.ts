@@ -1405,7 +1405,7 @@ export class SqliteApi implements ServiceApi {
 
   `;
     const res = await this._db?.query(query);
-    return ApiDataProcessor.dataProcessorDifferentGradesForCourse(res);
+    return ApiDataProcessor.dataProcessorGetDifferentGradesForCourse(res);
   }
 
   getAvatarInfo(): Promise<AvatarObj | undefined> {
@@ -1904,7 +1904,7 @@ export class SqliteApi implements ServiceApi {
   );
     `;
     const res = await this._db?.query(query);
-    return ApiDataProcessor.getDataStudentResultInMap(res);
+    return ApiDataProcessor.dataProcessorGetStudentResultInMap(res);
     
   }
 

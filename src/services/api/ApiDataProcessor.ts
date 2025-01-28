@@ -9,7 +9,7 @@ import {
 
 export default class ApiDataProcessor {
 
-  public static getDataStudentResultInMap(
+  public static dataProcessorGetStudentResultInMap(
     res: DBSQLiteValues | undefined
   ): ClassStudentResultInMap {
     const data: ClassStudentResultInMap = {};
@@ -24,17 +24,14 @@ export default class ApiDataProcessor {
     return data;
   }
 
-  public static dataProcessorDifferentGradesForCourse(
+  public static dataProcessorGetDifferentGradesForCourse(
     res: DBSQLiteValues | undefined
   ): IDifferentGradesForCourseInterface {
     const data: IDifferentGradesForCourseInterface = {
       grades: [],
       courses: [],
     };
-    // const gradeMap: {
-    //   grades: TableTypes<"grade">[];
-    //   courses: TableTypes<"course">[];
-    // } = { grades: [], courses: [] };
+    
     
     for (const data of res?.values ?? []) {
       const grade = JSON.parse(data.grade);
