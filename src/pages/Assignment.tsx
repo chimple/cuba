@@ -45,6 +45,9 @@ const AssignmentPage: React.FC = () => {
   const [assignments, setAssignments] = useState<TableTypes<"assignment">[]>(
     []
   );
+  const [assignmentLessonCourseMap, setAssignmentLessonCourseMap] = useState<{
+    [lessonId: string]: { course_id: string };
+  }>({});
 
   useEffect(() => {
     const initialLoadingState = JSON.parse(
@@ -177,6 +180,16 @@ const AssignmentPage: React.FC = () => {
       allAssignments.sort(
         (a, b) => Number(a.created_at) - Number(b.created_at)
       );
+      const lessonCourseMap: {
+        [lessonId: string]: { course_id: string };
+      } = {}; // Initialize the object
+
+      allAssignments.forEach(async (data) => {
+        if (data.course_id) {
+          lessonCourseMap[data.lesson_id] = { course_id: data.course_id };
+        }
+        setAssignmentLessonCourseMap(lessonCourseMap);
+      });
       setLessonChapterMap(_lessonChapterMap);
       setLessons(_lessons);
       setAssignments(allAssignments);
@@ -300,6 +313,7 @@ const AssignmentPage: React.FC = () => {
                       showDate={true}
                       onDownloadOrDelete={checkAllHomeworkDownloaded}
                       lessonChapterMap={lessonChapterMap}
+                      lessonCourseMap={assignmentLessonCourseMap}
                     />
                   ) : (
                     <div className="pending-assignment">
