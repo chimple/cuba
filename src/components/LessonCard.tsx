@@ -96,7 +96,6 @@ const LessonCard: React.FC<{
           return;
         }
       }
-      console.log("alok");
     } catch (error) {
       console.error("Error fetching course data:", error);
     }

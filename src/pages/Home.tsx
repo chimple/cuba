@@ -312,8 +312,8 @@ const Home: FC = () => {
         const lessonCourseMap: { [lessonId: string]: { course_id: string } } =
           {}; // Initialize the object
 
-        recommendationResult.forEach(async (c: any) => {
-          lessonCourseMap[c.id] = { course_id: c.course_id };
+        recommendationResult.forEach(async (lesson: any) => {
+          lessonCourseMap[lesson.id] = { course_id: lesson.course_id };
           setRecommendedLessonCourseMap(lessonCourseMap);
         });
         setDataCourse(recommendationResult);
