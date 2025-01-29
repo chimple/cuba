@@ -6,6 +6,7 @@ import {
   ACTION,
   APP_NAME,
   AT_SYMBOL_RESTRICTION,
+  CURRENT_SCHOOL_NAME,
   CURRENT_USER,
   DOMAIN,
   EVENTS,
@@ -336,6 +337,15 @@ const Login: React.FC = () => {
     }[]
   ) {
     if (userSchools.length > 0) {
+      const autoUserSchool = userSchools.find(
+        (school) => school.role === "autouser"
+      );
+
+      if (autoUserSchool) {
+        schoolUtil.setCurrMode(MODES.SCHOOL);
+        history.replace(PAGES.SELECT_MODE);
+        return;
+      }
       if (userSchools?.length === 1) {
         Util.setCurrentSchool(userSchools[0].school, userSchools[0].role);
         const tempClasses = await api.getClassesForSchool(
