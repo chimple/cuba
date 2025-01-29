@@ -351,12 +351,6 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getSchoolsWithRoleAutouser(
-    schoolIds: string[]
-  ): Promise<TableTypes<"school">[] | undefined> {
-    throw new Error("Method not implemented.");
-  }
-
   getCoursesByClassId(
     classId: string
   ): Promise<TableTypes<"class_course">[]> {

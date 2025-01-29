@@ -62,5 +62,4 @@ export enum RoleType {
   PRINCIPAL = "principal",
   SPONSOR = "sponsor",
   COORDINATOR = "coordinator",
-  AUTOUSER = "autouser",
 }

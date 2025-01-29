@@ -879,11 +879,6 @@ export class ApiHandler implements ServiceApi {
   createClassCode(classId: string): Promise<number> {
     return this.s.createClassCode(classId);
   }
-  getSchoolsWithRoleAutouser(
-    schoolIds: string[]
-  ): Promise<TableTypes<"school">[] | undefined> {
-    return this.s.getSchoolsWithRoleAutouser(schoolIds);
-  }
   getPrincipalsForSchool(
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined> {
