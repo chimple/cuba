@@ -59,7 +59,7 @@ const DisplayChapters: FC<{}> = () => {
   const [currentGrade, setCurrentGrade] = useState<TableTypes<"grade">>();
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
-  }>();
+  }>({});
   const history = useHistory();
   const location = useLocation();
   const api = ServiceConfig.getI().apiHandler;
@@ -100,13 +100,14 @@ const DisplayChapters: FC<{}> = () => {
   const init = async () => {
     const urlParams = new URLSearchParams(location.search);
     console.log(
-      "🚀 ~ file: DisplaySubjects.tsx:47 ~ init ~ urlParams:",
+      "🚀 ~ file: DisplayChapters.tsx:103 ~ init ~ urlParams:",
       urlParams.get(CONTINUE)
     );
     console.log(
-      "🚀 ~ file: DisplaySubjects.tsx:68 ~ init ~ localData:",
+      "🚀 ~ file: DisplayChapters.tsx:107 ~ init ~ localData:",
       localData
     );
+    await getCourses();
     if (
       !!urlParams.get(CONTINUE) &&
       !!localData.currentCourse &&
