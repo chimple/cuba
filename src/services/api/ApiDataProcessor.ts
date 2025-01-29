@@ -1,18 +1,17 @@
 import { DBSQLiteValues } from "@capacitor-community/sqlite";
 import {
-  ClassStudentResultInMap,
-  IDifferentGradesForCourseInterface,
-  IAssignmentsByAssignerAndClass,
-  ILessonChapterInterface,
-  IStudentClassesAndSchools,
-} from "../interface/ApiDataProcessorTypes";
+  ClassStudentResultInMapInterface,
+  DifferentGradesForCourseInterface,
+  AssignmentsByAssignerAndClassInterface,
+  LessonChapterInterface,
+  StudentClassesAndSchoolsInterface,
+} from "./ApiDataProcessorTypes";
 
 export default class ApiDataProcessor {
-
   public static dataProcessorGetStudentResultInMap(
     res: DBSQLiteValues | undefined
-  ): ClassStudentResultInMap {
-    const data: ClassStudentResultInMap = {};
+  ): ClassStudentResultInMapInterface {
+    const data: ClassStudentResultInMapInterface = {};
 
     if (!res || !res.values || res.values.length < 1) {
       return data;
@@ -26,39 +25,38 @@ export default class ApiDataProcessor {
 
   public static dataProcessorGetDifferentGradesForCourse(
     res: DBSQLiteValues | undefined
-  ): IDifferentGradesForCourseInterface {
-    const data: IDifferentGradesForCourseInterface = {
+  ): DifferentGradesForCourseInterface {
+    const gradeMap: DifferentGradesForCourseInterface = {
       grades: [],
       courses: [],
     };
-    
-    
+
     for (const data of res?.values ?? []) {
       const grade = JSON.parse(data.grade);
       delete data.grade;
       const course = data;
-      const gradeAlreadyExists = data.grades.find(
+      const gradeAlreadyExists = gradeMap.grades.find(
         (_grade) => _grade.id === grade.id
       );
       if (gradeAlreadyExists) continue;
-      data.courses.push(course);
-      data.grades.push(grade);
+      gradeMap.courses.push(course);
+      gradeMap.grades.push(grade);
     }
 
-    data.grades.sort((a, b) => {
+    gradeMap.grades.sort((a, b) => {
       //Number.MAX_SAFE_INTEGER is using when sortIndex is not found GRADES (i.e it gives default value)
       const sortIndexA = a.sort_index || Number.MAX_SAFE_INTEGER;
       const sortIndexB = b.sort_index || Number.MAX_SAFE_INTEGER;
 
       return sortIndexA - sortIndexB;
     });
-    return data as any;
+    return gradeMap as any;
   }
 
-  public static dataProcessorLessonFromChapter(
+  public static dataProcessorGetLessonFromChapter(
     res: DBSQLiteValues | undefined
-  ): ILessonChapterInterface {
-    const data: ILessonChapterInterface = {
+  ): LessonChapterInterface {
+    const data: LessonChapterInterface = {
       lesson: [],
       course: [],
     };
@@ -68,7 +66,7 @@ export default class ApiDataProcessor {
     return data;
   }
 
-  public static dataProcessorCoursesByGrade(
+  public static dataProcessorGetCoursesByGrade(
     gradeRes: DBSQLiteValues | undefined,
     puzzleRes: DBSQLiteValues | undefined
   ) {
@@ -76,7 +74,7 @@ export default class ApiDataProcessor {
     return courses;
   }
 
-  public static dataProcessorRewardsById(
+  public static dataProcessorGetRewardsById(
     rewardRes: DBSQLiteValues | undefined,
     periodType: string
   ) {
@@ -93,10 +91,10 @@ export default class ApiDataProcessor {
     }
   }
 
-  public static dataProcessorStudentClassesAndSchools(
+  public static dataProcessorGetStudentClassesAndSchools(
     res: DBSQLiteValues | undefined
-  ): IStudentClassesAndSchools {
-    const data: IStudentClassesAndSchools = {
+  ): StudentClassesAndSchoolsInterface {
+    const data: StudentClassesAndSchoolsInterface = {
       classes: [],
       schools: [],
     };
@@ -107,7 +105,7 @@ export default class ApiDataProcessor {
     return data;
   }
 
-  public static dataProcessorStudentProgress(
+  public static dataProcessorGetStudentProgress(
     res: DBSQLiteValues | undefined
   ): Map<string, string> {
     let resultMap: Map<string, string> = new Map<string, string>();
@@ -123,7 +121,7 @@ export default class ApiDataProcessor {
     return resultMap;
   }
 
-  public static dataProcessorChapterByLesson(
+  public static dataProcessorGetChapterByLesson(
     res: DBSQLiteValues | undefined,
     classesCourse: any
   ) {
@@ -136,9 +134,9 @@ export default class ApiDataProcessor {
     return matchedLesson ? matchedLesson.chapter_id : res.values[0].chapter_id;
   }
 
-  public static dataProcessorAssignmentsByAssignerAndClass(
+  public static dataProcessorGetAssignmentsByAssignerAndClass(
     res: DBSQLiteValues | undefined
-  ): IAssignmentsByAssignerAndClass {
+  ): AssignmentsByAssignerAndClassInterface {
     const assignments = res?.values ?? [];
     console.log("assignments..", assignments);
     const classWiseAssignments = assignments.filter(
@@ -151,7 +149,7 @@ export default class ApiDataProcessor {
     return { classWiseAssignments, individualAssignments };
   }
 
-  public static dataProcessorAssignedStudents(
+  public static dataProcessorGetAssignedStudents(
     res: DBSQLiteValues | undefined
   ): string[] {
     let userIds: string[] = [];

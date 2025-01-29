@@ -1,24 +1,24 @@
 import { TableTypes } from "../../common/constants";
 
-export interface ClassStudentResultInMap {
+export interface ClassStudentResultInMapInterface {
   [lessonDocId: string]: TableTypes<"result">;
 }
 
-export interface IDifferentGradesForCourseInterface {
+export interface DifferentGradesForCourseInterface {
   grades: TableTypes<"grade">[];
   courses: TableTypes<"course">[];
 }
-export interface ILessonChapterInterface {
+export interface LessonChapterInterface {
   lesson: TableTypes<"lesson">[];
   course: TableTypes<"course">[];
 }
 
-export interface IStudentClassesAndSchools {
+export interface StudentClassesAndSchoolsInterface {
   classes: TableTypes<"class">[];
   schools: TableTypes<"school">[];
 }
 
-export interface IAssignmentsByAssignerAndClass {
+export interface AssignmentsByAssignerAndClassInterface {
   classWiseAssignments: TableTypes<"assignment">[];
   individualAssignments: TableTypes<"assignment">[];
 }

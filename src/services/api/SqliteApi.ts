@@ -1905,7 +1905,6 @@ export class SqliteApi implements ServiceApi {
     `;
     const res = await this._db?.query(query);
     return ApiDataProcessor.dataProcessorGetStudentResultInMap(res);
-    
   }
 
   async getClassById(id: string): Promise<TableTypes<"class"> | undefined> {
@@ -1953,7 +1952,7 @@ export class SqliteApi implements ServiceApi {
     return res.values;
   }
 
-  // working 
+  // working
   async getSchoolsForUser(
     userId: string
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
@@ -2543,7 +2542,7 @@ export class SqliteApi implements ServiceApi {
     WHERE c.id='${chapterId}' and l.id = '${lessonId}'
     `;
     const res = await this._db?.query(query);
-    return ApiDataProcessor.dataProcessorLessonFromChapter(res);
+    return ApiDataProcessor.dataProcessorGetLessonFromChapter(res);
   }
 
   async getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]> {
@@ -2556,7 +2555,7 @@ export class SqliteApi implements ServiceApi {
         `SELECT * FROM ${TABLES.Course} WHERE name = "Digital Skills"`
       );
 
-      return ApiDataProcessor.dataProcessorCoursesByGrade(
+      return ApiDataProcessor.dataProcessorGetCoursesByGrade(
         gradeCoursesRes,
         puzzleCoursesRes
       );
@@ -2775,7 +2774,7 @@ export class SqliteApi implements ServiceApi {
     try {
       const query = `SELECT ${periodType} FROM ${TABLES.Reward} WHERE year = ${id}`;
       const data = await this._db?.query(query);
-      return ApiDataProcessor.dataProcessorRewardsById(data, periodType);
+      return ApiDataProcessor.dataProcessorGetRewardsById(data, periodType);
     } catch (error) {
       console.error("Error fetching reward by ID:", error);
       return undefined;
@@ -2958,7 +2957,7 @@ export class SqliteApi implements ServiceApi {
       ON c.school_id = s.id
       where user_id = "${userId}" and role = "${RoleType.STUDENT}"`
     );
-    return ApiDataProcessor.dataProcessorStudentClassesAndSchools(res);
+    return ApiDataProcessor.dataProcessorGetStudentClassesAndSchools(res);
   }
 
   async updateFcmToken(userId: string) {
@@ -3185,7 +3184,7 @@ export class SqliteApi implements ServiceApi {
       WHERE r.student_id = '${studentId}'
     `;
     const res = await this._db?.query(query);
-    return ApiDataProcessor.dataProcessorStudentProgress(res);
+    return ApiDataProcessor.dataProcessorGetStudentProgress(res);
   }
 
   async getRecommendedLessons(
@@ -3487,7 +3486,10 @@ order by
          JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
          WHERE cl.lesson_id = "${lessonId}"`
       );
-      return ApiDataProcessor.dataProcessorChapterByLesson(res, class_course);
+      return ApiDataProcessor.dataProcessorGetChapterByLesson(
+        res,
+        class_course
+      );
     } catch (error) {
       console.error("Error fetching chapter by IDs:", error);
       return;
@@ -3774,7 +3776,7 @@ order by
   `;
 
     const res = await this._db?.query(query);
-    return ApiDataProcessor.dataProcessorAssignmentsByAssignerAndClass(res);
+    return ApiDataProcessor.dataProcessorGetAssignmentsByAssignerAndClass(res);
   }
 
   async getTeacherJoinedDate(
@@ -3812,7 +3814,7 @@ order by
 
     try {
       const res = await this._db?.query(query);
-      return ApiDataProcessor.dataProcessorAssignedStudents(res);
+      return ApiDataProcessor.dataProcessorGetAssignedStudents(res);
     } catch (error) {
       console.error("Error fetching user IDs:", error);
       return [];
