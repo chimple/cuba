@@ -2555,10 +2555,11 @@ export class SqliteApi implements ServiceApi {
         `SELECT * FROM ${TABLES.Course} WHERE name = "Digital Skills"`
       );
 
-      return ApiDataProcessor.dataProcessorGetCoursesByGrade(
-        gradeCoursesRes,
-        puzzleCoursesRes
-      );
+      const courses = [
+        ...(gradeCoursesRes?.values ?? []),
+        ...(puzzleCoursesRes?.values ?? []),
+      ];
+      return courses;
     } catch (error) {
       console.error("Error fetching courses by grade:", error);
       return [];
@@ -2774,7 +2775,17 @@ export class SqliteApi implements ServiceApi {
     try {
       const query = `SELECT ${periodType} FROM ${TABLES.Reward} WHERE year = ${id}`;
       const data = await this._db?.query(query);
-      return ApiDataProcessor.dataProcessorGetRewardsById(data, periodType);
+      if (!data || !data.values || data.values.length === 0) {
+        console.error("No reward found for the given year.");
+        return;
+      }
+      const periodData = JSON.parse(data.values[0][periodType]);
+      try {
+        if (periodData) return periodData;
+      } catch (parseError) {
+        console.error("Error parsing JSON string:", parseError);
+        return undefined;
+      }
     } catch (error) {
       console.error("Error fetching reward by ID:", error);
       return undefined;

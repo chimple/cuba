@@ -66,31 +66,6 @@ export default class ApiDataProcessor {
     return data;
   }
 
-  public static dataProcessorGetCoursesByGrade(
-    gradeRes: DBSQLiteValues | undefined,
-    puzzleRes: DBSQLiteValues | undefined
-  ) {
-    const courses = [...(gradeRes?.values ?? []), ...(puzzleRes?.values ?? [])];
-    return courses;
-  }
-
-  public static dataProcessorGetRewardsById(
-    rewardRes: DBSQLiteValues | undefined,
-    periodType: string
-  ) {
-    if (!rewardRes || !rewardRes.values || rewardRes.values.length === 0) {
-      console.error("No reward found for the given year.");
-      return;
-    }
-    const periodData = JSON.parse(rewardRes.values[0][periodType]);
-    try {
-      if (periodData) return periodData;
-    } catch (parseError) {
-      console.error("Error parsing JSON string:", parseError);
-      return undefined;
-    }
-  }
-
   public static dataProcessorGetStudentClassesAndSchools(
     res: DBSQLiteValues | undefined
   ): StudentClassesAndSchoolsInterface {
