@@ -1,34 +1,34 @@
 package org.chimple.bahama;
 
 import android.Manifest;
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.telephony.SubscriptionInfo;
-import android.telephony.SubscriptionManager;
-import android.view.LayoutInflater;
+import android.util.Base64;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
-import androidx.core.app.ActivityCompat;
+
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.BridgeActivity;
+import com.google.android.gms.auth.api.phone.SmsRetriever;
+import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.appcheck.FirebaseAppCheck;
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.security.MessageDigest;
 
 
 public class MainActivity extends BridgeActivity {
-    private static final int READ_SMS_PERMISSION_CODE = 1;
     private static Context appContext;
 
     @Override
@@ -41,12 +41,45 @@ public class MainActivity extends BridgeActivity {
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
-
         FirebaseApp.initializeApp(/*context=*/ this);
         FirebaseAppCheck firebaseAppCheck = FirebaseAppCheck.getInstance();
         firebaseAppCheck.installAppCheckProviderFactory(
                 DebugAppCheckProviderFactory.getInstance());
+        SmsRetrieverClient client = SmsRetriever.getClient(this /* context */);
+       var _hash =  getAppHash(this);
+       System.out.println("HashCode"+_hash);
+        Task<Void> task = client.startSmsRetriever();
+        task.addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+            }
+        });
 
+        task.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+            }
+        });
+
+    }
+
+
+    public static String getAppHash(Context context) {
+        try {
+            String packageName = context.getPackageName();
+            String signature = context.getPackageManager()
+                    .getPackageInfo(packageName, PackageManager.GET_SIGNATURES)
+                    .signatures[0]
+                    .toCharsString();
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            md.update((packageName + " " + signature).getBytes());
+            byte[] hash = md.digest();
+            String appHash = Base64.encodeToString(hash, Base64.NO_WRAP).substring(0, 11);
+            return appHash;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
