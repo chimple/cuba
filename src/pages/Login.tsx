@@ -6,6 +6,7 @@ import {
   ACTION,
   APP_NAME,
   AT_SYMBOL_RESTRICTION,
+  CURRENT_SCHOOL_NAME,
   CURRENT_USER,
   DOMAIN,
   EVENTS,
@@ -168,6 +169,7 @@ const Login: React.FC = () => {
       if (isUserLoggedIn) {
         setIsLoading(false);
         setIsInitialLoading(false);
+        console.log("fdsfdsf");
         history.replace(PAGES.SELECT_MODE);
       }
       setIsLoading(false);
@@ -328,6 +330,7 @@ const Login: React.FC = () => {
     }
     return [];
   }
+
   async function redirectUser(
     user: TableTypes<"user">,
     userSchools: {
@@ -335,7 +338,18 @@ const Login: React.FC = () => {
       role: RoleType;
     }[]
   ) {
+    console.log("userschools data", userSchools);
     if (userSchools.length > 0) {
+      const autoUserSchool = userSchools.find(
+        (school) => school.role === "autouser"
+      );
+
+      if (autoUserSchool) {
+        schoolUtil.setCurrMode(MODES.SCHOOL);
+        history.replace(PAGES.SELECT_MODE); 
+        return;
+      }
+
       if (userSchools?.length === 1) {
         Util.setCurrentSchool(userSchools[0].school, userSchools[0].role);
         const tempClasses = await api.getClassesForSchool(
@@ -489,9 +503,12 @@ const Login: React.FC = () => {
         schoolCode + studentId + DOMAIN,
         studentPassword
       );
+      console.log("result 1212", result);
       if (result) {
         setIsLoading(false);
         setIsInitialLoading(false);
+        console.log("fdsfdsf 2");
+
         history.replace(PAGES.SELECT_MODE);
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
       } else {
@@ -510,6 +527,7 @@ const Login: React.FC = () => {
   };
 
   function loinWithStudentCredentialsButton() {
+    console.log("fsdfdsfs");
     setShowBackButton(true);
     setShowVerification(true);
     setShowNameInput(true);
@@ -715,6 +733,7 @@ const Login: React.FC = () => {
                           setIsLoading(false);
                           setIsInitialLoading(false);
                           // history.replace(PAGES.DISPLAY_STUDENT);
+                          console.log("dddfd");
                           const user = JSON.parse(
                             localStorage.getItem(USER_DATA)!
                           );

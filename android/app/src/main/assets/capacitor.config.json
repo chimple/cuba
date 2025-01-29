@@ -21,6 +21,18 @@
 		"Keyboard": {},
 		"LocalNotifications": {
 			"smallIcon": "chimple_monkey_icon"
+		},
+		"GoogleAuth": {
+			"scopes": [
+				"profile",
+				"email"
+			],
+			"androidClientId": "1034970790912-jj83tjb3s5t27554iuhhtoe3etou7tfs.apps.googleusercontent.com",
+			"forceCodeForRefreshToken": true
+		},
+		"SplashScreen": {
+			"launchShowDuration": 5000,
+			"launchAutoHide": false
 		}
 	}
 }
