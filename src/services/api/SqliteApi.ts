@@ -3995,6 +3995,7 @@ order by
         AND su.role = '${RoleType.AUTOUSER}'
         AND su.is_deleted = false;
     `;
+    
     const res = await this._db?.query(query, schoolIds);
     return res?.values ?? [];
   }
