@@ -262,22 +262,22 @@ const LeaderboardStickers: FC = () => {
       {/* Section for Lost Badges */}
       <div className="leaderboard-sticker-section">
         <div className="leaderboard-sticker-container">
-          {lostStickers &&
-            lostStickers.map((value, index) => (
-              <div
-                key={index}
-                className="leaderboard-badge-item lost-reward"
-              >
-                <div className="lost-reward-overlay">
-                  <div className="red-circle">
-                    <RxCross2 color="white" />
-                  </div>
-                </div>
-                <CachedImage src={value.sticker?.image ?? undefined} />
+        {lostStickers && lostStickers.filter(value => !value.isUnlocked && !value.isNextUnlock && !value.isUpcomingSticker).map((value, index) => (
+          <div key={index} className="leaderboard-badge-item lost-reward">
+            <div className="lost-reward-overlay">
+              <div className="red-circle">
+                <RxCross2 color="white" />
+              </div>
+              <CachedImage src={value.sticker?.image ?? undefined} />
+            </div>
+            <div>
+              <div className="leaderboard-badge-item lost-reward">
                 <p>{value.sticker?.name}</p>
                 <p>{t("Lost Reward")}</p>
               </div>
-            ))}
+            </div>
+          </div>
+        ))}
         </div>
       </div>
 
