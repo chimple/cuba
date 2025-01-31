@@ -338,7 +338,7 @@ const Login: React.FC = () => {
   ) {
     if (userSchools.length > 0) {
       const autoUserSchool = userSchools.find(
-        (school) => school.role === "autouser"
+        (school) => school.role === RoleType.AUTOUSER
       );
 
       if (autoUserSchool) {
