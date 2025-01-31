@@ -2063,8 +2063,16 @@ export class SqliteApi implements ServiceApi {
           schoolIds.add(schoolId);
           finalData.push({
             school: JSON.parse(data.school),
-            role: data.role,
+            role: data.role, // "autouser"
           });
+        } else {
+          // Update role if already exists in finalData
+          const existingEntry = finalData.find(
+            (entry) => entry.school.id === schoolId
+          );
+          if (existingEntry) {
+            existingEntry.role = data.role; // Override role
+          }
         }
       }
     }
@@ -3973,6 +3981,25 @@ order by
     if (!res || !res.values || res.values.length < 1) return;
     return res.values;
   }
+
+  async getSchoolsWithRoleAutouser(
+    schoolIds: string[]
+  ): Promise<TableTypes<"school">[] | undefined> {
+    // Escape schoolIds array for use in the SQL query
+    const placeholders = schoolIds.map(() => "?").join(", "); // Generates ?, ?, ? for query placeholders
+    const query = `
+      SELECT DISTINCT school.*
+      FROM ${TABLES.SchoolUser} AS su
+      JOIN ${TABLES.School} AS school ON su.school_id = school.id
+      WHERE su.school_id IN (${placeholders})
+        AND su.role = '${RoleType.AUTOUSER}'
+        AND su.is_deleted = false;
+    `;
+    
+    const res = await this._db?.query(query, schoolIds);
+    return res?.values ?? [];
+  }
+
   async getPrincipalsForSchool(
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined> {
