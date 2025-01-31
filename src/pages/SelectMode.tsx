@@ -166,17 +166,9 @@ const SelectMode: FC = () => {
     setCurrentUser(currUser);
     setSchoolList(tempSchoolList);
     if (tempSchoolList.length === 0) {
-      // setStage(STAGES.MODE);
       onParentSelect();
     } else if (tempSchoolList.length === 1) {
-      // setCurrentSchool(tempSchoolList[0].school);
-      // localStorage.setItem(
-      //   CURRENT_SCHOOL_NAME,
-      //   JSON.stringify(tempSchoolList[0].school.name)
-      // );
-      // schoolUtil.setCurrentSchool(tempSchoolList[0].school);
       setCurrentSchool(tempSchoolList[0].school);
-      // setCurrentSchoolName(tempSchoolList[0].school.name);
       await displayClasses(tempSchoolList[0].school, currUser);
       setStage(STAGES.CLASS);
     } else {
