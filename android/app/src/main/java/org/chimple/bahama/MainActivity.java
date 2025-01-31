@@ -45,22 +45,8 @@ public class MainActivity extends BridgeActivity {
         FirebaseAppCheck firebaseAppCheck = FirebaseAppCheck.getInstance();
         firebaseAppCheck.installAppCheckProviderFactory(
                 DebugAppCheckProviderFactory.getInstance());
-        SmsRetrieverClient client = SmsRetriever.getClient(this /* context */);
        var _hash =  getAppHash(this);
        System.out.println("HashCode"+_hash);
-        Task<Void> task = client.startSmsRetriever();
-        task.addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-            }
-        });
-
-        task.addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-            }
-        });
-
     }
 
 
