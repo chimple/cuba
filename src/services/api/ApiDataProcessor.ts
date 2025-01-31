@@ -1,91 +1,92 @@
-import { DBSQLiteValues } from "@capacitor-community/sqlite";
 import {
-  ClassStudentResultInMapInterface,
   DifferentGradesForCourseInterface,
-  AssignmentsByAssignerAndClassInterface,
   LessonChapterInterface,
   StudentClassesAndSchoolsInterface,
 } from "./ApiDataProcessorTypes";
 
 export default class ApiDataProcessor {
-  public static dataProcessorGetStudentResultInMap(
-    res: DBSQLiteValues | undefined
-  ): ClassStudentResultInMapInterface {
-    const data: ClassStudentResultInMapInterface = {};
+  public static dataProcessorGetStudentResultInMap<
+    T extends { lesson_id: string },
+  >(
+    response: T[]
+  ): {
+    [key: string]: T;
+  } {
+    if (!response || response.length < 1) {
+      return {};
+    }
 
-    if (!res || !res.values || res.values.length < 1) {
-      return data;
+    const resultMap: { [key: string]: T } = {};
+    for (const data of response) {
+      if (data.lesson_id !== undefined) {
+        resultMap[data.lesson_id] = data;
+      }
     }
-    const resultMap = {};
-    for (const data of res.values) {
-      resultMap[data.lesson_id] = data;
-    }
-    return data;
+    return resultMap;
   }
 
   public static dataProcessorGetDifferentGradesForCourse(
-    res: DBSQLiteValues | undefined
+    response: any
   ): DifferentGradesForCourseInterface {
     const gradeMap: DifferentGradesForCourseInterface = {
       grades: [],
       courses: [],
     };
 
-    for (const data of res?.values ?? []) {
+    for (const data of response ?? []) {
       const grade = JSON.parse(data.grade);
       delete data.grade;
       const course = data;
       const gradeAlreadyExists = gradeMap.grades.find(
         (_grade) => _grade.id === grade.id
       );
+
       if (gradeAlreadyExists) continue;
       gradeMap.courses.push(course);
       gradeMap.grades.push(grade);
     }
 
     gradeMap.grades.sort((a, b) => {
-      //Number.MAX_SAFE_INTEGER is using when sortIndex is not found GRADES (i.e it gives default value)
       const sortIndexA = a.sort_index || Number.MAX_SAFE_INTEGER;
       const sortIndexB = b.sort_index || Number.MAX_SAFE_INTEGER;
-
       return sortIndexA - sortIndexB;
     });
     return gradeMap as any;
   }
 
   public static dataProcessorGetLessonFromChapter(
-    res: DBSQLiteValues | undefined
+    response: any
   ): LessonChapterInterface {
     const data: LessonChapterInterface = {
       lesson: [],
       course: [],
     };
-    if (!res || !res.values || res.values.length < 1) return data;
-    data.lesson = res.values;
-    data.course = res.values.map((val) => JSON.parse(val.course));
+    if (!response || response.length < 1) return data;
+    data.lesson = response;
+    data.course = response.map((val) => JSON.parse(val.course));
     return data;
   }
 
   public static dataProcessorGetStudentClassesAndSchools(
-    res: DBSQLiteValues | undefined
+    response: any
   ): StudentClassesAndSchoolsInterface {
     const data: StudentClassesAndSchoolsInterface = {
       classes: [],
       schools: [],
     };
 
-    if (!res || !res.values || res.values.length < 1) return data;
-    data.classes = res.values;
-    data.schools = res.values.map((val) => JSON.parse(val.school));
+    if (!response || response.length < 1) return data;
+    data.classes = response;
+    data.schools = response.map((val) => JSON.parse(val.school));
     return data;
   }
 
-  public static dataProcessorGetStudentProgress(
-    res: DBSQLiteValues | undefined
-  ): Map<string, string> {
+  public static dataProcessorGetStudentProgress<
+    T extends { course_id: string },
+  >(response: T[]): Map<string, string> {
     let resultMap: Map<string, string> = new Map<string, string>();
-    if (res && res.values) {
-      res.values.forEach((result) => {
+    if (response && response.length > 0) {
+      response.forEach((result) => {
         const courseId = result.course_id;
         if (!resultMap[courseId]) {
           resultMap[courseId] = [];
@@ -96,24 +97,25 @@ export default class ApiDataProcessor {
     return resultMap;
   }
 
-  public static dataProcessorGetChapterByLesson(
-    res: DBSQLiteValues | undefined,
-    classesCourse: any
-  ) {
-    if (!res || !res.values || res.values.length < 1) return;
+  public static dataProcessorGetChapterByLesson<
+    T extends { course_id: string; chapter_id: string },
+    U extends { id: string },
+  >(response: T[], classesCourse: U[]) {
+    if (!response || response.length < 1) return;
     const classCourseIds = new Set(classesCourse.map((course) => course.id));
-    const matchedLesson = res.values.find((lesson) =>
+    const matchedLesson = response.find((lesson) =>
       classCourseIds.has(lesson.course_id)
     );
 
-    return matchedLesson ? matchedLesson.chapter_id : res.values[0].chapter_id;
+    return matchedLesson ? matchedLesson.chapter_id : response[0].chapter_id;
   }
 
-  public static dataProcessorGetAssignmentsByAssignerAndClass(
-    res: DBSQLiteValues | undefined
-  ): AssignmentsByAssignerAndClassInterface {
-    const assignments = res?.values ?? [];
+  public static dataProcessorGetAssignmentsByAssignerAndClass<
+    T extends { is_class_wise: boolean },
+  >(response: T[]): { classWiseAssignments: T[]; individualAssignments: T[] } {
+    const assignments = response ?? [];
     console.log("assignments..", assignments);
+
     const classWiseAssignments = assignments.filter(
       (assignment) => assignment.is_class_wise
     );
@@ -124,13 +126,13 @@ export default class ApiDataProcessor {
     return { classWiseAssignments, individualAssignments };
   }
 
-  public static dataProcessorGetAssignedStudents(
-    res: DBSQLiteValues | undefined
+  public static dataProcessorGetAssignedStudents<T extends { user_id: string }>(
+    response: T[]
   ): string[] {
     let userIds: string[] = [];
 
-    if (res?.values) {
-      userIds = res?.values.map((row: { user_id: string }) => row.user_id);
+    if (response && response.length > 0) {
+      userIds = response.map((row: { user_id: string }) => row.user_id);
     }
     console.log("userids..", userIds);
 

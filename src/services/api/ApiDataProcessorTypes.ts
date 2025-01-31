@@ -1,8 +1,8 @@
 import { TableTypes } from "../../common/constants";
 
-export interface ClassStudentResultInMapInterface {
-  [lessonDocId: string]: TableTypes<"result">;
-}
+// export interface ClassStudentResultInMapInterface {
+//   [lessonDocId: string]: TableTypes<"result">;
+// }
 
 export interface DifferentGradesForCourseInterface {
   grades: TableTypes<"grade">[];
@@ -18,7 +18,7 @@ export interface StudentClassesAndSchoolsInterface {
   schools: TableTypes<"school">[];
 }
 
-export interface AssignmentsByAssignerAndClassInterface {
-  classWiseAssignments: TableTypes<"assignment">[];
-  individualAssignments: TableTypes<"assignment">[];
-}
+// export interface AssignmentsByAssignerAndClassInterface {
+//   classWiseAssignments: TableTypes<"assignment">[];
+//   individualAssignments: TableTypes<"assignment">[];
+// }

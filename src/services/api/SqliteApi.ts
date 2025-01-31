@@ -1405,7 +1405,9 @@ export class SqliteApi implements ServiceApi {
 
   `;
     const res = await this._db?.query(query);
-    return ApiDataProcessor.dataProcessorGetDifferentGradesForCourse(res);
+    return ApiDataProcessor.dataProcessorGetDifferentGradesForCourse(
+      res?.values ?? []
+    );
   }
 
   getAvatarInfo(): Promise<AvatarObj | undefined> {
@@ -1904,7 +1906,9 @@ export class SqliteApi implements ServiceApi {
   );
     `;
     const res = await this._db?.query(query);
-    return ApiDataProcessor.dataProcessorGetStudentResultInMap(res);
+    return ApiDataProcessor.dataProcessorGetStudentResultInMap(
+      res?.values ?? []
+    );
   }
 
   async getClassById(id: string): Promise<TableTypes<"class"> | undefined> {
@@ -2520,6 +2524,7 @@ export class SqliteApi implements ServiceApi {
     lesson: TableTypes<"lesson">[];
     course: TableTypes<"course">[];
   }> {
+    console.log("??????", chapterId, lessonId);
     const query = `
     SELECT l.*,JSON_OBJECT(
           'id',co.id,
@@ -2542,7 +2547,9 @@ export class SqliteApi implements ServiceApi {
     WHERE c.id='${chapterId}' and l.id = '${lessonId}'
     `;
     const res = await this._db?.query(query);
-    return ApiDataProcessor.dataProcessorGetLessonFromChapter(res);
+    return ApiDataProcessor.dataProcessorGetLessonFromChapter(
+      res?.values ?? []
+    );
   }
 
   async getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]> {
@@ -2968,7 +2975,11 @@ export class SqliteApi implements ServiceApi {
       ON c.school_id = s.id
       where user_id = "${userId}" and role = "${RoleType.STUDENT}"`
     );
-    return ApiDataProcessor.dataProcessorGetStudentClassesAndSchools(res);
+
+    console.log("Homeeeeeeeee111", res);
+    return ApiDataProcessor.dataProcessorGetStudentClassesAndSchools(
+      res?.values ?? []
+    );
   }
 
   async updateFcmToken(userId: string) {
@@ -3195,7 +3206,7 @@ export class SqliteApi implements ServiceApi {
       WHERE r.student_id = '${studentId}'
     `;
     const res = await this._db?.query(query);
-    return ApiDataProcessor.dataProcessorGetStudentProgress(res);
+    return ApiDataProcessor.dataProcessorGetStudentProgress(res?.values ?? []);
   }
 
   async getRecommendedLessons(
@@ -3498,7 +3509,7 @@ order by
          WHERE cl.lesson_id = "${lessonId}"`
       );
       return ApiDataProcessor.dataProcessorGetChapterByLesson(
-        res,
+        res?.values ?? [],
         class_course
       );
     } catch (error) {
@@ -3787,7 +3798,9 @@ order by
   `;
 
     const res = await this._db?.query(query);
-    return ApiDataProcessor.dataProcessorGetAssignmentsByAssignerAndClass(res);
+    return ApiDataProcessor.dataProcessorGetAssignmentsByAssignerAndClass(
+      res?.values ?? []
+    );
   }
 
   async getTeacherJoinedDate(
@@ -3825,7 +3838,9 @@ order by
 
     try {
       const res = await this._db?.query(query);
-      return ApiDataProcessor.dataProcessorGetAssignedStudents(res);
+      return ApiDataProcessor.dataProcessorGetAssignedStudents(
+        res?.values ?? []
+      );
     } catch (error) {
       console.error("Error fetching user IDs:", error);
       return [];
