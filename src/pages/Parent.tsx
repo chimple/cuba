@@ -76,7 +76,7 @@ const Parent: React.FC = () => {
   useEffect(() => {
     setIsLoading(true);
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
-    inti();
+    init();
     getStudentProfile();
   }, [reloadProfiles]);
   useEffect(() => {
@@ -97,7 +97,7 @@ const Parent: React.FC = () => {
     setUserProfile(finalUser);
     // });
   }
-  async function inti(): Promise<void> {
+  async function init(): Promise<void> {
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (parentUser != undefined) {
       const currMode = await schoolUtil.getCurrMode();

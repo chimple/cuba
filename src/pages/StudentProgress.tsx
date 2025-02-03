@@ -35,7 +35,7 @@ const StudentProgress: React.FC = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    inti();
+    init();
   }, []);
 
   interface HeaderIconConfig {
@@ -49,7 +49,7 @@ const StudentProgress: React.FC = () => {
     Util.setPathToBackButton(PAGES.PARENT, history);
   };
 
-  async function inti() {
+  async function init() {
     const currentStudent = await Util.getCurrentStudent();
     if (currentStudent) {
       setHeaderContent(["Lesson Name", "Chapter Name", "Score", "Time Spent"]);

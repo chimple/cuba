@@ -175,7 +175,7 @@ const JoinClass: FC<{
             ", " +
             t("Class") +
             ": " +
-            codeResult["data"]["name"] ?? ""
+            (codeResult["data"]["name"] ?? "")
             : "")
         }
         showDialogBox={showDialogBox}

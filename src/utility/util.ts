@@ -1793,7 +1793,7 @@ export class Util {
     const reference = doc(db, ref);
     return reference;
   }
-  public static setCurrentCourseToLoaclstorage(course: Course) {
+  public static setCurrentCourseToLocalStorage(course: Course) {
     localStorage.setItem(CURRENT_SELECTED_COURSE, JSON.stringify(course));
   }
 }

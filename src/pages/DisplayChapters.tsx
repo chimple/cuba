@@ -308,7 +308,7 @@ const DisplayChapters: FC<{}> = () => {
     setCurrentGrade(currentGrade ?? gradesMap.grades[0]);
     addGradeToLocalStorage(currentGrade ?? gradesMap.grades[0]);
     setLocalGradeMap(gradesMap);
-    Util.setCurrentCourseToLoaclstorage(course);
+    Util.setCurrentCourseToLocalStorage(course);
     setCurrentCourse(course);
     localStorageData.stage = STAGES.CHAPTERS;
     setStage(STAGES.CHAPTERS);
@@ -325,7 +325,7 @@ const DisplayChapters: FC<{}> = () => {
     addGradeToLocalStorage(grade);
     if (currentCourse) {
       setCurrentCourse(currentCourse);
-      Util.setCurrentCourseToLoaclstorage(currentCourse);
+      Util.setCurrentCourseToLocalStorage(currentCourse);
       localData.currentCourse = currentCourse;
       localStorageData.currentCourse = currentCourse;
     }
