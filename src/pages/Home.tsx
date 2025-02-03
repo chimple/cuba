@@ -163,8 +163,8 @@ const Home: FC = () => {
   }, [currentHeader]);
   const initData = async () => {
     fetchData();
-    await getRecommendeds(HOMEHEADERLIST.HOME);
     await isLinked();
+    await getRecommendeds(HOMEHEADERLIST.HOME);
   };
 
   function sortPlayedLessonDocByDate(playedLessonData) {
