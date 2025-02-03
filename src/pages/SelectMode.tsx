@@ -74,7 +74,7 @@ const SelectMode: FC = () => {
   const init = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const setTab = urlParams.get("tab");
-
+    const currentMode = await schoolUtil.getCurrMode();
     if (setTab) {
       if (setTab === STAGES.STUDENT) {
         setStage(STAGES.STUDENT);
@@ -91,7 +91,6 @@ const SelectMode: FC = () => {
       setCurrentStudents(JSON.parse(displayStudent));
     }
 
-    const currentMode = localStorage.getItem(CURRENT_MODE);
     if (currentMode == MODES.PARENT) {
       schoolUtil.setCurrMode(MODES.PARENT);
       const student = Util.getCurrentStudent();
@@ -111,13 +110,7 @@ const SelectMode: FC = () => {
         setStage(STAGES.MODE);
       }
     } else if (currentMode === MODES.TEACHER) {
-      const tempSchool = Util.getCurrentSchool();
-      const tempClass = Util.getCurrentClass();
-      if (tempSchool && tempClass) {
-        history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
-      } else {
-        history.replace(PAGES.DISPLAY_SCHOOLS);
-      }
+      history.replace(PAGES.DISPLAY_SCHOOLS);
     }
     const currUser = await auth.getCurrentUser();
     if (!currUser) return;
@@ -162,17 +155,18 @@ const SelectMode: FC = () => {
         school: element.school,
       });
     }
-
     setCurrentUser(currUser);
     setSchoolList(tempSchoolList);
-    if (tempSchoolList.length === 0) {
+    if (matchedSchools.length > 0) {
+      if (tempSchoolList.length === 1) {
+        setCurrentSchool(tempSchoolList[0].school);
+        await displayClasses(tempSchoolList[0].school, currUser);
+        setStage(STAGES.CLASS);
+      } else {
+        setStage(STAGES.SCHOOL);
+      }
+    } else if (allSchool.length === 0) {
       onParentSelect();
-    } else if (tempSchoolList.length === 1) {
-      setCurrentSchool(tempSchoolList[0].school);
-      await displayClasses(tempSchoolList[0].school, currUser);
-      setStage(STAGES.CLASS);
-    } else {
-      setStage(STAGES.SCHOOL);
     }
     setIsLoading(false);
   };
