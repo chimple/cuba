@@ -24,34 +24,39 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 
+import com.google.android.gms.auth.api.phone.SmsRetriever;
+import com.google.android.gms.common.api.CommonStatusCodes;
+import com.google.android.gms.common.api.Status;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * BroadcastReceiver to wait for SMS messages. This can be registered either
+ * in the AndroidManifest or at runtime.  Should filter Intents on
+ * SmsRetriever.SMS_RETRIEVED_ACTION.
+ */
 public class OTPReceiver extends BroadcastReceiver {
-//    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public void onReceive(Context context, Intent intent) {
-            Bundle bundle = intent.getExtras();
-            if (bundle != null) {
-                Object[] pdus = (Object[]) bundle.get("pdus");
-                if (pdus != null) {
-                    for (Object pdu : pdus) {
-                        SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) pdu);
-                        String messageBody = smsMessage.getMessageBody();
-                        String sender = smsMessage.getDisplayOriginatingAddress();
-                        if(sender.contains("CHIMPL")){
-                            String otp = extractOtp(messageBody);
-                            if (otp != null) {
-                                PortPlugin.sendOtpData(otp);
-                            }
-                        }
-
+        if (SmsRetriever.SMS_RETRIEVED_ACTION.equals(intent.getAction())) {
+            Bundle extras = intent.getExtras();
+            Status status = (Status) extras.get(SmsRetriever.EXTRA_STATUS);
+            switch(status.getStatusCode()) {
+                case CommonStatusCodes.SUCCESS:
+                    String message = extras.getString(SmsRetriever.EXTRA_SMS_MESSAGE);
+                    String otp = extractOtp(message);
+                    if (otp != null) {
+                        PortPlugin.sendOtpData(otp);
                     }
-                }
+                    break;
+                case CommonStatusCodes.TIMEOUT:
+                    break;
             }
+        }
 
     }
     private String extractOtp(String messageBody) {
@@ -68,7 +73,7 @@ public class OTPReceiver extends BroadcastReceiver {
         Context appContext = MainActivity.getAppContext();
         CompletableFuture<List> future = new CompletableFuture<>();
         List<String> permissionsNeeded = new ArrayList<>();
-
+//
         if (ContextCompat.checkSelfPermission(appContext, android.Manifest.permission.READ_PHONE_STATE)
                 != PackageManager.PERMISSION_GRANTED) {
             permissionsNeeded.add(android.Manifest.permission.READ_PHONE_STATE);
@@ -78,14 +83,6 @@ public class OTPReceiver extends BroadcastReceiver {
                 != PackageManager.PERMISSION_GRANTED) {
             permissionsNeeded.add(android.Manifest.permission.POST_NOTIFICATIONS);
         }
-
-        // Add any additional permissions you want to request
-        if (ContextCompat.checkSelfPermission(appContext, android.Manifest.permission.RECEIVE_SMS)
-                != PackageManager.PERMISSION_GRANTED) {
-            permissionsNeeded.add(Manifest.permission.RECEIVE_SMS);
-        }
-
-        // Request permissions if any are needed
         if (!permissionsNeeded.isEmpty()) {
             ActivityCompat.requestPermissions((Activity) appContext,
                     permissionsNeeded.toArray(new String[0]),
@@ -105,7 +102,6 @@ public class OTPReceiver extends BroadcastReceiver {
         Context appContext = MainActivity.getAppContext();
         CompletableFuture<List> future = new CompletableFuture<>();
         List<String> phoneNumbers = new ArrayList<>();
-
         if (ActivityCompat.checkSelfPermission(appContext, android.Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
             SubscriptionManager subscriptionManager = (SubscriptionManager) appContext.getSystemService(SubscriptionManager.class);
             if (subscriptionManager != null) {
