@@ -101,7 +101,21 @@ const StudentProgress: React.FC = () => {
   }
 
   async function getCourses(currentStudent: User): Promise<Course[]> {
-    const courses = await api.getCoursesForParentsStudent(currentStudent);
+    const isStudentLinked = await api.isStudentLinked(currentStudent.docId, false)
+    console.log("isStudentLinked to any class", isStudentLinked);
+    let coursesForClassStudent: Course[] = [];
+    if(isStudentLinked){
+      const res = await api.getStudentResult(currentStudent.docId, false);
+      if(res?.classes[0]){
+        const classDoc = await api.getClassById(res?.classes[0]);
+        if(classDoc){
+          coursesForClassStudent = await api.getCoursesForClassStudent(classDoc);
+        }
+      }
+      console.log("coursesForClassStudent", coursesForClassStudent);
+    }
+    const courses = isStudentLinked ? coursesForClassStudent : await api.getCoursesForParentsStudent(currentStudent);
+
     return courses;
   }
 
