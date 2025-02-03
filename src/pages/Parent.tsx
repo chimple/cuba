@@ -85,7 +85,7 @@ const Parent: React.FC = () => {
       updatedTabs[t(item.header)] = t(item.header);
     });
     setTabs(updatedTabs);
-  }, [parentHeaderIconList]);
+  }, [currentAppLang]);
   async function getStudentProfile() {
     console.log("getStudentProfile");
     const userProfilePromise: User[] =
