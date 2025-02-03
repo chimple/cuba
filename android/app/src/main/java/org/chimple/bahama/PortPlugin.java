@@ -1,6 +1,7 @@
 package org.chimple.bahama;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -11,6 +12,10 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.google.android.gms.auth.api.phone.SmsRetriever;
+import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
+import com.google.android.gms.tasks.Task;
+
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
@@ -91,6 +96,9 @@ public class PortPlugin extends Plugin {
 
   @PluginMethod
   public void requestPermission(PluginCall call) {
+    Context appContext = MainActivity.getAppContext();
+    SmsRetrieverClient client = SmsRetriever.getClient(appContext /* context */);
+    Task<Void> task = client.startSmsRetriever();
     OTPReceiver.requestSmsPhonePermission().thenAccept(PhoneNumber -> {
       JSObject result = new JSObject();
       result.put("number", PhoneNumber);
