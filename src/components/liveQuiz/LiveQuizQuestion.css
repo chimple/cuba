@@ -33,6 +33,9 @@
   padding-top: 1%;
 }
 
+  .live-quiz-option-text {
+    font-size: 5vh;
+}
 .live-quiz-option-box {
   background-color: #faf5f8;
   display: flex;
@@ -51,7 +54,7 @@
 }
 #question-text {
   font-weight: bold;
-  font-size: 4vh;
+  font-size: 6vh;
 }
 .live-quiz-question {
   display: flex;

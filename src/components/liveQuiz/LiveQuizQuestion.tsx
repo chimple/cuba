@@ -570,8 +570,8 @@ const LiveQuizQuestion: FC<{
                         ? option.isCorrect
                           ? "live-quiz-option-box-correct"
                           : selectedAnswerIndex === index
-                          ? "live-quiz-option-box-incorrect"
-                          : ""
+                            ? "live-quiz-option-box-incorrect"
+                            : ""
                         : "")
                     }
                   >
@@ -595,7 +595,12 @@ const LiveQuizQuestion: FC<{
                       </div>
                     )}
 
-                    {!option.isTextTTS && !option.image && option.text}
+                    {!option.isTextTTS && !option.image && (
+                      <span className="live-quiz-option-text">
+                        {option.text}
+                      </span>
+                    )}
+
                     {option.image && (
                       <img
                         className="live-quiz-option-image"
