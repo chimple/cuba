@@ -35,7 +35,7 @@ const StudentProgress: React.FC = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    inti();
+    init();
   }, []);
 
   interface HeaderIconConfig {
@@ -49,7 +49,7 @@ const StudentProgress: React.FC = () => {
     Util.setPathToBackButton(PAGES.PARENT, history);
   };
 
-  async function inti() {
+  async function init() {
     const currentStudent = await Util.getCurrentStudent();
     if (currentStudent) {
       setHeaderContent(["Lesson Name", "Chapter Name", "Score", "Time Spent"]);
@@ -101,7 +101,19 @@ const StudentProgress: React.FC = () => {
   }
 
   async function getCourses(currentStudent: User): Promise<Course[]> {
+    const isStudentLinked = await api.isStudentLinked(currentStudent.docId, false)
+    console.log("isStudentLinked to any class", isStudentLinked);
+    if(isStudentLinked){
+      const res = await api.getStudentResult(currentStudent.docId, false);
+      if(res?.classes[0]){
+        const classDoc = await api.getClassById(res?.classes[0]);
+        if(classDoc){
+          return await api.getCoursesForClassStudent(classDoc);
+        }
+      }
+    }
     const courses = await api.getCoursesForParentsStudent(currentStudent);
+
     return courses;
   }
 

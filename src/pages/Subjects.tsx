@@ -262,7 +262,7 @@ const Subjects: React.FC<{}> = ({}) => {
     setCurrentGrade(currentGrade ?? gradesMap.grades[0]);
     setLocalGradeMap(gradesMap);
     setCurrentCourse(course);
-    Util.setCurrentCourseToLoaclstorage(course);
+    Util.setCurrentCourseToLocalStorage(course);
     // localStorageData.stage = STAGES.CHAPTERS;
     // addDataToLocalStorage();
     const params = `courseDocId=${course.docId}`;
