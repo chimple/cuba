@@ -968,6 +968,10 @@ export interface ServiceApi {
     classId: string
   ): Promise<TableTypes<"assignment">[] | undefined>;
 
+  getAssignmentUserByAssignmentIds(
+    assignmentIds: string[]
+  ): Promise<TableTypes<"assignment_user">[]>;
+
   /**
    * Creates a assignment object
    * @param {string} student_list - list of the students id's

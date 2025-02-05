@@ -3569,6 +3569,35 @@ order by
     if (!res || !res.values || res.values.length < 1) return;
     return res.values;
   }
+  async getAssignmentUserByAssignmentIds(
+    assignmentIds: string[]
+  ): Promise<TableTypes<"assignment_user">[]> {
+    // If there are no assignment IDs, return an empty array immediately.
+    if (!assignmentIds || assignmentIds.length === 0) {
+      return [];
+    }
+    
+    // Create a comma-separated list of placeholders for the query.
+    const placeholders = assignmentIds.map(() => "?").join(", ");
+    
+    // Construct the SQL query using the placeholders.
+    const query = `
+      SELECT *
+      FROM ${TABLES.Assignment_user}
+      WHERE assignment_id IN (${placeholders});
+    `;
+    
+    // Execute the query. (Assuming this._db.query returns an object with a 'values' property)
+    const res = await this._db?.query(query, assignmentIds);
+    
+    // If no results were returned, return an empty array.
+    if (!res || !res.values || res.values.length < 1) {
+      return [];
+    }
+    
+    // Otherwise, return the results.
+    return res.values;
+  }
   async getLessonsBylessonIds(
     lessonIds: string[] // Expect an array of strings
   ): Promise<TableTypes<"lesson">[] | undefined> {

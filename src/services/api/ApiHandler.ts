@@ -752,6 +752,11 @@ export class ApiHandler implements ServiceApi {
       isLiveQuiz
     );
   }
+  getAssignmentUserByAssignmentIds(
+    assignmentIds: string[]
+  ): Promise<TableTypes<"assignment_user">[]> {
+    return this.s.getAssignmentUserByAssignmentIds(assignmentIds);
+  }
   getStudentLastTenResults(
     studentId: string,
     courseId: string,
