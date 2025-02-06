@@ -506,6 +506,7 @@ export enum EVENTS {
   LESSON_END = "lesson_end",
   LESSON_INCOMPLETE = "lesson_incomplete",
   USER_PROFILE = "user_profile",
+  User_Clicks = "user_clicks"
 }
 
 export const FCM_TOKENS = "fcmTokens";
