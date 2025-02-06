@@ -452,9 +452,11 @@ export class ClassUtil {
     isLiveQuiz: boolean,
     sortBy: TABLESORTBY
   ) {
+    // 1. Adjust date ranges
     const adjustedStartDate = subDays(new Date(startDate), 1);
     const adjustedEndDate = addDays(new Date(endDate), 1);
-
+  
+    // 2. Convert to timestamps
     const startTimeStamp = adjustedStartDate
       .toISOString()
       .replace("T", " ")
@@ -463,58 +465,94 @@ export class ClassUtil {
       .toISOString()
       .replace("T", " ")
       .replace("Z", "+00");
+  
+    // 3. Fetch students for the class
     const _students = await this.api.getStudentsForClass(classId);
-    if (sortBy == TABLESORTBY.NAME)
+    if (sortBy === TABLESORTBY.NAME) {
       _students.sort((a, b) => {
         if (a.name === null) return 1;
         if (b.name === null) return -1;
         return a.name.localeCompare(b.name);
       });
-
+    }
+  
+    // 4. Fetch assignments (both class-wide and individual)
     const _assignments = await this.api.getAssignmentOrLiveQuizByClassByDate(
       classId,
       courseId,
       endTimeStamp,
       startTimeStamp,
-      false,
+      /* isClassWise = */ false,
       isLiveQuiz
     );
-
-    let assignmentIds = _assignments?.map((asgmt) => asgmt.id) || [];
-    const lessonIds = [
-      ...new Set(_assignments?.map((res) => res.lesson_id) || []),
-    ];
-    const assignmentResults =
-      await this.api.getResultByAssignmentIds(assignmentIds);
+    console.log("Assignment Data--", _assignments);
+  
+    // 5. Prepare arrays of assignment & lesson IDs
+    const assignmentIds = _assignments?.map((asgmt) => asgmt.id) || [];
+    console.log("MY ASSIN. ID'S IS=", assignmentIds);
+    const lessonIds = [...new Set(_assignments?.map((res) => res.lesson_id) || [])];
+  
+    // 6. Fetch results & lesson details
+    const assignmentResults = await this.api.getResultByAssignmentIds(assignmentIds);
+    console.log("ASSIGNMENT RESULT IS=", assignmentResults);
     const lessonDetails = await this.api.getLessonsBylessonIds(lessonIds);
-
+  
+    // 6.1 Fetch assignment_user records for these assignments (for individual assignments)
+    const assignmentUserRecords = await this.api.getAssignmentUserByAssignmentIds(assignmentIds);
+    console.log("My Assignment User Record is--", assignmentUserRecords)
+  
+    // Build a lookup for whether an assignment is class-wide (true) or individual (false)
+    const assignmentIsClassWise: Record<string, boolean> = {};
+    _assignments?.forEach((assignment) => {
+      // SQLite returns 1 or 0 so convert to boolean
+      assignmentIsClassWise[assignment.id] = Boolean(assignment.is_class_wise);
+    });
+  
+    // 7. Build "header" data: one entry per assignment, with the belongsToClass flag
     const assignmentMapArray: Map<
       string,
-      { headerName: string; startAt: string; endAt: string }
+      {
+        headerName: string;
+        startAt: string;
+        endAt: string;
+        belongsToClass: boolean; 
+      }
     >[] = (_assignments || []).map((assignment) => {
       const lesson = lessonDetails?.find(
         (lesson) => lesson.id === assignment.lesson_id
       );
-
+  
+      // New logic: simply set belongsToClass from assignment.is_class_wise
+      const belongsToClass = Boolean(assignment.is_class_wise);
+      console.log("Assignment belongs to class (class wide):", belongsToClass);
+  
       const assignmentMap = new Map<
         string,
-        { headerName: string; startAt: string; endAt: string }
+        {
+          headerName: string;
+          startAt: string;
+          endAt: string;
+          belongsToClass: boolean;
+        }
       >();
-
+  
       assignmentMap.set(assignment.id, {
         headerName: lesson?.name ?? "",
-
         startAt: this.formatDate(assignment.starts_at),
         endAt: assignment.ends_at ? this.formatDate(assignment.ends_at) : "",
+        belongsToClass: belongsToClass
       });
-
+  
       return assignmentMap;
     });
-    var resultsByStudent = new Map<
+  
+    // 8. Build the "resultsByStudent" map:
+    //    Key = studentId, Value = { student obj, results: { assignmentId: [results] } }
+    let resultsByStudent = new Map<
       string,
       { student: TableTypes<"user">; results: Record<string, any[]> }
     >();
-
+  
     _students.forEach((student) => {
       resultsByStudent.set(student.id, {
         student: student,
@@ -524,6 +562,8 @@ export class ClassUtil {
         resultsByStudent.get(student.id)!.results[assignmentId] = [];
       });
     });
+  
+    // 9. Custom sort if needed
     if (sortBy === TABLESORTBY.LOWSCORE || sortBy === TABLESORTBY.HIGHSCORE) {
       resultsByStudent = this.sortStudentsByTotalScore(resultsByStudent);
       if (sortBy === TABLESORTBY.HIGHSCORE) {
@@ -531,21 +571,52 @@ export class ClassUtil {
         resultsByStudent = new Map(reversedEntries);
       }
     }
+  
+    // 10. Populate assignment scores from the assignmentResults
     assignmentResults?.forEach((result) => {
       const studentId = result.student_id;
       const assignmentId = result.assignment_id;
-
       if (resultsByStudent.get(studentId)?.results[assignmentId ?? ""]) {
-        resultsByStudent
-          .get(studentId)!
-          .results[assignmentId ?? ""].push(result);
+        resultsByStudent.get(studentId)!.results[assignmentId ?? ""].push(result);
       }
+    });
+  
+    // 11. For individual (non class-wide) assignments, check assignment_user records.
+    //     If a student does not have an assignment_user record for an assignment,
+    //     add a dummy result with score: null (so the UI will show a gray box).
+    resultsByStudent.forEach((studentData, studentId) => {
+      assignmentIds.forEach((assignmentId) => {
+        if (!assignmentIsClassWise[assignmentId]) {
+          // Check if there is a matching record for this student and assignment
+          const isAssignedToStudent = assignmentUserRecords?.some(
+            (record) =>
+              record.assignment_id === assignmentId &&
+              record.user_id === studentId
+          );
+    
+          // Log details for debugging purposes
+          console.log(
+            `Student ID: ${studentId} | Assignment ID: ${assignmentId} | isAssignedToStudent: ${isAssignedToStudent}`
+          );
+    
+          // If no assignment_user record exists and no result is recorded, add a dummy result.
+          if (!isAssignedToStudent && studentData.results[assignmentId].length === 0) {
+            console.log(
+              `No record for student ${studentId} with assignment ${assignmentId} - pushing dummy result.`
+            );
+            studentData.results[assignmentId].push({
+              assignment_id: assignmentId,
+              score: null,
+            });
+          }
+        }
+      });
     });
     return {
       ReportData: resultsByStudent,
       HeaderData: assignmentMapArray,
     };
-  }
+  }  
   public async getStudentProgressForStudentTable(
     studentId: string,
     courseId: string,
