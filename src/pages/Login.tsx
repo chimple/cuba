@@ -6,6 +6,7 @@ import {
   ACTION,
   APP_NAME,
   AT_SYMBOL_RESTRICTION,
+  CURRENT_SCHOOL_NAME,
   CURRENT_USER,
   DOMAIN,
   EVENTS,
@@ -336,25 +337,19 @@ const Login: React.FC = () => {
     }[]
   ) {
     if (userSchools.length > 0) {
-      if (userSchools?.length === 1) {
-        Util.setCurrentSchool(userSchools[0].school, userSchools[0].role);
-        const tempClasses = await api.getClassesForSchool(
-          userSchools[0].school.id,
-          user?.id!
-        );
-        if (tempClasses) Util.setCurrentClass(tempClasses[0]);
-        schoolUtil.setCurrMode(MODES.TEACHER);
-        history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
-      } else {
-        schoolUtil.setCurrMode(MODES.TEACHER);
-        history.replace(PAGES.DISPLAY_SCHOOLS);
+      const autoUserSchool = userSchools.find(
+        (school) => school.role === RoleType.AUTOUSER
+      );
+
+      if (autoUserSchool) {
+        schoolUtil.setCurrMode(MODES.SCHOOL);
+        history.replace(PAGES.SELECT_MODE);
       }
+      schoolUtil.setCurrMode(MODES.TEACHER);
+      history.replace(PAGES.DISPLAY_SCHOOLS);
     } else {
       schoolUtil.setCurrMode(MODES.PARENT);
-      const students = await api.getParentStudentProfiles();
-      if (!!students && students.length == 0) {
-        history.replace(PAGES.CREATE_STUDENT);
-      } else history.replace(PAGES.DISPLAY_STUDENT);
+      history.replace(PAGES.DISPLAY_STUDENT);
     }
   }
   const onVerificationCodeSubmit = async () => {
