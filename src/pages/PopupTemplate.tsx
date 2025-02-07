@@ -1,5 +1,5 @@
 import React, { FC, useEffect, useState } from "react";
-import "./PopupTemp.css";
+import "./PopupTemplate.css";
 import { Util } from "../utility/util";
 import { EVENTS } from "../common/constants";
 import { useLocation } from "react-router-dom";
@@ -7,7 +7,7 @@ import { useLocation } from "react-router-dom";
 interface PopupProps {
   onJoin: () => void;
   message: string;
-  buttonMessage?: string;
+  buttonMessage: string;
   imagePath: string;
 }
 
@@ -73,31 +73,31 @@ const PopupTemplate: FC<PopupProps> = ({
   if (!isVisible) return null;
 
   return (
-    <div className="overlay">
-      <div className="quiz-container">
+    <div className="popup_overlay">
+      <div className="popup-quiz-container">
         {/* Close Button */}
         <button
-          className="button"
+          className="popup_button"
           onClick={handleCloseClick}
           type="button"
           style={{ background: "none", border: "none" }}
         >
-          <div className="closebtn">
+          <div className="popup_closebtn">
             <img src="/assets/icons/CloseButton.png" alt="Close" />
           </div>
         </button>
 
         {/* Timer or Image */}
-        <div className="timer">
-          <div className="relative timer-container"> 
+        <div className="popup_timer">
+          <div className="relative popup-timer-container"> 
             <img src={imagePath} alt="Image" />
           </div>
         </div>
 
         {/* Join Now Button */}
-        <div className="content">
-          <div className="message">{message}</div>
-          <button onClick={handleJoinClick} className="joinbtn">
+        <div className="popup_content_holder">
+          <div className="popup_message">{message}</div>
+          <button onClick={handleJoinClick} className="popup_joinbtn">
             {buttonMessage}
           </button>
         </div>

@@ -66,7 +66,7 @@ import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 import React from "react";
 import Dashboard from "./Malta/Dashboard";
-import Popup from "./PopupTemp";
+import PopupTemplate from "./PopupTemplate";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -1151,8 +1151,8 @@ const Home: FC = () => {
         )}
         {/* {<LiveQuizPop onJoin={handleJoinNow} />} */}
         {/* Calling LiveQuiz popup, Assignment popup and checking the condition */}
-        {showQuizPopup && <Popup onJoin={handleJoinNow} message="Live Quiz is Starting Soon!" buttonMessage="Play Now" imagePath="/assets/icons/QuizLiveTimer.png" />}
-        {showAssignmentPopup && <Popup onJoin={handleJoinNowAssign} message="Assignment is Starting Soon!" buttonMessage="Play Now" imagePath="/assets/icons/homeworkIcon.svg" />}
+        {showQuizPopup && <PopupTemplate onJoin={handleJoinNow} message={t("Live Quiz is Starting Soon!")} buttonMessage={t("Play Now")} imagePath="/assets/icons/QuizLiveTimer.png" />}
+        {showAssignmentPopup && <PopupTemplate onJoin={handleJoinNowAssign} message={t("Assignment is Starting Soon!")} buttonMessage={t("Play Now")} imagePath="/assets/icons/homeworkIcon.svg" />}
         <SkeltonLoading isLoading={isLoading} header={currentHeader} />
       </div>
     </IonPage>
