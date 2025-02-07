@@ -124,7 +124,7 @@ export class SupabaseApi implements ServiceApi {
     this.supabaseKey = process.env.REACT_APP_SUPABASE_KEY ?? "";
     this.supabase = createClient<Database>(this.supabaseUrl, this.supabaseKey);
     console.log("🚀 ~ supabase:", this.supabase);
-  } ///
+  }
 
   async getTablesData(
     tableNames: TABLES[] = Object.values(TABLES),
