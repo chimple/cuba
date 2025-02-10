@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name=".RespectHttpClient"
         android:allowBackup="false"
         android:icon="@mipmap/chimple_monkey_icon"
         android:label="@string/app_name"
@@ -65,4 +66,14 @@
             <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
     </queries>
+<!--    <service-->
+<!--        android:name="world.respect.librespect.clientdownloadservice"-->
+<!--        android:enabled="true"-->
+<!--        android:exported="true">-->
+
+<!--        <intent-filter>-->
+<!--            <action android:name="respect.world.librespect.ACTION_CLIENT_LU_DOWNLOAD" />-->
+<!--            <action android:name="respect.world.librespect.ACTION_CLIENT_LU_RELEASE" />-->
+<!--        </intent-filter>-->
+<!--    </service>-->
 </manifest>
