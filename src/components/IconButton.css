@@ -12,18 +12,11 @@
 }
 
 .child-Name {
-  white-space: nowrap;      
-  display: block;           
-  max-width: clamp(100px, 20vw, 250px);  
-  text-overflow: ellipsis; 
-  overflow: hidden;       
-}
-
-/* Adjust for smaller screens */
-@media (max-width: 480px) {
-  .child-Name {
-      max-width: 20vw;
-  }
+  white-space: nowrap;
+  display: block;
+  max-width: 20vh;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .badge-notification {
