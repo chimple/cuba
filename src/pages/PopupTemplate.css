@@ -1,0 +1,97 @@
+.popup_overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6); /* Dark transparent overlay */
+  z-index: 999; /* Ensures it is behind the quiz container */
+}
+
+.popup-quiz-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  background-color: white;
+  padding: 2vw;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  width: 43vw;
+  height: 40vh;
+  aspect-ratio: 2 / 1;
+  z-index: 1000;
+  text-align: left;
+  gap: 1vw;
+}
+
+.popup-timer-container {
+  width: 10vw !important;
+  height: 26vh !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.popup-timer-container span {
+  position: absolute;
+  color: white;
+  font-size: 1.2vw;
+  font-weight: bold;
+}
+
+.popup_content_holder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-grow: 1;
+  background-color: white !important;
+}
+
+.popup_message {
+  font-size: 1.8vw;
+  color: rgb(24, 44, 79) !important;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 1vw;
+}
+
+.popup_joinbtn {
+  width: 12vw;
+  height: 6vh;
+  cursor: pointer;
+  margin-bottom: 1vw;
+  background-color: rgba(129, 193, 39, 1);
+  border-radius: 6px;
+  font-size: 1.5vw;
+  align-content: center;
+  color: white;
+}
+
+.popup_button {
+  width: 2.5vw;
+  height: 2.5vw;
+  background-color: rgba(217, 217, 217, 1) !important;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 2vh;
+  right: 1vw;
+}
+
+.popup_closebtn::after {
+  content: "X" !important;
+  font-size: 1.7vw;
+  font-weight: bold;
+  color: rgba(255, 84, 0, 1) !important;
+}
+
+.popup_close {
+  display: flex;
+}

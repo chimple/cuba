@@ -66,6 +66,7 @@ import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 import React from "react";
 import Dashboard from "./Malta/Dashboard";
+import PopupTemplate from "./PopupTemplate";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -114,6 +115,7 @@ const Home: FC = () => {
 
     setCanShowAvatar(canShowAvatarValue);
   };
+
   const urlParams = new URLSearchParams(location.search);
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
   const [currentHeader, setCurrentHeader] = useState(() => {
@@ -127,6 +129,7 @@ const Home: FC = () => {
       return localStorage.getItem("currentHeader") || HOMEHEADERLIST.HOME;
     }
   });
+
   useEffect(() => {
     const student = Util.getCurrentStudent();
 
@@ -837,6 +840,34 @@ const Home: FC = () => {
   console.log("lesson slider favourite", favouriteLessons);
   console.log("lesson slider history", historyLessons);
 
+  // To work with LiveQuizPopup and AssignmentPopup Handling
+  const [showQuizPopup, setShowQuizPopup] = useState(false);
+  const [showAssignmentPopup, setShowAssignmentPopup] = useState(false);
+
+  useEffect(() => {
+    if (pendingLiveQuizCount !== 0) {
+      setShowQuizPopup(true);
+    } else if (pendingAssignmentsCount !== 0) {
+      setShowAssignmentPopup(true);
+    }
+  }, [pendingLiveQuizCount, pendingAssignmentsCount]);
+
+  const handleJoinNow = () => {
+    setShowQuizPopup(false);
+    setCurrentHeader(HOMEHEADERLIST.LIVEQUIZ);
+
+    if (pendingAssignmentsCount !== 0) {
+      setTimeout(() => {
+        setShowAssignmentPopup(true);
+      }, 60000); // Show assignment popup after 60 seconds
+    }
+  };
+
+  const handleJoinNowAssign = () => {
+    setShowAssignmentPopup(false);
+    setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
+  };
+
   return (
     <IonPage id="home-page">
       <IonHeader id="home-header">
@@ -1117,6 +1148,23 @@ const Home: FC = () => {
             </AppBar>
           </div>
           // ) : null}
+        )}
+        {/* Calling LiveQuiz popup, Assignment popup and checking the condition */}
+        {showQuizPopup && (
+          <PopupTemplate
+            onJoin={handleJoinNow}
+            message={t("Live Quiz is Starting Soon!")}
+            buttonMessage={t("Play Now")}
+            imagePath="/assets/icons/quiz_icon.svg"
+          />
+        )}
+        {showAssignmentPopup && (
+          <PopupTemplate
+            onJoin={handleJoinNowAssign}
+            message={t("Assignment is Starting Soon!")}
+            buttonMessage={t("Play Now")}
+            imagePath="/assets/icons/homeworkIcon.svg"
+          />
         )}
         <SkeltonLoading isLoading={isLoading} header={currentHeader} />
       </div>
