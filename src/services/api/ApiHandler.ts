@@ -752,6 +752,11 @@ export class ApiHandler implements ServiceApi {
       isLiveQuiz
     );
   }
+  getAssignmentUserByAssignmentIds(
+    assignmentIds: string[]
+  ): Promise<TableTypes<"assignment_user">[]> {
+    return this.s.getAssignmentUserByAssignmentIds(assignmentIds);
+  }
   getStudentLastTenResults(
     studentId: string,
     courseId: string,
@@ -878,6 +883,11 @@ export class ApiHandler implements ServiceApi {
   }
   createClassCode(classId: string): Promise<number> {
     return this.s.createClassCode(classId);
+  }
+  getSchoolsWithRoleAutouser(
+    schoolIds: string[]
+  ): Promise<TableTypes<"school">[] | undefined> {
+    return this.s.getSchoolsWithRoleAutouser(schoolIds);
   }
   getPrincipalsForSchool(
     schoolId: string

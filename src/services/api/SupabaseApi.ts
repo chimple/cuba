@@ -1059,6 +1059,11 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
   }
+  getAssignmentUserByAssignmentIds(
+    assignmentIds: string[]
+  ): Promise<TableTypes<"assignment_user">[]> {
+    throw new Error("Method not implemented")
+  }
   getResultByAssignmentIds(
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[] | undefined> {
@@ -1196,6 +1201,11 @@ export class SupabaseApi implements ServiceApi {
     } catch (error) {
       throw error; // Re-throw the error for external handling
     }
+  }
+  async getSchoolsWithRoleAutouser(
+    schoolIds: string[]
+  ): Promise<TableTypes<"school">[] | undefined> {
+    throw new Error("Method not implemented.");
   }
   async getPrincipalsForSchool(
     schoolId: string
