@@ -1,3 +1,4 @@
+
 // @ts-nocheck
 import { HttpHeaders } from "@capacitor-community/http";
 import {
@@ -348,6 +349,12 @@ export class OneRosterApi implements ServiceApi {
     schoolId: string,
     selectedCourseIds: string[]
   ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  getSchoolsWithRoleAutouser(
+    schoolIds: string[]
+  ): Promise<TableTypes<"school">[] | undefined> {
     throw new Error("Method not implemented.");
   }
 

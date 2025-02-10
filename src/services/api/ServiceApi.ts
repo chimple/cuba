@@ -62,7 +62,7 @@ export interface ServiceApi {
     name: string,
     group1: string,
     group2: string,
-    group3: string,
+    group3: string
   ): Promise<TableTypes<"school">>;
   /**
    * updates a school details and returns the school object
@@ -111,11 +111,10 @@ export interface ServiceApi {
     schoolId: string
   ): Promise<TableTypes<"school_course">[]>;
 
-
   /**
-     * To delete 'courses' with given class IDs from the class_course table.
-     * @param {string[] } class_ids - Class Ids
-     */
+   * To delete 'courses' with given class IDs from the class_course table.
+   * @param {string[] } class_ids - Class Ids
+   */
   removeCoursesFromClass(ids: string[]): Promise<void>;
 
   /**
@@ -130,7 +129,6 @@ export interface ServiceApi {
    * @param {string } course_id - course Id
    */
   checkCourseInClasses(classIds: string[], courseId: string): Promise<boolean>;
-
 
   /**
    * To delete a 'user' with a given student ID from the class_user table.
@@ -160,7 +158,7 @@ export interface ServiceApi {
    * @returns {TableTypes<"grade">} or `undefined` if it could not find the grade with given `id`
    */
   getGradeById(id: string): Promise<TableTypes<"grade"> | undefined>;
-   /**
+  /**
    * @param ids - IDs of the grades.
    * @returns {TableTypes<"grade">} or `[]` if it could not find the grade with given `ids`
    */
@@ -171,11 +169,11 @@ export interface ServiceApi {
    * @returns {TableTypes<"curriculum">} or `undefined` if it could not find the curriculum with given `id`
    */
   getCurriculumById(id: string): Promise<TableTypes<"curriculum"> | undefined>;
-/**
+  /**
    * @param ids - IDs of the curriculum.
    * @returns {TableTypes<"curriculum">} or [] if it could not find the curriculum with given `ids`
    */
-  getCurriculumsByIds(ids: string []): Promise<TableTypes<"curriculum">[]>;
+  getCurriculumsByIds(ids: string[]): Promise<TableTypes<"curriculum">[]>;
 
   /**
    * Gives all `Languages` available on database
@@ -856,7 +854,10 @@ export interface ServiceApi {
    * @param classId - The current class id
    * @returns A promise returns list of Recommended Lessons to home page.
    */
-  getRecommendedLessons(studentId: string,classId?:string): Promise<TableTypes<"lesson">[]>;
+  getRecommendedLessons(
+    studentId: string,
+    classId?: string
+  ): Promise<TableTypes<"lesson">[]>;
 
   /**
    * Searches for lessons that match the given search string in their name or outcome fields.
@@ -967,6 +968,10 @@ export interface ServiceApi {
   getLastAssignmentsForRecommendations(
     classId: string
   ): Promise<TableTypes<"assignment">[] | undefined>;
+
+  getAssignmentUserByAssignmentIds(
+    assignmentIds: string[]
+  ): Promise<TableTypes<"assignment_user">[]>;
 
   /**
    * Creates a assignment object
@@ -1119,6 +1124,14 @@ export interface ServiceApi {
    * @param {string } classId - Class Id
    */
   createClassCode(classId: string): Promise<number>;
+  /**
+   * To get autousers from school user table for the given school ids
+   * @param {string []} schoolIds - school Ids
+   * * @return an array of autouser schools.
+   */
+  getSchoolsWithRoleAutouser(
+    schoolIds: string[]
+  ): Promise<TableTypes<"school">[] | undefined>;
   /**
    * This function gets all the principals for the school.
    * @param {string} schoolId school Id;

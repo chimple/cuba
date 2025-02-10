@@ -686,5 +686,6 @@
   "You have selected to remove a subject, would you like to continue?": "ನೀವು ವಿಷಯವನ್ನು ತೆಗೆದುಹಾಕಲು ಆಯ್ಕೆ ಮಾಡಿದ್ದೀರಿ, ನೀವು ಮುಂದುವರಿಸಲು ಬಯಸುವಿರಾ?",
   "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!": "ನೀವು ಇಂದು 25 ನಿಮಿಷಗಳ ಕಾಲ ಚಿಂಪಲ್ ಅನ್ನು ಬಳಸಿದ್ದೀರಿ. ನಿಮ್ಮ ಕಣ್ಣುಗಳಿಗೆ ವಿಶ್ರಾಂತಿ ಪಡೆಯಲು ವಿರಾಮ ತೆಗೆದುಕೊಳ್ಳಿ!",
   "Your progress stays synced and consistent across all devices.": "ನಿಮ್ಮ ಪ್ರಗತಿಯು ಎಲ್ಲಾ ಸಾಧನಗಳಾದ್ಯಂತ ನವೀಕರಿಸಲ್ಪಡುತ್ತದೆ ಮತ್ತು ಸ್ಥಿರವಾಗಿರುತ್ತದೆ.",
-  "Zebra": "ಜೀಬ್ರಾ"
+  "Zebra": "ಜೀಬ್ರಾ",
+  "The Subject you have chosen is the last one left and cannot be deleted": "ನೀವು ಆಯ್ಕೆ ಮಾಡಿದ ವಿಷಯವು ಕೊನೆಯದಾಗಿ ಉಳಿದಿದೆ ಮತ್ತು ಅದನ್ನು ಅಳಿಸಲಾಗುವುದಿಲ್ಲ"
 }

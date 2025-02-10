@@ -74,7 +74,7 @@ const SelectMode: FC = () => {
   const init = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const setTab = urlParams.get("tab");
-
+    const currentMode = await schoolUtil.getCurrMode();
     if (setTab) {
       if (setTab === STAGES.STUDENT) {
         setStage(STAGES.STUDENT);
@@ -82,16 +82,15 @@ const SelectMode: FC = () => {
         setStage(STAGES.CLASS);
       }
     }
-    const displayClasses = localStorage.getItem(SELECTED_CLASSES);
-    if (displayClasses) {
-      setCurrentClasses(JSON.parse(displayClasses));
+    const selectedClasses = localStorage.getItem(SELECTED_CLASSES);
+    if (selectedClasses) {
+      setCurrentClasses(JSON.parse(selectedClasses));
     }
     const displayStudent = localStorage.getItem(SELECTED_STUDENTS);
     if (displayStudent) {
       setCurrentStudents(JSON.parse(displayStudent));
     }
 
-    const currentMode = localStorage.getItem(CURRENT_MODE);
     if (currentMode == MODES.PARENT) {
       schoolUtil.setCurrMode(MODES.PARENT);
       const student = Util.getCurrentStudent();
@@ -111,20 +110,22 @@ const SelectMode: FC = () => {
         setStage(STAGES.MODE);
       }
     } else if (currentMode === MODES.TEACHER) {
-      const tempSchool = Util.getCurrentSchool();
-      const tempClass = Util.getCurrentClass();
-      if (tempSchool && tempClass) {
-        history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
-      } else {
-        history.replace(PAGES.DISPLAY_SCHOOLS);
-      }
+      history.replace(PAGES.DISPLAY_SCHOOLS);
     }
     const currUser = await auth.getCurrentUser();
     if (!currUser) return;
     console.log("Testing currUser", currUser.id);
     const allSchool = await api.getSchoolsForUser(currUser.id);
-    // const allSchool = [];
+    // Extract school IDs from schoolList
+    const schoolIds = allSchool.map((school) => school.school.id);
+    const filteredSchools = await api.getSchoolsWithRoleAutouser(schoolIds);
     console.log("🚀 ~ init ~ allSchool:", allSchool);
+    const filteredSchoolIds = filteredSchools?.map((school) => school.id) || [];
+    // Filter allSchool to include only schools that are in filteredSchools
+    const matchedSchools = allSchool.filter((entry) =>
+      filteredSchoolIds.includes(entry.school.id)
+    );
+
     const students = await api.getParentStudentProfiles();
     console.log("🚀 ~ init ~ students:", students);
     // const isTeacher = await api.isUserTeacher(currUser);
@@ -146,18 +147,30 @@ const SelectMode: FC = () => {
     // }
 
     console.log("allSchool", allSchool);
-    for (let i = 0; i < allSchool.length; i++) {
-      const element = allSchool[i];
+    for (let i = 0; i < matchedSchools.length; i++) {
+      const element = matchedSchools[i];
       tempSchoolList.push({
         id: element.school.id,
         displayName: element.school.name,
         school: element.school,
       });
     }
-
     setCurrentUser(currUser);
     setSchoolList(tempSchoolList);
+    if (matchedSchools.length > 0) {
+      if (tempSchoolList.length === 1) {
+        setCurrentSchool(tempSchoolList[0].school);
+        await displayClasses(tempSchoolList[0].school, currUser);
+        setStage(STAGES.CLASS);
+      } else {
+        setStage(STAGES.SCHOOL);
+      }
+    } else if (allSchool.length === 0) {
+      onParentSelect();
+    }
+    setIsLoading(false);
   };
+
   async function changeLanguage() {
     const languageDocId = localStorage.getItem(LANGUAGE);
     console.log("This is the lang " + languageDocId);
@@ -184,17 +197,31 @@ const SelectMode: FC = () => {
     setStage(STAGES.SCHOOL);
   };
 
-  const displayClasses = async () => {
-    if (!currentSchool || !currentUser) return;
-    const element = await api.getClassesForSchool(
-      currentSchool?.id ?? "",
-      currentUser.id ?? ""
-    );
-    console.log("this are the classes " + element);
-    setCurrentClasses(element);
-    localStorage.setItem(SELECTED_CLASSES, JSON.stringify(element));
-
-    return;
+  const displayClasses = async (
+    school?: TableTypes<"school">,
+    user?: TableTypes<"user">
+  ) => {
+    const activeSchool = currentSchool ?? school;
+    const activeUser = currentUser ?? user;
+    if (!activeSchool || !activeUser) {
+      console.log("No school or user information available.");
+      return;
+    }
+    try {
+      const element = await api.getClassesForSchool(
+        activeSchool.id,
+        activeUser.id
+      );
+      console.log("These are the classes:", element);
+      if (!element || element.length === 0) {
+        console.log("No classes found for this school.");
+        return;
+      }
+      setCurrentClasses(element);
+      localStorage.setItem(SELECTED_CLASSES, JSON.stringify(element));
+    } catch (error) {
+      console.error("Error fetching classes:", error);
+    }
   };
   const displayStudents = async (curClass) => {
     // if(!currClass) return;
@@ -218,7 +245,6 @@ const SelectMode: FC = () => {
     console.log("This is the random generated value  " + random);
     return random;
   }
-
   return (
     <IonPage>
       {!isLoading && (
@@ -306,7 +332,7 @@ const SelectMode: FC = () => {
                     }}
                   />
 
-                  <div className="schoolname-header">{currentSchoolName}</div>
+                  <div className="schoolname-header">{currentSchool?.name}</div>
                   <div></div>
                 </div>
 
