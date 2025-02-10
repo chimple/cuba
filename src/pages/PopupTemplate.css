@@ -20,9 +20,9 @@
   padding: 2vw;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-  width: 43vw; 
-  height: 40vh; 
-  aspect-ratio: 2 / 1; 
+  width: 43vw;
+  height: 40vh;
+  aspect-ratio: 2 / 1;
   z-index: 1000;
   text-align: left;
   gap: 1vw;
@@ -72,18 +72,26 @@
   color: white;
 }
 
-.popup_closebtn {
+.popup_button {
+  width: 2.5vw;
+  height: 2.5vw;
+  background-color: rgba(217, 217, 217, 1) !important;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
+  top: 2vh;
+  right: 1vw;
 }
 
-.popup_closebtn img {
-  width: 3vw;
-  height: 6vh;
+.popup_closebtn::after {
+  content: "X" !important;
+  font-size: 1.7vw;
+  font-weight: bold;
+  color: rgba(255, 84, 0, 1) !important;
 }
 
-.popup_button{
-  background-color: white;
+.popup_close {
+  display: flex;
 }

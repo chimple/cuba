@@ -11,19 +11,19 @@ interface PopupProps {
   imagePath: string;
 }
 
-const PopupTemplate: FC<PopupProps> = ({ 
-  onJoin, 
-  message, 
-  buttonMessage, 
+const PopupTemplate: FC<PopupProps> = ({
+  onJoin,
+  message,
+  buttonMessage,
   imagePath,
-  }) => {
+}) => {
   const [isVisible, setIsVisible] = useState(true);
 
   const location = useLocation();
   const compo_name = import.meta.url;
 
   // Handle Join Now button click and logging the event
-  const handleJoinClick = async() => {
+  const handleJoinClick = async () => {
     const user = await Util.getCurrentStudent();
     Util.logEvent(EVENTS.User_Clicks, {
       user_id: user?.docId,
@@ -34,7 +34,7 @@ const PopupTemplate: FC<PopupProps> = ({
       action_type: "ok",
       page_name: location.pathname,
       page_path: `${window.location.protocol}//${window.location.host}${location.pathname}${location.search}`,
-      component_name: compo_name.split('/').pop(),
+      component_name: compo_name.split("/").pop(),
     });
 
     setIsVisible(false);
@@ -63,7 +63,7 @@ const PopupTemplate: FC<PopupProps> = ({
       action_type: "close",
       page_name: location.pathname,
       page_path: `${window.location.protocol}//${window.location.host}${location.pathname}${location.search}`,
-      component_name: compo_name.split('/').pop(),
+      component_name: compo_name.split("/").pop(),
     });
 
     setIsVisible(false);
@@ -76,20 +76,21 @@ const PopupTemplate: FC<PopupProps> = ({
     <div className="popup_overlay">
       <div className="popup-quiz-container">
         {/* Close Button */}
-        <button
-          className="popup_button"
-          onClick={handleCloseClick}
-          type="button"
-          style={{ background: "none", border: "none" }}
-        >
-          <div className="popup_closebtn">
-            <img src="/assets/icons/CloseButton.png" alt="Close" />
-          </div>
-        </button>
+        <div className="popup_close">
+          <button
+            onClick={handleCloseClick}
+            type="button"
+            style={{ background: "none", border: "none" }}
+          >
+            <div className="popup_button">
+              <div className="popup_closebtn"></div>
+            </div>
+          </button>
+        </div>
 
         {/* Timer or Image */}
         <div className="popup_timer">
-          <div className="relative popup-timer-container"> 
+          <div className="relative popup-timer-container">
             <img src={imagePath} alt="Image" />
           </div>
         </div>

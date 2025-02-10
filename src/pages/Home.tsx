@@ -1150,8 +1150,22 @@ const Home: FC = () => {
           // ) : null}
         )}
         {/* Calling LiveQuiz popup, Assignment popup and checking the condition */}
-        {showQuizPopup && <PopupTemplate onJoin={handleJoinNow} message={t("Live Quiz is Starting Soon!")} buttonMessage={t("Play Now")} imagePath="/assets/icons/QuizLiveTimer.png" />}
-        {showAssignmentPopup && <PopupTemplate onJoin={handleJoinNowAssign} message={t("Assignment is Starting Soon!")} buttonMessage={t("Play Now")} imagePath="/assets/icons/homeworkIcon.svg" />}
+        {showQuizPopup && (
+          <PopupTemplate
+            onJoin={handleJoinNow}
+            message={t("Live Quiz is Starting Soon!")}
+            buttonMessage={t("Play Now")}
+            imagePath="/assets/icons/quiz_icon.svg"
+          />
+        )}
+        {showAssignmentPopup && (
+          <PopupTemplate
+            onJoin={handleJoinNowAssign}
+            message={t("Assignment is Starting Soon!")}
+            buttonMessage={t("Play Now")}
+            imagePath="/assets/icons/homeworkIcon.svg"
+          />
+        )}
         <SkeltonLoading isLoading={isLoading} header={currentHeader} />
       </div>
     </IonPage>
