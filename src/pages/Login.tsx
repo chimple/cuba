@@ -38,6 +38,7 @@ import {
   IoSchoolOutline,
 } from "react-icons/io5";
 import { RoleType } from "../interface/modelInterfaces";
+import { Plugins } from "@capacitor/core";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -54,6 +55,7 @@ const Login: React.FC = () => {
   const [showNameInput, setShowNameInput] = useState<boolean>(false);
   const [verificationCode, setVerificationCode] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState<any>("");
+  const { NativeSSOPlugin } = Plugins;
   //const [parentName, setParentName] = useState<any>("");
 
   const [recaptchaVerifier, setRecaptchaVerifier] =
@@ -200,12 +202,14 @@ const Login: React.FC = () => {
       // }
     }
   }, [recaptchaVerifier]);
-  React.useEffect(() => {
+
+  useEffect(() => {
     if (counter <= 0 && showTimer) {
       setShowResendOtp(true);
     }
     showTimer && counter > 0 && setTimeout(() => setCounter(counter - 1), 1000);
   }, [counter, showTimer]);
+
   useEffect(() => {
     disableOtpButtonIfSameNumber &&
       allowSubmittingOtpCounter > 0 &&
@@ -219,6 +223,18 @@ const Login: React.FC = () => {
     );
     setTitle(str);
   }, [allowSubmittingOtpCounter]);
+
+  useEffect(() => {
+    if (
+      schoolCode.length != 0 &&
+      studentId.length != 0 &&
+      studentPassword.length! >= 6
+    ) {
+      setCurrentButtonColor(Buttoncolors.Valid);
+    } else {
+      setCurrentButtonColor(Buttoncolors.Default);
+    }
+  }, [schoolCode, studentId, studentPassword]);
 
   const onPhoneNumberSubmit = async () => {
     try {
@@ -340,14 +356,14 @@ const Login: React.FC = () => {
       console.log("login User Data ", res, userData);
 
       // if (res.isUserExist) {
-        setIsLoading(false);
-        setIsInitialLoading(false);
-        history.replace(PAGES.SELECT_MODE);
-        localStorage.setItem(CURRENT_USER, JSON.stringify(res.user));
-        console.log("isUserExist", localStorage.getItem(CURRENT_USER));
+      setIsLoading(false);
+      setIsInitialLoading(false);
+      history.replace(PAGES.SELECT_MODE);
+      localStorage.setItem(CURRENT_USER, JSON.stringify(res.user));
+      console.log("isUserExist", localStorage.getItem(CURRENT_USER));
 
-        // setShowNameInput(true);
-      // } 
+      // setShowNameInput(true);
+      // }
       // else if (!res.isUserExist) {
       //   setIsLoading(false);
       //   let phoneAuthResult = await FirebaseAuth.i.createPhoneAuthUser(
@@ -359,7 +375,7 @@ const Login: React.FC = () => {
       //     localStorage.setItem(CURRENT_USER, JSON.stringify(phoneAuthResult));
       //     console.log("new user", localStorage.getItem(CURRENT_USER));
       //   }
-      // } 
+      // }
       // else {
       //   setIsLoading(false);
 
@@ -476,17 +492,7 @@ const Login: React.FC = () => {
     setShowNameInput(true);
     setStudentCredentialLogin(true);
   }
-  useEffect(() => {
-    if (
-      schoolCode.length != 0 &&
-      studentId.length != 0 &&
-      studentPassword.length! >= 6
-    ) {
-      setCurrentButtonColor(Buttoncolors.Valid);
-    } else {
-      setCurrentButtonColor(Buttoncolors.Default);
-    }
-  }, [schoolCode, studentId, studentPassword]);
+
   return (
     <IonPage id="login-screen">
       {!!showBackButton && (
@@ -698,6 +704,66 @@ const Login: React.FC = () => {
                         setIsLoading(false);
                         setIsInitialLoading(false);
                         console.log("error", error);
+                      }
+                    }}
+                  />
+                  <img
+                    id="login-google-icon"
+                    alt="Google Icon"
+                    src="assets/icons/Google Icon.png"
+                    onClick={async () => {
+                      if (!online) {
+                        presentToast({
+                          message: t(
+                            `Device is offline. Login requires an internet connection`
+                          ),
+                          color: "danger",
+                          duration: 3000,
+                          position: "bottom",
+                          buttons: [
+                            {
+                              text: "Dismiss",
+                              role: "cancel",
+                            },
+                          ],
+                        });
+                        return;
+                      }
+                      try {
+                        setIsLoading(true);
+                        setIsInitialLoading(true);
+                        console.log("isLoading ", isLoading);
+                        const result = await NativeSSOPlugin.requestLogin();
+                        console.log(
+                          "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
+                          result
+                        );
+                        if (result) {
+                          setIsLoading(false);
+                          setIsInitialLoading(false);
+                          // history.replace(PAGES.DISPLAY_STUDENT);
+                          history.replace(PAGES.SELECT_MODE);
+                          localStorage.setItem(
+                            CURRENT_USER,
+                            JSON.stringify(result)
+                          );
+                          console.log(
+                            "google...",
+                            localStorage.getItem(CURRENT_USER)
+                          );
+                          Util.logEvent(EVENTS.USER_PROFILE, {
+                            user_type: RoleType.PARENT,
+                            action_type: ACTION.LOGIN,
+                            login_type: "google-signin",
+                          });
+                        } else {
+                          setIsLoading(false);
+                          setIsInitialLoading(false);
+                        }
+                      } catch (error) {
+                        setIsLoading(false);
+                        setIsInitialLoading(false);
+                        console.error("Login Failed:", error);
                       }
                     }}
                   />
@@ -973,7 +1039,14 @@ const Login: React.FC = () => {
           </div>
         ) : null}
       </div>
-      <Loading isLoading={isLoading || sentOtpLoading} msg={isInitialLoading ? "Please wait.....Login in progress. This may take a moment." : ""}/>
+      <Loading
+        isLoading={isLoading || sentOtpLoading}
+        msg={
+          isInitialLoading
+            ? "Please wait.....Login in progress. This may take a moment."
+            : ""
+        }
+      />
     </IonPage>
   );
 };
