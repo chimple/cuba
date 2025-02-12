@@ -25,6 +25,9 @@
   padding: 10px;
 }
 
+.no-subjects-text{
+  color: var(--text-color);
+}
 .button-right {
   width: 18.5%;
   height: 10vh;
