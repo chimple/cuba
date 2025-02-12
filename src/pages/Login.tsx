@@ -344,6 +344,7 @@ const Login: React.FC = () => {
       if (autoUserSchool) {
         schoolUtil.setCurrMode(MODES.SCHOOL);
         history.replace(PAGES.SELECT_MODE);
+        return;
       }
       schoolUtil.setCurrMode(MODES.TEACHER);
       history.replace(PAGES.DISPLAY_SCHOOLS);
