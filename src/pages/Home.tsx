@@ -22,6 +22,7 @@ import {
   LIVE_QUIZ,
   SHOW_DAILY_PROGRESS_FLAG,
   IS_CONECTED,
+  SUBTAB_MAPPINGS
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -67,6 +68,7 @@ import { AvatarObj } from "../components/animation/Avatar";
 import React from "react";
 import Dashboard from "./Malta/Dashboard";
 import PopupTemplate from "./PopupTemplate";
+import { SUBTAB } from "../common/constants";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -109,6 +111,7 @@ const Home: FC = () => {
   let tempPageNumber = 1;
   let linked: boolean;
   const location = useLocation();
+  const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
   const getCanShowAvatar = async () => {
     const canShowAvatarValue = await Util.getCanShowAvatar();
     console.log("const canShowAvatarValue in home ", canShowAvatarValue);
@@ -117,7 +120,6 @@ const Home: FC = () => {
   };
 
   const urlParams = new URLSearchParams(location.search);
-  const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
   const [currentHeader, setCurrentHeader] = useState(() => {
     const currPage = urlParams.get("tab");
     if (
@@ -129,6 +131,7 @@ const Home: FC = () => {
       return localStorage.getItem("currentHeader") || HOMEHEADERLIST.HOME;
     }
   });
+  const [value, setValue] = useState(SUBTAB.SUGGESTIONS);
 
   useEffect(() => {
     const student = Util.getCurrentStudent();
@@ -138,6 +141,7 @@ const Home: FC = () => {
       return;
     }
     urlOpenListenerEvent();
+    fetchData()
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
     initData();
@@ -188,7 +192,11 @@ const Home: FC = () => {
     setIsLoading(true);
 
     const allLessonIds = await getHistory();
-    if (allLessonIds) setValidLessonIds(allLessonIds);
+    if (allLessonIds) {
+      setValidLessonIds(allLessonIds);
+      await updateFavouriteLessons(validLessonIds);
+      await updateHistoryLessons(validLessonIds);
+    }
     AvatarObj.getInstance().unlockedRewards =
       (await Util.getAllUnlockedRewards()) || [];
     setIsLoading(false);
@@ -220,14 +228,35 @@ const Home: FC = () => {
   function urlOpenListenerEvent() {
     App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
       const slug = event.url.split(".cc").pop();
-      if (slug === PAGES.LIVE_QUIZ && linked) {
-        setCurrentHeader(HOMEHEADERLIST.LIVEQUIZ);
-      } else {
-        setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
+      let subtabConfig = SUBTAB_MAPPINGS[HOMEHEADERLIST.HOME];
+      if(slug) {
+        console.log("setting subtabConfig slug with:", slug);
+        subtabConfig = SUBTAB_MAPPINGS[slug];
       }
-      if (slug) {
-        history.replace(slug);
-      }
+      setTimeout(() => {      
+        if (subtabConfig) {
+          console.log("subtabConfig is:", subtabConfig);
+          if (subtabConfig.isLinked && !linked) {
+            // pageConfig.isLinked is true but student is not linked to any class, so redirect to join class
+            setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT)
+            return;
+          }
+
+          if (subtabConfig.redirect) {
+            history.replace(subtabConfig.redirect);
+          } else {
+            setCurrentHeader(subtabConfig.header);
+            if (subtabConfig.subtab) {
+              setValue(subtabConfig.subtab);
+              fetchData();
+            }
+          }
+        }
+      }, 
+      2000);
+      // if (slug) {
+      //   history.replace(slug);
+      // }
     });
   }
 
@@ -333,12 +362,7 @@ const Home: FC = () => {
       }
     }
   }
-  enum SUBTAB {
-    SUGGESTIONS,
-    FAVOURITES,
-    HISTORY,
-  }
-  const [value, setValue] = useState(SUBTAB.SUGGESTIONS);
+
 
   const handleChange = async (
     event: React.SyntheticEvent,
@@ -953,9 +977,10 @@ const Home: FC = () => {
             {(value === SUBTAB.SUGGESTIONS ||
               value === SUBTAB.FAVOURITES ||
               value === SUBTAB.HISTORY) &&
-              ((canShowAvatar &&
-                currentHeader === HOMEHEADERLIST.SUGGESTIONS) ||
-                (!canShowAvatar && currentHeader === HOMEHEADERLIST.HOME)) && (
+              ((canShowAvatar && currentHeader === HOMEHEADERLIST.SUGGESTIONS) ||
+                (!canShowAvatar && currentHeader === HOMEHEADERLIST.HOME) ||
+                (!canShowAvatar && currentHeader === HOMEHEADERLIST.SUGGESTIONS)
+              ) && (
                 <div>
                   {value === SUBTAB.SUGGESTIONS && (
                     <LessonSlider
