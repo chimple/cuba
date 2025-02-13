@@ -61,10 +61,11 @@ const Leaderboard: React.FC = () => {
   >([]);
   const [weeklySelectedValue, setWeeklySelectedValue] = useState<string>();
   const [currentClass, setCurrentClass] = useState<StudentProfile>();
+  const [tabIndex, setTabIndex] = useState(LEADERBOARDHEADERLIST.LEADERBOARD);
 
   useEffect(() => {
     setIsLoading(true);
-    inti();
+    init();
     const urlParams = new URLSearchParams(window.location.search);
     const rewardsTab = urlParams.get("tab");
     let currentTab = LEADERBOARDHEADERLIST.LEADERBOARD;
@@ -78,7 +79,7 @@ const Leaderboard: React.FC = () => {
 
   useEffect(() => {}, []);
 
-  async function inti() {
+  async function init() {
     console.log("init method called");
     const weekOptions = [
       { text: t("Weekly"), type: LeaderboardDropdownList.WEEKLY },
@@ -482,7 +483,6 @@ const Leaderboard: React.FC = () => {
     );
   }
 
-  const [tabIndex, setTabIndex] = useState(LEADERBOARDHEADERLIST.LEADERBOARD);
 
   const handleChange = (
     event: React.SyntheticEvent,
