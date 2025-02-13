@@ -8,6 +8,7 @@ import {
   TableTypes,
 } from "../../common/constants";
 import { Chapter } from "../../interface/curriculumInterfaces";
+import {LearningUnit} from "../../interface/curriculumInterfaces"
 import Assignment from "../../models/assignment";
 import Auth from "../../models/auth";
 import Class from "../../models/class";
@@ -18,6 +19,7 @@ import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
 // import { Chapter } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
+import LearningUnitService from "../../models/learningUnits";
 import { StudentLessonResult } from "../../common/courseConstants";
 import StudentProfile from "../../models/studentProfile";
 import { Unsubscribe } from "@firebase/firestore";
@@ -31,6 +33,7 @@ export class OneRosterApi implements ServiceApi {
   private preQuizMap: { [key: string]: { [key: string]: Result } } = {};
   private classes: { [key: string]: Class[] } = {};
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
+  private activityId: string = 'https://example.org/topic/learningUnit1/';
 
   getCoursesForParentsStudent(
     studentId: string
@@ -551,7 +554,7 @@ export class OneRosterApi implements ServiceApi {
     const manifestUrl: string = `https://example.org/topic/learningUnit1/.well-known/respect-urls.txt`;
     try {
       const response = await Http.get<string>(manifestUrl, { headers: this.getHeaders() });
-      const urls: string[] = response.data
+      const urls: string[] = response.data.split('\n').map(url => url.trim()).filter(url => url);
       return urls;
     } catch (error) {
       console.error('Error fetching manifest:', error);
@@ -559,15 +562,10 @@ export class OneRosterApi implements ServiceApi {
     }
   }
 
-  async sendLearningUnitResults(sourcedId: string, result: Result): Promise<any> {
+  async sendLearningUnitResults(sourcedId: string, result: Result): Promise<LearningUnit> {
     const url: string = `/results/${sourcedId}`;
     try {
-      const processedResult: Result & { timestamp: string } = {
-        score: result.score ?? 0,
-        completed: result.completed ?? false,
-        success: result.success ?? false,
-        timestamp: new Date().toISOString(),
-      };
+      const processedResult = LearningUnit.getInstance()
       const response = await Http.put(url, processedResult, { headers: this.getHeaders() });
       return response.data;
     } catch (error) {
@@ -575,6 +573,29 @@ export class OneRosterApi implements ServiceApi {
       throw error;
     }
   }
+
+  async launchLessonLearningUnits(): Promise<any> {
+    try {
+
+        const launchUrl = `https://example.org/topic/learningUnit1/?respectLaunchVersion=1&auth=${Auth}` +
+            `&given_name=${encodeURIComponent(TableTypes<"user">)}&locale=en-US` +
+            `&http_proxy=http://localhost:8098/&endpoint_lti_ags=http://localhost:${port}/api/ags` +
+            `&endpoint=http://localhost:${port}/api/xapi&actor=${encodeURIComponent(JSON.stringify({
+                name: TableTypes<"user">, 
+                mbox: TableTypes<"email">
+            }))}` +
+            `&registration=760e3480-ba55-4991-94b0-01820dbd23a2&activity_id=${LearningUnitService}`;
+
+        const response = await Http.get(launchUrl, { headers: this.getHeaders() });
+        return response.data;
+        
+    } catch (error) {
+        console.error('Error launching lesson:', error);
+        throw error;
+    }
+}
+
+
   // LearningUnit api end =====
 
 

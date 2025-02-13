@@ -35,3 +35,10 @@ export interface Lesson {
     orig_course_id?: string | null;
     orig_lesson_id?: string | null;
 }
+
+export interface LearningUnit {
+    id: string;
+    score?: number;
+    completed?: boolean;
+    success?: boolean;
+}
