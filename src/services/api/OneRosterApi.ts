@@ -545,6 +545,39 @@ export class OneRosterApi implements ServiceApi {
     // }
   }
 
+  // LearningUnit api start =====
+
+  async fetchManifestLearningUnit(): Promise<string[]> {
+    const manifestUrl: string = `https://example.org/topic/learningUnit1/.well-known/respect-urls.txt`;
+    try {
+      const response = await Http.get<string>(manifestUrl, { headers: this.getHeaders() });
+      const urls: string[] = response.data
+      return urls;
+    } catch (error) {
+      console.error('Error fetching manifest:', error);
+      throw error;
+    }
+  }
+
+  async sendLearningUnitResults(sourcedId: string, result: Result): Promise<any> {
+    const url: string = `/results/${sourcedId}`;
+    try {
+      const processedResult: Result & { timestamp: string } = {
+        score: result.score ?? 0,
+        completed: result.completed ?? false,
+        success: result.success ?? false,
+        timestamp: new Date().toISOString(),
+      };
+      const response = await Http.put(url, processedResult, { headers: this.getHeaders() });
+      return response.data;
+    } catch (error) {
+      console.error('Error sending results:', error);
+      throw error;
+    }
+  }
+  // LearningUnit api end =====
+
+
   async getResultsForStudentForClass(
     classId: string,
     studentId: string
@@ -894,6 +927,8 @@ export class OneRosterApi implements ServiceApi {
     //   console.log(error);
     // }
   }
+
+  
 
   async getClassForUserForSubject(
     userId: string,
