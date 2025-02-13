@@ -82,7 +82,7 @@ const PopupTemplate: FC<PopupProps> = ({
           </div>
         </div>
 
-        {/* Content and Close Button in a Row */}
+        {/* Content and Message Shown */}
         <div className="popup_content_holder">
           <div className="popup_message_row">
             <div className="popup_message">{message}</div>
@@ -92,6 +92,7 @@ const PopupTemplate: FC<PopupProps> = ({
           </div>
         </div>
 
+        {/* Close Button */}
         <div className="popup_content_holder">
           <div className="popup_close">
             <span onClick={handleCloseClick} className="popup_val">
