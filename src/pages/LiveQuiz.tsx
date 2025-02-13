@@ -73,18 +73,7 @@ const LiveQuiz: React.FC = () => {
         })
       );
 
-      const filteredLessons = _lessons.filter((lesson) => {
-        // Check if lesson has completedStudents array
-        if (
-          lesson.assignment?.completedStudents &&
-          Array.isArray(lesson.assignment?.completedStudents)
-        ) {
-          return !lesson.assignment?.completedStudents.includes(student.docId); // Keep only unplayed quizzes
-        }
-        return true;
-      });
-
-      setLiveQuizzes(filteredLessons);
+      setLiveQuizzes(_lessons);
       setLoading(false);
     } else {
       setLoading(false);
