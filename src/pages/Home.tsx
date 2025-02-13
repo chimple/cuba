@@ -133,6 +133,8 @@ const Home: FC = () => {
   });
   const [value, setValue] = useState(SUBTAB.SUGGESTIONS);
 
+  const currentMode = localStorage.getItem(CURRENT_MODE);
+
   useEffect(() => {
     const student = Util.getCurrentStudent();
 
@@ -871,7 +873,7 @@ const Home: FC = () => {
   useEffect(() => {
     if (pendingLiveQuizCount !== 0) {
       setShowQuizPopup(true);
-    } else if (pendingAssignmentsCount !== 0) {
+    } else if (pendingAssignmentsCount !== 0 && currentMode !== MODES.SCHOOL) {
       setShowAssignmentPopup(true);
     }
   }, [pendingLiveQuizCount, pendingAssignmentsCount]);
@@ -888,8 +890,10 @@ const Home: FC = () => {
   };
 
   const handleJoinNowAssign = () => {
-    setShowAssignmentPopup(false);
-    setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
+    if (pendingAssignmentsCount > 0) {
+      setShowAssignmentPopup(false);
+      setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
+    }
   };
 
   return (
@@ -1179,16 +1183,17 @@ const Home: FC = () => {
           <PopupTemplate
             onJoin={handleJoinNow}
             message={t("Live Quiz is Starting Soon!")}
-            buttonMessage={t("Play Now")}
-            imagePath="/assets/icons/quiz_icon.svg"
+            buttonMessage={t("Join Now")}
+            imagePath="/assets/icons/quiz_icon.gif"
           />
         )}
+        {/* To deal with assignments should not be shown to teachers */}
         {showAssignmentPopup && (
           <PopupTemplate
             onJoin={handleJoinNowAssign}
-            message={t("Assignment is Starting Soon!")}
+            message={t("You have pending homework.")}
             buttonMessage={t("Play Now")}
-            imagePath="/assets/icons/homeworkIcon.svg"
+            imagePath="/assets/icons/Homework_icon.gif"
           />
         )}
         <SkeltonLoading isLoading={isLoading} header={currentHeader} />

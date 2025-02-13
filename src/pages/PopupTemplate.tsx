@@ -75,19 +75,6 @@ const PopupTemplate: FC<PopupProps> = ({
   return (
     <div className="popup_overlay">
       <div className="popup-quiz-container">
-        {/* Close Button */}
-        <div className="popup_close">
-          <button
-            onClick={handleCloseClick}
-            type="button"
-            style={{ background: "none", border: "none" }}
-          >
-            <div className="popup_button">
-              <div className="popup_closebtn"></div>
-            </div>
-          </button>
-        </div>
-
         {/* Timer or Image */}
         <div className="popup_timer">
           <div className="relative popup-timer-container">
@@ -95,12 +82,23 @@ const PopupTemplate: FC<PopupProps> = ({
           </div>
         </div>
 
-        {/* Join Now Button */}
+        {/* Content and Message Shown */}
         <div className="popup_content_holder">
-          <div className="popup_message">{message}</div>
-          <button onClick={handleJoinClick} className="popup_joinbtn">
-            {buttonMessage}
-          </button>
+          <div className="popup_message_row">
+            <div className="popup_message">{message}</div>
+            <button onClick={handleJoinClick} className="popup_joinbtn">
+              {buttonMessage}
+            </button>
+          </div>
+        </div>
+
+        {/* Close Button */}
+        <div className="popup_content_holder">
+          <div className="popup_close">
+            <span onClick={handleCloseClick} className="popup_val">
+              x
+            </span>
+          </div>
         </div>
       </div>
     </div>
