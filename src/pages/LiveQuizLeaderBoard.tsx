@@ -11,7 +11,6 @@ import NextButton from "../components/common/NextButton";
 
 const LiveQuizLeaderBoard: React.FC = () => {
   const [combinedStudentScores, setCombinedStudentScores] = useState<any>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
   const [students, setStudents] = useState(new Map<String, User>());
   const urlSearchParams = new URLSearchParams(window.location.search);
   const paramLiveRoomId = urlSearchParams.get("liveRoomId") ?? "";
@@ -74,7 +73,6 @@ const LiveQuizLeaderBoard: React.FC = () => {
         );
         console.log("tempStudentsMap..", tempStudentsMap);
         setStudents(tempStudentsMap);
-        setIsLoaded(true);
       }
     } catch (error) {
       console.error(
@@ -150,7 +148,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
                 onClicked={() => {
                   history.replace(PAGES.HOME);
                 }}
-                disabled={!isLoaded}
+                disabled={false}
               />
             </div>
           </div>
