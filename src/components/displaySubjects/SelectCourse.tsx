@@ -10,13 +10,11 @@ import { useHistory } from "react-router";
 import { getDoc } from "firebase/firestore";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
-
 interface CourseDetails {
   course: Course;
   grade?: Grade | null;
   curriculum?: Curriculum | null;
 }
-
 const SelectCourse: FC<{
   courses: Course[];
   modeParent: boolean;
@@ -24,7 +22,6 @@ const SelectCourse: FC<{
 }> = ({ courses, modeParent, onCourseChange }) => {
   const [courseDetails, setCourseDetails] = useState<CourseDetails[]>([]);
   const history = useHistory();
-
   useEffect(() => {
     fetchCourseDetails();
   }, [courses]);
@@ -42,12 +39,19 @@ const SelectCourse: FC<{
         };
       })
     );
+    // Sorting logic to ensure correct order dynamically
+    const getCoursePriority = (title: string): number => {
+      if (title.toLowerCase().includes("english")) return 1;
+      if (title.toLowerCase().includes("math")) return 2;
+      if (title.toLowerCase().includes("hindi") || title.toLowerCase().includes("marathi") || title.toLowerCase().includes("3rd language")) return 3; 
+      return title.toLowerCase().includes("digital skill") ? 999 : 4; 
+    };
+    // Apply sorting based on the computed priority
+    detailedCourses.sort((a, b) => {
+      return getCoursePriority(a.course.title) - getCoursePriority(b.course.title);
+    });
     setCourseDetails(detailedCourses);
   };
-  courseDetails.sort((a, b) => {
-    return a.course.sortIndex - b.course.sortIndex;
-  });
-
   return (
     <Splide
       hasTrack={true}
@@ -61,13 +65,12 @@ const SelectCourse: FC<{
     >
       {courseDetails.map(({ course, grade, curriculum }) => {
         return (
-          <SplideSlide className="slide">
+          <SplideSlide className="slide" key={course.docId}>
             <div
               onClick={() => {
                 onCourseChange(course);
               }}
               className="subject-button"
-              key={course.docId}
             >
               <div id="subject-card-subject-name">
                 <p>{grade?.title}</p>
@@ -94,14 +97,13 @@ const SelectCourse: FC<{
           </SplideSlide>
         );
       })}
-      {modeParent ? (
+      {modeParent && (
         <SplideSlide className="slide">
           <div
             onClick={() => {
               history.replace(PAGES.ADD_SUBJECTS);
             }}
             className="subject-button"
-            key={courses[0].docId}
           >
             <div
               className="course-icon"
@@ -109,13 +111,11 @@ const SelectCourse: FC<{
                 backgroundColor: "#8F5AA5",
               }}
             >
-              <IoAddCircleSharp color="white" size="20vh" onClick={() => {}} />
+              <IoAddCircleSharp color="white" size="20vh" />
             </div>
             {t("Add Subject")}
           </div>
         </SplideSlide>
-      ) : (
-        <></>
       )}
     </Splide>
   );
