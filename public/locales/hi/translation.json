@@ -167,6 +167,7 @@
   "Create a New Child Profile": "बच्चे की नयी प्रोफ़ाइल बनाएं",
   "Create a New Profile": "एक नई प्रोफ़ाइल बनाएं",
   "Create Class": "कक्षा बनाएं",
+  "Create New School": "नया स्कूल बनाएँ",
   "Create": "बनाएं",
   "Creating": "बनाना",
   "Curriculum": "पाठ्यक्रम",
@@ -315,7 +316,6 @@
   "Live Quiz": "लाइव प्रश्नोत्तरी",
   "Lizard": "छिपकली",
   "loading": "लोड हो रहा है...",
-  "Please wait.....Login in progress. This may take a moment.": "कृपया प्रतीक्षा करें.....लॉगिन प्रगति में है। इसमें कुछ समय लग सकता है।",
   "Login unsuccessful. Please try again later.": "लॉगिन असफल. कृपया बाद में पुन: प्रयास करें।",
   "Login with Phone number or Gmail": "फ़ोन नंबर या जीमेल से लॉगिन करें।",
   "Logout": "लॉगआउट",
@@ -445,6 +445,7 @@
   "Please select your profile": "कृपया अपना प्रोफ़ाइल चुनें.",
   "Please Visit Our Website": "कृपया हमारी वेबसाइट पर जाएँ।",
   "Please wait. Quiz will be starting soon": "कृपया प्रतीक्षा करें। क्विज़ जल्द ही शुरू होगा.",
+  "Please wait.....Login in progress. This may take a moment.": "कृपया प्रतीक्षा करें.....लॉगिन प्रगति में है। इसमें कुछ समय लग सकता है।",
   "Practice 1": "अभ्यास 1",
   "Practice 2": "अभ्यास 2",
   "Practice 3": "अभ्यास 3",
@@ -510,6 +511,7 @@
   "Select by date Range": "दिनांक सीमा के अनुसार चयन करें",
   "Select Class": "कक्षा का चयन करें",
   "Select Language": "भाषा चुने",
+  "Select School": "स्कूल चुनें",
   "Select the App Language": "ऐप भाषा चुनें",
   "Select the Board": "बोर्ड का चयन करें",
   "Select the Child's Age:": "बच्चे की उम्र को चुनिए :",
@@ -612,6 +614,8 @@
   "Swipe x to Unlock": "अनलॉक करने के लिए x स्वाइप करें",
   "Switch Profile": "प्रोफ़ाइल स्विच करें",
   "Switch school": "स्कूल बदलें",
+  "Switch to Child's Mode": "बच्चे के मोड पर जाएँ",
+  "Switch to Teacher's Mode": "शिक्षक के मोड पर जाएँ",
   "Table of  1": "1 की तालिका",
   "Table of 2 ": "2 की तालिका",
   "Table of 3": "3 की तालिका",
@@ -687,5 +691,6 @@
   "You have selected to remove a subject, would you like to continue?": "आपने एक विषय को हटाने का चयन किया है, क्या आप जारी रखना चाहेंगे?",
   "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!": "आपने आज 25 मिनट तक चिम्पल का उपयोग किया है। अपनी आँखों को आराम देने के लिए थोड़ा ब्रेक लें!",
   "Your progress stays synced and consistent across all devices.": "आपकी प्रगति सभी डिवाइसों पर समन्वयित और सुसंगत रहती है।",
-  "Zebra": "ज़ेबरा"
+  "Zebra": "ज़ेबरा",
+  "The Subject you have chosen is the last one left and cannot be deleted": "आपके द्वारा चुना गया विषय आखिरी बचा है और उसे हटाया नहीं जा सकता"
 }

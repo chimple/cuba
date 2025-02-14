@@ -239,7 +239,6 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-
   async removeCoursesFromClass(ids: string[]): Promise<void> {
     throw new Error("Method not implemented.");
   }
@@ -247,10 +246,12 @@ export class SupabaseApi implements ServiceApi {
   async removeCoursesFromSchool(ids: string[]): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  async checkCourseInClasses(classIds: string[], classId: string): Promise<boolean> {
+  async checkCourseInClasses(
+    classIds: string[],
+    classId: string
+  ): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
-
 
   async deleteUserFromClass(userId: string): Promise<void> {
     throw new Error("Method not implemented.");
@@ -260,7 +261,7 @@ export class SupabaseApi implements ServiceApi {
     name: string,
     group1: string,
     group2: string,
-    group3: string,
+    group3: string
   ): Promise<TableTypes<"school">> {
     throw new Error("Method not implemented.");
   }
@@ -841,8 +842,10 @@ export class SupabaseApi implements ServiceApi {
     try {
       if (this._assignmentUserRealTime)
         this.supabase?.removeChannel(this._assignmentUserRealTime);
+      this._assignmentUserRealTime = undefined;
       if (this._assignmetRealTime)
         this.supabase?.removeChannel(this._assignmetRealTime);
+      this._assignmetRealTime = undefined;
     } catch (error) {
       throw error;
     }
@@ -1010,7 +1013,10 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getRecommendedLessons(studentId: string,classId?:string): Promise<TableTypes<"lesson">[]> {
+  getRecommendedLessons(
+    studentId: string,
+    classId?: string
+  ): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
 
@@ -1052,6 +1058,11 @@ export class SupabaseApi implements ServiceApi {
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
+  }
+  getAssignmentUserByAssignmentIds(
+    assignmentIds: string[]
+  ): Promise<TableTypes<"assignment_user">[]> {
+    throw new Error("Method not implemented")
   }
   getResultByAssignmentIds(
     assignmentIds: string[]
@@ -1190,6 +1201,11 @@ export class SupabaseApi implements ServiceApi {
     } catch (error) {
       throw error; // Re-throw the error for external handling
     }
+  }
+  async getSchoolsWithRoleAutouser(
+    schoolIds: string[]
+  ): Promise<TableTypes<"school">[] | undefined> {
+    throw new Error("Method not implemented.");
   }
   async getPrincipalsForSchool(
     schoolId: string

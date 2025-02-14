@@ -167,6 +167,7 @@
   "Create a New Child Profile": "ಹೊಸ ಮಕ್ಕಳ ಪ್ರೊಫೈಲ್ ರಚಿಸಿ",
   "Create a New Profile": "ಹೊಸ ಬಳಕೆದಾರರನ್ನು ರಚಿಸಿ",
   "Create Class": "ವರ್ಗವನ್ನು ರಚಿಸಿ",
+  "Create New School": "ಹೊಸ ಶಾಲೆಯನ್ನು ರಚಿಸಿ",
   "Create": "ರಚಿಸು",
   "Creating": "ರಚಿಸುವುದು",
   "Curriculum": "ಪಠ್ಯಕ್ರಮ",
@@ -314,7 +315,6 @@
   "Live Quiz": "ಲೈವ್ ರಸಪ್ರಶ್ನೆ",
   "Lizard": "ಹಲ್ಲಿ",
   "loading": "ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
-  "Please wait.....Login in progress. This may take a moment.": "ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ..... ಲಾಗಿನ್ ಪ್ರಗತಿಯಲ್ಲಿದೆ. ಇದು ಸ್ವಲ್ಪ ಸಮಯ ತೆಗೆದುಕೊಳ್ಳಬಹುದು.",
   "Login unsuccessful. Please try again later.": "ಲಾಗಿನ್ ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
   "Login with Phone number or Gmail": "ಫೋನ್ ಸಂಖ್ಯೆ ಅಥವಾ Gmail ಮೂಲಕ ಲಾಗ್ ಇನ್ ಮಾಡಿ ",
   "Logout": "ಲಾಗ್ ಔಟ್",
@@ -441,6 +441,7 @@
   "Please select your profile": "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ",
   "Please Visit Our Website": "ದಯವಿಟ್ಟು ನಮ್ಮ ವೆಬ್‌ಸೈಟ್‌ಗೆ ಭೇಟಿ ನೀಡಿ",
   "Please wait. Quiz will be starting soon": "ದಯಮಾಡಿ ನಿರೀಕ್ಷಿಸಿ. ರಸಪ್ರಶ್ನೆ ಶೀಘ್ರದಲ್ಲೇ ಪ್ರಾರಂಭವಾಗಲಿದೆ.",
+  "Please wait.....Login in progress. This may take a moment.": "ದಯವಿಟ್ಟು ನಿರೀಕ್ಷಿಸಿ..... ಲಾಗಿನ್ ಪ್ರಗತಿಯಲ್ಲಿದೆ. ಇದು ಸ್ವಲ್ಪ ಸಮಯ ತೆಗೆದುಕೊಳ್ಳಬಹುದು.",
   "Practice 1": " ಅಭ್ಯಾಸ 1",
   "Practice 2": "ಅಭ್ಯಾಸ 2",
   "Practice 3": "ಅಭ್ಯಾಸ 3",
@@ -507,6 +508,7 @@
   "Select by date Range": "ದಿನಾಂಕ ಶ್ರೇಣಿಯ ಮೂಲಕ ಆಯ್ಕೆಮಾಡಿ",
   "Select Class": "ವರ್ಗ ಆಯ್ಕೆಮಾಡಿ",
   "Select Language": "ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+  "Select School": "ಶಾಲೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
   "Select the App Language": "ಆಪ್  ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
   "Select the Board": "ಬೋರ್ಡ್ ಆಯ್ಕೆಮಾಡಿ",
   "Select the Child's Age:": "ಮಕ್ಕಳ ವಯಸ್ಸನ್ನು ಆಯ್ಕೆಮಾಡಿ:",
@@ -608,6 +610,8 @@
   "Swipe x to Unlock": "ಅನ್ಲಾಕ್ ಮಾಡಲು x ಸ್ವೈಪ್ ಮಾಡಿ",
   "Switch Profile": "ಪ್ರೊಫೈಲ್ ಬದಲಿಸಿ",
   "Switch school": "ಶಾಲೆ ಬದಲಿಸಿ",
+  "Switch to Child's Mode": "ಮಕ್ಕಳ ಮೋಡ್‌ಗೆ ಬದಲಿಸಿ",
+  "Switch to Teacher's Mode": "ಶಿಕ್ಷಕರ ಮೋಡ್‌ಗೆ ಬದಲಿಸಿ",
   "Table of  1": "ಕೋಷ್ಟಕ 1",
   "Table of 2 ": "2 ರ ಕೋಷ್ಟಕ",
   "Table of 3": "3 ರ ಕೋಷ್ಟಕ",
@@ -682,5 +686,6 @@
   "You have selected to remove a subject, would you like to continue?": "ನೀವು ವಿಷಯವನ್ನು ತೆಗೆದುಹಾಕಲು ಆಯ್ಕೆ ಮಾಡಿದ್ದೀರಿ, ನೀವು ಮುಂದುವರಿಸಲು ಬಯಸುವಿರಾ?",
   "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!": "ನೀವು ಇಂದು 25 ನಿಮಿಷಗಳ ಕಾಲ ಚಿಂಪಲ್ ಅನ್ನು ಬಳಸಿದ್ದೀರಿ. ನಿಮ್ಮ ಕಣ್ಣುಗಳಿಗೆ ವಿಶ್ರಾಂತಿ ಪಡೆಯಲು ವಿರಾಮ ತೆಗೆದುಕೊಳ್ಳಿ!",
   "Your progress stays synced and consistent across all devices.": "ನಿಮ್ಮ ಪ್ರಗತಿಯು ಎಲ್ಲಾ ಸಾಧನಗಳಾದ್ಯಂತ ನವೀಕರಿಸಲ್ಪಡುತ್ತದೆ ಮತ್ತು ಸ್ಥಿರವಾಗಿರುತ್ತದೆ.",
-  "Zebra": "ಜೀಬ್ರಾ"
+  "Zebra": "ಜೀಬ್ರಾ",
+  "The Subject you have chosen is the last one left and cannot be deleted": "ನೀವು ಆಯ್ಕೆ ಮಾಡಿದ ವಿಷಯವು ಕೊನೆಯದಾಗಿ ಉಳಿದಿದೆ ಮತ್ತು ಅದನ್ನು ಅಳಿಸಲಾಗುವುದಿಲ್ಲ"
 }

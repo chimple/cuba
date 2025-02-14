@@ -244,7 +244,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-            new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -1109,7 +1109,7 @@ export class SqliteApi implements ServiceApi {
   }
   async getGradesByIds(gradeIds: string[]): Promise<TableTypes<"grade">[]> {
     if (!gradeIds || gradeIds.length === 0) {
-      return []; 
+      return [];
     }
     // Format the IDs for the SQL query
     const formattedIds = gradeIds.map((id) => `"${id}"`).join(", ");
@@ -1117,14 +1117,14 @@ export class SqliteApi implements ServiceApi {
     const res = await this._db?.query(
       `SELECT * FROM ${TABLES.Grade} WHERE id IN (${formattedIds})`
     );
-  
+
     if (!res || !res.values || res.values.length === 0) {
       return []; // Return an empty array if no grades are found
     }
     // Return the retrieved grades
     return res.values;
   }
-  
+
   async getCurriculumById(
     id: string
   ): Promise<TableTypes<"curriculum"> | undefined> {
@@ -1140,24 +1140,23 @@ export class SqliteApi implements ServiceApi {
     if (!ids || ids.length === 0) {
       return [];
     }
-  
+
     // Format the IDs for the SQL query
     const formattedIds = ids.map((id) => `"${id}"`).join(", ");
-  
+
     // Construct and execute the query
     const res = await this._db?.query(
       `SELECT * FROM ${TABLES.Curriculum} WHERE id IN (${formattedIds})`
     );
-  
+
     if (!res || !res.values || res.values.length < 1) {
       return [];
     }
-  
+
     // Assuming you need to return the first item or an empty array
     return res.values;
   }
-  
-  
+
   async getAllLanguages(): Promise<TableTypes<"language">[]> {
     const res = await this._db?.query("select * from " + TABLES.Language);
     console.log("🚀 ~ SqliteApi ~ getAllLanguages ~ res:", res);
@@ -2016,6 +2015,7 @@ export class SqliteApi implements ServiceApi {
           ) AS school
           FROM ${TABLES.School} s
           WHERE s.id = "${schoolId}" AND s.is_deleted = 0
+          ORDER BY s.name ASC; 
         `;
           const schoolRes = await this._db?.query(query);
           if (schoolRes && schoolRes.values && schoolRes.values.length > 0) {
@@ -2046,7 +2046,8 @@ export class SqliteApi implements ServiceApi {
     WHERE su.user_id = "${userId}" 
     AND su.role != "${RoleType.PARENT}" 
     AND su.is_deleted = 0 
-    AND s.is_deleted = 0
+    AND s.is_deleted = 0 
+    ORDER BY s.name ASC; 
   `;
     const schoolUserRes = await this._db?.query(query);
 
@@ -2062,8 +2063,16 @@ export class SqliteApi implements ServiceApi {
           schoolIds.add(schoolId);
           finalData.push({
             school: JSON.parse(data.school),
-            role: data.role,
+            role: data.role, // "autouser"
           });
+        } else {
+          // Update role if already exists in finalData
+          const existingEntry = finalData.find(
+            (entry) => entry.school.id === schoolId
+          );
+          if (existingEntry) {
+            existingEntry.role = data.role; // Override role
+          }
         }
       }
     }
@@ -3568,6 +3577,35 @@ order by
     if (!res || !res.values || res.values.length < 1) return;
     return res.values;
   }
+  async getAssignmentUserByAssignmentIds(
+    assignmentIds: string[]
+  ): Promise<TableTypes<"assignment_user">[]> {
+    // If there are no assignment IDs, return an empty array immediately.
+    if (!assignmentIds || assignmentIds.length === 0) {
+      return [];
+    }
+    
+    // Create a comma-separated list of placeholders for the query.
+    const placeholders = assignmentIds.map(() => "?").join(", ");
+    
+    // Construct the SQL query using the placeholders.
+    const query = `
+      SELECT *
+      FROM ${TABLES.Assignment_user}
+      WHERE assignment_id IN (${placeholders});
+    `;
+    
+    // Execute the query. (Assuming this._db.query returns an object with a 'values' property)
+    const res = await this._db?.query(query, assignmentIds);
+    
+    // If no results were returned, return an empty array.
+    if (!res || !res.values || res.values.length < 1) {
+      return [];
+    }
+    
+    // Otherwise, return the results.
+    return res.values;
+  }
   async getLessonsBylessonIds(
     lessonIds: string[] // Expect an array of strings
   ): Promise<TableTypes<"lesson">[] | undefined> {
@@ -3757,7 +3795,7 @@ order by
           user_doc.curriculum_id,
           user_doc.language_id,
           user_doc.created_at,
-          user_doc.updated_at
+          user_doc.updated_at,
         ]
       );
     }
@@ -3972,6 +4010,25 @@ order by
     if (!res || !res.values || res.values.length < 1) return;
     return res.values;
   }
+
+  async getSchoolsWithRoleAutouser(
+    schoolIds: string[]
+  ): Promise<TableTypes<"school">[] | undefined> {
+    // Escape schoolIds array for use in the SQL query
+    const placeholders = schoolIds.map(() => "?").join(", "); // Generates ?, ?, ? for query placeholders
+    const query = `
+      SELECT DISTINCT school.*
+      FROM ${TABLES.SchoolUser} AS su
+      JOIN ${TABLES.School} AS school ON su.school_id = school.id
+      WHERE su.school_id IN (${placeholders})
+        AND su.role = '${RoleType.AUTOUSER}'
+        AND su.is_deleted = false;
+    `;
+    
+    const res = await this._db?.query(query, schoolIds);
+    return res?.values ?? [];
+  }
+
   async getPrincipalsForSchool(
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined> {
@@ -4064,7 +4121,7 @@ order by
           user_doc.curriculum_id,
           user_doc.language_id,
           user_doc.created_at,
-          user_doc.updated_at
+          user_doc.updated_at,
         ]
       );
     }

@@ -39,6 +39,9 @@ const LessonCard: React.FC<{
   onDownloadOrDelete?: () => void;
   chapter?: TableTypes<"chapter">;
   assignment?: TableTypes<"assignment">;
+  lessonCourseMap?: {
+    [lessonId: string]: { course_id: string };
+  };
 }> = ({
   width,
   height,
@@ -57,6 +60,7 @@ const LessonCard: React.FC<{
   onDownloadOrDelete,
   chapter,
   assignment,
+  lessonCourseMap,
 }) => {
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
@@ -80,30 +84,20 @@ const LessonCard: React.FC<{
       setDate(dateObj);
     }
   };
+
   const getCurrentCourse = async () => {
-    const currentStudent = Util.getCurrentStudent();
-    if (!currentStudent) {
-      return;
-    }
     const api = ServiceConfig.getI().apiHandler;
-    const courses = await api.getCoursesForParentsStudent(currentStudent.id);
-
-    let currentCourse = courses.find(
-      (course) => lesson.cocos_subject_code === course.code
-    );
-
-    if (!currentCourse) {
-      const lessonCourse = await api.getCoursesFromLesson(lesson.id);
-      if (lessonCourse && lessonCourse.length > 0) {
-        setCurrentCourse(lessonCourse[0]);
+    try {
+      if (lessonCourseMap) {
+        const lessonData = lessonCourseMap[lesson.id];
+        if (lessonData?.course_id) {
+          const course = await api.getCourse(lessonData.course_id);
+          setCurrentCourse(course);
+          return;
+        }
       }
-    } else if (!Util.checkLessonPresentInCourse(currentCourse, lesson.id)) {
-      const lessonCourse = await api.getCoursesFromLesson(lesson.id);
-      if (lessonCourse && lessonCourse.length > 0) {
-        setCurrentCourse(lessonCourse[0]);
-      }
-    } else {
-      setCurrentCourse(currentCourse);
+    } catch (error) {
+      console.error("Error fetching course data:", error);
     }
   };
 
