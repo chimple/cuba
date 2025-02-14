@@ -38,7 +38,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             String messageBody = remoteMessage.getData().get("messageBody");
             String StartsAt = remoteMessage.getData().get("startsAt");
             long delay = parseStartTime(StartsAt);
-            scheduleNotification(messageTitle, messageBody, delay);
+            scheduleNotification(messageTitle, messageBody, delay, remoteMessage.getData().toString());
         }
     }
 
@@ -59,12 +59,13 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
     }
 
-    private void scheduleNotification(String messageTitle, String messageBody, long delay) {
+    private void scheduleNotification(String messageTitle, String messageBody, long delay, String fullPayload) {
         Log.d(TAG, "Notification scheduled in: " + TimeUnit.MILLISECONDS.toSeconds(delay) + " seconds");
 
         Data inputData = new Data.Builder()
                 .putString("messageTitle", messageTitle)
                 .putString("messageBody", messageBody)
+                .putString("fullPayload", fullPayload) // Send the full payload to Worker
                 .build();
 
         OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(MyWorker.class)
@@ -85,23 +86,29 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             this.context = context;
         }
 
-        @NonNull
         @Override
         public Result doWork() {
             String messageTitle = getInputData().getString("messageTitle");
             String messageBody = getInputData().getString("messageBody");
+            String fullPayload = getInputData().getString("fullPayload");
 
             Log.d(TAG, "Sending scheduled notification: " + messageTitle + " - " + messageBody);
+            Log.d(TAG, "Full payload data: " + fullPayload); // Log the full payload
 
-            sendNotification(messageTitle, messageBody);
+            sendNotification(messageTitle, messageBody, fullPayload);
             return Result.success();
         }
 
-        private void sendNotification(String messageTitle, String messageBody) {
+        private void sendNotification(String messageTitle, String messageBody, String fullPayload) {
             Intent intent = new Intent(context, MainActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intent.putExtra("fullPayload", fullPayload); // Attach full payload to the intent
+
             PendingIntent pendingIntent = PendingIntent.getActivity(
-                    context, 0, intent, PendingIntent.FLAG_IMMUTABLE
+                    context, 0, intent,
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                            ? PendingIntent.FLAG_MUTABLE
+                            : PendingIntent.FLAG_IMMUTABLE
             );
 
             String channelId = "scheduled_notification_channel";
@@ -121,24 +128,15 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             NotificationManager notificationManager =
                     (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {  // For Android 8.0+ (Oreo and above)
                 NotificationChannel channel = new NotificationChannel(
                         channelId, "Scheduled Notifications", NotificationManager.IMPORTANCE_HIGH);
                 notificationManager.createNotificationChannel(channel);
             }
 
             notificationManager.notify(1, notificationBuilder.build());
-            Log.d(TAG, "Notification sent successfully!");
+            Log.d(TAG, "Notification sent successfully with full payload!");
         }
     }
 
 }
-
-
-
-
-
-
-
-
-
