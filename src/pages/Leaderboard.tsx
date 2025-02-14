@@ -14,6 +14,7 @@ import {
   CURRENT_MODE,
   CLASS,
   CURRENT_CLASS,
+  STAGES,
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import BackButton from "../components/common/BackButton";
@@ -626,7 +627,7 @@ const Leaderboard: React.FC = () => {
                 } else {
                   Util.setPathToBackButton(PAGES.SELECT_MODE, history);
                   Util.setPathToBackButton(
-                    PAGES.SELECT_MODE + "?tab=" + "class",
+                    PAGES.SELECT_MODE + "?tab=" + STAGES.STUDENT,
                     history
                   );
                 }
