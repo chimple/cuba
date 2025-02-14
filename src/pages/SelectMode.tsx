@@ -14,6 +14,7 @@ import {
   CURRENT_MODE,
   CURRENT_SCHOOL_NAME,
   CURRENT_CLASS_NAME,
+  USER_SELECTION_STAGE,
 } from "../common/constants";
 import SelectModeButton from "../components/selectMode/SelectModeButton";
 import { IoMdPeople } from "react-icons/io";
@@ -105,7 +106,12 @@ const SelectMode: FC = () => {
       const className = localStorage.getItem(CURRENT_CLASS_NAME);
       if (className) setCurrClass(JSON.parse(className));
       if (schoolName && className) {
-        setStage(STAGES.CLASS);
+        const selectedUser = localStorage.getItem(USER_SELECTION_STAGE);
+        if (selectedUser) {
+          setStage(STAGES.STUDENT);
+        } else {
+          setStage(STAGES.CLASS);
+        }
       } else {
         setStage(STAGES.MODE);
       }
@@ -161,7 +167,12 @@ const SelectMode: FC = () => {
       if (tempSchoolList.length === 1) {
         setCurrentSchool(tempSchoolList[0].school);
         await displayClasses(tempSchoolList[0].school, currUser);
-        setStage(STAGES.CLASS);
+        const selectedUser = localStorage.getItem(USER_SELECTION_STAGE);
+        if (selectedUser) {
+          setStage(STAGES.STUDENT);
+        } else {
+          setStage(STAGES.CLASS);
+        }
       } else {
         setStage(STAGES.SCHOOL);
       }
@@ -388,6 +399,7 @@ const SelectMode: FC = () => {
                       onClick={() => {
                         setCurrStudent(tempStudent);
                         // setStage(STAGES.STUDENT);
+                        localStorage.setItem(USER_SELECTION_STAGE, "true");
                         onStudentClick(tempStudent);
                         // Util.setCurrentStudent(tempStudent);
                         console.log(

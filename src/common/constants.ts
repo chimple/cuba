@@ -721,6 +721,7 @@ export const AT_SYMBOL_RESTRICTION = /@/;
 export const SELECTED_STUDENTS = "selectedStudent";
 export const SELECTED_CLASSES = "selectedClasses";
 export const CURRENT_CLASS_NAME = "currClassName";
+export const USER_SELECTION_STAGE = "userSelectionStage";
 export const CURRENT_SCHOOL_NAME = "currentSchoolName";
 export const DOWNLOADING_CHAPTER_ID = "downloading_chapter_id";
 export const USER_DATA = "userData";

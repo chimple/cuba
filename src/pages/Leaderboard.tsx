@@ -626,7 +626,7 @@ const Leaderboard: React.FC = () => {
                 } else {
                   Util.setPathToBackButton(PAGES.SELECT_MODE, history);
                   Util.setPathToBackButton(
-                    PAGES.SELECT_MODE + "?tab=" + "class",
+                    PAGES.SELECT_MODE + "?tab=" + "student",
                     history
                   );
                 }
