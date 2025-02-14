@@ -181,7 +181,7 @@ const AddCourses: React.FC = () => {
             />
           </div>
         ) : (
-          <div className="center">
+          <div className="center no-subjects-text">
             {!isLoading && t("No more subjects available to add")}
           </div>
         )}
