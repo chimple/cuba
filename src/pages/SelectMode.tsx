@@ -15,6 +15,7 @@ import {
   CURRENT_SCHOOL_NAME,
   CURRENT_CLASS_NAME,
   USER_SELECTION_STAGE,
+  STAGES,
 } from "../common/constants";
 import SelectModeButton from "../components/selectMode/SelectModeButton";
 import { IoMdPeople } from "react-icons/io";
@@ -29,13 +30,6 @@ import DropDown from "../components/DropDown";
 
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  enum STAGES {
-    MODE = "mode",
-    SCHOOL = "school",
-    CLASS = "class",
-    STUDENT = "student",
-    TEACHER = "teacher",
-  }
   const [schoolList, setSchoolList] = useState<
     {
       id: string;

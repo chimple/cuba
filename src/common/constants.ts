@@ -637,6 +637,13 @@ export enum ACTION {
   DELETE = "delete",
   LOGIN = "login",
 }
+export enum STAGES {
+  MODE = "mode",
+  SCHOOL = "school",
+  CLASS = "class",
+  STUDENT = "student",
+  TEACHER = "teacher",
+}
 
 export const CURRENT_STUDENT = "currentStudent";
 export const CURRENT_USER = "currentUser";
