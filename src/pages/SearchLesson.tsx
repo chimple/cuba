@@ -96,10 +96,10 @@ function SearchLesson() {
 
     console.log(
       "Util.logEvent(EVENTS.SEARCH_ANALYSIS, eventParams);",
-      EVENTS.SEARCH_ANALYSIS,
+      EVENTS.SEARCH_TRENDS,
       eventParams
     );
-    Util.logEvent(EVENTS.SEARCH_ANALYSIS, eventParams);
+    Util.logEvent(EVENTS.SEARCH_TRENDS, eventParams);
   };
   const history = useHistory();
   const location = useLocation();
