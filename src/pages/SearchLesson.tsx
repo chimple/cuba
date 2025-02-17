@@ -39,7 +39,7 @@ const VirtualSearchBox = connectSearchBox(() => null);
 const dataToContinue: any = {};
 function SearchLesson() {
   const [searchTerm, setSearchTerm] = useState("");
-  const KEYWORD_VOLUME_STORAGE_KEY = "keywordVolume";
+  const SEARCH_KEYWORD_COUNT_STORAGE_KEY = "keywordCount";
 
   const onSubmit = useCallback(async (params) => {
     await onSearch(params.state.query);
@@ -60,11 +60,11 @@ function SearchLesson() {
     setSearchTerm(term);
     // Track query count in localStorage
     const keywordVolume = JSON.parse(
-      localStorage.getItem(KEYWORD_VOLUME_STORAGE_KEY) || "{}"
+      localStorage.getItem(SEARCH_KEYWORD_COUNT_STORAGE_KEY) || "{}"
     );
     keywordVolume[term] = (keywordVolume[term] || 0) + 1;
     localStorage.setItem(
-      KEYWORD_VOLUME_STORAGE_KEY,
+      SEARCH_KEYWORD_COUNT_STORAGE_KEY,
       JSON.stringify(keywordVolume)
     );
     logSearchEvent(term, results.nbHits, keywordVolume[term]);
@@ -75,22 +75,20 @@ function SearchLesson() {
     volume: number
   ) => {
     if (!currentStudent) return;
-
     const timeSpent = (Date.now() - searchStartTime.current) / 1000; // Time in seconds
-
     const eventParams = {
-      user_id: currentStudent?.docId,
-      user_type: currentStudent?.role,
-      user_name: currentStudent?.name,
-      user_gender: currentStudent?.gender!,
-      user_age: currentStudent?.age!,
-      phone_number: currentStudent?.username,
-      parent_id: currentStudent?.uid,
-      parent_username: currentStudent?.username,
+      user_id: currentStudent.docId,
+      user_type: currentStudent.role,
+      user_name: currentStudent.name,
+      user_gender: currentStudent.gender,
+      user_age: currentStudent.age,
+      phone_number: currentStudent.username,
+      parent_id: currentStudent.uid,
+      parent_username: currentStudent.username,
       action_type: ACTION.SEARCH,
       search_keyword: term,
       search_results: resultCount,
-      keyword_volume: volume,
+      search_keyword_count: volume,
       time_spent: timeSpent.toFixed(2), // Log time spent
     };
 
