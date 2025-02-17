@@ -39,7 +39,7 @@ const VirtualSearchBox = connectSearchBox(() => null);
 const dataToContinue: any = {};
 function SearchLesson() {
   const [searchTerm, setSearchTerm] = useState("");
-  const SEARCH_KEYWORD_COUNT_STORAGE_KEY = "keywordCount";
+  const SEARCH_KEYWORD_COUNT_STORAGE_KEY = "searchKeywordFrequency";
 
   const onSubmit = useCallback(async (params) => {
     await onSearch(params.state.query);
@@ -88,8 +88,8 @@ function SearchLesson() {
       action_type: ACTION.SEARCH,
       search_keyword: term,
       search_results: resultCount,
-      search_keyword_count: volume,
-      time_spent: timeSpent.toFixed(2), // Log time spent
+      search_keyword_frequency: volume,
+      time_spent: timeSpent.toFixed(2), 
     };
 
     console.log(
