@@ -36,25 +36,30 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         if (!remoteMessage.getData().isEmpty()) {
             String messageTitle = remoteMessage.getData().get("messageTitle");
             String messageBody = remoteMessage.getData().get("messageBody");
-            String StartsAt = remoteMessage.getData().get("startsAt");
-            long delay = parseStartTime(StartsAt);
+
+            if (messageTitle == null && messageBody == null && remoteMessage.getNotification() != null) {
+                messageTitle = remoteMessage.getNotification().getTitle();
+                messageBody = remoteMessage.getNotification().getBody();
+            }
+            String sendAt = remoteMessage.getData().get("sendAt");
+            long delay = parseStartTime(sendAt);
             scheduleNotification(messageTitle, messageBody, delay, remoteMessage.getData().toString());
         }
     }
 
-    private long parseStartTime(String StartsAt) {
-        if (StartsAt == null) {
-            Log.e(TAG, "StartsAt is null, sending notification immediately.");
+    private long parseStartTime(String sendAt) {
+        if (sendAt == null) {
+            Log.e(TAG, "sendAt is null, sending notification immediately.");
             return 0;
         }
 
         SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd yyyy HH:mm:ss 'GMT'Z", Locale.ENGLISH);
         try {
-            long startTimeMillis = sdf.parse(StartsAt).getTime();
+            long startTimeMillis = sdf.parse(sendAt).getTime();
             long currentTimeMillis = System.currentTimeMillis();
             return Math.max(startTimeMillis - currentTimeMillis, 0);
         } catch (ParseException e) {
-            Log.e(TAG, "Error parsing StartsAt timestamp", e);
+            Log.e(TAG, "Error parsing sendAt timestamp", e);
             return 0;
         }
     }
