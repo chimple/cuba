@@ -533,6 +533,7 @@ export enum ACTION {
   CREATE = "create",
   UPDATE = "update",
   DELETE = "delete",
+  SEARCH = "search"
 }
 export enum NOTIFICATIONTYPE {
   REWARD = "reward",
@@ -544,7 +545,8 @@ export enum EVENTS {
   LESSON_END = "lesson_end",
   LESSON_INCOMPLETE = "lesson_incomplete",
   USER_PROFILE = "user_profile",
-  User_Clicks = "user_clicks"
+  User_Clicks = "user_clicks",
+  SEARCH_ANALYSIS = "search_analysis"
 }
 
 export const FCM_TOKENS = "fcmTokens";
