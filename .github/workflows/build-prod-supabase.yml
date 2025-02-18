@@ -89,7 +89,7 @@ jobs:
           git remote add origin https://${{ secrets.ACCESS_TOKEN }}@github.com/chimple/cuba.git
           git checkout -b supabase-prod-apk
           git add app-debug.apk
-          cd android/app/build/outputs/bundle/release/
+          cd ../../bundle/release/
           git add app-release.aab
           git commit -m "created apk"
           git push origin supabase-prod-apk -f
