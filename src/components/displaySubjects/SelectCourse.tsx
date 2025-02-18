@@ -13,9 +13,9 @@ import Grade from "../../models/grade";
 
 // Define course priority using a constant map
 const COURSE_PRIORITY_MAP: Record<string, number> = {
-  en: 1, // English is always 1st
-  maths: 2, // Maths is always 2nd
-  puzzle: 4, // Digital Skills is always 4th
+  en: 1, 
+  maths: 2, 
+  puzzle: 4, 
 };
 
 const getCoursePriority = (courseCode: string): number => {
