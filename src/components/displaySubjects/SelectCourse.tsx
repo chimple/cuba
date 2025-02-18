@@ -11,6 +11,18 @@ import { getDoc } from "firebase/firestore";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
 
+// Define course priority using a constant map
+const COURSE_PRIORITY_MAP: Record<string, number> = {
+  en: 1, // English is always 1st
+  maths: 2, // Maths is always 2nd
+  puzzle: 4, // Digital Skills is always 4th
+};
+
+const getCoursePriority = (courseCode: string): number => {
+  return COURSE_PRIORITY_MAP[courseCode.toLowerCase()] ?? 3; 
+  // If courseCode isn't in the map, it defaults to position 3 (Other subjects).
+};
+
 interface CourseDetails {
   course: Course;
   grade?: Grade | null;
@@ -28,14 +40,6 @@ const SelectCourse: FC<{
   useEffect(() => {
     fetchCourseDetails();
   }, [courses]);
-
-  // Function to define priority based on courseCode
-  const getCoursePriority = (courseCode: string): number => {
-    if (courseCode.toLowerCase() === "en") return 1; // English always 1st
-    if (courseCode.toLowerCase() === "maths") return 2; // Maths always 2nd
-    if (courseCode.toLowerCase() === "puzzle") return 4; // Digital Skills always 4th
-    return 3; // Any other subject will be in the 3rd position
-  };
 
   // Fetch Course Details (with Grade & Curriculum)
   const fetchCourseDetails = async () => {
@@ -55,7 +59,9 @@ const SelectCourse: FC<{
 
     // Sorting courses based on fixed priority order
     detailedCourses.sort(
-      (a, b) => getCoursePriority(a.course.courseCode) - getCoursePriority(b.course.courseCode)
+      (a, b) =>
+        getCoursePriority(a.course.courseCode) -
+        getCoursePriority(b.course.courseCode)
     );
 
     setCourseDetails(detailedCourses);
