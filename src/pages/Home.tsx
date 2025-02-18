@@ -445,7 +445,7 @@ const Home: FC = () => {
         // }
         break;
       case HOMEHEADERLIST.PROFILE:
-        Util.setPathToBackButton(PAGES.LEADERBOARD, history);
+        Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
         break;
       // case HOMEHEADERLIST.SEARCH:
       //   history.replace(PAGES.SEARCH);
