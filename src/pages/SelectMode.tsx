@@ -158,17 +158,21 @@ const SelectMode: FC = () => {
     setCurrentUser(currUser);
     setSchoolList(tempSchoolList);
     if (matchedSchools.length > 0) {
+      const selectedUser = localStorage.getItem(USER_SELECTION_STAGE);
       if (tempSchoolList.length === 1) {
         setCurrentSchool(tempSchoolList[0].school);
         await displayClasses(tempSchoolList[0].school, currUser);
-        const selectedUser = localStorage.getItem(USER_SELECTION_STAGE);
         if (selectedUser) {
           setStage(STAGES.STUDENT);
         } else {
           setStage(STAGES.CLASS);
         }
       } else {
-        setStage(STAGES.SCHOOL);
+        if (selectedUser) {
+          setStage(STAGES.STUDENT);
+        } else {
+          setStage(STAGES.SCHOOL);
+        }
       }
     } else if (allSchool.length === 0) {
       onParentSelect();
@@ -381,7 +385,7 @@ const SelectMode: FC = () => {
                   />
 
                   <div className="schoolClassname-header">
-                    {currentSchoolName + ", " + currClass?.name}
+                    {currentSchool?.name + ", " + currClass?.name}
                   </div>
                   <div></div>
                 </div>
