@@ -111,12 +111,12 @@ const Login: React.FC = () => {
   const [showStudentCredentialtLogin, setStudentCredentialLogin] =
     useState<boolean>(false);
   const [promptPhonNumbers, setPromptPhonNumbers] = useState<Array<string>>([]);
-  const [showPhoneNumberPopUp, setShowPhoneNumberPopUp] =
-    useState<boolean>(false);
+  // const [showPhoneNumberPopUp, setShowPhoneNumberPopUp] =
+  //   useState<boolean>(false);
   const PortPlugin = registerPlugin<any>("Port");
 
   useEffect(() => {
-    initPermissionListner();
+    initNumberSelectedListner();
   }, []);
   useEffect(() => {
     if (phoneNumber.length == 10) {
@@ -218,8 +218,10 @@ const Login: React.FC = () => {
   const retriewPhoneNumber = async () => {
     const phoneNumber = await PortPlugin.numberRetrieve();
     if (phoneNumber.number) {
-      setShowPhoneNumberPopUp(!showPhoneNumberPopUp);
-      setPromptPhonNumbers(JSON.parse(phoneNumber.number));
+      phoneNumberErrorRef.current.style.display = "none";
+      setPhoneNumber(phoneNumber.number.toString().replace("+91", ""));
+      setCurrentButtonColor(Buttoncolors.Valid);
+   
     }
   };
 
@@ -236,12 +238,12 @@ const Login: React.FC = () => {
     }
     document.removeEventListener("otpReceived", otpEventListener);
   };
-  const permissionEventListener = async (event: Event) => {
+  const isPhoneNumberEventListener = async (event: Event) => {
     retriewPhoneNumber();
-    document.removeEventListener("otpReceived", otpEventListener);
+    document.removeEventListener("isPhoneNumberSelected", isPhoneNumberEventListener);
   };
-  const initPermissionListner = async () => {
-    document.addEventListener("permissionAccepted", permissionEventListener, {
+  const initNumberSelectedListner = async () => {
+    document.addEventListener("isPhoneNumberSelected", isPhoneNumberEventListener, {
       once: true,
     });
   };
@@ -576,10 +578,6 @@ const Login: React.FC = () => {
                             !isPromptNumbers
                           ) {
                             const data = await PortPlugin.requestPermission();
-                            if (data.number) {
-                              setShowPhoneNumberPopUp(!showPhoneNumberPopUp);
-                              setPromptPhonNumbers(JSON.parse(data.number));
-                            }
                             setIsPromptNumbers(true);
                           }
                         }}
@@ -1008,7 +1006,7 @@ const Login: React.FC = () => {
           </div>
         ) : null}
 
-        {showPhoneNumberPopUp ? (
+        {/* {showPhoneNumberPopUp ? (
           <PhoneNumberPopup
             showPopUp={showPhoneNumberPopUp}
             onPopUpClose={() => {
@@ -1027,7 +1025,7 @@ const Login: React.FC = () => {
             }}
             phoneNumbers={promptPhonNumbers}
           />
-        ) : null}
+        ) : null} */}
       </div>
       <Loading isLoading={isLoading || sentOtpLoading} />
     </IonPage>
