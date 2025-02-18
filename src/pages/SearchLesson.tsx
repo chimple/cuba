@@ -16,7 +16,9 @@ import Lesson from "../models/lesson";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { useHistory, useLocation } from "react-router";
 import {
+  ACTION,
   CONTINUE,
+  EVENTS,
   INSTANT_SEARCH_INDEX_NAME,
   PAGES,
 } from "../common/constants";
@@ -37,12 +39,15 @@ const VirtualSearchBox = connectSearchBox(() => null);
 const dataToContinue: any = {};
 function SearchLesson() {
   const [searchTerm, setSearchTerm] = useState("");
+  const SEARCH_KEYWORD_COUNT_STORAGE_KEY = "searchKeywordFrequency";
 
   const onSubmit = useCallback(async (params) => {
     await onSearch(params.state.query);
   }, []);
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const searchStartTime = useRef<number>(0);
   const onSearch = async (term: string) => {
+    searchStartTime.current = Date.now();
     const results = await searchIndex.search(term);
     const tempLessons = results.hits.map((hit) => {
       const lesson = hit as any as Lesson;
@@ -53,6 +58,46 @@ function SearchLesson() {
     dataToContinue.search = term;
     setLessons(tempLessons);
     setSearchTerm(term);
+    // Track query count in localStorage
+    const keywordVolume = JSON.parse(
+      localStorage.getItem(SEARCH_KEYWORD_COUNT_STORAGE_KEY) || "{}"
+    );
+    keywordVolume[term] = (keywordVolume[term] || 0) + 1;
+    localStorage.setItem(
+      SEARCH_KEYWORD_COUNT_STORAGE_KEY,
+      JSON.stringify(keywordVolume)
+    );
+    logSearchEvent(term, results.nbHits, keywordVolume[term]);
+  };
+  const logSearchEvent = (
+    term: string,
+    resultCount: number,
+    volume: number
+  ) => {
+    if (!currentStudent) return;
+    const timeSpent = (Date.now() - searchStartTime.current) / 1000; // Time in seconds
+    const eventParams = {
+      user_id: currentStudent.docId,
+      user_type: currentStudent.role,
+      user_name: currentStudent.name,
+      user_gender: currentStudent.gender,
+      user_age: currentStudent.age,
+      phone_number: currentStudent.username,
+      parent_id: currentStudent.uid,
+      parent_username: currentStudent.username,
+      action_type: ACTION.SEARCH,
+      search_keyword: term,
+      search_results: resultCount,
+      search_keyword_frequency: volume,
+      time_spent: timeSpent.toFixed(2), 
+    };
+
+    console.log(
+      "Util.logEvent(EVENTS.SEARCH_ANALYSIS, eventParams);",
+      EVENTS.SEARCH_TRENDS,
+      eventParams
+    );
+    Util.logEvent(EVENTS.SEARCH_TRENDS, eventParams);
   };
   const history = useHistory();
   const location = useLocation();
