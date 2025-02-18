@@ -7,6 +7,7 @@ import {
   PAGES,
   PARENTHEADERLIST,
   CONTINUE,
+  APP_LANGUAGES,
 } from "../common/constants";
 import ProfileCard from "../components/parent/ProfileCard";
 import User from "../models/user";
@@ -108,19 +109,17 @@ const Parent: React.FC = () => {
       setSoundFlag(sound);
       setMusicFlag(music);
 
-      const allLang = await ServiceConfig.getI().apiHandler.getAllLanguages();
+
       let tempLangDocIds: Map<string, string> = new Map();
       let keytempLangDocIds: Map<string, string> = new Map();
-      for (let i = 0; i < allLang.length; i++) {
-        const element = allLang[i];
-
+      Object.keys(APP_LANGUAGES).forEach((key) => {
         tempLangList.push({
-          id: element.docId,
-          displayName: element.title,
+          id: key,
+          displayName: APP_LANGUAGES[key],
         });
-        tempLangDocIds.set(element.title, element.docId);
-        keytempLangDocIds.set(element.docId, element.title);
-      }
+        tempLangDocIds.set(APP_LANGUAGES[key], key);
+      });
+
 
       setLangDocIds(tempLangDocIds);
       setLangList(tempLangList);
@@ -130,15 +129,15 @@ const Parent: React.FC = () => {
         langDocIds,
         langDocIds.get(parentUser?.language?.id!),
         keytempLangDocIds.get(parentUser?.language?.id!),
-        langDocIds.get(parentUser?.language?.id!) || localAppLang || langList[0]
+        langDocIds.get(parentUser?.language?.id!) || langList[0]
       );
 
-      //console.log(localAppLang);
-
-      const element = allLang.find((obj) => obj.code === localAppLang);
-      if (!element) return;
-
-      setCurrentAppLang(element.docId);
+      const localAppLang = localStorage.getItem(LANGUAGE);
+      if (localAppLang) {
+        setCurrentAppLang(localAppLang);
+      } else {
+        setCurrentAppLang(tempLangList[0]?.id);
+      }
 
       setIsLoading(false);
     }
@@ -186,40 +185,33 @@ const Parent: React.FC = () => {
             <DropDown
               currentValue={currentAppLang}
               optionList={langList}
-              placeholder="Select Language"
+              placeholder={t("Select Language").toString()}
               width="26vw"
-              onValueChange={async (selectedLangDocId) => {
-                // setIsLoading(true);
+              onValueChange={async (selectedLang) => {
+                if (!selectedLang) return;
 
-                const api = ServiceConfig.getI().apiHandler;
-                // api.deleteAllUserData
-                // const langDoc = await api.getLanguageWithId(selectedLangDocId);
-                const allLang =
-                  await ServiceConfig.getI().apiHandler.getAllLanguages();
+                localStorage.setItem(LANGUAGE, selectedLang);
+                await i18n.changeLanguage(selectedLang);
 
-                const langDoc = allLang.find(
-                  (obj) => obj.docId === selectedLangDocId
-                );
-
-                if (!langDoc) return;
-                localStorage.setItem(LANGUAGE, langDoc.code);
-                console.log("langDoc", langDoc);
-                await i18n.changeLanguage(langDoc.code);
-                console.log("applang", selectedLangDocId);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
                 setTabIndex(t(parentHeaderIconList[1].header));
-
-                const langId = langDocIds.get(langDoc.code);
-
-                if (currentUser && selectedLangDocId) {
+                const appLang = localStorage.getItem(LANGUAGE);
+                let langDocId;
+                if (!!appLang) {
+                  const languages =
+                    await ServiceConfig.getI().apiHandler.getAllLanguages();
+                  langDocId = languages.find(
+                    (lang) => lang.code === appLang
+                  )?.docId;
+                }
+                if (currentUser && langDocId) {
                   ServiceConfig.getI().apiHandler.updateLanguage(
                     currentUser,
-                    selectedLangDocId
+                    langDocId
                   );
                 }
-                console.log("selectedLangDocId", selectedLangDocId);
-                setCurrentAppLang(selectedLangDocId);
+                setCurrentAppLang(selectedLang);
               }}
             />
           </div>
@@ -340,7 +332,7 @@ const Parent: React.FC = () => {
                   title="YouTube video player"
                   // frameborder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  // allowfullscreen
+                // allowfullscreen
                 ></iframe>
               </div>
             </div>
