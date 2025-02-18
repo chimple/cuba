@@ -69,9 +69,15 @@ jobs:
         working-directory: ./android/
         run: chmod +x ./gradlew
 
+      - name: Generate the Android App bundleRelease
+        working-directory: ./android/
+        # android/app/build/outputs/bundle/release/app-release.aab
+        run: ./gradlew bundleRelease
+
       - name: Generate the Android App assembleDebug
         working-directory: ./android/
         run: ./gradlew assembleDebug
+
 
       - name: Deploy apk
         working-directory: .
@@ -83,5 +89,7 @@ jobs:
           git remote add origin https://${{ secrets.ACCESS_TOKEN }}@github.com/chimple/cuba.git
           git checkout -b supabase-prod-apk
           git add app-debug.apk
+          cd android/app/build/outputs/bundle/release/
+          git add app-release.aab
           git commit -m "created apk"
           git push origin supabase-prod-apk -f
