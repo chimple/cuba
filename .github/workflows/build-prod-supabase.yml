@@ -82,7 +82,7 @@ jobs:
       - name: Deploy apk
         working-directory: .
         run: |
-          cd android/app/build/outputs/apk/release/
+          cd android/app/build/outputs/bundle/release/
           git init
           git config --global user.email vinay@sutara.org
           git config --global user.name  vinaypanduga
