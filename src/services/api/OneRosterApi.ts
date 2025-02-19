@@ -550,6 +550,7 @@ export class OneRosterApi implements ServiceApi {
     studentId: string
   ): Promise<Result[]> {
     throw new Error("Method not implemented.");
+    // xapi code will be written here
     // try {
     //   let url;
     //   if (
