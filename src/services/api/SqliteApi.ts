@@ -683,43 +683,6 @@ export class SqliteApi implements ServiceApi {
     return updatedSchool;
   }
 
-  async addSchoolProfile(
-    school: TableTypes<"school">,
-    name: string,
-    group1: string,
-    group2: string,
-    group3: string,
-    image: string
-  ): Promise<TableTypes<"school">> {
-    const _currentUser =
-      await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!_currentUser) throw "User is not Logged in";
-
-    const updatedSchool: TableTypes<"school"> = {
-      name: name ?? school.name,
-      group1: group1 ?? school.group1,
-      group2: group2 ?? school.group2,
-      group3: group3 ?? school.group3,
-      updated_at: new Date().toISOString(),
-      created_at: school.created_at,
-      id: school.id,
-      image: image ?? school.image,
-      is_deleted: false,
-    };
-    const updatedSchoolQuery = `
-    UPDATE school
-    SET updated_at=?, image = ?
-    WHERE id = ?;
-    `;
-    await this.executeQuery(updatedSchoolQuery, [
-      updatedSchool.image,
-      updatedSchool.updated_at,
-      school.id,
-    ]);
-    this.updatePushChanges(TABLES.School, MUTATE_TYPES.UPDATE, updatedSchool);
-    return updatedSchool;
-  }
-
   async createStudentProfile(
     name: string,
     age: number | undefined,

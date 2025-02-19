@@ -126,12 +126,6 @@ export class SupabaseApi implements ServiceApi {
     this.supabaseKey = process.env.REACT_APP_SUPABASE_KEY ?? "";
     this.supabase = createClient<Database>(this.supabaseUrl, this.supabaseKey);
     console.log("🚀 ~ supabase:", this.supabase);
-    this.supabaseStorageUrl = process.env.REACT_APP_SUPABASE_STORAGE_URL ?? "";
-    this.supabaseStorage = createClient<Storage, "public", any>(
-      this.supabaseUrl,
-      this.supabaseKey
-    );
-    console.log("🚀 ~ supabasestorage:", this.supabaseStorage);
   }
 
   // as parameters type: school, user, class
@@ -176,7 +170,7 @@ export class SupabaseApi implements ServiceApi {
           }
         }
       }
-      // Wait 5 seconds after deletion to avoid caching issues
+      // Wait 10 seconds after deletion to avoid caching issues
       await new Promise((resolve) => setTimeout(resolve, 10000));
     }
     // Ensure the file is deleted by re-fetching
