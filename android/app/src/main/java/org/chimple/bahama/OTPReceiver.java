@@ -42,7 +42,6 @@ import java.util.regex.Pattern;
 public class OTPReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        System.out.println("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
         if (SmsRetriever.SMS_RETRIEVED_ACTION.equals(intent.getAction())) {
             Bundle extras = intent.getExtras();
             Status status = (Status) extras.get(SmsRetriever.EXTRA_STATUS);
