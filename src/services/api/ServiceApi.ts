@@ -62,7 +62,8 @@ export interface ServiceApi {
     name: string,
     group1: string,
     group2: string,
-    group3: string
+    group3: string,
+    image: string
   ): Promise<TableTypes<"school">>;
   /**
    * updates a school details and returns the school object
@@ -71,6 +72,7 @@ export interface ServiceApi {
    * @param {string} group1 - state of school
    * @param {string} group1 - district of school
    * @param {string} group1 - city of school
+   * @param {string} image - image of school
    * @returns {TableTypes<"school">} Updated School Object
    */
   updateSchoolProfile(
@@ -78,7 +80,8 @@ export interface ServiceApi {
     name: string,
     group1: string,
     group2: string,
-    group3: string
+    group3: string,
+    image: string
   ): Promise<TableTypes<"school">>;
 
   createStudentProfile(

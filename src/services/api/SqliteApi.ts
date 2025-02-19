@@ -562,7 +562,8 @@ export class SqliteApi implements ServiceApi {
     name: string,
     group1: string,
     group2: string,
-    group3: string
+    group3: string,
+    image: string
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -575,7 +576,7 @@ export class SqliteApi implements ServiceApi {
       group1: group1 ?? null,
       group2: group2 ?? null,
       group3: group3 ?? null,
-      image: null,
+      image: image ?? null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
@@ -643,7 +644,8 @@ export class SqliteApi implements ServiceApi {
     name: string,
     group1: string,
     group2: string,
-    group3: string
+    group3: string,
+    image: string
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -657,12 +659,12 @@ export class SqliteApi implements ServiceApi {
       updated_at: new Date().toISOString(),
       created_at: school.created_at,
       id: school.id,
-      image: null,
+      image: image ?? school.image,
       is_deleted: false,
     };
     const updatedSchoolQuery = `
     UPDATE school
-    SET name = ?, group1 = ?, group2 = ?, group3 = ?, updated_at=?
+    SET name = ?, group1 = ?, group2 = ?, group3 = ?, updated_at=?, image = ?
     WHERE id = ?;
     `;
 
@@ -671,12 +673,50 @@ export class SqliteApi implements ServiceApi {
       updatedSchool.group1,
       updatedSchool.group2,
       updatedSchool.group3,
+      updatedSchool.image,
       updatedSchool.updated_at,
       school.id,
     ]);
 
     this.updatePushChanges(TABLES.School, MUTATE_TYPES.UPDATE, updatedSchool);
 
+    return updatedSchool;
+  }
+
+  async addSchoolProfile(
+    school: TableTypes<"school">,
+    name: string,
+    group1: string,
+    group2: string,
+    group3: string,
+    image: string
+  ): Promise<TableTypes<"school">> {
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
+
+    const updatedSchool: TableTypes<"school"> = {
+      name: name ?? school.name,
+      group1: group1 ?? school.group1,
+      group2: group2 ?? school.group2,
+      group3: group3 ?? school.group3,
+      updated_at: new Date().toISOString(),
+      created_at: school.created_at,
+      id: school.id,
+      image: image ?? school.image,
+      is_deleted: false,
+    };
+    const updatedSchoolQuery = `
+    UPDATE school
+    SET updated_at=?, image = ?
+    WHERE id = ?;
+    `;
+    await this.executeQuery(updatedSchoolQuery, [
+      updatedSchool.image,
+      updatedSchool.updated_at,
+      school.id,
+    ]);
+    this.updatePushChanges(TABLES.School, MUTATE_TYPES.UPDATE, updatedSchool);
     return updatedSchool;
   }
 
@@ -3584,25 +3624,25 @@ order by
     if (!assignmentIds || assignmentIds.length === 0) {
       return [];
     }
-    
+
     // Create a comma-separated list of placeholders for the query.
     const placeholders = assignmentIds.map(() => "?").join(", ");
-    
+
     // Construct the SQL query using the placeholders.
     const query = `
       SELECT *
       FROM ${TABLES.Assignment_user}
       WHERE assignment_id IN (${placeholders});
     `;
-    
+
     // Execute the query. (Assuming this._db.query returns an object with a 'values' property)
     const res = await this._db?.query(query, assignmentIds);
-    
+
     // If no results were returned, return an empty array.
     if (!res || !res.values || res.values.length < 1) {
       return [];
     }
-    
+
     // Otherwise, return the results.
     return res.values;
   }
@@ -4024,7 +4064,7 @@ order by
         AND su.role = '${RoleType.AUTOUSER}'
         AND su.is_deleted = false;
     `;
-    
+
     const res = await this._db?.query(query, schoolIds);
     return res?.values ?? [];
   }

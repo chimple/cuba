@@ -107,8 +107,10 @@ export class SupabaseApi implements ServiceApi {
   }
   public static i: SupabaseApi;
   public supabase: SupabaseClient<Database> | undefined;
+  public supabaseStorage: SupabaseClient<Storage, "public", any> | undefined;
   private supabaseUrl: string;
   private supabaseKey: string;
+  private supabaseStorageUrl: string;
   private _currentStudent: TableTypes<"user"> | undefined;
 
   public static getInstance(): SupabaseApi {
@@ -124,6 +126,87 @@ export class SupabaseApi implements ServiceApi {
     this.supabaseKey = process.env.REACT_APP_SUPABASE_KEY ?? "";
     this.supabase = createClient<Database>(this.supabaseUrl, this.supabaseKey);
     console.log("🚀 ~ supabase:", this.supabase);
+    this.supabaseStorageUrl = process.env.REACT_APP_SUPABASE_STORAGE_URL ?? "";
+    this.supabaseStorage = createClient<Storage, "public", any>(
+      this.supabaseUrl,
+      this.supabaseKey
+    );
+    console.log("🚀 ~ supabasestorage:", this.supabaseStorage);
+  }
+
+  // as parameters type: school, user, class
+  //               image
+  // return image stored url
+  //---------------------------------------------------------------
+  async getBuckets(
+    Id: string,
+    file: File,
+    dir: string
+  ): Promise<string | null> {
+    const extension = file.name.split(".").pop(); // Get file extension
+    const newName = `ProfilePicture_${dir}_${Date.now()}.${extension}`; // Rename the file
+    const folderName = encodeURIComponent(String(Id));
+    const filePath = `${dir}/${folderName}/${newName}`; // Path inside the bucket
+    // Ensure we fetch the latest file list before deleting
+    let existingFiles = await this.supabase?.storage
+      .from("ProfileImages")
+      .list(`School/${folderName}`);
+    if (existingFiles?.data?.length) {
+      // Attempt to delete existing files
+      for (const file of existingFiles.data) {
+        if (file.name.startsWith("ProfilePicture")) {
+          let attempts = 0;
+          let success = false;
+          while (attempts < 3 && !success) {
+            // Retry deletion 3 times if needed
+            const removeResponse = await this.supabase?.storage
+              .from("ProfileImages")
+              .remove([`School/${folderName}/${file.name}`]);
+            if (removeResponse?.error) {
+              console.error(
+                `Attempt ${attempts + 1}: Error deleting file ${file.name}:`,
+                removeResponse.error.message
+              );
+              attempts++;
+              await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait before retrying
+            } else {
+              console.log("Old profile picture deleted:", file.name);
+              success = true;
+            }
+          }
+        }
+      }
+      // Wait 5 seconds after deletion to avoid caching issues
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+    }
+    // Ensure the file is deleted by re-fetching
+    existingFiles = await this.supabase?.storage
+      .from("ProfileImages")
+      .list(`School/${folderName}`);
+    if (existingFiles?.data?.some((f) => f.name.startsWith("ProfilePicture"))) {
+      console.error(
+        "Force delete failed: File still exists after deletion attempts."
+      );
+      return null; // Abort if deletion didn't work
+    }
+
+    // Convert File to Blob (necessary for renaming)
+    const renamedFile = new File([file], newName, { type: file.type });
+    // Upload the new file (allow overwrite)
+    const uploadResponse = await this.supabase?.storage
+      .from("ProfileImages")
+      .upload(filePath, renamedFile, { upsert: true });
+    if (uploadResponse?.error) {
+      console.error("Error uploading file:", uploadResponse.error.message);
+      return null;
+    }
+    // Get the Public URL of the uploaded file
+    const urlData = this.supabase?.storage
+      .from("ProfileImages")
+      .getPublicUrl(filePath);
+    const imageUrl = urlData?.data.publicUrl;
+    console.log("Public Image URL:", imageUrl);
+    return imageUrl || null;
   }
 
   async getTablesData(
@@ -261,7 +344,8 @@ export class SupabaseApi implements ServiceApi {
     name: string,
     group1: string,
     group2: string,
-    group3: string
+    group3: string,
+    image: string
   ): Promise<TableTypes<"school">> {
     throw new Error("Method not implemented.");
   }
@@ -1062,7 +1146,7 @@ export class SupabaseApi implements ServiceApi {
   getAssignmentUserByAssignmentIds(
     assignmentIds: string[]
   ): Promise<TableTypes<"assignment_user">[]> {
-    throw new Error("Method not implemented")
+    throw new Error("Method not implemented");
   }
   getResultByAssignmentIds(
     assignmentIds: string[]
