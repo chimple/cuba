@@ -107,10 +107,8 @@ export class SupabaseApi implements ServiceApi {
   }
   public static i: SupabaseApi;
   public supabase: SupabaseClient<Database> | undefined;
-  public supabaseStorage: SupabaseClient<Storage, "public", any> | undefined;
   private supabaseUrl: string;
   private supabaseKey: string;
-  private supabaseStorageUrl: string;
   private _currentStudent: TableTypes<"user"> | undefined;
 
   public static getInstance(): SupabaseApi {
