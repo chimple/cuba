@@ -11,6 +11,18 @@ import { getDoc } from "firebase/firestore";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
 
+// Define course priority using a constant map
+const COURSE_PRIORITY_MAP: Record<string, number> = {
+  en: 1, 
+  maths: 2, 
+  puzzle: 4, 
+};
+
+const getCoursePriority = (courseCode: string): number => {
+  return COURSE_PRIORITY_MAP[courseCode.toLowerCase()] ?? 3; 
+  // If courseCode isn't in the map, it defaults to position 3 (Other subjects).
+};
+
 interface CourseDetails {
   course: Course;
   grade?: Grade | null;
@@ -28,6 +40,8 @@ const SelectCourse: FC<{
   useEffect(() => {
     fetchCourseDetails();
   }, [courses]);
+
+  // Fetch Course Details (with Grade & Curriculum)
   const fetchCourseDetails = async () => {
     const detailedCourses: CourseDetails[] = await Promise.all(
       courses.map(async (course) => {
@@ -42,11 +56,16 @@ const SelectCourse: FC<{
         };
       })
     );
+
+    // Sorting courses based on fixed priority order
+    detailedCourses.sort(
+      (a, b) =>
+        getCoursePriority(a.course.courseCode) -
+        getCoursePriority(b.course.courseCode)
+    );
+
     setCourseDetails(detailedCourses);
   };
-  courseDetails.sort((a, b) => {
-    return a.course.sortIndex - b.course.sortIndex;
-  });
 
   return (
     <Splide
@@ -61,13 +80,12 @@ const SelectCourse: FC<{
     >
       {courseDetails.map(({ course, grade, curriculum }) => {
         return (
-          <SplideSlide className="slide">
+          <SplideSlide className="slide" key={course.docId}>
             <div
               onClick={() => {
                 onCourseChange(course);
               }}
               className="subject-button"
-              key={course.docId}
             >
               <div id="subject-card-subject-name">
                 <p>{grade?.title}</p>
@@ -101,7 +119,6 @@ const SelectCourse: FC<{
               history.replace(PAGES.ADD_SUBJECTS);
             }}
             className="subject-button"
-            key={courses[0].docId}
           >
             <div
               className="course-icon"
@@ -114,10 +131,9 @@ const SelectCourse: FC<{
             {t("Add Subject")}
           </div>
         </SplideSlide>
-      ) : (
-        <></>
-      )}
+      ) : null}
     </Splide>
   );
 };
+
 export default SelectCourse;
