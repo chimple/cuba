@@ -871,9 +871,12 @@ const Home: FC = () => {
   const [showAssignmentPopup, setShowAssignmentPopup] = useState(false);
 
   useEffect(() => {
-    if (pendingLiveQuizCount !== 0) {
+    const hasShownQuizPopup = sessionStorage.getItem("quizPopupShown");
+    const hasShownAssignmentPopup = sessionStorage.getItem("assignmentPopupShown");
+
+    if (!hasShownQuizPopup && pendingLiveQuizCount !== 0) {
       setShowQuizPopup(true);
-    } else if (pendingAssignmentsCount !== 0 && currentMode !== MODES.SCHOOL) {
+    } else if (!hasShownAssignmentPopup && pendingAssignmentsCount !== 0 && currentMode !== MODES.SCHOOL) {
       setShowAssignmentPopup(true);
     }
   }, [pendingLiveQuizCount, pendingAssignmentsCount]);
