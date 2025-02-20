@@ -383,9 +383,6 @@ export const CHAPTER_CARD_COLOURS = [
 export const DEFUALT_SUBJECT_CARD_COLOUR = "#009948";
 
 export enum PAGES {
-  STUDENT_FORM="/StudentForm",
-  STUDENT_LIST="/StudentList",
-
   APP_UPDATE = "/",
   HOME = "/home",
   LOGIN = "/login",

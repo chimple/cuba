@@ -131,10 +131,15 @@ const Home: FC = () => {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
+
+
     const studentResult = await api.getStudentResultInMap(student.id);
+    console.log("studentResult shubham-----", studentResult);
+    
     if (!!studentResult) {
       setLessonResultMap(studentResult);
     }
+
     fetchData();
     await isLinked();
     const urlParams = new URLSearchParams(window.location.search);
@@ -629,6 +634,7 @@ const Home: FC = () => {
               ((canShowAvatar &&
                 currentHeader === HOMEHEADERLIST.SUGGESTIONS) ||
                 (!canShowAvatar && currentHeader === HOMEHEADERLIST.HOME)) && (
+
                 <div>
                   {subTab === SUBTAB.SUGGESTIONS && (
                     <LessonSlider

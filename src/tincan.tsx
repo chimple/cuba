@@ -1,21 +1,37 @@
-import TinCan from 'tincanjs';
 
-// Define the type for the LRS configuration
-interface LRSConfig {
+import { TinCan, Activity, Agent } from 'tincants';
+
+interface IRecordStoreCfg {
   endpoint: string;
-  auth: string;
-  user: string;
-  password: string;
-  extended: string;
+  auth?: string;
+  user?: string;
+  password?: string;
+  extended?: Record<string, unknown>; // This should be an object, not a string
 }
 
-// Configure TinCan with the LRS endpoint and credentials
-const tincan = new TinCan.LRS({
-  endpoint: 'https://mahvish-test-lrs.lrs.io/xapi/', // LRS endpoint
-  auth: 'Basic ' + btoa('jeevlu:wugkem'), // Replace with your LRS credentials
-  user: 'jeevlu',
-  password: 'wugkem',
-  extended: "",
-} as LRSConfig);
+const actor = {
+    /* actor properties */
+};
 
+const activity = {
+    /* activity properties */
+};
+
+const lrs:IRecordStoreCfg  = {
+  endpoint: 'https://mahvish-test-lrs.lrs.io/xapi/', // LRS endpoint
+    auth: 'Basic ' + btoa('jeevlu:wugkem'), // Replace with your LRS credentials
+    user: 'jeevlu',
+    password: 'wugkem',
+    // extended: "a"
+};
+
+// Create the tincan instance
+const tincan = new TinCan({
+    actor: new Agent(actor),
+    activity: new Activity(activity),
+});
+
+tincan.addRecordStore(lrs);
+
+// Export the tincan instance
 export default tincan;

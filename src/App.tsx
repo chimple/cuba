@@ -68,10 +68,6 @@ import AssignmentPage from "./pages/Assignment";
 import SelectMode from "./pages/SelectMode";
 import { FirebaseRemoteConfig } from "@capacitor-firebase/remote-config";
 import HotUpdate from "./pages/HotUpdate";
-
-import StudentForm from "./components/LearningUnits/StudentForm";
-import StudentList from "./components/LearningUnits/StudentList";
-
 import TermsAndConditions from "./pages/TermsAndConditions";
 import DisplayChapters from "./pages/DisplayChapters";
 import LiveQuizRoom from "./pages/LiveQuizRoom";
@@ -450,14 +446,6 @@ const App: React.FC = () => {
       <IonReactRouter basename={BASE_NAME}>
         <IonRouterOutlet>
           <Switch>
-
-            <Route path={PAGES.STUDENT_FORM} exact={true}>
-              <StudentForm />
-            </Route>
-            <Route path={PAGES.STUDENT_LIST} exact={true}>
-              <StudentList />
-            </Route>
-
             <Route path={PAGES.APP_UPDATE} exact={true}>
               <HotUpdate />
             </Route>
