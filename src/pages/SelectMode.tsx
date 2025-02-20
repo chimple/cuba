@@ -58,6 +58,7 @@ const SelectMode: FC = () => {
     school: TableTypes<"school">;
   }[] = [];
   useEffect(() => {
+    console.log("***********HELLO MODE");
     init();
     changeLanguage();
     return () => {
