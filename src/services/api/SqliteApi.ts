@@ -658,7 +658,7 @@ export class SqliteApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: string
+    image: string | null
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -669,15 +669,15 @@ export class SqliteApi implements ServiceApi {
       group1: group1 ?? school.group1,
       group2: group2 ?? school.group2,
       group3: group3 ?? school.group3,
+      image: image ?? school.image,
       updated_at: new Date().toISOString(),
       created_at: school.created_at,
       id: school.id,
-      image: image ?? school.image,
       is_deleted: false,
     };
     const updatedSchoolQuery = `
     UPDATE school
-    SET name = ?, group1 = ?, group2 = ?, group3 = ?, updated_at=?, image = ?
+    SET name = ?, group1 = ?, group2 = ?, group3 = ?, image = ?, updated_at=?
     WHERE id = ?;
     `;
 
