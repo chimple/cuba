@@ -358,6 +358,7 @@ const Home: FC = () => {
         recommendationResult = recommendationResult.concat(tempRecommendations);
         console.log("Final RECOMMENDATION List ", recommendationResult);
         setDataCourse(recommendationResult);
+        setIsLoading(false);
         return recommendationResult;
       } catch (error) {
         console.error("Error fetching recommendation:", error);
