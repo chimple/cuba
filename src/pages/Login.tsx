@@ -219,7 +219,7 @@ const Login: React.FC = () => {
     const phoneNumber = await PortPlugin.numberRetrieve();
     if (phoneNumber.number) {
       phoneNumberErrorRef.current.style.display = "none";
-      setPhoneNumber(phoneNumber.number.toString().replace("+91", ""));
+      setPhoneNumber(phoneNumber.number.toString());
       setCurrentButtonColor(Buttoncolors.Valid);
    
     }
