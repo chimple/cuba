@@ -130,19 +130,19 @@ export class SupabaseApi implements ServiceApi {
   //               image
   // return image stored url
   //---------------------------------------------------------------
-  async getBuckets(
+  async addProfileImages(
     Id: string,
     file: File,
-    dir: string
+    profiletype: string
   ): Promise<string | null> {
     const extension = file.name.split(".").pop(); // Get file extension
-    const newName = `ProfilePicture_${dir}_${Date.now()}.${extension}`; // Rename the file
+    const newName = `ProfilePicture_${profiletype}_${Date.now()}.${extension}`; // Rename the file
     const folderName = encodeURIComponent(String(Id));
-    const filePath = `${dir}/${folderName}/${newName}`; // Path inside the bucket
+    const filePath = `${profiletype}/${folderName}/${newName}`; // Path inside the bucket
     // Ensure we fetch the latest file list before deleting
     let existingFiles = await this.supabase?.storage
       .from("ProfileImages")
-      .list(`School/${folderName}`);
+      .list(`${profiletype}/${folderName}`);
     if (existingFiles?.data?.length) {
       // Attempt to delete existing files
       for (const file of existingFiles.data) {
@@ -153,7 +153,7 @@ export class SupabaseApi implements ServiceApi {
             // Retry deletion 3 times if needed
             const removeResponse = await this.supabase?.storage
               .from("ProfileImages")
-              .remove([`School/${folderName}/${file.name}`]);
+              .remove([`${profiletype}/${folderName}/${file.name}`]);
             if (removeResponse?.error) {
               console.error(
                 `Attempt ${attempts + 1}: Error deleting file ${file.name}:`,
@@ -174,7 +174,7 @@ export class SupabaseApi implements ServiceApi {
     // Ensure the file is deleted by re-fetching
     existingFiles = await this.supabase?.storage
       .from("ProfileImages")
-      .list(`School/${folderName}`);
+      .list(`${profiletype}/${folderName}`);
     if (existingFiles?.data?.some((f) => f.name.startsWith("ProfilePicture"))) {
       console.error(
         "Force delete failed: File still exists after deletion attempts."
@@ -337,7 +337,7 @@ export class SupabaseApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: string
+    image: File | null
   ): Promise<TableTypes<"school">> {
     throw new Error("Method not implemented.");
   }

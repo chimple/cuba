@@ -558,25 +558,38 @@ export class SqliteApi implements ServiceApi {
 
     return newStudent;
   }
+
+  async addProfileImages(
+    Id: string,
+    file: File,
+    profiletype: string
+  ): Promise<string | null> {
+    return await this._serverApi.addProfileImages(Id, file, profiletype);
+  }
+
   async createSchool(
     name: string,
     group1: string,
     group2: string,
     group3: string,
-    image: string
+    image: File | null
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
 
     const schoolId = uuidv4();
+    const profiletype = "school";
+    const result = image
+      ? await this.addProfileImages(schoolId, image, profiletype)
+      : "";
     const newSchool: TableTypes<"school"> = {
       id: schoolId,
       name,
       group1: group1 ?? null,
       group2: group2 ?? null,
       group3: group3 ?? null,
-      image: image ?? null,
+      image: result ?? null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,

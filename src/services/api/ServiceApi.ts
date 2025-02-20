@@ -63,7 +63,7 @@ export interface ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: string
+    image: File | null
   ): Promise<TableTypes<"school">>;
   /**
    * updates a school details and returns the school object
@@ -83,6 +83,12 @@ export interface ServiceApi {
     group3: string,
     image: string
   ): Promise<TableTypes<"school">>;
+
+  addProfileImages(
+    Id: string,
+    file: File,
+    profiletype: string
+  ): PromiseLike<string | null>;
 
   createStudentProfile(
     name: string,
