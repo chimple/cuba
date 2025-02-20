@@ -38,7 +38,12 @@ import {
   IoSchoolOutline,
 } from "react-icons/io5";
 import { RoleType } from "../interface/modelInterfaces";
+// import { Plugins } from "@capacitor/core";
+import { registerPlugin } from "@capacitor/core";
+
 import { Plugins } from "@capacitor/core";
+import { url } from "inspector";
+import { OneRosterAuth } from "../services/auth/OneRosterAuth";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -55,7 +60,8 @@ const Login: React.FC = () => {
   const [showNameInput, setShowNameInput] = useState<boolean>(false);
   const [verificationCode, setVerificationCode] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState<any>("");
-  const { NativeSSOPlugin } = Plugins;
+  const NativeSSOPlugin = registerPlugin("NativeSSOPlugin");
+  // const { NativeSSOPlugin } = Plugins;
   //const [parentName, setParentName] = useState<any>("");
 
   const [recaptchaVerifier, setRecaptchaVerifier] =
@@ -707,10 +713,10 @@ const Login: React.FC = () => {
                       }
                     }}
                   />
-                  <img
+                  <button
                     id="login-google-icon"
-                    alt="Google Icon"
-                    src="assets/icons/Google Icon.png"
+                    // alt="Google Icon"
+                    // src="assets/icons/Google Icon.png"
                     onClick={async () => {
                       if (!online) {
                         presentToast({
@@ -732,10 +738,10 @@ const Login: React.FC = () => {
                       try {
                         setIsLoading(true);
                         setIsInitialLoading(true);
-                        console.log("isLoading ", isLoading);
-                        const result = await NativeSSOPlugin.requestLogin();
+                        const result = await OneRosterAuth.loginWithRespect();
+
                         console.log(
-                          "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
+                          "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ resultssss:",
                           result
                         );
                         if (result) {
@@ -743,30 +749,25 @@ const Login: React.FC = () => {
                           setIsInitialLoading(false);
                           // history.replace(PAGES.DISPLAY_STUDENT);
                           history.replace(PAGES.SELECT_MODE);
-                          localStorage.setItem(
-                            CURRENT_USER,
-                            JSON.stringify(result)
-                          );
-                          console.log(
-                            "google...",
-                            localStorage.getItem(CURRENT_USER)
-                          );
-                          Util.logEvent(EVENTS.USER_PROFILE, {
-                            user_type: RoleType.PARENT,
-                            action_type: ACTION.LOGIN,
-                            login_type: "google-signin",
-                          });
+                          // Util.logEvent(EVENTS.USER_PROFILE, {
+                          //   user_type: RoleType.STUDENT,
+                          //   action_type: ACTION.LOGIN,
+                          //   login_type: "respect-signin",
+                          // });
                         } else {
                           setIsLoading(false);
                           setIsInitialLoading(false);
                         }
                       } catch (error) {
+                        console.log("EEEEE", error);
                         setIsLoading(false);
                         setIsInitialLoading(false);
                         console.error("Login Failed:", error);
                       }
                     }}
-                  />
+                  >
+                    Respect Login
+                  </button>
                   <div className="google-or-student-credentials-button">OR</div>
                   {!showVerification ? (
                     <div

@@ -11,11 +11,10 @@ import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.getcapacitor.Plugin;
 import java.util.ArrayList;
-import org.chimple.bahama.NativeSSOPlugin;
 
 public  class MainActivity extends BridgeActivity {
 
-    private RespectClientManager respectClientManager; // Declare RespectClientManager
+//    private RespectClientManager respectClientManager; // Declare RespectClientManager
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,9 +28,10 @@ public  class MainActivity extends BridgeActivity {
         });
 
         registerPlugin(PortPlugin.class);
+        registerPlugin(NativeSSOPlugin.class);
         super.onCreate(savedInstanceState);
-        var respectClientManager = RespectClientManager();
-        respectClientManager.bindService(this);
+//        var respectClientManager = RespectClientManager();
+//        respectClientManager.bindService(this);
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN;
@@ -43,8 +43,8 @@ public  class MainActivity extends BridgeActivity {
                 DebugAppCheckProviderFactory.getInstance());
 
         // Initialize and bind RespectClientManager
-        respectClientManager = new RespectClientManager(); // Initialize RespectClientManager
-        respectClientManager.bindService(this); // Bind the service
+//        respectClientManager = new RespectClientManager(); // Initialize RespectClientManager
+//        respectClientManager.bindService(this); // Bind the service
     }
 
     @Override
