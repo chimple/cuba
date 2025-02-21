@@ -67,6 +67,10 @@ function SearchLesson() {
       SEARCH_KEYWORD_COUNT_STORAGE_KEY,
       JSON.stringify(keywordVolume)
     );
+    if (!currentStudent) {
+      const student = await Util.getCurrentStudent();
+      setStudent(student);
+    }
     logSearchEvent(term, results.nbHits, keywordVolume[term]);
   };
   const logSearchEvent = (
