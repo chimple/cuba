@@ -1,8 +1,9 @@
 import React, { FC, useEffect, useState } from "react";
 import "./PopupTemplate.css";
 import { Util } from "../utility/util";
-import { EVENTS } from "../common/constants";
+import { ASSIGNMENT_POPUP_SHOWN, EVENTS, QUIZ_POPUP_SHOWN } from "../common/constants";
 import { useLocation } from "react-router-dom";
+import { t } from "i18next";
 
 interface PopupProps {
   onJoin: () => void;
@@ -37,16 +38,24 @@ const PopupTemplate: FC<PopupProps> = ({
       component_name: compo_name.split("/").pop(),
     });
 
+    if (message.includes(t("Live Quiz is Starting Soon!"))) {
+      sessionStorage.setItem(QUIZ_POPUP_SHOWN, "true");
+    } else if (message.includes(t("You have pending homework."))) {
+      sessionStorage.setItem(ASSIGNMENT_POPUP_SHOWN, "true");
+    }
     setIsVisible(false);
     onJoin(); // Calls the parent function
   };
 
   useEffect(() => {
-    const visibilityState = sessionStorage.getItem("popupVisible");
-    if (visibilityState === "false") {
+    const isQuizPopup = message.includes(t("Live Quiz is Starting Soon!"));
+    const isAssignmentPopup = message.includes(t("You have pending homework."));
+
+    if ((isQuizPopup && sessionStorage.getItem(QUIZ_POPUP_SHOWN) === "true") ||
+      (isAssignmentPopup && sessionStorage.getItem(ASSIGNMENT_POPUP_SHOWN) === "true")) {
       setIsVisible(false);
     }
-  }, []);
+  }, [message]);
 
   // Handle Close button click and logging the event
   const handleCloseClick = async (e: React.MouseEvent) => {
@@ -66,6 +75,11 @@ const PopupTemplate: FC<PopupProps> = ({
       component_name: compo_name.split("/").pop(),
     });
 
+    if (message.includes(t("Live Quiz is Starting Soon!"))) {
+      sessionStorage.setItem(QUIZ_POPUP_SHOWN, "true");
+    } else if (message.includes(t("You have pending homework."))) {
+      sessionStorage.setItem(ASSIGNMENT_POPUP_SHOWN, "true");
+    }
     setIsVisible(false);
   };
 
