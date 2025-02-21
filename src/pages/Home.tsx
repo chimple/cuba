@@ -43,9 +43,11 @@ const Home: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isStudentLinked, setIsStudentLinked] = useState<boolean>();
   const [refreshKey, setRefreshKey] = useState(0);
+  
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
   }>();
+
   const [pendingAssignments, setPendingAssignments] = useState<
     TableTypes<"assignment">[]
   >([]);
@@ -132,10 +134,7 @@ const Home: FC = () => {
       return;
     }
 
-
     const studentResult = await api.getStudentResultInMap(student.id);
-    console.log("studentResult shubham-----", studentResult);
-    
     if (!!studentResult) {
       setLessonResultMap(studentResult);
     }

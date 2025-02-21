@@ -38,6 +38,8 @@ import { RoleType } from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
 import { Table } from "@mui/material";
 import ApiDataProcessor from "./ApiDataProcessor";
+import tincan from "../../tincan";
+import  {IStatement}  from "../../interface/learningUnits";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -63,6 +65,25 @@ export class SqliteApi implements ServiceApi {
     }
     return SqliteApi.i;
   }
+
+  private createStatement = (): IStatement => {
+    return {
+      actor: {
+        name: 'name',
+        mbox: `mailto:${"name".toLowerCase().replace(/\s+/g, "")}@example.com`,
+      },
+      verb: {
+        id: "http://adlnet.gov/expapi/verbs/completed",
+        display: { "en-US": "completed" },
+      },
+      object: {
+        id: `http://example.com/activities/${"lesson"}`,
+        definition: {
+          name: { "en-US": "lesson" },
+        },
+      },
+    };
+  };
 
   private async init() {
     SupabaseApi.getInstance();
@@ -1891,9 +1912,21 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
+  // Function to send xAPI statement
+   sendStatement = async () => {
+    const statement = this.createStatement();
+    try {
+      await tincan.sendStatement(statement as any);
+      console.log("Statement sent successfully:", statement);
+    } catch (error) {
+      console.error("Error sending statement:", error);
+    }
+  };
+
   async getStudentResultInMap(
     studentId: string
   ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
+
     const query = `
     SELECT *
     FROM ${TABLES.Result}
@@ -1905,6 +1938,7 @@ export class SqliteApi implements ServiceApi {
     GROUP BY lesson_id
   );
     `;
+    
     const res = await this._db?.query(query);
     return ApiDataProcessor.dataProcessorGetStudentResultInMap(
       res?.values ?? []
