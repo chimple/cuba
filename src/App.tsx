@@ -251,9 +251,9 @@ const App: React.FC = () => {
             <Route path={PAGES.LOGIN} exact={true}>
               <Login />
             </Route>
-            <ProtectedRoute path={PAGES.GAME} exact={true}>
+            <Route path={PAGES.GAME} exact={true}>
               <CocosGame />
-            </ProtectedRoute>
+            </Route>
             <ProtectedRoute path={PAGES.END} exact={true}>
               <End />
             </ProtectedRoute>

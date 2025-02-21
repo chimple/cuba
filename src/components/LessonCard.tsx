@@ -22,6 +22,9 @@ import SelectIconImage from "./displaySubjects/SelectIconImage";
 import { Util } from "../utility/util";
 import DownloadLesson from "./DownloadChapterAndLesson";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
+import { useHandleLessonClick } from "./lessonUtils";
+import { Plugins } from "@capacitor/core";
+const { MyPlugin } = Plugins;
 
 const LessonCard: React.FC<{
   width: string;
@@ -138,6 +141,65 @@ const LessonCard: React.FC<{
     );
   }, []);
 
+
+  // const handleLessonClick = async () => {
+  //   if (!isUnlocked) return;
+  
+  //   console.log("LessonCard course: course,", currentCourse);
+  
+  //   if (lesson.pluginType === COCOS) {
+  //     let subjectDocID: string;
+  
+  //     if (typeof lesson.subject === "string") {
+  //       const subjectReference = Util.getReference(lesson.subject);
+  //       subjectDocID = subjectReference.id;
+  //     } else {
+  //       subjectDocID = lesson.subject.id;
+  //     }
+  
+  //     const parmas = `?courseid=${lesson.cocosSubjectCode}&chapterid=${lesson.cocosChapterCode}&lessonid=${lesson.id}`;
+  //     console.log("🚀 ~ Params:", parmas, Lesson.toJson(lesson));
+  
+  //     history.replace(PAGES.GAME + parmas, {
+  //       url: "chimple-lib/index.html" + parmas,
+  //       lessonId: lesson.id,
+  //       courseDocId:
+  //         course?.docId ??
+  //         lesson?.assignment?.course?.id ??
+  //         lesson.courseId ??
+  //         currentCourse?.docId,
+  //       course: JSON.stringify(Course.toJson(currentCourse!)),
+  //       lesson: JSON.stringify(Lesson.toJson(lesson)),
+  //       from: history.location.pathname + `?${CONTINUE}=true`,
+  //     });
+  //   } else if (!!lesson?.assignment?.docId && lesson.pluginType === LIVE_QUIZ) {
+  //     if (!online) {
+  //       presentToast({
+  //         message: t(`Device is offline`),
+  //         color: "danger",
+  //         duration: 3000,
+  //         position: "bottom",
+  //         buttons: [
+  //           {
+  //             text: "Dismiss",
+  //             role: "cancel",
+  //           },
+  //         ],
+  //       });
+  //       return;
+  //     }
+  
+  //     history.replace(
+  //       PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${lesson?.assignment?.docId}`,
+  //       {
+  //         assignment: JSON.stringify(lesson?.assignment),
+  //       }
+  //     );
+  //   }
+  // };
+  const handleLessonClick = useHandleLessonClick();
+
+
   return (
     <>
       <div className="assigned-date-div">
@@ -167,82 +229,9 @@ const LessonCard: React.FC<{
           width: width,
           height: "auto",
         }}
-        onClick={async () => {
-          if (isUnlocked) {
-            // if (
-            //   lesson.chapter.course.isCourseMapped &&
-            //   lesson.orig_course_id != undefined &&
-            //   lesson.orig_chapter_id != undefined &&
-            //   lesson.orig_lesson_id != undefined
-            // ) {
-            //   const parmas = `?courseid=${lesson.orig_course_id}&chapterid=${lesson.orig_chapter_id}&lessonid=${lesson.orig_lesson_id}`;
-            //   console.log("parmas", parmas);
-            //   history.push(PAGES.GAME + parmas, {
-            //     url: "chimple-lib/index.html" + parmas,
-            //     lessonId: lesson.orig_lesson_id,
-            //     lesson: lesson,
-            //     from: history.location.pathname,
-            //   });
-            // } else {
-            // console.log("LessonCard course: subject,", subject);
-            console.log("LessonCard course: course,", currentCourse);
-            if (lesson.pluginType === COCOS) {
-              let subjectDocID: string;
-
-              if (typeof lesson.subject === "string") {
-                const subjectReference = Util.getReference(lesson.subject);
-                subjectDocID = subjectReference.id;
-              } else {
-                subjectDocID = lesson.subject.id;
-              }
-              const api = ServiceConfig.getI().apiHandler;
-              const parmas = `?courseid=${lesson.cocosSubjectCode}&chapterid=${lesson.cocosChapterCode}&lessonid=${lesson.id}`;
-              console.log(
-                "🚀 ~ file: LessonCard.tsx:73 ~ parmas:",
-                parmas,
-                Lesson.toJson(lesson)
-              );
-              history.replace(PAGES.GAME + parmas, {
-                url: "chimple-lib/index.html" + parmas,
-                lessonId: lesson.id,
-                courseDocId:
-                  course?.docId ??
-                  lesson?.assignment?.course?.id ??
-                  lesson.courseId ??
-                  currentCourse?.docId,
-                course: JSON.stringify(Course.toJson(currentCourse!)),
-                lesson: JSON.stringify(Lesson.toJson(lesson)),
-                from: history.location.pathname + `?${CONTINUE}=true`,
-              });
-            } else if (
-              !!lesson?.assignment?.docId &&
-              lesson.pluginType === LIVE_QUIZ
-            ) {
-              if (!online) {
-                presentToast({
-                  message: t(`Device is offline`),
-                  color: "danger",
-                  duration: 3000,
-                  position: "bottom",
-                  buttons: [
-                    {
-                      text: "Dismiss",
-                      role: "cancel",
-                    },
-                  ],
-                });
-                return;
-              }
-              history.replace(
-                PAGES.LIVE_QUIZ_JOIN +
-                  `?assignmentId=${lesson?.assignment?.docId}`,
-                {
-                  assignment: JSON.stringify(lesson?.assignment),
-                }
-              );
-            }
-          }
-        }}
+        onClick={async () =>
+          handleLessonClick(lesson, isUnlocked, currentCourse, online, presentToast)
+        }
       >
         <div
           style={{

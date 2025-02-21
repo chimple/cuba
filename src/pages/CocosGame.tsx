@@ -27,6 +27,9 @@ import Course from "../models/course";
 import { AvatarObj } from "../components/animation/Avatar";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
+import { sendDataToJava } from "../components/lessonUtils";
+import { sendEiduResultToJava } from "../utility/sendResultEidu";
+import { send } from "ionicons/icons";
 
 const CocosGame: React.FC = () => {
   const history = useHistory();
@@ -80,6 +83,13 @@ const CocosGame: React.FC = () => {
     Util.killCocosGame();
     initialCount++;
     localStorage.setItem(LESSONS_PLAYED_COUNT, initialCount.toString());
+    // 🚀 Send incomplete lesson result to EIDU
+    if (e.detail) {
+      const lessonEndData = e.detail;
+      console.log("Lesson Incomplete. Sending data to Java:", JSON.stringify(lessonEndData, null, 2));
+      sendEiduResultToJava("ABORT", lessonEndData.score / 100, lessonEndData.timeSpent * 1000, "Lesson aborted", []);
+    }
+    
     console.log("---------count of LESSONS PLAYED", initialCount);
   };
 
@@ -115,12 +125,18 @@ const CocosGame: React.FC = () => {
       );
       if (cChap) {
         ChapterDetail = cChap;
+        const data = e.detail as CocosLessonData;
+        console.log("Sending Lesson End Data to Java:", JSON.stringify(data, null, 2));
+
+        // sendEiduResultToJava("ABORT", data.score, data.gameTimeSpent!, "Lesson aborted", []);
         console.log("Current Chapter ", ChapterDetail);
       }
     }
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
     killGame(e);
+      // 📌 Log "Lesson Incomplete" event to EIDU
+
     Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
       user_id: api.currentStudent!.docId,
       assignment_id: lessonDetail.assignment?.docId,
@@ -149,6 +165,8 @@ const CocosGame: React.FC = () => {
       game_time_spent: data.gameTimeSpent,
       quiz_time_spent: data.quizTimeSpent,
     });
+    sendEiduResultToJava("ABORT", data.score! / 100, data.timeSpent * 1000, "Lesson aborted", []);
+
     setShowDialogBox(false);
     push();
   };
@@ -178,13 +196,26 @@ const CocosGame: React.FC = () => {
 
     document.body.addEventListener(
       LESSON_END,
-      (event) => {
-        // setGameResult(event.detail as lessonEndData);
-        setGameResult(event);
-        console.log("----------line 100 add event listener------", event);
+      async (event) => {
+        if (!event.detail) {
+          console.error("Lesson End Data is undefined!");
+          return;
+        }
+    
+        const lessonEndData = event.detail; // Extract event data
+        console.log("Sending Lesson End Data to Java:", JSON.stringify(lessonEndData, null, 2));
+
+        sendEiduResultToJava("SUCCESS", lessonEndData.score / 100, lessonEndData.timeSpent * 1000, "Lesson completed", []);
+
+    
+        // Send data to Java
+        await sendDataToJava("lessonEnd", lessonEndData);
+        
       },
       { once: true }
     );
+    
+    
     document.body.addEventListener(GAME_END, killGame, { once: true });
     document.body.addEventListener(GAME_EXIT, gameExit, { once: true });
 

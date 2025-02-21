@@ -1,12 +1,17 @@
 package org.chimple.bahama;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+
+import com.eidu.integration.ResultItem;
+import com.eidu.integration.RunLearningUnitResult;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -18,6 +23,8 @@ import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -28,6 +35,8 @@ public class PortPlugin extends Plugin {
   public PortPlugin() {
     instance = this; // Assign instance when PortPlugin is created
   }
+  private static final String TAG = "Logger001";
+
 
 
 //  @PluginMethod
@@ -81,6 +90,15 @@ public class PortPlugin extends Plugin {
   }
 
   @PluginMethod
+  public static void sendLaunch(String courseid, String chapterid, String lessonid) {
+    if (getInstance().bridge != null) {
+      String jsonPayload = "{ \"courseid\": \"" + courseid + "\", \"chapterid\": \"" + chapterid + "\", \"lessonid\": \"" + lessonid + "\" }";
+      getInstance().bridge.triggerDocumentJSEvent("sendLaunch", jsonPayload);
+    }
+  }
+
+
+  @PluginMethod
   public static void isNumberSelected() {
     if (getInstance().bridge != null) {
       getInstance().bridge.triggerDocumentJSEvent("isPhoneNumberSelected");
@@ -109,6 +127,14 @@ public class PortPlugin extends Plugin {
       JSObject result = new JSObject();
       result.put("number", phoneNumber);
       call.resolve(result);
+  }
+
+  @PluginMethod
+  public void lessonEndData(PluginCall call) {
+    String phoneNumber =  MainActivity.getPhoneNumber();
+    JSObject result = new JSObject();
+    result.put("number", phoneNumber);
+    call.resolve(result);
   }
   public static PortPlugin getInstance() {
     return instance;
@@ -191,4 +217,125 @@ public class PortPlugin extends Plugin {
       call.reject(e.toString());
     }
   }
+
+  @PluginMethod
+  public void sendLaunchData(PluginCall call) {
+    JSObject result = new JSObject();
+
+
+    Intent curr_intent = instance.getActivity().getIntent();
+
+    // Extract learningUnitId from intent extras
+    String learningUnitId = curr_intent.getStringExtra("learningUnitId");
+
+    if (learningUnitId != null && learningUnitId.contains("_")) {
+      // Split the learningUnitId into course, chapter, and lesson
+      String[] parts = learningUnitId.split("_");
+      if (parts.length == 3) {
+        String courseId = parts[0];   // "en" -- example
+        String chapterId = parts[1];  // "en00" -- example
+        String lessonId = parts[2];   // "en0000" -- example
+        result.put("lessonId", lessonId);
+        call.resolve(result);
+
+        // Construct the URL dynamically
+        String url = "https://chimple.cc/microlink/?courseid=" + courseId +
+                "&chapterid=" + chapterId +
+                "&lessonid=" + lessonId +
+                "&app=eidu";
+        curr_intent.setData(Uri.parse(url));
+        Log.d(TAG, "Generated URL: " + url);
+      } else {
+        Log.e(TAG, "Invalid learningUnitId format: " + learningUnitId);
+      }
+    } else {
+      Log.e(TAG, "learningUnitId is missing or not formatted correctly.");
+    }
+  }
+
+
+
+  @PluginMethod
+  public void sendDataToNative(PluginCall call) {
+    try {
+      String eventName = call.getString("eventName");
+      JSONObject params = call.getObject("params");
+
+      Log.d("PortPlugin", "🔥 Event received: " + eventName);
+      Log.d("PortPlugin", "📊 Parameters: " + params.toString());
+
+      // You can process this data further (e.g., save to local storage, send to another API, etc.)
+
+      // Extract score from params
+      int score = params.has("score") ? params.getInt("score") : -1; // Default to -1 if missing
+      Log.d("PortPlugin", "🎯 Extracted Score: " + score);
+
+      if(Objects.equals(eventName, "lessonEnd")) {
+//        MainActivity.instance.sendResultToEidu((float) score);
+      }
+
+      call.resolve(); // Acknowledge successful execution
+    } catch (Exception e) {
+      call.reject("❌ Error processing event", e);
+    }
+  }
+
+
+  @PluginMethod
+  public void sendEiduResult(PluginCall call) {
+    try {
+      String resultType = call.getString("resultType");
+      Float score = call.getFloat("score");
+
+      // Ensure duration is not null, default to 0 if missing
+      int duration = call.getInt("duration");
+
+      String additionalData = call.getString("additionalData");
+      JSONArray itemsArray = call.getArray("items");
+
+      // Convert JSONArray to List<ResultItem>
+      List<ResultItem> resultItems = new ArrayList<>();
+      if (itemsArray != null) {
+        for (int i = 0; i < itemsArray.length(); i++) {
+          JSONObject itemObj = itemsArray.getJSONObject(i);
+          ResultItem resultItem = ResultItem.fromJson(itemObj); // ✅ Correct conversion
+          resultItems.add(resultItem);
+        }
+      }
+
+      // Create RunLearningUnitResult instance based on resultType
+      RunLearningUnitResult result;
+      switch (resultType) {
+        case "SUCCESS":
+          result = RunLearningUnitResult.ofSuccess(score, duration, additionalData, resultItems);
+          break;
+        case "ABORT":
+          result = RunLearningUnitResult.ofAbort(score, duration, additionalData, resultItems);
+          break;
+        case "TIMEOUT_INACTIVITY":
+          result = RunLearningUnitResult.ofTimeoutInactivity(score, duration, additionalData, resultItems);
+          break;
+        case "TIME_UP":
+          result = RunLearningUnitResult.ofTimeUp(score, duration, additionalData, resultItems);
+          break;
+        case "ERROR":
+          String errorDetails = call.getString("errorDetails");
+          result = RunLearningUnitResult.ofError(score, duration, errorDetails, additionalData, resultItems);
+          break;
+        default:
+          call.reject("Invalid resultType");
+          return;
+      }
+
+      // Convert result to Intent and send to EIDU
+      Intent intent = result.toIntent();
+      getActivity().setResult(Activity.RESULT_OK, intent);
+      getActivity().finish();
+
+      call.resolve();
+    } catch (Exception e) {
+      call.reject("Error sending result to EIDU", e);
+    }
+  }
+
 }

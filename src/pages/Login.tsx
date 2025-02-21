@@ -29,6 +29,7 @@ import User from "../models/user";
 import BackButton from "../components/common/BackButton";
 import { Toast } from "@capacitor/toast";
 import { title } from "process";
+import { useHandleLessonClick } from "../components/lessonUtils";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import {
   IoCallOutline,
@@ -39,6 +40,7 @@ import {
 } from "react-icons/io5";
 import { once } from "events";
 import PhoneNumberPopup from "../components/login/PhoneNumberPopup";
+import { ApiHandler } from "../services/api/ApiHandler";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -114,10 +116,16 @@ const Login: React.FC = () => {
   // const [showPhoneNumberPopUp, setShowPhoneNumberPopUp] =
   //   useState<boolean>(false);
   const PortPlugin = registerPlugin<any>("Port");
+  const handleLessonClick = useHandleLessonClick();
+  
 
   useEffect(() => {
     initNumberSelectedListner();
   }, []);
+  useEffect(() => {
+    document.addEventListener("sendLaunch", sendLaunch);
+    return () => document.removeEventListener("sendLaunch", sendLaunch);
+}, []);
   useEffect(() => {
     if (phoneNumber.length == 10) {
       initSmsListner();
@@ -238,6 +246,18 @@ const Login: React.FC = () => {
     }
     document.removeEventListener("otpReceived", otpEventListener);
   };
+
+const sendLaunch = async (event: Event) => {
+    // const lesson = await ApiHandler.i.getLessonWithCocosLessonId("en0000");
+    // const course  = await ApiHandler.i.getCourse(lesson);
+    // if (lesson) {
+    //   handleLessonClick(lesson, true, course, null, history, online, presentToast);
+    // }
+    console.log("Calling received from Java:", event);
+    handleLessonClick(null, true, undefined, true, presentToast);
+};
+
+
   const isPhoneNumberEventListener = async (event: Event) => {
     retriewPhoneNumber();
     document.removeEventListener("isPhoneNumberSelected", isPhoneNumberEventListener);
