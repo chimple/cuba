@@ -60,7 +60,7 @@ const Login: React.FC = () => {
   const [showNameInput, setShowNameInput] = useState<boolean>(false);
   const [verificationCode, setVerificationCode] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState<any>("");
-  const NativeSSOPlugin = registerPlugin("NativeSSOPlugin");
+  // const NativeSSOPlugin = registerPlugin("NativeSSOPlugin");
   // const { NativeSSOPlugin } = Plugins;
   //const [parentName, setParentName] = useState<any>("");
 
@@ -685,6 +685,8 @@ const Login: React.FC = () => {
                           result
                         );
                         if (result) {
+                          console.log("if (result) { ", result);
+
                           setIsLoading(false);
                           setIsInitialLoading(false);
                           // history.replace(PAGES.DISPLAY_STUDENT);
@@ -697,12 +699,14 @@ const Login: React.FC = () => {
                             "google...",
                             localStorage.getItem(CURRENT_USER)
                           );
-                          Util.logEvent(EVENTS.USER_PROFILE, {
-                            user_type: RoleType.PARENT,
-                            action_type: ACTION.LOGIN,
-                            login_type: "google-signin",
-                          });
+                          // Util.logEvent(EVENTS.USER_PROFILE, {
+                          //   user_type: RoleType.PARENT,
+                          //   action_type: ACTION.LOGIN,
+                          //   login_type: "google-signin",
+                          // });
                         } else {
+                          console.log();
+
                           setIsLoading(false);
                           setIsInitialLoading(false);
                         }
@@ -745,6 +749,8 @@ const Login: React.FC = () => {
                           result
                         );
                         if (result) {
+                          console.log("respect if (result) { ", result);
+
                           setIsLoading(false);
                           setIsInitialLoading(false);
                           // history.replace(PAGES.DISPLAY_STUDENT);
@@ -755,6 +761,7 @@ const Login: React.FC = () => {
                           //   login_type: "respect-signin",
                           // });
                         } else {
+                          console.log("respect else ");
                           setIsLoading(false);
                           setIsInitialLoading(false);
                         }

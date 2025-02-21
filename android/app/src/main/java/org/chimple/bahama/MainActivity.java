@@ -28,7 +28,7 @@ public  class MainActivity extends BridgeActivity {
         });
 
         registerPlugin(PortPlugin.class);
-        registerPlugin(NativeSSOPlugin.class);
+//        registerPlugin(NativeSSOPlugin.class);
         super.onCreate(savedInstanceState);
 //        var respectClientManager = RespectClientManager();
 //        respectClientManager.bindService(this);
@@ -47,12 +47,12 @@ public  class MainActivity extends BridgeActivity {
 //        respectClientManager.bindService(this); // Bind the service
     }
 
-    @Override
-    public ArrayList<Class<? extends Plugin>> getPlugins() {
-        ArrayList<Class<? extends Plugin>> plugins = new ArrayList<>();
-        plugins.add(NativeSSOPlugin.class);
-        return plugins;
-    }
+//    @Override
+//    public ArrayList<Class<? extends Plugin>> getPlugins() {
+//        ArrayList<Class<? extends Plugin>> plugins = new ArrayList<>();
+//        plugins.add(NativeSSOPlugin.class);
+//        return plugins;
+//    }
 
     @Override
     public void onDestroy() {

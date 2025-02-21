@@ -543,6 +543,7 @@ export interface PortPlugin {
     imageFile?: File[];
   }): Promise<void>;
   shareUserId(options: { userId: string }): Promise<void>;
+  requestLogin(): Promise<{ users: any }>;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_SUBJECT_IDS = [

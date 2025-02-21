@@ -1,22 +1,28 @@
 import { ServiceAuth } from "./ServiceAuth";
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
-import { TableTypes } from "../../common/constants";
+import { PortPlugin, TableTypes } from "../../common/constants";
 import { registerPlugin } from "@capacitor/core";
+import { Util } from "../../utility/util";
 
 export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
-  private static NativeSSOPlugin = registerPlugin("NativeSSOPlugin");
+  // private static NativeSSOPlugin: any = registerPlugin("NativeSSOPlugin");
 
-  private constructor() {}
+  private constructor() { }
   loginWithEmailAndPassword(email: any, password: any): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
 
   public static loginWithRespect: any = async () => {
     try {
-      const result = await (
-        OneRosterAuth.NativeSSOPlugin as any
-      ).requestLogin();
+      if (!Util.port) {
+        Util.port = registerPlugin<PortPlugin>("Port");
+      }
+      // const port = await Util.port.getMigrateUsers();
+      const result: any = await Util.port.requestLogin();
+      // const result = await (
+      //   OneRosterAuth.NativeSSOPlugin as any
+      // ).requestLogin();
       if (!result) {
         return false;
       }
