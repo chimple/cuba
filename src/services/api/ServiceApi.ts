@@ -81,14 +81,21 @@ export interface ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: string
+    image: File | null
   ): Promise<TableTypes<"school">>;
 
+  /**
+   * Adds a school profile image and returns the school profile image URL.
+   * @param {string} id - The unique identifier of the school.
+   * @param {File} file - The image file to be uploaded.
+   * @param {string} profileType - The type of profile image (e.g., "logo", "banner").
+   * @returns {Promise<string | null>} The URL of the uploaded profile image or null if the upload fails.
+   */
   addProfileImages(
-    Id: string,
+    id: string,
     file: File,
-    profiletype: string
-  ): PromiseLike<string | null>;
+    profileType: string
+  ): Promise<string | null>;
 
   createStudentProfile(
     name: string,

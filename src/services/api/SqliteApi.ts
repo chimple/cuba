@@ -15,6 +15,7 @@ import {
   belowGrade1,
   grade2,
   grade3,
+  PROFILETYPE,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -579,9 +580,8 @@ export class SqliteApi implements ServiceApi {
     if (!_currentUser) throw "User is not Logged in";
 
     const schoolId = uuidv4();
-    const profiletype = "school";
     const result = image
-      ? await this.addProfileImages(schoolId, image, profiletype)
+      ? await this.addProfileImages(schoolId, image, PROFILETYPE.SCHOOL)
       : "";
     const newSchool: TableTypes<"school"> = {
       id: schoolId,
@@ -658,18 +658,22 @@ export class SqliteApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: string | null
+    image: File | null
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
+
+    const result = image
+      ? await this.addProfileImages(school.id, image, PROFILETYPE.SCHOOL)
+      : "";
 
     const updatedSchool: TableTypes<"school"> = {
       name: name ?? school.name,
       group1: group1 ?? school.group1,
       group2: group2 ?? school.group2,
       group3: group3 ?? school.group3,
-      image: image ?? school.image,
+      image: result ?? null,
       updated_at: new Date().toISOString(),
       created_at: school.created_at,
       id: school.id,

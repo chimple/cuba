@@ -132,11 +132,11 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getAvatarInfo();
   }
   public async addProfileImages(
-    Id: string,
+    id: string,
     file: File,
-    profiletype: string
+    profileType: string
   ): Promise<string | null> {
-    return await this.s.addProfileImages(Id, file, profiletype);
+    return await this.s.addProfileImages(id, file, profileType);
   }
   public async createSchool(
     name: string,
@@ -153,7 +153,7 @@ export class ApiHandler implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: string
+    image: File | null
   ): Promise<TableTypes<"school">> {
     return await this.s.updateSchoolProfile(
       school,
