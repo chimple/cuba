@@ -98,7 +98,8 @@ const CocosGame: React.FC = () => {
       if (!!urlParams.get("isReload")) {
         if (fromPath.includes("?"))
           history.replace(fromPath + "&isReload=true");
-        else history.replace(fromPath + "?isReload=true");
+        else 
+          history.replace(fromPath + "?isReload=true");
         window.location.reload();
       } else {
         history.replace(fromPath);
@@ -372,6 +373,7 @@ const CocosGame: React.FC = () => {
                 }
                 push();
               }}
+              
               onContinueButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
                 setIsLoading(true);

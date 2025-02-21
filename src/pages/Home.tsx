@@ -235,7 +235,6 @@ const Home: FC = () => {
         console.log("setting subtabConfig slug with:", slug);
         subtabConfig = SUBTAB_MAPPINGS[slug];
       }
-      setTimeout(() => {      
         if (subtabConfig) {
           console.log("subtabConfig is:", subtabConfig);
           if (subtabConfig.isLinked && !linked) {
@@ -254,8 +253,6 @@ const Home: FC = () => {
             }
           }
         }
-      }, 
-      2000);
       // if (slug) {
       //   history.replace(slug);
       // }
