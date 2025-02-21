@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useState } from "react";
 import "./PopupTemplate.css";
 import { Util } from "../utility/util";
-import { EVENTS } from "../common/constants";
+import { ASSIGNMENT_POPUP_SHOWN, EVENTS, QUIZ_POPUP_SHOWN } from "../common/constants";
 import { useLocation } from "react-router-dom";
 import { t } from "i18next";
 
@@ -39,9 +39,9 @@ const PopupTemplate: FC<PopupProps> = ({
     });
 
     if (message.includes(t("Live Quiz is Starting Soon!"))) {
-      sessionStorage.setItem("quizPopupShown", "true");
+      sessionStorage.setItem(QUIZ_POPUP_SHOWN, "true");
     } else if (message.includes(t("You have pending homework."))) {
-      sessionStorage.setItem("assignmentPopupShown", "true");
+      sessionStorage.setItem(ASSIGNMENT_POPUP_SHOWN, "true");
     }
     setIsVisible(false);
     onJoin(); // Calls the parent function
@@ -51,8 +51,8 @@ const PopupTemplate: FC<PopupProps> = ({
     const isQuizPopup = message.includes(t("Live Quiz is Starting Soon!"));
     const isAssignmentPopup = message.includes(t("You have pending homework."));
 
-    if ((isQuizPopup && sessionStorage.getItem("quizPopupShown") === "true") ||
-      (isAssignmentPopup && sessionStorage.getItem("assignmentPopupShown") === "true")) {
+    if ((isQuizPopup && sessionStorage.getItem(QUIZ_POPUP_SHOWN) === "true") ||
+      (isAssignmentPopup && sessionStorage.getItem(ASSIGNMENT_POPUP_SHOWN) === "true")) {
       setIsVisible(false);
     }
   }, [message]);
@@ -76,9 +76,9 @@ const PopupTemplate: FC<PopupProps> = ({
     });
 
     if (message.includes(t("Live Quiz is Starting Soon!"))) {
-      sessionStorage.setItem("quizPopupShown", "true");
+      sessionStorage.setItem(QUIZ_POPUP_SHOWN, "true");
     } else if (message.includes(t("You have pending homework."))) {
-      sessionStorage.setItem("assignmentPopupShown", "true");
+      sessionStorage.setItem(ASSIGNMENT_POPUP_SHOWN, "true");
     }
     setIsVisible(false);
   };

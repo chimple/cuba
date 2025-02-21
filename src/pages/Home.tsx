@@ -22,7 +22,9 @@ import {
   LIVE_QUIZ,
   SHOW_DAILY_PROGRESS_FLAG,
   IS_CONECTED,
-  SUBTAB_MAPPINGS
+  SUBTAB_MAPPINGS,
+  QUIZ_POPUP_SHOWN,
+  ASSIGNMENT_POPUP_SHOWN
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -871,8 +873,8 @@ const Home: FC = () => {
   const [showAssignmentPopup, setShowAssignmentPopup] = useState(false);
 
   useEffect(() => {
-    const hasShownQuizPopup = sessionStorage.getItem("quizPopupShown");
-    const hasShownAssignmentPopup = sessionStorage.getItem("assignmentPopupShown");
+    const hasShownQuizPopup = sessionStorage.getItem(QUIZ_POPUP_SHOWN);
+    const hasShownAssignmentPopup = sessionStorage.getItem(ASSIGNMENT_POPUP_SHOWN);
 
     if (!hasShownQuizPopup && pendingLiveQuizCount !== 0) {
       setShowQuizPopup(true);
