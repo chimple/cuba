@@ -6,6 +6,7 @@ import {
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODES,
+  PROFILETYPE,
   TableTypes,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -88,13 +89,13 @@ export interface ServiceApi {
    * Adds a school profile image and returns the school profile image URL.
    * @param {string} id - The unique identifier of the school.
    * @param {File} file - The image file to be uploaded.
-   * @param {string} profileType - The type of profile image (e.g., "logo", "banner").
+   * @param {PROFILETYPE} profileType - The type of profile image (e.g., "school", "class", "user").
    * @returns {Promise<string | null>} The URL of the uploaded profile image or null if the upload fails.
    */
   addProfileImages(
     id: string,
     file: File,
-    profileType: string
+    profileType: PROFILETYPE
   ): Promise<string | null>;
 
   createStudentProfile(

@@ -561,11 +561,11 @@ export class SqliteApi implements ServiceApi {
   }
 
   async addProfileImages(
-    Id: string,
+    id: string,
     file: File,
-    profiletype: string
+    profileType: PROFILETYPE
   ): Promise<string | null> {
-    return await this._serverApi.addProfileImages(Id, file, profiletype);
+    return await this._serverApi.addProfileImages(id, file, profileType);
   }
 
   async createSchool(

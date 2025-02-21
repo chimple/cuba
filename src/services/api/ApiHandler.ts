@@ -7,6 +7,7 @@ import {
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODES,
+  PROFILETYPE,
   TableTypes,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -134,7 +135,7 @@ export class ApiHandler implements ServiceApi {
   public async addProfileImages(
     id: string,
     file: File,
-    profileType: string
+    profileType: PROFILETYPE
   ): Promise<string | null> {
     return await this.s.addProfileImages(id, file, profileType);
   }
