@@ -38,6 +38,8 @@ import { RoleType } from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
 import { Table } from "@mui/material";
 import ApiDataProcessor from "./ApiDataProcessor";
+import xAPIService from './xApiService';
+import { IGetStatementCfg } from '../../interface/xAPIInterface';
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -1894,6 +1896,7 @@ export class SqliteApi implements ServiceApi {
   async getStudentResultInMap(
     studentId: string
   ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
+
     const query = `
     SELECT *
     FROM ${TABLES.Result}
@@ -1905,6 +1908,23 @@ export class SqliteApi implements ServiceApi {
     GROUP BY lesson_id
   );
     `;
+
+    const queryStatement: IGetStatementCfg = {
+      agent: {
+        mbox: "mailto:user@example.com"
+      },
+      verb: {
+        id: "http://adlnet.gov/expapi/verbs/completed"
+      },
+      activity: {
+        id: "http://example.com/activity/12345"
+      },
+      since: "2024-01-01T00:00:00Z", // Example: fetch statements since Jan 1, 2024
+      limit: 10 // Example: limit to 10 results
+    };
+    
+    xAPIService.sendStatement();
+    xAPIService.getStatements(queryStatement);
     const res = await this._db?.query(query);
     return ApiDataProcessor.dataProcessorGetStudentResultInMap(
       res?.values ?? []

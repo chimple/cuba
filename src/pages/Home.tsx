@@ -43,9 +43,11 @@ const Home: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isStudentLinked, setIsStudentLinked] = useState<boolean>();
   const [refreshKey, setRefreshKey] = useState(0);
+  
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
   }>();
+
   const [pendingAssignments, setPendingAssignments] = useState<
     TableTypes<"assignment">[]
   >([]);
@@ -131,10 +133,12 @@ const Home: FC = () => {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
+
     const studentResult = await api.getStudentResultInMap(student.id);
     if (!!studentResult) {
       setLessonResultMap(studentResult);
     }
+
     fetchData();
     await isLinked();
     const urlParams = new URLSearchParams(window.location.search);
@@ -629,6 +633,7 @@ const Home: FC = () => {
               ((canShowAvatar &&
                 currentHeader === HOMEHEADERLIST.SUGGESTIONS) ||
                 (!canShowAvatar && currentHeader === HOMEHEADERLIST.HOME)) && (
+
                 <div>
                   {subTab === SUBTAB.SUGGESTIONS && (
                     <LessonSlider
