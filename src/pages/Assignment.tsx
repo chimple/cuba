@@ -61,6 +61,71 @@ const AssignmentPage: React.FC = () => {
     checkAllHomeworkDownloaded();
   }, [lessons]);
 
+  useEffect(() => {
+    if (assignments.length > 0) {
+      const fetchLessons = async () => {
+        const lessonPromises = assignments.map(async (assignment) => {
+          return await api.getLesson(assignment.lesson_id);
+        });
+  
+        const lessonList = await Promise.all(lessonPromises);
+        const filteredLessons = lessonList.filter((lesson): lesson is TableTypes<"lesson"> => lesson !== undefined);
+  
+        setLessons((prevLessons) => {
+          const prevIds = new Set(prevLessons.map((l) => l.id));
+          const newLessons = filteredLessons.filter((l) => !prevIds.has(l.id));
+  
+          if (newLessons.length > 0 || prevLessons.length !== filteredLessons.length) {
+            return [...newLessons, ...prevLessons]; // Append new lessons
+          }
+          return prevLessons;
+        });
+      };
+  
+      fetchLessons();
+    }
+  }, [assignments]);
+
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      const student = Util.getCurrentStudent();
+      if (!student) return;
+      const linkedData = await api.getStudentClassesAndSchools(student.id);
+  
+      if (linkedData.classes.length > 0) {
+        let allAssignments: TableTypes<"assignment">[] = [];
+        await Promise.all(
+          linkedData.classes.map(async (_class) => {
+            const assignments = await api.getPendingAssignments(_class.id, student.id);
+  
+            const filteredAssignments = assignments.filter(
+              (assignment) => !(TYPE in assignment) || assignment.type !== LIVE_QUIZ
+            );
+            allAssignments = [...allAssignments, ...filteredAssignments];
+          })
+        );
+        setAssignments((prevAssignments) => {
+          const prevIds = new Set(prevAssignments.map((a) => a.id));
+          const newAssignments = allAssignments.filter((a) => !prevIds.has(a.id));
+  
+          if (newAssignments.length > 0 || allAssignments.length !== prevAssignments.length) {
+            return allAssignments;
+          }
+          return prevAssignments;
+        });
+      }
+    };
+  
+    fetchAssignments();
+  
+    // Polling every 5 seconds for real-time updates
+    const interval = setInterval(() => {
+      fetchAssignments();
+    }, 5000);
+  
+    return () => clearInterval(interval); // Cleanup interval on unmount
+  }, []);      
+
   const checkAllHomeworkDownloaded = async () => {
     if (!lessons || lessons.length === 0) {
       setShowDownloadHomeworkButton(false);
@@ -300,7 +365,7 @@ const AssignmentPage: React.FC = () => {
               ) : (
                 <div>
                   {lessons.length > 0 ? (
-                    <LessonSlider
+                    <LessonSlider key={lessons.length}
                       lessonData={lessons}
                       isHome={true}
                       course={undefined}
