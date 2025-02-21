@@ -77,9 +77,12 @@ public class MainActivity extends BridgeActivity {
                         try {
                             String _phoneNumber = Identity.getSignInClient(this)
                                     .getPhoneNumberFromIntent(result.getData());
-                            phoneNumber = _phoneNumber;
+                            if (_phoneNumber != null && _phoneNumber.length() > 10) {
+                                phoneNumber = _phoneNumber.substring(_phoneNumber.length() - 10);
+                            } else {
+                                phoneNumber = _phoneNumber;
+                            }
                             PortPlugin.isNumberSelected();
-
                         } catch (ApiException e) {
                             Log.e("TAG", "Failed to retrieve phone number", e);
                         }
