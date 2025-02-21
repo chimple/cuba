@@ -6,6 +6,7 @@ import {
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODES,
+  PROFILETYPE,
   TableTypes,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -62,7 +63,8 @@ export interface ServiceApi {
     name: string,
     group1: string,
     group2: string,
-    group3: string
+    group3: string,
+    image: File | null
   ): Promise<TableTypes<"school">>;
   /**
    * updates a school details and returns the school object
@@ -71,6 +73,7 @@ export interface ServiceApi {
    * @param {string} group1 - state of school
    * @param {string} group1 - district of school
    * @param {string} group1 - city of school
+   * @param {string} image - image of school
    * @returns {TableTypes<"school">} Updated School Object
    */
   updateSchoolProfile(
@@ -78,8 +81,22 @@ export interface ServiceApi {
     name: string,
     group1: string,
     group2: string,
-    group3: string
+    group3: string,
+    image: File | null
   ): Promise<TableTypes<"school">>;
+
+  /**
+   * Adds a school profile image and returns the school profile image URL.
+   * @param {string} id - The unique identifier of the school.
+   * @param {File} file - The image file to be uploaded.
+   * @param {PROFILETYPE} profileType - The type of profile image (e.g., "school", "class", "user").
+   * @returns {Promise<string | null>} The URL of the uploaded profile image or null if the upload fails.
+   */
+  addProfileImages(
+    id: string,
+    file: File,
+    profileType: PROFILETYPE
+  ): Promise<string | null>;
 
   createStudentProfile(
     name: string,
