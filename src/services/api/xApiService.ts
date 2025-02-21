@@ -1,6 +1,5 @@
 import tincan from "../../tincan";
-import  {IGetStatementCfg}  from "../../interface/xAPIInterface";
-import { IStatement } from "../../interface/learningUnits";
+import  {IGetStatementCfg, IStatement}  from "../../interface/xAPIInterface";
 
 class XAPIService {
     private createStatement = (): IStatement => {
