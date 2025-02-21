@@ -108,9 +108,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             Intent intent = new Intent(context, MainActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             intent.putExtra("fullPayload", fullPayload); // Attach full payload to the intent
+            int requestCode = (int) System.currentTimeMillis();
 
             PendingIntent pendingIntent = PendingIntent.getActivity(
-                    context, 0, intent,
+                    context, requestCode, intent,
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
                             ? PendingIntent.FLAG_MUTABLE
                             : PendingIntent.FLAG_IMMUTABLE
@@ -138,8 +139,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         channelId, "Scheduled Notifications", NotificationManager.IMPORTANCE_HIGH);
                 notificationManager.createNotificationChannel(channel);
             }
-
-            notificationManager.notify(1, notificationBuilder.build());
+            int notificationId = (int) System.currentTimeMillis();
+            notificationManager.notify(notificationId, notificationBuilder.build());
             Log.d(TAG, "Notification sent successfully with full payload!");
         }
     }
