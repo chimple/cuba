@@ -38,8 +38,44 @@ import { RoleType } from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
 import { Table } from "@mui/material";
 import ApiDataProcessor from "./ApiDataProcessor";
-import xAPIService from './xApiService';
-import { IGetStatementCfg } from '../../interface/xAPIInterface';
+import tincan from "../../tincan";
+
+interface IGetStatementCfg {
+  agent: {
+    mbox: string;
+  };
+  verb?: {
+    id: string;
+  };
+  activity?: {
+    id: string;
+  };
+  since?: string;
+  until?: string;
+  limit?: number;
+}
+
+interface IStatement {
+  actor: {
+    name: string;
+    mbox: string;
+  };
+  verb: {
+    id: string;
+    display: {
+      "en-US": string;
+    };
+  };
+  object: {
+    id: string;
+    definition: {
+      name: {
+        "en-US": string;
+      };
+    };
+  };
+}
+
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -1909,9 +1945,11 @@ export class SqliteApi implements ServiceApi {
   );
     `;
 
+    const agentEmail = "karan@gmail.com"
+
     const queryStatement: IGetStatementCfg = {
       agent: {
-        mbox: "mailto:user@example.com"
+        mbox: "mailto:" + agentEmail
       },
       verb: {
         id: "http://adlnet.gov/expapi/verbs/completed"
@@ -1923,8 +1961,8 @@ export class SqliteApi implements ServiceApi {
       limit: 10 // Example: limit to 10 results
     };
     
-    xAPIService.sendStatement();
-    xAPIService.getStatements(queryStatement);
+    this.sendStatement();
+    this.getStatements(agentEmail,queryStatement);
     const res = await this._db?.query(query);
     return ApiDataProcessor.dataProcessorGetStudentResultInMap(
       res?.values ?? []
@@ -4087,4 +4125,44 @@ order by
       console.log("🚀 ~ SqliteApi ~ deleteUserFromSchool ~ error:", error);
     }
   }
+
+  private createStatement = (): IStatement => {
+    return {
+        actor: {
+        name: 'name',
+        mbox: `mailto:${"name".toLowerCase().replace(/\s+/g, "")}@example.com`,
+        },
+        verb: {
+        id: "http://adlnet.gov/expapi/verbs/completed",
+        display: { "en-US": "completed" },
+        },
+        object: {
+        id: `http://example.com/activities/${"lesson"}`,
+        definition: {
+            name: { "en-US": "lesson" },
+        },
+        },
+    };
+  };
+
+
+  sendStatement = async (): Promise<void> => {
+    const statement = this.createStatement();
+    try {
+      await tincan.sendStatement(statement as any);
+      console.log('Statement sent successfully:', statement);
+    } catch (error) {
+      console.error('Error sending statement:', error);
+    }
+  };
+
+  getStatements = async (agentEmail: string, queryStatement?: IGetStatementCfg): Promise<void> => {
+    try {
+        const result = await tincan.getStatements(queryStatement as Object);
+        const statements: IStatement[] = result ?? [] as any;
+        console.log('Retrieved Statements for agent:', agentEmail, statements);
+    } catch (error: unknown) {
+        console.error('Error fetching statements:', error);
+    }
+  };
 }
