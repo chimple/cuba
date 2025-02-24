@@ -607,7 +607,7 @@ const Leaderboard: React.FC = () => {
               onClick={async () => {
                 Util.setCurrentStudent(null);
                 localStorage.removeItem(CURRENT_STUDENT);
-                if (!MODES.SCHOOL) {
+                if (studentMode !== MODES.SCHOOL) {
                   schoolUtil.removeCurrentClass();
                 }
                 // await Util.setCurrentStudent(null);
