@@ -37,7 +37,6 @@ import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 import { App } from "@capacitor/app";
 import { school } from "../stories/school/SchoolClassSubjectsTab.stories";
-import { ModeSharp } from "@mui/icons-material";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
