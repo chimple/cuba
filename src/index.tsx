@@ -31,9 +31,9 @@ const recordExecption = (message: string, error: string) => {
 window.onunhandledrejection = (event: PromiseRejectionEvent) => {
   recordExecption(event.reason.toString(),event.type.toString());
 };
-window.onerror = (message, source, lineno, colno, error) => {
-  recordExecption(message.toString,error.toString());
-};
+// window.onerror = (message, source, lineno, colno, error) => {
+//   recordExecption(message.toString,error.toString());
+// };
 SplashScreen.hide();
 const container = document.getElementById("root");
 const root = createRoot(container!);

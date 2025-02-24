@@ -1817,10 +1817,10 @@ export class Util {
         files: imageFile,
       };
 
-      await navigator
-        .share(shareData)
-        .then(() => console.log("Content shared successfully"))
-        .catch((error) => console.error("Error sharing content:", error));
+      // await navigator
+      //   .share(shareData)
+      //   .then(() => console.log("Content shared successfully"))
+      //   .catch((error) => console.error("Error sharing content:", error));
     }
   }
 

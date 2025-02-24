@@ -594,7 +594,16 @@ const Home: FC = () => {
 
             {currentHeader === HOMEHEADERLIST.ASSIGNMENT && <AssignmentPage />}
 
-            {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
+            {currentHeader === HOMEHEADERLIST.SEARCH &&     <div style={{ width: "100%", height: "600px", overflow: "hidden" }}>
+      <iframe
+        title="Looker Studio Report"
+        width="100%"
+        height="100%"
+        src="https://lookerstudio.google.com/embed/reporting/0adc7fe1-afe4-4061-a509-62fbc7c9dc88/page/W5YXC"
+        frameBorder="0"
+        allowFullScreen
+      ></iframe>
+    </div>}
             {currentHeader === HOMEHEADERLIST.LIVEQUIZ && <LiveQuiz />}
 
             {/* 
