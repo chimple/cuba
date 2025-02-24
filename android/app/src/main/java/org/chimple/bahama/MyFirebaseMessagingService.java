@@ -21,6 +21,8 @@ import androidx.work.WorkerParameters;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import org.json.JSONObject;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -43,7 +45,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             }
             String sendAt = remoteMessage.getData().get("sendAt");
             long delay = parseStartTime(sendAt);
-            scheduleNotification(messageTitle, messageBody, delay, remoteMessage.getData().toString());
+            scheduleNotification(messageTitle, messageBody, delay, new JSONObject(remoteMessage.getData()).toString());
         }
     }
 
