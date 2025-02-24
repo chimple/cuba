@@ -43,7 +43,7 @@ const DialogBoxButtons: React.FC<{
         onClose={handleClose}
         sx={{
           "& .MuiPaper-root": {
-            borderRadius: "6vh !important",
+            borderRadius: "20px !important",
             maxWidth: "75vw !important",
             minWidth: "42vw !important",
           },
@@ -59,9 +59,9 @@ const DialogBoxButtons: React.FC<{
             maxWidth: "70vw",
             maxHeight: "40vh",
           }}
-          sx={{
-            "&.MuiDialogContent-root": { padding: " 20px 0 24px 33px " },
-          }}
+          // sx={{
+          //   "&.MuiDialogContent-root": { padding: " 20px 0 24px 33px " },
+          // }}
         >
           <DialogContentText
             style={{
