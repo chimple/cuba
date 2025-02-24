@@ -7,13 +7,14 @@ import {
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODES,
+  PROFILETYPE,
   TableTypes,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { RoleType } from "../../interface/modelInterfaces";
-import { school } from "ionicons/icons";
+import { image, school } from "ionicons/icons";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -76,7 +77,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<string | undefined> {
     return this.s.joinLiveQuiz(assignmentId, studentId);
   }
-  private constructor() { }
+  private constructor() {}
   public async updateRewardsForStudent(
     studentId: string,
     unlockedReward: LeaderboardRewards
@@ -131,27 +132,37 @@ export class ApiHandler implements ServiceApi {
   public async getAvatarInfo(): Promise<AvatarObj | undefined> {
     return await this.s.getAvatarInfo();
   }
+  public async addProfileImages(
+    id: string,
+    file: File,
+    profileType: PROFILETYPE
+  ): Promise<string | null> {
+    return await this.s.addProfileImages(id, file, profileType);
+  }
   public async createSchool(
     name: string,
     group1: string,
     group2: string,
     group3: string,
+    image: File | null
   ): Promise<TableTypes<"school">> {
-    return await this.s.createSchool(name, group1, group2, group3);
+    return await this.s.createSchool(name, group1, group2, group3, image);
   }
   public async updateSchoolProfile(
     school: TableTypes<"school">,
     name: string,
     group1: string,
     group2: string,
-    group3: string
+    group3: string,
+    image: File | null
   ): Promise<TableTypes<"school">> {
     return await this.s.updateSchoolProfile(
       school,
       name,
       group1,
       group2,
-      group3
+      group3,
+      image
     );
   }
   public async getSchoolsForUser(
@@ -175,7 +186,10 @@ export class ApiHandler implements ServiceApi {
   public async removeCoursesFromSchool(ids: string[]): Promise<void> {
     return await this.s.removeCoursesFromSchool(ids);
   }
-  public async checkCourseInClasses(classIds: string[], courseId: string): Promise<boolean> {
+  public async checkCourseInClasses(
+    classIds: string[],
+    courseId: string
+  ): Promise<boolean> {
     return await this.s.checkCourseInClasses(classIds, courseId);
   }
   public async deleteUserFromClass(userId: string): Promise<void> {
@@ -456,7 +470,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getCurriculumById(id);
   }
   async getCurriculumsByIds(
-    ids: string []
+    ids: string[]
   ): Promise<TableTypes<"curriculum">[]> {
     return await this.s.getCurriculumsByIds(ids);
   }
@@ -698,9 +712,9 @@ export class ApiHandler implements ServiceApi {
 
   async getRecommendedLessons(
     studentId: string,
-    classId?:string
+    classId?: string
   ): Promise<TableTypes<"lesson">[]> {
-    return this.s.getRecommendedLessons(studentId,classId);
+    return this.s.getRecommendedLessons(studentId, classId);
   }
 
   searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {

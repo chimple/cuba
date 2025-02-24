@@ -146,6 +146,12 @@ export enum USERTYPES {
   STUDENTS = "Students",
 }
 
+export enum PROFILETYPE {
+  SCHOOL = "school",
+  CLASS = "class",
+  USER = "user",
+}
+
 export enum TABLEDROPDOWN {
   ASSIGNMENTS = "Assignments Report",
   MONTHLY = "Monthly Report",
