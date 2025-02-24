@@ -12,7 +12,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.getcapacitor.Plugin;
 import java.util.ArrayList;
 
-public  class MainActivity extends BridgeActivity {
+public class MainActivity extends BridgeActivity {
 
 //    private RespectClientManager respectClientManager; // Declare RespectClientManager
 
@@ -48,11 +48,12 @@ public  class MainActivity extends BridgeActivity {
     }
 
     @Override
-    public ArrayList<Class<? extends Plugin>> getPlugins() {
-        ArrayList<Class<? extends Plugin>> plugins = new ArrayList<>();
-        plugins.add(NativeSSOPlugin.class);
+     public ArrayList<Class<? extends Plugin>> getPlugins() {
+         ArrayList<Class<? extends Plugin>> plugins = new ArrayList<>();
+//         plugins.add(NativeSSOPlugin.class);
+//         plugins.add(PortPlugin.class);
         return plugins;
-    }
+     }
 
     @Override
     public void onDestroy() {

@@ -39,10 +39,6 @@ import {
 } from "react-icons/io5";
 import { RoleType } from "../interface/modelInterfaces";
 // import { Plugins } from "@capacitor/core";
-import { registerPlugin } from "@capacitor/core";
-
-import { Plugins } from "@capacitor/core";
-import { url } from "inspector";
 import { OneRosterAuth } from "../services/auth/OneRosterAuth";
 
 declare global {
@@ -60,21 +56,13 @@ const Login: React.FC = () => {
   const [showNameInput, setShowNameInput] = useState<boolean>(false);
   const [verificationCode, setVerificationCode] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState<any>("");
-  const NativeSSOPlugin = registerPlugin("NativeSSOPlugin");
-  // const { NativeSSOPlugin } = Plugins;
-  //const [parentName, setParentName] = useState<any>("");
 
   const [recaptchaVerifier, setRecaptchaVerifier] =
     useState<RecaptchaVerifier>();
-  const [phoneNumberSigninRes, setPhoneNumberSigninRes] =
-    useState<ConfirmationResult>();
   const [userData, setUserData] = useState<any>();
 
   const authInstance = ServiceConfig.getI().authHandler;
   const countryCode = "";
-  // let phoneNumber: string = "";
-  // let verificationCode: string = "";
-  let displayName: string = "";
   const [counter, setCounter] = useState(59);
   const [showTimer, setShowTimer] = useState<boolean>(false);
   const [showResendOtp, setShowResendOtp] = useState<boolean>(false);
@@ -92,12 +80,11 @@ const Login: React.FC = () => {
     phoneNumber.length === 10 ? Buttoncolors.Valid : Buttoncolors.Default
   );
   const [isInputFocus, setIsInputFocus] = useState(false);
-  const scollToRef = useRef<null | HTMLDivElement>(null);
   const [currentStudent, setStudent] = useState<TableTypes<"user">>();
 
+  const scollToRef = useRef<null | HTMLDivElement>(null);
   const otpBtnRef = useRef<any>();
   const getOtpBtnRef = useRef<any>();
-  const parentNameRef = useRef<any>();
   const phoneNumberErrorRef = useRef<any>();
   let verificationCodeMessageFlags = {
     isInvalidCode: false,
@@ -714,9 +701,7 @@ const Login: React.FC = () => {
                     }}
                   />
                   <button
-                    id="login-google-icon"
-                    // alt="Google Icon"
-                    // src="assets/icons/Google Icon.png"
+                    id="login-respect-icon"
                     onClick={async () => {
                       if (!online) {
                         presentToast({
@@ -741,25 +726,22 @@ const Login: React.FC = () => {
                         const result = await OneRosterAuth.loginWithRespect();
 
                         console.log(
-                          "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ resultssss:",
+                          "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
                           result
                         );
                         if (result) {
                           setIsLoading(false);
                           setIsInitialLoading(false);
-                          // history.replace(PAGES.DISPLAY_STUDENT);
                           history.replace(PAGES.SELECT_MODE);
-                          // Util.logEvent(EVENTS.USER_PROFILE, {
-                          //   user_type: RoleType.STUDENT,
-                          //   action_type: ACTION.LOGIN,
-                          //   login_type: "respect-signin",
-                          // });
+                          localStorage.setItem(
+                            CURRENT_USER,
+                            JSON.stringify(result)
+                          );
                         } else {
                           setIsLoading(false);
                           setIsInitialLoading(false);
                         }
                       } catch (error) {
-                        console.log("EEEEE", error);
                         setIsLoading(false);
                         setIsInitialLoading(false);
                         console.error("Login Failed:", error);

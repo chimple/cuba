@@ -1,10 +1,28 @@
 import { ServiceAuth } from "./ServiceAuth";
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
-import { TableTypes } from "../../common/constants";
+import { CURRENT_USER, TableTypes } from "../../common/constants";
 import { registerPlugin } from "@capacitor/core";
+
+interface OneRoster {
+  respectLaunchVersion: number;
+  auth: Array<string>;
+  given_name: string;
+  locale: string;
+  http_proxy: string;
+  endpoint_lti_ags: string;
+  endpoint: string;
+  actor: {
+    name: Array<string>;
+    mbox: Array<string>;
+  };
+  registration: string;
+  activity_id: string;
+}
 
 export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
+  private static _currentUser: any;
+
   private static NativeSSOPlugin = registerPlugin("NativeSSOPlugin");
 
   private constructor() {}
@@ -20,11 +38,20 @@ export class OneRosterAuth implements ServiceAuth {
       if (!result) {
         return false;
       }
-      const urlParams = new URLSearchParams(JSON.stringify(result.url));
-      const name = urlParams.get("given_name");
+      const urlObj = new URL(result.url);
+      const params = new URLSearchParams(urlObj.search);
+      const json = {} as OneRoster;
+      params.forEach((value, key) => {
+        try {
+          // Attempt to parse JSON values if applicable
+          json[key] = JSON.parse(value);
+        } catch {
+          json[key] = value;
+        }
+      });
 
-      localStorage.setItem("respectData", JSON.stringify(result.url));
-      return name;
+      this._currentUser = json.given_name;
+      return json;
     } catch (error) {
       console.log(error);
     }
@@ -33,8 +60,15 @@ export class OneRosterAuth implements ServiceAuth {
   logOut(): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  isUserLoggedIn(): Promise<boolean> {
-    throw new Error("Method not implemented.");
+
+  async isUserLoggedIn(): Promise<boolean> {
+    console.log(
+      "OneRosterAuth ~ isUserLoggedIn ~ this._currentUser",
+      OneRosterAuth._currentUser
+    );
+    if (OneRosterAuth._currentUser) return true;
+    const isUser = localStorage.getItem(CURRENT_USER);
+    return !!isUser;
   }
 
   public static getInstance(): OneRosterAuth {
@@ -72,7 +106,29 @@ export class OneRosterAuth implements ServiceAuth {
   }
 
   getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
-    throw new Error("Method not implemented.");
+    const user: TableTypes<"user"> = {
+      age: null,
+      avatar: null,
+      created_at: "null",
+      curriculum_id: null,
+      email: null,
+      fcm_token: null,
+      gender: null,
+      grade_id: null,
+      id: "22345678",
+      image: null,
+      is_deleted: null,
+      is_tc_accepted: true,
+      language_id: null,
+      music_off: null,
+      name: null,
+      phone: null,
+      sfx_off: null,
+      student_id: null,
+      updated_at: null,
+    };
+    // throw new Error("Method not implemented.");
+    return Promise.resolve(user);
   }
 
   refreshSession(): Promise<void> {
