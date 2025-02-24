@@ -538,6 +538,7 @@ export enum ACTION {
 export enum NOTIFICATIONTYPE {
   REWARD = "reward",
   ASSIGNMENT = "assignment",
+  LIVEQUIZ = "liveQuiz"
 }
 export const CURRENT_STUDENT = "currentStudent";
 export const CURRENT_USER = "currentUser";

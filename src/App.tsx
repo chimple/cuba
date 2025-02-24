@@ -172,7 +172,12 @@ const App: React.FC = () => {
       const portPlugin = registerPlugin<PortPlugin>("Port");
       portPlugin.addListener("notificationOpened", (data: any) => {
         if (data) {
-          processNotificationData(data);
+          if (data.fullPayload) {
+            const formattedPayload = JSON.parse(data.fullPayload);
+            processNotificationData(formattedPayload);
+          }else{
+            processNotificationData(data);
+          }
         }
       });
     }
