@@ -606,7 +606,11 @@ const Leaderboard: React.FC = () => {
             <div
               id="leaderboard-switch-user-button"
               onClick={async () => {
+                Util.setCurrentStudent(null);
                 localStorage.removeItem(CURRENT_STUDENT);
+                if (!MODES.SCHOOL) {
+                  schoolUtil.removeCurrentClass();
+                }
                 // await Util.setCurrentStudent(null);
                 AvatarObj.destroyInstance();
                 const user = await auth.getCurrentUser();
