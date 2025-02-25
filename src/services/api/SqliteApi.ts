@@ -1894,6 +1894,7 @@ export class SqliteApi implements ServiceApi {
   async getStudentResultInMap(
     studentId: string
   ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
+
     const query = `
     SELECT *
     FROM ${TABLES.Result}
