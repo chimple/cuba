@@ -143,7 +143,14 @@ export class SupabaseApi implements ServiceApi {
     // Attempt to delete existing files
     const removeResponse = await this.supabase?.storage
       .from("ProfileImages")
-      .remove([`${profileType}/${folderName}/${file.name}`]);
+      .remove(
+        (
+          await this.supabase?.storage
+            .from("ProfileImages")
+            .list(`${profileType}/${folderName}`)
+        )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
+          []
+      );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
     // Upload the new file (allow overwrite)
