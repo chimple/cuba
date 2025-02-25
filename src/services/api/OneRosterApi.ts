@@ -1232,33 +1232,31 @@ sendStatement = async (): Promise<void> => {
 
         // Parse statements
         const parsedStatements = statements.map(statement => {
-            const { Row, Insert, Update } = statement;
-
-            const parsedStatement = Row || Insert || Update;
-
-            return {
-                id: parsedStatement.id,
-                studentId: parsedStatement.student_id,
-                courseId: parsedStatement.course_id,
-                score: parsedStatement.score,
-                timeSpent: parsedStatement.time_spent,
-                createdAt: parsedStatement.created_at,
-                updatedAt: parsedStatement.updated_at,
-                assignmentId: parsedStatement.assignment_id,
-                lessonId: parsedStatement.lesson_id,
-                chapterId: parsedStatement.chapter_id,
-                schoolId: parsedStatement.school_id,
-                correctMoves: parsedStatement.correct_moves,
-                wrongMoves: parsedStatement.wrong_moves,
-                isDeleted: parsedStatement.is_deleted,
-                relationships: statement.Relationships.map(rel => ({
-                    relation: rel.referencedRelation,
-                    foreignKey: rel.foreignKeyName,
-                    columns: rel.columns,
-                }))
-            };
-        });
-
+          const { Row, Insert, Update } = statement;
+          const parsedStatement = Row ?? Insert ?? Update;
+          return {
+              id: parsedStatement?.id ?? null,
+              studentId: parsedStatement?.student_id ?? null,
+              courseId: parsedStatement?.course_id ?? null,
+              score: parsedStatement?.score ?? null,
+              timeSpent: parsedStatement?.time_spent ?? null,
+              createdAt: parsedStatement?.created_at ?? null,
+              updatedAt: parsedStatement?.updated_at ?? null,
+              assignmentId: parsedStatement?.assignment_id ?? null,
+              lessonId: parsedStatement?.lesson_id ?? null,
+              chapterId: parsedStatement?.chapter_id ?? null,
+              schoolId: parsedStatement?.school_id ?? null,
+              correctMoves: parsedStatement?.correct_moves ?? null,
+              wrongMoves: parsedStatement?.wrong_moves ?? null,
+              isDeleted: parsedStatement?.is_deleted ?? null,
+              relationships: Array.isArray(statement.Relationships) ? statement.Relationships.map(rel => ({
+                  relation: rel?.referencedRelation ?? null,
+                  foreignKey: rel?.foreignKeyName ?? null,
+                  columns: rel?.columns ?? null,
+              })) : []  
+          };
+      });
+      
         console.log('Parsed Statements:', parsedStatements);
 
     } catch (error: unknown) {
