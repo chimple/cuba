@@ -296,29 +296,40 @@ export class OneRosterApi implements ServiceApi {
   getStudentProgress(studentId: string): Promise<Map<string, string>> {
     throw new Error("Method not implemented.");
   }
-  async getStudentResultInMap(
-    studentId: string
-  ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
-
-    const agentEmail = "karan@gmail.com" // this will replace with local storage login email
+  async getStudentResultInMap(studentId: string): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
+    const agentEmail = "karan@gmail.com"; // This should be replaced with the local storage login email
 
     const queryStatement: IGetStatementCfg = {
-      agent: {
-        mbox: "mailto:" + agentEmail
-      },
-      verb: {
-        id: "http://adlnet.gov/expapi/verbs/completed"
-      },
-      activity: {
-        id: "http://example.com/activity/12345"
-      },
-      since: "2024-01-01T00:00:00Z", 
-      limit: 10 
+        agent: {
+            mbox: `mailto:${agentEmail}`
+        },
+        verb: {
+            id: "http://adlnet.gov/expapi/verbs/completed"
+        },
+        activity: {
+            id: "http://example.com/activity/12345"
+        },
+        since: "2024-01-01T00:00:00Z",
+        limit: 10
     };
     
-    this.sendStatement();
-    this.getStatements(agentEmail,queryStatement);
-  }
+    // Retrieve the statements for the agent
+    await this.sendStatement();
+    await this.getStatements(agentEmail, queryStatement);
+
+    return {};
+}
+
+sendStatement = async (): Promise<void> => {
+    const statement = this.createStatement();
+    try {
+        await tincan.sendStatement(statement as any);
+        console.log('Statement sent successfully:', statement);
+    } catch (error) {
+        console.error('Error sending statement:', error);
+    }
+};
+
 
   getClassById(id: string): Promise<TableTypes<"class"> | undefined> {
     throw new Error("Method not implemented.");
@@ -1200,57 +1211,59 @@ export class OneRosterApi implements ServiceApi {
     try {
       await tincan.sendStatement(statement as any);
       console.log('Statement sent successfully:', statement);
+      return true;
     } catch (error) {
       console.error('Error sending statement:', error);
+      return false;
     }
   };
 
   getStatements = async (agentEmail: string, queryStatement?: IGetStatementCfg): Promise<void> => {
-  try {
-    const query = {
-      ...queryStatement,
-      agent: JSON.stringify({ mbox: `mailto:${agentEmail}` }), // get only agent specific statements
-    };
-    
-    const result = await tincan.getStatements(query);
-    const statements: IStatement[] = result?.statements ?? [];
-    
-    console.log(`Retrieved Statements for agent: ${agentEmail}`, statements);
+    try {
+        const query = {
+            ...queryStatement,
+            agent: { mbox: `mailto:${agentEmail}` }
+        };
 
-    // Parse statements
-    const parsedStatements = statements.map(statement => {
-      // Destructure the Row object (assuming this is the correct format)
-      const { Row, Insert, Update } = statement;
+        const result = await tincan.getStatements(query);
+        const statements: IStatement[] = result?.statements ?? [];
+        
+        console.log(`Retrieved Statements for agent: ${agentEmail}`, statements);
 
-      const parsedStatement = Row || Insert || Update;  // Pick the relevant row (row, insert, or update)
+        // Parse statements
+        const parsedStatements = statements.map(statement => {
+            const { Row, Insert, Update } = statement;
 
-      return {
-        id: parsedStatement.id,
-        studentId: parsedStatement.student_id,
-        courseId: parsedStatement.course_id,
-        score: parsedStatement.score,
-        timeSpent: parsedStatement.time_spent,
-        createdAt: parsedStatement.created_at,
-        updatedAt: parsedStatement.updated_at,
-        assignmentId: parsedStatement.assignment_id,
-        lessonId: parsedStatement.lesson_id,
-        chapterId: parsedStatement.chapter_id,
-        schoolId: parsedStatement.school_id,
-        correctMoves: parsedStatement.correct_moves,
-        wrongMoves: parsedStatement.wrong_moves,
-        isDeleted: parsedStatement.is_deleted,
-        relationships: statement.Relationships.map(rel => ({
-          relation: rel.referencedRelation,
-          foreignKey: rel.foreignKeyName,
-          columns: rel.columns,
-        }))
-      };
-    });
+            const parsedStatement = Row || Insert || Update;
 
-    console.log('Parsed Statements:', parsedStatements);
-  } catch (error: unknown) {
-    console.error('Error fetching statements:', error);
-  }
+            return {
+                id: parsedStatement.id,
+                studentId: parsedStatement.student_id,
+                courseId: parsedStatement.course_id,
+                score: parsedStatement.score,
+                timeSpent: parsedStatement.time_spent,
+                createdAt: parsedStatement.created_at,
+                updatedAt: parsedStatement.updated_at,
+                assignmentId: parsedStatement.assignment_id,
+                lessonId: parsedStatement.lesson_id,
+                chapterId: parsedStatement.chapter_id,
+                schoolId: parsedStatement.school_id,
+                correctMoves: parsedStatement.correct_moves,
+                wrongMoves: parsedStatement.wrong_moves,
+                isDeleted: parsedStatement.is_deleted,
+                relationships: statement.Relationships.map(rel => ({
+                    relation: rel.referencedRelation,
+                    foreignKey: rel.foreignKeyName,
+                    columns: rel.columns,
+                }))
+            };
+        });
+
+        console.log('Parsed Statements:', parsedStatements);
+
+    } catch (error: unknown) {
+        console.error('Error fetching statements:', error);
+    }
 };
 
 }
