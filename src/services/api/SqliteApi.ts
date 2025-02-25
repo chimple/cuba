@@ -15,6 +15,7 @@ import {
   belowGrade1,
   grade2,
   grade3,
+  PROFILETYPE,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -558,24 +559,37 @@ export class SqliteApi implements ServiceApi {
 
     return newStudent;
   }
+
+  async addProfileImages(
+    id: string,
+    file: File,
+    profileType: PROFILETYPE
+  ): Promise<string | null> {
+    return await this._serverApi.addProfileImages(id, file, profileType);
+  }
+
   async createSchool(
     name: string,
     group1: string,
     group2: string,
-    group3: string
+    group3: string,
+    image: File | null
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
 
     const schoolId = uuidv4();
+    const result = image
+      ? await this.addProfileImages(schoolId, image, PROFILETYPE.SCHOOL)
+      : "";
     const newSchool: TableTypes<"school"> = {
       id: schoolId,
       name,
       group1: group1 ?? null,
       group2: group2 ?? null,
       group3: group3 ?? null,
-      image: null,
+      image: result ?? null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
@@ -643,26 +657,31 @@ export class SqliteApi implements ServiceApi {
     name: string,
     group1: string,
     group2: string,
-    group3: string
+    group3: string,
+    image: File | null
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
+
+    const result = image
+      ? await this.addProfileImages(school.id, image, PROFILETYPE.SCHOOL)
+      : "";
 
     const updatedSchool: TableTypes<"school"> = {
       name: name ?? school.name,
       group1: group1 ?? school.group1,
       group2: group2 ?? school.group2,
       group3: group3 ?? school.group3,
+      image: result ?? null,
       updated_at: new Date().toISOString(),
       created_at: school.created_at,
       id: school.id,
-      image: null,
       is_deleted: false,
     };
     const updatedSchoolQuery = `
     UPDATE school
-    SET name = ?, group1 = ?, group2 = ?, group3 = ?, updated_at=?
+    SET name = ?, group1 = ?, group2 = ?, group3 = ?, image = ?, updated_at=?
     WHERE id = ?;
     `;
 
@@ -671,6 +690,7 @@ export class SqliteApi implements ServiceApi {
       updatedSchool.group1,
       updatedSchool.group2,
       updatedSchool.group3,
+      updatedSchool.image,
       updatedSchool.updated_at,
       school.id,
     ]);
@@ -3584,25 +3604,25 @@ order by
     if (!assignmentIds || assignmentIds.length === 0) {
       return [];
     }
-    
+
     // Create a comma-separated list of placeholders for the query.
     const placeholders = assignmentIds.map(() => "?").join(", ");
-    
+
     // Construct the SQL query using the placeholders.
     const query = `
       SELECT *
       FROM ${TABLES.Assignment_user}
       WHERE assignment_id IN (${placeholders});
     `;
-    
+
     // Execute the query. (Assuming this._db.query returns an object with a 'values' property)
     const res = await this._db?.query(query, assignmentIds);
-    
+
     // If no results were returned, return an empty array.
     if (!res || !res.values || res.values.length < 1) {
       return [];
     }
-    
+
     // Otherwise, return the results.
     return res.values;
   }
@@ -4024,7 +4044,7 @@ order by
         AND su.role = '${RoleType.AUTOUSER}'
         AND su.is_deleted = false;
     `;
-    
+
     const res = await this._db?.query(query, schoolIds);
     return res?.values ?? [];
   }

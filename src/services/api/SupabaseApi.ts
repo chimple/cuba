@@ -6,6 +6,7 @@ import {
   TABLES,
   TableTypes,
   MUTATE_TYPES,
+  PROFILETYPE,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -124,6 +125,42 @@ export class SupabaseApi implements ServiceApi {
     this.supabaseKey = process.env.REACT_APP_SUPABASE_KEY ?? "";
     this.supabase = createClient<Database>(this.supabaseUrl, this.supabaseKey);
     console.log("🚀 ~ supabase:", this.supabase);
+  }
+
+  // as parameters type: school, user, class
+  //               image
+  // return image stored url
+  //---------------------------------------------------------------
+  async addProfileImages(
+    id: string,
+    file: File,
+    profileType: PROFILETYPE
+  ): Promise<string | null> {
+    const extension = file.name.split(".").pop(); // Get file extension
+    const newName = `ProfilePicture_${profileType}_${Date.now()}.${extension}`; // Rename the file
+    const folderName = encodeURIComponent(String(id));
+    const filePath = `${profileType}/${folderName}/${newName}`; // Path inside the bucket
+    // Attempt to delete existing files
+    const removeResponse = await this.supabase?.storage
+      .from("ProfileImages")
+      .remove([`${profileType}/${folderName}/${file.name}`]);
+    // Convert File to Blob (necessary for renaming)
+    const renamedFile = new File([file], newName, { type: file.type });
+    // Upload the new file (allow overwrite)
+    const uploadResponse = await this.supabase?.storage
+      .from("ProfileImages")
+      .upload(filePath, renamedFile, { upsert: true });
+    if (uploadResponse?.error) {
+      console.error("Error uploading file:", uploadResponse.error.message);
+      return null;
+    }
+    // Get the Public URL of the uploaded file
+    const urlData = this.supabase?.storage
+      .from("ProfileImages")
+      .getPublicUrl(filePath);
+    const imageUrl = urlData?.data.publicUrl;
+    console.log("Public Image URL:", imageUrl);
+    return imageUrl || null;
   }
 
   async getTablesData(
@@ -261,7 +298,8 @@ export class SupabaseApi implements ServiceApi {
     name: string,
     group1: string,
     group2: string,
-    group3: string
+    group3: string,
+    image: File | null
   ): Promise<TableTypes<"school">> {
     throw new Error("Method not implemented.");
   }
@@ -1062,7 +1100,7 @@ export class SupabaseApi implements ServiceApi {
   getAssignmentUserByAssignmentIds(
     assignmentIds: string[]
   ): Promise<TableTypes<"assignment_user">[]> {
-    throw new Error("Method not implemented")
+    throw new Error("Method not implemented");
   }
   getResultByAssignmentIds(
     assignmentIds: string[]
