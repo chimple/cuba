@@ -296,11 +296,30 @@ export class OneRosterApi implements ServiceApi {
   getStudentProgress(studentId: string): Promise<Map<string, string>> {
     throw new Error("Method not implemented.");
   }
-  getStudentResultInMap(
+  async getStudentResultInMap(
     studentId: string
   ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
-    throw new Error("Method not implemented.");
+
+    const agentEmail = "karan@gmail.com" // this will replace with local storage login email
+
+    const queryStatement: IGetStatementCfg = {
+      agent: {
+        mbox: "mailto:" + agentEmail
+      },
+      verb: {
+        id: "http://adlnet.gov/expapi/verbs/completed"
+      },
+      activity: {
+        id: "http://example.com/activity/12345"
+      },
+      since: "2024-01-01T00:00:00Z", 
+      limit: 10 
+    };
+    
+    this.sendStatement();
+    this.getStatements(agentEmail,queryStatement);
   }
+
   getClassById(id: string): Promise<TableTypes<"class"> | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -1155,30 +1174,6 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-
-  async getStudentResultInMap(
-    studentId: string
-  ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
-
-    const agentEmail = "karan@gmail.com" // this will replace with local storage login email
-
-    const queryStatement: IGetStatementCfg = {
-      agent: {
-        mbox: "mailto:" + agentEmail
-      },
-      verb: {
-        id: "http://adlnet.gov/expapi/verbs/completed"
-      },
-      activity: {
-        id: "http://example.com/activity/12345"
-      },
-      since: "2024-01-01T00:00:00Z", 
-      limit: 10 
-    };
-    
-    this.sendStatement();
-    this.getStatements(agentEmail,queryStatement);
-  }
 
   private createStatement = (): IStatement => {
     return {
