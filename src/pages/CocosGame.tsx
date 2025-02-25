@@ -82,14 +82,7 @@ const CocosGame: React.FC = () => {
     setShowDialogBox(true);
     Util.killCocosGame();
     initialCount++;
-    localStorage.setItem(LESSONS_PLAYED_COUNT, initialCount.toString());
-    // 🚀 Send incomplete lesson result to EIDU
-    if (e.detail) {
-      const lessonEndData = e.detail;
-      console.log("Lesson Incomplete. Sending data to Java:", JSON.stringify(lessonEndData, null, 2));
-      sendEiduResultToJava("ABORT", lessonEndData.score / 100, lessonEndData.timeSpent * 1000, "Lesson aborted", []);
-    }
-    
+    localStorage.setItem(LESSONS_PLAYED_COUNT, initialCount.toString());    
     console.log("---------count of LESSONS PLAYED", initialCount);
   };
 
@@ -127,16 +120,16 @@ const CocosGame: React.FC = () => {
         ChapterDetail = cChap;
         const data = e.detail as CocosLessonData;
         console.log("Sending Lesson End Data to Java:", JSON.stringify(data, null, 2));
-
-        // sendEiduResultToJava("ABORT", data.score, data.gameTimeSpent!, "Lesson aborted", []);
+        const lessonStartTime = data.lessonStartTime || 0; // Ensure lessonStartTime is defined
+        const currentTime = Date.now(); // Get current timestamp
+        const totalTimeSpent = currentTime - lessonStartTime; // Calculate total time spent
+        sendEiduResultToJava("ABORT", data.score, totalTimeSpent, "Lesson aborted", []);
         console.log("Current Chapter ", ChapterDetail);
       }
     }
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
     killGame(e);
-      // 📌 Log "Lesson Incomplete" event to EIDU
-
     Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
       user_id: api.currentStudent!.docId,
       assignment_id: lessonDetail.assignment?.docId,
@@ -165,8 +158,6 @@ const CocosGame: React.FC = () => {
       game_time_spent: data.gameTimeSpent,
       quiz_time_spent: data.quizTimeSpent,
     });
-    sendEiduResultToJava("ABORT", data.score! / 100, data.timeSpent * 1000, "Lesson aborted", []);
-
     setShowDialogBox(false);
     push();
   };

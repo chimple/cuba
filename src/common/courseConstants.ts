@@ -70,6 +70,7 @@ export interface CocosLessonData {
   quizScore: number | null;
   gameName: string | null;
   currentGameNumber: number | null;
+  lessonStartTime: number;
 }
 
 export const ASSIGNMENT_COMPLETED_IDS = "assignmentCompletedIds";
