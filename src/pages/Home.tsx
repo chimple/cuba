@@ -36,6 +36,7 @@ import Subjects from "./Subjects";
 import LiveQuiz from "./LiveQuiz";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
+import { OneRosterApi } from "../services/api/OneRosterApi";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -134,7 +135,7 @@ const Home: FC = () => {
       return;
     }
 
-    const studentResult = await api.getStudentResultInMap(student.id);
+    const studentResult = await apiInstance.getStudentResultInMap(student.id);
     if (!!studentResult) {
       setLessonResultMap(studentResult);
     }
@@ -205,6 +206,7 @@ const Home: FC = () => {
   }
 
   const api = ServiceConfig.getI().apiHandler;
+  const apiInstance = OneRosterApi.getInstance();
 
   async function getAssignments(): Promise<TableTypes<"lesson">[]> {
     let reqLes: TableTypes<"lesson">[] = [];

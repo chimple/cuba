@@ -25,6 +25,44 @@ import { AvatarObj } from "../../components/animation/Avatar";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { DocumentData } from "firebase/firestore";
 import { RoleType } from "../../interface/modelInterfaces";
+import tincan from "../../tincan";
+
+interface IGetStatementCfg {
+  agent: {
+    mbox: string;
+  };
+  verb?: {
+    id: string;
+  };
+  activity?: {
+    id: string;
+  };
+  since?: string;
+  until?: string;
+  limit?: number;
+}
+
+interface IStatement {
+  actor: {
+    name: string;
+    mbox: string;
+  };
+  verb: {
+    id: string;
+    display: {
+      "en-US": string;
+    };
+  };
+  object: {
+    id: string;
+    definition: {
+      name: {
+        "en-US": string;
+      };
+    };
+  };
+}
+
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -1116,4 +1154,108 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"result">[] | undefined> {
     throw new Error("Method not implemented.");
   }
+
+
+  async getStudentResultInMap(
+    studentId: string
+  ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
+
+    const agentEmail = "karan@gmail.com" // this will replace with local storage login email
+
+    const queryStatement: IGetStatementCfg = {
+      agent: {
+        mbox: "mailto:" + agentEmail
+      },
+      verb: {
+        id: "http://adlnet.gov/expapi/verbs/completed"
+      },
+      activity: {
+        id: "http://example.com/activity/12345"
+      },
+      since: "2024-01-01T00:00:00Z", 
+      limit: 10 
+    };
+    
+    this.sendStatement();
+    this.getStatements(agentEmail,queryStatement);
+  }
+
+  private createStatement = (): IStatement => {
+    return {
+        actor: {
+        name: 'name',
+        mbox: `mailto:${"name".toLowerCase().replace(/\s+/g, "")}@example.com`,
+        },
+        verb: {
+        id: "http://adlnet.gov/expapi/verbs/completed",
+        display: { "en-US": "completed" },
+        },
+        object: {
+        id: `http://example.com/activities/${"lesson"}`,
+        definition: {
+            name: { "en-US": "lesson" },
+        },
+        },
+    };
+  };
+
+
+  sendStatement = async (): Promise<void> => {
+    const statement = this.createStatement();
+    try {
+      await tincan.sendStatement(statement as any);
+      console.log('Statement sent successfully:', statement);
+    } catch (error) {
+      console.error('Error sending statement:', error);
+    }
+  };
+
+  getStatements = async (agentEmail: string, queryStatement?: IGetStatementCfg): Promise<void> => {
+  try {
+    const query = {
+      ...queryStatement,
+      agent: JSON.stringify({ mbox: `mailto:${agentEmail}` }), // get only agent specific statements
+    };
+    
+    const result = await tincan.getStatements(query);
+    const statements: IStatement[] = result?.statements ?? [];
+    
+    console.log(`Retrieved Statements for agent: ${agentEmail}`, statements);
+
+    // Parse statements
+    const parsedStatements = statements.map(statement => {
+      // Destructure the Row object (assuming this is the correct format)
+      const { Row, Insert, Update } = statement;
+
+      const parsedStatement = Row || Insert || Update;  // Pick the relevant row (row, insert, or update)
+
+      return {
+        id: parsedStatement.id,
+        studentId: parsedStatement.student_id,
+        courseId: parsedStatement.course_id,
+        score: parsedStatement.score,
+        timeSpent: parsedStatement.time_spent,
+        createdAt: parsedStatement.created_at,
+        updatedAt: parsedStatement.updated_at,
+        assignmentId: parsedStatement.assignment_id,
+        lessonId: parsedStatement.lesson_id,
+        chapterId: parsedStatement.chapter_id,
+        schoolId: parsedStatement.school_id,
+        correctMoves: parsedStatement.correct_moves,
+        wrongMoves: parsedStatement.wrong_moves,
+        isDeleted: parsedStatement.is_deleted,
+        relationships: statement.Relationships.map(rel => ({
+          relation: rel.referencedRelation,
+          foreignKey: rel.foreignKeyName,
+          columns: rel.columns,
+        }))
+      };
+    });
+
+    console.log('Parsed Statements:', parsedStatements);
+  } catch (error: unknown) {
+    console.error('Error fetching statements:', error);
+  }
+};
+
 }
