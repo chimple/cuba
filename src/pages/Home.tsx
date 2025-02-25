@@ -22,7 +22,9 @@ import {
   LIVE_QUIZ,
   SHOW_DAILY_PROGRESS_FLAG,
   IS_CONECTED,
-  SUBTAB_MAPPINGS
+  SUBTAB_MAPPINGS,
+  QUIZ_POPUP_SHOWN,
+  ASSIGNMENT_POPUP_SHOWN
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -235,7 +237,6 @@ const Home: FC = () => {
         console.log("setting subtabConfig slug with:", slug);
         subtabConfig = SUBTAB_MAPPINGS[slug];
       }
-      setTimeout(() => {      
         if (subtabConfig) {
           console.log("subtabConfig is:", subtabConfig);
           if (subtabConfig.isLinked && !linked) {
@@ -254,8 +255,6 @@ const Home: FC = () => {
             }
           }
         }
-      }, 
-      2000);
       // if (slug) {
       //   history.replace(slug);
       // }
@@ -872,9 +871,12 @@ const Home: FC = () => {
   const [showAssignmentPopup, setShowAssignmentPopup] = useState(false);
 
   useEffect(() => {
-    if (pendingLiveQuizCount !== 0) {
+    const hasShownQuizPopup = sessionStorage.getItem(QUIZ_POPUP_SHOWN);
+    const hasShownAssignmentPopup = sessionStorage.getItem(ASSIGNMENT_POPUP_SHOWN);
+
+    if (!hasShownQuizPopup && pendingLiveQuizCount !== 0) {
       setShowQuizPopup(true);
-    } else if (pendingAssignmentsCount !== 0 && currentMode !== MODES.SCHOOL) {
+    } else if (!hasShownAssignmentPopup && pendingAssignmentsCount !== 0 && currentMode !== MODES.SCHOOL) {
       setShowAssignmentPopup(true);
     }
   }, [pendingLiveQuizCount, pendingAssignmentsCount]);

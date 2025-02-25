@@ -21,6 +21,8 @@ import androidx.work.WorkerParameters;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import org.json.JSONObject;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -43,7 +45,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             }
             String sendAt = remoteMessage.getData().get("sendAt");
             long delay = parseStartTime(sendAt);
-            scheduleNotification(messageTitle, messageBody, delay, remoteMessage.getData().toString());
+            scheduleNotification(messageTitle, messageBody, delay, new JSONObject(remoteMessage.getData()).toString());
         }
     }
 
@@ -108,9 +110,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             Intent intent = new Intent(context, MainActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             intent.putExtra("fullPayload", fullPayload); // Attach full payload to the intent
+            int requestCode = (int) System.currentTimeMillis();
 
             PendingIntent pendingIntent = PendingIntent.getActivity(
-                    context, 0, intent,
+                    context, requestCode, intent,
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
                             ? PendingIntent.FLAG_MUTABLE
                             : PendingIntent.FLAG_IMMUTABLE
@@ -138,8 +141,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         channelId, "Scheduled Notifications", NotificationManager.IMPORTANCE_HIGH);
                 notificationManager.createNotificationChannel(channel);
             }
-
-            notificationManager.notify(1, notificationBuilder.build());
+            int notificationId = (int) System.currentTimeMillis();
+            notificationManager.notify(notificationId, notificationBuilder.build());
             Log.d(TAG, "Notification sent successfully with full payload!");
         }
     }

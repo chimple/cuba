@@ -1381,6 +1381,41 @@ export class Util {
           }
         }
       }
+    } else if (data && data.notificationType === NOTIFICATIONTYPE.LIVEQUIZ) {
+      if (data.classId) {
+        const classId = data.classId;
+        const studentsData = await api.getStudentsForClass(classId);
+        let tempStudentIds: string[] = [];
+        for (let student of studentsData) {
+          tempStudentIds.push(student.docId);
+        }
+        let foundMatch = false;
+        for (let studentId of tempStudentIds) {
+          if (currentStudent?.docId === studentId) {
+            window.location.replace(
+              PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ
+            );
+            foundMatch = true;
+            break;
+          }
+        }
+        if (!foundMatch) {
+          await this.setCurrentStudent(null);
+          const students = await api.getParentStudentProfiles();
+          let matchingUser =
+            students.find((user) => tempStudentIds.includes(user.docId)) ||
+            students[0];
+          if (matchingUser) {
+            await this.setCurrentStudent(matchingUser, undefined, true);
+            window.location.replace(
+              PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ
+            );
+          }
+        }
+      }else{
+        window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ);
+        return;
+      }
     }
   }
   public static canCheckUpdate(updateFor: string) {

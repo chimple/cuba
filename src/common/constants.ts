@@ -359,8 +359,8 @@ export enum SUBTAB {
 export const SUBTAB_MAPPINGS = {
   [PAGES.LIVE_QUIZ]: { header: HOMEHEADERLIST.LIVEQUIZ, isLinked: true },
   [PAGES.ASSIGNMENT]: { header: HOMEHEADERLIST.ASSIGNMENT, isLinked: true },
-  [PAGES.APP_UPDATE]: { header: HOMEHEADERLIST.HOME},
-  [PAGES.HOME]: { header: HOMEHEADERLIST.HOME},
+  [PAGES.APP_UPDATE]: { header: HOMEHEADERLIST.HOME },
+  [PAGES.HOME]: { header: HOMEHEADERLIST.HOME },
   [PAGES.SEARCH]: { header: HOMEHEADERLIST.SEARCH },
   [PAGES.SUBJECTS]: { header: HOMEHEADERLIST.SUBJECTS },
   [PAGES.SUGGESTIONS]: { header: HOMEHEADERLIST.SUGGESTIONS, subtab: SUBTAB.SUGGESTIONS },
@@ -538,6 +538,7 @@ export enum ACTION {
 export enum NOTIFICATIONTYPE {
   REWARD = "reward",
   ASSIGNMENT = "assignment",
+  LIVEQUIZ = "liveQuiz"
 }
 export const CURRENT_STUDENT = "currentStudent";
 export const CURRENT_USER = "currentUser";
@@ -626,3 +627,5 @@ export const CURRENT_SELECTED_COURSE = "currentSelectedCourse";
 export const CURRENT_SELECTED_CHAPTER = "currentSelectedChapter";
 export const CURRENT_STAGE = "currentStage";
 export const CURRENT_SELECTED_GRADE = "currentSelectedGrade";
+export const QUIZ_POPUP_SHOWN = "quizPopupShown"
+export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown"
