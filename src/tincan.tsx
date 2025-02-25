@@ -20,9 +20,6 @@ const activity = {
 const lrs:IRecordStoreCfg  = {
   endpoint: 'https://mahvish-test-lrs.lrs.io/xapi/', // LRS endpoint
     auth: 'Basic ' + btoa('jeevlu:wugkem'), // Replace with your LRS credentials
-    user: 'jeevlu',
-    password: 'wugkem',
-    // extended: "a"
 };
 
 // Create the tincan instance
