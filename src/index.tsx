@@ -23,16 +23,16 @@ if (Capacitor.isNativePlatform()) {
 applyPolyfills().then(() => {
   jeepSqlite(window);
 });
-const recordExecption = (message: string, error: string) => { 
+const recordExecption = (message: string, error: string) => {
   if (Capacitor.getPlatform() != "web") {
     FirebaseCrashlytics.recordException({ message: message, domain: error });
   }
 };
 window.onunhandledrejection = (event: PromiseRejectionEvent) => {
-  recordExecption(event.reason.toString(),event.type.toString());
+  recordExecption(event.reason.toString(), event.type.toString());
 };
 window.onerror = (message, source, lineno, colno, error) => {
-  recordExecption(message.toString,error.toString());
+  recordExecption(message.toString, error.toString());
 };
 SplashScreen.hide();
 const container = document.getElementById("root");
@@ -42,14 +42,14 @@ GoogleAuth.initialize({
   scopes: ["profile", "email"],
   // grantOfflineAccess: true,
 });
+
 SqliteApi.getInstance().then(() => {
-  ServiceConfig.getInstance(APIMode.SQLITE);
+  ServiceConfig.getInstance(APIMode.ONEROSTER);
   root.render(
     <>
       <App />
     </>
   );
-  // initializeFireBase();
 });
 
 root.render(
