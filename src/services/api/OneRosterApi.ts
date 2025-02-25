@@ -262,13 +262,15 @@ export class OneRosterApi implements ServiceApi {
   getStudentResultInMap(
     studentId: string
   ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
+    return [];
   }
   getClassById(id: string): Promise<TableTypes<"class"> | undefined> {
     throw new Error("Method not implemented.");
   }
   isStudentLinked(studentId: string, fromCache: boolean): Promise<boolean> {
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
+    return true;
   }
   getPendingAssignments(
     classId: string,
@@ -279,50 +281,7 @@ export class OneRosterApi implements ServiceApi {
   getSchoolsForUser(
     userId: string
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
-    return [
-      {
-        school: {
-          created_at: "2024-02-23T10:00:00Z",
-          group1: "Science",
-          group2: "Mathematics",
-          group3: null,
-          id: "school-1",
-          image: "https://example.com/school1.jpg",
-          is_deleted: false,
-          name: "Greenwood High School",
-          updated_at: "2024-02-22T08:30:00Z",
-        },
-        role: "ADMIN",
-      },
-      {
-        school: {
-          created_at: "2023-06-15T09:15:00Z",
-          group1: "Arts",
-          group2: "Music",
-          group3: "Drama",
-          id: "school-2",
-          image: "https://example.com/school2.jpg",
-          is_deleted: false,
-          name: "Sunshine Academy",
-          updated_at: "2024-01-10T12:00:00Z",
-        },
-        role: "TEACHER",
-      },
-      {
-        school: {
-          created_at: "2022-11-10T07:45:00Z",
-          group1: "Technology",
-          group2: null,
-          group3: null,
-          id: "school-3",
-          image: null,
-          is_deleted: null,
-          name: "Tech Valley Institute",
-          updated_at: null,
-        },
-        role: "STUDENT",
-      },
-    ];
+    return [];
   }
 
   isUserTeacher(userId: string): Promise<boolean> {
@@ -338,11 +297,13 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   get currentMode(): MODES {
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
+    return "PARENT";
   }
 
   set currentMode(value: MODES) {
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
+    console.log("Parents");
   }
 
   getSubject(id: string): Promise<TableTypes<"subject"> | undefined> {
@@ -466,11 +427,17 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+  getStudentClassesAndSchools(studentId: string): Promise<any> {
+    return [];
+  }
+
   get currentStudent(): TableTypes<"user"> | undefined {
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
+    return [];
   }
   set currentStudent(value: TableTypes<"user"> | undefined) {
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
+    return [];
   }
   get currentClass(): TableTypes<"class"> | undefined {
     throw new Error("Method not implemented.");

@@ -725,6 +725,23 @@ const Login: React.FC = () => {
                         setIsInitialLoading(true);
                         const result = await OneRosterAuth.loginWithRespect();
 
+                        // please don't remove this is to test the app in web for faster debuging
+                        // const result = {
+                        //   respectLaunchVersion: 1.1,
+                        //   auth: ["OAuth2", "SSO"],
+                        //   given_name: "John Doe",
+                        //   locale: "en-US",
+                        //   http_proxy: "http://proxy.example.com",
+                        //   endpoint_lti_ags: "https://lti.example.com/ags",
+                        //   endpoint: "https://api.example.com",
+                        //   actor: {
+                        //     name: ["John Doe"],
+                        //     mbox: ["mailto:johndoe@example.com"],
+                        //   },
+                        //   registration: "reg-12345",
+                        //   activity_id: "activity-67890",
+                        // };
+
                         console.log(
                           "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
                           result
@@ -732,7 +749,8 @@ const Login: React.FC = () => {
                         if (result) {
                           setIsLoading(false);
                           setIsInitialLoading(false);
-                          history.replace(PAGES.SELECT_MODE);
+                          // history.replace(PAGES.SELECT_MODE);
+                          history.replace(PAGES.DISPLAY_STUDENT);
                           localStorage.setItem(
                             CURRENT_USER,
                             JSON.stringify(result)

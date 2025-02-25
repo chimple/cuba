@@ -3,7 +3,7 @@ import { ServiceAuth } from "./ServiceAuth";
 import { CURRENT_USER, TableTypes } from "../../common/constants";
 import { registerPlugin } from "@capacitor/core";
 
-interface OneRoster {
+interface User {
   respectLaunchVersion: number;
   auth: Array<string>;
   given_name: string;
@@ -21,7 +21,7 @@ interface OneRoster {
 
 export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
-  private static _currentUser: any;
+  private static _currentUser: User;
 
   private static NativeSSOPlugin = registerPlugin("NativeSSOPlugin");
 
@@ -40,7 +40,7 @@ export class OneRosterAuth implements ServiceAuth {
       }
       const urlObj = new URL(result.url);
       const params = new URLSearchParams(urlObj.search);
-      const json = {} as OneRoster;
+      const json = {} as User;
       params.forEach((value, key) => {
         try {
           // Attempt to parse JSON values if applicable
@@ -50,7 +50,7 @@ export class OneRosterAuth implements ServiceAuth {
         }
       });
 
-      this._currentUser = json.given_name;
+      this._currentUser = json;
       return json;
     } catch (error) {
       console.log(error);
@@ -106,25 +106,26 @@ export class OneRosterAuth implements ServiceAuth {
   }
 
   getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
+    const { actor, registration, given_name } = OneRosterAuth._currentUser;
     const user: TableTypes<"user"> = {
       age: null,
-      avatar: null,
+      avatar: "/assets/avatar/Aligator.png",
       created_at: "null",
       curriculum_id: null,
-      email: null,
+      email: actor.mbox[0],
       fcm_token: null,
-      gender: null,
+      gender: "male",
       grade_id: null,
-      id: "22345678",
+      id: registration,
       image: null,
       is_deleted: null,
       is_tc_accepted: true,
-      language_id: null,
+      language_id: "en",
       music_off: null,
-      name: null,
+      name: given_name,
       phone: null,
       sfx_off: null,
-      student_id: null,
+      student_id: registration,
       updated_at: null,
     };
     // throw new Error("Method not implemented.");
