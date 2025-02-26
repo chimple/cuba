@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name=".RespectHttpClient"
         android:allowBackup="false"
         android:icon="@mipmap/chimple_monkey_icon"
         android:label="@string/app_name"
@@ -16,6 +17,9 @@
 
         <meta-data android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@mipmap/chimple_monkey_icon" />
+        <meta-data android:name="com.getcapacitor.plugin.PortPlugin" android:value="true" />
+        <meta-data android:name="com.getcapacitor.plugin.NativeSSOPlugin" android:value="true" />
+
 
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
@@ -38,8 +42,8 @@
                 <data android:scheme="https" android:host="chimple.cc" android:path="/join-class" />
                 <data android:scheme="https" android:host="chimple.cc" android:path="/assignment" />
                 <data android:scheme="https" android:host="chimple.cc" android:path="/live-quiz" />
+                <data android:scheme="https" android:host="example.org" android:pathPrefix="/topic/learningUnit1/" />
             </intent-filter>
-
         </activity>
 
         <provider
@@ -51,6 +55,17 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+
+<!--        <service-->
+<!--            android:name="world.respect.librespect.clientdownloadservice"-->
+<!--            android:enabled="true"-->
+<!--            android:exported="true">-->
+
+<!--            <intent-filter>-->
+<!--                <action android:name="respect.world.librespect.ACTION_CLIENT_LU_DOWNLOAD" />-->
+<!--                <action android:name="respect.world.librespect.ACTION_CLIENT_LU_RELEASE" />-->
+<!--            </intent-filter>-->
+<!--        </service>-->
     </application>
 
     <!-- Permissions -->

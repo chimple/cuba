@@ -2,6 +2,7 @@
 import { HttpHeaders } from "@capacitor-community/http";
 import {
   COURSES,
+  CURRENT_USER,
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODES,
@@ -111,7 +112,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<string | undefined> {
     throw new Error("Method not implemented.");
   }
-  private constructor() { }
+  private constructor() {}
   getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;
@@ -278,8 +279,52 @@ export class OneRosterApi implements ServiceApi {
   getSchoolsForUser(
     userId: string
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
-    throw new Error("Method not implemented.");
+    return [
+      {
+        school: {
+          created_at: "2024-02-23T10:00:00Z",
+          group1: "Science",
+          group2: "Mathematics",
+          group3: null,
+          id: "school-1",
+          image: "https://example.com/school1.jpg",
+          is_deleted: false,
+          name: "Greenwood High School",
+          updated_at: "2024-02-22T08:30:00Z",
+        },
+        role: "ADMIN",
+      },
+      {
+        school: {
+          created_at: "2023-06-15T09:15:00Z",
+          group1: "Arts",
+          group2: "Music",
+          group3: "Drama",
+          id: "school-2",
+          image: "https://example.com/school2.jpg",
+          is_deleted: false,
+          name: "Sunshine Academy",
+          updated_at: "2024-01-10T12:00:00Z",
+        },
+        role: "TEACHER",
+      },
+      {
+        school: {
+          created_at: "2022-11-10T07:45:00Z",
+          group1: "Technology",
+          group2: null,
+          group3: null,
+          id: "school-3",
+          image: null,
+          is_deleted: null,
+          name: "Tech Valley Institute",
+          updated_at: null,
+        },
+        role: "STUDENT",
+      },
+    ];
   }
+
   isUserTeacher(userId: string): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
@@ -351,9 +396,7 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getCoursesByClassId(
-    classId: string
-  ): Promise<TableTypes<"class_course">[]> {
+  getCoursesByClassId(classId: string): Promise<TableTypes<"class_course">[]> {
     throw new Error("Method not implemented.");
   }
   deleteUserFromClass(userId: string): Promise<void> {
@@ -394,7 +437,13 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
-    throw new Error("Method not implemented.");
+    const user = localStorage.getItem(CURRENT_USER);
+    const currentUser = JSON.parse(user);
+    console.log(
+      "OneRosterApi ~ getParentStudentProfiles ~ Ln:442",
+      currentUser.actor.name
+    );
+    return currentUser.actor.name;
   }
 
   getCourseByUserGradeId(
@@ -436,10 +485,14 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  get currentCourse(): Map<string, TableTypes<"course"> | undefined> | undefined {
+  get currentCourse():
+    | Map<string, TableTypes<"course"> | undefined>
+    | undefined {
     throw new Error("Method not implemented.");
   }
-  set currentCourse(value: Map<string, TableTypes<"course"> | undefined> | undefined) {
+  set currentCourse(
+    value: Map<string, TableTypes<"course"> | undefined> | undefined
+  ) {
     throw new Error("Method not implemented.");
   }
   createProfile(
@@ -465,7 +518,7 @@ export class OneRosterApi implements ServiceApi {
     languageDocId: string | null,
     classId: string,
     role: string,
-    studentId: string,
+    studentId: string
   ): Promise<TableTypes<"user">> {
     throw new Error("Method not implemented.");
   }
@@ -1081,13 +1134,27 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"assignment_cart"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  getChapterByLesson(lessonId: string, classId?: string, userId?: string): Promise<String | undefined> {
+  getChapterByLesson(
+    lessonId: string,
+    classId?: string,
+    userId?: string
+  ): Promise<String | undefined> {
     throw new Error("Method not implemented.");
   }
-  getAssignmentOrLiveQuizByClassByDate(classId: string, courseId: string, startDate: string, endDate: string, isClassWise: boolean, isLiveQuiz: boolean): Promise<TableTypes<"assignment">[] | undefined> {
+  getAssignmentOrLiveQuizByClassByDate(
+    classId: string,
+    courseId: string,
+    startDate: string,
+    endDate: string,
+    isClassWise: boolean,
+    isLiveQuiz: boolean
+  ): Promise<TableTypes<"assignment">[] | undefined> {
     throw new Error("Method not implemented.");
   }
-  getStudentLastTenResults(studentId: string, assignmentIds: string[]): Promise<TableTypes<"result">[]> {
+  getStudentLastTenResults(
+    studentId: string,
+    assignmentIds: string[]
+  ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
   }
   getResultByAssignmentIds(
