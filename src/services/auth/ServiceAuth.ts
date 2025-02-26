@@ -44,5 +44,5 @@ export interface ServiceAuth {
 
   logOut(): Promise<void>;
   refreshSession(): Promise<void>;
-  loginWithRespect?(): Promise<OneRosterUser | boolean | undefined>;
+  loginWithRespect(): Promise<OneRosterUser | boolean | undefined>;
 }

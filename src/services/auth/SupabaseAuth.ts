@@ -1,6 +1,6 @@
 import { SupabaseAuthClient } from "@supabase/supabase-js/dist/module/lib/SupabaseAuthClient";
 import { SupabaseApi } from "../api/SupabaseApi";
-import { ServiceAuth } from "./ServiceAuth";
+import { OneRosterUser, ServiceAuth } from "./ServiceAuth";
 import { Database } from "../database";
 import {
   CURRENT_USER,
@@ -123,6 +123,10 @@ export class SupabaseAuth implements ServiceAuth {
       return false;
     }
     return true;
+  }
+
+  async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
+    throw new Error("Method not implemented.");
   }
 
   async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {

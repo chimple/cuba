@@ -70,12 +70,6 @@ export class AuthHandler implements ServiceAuth {
   }
 
   async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
-    if (this.s?.loginWithRespect) {
-      return await this.s.loginWithRespect();
-    } else {
-      throw new Error(
-        "ServiceAuth instance is not initialized or loginWithRespect is undefined"
-      );
-    }
+    return await this.s.loginWithRespect();
   }
 }

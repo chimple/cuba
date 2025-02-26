@@ -15,8 +15,7 @@ export class OneRosterAuth implements ServiceAuth {
 
   async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
     try {
-      let platform = Capacitor.getPlatform();
-      if (platform !== "web") {
+      if (Capacitor.isNativePlatform()) {
         const result = await (
           OneRosterAuth.NativeSSOPlugin as any
         ).requestLogin();
