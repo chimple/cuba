@@ -26,6 +26,43 @@ import { AvatarObj } from "../../components/animation/Avatar";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { DocumentData } from "firebase/firestore";
 import { RoleType } from "../../interface/modelInterfaces";
+import tincan from "../../tincan";
+
+interface IGetStudentResultStatement {
+  agent: {
+    mbox: string;
+  };
+  verb?: {
+    id: string;
+  };
+  activity?: {
+    id: string;
+  };
+  since?: string;
+  until?: string;
+  limit?: number;
+}
+
+interface ICreateStudentResultStatement {
+  actor: {
+    name: string;
+    mbox: string;
+  };
+  verb: {
+    id: string;
+    display: {
+      "en-US": string;
+    };
+  };
+  object: {
+    id: string;
+    definition: {
+      name: {
+        "en-US": string;
+      };
+    };
+  };
+}
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -264,9 +301,7 @@ export class OneRosterApi implements ServiceApi {
       agent: {
         mbox: `mailto:${agentEmail}`,
       },
-      verb: {
-        id: "http://adlnet.gov/expapi/verbs/completed",
-      },
+      verb: {},
       activity: {
         id: "http://example.com/activity/12345",
       },
@@ -281,8 +316,6 @@ export class OneRosterApi implements ServiceApi {
   async getStudentResultInMap(
     studentId: string
   ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
-    const agentEmail = "karan@gmail.com"; // This should be replaced with the local storage login email
-
     const currentDate = new Date().toISOString();
     const queryStatement: IGetStudentResultStatement = {
       agent: {
@@ -303,6 +336,17 @@ export class OneRosterApi implements ServiceApi {
 
     return statements;
   }
+
+  sendStatement = async (): Promise<void> => {
+    const statement = this.createStatement();
+    try {
+      await tincan.sendStatement(statement as any);
+      console.log("Statement sent successfully:", statement);
+    } catch (error) {
+      console.error("Error sending statement:", error);
+    }
+  };
+
   getClassById(id: string): Promise<TableTypes<"class"> | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -1188,4 +1232,91 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"result">[] | undefined> {
     throw new Error("Method not implemented.");
   }
+
+  private createStatement = (
+    name: string,
+    lesson: string
+  ): ICreateStudentResultStatement => {
+    return {
+      actor: {
+        name: name,
+        mbox: `mailto:${name.toLowerCase().replace(/\s+/g, "")}@example.com`,
+      },
+      verb: {
+        id: "http://adlnet.gov/expapi/verbs/completed",
+        display: { "en-US": "completed" },
+      },
+      object: {
+        // id: `http://example.com/activities/${lesson}`,
+        lessonId: "hindi",
+        chapterId: "chhava",
+        definition: {
+          name: { "en-US": lesson },
+        },
+      },
+    };
+  };
+
+  sendStatement = async (): Promise<void> => {
+    const statement = this.createStatement("John Doe", "Sample Lesson");
+    try {
+      await tincan.sendStatement(statement as any);
+      console.log("Statement sent successfully:", statement);
+      return true;
+    } catch (error) {
+      console.error("Error sending statement:", error);
+      return false;
+    }
+  };
+
+  getStatements = async (
+    agentEmail: string,
+    queryStatement?: IGetStudentResultStatement
+  ): Promise<void> => {
+    try {
+      const query = {
+        ...queryStatement,
+        agent: { mbox: `mailto:${agentEmail}` },
+      };
+
+      const result = await tincan.getStatements(query);
+      const statements: ICreateStudentResultStatement[] =
+        result?.statements ?? [];
+
+      console.log(`Retrieved Statements for agent: ${agentEmail}`, statements);
+
+      // Parse statements
+      const parsedStatements = statements.map((statement) => {
+        const { Row, Insert, Update } = statement;
+        const parsedStatement = Row ?? Insert ?? Update;
+        return {
+          id: parsedStatement?.id ?? null,
+          studentId: parsedStatement?.student_id ?? null,
+          courseId: parsedStatement?.course_id ?? null,
+          score: parsedStatement?.score ?? null,
+          timeSpent: parsedStatement?.time_spent ?? null,
+          createdAt: parsedStatement?.created_at ?? null,
+          updatedAt: parsedStatement?.updated_at ?? null,
+          assignmentId: parsedStatement?.assignment_id ?? null,
+          lessonId: parsedStatement?.lesson_id ?? null,
+          chapterId: parsedStatement?.chapter_id ?? null,
+          schoolId: parsedStatement?.school_id ?? null,
+          correctMoves: parsedStatement?.correct_moves ?? null,
+          wrongMoves: parsedStatement?.wrong_moves ?? null,
+          isDeleted: parsedStatement?.is_deleted ?? null,
+          relationships: Array.isArray(statement.Relationships)
+            ? statement.Relationships.map((rel) => ({
+                relation: rel?.referencedRelation ?? null,
+                foreignKey: rel?.foreignKeyName ?? null,
+                columns: rel?.columns ?? null,
+              }))
+            : [],
+        };
+      });
+
+      console.log("Parsed Statements:", parsedStatements);
+    } catch (error: unknown) {
+      console.error("Error fetching statements:", error);
+    }
+  };
 }
