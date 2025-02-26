@@ -142,7 +142,7 @@ const CocosGame: React.FC = () => {
       ml_class_id: data.mlClassId,
       ml_student_id: data.mlStudentId,
       course_id: data.courseId,
-      course_name: courseDetail ? courseDetail.name : "",
+      course_name: courseDetail?.name ?? "",
       time_spent: data.timeSpent,
       total_moves: data.totalMoves,
       total_games: data.totalGames,
