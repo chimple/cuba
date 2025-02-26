@@ -147,7 +147,7 @@ export class SupabaseApi implements ServiceApi {
         (
           await this.supabase?.storage
             .from("ProfileImages")
-            .list(`${profileType}/${folderName}`)
+            .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
           []
       );
