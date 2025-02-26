@@ -2661,7 +2661,7 @@ export class SqliteApi implements ServiceApi {
     const handleDataChange = async (
       assignmet: TableTypes<"assignment"> | undefined
     ) => {
-      if (assignmet)
+      if (assignmet) {
         await this.executeQuery(
           `
           INSERT INTO assignment (id, created_by, starts_at,ends_at,is_class_wise,class_id,school_id,lesson_id,type,created_at,updated_at,is_deleted,chapter_id,course_id)
@@ -2684,6 +2684,8 @@ export class SqliteApi implements ServiceApi {
             assignmet.course_id,
           ]
         );
+        onDataChange(assignmet);
+      }
     };
     return await this._serverApi.assignmentListner(studentId, handleDataChange);
   }
@@ -2698,23 +2700,25 @@ export class SqliteApi implements ServiceApi {
     ) => void
   ) {
     const handleDataChange = async (
-      assignmet_user: TableTypes<"assignment_user"> | undefined
+      assignment_user: TableTypes<"assignment_user"> | undefined
     ) => {
-      if (assignmet_user)
+      if (assignment_user) {
         await this.executeQuery(
           `
-          INSERT INTO assignment_user (id, assignment_id, user_id,created_at,updated_at,is_deleted)
-        VALUES (?, ?, ?, ?, ?, ?);
-      `,
+          INSERT INTO assignment_user (id, assignment_id, user_id, created_at, updated_at, is_deleted)
+          VALUES (?, ?, ?, ?, ?, ?);
+          `,
           [
-            assignmet_user.id,
-            assignmet_user.assignment_id,
-            assignmet_user.user_id,
-            assignmet_user.created_at,
-            assignmet_user.updated_at,
-            assignmet_user.is_deleted,
+            assignment_user.id,
+            assignment_user.assignment_id,
+            assignment_user.user_id,
+            assignment_user.created_at,
+            assignment_user.updated_at,
+            assignment_user.is_deleted,
           ]
         );
+        onDataChange(assignment_user);
+      }
     };
 
     return await this._serverApi.assignmentUserListner(
