@@ -43,11 +43,16 @@ export class SupabaseAuth implements ServiceAuth {
         email: email,
         password: password,
       });
-      if (data.session?.refresh_token)
-        Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
-
+      if (error) {
+        throw new Error(error.message || "Authentication failed.");
+      }
+      if (!data?.session?.refresh_token) {
+        throw new Error("No refresh token received.");
+      }
+      Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
       await api.updateFcmToken(data?.user?.id ?? "");
       const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
+      if (!isSynced) throw new Error("Database sync failed.");
       await api.subscribeToClassTopic();
       return true;
     } catch (error) {
