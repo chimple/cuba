@@ -482,8 +482,8 @@ const Login: React.FC = () => {
       setIsInitialLoading(true);
       // const _authHandler = ServiceConfig.getI().authHandler;
       const result: boolean = await authInstance.loginWithEmailAndPassword(
-        schoolCode + studentId + DOMAIN,
-        studentPassword
+        schoolCode.trimEnd() + studentId.trimEnd() + DOMAIN,
+        studentPassword.trimEnd()
       );
       if (result) {
         setIsLoading(false);
