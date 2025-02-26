@@ -1,6 +1,22 @@
 import { TableTypes } from "../../common/constants";
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 
+export interface OneRosterUser {
+  respectLaunchVersion: number;
+  auth: Array<string>;
+  given_name: string;
+  locale: string;
+  http_proxy: string;
+  endpoint_lti_ags: string;
+  endpoint: string;
+  actor: {
+    name: Array<string>;
+    mbox: Array<string>;
+  };
+  registration: string;
+  activity_id: string;
+}
+
 export interface ServiceAuth {
   loginWithEmailAndPassword(email, password): Promise<boolean>;
 
@@ -28,4 +44,5 @@ export interface ServiceAuth {
 
   logOut(): Promise<void>;
   refreshSession(): Promise<void>;
+  loginWithRespect?(): Promise<OneRosterUser | boolean | undefined>;
 }

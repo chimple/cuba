@@ -1,4 +1,4 @@
-import { ServiceAuth } from "./ServiceAuth";
+import { ServiceAuth, OneRosterUser } from "./ServiceAuth";
 import { TableTypes } from "../../common/constants";
 
 export class AuthHandler implements ServiceAuth {
@@ -67,5 +67,15 @@ export class AuthHandler implements ServiceAuth {
 
   async refreshSession(): Promise<void> {
     return await this.s.refreshSession();
+  }
+
+  async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
+    if (this.s?.loginWithRespect) {
+      return await this.s.loginWithRespect();
+    } else {
+      throw new Error(
+        "ServiceAuth instance is not initialized or loginWithRespect is undefined"
+      );
+    }
   }
 }
