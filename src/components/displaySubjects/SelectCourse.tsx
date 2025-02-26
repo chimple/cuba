@@ -112,7 +112,7 @@ const SelectCourse: FC<{
           </SplideSlide>
         );
       })}
-      {modeParent ? (
+      {modeParent && courseDetails.length > 0  ? (
         <SplideSlide className="slide">
           <div
             onClick={() => {
