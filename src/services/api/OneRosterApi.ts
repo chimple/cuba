@@ -299,25 +299,26 @@ export class OneRosterApi implements ServiceApi {
   async getStudentResultInMap(studentId: string): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
     const agentEmail = "karan@gmail.com"; // This should be replaced with the local storage login email
 
+    const currentDate = new Date().toISOString();
     const queryStatement: IGetStatementCfg = {
-        agent: {
-            mbox: `mailto:${agentEmail}`
-        },
-        verb: {
-            id: "http://adlnet.gov/expapi/verbs/completed"
-        },
-        activity: {
-            id: "http://example.com/activity/12345"
-        },
-        since: "2024-01-01T00:00:00Z",
-        limit: 10
+      agent: {
+        mbox: `mailto:${agentEmail}`
+      },
+      verb: {
+        id: "http://adlnet.gov/expapi/verbs/completed"
+      },
+      activity: {
+        id: "http://example.com/activity/12345"
+      },
+      since: currentDate,
+      limit: 10
     };
     
     // Retrieve the statements for the agent
     await this.sendStatement();
-    await this.getStatements(agentEmail, queryStatement);
+    const statements = await this.getStatements(agentEmail, queryStatement);
 
-    return {};
+    return statements;
 }
 
 sendStatement = async (): Promise<void> => {
@@ -1186,20 +1187,20 @@ sendStatement = async (): Promise<void> => {
   }
 
 
-  private createStatement = (): IStatement => {
+  private createStatement = (name: string, lesson: string): IStatement => {
     return {
         actor: {
-        name: 'name',
-        mbox: `mailto:${"name".toLowerCase().replace(/\s+/g, "")}@example.com`,
+        name: name,
+        mbox: `mailto:${name.toLowerCase().replace(/\s+/g, "")}@example.com`,
         },
         verb: {
         id: "http://adlnet.gov/expapi/verbs/completed",
         display: { "en-US": "completed" },
         },
         object: {
-        id: `http://example.com/activities/${"lesson"}`,
+        id: `http://example.com/activities/${lesson}`,
         definition: {
-            name: { "en-US": "lesson" },
+            name: { "en-US": lesson },
         },
         },
     };
@@ -1207,7 +1208,7 @@ sendStatement = async (): Promise<void> => {
 
 
   sendStatement = async (): Promise<void> => {
-    const statement = this.createStatement();
+    const statement = this.createStatement("John Doe", "Sample Lesson");
     try {
       await tincan.sendStatement(statement as any);
       console.log('Statement sent successfully:', statement);

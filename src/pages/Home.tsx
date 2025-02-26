@@ -135,7 +135,7 @@ const Home: FC = () => {
       return;
     }
 
-    const studentResult = await apiInstance.getStudentResultInMap(student.id);
+    const studentResult = await api.getStudentResultInMap(student.id);
     if (!!studentResult) {
       setLessonResultMap(studentResult);
     }
@@ -206,7 +206,6 @@ const Home: FC = () => {
   }
 
   const api = ServiceConfig.getI().apiHandler;
-  const apiInstance = OneRosterApi.getInstance();
 
   async function getAssignments(): Promise<TableTypes<"lesson">[]> {
     let reqLes: TableTypes<"lesson">[] = [];
