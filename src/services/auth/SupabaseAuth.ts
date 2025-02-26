@@ -51,7 +51,6 @@ export class SupabaseAuth implements ServiceAuth {
       }
       await api.updateFcmToken(data?.user?.id ?? "");
       const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
-      if (!isSynced) throw new Error("Database sync failed.");
       await api.subscribeToClassTopic();
       return true;
     } catch (error) {
