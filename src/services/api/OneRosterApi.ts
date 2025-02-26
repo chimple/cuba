@@ -27,7 +27,7 @@ import { DocumentData } from "firebase/firestore";
 import { RoleType } from "../../interface/modelInterfaces";
 import tincan from "../../tincan";
 
-interface IGetStatementCfg {
+interface IGetStudentResultStatement {
   agent: {
     mbox: string;
   };
@@ -42,7 +42,7 @@ interface IGetStatementCfg {
   limit?: number;
 }
 
-interface IStatement {
+interface ICreateStudentResultStatement {
   actor: {
     name: string;
     mbox: string;
@@ -300,7 +300,7 @@ export class OneRosterApi implements ServiceApi {
     const agentEmail = "karan@gmail.com"; // This should be replaced with the local storage login email
 
     const currentDate = new Date().toISOString();
-    const queryStatement: IGetStatementCfg = {
+    const queryStatement: IGetStudentResultStatement = {
       agent: {
         mbox: `mailto:${agentEmail}`
       },
@@ -1187,7 +1187,7 @@ sendStatement = async (): Promise<void> => {
   }
 
 
-  private createStatement = (name: string, lesson: string): IStatement => {
+  private createStatement = (name: string, lesson: string): ICreateStudentResultStatement => {
     return {
         actor: {
         name: name,
@@ -1219,7 +1219,7 @@ sendStatement = async (): Promise<void> => {
     }
   };
 
-  getStatements = async (agentEmail: string, queryStatement?: IGetStatementCfg): Promise<void> => {
+  getStatements = async (agentEmail: string, queryStatement?: IGetStudentResultStatement): Promise<void> => {
     try {
         const query = {
             ...queryStatement,
@@ -1227,7 +1227,7 @@ sendStatement = async (): Promise<void> => {
         };
 
         const result = await tincan.getStatements(query);
-        const statements: IStatement[] = result?.statements ?? [];
+        const statements: ICreateStudentResultStatement[] = result?.statements ?? [];
         
         console.log(`Retrieved Statements for agent: ${agentEmail}`, statements);
 

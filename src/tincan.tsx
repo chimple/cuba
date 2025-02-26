@@ -1,21 +1,10 @@
 
-import { TinCan, Activity, Agent } from 'tincants';
+import { TinCan } from 'tincants';
 
 interface IRecordStoreCfg {
   endpoint: string;
   auth?: string;
-  user?: string;
-  password?: string;
-  extended?: Record<string, unknown>; // This should be an object, not a string
 }
-
-const actor = {
-    /* actor properties */
-};
-
-const activity = {
-    /* activity properties */
-};
 
 const lrs:IRecordStoreCfg  = {
   endpoint: 'https://mahvish-test-lrs.lrs.io/xapi/', // LRS endpoint
@@ -23,10 +12,7 @@ const lrs:IRecordStoreCfg  = {
 };
 
 // Create the tincan instance
-const tincan = new TinCan({
-    actor: new Agent(actor),
-    activity: new Activity(activity),
-});
+const tincan = new TinCan({});
 
 tincan.addRecordStore(lrs);
 
