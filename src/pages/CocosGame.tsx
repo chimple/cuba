@@ -133,7 +133,7 @@ const CocosGame: React.FC = () => {
       left_game_no: data.currentGameNumber,
       left_game_name: data.gameName,
       chapter_id: data.chapterId,
-      chapter_name: chapterDetail ? chapterDetail.name : "",
+      chapter_name: chapterDetail?.name ?? "",
       lesson_id: data.lessonId,
       lesson_name: lessonDetail.name,
       lesson_type: data.lessonType,
@@ -355,7 +355,7 @@ const CocosGame: React.FC = () => {
           <div>
             <ScoreCard
               title={t("🎉Congratulations🎊")}
-              score={gameResult.detail ? gameResult.detail.score : 0}
+              score={gameResult.detail?.score ?? 0}
               message={t("You Completed the Lesson:")}
               showDialogBox={showDialogBox}
               yesText={t("Like the Game")}
