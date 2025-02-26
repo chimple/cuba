@@ -293,9 +293,29 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
   }
-  getStudentProgress(studentId: string): Promise<Map<string, string>> {
-    throw new Error("Method not implemented.");
+
+  async getStudentProgress(studentId: string): Promise<Map<string, string>> {
+    const agentEmail = "karan@gmail.com"; // This should be replaced with the local storage login email
+
+    const currentDate = new Date().toISOString();
+    const queryStatement: IGetStudentResultStatement = {
+      agent: {
+        mbox: `mailto:${agentEmail}`
+      },
+      verb: {
+        id: "http://adlnet.gov/expapi/verbs/completed"
+      },
+      activity: {
+        id: "http://example.com/activity/12345"
+      },
+      since: currentDate,
+    };
+    
+    // Retrieve the statements for the agent
+    const statements = await this.getStatements(agentEmail, queryStatement);
+    return statements;
   }
+
   async getStudentResultInMap(studentId: string): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
     const agentEmail = "karan@gmail.com"; // This should be replaced with the local storage login email
 
@@ -311,7 +331,6 @@ export class OneRosterApi implements ServiceApi {
         id: "http://example.com/activity/12345"
       },
       since: currentDate,
-      limit: 10
     };
     
     // Retrieve the statements for the agent
@@ -1198,7 +1217,9 @@ sendStatement = async (): Promise<void> => {
         display: { "en-US": "completed" },
         },
         object: {
-        id: `http://example.com/activities/${lesson}`,
+        // id: `http://example.com/activities/${lesson}`,
+        lessonId: "hindi",
+        chapterId: 'chhava',
         definition: {
             name: { "en-US": lesson },
         },
