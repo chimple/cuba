@@ -29,12 +29,7 @@ import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { CollectionIds } from "../../common/courseConstants";
-import {
-  ACTION,
-  EVENTS,
-  LANGUAGE,
-  TableTypes,
-} from "../../common/constants";
+import { ACTION, EVENTS, LANGUAGE, TableTypes } from "../../common/constants";
 import { ServiceConfig } from "../ServiceConfig";
 import { getFunctions, httpsCallable } from "firebase/functions";
 
@@ -187,6 +182,10 @@ export class FirebaseAuth implements ServiceAuth {
       );
       return false;
     }
+  }
+
+  async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
+    throw new Error("Method not implemented.");
   }
 
   private async _createUserDoc(user): Promise<User> {

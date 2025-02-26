@@ -261,7 +261,7 @@ export class SqliteApi implements ServiceApi {
       }
     }
 
-    const config = ServiceConfig.getInstance(APIMode.SQLITE);
+    const config = ServiceConfig.getInstance(APIMode.ONEROSTER);
     const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
     if (isUserLoggedIn) {
       console.log("syncing");

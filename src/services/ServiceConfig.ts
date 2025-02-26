@@ -18,7 +18,7 @@ export class ServiceConfig {
   private _authHandler: AuthHandler;
   private _mode: APIMode;
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(mode: APIMode): ServiceConfig {
     if (!ServiceConfig.instance) {

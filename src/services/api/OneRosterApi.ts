@@ -2,6 +2,7 @@
 import { HttpHeaders } from "@capacitor-community/http";
 import {
   COURSES,
+  CURRENT_USER,
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODES,
@@ -62,7 +63,6 @@ interface ICreateStudentResultStatement {
     };
   };
 }
-
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -149,7 +149,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<string | undefined> {
     throw new Error("Method not implemented.");
   }
-  private constructor() { }
+  private constructor() {}
   getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;
@@ -293,69 +293,66 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
   }
-
   async getStudentProgress(studentId: string): Promise<Map<string, string>> {
     const agentEmail = "karan@gmail.com"; // This should be replaced with the local storage login email
 
     const currentDate = new Date().toISOString();
     const queryStatement: IGetStudentResultStatement = {
       agent: {
-        mbox: `mailto:${agentEmail}`
+        mbox: `mailto:${agentEmail}`,
       },
-      verb: {
-        id: "http://adlnet.gov/expapi/verbs/completed"
-      },
+      verb: {},
       activity: {
-        id: "http://example.com/activity/12345"
+        id: "http://example.com/activity/12345",
       },
       since: currentDate,
     };
-    
+
     // Retrieve the statements for the agent
     const statements = await this.getStatements(agentEmail, queryStatement);
     return statements;
   }
 
-  async getStudentResultInMap(studentId: string): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
-    const agentEmail = "karan@gmail.com"; // This should be replaced with the local storage login email
-
+  async getStudentResultInMap(
+    studentId: string
+  ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
     const currentDate = new Date().toISOString();
     const queryStatement: IGetStudentResultStatement = {
       agent: {
-        mbox: `mailto:${agentEmail}`
+        mbox: `mailto:${agentEmail}`,
       },
       verb: {
-        id: "http://adlnet.gov/expapi/verbs/completed"
+        id: "http://adlnet.gov/expapi/verbs/completed",
       },
       activity: {
-        id: "http://example.com/activity/12345"
+        id: "http://example.com/activity/12345",
       },
       since: currentDate,
     };
-    
+
     // Retrieve the statements for the agent
     await this.sendStatement();
     const statements = await this.getStatements(agentEmail, queryStatement);
 
     return statements;
-}
+  }
 
-sendStatement = async (): Promise<void> => {
+  sendStatement = async (): Promise<void> => {
     const statement = this.createStatement();
     try {
-        await tincan.sendStatement(statement as any);
-        console.log('Statement sent successfully:', statement);
+      await tincan.sendStatement(statement as any);
+      console.log("Statement sent successfully:", statement);
     } catch (error) {
-        console.error('Error sending statement:', error);
+      console.error("Error sending statement:", error);
     }
-};
-
+  };
 
   getClassById(id: string): Promise<TableTypes<"class"> | undefined> {
     throw new Error("Method not implemented.");
   }
   isStudentLinked(studentId: string, fromCache: boolean): Promise<boolean> {
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
+    return true;
   }
   getPendingAssignments(
     classId: string,
@@ -366,8 +363,9 @@ sendStatement = async (): Promise<void> => {
   getSchoolsForUser(
     userId: string
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
-    throw new Error("Method not implemented.");
+    return [];
   }
+
   isUserTeacher(userId: string): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
@@ -381,11 +379,13 @@ sendStatement = async (): Promise<void> => {
     throw new Error("Method not implemented.");
   }
   get currentMode(): MODES {
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
+    return "PARENT";
   }
 
   set currentMode(value: MODES) {
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
+    console.log("Parents");
   }
 
   getSubject(id: string): Promise<TableTypes<"subject"> | undefined> {
@@ -439,9 +439,7 @@ sendStatement = async (): Promise<void> => {
     throw new Error("Method not implemented.");
   }
 
-  getCoursesByClassId(
-    classId: string
-  ): Promise<TableTypes<"class_course">[]> {
+  getCoursesByClassId(classId: string): Promise<TableTypes<"class_course">[]> {
     throw new Error("Method not implemented.");
   }
   deleteUserFromClass(userId: string): Promise<void> {
@@ -482,7 +480,13 @@ sendStatement = async (): Promise<void> => {
     throw new Error("Method not implemented.");
   }
   getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
-    throw new Error("Method not implemented.");
+    const user = localStorage.getItem(CURRENT_USER);
+    const currentUser = JSON.parse(user);
+    console.log(
+      "OneRosterApi ~ getParentStudentProfiles ~ Ln:442",
+      currentUser.actor.name
+    );
+    return currentUser.actor.name;
   }
 
   getCourseByUserGradeId(
@@ -505,11 +509,17 @@ sendStatement = async (): Promise<void> => {
     throw new Error("Method not implemented.");
   }
 
+  getStudentClassesAndSchools(studentId: string): Promise<any> {
+    return [];
+  }
+
   get currentStudent(): TableTypes<"user"> | undefined {
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
+    return [];
   }
   set currentStudent(value: TableTypes<"user"> | undefined) {
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
+    return [];
   }
   get currentClass(): TableTypes<"class"> | undefined {
     throw new Error("Method not implemented.");
@@ -524,10 +534,14 @@ sendStatement = async (): Promise<void> => {
     throw new Error("Method not implemented.");
   }
 
-  get currentCourse(): Map<string, TableTypes<"course"> | undefined> | undefined {
+  get currentCourse():
+    | Map<string, TableTypes<"course"> | undefined>
+    | undefined {
     throw new Error("Method not implemented.");
   }
-  set currentCourse(value: Map<string, TableTypes<"course"> | undefined> | undefined) {
+  set currentCourse(
+    value: Map<string, TableTypes<"course"> | undefined> | undefined
+  ) {
     throw new Error("Method not implemented.");
   }
   createProfile(
@@ -553,7 +567,7 @@ sendStatement = async (): Promise<void> => {
     languageDocId: string | null,
     classId: string,
     role: string,
-    studentId: string,
+    studentId: string
   ): Promise<TableTypes<"user">> {
     throw new Error("Method not implemented.");
   }
@@ -1169,13 +1183,27 @@ sendStatement = async (): Promise<void> => {
   ): Promise<TableTypes<"assignment_cart"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  getChapterByLesson(lessonId: string, classId?: string, userId?: string): Promise<String | undefined> {
+  getChapterByLesson(
+    lessonId: string,
+    classId?: string,
+    userId?: string
+  ): Promise<String | undefined> {
     throw new Error("Method not implemented.");
   }
-  getAssignmentOrLiveQuizByClassByDate(classId: string, courseId: string, startDate: string, endDate: string, isClassWise: boolean, isLiveQuiz: boolean): Promise<TableTypes<"assignment">[] | undefined> {
+  getAssignmentOrLiveQuizByClassByDate(
+    classId: string,
+    courseId: string,
+    startDate: string,
+    endDate: string,
+    isClassWise: boolean,
+    isLiveQuiz: boolean
+  ): Promise<TableTypes<"assignment">[] | undefined> {
     throw new Error("Method not implemented.");
   }
-  getStudentLastTenResults(studentId: string, assignmentIds: string[]): Promise<TableTypes<"result">[]> {
+  getStudentLastTenResults(
+    studentId: string,
+    assignmentIds: string[]
+  ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
   }
   getResultByAssignmentIds(
@@ -1205,85 +1233,90 @@ sendStatement = async (): Promise<void> => {
     throw new Error("Method not implemented.");
   }
 
-
-  private createStatement = (name: string, lesson: string): ICreateStudentResultStatement => {
+  private createStatement = (
+    name: string,
+    lesson: string
+  ): ICreateStudentResultStatement => {
     return {
-        actor: {
+      actor: {
         name: name,
         mbox: `mailto:${name.toLowerCase().replace(/\s+/g, "")}@example.com`,
-        },
-        verb: {
+      },
+      verb: {
         id: "http://adlnet.gov/expapi/verbs/completed",
         display: { "en-US": "completed" },
-        },
-        object: {
+      },
+      object: {
         // id: `http://example.com/activities/${lesson}`,
         lessonId: "hindi",
-        chapterId: 'chhava',
+        chapterId: "chhava",
         definition: {
-            name: { "en-US": lesson },
+          name: { "en-US": lesson },
         },
-        },
+      },
     };
   };
-
 
   sendStatement = async (): Promise<void> => {
     const statement = this.createStatement("John Doe", "Sample Lesson");
     try {
       await tincan.sendStatement(statement as any);
-      console.log('Statement sent successfully:', statement);
+      console.log("Statement sent successfully:", statement);
       return true;
     } catch (error) {
-      console.error('Error sending statement:', error);
+      console.error("Error sending statement:", error);
       return false;
     }
   };
 
-  getStatements = async (agentEmail: string, queryStatement?: IGetStudentResultStatement): Promise<void> => {
+  getStatements = async (
+    agentEmail: string,
+    queryStatement?: IGetStudentResultStatement
+  ): Promise<void> => {
     try {
-        const query = {
-            ...queryStatement,
-            agent: { mbox: `mailto:${agentEmail}` }
+      const query = {
+        ...queryStatement,
+        agent: { mbox: `mailto:${agentEmail}` },
+      };
+
+      const result = await tincan.getStatements(query);
+      const statements: ICreateStudentResultStatement[] =
+        result?.statements ?? [];
+
+      console.log(`Retrieved Statements for agent: ${agentEmail}`, statements);
+
+      // Parse statements
+      const parsedStatements = statements.map((statement) => {
+        const { Row, Insert, Update } = statement;
+        const parsedStatement = Row ?? Insert ?? Update;
+        return {
+          id: parsedStatement?.id ?? null,
+          studentId: parsedStatement?.student_id ?? null,
+          courseId: parsedStatement?.course_id ?? null,
+          score: parsedStatement?.score ?? null,
+          timeSpent: parsedStatement?.time_spent ?? null,
+          createdAt: parsedStatement?.created_at ?? null,
+          updatedAt: parsedStatement?.updated_at ?? null,
+          assignmentId: parsedStatement?.assignment_id ?? null,
+          lessonId: parsedStatement?.lesson_id ?? null,
+          chapterId: parsedStatement?.chapter_id ?? null,
+          schoolId: parsedStatement?.school_id ?? null,
+          correctMoves: parsedStatement?.correct_moves ?? null,
+          wrongMoves: parsedStatement?.wrong_moves ?? null,
+          isDeleted: parsedStatement?.is_deleted ?? null,
+          relationships: Array.isArray(statement.Relationships)
+            ? statement.Relationships.map((rel) => ({
+                relation: rel?.referencedRelation ?? null,
+                foreignKey: rel?.foreignKeyName ?? null,
+                columns: rel?.columns ?? null,
+              }))
+            : [],
         };
-
-        const result = await tincan.getStatements(query);
-        const statements: ICreateStudentResultStatement[] = result?.statements ?? [];
-        
-        console.log(`Retrieved Statements for agent: ${agentEmail}`, statements);
-
-        // Parse statements
-        const parsedStatements = statements.map(statement => {
-          const { Row, Insert, Update } = statement;
-          const parsedStatement = Row ?? Insert ?? Update;
-          return {
-              id: parsedStatement?.id ?? null,
-              studentId: parsedStatement?.student_id ?? null,
-              courseId: parsedStatement?.course_id ?? null,
-              score: parsedStatement?.score ?? null,
-              timeSpent: parsedStatement?.time_spent ?? null,
-              createdAt: parsedStatement?.created_at ?? null,
-              updatedAt: parsedStatement?.updated_at ?? null,
-              assignmentId: parsedStatement?.assignment_id ?? null,
-              lessonId: parsedStatement?.lesson_id ?? null,
-              chapterId: parsedStatement?.chapter_id ?? null,
-              schoolId: parsedStatement?.school_id ?? null,
-              correctMoves: parsedStatement?.correct_moves ?? null,
-              wrongMoves: parsedStatement?.wrong_moves ?? null,
-              isDeleted: parsedStatement?.is_deleted ?? null,
-              relationships: Array.isArray(statement.Relationships) ? statement.Relationships.map(rel => ({
-                  relation: rel?.referencedRelation ?? null,
-                  foreignKey: rel?.foreignKeyName ?? null,
-                  columns: rel?.columns ?? null,
-              })) : []  
-          };
       });
-      
-        console.log('Parsed Statements:', parsedStatements);
 
+      console.log("Parsed Statements:", parsedStatements);
     } catch (error: unknown) {
-        console.error('Error fetching statements:', error);
+      console.error("Error fetching statements:", error);
     }
-};
-
+  };
 }
