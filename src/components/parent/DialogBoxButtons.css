@@ -21,9 +21,9 @@
   border-radius: var(--border-radius) !important;
   padding: 2vh !important;
   width: 50%;
-  font-size: 4vh;
+  /* font-size: 4vh; */
   text-align: center;
-  /* font-size: var(--text-size) !important; */
+  font-size: var(--text-size) !important;
 }
 
 #no-button {

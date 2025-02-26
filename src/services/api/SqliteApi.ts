@@ -582,7 +582,7 @@ export class SqliteApi implements ServiceApi {
     const schoolId = uuidv4();
     const result = image
       ? await this.addProfileImages(schoolId, image, PROFILETYPE.SCHOOL)
-      : "";
+      : null;
     const newSchool: TableTypes<"school"> = {
       id: schoolId,
       name,
@@ -666,14 +666,14 @@ export class SqliteApi implements ServiceApi {
 
     const result = image
       ? await this.addProfileImages(school.id, image, PROFILETYPE.SCHOOL)
-      : "";
+      : school.image;
 
     const updatedSchool: TableTypes<"school"> = {
       name: name ?? school.name,
       group1: group1 ?? school.group1,
       group2: group2 ?? school.group2,
       group3: group3 ?? school.group3,
-      image: result ?? null,
+      image: result ?? school.image,
       updated_at: new Date().toISOString(),
       created_at: school.created_at,
       id: school.id,
