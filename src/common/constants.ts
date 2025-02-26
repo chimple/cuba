@@ -396,6 +396,7 @@ export const LESSON_END = "lessonEnd";
 export const PROBLEM_END = "problemEnd";
 export const GAME_END = "gameEnd";
 export const GAME_EXIT = "gameExit";
+export const GAME_START = "gameStart";
 export const TEMP_LESSONS_STORE = () => `${Auth.i.sourcedId}-lessonsStore`;
 export const IS_USER_LOGED_IN = "isUserLogedIn";
 export const USER_TOKEN = "userToken";

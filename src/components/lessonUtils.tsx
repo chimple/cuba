@@ -26,12 +26,10 @@ export const useHandleLessonClick = () => {
 
     const data = await PortPlugin.sendLaunchData();
 
-  
-
-    console.log("LessonCard course:", currentCourse);
-
     const updatedLesson = await ApiHandler.i.getLessonWithCocosLessonId(data.lessonId);
     const updatedCourse = await ApiHandler.i.getCourseFromLesson(updatedLesson!);
+
+    console.log("LessonCard course:", currentCourse);
 
     if (!updatedLesson || !updatedCourse) return;
 

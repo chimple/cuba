@@ -221,36 +221,42 @@ public class PortPlugin extends Plugin {
   @PluginMethod
   public void sendLaunchData(PluginCall call) {
     JSObject result = new JSObject();
-
-
     Intent curr_intent = instance.getActivity().getIntent();
 
-    // Extract learningUnitId from intent extras
+    // Log all extras in the intent
+    Bundle extras = curr_intent.getExtras();
+    if (extras != null) {
+      for (String key : extras.keySet()) {
+        Log.d(TAG, "Intent Extra [" + key + "] = " + extras.get(key));
+      }
+    } else {
+      Log.d(TAG, "No extras found in the intent.");
+    }
+
+    // Extract values
     String learningUnitId = curr_intent.getStringExtra("learningUnitId");
+    long inactivityTimeoutInMs = curr_intent.getLongExtra("inactivityTimeoutInMs", -1);
+
+    Log.d(TAG, "Received learningUnitId: " + learningUnitId);
+    Log.d(TAG, "Received inactivityTimeoutInMs: " + inactivityTimeoutInMs);
 
     if (learningUnitId != null && learningUnitId.contains("_")) {
-      // Split the learningUnitId into course, chapter, and lesson
       String[] parts = learningUnitId.split("_");
       if (parts.length == 3) {
-        String courseId = parts[0];   // "en" -- example
-        String chapterId = parts[1];  // "en00" -- example
-        String lessonId = parts[2];   // "en0000" -- example
+        String lessonId = parts[2];
         result.put("lessonId", lessonId);
+        result.put("inactivityTimeoutInMs", inactivityTimeoutInMs != -1 ? inactivityTimeoutInMs : 0);
+        Log.d(TAG, "Result Data: " + result.toString());
         call.resolve(result);
-
-        // Construct the URL dynamically
-        String url = "https://chimple.cc/microlink/?courseid=" + courseId +
-                "&chapterid=" + chapterId +
-                "&lessonid=" + lessonId +
-                "&app=eidu";
-        curr_intent.setData(Uri.parse(url));
-        Log.d(TAG, "Generated URL: " + url);
+        return;
       } else {
         Log.e(TAG, "Invalid learningUnitId format: " + learningUnitId);
       }
     } else {
       Log.e(TAG, "learningUnitId is missing or not formatted correctly.");
     }
+
+    call.reject("Failed to extract data from intent");
   }
 
 

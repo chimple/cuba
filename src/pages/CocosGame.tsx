@@ -5,6 +5,7 @@ import {
   EVENTS,
   GAME_END,
   GAME_EXIT,
+  GAME_START,
   LESSONS_PLAYED_COUNT,
   LESSON_END,
   PAGES,
@@ -30,8 +31,11 @@ import { App as CapApp } from "@capacitor/app";
 import { sendDataToJava } from "../components/lessonUtils";
 import { sendEiduResultToJava } from "../utility/sendResultEidu";
 import { send } from "ionicons/icons";
+import { registerPlugin } from "@capacitor/core";
+
 
 const CocosGame: React.FC = () => {
+  const PortPlugin = registerPlugin<any>("Port");
   const history = useHistory();
   console.log("cocos game", history.location.state);
   const state = history.location.state as any;
@@ -47,6 +51,7 @@ const CocosGame: React.FC = () => {
   const CourseDetail: Course = JSON.parse(state.course);
   const lessonDetail: Lesson = JSON.parse(state.lesson);
   let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
+  let lessonStartTime = 0;
   const presentToast = async () => {
     await present({
       message: "Something went wrong!",
@@ -71,6 +76,50 @@ const CocosGame: React.FC = () => {
     };
   }, []);
 
+
+  let idleTimeMs = 7000; // Default idle time
+
+  // Function to update idle time dynamically
+  function setIdleTime(newTime: number) {
+      idleTimeMs = newTime;
+      console.log("Idle time updated to:", idleTimeMs, "ms");
+  
+      // Start the idle detection with the new time
+      detectUserIdleOnCanvas(idleTimeMs, () => {
+          console.log("User is idle. Triggering action...");
+  
+          const currentTime = Date.now();
+          const totalTimeSpent = currentTime - lessonStartTime; 
+  
+          sendEiduResultToJava("TIME_UP", null, totalTimeSpent, "User is idle", []);
+      });
+  }
+  
+  // Function to detect user inactivity
+  function detectUserIdleOnCanvas(idleTime: number, callback: () => void) {
+      let timeout: NodeJS.Timeout;
+      const canvas = document.getElementById("GameCanvas");
+  
+      if (!canvas) {
+          console.error("GameCanvas not found!");
+          return;
+      }
+  
+      function resetTimer() {
+          clearTimeout(timeout);
+          timeout = setTimeout( () => {
+              console.log("User is idle for", idleTime, "ms");
+              callback();
+          }, idleTime);
+      }
+  
+      // Add event listeners for touch and click on the canvas
+      canvas.addEventListener("click", resetTimer);
+      canvas.addEventListener("touchstart", resetTimer);
+  
+      resetTimer();
+  }
+  
   const handleAppStateChange = (state) => {
     if (state.isActive) {
       setDeviceAwake(true);
@@ -123,13 +172,13 @@ const CocosGame: React.FC = () => {
         const lessonStartTime = data.lessonStartTime || 0; // Ensure lessonStartTime is defined
         const currentTime = Date.now(); // Get current timestamp
         const totalTimeSpent = currentTime - lessonStartTime; // Calculate total time spent
-        sendEiduResultToJava("ABORT", data.score, totalTimeSpent, "Lesson aborted", []);
+        sendEiduResultToJava("ABORT", null, totalTimeSpent, "Lesson aborted", []);
         console.log("Current Chapter ", ChapterDetail);
       }
     }
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
-    killGame(e);
+    killGame(e);    
     Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
       user_id: api.currentStudent!.docId,
       assignment_id: lessonDetail.assignment?.docId,
@@ -162,6 +211,15 @@ const CocosGame: React.FC = () => {
     push();
   };
 
+  const gameStart = async (e: any) => {
+    const data = await PortPlugin.sendLaunchData();
+    // Example usage: Set idle time to 5000ms and start detection
+    setIdleTime(data.inactivityTimeoutInMs);
+    console.log("Sending Lesson End Data to Java:", JSON.stringify(data, null, 2));
+    lessonStartTime = e.detail.lessonStartTime;
+    console.log("game start001");
+  };
+  
   async function init() {
     setIsLoading(true);
     const lessonId: string = state.lessonId;
@@ -209,6 +267,8 @@ const CocosGame: React.FC = () => {
     
     document.body.addEventListener(GAME_END, killGame, { once: true });
     document.body.addEventListener(GAME_EXIT, gameExit, { once: true });
+    document.body.addEventListener(GAME_START, gameStart, { once: true });
+    
 
     // document.body.addEventListener("problemEnd", onProblemEnd);
   }

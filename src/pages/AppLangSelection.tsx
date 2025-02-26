@@ -12,8 +12,12 @@ import { t } from "i18next";
 import "./AppLangSelection.css";
 import { chevronForward } from "ionicons/icons";
 import DropDown from "../components/DropDown";
+import { useHandleLessonClick } from "../components/lessonUtils";
+import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 
 const AppLangSelection: React.FC = () => {
+  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+  const handleLessonClick = useHandleLessonClick();
   const history = useHistory();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [langList, setLangList] = useState<
@@ -25,6 +29,11 @@ const AppLangSelection: React.FC = () => {
   const [currentAppLang, setCurrentAppLang] = useState<string>();
   // const [currentAppLang, setCurrentAppLang] = useState<string>(langList[0]?.id);
   const [currentPage, setCurrentPage] = useState<number>(-1);
+
+    useEffect(() => {
+      document.addEventListener("sendLaunch", sendLaunch);
+      return () => document.removeEventListener("sendLaunch", sendLaunch);
+  }, []);
 
   useEffect(() => {
     getLangList();
@@ -54,6 +63,16 @@ const AppLangSelection: React.FC = () => {
     setLangList(tempLangList);
     setIsLoading(false);
   }
+
+  const sendLaunch = async (event: Event) => {
+    // const lesson = await ApiHandler.i.getLessonWithCocosLessonId("en0000");
+    // const course  = await ApiHandler.i.getCourse(lesson);
+    // if (lesson) {
+    //   handleLessonClick(lesson, true, course, null, history, online, presentToast);
+    // }
+    console.log("Calling received from Java:", event);
+    handleLessonClick(null, true, undefined, true, presentToast);
+};
 
   const intermediatePages = [
     {
