@@ -80,15 +80,15 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
     }
   }, [assignments]);
 
-  // Setup assignment listener once currentClass is set
   useEffect(() => {
-    if (!currentClass) {
+    const student = Util.getCurrentStudent();
+    if (!currentClass || !student) {
       return;
     }
-
+  
     const updateAssignmentsAndLessons = async (newAssignment: TableTypes<"assignment"> | undefined) => {
       if (!newAssignment) return;
-
+  
       setAssignments((prevAssignments) => {
         if (!prevAssignments.some((a) => a.id === newAssignment.id)) {
           const updated = [...prevAssignments, newAssignment];
@@ -97,7 +97,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
         }
         return prevAssignments;
       });
-
+  
       const lesson = await api.getLesson(newAssignment.lesson_id);
       if (lesson) {
         setLessons((prevLessons) => {
@@ -108,25 +108,16 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
         });
       }
     };
-
-    api.assignmentListner(currentClass.id, updateAssignmentsAndLessons);
-
-    return () => {
-      console.log("[AssignmentPage] 🔴 Cleaning up assignmentListner");
-    };
-  }, [currentClass, onNewAssignment]);
-
-  // --- Setup assignmentUserListner (for user-specific assignments) ---
-  useEffect(() => {
-    const student = Util.getCurrentStudent();
-    if (!student) return;
-
-    const updateAssignmentUserAndLessons = async (newAssignmentUser: TableTypes<"assignment_user"> | undefined) => {
+  
+    const updateAssignmentUserAndLessons = async (
+      newAssignmentUser: TableTypes<"assignment_user"> | undefined
+    ) => {
       if (!newAssignmentUser) return;
       const assignment = await api.getAssignmentById(newAssignmentUser.assignment_id);
       if (assignment) {
         setAssignments((prevAssignments) => {
           if (!prevAssignments.some((a) => a.id === assignment.id)) {
+            console.log("[AssignmentPage] 🟢 Adding new assignment from assignmentUser:", assignment);
             return [...prevAssignments, assignment];
           }
           return prevAssignments;
@@ -142,13 +133,15 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
         }
       }
     };
-
+  
+    api.assignmentListner(currentClass.id, updateAssignmentsAndLessons);
     api.assignmentUserListner(student.id, updateAssignmentUserAndLessons);
-
+  
     return () => {
-      console.log("[AssignmentPage] 🔴 Cleaning up assignmentUserListner");
+      api.removeAssignmentChannel();
     };
-  }, []);
+  }, [currentClass, onNewAssignment]);
+    
 
   const checkAllHomeworkDownloaded = async () => {
     if (lessons.length === 0) {
