@@ -64,6 +64,22 @@ interface ICreateStudentResultStatement {
   };
 }
 
+interface course {
+  code: string | null
+  color: string | null
+  created_at: string
+  curriculum_id: string | null
+  description: string | null
+  grade_id: string | null
+  id: string
+  image: string | null
+  is_deleted: boolean | null
+  name: string
+  sort_index: number | null
+  subject_id: string | null
+  updated_at: string | null
+}
+
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
   private preQuizMap: { [key: string]: { [key: string]: Result } } = {};
@@ -149,7 +165,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<string | undefined> {
     throw new Error("Method not implemented.");
   }
-  private constructor() {}
+  private constructor() { }
   getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;
@@ -392,8 +408,34 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getCourse(id: string): Promise<TableTypes<"course"> | undefined> {
-    throw new Error("Method not implemented.");
+  async getCourse(id: string): Promise<TableTypes<"course"> | undefined> {
+
+    try {
+      const jsonFile = "assets/courses/" + id + "/res/course.json";
+      const courseJson = await Util.loadJson(jsonFile)
+      const metaC = courseJson.metadata;
+
+      console.log("getCourses data ", courseJson.metadata);
+      let tCourse: TableTypes<"course"> = {
+        code: metaC.courseCode,
+        color: metaC.color,
+        created_at: "",
+        curriculum_id: metaC.curriculum,
+        description: null,
+        grade_id: metaC.grade,
+        id: "",
+        image: metaC.thumbnail,
+        is_deleted: null,
+        name: metaC.title,
+        sort_index: metaC.sortIndex,
+        subject_id: metaC.subject,
+        updated_at: null,
+      };
+      return tCourse;
+    } catch (error) {
+      console.error("Error fetching JSON:", error);
+    }
+
   }
 
   deleteProfile(studentId: string) {

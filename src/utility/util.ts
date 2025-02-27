@@ -1897,4 +1897,31 @@ export class Util {
   public static setGameUrl(path: string) {
     localStorage.setItem(GAME_URL, path);
   }
+
+  public static async loadJson(jsonPath) {
+    let response = await fetch(jsonPath);
+
+    // Log response details
+    console.log("Response URL:", response.url);
+    console.log("Status:", response.status, response.statusText);
+    console.log("Content-Type:", response.headers.get("content-type"));
+
+    // Check if the request was successful
+    if (!response.ok) {
+      throw new Error(
+        `Failed to load JSON. Status: ${response.status} ${response.statusText}`
+      );
+    }
+
+    // Ensure the response is JSON before parsing
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      // Log the response body to see what is actually being returned
+      const text = await response.text();
+      console.error("Received unexpected response:", text);
+      throw new Error(`Expected JSON but received: ${contentType}`);
+    }
+    const courseJson = await response.json();
+    return courseJson
+  }
 }
