@@ -1259,6 +1259,7 @@ export class OneRosterApi implements ServiceApi {
 
   sendStatement = async (): Promise<void> => {
     const statement = this.createStatement("John Doe", "Sample Lesson");
+    // git checking dummy commit
     try {
       await tincan.sendStatement(statement as any);
       console.log("Statement sent successfully:", statement);
