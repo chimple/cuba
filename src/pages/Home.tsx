@@ -171,6 +171,7 @@ const Home: FC = () => {
     ) {
       fetchData();
     }
+    getAssignments();
   }, [currentHeader]);
   const initData = async () => {
     fetchData();
