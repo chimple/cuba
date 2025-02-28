@@ -1215,8 +1215,9 @@ export class FirebaseApi implements ServiceApi {
     count: string
   ): Promise<Assignment[]> {
     try {
-      
+      console.log('assignmentCount: ', count)
       const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
+      console.log('typeof', typeof(+count))
       let q1 = query(
         collection(this._db, CollectionIds.ASSIGNMENT),
         where("isClassWise", "==", true),

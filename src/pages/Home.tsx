@@ -109,7 +109,10 @@ const Home: FC = () => {
   const [historyLessons, setHistoryLessons] = useState<Lesson[]>([]);
   const [validLessonIds, setValidLessonIds] = useState<string[]>([]);
   const [historySortIndex, setHistorySortIndex] = useState<number>(0);
-  const assignmentCount = useFeatureValue('show-lessons', '50')
+  const assignmentCount = useFeatureValue('bvm-test', '50')
+  useEffect(() => {
+    console.log('assignmentCount: ', assignmentCount)
+  }, [assignmentCount])
   let allPlayedLessonIds: string[] = [];
   let tempPageNumber = 1;
   let linked: boolean;

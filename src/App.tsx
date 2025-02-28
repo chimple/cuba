@@ -222,6 +222,7 @@ const App: React.FC = () => {
     studentResult &&
       growthbook.setAttributes({
         school_id: studentResult.schools[0],
+        id: studentResult.docId
       });
     console.log("growthbookConfig: ", growthbook);
   };
