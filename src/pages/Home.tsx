@@ -567,13 +567,13 @@ const Home: FC = () => {
   return (
     <IonPage id="home-page">
       <IonHeader id="home-header">
-        <HomeHeader
-          key={refreshKey}
-          currentHeader={currentHeader}
-          onHeaderIconClick={onHeaderIconClick}
-          pendingAssignmentCount={pendingAssignments.length}
-          pendingLiveQuizCount={pendingLiveQuizCount}
-        ></HomeHeader>
+      <HomeHeader
+      key={refreshKey}
+      currentHeader={currentHeader}
+      onHeaderIconClick={onHeaderIconClick}
+      pendingAssignmentCount={pendingAssignments.length}
+      pendingLiveQuizCount={pendingLiveQuizCount}
+      />
       </IonHeader>
       <div className="slider-content">
         {!isLoading ? (
@@ -592,7 +592,18 @@ const Home: FC = () => {
 
             {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
 
-            {currentHeader === HOMEHEADERLIST.ASSIGNMENT && <AssignmentPage />}
+            {currentHeader === HOMEHEADERLIST.ASSIGNMENT && (
+              <AssignmentPage
+                onNewAssignment={(newAssignment) => {
+                setPendingAssignments((prev) => {
+                if (!prev.some((a) => a.id === newAssignment.id)) {
+                return [...prev, newAssignment];
+            }
+            return prev;
+      });
+    }}
+  />
+)}
 
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
             {currentHeader === HOMEHEADERLIST.LIVEQUIZ && <LiveQuiz />}
