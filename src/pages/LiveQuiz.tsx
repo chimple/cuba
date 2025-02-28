@@ -8,6 +8,7 @@ import { t } from "i18next";
 import LessonSlider from "../components/LessonSlider";
 import "./LiveQuiz.css";
 import SkeltonLoading from "../components/SkeltonLoading";
+import Papa from "papaparse";
 
 const LiveQuiz: React.FC = () => {
   const history = useHistory();
@@ -16,14 +17,52 @@ const LiveQuiz: React.FC = () => {
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
   }>();
+  const requiredKeys = [
+    "School Name",
+    "Student Name",
+    "Student Id",
+    "Class Name",
+    "Gender",
+    "Phone Number",
+    "Age",
+    "School Id",
+    "School defined Student Id",
+    "Student_password",
+    "Cluster",
+    "District",
+    "State",
+  ];
   const [assignments, setAssignments] = useState<TableTypes<"assignment">[]>(
     []
   );
   const api = ServiceConfig.getI().apiHandler;
+  const [data, setData] = useState<Array<any>>([]);
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+
+    if (file) {
+      Papa.parse(file, {
+        complete: (result) => {
+          var a: Array<any> = result.data;
+          setData(result.data);
+          console.log('JJJJJJJJJJJJJJJJJJJJJJJJJ')
+          if (a.length > 0) {
+            const keys = Object.keys(a[0]); // Get the column names (keys)
+            console.log("Keys:", keys);
+          }
+          // console.log("Parsed CSV Data:", result.data);
+        },
+        header: true, // Set to false if the CSV doesn't have headers
+        skipEmptyLines: true,
+      });
+    }
+  };
 
   useEffect(() => {
     init();
   }, []);
+  
 
   const init = async (fromCache: boolean = true) => {
     setLoading(true);
@@ -82,26 +121,9 @@ const LiveQuiz: React.FC = () => {
         <SkeltonLoading isLoading={loading} header={HOMEHEADERLIST.LIVEQUIZ} />
       ) : (
         <div>
-          {liveQuizzes.length > 0 ? (
-            <div>
-              <LessonSlider
-                lessonData={liveQuizzes}
-                isHome={true}
-                course={undefined}
-                lessonsScoreMap={lessonResultMap || {}}
-                startIndex={0}
-                showSubjectName={true}
-                showChapterName={true}
-                assignments={assignments}
-                showDate={true}
-              />
-            </div>
-          ) : (
-            <div className="pending-live-quiz">
-              {t("You do not have any live quizzes available.")}
-            </div>
-          )}
-        </div>
+      <h2>Upload CSV File</h2>
+      <input type="file" accept=".csv" onChange={handleFileUpload} />
+    </div>
       )}
     </div>
   );
