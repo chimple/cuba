@@ -141,7 +141,9 @@ export class OneRosterApi implements ServiceApi {
         subject_id: metaC.subject,
         updated_at: null,
       };
-      return tCourse;
+      let res = []
+      res.push(tCourse)
+      return res;
     } catch (error) {
       console.error("Error fetching JSON:", error);
     }
@@ -179,7 +181,7 @@ export class OneRosterApi implements ServiceApi {
     grades: TableTypes<"grade">[];
     courses: TableTypes<"course">[];
   }> {
-    throw new Error("Method not implemented.");
+    return { grades: [], course: [] }
   }
   getAssignmentById(id: string): Promise<TableTypes<"assignment"> | undefined> {
     throw new Error("Method not implemented.");
@@ -338,7 +340,9 @@ export class OneRosterApi implements ServiceApi {
         subject_id: metaC.subject,
         updated_at: null,
       };
-      return tCourse;
+      let res = []
+      res.push(tCourse)
+      return res;
     } catch (error) {
       console.error("Error fetching JSON:", error);
     }
@@ -1617,5 +1621,13 @@ export class OneRosterApi implements ServiceApi {
   }
   getRecommendedLessons(studentId: string, classId?: string): Promise<TableTypes<"lesson">[]> {
     return []
+  }
+  async getGradeById(id: string): Promise<TableTypes<"grade"> | undefined> {
+    return undefined
+  }
+  async getCurriculumById(
+    id: string
+  ): Promise<TableTypes<"curriculum"> | undefined> {
+    return undefined
   }
 }
