@@ -377,7 +377,6 @@ async getStudentResultInMap(studentId?: string): Promise<{ [lessonDocId: string]
             },
         };
         
-        await this.sendStatement();
         const statements = await this.getStatements(agentEmail, queryStatement);
         return statements;
     } catch (error) {
@@ -546,12 +545,12 @@ async getStudentResultInMap(studentId?: string): Promise<{ [lessonDocId: string]
       },
       verb: {
         id: "http://adlnet.gov/expapi/verbs/completed",
-        display: { "en-US": "completed" },
+        display: { courseId: "completed" },
       },
       object: {
         id: `http://example.com/activity/${lessonId}`,
         definition: {
-          name: { "en-US": `Lesson ${lessonId}` },
+          name: { courseId: `Lesson ${lessonId}` },
         },
       },
       result: {
@@ -1434,34 +1433,6 @@ async getStudentResultInMap(studentId?: string): Promise<{ [lessonDocId: string]
     };
   };
   
-  sendStatement = async (): Promise<void> => {
-    let loggedStudent = JSON.parse(localStorage.getItem(CURRENT_STUDENT));
-    const statement = this.createStatement(loggedStudent?.name, "Maths", {
-      studentId: "12345",
-      courseId: "marathi",
-      score: 95,
-      timeSpent: "120",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      assignmentId: "A1",
-      lessonId: "L1",
-      chapterId: "C1",
-      schoolId: "S1",
-      correctMoves: 10,
-      wrongMoves: 2,
-      isDeleted: false,
-      success: true,      
-      completion: true, 
-      response: "Answered Correctly",
-    });
-  
-    try {
-      await tincan.sendStatement(statement as any);
-      console.log("Statement sent successfully:", statement);
-    } catch (error) {
-      console.error("Error sending statement:", error);
-    }
-  };
   getStatements = async (
     agentEmail: string,
     queryStatement?: IGetStudentResultStatement
