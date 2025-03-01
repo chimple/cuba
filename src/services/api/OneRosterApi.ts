@@ -2,6 +2,7 @@
 import { HttpHeaders } from "@capacitor-community/http";
 import {
   COURSES,
+  CURRENT_STUDENT,
   CURRENT_USER,
   LeaderboardDropdownList,
   LeaderboardRewards,
@@ -42,7 +43,6 @@ interface IGetStudentResultStatement {
   until?: string;
   limit?: number;
 }
-
 interface ICreateStudentResultStatement {
   actor: {
     name: string;
@@ -56,10 +56,39 @@ interface ICreateStudentResultStatement {
   };
   object: {
     id: string;
+    objectType?: string;
     definition: {
       name: {
         "en-US": string;
       };
+      extensions?: {
+        "http://example.com/xapi/lessonId"?: string;
+        "http://example.com/xapi/courseId"?: string;
+      };
+    };
+  };
+  result?: {
+    success: boolean;
+    completion: boolean;
+    response: string;
+    score?: {
+      raw?: number;
+    };
+    duration?: string;
+    extensions?: {
+      "http://example.com/xapi/correctMoves"?: number;
+      "http://example.com/xapi/wrongMoves"?: number;
+      "http://example.com/xapi/assignmentId"?: string;
+    };
+  };
+  context?: {
+    extensions?: {
+      "http://example.com/xapi/studentId"?: string;
+      "http://example.com/xapi/schoolId"?: string;
+      "http://example.com/xapi/chapterId"?: string;
+      "http://example.com/xapi/isDeleted"?: boolean;
+      "http://example.com/xapi/createdAt"?: string;
+      "http://example.com/xapi/updatedAt"?: string;
     };
   };
 }
@@ -333,60 +362,54 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
   }
-  async getStudentProgress(studentId: string): Promise<Map<string, string>> {
-    const agentEmail = "karan@gmail.com"; // This should be replaced with the local storage login email
+  async getStudentProgress(): Promise<Map<string, string>> {
+    try {
+      const loggedStudent = JSON.parse(localStorage.getItem(CURRENT_STUDENT));
+      if (!loggedStudent || !loggedStudent.name) {
+        throw new Error("No logged-in student found");
+      }
 
-    const currentDate = new Date().toISOString();
-    const queryStatement: IGetStudentResultStatement = {
-      agent: {
-        mbox: `mailto:${agentEmail}`,
-      },
-      verb: {},
-      activity: {
-        id: "http://example.com/activity/12345",
-      },
-      since: currentDate,
-    };
+      const agentEmail = `mailto:${loggedStudent?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
+      const queryStatement: IGetStudentResultStatement = {
+        agent: {
+          mbox: agentEmail,
+        },
+      };
 
-    // Retrieve the statements for the agent
-    const statements = await this.getStatements(agentEmail, queryStatement);
-    return statements;
+      const statements = await this.getStatements(agentEmail, queryStatement);
+      return statements;
+    } catch (error) {
+      console.error("Error in getStudentProgress:", error);
+      return new Map();
+    }
   }
 
   async getStudentResultInMap(
-    studentId: string
+    studentId?: string
   ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
-    const agentEmail = "karan@gmail.com"; // This should be replaced with the local storage login email
-    const currentDate = new Date().toISOString();
-    const queryStatement: IGetStudentResultStatement = {
-      agent: {
-        mbox: `mailto:${agentEmail}`,
-      },
-      verb: {
-        id: "http://adlnet.gov/expapi/verbs/completed",
-      },
-      activity: {
-        id: "http://example.com/activity/12345",
-      },
-      since: currentDate,
-    };
-
-    // Retrieve the statements for the agent
-    await this.sendStatement();
-    const statements = await this.getStatements(agentEmail, queryStatement);
-
-    return statements;
-  }
-
-  sendStatement = async (): Promise<void> => {
-    const statement = this.createStatement();
     try {
-      await tincan.sendStatement(statement as any);
-      console.log("Statement sent successfully:", statement);
+      const loggedStudent = JSON.parse(localStorage.getItem(CURRENT_STUDENT));
+      if (!loggedStudent || !loggedStudent.name) {
+        throw new Error("No logged-in student found");
+      }
+
+      const agentEmail = `mailto:${loggedStudent?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
+      const queryStatement: IGetStudentResultStatement = {
+        agent: {
+          mbox: agentEmail,
+        },
+        verb: {
+          id: "http://adlnet.gov/expapi/verbs/completed",
+        },
+      };
+
+      const statements = await this.getStatements(agentEmail, queryStatement);
+      return statements;
     } catch (error) {
-      console.error("Error sending statement:", error);
+      console.error("Error in getStudentResultInMap:", error);
+      return {};
     }
-  };
+  }
 
   getClassById(id: string): Promise<TableTypes<"class"> | undefined> {
     throw new Error("Method not implemented.");
@@ -521,17 +544,85 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"favorite_lesson">> {
     throw new Error("Method not implemented.");
   }
-  updateResult(
+
+  async updateResult(
     student: User,
     courseId: string,
     lessonId: string,
     score: number,
     correctMoves: number,
     wrongMoves: number,
-    timeSpent: number
+    timeSpent: number,
+    assignmentId: string,
+    chapterId: string,
+    classId: string,
+    schoolId: string
   ): Promise<Result> {
-    throw new Error("Method not implemented.");
+    if (!student) {
+      throw new Error("Student information is missing.");
+    }
+
+    const statement = {
+      actor: {
+        mbox: `mailto:${student.email}`,
+        name: student.name,
+      },
+      verb: {
+        id: "http://adlnet.gov/expapi/verbs/completed",
+        display: { courseId: "completed" },
+      },
+      object: {
+        id: `http://example.com/activity/${lessonId}`,
+        definition: {
+          name: { courseId: `Lesson ${lessonId}` },
+        },
+      },
+      result: {
+        score: { raw: score },
+        success: score > 35, // Assume passing score is above 35
+        completion: true,
+        response: `Correct: ${correctMoves}, Wrong: ${wrongMoves}`,
+      },
+      context: {
+        contextActivities: {
+          grouping: [
+            { id: `http://example.com/course/${courseId}` },
+            { id: `http://example.com/class/${classId}` },
+            { id: `http://example.com/school/${schoolId}` },
+            { id: `http://example.com/assignment/${assignmentId}` },
+            { id: `http://example.com/chapter/${chapterId}` },
+          ],
+        },
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      await tincan.sendStatement(statement);
+      console.log("Statement sent successfully:", statement);
+
+      return {
+        studentId: student.id,
+        courseId,
+        lessonId,
+        score,
+        correctMoves,
+        wrongMoves,
+        timeSpent,
+        assignmentId,
+        chapterId,
+        classId,
+        schoolId,
+        success: score > 35,
+        completion: true,
+        response: "Updated successfully",
+      };
+    } catch (error) {
+      console.error("Error sending update statement:", error);
+      throw new Error("Failed to update student result.");
+    }
   }
+
   getLanguageWithId(id: string): Promise<TableTypes<"language"> | undefined> {
     throw new Error("Method not implemented.");
     // console.log("hello");
@@ -1321,41 +1412,73 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"result">[] | undefined> {
     throw new Error("Method not implemented.");
   }
-
   private createStatement = (
     name: string,
-    lesson: string
+    lesson: string,
+    data: {
+      studentId?: string;
+      courseId?: string;
+      score?: number;
+      timeSpent?: string;
+      createdAt?: string;
+      updatedAt?: string;
+      assignmentId?: string;
+      lessonId?: string;
+      chapterId?: string;
+      schoolId?: string;
+      correctMoves?: number;
+      wrongMoves?: number;
+      isDeleted?: boolean;
+      success?: boolean;
+      completion?: boolean;
+      response?: string;
+    }
   ): ICreateStudentResultStatement => {
     return {
       actor: {
         name: name,
-        mbox: `mailto:${name.toLowerCase().replace(/\s+/g, "")}@example.com`,
+        mbox: `mailto:${name?.toLowerCase().replace(/\s+/g, "")}@example.com`,
       },
       verb: {
         id: "http://adlnet.gov/expapi/verbs/completed",
         display: { "en-US": "completed" },
       },
       object: {
-        // id: `http://example.com/activities/${lesson}`,
-        lessonId: "hindi",
-        chapterId: "chhava",
+        id: `marathi`,
+        objectType: "Activity",
         definition: {
           name: { "en-US": lesson },
+          extensions: {
+            "http://example.com/xapi/lessonId": data.lessonId || "En1",
+            "http://example.com/xapi/courseId": data.courseId || "En2",
+          },
+        },
+      },
+      result: {
+        success: data.success ?? true,
+        completion: data.completion ?? true,
+        response: data.response ?? "User Response",
+        score: {
+          raw: data.score ?? 0,
+        },
+        duration: data.timeSpent ? `PT${data.timeSpent}S` : undefined,
+        extensions: {
+          "http://example.com/xapi/correctMoves": data.correctMoves ?? 0,
+          "http://example.com/xapi/wrongMoves": data.wrongMoves ?? 0,
+          "http://example.com/xapi/assignmentId": data.assignmentId ?? "",
+        },
+      },
+      context: {
+        extensions: {
+          "http://example.com/xapi/studentId": data.studentId ?? "",
+          "http://example.com/xapi/schoolId": data.schoolId ?? "",
+          "http://example.com/xapi/chapterId": data.chapterId ?? "",
+          "http://example.com/xapi/isDeleted": data.isDeleted ?? false,
+          "http://example.com/xapi/createdAt": data.createdAt ?? "",
+          "http://example.com/xapi/updatedAt": data.updatedAt ?? "",
         },
       },
     };
-  };
-
-  sendStatement = async (): Promise<void> => {
-    const statement = this.createStatement("John Doe", "Sample Lesson");
-    try {
-      await tincan.sendStatement(statement as any);
-      console.log("Statement sent successfully:", statement);
-      return true;
-    } catch (error) {
-      console.error("Error sending statement:", error);
-      return false;
-    }
   };
 
   getStatements = async (
@@ -1369,41 +1492,65 @@ export class OneRosterApi implements ServiceApi {
       };
 
       const result = await tincan.getStatements(query);
-      const statements: ICreateStudentResultStatement[] =
-        result?.statements ?? [];
+      const statements = result?.statements ?? [];
 
       console.log(`Retrieved Statements for agent: ${agentEmail}`, statements);
 
       // Parse statements
-      const parsedStatements = statements.map((statement) => {
-        const { Row, Insert, Update } = statement;
-        const parsedStatement = Row ?? Insert ?? Update;
-        return {
-          id: parsedStatement?.id ?? null,
-          studentId: parsedStatement?.student_id ?? null,
-          courseId: parsedStatement?.course_id ?? null,
-          score: parsedStatement?.score ?? null,
-          timeSpent: parsedStatement?.time_spent ?? null,
-          createdAt: parsedStatement?.created_at ?? null,
-          updatedAt: parsedStatement?.updated_at ?? null,
-          assignmentId: parsedStatement?.assignment_id ?? null,
-          lessonId: parsedStatement?.lesson_id ?? null,
-          chapterId: parsedStatement?.chapter_id ?? null,
-          schoolId: parsedStatement?.school_id ?? null,
-          correctMoves: parsedStatement?.correct_moves ?? null,
-          wrongMoves: parsedStatement?.wrong_moves ?? null,
-          isDeleted: parsedStatement?.is_deleted ?? null,
-          relationships: Array.isArray(statement.Relationships)
-            ? statement.Relationships.map((rel) => ({
-                relation: rel?.referencedRelation ?? null,
-                foreignKey: rel?.foreignKeyName ?? null,
-                columns: rel?.columns ?? null,
-              }))
-            : [],
-        };
-      });
+      const parsedStatements = statements.map((statement) => ({
+        id: statement.id ?? null,
+        studentId:
+          statement.context?.extensions?.[
+            "http://example.com/xapi/studentId"
+          ] ?? null,
+        courseId:
+          statement.object?.definition?.extensions?.[
+            "http://example.com/xapi/courseId"
+          ] ?? null,
+        lessonId:
+          statement.object?.definition?.extensions?.[
+            "http://example.com/xapi/lessonId"
+          ] ?? null,
+        assignmentId:
+          statement.result?.extensions?.[
+            "http://example.com/xapi/assignmentId"
+          ] ?? null,
+        chapterId:
+          statement.context?.extensions?.[
+            "http://example.com/xapi/chapterId"
+          ] ?? null,
+        schoolId:
+          statement.context?.extensions?.["http://example.com/xapi/schoolId"] ??
+          null,
+        isDeleted:
+          statement.context?.extensions?.[
+            "http://example.com/xapi/isDeleted"
+          ] ?? false,
+        createdAt:
+          statement.context?.extensions?.[
+            "http://example.com/xapi/createdAt"
+          ] ?? null,
+        updatedAt:
+          statement.context?.extensions?.[
+            "http://example.com/xapi/updatedAt"
+          ] ?? null,
+        score: statement.result?.score?.raw ?? null,
+        correctMoves:
+          statement.result?.extensions?.[
+            "http://example.com/xapi/correctMoves"
+          ] ?? null,
+        wrongMoves:
+          statement.result?.extensions?.[
+            "http://example.com/xapi/wrongMoves"
+          ] ?? null,
+        timeSpent: statement.result?.duration ?? null,
+        success: statement.result?.success ?? null,
+        completion: statement.result?.completion ?? null,
+        response: statement.result?.response ?? null,
+      }));
 
       console.log("Parsed Statements:", parsedStatements);
+      return parsedStatements;
     } catch (error: unknown) {
       console.error("Error fetching statements:", error);
     }
