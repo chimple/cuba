@@ -104,7 +104,7 @@ const DisplayStudents: FC<{}> = () => {
       await schoolUtil.setCurrentClass(currClass ?? undefined);
     } else {
       console.warn("No classes found for the student.");
-      await schoolUtil.setCurrentClass(undefined); 
+      await schoolUtil.setCurrentClass(undefined);
     }
     if (
       !student.curriculum_id ||
@@ -171,23 +171,48 @@ const DisplayStudents: FC<{}> = () => {
       {!isLoading && students && (
         <div className="display-student-content">
           <div className="avatar-container">
-            {students.map((student) => (
-              <div
-                key={student.id}
-                onClick={() => onStudentClick(student)}
-                className="avatar"
-              >
-                <img
-                  className="avatar-img"
-                  src={
-                    (studentMode === MODES.SCHOOL && student.image) ||
-                    "assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png"
-                  }
-                  alt=""
-                />
-                <span className="student-name">{student.name}</span>
-              </div>
-            ))}
+            {students.hasOwnProperty("respectLaunchVersion") ? (
+              <>
+                <div
+                  key={(students as any).registration}
+                  onClick={() => onStudentClick(students as any)}
+                  className="avatar"
+                >
+                  <img
+                    className="avatar-img"
+                    src={
+                      (studentMode === MODES.SCHOOL &&
+                        (students as any).image) ||
+                      "assets/avatars/" + AVATARS[0] + ".png"
+                    }
+                    alt=""
+                  />
+                  <span className="student-name">{(students as any).name}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                {students.map((student) => (
+                  <div
+                    key={student.id}
+                    onClick={() => onStudentClick(student)}
+                    className="avatar"
+                  >
+                    <img
+                      className="avatar-img"
+                      src={
+                        (studentMode === MODES.SCHOOL && student.image) ||
+                        "assets/avatars/" +
+                          (student.avatar ?? AVATARS[0]) +
+                          ".png"
+                      }
+                      alt=""
+                    />
+                    <span className="student-name">{student.name}</span>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
           {/* {students.length < MAX_STUDENTS_ALLOWED && (
             <div className="add-new-button">
