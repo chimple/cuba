@@ -97,7 +97,7 @@ const DisplayStudents: FC<{}> = () => {
     );
     await Util.setCurrentStudent(student, undefined, true);
     const linkedData = await api.getStudentClassesAndSchools(student.id);
-    if (linkedData.classes && linkedData.classes.length > 0) {
+    if (linkedData?.classes && linkedData?.classes.length > 0) {
       const firstClass = linkedData.classes[0];
       const currClass = await api.getClassById(firstClass.id);
       console.log("Current class details:", currClass);
