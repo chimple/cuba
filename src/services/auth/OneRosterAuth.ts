@@ -8,7 +8,7 @@ export class OneRosterAuth implements ServiceAuth {
 
   private static NativeSSOPlugin = registerPlugin("NativeSSOPlugin");
 
-  private constructor() {}
+  private constructor() { }
   loginWithEmailAndPassword(email: any, password: any): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
@@ -54,6 +54,7 @@ export class OneRosterAuth implements ServiceAuth {
           activity_id: "activity-67890",
         };
 
+        OneRosterAuth._currentUser = mockWebResult;
         return mockWebResult;
       }
     } catch (error) {
