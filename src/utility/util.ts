@@ -1900,12 +1900,6 @@ export class Util {
 
   public static async loadJson(jsonPath) {
     let response = await fetch(jsonPath);
-
-    // Log response details
-    console.log("Response URL:", response.url);
-    console.log("Status:", response.status, response.statusText);
-    console.log("Content-Type:", response.headers.get("content-type"));
-
     // Check if the request was successful
     if (!response.ok) {
       throw new Error(

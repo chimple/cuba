@@ -177,11 +177,48 @@ export class OneRosterApi implements ServiceApi {
   getChapterById(id: string): Promise<Chapter | undefined> {
     throw new Error("Method not implemented.");
   }
-  getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
+  async getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
     grades: TableTypes<"grade">[];
     courses: TableTypes<"course">[];
   }> {
-    return { grades: [], course: [] }
+    try {
+      const id = "en" //Later get all available courses
+      const jsonFile = "assets/courses/" + id + "/res/course.json";
+      const courseJson = await Util.loadJson(jsonFile);
+      const metaC = courseJson.metadata;
+
+      console.log("getCourses data ", courseJson.metadata);
+      let tCourse: TableTypes<"course"> = {
+        code: metaC.courseCode,
+        color: metaC.color,
+        created_at: "null",
+        curriculum_id: metaC.curriculum,
+        description: null,
+        grade_id: metaC.grade,
+        id: "en",
+        image: metaC.thumbnail,
+        is_deleted: null,
+        name: metaC.title,
+        sort_index: metaC.sortIndex,
+        subject_id: metaC.subject,
+        updated_at: null,
+      };
+      let res = []
+      res.push(tCourse)
+      let gradeRes: TableTypes<"grade">[] = [{
+        created_at: "null",
+        description: "",
+        id: "g1",
+        image: null,
+        is_deleted: null,
+        name: "Grade 1",
+        sort_index: 1,
+        updated_at: "null"
+      }]
+      return { grades: gradeRes, courses: res }
+    } catch (error) {
+      console.error("Error fetching JSON:", error);
+    }
   }
   getAssignmentById(id: string): Promise<TableTypes<"assignment"> | undefined> {
     throw new Error("Method not implemented.");
@@ -224,7 +261,7 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() { }
-  getChaptersForCourse(courseId: string): Promise<
+  async getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;
       created_at: string;
@@ -237,33 +274,67 @@ export class OneRosterApi implements ServiceApi {
       updated_at: string | null;
     }[]
   > {
-    throw new Error("Method not implemented.");
+    try {
+      const jsonFile = `assets/courses/${courseId}/res/course.json`;
+      const courseJson = await Util.loadJson(jsonFile);
+
+      console.log("getChaptersForCourse data:", courseJson.groups);
+
+      if (!courseJson.groups) return [];
+
+      const chapters: TableTypes<"chapter">[] = courseJson.groups.map((group: any) => ({
+        id: group.metadata.id,
+        name: group.metadata.title,
+        image: group.metadata.thumbnail || "",
+        course_id: courseId,
+        created_at: null,
+        updated_at: null,
+        is_deleted: null,
+      }));
+
+      return chapters;
+    } catch (error) {
+      console.error("Error fetching chapters for course:", error);
+    }
   }
-  getLessonsForChapter(chapterId: string): Promise<
-    {
-      cocos_chapter_code: string | null;
-      cocos_lesson_id: string | null; //     JSON.stringify(error)
-      //     JSON.stringify(error)
-      //   );
-      cocos_subject_code: string | null;
-      created_at: string;
-      created_by: string | null;
-      id: string;
-      image: string | null;
-      is_deleted: boolean | null;
-      language_id: string | null;
-      name: string | null;
-      outcome: string | null;
-      plugin_type: string | null;
-      status: string | null;
-      subject_id: string | null;
-      target_age_from: number | null;
-      target_age_to: number | null;
-      updated_at: string | null;
-    }[]
-  > {
-    throw new Error("Method not implemented.");
+  async getLessonsForChapter(chapterId: string): Promise<TableTypes<"lesson">[] | undefined> {
+    try {
+      const courseId = 'en'
+      const jsonFile = `assets/courses/${courseId}/res/course.json`;
+      const courseJson = await Util.loadJson(jsonFile);
+
+      console.log("getLessonsForChapter data:", courseJson.groups);
+
+      const chapter = courseJson.groups.find((group: any) => group.metadata.id === chapterId);
+      if (!chapter || !chapter.navigation) return [];
+
+      const lessons: TableTypes<"lesson">[] = chapter.navigation.map((lesson: any) => ({
+        cocos_chapter_code: lesson.cocosChapterCode,
+        cocos_lesson_id: lesson.id,
+        cocos_subject_code: lesson.cocosSubjectCode,
+        color: lesson.color,
+        created_at: null,
+        created_by: null,
+        id: lesson.id,
+        image: lesson.thumbnail || "",
+        is_deleted: null,
+        language_id: lesson.language,
+        name: lesson.title,
+        outcome: lesson.outcome || null,
+        plugin_type: lesson.pluginType,
+        status: lesson.status,
+        chapter_id: chapterId,
+        subject_id: lesson.subject,
+        target_age_from: lesson.targetAgeFrom || null,
+        target_age_to: lesson.targetAgeTo || null,
+      }));
+
+      return lessons;
+    } catch (error) {
+      console.error("Error fetching lessons for chapter:", error);
+    }
   }
+
   updateRewardsForStudent(
     studentId: string,
     unlockedReward: LeaderboardRewards
@@ -1404,11 +1475,47 @@ export class OneRosterApi implements ServiceApi {
     return chapters[Math.min(index, chapters.length - 1)] ?? chapters[1];
   }
 
-  public async getCoursesFromLesson(
-    lessonId: string
-  ): Promise<TableTypes<"course">[]> {
-    throw new Error("Method not implemented.");
+  public async getCoursesFromLesson(lessonId: string): Promise<TableTypes<"course">[]> {
+    try {
+      const courses: TableTypes<"course">[] = [];
+      const courseList = ["en"]; // Replace with actual list of course IDs if available
+
+      for (const courseId of courseList) {
+        const jsonFile = `assets/courses/${courseId}/res/course.json`;
+        const courseJson = await Util.loadJson(jsonFile);
+
+        // Check if any lesson in the course matches the given lesson ID
+        const foundLesson = courseJson.groups.some((group: any) =>
+          group.navigation.some((lesson: any) => lesson.id === lessonId)
+        );
+
+        if (foundLesson) {
+          const metaC = courseJson.metadata;
+          courses.push({
+            code: metaC.courseCode,
+            color: metaC.color,
+            created_at: null,
+            curriculum_id: metaC.curriculum,
+            description: null,
+            grade_id: metaC.grade,
+            id: courseId,
+            image: metaC.thumbnail,
+            is_deleted: null,
+            name: metaC.title,
+            sort_index: metaC.sortIndex,
+            subject_id: metaC.subject,
+            updated_at: null,
+          });
+        }
+      }
+
+      return courses;
+    } catch (error) {
+      console.error("Error fetching courses from lesson:", error);
+      return [];
+    }
   }
+
 
   searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
