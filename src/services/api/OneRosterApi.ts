@@ -65,19 +65,19 @@ interface ICreateStudentResultStatement {
 }
 
 interface course {
-  code: string | null
-  color: string | null
-  created_at: string
-  curriculum_id: string | null
-  description: string | null
-  grade_id: string | null
-  id: string
-  image: string | null
-  is_deleted: boolean | null
-  name: string
-  sort_index: number | null
-  subject_id: string | null
-  updated_at: string | null
+  code: string | null;
+  color: string | null;
+  created_at: string;
+  curriculum_id: string | null;
+  description: string | null;
+  grade_id: string | null;
+  id: string;
+  image: string | null;
+  is_deleted: boolean | null;
+  name: string;
+  sort_index: number | null;
+  subject_id: string | null;
+  updated_at: string | null;
 }
 
 export class OneRosterApi implements ServiceApi {
@@ -165,7 +165,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<string | undefined> {
     throw new Error("Method not implemented.");
   }
-  private constructor() { }
+  private constructor() {}
   getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;
@@ -259,8 +259,32 @@ export class OneRosterApi implements ServiceApi {
   getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]> {
     throw new Error("Method not implemented.");
   }
-  getAllCourses(): Promise<TableTypes<"course">[]> {
-    throw new Error("Method not implemented.");
+  async getAllCourses(): Promise<TableTypes<"course">[]> {
+    try {
+      const jsonFile = "assets/courses/" + id + "/res/course.json";
+      const courseJson = await Util.loadJson(jsonFile);
+      const metaC = courseJson.metadata;
+
+      console.log("getCourses data ", courseJson.metadata);
+      let tCourse: TableTypes<"course"> = {
+        code: metaC.courseCode,
+        color: metaC.color,
+        created_at: "",
+        curriculum_id: metaC.curriculum,
+        description: null,
+        grade_id: metaC.grade,
+        id: "",
+        image: metaC.thumbnail,
+        is_deleted: null,
+        name: metaC.title,
+        sort_index: metaC.sortIndex,
+        subject_id: metaC.subject,
+        updated_at: null,
+      };
+      return tCourse;
+    } catch (error) {
+      console.error("Error fetching JSON:", error);
+    }
   }
   getSchoolById(id: string): Promise<TableTypes<"school"> | undefined> {
     throw new Error("Method not implemented.");
@@ -332,6 +356,7 @@ export class OneRosterApi implements ServiceApi {
   async getStudentResultInMap(
     studentId: string
   ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
+    const agentEmail = "karan@gmail.com"; // This should be replaced with the local storage login email
     const currentDate = new Date().toISOString();
     const queryStatement: IGetStudentResultStatement = {
       agent: {
@@ -409,10 +434,9 @@ export class OneRosterApi implements ServiceApi {
   }
 
   async getCourse(id: string): Promise<TableTypes<"course"> | undefined> {
-
     try {
       const jsonFile = "assets/courses/" + id + "/res/course.json";
-      const courseJson = await Util.loadJson(jsonFile)
+      const courseJson = await Util.loadJson(jsonFile);
       const metaC = courseJson.metadata;
 
       console.log("getCourses data ", courseJson.metadata);
@@ -435,7 +459,6 @@ export class OneRosterApi implements ServiceApi {
     } catch (error) {
       console.error("Error fetching JSON:", error);
     }
-
   }
 
   deleteProfile(studentId: string) {
@@ -511,6 +534,7 @@ export class OneRosterApi implements ServiceApi {
   }
   getLanguageWithId(id: string): Promise<TableTypes<"language"> | undefined> {
     throw new Error("Method not implemented.");
+    // console.log("hello");
   }
   getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
     throw new Error("Method not implemented.");
@@ -521,14 +545,37 @@ export class OneRosterApi implements ServiceApi {
   getAllLanguages(): Promise<TableTypes<"language">[]> {
     throw new Error("Method not implemented.");
   }
-  getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
-    const user = localStorage.getItem(CURRENT_USER);
-    const currentUser = JSON.parse(user);
+  getParentStudentProfiles(): any {
+    const users = localStorage.getItem(CURRENT_USER);
+    const currentUser = JSON.parse(users);
     console.log(
       "OneRosterApi ~ getParentStudentProfiles ~ Ln:442",
       currentUser.actor.name
     );
-    return currentUser.actor.name;
+    const { actor, given_name, registration } = currentUser;
+    const user: TableTypes<"user"> = {
+      respectLaunchVersion: 1.1,
+      age: null,
+      avatar: "/assets/avatar/Aligator.png",
+      created_at: "null",
+      curriculum_id: "7d560737-746a-4931-a49f-02de1ca526bd",
+      email: actor.mbox[0],
+      fcm_token: null,
+      gender: "male",
+      grade_id: "c802dce7-0840-4baf-b374-ef6cb4272a76",
+      id: "0315757f-c525-4166-9370-ff8d0b3c7333",
+      image: null,
+      is_deleted: null,
+      is_tc_accepted: true,
+      language_id: "en",
+      music_off: null,
+      name: given_name,
+      phone: null,
+      sfx_off: null,
+      student_id: "23",
+      updated_at: null,
+    };
+    return user;
   }
 
   getCourseByUserGradeId(
