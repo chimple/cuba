@@ -212,139 +212,147 @@ const CocosGame: React.FC = () => {
   };
 
   const saveTempData = async (lessonData: CocosLessonData) => {
-    const api = ServiceConfig.getI().apiHandler;
-    const courseDocId: string | undefined = state.courseDocId;
-    const lesson: Lesson = JSON.parse(state.lesson);
-    const assignment = state.assignment;
-    const currentStudent = api.currentStudent!;
-    const data = lessonData;
-    let assignmentId = assignment ? assignment.id : null;
-    const isStudentLinked = await api.isStudentLinked(currentStudent.id);
-    let classId;
-    let schoolId;
-    let chapter_id;
-    if (isStudentLinked) {
-      const studentResult = await api.getStudentClassesAndSchools(
-        currentStudent.id
-      );
-      if (!!studentResult && studentResult.classes.length > 0) {
-        classId = studentResult.classes[0].id;
-        schoolId = studentResult.schools[0].id;
-      }
-      if (!assignmentId) {
-        const result = await api.getPendingAssignmentForLesson(
-          lesson.id,
-          classId,
+    try {
+      const api = ServiceConfig.getI().apiHandler;
+      const courseDocId: string | undefined = state.courseDocId;
+      const lesson: Lesson = JSON.parse(state.lesson);
+      const assignment = state.assignment;
+      const currentStudent = api.currentStudent!;
+      const data = lessonData;
+      let assignmentId = assignment ? assignment.id : null;
+      const isStudentLinked = await api.isStudentLinked(currentStudent.id);
+      let classId;
+      let schoolId;
+      let chapter_id;
+      if (isStudentLinked) {
+        const studentResult = await api.getStudentClassesAndSchools(
           currentStudent.id
         );
-        if (result) {
-          assignmentId = result?.id;
+        if (!!studentResult && studentResult.classes.length > 0) {
+          classId = studentResult.classes[0].id;
+          schoolId = studentResult.schools[0].id;
         }
+        if (!assignmentId) {
+          const result = await api.getPendingAssignmentForLesson(
+            lesson.id,
+            classId,
+            currentStudent.id
+          );
+          if (result) {
+            assignmentId = result?.id;
+          }
+        }
+        chapter_id = await api.getChapterByLesson(lesson.id, classId);
+      } else {
+        chapter_id = await api.getChapterByLesson(
+          lesson.id,
+          undefined,
+          currentStudent.id
+        );
       }
-      chapter_id = await api.getChapterByLesson(lesson.id, classId);
-    } else {
-      chapter_id = await api.getChapterByLesson(
+      let avatarObj = AvatarObj.getInstance();
+      let finalProgressTimespent =
+        avatarObj.weeklyTimeSpent["min"] * 60 +
+        avatarObj.weeklyTimeSpent["sec"];
+      finalProgressTimespent = finalProgressTimespent + data.timeSpent;
+      let computeMinutes = Math.floor(finalProgressTimespent / 60);
+      let computeSec = finalProgressTimespent % 60;
+      avatarObj.weeklyTimeSpent["min"] = computeMinutes;
+      avatarObj.weeklyTimeSpent["sec"] = computeSec;
+      avatarObj.weeklyPlayedLesson++;
+      const result = await api.updateResult(
+        currentStudent.id,
+        courseDocId,
         lesson.id,
-        undefined,
-        currentStudent.id
+        data.score!,
+        data.correctMoves,
+        data.wrongMoves,
+        data.timeSpent,
+        assignmentId,
+        chapterDetail?.id ?? chapter_id?.toString() ?? "",
+        classId,
+        schoolId
       );
+      // if (!!lessonDetail.cocos_chapter_code) {
+      //   let cChap = courseDetail.chapters.find(
+      //     (chap) => lessonDetail.cocos_chapter_code === chap.id
+      //   );
+      //   if (cChap) {
+      //     ChapterDetail = cChap;
+      //     console.log("Current Chapter ", ChapterDetail);
+      //   }
+      //   let existing = new Map();
+      //   let res: { [key: string]: string } = JSON.parse(
+      //     localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`) ||
+      //       "{}"
+      //   );
+      //   const finalLesson = await Util.getNextLessonFromGivenChapter(
+      //     courseDetail.chapters,
+      //     lessonData.chapterId,
+      //     lesson.id,
+      //     ChapterDetail
+      //   );
+      //   console.log("final lesson", finalLesson);
+      //   existing.set(courseDetail.courseCode, finalLesson?.id);
+      //   for (let [key, value] of existing) {
+      //     res[key] = value;
+      //   }
+      //   localStorage.setItem(
+      //     `${currentStudentDocId}-${RECOMMENDATIONS}`,
+      //     JSON.stringify(res)
+      //   );
+      // }
+      Util.logEvent(EVENTS.LESSON_END, {
+        user_id: currentStudent.id,
+        // assignment_id: lesson.assignment?.id,
+        chapter_id: data.chapterId,
+        // chapter_name: ChapterDetail ? ChapterDetail.name : "",
+        lesson_id: data.lessonId,
+        // lesson_name: lesson.name,
+        lesson_type: data.lessonType,
+        lesson_session_id: data.lessonSessionId,
+        ml_partner_id: data.mlPartnerId,
+        ml_class_id: data.mlClassId,
+        ml_student_id: data.mlStudentId,
+        course_id: data.courseId,
+        course_name: courseDetail.name,
+        time_spent: data.timeSpent,
+        total_moves: data.totalMoves,
+        total_games: data.totalGames,
+        correct_moves: data.correctMoves,
+        wrong_moves: data.wrongMoves,
+        game_score: data.gameScore,
+        quiz_score: data.quizScore,
+        game_completed: data.gameCompleted,
+        quiz_completed: data.quizCompleted,
+        game_time_spent: data.gameTimeSpent,
+        quiz_time_spent: data.quizTimeSpent,
+        score: data.score,
+      });
+      console.log(
+        "🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:",
+        result
+      );
+      let tempAssignmentCompletedIds = localStorage.getItem(
+        ASSIGNMENT_COMPLETED_IDS
+      );
+      let assignmentCompletedIds;
+      if (!tempAssignmentCompletedIds) {
+        assignmentCompletedIds = {};
+      } else {
+        assignmentCompletedIds = JSON.parse(tempAssignmentCompletedIds);
+      }
+      if (!assignmentCompletedIds[api.currentStudent?.id!]) {
+        assignmentCompletedIds[api.currentStudent?.id!] = [];
+      }
+      // assignmentCompletedIds[api.currentStudent?.id!].push(lesson.assignment?.id);
+      localStorage.setItem(
+        ASSIGNMENT_COMPLETED_IDS,
+        JSON.stringify(assignmentCompletedIds)
+      );
+    } catch (error) {
+      console.error("Error: SaveTempData", error);
     }
-    let avatarObj = AvatarObj.getInstance();
-    let finalProgressTimespent =
-      avatarObj.weeklyTimeSpent["min"] * 60 + avatarObj.weeklyTimeSpent["sec"];
-    finalProgressTimespent = finalProgressTimespent + data.timeSpent;
-    let computeMinutes = Math.floor(finalProgressTimespent / 60);
-    let computeSec = finalProgressTimespent % 60;
-    avatarObj.weeklyTimeSpent["min"] = computeMinutes;
-    avatarObj.weeklyTimeSpent["sec"] = computeSec;
-    avatarObj.weeklyPlayedLesson++;
-    const result = await api.updateResult(
-      currentStudent.id,
-      courseDocId,
-      lesson.id,
-      data.score!,
-      data.correctMoves,
-      data.wrongMoves,
-      data.timeSpent,
-      assignmentId,
-      chapterDetail?.id ?? chapter_id?.toString() ?? "",
-      classId,
-      schoolId
-    );
-    // if (!!lessonDetail.cocos_chapter_code) {
-    //   let cChap = courseDetail.chapters.find(
-    //     (chap) => lessonDetail.cocos_chapter_code === chap.id
-    //   );
-    //   if (cChap) {
-    //     ChapterDetail = cChap;
-    //     console.log("Current Chapter ", ChapterDetail);
-    //   }
-    //   let existing = new Map();
-    //   let res: { [key: string]: string } = JSON.parse(
-    //     localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`) ||
-    //       "{}"
-    //   );
-    //   const finalLesson = await Util.getNextLessonFromGivenChapter(
-    //     courseDetail.chapters,
-    //     lessonData.chapterId,
-    //     lesson.id,
-    //     ChapterDetail
-    //   );
-    //   console.log("final lesson", finalLesson);
-    //   existing.set(courseDetail.courseCode, finalLesson?.id);
-    //   for (let [key, value] of existing) {
-    //     res[key] = value;
-    //   }
-    //   localStorage.setItem(
-    //     `${currentStudentDocId}-${RECOMMENDATIONS}`,
-    //     JSON.stringify(res)
-    //   );
-    // }
-    Util.logEvent(EVENTS.LESSON_END, {
-      user_id: currentStudent.id,
-      // assignment_id: lesson.assignment?.id,
-      chapter_id: data.chapterId,
-      // chapter_name: ChapterDetail ? ChapterDetail.name : "",
-      lesson_id: data.lessonId,
-      // lesson_name: lesson.name,
-      lesson_type: data.lessonType,
-      lesson_session_id: data.lessonSessionId,
-      ml_partner_id: data.mlPartnerId,
-      ml_class_id: data.mlClassId,
-      ml_student_id: data.mlStudentId,
-      course_id: data.courseId,
-      course_name: courseDetail.name,
-      time_spent: data.timeSpent,
-      total_moves: data.totalMoves,
-      total_games: data.totalGames,
-      correct_moves: data.correctMoves,
-      wrong_moves: data.wrongMoves,
-      game_score: data.gameScore,
-      quiz_score: data.quizScore,
-      game_completed: data.gameCompleted,
-      quiz_completed: data.quizCompleted,
-      game_time_spent: data.gameTimeSpent,
-      quiz_time_spent: data.quizTimeSpent,
-      score: data.score,
-    });
-    console.log("🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:", result);
-    let tempAssignmentCompletedIds = localStorage.getItem(
-      ASSIGNMENT_COMPLETED_IDS
-    );
-    let assignmentCompletedIds;
-    if (!tempAssignmentCompletedIds) {
-      assignmentCompletedIds = {};
-    } else {
-      assignmentCompletedIds = JSON.parse(tempAssignmentCompletedIds);
-    }
-    if (!assignmentCompletedIds[api.currentStudent?.id!]) {
-      assignmentCompletedIds[api.currentStudent?.id!] = [];
-    }
-    // assignmentCompletedIds[api.currentStudent?.id!].push(lesson.assignment?.id);
-    localStorage.setItem(
-      ASSIGNMENT_COMPLETED_IDS,
-      JSON.stringify(assignmentCompletedIds)
-    );
   };
 
   return (
