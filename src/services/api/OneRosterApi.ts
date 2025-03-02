@@ -29,6 +29,7 @@ import { DocumentData } from "firebase/firestore";
 import { RoleType } from "../../interface/modelInterfaces";
 import tincan from "../../tincan";
 import { Util } from "../../utility/util";
+import ApiDataProcessor from "./ApiDataProcessor";
 
 interface IGetStudentResultStatement {
   agent: {
@@ -530,7 +531,12 @@ export class OneRosterApi implements ServiceApi {
       };
 
       const statements = await this.getStatements(agentEmail, queryStatement);
-      return statements;
+
+      const res = ApiDataProcessor.dataProcessorGetStudentResultInMap(
+        statements
+      );
+      console.log("getStudentResultInMap const statements ", res);
+      return res
     } catch (error) {
       console.error("Error in getStudentResultInMap:", error);
       return {};
@@ -1652,7 +1658,25 @@ export class OneRosterApi implements ServiceApi {
   getStatements = async (
     agentEmail: string,
     queryStatement?: IGetStudentResultStatement
-  ): Promise<void> => {
+  ): {
+    id: string | null;
+    studentId: any;
+    courseId: any;
+    lessonId: any;
+    assignmentId: any;
+    chapterId: any;
+    schoolId: any;
+    isDeleted: any;
+    createdAt: any;
+    updatedAt: any;
+    score: number | null;
+    correctMoves: any;
+    wrongMoves;
+    timeSpent;
+    success;
+    compileFunction;
+    response: string | null;
+  }[] => {
     try {
       const query = {
         ...queryStatement,
