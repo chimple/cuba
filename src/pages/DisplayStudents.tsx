@@ -11,6 +11,7 @@ import {
   MODES,
   CONTINUE,
   TableTypes,
+  CURRENT_CLASS,
 } from "../common/constants";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { useHistory } from "react-router";
@@ -22,37 +23,46 @@ import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 import { schoolUtil } from "../utility/schoolUtil";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import SkeltonLoading from "../components/SkeltonLoading";
+import { Capacitor } from "@capacitor/core";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<TableTypes<"user">[]>();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [studentMode, setStudentMode] = useState<string | undefined>();
+  const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   useEffect(() => {
     getStudents();
+    lockOrientation();
     return () => {
       setIsLoading(false);
     };
   }, []);
+  const lockOrientation = () => {
+    if (Capacitor.isNativePlatform()) {
+      ScreenOrientation.lock({ orientation: "landscape" });
+    }
+  };
   const getStudents = async () => {
     const currMode = await schoolUtil.getCurrMode();
     setStudentMode(currMode);
-    const students =
+    const tempStudents =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     console.log(
       "🚀 ~ file: DisplayStudents.tsx:13 ~ getStudents ~ students:",
-      students
+      tempStudents
     );
 
-    if (!students || students.length < 1) {
+    if (!tempStudents || tempStudents.length < 1) {
       history.replace(PAGES.CREATE_STUDENT, {
         showBackButton: false,
       });
       return;
     }
-    setStudents(students);
+    setStudents(tempStudents);
     setIsLoading(false);
 
     // const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -94,7 +104,16 @@ const DisplayStudents: FC<{}> = () => {
       student
     );
     await Util.setCurrentStudent(student, undefined, true);
-    console.log("done setting student");
+    const linkedData = await api.getStudentClassesAndSchools(student.id);
+    if (linkedData.classes && linkedData.classes.length > 0) {
+      const firstClass = linkedData.classes[0];
+      const currClass = await api.getClassById(firstClass.id);
+      console.log("Current class details:", currClass);
+      await schoolUtil.setCurrentClass(currClass ?? undefined);
+    } else {
+      console.warn("No classes found for the student.");
+      await schoolUtil.setCurrentClass(undefined);
+    }
     if (
       !student.curriculum_id ||
       !student.language_id
@@ -164,7 +183,7 @@ const DisplayStudents: FC<{}> = () => {
               <div
                 key={student.id}
                 onClick={() => onStudentClick(student)}
-                className="avatar"
+                className="display-students-avatar"
               >
                 <img
                   className="avatar-img"
@@ -174,7 +193,9 @@ const DisplayStudents: FC<{}> = () => {
                   }
                   alt=""
                 />
-                <span className="student-name">{student.name}</span>
+                {student.name && (
+                  <span className="display-student-name">{student?.name}</span>
+                )}
               </div>
             ))}
           </div>

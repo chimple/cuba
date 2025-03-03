@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import "./Parent.css";
 import {
+  CLASS,
   LANGUAGE,
   MAX_STUDENTS_ALLOWED,
+  MODES,
   PAGES,
   PARENTHEADERLIST,
+  SCHOOL,
   TableTypes,
+  USER_DATA,
 } from "../common/constants";
 import ProfileCard from "../components/parent/ProfileCard";
 import User from "../models/user";
@@ -31,6 +35,7 @@ import CustomAppBar from "../components/studentProgress/CustomAppBar";
 import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
+import { RoleType } from "../interface/modelInterfaces";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
@@ -53,12 +58,22 @@ const Parent: React.FC = () => {
   //  const [localLangDocId, setLocalLangDocId] = useState<any>();
   const [reloadProfiles, setReloadProfiles] = useState<boolean>(false);
   const [studentMode, setStudentMode] = useState<string | undefined>();
+  const [currentUser, setCurrentUser] = useState<
+    TableTypes<"user"> | undefined
+  >();
+  const [schools, setSchools] = useState<
+    {
+      school: TableTypes<"school">;
+      role: RoleType;
+    }[]
+  >();
   let tempLangList: {
     id: string;
     displayName: string;
   }[] = [];
   // let langDocIds: Map<string, string> = new Map();
   const localAppLang = localStorage.getItem(LANGUAGE);
+  const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const parentHeaderIconList = [
     { header: "profile", displayName: "Profile" },
@@ -67,10 +82,12 @@ const Parent: React.FC = () => {
     { header: "faq", displayName: "FAQ" },
   ];
   const [tabs, setTabs] = useState({});
+  const localSchool = JSON.parse(localStorage.getItem(SCHOOL)!);
+  const localClass = JSON.parse(localStorage.getItem(CLASS)!);
   useEffect(() => {
     setIsLoading(true);
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
-    inti();
+    init();
     getStudentProfile();
   }, [reloadProfiles]);
 
@@ -85,9 +102,14 @@ const Parent: React.FC = () => {
     setUserProfile(finalUser);
     // });
   }
-  async function inti(): Promise<void> {
+  async function init(): Promise<void> {
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (parentUser != undefined) {
+    if (parentUser) {
+      setCurrentUser(parentUser);
+      const schools = await api.getSchoolsForUser(parentUser.id);
+      if (schools && schools.length > 0) {
+        setSchools(schools);
+      }
       const currMode = await schoolUtil.getCurrMode();
       setStudentMode(currMode);
       console.log("User ", parentUser?.music_off!);
@@ -180,6 +202,7 @@ const Parent: React.FC = () => {
                 // setIsLoading(true);
 
                 const api = ServiceConfig.getI().apiHandler;
+                const auth = ServiceConfig.getI().authHandler;
                 // api.deleteAllUserData
                 // const langDoc = await api.getLanguageWithId(selectedLangDocId);
                 const allLang = await api.getAllLanguages();
@@ -193,8 +216,7 @@ const Parent: React.FC = () => {
                 console.log("langDoc", langDoc);
                 await i18n.changeLanguage(langDoc.code ?? "");
                 console.log("applang", selectedLangDocId);
-                const currentUser =
-                  await ServiceConfig.getI().authHandler.getCurrentUser();
+                const currentUser = await auth.getCurrentUser();
                 setTabIndex(t(parentHeaderIconList[1].header));
 
                 const langId = langDocIds.get(langDoc.code ?? "");
@@ -204,6 +226,19 @@ const Parent: React.FC = () => {
                 }
                 console.log("selectedLangDocId", selectedLangDocId);
                 setCurrentAppLang(selectedLangDocId);
+                const updatedUserData: TableTypes<"user"> | undefined =
+                  currentUser
+                    ? { ...currentUser, language_id: selectedLangDocId }
+                    : undefined;
+                localStorage.setItem(
+                  USER_DATA,
+                  JSON.stringify(updatedUserData)
+                );
+                if (updatedUserData) {
+                  auth.currentUser = updatedUserData;
+                }
+                // console.log("currentUser after update:",await auth.getCurrentUser());
+                // window.location.reload();
               }}
             />
           </div>
@@ -249,6 +284,37 @@ const Parent: React.FC = () => {
           <div id="parent-logout">
             <ParentLogout />
           </div>
+          <div className="parent-teachermode-toggle">
+            <ToggleButton
+              title={"Switch to Teacher's Mode"}
+              layout="vertical"
+              onIonChangeClick={async () => {
+                if (localSchool && localClass) {
+                  schoolUtil.setCurrMode(MODES.TEACHER);
+                  history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+                } else if (schools && schools.length > 0) {
+                  if (schools?.length === 1) {
+                    Util.setCurrentSchool(schools[0].school, schools[0].role);
+                    const tempClasses = await api.getClassesForSchool(
+                      schools[0].school.id,
+                      currentUser?.id!
+                    );
+                    if (tempClasses.length > 0) {
+                      Util.setCurrentClass(tempClasses[0]);
+                      schoolUtil.setCurrMode(MODES.TEACHER);
+                      history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+                    }
+                  } else {
+                    schoolUtil.setCurrMode(MODES.TEACHER);
+                    history.replace(PAGES.DISPLAY_SCHOOLS);
+                  }
+                } else {
+                  schoolUtil.setCurrMode(MODES.TEACHER);
+                  history.replace(PAGES.DISPLAY_SCHOOLS);
+                }
+              }}
+            />
+          </div>
           {/* <div id="parent-delete">
             <DeleteParentAccount />
           </div> */}
@@ -293,7 +359,7 @@ const Parent: React.FC = () => {
                 onClick={() => {
                   let message = "Hiii !!!!";
                   window.open(
-                    `https://api.whatsapp.com/send?phone=918904515444&text=${message}`,
+                    `https://api.whatsapp.com/send?phone=919606018552&text=${message}`,
                     "_system"
                   );
                 }}
@@ -324,7 +390,7 @@ const Parent: React.FC = () => {
                   title="YouTube video player"
                   // frameborder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                // allowfullscreen
+                  // allowfullscreen
                 ></iframe>
               </div>
             </div>
@@ -431,7 +497,7 @@ const Parent: React.FC = () => {
       updatedTabs[t(item.header)] = t(item.header);
     });
     setTabs(updatedTabs);
-  }, []);
+  }, [localAppLang]);
 
   return (
     <Box>

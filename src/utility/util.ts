@@ -44,6 +44,10 @@ import {
   USER_ROLE,
   CLASS,
   CURRENT_COURSE,
+  CLASS_OR_SCHOOL_CHANGE_EVENT,
+  NAVIGATION_STATE,
+  GAME_URL,
+  LOCAL_BUNDLES_PATH,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -78,6 +82,7 @@ import { schoolUtil } from "./schoolUtil";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { URLOpenListenerEvent } from "@capacitor/app";
 import { t } from "i18next";
+import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
 
 declare global {
   interface Window {
@@ -389,58 +394,30 @@ export class Util {
           lessonIdsChunk.map(async (lessonId) => {
             try {
               let lessonDownloadSuccess = true; // Flag to track lesson download success
-              console.log(
-                "downloading Directory.External",
-                Directory.External,
-                "Directory.Library"
-              );
               const fs = createFilesystem(Filesystem, {
                 rootDir: "/",
                 directory: Directory.External,
                 base64Alway: false,
               });
-
-              const path =
-                (localStorage.getItem("gameUrl") ??
-                  "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
-                lessonId +
-                "/config.json";
-              console.log("checking path..", "path", path);
+              const androidPath = await this.getAndroidBundlePath();
+              const path = androidPath + lessonId + "/config.json";
               const res = await fetch(path);
               const isExists = res.ok;
-              console.log("fetching path", path);
-              console.log("isexists", isExists);
               if (isExists) {
+                this.setGameUrl(androidPath);
                 this.storeLessonIdToLocalStorage(
                   lessonId,
                   DOWNLOADED_LESSON_ID
                 );
                 return true;
               } // Skip if lesson exists
-
-              console.log(
-                "before local lesson Bundle http url:" +
-                  "assets/" +
-                  lessonId +
-                  "/config.json"
-              );
-
-              const fetchingLocalBundle = await fetch(
-                "assets/" + lessonId + "/config.json"
-              );
-              console.log(
-                "after local lesson Bundle fetch url:" +
-                  "assets/" +
-                  lessonId +
-                  "/config.json",
-                fetchingLocalBundle.ok,
-                fetchingLocalBundle.json,
-                fetchingLocalBundle
-              );
-
-              if (fetchingLocalBundle.ok) return true;
-
-              console.log("fs", fs);
+              const localBundlePath =
+                LOCAL_BUNDLES_PATH + `${lessonId}/config.json`;
+              const fetchingLocalBundle = await fetch(localBundlePath);
+              if (fetchingLocalBundle.ok) {
+                this.setGameUrl(LOCAL_BUNDLES_PATH);
+                return true;
+              }
               const bundleZipUrls: string[] = await RemoteConfig.getJSON(
                 REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS
               );
@@ -494,6 +471,7 @@ export class Util {
                   data: buffer,
                 });
                 console.log("Unzip done");
+                this.setGameUrl(androidPath);
                 this.storeLessonIdToLocalStorage(
                   lessonId,
                   DOWNLOADED_LESSON_ID
@@ -633,42 +611,47 @@ export class Util {
   }
 
   public static async launchCocosGame(): Promise<void> {
-    if (!window.cc) {
-      return;
-    }
-    const settings = window._CCSettings;
-    const launchScene = settings.launchScene;
-    const bundle = window.cc.assetManager.bundles.find(function (b) {
-      return b.getSceneInfo(launchScene);
-    });
-
-    await new Promise((resolve, reject) => {
-      bundle.loadScene(launchScene, null, null, function (err, scene) {
-        if (!err) {
-          window.cc.director.runSceneImmediate(scene);
-          if (window.cc.sys.isBrowser) {
-            // show canvas
-            var canvas = document.getElementById("GameCanvas");
-            if (canvas) {
-              canvas.style.visibility = "";
-              canvas.style.display = "";
-            }
-            const container = document.getElementById("Cocos2dGameContainer");
-            if (container) {
-              container.style.display = "";
-            }
-            var div = document.getElementById("GameDiv");
-            if (div) {
-              div.style.backgroundImage = "";
-            }
-            console.log("Success to load scene: " + launchScene);
-          }
-          resolve(scene);
-        } else {
-          reject(err);
-        }
+    try {
+      if (!window.cc) {
+        return;
+      }
+      const settings = window._CCSettings;
+      const launchScene = settings.launchScene;
+      const bundle = window.cc.assetManager.bundles.find(function (b) {
+        return b.getSceneInfo(launchScene);
       });
-    });
+
+      await new Promise((resolve, reject) => {
+        bundle.loadScene(launchScene, null, null, function (err, scene) {
+          if (!err) {
+            window.cc.director.runSceneImmediate(scene);
+            if (window.cc.sys.isBrowser) {
+              Util.checkingIfGameCanvasAvailable();
+              // show canvas
+              var canvas = document.getElementById("GameCanvas");
+              if (canvas) {
+                canvas.style.visibility = "";
+                canvas.style.display = "";
+              }
+              const container = document.getElementById("Cocos2dGameContainer");
+              if (container) {
+                container.style.display = "";
+              }
+              var div = document.getElementById("GameDiv");
+              if (div) {
+                div.style.backgroundImage = "";
+              }
+              console.log("Success to load scene: " + launchScene);
+            }
+            resolve(scene);
+          } else {
+            reject(err);
+          }
+        });
+      });
+    } catch (error) {
+      console.log("launchCocosGame(): error ", error);
+    }
   }
 
   public static killCocosGame(): void {
@@ -810,6 +793,11 @@ export class Util {
       await FirebaseAnalytics.setUserId({
         userId: params.user_id,
       });
+      if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+      Util.port.shareUserId({ userId: params.user_id });
+      await FirebaseCrashlytics.setUserId({
+        userId: params.user_id,
+      });
 
       await FirebaseAnalytics.setScreenName({
         screenName: window.location.pathname,
@@ -920,72 +908,133 @@ export class Util {
     // Util.handleAppStateChange(isActive);
   };
 
-  public static checkingIfGameCanvasAvailable = async () => {
-    // return new Promise<boolean>(async (resolve, reject) => {
+  public static checkingIfGameCanvasAvailable = async (): Promise<boolean> => {
     try {
       const canvas = document.getElementById("GameCanvas") as HTMLCanvasElement;
+
       if (canvas) {
-        const webgl2Context = canvas.getContext("webgl");
+        const gl = canvas.getContext("webgl") as WebGLRenderingContext | null;
+
+        if (!gl) {
+          console.error("WebGL is not supported on this device or browser.");
+          return false;
+        }
+
+        // Helper function to create and validate shaders
+        const createAndValidateShader = (
+          type: GLenum,
+          source: string
+        ): WebGLShader | null => {
+          const shader = gl.createShader(type);
+          if (!shader) {
+            console.error("Failed to create shader.");
+            return null;
+          }
+          gl.shaderSource(shader, source);
+          gl.compileShader(shader);
+
+          // Check for shader compilation errors
+          if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            console.error(
+              `Error compiling shader: ${gl.getShaderInfoLog(shader)}`
+            );
+            gl.deleteShader(shader);
+            return null;
+          }
+
+          return shader;
+        };
+
+        // Example vertex and fragment shader source code
+        const vertexShaderSource = `
+          attribute vec4 position;
+          void main() {
+            gl_Position = position;
+          }
+        `;
+
+        const fragmentShaderSource = `
+          precision mediump float;
+          void main() {
+            gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red color
+          }
+        `;
+
+        // Create and validate shaders
+        const vertexShader = createAndValidateShader(
+          gl.VERTEX_SHADER,
+          vertexShaderSource
+        );
+        const fragmentShader = createAndValidateShader(
+          gl.FRAGMENT_SHADER,
+          fragmentShaderSource
+        );
+
+        if (!vertexShader || !fragmentShader) {
+          console.error("Shader creation or validation failed.");
+          return false;
+        }
+
+        // Handle WebGL context lost
         canvas.addEventListener(
           "webglcontextlost",
-          function (event) {
-            // inform WebGL that we handle context restoration
-            console.log("WebGl webglcontextlost in cocosGame.tsx");
-            event.preventDefault();
-            if (webgl2Context) {
-              const rest = webgl2Context.getExtension("WEBGL_lose_context");
+          (event) => {
+            try {
+              console.error("WebGL context lost detected.");
+              event.preventDefault(); // Prevent the browser from handling context loss
+              const webglContext = canvas.getContext(
+                "webgl"
+              ) as WebGLRenderingContext | null;
 
-              // Reloading cocos Game if GameCanvas buffer is not restored
-              if (!rest) {
-                // const url = new URL(window.location.toString());
-                // url.searchParams.set("isReload", "false");
-                // url.searchParams.delete(CONTINUE);
-                // window.history.replaceState(
-                //   window.history.state,
-                //   "",
-                //   url.toString()
-                // );
-                window.location.reload();
-                // resolve(false);
-                console.log("page got reloaded ", false);
+              if (webglContext) {
+                const rest = webglContext.getExtension("WEBGL_lose_context");
+
+                // If the context cannot be restored, reload the page
+                if (!rest) {
+                  console.error(
+                    "Unable to restore WebGL context. Reloading page..."
+                  );
+                  window.location.reload();
+                }
               }
-              if (rest) {
-                rest.loseContext();
-                // return true;
-                // resolve(false);
-              }
+            } catch (error) {
+              console.error("Error handling webglcontextlost:", error);
             }
           },
           false
         );
+
+        // Handle WebGL context restored
         canvas.addEventListener(
           "webglcontextrestored",
-          function (event) {
-            // inform WebGL that we handle context restoration
-            console.log("WebGl webglcontextrestored in cocosGame.tsx");
-            event.preventDefault();
+          (event) => {
+            try {
+              console.log("WebGL context restored.");
+              event.preventDefault(); // Prevent the browser from restoring automatically
+              const webglContext = canvas.getContext(
+                "webgl"
+              ) as WebGLRenderingContext | null;
 
-            if (webgl2Context) {
-              const rest = webgl2Context.getExtension("WEBGL_lose_context");
-
-              if (rest) {
-                rest.restoreContext();
-                // return true;
-                // resolve(false);
+              if (webglContext) {
+                console.log("WebGL context successfully restored.");
               }
+            } catch (error) {
+              console.error("Error handling webglcontextrestored:", error);
             }
           },
           false
         );
+
+        console.log("WebGL setup completed successfully.");
+        return true; // Return true if canvas exists and WebGL is initialized
+      } else {
+        console.warn("GameCanvas element not found.");
+        return false;
       }
     } catch (error) {
-      console.log(
-        "🚀 ~ file: util.ts:965 ~ checkingIfGameCanvasAvailable ~ error:",
-        error
-      );
-      // throw error;
+      console.error("Error in checkingIfGameCanvasAvailable:", error);
+      return false;
     }
-    // });
   };
 
   public static setPathToBackButton(path: string, history: any) {
@@ -1532,16 +1581,12 @@ export class Util {
   }
 
   public static getCurrentWeekNumber(): number {
-    const now: Date = new Date();
-    const currentDay: number = now.getDay();
-    const daysToMonday: number = currentDay === 0 ? 6 : currentDay - 1;
-    now.setDate(now.getDate() - daysToMonday);
-    const onejan: Date = new Date(now.getFullYear(), 0, 1);
-    const millisecsInDay: number = 86400000;
+    const date: Date = new Date();
+    const startOfYear: Date = new Date(date.getFullYear(), 0, 1);
     const dayOfYear: number =
-      (now.getTime() - onejan.getTime()) / millisecsInDay + 1;
-    const firstDayOfWeek: number = onejan.getDay() || 7;
-    const weekNumber: number = Math.ceil((dayOfYear + firstDayOfWeek) / 7);
+      Math.floor((date.getTime() - startOfYear.getTime()) / 86400000) + 1;
+    const firstDayOfWeek: number = startOfYear.getDay() || 7;
+    const weekNumber: number = Math.ceil((dayOfYear + firstDayOfWeek - 1) / 7);
     return weekNumber;
   }
 
@@ -1714,8 +1759,8 @@ export class Util {
     localStorage.setItem(REFRESH_TOKEN, JSON.stringify(refreshToken));
   }
   public static setCurrentSchool = async (
-    school: TableTypes<"school"> | null,
-    role?: RoleType
+    school: TableTypes<"school">,
+    role: RoleType
   ) => {
     console.log("setCurrentSchool called", school);
     const api = ServiceConfig.getI().apiHandler;
@@ -1815,5 +1860,50 @@ export class Util {
       TableTypes<"course">
     >;
     return currentCourse.get(classId);
+  }
+  public static dispatchClassOrSchoolChangeEvent = () => {
+    const customEvent = new CustomEvent(CLASS_OR_SCHOOL_CHANGE_EVENT);
+    window.dispatchEvent(customEvent);
+  };
+  public static getNavigationState(): {
+    stage: string;
+  } | null {
+    return JSON.parse(localStorage.getItem(NAVIGATION_STATE) || "null");
+  }
+
+  public static setNavigationState(stage: string) {
+    const navigationState = { stage };
+    localStorage.setItem(NAVIGATION_STATE, JSON.stringify(navigationState));
+  }
+
+  public static clearNavigationState() {
+    localStorage.removeItem(NAVIGATION_STATE);
+  }
+
+  public static async getAndroidBundlePath(): Promise<string> {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const path = await Filesystem.getUri({
+          directory: Directory.External,
+          path: "",
+        });
+
+        console.log("path ", path, "uri", path?.uri);
+
+        if (path && path.uri) {
+          const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.bahama/cache
+          console.log("uri", uri); // http://localhost/_capacitor_file_/data/user/0/org.chimple.bahama/cache
+          return uri + "/";
+        }
+      } catch (error) {
+        console.error("path error", error);
+      }
+      throw new Error("Failed to retrieve Android bundle path.");
+    }
+    throw new Error("Not running on a native platform.");
+  }
+
+  public static setGameUrl(path: string) {
+    localStorage.setItem(GAME_URL, path);
   }
 }

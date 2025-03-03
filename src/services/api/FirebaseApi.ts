@@ -89,7 +89,7 @@ export class FirebaseApi implements ServiceApi {
   private _schoolsCache: { [userId: string]: School[] } = {};
   private _currentMode: MODES;
   private _allCourses: Course[];
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): FirebaseApi {
     if (!FirebaseApi.i) {
@@ -527,7 +527,7 @@ export class FirebaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  public getChapterById= async (Id: string) => {
+  public getChapterById = async (Id: string) => {
     throw new Error("Method not implemented.");
   }
   public subscribeToClassTopic() {
@@ -2034,27 +2034,36 @@ export class FirebaseApi implements ServiceApi {
       rewards: finalRewards,
     });
   }
+  async removeCoursesFromClass(ids: string[]): Promise<void> {
+    throw new Error("Failed to remove courses from class");
+  }
+  async removeCoursesFromSchool(ids: string[]): Promise<void> {
+    throw new Error("Failed to remove courses from school");
+  }
+  async checkCourseInClasses(classIds: string[], classId: string): Promise<boolean> {
+    throw new Error("Failed to remove courses from school");
+  }
 
   searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
-  getAssignmentOrLiveQuizByClassByDate(classId:string,courseId:string,startDate:string,endDate:string,isClassWise: boolean,isLiveQuiz: boolean): Promise<TableTypes<"assignment">[] | undefined>{
+  getAssignmentOrLiveQuizByClassByDate(classId: string, courseId: string, startDate: string, endDate: string, isClassWise: boolean, isLiveQuiz: boolean): Promise<TableTypes<"assignment">[] | undefined> {
     throw new Error("Method not implemented.");
   }
-  getStudentLastTenResults( studentId: string,courseId:string,assignmentIds: string[]):Promise<TableTypes<"result">[]>{
+  getStudentLastTenResults(studentId: string, courseId: string, assignmentIds: string[]): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
   }
   getResultByAssignmentIds(
     assignmentIds: string[]
-  ): Promise<TableTypes<"result">[] | undefined>{
+  ): Promise<TableTypes<"result">[] | undefined> {
     throw new Error("Method not implemented.");
   }
   getStudentResultByDate(
     studentId: string,
-    course_id:string,
+    course_id: string,
     startDate: string,
     endDate: string
-  ): Promise<TableTypes<"result">[] | undefined>{
+  ): Promise<TableTypes<"result">[] | undefined> {
     throw new Error("Method not implemented.");
   }
   getLessonsBylessonIds(
@@ -2067,7 +2076,7 @@ export class FirebaseApi implements ServiceApi {
     course_id: string,
     startDate: string,
     endDate: string
-  ): Promise<TableTypes<"result">[] | undefined>{
+  ): Promise<TableTypes<"result">[] | undefined> {
     throw new Error("Method not implemented.");
   }
 }

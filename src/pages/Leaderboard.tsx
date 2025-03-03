@@ -12,6 +12,9 @@ import {
   LeaderboardDropdownList,
   HOMEHEADERLIST,
   CURRENT_MODE,
+  CLASS,
+  CURRENT_CLASS,
+  STAGES,
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import BackButton from "../components/common/BackButton";
@@ -33,6 +36,7 @@ import LeaderboardRewards from "../components/leaderboard/LeaderboardRewards";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 import { App } from "@capacitor/app";
+import { school } from "../stories/school/SchoolClassSubjectsTab.stories";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -603,9 +607,13 @@ const Leaderboard: React.FC = () => {
               onClick={async () => {
                 Util.setCurrentStudent(null);
                 localStorage.removeItem(CURRENT_STUDENT);
+                if (studentMode !== MODES.SCHOOL) {
+                  schoolUtil.removeCurrentClass();
+                }
                 // await Util.setCurrentStudent(null);
                 AvatarObj.destroyInstance();
                 const user = await auth.getCurrentUser();
+                // console.log("supabase user:", user);
                 if (!!user && !!user.language_id) {
                   const langDoc = await api.getLanguageWithId(user.language_id);
                   if (langDoc) {
@@ -621,7 +629,7 @@ const Leaderboard: React.FC = () => {
                 } else {
                   Util.setPathToBackButton(PAGES.SELECT_MODE, history);
                   Util.setPathToBackButton(
-                    PAGES.SELECT_MODE + "?tab=" + "class",
+                    PAGES.SELECT_MODE + "?tab=" + STAGES.STUDENT,
                     history
                   );
                 }

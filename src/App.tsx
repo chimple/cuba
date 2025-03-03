@@ -108,6 +108,9 @@ import {
   DashBoardDetails,
   AddTeacher,
   TeacherProfile,
+  StudentReport,
+  SchoolUsers,
+  AddSchoolUser,
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
 import DisplayClasses from "./chimple-private/pages/DisplayClasses";
@@ -200,22 +203,6 @@ const App: React.FC = () => {
     CapApp.addListener("appStateChange", Util.onAppStateChange);
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
-      Filesystem.getUri({
-        directory: Directory.External,
-        path: "",
-      })
-        .catch((ca) => {
-          console.log("path error", ca);
-        })
-        .then((path) => {
-          console.log("path ", path, "uri", path?.uri);
-
-          if (path instanceof Object) {
-            const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.bahama/cache
-            console.log("uri", uri); //http://localhost/_capacitor_file_/data/user/0/org.chimple.bahama/cache
-            localStorage.setItem(GAME_URL, uri + "/");
-          }
-        });
       //CapApp.addListener("appStateChange", Util.onAppStateChange);
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
 
@@ -574,6 +561,11 @@ const App: React.FC = () => {
                 <DisplaySchools />
               </Suspense>
             </Route>
+            <Route path={PAGES.STUDENT_REPORT} exact={true}>
+              <Suspense>
+                <StudentReport />
+              </Suspense>
+            </Route>
             <Route path={PAGES.DISPLAY_CLASSES} exact={true}>
               <Suspense>
                 <DisplayClasses />
@@ -670,6 +662,26 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
               <Suspense>
                 <TeacherProfile />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SCHOOL_USERS} exact={true}>
+              <Suspense>
+                <SchoolUsers />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_PRINCIPAL} exact={true}>
+              <Suspense>
+                <AddSchoolUser />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_COORDINATOR} exact={true}>
+              <Suspense>
+                <AddSchoolUser />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_SPONSOR} exact={true}>
+              <Suspense>
+                <AddSchoolUser />
               </Suspense>
             </ProtectedRoute>
           </Switch>

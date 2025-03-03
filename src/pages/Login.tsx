@@ -6,13 +6,16 @@ import {
   ACTION,
   APP_NAME,
   AT_SYMBOL_RESTRICTION,
+  CURRENT_SCHOOL_NAME,
   CURRENT_USER,
   DOMAIN,
   EVENTS,
   LANGUAGE,
+  MODES,
   NUMBER_REGEX,
   PAGES,
   TableTypes,
+  USER_DATA,
 } from "../common/constants";
 import { Capacitor } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -38,6 +41,7 @@ import {
   IoSchoolOutline,
 } from "react-icons/io5";
 import { RoleType } from "../interface/modelInterfaces";
+import { schoolUtil } from "../utility/schoolUtil";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -47,6 +51,7 @@ declare global {
 const Login: React.FC = () => {
   const history = useHistory();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(false);
   const [sentOtpLoading, setSentOtpLoading] = useState<boolean>(false);
   const [showVerification, setShowVerification] = useState<boolean>(false);
   const [showBackButton, setShowBackButton] = useState<boolean>(false);
@@ -54,6 +59,7 @@ const Login: React.FC = () => {
   const [verificationCode, setVerificationCode] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState<any>("");
   //const [parentName, setParentName] = useState<any>("");
+  const api = ServiceConfig.getI().apiHandler;
 
   const [recaptchaVerifier, setRecaptchaVerifier] =
     useState<RecaptchaVerifier>();
@@ -157,13 +163,16 @@ const Login: React.FC = () => {
 
       if (currentStudent) {
         setIsLoading(false);
+        setIsInitialLoading(false);
         history.replace(PAGES.DISPLAY_STUDENT);
       }
       if (isUserLoggedIn) {
         setIsLoading(false);
+        setIsInitialLoading(false);
         history.replace(PAGES.SELECT_MODE);
       }
       setIsLoading(false);
+      setIsInitialLoading(false);
     });
     if (!recaptchaVerifier && !Capacitor.isNativePlatform()) {
       // Note: The 'recaptcha-container' must be rendered by this point, or
@@ -313,10 +322,41 @@ const Login: React.FC = () => {
       // window.recaptchaVerifier.clear();
     }
   };
+  async function getSchoolsForUser(user: TableTypes<"user">) {
+    const userSchools = await api.getSchoolsForUser(user.id);
+    if (userSchools && userSchools.length > 0) {
+      return userSchools;
+    }
+    return [];
+  }
+  async function redirectUser(
+    user: TableTypes<"user">,
+    userSchools: {
+      school: TableTypes<"school">;
+      role: RoleType;
+    }[]
+  ) {
+    if (userSchools.length > 0) {
+      const autoUserSchool = userSchools.find(
+        (school) => school.role === RoleType.AUTOUSER
+      );
 
+      if (autoUserSchool) {
+        schoolUtil.setCurrMode(MODES.SCHOOL);
+        history.replace(PAGES.SELECT_MODE);
+        return;
+      }
+      schoolUtil.setCurrMode(MODES.TEACHER);
+      history.replace(PAGES.DISPLAY_SCHOOLS);
+    } else {
+      schoolUtil.setCurrMode(MODES.PARENT);
+      history.replace(PAGES.DISPLAY_STUDENT);
+    }
+  }
   const onVerificationCodeSubmit = async () => {
     try {
       setIsLoading(true);
+      setIsInitialLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
       const res = await authInstance.proceedWithVerificationCode(
         phoneNumberWithCountryCode,
@@ -325,6 +365,7 @@ const Login: React.FC = () => {
       console.log("login User Data ", res, userData);
       if (!res?.user) {
         setIsLoading(false);
+        setIsInitialLoading(false);
         console.log("Verification Failed");
         setErrorMessage(t("Something went wrong Verification Failed"));
         // alert("Something went wrong Verification Failed");
@@ -334,13 +375,14 @@ const Login: React.FC = () => {
       console.log("login User Data ", res, userData);
 
       // if (res.isUserExist) {
-        setIsLoading(false);
-        history.replace(PAGES.SELECT_MODE);
-        localStorage.setItem(CURRENT_USER, JSON.stringify(res.user));
-        console.log("isUserExist", localStorage.getItem(CURRENT_USER));
+      setIsLoading(false);
+      setIsInitialLoading(false);
+      localStorage.setItem(CURRENT_USER, JSON.stringify(res.user));
+      const userSchools = await getSchoolsForUser(res.user.user);
+      await redirectUser(res.user.user, userSchools);
 
-        // setShowNameInput(true);
-      // } 
+      // setShowNameInput(true);
+      // }
       // else if (!res.isUserExist) {
       //   setIsLoading(false);
       //   let phoneAuthResult = await FirebaseAuth.i.createPhoneAuthUser(
@@ -352,7 +394,7 @@ const Login: React.FC = () => {
       //     localStorage.setItem(CURRENT_USER, JSON.stringify(phoneAuthResult));
       //     console.log("new user", localStorage.getItem(CURRENT_USER));
       //   }
-      // } 
+      // }
       // else {
       //   setIsLoading(false);
 
@@ -370,6 +412,7 @@ const Login: React.FC = () => {
       });
     } catch (error) {
       setIsLoading(false);
+      setIsInitialLoading(false);
       console.log("Verification Failed", error);
       //alert("Please Enter Valid Verification Code");
       setIsInvalidCode({
@@ -436,23 +479,27 @@ const Login: React.FC = () => {
     setStudentCredentialLogin(false);
     try {
       setIsLoading(true);
+      setIsInitialLoading(true);
       // const _authHandler = ServiceConfig.getI().authHandler;
       const result: boolean = await authInstance.loginWithEmailAndPassword(
-        schoolCode + studentId + DOMAIN,
-        studentPassword
+        schoolCode.trimEnd() + studentId.trimEnd() + DOMAIN,
+        studentPassword.trimEnd()
       );
       if (result) {
         setIsLoading(false);
+        setIsInitialLoading(false);
         history.replace(PAGES.SELECT_MODE);
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
       } else {
         setStudentCredentialLogin(true);
         setErrorMessage(t("User not Found. Please verify your credentials."));
         setIsLoading(false);
+        setIsInitialLoading(false);
       }
     } catch (error) {
       setStudentCredentialLogin(true);
       setIsLoading(false);
+      setIsInitialLoading(false);
       setErrorMessage(t("Login unsuccessful. Please try again later."));
       console.log("error", error);
     }
@@ -652,6 +699,7 @@ const Login: React.FC = () => {
                       }
                       try {
                         setIsLoading(true);
+                        setIsInitialLoading(true);
                         console.log("isLoading ", isLoading);
                         const _authHandler = ServiceConfig.getI().authHandler;
                         const result: boolean = await _authHandler.googleSign();
@@ -661,8 +709,13 @@ const Login: React.FC = () => {
                         );
                         if (result) {
                           setIsLoading(false);
+                          setIsInitialLoading(false);
                           // history.replace(PAGES.DISPLAY_STUDENT);
-                          history.replace(PAGES.SELECT_MODE);
+                          const user = JSON.parse(
+                            localStorage.getItem(USER_DATA)!
+                          );
+                          const userSchools = await getSchoolsForUser(user);
+                          await redirectUser(user, userSchools);
                           localStorage.setItem(
                             CURRENT_USER,
                             JSON.stringify(result)
@@ -678,9 +731,11 @@ const Login: React.FC = () => {
                           });
                         } else {
                           setIsLoading(false);
+                          setIsInitialLoading(false);
                         }
                       } catch (error) {
                         setIsLoading(false);
+                        setIsInitialLoading(false);
                         console.log("error", error);
                       }
                     }}
@@ -957,7 +1012,14 @@ const Login: React.FC = () => {
           </div>
         ) : null}
       </div>
-      <Loading isLoading={isLoading || sentOtpLoading} />
+      <Loading
+        isLoading={isLoading || sentOtpLoading}
+        msg={
+          isInitialLoading
+            ? "Please wait.....Login in progress. This may take a moment."
+            : ""
+        }
+      />
     </IonPage>
   );
 };

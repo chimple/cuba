@@ -1,18 +1,18 @@
-.custom-alert {
+.custom-dailog-alert {
   --background: white;
 }
 
-.custom-alert .alert-delete-button {
-  /* background: #f72121 !important; */
+.custom-dailog-alert .custom-dailog-alert-delete-button {
+  background: #f72121 !important;
   opacity: 0.5;
-  color: black;
+  color: white;
   border-radius: 8px;
   padding: 15px 30px;
   text-transform: none;
   font-size: var(--text-size);
 }
 
-.custom-alert .alert-cancel-button {
+.custom-dailog-alert .custom-dailog-alert-cancel-button {
   text-transform: none;
   background-color: #83c327;
   font-size: var(--text-size);
@@ -32,4 +32,17 @@
 .alert-message.sc-ion-alert-md {
   color: var(--text-color);
   text-align: center;
+}
+
+.alert-title.sc-ion-alert-md {
+  text-align: center;
+}
+
+.custom-dailog-alert .alert-button-group.sc-ion-alert-ios {
+  width: 80%;
+  align-self: center;
+}
+
+.custom-dailog-alert .alert-button-group.sc-ion-alert-ios button {
+  flex: 1;
 }

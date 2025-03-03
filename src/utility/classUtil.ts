@@ -89,7 +89,7 @@ export class ClassUtil {
         stdCompletd: studentsWhoCompletedAllAssignments,
         totalStudents: totalStudents,
       },
-      timeSpent: parseFloat(timeSpent.toFixed(2)) / totalStudents,
+      timeSpent: parseFloat((timeSpent / totalStudents).toFixed(2)),
       averageScore:
         assignmentResult?.length ?? 0 > 0
           ? parseFloat(
@@ -258,7 +258,8 @@ export class ClassUtil {
     courseId: string,
     startDate: Date,
     endDate: Date,
-    sortBy: TABLESORTBY
+    sortBy: TABLESORTBY,
+    isAssignments: boolean
   ) {
     const adjustedStartDate = subDays(new Date(startDate), 1);
     const adjustedEndDate = addDays(new Date(endDate), 1);
@@ -281,12 +282,12 @@ export class ClassUtil {
       });
     var resultsByStudent = new Map<
       string,
-      { name: string; results: Record<string, any[]> }
+      { student: TableTypes<"user">; results: Record<string, any[]> }
     >();
 
     _students.forEach((student) => {
       resultsByStudent.set(student.id, {
-        name: student.name || "",
+        student: student,
         results: {},
       });
       daysInRange.forEach((day) => {
@@ -295,12 +296,15 @@ export class ClassUtil {
     });
 
     for (const student of _students) {
-      const res = await this.api.getStudentResultByDate(
+      var res = await this.api.getStudentResultByDate(
         student.id,
         courseId,
         startTimeStamp,
         endTimeStamp
       );
+      res = isAssignments
+        ? res?.filter((item) => item.assignment_id !== null)
+        : res;
 
       res?.forEach((result) => {
         const resultDate = new Date(result.created_at);
@@ -349,7 +353,8 @@ export class ClassUtil {
     courseId: string,
     startDate: Date,
     endDate: Date,
-    sortBy: TABLESORTBY
+    sortBy: TABLESORTBY,
+    isAssignments: boolean
   ) {
     const monthsInRange = this.getMonthsInRange(startDate, endDate);
     const adjustedStartDate = subDays(new Date(startDate), 1);
@@ -372,11 +377,11 @@ export class ClassUtil {
 
     var resultsByStudent = new Map<
       string,
-      { name: string; results: Record<string, any[]> }
+      { student: TableTypes<"user">; results: Record<string, any[]> }
     >();
     _students.forEach((student) => {
       resultsByStudent.set(student.id, {
-        name: student.name || "",
+        student: student,
         results: {},
       });
       monthsInRange.forEach((month) => {
@@ -385,12 +390,15 @@ export class ClassUtil {
     });
 
     for (const student of _students) {
-      const res = await this.api.getStudentResultByDate(
+      var res = await this.api.getStudentResultByDate(
         student.id,
         courseId,
         startTimeStamp,
         endTimeStamp
       );
+      res = isAssignments
+        ? res?.filter((item) => item.assignment_id !== null)
+        : res;
       res?.forEach((result) => {
         const resultDate = new Date(result.created_at);
         const monthName = resultDate.toLocaleDateString("en-US", {
@@ -436,7 +444,7 @@ export class ClassUtil {
     const month = date.getMonth() + 1;
     return `${day.toString().padStart(2, "0")}/${month.toString().padStart(2, "0")}`;
   }
-  public async getAssignmentOrLiveQuizReport(
+  public async getAssignmentOrLiveQuizReportForReport(
     classId: string,
     courseId: string,
     startDate: Date,
@@ -455,67 +463,88 @@ export class ClassUtil {
       .toISOString()
       .replace("T", " ")
       .replace("Z", "+00");
+
     const _students = await this.api.getStudentsForClass(classId);
-    if (sortBy == TABLESORTBY.NAME)
+    if (sortBy === TABLESORTBY.NAME) {
       _students.sort((a, b) => {
         if (a.name === null) return 1;
         if (b.name === null) return -1;
         return a.name.localeCompare(b.name);
       });
+    }
 
     const _assignments = await this.api.getAssignmentOrLiveQuizByClassByDate(
       classId,
       courseId,
       endTimeStamp,
       startTimeStamp,
-      false,
+      /* isClassWise = */ false,
       isLiveQuiz
     );
 
-    let assignmentIds = _assignments?.map((asgmt) => asgmt.id) || [];
-    const lessonIds = [
-      ...new Set(_assignments?.map((res) => res.lesson_id) || []),
-    ];
-    const assignmentResults =
-      await this.api.getResultByAssignmentIds(assignmentIds);
+    const assignmentIds = _assignments?.map((asgmt) => asgmt.id) || [];
+    const lessonIds = [...new Set(_assignments?.map((res) => res.lesson_id) || [])];
+
+    const assignmentResults = await this.api.getResultByAssignmentIds(assignmentIds);
     const lessonDetails = await this.api.getLessonsBylessonIds(lessonIds);
+  
+    const assignmentUserRecords = await this.api.getAssignmentUserByAssignmentIds(assignmentIds);
+
+    const assignmentIsClassWise: Record<string, boolean> = {};
+    _assignments?.forEach((assignment) => {
+      assignmentIsClassWise[assignment.id] = Boolean(assignment.is_class_wise);
+    });
 
     const assignmentMapArray: Map<
       string,
-      { headerName: string; startAt: string; endAt: string }
+      {
+        headerName: string;
+        startAt: string;
+        endAt: string;
+        belongsToClass: boolean; 
+      }
     >[] = (_assignments || []).map((assignment) => {
       const lesson = lessonDetails?.find(
         (lesson) => lesson.id === assignment.lesson_id
       );
 
+      const belongsToClass = Boolean(assignment.is_class_wise);
+  
       const assignmentMap = new Map<
         string,
-        { headerName: string; startAt: string; endAt: string }
+        {
+          headerName: string;
+          startAt: string;
+          endAt: string;
+          belongsToClass: boolean;
+        }
       >();
-
+  
       assignmentMap.set(assignment.id, {
         headerName: lesson?.name ?? "",
-
         startAt: this.formatDate(assignment.starts_at),
         endAt: assignment.ends_at ? this.formatDate(assignment.ends_at) : "",
+        belongsToClass: belongsToClass
       });
-
+  
       return assignmentMap;
     });
-    var resultsByStudent = new Map<
-      string,
-      { name: string; results: Record<string, any[]> }
-    >();
 
+    let resultsByStudent = new Map<
+      string,
+      { student: TableTypes<"user">; results: Record<string, any[]> }
+    >();
+  
     _students.forEach((student) => {
       resultsByStudent.set(student.id, {
-        name: student.name || "",
+        student: student,
         results: {},
       });
       assignmentIds.forEach((assignmentId) => {
         resultsByStudent.get(student.id)!.results[assignmentId] = [];
       });
     });
+
     if (sortBy === TABLESORTBY.LOWSCORE || sortBy === TABLESORTBY.HIGHSCORE) {
       resultsByStudent = this.sortStudentsByTotalScore(resultsByStudent);
       if (sortBy === TABLESORTBY.HIGHSCORE) {
@@ -523,20 +552,75 @@ export class ClassUtil {
         resultsByStudent = new Map(reversedEntries);
       }
     }
+
     assignmentResults?.forEach((result) => {
       const studentId = result.student_id;
       const assignmentId = result.assignment_id;
-
       if (resultsByStudent.get(studentId)?.results[assignmentId ?? ""]) {
-        resultsByStudent
-          .get(studentId)!
-          .results[assignmentId ?? ""].push(result);
+        resultsByStudent.get(studentId)!.results[assignmentId ?? ""].push(result);
       }
+    });
+
+    resultsByStudent.forEach((studentData, studentId) => {
+      assignmentIds.forEach((assignmentId) => {
+        if (!assignmentIsClassWise[assignmentId]) {
+          const isAssignedToStudent = assignmentUserRecords?.some(
+            (record) =>
+              record.assignment_id === assignmentId &&
+              record.user_id === studentId
+          );
+    
+          if (!isAssignedToStudent && studentData.results[assignmentId].length === 0) {
+            studentData.results[assignmentId].push({
+              assignment_id: assignmentId,
+              score: null,
+            });
+          }
+        }
+      });
     });
     return {
       ReportData: resultsByStudent,
       HeaderData: assignmentMapArray,
     };
+  }  
+  public async getStudentProgressForStudentTable(
+    studentId: string,
+    courseId: string,
+    startDate: string,
+    endDate: string
+  ) {
+    const adjustedStartDate = subDays(new Date(startDate ?? ""), 1);
+    const adjustedEndDate = addDays(new Date(endDate ?? ""), 1);
+    const startTimeStamp = adjustedStartDate
+      .toISOString()
+      .replace("T", " ")
+      .replace("Z", "+00");
+    const endTimeStamp = adjustedEndDate
+      .toISOString()
+      .replace("T", " ")
+      .replace("Z", "+00");
+    var res = await this.api.getStudentResultByDate(
+      studentId,
+      courseId,
+      startTimeStamp,
+      endTimeStamp
+    );
+    const lessonIds = res?.map((item) => item.lesson_id ?? "");
+    var lessons = await this.api.getLessonsBylessonIds(lessonIds ?? []);
+    const formattedResults = res?.map((result) => {
+      const matchingLesson = lessons?.find(
+        (lesson) => lesson.id === result.lesson_id
+      );
+
+      return {
+        lessonName: matchingLesson?.name ?? "",
+        score: result.score ?? 0,
+        date: new Date(result.created_at).toLocaleDateString("en-GB"),
+        isAssignment: result.assignment_id ? true : false,
+      };
+    });
+    return formattedResults;
   }
   public async getChapterWiseReport(
     classId: string,
@@ -544,7 +628,8 @@ export class ClassUtil {
     endDate: Date,
     courseId: string,
     chapterId: string,
-    sortBy: TABLESORTBY
+    sortBy: TABLESORTBY,
+    isAssignments: boolean
   ) {
     const adjustedStartDate = subDays(new Date(startDate), 1);
     const adjustedEndDate = addDays(new Date(endDate), 1);
@@ -567,12 +652,15 @@ export class ClassUtil {
 
     const _lessons = await this.api.getLessonsForChapter(chapterId);
 
-    const chapterResults = await this.api.getResultByChapterByDate(
+    var chapterResults = await this.api.getResultByChapterByDate(
       chapterId,
       courseId,
       startTimeStamp,
       endTimeStamp
     );
+    chapterResults = isAssignments
+      ? chapterResults?.filter((item) => item.assignment_id !== null)
+      : chapterResults;
     const chapterMapArray: Map<
       string,
       { headerName: string; startAt: string; endAt: string }
@@ -592,12 +680,12 @@ export class ClassUtil {
     });
     var resultsByStudent = new Map<
       string,
-      { name: string; results: Record<string, any[]> }
+      { student: TableTypes<"user">; results: Record<string, any[]> }
     >();
 
     _students.forEach((student) => {
       resultsByStudent.set(student.id, {
-        name: student.name || "",
+        student: student,
         results: {},
       });
       _lessons.forEach((lesson) => {

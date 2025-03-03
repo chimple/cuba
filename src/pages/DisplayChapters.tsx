@@ -6,6 +6,10 @@ import {
   CONTINUE,
   CURRENT_CLASS,
   CURRENT_MODE,
+  CURRENT_SELECTED_CHAPTER,
+  CURRENT_SELECTED_COURSE,
+  CURRENT_SELECTED_GRADE,
+  CURRENT_STAGE,
   DISPLAY_SUBJECTS_STORE,
   GRADE_MAP,
   MODES,
@@ -28,7 +32,7 @@ import { Timestamp } from "firebase/firestore";
 import SkeltonLoading from "../components/SkeltonLoading";
 
 const localData: any = {};
-let localStorageData: any = {};
+// let localStorageData: any = {};
 const DisplayChapters: FC<{}> = () => {
   enum STAGES {
     SUBJECTS,
@@ -55,7 +59,7 @@ const DisplayChapters: FC<{}> = () => {
   const [currentGrade, setCurrentGrade] = useState<TableTypes<"grade">>();
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
-  }>();
+  }>({});
   const history = useHistory();
   const location = useLocation();
   const api = ServiceConfig.getI().apiHandler;
@@ -81,8 +85,7 @@ const DisplayChapters: FC<{}> = () => {
           const { grades } =
             await api.getDifferentGradesForCourse(currentCourse);
           localData.gradesMap = { grades, courses: [currentCourse] };
-          localStorageData.gradesMap = localData.gradesMap;
-          addDataToLocalStorage();
+          // addDataToLocalStorage();
           setLocalGradeMap({ grades, courses: [currentCourse] });
           setIsLoading(false);
         };
@@ -97,13 +100,14 @@ const DisplayChapters: FC<{}> = () => {
   const init = async () => {
     const urlParams = new URLSearchParams(location.search);
     console.log(
-      "🚀 ~ file: DisplaySubjects.tsx:47 ~ init ~ urlParams:",
+      "🚀 ~ file: DisplayChapters.tsx:103 ~ init ~ urlParams:",
       urlParams.get(CONTINUE)
     );
     console.log(
-      "🚀 ~ file: DisplaySubjects.tsx:68 ~ init ~ localData:",
+      "🚀 ~ file: DisplayChapters.tsx:107 ~ init ~ localData:",
       localData
     );
+    await getCourses();
     if (
       !!urlParams.get(CONTINUE) &&
       !!localData.currentCourse &&
@@ -133,96 +137,50 @@ const DisplayChapters: FC<{}> = () => {
       }
 
       !!localData.localGradeMap && setLocalGradeMap(localData.localGradeMap);
-      localStorageData.lessonResultMap = localData.lessonResultMap;
-      localStorageData.stage = STAGES.LESSONS;
-      addDataToLocalStorage();
       setStage(STAGES.LESSONS);
-
+      // localStorage.setItem("stage", JSON.stringify(STAGES.LESSONS));
+      addStateTolocalStorage(STAGES.LESSONS);
       setIsLoading(false);
     } else if (!!urlParams.get("isReload")) {
-      let strLocalStoreData = localStorage.getItem(DISPLAY_SUBJECTS_STORE);
-      if (!!strLocalStoreData) {
-        localStorageData = JSON.parse(strLocalStoreData);
+      await getCourses();
+      setIsLoading(true);
+      const currentSelectedCourse = localStorage.getItem(
+        CURRENT_SELECTED_COURSE
+      );
 
-        if (!!localStorageData.courses) {
-          let tmpCourses: TableTypes<"course">[] = localStorageData.courses;
-          localData.courses = tmpCourses;
-          setCourses(tmpCourses);
-          if (
-            !!localStorageData.stage &&
-            localStorageData.stage !== STAGES.SUBJECTS &&
-            !!localStorageData.currentCourseId
-          ) {
-            setStage(localStorageData.stage);
-            let cc: TableTypes<"course"> = localData.courses.find(
-              (cour) => localStorageData.currentCourseId === cour.id
-            );
+      if (currentSelectedCourse) {
+        const currentCourse = JSON.parse(currentSelectedCourse);
+        setCurrentCourse(currentCourse);
+        const chapters = await api.getChaptersForCourse(currentCourse.id);
+        setChapters(chapters);
+        const currentSelectedChapter = localStorage.getItem(
+          CURRENT_SELECTED_CHAPTER
+        );
+        if (currentSelectedChapter) {
+          let currentChapter = JSON.parse(currentSelectedChapter);
+          setCurrentChapter(currentChapter);
+          const lesson = await getLessonsForChapter(currentChapter);
+          setLessons(lesson);
+        } else setCurrentChapter(undefined);
 
-            let _localMap = getLocalGradeMap();
-
-            if (!!_localMap) {
-              if (!!localStorageData.currentGrade) {
-                localData.currentGrade = localStorageData.currentGrade;
-                setCurrentGrade(localStorageData.currentGrade);
-                const tmpCurrentCourse = _localMap?.courses.find(
-                  (course) => course.grade_id === localData.currentGrade.id
-                );
-
-                if (!!tmpCurrentCourse) cc = tmpCurrentCourse;
-              }
-            }
-
-            localData.currentCourse = cc;
-            const chapters = await api.getChaptersForCourse(cc.id);
-            setChapters(chapters);
-            setCurrentCourse(cc);
-
-            if (!!localStorageData.currentChapterId) {
-              const chapters = await api.getChaptersForCourse(
-                localData.currentCourse.id
-              );
-              const cChap = chapters.find(
-                (chap) => localStorageData.currentChapterId === chap.id
-              );
-
-              localData.currentChapter = cChap;
-              setCurrentChapter(cChap);
-            }
-
-            if (!!localStorageData.lessonResultMap) {
-              let tmpStdMap: { [lessonDocId: string]: TableTypes<"result"> } =
-                localStorageData.lessonResultMap;
-              // for (const value of Object.values(tmpStdMap)) {
-              //   if (!!value.course) value.course = Util.getRef(value.course);
-              // }
-              localData.lessonResultMap = tmpStdMap;
-              setLessonResultMap(tmpStdMap);
-            }
-
-            if (localStorageData.stage === STAGES.LESSONS) {
-              getLessonsForChapter(localData.currentChapter);
-            } else {
-              setIsLoading(false);
-            }
-          } else {
-            setIsLoading(false);
-          }
-        } else {
-          await getCourses();
-          console.log(
-            "🚀 ~ file: DisplaySubjects.tsx:127 ~ init ~ getCourses:"
-          );
+        const stage = localStorage.getItem(CURRENT_STAGE);
+        if (stage) {
+          setStage(JSON.parse(stage));
+        }
+        const grade = localStorage.getItem(CURRENT_SELECTED_GRADE);
+        if (grade) {
+          setCurrentGrade(JSON.parse(grade));
         }
       } else {
-        await getCourses();
-        console.log("🚀 ~ file: DisplaySubjects.tsx:126 ~ init ~ getCourses:");
+        setCourses(undefined);
       }
     } else {
-      await getCourses();
-      console.log("🚀 ~ file: DisplaySubjects.tsx:131 ~ init ~ getCourses:");
+      console.warn("Course not found in local data.");
     }
+    setIsLoading(false);
     getLocalGradeMap();
   };
+
   function getLocalGradeMap():
     | {
         grades: TableTypes<"grade">[];
@@ -242,12 +200,12 @@ const DisplayChapters: FC<{}> = () => {
     }
   }
 
-  function addDataToLocalStorage() {
-    localStorage.setItem(
-      DISPLAY_SUBJECTS_STORE,
-      JSON.stringify(localStorageData)
-    );
-  }
+  // function addDataToLocalStorage() {
+  //   localStorage.setItem(
+  //     DISPLAY_SUBJECTS_STORE,
+  //     JSON.stringify(localStorageData)
+  //   );
+  // }
 
   const getCourses = async (): Promise<TableTypes<"course">[]> => {
     setIsLoading(true);
@@ -265,7 +223,7 @@ const DisplayChapters: FC<{}> = () => {
     const res = await api.getStudentResultInMap(currentStudent.id);
     console.log("tempResultLessonMap = res;", res);
     localData.lessonResultMap = res;
-    localStorageData.lessonResultMap = res;
+
     setLessonResultMap(res);
 
     const currMode = await schoolUtil.getCurrMode();
@@ -274,9 +232,9 @@ const DisplayChapters: FC<{}> = () => {
       ? api.getCoursesForClassStudent(currClass.id)
       : api.getCoursesForParentsStudent(currentStudent.id));
     localData.courses = courses;
-    localStorageData.courses = courses;
+
     setCourses(courses);
-    addDataToLocalStorage();
+    // addDataToLocalStorage();
     setIsLoading(false);
     return courses;
   };
@@ -314,19 +272,20 @@ const DisplayChapters: FC<{}> = () => {
       //   break;
       case STAGES.CHAPTERS:
         delete localData.currentChapter;
-        delete localStorageData.currentChapterId;
+        // delete localStorageData.currentChapterId;
         setCurrentChapter(undefined);
-        localStorageData.stage = STAGES.SUBJECTS;
-        addDataToLocalStorage();
-        localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
+        // addDataToLocalStorage();
+        localStorage.removeItem(CURRENT_SELECTED_COURSE);
+        localStorage.removeItem(CURRENT_SELECTED_GRADE);
+        addStateTolocalStorage(STAGES.SUBJECTS);
         Util.setPathToBackButton(PAGES.HOME, history);
         break;
       case STAGES.LESSONS:
         delete localData.lessons;
         setLessons(undefined);
-        localStorageData.stage = STAGES.CHAPTERS;
-        addDataToLocalStorage();
         setStage(STAGES.CHAPTERS);
+        addStateTolocalStorage(STAGES.CHAPTERS);
+        localStorage.removeItem(CURRENT_SELECTED_CHAPTER);
 
         break;
       default:
@@ -344,18 +303,19 @@ const DisplayChapters: FC<{}> = () => {
     );
     localStorage.setItem(GRADE_MAP, JSON.stringify(gradesMap));
     localData.currentGrade = currentGrade ?? gradesMap.grades[0];
-    localStorageData.currentGrade = localData.currentGrade;
+
     localData.gradesMap = gradesMap;
-    localStorageData.gradesMap = localData.gradesMap;
+
     localData.currentCourse = course;
-    localStorageData.currentCourseId = course.id;
+
     setCurrentGrade(currentGrade ?? gradesMap.grades[0]);
+    addGradeToLocalStorage(currentGrade ?? gradesMap.grades[0]);
     setLocalGradeMap(gradesMap);
     const chapters = await api.getChaptersForCourse(course.id);
     setChapters(chapters);
     setCurrentCourse(course);
-    localStorageData.stage = STAGES.CHAPTERS;
-    addDataToLocalStorage();
+    localStorage.setItem(CURRENT_SELECTED_COURSE, JSON.stringify(course));
+    addStateTolocalStorage(STAGES.CHAPTERS);
     setStage(STAGES.CHAPTERS);
   };
 
@@ -365,24 +325,27 @@ const DisplayChapters: FC<{}> = () => {
       (course) => course.grade_id === grade.id
     );
     localData.currentGrade = grade;
-    localStorageData.currentGrade = grade;
-    addDataToLocalStorage();
     setCurrentGrade(grade);
+    addGradeToLocalStorage(grade);
     const chapters = await api.getChaptersForCourse(currentCourse?.id ?? "");
     setChapters(chapters);
     setCurrentCourse(currentCourse);
+    localStorage.setItem(
+      CURRENT_SELECTED_COURSE,
+      JSON.stringify(currentCourse)
+    );
     localData.currentCourse = currentCourse;
-    localStorageData.currentCourse = currentCourse;
   };
 
   const onChapterChange = async (chapter: TableTypes<"chapter">) => {
     await getLessonsForChapter(chapter);
     localData.currentChapter = chapter;
-    localStorageData.currentChapterId = chapter.id;
+
     setCurrentChapter(chapter);
-    localStorageData.stage = STAGES.LESSONS;
-    addDataToLocalStorage();
+    localStorage.setItem(CURRENT_SELECTED_CHAPTER, JSON.stringify(chapter));
+
     setStage(STAGES.LESSONS);
+    addStateTolocalStorage(STAGES.LESSONS);
   };
 
   function getLastPlayedLessonIndex() {
@@ -412,6 +375,12 @@ const DisplayChapters: FC<{}> = () => {
       });
 
     return startIndex;
+  }
+  function addStateTolocalStorage(stage: STAGES) {
+    localStorage.setItem(CURRENT_STAGE, JSON.stringify(stage));
+  }
+  function addGradeToLocalStorage(grade: TableTypes<"grade">) {
+    localStorage.setItem(CURRENT_SELECTED_GRADE, JSON.stringify(grade));
   }
 
   return !isLoading ? (

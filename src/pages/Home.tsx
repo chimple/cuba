@@ -43,6 +43,9 @@ const Home: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isStudentLinked, setIsStudentLinked] = useState<boolean>();
   const [refreshKey, setRefreshKey] = useState(0);
+  const [lessonCourseMap, setLessonCourseMap] = useState<{
+    [lessonId: string]: { course_id: string };
+  }>({});
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
   }>();
@@ -62,6 +65,10 @@ const Home: FC = () => {
   const [allFavLessons, setAllFavLessons] = useState<TableTypes<"lesson">[]>(
     []
   );
+  const [recommendedLessonCourseMap, setRecommendedLessonCourseMap] = useState<{
+    [lessonId: string]: { course_id: string };
+  }>({});
+
   let tempPageNumber = 1;
   const location = useLocation();
   const getCanShowAvatar = async () => {
@@ -135,6 +142,13 @@ const Home: FC = () => {
     if (!!studentResult) {
       setLessonResultMap(studentResult);
     }
+    const lessonCourseMap = Object.fromEntries(
+      Object.entries(studentResult).map(([lessonDocId, details]) => [
+        lessonDocId,
+        { course_id: details.course_id || "" },
+      ])
+    );
+    setLessonCourseMap(lessonCourseMap);
     fetchData();
     await isLinked();
     const urlParams = new URLSearchParams(window.location.search);
@@ -248,6 +262,7 @@ const Home: FC = () => {
           }
           if (!!res) {
             // res.assignment = _assignment;
+            (res as any).course_id = _assignment.course_id || null;
             reqLes.push(res);
           }
         })
@@ -287,10 +302,20 @@ const Home: FC = () => {
       }
       try {
         recommendationResult = await getAssignments();
-        let tempRecommendations =
-          await getCourseRecommendationLessons(currentStudent);
-        recommendationResult = recommendationResult.concat(tempRecommendations);
+        let tempRecommendations = await getCourseRecommendationLessons(
+          currentStudent,
+          currClass
+        );
         console.log("Final RECOMMENDATION List ", recommendationResult);
+        recommendationResult = recommendationResult.concat(tempRecommendations);
+
+        const lessonCourseMap: { [lessonId: string]: { course_id: string } } =
+          {}; // Initialize the object
+
+        recommendationResult.forEach(async (lesson: any) => {
+          lessonCourseMap[lesson.id] = { course_id: lesson.course_id };
+          setRecommendedLessonCourseMap(lessonCourseMap);
+        });
         setDataCourse(recommendationResult);
         return recommendationResult;
       } catch (error) {
@@ -403,7 +428,8 @@ const Home: FC = () => {
   };
 
   async function getCourseRecommendationLessons(
-    currentStudent: TableTypes<"user">
+    currentStudent: TableTypes<"user">,
+    currentClass?: TableTypes<"class">
   ): Promise<TableTypes<"lesson">[]> {
     // const allCourses: TableTypes<"course">[] =
     //   await api.getCoursesForParentsStudent(currentStudent.id);
@@ -411,7 +437,8 @@ const Home: FC = () => {
     // const lessons = await api.getAllLessonsForCourse(allCourses[0].id);
     // console.log("const lessons ", lessons);
     let tempRecommendedLesson = await api.getRecommendedLessons(
-      currentStudent.id
+      currentStudent.id,
+      currentClass?.id
     );
     return tempRecommendedLesson;
   }
@@ -540,13 +567,13 @@ const Home: FC = () => {
   return (
     <IonPage id="home-page">
       <IonHeader id="home-header">
-        <HomeHeader
-          key={refreshKey}
-          currentHeader={currentHeader}
-          onHeaderIconClick={onHeaderIconClick}
-          pendingAssignmentCount={pendingAssignments.length}
-          pendingLiveQuizCount={pendingLiveQuizCount}
-        ></HomeHeader>
+      <HomeHeader
+      key={refreshKey}
+      currentHeader={currentHeader}
+      onHeaderIconClick={onHeaderIconClick}
+      pendingAssignmentCount={pendingAssignments.length}
+      pendingLiveQuizCount={pendingLiveQuizCount}
+      />
       </IonHeader>
       <div className="slider-content">
         {!isLoading ? (
@@ -565,7 +592,18 @@ const Home: FC = () => {
 
             {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
 
-            {currentHeader === HOMEHEADERLIST.ASSIGNMENT && <AssignmentPage />}
+            {currentHeader === HOMEHEADERLIST.ASSIGNMENT && (
+              <AssignmentPage
+                onNewAssignment={(newAssignment) => {
+                setPendingAssignments((prev) => {
+                if (!prev.some((a) => a.id === newAssignment.id)) {
+                return [...prev, newAssignment];
+            }
+            return prev;
+      });
+    }}
+  />
+)}
 
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
             {currentHeader === HOMEHEADERLIST.LIVEQUIZ && <LiveQuiz />}
@@ -639,6 +677,7 @@ const Home: FC = () => {
                       showSubjectName={true}
                       showChapterName={true}
                       showDate={true}
+                      lessonCourseMap={recommendedLessonCourseMap}
                     />
                   )}
 
@@ -654,6 +693,7 @@ const Home: FC = () => {
                           showSubjectName={true}
                           showChapterName={true}
                           onEndReached={handleLoadMoreLessons}
+                          lessonCourseMap={lessonCourseMap}
                         />
                       ) : (
                         <p>{t("No liked lessons available.")}</p>
@@ -673,6 +713,7 @@ const Home: FC = () => {
                           showSubjectName={true}
                           showChapterName={true}
                           onEndReached={handleLoadMoreHistoryLessons}
+                          lessonCourseMap={lessonCourseMap}
                         />
                       ) : (
                         <p>{t("No played lessons available.")}</p>

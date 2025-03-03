@@ -6,6 +6,7 @@ import {
   TABLES,
   TableTypes,
   MUTATE_TYPES,
+  PROFILETYPE,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -126,6 +127,49 @@ export class SupabaseApi implements ServiceApi {
     console.log("🚀 ~ supabase:", this.supabase);
   }
 
+  // as parameters type: school, user, class
+  //               image
+  // return image stored url
+  //---------------------------------------------------------------
+  async addProfileImages(
+    id: string,
+    file: File,
+    profileType: PROFILETYPE
+  ): Promise<string | null> {
+    const extension = file.name.split(".").pop(); // Get file extension
+    const newName = `ProfilePicture_${profileType}_${Date.now()}.${extension}`; // Rename the file
+    const folderName = encodeURIComponent(String(id));
+    const filePath = `${profileType}/${folderName}/${newName}`; // Path inside the bucket
+    // Attempt to delete existing files
+    const removeResponse = await this.supabase?.storage
+      .from("ProfileImages")
+      .remove(
+        (
+          await this.supabase?.storage
+            .from("ProfileImages")
+            .list(`${profileType}/${folderName}`, { limit: 2 })
+        )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
+          []
+      );
+    // Convert File to Blob (necessary for renaming)
+    const renamedFile = new File([file], newName, { type: file.type });
+    // Upload the new file (allow overwrite)
+    const uploadResponse = await this.supabase?.storage
+      .from("ProfileImages")
+      .upload(filePath, renamedFile, { upsert: true });
+    if (uploadResponse?.error) {
+      console.error("Error uploading file:", uploadResponse.error.message);
+      return null;
+    }
+    // Get the Public URL of the uploaded file
+    const urlData = this.supabase?.storage
+      .from("ProfileImages")
+      .getPublicUrl(filePath);
+    const imageUrl = urlData?.data.publicUrl;
+    console.log("Public Image URL:", imageUrl);
+    return imageUrl || null;
+  }
+
   async getTablesData(
     tableNames: TABLES[] = Object.values(TABLES),
     tablesLastModifiedTime: Map<string, string> = new Map()
@@ -233,7 +277,23 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  async removeCourseFromClass(id: string): Promise<void> {
+  async getCoursesBySchoolId(
+    studentId: string
+  ): Promise<TableTypes<"school_course">[]> {
+    throw new Error("Method not implemented.");
+  }
+
+  async removeCoursesFromClass(ids: string[]): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  async removeCoursesFromSchool(ids: string[]): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  async checkCourseInClasses(
+    classIds: string[],
+    classId: string
+  ): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
 
@@ -246,7 +306,7 @@ export class SupabaseApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    courseIds: string[]
+    image: File | null
   ): Promise<TableTypes<"school">> {
     throw new Error("Method not implemented.");
   }
@@ -482,6 +542,14 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
+
+  updateSchoolCourseSelection(
+    schoolId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
   getSubject(id: string): Promise<TableTypes<"subject"> | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -759,46 +827,55 @@ export class SupabaseApi implements ServiceApi {
   }
   async assignmentUserListner(
     studentId: string,
-    onDataChange: (
-      assignment_user: TableTypes<"assignment_user"> | undefined
-    ) => void
+    onDataChange: (assignment_user: TableTypes<"assignment_user"> | undefined) => void
   ) {
     try {
-      if (this._assignmentUserRealTime) return;
+      if (this._assignmentUserRealTime) {
+        this._assignmentUserRealTime.unsubscribe();
+        this._assignmentUserRealTime = undefined;
+      }
+  
       this._assignmentUserRealTime = this.supabase?.channel("assignment_user");
       if (!this._assignmentUserRealTime) {
         throw new Error("Failed to establish channel for assignment_user");
       }
-      const res = this._assignmentUserRealTime
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "assignment_user",
-            filter: `user_id=eq.${studentId}`,
-          },
-          (payload) => {
+  
+      this._assignmentUserRealTime.on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "assignment_user",
+          filter: `user_id=eq.${studentId}`,
+        },
+        (payload) => {
+          if (onDataChange) {
             onDataChange(payload.new as TableTypes<"assignment_user">);
+          } else {
+            console.error("🛑 onDataChange is undefined for assignment_user!");
           }
-        )
-        .subscribe();
-      return;
+        }
+      ).subscribe();
     } catch (error) {
-      throw error;
+      console.error("🛑 Error in Supabase assignment_user listener:", error);
     }
   }
+  
   async assignmentListner(
     classId: string,
     onDataChange: (assignment: TableTypes<"assignment"> | undefined) => void
   ) {
     try {
-      if (this._assignmetRealTime) return;
+      if (this._assignmetRealTime) {
+        this._assignmetRealTime.unsubscribe();
+        this._assignmetRealTime = undefined;
+      }
+  
       this._assignmetRealTime = this.supabase?.channel("assignment");
       if (!this._assignmetRealTime) {
         throw new Error("Failed to establish channel for assignment");
       }
-      const res = this._assignmetRealTime!.on(
+      this._assignmetRealTime.on(
         "postgres_changes",
         {
           event: "INSERT",
@@ -807,20 +884,25 @@ export class SupabaseApi implements ServiceApi {
           filter: `class_id=eq.${classId}`,
         },
         (payload) => {
-          onDataChange(payload.new as TableTypes<"assignment">);
+          if (onDataChange) {
+            onDataChange(payload.new as TableTypes<"assignment">);
+          } else {
+            console.error("🛑 onDataChange is undefined!");
+          }
         }
       ).subscribe();
-      return;
     } catch (error) {
-      throw error;
+      console.error("🛑 Error in Supabase listener:", error);
     }
-  }
+  }    
   async removeAssignmentChannel() {
     try {
       if (this._assignmentUserRealTime)
         this.supabase?.removeChannel(this._assignmentUserRealTime);
+      this._assignmentUserRealTime = undefined;
       if (this._assignmetRealTime)
         this.supabase?.removeChannel(this._assignmetRealTime);
+      this._assignmetRealTime = undefined;
     } catch (error) {
       throw error;
     }
@@ -971,16 +1053,27 @@ export class SupabaseApi implements ServiceApi {
   async getGradeById(id: string): Promise<TableTypes<"grade"> | undefined> {
     throw new Error("Method not implemented.");
   }
+  async getGradesByIds(ids: string[]): Promise<TableTypes<"grade">[]> {
+    throw new Error("Method not implemented.");
+  }
   async getCurriculumById(
     id: string
   ): Promise<TableTypes<"curriculum"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  async getCurriculumsByIds(
+    ids: string[]
+  ): Promise<TableTypes<"curriculum">[]> {
     throw new Error("Method not implemented.");
   }
   updateRewardsForStudent(studentId: string, unlockReward: LeaderboardRewards) {
     throw new Error("Method not implemented.");
   }
 
-  getRecommendedLessons(studentId: string): Promise<TableTypes<"lesson">[]> {
+  getRecommendedLessons(
+    studentId: string,
+    classId?: string
+  ): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
 
@@ -1022,6 +1115,11 @@ export class SupabaseApi implements ServiceApi {
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
+  }
+  getAssignmentUserByAssignmentIds(
+    assignmentIds: string[]
+  ): Promise<TableTypes<"assignment_user">[]> {
+    throw new Error("Method not implemented");
   }
   getResultByAssignmentIds(
     assignmentIds: string[]
@@ -1087,7 +1185,7 @@ export class SupabaseApi implements ServiceApi {
   addTeacherToClass(classId: string, userId: string): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  checkUserInClass(schoolId, classid, userId): Promise<boolean> {
+  checkUserExistInSchool(schoolId, userId): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
   getAssignmentsByAssignerAndClass(
@@ -1126,12 +1224,73 @@ export class SupabaseApi implements ServiceApi {
   async deleteTeacher(classId: string, teacherId: string) {
     throw new Error("Method not implemented.");
   }
+
+  async getClassCodeById(class_id: string): Promise<number | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
   async getResultByChapterByDate(
     chapter_id: string,
     course_id: string,
     startDate: string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
+  async createClassCode(classId: string): Promise<number> {
+    try {
+      // Validate parameters
+      if (!classId)
+        throw new Error("Class ID is required to create a class code.");
+
+      // Call the RPC function
+      const classCode = await this?.supabase?.rpc(
+        "generate_unique_class_code",
+        {
+          class_id_input: classId,
+        }
+      );
+      if (!classCode?.data) {
+        throw new Error(`A class code is not created`);
+      }
+      return classCode?.data;
+    } catch (error) {
+      throw error; // Re-throw the error for external handling
+    }
+  }
+  async getSchoolsWithRoleAutouser(
+    schoolIds: string[]
+  ): Promise<TableTypes<"school">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  async getPrincipalsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  async getCoordinatorsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  async getSponsorsForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  async addUserToSchool(
+    schoolId: string,
+    userId: string,
+    role: RoleType
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  async deleteUserFromSchool(
+    schoolId: string,
+    userId: string,
+    role: RoleType
+  ): Promise<void> {
     throw new Error("Method not implemented.");
   }
 }

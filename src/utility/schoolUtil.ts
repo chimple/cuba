@@ -16,31 +16,38 @@ export class schoolUtil {
     const temp = localStorage.getItem(CURRENT_CLASS);
 
     if (!temp) return;
-    const currentClass = JSON.parse(temp) as TableTypes<"class">;
+    try {
+      const currentClass = JSON.parse(temp) as TableTypes<"class">;
+      // function getRef(ref): DocumentReference {
+      //   const db = getFirestore();
+      //   const newCourseRef = doc(
+      //     db,
+      //     ref["_key"].path.segments.at(-2),
+      //     ref["_key"].path.segments.at(-1)
+      //   );
+      //   return newCourseRef;
+      // }
 
-    // function getRef(ref): DocumentReference {
-    //   const db = getFirestore();
-    //   const newCourseRef = doc(
-    //     db,
-    //     ref["_key"].path.segments.at(-2),
-    //     ref["_key"].path.segments.at(-1)
-    //   );
-    //   return newCourseRef;
-    // }
+      // function convertDoc(
+      //   refs: DocumentReference<DocumentData>
+      // ): DocumentReference {
+      //   const newCourseRef = getRef(refs);
+      //   return newCourseRef;
+      // }
 
-    // function convertDoc(
-    //   refs: DocumentReference<DocumentData>
-    // ): DocumentReference {
-    //   const newCourseRef = getRef(refs);
-    //   return newCourseRef;
-    // }
-
-    // if (!!currentClass.school)
-    //   currentClass.school = convertDoc(currentClass.school);
-    // api.currentClass = currentClass;
-    return currentClass;
+      // if (!!currentClass.school)
+      //   currentClass.school = convertDoc(currentClass.school);
+      // api.currentClass = currentClass;
+      return currentClass;
+    } catch (error) {
+      console.error("Failed to parse CURRENT_SCHOOL from localStorage:", error);
+      return undefined;
+    }
   }
-  public static setCurrentClass = async (currClass: TableTypes<"class">) => {
+
+  public static setCurrentClass = async (
+    currClass: TableTypes<"class"> | undefined
+  ) => {
     const api = ServiceConfig.getI().apiHandler;
     api.currentClass = currClass;
 
@@ -61,6 +68,11 @@ export class schoolUtil {
       //   coordinator: currClass.coordinator,
       // })
     );
+  };
+  public static removeCurrentClass = () => {
+    const api = ServiceConfig.getI().apiHandler;
+    api.currentClass = undefined;
+    localStorage.removeItem(CURRENT_CLASS);
   };
   public static getCurrentSchool(): TableTypes<"school"> | undefined {
     const api = ServiceConfig.getI().apiHandler;

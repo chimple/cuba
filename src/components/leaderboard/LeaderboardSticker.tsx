@@ -20,6 +20,7 @@ const LeaderboardStickers: FC = () => {
   const currentStudent = Util.getCurrentStudent()!;
   const api = ServiceConfig.getI().apiHandler;
   const [stickers, setstickers] = useState<stickerInfo[]>();
+  const [lostStickers, setLostStickers] = useState<stickerInfo[]>();
   const [allSticker, setAllStickers] =
     useState<(TableTypes<"sticker"> | undefined)[]>();
 
@@ -45,6 +46,18 @@ const LeaderboardStickers: FC = () => {
       stickerInfoArray.push({ sticker, isUnlocked: false, isNextUnlock: true });
     });
 
+    unlockedStickers.forEach((sticker) => {
+      const isInNextUnlock = stickerInfoArray?.some(
+        (nextSticker) => nextSticker?.sticker?.id === sticker?.id
+      );
+      if (!isInNextUnlock) {
+        stickerInfoArray.push({
+          sticker,
+          isUnlocked: true,
+          isNextUnlock: false,
+        });
+      }
+    });
     upcomingStickers.forEach((sticker) => {
       stickerInfoArray.push({
         sticker,
@@ -52,7 +65,27 @@ const LeaderboardStickers: FC = () => {
         isUpcomingSticker: true,
       });
     });
-    setstickers(stickerInfoArray);
+    // Sorting logic: prioritize by type order
+    const typePriority = (sticker: stickerInfo): number => {
+      if (sticker.isNextUnlock) return 1; // Current
+      if (sticker.isUpcomingSticker) return 2; // Upcoming
+      if (sticker.isUnlocked) return 3; // Won
+      if (!sticker.isUnlocked && !sticker.isUpcomingSticker) return 4; // Lost
+      return 5; // Remaining
+    };
+
+    stickerInfoArray.sort((a, b) => typePriority(a) - typePriority(b));
+    // Filter lost badges
+    const lostStickersArray = stickerInfoArray.filter(
+      (sticker) => !sticker.isUnlocked && !sticker.isNextUnlock && !sticker.isUpcomingSticker
+    );
+    // Filter current, upcoming, and won badges
+    const filteredStickers = stickerInfoArray.filter(
+      (sticker) =>
+        sticker.isUnlocked || sticker.isNextUnlock || sticker.isUpcomingSticker
+    );
+    setstickers(filteredStickers);
+    setLostStickers(lostStickersArray);
   }
   const getUnlockedstickers = async (): Promise<TableTypes<"sticker">[]> => {
     if (!currentStudent) return [];
@@ -163,76 +196,100 @@ const LeaderboardStickers: FC = () => {
   };
 
   return currentStudent ? (
-    <div className="leaderboard-sticker-container">
-      {stickers &&
-        stickers.length > 0 &&
-        stickers.map((value, index) => (
-          <div
-            key={index}
-            className={
-              "leaderboard-badge-item " +
-              (value.isUnlocked
-                ? ""
-                : value.isNextUnlock
-                  ? "next-reward"
-                  : value.isUpcomingSticker
+    <div className="leaderboard-sticker-page">
+      {/* Section for Current, Upcoming, and Won Badges */}
+      <div className="leaderboard-sticker-section">
+        <div className="leaderboard-sticker-container">
+          {stickers &&
+            stickers.map((value, index) => (
+              <div
+                key={index}
+                className={`leaderboard-badge-item ${value.isUnlocked
+                  ? ""
+                  : value.isNextUnlock
                     ? "next-reward"
-                    : "lost-reward")
-            }
-          >
-            {value.isNextUnlock && (
-              <div className="green-circle">
-                <FaHeart color="white" />
-              </div>
-            )}
-            {!value.isUnlocked &&
-              !value.isNextUnlock &&
-              !value.isUpcomingSticker && (
-                <div className="lost-reward-overlay">
-                  <div className="red-circle">
-                    <RxCross2 color="white" />
+                    : value.isUpcomingSticker
+                      ? "upcoming-reward"
+                      : "lost-reward"
+                  }`}
+              >
+                {value.isNextUnlock && !value.isUnlocked && (
+                  <div className="green-circle">
+                    <FaHeart color="white" />
                   </div>
-                </div>
-              )}
-            {value.isUnlocked && (
-              <div className="lost-reward-overlay">
-                <div className="won-circle">
-                  <TiTick color="white" />
-                </div>
+                )}
+                {!value.isUnlocked &&
+                  !value.isNextUnlock &&
+                  !value.isUpcomingSticker && (
+                    <div className="lost-reward-overlay">
+                      <div className="red-circle">
+                        <RxCross2 color="white" />
+                      </div>
+                    </div>
+                  )}
+                {value.isUnlocked && (
+                  <div className="lost-reward-overlay">
+                    <div className="won-circle">
+                      <TiTick color="white" />
+                    </div>
+                  </div>
+                )}
+                <CachedImage src={value.sticker?.image ?? undefined} />
+                <p>{value.sticker?.name}</p>
+                {value.isUpcomingSticker &&
+                  !value.isNextUnlock &&
+                  !value.isUnlocked ? (
+                  <p>{t("Upcoming")}</p>
+                ) : null}
+                {!value.isUnlocked &&
+                  !value.isNextUnlock &&
+                  !value.isUpcomingSticker && <p>{t("Lost Reward")}</p>}
+                {value.isUnlocked && (
+                  <p>
+                    <b>{t("Won Reward")}</b>
+                  </p>
+                )}
+                {value.isNextUnlock && !value.isUnlocked ? (
+                  <p className="leaderboard-next-unlock-text">
+                    {t("This Week's Reward")}
+                  </p>
+                ) : null}
               </div>
-            )}
-
-            <CachedImage src={value.sticker?.image ?? undefined} />
-
-            <p>{value.sticker?.name}</p>
-            {value.isUpcomingSticker && !value.isUnlocked ? (
-              <p>{t("Upcoming")}</p>
-            ) : (
-              ""
-            )}
-            {!value.isUnlocked &&
-              !value.isNextUnlock &&
-              !value.isUpcomingSticker && <p>{t("lost reward")}</p>}
-            {value.isUnlocked && (
-              <p>
-                <b>{t("won reward")}</b>
-              </p>
-            )}
-            {value.isNextUnlock && (
-              <p className="leaderboard-next-unlock-text">
-                {t("This Week's Reward")}
-              </p>
-            )}
+            ))}
+        </div>
+      </div>
+      <hr className="section-divider" />
+      {/* Section for Lost Badges */}
+      <div className="leaderboard-sticker-section">
+        <div className="leaderboard-sticker-container">
+        {lostStickers && lostStickers.filter(value => !value.isUnlocked && !value.isNextUnlock && !value.isUpcomingSticker).map((value, index) => (
+          <div key={index} className="leaderboard-badge-item lost-reward">
+            <div className="lost-reward-overlay">
+              <div className="red-circle">
+                <RxCross2 color="white" />
+              </div>
+              <CachedImage src={value.sticker?.image ?? undefined} />
+            </div>
+            <div>
+              <div className="leaderboard-badge-item lost-reward">
+                <p>{value.sticker?.name}</p>
+                <p>{t("Lost Reward")}</p>
+              </div>
+            </div>
           </div>
         ))}
+        </div>
+      </div>
+
+      {/* Disabled Stickers
       {allSticker &&
         allSticker.length > 0 &&
-        allSticker.map((value) => (
-          <div className="leaderboard-badge-disabled">
-            <CachedImage src={value?.image ?? ""} />
-            {!!value?.name ? <p>{value?.name}</p> : ""}
+        allSticker.map((value, index) => (
+          <div key={index} className="leaderboard-badge-disabled">
+            <CachedImage src={value?.image} />
+            {!!value?.name && <p>{value?.name}</p>}
           </div>
-        ))}
+        ))} */}
     </div>
   ) : (
     <div></div>
