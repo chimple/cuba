@@ -1757,55 +1757,53 @@ export class OneRosterApi implements ServiceApi {
       // Parse statements
       const parsedStatements = statements.map((statement) => ({
         id: statement.id ?? null,
-        studentId:
+        student_id:
           statement.context?.extensions?.[
             "http://example.com/xapi/studentId"
           ] ?? null,
-        courseId:
+        course_id:
           statement.object?.definition?.extensions?.[
             "http://example.com/xapi/courseId"
-          ] ?? null,
-        lessonId:
+          ] ?? "",
+        lesson_id:
           statement.object?.definition?.extensions?.[
             "http://example.com/xapi/lessonId"
           ] ?? null,
-        assignmentId:
+        assignment_id:
           statement.result?.extensions?.[
             "http://example.com/xapi/assignmentId"
           ] ?? null,
-        chapterId:
+        chapter_id:
           statement.context?.extensions?.[
             "http://example.com/xapi/chapterId"
           ] ?? null,
-        schoolId:
-          statement.context?.extensions?.["http://example.com/xapi/schoolId"] ??
+        school_id:
+          statement.context?.extensions?.["http://example.com/xapi/schoolId"] ?? 
           null,
-        isDeleted:
+        is_deleted:
           statement.context?.extensions?.[
             "http://example.com/xapi/isDeleted"
           ] ?? false,
-        createdAt:
+        created_at:
           statement.context?.extensions?.[
             "http://example.com/xapi/createdAt"
           ] ?? null,
-        updatedAt:
+        updated_at:
           statement.context?.extensions?.[
             "http://example.com/xapi/updatedAt"
           ] ?? null,
         score: statement.result?.score?.raw ?? null,
-        correctMoves:
+        correct_moves:
           statement.result?.extensions?.[
             "http://example.com/xapi/correctMoves"
           ] ?? null,
-        wrongMoves:
+        wrong_moves:
           statement.result?.extensions?.[
             "http://example.com/xapi/wrongMoves"
           ] ?? null,
-        timeSpent: statement.result?.duration ?? null,
-        success: statement.result?.success ?? null,
-        completion: statement.result?.completion ?? null,
-        response: statement.result?.response ?? null,
+        time_spent: statement.result?.duration ?? null,
       }));
+
 
       console.log("Parsed Statements:", parsedStatements);
       return parsedStatements;
