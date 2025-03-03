@@ -717,34 +717,48 @@ export class OneRosterApi implements ServiceApi {
     const agentEmail = `mailto:${loggedStudent?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
 
     const statement = {
+      id: crypto.randomUUID(),
       actor: {
-        mbox: agentEmail, // Should be a valid email format
+        mbox: agentEmail,
         name: student.name ?? "John Doe",
       },
       verb: {
         id: "http://adlnet.gov/expapi/verbs/completed",
-        display: { "en-US": "completed" }, // Fixed: Use language key
+        display: { "en-US": "completed" },
       },
       object: {
         id: `http://example.com/activity/${lessonId}`,
         definition: {
-          name: { "en-US": `Lesson ${lessonId}` }, // Fixed: Use language key
+          name: { "en-US": `Lesson ${lessonId}` },
+          extensions: {
+            "http://example.com/xapi/courseId": courseId,
+            "http://example.com/xapi/lessonId": lessonId,
+          },
         },
       },
       result: {
         score: { raw: score },
-        success: score > 35, // Assume passing score is above 35
+        success: score > 35,
         completion: true,
         response: `Correct: ${correctMoves}, Wrong: ${wrongMoves}`,
         duration: this.formatDuration(timeSpent),
         extensions: {
-          "http://example.com/extension/correctMoves": correctMoves,
-          "http://example.com/extension/wrongMoves": wrongMoves,
-          "http://example.com/extension/classId": classId,
-          "http://example.com/extension/schoolId": schoolId,
+          "http://example.com/xapi/correctMoves": correctMoves,
+          "http://example.com/xapi/wrongMoves": wrongMoves,
+          "http://example.com/xapi/timeSpent": timeSpent,
+          "http://example.com/xapi/assignmentId": assignmentId,
         },
       },
       context: {
+        extensions: {
+          "http://example.com/xapi/studentId": student.id,
+          "http://example.com/xapi/classId": classId,
+          "http://example.com/xapi/schoolId": schoolId,
+          "http://example.com/xapi/chapterId": chapterId,
+          "http://example.com/xapi/createdAt": new Date().toISOString(),
+          "http://example.com/xapi/updatedAt": new Date().toISOString(),
+          "http://example.com/xapi/isDeleted": false,
+        },
         contextActivities: {
           grouping: [
             { id: `http://example.com/course/${courseId}` },
@@ -760,29 +774,32 @@ export class OneRosterApi implements ServiceApi {
 
     try {
       await tincan.sendStatement(statement);
-      console.log("updateResult ~ statement Success ~ line: 763", statement);
+      console.log("updateResult ~ statement Success", statement);
 
-      return {
-        studentId: student.id,
-        courseId,
-        lessonId,
-        score,
-        correctMoves,
-        wrongMoves,
-        timeSpent,
-        assignmentId,
-        chapterId,
-        classId,
-        schoolId,
-        success: score > 35,
-        completion: true,
-        response: "Updated successfully",
+      const newResult: TableTypes<"result"> = {
+        id: statement.id,
+        assignment_id: assignmentId ?? null,
+        correct_moves: correctMoves,
+        lesson_id: lessonId,
+        school_id: schoolId ?? null,
+        score: score,
+        student_id: student.id,
+        time_spent: timeSpent,
+        wrong_moves: wrongMoves,
+        created_at: statement.context.extensions["http://example.com/xapi/createdAt"],
+        updated_at: statement.context.extensions["http://example.com/xapi/updatedAt"],
+        is_deleted: false,
+        chapter_id: chapterId,
+        course_id: courseId ?? "",
       };
+
+      return newResult;
     } catch (error) {
       console.error("Error sending update statement:", error);
       throw new Error("Failed to update student result.");
     }
   }
+
 
   getLanguageWithId(id: string): Promise<TableTypes<"language"> | undefined> {
     // throw new Error("Method not implemented.");
@@ -1740,55 +1757,53 @@ export class OneRosterApi implements ServiceApi {
       // Parse statements
       const parsedStatements = statements.map((statement) => ({
         id: statement.id ?? null,
-        studentId:
+        student_id:
           statement.context?.extensions?.[
             "http://example.com/xapi/studentId"
           ] ?? null,
-        courseId:
+        course_id:
           statement.object?.definition?.extensions?.[
             "http://example.com/xapi/courseId"
-          ] ?? null,
-        lessonId:
+          ] ?? "",
+        lesson_id:
           statement.object?.definition?.extensions?.[
             "http://example.com/xapi/lessonId"
           ] ?? null,
-        assignmentId:
+        assignment_id:
           statement.result?.extensions?.[
             "http://example.com/xapi/assignmentId"
           ] ?? null,
-        chapterId:
+        chapter_id:
           statement.context?.extensions?.[
             "http://example.com/xapi/chapterId"
           ] ?? null,
-        schoolId:
-          statement.context?.extensions?.["http://example.com/xapi/schoolId"] ??
+        school_id:
+          statement.context?.extensions?.["http://example.com/xapi/schoolId"] ?? 
           null,
-        isDeleted:
+        is_deleted:
           statement.context?.extensions?.[
             "http://example.com/xapi/isDeleted"
           ] ?? false,
-        createdAt:
+        created_at:
           statement.context?.extensions?.[
             "http://example.com/xapi/createdAt"
           ] ?? null,
-        updatedAt:
+        updated_at:
           statement.context?.extensions?.[
             "http://example.com/xapi/updatedAt"
           ] ?? null,
         score: statement.result?.score?.raw ?? null,
-        correctMoves:
+        correct_moves:
           statement.result?.extensions?.[
             "http://example.com/xapi/correctMoves"
           ] ?? null,
-        wrongMoves:
+        wrong_moves:
           statement.result?.extensions?.[
             "http://example.com/xapi/wrongMoves"
           ] ?? null,
-        timeSpent: statement.result?.duration ?? null,
-        success: statement.result?.success ?? null,
-        completion: statement.result?.completion ?? null,
-        response: statement.result?.response ?? null,
+        time_spent: statement.result?.duration ?? null,
       }));
+
 
       console.log("Parsed Statements:", parsedStatements);
       return parsedStatements;
