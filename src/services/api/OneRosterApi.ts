@@ -776,31 +776,30 @@ export class OneRosterApi implements ServiceApi {
       await tincan.sendStatement(statement);
       console.log("updateResult ~ statement Success", statement);
 
-      return {
+      const newResult: TableTypes<"result"> = {
         id: statement.id,
-        studentId: student.id,
-        courseId,
-        lessonId,
-        assignmentId,
-        chapterId,
-        classId,
-        schoolId,
-        isDeleted: false,
-        createdAt: statement.context.extensions["http://example.com/xapi/createdAt"],
-        updatedAt: statement.context.extensions["http://example.com/xapi/updatedAt"],
-        score,
-        correctMoves,
-        wrongMoves,
-        timeSpent,
-        success: score > 35,
-        completion: true,
-        response: "Updated successfully",
+        assignment_id: assignmentId ?? null,
+        correct_moves: correctMoves,
+        lesson_id: lessonId,
+        school_id: schoolId ?? null,
+        score: score,
+        student_id: student.id,
+        time_spent: timeSpent,
+        wrong_moves: wrongMoves,
+        created_at: statement.context.extensions["http://example.com/xapi/createdAt"],
+        updated_at: statement.context.extensions["http://example.com/xapi/updatedAt"],
+        is_deleted: false,
+        chapter_id: chapterId,
+        course_id: courseId ?? "",
       };
+
+      return newResult;
     } catch (error) {
       console.error("Error sending update statement:", error);
       throw new Error("Failed to update student result.");
     }
   }
+
 
   getLanguageWithId(id: string): Promise<TableTypes<"language"> | undefined> {
     // throw new Error("Method not implemented.");
