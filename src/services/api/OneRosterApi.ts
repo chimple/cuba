@@ -717,34 +717,48 @@ export class OneRosterApi implements ServiceApi {
     const agentEmail = `mailto:${loggedStudent?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
 
     const statement = {
+      id: crypto.randomUUID(),
       actor: {
-        mbox: agentEmail, // Should be a valid email format
+        mbox: agentEmail,
         name: student.name ?? "John Doe",
       },
       verb: {
         id: "http://adlnet.gov/expapi/verbs/completed",
-        display: { "en-US": "completed" }, // Fixed: Use language key
+        display: { "en-US": "completed" },
       },
       object: {
         id: `http://example.com/activity/${lessonId}`,
         definition: {
-          name: { "en-US": `Lesson ${lessonId}` }, // Fixed: Use language key
+          name: { "en-US": `Lesson ${lessonId}` },
+          extensions: {
+            "http://example.com/xapi/courseId": courseId,
+            "http://example.com/xapi/lessonId": lessonId,
+          },
         },
       },
       result: {
         score: { raw: score },
-        success: score > 35, // Assume passing score is above 35
+        success: score > 35,
         completion: true,
         response: `Correct: ${correctMoves}, Wrong: ${wrongMoves}`,
         duration: this.formatDuration(timeSpent),
         extensions: {
-          "http://example.com/extension/correctMoves": correctMoves,
-          "http://example.com/extension/wrongMoves": wrongMoves,
-          "http://example.com/extension/classId": classId,
-          "http://example.com/extension/schoolId": schoolId,
+          "http://example.com/xapi/correctMoves": correctMoves,
+          "http://example.com/xapi/wrongMoves": wrongMoves,
+          "http://example.com/xapi/timeSpent": timeSpent,
+          "http://example.com/xapi/assignmentId": assignmentId,
         },
       },
       context: {
+        extensions: {
+          "http://example.com/xapi/studentId": student.id,
+          "http://example.com/xapi/classId": classId,
+          "http://example.com/xapi/schoolId": schoolId,
+          "http://example.com/xapi/chapterId": chapterId,
+          "http://example.com/xapi/createdAt": new Date().toISOString(),
+          "http://example.com/xapi/updatedAt": new Date().toISOString(),
+          "http://example.com/xapi/isDeleted": false,
+        },
         contextActivities: {
           grouping: [
             { id: `http://example.com/course/${courseId}` },
@@ -760,20 +774,24 @@ export class OneRosterApi implements ServiceApi {
 
     try {
       await tincan.sendStatement(statement);
-      console.log("updateResult ~ statement Success ~ line: 763", statement);
+      console.log("updateResult ~ statement Success", statement);
 
       return {
+        id: statement.id,
         studentId: student.id,
         courseId,
         lessonId,
-        score,
-        correctMoves,
-        wrongMoves,
-        timeSpent,
         assignmentId,
         chapterId,
         classId,
         schoolId,
+        isDeleted: false,
+        createdAt: statement.context.extensions["http://example.com/xapi/createdAt"],
+        updatedAt: statement.context.extensions["http://example.com/xapi/updatedAt"],
+        score,
+        correctMoves,
+        wrongMoves,
+        timeSpent,
         success: score > 35,
         completion: true,
         response: "Updated successfully",
