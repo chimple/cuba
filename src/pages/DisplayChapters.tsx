@@ -92,9 +92,6 @@ const DisplayChapters: FC<{}> = () => {
         getLocalGradeMap();
       }
     }
-
-    console.log("chapters", currentCourse);
-    console.log("local grade map", localGradeMap);
   }, [getCourseByUrl, localGradeMap, currentCourse]);
 
   const init = async () => {
@@ -176,6 +173,25 @@ const DisplayChapters: FC<{}> = () => {
     } else {
       console.warn("Course not found in local data.");
     }
+    //Later need to remove use existing one
+    const currentStudent = Util.getCurrentStudent();
+    console.log(
+      "const currentStudent = Util.getCurrentStudent(); ",
+      currentStudent
+    );
+
+    if (!currentStudent) {
+      return;
+    }
+    const result = await api.getStudentResultInMap(currentStudent.id);
+    const lessons = result;
+    console.log(
+      "final const result = await api.getStudentResultInMap(currentStudent.id); ",
+      result
+    );
+
+    localData.lessonResultMap = lessons;
+    setLessonResultMap(lessons);
     setIsLoading(false);
     getLocalGradeMap();
   };
@@ -220,7 +236,6 @@ const DisplayChapters: FC<{}> = () => {
     if (!!currClass) setCurrentClass(currClass);
 
     const res = await api.getStudentResultInMap(currentStudent.id);
-    console.log("tempResultLessonMap = res;", res);
     localData.lessonResultMap = res;
 
     setLessonResultMap(res);
