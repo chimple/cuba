@@ -48,8 +48,8 @@ const CocosGame: React.FC = () => {
   const [gameResult, setGameResult] = useState<any>();
   const [isDeviceAwake, setDeviceAwake] = useState(false);
   const currentStudent = Util.getCurrentStudent();
-  const CourseDetail: Course = JSON.parse(state.course);
-  const lessonDetail: Lesson = JSON.parse(state.lesson);
+  // const CourseDetail: Course = JSON.parse(state.course);
+  // const lessonDetail: Lesson = JSON.parse(state.lesson);
   let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
   let lessonStartTime = 0;
   const presentToast = async () => {
@@ -160,41 +160,49 @@ const CocosGame: React.FC = () => {
   };
 
   const gameExit = async (e: any) => {
-    let ChapterDetail: Chapter | undefined;
-    if (!!lessonDetail.cocosChapterCode) {
-      let cChap = CourseDetail.chapters.find(
-        (chap) => lessonDetail.cocosChapterCode === chap.id
-      );
-      if (cChap) {
-        ChapterDetail = cChap;
-        const data = e.detail as CocosLessonData;
-        console.log("Sending Lesson End Data to Java:", JSON.stringify(data, null, 2));
-        const lessonStartTime = data.lessonStartTime || 0; // Ensure lessonStartTime is defined
-        const currentTime = Date.now(); // Get current timestamp
-        const totalTimeSpent = currentTime - lessonStartTime; // Calculate total time spent
-        sendEiduResultToJava("ABORT", null, totalTimeSpent, "Lesson aborted", []);
-        console.log("Current Chapter ", ChapterDetail);
-      }
-    }
+    // let ChapterDetail: Chapter | undefined;
+    // if (!!lessonDetail.cocosChapterCode) {
+    //   let cChap = CourseDetail.chapters.find(
+    //     (chap) => lessonDetail.cocosChapterCode === chap.id
+    //   );
+    //   if (cChap) {
+    //     ChapterDetail = cChap;
+    //     const data = e.detail as CocosLessonData;
+    //     console.log("Sending Lesson End Data to Java:", JSON.stringify(data, null, 2));
+    //     const lessonStartTime = data.lessonStartTime || 0; // Ensure lessonStartTime is defined
+    //     const currentTime = Date.now(); // Get current timestamp
+    //     const totalTimeSpent = currentTime - lessonStartTime; // Calculate total time spent
+    //     sendEiduResultToJava("ABORT", null, totalTimeSpent, "Lesson aborted", []);
+    //     console.log("Current Chapter ", ChapterDetail);
+    //   }
+    const lessonEndData = e.detail as CocosLessonData;
+    console.log("Sending Lesson End Data to Java:", JSON.stringify(lessonEndData, null, 2));
+    const lessonStartTime = lessonEndData.lessonStartTime || 0; // Ensure lessonStartTime is defined
+    const currentTime = Date.now(); // Get current timestamp
+    const totalTimeSpent = currentTime - lessonStartTime; // Calculate total time spent
+    sendEiduResultToJava("ABORT", null, totalTimeSpent, "Lesson aborted", []);
+    console.log("Current Chapter ", ChapterDetail);
+
+
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
     killGame(e);    
     Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
       user_id: api.currentStudent!.docId,
-      assignment_id: lessonDetail.assignment?.docId,
+      // assignment_id: lessonDetail.assignment?.docId,
       left_game_no: data.currentGameNumber,
       left_game_name: data.gameName,
       chapter_id: data.chapterId,
       chapter_name: ChapterDetail ? ChapterDetail.title : "",
       lesson_id: data.lessonId,
-      lesson_name: lessonDetail.title,
+      // lesson_name: lessonDetail.title,
       lesson_type: data.lessonType,
       lesson_session_id: data.lessonSessionId,
       ml_partner_id: data.mlPartnerId,
       ml_class_id: data.mlClassId,
       ml_student_id: data.mlStudentId,
       course_id: data.courseId,
-      course_name: CourseDetail.title,
+      // course_name: CourseDetail.title,
       time_spent: data.timeSpent,
       total_moves: data.totalMoves,
       total_games: data.totalGames,
@@ -276,7 +284,7 @@ const CocosGame: React.FC = () => {
 
   let ChapterDetail: Chapter | undefined;
   const api = ServiceConfig.getI().apiHandler;
-  const lesson: Lesson = JSON.parse(state.lesson);
+  // const lesson: Lesson = JSON.parse(state.lesson);
 
   const saveTempData = async (
     lessonData: CocosLessonData,
@@ -338,35 +346,35 @@ const CocosGame: React.FC = () => {
       classId,
       schoolId
     );
-    if (!!lessonDetail.cocosChapterCode) {
-      let cChap = CourseDetail.chapters.find(
-        (chap) => lessonDetail.cocosChapterCode === chap.id
-      );
-      if (cChap) {
-        ChapterDetail = cChap;
-        console.log("Current Chapter ", ChapterDetail);
-      }
-      let existing = new Map();
-      let res: { [key: string]: string } = JSON.parse(
-        localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`) ||
-          "{}"
-      );
-      const finalLesson = await Util.getNextLessonFromGivenChapter(
-        CourseDetail.chapters,
-        lessonData.chapterId,
-        lesson.id,
-        ChapterDetail
-      );
-      console.log("final lesson", finalLesson);
-      existing.set(CourseDetail.courseCode, finalLesson?.id);
-      for (let [key, value] of existing) {
-        res[key] = value;
-      }
-      localStorage.setItem(
-        `${currentStudentDocId}-${RECOMMENDATIONS}`,
-        JSON.stringify(res)
-      );
-    }
+    // if (!!lessonDetail.cocosChapterCode) {
+    //   let cChap = CourseDetail.chapters.find(
+    //     (chap) => lessonDetail.cocosChapterCode === chap.id
+    //   );
+    //   if (cChap) {
+    //     ChapterDetail = cChap;
+    //     console.log("Current Chapter ", ChapterDetail);
+    //   }
+    //   let existing = new Map();
+    //   let res: { [key: string]: string } = JSON.parse(
+    //     localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`) ||
+    //       "{}"
+    //   );
+    //   const finalLesson = await Util.getNextLessonFromGivenChapter(
+    //     CourseDetail.chapters,
+    //     lessonData.chapterId,
+    //     lesson.id,
+    //     ChapterDetail
+    //   );
+    //   console.log("final lesson", finalLesson);
+    //   existing.set(CourseDetail.courseCode, finalLesson?.id);
+    //   for (let [key, value] of existing) {
+    //     res[key] = value;
+    //   }
+    //   localStorage.setItem(
+    //     `${currentStudentDocId}-${RECOMMENDATIONS}`,
+    //     JSON.stringify(res)
+    //   );
+    // }
     Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.docId,
       assignment_id: lesson.assignment?.docId,
@@ -380,7 +388,7 @@ const CocosGame: React.FC = () => {
       ml_class_id: data.mlClassId,
       ml_student_id: data.mlStudentId,
       course_id: data.courseId,
-      course_name: CourseDetail.title,
+      // course_name: CourseDetail.title,
       time_spent: data.timeSpent,
       total_moves: data.totalMoves,
       total_games: data.totalGames,
@@ -428,7 +436,7 @@ const CocosGame: React.FC = () => {
               message={t("You Completed the Lesson:")}
               showDialogBox={showDialogBox}
               yesText={t("Like the Game")}
-              lessonName={lessonDetail.title}
+              lessonName={"eidu-test"}
               noText={t("Continue Playing")}
               handleClose={(e: any) => {
                 setShowDialogBox(true);

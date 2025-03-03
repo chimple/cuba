@@ -44,9 +44,28 @@ window.boot = function () {
     bundle.loadScene(launchScene, null, null, function (err, scene) {
       if (!err) {
         console.log("init loaded scene", scene);
+        
+        // Call the native Java function via Capacitor plugin
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Port) {
+          window.Capacitor.Plugins.Port.launchLesson()
+            .then(function(result) {
+              console.log("Data received from Java:", result);
+              // You can use result.courseId, result.chapterId, etc. as needed.
+            })
+            .catch(function(error) {
+              console.error("Error calling native Java function:", error);
+            });
+        } else {
+          console.warn("Capacitor or Port plugin not available.");
+        }
+        
+        // Optionally, you could also run the scene if needed:
         // cc.director.runSceneImmediate(scene);
+      } else {
+        console.error("Error loading scene:", err);
       }
     });
+    
   };
 
   var option = {

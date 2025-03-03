@@ -57,17 +57,17 @@ public class MainActivity extends BridgeActivity {
        var _hash =  getAppHash(this);
        System.out.println("HashCode"+_hash);
 
-        RunLearningUnitRequest request = RunLearningUnitRequest.fromIntent(getIntent());
-        if(request != null) {
-
-            ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-
-            System.out.println("Execution started...");
-
-            scheduler.schedule(() -> handleRequest(request), 7, TimeUnit.SECONDS);
-
-            scheduler.shutdown(); // Shutdown after execution
-        }
+//        RunLearningUnitRequest request = RunLearningUnitRequest.fromIntent(getIntent());
+//        if(request != null) {
+//
+//            ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+//
+//            System.out.println("Execution started...");
+//
+////            scheduler.schedule(() -> handleRequest(), 7, TimeUnit.SECONDS);
+//
+//            scheduler.shutdown(); // Shutdown after execution
+//        }
 
        initializeActivityLauncher();
 
@@ -140,7 +140,8 @@ public class MainActivity extends BridgeActivity {
         return phoneNumber;
     }
 
-    public void handleRequest(RunLearningUnitRequest request) {
+    public void handleRequest() {
+        RunLearningUnitRequest request = RunLearningUnitRequest.fromIntent(getIntent());
         if (request != null) {
             Log.d(TAG, "call from eidu");
 

@@ -219,6 +219,18 @@ public class PortPlugin extends Plugin {
   }
 
   @PluginMethod
+  public void launchLesson(PluginCall call) {
+    if (MainActivity.instance != null) {
+      MainActivity.instance.handleRequest();
+      call.resolve();
+    } else {
+      Log.e("YourTag", "MainActivity instance is null.");
+      call.reject("MainActivity instance is null.");
+    }
+  }
+
+
+  @PluginMethod
   public void sendLaunchData(PluginCall call) {
     JSObject result = new JSObject();
     Intent curr_intent = instance.getActivity().getIntent();
@@ -233,7 +245,7 @@ public class PortPlugin extends Plugin {
       Log.d(TAG, "No extras found in the intent.");
     }
 
-    // Extract values
+    // Extract values from the intent
     String learningUnitId = curr_intent.getStringExtra("learningUnitId");
     long inactivityTimeoutInMs = curr_intent.getLongExtra("inactivityTimeoutInMs", -1);
 
@@ -241,11 +253,19 @@ public class PortPlugin extends Plugin {
     Log.d(TAG, "Received inactivityTimeoutInMs: " + inactivityTimeoutInMs);
 
     if (learningUnitId != null && learningUnitId.contains("_")) {
+      // Split the learningUnitId into course, chapter, and lesson
       String[] parts = learningUnitId.split("_");
       if (parts.length == 3) {
+        String courseId = parts[0];
+        String chapterId = parts[1];
         String lessonId = parts[2];
+
+        // Put all values into the result JSObject
+        result.put("courseId", courseId);
+        result.put("chapterId", chapterId);
         result.put("lessonId", lessonId);
         result.put("inactivityTimeoutInMs", inactivityTimeoutInMs != -1 ? inactivityTimeoutInMs : 0);
+
         Log.d(TAG, "Result Data: " + result.toString());
         call.resolve(result);
         return;
@@ -258,7 +278,6 @@ public class PortPlugin extends Plugin {
 
     call.reject("Failed to extract data from intent");
   }
-
 
 
   @PluginMethod

@@ -26,53 +26,53 @@ export const useHandleLessonClick = () => {
 
     const data = await PortPlugin.sendLaunchData();
 
-    const updatedLesson = await ApiHandler.i.getLessonWithCocosLessonId(data.lessonId);
-    const updatedCourse = await ApiHandler.i.getCourseFromLesson(updatedLesson!);
+    // const updatedLesson = await ApiHandler.i.getLessonWithCocosLessonId(data.lessonId);
+    // const updatedCourse = await ApiHandler.i.getCourseFromLesson(updatedLesson!);
 
     console.log("LessonCard course:", currentCourse);
 
-    if (!updatedLesson || !updatedCourse) return;
+    // if (!updatedLesson || !updatedCourse) return;
 
-    if (updatedLesson.pluginType === COCOS) {
+    if (true) {
       let subjectDocID: string;
 
-      if (typeof updatedLesson.subject === "string") {
-        const subjectReference = Util.getReference(updatedLesson.subject);
-        subjectDocID = subjectReference.id;
-      } else {
-        subjectDocID = updatedLesson.subject?.id ?? "";
-      }
+      // if (typeof updatedLesson.subject === "string") {
+      //   const subjectReference = Util.getReference(updatedLesson.subject);
+      //   subjectDocID = subjectReference.id;
+      // } else {
+      //   subjectDocID = updatedLesson.subject?.id ?? "";
+      // }
 
-      const params = `?courseid=${updatedLesson.cocosSubjectCode}&chapterid=${updatedLesson.cocosChapterCode}&lessonid=${updatedLesson.id}`;
-      console.log("🚀 ~ Params:", params, Lesson.toJson(updatedLesson));
+      const params = `?courseid=${data.courseId}&chapterid=${data.chapterId}&lessonid=${data.lessonId}`;
+      // console.log("🚀 ~ Params:", params, Lesson.toJson(updatedLesson));
 
       history.push(PAGES.GAME + params, {
         url: "chimple-lib/index.html" + params,
-        lessonId: updatedLesson.id,
-        courseDocId:
-          updatedLesson?.assignment?.course?.id ??
-          updatedLesson.courseId ??
-          updatedCourse?.docId,
-        course: JSON.stringify(Course.toJson(updatedCourse)),
-        lesson: JSON.stringify(Lesson.toJson(updatedLesson)),
+        lessonId: data.lessonId,
+        // courseDocId:
+        //   updatedLesson?.assignment?.course?.id ??
+        //   updatedLesson.courseId ??
+        //   updatedCourse?.docId,
+        // course: JSON.stringify(Course.toJson(updatedCourse)),
+        // lesson: JSON.stringify(Lesson.toJson(updatedLesson)),
         from: history.location.pathname + `?${CONTINUE}=true`,
       });
-    } else if (updatedLesson.assignment?.docId && updatedLesson.pluginType === LIVE_QUIZ) {
-      if (!online) {
-        presentToast({
-          message: t(`Device is offline`),
-          color: "danger",
-          duration: 3000,
-          position: "bottom",
-          buttons: [{ text: "Dismiss", role: "cancel" }],
-        });
-        return;
-      }
+     } //else if (updatedLesson.assignment?.docId && updatedLesson.pluginType === LIVE_QUIZ) {
+    //   if (!online) {
+    //     presentToast({
+    //       message: t(`Device is offline`),
+    //       color: "danger",
+    //       duration: 3000,
+    //       position: "bottom",
+    //       buttons: [{ text: "Dismiss", role: "cancel" }],
+    //     });
+    //     return;
+    //   }
 
-      history.push(PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${updatedLesson.assignment.docId}`, {
-        assignment: JSON.stringify(updatedLesson.assignment),
-      });
-    }
+    //   history.push(PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${updatedLesson.assignment.docId}`, {
+    //     assignment: JSON.stringify(updatedLesson.assignment),
+    //   });
+    // }
   };
 };
 
