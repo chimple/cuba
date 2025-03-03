@@ -758,3 +758,10 @@ export interface HomeWeeklySummary {
   timeSpent: number;
   averageScore: number;
 }
+
+export const LidoActivityEndKey = "lidoActivityEnd";
+export const LidoLessonEndKey = "lidoLessonEnd";
+export const LidoNextContainerKey = "lidoNextContainer";
+export const LidoActivityChangeKey = "lidoActivityChange";
+export const LidoGameCompletedKey = "lidoGameCompleted";
+export const LidoGameExitKey = "lidoGameExit";

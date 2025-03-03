@@ -1,7 +1,16 @@
 import { FC, useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import { Util } from "../utility/util";
-import { EVENTS, PAGES, TableTypes } from "../common/constants";
+import {
+  EVENTS,
+  LidoActivityChangeKey,
+  LidoActivityEndKey,
+  LidoGameCompletedKey,
+  LidoLessonEndKey,
+  LidoNextContainerKey,
+  PAGES,
+  TableTypes,
+} from "../common/constants";
 import Loading from "../components/Loading";
 import { IonPage, useIonToast } from "@ionic/react";
 import { Capacitor } from "@capacitor/core";
@@ -51,7 +60,6 @@ const LidoPlayer: FC = () => {
     const assignment = state.assignment;
     // const currentStudent = api.currentStudent;
     const currentStudent = Util.getCurrentStudent()!;
-    console.log("🚀 ~ onLessonEnd ~ currentStudent:", currentStudent);
     const data = lessonData;
     let assignmentId = assignment ? assignment.id : null;
 
@@ -98,7 +106,7 @@ const LidoPlayer: FC = () => {
       currentStudent.id,
       courseDocId,
       lesson.id,
-      data.score!,
+      Math.round(data.score ?? 0),
       data.correctMoves ?? 0,
       data.wrongMoves ?? 0,
       data.timeSpent ?? 0,
@@ -157,21 +165,21 @@ const LidoPlayer: FC = () => {
 
   useEffect(() => {
     init();
-    window.addEventListener("nextContainer", onNextContainer);
-    window.addEventListener("gameCompleted", gameCompleted);
-    window.addEventListener("activityEnd", onActivityEnd);
-    window.addEventListener("lessonEnd", onLessonEnd);
-    window.addEventListener("activityChange", (e: any) => {
+    window.addEventListener(LidoNextContainerKey, onNextContainer);
+    window.addEventListener(LidoGameCompletedKey, gameCompleted);
+    window.addEventListener(LidoActivityChangeKey, onActivityEnd);
+    window.addEventListener(LidoLessonEndKey, onLessonEnd);
+    window.addEventListener(LidoActivityEndKey, (e: any) => {
       //   setCurrentIndex(e.detail.index);
     });
     return () => {
-      window.removeEventListener("nextContainer", onNextContainer);
-      window.removeEventListener("gameCompleted", gameCompleted);
-      window.removeEventListener("activityChange", (e: any) => {
-        // setCurrentIndex(e.detail.index);
+      window.removeEventListener(LidoNextContainerKey, onNextContainer);
+      window.removeEventListener(LidoGameCompletedKey, gameCompleted);
+      window.removeEventListener(LidoActivityChangeKey, onActivityEnd);
+      window.removeEventListener(LidoLessonEndKey, onLessonEnd);
+      window.removeEventListener(LidoActivityEndKey, (e: any) => {
+        //   setCurrentIndex(e.detail.index);
       });
-      window.removeEventListener("activityEnd", onActivityEnd);
-      window.removeEventListener("lessonEnd", onLessonEnd);
     };
   }, []);
 
@@ -219,12 +227,7 @@ const LidoPlayer: FC = () => {
     <IonPage>
       <Loading isLoading={isLoading} />
       {(xmlPath || basePath) && (
-        <app-root
-          // canplay={true}
-          xml-path={xmlPath}
-          // xml-path={xmlPath}
-          base-url={basePath}
-        />
+        <lido-root xml-path={xmlPath} base-url={basePath} />
       )}
     </IonPage>
   );
