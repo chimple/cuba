@@ -1223,7 +1223,7 @@ export class FirebaseApi implements ServiceApi {
         where("isClassWise", "==", true),
         where("class", "==", classDocRef),
         orderBy("createdAt", "desc"),
-        limit(+count)
+        limit(50)
         // limit(count > 0 ? count : 50)
       );
       // Add the condition for when isClassWise is false
@@ -1233,7 +1233,7 @@ export class FirebaseApi implements ServiceApi {
         where("class", "==", classDocRef),
         where("assignedStudents", "array-contains", studentId),
         orderBy("createdAt", "desc"),
-        limit(+count)
+        limit(50)
         // limit(count > 0 ? count : 50)
       );
       const [snapshot1, snapshot2] = await Promise.all([getDocs(q1), getDocs(q2)]);
@@ -1293,8 +1293,12 @@ export class FirebaseApi implements ServiceApi {
         return true;
       });
       console.log("Filtered assignments....", filteredAssignments);
-
-      return filteredAssignments;
+      let returnArray: any = [];
+      for (let i = 0; i < +count; i++) {
+        returnArray.push(filteredAssignments[i])
+      }
+      console.log("ReturnArray: ", returnArray)
+      return returnArray
     } catch (error) {
       console.log(
         "🚀 ~ file: FirebaseApi.ts:856 ~ FirebaseApi ~ error:",

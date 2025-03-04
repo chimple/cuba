@@ -253,9 +253,6 @@ const Home: FC = () => {
       !!studentResult.classes &&
       studentResult.classes.length > 0
     ) {
-      // growthbook.setAttributes({
-      //   school_id: studentResult.schools[0]
-      // })
       const allAssignments: Assignment[] = [];
       await Promise.all(
         studentResult.classes.map(async (_class) => {
