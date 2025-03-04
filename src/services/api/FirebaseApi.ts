@@ -1161,6 +1161,16 @@ export class FirebaseApi implements ServiceApi {
   async getClassById(id: string): Promise<Class | undefined> {
     try {
       if (!!this._classCache[id]) return this._classCache[id];
+
+      // 🔄 Real-time listener to update cache when data changes
+      onSnapshot(doc(this._db, CollectionIds.CLASS, id), (docSnap) => {
+        if (docSnap.exists()) { 
+          const updatedClassData = docSnap.data() as Class;
+          updatedClassData.docId = id;
+          this._classCache[id] = updatedClassData;
+        }
+      });
+
       const classDoc = await this.getDocFromOffline(
         doc(this._db, CollectionIds.CLASS, id)
       );
