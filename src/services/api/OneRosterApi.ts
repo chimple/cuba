@@ -564,12 +564,49 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getLessonFromCourse(
-    course: Course,
-    lessonId: string
-  ): Promise<Lesson | undefined> {
-    throw new Error("Method not implemented.");
+  
+getLessonFromCourse(
+  course: Course,
+  lessonId: string
+): Promise<Lesson | undefined> {
+
+  try {
+    const courseId = course.id 
+    const jsonFile = `assets/courses/${courseId}/res/course.json`;
+    const courseJson = await Util.loadJson(jsonFile);
+    const lessonFromCourse = courseJson.groups
+
+    console.log("lessonFromCourse data :", lessonFromCourse);
+    
+    for (const group of lessonFromCourse) {
+      const foundLesson = group.navigation.find(
+        (lesson: any) => lesson.id === lessonId
+      );
+
+      if (foundLesson) {
+        return {
+          id: foundLesson.id,
+          title: foundLesson.title,
+          cocosChapterCode: foundLesson.cocosChapterCode,
+          cocosSubjectCode: foundLesson.cocosSubjectCode,
+          language: foundLesson.language,
+          type: foundLesson.type,
+          outcome: foundLesson.outcome,
+          pluginType: foundLesson.pluginType,
+          status: foundLesson.status,
+          subject: foundLesson.subject,
+          targetAgeFrom: foundLesson.targetAgeFrom,
+          targetAgeTo: foundLesson.targetAgeTo,
+          thumbnail: foundLesson.thumbnail,
+        };
+      }
+    }
+    return undefined;
+  } catch (error) {
+    console.error("Error fetching lesson from course:", error);
+    return undefined;
   }
+}
   getDataByInviteCode(inviteCode: number): Promise<any> {
     throw new Error("Method not implemented.");
   }
@@ -780,7 +817,32 @@ export class OneRosterApi implements ServiceApi {
   getLessonResultsForStudent(
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined> {
-    throw new Error("Method not implemented.");
+    try {
+      const results = new Map<string, StudentLessonResult>();
+      
+      // student results are stored in a JSON file per student
+      const jsonFile = `assets/students/${studentId}/results.json`;
+      const studentResults = await Util.loadJson(jsonFile);
+      
+      if (!studentResults || !studentResults.lessons) {
+        return undefined;
+      }
+      
+      for (const lessonResult of studentResults.lessons) {
+        results.set(lessonResult.lessonId, {
+          lessonId: lessonResult.lessonId,
+          score: lessonResult.score,
+          completionStatus: lessonResult.completionStatus,
+          timeSpent: lessonResult.timeSpent,
+          lastAttemptDate: lessonResult.lastAttemptDate,
+        });
+      }
+      
+      return results;
+    } catch (error) {
+      console.error("Error fetching lesson results for student:", error);
+      return undefined;
+    }
   }
   updateFavoriteLesson(
     studentId: string,
