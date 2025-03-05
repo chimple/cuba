@@ -16,6 +16,15 @@ import { IonLoading } from "@ionic/react";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
+import { defineCustomElements ,JSX as LocalJSX} from "lido-player/loader";
+
+// Extend React's JSX namespace to include Stencil components
+declare global {
+  namespace JSX {
+    interface IntrinsicElements extends LocalJSX.IntrinsicElements {}
+  }
+}
+defineCustomElements(window);
 
 if (Capacitor.isNativePlatform()) {
   await ScreenOrientation.lock({ orientation: "landscape" });

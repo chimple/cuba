@@ -393,6 +393,7 @@ export enum PAGES {
   HOME = "/home",
   LOGIN = "/login",
   GAME = "/game",
+  LIDO_PLAYER = "/lido-player",
   END = "/end",
   PROFILE = "/profile",
   PARENT = "/parent",
@@ -512,6 +513,7 @@ export const TC_ACCEPT = "tcAccept";
 export const RECOMMENDATIONS = "recommendations";
 export const LIVE_QUIZ = "liveQuiz";
 export const COCOS = "cocos";
+export const LIDO = "lido";
 export const TYPE = "type";
 export const APP_NAME = "Kids";
 export const SCHOOL = "school";
@@ -756,3 +758,10 @@ export interface HomeWeeklySummary {
   timeSpent: number;
   averageScore: number;
 }
+
+export const LidoActivityEndKey = "lidoActivityEnd";
+export const LidoLessonEndKey = "lidoLessonEnd";
+export const LidoNextContainerKey = "lidoNextContainer";
+export const LidoActivityChangeKey = "lidoActivityChange";
+export const LidoGameCompletedKey = "lidoGameCompleted";
+export const LidoGameExitKey = "lidoGameExit";
