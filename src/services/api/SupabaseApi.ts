@@ -827,46 +827,55 @@ export class SupabaseApi implements ServiceApi {
   }
   async assignmentUserListner(
     studentId: string,
-    onDataChange: (
-      assignment_user: TableTypes<"assignment_user"> | undefined
-    ) => void
+    onDataChange: (assignment_user: TableTypes<"assignment_user"> | undefined) => void
   ) {
     try {
-      if (this._assignmentUserRealTime) return;
+      if (this._assignmentUserRealTime) {
+        this._assignmentUserRealTime.unsubscribe();
+        this._assignmentUserRealTime = undefined;
+      }
+  
       this._assignmentUserRealTime = this.supabase?.channel("assignment_user");
       if (!this._assignmentUserRealTime) {
         throw new Error("Failed to establish channel for assignment_user");
       }
-      const res = this._assignmentUserRealTime
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "assignment_user",
-            filter: `user_id=eq.${studentId}`,
-          },
-          (payload) => {
+  
+      this._assignmentUserRealTime.on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "assignment_user",
+          filter: `user_id=eq.${studentId}`,
+        },
+        (payload) => {
+          if (onDataChange) {
             onDataChange(payload.new as TableTypes<"assignment_user">);
+          } else {
+            console.error("🛑 onDataChange is undefined for assignment_user!");
           }
-        )
-        .subscribe();
-      return;
+        }
+      ).subscribe();
     } catch (error) {
-      throw error;
+      console.error("🛑 Error in Supabase assignment_user listener:", error);
     }
   }
+  
   async assignmentListner(
     classId: string,
     onDataChange: (assignment: TableTypes<"assignment"> | undefined) => void
   ) {
     try {
-      if (this._assignmetRealTime) return;
+      if (this._assignmetRealTime) {
+        this._assignmetRealTime.unsubscribe();
+        this._assignmetRealTime = undefined;
+      }
+  
       this._assignmetRealTime = this.supabase?.channel("assignment");
       if (!this._assignmetRealTime) {
         throw new Error("Failed to establish channel for assignment");
       }
-      const res = this._assignmetRealTime!.on(
+      this._assignmetRealTime.on(
         "postgres_changes",
         {
           event: "INSERT",
@@ -875,14 +884,17 @@ export class SupabaseApi implements ServiceApi {
           filter: `class_id=eq.${classId}`,
         },
         (payload) => {
-          onDataChange(payload.new as TableTypes<"assignment">);
+          if (onDataChange) {
+            onDataChange(payload.new as TableTypes<"assignment">);
+          } else {
+            console.error("🛑 onDataChange is undefined!");
+          }
         }
       ).subscribe();
-      return;
     } catch (error) {
-      throw error;
+      console.error("🛑 Error in Supabase listener:", error);
     }
-  }
+  }    
   async removeAssignmentChannel() {
     try {
       if (this._assignmentUserRealTime)
