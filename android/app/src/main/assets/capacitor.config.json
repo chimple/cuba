@@ -21,6 +21,17 @@
 		"Keyboard": {},
 		"LocalNotifications": {
 			"smallIcon": "chimple_monkey_icon"
+		},
+		"GoogleAuth": {
+			"scopes": [
+				"profile",
+				"email"
+			],
+			"forceCodeForRefreshToken": true
+		},
+		"SplashScreen": {
+			"launchShowDuration": 5000,
+			"launchAutoHide": false
 		}
 	}
 }

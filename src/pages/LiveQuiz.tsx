@@ -14,6 +14,8 @@ const LiveQuiz: React.FC = () => {
   const history = useHistory();
   const [loading, setLoading] = useState(true);
   const [liveQuizzes, setLiveQuizzes] = useState<TableTypes<"lesson">[]>([]);
+  const [correctCsv,setCorrectCSV] = useState<boolean>(false)
+  const [text,setCorrectText] = useState<string>("")
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
   }>();
@@ -37,6 +39,10 @@ const LiveQuiz: React.FC = () => {
   );
   const api = ServiceConfig.getI().apiHandler;
   const [data, setData] = useState<Array<any>>([]);
+  function isValidPhoneNumber(phone: string): boolean {
+    const phoneRegex = /^[6-9]\d{9}$/; // Validates 10-digit Indian phone numbers
+    return phoneRegex.test(phone);
+  }
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -44,13 +50,39 @@ const LiveQuiz: React.FC = () => {
     if (file) {
       Papa.parse(file, {
         complete: (result) => {
+          
           var a: Array<any> = result.data;
           setData(result.data);
-          console.log('JJJJJJJJJJJJJJJJJJJJJJJJJ')
           if (a.length > 0) {
-            const keys = Object.keys(a[0]); // Get the column names (keys)
-            console.log("Keys:", keys);
+          
+            const keys = Object.keys(a[0]);
+            const missingKeys = requiredKeys.filter(key => !keys.includes(key));
+            const invalidPhoneNumbers: any[] = [];
+
+            a.forEach((ele, index) => {
+              const phoneNumber = ele["Phone Number"]?.toString().trim();
+              if (!phoneNumber || !isValidPhoneNumber(phoneNumber)) {
+                invalidPhoneNumbers.push(`Row ${index + 1}: ${phoneNumber || "Empty"}`);
+                // invalidPhoneNumbers.push(phoneNumber)
+              }
+            });
+        
+            if (invalidPhoneNumbers.length > 0) {
+              const errorMessage = `Invalid phone numbers:\n${invalidPhoneNumbers.join("\n")}`;
+              setCorrectText(errorMessage)
+              console.error("Invalid phone numbers:", invalidPhoneNumbers);
+            } else {
+              console.log("All phone numbers are valid.");
+            }
+
+            if (missingKeys.length > 0) {
+              setCorrectCSV(true)
+            }
+            else{
+              setCorrectCSV(false)
+            }
           }
+          
           // console.log("Parsed CSV Data:", result.data);
         },
         header: true, // Set to false if the CSV doesn't have headers
@@ -123,6 +155,8 @@ const LiveQuiz: React.FC = () => {
         <div>
       <h2>Upload CSV File</h2>
       <input type="file" accept=".csv" onChange={handleFileUpload} />
+      {correctCsv?<h3>Please Upload correct CSV file</h3>:<></>}
+      <h4>{text}</h4>
     </div>
       )}
     </div>
