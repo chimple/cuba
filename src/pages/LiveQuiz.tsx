@@ -14,8 +14,8 @@ const LiveQuiz: React.FC = () => {
   const history = useHistory();
   const [loading, setLoading] = useState(true);
   const [liveQuizzes, setLiveQuizzes] = useState<TableTypes<"lesson">[]>([]);
-  const [correctCsv,setCorrectCSV] = useState<boolean>(false)
-  const [text,setCorrectText] = useState<string>("")
+  const [correctCsv, setCorrectCSV] = useState<boolean>(false);
+  const [text, setCorrectText] = useState<string>("");
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
   }>();
@@ -43,6 +43,10 @@ const LiveQuiz: React.FC = () => {
     const phoneRegex = /^[6-9]\d{9}$/; // Validates 10-digit Indian phone numbers
     return phoneRegex.test(phone);
   }
+  function isValidAge(age: any): boolean {
+    const ageNum = parseInt(age, 10);
+    return !isNaN(ageNum) && ageNum >= 3 && ageNum <= 8;
+  }
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -50,42 +54,78 @@ const LiveQuiz: React.FC = () => {
     if (file) {
       Papa.parse(file, {
         complete: (result) => {
-          
           var a: Array<any> = result.data;
-          setData(result.data);
-          if (a.length > 0) {
-          
-            const keys = Object.keys(a[0]);
-            const missingKeys = requiredKeys.filter(key => !keys.includes(key));
-            const invalidPhoneNumbers: any[] = [];
-
-            a.forEach((ele, index) => {
-              const phoneNumber = ele["Phone Number"]?.toString().trim();
-              if (!phoneNumber || !isValidPhoneNumber(phoneNumber)) {
-                invalidPhoneNumbers.push(`Row ${index + 1}: ${phoneNumber || "Empty"}`);
-                // invalidPhoneNumbers.push(phoneNumber)
-              }
-            });
-        
-            if (invalidPhoneNumbers.length > 0) {
-              const errorMessage = `Invalid phone numbers:\n${invalidPhoneNumbers.join("\n")}`;
-              setCorrectText(errorMessage)
-              console.error("Invalid phone numbers:", invalidPhoneNumbers);
-            } else {
-              console.log("All phone numbers are valid.");
-            }
-
-            if (missingKeys.length > 0) {
-              setCorrectCSV(true)
-            }
-            else{
-              setCorrectCSV(false)
-            }
+      
+          if (a.length === 0) {
+            throw new Error("CSV file is empty.");
           }
-          
-          // console.log("Parsed CSV Data:", result.data);
+      
+          const sheetKeys = Object.keys(a[0]);
+      
+          // Check for missing keys
+          const missingKeys = requiredKeys.filter(key => !sheetKeys.includes(key));
+          if (missingKeys.length > 0) {
+            throw new Error(`Missing required columns: ${missingKeys.join(", ")}`);
+          }
+      
+          setData(result.data);
+      
+          const invalidPhoneNumbers: string[] = [];
+          const invalidAges: string[] = [];
+          const rowOccurrences = new Map<string, number[]>(); // Stores row content & its occurrences
+          const duplicateRows: string[] = [];
+      
+          a.forEach((ele, index) => {
+            // Check for invalid phone numbers
+            const phoneNumber = ele["Phone Number"]?.toString().trim();
+            if (!phoneNumber || !isValidPhoneNumber(phoneNumber)) {
+              invalidPhoneNumbers.push(`Row ${index + 1}: ${phoneNumber || "Empty"}`);
+            }
+      
+            // Check for invalid age
+            const age = ele["Age"]?.toString().trim();
+            if (!isValidAge(age)) {
+              invalidAges.push(`Row ${index + 1}: ${age || "Empty"}`);
+            }
+      
+            // Check for duplicate rows (store row string and all row occurrences)
+            const rowString = JSON.stringify(ele);
+            if (rowOccurrences.has(rowString)) {
+              rowOccurrences.get(rowString)!.push(index + 1);
+            } else {
+              rowOccurrences.set(rowString, [index + 1]);
+            }
+          });
+      
+          // Find all duplicate row indices
+          rowOccurrences.forEach((indices) => {
+            if (indices.length > 1) {
+              duplicateRows.push(`Rows ${indices.join(", ")}`);
+            }
+          });
+      
+          let errorMessage = "";
+      
+          if (invalidPhoneNumbers.length > 0) {
+            errorMessage += `Invalid phone numbers:\n${invalidPhoneNumbers.join("\n")}\n\n`;
+          }
+      
+          if (invalidAges.length > 0) {
+            errorMessage += `Invalid ages (must be between 3-8):\n${invalidAges.join("\n")}\n\n`;
+          }
+      
+          if (duplicateRows.length > 0) {
+            errorMessage += `Duplicate rows found at:\n${duplicateRows.join("\n")}`;
+          }
+      
+          if (errorMessage) {
+            console.error(errorMessage);
+            setCorrectText(errorMessage);
+          } else {
+            setCorrectText("All data is valid.");
+          }
         },
-        header: true, // Set to false if the CSV doesn't have headers
+        header: true,
         skipEmptyLines: true,
       });
     }
@@ -94,7 +134,6 @@ const LiveQuiz: React.FC = () => {
   useEffect(() => {
     init();
   }, []);
-  
 
   const init = async (fromCache: boolean = true) => {
     setLoading(true);
@@ -153,11 +192,11 @@ const LiveQuiz: React.FC = () => {
         <SkeltonLoading isLoading={loading} header={HOMEHEADERLIST.LIVEQUIZ} />
       ) : (
         <div>
-      <h2>Upload CSV File</h2>
-      <input type="file" accept=".csv" onChange={handleFileUpload} />
-      {correctCsv?<h3>Please Upload correct CSV file</h3>:<></>}
-      <h4>{text}</h4>
-    </div>
+          <h2>Upload CSV File</h2>
+          <input type="file" accept=".csv" onChange={handleFileUpload} />
+          {correctCsv ? <h3>Please Upload correct CSV file</h3> : <></>}
+          <h4 style={{ whiteSpace: "pre-line" }}>{text}</h4>
+        </div>
       )}
     </div>
   );
