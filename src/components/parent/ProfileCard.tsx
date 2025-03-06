@@ -207,7 +207,7 @@ const ProfileCard: React.FC<{
             setIsLoading(true);
             setReloadProfiles(false);
             await ServiceConfig.getI().apiHandler.deleteProfile(user.id);
-            setReloadProfiles(true);
+            await setReloadProfiles(true);
             const eventParams = {
               user_id: user.id,
               // user_type: user.role,
