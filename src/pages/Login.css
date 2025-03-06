@@ -1,3 +1,22 @@
+/* --- Force a full blank black screen --- */
+html, body, ion-page, #login-screen {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black !important;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+/* Hide every element inside the login screen */
+#login-screen * {
+  display: none !important;
+}
+
+/* --- Original CSS (remains for reference, but will be overridden) --- */
 p {
   font-family: unset;
 }
@@ -71,7 +90,6 @@ p {
     top: 75%; */
   transform: translateY(-30%);
   /* width: min(70vh, 57vh); */
-
   color: white;
   width: 26vw;
   height: 5.5vw;
@@ -149,6 +167,7 @@ p {
   --spinner-color: white;
   color: white;
 }
+
 #custom-loading-for-avatar {
   --background: #e3edff;
   --spinner-color: #ff5500;
@@ -211,6 +230,7 @@ p {
   font-size: 1.3vw;
   white-space: nowrap;
 }
+
 #login-with-student-credentials {
   color: white;
   width: 26vw;
@@ -224,12 +244,15 @@ p {
   margin-right: auto;
   margin-top: -1vh;
 }
+
 .student-credentials-text-box-container {
   margin: -2.6% 0% 2% 32.8vw;
 }
+
 .student-credentials-container {
   margin-top: 1vh;
 }
+
 .school-icon {
   height: 9vh;
   width: auto;
@@ -238,12 +261,14 @@ p {
   margin-top: 0%;
   color: #565656;
 }
+
 .login-with-google-or-student-credentials-container {
   display: flex;
   justify-content: center;
   gap: 4vw;
   margin-top: 1vh;
 }
+
 .google-or-student-credentials-button {
   color: black;
   height: 9vh;
@@ -252,6 +277,7 @@ p {
   /* transform: translateY(-5%) translateX(-50%); */
   margin-top: 1%;
 }
+
 .student-login-verification-error-message {
   color: #ff5500;
   margin-top: -2vh;
