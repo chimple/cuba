@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -20,7 +19,7 @@
         <meta-data android:name="com.getcapacitor.plugin.PortPlugin" android:value="true" />
         <meta-data android:name="com.getcapacitor.plugin.NativeSSOPlugin" android:value="true" />
 
-
+        <!-- ✅ Main Activity: Handles Deep Linking -->
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
             tools:ignore="LockedOrientationActivity"
@@ -30,11 +29,21 @@
             android:launchMode="singleTask"
             android:exported="true">
 
+            <!-- ✅ App Launcher Intent -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- ✅ Deep linking support for localhost:3000 (for local testing) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" android:host="localhost" android:port="3000" android:pathPrefix="/" />
+            </intent-filter>
+
+            <!-- ✅ Deep linking support for Firebase URL -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -43,9 +52,12 @@
                 <data android:scheme="https" android:host="chimple.cc" android:path="/assignment" />
                 <data android:scheme="https" android:host="chimple.cc" android:path="/live-quiz" />
                 <data android:scheme="https" android:host="example.org" android:pathPrefix="/topic/learningUnit1/" />
+                <!-- <data android:scheme="https" android:host="chimple-prod.firebaseapp.com" /> -->
+
             </intent-filter>
         </activity>
 
+        <!-- ✅ File Provider -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -68,8 +80,7 @@
 <!--        </service>-->
     </application>
 
-    <!-- Permissions -->
-
+    <!-- ✅ Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <queries>
