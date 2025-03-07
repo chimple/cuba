@@ -35,6 +35,7 @@ import {
   BASE_NAME,
   CACHE_IMAGE,
   DOWNLOAD_BUTTON_LOADING_STATUS,
+  EVENTS,
   GAME_URL,
   IS_CUBA,
   PAGES,
@@ -81,6 +82,15 @@ interface ExtraData {
   classId?: string;
 }
 
+
+const App: React.FC = () => {
+  const [online, setOnline] = useState(navigator.onLine);
+  const { presentToast } = useOnlineOfflineErrorMessageHandler();
+  const [student, setStudent] = useState(Util.getCurrentStudent());
+  const [presentAlert] = useIonAlert();
+
+  const api = ServiceConfig.getI().apiHandler;
+
 const growthbook = new GrowthBook({
   apiHost: "https://cdn.growthbook.io",
   clientKey: "sdk-aSuu3sthvOYihKqu",
@@ -90,18 +100,32 @@ const growthbook = new GrowthBook({
     console.log("Viewed Experiment", {
       experimentId: experiment.key,
       variationId: result.key,
+      experiment: experiment,
+      result: result
     });
+
+    // if (window.gtag) {
+    //   window.gtag("event", "experiment_viewed", {
+    //     experiment_id: experiment.key,
+    //     variation_id: result.key,
+    //   });
+    // } else {
+    //   window.dataLayer = window.dataLayer || [];
+    //   window.dataLayer.push({
+    //     event: "experiment_viewed",
+    //     experiment_id: experiment.key,
+    //     variation_id: result.key,
+    //   });
+    // }
+
+    // Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
+    //   user_id: student?.docId,
+    //   experiment_id: experiment.key,
+    //   variation_id: result.key,
+    // })
   },
 });
 growthbook.init({ streaming: true });
-
-const App: React.FC = () => {
-  const [online, setOnline] = useState(navigator.onLine);
-  const { presentToast } = useOnlineOfflineErrorMessageHandler();
-  const [student, setStudent] = useState(Util.getCurrentStudent());
-  const [presentAlert] = useIonAlert();
-
-  const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
     const handleOnline = () => {

@@ -77,6 +77,7 @@ const LessonCard: React.FC<{
     // getSubject();
     getCurrentCourse();
     getDate();
+    console.log('lessonData: ', lesson)
   }, [lesson]);
 
   // const getSubject = async () => {

@@ -61,6 +61,7 @@ const AssignmentPage: React.FC = () => {
 
   useEffect(() => {
     checkAllHomeworkDownloaded();
+    console.log("Lessons are here: ", lessons);
   }, [lessons]);
 
   const checkAllHomeworkDownloaded = async () => {
