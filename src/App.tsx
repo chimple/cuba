@@ -118,11 +118,11 @@ const growthbook = new GrowthBook({
     //   });
     // }
 
-    // Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
-    //   user_id: student?.docId,
-    //   experiment_id: experiment.key,
-    //   variation_id: result.key,
-    // })
+    Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
+      user_id: student?.docId,
+      experiment_id: experiment.key,
+      variation_id: result.key,
+    })
   },
 });
 growthbook.init({ streaming: true });
