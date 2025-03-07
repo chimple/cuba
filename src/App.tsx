@@ -9,7 +9,7 @@ import {
   setupIonicReact,
 } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
-
+import { useIonRouter } from "@ionic/react";
 /* Core CSS required for Ionic components to work properly */
 import "@ionic/react/css/core.css";
 
@@ -441,6 +441,52 @@ const App: React.FC = () => {
       console.error("Util.migrateLocalJsonFile failed ", error);
     }
   }
+  const router = useIonRouter();
+  const history = useHistory();
+
+  
+  useEffect(() => {
+    const handleDeepLink = (event: any) => {
+      let data;
+      try {
+        data = JSON.parse(event.detail); // ✅ Parse JSON data from Android
+      } catch (error) {
+        console.error("Error parsing deep link data:", error);
+        return;
+      }
+
+      console.log("Received Deep Link:", data);
+
+      const courseId = data.courseId;
+      const chapterId = data.chapterId;
+      const lessonId = data.lessonId;
+
+      if (courseId && chapterId && lessonId) {
+        const path = `/game?courseId=${courseId}&chapterId=${chapterId}&lessonId=${lessonId}`;
+        router.push(path);
+      }
+    };
+
+    // ✅ Listen for appUrlOpen (for external deep links)
+    CapApp.addListener("appUrlOpen", (event) => {
+      const url = new URL(event.url);
+      console.log("Received Deep Link (appUrlOpen):", url.href);
+      handleDeepLink({ detail: JSON.stringify(Object.fromEntries(url.searchParams)) });
+    });
+
+    // ✅ Listen for triggerWindowJSEvent from Android
+    if (Capacitor.isNativePlatform()) {
+      window.addEventListener("deepLinkReceived", handleDeepLink);
+    }
+
+    return () => {
+      CapApp.removeAllListeners();
+      if (Capacitor.isNativePlatform()) {
+        window.removeEventListener("deepLinkReceived", handleDeepLink);
+      }
+    };
+  }, [router]);
+
   return (
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>
