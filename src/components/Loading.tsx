@@ -17,9 +17,6 @@ const Loading: React.FC<LoadingProps> = ({
       <IonLoading
         isOpen={isLoading}
         spinner={null}
-        message={
-          `<img class="loading" src="assets/loading.gif"></img> <br/><p>${msg}</p>`
-        }
       />
     </div>
   ) : null;

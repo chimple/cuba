@@ -1314,11 +1314,11 @@ export class Util {
           }
         }
       );
-      const canCheckPermission = Util.canCheckUpdate(LAST_PERMISSION_CHECKED);
-      if (!canCheckPermission) return;
-      const result = await FirebaseMessaging.checkPermissions();
-      if (result.receive === "granted") return;
-      await FirebaseMessaging.requestPermissions();
+      // const canCheckPermission = Util.canCheckUpdate(LAST_PERMISSION_CHECKED);
+      // if (!canCheckPermission) return;
+      // const result = await FirebaseMessaging.checkPermissions();
+      // if (result.receive === "granted") return;
+      // await FirebaseMessaging.requestPermissions();
     } catch (error) {
       console.log(
         "🚀 ~ file: util.ts:514 ~ checkNotificationPermissionsAndType ~ error:",
