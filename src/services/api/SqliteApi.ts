@@ -964,7 +964,7 @@ export class SqliteApi implements ServiceApi {
 
       // Check if the student is connected to any class
       const classResult = await this._db.query(
-        `SELECT class_id FROM class_user WHERE user_id = ? LIMIT 1`,
+        `SELECT class_id FROM class_user WHERE user_id = ? AND is_deleted = 0 LIMIT 1`,
         [studentId]
       );
       const localClassId =
@@ -986,6 +986,8 @@ export class SqliteApi implements ServiceApi {
            WHERE cu.class_id = ?
            AND pu.parent_id = ?
            AND pu.student_id != ?
+           AND cu.is_deleted = 0
+           AND pu.is_deleted = 0
          `,
           [localClassId, localParentId, studentId]
         );
