@@ -40,13 +40,11 @@ const dataToContinue: any = {};
 function SearchLesson() {
   const [searchTerm, setSearchTerm] = useState("");
   const SEARCH_KEYWORD_COUNT_STORAGE_KEY = "searchKeywordFrequency";
-
-  const onSubmit = useCallback(async (params) => {
-    await onSearch(params.state.query);
-  }, []);
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [currentStudent, setStudent] = useState<User>();
   const searchStartTime = useRef<number>(0);
-  const onSearch = async (term: string) => {
+  const onSearch = async (params) => {
+    const term  = params.state.query;
     searchStartTime.current = Date.now();
     const results = await searchIndex.search(term);
     const tempLessons = results.hits.map((hit) => {
@@ -104,7 +102,6 @@ function SearchLesson() {
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: StudentLessonResult;
   }>();
-  const [currentStudent, setStudent] = useState<User>();
 
   async function init() {
     const currentStudent = await Util.getCurrentStudent();
@@ -239,7 +236,7 @@ function SearchLesson() {
               query: searchTerm,
             }}
             openOnFocus={true}
-            onSubmit={onSubmit}
+            onSubmit={onSearch}
             plugins={plugins}
             insights
           />

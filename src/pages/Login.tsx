@@ -274,9 +274,22 @@ const Login: React.FC = () => {
     try {
       if (currentPhone == phoneNumber) {
         if (allowSubmittingOtpCounter > 0) {
-          await Toast.show({
-            text: title,
-            duration: "long",
+          // await Toast.show({
+          //   text: title,
+          //   duration: "long",
+          // });
+          presentToast({
+            message: title,
+            color: "light",
+            duration: 3000,
+            position: "bottom",
+            buttons: [
+              {
+                text: "Dismiss",
+                role: "cancel",
+
+              },
+            ],
           });
           return;
         }
@@ -305,6 +318,22 @@ const Login: React.FC = () => {
         setSentOtpLoading(false);
         setCounter(59);
         setShowVerification(true);
+      }
+      else {
+        presentToast({
+          message: t("Please wait 60 seconds before retrying"),
+          color: "light",  
+          duration: 3000,
+          position: "bottom",
+          buttons: [
+            {
+              text: "Dismiss",
+              role: "cancel",
+            },
+          ],
+        });
+        setSpinnerLoading(false);
+        setSentOtpLoading(false);
       }
       // let authRes = await authInstance.phoneNumberSignIn(
       //   phoneNumberWithCountryCode,
