@@ -83,7 +83,7 @@ const LiveQuizQuestion: FC<{
   }, [roomDoc]);
 
   useEffect(() => {
-    if (Capacitor.isNativePlatform()) {
+    if (Capacitor.isNativePlatform() && showQuiz) {
       const fetchData = async () => {
         const config = await getConfigJson();
         if (showQuiz && currentQuestionIndex === undefined && config) {

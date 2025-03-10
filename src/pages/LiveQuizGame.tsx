@@ -97,7 +97,6 @@ const LiveQuizGame: FC = () => {
         } else {
           history.replace(fromPath + "?isReload=true");
         }
-        window.location.reload();
       } else {
         history.replace(fromPath);
       }
