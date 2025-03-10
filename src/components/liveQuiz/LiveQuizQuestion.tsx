@@ -17,8 +17,11 @@ import LiveQuizNavigationDots from "./LiveQuizNavigationDots";
 
 let questionInterval;
 let audiosMap: { [key: string]: HTMLAudioElement } = {};
+let totalLessonScore = 0;
+let totalLessonTimeSpent = 0;
+let lessonCorrectMoves = 0;
 const LiveQuizQuestion: FC<{
-  roomDoc: LiveQuizRoomObject;
+  roomDoc?: LiveQuizRoomObject;
   showQuiz: boolean;
   isTimeOut: boolean;
   onNewQuestionChange?: (newQuestionIndex: number) => void;
@@ -26,6 +29,8 @@ const LiveQuizQuestion: FC<{
   onConfigLoaded?: (liveQuizConfig: LiveQuiz) => void;
   onRemainingTimeChange?: (remainingTime: number) => void;
   onShowAnswer?: (canShow: boolean) => void;
+  lessonId?: string;
+  onTotalScoreChange?;
 }> = ({
   roomDoc,
   onNewQuestionChange,
@@ -35,11 +40,14 @@ const LiveQuizQuestion: FC<{
   onRemainingTimeChange,
   onShowAnswer,
   isTimeOut,
+  lessonId,
+  onTotalScoreChange,
 }) => {
   const quizPath =
     (localStorage.getItem("gameUrl") ??
       "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
-    roomDoc.lesson.id;
+    (lessonId || roomDoc?.lesson.id);
+
   const [liveQuizConfig, setLiveQuizConfig] = useState<LiveQuiz>();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();
   const [remainingTime, setRemainingTime] = useState(LIVE_QUIZ_QUESTION_TIME);
@@ -52,8 +60,9 @@ const LiveQuizQuestion: FC<{
   const history = useHistory();
   const student = Util.getCurrentStudent();
   const api = ServiceConfig.getI().apiHandler;
+
   useEffect(() => {
-    if (!roomDoc) return;
+    if (!roomDoc && !lessonId) return;
     if (!student) {
       history.replace(PAGES.HOME);
       return;
@@ -74,8 +83,18 @@ const LiveQuizQuestion: FC<{
   }, [roomDoc]);
 
   useEffect(() => {
-    if (showQuiz && currentQuestionIndex === undefined && liveQuizConfig) {
-      changeQuestion(liveQuizConfig, true);
+    if (Capacitor.isNativePlatform() && showQuiz) {
+      const fetchData = async () => {
+        const config = await getConfigJson();
+        if (showQuiz && currentQuestionIndex === undefined && config) {
+          changeQuestion(config, true);
+        }
+      };
+      fetchData();
+    } else {
+      if (showQuiz && currentQuestionIndex === undefined && liveQuizConfig) {
+        changeQuestion(liveQuizConfig, true);
+      }
     }
   }, [showQuiz]);
 
@@ -96,6 +115,19 @@ const LiveQuizQuestion: FC<{
       console.log("updatedSelectedAnswers......", updatedSelectedAnswers);
       return updatedSelectedAnswers;
     });
+    if (lessonId) {
+      const isCorrect = correctAnswers[questionIndex] === optionIndex;
+      if (isCorrect) {
+        totalLessonScore += calculateScoreForQuestion(
+          true,
+          liveQuizConfig?.data.length || 0,
+          LIVE_QUIZ_QUESTION_TIME - remainingTime
+        );
+        lessonCorrectMoves++;
+      }
+      clearInterval(questionInterval);
+      changeQuestion();
+    }
   };
 
   const getConfigJson = async () => {
@@ -265,7 +297,7 @@ const LiveQuizQuestion: FC<{
     }
     const configFile: LiveQuiz = (await response.json()) as LiveQuiz;
     console.log(
-      "🚀 ~ file: LiveQuizQuestion.tsx:24 ~ getConfigJson ~ jsonData:",
+      "🚀 ~ file: LiveQuizQuestion.tsx:301 ~ getConfigJson ~ jsonData:",
       configFile
     );
     setLiveQuizConfig(configFile);
@@ -299,7 +331,7 @@ const LiveQuizQuestion: FC<{
   };
 
   const onTimeOut = (_liveQuizConfig?: LiveQuiz) => {
-    console.log("🚀 ~ file: LiveQuizQuestion.tsx:168 ~ onTimeOut ~ onTimeOut:");
+    console.log("🚀 ~ file: LiveQuizQuestion.tsx:335 ~ onTimeOut ~ onTimeOut:");
     changeQuestion(_liveQuizConfig);
   };
 
@@ -343,7 +375,7 @@ const LiveQuizQuestion: FC<{
     setRemainingTime(LIVE_QUIZ_QUESTION_TIME);
     if (onRemainingTimeChange) onRemainingTimeChange(LIVE_QUIZ_QUESTION_TIME);
     console.log(
-      "🚀 ~ file: LiveQuizQuestion.tsx:203 ~ onQuestionChange ~ questionInterval:",
+      "🚀 ~ file: LiveQuizQuestion.tsx:380 ~ onQuestionChange ~ questionInterval:",
       questionInterval
     );
     if (questionInterval) clearInterval(questionInterval);
@@ -358,6 +390,7 @@ const LiveQuizQuestion: FC<{
         return newTime;
       });
     }, 1000);
+    totalLessonTimeSpent += LIVE_QUIZ_QUESTION_TIME - remainingTime;
   };
 
   function calculateScoreForQuestion(
@@ -383,27 +416,47 @@ const LiveQuizQuestion: FC<{
     let totalTimeSpent = 0;
     const totalQuestions = liveQuizConfig?.data.length || 0;
     let correctMoves = 0;
-    if (!roomDoc.results) return;
-    for (let result of roomDoc.results[student!.docId]) {
-      totalScore += result.score || 0;
-      totalTimeSpent += result.timeSpent || 0;
-      if (result.score > 0) {
-        correctMoves++;
+
+    if (lessonId) {
+      if (onTotalScoreChange) {
+        const scoreData = {
+          student: student!,
+          courseId: undefined,
+          lessonId: lessonId,
+          totalScore: totalLessonScore,
+          correctMoves: lessonCorrectMoves,
+          incorrectMoves: totalQuestions - lessonCorrectMoves,
+          totalTimeSpent: totalLessonTimeSpent,
+          isLoved: false,
+          assignmentId: undefined,
+          classId: undefined,
+          schoolId: undefined,
+        };
+        onTotalScoreChange(scoreData);
       }
+    } else {
+      if (!roomDoc?.results) return;
+      for (let result of roomDoc.results[student!.docId]) {
+        totalScore += result.score || 0;
+        totalTimeSpent += result.timeSpent || 0;
+        if (result.score > 0) {
+          correctMoves++;
+        }
+      }
+      await api.updateResult(
+        student!,
+        roomDoc.course.id,
+        roomDoc.lesson.id,
+        totalScore,
+        correctMoves,
+        totalQuestions - correctMoves,
+        totalTimeSpent,
+        undefined,
+        roomDoc.assignment.id,
+        roomDoc.class.id,
+        roomDoc.school.id
+      );
     }
-    await api.updateResult(
-      student!,
-      roomDoc.course.id,
-      roomDoc.lesson.id,
-      totalScore,
-      correctMoves,
-      totalQuestions - correctMoves,
-      totalTimeSpent,
-      undefined,
-      roomDoc.assignment.id,
-      roomDoc.class.id,
-      roomDoc.school.id
-    );
   }
 
   const playLiveQuizAudio = async (
@@ -429,7 +482,7 @@ const LiveQuizQuestion: FC<{
         setAudio(false);
       }
     } catch (error) {
-      console.log("🚀 ~ file: LiveQuizQuestion.tsx:348 ~ error:", error);
+      console.log("🚀 ~ file: LiveQuizQuestion.tsx:485 ~ error:", error);
     }
   };
 
@@ -465,7 +518,7 @@ const LiveQuizQuestion: FC<{
       await TextToSpeech.stop();
     } catch (error) {
       console.log(
-        "🚀 ~ file: LiveQuizQuestion.tsx:384 ~ stopAllAudios ~ error:",
+        "🚀 ~ file: LiveQuizQuestion.tsx:520 ~ stopAllAudios ~ error:",
         error
       );
     }
@@ -477,7 +530,7 @@ const LiveQuizQuestion: FC<{
       });
     } catch (error) {
       console.log(
-        "🚀 ~ file: LiveQuizQuestion.tsx:393 ~ stopAllAudios ~ error:",
+        "🚀 ~ file: LiveQuizQuestion.tsx:530 ~ stopAllAudios ~ error:",
         error
       );
     }
@@ -485,7 +538,10 @@ const LiveQuizQuestion: FC<{
 
   return (
     <div>
-      <div className="live-quiz-navigation-dots">
+      <div
+        className="live-quiz-navigation-dots"
+        style={lessonId ? { paddingTop: "5vh",paddingBottom:"10vh" } : {}}
+      >
         {isTimeOut && liveQuizConfig && currentQuestionIndex != null && (
           <LiveQuizNavigationDots
             totalDots={liveQuizConfig.data.length}
@@ -554,7 +610,7 @@ const LiveQuizQuestion: FC<{
                         LIVE_QUIZ_QUESTION_TIME - remainingTime
                       );
                       await api.updateLiveQuiz(
-                        roomDoc.docId,
+                        lessonId ?? roomDoc?.docId ?? "",
                         student?.docId!,
                         liveQuizConfig.data[currentQuestionIndex].question.id,
                         LIVE_QUIZ_QUESTION_TIME - remainingTime,
