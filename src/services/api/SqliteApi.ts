@@ -1208,7 +1208,7 @@ export class SqliteApi implements ServiceApi {
   SELECT *
   FROM ${TABLES.ParentUser} AS parent
   JOIN ${TABLES.User} AS student ON parent.student_id = student.id
-  WHERE parent.parent_id = "${currentUser.id}";
+  WHERE parent.parent_id = "${currentUser.id}" AND parent.is_deleted = 0 AND student.is_deleted = 0; 
 `;
     const res = await this._db.query(query);
     return res.values ?? [];
