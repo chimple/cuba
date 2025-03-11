@@ -113,18 +113,33 @@ interface course {
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
   public static allCourses: TableTypes<"course">[]=[]
-  public static currentCourse: TableTypes<"course">
-  public static currenLesson: TableTypes<"lesson">
+  public static currentLesson: TableTypes<"lesson">
   public static currentChapter: TableTypes<"chapter">
+  public static currentCourse: TableTypes<"course">
   private preQuizMap: { [key: string]: { [key: string]: Result } } = {};
   private classes: { [key: string]: Class[] } = {};
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
+
+  private buildXapiQuery(currentUser: { name?: string }): { agentEmail: string; queryStatement: IGetStudentResultStatement } {
+    const agentEmail = `mailto:${currentUser?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
+  
+    const queryStatement: IGetStudentResultStatement = {
+      agent: {
+        mbox: agentEmail,
+      },
+      verb: {
+        id: "http://adlnet.gov/expapi/verbs/completed", // Filtering for completed lessons
+      },
+    };
+  
+    return { agentEmail, queryStatement };
+  }
 
   async getCoursesForParentsStudent(
     studentId: string
   ): Promise<TableTypes<"course">[]> {
     try {
-      const id = currentCourse //Later get all available courses
+      const id = OneRosterApi?.currentCourse?.id //Later get all available courses
       const jsonFile = "assets/courses/" + id + "/res/course.json";
       const courseJson = await Util.loadJson(jsonFile);
       const metaC = courseJson.metadata;
@@ -167,11 +182,11 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getLessonWithCocosLessonId(
+  async getLessonWithCocosLessonId(
     lessonId: string
   ): Promise<TableTypes<"lesson"> | null | undefined> {
     try {
-      const id = currenLesson;
+      const id = OneRosterApi?.currentLesson?.id;
       const jsonFile = `assets/courses/${id}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
       const lessonwithCocosLessonIds = courseJson.groups
@@ -205,9 +220,8 @@ export class OneRosterApi implements ServiceApi {
       return null;
     }
   }
-  getLesson(id: string): Promise<Lesson | undefined> {
+  async getLesson(id: string): Promise<Lesson | undefined> {
     try {
-      const id = currenLesson;
       const jsonFile = `assets/courses/${id}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
       const getLessonData = courseJson.groups
@@ -246,10 +260,10 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getChapterById(id: string): Promise<Chapter | undefined> {
+   async getChapterById(id: string): Promise<Chapter | undefined> {
 
     try {
-      const id = currentChapter
+      const id = OneRosterApi?.currentLesson?.id
       const jsonFile = `assets/courses/${id}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
   
@@ -474,9 +488,9 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]> {
+  async getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]> {
     try {
-      const id = currentCourse;
+      const id = OneRosterApi?.currentCourse?.id;
       const jsonFile = `assets/courses/${id}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
       const metaC = courseJson.metadata;
@@ -568,7 +582,7 @@ export class OneRosterApi implements ServiceApi {
   }
 
   
-getLessonFromCourse(
+async getLessonFromCourse(
   course: Course,
   lessonId: string
 ): Promise<Lesson | undefined> {
@@ -817,33 +831,20 @@ getLessonFromCourse(
   deleteUserFromClass(userId: string): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  getLessonResultsForStudent(
+  async getLessonResultsForStudent(
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined> {
     try {
-      const loggedStudent = JSON.parse(localStorage.getItem(CURRENT_STUDENT));
-      if (!loggedStudent || !loggedStudent.name) {
+      const users = localStorage.getItem(CURRENT_USER);
+      const currentUser = JSON.parse(users);
+      if (!currentUser || !currentUser.name) {
         throw new Error("No logged-in student found");
       }
-  
-      const agentEmail = `mailto:${loggedStudent?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
-      // Prepare xAPI query statement
-      const queryStatement: IGetStudentResultStatement = {
-        agent: {
-          mbox: agentEmail,
-        },
-        verb: {
-          id: "http://adlnet.gov/expapi/verbs/completed", // Filtering for completed lessons
-        },
-      };
-  
+      const { agentEmail, queryStatement } = this.buildXapiQuery(currentUser);
       // Fetch xAPI statements
       const statements = await this.getStatements(agentEmail, queryStatement);
-      console.log("Fetched statements for lesson results:", statements);
-  
-      // Transform statements into Map<string, StudentLessonResult>
       const resultMap = new Map<string, StudentLessonResult>();
-  
+      
       statements.forEach((statement: TableTypes<"result">) => {
         const lessonId = statement.object?.id || ""; // Assuming lesson ID is inside 'object.id'
   
@@ -1740,7 +1741,7 @@ getLessonFromCourse(
     userId?: string
   ): Promise<string | undefined> {
     try {
-      const id = currenLesson; // Adjust based on your setup
+      const id = OneRosterApi?.currentLesson?.id; // Adjust based on your setup
       const jsonFile = `assets/courses/${id}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
   
@@ -1788,7 +1789,7 @@ getLessonFromCourse(
 
   async getLessonsBylessonIds(lessonIds: string[]): Promise<TableTypes<"lesson">[] | undefined> {
     try {
-      const id = currenLesson
+      const id = OneRosterApi?.currentLesson?.id;
       const jsonFile = `assets/courses/${id}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
   
