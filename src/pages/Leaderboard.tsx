@@ -66,16 +66,29 @@ const Leaderboard: React.FC = () => {
   useEffect(() => {
     setIsLoading(true);
     init();
+
     const urlParams = new URLSearchParams(window.location.search);
     const rewardsTab = urlParams.get("tab");
     let currentTab = LEADERBOARDHEADERLIST.LEADERBOARD;
-    if (rewardsTab) {
-      if (rewardsTab === LEADERBOARDHEADERLIST.REWARDS.toLowerCase()) {
-        currentTab = LEADERBOARDHEADERLIST.REWARDS;
-      }
+
+    if (
+      rewardsTab &&
+      rewardsTab === LEADERBOARDHEADERLIST.REWARDS.toLowerCase()
+    ) {
+      currentTab = LEADERBOARDHEADERLIST.REWARDS;
     }
+
     setTabIndex(currentTab);
   }, []);
+
+  useEffect(() => {
+    // Update URL when tabIndex changes
+    if (tabIndex) {
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set("tab", tabIndex.toLowerCase());
+      window.history.replaceState({}, "", newUrl.toString());
+    }
+  }, [tabIndex]);
 
   useEffect(() => {}, []);
 
