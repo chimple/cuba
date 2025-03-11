@@ -483,7 +483,6 @@ const Leaderboard: React.FC = () => {
     );
   }
 
-
   const handleChange = (
     event: React.SyntheticEvent,
     newValue: LEADERBOARDHEADERLIST
@@ -517,12 +516,16 @@ const Leaderboard: React.FC = () => {
       {!isLoading ? (
         <Box>
           <div id="LeaderBoard-Header">
-            <BackButton
-              // iconSize={"8vh"}
-              onClicked={() => {
-                Util.setPathToBackButton(PAGES.HOME, history);
-              }}
-            ></BackButton>
+            <div id="back-button-in-LeaderBoard-Header">
+              <span className="hidden-text">Back</span>
+              <BackButton
+                // iconSize={"8vh"}
+                aria-label="Back"
+                onClicked={() => {
+                  Util.setPathToBackButton(PAGES.HOME, history);
+                }}
+              ></BackButton>
+            </div>
             <Box>
               <AppBar
                 id="LeaderBoard-AppBar"
