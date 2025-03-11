@@ -111,14 +111,69 @@ interface course {
 }
 
 export class OneRosterApi implements ServiceApi {
+  
   public static i: OneRosterApi;
-  public static allCourses: TableTypes<"course">[]=[]
-  public static currentLesson: TableTypes<"lesson">
-  public static currentChapter: TableTypes<"chapter">
-  public static currentCourse: TableTypes<"course">
   private preQuizMap: { [key: string]: { [key: string]: Result } } = {};
   private classes: { [key: string]: Class[] } = {};
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
+  private constructor() {
+    // Initialize static properties with default values
+    OneRosterApi.currentLesson = {
+      id: "001",
+      name: "abc",
+      chapter_id: "001",
+      subject_id: "001",
+      outcome: null,
+      status: "complete",
+      type: "a",
+      thumbnail: null,
+      plugin_type: "v",
+      created_at: "",
+      updated_at: "",
+      is_deleted: null
+    };
+  
+    OneRosterApi.currentChapter = {
+      id: "001",
+      name: "xyz",
+      image: null,
+      course_id: null,
+      created_at: "",
+      updated_at: null,
+      is_deleted: null,
+      sort_index: null,
+      sub_topics: null
+    };
+  
+    OneRosterApi.currentCourse = {
+      code: null,
+      color: null,
+      created_at: "",
+      curriculum_id: null,
+      description: null,
+      grade_id: null,
+      id: "001",
+      image: null,
+      is_deleted: null,
+      name: "sgy",
+      sort_index: null,
+      subject_id: null,
+      updated_at: null
+    };
+  }
+
+  // Add setter methods to update the static properties
+    public static setCurrentLesson(lesson: TableTypes<"lesson">) {
+      OneRosterApi.currentLesson = lesson;
+    }
+
+    public static setCurrentChapter(chapter: TableTypes<"chapter">) {
+      OneRosterApi.currentChapter = chapter;
+    }
+
+    public static setCurrentCourse(course: TableTypes<"course">) {
+      OneRosterApi.currentCourse = course;
+    }
 
   private buildXapiQuery(currentUser: { name?: string }): { agentEmail: string; queryStatement: IGetStudentResultStatement } {
     const agentEmail = `mailto:${currentUser?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
@@ -139,7 +194,8 @@ export class OneRosterApi implements ServiceApi {
     studentId: string
   ): Promise<TableTypes<"course">[]> {
     try {
-      const id = OneRosterApi?.currentCourse?.id //Later get all available courses
+      OneRosterApi.setCurrentCourse(courseData); //Later get all available courses
+      const id = courseData.id; 
       const jsonFile = "assets/courses/" + id + "/res/course.json";
       const courseJson = await Util.loadJson(jsonFile);
       const metaC = courseJson.metadata;
@@ -186,8 +242,8 @@ export class OneRosterApi implements ServiceApi {
     lessonId: string
   ): Promise<TableTypes<"lesson"> | null | undefined> {
     try {
-      const id = OneRosterApi?.currentLesson?.id;
-      const jsonFile = `assets/courses/${id}/res/course.json`;
+
+      const jsonFile = `assets/courses/${lessonId}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
       const lessonwithCocosLessonIds = courseJson.groups
     
@@ -261,9 +317,7 @@ export class OneRosterApi implements ServiceApi {
   }
 
    async getChapterById(id: string): Promise<Chapter | undefined> {
-
     try {
-      const id = OneRosterApi?.currentLesson?.id
       const jsonFile = `assets/courses/${id}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
   
@@ -363,7 +417,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<string | undefined> {
     throw new Error("Method not implemented.");
   }
-  private constructor() { }
+  // private constructor() { }
   async getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;
@@ -490,7 +544,8 @@ export class OneRosterApi implements ServiceApi {
 
   async getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]> {
     try {
-      const id = OneRosterApi?.currentCourse?.id;
+      OneRosterApi.setCurrentCourse(courseData);
+      const id = courseData.id;
       const jsonFile = `assets/courses/${id}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
       const metaC = courseJson.metadata;
@@ -844,7 +899,7 @@ async getLessonFromCourse(
       // Fetch xAPI statements
       const statements = await this.getStatements(agentEmail, queryStatement);
       const resultMap = new Map<string, StudentLessonResult>();
-      
+
       statements.forEach((statement: TableTypes<"result">) => {
         const lessonId = statement.object?.id || ""; // Assuming lesson ID is inside 'object.id'
   
@@ -1741,8 +1796,8 @@ async getLessonFromCourse(
     userId?: string
   ): Promise<string | undefined> {
     try {
-      const id = OneRosterApi?.currentLesson?.id; // Adjust based on your setup
-      const jsonFile = `assets/courses/${id}/res/course.json`;
+      OneRosterApi.setCurrentLesson(lessonData); // Adjust based on your setup
+      const jsonFile = `assets/courses/${lessonData.id}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
   
       const group = courseJson.groups.find(g => 
@@ -1789,8 +1844,7 @@ async getLessonFromCourse(
 
   async getLessonsBylessonIds(lessonIds: string[]): Promise<TableTypes<"lesson">[] | undefined> {
     try {
-      const id = OneRosterApi?.currentLesson?.id;
-      const jsonFile = `assets/courses/${id}/res/course.json`;
+      const jsonFile = `assets/courses/${lessonIds}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
   
       console.log("getLessonsBylessonIds data:", courseJson.groups);
