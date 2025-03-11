@@ -424,6 +424,7 @@ export enum PAGES {
   USER_PROFILE = "/user-profile",
   STUDENT_PROFILE = "/student-profile",
   ADD_STUDENT = "/add_student",
+  FIRST_PAGE = "/first-page",
   TEST_PAGE = "/test-page",
   TEST_PAGE1 = "/test-page1",
   TEACHER_ASSIGNMENT = "/teacher-assignment",

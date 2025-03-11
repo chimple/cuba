@@ -1,0 +1,117 @@
+.file-upload-container {
+    max-width: 400px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .file-upload-info {
+    font-size: 14px;
+    color: gray;
+    display: flex;
+  }
+  .file-upload-header{
+    color: black;
+    font-size: larger;
+    font-weight: bold   ;
+  }
+  
+  .file-upload-box {
+    display: block;
+    border: 2px dashed gray;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border 0.3s;
+    margin-top: 20px;
+  }
+  
+  .file-upload-icon {
+    color: gray;
+  }
+  
+  .file-upload-text {
+    font-weight: medium;
+  }
+  
+  .file-upload-size {
+    font-size: 12px;
+    color: gray;
+  }
+  
+  .file-upload-preview {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f9f9f9;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 6px;
+  }
+  
+  .file-upload-name {
+    font-size: 14px;
+    font-weight: bold;
+  }
+  
+  .file-upload-size {
+    font-size: 12px;
+    color: gray;
+  }
+  
+  .file-upload-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #ddd;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 5px;
+  }
+  
+  .file-upload-progress {
+    height: 100%;
+    background: purple;
+    transition: width 0.3s;
+  }
+  
+  .file-upload-remove-btn {
+    background: none;
+    border: none;
+    color: gray;
+    cursor: pointer;
+  }
+  
+  
+  .file-upload-button-group {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+  }
+  
+  .file-upload-btn {
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  .file-upload-cancel-btn {
+    border: 1px solid gray;
+    background: white;
+    color: gray;
+  }
+  
+  .file-upload-next-btn {
+    background: purple;
+    color: white;
+    border: none;
+  }
+  
+  .file-upload-next-btn:disabled {
+    background: lightgray;
+    cursor: not-allowed;
+  }
+  

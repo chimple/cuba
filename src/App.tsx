@@ -118,6 +118,7 @@ import "./App.css";
 import ShowStudentsInAssignmentPage from "./chimple-private/pages/ShowStudentsInAssignmentPage";
 import { schoolUtil } from "./utility/schoolUtil";
 import LidoPlayer from "./pages/LidoPlayer";
+import FirstPage from "./ops-console/pages/FirstPage";
 
 setupIonicReact();
 interface ExtraData {
@@ -544,6 +545,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <Route path={PAGES.TERMS_AND_CONDITIONS} exact={true}>
               <TermsAndConditions />
+            </Route>
+            <Route path={PAGES.FIRST_PAGE} exact={true}>
+              <FirstPage />
             </Route>
             <ProtectedRoute path={PAGES.LIVE_QUIZ_ROOM_RESULT} exact={true}>
               <LiveQuizRoomResult />
