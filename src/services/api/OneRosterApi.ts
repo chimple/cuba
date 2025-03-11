@@ -821,29 +821,49 @@ getLessonFromCourse(
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined> {
     try {
-      const results = new Map<string, StudentLessonResult>();
-      
-      // student results are stored in a JSON file per student
-      const jsonFile = `assets/students/${studentId}/results.json`;
-      const studentResults = await Util.loadJson(jsonFile);
-      
-      if (!studentResults || !studentResults.lessons) {
-        return undefined;
+      const loggedStudent = JSON.parse(localStorage.getItem(CURRENT_STUDENT));
+      if (!loggedStudent || !loggedStudent.name) {
+        throw new Error("No logged-in student found");
       }
-      
-      for (const lessonResult of studentResults.lessons) {
-        results.set(lessonResult.lessonId, {
-          lessonId: lessonResult.lessonId,
-          score: lessonResult.score,
-          completionStatus: lessonResult.completionStatus,
-          timeSpent: lessonResult.timeSpent,
-          lastAttemptDate: lessonResult.lastAttemptDate,
-        });
-      }
-      
-      return results;
+  
+      const agentEmail = `mailto:${loggedStudent?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
+      // Prepare xAPI query statement
+      const queryStatement: IGetStudentResultStatement = {
+        agent: {
+          mbox: agentEmail,
+        },
+        verb: {
+          id: "http://adlnet.gov/expapi/verbs/completed", // Filtering for completed lessons
+        },
+      };
+  
+      // Fetch xAPI statements
+      const statements = await this.getStatements(agentEmail, queryStatement);
+      console.log("Fetched statements for lesson results:", statements);
+  
+      // Transform statements into Map<string, StudentLessonResult>
+      const resultMap = new Map<string, StudentLessonResult>();
+  
+      statements.forEach((statement: TableTypes<"result">) => {
+        const lessonId = statement.object?.id || ""; // Assuming lesson ID is inside 'object.id'
+  
+        if (lessonId) {
+          const lessonResult: StudentLessonResult = {
+            lessonId,
+            score: statement.result?.score?.scaled ?? null,
+            success: statement.result?.success ?? null,
+            completion: statement.result?.completion ?? null,
+            timeSpent: statement.result?.timeSpent,
+            lastAttemptDate: tatement.result?.lastAttemptDate,
+          };
+  
+          resultMap.set(lessonId, lessonResult);
+        }
+      });
+  
+      return resultMap;
     } catch (error) {
-      console.error("Error fetching lesson results for student:", error);
+      console.error("Error in getLessonResultsForStudent:", error);
       return undefined;
     }
   }
