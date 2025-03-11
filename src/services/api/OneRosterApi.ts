@@ -112,6 +112,10 @@ interface course {
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
+  public static allCourses: TableTypes<"course">[]=[]
+  public static currentCourse: TableTypes<"course">
+  public static currenLesson: TableTypes<"lesson">
+  public static currentChapter: TableTypes<"chapter">
   private preQuizMap: { [key: string]: { [key: string]: Result } } = {};
   private classes: { [key: string]: Class[] } = {};
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
@@ -120,7 +124,7 @@ export class OneRosterApi implements ServiceApi {
     studentId: string
   ): Promise<TableTypes<"course">[]> {
     try {
-      const id = "en" //Later get all available courses
+      const id = currentCourse //Later get all available courses
       const jsonFile = "assets/courses/" + id + "/res/course.json";
       const courseJson = await Util.loadJson(jsonFile);
       const metaC = courseJson.metadata;
@@ -167,7 +171,7 @@ export class OneRosterApi implements ServiceApi {
     lessonId: string
   ): Promise<TableTypes<"lesson"> | null | undefined> {
     try {
-      const id = 'en'
+      const id = currenLesson;
       const jsonFile = `assets/courses/${id}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
       const lessonwithCocosLessonIds = courseJson.groups
@@ -203,7 +207,7 @@ export class OneRosterApi implements ServiceApi {
   }
   getLesson(id: string): Promise<Lesson | undefined> {
     try {
-      const id = 'en'
+      const id = currenLesson;
       const jsonFile = `assets/courses/${id}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
       const getLessonData = courseJson.groups
@@ -245,7 +249,7 @@ export class OneRosterApi implements ServiceApi {
   getChapterById(id: string): Promise<Chapter | undefined> {
 
     try {
-      const id = 'en'
+      const id = currentChapter
       const jsonFile = `assets/courses/${id}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
   
@@ -471,9 +475,8 @@ export class OneRosterApi implements ServiceApi {
   }
 
   getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]> {
-    // throw new Error("Method not implemented.");
     try {
-      const id = "en"; // Later get all available courses
+      const id = currentCourse;
       const jsonFile = `assets/courses/${id}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
       const metaC = courseJson.metadata;
@@ -1717,7 +1720,7 @@ getLessonFromCourse(
     userId?: string
   ): Promise<string | undefined> {
     try {
-      const id = "en"; // Adjust based on your setup
+      const id = currenLesson; // Adjust based on your setup
       const jsonFile = `assets/courses/${id}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
   
@@ -1765,7 +1768,7 @@ getLessonFromCourse(
 
   async getLessonsBylessonIds(lessonIds: string[]): Promise<TableTypes<"lesson">[] | undefined> {
     try {
-      const id = 'en'
+      const id = currenLesson
       const jsonFile = `assets/courses/${id}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
   
