@@ -24,7 +24,7 @@ import {
   IS_CONECTED,
   SUBTAB_MAPPINGS,
   QUIZ_POPUP_SHOWN,
-  ASSIGNMENT_POPUP_SHOWN
+  ASSIGNMENT_POPUP_SHOWN,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -109,6 +109,7 @@ const Home: FC = () => {
   const [historyLessons, setHistoryLessons] = useState<Lesson[]>([]);
   const [validLessonIds, setValidLessonIds] = useState<string[]>([]);
   const [historySortIndex, setHistorySortIndex] = useState<number>(0);
+  const [favLessonIndex, setFavLessonIndex] = useState<number>(0);
   let allPlayedLessonIds: string[] = [];
   let tempPageNumber = 1;
   let linked: boolean;
@@ -145,7 +146,7 @@ const Home: FC = () => {
       return;
     }
     urlOpenListenerEvent();
-    fetchData()
+    fetchData();
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
     initData();
@@ -234,28 +235,28 @@ const Home: FC = () => {
     App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
       const slug = event.url.split(".cc").pop();
       let subtabConfig = SUBTAB_MAPPINGS[HOMEHEADERLIST.HOME];
-      if(slug) {
+      if (slug) {
         console.log("setting subtabConfig slug with:", slug);
         subtabConfig = SUBTAB_MAPPINGS[slug];
       }
-        if (subtabConfig) {
-          console.log("subtabConfig is:", subtabConfig);
-          if (subtabConfig.isLinked && !linked) {
-            // pageConfig.isLinked is true but student is not linked to any class, so redirect to join class
-            setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT)
-            return;
-          }
+      if (subtabConfig) {
+        console.log("subtabConfig is:", subtabConfig);
+        if (subtabConfig.isLinked && !linked) {
+          // pageConfig.isLinked is true but student is not linked to any class, so redirect to join class
+          setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
+          return;
+        }
 
-          if (subtabConfig.redirect) {
-            history.replace(subtabConfig.redirect);
-          } else {
-            setCurrentHeader(subtabConfig.header);
-            if (subtabConfig.subtab) {
-              setValue(subtabConfig.subtab);
-              fetchData();
-            }
+        if (subtabConfig.redirect) {
+          history.replace(subtabConfig.redirect);
+        } else {
+          setCurrentHeader(subtabConfig.header);
+          if (subtabConfig.subtab) {
+            setValue(subtabConfig.subtab);
+            fetchData();
           }
         }
+      }
       // if (slug) {
       //   history.replace(slug);
       // }
@@ -366,7 +367,6 @@ const Home: FC = () => {
     }
   }
 
-
   const handleChange = async (
     event: React.SyntheticEvent,
     newValue: SUBTAB
@@ -374,19 +374,18 @@ const Home: FC = () => {
     setValue(newValue);
     if (newValue === SUBTAB.HISTORY) {
       // setIsLoading(true);
+      setFavouriteLessons([]);
       if (lessonResultMap) {
         // const startIndex = (tempPageNumber - 1) * favouritesPageSize;
         // const endIndex = startIndex + favouritesPageSize;
-
         // const initialHistoryLessonsSlice = initialHistoryLessons.slice(
         //   startIndex,
         //   endIndex
         // );
         // setHistoryLessons(initialHistoryLessonsSlice);
-        setFavouriteLessons([]);
+        tempPageNumber = 1;
+        await updateHistoryLessons(validLessonIds);
       }
-      tempPageNumber = 1;
-      await updateHistoryLessons(validLessonIds);
       setIsLoading(false);
     } else if (newValue === SUBTAB.FAVOURITES) {
       setHistoryLessons([]);
@@ -398,9 +397,9 @@ const Home: FC = () => {
         //   startIndex,
         //   endIndex
         // );
+        tempPageNumber = 1;
         await updateFavouriteLessons(validLessonIds);
       }
-      tempPageNumber = 1;
     } else {
       setHistoryLessons([]);
       setFavouriteLessons([]);
@@ -775,32 +774,40 @@ const Home: FC = () => {
   };
 
   const handleLoadMoreHistoryLessons = async () => {
-    tempPageNumber = tempPageNumber + 1;
-    await updateHistoryLessons(validLessonIds);
-  };
-
-  const handleLoadMoreLessons = async () => {
-    if (currentHeader === HOMEHEADERLIST.FAVOURITES) {
+    if (currentHeader === HOMEHEADERLIST.SUGGESTIONS) {
       tempPageNumber = tempPageNumber + 1;
-      await updateFavouriteLessons(validLessonIds);
+      await updateHistoryLessons(validLessonIds);
     }
   };
 
+  const handleLoadMoreLessons = async () => {
+    if (currentHeader === HOMEHEADERLIST.SUGGESTIONS) {
+      tempPageNumber = tempPageNumber + 1;
+      setFavLessonIndex(favouriteLessons.length - 1);
+      await updateFavouriteLessons(validLessonIds);
+    }
+  };
   const updateFavouriteLessons = async (allLessonIds) => {
     setIsLoading(true);
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent || !lessonResultMap) {
+      setIsLoading(false);
       return;
     }
-
+    const totalLikedLessons = validLessonIds.filter(
+      (lessonId) => lessonResultMap?.[lessonId]?.isLoved ?? false
+    ).length;
+    if (favouriteLessons.length >= totalLikedLessons) {
+      setFavLessonIndex(0);
+      setIsLoading(false);
+      return;
+    }
     const favouritesStartIndex = (tempPageNumber - 1) * favouritesPageSize;
     const favouritesEndIndex = favouritesStartIndex + favouritesPageSize;
-
     const slicedLessonIdsForFavourite = validLessonIds.slice(
       favouritesStartIndex,
       favouritesEndIndex
     );
-
     const lessonPromisesForFavourite = slicedLessonIdsForFavourite.map(
       (lessonId) => api.getLesson(lessonId)
     );
@@ -811,18 +818,12 @@ const Home: FC = () => {
 
     const validLessonsForFavourite: Lesson[] = lessonsForFavourite.filter(
       (lesson): lesson is Lesson => {
-        if (lesson === undefined) {
-          return false;
-        }
-        const lessonResult = lessonResultMap?.[lesson.docId];
-        return lessonResult?.isLoved ?? false;
+        if (!lesson) return false;
+        return lessonResultMap?.[lesson.docId]?.isLoved ?? false;
       }
     );
-
-    const latestTenFavouriteLessons = favouriteLessons.slice(0, 10);
     setValidLessonIds(allLessonIds);
     favouriteLessons.push(...validLessonsForFavourite);
-    setInitialFavoriteLessons(latestTenFavouriteLessons);
     setIsLoading(false);
   };
 
@@ -873,11 +874,17 @@ const Home: FC = () => {
 
   useEffect(() => {
     const hasShownQuizPopup = sessionStorage.getItem(QUIZ_POPUP_SHOWN);
-    const hasShownAssignmentPopup = sessionStorage.getItem(ASSIGNMENT_POPUP_SHOWN);
+    const hasShownAssignmentPopup = sessionStorage.getItem(
+      ASSIGNMENT_POPUP_SHOWN
+    );
 
     if (!hasShownQuizPopup && pendingLiveQuizCount !== 0) {
       setShowQuizPopup(true);
-    } else if (!hasShownAssignmentPopup && pendingAssignmentsCount !== 0 && currentMode !== MODES.SCHOOL) {
+    } else if (
+      !hasShownAssignmentPopup &&
+      pendingAssignmentsCount !== 0 &&
+      currentMode !== MODES.SCHOOL
+    ) {
       setShowAssignmentPopup(true);
     }
   }, [pendingLiveQuizCount, pendingAssignmentsCount]);
@@ -985,10 +992,11 @@ const Home: FC = () => {
             {(value === SUBTAB.SUGGESTIONS ||
               value === SUBTAB.FAVOURITES ||
               value === SUBTAB.HISTORY) &&
-              ((canShowAvatar && currentHeader === HOMEHEADERLIST.SUGGESTIONS) ||
+              ((canShowAvatar &&
+                currentHeader === HOMEHEADERLIST.SUGGESTIONS) ||
                 (!canShowAvatar && currentHeader === HOMEHEADERLIST.HOME) ||
-                (!canShowAvatar && currentHeader === HOMEHEADERLIST.SUGGESTIONS)
-              ) && (
+                (!canShowAvatar &&
+                  currentHeader === HOMEHEADERLIST.SUGGESTIONS)) && (
                 <div>
                   {value === SUBTAB.SUGGESTIONS && (
                     <LessonSlider
@@ -1011,7 +1019,7 @@ const Home: FC = () => {
                           isHome={true}
                           course={undefined}
                           lessonsScoreMap={lessonResultMap || {}}
-                          startIndex={0}
+                          startIndex={favLessonIndex}
                           showSubjectName={true}
                           showChapterName={true}
                           onEndReached={handleLoadMoreLessons}
