@@ -973,10 +973,9 @@ export class SqliteApi implements ServiceApi {
           : null;
       if (localClassId) {
         // Remove the student's connection to the class
-        await this.executeQuery(
-          `DELETE FROM class_user WHERE user_id = ? AND is_deleted = 0`,
-          [studentId]
-        );
+        await this.executeQuery(`DELETE FROM class_user WHERE user_id = ?`, [
+          studentId,
+        ]);
 
         // Check if any other child of the parent is connected to the same class
         const otherChildrenConnected = await this._db.query(
@@ -1209,7 +1208,7 @@ export class SqliteApi implements ServiceApi {
   SELECT *
   FROM ${TABLES.ParentUser} AS parent
   JOIN ${TABLES.User} AS student ON parent.student_id = student.id
-  WHERE parent.parent_id = "${currentUser.id}";
+  WHERE parent.parent_id = "${currentUser.id}" AND parent.is_deleted = 0 AND student.is_deleted = 0; 
 `;
     const res = await this._db.query(query);
     return res.values ?? [];
