@@ -17,7 +17,7 @@ import {
   TableTypes,
   USER_DATA,
 } from "../common/constants";
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, registerPlugin } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
 import TextBox from "../components/TextBox";
 import React from "react";
@@ -96,6 +96,8 @@ const Login: React.FC = () => {
   const getOtpBtnRef = useRef<any>();
   const parentNameRef = useRef<any>();
   const phoneNumberErrorRef = useRef<any>();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isPromptNumbers, setIsPromptNumbers] = useState<boolean>(false);
   let verificationCodeMessageFlags = {
     isInvalidCode: false,
     isInvalidCodeLength: false,
@@ -113,6 +115,15 @@ const Login: React.FC = () => {
   const [schoolCode, setSchoolCode] = useState<string>("");
   const [showStudentCredentialtLogin, setStudentCredentialLogin] =
     useState<boolean>(false);
+  const PortPlugin = registerPlugin<any>("Port");
+    useEffect(() => {
+      initNumberSelectedListner();
+    }, []);
+    useEffect(() => {
+      if (phoneNumber.length == 10) {
+        initSmsListner();
+      }
+    }, [phoneNumber]);
 
   useEffect(() => {
     // init();
@@ -205,6 +216,39 @@ const Login: React.FC = () => {
       // }
     }
   }, [recaptchaVerifier]);
+
+  const retriewPhoneNumber = async () => {
+    const phoneNumber = await PortPlugin.numberRetrieve();
+    if (phoneNumber.number) {
+      phoneNumberErrorRef.current.style.display = "none";
+      setPhoneNumber(phoneNumber.number.toString());
+      setCurrentButtonColor(Buttoncolors.Valid);
+    }
+  };
+
+  const otpEventListener = async (event: Event) => {
+    const data = await PortPlugin.otpRetrieve();
+    if (data?.otp) {
+        setVerificationCode(data.otp.toString());
+        onVerificationCodeSubmit(data.otp.toString());
+        setIsInvalidCode({ isInvalidCode: false, isInvalidCodeLength: false });
+    } 
+      document.removeEventListener("otpReceived", otpEventListener);
+}
+
+  const isPhoneNumberEventListener = async (event: Event) => {
+    await retriewPhoneNumber();
+    document.removeEventListener("isPhoneNumberSelected", isPhoneNumberEventListener);
+  };
+  const initNumberSelectedListner = async () => {
+    document.addEventListener("isPhoneNumberSelected", isPhoneNumberEventListener, {
+      once: true,
+    });
+  };
+  const initSmsListner = async () => {
+    document.addEventListener("otpReceived", otpEventListener, { once: true });
+  };
+
   React.useEffect(() => {
     if (counter <= 0 && showTimer) {
       setShowResendOtp(true);
@@ -353,14 +397,14 @@ const Login: React.FC = () => {
       history.replace(PAGES.DISPLAY_STUDENT);
     }
   }
-  const onVerificationCodeSubmit = async () => {
+  const onVerificationCodeSubmit = async (otp:string) => {
     try {
       setIsLoading(true);
       setIsInitialLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
       const res = await authInstance.proceedWithVerificationCode(
         phoneNumberWithCountryCode,
-        verificationCode.trim()
+        otp.trim()
       );
       console.log("login User Data ", res, userData);
       if (!res?.user) {
@@ -572,8 +616,15 @@ const Login: React.FC = () => {
                   <div id="login-text-box">
                     <div id="login-text">
                       <TextBox
+                        ref={inputRef}
                         inputText={t("Enter Mobile Number (10-digit)")}
                         inputType={"tel"}
+                        onFocus={async () => {
+                          if (Capacitor.getPlatform() === "android" && !isPromptNumbers) {
+                            const data = await PortPlugin.requestPermission();
+                            setIsPromptNumbers(true);
+                          }
+                        }}
                         maxLength={10}
                         inputValue={phoneNumber}
                         icon={<IoCallOutline id="text-box-icon" />}
@@ -815,7 +866,7 @@ const Login: React.FC = () => {
                   <div
                     onClick={() => {
                       if (verificationCode.length === 6) {
-                        onVerificationCodeSubmit();
+                        onVerificationCodeSubmit(verificationCode);
                         setVerificationCode("");
                       } else if (verificationCode.length <= 6) {
                         setVerificationCode("");
@@ -828,7 +879,7 @@ const Login: React.FC = () => {
                       // setShowNameInput(true);
                       // history.push(PAGES.PARENT);
                       else {
-                        onVerificationCodeSubmit();
+                        onVerificationCodeSubmit(verificationCode);
                         setIsInvalidCode({
                           isInvalidCode: false,
                           isInvalidCodeLength: false,
