@@ -66,9 +66,11 @@ const ChimpleAvatar: FC<{
     AvatarAnimations.IDLE1
   );
   useEffect(() => {
-    loadSuggestionsFromJson();
+    if (recommadedSuggestion && recommadedSuggestion.length > 0) { // Check if recommadedSuggestion has data
+      loadSuggestionsFromJson();
+    }
     // setButtonsDisabled(true);
-  }, [currentMode]);
+  }, [currentMode, recommadedSuggestion]);
   useEffect(() => {
     fetchCoursesForStudent();
     return () => {
