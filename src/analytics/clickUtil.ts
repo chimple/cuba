@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Util } from "./util";
+import { Util } from "../utility/util";
 import { EVENTS } from "../common/constants";
 import { RoleType } from "../interface/modelInterfaces";
 
-const ClickDetector: React.FC = () => {
+const ClickDetector = () => {
   const [storedStudent, setStoredStudent] = useState<{
     id?: string;
     name?: string;
@@ -15,7 +15,6 @@ const ClickDetector: React.FC = () => {
   useEffect(() => {
     const handleClick = async (event: MouseEvent | TouchEvent) => {
       const student = Util.getCurrentStudent();
-      // If student exists, update stored values
       if (student) {
         setStoredStudent({
           id: student.docId,
@@ -70,7 +69,7 @@ const ClickDetector: React.FC = () => {
       };
 
       console.log("Clicked Logging Event Data:", eventData);
-      Util.logEvent(EVENTS.CLICKS, eventData);
+      Util.logEvent(EVENTS.CLICKS_ANALYTICS, eventData);
     };
 
     document.addEventListener("click", handleClick);
@@ -78,7 +77,6 @@ const ClickDetector: React.FC = () => {
       document.removeEventListener("click", handleClick);
     };
   }, [storedStudent]);
-
   return null;
 };
 

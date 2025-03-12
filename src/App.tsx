@@ -70,7 +70,7 @@ import AddStudent from "./pages/Malta/AddStudent";
 import { JailbreakRoot } from "@basecom-gmbh/capacitor-jailbreak-root-detection";
 import { useIonAlert } from "@ionic/react";
 import i18n from "./i18n";
-import ClickDetector from "./utility/clickUtil";
+import ClickDetector from "./analytics/clickUtil";
 
 setupIonicReact();
 interface ExtraData {
