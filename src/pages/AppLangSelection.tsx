@@ -11,8 +11,8 @@ const AppLangSelection: React.FC = () => {
   useEffect(() => {
     async function setLangAndRedirect() {
       // Set the language to English automatically
-      localStorage.setItem(LANGUAGE, LANG.ENGLISH);
-      await i18n.changeLanguage(LANG.ENGLISH);
+      localStorage.setItem(LANGUAGE, LANG.SIERRA_LEONE);
+      await i18n.changeLanguage(LANG.SIERRA_LEONE);
       // Navigate directly to the next page (e.g., the login page)
       history.replace(PAGES.LOGIN);
     }

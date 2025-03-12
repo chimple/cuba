@@ -175,9 +175,9 @@ const CocosGame: React.FC = () => {
     //     sendEiduResultToJava("ABORT", null, totalTimeSpent, "Lesson aborted", []);
     //     console.log("Current Chapter ", ChapterDetail);
     //   }
-    const lessonEndData = e.detail as CocosLessonData;
-    console.log("Sending Lesson End Data to Java:", JSON.stringify(lessonEndData, null, 2));
-    const lessonStartTime = lessonEndData.lessonStartTime || 0; // Ensure lessonStartTime is defined
+    // const lessonEndData = e.detail as CocosLessonData;
+    // console.log("Sending Lesson End Data to Java--- gameExit:", JSON.stringify(lessonEndData, null, 2));
+    // const lessonStartTime = lessonEndData.lessonStartTime || 0; // Ensure lessonStartTime is defined
     const currentTime = Date.now(); // Get current timestamp
     const totalTimeSpent = currentTime - lessonStartTime; // Calculate total time spent
     sendEiduResultToJava("ABORT", null, totalTimeSpent, "Lesson aborted", []);
@@ -223,7 +223,7 @@ const CocosGame: React.FC = () => {
     const data = await PortPlugin.sendLaunchData();
     // Example usage: Set idle time to 5000ms and start detection
     setIdleTime(data.inactivityTimeoutInMs);
-    console.log("Sending Lesson End Data to Java:", JSON.stringify(data, null, 2));
+    console.log("Sending Lesson End Data to Java --gameStart:", JSON.stringify(data, null, 2));
     lessonStartTime = e.detail.lessonStartTime;
     console.log("game start001");
   };
@@ -260,7 +260,7 @@ const CocosGame: React.FC = () => {
         }
     
         const lessonEndData = event.detail; // Extract event data
-        console.log("Sending Lesson End Data to Java:", JSON.stringify(lessonEndData, null, 2));
+        console.log("Sending Lesson End Data to Java -- LessonEnd:", JSON.stringify(lessonEndData, null, 2));
 
         sendEiduResultToJava("SUCCESS", lessonEndData.score / 100, lessonEndData.timeSpent * 1000, "Lesson completed", []);
 

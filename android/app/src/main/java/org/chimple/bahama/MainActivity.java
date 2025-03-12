@@ -153,7 +153,7 @@ public class MainActivity extends BridgeActivity {
             if (learningUnitId != null && learningUnitId.contains("_")) {
                 // Split the learningUnitId into course, chapter, and lesson
                 String[] parts = learningUnitId.split("_");
-                if (parts.length == 3) {
+                if (parts.length == 6) {
                     String courseId = parts[0];   // "en" -- example
                     String chapterId = parts[1];  // "en00" -- example
                     String lessonId = parts[2];   // "en0000" -- example

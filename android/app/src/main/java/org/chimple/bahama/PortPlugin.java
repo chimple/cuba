@@ -253,30 +253,56 @@ public class PortPlugin extends Plugin {
     Log.d(TAG, "Received inactivityTimeoutInMs: " + inactivityTimeoutInMs);
 
     if (learningUnitId != null && learningUnitId.contains("_")) {
-      // Split the learningUnitId into course, chapter, and lesson
       String[] parts = learningUnitId.split("_");
-      if (parts.length == 3) {
+
+      if (parts.length == 6) {
+        // New format: sl_maths_sl_maths31_sl_maths3107
+        String courseId = parts[0] + "_" + parts[1];  // sl_maths
+        String chapterId = parts[2] + "_" + parts[3]; // sl_maths31
+        String lessonId = parts[4] + "_" + parts[5];  // sl_maths3107
+
+        result.put("courseId", courseId);
+        result.put("chapterId", chapterId);
+        result.put("lessonId", lessonId);
+
+      } else if (parts.length == 4) {
+        // New 4-part format: sl_en_sl_en01_sl_en0101
+        String courseId = parts[0] + "_" + parts[1];  // sl_en
+        String chapterId = parts[2];  // sl_en01
+        String lessonId = parts[3];  // sl_en0101
+
+        result.put("courseId", courseId);
+        result.put("chapterId", chapterId);
+        result.put("lessonId", lessonId);
+
+      } else if (parts.length == 3) {
+        // Old format: maths_maths13_maths1307
         String courseId = parts[0];
         String chapterId = parts[1];
         String lessonId = parts[2];
 
-        // Put all values into the result JSObject
         result.put("courseId", courseId);
         result.put("chapterId", chapterId);
         result.put("lessonId", lessonId);
-        result.put("inactivityTimeoutInMs", inactivityTimeoutInMs != -1 ? inactivityTimeoutInMs : 0);
 
-        Log.d(TAG, "Result Data: " + result.toString());
-        call.resolve(result);
-        return;
       } else {
         Log.e(TAG, "Invalid learningUnitId format: " + learningUnitId);
+        call.reject("Invalid learningUnitId format: " + learningUnitId);
+        return;
       }
+
+      result.put("inactivityTimeoutInMs", inactivityTimeoutInMs != -1 ? inactivityTimeoutInMs : 0);
+
+      Log.d(TAG, "Extracted Course ID: " + result.getString("courseId"));
+      Log.d(TAG, "Extracted Chapter ID: " + result.getString("chapterId"));
+      Log.d(TAG, "Extracted Lesson ID: " + result.getString("lessonId"));
+      Log.d(TAG, "Result Data: " + result.toString());
+
+      call.resolve(result);
     } else {
       Log.e(TAG, "learningUnitId is missing or not formatted correctly.");
+      call.reject("Failed to extract data from intent");
     }
-
-    call.reject("Failed to extract data from intent");
   }
 
 
