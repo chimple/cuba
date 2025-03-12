@@ -19,6 +19,10 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
+import com.google.android.gms.auth.api.phone.SmsRetriever;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +31,11 @@ import org.json.JSONObject;
 
 @CapacitorPlugin(name = "Port")
 public class PortPlugin extends Plugin {
+  private static String _otp;
+  private static PortPlugin instance;
+  public PortPlugin() {
+    instance = this; // Assign instance when PortPlugin is created
+  }
 
 //  @PluginMethod
 //  public void getPort(PluginCall call) {
@@ -68,6 +77,48 @@ public class PortPlugin extends Plugin {
       eventData.put("rewardProfileId", rewardProfileId);
       notifyListeners("notificationOpened", eventData);
     }
+  }
+
+  @PluginMethod
+  public static void sendOtpData(String otp) {
+    _otp = otp;
+    if (getInstance().bridge != null) {
+      getInstance().bridge.triggerDocumentJSEvent("otpReceived", "{ \"otp\": \"" + otp + "\" }");
+    }
+  }
+
+  @PluginMethod
+  public static void isNumberSelected() {
+    if (getInstance().bridge != null) {
+      getInstance().bridge.triggerDocumentJSEvent("isPhoneNumberSelected");
+    }
+  }
+
+  @PluginMethod
+  public void otpRetrieve(PluginCall call) {
+    JSObject result = new JSObject();
+    result.put("otp",_otp);
+    call.resolve(result);
+  }
+
+  @PluginMethod
+  public void requestPermission(PluginCall call) {
+    Context appContext = MainActivity.getAppContext();
+    SmsRetrieverClient client = SmsRetriever.getClient(appContext);
+    Task<Void> task = client.startSmsRetriever();
+    MainActivity.promptPhoneNumbers();
+    call.resolve(null);
+  }
+
+  @PluginMethod
+  public void numberRetrieve(PluginCall call) {
+     String phoneNumber =  MainActivity.getPhoneNumber();
+      JSObject result = new JSObject();
+      result.put("number", phoneNumber);
+      call.resolve(result);
+  }
+  public static PortPlugin getInstance() {
+    return instance;
   }
 
   @PluginMethod
