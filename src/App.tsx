@@ -446,46 +446,32 @@ const App: React.FC = () => {
 
   
   useEffect(() => {
-    const handleDeepLink = (event: any) => {
-      let data;
-      try {
-        data = JSON.parse(event.detail); // ✅ Parse JSON data from Android
-      } catch (error) {
-        console.error("Error parsing deep link data:", error);
-        return;
-      }
-
-      console.log("Received Deep Link:", data);
-
-      const courseId = data.courseId;
-      const chapterId = data.chapterId;
-      const lessonId = data.lessonId;
-
-      if (courseId && chapterId && lessonId) {
-        const path = `/game?courseId=${courseId}&chapterId=${chapterId}&lessonId=${lessonId}`;
-        router.push(path);
-      }
-    };
-
-    // ✅ Listen for appUrlOpen (for external deep links)
     CapApp.addListener("appUrlOpen", (event) => {
       const url = new URL(event.url);
-      console.log("Received Deep Link (appUrlOpen):", url.href);
-      handleDeepLink({ detail: JSON.stringify(Object.fromEntries(url.searchParams)) });
-    });
+      console.log("🔹 Received Deep Link:", url.href);
+  
+      const courseId = url.searchParams.get("courseid");
+      const chapterId = url.searchParams.get("chapterid");
+      const lessonId = url.searchParams.get("lessonid");
 
-    // ✅ Listen for triggerWindowJSEvent from Android
-    if (Capacitor.isNativePlatform()) {
-      window.addEventListener("deepLinkReceived", handleDeepLink);
-    }
-
-    return () => {
-      CapApp.removeAllListeners();
-      if (Capacitor.isNativePlatform()) {
-        window.removeEventListener("deepLinkReceived", handleDeepLink);
+      console.log("🔹 Deep Link Parameters:", { courseId, chapterId, lessonId });
+  
+      if (courseId && chapterId && lessonId) {
+        const params = `?courseid=${courseId}&chapterid=${chapterId}&lessonid=${lessonId}`;
+        console.log("🚀 Navigating to:", PAGES.GAME + params);
+  
+        history.replace(PAGES.GAME + params, {
+          url: "chimple-lib/index.html" + params,
+          lessonId,
+          courseDocId: courseId,
+          from: history.location.pathname,
+        });
+      } else {
+        console.error("❌ Missing deep link parameters!");
       }
-    };
-  }, [router]);
+    });
+  }, [history]);
+  
 
   return (
     <IonApp>
