@@ -118,54 +118,18 @@ export class OneRosterApi implements ServiceApi {
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
   public static allCourses: TableTypes<'course'>[]=[];
 
-  private static _currentChapter: TableTypes<'chapter'> = {
-    id: "",
-    name: "",
-    image: null,
-    course_id: null,
-    created_at: "",
-    updated_at: null,
-    is_deleted: null,
-    sort_index: null,
-    sub_topics: null
-  };
-  private static _currentLesson: TableTypes<'lesson'> = {
-    id: "",
-    name: "",
-    chapter_id: "",
-    subject_id: "",
-    outcome: null,
-    status: "",
-    type: "",
-    thumbnail: null,
-    plugin_type: "",
-    created_at: "",
-    updated_at: "",
-    is_deleted: null
-  };
-  private static _currentCourse: TableTypes<'course'> = {
-    code: null,
-    color: null,
-    created_at: "",
-    curriculum_id: null,
-    description: null,
-    grade_id: null,
-    id: "",
-    image: null,
-    is_deleted: null,
-    name: "",
-    sort_index: null,
-    subject_id: null,
-    updated_at: null
-  };
+  private static _currentChapter: TableTypes<'chapter'>;
+  private static _currentLesson: TableTypes<'lesson'>;
+  private static currentCourse: TableTypes<'course'>;
 
-  // course
-  public static set currentCourse(data: TableTypes<'course'>) {
-    this._currentCourse = data;
-  }
-  public static get currentCourse(): TableTypes<'course'> {
-    return this._currentCourse;
-  }
+  // Initialize the currentCourse dynamically
+  public static initializeCurrentCourse(id: number, name: string, data: 'course'): void {
+    OneRosterApi.currentCourse = {
+        id,
+        name,
+        data,
+    };
+}
 
   // chapter 
   public static set currentChapter(data: TableTypes<'chapter'>) {
@@ -182,6 +146,7 @@ export class OneRosterApi implements ServiceApi {
   public static get currentLesson(): TableTypes<'lesson'> {
     return this._currentLesson;
   }
+  
 
   // buildXapiQuery
   private buildXapiQuery(currentUser: { name?: string }): { agentEmail: string; queryStatement: IGetStudentResultStatement } {
