@@ -118,8 +118,48 @@ export class OneRosterApi implements ServiceApi {
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
   public static allCourses: TableTypes<'course'>[]=[];
 
+  private static _currentChapter: TableTypes<'chapter'> = {
+    id: "",
+    name: "",
+    image: null,
+    course_id: null,
+    created_at: "",
+    updated_at: null,
+    is_deleted: null,
+    sort_index: null,
+    sub_topics: null
+  };
+  private static _currentLesson: TableTypes<'lesson'> = {
+    id: "",
+    name: "",
+    chapter_id: "",
+    subject_id: "",
+    outcome: null,
+    status: "",
+    type: "",
+    thumbnail: null,
+    plugin_type: "",
+    created_at: "",
+    updated_at: "",
+    is_deleted: null
+  };
+  private static _currentCourse: TableTypes<'course'> = {
+    code: null,
+    color: null,
+    created_at: "",
+    curriculum_id: null,
+    description: null,
+    grade_id: null,
+    id: "",
+    image: null,
+    is_deleted: null,
+    name: "",
+    sort_index: null,
+    subject_id: null,
+    updated_at: null
+  };
+
   // course
-  private static _currentCourse: TableTypes<'course'>;
   public static set currentCourse(data: TableTypes<'course'>) {
     this._currentCourse = data;
   }
@@ -128,16 +168,14 @@ export class OneRosterApi implements ServiceApi {
   }
 
   // chapter 
-  private static _currentChapter: TableTypes<'chapter'>;
   public static set currentChapter(data: TableTypes<'chapter'>) {
     this._currentChapter = data;
   }
   public static get currentChapter(): TableTypes<'chapter'> {
-    return this._currentChapter;
+    return this._currentChapter
   }
  
   // lesson
-  private static _currentLesson: TableTypes<'lesson'>;
   public static set currentLesson(data: TableTypes<'lesson'>) {
     this._currentLesson = data;
   }
@@ -386,7 +424,51 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<string | undefined> {
     throw new Error("Method not implemented.");
   }
-  // private constructor() { }
+  private constructor() {
+    // Initialize static properties without hardcoded values
+    OneRosterApi.currentLesson = {
+      id: "",
+      name: "",
+      chapter_id: "",
+      subject_id: "",
+      outcome: null,
+      status: "",
+      type: "",
+      thumbnail: null,
+      plugin_type: "",
+      created_at: "",
+      updated_at: "",
+      is_deleted: null
+    };
+
+    OneRosterApi.currentChapter = {
+      id: "",
+      name: "",
+      image: null,
+      course_id: null,
+      created_at: "",
+      updated_at: null,
+      is_deleted: null,
+      sort_index: null,
+      sub_topics: null
+    };
+
+    OneRosterApi.currentCourse = {
+      code: null,
+      color: null,
+      created_at: "",
+      curriculum_id: null,
+      description: null,
+      grade_id: null,
+      id: "",
+      image: null,
+      is_deleted: null,
+      name: "",
+      sort_index: null,
+      subject_id: null,
+      updated_at: null
+    };
+  }
   async getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;
