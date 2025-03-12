@@ -70,7 +70,7 @@ import AddStudent from "./pages/Malta/AddStudent";
 import { JailbreakRoot } from "@basecom-gmbh/capacitor-jailbreak-root-detection";
 import { useIonAlert } from "@ionic/react";
 import i18n from "./i18n";
-import ClickDetector from "./analytics/clickUtil";
+import "./analytics/clickUtil"; // This will run the event listener immediately
 
 setupIonicReact();
 interface ExtraData {
@@ -339,7 +339,6 @@ const App: React.FC = () => {
             </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
-        <ClickDetector />
       </IonReactRouter>
     </IonApp>
   );
