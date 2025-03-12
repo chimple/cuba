@@ -1,4 +1,4 @@
-import { IonLoading, IonPage } from "@ionic/react";
+import { IonLoading, IonPage, IonSpinner, IonText } from "@ionic/react";
 import { useEffect, useRef, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
@@ -61,10 +61,8 @@ const Login: React.FC = () => {
   //const [parentName, setParentName] = useState<any>("");
   const api = ServiceConfig.getI().apiHandler;
 
-  const [recaptchaVerifier, setRecaptchaVerifier] =
-    useState<RecaptchaVerifier>();
-  const [phoneNumberSigninRes, setPhoneNumberSigninRes] =
-    useState<ConfirmationResult>();
+  const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier>();
+  const [phoneNumberSigninRes, setPhoneNumberSigninRes] = useState<ConfirmationResult>();
   const [userData, setUserData] = useState<any>();
 
   const authInstance = ServiceConfig.getI().authHandler;
@@ -88,6 +86,28 @@ const Login: React.FC = () => {
   const [currentButtonColor, setCurrentButtonColor] = useState<string>(
     phoneNumber.length === 10 ? Buttoncolors.Valid : Buttoncolors.Default
   );
+  const loadingMessages = [
+    t("Track your learning progress."),
+    t("Preparing 400+ fun lessons."),
+    t("Customize your profiles."),
+    t("Assign or get regular homework.")
+  ];
+  const loadingAnimations = [
+    "/assets/home.gif",
+    "/assets/hw-book.gif",
+    "/assets/profiles-grid.gif",
+    "/assets/subjects-book.gif"
+  ]
+  const [loadingAnimationsIndex, setLoadingAnimationsIndex] = useState(0);
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentMessageIndex((prevIndex) => (prevIndex + 1) % loadingMessages.length);
+      setLoadingAnimationsIndex((prevIndex) => (prevIndex + 1) % loadingAnimations.length);
+    }, 4000); 
+
+    return () => clearInterval(interval); 
+  }, [loadingMessages.length]);
   const [isInputFocus, setIsInputFocus] = useState(false);
   const scollToRef = useRef<null | HTMLDivElement>(null);
   const [currentStudent, setStudent] = useState<TableTypes<"user">>();
@@ -1062,14 +1082,21 @@ const Login: React.FC = () => {
             </div>
           </div>
         ) : null}
+        { isInitialLoading ? (
+            <div className="custom-loading-ui">
+              <img src={loadingAnimations[loadingAnimationsIndex]} alt="gif-animations" className="homework-icon" />
+              <img src="/assets/loader-circle.gif" alt="loading-gif" className="loading-spinner" />
+              <IonText className="loading-text">
+                <p>{t(loadingMessages[currentMessageIndex])}</p>
+              </IonText>
+              <IonText className="loading-text">
+                <p>{t("Hang tight, It’s a special occasion!")}</p>
+              </IonText>
+            </div>
+          ) : null}
       </div>
       <Loading
-        isLoading={isLoading || sentOtpLoading}
-        msg={
-          isInitialLoading
-            ? "Please wait.....Login in progress. This may take a moment."
-            : ""
-        }
+        isLoading={sentOtpLoading}
       />
     </IonPage>
   );
