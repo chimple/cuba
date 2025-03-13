@@ -4,23 +4,24 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.JSObject;
-import com.getcapacitor.PluginCall;
-import com.getcapacitor.PluginMethod;
+import com.getcapacitor.Plugin;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.appcheck.FirebaseAppCheck;
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
-import com.getcapacitor.Plugin;
+
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 
 public class MainActivity extends BridgeActivity {
-
-//    private RespectClientManager respectClientManager; // Declare RespectClientManager
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,71 +51,71 @@ public class MainActivity extends BridgeActivity {
         FirebaseAppCheck firebaseAppCheck = FirebaseAppCheck.getInstance();
         firebaseAppCheck.installAppCheckProviderFactory(DebugAppCheckProviderFactory.getInstance());
 
-        // Initialize and bind RespectClientManager
-//        respectClientManager = new RespectClientManager(); // Initialize RespectClientManager
-//        respectClientManager.bindService(this); // Bind the service
-
-        // Handle deep linking
+        // ✅ Handle deep linking on cold start
         handleDeepLink(getIntent());
     }
 
-    private void handleDeepLink(Intent intent) {
-        if (intent != null && Intent.ACTION_VIEW.equals(intent.getAction())) {
-            Uri data = intent.getData();
-            if (data != null) {
-                // ✅ Log full URL
-                Log.d("MainActivity", "Received Deep Link: " + data.toString());
-
-                // ✅ Retrieve query parameters
-                String courseId = data.getQueryParameter("courseid");
-                String chapterId = data.getQueryParameter("chapterid");
-                String lessonId = data.getQueryParameter("lessonid");
-
-                // ✅ Log each parameter
-                Log.d("MainActivity", "Parsed courseId: " + courseId);
-                Log.d("MainActivity", "Parsed chapterId: " + chapterId);
-                Log.d("MainActivity", "Parsed lessonId: " + lessonId);
-
-                if (courseId != null && chapterId != null && lessonId != null) {
-                    // ✅ Send deep link data to Capacitor manually
-                    sendDeepLinkToCapacitor(courseId, chapterId, lessonId);
-                } else {
-                    Log.e("MainActivity", "Some parameters are missing!");
-                }
-            } else {
-                Log.e("MainActivity", "Deep link data is NULL");
-            }
-        }
-    }
-
-    private void sendDeepLinkToCapacitor(String courseId, String chapterId, String lessonId) {
-        JSObject deepLinkData = new JSObject();
-        deepLinkData.put("courseId", courseId);
-        deepLinkData.put("chapterId", chapterId);
-        deepLinkData.put("lessonId", lessonId);
-
-        // ✅ Send event to Ionic React using Capacitor's WebView bridge
-        bridge.triggerWindowJSEvent("deepLinkReceived", deepLinkData.toString());
-
-        Log.d("MainActivity", "Sent deep link data to Capacitor via triggerWindowJSEvent.");
-    }
-
     @Override
-    public ArrayList<Class<? extends Plugin>> getPlugins() {
-        ArrayList<Class<? extends Plugin>> plugins = new ArrayList<>();
-        //         plugins.add(NativeSSOPlugin.class);
-//         plugins.add(PortPlugin.class);
-        return plugins;
-    }
-
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         handleDeepLink(intent);
+    }
+
+    private void handleDeepLink(Intent intent) {
+        if (intent == null || intent.getData() == null) {
+            Log.e("MainActivity", "❌ ERROR: No deep link data found in intent!");
+            return;
+        }
+    
+        Uri data = intent.getData();
+        Log.d("MainActivity", "🌍 Deep Link Received: " + data.toString());
+    
+        // Extract all query parameters
+        JSONObject deepLinkData = new JSONObject();
+        try {
+            for (String key : data.getQueryParameterNames()) {
+                deepLinkData.put(key, data.getQueryParameter(key));
+            }
+        } catch (Exception e) {
+            Log.e("MainActivity", "❌ ERROR: Failed to parse query parameters!", e);
+            return;
+        }
+    
+        Log.d("MainActivity", "🚀 Extracted Parameters: " + deepLinkData.toString());
+    
+        // Ensure WebView is ready before sending deep link
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            sendDeepLinkToCapacitor(deepLinkData);
+        }, 1000); // Delay 1 second to ensure WebView is ready
+    }
+    
+    private void sendDeepLinkToCapacitor(JSONObject deepLinkData) {
+        if (this.getBridge() == null || this.isDestroyed()) {
+            Log.e("MainActivity", "❌ ERROR: Bridge is NULL or Activity is destroyed! Skipping event dispatch.");
+            return;
+        }
+    
+        try {
+            Log.d("MainActivity", "📡 Triggering 'appUrlOpen' Event with Data: " + deepLinkData.toString());
+    
+            this.getBridge().executeOnMainThread(() -> {
+                this.getBridge().triggerWindowJSEvent("appUrlOpen", deepLinkData.toString());
+                Log.d("MainActivity", "✅ Deep Link Event Sent Successfully.");
+            });
+        } catch (Exception e) {
+            Log.e("MainActivity", "❌ ERROR: Failed to send deep link event!", e);
+        }
+    }
+    
+
+    //@Override
+    public ArrayList<Class<? extends Plugin>> getPlugins() {
+        ArrayList<Class<? extends Plugin>> plugins = new ArrayList<>();
+        return plugins;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
     }
-
 }

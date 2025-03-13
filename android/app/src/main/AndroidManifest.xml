@@ -55,6 +55,32 @@
                 <!-- <data android:scheme="https" android:host="chimple-prod.firebaseapp.com" /> -->
 
             </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="bahama"
+                    android:host="app"
+                    android:pathPrefix="/game" />
+            </intent-filter>
+
+            <!-- intent for example.org or chimple url -->
+             <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!-- Supports links like: https://example.org/topic/learningUnit1 -->
+                <data
+                    android:scheme="https"
+                    android:host="example.org"
+                    android:pathPrefix="/topic/learningUnit1"/>
+            </intent-filter>
         </activity>
 
         <!-- ✅ File Provider -->
