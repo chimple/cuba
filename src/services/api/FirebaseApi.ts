@@ -1208,6 +1208,65 @@ export class FirebaseApi implements ServiceApi {
       return false;
     }
   }
+  async getPlayedAssignments(
+    classId: string,
+    studentId: string
+  ): Promise<Assignment[]> {
+    try {
+      const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
+      // Query for class-wise assignments
+      let q1 = query(
+        collection(this._db, CollectionIds.ASSIGNMENT),
+        where("isClassWise", "==", true),
+        where("class", "==", classDocRef),
+        orderBy("createdAt", "desc"),
+        limit(50)
+      );
+  
+      // Query for student-specific assignments
+      let q2 = query(
+        collection(this._db, CollectionIds.ASSIGNMENT),
+        where("isClassWise", "==", false),
+        where("class", "==", classDocRef),
+        where("assignedStudents", "array-contains", studentId),
+        orderBy("createdAt", "desc"),
+        limit(50)
+      );
+  
+      const [snapshot1, snapshot2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+      const queryResult = [...snapshot1.docs, ...snapshot2.docs];
+  
+      // Sort the result based on the created date in descending order
+      const sortedResult = queryResult.sort((a, b) => {
+        const createdAtA = a.data().createdAt.toDate();
+        const createdAtB = b.data().createdAt.toDate();
+        return createdAtB - createdAtA;
+      });
+  
+      const playedAssignments: Assignment[] = [];
+      sortedResult.forEach((_assignment) => {
+        const assignment = _assignment.data() as Assignment;
+        assignment.docId = _assignment.id;
+  
+        // Check if the assignment is completed by the student
+        const isPlayed = assignment.completedStudents?.includes(studentId);
+  
+        // If the assignment is completed by the student, add it to the playedAssignments list
+        if (isPlayed) {
+          playedAssignments.push(assignment);
+        }
+      });
+      console.log("Played assignments:", playedAssignments);
+      return playedAssignments;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: FirebaseApi.ts:856 ~ FirebaseApi ~ error:",
+        JSON.stringify(error)
+      );
+      return [];
+    }
+  }
+  
 
   async getPendingAssignments(
     classId: string,

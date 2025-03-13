@@ -319,6 +319,49 @@ const Home: FC = () => {
       return [];
     }
   }
+  async function getPlayedAssignments(): Promise<Lesson[]> {
+    let reqLes: Lesson[] = [];
+    const student = Util.getCurrentStudent();
+    const studentResult =
+      student != null ? await api.getStudentResult(student.docId) : null;
+
+    if (
+      student &&
+      !!studentResult &&
+      !!studentResult.classes &&
+      studentResult.classes.length > 0
+    ) {
+      const allAssignments: Assignment[] = [];
+
+      // Fetch played assignments instead of pending ones
+      await Promise.all(
+        studentResult.classes.map(async (_class) => {
+          // Assuming we can filter assignments by their played/completed status
+          const res = await api.getPlayedAssignments(_class, student.docId);
+          allAssignments.push(...res);
+        })
+      );
+      await Promise.all(
+        allAssignments.map(async (_assignment) => {
+          const res = await api.getLesson(
+            _assignment.lesson.id,
+            undefined,
+            true,
+            _assignment
+          );
+          console.log(res);
+
+          if (!!res) {
+            res.assignment = _assignment;
+            reqLes.push(res);
+          }
+        })
+      );
+      return reqLes;
+    } else {
+      return [];
+    }
+  }
 
   async function getRecommendeds(
     subjectCode: string
@@ -811,19 +854,49 @@ const Home: FC = () => {
     const lessonPromisesForFavourite = slicedLessonIdsForFavourite.map(
       (lessonId) => api.getLesson(lessonId)
     );
+    // Fetch played assignments
+    let assignments: Lesson[] = [];
+    try {
+      assignments = await getPlayedAssignments();
+    } catch (error) {
+      console.error("Error fetching played assignments:", error);
+    }
 
+    const assignmentMap = new Map(
+      assignments.map((assignment) => [assignment.docId, assignment])
+    );
+
+    // Fetch lessons for favourites
     const lessonsForFavourite: (Lesson | undefined)[] = await Promise.all(
       lessonPromisesForFavourite
     );
 
+    // Filter the valid lessons
     const validLessonsForFavourite: Lesson[] = lessonsForFavourite.filter(
       (lesson): lesson is Lesson => {
         if (!lesson) return false;
         return lessonResultMap?.[lesson.docId]?.isLoved ?? false;
       }
     );
+
+    // Replace matching lessons with corresponding assignments, ignoring the lesson if an assignment matches
+    const updatedFavouriteLessons = validLessonsForFavourite.flatMap(
+      (lesson) => {
+        const assignment = assignmentMap.get(lesson.docId);
+
+        // If a matching assignment is found, return the assignment only
+        if (assignment) {
+          return [assignment]; // Add the assignment instead of the lesson
+        }
+
+        // If no assignment found, return the lesson
+        return [lesson];
+      }
+    );
+
+    // Update the favouriteLessons state
     setValidLessonIds(allLessonIds);
-    favouriteLessons.push(...validLessonsForFavourite);
+    favouriteLessons.push(...updatedFavouriteLessons);
     setIsLoading(false);
   };
 
@@ -836,31 +909,57 @@ const Home: FC = () => {
     if (!currentStudent || !lessonResultMap) {
       return;
     }
-
     const historyStartIndex = (tempPageNumber - 1) * favouritesPageSize;
     const historyEndIndex = historyStartIndex + favouritesPageSize;
-
     const slicedLessonIdsForHistory = validLessonIds.slice(
       historyStartIndex,
       historyEndIndex
     );
-
     const lessonPromisesForHistory = slicedLessonIdsForHistory.map((lessonId) =>
       api.getLesson(lessonId)
     );
+    // Fetch assignments
+    let assignments: Lesson[] = [];
+    try {
+      assignments = await getPlayedAssignments();
+    } catch (error) {
+      console.error("Error fetching assignments:", error);
+    }
 
+    const assignmentMap = new Map(
+      assignments.map((assignment) => [assignment.docId, assignment])
+    );
+
+    // Fetch lessons for history
     const lessonsForHistory: (Lesson | undefined)[] = await Promise.all(
       lessonPromisesForHistory
     );
-    const validLessonsForHIstory: Lesson[] = lessonsForHistory.filter(
+
+    const validLessonsForHistory: Lesson[] = lessonsForHistory.filter(
       (lesson): lesson is Lesson => lesson !== undefined
     );
 
-    const latestTenPlayedLessons = historyLessons.slice(0, 10);
+    // Replace matching lessons with corresponding assignments, ignoring the lesson if an assignment matches
+    const updatedHistoryLessons = validLessonsForHistory.flatMap((lesson) => {
+      const assignment = assignmentMap.get(lesson.docId);
+      // If a matching assignment is found, return the assignment only
+      if (assignment) {
+        return [assignment];
+      }
+      return [lesson];
+    });
+
+    // Sort by latest played (if applicable)
+    const latestTenPlayedLessons = updatedHistoryLessons.slice(0, 10);
+
     setValidLessonIds(allLessonIds);
     setHistorySortIndex(historyLessons.length - 1);
 
-    historyLessons.push(...validLessonsForHIstory);
+    // Update historyLessons state
+    setHistoryLessons((prevLessons) => [
+      ...prevLessons,
+      ...updatedHistoryLessons,
+    ]);
     setInitialHistoryLessons(latestTenPlayedLessons);
     setIsLoading(false);
   };

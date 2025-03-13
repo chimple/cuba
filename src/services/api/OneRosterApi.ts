@@ -201,6 +201,12 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<Assignment[]> {
     throw new Error("Method not implemented.");
   }
+  getPlayedAssignments(
+    classId: string,
+    studentId: string
+  ): Promise<Assignment[]> {
+    throw new Error("Method not implemented.");
+  }
   getSchoolsForUser(user: User): Promise<School[]> {
     throw new Error("Method not implemented.");
   }

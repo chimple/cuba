@@ -315,6 +315,17 @@ export interface ServiceApi {
   isStudentLinked(studentId: string, fromCache: boolean): Promise<boolean>;
 
   /**
+   * This function gets all played assignments for a student in a class.
+   *
+   * @param {string} classId Class firebase doc id
+   * @param {string} studentId Student firebase doc id
+   * @returns A promise that resolves to an array of assignments.
+   */
+  getPlayedAssignments(
+    classId: string,
+    studentId: string
+  ): Promise<Assignment[]>;
+  /**
    * This function gets all pending assignments for a student in a class.
    *
    * @param {string} classId Class firebase doc id

@@ -170,6 +170,13 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getPendingAssignments(classId, studentId);
   }
 
+  public async getPlayedAssignments(
+    classId: string,
+    studentId: string
+  ): Promise<Assignment[]> {
+    return await this.s.getPlayedAssignments(classId, studentId);
+  }
+
   public async updateStudent(
     student: User,
     name: string,
