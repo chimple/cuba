@@ -259,3 +259,27 @@ p {
   font-size: 1.3vw;
   white-space: nowrap;
 }
+
+.initial-loading-ui {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-top: 12vh;
+}
+
+.initial-homework-icon {
+  /* width: 40vw; */
+  height: 45vh;
+}
+
+.initial-loading-spinner {
+  width: 15vh;
+  height: 15vh;
+}
+
+.initial-loading-text {
+  font-size: 5vh;
+  color: var(--text-color);
+}
