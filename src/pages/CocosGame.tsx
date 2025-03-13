@@ -223,9 +223,17 @@ const CocosGame: React.FC = () => {
     const data = await PortPlugin.sendLaunchData();
     // Example usage: Set idle time to 5000ms and start detection
     setIdleTime(data.inactivityTimeoutInMs);
+    const lessonTimeLimit = data.remainingForegroundTimeInMs
     console.log("Sending Lesson End Data to Java --gameStart:", JSON.stringify(data, null, 2));
     lessonStartTime = e.detail.lessonStartTime;
     console.log("game start001");
+    console.log("TIMEOUT_INACTIVITY0001  ", lessonTimeLimit);
+
+
+    setTimeout(() => {
+      console.log("TIMEOUT_INACTIVITY0001");
+      sendEiduResultToJava("TIMEOUT_INACTIVITY", null, lessonTimeLimit, "Lesson time limit reached", []);
+    }, lessonTimeLimit);
   };
   
   async function init() {

@@ -248,6 +248,7 @@ public class PortPlugin extends Plugin {
     // Extract values from the intent
     String learningUnitId = curr_intent.getStringExtra("learningUnitId");
     long inactivityTimeoutInMs = curr_intent.getLongExtra("inactivityTimeoutInMs", -1);
+    long remainingForegroundTimeInMs = curr_intent.getLongExtra("remainingForegroundTimeInMs", -1);
 
     Log.d(TAG, "Received learningUnitId: " + learningUnitId);
     Log.d(TAG, "Received inactivityTimeoutInMs: " + inactivityTimeoutInMs);
@@ -292,6 +293,8 @@ public class PortPlugin extends Plugin {
       }
 
       result.put("inactivityTimeoutInMs", inactivityTimeoutInMs != -1 ? inactivityTimeoutInMs : 0);
+      result.put("remainingForegroundTimeInMs", remainingForegroundTimeInMs != -1 ? remainingForegroundTimeInMs : 0);
+
 
       Log.d(TAG, "Extracted Course ID: " + result.getString("courseId"));
       Log.d(TAG, "Extracted Chapter ID: " + result.getString("chapterId"));
