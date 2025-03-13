@@ -1,4 +1,4 @@
-import { IonLoading, IonPage, IonSpinner, IonText } from "@ionic/react";
+import { IonLoading, IonPage, IonText } from "@ionic/react";
 import { useEffect, useRef, useState } from "react";
 import "./Login.css";
 import { useHistory } from "react-router-dom";
