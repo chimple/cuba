@@ -260,7 +260,7 @@ p {
   white-space: nowrap;
 }
 
-.custom-loading-ui {
+.initial-loading-ui {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -269,17 +269,17 @@ p {
   margin-top: 12vh;
 }
 
-.homework-icon {
+.initial-homework-icon {
   /* width: 40vw; */
   height: 45vh;
 }
 
-.loading-spinner {
+.initial-loading-spinner {
   width: 15vh;
   height: 15vh;
 }
 
-.loading-text {
+.initial-loading-text {
   font-size: 5vh;
   color: var(--text-color);
 }

@@ -104,7 +104,7 @@ const Login: React.FC = () => {
     const interval = setInterval(() => {
       setCurrentMessageIndex((prevIndex) => (prevIndex + 1) % loadingMessages.length);
       setLoadingAnimationsIndex((prevIndex) => (prevIndex + 1) % loadingAnimations.length);
-    }, 4000); 
+    }, 5000); 
 
     return () => clearInterval(interval); 
   }, [loadingMessages.length]);
@@ -1083,13 +1083,13 @@ const Login: React.FC = () => {
           </div>
         ) : null}
         { isInitialLoading ? (
-            <div className="custom-loading-ui">
-              <img src={loadingAnimations[loadingAnimationsIndex]} alt="gif-animations" className="homework-icon" />
-              <img src="/assets/loader-circle.gif" alt="loading-gif" className="loading-spinner" />
-              <IonText className="loading-text">
+            <div className="initial-loading-ui">
+              <img src={loadingAnimations[loadingAnimationsIndex]} alt="initial-gif-animations" className="initial-homework-icon" />
+              <img src="/assets/loader-circle.gif" alt="initial-loading-gif" className="initial-loading-spinner" />
+              <IonText className="initial-loading-text">
                 <p>{t(loadingMessages[currentMessageIndex])}</p>
               </IonText>
-              <IonText className="loading-text">
+              <IonText className="initial-loading-text">
                 <p>{t("Hang tight, It’s a special occasion!")}</p>
               </IonText>
             </div>
