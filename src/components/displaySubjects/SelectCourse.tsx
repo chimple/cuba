@@ -64,7 +64,10 @@ const SelectCourse: FC<{
           <SplideSlide key={index} className="slide">
             <div
               onClick={() => {
-                onCourseChange(course);
+                // console.log('************************')
+                history.replace(PAGES.FIRST_PAGE)
+                console.log('UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU')
+                // onCourseChange(course);
               }}
               className="subject-button"
               key={course.id}

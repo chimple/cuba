@@ -1,10 +1,13 @@
 .file-upload-container {
-    max-width: 400px;
+    max-width: 350px;
     margin: auto;
     background: white;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  .file_upload_input_file{
+    display: none;
   }
   
   .file-upload-info {
@@ -20,13 +23,13 @@
   
   .file-upload-box {
     display: block;
-    border: 2px dashed gray;
     border-radius: 8px;
     padding: 20px;
     text-align: center;
     cursor: pointer;
     transition: border 0.3s;
     margin-top: 20px;
+    background-color: #0000001A;
   }
   
   .file-upload-icon {

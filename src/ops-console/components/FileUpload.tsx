@@ -32,27 +32,41 @@ export default function FileUpload() {
   return (
     <div className="file-upload-container">
       <div className="file-upload-header">Upload a new file</div>
-      <p className="file-upload-info">Supported file type <strong>.csv</strong></p>
-      
+      <p className="file-upload-info">
+        Supported file type <strong>.csv</strong>
+      </p>
+     
       <label className="file-upload-box">
-        <input 
-          type="file" 
-          className="hidden" 
-          accept=".csv" 
-          onChange={handleFileChange} 
+      <img
+        src="assets/icons/upload_icon.png"
+        style={{
+          width:'50px',
+          height:'100px'
+        }}
+        alt="Homework Icon"
+      />
+        <input
+          type="file"
+          className="file_upload_input_file"
+          style={{}}
+          accept=".csv"
+          onChange={handleFileChange}
         />
         {/* <UploadCloud className="upload-icon" size={40} /> */}
         <p className="upload-text">Click to upload xyz student data</p>
         <p className="upload-size">Maximum file size 50MB</p>
       </label>
-      
+
       {file && (
         <div className="file-upload-preview">
           <div>
             <p className="file-upload-name">{"adad"}</p>
-            <p className="file-upload-size">{( 1024).toFixed(2)} MB</p>
+            <p className="file-upload-size">{(1024).toFixed(2)} MB</p>
             <div className="file-upload-progress-bar">
-              <div className="file-upload-progress" style={{ width: `${progress}%` }}></div>
+              <div
+                className="file-upload-progress"
+                style={{ width: `${progress}%` }}
+              ></div>
             </div>
           </div>
           <button onClick={handleRemoveFile} className="remove-btn">
@@ -60,10 +74,15 @@ export default function FileUpload() {
           </button>
         </div>
       )}
-      
+
       <div className="file-upload-button-group">
         <button className="file-upload-btn cancel-btn">Cancel</button>
-        <button className="file-upload-btn next-btn" disabled={!file || progress < 100}>Next</button>
+        <button
+          className="file-upload-btn next-btn"
+          disabled={!file || progress < 100}
+        >
+          Next
+        </button>
       </div>
     </div>
   );
