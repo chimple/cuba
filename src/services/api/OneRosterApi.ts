@@ -8,6 +8,7 @@ import {
   LeaderboardRewards,
   MODES,
   TableTypes,
+
 } from "../../common/constants";
 import { Chapter } from "../../interface/curriculumInterfaces";
 import Assignment from "../../models/assignment";
@@ -110,6 +111,7 @@ interface course {
   updated_at: string | null;
 }
 
+
 export class OneRosterApi implements ServiceApi {
   
   public static i: OneRosterApi;
@@ -117,19 +119,18 @@ export class OneRosterApi implements ServiceApi {
   private classes: { [key: string]: Class[] } = {};
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
   public static allCourses: TableTypes<'course'>[]=[];
-
+  
+  private static _currentCourse: TableTypes<'course'>;
   private static _currentChapter: TableTypes<'chapter'>;
   private static _currentLesson: TableTypes<'lesson'>;
-  private static currentCourse: TableTypes<'course'>;
 
-  // Initialize the currentCourse dynamically
-  public static initializeCurrentCourse(id: number, name: string, data: 'course'): void {
-    OneRosterApi.currentCourse = {
-        id,
-        name,
-        data,
-    };
-}
+  // course
+  public static set currentCourse(data: TableTypes<'course'>) {
+    this._currentCourse = data;
+  }
+  public static get currentCourse(): TableTypes<'course'> {
+     return this._currentCourse;
+  }
 
   // chapter 
   public static set currentChapter(data: TableTypes<'chapter'>) {
@@ -138,7 +139,6 @@ export class OneRosterApi implements ServiceApi {
   public static get currentChapter(): TableTypes<'chapter'> {
     return this._currentChapter
   }
- 
   // lesson
   public static set currentLesson(data: TableTypes<'lesson'>) {
     this._currentLesson = data;
@@ -146,6 +146,7 @@ export class OneRosterApi implements ServiceApi {
   public static get currentLesson(): TableTypes<'lesson'> {
     return this._currentLesson;
   }
+
   
 
   // buildXapiQuery
@@ -166,15 +167,15 @@ export class OneRosterApi implements ServiceApi {
 
   // Courses For Parents Student
   async getCoursesForParentsStudent(
-    studentId: string
+    studentId: string,
   ): Promise<TableTypes<"course">[]> {
     try {
-      const id = OneRosterApi.currentCourse.id; //Later get all available courses
+      const id = 'en' //Later get all available courses
       const jsonFile = "assets/courses/" + id + "/res/course.json";
       const courseJson = await Util.loadJson(jsonFile);
       const metaC = courseJson.metadata;
 
-      console.log("getCourses data ", courseJson.metadata);
+      console.log("getCourses data shubham---", metaC);
       let tCourse: TableTypes<"course"> = {
         code: metaC.courseCode,
         color: metaC.color,
@@ -390,49 +391,6 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() {
-    // Initialize static properties without hardcoded values
-    OneRosterApi.currentLesson = {
-      id: "",
-      name: "",
-      chapter_id: "",
-      subject_id: "",
-      outcome: null,
-      status: "",
-      type: "",
-      thumbnail: null,
-      plugin_type: "",
-      created_at: "",
-      updated_at: "",
-      is_deleted: null
-    };
-
-    OneRosterApi.currentChapter = {
-      id: "",
-      name: "",
-      image: null,
-      course_id: null,
-      created_at: "",
-      updated_at: null,
-      is_deleted: null,
-      sort_index: null,
-      sub_topics: null
-    };
-
-    OneRosterApi.currentCourse = {
-      code: null,
-      color: null,
-      created_at: "",
-      curriculum_id: null,
-      description: null,
-      grade_id: null,
-      id: "",
-      image: null,
-      is_deleted: null,
-      name: "",
-      sort_index: null,
-      subject_id: null,
-      updated_at: null
-    };
   }
   async getChaptersForCourse(courseId: string): Promise<
     {
@@ -1121,7 +1079,8 @@ async getLessonFromCourse(
   get currentCourse():
     | Map<string, TableTypes<"course"> | undefined>
     | undefined {
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
+    return OneRosterApi.currentCourse = Course;
   }
   set currentCourse(
     value: Map<string, TableTypes<"course"> | undefined> | undefined
