@@ -45,7 +45,7 @@ GoogleAuth.initialize({
 });
 
 SqliteApi.getInstance().then(() => {
-  ServiceConfig.getInstance(APIMode.SQLITE);
+  ServiceConfig.getInstance(APIMode.ONEROSTER);
   root.render(
     <BrowserRouter>
         <App />
