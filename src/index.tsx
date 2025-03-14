@@ -16,6 +16,7 @@ import { IonLoading } from "@ionic/react";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
+import { BrowserRouter } from "react-router-dom";
 
 if (Capacitor.isNativePlatform()) {
   await ScreenOrientation.lock({ orientation: "landscape" });
@@ -46,9 +47,9 @@ GoogleAuth.initialize({
 SqliteApi.getInstance().then(() => {
   ServiceConfig.getInstance(APIMode.ONEROSTER);
   root.render(
-    <>
-      <App />
-    </>
+    <BrowserRouter>
+        <App />
+    </BrowserRouter>
   );
 });
 

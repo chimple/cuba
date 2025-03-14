@@ -9,7 +9,7 @@ import {
   setupIonicReact,
 } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
-
+import { useIonRouter } from "@ionic/react";
 /* Core CSS required for Ionic components to work properly */
 import "@ionic/react/css/core.css";
 
@@ -441,6 +441,53 @@ const App: React.FC = () => {
       console.error("Util.migrateLocalJsonFile failed ", error);
     }
   }
+  const history = useHistory();
+
+  useEffect(() => {
+  
+    const handleDeepLink = (event: any) => {
+      if (!event) {
+        console.error("❌ Invalid event object received:", event);
+        return;
+      }
+  
+      try {
+        const learningUnitId = event.learningUnitId;
+  
+        if (learningUnitId) {
+          const parts = learningUnitId.split("_");
+          if (parts.length === 3) {
+            const courseId = parts[0];
+            const chapterId = parts[1];
+            const lessonId = parts[2];
+  
+            const params = `?courseid=${courseId}&chapterid=${chapterId}&lessonid=${lessonId}`;
+            history.replace(PAGES.GAME + params, {
+              url: "chimple-lib/index.html" + params,
+              from: history.location.pathname + `?${CONTINUE}=true`,
+              lessonId: lessonId,
+              courseDocId: courseId,
+            });
+            window.location.href = PAGES.GAME + params;
+  
+          } else {
+            console.error("❌ Invalid learningUnitId format:", learningUnitId);
+          }
+        } else {
+          console.error("❌ learningUnitId not found in deep link!");
+        }
+      } catch (error) {
+        console.error("⚠️ Error parsing deep link data:", error);
+      }
+    };
+  
+    window.addEventListener("appUrlOpen", handleDeepLink);
+  
+    return () => {
+      window.removeEventListener("appUrlOpen", handleDeepLink);
+    };
+  }, []);
+  
   return (
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>

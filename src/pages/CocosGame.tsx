@@ -62,6 +62,7 @@ const CocosGame: React.FC = () => {
     });
   };
   useEffect(() => {
+    window.console.log("cocos game useEffect");
     init();
     Util.checkingIfGameCanvasAvailable();
     CapApp.addListener("appStateChange", handleAppStateChange);
@@ -168,7 +169,6 @@ const CocosGame: React.FC = () => {
     const lessonId: string = state.lessonId;
     const lessonIds: string[] = [];
     lessonIds.push(lessonId);
-    console.log("cocosGame page lessonIds", lessonIds);
     const dow = await Util.downloadZipBundle(lessonIds);
     if (!dow) {
       presentToast();
@@ -198,11 +198,11 @@ const CocosGame: React.FC = () => {
 
   let ChapterDetail: Chapter | undefined;
   const api = ServiceConfig.getI().apiHandler;
-  const lesson: Lesson = JSON.parse(state.lesson);
+  const lesson: Lesson = state.lesson ?  JSON.parse(state.lesson) : undefined;
 
   const updateLessonAsFavorite = async () => {
     const currentStudent = Util.getCurrentStudent();
-    const lesson: Lesson = JSON.parse(state.lesson);
+    const lesson: Lesson = state.lesson ?  JSON.parse(state.lesson) : undefined;
     if (currentStudent != null) {
       const result = await api.updateFavoriteLesson(
         currentStudent.id,
@@ -215,7 +215,7 @@ const CocosGame: React.FC = () => {
     try {
       const api = ServiceConfig.getI().apiHandler;
       const courseDocId: string | undefined = state.courseDocId;
-      const lesson: Lesson = JSON.parse(state.lesson);
+      const lesson: Lesson =  state.lesson ?  JSON.parse(state.lesson) : undefined;
       const assignment = state.assignment;
       const currentStudent = api.currentStudent!;
       const data = lessonData;
@@ -354,7 +354,6 @@ const CocosGame: React.FC = () => {
       console.error("Error: SaveTempData", error);
     }
   };
-
   return (
     <IonPage id="cocos-game-page">
       <IonContent>
