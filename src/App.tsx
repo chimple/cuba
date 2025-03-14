@@ -451,16 +451,16 @@ const App: React.FC = () => {
       console.log("🔥 appUrlOpen Event Triggered in React:", event);
       console.log("🔍 History Object:", history);
       console.log("🔍 History Location:", history.location);
-      if (!event || !event.detail || typeof event.detail.url !== "string") {
+      if (!event) {
         console.error("❌ Invalid event object received:", event);
         return;
       }
   
       try {
-        const url = new URL(event.detail.url); // ✅ Fix: Read from `event.detail.url`
-        console.log("🔹 Received Deep Link:", url.href);
+        const url = window.location.origin + `/game?learningUnitId=${event.learningUnitId}`;
+        console.log("🔹 Received Deep Link:", url);
   
-        const learningUnitId = url.searchParams.get("learningUnitId");
+        const learningUnitId = event.learningUnitId;
         console.log("🔹 Extracted learningUnitId:", learningUnitId);
   
         if (learningUnitId) {
@@ -478,8 +478,10 @@ const App: React.FC = () => {
             history.replace(PAGES.GAME + params, {
               url: "chimple-lib/index.html" + params,
               from: history.location.pathname + `?${CONTINUE}=true`,
+              lessonId: lessonId,
+              courseDocId: courseId,
             });
-            // window.location.href = PAGES.GAME + params;
+            window.location.href = PAGES.GAME + params;
   
             console.log("🔄 Navigating to:", `/game${params}`);
           } else {
@@ -499,7 +501,7 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener("appUrlOpen", handleDeepLink);
     };
-  }, [history]);
+  }, []);
   
   // useEffect(() => {
   //   console.log("✅ Deep Link Listener Initialized in App.tsx");

@@ -25,7 +25,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        
 
         // Handle global crash exceptions
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
@@ -40,6 +40,8 @@ public class MainActivity extends BridgeActivity {
         // Register plugins
         registerPlugin(PortPlugin.class);
         registerPlugin(NativeSSOPlugin.class);
+
+        super.onCreate(savedInstanceState);
 
         // Hide navigation bar and set fullscreen mode
         View decorView = getWindow().getDecorView();

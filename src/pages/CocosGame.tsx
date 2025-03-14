@@ -62,7 +62,7 @@ const CocosGame: React.FC = () => {
     });
   };
   useEffect(() => {
-    console.log("cocos game useEffect");
+    window.console.log("cocos game useEffect");
     init();
     Util.checkingIfGameCanvasAvailable();
     CapApp.addListener("appStateChange", handleAppStateChange);
@@ -167,6 +167,7 @@ const CocosGame: React.FC = () => {
     console.log("cocos game init");
     const currentStudent = Util.getCurrentStudent();
     setIsLoading(true);
+    console.log("cocos game State: - ", state);
     const lessonId: string = state.lessonId;
     const lessonIds: string[] = [];
     lessonIds.push(lessonId);
@@ -356,7 +357,7 @@ const CocosGame: React.FC = () => {
       console.error("Error: SaveTempData", error);
     }
   };
-  console.log("cocos game page", state);
+  window.console.log("cocos game page", state);
   return (
     <IonPage id="cocos-game-page">
       <IonContent>

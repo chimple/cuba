@@ -35,6 +35,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- intent for chimple-prod.firebaseapp.com  -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!-- Ensure this matches your deep link -->
+                <data
+                    android:scheme="https"
+                    android:host="chimple-prod.firebaseapp.com"
+                    android:pathPrefix="/" />
+            </intent-filter>
+
             <!-- ✅ Deep linking support for localhost:3000 (for local testing) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -43,18 +56,6 @@
                 <data android:scheme="http" android:host="localhost" android:port="3000" android:pathPrefix="/" />
             </intent-filter>
 
-            <!-- ✅ Deep linking support for Firebase URL -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="chimple.cc" android:path="/join-class" />
-                <data android:scheme="https" android:host="chimple.cc" android:path="/assignment" />
-                <data android:scheme="https" android:host="chimple.cc" android:path="/live-quiz" />
-                <data android:scheme="https" android:host="example.org" android:pathPrefix="/topic/learningUnit1/" />
-                <!-- <data android:scheme="https" android:host="chimple-prod.firebaseapp.com" /> -->
-
-            </intent-filter>
 
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -68,19 +69,7 @@
                     android:pathPrefix="/game" />
             </intent-filter>
 
-            <!-- intent for example.org or chimple url -->
-             <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
 
-                <!-- Supports links like: https://example.org/topic/learningUnit1 -->
-                <data
-                    android:scheme="https"
-                    android:host="example.org"
-                    android:pathPrefix="/topic/learningUnit1"/>
-            </intent-filter>
         </activity>
 
         <!-- ✅ File Provider -->
