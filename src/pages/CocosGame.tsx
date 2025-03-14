@@ -164,14 +164,11 @@ const CocosGame: React.FC = () => {
     setGameResult(event);
   };
   async function init() {
-    console.log("cocos game init");
     const currentStudent = Util.getCurrentStudent();
     setIsLoading(true);
-    console.log("cocos game State: - ", state);
     const lessonId: string = state.lessonId;
     const lessonIds: string[] = [];
     lessonIds.push(lessonId);
-    console.log("cocosGame page lessonIds", lessonIds);
     const dow = await Util.downloadZipBundle(lessonIds);
     if (!dow) {
       presentToast();
@@ -357,7 +354,6 @@ const CocosGame: React.FC = () => {
       console.error("Error: SaveTempData", error);
     }
   };
-  window.console.log("cocos game page", state);
   return (
     <IonPage id="cocos-game-page">
       <IonContent>

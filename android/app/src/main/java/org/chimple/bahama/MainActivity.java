@@ -42,7 +42,8 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(NativeSSOPlugin.class);
 
         super.onCreate(savedInstanceState);
-
+//        var respectClientManager = RespectClientManager();
+//        respectClientManager.bindService(this);
         // Hide navigation bar and set fullscreen mode
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;
@@ -52,6 +53,9 @@ public class MainActivity extends BridgeActivity {
         FirebaseApp.initializeApp(this);
         FirebaseAppCheck firebaseAppCheck = FirebaseAppCheck.getInstance();
         firebaseAppCheck.installAppCheckProviderFactory(DebugAppCheckProviderFactory.getInstance());
+ // Initialize and bind RespectClientManager
+//        respectClientManager = new RespectClientManager(); // Initialize RespectClientManager
+//        respectClientManager.bindService(this); // Bind the service
 
         // ✅ Handle deep linking on cold start
         handleDeepLink(getIntent());

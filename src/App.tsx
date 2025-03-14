@@ -441,27 +441,18 @@ const App: React.FC = () => {
       console.error("Util.migrateLocalJsonFile failed ", error);
     }
   }
-  const router = useIonRouter();
   const history = useHistory();
 
   useEffect(() => {
-    console.log("✅ Deep Link Listener Initialized in App.tsx");
   
     const handleDeepLink = (event: any) => {
-      console.log("🔥 appUrlOpen Event Triggered in React:", event);
-      console.log("🔍 History Object:", history);
-      console.log("🔍 History Location:", history.location);
       if (!event) {
         console.error("❌ Invalid event object received:", event);
         return;
       }
   
       try {
-        const url = window.location.origin + `/game?learningUnitId=${event.learningUnitId}`;
-        console.log("🔹 Received Deep Link:", url);
-  
         const learningUnitId = event.learningUnitId;
-        console.log("🔹 Extracted learningUnitId:", learningUnitId);
   
         if (learningUnitId) {
           const parts = learningUnitId.split("_");
@@ -470,11 +461,7 @@ const App: React.FC = () => {
             const chapterId = parts[1];
             const lessonId = parts[2];
   
-            console.log("🚀 Extracted Parameters:", { courseId, chapterId, lessonId });
-  
             const params = `?courseid=${courseId}&chapterid=${chapterId}&lessonid=${lessonId}`;
-            console.log("🔍 History Object:", history);
-            console.log("🔍 History Location:", history.location);
             history.replace(PAGES.GAME + params, {
               url: "chimple-lib/index.html" + params,
               from: history.location.pathname + `?${CONTINUE}=true`,
@@ -483,7 +470,6 @@ const App: React.FC = () => {
             });
             window.location.href = PAGES.GAME + params;
   
-            console.log("🔄 Navigating to:", `/game${params}`);
           } else {
             console.error("❌ Invalid learningUnitId format:", learningUnitId);
           }
@@ -495,7 +481,6 @@ const App: React.FC = () => {
       }
     };
   
-    // ✅ Fix: Ensure we're listening for the correct event
     window.addEventListener("appUrlOpen", handleDeepLink);
   
     return () => {
@@ -503,89 +488,6 @@ const App: React.FC = () => {
     };
   }, []);
   
-  // useEffect(() => {
-  //   console.log("✅ Deep Link Listener Initialized in App.tsx");
-
-  //   const handleDeepLink = (event: any) => {
-  //     console.log("🔥 appUrlOpen Event Triggered in React:", event);
-
-  //     if (!event || !event.detail || typeof event.detail.url !== "string") {
-  //       console.error("❌ Invalid event object received:", event);
-  //       return;
-  //     }
-
-  //     try {
-  //       const url = new URL(event.detail.url);
-  //       console.log("🔹 Received Deep Link:", url.href);
-
-  //       const learningUnitId = url.searchParams.get("learningUnitId");
-  //       if (!learningUnitId) {
-  //         console.error("❌ learningUnitId not found in deep link!");
-  //         return;
-  //       }
-
-  //       // Extract RESPECT parameters
-  //       const respectLaunchVersion = url.searchParams.get("respectLaunchVersion");
-  //       const auth = url.searchParams.get("auth");
-  //       const endpoint = url.searchParams.get("endpoint");
-  //       const endpoint_lti_ags = url.searchParams.get("endpoint_lti_ags");
-  //       const actor = url.searchParams.get("actor");
-  //       const registration = url.searchParams.get("registration");
-  //       const activity_id = url.searchParams.get("activity_id");
-
-  //       // Extract course, chapter, and lesson IDs
-  //       const parts = learningUnitId.split("_");
-  //       if (parts.length !== 3) {
-  //         console.error("❌ Invalid learningUnitId format:", learningUnitId);
-  //         return;
-  //       }
-  //       const [courseId, chapterId, lessonId] = parts;
-
-  //       console.log("🚀 Extracted Parameters:", { courseId, chapterId, lessonId });
-
-  //       const params = `?courseid=${courseId}&chapterid=${chapterId}&lessonid=${lessonId}`;
-
-  //       history.replace(PAGES.GAME + params, {
-  //         url: "chimple-lib/index.html" + params,
-  //         lessonId,
-  //         courseDocId: courseId,
-  //         course: "maths",
-  //         lesson: lessonId,
-  //         assignment: {},
-  //         chapter: {},
-  //         respectParams: {
-  //           respectLaunchVersion,
-  //           auth,
-  //           endpoint,
-  //           endpoint_lti_ags,
-  //           actor,
-  //           registration,
-  //           activity_id,
-  //         },
-  //         from: history.location.pathname + "?continue=true",
-  //       });
-
-  //       console.log("🔄 Navigating to:", `/game${params}`);
-  //     } catch (error) {
-  //       console.error("⚠️ Error parsing deep link data:", error);
-  //     }
-  //   };
-
-  //   if (Capacitor.isNativePlatform()) {
-  //     CapApp.addListener("appUrlOpen", handleDeepLink);
-  //   } else {
-  //     window.addEventListener("appUrlOpen", handleDeepLink);
-  //   }
-
-  //   return () => {
-  //     if (Capacitor.isNativePlatform()) {
-  //       CapApp.removeAllListeners();
-  //     } else {
-  //       window.removeEventListener("appUrlOpen", handleDeepLink);
-  //     }
-  //   };
-  // }, [history]);
-
   return (
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>

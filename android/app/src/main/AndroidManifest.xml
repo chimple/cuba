@@ -44,7 +44,7 @@
                 <!-- Ensure this matches your deep link -->
                 <data
                     android:scheme="https"
-                    android:host="chimple-prod.firebaseapp.com"
+                    android:host="chimple.org"
                     android:pathPrefix="/" />
             </intent-filter>
 
@@ -56,17 +56,15 @@
                 <data android:scheme="http" android:host="localhost" android:port="3000" android:pathPrefix="/" />
             </intent-filter>
 
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="chimple.cc" android:path="/join-class" />
+                <data android:scheme="https" android:host="chimple.cc" android:path="/assignment" />
+                <data android:scheme="https" android:host="chimple.cc" android:path="/live-quiz" />
 
-                <data
-                    android:scheme="bahama"
-                    android:host="app"
-                    android:pathPrefix="/game" />
             </intent-filter>
 
 
