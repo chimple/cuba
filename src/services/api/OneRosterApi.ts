@@ -118,36 +118,68 @@ export class OneRosterApi implements ServiceApi {
   private preQuizMap: { [key: string]: { [key: string]: Result } } = {};
   private classes: { [key: string]: Class[] } = {};
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
-  public static allCourses: TableTypes<'course'>[]=[];
   
-  private static _currentCourse: TableTypes<'course'>;
-  private static _currentChapter: TableTypes<'chapter'>;
-  private static _currentLesson: TableTypes<'lesson'>;
+  private static currentcourse: TableTypes<"course"> | null = null;
+  private static currentchapter: TableTypes<"chapter"> | null = null;
+  private static currentLesson: TableTypes<"lesson"> | null = null;
+  private static allCourses: TableTypes<"course">[] | null = null;
+  private static langId: string = 'en'; // default lang
 
-  // course
-  public static set currentCourse(data: TableTypes<'course'>) {
-    this._currentCourse = data;
-  }
-  public static get currentCourse(): TableTypes<'course'> {
-     return this._currentCourse;
-  }
-
-  // chapter 
-  public static set currentChapter(data: TableTypes<'chapter'>) {
-    this._currentChapter = data;
-  }
-  public static get currentChapter(): TableTypes<'chapter'> {
-    return this._currentChapter
-  }
-  // lesson
-  public static set currentLesson(data: TableTypes<'lesson'>) {
-    this._currentLesson = data;
-  }
-  public static get currentLesson(): TableTypes<'lesson'> {
-    return this._currentLesson;
+  // Static generic JSON loader
+  private static async loadJsonData<T>(path: string): Promise<T> {
+    try {
+      return await Util.loadJson(path) as T;
+    } catch (error) {
+      console.error(`Failed to load ${path}:`, error);
+      throw error;
+    }
   }
 
-  
+  // Static API-like methods
+  public static async getCourses(): Promise<TableTypes<"course">[]> {
+    if (!this.currentcourse) {
+      const path = `assets/courses/${this.langId}/res/course.json`;
+      const jsonData = await this.loadJsonData<{ metadata: TableTypes<"course">[] }>(path);
+      this.currentcourse = jsonData.metadata;
+    }
+    return this.currentcourse;
+  }
+
+  public static async getChapters(): Promise<TableTypes<"chapter">[]> {
+    if (!this.currentchapter) {
+      const path = `assets/courses/${this.langId}/res/chapter.json`;
+      const jsonData = await this.loadJsonData<{ metadata: TableTypes<"chapter">[] }>(path);
+      this.currentchapter = jsonData.metadata;
+    }
+    return this.currentchapter;
+  }
+
+  public static async getLessons(): Promise<TableTypes<"lesson">[]> {
+    if (!this.currentLesson) {
+      const path = `assets/courses/${this.langId}/res/lesson.json`;
+      const jsonData = await this.loadJsonData<{ metadata: TableTypes<"lesson">[] }>(path);
+      this.currentLesson = jsonData.metadata;
+    }
+    return this.currentLesson;
+  }
+
+  public static async getAllCourses(): Promise<TableTypes<"course">[]> {
+    if (!this.allCourses) {
+      const path = `assets/courses/${this.langId}/res/all_courses.json`;
+      const jsonData = await this.loadJsonData<{ metadata: TableTypes<"course">[] }>(path);
+      this.allCourses = jsonData.metadata;
+    }
+    return this.allCourses;
+  }
+
+  // Reset caches if needed
+  public static resetCaches() {
+    this.currentcourse = null;
+    this.currentchapter = null;
+    this.currentLesson = null;
+    this.allCourses = null;
+  }
+
 
   // buildXapiQuery
   private buildXapiQuery(currentUser: { name?: string }): { agentEmail: string; queryStatement: IGetStudentResultStatement } {
@@ -170,12 +202,11 @@ export class OneRosterApi implements ServiceApi {
     studentId: string,
   ): Promise<TableTypes<"course">[]> {
     try {
-      const id = 'en' //Later get all available courses
-      const jsonFile = "assets/courses/" + id + "/res/course.json";
+      const coursesId = await OneRosterApi.getCourses(); //Later get all available courses
+      const jsonFile = "assets/courses/" + coursesId.courseCode + "/res/course.json";
       const courseJson = await Util.loadJson(jsonFile);
       const metaC = courseJson.metadata;
 
-      console.log("getCourses data shubham---", metaC);
       let tCourse: TableTypes<"course"> = {
         code: metaC.courseCode,
         color: metaC.color,
@@ -198,6 +229,10 @@ export class OneRosterApi implements ServiceApi {
       console.error("Error fetching JSON:", error);
     }
   }
+
+   
+  
+
   getAdditionalCourses(studentId: string): Promise<TableTypes<"course">[]> {
     throw new Error("Method not implemented.");
   }
@@ -518,8 +553,8 @@ export class OneRosterApi implements ServiceApi {
 
   async getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]> {
     try {
-      const id = OneRosterApi.currentCourse.id;
-      const jsonFile = `assets/courses/${id}/res/course.json`;
+      const id = await OneRosterApi.getCourses();
+      const jsonFile = `assets/courses/${id.courseCode}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
       const metaC = courseJson.metadata;
   
@@ -1769,7 +1804,7 @@ async getLessonFromCourse(
     userId?: string
   ): Promise<string | undefined> {
     try {
-      const id = OneRosterApi.currentLesson.id // Adjust based on your setup
+      const id = await OneRosterApi.getLessons();
       const jsonFile = `assets/courses/${id}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
   
@@ -1817,6 +1852,7 @@ async getLessonFromCourse(
 
   async getLessonsBylessonIds(lessonIds: string[]): Promise<TableTypes<"lesson">[] | undefined> {
     try {
+      
       const jsonFile = `assets/courses/${lessonIds}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
   
