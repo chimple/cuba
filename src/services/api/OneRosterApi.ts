@@ -120,8 +120,8 @@ export class OneRosterApi implements ServiceApi {
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
   
   private static _currentCourse?: Map<string, TableTypes<"course"> | undefined>;
-  private static currentChapter: TableTypes<"chapter"> | null = null;
-  private static currentLesson: TableTypes<"lesson"> | null = null;
+  private static _currentChapter: TableTypes<"chapter"> | null = null;
+  private static _currentLesson: TableTypes<"lesson"> | null = null;
   private static allCourses: TableTypes<"course">[] | null = null;
   private static langId: string = 'en'; // default lang
 
@@ -154,9 +154,7 @@ export class OneRosterApi implements ServiceApi {
   async getCoursesForParentsStudent(
     studentId: string,
   ): Promise<TableTypes<"course">[]> {
-
     try {
-      
       const id = 'en'
       const jsonFile = "assets/courses/" + id + "/res/course.json";
       const courseJson = await Util.loadJson(jsonFile);
@@ -177,12 +175,9 @@ export class OneRosterApi implements ServiceApi {
         subject_id: metaC.subject,
         updated_at: null,
       };
-
+      this._currentCourse = tCourse;
       let res = []
       res.push(tCourse)
-      
-      this._currentCourse = tCourse;
-      
       return res;
     } catch (error) {
       console.error("Error fetching JSON:", error);
@@ -1084,6 +1079,24 @@ async getLessonFromCourse(
   ) {
     this._currentCourse = value;
   }
+
+  get currentchapter(): TableTypes<"chapter"> | undefined {
+    throw new Error("Method not implemented.");
+  }
+
+  set currentchapter(value: TableTypes<"chapter"> | undefined) {
+    throw new Error("Method not implemented.");
+  }
+
+  get currentlesson(): TableTypes<"lesson"> | undefined {
+    throw new Error("Method not implemented.");
+  }
+
+  set currentlesson(value: TableTypes<"lesson"> | undefined) {
+    throw new Error("Method not implemented.");
+  }
+
+
 
 
   createProfile(
