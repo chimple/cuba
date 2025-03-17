@@ -449,6 +449,10 @@ export enum PAGES {
   ADD_SPONSOR = "/add-sponsor",
 }
 
+export const enum ASSIGNMENT_TYPE {
+  ASSIGNMENT = "assignment",
+  LIVEQUIZ = "liveQuiz",
+}
 export enum LANG {
   ENGLISH = "en",
   HINDI = "hi",

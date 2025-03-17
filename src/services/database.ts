@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -22,6 +22,7 @@ export type Database = {
           is_deleted: boolean | null
           lesson_id: string
           school_id: string
+          source: string | null
           starts_at: string
           type: string | null
           updated_at: string | null
@@ -38,6 +39,7 @@ export type Database = {
           is_deleted?: boolean | null
           lesson_id: string
           school_id: string
+          source?: string | null
           starts_at?: string
           type?: string | null
           updated_at?: string | null
@@ -54,6 +56,7 @@ export type Database = {
           is_deleted?: boolean | null
           lesson_id?: string
           school_id?: string
+          source?: string | null
           starts_at?: string
           type?: string | null
           updated_at?: string | null
@@ -298,21 +301,27 @@ export type Database = {
       }
       chatbot: {
         Row: {
+          chatbot_doc: Json | null
           created_at: string
           id: string
           is_deleted: boolean | null
+          phonenumber: string
           updated_at: string | null
         }
         Insert: {
+          chatbot_doc?: Json | null
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          phonenumber: string
           updated_at?: string | null
         }
         Update: {
+          chatbot_doc?: Json | null
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          phonenumber?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -905,6 +914,7 @@ export type Database = {
         Row: {
           assignment_id: string | null
           chapter_id: string | null
+          class_id: string | null
           correct_moves: number | null
           course_id: string | null
           created_at: string
@@ -921,6 +931,7 @@ export type Database = {
         Insert: {
           assignment_id?: string | null
           chapter_id?: string | null
+          class_id?: string | null
           correct_moves?: number | null
           course_id?: string | null
           created_at?: string
@@ -937,6 +948,7 @@ export type Database = {
         Update: {
           assignment_id?: string | null
           chapter_id?: string | null
+          class_id?: string | null
           correct_moves?: number | null
           course_id?: string | null
           created_at?: string
@@ -977,6 +989,13 @@ export type Database = {
             columns: ["chapter_id"]
             isOneToOne: false
             referencedRelation: "chapter"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class"
             referencedColumns: ["id"]
           },
           {
@@ -1715,6 +1734,12 @@ export type Database = {
         }
         Returns: undefined
       }
+      user_exists: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       role:
@@ -1724,6 +1749,7 @@ export type Database = {
         | "teacher"
         | "parent"
         | "student"
+        | "autouser"
     }
     CompositeTypes: {
       [_ in never]: never
