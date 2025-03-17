@@ -8,7 +8,7 @@ import {
   LeaderboardRewards,
   MODES,
   TableTypes,
-
+  LANG
 } from "../../common/constants";
 import { Chapter } from "../../interface/curriculumInterfaces";
 import Assignment from "../../models/assignment";
@@ -134,53 +134,7 @@ export class OneRosterApi implements ServiceApi {
       throw error;
     }
   }
-
-  // Static API-like methods
-  public static async getCourses(): Promise<TableTypes<"course">[]> {
-    if (!this.currentcourse) {
-      const path = `assets/courses/${this.langId}/res/course.json`;
-      const jsonData = await this.loadJsonData<{ metadata: TableTypes<"course">[] }>(path);
-      this.currentcourse = jsonData.metadata;
-    }
-    return this.currentcourse;
-  }
-
-  public static async getChapters(): Promise<TableTypes<"chapter">[]> {
-    if (!this.currentchapter) {
-      const path = `assets/courses/${this.langId}/res/chapter.json`;
-      const jsonData = await this.loadJsonData<{ metadata: TableTypes<"chapter">[] }>(path);
-      this.currentchapter = jsonData.metadata;
-    }
-    return this.currentchapter;
-  }
-
-  public static async getLessons(): Promise<TableTypes<"lesson">[]> {
-    if (!this.currentLesson) {
-      const path = `assets/courses/${this.langId}/res/lesson.json`;
-      const jsonData = await this.loadJsonData<{ metadata: TableTypes<"lesson">[] }>(path);
-      this.currentLesson = jsonData.metadata;
-    }
-    return this.currentLesson;
-  }
-
-  public static async getAllCourses(): Promise<TableTypes<"course">[]> {
-    if (!this.allCourses) {
-      const path = `assets/courses/${this.langId}/res/all_courses.json`;
-      const jsonData = await this.loadJsonData<{ metadata: TableTypes<"course">[] }>(path);
-      this.allCourses = jsonData.metadata;
-    }
-    return this.allCourses;
-  }
-
-  // Reset caches if needed
-  public static resetCaches() {
-    this.currentcourse = null;
-    this.currentchapter = null;
-    this.currentLesson = null;
-    this.allCourses = null;
-  }
-
-
+  
   // buildXapiQuery
   private buildXapiQuery(currentUser: { name?: string }): { agentEmail: string; queryStatement: IGetStudentResultStatement } {
     const agentEmail = `mailto:${currentUser?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
@@ -202,8 +156,7 @@ export class OneRosterApi implements ServiceApi {
     studentId: string,
   ): Promise<TableTypes<"course">[]> {
     try {
-      const coursesId = await OneRosterApi.getCourses(); //Later get all available courses
-      const jsonFile = "assets/courses/" + coursesId.courseCode + "/res/course.json";
+      const jsonFile = "assets/courses/" + this.currentcourse.courseCode + "/res/course.json";
       const courseJson = await Util.loadJson(jsonFile);
       const metaC = courseJson.metadata;
 
@@ -229,9 +182,6 @@ export class OneRosterApi implements ServiceApi {
       console.error("Error fetching JSON:", error);
     }
   }
-
-   
-  
 
   getAdditionalCourses(studentId: string): Promise<TableTypes<"course">[]> {
     throw new Error("Method not implemented.");
@@ -553,8 +503,7 @@ export class OneRosterApi implements ServiceApi {
 
   async getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]> {
     try {
-      const id = await OneRosterApi.getCourses();
-      const jsonFile = `assets/courses/${id.courseCode}/res/course.json`;
+      const jsonFile = `assets/courses/${this.currentCourse.courseCode}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
       const metaC = courseJson.metadata;
   
@@ -1114,8 +1063,7 @@ async getLessonFromCourse(
   get currentCourse():
     | Map<string, TableTypes<"course"> | undefined>
     | undefined {
-    // throw new Error("Method not implemented.");
-    return OneRosterApi.currentCourse = Course;
+    throw new Error("Method not implemented.");
   }
   set currentCourse(
     value: Map<string, TableTypes<"course"> | undefined> | undefined
@@ -1804,8 +1752,7 @@ async getLessonFromCourse(
     userId?: string
   ): Promise<string | undefined> {
     try {
-      const id = await OneRosterApi.getLessons();
-      const jsonFile = `assets/courses/${id}/res/course.json`;
+      const jsonFile = `assets/courses/${lessonId}/res/course.json`;
       const courseJson = await Util.loadJson(jsonFile);
   
       const group = courseJson.groups.find(g => 
