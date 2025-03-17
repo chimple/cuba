@@ -1,21 +1,15 @@
 {
-  "short_name": "Ionic App",
-  "name": "My Ionic App",
-  "icons": [
-    {
-      "src": "assets/icon/favicon.png",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
-    },
-    {
-      "src": "assets/icon/icon.png",
-      "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "maskable"
-    }
-  ],
-  "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff"
+  "short_name": "Chimple App",
+  "name": "Chimple",
+  "license": "AGPL-3.0",
+  "learningUnits": "https://chimple.org/opds.json",
+  "defaultLaunchUri": "https://chimple.org/",
+
+  "android": {
+    "packageId": "org.chimple.bahama",
+    "stores": [
+      "https://play.google.com/store/apps/details?id=org.chimple.bahama",
+      "..."
+    ]
+  }
 }
