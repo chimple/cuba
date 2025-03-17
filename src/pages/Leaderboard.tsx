@@ -14,6 +14,7 @@ import {
   CURRENT_MODE,
   CLASS,
   CURRENT_CLASS,
+  STAGES,
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import BackButton from "../components/common/BackButton";
@@ -606,7 +607,9 @@ const Leaderboard: React.FC = () => {
               onClick={async () => {
                 Util.setCurrentStudent(null);
                 localStorage.removeItem(CURRENT_STUDENT);
-                schoolUtil.removeCurrentClass();
+                if (studentMode !== MODES.SCHOOL) {
+                  schoolUtil.removeCurrentClass();
+                }
                 // await Util.setCurrentStudent(null);
                 AvatarObj.destroyInstance();
                 const user = await auth.getCurrentUser();
@@ -626,7 +629,7 @@ const Leaderboard: React.FC = () => {
                 } else {
                   Util.setPathToBackButton(PAGES.SELECT_MODE, history);
                   Util.setPathToBackButton(
-                    PAGES.SELECT_MODE + "?tab=" + "class",
+                    PAGES.SELECT_MODE + "?tab=" + STAGES.STUDENT,
                     history
                   );
                 }

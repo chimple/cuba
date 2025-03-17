@@ -14,6 +14,8 @@ import {
   CURRENT_MODE,
   CURRENT_SCHOOL_NAME,
   CURRENT_CLASS_NAME,
+  USER_SELECTION_STAGE,
+  STAGES,
 } from "../common/constants";
 import SelectModeButton from "../components/selectMode/SelectModeButton";
 import { IoMdPeople } from "react-icons/io";
@@ -28,13 +30,6 @@ import DropDown from "../components/DropDown";
 
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  enum STAGES {
-    MODE = "mode",
-    SCHOOL = "school",
-    CLASS = "class",
-    STUDENT = "student",
-    TEACHER = "teacher",
-  }
   const [schoolList, setSchoolList] = useState<
     {
       id: string;
@@ -105,7 +100,12 @@ const SelectMode: FC = () => {
       const className = localStorage.getItem(CURRENT_CLASS_NAME);
       if (className) setCurrClass(JSON.parse(className));
       if (schoolName && className) {
-        setStage(STAGES.CLASS);
+        const selectedUser = localStorage.getItem(USER_SELECTION_STAGE);
+        if (selectedUser) {
+          setStage(STAGES.STUDENT);
+        } else {
+          setStage(STAGES.CLASS);
+        }
       } else {
         setStage(STAGES.MODE);
       }
@@ -158,12 +158,21 @@ const SelectMode: FC = () => {
     setCurrentUser(currUser);
     setSchoolList(tempSchoolList);
     if (matchedSchools.length > 0) {
+      const selectedUser = localStorage.getItem(USER_SELECTION_STAGE);
       if (tempSchoolList.length === 1) {
         setCurrentSchool(tempSchoolList[0].school);
         await displayClasses(tempSchoolList[0].school, currUser);
-        setStage(STAGES.CLASS);
+        if (selectedUser) {
+          setStage(STAGES.STUDENT);
+        } else {
+          setStage(STAGES.CLASS);
+        }
       } else {
-        setStage(STAGES.SCHOOL);
+        if (selectedUser) {
+          setStage(STAGES.STUDENT);
+        } else {
+          setStage(STAGES.SCHOOL);
+        }
       }
     } else if (allSchool.length === 0) {
       onParentSelect();
@@ -376,7 +385,7 @@ const SelectMode: FC = () => {
                   />
 
                   <div className="schoolClassname-header">
-                    {currentSchoolName + ", " + currClass?.name}
+                    {currentSchool?.name + ", " + currClass?.name}
                   </div>
                   <div></div>
                 </div>
@@ -388,6 +397,7 @@ const SelectMode: FC = () => {
                       onClick={() => {
                         setCurrStudent(tempStudent);
                         // setStage(STAGES.STUDENT);
+                        localStorage.setItem(USER_SELECTION_STAGE, "true");
                         onStudentClick(tempStudent);
                         // Util.setCurrentStudent(tempStudent);
                         console.log(

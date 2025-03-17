@@ -72,7 +72,7 @@ export function useTtsAudioPlayer(audioText: string) {
           isSupported
         );
         if (!isSupported) {
-          alert(audioLang + " Language is not supported for you device");
+          // alert(audioLang + " Language is not supported for you device");
         }
 
         await TextToSpeech.speak({

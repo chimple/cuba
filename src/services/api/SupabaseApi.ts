@@ -6,6 +6,7 @@ import {
   TABLES,
   TableTypes,
   MUTATE_TYPES,
+  PROFILETYPE,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -124,6 +125,49 @@ export class SupabaseApi implements ServiceApi {
     this.supabaseKey = process.env.REACT_APP_SUPABASE_KEY ?? "";
     this.supabase = createClient<Database>(this.supabaseUrl, this.supabaseKey);
     console.log("🚀 ~ supabase:", this.supabase);
+  }
+
+  // as parameters type: school, user, class
+  //               image
+  // return image stored url
+  //---------------------------------------------------------------
+  async addProfileImages(
+    id: string,
+    file: File,
+    profileType: PROFILETYPE
+  ): Promise<string | null> {
+    const extension = file.name.split(".").pop(); // Get file extension
+    const newName = `ProfilePicture_${profileType}_${Date.now()}.${extension}`; // Rename the file
+    const folderName = encodeURIComponent(String(id));
+    const filePath = `${profileType}/${folderName}/${newName}`; // Path inside the bucket
+    // Attempt to delete existing files
+    const removeResponse = await this.supabase?.storage
+      .from("ProfileImages")
+      .remove(
+        (
+          await this.supabase?.storage
+            .from("ProfileImages")
+            .list(`${profileType}/${folderName}`, { limit: 2 })
+        )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
+          []
+      );
+    // Convert File to Blob (necessary for renaming)
+    const renamedFile = new File([file], newName, { type: file.type });
+    // Upload the new file (allow overwrite)
+    const uploadResponse = await this.supabase?.storage
+      .from("ProfileImages")
+      .upload(filePath, renamedFile, { upsert: true });
+    if (uploadResponse?.error) {
+      console.error("Error uploading file:", uploadResponse.error.message);
+      return null;
+    }
+    // Get the Public URL of the uploaded file
+    const urlData = this.supabase?.storage
+      .from("ProfileImages")
+      .getPublicUrl(filePath);
+    const imageUrl = urlData?.data.publicUrl;
+    console.log("Public Image URL:", imageUrl);
+    return imageUrl || null;
   }
 
   async getTablesData(
@@ -261,7 +305,8 @@ export class SupabaseApi implements ServiceApi {
     name: string,
     group1: string,
     group2: string,
-    group3: string
+    group3: string,
+    image: File | null
   ): Promise<TableTypes<"school">> {
     throw new Error("Method not implemented.");
   }
@@ -782,46 +827,55 @@ export class SupabaseApi implements ServiceApi {
   }
   async assignmentUserListner(
     studentId: string,
-    onDataChange: (
-      assignment_user: TableTypes<"assignment_user"> | undefined
-    ) => void
+    onDataChange: (assignment_user: TableTypes<"assignment_user"> | undefined) => void
   ) {
     try {
-      if (this._assignmentUserRealTime) return;
+      if (this._assignmentUserRealTime) {
+        this._assignmentUserRealTime.unsubscribe();
+        this._assignmentUserRealTime = undefined;
+      }
+  
       this._assignmentUserRealTime = this.supabase?.channel("assignment_user");
       if (!this._assignmentUserRealTime) {
         throw new Error("Failed to establish channel for assignment_user");
       }
-      const res = this._assignmentUserRealTime
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "assignment_user",
-            filter: `user_id=eq.${studentId}`,
-          },
-          (payload) => {
+  
+      this._assignmentUserRealTime.on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "assignment_user",
+          filter: `user_id=eq.${studentId}`,
+        },
+        (payload) => {
+          if (onDataChange) {
             onDataChange(payload.new as TableTypes<"assignment_user">);
+          } else {
+            console.error("🛑 onDataChange is undefined for assignment_user!");
           }
-        )
-        .subscribe();
-      return;
+        }
+      ).subscribe();
     } catch (error) {
-      throw error;
+      console.error("🛑 Error in Supabase assignment_user listener:", error);
     }
   }
+  
   async assignmentListner(
     classId: string,
     onDataChange: (assignment: TableTypes<"assignment"> | undefined) => void
   ) {
     try {
-      if (this._assignmetRealTime) return;
+      if (this._assignmetRealTime) {
+        this._assignmetRealTime.unsubscribe();
+        this._assignmetRealTime = undefined;
+      }
+  
       this._assignmetRealTime = this.supabase?.channel("assignment");
       if (!this._assignmetRealTime) {
         throw new Error("Failed to establish channel for assignment");
       }
-      const res = this._assignmetRealTime!.on(
+      this._assignmetRealTime.on(
         "postgres_changes",
         {
           event: "INSERT",
@@ -830,14 +884,17 @@ export class SupabaseApi implements ServiceApi {
           filter: `class_id=eq.${classId}`,
         },
         (payload) => {
-          onDataChange(payload.new as TableTypes<"assignment">);
+          if (onDataChange) {
+            onDataChange(payload.new as TableTypes<"assignment">);
+          } else {
+            console.error("🛑 onDataChange is undefined!");
+          }
         }
       ).subscribe();
-      return;
     } catch (error) {
-      throw error;
+      console.error("🛑 Error in Supabase listener:", error);
     }
-  }
+  }    
   async removeAssignmentChannel() {
     try {
       if (this._assignmentUserRealTime)
@@ -1062,7 +1119,7 @@ export class SupabaseApi implements ServiceApi {
   getAssignmentUserByAssignmentIds(
     assignmentIds: string[]
   ): Promise<TableTypes<"assignment_user">[]> {
-    throw new Error("Method not implemented")
+    throw new Error("Method not implemented");
   }
   getResultByAssignmentIds(
     assignmentIds: string[]

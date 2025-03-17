@@ -146,6 +146,12 @@ export enum USERTYPES {
   STUDENTS = "Students",
 }
 
+export enum PROFILETYPE {
+  SCHOOL = "school",
+  CLASS = "class",
+  USER = "user",
+}
+
 export enum TABLEDROPDOWN {
   ASSIGNMENTS = "Assignments Report",
   MONTHLY = "Monthly Report",
@@ -387,6 +393,7 @@ export enum PAGES {
   HOME = "/home",
   LOGIN = "/login",
   GAME = "/game",
+  LIDO_PLAYER = "/lido-player",
   END = "/end",
   PROFILE = "/profile",
   PARENT = "/parent",
@@ -506,6 +513,7 @@ export const TC_ACCEPT = "tcAccept";
 export const RECOMMENDATIONS = "recommendations";
 export const LIVE_QUIZ = "liveQuiz";
 export const COCOS = "cocos";
+export const LIDO = "lido";
 export const TYPE = "type";
 export const APP_NAME = "Kids";
 export const SCHOOL = "school";
@@ -637,6 +645,13 @@ export enum ACTION {
   DELETE = "delete",
   LOGIN = "login",
 }
+export enum STAGES {
+  MODE = "mode",
+  SCHOOL = "school",
+  CLASS = "class",
+  STUDENT = "student",
+  TEACHER = "teacher",
+}
 
 export const CURRENT_STUDENT = "currentStudent";
 export const CURRENT_USER = "currentUser";
@@ -721,6 +736,7 @@ export const AT_SYMBOL_RESTRICTION = /@/;
 export const SELECTED_STUDENTS = "selectedStudent";
 export const SELECTED_CLASSES = "selectedClasses";
 export const CURRENT_CLASS_NAME = "currClassName";
+export const USER_SELECTION_STAGE = "userSelectionStage";
 export const CURRENT_SCHOOL_NAME = "currentSchoolName";
 export const DOWNLOADING_CHAPTER_ID = "downloading_chapter_id";
 export const USER_DATA = "userData";
@@ -742,3 +758,10 @@ export interface HomeWeeklySummary {
   timeSpent: number;
   averageScore: number;
 }
+
+export const LidoActivityEndKey = "lidoActivityEnd";
+export const LidoLessonEndKey = "lidoLessonEnd";
+export const LidoNextContainerKey = "lidoNextContainer";
+export const LidoActivityChangeKey = "lidoActivityChange";
+export const LidoGameCompletedKey = "lidoGameCompleted";
+export const LidoGameExitKey = "lidoGameExit";

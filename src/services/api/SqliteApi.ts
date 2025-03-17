@@ -15,6 +15,7 @@ import {
   belowGrade1,
   grade2,
   grade3,
+  PROFILETYPE,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -558,24 +559,37 @@ export class SqliteApi implements ServiceApi {
 
     return newStudent;
   }
+
+  async addProfileImages(
+    id: string,
+    file: File,
+    profileType: PROFILETYPE
+  ): Promise<string | null> {
+    return await this._serverApi.addProfileImages(id, file, profileType);
+  }
+
   async createSchool(
     name: string,
     group1: string,
     group2: string,
-    group3: string
+    group3: string,
+    image: File | null
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
 
     const schoolId = uuidv4();
+    const result = image
+      ? await this.addProfileImages(schoolId, image, PROFILETYPE.SCHOOL)
+      : null;
     const newSchool: TableTypes<"school"> = {
       id: schoolId,
       name,
       group1: group1 ?? null,
       group2: group2 ?? null,
       group3: group3 ?? null,
-      image: null,
+      image: result ?? null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
@@ -643,26 +657,31 @@ export class SqliteApi implements ServiceApi {
     name: string,
     group1: string,
     group2: string,
-    group3: string
+    group3: string,
+    image: File | null
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
+
+    const result = image
+      ? await this.addProfileImages(school.id, image, PROFILETYPE.SCHOOL)
+      : school.image;
 
     const updatedSchool: TableTypes<"school"> = {
       name: name ?? school.name,
       group1: group1 ?? school.group1,
       group2: group2 ?? school.group2,
       group3: group3 ?? school.group3,
+      image: result ?? school.image,
       updated_at: new Date().toISOString(),
       created_at: school.created_at,
       id: school.id,
-      image: null,
       is_deleted: false,
     };
     const updatedSchoolQuery = `
     UPDATE school
-    SET name = ?, group1 = ?, group2 = ?, group3 = ?, updated_at=?
+    SET name = ?, group1 = ?, group2 = ?, group3 = ?, image = ?, updated_at=?
     WHERE id = ?;
     `;
 
@@ -671,6 +690,7 @@ export class SqliteApi implements ServiceApi {
       updatedSchool.group1,
       updatedSchool.group2,
       updatedSchool.group3,
+      updatedSchool.image,
       updatedSchool.updated_at,
       school.id,
     ]);
@@ -953,10 +973,9 @@ export class SqliteApi implements ServiceApi {
           : null;
       if (localClassId) {
         // Remove the student's connection to the class
-        await this.executeQuery(
-          `DELETE FROM class_user WHERE user_id = ? AND is_deleted = 0`,
-          [studentId]
-        );
+        await this.executeQuery(`DELETE FROM class_user WHERE user_id = ?`, [
+          studentId,
+        ]);
 
         // Check if any other child of the parent is connected to the same class
         const otherChildrenConnected = await this._db.query(
@@ -1189,7 +1208,7 @@ export class SqliteApi implements ServiceApi {
   SELECT *
   FROM ${TABLES.ParentUser} AS parent
   JOIN ${TABLES.User} AS student ON parent.student_id = student.id
-  WHERE parent.parent_id = "${currentUser.id}";
+  WHERE parent.parent_id = "${currentUser.id}" AND parent.is_deleted = 0 AND student.is_deleted = 0; 
 `;
     const res = await this._db.query(query);
     return res.values ?? [];
@@ -2641,7 +2660,7 @@ export class SqliteApi implements ServiceApi {
     const handleDataChange = async (
       assignmet: TableTypes<"assignment"> | undefined
     ) => {
-      if (assignmet)
+      if (assignmet) {
         await this.executeQuery(
           `
           INSERT INTO assignment (id, created_by, starts_at,ends_at,is_class_wise,class_id,school_id,lesson_id,type,created_at,updated_at,is_deleted,chapter_id,course_id)
@@ -2664,6 +2683,8 @@ export class SqliteApi implements ServiceApi {
             assignmet.course_id,
           ]
         );
+        onDataChange(assignmet);
+      }
     };
     return await this._serverApi.assignmentListner(studentId, handleDataChange);
   }
@@ -2678,23 +2699,25 @@ export class SqliteApi implements ServiceApi {
     ) => void
   ) {
     const handleDataChange = async (
-      assignmet_user: TableTypes<"assignment_user"> | undefined
+      assignment_user: TableTypes<"assignment_user"> | undefined
     ) => {
-      if (assignmet_user)
+      if (assignment_user) {
         await this.executeQuery(
           `
-          INSERT INTO assignment_user (id, assignment_id, user_id,created_at,updated_at,is_deleted)
-        VALUES (?, ?, ?, ?, ?, ?);
-      `,
+          INSERT INTO assignment_user (id, assignment_id, user_id, created_at, updated_at, is_deleted)
+          VALUES (?, ?, ?, ?, ?, ?);
+          `,
           [
-            assignmet_user.id,
-            assignmet_user.assignment_id,
-            assignmet_user.user_id,
-            assignmet_user.created_at,
-            assignmet_user.updated_at,
-            assignmet_user.is_deleted,
+            assignment_user.id,
+            assignment_user.assignment_id,
+            assignment_user.user_id,
+            assignment_user.created_at,
+            assignment_user.updated_at,
+            assignment_user.is_deleted,
           ]
         );
+        onDataChange(assignment_user);
+      }
     };
 
     return await this._serverApi.assignmentUserListner(
@@ -3584,25 +3607,25 @@ order by
     if (!assignmentIds || assignmentIds.length === 0) {
       return [];
     }
-    
+
     // Create a comma-separated list of placeholders for the query.
     const placeholders = assignmentIds.map(() => "?").join(", ");
-    
+
     // Construct the SQL query using the placeholders.
     const query = `
       SELECT *
       FROM ${TABLES.Assignment_user}
       WHERE assignment_id IN (${placeholders});
     `;
-    
+
     // Execute the query. (Assuming this._db.query returns an object with a 'values' property)
     const res = await this._db?.query(query, assignmentIds);
-    
+
     // If no results were returned, return an empty array.
     if (!res || !res.values || res.values.length < 1) {
       return [];
     }
-    
+
     // Otherwise, return the results.
     return res.values;
   }
@@ -4024,7 +4047,7 @@ order by
         AND su.role = '${RoleType.AUTOUSER}'
         AND su.is_deleted = false;
     `;
-    
+
     const res = await this._db?.query(query, schoolIds);
     return res?.values ?? [];
   }

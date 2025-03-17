@@ -117,6 +117,7 @@ import DisplayClasses from "./chimple-private/pages/DisplayClasses";
 import "./App.css";
 import ShowStudentsInAssignmentPage from "./chimple-private/pages/ShowStudentsInAssignmentPage";
 import { schoolUtil } from "./utility/schoolUtil";
+import LidoPlayer from "./pages/LidoPlayer";
 
 setupIonicReact();
 interface ExtraData {
@@ -457,6 +458,9 @@ const App: React.FC = () => {
             </Route>
             <ProtectedRoute path={PAGES.GAME} exact={true}>
               <CocosGame />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.LIDO_PLAYER} exact={true}>
+              <LidoPlayer />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.END} exact={true}>
               <End />

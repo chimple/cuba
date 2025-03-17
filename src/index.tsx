@@ -16,6 +16,29 @@ import { IonLoading } from "@ionic/react";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
+import { defineCustomElements, JSX as LocalJSX } from "lido-player/loader";
+import {
+  SpeechSynthesis,
+  SpeechSynthesisUtterance,
+} from "./utility/WindowsSpeech";
+
+// Extend React's JSX namespace to include Stencil components
+declare global {
+  namespace JSX {
+    interface IntrinsicElements extends LocalJSX.IntrinsicElements {}
+  }
+}
+defineCustomElements(window);
+
+// Conditionally attach only if the native APIs are missing (optional)
+if (typeof window !== "undefined") {
+  if (!(window as any).speechSynthesis) {
+    (window as any).speechSynthesis = new SpeechSynthesis();
+  }
+  if (!(window as any).SpeechSynthesisUtterance) {
+    (window as any).SpeechSynthesisUtterance = SpeechSynthesisUtterance;
+  }
+}
 
 if (Capacitor.isNativePlatform()) {
   await ScreenOrientation.lock({ orientation: "landscape" });
@@ -23,16 +46,16 @@ if (Capacitor.isNativePlatform()) {
 applyPolyfills().then(() => {
   jeepSqlite(window);
 });
-const recordExecption = (message: string, error: string) => { 
+const recordExecption = (message: string, error: string) => {
   if (Capacitor.getPlatform() != "web") {
     FirebaseCrashlytics.recordException({ message: message, domain: error });
   }
 };
 window.onunhandledrejection = (event: PromiseRejectionEvent) => {
-  recordExecption(event.reason.toString(),event.type.toString());
+  recordExecption(event.reason.toString(), event.type.toString());
 };
 window.onerror = (message, source, lineno, colno, error) => {
-  recordExecption(message.toString,error.toString());
+  recordExecption(message.toString, error.toString());
 };
 SplashScreen.hide();
 const container = document.getElementById("root");

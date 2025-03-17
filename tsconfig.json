@@ -20,6 +20,7 @@
     "noEmit": true,
     "noImplicitAny": false,
     "strictPropertyInitialization": false,
+    "types": ["lido-player"],
     "jsx": "react-jsx"
   },
   "include": [
