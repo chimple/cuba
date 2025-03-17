@@ -78,7 +78,7 @@ import { Database } from "../database";
 export class FirebaseApi implements ServiceApi {
   public static i: FirebaseApi;
   private _db = getFirestore();
-  private _currentStudent: TableTypes<"user"> | undefined;
+  private _currentStudent: ORUser | undefined;
   private _currentClass: Class | undefined;
   private _currentSchool: School | undefined;
   private _subjectsCache: { [key: string]: Subject } = {};
@@ -199,7 +199,7 @@ export class FirebaseApi implements ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined
-  ): Promise<TableTypes<"user">> {
+  ): Promise<ORUser> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
@@ -428,7 +428,7 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
-  public async getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
+  public async getParentStudentProfiles(): Promise<ORUser[]> {
     try {
       const authHandler = ServiceConfig.getI()?.authHandler;
       const isUserLoggedIn = await authHandler?.isUserLoggedIn();
@@ -1400,7 +1400,7 @@ export class FirebaseApi implements ServiceApi {
       return [];
     }
   }
-  async getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
+  async getStudentsForClass(classId: string): Promise<ORUser[]> {
     try {
       const students: User[] = [];
       const classConnectionDoc = await getDoc(
@@ -1619,7 +1619,7 @@ export class FirebaseApi implements ServiceApi {
 
   public async getUserByDocId(
     studentId: string
-  ): Promise<TableTypes<"user"> | undefined> {
+  ): Promise<ORUser | undefined> {
     throw new Error("Method not implemented.");
     try {
       console.log("getUserByDocId called");
@@ -1734,10 +1734,10 @@ export class FirebaseApi implements ServiceApi {
     );
     await deleteAllUserDataFunction();
   }
-  get currentStudent(): TableTypes<"user"> | undefined {
+  get currentStudent(): ORUser | undefined {
     return this._currentStudent;
   }
-  set currentStudent(value: TableTypes<"user"> | undefined) {
+  set currentStudent(value: ORUser | undefined) {
     this._currentStudent = value;
   }
   get currentClass(): TableTypes<"class"> | undefined {

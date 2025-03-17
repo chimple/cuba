@@ -38,6 +38,7 @@ import { RoleType } from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
 import { Table } from "@mui/material";
 import ApiDataProcessor from "./ApiDataProcessor";
+import ORUser from "../../models/OneRoster/ORUser";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -47,7 +48,7 @@ export class SqliteApi implements ServiceApi {
   private DB_VERSION = 1;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
-  private _currentStudent: TableTypes<"user"> | undefined;
+  private _currentStudent: ORUser | undefined;
   private _currentClass: TableTypes<"class"> | undefined;
   private _currentSchool: TableTypes<"school"> | undefined;
   private _currentCourse:
@@ -245,7 +246,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -457,107 +458,108 @@ export class SqliteApi implements ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined
-  ): Promise<TableTypes<"user">> {
-    const _currentUser =
-      await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!_currentUser) throw "User is not Logged in";
-    const studentId = uuidv4();
-    const newStudent: TableTypes<"user"> = {
-      id: studentId,
-      name,
-      age: age ?? null,
-      gender: gender ?? null,
-      avatar: avatar ?? null,
-      image: image ?? null,
-      curriculum_id: boardDocId ?? null,
-      grade_id: gradeDocId ?? null,
-      language_id: languageDocId ?? null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_deleted: false,
-      is_tc_accepted: true,
-      email: null,
-      phone: null,
-      fcm_token: null,
-      music_off: false,
-      sfx_off: false,
-      student_id: null,
-    };
+  ): Promise<ORUser> {
+    throw new Error("Method not implemented.");
+    //   const _currentUser =
+    //     await ServiceConfig.getI().authHandler.getCurrentUser();
+    //   if (!_currentUser) throw "User is not Logged in";
+    //   const studentId = uuidv4();
+    //   const newStudent: ORUser = {
+    //     id: studentId,
+    //     name,
+    //     age: age ?? null,
+    //     gender: gender ?? null,
+    //     avatar: avatar ?? null,
+    //     image: image ?? null,
+    //     curriculum_id: boardDocId ?? null,
+    //     grade_id: gradeDocId ?? null,
+    //     language_id: languageDocId ?? null,
+    //     created_at: new Date().toISOString(),
+    //     updated_at: new Date().toISOString(),
+    //     is_deleted: false,
+    //     is_tc_accepted: true,
+    //     email: null,
+    //     phone: null,
+    //     fcm_token: null,
+    //     music_off: false,
+    //     sfx_off: false,
+    //     student_id: null,
+    //   };
 
-    await this.executeQuery(
-      `
-      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-      `,
-      [
-        newStudent.id,
-        newStudent.name,
-        newStudent.age,
-        newStudent.gender,
-        newStudent.avatar,
-        newStudent.image,
-        newStudent.curriculum_id,
-        newStudent.grade_id,
-        newStudent.language_id,
-        newStudent.created_at,
-        newStudent.updated_at,
-      ]
-    );
+    //   await this.executeQuery(
+    //     `
+    //     INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at)
+    //     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    //     `,
+    //     [
+    //       newStudent.id,
+    //       newStudent.name,
+    //       newStudent.age,
+    //       newStudent.gender,
+    //       newStudent.avatar,
+    //       newStudent.image,
+    //       newStudent.curriculum_id,
+    //       newStudent.grade_id,
+    //       newStudent.language_id,
+    //       newStudent.created_at,
+    //       newStudent.updated_at,
+    //     ]
+    //   );
 
-    const parentUserId = uuidv4();
-    await this.executeQuery(
-      `
-      INSERT INTO parent_user (id, parent_id, student_id, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?);
-      `,
-      [
-        parentUserId,
-        _currentUser.id,
-        studentId,
-        new Date().toISOString(),
-        new Date().toISOString(),
-      ]
-    );
+    //   const parentUserId = uuidv4();
+    //   await this.executeQuery(
+    //     `
+    //     INSERT INTO parent_user (id, parent_id, student_id, created_at, updated_at)
+    //     VALUES (?, ?, ?, ?, ?);
+    //     `,
+    //     [
+    //       parentUserId,
+    //       _currentUser.id,
+    //       studentId,
+    //       new Date().toISOString(),
+    //       new Date().toISOString(),
+    //     ]
+    //   );
 
-    let courses;
-    if (gradeDocId && boardDocId) {
-      courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
-    }
+    //   let courses;
+    //   if (gradeDocId && boardDocId) {
+    //     courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
+    //   }
 
-    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
-    await this.updatePushChanges(TABLES.ParentUser, MUTATE_TYPES.INSERT, {
-      id: parentUserId,
-      parent_id: _currentUser.id,
-      student_id: studentId,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_deleted: false,
-    });
+    //   await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
+    //   await this.updatePushChanges(TABLES.ParentUser, MUTATE_TYPES.INSERT, {
+    //     id: parentUserId,
+    //     parent_id: _currentUser.id,
+    //     student_id: studentId,
+    //     created_at: new Date().toISOString(),
+    //     updated_at: new Date().toISOString(),
+    //     is_deleted: false,
+    //   });
 
-    for (const course of courses) {
-      const newUserCourse: TableTypes<"user_course"> = {
-        course_id: course.id,
-        created_at: new Date().toISOString(),
-        id: uuidv4(),
-        is_deleted: false,
-        updated_at: new Date().toISOString(),
-        user_id: studentId,
-      };
-      await this.executeQuery(
-        `
-      INSERT INTO user_course (id, user_id, course_id)
-    VALUES (?, ?, ?);
-  `,
-        [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
-      );
-      this.updatePushChanges(
-        TABLES.UserCourse,
-        MUTATE_TYPES.INSERT,
-        newUserCourse
-      );
-    }
+    //   for (const course of courses) {
+    //     const newUserCourse: TableTypes<"user_course"> = {
+    //       course_id: course.id,
+    //       created_at: new Date().toISOString(),
+    //       id: uuidv4(),
+    //       is_deleted: false,
+    //       updated_at: new Date().toISOString(),
+    //       user_id: studentId,
+    //     };
+    //     await this.executeQuery(
+    //       `
+    //     INSERT INTO user_course (id, user_id, course_id)
+    //   VALUES (?, ?, ?);
+    // `,
+    //       [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
+    //     );
+    //     this.updatePushChanges(
+    //       TABLES.UserCourse,
+    //       MUTATE_TYPES.INSERT,
+    //       newUserCourse
+    //     );
+    //   }
 
-    return newStudent;
+    //   return newStudent;
   }
   async createSchool(
     name: string,
@@ -693,84 +695,85 @@ export class SqliteApi implements ServiceApi {
     classId: string,
     role: "student",
     studentId: string
-  ): Promise<TableTypes<"user">> {
-    const _currentUser =
-      await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!_currentUser) throw "User is not Logged in";
+  ): Promise<ORUser> {
+    throw new Error("Method not implemented.");
+    // const _currentUser =
+    //   await ServiceConfig.getI().authHandler.getCurrentUser();
+    // if (!_currentUser) throw "User is not Logged in";
 
-    const userId = uuidv4();
-    const newStudent: TableTypes<"user"> = {
-      id: userId,
-      name,
-      age: age ?? null,
-      gender: gender ?? null,
-      avatar: avatar ?? null,
-      image: image ?? null,
-      curriculum_id: boardDocId ?? null,
-      grade_id: gradeDocId ?? null,
-      language_id: languageDocId ?? null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_deleted: false,
-      is_tc_accepted: true,
-      email: null,
-      phone: null,
-      fcm_token: null,
-      music_off: false,
-      sfx_off: false,
-      student_id: studentId ?? null,
-    };
-    // Insert into user table
-    await this.executeQuery(
-      `
-      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at, student_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-      `,
-      [
-        newStudent.id,
-        newStudent.name,
-        newStudent.age,
-        newStudent.gender,
-        newStudent.avatar,
-        newStudent.image,
-        newStudent.curriculum_id,
-        newStudent.grade_id,
-        newStudent.language_id,
-        newStudent.created_at,
-        newStudent.updated_at,
-        newStudent.student_id,
-      ]
-    );
-    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
-    // Insert into class_user table
-    const classUserId = uuidv4();
-    const newClassUser: TableTypes<"class_user"> = {
-      id: classUserId,
-      class_id: classId,
-      user_id: userId,
-      role: role,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_deleted: false,
-    };
+    // const userId = uuidv4();
+    // const newStudent: ORUser = {
+    //   id: userId,
+    //   name,
+    //   age: age ?? null,
+    //   gender: gender ?? null,
+    //   avatar: avatar ?? null,
+    //   image: image ?? null,
+    //   curriculum_id: boardDocId ?? null,
+    //   grade_id: gradeDocId ?? null,
+    //   language_id: languageDocId ?? null,
+    //   created_at: new Date().toISOString(),
+    //   updated_at: new Date().toISOString(),
+    //   is_deleted: false,
+    //   is_tc_accepted: true,
+    //   email: null,
+    //   phone: null,
+    //   fcm_token: null,
+    //   music_off: false,
+    //   sfx_off: false,
+    //   student_id: studentId ?? null,
+    // };
+    // // Insert into user table
+    // await this.executeQuery(
+    //   `
+    //   INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at, student_id)
+    //   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    //   `,
+    //   [
+    //     newStudent.id,
+    //     newStudent.name,
+    //     newStudent.age,
+    //     newStudent.gender,
+    //     newStudent.avatar,
+    //     newStudent.image,
+    //     newStudent.curriculum_id,
+    //     newStudent.grade_id,
+    //     newStudent.language_id,
+    //     newStudent.created_at,
+    //     newStudent.updated_at,
+    //     newStudent.student_id,
+    //   ]
+    // );
+    // await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
+    // // Insert into class_user table
+    // const classUserId = uuidv4();
+    // const newClassUser: TableTypes<"class_user"> = {
+    //   id: classUserId,
+    //   class_id: classId,
+    //   user_id: userId,
+    //   role: role,
+    //   created_at: new Date().toISOString(),
+    //   updated_at: new Date().toISOString(),
+    //   is_deleted: false,
+    // };
 
-    await this.executeQuery(
-      `
-      INSERT INTO class_user (id, class_id, user_id, role, created_at, updated_at, is_deleted)
-      VALUES (?, ?, ?, ?, ?, ?, ?);
-      `,
-      [
-        newClassUser.id,
-        newClassUser.class_id,
-        newClassUser.user_id,
-        newClassUser.role,
-        newClassUser.created_at,
-        newClassUser.updated_at,
-        newClassUser.is_deleted,
-      ]
-    );
-    this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.INSERT, newClassUser);
-    return newStudent;
+    // await this.executeQuery(
+    //   `
+    //   INSERT INTO class_user (id, class_id, user_id, role, created_at, updated_at, is_deleted)
+    //   VALUES (?, ?, ?, ?, ?, ?, ?);
+    //   `,
+    //   [
+    //     newClassUser.id,
+    //     newClassUser.class_id,
+    //     newClassUser.user_id,
+    //     newClassUser.role,
+    //     newClassUser.created_at,
+    //     newClassUser.updated_at,
+    //     newClassUser.is_deleted,
+    //   ]
+    // );
+    // this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.INSERT, newClassUser);
+    // return newStudent;
   }
 
   async updateSchoolCourseSelection(
@@ -1165,7 +1168,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async subscribeToClassTopic(): Promise<void> {
-    var students: TableTypes<"user">[] = await this.getParentStudentProfiles();
+    var students: ORUser[] = await this.getParentStudentProfiles();
     for (const student of students) {
       const linkedData = await this.getStudentClassesAndSchools(student.id);
       if (
@@ -1181,7 +1184,7 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
-  async getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
+  async getParentStudentProfiles(): Promise<ORUser[]> {
     if (!this._db) throw "Db is not initialized";
     const authHandler = ServiceConfig.getI()?.authHandler;
     const currentUser = await authHandler?.getCurrentUser();
@@ -1196,11 +1199,11 @@ export class SqliteApi implements ServiceApi {
     return res.values ?? [];
   }
 
-  get currentStudent(): TableTypes<"user"> | undefined {
+  get currentStudent(): ORUser | undefined {
     return this._currentStudent;
   }
 
-  set currentStudent(value: TableTypes<"user"> | undefined) {
+  set currentStudent(value: ORUser | undefined) {
     this._currentStudent = value;
   }
 
@@ -1571,54 +1574,55 @@ export class SqliteApi implements ServiceApi {
   }
 
   async updateUserProfile(
-    user: TableTypes<"user">,
+    user: ORUser,
     fullName: string,
     email: string,
     phoneNum: string,
     languageDocId: string,
     profilePic: string | undefined
-  ): Promise<TableTypes<"user">> {
-    const updateUserProfileQuery = `
-      UPDATE "user"
-      SET 
-        name = ?,
-        email = ?,
-        phone = ?,
-        language_id = ?,
-        image = ?
-      WHERE id = ?;
-    `;
+  ): Promise<ORUser> {
+    throw new Error("Method not implemented.");
+    // const updateUserProfileQuery = `
+    //   UPDATE "user"
+    //   SET 
+    //     name = ?,
+    //     email = ?,
+    //     phone = ?,
+    //     language_id = ?,
+    //     image = ?
+    //   WHERE id = ?;
+    // `;
 
-    await this.executeQuery(updateUserProfileQuery, [
-      fullName,
-      email,
-      phoneNum,
-      languageDocId,
-      profilePic ?? null,
-      user.id,
-    ]);
+    // await this.executeQuery(updateUserProfileQuery, [
+    //   fullName,
+    //   email,
+    //   phoneNum,
+    //   languageDocId,
+    //   profilePic ?? null,
+    //   user.id,
+    // ]);
 
-    // Update the user object with new details
-    user.name = fullName;
-    user.email = email;
-    user.phone = phoneNum;
-    user.language_id = languageDocId;
-    user.image = profilePic ?? null;
+    // // Update the user object with new details
+    // user.name = fullName;
+    // user.email = email;
+    // user.phone = phoneNum;
+    // user.language_id = languageDocId;
+    // user.image = profilePic ?? null;
 
-    // Push changes for synchronization
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
-      name: fullName,
-      email: email,
-      phone: phoneNum,
-      language_id: languageDocId,
-      image: profilePic ?? null,
-      id: user.id,
-    });
-    return user;
+    // // Push changes for synchronization
+    // this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+    //   name: fullName,
+    //   email: email,
+    //   phone: phoneNum,
+    //   language_id: languageDocId,
+    //   image: profilePic ?? null,
+    //   id: user.id,
+    // });
+    // return user;
   }
 
   async updateStudent(
-    student: TableTypes<"user">,
+    student: ORUser,
     name: string,
     age: number,
     gender: string,
@@ -1627,99 +1631,100 @@ export class SqliteApi implements ServiceApi {
     boardDocId: string,
     gradeDocId: string,
     languageDocId: string
-  ): Promise<TableTypes<"user">> {
-    const updateUserQuery = `
-      UPDATE "user"
-      SET 
-        name = ?,
-        age = ?,
-        gender = ?,
-        avatar = ?,
-        image = ?,
-        curriculum_id = ?,
-        grade_id = ?,
-        language_id = ?
-      WHERE id = ?;
-    `;
+  ): Promise<ORUser> {
+    throw new Error("Method not implemented.");
+    // const updateUserQuery = `
+    //   UPDATE "user"
+    //   SET 
+    //     name = ?,
+    //     age = ?,
+    //     gender = ?,
+    //     avatar = ?,
+    //     image = ?,
+    //     curriculum_id = ?,
+    //     grade_id = ?,
+    //     language_id = ?
+    //   WHERE id = ?;
+    // `;
 
-    await this.executeQuery(updateUserQuery, [
-      name,
-      age,
-      gender,
-      avatar,
-      image ?? null,
-      boardDocId,
-      gradeDocId,
-      languageDocId,
-      student.id,
-    ]);
+    // await this.executeQuery(updateUserQuery, [
+    //   name,
+    //   age,
+    //   gender,
+    //   avatar,
+    //   image ?? null,
+    //   boardDocId,
+    //   gradeDocId,
+    //   languageDocId,
+    //   student.id,
+    // ]);
 
-    let courses;
-    if (gradeDocId && boardDocId) {
-      courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
-    }
-    // Update student object with new details
-    student.name = name;
-    student.age = age;
-    student.gender = gender;
-    student.avatar = avatar;
-    student.image = image ?? null;
-    student.curriculum_id = boardDocId;
-    student.grade_id = gradeDocId;
-    student.language_id = languageDocId;
+    // let courses;
+    // if (gradeDocId && boardDocId) {
+    //   courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
+    // }
+    // // Update student object with new details
+    // student.name = name;
+    // student.age = age;
+    // student.gender = gender;
+    // student.avatar = avatar;
+    // student.image = image ?? null;
+    // student.curriculum_id = boardDocId;
+    // student.grade_id = gradeDocId;
+    // student.language_id = languageDocId;
 
-    if (courses && courses.length > 0) {
-      const now = new Date().toISOString();
-      for (const course of courses) {
-        const checkCourseExistsQuery = `
-          SELECT COUNT(*) as count FROM user_course WHERE user_id = ? AND course_id = ?;
-        `;
+    // if (courses && courses.length > 0) {
+    //   const now = new Date().toISOString();
+    //   for (const course of courses) {
+    //     const checkCourseExistsQuery = `
+    //       SELECT COUNT(*) as count FROM user_course WHERE user_id = ? AND course_id = ?;
+    //     `;
 
-        let result;
-        result = await this.executeQuery(checkCourseExistsQuery, [
-          student.id,
-          course.id,
-        ]);
+    //     let result;
+    //     result = await this.executeQuery(checkCourseExistsQuery, [
+    //       student.id,
+    //       course.id,
+    //     ]);
 
-        const count = result.values[0].count;
-        if (count === 0) {
-          const newUserCourse: TableTypes<"user_course"> = {
-            course_id: course.id,
-            created_at: now,
-            id: uuidv4(),
-            is_deleted: false,
-            updated_at: now,
-            user_id: student.id,
-          };
-          await this.executeQuery(
-            `
-            INSERT INTO user_course (id, user_id, course_id)
-            VALUES (?, ?, ?);
-            `,
-            [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
-          );
+    //     const count = result.values[0].count;
+    //     if (count === 0) {
+    //       const newUserCourse: TableTypes<"user_course"> = {
+    //         course_id: course.id,
+    //         created_at: now,
+    //         id: uuidv4(),
+    //         is_deleted: false,
+    //         updated_at: now,
+    //         user_id: student.id,
+    //       };
+    //       await this.executeQuery(
+    //         `
+    //         INSERT INTO user_course (id, user_id, course_id)
+    //         VALUES (?, ?, ?);
+    //         `,
+    //         [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
+    //       );
 
-          this.updatePushChanges(
-            TABLES.UserCourse,
-            MUTATE_TYPES.INSERT,
-            newUserCourse
-          );
-        }
-      }
-    }
+    //       this.updatePushChanges(
+    //         TABLES.UserCourse,
+    //         MUTATE_TYPES.INSERT,
+    //         newUserCourse
+    //       );
+    //     }
+    //   }
+    // }
 
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
-      name: name,
-      age: age,
-      gender: gender,
-      avatar: avatar,
-      image: image ?? null,
-      curriculum_id: boardDocId,
-      grade_id: gradeDocId,
-      language_id: languageDocId,
-      id: student.id,
-    });
-    return student;
+    // this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+    //   name: name,
+    //   age: age,
+    //   gender: gender,
+    //   avatar: avatar,
+    //   image: image ?? null,
+    //   curriculum_id: boardDocId,
+    //   grade_id: gradeDocId,
+    //   language_id: languageDocId,
+    //   id: student.id,
+    // });
+    // return student;
   }
 
   async getCurrentClassIdForStudent(studentId: string): Promise<string | null> {
@@ -1739,7 +1744,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async updateStudentFromSchoolMode(
-    student: TableTypes<"user">,
+    student: ORUser,
     name: string,
     age: number,
     gender: string,
@@ -1750,117 +1755,118 @@ export class SqliteApi implements ServiceApi {
     languageDocId: string,
     student_id: string,
     newClassId: string
-  ): Promise<TableTypes<"user">> {
-    console.log("fsgdgdfg", name, newClassId);
-    const updateUserQuery = `
-      UPDATE "user"
-      SET 
-        name = ?,
-        age = ?,
-        gender = ?,
-        avatar = ?,
-        image = ?,
-        curriculum_id = ?,
-        grade_id = ?,
-        language_id = ?,
-        student_id = ?
-      WHERE id = ?;
-    `;
-    try {
-      await this.executeQuery(updateUserQuery, [
-        name,
-        age,
-        gender,
-        avatar,
-        image ?? null,
-        boardDocId,
-        gradeDocId,
-        languageDocId,
-        student_id,
-        student.id,
-      ]);
+  ): Promise<ORUser> {
+    throw new Error("Method not implemented.");
+    // console.log("fsgdgdfg", name, newClassId);
+    // const updateUserQuery = `
+    //   UPDATE "user"
+    //   SET 
+    //     name = ?,
+    //     age = ?,
+    //     gender = ?,
+    //     avatar = ?,
+    //     image = ?,
+    //     curriculum_id = ?,
+    //     grade_id = ?,
+    //     language_id = ?,
+    //     student_id = ?
+    //   WHERE id = ?;
+    // `;
+    // try {
+    //   await this.executeQuery(updateUserQuery, [
+    //     name,
+    //     age,
+    //     gender,
+    //     avatar,
+    //     image ?? null,
+    //     boardDocId,
+    //     gradeDocId,
+    //     languageDocId,
+    //     student_id,
+    //     student.id,
+    //   ]);
 
-      student.name = name;
-      student.age = age;
-      student.gender = gender;
-      student.avatar = avatar;
-      student.image = image ?? null;
-      student.curriculum_id = boardDocId;
-      student.grade_id = gradeDocId;
-      student.language_id = languageDocId;
-      student.student_id = student_id;
+    //   student.name = name;
+    //   student.age = age;
+    //   student.gender = gender;
+    //   student.avatar = avatar;
+    //   student.image = image ?? null;
+    //   student.curriculum_id = boardDocId;
+    //   student.grade_id = gradeDocId;
+    //   student.language_id = languageDocId;
+    //   student.student_id = student_id;
 
-      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
-        name,
-        age,
-        gender,
-        avatar,
-        image: image ?? null,
-        curriculum_id: boardDocId,
-        grade_id: gradeDocId,
-        language_id: languageDocId,
-        student_id: student_id,
-        id: student.id,
-      });
+    //   this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+    //     name,
+    //     age,
+    //     gender,
+    //     avatar,
+    //     image: image ?? null,
+    //     curriculum_id: boardDocId,
+    //     grade_id: gradeDocId,
+    //     language_id: languageDocId,
+    //     student_id: student_id,
+    //     id: student.id,
+    //   });
 
-      // Check if the class has changed
-      // const currentClassId = await this.getCurrentClassIdForStudent(student.id); // Assume this function retrieves the current class ID
-      const currentClassId = Util.getCurrentClass();
-      console.log("fdsfsf", currentClassId, newClassId);
-      if (currentClassId?.id !== newClassId) {
-        // Update class_user table to set previous record as deleted
-        const deleteOldClassUserQuery = `
-          UPDATE class_user
-          SET is_deleted = 1, updated_at = ?
-          WHERE user_id = ? AND is_deleted = 0;
-        `;
-        const now = new Date().toISOString();
-        await this.executeQuery(deleteOldClassUserQuery, [now, student.id]);
-        // Push changes for the update (marking the old class_user as deleted)
-        this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
-          user_id: student.id,
-          is_deleted: true,
-          updated_at: now,
-        });
-        // Create new class_user entry
-        const newClassUserId = uuidv4();
-        const newClassUser: TableTypes<"class_user"> = {
-          id: newClassUserId,
-          class_id: newClassId,
-          user_id: student.id,
-          role: "student",
-          created_at: now,
-          updated_at: now,
-          is_deleted: false,
-        };
+    //   // Check if the class has changed
+    //   // const currentClassId = await this.getCurrentClassIdForStudent(student.id); // Assume this function retrieves the current class ID
+    //   const currentClassId = Util.getCurrentClass();
+    //   console.log("fdsfsf", currentClassId, newClassId);
+    //   if (currentClassId?.id !== newClassId) {
+    //     // Update class_user table to set previous record as deleted
+    //     const deleteOldClassUserQuery = `
+    //       UPDATE class_user
+    //       SET is_deleted = 1, updated_at = ?
+    //       WHERE user_id = ? AND is_deleted = 0;
+    //     `;
+    //     const now = new Date().toISOString();
+    //     await this.executeQuery(deleteOldClassUserQuery, [now, student.id]);
+    //     // Push changes for the update (marking the old class_user as deleted)
+    //     this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
+    //       user_id: student.id,
+    //       is_deleted: true,
+    //       updated_at: now,
+    //     });
+    //     // Create new class_user entry
+    //     const newClassUserId = uuidv4();
+    //     const newClassUser: TableTypes<"class_user"> = {
+    //       id: newClassUserId,
+    //       class_id: newClassId,
+    //       user_id: student.id,
+    //       role: "student",
+    //       created_at: now,
+    //       updated_at: now,
+    //       is_deleted: false,
+    //     };
 
-        await this.executeQuery(
-          `
-            INSERT INTO class_user (id, class_id, user_id, role, created_at, updated_at, is_deleted)
-            VALUES (?, ?, ?, ?, ?, ?, ?);
-            `,
-          [
-            newClassUser.id,
-            newClassUser.class_id,
-            newClassUser.user_id,
-            newClassUser.role,
-            newClassUser.created_at,
-            newClassUser.updated_at,
-            newClassUser.is_deleted,
-          ]
-        );
-        this.updatePushChanges(
-          TABLES.ClassUser,
-          MUTATE_TYPES.INSERT,
-          newClassUser
-        );
-      }
+    //     await this.executeQuery(
+    //       `
+    //         INSERT INTO class_user (id, class_id, user_id, role, created_at, updated_at, is_deleted)
+    //         VALUES (?, ?, ?, ?, ?, ?, ?);
+    //         `,
+    //       [
+    //         newClassUser.id,
+    //         newClassUser.class_id,
+    //         newClassUser.user_id,
+    //         newClassUser.role,
+    //         newClassUser.created_at,
+    //         newClassUser.updated_at,
+    //         newClassUser.is_deleted,
+    //       ]
+    //     );
+    //     this.updatePushChanges(
+    //       TABLES.ClassUser,
+    //       MUTATE_TYPES.INSERT,
+    //       newClassUser
+    //     );
+    //   }
 
-      return student;
-    } catch (error) {
-      console.error("Error updating student:", error);
-      throw error; // Rethrow error after logging
-    }
+    //   return student;
+    // } catch (error) {
+    //   console.error("Error updating student:", error);
+    //   throw error; // Rethrow error after logging
+    // }
   }
 
   async getSubject(id: string): Promise<TableTypes<"subject"> | undefined> {
@@ -2219,7 +2225,7 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
-  async getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
+  async getStudentsForClass(classId: string): Promise<ORUser[]> {
     const query = `
       SELECT user.*
       FROM ${TABLES.ClassUser} AS cu
@@ -2709,12 +2715,13 @@ export class SqliteApi implements ServiceApi {
   async getStudentResultsByAssignmentId(assignmentId: string): Promise<
     {
       result_data: TableTypes<"result">[];
-      user_data: TableTypes<"user">[];
+      user_data: ORUser[];
     }[]
   > {
-    const res =
-      await this._serverApi.getStudentResultsByAssignmentId(assignmentId);
-    return res;
+    throw new Error("Method not implemented.");
+    // const res =
+    //   await this._serverApi.getStudentResultsByAssignmentId(assignmentId);
+    // return res;
   }
 
   async getAssignmentById(
@@ -2867,7 +2874,7 @@ export class SqliteApi implements ServiceApi {
 
   async getUserByDocId(
     studentId: string
-  ): Promise<TableTypes<"user"> | undefined> {
+  ): Promise<ORUser | undefined> {
     const res = await this._db?.query(
       `select * from ${TABLES.User} where id = "${studentId}"`
     );
@@ -2877,7 +2884,7 @@ export class SqliteApi implements ServiceApi {
 
   async addCourseForParentsStudent(
     courses: TableTypes<"course">[],
-    student: TableTypes<"user">
+    student: ORUser
   ) {
     const courseIds = courses?.map((course) => course.id);
     for (const courseId of courseIds) {
@@ -3155,27 +3162,28 @@ export class SqliteApi implements ServiceApi {
   }
 
   async createUserDoc(
-    user: TableTypes<"user">
-  ): Promise<TableTypes<"user"> | undefined> {
-    await this.executeQuery(
-      `
-      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-      `,
-      [
-        user.id,
-        user.name,
-        user.age,
-        user.gender,
-        user.avatar,
-        user.image,
-        user.curriculum_id,
-        user.language_id,
-      ]
-    );
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, user);
+    user: ORUser
+  ): Promise<ORUser | undefined> {
+    throw new Error("Method not implemented.");
+    // await this.executeQuery(
+    //   `
+    //   INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id)
+    //   VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+    //   `,
+    //   [
+    //     user.id,
+    //     user.name,
+    //     user.age,
+    //     user.gender,
+    //     user.avatar,
+    //     user.image,
+    //     user.curriculum_id,
+    //     user.language_id,
+    //   ]
+    // );
+    // this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, user);
 
-    return user;
+    // return user;
   }
 
   async syncDB(): Promise<boolean> {
@@ -3657,7 +3665,7 @@ order by
 
   async getTeachersForClass(
     classId: string
-  ): Promise<TableTypes<"user">[] | undefined> {
+  ): Promise<ORUser[] | undefined> {
     const query = `
     SELECT user.*
     FROM ${TABLES.ClassUser} AS cu
@@ -3668,70 +3676,73 @@ order by
     return res?.values ?? [];
   }
 
-  async getUserByEmail(email: string): Promise<TableTypes<"user"> | undefined> {
-    return this._serverApi.getUserByEmail(email);
+  async getUserByEmail(email: string): Promise<ORUser | undefined> {
+    throw new Error("Method not implemented.");
+    // return this._serverApi.getUserByEmail(email);
   }
 
   async getUserByPhoneNumber(
     phone: string
-  ): Promise<TableTypes<"user"> | undefined> {
-    return this._serverApi.getUserByPhoneNumber(phone);
+  ): Promise<ORUser | undefined> {
+    throw new Error("Method not implemented.");
+    // return this._serverApi.getUserByPhoneNumber(phone);
   }
   async addTeacherToClass(classId: string, userId: string): Promise<void> {
-    const classUserId = uuidv4();
-    const classUser = {
-      id: classUserId,
-      class_id: classId,
-      user_id: userId,
-      role: RoleType.TEACHER,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_deleted: false,
-    };
+    throw new Error("Method not implemented.");
+    // const classUserId = uuidv4();
+    // const classUser = {
+    //   id: classUserId,
+    //   class_id: classId,
+    //   user_id: userId,
+    //   role: RoleType.TEACHER,
+    //   created_at: new Date().toISOString(),
+    //   updated_at: new Date().toISOString(),
+    //   is_deleted: false,
+    // };
 
-    await this.executeQuery(
-      `
-    INSERT INTO class_user (id, class_id, user_id, role, created_at, updated_at, is_deleted)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-    `,
-      [
-        classUser.id,
-        classUser.class_id,
-        classUser.user_id,
-        classUser.role,
-        classUser.created_at,
-        classUser.updated_at,
-        classUser.is_deleted,
-      ]
-    );
+    // await this.executeQuery(
+    //   `
+    // INSERT INTO class_user (id, class_id, user_id, role, created_at, updated_at, is_deleted)
+    // VALUES (?, ?, ?, ?, ?, ?, ?)
+    // `,
+    //   [
+    //     classUser.id,
+    //     classUser.class_id,
+    //     classUser.user_id,
+    //     classUser.role,
+    //     classUser.created_at,
+    //     classUser.updated_at,
+    //     classUser.is_deleted,
+    //   ]
+    // );
 
-    await this.updatePushChanges(
-      TABLES.ClassUser,
-      MUTATE_TYPES.INSERT,
-      classUser
-    );
-    var user_doc = await this._serverApi.getUserByDocId(userId);
-    if (user_doc) {
-      await this.executeQuery(
-        `
-        INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id,created_at,updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT (id) DO NOTHING;
-        `,
-        [
-          user_doc.id,
-          user_doc.name,
-          user_doc.age,
-          user_doc.gender,
-          user_doc.avatar,
-          user_doc.image,
-          user_doc.curriculum_id,
-          user_doc.language_id,
-          user_doc.created_at,
-          user_doc.updated_at,
-        ]
-      );
-    }
+    // await this.updatePushChanges(
+    //   TABLES.ClassUser,
+    //   MUTATE_TYPES.INSERT,
+    //   classUser
+    // );
+    // var user_doc = await this._serverApi.getUserByDocId(userId);
+    // if (user_doc) {
+    //   await this.executeQuery(
+    //     `
+    //     INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id,created_at,updated_at)
+    //     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    //     ON CONFLICT (id) DO NOTHING;
+    //     `,
+    //     [
+    //       user_doc.id,
+    //       user_doc.name,
+    //       user_doc.age,
+    //       user_doc.gender,
+    //       user_doc.avatar,
+    //       user_doc.image,
+    //       user_doc.curriculum_id,
+    //       user_doc.language_id,
+    //       user_doc.created_at,
+    //       user_doc.updated_at,
+    //     ]
+    //   );
+    // }
   }
 
   async checkUserExistInSchool(
@@ -3936,7 +3947,7 @@ order by
 
   async getPrincipalsForSchool(
     schoolId: string
-  ): Promise<TableTypes<"user">[] | undefined> {
+  ): Promise<ORUser[] | undefined> {
     const query = `
     SELECT user.*
     FROM ${TABLES.SchoolUser} AS su
@@ -3949,7 +3960,7 @@ order by
 
   async getCoordinatorsForSchool(
     schoolId: string
-  ): Promise<TableTypes<"user">[] | undefined> {
+  ): Promise<ORUser[] | undefined> {
     const query = `
     SELECT user.*
     FROM ${TABLES.SchoolUser} AS su
@@ -3962,7 +3973,7 @@ order by
 
   async getSponsorsForSchool(
     schoolId: string
-  ): Promise<TableTypes<"user">[] | undefined> {
+  ): Promise<ORUser[] | undefined> {
     const query = `
     SELECT user.*
     FROM ${TABLES.SchoolUser} AS su
@@ -3978,60 +3989,60 @@ order by
     userId: string,
     role: RoleType
   ): Promise<void> {
-    const schoolUserId = uuidv4();
-    const schoolUser = {
-      id: schoolUserId,
-      school_id: schoolId,
-      user_id: userId,
-      role: role,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      is_deleted: false,
-    };
+    // const schoolUserId = uuidv4();
+    // const schoolUser = {
+    //   id: schoolUserId,
+    //   school_id: schoolId,
+    //   user_id: userId,
+    //   role: role,
+    //   created_at: new Date().toISOString(),
+    //   updated_at: new Date().toISOString(),
+    //   is_deleted: false,
+    // };
 
-    await this.executeQuery(
-      `
-    INSERT INTO school_user (id, school_id, user_id, role, created_at, updated_at, is_deleted)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-    `,
-      [
-        schoolUser.id,
-        schoolUser.school_id,
-        schoolUser.user_id,
-        schoolUser.role,
-        schoolUser.created_at,
-        schoolUser.updated_at,
-        schoolUser.is_deleted,
-      ]
-    );
+    // await this.executeQuery(
+    //   `
+    // INSERT INTO school_user (id, school_id, user_id, role, created_at, updated_at, is_deleted)
+    // VALUES (?, ?, ?, ?, ?, ?, ?)
+    // `,
+    //   [
+    //     schoolUser.id,
+    //     schoolUser.school_id,
+    //     schoolUser.user_id,
+    //     schoolUser.role,
+    //     schoolUser.created_at,
+    //     schoolUser.updated_at,
+    //     schoolUser.is_deleted,
+    //   ]
+    // );
 
-    await this.updatePushChanges(
-      TABLES.SchoolUser,
-      MUTATE_TYPES.INSERT,
-      schoolUser
-    );
-    var user_doc = await this._serverApi.getUserByDocId(userId);
-    if (user_doc) {
-      await this.executeQuery(
-        `
-        INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id,created_at,updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT (id) DO NOTHING;
-        `,
-        [
-          user_doc.id,
-          user_doc.name,
-          user_doc.age,
-          user_doc.gender,
-          user_doc.avatar,
-          user_doc.image,
-          user_doc.curriculum_id,
-          user_doc.language_id,
-          user_doc.created_at,
-          user_doc.updated_at,
-        ]
-      );
-    }
+    // await this.updatePushChanges(
+    //   TABLES.SchoolUser,
+    //   MUTATE_TYPES.INSERT,
+    //   schoolUser
+    // );
+    // var user_doc = await this._serverApi.getUserByDocId(userId);
+    // if (user_doc) {
+    //   await this.executeQuery(
+    //     `
+    //     INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id,created_at,updated_at)
+    //     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    //     ON CONFLICT (id) DO NOTHING;
+    //     `,
+    //     [
+    //       user_doc.id,
+    //       user_doc.name,
+    //       user_doc.age,
+    //       user_doc.gender,
+    //       user_doc.avatar,
+    //       user_doc.image,
+    //       user_doc.curriculum_id,
+    //       user_doc.language_id,
+    //       user_doc.created_at,
+    //       user_doc.updated_at,
+    //     ]
+    //   );
+    // }
   }
 
   async deleteUserFromSchool(

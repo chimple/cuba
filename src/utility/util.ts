@@ -83,6 +83,7 @@ import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { URLOpenListenerEvent } from "@capacitor/app";
 import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
+import ORUser from "../models/OneRoster/ORUser";
 
 declare global {
   interface Window {
@@ -254,13 +255,13 @@ export class Util {
   //   return newCourseRef;
   // }
 
-  public static getCurrentStudent(): TableTypes<"user"> | undefined {
+  public static getCurrentStudent(): ORUser | undefined {
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentStudent) return api.currentStudent;
     const temp = localStorage.getItem(CURRENT_STUDENT);
 
     if (!temp) return;
-    const currentStudent = JSON.parse(temp) as TableTypes<"user">;
+    const currentStudent = JSON.parse(temp) as ORUser;
     api.currentStudent = currentStudent;
     return currentStudent;
   }
@@ -809,7 +810,7 @@ export class Util {
       );
     }
   }
-  public static async setUserProperties(currentUser: TableTypes<"user">) {
+  public static async setUserProperties(currentUser: ORUser) {
     try {
       await FirebaseAnalytics.setUserProperty({
         name: "parent user_id",
@@ -840,7 +841,7 @@ export class Util {
     }
   }
 
-  public static async logCurrentPageEvents(user: TableTypes<"user">) {
+  public static async logCurrentPageEvents(user: ORUser) {
     //Setting User Id in User Properites
     await FirebaseAnalytics.setUserId({
       userId: user.id,
@@ -1038,7 +1039,7 @@ export class Util {
   }
 
   public static setCurrentStudent = async (
-    student: TableTypes<"user"> | null,
+    student: ORUser | null,
     languageCode?: string,
     langFlag: boolean = true,
     isStudent: boolean = true
@@ -1139,7 +1140,7 @@ export class Util {
   }
 
   public static async subscribeToClassTopicForAllStudents(
-    currentUser: TableTypes<"user">
+    currentUser: ORUser
   ): Promise<void> {
     // if (!Capacitor.isNativePlatform()) return;
     // const students: DocumentReference[] = currentUser.users;

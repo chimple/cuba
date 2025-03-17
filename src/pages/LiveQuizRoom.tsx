@@ -12,16 +12,11 @@ import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErro
 import BackButton from "../components/common/BackButton";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { ServiceConfig } from "../services/ServiceConfig";
+import ORUser from "../models/OneRoster/ORUser";
 const LiveQuizRoom: React.FC = () => {
-  const [students, setStudents] = useState(
-    new Map<String, TableTypes<"user">>()
-  );
-  const [prevPlayedStudents, setPrevPlayedStudents] = useState<
-    TableTypes<"user">[]
-  >([]);
-  const [notPlayedStudents, setNotPlayedStudents] = useState<
-    TableTypes<"user">[]
-  >([]);
+  const [students, setStudents] = useState(new Map<String, ORUser>());
+  const [prevPlayedStudents, setPrevPlayedStudents] = useState<ORUser[]>([]);
+  const [notPlayedStudents, setNotPlayedStudents] = useState<ORUser[]>([]);
   const [currentAssignment, setCurrentAssignment] =
     useState<TableTypes<"assignment">>();
   const api = ServiceConfig.getI().apiHandler;
@@ -99,19 +94,19 @@ const LiveQuizRoom: React.FC = () => {
     const results =
       await api.getStudentResultsByAssignmentId(paramAssignmentId);
     const studentsData = results[0];
-    const tempStudentMap = new Map<String, TableTypes<"user">>();
+    const tempStudentMap = new Map<String, ORUser>();
     studentsData.user_data.map((student) => {
       tempStudentMap.set(student.id, student);
     });
     setStudents(tempStudentMap);
 
     const allStudents = tempStudentMap ?? students;
-    let tempPrevPlayedStudents: TableTypes<"user">[] = prevPlayedStudents;
-    let tempNotPlayedStudents: TableTypes<"user">[] = [];
+    let tempPrevPlayedStudents: ORUser[] = prevPlayedStudents;
+    let tempNotPlayedStudents: ORUser[] = [];
     // const tempLiveStudents: User[] = [];
     if (tempPrevPlayedStudents.length < 1) {
       let resultData: TableTypes<"result">[] | null = studentsData.result_data;
-      let userData: TableTypes<"user">[] | null = studentsData.user_data;
+      let userData: ORUser[] | null = studentsData.user_data;
       if (results) {
         setAssignmentResult(resultData);
         const uniqueUserIds = new Set<string>();

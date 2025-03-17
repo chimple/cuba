@@ -18,16 +18,17 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
 import Loading from "../Loading";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
+import ORUser from "../../models/OneRoster/ORUser";
 
 const ProfileCard: React.FC<{
   width: string;
   height: string;
   //true for User, false for no user
   userType: boolean;
-  user: TableTypes<"user">;
+  user: ORUser;
   showText?: boolean;
   setReloadProfiles: (event: boolean) => void;
-  profiles?: TableTypes<"user">[];
+  profiles?: ORUser[];
   studentCurrMode: string | undefined;
 }> = ({
   width,
@@ -214,7 +215,7 @@ const ProfileCard: React.FC<{
               user_name: user.name,
               user_gender: user.gender!,
               user_age: user.age!,
-              phone_number: user.phone,
+              // phone_number: user.phone,
               // parent_id: user.uid,
               // parent_username: user.username,
               action_type: ACTION.DELETE,

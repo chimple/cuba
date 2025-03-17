@@ -18,6 +18,7 @@ import User from "../models/user";
 import { useHistory } from "react-router";
 import { schoolUtil } from "../utility/schoolUtil";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
+import ORUser from "../models/OneRoster/ORUser";
 
 const HomeHeader: React.FC<{
   currentHeader: string;
@@ -36,7 +37,7 @@ const HomeHeader: React.FC<{
   var headerIconList: HeaderIconConfig[] = [];
 
   const history = useHistory();
-  const [student, setStudent] = useState<TableTypes<"user">>();
+  const [student, setStudent] = useState<ORUser>();
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
 

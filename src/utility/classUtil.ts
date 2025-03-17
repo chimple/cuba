@@ -2,6 +2,7 @@ import { start } from "repl";
 import { BANDS, TABLESORTBY, TableTypes } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { addDays, addMonths, format, subDays, subWeeks } from "date-fns";
+import ORUser from "../models/OneRoster/ORUser";
 
 export class ClassUtil {
   private api = ServiceConfig.getI().apiHandler;
@@ -101,17 +102,17 @@ export class ClassUtil {
   public async divideStudents(classId: string, courseId: string) {
     const greenGroup: Map<
       string,
-      TableTypes<"user"> | TableTypes<"result">[]
+      ORUser | TableTypes<"result">[]
     >[] = [];
     const yellowGroup: Map<
       string,
-      TableTypes<"user"> | TableTypes<"result">[]
+      ORUser | TableTypes<"result">[]
     >[] = [];
-    const redGroup: Map<string, TableTypes<"user"> | TableTypes<"result">[]>[] =
+    const redGroup: Map<string, ORUser | TableTypes<"result">[]>[] =
       [];
     const greyGroup: Map<
       string,
-      TableTypes<"user"> | TableTypes<"result">[]
+      ORUser | TableTypes<"result">[]
     >[] = [];
     const currentDate = new Date();
     const adjustedcurrentDate = addDays(currentDate, 1);
@@ -152,7 +153,7 @@ export class ClassUtil {
         results[0].created_at <= oneWeekBackTimeStamp
       ) {
         greyGroup.push(
-          new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
+          new Map<string, ORUser | TableTypes<"result">[]>([
             ["student", student],
             ["results", results],
           ])
@@ -167,21 +168,21 @@ export class ClassUtil {
 
         if (averageScore >= 70) {
           greenGroup.push(
-            new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
+            new Map<string, ORUser | TableTypes<"result">[]>([
               ["student", student],
               ["results", results],
             ])
           );
         } else if (averageScore <= 49) {
           redGroup.push(
-            new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
+            new Map<string, ORUser | TableTypes<"result">[]>([
               ["student", student],
               ["results", results],
             ])
           );
         } else {
           yellowGroup.push(
-            new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
+            new Map<string, ORUser | TableTypes<"result">[]>([
               ["student", student],
               ["results", results],
             ])
@@ -282,7 +283,7 @@ export class ClassUtil {
       });
     var resultsByStudent = new Map<
       string,
-      { student: TableTypes<"user">; results: Record<string, any[]> }
+      { student: ORUser; results: Record<string, any[]> }
     >();
 
     _students.forEach((student) => {
@@ -377,7 +378,7 @@ export class ClassUtil {
 
     var resultsByStudent = new Map<
       string,
-      { student: TableTypes<"user">; results: Record<string, any[]> }
+      { student: ORUser; results: Record<string, any[]> }
     >();
     _students.forEach((student) => {
       resultsByStudent.set(student.id, {
@@ -512,7 +513,7 @@ export class ClassUtil {
     });
     var resultsByStudent = new Map<
       string,
-      { student: TableTypes<"user">; results: Record<string, any[]> }
+      { student: ORUser; results: Record<string, any[]> }
     >();
 
     _students.forEach((student) => {
@@ -642,7 +643,7 @@ export class ClassUtil {
     });
     var resultsByStudent = new Map<
       string,
-      { student: TableTypes<"user">; results: Record<string, any[]> }
+      { student: ORUser; results: Record<string, any[]> }
     >();
 
     _students.forEach((student) => {
@@ -677,9 +678,9 @@ export class ClassUtil {
   }
 
   public async groupStudentsByCategoryInList(
-    studentsMap: Map<string, Map<string, TableTypes<"user">>>
-  ): Promise<Map<string, TableTypes<"user">[]>> {
-    const groups: Map<string, TableTypes<"user">[]> = new Map();
+    studentsMap: Map<string, Map<string, ORUser>>
+  ): Promise<Map<string, ORUser[]>> {
+    const groups: Map<string, ORUser[]> = new Map();
 
     studentsMap.forEach((studentM: Map<string, any>, index: string) => {
       studentM.forEach((element: any) => {

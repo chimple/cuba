@@ -44,24 +44,24 @@ GoogleAuth.initialize({
   // grantOfflineAccess: true,
 });
 
-SqliteApi.getInstance().then(() => {
-  ServiceConfig.getInstance(APIMode.ONEROSTER);
-  root.render(
-    <BrowserRouter>
-        <App />
-    </BrowserRouter>
-  );
-});
-
+// SqliteApi.getInstance().then(() => {
+ServiceConfig.getInstance(APIMode.ONEROSTER);
 root.render(
-  <>
-    <IonLoading
-      message={`<img class="loading" src="assets/loading.gif"></img>`}
-      isOpen={true}
-      spinner={null}
-    />
-  </>
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>
 );
+// });
+
+// root.render(
+//   <>
+//     <IonLoading
+//       message={`<img class="loading" src="assets/loading.gif"></img>`}
+//       isOpen={true}
+//       spinner={null}
+//     />
+//   </>
+// );
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

@@ -32,6 +32,7 @@ import CustomAppBar from "../components/studentProgress/CustomAppBar";
 import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
+import ORUser from "../models/OneRoster/ORUser";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
@@ -40,7 +41,7 @@ const Parent: React.FC = () => {
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [soundFlag, setSoundFlag] = useState<number>();
   const [musicFlag, setMusicFlag] = useState<number>();
-  const [userProfile, setUserProfile] = useState<TableTypes<"user">[]>([]);
+  const [userProfile, setUserProfile] = useState<ORUser[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
 
   const [langList, setLangList] = useState<
@@ -77,7 +78,7 @@ const Parent: React.FC = () => {
 
   async function getStudentProfile() {
     console.log("getStudentProfile");
-    const userProfilePromise: TableTypes<"user">[] =
+    const userProfilePromise: ORUser[] =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     let finalUser: any[] = [];
     for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
@@ -205,9 +206,14 @@ const Parent: React.FC = () => {
                 }
                 console.log("selectedLangDocId", selectedLangDocId);
                 setCurrentAppLang(selectedLangDocId);
-                const updatedUserData: TableTypes<"user"> | undefined = 
-                  currentUser ? {...currentUser, language_id: selectedLangDocId} : undefined;
-                localStorage.setItem(USER_DATA, JSON.stringify(updatedUserData));
+                const updatedUserData: ORUser | undefined = currentUser;
+                //Skanda Later
+                // ? { ...currentUser, language_id: selectedLangDocId }
+                // : undefined;
+                localStorage.setItem(
+                  USER_DATA,
+                  JSON.stringify(updatedUserData)
+                );
                 if (updatedUserData) {
                   auth.currentUser = updatedUserData;
                 }

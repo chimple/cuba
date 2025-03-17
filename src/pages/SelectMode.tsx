@@ -25,6 +25,7 @@ import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
 import i18n from "../i18n";
 import DropDown from "../components/DropDown";
+import ORUser from "../models/OneRoster/ORUser";
 
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -45,11 +46,11 @@ const SelectMode: FC = () => {
   const [currentSchoolName, setCurrentSchoolName] = useState<string>();
   const [currentSchool, setCurrentSchool] = useState<TableTypes<"school">>();
   const [currentSchoolId, setCurrentSchoolId] = useState<string>();
-  const [currentUser, setCurrentUser] = useState<TableTypes<"user">>();
+  const [currentUser, setCurrentUser] = useState<ORUser>();
   const [currentClasses, setCurrentClasses] = useState<TableTypes<"class">[]>();
   const [currentStudents, setCurrentStudents] =
-    useState<TableTypes<"user">[]>();
-  const [currStudent, setCurrStudent] = useState<TableTypes<"user">>();
+    useState<ORUser[]>();
+  const [currStudent, setCurrStudent] = useState<ORUser>();
   const [currClass, setCurrClass] = useState<TableTypes<"class">>();
   let count = 1;
   const tempSchoolList: {
@@ -198,7 +199,7 @@ const SelectMode: FC = () => {
     localStorage.setItem(SELECTED_STUDENTS, JSON.stringify(element));
     return;
   };
-  const onStudentClick = async (student: TableTypes<"user">) => {
+  const onStudentClick = async (student: ORUser) => {
     console.log(
       "🚀 ~ file: DisplayStudents.tsx:30 ~ onStudentClick:student",
       student

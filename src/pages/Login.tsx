@@ -40,6 +40,7 @@ import {
 import { RoleType } from "../interface/modelInterfaces";
 // import { Plugins } from "@capacitor/core";
 import { OneRosterAuth } from "../services/auth/OneRosterAuth";
+import ORUser from "../models/OneRoster/ORUser";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -80,7 +81,7 @@ const Login: React.FC = () => {
     phoneNumber.length === 10 ? Buttoncolors.Valid : Buttoncolors.Default
   );
   const [isInputFocus, setIsInputFocus] = useState(false);
-  const [currentStudent, setStudent] = useState<TableTypes<"user">>();
+  const [currentStudent, setStudent] = useState<ORUser>();
 
   const scollToRef = useRef<null | HTMLDivElement>(null);
   const otpBtnRef = useRef<any>();

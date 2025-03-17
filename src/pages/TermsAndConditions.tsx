@@ -46,6 +46,8 @@ const TermsAndConditions: React.FC = () => {
     console.log("current user", currentUser);
     if (currentUser) {
       await ServiceConfig.getI().apiHandler.updateTcAccept(currentUser.id);
+      console.log("const handleAgreeButtonClick = async () => { ", currentUser);
+
       history.replace(PAGES.SELECT_MODE);
     }
   };

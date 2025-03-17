@@ -23,10 +23,11 @@ import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 import { schoolUtil } from "../utility/schoolUtil";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import SkeltonLoading from "../components/SkeltonLoading";
+import ORUser from "../models/OneRoster/ORUser";
 
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [students, setStudents] = useState<TableTypes<"user">[]>();
+  const [students, setStudents] = useState<ORUser[]>();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const api = ServiceConfig.getI().apiHandler;
@@ -90,7 +91,7 @@ const DisplayStudents: FC<{}> = () => {
     //   iseTeacher
     // );
   };
-  const onStudentClick = async (student: TableTypes<"user">) => {
+  const onStudentClick = async (student: ORUser) => {
     console.log(
       "🚀 ~ file: DisplayStudents.tsx:30 ~ onStudentClick:student",
       student

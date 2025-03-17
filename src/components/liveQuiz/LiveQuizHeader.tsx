@@ -9,6 +9,7 @@ import {
 } from "../../models/liveQuiz";
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
+import ORUser from "../../models/OneRoster/ORUser";
 
 const LiveQuizHeader: FC<{
   roomDoc: TableTypes<"live_quiz_room">;
@@ -24,11 +25,11 @@ const LiveQuizHeader: FC<{
   currentQuestionIndex,
 }) => {
   const [studentIdMap, setStudentIdMap] = useState<{
-    [id: string]: TableTypes<"user">;
+    [id: string]: ORUser;
   }>({});
   const [sortedStudents, setSortedStudents] = useState<
     {
-      student: TableTypes<"user">;
+      student: ORUser;
       score?: number;
       rank?: number;
     }[]
@@ -54,13 +55,13 @@ const LiveQuizHeader: FC<{
 
   const getStudents = async () => {
     if (roomDoc && roomDoc.participants && roomDoc.participants.length > 0) {
-      const tempStudentsMap: { [id: string]: TableTypes<"user"> } = {};
+      const tempStudentsMap: { [id: string]: ORUser } = {};
       const studentsData = await api.getStudentResultsByAssignmentId(
         roomDoc.assignment_id
       );
 
       if (studentsData) {
-        let userData: TableTypes<"user">[] = studentsData[0].user_data;
+        let userData: ORUser[] = studentsData[0].user_data;
         if (userData) {
           userData.forEach((user) => {
             if (roomDoc.participants) {
@@ -77,7 +78,7 @@ const LiveQuizHeader: FC<{
 
   const sortedStudentsWithScore = () => {
     const tempSortedStudents: {
-      student: TableTypes<"user">;
+      student: ORUser;
       score?: number;
       lastQuestionId?: string;
     }[] = [];
@@ -94,9 +95,9 @@ const LiveQuizHeader: FC<{
             student: studentIdMap[studentId],
             score: showAnswer
               ? Number(totalScore.toFixed(1))
-              : sortedStudents.find(
+              : (sortedStudents.find(
                   (student) => student.student.id === studentId
-                )?.score ?? 0,
+                )?.score ?? 0),
             lastQuestionId:
               studentResult[studentResult.length - 1]?.question_id,
           });

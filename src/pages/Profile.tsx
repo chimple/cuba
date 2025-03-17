@@ -13,6 +13,7 @@ import { OneRosterApi } from "../services/api/OneRosterApi";
 import { useHistory } from "react-router";
 import { ServiceConfig } from "../services/ServiceConfig";
 import User from "../models/user";
+import ORUser from "../models/OneRoster/ORUser";
 
 const Profile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -23,7 +24,7 @@ const Profile: React.FC = () => {
   );
   // const [unlockUpTo, setUnlockUpTo] = useState(-1);
   const history = useHistory();
-  const [currentStudent, setStudent] = useState<TableTypes<"user">>();
+  const [currentStudent, setStudent] = useState<ORUser>();
   useEffect(() => {
     if (!ServiceConfig.getI().apiHandler.currentStudent) {
       // history.replace(PAGES.DISPLAY_STUDENT);

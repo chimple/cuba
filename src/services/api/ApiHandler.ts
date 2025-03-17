@@ -14,6 +14,7 @@ import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { RoleType } from "../../interface/modelInterfaces";
 import { school } from "ionicons/icons";
+import ORUser from "../../models/OneRoster/ORUser";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -86,7 +87,7 @@ export class ApiHandler implements ServiceApi {
 
   public async getUserByDocId(
     studentId: string
-  ): Promise<TableTypes<"user"> | undefined> {
+  ): Promise<ORUser | undefined> {
     return await this.s.getUserByDocId(studentId);
   }
 
@@ -195,7 +196,7 @@ export class ApiHandler implements ServiceApi {
   }
   public async getStudentsForClass(
     classId: string
-  ): Promise<TableTypes<"user">[]> {
+  ): Promise<ORUser[]> {
     return await this.s.getStudentsForClass(classId);
   }
   set currentMode(value: MODES) {
@@ -266,7 +267,7 @@ export class ApiHandler implements ServiceApi {
   }
 
   public async updateStudent(
-    student: TableTypes<"user">,
+    student: ORUser,
     name: string,
     age: number,
     gender: string,
@@ -275,7 +276,7 @@ export class ApiHandler implements ServiceApi {
     boardDocId: string,
     gradeDocId: string,
     languageDocId: string
-  ): Promise<TableTypes<"user">> {
+  ): Promise<ORUser> {
     return await this.s.updateStudent(
       student,
       name,
@@ -290,7 +291,7 @@ export class ApiHandler implements ServiceApi {
   }
 
   public async updateStudentFromSchoolMode(
-    student: TableTypes<"user">,
+    student: ORUser,
     name: string,
     age: number,
     gender: string,
@@ -301,7 +302,7 @@ export class ApiHandler implements ServiceApi {
     languageDocId: string,
     student_id: string,
     newClassId: string
-  ): Promise<TableTypes<"user">> {
+  ): Promise<ORUser> {
     return await this.s.updateStudentFromSchoolMode(
       student,
       name,
@@ -318,13 +319,13 @@ export class ApiHandler implements ServiceApi {
   }
 
   public async updateUserProfile(
-    user: TableTypes<"user">,
+    user: ORUser,
     fullName: string,
     email: string,
     phoneNum: string,
     languageDocId: string,
     profilePic: string | undefined
-  ): Promise<TableTypes<"user">> {
+  ): Promise<ORUser> {
     return await this.s.updateUserProfile(
       user,
       fullName,
@@ -456,7 +457,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getCurriculumById(id);
   }
   async getCurriculumsByIds(
-    ids: string []
+    ids: string[]
   ): Promise<TableTypes<"curriculum">[]> {
     return await this.s.getCurriculumsByIds(ids);
   }
@@ -464,7 +465,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getAllLanguages();
   }
 
-  public async getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
+  public async getParentStudentProfiles(): Promise<ORUser[]> {
     return await this.s.getParentStudentProfiles();
   }
 
@@ -486,11 +487,11 @@ export class ApiHandler implements ServiceApi {
     console.log("🚀 ~ ApiHandler ~ updateTcAccept ~ this.s:", this.s, this);
     return this.s.updateTcAccept(userId);
   }
-  public get currentStudent(): TableTypes<"user"> | undefined {
+  public get currentStudent(): ORUser | undefined {
     return this.s.currentStudent;
   }
 
-  public set currentStudent(value: TableTypes<"user"> | undefined) {
+  public set currentStudent(value: ORUser | undefined) {
     this.s.currentStudent = value;
   }
   public get currentClass(): TableTypes<"class"> | undefined {
@@ -536,7 +537,7 @@ export class ApiHandler implements ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined
-  ): Promise<TableTypes<"user">> {
+  ): Promise<ORUser> {
     return await this.s.createProfile(
       name,
       age,
@@ -561,7 +562,7 @@ export class ApiHandler implements ServiceApi {
     classId: string,
     role: string,
     studentId: string
-  ): Promise<TableTypes<"user">> {
+  ): Promise<ORUser> {
     return await this.s.createStudentProfile(
       name,
       age,
@@ -592,7 +593,7 @@ export class ApiHandler implements ServiceApi {
 
   public async addCourseForParentsStudent(
     courses: TableTypes<"course">[],
-    student: TableTypes<"user">
+    student: ORUser
   ): Promise<TableTypes<"course">[]> {
     return this.s.addCourseForParentsStudent(courses, student);
   }
@@ -687,8 +688,8 @@ export class ApiHandler implements ServiceApi {
     return this.s.getStudentClassesAndSchools(userId);
   }
   createUserDoc(
-    user: TableTypes<"user">
-  ): Promise<TableTypes<"user"> | undefined> {
+    user: ORUser
+  ): Promise<ORUser | undefined> {
     return this.s.createUserDoc(user);
   }
 
@@ -698,9 +699,9 @@ export class ApiHandler implements ServiceApi {
 
   async getRecommendedLessons(
     studentId: string,
-    classId?:string
+    classId?: string
   ): Promise<TableTypes<"lesson">[]> {
-    return this.s.getRecommendedLessons(studentId,classId);
+    return this.s.getRecommendedLessons(studentId, classId);
   }
 
   searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
@@ -798,13 +799,13 @@ export class ApiHandler implements ServiceApi {
   }
   getTeachersForClass(
     classId: string
-  ): Promise<TableTypes<"user">[] | undefined> {
+  ): Promise<ORUser[] | undefined> {
     return this.s.getTeachersForClass(classId);
   }
-  getUserByEmail(email: string): Promise<TableTypes<"user"> | undefined> {
+  getUserByEmail(email: string): Promise<ORUser | undefined> {
     return this.s.getUserByEmail(email);
   }
-  getUserByPhoneNumber(phone: string): Promise<TableTypes<"user"> | undefined> {
+  getUserByPhoneNumber(phone: string): Promise<ORUser | undefined> {
     return this.s.getUserByPhoneNumber(phone);
   }
   addTeacherToClass(classId: string, userId: string): Promise<void> {
@@ -881,17 +882,17 @@ export class ApiHandler implements ServiceApi {
   }
   getPrincipalsForSchool(
     schoolId: string
-  ): Promise<TableTypes<"user">[] | undefined> {
+  ): Promise<ORUser[] | undefined> {
     return this.s.getPrincipalsForSchool(schoolId);
   }
   getCoordinatorsForSchool(
     schoolId: string
-  ): Promise<TableTypes<"user">[] | undefined> {
+  ): Promise<ORUser[] | undefined> {
     return this.s.getCoordinatorsForSchool(schoolId);
   }
   getSponsorsForSchool(
     schoolId: string
-  ): Promise<TableTypes<"user">[] | undefined> {
+  ): Promise<ORUser[] | undefined> {
     return this.s.getSponsorsForSchool(schoolId);
   }
   async addUserToSchool(

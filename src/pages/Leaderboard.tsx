@@ -36,10 +36,11 @@ import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 import { App } from "@capacitor/app";
 import { school } from "../stories/school/SchoolClassSubjectsTab.stories";
+import ORUser from "../models/OneRoster/ORUser";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [currentStudent, setCurrentStudent] = useState<TableTypes<"user">>();
+  const [currentStudent, setCurrentStudent] = useState<ORUser>();
   // const [isWeeklyFlag, setIsWeeklyFlag] = useState<boolean>(true);
   const [leaderboardDataInfo, setLeaderboardDataInfo] =
     useState<LeaderboardInfo>({
@@ -141,7 +142,7 @@ const Leaderboard: React.FC = () => {
     }
   }
   async function fetchLeaderBoardData(
-    currentStudent: TableTypes<"user">,
+    currentStudent: ORUser,
     leaderboardDropdownType: LeaderboardDropdownList,
     classId: string
   ) {

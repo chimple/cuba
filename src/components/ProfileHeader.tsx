@@ -15,13 +15,14 @@ import i18n from "../i18n";
 import BackButton from "./common/BackButton";
 import { Util } from "../utility/util";
 import { useEffect, useState } from "react";
+import ORUser from "../models/OneRoster/ORUser";
 
 const ProfileHeader: React.FC = () => {
   const history = useHistory();
   const { t } = useTranslation();
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
-  const [student, setStudent] = useState<TableTypes<"user">>();
+  const [student, setStudent] = useState<ORUser>();
   async function init() {
     const student = Util.getCurrentStudent();
     if (!student) {

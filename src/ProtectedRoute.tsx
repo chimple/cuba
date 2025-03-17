@@ -16,6 +16,12 @@ export default function ProtectedRoute({ children, ...rest }) {
       const authHandler = ServiceConfig.getI()?.authHandler;
       const isUserLoggedIn = await authHandler?.isUserLoggedIn();
       const currentUser = await authHandler?.getCurrentUser();
+      console.log(
+        "const checkAuth = async () => { ",
+        currentUser,
+        isUserLoggedIn,
+        currentUser?.is_tc_accepted
+      );
       setIsAuth(!!isUserLoggedIn);
       setTcAccept(currentUser?.is_tc_accepted ?? false);
     } catch (error) {

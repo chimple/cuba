@@ -1,12 +1,13 @@
-import { ServiceAuth, OneRosterUser } from "./ServiceAuth";
+import { ServiceAuth } from "./ServiceAuth";
 import { TableTypes } from "../../common/constants";
+import ORUser from "../../models/OneRoster/ORUser";
 
 export class AuthHandler implements ServiceAuth {
   public static i: AuthHandler;
 
   private s: ServiceAuth;
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(s: ServiceAuth): AuthHandler {
     if (!AuthHandler.i) {
@@ -20,11 +21,11 @@ export class AuthHandler implements ServiceAuth {
     return await this.s.googleSign();
   }
 
-  async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
+  async getCurrentUser(): Promise<ORUser | undefined> {
     return await this.s.getCurrentUser();
   }
 
-  public set currentUser(user: TableTypes<"user">) {
+  public set currentUser(user: ORUser) {
     this.s.currentUser = user;
   }
 
@@ -69,7 +70,7 @@ export class AuthHandler implements ServiceAuth {
     return await this.s.refreshSession();
   }
 
-  async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
+  async loginWithRespect(): Promise<ORUser | boolean | undefined> {
     return await this.s.loginWithRespect();
   }
 }

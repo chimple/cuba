@@ -10,14 +10,11 @@ import { PAGES, TableTypes } from "../common/constants";
 import { GiCrown } from "react-icons/gi";
 import { t } from "i18next";
 import { IonPage } from "@ionic/react";
+import ORUser from "../models/OneRoster/ORUser";
 
 const LiveQuizRoomResult: React.FC = () => {
-  const [topThreeStudents, setTopThreeStudents] = useState<
-    TableTypes<"user">[]
-  >([]);
-  const [students, setStudents] = useState<Map<String, TableTypes<"user">>>(
-    new Map()
-  );
+  const [topThreeStudents, setTopThreeStudents] = useState<ORUser[]>([]);
+  const [students, setStudents] = useState<Map<String, ORUser>>(new Map());
   const [showConfetti, setShowConfetti] = useState(true);
   const history = useHistory();
   const [sortedStudentScores, setSortedStudentScores] = useState<any[]>([]);
@@ -32,7 +29,7 @@ const LiveQuizRoomResult: React.FC = () => {
 
   async function init() {
     try {
-      const tempStudentMap = new Map<String, TableTypes<"user">>();
+      const tempStudentMap = new Map<String, ORUser>();
       const liveQuizRoomDoc = await api.getLiveQuizRoomDoc(paramLiveRoomId);
       const classId = liveQuizRoomDoc?.class_id;
       if (!!classId) {
@@ -90,7 +87,7 @@ const LiveQuizRoomResult: React.FC = () => {
         const topThreePerformers = sortedScores.slice(0, 3);
         const topThreeStudents = topThreePerformers
           .map((perf) => tempStudentMap.get(perf.studentDocId))
-          .filter((student) => !!student) as TableTypes<"user">[];
+          .filter((student) => !!student) as ORUser[];
         setTopThreeStudents(topThreeStudents);
       }
     } catch (error) {

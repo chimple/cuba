@@ -37,6 +37,7 @@ import LiveQuiz from "./LiveQuiz";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 import { OneRosterApi } from "../services/api/OneRosterApi";
+import ORUser from "../models/OneRoster/ORUser";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -44,7 +45,7 @@ const Home: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isStudentLinked, setIsStudentLinked] = useState<boolean>();
   const [refreshKey, setRefreshKey] = useState(0);
-  
+
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
   }>();
@@ -292,8 +293,10 @@ const Home: FC = () => {
       }
       try {
         recommendationResult = await getAssignments();
-        let tempRecommendations =
-          await getCourseRecommendationLessons(currentStudent,currClass);
+        let tempRecommendations = await getCourseRecommendationLessons(
+          currentStudent,
+          currClass
+        );
         recommendationResult = recommendationResult.concat(tempRecommendations);
         console.log("Final RECOMMENDATION List ", recommendationResult);
         setDataCourse(recommendationResult);
@@ -408,7 +411,7 @@ const Home: FC = () => {
   };
 
   async function getCourseRecommendationLessons(
-    currentStudent: TableTypes<"user">,
+    currentStudent: ORUser,
     currentClass?: TableTypes<"class">
   ): Promise<TableTypes<"lesson">[]> {
     // const allCourses: TableTypes<"course">[] =
@@ -634,7 +637,6 @@ const Home: FC = () => {
               ((canShowAvatar &&
                 currentHeader === HOMEHEADERLIST.SUGGESTIONS) ||
                 (!canShowAvatar && currentHeader === HOMEHEADERLIST.HOME)) && (
-
                 <div>
                   {subTab === SUBTAB.SUGGESTIONS && (
                     <LessonSlider

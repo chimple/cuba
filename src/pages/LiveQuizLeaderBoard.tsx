@@ -7,18 +7,19 @@ import { PAGES, TableTypes } from "../common/constants";
 import { t } from "i18next";
 import { useHistory } from "react-router";
 import NextButton from "../components/common/NextButton";
+import ORUser from "../models/OneRoster/ORUser";
 
 const LiveQuizLeaderBoard: React.FC = () => {
   const [combinedStudentScores, setCombinedStudentScores] = useState<any>([]);
   const [students, setStudents] = useState(
-    new Map<String, TableTypes<"user">>()
+    new Map<String, ORUser>()
   );
   const urlSearchParams = new URLSearchParams(window.location.search);
   const paramLiveRoomId = urlSearchParams.get("liveRoomId") ?? "";
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   let resultData: TableTypes<"result">[] | null = [];
-  let userData: TableTypes<"user">[] | null = [];
+  let userData: ORUser[] | null = [];
   useEffect(() => {
     init();
   }, []);
@@ -64,7 +65,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
         combinedScores.sort((a, b) => b.totalScore - a.totalScore);
         console.log("combinedSortedScores..", combinedScores);
         setCombinedStudentScores(combinedScores);
-        const tempStudentsMap = new Map<string, TableTypes<"user">>();
+        const tempStudentsMap = new Map<string, ORUser>();
         await Promise.all(
           combinedScores.map(async (participant) => {
             if (!!userData) {

@@ -1,10 +1,11 @@
-import { OneRosterUser, ServiceAuth } from "./ServiceAuth";
-// import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
-import { CURRENT_USER, TableTypes } from "../../common/constants";
+import { ServiceAuth } from "./ServiceAuth";
+import { CURRENT_USER } from "../../common/constants";
 import { Capacitor, registerPlugin } from "@capacitor/core";
+import ORUser from "../../models/OneRoster/ORUser";
+import { RoleType } from "../../interface/modelInterfaces";
 export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
-  private static _currentUser: OneRosterUser;
+  private static _currentUser: ORUser;
 
   private static NativeSSOPlugin = registerPlugin("NativeSSOPlugin");
 
@@ -13,7 +14,7 @@ export class OneRosterAuth implements ServiceAuth {
     throw new Error("Method not implemented.");
   }
 
-  async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
+  async loginWithRespect(): Promise<ORUser | boolean | undefined> {
     try {
       if (Capacitor.isNativePlatform()) {
         const result = await (
@@ -24,7 +25,7 @@ export class OneRosterAuth implements ServiceAuth {
         }
         const urlObj = new URL(result.url);
         const params = new URLSearchParams(urlObj.search);
-        const json = {} as OneRosterUser;
+        const json = {} as ORUser;
 
         params.forEach((value, key) => {
           try {
@@ -38,21 +39,39 @@ export class OneRosterAuth implements ServiceAuth {
         OneRosterAuth._currentUser = json;
         return json;
       } else {
-        const mockWebResult = {
-          respectLaunchVersion: 1.1,
-          auth: ["OAuth2", "SSO"],
-          given_name: "John Doe",
-          locale: "en-US",
-          http_proxy: "http://proxy.example.com",
-          endpoint_lti_ags: "https://lti.example.com/ags",
-          endpoint: "https://api.example.com",
-          actor: {
-            name: ["John Doe"],
-            mbox: ["mailto:johndoe@example.com"],
+        const mockWebResult: ORUser = new ORUser(
+          1.1,
+          ["OAuth2", "SSO"],
+          "John Doe",
+          "en-US",
+          "http://proxy.example.com",
+          "https://lti.example.com/ags",
+          "https://api.example.com",
+          "John Doe",
+          "mailto:johndoe@example.com",
+          "reg-12345",
+          "",
+          "OAuth2",
+          [],
+          RoleType.PARENT,
+          "reg-12345",
+          [],
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          0,
+          0,
+          false,
+          {
+            badges: [],
+            bonus: [],
+            sticker: [],
           },
-          registration: "reg-12345",
-          activity_id: "activity-67890",
-        };
+        )
 
         OneRosterAuth._currentUser = mockWebResult;
         return mockWebResult;
@@ -83,7 +102,7 @@ export class OneRosterAuth implements ServiceAuth {
     return OneRosterAuth.i;
   }
 
-  public set currentUser(user: TableTypes<"user">) {
+  public set currentUser(user: ORUser) {
     throw new Error("Method not implemented.");
   }
 
@@ -110,35 +129,46 @@ export class OneRosterAuth implements ServiceAuth {
     throw new Error("Method not implemented.");
   }
 
-  getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
+  getCurrentUser(): Promise<ORUser | undefined> {
     const isUser = localStorage.getItem(CURRENT_USER);
     const {
       actor = { mbox: ["mailto:johndoe@example.com"] },
       registration = "reg-12345",
       given_name = "John",
     } = isUser ? JSON.parse(isUser) : {};
-    const user: TableTypes<"user"> = {
-      age: null,
-      avatar: "/assets/avatar/Aligator.png",
-      created_at: "null",
-      curriculum_id: null,
-      email: actor.mbox[0],
-      fcm_token: null,
-      gender: "male",
-      grade_id: null,
-      id: registration,
-      image: null,
-      is_deleted: null,
-      is_tc_accepted: true,
-      language_id: "en",
-      music_off: null,
-      name: given_name,
-      phone: null,
-      sfx_off: null,
-      student_id: registration,
-      updated_at: null,
-    };
-    // throw new Error("Method not implemented.");
+    const user: ORUser = new ORUser(
+      1.1,
+      ["OAuth2", "SSO"],
+      "John Doe",
+      "en-US",
+      "http://proxy.example.com",
+      "https://lti.example.com/ags",
+      "https://api.example.com",
+      "John Doe",
+      "mailto:johndoe@example.com",
+      "reg-12345",
+      "",
+      "OAuth2",
+      [],
+      RoleType.PARENT,
+      "reg-12345",
+      [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      0,
+      0,
+      true,
+      {
+        badges: [],
+        bonus: [],
+        sticker: [],
+      },
+    )
     return Promise.resolve(user);
   }
 

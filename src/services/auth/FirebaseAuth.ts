@@ -29,9 +29,10 @@ import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { CollectionIds } from "../../common/courseConstants";
-import { ACTION, EVENTS, LANGUAGE, TableTypes } from "../../common/constants";
+import { ACTION, EVENTS, LANGUAGE } from "../../common/constants";
 import { ServiceConfig } from "../ServiceConfig";
 import { getFunctions, httpsCallable } from "firebase/functions";
+import ORUser from "../../models/OneRoster/ORUser";
 
 export class FirebaseAuth implements ServiceAuth {
   public static i: FirebaseAuth;
@@ -40,7 +41,7 @@ export class FirebaseAuth implements ServiceAuth {
   private _db = getFirestore();
   private _auth = getAuth(); //FirebaseAuth.whichAuth();
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): FirebaseAuth {
     if (!FirebaseAuth.i) {
@@ -228,7 +229,7 @@ export class FirebaseAuth implements ServiceAuth {
     return this._currentUser;
   }
 
-  public async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
+  public async getCurrentUser(): Promise<ORUser | undefined> {
     throw new Error("Method not implemented");
     // try {
     //   if (this._currentUser) return this._currentUser;

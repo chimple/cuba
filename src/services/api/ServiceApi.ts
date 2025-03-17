@@ -12,6 +12,7 @@ import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { RoleType } from "../../interface/modelInterfaces";
+import ORUser from "../../models/OneRoster/ORUser";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -48,7 +49,7 @@ export interface ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined
-  ): Promise<TableTypes<"user">>;
+  ): Promise<ORUser>;
   /**
    * Creates a new school and returns the school object
    * @param {string} name - name of the school
@@ -93,7 +94,7 @@ export interface ServiceApi {
     classId: string,
     role: string,
     studentId: string
-  ): Promise<TableTypes<"user">>;
+  ): Promise<ORUser>;
 
   updateClassCourseSelection(
     classId: string,
@@ -160,10 +161,10 @@ export interface ServiceApi {
    * @returns {TableTypes<"grade">} or `undefined` if it could not find the grade with given `id`
    */
   getGradeById(id: string): Promise<TableTypes<"grade"> | undefined>;
-   /**
-   * @param ids - IDs of the grades.
-   * @returns {TableTypes<"grade">} or `[]` if it could not find the grade with given `ids`
-   */
+  /**
+  * @param ids - IDs of the grades.
+  * @returns {TableTypes<"grade">} or `[]` if it could not find the grade with given `ids`
+  */
   getGradesByIds(ids: string[]): Promise<TableTypes<"grade">[]>;
 
   /**
@@ -171,11 +172,11 @@ export interface ServiceApi {
    * @returns {TableTypes<"curriculum">} or `undefined` if it could not find the curriculum with given `id`
    */
   getCurriculumById(id: string): Promise<TableTypes<"curriculum"> | undefined>;
-/**
-   * @param ids - IDs of the curriculum.
-   * @returns {TableTypes<"curriculum">} or [] if it could not find the curriculum with given `ids`
-   */
-  getCurriculumsByIds(ids: string []): Promise<TableTypes<"curriculum">[]>;
+  /**
+     * @param ids - IDs of the curriculum.
+     * @returns {TableTypes<"curriculum">} or [] if it could not find the curriculum with given `ids`
+     */
+  getCurriculumsByIds(ids: string[]): Promise<TableTypes<"curriculum">[]>;
 
   /**
    * Gives all `Languages` available on database
@@ -187,15 +188,15 @@ export interface ServiceApi {
    * Gives all `student` profiles available for a parent
    * @returns {User[]} Array of `User` objects
    */
-  getParentStudentProfiles(): Promise<TableTypes<"user">[]>;
+  getParentStudentProfiles(): Promise<ORUser[]>;
   getCourseByUserGradeId(
     gradeDocId: string | null | undefined,
     boardDocId: string | null | undefined
   ): Promise<TableTypes<"course">[]>;
 
-  get currentStudent(): TableTypes<"user"> | undefined;
+  get currentStudent(): ORUser | undefined;
 
-  set currentStudent(value: TableTypes<"user"> | undefined);
+  set currentStudent(value: ORUser | undefined);
   get currentClass(): TableTypes<"class"> | undefined;
   set currentClass(value: TableTypes<"class"> | undefined);
   get currentCourse():
@@ -251,7 +252,7 @@ export interface ServiceApi {
    */
   addCourseForParentsStudent(
     courses: TableTypes<"course">[],
-    student: TableTypes<"user">
+    student: ORUser
   );
 
   /**
@@ -376,7 +377,7 @@ export interface ServiceApi {
    * @returns {User} Updated Student User Object
    */
   updateStudent(
-    student: TableTypes<"user">,
+    student: ORUser,
     name: string,
     age: number,
     gender: string,
@@ -385,10 +386,10 @@ export interface ServiceApi {
     boardDocId: string,
     gradeDocId: string,
     languageDocId: string
-  ): Promise<TableTypes<"user">>;
+  ): Promise<ORUser>;
 
   updateStudentFromSchoolMode(
-    student: TableTypes<"user">,
+    student: ORUser,
     name: string,
     age: number,
     gender: string,
@@ -399,16 +400,16 @@ export interface ServiceApi {
     languageDocId: string,
     student_id: string,
     newClassId: string
-  ): Promise<TableTypes<"user">>;
+  ): Promise<ORUser>;
 
   updateUserProfile(
-    user: TableTypes<"user">,
+    user: ORUser,
     fullName: string,
     email: string,
     phoneNum: string,
     languageDocId: string,
     profilePic: string | undefined
-  ): Promise<TableTypes<"user">>;
+  ): Promise<ORUser>;
 
   /**
    * Gives Subject for given a Subject firebase doc Id
@@ -527,7 +528,7 @@ export interface ServiceApi {
    * @param {string} classId class firebase documentId;
    * @return A promise to an array of students.
    */
-  getStudentsForClass(classId: string): Promise<TableTypes<"user">[]>;
+  getStudentsForClass(classId: string): Promise<ORUser[]>;
 
   /**
    * This function gets data by invite code.
@@ -709,7 +710,7 @@ export interface ServiceApi {
   getStudentResultsByAssignmentId(assignmentId: string): Promise<
     {
       result_data: TableTypes<"result">[];
-      user_data: TableTypes<"user">[];
+      user_data: ORUser[];
     }[]
   >;
   /**
@@ -781,7 +782,7 @@ export interface ServiceApi {
    * @param studentId - The ID of the current student.
    * @returns A Promise that resolves with void when the update is complete.
    */
-  getUserByDocId(studentId: string): Promise<TableTypes<"user"> | undefined>;
+  getUserByDocId(studentId: string): Promise<ORUser | undefined>;
 
   /**
    * update student reward in server
@@ -836,8 +837,8 @@ export interface ServiceApi {
    * @returns A promise containing the created user object or undefined.
    */
   createUserDoc(
-    user: TableTypes<"user">
-  ): Promise<TableTypes<"user"> | undefined>;
+    user: ORUser
+  ): Promise<ORUser | undefined>;
 
   /* Synchronizes the local database with an external data source asynchronously.
    * This method ensures that the local database reflects the latest data from the external source.
@@ -856,7 +857,7 @@ export interface ServiceApi {
    * @param classId - The current class id
    * @returns A promise returns list of Recommended Lessons to home page.
    */
-  getRecommendedLessons(studentId: string,classId?:string): Promise<TableTypes<"lesson">[]>;
+  getRecommendedLessons(studentId: string, classId?: string): Promise<TableTypes<"lesson">[]>;
 
   /**
    * Searches for lessons that match the given search string in their name or outcome fields.
@@ -1000,21 +1001,21 @@ export interface ServiceApi {
    */
   getTeachersForClass(
     classId: string
-  ): Promise<TableTypes<"user">[] | undefined>;
+  ): Promise<ORUser[] | undefined>;
 
   /**
    * This function gets the user by email.
    * @param {string} email email;
    * @return user object.
    */
-  getUserByEmail(email: string): Promise<TableTypes<"user"> | undefined>;
+  getUserByEmail(email: string): Promise<ORUser | undefined>;
 
   /**
    * This function gets the user by phonenumber.
    * @param {string} phone phonenumber;
    * @return user object.
    */
-  getUserByPhoneNumber(phone: string): Promise<TableTypes<"user"> | undefined>;
+  getUserByPhoneNumber(phone: string): Promise<ORUser | undefined>;
 
   /**
    * Adding a teacher to class.
@@ -1126,7 +1127,7 @@ export interface ServiceApi {
    */
   getPrincipalsForSchool(
     schoolId: string
-  ): Promise<TableTypes<"user">[] | undefined>;
+  ): Promise<ORUser[] | undefined>;
   /**
    * This function gets all the coordinators for the school.
    * @param {string} schoolId school Id;
@@ -1134,7 +1135,7 @@ export interface ServiceApi {
    */
   getCoordinatorsForSchool(
     schoolId: string
-  ): Promise<TableTypes<"user">[] | undefined>;
+  ): Promise<ORUser[] | undefined>;
   /**
    * This function gets all the sponsors for the school.
    * @param {string} schoolId school Id;
@@ -1142,7 +1143,7 @@ export interface ServiceApi {
    */
   getSponsorsForSchool(
     schoolId: string
-  ): Promise<TableTypes<"user">[] | undefined>;
+  ): Promise<ORUser[] | undefined>;
   /**
    * Adding a principal or coordinator or sponsor to school.
    * @param {string} schoolId school Id

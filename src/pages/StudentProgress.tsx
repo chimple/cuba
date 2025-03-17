@@ -9,6 +9,7 @@ import CustomAppBar from "../components/studentProgress/CustomAppBar";
 import { t } from "i18next";
 import { Util } from "../utility/util";
 import SkeltonLoading from "../components/SkeltonLoading";
+import ORUser from "../models/OneRoster/ORUser";
 
 const StudentProgress: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -17,7 +18,7 @@ const StudentProgress: React.FC = () => {
     useState<HeaderIconConfig[]>([]);
   const [headerContent, setHeaderContent] = useState<string[]>([]);
   const [dataContent, setDataContent] = useState<string[][]>([]);
-  const [currentStudent, setCurrentStudent] = useState<TableTypes<"user">>();
+  const [currentStudent, setCurrentStudent] = useState<ORUser>();
   const [courses, setCourses] = useState<TableTypes<"course">[]>([]);
   const [lessonsResults, setLessonsResults] = useState<Map<string, string>>();
   const [tabs, setTabs] = useState<{ [key: string]: string }>({});
@@ -95,7 +96,7 @@ const StudentProgress: React.FC = () => {
   }
 
   async function getCourses(
-    currentStudent: TableTypes<"user">
+    currentStudent: ORUser
   ): Promise<TableTypes<"course">[]> {
     const linkedData = await api.getStudentClassesAndSchools(currentStudent.id);
     // Declare currClass with the correct type

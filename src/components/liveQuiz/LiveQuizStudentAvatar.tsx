@@ -8,9 +8,10 @@ import {
 } from "react-circular-progressbar";
 import { Util } from "../../utility/util";
 import { t } from "i18next";
+import ORUser from "../../models/OneRoster/ORUser";
 
 const LiveQuizStudentAvatar: FC<{
-  student: TableTypes<"user">;
+  student: ORUser;
   score?: number;
   percentage?: number;
   isCorrect?: boolean;
@@ -20,7 +21,7 @@ const LiveQuizStudentAvatar: FC<{
       <div>
         {percentage || isCorrect != null ? (
           <CircularProgressbarWithChildren
-            value={isCorrect == null ? percentage ?? 0 : 100}
+            value={isCorrect == null ? (percentage ?? 0) : 100}
             strokeWidth={5}
             styles={buildStyles({
               pathColor:

@@ -22,6 +22,7 @@ import {
   createClient,
 } from "@supabase/supabase-js";
 import { RoleType } from "../../interface/modelInterfaces";
+import ORUser from "../../models/OneRoster/ORUser";
 
 export class SupabaseApi implements ServiceApi {
   private _assignmetRealTime?: RealtimeChannel;
@@ -98,8 +99,8 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   createUserDoc(
-    user: TableTypes<"user">
-  ): Promise<TableTypes<"user"> | undefined> {
+    user: ORUser
+  ): Promise<ORUser | undefined> {
     throw new Error("Method not implemented.");
   }
   syncDB(): Promise<boolean> {
@@ -109,7 +110,7 @@ export class SupabaseApi implements ServiceApi {
   public supabase: SupabaseClient<Database> | undefined;
   private supabaseUrl: string;
   private supabaseKey: string;
-  private _currentStudent: TableTypes<"user"> | undefined;
+  private _currentStudent: ORUser | undefined;
 
   public static getInstance(): SupabaseApi {
     if (!SupabaseApi.i) {
@@ -274,7 +275,7 @@ export class SupabaseApi implements ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined
-  ): Promise<TableTypes<"user">> {
+  ): Promise<ORUser> {
     throw new Error("Method not implemented.");
   }
 
@@ -288,7 +289,7 @@ export class SupabaseApi implements ServiceApi {
     gradeDocId: string | null,
     languageDocId: string | null,
     studentId: string
-  ): Promise<TableTypes<"user">> {
+  ): Promise<ORUser> {
     throw new Error("Method not implemented.");
   }
 
@@ -311,7 +312,7 @@ export class SupabaseApi implements ServiceApi {
   getAllLanguages(): Promise<TableTypes<"language">[]> {
     throw new Error("Method not implemented.");
   }
-  getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
+  getParentStudentProfiles(): Promise<ORUser[]> {
     throw new Error("Method not implemented.");
   }
 
@@ -321,10 +322,10 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"course">[]> {
     throw new Error("Method not implemented.");
   }
-  get currentStudent(): TableTypes<"user"> | undefined {
+  get currentStudent(): ORUser | undefined {
     return this._currentStudent;
   }
-  set currentStudent(value: TableTypes<"user"> | undefined) {
+  set currentStudent(value: ORUser | undefined) {
     this._currentStudent = value;
   }
   get currentClass(): TableTypes<"class"> | undefined {
@@ -383,7 +384,7 @@ export class SupabaseApi implements ServiceApi {
   }
   addCourseForParentsStudent(
     courses: TableTypes<"course">[],
-    student: TableTypes<"user">
+    student: ORUser
   ) {
     throw new Error("Method not implemented.");
   }
@@ -454,7 +455,7 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   updateStudent(
-    student: TableTypes<"user">,
+    student: ORUser,
     name: string,
     age: number,
     gender: string,
@@ -463,11 +464,11 @@ export class SupabaseApi implements ServiceApi {
     boardDocId: string,
     gradeDocId: string,
     languageDocId: string
-  ): Promise<TableTypes<"user">> {
+  ): Promise<ORUser> {
     throw new Error("Method not implemented.");
   }
   updateStudentFromSchoolMode(
-    student: TableTypes<"user">,
+    student: ORUser,
     name: string,
     age: number,
     gender: string,
@@ -477,17 +478,17 @@ export class SupabaseApi implements ServiceApi {
     gradeDocId: string,
     languageDocId: string,
     newClassId: string | undefined
-  ): Promise<TableTypes<"user">> {
+  ): Promise<ORUser> {
     throw new Error("Method not implemented.");
   }
   public async updateUserProfile(
-    user: TableTypes<"user">,
+    user: ORUser,
     fullName: string,
     email: string,
     phoneNum: string,
     languageDocId: string,
     profilePic: string | undefined
-  ): Promise<TableTypes<"user">> {
+  ): Promise<ORUser> {
     throw new Error("Method not implemented.");
   }
   updateClassCourseSelection(
@@ -559,7 +560,7 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"class">[]> {
     throw new Error("Method not implemented.");
   }
-  getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
+  getStudentsForClass(classId: string): Promise<ORUser[]> {
     throw new Error("Method not implemented.");
   }
   subscribeToClassTopic(): Promise<void> {
@@ -928,21 +929,22 @@ export class SupabaseApi implements ServiceApi {
   async getStudentResultsByAssignmentId(assignmentId: string): Promise<
     {
       result_data: TableTypes<"result">[];
-      user_data: TableTypes<"user">[];
+      user_data: ORUser[];
     }[]
   > {
-    try {
-      const results = await this?.supabase?.rpc("get_results_by_assignment", {
-        _assignment_id: assignmentId,
-      });
-      if (results == null || results.error || !results.data) {
-        throw results?.error ?? "";
-      }
-      const data = results.data;
-      return data;
-    } catch (error) {
-      throw error;
-    }
+    throw new Error("Method not implemented.");
+    // try {
+    //   const results = await this?.supabase?.rpc("get_results_by_assignment", {
+    //     _assignment_id: assignmentId,
+    //   });
+    //   if (results == null || results.error || !results.data) {
+    //     throw results?.error ?? "";
+    //   }
+    //   const data = results.data;
+    //   return data;
+    // } catch (error) {
+    //   throw error;
+    // }
   }
   getAssignmentById(id: string): Promise<TableTypes<"assignment"> | undefined> {
     throw new Error("Method not implemented.");
@@ -979,13 +981,14 @@ export class SupabaseApi implements ServiceApi {
   }
   async getUserByDocId(
     studentId: string
-  ): Promise<TableTypes<"user"> | undefined> {
+  ): Promise<ORUser | undefined> {
     try {
-      const res = await this.supabase
-        ?.from("user")
-        .select("*")
-        .eq("id", studentId);
-      return res?.data?.[0];
+      throw new Error("Method not implemented.");
+      // const res = await this.supabase
+      //   ?.from("user")
+      //   .select("*")
+      //   .eq("id", studentId);
+      // return res?.data?.[0];
     } catch (error) {
       throw error;
     }
@@ -1010,7 +1013,7 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getRecommendedLessons(studentId: string,classId?:string): Promise<TableTypes<"lesson">[]> {
+  getRecommendedLessons(studentId: string, classId?: string): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
 
@@ -1081,35 +1084,37 @@ export class SupabaseApi implements ServiceApi {
 
   getTeachersForClass(
     classId: string
-  ): Promise<TableTypes<"user">[] | undefined> {
+  ): Promise<ORUser[] | undefined> {
     throw new Error("Method not implemented.");
   }
-  async getUserByEmail(email: string): Promise<TableTypes<"user"> | undefined> {
+  async getUserByEmail(email: string): Promise<ORUser | undefined> {
     try {
-      const results = await this?.supabase?.rpc("get_user_by_email", {
-        p_email: email,
-      });
-      if (results == null || results.error || !results.data) {
-        throw results?.error ?? "";
-      }
-      const data = results.data[0];
-      return data;
+      throw new Error("Method not implemented.");
+      // const results = await this?.supabase?.rpc("get_user_by_email", {
+      //   p_email: email,
+      // });
+      // if (results == null || results.error || !results.data) {
+      //   throw results?.error ?? "";
+      // }
+      // const data = results.data[0];
+      // return data;
     } catch (error) {
       throw error;
     }
   }
   async getUserByPhoneNumber(
     phone: string
-  ): Promise<TableTypes<"user"> | undefined> {
+  ): Promise<ORUser | undefined> {
     try {
-      const results = await this?.supabase?.rpc("get_user_by_phonenumber", {
-        p_phone: phone,
-      });
-      if (results == null || results.error || !results.data) {
-        throw results?.error ?? "";
-      }
-      const data = results.data[0];
-      return data;
+      throw new Error("Method not implemented.");
+      // const results = await this?.supabase?.rpc("get_user_by_phonenumber", {
+      //   p_phone: phone,
+      // });
+      // if (results == null || results.error || !results.data) {
+      //   throw results?.error ?? "";
+      // }
+      // const data = results.data[0];
+      // return data;
     } catch (error) {
       throw error;
     }
@@ -1193,17 +1198,17 @@ export class SupabaseApi implements ServiceApi {
   }
   async getPrincipalsForSchool(
     schoolId: string
-  ): Promise<TableTypes<"user">[] | undefined> {
+  ): Promise<ORUser[] | undefined> {
     throw new Error("Method not implemented.");
   }
   async getCoordinatorsForSchool(
     schoolId: string
-  ): Promise<TableTypes<"user">[] | undefined> {
+  ): Promise<ORUser[] | undefined> {
     throw new Error("Method not implemented.");
   }
   async getSponsorsForSchool(
     schoolId: string
-  ): Promise<TableTypes<"user">[] | undefined> {
+  ): Promise<ORUser[] | undefined> {
     throw new Error("Method not implemented.");
   }
   async addUserToSchool(
