@@ -119,8 +119,8 @@ export class OneRosterApi implements ServiceApi {
   private classes: { [key: string]: Class[] } = {};
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
   
-  private static currentcourse: TableTypes<"course"> | null = null;
-  private static currentchapter: TableTypes<"chapter"> | null = null;
+  private static _currentCourse?: Map<string, TableTypes<"course"> | undefined>;
+  private static currentChapter: TableTypes<"chapter"> | null = null;
   private static currentLesson: TableTypes<"lesson"> | null = null;
   private static allCourses: TableTypes<"course">[] | null = null;
   private static langId: string = 'en'; // default lang
@@ -134,7 +134,6 @@ export class OneRosterApi implements ServiceApi {
       throw error;
     }
   }
-  
   // buildXapiQuery
   private buildXapiQuery(currentUser: { name?: string }): { agentEmail: string; queryStatement: IGetStudentResultStatement } {
     const agentEmail = `mailto:${currentUser?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
@@ -155,8 +154,11 @@ export class OneRosterApi implements ServiceApi {
   async getCoursesForParentsStudent(
     studentId: string,
   ): Promise<TableTypes<"course">[]> {
+
     try {
-      const jsonFile = "assets/courses/" + this.currentcourse.courseCode + "/res/course.json";
+      
+      const id = 'en'
+      const jsonFile = "assets/courses/" + id + "/res/course.json";
       const courseJson = await Util.loadJson(jsonFile);
       const metaC = courseJson.metadata;
 
@@ -175,8 +177,12 @@ export class OneRosterApi implements ServiceApi {
         subject_id: metaC.subject,
         updated_at: null,
       };
+
       let res = []
       res.push(tCourse)
+      
+      this._currentCourse = tCourse;
+      
       return res;
     } catch (error) {
       console.error("Error fetching JSON:", error);
@@ -557,6 +563,9 @@ export class OneRosterApi implements ServiceApi {
         subject_id: metaC.subject,
         updated_at: null,
       };
+      
+      this.allCourses = tCourse;
+      
       let res = []
       res.push(tCourse)
       return res;
@@ -787,7 +796,11 @@ async getLessonFromCourse(
         subject_id: metaC.subject,
         updated_at: null,
       };
+      
+      this._currentCourse = tCourse;
+
       return tCourse;
+
     } catch (error) {
       console.error("Error fetching JSON:", error);
     }
@@ -1060,16 +1073,19 @@ async getLessonFromCourse(
     throw new Error("Method not implemented.");
   }
 
-  get currentCourse():
-    | Map<string, TableTypes<"course"> | undefined>
-    | undefined {
-    throw new Error("Method not implemented.");
+  // Getter for currentCourse
+  get currentCourse(): Map<string, TableTypes<"course"> | undefined> | undefined {
+    return this._currentCourse;
   }
+
+  // Setter for currentCourse
   set currentCourse(
     value: Map<string, TableTypes<"course"> | undefined> | undefined
   ) {
-    throw new Error("Method not implemented.");
+    this._currentCourse = value;
   }
+
+
   createProfile(
     name: string,
     age: number,
@@ -1692,7 +1708,7 @@ async getLessonFromCourse(
   public async getCoursesFromLesson(lessonId: string): Promise<TableTypes<"course">[]> {
     try {
       const courses: TableTypes<"course">[] = [];
-      const courseList = ["en"]; // Replace with actual list of course IDs if available
+      const courseList = ["en",]; // Replace with actual list of course IDs if available
 
       for (const courseId of courseList) {
         const jsonFile = `assets/courses/${courseId}/res/course.json`;
@@ -1722,7 +1738,8 @@ async getLessonFromCourse(
           });
         }
       }
-
+      this._currentCourse = courses;
+      
       return courses;
     } catch (error) {
       console.error("Error fetching courses from lesson:", error);
