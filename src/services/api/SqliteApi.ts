@@ -1580,12 +1580,13 @@ export class SqliteApi implements ServiceApi {
       is_deleted: false,
       chapter_id: chapterId,
       course_id: courseId ?? "",
+      class_id: classId ?? "",
     };
 
     const res = await this.executeQuery(
       `
-    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id , class_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `,
       [
         newResult.id,
@@ -1602,6 +1603,7 @@ export class SqliteApi implements ServiceApi {
         newResult.is_deleted,
         newResult.course_id,
         newResult.chapter_id,
+        newResult.class_id
       ]
     );
     console.log("🚀 ~ SqliteApi ~ res:", res);
@@ -3150,6 +3152,7 @@ export class SqliteApi implements ServiceApi {
         is_deleted: false,
         chapter_id: chapter_id,
         course_id: course_id,
+        source: null,
       };
 
       console.log("Assignment data:", assignment_data);
