@@ -12,22 +12,13 @@ let storedStudent: {
 } = {};
 
 const handleClick = async (event: MouseEvent) => {
-  if (PAGES.DISPLAY_STUDENT === window.location.pathname) {
-    const usr = await ServiceConfig.getI().authHandler.getCurrentUser();
-    storedStudent.id = usr?.docId || storedStudent.id || "null";
-    storedStudent.name = usr?.name || storedStudent.name || "null";
-    storedStudent.username = usr?.username || storedStudent.username || "null";
-    storedStudent.phone = usr?.username || storedStudent.username || "null";
-    storedStudent.type = RoleType.PARENT;
-  } else {
-    const student = Util.getCurrentStudent();
-    storedStudent.id = student?.docId || storedStudent.id || "null";
-    storedStudent.name = student?.name || storedStudent.name || "null";
-    storedStudent.username =
-      student?.username || storedStudent.username || "null";
-    storedStudent.phone = student?.username || storedStudent.username || "null";
-    storedStudent.type = RoleType.STUDENT;
-  }
+  const student = Util.getCurrentStudent();
+  storedStudent.id = student?.docId || storedStudent.id || "null";
+  storedStudent.name = student?.name || storedStudent.name || "null";
+  storedStudent.username =
+    student?.username || storedStudent.username || "null";
+  storedStudent.phone = student?.username || storedStudent.username || "null";
+  storedStudent.type = RoleType.STUDENT;
 
   let target = event.target as HTMLElement;
   const getTextContent = (element: HTMLElement): any => {
