@@ -70,7 +70,7 @@ import AddStudent from "./pages/Malta/AddStudent";
 import { JailbreakRoot } from "@basecom-gmbh/capacitor-jailbreak-root-detection";
 import { useIonAlert } from "@ionic/react";
 import i18n from "./i18n";
-import "./analytics/clickUtil"; // This will run the event listener immediately
+import { initializeClickListener } from "./analytics/clickUtil";
 
 setupIonicReact();
 interface ExtraData {
@@ -79,6 +79,7 @@ interface ExtraData {
   classId?: string;
 }
 const App: React.FC = () => {
+  const cleanup = initializeClickListener();
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
   const [presentAlert] = useIonAlert();
@@ -124,6 +125,7 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      cleanup();
     };
   }, [online, presentToast]);
   useEffect(() => {

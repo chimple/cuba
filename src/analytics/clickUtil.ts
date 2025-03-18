@@ -1,34 +1,61 @@
 import { Util } from "../utility/util";
-import { EVENTS } from "../common/constants";
+import { EVENTS, MODES, PAGES } from "../common/constants";
 import { RoleType } from "../interface/modelInterfaces";
+import { ServiceConfig } from "../services/ServiceConfig";
 
-const storedStudent: {
+let storedStudent: {
   id?: string;
   name?: string;
-  gender?: string;
   username?: string;
   phone?: string;
+  type?: string;
 } = {};
 
-const handleClick = (event: MouseEvent | TouchEvent) => {
-  const student = Util.getCurrentStudent();
-  if (student) {
-    storedStudent.id = student.docId;
-    storedStudent.name = student.name ?? undefined;
-    storedStudent.gender = student.gender ?? undefined;
-    storedStudent.username = student.username ?? undefined;
-    storedStudent.phone = student.username ?? undefined;
+const handleClick = async (event: MouseEvent) => {
+  if (PAGES.DISPLAY_STUDENT === window.location.pathname) {
+    const usr = await ServiceConfig.getI().authHandler.getCurrentUser();
+    storedStudent.id = usr?.docId || storedStudent.id || "null";
+    storedStudent.name = usr?.name || storedStudent.name || "null";
+    storedStudent.username = usr?.username || storedStudent.username || "null";
+    storedStudent.phone = usr?.username || storedStudent.username || "null";
+    storedStudent.type = RoleType.PARENT;
+  } else {
+    const student = Util.getCurrentStudent();
+    storedStudent.id = student?.docId || storedStudent.id || "null";
+    storedStudent.name = student?.name || storedStudent.name || "null";
+    storedStudent.username =
+      student?.username || storedStudent.username || "null";
+    storedStudent.phone = student?.username || storedStudent.username || "null";
+    storedStudent.type = RoleType.STUDENT;
   }
 
-  let path = event.composedPath();
-  let target = path[0] as HTMLElement;
-  while (target && target.parentElement && !target.textContent?.trim()) {
-    target = target.parentElement as HTMLElement;
-  }
-
-  let textContent =
-    target.innerText?.trim() || target.getAttribute("aria-label") || "";
-  textContent = textContent.replace(/\s+/g, " ");
+  let target = event.target as HTMLElement;
+  const getTextContent = (element: HTMLElement): any => {
+    let textContent;
+    textContent =
+      target.innerText?.trim() || target.getAttribute("aria-label")?.trim();
+    if (!textContent) {
+      if (PAGES.EDIT_STUDENT === window.location.pathname) {
+        textContent = target
+          .getAttribute("src")
+          ?.trim()
+          .split("/")
+          .pop()
+          ?.split(".")[0];
+        return textContent;
+      }
+      while (target && target !== document.body) {
+        textContent = target.innerText?.trim();
+        if (textContent) break;
+        target = target.parentElement as HTMLElement;
+      }
+      textContent =
+        target.innerText?.replace(/\s+/g, " ").trim() ||
+        target.getAttribute("aria-label");
+    }
+    return textContent;
+  };
+  const textContent = getTextContent(target);
 
   const findRelevantParent = (
     element: HTMLElement | null
@@ -36,7 +63,7 @@ const handleClick = (event: MouseEvent | TouchEvent) => {
     while (element) {
       if (element.id) return { id: element.id };
       const frameworkClassPattern =
-        /^(menu-|css-|Mui|chakra|ant-|tailwind|random-|class-|\d)/i;
+        /^(menu-|ion-|css-|Mui|chakra|ant-|tailwind|random-|class-|\d)/i;
       const filteredClasses = Array.from(element.classList).filter(
         (cls) => !frameworkClassPattern.test(cls)
       );
@@ -47,17 +74,17 @@ const handleClick = (event: MouseEvent | TouchEvent) => {
     }
     return {};
   };
+
   const { id, className } = findRelevantParent(target);
 
   const eventData = {
-    user_id: storedStudent.id || student?.docId,
-    user_name: storedStudent.name || student?.name,
-    user_gender: storedStudent.gender || student?.gender,
-    user_username: storedStudent.username || student?.username,
-    phone_number: storedStudent.phone || student?.username,
-    user_type: RoleType.STUDENT,
-    click_value: textContent || "No click value found",
-    click_identifier: id || className || "No ID or Classname found",
+    user_id: storedStudent.id,
+    user_name: storedStudent.name,
+    user_username: storedStudent.username,
+    user_phone: storedStudent.phone,
+    user_type: storedStudent.type,
+    click_value: textContent || "null",
+    click_identifier: id || className || "null",
     page_name: window.location.pathname.replace("/", ""),
     page_path: window.location.pathname,
     complete_path: window.location.href,
@@ -68,10 +95,10 @@ const handleClick = (event: MouseEvent | TouchEvent) => {
   Util.logEvent(EVENTS.CLICKS_ANALYTICS, eventData);
 };
 
-// Attach event listener on script load
-document.addEventListener("click", handleClick);
+export const initializeClickListener = () => {
+  document.addEventListener("click", handleClick);
 
-// Export a cleanup function if needed
-export const ClickDetector = () => {
-  document.removeEventListener("click", handleClick);
+  return () => {
+    document.removeEventListener("click", handleClick);
+  };
 };

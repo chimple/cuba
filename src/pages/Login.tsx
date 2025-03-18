@@ -221,7 +221,6 @@ const Login: React.FC = () => {
       phoneNumberErrorRef.current.style.display = "none";
       setPhoneNumber(phoneNumber.number.toString());
       setCurrentButtonColor(Buttoncolors.Valid);
-   
     }
   };
 
@@ -240,12 +239,19 @@ const Login: React.FC = () => {
   };
   const isPhoneNumberEventListener = async (event: Event) => {
     retriewPhoneNumber();
-    document.removeEventListener("isPhoneNumberSelected", isPhoneNumberEventListener);
+    document.removeEventListener(
+      "isPhoneNumberSelected",
+      isPhoneNumberEventListener
+    );
   };
   const initNumberSelectedListner = async () => {
-    document.addEventListener("isPhoneNumberSelected", isPhoneNumberEventListener, {
-      once: true,
-    });
+    document.addEventListener(
+      "isPhoneNumberSelected",
+      isPhoneNumberEventListener,
+      {
+        once: true,
+      }
+    );
   };
   const initSmsListner = async () => {
     document.addEventListener("otpReceived", otpEventListener, { once: true });
@@ -287,7 +293,6 @@ const Login: React.FC = () => {
               {
                 text: "Dismiss",
                 role: "cancel",
-
               },
             ],
           });
@@ -318,11 +323,10 @@ const Login: React.FC = () => {
         setSentOtpLoading(false);
         setCounter(59);
         setShowVerification(true);
-      }
-      else {
+      } else {
         presentToast({
           message: t("Please wait 60 seconds before retrying"),
-          color: "light",  
+          color: "light",
           duration: 3000,
           position: "bottom",
           buttons: [
@@ -601,6 +605,7 @@ const Login: React.FC = () => {
                         ref={inputRef}
                         inputText={t("Enter Mobile Number (10-digit)")}
                         inputType={"tel"}
+                        aria-label="Enter Mobile Number (10-digit)"
                         onFocus={async () => {
                           if (
                             Capacitor.getPlatform() === "android" &&
@@ -713,6 +718,7 @@ const Login: React.FC = () => {
                 <div className="login-with-google-or-student-credentials-container">
                   <img
                     id="login-google-icon"
+                    aria-label="Google Sign In"
                     alt="Google Icon"
                     src="assets/icons/Google Icon.png"
                     onClick={async () => {
@@ -767,6 +773,7 @@ const Login: React.FC = () => {
                   {!showVerification ? (
                     <div
                       className="login-with-student-credentials"
+                      aria-label="Student-credentials Sign In"
                       onClick={loinWithStudentCredentialsButton}
                     >
                       <IoSchool className="school-icon" />
