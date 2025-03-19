@@ -2,6 +2,8 @@ import { useHistory } from "react-router-dom";
 import Header from "../../chimple-private/components/homePage/Header";
 import { PAGES } from "../../common/constants";
 import FileUpload from "../components/FileUpload";
+import "./UploadPage.css";
+
 
 const Upload = () => {
 
