@@ -44,7 +44,7 @@
                 <!-- Ensure this matches your deep link -->
                 <data
                     android:scheme="https"
-                    android:host="chimple.org"
+                    android:host="chimple.cc"
                     android:pathPrefix="/" />
             </intent-filter>
 
