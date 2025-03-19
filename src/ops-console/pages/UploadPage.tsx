@@ -13,7 +13,7 @@ const UploadPage: React.FC = () => {
   };
 
   return (
-    <IonPage className="main-page">
+    <IonPage>
       <Header
         isBackButton={true}
         onBackButtonClick={onBackButtonClick}

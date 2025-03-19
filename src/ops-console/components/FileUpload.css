@@ -62,18 +62,18 @@
   max-width: 100%;
 }
 
-.upload-text {
+.file-upload-text {
   color: black;
   font-size: clamp(12px, 1.5vw, 14px);
 }
 
-.upload-text span {
+.file-upload-text span {
   text-decoration: underline;
   color: #7c5db0;
   cursor: pointer;
 }
 
-.upload-size {
+.upload-file-size {
   color: gray;
   font-size: clamp(12px, 1.5vw, 14px);
 }
@@ -153,7 +153,7 @@
   color: black;
 }
 
-.remove-btn {
+.file-upload-remove-btn {
   border: none;
   background: transparent;
   color: black;

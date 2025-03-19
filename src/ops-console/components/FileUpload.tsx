@@ -26,10 +26,10 @@ const FileUpload: React.FC = () => {
             onChange={() => {}}
           />
           {/* <UploadCloud className="upload-icon" size={40} /> */}
-          <p className="upload-text">
+          <p className="file-upload-text">
             <span>{t("Click to upload")}</span> {t("Student Data")}
           </p>
-          <p className="upload-size">{t("Maximum file size")} 50MB</p>
+          <p className="upload-file-size">{t("Maximum file size")} 50MB</p>
         </label>
 
         {file && (
@@ -38,7 +38,7 @@ const FileUpload: React.FC = () => {
             <div className="file-upload-view">
               <div className="file-uploading-header">
                 <p className="file-upload-name">adad</p>
-                <button onClick={() => {}} className="remove-btn">
+                <button onClick={() => {}} className="file-upload-remove-btn">
                   <strong>✕</strong>
                 </button>
               </div>
