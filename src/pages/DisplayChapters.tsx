@@ -374,7 +374,7 @@ const DisplayChapters: FC<{}> = () => {
     <IonPage id="display-chapters-page">
       <div className="chapters-header">
         <div id="back-button-container">
-          <BackButton aria-label="Back" onClicked={onBackButton} />
+          <BackButton aria-label={t("Back")} onClicked={onBackButton} />
         </div>
         <div className="chapter-header">
           <IonItem lines="none">
