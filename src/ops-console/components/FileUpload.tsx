@@ -3,6 +3,7 @@ import "./FileUpload.css";
 import UploadIcon from "../assets/icons/upload_icon.png";
 import { FaCloudDownloadAlt } from "react-icons/fa";
 import { IonPage } from "@ionic/react";
+import { t } from "i18next";
 
 const FileUpload: React.FC = () => {
   const [file, setFile] = useState(null);
@@ -11,9 +12,9 @@ const FileUpload: React.FC = () => {
   return (
     <IonPage className="file-upload-page">
       <div className="file-upload-container">
-        <div className="file-upload-header">Upload a new file</div>
+        <div className="file-upload-header">{t("Upload a new file")}</div>
         <p className="file-upload-info">
-          Supported file type <strong> .xlxs</strong>
+        {t("Supported file type")} <strong> .xlxs</strong>
         </p>
 
         <label className="file-upload-box">
@@ -26,9 +27,9 @@ const FileUpload: React.FC = () => {
           />
           {/* <UploadCloud className="upload-icon" size={40} /> */}
           <p className="upload-text">
-            <span>Click to upload</span> xyz student data
+            <span>{t("Click to upload")}</span> {t("Student Data")}
           </p>
-          <p className="upload-size">Maximum file size 50MB</p>
+          <p className="upload-size">{t("Maximum file size")} 50MB</p>
         </label>
 
         {file && (
@@ -59,16 +60,16 @@ const FileUpload: React.FC = () => {
         <div className="file-upload-button-group">
           {progress < 100 ? (
             <button className="file-upload-btn file-upload-long-cancel-btn">
-              Cancel
+              {t("Cancel")}
             </button>
           ) : (
             <div className="file-upload-actions">
               <button className="file-upload-btn file-upload-cancel-btn">
-                Cancel
+                {t("Cancel")}
               </button>
               <div className="spacer"></div>
               <button className="file-upload-btn file-upload-next-btn">
-                Next
+                {t("Next")}
               </button>
             </div>
           )}
