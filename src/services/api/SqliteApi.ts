@@ -3827,7 +3827,6 @@ order by
     }
   }
 
-
   async checkUserExistInSchool(
     schoolId: string,
     userId: string
