@@ -35,18 +35,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- intent for chimple-prod.firebaseapp.com  -->
-            <intent-filter android:autoVerify="true">
+            <!-- intent for chimple.cc  -->
+            <!-- <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <!-- Ensure this matches your deep link -->
                 <data
                     android:scheme="https"
                     android:host="chimple.cc"
-                    android:pathPrefix="/" />
-            </intent-filter>
+                    android:pathPrefix="/topic" />
+            </intent-filter> -->
 
             <!-- ✅ Deep linking support for localhost:3000 (for local testing) -->
             <intent-filter>
@@ -56,15 +55,18 @@
                 <data android:scheme="http" android:host="localhost" android:port="3000" android:pathPrefix="/" />
             </intent-filter>
 
-            <intent-filter>
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="chimple.cc" android:path="/join-class" />
+                <data android:scheme="https"/>
+                <data android:host="chimple.cc"/>
+                <data android:path="/join-class"/>
                 <data android:scheme="https" android:host="chimple.cc" android:path="/assignment" />
                 <data android:scheme="https" android:host="chimple.cc" android:path="/live-quiz" />
-
+                <data android:scheme="https" android:host="chimple.cc" android:path="/topic" />
+                <data android:scheme="https" android:host="chimple.cc" android:pathPattern="/.*" />
             </intent-filter>
 
 
