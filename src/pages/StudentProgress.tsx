@@ -109,7 +109,7 @@ const StudentProgress: React.FC = () => {
       updated_at: string | null;
     } | null = null;
 
-    if (linkedData.classes && linkedData.classes.length > 0) {
+    if (linkedData?.classes && linkedData?.classes.length > 0) {
       const firstClass = linkedData.classes[0];
       currClass = (await api.getClassById(firstClass.id)) ?? null; // Handle undefined
     }
