@@ -605,7 +605,7 @@ const Login: React.FC = () => {
                         ref={inputRef}
                         inputText={t("Enter Mobile Number (10-digit)")}
                         inputType={"tel"}
-                        aria-label="Enter Mobile Number (10-digit)"
+                        aria-label={t("Enter Mobile Number (10-digit)")}
                         onFocus={async () => {
                           if (
                             Capacitor.getPlatform() === "android" &&
@@ -718,7 +718,7 @@ const Login: React.FC = () => {
                 <div className="login-with-google-or-student-credentials-container">
                   <img
                     id="login-google-icon"
-                    aria-label="Google Sign In"
+                    aria-label={String(t("Google Sign In"))}
                     alt="Google Icon"
                     src="assets/icons/Google Icon.png"
                     onClick={async () => {
@@ -773,7 +773,7 @@ const Login: React.FC = () => {
                   {!showVerification ? (
                     <div
                       className="login-with-student-credentials"
-                      aria-label="Student-credentials Sign In"
+                      aria-label={String(t("Student-credentials Sign In"))}
                       onClick={loinWithStudentCredentialsButton}
                     >
                       <IoSchool className="school-icon" />
