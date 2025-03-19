@@ -14,3 +14,13 @@
   margin-right: 0;
   /* z-index: 1; */
 }
+
+.back-button-in-custom-app-bar::before {
+  content: "Back";
+  visibility: hidden;
+  display: none;
+}
+
+.hidden-text {
+  display: none;
+}
