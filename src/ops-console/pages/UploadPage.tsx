@@ -2,31 +2,26 @@ import { useHistory } from "react-router-dom";
 import Header from "../../chimple-private/components/homePage/Header";
 import { PAGES } from "../../common/constants";
 import FileUpload from "../components/FileUpload";
-import "./UploadPage.css";
+import { IonPage } from "@ionic/react";
 
-
-const Upload = () => {
-
+const UploadPage: React.FC = () => {
   const history = useHistory();
-  
   const onBackButtonClick = () => {
-      history.replace(PAGES.HOME_PAGE, {
-        tabValue: 0,
-      });
-    };
-    
+    history.replace(PAGES.HOME_PAGE, {
+      tabValue: 0,
+    });
+  };
+
   return (
-    <div className="main-page">
-      <div className="fixed-header">
-        <Header
-          isBackButton={true}
-          onBackButtonClick={onBackButtonClick}
-          onButtonClick={undefined}
-        />
-      </div>
+    <IonPage className="main-page">
+      <Header
+        isBackButton={true}
+        onBackButtonClick={onBackButtonClick}
+        onButtonClick={undefined}
+      />
       <FileUpload />
-    </div>
+    </IonPage>
   );
 };
 
-export default Upload;
+export default UploadPage;

@@ -101,7 +101,7 @@
   border: 1px solid #ddd;
 }
 
-.file-icon {
+.file-uploading-icon {
   font-size: clamp(16px, 2vw, 28px);
   min-width: clamp(20px, 3vw, 30px);
 }
@@ -112,7 +112,7 @@
   flex-direction: column;
 }
 
-.file-header {
+.file-uploading-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -199,38 +199,38 @@
   padding: clamp(6px, 2vh, 12px) clamp(12px, 3vw, 20px);
 }
 
-.long-cancel-btn {
+.file-upload-long-cancel-btn {
   border: 2px solid black;
   background-color: white;
   color: black;
   width: 100%;
 }
 
-.long-cancel-btn:hover {
+.file-upload-long-cancel-btn:hover {
   background-color: #e5e7eb;
   transform: scale(1.02);
 }
 
-.cancel-btn {
+.file-upload-cancel-btn {
   border: 2px solid black;
   background-color: white;
   color: black;
   width: clamp(70px, 30%, 150px);
 }
 
-.cancel-btn:hover {
+.file-upload-cancel-btn:hover {
   background-color: #e5e7eb;
   transform: scale(1.02);
 }
 
-.next-btn {
+.file-upload-next-btn {
   border: none;
   background: #7c5db0;
   color: white;
   width: clamp(70px, 30%, 150px);
 }
 
-.next-btn:hover {
+.file-upload-next-btn:hover {
   background: #5a3e88;
   transform: scale(1.02);
 }

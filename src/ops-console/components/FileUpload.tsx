@@ -2,37 +2,14 @@ import { useState } from "react";
 import "./FileUpload.css";
 import UploadIcon from "../assets/icons/upload_icon.png";
 import { FaCloudDownloadAlt } from "react-icons/fa";
+import { IonPage } from "@ionic/react";
 
-export default function FileUpload() {
+const FileUpload: React.FC = () => {
   const [file, setFile] = useState(null);
   const [progress, setProgress] = useState(0);
 
-  const handleFileChange = (event) => {
-    const selectedFile = event.target.files[0];
-    if (selectedFile && selectedFile.type === "text/csv") {
-      setFile(selectedFile);
-      simulateUpload();
-    } else {
-      alert("Only .csv files are allowed.");
-    }
-  };
-
-  const simulateUpload = () => {
-    let uploadProgress = 0;
-    const interval = setInterval(() => {
-      uploadProgress += 10;
-      setProgress(uploadProgress);
-      if (uploadProgress >= 100) clearInterval(interval);
-    }, 300);
-  };
-
-  const handleRemoveFile = () => {
-    setFile(null);
-    setProgress(0);
-  };
-
   return (
-    <div className="file-upload-page">
+    <IonPage className="file-upload-page">
       <div className="file-upload-container">
         <div className="file-upload-header">Upload a new file</div>
         <p className="file-upload-info">
@@ -45,7 +22,7 @@ export default function FileUpload() {
             type="file"
             className="file_upload_input_file"
             accept=".csv"
-            onChange={handleFileChange}
+            onChange={() => {}}
           />
           {/* <UploadCloud className="upload-icon" size={40} /> */}
           <p className="upload-text">
@@ -56,11 +33,11 @@ export default function FileUpload() {
 
         {file && (
           <div className="file-upload-preview">
-            <div className="file-icon">📄</div>
+            <div className="file-uploading-icon">📄</div>
             <div className="file-upload-view">
-              <div className="file-header">
+              <div className="file-uploading-header">
                 <p className="file-upload-name">adad</p>
-                <button onClick={handleRemoveFile} className="remove-btn">
+                <button onClick={() => {}} className="remove-btn">
                   <strong>✕</strong>
                 </button>
               </div>
@@ -81,12 +58,18 @@ export default function FileUpload() {
 
         <div className="file-upload-button-group">
           {progress < 100 ? (
-            <button className="file-upload-btn long-cancel-btn">Cancel</button>
+            <button className="file-upload-btn file-upload-long-cancel-btn">
+              Cancel
+            </button>
           ) : (
             <div className="file-upload-actions">
-              <button className="file-upload-btn cancel-btn">Cancel</button>
+              <button className="file-upload-btn file-upload-cancel-btn">
+                Cancel
+              </button>
               <div className="spacer"></div>
-              <button className="file-upload-btn next-btn">Next</button>
+              <button className="file-upload-btn file-upload-next-btn">
+                Next
+              </button>
             </div>
           )}
         </div>
@@ -94,6 +77,8 @@ export default function FileUpload() {
       <a href="#" className="download-upload-template">
         <FaCloudDownloadAlt /> Download Bulk Upload Template
       </a>
-    </div>
+    </IonPage>
   );
-}
+};
+
+export default FileUpload;
