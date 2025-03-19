@@ -10,7 +10,7 @@ const FileUpload: React.FC = () => {
   const [progress, setProgress] = useState(0);
 
   return (
-    <IonPage className="file-upload-page">
+    <div className="file-upload-page">
       <div className="file-upload-container">
         <div className="file-upload-header">{t("Upload a new file")}</div>
         <p className="file-upload-info">
@@ -78,7 +78,7 @@ const FileUpload: React.FC = () => {
       <a href="#" className="download-upload-template">
         <FaCloudDownloadAlt /> Download Bulk Upload Template
       </a>
-    </IonPage>
+    </div>
   );
 };
 
