@@ -436,7 +436,7 @@ const EditStudent = () => {
             <>
               <div id="Edit-student-back-button">
                 <BackButton
-                  aria-label="t{Back}"
+                  aria-label={t("Back")}
                   onClicked={() => {
                     localStoreData.stage = STAGES.AVATAR;
                     addDataToLocalStorage();
