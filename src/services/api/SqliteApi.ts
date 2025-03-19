@@ -3827,7 +3827,6 @@ order by
     }
   }
 
-  checkUserIsPROGRAM_MANAGER
 
   async checkUserExistInSchool(
     schoolId: string,
