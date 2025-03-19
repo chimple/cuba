@@ -80,11 +80,13 @@ const EditStudent = () => {
   );
   const [boards, setBoards] = useState<Curriculum[]>();
   const [grades, setGrades] = useState<Grade[]>();
-  const [languages, setLanguages] = useState<{
-    title: string;
-    code: string;
-    docId: string;
-  }[]>();
+  const [languages, setLanguages] = useState<
+    {
+      title: string;
+      code: string;
+      docId: string;
+    }[]
+  >();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [checkResults, setCheckResults] = useState<boolean>(false);
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
@@ -192,17 +194,23 @@ const EditStudent = () => {
         setGrades(results[1]);
         localStoreData.grades = results[1];
 
-        const sortedLanguages: { title: string; code: string; docId: string }[] = Object.keys(APP_LANGUAGES)
-          .map(code => {
-            const matchingLang = results[2].find(lang => lang.code === code);
+        const sortedLanguages: {
+          title: string;
+          code: string;
+          docId: string;
+        }[] = Object.keys(APP_LANGUAGES)
+          .map((code) => {
+            const matchingLang = results[2].find((lang) => lang.code === code);
             return matchingLang ? { ...matchingLang } : undefined;
           })
           // Filter out undefined values to keep only valid language objects
-          .filter((lang): lang is { title: string; code: string; docId: string } => lang !== undefined);
+          .filter(
+            (lang): lang is { title: string; code: string; docId: string } =>
+              lang !== undefined
+          );
 
         setLanguages(sortedLanguages);
         localStoreData.languages = sortedLanguages;
-
 
         console.log(
           "🚀 ~ file: EditStudent.tsx:51 ~ isNextButtonEnabled ~ docs:",
@@ -306,6 +314,7 @@ const EditStudent = () => {
       <div id="Edit-student-back-button">
         {!isEdit && !state?.showBackButton ? null : (
           <BackButton
+            aria-label={t("Back")}
             onClicked={() => {
               localStorage.removeItem(EDIT_STUDENT_STORE);
               history.replace(PAGES.DISPLAY_STUDENT);
@@ -357,7 +366,7 @@ const EditStudent = () => {
             onValueChange={(val) =>
               handleValueChange("studentName", val, setStudentName)
             }
-            onEnterDown={isNextButtonEnabled() ? onNextButton : () => { }}
+            onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
           />
         )}
       </div>
@@ -366,6 +375,7 @@ const EditStudent = () => {
           <>
             <div id="Edit-student-back-button">
               <BackButton
+                aria-label={t("Back")}
                 onClicked={() => {
                   localStoreData.stage = STAGES.GENDER_AND_AGE;
                   addDataToLocalStorage();
@@ -388,6 +398,7 @@ const EditStudent = () => {
           <>
             <div id="Edit-student-back-button">
               <BackButton
+                aria-label={t("Back")}
                 onClicked={() => {
                   localStoreData.stage = STAGES.NAME;
                   addDataToLocalStorage();
@@ -425,6 +436,7 @@ const EditStudent = () => {
             <>
               <div id="Edit-student-back-button">
                 <BackButton
+                  aria-label={t("Back")}
                   onClicked={() => {
                     localStoreData.stage = STAGES.AVATAR;
                     addDataToLocalStorage();

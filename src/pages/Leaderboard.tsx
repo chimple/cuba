@@ -66,16 +66,29 @@ const Leaderboard: React.FC = () => {
   useEffect(() => {
     setIsLoading(true);
     init();
+
     const urlParams = new URLSearchParams(window.location.search);
     const rewardsTab = urlParams.get("tab");
     let currentTab = LEADERBOARDHEADERLIST.LEADERBOARD;
-    if (rewardsTab) {
-      if (rewardsTab === LEADERBOARDHEADERLIST.REWARDS.toLowerCase()) {
-        currentTab = LEADERBOARDHEADERLIST.REWARDS;
-      }
+
+    if (
+      rewardsTab &&
+      rewardsTab === LEADERBOARDHEADERLIST.REWARDS.toLowerCase()
+    ) {
+      currentTab = LEADERBOARDHEADERLIST.REWARDS;
     }
+
     setTabIndex(currentTab);
   }, []);
+
+  useEffect(() => {
+    // Update URL when tabIndex changes
+    if (tabIndex) {
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set("tab", tabIndex.toLowerCase());
+      window.history.replaceState({}, "", newUrl.toString());
+    }
+  }, [tabIndex]);
 
   useEffect(() => {}, []);
 
@@ -483,7 +496,6 @@ const Leaderboard: React.FC = () => {
     );
   }
 
-
   const handleChange = (
     event: React.SyntheticEvent,
     newValue: LEADERBOARDHEADERLIST
@@ -517,12 +529,16 @@ const Leaderboard: React.FC = () => {
       {!isLoading ? (
         <Box>
           <div id="LeaderBoard-Header">
-            <BackButton
-              // iconSize={"8vh"}
-              onClicked={() => {
-                Util.setPathToBackButton(PAGES.HOME, history);
-              }}
-            ></BackButton>
+            <div id="back-button-in-LeaderBoard-Header">
+              <span className="hidden-text">Back</span>
+              <BackButton
+                // iconSize={"8vh"}
+                aria-label={t("Back")}
+                onClicked={() => {
+                  Util.setPathToBackButton(PAGES.HOME, history);
+                }}
+              ></BackButton>
+            </div>
             <Box>
               <AppBar
                 id="LeaderBoard-AppBar"

@@ -70,6 +70,7 @@ import AddStudent from "./pages/Malta/AddStudent";
 import { JailbreakRoot } from "@basecom-gmbh/capacitor-jailbreak-root-detection";
 import { useIonAlert } from "@ionic/react";
 import i18n from "./i18n";
+import { initializeClickListener } from "./analytics/clickUtil";
 
 setupIonicReact();
 interface ExtraData {
@@ -78,6 +79,7 @@ interface ExtraData {
   classId?: string;
 }
 const App: React.FC = () => {
+  const cleanup = initializeClickListener();
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
   const [presentAlert] = useIonAlert();
@@ -123,6 +125,7 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      cleanup();
     };
   }, [online, presentToast]);
   useEffect(() => {
@@ -135,7 +138,9 @@ const App: React.FC = () => {
         if (value.result) {
           presentAlert({
             header: i18n.t("Device Not Supported"),
-            message: i18n.t("We're sorry, but it appears that your device is rooted. For security and stability reasons, this application cannot be used on rooted devices. Please unroot your device to continue using the app. If you need assistance, please contact our support team."),
+            message: i18n.t(
+              "We're sorry, but it appears that your device is rooted. For security and stability reasons, this application cannot be used on rooted devices. Please unroot your device to continue using the app. If you need assistance, please contact our support team."
+            ),
             buttons: [i18n.t("Okay")],
             onDidDismiss: () => {
               CapApp.exitApp();
@@ -175,7 +180,7 @@ const App: React.FC = () => {
           if (data.fullPayload) {
             const formattedPayload = JSON.parse(data.fullPayload);
             processNotificationData(formattedPayload);
-          }else{
+          } else {
             processNotificationData(data);
           }
         }
