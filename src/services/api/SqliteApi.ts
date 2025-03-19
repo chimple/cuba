@@ -64,6 +64,46 @@ export class SqliteApi implements ServiceApi {
     return SqliteApi.i;
   }
 
+  public async clearUserCache(): Promise<void> {
+    try {
+      if (this._db) {
+        await this._db.close();
+        this._db = undefined;
+      }
+  
+      if (Capacitor.isNativePlatform()) {
+        await CapacitorSQLite.deleteDatabase({ database: "jeepSqliteStore" });
+      } else {
+        await new Promise<void>((resolve, reject) => {
+          const deleteRequest = window.indexedDB.deleteDatabase("jeepSqliteStore");
+          deleteRequest.onsuccess = () => {
+            resolve();
+          };
+          deleteRequest.onerror = (event) => {
+            console.error("❌ Web: Error deleting jeepSqliteStore database.", event);
+            reject(event);
+          };
+        });
+      }
+  
+      if (!this._sqlite) {
+        throw new Error("SQLite connection is not initialized");
+      }
+      this._db = await this._sqlite.createConnection(
+        this.DB_NAME, 
+        false,
+        "no-encryption",
+        this.DB_VERSION,
+        false
+      );
+      await this._db.open();
+      await this.setUpDatabase();
+    } catch (error) {
+      console.error("❌ Error in clearUserCache:", error);
+      throw error;
+    }
+  }
+
   private async init() {
     SupabaseApi.getInstance();
     const platform = Capacitor.getPlatform();
@@ -399,18 +439,50 @@ export class SqliteApi implements ServiceApi {
     refreshTables: TABLES[] = []
   ) {
     if (!this._db) return;
-    const refresh_tables = "'" + refreshTables.join("', '") + "'";
-    await this.executeQuery(
-      `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`
-    );
+  
+    const previousUserId = localStorage.getItem("PREVIOUS_USER_ID");
+    const currentUserId = localStorage.getItem("CURRENT_USER_ID");
+  
+    // If a new user is detected, remove all records that do not belong to the current user.
+    if (previousUserId && currentUserId && previousUserId !== currentUserId) {
+      try {
+        console.log("🚀 New user detected - Removing previous user data...");
+        const tables = ["messages", "contacts", "chats"]; 
+  
+        for (const table of tables) {
+          if (!Capacitor.isNativePlatform()) {
+            await this.executeQuery(
+              `DELETE FROM ${table} WHERE user_id <> ?`,
+              [currentUserId]
+            );
+          } else {
+            await this._db.execute(
+              `DELETE FROM ${table} WHERE user_id <> '${currentUserId}'`
+            );
+          }
+        }
+  
+        localStorage.removeItem("PREVIOUS_USER_ID");
+      } catch (error) {
+        console.error("❌ Error deleting previous user data:", error);
+      }
+    }
+  
+    if (refreshTables.length > 0) {
+      const refresh_tables = "'" + refreshTables.join("', '") + "'";
+      await this.executeQuery(
+        `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`
+      );
+    }
+  
     await this.pullChanges(tableNames);
     const res = await this.pushChanges(tableNames);
     const tables = "'" + tableNames.join("', '") + "'";
-    this.executeQuery(
+    await this.executeQuery(
       `UPDATE pull_sync_info SET last_pulled = CURRENT_TIMESTAMP WHERE table_name IN (${tables})`
     );
     return res;
-  }
+  }  
 
   private async createSyncTables() {
     const createPullSyncInfoTable = `CREATE TABLE IF NOT EXISTS pull_sync_info (

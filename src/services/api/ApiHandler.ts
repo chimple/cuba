@@ -4,17 +4,21 @@ import { StudentLessonResult } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import {
+  CURRENT_USER,
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODES,
   PROFILETYPE,
+  REFRESH_TOKEN,
   TableTypes,
+  USER_DATA,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { RoleType } from "../../interface/modelInterfaces";
 import { image, school } from "ionicons/icons";
+import { SqliteApi } from "./SqliteApi";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -595,6 +599,17 @@ export class ApiHandler implements ServiceApi {
     selectedCourseIds: string[]
   ): Promise<void> {
     return this.s.updateClassCourseSelection(classId, selectedCourseIds);
+  }
+
+  public async clearUserCache(): Promise<void> {
+    try {
+      const sqliteApi = await SqliteApi.getInstance();
+      await sqliteApi.clearUserCache();
+      console.log("User cache cleared successfully.");
+    } catch (error) {
+      console.error("Error clearing user cache in ApiHandler:", error);
+      throw error;
+    }
   }
 
   public async updateSchoolCourseSelection(
