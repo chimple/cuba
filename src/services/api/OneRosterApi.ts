@@ -4,6 +4,7 @@ import {
   COURSES,
   CURRENT_STUDENT,
   CURRENT_USER,
+  INSTANT_SEARCH_INDEX_NAME,
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODES,
@@ -30,6 +31,14 @@ import { RoleType } from "../../interface/modelInterfaces";
 import tincan from "../../tincan";
 import { Util } from "../../utility/util";
 import ApiDataProcessor from "./ApiDataProcessor";
+import algoliasearch from "algoliasearch/lite";
+
+const searchClient = algoliasearch(
+  process.env.REACT_APP_ALGOLIA_APP_ID!,
+  process.env.REACT_APP_ALGOLIA_API_KEY!
+);
+
+const searchIndex = searchClient.initIndex(INSTANT_SEARCH_INDEX_NAME);
 
 interface IGetStudentResultStatement {
   agent: {
@@ -1732,8 +1741,32 @@ export class OneRosterApi implements ServiceApi {
   }
 
   searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
-    throw new Error("Method not implemented.");
+    console.log("searchLessons called with:", searchString);
+    return this.onSearch({ state: { query: searchString } });
   }
+
+  private searchStartTime: number = 0;
+
+  private async onSearch(params: { state: { query: string } }): Promise<TableTypes<"lesson">[]> {
+    const term = params.state.query;
+    console.log("onSearch triggered with term:", term);
+    
+    this.searchStartTime = Date.now();
+    console.log("Search start time recorded:", this.searchStartTime);
+  
+    const results = await searchIndex.search(term);
+    console.log("Algolia search results:", results);
+  
+    const tempLessons = results.hits.map((hit) => {
+      const lesson = hit as unknown as Lesson;
+      lesson.docId = hit.objectID;
+      return lesson;
+    });
+    console.log("Mapped lessons:", tempLessons);
+  
+    return tempLessons;
+  }
+
   createOrUpdateAssignmentCart(
     userId: string,
     lessons: string
