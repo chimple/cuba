@@ -283,3 +283,8 @@ p {
   font-size: 5vh;
   color: var(--text-color);
 }
+
+.back {
+  visibility: none;
+  display: none;
+}
