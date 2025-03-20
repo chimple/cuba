@@ -441,39 +441,10 @@ export class SqliteApi implements ServiceApi {
   ) {
     if (!this._db) return;
   
-    const previousUserId = localStorage.getItem(PREVIOUS_USER_ID_KEY);
-    const currentUserId = localStorage.getItem(CURRENT_USER_ID_KEY);
-  
-    const userSpecificTables: string[] = []; 
-    if (
-      previousUserId &&
-      currentUserId &&
-      previousUserId !== currentUserId &&
-      userSpecificTables.length > 0
-    ) {
-      try {
-        for (const table of userSpecificTables) {
-          if (!Capacitor.isNativePlatform()) {
-            // Web: Delete records for this table not matching the current user.
-            await this.executeQuery(
-              `DELETE FROM ${table} WHERE user_id <> ?`,
-              [currentUserId]
-            );
-          } else {
-            // Native: Execute similar deletion.
-            await this._db.execute(
-              `DELETE FROM ${table} WHERE user_id <> '${currentUserId}'`
-            );
-          }
-        }
-        localStorage.removeItem(PREVIOUS_USER_ID_KEY);
-      } catch (error) {
-        console.error("❌ Error deleting previous user data:", error);
-      }
-    } else {
-      console.log("✅ No user-specific tables to clear, or same user detected.");
-    }
-  
+    // Here we no longer need to compare previous and current user IDs,
+    // since clearUserCache() is used to fully reset the database when needed.
+    // So we just proceed with the regular sync.
+    
     if (refreshTables.length > 0) {
       const refresh_tables = "'" + refreshTables.join("', '") + "'";
       await this.executeQuery(
@@ -488,7 +459,7 @@ export class SqliteApi implements ServiceApi {
       `UPDATE pull_sync_info SET last_pulled = CURRENT_TIMESTAMP WHERE table_name IN (${tablesStr})`
     );
     return res;
-  }
+  }  
 
   private async createSyncTables() {
     const createPullSyncInfoTable = `CREATE TABLE IF NOT EXISTS pull_sync_info (
