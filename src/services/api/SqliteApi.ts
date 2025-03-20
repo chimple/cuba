@@ -39,6 +39,8 @@ import { RoleType } from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
 import { Table } from "@mui/material";
 
+export const PREVIOUS_USER_ID_KEY = "PREVIOUS_USER_ID";
+export const CURRENT_USER_ID_KEY = "CURRENT_USER_ID";
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
@@ -440,32 +442,37 @@ export class SqliteApi implements ServiceApi {
   ) {
     if (!this._db) return;
   
-    const previousUserId = localStorage.getItem("PREVIOUS_USER_ID");
-    const currentUserId = localStorage.getItem("CURRENT_USER_ID");
+    const previousUserId = localStorage.getItem(PREVIOUS_USER_ID_KEY);
+    const currentUserId = localStorage.getItem(CURRENT_USER_ID_KEY);
   
-    // If a new user is detected, remove all records that do not belong to the current user.
-    if (previousUserId && currentUserId && previousUserId !== currentUserId) {
+    const userSpecificTables: string[] = []; 
+    if (
+      previousUserId &&
+      currentUserId &&
+      previousUserId !== currentUserId &&
+      userSpecificTables.length > 0
+    ) {
       try {
-        console.log("🚀 New user detected - Removing previous user data...");
-        const tables = ["messages", "contacts", "chats"]; 
-  
-        for (const table of tables) {
+        for (const table of userSpecificTables) {
           if (!Capacitor.isNativePlatform()) {
+            // Web: Delete records for this table not matching the current user.
             await this.executeQuery(
               `DELETE FROM ${table} WHERE user_id <> ?`,
               [currentUserId]
             );
           } else {
+            // Native: Execute similar deletion.
             await this._db.execute(
               `DELETE FROM ${table} WHERE user_id <> '${currentUserId}'`
             );
           }
         }
-  
-        localStorage.removeItem("PREVIOUS_USER_ID");
+        localStorage.removeItem(PREVIOUS_USER_ID_KEY);
       } catch (error) {
         console.error("❌ Error deleting previous user data:", error);
       }
+    } else {
+      console.log("✅ No user-specific tables to clear, or same user detected.");
     }
   
     if (refreshTables.length > 0) {
@@ -477,12 +484,13 @@ export class SqliteApi implements ServiceApi {
   
     await this.pullChanges(tableNames);
     const res = await this.pushChanges(tableNames);
-    const tables = "'" + tableNames.join("', '") + "'";
+    const tablesStr = "'" + tableNames.join("', '") + "'";
     await this.executeQuery(
-      `UPDATE pull_sync_info SET last_pulled = CURRENT_TIMESTAMP WHERE table_name IN (${tables})`
+      `UPDATE pull_sync_info SET last_pulled = CURRENT_TIMESTAMP WHERE table_name IN (${tablesStr})`
     );
     return res;
-  }  
+  }
+   
 
   private async createSyncTables() {
     const createPullSyncInfoTable = `CREATE TABLE IF NOT EXISTS pull_sync_info (
