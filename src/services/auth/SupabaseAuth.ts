@@ -14,6 +14,21 @@ import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Util } from "../../utility/util";
 import {PREVIOUS_USER_ID_KEY, CURRENT_USER_ID_KEY} from '../../common/constants'
 
+interface UserState {
+  previousUserId?: string;
+  currentUserId?: string;
+}
+const USER_STATE_KEY = "USER_STATE";
+
+function getUserState(): UserState {
+  const state = localStorage.getItem(USER_STATE_KEY);
+  return state ? JSON.parse(state) : {};
+}
+
+function setUserState(state: UserState): void {
+  localStorage.setItem(USER_STATE_KEY, JSON.stringify(state));
+}
+
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
   private _currentUser: TableTypes<"user"> | undefined;
@@ -266,25 +281,24 @@ export class SupabaseAuth implements ServiceAuth {
   }
 
   async handleCacheOnLogin(currentUserId: string | undefined) {
-    const previousUserId = localStorage.getItem(PREVIOUS_USER_ID_KEY);
-    console.log("Stored Previous User ID:", previousUserId);
-    console.log("Current Logged-In User ID:", currentUserId);
+    const state = getUserState();
+    console.log("Current stored state:", state);
+    console.log("New user ID:", currentUserId);
   
-    if (previousUserId && currentUserId && previousUserId !== currentUserId) {
+    if (state.currentUserId && currentUserId && state.currentUserId !== currentUserId) {
       console.log("🚀 New user detected - Clearing previous user's cache.");
-      // Remove other user-specific localStorage items
       const userSpecificKeys = [CURRENT_USER, USER_DATA, "class", "school", "userRole"];
       userSpecificKeys.forEach((key) => localStorage.removeItem(key));
       await ServiceConfig.getI().apiHandler.clearUserCache();
-    } else {
-      console.log("✅ Same user detected - Keeping existing cache.");
+      state.previousUserId = state.currentUserId;
     }
   
-    if (currentUserId) {
-      localStorage.setItem(PREVIOUS_USER_ID_KEY, currentUserId);
-      localStorage.setItem(CURRENT_USER_ID_KEY, currentUserId);
-    }
-  } 
+    // Always update currentUserId in the state:
+    state.currentUserId = currentUserId;
+    setUserState(state);
+    console.log("Updated state:", getUserState());
+  }
+   
   
   async logOut(): Promise<void> {
     if (this._currentUser?.id) {
