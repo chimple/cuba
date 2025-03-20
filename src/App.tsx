@@ -118,6 +118,7 @@ import "./App.css";
 import ShowStudentsInAssignmentPage from "./chimple-private/pages/ShowStudentsInAssignmentPage";
 import { schoolUtil } from "./utility/schoolUtil";
 import LidoPlayer from "./pages/LidoPlayer";
+import { initializeClickListener } from "./analytics/clickUtil";
 
 setupIonicReact();
 interface ExtraData {
@@ -151,6 +152,7 @@ const App: React.FC = () => {
   const [showToast, setShowToast] = useState<boolean>(false);
   const [isActive, setIsActive] = useState(true);
   useEffect(() => {
+    const cleanup = initializeClickListener();
     const handleOnline = () => {
       if (!online) {
         setOnline(true);
@@ -191,6 +193,7 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      cleanup();
     };
   }, [online, presentToast]);
   useEffect(() => {
