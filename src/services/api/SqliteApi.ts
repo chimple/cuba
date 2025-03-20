@@ -490,7 +490,6 @@ export class SqliteApi implements ServiceApi {
     );
     return res;
   }
-   
 
   private async createSyncTables() {
     const createPullSyncInfoTable = `CREATE TABLE IF NOT EXISTS pull_sync_info (
