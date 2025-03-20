@@ -444,41 +444,37 @@ const App: React.FC = () => {
   const history = useHistory();
 
   useEffect(() => {
-  
     const handleDeepLink = (event: any) => {
-      if (!event) {
-        console.error("❌ Invalid event object received:", event);
+      if (!event || !event.learningUnitId) {
+        console.error("❌ Invalid event object:", event);
         return;
       }
   
+      console.log("📥 Received Deep Link Event:", event);
+  
       try {
         const learningUnitId = event.learningUnitId;
-        console.log("learningUnitId", learningUnitId);
-        if (learningUnitId) {
-          const parts = learningUnitId.split("_");
-          if (parts.length === 3) {
-            const courseId = parts[0];
-            const chapterId = parts[1];
-            const lessonId = parts[2];
+        const parts = learningUnitId.split("_");
   
-            const params = `?courseid=${courseId}&chapterid=${chapterId}&lessonid=${lessonId}`;
-            history.replace(PAGES.GAME + params, {
-              url: "chimple-lib/index.html" + params,
-              from: PAGES.APP_UPDATE,
-              lessonId: lessonId,
-              courseDocId: courseId,
-            });
-            console.log('history',history)
-            window.location.href = PAGES.GAME + params;
+        if (parts.length === 3) {
+          const [courseId, chapterId, lessonId] = parts;
+          const params = `?courseid=${courseId}&chapterid=${chapterId}&lessonid=${lessonId}`;
   
-          } else {
-            console.error("❌ Invalid learningUnitId format:", learningUnitId);
-          }
+          console.log("📌 Navigating to:", PAGES.GAME + params);
+          console.log("📝 Passing state:", { lessonId, courseDocId: courseId });
+  
+          history.replace(PAGES.GAME + params, {
+            url: "chimple-lib/index.html" + params,
+            from: PAGES.SELECT_MODE,
+            lessonId: lessonId,
+            courseDocId: courseId,
+          });
+  
         } else {
-          console.error("❌ learningUnitId not found in deep link!");
+          console.error("❌ Invalid `learningUnitId` format:", learningUnitId);
         }
       } catch (error) {
-        console.error("⚠️ Error parsing deep link data:", error);
+        console.error("⚠️ Error handling deep link:", error);
       }
     };
   
@@ -487,7 +483,8 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener("appUrlOpen", handleDeepLink);
     };
-  }, []);
+  }, [history]);
+  
   
   return (
     <IonApp>
