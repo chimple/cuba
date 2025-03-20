@@ -76,7 +76,7 @@ const FileUpload: React.FC = () => {
         </div>
       </div>
       <a href="#" className="download-upload-template">
-        <FaCloudDownloadAlt /> Download Bulk Upload Template
+        <FaCloudDownloadAlt /> {t("Download Bulk Upload Template")}
       </a>
     </div>
   );
