@@ -119,6 +119,7 @@ import ShowStudentsInAssignmentPage from "./chimple-private/pages/ShowStudentsIn
 import { schoolUtil } from "./utility/schoolUtil";
 import LidoPlayer from "./pages/LidoPlayer";
 import { initializeClickListener } from "./analytics/clickUtil";
+import { EVENTS } from "./common/constants";
 import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 
 setupIonicReact();
@@ -146,6 +147,10 @@ const gb = new GrowthBook({
       experimentId: experiment.key,
       variationId: result.key,
     });
+    Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
+      experimentId: experiment.key,
+      variationId: result.key,
+    })
   },
 });
 gb.init({
