@@ -64,6 +64,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        setIntent(intent);
         handleDeepLink(intent);
     }
 
@@ -72,7 +73,7 @@ public class MainActivity extends BridgeActivity {
             Log.e("MainActivity", "❌ ERROR: No deep link data found in intent!");
             return;
         }
-    
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         Uri data = intent.getData();
         Log.d("MainActivity", "🌍 Deep Link Received: " + data.toString());
     
