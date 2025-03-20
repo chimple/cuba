@@ -3831,17 +3831,18 @@ order by
     schoolId: string,
     userId: string
   ): Promise<boolean> {
-    // Check if the user is either PROGRAM_MANAGER or OPERATIONAL_DIRECTOR in school_user
+    // Check if user is PROGRAM_MANAGER, OPERATIONAL_DIRECTOR, or FIELD_COORDINATOR in school_user
     const result = await this.executeQuery(
       `SELECT * FROM school_user 
      WHERE school_id = ? AND user_id = ?
-     AND role IN (?, ?)  
+     AND role IN (?, ?, ?)  
      AND is_deleted = false`,
       [
         schoolId,
         userId,
         RoleType.PROGRAM_MANAGER,
         RoleType.OPERATIONAL_DIRECTOR,
+        RoleType.FIELD_COORDINATOR,
       ]
     );
 
