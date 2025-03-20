@@ -40,8 +40,6 @@ import { Util } from "../../utility/util";
 import { Table } from "@mui/material";
 import {PREVIOUS_USER_ID_KEY, CURRENT_USER_ID_KEY} from '../../common/constants'
 
-// export const PREVIOUS_USER_ID_KEY = "PREVIOUS_USER_ID";
-// export const CURRENT_USER_ID_KEY = "CURRENT_USER_ID";
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
