@@ -119,6 +119,7 @@ import ShowStudentsInAssignmentPage from "./chimple-private/pages/ShowStudentsIn
 import { schoolUtil } from "./utility/schoolUtil";
 import LidoPlayer from "./pages/LidoPlayer";
 import { initializeClickListener } from "./analytics/clickUtil";
+import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 
 setupIonicReact();
 interface ExtraData {
@@ -135,6 +136,21 @@ const USED_TIME_KEY = "usedTime";
 const LAST_ACCESS_DATE_KEY = "lastAccessDate";
 const IS_INITIALIZED = "isInitialized";
 let timeoutId: NodeJS.Timeout;
+
+const gb = new GrowthBook({
+  apiHost: "https://cdn.growthbook.io",
+  clientKey: "sdk-8qjX5TWdnSyzgJLi",
+  enableDevMode: true,
+  trackingCallback: (experiment, result) => {
+    console.log("Experiment Viewed", {
+      experimentId: experiment.key,
+      variationId: result.key,
+    });
+  },
+});
+gb.init({
+  streaming: true
+})
 
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
@@ -446,6 +462,7 @@ const App: React.FC = () => {
     }
   }
   return (
+    <GrowthBookProvider growthbook={gb}>
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>
         <IonRouterOutlet>
@@ -718,6 +735,7 @@ const App: React.FC = () => {
         />
       </IonReactRouter>
     </IonApp>
+    </GrowthBookProvider>
   );
 };
 
