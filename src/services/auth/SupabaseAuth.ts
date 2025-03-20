@@ -12,8 +12,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import { ServiceConfig } from "../ServiceConfig";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Util } from "../../utility/util";
-import { Capacitor } from "@capacitor/core";
-import { CapacitorSQLite, SQLiteConnection } from "@capacitor-community/sqlite";
+import {PREVIOUS_USER_ID_KEY, CURRENT_USER_ID_KEY} from '../../common/constants'
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
@@ -267,24 +266,25 @@ export class SupabaseAuth implements ServiceAuth {
   }
 
   async handleCacheOnLogin(currentUserId: string | undefined) {
-    const previousUserId = localStorage.getItem("PREVIOUS_USER_ID");
+    const previousUserId = localStorage.getItem(PREVIOUS_USER_ID_KEY);
+    console.log("Stored Previous User ID:", previousUserId);
+    console.log("Current Logged-In User ID:", currentUserId);
   
     if (previousUserId && currentUserId && previousUserId !== currentUserId) {
-      // Remove user-specific local storage items as needed.
+      console.log("🚀 New user detected - Clearing previous user's cache.");
+      // Remove other user-specific localStorage items
       const userSpecificKeys = [CURRENT_USER, USER_DATA, "class", "school", "userRole"];
       userSpecificKeys.forEach((key) => localStorage.removeItem(key));
-
       await ServiceConfig.getI().apiHandler.clearUserCache();
     } else {
       console.log("✅ Same user detected - Keeping existing cache.");
     }
-    
-    if (currentUserId) {
-      localStorage.setItem("PREVIOUS_USER_ID", currentUserId);
-      localStorage.setItem("CURRENT_USER_ID", currentUserId);
-    }
-  }  
   
+    if (currentUserId) {
+      localStorage.setItem(PREVIOUS_USER_ID_KEY, currentUserId);
+      localStorage.setItem(CURRENT_USER_ID_KEY, currentUserId);
+    }
+  } 
   
   async logOut(): Promise<void> {
     if (this._currentUser?.id) {

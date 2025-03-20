@@ -3,6 +3,9 @@ import Auth from "../models/auth";
 import { Database } from "../services/database";
 import { RoleType } from "../interface/modelInterfaces";
 
+export const PREVIOUS_USER_ID_KEY = "PREVIOUS_USER_ID";
+export const CURRENT_USER_ID_KEY = "CURRENT_USER_ID";
+
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = "sl-en",
   SIERRA_LEONE_MATHS = "sl-maths",
