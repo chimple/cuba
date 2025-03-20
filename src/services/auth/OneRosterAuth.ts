@@ -119,9 +119,9 @@ export class OneRosterAuth implements ServiceAuth {
     } = isUser ? JSON.parse(isUser) : {};
     const user: TableTypes<"user"> = {
       age: null,
-      avatar: "/assets/avatar/Aligator.png",
+      avatar: "Aligator",
       created_at: "null",
-      curriculum_id: null,
+      curriculum_id: "Chimple",
       email: actor.mbox[0],
       fcm_token: null,
       gender: "male",
@@ -138,7 +138,6 @@ export class OneRosterAuth implements ServiceAuth {
       student_id: registration,
       updated_at: null,
     };
-    // throw new Error("Method not implemented.");
     return Promise.resolve(user);
   }
 

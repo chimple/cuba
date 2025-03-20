@@ -30,6 +30,7 @@ import { RoleType } from "../../interface/modelInterfaces";
 import tincan from "../../tincan";
 import { Util } from "../../utility/util";
 import ApiDataProcessor from "./ApiDataProcessor";
+import { APIMode, ServiceConfig } from "../ServiceConfig";
 
 interface IGetStudentResultStatement {
   agent: {
@@ -600,7 +601,7 @@ export class OneRosterApi implements ServiceApi {
     fromCache?: boolean
   ): Promise<TableTypes<"result">[]> {
     try {
-      const loggedStudent = JSON.parse(localStorage.getItem(CURRENT_STUDENT));
+      const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();
       if (!loggedStudent || !loggedStudent.name) {
         throw new Error("No logged-in student found");
       }
@@ -629,7 +630,7 @@ export class OneRosterApi implements ServiceApi {
   }
   async getStudentProgress(): Promise<Map<string, string>> {
     try {
-      const loggedStudent = JSON.parse(localStorage.getItem(CURRENT_STUDENT));
+      const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();;
       if (!loggedStudent || !loggedStudent.name) {
         throw new Error("No logged-in student found");
       }
@@ -654,7 +655,10 @@ export class OneRosterApi implements ServiceApi {
     studentId?: string
   ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
     try {
-      const loggedStudent = JSON.parse(localStorage.getItem(CURRENT_STUDENT));
+      const loggedStudent =
+        await ServiceConfig.getI().authHandler.getCurrentUser();
+      console.log("const loggedStudent ", loggedStudent);
+
       if (!loggedStudent || !loggedStudent.name) {
         throw new Error("No logged-in student found");
       }
@@ -808,7 +812,7 @@ export class OneRosterApi implements ServiceApi {
     studentId: string
   ): Promise<Map<string, StudentLessonResult> | undefined> {
     try {
-      const users = localStorage.getItem(CURRENT_USER);
+      const users = await ServiceConfig.getI().authHandler.getCurrentUser();;
       const currentUser = JSON.parse(users);
       if (!currentUser || !currentUser.name) {
         throw new Error("No logged-in student found");
@@ -871,7 +875,7 @@ export class OneRosterApi implements ServiceApi {
       throw new Error("Student information is missing.");
     }
 
-    const loggedStudent = JSON.parse(localStorage.getItem(CURRENT_STUDENT));
+    const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();;
     const agentEmail = `mailto:${loggedStudent?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
 
     const statement = {
@@ -974,38 +978,16 @@ export class OneRosterApi implements ServiceApi {
     return []
     // throw new Error("Method not implemented.");
   }
-  getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
-    const users = localStorage.getItem(CURRENT_USER);
-    const currentUser = JSON.parse(users);
+  async getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     console.log(
       "OneRosterApi ~ getParentStudentProfiles ~ Ln:442",
       currentUser
     );
     let profile: TableTypes<"user">[] = []
-    // const { actor, given_name, registration } = currentUser;
-    const user: TableTypes<"user"> = {
-      respectLaunchVersion: 1.1,
-      age: null,
-      avatar: "Aligator",
-      created_at: "null",
-      curriculum_id: "7d560737-746a-4931-a49f-02de1ca526bd",
-      email: currentUser._actorMbox,
-      fcm_token: null,
-      gender: "male",
-      grade_id: null,
-      id: currentUser._actorMbox,
-      image: null,
-      is_deleted: null,
-      is_tc_accepted: true,
-      language_id: "en",
-      music_off: null,
-      name: currentUser._name,
-      phone: null,
-      sfx_off: null,
-      student_id: "23",
-      updated_at: null,
-    };
-    profile.push(user)
+    profile.push(currentUser)
+    console.log("return profile; ", profile);
+
     return profile;
   }
 
