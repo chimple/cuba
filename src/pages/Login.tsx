@@ -61,8 +61,10 @@ const Login: React.FC = () => {
   //const [parentName, setParentName] = useState<any>("");
   const api = ServiceConfig.getI().apiHandler;
 
-  const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier>();
-  const [phoneNumberSigninRes, setPhoneNumberSigninRes] = useState<ConfirmationResult>();
+  const [recaptchaVerifier, setRecaptchaVerifier] =
+    useState<RecaptchaVerifier>();
+  const [phoneNumberSigninRes, setPhoneNumberSigninRes] =
+    useState<ConfirmationResult>();
   const [userData, setUserData] = useState<any>();
 
   const authInstance = ServiceConfig.getI().authHandler;
@@ -90,23 +92,27 @@ const Login: React.FC = () => {
     t("Track your learning progress."),
     t("Preparing 400+ fun lessons."),
     t("Customize your profiles."),
-    t("Assign or get regular homework.")
+    t("Assign or get regular homework."),
   ];
   const loadingAnimations = [
     "/assets/home.gif",
     "/assets/hw-book.gif",
     "/assets/profiles-grid.gif",
-    "/assets/subjects-book.gif"
-  ]
+    "/assets/subjects-book.gif",
+  ];
   const [loadingAnimationsIndex, setLoadingAnimationsIndex] = useState(0);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentMessageIndex((prevIndex) => (prevIndex + 1) % loadingMessages.length);
-      setLoadingAnimationsIndex((prevIndex) => (prevIndex + 1) % loadingAnimations.length);
-    }, 5000); 
+      setCurrentMessageIndex(
+        (prevIndex) => (prevIndex + 1) % loadingMessages.length
+      );
+      setLoadingAnimationsIndex(
+        (prevIndex) => (prevIndex + 1) % loadingAnimations.length
+      );
+    }, 5000);
 
-    return () => clearInterval(interval); 
+    return () => clearInterval(interval);
   }, [loadingMessages.length]);
   const [isInputFocus, setIsInputFocus] = useState(false);
   const scollToRef = useRef<null | HTMLDivElement>(null);
@@ -136,14 +142,14 @@ const Login: React.FC = () => {
   const [showStudentCredentialtLogin, setStudentCredentialLogin] =
     useState<boolean>(false);
   const PortPlugin = registerPlugin<any>("Port");
-    useEffect(() => {
-      initNumberSelectedListner();
-    }, []);
-    useEffect(() => {
-      if (phoneNumber.length == 10) {
-        initSmsListner();
-      }
-    }, [phoneNumber]);
+  useEffect(() => {
+    initNumberSelectedListner();
+  }, []);
+  useEffect(() => {
+    if (phoneNumber.length == 10) {
+      initSmsListner();
+    }
+  }, [phoneNumber]);
 
   useEffect(() => {
     // init();
@@ -249,21 +255,28 @@ const Login: React.FC = () => {
   const otpEventListener = async (event: Event) => {
     const data = await PortPlugin.otpRetrieve();
     if (data?.otp) {
-        setVerificationCode(data.otp.toString());
-        onVerificationCodeSubmit(data.otp.toString());
-        setIsInvalidCode({ isInvalidCode: false, isInvalidCodeLength: false });
-    } 
-      document.removeEventListener("otpReceived", otpEventListener);
-}
+      setVerificationCode(data.otp.toString());
+      onVerificationCodeSubmit(data.otp.toString());
+      setIsInvalidCode({ isInvalidCode: false, isInvalidCodeLength: false });
+    }
+    document.removeEventListener("otpReceived", otpEventListener);
+  };
 
   const isPhoneNumberEventListener = async (event: Event) => {
     await retriewPhoneNumber();
-    document.removeEventListener("isPhoneNumberSelected", isPhoneNumberEventListener);
+    document.removeEventListener(
+      "isPhoneNumberSelected",
+      isPhoneNumberEventListener
+    );
   };
   const initNumberSelectedListner = async () => {
-    document.addEventListener("isPhoneNumberSelected", isPhoneNumberEventListener, {
-      once: true,
-    });
+    document.addEventListener(
+      "isPhoneNumberSelected",
+      isPhoneNumberEventListener,
+      {
+        once: true,
+      }
+    );
   };
   const initSmsListner = async () => {
     document.addEventListener("otpReceived", otpEventListener, { once: true });
@@ -417,7 +430,7 @@ const Login: React.FC = () => {
       history.replace(PAGES.DISPLAY_STUDENT);
     }
   }
-  const onVerificationCodeSubmit = async (otp:string) => {
+  const onVerificationCodeSubmit = async (otp: string) => {
     try {
       setIsLoading(true);
       setIsInitialLoading(true);
@@ -590,6 +603,7 @@ const Login: React.FC = () => {
     <IonPage id="login-screen">
       {!!showBackButton && (
         <div className="login-class-header">
+          <span className="back">Back</span>
           <BackButton
             onClicked={() => {
               setShowVerification(false);
@@ -639,8 +653,12 @@ const Login: React.FC = () => {
                         ref={inputRef}
                         inputText={t("Enter Mobile Number (10-digit)")}
                         inputType={"tel"}
+                        aria-label={t("Enter Mobile Number (10-digit)")}
                         onFocus={async () => {
-                          if (Capacitor.getPlatform() === "android" && !isPromptNumbers) {
+                          if (
+                            Capacitor.getPlatform() === "android" &&
+                            !isPromptNumbers
+                          ) {
                             const data = await PortPlugin.requestPermission();
                             setIsPromptNumbers(true);
                           }
@@ -678,7 +696,6 @@ const Login: React.FC = () => {
                         {errorMessage}
                       </p>
                     </div>
-
                     <p
                       ref={phoneNumberErrorRef}
                       style={{ display: "none" }}
@@ -748,6 +765,7 @@ const Login: React.FC = () => {
                 <div className="login-with-google-or-student-credentials-container">
                   <img
                     id="login-google-icon"
+                    aria-label={String(t("Google Sign In"))}
                     alt="Google Icon"
                     src="assets/icons/Google Icon.png"
                     onClick={async () => {
@@ -815,9 +833,13 @@ const Login: React.FC = () => {
                   {!showVerification ? (
                     <div
                       className="login-with-student-credentials"
+                      aria-label={String(t("Student-credentials Sign In"))}
                       onClick={loinWithStudentCredentialsButton}
                     >
-                      <IoSchool className="school-icon" />
+                      <IoSchool
+                        aria-label={String(t("Student-credentials Sign In"))}
+                        className="school-icon"
+                      />
                     </div>
                   ) : null}
                 </div>
@@ -1082,22 +1104,28 @@ const Login: React.FC = () => {
             </div>
           </div>
         ) : null}
-        { isInitialLoading ? (
-            <div className="initial-loading-ui">
-              <img src={loadingAnimations[loadingAnimationsIndex]} alt="initial-gif-animations" className="initial-homework-icon" />
-              <img src="/assets/loader-circle.gif" alt="initial-loading-gif" className="initial-loading-spinner" />
-              <IonText className="initial-loading-text">
-                <p>{t(loadingMessages[currentMessageIndex])}</p>
-              </IonText>
-              <IonText className="initial-loading-text">
-                <p>{t("Hang tight, It’s a special occasion!")}</p>
-              </IonText>
-            </div>
-          ) : null}
+        {isInitialLoading ? (
+          <div className="initial-loading-ui">
+            <img
+              src={loadingAnimations[loadingAnimationsIndex]}
+              alt="initial-gif-animations"
+              className="initial-homework-icon"
+            />
+            <img
+              src="/assets/loader-circle.gif"
+              alt="initial-loading-gif"
+              className="initial-loading-spinner"
+            />
+            <IonText className="initial-loading-text">
+              <p>{t(loadingMessages[currentMessageIndex])}</p>
+            </IonText>
+            <IonText className="initial-loading-text">
+              <p>{t("Hang tight, It’s a special occasion!")}</p>
+            </IonText>
+          </div>
+        ) : null}
       </div>
-      <Loading
-        isLoading={sentOtpLoading}
-      />
+      <Loading isLoading={sentOtpLoading} />
     </IonPage>
   );
 };
