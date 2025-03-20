@@ -1217,7 +1217,6 @@ export class FirebaseApi implements ServiceApi {
     try {
       console.log('assignmentCount: ', count)
       const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
-      console.log('typeof', typeof(+count))
       let q1 = query(
         collection(this._db, CollectionIds.ASSIGNMENT),
         where("isClassWise", "==", true),
@@ -1292,13 +1291,7 @@ export class FirebaseApi implements ServiceApi {
         }
         return true;
       });
-      console.log("Filtered assignments....", filteredAssignments);
-      let returnArray: any = [];
-      for (let i = 0; i < +count; i++) {
-        returnArray.push(filteredAssignments[i])
-      }
-      console.log("ReturnArray: ", returnArray)
-      return returnArray
+      return filteredAssignments;
     } catch (error) {
       console.log(
         "🚀 ~ file: FirebaseApi.ts:856 ~ FirebaseApi ~ error:",

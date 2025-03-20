@@ -46,11 +46,7 @@ const AssignmentPage: React.FC = () => {
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [showDownloadHomeworkButton, setShowDownloadHomeworkButton] =
     useState(true);
-    const assignmentCount = useFeatureValue('bvm-test', '50');
-    useEffect(() => {
-      console.log('assignmentCount: ', assignmentCount)
-    }, [assignmentCount])
-
+    const assignmentCount: string = '50';
   useEffect(() => {
     const initialLoadingState = JSON.parse(
       localStorage.getItem(DOWNLOAD_BUTTON_LOADING_STATUS) || "false"

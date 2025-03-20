@@ -71,8 +71,9 @@ import AddStudent from "./pages/Malta/AddStudent";
 import { JailbreakRoot } from "@basecom-gmbh/capacitor-jailbreak-root-detection";
 import { useIonAlert } from "@ionic/react";
 import i18n from "./i18n";
-import { GrowthBook } from "@growthbook/growthbook-react";
-import { GrowthBookProvider } from "@growthbook/growthbook-react";
+import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
+// import { thirdPartyTrackingPlugin, autoAttributesPlugin } from "@growthbook/growthbook/plugins";
+// import { thirdPartyTrackingPlugin }
 import { ServiceConfig } from "./services/ServiceConfig";
 
 setupIonicReact();
@@ -93,10 +94,10 @@ const App: React.FC = () => {
 
 const growthbook = new GrowthBook({
   apiHost: "https://cdn.growthbook.io",
-  clientKey: "sdk-aSuu3sthvOYihKqu",
+  // clientKey: "sdk-aSuu3sthvOYihKqu",
+  clientKey: "sdk-8qjX5TWdnSyzgJLi",
   enableDevMode: true,
   trackingCallback: (experiment, result) => {
-    // TODO: Use your real analytics tracking system
     console.log("Viewed Experiment", {
       experimentId: experiment.key,
       variationId: result.key,
@@ -242,11 +243,11 @@ growthbook.init({ streaming: true });
 
   const growthBookAttributes = async (docId: string) => {
     const studentResult = await api.getStudentResult(docId);
-    console.log("studentResult in App.tsx: ", studentResult);
     studentResult &&
       growthbook.setAttributes({
-        school_id: studentResult.schools[0],
-        id: studentResult.docId
+        school_ids:studentResult.schools,
+        id: studentResult.docId,
+        class_ids: studentResult.classes
       });
     console.log("growthbookConfig: ", growthbook);
   };
