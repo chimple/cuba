@@ -440,10 +440,6 @@ export class SqliteApi implements ServiceApi {
     refreshTables: TABLES[] = []
   ) {
     if (!this._db) return;
-  
-    // Here we no longer need to compare previous and current user IDs,
-    // since clearUserCache() is used to fully reset the database when needed.
-    // So we just proceed with the regular sync.
     
     if (refreshTables.length > 0) {
       const refresh_tables = "'" + refreshTables.join("', '") + "'";
